@@ -15,15 +15,14 @@ export class ExpressionInput extends React.Component<IExpressionInputProps> {
   public static defaultProps = { context: {}, placeholder: '' };
 
   public componentDidUpdate(prevProps: IExpressionInputProps) {
-    const { context, field } = this.props;
-    if (field.value !== prevProps.field.value || !isEqual(context, prevProps.context)) {
-      const expressionChange = evaluateExpression(context, field.value);
+    const { context, value } = this.props;
+    if (value !== prevProps.value || !isEqual(context, prevProps.context)) {
+      const expressionChange = evaluateExpression(context, value);
       this.props.onExpressionChange(expressionChange);
     }
   }
 
   public render(): JSX.Element {
-    const { field, placeholder, validation } = this.props;
-    return <TextInput autoComplete="off" field={field} placeholder={placeholder} validation={validation} />;
+    return <TextInput autoComplete="off" {...this.props} />;
   }
 }

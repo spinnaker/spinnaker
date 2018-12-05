@@ -1,13 +1,13 @@
 import * as React from 'react';
 import Select, { Option, ReactSelectProps } from 'react-select';
 
-import { IControlledInputProps, StringsAsOptions, TetheredSelect } from 'core/presentation';
+import { OmitControlledInputPropsFrom, StringsAsOptions, TetheredSelect } from 'core/presentation';
 import { noop } from 'core/utils';
 
 import { isStringArray, orEmptyString } from './utils';
 import { IFormInputProps } from '../interface';
 
-interface IReactSelectInputProps extends IFormInputProps, ReactSelectProps {
+interface IReactSelectInputProps extends IFormInputProps, OmitControlledInputPropsFrom<ReactSelectProps> {
   stringOptions?: string[];
   tethered?: boolean;
 }
@@ -31,11 +31,11 @@ export const createFakeReactSyntheticEvent = (target: { name: string; value?: an
  * Given a IControlledInputProps "field" (i.e., from Formik), returns an onChange handler
  * somewhat compatible with the controlled input pattern
  */
-export const reactSelectOnChangeAdapter = (field: IControlledInputProps) => {
+export const reactSelectOnChangeAdapter = (name: string, onChange: IReactSelectInputProps['onChange']) => {
   return (selectedOption: Option) => {
-    const target = { name: field.name, value: selectedOption.value };
+    const target = { name, value: selectedOption.value };
     const event = createFakeReactSyntheticEvent(target);
-    return (field.onChange || noop)(event);
+    return (onChange || noop)(event);
   };
 };
 
@@ -43,11 +43,11 @@ export const reactSelectOnChangeAdapter = (field: IControlledInputProps) => {
  * Given a IControlledInputProps "field" (i.e., from Formik), returns an onBlur handler
  * somewhat compatible with the controlled input pattern
  */
-export const reactSelectOnBlurAdapter = (field: IControlledInputProps) => {
+export const reactSelectOnBlurAdapter = (name: string, value: any, onBlur: IReactSelectInputProps['onBlur']) => {
   return () => {
-    const target = { name: field.name, value: field.value };
+    const target = { name, value };
     const event = createFakeReactSyntheticEvent(target);
-    return (field.onBlur || noop)(event);
+    return (onBlur || noop)(event);
   };
 };
 
@@ -65,8 +65,11 @@ export class ReactSelectInput extends React.Component<IReactSelectInputProps> {
 
   public render() {
     const {
+      name,
+      onChange,
+      onBlur,
+      value,
       tethered,
-      field,
       validation,
       stringOptions,
       options: optionOptions,
@@ -74,11 +77,14 @@ export class ReactSelectInput extends React.Component<IReactSelectInputProps> {
       ...otherProps
     } = this.props;
 
-    const onChange = reactSelectOnChangeAdapter(field);
-    const onBlur = reactSelectOnBlurAdapter(field);
-    const fieldProps = { name: field.name, value: orEmptyString(field.value), onBlur, onChange };
     const className = orEmptyString(inputClassName);
     const style = validation.validationStatus === 'error' ? reactSelectValidationErrorStyle : {};
+    const fieldProps = {
+      name,
+      value: orEmptyString(value),
+      onBlur: reactSelectOnBlurAdapter(name, value, onBlur),
+      onChange: reactSelectOnChangeAdapter(name, onChange),
+    };
 
     const SelectElement = ({ options }: { options: IReactSelectInputProps['options'] }) =>
       tethered ? (

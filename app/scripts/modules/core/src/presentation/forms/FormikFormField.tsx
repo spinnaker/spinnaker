@@ -95,7 +95,7 @@ export class FormikFormFieldImpl<T = any>
 
     const fieldLayoutPropsWithoutInput: IFieldLayoutPropsWithoutInput = { label, help, required, actions };
 
-    const render = (props: FieldProps<any>) => {
+    const renderField = (props: FieldProps<any>) => {
       const { field } = props;
 
       const validationProps: IValidationProps = {
@@ -106,7 +106,7 @@ export class FormikFormFieldImpl<T = any>
         removeValidator: this.removeValidator,
       };
 
-      const inputElement = renderContent(input, { field, validation: validationProps });
+      const inputElement = renderContent(input, { ...field, validation: validationProps });
 
       return (
         <WatchValue onChange={onChange} value={field.value}>
@@ -118,10 +118,10 @@ export class FormikFormFieldImpl<T = any>
     const validator = createFieldValidator(label, required, [].concat(validate).concat(internalValidators));
 
     if (this.props.fastField) {
-      return <FastField name={name} validate={validator} render={render} />;
+      return <FastField name={name} validate={validator} render={renderField} />;
     }
 
-    return <Field name={name} validate={validator} render={render} />;
+    return <Field name={name} validate={validator} render={renderField} />;
   }
 }
 

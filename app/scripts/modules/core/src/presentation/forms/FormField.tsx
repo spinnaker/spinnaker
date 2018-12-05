@@ -114,7 +114,7 @@ export class FormField extends React.Component<IFormFieldProps, IFormFieldState>
       removeValidator: this.removeValidator,
     };
 
-    const inputElement = renderContent(input, { field: controlledInputProps, validation: validationProps });
+    const inputElement = renderContent(input, { ...controlledInputProps, validation: validationProps });
 
     return (
       <WatchValue onChange={x => this.value$.next(x)} value={value}>

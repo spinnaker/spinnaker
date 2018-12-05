@@ -1,22 +1,20 @@
 import * as React from 'react';
 import { Option } from 'react-select';
 
-import { Markdown, StringsAsOptions } from 'core/presentation';
+import { Markdown, OmitControlledInputPropsFrom, StringsAsOptions } from 'core/presentation';
 
 import { isStringArray, orEmptyString, validationClassName } from './utils';
-
 import { IFormInputProps } from '../interface';
 
-interface IRadioButtonInputProps extends IFormInputProps, React.TextareaHTMLAttributes<any> {
+interface IRadioButtonInputProps
+  extends IFormInputProps,
+    OmitControlledInputPropsFrom<React.TextareaHTMLAttributes<any>> {
   options: Array<string | Option<string | number>>;
   inputClassName?: string;
 }
 
 export const RadioButtonInput = (props: IRadioButtonInputProps) => {
-  const { field, validation, inputClassName, options } = props;
-  const { value, onBlur, onChange, name } = field;
-
-  const fieldProps = { name, onChange, onBlur };
+  const { value, validation, inputClassName, options, ...otherProps } = props;
   const className = `RadioButtonInput radio ${orEmptyString(inputClassName)} ${validationClassName(validation)}`;
 
   const RadioButtonsElement = ({ opts }: { opts: Array<Option<string>> }) => (
@@ -24,7 +22,7 @@ export const RadioButtonInput = (props: IRadioButtonInputProps) => {
       {opts.map(option => (
         <div key={option.label} className={className}>
           <label>
-            <input type="radio" {...fieldProps} value={option.value} checked={option.value === value} />
+            <input type="radio" {...otherProps} value={option.value} checked={option.value === value} />
             <span className="marked">
               <Markdown message={option.label} />
             </span>

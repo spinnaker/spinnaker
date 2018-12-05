@@ -36,7 +36,7 @@ export class FormikApplicationsPicker extends React.Component<IFormikApplication
       const appClassName = 'body-small zombie-label flex-1 sp-padding-xs-yaxis sp-padding-s-xaxis sp-margin-xs-yaxis';
       const isError = props.validation.validationStatus === 'error';
       // When there is an error, render a disabled TextInput with failed validation, else render the weird box ui
-      return isError ? <TextInput disabled={true} {...props} /> : <p className={appClassName}>{props.field.value}</p>;
+      return isError ? <TextInput disabled={true} {...props} /> : <p className={appClassName}>{props.value}</p>;
     };
 
     return (

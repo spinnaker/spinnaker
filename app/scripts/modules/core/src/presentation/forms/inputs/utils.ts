@@ -6,6 +6,7 @@ import { IValidationProps } from '../interface';
 export const orEmptyString = (val: any) => (isUndefined(val) ? '' : val);
 
 export const validationClassName = (validation: IValidationProps) => {
+  validation = validation || {};
   return classNames({
     'ng-dirty': !!validation.touched,
     'ng-invalid': validation.validationStatus === 'error',

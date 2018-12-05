@@ -1,24 +1,23 @@
 import * as React from 'react';
 import { Option } from 'react-select';
 
-import { StringsAsOptions } from 'core/presentation';
+import { OmitControlledInputPropsFrom, StringsAsOptions } from 'core/presentation';
 
 import { isStringArray, orEmptyString, validationClassName } from './utils';
 import { IFormInputProps } from '../interface';
 
-interface ISelectInputProps extends IFormInputProps, React.InputHTMLAttributes<any> {
+interface ISelectInputProps extends IFormInputProps, OmitControlledInputPropsFrom<React.InputHTMLAttributes<any>> {
   inputClassName?: string;
   options: Array<string | Option<string>>;
 }
 
 export class SelectInput extends React.Component<ISelectInputProps> {
   public render() {
-    const { field, validation, options, inputClassName, ...otherProps } = this.props;
-    const fieldProps = { ...field, value: orEmptyString(field.value) };
+    const { value, validation, options, inputClassName, ...otherProps } = this.props;
     const className = `SelectInput form-control ${orEmptyString(inputClassName)} ${validationClassName(validation)}`;
 
     const SelectElement = ({ opts }: { opts: Array<Option<string>> }) => (
-      <select className={className} {...fieldProps} {...otherProps}>
+      <select className={className} value={orEmptyString(value)} {...otherProps}>
         {opts.map(option => (
           <option key={option.value} value={option.value}>
             {option.label}

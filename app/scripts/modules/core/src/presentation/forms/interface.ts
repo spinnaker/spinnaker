@@ -17,13 +17,19 @@ export interface IFieldLayoutProps extends IFieldLayoutPropsWithoutInput {
   input: React.ReactNode;
 }
 
-/** These props are used by controlled components, such as <input> or Input components like TextInput */
+/**
+ * These props are used by controlled components, such as <input> or Input components like TextInput
+ * The typings reference the typings supplied by formik FieldProps
+ */
 export interface IControlledInputProps {
   value: FieldProps['field']['value'];
   onChange: FieldProps['field']['onChange'];
   onBlur: FieldProps['field']['onBlur'];
   name: FieldProps['field']['name'];
 }
+
+export type Omit<T, K> = Pick<T, Exclude<keyof T, K>>;
+export type OmitControlledInputPropsFrom<T> = Omit<T, keyof IControlledInputProps>;
 
 /** These props are used by Input components, such as TextInput */
 export interface IValidationProps {
@@ -35,9 +41,8 @@ export interface IValidationProps {
 }
 
 /** These props are used by Input components, such as TextInput */
-export interface IFormInputProps {
-  field: IControlledInputProps;
-  validation: IValidationProps;
+export interface IFormInputProps extends Partial<IControlledInputProps> {
+  validation?: IValidationProps;
   inputClassName?: string;
 }
 
