@@ -17,31 +17,40 @@ export interface IServiceParameterJsonValidationConfig extends IValidatorConfig 
 
 export class ServiceParameterJsonFieldValidator implements IStageOrTriggerValidator {
   public validate(
-    _pipeline: IPipeline,
+    pipeline: IPipeline,
     stage: IStage | ITrigger,
     validationConfig: IServiceParameterJsonValidationConfig,
   ): string {
-    if (!this.fieldIsValid(stage, validationConfig)) {
-      return this.validationMessage(validationConfig);
+    if (!this.passesValidation(stage, validationConfig)) {
+      return this.validationMessage(validationConfig, pipeline);
     }
     return null;
   }
 
-  private validationMessage(validationConfig: IServiceParameterJsonValidationConfig): string {
-    const fieldLabel: string = this.printableFieldLabel(validationConfig);
-    return validationConfig.message || `<strong>${fieldLabel}</strong> should be a valid JSON string.`;
+  protected passesValidation(
+    stage: IStage | ITrigger,
+    validationConfig: IServiceParameterJsonValidationConfig,
+  ): boolean {
+    return this.fieldIsValid(stage, validationConfig);
   }
 
-  private printableFieldLabel(config: IServiceParameterJsonValidationConfig): string {
+  protected validationMessage(validationConfig: IServiceParameterJsonValidationConfig, pipeline: IPipeline): string {
+    const fieldLabel: string = this.printableFieldLabel(validationConfig);
+    return (
+      validationConfig.message || `<strong>${fieldLabel}</strong> should be a valid JSON string in ${pipeline.name}`
+    );
+  }
+
+  protected printableFieldLabel(config: IServiceParameterJsonValidationConfig): string {
     const fieldLabel: string = config.fieldLabel || config.fieldName;
     return upperFirst(fieldLabel);
   }
 
-  private fieldIsValid(stage: IStage | ITrigger, config: IServiceParameterJsonValidationConfig): boolean {
+  protected fieldIsValid(stage: IStage | ITrigger, config: IServiceParameterJsonValidationConfig): boolean {
     const fieldExists = has(stage, config.fieldName);
     const field: any = get(stage, config.fieldName);
 
-    if (!fieldExists || !field) {
+    if (!fieldExists || !field.trim()) {
       return true;
     }
 
