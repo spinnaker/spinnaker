@@ -241,6 +241,15 @@ export class AwsServerGroupConfigurationService {
             loadBalancerReloader = this.refreshLoadBalancers(cmd, true);
           }
         }
+
+        if (cmd.targetGroups && cmd.targetGroups.length) {
+          // verify all target groups are accounted for; otherwise, try refreshing load balancers cache
+          const targetGroupNames = this.getTargetGroupNames(cmd);
+          if (intersection(targetGroupNames, cmd.targetGroups).length < cmd.targetGroups.length) {
+            loadBalancerReloader = this.refreshLoadBalancers(cmd, true);
+          }
+        }
+
         if (cmd.securityGroups && cmd.securityGroups.length) {
           const regionalSecurityGroupIds = map(this.getRegionalSecurityGroups(cmd), 'id');
           if (intersection(cmd.securityGroups, regionalSecurityGroupIds).length < cmd.securityGroups.length) {
