@@ -28,7 +28,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Data
 public class V2PipelineTemplate implements VersionedSchema {
@@ -121,7 +120,9 @@ public class V2PipelineTemplate implements VersionedSchema {
   }
 
   public void setStages(List<V2StageDefinition> stages) {
-    pipeline.put("stages", stages);
+    ObjectMapper oj = new ObjectMapper();
+    TypeReference mapTypeRef = new TypeReference<List<Map<String, Object>>>() {};
+    pipeline.put("stages", oj.convertValue(stages, mapTypeRef));
   }
 
   public void accept(V2PipelineTemplateVisitor visitor) {

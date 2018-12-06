@@ -146,7 +146,7 @@ class OperationsController {
     }
   }
 
-  private Map parseAndValidatePipeline(Map pipeline) {
+  public Map parseAndValidatePipeline(Map pipeline) {
     parsePipelineTrigger(executionRepository, buildService, pipeline)
 
     for (PipelinePreprocessor preprocessor : (pipelinePreprocessors ?: [])) {

@@ -16,11 +16,12 @@
 
 package com.netflix.spinnaker.orca.pipeline.expressions;
 
-import java.util.*;
 import com.netflix.spinnaker.orca.pipeline.util.ContextFunctionConfiguration;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
+
+import java.util.Map;
 
 public class PipelineExpressionEvaluator extends ExpressionsSupport implements ExpressionEvaluator {
   public static final String SUMMARY = "expressionEvaluationSummary";
