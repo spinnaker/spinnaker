@@ -32,13 +32,12 @@ dependencies {
   testCompile "io.strikt:strikt-core:0.11.5"
   testCompile "org.assertj:assertj-core:3.9.0"
   testCompile "org.junit.jupiter:junit-jupiter-api:${spinnaker.version("jupiter")}"
-  testCompile "com.oneeyedmen:minutest:+"
   testCompile "com.nhaarman:mockito-kotlin:1.5.0"
 
   testCompile("com.netflix.spinnaker.clouddriver:cats-test:${clouddriverVersion}")
   testCompile(spinnaker.dependency("korkSqlTest"))
   testRuntime "org.junit.jupiter:junit-jupiter-engine:${spinnaker.version("jupiter")}"
-  testRuntime "org.junit.platform:junit-platform-launcher:${spinnaker.version("junit")}"
+  testRuntime "org.junit.platform:junit-platform-launcher:${spinnaker.version("junit5")}"
   testRuntime "org.junit.vintage:junit-vintage-engine:${spinnaker.version("junitVintage")}"
 }
 
