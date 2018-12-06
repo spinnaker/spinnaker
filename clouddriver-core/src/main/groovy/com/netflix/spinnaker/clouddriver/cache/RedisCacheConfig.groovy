@@ -20,9 +20,9 @@ import com.netflix.discovery.EurekaClient
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.redis.cache.RedisCache.CacheMetrics
 import com.netflix.spinnaker.cats.redis.cache.RedisCacheOptions
-import com.netflix.spinnaker.cats.redis.cluster.AgentIntervalProvider
-import com.netflix.spinnaker.cats.redis.cluster.DefaultNodeStatusProvider
-import com.netflix.spinnaker.cats.redis.cluster.NodeStatusProvider
+import com.netflix.spinnaker.cats.cluster.AgentIntervalProvider
+import com.netflix.spinnaker.cats.cluster.DefaultNodeStatusProvider
+import com.netflix.spinnaker.cats.cluster.NodeStatusProvider
 import com.netflix.spinnaker.clouddriver.core.RedisConfigurationProperties
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.context.properties.ConfigurationProperties

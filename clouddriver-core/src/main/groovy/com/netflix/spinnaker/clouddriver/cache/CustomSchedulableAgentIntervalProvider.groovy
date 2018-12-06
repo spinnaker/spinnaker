@@ -17,8 +17,8 @@
 package com.netflix.spinnaker.clouddriver.cache
 
 import com.netflix.spinnaker.cats.agent.Agent
-import com.netflix.spinnaker.cats.redis.cluster.AgentIntervalProvider
-import com.netflix.spinnaker.cats.redis.cluster.DefaultAgentIntervalProvider
+import com.netflix.spinnaker.cats.cluster.AgentIntervalProvider
+import com.netflix.spinnaker.cats.cluster.DefaultAgentIntervalProvider
 import groovy.transform.CompileStatic
 
 @CompileStatic

@@ -35,10 +35,10 @@ import com.netflix.spinnaker.cats.dynomite.cache.DynomiteNamedCacheFactory
 import com.netflix.spinnaker.cats.dynomite.cluster.DynoClusteredAgentScheduler
 import com.netflix.spinnaker.cats.dynomite.cluster.DynoClusteredSortAgentScheduler
 import com.netflix.spinnaker.cats.redis.cache.RedisCacheOptions
-import com.netflix.spinnaker.cats.redis.cluster.AgentIntervalProvider
-import com.netflix.spinnaker.cats.redis.cluster.DefaultNodeIdentity
-import com.netflix.spinnaker.cats.redis.cluster.DefaultNodeStatusProvider
-import com.netflix.spinnaker.cats.redis.cluster.NodeStatusProvider
+import com.netflix.spinnaker.cats.cluster.AgentIntervalProvider
+import com.netflix.spinnaker.cats.cluster.DefaultNodeIdentity
+import com.netflix.spinnaker.cats.cluster.DefaultNodeStatusProvider
+import com.netflix.spinnaker.cats.cluster.NodeStatusProvider
 import com.netflix.spinnaker.clouddriver.core.RedisConfigurationProperties
 import com.netflix.spinnaker.kork.dynomite.DynomiteClientDelegate
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate

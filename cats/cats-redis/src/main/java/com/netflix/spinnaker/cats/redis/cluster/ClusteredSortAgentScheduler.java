@@ -23,6 +23,8 @@ import com.netflix.spinnaker.cats.agent.AgentSchedulerAware;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.agent.CachingAgent;
 import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation;
+import com.netflix.spinnaker.cats.cluster.AgentIntervalProvider;
+import com.netflix.spinnaker.cats.cluster.NodeStatusProvider;
 import com.netflix.spinnaker.cats.module.CatsModuleAware;
 import com.netflix.spinnaker.cats.thread.NamedThreadFactory;
 import org.slf4j.Logger;

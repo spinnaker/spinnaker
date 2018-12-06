@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.cats.redis.cluster;
+package com.netflix.spinnaker.cats.cluster;
 
 import com.netflix.spinnaker.cats.agent.Agent;
 

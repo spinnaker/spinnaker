@@ -14,11 +14,8 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.cats.redis.cluster;
+package com.netflix.spinnaker.cats.cluster;
 
-public class DefaultNodeStatusProvider implements NodeStatusProvider {
-  @Override
-  public boolean isNodeEnabled() {
-    return true;
-  }
+public interface NodeStatusProvider {
+  boolean isNodeEnabled();
 }

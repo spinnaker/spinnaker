@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.cats.redis.cluster
+package com.netflix.spinnaker.cats.cluster
 
+import com.netflix.spinnaker.cats.cluster.DefaultNodeIdentity
 import com.netflix.spinnaker.cats.redis.test.NetworkUnavailableCheck
 import spock.lang.IgnoreIf
 import spock.lang.Specification

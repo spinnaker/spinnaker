@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.cache
 
 import com.netflix.appinfo.InstanceInfo
 import com.netflix.discovery.EurekaClient
-import com.netflix.spinnaker.cats.redis.cluster.NodeStatusProvider
+import com.netflix.spinnaker.cats.cluster.NodeStatusProvider
 
 class EurekaStatusNodeStatusProvider implements NodeStatusProvider {
   private final EurekaClient eurekaClient

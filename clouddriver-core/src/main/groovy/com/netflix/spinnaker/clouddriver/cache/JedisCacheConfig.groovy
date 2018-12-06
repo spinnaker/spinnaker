@@ -21,11 +21,11 @@ import com.netflix.spinnaker.cats.cache.NamedCacheFactory
 import com.netflix.spinnaker.cats.redis.cache.RedisCache.CacheMetrics
 import com.netflix.spinnaker.cats.redis.cache.RedisCacheOptions
 import com.netflix.spinnaker.cats.redis.cache.RedisNamedCacheFactory
-import com.netflix.spinnaker.cats.redis.cluster.AgentIntervalProvider
+import com.netflix.spinnaker.cats.cluster.AgentIntervalProvider
 import com.netflix.spinnaker.cats.redis.cluster.ClusteredAgentScheduler
 import com.netflix.spinnaker.cats.redis.cluster.ClusteredSortAgentScheduler
-import com.netflix.spinnaker.cats.redis.cluster.DefaultNodeIdentity
-import com.netflix.spinnaker.cats.redis.cluster.NodeStatusProvider
+import com.netflix.spinnaker.cats.cluster.DefaultNodeIdentity
+import com.netflix.spinnaker.cats.cluster.NodeStatusProvider
 import com.netflix.spinnaker.clouddriver.core.RedisConfigurationProperties
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.jedis.JedisClientDelegate

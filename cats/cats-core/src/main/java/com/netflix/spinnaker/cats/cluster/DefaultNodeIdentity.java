@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.cats.redis.cluster;
+package com.netflix.spinnaker.cats.cluster;
 
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
