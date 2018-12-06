@@ -1,7 +1,8 @@
 import * as React from 'react';
 import { $rootScope } from 'ngimport';
 
-import { IRegion } from 'core/account/AccountService';
+import { IRegion } from 'core/account';
+import { RegionSelectInput } from 'core/region/RegionSelectInput';
 
 export interface IRegionSelectFieldProps {
   account: string;
@@ -16,41 +17,26 @@ export interface IRegionSelectFieldProps {
 
 export class RegionSelectField extends React.Component<IRegionSelectFieldProps> {
   private handleChange(event: React.ChangeEvent<HTMLSelectElement>) {
-    const props = this.props;
-    props.component[props.field] = event.target.value;
-    props.onChange(event.target.value);
+    const { component, onChange, field } = this.props;
+    component[field] = event.target.value;
+    onChange(event.target.value);
     $rootScope.$apply(); // force re-digest
     this.setState({}); // force re-render
   }
 
   public render() {
-    const props = this.props;
+    const { labelColumns, fieldColumns, account, regions, readOnly, component, field } = this.props;
     return (
       <div className="form-group">
-        <div className={`col-md-${props.labelColumns} sm-label-right`}>Region</div>
-        {!props.account && <div className={`col-md-${props.fieldColumns || 7}`}>(Select an account)</div>}
-        <div className={`col-md-${props.fieldColumns || 7}`}>
-          {props.account &&
-            !props.readOnly && (
-              <select
-                className="form-control input-sm"
-                value={props.component[props.field] || ''}
-                onChange={event => this.handleChange(event)}
-                required={true}
-              >
-                <option value="" disabled={true}>
-                  Select...
-                </option>
-                {props.regions.map(region => {
-                  return (
-                    <option key={region.name} value={region.name}>
-                      {region.name} {region.deprecated ? "(deprecated in the '" + props.account + "' account)" : ''}
-                    </option>
-                  );
-                })}
-              </select>
-            )}
-          {props.readOnly && <p className="form-control-static">{props.component[props.field]}</p>}
+        <div className={`col-md-${labelColumns} sm-label-right`}>Region</div>
+        <div className={`col-md-${fieldColumns || 7}`}>
+          <RegionSelectInput
+            account={account}
+            regions={regions}
+            readOnly={readOnly}
+            value={component[field]}
+            onChange={evt => this.handleChange(evt)}
+          />
         </div>
       </div>
     );
