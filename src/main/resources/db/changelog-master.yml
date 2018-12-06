@@ -5,3 +5,6 @@ databaseChangeLog:
 - include:
     file: changelog/20181120-cats.yml
     relativeToChangelogFile: true
+- include:
+    file: changelog/20181205-agent-scheduler.yml
+    relativeToChangelogFile: true
