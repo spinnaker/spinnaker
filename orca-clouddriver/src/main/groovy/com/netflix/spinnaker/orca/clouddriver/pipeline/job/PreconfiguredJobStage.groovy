@@ -23,14 +23,12 @@ import com.netflix.spinnaker.orca.clouddriver.service.JobService
 import com.netflix.spinnaker.orca.pipeline.TaskNode
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 
 @Component
-@ConditionalOnProperty("job.preconfigured")
 class PreconfiguredJobStage extends RunJobStage {
 
-  @Autowired
+  @Autowired(required=false)
   private JobService jobService
 
   def fields = PreconfiguredJobStageProperties.declaredFields.findAll {

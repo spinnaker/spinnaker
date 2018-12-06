@@ -19,20 +19,21 @@ package com.netflix.spinnaker.orca.clouddriver.service;
 import com.netflix.spinnaker.orca.clouddriver.config.JobConfigurationProperties;
 import com.netflix.spinnaker.orca.clouddriver.config.PreconfiguredJobStageProperties;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-@ConditionalOnProperty("job.preconfigured")
 public class JobService {
 
   @Autowired JobConfigurationProperties jobConfigurationProperties;
 
-  @Autowired
   List<PreconfiguredJobStageProperties> getPreconfiguredStages() {
+    if(jobConfigurationProperties.getPreconfigured()==null){
+      return Collections.EMPTY_LIST;
+    }
     return jobConfigurationProperties.getPreconfigured().stream().filter(it -> it.enabled == true).collect(Collectors.toList());
   }
 
