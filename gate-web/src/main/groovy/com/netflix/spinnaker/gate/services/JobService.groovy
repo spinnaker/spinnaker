@@ -45,6 +45,12 @@ class JobService {
     } execute()
   }
 
+  List getPreconfiguredJobs(String selectorKey) {
+    HystrixFactory.newListCommand(GROUP, "getPreconfiguredJobs") {
+      clouddriverServiceSelector.select(selectorKey).getPreconfiguredJobs()
+    } execute()
+  }
+
   Map getForApplicationAndAccountAndRegion(String applicationName, String account, String region, String name, String selectorKey) {
     HystrixFactory.newMapCommand(GROUP, "getJobsForApplicationAccountAndRegion-${providerLookupService.providerForAccount(account)}", {
       try {

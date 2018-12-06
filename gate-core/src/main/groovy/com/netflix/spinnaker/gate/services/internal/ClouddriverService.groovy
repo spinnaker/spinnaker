@@ -158,6 +158,10 @@ interface ClouddriverService {
   List getJobs(@Path("name") String name, @Query("expand") String expand)
 
   @Headers("Accept: application/json")
+  @GET("/jobs/preconfigured")
+  List getPreconfiguredJobs()
+
+  @Headers("Accept: application/json")
   @GET("/applications/{name}/jobs/{account}/{region}/{jobName}")
   Map getJobDetails(@Path("name") String name,
                     @Path("account") String account,

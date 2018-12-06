@@ -46,4 +46,11 @@ class JobController {
              @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
     jobService.getForApplicationAndAccountAndRegion(applicationName, account, region, name, sourceApp)
   }
+
+  @ApiOperation(value = "Retrieve a list of preconfigured jobs in Orca")
+  @RequestMapping(value = "/jobs/preconfigured", method = RequestMethod.GET)
+  List preconfiguredWebhooks(@RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
+    jobService.getPreconfiguredJobs(sourceApp)
+  }
+
 }
