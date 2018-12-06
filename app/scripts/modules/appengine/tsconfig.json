@@ -9,10 +9,7 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "jsx": "react",
-    "lib": [
-      "es2016",
-      "dom"
-    ],
+    "lib": ["es2016", "dom"],
     "moduleResolution": "node",
     "module": "commonjs",
     "noEmitHelpers": false,
@@ -30,21 +27,14 @@
     "inlineSources": true,
     "strictNullChecks": false, // should really get to a place where we can turn this on
     "target": "es6",
-    "typeRoots": [
-      "../../../../node_modules/@types"
-    ],
+    "typeRoots": ["../../../../node_modules/@types"],
     "paths": {
       "@spinnaker/core": ["../../core/lib"],
+      "core/*": ["../../core/lib/*"],
       "appengine/*": ["*"],
       "appengine": ["."]
     }
   },
-  "include": [
-    "src/**/*.ts",
-    "src/**/*.tsx"
-  ],
-  "exclude": [
-    "./lib",
-    "**/*.spec.*"
-  ]
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "exclude": ["./lib", "**/*.spec.*"]
 }

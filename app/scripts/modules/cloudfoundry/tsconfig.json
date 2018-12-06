@@ -30,6 +30,7 @@
     "typeRoots": ["../../../../node_modules/@types"],
     "paths": {
       "@spinnaker/core": ["../../core/lib"],
+      "core/*": ["../../core/lib/*"],
       "cloudfoundry/*": ["*"],
       "cloudfoundry": ["."]
     }
