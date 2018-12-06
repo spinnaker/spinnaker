@@ -17,8 +17,10 @@
 package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.gate.config.InsightConfiguration
+import com.netflix.spinnaker.gate.security.RequestContext
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
+import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -33,6 +35,10 @@ class JobService {
   ClouddriverServiceSelector clouddriverServiceSelector
 
   @Autowired
+  OrcaServiceSelector orcaServiceSelector
+
+
+  @Autowired
   InsightConfiguration insightConfiguration
 
   @Autowired
@@ -45,9 +51,10 @@ class JobService {
     } execute()
   }
 
-  List getPreconfiguredJobs(String selectorKey) {
+  List getPreconfiguredJobs() {
+    RequestContext requestContext = RequestContext.get()
     HystrixFactory.newListCommand(GROUP, "getPreconfiguredJobs") {
-      clouddriverServiceSelector.select(selectorKey).getPreconfiguredJobs()
+        orcaServiceSelector.withContext(requestContext).getPreconfiguredJobs()
     } execute()
   }
 
