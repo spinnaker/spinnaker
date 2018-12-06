@@ -26,7 +26,7 @@ import {
   IClassicLoadBalancerSourceData,
   IListenerAction,
   ITargetGroup,
-} from 'amazon';
+} from 'amazon/domain';
 
 import { LOAD_BALANCER_ACTIONS } from './loadBalancerActions.component';
 

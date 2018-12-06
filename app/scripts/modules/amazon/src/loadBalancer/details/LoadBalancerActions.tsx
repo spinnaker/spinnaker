@@ -4,7 +4,7 @@ import { get } from 'lodash';
 
 import { Application, ApplicationReader, LoadBalancerWriter, SETTINGS, NgReact, ReactInjector } from '@spinnaker/core';
 
-import { IAmazonLoadBalancer, IAmazonLoadBalancerDeleteCommand } from 'amazon';
+import { IAmazonLoadBalancer, IAmazonLoadBalancerDeleteCommand } from 'amazon/domain';
 
 import { ILoadBalancerFromStateParams } from './loadBalancerDetails.controller';
 import { LoadBalancerTypes } from '../configure/LoadBalancerTypes';

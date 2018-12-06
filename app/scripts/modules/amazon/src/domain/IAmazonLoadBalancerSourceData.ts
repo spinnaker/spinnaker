@@ -1,7 +1,8 @@
 import { ILoadBalancerSourceData } from '@spinnaker/core';
 
+import { NLBListenerProtocol } from 'amazon/domain';
+
 import { IListenerActionType, IListenerRule } from './IAmazonLoadBalancer';
-import { NLBListenerProtocol } from 'amazon';
 
 export interface IAmazonContainerServerGroupSourceData {
   detachedInstances: string[];

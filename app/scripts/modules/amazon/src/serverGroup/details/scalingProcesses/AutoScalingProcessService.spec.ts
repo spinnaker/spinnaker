@@ -1,5 +1,5 @@
-import { IAmazonAsg } from 'amazon';
-import { IAmazonServerGroup } from 'amazon/domain';
+import { IAmazonAsg, IAmazonServerGroup } from 'amazon/domain';
+
 import { AutoScalingProcessService } from './AutoScalingProcessService';
 
 describe('AutoScalingProcessService', () => {
