@@ -2,11 +2,11 @@ import * as React from 'react';
 import * as classNames from 'classnames';
 
 import { Key, ITag, TagList } from 'core/widgets';
+import { FirewallLabels } from 'core/securityGroup';
 
 import { IFilterType, SearchFilterTypeRegistry } from './SearchFilterTypeRegistry';
 import { Filters, IFiltersLayout } from './Filters';
 import { Filter } from './Filter';
-import { FirewallLabels } from 'core';
 
 import './search.less';
 

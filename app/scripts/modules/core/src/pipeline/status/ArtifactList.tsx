@@ -1,6 +1,7 @@
 import * as React from 'react';
+
 import { IArtifact, IExpectedArtifact } from 'core/domain';
-import { ArtifactIconService } from 'core';
+import { ArtifactIconService } from 'core/artifact';
 
 import './artifactList.less';
 

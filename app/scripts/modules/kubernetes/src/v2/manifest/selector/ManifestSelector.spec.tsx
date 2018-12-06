@@ -4,7 +4,7 @@ import { Creatable, Option } from 'react-select';
 import { $q } from 'ngimport';
 import Spy = jasmine.Spy;
 
-import { AccountService, noop, AccountSelectField, ScopeClusterSelector } from 'core';
+import { noop, ScopeClusterSelector, AccountService, AccountSelectField } from '@spinnaker/core';
 
 import { ManifestKindSearchService } from 'kubernetes/v2/manifest/ManifestKindSearch';
 import { ManifestSelector } from 'kubernetes/v2/manifest/selector/ManifestSelector';

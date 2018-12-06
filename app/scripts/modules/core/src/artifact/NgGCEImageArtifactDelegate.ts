@@ -1,15 +1,10 @@
 import { IScope } from 'angular';
-import {
-  ExpectedArtifactService,
-  Registry,
-  IExpectedArtifact,
-  IArtifactAccount,
-  IArtifactKindConfig,
-  IArtifactSource,
-  IExpectedArtifactSelectorViewControllerDelegate,
-  IStage,
-  IPipeline,
-} from 'core';
+
+import { IArtifactKindConfig, IExpectedArtifact, IArtifactSource, IStage, IPipeline } from 'core/domain';
+import { ExpectedArtifactService, IExpectedArtifactSelectorViewControllerDelegate } from 'core/artifact';
+import { Registry } from 'core/registry';
+import { IArtifactAccount } from 'core/account';
+
 import { ExpectedArtifactSelectorViewControllerAngularDelegate } from './ExpectedArtifactSelectorViewControllerAngularDelegate';
 import { ArtifactTypePatterns } from './ArtifactTypes';
 

@@ -1,7 +1,10 @@
 import { module } from 'angular';
 import * as React from 'react';
 import { react2angular } from 'react2angular';
-import { TetheredSelect, IArtifactKindConfig } from 'core';
+
+import { IArtifactKindConfig } from 'core/domain';
+import { TetheredSelect } from 'core/presentation';
+
 import { ArtifactIcon } from './ArtifactIcon';
 
 export interface IExpectedArtifactKindSelectorProps {

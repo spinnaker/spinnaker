@@ -1,12 +1,11 @@
 import { IController, IScope } from 'angular';
 
+import { AccountService, IArtifactAccount } from 'core/account';
 import {
-  AccountService,
   ExpectedArtifactSelectorViewController,
   NgBakeManifestArtifactDelegate,
-  IArtifactAccount,
   IArtifactAccountPair,
-} from 'core';
+} from 'core/artifact';
 import { UUIDGenerator } from 'core/utils';
 
 export class BakeManifestConfigCtrl implements IController {

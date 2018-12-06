@@ -1,9 +1,11 @@
 import * as React from 'react';
 
-import { CloudProviderLogo, HealthCounts, IInstanceCounts } from 'core';
+import { CloudProviderLogo } from 'core/cloudProvider';
+import { HealthCounts } from 'core/healthCounts';
+import { IInstanceCounts } from 'core/domain';
 import { Application } from 'core/application';
 import { IClusterSubgroup } from 'core/cluster';
-import { SETTINGS } from 'core/config/settings';
+import { SETTINGS } from 'core/config';
 import { EntityNotifications } from 'core/entityTag/notifications/EntityNotifications';
 
 export interface IServerGroupManagerHeadingProps {

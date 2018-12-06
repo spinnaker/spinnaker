@@ -1,8 +1,10 @@
 import * as React from 'react';
-import { IArtifact, IArtifactEditorProps, TetheredSelect } from 'core';
-import { ArtifactService } from 'core/pipeline/config/triggers/artifacts/ArtifactService';
 import { Option } from 'react-select';
 import { isFinite } from 'lodash';
+
+import { IArtifact, IArtifactEditorProps } from 'core/domain';
+import { TetheredSelect } from 'core/presentation';
+import { ArtifactService } from 'core/pipeline/config/triggers/artifacts/ArtifactService';
 
 interface IState {
   names: string[];

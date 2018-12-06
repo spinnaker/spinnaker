@@ -5,7 +5,8 @@ import { HtmlRenderer, Parser } from 'commonmark';
 import { Application } from 'core/application';
 import { IExecution, IExecutionStage, IExecutionStageSummary, IStage } from 'core/domain';
 import { Registry } from 'core/registry';
-import { ConfirmationModalService, ExecutionService } from 'core';
+import { ConfirmationModalService } from 'core/confirmationModal';
+import { ExecutionService } from 'core/pipeline';
 
 export class StageSummaryController implements IController {
   public application: Application;

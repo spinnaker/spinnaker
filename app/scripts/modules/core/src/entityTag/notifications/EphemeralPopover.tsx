@@ -1,6 +1,7 @@
 import * as React from 'react';
 
-import { HoverablePopover, IEntityTags } from 'core';
+import { HoverablePopover } from 'core/presentation';
+import { IEntityTags } from 'core/domain';
 
 import * as moment from 'moment';
 

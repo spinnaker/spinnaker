@@ -1,6 +1,6 @@
 import { IStage } from 'core/domain';
 import { get, noop } from 'lodash';
-import { Registry } from 'core';
+import { Registry } from 'core/registry';
 
 export class ArtifactReferenceService {
   public static removeReferenceFromStages(reference: string, stages: IStage[]) {

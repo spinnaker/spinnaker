@@ -1,5 +1,6 @@
+import { IArtifact } from 'core/domain';
+
 import { setNameAndVersionFromReference } from './defaultDocker.artifact';
-import { IArtifact } from 'core';
 
 describe('defaultDocker.artifact', () => {
   it('parses Docker image references correctly', () => {

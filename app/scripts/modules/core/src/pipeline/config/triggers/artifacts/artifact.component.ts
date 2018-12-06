@@ -9,9 +9,11 @@ import {
   IScope,
   module,
 } from 'angular';
+
 import { IArtifact, IArtifactKindConfig } from 'core/domain';
 import { Registry } from 'core/registry';
-import { AccountService, ArtifactIconService, ExpectedArtifactService, IArtifactAccount } from 'core';
+import { AccountService, IArtifactAccount } from 'core/account';
+import { ArtifactIconService, ExpectedArtifactService } from 'core/artifact';
 
 class ArtifactCtrl implements IController {
   public artifact: IArtifact;

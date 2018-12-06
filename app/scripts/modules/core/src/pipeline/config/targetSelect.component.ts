@@ -1,5 +1,6 @@
 import { module, IComponentOptions } from 'angular';
-import { IStageConstant } from 'core';
+
+import { IStageConstant } from './stages/stageConstants';
 
 export interface ITargetSelectProps {
   options: IStageConstant[];

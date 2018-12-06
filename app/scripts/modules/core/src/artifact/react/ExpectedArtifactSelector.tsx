@@ -1,7 +1,10 @@
 import { module } from 'angular';
 import * as React from 'react';
 import { react2angular } from 'react2angular';
-import { TetheredSelect, IExpectedArtifact, IArtifact } from 'core';
+
+import { TetheredSelect } from 'core/presentation';
+import { IExpectedArtifact, IArtifact } from 'core/domain';
+
 import { ArtifactIcon } from './ArtifactIcon';
 import { ExpectedArtifactService } from '../expectedArtifact.service';
 import { ARTIFACT_ACCOUNT_SELECTOR_COMPONENT_REACT } from './ArtifactAccountSelector';

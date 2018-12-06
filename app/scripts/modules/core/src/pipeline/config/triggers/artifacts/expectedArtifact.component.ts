@@ -1,6 +1,6 @@
 import { IAttributes, IComponentController, IComponentOptions, module } from 'angular';
 
-import { ExpectedArtifactService } from 'core';
+import { ExpectedArtifactService } from 'core/artifact';
 import { IExpectedArtifact } from 'core/domain';
 import { Registry } from 'core/registry';
 

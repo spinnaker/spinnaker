@@ -1,6 +1,8 @@
 import { IController, IComponentOptions, module } from 'angular';
 
-import { Application, IEntityTag } from 'core';
+import { IEntityTag } from 'core/domain';
+import { Application } from 'core/application';
+
 import { EntityTagEditor, IEntityTagEditorProps, IOwnerOption } from './EntityTagEditor';
 import './entityTags.help';
 

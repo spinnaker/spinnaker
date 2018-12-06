@@ -1,4 +1,4 @@
-import { ICluster } from 'core';
+import { ICluster } from 'core/domain';
 
 export interface IArtifactExtractor {
   extractArtifacts: (cluster: ICluster) => string[];

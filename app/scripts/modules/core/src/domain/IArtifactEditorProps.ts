@@ -1,4 +1,5 @@
-import { IArtifact, IArtifactAccount } from 'core';
+import { IArtifact } from 'core/domain';
+import { IArtifactAccount } from 'core/account';
 
 export interface IArtifactEditorProps {
   account: IArtifactAccount;

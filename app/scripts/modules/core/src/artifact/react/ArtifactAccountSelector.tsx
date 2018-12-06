@@ -1,7 +1,9 @@
 import { module } from 'angular';
 import * as React from 'react';
 import { react2angular } from 'react2angular';
-import { IArtifactAccount, TetheredSelect } from 'core';
+
+import { IArtifactAccount } from 'core/account';
+import { TetheredSelect } from 'core/presentation';
 
 export interface IArtifactAccountSelectorProps {
   accounts: IArtifactAccount[];

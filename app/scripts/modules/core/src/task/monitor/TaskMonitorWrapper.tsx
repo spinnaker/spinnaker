@@ -1,4 +1,4 @@
-import { TaskMonitor } from 'core';
+import { TaskMonitor } from 'core/task';
 
 export interface ITaskMonitorProps {
   monitor: TaskMonitor;

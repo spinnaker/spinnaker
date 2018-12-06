@@ -2,8 +2,11 @@ import { module } from 'angular';
 import * as React from 'react';
 import { react2angular } from 'react2angular';
 import { cloneDeep } from 'lodash';
-import { IExpectedArtifact, IArtifactAccount, IArtifactKindConfig, IArtifact } from 'core';
-import { StageConfigField } from 'core/pipeline/config/stages/core/stageConfigField/StageConfigField';
+
+import { IExpectedArtifact, IArtifactKindConfig, IArtifact } from 'core/domain';
+import { IArtifactAccount } from 'core/account';
+import { StageConfigField } from 'core/pipeline';
+
 import { ExpectedArtifactService } from '../expectedArtifact.service';
 import {
   ExpectedArtifactKindSelector,

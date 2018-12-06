@@ -1,6 +1,9 @@
 import * as React from 'react';
 import { get, has } from 'lodash';
-import { IExpectedArtifact, IExecution, IExecutionDetailsSectionProps, ExecutionDetailsSection } from 'core';
+
+import { IExpectedArtifact, IExecution } from 'core/domain';
+import { IExecutionDetailsSectionProps, ExecutionDetailsSection } from 'core/pipeline';
+
 import { ArtifactIconList } from './ArtifactIconList';
 
 import '../artifactTab.less';

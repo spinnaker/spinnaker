@@ -1,16 +1,11 @@
 import { module } from 'angular';
 import { get } from 'lodash';
 
-import {
-  ArtifactReferenceService,
-  ExecutionArtifactTab,
-  ExecutionDetailsTasks,
-  ExpectedArtifactService,
-  IArtifact,
-  IStage,
-  Registry,
-  SETTINGS,
-} from 'core';
+import { ArtifactReferenceService, ExecutionArtifactTab, ExpectedArtifactService } from 'core/artifact';
+import { ExecutionDetailsTasks } from 'core/pipeline';
+import { IArtifact, IStage } from 'core/domain';
+import { Registry } from 'core/registry';
+import { SETTINGS } from 'core/config';
 
 import { BakeManifestConfigCtrl } from './bakeManifestConfig.controller';
 

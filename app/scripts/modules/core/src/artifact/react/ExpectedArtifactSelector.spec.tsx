@@ -1,6 +1,9 @@
 import * as React from 'react';
 import { mount } from 'enzyme';
-import { ExpectedArtifactService, IExpectedArtifact } from 'core';
+
+import { ExpectedArtifactService } from 'core/artifact';
+import { IExpectedArtifact } from 'core/domain';
+
 import { ExpectedArtifactSelector } from './ExpectedArtifactSelector';
 
 const artifact = (kind: string, type: string): IExpectedArtifact => {

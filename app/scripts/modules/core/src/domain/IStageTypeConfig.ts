@@ -3,9 +3,7 @@ import { IExecutionDetailsSectionProps } from 'core/pipeline/config/stages/core'
 import { IExecutionContext, IExecutionStageLabelComponentProps, IExecutionStageSummary } from './IExecutionStage';
 import { IStageOrTriggerTypeConfig } from './IStageOrTriggerTypeConfig';
 
-export type IExecutionDetailsSection = (
-  | React.ComponentClass<IExecutionDetailsSectionProps>
-  | React.SFC<IExecutionDetailsSectionProps>) & { title: string };
+export type IExecutionDetailsSection = React.ComponentType<IExecutionDetailsSectionProps> & { title: string };
 
 export interface IStageTypeConfig extends IStageOrTriggerTypeConfig {
   accountExtractor?: (stage: IStage) => string;

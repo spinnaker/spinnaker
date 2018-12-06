@@ -1,4 +1,5 @@
-import { Application, IAccount } from 'core';
+import { Application } from 'core/application';
+import { IAccount } from 'core/account';
 
 export interface IAccountRegionClusterSelectorProps {
   application: Application;

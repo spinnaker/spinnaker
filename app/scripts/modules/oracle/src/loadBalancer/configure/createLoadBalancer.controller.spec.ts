@@ -1,9 +1,9 @@
 import { IControllerService, IRootScopeService, IScope, mock, noop } from 'angular';
 import { StateService } from '@uirouter/core';
 
-import { API, APPLICATION_MODEL_BUILDER } from '@spinnaker/core';
+import { API, APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from '@spinnaker/core';
+
 import { ORACLE_LOAD_BALANCER_CREATE_CONTROLLER, OracleLoadBalancerController } from './createLoadBalancer.controller';
-import { ApplicationModelBuilder } from 'core';
 import {
   IOracleLoadBalancer,
   IOracleLoadBalancerUpsertCommand,

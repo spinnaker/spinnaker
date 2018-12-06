@@ -1,4 +1,5 @@
-import { IExpectedArtifact, IArtifactAccount, IArtifactSource, IArtifactKindConfig } from 'core';
+import { IExpectedArtifact, IArtifactSource, IArtifactKindConfig } from 'core/domain';
+import { IArtifactAccount } from 'core/account';
 import { ExpectedArtifactService } from './expectedArtifact.service';
 
 export interface IExpectedArtifactSelectorViewControllerDelegate {

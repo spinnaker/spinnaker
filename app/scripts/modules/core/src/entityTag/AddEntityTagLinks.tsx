@@ -1,4 +1,5 @@
-import { Application, IOwnerOption } from 'core';
+import { Application } from 'core/application';
+import { IOwnerOption } from 'core/entityTag';
 
 export interface IAddEntityTagLinksProps {
   application: Application;

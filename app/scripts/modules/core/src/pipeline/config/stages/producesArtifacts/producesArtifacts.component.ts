@@ -1,7 +1,7 @@
 import { IComponentOptions, IController, module } from 'angular';
 
-import { IStage, IExpectedArtifact, IPipeline, ExpectedArtifactService } from 'core';
-import { ArtifactReferenceService } from 'core/artifact/ArtifactReferenceService';
+import { IStage, IExpectedArtifact, IPipeline } from 'core/domain';
+import { ArtifactReferenceService, ExpectedArtifactService } from 'core/artifact';
 
 class ProducesArtifactsCtrl implements IController {
   public stage: IStage;

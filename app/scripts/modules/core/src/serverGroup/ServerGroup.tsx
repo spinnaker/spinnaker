@@ -12,9 +12,9 @@ import { Instances } from 'core/instance/Instances';
 import { ScrollToService } from 'core/utils';
 import { ISortFilter } from 'core/filterModel';
 import { ClusterState } from 'core/state';
+import { SETTINGS } from 'core/config';
 
 import { ServerGroupHeader } from './ServerGroupHeader';
-import { SETTINGS } from 'core';
 
 export interface IJenkinsViewModel {
   number: number;
