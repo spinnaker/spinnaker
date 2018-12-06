@@ -1,20 +1,27 @@
 package com.netflix.spinnaker.cats.sql.cache
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.cats.cache.*
-import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.*
+import com.netflix.spinnaker.cats.cache.CacheData
+import com.netflix.spinnaker.cats.cache.CacheFilter
+import com.netflix.spinnaker.cats.cache.DefaultCacheData
+import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
+import com.netflix.spinnaker.cats.cache.WriteableCache
+import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.CERTIFICATES
+import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.CLUSTERS
+import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.NAMED_IMAGES
+import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.RESERVATION_REPORTS
+import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.RESERVED_INSTANCES
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
+import de.huxhorn.sulky.ulid.ULID
 import org.jooq.DSLContext
 import org.jooq.exception.DataAccessException
+import org.jooq.exception.SQLDialectNotSupportedException
 import org.jooq.impl.DSL.field
 import org.jooq.impl.DSL.table
 import org.slf4j.LoggerFactory
 import java.security.MessageDigest
 import java.time.Clock
-
-import de.huxhorn.sulky.ulid.ULID
-import org.jooq.exception.SQLDialectNotSupportedException
-import java.util.*
+import java.util.Arrays
 import java.util.concurrent.ConcurrentSkipListSet
 
 class SqlCache(
@@ -178,8 +185,6 @@ class SqlCache(
     try {
       //TODO make configurable
       ids.chunked(sqlChunkSize) { chunk ->
-        log.debug("### reading from type table = ${resourceTableName(type)}")
-
         val results = jooq.select(field("body"))
           .from(table(resourceTableName(type)))
           .where("ID in (${chunk.joinToString(",") { "'$it'" }})")
@@ -198,7 +203,6 @@ class SqlCache(
       }
       // TODO better error handling
     } catch (e: Exception) {
-      log.error("### Failed reading from db: ${e.message}", e)
       return mutableListOf()
     }
 
@@ -403,7 +407,6 @@ class SqlCache(
       .filter { !currentIds.contains(it) }
       .toSet()
 
-    log.info("### type $type : deleting ${toDelete.size} items, $toDelete")
     try {
       toDelete.forEach { id ->
         jooq.deleteFrom(table(resourceTableName(type)))
@@ -530,9 +533,6 @@ class SqlCache(
     val revToDelete = oldRevIds.filter { !currentIds.contains(it.key) }
 
     if (fwdToDelete.isNotEmpty() || revToDelete.isNotEmpty()) {
-      log.info("### type $type agents $sourceAgents: deleting ${fwdToDelete.size} forward relationships, $fwdToDelete")
-      log.info("### type $type agents $sourceAgents: deleting ${revToDelete.size} reverse relationships, $revToDelete")
-
       try {
         fwdToDelete.forEach {
           jooq.deleteFrom(table(relTableName(type)))
