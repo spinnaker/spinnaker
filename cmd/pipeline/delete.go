@@ -36,9 +36,9 @@ var (
 	deletePipelineLong    = "Delete the provided pipeline"
 )
 
-func NewDeleteCmd(appOptions pipelineOptions) *cobra.Command {
+func NewDeleteCmd(pipelineOptions pipelineOptions) *cobra.Command {
 	options := DeleteOptions{
-		pipelineOptions: &appOptions,
+		pipelineOptions: &pipelineOptions,
 	}
 	cmd := &cobra.Command{
 		Use:     "delete",

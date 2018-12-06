@@ -4,20 +4,19 @@ All URIs are relative to *https://localhost*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
-[**GetLatestExecutionsByConfigIdsUsingGET**](ExecutionsControllerApi.md#GetLatestExecutionsByConfigIdsUsingGET) | **Get** /executions | Retrieve a list of the most recent pipeline executions for the provided &#x60;pipelineConfigIds&#x60; that match the provided &#x60;statuses&#x60; query parameter
-[**SearchForPipelineExecutionsByTriggerUsingGET**](ExecutionsControllerApi.md#SearchForPipelineExecutionsByTriggerUsingGET) | **Get** /applications/{application}/executions/search | Search for pipeline executions using a combination of criteria. The returned list is sorted by buildTime (trigger time) in reverse order so that nwewer executions are first in the list.
+[**GetLatestExecutionsByConfigIdsUsingGET**](ExecutionsControllerApi.md#GetLatestExecutionsByConfigIdsUsingGET) | **Get** /executions | Retrieves an ad-hoc collection of executions based on a number of user-supplied parameters. Either executionIds or pipelineConfigIds must be supplied in order to return any results. If both are supplied, an exception will be thrown.
+[**SearchForPipelineExecutionsByTriggerUsingGET**](ExecutionsControllerApi.md#SearchForPipelineExecutionsByTriggerUsingGET) | **Get** /applications/{application}/executions/search | Search for pipeline executions using a combination of criteria. The returned list is sorted by buildTime (trigger time) in reverse order so that newer executions are first in the list.
 
 
 # **GetLatestExecutionsByConfigIdsUsingGET**
-> []interface{} GetLatestExecutionsByConfigIdsUsingGET(ctx, pipelineConfigIds, optional)
-Retrieve a list of the most recent pipeline executions for the provided `pipelineConfigIds` that match the provided `statuses` query parameter
+> []interface{} GetLatestExecutionsByConfigIdsUsingGET(ctx, optional)
+Retrieves an ad-hoc collection of executions based on a number of user-supplied parameters. Either executionIds or pipelineConfigIds must be supplied in order to return any results. If both are supplied, an exception will be thrown.
 
 ### Required Parameters
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
-  **pipelineConfigIds** | **string**| pipelineConfigIds | 
  **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
 
 ### Optional Parameters
@@ -25,9 +24,11 @@ Optional parameters are passed through a map[string]interface{}.
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **pipelineConfigIds** | **string**| pipelineConfigIds | 
- **limit** | **int32**| limit | 
- **statuses** | **string**| statuses | 
+ **pipelineConfigIds** | **string**| A comma-separated list of pipeline configuration IDs to retrieve recent executions for. Either this OR pipelineConfigIds must be supplied, but not both. | 
+ **executionIds** | **string**| A comma-separated list of executions to retrieve. Either this OR pipelineConfigIds must be supplied, but not both. | 
+ **limit** | **int32**| The number of executions to return per pipeline configuration. Ignored if executionIds parameter is supplied. If this value is missing, it is defaulted to 1. | 
+ **statuses** | **string**| A comma-separated list of execution statuses to filter by. Ignored if executionIds parameter is supplied. If this value is missing, it is defaulted to all statuses. | 
+ **expand** | **bool**| Expands each execution object in the resulting list. If this value is missing, it is defaulted to true. | [default to true]
 
 ### Return type
 
@@ -46,7 +47,7 @@ No authorization required
 
 # **SearchForPipelineExecutionsByTriggerUsingGET**
 > []interface{} SearchForPipelineExecutionsByTriggerUsingGET(ctx, application, optional)
-Search for pipeline executions using a combination of criteria. The returned list is sorted by buildTime (trigger time) in reverse order so that nwewer executions are first in the list.
+Search for pipeline executions using a combination of criteria. The returned list is sorted by buildTime (trigger time) in reverse order so that newer executions are first in the list.
 
 ### Required Parameters
 

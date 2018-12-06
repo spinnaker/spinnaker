@@ -72,6 +72,7 @@ type APIClient struct {
 	SnapshotControllerApi	*SnapshotControllerApiService
 	SubnetControllerApi	*SubnetControllerApiService
 	TaskControllerApi	*TaskControllerApiService
+	V2PipelineTemplatesControllerApi	*V2PipelineTemplatesControllerApiService
 	VersionControllerApi	*VersionControllerApiService
 	WebhookControllerApi	*WebhookControllerApiService
 }
@@ -121,6 +122,7 @@ func NewAPIClient(cfg *Configuration) *APIClient {
 	c.SnapshotControllerApi = (*SnapshotControllerApiService)(&c.common)
 	c.SubnetControllerApi = (*SubnetControllerApiService)(&c.common)
 	c.TaskControllerApi = (*TaskControllerApiService)(&c.common)
+	c.V2PipelineTemplatesControllerApi = (*V2PipelineTemplatesControllerApiService)(&c.common)
 	c.VersionControllerApi = (*VersionControllerApiService)(&c.common)
 	c.WebhookControllerApi = (*WebhookControllerApiService)(&c.common)
 

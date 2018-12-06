@@ -71,8 +71,8 @@ Class | Method | HTTP request | Description
 *CredentialsControllerApi* | [**GetAccountUsingGET**](docs/CredentialsControllerApi.md#getaccountusingget) | **Get** /credentials/{account} | Retrieve an account&#39;s details
 *CredentialsControllerApi* | [**GetAccountsUsingGET**](docs/CredentialsControllerApi.md#getaccountsusingget) | **Get** /credentials | Retrieve a list of accounts
 *EcsServerGroupEventsControllerApi* | [**GetEventsUsingGET**](docs/EcsServerGroupEventsControllerApi.md#geteventsusingget) | **Get** /applications/{application}/serverGroups/{account}/{serverGroupName}/events | Retrieves a list of events for a server group
-*ExecutionsControllerApi* | [**GetLatestExecutionsByConfigIdsUsingGET**](docs/ExecutionsControllerApi.md#getlatestexecutionsbyconfigidsusingget) | **Get** /executions | Retrieve a list of the most recent pipeline executions for the provided &#x60;pipelineConfigIds&#x60; that match the provided &#x60;statuses&#x60; query parameter
-*ExecutionsControllerApi* | [**SearchForPipelineExecutionsByTriggerUsingGET**](docs/ExecutionsControllerApi.md#searchforpipelineexecutionsbytriggerusingget) | **Get** /applications/{application}/executions/search | Search for pipeline executions using a combination of criteria. The returned list is sorted by buildTime (trigger time) in reverse order so that nwewer executions are first in the list.
+*ExecutionsControllerApi* | [**GetLatestExecutionsByConfigIdsUsingGET**](docs/ExecutionsControllerApi.md#getlatestexecutionsbyconfigidsusingget) | **Get** /executions | Retrieves an ad-hoc collection of executions based on a number of user-supplied parameters. Either executionIds or pipelineConfigIds must be supplied in order to return any results. If both are supplied, an exception will be thrown.
+*ExecutionsControllerApi* | [**SearchForPipelineExecutionsByTriggerUsingGET**](docs/ExecutionsControllerApi.md#searchforpipelineexecutionsbytriggerusingget) | **Get** /applications/{application}/executions/search | Search for pipeline executions using a combination of criteria. The returned list is sorted by buildTime (trigger time) in reverse order so that newer executions are first in the list.
 *FirewallControllerApi* | [**AllByAccountUsingGET**](docs/FirewallControllerApi.md#allbyaccountusingget) | **Get** /firewalls/{account} | Retrieve a list of firewalls for a given account, grouped by region
 *FirewallControllerApi* | [**AllUsingGET1**](docs/FirewallControllerApi.md#allusingget1) | **Get** /firewalls | Retrieve a list of firewalls, grouped by account, cloud provider, and region
 *FirewallControllerApi* | [**GetSecurityGroupUsingGET**](docs/FirewallControllerApi.md#getsecuritygroupusingget) | **Get** /firewalls/{account}/{region}/{name} | Retrieve a firewall&#39;s details
@@ -105,6 +105,7 @@ Class | Method | HTTP request | Description
 *PipelineControllerApi* | [**GetPipelineLogsUsingGET**](docs/PipelineControllerApi.md#getpipelinelogsusingget) | **Get** /pipelines/{id}/logs | Retrieve pipeline execution logs
 *PipelineControllerApi* | [**GetPipelineUsingGET**](docs/PipelineControllerApi.md#getpipelineusingget) | **Get** /pipelines/{id} | Retrieve a pipeline execution
 *PipelineControllerApi* | [**InvokePipelineConfigUsingPOST1**](docs/PipelineControllerApi.md#invokepipelineconfigusingpost1) | **Post** /pipelines/{application}/{pipelineNameOrId} | Trigger a pipeline execution
+*PipelineControllerApi* | [**InvokePipelineConfigViaEchoUsingPOST**](docs/PipelineControllerApi.md#invokepipelineconfigviaechousingpost) | **Post** /pipelines/v2/{application}/{pipelineNameOrId} | Trigger a pipeline execution
 *PipelineControllerApi* | [**PausePipelineUsingPUT**](docs/PipelineControllerApi.md#pausepipelineusingput) | **Put** /pipelines/{id}/pause | Pause a pipeline execution
 *PipelineControllerApi* | [**RenamePipelineUsingPOST**](docs/PipelineControllerApi.md#renamepipelineusingpost) | **Post** /pipelines/move | Rename a pipeline definition
 *PipelineControllerApi* | [**RestartStageUsingPUT**](docs/PipelineControllerApi.md#restartstageusingput) | **Put** /pipelines/{id}/stages/{stageId}/restart | Restart a stage execution
@@ -138,6 +139,13 @@ Class | Method | HTTP request | Description
 *TaskControllerApi* | [**GetTaskDetailsUsingGET1**](docs/TaskControllerApi.md#gettaskdetailsusingget1) | **Get** /tasks/{id}/details/{taskDetailsId} | Get task details
 *TaskControllerApi* | [**GetTaskUsingGET1**](docs/TaskControllerApi.md#gettaskusingget1) | **Get** /tasks/{id} | Get task
 *TaskControllerApi* | [**TaskUsingPOST1**](docs/TaskControllerApi.md#taskusingpost1) | **Post** /tasks | Create task
+*V2PipelineTemplatesControllerApi* | [**CreateUsingPOST1**](docs/V2PipelineTemplatesControllerApi.md#createusingpost1) | **Post** /v2/pipelineTemplates | Create a pipeline template.
+*V2PipelineTemplatesControllerApi* | [**DeleteUsingDELETE1**](docs/V2PipelineTemplatesControllerApi.md#deleteusingdelete1) | **Delete** /v2/pipelineTemplates/{id} | Delete a pipeline template.
+*V2PipelineTemplatesControllerApi* | [**GetUsingGET1**](docs/V2PipelineTemplatesControllerApi.md#getusingget1) | **Get** /v2/pipelineTemplates/{id} | Get a pipeline template.
+*V2PipelineTemplatesControllerApi* | [**ListPipelineTemplateDependentsUsingGET1**](docs/V2PipelineTemplatesControllerApi.md#listpipelinetemplatedependentsusingget1) | **Get** /v2/pipelineTemplates/{id}/dependents | List all pipelines that implement a pipeline template
+*V2PipelineTemplatesControllerApi* | [**ListUsingGET1**](docs/V2PipelineTemplatesControllerApi.md#listusingget1) | **Get** /v2/pipelineTemplates | List pipeline templates.
+*V2PipelineTemplatesControllerApi* | [**ResolveTemplatesUsingGET1**](docs/V2PipelineTemplatesControllerApi.md#resolvetemplatesusingget1) | **Get** /v2/pipelineTemplates/resolve | Resolve a pipeline template.
+*V2PipelineTemplatesControllerApi* | [**UpdateUsingPOST1**](docs/V2PipelineTemplatesControllerApi.md#updateusingpost1) | **Post** /v2/pipelineTemplates/{id} | Update a pipeline template.
 *VersionControllerApi* | [**GetVersionUsingGET**](docs/VersionControllerApi.md#getversionusingget) | **Get** /version | Fetch Gate&#39;s current version
 *WebhookControllerApi* | [**PreconfiguredWebhooksUsingGET**](docs/WebhookControllerApi.md#preconfiguredwebhooksusingget) | **Get** /webhooks/preconfigured | Retrieve a list of preconfigured webhooks in Orca
 *WebhookControllerApi* | [**WebhooksUsingPOST**](docs/WebhookControllerApi.md#webhooksusingpost) | **Post** /webhooks/{type}/{source} | Endpoint for posting webhooks to Spinnaker&#39;s webhook service

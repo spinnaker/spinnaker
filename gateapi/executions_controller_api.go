@@ -27,14 +27,16 @@ var (
 type ExecutionsControllerApiService service
 
 
-/* ExecutionsControllerApiService Retrieve a list of the most recent pipeline executions for the provided &#x60;pipelineConfigIds&#x60; that match the provided &#x60;statuses&#x60; query parameter
+/* ExecutionsControllerApiService Retrieves an ad-hoc collection of executions based on a number of user-supplied parameters. Either executionIds or pipelineConfigIds must be supplied in order to return any results. If both are supplied, an exception will be thrown.
  * @param ctx context.Context for authentication, logging, tracing, etc.
- @param pipelineConfigIds pipelineConfigIds
  @param optional (nil or map[string]interface{}) with one or more of:
-     @param "limit" (int32) limit
-     @param "statuses" (string) statuses
+     @param "pipelineConfigIds" (string) A comma-separated list of pipeline configuration IDs to retrieve recent executions for. Either this OR pipelineConfigIds must be supplied, but not both.
+     @param "executionIds" (string) A comma-separated list of executions to retrieve. Either this OR pipelineConfigIds must be supplied, but not both.
+     @param "limit" (int32) The number of executions to return per pipeline configuration. Ignored if executionIds parameter is supplied. If this value is missing, it is defaulted to 1.
+     @param "statuses" (string) A comma-separated list of execution statuses to filter by. Ignored if executionIds parameter is supplied. If this value is missing, it is defaulted to all statuses.
+     @param "expand" (bool) Expands each execution object in the resulting list. If this value is missing, it is defaulted to true.
  @return []interface{}*/
-func (a *ExecutionsControllerApiService) GetLatestExecutionsByConfigIdsUsingGET(ctx context.Context, pipelineConfigIds string, localVarOptionals map[string]interface{}) ([]interface{},  *http.Response, error) {
+func (a *ExecutionsControllerApiService) GetLatestExecutionsByConfigIdsUsingGET(ctx context.Context, localVarOptionals map[string]interface{}) ([]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
 		localVarPostBody interface{}
@@ -50,19 +52,36 @@ func (a *ExecutionsControllerApiService) GetLatestExecutionsByConfigIdsUsingGET(
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+	if err := typeCheckParameter(localVarOptionals["pipelineConfigIds"], "string", "pipelineConfigIds"); err != nil {
+		return successPayload, nil, err
+	}
+	if err := typeCheckParameter(localVarOptionals["executionIds"], "string", "executionIds"); err != nil {
+		return successPayload, nil, err
+	}
 	if err := typeCheckParameter(localVarOptionals["limit"], "int32", "limit"); err != nil {
 		return successPayload, nil, err
 	}
 	if err := typeCheckParameter(localVarOptionals["statuses"], "string", "statuses"); err != nil {
 		return successPayload, nil, err
 	}
+	if err := typeCheckParameter(localVarOptionals["expand"], "bool", "expand"); err != nil {
+		return successPayload, nil, err
+	}
 
-	localVarQueryParams.Add("pipelineConfigIds", parameterToString(pipelineConfigIds, ""))
+	if localVarTempParam, localVarOk := localVarOptionals["pipelineConfigIds"].(string); localVarOk {
+		localVarQueryParams.Add("pipelineConfigIds", parameterToString(localVarTempParam, ""))
+	}
+	if localVarTempParam, localVarOk := localVarOptionals["executionIds"].(string); localVarOk {
+		localVarQueryParams.Add("executionIds", parameterToString(localVarTempParam, ""))
+	}
 	if localVarTempParam, localVarOk := localVarOptionals["limit"].(int32); localVarOk {
 		localVarQueryParams.Add("limit", parameterToString(localVarTempParam, ""))
 	}
 	if localVarTempParam, localVarOk := localVarOptionals["statuses"].(string); localVarOk {
 		localVarQueryParams.Add("statuses", parameterToString(localVarTempParam, ""))
+	}
+	if localVarTempParam, localVarOk := localVarOptionals["expand"].(bool); localVarOk {
+		localVarQueryParams.Add("expand", parameterToString(localVarTempParam, ""))
 	}
 	// to determine the Content-Type header
 	localVarHttpContentTypes := []string{ "application/json",  }
@@ -106,7 +125,7 @@ func (a *ExecutionsControllerApiService) GetLatestExecutionsByConfigIdsUsingGET(
 	return successPayload, localVarHttpResponse, err
 }
 
-/* ExecutionsControllerApiService Search for pipeline executions using a combination of criteria. The returned list is sorted by buildTime (trigger time) in reverse order so that nwewer executions are first in the list.
+/* ExecutionsControllerApiService Search for pipeline executions using a combination of criteria. The returned list is sorted by buildTime (trigger time) in reverse order so that newer executions are first in the list.
  * @param ctx context.Context for authentication, logging, tracing, etc.
  @param application Only includes executions that are part of this application. If this value is \&quot;*\&quot;, results will include executions of all applications.
  @param optional (nil or map[string]interface{}) with one or more of:

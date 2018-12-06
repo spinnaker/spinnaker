@@ -35,9 +35,9 @@ var (
 	savePipelineLong    = "Save the provided pipeline"
 )
 
-func NewSaveCmd(appOptions pipelineOptions) *cobra.Command {
+func NewSaveCmd(pipelineOptions pipelineOptions) *cobra.Command {
 	options := SaveOptions{
-		pipelineOptions: &appOptions,
+		pipelineOptions: &pipelineOptions,
 	}
 	cmd := &cobra.Command{
 		Use:     "save",

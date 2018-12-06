@@ -40,9 +40,9 @@ var (
 	executePipelineLong    = "Execute the provided pipeline"
 )
 
-func NewExecuteCmd(appOptions pipelineOptions) *cobra.Command {
+func NewExecuteCmd(pipelineOptions pipelineOptions) *cobra.Command {
 	options := ExecuteOptions{
-		pipelineOptions: &appOptions,
+		pipelineOptions: &pipelineOptions,
 	}
 	cmd := &cobra.Command{
 		Use:     "execute",

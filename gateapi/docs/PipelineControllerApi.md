@@ -17,6 +17,7 @@ Method | HTTP request | Description
 [**GetPipelineLogsUsingGET**](PipelineControllerApi.md#GetPipelineLogsUsingGET) | **Get** /pipelines/{id}/logs | Retrieve pipeline execution logs
 [**GetPipelineUsingGET**](PipelineControllerApi.md#GetPipelineUsingGET) | **Get** /pipelines/{id} | Retrieve a pipeline execution
 [**InvokePipelineConfigUsingPOST1**](PipelineControllerApi.md#InvokePipelineConfigUsingPOST1) | **Post** /pipelines/{application}/{pipelineNameOrId} | Trigger a pipeline execution
+[**InvokePipelineConfigViaEchoUsingPOST**](PipelineControllerApi.md#InvokePipelineConfigViaEchoUsingPOST) | **Post** /pipelines/v2/{application}/{pipelineNameOrId} | Trigger a pipeline execution
 [**PausePipelineUsingPUT**](PipelineControllerApi.md#PausePipelineUsingPUT) | **Put** /pipelines/{id}/pause | Pause a pipeline execution
 [**RenamePipelineUsingPOST**](PipelineControllerApi.md#RenamePipelineUsingPOST) | **Post** /pipelines/move | Rename a pipeline definition
 [**RestartStageUsingPUT**](PipelineControllerApi.md#RestartStageUsingPUT) | **Put** /pipelines/{id}/stages/{stageId}/restart | Restart a stage execution
@@ -359,6 +360,43 @@ No authorization required
 
 # **InvokePipelineConfigUsingPOST1**
 > HttpEntity InvokePipelineConfigUsingPOST1(ctx, application, pipelineNameOrId, optional)
+Trigger a pipeline execution
+
+### Required Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+  **application** | **string**| application | 
+  **pipelineNameOrId** | **string**| pipelineNameOrId | 
+ **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
+
+### Optional Parameters
+Optional parameters are passed through a map[string]interface{}.
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **application** | **string**| application | 
+ **pipelineNameOrId** | **string**| pipelineNameOrId | 
+ **trigger** | [**interface{}**](interface{}.md)| trigger | 
+
+### Return type
+
+[**HttpEntity**](HttpEntity.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: */*
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **InvokePipelineConfigViaEchoUsingPOST**
+> HttpEntity InvokePipelineConfigViaEchoUsingPOST(ctx, application, pipelineNameOrId, optional)
 Trigger a pipeline execution
 
 ### Required Parameters

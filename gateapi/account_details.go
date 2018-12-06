@@ -11,27 +11,27 @@ package swagger
 
 type AccountDetails struct {
 
-	RequiredGroupMembership []string `json:"requiredGroupMembership,omitempty"`
-
-	ProviderVersion string `json:"providerVersion,omitempty"`
-
-	PrimaryAccount bool `json:"primaryAccount,omitempty"`
+	Type_ string `json:"type,omitempty"`
 
 	AccountType string `json:"accountType,omitempty"`
 
+	ProviderVersion string `json:"providerVersion,omitempty"`
+
 	Skin string `json:"skin,omitempty"`
 
-	Environment string `json:"environment,omitempty"`
-
-	Type_ string `json:"type,omitempty"`
-
-	Name string `json:"name,omitempty"`
+	PrimaryAccount bool `json:"primaryAccount,omitempty"`
 
 	CloudProvider string `json:"cloudProvider,omitempty"`
 
-	Permissions map[string][]string `json:"permissions,omitempty"`
-
 	AccountId string `json:"accountId,omitempty"`
 
+	RequiredGroupMembership []string `json:"requiredGroupMembership,omitempty"`
+
 	ChallengeDestructiveActions bool `json:"challengeDestructiveActions,omitempty"`
+
+	Name string `json:"name,omitempty"`
+
+	Permissions map[string][]string `json:"permissions,omitempty"`
+
+	Environment string `json:"environment,omitempty"`
 }

@@ -12,67 +12,60 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-package pipeline
+package pipeline_template
 
 import (
-	"errors"
 	"fmt"
-	"net/http"
-
 	"github.com/spf13/cobra"
 	"github.com/spinnaker/spin/cmd/gateclient"
 	"github.com/spinnaker/spin/util"
+	"net/http"
 )
 
-type ListOptions struct {
-	*pipelineOptions
-	output      string
-	application string
+type GetOptions struct {
+	*pipelineTemplateOptions
+	id        string
 }
 
 var (
-	listPipelineShort   = "List the pipelines for the provided application"
-	listPipelineLong    = "List the pipelines for the provided application"
+	getPipelineTemplateShort   = "Get the pipeline template with the provided id"
+	getPipelineTemplateLong    = "Get the specified pipeline template"
 )
 
-func NewListCmd(pipelineOptions pipelineOptions) *cobra.Command {
-	options := ListOptions{
-		pipelineOptions: &pipelineOptions,
+func NewGetCmd(pipelineTemplateOptions pipelineTemplateOptions) *cobra.Command {
+	options := GetOptions{
+		pipelineTemplateOptions: &pipelineTemplateOptions,
 	}
 	cmd := &cobra.Command{
-		Use:     "list",
-		Aliases: []string{"ls"},
-		Short:   listPipelineShort,
-		Long:    listPipelineLong,
+		Use:     "get",
+		Short:   getPipelineTemplateShort,
+		Long:    getPipelineTemplateLong,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return listPipeline(cmd, options)
+			return getPipelineTemplate(cmd, options)
 		},
 	}
 
-	cmd.PersistentFlags().StringVarP(&options.application, "application", "a", "", "Spinnaker application to list pipelines from")
+	cmd.PersistentFlags().StringVar(&options.id, "id", "", "id of the pipeline template")
 
 	return cmd
 }
 
-func listPipeline(cmd *cobra.Command, options ListOptions) error {
+func getPipelineTemplate(cmd *cobra.Command, options GetOptions) error {
 	gateClient, err := gateclient.NewGateClient(cmd.InheritedFlags())
 	if err != nil {
 		return err
 	}
 
-	if options.application == "" {
-		return errors.New("required parameter 'application' not set")
-	}
-
-	successPayload, resp, err := gateClient.ApplicationControllerApi.GetPipelineConfigsForApplicationUsingGET(gateClient.Context, options.application)
+	successPayload, resp, err := gateClient.V2PipelineTemplatesControllerApi.GetUsingGET1(gateClient.Context,
+		options.id)
 
 	if err != nil {
 		return err
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Encountered an error listing pipelines for application %s, status code: %d\n",
-			options.application,
+		return fmt.Errorf("Encountered an error getting pipeline template with id %s, status code: %d\n",
+			options.id,
 			resp.StatusCode)
 	}
 

@@ -13,23 +13,23 @@ type User struct {
 
 	Enabled bool `json:"enabled,omitempty"`
 
+	AccountNonExpired bool `json:"accountNonExpired,omitempty"`
+
 	AllowedAccounts []string `json:"allowedAccounts,omitempty"`
 
+	Authorities []GrantedAuthority `json:"authorities,omitempty"`
+
+	CredentialsNonExpired bool `json:"credentialsNonExpired,omitempty"`
+
+	AccountNonLocked bool `json:"accountNonLocked,omitempty"`
+
 	LastName string `json:"lastName,omitempty"`
+
+	FirstName string `json:"firstName,omitempty"`
 
 	Email string `json:"email,omitempty"`
 
 	Roles []string `json:"roles,omitempty"`
 
-	AccountNonExpired bool `json:"accountNonExpired,omitempty"`
-
-	CredentialsNonExpired bool `json:"credentialsNonExpired,omitempty"`
-
-	FirstName string `json:"firstName,omitempty"`
-
 	Username string `json:"username,omitempty"`
-
-	AccountNonLocked bool `json:"accountNonLocked,omitempty"`
-
-	Authorities []GrantedAuthority `json:"authorities,omitempty"`
 }

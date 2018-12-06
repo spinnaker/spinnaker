@@ -43,9 +43,9 @@ func TestPipelineGet_basic(t *testing.T) {
 	defer ts.Close()
 	currentCmd := NewGetCmd(pipelineOptions{})
 	rootCmd := getRootCmdForTest()
-	appCmd := NewPipelineCmd(os.Stdout)
-	appCmd.AddCommand(currentCmd)
-	rootCmd.AddCommand(appCmd)
+	pipelineCmd := NewPipelineCmd(os.Stdout)
+	pipelineCmd.AddCommand(currentCmd)
+	rootCmd.AddCommand(pipelineCmd)
 
 	args := []string{"pipeline", "get", "--application", "app", "--name", "one", "--gate-endpoint", ts.URL}
 	rootCmd.SetArgs(args)
@@ -62,9 +62,9 @@ func TestPipelineGet_flags(t *testing.T) {
 	args := []string{"pipeline", "get", "--gate-endpoint", ts.URL} // Missing application and name.
 	currentCmd := NewGetCmd(pipelineOptions{})
 	rootCmd := getRootCmdForTest()
-	appCmd := NewPipelineCmd(os.Stdout)
-	appCmd.AddCommand(currentCmd)
-	rootCmd.AddCommand(appCmd)
+	pipelineCmd := NewPipelineCmd(os.Stdout)
+	pipelineCmd.AddCommand(currentCmd)
+	rootCmd.AddCommand(pipelineCmd)
 
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()
@@ -81,9 +81,9 @@ func TestPipelineGet_malformed(t *testing.T) {
 	args := []string{"pipeline", "get", "--application", "app", "--name", "one", "--gate-endpoint", ts.URL}
 	currentCmd := NewGetCmd(pipelineOptions{})
 	rootCmd := getRootCmdForTest()
-	appCmd := NewPipelineCmd(os.Stdout)
-	appCmd.AddCommand(currentCmd)
-	rootCmd.AddCommand(appCmd)
+	pipelineCmd := NewPipelineCmd(os.Stdout)
+	pipelineCmd.AddCommand(currentCmd)
+	rootCmd.AddCommand(pipelineCmd)
 
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()
@@ -100,9 +100,9 @@ func TestPipelineGet_fail(t *testing.T) {
 	args := []string{"pipeline", "get", "--application", "app", "--name", "one", "--gate-endpoint", ts.URL}
 	currentCmd := NewGetCmd(pipelineOptions{})
 	rootCmd := getRootCmdForTest()
-	appCmd := NewPipelineCmd(os.Stdout)
-	appCmd.AddCommand(currentCmd)
-	rootCmd.AddCommand(appCmd)
+	pipelineCmd := NewPipelineCmd(os.Stdout)
+	pipelineCmd.AddCommand(currentCmd)
+	rootCmd.AddCommand(pipelineCmd)
 
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()
@@ -118,9 +118,9 @@ func TestPipelineGet_notfound(t *testing.T) {
 	args := []string{"pipeline", "get", "--application", "app", "--name", "two", "--gate-endpoint", ts.URL}
 	currentCmd := NewGetCmd(pipelineOptions{})
 	rootCmd := getRootCmdForTest()
-	appCmd := NewPipelineCmd(os.Stdout)
-	appCmd.AddCommand(currentCmd)
-	rootCmd.AddCommand(appCmd)
+	pipelineCmd := NewPipelineCmd(os.Stdout)
+	pipelineCmd.AddCommand(currentCmd)
+	rootCmd.AddCommand(pipelineCmd)
 
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()

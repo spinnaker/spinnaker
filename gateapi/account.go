@@ -13,15 +13,15 @@ type Account struct {
 
 	Type_ string `json:"type,omitempty"`
 
-	ProviderVersion string `json:"providerVersion,omitempty"`
+	Permissions map[string][]string `json:"permissions,omitempty"`
+
+	Name string `json:"name,omitempty"`
 
 	RequiredGroupMembership []string `json:"requiredGroupMembership,omitempty"`
 
 	Skin string `json:"skin,omitempty"`
 
+	ProviderVersion string `json:"providerVersion,omitempty"`
+
 	AccountId string `json:"accountId,omitempty"`
-
-	Permissions map[string][]string `json:"permissions,omitempty"`
-
-	Name string `json:"name,omitempty"`
 }

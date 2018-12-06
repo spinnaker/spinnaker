@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"github.com/spinnaker/spin/cmd/pipeline-template"
 	"io"
 
 	"github.com/spf13/cobra"
@@ -42,6 +43,7 @@ func NewCmdRoot(out io.Writer) *cobra.Command {
 	// create subcommands
 	cmd.AddCommand(application.NewApplicationCmd(out))
 	cmd.AddCommand(pipeline.NewPipelineCmd(out))
+	cmd.AddCommand(pipeline_template.NewPipelineTemplateCmd(out))
 
 	return cmd
 }

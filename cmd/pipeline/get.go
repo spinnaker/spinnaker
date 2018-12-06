@@ -36,9 +36,9 @@ var (
 	getPipelineLong    = "Get the specified pipeline"
 )
 
-func NewGetCmd(appOptions pipelineOptions) *cobra.Command {
+func NewGetCmd(pipelineOptions pipelineOptions) *cobra.Command {
 	options := GetOptions{
-		pipelineOptions: &appOptions,
+		pipelineOptions: &pipelineOptions,
 	}
 	cmd := &cobra.Command{
 		Use:     "get",
