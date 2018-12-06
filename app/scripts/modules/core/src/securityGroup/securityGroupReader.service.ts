@@ -288,7 +288,6 @@ export class SecurityGroupReader {
       return this.$q.resolve(cached);
     }
     return API.one('securityGroups')
-      .useCache()
       .get()
       .then((groupsByAccount: ISecurityGroupsByAccountSourceData) => {
         Object.keys(groupsByAccount).forEach(account => {
