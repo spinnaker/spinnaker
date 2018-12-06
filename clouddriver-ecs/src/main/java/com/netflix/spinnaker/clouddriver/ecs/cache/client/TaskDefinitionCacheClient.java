@@ -48,6 +48,8 @@ public class TaskDefinitionCacheClient extends AbstractCacheClient<TaskDefinitio
 
     taskDefinition.setTaskDefinitionArn((String) attributes.get("taskDefinitionArn"));
     taskDefinition.setTaskRoleArn((String) attributes.get("taskRoleArn"));
+    taskDefinition.setCpu((String) attributes.get("cpu"));
+    taskDefinition.setMemory((String) attributes.get("memory"));
 
     if (attributes.containsKey("containerDefinitions")) {
       List<Map<String, Object>> containerDefinitions = (List<Map<String, Object>>) attributes.get("containerDefinitions");

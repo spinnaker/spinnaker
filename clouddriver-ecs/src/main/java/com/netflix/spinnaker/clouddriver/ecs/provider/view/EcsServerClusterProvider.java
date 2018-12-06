@@ -195,11 +195,31 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
     String iamRole = roleArn != null ? StringUtils.substringAfterLast(roleArn, "/") : "None";
     ContainerDefinition containerDefinition = taskDefinition.getContainerDefinitions().get(0);
 
+    int cpu = 0;
+    if (containerDefinition.getCpu() != null) {
+      cpu = containerDefinition.getCpu();
+    } else if (taskDefinition.getCpu() != null) {
+      cpu = Integer.parseInt(taskDefinition.getCpu());
+    }
+
+    int memoryReservation = 0;
+    if (containerDefinition.getMemoryReservation() != null) {
+      memoryReservation = containerDefinition.getMemoryReservation();
+    }
+
+    int memoryLimit = 0;
+    if (containerDefinition.getMemory() != null) {
+      memoryLimit = containerDefinition.getMemory();
+    } else if (taskDefinition.getMemory() != null) {
+      memoryLimit = Integer.parseInt(taskDefinition.getMemory());
+    }
+
     return new TaskDefinition()
       .setContainerImage(containerDefinition.getImage())
-      .setContainerPort(containerDefinition.getPortMappings().get(0).getContainerPort())
-      .setCpuUnits(containerDefinition.getCpu())
-      .setMemoryReservation(containerDefinition.getMemoryReservation())
+      .setContainerPort(containerDefinition.getPortMappings().isEmpty() ? 0 : containerDefinition.getPortMappings().get(0).getContainerPort())
+      .setCpuUnits(cpu)
+      .setMemoryReservation(memoryReservation)
+      .setMemoryLimit(memoryLimit)
       .setIamRole(iamRole)
       .setTaskName(StringUtils.substringAfterLast(taskDefinition.getTaskDefinitionArn(), "/"))
       .setEnvironmentVariables(containerDefinition.getEnvironment());

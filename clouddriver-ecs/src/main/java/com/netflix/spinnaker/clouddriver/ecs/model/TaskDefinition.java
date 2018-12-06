@@ -31,6 +31,7 @@ public class TaskDefinition {
   int containerPort;
   int cpuUnits;
   int memoryReservation;
+  int memoryLimit;
 
   Collection<KeyValuePair> environmentVariables;
 

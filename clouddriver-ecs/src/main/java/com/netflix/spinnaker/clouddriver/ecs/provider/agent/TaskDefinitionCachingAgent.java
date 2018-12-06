@@ -71,6 +71,8 @@ public class TaskDefinitionCachingAgent extends AbstractEcsOnDemandAgent<TaskDef
     attributes.put("taskDefinitionArn", taskDefinition.getTaskDefinitionArn());
     attributes.put("containerDefinitions", taskDefinition.getContainerDefinitions());
     attributes.put("taskRoleArn", taskDefinition.getTaskRoleArn());
+    attributes.put("memory", taskDefinition.getMemory());
+    attributes.put("cpu", taskDefinition.getCpu());
     return attributes;
   }
 

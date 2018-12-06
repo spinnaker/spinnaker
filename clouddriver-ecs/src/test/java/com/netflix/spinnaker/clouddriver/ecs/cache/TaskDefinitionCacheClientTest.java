@@ -52,6 +52,8 @@ public class TaskDefinitionCacheClientTest extends CommonCacheClient {
 
     TaskDefinition taskDefinition = new TaskDefinition();
     taskDefinition.setTaskDefinitionArn(taskDefinitionArn);
+    taskDefinition.setMemory("1");
+    taskDefinition.setCpu("2");
     taskDefinition.setContainerDefinitions(Collections.singleton(containerDefinition));
 
     Map<String, Object> attributes = TaskDefinitionCachingAgent.convertTaskDefinitionToAttributes(taskDefinition);

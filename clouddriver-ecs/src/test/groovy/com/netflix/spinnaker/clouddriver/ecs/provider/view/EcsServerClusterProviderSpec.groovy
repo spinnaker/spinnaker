@@ -68,6 +68,7 @@ class EcsServerClusterProviderSpec extends Specification {
     ecsCloudWatchAlarmCacheClient)
 
   Service cachedService
+  TaskDefinition cachedTaskDefinition
   Instance ec2Instance
   EcsServerCluster expectedCluster
 
@@ -125,7 +126,7 @@ class EcsServerClusterProviderSpec extends Specification {
       )]
     )
 
-    def taskDefinition = new TaskDefinition(
+    cachedTaskDefinition = new TaskDefinition(
       containerDefinitions: [
         new ContainerDefinition(
           image: 'my-image',
@@ -165,7 +166,7 @@ class EcsServerClusterProviderSpec extends Specification {
     containerInformationService.getHealthStatus(_, _, _, _) >> [healthStatus]
     containerInformationService.getEc2Instance(_, _, _) >> ec2Instance
     containerInformationService.getTaskZone(_, _, _) >> 'us-west-1a'
-    taskDefinitionCacheClient.get(_) >> taskDefinition
+    taskDefinitionCacheClient.get(_) >> cachedTaskDefinition
     scalableTargetCacheClient.get(_) >> scalableTarget
     ecsCloudWatchAlarmCacheClient.getMetricAlarms(_, _, _) >> []
     subnetSelector.getSubnetVpcIds(_, _, _) >> ['vpc-1234']
@@ -222,6 +223,85 @@ class EcsServerClusterProviderSpec extends Specification {
     then:
     cacheView.getAll(Keys.Namespace.SERVICES.ns, _) >> [serviceCacheData]
     containerInformationService.getEc2Instance(_, _, _) >> null
+    retrievedCluster == expectedCluster
+  }
+
+  def 'should produce an ecs cluster with hard memory limit'() {
+    given:
+    cachedTaskDefinition = new TaskDefinition(
+      containerDefinitions: [
+        new ContainerDefinition(
+          image: 'my-image',
+          environment: [],
+          portMappings: [new PortMapping(containerPort: 1337)],
+          memory: 256,
+          cpu: 123
+        )
+      ]
+    )
+    for (serverGroup in expectedCluster.serverGroups) {
+      EcsServerGroup ecsServerGroup = serverGroup
+      ecsServerGroup.taskDefinition.memoryLimit = 256
+      ecsServerGroup.taskDefinition.memoryReservation = 0
+    }
+
+    when:
+    def retrievedCluster = provider.getCluster("myapp", CREDS_NAME, FAMILY_NAME)
+
+    then:
+    taskDefinitionCacheClient.get(_) >> cachedTaskDefinition
+    retrievedCluster == expectedCluster
+  }
+
+  def 'should produce an ecs cluster with CPU and memory set at task level'() {
+    given:
+    cachedTaskDefinition = new TaskDefinition(
+      memory: '256',
+      cpu: '123',
+      containerDefinitions: [
+        new ContainerDefinition(
+          image: 'my-image',
+          environment: [],
+          portMappings: [new PortMapping(containerPort: 1337)]
+        )
+      ]
+    )
+    for (serverGroup in expectedCluster.serverGroups) {
+      EcsServerGroup ecsServerGroup = serverGroup
+      ecsServerGroup.taskDefinition.memoryLimit = 256
+      ecsServerGroup.taskDefinition.memoryReservation = 0
+    }
+
+    when:
+    def retrievedCluster = provider.getCluster("myapp", CREDS_NAME, FAMILY_NAME)
+
+    then:
+    taskDefinitionCacheClient.get(_) >> cachedTaskDefinition
+    retrievedCluster == expectedCluster
+  }
+
+  def 'should produce an ecs cluster with zero port mappings'() {
+    given:
+    cachedTaskDefinition = new TaskDefinition(
+      containerDefinitions: [
+        new ContainerDefinition(
+          image: 'my-image',
+          environment: [],
+          memoryReservation: 256,
+          cpu: 123
+        )
+      ]
+    )
+    for (serverGroup in expectedCluster.serverGroups) {
+      EcsServerGroup ecsServerGroup = serverGroup
+      ecsServerGroup.taskDefinition.containerPort = 0
+    }
+
+    when:
+    def retrievedCluster = provider.getCluster("myapp", CREDS_NAME, FAMILY_NAME)
+
+    then:
+    taskDefinitionCacheClient.get(_) >> cachedTaskDefinition
     retrievedCluster == expectedCluster
   }
 
