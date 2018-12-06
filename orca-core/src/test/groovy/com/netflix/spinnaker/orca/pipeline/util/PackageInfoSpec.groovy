@@ -201,18 +201,14 @@ class PackageInfoSpec extends Specification {
     where:
     filename                                       | requestPackage | packageType || result
     [["fileName": "package-4.11.4h-1.x86_64.rpm"]] | "package"      | RPM         || "package-4.11.4h-1.x86_64"
-//    [["fileName": "package-something-4.11.4h-1.x86_64.rpm"]]                                                 | "package"           | RPM         || "package"
-//    [["fileName": "package-4.11.4h-1.x86_64.rpm"], ["fileName": "package-something-4.11.4h-1.x86_64.rpm"]]   | "package"           | RPM         || "package-4.11.4h-1.x86_64"
-//    [["fileName": "package-something-4.11.4h-1.x86_64.rpm"], ["fileName": "package-4.11.4h-1.x86_64.rpm"]]   | "package"           | RPM         || "package-4.11.4h-1.x86_64"
-//    [["fileName": "package_4.11.4-h02.sha123_amd64.deb"]]                                                    | "package"           | DEB         || "package_4.11.4-h02.sha123_amd64"
-//    [["fileName": "package-something_4.11.4-h02.sha123_amd64.deb"]]                                          | "package"           | DEB         || "package"
-//    [["fileName": "package_4.11.4-h02.deb"], ["fileName": "package-something_4.11.4-h02.deb"]]               | "package"           | DEB         || "package_4.11.4-h02"
-//    [["fileName": "package_4.11.4-h02.sha123.deb"], ["fileName": "package-something_4.11.4-h02.deb"]]        | "package-something" | DEB         || "package-something_4.11.4-h02"
-//    [["fileName": "package_4.11.4-h02.sha123.deb"], ["fileName": "package-something_4.11.4-h02.sha123.deb"]] | "package"           | DEB         || "package_4.11.4-h02.sha123"
-//    [["fileName": "package.4.11.4-1+x86_64.nupkg"]]                                                          | "package"           | NUPKG       || "package.4.11.4-1+x86_64"
-//    [["fileName": "package-something.4.11.4-1+x86_64.nupkg"]]                                                | "package-something" | NUPKG       || "package-something.4.11.4-1+x86_64"
-//    [["fileName": "package.4.11.4-1+x86_64.nupkg"], ["fileName": "package-something.4.11.4-1+x86_64.nupkg"]] | "package-something" | NUPKG       || "package-something.4.11.4-1+x86_64"
-//    [["fileName": "package-something.4.11.4-1+x86_64.nupkg"], ["fileName": "package.4.11.4-1+x86_64.nupkg"]] | "package"           | NUPKG       || "package.4.11.4-1+x86_64"
+    [["fileName": "package-something-4.11.4h-1.x86_64.rpm"]]                                                 | "package"           | RPM         || "package"
+    [["fileName": "package-4.11.4h-1.x86_64.rpm"], ["fileName": "package-something-4.11.4h-1.x86_64.rpm"]]   | "package"           | RPM         || "package-4.11.4h-1.x86_64"
+    [["fileName": "package-something-4.11.4h-1.x86_64.rpm"], ["fileName": "package-4.11.4h-1.x86_64.rpm"]]   | "package"           | RPM         || "package-4.11.4h-1.x86_64"
+    [["fileName": "package_4.11.4-h02.sha123_amd64.deb"]]                                                    | "package"           | DEB         || "package_4.11.4-h02.sha123_amd64"
+    [["fileName": "package-something_4.11.4-h02.sha123_amd64.deb"]]                                          | "package"           | DEB         || "package"
+    [["fileName": "package_4.11.4-h02.deb"], ["fileName": "package-something_4.11.4-h02.deb"]]               | "package"           | DEB         || "package_4.11.4-h02"
+    [["fileName": "package_4.11.4-h02.sha123.deb"], ["fileName": "package-something_4.11.4-h02.deb"]]        | "package-something" | DEB         || "package-something_4.11.4-h02"
+    [["fileName": "package_4.11.4-h02.sha123.deb"], ["fileName": "package-something_4.11.4-h02.sha123.deb"]] | "package"           | DEB         || "package_4.11.4-h02.sha123"
   }
 
   def "findTargetPackage: bake execution with only a package set and jenkins stage artifacts"() {
