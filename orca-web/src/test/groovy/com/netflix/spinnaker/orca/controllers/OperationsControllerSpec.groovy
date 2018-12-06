@@ -21,6 +21,7 @@ import com.netflix.spinnaker.fiat.model.resources.Account
 import com.netflix.spinnaker.fiat.model.resources.Role
 import com.netflix.spinnaker.fiat.shared.FiatService
 import com.netflix.spinnaker.fiat.shared.FiatStatus
+import com.netflix.spinnaker.orca.front50.Front50Service
 
 import javax.servlet.http.HttpServletResponse
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
@@ -73,6 +74,7 @@ class OperationsControllerSpec extends Specification {
   def fiatStatus = Mock(FiatStatus) {
     _ * isEnabled() >> { return false }
   }
+  def front50Service = Mock(Front50Service)
 
   @Subject
     controller = new OperationsController(
@@ -85,7 +87,8 @@ class OperationsControllerSpec extends Specification {
       webhookService: webhookService,
       artifactResolver: artifactResolver,
       fiatService: fiatService,
-      fiatStatus: fiatStatus
+      fiatStatus: fiatStatus,
+      front50Service: front50Service
     )
 
   @Unroll
@@ -437,7 +440,7 @@ class OperationsControllerSpec extends Specification {
     startedPipeline.pipelineConfigId == 'from pipeline'
   }
 
-  def "an empty string does not get overriden with default values"() {
+  def "an empty string does not get overridden with default values"() {
     given:
     Execution startedPipeline = null
     executionLauncher.start(*_) >> { ExecutionType type, String json ->
@@ -711,6 +714,35 @@ class OperationsControllerSpec extends Specification {
       [label: "Webhook #1", description: "Description #1", type: "webhook_1", waitForCompletion: true, preconfiguredProperties: preconfiguredProperties, noUserConfigurableFields: true, parameters: null],
       [label: "Webhook #2", description: "Description #2", type: "webhook_2", waitForCompletion: true, preconfiguredProperties: preconfiguredProperties, noUserConfigurableFields: true, parameters: null]
     ]
+  }
+
+  def "should start pipeline by config id with provided trigger"() {
+    given:
+    Execution startedPipeline = null
+    executionLauncher.start(*_) >> { ExecutionType type, String json ->
+      startedPipeline = mapper.readValue(json, Execution)
+    }
+    front50Service.getPipelineHistory("1234", 1) >> {
+      [
+        [id: '1234', stages: []]
+      ]
+    }
+
+    Map trigger = [
+      type      : "manual",
+      parameters: [
+        key1: 'value1',
+        key2: 'value2'
+      ]
+    ]
+
+    when:
+    controller.orchestratePipelineConfig('1234', trigger)
+
+    then:
+    startedPipeline.id == '1234'
+    startedPipeline.trigger.type == 'manual'
+    startedPipeline.trigger.parameters.key1 == 'value1'
   }
 
   static WebhookProperties.PreconfiguredWebhook createPreconfiguredWebhook(

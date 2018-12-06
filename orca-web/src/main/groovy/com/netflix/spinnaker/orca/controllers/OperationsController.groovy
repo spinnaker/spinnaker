@@ -24,8 +24,10 @@ import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 import com.netflix.spinnaker.kork.web.exceptions.ValidationException
 import com.netflix.spinnaker.orca.clouddriver.service.JobService
 import com.netflix.spinnaker.orca.extensionpoint.pipeline.PipelinePreprocessor
+import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.igor.BuildService
 import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Trigger
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
@@ -35,7 +37,9 @@ import com.netflix.spinnaker.orca.pipelinetemplate.PipelineTemplateService
 import com.netflix.spinnaker.orca.webhook.service.WebhookService
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.util.logging.Slf4j
+import javassist.NotFoundException
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
@@ -86,8 +90,31 @@ class OperationsController {
   @Autowired(required = false)
   FiatService fiatService
 
+  @Autowired(required = false)
+  Front50Service front50Service
+
   @RequestMapping(value = "/orchestrate", method = RequestMethod.POST)
   Map<String, Object> orchestrate(@RequestBody Map pipeline, HttpServletResponse response) {
+    orchestratePipeline(pipeline)
+  }
+
+  @RequestMapping(value = "/orchestrate/{pipelineConfigId}", method = RequestMethod.POST)
+  Map<String, Object> orchestratePipelineConfig(@PathVariable String pipelineConfigId, @RequestBody Map trigger) {
+    if (front50Service == null) {
+      throw new UnsupportedOperationException("Front50 is not enabled, no way to retrieve pipeline configs. Fix this by setting front50.enabled: true")
+    }
+
+    List<Map> history = front50Service.getPipelineHistory(pipelineConfigId, 1)
+    if (history.isEmpty()) {
+      throw new NotFoundException("Pipeline config $pipelineConfigId not found")
+    }
+    Map pipelineConfig = history[0]
+    pipelineConfig.trigger = trigger
+
+    orchestratePipeline(pipelineConfig)
+  }
+
+  private Map<String, Object> orchestratePipeline(Map pipeline) {
     Exception pipelineError = null
     boolean plan = pipeline.plan ?: false
     try {
@@ -135,7 +162,7 @@ class OperationsController {
 
     def linear = pipeline.stages.every { it.refId == null }
     if (linear) {
-      convertLinearToParallel(pipeline)
+      applyStageRefIds(pipeline)
     }
 
     if (pipeline.errors != null) {
@@ -169,11 +196,17 @@ class OperationsController {
     }
 
     if (buildService) {
-      getBuildInfo(pipeline.trigger)
+      decorateBuildInfo(pipeline.trigger)
     }
 
     if (pipeline.trigger.parentPipelineId && !pipeline.trigger.parentExecution) {
-      def parentExecution = executionRepository.retrieve(PIPELINE, pipeline.trigger.parentPipelineId)
+      Execution parentExecution
+      try {
+        parentExecution = executionRepository.retrieve(PIPELINE, pipeline.trigger.parentPipelineId)
+      } catch (ExecutionNotFoundException e) {
+        // ignore
+      }
+
       if (parentExecution) {
         pipeline.trigger.isPipeline         = true
         pipeline.trigger.parentStatus       = parentExecution.status
@@ -197,7 +230,7 @@ class OperationsController {
     artifactResolver?.resolveArtifacts(pipeline)
   }
 
-  private void getBuildInfo(Map trigger) {
+  private void decorateBuildInfo(Map trigger) {
     if (trigger.master && trigger.job && trigger.buildNumber) {
       def buildInfo = buildService.getBuild(trigger.buildNumber, trigger.master, trigger.job)
       if (buildInfo?.artifacts) {
@@ -276,8 +309,8 @@ class OperationsController {
       ]
     }
   }
-
-  private void convertLinearToParallel(Map<String, Serializable> pipelineConfig) {
+  
+  private static void applyStageRefIds(Map<String, Serializable> pipelineConfig) {
     def stages = (List<Map<String, Object>>) pipelineConfig.stages
     stages.eachWithIndex { Map<String, Object> stage, int index ->
       stage.put("refId", String.valueOf(index))
@@ -312,7 +345,7 @@ class OperationsController {
   private Map<String, String> startTask(Map config) {
     def linear = config.stages.every { it.refId == null }
     if (linear) {
-      convertLinearToParallel(config)
+      applyStageRefIds(config)
     }
     injectPipelineOrigin(config)
     def json = objectMapper.writeValueAsString(config)
