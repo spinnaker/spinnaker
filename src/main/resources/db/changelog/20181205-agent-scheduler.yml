@@ -47,3 +47,12 @@ databaseChangeLog:
       - dropUniqueConstraint:
           tableName: cats_agent_locks
           constraintName: cats_agent_lock_expiry
+
+- changeSet:
+    id: cats-agent-locks-owner-len
+    author: afeldman
+    changes:
+    - modifyDataType:
+        tableName: cats_agent_locks
+        columnName: owner_id
+        newDataType: varchar(255)
