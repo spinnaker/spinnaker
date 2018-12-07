@@ -434,6 +434,9 @@ const helpContents: { [key: string]: string } = {
     </li>
     </ul>
     <p><strong>Note:</strong> To prevent privilege escalation vulnerabilities, a user must be a member of <strong>all</strong> of the groups specified here in order to modify, and execute the pipeline.</p>`,
+  'pipeline.config.entitytags.namespace': `All tags have an associated namespace (<strong>default</strong> will be used if unspecified) that provides a means of grouping tags by a logical owner.`,
+  'pipeline.config.entitytags.value': `Value can either be a string or an object. If you want to use an object, input a valid JSON string.`,
+  'pipeline.config.entitytags.region': `(Optional) Target a specific region, use * if you want to apply to all regions.`,
 };
 
 Object.keys(helpContents).forEach(key => HelpContentsRegistry.register(key, helpContents[key]));

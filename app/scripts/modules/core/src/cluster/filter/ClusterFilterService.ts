@@ -96,7 +96,9 @@ export class ClusterFilterService {
               key: `${cluster}:${category}`,
               cluster: appCluster,
               subgroups: sortBy(regionGroups, 'heading'),
-              entityTags: (clusterGroup[0].clusterEntityTags || []).find(t => t.entityRef['region'] === '*'),
+              entityTags: (clusterGroup[0].clusterEntityTags || []).find(
+                t => t.entityRef['region'] === '*' || t.entityRef['region'] === undefined,
+              ),
             });
           }
         });
