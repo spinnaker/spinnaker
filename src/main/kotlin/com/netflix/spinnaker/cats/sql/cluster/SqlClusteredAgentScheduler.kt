@@ -31,8 +31,7 @@ import org.jooq.DSLContext
 import org.jooq.impl.DSL.field
 import org.jooq.impl.DSL.table
 import org.slf4j.LoggerFactory
-import org.springframework.dao.DuplicateKeyException
-import org.springframework.jdbc.support.SQLErrorCodeSQLExceptionTranslator
+import org.springframework.dao.DataIntegrityViolationException
 import java.sql.SQLException
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -123,9 +122,9 @@ class SqlClusteredAgentScheduler(
   }
 
   private fun findCandidateAgentLocks(): Map<String, AgentExecutionAction> {
-    val skip = agents.entries
+    val skip = activeAgents.entries
     val maxConcurrentAgents = dynamicConfigService.getConfig(Int::class.java, "sql.agent.maxConcurrentAgents", 100)
-    val availableAgents = maxConcurrentAgents - activeAgents.size
+    val availableAgents = maxConcurrentAgents - skip.size
     if (availableAgents <= 0) {
       log.debug(
         "Not acquiring more locks (maxConcurrentAgents: {}, activeAgents: {}, runningAgents: {})",
@@ -174,14 +173,11 @@ class SqlClusteredAgentScheduler(
           now + timeout
         )
         .execute()
+    } catch (e: DataIntegrityViolationException) {
+      // Integrity constraint exceptions are ok: It means another clouddriver grabbed the lock before us.
+      return false
     } catch (e: SQLException) {
-      val translated = SQLErrorCodeSQLExceptionTranslator().let {
-        it.setDatabaseProductName(jooq.configuration().dialect().getName())
-        it.translate(null, null, e)
-      }
-      if (translated !is DuplicateKeyException) {
-        log.error("Unexpected sql exception while trying to acquire agent lock", translated)
-      }
+      log.error("Unexpected sql exception while trying to acquire agent lock", e)
       return false
     }
     return true
