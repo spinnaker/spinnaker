@@ -4,12 +4,48 @@ import { react2angular } from 'react2angular';
 import { CloudfoundryDeployServiceStageConfig } from './CloudfoundryDeployServiceStageConfig';
 import { ExecutionDetailsTasks, IStage, Registry } from '@spinnaker/core';
 import { CloudfoundryDeployServiceExecutionDetails } from 'cloudfoundry/pipeline/stages/deployService/CloudfoundryDeployServiceExecutionDetails';
+import { IManifestFieldValidatorConfig } from 'cloudfoundry/pipeline/config/validation/ManifestConfigValidator';
 
 class CloudFoundryDeployServiceStageCtrl implements IController {
   constructor(public $scope: IScope) {
     'ngInject';
   }
 }
+
+const serviceValidatorConfig: IManifestFieldValidatorConfig = {
+  type: 'requiredManifestField',
+  manifestType: 'direct',
+  fieldName: 'service',
+  preventSave: true,
+};
+
+const servicePlanValidatorConfig: IManifestFieldValidatorConfig = {
+  type: 'requiredManifestField',
+  manifestType: 'direct',
+  fieldName: 'servicePlan',
+  preventSave: true,
+};
+
+const jsonValidatorConfig: IManifestFieldValidatorConfig = {
+  type: 'validServiceParameterJson',
+  manifestType: 'direct',
+  fieldName: 'parameters',
+  preventSave: true,
+};
+
+const accountValidatorConfig: IManifestFieldValidatorConfig = {
+  type: 'requiredManifestField',
+  manifestType: 'artifact',
+  fieldName: 'account',
+  preventSave: true,
+};
+
+const referenceValidatorConfig: IManifestFieldValidatorConfig = {
+  type: 'requiredManifestField',
+  manifestType: 'artifact',
+  fieldName: 'reference',
+  preventSave: true,
+};
 
 export const CLOUD_FOUNDRY_DEPLOY_SERVICE_STAGE = 'spinnaker.cloudfoundry.pipeline.stage.deployServiceStage';
 module(CLOUD_FOUNDRY_DEPLOY_SERVICE_STAGE, [])
@@ -27,9 +63,11 @@ module(CLOUD_FOUNDRY_DEPLOY_SERVICE_STAGE, [])
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account' },
         { type: 'requiredField', fieldName: 'region' },
         { type: 'requiredField', fieldName: 'serviceName', preventSave: true },
-        { type: 'requiredField', fieldName: 'service', preventSave: true },
-        { type: 'requiredField', fieldName: 'servicePlan', preventSave: true },
-        { type: 'validServiceParameterJson', fieldName: 'parameters', preventSave: true },
+        serviceValidatorConfig,
+        servicePlanValidatorConfig,
+        jsonValidatorConfig,
+        accountValidatorConfig,
+        referenceValidatorConfig,
       ],
     });
   })

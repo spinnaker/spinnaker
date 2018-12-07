@@ -457,7 +457,6 @@ class ConfigurationSettingsImpl extends React.Component<ICloudFoundryServerGroup
 
   public render(): JSX.Element {
     const { manifest } = this.props.formik.values;
-    manifest.type === 'direct' ? this.directConfiguration(manifest) : this.artifactConfiguration(manifest);
     let manifestInput;
 
     switch (manifest.type) {
@@ -492,7 +491,6 @@ class ConfigurationSettingsImpl extends React.Component<ICloudFoundryServerGroup
               <label>
                 <input
                   type="radio"
-                  value="droplet"
                   checked={manifest.type === 'artifact'}
                   onChange={() => this.manifestTypeUpdated('artifact')}
                 />{' '}
@@ -503,7 +501,6 @@ class ConfigurationSettingsImpl extends React.Component<ICloudFoundryServerGroup
               <label>
                 <input
                   type="radio"
-                  value="droplet"
                   checked={manifest.type === 'direct'}
                   onChange={() => this.manifestTypeUpdated('direct')}
                 />{' '}

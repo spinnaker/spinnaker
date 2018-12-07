@@ -4,6 +4,7 @@ import {
   AccountSelectField,
   AccountService,
   IAccount,
+  IArtifactAccount,
   IRegion,
   IService,
   IServicePlan,
@@ -17,12 +18,36 @@ import { includes } from 'lodash';
 
 import './cloudfoundryDeployServiceStage.less';
 
-export interface ICloudfoundryDeployServiceStageConfigState {
+interface ICloudfoundryServiceManifestDirectSource {
+  parameters?: string;
+  service: string;
+  serviceName: string;
+  servicePlan: string;
+  tags?: string[];
+}
+
+interface ICloudfoundryServiceManifestArtifactSource {
+  account: string;
+  reference: string;
+}
+
+type ICloudFoundryServiceManifestSource = { type: string } & (
+  | ICloudfoundryServiceManifestDirectSource
+  | ICloudfoundryServiceManifestArtifactSource);
+
+interface ICloudfoundryServiceStageConfigProps extends IStageConfigProps {
+  manifest: ICloudFoundryServiceManifestSource;
+}
+
+interface ICloudfoundryDeployServiceStageConfigState {
   accounts: IAccount[];
+  artifactAccount: string;
+  artifactAccounts: IArtifactAccount[];
   cloudProvider: string;
   credentials: string;
   newTag: string;
   parameters: string;
+  reference: string;
   region: string;
   regions: IRegion[];
   service: string;
@@ -32,36 +57,75 @@ export interface ICloudfoundryDeployServiceStageConfigState {
   servicePlan: string;
   servicePlans: string[];
   tags: string[];
+  timeout: string;
+  type: string;
 }
 
 export class CloudfoundryDeployServiceStageConfig extends React.Component<
-  IStageConfigProps,
+  ICloudfoundryServiceStageConfigProps,
   ICloudfoundryDeployServiceStageConfigState
 > {
-  constructor(props: IStageConfigProps) {
+  constructor(props: ICloudfoundryServiceStageConfigProps) {
     super(props);
     props.stage.cloudProvider = 'cloudfoundry';
+    props.stage.manifest = props.stage.manifest || {
+      service: '',
+      serviceName: '',
+      servicePlan: '',
+      type: 'direct',
+    };
+
     this.state = {
       accounts: [],
+      artifactAccount: props.stage.manifest.account,
+      artifactAccounts: [],
       cloudProvider: 'cloudfoundry',
       credentials: props.stage.credentials,
       newTag: '',
-      parameters: props.stage.parameters,
+      parameters: props.stage.manifest.parameters,
+      reference: props.stage.manifest.reference,
       region: props.stage.region,
       regions: [],
-      service: props.stage.service,
+      service: props.stage.manifest.service,
       services: [],
-      serviceName: props.stage.serviceName,
+      serviceName: props.stage.manifest.serviceName,
       serviceNamesAndPlans: [],
-      servicePlan: props.stage.servicePlan,
+      servicePlan: props.stage.manifest.servicePlan,
       servicePlans: [],
-      tags: props.stage.tags || [],
+      tags: props.stage.manifest.tags || [],
+      timeout: props.stage.timeout,
+      type: props.stage.manifest.type,
     };
   }
+
+  private manifestTypeUpdated = (type: string): void => {
+    switch (type) {
+      case 'direct':
+        this.props.stage.manifest = {
+          service: '',
+          serviceName: '',
+          servicePlan: '',
+          type: 'direct',
+        };
+        this.setState({ type: 'direct' });
+        break;
+      case 'artifact':
+        this.props.stage.manifest = {
+          account: '',
+          reference: '',
+          type: 'artifact',
+        };
+        this.setState({ type: 'artifact' });
+        break;
+    }
+  };
 
   public componentDidMount = (): void => {
     AccountService.listAccounts('cloudfoundry').then(accounts => {
       this.setState({ accounts: accounts });
+    });
+    AccountService.getArtifactAccounts().then(artifactAccounts => {
+      this.setState({ artifactAccounts: artifactAccounts });
     });
     const { credentials, region } = this.props.stage;
     if (credentials) {
@@ -93,7 +157,7 @@ export class CloudfoundryDeployServiceStageConfig extends React.Component<
     });
     const { credentials, region } = this.props.stage;
     ServicesReader.getServices(credentials, region).then(services => {
-      const service = services.find(it => it.name === this.props.stage.service);
+      const service = services.find(it => it.name === this.props.stage.manifest.service);
       this.setState({
         serviceNamesAndPlans: services,
         servicePlans: service ? service.servicePlans.map((it: IServicePlan) => it.name) : [],
@@ -107,8 +171,9 @@ export class CloudfoundryDeployServiceStageConfig extends React.Component<
     this.setState({ credentials: credentials, region: '' });
     this.props.stage.credentials = credentials;
     this.props.stage.region = '';
-    this.props.stage.service = '';
-    this.props.stage.servicePlan = '';
+    this.props.stage.manifest.service = '';
+    this.props.stage.manifest.serviceName = '';
+    this.props.stage.manifest.servicePlan = '';
     this.props.stageFieldUpdated();
     if (credentials) {
       this.clearAndReloadRegions();
@@ -118,8 +183,9 @@ export class CloudfoundryDeployServiceStageConfig extends React.Component<
   private regionUpdated = (region: string): void => {
     this.setState({ region: region, service: '', servicePlan: '' });
     this.props.stage.region = region;
-    this.props.stage.service = '';
-    this.props.stage.servicePlan = '';
+    this.props.stage.manifest.service = '';
+    this.props.stage.manifest.serviceName = '';
+    this.props.stage.manifest.servicePlan = '';
     this.props.stageFieldUpdated();
     this.clearAndReloadServices();
   };
@@ -133,29 +199,29 @@ export class CloudfoundryDeployServiceStageConfig extends React.Component<
       servicePlan: '',
       servicePlans,
     });
-    this.props.stage.service = service;
-    this.props.stage.servicePlan = '';
+    this.props.stage.manifest.service = service;
+    this.props.stage.manifest.servicePlan = '';
     this.props.stageFieldUpdated();
   };
 
   private servicePlanUpdated = (event: React.ChangeEvent<HTMLSelectElement>): void => {
     const servicePlan = event.target.value;
     this.setState({ servicePlan });
-    this.props.stage.servicePlan = servicePlan;
+    this.props.stage.manifest.servicePlan = servicePlan;
     this.props.stageFieldUpdated();
   };
 
   private serviceNameUpdated = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const serviceName = event.target.value;
     this.setState({ serviceName });
-    this.props.stage.serviceName = serviceName;
+    this.props.stage.manifest.serviceName = serviceName;
     this.props.stageFieldUpdated();
   };
 
   private parametersUpdated = (event: React.ChangeEvent<HTMLTextAreaElement>): void => {
     const parameters = event.target.value;
     this.setState({ parameters });
-    this.props.stage.parameters = parameters;
+    this.props.stage.manifest.parameters = parameters;
     this.props.stageFieldUpdated();
   };
 
@@ -163,13 +229,27 @@ export class CloudfoundryDeployServiceStageConfig extends React.Component<
     this.setState({ newTag: event.target.value });
   };
 
+  private artifactAccountUpdated = (event: React.ChangeEvent<HTMLSelectElement>): void => {
+    const artifactAccount = event.target.value;
+    this.setState({ artifactAccount });
+    this.props.stage.manifest.account = artifactAccount;
+    this.props.stageFieldUpdated();
+  };
+
+  private referenceUpdated = (event: React.ChangeEvent<HTMLInputElement>): void => {
+    const reference = event.target.value;
+    this.setState({ reference });
+    this.props.stage.manifest.reference = reference;
+    this.props.stageFieldUpdated();
+  };
+
   private addTag = (): void => {
     const { newTag } = this.state;
-    const tags = this.props.stage.tags || [];
+    const tags = this.props.stage.manifest.tags || [];
 
     if (!includes(tags, newTag.trim())) {
       const newTags = [...tags, newTag.trim()].sort((a, b) => a.localeCompare(b));
-      this.props.stage.tags = newTags;
+      this.props.stage.manifest.tags = newTags;
       this.setState({
         tags: newTags,
         newTag: '',
@@ -179,42 +259,37 @@ export class CloudfoundryDeployServiceStageConfig extends React.Component<
   };
 
   private deleteTag = (index: number): void => {
-    const { tags } = this.props.stage;
+    const { tags } = this.props.stage.manifest;
     tags.splice(index, 1);
-    this.props.stage.tags = tags;
+    this.props.stage.manifest.tags = tags;
     this.setState({ tags });
     this.props.stageFieldUpdated();
   };
 
   private timeoutUpdated = (event: React.ChangeEvent<HTMLInputElement>): void => {
-    this.props.stage.timeout = event.target.value;
+    const timeout = event.target.value;
+    this.setState({ timeout });
+    this.props.stage.timeout = timeout;
     this.props.stageFieldUpdated();
   };
 
-  public render() {
-    const { stage } = this.props;
-    const { credentials, parameters, service, serviceName, servicePlan, tags, timeout } = stage;
-    const { accounts, newTag, regions, servicePlans, services } = this.state;
+  private directManifestInput = (
+    manifest: ICloudfoundryServiceManifestDirectSource,
+    state: ICloudfoundryDeployServiceStageConfigState,
+  ): JSX.Element => {
+    const { parameters, service, serviceName, servicePlan, tags } = manifest;
+    const { newTag, servicePlans, services } = state;
     return (
-      <div className="form-horizontal cloudfoundry-deploy-service-stage">
-        <StageConfigField label="Account">
-          <AccountSelectField
-            accounts={accounts}
-            component={stage}
-            field="credentials"
-            provider="cloudfoundry"
-            onChange={this.accountUpdated}
+      <div>
+        <StageConfigField label="Service Name">
+          <input
+            type="text"
+            className="form-control"
+            required={true}
+            onChange={this.serviceNameUpdated}
+            value={serviceName}
           />
         </StageConfigField>
-        <RegionSelectField
-          labelColumns={3}
-          fieldColumns={8}
-          component={stage}
-          field="region"
-          account={credentials}
-          onChange={this.regionUpdated}
-          regions={regions}
-        />
         <StageConfigField label="Service">
           <select className="form-control input-sm" required={true} onChange={this.serviceUpdated} value={service}>
             <option value="" disabled={true}>
@@ -247,15 +322,6 @@ export class CloudfoundryDeployServiceStageConfig extends React.Component<
               );
             })}
           </select>
-        </StageConfigField>
-        <StageConfigField label="Service Name">
-          <input
-            type="text"
-            className="form-control"
-            required={true}
-            onChange={this.serviceNameUpdated}
-            value={serviceName}
-          />
         </StageConfigField>
         <StageConfigField label="Tags">
           <div className="row">
@@ -294,6 +360,111 @@ export class CloudfoundryDeployServiceStageConfig extends React.Component<
         <StageConfigField label="Parameters">
           <textarea className="form-control" onChange={this.parametersUpdated} value={parameters} />
         </StageConfigField>
+      </div>
+    );
+  };
+
+  private artifactManifestInput = (
+    manifest: ICloudfoundryServiceManifestArtifactSource,
+    state: ICloudfoundryDeployServiceStageConfigState,
+  ): JSX.Element => {
+    const { account, reference } = manifest;
+    const { artifactAccounts } = state;
+    return (
+      <div>
+        <StageConfigField label="Artifact Account">
+          <select
+            className="form-control input-sm"
+            required={true}
+            onChange={this.artifactAccountUpdated}
+            value={account}
+          >
+            <option value="" disabled={true}>
+              Select...
+            </option>
+            {artifactAccounts.map((it: IArtifactAccount) => {
+              return (
+                <option key={it.name} value={it.name}>
+                  {it.name}
+                </option>
+              );
+            })}
+          </select>
+        </StageConfigField>
+        <StageConfigField label="Reference">
+          <input
+            type="text"
+            className="form-control"
+            required={true}
+            onChange={this.referenceUpdated}
+            value={reference}
+          />
+        </StageConfigField>
+      </div>
+    );
+  };
+
+  public render() {
+    const { stage } = this.props;
+    const { credentials, manifest, timeout } = stage;
+    const { accounts, regions } = this.state;
+
+    let manifestInput;
+
+    switch (manifest.type) {
+      case 'direct':
+        manifestInput = this.directManifestInput(manifest, this.state);
+        break;
+      case 'artifact':
+        manifestInput = this.artifactManifestInput(manifest, this.state);
+        break;
+    }
+
+    return (
+      <div className="form-horizontal cloudfoundry-deploy-service-stage">
+        <StageConfigField label="Account">
+          <AccountSelectField
+            accounts={accounts}
+            component={stage}
+            field="credentials"
+            provider="cloudfoundry"
+            onChange={this.accountUpdated}
+          />
+        </StageConfigField>
+        <RegionSelectField
+          labelColumns={3}
+          fieldColumns={8}
+          component={stage}
+          field="region"
+          account={credentials}
+          onChange={this.regionUpdated}
+          regions={regions}
+        />
+        <StageConfigField label="Source Type">
+          <div className="col-md-7">
+            <div className="radio radio-inline">
+              <label>
+                <input
+                  type="radio"
+                  checked={manifest.type === 'artifact'}
+                  onChange={() => this.manifestTypeUpdated('artifact')}
+                />{' '}
+                Artifact
+              </label>
+            </div>
+            <div className="radio radio-inline">
+              <label>
+                <input
+                  type="radio"
+                  checked={manifest.type === 'direct'}
+                  onChange={() => this.manifestTypeUpdated('direct')}
+                />{' '}
+                Form
+              </label>
+            </div>
+          </div>
+        </StageConfigField>
+        {manifestInput}
         <StageConfigField label="Override Deploy Timeout (Seconds)" helpKey="cf.service.deploy.timeout">
           <input type="number" className="form-control" onChange={this.timeoutUpdated} value={timeout} />
         </StageConfigField>
