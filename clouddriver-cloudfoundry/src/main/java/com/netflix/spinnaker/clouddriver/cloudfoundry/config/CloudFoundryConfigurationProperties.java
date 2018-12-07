@@ -30,13 +30,13 @@ import java.util.List;
 @Data
 @ConfigurationProperties("cloudfoundry")
 public class CloudFoundryConfigurationProperties {
-  static final int POLLING_INTERVAL_SECONDS_DEFAULT = 300;
-  static final int ASYNC_OPERATION_TIMEOUT_SECONDS_DEFAULT = (int) (POLLING_INTERVAL_SECONDS_DEFAULT * 1.5);
-  static final int ASYNC_OPERATION_MAX_POLLING_INTERVAL_SECONDS = 8;
+  static final int POLLING_INTERVAL_MILLISECONDS_DEFAULT = 300 * 1000;
+  static final int ASYNC_OPERATION_TIMEOUT_MILLISECONDS_DEFAULT = (int) (POLLING_INTERVAL_MILLISECONDS_DEFAULT * 1.5);
+  static final int ASYNC_OPERATION_MAX_POLLING_INTERVAL_MILLISECONDS = 8 * 1000;
 
-  private int pollingIntervalSeconds = POLLING_INTERVAL_SECONDS_DEFAULT;
-  private int asyncOperationTimeoutSecondsDefault = ASYNC_OPERATION_TIMEOUT_SECONDS_DEFAULT;
-  private int asyncOperationMaxPollingIntervalSeconds = ASYNC_OPERATION_MAX_POLLING_INTERVAL_SECONDS;
+  private int pollingIntervalMilliseconds = POLLING_INTERVAL_MILLISECONDS_DEFAULT;
+  private int asyncOperationTimeoutMillisecondsDefault = ASYNC_OPERATION_TIMEOUT_MILLISECONDS_DEFAULT;
+  private int asyncOperationMaxPollingIntervalMilliseconds = ASYNC_OPERATION_MAX_POLLING_INTERVAL_MILLISECONDS;
 
   private List<ManagedAccount> accounts = new ArrayList<>();
 

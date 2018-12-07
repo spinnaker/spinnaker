@@ -2,6 +2,10 @@ test {
   useJUnitPlatform()
 }
 
+configurations {
+  all*.exclude group: 'junit', module: 'junit'
+}
+
 dependencies {
   compile project(":clouddriver-artifacts")
   compile project(":clouddriver-core")

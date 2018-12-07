@@ -21,19 +21,19 @@ import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
 import com.squareup.okhttp.ResponseBody;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
 import static com.squareup.okhttp.Protocol.HTTP_1_1;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
-public class HttpCloudFoundryClientTest {
+class HttpCloudFoundryClientTest {
   @Test
-  public void createRetryInterceptorShouldRetryOnInternalServerErrorsThenTimeOut() {
+  void createRetryInterceptorShouldRetryOnInternalServerErrorsThenTimeOut() {
     Request request = new Request.Builder().url("http://duke.of.url").build();
     Response response502 = new Response.Builder().code(502).request(request).protocol(HTTP_1_1).build();
     Response response503 = new Response.Builder().code(503).request(request).protocol(HTTP_1_1).build();
@@ -60,7 +60,7 @@ public class HttpCloudFoundryClientTest {
   }
 
   @Test
-  public void createRetryInterceptorShouldNotRefreshTokenOnBadCredentials() {
+  void createRetryInterceptorShouldNotRefreshTokenOnBadCredentials() {
     Request request = new Request.Builder().url("http://duke.of.url").build();
     ResponseBody body = ResponseBody.create(MediaType.parse("application/octet-stream"), "Bad credentials");
     Response response401 = new Response.Builder().code(401).request(request).body(body).protocol(HTTP_1_1).build();
@@ -85,7 +85,7 @@ public class HttpCloudFoundryClientTest {
   }
 
   @Test
-  public void createRetryInterceptorShouldReturnOnEverythingElse() {
+  void createRetryInterceptorShouldReturnOnEverythingElse() {
     Request request = new Request.Builder().url("http://duke.of.url").build();
     Response response502 = new Response.Builder().code(502).request(request).protocol(HTTP_1_1).build();
     Response response200 = new Response.Builder().code(200).request(request).protocol(HTTP_1_1).build();

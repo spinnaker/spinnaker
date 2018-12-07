@@ -197,7 +197,7 @@ public class ServiceInstances {
   void pollServiceInstanceStatus(String serviceInstanceName, String guid, LastOperation.Type type, Duration timeout) {
     RetryConfig retryConfig = RetryConfig.custom()
       .waitDuration(pollingInterval)
-      .maxAttempts((int) (timeout.getSeconds() / pollingInterval.getSeconds()))
+      .maxAttempts((int) (timeout.toMillis() / pollingInterval.toMillis()))
       .retryExceptions(OperationInProgressException.class)
       .build();
 

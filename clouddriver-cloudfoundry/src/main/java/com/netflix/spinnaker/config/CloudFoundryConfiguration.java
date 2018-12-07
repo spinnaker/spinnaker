@@ -52,8 +52,8 @@ public class CloudFoundryConfiguration {
   @Bean
   OperationPoller cloudFoundryOperationPoller(CloudFoundryConfigurationProperties properties) {
     return new OperationPoller(
-      properties.getAsyncOperationTimeoutSecondsDefault(),
-      properties.getAsyncOperationMaxPollingIntervalSeconds()
+      properties.getAsyncOperationTimeoutMillisecondsDefault(),
+      properties.getAsyncOperationMaxPollingIntervalMilliseconds()
     );
   }
 
