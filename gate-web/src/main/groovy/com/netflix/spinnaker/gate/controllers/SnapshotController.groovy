@@ -39,7 +39,7 @@ class SnapshotController {
     snapshotService.getCurrent(application, account)
   }
 
-  @ApiOperation(value = "Get snapshot history", response = HashMap.class, responseContainer = "List")
+  @ApiOperation(value = "Get snapshot history", response = List.class)
   @RequestMapping(value = "/{application}/snapshots/{account}/history", method = RequestMethod.GET)
   List<Map> getSnapshotHistory(@PathVariable("application") String application,
                                @PathVariable("account") String account,

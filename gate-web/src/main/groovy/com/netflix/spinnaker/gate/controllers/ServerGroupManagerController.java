@@ -37,7 +37,7 @@ public class ServerGroupManagerController {
     this.serverGroupManagerService = serverGroupManagerService;
   }
 
-  @ApiOperation(value = "Retrieve a list of server group managers for an application", response = HashMap.class, responseContainer = "List")
+  @ApiOperation(value = "Retrieve a list of server group managers for an application", response = List.class)
   @RequestMapping(method = RequestMethod.GET)
   public List<Map> getServerGroupManagersForApplication(@PathVariable String application) {
     return this.serverGroupManagerService.getServerGroupManagersForApplication(application);

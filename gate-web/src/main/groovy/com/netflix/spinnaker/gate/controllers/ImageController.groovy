@@ -30,7 +30,7 @@ class ImageController {
   @Autowired
   ImageService imageService
 
-  @ApiOperation(value = "Get image details", response = HashMap.class, responseContainer = "List")
+  @ApiOperation(value = "Get image details", response = List.class)
   @RequestMapping(value = "/{account}/{region}/{imageId:.+}", method = RequestMethod.GET)
   List<Map> getImageDetails(@PathVariable(value = "account") String account,
                             @PathVariable(value = "region") String region,
@@ -42,8 +42,7 @@ class ImageController {
 
   @ApiOperation(value = "Retrieve a list of images, filtered by cloud provider, region, and account",
                 notes = "The query parameter `q` filters the list of images by image name",
-                response = HashMap.class,
-                responseContainer = "List")
+                response = List.class)
   @RequestMapping(value = "/find", method = RequestMethod.GET)
   List<Map> findImages(@RequestParam(value = "provider", defaultValue = "aws", required = false) String provider,
                        @RequestParam(value = "q", required = false) String query,

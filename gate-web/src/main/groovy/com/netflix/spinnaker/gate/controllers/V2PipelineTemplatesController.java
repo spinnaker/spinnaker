@@ -69,8 +69,7 @@ public class V2PipelineTemplatesController {
     this.objectMapper = objectMapper;
   }
 
-  // TODO(jacobkiefer): Un-stub
-  @ApiOperation(value = "List pipeline templates.", response = HashMap.class, responseContainer = "List")
+  @ApiOperation(value = "List pipeline templates.", response = List.class)
   @RequestMapping(method = RequestMethod.GET)
   public Collection<Map> list(@RequestParam(required = false) List<String> scopes) {
     return v2PipelineTemplateService.findByScope(scopes);

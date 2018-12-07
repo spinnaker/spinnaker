@@ -42,14 +42,14 @@ class ProjectController {
     return projectService.get(projectId)
   }
 
-  @ApiOperation(value = "Get a project's clusters", response = HashMap.class, responseContainer = "List")
+  @ApiOperation(value = "Get a project's clusters", response = List.class)
   @RequestMapping(value = "/{id}/clusters", method = RequestMethod.GET)
   List<Map> getClusters(@PathVariable("id") String projectId,
                         @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
     return projectService.getClusters(projectId, sourceApp)
   }
 
-  @ApiOperation(value = "Get all pipelines for project", response = HashMap.class, responseContainer = "List")
+  @ApiOperation(value = "Get all pipelines for project", response = List.class)
   @RequestMapping(value = "/{id:.+}/pipelines", method = RequestMethod.GET)
   List<Map> allPipelinesForProject(@PathVariable("id") String projectId,
                                    @RequestParam(value = "limit", defaultValue = "5") int limit,

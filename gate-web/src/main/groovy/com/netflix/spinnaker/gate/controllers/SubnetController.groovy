@@ -28,7 +28,7 @@ class SubnetController {
   @Autowired
   ClouddriverServiceSelector clouddriverServiceSelector
 
-  @ApiOperation(value = "Retrieve a list of subnets for a given cloud provider", response = HashMap.class, responseContainer = "List")
+  @ApiOperation(value = "Retrieve a list of subnets for a given cloud provider", response = List.class)
   @RequestMapping(value = "/{cloudProvider}", method = RequestMethod.GET)
   List<Map> allByCloudProvider(@PathVariable String cloudProvider,
                                @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {

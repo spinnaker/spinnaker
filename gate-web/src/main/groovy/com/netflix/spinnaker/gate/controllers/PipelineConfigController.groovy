@@ -41,7 +41,7 @@ class PipelineConfigController {
   @Autowired
   OrcaServiceSelector orcaServiceSelector
 
-  @ApiOperation(value = "Get all pipeline configs.", response = HashMap.class, responseContainer = "List")
+  @ApiOperation(value = "Get all pipeline configs.", response = List.class)
   @RequestMapping(method = RequestMethod.GET)
   Collection<Map> getAllPipelineConfigs() {
     return HystrixFactory.newListCommand(HYSTRIX_GROUP, "getAllPipelineConfigs") {
@@ -49,7 +49,7 @@ class PipelineConfigController {
     }.execute()
   }
 
-  @ApiOperation(value = "Get pipeline config history.", response = HashMap.class, responseContainer = "List")
+  @ApiOperation(value = "Get pipeline config history.", response = List.class)
   @RequestMapping(value = "/{pipelineConfigId}/history", method = RequestMethod.GET)
   Collection<Map> getPipelineConfigHistory(@PathVariable("pipelineConfigId") String pipelineConfigId,
                                            @RequestParam(value = "limit", defaultValue = "20") int limit) {

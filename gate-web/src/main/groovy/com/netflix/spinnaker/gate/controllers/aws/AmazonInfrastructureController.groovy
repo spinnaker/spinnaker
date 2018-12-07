@@ -29,26 +29,26 @@ class AmazonInfrastructureController {
   @Autowired
   InfrastructureService infrastructureService
 
-  @ApiOperation(value = "Get instance types", response = HashMap.class, responseContainer = "List")
+  @ApiOperation(value = "Get instance types", response = List.class)
   @RequestMapping(value = "/instanceTypes", method = RequestMethod.GET)
   List<Map> instanceTypes() {
     infrastructureService.instanceTypes
   }
 
-  @ApiOperation(value = "Get key pairs", response = HashMap.class, responseContainer = "List")
+  @ApiOperation(value = "Get key pairs", response = List.class)
   @RequestMapping(value = "/keyPairs", method = RequestMethod.GET)
   List<Map> keyPairs() {
     infrastructureService.keyPairs
   }
 
-  @ApiOperation(value = "Get subnets", response = HashMap.class, responseContainer = "List")
+  @ApiOperation(value = "Get subnets", response = List.class)
   @RequestMapping(value = "/subnets", method = RequestMethod.GET)
   List<Map> subnets() {
     infrastructureService.subnets
   }
 
   @Deprecated
-  @ApiOperation(value = "Get VPCs", response = HashMap.class, responseContainer = "List")
+  @ApiOperation(value = "Get VPCs", response = List.class)
   @RequestMapping(value = "/vpcs", method = RequestMethod.GET)
   List<Map> vpcs() {
     infrastructureService.vpcs

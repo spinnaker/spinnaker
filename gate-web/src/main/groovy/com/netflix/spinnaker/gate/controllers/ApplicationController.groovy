@@ -98,7 +98,7 @@ class ApplicationController {
     result
   }
 
-  @ApiOperation(value = "Retrieve a list of an application's configuration revision history", response = HashMap.class, responseContainer = "List")
+  @ApiOperation(value = "Retrieve a list of an application's configuration revision history", response = List.class)
   @RequestMapping(value = "/{application}/history", method = RequestMethod.GET)
   List<Map> getApplicationHistory(@PathVariable("application") String application,
                                   @RequestParam(value = "limit", defaultValue = "20") int limit) {

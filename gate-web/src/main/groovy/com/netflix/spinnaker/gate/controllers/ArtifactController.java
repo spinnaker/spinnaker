@@ -38,7 +38,7 @@ public class ArtifactController {
   @Autowired
   private ArtifactService artifactService;
 
-  @ApiOperation(value = "Retrieve the list of artifact accounts configured in Clouddriver.", response = HashMap.class, responseContainer = "List")
+  @ApiOperation(value = "Retrieve the list of artifact accounts configured in Clouddriver.", response = List.class)
   @RequestMapping(method = RequestMethod.GET, value = "/credentials")
   List<Map> all(@RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
     return artifactService.getArtifactCredentials(sourceApp);

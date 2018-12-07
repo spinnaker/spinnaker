@@ -29,7 +29,7 @@ class SearchController {
   @Autowired
   SearchService searchService
 
-  @ApiOperation(value = "Search infrastructure", response = HashMap.class, responseContainer = "List")
+  @ApiOperation(value = "Search infrastructure", response = List.class)
   @RequestMapping(value = "/search", method = RequestMethod.GET)
   List<Map> search(@RequestParam(value = "q", defaultValue = "", required = false) String query,
                    @RequestParam(value = "type") String type,

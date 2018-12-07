@@ -137,7 +137,7 @@ class PipelineController {
     return front50Service.getPipelineConfigsForApplication((String) pipeline.get("application"), true)?.find { id == (String) it.get("id") }
   }
 
-  @ApiOperation(value = "Retrieve pipeline execution logs", response = HashMap.class, responseContainer = "List")
+  @ApiOperation(value = "Retrieve pipeline execution logs", response = List.class)
   @RequestMapping(value = "{id}/logs", method = RequestMethod.GET)
   List<Map> getPipelineLogs(@PathVariable("id") String id) {
     try {

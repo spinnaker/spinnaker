@@ -45,8 +45,7 @@ class LoadBalancerController {
   }
 
   @ApiOperation(value = "Retrieve a load balancer's details as a single element list for a given account, region, cloud provider and load balancer name",
-                response = HashMap.class,
-                responseContainer = "List")
+                response = List.class)
   @RequestMapping(value = "/loadBalancers/{account}/{region}/{name:.+}", method = RequestMethod.GET)
   List<Map> getLoadBalancerDetails(@PathVariable String account,
                                    @PathVariable String region,
@@ -57,8 +56,7 @@ class LoadBalancerController {
   }
 
   @ApiOperation(value = "Retrieve a list of load balancers for a given application",
-                response = HashMap.class,
-                responseContainer = "List")
+                response = List.class)
   @RequestMapping(value = '/applications/{application}/loadBalancers', method = RequestMethod.GET)
   List<Map> getApplicationLoadBalancers(@PathVariable String application,
                                         @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {

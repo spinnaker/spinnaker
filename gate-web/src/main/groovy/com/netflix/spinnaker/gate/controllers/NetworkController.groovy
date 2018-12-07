@@ -38,7 +38,7 @@ class NetworkController {
     networkService.getNetworks(sourceApp)
   }
 
-  @ApiOperation(value = "Retrieve a list of networks for a given cloud provider", response = HashMap.class, responseContainer = "List")
+  @ApiOperation(value = "Retrieve a list of networks for a given cloud provider", response = List.class)
   @RequestMapping(value = "/{cloudProvider}", method = RequestMethod.GET)
   List<Map> allByCloudProvider(@PathVariable String cloudProvider,
                                @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
