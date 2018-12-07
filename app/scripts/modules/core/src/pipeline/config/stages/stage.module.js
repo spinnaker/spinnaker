@@ -200,6 +200,7 @@ module.exports = angular
               },
               stage: $scope.stage,
               component: config.component,
+              configuration: config.configuration,
             };
             ReactDOM.render(React.createElement(StageConfigWrapper, props), stageDetailsNode);
           } else {
