@@ -107,6 +107,9 @@ class AmazonLoadBalancerInstanceStateCachingAgent implements CachingAgent, Healt
       try {
         Map<String, String> idObj = Keys.parse(loadBalancerKey)
         def lbName = idObj.loadBalancer
+        if (idObj.loadBalancerType && idObj.loadBalancerType != 'classic')
+          continue
+
         def result = loadBalancing.describeInstanceHealth(new DescribeInstanceHealthRequest(lbName))
         def loadBalancerInstances = []
         for (instanceState in result.instanceStates) {
