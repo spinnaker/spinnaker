@@ -23,7 +23,7 @@ RUN curl -LO https://storage.googleapis.com/kubernetes-release/release/v${KUBECT
     chmod +x ./kubectl && \
     mv ./kubectl /usr/local/bin/kubectl
 
-RUN curl -o heptio-authenticator-aws https://amazon-eks.s3-us-west-2.amazonaws.com/${KUBECTL_RELEASE}/${AWS_BINARY_RELEASE_DATE}/bin/linux/amd64/aws-iam-authenticator && \
+RUN curl -o aws-iam-authenticator https://amazon-eks.s3-us-west-2.amazonaws.com/${KUBECTL_RELEASE}/${AWS_BINARY_RELEASE_DATE}/bin/linux/amd64/aws-iam-authenticator && \
   chmod +x ./aws-iam-authenticator && \
   mv ./aws-iam-authenticator /usr/local/bin/aws-iam-authenticator
 
