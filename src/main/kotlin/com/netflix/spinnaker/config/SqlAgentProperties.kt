@@ -20,7 +20,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 @ConfigurationProperties("sql.agent")
 data class SqlAgentProperties(
   var enabledPattern: String = ".*",
-  var maxConcurrentAgents: Int = 1000,
+  var maxConcurrentAgents: Int = 100,
   var agentLockAcquisitionIntervalSeconds: Long = 1,
   var poll: SqlPollProperties = SqlPollProperties()
 )
