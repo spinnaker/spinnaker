@@ -1,23 +1,20 @@
 import * as React from 'react';
 import { $q } from 'ngimport';
-import { flatten, has, isEqual, map, uniq, xor } from 'lodash';
+import { flatten, isEqual, map, uniq, xor } from 'lodash';
 
-import { IAccount } from 'core/account';
-import { AccountService } from 'core/account/AccountService';
+import { createFakeReactSyntheticEvent } from 'core/presentation/forms/inputs/utils';
+import { IFormInputProps } from 'core/presentation';
 
-export interface IAccountSelectInputProps {
+import { AccountService, IAccount } from './AccountService';
+
+export interface IAccountSelectInputProps extends IFormInputProps {
   accounts: IAccount[] | string[];
-  component: { [key: string]: any };
-  field: string;
   provider: string;
   loading?: boolean;
-  onChange?: (account: string) => void;
-  labelColumns?: number;
   readOnly?: boolean;
 }
 
 export interface IAccountSelectInputState {
-  accountContainsExpression: boolean;
   mergedAccounts: string[];
   primaryAccounts: string[];
   secondaryAccounts: string[];
@@ -27,20 +24,19 @@ const isExpression = (account: string) => !!account && account.includes('${');
 
 export class AccountSelectInput extends React.Component<IAccountSelectInputProps, IAccountSelectInputState> {
   public state: IAccountSelectInputState = {
-    accountContainsExpression: false,
     mergedAccounts: [],
     primaryAccounts: [],
     secondaryAccounts: [],
   };
 
   private groupAccounts = (accounts: IAccount[] | string[]) => {
-    const { component, field, onChange, provider } = this.props;
+    const { name, value, onChange, provider } = this.props;
 
     if (!accounts || !accounts.length) {
       return;
     }
-    if (has(component, field) && isExpression(component[field])) {
-      this.setState({ accountContainsExpression: true });
+
+    if (isExpression(value)) {
       return;
     }
 
@@ -76,10 +72,8 @@ export class AccountSelectInput extends React.Component<IAccountSelectInputProps
         mergedAccounts = flatten([primaryAccounts, secondaryAccounts]);
       }
 
-      if (component) {
-        if (!mergedAccounts.includes(component[field])) {
-          onChange('');
-        }
+      if (!mergedAccounts.includes(value)) {
+        onChange(createFakeReactSyntheticEvent({ value: '', name }));
       }
 
       this.setState({ mergedAccounts, primaryAccounts, secondaryAccounts });
@@ -97,12 +91,10 @@ export class AccountSelectInput extends React.Component<IAccountSelectInputProps
   }
 
   public render() {
-    const { component, field, onChange, readOnly } = this.props;
-    const { accountContainsExpression, primaryAccounts, secondaryAccounts } = this.state;
+    const { value, onChange, readOnly } = this.props;
+    const { primaryAccounts, secondaryAccounts } = this.state;
 
-    const value = component[field];
-
-    if (accountContainsExpression) {
+    if (isExpression(value)) {
       return (
         <div className="sm-control-field">
           <span>
@@ -112,34 +104,37 @@ export class AccountSelectInput extends React.Component<IAccountSelectInputProps
       );
     }
 
+    if (readOnly) {
+      return (
+        <div>
+          <p className="form-control-static">{value}</p>
+        </div>
+      );
+    }
+
+    const showSeparator = primaryAccounts.length > 0 && secondaryAccounts.length > 0;
+
     return (
       <div>
-        {!readOnly && (
-          <select
-            className="form-control input-sm"
-            value={value}
-            onChange={e => onChange(e.target.value)}
-            required={true}
-          >
-            <option value="" disabled={true}>
-              Select...
-            </option>
-            {primaryAccounts.map(account => (
-              <option key={account} value={account}>
-                {account}
-              </option>
-            ))}
-            {primaryAccounts.length > 0 &&
-              secondaryAccounts.length > 0 && <option disabled={true}>---------------</option>}
-            {secondaryAccounts.map(account => (
-              <option key={account} value={account}>
-                {account}
-              </option>
-            ))}
-          </select>
-        )}
+        <select className="form-control input-sm" value={value} onChange={onChange} required={true}>
+          <option value="" disabled={true}>
+            Select...
+          </option>
 
-        {readOnly && <p className="form-control-static">{value}</p>}
+          {primaryAccounts.map(account => (
+            <option key={account} value={account}>
+              {account}
+            </option>
+          ))}
+
+          {showSeparator && <option disabled={true}>---------------</option>}
+
+          {secondaryAccounts.map(account => (
+            <option key={account} value={account}>
+              {account}
+            </option>
+          ))}
+        </select>
       </div>
     );
   }

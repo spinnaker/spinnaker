@@ -35,12 +35,11 @@ class ManifestBasicSettingsImpl extends React.Component<IManifestBasicSettingsPr
           </div>
           <div className="col-md-7">
             <AccountSelectInput
+              value={formik.values.command.account}
+              onChange={evt => this.accountUpdated(evt.target.value)}
               readOnly={false}
-              component={formik.values.command}
-              field="account"
               accounts={accounts}
               provider="kubernetes"
-              onChange={this.accountUpdated}
             />
           </div>
         </div>

@@ -4,7 +4,7 @@ import Select, { Option, ReactSelectProps } from 'react-select';
 import { OmitControlledInputPropsFrom, StringsAsOptions, TetheredSelect } from 'core/presentation';
 import { noop } from 'core/utils';
 
-import { isStringArray, orEmptyString } from './utils';
+import { createFakeReactSyntheticEvent, isStringArray, orEmptyString } from './utils';
 import { IFormInputProps } from '../interface';
 
 interface IReactSelectInputProps extends IFormInputProps, OmitControlledInputPropsFrom<ReactSelectProps> {
@@ -19,13 +19,6 @@ export const reactSelectValidationErrorStyle = {
   WebkitBoxShadow: 'inset 0 1px 1px rgba(0, 0, 0, 0.075)',
   boxShadow: 'inset 0 1px 1px rgba(0, 0, 0, 0.075)',
 };
-
-export const createFakeReactSyntheticEvent = (target: { name: string; value?: any }) => ({
-  persist: noop,
-  stopPropagation: noop,
-  preventDefault: noop,
-  target,
-});
 
 /**
  * Given a IControlledInputProps "field" (i.e., from Formik), returns an onChange handler

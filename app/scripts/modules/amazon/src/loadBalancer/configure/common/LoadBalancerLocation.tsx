@@ -343,11 +343,10 @@ class LoadBalancerLocationImpl extends React.Component<ILoadBalancerLocationProp
               <div className="col-md-3 sm-label-right">Account</div>
               <div className="col-md-7">
                 <AccountSelectInput
-                  component={values}
-                  field="credentials"
+                  value={values.credentials}
+                  onChange={evt => this.accountUpdated(evt.target.value)}
                   accounts={accounts}
                   provider="aws"
-                  onChange={this.accountUpdated}
                 />
               </div>
             </div>

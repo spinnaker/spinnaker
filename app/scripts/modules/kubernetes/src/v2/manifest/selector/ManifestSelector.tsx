@@ -274,10 +274,9 @@ export class ManifestSelector extends React.Component<IManifestSelectorProps, IM
       <>
         <StageConfigField label="Account">
           <AccountSelectInput
-            component={selector}
-            field="account"
+            value={selector.account}
+            onChange={evt => this.handleAccountChange(evt.target.value)}
             accounts={accounts}
-            onChange={this.handleAccountChange}
             provider="'kubernetes'"
           />
         </StageConfigField>

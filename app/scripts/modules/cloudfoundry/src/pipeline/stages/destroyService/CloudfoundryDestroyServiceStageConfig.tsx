@@ -88,11 +88,10 @@ export class CloudfoundryDestroyServiceStageConfig extends React.Component<
       <div className="form-horizontal">
         <StageConfigField label="Account">
           <AccountSelectInput
+            value={stage.credentials}
+            onChange={evt => this.accountUpdated(evt.target.value)}
             accounts={accounts}
-            component={stage}
-            field="credentials"
             provider="cloudfoundry"
-            onChange={this.accountUpdated}
           />
         </StageConfigField>
         <RegionSelectField

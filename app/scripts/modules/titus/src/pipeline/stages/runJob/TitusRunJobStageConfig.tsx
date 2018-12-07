@@ -157,10 +157,9 @@ export class TitusRunJobStageConfig extends React.Component<IStageConfigProps, I
           </label>
           <div className="col-md-5">
             <AccountSelectInput
-              component={stage}
-              field="credentials"
+              value={stage.credentials}
+              onChange={evt => this.accountChanged(evt.target.value)}
               accounts={credentials}
-              onChange={this.accountChanged}
               provider="titus"
             />
             {stage.credentials !== undefined && (

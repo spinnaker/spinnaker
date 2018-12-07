@@ -317,12 +317,11 @@ class ServerGroupBasicSettingsImpl extends React.Component<
           <div className="col-md-3 sm-label-right">Account</div>
           <div className="col-md-7">
             <AccountSelectInput
+              value={values.credentials}
+              onChange={evt => this.accountUpdated(evt.target.value)}
               readOnly={readOnlyFields.credentials}
-              component={values}
-              field="credentials"
               accounts={accounts}
               provider="aws"
-              onChange={this.accountUpdated}
             />
           </div>
         </div>
