@@ -259,8 +259,6 @@ class SqlCache(
    * @return the identifiers for the type that match the glob
    */
   override fun filterIdentifiers(type: String, glob: String?): MutableCollection<String> {
-    log.info("${javaClass.simpleName} filterIdentifiers type: $type glob: $glob")
-
     if (glob == null) {
       return mutableSetOf()
     }

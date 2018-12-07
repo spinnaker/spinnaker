@@ -29,6 +29,7 @@ class SqlProviderCache(private val backingStore: WriteableCache) : ProviderCache
    * @return the list of identifiers that are present in the cache from the provided identifiers
    */
   override fun existingIdentifiers(type: String?, identifiers: MutableCollection<String>?): MutableCollection<String>? {
+    // TODO: this is used by kubernetesV2 and possibly search so needs implementing
     log.debug("existingIdentifiers not implemented in ${this.javaClass}, should only be passe existing ids")
     return identifiers
   }
