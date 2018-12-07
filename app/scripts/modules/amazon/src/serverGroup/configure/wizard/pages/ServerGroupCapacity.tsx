@@ -37,7 +37,7 @@ class ServerGroupCapacityImpl extends React.Component<IServerGroupCapacityProps>
     const { setFieldValue, values } = this.props.formik;
 
     return (
-      <div className="clearfix">
+      <div className="container-fluid form-horizontal">
         <div className="row">
           <div className="col-md-12">
             <CapacitySelector command={values} setFieldValue={setFieldValue} MinMaxDesired={MinMaxDesired} />

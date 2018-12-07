@@ -41,7 +41,7 @@ class ServerGroupInstanceTypeImpl extends React.Component<IServerGroupInstanceTy
 
     if (showTypeSelector && values) {
       return (
-        <div>
+        <div className="container-fluid form-horizontal">
           <InstanceArchetypeSelector
             command={values}
             onTypeChanged={this.instanceTypeChanged}

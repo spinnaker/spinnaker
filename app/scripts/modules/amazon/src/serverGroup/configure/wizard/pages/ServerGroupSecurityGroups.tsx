@@ -37,7 +37,7 @@ class ServerGroupSecurityGroupsImpl extends React.Component<IServerGroupSecurity
     const { values } = this.props.formik;
 
     return (
-      <div className="row">
+      <div className="container-fluid form-horizontal">
         <ServerGroupSecurityGroupsRemoved command={values} onClear={this.acknowledgeRemovedGroups} />
         <SecurityGroupSelector
           command={values}

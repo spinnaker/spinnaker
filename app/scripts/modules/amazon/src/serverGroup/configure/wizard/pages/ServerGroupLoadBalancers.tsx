@@ -252,7 +252,7 @@ class ServerGroupLoadBalancersImpl extends React.Component<
     }
 
     return (
-      <div className="row">
+      <div className="container-fluid form-horizontal">
         {targetGroupSection}
         {loadBalancersSection}
       </div>
