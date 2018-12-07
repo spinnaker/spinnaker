@@ -81,7 +81,6 @@ class SqlCache(
       items.isNullOrEmpty() ||
       items.none { it.id != "_ALL_" }
     ) {
-      log.error("merge missing type other than _ALL_ for type: $type agentHint: $agentHint")
       return
     }
 

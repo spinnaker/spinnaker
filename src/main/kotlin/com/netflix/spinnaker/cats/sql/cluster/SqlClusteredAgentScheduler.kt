@@ -33,6 +33,7 @@ import org.jooq.impl.DSL.table
 import org.slf4j.LoggerFactory
 import org.springframework.dao.DataIntegrityViolationException
 import java.sql.SQLException
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
@@ -57,8 +58,8 @@ class SqlClusteredAgentScheduler(
 
   private val log = LoggerFactory.getLogger(javaClass)
 
-  private val agents: MutableMap<String, AgentExecutionAction> = mutableMapOf()
-  private val activeAgents: MutableMap<String, NextAttempt> = mutableMapOf()
+  private val agents: MutableMap<String, AgentExecutionAction> = ConcurrentHashMap()
+  private val activeAgents: MutableMap<String, NextAttempt> = ConcurrentHashMap()
   private val enabledAgents: Pattern
 
   init {
@@ -122,7 +123,7 @@ class SqlClusteredAgentScheduler(
   }
 
   private fun findCandidateAgentLocks(): Map<String, AgentExecutionAction> {
-    val skip = activeAgents.entries
+    val skip = HashMap(activeAgents).entries
     val maxConcurrentAgents = dynamicConfigService.getConfig(Int::class.java, "sql.agent.maxConcurrentAgents", 100)
     val availableAgents = maxConcurrentAgents - skip.size
     if (availableAgents <= 0) {
@@ -135,7 +136,10 @@ class SqlClusteredAgentScheduler(
       return emptyMap()
     }
 
-    val candidateAgentLocks = agents.filter { !activeAgents.containsKey(it.key) }.toMutableMap()
+    val candidateAgentLocks = agents
+      .filter { !activeAgents.containsKey(it.key) }
+      .filter { enabledAgents.matcher(it.key).matches() }
+      .toMutableMap()
 
     val existingLocks = jooq.select(field("agent_name"), field("lock_expiry"))
       .from(table("cats_agent_locks"))
@@ -154,7 +158,16 @@ class SqlClusteredAgentScheduler(
       }
     }
 
-    return candidateAgentLocks.filter { enabledAgents.matcher(it.key).matches() }
+    val trimmedCandidates = mutableMapOf<String, AgentExecutionAction>()
+    candidateAgentLocks
+      .forEach { k, v ->
+        if (trimmedCandidates.size >= availableAgents) {
+          return@forEach
+        }
+        trimmedCandidates[k] = v
+      }
+
+    return trimmedCandidates
   }
 
   private fun tryAcquireSingle(agentType: String, now: Long, timeout: Long): Boolean {
