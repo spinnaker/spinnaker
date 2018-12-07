@@ -226,9 +226,9 @@ private class AgentExecutionAction(
   fun execute(): Status {
     return try {
       executionInstrumentation.executionStarted(agent)
-      val startTime = System.nanoTime()
+      val startTime = System.currentTimeMillis()
       agentExecution.executeAgent(agent)
-      executionInstrumentation.executionCompleted(agent, System.nanoTime() - startTime)
+      executionInstrumentation.executionCompleted(agent, System.currentTimeMillis() - startTime)
       Status.SUCCESS
     } catch (t: Throwable) {
       executionInstrumentation.executionFailed(agent, t)
