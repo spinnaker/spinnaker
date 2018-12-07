@@ -13,7 +13,7 @@ import {
   IAccountDetails,
   SETTINGS,
   StageConfigField,
-  AccountSelectField,
+  AccountSelectInput,
   AccountService,
   noop,
   ScopeClusterSelector,
@@ -273,7 +273,7 @@ export class ManifestSelector extends React.Component<IManifestSelectorProps, IM
     return (
       <>
         <StageConfigField label="Account">
-          <AccountSelectField
+          <AccountSelectInput
             component={selector}
             field="account"
             accounts={accounts}

@@ -4,7 +4,7 @@ import { Creatable, Option } from 'react-select';
 import { $q } from 'ngimport';
 import Spy = jasmine.Spy;
 
-import { noop, ScopeClusterSelector, AccountService, AccountSelectField } from '@spinnaker/core';
+import { noop, ScopeClusterSelector, AccountService, AccountSelectInput } from '@spinnaker/core';
 
 import { ManifestKindSearchService } from 'kubernetes/v2/manifest/ManifestKindSearch';
 import { ManifestSelector } from 'kubernetes/v2/manifest/selector/ManifestSelector';
@@ -270,7 +270,7 @@ describe('<ManifestSelector />', () => {
         ],
       });
 
-      const account = wrapper.find(AccountSelectField).first();
+      const account = wrapper.find(AccountSelectInput).first();
       account.props().onChange('my-other-account');
       expect(searchService).toHaveBeenCalledWith('configMap', 'default', 'my-other-account');
     });
@@ -288,7 +288,7 @@ describe('<ManifestSelector />', () => {
         ],
       });
 
-      const account = wrapper.find(AccountSelectField).first();
+      const account = wrapper.find(AccountSelectInput).first();
       account.props().onChange('my-other-account');
       expect(wrapper.instance().state.selector.location).toBeFalsy();
     });

@@ -5,7 +5,7 @@ import { flatten, has, isEqual, map, uniq, xor } from 'lodash';
 import { IAccount } from 'core/account';
 import { AccountService } from 'core/account/AccountService';
 
-export interface IAccountSelectFieldProps {
+export interface IAccountSelectInputProps {
   accounts: IAccount[] | string[];
   component: { [key: string]: any };
   field: string;
@@ -16,7 +16,7 @@ export interface IAccountSelectFieldProps {
   readOnly?: boolean;
 }
 
-export interface IAccountSelectFieldState {
+export interface IAccountSelectInputState {
   accountContainsExpression: boolean;
   mergedAccounts: string[];
   primaryAccounts: string[];
@@ -25,8 +25,8 @@ export interface IAccountSelectFieldState {
 
 const isExpression = (account: string) => !!account && account.includes('${');
 
-export class AccountSelectField extends React.Component<IAccountSelectFieldProps, IAccountSelectFieldState> {
-  public state: IAccountSelectFieldState = {
+export class AccountSelectInput extends React.Component<IAccountSelectInputProps, IAccountSelectInputState> {
+  public state: IAccountSelectInputState = {
     accountContainsExpression: false,
     mergedAccounts: [],
     primaryAccounts: [],
@@ -90,7 +90,7 @@ export class AccountSelectField extends React.Component<IAccountSelectFieldProps
     this.groupAccounts(this.props.accounts);
   }
 
-  public componentWillReceiveProps(nextProps: IAccountSelectFieldProps) {
+  public componentWillReceiveProps(nextProps: IAccountSelectInputProps) {
     if (!isEqual(nextProps.accounts, this.props.accounts)) {
       this.groupAccounts(nextProps.accounts);
     }

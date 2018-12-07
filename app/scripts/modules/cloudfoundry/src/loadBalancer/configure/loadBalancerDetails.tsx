@@ -3,7 +3,7 @@ import * as React from 'react';
 import { FormikErrors } from 'formik';
 
 import {
-  AccountSelectField,
+  AccountSelectInput,
   AccountService,
   Application,
   IAccount,
@@ -132,7 +132,7 @@ class LoadBalancerDetailsImpl extends React.Component<ILoadBalancerDetailsProps,
           <div className="form-group">
             <div className="col-md-3 sm-label-right">Account</div>
             <div className="col-md-7">
-              <AccountSelectField
+              <AccountSelectInput
                 component={values}
                 field="credentials"
                 accounts={accounts}

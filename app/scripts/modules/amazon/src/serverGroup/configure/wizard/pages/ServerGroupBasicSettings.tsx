@@ -4,7 +4,7 @@ import { Observable, Subject } from 'rxjs';
 import * as DOMPurify from 'dompurify';
 
 import {
-  AccountSelectField,
+  AccountSelectInput,
   DeploymentStrategySelector,
   HelpField,
   IWizardPageProps,
@@ -316,7 +316,7 @@ class ServerGroupBasicSettingsImpl extends React.Component<
         <div className="form-group">
           <div className="col-md-3 sm-label-right">Account</div>
           <div className="col-md-7">
-            <AccountSelectField
+            <AccountSelectInput
               readOnly={readOnlyFields.credentials}
               component={values}
               field="credentials"

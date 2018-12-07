@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 import {
-  AccountSelectField,
+  AccountSelectInput,
   AccountService,
   IAccount,
   IArtifactAccount,
@@ -423,7 +423,7 @@ export class CloudfoundryDeployServiceStageConfig extends React.Component<
     return (
       <div className="form-horizontal cloudfoundry-deploy-service-stage">
         <StageConfigField label="Account">
-          <AccountSelectField
+          <AccountSelectInput
             accounts={accounts}
             component={stage}
             field="credentials"
