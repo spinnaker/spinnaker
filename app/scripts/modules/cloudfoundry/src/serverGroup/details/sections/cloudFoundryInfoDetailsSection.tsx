@@ -65,6 +65,15 @@ export class CloudFoundryInfoDetailsSection extends React.Component<ICloudFoundr
             </div>
           </CollapsibleSection>
         )}
+        {serverGroup.metricsUri && (
+          <CollapsibleSection heading="Metrics" defaultExpanded={true}>
+            <div>
+              <a href={serverGroup.metricsUri} target="_blank">
+                Metrics
+              </a>
+            </div>
+          </CollapsibleSection>
+        )}
         <CollapsibleSection heading="Server Group Sizing" defaultExpanded={true}>
           <dl className="dl-horizontal dl-flex">
             <dt>Instances</dt>

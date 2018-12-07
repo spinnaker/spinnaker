@@ -4,7 +4,8 @@ import { ICloudFoundrySpace, ICloudFoundryDroplet } from 'cloudfoundry/domain';
 import { ICloudFoundryInstance } from 'cloudfoundry/domain/ICloudFoundryInstance';
 
 export interface ICloudFoundryServerGroup extends IServerGroup {
-  appsManagerUri: string;
+  appsManagerUri?: string;
+  metricsUri?: string;
   memory: number;
   diskQuota: number;
   healthCheckType: string;
