@@ -137,6 +137,29 @@ class TriggerSpec extends Specification {
     }'''
   }
 
+  def "defaults properties for explicitly null container types"() {
+    given:
+    def trigger = mapper.readValue(triggerJson, Trigger)
+
+    expect:
+    with(trigger) {
+      type == "webhook"
+      user == "[anonymous]"
+      parameters == [:]
+      notifications == []
+      artifacts == []
+    }
+
+    where:
+    triggerJson = '''
+    {
+      "type": "webhook",
+      "parameters": null,
+      "notifications": null,
+      "artifacts": null
+    }'''
+  }
+
   def "serializing a trigger flattens payload data"() {
     given:
     def asJson = new StringWriter().withCloseable {
@@ -540,24 +563,24 @@ class TriggerSpec extends Specification {
 """
   }
 
-def "a Wercker trigger works just like a Jenkins one"() {
-	given:
-	def trigger = mapper.readValue(triggerJson, Trigger)
+  def "a Wercker trigger works just like a Jenkins one"() {
+    given:
+    def trigger = mapper.readValue(triggerJson, Trigger)
 
-	expect:
-	trigger instanceof JenkinsTrigger
-	with(trigger) {
-	  master == "staging"
-	  job == "mytest"
-	  buildNumber == 123
-	  propertyFile == null
-	  buildInfo.name == "test-build"
-	  buildInfo.number == 123
-	  buildInfo.url == "https://testurl"
-	}
+    expect:
+    trigger instanceof JenkinsTrigger
+    with(trigger) {
+      master == "staging"
+      job == "mytest"
+      buildNumber == 123
+      propertyFile == null
+      buildInfo.name == "test-build"
+      buildInfo.number == 123
+      buildInfo.url == "https://testurl"
+    }
 
-	where:
-	triggerJson = """{
+    where:
+    triggerJson = """{
   "buildInfo": {
     "name": "test-build",
     "number": 123,
