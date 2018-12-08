@@ -65,7 +65,6 @@ class PreconfiguredJobStage extends RunJobStage {
           Eval.xy(context, v, "x.${parameterDefinition.mapping} = y.toString()")
         }
       }
-      context.remove("parameters")
     }
     return context
   }
