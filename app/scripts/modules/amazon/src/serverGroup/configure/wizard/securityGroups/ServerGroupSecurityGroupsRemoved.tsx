@@ -34,7 +34,7 @@ export class ServerGroupSecurityGroupsRemoved extends React.Component<IServerGro
           </p>
           <ul>
             {dirtySecurityGroups.map(s => (
-              <li key="s">{s}</li>
+              <li key={s}>{s}</li>
             ))}
           </ul>
           <p className="text-right">
