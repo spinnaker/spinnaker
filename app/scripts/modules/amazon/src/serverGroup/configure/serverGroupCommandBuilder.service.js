@@ -314,6 +314,10 @@ module.exports = angular
           command.viewState.imageId = serverGroup.launchConfig.imageId;
         }
 
+        if (serverGroup.image && serverGroup.image.name) {
+          command.amiName = serverGroup.image.name;
+        }
+
         if (serverGroup.launchConfig && serverGroup.launchConfig.securityGroups.length) {
           command.securityGroups = serverGroup.launchConfig.securityGroups;
         }

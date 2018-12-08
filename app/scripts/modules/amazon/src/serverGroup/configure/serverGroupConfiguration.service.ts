@@ -42,7 +42,6 @@ import {
   IServerGroupCommandViewState,
 } from '@spinnaker/core';
 
-import { AwsImageReader } from 'amazon/image';
 import {
   IKeyPair,
   IAmazonLoadBalancerSourceData,
@@ -104,7 +103,6 @@ export interface IAmazonServerGroupCommand extends IServerGroupCommand {
 }
 
 export class AwsServerGroupConfigurationService {
-  private awsImageReader = new AwsImageReader();
   private enabledMetrics = [
     'GroupMinSize',
     'GroupMaxSize',
@@ -144,15 +142,6 @@ export class AwsServerGroupConfigurationService {
 
   public configureCommand(application: Application, cmd: IAmazonServerGroupCommand): IPromise<void> {
     this.applyOverrides('beforeConfiguration', cmd);
-    let imageLoader;
-    if (cmd.viewState.disableImageSelection) {
-      imageLoader = $q.when(null);
-    } else {
-      imageLoader = cmd.viewState.imageId
-        ? this.loadImagesFromAmi(cmd)
-        : this.loadImagesFromApplicationName(application);
-    }
-
     // TODO: Instead of attaching these to the command itself, they could be static methods
     cmd.toggleSuspendedProcess = (command: IAmazonServerGroupCommand, process: string): void => {
       command.suspendedProcesses = command.suspendedProcesses || [];
@@ -213,7 +202,6 @@ export class AwsServerGroupConfigurationService {
         subnets: SubnetReader.listSubnets(),
         preferredZones: AccountService.getPreferredZonesByAccount('aws'),
         keyPairs: KeyPairsReader.listKeyPairs(),
-        packageImages: imageLoader,
         instanceTypes: this.awsInstanceTypeService.getAllTypesByRegion(),
         enabledMetrics: $q.when(clone(this.enabledMetrics)),
         healthCheckTypes: $q.when(clone(this.healthCheckTypes)),
@@ -273,38 +261,6 @@ export class AwsServerGroupConfigurationService {
         override[phase](command);
       }
     });
-  }
-
-  public loadImagesFromApplicationName(application: Application): IPromise<any> {
-    const query = application.name.replace(/_/g, '[_\\-]') + '*';
-    return this.awsImageReader.findImages({ q: query });
-  }
-
-  public loadImagesFromAmi(command: IAmazonServerGroupCommand): IPromise<any> {
-    return this.awsImageReader.getImage(command.viewState.imageId, command.region, command.credentials).then(
-      (namedImage: any) => {
-        if (!namedImage) {
-          return [];
-        }
-        command.amiName = namedImage.imageName;
-
-        let addDashToQuery = false;
-        let packageBase = namedImage.imageName.split('_')[0];
-        const parts = packageBase.split('-');
-        if (parts.length > 3) {
-          packageBase = parts.slice(0, -3).join('-');
-          addDashToQuery = true;
-        }
-        if (!packageBase || packageBase.length < 3) {
-          return [namedImage];
-        }
-
-        return this.awsImageReader.findImages({
-          q: packageBase + (addDashToQuery ? '-*' : '*'),
-        });
-      },
-      (): any[] => [],
-    );
   }
 
   public configureKeyPairs(command: IAmazonServerGroupCommand): IServerGroupCommandResult {
@@ -377,37 +333,16 @@ export class AwsServerGroupConfigurationService {
 
   public configureImages(command: IAmazonServerGroupCommand): IServerGroupCommandResult {
     const result: IAmazonServerGroupCommandResult = { dirty: {} };
-    let regionalImages;
     if (!command.amiName) {
       command.virtualizationType = null;
     }
     if (command.viewState.disableImageSelection) {
       return result;
     }
-    if (command.region) {
-      regionalImages = command.backingData.packageImages
-        .filter(image => image.amis && image.amis[command.region])
-        .map(image => {
-          return {
-            virtualizationType: image.attributes.virtualizationType,
-            imageName: image.imageName,
-            ami: image.amis ? image.amis[command.region][0] : null,
-          };
-        });
-      const match = regionalImages.find(image => image.imageName === command.amiName);
-      if (command.amiName && !match) {
-        result.dirty.amiName = true;
-        command.amiName = null;
-      } else {
-        command.virtualizationType = match ? match.virtualizationType : null;
-      }
-    } else {
-      if (command.amiName) {
-        result.dirty.amiName = true;
-        command.amiName = null;
-      }
+    if (command.amiName && !command.region) {
+      result.dirty.amiName = true;
+      command.amiName = null;
     }
-    command.backingData.filtered.images = regionalImages;
     return result;
   }
 

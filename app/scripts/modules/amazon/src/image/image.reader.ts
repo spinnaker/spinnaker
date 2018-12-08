@@ -22,7 +22,7 @@ export interface IAmazonImage {
 }
 
 export class AwsImageReader {
-  public findImages(params: { q: string }): IPromise<IAmazonImage[]> {
+  public findImages(params: { q: string; region?: string }): IPromise<IAmazonImage[]> {
     if (!params.q || params.q.length < 3) {
       return $q.when([{ message: 'Please enter at least 3 characters...', disabled: true }]) as any;
     }

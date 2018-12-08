@@ -1,7 +1,6 @@
 import * as React from 'react';
-import { Option } from 'react-select';
-import { Observable, Subject } from 'rxjs';
 import * as DOMPurify from 'dompurify';
+import { Field } from 'formik';
 
 import {
   AccountSelectInput,
@@ -13,29 +12,28 @@ import {
   RegionSelectField,
   Application,
   ReactInjector,
-  TetheredSelect,
   IServerGroup,
   TaskReason,
-  Spinner,
 } from '@spinnaker/core';
 
+import { IAmazonImage } from 'amazon/image';
 import { AwsNgReact } from 'amazon/reactShims';
 
+import { AmazonImageSelectInput } from '../../AmazonImageSelectInput';
 import { IAmazonServerGroupCommand } from '../../serverGroupConfiguration.service';
 
-const isNotExpressionLanguage = (field: string) => field && !field.includes('${');
+const isExpressionLanguage = (field: string) => field && field.includes('${');
 const isStackPattern = (stack: string) =>
-  isNotExpressionLanguage(stack) ? /^([a-zA-Z_0-9._${}]*(\${.+})*)*$/.test(stack) : true;
+  !isExpressionLanguage(stack) ? /^([a-zA-Z_0-9._${}]*(\${.+})*)*$/.test(stack) : true;
 const isDetailPattern = (detail: string) =>
-  isNotExpressionLanguage(detail) ? /^([a-zA-Z_0-9._${}-]*(\${.+})*)*$/.test(detail) : true;
+  !isExpressionLanguage(detail) ? /^([a-zA-Z_0-9._${}-]*(\${.+})*)*$/.test(detail) : true;
 
 export interface IServerGroupBasicSettingsProps extends IWizardPageProps<IAmazonServerGroupCommand> {
   app: Application;
 }
 
 export interface IServerGroupBasicSettingsState {
-  isLoadingImages: boolean;
-  images: any[];
+  selectedImage: IAmazonImage;
   namePreview: string;
   createsNewCluster: boolean;
   latestServerGroup: IServerGroup;
@@ -48,30 +46,15 @@ class ServerGroupBasicSettingsImpl extends React.Component<
 > {
   public static LABEL = 'Basic Settings';
 
-  private imageSearchResultsStream = new Subject();
-
-  // TODO: Extract the image selector into another component
   constructor(props: IServerGroupBasicSettingsProps) {
     super(props);
-    const { values } = props.formik;
-    const { disableImageSelection } = values.viewState;
-    this.state = {
-      images: disableImageSelection
-        ? []
-        : values.backingData.filtered.images.map(i => {
-            i.label = this.getImageLabel(i);
-            return i;
-          }),
-      isLoadingImages: false,
-      ...this.getStateFromProps(props),
-    };
-  }
-
-  private getImageLabel(image: any) {
-    if (image.label) {
-      return image.label;
-    }
-    return `${image.message || ''}${image.imageName || ''} ${image.ami ? `(${image.ami})` : ''}`;
+    const {
+      amiName,
+      region,
+      viewState: { imageId },
+    } = props.formik.values;
+    const selectedImage = AmazonImageSelectInput.makeFakeImage(amiName, imageId, region);
+    this.state = { ...this.getStateFromProps(props), selectedImage };
   }
 
   private getStateFromProps(props: IServerGroupBasicSettingsProps) {
@@ -97,89 +80,16 @@ class ServerGroupBasicSettingsImpl extends React.Component<
     return { namePreview, createsNewCluster, latestServerGroup, showPreviewAsWarning };
   }
 
-  private showLoadingSpinner = () => {
-    this.setState({
-      isLoadingImages: true,
-      images: [
-        {
-          disabled: true,
-          message: (
-            <div className="horizontal center">
-              <Spinner size="small" />
-            </div>
-          ),
-        },
-      ],
-    });
-  };
-
-  public componentDidMount() {
-    const { values } = this.props.formik;
-
-    this.imageSearchResultsStream
-      .do(this.showLoadingSpinner)
-      .debounceTime(250)
-      .switchMap(this.searchImagesImpl)
-      .subscribe(data => {
-        const images = data.map((image: any) => {
-          if (image.message && !image.imageName) {
-            return image;
-          }
-
-          const i = {
-            imageName: image.imageName,
-            ami: image.amis && image.amis[values.region] ? image.amis[values.region][0] : null,
-            virtualizationType: image.attributes ? image.attributes.virtualizationType : null,
-            label: '',
-          };
-          i.label = this.getImageLabel(i);
-          return i;
-        });
-
-        values.backingData.filtered.images = images;
-        values.backingData.packageImages = values.backingData.filtered.images;
-        this.setState({ images, isLoadingImages: false });
-      });
-  }
-
-  private searchImagesImpl = (q: string) => {
-    const { selectedProvider, region } = this.props.formik.values;
-
-    const findImagesPromise = ReactInjector.imageReader.findImages({ provider: selectedProvider, q, region });
-    return Observable.fromPromise<any[]>(findImagesPromise).map(result => {
-      if (result.length === 0 && q.startsWith('ami-') && q.length === 12) {
-        // allow 'advanced' users to continue with just an ami id (backing image may not have been indexed yet)
-        const record = {
-          imageName: q,
-          amis: {},
-          attributes: {
-            virtualizationType: '*',
-          },
-        } as any;
-
-        // trust that the specific image exists in the selected region
-        record.amis[region] = [q];
-        result = [record];
-      }
-      return result;
-    });
-  };
-
-  private searchImages = (q: string) => {
-    this.imageSearchResultsStream.next(q);
-  };
-
-  private enableAllImageSearch = () => {
-    this.props.formik.values.viewState.useAllImageSelection = true;
-    this.searchImages('');
-  };
-
-  private imageChanged = (image: any) => {
+  private imageChanged = (image: IAmazonImage) => {
     const { setFieldValue, values } = this.props.formik;
-    values.virtualizationType = image.virtualizationType;
-    values.amiName = image.amiName;
-    setFieldValue('virtualizationType', image.virtualizationType);
-    setFieldValue('amiName', image.imageName);
+    this.setState({ selectedImage: image });
+
+    const virtualizationType = image && image.attributes.virtualizationType;
+    const imageName = image && image.imageName;
+    values.virtualizationType = virtualizationType;
+    values.amiName = imageName;
+    setFieldValue('virtualizationType', virtualizationType);
+    setFieldValue('amiName', imageName);
     values.imageChanged(values);
   };
 
@@ -280,27 +190,13 @@ class ServerGroupBasicSettingsImpl extends React.Component<
   };
 
   public render() {
-    const { app } = this.props;
-    const { errors, values } = this.props.formik;
-    const {
-      createsNewCluster,
-      isLoadingImages,
-      images,
-      latestServerGroup,
-      namePreview,
-      showPreviewAsWarning,
-    } = this.state;
+    const { app, formik } = this.props;
+    const { errors, values } = formik;
+    const { createsNewCluster, latestServerGroup, namePreview, showPreviewAsWarning } = this.state;
     const { SubnetSelectField } = AwsNgReact;
 
     const accounts = values.backingData.accounts;
     const readOnlyFields = values.viewState.readOnlyFields || {};
-
-    let selectedImage;
-    if (values.amiName && !values.amiName.includes('${')) {
-      selectedImage = values.amiName;
-    } else if (values.backingData.filtered.images) {
-      selectedImage = values.backingData.filtered.images.find(image => image.imageName === values.amiName);
-    }
 
     return (
       <div className="container-fluid form-horizontal">
@@ -398,47 +294,16 @@ class ServerGroupBasicSettingsImpl extends React.Component<
             <div className="col-md-3 sm-label-right">
               Image <HelpField id="aws.serverGroup.imageName" />
             </div>
-            {values.viewState.useAllImageSelection && (
-              <div className="col-md-9">
-                <TetheredSelect
-                  clearable={false}
-                  placeholder="Search for an image..."
-                  required={true}
-                  valueKey="imageName"
-                  filterOptions={isLoadingImages ? (false as any) : undefined}
-                  options={images}
-                  optionRenderer={this.imageOptionRenderer}
-                  onInputChange={value => this.searchImages(value)}
-                  onChange={(value: Option<string>) => this.imageChanged(value)}
-                  onSelectResetsInput={false}
-                  onBlurResetsInput={false}
-                  onCloseResetsInput={false}
-                  value={selectedImage}
-                  valueRenderer={this.imageOptionRenderer}
-                />
-              </div>
-            )}
-            {!values.viewState.useAllImageSelection && (
-              <div className="col-md-9">
-                <TetheredSelect
-                  clearable={false}
-                  placeholder="Pick an image"
-                  required={true}
-                  valueKey="imageName"
-                  options={images}
-                  optionRenderer={this.imageOptionRenderer}
-                  onChange={(value: Option<string>) => this.imageChanged(value)}
-                  onSelectResetsInput={false}
-                  onBlurResetsInput={false}
-                  onCloseResetsInput={false}
-                  value={selectedImage}
-                  valueRenderer={this.imageOptionRenderer}
-                />
-                <a className="clickable" onClick={this.enableAllImageSearch}>
-                  Search All Images
-                </a>{' '}
-                <HelpField id="aws.serverGroup.allImages" />
-              </div>
+            {isExpressionLanguage(values.amiName) ? (
+              <Field name="amiName" />
+            ) : (
+              <AmazonImageSelectInput
+                onChange={image => this.imageChanged(image)}
+                value={this.state.selectedImage}
+                application={app}
+                credentials={values.credentials}
+                region={values.region}
+              />
             )}
           </div>
         )}
@@ -507,21 +372,6 @@ class ServerGroupBasicSettingsImpl extends React.Component<
       </div>
     );
   }
-
-  private imageOptionRenderer = (option: Option) => {
-    return (
-      <>
-        <span>{option.message}</span>
-        <span>{option.imageName}</span>
-        {option.ami && (
-          <span>
-            {' '}
-            (<span>{option.ami}</span>)
-          </span>
-        )}
-      </>
-    );
-  };
 }
 
 export const ServerGroupBasicSettings = wizardPage(ServerGroupBasicSettingsImpl);

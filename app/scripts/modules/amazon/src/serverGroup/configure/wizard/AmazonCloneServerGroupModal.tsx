@@ -127,14 +127,6 @@ export class AmazonCloneServerGroupModal extends React.Component<
 
   private initializeCommand = () => {
     const { command } = this.props;
-    if (command.viewState.imageId) {
-      const foundImage = command.backingData.packageImages.filter(image => {
-        return image.amis[command.region] && image.amis[command.region].includes(command.viewState.imageId);
-      });
-      if (foundImage.length) {
-        command.amiName = foundImage[0].imageName;
-      }
-    }
 
     command.credentialsChanged(command);
     command.regionChanged(command);
@@ -144,12 +136,6 @@ export class AmazonCloneServerGroupModal extends React.Component<
   private configureCommand = () => {
     const { application, command } = this.props;
     AwsReactInjector.awsServerGroupConfigurationService.configureCommand(application, command).then(() => {
-      if (['clone', 'create'].includes(command.viewState.mode)) {
-        if (!command.backingData.packageImages.length) {
-          command.viewState.useAllImageSelection = true;
-        }
-      }
-
       this.initializeCommand();
       this.setState({ loaded: true, requiresTemplateSelection: false });
     });
