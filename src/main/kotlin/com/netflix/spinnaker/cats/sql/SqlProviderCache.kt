@@ -138,6 +138,12 @@ class SqlProviderCache(private val backingStore: WriteableCache) : ProviderCache
       .forEach {
         cacheDataType(it.key, source, it.value, false)
       }
+
+    if (cacheResult.evictions.isNotEmpty()) {
+      cacheResult.evictions.forEach {
+        evictDeletedItems(it.key, it.value)
+      }
+    }
   }
 
   override fun putCacheData(type: String, cacheData: CacheData) {
@@ -170,7 +176,8 @@ class SqlProviderCache(private val backingStore: WriteableCache) : ProviderCache
     val override =
       if (
         (type == CLUSTERS.toString() && agent.contains("clustercaching", ignoreCase = true)) ||
-        (type == NAMED_IMAGES.toString() && agent.contains("imagecaching", ignoreCase = true))
+        (type == NAMED_IMAGES.toString() && agent.contains("imagecaching", ignoreCase = true)) ||
+        (type == ON_DEMAND.toString())
       ) {
         true
       } else {

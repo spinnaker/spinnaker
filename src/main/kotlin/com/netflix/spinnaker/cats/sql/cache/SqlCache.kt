@@ -6,11 +6,7 @@ import com.netflix.spinnaker.cats.cache.CacheFilter
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.cats.cache.WriteableCache
-import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.CERTIFICATES
-import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.CLUSTERS
-import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.NAMED_IMAGES
-import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.RESERVATION_REPORTS
-import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.RESERVED_INSTANCES
+import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.*
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import de.huxhorn.sulky.ulid.ULID
 import org.jooq.DSLContext
@@ -58,8 +54,6 @@ class SqlCache(
     // TODO: this only supports deleting resource records, not relationships. Both are primarily deleted
     // TODO: by caching agents themselves. In both cases, this behavior may be incompatible with the
     // TODO: titus streaming agent. Need to verify and potentially customize for this cache implementation.
-    log.debug("${javaClass.simpleName} evictAll type: ${type} ids: ${ids}")
-
     try {
       ids.chunked(sqlChunkSize) { chunk ->
         jooq.deleteFrom(table(resourceTableName(type)))
@@ -307,7 +301,14 @@ class SqlCache(
                                  items: MutableCollection<CacheData>,
                                  location: String?,
                                  cleanup: Boolean) {
-    val agent = agentHint ?: "unknown"
+    val agent = if (type == ON_DEMAND.ns) {
+      // onDemand keys aren't initially written by the agents that update and expire them. since agent is
+      // part of the primary key, we need to ensure a consistent value across initial and subsequent writes
+      ON_DEMAND.ns
+    } else {
+      agentHint ?: "unknown"
+    }
+
     val existingHashIds = getHashIds(type, agent)
     val existingHashes = existingHashIds
       .asSequence()
