@@ -4,7 +4,7 @@ local kubeutils = import 'kubeutils.libsonnet';
 
 local canaryDeployment = kubeutils.canary(deployment);
 local account = 'staging-demo';
-local app = 'cluster';
+local app = 'myapp';
 local moniker = sponnet.moniker(app, 'some-cluster')
                 .withStack('someStack')
                 .withDetail('someDetail');
@@ -84,19 +84,39 @@ local emailPipelineNotification = sponnet.notification
                                   .withCC('test@example.com')
                                   .withLevel('pipeline')
                                   .withType('email')
-                                  .withWhen('starting');
+                                  .withWhen('pipeline.starting');
 
-local slackNotification = sponnet.notification
-                          .withAddress(notificationAddress)
-                          .withType(notificationType)
-                          .withWhen('starting')
-                          .withWhen('failed', 'testf: one two three, $variable, %value, "quoted": https://example.com')
-                          .withWhen('complete', 'test');
+local slackStageNotification = sponnet.notification
+                               .withAddress(notificationAddress)
+                               .withLevel('stage')
+                               .withType(notificationType)
+                               .withWhen('stage.starting')
+                               .withWhen('stage.failed', 'testf: one two three, $variable, %value, "quoted": https://example.com')
+                               .withWhen('stage.complete', 'test');
+
+local manualJudgment = sponnet.stages
+                       .manualJudgment('Manual Judgment')
+                       .withInstructions('Do you want to go ahead?')
+                       .withJudgmentInputs(['yes', 'no']);
+
+local checkPreconditions = sponnet.stages
+                           .checkPreconditions('Confirm Judgment')
+                           .withExpression("${ #judgment('Manual Judgment') == 'yes' }", true)
+                           .withRequisiteStages(manualJudgment);
 
 local wait = sponnet.stages
              .wait('Wait')
              .withSkipWaitText('Custom wait message')
-             .withWaitTime(30);
+             .withWaitTime(30)
+             .withRequisiteStages(checkPreconditions);
+
+
+local whitelist = {
+  endHour: 7,
+  endMin: 0,
+  startHour: 5,
+  startMin: 0,
+};
 
 local deployManifestArtifact = sponnet.stages
                                .deployManifest('Deploy a manifest with artifact')
@@ -105,6 +125,7 @@ local deployManifestArtifact = sponnet.stages
                                .withManifestArtifactAccount(myManifestArtifactAccount)
                                .withMoniker(moniker)
                                .withOverrideTimeout('300000')
+                               .withRestrictedExecutionWindow(['1', '2', '3'], whitelist)
                                .withRequisiteStages(wait);
 
 local deployManifestTextBaseline = sponnet.stages
@@ -133,7 +154,7 @@ local jenkinsJob = sponnet.stages
                    .withJob(myJenkinsJob)
                    .withMarkUnstableAsSuccessful('false')
                    .withMaster(myJenkinsMaster)
-                   .withNotifications(slackNotification.withLevel('stage'))
+                   .withNotifications(slackStageNotification)
                    .withOverrideTimeout('300000')
                    .withRequisiteStages(findArtifactsFromResource)
                    .withWaitForCompletion('true');
@@ -141,7 +162,8 @@ local jenkinsJob = sponnet.stages
 sponnet.pipeline()
 .withApplication(app)
 .withExpectedArtifacts([expectedDocker, expectedManifest])
+.withId('sponnet-demo-pipeline')
 .withName('Demo pipeline')
-.withNotifications([emailPipelineNotification, slackNotification.withLevel('pipeline')])
+.withNotifications([emailPipelineNotification])
 .withTriggers([dockerTrigger, gitTrigger])
-.withStages([wait, deployManifestTextBaseline, deployManifestTextCanary, deployManifestArtifact, findArtifactsFromResource, jenkinsJob])
+.withStages([manualJudgment, checkPreconditions, wait, deployManifestTextBaseline, deployManifestTextCanary, deployManifestArtifact, findArtifactsFromResource, jenkinsJob])
