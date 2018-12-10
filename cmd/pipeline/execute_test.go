@@ -41,9 +41,9 @@ func TestPipelineExecute_basic(t *testing.T) {
 	args := []string{"pipeline", "execute", "--application", "app", "--name", "one", "--gate-endpoint", ts.URL}
 	currentCmd := NewExecuteCmd(pipelineOptions{})
 	rootCmd := getRootCmdForTest()
-	appCmd := NewPipelineCmd(os.Stdout)
-	appCmd.AddCommand(currentCmd)
-	rootCmd.AddCommand(appCmd)
+	pipelineCmd := NewPipelineCmd(os.Stdout)
+	pipelineCmd.AddCommand(currentCmd)
+	rootCmd.AddCommand(pipelineCmd)
 
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()
@@ -65,9 +65,9 @@ func TestPipelineExecute_fail(t *testing.T) {
 	args := []string{"pipeline", "execute", "--application", "app", "--name", "one", "--gate-endpoint", ts.URL}
 	currentCmd := NewExecuteCmd(pipelineOptions{})
 	rootCmd := getRootCmdForTest()
-	appCmd := NewPipelineCmd(os.Stdout)
-	appCmd.AddCommand(currentCmd)
-	rootCmd.AddCommand(appCmd)
+	pipelineCmd := NewPipelineCmd(os.Stdout)
+	pipelineCmd.AddCommand(currentCmd)
+	rootCmd.AddCommand(pipelineCmd)
 
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()
@@ -83,9 +83,9 @@ func TestPipelineExecute_flags(t *testing.T) {
 	args := []string{"pipeline", "execute", "--gate-endpoint", ts.URL} // Missing pipeline app and name.
 	currentCmd := NewExecuteCmd(pipelineOptions{})
 	rootCmd := getRootCmdForTest()
-	appCmd := NewPipelineCmd(os.Stdout)
-	appCmd.AddCommand(currentCmd)
-	rootCmd.AddCommand(appCmd)
+	pipelineCmd := NewPipelineCmd(os.Stdout)
+	pipelineCmd.AddCommand(currentCmd)
+	rootCmd.AddCommand(pipelineCmd)
 
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()
@@ -107,9 +107,9 @@ func TestPipelineExecute_missingname(t *testing.T) {
 	args := []string{"pipeline", "execute", "--application", "app", "--gate-endpoint", ts.URL}
 	currentCmd := NewExecuteCmd(pipelineOptions{})
 	rootCmd := getRootCmdForTest()
-	appCmd := NewPipelineCmd(os.Stdout)
-	appCmd.AddCommand(currentCmd)
-	rootCmd.AddCommand(appCmd)
+	pipelineCmd := NewPipelineCmd(os.Stdout)
+	pipelineCmd.AddCommand(currentCmd)
+	rootCmd.AddCommand(pipelineCmd)
 
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()
@@ -131,9 +131,9 @@ func TestPipelineExecute_missingapp(t *testing.T) {
 	args := []string{"pipeline", "execute", "--name", "one", "--gate-endpoint", ts.URL}
 	currentCmd := NewExecuteCmd(pipelineOptions{})
 	rootCmd := getRootCmdForTest()
-	appCmd := NewPipelineCmd(os.Stdout)
-	appCmd.AddCommand(currentCmd)
-	rootCmd.AddCommand(appCmd)
+	pipelineCmd := NewPipelineCmd(os.Stdout)
+	pipelineCmd.AddCommand(currentCmd)
+	rootCmd.AddCommand(pipelineCmd)
 
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()

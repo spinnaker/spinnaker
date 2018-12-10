@@ -28,9 +28,9 @@ func TestPipelineDelete_basic(t *testing.T) {
 	args := []string{"pipeline", "delete", "--application", "app", "--name", "one", "--gate-endpoint", ts.URL}
 	currentCmd := NewDeleteCmd(pipelineOptions{})
 	rootCmd := getRootCmdForTest()
-	appCmd := NewPipelineCmd(os.Stdout)
-	appCmd.AddCommand(currentCmd)
-	rootCmd.AddCommand(appCmd)
+	pipelineCmd := NewPipelineCmd(os.Stdout)
+	pipelineCmd.AddCommand(currentCmd)
+	rootCmd.AddCommand(pipelineCmd)
 
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()
@@ -46,9 +46,9 @@ func TestPipelineDelete_fail(t *testing.T) {
 	args := []string{"pipeline", "delete", "--application", "app", "--name", "one", "--gate-endpoint", ts.URL}
 	currentCmd := NewDeleteCmd(pipelineOptions{})
 	rootCmd := getRootCmdForTest()
-	appCmd := NewPipelineCmd(os.Stdout)
-	appCmd.AddCommand(currentCmd)
-	rootCmd.AddCommand(appCmd)
+	pipelineCmd := NewPipelineCmd(os.Stdout)
+	pipelineCmd.AddCommand(currentCmd)
+	rootCmd.AddCommand(pipelineCmd)
 
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()
@@ -64,9 +64,9 @@ func TestPipelineDelete_flags(t *testing.T) {
 	args := []string{"pipeline", "delete", "--gate-endpoint", ts.URL} // Missing pipeline app and name.
 	currentCmd := NewDeleteCmd(pipelineOptions{})
 	rootCmd := getRootCmdForTest()
-	appCmd := NewPipelineCmd(os.Stdout)
-	appCmd.AddCommand(currentCmd)
-	rootCmd.AddCommand(appCmd)
+	pipelineCmd := NewPipelineCmd(os.Stdout)
+	pipelineCmd.AddCommand(currentCmd)
+	rootCmd.AddCommand(pipelineCmd)
 
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()
@@ -82,9 +82,9 @@ func TestPipelineDelete_missingname(t *testing.T) {
 	args := []string{"pipeline", "delete", "--application", "app", "--gate-endpoint", ts.URL}
 	currentCmd := NewDeleteCmd(pipelineOptions{})
 	rootCmd := getRootCmdForTest()
-	appCmd := NewPipelineCmd(os.Stdout)
-	appCmd.AddCommand(currentCmd)
-	rootCmd.AddCommand(appCmd)
+	pipelineCmd := NewPipelineCmd(os.Stdout)
+	pipelineCmd.AddCommand(currentCmd)
+	rootCmd.AddCommand(pipelineCmd)
 
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()
@@ -100,9 +100,9 @@ func TestPipelineDelete_missingapp(t *testing.T) {
 	args := []string{"pipeline", "delete", "--name", "one", "--gate-endpoint", ts.URL}
 	currentCmd := NewDeleteCmd(pipelineOptions{})
 	rootCmd := getRootCmdForTest()
-	appCmd := NewPipelineCmd(os.Stdout)
-	appCmd.AddCommand(currentCmd)
-	rootCmd.AddCommand(appCmd)
+	pipelineCmd := NewPipelineCmd(os.Stdout)
+	pipelineCmd.AddCommand(currentCmd)
+	rootCmd.AddCommand(pipelineCmd)
 
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()
