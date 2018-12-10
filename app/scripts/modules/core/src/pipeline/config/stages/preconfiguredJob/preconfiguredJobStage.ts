@@ -33,10 +33,22 @@ module(PRECONFIGUREDJOB_STAGE, []).run(() => {
     .then((preconfiguredJobs: IPreconfiguredJob[]) => {
       preconfiguredJobs.forEach(preconfiguredJob => {
         const { label, description, type, waitForCompletion, parameters } = preconfiguredJob;
+        const defaults = {
+          parameters: parameters.reduce(
+            (acc, parameter) => {
+              if (parameter.defaultValue) {
+                acc[parameter.name] = parameter.defaultValue;
+              }
+              return acc;
+            },
+            {} as any,
+          ),
+        };
         Registry.pipeline.registerStage({
           label,
           description,
           key: type,
+          defaults,
           component: PreconfiguredJobStageConfig,
           executionDetailsSections: [PreconfiguredJobExecutionDetails, ExecutionDetailsTasks],
           configuration: {
