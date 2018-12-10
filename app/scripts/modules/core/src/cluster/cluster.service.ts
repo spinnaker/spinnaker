@@ -9,6 +9,7 @@ import { FilterModelService } from 'core/filterModel';
 import { IArtifactExtractor, ICluster, IClusterSummary, IExecution, IExecutionStage, IServerGroup } from 'core/domain';
 import { ClusterState } from 'core/state';
 import { ProviderServiceDelegate } from 'core/cloudProvider';
+import { SETTINGS } from 'core/config/settings';
 
 import { taskMatcher } from './task.matcher';
 
@@ -31,7 +32,7 @@ export class ClusterService {
       const serverGroupLoader = API.one('applications')
         .one(application.name)
         .all('serverGroups');
-      dataSource.fetchOnDemand = clusters.length > ClusterService.ON_DEMAND_THRESHOLD;
+      dataSource.fetchOnDemand = clusters.length > SETTINGS.onDemandClusterThreshold;
       if (dataSource.fetchOnDemand) {
         dataSource.clusters = clusters;
         serverGroupLoader.withParams({

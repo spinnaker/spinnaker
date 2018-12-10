@@ -20,6 +20,7 @@ var fiatEnabled = process.env.FIAT_ENABLED === 'true' ? true : false;
 var iapRefresherEnabled = process.env.IAP_REFRESHER_ENABLED === 'true' ? true : false;
 var infrastructureEnabled = process.env.INFRA_ENABLED === 'true' ? true : false;
 var managedServiceAccountsEnabled = process.env.MANAGED_SERVICE_ACCOUNTS_ENABLED === 'true';
+var onDemandClusterThreshold = process.env.ON_DEMAND_CLUSTER_THRESHOLD || '350';
 var reduxLoggerEnabled = process.env.REDUX_LOGGER === 'true';
 var templatesEnabled = process.env.TEMPLATES_ENABLED === 'true';
 var triggerViaEcho = process.env.TRIGGER_VIA_ECHO !== 'false';
@@ -91,6 +92,7 @@ window.spinnakerSettings = {
       enabled: true,
     },
   },
+  onDemandClusterThreshold: Number(onDemandClusterThreshold),
   pollSchedule: 30000,
   providers: {
     appengine: {

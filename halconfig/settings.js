@@ -23,6 +23,7 @@ var jobsEnabled = '{%features.jobs%}' === 'true';
 var maxPipelineAgeDays = '{%maxPipelineAgeDays%}';
 var mineCanaryEnabled = '{%features.mineCanary%}' === 'true';
 var notificationsEnabled = '{%notifications.enabled%}' === 'true';
+var onDemandClusterThreshold = '{%onDemandClusterThreshold%}';
 var pipelineTemplatesEnabled = '{%features.pipelineTemplates%}' === 'true';
 var reduxLoggerEnabled = '{%canary.reduxLogger%}' === 'true';
 var showAllConfigsEnabled = '{%canary.showAllCanaryConfigs%}' === 'true';
@@ -165,6 +166,7 @@ window.spinnakerSettings = {
     },
     slack: slack,
   },
+  onDemandClusterThreshold: onDemandClusterThreshold,
   pagerDuty: {
     required: false,
   },

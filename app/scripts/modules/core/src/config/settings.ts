@@ -105,6 +105,7 @@ export interface ISpinnakerSettings {
   gitSources: string[];
   maxPipelineAgeDays: number;
   notifications: INotificationSettings;
+  onDemandClusterThreshold: number;
   pagerDuty?: {
     accountName?: string;
     defaultDetails?: string;
