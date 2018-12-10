@@ -23,6 +23,8 @@ import com.netflix.spinnaker.front50.model.notification.NotificationDAO
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
+import org.springframework.security.access.prepost.PostAuthorize
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -58,6 +60,7 @@ class NotificationController {
         notificationDAO.saveGlobal(notification)
     }
 
+    @PostAuthorize("hasPermission(#name, 'APPLICATION', 'READ')")
     @RequestMapping(value = '{type}/{name}', method = RequestMethod.GET)
     Notification listByApplication(@PathVariable(value = 'type') String type, @PathVariable(value = 'name') String name) {
         HierarchicalLevel level = getLevel(type)
@@ -99,16 +102,19 @@ class NotificationController {
         }
     }
 
+    @PreAuthorize("@fiatPermissionEvaluator.storeWholePermission() and hasPermission(#name, 'APPLICATION', 'WRITE')")
     @RequestMapping(value = '{type}/{name}', method = RequestMethod.POST)
     void save(
             @PathVariable(value = 'type') String type,
-            @PathVariable(value = 'name') String name, @RequestBody Notification notification) {
+            @PathVariable(value = 'name') String name,
+            @RequestBody Notification notification) {
         HierarchicalLevel level = getLevel(type)
         if (name) {
             notificationDAO.save(level, name, notification)
         }
     }
 
+    @PreAuthorize("@fiatPermissionEvaluator.storeWholePermission() and hasPermission(#name, 'APPLICATION', 'WRITE')")
     @RequestMapping(value = '{type}/{name}', method = RequestMethod.DELETE)
     void delete(@PathVariable(value = 'type') String type, @PathVariable(value = 'name') String name) {
         HierarchicalLevel level = getLevel(type)
