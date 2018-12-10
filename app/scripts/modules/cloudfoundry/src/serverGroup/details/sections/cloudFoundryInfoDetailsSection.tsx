@@ -87,7 +87,7 @@ export class CloudFoundryInfoDetailsSection extends React.Component<ICloudFoundr
         <CollapsibleSection heading="Health Check" defaultExpanded={true}>
           <dl className="dl-horizontal dl-flex">
             <dt>Type</dt>
-            <dd>{serverGroup.healthCheckType}</dd>
+            <dd>{serverGroup.healthCheckType === undefined ? 'port' : serverGroup.healthCheckType}</dd>
             {serverGroup.healthCheckType === 'http' && (
               <div>
                 <dt>Endpoint</dt>
