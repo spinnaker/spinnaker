@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.clouddriver.pipeline.cluster;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.frigga.Names;
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.moniker.Moniker;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location;
 import com.netflix.spinnaker.orca.clouddriver.tasks.DetermineHealthProvidersTask;
@@ -46,11 +47,14 @@ public abstract class AbstractClusterWideClouddriverOperationStage implements St
 
   private final TrafficGuard trafficGuard;
   private final LockingConfigurationProperties lockingConfigurationProperties;
+  private final DynamicConfigService dynamicConfigService;
 
   protected AbstractClusterWideClouddriverOperationStage(TrafficGuard trafficGuard,
-                                                         LockingConfigurationProperties lockingConfigurationProperties) {
+                                                         LockingConfigurationProperties lockingConfigurationProperties,
+                                                         DynamicConfigService dynamicConfigService) {
     this.trafficGuard = Objects.requireNonNull(trafficGuard);
     this.lockingConfigurationProperties = Objects.requireNonNull(lockingConfigurationProperties);
+    this.dynamicConfigService = dynamicConfigService;
   }
 
   protected abstract Class<? extends AbstractClusterWideClouddriverTask> getClusterOperationTask();
@@ -215,9 +219,17 @@ public abstract class AbstractClusterWideClouddriverOperationStage implements St
     builder
       .withTask("determineHealthProviders", DetermineHealthProvidersTask.class)
       .withTask(opName, operationTask)
-      .withTask("monitor" + name, MonitorKatoTask.class)
-      .withTask("forceCacheRefresh", ServerGroupCacheForceRefreshTask.class)
-      .withTask(waitName, waitTask)
-      .withTask("forceCacheRefresh", ServerGroupCacheForceRefreshTask.class);
+      .withTask("monitor" + name, MonitorKatoTask.class);
+
+    if (isForceCacheRefreshEnabled(dynamicConfigService)) {
+      builder.withTask("forceCacheRefresh", ServerGroupCacheForceRefreshTask.class);
+    }
+
+    builder
+      .withTask(waitName, waitTask);
+
+    if (isForceCacheRefreshEnabled(dynamicConfigService)) {
+      builder.withTask("forceCacheRefresh", ServerGroupCacheForceRefreshTask.class);
+    }
   }
 }

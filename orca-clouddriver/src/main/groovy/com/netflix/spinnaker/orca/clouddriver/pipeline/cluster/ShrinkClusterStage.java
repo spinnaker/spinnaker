@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.cluster;
 
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.AbstractClusterWideClouddriverTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.AbstractWaitForClusterWideClouddriverTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.ShrinkClusterTask;
@@ -40,8 +41,11 @@ public class ShrinkClusterStage extends AbstractClusterWideClouddriverOperationS
   private final DisableClusterStage disableClusterStage;
 
   @Autowired
-  public ShrinkClusterStage(TrafficGuard trafficGuard, LockingConfigurationProperties lockingConfigurationProperties, DisableClusterStage disableClusterStage) {
-    super(trafficGuard, lockingConfigurationProperties);
+  public ShrinkClusterStage(TrafficGuard trafficGuard,
+                            LockingConfigurationProperties lockingConfigurationProperties,
+                            DynamicConfigService dynamicConfigService,
+                            DisableClusterStage disableClusterStage) {
+    super(trafficGuard, lockingConfigurationProperties, dynamicConfigService);
     this.disableClusterStage = disableClusterStage;
   }
 

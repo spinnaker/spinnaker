@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.orca.clouddriver.pipeline.cluster
 
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.dynamicconfig.SpringDynamicConfigService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
@@ -23,7 +24,9 @@ class AbstractClusterWideClouddriverOperationStageSpec extends Specification {
   def guard = Mock(TrafficGuard)
   def env = new MockEnvironment()
   def config = new LockingConfigurationProperties(new SpringDynamicConfigService(environment: env))
-  def stageBuilder = new TestStage(guard, config)
+  def dynamicConfigService = Mock(DynamicConfigService)
+
+  def stageBuilder = new TestStage(guard, config, dynamicConfigService)
 
   @Unroll
   def "should #desc1 inject #expectedType for #desc2 traffic guard protected cluster"() {
@@ -68,8 +71,10 @@ class AbstractClusterWideClouddriverOperationStageSpec extends Specification {
 
 
   static class TestStage extends AbstractClusterWideClouddriverOperationStage {
-    TestStage(TrafficGuard trafficGuard, LockingConfigurationProperties config) {
-      super(trafficGuard, config)
+    TestStage(TrafficGuard trafficGuard,
+              LockingConfigurationProperties config,
+              DynamicConfigService dynamicConfigService) {
+      super(trafficGuard, config, dynamicConfigService)
     }
 
     @Override

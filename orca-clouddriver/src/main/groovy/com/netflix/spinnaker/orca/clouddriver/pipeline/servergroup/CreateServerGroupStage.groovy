@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup
 
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.kato.pipeline.strategy.Strategy
 
@@ -24,7 +25,6 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.netflix.spinnaker.moniker.Moniker
 import com.netflix.spinnaker.orca.clouddriver.FeaturesService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.RollbackClusterStage
-import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.DestroyServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.AbstractDeployStrategyStage
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.instance.WaitForUpInstancesTask
@@ -38,6 +38,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+
 import static java.util.concurrent.TimeUnit.MINUTES
 
 @Slf4j
@@ -54,6 +55,9 @@ class CreateServerGroupStage extends AbstractDeployStrategyStage {
   @Autowired
   private DestroyServerGroupStage destroyServerGroupStage
 
+  @Autowired
+  private DynamicConfigService dynamicConfigService
+
   CreateServerGroupStage() {
     super(PIPELINE_CONFIG_TYPE)
   }
@@ -64,16 +68,22 @@ class CreateServerGroupStage extends AbstractDeployStrategyStage {
 
     def tasks = [
       TaskNode.task("createServerGroup", CreateServerGroupTask),
-      TaskNode.task("monitorDeploy", MonitorKatoTask),
-      TaskNode.task("forceCacheRefresh", ServerGroupCacheForceRefreshTask),
+      TaskNode.task("monitorDeploy", MonitorKatoTask)
     ]
+
+    if (isForceCacheRefreshEnabled(dynamicConfigService)) {
+      tasks << TaskNode.task("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
+    }
 
     if (taggingEnabled) {
       tasks << TaskNode.task("tagServerGroup", AddServerGroupEntityTagsTask)
     }
 
     tasks << TaskNode.task("waitForUpInstances", WaitForUpInstancesTask)
-    tasks << TaskNode.task("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
+
+    if (isForceCacheRefreshEnabled(dynamicConfigService)) {
+      tasks << TaskNode.task("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
+    }
 
     return tasks
   }

@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.cluster;
 
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.AbstractClusterWideClouddriverTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.AbstractWaitForClusterWideClouddriverTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.DisableClusterTask;
@@ -31,8 +32,10 @@ public class DisableClusterStage extends AbstractClusterWideClouddriverOperation
   public static final String STAGE_TYPE = "disableCluster";
 
   @Autowired
-  public DisableClusterStage(TrafficGuard trafficGuard, LockingConfigurationProperties lockingConfigurationProperties) {
-    super(trafficGuard, lockingConfigurationProperties);
+  public DisableClusterStage(TrafficGuard trafficGuard,
+                             LockingConfigurationProperties lockingConfigurationProperties,
+                             DynamicConfigService dynamicConfigService) {
+    super(trafficGuard, lockingConfigurationProperties, dynamicConfigService);
   }
 
   @Override

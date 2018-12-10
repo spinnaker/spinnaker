@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup
 
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.orca.clouddriver.FeaturesService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.AbstractDeployStrategyStage
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
@@ -38,6 +39,9 @@ class CloneServerGroupStage extends AbstractDeployStrategyStage {
   @Autowired
   private FeaturesService featuresService
 
+  @Autowired
+  private DynamicConfigService dynamicConfigService
+
   CloneServerGroupStage() {
     super(PIPELINE_CONFIG_TYPE)
   }
@@ -53,8 +57,11 @@ class CloneServerGroupStage extends AbstractDeployStrategyStage {
     def tasks = [
       new TaskNode.TaskDefinition("cloneServerGroup", CloneServerGroupTask),
       new TaskNode.TaskDefinition("monitorDeploy", MonitorKatoTask),
-      new TaskNode.TaskDefinition("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
     ]
+
+    if (isForceCacheRefreshEnabled(dynamicConfigService)) {
+      tasks << new TaskNode.TaskDefinition("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
+    }
 
     if (taggingEnabled) {
       tasks += [
@@ -62,10 +69,11 @@ class CloneServerGroupStage extends AbstractDeployStrategyStage {
       ]
     }
 
-    tasks += [
-      new TaskNode.TaskDefinition("waitForUpInstances", WaitForUpInstancesTask),
-      new TaskNode.TaskDefinition("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
-    ]
+    tasks << new TaskNode.TaskDefinition("waitForUpInstances", WaitForUpInstancesTask)
+
+    if (isForceCacheRefreshEnabled(dynamicConfigService)) {
+      tasks << new TaskNode.TaskDefinition("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
+    }
 
     return tasks
   }

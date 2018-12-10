@@ -16,32 +16,40 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup
 
-import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroupLinearStageSupport
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.*
 import com.netflix.spinnaker.orca.pipeline.TaskNode
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
 class DestroyServerGroupStage extends TargetServerGroupLinearStageSupport {
   static final String PIPELINE_CONFIG_TYPE = "destroyServerGroup"
 
+  private final DynamicConfigService dynamicConfigService
+
+  @Autowired
+  DestroyServerGroupStage(DynamicConfigService dynamicConfigService) {
+    this.dynamicConfigService = dynamicConfigService
+  }
+
   @Override
   protected void taskGraphInternal(Stage stage, TaskNode.Builder builder) {
-    try {
-      builder
-        .withTask("disableServerGroup", DisableServerGroupTask)
-        .withTask("monitorServerGroup", MonitorKatoTask)
-        .withTask("waitForNotUpInstances", WaitForAllInstancesNotUpTask)
-        .withTask("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
-        .withTask("destroyServerGroup", DestroyServerGroupTask)
-        .withTask("monitorServerGroup", MonitorKatoTask)
-        .withTask("waitForDestroyedServerGroup", WaitForDestroyedServerGroupTask)
-    } catch (TargetServerGroup.NotFoundException ignored) {
-      builder
-        .withTask("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
+    builder
+      .withTask("disableServerGroup", DisableServerGroupTask)
+      .withTask("monitorServerGroup", MonitorKatoTask)
+      .withTask("waitForNotUpInstances", WaitForAllInstancesNotUpTask)
+
+    if (isForceCacheRefreshEnabled(dynamicConfigService)) {
+      builder.withTask("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
     }
+
+    builder
+      .withTask("destroyServerGroup", DestroyServerGroupTask)
+      .withTask("monitorServerGroup", MonitorKatoTask)
+      .withTask("waitForDestroyedServerGroup", WaitForDestroyedServerGroupTask)
   }
 }

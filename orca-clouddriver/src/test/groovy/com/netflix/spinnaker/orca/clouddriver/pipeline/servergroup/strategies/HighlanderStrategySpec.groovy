@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies
 
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.dynamicconfig.SpringDynamicConfigService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.DisableClusterStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.ShrinkClusterStage
@@ -33,8 +34,11 @@ class HighlanderStrategySpec extends Specification {
   def trafficGuard = Stub(TrafficGuard)
   def env = new MockEnvironment()
   def lockingConfig = new LockingConfigurationProperties(new SpringDynamicConfigService(environment: env))
-  def disableClusterStage = new DisableClusterStage(trafficGuard, lockingConfig)
-  def shrinkClusterStage = new ShrinkClusterStage(trafficGuard, lockingConfig, disableClusterStage)
+
+  def dynamicConfigService = Mock(DynamicConfigService)
+
+  def disableClusterStage = new DisableClusterStage(trafficGuard, lockingConfig, dynamicConfigService)
+  def shrinkClusterStage = new ShrinkClusterStage(trafficGuard, lockingConfig, dynamicConfigService, disableClusterStage)
 
   @Unroll
   def "should compose flow"() {
