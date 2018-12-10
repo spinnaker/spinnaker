@@ -28,6 +28,7 @@ import org.jooq.impl.DataSourceConnectionProvider
 import org.jooq.impl.DefaultConfiguration
 import org.jooq.impl.DefaultDSLContext
 import org.jooq.impl.DefaultExecuteListenerProvider
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -101,8 +102,9 @@ class DefaultSqlConfiguration {
 
   @Bean
   fun sqlHealthProvider(jooq: DSLContext,
-                        registry: Registry): SqlHealthProvider =
-    SqlHealthProvider(jooq, registry)
+                        registry: Registry,
+                        @Value("\${sql.readOnly:false}") readOnly: Boolean): SqlHealthProvider =
+    SqlHealthProvider(jooq, registry, readOnly)
 
   @Bean("dbHealthIndicator")
   fun dbHealthIndicator(sqlHealthProvider: SqlHealthProvider,

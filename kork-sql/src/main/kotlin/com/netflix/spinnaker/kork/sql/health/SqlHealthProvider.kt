@@ -27,6 +27,7 @@ import java.util.concurrent.atomic.AtomicReference
 class SqlHealthProvider(
   private val jooq: DSLContext,
   private val registry: Registry,
+  private val readOnly: Boolean,
   private val unhealthyThreshold: Int = 2,
   private val healthyThreshold: Int = 10
 ) {
@@ -48,10 +49,14 @@ class SqlHealthProvider(
     get() = _healthException.get()
 
   @Scheduled(fixedDelay = 1_000)
-  fun performWrite() {
+  fun performCheck() {
     try {
       // THIS IS VERY ADVANCED
-      jooq.delete(DSL.table("healthcheck")).execute()
+      if (readOnly) {
+        jooq.select().from(DSL.table("healthcheck")).limit(1)
+      } else {
+        jooq.delete(DSL.table("healthcheck")).execute()
+      }
 
       if (!_enabled.get()) {
         if (healthyCounter.incrementAndGet() >= healthyThreshold) {

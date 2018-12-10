@@ -41,7 +41,7 @@ internal object SqlHealthProviderSpec : Spek({
     val query = mock<DeleteWhereStep<*>>()
 
     given("a healthy current state") {
-      val subject = SqlHealthProvider(dslContext, NoopRegistry(), unhealthyThreshold = 1).apply {
+      val subject = SqlHealthProvider(dslContext, NoopRegistry(), readOnly = false, unhealthyThreshold = 1).apply {
         _enabled.set(true)
       }
 
@@ -50,8 +50,27 @@ internal object SqlHealthProviderSpec : Spek({
       on("successive write failures") {
         whenever(dslContext.delete(isA<Table<*>>())) doThrow RuntimeException("oh no")
 
-        subject.performWrite()
-        subject.performWrite()
+        subject.performCheck()
+        subject.performCheck()
+
+        it("deactivates its enabled flag") {
+          expectThat(subject.enabled).isEqualTo(false)
+        }
+      }
+    }
+
+    given("a healthy current readOnly state") {
+      val subject = SqlHealthProvider(dslContext, NoopRegistry(), readOnly = true, unhealthyThreshold = 1).apply {
+        _enabled.set(true)
+      }
+
+      afterEachTest { reset(dslContext, query) }
+
+      on("successive read failures") {
+        whenever(dslContext.select()) doThrow RuntimeException("oh no")
+
+        subject.performCheck()
+        subject.performCheck()
 
         it("deactivates its enabled flag") {
           expectThat(subject.enabled).isEqualTo(false)
@@ -60,7 +79,7 @@ internal object SqlHealthProviderSpec : Spek({
     }
 
     given("an unhealthy sql connection") {
-      val subject = SqlHealthProvider(dslContext, NoopRegistry(), healthyThreshold = 1).apply {
+      val subject = SqlHealthProvider(dslContext, NoopRegistry(), readOnly = false, healthyThreshold = 1).apply {
         _enabled.set(false)
       }
 
@@ -69,8 +88,8 @@ internal object SqlHealthProviderSpec : Spek({
       on("successive write failures") {
         whenever(dslContext.delete(isA<Table<*>>())) doReturn query
 
-        subject.performWrite()
-        subject.performWrite()
+        subject.performCheck()
+        subject.performCheck()
 
         it("deactivates its enabled flag") {
           expectThat(subject.enabled).isEqualTo(true)
