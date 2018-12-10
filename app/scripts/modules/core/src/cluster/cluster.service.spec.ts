@@ -8,6 +8,7 @@ import { Application } from 'core/application/application.model';
 
 import { CLUSTER_SERVICE, ClusterService } from './cluster.service';
 import { API } from '../api/ApiService';
+import { SETTINGS } from 'core/config/settings';
 
 const ClusterState = State.ClusterState;
 
@@ -60,7 +61,7 @@ describe('Service: Cluster', function() {
 
   describe('lazy cluster fetching', () => {
     it('switches to lazy cluster fetching if there are more than the on demand threshold for clusters', () => {
-      const clusters = Array(ClusterService.ON_DEMAND_THRESHOLD + 1);
+      const clusters = Array(SETTINGS.onDemandClusterThreshold + 1);
       $http.expectGET(API.baseUrl + '/applications/app/clusters').respond(200, { test: clusters });
       $http.expectGET(API.baseUrl + '/applications/app/serverGroups?clusters=').respond(200, []);
       let serverGroups: IServerGroup[] = null;
@@ -71,7 +72,7 @@ describe('Service: Cluster', function() {
     });
 
     it('does boring regular fetching when there are less than the on demand threshold for clusters', () => {
-      const clusters = Array(ClusterService.ON_DEMAND_THRESHOLD);
+      const clusters = Array(SETTINGS.onDemandClusterThreshold);
       $http.expectGET(API.baseUrl + '/applications/app/clusters').respond(200, { test: clusters });
       $http.expectGET(API.baseUrl + '/applications/app/serverGroups').respond(200, []);
       let serverGroups: IServerGroup[] = null;

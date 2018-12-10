@@ -14,8 +14,6 @@ import { SETTINGS } from 'core/config/settings';
 import { taskMatcher } from './task.matcher';
 
 export class ClusterService {
-  public static ON_DEMAND_THRESHOLD = 350;
-
   constructor(
     private $q: IQService,
     private serverGroupTransformer: any,
