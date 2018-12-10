@@ -43,7 +43,6 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 
 class DeployCloudFoundryServerGroupAtomicOperationConverterTest {
-
   private final CloudFoundryClient cloudFoundryClient = new MockCloudFoundryClient();
   {
     when(cloudFoundryClient.getOrganizations().findByName(any()))
@@ -155,7 +154,7 @@ class DeployCloudFoundryServerGroupAtomicOperationConverterTest {
       ).asJava()
     ).toJavaMap();
 
-    assertThat(converter.convertManifest(input).get()).isEqualToComparingFieldByFieldRecursively(
+    assertThat(converter.convertManifest(input)).isEqualToComparingFieldByFieldRecursively(
       new DeployCloudFoundryServerGroupDescription.ApplicationAttributes()
         .setInstances(7)
         .setMemory("1G")
@@ -183,7 +182,7 @@ class DeployCloudFoundryServerGroupAtomicOperationConverterTest {
       ).asJava()
     ).toJavaMap();
 
-    assertThat(converter.convertManifest(input).get()).isEqualToComparingFieldByFieldRecursively(
+    assertThat(converter.convertManifest(input)).isEqualToComparingFieldByFieldRecursively(
       new DeployCloudFoundryServerGroupDescription.ApplicationAttributes()
         .setInstances(1)
         .setMemory("1024")
@@ -202,7 +201,7 @@ class DeployCloudFoundryServerGroupAtomicOperationConverterTest {
       ).asJava()
     ).toJavaMap();
 
-    assertThat(converter.convertManifest(input).get()).isEqualToComparingFieldByFieldRecursively(
+    assertThat(converter.convertManifest(input)).isEqualToComparingFieldByFieldRecursively(
       new DeployCloudFoundryServerGroupDescription.ApplicationAttributes()
         .setInstances(1)
         .setMemory("1024")
@@ -219,7 +218,7 @@ class DeployCloudFoundryServerGroupAtomicOperationConverterTest {
       ).asJava()
     ).toJavaMap();
 
-    assertThat(converter.convertManifest(input).get()).isEqualToComparingFieldByFieldRecursively(
+    assertThat(converter.convertManifest(input)).isEqualToComparingFieldByFieldRecursively(
       new DeployCloudFoundryServerGroupDescription.ApplicationAttributes()
         .setInstances(1)
         .setMemory("1024")
@@ -227,5 +226,4 @@ class DeployCloudFoundryServerGroupAtomicOperationConverterTest {
         .setBuildpacks(Collections.emptyList())
     );
   }
-
 }

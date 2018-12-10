@@ -36,18 +36,20 @@ public class DeployCloudFoundryServiceAtomicOperation implements AtomicOperation
   @Override
   public Void operate(List priorOutputs) {
     Task task = getTask();
-    task.updateStatus(PHASE, "Creating service instance '" + description.getServiceName() + "' from service " + description.getService() + " and service plan " + description.getServicePlan());
+    DeployCloudFoundryServiceDescription.ServiceAttributes attrs = description.getServiceAttributes();
+    task.updateStatus(PHASE, "Creating service instance '" + attrs.getServiceName() + "' from service " + attrs.getService() + " and service plan " + attrs.getServicePlan());
     description
       .getClient()
       .getServiceInstances()
-      .createServiceInstance(description.getServiceName(),
-        description.getService(),
-        description.getServicePlan(),
-        description.getTags(),
-        description.getParameterMap(),
+      .createServiceInstance(
+        attrs.getServiceName(),
+        attrs.getService(),
+        attrs.getServicePlan(),
+        attrs.getTags(),
+        attrs.getParameterMap(),
         description.getSpace(),
         description.getTimeout());
-    task.updateStatus(PHASE, "Created service instance '" + description.getServiceName() + "'");
+    task.updateStatus(PHASE, "Created service instance '" + attrs.getServiceName() + "'");
     return null;
   }
 }

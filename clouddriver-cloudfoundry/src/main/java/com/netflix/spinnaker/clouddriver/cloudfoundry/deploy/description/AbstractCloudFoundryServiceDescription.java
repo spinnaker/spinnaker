@@ -25,7 +25,6 @@ import java.time.Duration;
 @Data
 @EqualsAndHashCode(callSuper = true)
 public abstract class AbstractCloudFoundryServiceDescription extends AbstractCloudFoundryDescription {
-  private String serviceName;
   private CloudFoundrySpace space;
   private long timeout = 450;
 

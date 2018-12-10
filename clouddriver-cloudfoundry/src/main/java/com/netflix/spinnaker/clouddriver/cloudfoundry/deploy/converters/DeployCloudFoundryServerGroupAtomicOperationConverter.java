@@ -24,8 +24,6 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.google.common.annotations.VisibleForTesting;
 import com.netflix.spinnaker.clouddriver.artifacts.ArtifactCredentialsRepository;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
-import com.netflix.spinnaker.clouddriver.artifacts.gcs.GcsArtifactCredentials;
-import com.netflix.spinnaker.clouddriver.artifacts.http.HttpArtifactCredentials;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.CloudFoundryOperation;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.artifacts.PackageArtifactCredentials;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.DeployCloudFoundryServerGroupDescription;
@@ -36,24 +34,17 @@ import com.netflix.spinnaker.clouddriver.helpers.OperationPoller;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import io.vavr.collection.Stream;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import org.yaml.snakeyaml.Yaml;
 
 import javax.annotation.Nullable;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UncheckedIOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import static io.vavr.API.*;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toMap;
 
 @CloudFoundryOperation(AtomicOperations.CREATE_SERVER_GROUP)
 @Component
@@ -93,7 +84,7 @@ public class DeployCloudFoundryServerGroupAtomicOperationConverter extends Abstr
         .findAny()
         .orElseThrow(() -> new IllegalArgumentException("Unable to find artifact credentials '" + artifactSource.get("account") + "'"));
 
-      converted.setArtifact(convertToArtifact(artifactSource.get("account").toString(), artifactSource.get("reference").toString()));
+      converted.setArtifact(convertToArtifact(artifactCredentials, artifactSource.get("reference").toString()));
       converted.setArtifactCredentials(artifactCredentials);
     } else if ("package".equals(artifactSource.get("type"))) {
       CloudFoundryCredentials accountCredentials = getCredentialsObject(artifactSource.get("account").toString());
@@ -111,29 +102,13 @@ public class DeployCloudFoundryServerGroupAtomicOperationConverter extends Abstr
       DeployCloudFoundryServerGroupDescription.ApplicationAttributes attrs = getObjectMapper().convertValue(manifest, DeployCloudFoundryServerGroupDescription.ApplicationAttributes.class);
       converted.setApplicationAttributes(attrs);
     } else if ("artifact".equals(manifest.get("type"))) {
-      Artifact manifestArtifact = convertToArtifact(manifest.get("account").toString(), manifest.get("reference").toString());
-      ArtifactCredentials manifestArtifactCredentials = credentialsRepository.getAllCredentials().stream()
-        .filter(creds -> creds.getName().equals(manifest.get("account")))
-        .findAny()
-        .orElseThrow(() -> new IllegalArgumentException("Unable to find manifest credentials '" + manifest.get("account") + "'"));
-
-      try {
-        InputStream manifestInput = manifestArtifactCredentials.download(manifestArtifact);
-        Yaml parser = new Yaml();
-        Map manifestMap = (Map) parser.load(manifestInput);
-        final Optional<DeployCloudFoundryServerGroupDescription.ApplicationAttributes> attrs = convertManifest(manifestMap);
-        attrs.ifPresent(a -> {
-          converted.setApplicationAttributes(a);
-        });
-      } catch (IOException e) {
-        throw new UncheckedIOException(e);
-      }
+      downloadAndProcessManifest(manifest, credentialsRepository, myMap -> converted.setApplicationAttributes(convertManifest(myMap)));
     }
     return converted;
   }
 
   @VisibleForTesting
-  Optional<DeployCloudFoundryServerGroupDescription.ApplicationAttributes> convertManifest(Map manifestMap) {
+  DeployCloudFoundryServerGroupDescription.ApplicationAttributes convertManifest(Map manifestMap) {
     List<CloudFoundryManifest> manifestApps = new ObjectMapper()
       .setPropertyNamingStrategy(PropertyNamingStrategy.KEBAB_CASE)
       .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
@@ -159,7 +134,7 @@ public class DeployCloudFoundryServerGroupAtomicOperationConverter extends Abstr
       attrs.setRoutes(app.getRoutes() == null ? null : app.getRoutes().stream().flatMap(route -> route.values().stream()).collect(toList()));
       attrs.setEnv(app.getEnv());
       return attrs;
-    });
+    }).get();
   }
 
   @Data
@@ -196,23 +171,4 @@ public class DeployCloudFoundryServerGroupAtomicOperationConverter extends Abstr
     private Map<String, String> env;
   }
 
-  private Artifact convertToArtifact(String account, String reference) {
-    ArtifactCredentials artifactCredentials = credentialsRepository.getAllCredentials().stream()
-      .filter(creds -> account.equals(creds.getName()))
-      .findAny()
-      .orElse(null);
-
-    Artifact artifact = new Artifact();
-    artifact.setReference(reference);
-
-    if (artifactCredentials == null) {
-      artifact.setType("http/file");
-    } else if (artifactCredentials instanceof HttpArtifactCredentials) {
-      artifact.setType("http/file");
-    } else if (artifactCredentials instanceof GcsArtifactCredentials) {
-      artifact.setType("gcs/file");
-    }
-
-    return artifact;
-  }
 }
