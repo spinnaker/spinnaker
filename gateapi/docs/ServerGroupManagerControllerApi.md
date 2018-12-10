@@ -8,7 +8,7 @@ Method | HTTP request | Description
 
 
 # **GetServerGroupManagersForApplicationUsingGET**
-> []HashMap GetServerGroupManagersForApplicationUsingGET(ctx, application)
+> []interface{} GetServerGroupManagersForApplicationUsingGET(ctx, application)
 Retrieve a list of server group managers for an application
 
 ### Required Parameters
@@ -20,7 +20,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**[]HashMap**](HashMap.md)
+[**[]interface{}**](interface{}.md)
 
 ### Authorization
 

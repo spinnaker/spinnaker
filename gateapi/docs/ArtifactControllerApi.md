@@ -8,7 +8,7 @@ Method | HTTP request | Description
 
 
 # **AllUsingGET**
-> []HashMap AllUsingGET(ctx, optional)
+> []interface{} AllUsingGET(ctx, optional)
 Retrieve the list of artifact accounts configured in Clouddriver.
 
 ### Required Parameters
@@ -27,7 +27,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**[]HashMap**](HashMap.md)
+[**[]interface{}**](interface{}.md)
 
 ### Authorization
 

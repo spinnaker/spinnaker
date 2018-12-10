@@ -45,7 +45,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **GetApplicationLoadBalancersUsingGET**
-> []HashMap GetApplicationLoadBalancersUsingGET(ctx, application, optional)
+> []interface{} GetApplicationLoadBalancersUsingGET(ctx, application, optional)
 Retrieve a list of load balancers for a given application
 
 ### Required Parameters
@@ -66,7 +66,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**[]HashMap**](HashMap.md)
+[**[]interface{}**](interface{}.md)
 
 ### Authorization
 
@@ -80,7 +80,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **GetLoadBalancerDetailsUsingGET**
-> []HashMap GetLoadBalancerDetailsUsingGET(ctx, account, region, name, optional)
+> []interface{} GetLoadBalancerDetailsUsingGET(ctx, account, region, name, optional)
 Retrieve a load balancer's details as a single element list for a given account, region, cloud provider and load balancer name
 
 ### Required Parameters
@@ -106,7 +106,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**[]HashMap**](HashMap.md)
+[**[]interface{}**](interface{}.md)
 
 ### Authorization
 

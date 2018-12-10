@@ -95,7 +95,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **GetClustersUsingGET1**
-> []HashMap GetClustersUsingGET1(ctx, application, account, optional)
+> []interface{} GetClustersUsingGET1(ctx, application, account, optional)
 Retrieve a list of clusters for an account
 
 ### Required Parameters
@@ -118,7 +118,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**[]HashMap**](HashMap.md)
+[**[]interface{}**](interface{}.md)
 
 ### Authorization
 
@@ -167,7 +167,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **GetScalingActivitiesUsingGET**
-> []HashMap GetScalingActivitiesUsingGET(ctx, application, account, clusterName, serverGroupName, optional)
+> []interface{} GetScalingActivitiesUsingGET(ctx, application, account, clusterName, serverGroupName, optional)
 Retrieve a list of scaling activities for a server group
 
 ### Required Parameters
@@ -196,7 +196,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**[]HashMap**](HashMap.md)
+[**[]interface{}**](interface{}.md)
 
 ### Authorization
 
@@ -210,7 +210,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **GetServerGroupsUsingGET**
-> []HashMap GetServerGroupsUsingGET(ctx, application, account, clusterName, serverGroupName, optional)
+> []interface{} GetServerGroupsUsingGET(ctx, application, account, clusterName, serverGroupName, optional)
 Retrieve a server group's details
 
 ### Required Parameters
@@ -237,7 +237,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**[]HashMap**](HashMap.md)
+[**[]interface{}**](interface{}.md)
 
 ### Authorization
 
@@ -251,7 +251,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **GetServerGroupsUsingGET1**
-> []HashMap GetServerGroupsUsingGET1(ctx, application, account, clusterName, optional)
+> []interface{} GetServerGroupsUsingGET1(ctx, application, account, clusterName, optional)
 Retrieve a list of server groups for a cluster
 
 ### Required Parameters
@@ -276,7 +276,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**[]HashMap**](HashMap.md)
+[**[]interface{}**](interface{}.md)
 
 ### Authorization
 

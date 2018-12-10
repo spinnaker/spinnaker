@@ -32,14 +32,14 @@ type SubnetControllerApiService service
  @param cloudProvider cloudProvider
  @param optional (nil or map[string]interface{}) with one or more of:
      @param "xRateLimitApp" (string) X-RateLimit-App
- @return []HashMap*/
-func (a *SubnetControllerApiService) AllByCloudProviderUsingGET1(ctx context.Context, cloudProvider string, localVarOptionals map[string]interface{}) ([]HashMap,  *http.Response, error) {
+ @return []interface{}*/
+func (a *SubnetControllerApiService) AllByCloudProviderUsingGET1(ctx context.Context, cloudProvider string, localVarOptionals map[string]interface{}) ([]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
 		localVarPostBody interface{}
 		localVarFileName string
 		localVarFileBytes []byte
-	 	successPayload  []HashMap
+	 	successPayload  []interface{}
 	)
 
 	// create path and map variables

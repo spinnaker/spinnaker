@@ -36,7 +36,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **GetSnapshotHistoryUsingGET**
-> []HashMap GetSnapshotHistoryUsingGET(ctx, application, account, optional)
+> []interface{} GetSnapshotHistoryUsingGET(ctx, application, account, optional)
 Get snapshot history
 
 ### Required Parameters
@@ -59,7 +59,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**[]HashMap**](HashMap.md)
+[**[]interface{}**](interface{}.md)
 
 ### Authorization
 

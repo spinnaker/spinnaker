@@ -8,7 +8,7 @@ Method | HTTP request | Description
 
 
 # **AllPipelinesForProjectUsingGET**
-> []HashMap AllPipelinesForProjectUsingGET(ctx, id, optional)
+> []interface{} AllPipelinesForProjectUsingGET(ctx, id, optional)
 Get all pipelines for project
 
 ### Required Parameters
@@ -30,7 +30,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**[]HashMap**](HashMap.md)
+[**[]interface{}**](interface{}.md)
 
 ### Authorization
 

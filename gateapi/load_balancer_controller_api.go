@@ -109,14 +109,14 @@ func (a *LoadBalancerControllerApiService) GetAllUsingGET(ctx context.Context, l
  @param application application
  @param optional (nil or map[string]interface{}) with one or more of:
      @param "xRateLimitApp" (string) X-RateLimit-App
- @return []HashMap*/
-func (a *LoadBalancerControllerApiService) GetApplicationLoadBalancersUsingGET(ctx context.Context, application string, localVarOptionals map[string]interface{}) ([]HashMap,  *http.Response, error) {
+ @return []interface{}*/
+func (a *LoadBalancerControllerApiService) GetApplicationLoadBalancersUsingGET(ctx context.Context, application string, localVarOptionals map[string]interface{}) ([]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
 		localVarPostBody interface{}
 		localVarFileName string
 		localVarFileBytes []byte
-	 	successPayload  []HashMap
+	 	successPayload  []interface{}
 	)
 
 	// create path and map variables
@@ -184,14 +184,14 @@ func (a *LoadBalancerControllerApiService) GetApplicationLoadBalancersUsingGET(c
  @param optional (nil or map[string]interface{}) with one or more of:
      @param "provider" (string) provider
      @param "xRateLimitApp" (string) X-RateLimit-App
- @return []HashMap*/
-func (a *LoadBalancerControllerApiService) GetLoadBalancerDetailsUsingGET(ctx context.Context, account string, region string, name string, localVarOptionals map[string]interface{}) ([]HashMap,  *http.Response, error) {
+ @return []interface{}*/
+func (a *LoadBalancerControllerApiService) GetLoadBalancerDetailsUsingGET(ctx context.Context, account string, region string, name string, localVarOptionals map[string]interface{}) ([]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
 		localVarPostBody interface{}
 		localVarFileName string
 		localVarFileBytes []byte
-	 	successPayload  []HashMap
+	 	successPayload  []interface{}
 	)
 
 	// create path and map variables

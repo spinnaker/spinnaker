@@ -631,7 +631,7 @@ func (a *PipelineControllerApiService) EvaluateExpressionForExecutionUsingPUT(ct
  @param id id
  @param pipelineExpression pipelineExpression
  @return map[string]interface{}*/
-func (a *PipelineControllerApiService) EvaluateExpressionForExecutionViaPOSTUsingPOST1(ctx context.Context, id string, pipelineExpression string) (map[string]interface{},  *http.Response, error) {
+func (a *PipelineControllerApiService) EvaluateExpressionForExecutionViaPOSTUsingPOST1(ctx context.Context, id string, pipelineExpression interface{}) (map[string]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Post")
 		localVarPostBody interface{}
@@ -650,7 +650,7 @@ func (a *PipelineControllerApiService) EvaluateExpressionForExecutionViaPOSTUsin
 
 
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "text/plain",  }
+	localVarHttpContentTypes := []string{ "application/json",  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -696,14 +696,14 @@ func (a *PipelineControllerApiService) EvaluateExpressionForExecutionViaPOSTUsin
 /* PipelineControllerApiService Retrieve pipeline execution logs
  * @param ctx context.Context for authentication, logging, tracing, etc.
  @param id id
- @return []HashMap*/
-func (a *PipelineControllerApiService) GetPipelineLogsUsingGET(ctx context.Context, id string) ([]HashMap,  *http.Response, error) {
+ @return []interface{}*/
+func (a *PipelineControllerApiService) GetPipelineLogsUsingGET(ctx context.Context, id string) ([]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
 		localVarPostBody interface{}
 		localVarFileName string
 		localVarFileBytes []byte
-	 	successPayload  []HashMap
+	 	successPayload  []interface{}
 	)
 
 	// create path and map variables

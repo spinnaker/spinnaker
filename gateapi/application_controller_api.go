@@ -245,14 +245,14 @@ func (a *ApplicationControllerApiService) GetAllApplicationsUsingGET(ctx context
  @param application application
  @param optional (nil or map[string]interface{}) with one or more of:
      @param "limit" (int32) limit
- @return []HashMap*/
-func (a *ApplicationControllerApiService) GetApplicationHistoryUsingGET(ctx context.Context, application string, localVarOptionals map[string]interface{}) ([]HashMap,  *http.Response, error) {
+ @return []interface{}*/
+func (a *ApplicationControllerApiService) GetApplicationHistoryUsingGET(ctx context.Context, application string, localVarOptionals map[string]interface{}) ([]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
 		localVarPostBody interface{}
 		localVarFileName string
 		localVarFileBytes []byte
-	 	successPayload  []HashMap
+	 	successPayload  []interface{}
 	)
 
 	// create path and map variables

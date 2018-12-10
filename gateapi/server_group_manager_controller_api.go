@@ -30,14 +30,14 @@ type ServerGroupManagerControllerApiService service
 /* ServerGroupManagerControllerApiService Retrieve a list of server group managers for an application
  * @param ctx context.Context for authentication, logging, tracing, etc.
  @param application application
- @return []HashMap*/
-func (a *ServerGroupManagerControllerApiService) GetServerGroupManagersForApplicationUsingGET(ctx context.Context, application string) ([]HashMap,  *http.Response, error) {
+ @return []interface{}*/
+func (a *ServerGroupManagerControllerApiService) GetServerGroupManagersForApplicationUsingGET(ctx context.Context, application string) ([]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
 		localVarPostBody interface{}
 		localVarFileName string
 		localVarFileBytes []byte
-	 	successPayload  []HashMap
+	 	successPayload  []interface{}
 	)
 
 	// create path and map variables

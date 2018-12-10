@@ -99,14 +99,14 @@ func (a *SnapshotControllerApiService) GetCurrentSnapshotUsingGET(ctx context.Co
  @param account account
  @param optional (nil or map[string]interface{}) with one or more of:
      @param "limit" (int32) limit
- @return []HashMap*/
-func (a *SnapshotControllerApiService) GetSnapshotHistoryUsingGET(ctx context.Context, application string, account string, localVarOptionals map[string]interface{}) ([]HashMap,  *http.Response, error) {
+ @return []interface{}*/
+func (a *SnapshotControllerApiService) GetSnapshotHistoryUsingGET(ctx context.Context, application string, account string, localVarOptionals map[string]interface{}) ([]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
 		localVarPostBody interface{}
 		localVarFileName string
 		localVarFileBytes []byte
-	 	successPayload  []HashMap
+	 	successPayload  []interface{}
 	)
 
 	// create path and map variables

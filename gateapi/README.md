@@ -156,7 +156,6 @@ Class | Method | HTTP request | Description
  - [Account](docs/Account.md)
  - [AccountDetails](docs/AccountDetails.md)
  - [GrantedAuthority](docs/GrantedAuthority.md)
- - [HashMap](docs/HashMap.md)
  - [HashMapstringobject](docs/HashMapstringobject.md)
  - [HttpEntity](docs/HttpEntity.md)
  - [Mapstringstring](docs/Mapstringstring.md)

@@ -187,14 +187,14 @@ func (a *ClusterControllerApiService) GetClustersUsingGET(ctx context.Context, a
  @param account account
  @param optional (nil or map[string]interface{}) with one or more of:
      @param "xRateLimitApp" (string) X-RateLimit-App
- @return []HashMap*/
-func (a *ClusterControllerApiService) GetClustersUsingGET1(ctx context.Context, application string, account string, localVarOptionals map[string]interface{}) ([]HashMap,  *http.Response, error) {
+ @return []interface{}*/
+func (a *ClusterControllerApiService) GetClustersUsingGET1(ctx context.Context, application string, account string, localVarOptionals map[string]interface{}) ([]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
 		localVarPostBody interface{}
 		localVarFileName string
 		localVarFileBytes []byte
-	 	successPayload  []HashMap
+	 	successPayload  []interface{}
 	)
 
 	// create path and map variables
@@ -337,14 +337,14 @@ func (a *ClusterControllerApiService) GetClustersUsingGET2(ctx context.Context, 
      @param "provider" (string) provider
      @param "region" (string) region
      @param "xRateLimitApp" (string) X-RateLimit-App
- @return []HashMap*/
-func (a *ClusterControllerApiService) GetScalingActivitiesUsingGET(ctx context.Context, application string, account string, clusterName string, serverGroupName string, localVarOptionals map[string]interface{}) ([]HashMap,  *http.Response, error) {
+ @return []interface{}*/
+func (a *ClusterControllerApiService) GetScalingActivitiesUsingGET(ctx context.Context, application string, account string, clusterName string, serverGroupName string, localVarOptionals map[string]interface{}) ([]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
 		localVarPostBody interface{}
 		localVarFileName string
 		localVarFileBytes []byte
-	 	successPayload  []HashMap
+	 	successPayload  []interface{}
 	)
 
 	// create path and map variables
@@ -427,14 +427,14 @@ func (a *ClusterControllerApiService) GetScalingActivitiesUsingGET(ctx context.C
  @param serverGroupName serverGroupName
  @param optional (nil or map[string]interface{}) with one or more of:
      @param "xRateLimitApp" (string) X-RateLimit-App
- @return []HashMap*/
-func (a *ClusterControllerApiService) GetServerGroupsUsingGET(ctx context.Context, application string, account string, clusterName string, serverGroupName string, localVarOptionals map[string]interface{}) ([]HashMap,  *http.Response, error) {
+ @return []interface{}*/
+func (a *ClusterControllerApiService) GetServerGroupsUsingGET(ctx context.Context, application string, account string, clusterName string, serverGroupName string, localVarOptionals map[string]interface{}) ([]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
 		localVarPostBody interface{}
 		localVarFileName string
 		localVarFileBytes []byte
-	 	successPayload  []HashMap
+	 	successPayload  []interface{}
 	)
 
 	// create path and map variables
@@ -504,14 +504,14 @@ func (a *ClusterControllerApiService) GetServerGroupsUsingGET(ctx context.Contex
  @param clusterName clusterName
  @param optional (nil or map[string]interface{}) with one or more of:
      @param "xRateLimitApp" (string) X-RateLimit-App
- @return []HashMap*/
-func (a *ClusterControllerApiService) GetServerGroupsUsingGET1(ctx context.Context, application string, account string, clusterName string, localVarOptionals map[string]interface{}) ([]HashMap,  *http.Response, error) {
+ @return []interface{}*/
+func (a *ClusterControllerApiService) GetServerGroupsUsingGET1(ctx context.Context, application string, account string, clusterName string, localVarOptionals map[string]interface{}) ([]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
 		localVarPostBody interface{}
 		localVarFileName string
 		localVarFileBytes []byte
-	 	successPayload  []HashMap
+	 	successPayload  []interface{}
 	)
 
 	// create path and map variables

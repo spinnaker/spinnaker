@@ -10,7 +10,7 @@ Method | HTTP request | Description
 
 
 # **InstanceTypesUsingGET**
-> []HashMap InstanceTypesUsingGET(ctx, )
+> []interface{} InstanceTypesUsingGET(ctx, )
 Get instance types
 
 ### Required Parameters
@@ -18,7 +18,7 @@ This endpoint does not need any parameter.
 
 ### Return type
 
-[**[]HashMap**](HashMap.md)
+[**[]interface{}**](interface{}.md)
 
 ### Authorization
 
@@ -32,7 +32,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **SubnetsUsingGET**
-> []HashMap SubnetsUsingGET(ctx, )
+> []interface{} SubnetsUsingGET(ctx, )
 Get subnets
 
 ### Required Parameters
@@ -40,7 +40,7 @@ This endpoint does not need any parameter.
 
 ### Return type
 
-[**[]HashMap**](HashMap.md)
+[**[]interface{}**](interface{}.md)
 
 ### Authorization
 
@@ -54,7 +54,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **VpcsUsingGET**
-> []HashMap VpcsUsingGET(ctx, )
+> []interface{} VpcsUsingGET(ctx, )
 Get VPCs
 
 ### Required Parameters
@@ -62,7 +62,7 @@ This endpoint does not need any parameter.
 
 ### Return type
 
-[**[]HashMap**](HashMap.md)
+[**[]interface{}**](interface{}.md)
 
 ### Authorization
 

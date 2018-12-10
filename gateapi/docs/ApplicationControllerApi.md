@@ -117,7 +117,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **GetApplicationHistoryUsingGET**
-> []HashMap GetApplicationHistoryUsingGET(ctx, application, optional)
+> []interface{} GetApplicationHistoryUsingGET(ctx, application, optional)
 Retrieve a list of an application's configuration revision history
 
 ### Required Parameters
@@ -138,7 +138,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**[]HashMap**](HashMap.md)
+[**[]interface{}**](interface{}.md)
 
 ### Authorization
 

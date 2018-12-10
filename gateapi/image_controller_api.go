@@ -36,14 +36,14 @@ type ImageControllerApiService service
      @param "region" (string) region
      @param "account" (string) account
      @param "count" (int32) count
- @return []HashMap*/
-func (a *ImageControllerApiService) FindImagesUsingGET(ctx context.Context, localVarOptionals map[string]interface{}) ([]HashMap,  *http.Response, error) {
+ @return []interface{}*/
+func (a *ImageControllerApiService) FindImagesUsingGET(ctx context.Context, localVarOptionals map[string]interface{}) ([]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
 		localVarPostBody interface{}
 		localVarFileName string
 		localVarFileBytes []byte
-	 	successPayload  []HashMap
+	 	successPayload  []interface{}
 	)
 
 	// create path and map variables
@@ -215,14 +215,14 @@ func (a *ImageControllerApiService) FindTagsUsingGET(ctx context.Context, accoun
  @param optional (nil or map[string]interface{}) with one or more of:
      @param "provider" (string) provider
      @param "xRateLimitApp" (string) X-RateLimit-App
- @return []HashMap*/
-func (a *ImageControllerApiService) GetImageDetailsUsingGET(ctx context.Context, account string, region string, imageId string, localVarOptionals map[string]interface{}) ([]HashMap,  *http.Response, error) {
+ @return []interface{}*/
+func (a *ImageControllerApiService) GetImageDetailsUsingGET(ctx context.Context, account string, region string, imageId string, localVarOptionals map[string]interface{}) ([]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
 		localVarPostBody interface{}
 		localVarFileName string
 		localVarFileBytes []byte
-	 	successPayload  []HashMap
+	 	successPayload  []interface{}
 	)
 
 	// create path and map variables

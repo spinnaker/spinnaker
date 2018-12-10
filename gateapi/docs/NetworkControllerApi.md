@@ -9,7 +9,7 @@ Method | HTTP request | Description
 
 
 # **AllByCloudProviderUsingGET**
-> []HashMap AllByCloudProviderUsingGET(ctx, cloudProvider, optional)
+> []interface{} AllByCloudProviderUsingGET(ctx, cloudProvider, optional)
 Retrieve a list of networks for a given cloud provider
 
 ### Required Parameters
@@ -30,7 +30,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**[]HashMap**](HashMap.md)
+[**[]interface{}**](interface{}.md)
 
 ### Authorization
 

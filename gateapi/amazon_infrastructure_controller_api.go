@@ -28,14 +28,14 @@ type AmazonInfrastructureControllerApiService service
 
 /* AmazonInfrastructureControllerApiService Get instance types
  * @param ctx context.Context for authentication, logging, tracing, etc.
- @return []HashMap*/
-func (a *AmazonInfrastructureControllerApiService) InstanceTypesUsingGET(ctx context.Context) ([]HashMap,  *http.Response, error) {
+ @return []interface{}*/
+func (a *AmazonInfrastructureControllerApiService) InstanceTypesUsingGET(ctx context.Context) ([]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
 		localVarPostBody interface{}
 		localVarFileName string
 		localVarFileBytes []byte
-	 	successPayload  []HashMap
+	 	successPayload  []interface{}
 	)
 
 	// create path and map variables
@@ -90,14 +90,14 @@ func (a *AmazonInfrastructureControllerApiService) InstanceTypesUsingGET(ctx con
 
 /* AmazonInfrastructureControllerApiService Get subnets
  * @param ctx context.Context for authentication, logging, tracing, etc.
- @return []HashMap*/
-func (a *AmazonInfrastructureControllerApiService) SubnetsUsingGET(ctx context.Context) ([]HashMap,  *http.Response, error) {
+ @return []interface{}*/
+func (a *AmazonInfrastructureControllerApiService) SubnetsUsingGET(ctx context.Context) ([]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
 		localVarPostBody interface{}
 		localVarFileName string
 		localVarFileBytes []byte
-	 	successPayload  []HashMap
+	 	successPayload  []interface{}
 	)
 
 	// create path and map variables
@@ -152,14 +152,14 @@ func (a *AmazonInfrastructureControllerApiService) SubnetsUsingGET(ctx context.C
 
 /* AmazonInfrastructureControllerApiService Get VPCs
  * @param ctx context.Context for authentication, logging, tracing, etc.
- @return []HashMap*/
-func (a *AmazonInfrastructureControllerApiService) VpcsUsingGET(ctx context.Context) ([]HashMap,  *http.Response, error) {
+ @return []interface{}*/
+func (a *AmazonInfrastructureControllerApiService) VpcsUsingGET(ctx context.Context) ([]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
 		localVarPostBody interface{}
 		localVarFileName string
 		localVarFileBytes []byte
-	 	successPayload  []HashMap
+	 	successPayload  []interface{}
 	)
 
 	// create path and map variables

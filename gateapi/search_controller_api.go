@@ -36,14 +36,14 @@ type SearchControllerApiService service
      @param "page" (int32) page
      @param "allowShortQuery" (bool) allowShortQuery
      @param "xRateLimitApp" (string) X-RateLimit-App
- @return []HashMap*/
-func (a *SearchControllerApiService) SearchUsingGET(ctx context.Context, type_ string, localVarOptionals map[string]interface{}) ([]HashMap,  *http.Response, error) {
+ @return []interface{}*/
+func (a *SearchControllerApiService) SearchUsingGET(ctx context.Context, type_ string, localVarOptionals map[string]interface{}) ([]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
 		localVarPostBody interface{}
 		localVarFileName string
 		localVarFileBytes []byte
-	 	successPayload  []HashMap
+	 	successPayload  []interface{}
 	)
 
 	// create path and map variables

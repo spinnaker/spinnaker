@@ -93,14 +93,14 @@ func (a *PipelineConfigControllerApiService) ConvertPipelineConfigToPipelineTemp
 
 /* PipelineConfigControllerApiService Get all pipeline configs.
  * @param ctx context.Context for authentication, logging, tracing, etc.
- @return []HashMap*/
-func (a *PipelineConfigControllerApiService) GetAllPipelineConfigsUsingGET(ctx context.Context) ([]HashMap,  *http.Response, error) {
+ @return []interface{}*/
+func (a *PipelineConfigControllerApiService) GetAllPipelineConfigsUsingGET(ctx context.Context) ([]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
 		localVarPostBody interface{}
 		localVarFileName string
 		localVarFileBytes []byte
-	 	successPayload  []HashMap
+	 	successPayload  []interface{}
 	)
 
 	// create path and map variables
@@ -158,14 +158,14 @@ func (a *PipelineConfigControllerApiService) GetAllPipelineConfigsUsingGET(ctx c
  @param pipelineConfigId pipelineConfigId
  @param optional (nil or map[string]interface{}) with one or more of:
      @param "limit" (int32) limit
- @return []HashMap*/
-func (a *PipelineConfigControllerApiService) GetPipelineConfigHistoryUsingGET(ctx context.Context, pipelineConfigId string, localVarOptionals map[string]interface{}) ([]HashMap,  *http.Response, error) {
+ @return []interface{}*/
+func (a *PipelineConfigControllerApiService) GetPipelineConfigHistoryUsingGET(ctx context.Context, pipelineConfigId string, localVarOptionals map[string]interface{}) ([]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
 		localVarPostBody interface{}
 		localVarFileName string
 		localVarFileBytes []byte
-	 	successPayload  []HashMap
+	 	successPayload  []interface{}
 	)
 
 	// create path and map variables

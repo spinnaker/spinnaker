@@ -10,7 +10,7 @@ Method | HTTP request | Description
 
 
 # **FindImagesUsingGET**
-> []HashMap FindImagesUsingGET(ctx, optional)
+> []interface{} FindImagesUsingGET(ctx, optional)
 Retrieve a list of images, filtered by cloud provider, region, and account
 
 The query parameter `q` filters the list of images by image name
@@ -35,7 +35,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**[]HashMap**](HashMap.md)
+[**[]interface{}**](interface{}.md)
 
 ### Authorization
 
@@ -87,7 +87,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **GetImageDetailsUsingGET**
-> []HashMap GetImageDetailsUsingGET(ctx, account, region, imageId, optional)
+> []interface{} GetImageDetailsUsingGET(ctx, account, region, imageId, optional)
 Get image details
 
 ### Required Parameters
@@ -113,7 +113,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**[]HashMap**](HashMap.md)
+[**[]interface{}**](interface{}.md)
 
 ### Authorization
 
