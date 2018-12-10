@@ -47,25 +47,26 @@ class PreconfiguredJobStage extends RunJobStage {
     super.taskGraph(stage, builder)
   }
 
-  private Map<String, Object> overrideIfNotSetInContextAndOverrideDefault(Map<String, Object> context, PreconfiguredJobStageProperties preconfiguredWebhook) {
+  private Map<String, Object> overrideIfNotSetInContextAndOverrideDefault(Map<String, Object> context, PreconfiguredJobStageProperties preconfiguredJob) {
     fields.each {
-      if (context[it] == null || preconfiguredWebhook[it] != null) {
-        context[it] = preconfiguredWebhook[it]
+      if (context[it] == null || preconfiguredJob[it] != null) {
+        context[it] = preconfiguredJob[it]
       }
     }
-    preconfiguredWebhook.parameters.each { defaults ->
+    preconfiguredJob.parameters.each { defaults ->
       if (defaults.defaultValue != null) {
         Eval.xy(context, defaults.defaultValue, "x.${defaults.mapping} = y.toString()")
       }
     }
     if (context.parameters) {
       context.parameters.each { k, v ->
-        def parameterDefinition = preconfiguredWebhook.parameters.find { it.name == k }
+        def parameterDefinition = preconfiguredJob.parameters.find { it.name == k }
         if (parameterDefinition) {
           Eval.xy(context, v, "x.${parameterDefinition.mapping} = y.toString()")
         }
       }
     }
+    context.preconfiguredJobParameters = preconfiguredJob.parameters
     return context
   }
 
