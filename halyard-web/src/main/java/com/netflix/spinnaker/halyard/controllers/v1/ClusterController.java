@@ -19,22 +19,21 @@
 package com.netflix.spinnaker.halyard.controllers.v1;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.halyard.config.config.v1.HalconfigDirectoryStructure;
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigParser;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Cluster;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Providers;
 import com.netflix.spinnaker.halyard.config.services.v1.ClusterService;
-import com.netflix.spinnaker.halyard.core.DaemonResponse;
-import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
-import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.models.v1.ValidationSettings;
+import com.netflix.spinnaker.halyard.util.v1.GenericDeleteRequest;
 import com.netflix.spinnaker.halyard.util.v1.GenericGetRequest;
+import com.netflix.spinnaker.halyard.util.v1.GenericUpdateRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.function.Supplier;
 
 /**
  * Controller for adding clusters to a provider
@@ -45,6 +44,7 @@ import java.util.function.Supplier;
 public class ClusterController {
   private final ClusterService clusterService;
   private final HalconfigParser halconfigParser;
+  private final HalconfigDirectoryStructure halconfigDirectoryStructure;
   private final ObjectMapper objectMapper;
 
   @RequestMapping(value = "/", method = RequestMethod.GET)
@@ -77,21 +77,13 @@ public class ClusterController {
       @PathVariable String providerName,
       @PathVariable String clusterName,
       @ModelAttribute ValidationSettings validationSettings) {
-    DaemonResponse.UpdateRequestBuilder builder = new DaemonResponse.UpdateRequestBuilder();
-
-    builder.setUpdate(() -> clusterService.deleteCluster(deploymentName, providerName, clusterName));
-    builder.setSeverity(validationSettings.getSeverity());
-
-    Supplier<ProblemSet> doValidate = ProblemSet::new;
-    if (validationSettings.isValidate()) {
-      doValidate = () -> clusterService.validateAllClusters(deploymentName, providerName);
-    }
-
-    builder.setValidate(doValidate);
-    builder.setRevert(() -> halconfigParser.undoChanges());
-    builder.setSave(() -> halconfigParser.saveConfig());
-
-    return DaemonTaskHandler.submitTask(builder::build, "Delete the " + clusterName + " cluster");
+    return GenericDeleteRequest.builder(halconfigParser)
+        .stagePath(halconfigDirectoryStructure.getStagingPath(deploymentName))
+        .deleter(() -> clusterService.deleteCluster(deploymentName, providerName, clusterName))
+        .validator(() -> clusterService.validateAllClusters(deploymentName, providerName))
+        .description("Delete the " + clusterName + " cluster")
+        .build()
+        .execute(validationSettings);
   }
 
   @RequestMapping(value = "/cluster/{clusterName:.+}", method = RequestMethod.PUT)
@@ -104,22 +96,13 @@ public class ClusterController {
         rawCluster,
         Providers.translateClusterType(providerName)
     );
-
-    DaemonResponse.UpdateRequestBuilder builder = new DaemonResponse.UpdateRequestBuilder();
-
-    builder.setUpdate(() -> clusterService.setCluster(deploymentName, providerName, clusterName, cluster));
-    builder.setSeverity(validationSettings.getSeverity());
-
-    Supplier<ProblemSet> doValidate = ProblemSet::new;
-    if (validationSettings.isValidate()) {
-      doValidate = () -> clusterService.validateCluster(deploymentName, providerName, cluster.getName());
-    }
-
-    builder.setValidate(doValidate);
-    builder.setRevert(() -> halconfigParser.undoChanges());
-    builder.setSave(() -> halconfigParser.saveConfig());
-
-    return DaemonTaskHandler.submitTask(builder::build, "Edit the " + clusterName + " cluster");
+    return GenericUpdateRequest.<Cluster>builder(halconfigParser)
+        .stagePath(halconfigDirectoryStructure.getStagingPath(deploymentName))
+        .updater(c -> clusterService.setCluster(deploymentName, providerName, clusterName, c))
+        .validator(() -> clusterService.validateCluster(deploymentName, providerName, cluster.getName()))
+        .description("Edit the " + clusterName + " cluster")
+        .build()
+        .execute(validationSettings, cluster);
   }
 
   @RequestMapping(value = "/", method = RequestMethod.POST)
@@ -131,21 +114,12 @@ public class ClusterController {
         rawCluster,
         Providers.translateClusterType(providerName)
     );
-
-    DaemonResponse.UpdateRequestBuilder builder = new DaemonResponse.UpdateRequestBuilder();
-    builder.setSeverity(validationSettings.getSeverity());
-
-    builder.setUpdate(() -> clusterService.addCluster(deploymentName, providerName, cluster));
-
-    Supplier<ProblemSet> doValidate = ProblemSet::new;
-    if (validationSettings.isValidate()) {
-      doValidate = () -> clusterService.validateCluster(deploymentName, providerName, cluster.getName());
-    }
-
-    builder.setValidate(doValidate);
-    builder.setRevert(() -> halconfigParser.undoChanges());
-    builder.setSave(() -> halconfigParser.saveConfig());
-
-    return DaemonTaskHandler.submitTask(builder::build, "Add the " + cluster.getName() + " cluster");
+    return GenericUpdateRequest.<Cluster>builder(halconfigParser)
+        .stagePath(halconfigDirectoryStructure.getStagingPath(deploymentName))
+        .updater(c -> clusterService.addCluster(deploymentName, providerName, c))
+        .validator(() -> clusterService.validateCluster(deploymentName, providerName, cluster.getName()))
+        .description("Add the " + cluster.getName() + " cluster")
+        .build()
+        .execute(validationSettings, cluster);
   }
 }

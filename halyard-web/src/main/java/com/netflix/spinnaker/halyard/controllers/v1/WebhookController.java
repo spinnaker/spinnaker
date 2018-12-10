@@ -16,23 +16,18 @@
 
 package com.netflix.spinnaker.halyard.controllers.v1;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigDirectoryStructure;
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigParser;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Webhook;
 import com.netflix.spinnaker.halyard.config.model.v1.webook.WebhookTrust;
 import com.netflix.spinnaker.halyard.config.services.v1.WebhookService;
-import com.netflix.spinnaker.halyard.core.DaemonResponse;
-import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
-import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.models.v1.ValidationSettings;
 import com.netflix.spinnaker.halyard.util.v1.GenericGetRequest;
+import com.netflix.spinnaker.halyard.util.v1.GenericUpdateRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-
-import java.nio.file.Path;
 
 @RestController
 @RequestMapping("/v1/config/deployments/{deploymentName:.+}/webhook")
@@ -57,23 +52,13 @@ public class WebhookController {
   DaemonTask<Halconfig, Void> setWebhook(@PathVariable String deploymentName,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody Webhook webhook) {
-    DaemonResponse.UpdateRequestBuilder builder = new DaemonResponse.UpdateRequestBuilder();
-
-    Path configPath = halconfigDirectoryStructure.getConfigPath(deploymentName);
-    builder.setStage(() -> webhook.stageLocalFiles(configPath));
-    builder.setSeverity(validationSettings.getSeverity());
-    builder.setUpdate(() -> webhookService.setWebhook(deploymentName, webhook));
-
-    builder.setValidate(ProblemSet::new);
-    if (validationSettings.isValidate()) {
-      builder.setValidate(() -> webhookService.validateWebhook(deploymentName));
-    }
-
-    builder.setRevert(halconfigParser::undoChanges);
-    builder.setSave(halconfigParser::saveConfig);
-    builder.setClean(() -> halconfigParser.cleanLocalFiles(configPath));
-
-    return DaemonTaskHandler.submitTask(builder::build, "Edit webhook settings");
+    return GenericUpdateRequest.<Webhook>builder(halconfigParser)
+        .stagePath(halconfigDirectoryStructure.getStagingPath(deploymentName))
+        .updater(t -> webhookService.setWebhook(deploymentName, t))
+        .validator(() -> webhookService.validateWebhook(deploymentName))
+        .description("Edit webhook settings")
+        .build()
+        .execute(validationSettings, webhook);
   }
 
   @RequestMapping(value = "/trust/", method = RequestMethod.GET)
@@ -91,22 +76,12 @@ public class WebhookController {
   DaemonTask<Halconfig, Void> setWebhookTrust(@PathVariable String deploymentName,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody WebhookTrust webhookTrust) {
-    DaemonResponse.UpdateRequestBuilder builder = new DaemonResponse.UpdateRequestBuilder();
-
-    Path configPath = halconfigDirectoryStructure.getConfigPath(deploymentName);
-    builder.setStage(() -> webhookTrust.stageLocalFiles(configPath));
-    builder.setSeverity(validationSettings.getSeverity());
-    builder.setUpdate(() -> webhookService.setWebhookTrust(deploymentName, webhookTrust));
-
-    builder.setValidate(ProblemSet::new);
-    if (validationSettings.isValidate()) {
-      builder.setValidate(() -> webhookService.validateWebhookTrust(deploymentName));
-    }
-
-    builder.setRevert(halconfigParser::undoChanges);
-    builder.setSave(halconfigParser::saveConfig);
-    builder.setClean(() -> halconfigParser.cleanLocalFiles(configPath));
-
-    return DaemonTaskHandler.submitTask(builder::build, "Edit webhook trust settings");
+    return GenericUpdateRequest.<WebhookTrust>builder(halconfigParser)
+        .stagePath(halconfigDirectoryStructure.getStagingPath(deploymentName))
+        .updater(t -> webhookService.setWebhookTrust(deploymentName, t))
+        .validator(() -> webhookService.validateWebhookTrust(deploymentName))
+        .description("Edit webhook trust settings")
+        .build()
+        .execute(validationSettings, webhookTrust);
   }
 }

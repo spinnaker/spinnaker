@@ -25,18 +25,15 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.ArtifactProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Artifacts;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
 import com.netflix.spinnaker.halyard.config.services.v1.ArtifactProviderService;
-import com.netflix.spinnaker.halyard.core.DaemonResponse.UpdateRequestBuilder;
-import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
-import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.models.v1.ValidationSettings;
+import com.netflix.spinnaker.halyard.util.v1.GenericEnableDisableRequest;
 import com.netflix.spinnaker.halyard.util.v1.GenericGetRequest;
+import com.netflix.spinnaker.halyard.util.v1.GenericUpdateRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import java.nio.file.Path;
 import java.util.List;
-import java.util.function.Supplier;
 
 @RestController
 @RequiredArgsConstructor
@@ -68,25 +65,13 @@ public class ArtifactProviderController {
         rawArtifactProvider,
         Artifacts.translateArtifactProviderType(providerName)
     );
-
-    UpdateRequestBuilder builder = new UpdateRequestBuilder();
-
-    Path configPath = halconfigDirectoryStructure.getConfigPath(deploymentName);
-    builder.setStage(() -> provider.stageLocalFiles(configPath));
-    builder.setUpdate(() -> providerService.setArtifactProvider(deploymentName, provider));
-    builder.setSeverity(validationSettings.getSeverity());
-
-    Supplier<ProblemSet> doValidate = ProblemSet::new;
-    if (validationSettings.isValidate()) {
-      doValidate = () -> providerService.validateArtifactProvider(deploymentName, providerName);
-    }
-
-    builder.setValidate(doValidate);
-    builder.setRevert(() -> halconfigParser.undoChanges());
-    builder.setSave(() -> halconfigParser.saveConfig());
-    builder.setClean(() -> halconfigParser.cleanLocalFiles(configPath));
-
-    return DaemonTaskHandler.submitTask(builder::build, "Edit the " + providerName + " provider");
+    return GenericUpdateRequest.<ArtifactProvider>builder(halconfigParser)
+        .stagePath(halconfigDirectoryStructure.getStagingPath(deploymentName))
+        .updater(p -> providerService.setArtifactProvider(deploymentName, p))
+        .validator(() -> providerService.validateArtifactProvider(deploymentName, providerName))
+        .description("Edit the " + providerName + " provider")
+        .build()
+        .execute(validationSettings, provider);
   }
 
   @RequestMapping(value = "/{providerName:.+}/enabled", method = RequestMethod.PUT)
@@ -94,21 +79,12 @@ public class ArtifactProviderController {
       @PathVariable String providerName,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody boolean enabled) {
-    UpdateRequestBuilder builder = new UpdateRequestBuilder();
-
-    builder.setUpdate(() -> providerService.setEnabled(deploymentName, providerName, enabled));
-    builder.setSeverity(validationSettings.getSeverity());
-
-    Supplier<ProblemSet> doValidate = ProblemSet::new;
-    if (validationSettings.isValidate()) {
-      doValidate = () -> providerService.validateArtifactProvider(deploymentName, providerName);
-    }
-
-    builder.setValidate(doValidate);
-    builder.setRevert(() -> halconfigParser.undoChanges());
-    builder.setSave(() -> halconfigParser.saveConfig());
-
-    return DaemonTaskHandler.submitTask(builder::build, "Edit the " + providerName + " provider");
+    return GenericEnableDisableRequest.builder(halconfigParser)
+        .updater(e -> providerService.setEnabled(deploymentName, providerName, e))
+        .validator(() -> providerService.validateArtifactProvider(deploymentName, providerName))
+        .description("Edit the " + providerName + " provider")
+        .build()
+        .execute(validationSettings, enabled);
   }
 
   @RequestMapping(value = "/", method = RequestMethod.GET)

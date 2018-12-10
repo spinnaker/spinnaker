@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.halyard.controllers.v1;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigDirectoryStructure;
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigParser;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
@@ -39,12 +38,12 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerServic
 import com.netflix.spinnaker.halyard.models.v1.ValidationSettings;
 import com.netflix.spinnaker.halyard.proto.DeploymentsGrpc;
 import com.netflix.spinnaker.halyard.util.v1.GenericGetRequest;
+import com.netflix.spinnaker.halyard.util.v1.GenericUpdateRequest;
 import lombok.RequiredArgsConstructor;
 import org.lognet.springboot.grpc.GRpcService;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.ByteArrayInputStream;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -78,25 +77,13 @@ public class DeploymentController extends DeploymentsGrpc.DeploymentsImplBase{
   DaemonTask<Halconfig, Void> deploymentConfiguration(@PathVariable String deploymentName,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody DeploymentConfiguration deploymentConfiguration) {
-    UpdateRequestBuilder builder = new UpdateRequestBuilder();
-
-    Path configPath = halconfigDirectoryStructure.getConfigPath(deploymentName);
-    builder.setStage(() -> deploymentConfiguration.stageLocalFiles(configPath));
-    builder.setSeverity(validationSettings.getSeverity());
-    builder.setUpdate(() -> deploymentService
-        .setDeploymentConfiguration(deploymentName, deploymentConfiguration));
-
-    if (validationSettings.isValidate()) {
-      builder.setValidate(() -> deploymentService.validateDeployment(deploymentName));
-    } else {
-      builder.setValidate(ProblemSet::new);
-    }
-
-    builder.setRevert(() -> halconfigParser.undoChanges());
-    builder.setSave(() -> halconfigParser.saveConfig());
-    builder.setClean(() -> halconfigParser.cleanLocalFiles(configPath));
-
-    return DaemonTaskHandler.submitTask(builder::build, "Edit deployment configuration");
+    return GenericUpdateRequest.<DeploymentConfiguration>builder(halconfigParser)
+        .stagePath(halconfigDirectoryStructure.getStagingPath(deploymentName))
+        .updater(d -> deploymentService.setDeploymentConfiguration(deploymentName, d))
+        .validator(() -> deploymentService.validateDeployment(deploymentName))
+        .description("Edit deployment configuration")
+        .build()
+        .execute(validationSettings, deploymentConfiguration);
   }
 
   @RequestMapping(value = "/", method = RequestMethod.GET)

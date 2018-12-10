@@ -25,18 +25,16 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Providers;
 import com.netflix.spinnaker.halyard.config.services.v1.AccountService;
 import com.netflix.spinnaker.halyard.core.DaemonOptions;
 import com.netflix.spinnaker.halyard.core.DaemonResponse;
-import com.netflix.spinnaker.halyard.core.DaemonResponse.UpdateRequestBuilder;
-import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.models.v1.ValidationSettings;
+import com.netflix.spinnaker.halyard.util.v1.GenericDeleteRequest;
 import com.netflix.spinnaker.halyard.util.v1.GenericGetRequest;
+import com.netflix.spinnaker.halyard.util.v1.GenericUpdateRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import java.nio.file.Path;
 import java.util.List;
-import java.util.function.Supplier;
 
 @RestController
 @RequiredArgsConstructor
@@ -114,24 +112,13 @@ public class AccountController {
       @PathVariable String providerName,
       @PathVariable String accountName,
       @ModelAttribute ValidationSettings validationSettings) {
-    UpdateRequestBuilder builder = new UpdateRequestBuilder();
-
-    builder
-        .setUpdate(() -> accountService.deleteAccount(deploymentName, providerName, accountName));
-    builder.setSeverity(validationSettings.getSeverity());
-
-    Supplier<ProblemSet> doValidate = ProblemSet::new;
-    if (validationSettings.isValidate()) {
-      doValidate = () -> accountService.validateAllAccounts(deploymentName, providerName);
-    }
-
-    builder.setValidate(doValidate);
-    builder.setRevert(() -> halconfigParser.undoChanges());
-    builder.setSave(() -> halconfigParser.saveConfig());
-    Path configPath = halconfigDirectoryStructure.getConfigPath(deploymentName);
-    builder.setClean(() -> halconfigParser.cleanLocalFiles(configPath));
-
-    return DaemonTaskHandler.submitTask(builder::build, "Delete the " + accountName + " account");
+    return GenericDeleteRequest.builder(halconfigParser)
+        .stagePath(halconfigDirectoryStructure.getStagingPath(deploymentName))
+        .deleter(() -> accountService.deleteAccount(deploymentName, providerName, accountName))
+        .validator(() -> accountService.validateAllAccounts(deploymentName, providerName))
+        .description("Delete the " + accountName + " account")
+        .build()
+        .execute(validationSettings);
   }
 
   @RequestMapping(value = "/account/{accountName:.+}", method = RequestMethod.PUT)
@@ -144,27 +131,13 @@ public class AccountController {
         rawAccount,
         Providers.translateAccountType(providerName)
     );
-
-    UpdateRequestBuilder builder = new UpdateRequestBuilder();
-
-    Path configPath = halconfigDirectoryStructure.getConfigPath(deploymentName);
-    builder.setStage(() -> account.stageLocalFiles(configPath));
-    builder.setUpdate(
-        () -> accountService.setAccount(deploymentName, providerName, accountName, account));
-    builder.setSeverity(validationSettings.getSeverity());
-
-    Supplier<ProblemSet> doValidate = ProblemSet::new;
-    if (validationSettings.isValidate()) {
-      doValidate = () -> accountService
-          .validateAccount(deploymentName, providerName, account.getName());
-    }
-
-    builder.setValidate(doValidate);
-    builder.setRevert(() -> halconfigParser.undoChanges());
-    builder.setSave(() -> halconfigParser.saveConfig());
-    builder.setClean(() -> halconfigParser.cleanLocalFiles(configPath));
-
-    return DaemonTaskHandler.submitTask(builder::build, "Edit the " + accountName + " account");
+    return GenericUpdateRequest.<Account>builder(halconfigParser)
+        .stagePath(halconfigDirectoryStructure.getStagingPath(deploymentName))
+        .updater(a -> accountService.setAccount(deploymentName, providerName, accountName, a))
+        .validator(() -> accountService.validateAccount(deploymentName, providerName, account.getName()))
+        .description("Edit the " + accountName + " account")
+        .build()
+        .execute(validationSettings, account);
   }
 
   @RequestMapping(value = "/", method = RequestMethod.POST)
@@ -176,26 +149,12 @@ public class AccountController {
         rawAccount,
         Providers.translateAccountType(providerName)
     );
-
-    UpdateRequestBuilder builder = new UpdateRequestBuilder();
-
-    Path configPath = halconfigDirectoryStructure.getConfigPath(deploymentName);
-    builder.setStage(() -> account.stageLocalFiles(configPath));
-    builder.setSeverity(validationSettings.getSeverity());
-    builder.setUpdate(() -> accountService.addAccount(deploymentName, providerName, account));
-
-    Supplier<ProblemSet> doValidate = ProblemSet::new;
-    if (validationSettings.isValidate()) {
-      doValidate = () -> accountService
-          .validateAccount(deploymentName, providerName, account.getName());
-    }
-
-    builder.setValidate(doValidate);
-    builder.setRevert(() -> halconfigParser.undoChanges());
-    builder.setSave(() -> halconfigParser.saveConfig());
-    builder.setClean(() -> halconfigParser.cleanLocalFiles(configPath));
-
-    return DaemonTaskHandler
-        .submitTask(builder::build, "Add the " + account.getName() + " account");
+    return GenericUpdateRequest.<Account>builder(halconfigParser)
+        .stagePath(halconfigDirectoryStructure.getStagingPath(deploymentName))
+        .updater(a -> accountService.addAccount(deploymentName, providerName, a))
+        .validator(() -> accountService.validateAccount(deploymentName, providerName, account.getName()))
+        .description("Add the " + account.getName() + " account")
+        .build()
+        .execute(validationSettings, account);
   }
 }

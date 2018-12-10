@@ -25,18 +25,15 @@ import com.netflix.spinnaker.halyard.config.model.v1.ha.HaService;
 import com.netflix.spinnaker.halyard.config.model.v1.ha.HaServices;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
 import com.netflix.spinnaker.halyard.config.services.v1.HaServiceService;
-import com.netflix.spinnaker.halyard.core.DaemonResponse.UpdateRequestBuilder;
-import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
-import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.models.v1.ValidationSettings;
+import com.netflix.spinnaker.halyard.util.v1.GenericEnableDisableRequest;
 import com.netflix.spinnaker.halyard.util.v1.GenericGetRequest;
+import com.netflix.spinnaker.halyard.util.v1.GenericUpdateRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import java.nio.file.Path;
 import java.util.List;
-import java.util.function.Supplier;
 
 @RestController
 @RequiredArgsConstructor
@@ -68,25 +65,13 @@ public class HaServiceController {
         rawHaService,
         HaServices.translateHaServiceType(serviceName)
     );
-
-    UpdateRequestBuilder builder = new UpdateRequestBuilder();
-
-    Path configPath = halconfigDirectoryStructure.getConfigPath(deploymentName);
-    builder.setStage(() -> haService.stageLocalFiles(configPath));
-    builder.setUpdate(() -> haServiceService.setHaService(deploymentName, haService));
-    builder.setSeverity(validationSettings.getSeverity());
-
-    Supplier<ProblemSet> doValidate = ProblemSet::new;
-    if (validationSettings.isValidate()) {
-      doValidate = () -> haServiceService.validateHaService(deploymentName, serviceName);
-    }
-
-    builder.setValidate(doValidate);
-    builder.setRevert(() -> halconfigParser.undoChanges());
-    builder.setSave(() -> halconfigParser.saveConfig());
-    builder.setClean(() -> halconfigParser.cleanLocalFiles(configPath));
-
-    return DaemonTaskHandler.submitTask(builder::build, "Edit the " + serviceName + " high availability service configuration");
+    return GenericUpdateRequest.<HaService>builder(halconfigParser)
+        .stagePath(halconfigDirectoryStructure.getStagingPath(deploymentName))
+        .updater(h -> haServiceService.setHaService(deploymentName, h))
+        .validator(() -> haServiceService.validateHaService(deploymentName, serviceName))
+        .description("Edit the " + serviceName + " high availability service configuration")
+        .build()
+        .execute(validationSettings, haService);
   }
 
   @RequestMapping(value = "/{serviceName:.+}/enabled", method = RequestMethod.PUT)
@@ -94,21 +79,12 @@ public class HaServiceController {
       @PathVariable String serviceName,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody boolean enabled) {
-    UpdateRequestBuilder builder = new UpdateRequestBuilder();
-
-    builder.setUpdate(() -> haServiceService.setEnabled(deploymentName, serviceName, enabled));
-    builder.setSeverity(validationSettings.getSeverity());
-
-    Supplier<ProblemSet> doValidate = ProblemSet::new;
-    if (validationSettings.isValidate()) {
-      doValidate = () -> haServiceService.validateHaService(deploymentName, serviceName);
-    }
-
-    builder.setValidate(doValidate);
-    builder.setRevert(() -> halconfigParser.undoChanges());
-    builder.setSave(() -> halconfigParser.saveConfig());
-
-    return DaemonTaskHandler.submitTask(builder::build, "Edit the " + serviceName + " high availability service configuration");
+    return GenericEnableDisableRequest.builder(halconfigParser)
+        .updater(e -> haServiceService.setEnabled(deploymentName, serviceName, e))
+        .validator(() -> haServiceService.validateHaService(deploymentName, serviceName))
+        .description("Edit the " + serviceName + " high availability service configuration")
+        .build()
+        .execute(validationSettings, enabled);
   }
 
   @RequestMapping(value = "/", method = RequestMethod.GET)

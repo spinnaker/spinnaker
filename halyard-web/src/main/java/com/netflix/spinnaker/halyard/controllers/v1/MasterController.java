@@ -24,18 +24,15 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Cis;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Master;
 import com.netflix.spinnaker.halyard.config.services.v1.MasterService;
-import com.netflix.spinnaker.halyard.core.DaemonResponse.UpdateRequestBuilder;
-import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
-import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.models.v1.ValidationSettings;
+import com.netflix.spinnaker.halyard.util.v1.GenericDeleteRequest;
 import com.netflix.spinnaker.halyard.util.v1.GenericGetRequest;
+import com.netflix.spinnaker.halyard.util.v1.GenericUpdateRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import java.nio.file.Path;
 import java.util.List;
-import java.util.function.Supplier;
 
 @RestController
 @RequiredArgsConstructor
@@ -76,23 +73,13 @@ public class MasterController {
       @PathVariable String ciName,
       @PathVariable String masterName,
       @ModelAttribute ValidationSettings validationSettings) {
-    UpdateRequestBuilder builder = new UpdateRequestBuilder();
-
-    builder.setUpdate(() -> masterService.deleteMaster(deploymentName, ciName, masterName));
-    builder.setSeverity(validationSettings.getSeverity());
-
-    Supplier<ProblemSet> doValidate = ProblemSet::new;
-    if (validationSettings.isValidate()) {
-      doValidate = () -> masterService.validateAllMasters(deploymentName, ciName);
-    }
-
-    builder.setValidate(doValidate);
-    builder.setRevert(() -> halconfigParser.undoChanges());
-    builder.setSave(() -> halconfigParser.saveConfig());
-    Path configPath = halconfigDirectoryStructure.getConfigPath(deploymentName);
-    builder.setClean(() -> halconfigParser.cleanLocalFiles(configPath));
-
-    return DaemonTaskHandler.submitTask(builder::build, "Delete the " + masterName + " master");
+    return GenericDeleteRequest.builder(halconfigParser)
+        .stagePath(halconfigDirectoryStructure.getStagingPath(deploymentName))
+        .deleter(() -> masterService.deleteMaster(deploymentName, ciName, masterName))
+        .validator(() -> masterService.validateAllMasters(deploymentName, ciName))
+        .description("Delete the " + masterName + " master")
+        .build()
+        .execute(validationSettings);
   }
 
   @RequestMapping(value = "/{masterName:.+}", method = RequestMethod.PUT)
@@ -105,25 +92,13 @@ public class MasterController {
         rawMaster,
         Cis.translateMasterType(ciName)
     );
-
-    UpdateRequestBuilder builder = new UpdateRequestBuilder();
-
-    Path configPath = halconfigDirectoryStructure.getConfigPath(deploymentName);
-    builder.setStage(() -> master.stageLocalFiles(configPath));
-    builder.setUpdate(() -> masterService.setMaster(deploymentName, ciName, masterName, master));
-    builder.setSeverity(validationSettings.getSeverity());
-
-    Supplier<ProblemSet> doValidate = ProblemSet::new;
-    if (validationSettings.isValidate()) {
-      doValidate = () -> masterService.validateMaster(deploymentName, ciName, master.getName());
-    }
-
-    builder.setValidate(doValidate);
-    builder.setRevert(() -> halconfigParser.undoChanges());
-    builder.setSave(() -> halconfigParser.saveConfig());
-    builder.setClean(() -> halconfigParser.cleanLocalFiles(configPath));
-
-    return DaemonTaskHandler.submitTask(builder::build, "Edit the " + masterName + " master");
+    return GenericUpdateRequest.<Master>builder(halconfigParser)
+        .stagePath(halconfigDirectoryStructure.getStagingPath(deploymentName))
+        .updater(m -> masterService.setMaster(deploymentName, ciName, masterName, m))
+        .validator(() -> masterService.validateMaster(deploymentName, ciName, master.getName()))
+        .description("Edit the " + masterName + " master")
+        .build()
+        .execute(validationSettings, master);
   }
 
   @RequestMapping(value = "/", method = RequestMethod.POST)
@@ -135,24 +110,12 @@ public class MasterController {
         rawMaster,
         Cis.translateMasterType(ciName)
     );
-
-    UpdateRequestBuilder builder = new UpdateRequestBuilder();
-
-    Path configPath = halconfigDirectoryStructure.getConfigPath(deploymentName);
-    builder.setStage(() -> master.stageLocalFiles(configPath));
-    builder.setSeverity(validationSettings.getSeverity());
-    builder.setUpdate(() -> masterService.addMaster(deploymentName, ciName, master));
-
-    Supplier<ProblemSet> doValidate = ProblemSet::new;
-    if (validationSettings.isValidate()) {
-      doValidate = () -> masterService.validateMaster(deploymentName, ciName, master.getName());
-    }
-
-    builder.setValidate(doValidate);
-    builder.setRevert(() -> halconfigParser.undoChanges());
-    builder.setSave(() -> halconfigParser.saveConfig());
-    builder.setClean(() -> halconfigParser.cleanLocalFiles(configPath));
-
-    return DaemonTaskHandler.submitTask(builder::build, "Add the " + master.getName() + " master");
+    return GenericUpdateRequest.<Master>builder(halconfigParser)
+        .stagePath(halconfigDirectoryStructure.getStagingPath(deploymentName))
+        .updater(m -> masterService.addMaster(deploymentName, ciName, m))
+        .validator(() -> masterService.validateMaster(deploymentName, ciName, master.getName()))
+        .description("Add the " + master.getName() + " master")
+        .build()
+        .execute(validationSettings, master);
   }
 }

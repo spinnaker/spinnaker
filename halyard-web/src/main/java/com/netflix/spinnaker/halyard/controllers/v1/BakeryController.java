@@ -20,23 +20,17 @@ package com.netflix.spinnaker.halyard.controllers.v1;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigDirectoryStructure;
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigParser;
-import com.netflix.spinnaker.halyard.config.model.v1.node.BakeryDefaults;
-import com.netflix.spinnaker.halyard.config.model.v1.node.BaseImage;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Providers;
+import com.netflix.spinnaker.halyard.config.model.v1.node.*;
 import com.netflix.spinnaker.halyard.config.services.v1.BakeryService;
-import com.netflix.spinnaker.halyard.core.DaemonResponse.UpdateRequestBuilder;
-import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
-import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.models.v1.ValidationSettings;
+import com.netflix.spinnaker.halyard.util.v1.GenericDeleteRequest;
 import com.netflix.spinnaker.halyard.util.v1.GenericGetRequest;
+import com.netflix.spinnaker.halyard.util.v1.GenericUpdateRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import java.nio.file.Path;
 import java.util.List;
-import java.util.function.Supplier;
 
 @RestController
 @RequiredArgsConstructor
@@ -68,28 +62,13 @@ public class BakeryController {
         rawBakeryDefaults,
         Providers.translateBakeryDefaultsType(providerName)
     );
-
-    UpdateRequestBuilder builder = new UpdateRequestBuilder();
-
-    Path configPath = halconfigDirectoryStructure.getConfigPath(deploymentName);
-    builder.setStage(() -> bakeryDefaults.stageLocalFiles(configPath));
-    builder.setUpdate(
-        () -> bakeryService.setBakeryDefaults(deploymentName, providerName, bakeryDefaults));
-    builder.setSeverity(validationSettings.getSeverity());
-
-    Supplier<ProblemSet> doValidate = ProblemSet::new;
-
-    if (validationSettings.isValidate()) {
-      doValidate = () -> bakeryService.validateBakeryDefaults(deploymentName, providerName);
-    }
-
-    builder.setValidate(doValidate);
-    builder.setRevert(() -> halconfigParser.undoChanges());
-    builder.setSave(() -> halconfigParser.saveConfig());
-    builder.setClean(() -> halconfigParser.cleanLocalFiles(configPath));
-
-    return DaemonTaskHandler
-        .submitTask(builder::build, "Edit " + providerName + " bakery defaults");
+    return GenericUpdateRequest.<BakeryDefaults>builder(halconfigParser)
+        .stagePath(halconfigDirectoryStructure.getStagingPath(deploymentName))
+        .updater(b -> bakeryService.setBakeryDefaults(deploymentName, providerName, b))
+        .validator(() -> bakeryService.validateBakeryDefaults(deploymentName, providerName))
+        .description("Edit " + providerName + " bakery defaults")
+        .build()
+        .execute(validationSettings, bakeryDefaults);
   }
 
   @RequestMapping(value = "/defaults/baseImage/", method = RequestMethod.GET)
@@ -122,24 +101,13 @@ public class BakeryController {
       @PathVariable String providerName,
       @PathVariable String baseImageId,
       @ModelAttribute ValidationSettings validationSettings) {
-    UpdateRequestBuilder builder = new UpdateRequestBuilder();
-
-    builder
-        .setUpdate(() -> bakeryService.deleteBaseImage(deploymentName, providerName, baseImageId));
-    builder.setSeverity(validationSettings.getSeverity());
-
-    Supplier<ProblemSet> doValidate = ProblemSet::new;
-    if (validationSettings.isValidate()) {
-      doValidate = () -> bakeryService.validateAllBaseImages(deploymentName, providerName);
-    }
-
-    builder.setValidate(doValidate);
-    builder.setRevert(() -> halconfigParser.undoChanges());
-    builder.setSave(() -> halconfigParser.saveConfig());
-    Path configPath = halconfigDirectoryStructure.getConfigPath(deploymentName);
-    builder.setClean(() -> halconfigParser.cleanLocalFiles(configPath));
-
-    return DaemonTaskHandler.submitTask(builder::build, "Delete " + baseImageId + " base image");
+    return GenericDeleteRequest.builder(halconfigParser)
+        .stagePath(halconfigDirectoryStructure.getStagingPath(deploymentName))
+        .deleter(() -> bakeryService.deleteBaseImage(deploymentName, providerName, baseImageId))
+        .validator(() -> bakeryService.validateAllBaseImages(deploymentName, providerName))
+        .description("Delete " + baseImageId + " base image")
+        .build()
+        .execute(validationSettings);
   }
 
   @RequestMapping(value = "/defaults/baseImage/{baseImageId:.+}", method = RequestMethod.PUT)
@@ -152,27 +120,13 @@ public class BakeryController {
         rawBaseImage,
         Providers.translateBaseImageType(providerName)
     );
-
-    UpdateRequestBuilder builder = new UpdateRequestBuilder();
-
-    Path configPath = halconfigDirectoryStructure.getConfigPath(deploymentName);
-    builder.setStage(() -> baseImage.stageLocalFiles(configPath));
-    builder.setUpdate(
-        () -> bakeryService.setBaseImage(deploymentName, providerName, baseImageId, baseImage));
-    builder.setSeverity(validationSettings.getSeverity());
-
-    Supplier<ProblemSet> doValidate = ProblemSet::new;
-    if (validationSettings.isValidate()) {
-      doValidate = () -> bakeryService
-          .validateBaseImage(deploymentName, providerName, baseImage.getBaseImage().getId());
-    }
-
-    builder.setValidate(doValidate);
-    builder.setRevert(() -> halconfigParser.undoChanges());
-    builder.setSave(() -> halconfigParser.saveConfig());
-    builder.setClean(() -> halconfigParser.cleanLocalFiles(configPath));
-
-    return DaemonTaskHandler.submitTask(builder::build, "Edit " + baseImageId + " base image");
+    return GenericUpdateRequest.<BaseImage>builder(halconfigParser)
+        .stagePath(halconfigDirectoryStructure.getStagingPath(deploymentName))
+        .updater(b -> bakeryService.setBaseImage(deploymentName, providerName, baseImageId, b))
+        .validator(() -> bakeryService.validateBaseImage(deploymentName, providerName, baseImage.getBaseImage().getId()))
+        .description("Edit " + baseImageId + " base image")
+        .build()
+        .execute(validationSettings, baseImage);
   }
 
   @RequestMapping(value = "/defaults/baseImage/", method = RequestMethod.POST)
@@ -184,28 +138,13 @@ public class BakeryController {
         rawBaseImage,
         Providers.translateBaseImageType(providerName)
     );
-
-    UpdateRequestBuilder builder = new UpdateRequestBuilder();
-
-    Path configPath = halconfigDirectoryStructure.getConfigPath(deploymentName);
-    builder.setStage(() -> baseImage.stageLocalFiles(configPath));
-    builder.setSeverity(validationSettings.getSeverity());
-
     // TODO(lwander): Would be good to indicate when an added base image id conflicts with an existing base image id.
-    builder.setUpdate(() -> bakeryService.addBaseImage(deploymentName, providerName, baseImage));
-
-    Supplier<ProblemSet> doValidate = ProblemSet::new;
-    if (validationSettings.isValidate()) {
-      doValidate = () -> bakeryService
-          .validateBaseImage(deploymentName, providerName, baseImage.getBaseImage().getId());
-    }
-
-    builder.setValidate(doValidate);
-    builder.setRevert(() -> halconfigParser.undoChanges());
-    builder.setSave(() -> halconfigParser.saveConfig());
-    builder.setClean(() -> halconfigParser.cleanLocalFiles(configPath));
-
-    return DaemonTaskHandler
-        .submitTask(builder::build, "Add " + baseImage.getNodeName() + " base image");
+    return GenericUpdateRequest.<BaseImage>builder(halconfigParser)
+        .stagePath(halconfigDirectoryStructure.getStagingPath(deploymentName))
+        .updater(b -> bakeryService.addBaseImage(deploymentName, providerName, b))
+        .validator(() -> bakeryService.validateBaseImage(deploymentName, providerName, baseImage.getBaseImage().getId()))
+        .description("Add " + baseImage.getNodeName() + " base image")
+        .build()
+        .execute(validationSettings, baseImage);
   }
 }

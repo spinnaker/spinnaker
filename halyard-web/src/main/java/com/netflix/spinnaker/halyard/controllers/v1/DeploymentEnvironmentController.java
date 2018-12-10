@@ -17,22 +17,17 @@
 
 package com.netflix.spinnaker.halyard.controllers.v1;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigDirectoryStructure;
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigParser;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
 import com.netflix.spinnaker.halyard.config.services.v1.DeploymentEnvironmentService;
-import com.netflix.spinnaker.halyard.core.DaemonResponse.UpdateRequestBuilder;
-import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
-import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.models.v1.ValidationSettings;
 import com.netflix.spinnaker.halyard.util.v1.GenericGetRequest;
+import com.netflix.spinnaker.halyard.util.v1.GenericUpdateRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-
-import java.nio.file.Path;
 
 @RestController
 @RequiredArgsConstructor
@@ -57,25 +52,12 @@ public class DeploymentEnvironmentController {
   DaemonTask<Halconfig, Void> setDeploymentEnvironment(@PathVariable String deploymentName,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody DeploymentEnvironment deploymentEnvironment) {
-    UpdateRequestBuilder builder = new UpdateRequestBuilder();
-
-    Path configPath = halconfigDirectoryStructure.getConfigPath(deploymentName);
-    builder.setStage(() -> deploymentEnvironment.stageLocalFiles(configPath));
-    builder.setUpdate(() -> deploymentEnvironmentService
-        .setDeploymentEnvironment(deploymentName, deploymentEnvironment));
-    builder.setSeverity(validationSettings.getSeverity());
-
-    if (validationSettings.isValidate()) {
-      builder.setValidate(
-          () -> deploymentEnvironmentService.validateDeploymentEnvironment(deploymentName));
-    } else {
-      builder.setValidate(ProblemSet::new);
-    }
-
-    builder.setRevert(() -> halconfigParser.undoChanges());
-    builder.setSave(() -> halconfigParser.saveConfig());
-    builder.setClean(() -> halconfigParser.cleanLocalFiles(configPath));
-
-    return DaemonTaskHandler.submitTask(builder::build, "Edit the deployment environment");
+    return GenericUpdateRequest.<DeploymentEnvironment>builder(halconfigParser)
+        .stagePath(halconfigDirectoryStructure.getStagingPath(deploymentName))
+        .updater(d -> deploymentEnvironmentService.setDeploymentEnvironment(deploymentName, d))
+        .validator(() -> deploymentEnvironmentService.validateDeploymentEnvironment(deploymentName))
+        .description("Edit the deployment environment")
+        .build()
+        .execute(validationSettings, deploymentEnvironment);
   }
 }

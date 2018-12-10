@@ -23,16 +23,13 @@ import com.netflix.spinnaker.halyard.config.config.v1.HalconfigParser;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
 import com.netflix.spinnaker.halyard.config.model.v1.security.*;
 import com.netflix.spinnaker.halyard.config.services.v1.SecurityService;
-import com.netflix.spinnaker.halyard.core.DaemonResponse.UpdateRequestBuilder;
-import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
-import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.models.v1.ValidationSettings;
+import com.netflix.spinnaker.halyard.util.v1.GenericEnableDisableRequest;
 import com.netflix.spinnaker.halyard.util.v1.GenericGetRequest;
+import com.netflix.spinnaker.halyard.util.v1.GenericUpdateRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-
-import java.nio.file.Path;
 
 @RestController
 @RequiredArgsConstructor
@@ -69,23 +66,13 @@ public class SecurityController {
   DaemonTask<Halconfig, Void> setUiSecurity(@PathVariable String deploymentName,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody UiSecurity uiSecurity) {
-    UpdateRequestBuilder builder = new UpdateRequestBuilder();
-
-    Path configPath = halconfigDirectoryStructure.getConfigPath(deploymentName);
-    builder.setStage(() -> uiSecurity.stageLocalFiles(configPath));
-    builder.setSeverity(validationSettings.getSeverity());
-    builder.setUpdate(() -> securityService.setUiSecurity(deploymentName, uiSecurity));
-
-    builder.setValidate(ProblemSet::new);
-    if (validationSettings.isValidate()) {
-      builder.setValidate(() -> securityService.validateUiSecurity(deploymentName));
-    }
-
-    builder.setRevert(() -> halconfigParser.undoChanges());
-    builder.setSave(() -> halconfigParser.saveConfig());
-    builder.setClean(() -> halconfigParser.cleanLocalFiles(configPath));
-
-    return DaemonTaskHandler.submitTask(builder::build, "Edit UI security settings");
+    return GenericUpdateRequest.<UiSecurity>builder(halconfigParser)
+        .stagePath(halconfigDirectoryStructure.getStagingPath(deploymentName))
+        .updater(u -> securityService.setUiSecurity(deploymentName, u))
+        .validator(() -> securityService.validateUiSecurity(deploymentName))
+        .description("Edit UI security settings")
+        .build()
+        .execute(validationSettings, uiSecurity);
   }
 
   @RequestMapping(value = "/ui/ssl/", method = RequestMethod.GET)
@@ -103,43 +90,25 @@ public class SecurityController {
   DaemonTask<Halconfig, Void> setApacheSSl(@PathVariable String deploymentName,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody ApacheSsl apacheSsl) {
-    UpdateRequestBuilder builder = new UpdateRequestBuilder();
-
-    Path configPath = halconfigDirectoryStructure.getConfigPath(deploymentName);
-    builder.setStage(() -> apacheSsl.stageLocalFiles(configPath));
-    builder.setSeverity(validationSettings.getSeverity());
-    builder.setUpdate(() -> securityService.setApacheSsl(deploymentName, apacheSsl));
-
-    builder.setValidate(ProblemSet::new);
-    if (validationSettings.isValidate()) {
-      builder.setValidate(() -> securityService.validateApacheSsl(deploymentName));
-    }
-
-    builder.setRevert(() -> halconfigParser.undoChanges());
-    builder.setSave(() -> halconfigParser.saveConfig());
-    builder.setClean(() -> halconfigParser.cleanLocalFiles(configPath));
-
-    return DaemonTaskHandler.submitTask(builder::build, "Edit UI SSL settings");
+    return GenericUpdateRequest.<ApacheSsl>builder(halconfigParser)
+        .stagePath(halconfigDirectoryStructure.getStagingPath(deploymentName))
+        .updater(a -> securityService.setApacheSsl(deploymentName, a))
+        .validator(() -> securityService.validateApacheSsl(deploymentName))
+        .description("Edit UI SSL settings")
+        .build()
+        .execute(validationSettings, apacheSsl);
   }
 
   @RequestMapping(value = "/ui/ssl/enabled/", method = RequestMethod.PUT)
   DaemonTask<Halconfig, Void> setApacheSSlEnabled(@PathVariable String deploymentName,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody boolean enabled) {
-    UpdateRequestBuilder builder = new UpdateRequestBuilder();
-
-    builder.setSeverity(validationSettings.getSeverity());
-    builder.setUpdate(() -> securityService.setApacheSslEnabled(deploymentName, enabled));
-
-    builder.setValidate(ProblemSet::new);
-    if (validationSettings.isValidate()) {
-      builder.setValidate(() -> securityService.validateApacheSsl(deploymentName));
-    }
-
-    builder.setRevert(() -> halconfigParser.undoChanges());
-    builder.setSave(() -> halconfigParser.saveConfig());
-
-    return DaemonTaskHandler.submitTask(builder::build, "Edit UI SSL settings");
+    return GenericEnableDisableRequest.builder(halconfigParser)
+        .updater(e -> securityService.setApacheSslEnabled(deploymentName, e))
+        .validator(() -> securityService.validateApacheSsl(deploymentName))
+        .description("Edit UI SSL settings")
+        .build()
+        .execute(validationSettings, enabled);
   }
 
   @RequestMapping(value = "/api/", method = RequestMethod.GET)
@@ -157,23 +126,13 @@ public class SecurityController {
   DaemonTask<Halconfig, Void> setApiSecurity(@PathVariable String deploymentName,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody ApiSecurity apiSecurity) {
-    UpdateRequestBuilder builder = new UpdateRequestBuilder();
-
-    Path configPath = halconfigDirectoryStructure.getConfigPath(deploymentName);
-    builder.setStage(() -> apiSecurity.stageLocalFiles(configPath));
-    builder.setSeverity(validationSettings.getSeverity());
-    builder.setUpdate(() -> securityService.setApiSecurity(deploymentName, apiSecurity));
-
-    builder.setValidate(ProblemSet::new);
-    if (validationSettings.isValidate()) {
-      builder.setValidate(() -> securityService.validateApiSecurity(deploymentName));
-    }
-
-    builder.setRevert(() -> halconfigParser.undoChanges());
-    builder.setSave(() -> halconfigParser.saveConfig());
-    builder.setClean(() -> halconfigParser.cleanLocalFiles(configPath));
-
-    return DaemonTaskHandler.submitTask(builder::build, "Edit API security settings");
+    return GenericUpdateRequest.<ApiSecurity>builder(halconfigParser)
+        .stagePath(halconfigDirectoryStructure.getStagingPath(deploymentName))
+        .updater(a -> securityService.setApiSecurity(deploymentName, a))
+        .validator(() -> securityService.validateApiSecurity(deploymentName))
+        .description("Edit API security settings")
+        .build()
+        .execute(validationSettings, apiSecurity);
   }
 
   @RequestMapping(value = "/api/ssl/", method = RequestMethod.GET)
@@ -191,66 +150,38 @@ public class SecurityController {
   DaemonTask<Halconfig, Void> setSpringSSl(@PathVariable String deploymentName,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody SpringSsl apacheSsl) {
-    UpdateRequestBuilder builder = new UpdateRequestBuilder();
-
-    Path configPath = halconfigDirectoryStructure.getConfigPath(deploymentName);
-    builder.setStage(() -> apacheSsl.stageLocalFiles(configPath));
-    builder.setSeverity(validationSettings.getSeverity());
-    builder.setUpdate(() -> securityService.setSpringSsl(deploymentName, apacheSsl));
-
-    builder.setValidate(ProblemSet::new);
-    if (validationSettings.isValidate()) {
-      builder.setValidate(() -> securityService.validateSpringSsl(deploymentName));
-    }
-
-    builder.setRevert(() -> halconfigParser.undoChanges());
-    builder.setSave(() -> halconfigParser.saveConfig());
-    builder.setClean(() -> halconfigParser.cleanLocalFiles(configPath));
-
-    return DaemonTaskHandler.submitTask(builder::build, "Edit API SSL settings");
+    return GenericUpdateRequest.<SpringSsl>builder(halconfigParser)
+        .stagePath(halconfigDirectoryStructure.getStagingPath(deploymentName))
+        .updater(a -> securityService.setSpringSsl(deploymentName, a))
+        .validator(() -> securityService.validateSpringSsl(deploymentName))
+        .description("Edit API SSL settings")
+        .build()
+        .execute(validationSettings, apacheSsl);
   }
 
   @RequestMapping(value = "/api/ssl/enabled/", method = RequestMethod.PUT)
   DaemonTask<Halconfig, Void> setSpringSSlEnabled(@PathVariable String deploymentName,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody boolean enabled) {
-    UpdateRequestBuilder builder = new UpdateRequestBuilder();
-
-    builder.setSeverity(validationSettings.getSeverity());
-    builder.setUpdate(() -> securityService.setSpringSslEnabled(deploymentName, enabled));
-
-    builder.setValidate(ProblemSet::new);
-    if (validationSettings.isValidate()) {
-      builder.setValidate(() -> securityService.validateSpringSsl(deploymentName));
-    }
-
-    builder.setRevert(() -> halconfigParser.undoChanges());
-    builder.setSave(() -> halconfigParser.saveConfig());
-
-    return DaemonTaskHandler.submitTask(builder::build, "Edit API SSL settings");
+    return GenericEnableDisableRequest.builder(halconfigParser)
+        .updater(e -> securityService.setSpringSslEnabled(deploymentName, e))
+        .validator(() -> securityService.validateSpringSsl(deploymentName))
+        .description("Edit API SSL settings")
+        .build()
+        .execute(validationSettings, enabled);
   }
 
   @RequestMapping(value = "/authz/groupMembership", method = RequestMethod.PUT)
   DaemonTask<Halconfig, Void> setGroupMembership(@PathVariable String deploymentName,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody GroupMembership membership) {
-    UpdateRequestBuilder builder = new UpdateRequestBuilder();
-
-    Path configPath = halconfigDirectoryStructure.getConfigPath(deploymentName);
-    builder.setStage(() -> membership.stageLocalFiles(configPath));
-    builder.setSeverity(validationSettings.getSeverity());
-    builder.setUpdate(() -> securityService.setGroupMembership(deploymentName, membership));
-
-    builder.setValidate(ProblemSet::new);
-    if (validationSettings.isValidate()) {
-      builder.setValidate(() -> securityService.validateAuthz(deploymentName));
-    }
-
-    builder.setRevert(() -> halconfigParser.undoChanges());
-    builder.setSave(() -> halconfigParser.saveConfig());
-    builder.setClean(() -> halconfigParser.cleanLocalFiles(configPath));
-
-    return DaemonTaskHandler.submitTask(builder::build, "Edit group membership settings");
+    return GenericUpdateRequest.<GroupMembership>builder(halconfigParser)
+        .stagePath(halconfigDirectoryStructure.getStagingPath(deploymentName))
+        .updater(m -> securityService.setGroupMembership(deploymentName, m))
+        .validator(() -> securityService.validateAuthz(deploymentName))
+        .description("Edit group membership settings")
+        .build()
+        .execute(validationSettings, membership);
   }
 
   @RequestMapping(value = "/authz/groupMembership", method = RequestMethod.GET)
@@ -292,23 +223,13 @@ public class SecurityController {
   DaemonTask<Halconfig, Void> setSecurity(@PathVariable String deploymentName,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody Security security) {
-    UpdateRequestBuilder builder = new UpdateRequestBuilder();
-
-    Path configPath = halconfigDirectoryStructure.getConfigPath(deploymentName);
-    builder.setStage(() -> security.stageLocalFiles(configPath));
-    builder.setSeverity(validationSettings.getSeverity());
-    builder.setUpdate(() -> securityService.setSecurity(deploymentName, security));
-
-    builder.setValidate(ProblemSet::new);
-    if (validationSettings.isValidate()) {
-      builder.setValidate(() -> securityService.validateSecurity(deploymentName));
-    }
-
-    builder.setRevert(() -> halconfigParser.undoChanges());
-    builder.setSave(() -> halconfigParser.saveConfig());
-    builder.setClean(() -> halconfigParser.cleanLocalFiles(configPath));
-
-    return DaemonTaskHandler.submitTask(builder::build, "Edit security settings");
+    return GenericUpdateRequest.<Security>builder(halconfigParser)
+        .stagePath(halconfigDirectoryStructure.getStagingPath(deploymentName))
+        .updater(s -> securityService.setSecurity(deploymentName, s))
+        .validator(() -> securityService.validateSecurity(deploymentName))
+        .description("Edit security settings")
+        .build()
+        .execute(validationSettings, security);
   }
 
   @RequestMapping(value = "/authn/{methodName:.+}", method = RequestMethod.PUT)
@@ -320,25 +241,13 @@ public class SecurityController {
         rawMethod,
         AuthnMethod.translateAuthnMethodName(methodName)
     );
-
-    UpdateRequestBuilder builder = new UpdateRequestBuilder();
-
-    Path configPath = halconfigDirectoryStructure.getConfigPath(deploymentName);
-    builder.setStage(() -> method.stageLocalFiles(configPath));
-    builder.setSeverity(validationSettings.getSeverity());
-    builder.setUpdate(() -> securityService.setAuthnMethod(deploymentName, method));
-
-    builder.setValidate(ProblemSet::new);
-    if (validationSettings.isValidate()) {
-      builder.setValidate(() -> securityService.validateAuthnMethod(deploymentName, methodName));
-    }
-
-    builder.setRevert(() -> halconfigParser.undoChanges());
-    builder.setSave(() -> halconfigParser.saveConfig());
-    builder.setClean(() -> halconfigParser.cleanLocalFiles(configPath));
-
-    return DaemonTaskHandler
-        .submitTask(builder::build, "Edit " + methodName + " authentication settings");
+    return GenericUpdateRequest.<AuthnMethod>builder(halconfigParser)
+        .stagePath(halconfigDirectoryStructure.getStagingPath(deploymentName))
+        .updater(m -> securityService.setAuthnMethod(deploymentName, m))
+        .validator(() -> securityService.validateAuthnMethod(deploymentName, methodName))
+        .description("Edit " + methodName + " authentication settings")
+        .build()
+        .execute(validationSettings, method);
   }
 
   @RequestMapping(value = "/authz/groupMembership/{roleProviderName:.+}", method = RequestMethod.PUT)
@@ -350,26 +259,13 @@ public class SecurityController {
         rawProvider,
         GroupMembership.translateRoleProviderType(roleProviderName)
     );
-
-    UpdateRequestBuilder builder = new UpdateRequestBuilder();
-
-    Path configPath = halconfigDirectoryStructure.getConfigPath(deploymentName);
-    builder.setStage(() -> roleProvider.stageLocalFiles(configPath));
-    builder.setSeverity(validationSettings.getSeverity());
-    builder.setUpdate(() -> securityService.setRoleProvider(deploymentName, roleProvider));
-
-    builder.setValidate(ProblemSet::new);
-    if (validationSettings.isValidate()) {
-      builder.setValidate(
-          () -> securityService.validateRoleProvider(deploymentName, roleProviderName));
-    }
-
-    builder.setRevert(() -> halconfigParser.undoChanges());
-    builder.setSave(() -> halconfigParser.saveConfig());
-    builder.setClean(() -> halconfigParser.cleanLocalFiles(configPath));
-
-    return DaemonTaskHandler
-        .submitTask(builder::build, "Edit " + roleProviderName + " group membership settings");
+    return GenericUpdateRequest.<RoleProvider>builder(halconfigParser)
+        .stagePath(halconfigDirectoryStructure.getStagingPath(deploymentName))
+        .updater(r -> securityService.setRoleProvider(deploymentName, r))
+        .validator(() -> securityService.validateRoleProvider(deploymentName, roleProviderName))
+        .description("Edit " + roleProviderName + " group membership settings")
+        .build()
+        .execute(validationSettings, roleProvider);
   }
 
   @RequestMapping(value = "/authn/{methodName:.+}/enabled/", method = RequestMethod.PUT)
@@ -377,41 +273,23 @@ public class SecurityController {
       @PathVariable String methodName,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody boolean enabled) {
-    UpdateRequestBuilder builder = new UpdateRequestBuilder();
-
-    builder.setUpdate(
-        () -> securityService.setAuthnMethodEnabled(deploymentName, methodName, enabled));
-    builder.setSeverity(validationSettings.getSeverity());
-
-    builder.setValidate(ProblemSet::new);
-    if (validationSettings.isValidate()) {
-      builder.setValidate(() -> securityService.validateAuthnMethod(deploymentName, methodName));
-    }
-
-    builder.setRevert(() -> halconfigParser.undoChanges());
-    builder.setSave(() -> halconfigParser.saveConfig());
-
-    return DaemonTaskHandler
-        .submitTask(builder::build, "Edit " + methodName + " authentication settings");
+    return GenericEnableDisableRequest.builder(halconfigParser)
+        .updater(e -> securityService.setAuthnMethodEnabled(deploymentName, methodName, e))
+        .validator(() -> securityService.validateAuthnMethod(deploymentName, methodName))
+        .description("Edit " + methodName + " authentication settings")
+        .build()
+        .execute(validationSettings, enabled);
   }
 
   @RequestMapping(value = "/authz/enabled/", method = RequestMethod.PUT)
   DaemonTask<Halconfig, Void> setMethodEnabled(@PathVariable String deploymentName,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody boolean enabled) {
-    UpdateRequestBuilder builder = new UpdateRequestBuilder();
-
-    builder.setUpdate(() -> securityService.setAuthzEnabled(deploymentName, enabled));
-    builder.setSeverity(validationSettings.getSeverity());
-
-    builder.setValidate(ProblemSet::new);
-    if (validationSettings.isValidate()) {
-      builder.setValidate(() -> securityService.validateAuthz(deploymentName));
-    }
-
-    builder.setRevert(() -> halconfigParser.undoChanges());
-    builder.setSave(() -> halconfigParser.saveConfig());
-
-    return DaemonTaskHandler.submitTask(builder::build, "Edit authorization settings");
+    return GenericEnableDisableRequest.builder(halconfigParser)
+        .updater(e -> securityService.setAuthzEnabled(deploymentName, e))
+        .validator(() -> securityService.validateAuthz(deploymentName))
+        .description("Edit authorization settings")
+        .build()
+        .execute(validationSettings, enabled);
   }
 }

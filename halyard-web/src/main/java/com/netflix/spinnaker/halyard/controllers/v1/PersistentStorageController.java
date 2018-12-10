@@ -23,17 +23,12 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
 import com.netflix.spinnaker.halyard.config.model.v1.node.PersistentStorage;
 import com.netflix.spinnaker.halyard.config.model.v1.node.PersistentStore;
 import com.netflix.spinnaker.halyard.config.services.v1.PersistentStorageService;
-import com.netflix.spinnaker.halyard.core.DaemonResponse.UpdateRequestBuilder;
-import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
-import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.models.v1.ValidationSettings;
 import com.netflix.spinnaker.halyard.util.v1.GenericGetRequest;
+import com.netflix.spinnaker.halyard.util.v1.GenericUpdateRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-
-import java.nio.file.Path;
-import java.util.function.Supplier;
 
 @RestController
 @RequiredArgsConstructor
@@ -59,26 +54,13 @@ public class PersistentStorageController {
   DaemonTask<Halconfig, Void> setPersistentStorage(@PathVariable String deploymentName,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody PersistentStorage persistentStorage) {
-    UpdateRequestBuilder builder = new UpdateRequestBuilder();
-
-    Path configPath = halconfigDirectoryStructure.getConfigPath(deploymentName);
-    builder.setStage(() -> persistentStorage.stageLocalFiles(configPath));
-    builder.setUpdate(
-        () -> persistentStorageService.setPersistentStorage(deploymentName, persistentStorage));
-    builder.setSeverity(validationSettings.getSeverity());
-
-    Supplier<ProblemSet> doValidate = ProblemSet::new;
-
-    if (validationSettings.isValidate()) {
-      doValidate = () -> persistentStorageService.validatePersistentStorage(deploymentName);
-    }
-
-    builder.setValidate(doValidate);
-    builder.setRevert(() -> halconfigParser.undoChanges());
-    builder.setSave(() -> halconfigParser.saveConfig());
-    builder.setClean(() -> halconfigParser.cleanLocalFiles(configPath));
-
-    return DaemonTaskHandler.submitTask(builder::build, "Edit persistent storage settings");
+    return GenericUpdateRequest.<PersistentStorage>builder(halconfigParser)
+        .stagePath(halconfigDirectoryStructure.getStagingPath(deploymentName))
+        .updater(p -> persistentStorageService.setPersistentStorage(deploymentName, p))
+        .validator(() -> persistentStorageService.validatePersistentStorage(deploymentName))
+        .description("Edit persistent storage settings")
+        .build()
+        .execute(validationSettings, persistentStorage);
   }
 
   @RequestMapping(value = "/{persistentStoreType:.+}", method = RequestMethod.GET)
@@ -100,27 +82,12 @@ public class PersistentStorageController {
       @RequestBody Object rawPersistentStore) {
     PersistentStore persistentStore = objectMapper.convertValue(rawPersistentStore,
         PersistentStorage.translatePersistentStoreType(persistentStoreType));
-
-    UpdateRequestBuilder builder = new UpdateRequestBuilder();
-
-    Path configPath = halconfigDirectoryStructure.getConfigPath(deploymentName);
-    builder.setStage(() -> persistentStore.stageLocalFiles(configPath));
-    builder.setUpdate(
-        () -> persistentStorageService.setPersistentStore(deploymentName, persistentStore));
-    builder.setSeverity(validationSettings.getSeverity());
-
-    Supplier<ProblemSet> doValidate = ProblemSet::new;
-
-    if (validationSettings.isValidate()) {
-      doValidate = () -> persistentStorageService
-          .validatePersistentStore(deploymentName, persistentStoreType);
-    }
-
-    builder.setValidate(doValidate);
-    builder.setRevert(() -> halconfigParser.undoChanges());
-    builder.setSave(() -> halconfigParser.saveConfig());
-    builder.setClean(() -> halconfigParser.cleanLocalFiles(configPath));
-
-    return DaemonTaskHandler.submitTask(builder::build, "Edit persistent store");
+    return GenericUpdateRequest.<PersistentStore>builder(halconfigParser)
+        .stagePath(halconfigDirectoryStructure.getStagingPath(deploymentName))
+        .updater(p -> persistentStorageService.setPersistentStore(deploymentName, p))
+        .validator(() -> persistentStorageService.validatePersistentStore(deploymentName, persistentStoreType))
+        .description("Edit persistent store")
+        .build()
+        .execute(validationSettings, persistentStore);
   }
 }

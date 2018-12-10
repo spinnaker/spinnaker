@@ -25,17 +25,13 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Notification;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Notifications;
 import com.netflix.spinnaker.halyard.config.services.v1.NotificationService;
-import com.netflix.spinnaker.halyard.core.DaemonResponse.UpdateRequestBuilder;
-import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
-import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.models.v1.ValidationSettings;
+import com.netflix.spinnaker.halyard.util.v1.GenericEnableDisableRequest;
 import com.netflix.spinnaker.halyard.util.v1.GenericGetRequest;
+import com.netflix.spinnaker.halyard.util.v1.GenericUpdateRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-
-import java.nio.file.Path;
-import java.util.function.Supplier;
 
 @RestController
 @RequiredArgsConstructor
@@ -63,22 +59,12 @@ public class NotificationController {
       @PathVariable String notificationName,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody boolean enabled) {
-    UpdateRequestBuilder builder = new UpdateRequestBuilder();
-
-    builder
-        .setUpdate(() -> notificationService.setEnabled(deploymentName, notificationName, enabled));
-    builder.setSeverity(validationSettings.getSeverity());
-
-    Supplier<ProblemSet> doValidate = ProblemSet::new;
-    if (validationSettings.isValidate()) {
-      doValidate = () -> notificationService.validateNotification(deploymentName, notificationName);
-    }
-
-    builder.setValidate(doValidate);
-    builder.setRevert(() -> halconfigParser.undoChanges());
-    builder.setSave(() -> halconfigParser.saveConfig());
-
-    return DaemonTaskHandler.submitTask(builder::build, "Edit " + notificationName + " settings");
+    return GenericEnableDisableRequest.builder(halconfigParser)
+        .updater(e -> notificationService.setEnabled(deploymentName, notificationName, e))
+        .validator(() -> notificationService.validateNotification(deploymentName, notificationName))
+        .description("Edit " + notificationName + " settings")
+        .build()
+        .execute(validationSettings, enabled);
   }
 
   @RequestMapping(value = "/", method = RequestMethod.GET)
@@ -101,25 +87,12 @@ public class NotificationController {
         rawNotification,
         Notifications.translateNotificationType(notificationName)
     );
-
-    UpdateRequestBuilder builder = new UpdateRequestBuilder();
-
-    Path configPath = halconfigDirectoryStructure.getConfigPath(deploymentName);
-    builder.setStage(() -> notification.stageLocalFiles(configPath));
-    builder.setUpdate(() -> notificationService.setNotification(deploymentName, notification));
-    builder.setSeverity(validationSettings.getSeverity());
-
-    Supplier<ProblemSet> doValidate = ProblemSet::new;
-    if (validationSettings.isValidate()) {
-      doValidate = () -> notificationService.validateNotification(deploymentName, notificationName);
-    }
-
-    builder.setValidate(doValidate);
-    builder.setRevert(() -> halconfigParser.undoChanges());
-    builder.setSave(() -> halconfigParser.saveConfig());
-    builder.setClean(() -> halconfigParser.cleanLocalFiles(configPath));
-
-    return DaemonTaskHandler
-        .submitTask(builder::build, "Edit the " + notificationName + " notification");
+    return GenericUpdateRequest.<Notification>builder(halconfigParser)
+        .stagePath(halconfigDirectoryStructure.getStagingPath(deploymentName))
+        .updater(n -> notificationService.setNotification(deploymentName, n))
+        .validator(() -> notificationService.validateNotification(deploymentName, notificationName))
+        .description("Edit the " + notificationName + " notification")
+        .build()
+        .execute(validationSettings, notification);
   }
 }

@@ -25,18 +25,15 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Pubsub;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Pubsubs;
 import com.netflix.spinnaker.halyard.config.services.v1.PubsubService;
-import com.netflix.spinnaker.halyard.core.DaemonResponse.UpdateRequestBuilder;
-import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
-import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.models.v1.ValidationSettings;
+import com.netflix.spinnaker.halyard.util.v1.GenericEnableDisableRequest;
 import com.netflix.spinnaker.halyard.util.v1.GenericGetRequest;
+import com.netflix.spinnaker.halyard.util.v1.GenericUpdateRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import java.nio.file.Path;
 import java.util.List;
-import java.util.function.Supplier;
 
 @RestController
 @RequiredArgsConstructor
@@ -68,25 +65,13 @@ public class PubsubController {
         rawPubsub,
         Pubsubs.translatePubsubType(pubsubName)
     );
-
-    UpdateRequestBuilder builder = new UpdateRequestBuilder();
-
-    Path configPath = halconfigDirectoryStructure.getConfigPath(deploymentName);
-    builder.setStage(() -> pubsub.stageLocalFiles(configPath));
-    builder.setUpdate(() -> pubsubService.setPubsub(deploymentName, pubsub));
-    builder.setSeverity(validationSettings.getSeverity());
-
-    Supplier<ProblemSet> doValidate = ProblemSet::new;
-    if (validationSettings.isValidate()) {
-      doValidate = () -> pubsubService.validatePubsub(deploymentName, pubsubName);
-    }
-
-    builder.setValidate(doValidate);
-    builder.setRevert(() -> halconfigParser.undoChanges());
-    builder.setSave(() -> halconfigParser.saveConfig());
-    builder.setClean(() -> halconfigParser.cleanLocalFiles(configPath));
-
-    return DaemonTaskHandler.submitTask(builder::build, "Edit the " + pubsubName + " pubsub");
+    return GenericUpdateRequest.<Pubsub>builder(halconfigParser)
+        .stagePath(halconfigDirectoryStructure.getStagingPath(deploymentName))
+        .updater(p -> pubsubService.setPubsub(deploymentName, p))
+        .validator(() -> pubsubService.validatePubsub(deploymentName, pubsubName))
+        .description("Edit the " + pubsubName + " pubsub")
+        .build()
+        .execute(validationSettings, pubsub);
   }
 
   @RequestMapping(value = "/{pubsubName:.+}/enabled", method = RequestMethod.PUT)
@@ -94,21 +79,12 @@ public class PubsubController {
       @PathVariable String pubsubName,
       @ModelAttribute ValidationSettings validationSettings,
       @RequestBody boolean enabled) {
-    UpdateRequestBuilder builder = new UpdateRequestBuilder();
-
-    builder.setUpdate(() -> pubsubService.setEnabled(deploymentName, pubsubName, enabled));
-    builder.setSeverity(validationSettings.getSeverity());
-
-    Supplier<ProblemSet> doValidate = ProblemSet::new;
-    if (validationSettings.isValidate()) {
-      doValidate = () -> pubsubService.validatePubsub(deploymentName, pubsubName);
-    }
-
-    builder.setValidate(doValidate);
-    builder.setRevert(() -> halconfigParser.undoChanges());
-    builder.setSave(() -> halconfigParser.saveConfig());
-
-    return DaemonTaskHandler.submitTask(builder::build, "Edit the " + pubsubName + " pubsub");
+    return GenericEnableDisableRequest.builder(halconfigParser)
+        .updater(e -> pubsubService.setEnabled(deploymentName, pubsubName, e))
+        .validator(() -> pubsubService.validatePubsub(deploymentName, pubsubName))
+        .description("Edit the " + pubsubName + " pubsub")
+        .build()
+        .execute(validationSettings, enabled);
   }
 
   @RequestMapping(value = "/", method = RequestMethod.GET)
