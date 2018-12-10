@@ -17,9 +17,6 @@ databaseChangeLog:
             constraints:
               nullable: false
         - column:
-            name: location
-            type: varchar(64)
-        - column:
             name: body_hash
             type: char(64)
             constraints:
