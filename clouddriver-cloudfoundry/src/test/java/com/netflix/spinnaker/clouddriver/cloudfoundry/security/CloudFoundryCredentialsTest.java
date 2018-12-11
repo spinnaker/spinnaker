@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Test;
 class CloudFoundryCredentialsTest {
   @Test
   void serialize() throws JsonProcessingException {
-    CloudFoundryCredentials creds = new CloudFoundryCredentials("pws", "some.uri.example.com", "api.run.pivotal.io", "fakeuser", "fakepasword", "dev");
+    CloudFoundryCredentials creds = new CloudFoundryCredentials("pws", "some.uri.example.com", "some.uri.example.com", "api.run.pivotal.io", "fakeuser", "fakepasword", "dev");
     new ObjectMapper().writeValueAsString(creds);
   }
 }

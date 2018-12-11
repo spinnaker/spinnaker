@@ -66,6 +66,7 @@ public class CloudFoundryCredentialsInitializer implements CredentialsInitialize
       CloudFoundryCredentials cloudFoundryAccountCredentials = new CloudFoundryCredentials(
         managedAccount.getName(),
         managedAccount.getAppsManagerUri(),
+        managedAccount.getMetricsUri(),
         managedAccount.getApi(),
         managedAccount.getUser(),
         managedAccount.getPassword(),

@@ -47,6 +47,7 @@ public class CloudFoundryConfigurationProperties {
     private String name;
     private String api;
     private String appsManagerUri;
+    private String metricsUri;
     private String user;
     private String password;
     private String environment;

@@ -64,7 +64,7 @@ class DeployCloudFoundryServiceAtomicOperationConverterTest {
   }
 
   private final CloudFoundryCredentials cloudFoundryCredentials = new CloudFoundryCredentials(
-    "test", "", "", "", "", "") {
+    "test", "", "", "", "", "", "") {
     public CloudFoundryClient getClient() {
       return cloudFoundryClient;
     }

@@ -58,6 +58,9 @@ public class CloudFoundryServerGroup extends CloudFoundryModel implements Server
   String appsManagerUri;
 
   @JsonView(Views.Cache.class)
+  String metricsUri;
+
+  @JsonView(Views.Cache.class)
   String name;
 
   @JsonView(Views.Cache.class)
@@ -159,6 +162,7 @@ public class CloudFoundryServerGroup extends CloudFoundryModel implements Server
   public Map getBuildInfo() {
     return HashMap.<Object, Object>of(
       "appsManagerUri", appsManagerUri,
+      "metricsUri", metricsUri,
       "droplet", droplet,
       "id", id,
       "serviceInstances", serviceInstances)

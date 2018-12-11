@@ -45,12 +45,12 @@ import static org.mockito.Mockito.*;
 class ApplicationsTest {
   private ApplicationService applicationService = mock(ApplicationService.class);
   private Spaces spaces = mock(Spaces.class);
-  private Applications apps = new Applications("pws", "some-apps-man-uri", applicationService, spaces);
+  private Applications apps = new Applications("pws", "some-apps-man-uri", "some-metrics-uri", applicationService, spaces);
 
   @Test
   void errorHandling() {
-    CloudFoundryClient client = new HttpCloudFoundryClient("pws", "some.api.uri.example.com", "api.run.pivotal.io",
-      "baduser", "badpassword");
+    CloudFoundryClient client = new HttpCloudFoundryClient("pws", "some.api.uri.example.com", "some-metrics-uri",
+      "api.run.pivotal.io", "baduser", "badpassword");
 
     assertThatThrownBy(() -> client.getApplications().all())
       .isInstanceOf(CloudFoundryApiException.class);
@@ -75,11 +75,11 @@ class ApplicationsTest {
 
     ApplicationEnv.SystemEnv systemEnv = new ApplicationEnv.SystemEnv()
       .setVcapServices(HashMap.of("service-name-1", Collections.singletonList(new ServiceInstance()
-          .setName("service-instance")
-          .setPlan("service-plan")
-          .setServicePlanGuid("service-plan-guid")
-          .setTags(new HashSet<>(Arrays.asList("tag1", "tag2")))
-        )).toJavaMap());
+        .setName("service-instance")
+        .setPlan("service-plan")
+        .setServicePlanGuid("service-plan-guid")
+        .setTags(new HashSet<>(Arrays.asList("tag1", "tag2")))
+      )).toJavaMap());
     ApplicationEnv applicationEnv = new ApplicationEnv()
       .setSystemEnvJson(systemEnv);
 
@@ -127,6 +127,7 @@ class ApplicationsTest {
     assertThat(cloudFoundryServerGroup.getId()).isEqualTo("some-app-guid");
     assertThat(cloudFoundryServerGroup.getName()).isEqualTo("some-app-name");
     assertThat(cloudFoundryServerGroup.getAppsManagerUri()).isEqualTo("some-apps-man-uri/organizations/org-id/spaces/space-id/applications/some-app-guid");
+    assertThat(cloudFoundryServerGroup.getMetricsUri()).isEqualTo("some-metrics-uri/apps/some-app-guid");
     assertThat(cloudFoundryServerGroup.getServiceInstances().size()).isEqualTo(1);
     assertThat(cloudFoundryServerGroup.getServiceInstances().get(0).getTags()).containsExactly("tag1", "tag2");
   }
