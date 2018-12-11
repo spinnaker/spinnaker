@@ -477,21 +477,5 @@ describe('Service: awsServerGroupConfiguration', function() {
       expect(this.command.amiName).toBe(null);
       expect(result.dirty.amiName).toBe(true);
     });
-
-    it('clears amiName and sets dirty flag if image is not found in region', function() {
-      this.command.region = 'us-east-1';
-      const result = service.configureImages(this.command);
-      expect(this.command.amiName).toBe(null);
-      expect(result.dirty.amiName).toBe(true);
-    });
-
-    it('preserves amiName if image is found in region, and sets virtualizationType on command', function() {
-      this.command.region = 'us-east-1';
-      this.command.amiName = 'ami-1235';
-      const result = service.configureImages(this.command);
-      expect(this.command.amiName).toBe('ami-1235');
-      expect(result.dirty.amiName).toBeUndefined();
-      expect(this.command.virtualizationType).toBe('pv');
-    });
   });
 });
