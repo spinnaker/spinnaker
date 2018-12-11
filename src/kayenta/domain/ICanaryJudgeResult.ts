@@ -26,7 +26,7 @@ export interface ICanaryAnalysisResult {
     [key: string]: any;
     stats: ICanaryAnalysisResultsStats;
   };
-  resultMetadata: { [key: string]: any };
+  resultMetadata?: { [key: string]: any };
 }
 
 export interface ICanaryAnalysisResultsStats {

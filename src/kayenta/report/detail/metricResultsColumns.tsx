@@ -12,7 +12,8 @@ export const metricResultsColumns: ITableColumn<IMetricResultsTableRow>[] = [
   },
   {
     label: 'deviation',
-    getContent: ({ results }) => <MetricResultDeviation ratio={results[0].resultMetadata.ratio} />,
+    getContent: ({ results }) =>
+      results[0].resultMetadata && <MetricResultDeviation ratio={results[0].resultMetadata.ratio} />,
     width: 1,
   },
   {

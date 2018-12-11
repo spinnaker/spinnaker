@@ -43,7 +43,7 @@ const MultipleResultsTable = ({
   columns = columns.concat([
     {
       width: 1,
-      getContent: ({ resultMetadata }) => <MetricResultDeviation ratio={resultMetadata.ratio} />,
+      getContent: ({ resultMetadata }) => resultMetadata && <MetricResultDeviation ratio={resultMetadata.ratio} />,
     },
     {
       width: 1,
