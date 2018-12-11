@@ -1,11 +1,12 @@
-@import (reference) "~core/presentation/less/imports/commonImports.less";
+@import (reference) '~core/presentation/less/imports/commonImports.less';
 
 .load-balancer-pod {
   .cluster-container {
     padding: 3px 15px;
     &.disabled {
       opacity: 0.4;
-      &:active, &:hover {
+      &:active,
+      &:hover {
         opacity: 0.7;
       }
     }
@@ -17,14 +18,14 @@
     .pod-subgroup {
       h6 {
         padding-bottom: 10px;
-        background: rgba(0,0,0,0);
+        background: rgba(0, 0, 0, 0);
       }
     }
   }
   .load-balancer-header {
     overflow: hidden;
     background-color: var(--color-alabaster);
-    padding: 8px 20px 0 20px;
+    padding: 8px 20px 3px 20px;
     .health-counts {
       .instance-health-counts {
         margin-top: -2px;
@@ -32,7 +33,7 @@
     }
   }
   .load-balancer {
-    >.cluster-container {
+    > .cluster-container {
       padding-top: 0;
     }
   }

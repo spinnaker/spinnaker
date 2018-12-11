@@ -42,7 +42,7 @@ export class TargetGroup extends React.Component<ITargetGroupProps> {
       <div className="target-group-container container-fluid no-padding">
         <UISrefActive class="active">
           <UISref to=".targetGroupDetails" params={params}>
-            <div className={`clickable clickable-row row no-margin-top target-group-header`}>
+            <div className={`clickable clickable-row row no-margin-y target-group-header`}>
               <div className="col-md-8 target-group-title">{targetGroup.name}</div>
               <div className="col-md-4 text-right">
                 <HealthCounts container={targetGroup.instanceCounts} />

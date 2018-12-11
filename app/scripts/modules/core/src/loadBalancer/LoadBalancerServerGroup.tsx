@@ -45,7 +45,7 @@ export class LoadBalancerServerGroup extends React.Component<
     const className = classNames({
       clickable: true,
       'clickable-row': true,
-      'no-margin-top': true,
+      'no-margin-y': true,
       disabled: serverGroup.isDisabled,
     });
 
