@@ -16,6 +16,9 @@ import {
 } from '@spinnaker/core';
 
 import { ICloudFoundryServerGroup } from 'cloudfoundry/domain';
+import { ICloudFoundryCreateServerGroupCommand } from 'cloudfoundry/serverGroup/configure/serverGroupConfigurationModel.cf';
+import { CloudFoundryCreateServerGroupModal } from 'cloudfoundry/serverGroup/configure/wizard/CreateServerGroupModal';
+import { CloudFoundryReactInjector } from 'cloudfoundry/reactShims';
 
 export interface ICloudFoundryServerGroupActionsProps extends IServerGroupActionsProps {
   serverGroup: ICloudFoundryServerGroup;
@@ -274,6 +277,23 @@ export class CloudFoundryServerGroupActions extends React.Component<ICloudFoundr
     });
   };
 
+  private cloneServerGroup = (): void => {
+    const { app, serverGroup } = this.props;
+    CloudFoundryReactInjector.cfServerGroupCommandBuilder
+      .buildServerGroupCommandFromExisting(app, serverGroup)
+      .then((command: ICloudFoundryCreateServerGroupCommand) => {
+        const title = `Clone ${serverGroup.name}`;
+        command.artifact.type = 'package';
+        CloudFoundryCreateServerGroupModal.show({
+          application: app,
+          command,
+          isSourceConstant: true,
+          serverGroup,
+          title,
+        });
+      });
+  };
+
   public render(): JSX.Element {
     const { app, serverGroup } = this.props;
 
@@ -325,6 +345,11 @@ export class CloudFoundryServerGroupActions extends React.Component<ICloudFoundr
           <li>
             <a className="clickable" onClick={this.destroyServerGroup}>
               Destroy
+            </a>
+          </li>
+          <li>
+            <a className="clickable" onClick={this.cloneServerGroup}>
+              Clone
             </a>
           </li>
           {showEntityTags && (

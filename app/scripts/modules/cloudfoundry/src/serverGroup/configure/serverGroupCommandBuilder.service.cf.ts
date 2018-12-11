@@ -1,6 +1,6 @@
 import { IPromise, IQService, module } from 'angular';
 
-import { IStage, IPipeline } from '@spinnaker/core';
+import { IStage, IPipeline, Application } from '@spinnaker/core';
 
 import { ICloudFoundryApplication, ICloudFoundryEnvVar, ICloudFoundryServerGroup } from 'cloudfoundry/domain';
 import {
@@ -41,10 +41,7 @@ export class CloudFoundryServerGroupCommandBuilder {
     'ngInject';
   }
 
-  public buildNewServerGroupCommand(
-    app: ICloudFoundryApplication,
-    defaults: any,
-  ): IPromise<ICloudFoundryCreateServerGroupCommand> {
+  public buildNewServerGroupCommand(app: Application, defaults: any): IPromise<ICloudFoundryCreateServerGroupCommand> {
     defaults = defaults || {};
     return this.$q.when({
       application: app.name,
@@ -73,7 +70,7 @@ export class CloudFoundryServerGroupCommandBuilder {
   }
 
   public buildServerGroupCommandFromExisting(
-    app: ICloudFoundryApplication,
+    app: Application,
     serverGroup: ICloudFoundryServerGroup,
     mode = 'clone',
   ): IPromise<ICloudFoundryCreateServerGroupCommand> {
@@ -103,6 +100,7 @@ export class CloudFoundryServerGroupCommandBuilder {
       command.region = serverGroup.region;
       command.stack = serverGroup.stack;
       command.freeFormDetails = serverGroup.detail;
+      command.source = { asgName: serverGroup.name };
       return command;
     });
   }
