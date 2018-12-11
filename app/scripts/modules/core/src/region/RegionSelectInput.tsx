@@ -11,7 +11,7 @@ export interface IRegionSelectInputProps extends IFormInputProps {
 
 export class RegionSelectInput extends React.Component<IRegionSelectInputProps> {
   public render() {
-    const { account, readOnly, regions, value, onChange } = this.props;
+    const { account, readOnly, regions, value, onChange, ...otherProps } = this.props;
     if (!account) {
       return <div>(Select an account)</div>;
     }
@@ -21,7 +21,7 @@ export class RegionSelectInput extends React.Component<IRegionSelectInputProps> 
     }
 
     return (
-      <select className="form-control input-sm" value={value || ''} onChange={onChange} required={true}>
+      <select className="form-control input-sm" value={value || ''} onChange={onChange} required={true} {...otherProps}>
         <option value="" disabled={true}>
           Select...
         </option>

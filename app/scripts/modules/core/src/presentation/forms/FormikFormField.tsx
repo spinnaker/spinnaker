@@ -75,7 +75,7 @@ export class FormikFormFieldImpl<T = any>
 
   public touched = () => {
     const { formik, name, touched } = this.props;
-    return !isUndefined(touched) ? touched : getIn(formik.values, name);
+    return !isUndefined(touched) ? touched : getIn(formik.touched, name);
   };
 
   public validationMessage = () => {

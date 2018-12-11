@@ -91,7 +91,7 @@ export class AccountSelectInput extends React.Component<IAccountSelectInputProps
   }
 
   public render() {
-    const { value, onChange, readOnly } = this.props;
+    const { value, onChange, readOnly, ...otherProps } = this.props;
     const { primaryAccounts, secondaryAccounts } = this.state;
 
     if (isExpression(value)) {
@@ -116,7 +116,7 @@ export class AccountSelectInput extends React.Component<IAccountSelectInputProps
 
     return (
       <div>
-        <select className="form-control input-sm" value={value} onChange={onChange} required={true}>
+        <select className="form-control input-sm" value={value} onChange={onChange} required={true} {...otherProps}>
           <option value="" disabled={true}>
             Select...
           </option>
