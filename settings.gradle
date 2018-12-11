@@ -18,7 +18,7 @@ rootProject.name = "clouddriver"
 
 def cloudProviderProjects = [
   'appengine':  [':clouddriver-appengine', ':clouddriver-google-common'],
-  'aws': [':clouddriver-aws', ':clouddriver-ecs', ':clouddriver-eureka', ':clouddriver-elasticsearch-aws'], // Pull cd-eureka separate "Discover" platform, along with cd-consul?
+  'aws': [':clouddriver-aws', ':clouddriver-ecs', ':clouddriver-eureka', ':clouddriver-elasticsearch-aws', ':clouddriver-lambda'], // Pull cd-eureka separate "Discover" platform, along with cd-consul?
   'azure': [':clouddriver-azure'],
   'cloudfoundry': [':clouddriver-cloudfoundry'],
   'dcos': [':clouddriver-dcos'],

@@ -1,0 +1,7 @@
+dependencies {
+  compile project(":clouddriver-aws")
+  compile spinnaker.dependency('lombok')
+
+  spinnaker.group('amazon')
+  spinnaker.group('retrofitDefault')
+}

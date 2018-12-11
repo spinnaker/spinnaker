@@ -35,6 +35,7 @@ public class NetflixAmazonCredentials extends AmazonCredentials {
     private final String bastionHost;
     private final boolean bastionEnabled;
     private final boolean shieldEnabled;
+    private final boolean lambdaEnabled;
 
     public NetflixAmazonCredentials(@JsonProperty("name") String name,
                                     @JsonProperty("environment") String environment,
@@ -55,7 +56,8 @@ public class NetflixAmazonCredentials extends AmazonCredentials {
                                     @JsonProperty("front50Enabled") Boolean front50Enabled,
                                     @JsonProperty("bastionHost") String bastionHost,
                                     @JsonProperty("bastionEnabled") Boolean bastionEnabled,
-                                    @JsonProperty("shieldEnabled") Boolean shieldEnabled) {
+                                    @JsonProperty("shieldEnabled") Boolean shieldEnabled,
+                                    @JsonProperty("lambdaEnabled") Boolean lambdaEnabled) {
         this(name,
              environment,
              accountType,
@@ -76,7 +78,8 @@ public class NetflixAmazonCredentials extends AmazonCredentials {
              front50Enabled,
              bastionHost,
              bastionEnabled,
-             shieldEnabled);
+             shieldEnabled,
+             lambdaEnabled);
     }
 
     private static boolean flagValue(String serviceUrl, Boolean flag) {
@@ -104,7 +107,8 @@ public class NetflixAmazonCredentials extends AmazonCredentials {
              copy.getFront50Enabled(),
              copy.getBastionHost(),
              copy.getBastionEnabled(),
-             copy.getShieldEnabled());
+             copy.getShieldEnabled(),
+             copy.getLambdaEnabled());
     }
 
     NetflixAmazonCredentials(String name,
@@ -127,7 +131,8 @@ public class NetflixAmazonCredentials extends AmazonCredentials {
                              Boolean front50Enabled,
                              String bastionHost,
                              Boolean bastionEnabled,
-                             Boolean shieldEnabled) {
+                             Boolean shieldEnabled,
+                             Boolean lambdaEnabled) {
         super(name,
               environment,
               accountType,
@@ -149,6 +154,7 @@ public class NetflixAmazonCredentials extends AmazonCredentials {
         this.bastionHost = bastionHost;
         this.bastionEnabled = flagValue(bastionHost, bastionEnabled);
         this.shieldEnabled = (shieldEnabled == null) ? false : shieldEnabled;
+        this.lambdaEnabled = (lambdaEnabled == null) ? false : lambdaEnabled;
     }
 
     public String getEdda() {
@@ -185,5 +191,9 @@ public class NetflixAmazonCredentials extends AmazonCredentials {
 
     public boolean getShieldEnabled() {
       return shieldEnabled;
+    }
+
+    public boolean getLambdaEnabled() {
+        return lambdaEnabled;
     }
 }
