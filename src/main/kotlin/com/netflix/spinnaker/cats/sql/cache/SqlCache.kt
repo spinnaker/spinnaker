@@ -6,7 +6,12 @@ import com.netflix.spinnaker.cats.cache.CacheFilter
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.cats.cache.WriteableCache
-import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.*
+import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.CERTIFICATES
+import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.CLUSTERS
+import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.NAMED_IMAGES
+import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.ON_DEMAND
+import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.RESERVATION_REPORTS
+import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.RESERVED_INSTANCES
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import de.huxhorn.sulky.ulid.ULID
 import org.jooq.DSLContext
@@ -19,6 +24,7 @@ import java.security.MessageDigest
 import java.time.Clock
 import java.util.Arrays
 import java.util.concurrent.ConcurrentSkipListSet
+import java.util.concurrent.atomic.AtomicInteger
 
 class SqlCache(
   private val name: String,
@@ -26,11 +32,12 @@ class SqlCache(
   private val mapper: ObjectMapper,
   private val clock: Clock,
   private val sqlRetryProperties: SqlRetryProperties, // TODO use this
-  private val prefix: String?,
-  private val batchSize: Int
+  private val tablePrefix: String?,
+  private val cacheMetrics: SqlCacheMetrics,
+  batchSize: Int
 ) : WriteableCache {
 
-  private val schema_version = 1 // TODO: move somewhere sane
+  private val schemaVersion = 1 // TODO: move somewhere sane
   private val relationshipKeyRegex = """^(?:\w+:)?(?:[\w+\-]+)\/([\w+\-]+)\/.*$""".toRegex()
   private val onDemandType = "onDemand"
 
@@ -54,15 +61,27 @@ class SqlCache(
     // TODO: this only supports deleting resource records, not relationships. Both are primarily deleted
     // TODO: by caching agents themselves. In both cases, this behavior may be incompatible with the
     // TODO: titus streaming agent. Need to verify and potentially customize for this cache implementation.
+    var deletedCount = 0
+    var opCount = 0
     try {
       ids.chunked(sqlChunkSize) { chunk ->
         jooq.deleteFrom(table(resourceTableName(type)))
           .where("id in (${chunk.joinToString(",") { "'$it'" }})")
           .execute()
       }
+      deletedCount += sqlChunkSize
+      opCount += 1
     } catch (e: Exception) {
       log.error("error evicting records", e)
     }
+
+    cacheMetrics.evict(
+      prefix = name,
+      type = type,
+      itemCount = ids.size,
+      itemsDeleted = deletedCount,
+      deleteOperations = opCount
+    )
   }
 
   fun mergeAll(type: String,
@@ -102,11 +121,22 @@ class SqlCache(
       log.debug("warning: null agent for type $type")
     }
 
-    if (authoritative) {
-      storeAuthoritative(type, agent, items!!, location, cleanup)
+    val storeResult = if (authoritative) {
+      storeAuthoritative(type, agent, items, location, cleanup)
     } else {
       storeInformative(type, items, cleanup)
     }
+
+    cacheMetrics.merge(
+      prefix = name,
+      type = type,
+      itemCount = storeResult.itemCount.get(),
+      relationshipCount = 0,
+      selectOperations = storeResult.selectQueries.get(),
+      insertOperations = storeResult.insertQueries.get(),
+      updateOperations = storeResult.updateQueries.get(),
+      deleteOperations = storeResult.deleteQueries.get()
+    )
   }
 
   override fun mergeAll(type: String, items: MutableCollection<CacheData>?) {
@@ -124,6 +154,8 @@ class SqlCache(
   }
 
   override fun getAll(type: String, cacheFilter: CacheFilter?): MutableCollection<CacheData> {
+    var selectQueries = 0
+
     val cacheData = mutableListOf<CacheData>()
     try {
       cacheData.addAll(
@@ -135,13 +167,31 @@ class SqlCache(
           .map { mapper.readValue(it as String, DefaultCacheData::class.java) }
           .toList()
       )
+      selectQueries += 1
     } catch (e: Exception) {
       log.error("Failed selecting ids for type $type", e)
+
+      cacheMetrics.get(
+        prefix = name,
+        type = type,
+        itemCount = 0,
+        requestedSize = -1,
+        relationshipsRequested = -1,
+        selectOperations = selectQueries
+      )
+
       return mutableListOf()
     }
 
-
     if (typesWithoutFwdRelationships.contains(type)) {
+      cacheMetrics.get(
+        prefix = name,
+        type = type,
+        itemCount = cacheData.size,
+        requestedSize = cacheData.size,
+        relationshipsRequested = 0,
+        selectOperations = selectQueries
+      )
       return cacheData
     }
 
@@ -152,7 +202,18 @@ class SqlCache(
       relationshipPrefixes
     )
 
-    return mergeDataAndRelationships(cacheData, relationshipPointers, relationshipPrefixes)
+    val result = mergeDataAndRelationships(cacheData, relationshipPointers.data, relationshipPrefixes)
+
+    cacheMetrics.get(
+      prefix = name,
+      type = type,
+      itemCount = result.size,
+      requestedSize = result.size,
+      relationshipsRequested = 0,
+      selectOperations = selectQueries + relationshipPointers.selectQueries
+    )
+
+    return result
   }
 
   /**
@@ -168,6 +229,14 @@ class SqlCache(
 
   override fun getAll(type: String, ids: MutableCollection<String>?, cacheFilter: CacheFilter?): MutableCollection<CacheData> {
     if (ids.isNullOrEmpty()) {
+      cacheMetrics.get(
+        prefix = name,
+        type = type,
+        itemCount = 0,
+        requestedSize = 0,
+        relationshipsRequested = 0,
+        selectOperations = 0
+      )
       return mutableListOf()
     }
 
@@ -175,6 +244,7 @@ class SqlCache(
     val relationshipPointers = mutableListOf<RelPointer>()
     val relationshipPrefixes = getRelationshipFilterPrefixes(cacheFilter)
 
+    var selectQueries = 0
     try {
       //TODO make configurable
       ids.chunked(sqlChunkSize) { chunk ->
@@ -183,15 +253,16 @@ class SqlCache(
           .where("ID in (${chunk.joinToString(",") { "'$it'" }})")
           .fetch()
           .getValues(0)
+        selectQueries += 1
 
         cacheData.addAll(
           results.map { mapper.readValue(it as String, DefaultCacheData::class.java) }
         )
 
         if (!typesWithoutFwdRelationships.contains(type)) {
-          relationshipPointers.addAll(
-            getRelationshipPointers(type, chunk, relationshipPrefixes)
-          )
+          val result = getRelationshipPointers(type, chunk, relationshipPrefixes)
+          relationshipPointers.addAll(result.data)
+          selectQueries += result.selectQueries
         }
       }
       // TODO better error handling
@@ -199,7 +270,18 @@ class SqlCache(
       return mutableListOf()
     }
 
-    return mergeDataAndRelationships(cacheData, relationshipPointers, relationshipPrefixes)
+    val result = mergeDataAndRelationships(cacheData, relationshipPointers, relationshipPrefixes)
+
+    cacheMetrics.get(
+      prefix = name,
+      type = type,
+      itemCount = result.size,
+      requestedSize = ids.size,
+      relationshipsRequested = relationshipPrefixes.size,
+      selectOperations = selectQueries
+    )
+
+    return result
   }
 
   /**
@@ -300,7 +382,9 @@ class SqlCache(
                                  agentHint: String?,
                                  items: MutableCollection<CacheData>,
                                  location: String?,
-                                 cleanup: Boolean) {
+                                 cleanup: Boolean): StoreResult {
+    val result = StoreResult()
+
     val agent = if (type == ON_DEMAND.ns) {
       // onDemand keys aren't initially written by the agents that update and expire them. since agent is
       // part of the primary key, we need to ensure a consistent value across initial and subsequent writes
@@ -310,6 +394,8 @@ class SqlCache(
     }
 
     val existingHashIds = getHashIds(type, agent)
+    result.selectQueries.incrementAndGet()
+
     val existingHashes = existingHashIds
       .asSequence()
       .map { it.body_hash }
@@ -358,6 +444,8 @@ class SqlCache(
               .set(field("body"), body)
               .set(field("last_updated"), clock.millis())
               .execute()
+            result.insertQueries.incrementAndGet()
+            result.itemCount.incrementAndGet()
           } catch (e: DataAccessException) {
             log.error("Error inserting id: ${it.id}", e)
           } catch (e: SQLDialectNotSupportedException) {
@@ -367,6 +455,7 @@ class SqlCache(
                 .where(field("id").eq(it.id), field("agent").eq(agent))
                 .forUpdate()
             )
+            result.selectQueries.incrementAndGet()
             if (exists) {
               jooq.update(table(resourceTableName(type)))
                 .set(field("body_hash"), bodyHash)
@@ -374,6 +463,8 @@ class SqlCache(
                 .set(field("last_updated"), clock.millis())
                 .where(field("id").eq(it.id), field("agent").eq(agent))
                 .execute()
+              result.updateQueries.incrementAndGet()
+              result.itemCount.incrementAndGet()
             } else {
               jooq.insertInto(
                 table(resourceTableName(type)),
@@ -391,13 +482,15 @@ class SqlCache(
                 body,
                 clock.millis()
               ).execute()
+              result.insertQueries.incrementAndGet()
+              result.itemCount.incrementAndGet()
             }
           }
         }
       }
 
     if (!cleanup) {
-      return
+      return result
     }
 
     val toDelete = existingIds
@@ -410,13 +503,18 @@ class SqlCache(
         jooq.deleteFrom(table(resourceTableName(type)))
           .where(field("id").eq(id))
           .execute()
+        result.deleteQueries.incrementAndGet()
       }
     } catch (e: Exception) {
       log.error("Error deleting stale resource", e)
     }
+
+    return result
   }
 
-  private fun storeInformative(type: String, items: MutableCollection<CacheData>, cleanup: Boolean) {
+  private fun storeInformative(type: String, items: MutableCollection<CacheData>, cleanup: Boolean): StoreResult {
+    val result = StoreResult()
+
     val sourceAgents = items.filter { it.relationships.isNotEmpty() }
       .map { it.relationships.keys }
       .flatten()
@@ -424,10 +522,14 @@ class SqlCache(
 
     if (sourceAgents.isEmpty()) {
       log.warn("no relationships found for type $type")
-      return
+      return result
     }
 
-    val existingFwdRelIds = sourceAgents.map { getRelationshipKeys(type, it) }
+    val existingFwdRelIds = sourceAgents
+      .map {
+        result.selectQueries.incrementAndGet()
+        getRelationshipKeys(type, it)
+      }
       .flatten()
     val existingRevRelTypes = mutableSetOf<String>()
     items
@@ -439,12 +541,15 @@ class SqlCache(
         }
       }
 
-    val existingRevRelIds = existingRevRelTypes.map { relType ->
-      sourceAgents.map { agent ->
-        getRelationshipKeys(relType, type, agent)
+    val existingRevRelIds = existingRevRelTypes
+      .map { relType ->
+        sourceAgents
+          .map { agent ->
+            result.selectQueries.incrementAndGet()
+            getRelationshipKeys(relType, type, agent)
+          }
+          .flatten()
       }
-        .flatten()
-    }
       .flatten()
 
     val oldFwdIds: Map<String, String> = existingFwdRelIds
@@ -492,6 +597,7 @@ class SqlCache(
                   relType,
                   clock.millis()
                 ).execute()
+                result.insertQueries.incrementAndGet()
               } catch (e: Exception) {
                 log.error("Error inserting relationship ${cacheData.id} -> $r ${e.message}", e)
               }
@@ -515,6 +621,7 @@ class SqlCache(
                   type,
                   clock.millis()
                 ).execute()
+                result.insertQueries.incrementAndGet()
               } catch (e: Exception) {
                 log.error("Error inserting $r -> ${cacheData.id} ${e.message}", e)
               }
@@ -524,7 +631,7 @@ class SqlCache(
       }
 
     if (!cleanup) {
-      return
+      return result
     }
 
     val fwdToDelete = oldFwdIds.filter { !currentIds.contains(it.key) }
@@ -536,12 +643,14 @@ class SqlCache(
           jooq.deleteFrom(table(relTableName(type)))
             .where(field("uuid").eq(it.value))
             .execute()
+          result.deleteQueries.incrementAndGet()
         }
         revToDelete.forEach {
           if (oldRevIdsToType.getOrDefault(it.key, "").isNotBlank()) {
             jooq.deleteFrom(table(relTableName(oldRevIdsToType[it.key]!!)))
               .where(field("uuid").eq(it.value))
               .execute()
+            result.deleteQueries.incrementAndGet()
           } else {
             log.warn("Couldn't delete ${it.key}, no mapping to type")
           }
@@ -550,6 +659,8 @@ class SqlCache(
         log.error("Error deleting stale relationships", e)
       }
     }
+
+    return result
   }
 
   private fun createTables(type: String) {
@@ -557,16 +668,16 @@ class SqlCache(
       try {
         if (jooq.dialect().name != "H2") {
           jooq.execute("CREATE TABLE IF NOT EXISTS ${resourceTableName(type)} " +
-            "LIKE cats_v${schema_version}_resource_template")
+            "LIKE cats_v${schemaVersion}_resource_template")
           jooq.execute("CREATE TABLE IF NOT EXISTS ${relTableName(type)} " +
-            "LIKE cats_v${schema_version}_rel_template")
+            "LIKE cats_v${schemaVersion}_rel_template")
 
           createdTables.add(type)
         } else {
           jooq.execute("CREATE TABLE ${resourceTableName(type)} " +
-            "AS SELECT * FROM cats_v${schema_version}_resource_template WHERE 1=0")
+            "AS SELECT * FROM cats_v${schemaVersion}_resource_template WHERE 1=0")
           jooq.execute("CREATE TABLE ${relTableName(type)} " +
-            "AS SELECT * FROM cats_v${schema_version}_rel_template WHERE 1=0")
+            "AS SELECT * FROM cats_v${schemaVersion}_rel_template WHERE 1=0")
 
           createdTables.add(type)
         }
@@ -579,16 +690,16 @@ class SqlCache(
       try {
         if (jooq.dialect().name != "H2") {
           jooq.execute("CREATE TABLE IF NOT EXISTS ${resourceTableName(onDemandType)} " +
-            "LIKE cats_v${schema_version}_resource_template")
+            "LIKE cats_v${schemaVersion}_resource_template")
           jooq.execute("CREATE TABLE IF NOT EXISTS ${relTableName(onDemandType)} " +
-            "LIKE cats_v${schema_version}_rel_template")
+            "LIKE cats_v${schemaVersion}_rel_template")
 
           createdTables.add(onDemandType)
         } else {
           jooq.execute("CREATE TABLE ${resourceTableName(onDemandType)} " +
-            "AS SELECT * FROM cats_v${schema_version}_resource_template WHERE 1=0")
+            "AS SELECT * FROM cats_v${schemaVersion}_resource_template WHERE 1=0")
           jooq.execute("CREATE TABLE ${relTableName(onDemandType)} " +
-            "AS SELECT * FROM cats_v${schema_version}_rel_template WHERE 1=0")
+            "AS SELECT * FROM cats_v${schemaVersion}_rel_template WHERE 1=0")
 
           createdTables.add(onDemandType)
         }
@@ -612,10 +723,10 @@ class SqlCache(
   }
 
   private fun resourceTableName(type: String): String =
-    "cats_v${schema_version}_${if (prefix != null) "${prefix}_" else ""}${sanitizeType(type)}"
+    "cats_v${schemaVersion}_${if (tablePrefix != null) "${tablePrefix}_" else ""}${sanitizeType(type)}"
 
   private fun relTableName(type: String): String =
-    "cats_v${schema_version}_${if (prefix != null) "${prefix}_" else ""}${sanitizeType(type)}_rel"
+    "cats_v${schemaVersion}_${if (tablePrefix != null) "${tablePrefix}_" else ""}${sanitizeType(type)}_rel"
 
   private fun sanitizeType(type: String): String {
     return type.replace("""[:/\-]""".toRegex(), "_")
@@ -672,10 +783,11 @@ class SqlCache(
   private fun getRelationshipPointers(
     type: String,
     ids: Collection<String>,
-    relationshipPrefixes: List<String>): MutableList<RelPointer> {
+    relationshipPrefixes: List<String>): RelationshipPointersResult {
 
     val relationshipPointers = mutableListOf<RelPointer>()
 
+    var selectQueries = 0
     ids.chunked(sqlChunkSize) { chunk ->
       val sql = "ID in (${chunk.joinToString(",") { "'$it'" }})"
 
@@ -689,7 +801,7 @@ class SqlCache(
               .into(RelPointer::class.java)
           } else {
             val relWhere = " AND ('rel_type' LIKE " +
-              relationshipPrefixes.joinToString(" OR 'rel_type' LIKE ") { "'${it}%'" } + ")"
+              relationshipPrefixes.joinToString(" OR 'rel_type' LIKE ") { "'$it%'" } + ")"
             jooq.select(field("id"), field("rel_id"), field("rel_type"))
               .from(table(relTableName(type)))
               .where(sql + relWhere)
@@ -697,9 +809,10 @@ class SqlCache(
               .into(RelPointer::class.java)
           }
         )
+        selectQueries += 1
       }
     }
-    return relationshipPointers
+    return RelationshipPointersResult(relationshipPointers, selectQueries)
   }
 
   private fun mergeDataAndRelationships(cacheData: Collection<CacheData>,
@@ -833,4 +946,16 @@ class SqlCache(
     val rel_type: String
   )
 
+  private data class RelationshipPointersResult(
+    val data: MutableList<RelPointer>,
+    val selectQueries: Int
+  )
+
+  private inner class StoreResult {
+    val itemCount = AtomicInteger(0)
+    val selectQueries = AtomicInteger(0)
+    val insertQueries = AtomicInteger(0)
+    val updateQueries = AtomicInteger(0)
+    val deleteQueries = AtomicInteger(0)
+  }
 }

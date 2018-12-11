@@ -2,6 +2,7 @@ package com.netflix.spinnaker.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.discovery.EurekaClient
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.AgentScheduler
 import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation
 import com.netflix.spinnaker.cats.cache.NamedCacheFactory
@@ -13,6 +14,8 @@ import com.netflix.spinnaker.cats.redis.cluster.DefaultNodeIdentity
 import com.netflix.spinnaker.cats.redis.cluster.DefaultNodeStatusProvider
 import com.netflix.spinnaker.cats.redis.cluster.NodeStatusProvider
 import com.netflix.spinnaker.cats.sql.SqlProviderRegistry
+import com.netflix.spinnaker.cats.sql.cache.SpectatorSqlCacheMetrics
+import com.netflix.spinnaker.cats.sql.cache.SqlCacheMetrics
 import com.netflix.spinnaker.cats.sql.cache.SqlNamedCacheFactory
 import com.netflix.spinnaker.cats.sql.cluster.SqlClusteredAgentScheduler
 import com.netflix.spinnaker.clouddriver.cache.CustomSchedulableAgentIntervalProvider
@@ -41,6 +44,11 @@ import java.util.concurrent.TimeUnit
 class SqlCacheConfiguration {
 
   @Bean
+  fun sqlCacheMetrics(registry: Registry): SqlCacheMetrics {
+    return SpectatorSqlCacheMetrics(registry)
+  }
+
+  @Bean
   fun catsModule(providers: List<Provider>,
                  executionInstrumentation: List<ExecutionInstrumentation>,
                  cacheFactory: NamedCacheFactory,
@@ -57,9 +65,10 @@ class SqlCacheConfiguration {
   fun cacheFactory(jooq: DSLContext,
                    clock: Clock,
                    sqlProperties: SqlProperties,
+                   cacheMetrics: SqlCacheMetrics,
                    @Value("\${sql.cache.tablePrefix:#{null}}") prefix: String?,
                    @Value("\${sql.cache.batchSize:1000}") batchSize: Int): NamedCacheFactory =
-    SqlNamedCacheFactory(jooq, ObjectMapper(), clock, sqlProperties.retries, prefix, batchSize)
+    SqlNamedCacheFactory(jooq, ObjectMapper(), clock, sqlProperties.retries, prefix, batchSize, cacheMetrics)
 
   @Bean
   @ConditionalOnProperty(value = ["caching.writeEnabled"], matchIfMissing = true)
