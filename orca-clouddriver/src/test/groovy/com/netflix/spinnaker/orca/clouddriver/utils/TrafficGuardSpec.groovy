@@ -86,6 +86,24 @@ class TrafficGuardSpec extends Specification {
     ]
   }
 
+  void "should throw exception when target server group can not be found in cluster"() {
+    given:
+    addGuard([account: "test", location: "us-east-1", stack: "foo"])
+
+    when:
+    trafficGuard.verifyTrafficRemoval("app-foo-v999", MonikerHelper.friggaToMoniker("app-foo-v999"), "test", location, "aws", "x")
+
+    then:
+    def e = thrown(TrafficGuardException)
+    e.message.startsWith("Could not find server group 'app-foo-v999'")
+    1 * oortHelper.getCluster("app", "test", "app-foo", "aws") >> [
+      serverGroups: [
+        makeServerGroup(targetName, 1),
+        makeServerGroup(otherName, 0, 1, [isDisabled: true])
+      ]
+    ]
+  }
+
   void "should throw exception when capacity ratio less than configured minimum"() {
     given:
     addGuard([account: "test", location: "us-east-1", stack: "foo"])

@@ -131,8 +131,13 @@ public class TrafficGuard {
     TargetServerGroup serverGroupGoingAway = targetServerGroups.stream()
       .filter(sg -> serverGroupName.equals(sg.getName()))
       .findFirst()
-      .orElseThrow(() -> new TrafficGuardException(format("Could not find server group '%s' in %s/%s with traffic guard configured.",
-        serverGroupName, account, location.getValue())));
+      .orElseThrow(() -> {
+        String message = format("Could not find server group '%s' in %s/%s, found [%s]",
+          serverGroupName, account, location.getValue(),
+          String.join(", ", targetServerGroups.stream().map(TargetServerGroup::getName).collect(Collectors.toSet())));
+        log.error("{}\nContext: {}", message, generateContext(targetServerGroups));
+        return new TrafficGuardException(message);
+      });
 
     verifyTrafficRemoval(serverGroupGoingAway, targetServerGroups, account, operationDescriptor);
   }
