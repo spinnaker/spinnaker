@@ -8,11 +8,11 @@ import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation
 import com.netflix.spinnaker.cats.cache.NamedCacheFactory
 import com.netflix.spinnaker.cats.module.CatsModule
 import com.netflix.spinnaker.cats.provider.Provider
-import com.netflix.spinnaker.cats.redis.cluster.AgentIntervalProvider
-import com.netflix.spinnaker.cats.redis.cluster.DefaultAgentIntervalProvider
-import com.netflix.spinnaker.cats.redis.cluster.DefaultNodeIdentity
-import com.netflix.spinnaker.cats.redis.cluster.DefaultNodeStatusProvider
-import com.netflix.spinnaker.cats.redis.cluster.NodeStatusProvider
+import com.netflix.spinnaker.cats.cluster.AgentIntervalProvider
+import com.netflix.spinnaker.cats.cluster.DefaultAgentIntervalProvider
+import com.netflix.spinnaker.cats.cluster.DefaultNodeIdentity
+import com.netflix.spinnaker.cats.cluster.DefaultNodeStatusProvider
+import com.netflix.spinnaker.cats.cluster.NodeStatusProvider
 import com.netflix.spinnaker.cats.sql.SqlProviderRegistry
 import com.netflix.spinnaker.cats.sql.cache.SpectatorSqlCacheMetrics
 import com.netflix.spinnaker.cats.sql.cache.SqlCacheMetrics

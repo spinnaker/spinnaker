@@ -22,9 +22,9 @@ import com.netflix.spinnaker.cats.agent.AgentScheduler
 import com.netflix.spinnaker.cats.agent.AgentSchedulerAware
 import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation
 import com.netflix.spinnaker.cats.module.CatsModuleAware
-import com.netflix.spinnaker.cats.redis.cluster.AgentIntervalProvider
-import com.netflix.spinnaker.cats.redis.cluster.NodeIdentity
-import com.netflix.spinnaker.cats.redis.cluster.NodeStatusProvider
+import com.netflix.spinnaker.cats.cluster.AgentIntervalProvider
+import com.netflix.spinnaker.cats.cluster.NodeIdentity
+import com.netflix.spinnaker.cats.cluster.NodeStatusProvider
 import com.netflix.spinnaker.cats.thread.NamedThreadFactory
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import org.jooq.DSLContext

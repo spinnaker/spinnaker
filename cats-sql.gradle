@@ -25,6 +25,7 @@ dependencies {
   testCompile spinnaker.dependency("groovy")
 
   compile("com.netflix.spinnaker.clouddriver:cats-core:${clouddriverVersion}")
+  compile("com.netflix.spinnaker.clouddriver:cats-redis:${clouddriverVersion}")
   compile project(":clouddriver-sql")
 
   testCompile "com.h2database:h2:1.4.197"
