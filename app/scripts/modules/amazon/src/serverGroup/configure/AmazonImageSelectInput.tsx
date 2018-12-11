@@ -72,32 +72,8 @@ export class AmazonImageSelectInput extends React.Component<IAmazonImageSelector
     return tooShort ? null : packageBase + (addDashToQuery ? '-*' : '*');
   }
 
-  private findImagesSimilarTo(exactImage: IAmazonImage): IPromise<IAmazonImage[]> {
-    if (exactImage === null) {
-      return $q.when([]);
-    }
-
-    const similarImagesQuery = this.buildQueryForSimilarImages(exactImage.imageName);
-
-    if (similarImagesQuery === null) {
-      return $q.when([exactImage]);
-    }
-
-    return this.awsImageReader.findImages({ q: similarImagesQuery }).then(similarImages => {
-      if (!similarImages.find(image => image.imageName !== exactImage.imageName)) {
-        // findImages has a limit of 1000 and may not always include the current image, which is confusing
-        similarImages = similarImages.concat(exactImage);
-      }
-
-      return similarImages.sort((a, b) => a.imageName.localeCompare(b.imageName));
-    });
-  }
-
-  private loadImagesFromImageId(imageId: string, region: string, credentials: string): IPromise<IAmazonImage[]> {
-    return this.awsImageReader
-      .getImage(imageId, region, credentials)
-      .then(image => this.findImagesSimilarTo(image))
-      .catch(() => [] as IAmazonImage[]);
+  private loadImageById(imageId: string, region: string, credentials: string): IPromise<IAmazonImage> {
+    return !imageId ? $q.when(null) : this.awsImageReader.getImage(imageId, region, credentials).catch(() => null);
   }
 
   private searchForImages(query: string): IPromise<IAmazonImage[]> {
@@ -113,9 +89,19 @@ export class AmazonImageSelectInput extends React.Component<IAmazonImageSelector
   ): IPromise<IAmazonImage[]> {
     const imageId = value && value.amis && value.amis[region] && value.amis[region][0];
 
-    return imageId
-      ? this.loadImagesFromImageId(imageId, region, credentials)
-      : this.loadImagesFromApplicationName(application);
+    return this.loadImageById(imageId, region, credentials).then(image => {
+      if (!image) {
+        return this.loadImagesFromApplicationName(application);
+      }
+
+      return this.searchForImages(this.buildQueryForSimilarImages(image.imageName)).then(similarImages => {
+        if (!similarImages.find(img => img.imageName !== image.imageName)) {
+          // findImages has a limit of 1000 and may not always include the current image, which is confusing
+          return similarImages.concat(image);
+        }
+        return similarImages;
+      });
+    });
   }
 
   private selectImage(selectedImage: IAmazonImage) {
@@ -133,7 +119,11 @@ export class AmazonImageSelectInput extends React.Component<IAmazonImageSelector
     const { value, region, credentials, application } = this.props;
 
     this.setState({ isLoadingPackageImages: true });
-    const packageImages$ = Observable.fromPromise(this.fetchPackageImages(value, region, credentials, application))
+    const fetchPromise = this.fetchPackageImages(value, region, credentials, application).then(images =>
+      images.sort((a, b) => a.imageName.localeCompare(b.imageName)),
+    );
+
+    const packageImages$ = Observable.fromPromise(fetchPromise)
       .catch(err => {
         console.error(err);
         this.setState({ errorMessage: 'Unable to load package images' });
