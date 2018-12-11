@@ -76,7 +76,7 @@ public class DeployCloudFoundryServerGroupAtomicOperationConverter extends Abstr
     converted.setSpace(findSpace(converted.getRegion(), converted.getClient())
       .orElseThrow(() -> new IllegalArgumentException("Unable to find space '" + converted.getRegion() + "'.")));
 
-    Map artifactSource = (Map) input.get("artifactSource");
+    Map artifactSource = (Map) input.get("artifact");
 
     if ("artifact".equals(artifactSource.get("type"))) {
       ArtifactCredentials artifactCredentials = credentialsRepository.getAllCredentials().stream()

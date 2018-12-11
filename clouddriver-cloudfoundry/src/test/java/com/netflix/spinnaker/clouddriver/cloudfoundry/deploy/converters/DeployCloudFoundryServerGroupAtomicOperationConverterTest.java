@@ -97,7 +97,7 @@ class DeployCloudFoundryServerGroupAtomicOperationConverterTest {
     final Map input = HashMap.of(
       "credentials", "test",
       "region", "org > space",
-      "artifactSource", HashMap.of(
+      "artifact", HashMap.of(
         "type", "package",
         "account", "test",
         "serverGroupName", "serverGroupName1",
