@@ -112,6 +112,33 @@ class AmazonSecurityGroupProvider implements SecurityGroupProvider<AmazonSecurit
     getAllMatchingKeyPattern(Keys.getSecurityGroupKey(name, '*', region, account, vpcId), includeRules)[0]
   }
 
+  String getNameById(String account, String region, String securityGroupId, String vpcId) {
+    String key = getCacheIdentifier(Keys.getSecurityGroupKey('*', securityGroupId, region, account, vpcId))
+    if (key) {
+      return Keys.parse(key).name
+    } else {
+      return null
+    }
+  }
+
+  String getIdByName(String account, String region, String name, String vpcId) {
+    String key = getCacheIdentifier(Keys.getSecurityGroupKey(name, "*", region, account, vpcId))
+    if (key) {
+      return Keys.parse(key).id
+    } else {
+      return null
+    }
+  }
+
+  String getCacheIdentifier(String pattern) {
+    Set ids = cacheView.filterIdentifiers(SECURITY_GROUPS.ns, pattern)
+    if (ids.isEmpty()) {
+      return null
+    } else {
+      return ids.toArray()[0]
+    }
+  }
+
   AmazonSecurityGroup getById(String account, String region, String securityGroupId, String vpcId) {
     getAllMatchingKeyPattern(Keys.getSecurityGroupKey('*', securityGroupId, region, account, vpcId), true)[0]
   }

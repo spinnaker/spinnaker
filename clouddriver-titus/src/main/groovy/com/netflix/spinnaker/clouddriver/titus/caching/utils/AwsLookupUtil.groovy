@@ -71,7 +71,7 @@ class AwsLookupUtil {
     Map awsDetails = awsAccountLookup.find {
       it.titusAccount == account && it.region == region
     }
-    awsSecurityGroupProvider.get(false, awsDetails.awsAccount, region, providedSecurityGroup, awsDetails.vpcId)?.id
+    awsSecurityGroupProvider.getIdByName(awsDetails.awsAccount, region, providedSecurityGroup, awsDetails.vpcId)
   }
 
   String createSecurityGroupForApplication(account, region, application) {
@@ -187,12 +187,12 @@ class AwsLookupUtil {
       }
     }
 
-    [name      : awsSecurityGroupProvider.getById(false,
+    [name      : awsSecurityGroupProvider.getNameById(
       awsDetails.awsAccount,
       region,
       securityGroupId,
       awsDetails.vpcId
-    )?.name,
+     ),
      awsAccount: awsDetails.awsAccount,
      vpcId     : awsDetails.vpcId
     ]
