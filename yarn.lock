@@ -935,20 +935,20 @@ angular-cron-gen@0.0.21:
   resolved "https://registry.yarnpkg.com/angular-cron-gen/-/angular-cron-gen-0.0.21.tgz#faa2bb35252a77892244dc895255b34dd6f734bf"
   integrity sha1-+qK7NSUqd4kiRNyJUlWzTdb3NL8=
 
-angular-messages@~1.6.3:
-  version "1.6.4"
-  resolved "https://registry.yarnpkg.com/angular-messages/-/angular-messages-1.6.4.tgz#9ec9c1393293b14de54161d2f849776489e980fe"
-  integrity sha1-nsnBOTKTsU3lQWHS+El3ZInpgP4=
+angular-messages@1.6.10:
+  version "1.6.10"
+  resolved "https://registry.yarnpkg.com/angular-messages/-/angular-messages-1.6.10.tgz#09eedc5b50db99eeed9776414428c587c1259715"
+  integrity sha512-FpILIYqeBj2fP5U5txnO/cneeKZxdF+WqpBo7tgHXl2BmOVVWKUCEjMmByouYxwn9PFLeipBPjaaDs2/eB/m5A==
 
-angular-mocks@1.6.4:
-  version "1.6.4"
-  resolved "https://registry.yarnpkg.com/angular-mocks/-/angular-mocks-1.6.4.tgz#47fdf50921cf24fb489f100a8cf2ad99d0538f40"
-  integrity sha1-R/31CSHPJPtInxAKjPKtmdBTj0A=
+angular-mocks@1.6.10:
+  version "1.6.10"
+  resolved "https://registry.yarnpkg.com/angular-mocks/-/angular-mocks-1.6.10.tgz#6a139e43c461d0c9a5a1acebc91e63db16031176"
+  integrity sha512-1865/NmqHNogibNoglY1MGBjx882iu2hI46BBhYDWyz0C4TDM5ER8H8SnYwQKUUG4RXMDsJizszEQ2BEoYKV9w==
 
-angular-sanitize@~1.6.3:
-  version "1.6.4"
-  resolved "https://registry.yarnpkg.com/angular-sanitize/-/angular-sanitize-1.6.4.tgz#60a37ea96fb0d4a322a3ccb64ee4a5cf3b154f0c"
-  integrity sha1-YKN+qW+w1KMio8y2TuSlzzsVTww=
+angular-sanitize@1.6.10:
+  version "1.6.10"
+  resolved "https://registry.yarnpkg.com/angular-sanitize/-/angular-sanitize-1.6.10.tgz#635a362afb2dd040179f17d3a5455962b2c1918f"
+  integrity sha512-01i1Xoq9ykUrsoYQMSB6dWZmPp9Df5hfCqMAGGzJBWZ7L2WY0OtUphdI0YvR8ZF9lAsWtGNtsEFilObjq5nTgQ==
 
 angular-spinner@^1.0.1:
   version "1.0.1"
@@ -981,6 +981,11 @@ angular2react@^3.0.2:
   dependencies:
     lodash.kebabcase "^4.1.1"
     ngimport "^1.0.0"
+
+angular@1.6.10:
+  version "1.6.10"
+  resolved "https://registry.yarnpkg.com/angular/-/angular-1.6.10.tgz#eed3080a34d29d0f681ff119b18ce294e3f74826"
+  integrity sha512-PCZ5/hVdvPQiYyH0VwsPjrErPHRcITnaXxhksceOXgtJeesKHLA7KDu4X/yvcAi+1zdGgGF+9pDxkJvghXI9Wg==
 
 angular@>=1.5:
   version "1.6.9"
