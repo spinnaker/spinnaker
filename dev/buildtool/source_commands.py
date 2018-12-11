@@ -22,6 +22,8 @@ from buildtool import (
     DEFAULT_BUILD_NUMBER,
     SPINNAKER_BOM_REPOSITORY_NAMES,
     SPINNAKER_HALYARD_REPOSITORY_NAME,
+    SPINNAKER_PROCESS_REPOSITORY_NAMES,
+    SPINNAKER_SHARED_REPOSITORY_NAMES,
 
     BranchSourceCodeManager,
     RepositoryCommandFactory,
@@ -39,6 +41,8 @@ class FetchSourceCommand(RepositoryCommandProcessor):
 
     all_names = list(SPINNAKER_BOM_REPOSITORY_NAMES)
     all_names.append(SPINNAKER_HALYARD_REPOSITORY_NAME)
+    all_names.extend(SPINNAKER_PROCESS_REPOSITORY_NAMES)
+    all_names.extend(SPINNAKER_SHARED_REPOSITORY_NAMES)
     super(FetchSourceCommand, self).__init__(
         factory, options, source_repository_names=all_names)
 

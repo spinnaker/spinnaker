@@ -29,6 +29,7 @@ from buildtool import (
     SPINNAKER_BOM_REPOSITORY_NAMES,
     SPINNAKER_GITHUB_IO_REPOSITORY_NAME,
     SPINNAKER_PROCESS_REPOSITORY_NAMES,
+    SPINNAKER_SHARED_REPOSITORY_NAMES,
     BomSourceCodeManager,
     BranchSourceCodeManager,
     CommandProcessor,
@@ -51,6 +52,7 @@ class InitiateReleaseBranchFactory(RepositoryCommandFactory):
   def __init__(self, **kwargs):
     repo_names = list(SPINNAKER_BOM_REPOSITORY_NAMES)
     repo_names.extend(SPINNAKER_PROCESS_REPOSITORY_NAMES)
+    repo_names.extend(SPINNAKER_SHARED_REPOSITORY_NAMES)
     repo_names.append(SPINNAKER_GITHUB_IO_REPOSITORY_NAME)
     super(InitiateReleaseBranchFactory, self).__init__(
         'new_release_branch', InitiateReleaseBranchCommand,
@@ -208,7 +210,9 @@ class PublishSpinnakerCommand(CommandProcessor):
           self.__push_branch_and_maybe_tag_repository(
               repository, self.__branch, name in names_to_push)
 
-    for name in SPINNAKER_PROCESS_REPOSITORY_NAMES:
+    additional_repositories = list(SPINNAKER_PROCESS_REPOSITORY_NAMES)
+    additional_repositories.extend(SPINNAKER_SHARED_REPOSITORY_NAMES)
+    for name in additional_repositories:
       if self.__only_repositories and name not in self.__only_repositories:
         logging.debug('Skipping %s because of --only_repositories', name)
         continue
@@ -216,7 +220,7 @@ class PublishSpinnakerCommand(CommandProcessor):
       self.__process_scm.ensure_local_repository(repository)
       if self.__branch_and_tag_repository(repository, self.__branch):
         self.__push_branch_and_maybe_tag_repository(
-            repository, self.__branch)
+            repository, self.__branch, True)
 
   def __already_have_tag(self, repository, tag):
     """Determine if we already have the tag in the repository."""
@@ -271,7 +275,7 @@ class PublishSpinnakerCommand(CommandProcessor):
     try:
       logging.debug('Verifying changelog ready at %s', changelog_gist_url)
       urlopen(changelog_gist_url)
-    except HTTPError as error:
+    except HTTPError:
       logging.error(exception_to_message)
       raise_and_log_error(
           ConfigError(
