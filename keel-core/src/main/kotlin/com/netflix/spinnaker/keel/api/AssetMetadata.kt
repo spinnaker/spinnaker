@@ -18,15 +18,13 @@ package com.netflix.spinnaker.keel.api
 import com.fasterxml.jackson.annotation.JsonAnyGetter
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.google.gson.TypeAdapter
+import com.google.gson.JsonDeserializationContext
+import com.google.gson.JsonDeserializer
+import com.google.gson.JsonElement
+import com.google.gson.JsonSerializationContext
+import com.google.gson.JsonSerializer
 import com.google.gson.annotations.JsonAdapter
-import com.google.gson.stream.JsonReader
-import com.google.gson.stream.JsonToken.BOOLEAN
-import com.google.gson.stream.JsonToken.END_OBJECT
-import com.google.gson.stream.JsonToken.NULL
-import com.google.gson.stream.JsonToken.NUMBER
-import com.google.gson.stream.JsonToken.STRING
-import com.google.gson.stream.JsonWriter
+import java.lang.reflect.Type
 import java.util.*
 
 @JsonAdapter(AssetMetadataAdapter::class)
@@ -55,40 +53,12 @@ data class AssetMetadata(
       .toString()
 }
 
-internal class AssetMetadataAdapter : TypeAdapter<AssetMetadata>() {
-  override fun write(writer: JsonWriter, value: AssetMetadata) {
-    writer.apply {
-      beginObject()
-      name("name").value(value.name.value)
-      name("resourceVersion").value(value.resourceVersion)
-      name("uid").value(value.uid.toString())
-      value.data.forEach { k, v ->
-        name(k)
-        when (v) {
-          null -> nullValue()
-          is String -> value(v)
-          is Number -> value(v)
-          is Boolean -> value(v)
-          else -> value(v.toString())
-        }
-      }
-      endObject()
-    }
+internal class AssetMetadataAdapter : JsonDeserializer<AssetMetadata>, JsonSerializer<AssetMetadata> {
+  override fun serialize(src: AssetMetadata, typeOfSrc: Type, context: JsonSerializationContext): JsonElement {
+    return context.serialize(mapOf("name" to src.name.value, "uid" to src.uid, "resourceVersion" to src.resourceVersion) + src.data, Map::class.java)
   }
 
-  override fun read(reader: JsonReader): AssetMetadata {
-    reader.beginObject()
-    val data = mutableMapOf<String, Any?>()
-    while (reader.peek() != END_OBJECT) {
-      data[reader.nextName()] = when (val token = reader.peek()) {
-        STRING -> reader.nextString()
-        BOOLEAN -> reader.nextBoolean()
-        NUMBER -> reader.nextLong()
-        NULL -> reader.nextNull()
-        else -> throw IllegalStateException("Expected a $STRING, $BOOLEAN, $NUMBER, or $NULL but found $token")
-      }
-    }
-    reader.endObject()
-    return AssetMetadata(data)
+  override fun deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): AssetMetadata {
+    return AssetMetadata(context.deserialize<Map<String, Any?>>(json, Map::class.java))
   }
 }
