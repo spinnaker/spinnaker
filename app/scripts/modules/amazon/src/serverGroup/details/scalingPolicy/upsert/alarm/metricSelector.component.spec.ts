@@ -245,8 +245,8 @@ describe('Component: metric selector', () => {
       ]);
       serverGroup = makeServerGroup('asg-v000');
 
-      initialize();
       spyOn(CloudMetricsReader, 'listMetrics').and.returnValue($q.reject(null));
+      initialize();
 
       $ctrl.$onInit();
       $scope.$digest();
