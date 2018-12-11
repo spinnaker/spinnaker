@@ -37,7 +37,7 @@ class CloudFoundryServerGroupCreator implements ServerGroupCreator {
       manifest: stage.context.manifest,
       region: stage.context.region,
       startApplication: stage.context.startApplication,
-      artifactSource: stage.context.artifact
+      artifact: stage.context.artifact
     ]
 
     stage.context.stack?.with { operation.stack = it }
@@ -47,7 +47,7 @@ class CloudFoundryServerGroupCreator implements ServerGroupCreator {
       JenkinsTrigger jenkins = stage.execution.trigger as JenkinsTrigger
       def artifact = stage.context.artifact
       if(artifact.type == 'trigger') {
-        operation.artifactSource = getArtifactFromJenkinsTrigger(jenkins, artifact.account, artifact.pattern)
+        operation.artifact = getArtifactFromJenkinsTrigger(jenkins, artifact.account, artifact.pattern)
       }
       def manifest = stage.context.manifest
       if(manifest.type == 'trigger') {

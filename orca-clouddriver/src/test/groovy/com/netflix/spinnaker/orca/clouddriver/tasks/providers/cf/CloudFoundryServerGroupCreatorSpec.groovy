@@ -54,7 +54,7 @@ class CloudFoundryServerGroupCreatorSpec extends Specification {
           manifest      : null,
           region        : "org > space",
           startApplication: true,
-          artifactSource: [
+          artifact: [
             type     : "artifact",
             account  : "count-von-count",
             reference: "some-reference"
@@ -116,7 +116,7 @@ class CloudFoundryServerGroupCreatorSpec extends Specification {
           ],
           region        : "org > space",
           startApplication: true,
-          artifactSource: [
+          artifact: [
             type     : "artifact",
             account  : "count-von-count",
             reference: "https://example.com/artifact/sister_path/that_s_father_m_oregon_to_you.jar"
@@ -157,7 +157,7 @@ class CloudFoundryServerGroupCreatorSpec extends Specification {
           manifest      : null,
           region        : "org > space",
           startApplication: true,
-          artifactSource: [type: "package",
+          artifact: [type: "package",
                            cluster: [name: "my-cloister"],
                            serverGroupName: "s-club-7",
                            account: "my-account",
@@ -199,7 +199,7 @@ class CloudFoundryServerGroupCreatorSpec extends Specification {
           ],
           region        : "org > space",
           startApplication: true,
-          artifactSource: [
+          artifact: [
             type     : "artifact",
             account  : "count-von-count",
             reference: "some-reference"
@@ -253,7 +253,7 @@ class CloudFoundryServerGroupCreatorSpec extends Specification {
           ],
           region           : "org > space",
           startApplication : true,
-          artifactSource: [
+          artifact: [
             type     : "artifact",
             account  : "count-von-count",
             reference: "some-reference"
@@ -300,7 +300,7 @@ class CloudFoundryServerGroupCreatorSpec extends Specification {
           ],
           region           : "org > space",
           startApplication : true,
-          artifactSource: [
+          artifact: [
             type     : "artifact",
             account  : "count-von-count",
             reference: "some-reference"
