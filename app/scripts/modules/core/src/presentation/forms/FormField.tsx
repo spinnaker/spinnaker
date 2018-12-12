@@ -18,6 +18,8 @@ import {
   IValidationProps,
 } from './interface';
 
+import './forms.less';
+
 export interface IFormFieldValidationProps {
   validate?: Validator | Validator[];
 }

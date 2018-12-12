@@ -1,0 +1,173 @@
+@desktop: 640px;
+@form-max-width: 800px;
+
+.sp-formSection {
+  border: 1px solid #a1a1a1;
+  border-radius: 16px;
+  max-width: @form-max-width;
+  overflow: hidden;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 0 0 #a1a1a1;
+  background-color: #ffffff;
+  padding-bottom: 8px;
+}
+
+.sp-formSection__header {
+  font-size: 18px;
+  font-weight: 600;
+  border-bottom: 1px solid #999999;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  background-color: rgba(0, 0, 0, 0.06);
+  padding: 8px 16px;
+  margin-bottom: 8px;
+
+  .title {
+    flex: 1 1 auto;
+    min-height: 48px;
+  }
+}
+
+.sp-formGroup {
+  border: 1px solid #b1b1b1;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 0 0 #b1b1b1;
+  max-width: @form-max-width;
+  margin-bottom: 16px;
+  overflow: visible;
+}
+
+.sp-formItem {
+  font-size: 14px;
+  padding: 8px;
+  max-width: @form-max-width;
+
+  @media only screen and (min-width: @desktop) {
+    display: flex;
+  }
+
+  &.groupHeader {
+    background-color: rgba(0, 0, 0, 0.025);
+    border-bottom: 1px dotted #999999;
+    padding-bottom: 0;
+    margin-bottom: 7px;
+  }
+}
+.sp-formItem__left {
+  display: flex;
+
+  @media only screen and (min-width: @desktop) {
+    flex: 0 0 23%;
+  }
+}
+.sp-formItem__right {
+  @media only screen and (min-width: @desktop) {
+    flex: 0 0 58%;
+    margin-left: 14px;
+  }
+}
+
+.sp-formLabel {
+  align-self: flex-end;
+  margin-left: 8px;
+  margin-bottom: 4px;
+  flex: 1 1 100%;
+  font-weight: 600;
+  font-size: 13px;
+  font-weight: 700;
+
+  @media only screen and (min-width: @desktop) {
+    align-self: flex-start;
+    text-align: right;
+    margin: 6px 16px 8px 0;
+  }
+
+  .optional {
+    font-weight: 600;
+    font-style: italic;
+    font-size: 12px;
+  }
+}
+
+.sp-formActions {
+  white-space: nowrap;
+
+  .action {
+    display: inline-block;
+    width: 32px;
+    height: 32px;
+    padding: 3px 4px;
+    border: 1px solid #999999;
+    cursor: pointer;
+    border-radius: 2px;
+    margin-left: 4px;
+
+    @media only screen and (min-width: @desktop) {
+      margin-left: 2px;
+    }
+    [class^='icon-'],
+    [class*=' icon-'] {
+      font-size: 24px;
+    }
+  }
+}
+
+.sp-formActions--mobile {
+  flex: 1 0 1px;
+  margin-bottom: 8px;
+  align-self: flex-end;
+
+  @media only screen and (min-width: @desktop) {
+    display: none;
+  }
+}
+
+.sp-formActions--web {
+  display: none;
+
+  @media only screen and (min-width: @desktop) {
+    display: block;
+  }
+}
+
+.sp-form {
+  display: flex;
+  width: 100%;
+  margin-bottom: 8px;
+
+  .prefix,
+  .suffix {
+    flex: 0 1 auto;
+    margin: 8px 4px 8px 0;
+    align-self: center;
+    word-break: break-all;
+  }
+  .suffix {
+    margin-left: 4px;
+    margin-right: 6px;
+  }
+  .field {
+    flex: 1 1 auto;
+    min-width: 100px;
+  }
+  .Select-input {
+    input {
+      border: none !important;
+    }
+  }
+
+  input[type='text'] {
+    border: 1px solid #999;
+    border-radius: 2px;
+    width: 100%;
+    height: 32px;
+    padding: 0 8px;
+    background-color: transparent;
+    font-size: 14px;
+  }
+  input[type='checkbox'] {
+    background-color: red;
+  }
+}
