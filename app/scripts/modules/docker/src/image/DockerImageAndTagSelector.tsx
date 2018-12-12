@@ -85,7 +85,7 @@ export class DockerImageAndTagSelector extends React.Component<
       props.repository && props.repository.length ? [{ label: props.repository, value: props.repository }] : [];
     const tagOptions = props.tag && props.tag.length ? [{ label: props.tag, value: props.tag }] : [];
 
-    const defineManually = props.imageId && props.imageId.includes('${');
+    const defineManually = Boolean(props.imageId && props.imageId.includes('${'));
 
     this.state = {
       accountOptions,
