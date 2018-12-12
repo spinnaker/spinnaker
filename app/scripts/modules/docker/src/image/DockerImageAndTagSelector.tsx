@@ -229,7 +229,7 @@ export class DockerImageAndTagSelector extends React.Component<
   }
 
   private updateThings(props: IDockerImageAndTagSelectorProps) {
-    let { organization, registry, repository } = props;
+    let { imageId, organization, registry, repository } = props;
     const { account, showRegistry } = props;
 
     organization =
@@ -247,7 +247,9 @@ export class DockerImageAndTagSelector extends React.Component<
 
     const { tag, tags } = this.getTags(props.tag, this.repositoryMap, repository);
 
-    this.synchronizeChanges({ organization, repository, tag, digest: this.props.digest }, registry);
+    if (!imageId || !imageId.includes('${')) {
+      this.synchronizeChanges({ organization, repository, tag, digest: this.props.digest }, registry);
+    }
 
     this.setState({
       accountOptions: this.newAccounts.sort().map(a => ({ label: a, value: a })),
