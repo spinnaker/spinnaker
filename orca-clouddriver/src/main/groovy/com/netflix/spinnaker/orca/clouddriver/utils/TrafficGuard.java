@@ -156,7 +156,10 @@ public class TrafficGuard {
                                    Collection<TargetServerGroup> currentServerGroups,
                                    String account,
                                    String operationDescriptor) {
-    Preconditions.checkArg(!serverGroupsGoingAway.isEmpty(), "serverGroupsGoingAway must not be empty");
+    if (serverGroupsGoingAway == null || serverGroupsGoingAway.isEmpty()) {
+      return;
+    }
+
     Preconditions.checkArg(!currentServerGroups.isEmpty(), "currentServerGroups must not be empty");
 
     // make sure all server groups are in the same location
