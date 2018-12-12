@@ -109,11 +109,8 @@ class ServerGroupBasicSettingsImpl extends React.Component<
     }
 
     if (!values.viewState.disableImageSelection) {
-      if (!values.repository) {
-        errors.repository = 'Image is required.';
-      }
-      if (!values.tag) {
-        errors.tag = 'Tag is required.';
+      if (!values.imageId) {
+        errors.imageId = 'Image is required.';
       }
     }
 
