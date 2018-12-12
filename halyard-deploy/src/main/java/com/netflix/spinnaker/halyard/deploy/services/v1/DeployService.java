@@ -284,7 +284,8 @@ public class DeployService {
     Deployer deployer = getDeployer(deploymentConfiguration);
     DeploymentDetails deploymentDetails = getDeploymentDetails(deploymentConfiguration);
 
-    RemoteAction action = deployer.deploy(serviceProvider, deploymentDetails, resolvedConfiguration, serviceTypes);
+    boolean waitForCompletion = deployOptions.contains(DeployOption.WAIT_FOR_COMPLETION);
+    RemoteAction action = deployer.deploy(serviceProvider, deploymentDetails, resolvedConfiguration, serviceTypes, waitForCompletion);
     halconfigParser.backupConfig();
 
     if (deployOptions.contains(DeployOption.FLUSH_INFRASTRUCTURE_CACHES)) {

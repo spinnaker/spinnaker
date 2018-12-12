@@ -19,7 +19,9 @@
 package com.netflix.spinnaker.halyard.deploy.deployment.v1;
 
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesAccount;
+import com.netflix.spinnaker.halyard.core.DaemonResponse;
 import com.netflix.spinnaker.halyard.core.RemoteAction;
+import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
@@ -29,6 +31,7 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.Sid
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.v2.KubectlServiceProvider;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.v2.KubernetesV2Service;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.v2.KubernetesV2Utils;
+import java.util.concurrent.TimeUnit;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -40,7 +43,8 @@ public class KubectlDeployer implements Deployer<KubectlServiceProvider,AccountD
   public RemoteAction deploy(KubectlServiceProvider serviceProvider,
       AccountDeploymentDetails<KubernetesAccount> deploymentDetails,
       GenerateService.ResolvedConfiguration resolvedConfiguration,
-      List<SpinnakerService.Type> serviceTypes) {
+      List<SpinnakerService.Type> serviceTypes,
+      boolean waitForCompletion) {
     List<KubernetesV2Service> services = serviceProvider.getServicesByPriority(serviceTypes);
     services.stream().forEach((service) -> {
       if (service instanceof SidecarService) {
@@ -59,25 +63,43 @@ public class KubectlDeployer implements Deployer<KubectlServiceProvider,AccountD
       if (settings.getSkipLifeCycleManagement() != null && settings.getSkipLifeCycleManagement()) {
         return;
       }
-      
-      DaemonTaskHandler.newStage("Deploying " + service.getServiceName() + " with kubectl");
 
-      KubernetesAccount account = deploymentDetails.getAccount();
-      String namespaceDefinition = service.getNamespaceYaml(resolvedConfiguration);
-      String serviceDefinition = service.getServiceYaml(resolvedConfiguration);
+      DaemonResponse.StaticRequestBuilder<Void> builder = new DaemonResponse.StaticRequestBuilder<>(
+          () -> {
+            DaemonTaskHandler.newStage("Deploying " + service.getServiceName() + " with kubectl");
 
-      if (!KubernetesV2Utils.exists(account, namespaceDefinition)) {
-        KubernetesV2Utils.apply(account, namespaceDefinition);
-      }
+            KubernetesAccount account = deploymentDetails.getAccount();
+            String namespaceDefinition = service.getNamespaceYaml(resolvedConfiguration);
+            String serviceDefinition = service.getServiceYaml(resolvedConfiguration);
 
-      if (!KubernetesV2Utils.exists(account, serviceDefinition)) {
-        KubernetesV2Utils.apply(account, serviceDefinition);
-      }
+            if (!KubernetesV2Utils.exists(account, namespaceDefinition)) {
+              KubernetesV2Utils.apply(account, namespaceDefinition);
+            }
 
-      String resourceDefinition = service.getResourceYaml(deploymentDetails, resolvedConfiguration);
-      DaemonTaskHandler.message("Running kubectl apply on the resource definition...");
-      KubernetesV2Utils.apply(account, resourceDefinition);
+            if (!KubernetesV2Utils.exists(account, serviceDefinition)) {
+              KubernetesV2Utils.apply(account, serviceDefinition);
+            }
+
+            String resourceDefinition = service.getResourceYaml(deploymentDetails, resolvedConfiguration);
+            DaemonTaskHandler.message("Running kubectl apply on the resource definition...");
+            KubernetesV2Utils.apply(account, resourceDefinition);
+
+            if (waitForCompletion) {
+              DaemonTaskHandler.message("Waiting for service to be ready...");
+              while (!KubernetesV2Utils.isReady(account, service.getNamespace(settings), service.getServiceName())) {
+                DaemonTaskHandler.safeSleep(TimeUnit.SECONDS.toMillis(5));
+              }
+            }
+
+            return null;
+          });
+      DaemonTaskHandler
+          .submitTask(builder::build, "Deploy " + service.getServiceName(), TimeUnit.MINUTES.toMillis(4));
     });
+
+    DaemonTaskHandler.message("Waiting on deployments to complete");
+    DaemonTaskHandler.reduceChildren(null, (t1, t2) -> null, (t1, t2) -> null)
+        .getProblemSet().throwifSeverityExceeds(Problem.Severity.WARNING);
 
     return new RemoteAction();
   }

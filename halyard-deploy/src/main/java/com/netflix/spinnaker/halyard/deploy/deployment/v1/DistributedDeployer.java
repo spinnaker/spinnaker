@@ -175,7 +175,8 @@ public class DistributedDeployer<T extends Account> implements
   public RemoteAction deploy(DistributedServiceProvider<T> serviceProvider,
       AccountDeploymentDetails<T> deploymentDetails,
       ResolvedConfiguration resolvedConfiguration,
-      List<SpinnakerService.Type> serviceTypes) {
+      List<SpinnakerService.Type> serviceTypes,
+      boolean waitForCompletion) {
     SpinnakerRuntimeSettings runtimeSettings = resolvedConfiguration.getRuntimeSettings();
 
     DaemonTaskHandler.newStage("Deploying Spinnaker");

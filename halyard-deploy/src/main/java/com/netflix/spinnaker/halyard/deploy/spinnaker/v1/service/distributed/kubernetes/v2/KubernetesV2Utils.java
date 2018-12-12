@@ -29,6 +29,7 @@ import com.netflix.spinnaker.halyard.core.resource.v1.JinjaJarResource;
 import com.netflix.spinnaker.halyard.core.resource.v1.TemplatedResource;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskInterrupted;
+import java.util.Arrays;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -49,7 +50,6 @@ import java.util.Map;
 
 @Slf4j
 public class KubernetesV2Utils {
-  static private Yaml yaml = new Yaml(new SafeConstructor());
   static private ObjectMapper mapper = new ObjectMapper();
 
   static public boolean exists(KubernetesAccount account, String manifest) {
@@ -100,6 +100,61 @@ public class KubernetesV2Utils {
     } else {
       throw new HalException(Problem.Severity.FATAL, String.join("\n",
           "Failed check for " + kind + "/" + name + " in " + namespace,
+          status.getStdErr(),
+          status.getStdOut()));
+    }
+  }
+
+  static public boolean isReady(KubernetesAccount account, String namespace, String service) {
+    log.info("Checking readiness for " + service);
+    List<String> command = kubectlPrefix(account);
+
+    if (StringUtils.isNotEmpty(namespace)) {
+      command.add("-n=" + namespace);
+    }
+
+    command.add("get");
+    command.add("po");
+
+    command.add("-l=cluster=" + service);
+    command.add("-o=jsonpath='{.items[*].status.containerStatuses[*].ready}'");
+    // This command returns a space-separated string of true/false values indicating whether each of
+    // the pod's containers are READY.
+    // e.g., if we are querying two spin-orca pods and both pods' monitoring-daemon containers are
+    // READY but the orca containers are not READY, the output may be 'true false true false'.
+
+    JobRequest request = new JobRequest().setTokenizedCommand(command);
+
+    String jobId = DaemonTaskHandler.getJobExecutor().startJob(request);
+
+    JobStatus status;
+    try {
+      status = DaemonTaskHandler.getJobExecutor().backoffWait(jobId);
+    } catch (InterruptedException e) {
+      throw new DaemonTaskInterrupted(e);
+    }
+
+    if (status.getState() != JobStatus.State.COMPLETED) {
+      throw new HalException(Problem.Severity.FATAL, String.join("\n",
+          "Unterminated readiness check for " + service + " in " + namespace,
+          status.getStdErr(),
+          status.getStdOut()));
+    }
+
+    if (status.getResult() == JobStatus.Result.SUCCESS) {
+      String readyStatuses = status.getStdOut();
+      if (readyStatuses.isEmpty()) {
+        return false;
+      }
+      readyStatuses = readyStatuses.substring(1, readyStatuses.length() - 1); // Strip leading and trailing single quote
+      if (readyStatuses.isEmpty()) {
+        return false;
+      }
+      return Arrays.stream(readyStatuses.split(" "))
+          .allMatch(s -> s.equals("true"));
+    } else {
+      throw new HalException(Problem.Severity.FATAL, String.join("\n",
+          "Failed readiness check for " + service + " in " + namespace,
           status.getStdErr(),
           status.getStdOut()));
     }
@@ -303,10 +358,12 @@ public class KubernetesV2Utils {
   }
 
   static private String prettify(String input) {
+    Yaml yaml = new Yaml(new SafeConstructor());
     return yaml.dump(yaml.load(input));
   }
 
   static private Map<String, Object> parseManifest(String input) {
+    Yaml yaml = new Yaml(new SafeConstructor());
     return mapper.convertValue(yaml.load(input), new TypeReference<Map<String, Object>>() {});
   }
 

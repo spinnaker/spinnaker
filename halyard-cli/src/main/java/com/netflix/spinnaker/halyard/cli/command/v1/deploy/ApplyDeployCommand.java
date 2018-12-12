@@ -92,6 +92,12 @@ public class ApplyDeployCommand extends AbstractRemoteActionCommand {
   )
   boolean deleteOrphanedServices;
 
+  @Parameter(
+      names = "--wait-for-completion",
+      description = "When supplied, wait for all containers to be ready before returning (only applies to Kubernetes V2 provider)."
+  )
+  boolean waitForCompletion;
+
   @Override
   protected OperationHandler<RemoteAction> getRemoteAction() {
     List<DeployOption> deployOptions = new ArrayList<>();
@@ -103,6 +109,9 @@ public class ApplyDeployCommand extends AbstractRemoteActionCommand {
     }
     if (deleteOrphanedServices) {
       deployOptions.add(DeployOption.DELETE_ORPHANED_SERVICES);
+    }
+    if (waitForCompletion) {
+      deployOptions.add(DeployOption.WAIT_FOR_COMPLETION);
     }
 
     OperationHandler<RemoteAction> prepHandler =

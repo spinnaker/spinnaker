@@ -41,7 +41,8 @@ public class BakeDeployer implements Deployer<BakeServiceProvider, DeploymentDet
       BakeServiceProvider serviceProvider,
       DeploymentDetails deploymentDetails,
       GenerateService.ResolvedConfiguration resolvedConfiguration,
-      List<SpinnakerService.Type> serviceTypes) {
+      List<SpinnakerService.Type> serviceTypes,
+      boolean waitForCompletion) {
     List<BakeService> enabledServices = serviceProvider.getPrioritizedBakeableServices(serviceTypes)
         .stream()
         .filter(i -> {

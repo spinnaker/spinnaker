@@ -8034,6 +8034,7 @@ This flushes infrastructure caches (clouddriver) after the deploy succeeds.
 This guarantees that no configuration will be generated for this deployment. This is useful for staging artifacts for later manual configuration.
  * `--prep-only`: (*Default*: `false`) This does just the prep work, and not the actual deployment. Only useful at the moment if you want to just clone the repositories for a localgit setup.
  * `--service-names`: (*Default*: `[]`) When supplied, only install or update the specified Spinnaker services.
+ * `--wait-for-completion`: (*Default*: `false`) When supplied, wait for all containers to be ready before returning (only applies to Kubernetes V2 provider).
 
 
 ---

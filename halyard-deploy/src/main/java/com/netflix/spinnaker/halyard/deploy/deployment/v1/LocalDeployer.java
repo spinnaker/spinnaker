@@ -44,7 +44,8 @@ public class LocalDeployer implements Deployer<LocalServiceProvider, DeploymentD
       LocalServiceProvider serviceProvider,
       DeploymentDetails deploymentDetails,
       GenerateService.ResolvedConfiguration resolvedConfiguration,
-      List<SpinnakerService.Type> serviceTypes) {
+      List<SpinnakerService.Type> serviceTypes,
+      boolean waitForCompletion) {
     List<LocalService> enabledServices = serviceProvider.getLocalServices(serviceTypes)
         .stream()
         .filter(i -> resolvedConfiguration.getServiceSettings(i.getService()) != null)

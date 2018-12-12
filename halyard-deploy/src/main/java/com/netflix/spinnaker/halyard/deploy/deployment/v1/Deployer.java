@@ -30,7 +30,8 @@ public interface Deployer<S extends SpinnakerServiceProvider<D>, D extends Deplo
       S serviceProvider,
       D deploymentDetails,
       ResolvedConfiguration resolvedConfiguration,
-      List<SpinnakerService.Type> serviceTypes);
+      List<SpinnakerService.Type> serviceTypes,
+      boolean waitForCompletion);
 
   void rollback(
       S serviceProvider,
