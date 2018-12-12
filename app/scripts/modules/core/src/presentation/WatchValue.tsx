@@ -3,7 +3,7 @@ import * as React from 'react';
 interface IWatchValueProps<T> {
   value: T;
   onChange: (newValue: T, oldValue: T) => void;
-  isEqual: (newValue: T, oldValue: T) => boolean;
+  isEqual?: (newValue: T, oldValue: T) => boolean;
 }
 
 interface IWatchValueState<T> {
@@ -36,6 +36,6 @@ export class WatchValue<T = any> extends React.Component<IWatchValueProps<T>, IW
   }
 
   public render() {
-    return this.props.children;
+    return this.props.children || null;
   }
 }
