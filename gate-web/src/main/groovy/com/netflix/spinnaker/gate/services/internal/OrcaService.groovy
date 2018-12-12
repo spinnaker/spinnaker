@@ -134,4 +134,8 @@ interface OrcaService {
 
   @POST("/convertPipelineToTemplate")
   Response convertToPipelineTemplate(@Body Map<String, ? extends Object> pipelineConfig)
+
+  @Headers("Accept: application/json")
+  @POST("/v2/pipelineTemplates/plan")
+  Map<String, Object> plan(@Body Map<String, Object> pipelineConfig)
 }

@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.gate.services;
 
+import com.netflix.spinnaker.gate.security.RequestContext;
 import com.netflix.spinnaker.gate.services.PipelineTemplateService.PipelineTemplateDependent;
 import com.netflix.spinnaker.gate.services.internal.Front50Service;
 import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector;
@@ -40,13 +41,12 @@ public class V2PipelineTemplateService {
     this.orcaServiceSelector = orcaServiceSelector;
   }
 
-  // TODO(jacobkiefer): Un-stub
   public Map get(String id) {
     return front50Service.getV2PipelineTemplate(id);
   }
 
-  public Map resolve(String source, String executionId, String pipelineConfigId) {
-    return null;
+  public Map<String, Object> plan(Map<String, Object> pipeline) {
+    return orcaServiceSelector.withContext(RequestContext.get()).plan(pipeline);
   }
 
   public List<Map> findByScope(List<String> scopes) {
