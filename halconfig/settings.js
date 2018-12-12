@@ -64,6 +64,11 @@ var azure = {
     region: '{%azure.default.region%}',
   },
 };
+var cloudfoundry = {
+  defaults: {
+    account: '{%cloudfoundry.default.account%}',
+  },
+};
 var dcos = {
   defaults: {
     account: '{%dcos.default.account%}',
@@ -128,7 +133,18 @@ window.spinnakerSettings = {
   checkForUpdates: false,
   defaultCategory: 'serverGroup',
   defaultInstancePort: 80,
-  defaultProviders: ['aws', 'azure', 'dcos', 'ecs', 'gce', 'kubernetes', 'openstack', 'oracle', 'titus'],
+  defaultProviders: [
+    'aws',
+    'azure',
+    'cloudfoundry',
+    'dcos',
+    'ecs',
+    'gce',
+    'kubernetes',
+    'openstack',
+    'oracle',
+    'titus',
+  ],
   defaultTimeZone: timezone, // see http://momentjs.com/timezone/docs/#/data-utilities/
   feature: {
     artifacts: artifactsEnabled,
@@ -175,6 +191,7 @@ window.spinnakerSettings = {
     appengine: appengine,
     aws: aws,
     azure: azure,
+    cloudfoundry: cloudfoundry,
     dcos: dcos,
     ecs: ecs,
     gce: gce,
