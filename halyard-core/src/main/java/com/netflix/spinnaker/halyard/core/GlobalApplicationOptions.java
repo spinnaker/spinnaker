@@ -25,6 +25,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.SafeConstructor;
 
 import java.io.File;
 import java.io.IOException;
@@ -50,7 +51,7 @@ public class GlobalApplicationOptions {
 
   public static GlobalApplicationOptions getInstance() {
     if (GlobalApplicationOptions.options == null) {
-      Yaml yamlParser = new Yaml();
+      Yaml yamlParser = new Yaml(new SafeConstructor());
       ObjectMapper objectMapper = new ObjectMapper();
 
       objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
