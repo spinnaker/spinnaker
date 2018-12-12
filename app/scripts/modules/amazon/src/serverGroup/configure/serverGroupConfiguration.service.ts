@@ -323,7 +323,7 @@ export class AwsServerGroupConfigurationService {
         result.dirty.instanceType = command.instanceType;
         command.instanceType = null;
       }
-      command.backingData.filtered.instanceTypes = filtered;
+      command.backingData.filtered.instanceTypes = filtered.sort();
     } else {
       command.backingData.filtered.instanceTypes = [];
     }
