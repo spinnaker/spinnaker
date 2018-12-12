@@ -104,6 +104,21 @@ class TrafficGuardSpec extends Specification {
     ]
   }
 
+  void "should be able to handle a server group in a namespace"() {
+    when:
+    trafficGuard.verifyTrafficRemoval(targetName, moniker, "test", location, "aws", "x")
+
+    then:
+    notThrown(TrafficGuardException)
+    1 * oortHelper.getCluster("app", "test", "app-foo", "aws") >> [
+      serverGroups: [
+        makeServerGroup(targetName, 2, 0, [namespace: 'us-east-1']),
+        makeServerGroup(otherName, 1, 0, [namespace: 'us-east-1'])
+      ]
+    ]
+
+  }
+
   void "should throw exception when capacity ratio less than configured minimum"() {
     given:
     addGuard([account: "test", location: "us-east-1", stack: "foo"])

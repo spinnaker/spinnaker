@@ -125,7 +125,7 @@ public class TrafficGuard {
     List<TargetServerGroup> targetServerGroups = ((List<Map<String, Object>>) cluster.get().get("serverGroups"))
       .stream()
       .map(TargetServerGroup::new)
-      .filter(tsg -> location.equals(tsg.getLocation()))
+      .filter(tsg -> location.equals(tsg.getLocation(location.getType())))
       .collect(Collectors.toList());
 
     TargetServerGroup serverGroupGoingAway = targetServerGroups.stream()
@@ -133,7 +133,7 @@ public class TrafficGuard {
       .findFirst()
       .orElseThrow(() -> {
         String message = format("Could not find server group '%s' in %s/%s, found [%s]",
-          serverGroupName, account, location.getValue(),
+          serverGroupName, account, location,
           String.join(", ", targetServerGroups.stream().map(TargetServerGroup::getName).collect(Collectors.toSet())));
         log.error("{}\nContext: {}", message, generateContext(targetServerGroups));
         return new TrafficGuardException(message);
