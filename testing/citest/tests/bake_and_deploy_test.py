@@ -201,6 +201,7 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
     self.aws_destroy_pipeline_id = None
     self.google_bake_pipeline_id = None
     self.google_destroy_pipeline_id = None
+    self.__image_id_to_delete = None # Id of the baked image we need to clean up after the B & D pipelines run.
     self.docker_pipeline_id = None
     self.test_google = bindings['TEST_GOOGLE']
     self.test_aws = bindings['TEST_AWS']
@@ -488,14 +489,11 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
     disable_stage = self.make_disable_group_stage(
       cloudProvider='gce', regions=[self.bindings['TEST_GCE_REGION']])
     destroy_stage = self.make_destroy_group_stage(
-      cloudProvider='gce', requisiteStages=[])
-      # TODO(duftler): Add back disable stage after resolving flakiness in disable stage completion during tests.
-      # cloudProvider='gce', requisiteStages=['DISABLE'])
+      cloudProvider='gce', requisiteStages=['DISABLE'])
 
     pipeline_spec = dict(
       name=name,
-      # stages=[disable_stage, destroy_stage],
-      stages=[destroy_stage],
+      stages=[disable_stage, destroy_stage],
       application=self.TEST_APP,
       stageCounter=2,
       parallel=True,
@@ -620,7 +618,7 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
             status_path=path,
             max_wait_secs=1080), # Allow 18 mins to bake and deploy.
         contract=builder.build(),
-        cleanup=self.delete_baked_image)
+        cleanup=self.capture_baked_image)
 
   def run_disable_and_destroy_google_pipeline(self, pipeline_id):
     path = 'pipelines/{app}/{id}'.format(app=self.TEST_APP,
@@ -640,12 +638,14 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
             data='',
             path=path,
             max_wait_secs=1080), # Allow 18 mins to disable and destroy.
-        contract=jc.Contract())
+        contract=jc.Contract(),
+        cleanup=self.delete_baked_image)
 
   def new_jenkins_build_operation(self):
     return None
 
-  def delete_baked_image(self, execution_context):
+  def capture_baked_image(self, execution_context):
+    """Saves the baked image name from the triggered Bake & Deploy pipeline to delete later."""
     status = execution_context.get('OperationStatus', None)
     if status is None:
       self.logger.info(
@@ -665,12 +665,15 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
     image_id = (stages[0].get('context', {}).get('imageId')
                 if stages
                 else None)
-    self.logger.info('Deleting the baked image="%s"', image_id)
-    if image_id:
+    self.logger.info('Capturing the baked image="%s" to delete', image_id)
+    self.__image_id_to_delete = image_id
+
+  def delete_baked_image(self, _unused_execution_context):
+    """Deletes the baked image when we are done using it."""
+    if self.__image_id_to_delete:
       execution_context = citest.base.ExecutionContext()
       self.gcp_observer.invoke_resource(
-          execution_context, 'delete', 'images', resource_id=image_id)
-
+          execution_context, 'delete', 'images', resource_id=self.__image_id_to_delete)
 
 class BakeAndDeployTest(st.AgentTestCase):
   @staticmethod
