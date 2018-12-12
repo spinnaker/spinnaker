@@ -52,10 +52,10 @@ func deleteApplication(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	applicationName := args[0]
-	if applicationName == "" {
+	if len(args) == 0 || args[0] == "" {
 		return errors.New("application name required")
 	}
+	applicationName := args[0]
 
 	appSpec := map[string]interface{}{
 		"type": "deleteApplication",
