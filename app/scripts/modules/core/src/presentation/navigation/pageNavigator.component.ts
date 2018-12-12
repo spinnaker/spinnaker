@@ -1,6 +1,7 @@
 import { IController, module } from 'angular';
 import { PageNavigationState } from './PageNavigationState';
 import { isFunction, throttle } from 'lodash';
+import { StateService, StateParams } from '@uirouter/core';
 import { ScrollToService } from 'core/utils/scrollTo/scrollTo.service';
 import { PAGE_SECTION_COMPONENT } from './pageSection.component';
 import { UUIDGenerator } from 'core/utils/uuid.service';
@@ -12,12 +13,13 @@ class PageNavigatorController implements IController {
   private container: JQuery;
   private navigator: JQuery;
   private id: string;
+  private deepLinkParam: string;
 
   private getEventKey(): string {
     return `scroll.pageNavigation.${this.id}`;
   }
 
-  public constructor(private $element: JQuery) {
+  public constructor(private $element: JQuery, private $state: StateService, private $stateParams: StateParams) {
     'ngInject';
   }
 
@@ -29,6 +31,9 @@ class PageNavigatorController implements IController {
       this.container.bind(this.getEventKey(), throttle(() => this.handleScroll(), 20));
     }
     this.navigator = this.$element.find('.page-navigation');
+    if (this.deepLinkParam && this.$stateParams[this.deepLinkParam]) {
+      this.setCurrentSection(this.$stateParams[this.deepLinkParam]);
+    }
   }
 
   public $onDestroy(): void {
@@ -39,6 +44,7 @@ class PageNavigatorController implements IController {
 
   public setCurrentSection(key: string): void {
     PageNavigationState.setCurrentPage(key);
+    this.syncLocation(key);
     ScrollToService.scrollTo(`[data-page-id=${key}]`, this.scrollableContainer, this.container.offset().top);
     this.container.find('.highlighted').removeClass('highlighted');
     this.container.find(`[data-page-id=${key}]`).addClass('highlighted');
@@ -57,6 +63,7 @@ class PageNavigatorController implements IController {
     });
     if (currentPage) {
       PageNavigationState.setCurrentPage(currentPage.key);
+      this.syncLocation(currentPage.key);
       this.navigator.find('li').removeClass('current');
       this.navigator.find(`[data-page-navigation-link=${currentPage.key}]`).addClass('current');
     }
@@ -75,11 +82,18 @@ class PageNavigatorController implements IController {
       });
     }
   }
+
+  private syncLocation(key: string) {
+    if (this.deepLinkParam) {
+      this.$state.go('.', { [this.deepLinkParam]: key }, { notify: false, location: 'replace' });
+    }
+  }
 }
 
 class PageNavigatorComponent implements ng.IComponentOptions {
   public bindings: any = {
     scrollableContainer: '@',
+    deepLinkParam: '@?',
   };
   public controller: any = PageNavigatorController;
   public transclude = true;

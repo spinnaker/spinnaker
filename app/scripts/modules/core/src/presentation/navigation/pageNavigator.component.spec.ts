@@ -4,11 +4,12 @@ import { mock } from 'angular';
 import { PAGE_NAVIGATOR_COMPONENT } from './pageNavigator.component';
 import { INavigationPage } from './PageNavigationState';
 import { ScrollToService } from '../../utils/scrollTo/scrollTo.service';
+import UI_ROUTER from '@uirouter/angularjs';
 
 describe('Component: Page Navigator', () => {
   let $compile: ng.ICompileService, $scope: ng.IScope, $timeout: ng.ITimeoutService, elem: JQuery;
 
-  beforeEach(mock.module(PAGE_NAVIGATOR_COMPONENT));
+  beforeEach(mock.module(PAGE_NAVIGATOR_COMPONENT, UI_ROUTER));
 
   beforeEach(
     mock.inject((_$compile_: ng.ICompileService, $rootScope: ng.IScope, _$timeout_: ng.ITimeoutService) => {
