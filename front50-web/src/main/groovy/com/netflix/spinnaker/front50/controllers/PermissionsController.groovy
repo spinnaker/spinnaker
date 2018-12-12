@@ -72,6 +72,11 @@ public class PermissionsController {
     return actualPermissions.values()
   }
 
+  @RequestMapping(method = RequestMethod.GET, value = "/applications/{appName:.+}")
+  Application.Permission getApplicationPermission(@PathVariable String appName) {
+      return applicationPermissionDAO.findById(appName)
+  }
+
   @ApiOperation(value = "", notes = "Create an application permission.")
   @RequestMapping(method = RequestMethod.POST, value = "/applications")
   Application.Permission createApplicationPermission(
