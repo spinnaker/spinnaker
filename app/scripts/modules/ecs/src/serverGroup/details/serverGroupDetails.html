@@ -120,14 +120,17 @@
         <dt>Container IAM Profile</dt>
         <dd>{{ctrl.serverGroup.taskDefinition.iamRole}}</dd>
 
-        <dt>Container Port</dt>
-        <dd>{{ctrl.serverGroup.taskDefinition.containerPort}}</dd>
+        <dt ng-if="ctrl.serverGroup.taskDefinition.containerPort">Container Port</dt>
+        <dd ng-if="ctrl.serverGroup.taskDefinition.containerPort">{{ctrl.serverGroup.taskDefinition.containerPort}}</dd>
 
         <dt>Container CPU Units</dt>
         <dd>{{ctrl.serverGroup.taskDefinition.cpuUnits}}</dd>
 
-        <dt>Container Reserved Memory</dt>
-        <dd>{{ctrl.serverGroup.taskDefinition.memoryReservation}} mb</dd>
+        <dt ng-if="ctrl.serverGroup.taskDefinition.memoryReservation">Container Reserved Memory</dt>
+        <dd ng-if="ctrl.serverGroup.taskDefinition.memoryReservation">{{ctrl.serverGroup.taskDefinition.memoryReservation}} mb</dd>
+
+        <dt ng-if="ctrl.serverGroup.taskDefinition.memoryLimit">Container Memory Limit</dt>
+        <dd ng-if="ctrl.serverGroup.taskDefinition.memoryLimit">{{ctrl.serverGroup.taskDefinition.memoryLimit}} mb</dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Environment Variables" expanded="false">
