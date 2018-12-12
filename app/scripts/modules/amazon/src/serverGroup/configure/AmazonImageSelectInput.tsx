@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { IPromise } from 'angular';
 import { $q } from 'ngimport';
-import { ReactSelectProps } from 'react-select';
+import { ReactSelectProps, HandlerRendererResult, MenuRendererProps, Option, OptionValues } from 'react-select';
 import { Subject, Observable } from 'rxjs';
 
 import { Application, HelpField, TetheredSelect, ValidationMessage } from '@spinnaker/core';
@@ -24,7 +24,10 @@ export interface IAmazonImageSelectorState {
   isSearching: boolean;
   packageImages: IAmazonImage[];
   isLoadingPackageImages: boolean;
+  sortImagesBy: sortImagesByOptions;
 }
+
+type sortImagesByOptions = 'name' | 'ts';
 
 export class AmazonImageSelectInput extends React.Component<IAmazonImageSelectorProps, IAmazonImageSelectorState> {
   public state: IAmazonImageSelectorState = {
@@ -35,6 +38,7 @@ export class AmazonImageSelectInput extends React.Component<IAmazonImageSelector
     isSearching: false,
     packageImages: null,
     isLoadingPackageImages: true,
+    sortImagesBy: 'name',
   };
 
   private awsImageReader = new AwsImageReader();
@@ -119,9 +123,7 @@ export class AmazonImageSelectInput extends React.Component<IAmazonImageSelector
     const { value, region, credentials, application } = this.props;
 
     this.setState({ isLoadingPackageImages: true });
-    const fetchPromise = this.fetchPackageImages(value, region, credentials, application).then(images =>
-      images.sort((a, b) => a.imageName.localeCompare(b.imageName)),
-    );
+    const fetchPromise = this.fetchPackageImages(value, region, credentials, application);
 
     const packageImages$ = Observable.fromPromise(fetchPromise)
       .catch(err => {
@@ -184,6 +186,82 @@ export class AmazonImageSelectInput extends React.Component<IAmazonImageSelector
       .takeUntil(this.destroy$)
       .subscribe(image => this.selectImage(image));
   }
+
+  private setSortImagesBy(sortImagesBy: sortImagesByOptions) {
+    this.setState({ sortImagesBy });
+  }
+
+  private buildImageMenu = (params: MenuRendererProps): HandlerRendererResult => {
+    const { ImageMenuHeading, ImageLabel } = this;
+    const options = this.getSortedOptions(params.options);
+    return (
+      <div className="Select-menu-outer">
+        <div className="Select-menu" role="listbox">
+          {options.length > 0 && <ImageMenuHeading />}
+          {options.map(o => (
+            <ImageLabel key={o.imageName} option={o} params={params} />
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  private ImageMenuHeading = () => {
+    const { sortImagesBy } = this.state;
+    return (
+      <div
+        className="sp-padding-s-xaxis sp-padding-xs-yaxis small"
+        style={{ borderBottom: '1px solid var(--color-silver)' }}
+      >
+        <b>Sort by: </b>
+        <a className="clickable sp-padding-xs-xaxis" onClick={() => this.setSortImagesBy('name')}>
+          {sortImagesBy === 'name' ? <b>name (A-Z)</b> : 'name (A-Z)'}
+        </a>
+        <span> | </span>
+        <a className="clickable sp-padding-xs-xaxis" onClick={() => this.setSortImagesBy('ts')}>
+          {sortImagesBy === 'ts' ? <b>timestamp (newest first)</b> : 'timestamp (newest first)'}
+        </a>
+      </div>
+    );
+  };
+
+  private getSortedOptions(options: Array<Option<OptionValues>>): Array<Option<OptionValues>> {
+    const { sortImagesBy } = this.state;
+    return options.slice().sort((a, b) => {
+      if (sortImagesBy === 'ts') {
+        return b.attributes.creationDate.localeCompare(a.attributes.creationDate);
+      }
+      return a.imageName.localeCompare(b.imageName);
+    });
+  }
+
+  private ImageLabel = (imageLabelProps: { option: Option<OptionValues>; params: MenuRendererProps }) => {
+    const { credentials, region } = this.props;
+    const { option, params } = imageLabelProps;
+    const amiLabel =
+      option.amis[region] && option.amis[region][0]
+        ? option.amis[region][0]
+        : ` - not found in ${credentials}/${region}`;
+    return (
+      <div
+        key={option.imageName}
+        onClick={() => params.selectValue(option)}
+        onMouseOver={() => params.focusOption(option)}
+        className={`Select-option ${
+          params.focusedOption && params.focusedOption.imageName === option.imageName ? 'is-focused' : ''
+        }`}
+        role="option"
+      >
+        <div>{option.imageName}</div>
+        <div className="small">
+          <b>Created: </b>
+          {option.attributes.creationDate}
+          <b className="sp-padding-s-left">AMI: </b>
+          {amiLabel}
+        </div>
+      </div>
+    );
+  };
 
   public componentDidUpdate() {
     this.props$.next(this.props);
@@ -250,6 +328,7 @@ export class AmazonImageSelectInput extends React.Component<IAmazonImageSelector
         <div className="col-md-9">
           <TetheredSelect
             {...commonReactSelectProps}
+            menuRenderer={this.buildImageMenu}
             isLoading={isSearching}
             placeholder="Search for an image..."
             filterOptions={false as any}
@@ -267,6 +346,7 @@ export class AmazonImageSelectInput extends React.Component<IAmazonImageSelector
         <div className="col-md-9">
           <TetheredSelect
             {...commonReactSelectProps}
+            menuRenderer={this.buildImageMenu}
             isLoading={isLoadingPackageImages}
             placeholder="Pick an image"
             noResultsText={noResultsText}
