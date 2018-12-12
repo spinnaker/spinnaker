@@ -192,12 +192,8 @@ module.exports = angular
       var type1 = o1.split('.'),
         type2 = o2.split('.');
 
-      if (type1.length !== 2 || type2.length !== 2) {
-        return 0;
-      }
-
-      let [family1, class1] = type1;
-      let [family2, class2] = type2;
+      let [family1, class1 = ''] = type1;
+      let [family2, class2 = ''] = type2;
 
       if (family1 !== family2) {
         if (family1 > family2) {
