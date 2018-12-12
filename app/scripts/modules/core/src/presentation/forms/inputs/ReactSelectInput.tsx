@@ -71,7 +71,7 @@ export class ReactSelectInput extends React.Component<IReactSelectInputProps> {
     } = this.props;
 
     const className = orEmptyString(inputClassName);
-    const style = validation.validationStatus === 'error' ? reactSelectValidationErrorStyle : {};
+    const style = (validation || {}).validationStatus === 'error' ? reactSelectValidationErrorStyle : {};
     const fieldProps = {
       name,
       value: orEmptyString(value),
