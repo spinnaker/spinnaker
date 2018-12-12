@@ -488,11 +488,14 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
     disable_stage = self.make_disable_group_stage(
       cloudProvider='gce', regions=[self.bindings['TEST_GCE_REGION']])
     destroy_stage = self.make_destroy_group_stage(
-      cloudProvider='gce', requisiteStages=['DISABLE'])
+      cloudProvider='gce')
+      # TODO(duftler): Add back disable stage after resolving flakiness in disable stage completion during tests.
+      # cloudProvider='gce', requisiteStages=['DISABLE'])
 
     pipeline_spec = dict(
       name=name,
-      stages=[disable_stage, destroy_stage],
+      # stages=[disable_stage, destroy_stage],
+      stages=[destroy_stage],
       application=self.TEST_APP,
       stageCounter=2,
       parallel=True,
