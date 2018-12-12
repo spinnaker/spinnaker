@@ -2,7 +2,7 @@ import * as React from 'react';
 import { FormikErrors, getIn } from 'formik';
 import { isEqual } from 'lodash';
 
-import { IProject } from 'core/domain';
+import { IProject, IProjectPipeline } from 'core/domain';
 import { IWizardPageProps, wizardPage } from 'core/modal';
 import { FormikApplicationsPicker } from 'core/projects/configure/FormikApplicationsPicker';
 
@@ -42,6 +42,10 @@ class ApplicationsImpl extends React.Component<IApplicationsProps> {
 
     if (!isEqual(prevApps, nextApps)) {
       this.props.onApplicationsChanged && this.props.onApplicationsChanged(nextApps);
+      // Remove any pipelines associated with the applications removed.
+      const existingPipelineConfigs: IProjectPipeline[] = getIn(this.props.formik.values, 'config.pipelineConfigs', []);
+      const newPipelineConfigs = existingPipelineConfigs.filter(({ application }) => nextApps.includes(application));
+      this.props.formik.setFieldValue('config.pipelineConfigs', newPipelineConfigs);
     }
   }
 
