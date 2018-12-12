@@ -26,6 +26,7 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.security.CloudFoundryCrede
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.SafeConstructor;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -71,7 +72,7 @@ abstract class AbstractCloudFoundryAtomicOperationConverter extends AbstractAtom
 
     try {
       InputStream manifestInput = manifestArtifactCredentials.download(manifestArtifact);
-      Yaml parser = new Yaml();
+      Yaml parser = new Yaml(new SafeConstructor());
       processManifest.accept(parser.load(manifestInput));
     } catch (IOException e) {
       throw new UncheckedIOException(e);

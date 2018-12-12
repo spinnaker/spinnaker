@@ -17,23 +17,12 @@
 package com.netflix.spinnaker.config;
 
 import com.netflix.spinnaker.clouddriver.artifacts.ArtifactCredentialsRepository;
-import com.netflix.spinnaker.clouddriver.artifacts.embedded.EmbeddedArtifactConfiguration;
-import com.netflix.spinnaker.clouddriver.artifacts.gcs.GcsArtifactConfiguration;
-import com.netflix.spinnaker.clouddriver.artifacts.github.GitHubArtifactConfiguration;
-import com.netflix.spinnaker.clouddriver.artifacts.helm.HelmArtifactConfiguration;
-import com.netflix.spinnaker.clouddriver.artifacts.http.HttpArtifactConfiguration;
-import com.netflix.spinnaker.clouddriver.artifacts.ivy.IvyArtifactConfiguration;
-import com.netflix.spinnaker.clouddriver.artifacts.oracle.OracleArtifactConfiguration;
-import com.netflix.spinnaker.clouddriver.artifacts.s3.S3ArtifactConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.stereotype.Component;
-import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.constructor.SafeConstructor;
 
 @Configuration
 @EnableConfigurationProperties
@@ -44,10 +33,5 @@ public class ArtifactConfiguration {
   @Bean
   ArtifactCredentialsRepository artifactCredentialsRepository() {
     return new ArtifactCredentialsRepository();
-  }
-
-  @Bean
-  Yaml yaml() {
-    return new Yaml(new SafeConstructor());
   }
 }

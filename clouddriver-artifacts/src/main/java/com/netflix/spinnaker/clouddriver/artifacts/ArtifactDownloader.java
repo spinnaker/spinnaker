@@ -35,13 +35,12 @@ public class ArtifactDownloader {
 
   final private ObjectMapper objectMapper;
 
-  final private Yaml yamlParser;
+  final static private ThreadLocal<Yaml> yamlParser = ThreadLocal.withInitial(() -> new Yaml(new SafeConstructor()));
 
   @Autowired
-  public ArtifactDownloader(ArtifactCredentialsRepository artifactCredentialsRepository, ObjectMapper objectMapper, Yaml yaml) {
+  public ArtifactDownloader(ArtifactCredentialsRepository artifactCredentialsRepository, ObjectMapper objectMapper) {
     this.artifactCredentialsRepository = artifactCredentialsRepository;
     this.objectMapper = objectMapper;
-    this.yamlParser = yaml;
   }
 
   public InputStream download(Artifact artifact) throws IOException {
@@ -65,7 +64,7 @@ public class ArtifactDownloader {
 
   public <T> T downloadAsYaml(Artifact artifact, Class<T> clazz) throws IOException {
     InputStream is = download(artifact);
-    Object parsed = yamlParser.load(is);
+    Object parsed = yamlParser.get().load(is);
     return objectMapper.convertValue(parsed, clazz);
   }
 }
