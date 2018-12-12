@@ -9,7 +9,7 @@ import { Subscription } from 'rxjs';
 import { Application } from 'core/application';
 import { FilterSection } from 'core/cluster/filter/FilterSection';
 import { IFilterTag } from 'core/filterModel';
-import { IPipeline } from 'core/domain';
+import { IExecution, IPipeline } from 'core/domain';
 import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
 import { ReactInjector } from 'core/reactShims';
 import { ExecutionState } from 'core/state';
@@ -23,6 +23,7 @@ export interface IExecutionFiltersProps {
 
 export interface IExecutionFiltersState {
   pipelineNames: string[];
+  strategyNames: string[];
   pipelineReorderEnabled: boolean;
   tags: IFilterTag[];
 }
@@ -41,7 +42,8 @@ export class ExecutionFilters extends React.Component<IExecutionFiltersProps, IE
     super(props);
 
     this.state = {
-      pipelineNames: this.getPipelineNames(),
+      pipelineNames: this.getPipelineNames(false),
+      strategyNames: this.getPipelineNames(true),
       pipelineReorderEnabled: false,
       tags: ExecutionState.filterModel.asFilterModel.tags,
     };
@@ -94,21 +96,29 @@ export class ExecutionFilters extends React.Component<IExecutionFiltersProps, IE
     this.refreshExecutions();
   };
 
-  private getPipelineNames(): string[] {
+  private getPipelineNames(strategy: boolean): string[] {
     const { application } = this.props;
     if (application.pipelineConfigs.loadFailure) {
       return [];
     }
-    const configs = get(application, 'pipelineConfigs.data', []).concat(get(application, 'strategyConfigs.data', []));
+    const source = strategy ? 'strategyConfigs' : 'pipelineConfigs';
+    const otherSource = strategy ? 'pipelineConfigs' : 'strategyConfigs';
+    const configs = get(application, `${source}.data`, []);
+    const otherConfigs = get(application, `${otherSource}.data`, []);
+    const allConfigIds = configs.concat(otherConfigs).map(c => c.id);
+    // assume executions which don't have a match by pipelineConfigId are regular executions, not strategies
+    const unmatchedExecutions = strategy
+      ? []
+      : application.executions.data.filter((e: IExecution) => !allConfigIds.includes(e.pipelineConfigId));
     const allOptions = orderBy(configs, ['strategy', 'index'], ['desc', 'asc'])
-      .concat(application.executions.data)
+      .concat(unmatchedExecutions)
       .filter((option: any) => option && option.name)
       .map((option: any) => option.name);
     return uniq(allOptions);
   }
 
   private refreshPipelines(): void {
-    this.setState({ pipelineNames: this.getPipelineNames() });
+    this.setState({ pipelineNames: this.getPipelineNames(false), strategyNames: this.getPipelineNames(true) });
     this.initialize();
   }
 
@@ -149,7 +159,7 @@ export class ExecutionFilters extends React.Component<IExecutionFiltersProps, IE
     const { application } = this.props;
     ReactGA.event({ category: 'Pipelines', action: 'Reordered pipeline' });
     const dirty: IPipeline[] = [];
-    application.pipelineConfigs.data.concat(application.strategyConfigs.data).forEach((pipeline: IPipeline) => {
+    application.pipelineConfigs.data.forEach((pipeline: IPipeline) => {
       const newIndex = pipelineNames.indexOf(pipeline.name);
       if (pipeline.index !== newIndex) {
         pipeline.index = newIndex;
@@ -161,7 +171,7 @@ export class ExecutionFilters extends React.Component<IExecutionFiltersProps, IE
   };
 
   public render() {
-    const { pipelineNames, pipelineReorderEnabled, tags } = this.state;
+    const { pipelineNames, strategyNames, pipelineReorderEnabled, tags } = this.state;
 
     return (
       <div className="execution-filters">
@@ -215,6 +225,20 @@ export class ExecutionFilters extends React.Component<IExecutionFiltersProps, IE
                 )}
               </div>
             </FilterSection>
+
+            {strategyNames.length > 0 && (
+              <FilterSection heading="Strategies" expanded={true}>
+                <div className="form">
+                  <Pipelines
+                    names={strategyNames}
+                    tags={tags}
+                    dragEnabled={false}
+                    update={this.refreshExecutions}
+                    onSortEnd={this.handleSortEnd}
+                  />
+                </div>
+              </FilterSection>
+            )}
 
             <FilterSection heading="Status" expanded={true}>
               <div className="form">
