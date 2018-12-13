@@ -296,7 +296,7 @@ class TitusClusterProvider implements ClusterProvider<TitusCluster>, ServerGroup
 
       Job job
       if (instanceEntry.attributes.job != null || (instanceEntry.attributes.jobId != null &&
-        jobData.containsKey(instanceEntry.attributes.jobId))) {
+          jobData.containsKey(instanceEntry.attributes.jobId))) {
         if (instanceEntry.relationships[SERVER_GROUPS.ns]
           && !instanceEntry.relationships[SERVER_GROUPS.ns].empty) {
           // job needs to be loaded because it was cached separately
@@ -305,12 +305,18 @@ class TitusClusterProvider implements ClusterProvider<TitusCluster>, ServerGroup
           job = objectMapper.convertValue(instanceEntry.attributes.job, Job)
         }
 
-        TitusInstance instance = new TitusInstance(job, task)
-        instance.health = instanceEntry.attributes[HEALTH.ns]
-        [(instanceEntry.id): instance]
+        if (job == null) {
+          log.error("Job is null for instance {}. Instance data {}.", instanceEntry.id, instanceEntry.toString())
+          return [:]
+        } else {
+          TitusInstance instance = new TitusInstance(job, task)
+          instance.health = instanceEntry.attributes[HEALTH.ns]
+          return [(instanceEntry.id): instance]
+        }
+
       } else {
         log.error("Job id is null for instance {}. Are there two jobs with the same server group name?", instanceEntry.id)
-        [:]
+        return [:]
       }
     }.findAll { it.key != null }
 
