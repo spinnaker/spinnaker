@@ -21,7 +21,8 @@ import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.handlers.RequestHandler2;
-import com.amazonaws.regions.Regions;
+import com.amazonaws.regions.Region;
+import com.amazonaws.regions.RegionUtils;
 import com.amazonaws.retry.RetryPolicy;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -161,13 +162,13 @@ public class AwsSdkClientSupplier {
   private static class AmazonClientKey<T> {
     private final Class<? extends AwsClientBuilder<?, T>> implClass;
     private final AWSCredentialsProvider awsCredentialsProvider;
-    private final Regions region;
+    private final Region region;
     private final RequestHandler2 requestHandler;
 
     public AmazonClientKey(Class<? extends AwsClientBuilder<?, T>> implClass, AWSCredentialsProvider awsCredentialsProvider, String region, RequestHandler2 requestHandler) {
       this.implClass = requireNonNull(implClass);
       this.awsCredentialsProvider = requireNonNull(awsCredentialsProvider);
-      this.region = region == null ? null : Regions.fromName(region);
+      this.region = region == null ? null : RegionUtils.getRegion(region);
       this.requestHandler = requestHandler;
     }
 
@@ -180,7 +181,7 @@ public class AwsSdkClientSupplier {
     }
 
     public Optional<String> getRegion() {
-      return Optional.ofNullable(region).map(Regions::getName);
+      return Optional.ofNullable(region).map(Region::getName);
     }
 
     public Optional<RequestHandler2> getRequestHandler() {
