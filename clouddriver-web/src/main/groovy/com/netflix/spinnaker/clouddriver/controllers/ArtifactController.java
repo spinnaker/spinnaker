@@ -24,10 +24,7 @@ import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import java.util.ArrayList;
@@ -43,7 +40,7 @@ public class ArtifactController {
 
   @Autowired
   public ArtifactController(Optional<ArtifactCredentialsRepository> artifactCredentialsRepository,
-      Optional<ArtifactDownloader> artifactDownloader) {
+                            Optional<ArtifactDownloader> artifactDownloader) {
     this.artifactCredentialsRepository = artifactCredentialsRepository.orElse(null);
     this.artifactDownloader = artifactDownloader.orElse(null);
   }
@@ -65,5 +62,34 @@ public class ArtifactController {
     }
 
     return outputStream -> IOUtils.copy(artifactDownloader.download(artifact), outputStream);
+  }
+
+  @RequestMapping(method = RequestMethod.GET, value = "/account/{accountName}/names")
+  List<String> getNames(@PathVariable("accountName") String accountName,
+                        @RequestParam(value = "type") String type) {
+    ArtifactCredentials credentials = findArtifactCredentials(accountName);
+    if (!credentials.handlesType(type)) {
+      throw new IllegalArgumentException("Artifact credentials '" + accountName + "' cannot handle artifacts of type '" + type + "'");
+    }
+    return credentials.getArtifactNames();
+  }
+
+  @RequestMapping(method = RequestMethod.GET, value = "/account/{accountName}/versions")
+  List<String> getVersions(@PathVariable("accountName") String accountName,
+                           @RequestParam(value = "type") String type,
+                           @RequestParam(value = "artifactName") String artifactName) {
+    ArtifactCredentials credentials = findArtifactCredentials(accountName);
+    if (!credentials.handlesType(type)) {
+      throw new IllegalArgumentException("Artifact credentials '" + accountName + "' cannot handle artifacts of type '" + type + "'");
+    }
+    return credentials.getArtifactVersions(artifactName);
+  }
+
+  private ArtifactCredentials findArtifactCredentials(String accountName) {
+    return artifactCredentialsRepository.getAllCredentials()
+      .stream()
+      .filter(e -> e.getName().equals(accountName))
+      .findFirst()
+      .orElseThrow(() -> new IllegalArgumentException("No credentials with name '" + accountName + "' could be found."));
   }
 }

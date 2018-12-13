@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Request.Builder;
@@ -94,16 +95,9 @@ public class HelmArtifactCredentials implements ArtifactCredentials {
   }
 
   public InputStream download(Artifact artifact) throws IOException {
-    Request indexDownloadRequest = requestBuilder
-      .url(indexParser.indexPath())
-      .build();
-    Response indexDownloadResponse;
-    try {
-      indexDownloadResponse = okHttpClient.newCall(indexDownloadRequest).execute();
-    } catch (IOException e) {
-      throw new FailedDownloadException("Failed to download index.yaml file in " + indexParser.getRepository() + " repository");
-    }
-    List<String> urls = indexParser.findUrls(indexDownloadResponse.body().byteStream(), artifact.getName(), artifact.getVersion());
+    InputStream index = downloadIndex();
+
+    List<String> urls = indexParser.findUrls(index, artifact.getName(), artifact.getVersion());
     Response downloadResponse;
     for (String url : urls) {
       try {
@@ -117,6 +111,43 @@ public class HelmArtifactCredentials implements ArtifactCredentials {
       }
     }
     throw new FailedDownloadException("Unable to download the contents of artifact");
+  }
+
+  public List<String> getArtifactNames() {
+    InputStream index;
+    List<String> names;
+    try {
+      index = downloadIndex();
+      names = indexParser.findNames(index);
+    } catch (IOException e) {
+      throw new NotFoundException("Failed to download chart names for '" + name + "' account");
+    }
+    return names;
+  }
+
+  public List<String> getArtifactVersions(String artifactName) {
+    InputStream index;
+    List<String> versions;
+    try {
+      index = downloadIndex();
+      versions = indexParser.findVersions(index, artifactName);
+    } catch (IOException e) {
+      throw new NotFoundException("Failed to download chart versions for '" + name + "' account");
+    }
+    return versions;
+  }
+
+  private InputStream downloadIndex() throws IOException {
+    Request indexDownloadRequest = requestBuilder
+      .url(indexParser.indexPath())
+      .build();
+    Response indexDownloadResponse;
+    try {
+      indexDownloadResponse = okHttpClient.newCall(indexDownloadRequest).execute();
+    } catch (IOException e) {
+      throw new FailedDownloadException("Failed to download index.yaml file in '" + indexParser.getRepository() + "' repository");
+    }
+    return indexDownloadResponse.body().byteStream();
   }
 
   public class FailedDownloadException extends IOException {

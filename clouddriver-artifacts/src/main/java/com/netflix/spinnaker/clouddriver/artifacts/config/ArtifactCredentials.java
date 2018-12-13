@@ -17,7 +17,9 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts.config;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import org.apache.commons.lang3.NotImplementedException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,6 +29,16 @@ public interface ArtifactCredentials {
   String getName();
   List<String> getTypes();
   InputStream download(Artifact artifact) throws IOException;
+
+  @JsonIgnore
+  default List<String> getArtifactNames() {
+    throw new NotImplementedException("Artifact names are not supported for artifact types that '" + getName() + "' account handles");
+  }
+
+  @JsonIgnore
+  default List<String> getArtifactVersions(String artifactName) {
+    throw new NotImplementedException("Artifact versions are not supported for artifact types that '" + getName() + "' account handles");
+  }
 
   default boolean handlesType(String type) {
     return getTypes().stream().anyMatch(it -> it.equals(type));

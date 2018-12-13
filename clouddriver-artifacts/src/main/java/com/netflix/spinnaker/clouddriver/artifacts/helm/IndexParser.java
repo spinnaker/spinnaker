@@ -40,17 +40,19 @@ public class IndexParser {
     return repository + "/index.yaml";
   }
 
-  public List<Map> findChartDefinitions(InputStream in) throws IOException {
+  public List<String> findNames(InputStream in) throws IOException {
     IndexConfig indexConfig = buildIndexConfig(in);
-    List<Map> chartDefinitions = new ArrayList<>();
-    for (String name : indexConfig.getEntries().keySet()) {
-      Map<String, Object> chart = new HashMap<>();
-      List<EntryConfig> configs = buildEntryConfigsByName(indexConfig, name);
-      chart.put("name", name);
-      chart.put("versions", findVersions(configs));
-      chartDefinitions.add(chart);
+    return new ArrayList<>(indexConfig.getEntries().keySet());
+  }
+
+  public List<String> findVersions(InputStream in, String name) throws IOException {
+    if (name == null || name.isEmpty()) {
+      throw new IllegalArgumentException("Artifact name field should not be empty");
     }
-    return chartDefinitions;
+    List<EntryConfig> configs = buildEntryConfigsByName(buildIndexConfig(in), name);
+    List<String> versions = new ArrayList<>();
+    configs.forEach(e -> versions.add(e.getVersion()));
+    return versions;
   }
 
   public List<String> findUrls(InputStream in, String name, String version) throws IOException {
@@ -79,12 +81,6 @@ public class IndexParser {
   private String findLatestVersion(List<EntryConfig> configs) {
     return configs.stream()
       .max(Comparator.comparing(EntryConfig::getVersion)).get().getVersion();
-  }
-
-  private List<String> findVersions(List<EntryConfig> configs) {
-    List<String> versions = new ArrayList<>();
-    configs.forEach(e -> versions.add(e.getVersion()));
-    return versions;
   }
 
   private IndexConfig buildIndexConfig(InputStream in) throws IOException {
