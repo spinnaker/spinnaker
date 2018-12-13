@@ -18,6 +18,7 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.node;
 
+import com.netflix.spinnaker.halyard.config.model.v1.artifacts.ArtifactTemplate;
 import com.netflix.spinnaker.halyard.config.model.v1.artifacts.bitbucket.BitbucketArtifactProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.artifacts.gcs.GcsArtifactProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.artifacts.github.GitHubArtifactProvider;
@@ -30,7 +31,9 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 @EqualsAndHashCode(callSuper = true)
@@ -44,6 +47,7 @@ public class Artifacts extends Node {
   HttpArtifactProvider http = new HttpArtifactProvider();
   HelmArtifactProvider helm = new HelmArtifactProvider();
   S3ArtifactProvider s3 = new S3ArtifactProvider();
+  List<ArtifactTemplate> templates = new ArrayList<>();
 
   @Override
   public String getNodeName() {

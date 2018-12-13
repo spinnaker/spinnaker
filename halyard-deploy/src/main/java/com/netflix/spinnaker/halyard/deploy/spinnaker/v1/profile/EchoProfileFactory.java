@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
+import com.netflix.spinnaker.halyard.config.model.v1.node.Artifacts;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Notifications;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Pubsubs;
@@ -56,6 +57,12 @@ public class EchoProfileFactory extends SpringProfileFactory {
       profile.appendContents(yamlToString(new PubsubWrapper(pubsubs)));
     }
 
+    Artifacts artifacts = deploymentConfiguration.getArtifacts();
+    if (artifacts != null) {
+      files.addAll(backupRequiredFiles(artifacts, deploymentConfiguration.getName()));
+      profile.appendContents(yamlToString(new ArtifactWrapper(artifacts)));
+    }
+
     profile.appendContents(profile.getBaseContents())
         .setRequiredFiles(files);
   }
@@ -66,6 +73,15 @@ public class EchoProfileFactory extends SpringProfileFactory {
 
     PubsubWrapper(Pubsubs pubsub) {
       this.pubsub = pubsub;
+    }
+  }
+
+  @Data
+  private static class ArtifactWrapper {
+    private Artifacts artifacts;
+
+    ArtifactWrapper(Artifacts artifacts) {
+      this.artifacts = artifacts;
     }
   }
 }
