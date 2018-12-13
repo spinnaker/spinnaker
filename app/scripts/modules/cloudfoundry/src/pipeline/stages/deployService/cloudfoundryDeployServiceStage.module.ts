@@ -12,6 +12,13 @@ class CloudFoundryDeployServiceStageCtrl implements IController {
   }
 }
 
+const serviceNameValidatorConfig: IManifestFieldValidatorConfig = {
+  type: 'requiredManifestField',
+  manifestType: 'direct',
+  fieldName: 'serviceName',
+  preventSave: true,
+};
+
 const serviceValidatorConfig: IManifestFieldValidatorConfig = {
   type: 'requiredManifestField',
   manifestType: 'direct',
@@ -62,7 +69,7 @@ module(CLOUD_FOUNDRY_DEPLOY_SERVICE_STAGE, [])
       validators: [
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account' },
         { type: 'requiredField', fieldName: 'region' },
-        { type: 'requiredField', fieldName: 'serviceName', preventSave: true },
+        serviceNameValidatorConfig,
         serviceValidatorConfig,
         servicePlanValidatorConfig,
         jsonValidatorConfig,
