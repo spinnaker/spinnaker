@@ -94,7 +94,7 @@ public class KubectlDeployer implements Deployer<KubectlServiceProvider,AccountD
             return null;
           });
       DaemonTaskHandler
-          .submitTask(builder::build, "Deploy " + service.getServiceName(), TimeUnit.MINUTES.toMillis(4));
+          .submitTask(builder::build, "Deploy " + service.getServiceName(), TimeUnit.MINUTES.toMillis(10));
     });
 
     DaemonTaskHandler.message("Waiting on deployments to complete");
