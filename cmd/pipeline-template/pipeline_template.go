@@ -42,5 +42,6 @@ func NewPipelineTemplateCmd(out io.Writer) *cobra.Command {
 	cmd.AddCommand(NewListCmd(options))
 	cmd.AddCommand(NewSaveCmd(options))
 	cmd.AddCommand(NewDeleteCmd(options))
+	cmd.AddCommand(NewPlanCmd(options))
 	return cmd
 }
