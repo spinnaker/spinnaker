@@ -89,11 +89,13 @@ class EmailNotificationServiceSpec extends Specification {
     GreenMailUtil.getAddressList(mail.getRecipients(Message.RecipientType.CC)) == expectedCC?.join(", ")
 
     where:
-    to                                       | cc                                                || expectedTo                                  || expectedCC
-    ['receiver@localhost']                   | null                                              || ['receiver@localhost']                      || null
-    null                                     | ['some-addr@localhost']                           || null                                        || ['some-addr@localhost']
-    ['receiver@localhost']                   | ['some-addr@localhost']                           || ['receiver@localhost']                      || ['some-addr@localhost']
-    ['receiver@localhost']                   | ['some-addr@localhost']                           || ['receiver@localhost']                      || ['some-addr@localhost']
-    ['receiver@localhost another@localhost'] | ['some-addr@localhost some-other-addr@localhost'] || ['receiver@localhost', 'another@localhost'] || ['some-addr@localhost', 'some-other-addr@localhost']
+    to                                        | cc                                                 || expectedTo                                  || expectedCC
+    ['receiver@localhost']                    | null                                               || ['receiver@localhost']                      || null
+    null                                      | ['some-addr@localhost']                            || null                                        || ['some-addr@localhost']
+    ['receiver@localhost']                    | ['some-addr@localhost']                            || ['receiver@localhost']                      || ['some-addr@localhost']
+    ['receiver@localhost']                    | ['some-addr@localhost']                            || ['receiver@localhost']                      || ['some-addr@localhost']
+    ['receiver@localhost another@localhost']  | ['some-addr@localhost some-other-addr@localhost']  || ['receiver@localhost', 'another@localhost'] || ['some-addr@localhost', 'some-other-addr@localhost']
+    ['receiver@localhost,another@localhost']  | ['some-addr@localhost,some-other-addr@localhost']  || ['receiver@localhost', 'another@localhost'] || ['some-addr@localhost', 'some-other-addr@localhost']
+    ['receiver@localhost, another@localhost'] | ['some-addr@localhost, some-other-addr@localhost'] || ['receiver@localhost', 'another@localhost'] || ['some-addr@localhost', 'some-other-addr@localhost']
   }
 }

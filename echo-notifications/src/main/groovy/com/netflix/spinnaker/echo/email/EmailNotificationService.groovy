@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-
-
 package com.netflix.spinnaker.echo.email
 
 import com.netflix.spinnaker.echo.controller.EchoResponse
 import com.netflix.spinnaker.echo.notification.NotificationService
 import com.netflix.spinnaker.echo.api.Notification
 import com.netflix.spinnaker.echo.notification.NotificationTemplateEngine
+import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -29,6 +28,7 @@ import org.springframework.mail.javamail.JavaMailSender
 import org.springframework.mail.javamail.MimeMessageHelper
 import org.springframework.stereotype.Component
 
+import javax.mail.internet.AddressException
 import javax.mail.internet.MimeMessage
 
 /**
@@ -55,12 +55,29 @@ class EmailNotificationService implements NotificationService {
 
   @Override
   EchoResponse.Void handle(Notification notification) {
-    def to = notification.to?.collect { it.split(" ") }?.flatten() as String[]
-    def cc = notification.cc?.collect { it.split(" ") }?.flatten() as String[]
+    def expando = { String addresses ->
+      // could be comma and/or space separated
+      addresses = addresses.replaceAll(",", " ")
+      return addresses.split(" ").findAll { !it.isEmpty() }
+    }
+
+    def to = notification.to?.collect {
+      expando(it)
+    }?.flatten() as String[]
+
+    def cc = notification.cc?.collect {
+      expando(it)
+    }?.flatten() as String[]
+
     def subject = notificationTemplateEngine.build(notification, NotificationTemplateEngine.Type.SUBJECT)
     def body = notificationTemplateEngine.build(notification, NotificationTemplateEngine.Type.BODY)
 
-    send(to, cc, subject, body)
+    try {
+      send(to, cc, subject, body)
+    } catch (AddressException e) {
+      throw new InvalidRequestException(e.message)
+    }
+
     new EchoResponse.Void()
   }
 
