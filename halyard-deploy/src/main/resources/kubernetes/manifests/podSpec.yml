@@ -29,6 +29,10 @@
   ],
   {% endif %}
 
+  {% if serviceAccountName != null %}
+  "serviceAccountName": {{ serviceAccountName }},
+  {% endif %}
+
   "terminationGracePeriodSeconds": {{ terminationGracePeriodSeconds }},
 
   "volumes": [
