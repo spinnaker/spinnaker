@@ -204,14 +204,15 @@ class PublishSpinnakerCommand(CommandProcessor):
 
         repository = bom_scm.make_repository_spec(name)
         bom_scm.ensure_local_repository(repository)
+        version = bom_scm.determine_repository_version(repository)
         if which == 'tag':
           added = self.__branch_and_tag_repository(
-              repository, self.__branch, bom_scm)
+              repository, self.__branch, version)
           if added:
             names_to_push.add(name)
         else:
           self.__push_branch_and_maybe_tag_repository(
-              repository, self.__branch, bom_scm, name in names_to_push)
+              repository, self.__branch, version, name in names_to_push)
 
     additional_repositories = list(SPINNAKER_PROCESS_REPOSITORY_NAMES)
     additional_repositories.extend(SPINNAKER_SHARED_REPOSITORY_NAMES)
@@ -221,10 +222,12 @@ class PublishSpinnakerCommand(CommandProcessor):
         continue
       repository = branch_scm.make_repository_spec(name)
       branch_scm.ensure_local_repository(repository)
+      git_summary = self.__git.collect_repository_summary(repository.git_dir)
+      version = git_summary.version
       if self.__branch_and_tag_repository(
-          repository, self.__branch, branch_scm):
+          repository, self.__branch, version):
         self.__push_branch_and_maybe_tag_repository(
-            repository, self.__branch, branch_scm, True)
+            repository, self.__branch, version, True)
 
   def __already_have_tag(self, repository, tag):
     """Determine if we already have the tag in the repository."""
@@ -243,9 +246,8 @@ class PublishSpinnakerCommand(CommandProcessor):
             .format(tag=tag, repo=git_dir,
                     have=existing_commit, want=want_commit)))
 
-  def __branch_and_tag_repository(self, repository, branch, scm):
+  def __branch_and_tag_repository(self, repository, branch, version):
     """Create a branch and/or verison tag in the repository, if needed."""
-    version = scm.determine_repository_version(repository)
     tag = 'version-' + version
     if self.__already_have_tag(repository, tag):
       return False
@@ -253,10 +255,10 @@ class PublishSpinnakerCommand(CommandProcessor):
     self.__git.check_run(repository.git_dir, 'tag ' + tag)
     return True
 
-  def __push_branch_and_maybe_tag_repository(self, repository, branch, scm,
+  def __push_branch_and_maybe_tag_repository(self, repository, branch, version,
                                              also_tag):
     """Push the branch and verison tag to the origin."""
-    tag = 'version-' + scm.determine_repository_version(repository)
+    tag = 'version-' + version
     self.__git.push_branch_to_origin(repository.git_dir, branch)
     if also_tag:
       self.__git.push_tag_to_origin(repository.git_dir, tag)
