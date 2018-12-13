@@ -25,7 +25,8 @@
     "tslint": "tslint --project tsconfig.json",
     "int": "protractor protractor.conf.js",
     "precommit": "pretty-quick --staged",
-    "modules": "./gradle/buildModules.sh"
+    "modules": "./gradle/buildModules.sh",
+    "functional": "wdio wdio.conf.js"
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.4.1",
@@ -118,6 +119,7 @@
     "@types/react-sortable-hoc": "^0.6.2",
     "@types/react-virtualized": "9.7.12",
     "@types/react-virtualized-select": "^3.0.3",
+    "@types/webdriverio": "^4.13.0",
     "@types/webpack": "4.1.0",
     "@types/webpack-env": "^1.13.5",
     "angular-mocks": "1.6.10",
@@ -172,6 +174,7 @@
     "style-loader": "^0.20.3",
     "thread-loader": "^1.1.5",
     "ts-loader": "4.3.0",
+    "ts-node": "^7.0.1",
     "tslint": "^5.11.0",
     "tslint-config-prettier": "^1.14.0",
     "tslint-eslint-rules": "^5.3.1",
@@ -180,6 +183,10 @@
     "typescript": "^3.0.1",
     "uglifyjs-webpack-plugin": "^1.2.4",
     "url-loader": "^1.0.1",
+    "wdio-dot-reporter": "^0.0.10",
+    "wdio-jasmine-framework": "^0.3.8",
+    "wdio-selenium-standalone-service": "^0.0.12",
+    "webdriverio": "^4.14.1",
     "webpack": "4.1.1",
     "webpack-cli": "^2.0.12",
     "webpack-dev-server": "3.1.1",
