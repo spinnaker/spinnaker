@@ -144,7 +144,7 @@ Class | Method | HTTP request | Description
 *V2PipelineTemplatesControllerApi* | [**GetUsingGET1**](docs/V2PipelineTemplatesControllerApi.md#getusingget1) | **Get** /v2/pipelineTemplates/{id} | Get a pipeline template.
 *V2PipelineTemplatesControllerApi* | [**ListPipelineTemplateDependentsUsingGET1**](docs/V2PipelineTemplatesControllerApi.md#listpipelinetemplatedependentsusingget1) | **Get** /v2/pipelineTemplates/{id}/dependents | List all pipelines that implement a pipeline template
 *V2PipelineTemplatesControllerApi* | [**ListUsingGET1**](docs/V2PipelineTemplatesControllerApi.md#listusingget1) | **Get** /v2/pipelineTemplates | List pipeline templates.
-*V2PipelineTemplatesControllerApi* | [**ResolveTemplatesUsingGET1**](docs/V2PipelineTemplatesControllerApi.md#resolvetemplatesusingget1) | **Get** /v2/pipelineTemplates/resolve | Resolve a pipeline template.
+*V2PipelineTemplatesControllerApi* | [**PlanUsingPOST**](docs/V2PipelineTemplatesControllerApi.md#planusingpost) | **Post** /v2/pipelineTemplates/plan | Plan a pipeline template configuration.
 *V2PipelineTemplatesControllerApi* | [**UpdateUsingPOST1**](docs/V2PipelineTemplatesControllerApi.md#updateusingpost1) | **Post** /v2/pipelineTemplates/{id} | Update a pipeline template.
 *VersionControllerApi* | [**GetVersionUsingGET**](docs/VersionControllerApi.md#getversionusingget) | **Get** /version | Fetch Gate&#39;s current version
 *WebhookControllerApi* | [**PreconfiguredWebhooksUsingGET**](docs/WebhookControllerApi.md#preconfiguredwebhooksusingget) | **Get** /webhooks/preconfigured | Retrieve a list of preconfigured webhooks in Orca

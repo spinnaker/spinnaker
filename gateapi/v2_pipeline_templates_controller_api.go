@@ -353,16 +353,13 @@ func (a *V2PipelineTemplatesControllerApiService) ListUsingGET1(ctx context.Cont
 	return successPayload, localVarHttpResponse, err
 }
 
-/* V2PipelineTemplatesControllerApiService Resolve a pipeline template.
+/* V2PipelineTemplatesControllerApiService Plan a pipeline template configuration.
  * @param ctx context.Context for authentication, logging, tracing, etc.
- @param source source
- @param optional (nil or map[string]interface{}) with one or more of:
-     @param "executionId" (string) executionId
-     @param "pipelineConfigId" (string) pipelineConfigId
+ @param pipeline pipeline
  @return map[string]interface{}*/
-func (a *V2PipelineTemplatesControllerApiService) ResolveTemplatesUsingGET1(ctx context.Context, source string, localVarOptionals map[string]interface{}) (map[string]interface{},  *http.Response, error) {
+func (a *V2PipelineTemplatesControllerApiService) PlanUsingPOST(ctx context.Context, pipeline interface{}) (map[string]interface{},  *http.Response, error) {
 	var (
-		localVarHttpMethod = strings.ToUpper("Get")
+		localVarHttpMethod = strings.ToUpper("Post")
 		localVarPostBody interface{}
 		localVarFileName string
 		localVarFileBytes []byte
@@ -370,26 +367,13 @@ func (a *V2PipelineTemplatesControllerApiService) ResolveTemplatesUsingGET1(ctx 
 	)
 
 	// create path and map variables
-	localVarPath := a.client.cfg.BasePath + "/v2/pipelineTemplates/resolve"
+	localVarPath := a.client.cfg.BasePath + "/v2/pipelineTemplates/plan"
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-	if err := typeCheckParameter(localVarOptionals["executionId"], "string", "executionId"); err != nil {
-		return successPayload, nil, err
-	}
-	if err := typeCheckParameter(localVarOptionals["pipelineConfigId"], "string", "pipelineConfigId"); err != nil {
-		return successPayload, nil, err
-	}
 
-	localVarQueryParams.Add("source", parameterToString(source, ""))
-	if localVarTempParam, localVarOk := localVarOptionals["executionId"].(string); localVarOk {
-		localVarQueryParams.Add("executionId", parameterToString(localVarTempParam, ""))
-	}
-	if localVarTempParam, localVarOk := localVarOptionals["pipelineConfigId"].(string); localVarOk {
-		localVarQueryParams.Add("pipelineConfigId", parameterToString(localVarTempParam, ""))
-	}
 	// to determine the Content-Type header
 	localVarHttpContentTypes := []string{ "application/json",  }
 
@@ -409,6 +393,8 @@ func (a *V2PipelineTemplatesControllerApiService) ResolveTemplatesUsingGET1(ctx 
 	if localVarHttpHeaderAccept != "" {
 		localVarHeaderParams["Accept"] = localVarHttpHeaderAccept
 	}
+	// body params
+	localVarPostBody = &pipeline
 	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFileName, localVarFileBytes)
 	if err != nil {
 		return successPayload, nil, err

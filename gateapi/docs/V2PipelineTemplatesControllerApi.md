@@ -9,7 +9,7 @@ Method | HTTP request | Description
 [**GetUsingGET1**](V2PipelineTemplatesControllerApi.md#GetUsingGET1) | **Get** /v2/pipelineTemplates/{id} | Get a pipeline template.
 [**ListPipelineTemplateDependentsUsingGET1**](V2PipelineTemplatesControllerApi.md#ListPipelineTemplateDependentsUsingGET1) | **Get** /v2/pipelineTemplates/{id}/dependents | List all pipelines that implement a pipeline template
 [**ListUsingGET1**](V2PipelineTemplatesControllerApi.md#ListUsingGET1) | **Get** /v2/pipelineTemplates | List pipeline templates.
-[**ResolveTemplatesUsingGET1**](V2PipelineTemplatesControllerApi.md#ResolveTemplatesUsingGET1) | **Get** /v2/pipelineTemplates/resolve | Resolve a pipeline template.
+[**PlanUsingPOST**](V2PipelineTemplatesControllerApi.md#PlanUsingPOST) | **Post** /v2/pipelineTemplates/plan | Plan a pipeline template configuration.
 [**UpdateUsingPOST1**](V2PipelineTemplatesControllerApi.md#UpdateUsingPOST1) | **Post** /v2/pipelineTemplates/{id} | Update a pipeline template.
 
 
@@ -159,26 +159,16 @@ No authorization required
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **ResolveTemplatesUsingGET1**
-> map[string]interface{} ResolveTemplatesUsingGET1(ctx, source, optional)
-Resolve a pipeline template.
+# **PlanUsingPOST**
+> map[string]interface{} PlanUsingPOST(ctx, pipeline)
+Plan a pipeline template configuration.
 
 ### Required Parameters
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
-  **source** | **string**| source | 
- **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
-
-### Optional Parameters
-Optional parameters are passed through a map[string]interface{}.
-
-Name | Type | Description  | Notes
-------------- | ------------- | ------------- | -------------
- **source** | **string**| source | 
- **executionId** | **string**| executionId | 
- **pipelineConfigId** | **string**| pipelineConfigId | 
+  **pipeline** | [**interface{}**](interface{}.md)| pipeline | 
 
 ### Return type
 
