@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws
 
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
+
 import javax.annotation.Nonnull
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.orca.clouddriver.FeaturesService
@@ -55,12 +57,18 @@ class ApplySourceServerGroupCapacityStage implements StageDefinitionBuilder {
   @Autowired
   RetrySupport retrySupport
 
+  @Autowired
+  DynamicConfigService dynamicConfigService
+
   @Override
   void taskGraph(Stage stage, TaskNode.Builder builder) {
     builder
       .withTask("restoreMinCapacity", ApplySourceServerGroupCapacityTask)
       .withTask("waitForCapacityMatch", MonitorKatoTask)
-      .withTask("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
+
+    if (isForceCacheRefreshEnabled(dynamicConfigService)) {
+      builder.withTask("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
+    }
   }
 
   @Override
