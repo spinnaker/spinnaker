@@ -45,12 +45,15 @@ import com.netflix.spinnaker.clouddriver.titus.client.TitusRegion;
 import com.netflix.spinnaker.clouddriver.titus.client.model.TaskState;
 import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentials;
 import com.netflix.titus.grpc.protogen.*;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Provider;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -60,12 +63,10 @@ import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.TA
 import static com.netflix.spinnaker.clouddriver.titus.caching.Keys.Namespace.*;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
+@Slf4j
 public class TitusStreamingUpdateAgent implements CustomScheduledAgent {
 
-  private static final Logger log = LoggerFactory.getLogger(TitusStreamingUpdateAgent.class);
-
-  private static final TypeReference<Map<String, Object>> ANY_MAP = new TypeReference<Map<String, Object>>() {
-  };
+  private static final TypeReference<Map<String, Object>> ANY_MAP = new TypeReference<Map<String, Object>>() {};
 
   private final TitusClient titusClient;
   private final TitusAutoscalingClient titusAutoscalingClient;
@@ -76,6 +77,8 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent {
   private final Registry registry;
   private final Id metricId;
   private final Provider<AwsLookupUtil> awsLookupUtil;
+  private final long TIME_UPDATE_THRESHHOLD_MS = 5000;
+  private final long ITEMS_CHANGED_THRESHHOLD = 1000;
 
   private static final Set<TaskStatus.TaskState> FINISHED_TASK_STATES = Collections.unmodifiableSet(Stream.of(
     TaskStatus.TaskState.Finished,
@@ -87,37 +90,19 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent {
     JobStatus.JobState.KillInitiated
   ).collect(Collectors.toSet()));
 
-  private static final Set<TaskStatus.TaskState> FILTERED_STATES = Collections.unmodifiableSet(Stream.of(
+  private static final Set<TaskStatus.TaskState> FILTERED_TASK_STATES = Collections.unmodifiableSet(Stream.of(
     TaskStatus.TaskState.Launched,
     TaskStatus.TaskState.Started,
     TaskStatus.TaskState.StartInitiated
   ).collect(Collectors.toSet()));
 
-  private static final Set<AgentDataType> SNAPSHOT_TYPES = Collections.unmodifiableSet(Stream.of(
+  private static final Set<AgentDataType> TYPES = Collections.unmodifiableSet(Stream.of(
     AUTHORITATIVE.forType(SERVER_GROUPS.ns),
     AUTHORITATIVE.forType(APPLICATIONS.ns),
     AUTHORITATIVE.forType(INSTANCES.ns),
     INFORMATIVE.forType(IMAGES.ns),
     INFORMATIVE.forType(CLUSTERS.ns),
     INFORMATIVE.forType(TARGET_GROUPS.ns)
-  ).collect(Collectors.toSet()));
-
-  private static final Set<AgentDataType> TASK_TYPES = Collections.unmodifiableSet(Stream.of(
-    INFORMATIVE.forType(INSTANCES.ns),
-    INFORMATIVE.forType(SERVER_GROUPS.ns)
-  ).collect(Collectors.toSet()));
-
-  private static final Set<AgentDataType> SCALING_POLICY_TYPES = Collections.unmodifiableSet(Stream.of(
-    INFORMATIVE.forType(SERVER_GROUPS.ns)
-  ).collect(Collectors.toSet()));
-
-  private static final Set<AgentDataType> JOB_TYPES = Collections.unmodifiableSet(Stream.of(
-    INFORMATIVE.forType(SERVER_GROUPS.ns),
-    INFORMATIVE.forType(INSTANCES.ns),
-    INFORMATIVE.forType(IMAGES.ns),
-    INFORMATIVE.forType(CLUSTERS.ns),
-    INFORMATIVE.forType(TARGET_GROUPS.ns),
-    INFORMATIVE.forType(APPLICATIONS.ns)
   ).collect(Collectors.toSet()));
 
   private static final List<TaskState> DOWN_TASK_STATES = Arrays.asList(
@@ -150,7 +135,6 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent {
   ) {
     this.account = account;
     this.region = region;
-
     this.objectMapper = objectMapper;
     this.titusClient = titusClientProvider.getTitusClient(account, region.getName());
     this.titusAutoscalingClient = titusClientProvider.getTitusAutoscalingClient(account, region.getName());
@@ -176,15 +160,24 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent {
     private final Logger log = LoggerFactory.getLogger(CachingAgent.CacheExecution.class);
     private final ProviderRegistry providerRegistry;
     private final ProviderCache cache;
+    private AtomicInteger changes = new AtomicInteger(0);
+    private AtomicLong lastUpdate = new AtomicLong(0);
+
+    Map<String, Job> jobs = new HashMap();
+    Map<String, Set<Task>> tasks = new HashMap();
 
     public StreamingCacheExecution(ProviderRegistry providerRegistry) {
       this.providerRegistry = providerRegistry;
       this.cache = providerRegistry.getProviderCache(getProviderName());
     }
 
+    private String getAgentType() {
+      return account.getName() + "/" + region.getName() + "/" + TitusStreamingUpdateAgent.class.getSimpleName();
+    }
+
     @Override
     public void executeAgent(Agent agent) {
-      ScheduledExecutorService executor = Executors.newScheduledThreadPool(2);
+      ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
       final Future handler = executor.submit(() -> {
         Iterator<JobChangeNotification> notificationIt = titusClient.observeJobs(
           ObserveJobsQuery.newBuilder()
@@ -192,42 +185,23 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent {
             .putFilteringCriteria("attributes", "source:spinnaker")
             .build()
         );
-        boolean reconstructingSnapshot = true;
-        Map<String, Job> jobs = new HashMap();
-        Map<String, Set<Task>> tasks = new HashMap();
         Long startTime = System.currentTimeMillis();
         while (notificationIt.hasNext()) {
           JobChangeNotification notification = notificationIt.next();
           switch (notification.getNotificationCase()) {
             case JOBUPDATE:
-              Job job = notification.getJobUpdate().getJob();
-              if (reconstructingSnapshot) {
-                jobs.put(job.getId(), job);
-              } else {
-                updateJob(jobs, job);
-              }
+              updateJob(notification.getJobUpdate().getJob());
               break;
             case TASKUPDATE:
-              Task task = notification.getTaskUpdate().getTask();
-              if (FILTERED_STATES.contains(task.getStatus().getState())) {
-                if (tasks.containsKey(task.getJobId())) {
-                  tasks.get(task.getJobId()).add(task);
-                } else {
-                  tasks.put(task.getJobId(), Stream.of(task).collect(Collectors.toCollection(HashSet::new)));
-                }
-              }
-              if (!reconstructingSnapshot) {
-                if (jobs.containsKey(task.getJobId())) {
-                  updateTask(jobs.get(task.getJobId()), task, tasks);
-                }
-              }
+              updateTask(notification.getTaskUpdate().getTask());
               break;
             case SNAPSHOTEND:
-              reconstructingSnapshot = false;
+              lastUpdate.set(0); // last update should already be initialized to 0 but this forces an update regardless
+              log.info("Snapshot finished {}", getAgentType());
               tasks.keySet().retainAll(jobs.keySet());
-              processSnapShot(startTime, jobs, tasks);
               break;
           }
+          maybeWriteToCache();
         }
       });
       executor.schedule(() -> {
@@ -236,255 +210,88 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent {
       CompletableFuture.completedFuture(handler).join();
     }
 
-    private void processSnapShot(Long startTime, Map<String, Job> jobs, Map<String, Set<Task>> tasks) {
-      Long startScalingPolicyTime = System.currentTimeMillis();
-      List<ScalingPolicyResult> scalingPolicyResults = titusAutoscalingClient != null
-        ? titusAutoscalingClient.getAllScalingPolicies()
-        : Collections.emptyList();
-      PercentileTimer
-        .get(registry, metricId.withTag("operation", "getScalingPolicies"))
-        .record(System.currentTimeMillis() - startScalingPolicyTime, MILLISECONDS);
-
-      Long startLoadBalancerTime = System.currentTimeMillis();
-      Map<String, List<String>> allLoadBalancers = titusLoadBalancerClient != null
-        ? titusLoadBalancerClient.getAllLoadBalancers()
-        : Collections.emptyMap();
-      PercentileTimer
-        .get(registry, metricId.withTag("operation", "getLoadBalancers"))
-        .record(System.currentTimeMillis() - startLoadBalancerTime, MILLISECONDS);
-
-      CacheResult result = buildCacheResult(
-        jobs,
-        scalingPolicyResults,
-        allLoadBalancers,
-        tasks
-      );
-
-      writeToCache(result, true, SNAPSHOT_TYPES);
-
-      PercentileTimer
-        .get(registry, metricId.withTag("operation", "processSnapshot"))
-        .record(System.currentTimeMillis() - startTime, MILLISECONDS);
-    }
-
-    private String getAgentType() {
-      return account.getName() + "/" + region.getName() + "/" + TitusStreamingUpdateAgent.class.getSimpleName();
-    }
-
-    private Optional<Map<String, String>> getCacheKeyPatterns() {
-      Map<String, String> cachekeyPatterns = new HashMap<>();
-      cachekeyPatterns.put(SERVER_GROUPS.ns, Keys.getServerGroupV2Key("*", "*", account.getName(), region.getName()));
-      cachekeyPatterns.put(INSTANCES.ns, Keys.getInstanceV2Key("*", account.getName(), region.getName()));
-      return Optional.of(cachekeyPatterns);
-    }
-
-    private void updateJob(Map<String, Job> jobs, Job job) {
+    private void updateJob(Job job) {
+      String jobId = job.getId();
       if (FINISHED_JOB_STATES.contains(job.getStatus().getState())) {
-        if (jobs.keySet().contains(job.getId())) {
-          evictJob(jobs, job);
+        if (jobs.keySet().contains(jobId)) {
+          tasks.remove(jobId);
+          jobs.remove(jobId);
+          changes.incrementAndGet();
         }
       } else {
-        jobs.putIfAbsent(job.getId(), job);
-        List<String> loadBalancers = new ArrayList<>();
-        if (job.getJobDescriptor().getAttributesMap().containsKey("spinnaker.targetGroups")) {
-          Collections.addAll(loadBalancers,
-            job.getJobDescriptor().getAttributesMap().get("spinnaker.targetGroups").split(","));
-        }
-
-        Map<String, CacheData> applicationCache = createCache();
-        Map<String, CacheData> clusterCache = createCache();
-        Map<String, CacheData> serverGroupCache = createCache();
-        Map<String, CacheData> imageCache = createCache();
-
-        ServerGroupData data =
-          new ServerGroupData(new com.netflix.spinnaker.clouddriver.titus.client.model.Job(job, Collections.EMPTY_LIST),
-            Collections.EMPTY_LIST,
-            loadBalancers,
-            Collections.EMPTY_SET,
-            account.getName(),
-            region.getName());
-
-        cacheApplication(data, applicationCache, true);
-        cacheCluster(data, clusterCache, true);
-        cacheServerGroup(data, serverGroupCache);
-        cacheImage(data, imageCache);
-
-        Map<String, Collection<CacheData>> cacheResults = new HashMap<>();
-        cacheResults.put(APPLICATIONS.ns, applicationCache.values());
-        cacheResults.put(CLUSTERS.ns, clusterCache.values());
-        cacheResults.put(SERVER_GROUPS.ns, serverGroupCache.values());
-        cacheResults.put(IMAGES.ns, imageCache.values());
-
-        if (serverGroupCache.size() > 1) {
-          log.info("Caching {} applications in {}", applicationCache.size(), getAgentType());
-          log.info("Caching {} server groups in {}", serverGroupCache.size(), getAgentType());
-          log.info("Caching {} clusters in {}", clusterCache.size(), getAgentType());
-          log.info("Caching {} images in {}", imageCache.size(), getAgentType());
-        }
-
-        writeToCache(new DefaultCacheResult(cacheResults), false, JOB_TYPES);
-
-        // we need to update scaling policies for new jobs on a delay since the deploy handler only
-        // attaches scaling policies after a job has been created and the id is available
-        // currently waiting for 5 seconds to attach policies but will revisit if improvements are
-        // made in this area
-        waitAndUpdateScalingPolicies(data.serverGroupKey, data.job.getId());
-
+        jobs.put(jobId, job);
+        changes.incrementAndGet();
       }
     }
 
-    private void waitAndUpdateScalingPolicies(String serverGroupKey, String jobId) {
-      new Timer().schedule(
-        new TimerTask() {
-          public void run() {
-            List<ScalingPolicyResult> scalingPolicyResults = titusAutoscalingClient != null
-              ? titusAutoscalingClient.getJobScalingPolicies(jobId)
-              : Collections.emptyList();
-            if (!scalingPolicyResults.isEmpty()) {
-              CacheData serverGroupData = getFromCache(SERVER_GROUPS.ns, serverGroupKey);
-              List<ScalingPolicyData> policies = scalingPolicyResults.stream()
-                .filter(it -> CACHEABLE_POLICY_STATES.contains(it.getPolicyState().getState()))
-                .map(it -> new ScalingPolicyData(it.getId().getId(), it.getScalingPolicy(), it.getPolicyState()))
-                .collect(Collectors.toList());
-              serverGroupData.getAttributes().put("scalingPolicies", policies);
-              Map<String, Collection<CacheData>> cacheResults = new HashMap<>();
-              cacheResults.put(SERVER_GROUPS.ns, Arrays.asList(serverGroupData));
-              writeToCache(new DefaultCacheResult(cacheResults), false, SCALING_POLICY_TYPES);
-            }
-          }
-        }, 5000);
-    }
-
-    private void evictJob(Map<String, Job> jobs, Job job){
-        String asgName =
-                getAsgName(new com.netflix.spinnaker.clouddriver.titus.client.model.Job(job, Collections.EMPTY_LIST));
-
-        Names name = Names.parseName(asgName);
-
-        String appNameKey = Keys.getApplicationKey(name.getApp());
-        String clusterKey = Keys.getClusterV2Key(name.getCluster(), name.getApp(), account.getName());
-        String serverGroupKey = Keys.getServerGroupV2Key(asgName, account.getName(), region.getName());
-
-        CacheData applicationCache = cache.get(APPLICATIONS.ns, appNameKey);
-        CacheData clusterCache = cache.get(CLUSTERS.ns, clusterKey);
-
-        if (clusterCache != null) {
-          Map<String, Collection<CacheData>> cacheResults = new HashMap<>();
-          if (clusterCache.getRelationships().get(SERVER_GROUPS.ns).contains(serverGroupKey)) {
-                clusterCache.getRelationships().get(SERVER_GROUPS.ns).remove(serverGroupKey);
-                applicationCache.getRelationships().get(SERVER_GROUPS.ns).remove(serverGroupKey);
-                if (clusterCache.getRelationships().get(SERVER_GROUPS.ns).isEmpty()) {
-                    cache.evictDeletedItems(CLUSTERS.ns, Stream.of(clusterKey).collect(Collectors.toList()));
-                    if (applicationCache.getRelationships().containsKey(CLUSTERS.ns)) {
-                        applicationCache.getRelationships().get(CLUSTERS.ns).remove(clusterKey);
-                        log.info("Removing cluster {} in {}", account.getName(), getAgentType());
-                        if (applicationCache.getRelationships().get(CLUSTERS.ns).isEmpty()) {
-                            cache.evictDeletedItems(APPLICATIONS.ns,
-                                    Stream.of(appNameKey).collect(Collectors.toList()));
-                            log.info("Removing application {} in {}", name.getApp(), getAgentType());
-                        } else {
-                          cacheResults.put(APPLICATIONS.ns, Stream.of(applicationCache).collect(Collectors.toList()));
-                        }
-                    }
-                } else {
-                  cacheResults.put(CLUSTERS.ns, Stream.of(clusterCache).collect(Collectors.toList()));
-                }
-            }
-            if(!cacheResults.isEmpty()){
-              writeToCache(new DefaultCacheResult(cacheResults), false, JOB_TYPES);
-            }
+    private void updateTask(Task task) {
+      String jobId = task.getJobId();
+      if (FILTERED_TASK_STATES.contains(task.getStatus().getState())) {
+        if (tasks.containsKey(jobId)) {
+          tasks.get(jobId).add(task);
+        } else {
+          tasks.put(jobId, Stream.of(task).collect(Collectors.toCollection(HashSet::new)));
         }
-        cache.evictDeletedItems(SERVER_GROUPS.ns, Stream.of(serverGroupKey).collect(Collectors.toList()));
-        jobs.remove(job.getId());
-        log.info("Evicting job: {}, {} in {}", asgName, job.getId(), getAgentType());
-    }
-
-    private void updateTask(Job job, Task task, Map<String, Set<Task>> tasks) {
-      if (FILTERED_STATES.contains(task.getStatus().getState())) {
-        Map<String, Collection<CacheData>> cacheResults = new HashMap<>();
-        Map<String, CacheData> instancesCache = createCache();
-        Map<String, CacheData> serverGroupCache = createCache();
-        String asgName =
-          getAsgName(new com.netflix.spinnaker.clouddriver.titus.client.model.Job(job, Collections.EMPTY_LIST));
-        InstanceData instanceData =
-          new InstanceData(new com.netflix.spinnaker.clouddriver.titus.client.model.Task(task),
-            asgName,
-            account.getName(),
-            region.getName());
-        cacheInstance(instanceData, instancesCache);
-        CacheData serverGroupCacheData =
-          serverGroupCache.getOrDefault(instanceData.serverGroup, new MutableCacheData(instanceData.serverGroup));
-        Set<Task> taskIds = tasks.get(job.getId());
-        serverGroupCacheData.getRelationships()
-          .computeIfAbsent(INSTANCES.ns, key -> new HashSet<>())
-          .addAll(taskIds.stream()
-            .map(instanceTask -> (Keys.getInstanceV2Key(instanceTask.getId(), account.getName(), region.getName())))
-            .collect(Collectors.toSet()));
-        serverGroupCache.put(instanceData.serverGroup, serverGroupCacheData);
-        cacheResults.put(INSTANCES.ns, instancesCache.values());
-        cacheResults.put(SERVER_GROUPS.ns, serverGroupCache.values());
-        writeToCache(new DefaultCacheResult(cacheResults), false, TASK_TYPES);
-        log.info("Caching instance {} in {}", task.getId(), getAgentType());
+        changes.incrementAndGet();
       } else if (FINISHED_TASK_STATES.contains(task.getStatus().getState())) {
-        tasks.get(job.getId()).remove(task);
-        cache.evictDeletedItems(INSTANCES.ns,
-          Stream.of(Keys.getInstanceV2Key(task.getId(), account.getName(), region.getName()))
-            .collect(Collectors.toList()));
-        log.info("Evicting task: {} in {}", task.getId(), getAgentType());
+        tasks.get(jobId).remove(task);
+        changes.incrementAndGet();
       }
     }
 
-    private void writeToCache(CacheResult result, boolean evict, Collection<AgentDataType> providedTypes) {
-      Collection<String> authoritative = new HashSet<>(providedTypes.size());
-      for (AgentDataType type : providedTypes) {
-        if (type.getAuthority() == AgentDataType.Authority.AUTHORITATIVE) {
-          authoritative.add(type.getTypeName());
+    /**
+     * Will only write to a cache if the time from the last update exceeds TIME_UPDATE_THRESHHOLD_MS or
+     * the number of changes exceeds ITEMS_CHANGED_THRESHHOLD
+     */
+    private void maybeWriteToCache() {
+      Long startTime = System.currentTimeMillis();
+      if (changes.get() > 0 &&
+          (changes.get() >= ITEMS_CHANGED_THRESHHOLD || startTime - lastUpdate.get() > TIME_UPDATE_THRESHHOLD_MS)
+      ) {
+        if (lastUpdate.get() != 0) {
+          log.info("Updating: {} changes ( last update {} milliseconds ) in {}",
+            changes.get(),
+            startTime - lastUpdate.get(),
+            getAgentType());
         }
-      }
+        List<ScalingPolicyResult> scalingPolicyResults = titusAutoscalingClient != null
+          ? titusAutoscalingClient.getAllScalingPolicies()
+          : Collections.emptyList();
+        PercentileTimer
+          .get(registry, metricId.withTag("operation", "getScalingPolicies"))
+          .record(System.currentTimeMillis() - startTime, MILLISECONDS);
 
-      if (evict) {
-        Optional<Map<String, String>> cacheKeyPatterns = getCacheKeyPatterns();
-        if (cacheKeyPatterns.isPresent()) {
-          for (String type : authoritative) {
-            String cacheKeyPatternForType = cacheKeyPatterns.get().get(type);
-            if (cacheKeyPatternForType != null) {
-              try {
-                Set<String> cachedIdentifiersForType = result.getCacheResults().get(type)
-                  .stream()
-                  .map(CacheData::getId)
-                  .collect(Collectors.toSet());
+        Long startLoadBalancerTime = System.currentTimeMillis();
+        Map<String, List<String>> allLoadBalancers = titusLoadBalancerClient != null
+          ? titusLoadBalancerClient.getAllLoadBalancers()
+          : Collections.emptyMap();
+        PercentileTimer
+          .get(registry, metricId.withTag("operation", "getLoadBalancers"))
+          .record(System.currentTimeMillis() - startLoadBalancerTime, MILLISECONDS);
 
-                Collection<String> evictableIdentifiers = cache.filterIdentifiers(type, cacheKeyPatternForType)
-                  .stream()
-                  .filter(i -> !cachedIdentifiersForType.contains(i))
-                  .collect(Collectors.toSet());
+        CacheResult result = buildCacheResult(
+          scalingPolicyResults,
+          allLoadBalancers
+        );
 
-                // any key that existed previously but was not re-cached by this agent is considered evictable
-                if (!evictableIdentifiers.isEmpty()) {
-                  Collection<String> evictionsForType =
-                    result.getEvictions().computeIfAbsent(type, evictableKeys -> new ArrayList<>());
-                  evictionsForType.addAll(evictableIdentifiers);
-
-                  log.debug("Evicting stale identifiers: {}", evictableIdentifiers);
-                }
-              } catch (Exception e) {
-                log.error("Failed to check for stale identifiers (type: {}, pattern: {})",
-                  type,
-                  cacheKeyPatternForType,
-                  e);
-              }
-            }
+        Collection<String> authoritative = new HashSet<>(TYPES.size());
+        for (AgentDataType type : TYPES) {
+          if (type.getAuthority() == AgentDataType.Authority.AUTHORITATIVE) {
+            authoritative.add(type.getTypeName());
           }
         }
-      }
+        cache.putCacheResult(getAgentType(), authoritative, result);
+        lastUpdate.set(startTime);
+        changes.set(0);
 
-      cache.putCacheResult(getAgentType(), authoritative, result);
+        PercentileTimer
+          .get(registry, metricId.withTag("operation", "processSnapshot"))
+          .record(System.currentTimeMillis() - startTime, MILLISECONDS);
+      }
     }
 
-    private CacheResult buildCacheResult(Map<String, Job> jobs,
-                                         List<ScalingPolicyResult> scalingPolicyResults,
-                                         Map<String, List<String>> allLoadBalancers,
-                                         Map<String, Set<Task>> tasks) {
+    private CacheResult buildCacheResult(List<ScalingPolicyResult> scalingPolicyResults,
+                                         Map<String, List<String>> allLoadBalancers) {
       // INITIALIZE CACHES
       Map<String, CacheData> applicationCache = createCache();
       Map<String, CacheData> clusterCache = createCache();
@@ -516,8 +323,8 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent {
         .collect(Collectors.toList());
 
       serverGroupDatas.forEach(data -> {
-        cacheApplication(data, applicationCache, false);
-        cacheCluster(data, clusterCache, false);
+        cacheApplication(data, applicationCache);
+        cacheCluster(data, clusterCache);
         cacheServerGroup(data, serverGroupCache);
         cacheImage(data, imageCache);
         for (Task task : (Set<Task>) tasks.getOrDefault(data.job.getId(), Collections.EMPTY_SET)) {
@@ -551,13 +358,8 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent {
     /**
      * Build authoritative cache object for applications based on server group data
      */
-    private void cacheApplication(ServerGroupData data, Map<String, CacheData> applications, boolean update) {
-      CacheData applicationCache;
-      if (update) {
-        applicationCache = getFromCache(APPLICATIONS.ns, data.appNameKey);
-      } else {
-        applicationCache = applications.getOrDefault(data.appNameKey, new MutableCacheData(data.appNameKey));
-      }
+    private void cacheApplication(ServerGroupData data, Map<String, CacheData> applications) {
+      CacheData applicationCache = applications.getOrDefault(data.appNameKey, new MutableCacheData(data.appNameKey));
       applicationCache.getAttributes().put("name", data.name.getApp());
       Map<String, Collection<String>> relationships = applicationCache.getRelationships();
       relationships.computeIfAbsent(CLUSTERS.ns, key -> new HashSet<>()).add(data.clusterKey);
@@ -566,26 +368,11 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent {
       applications.put(data.appNameKey, applicationCache);
     }
 
-    private CacheData getFromCache(String namespace, String key) {
-      HashSet keys = new HashSet();
-      keys.add(key);
-      CacheData result = cache.get(namespace, key);
-      if (result == null) {
-        result = new MutableCacheData(key);
-      }
-      return result;
-    }
-
     /**
      * Build informative cache object for clusters based on server group data
      */
-    private void cacheCluster(ServerGroupData data, Map<String, CacheData> clusters, boolean update) {
-      CacheData clusterCache;
-      if (update) {
-        clusterCache = getFromCache(CLUSTERS.ns, data.clusterKey);
-      } else {
-        clusterCache = clusters.getOrDefault(data.clusterKey, new MutableCacheData(data.clusterKey));
-      }
+    private void cacheCluster(ServerGroupData data, Map<String, CacheData> clusters) {
+      CacheData clusterCache = clusters.getOrDefault(data.clusterKey, new MutableCacheData(data.clusterKey));
       clusterCache.getAttributes().put("name", data.name.getCluster());
       Map<String, Collection<String>> relationships = clusterCache.getRelationships();
       relationships.computeIfAbsent(APPLICATIONS.ns, key -> new HashSet<>()).add(data.appNameKey);
