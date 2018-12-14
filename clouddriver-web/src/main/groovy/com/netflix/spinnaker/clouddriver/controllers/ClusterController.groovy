@@ -245,7 +245,7 @@ class ClusterController {
     }
 
     if (!sortedServerGroups) {
-      throw new NotFoundException("No server groups found (account: ${account}, cluster: ${clusterName}, type: ${cloudProvider})")
+      throw new NotFoundException("No server groups found (account: ${account}, location: ${scope}, cluster: ${clusterName}, type: ${cloudProvider})")
     }
 
     switch (tsg) {
