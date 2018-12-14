@@ -1,0 +1,426 @@
+{
+  "name": "Automated Canary Deploy",
+  "application": "sampleapp",
+  "appConfig": {},
+  "description": "This pipeline deploys a canary version of the application, and a baseline (identical to production) version.\nIt compares them, and if the canary is OK, it triggers the production deployment pipeline.",
+  "executionEngine": "v2",
+  "keepWaitingPipelines": false,
+  "lastModifiedBy": "anonymous",
+  "limitConcurrent": true,
+  "parallel": true,
+  "parameterConfig": [
+    {
+      "description": "Success rate of the application",
+      "hasOptions": true,
+      "label": "Success Rate",
+      "name": "successRate",
+      "options": [
+        {
+          "value": "0"
+        },
+        {
+          "value": "10"
+        },
+        {
+          "value": "20"
+        },
+        {
+          "value": "30"
+        },
+        {
+          "value": "40"
+        },
+        {
+          "value": "50"
+        },
+        {
+          "value": "60"
+        },
+        {
+          "value": "70"
+        },
+        {
+          "value": "80"
+        },
+        {
+          "value": "90"
+        },
+        {
+          "value": "100"
+        }
+      ],
+      "required": true
+    }
+  ],
+  "stages": [
+    {
+      "account": "my-kubernetes-account",
+      "cloudProvider": "kubernetes",
+      "expectedArtifacts": [],
+      "manifestArtifactAccount": "embedded-artifact",
+      "manifests": [
+        {
+          "apiVersion": "apps/v1",
+          "kind": "Deployment",
+          "metadata": {
+            "labels": {
+              "app": "sampleapp-canary"
+            },
+            "name": "sampleapp-canary",
+            "namespace": "default"
+          },
+          "spec": {
+            "replicas": 1,
+            "selector": {
+              "matchLabels": {
+                "app": "sampleapp",
+                "version": "canary"
+              }
+            },
+            "template": {
+              "metadata": {
+                "annotations": {
+                  "prometheus.io/scrape": "true"
+                },
+                "labels": {
+                  "app": "sampleapp",
+                  "version": "canary"
+                }
+              },
+              "spec": {
+                "containers": [
+                  {
+                    "env": [
+                      {
+                        "name": "SUCCESS_RATE",
+                        "valueFrom": {
+                          "configMapKeyRef": {
+                            "key": "SUCCESS_RATE",
+                            "name": "sampleapp-config-canary"
+                          }
+                        }
+                      }
+                    ],
+                    "image": "gcr.io/spinnaker-marketplace/sampleapp:latest",
+                    "name": "sampleapp",
+                    "ports": [
+                      {
+                        "containerPort": 8000
+                      },
+                      {
+                        "containerPort": 8080
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "moniker": {
+        "app": "sampleapp"
+      },
+      "name": "Deploy Canary",
+      "refId": "3",
+      "relationships": {
+        "loadBalancers": [],
+        "securityGroups": []
+      },
+      "requiredArtifactIds": [
+        "2d1febb3-6b7a-42d4-bcf1-85199c3b1aad"
+      ],
+      "requisiteStageRefIds": [
+        "10",
+        "8"
+      ],
+      "source": "text",
+      "type": "deployManifest"
+    },
+    {
+      "account": "my-kubernetes-account",
+      "cloudProvider": "kubernetes",
+      "manifestArtifactAccount": "embedded-artifact",
+      "manifestArtifactId": "0ac4fa1a-4629-4901-94a5-c5579c775736",
+      "manifests": [
+        {
+          "apiVersion": "apps/v1",
+          "kind": "Deployment",
+          "metadata": {
+            "labels": {
+              "app": "sampleapp-baseline"
+            },
+            "name": "sampleapp-baseline",
+            "namespace": "default"
+          },
+          "spec": {
+            "replicas": 1,
+            "selector": {
+              "matchLabels": {
+                "app": "sampleapp",
+                "version": "baseline"
+              }
+            },
+            "template": {
+              "metadata": {
+                "annotations": {
+                  "prometheus.io/scrape": "true"
+                },
+                "labels": {
+                  "app": "sampleapp",
+                  "version": "baseline"
+                }
+              },
+              "spec": {
+                "containers": [
+                  {
+                    "env": [
+                      {
+                        "name": "SUCCESS_RATE",
+                        "valueFrom": {
+                          "configMapKeyRef": {
+                            "key": "SUCCESS_RATE",
+                            "name": "sampleapp-config-prod"
+                          }
+                        }
+                      }
+                    ],
+                    "image": "gcr.io/spinnaker-marketplace/sampleapp:latest",
+                    "name": "sampleapp",
+                    "ports": [
+                      {
+                        "containerPort": 8000
+                      },
+                      {
+                        "containerPort": 8080
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "moniker": {
+        "app": "sampleapp"
+      },
+      "name": "Deploy Baseline",
+      "refId": "4",
+      "relationships": {
+        "loadBalancers": [],
+        "securityGroups": []
+      },
+      "requiredArtifactIds": [
+        "e00b39b2-e6a1-41a7-8e1a-bef37c3313a7"
+      ],
+      "requisiteStageRefIds": [
+        "8",
+        "10"
+      ],
+      "source": "text",
+      "type": "deployManifest"
+    },
+    {
+      "application": "sampleapp",
+      "comments": "",
+      "executionOptions": {
+        "successful": true
+      },
+      "expectedArtifact": {
+        "id": "e00b39b2-e6a1-41a7-8e1a-bef37c3313a7",
+        "matchArtifact": {
+          "kind": "custom",
+          "name": "sampleapp-config-prod",
+          "type": "kubernetes/configMap"
+        }
+      },
+      "name": "Find Baseline Version",
+      "pipeline": "SIMPLE_DEPLOY_PIPELINE_ID",
+      "refId": "8",
+      "requisiteStageRefIds": [],
+      "type": "findArtifactFromExecution"
+    },
+    {
+      "application": "sampleapp",
+      "comments": "",
+      "failPipeline": true,
+      "name": "Deploy to Production",
+      "pipeline": "SIMPLE_DEPLOY_PIPELINE_ID",
+      "pipelineParameters": {
+        "successRate": "${ parameters.successRate }"
+      },
+      "refId": "9",
+      "requisiteStageRefIds": [
+        "16"
+      ],
+      "stageEnabled": {
+        "expression": "${ #stage('Canary Analysis')['status'].toString() == 'SUCCEEDED'}",
+        "type": "expression"
+      },
+      "type": "pipeline",
+      "waitForCompletion": true
+    },
+    {
+      "account": "my-kubernetes-account",
+      "cloudProvider": "kubernetes",
+      "expectedArtifacts": [
+        {
+          "defaultArtifact": {
+            "kind": "custom"
+          },
+          "id": "2d1febb3-6b7a-42d4-bcf1-85199c3b1aad",
+          "matchArtifact": {
+            "kind": "custom",
+            "name": "sampleapp-config-canary",
+            "type": "kubernetes/configMap"
+          },
+          "useDefaultArtifact": false,
+          "usePriorExecution": false
+        }
+      ],
+      "manifestArtifactAccount": "embedded-artifact",
+      "manifests": [
+        {
+          "apiVersion": "v1",
+          "data": {
+            "SUCCESS_RATE": "${ parameters.successRate }"
+          },
+          "kind": "ConfigMap",
+          "metadata": {
+            "labels": {
+              "app": "sampleapp-canary"
+            },
+            "name": "sampleapp-config-canary",
+            "namespace": "default"
+          }
+        }
+      ],
+      "moniker": {
+        "app": "sampleapp"
+      },
+      "name": "Deploy Canary Config",
+      "refId": "10",
+      "relationships": {
+        "loadBalancers": [],
+        "securityGroups": []
+      },
+      "requisiteStageRefIds": [],
+      "source": "text",
+      "type": "deployManifest"
+    },
+    {
+      "account": "my-kubernetes-account",
+      "cloudProvider": "kubernetes",
+      "kinds": [
+        "Deployment",
+        "ConfigMap"
+      ],
+      "labelSelectors": {
+        "selectors": [
+          {
+            "key": "app",
+            "kind": "EQUALS",
+            "values": [
+              "sampleapp-canary"
+            ]
+          }
+        ]
+      },
+      "location": "default",
+      "name": "Delete Canary",
+      "options": {
+        "cascading": true
+      },
+      "refId": "12",
+      "requisiteStageRefIds": [
+        "16"
+      ],
+      "type": "deleteManifest"
+    },
+    {
+      "account": "my-kubernetes-account",
+      "cloudProvider": "kubernetes",
+      "kinds": [
+        "Deployment"
+      ],
+      "labelSelectors": {
+        "selectors": [
+          {
+            "key": "app",
+            "kind": "EQUALS",
+            "values": [
+              "sampleapp-baseline"
+            ]
+          }
+        ]
+      },
+      "location": "default",
+      "name": "Delete Baseline",
+      "options": {
+        "cascading": true
+      },
+      "refId": "13",
+      "requisiteStageRefIds": [
+        "16"
+      ],
+      "type": "deleteManifest"
+    },
+    {
+      "name": "Successful deployment",
+      "preconditions": [
+        {
+          "context": {
+            "expression": "${ #stage('Canary Analysis')['status'].toString() == 'SUCCEEDED'}"
+          },
+          "failPipeline": true,
+          "type": "expression"
+        }
+      ],
+      "refId": "14",
+      "requisiteStageRefIds": [
+        "9",
+        "12",
+        "13"
+      ],
+      "type": "checkPreconditions"
+    },
+    {
+      "analysisType": "realTime",
+      "canaryConfig": {
+        "beginCanaryAnalysisAfterMins": "0",
+        "canaryAnalysisIntervalMins": "5",
+        "canaryConfigId": "CANARY_CONFIG_ID",
+        "lifetimeDuration": "PT0H5M",
+        "metricsAccountName": "kayenta-tutorial",
+        "scopes": [
+          {
+            "controlLocation": "default",
+            "controlScope": "sampleapp-baseline",
+            "experimentLocation": "default",
+            "experimentScope": "sampleapp-canary",
+            "extendedScopeParams": {},
+            "scopeName": "default"
+          }
+        ],
+        "scoreThresholds": {
+          "marginal": null,
+          "pass": null
+        },
+        "storageAccountName": "kayenta-minio"
+      },
+      "completeOtherBranchesThenFail": false,
+      "continuePipeline": true,
+      "failPipeline": false,
+      "name": "Canary Analysis",
+      "refId": "16",
+      "requisiteStageRefIds": [
+        "3",
+        "4"
+      ],
+      "type": "kayentaCanary"
+    }
+  ],
+  "triggers": [],
+  "updateTs": "1544808520000"
+}
