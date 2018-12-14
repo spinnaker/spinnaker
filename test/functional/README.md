@@ -1,0 +1,80 @@
+# Deck Functional Tests
+
+## Recording Network Fixtures
+
+Usage of fixtures goes as follows:
+
+1. Create a mountebank control server. For now this is managed manually but will soon be coordinated by a script:
+
+```
+$ node
+> require('ts-node/register');
+{}
+> const { MountebankService } = require('./test/functional/tools/MountebankService.ts');
+undefined
+> MountebankService.builder().
+...   mountebankPath(process.cwd() + '/node_modules/.bin/mb').
+...   onStdOut(data => { console.log('mb stdout: ' + String(data)); }).
+...   onStdErr(data => { console.log('mb stderr: ' + String(data)); }).
+...   build().launchServer();
+Promise {
+  <pending>,
+  domain:
+   Domain {
+     domain: null,
+     _events: { error: [Function: debugDomainError] },
+     _eventsCount: 1,
+     _maxListeners: undefined,
+     members: [] } }
+> mb stdout: info: [mb:2525] mountebank v1.15.0 now taking orders - point your browser to http://localhost:2525 for help
+```
+
+2. Launch Gate on a different port. We want 8084 to be free for the mitm proxy that will record the network traffic. Open `~/.hal/default/service-settings/gate.yml` and add these contents:
+
+```
+port: 18084
+```
+
+3. Restart Gate:
+
+```
+hal deploy apply --service-names gate
+```
+
+4. Record a fixture for a specific test:
+
+```
+$ ./node_modules/.bin/wdio wdio.conf.js --record-fixtures --spec test/functional/tests/core/home.spec.ts
+
+DEPRECATION: Setting specFilter directly on Env is deprecated, please use the specFilter option in `configure`
+DEPRECATION: Setting stopOnSpecFailure directly is deprecated, please use the failFast option in `configure`
+․wrote fixture to ~/dev/spinnaker/deck/test/functional/tests/core/home.spec.ts.mountebank_fixture.json
+
+
+1 passing (5.60s)
+```
+
+5. Kill the Gate process. On Mac this would go something like:
+
+```
+kill -15 $(lsof -t -i tcp:18084)
+```
+
+6. Run the test again without Gate running, instructing the test runner to create a network imposter:
+
+```
+$ ./node_modules/.bin/wdio wdio.conf.js --replay-fixtures --spec test/functional/tests/core/home.spec.ts
+
+DEPRECATION: Setting specFilter directly on Env is deprecated, please use the specFilter option in `configure`
+DEPRECATION: Setting stopOnSpecFailure directly is deprecated, please use the failFast option in `configure`
+Creating imposter from fixture file ~/dev/spinnaker/deck/test/functional/tests/core/home.spec.ts.mountebank_fixture.json
+․
+
+1 passing (6.00s)
+```
+
+The mountebank server will still be running on port 2525 but can easily be exited by calling:
+
+```
+kill -15 $(lsof -t -i tcp:2525)
+```

@@ -4,9 +4,16 @@ const fs = require('fs');
 const path = require('path');
 const process = require('process');
 const minimist = require('minimist');
+const { MountebankService } = require('./test/functional/tools/MountebankService');
+const { FixtureService } = require('./test/functional/tools/FixtureService');
 
 const flags = minimist(process.argv.slice(2), {
   default: {
+    'replay-fixtures': false,
+    'record-fixtures': false,
+    'mountebank-port': 2525,
+    'gate-port': 18084,
+    'imposter-port': 8084,
     browser: 'chrome',
     headless: false,
     savelogs: false,
@@ -17,6 +24,15 @@ if (flags.savelogs && flags.browser !== 'chrome') {
   console.warn('fetching browser logs is only supported by chrome driver; disabling --savelogs');
   flags.savelogs = false;
 }
+
+const mountebankService = MountebankService.builder()
+  .mountebankPath(path.resolve(__dirname, './node_modules/.bin/mb'))
+  .mountebankPort(flags['mountebank-port'])
+  .gatePort(flags['gate-port'])
+  .imposterPort(flags['imposter-port'])
+  .build();
+
+let testRun = null;
 
 const config = {
   specs: ['test/functional/tests/**/*.spec.ts'],
@@ -50,9 +66,35 @@ const config = {
 
   beforeTest: function(test) {
     browser.windowHandleSize({ width: 1280, height: 1024 });
+    if (!flags['replay-fixtures'] && !flags['record-fixtures']) {
+      return;
+    }
+    const fixtureService = new FixtureService();
+    testRun = { fixtureFile: fixtureService.fixturePathForTestPath(test.file) };
+    return mountebankService.removeImposters().then(() => {
+      if (flags['record-fixtures']) {
+        return mountebankService.beginRecording();
+      } else {
+        return mountebankService.createImposterFromFixtureFile(testRun.fixtureFile);
+      }
+    });
   },
 
   afterTest: function(test) {
+    if (flags['record-fixtures']) {
+      if (test.passed) {
+        mountebankService
+          .saveRecording(testRun.fixtureFile)
+          .then(() => {
+            console.log(`wrote fixture to ${testRun.fixtureFile}`);
+          })
+          .catch(err => {
+            console.log(`error saving recording: ${err}`);
+          });
+      } else {
+        console.log(`test failed: "${test.fullName}"; network fixture will not be saved.`);
+      }
+    }
     if (flags.savelogs && browser.sessionId) {
       const outPath = path.resolve(__dirname, './' + browser.sessionId + '.browser.log');
       fs.writeFileSync(outPath, JSON.stringify(browser.log('browser'), null, 4));
