@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.converters;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.artifacts.ArtifactCredentialsRepository;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.artifacts.ArtifactCredentialsFromString;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.artifacts.PackageArtifactCredentials;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.*;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.DeployCloudFoundryServerGroupDescription;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryOrganization;
@@ -34,6 +35,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.stubbing.Answer;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
@@ -43,42 +45,45 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 
 class DeployCloudFoundryServerGroupAtomicOperationConverterTest {
-  private final CloudFoundryClient cloudFoundryClient = new MockCloudFoundryClient();
-  {
-    when(cloudFoundryClient.getOrganizations().findByName(any()))
-      .thenAnswer((Answer<Optional<CloudFoundryOrganization>>) invocation -> {
-        Object[] args = invocation.getArguments();
-        return Optional.of(CloudFoundryOrganization.builder()
-          .id(args[0].toString() + "ID").name(args[0].toString()).build());
-      });
+  private static CloudFoundryCredentials createCredentials(String name) {
+    CloudFoundryClient cloudFoundryClient = new MockCloudFoundryClient();
+    {
+      when(cloudFoundryClient.getOrganizations().findByName(any()))
+        .thenAnswer((Answer<Optional<CloudFoundryOrganization>>) invocation -> {
+          Object[] args = invocation.getArguments();
+          return Optional.of(CloudFoundryOrganization.builder()
+            .id(args[0].toString() + "ID").name(args[0].toString()).build());
+        });
 
-    when(cloudFoundryClient.getSpaces().findByName(any(), any())).thenAnswer((Answer<CloudFoundrySpace>) invocation -> {
-      Object[] args = invocation.getArguments();
-      return CloudFoundrySpace.builder().id(args[1].toString() + "ID").name(args[1].toString())
-        .organization(CloudFoundryOrganization.builder()
-          .id(args[0].toString()).name(args[0].toString().replace("ID", "")).build()).build();
-    });
+      when(cloudFoundryClient.getSpaces().findByName(any(), any())).thenAnswer((Answer<CloudFoundrySpace>) invocation -> {
+        Object[] args = invocation.getArguments();
+        return CloudFoundrySpace.builder().id(args[1].toString() + "ID").name(args[1].toString())
+          .organization(CloudFoundryOrganization.builder()
+            .id(args[0].toString()).name(args[0].toString().replace("ID", "")).build()).build();
+      });
+    }
+
+    return new CloudFoundryCredentials(name, "", "", "", "", "", "")
+    {
+      public CloudFoundryClient getClient() {
+        return cloudFoundryClient;
+      }
+    };
   }
 
-  private final CloudFoundryCredentials cloudFoundryCredentials = new CloudFoundryCredentials(
-    "test", "", "", "", "", "", "") {
-    public CloudFoundryClient getClient() {
-      return cloudFoundryClient;
-    }
-  };
-
+  private List<String> accounts = List.of("test", "sourceAccount", "destinationAccount");
   private final ArtifactCredentialsRepository artifactCredentialsRepository = new ArtifactCredentialsRepository();
   {
-    artifactCredentialsRepository.save(new ArtifactCredentialsFromString(
-      "test",
+    accounts.toStream().forEach(account -> artifactCredentialsRepository.save(new ArtifactCredentialsFromString(
+      account,
       List.of("a").asJava(),
       "applications: [{instances: 42}]"
-    ));
+    )));
   }
 
   private final AccountCredentialsRepository accountCredentialsRepository = new MapBackedAccountCredentialsRepository();
   {
-    accountCredentialsRepository.update("test", cloudFoundryCredentials);
+    accounts.toStream().forEach(account -> accountCredentialsRepository.update(account, createCredentials(account)));
   }
   private final AccountCredentialsProvider accountCredentialsProvider =
     new DefaultAccountCredentialsProvider(accountCredentialsRepository);
@@ -95,11 +100,11 @@ class DeployCloudFoundryServerGroupAtomicOperationConverterTest {
   @Test
   void convertDescriptionWithPackageArtifactSourceAndDownloadedManifest() {
     final Map input = HashMap.of(
-      "credentials", "test",
+      "credentials", "destinationAccount",
       "region", "org > space",
       "artifact", HashMap.of(
         "type", "package",
-        "account", "test",
+        "account", "sourceAccount",
         "serverGroupName", "serverGroupName1",
         "region", "org > space"
       ).toJavaMap(),
@@ -112,7 +117,10 @@ class DeployCloudFoundryServerGroupAtomicOperationConverterTest {
 
     final DeployCloudFoundryServerGroupDescription result = converter.convertDescription(input);
 
-    assertThat(result.getAccountName()).isEqualTo("test");
+    CloudFoundryCredentials sourceCredentials = converter.getCredentialsObject("sourceAccount");
+    assertThat(result.getAccountName()).isEqualTo("destinationAccount");
+    assertThat(result.getArtifactCredentials())
+      .isEqualToComparingFieldByFieldRecursively(new PackageArtifactCredentials(sourceCredentials.getClient()));
     assertThat(result.getSpace()).isEqualToComparingFieldByFieldRecursively(
       CloudFoundrySpace.builder().id("spaceID").name("space").organization(
         CloudFoundryOrganization.builder().id("orgID").name("org").build()).build());

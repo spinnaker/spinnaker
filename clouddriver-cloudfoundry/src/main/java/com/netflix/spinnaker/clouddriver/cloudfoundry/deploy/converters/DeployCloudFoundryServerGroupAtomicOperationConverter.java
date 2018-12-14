@@ -87,13 +87,13 @@ public class DeployCloudFoundryServerGroupAtomicOperationConverter extends Abstr
       converted.setArtifact(convertToArtifact(artifactCredentials, artifactSource.get("reference").toString()));
       converted.setArtifactCredentials(artifactCredentials);
     } else if ("package".equals(artifactSource.get("type"))) {
-      CloudFoundryCredentials accountCredentials = getCredentialsObject(artifactSource.get("account").toString());
-      converted.setArtifactCredentials(new PackageArtifactCredentials(credentials.getClient()));
+      CloudFoundryCredentials artifactCredentials = getCredentialsObject(artifactSource.get("account").toString());
+      converted.setArtifactCredentials(new PackageArtifactCredentials(artifactCredentials.getClient()));
 
       Artifact artifact = new Artifact();
       artifact.setType("package");
       artifact.setReference(getServerGroupId(artifactSource.get("serverGroupName").toString(),
-        artifactSource.get("region").toString(), accountCredentials.getClient()));
+        artifactSource.get("region").toString(), artifactCredentials.getClient()));
       converted.setArtifact(artifact);
     }
 
