@@ -40,11 +40,11 @@ public class CreateApplication {
   private final BuildpackLifecycle lifecycle;
 
   public CreateApplication(String name, Map<String, ToOneRelationship> relationships, @Nullable Map<String, String> environmentVariables,
-                           List<String> buildpacks) {
+                           @Nullable List<String> buildpacks) {
     this.name = name;
     this.relationships = relationships;
     this.environmentVariables = environmentVariables;
-    this.lifecycle = new BuildpackLifecycle(buildpacks);
+    this.lifecycle = buildpacks != null ? new BuildpackLifecycle(buildpacks): null;
   }
 
   @AllArgsConstructor
