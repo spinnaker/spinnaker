@@ -127,6 +127,48 @@ class TaskHealthCachingAgentSpec extends Specification {
     taskHealth.getTaskId() == CommonCachingAgent.TASK_ID_1
   }
 
+  def 'should get a list of task health for tasks with multiple network bindings'() {
+    given:
+    ObjectMapper mapper = new ObjectMapper()
+    Map<String, Object> containerMap = mapper.convertValue(new Container().withNetworkBindings(
+      new NetworkBinding().withHostPort(1337),
+      new NetworkBinding().withHostPort(1338)
+    ), Map.class)
+    def taskAttributes = [
+      taskId              : CommonCachingAgent.TASK_ID_1,
+      taskArn             : CommonCachingAgent.TASK_ARN_1,
+      startedAt           : new Date().getTime(),
+      containerInstanceArn: CommonCachingAgent.CONTAINER_INSTANCE_ARN_1,
+      group               : 'service:' + CommonCachingAgent.SERVICE_NAME_1,
+      containers          : Collections.singletonList(containerMap)
+    ]
+    def taskKey = Keys.getTaskKey(CommonCachingAgent.ACCOUNT, CommonCachingAgent.REGION, CommonCachingAgent.TASK_ID_1)
+    def taskCacheData = new DefaultCacheData(taskKey, taskAttributes, Collections.emptyMap())
+    providerCache.getAll(TASKS.toString(), _) >> Collections.singletonList(taskCacheData)
+
+    when:
+    def taskHealthList = agent.getItems(ecs, providerCache)
+
+    then:
+    amazonloadBalancing.describeTargetHealth({ DescribeTargetHealthRequest request ->
+      request.targetGroupArn == targetGroupArn
+      request.targets.size() == 1
+      request.targets.get(0).id == CommonCachingAgent.EC2_INSTANCE_ID_1
+      request.targets.get(0).port == 1337
+    }) >> new DescribeTargetHealthResult().withTargetHealthDescriptions(
+      new TargetHealthDescription().withTargetHealth(new TargetHealth().withState(TargetHealthStateEnum.Healthy))
+    )
+
+    taskHealthList.size() == 1
+    TaskHealth taskHealth = taskHealthList.get(0)
+    taskHealth.getState() == 'Up'
+    taskHealth.getType() == 'loadBalancer'
+    taskHealth.getInstanceId() == CommonCachingAgent.TASK_ARN_1
+    taskHealth.getServiceName() == CommonCachingAgent.SERVICE_NAME_1
+    taskHealth.getTaskArn() == CommonCachingAgent.TASK_ARN_1
+    taskHealth.getTaskId() == CommonCachingAgent.TASK_ID_1
+  }
+
   def 'should get a list of task health for aws-vpc mode'() {
     given:
     ObjectMapper mapper = new ObjectMapper()

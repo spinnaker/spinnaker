@@ -132,7 +132,7 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth> 
         }
 
         TaskHealth taskHealth;
-        if (task.getContainers().get(0).getNetworkBindings().size() == 1) {
+        if (task.getContainers().get(0).getNetworkBindings().size() >= 1) {
           taskHealth = inferHealthNetworkBindedContainer(amazonloadBalancing, task, containerInstance, serviceName, service);
         } else {
           taskHealth = inferHealthNetworkInterfacedContainer(amazonloadBalancing, task, serviceName, service, taskDefinition);
