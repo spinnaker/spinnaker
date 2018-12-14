@@ -175,6 +175,7 @@ public class TravisBuildMonitor extends CommonPollingMonitor<TravisBuildMonitor.
     private List<BuildDelta> processBuilds(List<V3Build> builds, String master, TravisService travisService) {
         List<BuildDelta> results = new ArrayList<>();
         builds.stream()
+            .map(build -> setTracking(build, master))
             .filter(filterNewBuildsPredicate())
             .forEach(build -> {
             String branchedRepoSlug = build.branchedRepoSlug();
@@ -191,21 +192,19 @@ public class TravisBuildMonitor extends CommonPollingMonitor<TravisBuildMonitor.
                 results.add(delta);
                 buildCache.setLastBuild(master, branchedRepoSlug, build.getNumber(), build.getState().isRunning(), buildCacheJobTTLSeconds());
             }
-
-            setTracking(build, master);
         });
         return results;
     }
 
-    private void setTracking(V3Build build, String master) {
-        if (build.getState().isRunning()) {
+    private V3Build setTracking(V3Build build, String master) {
+        if (!filterNewBuildsPredicate().test(build)) {
             buildCache.setTracking(master, build.getRepository().getSlug(), build.getId(), getPollInterval() * 5);
             log.debug("({}) tracking set up for {}", kv("master", master), build.toString());
         } else {
             buildCache.deleteTracking(master, build.getRepository().getSlug(), build.getId());
             log.debug("({}) tracking deleted for {}", kv("master", master), build.toString());
         }
-
+        return build;
     }
 
     private void sendEventForBuild(final BuildDelta buildDelta, final String branchedSlug, String master) {
