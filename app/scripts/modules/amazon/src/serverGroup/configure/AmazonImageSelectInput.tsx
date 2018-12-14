@@ -2,7 +2,7 @@ import * as React from 'react';
 import { IPromise } from 'angular';
 import { $q } from 'ngimport';
 import { ReactSelectProps, HandlerRendererResult, MenuRendererProps, Option, OptionValues } from 'react-select';
-import { Subject, Observable } from 'rxjs';
+import { Subject, Observable, BehaviorSubject } from 'rxjs';
 
 import { Application, HelpField, TetheredSelect, ValidationMessage } from '@spinnaker/core';
 
@@ -24,7 +24,6 @@ export interface IAmazonImageSelectorState {
   isSearching: boolean;
   packageImages: IAmazonImage[];
   isLoadingPackageImages: boolean;
-  sortImagesBy: sortImagesByOptions;
 }
 
 type sortImagesByOptions = 'name' | 'ts';
@@ -38,13 +37,13 @@ export class AmazonImageSelectInput extends React.Component<IAmazonImageSelector
     isSearching: false,
     packageImages: null,
     isLoadingPackageImages: true,
-    sortImagesBy: 'name',
   };
 
   private awsImageReader = new AwsImageReader();
   private props$ = new Subject<IAmazonImageSelectorProps>();
   private searchInput$ = new Subject<string>();
   private destroy$ = new Subject();
+  private sortImagesBy$ = new BehaviorSubject<sortImagesByOptions>('name');
 
   public static makeFakeImage(imageName: string, imageId: string, region: string): IAmazonImage {
     if (!imageName && !imageId) {
@@ -134,8 +133,11 @@ export class AmazonImageSelectInput extends React.Component<IAmazonImageSelector
       .do(() => this.setState({ isLoadingPackageImages: false }));
 
     const packageImagesInRegion$ = packageImages$
-      .combineLatest(region$)
-      .map(([packageImages, latestRegion]) => packageImages.filter(img => !!img.amis[latestRegion]));
+      .combineLatest(region$, this.sortImagesBy$)
+      .map(([packageImages, latestRegion, sortImagesBy]) => {
+        const images = packageImages.filter(img => !!img.amis[latestRegion]);
+        return this.sortImages(images, sortImagesBy);
+      });
 
     const searchString$ = this.searchInput$
       .do(searchString => this.setState({ searchString }))
@@ -152,17 +154,20 @@ export class AmazonImageSelectInput extends React.Component<IAmazonImageSelector
       })
       .do(() => this.setState({ isSearching: false }));
 
-    const searchImagesInRegion$ = searchImages$.combineLatest(region$).map(([searchResults, latestRegion]) => {
-      const { searchString } = this.state;
-      // allow 'advanced' users to continue with just an ami id (backing image may not have been indexed yet)
-      if (searchResults.length === 0 && !!/ami-[0-9a-f]{8,17}/.exec(searchString)) {
-        const fakeImage = AmazonImageSelectInput.makeFakeImage(searchString, searchString, latestRegion);
-        return [fakeImage].filter(x => !!x);
-      }
+    const searchImagesInRegion$ = searchImages$
+      .combineLatest(region$, this.sortImagesBy$)
+      .map(([searchResults, latestRegion, sortImagesBy]) => {
+        const { searchString } = this.state;
+        // allow 'advanced' users to continue with just an ami id (backing image may not have been indexed yet)
+        if (searchResults.length === 0 && !!/ami-[0-9a-f]{8,17}/.exec(searchString)) {
+          const fakeImage = AmazonImageSelectInput.makeFakeImage(searchString, searchString, latestRegion);
+          return [fakeImage].filter(x => !!x);
+        }
 
-      // Filter down to only images which have an ami in the currently selected region
-      return searchResults.filter(img => !!img.amis[latestRegion]);
-    });
+        // Filter down to only images which have an ami in the currently selected region
+        const images = searchResults.filter(img => !!img.amis[latestRegion]);
+        return this.sortImages(images, sortImagesBy);
+      });
 
     searchImagesInRegion$.takeUntil(this.destroy$).subscribe(searchResults => this.setState({ searchResults }));
     packageImagesInRegion$.takeUntil(this.destroy$).subscribe(packageImages => {
@@ -188,12 +193,12 @@ export class AmazonImageSelectInput extends React.Component<IAmazonImageSelector
   }
 
   private setSortImagesBy(sortImagesBy: sortImagesByOptions) {
-    this.setState({ sortImagesBy });
+    this.sortImagesBy$.next(sortImagesBy);
   }
 
   private buildImageMenu = (params: MenuRendererProps): HandlerRendererResult => {
     const { ImageMenuHeading, ImageLabel } = this;
-    const options = this.getSortedOptions(params.options);
+    const { options } = params;
     return (
       <div className="Select-menu-outer">
         <div className="Select-menu" role="listbox">
@@ -207,7 +212,7 @@ export class AmazonImageSelectInput extends React.Component<IAmazonImageSelector
   };
 
   private ImageMenuHeading = () => {
-    const { sortImagesBy } = this.state;
+    const sortImagesBy = this.sortImagesBy$.value;
     return (
       <div
         className="sp-padding-s-xaxis sp-padding-xs-yaxis small"
@@ -225,9 +230,8 @@ export class AmazonImageSelectInput extends React.Component<IAmazonImageSelector
     );
   };
 
-  private getSortedOptions(options: Array<Option<OptionValues>>): Array<Option<OptionValues>> {
-    const { sortImagesBy } = this.state;
-    return options.slice().sort((a, b) => {
+  private sortImages(images: IAmazonImage[], sortImagesBy: sortImagesByOptions): IAmazonImage[] {
+    return images.slice().sort((a, b) => {
       if (sortImagesBy === 'ts') {
         return b.attributes.creationDate.localeCompare(a.attributes.creationDate);
       }
