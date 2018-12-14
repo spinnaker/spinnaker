@@ -50,6 +50,7 @@ class PipelineTriggerConverter {
       .rebake(Boolean.parseBoolean(parameters.triggerRebake))
       .id(parameters.triggerId)
       .type(Trigger.Type.CRON.toString())
+      .eventId(UUID.randomUUID().toString())
       .cronExpression(parameters.triggerCronExpression)
 
     if (parameters.runAsUser) {
