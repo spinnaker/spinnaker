@@ -233,9 +233,9 @@ function delete_build_instance() {
 
 
 function cleanup_instances_on_error() {
-  if [[ "$PROTOTYPE_INSTANCE" != "" ]]; then
-    delete_build_instance
-  fi
+  # if [[ "$PROTOTYPE_INSTANCE" != "" ]]; then
+  #   delete_build_instance
+  # fi
 
   echo "Deleting cleaner instance '${CLEANER_INSTANCE}'"
   wait $CLEANER_INSTANCE_PID || true

@@ -351,7 +351,7 @@ function create_prototype_disk() {
     --disk $PROTOTYPE_INSTANCE
 
   # Just the builder instance, not the cleanup instance
-  delete_build_instance
+  # delete_build_instance
 }
 
 
