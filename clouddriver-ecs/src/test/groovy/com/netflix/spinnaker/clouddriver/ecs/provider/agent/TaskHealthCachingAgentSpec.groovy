@@ -19,9 +19,14 @@ package com.netflix.spinnaker.clouddriver.ecs.provider.agent
 import com.amazonaws.auth.AWSCredentialsProvider
 import com.amazonaws.services.ecs.AmazonECS
 import com.amazonaws.services.ecs.model.Container
+import com.amazonaws.services.ecs.model.ContainerDefinition
 import com.amazonaws.services.ecs.model.LoadBalancer
 import com.amazonaws.services.ecs.model.NetworkBinding
+import com.amazonaws.services.ecs.model.NetworkInterface
+import com.amazonaws.services.ecs.model.PortMapping
+import com.amazonaws.services.ecs.model.TaskDefinition
 import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing
+import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetHealthRequest
 import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetHealthResult
 import com.amazonaws.services.elasticloadbalancingv2.model.TargetHealth
 import com.amazonaws.services.elasticloadbalancingv2.model.TargetHealthDescription
@@ -39,43 +44,31 @@ import spock.lang.Subject
 
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.HEALTH
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.TASKS
+import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.TASK_DEFINITIONS
 
 class TaskHealthCachingAgentSpec extends Specification {
   def ecs = Mock(AmazonECS)
   def clientProvider = Mock(AmazonClientProvider)
   def providerCache = Mock(ProviderCache)
   def credentialsProvider = Mock(AWSCredentialsProvider)
+  def amazonloadBalancing = Mock(AmazonElasticLoadBalancing)
+  def targetGroupArn = 'arn:aws:elasticloadbalancing:' + CommonCachingAgent.REGION + ':769716316905:targetgroup/test-target-group/9e8997b7cff00c62'
   ObjectMapper mapper = new ObjectMapper()
+
 
   @Subject
   TaskHealthCachingAgent agent = new TaskHealthCachingAgent(CommonCachingAgent.netflixAmazonCredentials, CommonCachingAgent.REGION, clientProvider, credentialsProvider, mapper)
 
-  def 'should get a list of task definitions'() {
-    given:
-    AmazonElasticLoadBalancing amazonloadBalancing = Mock(AmazonElasticLoadBalancing)
+  def setup() {
     clientProvider.getAmazonElasticLoadBalancingV2(_, _, _) >> amazonloadBalancing
 
-    def targetGroupArn = 'arn:aws:elasticloadbalancing:' + CommonCachingAgent.REGION + ':769716316905:targetgroup/test-target-group/9e8997b7cff00c62'
-
-    def taskKey = Keys.getTaskKey(CommonCachingAgent.ACCOUNT, CommonCachingAgent.REGION, CommonCachingAgent.TASK_ID_1)
     def serviceKey = Keys.getServiceKey(CommonCachingAgent.ACCOUNT, CommonCachingAgent.REGION, CommonCachingAgent.SERVICE_NAME_1)
     def containerInstanceKey = Keys.getContainerInstanceKey(CommonCachingAgent.ACCOUNT, CommonCachingAgent.REGION, CommonCachingAgent.CONTAINER_INSTANCE_ARN_1)
 
     ObjectMapper mapper = new ObjectMapper()
-    Map<String, Object> containerMap = mapper.convertValue(new Container().withNetworkBindings(new NetworkBinding().withHostPort(1337)), Map.class)
     Map<String, Object> loadbalancerMap = mapper.convertValue(new LoadBalancer().withTargetGroupArn(targetGroupArn), Map.class)
 
-    def taskAttributes = [
-      taskId               : CommonCachingAgent.TASK_ID_1,
-      taskArn              : CommonCachingAgent.TASK_ARN_1,
-      startedAt            : new Date().getTime(),
-      containerInstanceArn: CommonCachingAgent.CONTAINER_INSTANCE_ARN_1,
-      group                : 'service:' + CommonCachingAgent.SERVICE_NAME_1,
-      containers           : Collections.singletonList(containerMap)
-    ]
-    def taskCacheData = new DefaultCacheData(taskKey, taskAttributes, Collections.emptyMap())
     providerCache.filterIdentifiers(_, _) >> []
-    providerCache.getAll(TASKS.toString(), _) >> Collections.singletonList(taskCacheData)
 
     def serviceAttributes = [
       loadBalancers        : Collections.singletonList(loadbalancerMap),
@@ -93,17 +86,88 @@ class TaskHealthCachingAgentSpec extends Specification {
     ]
     def containerInstanceCache = new DefaultCacheData(containerInstanceKey, containerInstanceAttributes, Collections.emptyMap())
     providerCache.get(Keys.Namespace.CONTAINER_INSTANCES.toString(), containerInstanceKey) >> containerInstanceCache
+  }
 
-    DescribeTargetHealthResult describeTargetHealthResult = new DescribeTargetHealthResult().withTargetHealthDescriptions(
-      new TargetHealthDescription().withTargetHealth(new TargetHealth().withState(TargetHealthStateEnum.Healthy))
-    )
-
-    amazonloadBalancing.describeTargetHealth(_) >> describeTargetHealthResult
+  def 'should get a list of task health'() {
+    given:
+    ObjectMapper mapper = new ObjectMapper()
+    Map<String, Object> containerMap = mapper.convertValue(new Container().withNetworkBindings(new NetworkBinding().withHostPort(1337)), Map.class)
+    def taskAttributes = [
+      taskId               : CommonCachingAgent.TASK_ID_1,
+      taskArn              : CommonCachingAgent.TASK_ARN_1,
+      startedAt            : new Date().getTime(),
+      containerInstanceArn: CommonCachingAgent.CONTAINER_INSTANCE_ARN_1,
+      group                : 'service:' + CommonCachingAgent.SERVICE_NAME_1,
+      containers           : Collections.singletonList(containerMap)
+    ]
+    def taskKey = Keys.getTaskKey(CommonCachingAgent.ACCOUNT, CommonCachingAgent.REGION, CommonCachingAgent.TASK_ID_1)
+    def taskCacheData = new DefaultCacheData(taskKey, taskAttributes, Collections.emptyMap())
+    providerCache.getAll(TASKS.toString(), _) >> Collections.singletonList(taskCacheData)
 
     when:
     def taskHealthList = agent.getItems(ecs, providerCache)
 
     then:
+    amazonloadBalancing.describeTargetHealth({ DescribeTargetHealthRequest request ->
+      request.targetGroupArn == targetGroupArn
+      request.targets.size() == 1
+      request.targets.get(0).id == CommonCachingAgent.EC2_INSTANCE_ID_1
+      request.targets.get(0).port == 1337
+    }) >> new DescribeTargetHealthResult().withTargetHealthDescriptions(
+      new TargetHealthDescription().withTargetHealth(new TargetHealth().withState(TargetHealthStateEnum.Healthy))
+    )
+
+    taskHealthList.size() == 1
+    TaskHealth taskHealth = taskHealthList.get(0)
+    taskHealth.getState() == 'Up'
+    taskHealth.getType() == 'loadBalancer'
+    taskHealth.getInstanceId() == CommonCachingAgent.TASK_ARN_1
+    taskHealth.getServiceName() == CommonCachingAgent.SERVICE_NAME_1
+    taskHealth.getTaskArn() == CommonCachingAgent.TASK_ARN_1
+    taskHealth.getTaskId() == CommonCachingAgent.TASK_ID_1
+  }
+
+  def 'should get a list of task health for aws-vpc mode'() {
+    given:
+    ObjectMapper mapper = new ObjectMapper()
+    Map<String, Object> containerMap = mapper.convertValue(new Container().withNetworkInterfaces(
+      new NetworkInterface().withPrivateIpv4Address("192.168.0.100")),
+      Map.class)
+    def taskAttributes = [
+      taskId               : CommonCachingAgent.TASK_ID_1,
+      taskArn              : CommonCachingAgent.TASK_ARN_1,
+      startedAt            : new Date().getTime(),
+      group                : 'service:' + CommonCachingAgent.SERVICE_NAME_1,
+      containers           : Collections.singletonList(containerMap)
+    ]
+    def taskKey = Keys.getTaskKey(CommonCachingAgent.ACCOUNT, CommonCachingAgent.REGION, CommonCachingAgent.TASK_ID_1)
+    def taskCacheData = new DefaultCacheData(taskKey, taskAttributes, Collections.emptyMap())
+    providerCache.getAll(TASKS.toString(), _) >> Collections.singletonList(taskCacheData)
+
+    Map<String, Object> containerDefinitionMap = mapper.convertValue(new ContainerDefinition().withPortMappings(
+      new PortMapping().withContainerPort(1338)
+    ), Map.class)
+    def taskDefAttributes = [
+      taskDefinitionArn    : CommonCachingAgent.TASK_DEFINITION_ARN_1,
+      containerDefinitions : [ containerDefinitionMap ]
+    ]
+    def taskDefKey = Keys.getTaskDefinitionKey(CommonCachingAgent.ACCOUNT, CommonCachingAgent.REGION, CommonCachingAgent.TASK_DEFINITION_ARN_1)
+    def taskDefCacheData = new DefaultCacheData(taskDefKey, taskDefAttributes, Collections.emptyMap())
+    providerCache.get(TASK_DEFINITIONS.toString(), taskDefKey) >> taskDefCacheData
+
+    when:
+    def taskHealthList = agent.getItems(ecs, providerCache)
+
+    then:
+    amazonloadBalancing.describeTargetHealth({ DescribeTargetHealthRequest request ->
+      request.targetGroupArn == targetGroupArn
+      request.targets.size() == 1
+      request.targets.get(0).id == "192.168.0.100"
+      request.targets.get(0).port == 1338
+    }) >> new DescribeTargetHealthResult().withTargetHealthDescriptions(
+      new TargetHealthDescription().withTargetHealth(new TargetHealth().withState(TargetHealthStateEnum.Healthy))
+    )
+
     taskHealthList.size() == 1
     TaskHealth taskHealth = taskHealthList.get(0)
     taskHealth.getState() == 'Up'

@@ -20,6 +20,7 @@ import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.ecs.AmazonECS;
 import com.amazonaws.services.ecs.model.LoadBalancer;
 import com.amazonaws.services.ecs.model.NetworkInterface;
+import com.amazonaws.services.ecs.model.TaskDefinition;
 import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing;
 import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetHealthRequest;
 import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetHealthResult;
@@ -37,6 +38,7 @@ import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.ContainerInstanceCacheClient;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.ServiceCacheClient;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.TaskCacheClient;
+import com.netflix.spinnaker.clouddriver.ecs.cache.client.TaskDefinitionCacheClient;
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.ContainerInstance;
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.Service;
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.Task;
@@ -94,6 +96,7 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth> 
   @Override
   protected List<TaskHealth> getItems(AmazonECS ecs, ProviderCache providerCache) {
     TaskCacheClient taskCacheClient = new TaskCacheClient(providerCache, objectMapper);
+    TaskDefinitionCacheClient taskDefinitionCacheClient = new TaskDefinitionCacheClient(providerCache, objectMapper);
     ServiceCacheClient serviceCacheClient = new ServiceCacheClient(providerCache, objectMapper);
 
     AmazonElasticLoadBalancing amazonloadBalancing = amazonClientProvider.getAmazonElasticLoadBalancingV2(account, region, false);
@@ -114,6 +117,10 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth> 
         String serviceName = StringUtils.substringAfter(task.getGroup(), "service:");
         String serviceKey = Keys.getServiceKey(accountName, region, serviceName);
         Service service = serviceCacheClient.get(serviceKey);
+        
+        String taskDefinitionCacheKey = Keys.getTaskDefinitionKey(accountName, region, service.getTaskDefinition());
+        TaskDefinition taskDefinition = taskDefinitionCacheClient.get(taskDefinitionCacheKey);
+
         if (service == null) {
           String taskEvictionKey = Keys.getTaskKey(accountName, region, task.getTaskId());
           taskEvicitions.add(taskEvictionKey);
@@ -128,7 +135,7 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth> 
         if (task.getContainers().get(0).getNetworkBindings().size() == 1) {
           taskHealth = inferHealthNetworkBindedContainer(amazonloadBalancing, task, containerInstance, serviceName, service);
         } else {
-          taskHealth = inferHealthNetworkInterfacedContainer(amazonloadBalancing, task, serviceName, service);
+          taskHealth = inferHealthNetworkInterfacedContainer(amazonloadBalancing, task, serviceName, service, taskDefinition);
         }
 
         if (taskHealth != null) {
@@ -143,7 +150,8 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth> 
   private TaskHealth inferHealthNetworkInterfacedContainer(AmazonElasticLoadBalancing amazonloadBalancing,
                                                            Task task,
                                                            String serviceName,
-                                                           Service loadBalancerService) {
+                                                           Service loadBalancerService,
+                                                           TaskDefinition taskDefinition) {
 
     List<LoadBalancer> loadBalancers = loadBalancerService.getLoadBalancers();
 
@@ -159,6 +167,7 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth> 
           .withTargets(
             new TargetDescription()
               .withId(networkInterface.getPrivateIpv4Address())
+              .withPort(taskDefinition.getContainerDefinitions().get(0).getPortMappings().get(0).getContainerPort())
           )
       );
 
