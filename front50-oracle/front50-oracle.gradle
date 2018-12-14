@@ -18,7 +18,7 @@ final File sdkLocation = project.file('build/oci-java-sdk')
 // Oracle BMCS SDK isn't published to any maven repo (yet!), so we manually download, unpack and add to compile/runtime deps
 // https://github.com/oracle/oci-java-sdk/issues/25
 task fetchSdk(type: DownloadTask) {
-  sourceUrl = 'https://github.com/oracle/oci-java-sdk/releases/download/v1.2.44/oci-java-sdk.zip'
+  sourceUrl = 'https://github.com/oracle/oci-java-sdk/releases/download/v1.3.2/oci-java-sdk.zip'
   target = sdkDownloadLocation
 }
 
