@@ -78,3 +78,56 @@ The mountebank server will still be running on port 2525 but can easily be exite
 ```
 kill -15 $(lsof -t -i tcp:2525)
 ```
+
+## Running a Static Server With a Built Version of Deck
+
+It can be preferable to run functional tests against a production build of Deck. However Deck does not come with
+a webserver to serve the compiled application. The functional test suite includes a simple static server for
+this purpose.
+
+To serve the built version of deck:
+
+1. Build Deck
+
+```
+yarn build
+```
+
+2. Serve Deck. For now this is managed manually but will soon be coordinated by a script:
+
+```
+$ node
+> require('ts-node/register');
+{}
+> const { StaticServer } = require('./test/functional/tools/StaticServer.ts');
+undefined
+> const server = new StaticServer('build/webpack', 9000);
+undefined
+> server.launch().then(() => console.log('ready!')).catch(err => console.log('error launching static server: ' + err));
+Promise {
+  <pending>,
+  domain:
+   Domain {
+     domain: null,
+     _events: { error: [Function: debugDomainError] },
+     _eventsCount: 1,
+     _maxListeners: undefined,
+     members: [] } }
+> ready!
+```
+
+3. Once tests have completed the server can be shut down by calling:
+
+```
+> server.kill().then(() => console.log('done'));
+Promise {
+  <pending>,
+  domain:
+   Domain {
+     domain: null,
+     _events: { error: [Function: debugDomainError] },
+     _eventsCount: 1,
+     _maxListeners: undefined,
+     members: [] } }
+> done
+```
