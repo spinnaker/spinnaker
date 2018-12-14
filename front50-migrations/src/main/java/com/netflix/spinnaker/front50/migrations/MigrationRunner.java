@@ -45,9 +45,7 @@ public class MigrationRunner {
           try {
             migration.run();
           } catch (Exception e) {
-            log.error("Migration failure ({}): {}",
-              value("class", migration.getClass().getSimpleName()),
-              value("exception", e));
+            log.error("Migration failure ({}):", value("class", migration.getClass().getSimpleName()), e);
           }
         });
   }
