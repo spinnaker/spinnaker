@@ -25,7 +25,7 @@ interface SlackClient {
   @FormUrlEncoded
   @POST('/api/chat.postMessage')
   Response sendMessage(
-    @Query('token') String token,
+    @Field('token') String token,
     @Field('attachments') String attachments,
     @Field('channel') String channel,
     @Field('as_user') boolean asUser)

@@ -87,6 +87,7 @@ class SlackServiceSpec extends Specification {
 
     then: "the HTTP URL and payload intercepted are the ones expected"
     actualUrl.get() == expectedUrl
+    getField(params, "token").value == "oldStyleToken"
     attachmentsJson[0]["title"] == "Title"
     attachmentsJson[0]["text"] == "the text"
     attachmentsJson[0]["fallback"] == "the text"
@@ -97,7 +98,7 @@ class SlackServiceSpec extends Specification {
 
     where:
     token           | expectedUrl
-    "oldStyleToken" | "https://slack.com/api/chat.postMessage?token=oldStyleToken"
+    "oldStyleToken" | "https://slack.com/api/chat.postMessage"
   }
 
   def static getField(Collection<NameValuePair> params, String fieldName) {
