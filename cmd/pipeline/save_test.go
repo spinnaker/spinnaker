@@ -162,7 +162,7 @@ func TestPipelineSave_missingid(t *testing.T) {
 
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()
-	if err == nil {
+	if err != nil {
 		t.Fatalf("Command failed with: %s", err)
 	}
 }

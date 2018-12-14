@@ -75,10 +75,6 @@ func savePipeline(cmd *cobra.Command, options SaveOptions) error {
 		valid = false
 	}
 
-	if _, exists := pipelineJson["id"]; !exists {
-		util.UI.Error("Required pipeline key 'id' missing...\n")
-		valid = false
-	}
 	if !valid {
 		return fmt.Errorf("Submitted pipeline is invalid: %s\n", pipelineJson)
 	}
