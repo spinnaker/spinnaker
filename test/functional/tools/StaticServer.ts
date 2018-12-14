@@ -1,33 +1,40 @@
-import * as express from 'express';
+import { exec, ChildProcess } from 'child_process';
 
 export class StaticServer {
-  private app: any;
-  private server: any;
+  private proc: ChildProcess;
 
-  constructor(private directory: string, private port: number) {}
+  constructor(private repoRoot: string) {}
 
   public launch(): Promise<void | Error> {
-    this.app = express();
-    this.app.use(express.static(this.directory));
-    return new Promise((resolve, reject) => {
-      this.app.on('error', (err: Error) => {
-        reject(err);
-      });
-      this.server = this.app.listen(this.port, () => {
-        resolve();
+    return new Promise(resolve => {
+      this.proc = exec(
+        './node_modules/.bin/webpack-dev-server --mode=production',
+        {
+          cwd: this.repoRoot,
+          env: {
+            PATH: process.env.PATH,
+            NODE_OPTIONS: '--max_old_space_size=8192',
+          },
+        },
+        (err, _stdout, _stderr) => {
+          if (err != null) {
+            reject(err);
+          }
+        },
+      );
+      this.proc.stdout.on('data', (data: Buffer) => {
+        const str = String(data);
+        if (str.match(/compiled/i)) {
+          resolve();
+        }
       });
     });
   }
 
   public kill(): Promise<void | Error> {
-    return new Promise((resolve, reject) => {
-      this.server.close((err: Error) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve();
-        }
-      });
+    return new Promise(resolve => {
+      this.proc.kill();
+      resolve();
     });
   }
 }

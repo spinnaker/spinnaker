@@ -146,27 +146,20 @@ like this:
 
 ## Running a Static Server With a Built Version of Deck
 
-It can be preferable to run functional tests against a production build of Deck. However Deck does not come with
-a webserver to serve the compiled application. The functional test suite includes a simple static server for
-this purpose.
+It can be preferable to run functional tests against a production build of Deck. Doing so is easy:
 
-To serve the built version of deck:
-
-1. Build Deck
+1. Build & Serve Deck. For now this is managed manually but will soon be coordinated by a script. Building
+   Deck can take considerable time. It's normal for the StaticServer to take upwards of 30 seconds for
+   its launch Promise resolves.
 
 ```
-yarn build
-```
-
-2. Serve Deck. For now this is managed manually but will soon be coordinated by a script:
-
-```
+# From the deck repository root
 $ node
 > require('ts-node/register');
 {}
 > const { StaticServer } = require('./test/functional/tools/StaticServer.ts');
 undefined
-> const server = new StaticServer('build/webpack', 9000);
+> const server = new StaticServer(process.cwd());
 undefined
 > server.launch().then(() => console.log('ready!')).catch(err => console.log('error launching static server: ' + err));
 Promise {
