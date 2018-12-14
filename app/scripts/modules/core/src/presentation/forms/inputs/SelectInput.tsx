@@ -6,7 +6,9 @@ import { OmitControlledInputPropsFrom, StringsAsOptions } from 'core/presentatio
 import { isStringArray, orEmptyString, validationClassName } from './utils';
 import { IFormInputProps } from '../interface';
 
-interface ISelectInputProps extends IFormInputProps, OmitControlledInputPropsFrom<React.InputHTMLAttributes<any>> {
+export interface ISelectInputProps
+  extends IFormInputProps,
+    OmitControlledInputPropsFrom<React.InputHTMLAttributes<any>> {
   inputClassName?: string;
   options: Array<string | Option<string>>;
 }

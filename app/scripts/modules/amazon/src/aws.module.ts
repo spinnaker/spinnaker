@@ -9,7 +9,6 @@ import { AWS_SERVER_GROUP_TRANSFORMER } from './serverGroup/serverGroup.transfor
 import './validation/ApplicationNameValidator';
 import { VPC_MODULE } from './vpc/vpc.module';
 import { SUBNET_RENDERER } from './subnet/subnet.renderer';
-import { SUBNET_SELECT_FIELD_COMPONENT } from './subnet/subnetSelectField.component';
 import { SERVER_GROUP_DETAILS_MODULE } from './serverGroup/details/serverGroupDetails.module';
 import { COMMON_MODULE } from './common/common.module';
 import './help/amazon.help';
@@ -73,7 +72,6 @@ module(AMAZON_MODULE, [
   require('./instance/details/instance.details.controller').name,
   AWS_SECURITY_GROUP_MODULE,
   SUBNET_RENDERER,
-  SUBNET_SELECT_FIELD_COMPONENT,
   VPC_MODULE,
   require('./cache/cacheConfigurer.service').name,
   require('./search/searchResultFormatter').name,

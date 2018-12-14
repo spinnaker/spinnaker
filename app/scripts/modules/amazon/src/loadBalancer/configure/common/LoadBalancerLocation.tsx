@@ -23,9 +23,9 @@ import {
 } from '@spinnaker/core';
 
 import { AWSProviderSettings } from 'amazon/aws.settings';
-import { AwsNgReact } from 'amazon/reactShims';
 import { IAmazonLoadBalancer, IAmazonLoadBalancerUpsertCommand } from 'amazon/domain';
 import { AvailabilityZoneSelector } from 'amazon/serverGroup/AvailabilityZoneSelector';
+import { SubnetSelectField } from 'amazon/subnet';
 
 export interface ISubnetOption {
   availabilityZones: string[];
@@ -312,7 +312,6 @@ class LoadBalancerLocationImpl extends React.Component<ILoadBalancerLocationProp
     const { app } = this.props;
     const { errors, values } = this.props.formik;
     const { accounts, availabilityZones, hideInternalFlag, regions, subnets } = this.state;
-    const { SubnetSelectField } = AwsNgReact;
 
     const className = classNames({
       'col-md-12': true,

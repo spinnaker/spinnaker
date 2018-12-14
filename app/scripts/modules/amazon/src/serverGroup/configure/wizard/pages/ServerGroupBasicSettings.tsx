@@ -17,7 +17,7 @@ import {
 } from '@spinnaker/core';
 
 import { IAmazonImage } from 'amazon/image';
-import { AwsNgReact } from 'amazon/reactShims';
+import { SubnetSelectField } from 'amazon/subnet';
 
 import { AmazonImageSelectInput } from '../../AmazonImageSelectInput';
 import { IAmazonServerGroupCommand } from '../../serverGroupConfiguration.service';
@@ -193,7 +193,6 @@ class ServerGroupBasicSettingsImpl extends React.Component<
     const { app, formik } = this.props;
     const { errors, values } = formik;
     const { createsNewCluster, latestServerGroup, namePreview, showPreviewAsWarning } = this.state;
-    const { SubnetSelectField } = AwsNgReact;
 
     const accounts = values.backingData.accounts;
     const readOnlyFields = values.viewState.readOnlyFields || {};

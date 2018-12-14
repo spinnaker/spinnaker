@@ -2,8 +2,6 @@ import * as React from 'react';
 import { angular2react } from 'angular2react';
 import IInjectorService = angular.auto.IInjectorService;
 
-import { ISubnetSelectFieldProps } from '../subnet/SubnetSelectField';
-import { SubnetSelectFieldWrapperComponent } from '../subnet/subnetSelectField.component';
 import { ReactInject } from '@spinnaker/core';
 
 import { ScalingPolicyDetailsSummary } from 'amazon/serverGroup/details/scalingPolicy/detailsSummary.component';
@@ -15,7 +13,6 @@ export class AwsNgReactInjector extends ReactInject {
 
   // Reactified components
   public ScalingPolicySummary: React.ComponentClass<IScalingPolicySummaryProps> = angular2react('scalingPolicySummary', new ScalingPolicyDetailsSummary(), this.$injectorProxy) as any;
-  public SubnetSelectField: React.ComponentClass<ISubnetSelectFieldProps>       = angular2react('subnetSelectFieldWrapper', new SubnetSelectFieldWrapperComponent(), this.$injectorProxy) as any;
 
   public initialize($injector: IInjectorService) {
     const realInjector: { [key: string]: Function } = $injector as any;
