@@ -33,6 +33,7 @@ import com.netflix.spinnaker.igor.service.BuildService
 import com.netflix.spinnaker.kork.core.RetrySupport
 import groovy.util.logging.Slf4j
 import org.springframework.web.util.UriUtils
+import retrofit.RetrofitError
 import retrofit.client.Response
 
 
@@ -140,7 +141,17 @@ class JenkinsService implements BuildService{
         retrySupport.retry({
             new SimpleHystrixCommand<ScmDetails>(
                 groupKey, buildCommandKey("getGitDetails"), {
-                return jenkinsClient.getGitDetails(encode(jobName), buildNumber)
+                try {
+                    return jenkinsClient.getGitDetails(encode(jobName), buildNumber)
+                } catch (RetrofitError e) {
+                    //assuming that a conversion error is unlikely to succeed on retry
+                    if (e.kind == RetrofitError.Kind.CONVERSION) {
+                        log.warn("Unable to deserialize git details for build ${buildNumber} of ${jobName}", e)
+                        return null
+                    } else {
+                        throw e
+                    }
+                }
             }).execute()
         }, 10, 1000, false)
     }
