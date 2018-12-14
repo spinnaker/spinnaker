@@ -142,6 +142,7 @@ security:
     resource:
       userInfoUri: https://graph.windows.net/me?api-version=1.6
     userInfoMapping:
+      username: userPrincipalName
       email: userPrincipalName
       firstName: givenName
       lastName: surname
