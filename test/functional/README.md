@@ -79,6 +79,71 @@ The mountebank server will still be running on port 2525 but can easily be exite
 kill -15 $(lsof -t -i tcp:2525)
 ```
 
+## Downloading Pre-existing Network Fixtures
+
+The section above describes recording and replaying new network fixtures. Since the fixtures can be quite large
+they are not committed alongside the test code in this repo. Instead they can be served from a bucket and fetched
+prior to test execution. A GCS fixture downloader is included but downloaders for other services can be easily
+added.
+
+To download existing fixtures from a GCS bucket use the FixtureService. This process is manual currently but
+a script to automate this process will be added soon:
+
+1. Instantiate the FixtureService with the fully qualified base URI for the GCS bucket and the root of the test specs:
+
+```
+$ node
+> require('ts-node/register');
+undefined
+> const { FixtureService } = require('./test/functional/tools/FixtureService.ts');
+undefined
+> const fixtureService = new FixtureService('gs://my-bucket/my-network-fixtures', 'test/functional/tests');
+undefined
+```
+
+2. Get the list of missing fixture files. In this example the fixture for `core/home.spec.ts` is missing.
+
+```
+> const missingFixtures = fixtureService.findMissingFixtures();
+undefined
+> missingFixtures
+[ 'test/functional/tests/core/home.spec.ts.mountebank_fixture.json' ]
+```
+
+3. Download the missing fixtures:
+
+```
+> fixtureService.downloadFixtures(missingFixtures).
+... then(() => { console.log('Fetched all fixtures'); }).
+... catch(err => { console.log('Error fetching fixtures: ' + err); });
+fetching fixture for test/functional/tests/core/home.spec.ts.mountebank_fixture.json
+Promise {
+  <pending>,
+  domain:
+   Domain {
+     domain: null,
+     _events: { error: [Function: debugDomainError] },
+     _eventsCount: 1,
+     _maxListeners: undefined,
+     members: [] } }
+Copying gs://sbws/deck-functional-tests/fixtures/core/home.spec.ts.mountebank_fixture.json...
+/ [1 files][152.2 KiB/152.2 KiB]
+Operation completed over 1 objects/152.2 KiB.
+Fetched all fixtures
+```
+
+Note: The fully qualified base URI to the GCS bucket is expected to point at a GCS folder matching
+the directory structure of the `test/functional/tests` directory. At time of writing this means a structure
+like this:
+
+```
+.
+├── core
+│   ├── home.spec.ts.mountebank_fixture.json
+└── google
+    ├── clone.spec.ts.mountebank_fixture.json
+```
+
 ## Running a Static Server With a Built Version of Deck
 
 It can be preferable to run functional tests against a production build of Deck. However Deck does not come with
