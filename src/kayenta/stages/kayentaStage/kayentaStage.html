@@ -231,10 +231,18 @@
       <stage-config-field label="Baseline"
                           help-key="pipeline.config.canary.baselineGroup">
         <input
+          ng-if="kayentaCanaryStageCtrl.state.atlasScopeType !== 'query'"
           class="form-control input-sm"
           ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.scopes[0].controlScope"
           required
           type="text"/>
+
+        <textarea
+          ng-if="kayentaCanaryStageCtrl.state.atlasScopeType === 'query'"
+          class="form-control input-sm"
+          ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.scopes[0].controlScope"
+          required>
+        </textarea>
       </stage-config-field>
 
       <stage-config-field label="Baseline Location"
@@ -271,10 +279,18 @@
       <stage-config-field label="Canary"
                           help-key="pipeline.config.canary.canaryGroup">
         <input
+          ng-if="kayentaCanaryStageCtrl.state.atlasScopeType !== 'query'"
           class="form-control input-sm"
           ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.scopes[0].experimentScope"
           required
           type="text"/>
+
+        <textarea
+          ng-if="kayentaCanaryStageCtrl.state.atlasScopeType === 'query'"
+          class="form-control input-sm"
+          ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.scopes[0].experimentScope"
+          required>
+        </textarea>
       </stage-config-field>
 
       <stage-config-field label="Canary Location"
@@ -370,6 +386,14 @@
           ng-model="kayentaCanaryStageCtrl.state.useAtlasGlobalDataset"
           ng-click="kayentaCanaryStageCtrl.handleAtlasDatasetChange($event)" />
         Use Global Atlas Dataset
+      </stage-config-field>
+    </for-analysis-type>
+
+    <for-analysis-type stage="kayentaCanaryStageCtrl.stage" types="realTime, retrospective">
+      <stage-config-field label="Scope Type" ng-if="kayentaCanaryStageCtrl.metricStore === 'atlas'">
+        <select class="form-control input-sm" ng-model="kayentaCanaryStageCtrl.state.atlasScopeType" ng-options="(type === 'cluster' ? 'Cluster' : 'Query') for type in ['cluster', 'query']"
+          ng-change="kayentaCanaryStageCtrl.onAtlasScopeTypeChange()">
+        </select>
       </stage-config-field>
     </for-analysis-type>
 

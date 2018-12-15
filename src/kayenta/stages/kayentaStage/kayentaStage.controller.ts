@@ -38,6 +38,7 @@ export class KayentaStageController implements IComponentController {
     lifetime: { hours: 0, minutes: 0 },
     showAdvancedSettings: false,
     useAtlasGlobalDataset: false,
+    atlasScopeType: 'cluster',
     showAllLocations: {
       control: false,
       experiment: false,
@@ -262,9 +263,13 @@ export class KayentaStageController implements IComponentController {
 
   private setAtlasScopeParams = (): void => {
     const isRealTimeAutomatic = this.stage.analysisType === KayentaAnalysisType.RealTimeAutomatic;
+
+    const existingScopeType = get(this.stage.canaryConfig.scopes[0], 'extendedScopeParams.type') as string;
+    if (!isRealTimeAutomatic) {
+      this.state.atlasScopeType = existingScopeType !== 'asg' ? existingScopeType : 'cluster';
+    }
     this.stage.canaryConfig.scopes.forEach(scope => {
-      // TODO: support query types
-      set(scope, 'extendedScopeParams.type', isRealTimeAutomatic ? 'asg' : 'cluster');
+      set(scope, 'extendedScopeParams.type', isRealTimeAutomatic ? 'asg' : this.state.atlasScopeType);
     });
 
     if (isRealTimeAutomatic) {
@@ -705,8 +710,19 @@ export class KayentaStageController implements IComponentController {
     this.$scope.$applyAsync(() => {
       this.stage.canaryConfig.scopes.forEach(scope => {
         set(scope, 'extendedScopeParams.dataset', checked ? 'global' : 'regional');
-        // TODO: support query type
-        set(scope, 'extendedScopeParams.type', 'cluster');
+        set(
+          scope,
+          'extendedScopeParams.type',
+          this.stage.analysisType === KayentaAnalysisType.RealTimeAutomatic ? 'asg' : this.state.atlasScopeType,
+        );
+      });
+    });
+  };
+
+  public onAtlasScopeTypeChange = (): void => {
+    this.$scope.$applyAsync(() => {
+      this.stage.canaryConfig.scopes.forEach(scope => {
+        set(scope, 'extendedScopeParams.type', this.state.atlasScopeType);
       });
     });
   };
@@ -717,8 +733,11 @@ export class KayentaStageController implements IComponentController {
     }
 
     this.stage.canaryConfig.scopes.forEach(scope => {
-      // TODO: support query type
-      set(scope, 'extendedScopeParams.type', 'cluster');
+      set(
+        scope,
+        'extendedScopeParams.type',
+        this.stage.analysisType === KayentaAnalysisType.RealTimeAutomatic ? 'asg' : this.state.atlasScopeType,
+      );
     });
 
     if (this.stage.analysisType === KayentaAnalysisType.RealTimeAutomatic) {
