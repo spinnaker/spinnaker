@@ -39,6 +39,8 @@ export class KayentaStageController implements IComponentController {
     showAdvancedSettings: false,
     useAtlasGlobalDataset: false,
     atlasScopeType: 'cluster',
+    legacySiteLocalRecipients: '',
+    showLegacySiteLocalRecipients: CanarySettings.legacySiteLocalFieldsEnabled,
     showAllLocations: {
       control: false,
       experiment: false,
@@ -115,6 +117,10 @@ export class KayentaStageController implements IComponentController {
     this.deleteConfigAccountsIfMissing();
     this.updateLifetimeFromHoursToDuration();
     this.deleteCanaryConfigIdIfMissing();
+
+    if (CanarySettings.legacySiteLocalFieldsEnabled) {
+      this.setLegacySiteLocalRecipients();
+    }
 
     if (this.stage.isNew && this.stage.analysisType === KayentaAnalysisType.RealTimeAutomatic) {
       await this.initializeRealTimeAutomaticAnalysisType();
@@ -310,7 +316,8 @@ export class KayentaStageController implements IComponentController {
     this.state.showAdvancedSettings =
       this.kayentaAccounts.get(KayentaAccountType.MetricsStore).length > 1 ||
       this.kayentaAccounts.get(KayentaAccountType.ObjectStore).length > 1 ||
-      this.scopeNames.length > 1;
+      this.scopeNames.length > 1 ||
+      CanarySettings.legacySiteLocalFieldsEnabled;
   };
 
   public getLocationChoices = (): {
@@ -519,6 +526,30 @@ export class KayentaStageController implements IComponentController {
           unset(scope, 'extendedScopeParams.environment');
         }
       });
+    }
+  };
+
+  private setLegacySiteLocalRecipients = (): void => {
+    const recipients = get(this.stage.canaryConfig, 'siteLocal.notificationEmail');
+
+    if (Array.isArray(recipients)) {
+      this.state.legacySiteLocalRecipients = recipients.join(',');
+    } else {
+      this.state.legacySiteLocalRecipients = isString(recipients) ? recipients : '';
+    }
+  };
+
+  public handleLegacySiteLocalRecipientsChange = (): void => {
+    if (this.state.legacySiteLocalRecipients.includes('${')) {
+      set(this.stage.canaryConfig, 'siteLocal.notificationEmail', this.state.legacySiteLocalRecipients);
+    } else if (this.state.legacySiteLocalRecipients.length) {
+      set(
+        this.stage.canaryConfig,
+        'siteLocal.notificationEmail',
+        this.state.legacySiteLocalRecipients.split(',').map(email => email.trim()),
+      );
+    } else {
+      delete this.stage.canaryConfig.siteLocal;
     }
   };
 

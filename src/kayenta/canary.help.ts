@@ -57,6 +57,8 @@ const helpContents: { [key: string]: string } = {
   'pipeline.config.canary.lifetime': `
     <p>The total time for which data will be collected and analyzed during this stage.</p>
   `,
+  'pipeline.config.canary.legacySiteLocalRecipients':
+    '<p>Email addresses to be notified when a canary report completes, separated by commas.</p>',
   'pipeline.config.metricsAccount':
     "<p>The account to be used to access the metric store defined in this stage's canary config.</p>",
   'pipeline.config.storageAccount':

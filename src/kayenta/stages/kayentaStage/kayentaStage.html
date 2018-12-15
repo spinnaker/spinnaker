@@ -424,6 +424,16 @@
 
   <kayenta-stage-config-section title="Advanced Settings" ng-if="kayentaCanaryStageCtrl.state.showAdvancedSettings">
 
+    <stage-config-field label="Notification Emails" help-key="pipeline.config.canary.legacySiteLocalRecipients" ng-if="kayentaCanaryStageCtrl.state.showLegacySiteLocalRecipients">
+      <textarea
+        class="form-control input-sm"
+        ng-model="kayentaCanaryStageCtrl.state.legacySiteLocalRecipients"
+        ng-change="kayentaCanaryStageCtrl.handleLegacySiteLocalRecipientsChange()"
+        placeholder="Email addresses separated by commas"
+      >
+      </textarea>
+    </stage-config-field>
+
     <stage-config-field label="Metrics Account"
                         help-key="pipeline.config.metricsAccount"
                         ng-if="kayentaCanaryStageCtrl.kayentaAccounts.get('METRICS_STORE').length > 1">

@@ -19,6 +19,7 @@ export interface IKayentaStageCanaryConfig {
     pass: string;
     marginal: string;
   };
+  siteLocal?: { notificationEmail?: string[] | string };
   storageAccountName: string;
 }
 

@@ -17,6 +17,7 @@ export interface ICanarySettings {
   atlasGraphBaseUrl: string;
   templatesEnabled: boolean;
   manualAnalysisEnabled: boolean;
+  legacySiteLocalFieldsEnabled: boolean; // legacy fields for backwards-compat with old systems, no long term support planned
 }
 
 export const CanarySettings: ICanarySettings = SETTINGS.canary || { featureDisabled: true };

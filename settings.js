@@ -11,6 +11,7 @@ var reduxLoggerEnabled = process.env.REDUX_LOGGER === 'true';
 var defaultMetricStore = process.env.METRIC_STORE || 'atlas';
 var canaryStagesEnabled = process.env.CANARY_STAGES_ENABLED === 'true';
 var manualCanaryAnalysisEnabled = process.env.MANUAL_CANARY_ANALYSIS_ENABLED === 'true';
+var legacySiteLocalFieldsEnabled = process.env.LEGACY_SITE_LOCAL_FIELDS_ENABLED === 'true';
 var canaryStageName = process.env.CANARY_STAGE_NAME;
 var canaryStageDescription = process.env.CANARY_STAGE_DESCRIPTION;
 var templatesEnabled = process.env.TEMPLATES_ENABLED === 'true';
@@ -91,6 +92,7 @@ window.spinnakerSettings = {
     metricStore: defaultMetricStore,
     stagesEnabled: canaryStagesEnabled,
     manualAnalysisEnabled: manualCanaryAnalysisEnabled,
+    legacySiteLocalFieldsEnabled: legacySiteLocalFieldsEnabled,
     stageName: canaryStageName,
     stageDescription: canaryStageDescription,
     atlasWebComponentsUrl: atlasWebComponentsUrl,

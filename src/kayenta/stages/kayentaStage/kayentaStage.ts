@@ -1,5 +1,5 @@
 import { module } from 'angular';
-import { get, has, isEmpty, map, uniq, difference } from 'lodash';
+import { get, has, isEmpty, map, uniq, difference, isString } from 'lodash';
 
 import { IPipeline, Registry } from '@spinnaker/core';
 
@@ -13,6 +13,11 @@ import { KAYENTA_STAGE_EXECUTION_DETAILS_CONTROLLER } from './kayentaStageExecut
 import { KAYENTA_STAGE_CONFIG_SECTION } from './kayentaStageConfigSection.component';
 import { KAYENTA_ANALYSIS_TYPE_COMPONENT } from './analysisType.component';
 import { FOR_ANALYSIS_TYPE_COMPONENT } from './forAnalysisType.component';
+
+const isExpression = (value: string) => isString(value) && value.includes('${');
+
+const emailPattern = /^(.+)\@(.+).([A-Za-z]{2,6})/;
+const isValidEmail = (email: string) => isExpression(email) || email.match(emailPattern);
 
 const requiredForAnalysisTypes = (
   analysisTypes: KayentaAnalysisType[] = [],
@@ -161,6 +166,21 @@ module(KAYENTA_CANARY_STAGE, [
         {
           type: 'custom',
           validate: allConfiguredScopesMustBeDefined,
+        },
+        {
+          type: 'custom',
+          validate: (_pipeline: IPipeline, { canaryConfig }: IKayentaStage) => {
+            if (!CanarySettings.legacySiteLocalFieldsEnabled) {
+              return null;
+            }
+            const notificationEmail = get(canaryConfig, 'siteLocal.notificationEmail');
+            if (!notificationEmail) {
+              return null;
+            }
+            const emails = Array.isArray(notificationEmail) ? notificationEmail : [notificationEmail];
+            const invalidEmail = emails.find(email => !isValidEmail(email));
+            return invalidEmail ? `Invalid <strong>Notification Email</strong> (${invalidEmail})` : null;
+          },
         },
       ],
     });
