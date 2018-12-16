@@ -114,6 +114,7 @@ class KubernetesNamedAccountCredentialsInitializer implements CredentialsInitial
           .checkPermissionsOnStartup(managedAccount.checkPermissionsOnStartup == null ? true : managedAccount.checkPermissionsOnStartup)
           .kubernetesSpinnakerKindMap(kubernetesSpinnakerKindMap)
           .onlySpinnakerManaged(managedAccount.onlySpinnakerManaged == null ? false : managedAccount.onlySpinnakerManaged)
+          .liveManifestCalls(managedAccount.liveManifestCalls ?: false)
           .build()
 
         accountCredentialsRepository.save(managedAccount.name, kubernetesAccount)

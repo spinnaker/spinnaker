@@ -26,8 +26,8 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesRes
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler;
-import com.netflix.spinnaker.clouddriver.model.ManifestProvider;
-import com.netflix.spinnaker.moniker.Moniker;
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -36,30 +36,38 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.LogicalKind.CLUSTERS;
 
 @Component
 @Slf4j
-public class KubernetesV2ManifestProvider implements ManifestProvider<KubernetesV2Manifest> {
-  private final KubernetesResourcePropertyRegistry registry;
+public class KubernetesV2ManifestProvider extends KubernetesV2AbstractManifestProvider {
   private final KubernetesCacheUtils cacheUtils;
+  @Getter private final KubernetesResourcePropertyRegistry registry;
+  @Getter private final AccountCredentialsRepository credentialsRepository;
 
   @Autowired
-  public KubernetesV2ManifestProvider(KubernetesResourcePropertyRegistry registry, KubernetesCacheUtils cacheUtils) {
+  public KubernetesV2ManifestProvider(AccountCredentialsRepository credentialsRepository, KubernetesResourcePropertyRegistry registry, KubernetesCacheUtils cacheUtils) {
     this.registry = registry;
     this.cacheUtils = cacheUtils;
+    this.credentialsRepository = credentialsRepository;
   }
 
   @Override
   public KubernetesV2Manifest getManifest(String account, String location, String name) {
+    if (!isAccountRelevant(account)) {
+      return null;
+    }
+
+    if (makesLiveCalls(account)) {
+      return null;
+    }
+
     Pair<KubernetesKind, String> parsedName;
     try {
       parsedName = KubernetesManifest.fromFullResourceName(name);
@@ -115,40 +123,16 @@ public class KubernetesV2ManifestProvider implements ManifestProvider<Kubernetes
     KubernetesKind kind = manifest.getKind();
     String key = data.getId();
 
-    KubernetesResourceProperties properties = registry.get(account, kind);
-    if (properties == null) {
-      return null;
-    }
-
-    Function<KubernetesManifest, String> lastEventTimestamp = (m) -> (String) m.getOrDefault("lastTimestamp", m.getOrDefault("firstTimestamp", "n/a"));
-
     List<KubernetesManifest> events = cacheUtils.getTransitiveRelationship(kind.toString(), Collections.singletonList(key), KubernetesKind.EVENT.toString())
         .stream()
         .map(KubernetesCacheDataConverter::getManifest)
-        .sorted(Comparator.comparing(lastEventTimestamp))
         .collect(Collectors.toList());
-
-    Moniker moniker = KubernetesCacheDataConverter.getMoniker(data);
 
     String metricKey = Keys.metric(kind, account, namespace, manifest.getName());
     List<Map> metrics = cacheUtils.getSingleEntry(Keys.Kind.KUBERNETES_METRIC.toString(), metricKey)
         .map(KubernetesCacheDataConverter::getMetrics)
         .orElse(Collections.emptyList());
 
-    KubernetesHandler handler = properties.getHandler();
-
-    return new KubernetesV2Manifest().builder()
-        .account(account)
-        .name(manifest.getFullResourceName())
-        .location(namespace)
-        .manifest(manifest)
-        .moniker(moniker)
-        .status(handler.status(manifest))
-        .artifacts(handler.listArtifacts(manifest))
-        .events(events)
-        .warnings(handler.listWarnings(manifest))
-        .metrics(metrics)
-        .build();
-
+    return buildManifest(account, manifest, events, metrics);
   }
 }

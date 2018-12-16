@@ -343,6 +343,37 @@ public class KubectlJobExecutor {
     }
   }
 
+  public List<KubernetesManifest> eventsFor(KubernetesV2Credentials credentials, KubernetesKind kind, String namespace, String name) {
+    List<String> command = kubectlNamespacedGet(credentials, Collections.singletonList(KubernetesKind.EVENT), namespace);
+    command.add("--field-selector");
+    command.add(String.format("involvedObject.name=%s,involvedObject.kind=%s", name, StringUtils.capitalize(kind.toString())));
+
+    String jobId = jobExecutor.startJob(new JobRequest(command),
+        System.getenv(),
+        new ByteArrayInputStream(new byte[0]));
+
+    JobStatus status = backoffWait(jobId, credentials.isDebug());
+
+    if (status.getResult() != JobStatus.Result.SUCCESS) {
+      if (status.getStdErr().contains(NO_RESOURCE_TYPE_ERROR)) {
+        throw new NoResourceTypeException(status.getStdErr());
+      } else {
+        throw new KubectlException("Failed to read events from " + namespace + ": " + status.getStdErr());
+      }
+    }
+
+    if (status.getStdErr().contains("No resources found")) {
+      return new ArrayList<>();
+    }
+
+    try {
+      KubernetesManifestList list = gson.fromJson(status.getStdOut(), KubernetesManifestList.class);
+      return list.getItems();
+    } catch (JsonSyntaxException e) {
+      throw new KubectlException("Failed to parse kubectl output: " + e.getMessage(), e);
+    }
+  }
+
   public List<KubernetesManifest> list(KubernetesV2Credentials credentials, List<KubernetesKind> kinds, String namespace, KubernetesSelectorList selectors) {
     List<String> command = kubectlNamespacedGet(credentials, kinds, namespace);
     if (selectors.isNotEmpty()) {

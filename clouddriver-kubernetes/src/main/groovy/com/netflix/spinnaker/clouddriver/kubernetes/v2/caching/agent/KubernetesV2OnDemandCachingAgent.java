@@ -275,6 +275,11 @@ public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2Cachi
       return null;
     }
 
+    // No on-demand updates needed when live calls are used to check for status during orchestration
+    if (credentials.isLiveManifestCalls()) {
+      return null;
+    }
+
     if (!kind.isNamespaced() && StringUtils.isNotEmpty(namespace)) {
       log.warn("Kind {} is not namespace but namespace {} was provided, ignoring", kind, namespace);
       namespace = "";
