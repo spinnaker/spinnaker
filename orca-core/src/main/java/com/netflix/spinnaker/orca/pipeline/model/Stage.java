@@ -363,12 +363,16 @@ public class Stage implements Serializable {
    * Gets all ancestor stages, including the current stage.
    */
   public List<Stage> ancestors() {
-    Set<String> visited = Sets.newHashSetWithExpectedSize(execution.getStages().size());
-    return ImmutableList
-      .<Stage>builder()
-      .add(this)
-      .addAll(ancestorsOnly(visited))
-      .build();
+    if (execution != null) {
+      Set<String> visited = Sets.newHashSetWithExpectedSize(execution.getStages().size());
+      return ImmutableList
+        .<Stage>builder()
+        .add(this)
+        .addAll(ancestorsOnly(visited))
+        .build();
+    } else {
+      return emptyList();
+    }
   }
 
   private List<Stage> ancestorsOnly(Set<String> visited) {

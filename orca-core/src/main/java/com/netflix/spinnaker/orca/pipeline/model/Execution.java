@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.pipeline.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableSet;
 import com.netflix.spinnaker.orca.ExecutionStatus;
@@ -168,7 +168,12 @@ public class Execution implements Serializable {
 
   private final List<Stage> stages = new ArrayList<>();
 
-  @JsonManagedReference
+  /**
+   * Gets the stages of this execution.
+   * Does not serialize the child Execution object from stages.
+   * The child Execution object in Stage is a @JsonBackReference.
+   */
+  @JsonIgnoreProperties(value = "execution")
   public @Nonnull List<Stage> getStages() {
     return stages;
   }
