@@ -67,6 +67,16 @@ task karma(type: NodeTask) {
   }
 }
 
+task functionalTestsChrome(type: NodeTask) {
+  script = file('test/functional/run.js')
+  args = ['--replay-fixtures', '--serve-deck', '--imposter-port=8084', '--browser=chrome', '--headless']
+}
+
+task functionalTestsFirefox(type: NodeTask) {
+  script = file('test/functional/run.js')
+  args = ['--replay-fixtures', '--serve-deck', '--imposter-port=8084', '--browser=firefox', '--headless']
+}
+
 task generateVersionFile << {
   'git update-index --assume-unchanged version.json'.execute()
   def buildInfo = [
@@ -88,6 +98,8 @@ test.dependsOn 'karma'
 copyFavicon.dependsOn 'test'
 buildDeb.dependsOn 'copyFavicon'
 buildRpm.dependsOn 'webpack'
+functionalTestsChrome.dependsOn 'yarn'
+functionalTestsFirefox.dependsOn 'yarn'
 
 String toVers(String v) {
   int idx = v.indexOf('-')
