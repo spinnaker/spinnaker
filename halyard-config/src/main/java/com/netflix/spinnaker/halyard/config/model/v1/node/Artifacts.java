@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -52,6 +53,14 @@ public class Artifacts extends Node {
   @Override
   public String getNodeName() {
     return "provider";
+  }
+
+  @Override
+  public NodeIterator getChildren() {
+    return NodeIteratorFactory.makeAppendNodeIterator(
+        NodeIteratorFactory.makeReflectiveIterator(this),
+        NodeIteratorFactory.makeListIterator(templates.stream().map(t -> (Node) t).collect(Collectors.toList()))
+    );
   }
 
   public static Class<? extends ArtifactProvider> translateArtifactProviderType(String providerName) {

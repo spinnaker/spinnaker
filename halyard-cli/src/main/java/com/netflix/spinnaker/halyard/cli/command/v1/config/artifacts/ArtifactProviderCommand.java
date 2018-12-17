@@ -28,6 +28,7 @@ import com.netflix.spinnaker.halyard.cli.command.v1.config.artifacts.helm.HelmAr
 import com.netflix.spinnaker.halyard.cli.command.v1.config.artifacts.http.HttpArtifactProviderCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.artifacts.oracle.OracleArtifactProviderCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.artifacts.s3.S3ArtifactProviderCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.artifacts.templates.ArtifactTemplateCommand;
 import lombok.AccessLevel;
 import lombok.Getter;
 
@@ -53,6 +54,7 @@ public class ArtifactProviderCommand extends NestableCommand {
     registerSubcommand(new HttpArtifactProviderCommand());
     registerSubcommand(new HelmArtifactProviderCommand());
     registerSubcommand(new S3ArtifactProviderCommand());
+    registerSubcommand((new ArtifactTemplateCommand()));
   }
 
   @Override

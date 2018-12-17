@@ -91,6 +91,11 @@
  * [**hal config artifact s3 account list**](#hal-config-artifact-s3-account-list)
  * [**hal config artifact s3 disable**](#hal-config-artifact-s3-disable)
  * [**hal config artifact s3 enable**](#hal-config-artifact-s3-enable)
+ * [**hal config artifact templates**](#hal-config-artifact-templates)
+ * [**hal config artifact templates add**](#hal-config-artifact-templates-add)
+ * [**hal config artifact templates delete**](#hal-config-artifact-templates-delete)
+ * [**hal config artifact templates edit**](#hal-config-artifact-templates-edit)
+ * [**hal config artifact templates list**](#hal-config-artifact-templates-list)
  * [**hal config canary**](#hal-config-canary)
  * [**hal config canary aws**](#hal-config-canary-aws)
  * [**hal config canary aws account**](#hal-config-canary-aws-account)
@@ -699,6 +704,7 @@ hal config artifact [subcommands]
  * `http`: Manage and view Spinnaker configuration for the http provider
  * `oracle`: Manage and view Spinnaker configuration for the oracle provider
  * `s3`: Manage and view Spinnaker configuration for the s3 provider
+ * `templates`: Show Spinnaker's configured artifact templates.
 
 ---
 ## hal config artifact bitbucket
@@ -1953,6 +1959,91 @@ Set the s3 artifact provider as enabled
 #### Usage
 ```
 hal config artifact s3 enable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config artifact templates
+
+Show Spinnaker's configured artifact templates.
+
+#### Usage
+```
+hal config artifact templates [parameters] [subcommands]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `add`: Add an artifact template
+ * `delete`: Delete an artifact template
+ * `edit`: Edit an artifact template
+ * `list`: List an artifact templates
+
+---
+## hal config artifact templates add
+
+Add an artifact template
+
+#### Usage
+```
+hal config artifact templates add TEMPLATE [parameters]
+```
+
+#### Parameters
+`TEMPLATE`: The name of the artifact template to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--template-path`: (*Required*) The path to the Jinja template to use for artifact extraction
+
+
+---
+## hal config artifact templates delete
+
+Delete an artifact template
+
+#### Usage
+```
+hal config artifact templates delete TEMPLATE [parameters]
+```
+
+#### Parameters
+`TEMPLATE`: The name of the artifact template to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config artifact templates edit
+
+Edit an artifact template
+
+#### Usage
+```
+hal config artifact templates edit TEMPLATE [parameters]
+```
+
+#### Parameters
+`TEMPLATE`: The name of the artifact template to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--template-path`: The path to the Jinja template to use for artifact extraction
+
+
+---
+## hal config artifact templates list
+
+List an artifact templates
+
+#### Usage
+```
+hal config artifact templates list [parameters]
 ```
 
 #### Parameters

@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.halyard.cli.services.v1;
 
+import com.netflix.spinnaker.halyard.config.model.v1.artifacts.ArtifactTemplate;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.Canary;
 import com.netflix.spinnaker.halyard.config.model.v1.ha.HaService;
@@ -782,6 +783,36 @@ public interface DaemonService {
           @Path("deploymentName") String deploymentName,
           @Query("validate") boolean validate,
           @Body WebhookTrust webhookTrust);
+
+  @POST("/v1/config/deployments/{deploymentName}/artifactTemplates/")
+  DaemonTask<Halconfig, Void> addArtifactTemplate(
+      @Path("deploymentName") String deploymentName,
+      @Query("validate") boolean validate,
+      @Body ArtifactTemplate template);
+
+  @GET("/v1/config/deployments/{deploymentName}/artifactTemplates/")
+  DaemonTask<Halconfig, Object> getArtifactTemplates(
+      @Path("deploymentName") String deploymentName,
+      @Query("validate") boolean validate);
+
+  @GET("/v1/config/deployments/{deploymentName}/artifactTemplates/{templateName}/")
+  DaemonTask<Halconfig, Object> getArtifactTemplate(
+      @Path("deploymentName") String deploymentName,
+      @Path("templateName") String templateName,
+      @Query("validate") boolean validate);
+
+  @PUT("/v1/config/deployments/{deploymentName}/artifactTemplates/{templateName}/")
+  DaemonTask<Halconfig, Void> setArtifactTemplate(
+      @Path("deploymentName") String deploymentName,
+      @Path("templateName") String templateName,
+      @Query("validate") boolean validate,
+      @Body ArtifactTemplate template);
+
+  @DELETE("/v1/config/deployments/{deploymentName}/artifactTemplates/{templateName}/")
+  DaemonTask<Halconfig, Void> deleteArtifactTemplate(
+      @Path("deploymentName") String deploymentName,
+      @Path("templateName") String templateName,
+      @Query("validate") boolean validate);
 
   @GET("/v1/spin/install/latest")
   DaemonTask<Halconfig, Object> installSpin();

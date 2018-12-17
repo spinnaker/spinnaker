@@ -16,9 +16,11 @@
 
 package com.netflix.spinnaker.halyard.cli.services.v1;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.halyard.cli.command.v1.GlobalOptions;
+import com.netflix.spinnaker.halyard.config.model.v1.artifacts.ArtifactTemplate;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.Canary;
 import com.netflix.spinnaker.halyard.config.model.v1.ha.HaService;
@@ -882,6 +884,41 @@ public class Daemon {
   public static Supplier<Void> setWebhookTrust(String deploymentName, boolean validate, WebhookTrust webhookTrust) {
     return () -> {
       Object rawWebhookTrust = ResponseUnwrapper.get(getService().setWebhookTrust(deploymentName, validate, webhookTrust));
+      return null;
+    };
+  }
+
+  public static Supplier<List<ArtifactTemplate>> getArtifactTemplates(String deploymentName, boolean validate) {
+    return () -> {
+      Object rawArtifactTemplate = ResponseUnwrapper.get(getService().getArtifactTemplates(deploymentName, validate));
+      return getObjectMapper().convertValue(rawArtifactTemplate, new TypeReference<List<ArtifactTemplate>>(){});
+    };
+  }
+
+  public static Supplier<ArtifactTemplate> getArtifactTemplate(String deploymentName, String templateName, boolean validate) {
+    return () -> {
+      Object rawArtifactTemplate = ResponseUnwrapper.get(getService().getArtifactTemplate(deploymentName, templateName, validate));
+      return getObjectMapper().convertValue(rawArtifactTemplate, ArtifactTemplate.class);
+    };
+  }
+
+  public static Supplier<Void> addArtifactTemplate(String deploymentName, boolean validate, ArtifactTemplate template) {
+    return () -> {
+      ResponseUnwrapper.get(getService().addArtifactTemplate(deploymentName, validate, template));
+      return null;
+    };
+  }
+
+  public static Supplier<Void> setArtifactTemplate(String deploymentName, String templateName, boolean validate, ArtifactTemplate template) {
+    return () -> {
+      ResponseUnwrapper.get(getService().setArtifactTemplate(deploymentName, templateName, validate, template));
+      return null;
+    };
+  }
+
+  public static Supplier<Void> deleteArtifactTemplate(String deploymentName, String templateName, boolean validate) {
+    return () -> {
+      ResponseUnwrapper.get(getService().deleteArtifactTemplate(deploymentName, templateName, validate));
       return null;
     };
   }
