@@ -44,7 +44,7 @@ jq '(.stages[] | select(.refId == "9") | .pipeline) |= env.PIPELINE_ID | (.stage
 
 #### Spinnaker 1.10
 
-This commands assumes that Kayenta is enabled and configured as instructed in the
+This command assumes that Kayenta is enabled and configured as instructed in the
 tutorial.
 
 ```
@@ -62,7 +62,7 @@ jq '(.stages[] | select(.refId == "9") | .pipeline) |= env.PIPELINE_ID | (.stage
 
 #### Spinnaker 1.9
 
-This commands assumes that Kayenta is enabled and configured as instructed in the
+This command assumes that Kayenta is enabled and configured as instructed in the
 tutorial.
 
 ```
