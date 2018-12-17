@@ -93,10 +93,16 @@ public class PipelineInitiator {
 
         final String templatedPipelineType = "templatedPipeline";
         if (templatedPipelineType.equals(pipeline.getType())) { // TODO(jacobkiefer): Constantize.
+          // We need to store and re-set the propagateAuth flag, as it is ignored on deserialization
+          // TODO(ezimanyi): Find a better way to pass the propagateAuth flag than on the trigger itself
+          boolean propagateAuth = pipeline.getTrigger() != null && pipeline.getTrigger().isPropagateAuth();
           log.debug("Planning templated pipeline {} before triggering", pipeline.getId());
           pipeline = pipeline.withPlan(true);
           Map resolvedPipelineMap = orca.plan(objectMapper.convertValue(pipeline, Map.class));
           pipeline = objectMapper.convertValue(resolvedPipelineMap, Pipeline.class);
+          if (propagateAuth) {
+            pipeline = pipeline.withTrigger(pipeline.getTrigger().atPropagateAuth(true));
+          }
         }
         triggerPipeline(pipeline);
         registry.counter("orca.requests").increment();

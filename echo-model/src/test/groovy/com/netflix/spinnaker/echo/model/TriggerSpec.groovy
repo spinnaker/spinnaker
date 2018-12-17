@@ -43,4 +43,24 @@ class TriggerSpec extends Specification {
     trigger.getType() == "manual"
     !trigger.isPropagateAuth()
   }
+
+  void 'atPropagateAuth correctly sets propagateAuth'() {
+    when:
+    Trigger trigger = Trigger.builder().build()
+
+    then:
+    !trigger.isPropagateAuth()
+
+    when:
+    trigger = trigger.atPropagateAuth(true)
+
+    then:
+    trigger.isPropagateAuth()
+
+    when:
+    trigger = trigger.atPropagateAuth(false)
+
+    then:
+    !trigger.isPropagateAuth()
+  }
 }
