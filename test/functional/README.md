@@ -149,8 +149,8 @@ like this:
 It can be preferable to run functional tests against a production build of Deck. Doing so is easy:
 
 1. Build & Serve Deck. For now this is managed manually but will soon be coordinated by a script. Building
-   Deck can take considerable time. It's normal for the StaticServer to take upwards of 30 seconds for
-   its launch Promise resolves.
+   Deck can take considerable time. It's normal for the StaticServer to take upwards of two and a half
+   minutes for its launch Promise resolves.
 
 ```
 # From the deck repository root
