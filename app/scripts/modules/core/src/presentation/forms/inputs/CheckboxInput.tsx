@@ -11,7 +11,7 @@ interface ICheckBoxInputProps extends IFormInputProps, OmitControlledInputPropsF
 export class CheckboxInput extends React.Component<ICheckBoxInputProps> {
   public render() {
     const { value, validation, inputClassName, text, ...otherProps } = this.props;
-    const className = `CheckboxInput ${orEmptyString(inputClassName)} ${validationClassName(validation)}`;
+    const className = `${orEmptyString(inputClassName)} ${validationClassName(validation)}`;
 
     return (
       <div className="checkbox">

@@ -1,7 +1,8 @@
 import * as React from 'react';
 
+import Select, { Option } from 'react-select';
+
 import {
-  AccountSelectInput,
   AccountService,
   IAccount,
   IArtifactAccount,
@@ -9,7 +10,6 @@ import {
   IService,
   IServicePlan,
   IStageConfigProps,
-  RegionSelectField,
   ServicesReader,
   StageConfigField,
 } from '@spinnaker/core';
@@ -167,7 +167,8 @@ export class CloudfoundryDeployServiceStageConfig extends React.Component<
     });
   };
 
-  private accountUpdated = (credentials: string): void => {
+  private accountUpdated = (option: Option<string>): void => {
+    const credentials = option.value;
     this.setState({ credentials: credentials, region: '' });
     this.props.stage.credentials = credentials;
     this.props.stage.region = '';
@@ -180,7 +181,8 @@ export class CloudfoundryDeployServiceStageConfig extends React.Component<
     }
   };
 
-  private regionUpdated = (region: string): void => {
+  private regionUpdated = (option: Option<string>): void => {
+    const region = option.value;
     this.setState({ region: region, service: '', servicePlan: '' });
     this.props.stage.region = region;
     this.props.stage.manifest.service = '';
@@ -190,8 +192,8 @@ export class CloudfoundryDeployServiceStageConfig extends React.Component<
     this.clearAndReloadServices();
   };
 
-  private serviceUpdated = (event: React.ChangeEvent<HTMLSelectElement>): void => {
-    const service = event.target.value;
+  private serviceUpdated = (option: Option<string>): void => {
+    const service = option.value;
     const { serviceNamesAndPlans } = this.state;
     const servicePlans = (serviceNamesAndPlans.find(it => it.name === service).servicePlans || []).map(it => it.name);
     this.setState({
@@ -204,8 +206,8 @@ export class CloudfoundryDeployServiceStageConfig extends React.Component<
     this.props.stageFieldUpdated();
   };
 
-  private servicePlanUpdated = (event: React.ChangeEvent<HTMLSelectElement>): void => {
-    const servicePlan = event.target.value;
+  private servicePlanUpdated = (option: Option<string>): void => {
+    const servicePlan = option.value;
     this.setState({ servicePlan });
     this.props.stage.manifest.servicePlan = servicePlan;
     this.props.stageFieldUpdated();
@@ -291,37 +293,32 @@ export class CloudfoundryDeployServiceStageConfig extends React.Component<
           />
         </StageConfigField>
         <StageConfigField label="Service">
-          <select className="form-control input-sm" required={true} onChange={this.serviceUpdated} value={service}>
-            <option value="" disabled={true}>
-              Select...
-            </option>
-            {services.map((it: string) => {
-              return (
-                <option key={it} value={it}>
-                  {it}
-                </option>
-              );
-            })}
-          </select>
+          <Select
+            options={
+              services &&
+              services.map((serv: string) => ({
+                label: serv,
+                value: serv,
+              }))
+            }
+            clearable={false}
+            value={service}
+            onChange={this.serviceUpdated}
+          />
         </StageConfigField>
         <StageConfigField label="Service Plan">
-          <select
-            className="form-control input-sm"
-            required={true}
-            onChange={this.servicePlanUpdated}
+          <Select
+            options={
+              servicePlans &&
+              servicePlans.map((servPlan: string) => ({
+                label: servPlan,
+                value: servPlan,
+              }))
+            }
+            clearable={false}
             value={servicePlan}
-          >
-            <option value="" disabled={true}>
-              Select...
-            </option>
-            {servicePlans.map((it: string) => {
-              return (
-                <option key={it} value={it}>
-                  {it}
-                </option>
-              );
-            })}
-          </select>
+            onChange={this.servicePlanUpdated}
+          />
         </StageConfigField>
         <StageConfigField label="Tags">
           <div className="row">
@@ -406,7 +403,7 @@ export class CloudfoundryDeployServiceStageConfig extends React.Component<
 
   public render() {
     const { stage } = this.props;
-    const { credentials, manifest, timeout } = stage;
+    const { credentials, manifest, region, timeout } = stage;
     const { accounts, regions } = this.state;
 
     let manifestInput;
@@ -423,22 +420,33 @@ export class CloudfoundryDeployServiceStageConfig extends React.Component<
     return (
       <div className="form-horizontal cloudfoundry-deploy-service-stage">
         <StageConfigField label="Account">
-          <AccountSelectInput
-            value={stage.credentials}
-            onChange={evt => this.accountUpdated(evt.target.value)}
-            accounts={accounts}
-            provider="cloudfoundry"
+          <Select
+            options={
+              accounts &&
+              accounts.map((acc: IAccount) => ({
+                label: acc.name,
+                value: acc.name,
+              }))
+            }
+            clearable={false}
+            value={credentials}
+            onChange={this.accountUpdated}
           />
         </StageConfigField>
-        <RegionSelectField
-          labelColumns={3}
-          fieldColumns={8}
-          component={stage}
-          field="region"
-          account={credentials}
-          onChange={this.regionUpdated}
-          regions={regions}
-        />
+        <StageConfigField label="Region">
+          <Select
+            options={
+              regions &&
+              regions.map((r: IRegion) => ({
+                label: r.name,
+                value: r.name,
+              }))
+            }
+            clearable={false}
+            value={region}
+            onChange={this.regionUpdated}
+          />
+        </StageConfigField>
         <StageConfigField label="Source Type">
           <div className="col-md-7">
             <div className="radio radio-inline">

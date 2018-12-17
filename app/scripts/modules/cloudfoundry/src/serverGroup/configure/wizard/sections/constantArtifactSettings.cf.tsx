@@ -27,7 +27,7 @@ class ArtifactSettingsImpl extends React.Component<
 
     this.props.formik.values.artifact = {
       account: serverGroup.account,
-      cluster: { name: serverGroup.cluster, serverGroups: [serverGroup] },
+      clusterName: serverGroup.cluster,
       region: serverGroup.region,
       serverGroupName: serverGroup.name,
       type: 'package',

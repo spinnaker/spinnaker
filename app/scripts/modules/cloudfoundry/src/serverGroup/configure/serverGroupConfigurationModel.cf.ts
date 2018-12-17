@@ -1,6 +1,6 @@
 import { IServerGroupCommand } from '@spinnaker/core';
 
-import { ICloudFoundryCluster, ICloudFoundryEnvVar } from 'cloudfoundry/domain';
+import { ICloudFoundryEnvVar } from 'cloudfoundry/domain';
 
 export interface ICloudFoundryCreateServerGroupCommand extends IServerGroupCommand {
   artifact: ICloudFoundryBinarySource;
@@ -17,7 +17,7 @@ export interface ICloudFoundryArtifactSource {
 }
 
 export interface ICloudFoundryPackageSource {
-  cluster: ICloudFoundryCluster;
+  clusterName: string;
   serverGroupName: string;
   account: string;
   region: string;

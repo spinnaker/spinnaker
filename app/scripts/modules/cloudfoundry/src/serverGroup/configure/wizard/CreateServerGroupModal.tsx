@@ -24,6 +24,8 @@ import { ServerGroupTemplateSelection } from 'cloudfoundry/serverGroup/configure
 import { CloudFoundryServerGroupConstantArtifactSettings } from 'cloudfoundry/serverGroup/configure/wizard/sections/constantArtifactSettings.cf';
 import { ICloudFoundryServerGroup } from 'cloudfoundry/domain';
 
+import './serverGroup.less';
+
 export interface ICloudFoundryCreateServerGroupProps extends IModalComponentProps {
   application: Application;
   command: ICloudFoundryCreateServerGroupCommand;

@@ -1,25 +1,29 @@
 import * as React from 'react';
 
-import { Field, FormikErrors } from 'formik';
+import { FormikErrors } from 'formik';
 
 import {
-  AccountSelectInput,
   AccountService,
+  CheckboxInput,
+  FormikFormField,
   IAccount,
   IRegion,
   IWizardPageProps,
   wizardPage,
   HelpField,
-  RegionSelectField,
-  ValidationMessage,
+  ReactSelectInput,
+  TextInput,
 } from '@spinnaker/core';
 
 import { ICloudFoundryCreateServerGroupCommand } from '../../serverGroupConfigurationModel.cf';
-import { CloudFoundryDeploymentStrategySelector } from 'cloudfoundry/deploymentStrategy/DeploymentStrategySelector';
+import { CloudFoundryDeploymentStrategySelector } from 'cloudfoundry/deploymentStrategy/CloudFoundryDeploymentStrategySelector';
+
+import 'cloudfoundry/common/cloudFoundry.less';
 
 export type ICloudFoundryServerGroupBasicSettingsProps = IWizardPageProps<ICloudFoundryCreateServerGroupCommand>;
 
 export interface ICloudFoundryServerGroupLocationSettingsState {
+  account: string;
   accounts: IAccount[];
   regions: IRegion[];
 }
@@ -33,35 +37,30 @@ class BasicSettingsImpl extends React.Component<
   }
 
   public state: ICloudFoundryServerGroupLocationSettingsState = {
+    account: '',
     accounts: [],
     regions: [],
   };
 
   public componentDidMount(): void {
     AccountService.listAccounts('cloudfoundry').then(accounts => {
-      this.setState({ accounts: accounts });
-      this.accountChanged();
+      this.setState({ accounts });
+      this.updateRegionList();
     });
   }
 
-  private accountUpdated = (account: string): void => {
-    this.props.formik.values.credentials = account;
-    this.props.formik.setFieldValue('credentials', account);
-    this.accountChanged();
+  private accountChanged = (): void => {
+    this.updateRegionList();
+    this.props.formik.setFieldValue('region', '');
   };
 
-  private accountChanged = (): void => {
+  private updateRegionList = (): void => {
     const { credentials } = this.props.formik.values;
     if (credentials) {
       AccountService.getRegionsForAccount(credentials).then(regions => {
         this.setState({ regions: regions });
       });
     }
-  };
-
-  private regionUpdated = (region: string): void => {
-    this.props.formik.values.region = region;
-    this.props.formik.setFieldValue('region', region);
   };
 
   private strategyChanged = (_values: ICloudFoundryCreateServerGroupCommand, strategy: any) => {
@@ -74,79 +73,76 @@ class BasicSettingsImpl extends React.Component<
 
   public render(): JSX.Element {
     const { accounts, regions } = this.state;
-    const { values, errors } = this.props.formik;
+    const { values } = this.props.formik;
     return (
-      <div>
-        <div className="form-group">
-          <div className="col-md-3 sm-label-right">Account</div>
-          <div className="col-md-7">
-            <AccountSelectInput
-              value={values.credentials}
-              onChange={evt => this.accountUpdated(evt.target.value)}
-              accounts={accounts}
-              provider="cloudfoundry"
+      <div className="form-group">
+        <div className="col-md-9">
+          <div className="sp-margin-m-bottom">
+            <FormikFormField
+              name="credentials"
+              label="Account"
+              fastField={false}
+              input={props => (
+                <ReactSelectInput
+                  inputClassName="cloudfoundry-react-select"
+                  {...props}
+                  stringOptions={accounts && accounts.map((acc: IAccount) => acc.name)}
+                  clearable={false}
+                />
+              )}
+              onChange={this.accountChanged}
+              required={true}
             />
           </div>
+          <div className="sp-margin-m-bottom">
+            <FormikFormField
+              name="region"
+              label="Region"
+              fastField={false}
+              input={props => (
+                <ReactSelectInput
+                  {...props}
+                  stringOptions={regions && regions.map((region: IRegion) => region.name)}
+                  inputClassName={'cloudfoundry-react-select'}
+                  clearable={false}
+                />
+              )}
+              required={true}
+            />
+          </div>
+          <div className="sp-margin-m-bottom">
+            <FormikFormField
+              name="stack"
+              label="Stack"
+              input={props => <TextInput {...props} />}
+              help={<HelpField id="cf.serverGroup.stack" />}
+            />
+          </div>
+          <div className="sp-margin-m-bottom">
+            <FormikFormField
+              name="freeFormDetails"
+              label="Detail"
+              input={props => <TextInput {...props} />}
+              help={<HelpField id="cf.serverGroup.detail" />}
+            />
+          </div>
+          <div className="sp-margin-m-bottom cloud-foundry-checkbox">
+            <FormikFormField
+              name="startApplication"
+              label="Start on creation"
+              fastField={false}
+              input={props => <CheckboxInput {...props} />}
+              help={<HelpField id="cf.serverGroup.startApplication" />}
+            />
+          </div>
+          {(values.viewState.mode === 'editPipeline' || values.viewState.mode === 'createPipeline') && (
+            <CloudFoundryDeploymentStrategySelector
+              onFieldChange={this.onStrategyFieldChange}
+              onStrategyChange={this.strategyChanged}
+              command={values}
+            />
+          )}
         </div>
-        <RegionSelectField
-          labelColumns={3}
-          component={values}
-          field="region"
-          account={values.credentials}
-          onChange={this.regionUpdated}
-          regions={regions}
-        />
-        <div className="form-group">
-          <div className="col-md-3 sm-label-right">
-            Stack <HelpField id="cf.serverGroup.stack" />
-          </div>
-          <div className="col-md-7">
-            <Field className="form-control input-sm" type="text" name="stack" />
-          </div>
-        </div>
-        <div className="form-group">
-          <div className="col-md-3 sm-label-right">
-            Detail <HelpField id="cf.serverGroup.detail" />
-          </div>
-          <div className="col-md-7">
-            <Field className="form-control input-sm" type="text" name="freeFormDetails" />
-          </div>
-        </div>
-        <div className="form-group">
-          <div className="col-md-3 sm-label-right">
-            Start on creation <HelpField id="cf.serverGroup.startApplication" />
-          </div>
-          <div className="checkbox checkbox-inline">
-            <Field type="checkbox" name="startApplication" checked={values.startApplication} />
-          </div>
-        </div>
-        {(values.viewState.mode === 'editPipeline' || values.viewState.mode === 'createPipeline') && (
-          <CloudFoundryDeploymentStrategySelector
-            onFieldChange={this.onStrategyFieldChange}
-            onStrategyChange={this.strategyChanged}
-            command={values}
-          />
-        )}
-        {errors.credentials && (
-          <div className="wizard-pod-row-errors">
-            <ValidationMessage message={errors.credentials} type={'error'} />
-          </div>
-        )}
-        {errors.region && (
-          <div className="wizard-pod-row-errors">
-            <ValidationMessage message={errors.region} type={'error'} />
-          </div>
-        )}
-        {errors.stack && (
-          <div className="wizard-pod-row-errors">
-            <ValidationMessage message={errors.stack} type={'error'} />
-          </div>
-        )}
-        {errors.freeFormDetails && (
-          <div className="wizard-pod-row-errors">
-            <ValidationMessage message={errors.freeFormDetails} type={'error'} />
-          </div>
-        )}
       </div>
     );
   }
@@ -154,12 +150,6 @@ class BasicSettingsImpl extends React.Component<
   public validate(values: ICloudFoundryCreateServerGroupCommand) {
     const errors = {} as FormikErrors<ICloudFoundryCreateServerGroupCommand>;
 
-    if (!values.credentials) {
-      errors.credentials = 'Account must be selected';
-    }
-    if (!values.region) {
-      errors.region = 'Region must be selected';
-    }
     if (values.stack && !values.stack.match(/^[a-zA-Z0-9]*$/)) {
       errors.stack = 'Stack can only contain letters and numbers.';
     }

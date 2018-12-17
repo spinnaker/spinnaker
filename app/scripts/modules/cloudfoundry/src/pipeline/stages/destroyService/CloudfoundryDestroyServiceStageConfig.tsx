@@ -1,13 +1,8 @@
 import * as React from 'react';
-import {
-  AccountSelectInput,
-  AccountService,
-  IAccount,
-  IRegion,
-  IStageConfigProps,
-  RegionSelectField,
-  StageConfigField,
-} from '@spinnaker/core';
+
+import Select, { Option } from 'react-select';
+
+import { AccountService, IAccount, IRegion, IStageConfigProps, StageConfigField } from '@spinnaker/core';
 
 export interface ICloudfoundryDestroyServiceStageConfigState {
   accounts: IAccount[];
@@ -48,12 +43,11 @@ export class CloudfoundryDestroyServiceStageConfig extends React.Component<
 
   private clearAndReloadRegions = (): void => {
     this.setState({ regions: [] });
-    AccountService.getRegionsForAccount(this.props.stage.credentials).then(regions =>
-      this.setState({ regions: regions }),
-    );
+    AccountService.getRegionsForAccount(this.props.stage.credentials).then(regions => this.setState({ regions }));
   };
 
-  private accountUpdated = (credentials: string): void => {
+  private accountUpdated = (option: Option<string>): void => {
+    const credentials = option.value;
     this.props.stage.credentials = credentials;
     this.props.stage.region = '';
     this.props.stageFieldUpdated();
@@ -62,8 +56,9 @@ export class CloudfoundryDestroyServiceStageConfig extends React.Component<
     }
   };
 
-  private regionUpdated = (region: string): void => {
-    this.setState({ region: region });
+  private regionUpdated = (option: Option<string>): void => {
+    const region = option.value;
+    this.setState({ region });
     this.props.stage.region = region;
     this.props.stageFieldUpdated();
   };
@@ -82,27 +77,38 @@ export class CloudfoundryDestroyServiceStageConfig extends React.Component<
 
   public render() {
     const { stage } = this.props;
-    const { credentials, serviceName, timeout } = stage;
+    const { credentials, region, serviceName, timeout } = stage;
     const { accounts, regions } = this.state;
     return (
       <div className="form-horizontal">
         <StageConfigField label="Account">
-          <AccountSelectInput
-            value={stage.credentials}
-            onChange={evt => this.accountUpdated(evt.target.value)}
-            accounts={accounts}
-            provider="cloudfoundry"
+          <Select
+            options={
+              accounts &&
+              accounts.map((acc: IAccount) => ({
+                label: acc.name,
+                value: acc.name,
+              }))
+            }
+            clearable={false}
+            value={credentials}
+            onChange={this.accountUpdated}
           />
         </StageConfigField>
-        <RegionSelectField
-          labelColumns={3}
-          fieldColumns={8}
-          component={stage}
-          field="region"
-          account={credentials}
-          onChange={this.regionUpdated}
-          regions={regions}
-        />
+        <StageConfigField label="Region">
+          <Select
+            options={
+              regions &&
+              regions.map((r: IRegion) => ({
+                label: r.name,
+                value: r.name,
+              }))
+            }
+            clearable={false}
+            value={region}
+            onChange={this.regionUpdated}
+          />
+        </StageConfigField>
         <StageConfigField label="Service Name">
           <input
             type="text"

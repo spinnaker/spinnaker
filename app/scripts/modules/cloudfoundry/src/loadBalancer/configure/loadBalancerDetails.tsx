@@ -1,17 +1,10 @@
 import * as React from 'react';
 
+import Select, { Option } from 'react-select';
+
 import { FormikErrors } from 'formik';
 
-import {
-  AccountSelectInput,
-  AccountService,
-  Application,
-  IAccount,
-  IWizardPageProps,
-  wizardPage,
-  RegionSelectField,
-  IRegion,
-} from '@spinnaker/core';
+import { AccountService, Application, IAccount, IWizardPageProps, wizardPage, IRegion } from '@spinnaker/core';
 
 import { ICloudFoundryAccount, ICloudFoundryDomain, ICloudFoundryLoadBalancerUpsertCommand } from 'cloudfoundry/domain';
 import { RouteDomainSelectField } from 'cloudfoundry/routeDomains';
@@ -70,12 +63,18 @@ class LoadBalancerDetailsImpl extends React.Component<ILoadBalancerDetailsProps,
   private loadAccounts(): void {
     AccountService.listAccounts('cloudfoundry').then(accounts => {
       this.setState({ accounts });
-      this.accountUpdated(this.props.formik.values.credentials);
+      this.loadDomainsAndRegions();
     });
   }
 
-  private accountUpdated = (account?: string): void => {
+  private accountUpdated = (option: Option<string>): void => {
+    const account = option.value;
     this.props.formik.setFieldValue('credentials', account);
+    this.loadDomainsAndRegions();
+  };
+
+  private loadDomainsAndRegions(): void {
+    const account = this.props.formik.values.credentials;
     if (account) {
       AccountService.getAccountDetails(account).then((accountDetails: ICloudFoundryAccount) => {
         this.setState({ domains: accountDetails.domains });
@@ -84,9 +83,10 @@ class LoadBalancerDetailsImpl extends React.Component<ILoadBalancerDetailsProps,
         this.setState({ regions });
       });
     }
-  };
+  }
 
-  private regionUpdated = (region: string): void => {
+  private regionUpdated = (option: Option<string>): void => {
+    const region = option.value;
     this.props.formik.setFieldValue('region', region);
     if (region) {
       const { credentials } = this.props.formik.values;
@@ -132,22 +132,37 @@ class LoadBalancerDetailsImpl extends React.Component<ILoadBalancerDetailsProps,
           <div className="form-group">
             <div className="col-md-3 sm-label-right">Account</div>
             <div className="col-md-7">
-              <AccountSelectInput
+              <Select
+                options={
+                  accounts &&
+                  accounts.map((acc: IAccount) => ({
+                    label: acc.name,
+                    value: acc.name,
+                  }))
+                }
+                clearable={false}
                 value={values.credentials}
-                onChange={evt => this.accountUpdated(evt.target.value)}
-                accounts={accounts}
-                provider="cloudfoundry"
+                onChange={this.accountUpdated}
               />
             </div>
           </div>
-          <RegionSelectField
-            labelColumns={3}
-            component={values}
-            field="region"
-            account={values.credentials}
-            onChange={this.regionUpdated}
-            regions={regions}
-          />
+          <div className="form-group">
+            <div className="col-md-3 sm-label-right">Region</div>
+            <div className="col-md-7">
+              <Select
+                options={
+                  regions &&
+                  regions.map((region: IRegion) => ({
+                    label: region.name,
+                    value: region.name,
+                  }))
+                }
+                clearable={false}
+                value={values.region}
+                onChange={this.regionUpdated}
+              />
+            </div>
+          </div>
           <RouteDomainSelectField
             labelColumns={3}
             component={values}
