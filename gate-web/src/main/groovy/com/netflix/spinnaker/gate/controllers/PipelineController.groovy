@@ -184,7 +184,7 @@ class PipelineController {
   @ApiOperation(value = "Delete a pipeline execution", response = HashMap.class)
   @RequestMapping(value = "{id}", method = RequestMethod.DELETE)
   Map deletePipeline(@PathVariable("id") String id) {
-    pipelineService.deletePipeline(id)
+    pipelineService.deletePipeline(id);
   }
 
   @ApiOperation(value = "Initiate a pipeline execution")
@@ -200,14 +200,13 @@ class PipelineController {
   }
 
   @ApiOperation(value = "Trigger a pipeline execution")
-  @PreAuthorize("hasPermission(#application, 'APPLICATION', 'WRITE')")
   @RequestMapping(value = "/{application}/{pipelineNameOrId:.+}", method = RequestMethod.POST)
   HttpEntity invokePipelineConfig(@PathVariable("application") String application,
                                   @PathVariable("pipelineNameOrId") String pipelineNameOrId,
                                   @RequestBody(required = false) Map trigger) {
     trigger = trigger ?: [:]
     trigger.user = trigger.user ?: AuthenticatedRequest.getSpinnakerUser().orElse('anonymous')
-    trigger.notifications = trigger.notifications ?: []
+    trigger.notifications = trigger.notifications ?: [];
 
     RequestContext.setApplication(application)
     try {
@@ -223,7 +222,7 @@ class PipelineController {
   }
 
   @ApiOperation(value = "Trigger a pipeline execution")
-  @PreAuthorize("hasPermission(#application, 'APPLICATION', 'WRITE')")
+  @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ')")
   @RequestMapping(value = "/v2/{application}/{pipelineNameOrId:.+}", method = RequestMethod.POST)
   HttpEntity invokePipelineConfigViaEcho(@PathVariable("application") String application,
                                          @PathVariable("pipelineNameOrId") String pipelineNameOrId,
