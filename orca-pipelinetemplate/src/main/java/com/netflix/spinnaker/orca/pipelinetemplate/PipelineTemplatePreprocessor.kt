@@ -20,6 +20,7 @@ import com.netflix.spectator.api.BasicTag
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.extensionpoint.pipeline.PipelinePreprocessor
 import com.netflix.spinnaker.orca.pipelinetemplate.handler.*
+import com.netflix.spinnaker.orca.pipelinetemplate.v2schema.model.V2PipelineTemplate
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -44,6 +45,18 @@ class PipelineTemplatePreprocessor
       return mutableMapOf()
     }
 
+    // TODO(jacobkiefer): We push the 'toplevel' v2 config into a 'config' field to play nice
+    // with MPT v1's opinionated TemplatedPipelineRequest. When we cut over, the template configuration
+    // should be lifted to the top level like users will specify them.
+    //
+    // We also need to ensure that 'type' and 'schema' are set properly upstream when saving v2 template configs.
+    if (pipeline.getOrDefault(V2PipelineTemplate.SCHEMA, null) == V2PipelineTemplate.V2_SCHEMA_VERSION) {
+      val templateConfig = HashMap(pipeline)
+      templateConfig.remove("trigger") // template configurations don't have a 'trigger' field.
+      pipeline.put("config", templateConfig)
+    }
+
+
     val request = pipelineTemplateObjectMapper.convertValue(pipeline, TemplatedPipelineRequest::class.java)
     if (!request.isTemplatedPipelineRequest) {
       return pipeline
@@ -52,8 +65,6 @@ class PipelineTemplatePreprocessor
     log.debug("Starting handler chain")
 
     val chain = DefaultHandlerChain()
-    // TODO(jacobkiefer): Consider adding a v2 context class to simplify processing in the V2SchemaExecutionGenerator.
-    // This results in a TemplateContext class with overly-concrete attributes that complicate things.
     val context = GlobalPipelineTemplateContext(chain, request)
 
     chain.add(schemaVersionHandler)
