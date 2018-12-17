@@ -262,6 +262,11 @@ public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2Cachi
     // todo(lwander): this can be removed
     log.debug("Queried for on demand cache refresh of '{}'", data);
 
+    // No on-demand updates needed when live calls are used to check for status during orchestration
+    if (credentials.isLiveManifestCalls()) {
+      return null;
+    }
+
     try {
       Pair<KubernetesKind, String> parsedName = KubernetesManifest.fromFullResourceName(fullName);
       kind = parsedName.getLeft();
@@ -272,11 +277,6 @@ public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2Cachi
       name = parsedName.getRight();
     } catch (Exception e) {
       // This is OK - the cache controller tries (w/o much info) to get every cache agent to handle each request
-      return null;
-    }
-
-    // No on-demand updates needed when live calls are used to check for status during orchestration
-    if (credentials.isLiveManifestCalls()) {
       return null;
     }
 
