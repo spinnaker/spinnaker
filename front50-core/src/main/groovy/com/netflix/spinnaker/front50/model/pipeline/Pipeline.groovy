@@ -101,4 +101,14 @@ class Pipeline extends HashMap<String, Object> implements Timestamped {
   void setTriggers(Collection<Trigger> triggers) {
     this.put("triggers", triggers);
   }
+
+  @JsonIgnore
+  String getSchema() {
+    return super.get("schema") ?: "1" // NOTE: Denotes templated pipeline config schema version.
+  }
+
+  @JsonIgnore
+  void setSchema(String schema) {
+    super.put("schema", schema)
+  }
 }

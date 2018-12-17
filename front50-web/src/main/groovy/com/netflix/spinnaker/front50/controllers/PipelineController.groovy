@@ -22,10 +22,7 @@ import com.netflix.spinnaker.front50.exception.NotFoundException
 import com.netflix.spinnaker.front50.exceptions.DuplicateEntityException
 import com.netflix.spinnaker.front50.exceptions.InvalidEntityException
 import com.netflix.spinnaker.front50.exceptions.InvalidRequestException
-import com.netflix.spinnaker.front50.model.pipeline.Pipeline
-import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO
-import com.netflix.spinnaker.front50.model.pipeline.PipelineTemplateDAO
-import com.netflix.spinnaker.front50.model.pipeline.TemplateConfiguration
+import com.netflix.spinnaker.front50.model.pipeline.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -163,16 +160,26 @@ class PipelineController {
       throw new InvalidEntityException("A pipeline requires name and application fields")
     }
 
-    //Check if pipeline type is templated
+    // Check if pipeline type is templated
     if(pipeline.getType() == TYPE_TEMPLATED) {
       PipelineTemplateDAO templateDAO = getTemplateDAO()
 
-      //Check templated pipelines to ensure template is valid
-      TemplateConfiguration config = objectMapper.convertValue(pipeline.getConfig(), TemplateConfiguration.class);
+      // Check templated pipelines to ensure template is valid
+      String source
+      switch (pipeline.getSchema()) {
+        case "v2":
+          V2TemplateConfiguration config = objectMapper.convertValue(pipeline, V2TemplateConfiguration.class)
+          source = config.template.source
+          break
+        default:
+          TemplateConfiguration config = objectMapper.convertValue(pipeline.getConfig(), TemplateConfiguration.class)
+          source = config.pipeline.template.source
+          break
+      }
 
-      //With the source check if it starts with "spinnaker://"
-      //Check if template id which is after :// is in the store
-      String source = config.pipeline.template.source
+
+      // With the source check if it starts with "spinnaker://"
+      // Check if template id which is after :// is in the store
       if (source.startsWith(SPINNAKER_PREFIX)) {
         String templateId = source.substring(SPINNAKER_PREFIX.length())
 
@@ -191,7 +198,7 @@ class PipelineController {
     if (pipelineTemplateDAO == null) {
       throw new BadRequestException("Pipeline Templates are not supported with your current storage backend");
     }
-    return pipelineTemplateDAO;
+    return pipelineTemplateDAO
   }
 
   private void checkForDuplicatePipeline(String application, String name, String id = null) {
