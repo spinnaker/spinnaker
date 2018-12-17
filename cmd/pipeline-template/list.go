@@ -67,7 +67,7 @@ func listPipelineTemplate(cmd *cobra.Command, options ListOptions) error {
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Encountered an error listing pipelines for scopes %v, status code: %d\n",
+		return fmt.Errorf("Encountered an error listing pipeline templates for scopes %v, status code: %d\n",
 			options.scopes,
 			resp.StatusCode)
 	}

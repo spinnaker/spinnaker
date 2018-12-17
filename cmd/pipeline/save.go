@@ -75,6 +75,14 @@ func savePipeline(cmd *cobra.Command, options SaveOptions) error {
 		valid = false
 	}
 
+	if template, exists := pipelineJson["template"]; exists && len(template.(map[string]interface{})) > 0 {
+		if _, exists := pipelineJson["schema"]; !exists {
+			util.UI.Error("Required pipeline key 'schema' missing for templated pipeline...\n")
+			valid = false
+		}
+		pipelineJson["type"] = "templatedPipeline"
+	}
+
 	if !valid {
 		return fmt.Errorf("Submitted pipeline is invalid: %s\n", pipelineJson)
 	}
