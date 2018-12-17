@@ -128,6 +128,7 @@ public class Trigger {
   boolean dryRun = false;
 
   List<Map<String, Object>> notifications;
+  List<Map<String, Object>> artifacts;
 
   /**
    * Unique ID of a trigger that can be used to correlate a pipeline execution with its trigger.
