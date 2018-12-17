@@ -26,7 +26,7 @@
     "int": "protractor protractor.conf.js",
     "precommit": "pretty-quick --staged",
     "modules": "./gradle/buildModules.sh",
-    "functional": "wdio wdio.conf.js"
+    "functional": "test/functional/run.js --serve-deck --replay-fixtures --browser chrome --headless"
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.4.1",

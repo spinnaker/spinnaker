@@ -43,4 +43,3 @@ mb.pid
 mb*.log
 selenium-logs
 *.browser.log
-*mountebank_fixture*
