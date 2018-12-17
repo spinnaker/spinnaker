@@ -41,17 +41,38 @@ jq '(.stages[] | select(.refId == "9") | .pipeline) |= env.PIPELINE_ID | (.stage
 ```
 
 ### Create the "Automated Canary Deploy" pipeline
-This commands assumes that Kayenta is enabled and configured as instructed in the
+
+#### Spinnaker 1.10
+
+This command assumes that Kayenta is enabled and configured as instructed in the
 tutorial.
 
 ```
-wget https://raw.githubusercontent.com/spinnaker/spinnaker/master/solutions/kayenta/pipelines/automated-canary.json
+wget https://raw.githubusercontent.com/spinnaker/spinnaker/master/solutions/kayenta/pipelines/automated-canary-1-10.json
 export PIPELINE_ID=$(curl \
     localhost:8080/gate/applications/sampleapp/pipelineConfigs/Simple%20deploy \
     | jq -r '.id')
 export CANARY_CONFIG_ID=$(curl \
     localhost:8080/gate/v2/canaryConfig | jq -r '.[0].id')
-jq '(.stages[] | select(.refId == "9") | .pipeline) |= env.PIPELINE_ID | (.stages[] | select(.refId == "8") | .pipeline) |= env.PIPELINE_ID | (.stages[] | select(.refId == "11") | .canaryConfig.canaryConfigId) |= env.CANARY_CONFIG_ID' automated-canary.json | \
+jq '(.stages[] | select(.refId == "9") | .pipeline) |= env.PIPELINE_ID | (.stages[] | select(.refId == "8") | .pipeline) |= env.PIPELINE_ID | (.stages[] | select(.refId == "16") | .canaryConfig.canaryConfigId) |= env.CANARY_CONFIG_ID' automated-canary-1-10.json | \
+    curl -d@- -X POST \
+    -H "Content-Type: application/json" -H "Accept: */*" \
+    http://localhost:8080/gate/pipelines
+```
+
+#### Spinnaker 1.9
+
+This command assumes that Kayenta is enabled and configured as instructed in the
+tutorial.
+
+```
+wget https://raw.githubusercontent.com/spinnaker/spinnaker/master/solutions/kayenta/pipelines/automated-canary-1-9.json
+export PIPELINE_ID=$(curl \
+    localhost:8080/gate/applications/sampleapp/pipelineConfigs/Simple%20deploy \
+    | jq -r '.id')
+export CANARY_CONFIG_ID=$(curl \
+    localhost:8080/gate/v2/canaryConfig | jq -r '.[0].id')
+jq '(.stages[] | select(.refId == "9") | .pipeline) |= env.PIPELINE_ID | (.stages[] | select(.refId == "8") | .pipeline) |= env.PIPELINE_ID | (.stages[] | select(.refId == "11") | .canaryConfig.canaryConfigId) |= env.CANARY_CONFIG_ID' automated-canary-1-9.json | \
     curl -d@- -X POST \
     -H "Content-Type: application/json" -H "Accept: */*" \
     http://localhost:8080/gate/pipelines

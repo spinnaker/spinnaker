@@ -50,7 +50,7 @@ curl -XPOST -d '{"job":[{"type":"updateApplication","application":{"name":"sampl
 sleep 5
 
 ## Creating Canary config for sampleapp ##
-curl -XPOST -d '{"name":"kayenta-test","applications":["sampleapp"],"description":"","metrics":[{"analysisConfigurations":{"canary":{"direction":"increase"}},"name":"error_rate","query":{"type":"stackdriver","serviceType":"stackdriver","customFilterTemplate":"http_code","metricType":"external.googleapis.com/prometheus/requests"},"groups":["Group 1"],"scopeName":"default"}],"configVersion":"1","templates":{"http_code":"metric.labels.http_code = \"500\" AND resource.label.pod_name = starts_with(\"${scope}\")"},"classifier":{"groupWeights":{"Group 1":100},"scoreThresholds":{"pass":95,"marginal":75}},"judge":{"name":"NetflixACAJudge-v1.0","judgeConfigurations":{}}}' \
+curl -XPOST -d '{"name":"kayenta-test","applications":["sampleapp"],"description":"","metrics":[{"analysisConfigurations":{"canary":{"direction":"increase"}},"name":"error_rate","query":{"type":"stackdriver","serviceType":"stackdriver","resourceType":"k8s_container","perSeriesAligner":"ALIGN_RATE","customFilterTemplate":"http_code","metricType":"external.googleapis.com/prometheus/requests"},"groups":["Group 1"],"scopeName":"default"}],"configVersion":"1","templates":{"http_code":"metric.labels.http_code = \"500\" AND resource.label.pod_name = starts_with(\"${scope}\")"},"classifier":{"groupWeights":{"Group 1":100},"scoreThresholds":{"pass":95,"marginal":75}},"judge":{"name":"NetflixACAJudge-v1.0","judgeConfigurations":{}}}' \
     --fail -sS -H "Content-Type: application/json" -H "Accept: */*" \
     http://localhost:8080/gate/v2/canaryConfig > /dev/null
 sleep 5
@@ -59,7 +59,7 @@ sleep 5
 export PIPELINE_ID=$(curl localhost:8080/gate/applications/sampleapp/pipelineConfigs/Simple%20deploy \
     | jq -r '.id')
 export CANARY_CONFIG_ID=$(curl localhost:8080/gate/v2/canaryConfig | jq -r '.[0].id')
-jq '(.stages[] | select(.refId == "9") | .pipeline) |= env.PIPELINE_ID | (.stages[] | select(.refId == "8") | .pipeline) |= env.PIPELINE_ID | (.stages[] | select(.refId == "11") | .canaryConfig.canaryConfigId) |= env.CANARY_CONFIG_ID' spinnaker-git/solutions/kayenta/pipelines/automated-canary.json | \
+jq '(.stages[] | select(.refId == "9") | .pipeline) |= env.PIPELINE_ID | (.stages[] | select(.refId == "8") | .pipeline) |= env.PIPELINE_ID | (.stages[] | select(.refId == "16") | .canaryConfig.canaryConfigId) |= env.CANARY_CONFIG_ID' spinnaker-git/solutions/kayenta/pipelines/automated-canary-1-10.json | \
     curl -d@- -X POST \
     -H "Content-Type: application/json" -H "Accept: */*" \
     http://localhost:8080/gate/pipelines
