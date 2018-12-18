@@ -55,6 +55,7 @@ export class CloudFoundryLoadBalancerTransformer {
     loadBalancer.serverGroups.forEach(serverGroup => {
       serverGroup.account = loadBalancer.account;
       serverGroup.region = loadBalancer.region;
+      serverGroup.cloudProvider = loadBalancer.provider;
 
       if (serverGroup.detachedInstances) {
         serverGroup.detachedInstances = (serverGroup.detachedInstances as any).map((id: string) => ({ id }));
