@@ -34,6 +34,7 @@ export interface IServerGroup {
   instances: IInstance[];
   instanceType?: string;
   isDisabled?: boolean;
+  labels?: { [key: string]: string };
   launchConfig?: any;
   loadBalancers?: string[];
   name: string;

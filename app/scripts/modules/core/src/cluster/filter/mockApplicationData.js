@@ -21,6 +21,10 @@ module.exports = angular
           instanceType: 'm3.medium',
           vpcName: '',
           category: 'serverGroup',
+          labels: {
+            app: 'spinnaker',
+            source: 'prod',
+          },
         },
         {
           cluster: 'in-us-west-1-only',
@@ -34,6 +38,9 @@ module.exports = angular
           instanceType: 'm3.large',
           vpcName: 'Main',
           category: 'serverGroup',
+          labels: {
+            app: 'spinnaker',
+          },
         },
       ],
     },
@@ -73,6 +80,10 @@ module.exports = angular
                     outOfService: 0,
                   },
                   isDisabled: true,
+                  labels: {
+                    app: 'spinnaker',
+                    source: 'prod',
+                  },
                   type: 'gce',
                   instanceType: 'm3.medium',
                   vpcName: '',
@@ -117,6 +128,9 @@ module.exports = angular
                     outOfService: 0,
                   },
                   isDisabled: false,
+                  labels: {
+                    app: 'spinnaker',
+                  },
                   type: 'aws',
                   instanceType: 'm3.large',
                   vpcName: 'Main',

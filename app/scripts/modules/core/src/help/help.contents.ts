@@ -21,6 +21,7 @@ const helpContents: { [key: string]: string } = {
         <li>Account</li>
         <li>Load Balancer Name</li>
         <li>Instance ID</li>
+        <li>Labels (comma-separated list of key-value pairs that must all apply to entity, e.g. <samp>labels:app=spinnaker, source=prod</samp>)</li>
       </ul>
       <p>You can search for multiple words or word fragments. For instance, to find all server groups in a prod stack with "canary" in the details, enter <samp>prod canary</samp>.</p>
       <p>To find a particular instance, enter the instance ID. Only the containing server group will be displayed, and the instance

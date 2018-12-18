@@ -1,4 +1,4 @@
-import { each, forOwn, groupBy, sortBy } from 'lodash';
+import { each, every, forOwn, groupBy, some, sortBy } from 'lodash';
 import { Debounce } from 'lodash-decorators';
 import { $log } from 'ngimport';
 import { Subject } from 'rxjs';
@@ -334,6 +334,26 @@ export class ClusterFilterService {
     if (filter.includes('cluster:')) {
       const clusterName: string = filter.split('cluster:')[1];
       return serverGroup.cluster === clusterName;
+    }
+
+    if (filter.includes('labels:')) {
+      const caseSensitiveFilter: string = ClusterState.filterModel.asFilterModel.sortFilter.filter;
+      const labelsStr = caseSensitiveFilter.split('labels:')[1];
+      const labels = labelsStr.split(',').map(l => l.trim());
+
+      return every(labels, label => {
+        let labelKey: string;
+        let labelValue: string;
+        if (label.includes('=')) {
+          [labelKey, labelValue] = label.split('=');
+        }
+        if (!labelKey || !labelValue) {
+          return false;
+        }
+        return some(serverGroup.labels || {}, (val: string, key: string) => {
+          return labelKey === key && val === labelValue;
+        });
+      });
     } else {
       this.addSearchField(serverGroup);
       return filter.split(' ').every((testWord: string) => {
