@@ -85,7 +85,7 @@ export class CloudFoundryServerGroupCommandBuilder {
         type: 'direct',
         memory: serverGroup.memory ? serverGroup.memory + 'M' : '1024M',
         diskQuota: serverGroup.diskQuota ? serverGroup.diskQuota + 'M' : '1024M',
-        buildpack:
+        buildpacks:
           serverGroup.droplet && serverGroup.droplet.buildpacks.length > 0
             ? serverGroup.droplet.buildpacks[0].name
             : '',

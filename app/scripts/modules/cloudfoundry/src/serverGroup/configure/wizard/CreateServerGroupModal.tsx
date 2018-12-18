@@ -16,12 +16,12 @@ import {
 } from '@spinnaker/core';
 
 import { ICloudFoundryCreateServerGroupCommand } from '../serverGroupConfigurationModel.cf';
-import { CloudFoundryServerGroupBasicSettings } from './sections/basicSettings.cf';
-import { CloudFoundryServerGroupConfigurationSettings } from './sections/configurationSettings.cf';
-import { CloudFoundryServerGroupArtifactSettings } from './sections/artifactSettings.cf';
+import { CloudFoundryServerGroupBasicSettings } from './sections/basicSettings/BasicSettings.cf';
+import { CloudFoundryServerGroupArtifactSettings } from './sections/artifactSettings/ArtifactSettings.cf';
+import { CloudFoundryServerGroupConstantArtifactSettings } from './sections/artifactSettings/ConstantArtifactSettings.cf';
+import { CloudFoundryServerGroupConfigurationSettings } from './sections/configurationSettings/ConfigurationSettings.cf';
 import { CfDisclaimerPage } from 'cloudfoundry/common/wizard/sections/cfDisclaimer.cf';
 import { ServerGroupTemplateSelection } from 'cloudfoundry/serverGroup/configure/wizard/ServerGroupTemplateSelection';
-import { CloudFoundryServerGroupConstantArtifactSettings } from 'cloudfoundry/serverGroup/configure/wizard/sections/constantArtifactSettings.cf';
 import { ICloudFoundryServerGroup } from 'cloudfoundry/domain';
 
 import './serverGroup.less';

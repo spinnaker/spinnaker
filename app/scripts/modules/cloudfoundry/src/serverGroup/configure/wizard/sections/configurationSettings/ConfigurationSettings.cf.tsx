@@ -15,11 +15,14 @@ import {
 import {
   ICloudFoundryCreateServerGroupCommand,
   ICloudFoundryManifestDirectSource,
-} from '../../serverGroupConfigurationModel.cf';
+} from 'cloudfoundry/serverGroup/configure/serverGroupConfigurationModel.cf';
 
-import { FieldArray } from 'formik';
 import { CloudFoundryRadioButtonInput } from 'cloudfoundry/presentation/forms/inputs/CloudFoundryRadioButtonInput';
 import { ICloudFoundryEnvVar } from 'cloudfoundry/domain';
+import { Buildpacks } from 'cloudfoundry/serverGroup/configure/wizard/sections/configurationSettings/Buildpacks';
+import { Routes } from 'cloudfoundry/serverGroup/configure/wizard/sections/configurationSettings/Routes';
+import { Services } from 'cloudfoundry/serverGroup/configure/wizard/sections/configurationSettings/Services';
+import { EnvironmentVariables } from 'cloudfoundry/serverGroup/configure/wizard/sections/configurationSettings/EnvironmentVariables';
 
 export interface ICloudFoundryServerGroupConfigurationSettingsProps
   extends IWizardPageProps<ICloudFoundryCreateServerGroupCommand> {
@@ -46,7 +49,7 @@ class ConfigurationSettingsImpl extends React.Component<ICloudFoundryServerGroup
         this.props.formik.setFieldValue('manifest.memory', '1024M');
         this.props.formik.setFieldValue('manifest.diskQuota', '1024M');
         this.props.formik.setFieldValue('manifest.instances', 1);
-        this.props.formik.setFieldValue('manifest.buildpack', undefined);
+        this.props.formik.setFieldValue('manifest.buildpacks', []);
         this.props.formik.setFieldValue('manifest.healthCheckType', 'port');
         this.props.formik.setFieldValue('manifest.healthCheckHttpEndpoint', undefined);
         this.props.formik.setFieldValue('manifest.routes', []);
@@ -54,7 +57,6 @@ class ConfigurationSettingsImpl extends React.Component<ICloudFoundryServerGroup
         this.props.formik.setFieldValue('manifest.services', []);
         break;
     }
-    this.props.formik.setFieldValue('manifest', this.props.formik.values.manifest);
   };
 
   private capacityUpdated = (capacity: string): void => {
@@ -132,42 +134,37 @@ class ConfigurationSettingsImpl extends React.Component<ICloudFoundryServerGroup
 
   private getContainerInput = (): JSX.Element => {
     return (
-      <div className="col-md-9">
-        <div className="sp-margin-m-bottom">
-          <FormikFormField
-            name="manifest.memory"
-            fastField={false}
-            input={props => <TextInput {...props} />}
-            label="Memory"
-            required={true}
-          />
+      <div>
+        <div className="col-md-9">
+          <div className="sp-margin-m-bottom">
+            <FormikFormField
+              name="manifest.memory"
+              fastField={false}
+              input={props => <TextInput {...props} />}
+              label="Memory"
+              required={true}
+            />
+          </div>
+          <div className="sp-margin-m-bottom">
+            <FormikFormField
+              name="manifest.diskQuota"
+              fastField={false}
+              input={props => <TextInput {...props} />}
+              label="Disk Quota"
+              required={true}
+            />
+          </div>
+          <div className="sp-margin-m-bottom">
+            <FormikFormField
+              name="manifest.instances"
+              fastField={false}
+              input={props => <TextInput type="number" {...props} />}
+              label="Instances"
+              required={true}
+            />
+          </div>
         </div>
-        <div className="sp-margin-m-bottom">
-          <FormikFormField
-            name="manifest.diskQuota"
-            fastField={false}
-            input={props => <TextInput {...props} />}
-            label="Disk Quota"
-            required={true}
-          />
-        </div>
-        <div className="sp-margin-m-bottom">
-          <FormikFormField
-            name="manifest.instances"
-            fastField={false}
-            input={props => <TextInput type="number" {...props} />}
-            label="Instances"
-            required={true}
-          />
-        </div>
-        <div className="sp-margin-m-bottom">
-          <FormikFormField
-            name="manifest.buildpack"
-            fastField={false}
-            input={props => <TextInput {...props} />}
-            label="Buildpack"
-          />
-        </div>
+        <Buildpacks />
       </div>
     );
   };
@@ -202,187 +199,14 @@ class ConfigurationSettingsImpl extends React.Component<ICloudFoundryServerGroup
     );
   };
 
-  private getRoutesInput = (): JSX.Element => {
-    const manifest = this.props.formik.values.manifest as { type: string } & ICloudFoundryManifestDirectSource;
-    return (
-      <div>
-        <div className="form-group">
-          <div className="col-md-12">
-            <b>Routes</b>
-            &nbsp;
-            <HelpField id="cf.serverGroup.routes" />
-            <FieldArray
-              name="manifest.routes"
-              render={arrayHelpers => (
-                <table className="table table-condensed packed metadata">
-                  <tbody>
-                    {manifest.routes &&
-                      manifest.routes.map((_, index) => (
-                        <tr key={index}>
-                          <td>
-                            <div className="sp-margin-m-bottom">
-                              <FormikFormField
-                                name={`manifest.routes[${index}]`}
-                                input={props => <TextInput {...props} />}
-                                required={true}
-                              />
-                            </div>
-                          </td>
-                          <td>
-                            <a className="btn btn-link sm-label" onClick={() => arrayHelpers.remove(index)}>
-                              <span className="glyphicon glyphicon-trash" />
-                            </a>
-                          </td>
-                        </tr>
-                      ))}
-                  </tbody>
-                  <tfoot>
-                    <tr>
-                      <td colSpan={1}>
-                        <button type="button" className="add-new col-md-12" onClick={() => arrayHelpers.push('')}>
-                          <span className="glyphicon glyphicon-plus-sign" /> Add New Route
-                        </button>
-                      </td>
-                    </tr>
-                  </tfoot>
-                </table>
-              )}
-            />
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  private getEnvVarsInput = (): JSX.Element => {
-    const manifest = this.props.formik.values.manifest as { type: string } & ICloudFoundryManifestDirectSource;
-    return (
-      <div>
-        <div className="form-group">
-          <div className="col-md-12">
-            <b>Environment Variables</b>
-            <FieldArray
-              name="manifest.environment"
-              render={arrayHelpers => (
-                <table className="table table-condensed packed tags">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Value</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {manifest.environment &&
-                      manifest.environment.map(function(_, index) {
-                        const envPath = `manifest.environment[${index}]`;
-                        return (
-                          <tr key={index}>
-                            <td>
-                              <FormikFormField
-                                name={`${envPath}.key`}
-                                input={props => <TextInput {...props} />}
-                                required={true}
-                              />
-                            </td>
-                            <td>
-                              <FormikFormField
-                                name={`${envPath}.value`}
-                                input={props => <TextInput {...props} />}
-                                required={true}
-                              />
-                            </td>
-                            <td>
-                              <a className="btn btn-link sm-label">
-                                <span
-                                  className="glyphicon glyphicon-trash"
-                                  onClick={() => arrayHelpers.remove(index)}
-                                />
-                              </a>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                  </tbody>
-                  <tfoot>
-                    <tr>
-                      <td colSpan={2}>
-                        <button
-                          type="button"
-                          className="add-new col-md-12"
-                          onClick={() => arrayHelpers.push({ key: '', value: '' } as ICloudFoundryEnvVar)}
-                        >
-                          <span className="glyphicon glyphicon-plus-sign" /> Add New Environment Variable
-                        </button>
-                      </td>
-                    </tr>
-                  </tfoot>
-                </table>
-              )}
-            />
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  private getServicesInput = (): JSX.Element => {
-    const manifest = this.props.formik.values.manifest as { type: string } & ICloudFoundryManifestDirectSource;
-    return (
-      <div>
-        <div className="form-group">
-          <div className="col-md-12">
-            <b>Bind Services</b>
-            <FieldArray
-              name="manifest.services"
-              render={arrayHelpers => (
-                <table className="table table-condensed packed metadata">
-                  <tbody>
-                    {manifest.services &&
-                      manifest.services.map(function(_, index) {
-                        return (
-                          <tr key={index}>
-                            <td>
-                              <FormikFormField
-                                name={`manifest.services.${index}`}
-                                input={props => <TextInput {...props} />}
-                                required={true}
-                              />
-                            </td>
-                            <td>
-                              <a className="btn btn-link sm-label" onClick={() => arrayHelpers.remove(index)}>
-                                <span className="glyphicon glyphicon-trash" />
-                              </a>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                  </tbody>
-                  <tfoot>
-                    <tr>
-                      <td colSpan={1}>
-                        <button type="button" className="add-new col-md-12" onClick={() => arrayHelpers.push('')}>
-                          <span className="glyphicon glyphicon-plus-sign" /> Bind Service
-                        </button>
-                      </td>
-                    </tr>
-                  </tfoot>
-                </table>
-              )}
-            />
-          </div>
-        </div>
-      </div>
-    );
-  };
-
   private getDirectInput = (): JSX.Element => {
     return (
       <div>
         {this.getContainerInput()}
         {this.getHealthCheckInput()}
-        {this.getRoutesInput()}
-        {this.getEnvVarsInput()}
-        {this.getServicesInput()}
+        {<Routes />}
+        {<EnvironmentVariables />}
+        {<Services />}
       </div>
     );
   };

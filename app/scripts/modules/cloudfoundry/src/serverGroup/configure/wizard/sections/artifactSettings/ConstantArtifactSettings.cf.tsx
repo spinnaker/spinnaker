@@ -2,18 +2,14 @@ import * as React from 'react';
 
 import { IWizardPageProps, wizardPage } from '@spinnaker/core';
 
-import { ICloudFoundryCreateServerGroupCommand } from '../../serverGroupConfigurationModel.cf';
-import { ICloudFoundryServerGroupArtifactSettingsState } from 'cloudfoundry/serverGroup/configure/wizard/sections/artifactSettings.cf';
+import { ICloudFoundryCreateServerGroupCommand } from 'cloudfoundry/serverGroup/configure/serverGroupConfigurationModel.cf';
 import { ICloudFoundryServerGroup } from 'cloudfoundry/domain';
 
 export interface ICloudFoundryCloneServerGroupProps extends IWizardPageProps<ICloudFoundryCreateServerGroupCommand> {
   serverGroup: ICloudFoundryServerGroup;
 }
 
-class ArtifactSettingsImpl extends React.Component<
-  ICloudFoundryCloneServerGroupProps,
-  ICloudFoundryServerGroupArtifactSettingsState
-> {
+class ArtifactSettingsImpl extends React.Component<ICloudFoundryCloneServerGroupProps> {
   public static get LABEL() {
     return 'Artifact';
   }
