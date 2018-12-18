@@ -14,6 +14,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+HAL="hal -q --log=info "
+
+echo "Waiting for halyard to start running..."
+
+set +e
+$HAL --ready &> /dev/null
+
+while [ "$?" != "0" ]; do
+  $HAL --ready &> /dev/null
+done
+set -e
+
 hal config ci jenkins enable
 echo admin | hal config ci jenkins master add CodelabJenkins --address http://localhost:5656 --username admin --password
 
