@@ -15,6 +15,7 @@
 package pipeline_template
 
 import (
+	"errors"
 	"fmt"
 	"github.com/spf13/cobra"
 	"github.com/spinnaker/spin/cmd/gateclient"
@@ -61,13 +62,11 @@ func planPipelineTemplate(cmd *cobra.Command, options PlanOptions) error {
 		return err
 	}
 
-	planRequest := map[string]interface{}{
-		"schema": "v2",
-		"type":   "templatedPipeline",
-		"config": configJson,
+	if _, exists := configJson["schema"]; !exists {
+		return errors.New("Required pipeline key 'schema' missing for templated pipeline config...\n")
 	}
 
-	successPayload, resp, err := gateClient.V2PipelineTemplatesControllerApi.PlanUsingPOST(gateClient.Context, planRequest)
+	successPayload, resp, err := gateClient.V2PipelineTemplatesControllerApi.PlanUsingPOST(gateClient.Context, configJson)
 
 	if err != nil {
 		return err
