@@ -5,7 +5,7 @@ const angular = require('angular');
 import { BakeryReader, Registry } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.amazon.pipeline.stage.findImageFromTagsStage', [])
+  .module('spinnaker.oracle.pipeline.stage.findImageFromTagsStage', [])
   .config(function() {
     Registry.pipeline.registerStage({
       provides: 'findImageFromTags',
