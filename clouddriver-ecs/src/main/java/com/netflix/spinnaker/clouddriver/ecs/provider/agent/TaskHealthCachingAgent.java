@@ -68,9 +68,9 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth> 
   private final static String HEALTH_ID = "ecs-task-instance-health";
   private final Logger log = LoggerFactory.getLogger(getClass());
 
-  private Collection<String> taskEvicitions;
-  private Collection<String> serviceEvicitions;
-  private Collection<String> taskDefEvicitions;
+  private Collection<String> taskEvictions;
+  private Collection<String> serviceEvictions;
+  private Collection<String> taskDefEvictions;
   private ObjectMapper objectMapper;
 
   public TaskHealthCachingAgent(NetflixAmazonCredentials account, String region,
@@ -104,9 +104,9 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth> 
     ContainerInstanceCacheClient containerInstanceCacheClient = new ContainerInstanceCacheClient(providerCache);
 
     List<TaskHealth> taskHealthList = new LinkedList<>();
-    taskEvicitions = new LinkedList<>();
-    serviceEvicitions = new LinkedList<>();
-    taskDefEvicitions = new LinkedList<>();
+    taskEvictions = new LinkedList<>();
+    serviceEvictions = new LinkedList<>();
+    taskDefEvictions = new LinkedList<>();
 
     Collection<Task> tasks = taskCacheClient.getAll(accountName, region);
     if (tasks != null) {
@@ -123,7 +123,7 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth> 
 
         if (service == null) {
           String taskEvictionKey = Keys.getTaskKey(accountName, region, task.getTaskId());
-          taskEvicitions.add(taskEvictionKey);
+          taskEvictions.add(taskEvictionKey);
           continue;
         }
 
@@ -187,13 +187,13 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth> 
 
   private void evictStaleData(Task task, Service loadBalancerService) {
     String serviceEvictionKey = Keys.getTaskDefinitionKey(accountName, region, loadBalancerService.getServiceName());
-    serviceEvicitions.add(serviceEvictionKey);
+    serviceEvictions.add(serviceEvictionKey);
     String taskEvictionKey = Keys.getTaskKey(accountName, region, task.getTaskId());
-    taskEvicitions.add(taskEvictionKey);
+    taskEvictions.add(taskEvictionKey);
 
     String taskDefArn = loadBalancerService.getTaskDefinition();
     String taskDefKey = Keys.getTaskDefinitionKey(accountName, region, taskDefArn);
-    taskDefEvicitions.add(taskDefKey);
+    taskDefEvictions.add(taskDefKey);
   }
 
   private TaskHealth makeTaskHealth(Task task, String serviceName, TargetHealthDescription healthDescription) {
@@ -289,25 +289,25 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth> 
 
   @Override
   protected Map<String, Collection<String>> addExtraEvictions(Map<String, Collection<String>> evictions) {
-    if (!taskEvicitions.isEmpty()) {
+    if (!taskEvictions.isEmpty()) {
       if (evictions.containsKey(TASKS.toString())) {
-        evictions.get(TASKS.toString()).addAll(taskEvicitions);
+        evictions.get(TASKS.toString()).addAll(taskEvictions);
       } else {
-        evictions.put(TASKS.toString(), taskEvicitions);
+        evictions.put(TASKS.toString(), taskEvictions);
       }
     }
-    if (!serviceEvicitions.isEmpty()) {
+    if (!serviceEvictions.isEmpty()) {
       if (evictions.containsKey(SERVICES.toString())) {
-        evictions.get(SERVICES.toString()).addAll(serviceEvicitions);
+        evictions.get(SERVICES.toString()).addAll(serviceEvictions);
       } else {
-        evictions.put(SERVICES.toString(), serviceEvicitions);
+        evictions.put(SERVICES.toString(), serviceEvictions);
       }
     }
-    if (!taskDefEvicitions.isEmpty()) {
+    if (!taskDefEvictions.isEmpty()) {
       if (evictions.containsKey(TASK_DEFINITIONS.toString())) {
-        evictions.get(TASK_DEFINITIONS.toString()).addAll(taskDefEvicitions);
+        evictions.get(TASK_DEFINITIONS.toString()).addAll(taskDefEvictions);
       } else {
-        evictions.put(TASK_DEFINITIONS.toString(), taskDefEvicitions);
+        evictions.put(TASK_DEFINITIONS.toString(), taskDefEvictions);
       }
     }
     return evictions;
