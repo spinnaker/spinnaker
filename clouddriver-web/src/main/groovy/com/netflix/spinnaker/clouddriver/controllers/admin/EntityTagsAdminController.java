@@ -20,6 +20,7 @@ import com.netflix.spinnaker.clouddriver.model.EntityTagsProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -56,5 +57,16 @@ public class EntityTagsAdminController {
                 @RequestParam(name = "account", required = false) String account,
                 @RequestParam(name = "region", required = false) String region) {
     return entityTagsProvider.reconcile(cloudProvider, account, region, Optional.ofNullable(dryRun).orElse(true));
+  }
+
+  @RequestMapping(value = "/deleteByNamespace/{namespace}", method = RequestMethod.POST)
+  Map deleteByNamespace(@PathVariable("namespace") String namespace,
+                        @RequestParam(name = "dryRun", defaultValue = "true") Boolean dryRun,
+                        @RequestParam(name = "deleteFromSource", defaultValue = "false") Boolean deleteFromSource) {
+    return entityTagsProvider.deleteByNamespace(
+      namespace,
+      Optional.ofNullable(dryRun).orElse(true),
+      Optional.ofNullable(deleteFromSource).orElse(false)
+    );
   }
 }

@@ -33,6 +33,8 @@ import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import java.util.function.Supplier
+
 import static org.elasticsearch.node.NodeBuilder.nodeBuilder
 
 class ElasticSearchEntityTagsProviderSpec extends Specification {
@@ -250,7 +252,71 @@ class ElasticSearchEntityTagsProviderSpec extends Specification {
     verifyNotIndexed(allEntityTags[0])
     verifyNotIndexed(allEntityTags[1])
     verifyNotIndexed(allEntityTags[2])
+  }
 
+  def "should delete all entity tags in namespace"() {
+    given:
+    def allEntityTags = [
+      buildEntityTags("aws:servergroup:clouddriver-main-v001:myaccount:us-west-1", ["a": "1"], "my_namespace"),
+      buildEntityTags("aws:servergroup:clouddriver-main-v002:myaccount:us-west-1", ["b": "2"], "my_namespace"),
+      buildEntityTags("aws:servergroup:clouddriver-main-v003:myaccount:us-west-1", ["c": "3"]),
+    ]
+    allEntityTags.each {
+      entityTagsProvider.index(it)
+      entityTagsProvider.verifyIndex(it)
+    }
+
+    when:
+    entityTagsProvider.deleteByNamespace("my_namespace", true, false) // dry-run
+
+    then:
+    1 * front50Service.getAllEntityTags(false) >> {
+      return entityTagsProvider.getAll(
+        null, null, null, null, null, null, null, null, [:], 100
+      )
+    }
+    0 * _
+
+    when:
+    entityTagsProvider.deleteByNamespace("my_namespace", true, true) // dry-run
+
+    then:
+    1 * front50Service.getAllEntityTags(false) >> {
+      return entityTagsProvider.getAll(
+        null, null, null, null, null, null, null, null, [:], 100
+      )
+    }
+    0 * _
+
+    when:
+    entityTagsProvider.deleteByNamespace("my_namespace", false, false) // remove from elasticsearch (only!)
+    Thread.sleep(1000)
+
+    def allIndexedEntityTags = entityTagsProvider.getAll(
+      null, null, null, null, null, null, null, null, [:], 100
+    )
+
+    then:
+    1 * front50Service.getAllEntityTags(false) >> {
+      return entityTagsProvider.getAll(
+        null, null, null, null, null, null, null, null, [:], 100
+      )
+    }
+    _ * retrySupport.retry(_, _, _, _) >> { Supplier fn, int maxRetries, long retryBackoff, boolean exponential -> fn.get() }
+    0 * _
+
+    allIndexedEntityTags.findAll {
+      it.tags.any { it.namespace == "my_namespace"}
+    }.isEmpty()
+
+    when:
+    entityTagsProvider.deleteByNamespace("my_namespace", false, true) // remove from elasticsearch and front50
+
+    then:
+    1 * front50Service.getAllEntityTags(false) >> { return allEntityTags }
+    1 * front50Service.batchUpdate(_)
+    _ * retrySupport.retry(_, _, _, _) >> { Supplier fn, int maxRetries, long retryBackoff, boolean exponential -> fn.get() }
+    0 * _
   }
 
   boolean verifyNotIndexed(EntityTags entityTags) {

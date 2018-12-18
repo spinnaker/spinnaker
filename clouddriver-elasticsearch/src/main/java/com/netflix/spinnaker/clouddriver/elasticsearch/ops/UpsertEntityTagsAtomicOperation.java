@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.elasticsearch.ops;
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
+import com.netflix.spinnaker.clouddriver.elasticsearch.EntityRefIdBuilder;
 import com.netflix.spinnaker.clouddriver.elasticsearch.descriptions.BulkUpsertEntityTagsDescription;
 import com.netflix.spinnaker.clouddriver.elasticsearch.descriptions.UpsertEntityTagsDescription;
 import com.netflix.spinnaker.clouddriver.elasticsearch.model.ElasticSearchEntityTagsProvider;
@@ -29,7 +30,10 @@ import com.netflix.spinnaker.kork.core.RetrySupport;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static com.netflix.spinnaker.clouddriver.elasticsearch.ops.BulkUpsertEntityTagsAtomicOperation.entityRefId;
 
 public class UpsertEntityTagsAtomicOperation implements AtomicOperation<Void> {
   private static final String BASE_PHASE = "ENTITY_TAGS";
@@ -61,7 +65,9 @@ public class UpsertEntityTagsAtomicOperation implements AtomicOperation<Void> {
       BASE_PHASE,
       String.format(
         "Updating entity tags for %s (isPartial: %s, tags: %s)",
-        entityTagsDescription.getId(),
+        Optional
+          .ofNullable(entityTagsDescription.getId())
+          .orElse(entityRefId(accountCredentialsProvider, entityTagsDescription).id),
         entityTagsDescription.isPartial,
         entityTagsDescription.getTags().stream().map(EntityTags.EntityTag::getName).collect(Collectors.joining(", "))
       )

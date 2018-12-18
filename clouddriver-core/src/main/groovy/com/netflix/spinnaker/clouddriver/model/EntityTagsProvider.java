@@ -67,6 +67,11 @@ public interface EntityTagsProvider {
   void delete(String id);
 
   /**
+   * Remove all entity tags within a particular namespace, optionally deleting from the source of truth (front50).
+   */
+  Map<String, Object> deleteByNamespace(String namespace, boolean dryRun, boolean deleteFromSource);
+
+  /**
    * Delete EntityTags
    */
   void bulkDelete(Collection<EntityTags> multipleEntityTags);

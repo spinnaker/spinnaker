@@ -417,6 +417,58 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
     return getElasticSearchEntityTagsReconciler().reconcile(this, cloudProvider, account, region, dryRun);
   }
 
+  @Override
+  public Map<String, Object> deleteByNamespace(String namespace, boolean dryRun, boolean deleteFromSource) {
+    List<EntityTags> entityTagsForNamespace = front50Service
+      .getAllEntityTags(false)
+      .stream()
+      .filter(e -> e.getTags().stream().anyMatch(t -> namespace.equalsIgnoreCase(t.getNamespace())))
+      .collect(Collectors.toList());
+
+    for (EntityTags entityTags : entityTagsForNamespace) {
+      // ensure that all tags (and their metadata) in the offending namespace are removed
+      entityTags.setTags(
+        entityTags
+          .getTags()
+          .stream()
+          .filter(e -> !namespace.equalsIgnoreCase(e.getNamespace()))
+          .collect(Collectors.toList())
+      );
+
+      Set<String> tagNames = entityTags
+        .getTags()
+        .stream()
+        .map(e -> e.getName().toLowerCase())
+        .collect(Collectors.toSet());
+
+      entityTags.setTagsMetadata(
+        entityTags
+          .getTagsMetadata()
+          .stream()
+          .filter(e -> tagNames.contains(e.getName().toLowerCase()))
+          .collect(Collectors.toList())
+      );
+    }
+
+    Map results = new HashMap() {{
+      put("affectedIds", entityTagsForNamespace.stream().map(EntityTags::getId).collect(Collectors.toList()));
+      put("deletedFromSource", false);
+      put("deletedFromElasticsearch", false);
+    }};
+
+    if (!dryRun) {
+      bulkIndex(entityTagsForNamespace);
+      results.put("deletedFromElasticsearch", true);
+
+      if (deleteFromSource) {
+        Lists.partition(entityTagsForNamespace, 50).forEach(front50Service::batchUpdate);
+        results.put("deletedFromSource", true);
+      }
+    }
+
+    return results;
+  }
+
   private QueryBuilder applyTagsToBuilder(String namespace, Map<String, Object> tags) {
     BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
 
