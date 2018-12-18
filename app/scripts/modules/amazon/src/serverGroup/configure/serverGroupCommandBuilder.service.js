@@ -314,7 +314,7 @@ module.exports = angular
           command.viewState.imageId = serverGroup.launchConfig.imageId;
         }
 
-        if (serverGroup.image && serverGroup.image.name) {
+        if (mode === 'clone' && serverGroup.image && serverGroup.image.name) {
           command.amiName = serverGroup.image.name;
         }
 
