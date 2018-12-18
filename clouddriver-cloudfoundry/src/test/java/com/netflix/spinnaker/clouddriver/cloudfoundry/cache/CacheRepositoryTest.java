@@ -116,9 +116,10 @@ class CacheRepositoryTest {
     });
 
     assertThat(repo.findClusterByKey(clusterKey, NAMES_ONLY)).hasValueSatisfying(cluster ->
-      assertThat(cluster.getServerGroups()).hasOnlyOneElementSatisfying(serverGroup ->
-        assertThat(serverGroup.getInstances()).isEmpty()
-      )
+      assertThat(cluster.getServerGroups()).hasOnlyOneElementSatisfying(serverGroup -> {
+        assertThat(serverGroup.getLoadBalancers()).isEmpty();
+        assertThat(serverGroup.getInstances()).isNotEmpty();
+      })
     );
   }
 

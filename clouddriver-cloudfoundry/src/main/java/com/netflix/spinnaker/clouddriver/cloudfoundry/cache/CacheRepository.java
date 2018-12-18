@@ -106,7 +106,9 @@ public class CacheRepository {
   private CloudFoundryServerGroup serverGroupFromCacheData(CacheData serverGroupData, Detail detail) {
     CloudFoundryServerGroup serverGroup = objectMapper.convertValue(serverGroupData.getAttributes().get("resource"), CloudFoundryServerGroup.class);
     if (detail.equals(Detail.NONE)) {
-      return serverGroup.withLoadBalancerNames(emptySet()).withInstances(emptySet());
+      return serverGroup
+        .withLoadBalancerNames(emptySet())
+        .withInstances(findInstancesByKeys(serverGroupData.getRelationships().get(INSTANCES.getNs())));
     }
     return serverGroup
       .withLoadBalancerNames(findLoadBalancersByKeys(serverGroupData.getRelationships().get(LOAD_BALANCERS.getNs()), Detail.NONE).stream()
