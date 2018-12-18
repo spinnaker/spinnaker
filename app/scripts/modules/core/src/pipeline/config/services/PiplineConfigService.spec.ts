@@ -77,6 +77,19 @@ describe('PipelineConfigService', () => {
     });
   });
 
+  describe('deletePipeline', () => {
+    it('escapes special characters in pipeline name', () => {
+      const pipeline: IPipeline = buildPipeline({});
+
+      $http.expectDELETE(API.baseUrl + '/pipelines/foo/bar%5Bbaz%5D').respond(200, '');
+
+      PipelineConfigService.deletePipeline('foo', pipeline, 'bar[baz]');
+
+      $scope.$digest();
+      $http.flush();
+    });
+  });
+
   describe('getPipelines', () => {
     it('should return pipelines sorted by index', () => {
       let result: IPipeline[] = null;

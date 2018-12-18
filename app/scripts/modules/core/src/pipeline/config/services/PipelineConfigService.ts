@@ -53,7 +53,7 @@ export class PipelineConfigService {
 
   public static deletePipeline(applicationName: string, pipeline: IPipeline, pipelineName: string): IPromise<void> {
     return API.one(pipeline.strategy ? 'strategies' : 'pipelines')
-      .one(applicationName, pipelineName.trim())
+      .one(applicationName, encodeURIComponent(pipelineName.trim()))
       .remove();
   }
 
@@ -91,7 +91,7 @@ export class PipelineConfigService {
     body.user = AuthenticationService.getAuthenticatedUser().name;
     return API.one('pipelines')
       .one(applicationName)
-      .one(pipelineName)
+      .one(encodeURIComponent(pipelineName))
       .data(body)
       .post()
       .then((result: ITriggerPipelineResponse) => {
@@ -108,7 +108,7 @@ export class PipelineConfigService {
     return API.one('pipelines')
       .one('v2')
       .one(applicationName)
-      .one(pipelineName)
+      .one(encodeURIComponent(pipelineName))
       .data(body)
       .post()
       .then((result: IEchoTriggerPipelineResponse) => {
