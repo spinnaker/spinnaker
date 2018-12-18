@@ -122,7 +122,7 @@ func TestPipelineGet_notfound(t *testing.T) {
 	pipelineTemplateCmd.AddCommand(currentCmd)
 	rootCmd.AddCommand(pipelineTemplateCmd)
 
-	args := []string{"pipeline", "get", "--application", "app", "--name", "two", "--gate-endpoint", ts.URL}
+	args := []string{"pipeline-template", "get", "--application", "app", "--name", "two", "--gate-endpoint", ts.URL}
 	rootCmd.SetArgs(args)
 
 	err := rootCmd.Execute()

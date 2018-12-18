@@ -153,7 +153,7 @@ func TestPipelineTemplateSave_missingid(t *testing.T) {
 	}
 	defer os.Remove(tempFile.Name())
 
-	args := []string{"pipeline", "save", "--file", tempFile.Name(), "--gate-endpoint", ts.URL}
+	args := []string{"pipeline-template", "save", "--file", tempFile.Name(), "--gate-endpoint", ts.URL}
 	currentCmd := NewSaveCmd(pipelineTemplateOptions{})
 	rootCmd := getRootCmdForTest()
 	pipelineTemplateCmd := NewPipelineTemplateCmd(os.Stdout)
@@ -177,7 +177,7 @@ func TestPipelineTemplateSave_missingschema(t *testing.T) {
 	}
 	defer os.Remove(tempFile.Name())
 
-	args := []string{"pipeline", "save", "--file", tempFile.Name(), "--gate-endpoint", ts.URL}
+	args := []string{"pipeline-template", "save", "--file", tempFile.Name(), "--gate-endpoint", ts.URL}
 	currentCmd := NewSaveCmd(pipelineTemplateOptions{})
 	rootCmd := getRootCmdForTest()
 	pipelineTemplateCmd := NewPipelineTemplateCmd(os.Stdout)
