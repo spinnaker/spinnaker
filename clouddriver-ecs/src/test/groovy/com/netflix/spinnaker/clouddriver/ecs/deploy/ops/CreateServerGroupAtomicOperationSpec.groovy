@@ -107,6 +107,8 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
 
     then:
     1 * ecs.listServices(_) >> new ListServicesResult().withServiceArns("${serviceName}-v007")
+    1 * ecs.describeServices(_) >> new DescribeServicesResult().withServices(
+      new Service(serviceName: "${serviceName}-v007", createdAt: new Date()))
 
     1 * ecs.registerTaskDefinition({RegisterTaskDefinitionRequest request ->
       request.containerDefinitions.size() == 1
@@ -195,6 +197,8 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
 
     then:
     1 * ecs.listServices(_) >> new ListServicesResult().withServiceArns("${serviceName}-v007")
+    1 * ecs.describeServices(_) >> new DescribeServicesResult().withServices(
+      new Service(serviceName: "${serviceName}-v007", createdAt: new Date()))
 
     1 * ecs.registerTaskDefinition({RegisterTaskDefinitionRequest request ->
       request.networkMode == 'awsvpc'
@@ -241,7 +245,7 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     def operation = new CreateServerGroupAtomicOperation(description)
 
     when:
-    def request = operation.makeTaskDefinitionRequest('arn:aws:iam::test:test-role', 'v0011')
+    def request = operation.makeTaskDefinitionRequest('arn:aws:iam::test:test-role', 'mygreatapp-stack1-details2-v0011')
 
     then:
     def labels = request.getContainerDefinitions().get(0).getDockerLabels()
@@ -262,7 +266,7 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     def operation = new CreateServerGroupAtomicOperation(description)
 
     when:
-    def request = operation.makeTaskDefinitionRequest('arn:aws:iam::test:test-role', 'v0011')
+    def request = operation.makeTaskDefinitionRequest('arn:aws:iam::test:test-role', 'mygreatapp-stack1-details2-v0011')
 
     then:
     def labels = request.getContainerDefinitions().get(0).getDockerLabels()
@@ -285,7 +289,7 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     def operation = new CreateServerGroupAtomicOperation(description)
 
     when:
-    def request = operation.makeTaskDefinitionRequest('arn:aws:iam::test:test-role', 'v0011')
+    def request = operation.makeTaskDefinitionRequest('arn:aws:iam::test:test-role', 'mygreatapp-stack1-details2-v0011')
 
     then:
     def labels = request.getContainerDefinitions().get(0).getDockerLabels()
@@ -301,7 +305,7 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     def operation = new CreateServerGroupAtomicOperation(description)
 
     when:
-    def request = operation.makeTaskDefinitionRequest('arn:aws:iam::test:test-role', 'v0011')
+    def request = operation.makeTaskDefinitionRequest('arn:aws:iam::test:test-role', 'mygreatapp-stack1-details2-v0011')
 
     then:
     request.getContainerDefinitions().get(0).getLogConfiguration().getLogDriver() == 'some-log-driver'
@@ -314,7 +318,7 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     def operation = new CreateServerGroupAtomicOperation(description)
 
     when:
-    def request = operation.makeTaskDefinitionRequest('arn:aws:iam::test:test-role', 'v0011')
+    def request = operation.makeTaskDefinitionRequest('arn:aws:iam::test:test-role', 'mygreatapp-stack1-details2-v0011')
 
     then:
     request.getContainerDefinitions().get(0).getLogConfiguration().getOptions() == null
@@ -330,7 +334,7 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     def operation = new CreateServerGroupAtomicOperation(description)
 
     when:
-    def request = operation.makeTaskDefinitionRequest('arn:aws:iam::test:test-role', 'v0011')
+    def request = operation.makeTaskDefinitionRequest('arn:aws:iam::test:test-role', 'mygreatapp-stack1-details2-v0011')
 
     then:
     request.getContainerDefinitions().get(0).getLogConfiguration().getOptions() == logOptions
@@ -344,7 +348,7 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     def operation = new CreateServerGroupAtomicOperation(description)
 
     when:
-    def request = operation.makeTaskDefinitionRequest('arn:aws:iam::test:test-role', 'v0011')
+    def request = operation.makeTaskDefinitionRequest('arn:aws:iam::test:test-role', 'mygreatapp-stack1-details2-v0011')
 
     then:
     request.getContainerDefinitions().get(0).getRepositoryCredentials().getCredentialsParameter() == 'my-secret'
@@ -357,7 +361,7 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     def operation = new CreateServerGroupAtomicOperation(description)
 
     when:
-    def request = operation.makeTaskDefinitionRequest('arn:aws:iam::test:test-role', 'v0011')
+    def request = operation.makeTaskDefinitionRequest('arn:aws:iam::test:test-role', 'mygreatapp-stack1-details2-v0011')
 
     then:
     request.getContainerDefinitions().get(0).getRepositoryCredentials() == null
@@ -385,7 +389,7 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     def operation = new CreateServerGroupAtomicOperation(description)
 
     when:
-    RegisterTaskDefinitionRequest result = operation.makeTaskDefinitionRequest("test-role", "v1")
+    RegisterTaskDefinitionRequest result = operation.makeTaskDefinitionRequest("test-role", "v1-kcats-liated-v001")
 
     then:
     result.getTaskRoleArn() == null
@@ -393,7 +397,7 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
 
     result.getContainerDefinitions().size() == 1
     def containerDefinition = result.getContainerDefinitions().first()
-    containerDefinition.name == 'v1'
+    containerDefinition.name == 'v001'
     containerDefinition.image == 'docker-image-url'
     containerDefinition.cpu == 9001
     containerDefinition.memoryReservation == 9001
@@ -409,7 +413,7 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     for(elem in containerDefinition.environment){
       environments.put(elem.getName(), elem.getValue())
     }
-    environments.get("SERVER_GROUP") == "v1"
+    environments.get("SERVER_GROUP") == "v1-kcats-liated-v001"
     environments.get("CLOUD_STACK") == "kcats"
     environments.get("CLOUD_DETAIL") == "liated"
   }
@@ -424,7 +428,7 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     def operation = new CreateServerGroupAtomicOperation(description)
 
     when:
-    RegisterTaskDefinitionRequest result = operation.makeTaskDefinitionRequest("test-role", "v1")
+    RegisterTaskDefinitionRequest result = operation.makeTaskDefinitionRequest("test-role", "v1-kcats-liated-v001")
 
     then:
     result.getContainerDefinitions().size() == 1
@@ -434,7 +438,7 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     for(elem in containerDefinition.environment){
       environments.put(elem.getName(), elem.getValue())
     }
-    environments.get("SERVER_GROUP") == "v1"
+    environments.get("SERVER_GROUP") == "v1-kcats-liated-v001"
     environments.get("CLOUD_STACK") == "kcats"
     environments.get("CLOUD_DETAIL") == "liated"
     environments.get("ENVIRONMENT_1") == "test1"
