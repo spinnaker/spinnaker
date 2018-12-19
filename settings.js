@@ -77,11 +77,23 @@ window.spinnakerSettings = {
   gitSources: ['stash', 'github', 'bitbucket', 'gitlab'],
   maxPipelineAgeDays: 14,
   notifications: {
+    bearychat: {
+      enabled: true,
+    },
     email: {
+      enabled: true,
+    },
+    githubStatus: {
+      enabled: true,
+    },
+    googlechat: {
       enabled: true,
     },
     hipchat: {
       botName: 'Skynet T-800',
+      enabled: true,
+    },
+    pubsub: {
       enabled: true,
     },
     slack: {
