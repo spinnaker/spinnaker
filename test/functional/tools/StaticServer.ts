@@ -1,6 +1,7 @@
 /// <reference path="wait-on.d.ts" />
 
-import { exec, ChildProcess } from 'child_process';
+import { spawn, ChildProcess } from 'child_process';
+import * as process from 'process';
 import * as waitOn from 'wait-on';
 
 const WAIT_INTERVAL_MS = 500;
@@ -13,21 +14,16 @@ export class StaticServer {
 
   public launch(): Promise<void | Error> {
     return new Promise((resolve, reject) => {
-      this.proc = exec(
-        './node_modules/.bin/webpack-dev-server --mode=production',
-        {
-          cwd: this.repoRoot,
-          env: {
-            PATH: process.env.PATH,
-            NODE_OPTIONS: '--max_old_space_size=8192',
-          },
+      this.proc = spawn('./node_modules/.bin/webpack-dev-server', ['--mode=production'], {
+        cwd: this.repoRoot,
+        env: {
+          PATH: process.env.PATH,
+          NODE_OPTIONS: '--max_old_space_size=8192',
         },
-        (err, _stdout, _stderr) => {
-          if (err != null) {
-            reject(new Error(`webpack-dev-server exited with error: ${err}`));
-          }
-        },
-      );
+      });
+      this.proc.on('error', (err: Error) => {
+        reject(err);
+      });
       waitOn(
         {
           interval: WAIT_INTERVAL_MS,
@@ -37,7 +33,7 @@ export class StaticServer {
         (err: Error) => {
           if (err) {
             reject(new Error(`failed to launch webpack-dev-server: ${err}`));
-            this.proc.kill();
+            this.kill();
           } else {
             resolve();
           }
@@ -48,7 +44,7 @@ export class StaticServer {
 
   public kill(): Promise<void | Error> {
     return new Promise(resolve => {
-      this.proc.kill('SIGKILL');
+      this.proc.kill();
       resolve();
     });
   }
