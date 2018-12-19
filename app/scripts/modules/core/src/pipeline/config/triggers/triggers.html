@@ -18,6 +18,36 @@
       </div>
     </div>
   </page-section>
+  <render-if-feature feature="artifacts">
+    <page-section key="artifacts" label="Expected Artifacts" badge="pipeline.expectedArtifacts.length" no-wrapper="true">
+      <div class="row">
+        <p class="col-md-12">
+          Declare artifacts your pipeline expects during execution in this section.
+          <help-field key="pipeline.config.artifact.help"></help-field>
+        </p>
+      </div>
+      <expected-artifact
+        use-prior-execution
+        ng-repeat="expectedArtifact in pipeline.expectedArtifacts"
+        expected-artifact="expectedArtifact"
+        context="pipeline"
+        remove-expected-artifact="triggersCtrl.removeExpectedArtifact">
+      </expected-artifact>
+      <hr/>
+      <div class="row" ng-if="!pipeline.expectedArtifacts.length">
+        <p class="col-md-12">
+          You don't have any expected artifacts declared for {{pipeline.name}}.
+        </p>
+      </div>
+      <div class="row">
+        <div class="col-md-12">
+          <button class="btn btn-block btn-add-trigger add-new" ng-click="triggersCtrl.addArtifact()">
+            <span class="glyphicon glyphicon-plus-sign"></span> Add Artifact
+          </button>
+        </div>
+      </div>
+    </page-section>
+  </render-if-feature>
   <page-section key="triggers" label="Automated Triggers" badge="pipeline.triggers.length" no-wrapper="true">
     <div class="form-horizontal panel-pipeline-phase" ng-if="pipeline.triggers.length && triggersCtrl.showProperties">
       <div class="form-group row">
@@ -61,36 +91,6 @@
   <page-section key="parameters" label="Parameters" no-wrapper="true" badge="pipeline.parameterConfig.length">
     <parameters pipeline="pipeline"></parameters>
   </page-section>
-  <render-if-feature feature="artifacts">
-    <page-section key="artifacts" label="Expected Artifacts" badge="pipeline.expectedArtifacts.length" no-wrapper="true">
-      <div class="row">
-        <p class="col-md-12">
-          Declare artifacts your pipeline expects during execution in this section.
-          <help-field key="pipeline.config.artifact.help"></help-field>
-        </p>
-      </div>
-      <expected-artifact
-        use-prior-execution
-        ng-repeat="expectedArtifact in pipeline.expectedArtifacts"
-        expected-artifact="expectedArtifact"
-        context="pipeline"
-        remove-expected-artifact="triggersCtrl.removeExpectedArtifact">
-      </expected-artifact>
-      <hr/>
-      <div class="row" ng-if="!pipeline.expectedArtifacts.length">
-        <p class="col-md-12">
-          You don't have any expected artifacts declared for {{pipeline.name}}.
-        </p>
-      </div>
-      <div class="row">
-        <div class="col-md-12">
-          <button class="btn btn-block btn-add-trigger add-new" ng-click="triggersCtrl.addArtifact()">
-            <span class="glyphicon glyphicon-plus-sign"></span> Add Artifact
-          </button>
-        </div>
-      </div>
-    </page-section>
-  </render-if-feature>
   <page-section key="notifications" label="Notifications" visible="!pipeline.strategy" badge="pipeline.notifications.length">
     <notification-list ng-if="!pipeline.strategy" level="pipeline" notifications="pipeline.notifications" parent="pipeline">
     </notification-list>
