@@ -6,6 +6,7 @@ class StaleIssuePolicy(Policy):
     def __init__(self):
         super().__init__()
         self.stale_days = self.config.get('stale_days')
+        self.ignore_lifecycle_label = self.config.get('ignore_lifecycle_label', 'no-lifecycle')
         self.count = 0
         if not self.stale_days:
             self.stale_days = 45
@@ -34,6 +35,9 @@ class StaleIssuePolicy(Policy):
             return
 
         if days_since_updated < self.stale_days:
+            return
+
+        if HasLabel(o, self.ignore_lifecycle_label):
             return
 
         if HasLabel(o, 'to-be-closed'):
