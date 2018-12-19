@@ -29,7 +29,6 @@ from buildtool import (
     SPINNAKER_BOM_REPOSITORY_NAMES,
     SPINNAKER_GITHUB_IO_REPOSITORY_NAME,
     SPINNAKER_PROCESS_REPOSITORY_NAMES,
-    SPINNAKER_SHARED_REPOSITORY_NAMES,
     BomSourceCodeManager,
     BranchSourceCodeManager,
     CommandProcessor,
@@ -52,7 +51,6 @@ class InitiateReleaseBranchFactory(RepositoryCommandFactory):
   def __init__(self, **kwargs):
     repo_names = list(SPINNAKER_BOM_REPOSITORY_NAMES)
     repo_names.extend(SPINNAKER_PROCESS_REPOSITORY_NAMES)
-    repo_names.extend(SPINNAKER_SHARED_REPOSITORY_NAMES)
     repo_names.append(SPINNAKER_GITHUB_IO_REPOSITORY_NAME)
     super(InitiateReleaseBranchFactory, self).__init__(
         'new_release_branch', InitiateReleaseBranchCommand,
@@ -215,7 +213,6 @@ class PublishSpinnakerCommand(CommandProcessor):
               repository, self.__branch, version, name in names_to_push)
 
     additional_repositories = list(SPINNAKER_PROCESS_REPOSITORY_NAMES)
-    additional_repositories.extend(SPINNAKER_SHARED_REPOSITORY_NAMES)
     for name in additional_repositories:
       if self.__only_repositories and name not in self.__only_repositories:
         logging.debug('Skipping %s because of --only_repositories', name)

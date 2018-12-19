@@ -9,9 +9,6 @@ SPINNAKER_RUNNABLE_REPOSITORY_NAMES = [
     'echo', 'fiat', 'front50',
     'gate', 'igor', 'kayenta', 'orca', 'rosco']
 
-# Additional repositories tracked with a release.
-SPINNAKER_SHARED_REPOSITORY_NAMES = ['kork', 'spinnaker-dependencies']
-
 # For building and validating a release
 SPINNAKER_PROCESS_REPOSITORY_NAMES = ['spinnaker']
 
