@@ -55,14 +55,15 @@ interface EchoService {
     }
 
     static enum Type {
-      SLACK,
-      HIPCHAT,
-      EMAIL,
       BEARYCHAT,
+      EMAIL,
       GOOGLECHAT,
-      SMS,
+      HIPCHAT,
+      JIRA,
       PAGER_DUTY,
-      JIRA
+      PUBSUB,
+      SLACK,
+      SMS,
     }
 
     static enum Severity {
