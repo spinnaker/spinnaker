@@ -34,15 +34,16 @@ class Notification {
   }
 
   static enum Type {
-    HIPCHAT,
-    EMAIL,
-    SMS,
-    SLACK,
-    PAGER_DUTY,
-    JIRA,
     BEARYCHAT,
+    EMAIL,
+    GITHUB_STATUS,
     GOOGLECHAT,
-    GITHUB_STATUS
+    HIPCHAT,
+    JIRA,
+    PAGER_DUTY,
+    PUBSUB,
+    SMS,
+    SLACK
   }
 
   static enum Severity {

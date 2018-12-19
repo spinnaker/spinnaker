@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.echo.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.echo.config.GooglePubsubProperties.GooglePubsubSubscription;
 import com.netflix.spinnaker.echo.pubsub.PubsubMessageHandler;
 import com.netflix.spinnaker.echo.pubsub.PubsubPublishers;
@@ -55,6 +56,9 @@ public class GooglePubsubConfig {
   @Autowired
   private GooglePubsubProperties googlePubsubProperties;
 
+  @Autowired
+  ObjectMapper mapper;
+
   @PostConstruct
   void googlePubsubSubscribers() {
     log.info("Creating Google Pubsub Subscribers");
@@ -63,7 +67,8 @@ public class GooglePubsubConfig {
       log.info("Bootstrapping Google Pubsub Subscriber listening to subscription: {} in project: {}",
           subscription.getSubscriptionName(),
           subscription.getProject());
-      GooglePubsubSubscriber subscriber = GooglePubsubSubscriber.buildSubscriber(subscription, pubsubMessageHandler);
+      GooglePubsubSubscriber subscriber = GooglePubsubSubscriber
+        .buildSubscriber(subscription, pubsubMessageHandler);
 
       newSubscribers.add(subscriber);
     });
@@ -76,11 +81,12 @@ public class GooglePubsubConfig {
     List<PubsubPublisher> newPublishers = googlePubsubProperties.getPublishers()
       .stream()
       .map(publisherConfig -> {
-        log.info("Bootstrapping Google Pubsub Publisher name {} on topic {} in project {}",
-          publisherConfig.getName(),
+        log.info(
+          "Bootstrapping Google Pubsub Publisher on topic {} in project {} publishing content {}",
           publisherConfig.getTopicName(),
-          publisherConfig.getProject());
-        return GooglePubsubPublisher.buildPublisher(publisherConfig);
+          publisherConfig.getProject(),
+          publisherConfig.getContent());
+        return GooglePubsubPublisher.buildPublisher(publisherConfig, mapper);
       }).collect(Collectors.toList());
 
     pubsubPublishers.putAll(newPublishers);
