@@ -18,7 +18,15 @@
 package com.netflix.spinnaker.front50.model.notification
 
 interface NotificationDAO {
-  static final Collection<String> NOTIFICATION_FORMATS = ['sms', 'email', 'hipchat', 'slack', 'bearychat', 'googlechat']
+  static final Collection<String> NOTIFICATION_FORMATS = [
+    'bearychat',
+    'email',
+    'googlechat',
+    'hipchat',
+    'pubsub',
+    'slack',
+    'sms'
+  ]
 
   Collection<Notification> all()
 
