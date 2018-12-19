@@ -25,11 +25,11 @@ public interface IgorService {
   @GET("/builds/status/{buildNumber}/{master}/{job}")
   Map<String, Object> getBuild(@Path("buildNumber") Integer buildNumber,
     @Path("master") String master,
-    @Path("job") String job);
+    @Path(value = "job", encode = false) String job);
 
   @GET("/builds/properties/{buildNumber}/{fileName}/{master}/{job}")
   Map<String, Object> getPropertyFile(@Path("buildNumber") Integer buildNumber,
     @Path("fileName") String fileName,
     @Path("master") String master,
-    @Path("job") String job);
+    @Path(value = "job", encode = false) String job);
 }
