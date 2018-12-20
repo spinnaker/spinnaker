@@ -18,7 +18,6 @@ import copy
 import logging
 import os
 import re
-import yaml
 
 from collections import namedtuple
 from distutils.version import LooseVersion
@@ -84,15 +83,33 @@ class BuildSpinCommand(RepositoryCommandProcessor):
     return all_exist
 
   def build_all_distributions(self, repository):
-    name = repository.name
+    spin_package_path = repository.origin
+    double_slash = spin_package_path.find('//')
+    # Trim spin_package_path to format go package path properly.
+    if spin_package_path.find('//') != -1:
+      spin_package_path = spin_package_path[double_slash+2:]
+    if spin_package_path[:-1] == '/':
+      spin_package_path = spin_package_path[:-1]
+
     source_info = self.source_code_manager.refresh_source_info(
       repository, self.options.build_number)
     self.__build_version = source_info.to_build_version()
-    config_root = repository.git_dir
 
-    check_subprocess('go get -d -v', cwd=config_root)
+    # NOTE: go build is opinionated about where the source repository lives --
+    # it expects the source repository to be under $GOPATH/src/<package path>,
+    # and will use that the source code in that directory *even if you clone
+    # your own copy of the source repo*.
+    #
+    # To facilitate go's pattern, we operate on the source under
+    # $GOPATH/src/<path to spin> to build spin.
+    gopath = check_subprocess('go env GOPATH')
+    config_root = '{gopath}/src/{spin_package_path}'.format(gopath=gopath,
+                                                            spin_package_path=spin_package_path)
+
+    # spin source + dependency update.
+    check_subprocess('go get -v -u', cwd=config_root)
     for dist_arch in DIST_ARCH_LIST:
-      # Sub-directory the binaries are stored in are specified by
+      # GCS sub-directory the binaries are stored in are specified by
       # ${build_version}/${dist}.
       version_bin_path = ('spin/{}/{}/{}/spin'
                           .format(self.__build_version, dist_arch.dist, dist_arch.arch))
@@ -114,17 +131,10 @@ class BuildSpinCommand(RepositoryCommandProcessor):
       dash = self.__gate_version.find('-')
       gate_semver = self.__gate_version[:dash]
 
-      prefix = os.path.join(repository.origin, 'version')
-      double_slash = prefix.find('//')
-      # Trim prefix to format go package properly.
-      if prefix.find('//') != -1:
-        prefix = prefix[double_slash+2:]
-      if prefix[:-1] == '/':
-        prefix = prefix[:-1]
-
+      version_package_prefix = os.path.join(spin_package_path, 'version')
 
       # Unset ReleasePhase tag for proper versions.
-      ldflags = '-ldflags "-X {pref}.Version={gate_version} -X {pref}.ReleasePhase="'.format(pref=prefix,
+      ldflags = '-ldflags "-X {pref}.Version={gate_version} -X {pref}.ReleasePhase="'.format(pref=version_package_prefix,
                                                                                              gate_version=gate_semver)
       logging.info('Building spin binary for %s with ldflags: %s', dist_arch, ldflags)
       cmd = 'go build {ldflags} .'.format(ldflags=ldflags)
