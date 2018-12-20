@@ -23,6 +23,8 @@ import com.netflix.spinnaker.echo.github.GithubCommit;
 import com.netflix.spinnaker.echo.github.GithubService;
 import com.netflix.spinnaker.echo.github.GithubStatus;
 import com.netflix.spinnaker.echo.model.Event;
+import com.netflix.spinnaker.kork.core.RetrySupport;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -43,6 +45,10 @@ public class GithubNotificationAgent extends AbstractEventNotificationAgent {
     "starting", "pending",
     "complete", "success",
     "failed", "failure");
+
+  private final RetrySupport retrySupport = new RetrySupport();
+  private static final int MAX_RETRY = 5;
+  private static final long RETRY_BACKOFF = 1000;
 
   @Override
   public void sendNotifications(
@@ -101,7 +107,12 @@ public class GithubNotificationAgent extends AbstractEventNotificationAgent {
 
     GithubStatus githubStatus = new GithubStatus(state, targetUrl, description, context);
     try {
-      githubService.updateCheck("token " + token, content.getRepo(), branchCommit, githubStatus);
+      final String repo = content.getRepo();
+      retrySupport.retry(
+        () -> githubService.updateCheck("token " + token, repo, branchCommit, githubStatus),
+        MAX_RETRY,
+        RETRY_BACKOFF,
+        false);
     } catch (Exception e) {
       log.error(String.format("Failed to send github status for application: '%s' pipeline: '%s', %s",
         application, content.getPipeline(), e));

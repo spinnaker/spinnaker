@@ -22,6 +22,7 @@ import com.netflix.spinnaker.echo.github.GithubCommit
 import com.netflix.spinnaker.echo.github.GithubService
 import com.netflix.spinnaker.echo.github.GithubStatus
 import com.netflix.spinnaker.echo.model.Event
+import retrofit.RetrofitError
 import retrofit.client.Response
 import retrofit.mime.TypedByteArray
 import spock.lang.Specification
@@ -33,10 +34,11 @@ class GithubNotificationAgentSpec extends Specification {
 
   def github = Mock(GithubService)
   @Subject
-  def agent = new GithubNotificationAgent(githubService: github)
+  def agent = new GithubNotificationAgent()
 
   void setup() {
     agent.spinnakerUrl = "http://spinnaker.io"
+    agent.setGithubService(github)
   }
 
 
@@ -191,4 +193,43 @@ class GithubNotificationAgentSpec extends Specification {
     )
     type = "pipeline"
   }
+
+  def "retries if updating the github check fails"() {
+    given:
+    github.getCommit(*_) >> { token, repo, sha ->
+      new Response("url", 200, "nothing", [], new TypedByteArray("application/json", "message".bytes))
+    }
+
+    when:
+    agent.sendNotifications(null, application, event, [type: type], status)
+
+    then:
+    5 * github.updateCheck(_, _, _, _) >> RetrofitError.networkError("timeout", new IOException())
+
+    where:
+    application = "whatever"
+    event = new Event(
+      content: [
+        execution: [
+          id     : "1",
+          name   : "foo-pipeline",
+          trigger: [
+            buildInfo: [
+              name: "some-org/some-repo",
+              scm : [
+                [
+                  branch: "master",
+                  name  : "master",
+                  sha1  : "asdf",
+                ]
+              ]
+            ]
+          ]
+        ]
+      ]
+    )
+    type = "pipeline"
+    status = "status"
+  }
+
 }
