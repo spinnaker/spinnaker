@@ -88,17 +88,6 @@
 
     <div ng-if="basicSettingsCtrl.isGcsSource()">
       <div class="form-group row">
-        <label class="col-md-3 sm-label-right">Artifact Account</label>
-        <div class="col-md-7">
-          <select class="form-control input-sm"
-                  ng-options="option for option in command.backingData.storageAccounts"
-                  ng-model="command.storageAccountName">
-            <option value="">Select...</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="form-group row">
         <label class="col-md-3 sm-label-right">Resolve URL</label>
         <div class="col-md-7">
           <div class="radio radio-inline">
@@ -115,6 +104,17 @@
                      ng-value="true"> via pipeline artifact
             </label>
           </div>
+        </div>
+      </div>
+
+      <div class="form-group row" ng-if="command.fromArtifact">
+        <label class="col-md-3 sm-label-right">Artifact Account</label>
+        <div class="col-md-7">
+          <select class="form-control input-sm"
+                  ng-options="option for option in command.backingData.storageAccounts"
+                  ng-model="command.storageAccountName">
+            <option value="">Select...</option>
+          </select>
         </div>
       </div>
 
