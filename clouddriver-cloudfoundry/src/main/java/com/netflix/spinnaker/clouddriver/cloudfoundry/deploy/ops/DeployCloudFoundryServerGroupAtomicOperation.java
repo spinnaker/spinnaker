@@ -238,9 +238,11 @@ public class DeployCloudFoundryServerGroupAtomicOperation implements AtomicOpera
     }
 
     for (RouteId routeId : routeIds) {
-      CloudFoundryLoadBalancer loadBalancer = client.getRoutes().find(routeId, space.getId());
+      CloudFoundryLoadBalancer loadBalancer = client.getRoutes().createRoute(routeId, space.getId());
       if (loadBalancer == null) {
-        loadBalancer = client.getRoutes().createRoute(routeId, space.getId());
+        getTask().updateStatus(PHASE, "Load balancer already exists in another organization and space");
+        getTask().fail();
+        return false;
       }
       getTask().updateStatus(PHASE, "Mapping load balancer '" + loadBalancer.getName() + "' to " + description.getServerGroupName());
       client.getApplications().mapRoute(serverGroupId, loadBalancer.getId());

@@ -95,7 +95,7 @@ class DeployCloudFoundryServerGroupAtomicOperationTest extends AbstractCloudFoun
         organization(org).
         build()).
       build();
-    when(client.getRoutes().find(any(), anyString())).thenReturn(loadBalancer);
+    when(client.getRoutes().createRoute(any(RouteId.class), anyString())).thenReturn(loadBalancer);
 
     List<String> routeList = Collections.singletonList("road.to.nowhere");
 
@@ -115,6 +115,24 @@ class DeployCloudFoundryServerGroupAtomicOperationTest extends AbstractCloudFoun
 
     assertThat(operation.mapRoutes(routeList, null, null)).isFalse();
     assertThat(testTask.getHistory()).has(status("Invalid format or domain for route 'road.to.nowhere'"), atIndex(2));
+  }
+
+  @Test
+  void mapRoutesShouldReturnFalseWhenRoutesExistInOtherOrgSpace() {
+    DeployCloudFoundryServerGroupDescription description = new DeployCloudFoundryServerGroupDescription();
+    description.setClient(client);
+    description.setServerGroupName("sg-name");
+
+    CloudFoundryOrganization org = CloudFoundryOrganization.builder().id("org-id").name("org-name").build();
+    CloudFoundrySpace space = CloudFoundrySpace.builder().id("space-id").name("space-name").organization(org).build();
+
+    DeployCloudFoundryServerGroupAtomicOperation operation = new DeployCloudFoundryServerGroupAtomicOperation(null, description, null);
+    when(client.getRoutes().toRouteId(anyString())).thenReturn(new RouteId("road.to.nowhere", null, null, "domain-guid"));
+
+    List<String> routeList = Collections.singletonList("road.to.nowhere");
+
+    assertThat(operation.mapRoutes(routeList, space, null)).isFalse();
+    assertThat(testTask.getHistory()).has(status("Load balancer already exists in another organization and space"), atIndex(2));
   }
 
   @Test
