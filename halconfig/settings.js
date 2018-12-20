@@ -190,7 +190,6 @@ window.spinnakerSettings = {
       enabled: true,
     },
     slack: slack,
-    },
     sms: {
       enabled: true,
     },
