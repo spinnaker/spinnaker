@@ -48,7 +48,7 @@ export class ManualJudgmentExecutionDetails extends React.Component<
           {stage.context.judgmentInput && <dt>Input</dt>}
           {stage.context.judgmentInput && <dd>{robotToHuman(stage.context.judgmentInput)}</dd>}
         </dl>
-        <ManualJudgmentApproval application={application} execution={execution} stage={stage} />
+        <ManualJudgmentApproval key={stage.refId} application={application} execution={execution} stage={stage} />
         {stage.context.judgmentInput && <StageFailureMessage stage={stage} message={stage.failureMessage} />}
       </ExecutionDetailsSection>
     );
