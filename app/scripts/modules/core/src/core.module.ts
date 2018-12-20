@@ -58,6 +58,7 @@ import { STYLEGUIDE_MODULE } from './styleguide/styleguide.module';
 import { SUBNET_MODULE } from './subnet/subnet.module';
 
 import { FIREWALL_LABEL_COMPONENT } from 'core/securityGroup/label/firewallLabel.component';
+import { LABEL_FILTER_COMPONENT } from 'core/cluster/filter/labelFilter.component';
 
 import { WHATS_NEW_MODULE } from './whatsNew/whatsNew.module';
 import { WIDGETS_MODULE } from './widgets/widgets.module';
@@ -106,6 +107,7 @@ module(CORE_MODULE, [
   require('./instance/instance.module').name,
   INTERCEPTOR_MODULE,
 
+  LABEL_FILTER_COMPONENT,
   LOAD_BALANCER_MODULE,
 
   require('./modal/modal.module').name,

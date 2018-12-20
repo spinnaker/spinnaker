@@ -5,6 +5,13 @@ import { Subscription } from 'rxjs';
 import { Application } from 'core/application/application.model';
 import { ClusterState } from 'core/state';
 import { IFilterTag, ISortFilter, digestDependentFilters } from 'core/filterModel';
+import {
+  buildLabelsMap,
+  labelFiltersToTrueKeyObject,
+  trueKeyObjectToLabelFilters,
+  ILabelFilter,
+  ILabelsMap,
+} from 'core/cluster/filter/labelFilterUtils';
 
 export const CLUSTER_FILTER = 'spinnaker.core.cluster.filter.component';
 
@@ -25,6 +32,9 @@ class ClusterFilterCtrl {
   public stackHeadings: string[];
   public detailHeadings: string[];
   public tags: IFilterTag[];
+  public labelsMap: ILabelsMap;
+  public labelFilters: ILabelFilter[];
+  public showLabelFilter: boolean;
   private groupsUpdatedSubscription: Subscription;
   private locationChangeUnsubscribe: () => void;
 
@@ -63,6 +73,15 @@ class ClusterFilterCtrl {
       this.groupsUpdatedSubscription.unsubscribe();
       this.locationChangeUnsubscribe();
     });
+
+    this.labelsMap = buildLabelsMap(this.app.getDataSource('serverGroups').data);
+    this.showLabelFilter = Object.keys(this.labelsMap).length > 0;
+
+    if (this.showLabelFilter) {
+      this.labelFilters = trueKeyObjectToLabelFilters(this.sortFilter.labels);
+      $scope.sortFilter = this.sortFilter;
+      $scope.$watch('sortFilter.labels', this.syncLabelFilters);
+    }
   }
 
   public updateClusterGroups(applyParamsToUrl = true): void {
@@ -102,6 +121,33 @@ class ClusterFilterCtrl {
     this.categoryHeadings = this.getHeadingsForOption('category');
     this.updateClusterGroups();
   }
+
+  public onLabelFiltersChange = (labelFilters: ILabelFilter[]): void => {
+    // Called from LabelFilter React component
+    this.$scope.$applyAsync(() => {
+      this.labelFilters = labelFilters;
+      this.sortFilter.labels = labelFiltersToTrueKeyObject(labelFilters);
+      this.updateClusterGroups();
+    });
+  };
+
+  private syncLabelFilters = (labelFilters: { [key: string]: boolean }) => {
+    /**
+     * When state changes originate in LabelFilter React component, this.onLabelFiltersChange
+     * keeps React props in sync with Angular model. However, labels can be
+     * cleared externally, and need to be reset from URL when toggling between
+     * infrastructure views.
+     */
+    const currentKeys = this.labelFilters.map(f => f.key);
+    const nextKeys = trueKeyObjectToLabelFilters(labelFilters).map(f => f.key);
+    if (currentKeys.length > nextKeys.length) {
+      // One or more labels have been removed -- order is preserved
+      this.labelFilters = this.labelFilters.filter(f => nextKeys.includes(f.key));
+    } else if (currentKeys.length === 0 && nextKeys.length > 0) {
+      // Resetting after page change -- order may not be preserved
+      this.labelFilters = trueKeyObjectToLabelFilters(labelFilters);
+    }
+  };
 }
 
 ngmodule.component('clusterFilter', {

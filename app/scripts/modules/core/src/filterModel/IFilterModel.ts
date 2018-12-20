@@ -29,6 +29,7 @@ export interface ISortFilter {
   groupBy: string;
   instanceSort: string;
   instanceType: { [key: string]: boolean };
+  labels: { [key: string]: boolean };
   listInstances: boolean;
   maxInstances: number;
   minInstances: number;
