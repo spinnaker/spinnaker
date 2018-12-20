@@ -155,8 +155,15 @@ export class FilterModelService {
 
     filterModel.hasSavedState = toParams => {
       const application = toParams.application;
+      const serverGroup = toParams.serverGroup;
+
+      const savedStateForApplication = filterModel.savedState[application];
+
       return (
-        filterModel.savedState[application] !== undefined && filterModel.savedState[application].params !== undefined
+        savedStateForApplication !== undefined &&
+        savedStateForApplication.params !== undefined &&
+        (!serverGroup ||
+          (savedStateForApplication.params.serverGroup && savedStateForApplication.params.serverGroup === serverGroup))
       );
     };
 
