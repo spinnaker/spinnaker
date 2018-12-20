@@ -100,14 +100,18 @@ class BuildSpinCommand(RepositoryCommandProcessor):
     # and will use that the source code in that directory *even if you clone
     # your own copy of the source repo*.
     #
-    # To facilitate go's pattern, we operate on the source under
-    # $GOPATH/src/<path to spin> to build spin.
-    gopath = check_subprocess('go env GOPATH')
-    config_root = '{gopath}/src/{spin_package_path}'.format(gopath=gopath,
-                                                            spin_package_path=spin_package_path)
+    # To facilitate go's pattern and maintain buildtool's
+    # build_input -> build_output pattern, we override go's GOPATH to our
+    # filesystem destinations.
+
+    gopath = os.path.abspath(self.get_input_dir())
+    config_root = os.path.join(gopath, 'src', spin_package_path)
+
+    env = dict(os.environ)
+    env.update({'GOPATH': gopath})
 
     # spin source + dependency update.
-    check_subprocess('go get -v -u', cwd=config_root)
+    check_subprocess('go get -v -u {}'.format(spin_package_path), cwd=gopath, env=env)
     for dist_arch in DIST_ARCH_LIST:
       # GCS sub-directory the binaries are stored in are specified by
       # ${build_version}/${dist}.
@@ -120,7 +124,6 @@ class BuildSpinCommand(RepositoryCommandProcessor):
       labels = {'repository': repository.name,
                 'dist': dist_arch.dist,
                 'arch': dist_arch.arch}
-      env = dict(os.environ)
       env.update({'CGO_ENABLED': '0',
                   'GOOS': dist_arch.dist,
                   'GOARCH': dist_arch.arch})
