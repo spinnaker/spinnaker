@@ -50,10 +50,12 @@ class PipelineTemplatePreprocessor
     // should be lifted to the top level like users will specify them.
     //
     // We also need to ensure that 'type' and 'schema' are set properly upstream when saving v2 template configs.
-    if (pipeline.getOrDefault(V2PipelineTemplate.SCHEMA, null) == V2PipelineTemplate.V2_SCHEMA_VERSION) {
+    if (pipeline.getOrDefault(V2PipelineTemplate.SCHEMA, null) == V2PipelineTemplate.V2_SCHEMA_VERSION &&
+      pipeline.get("template") != null) {
       val templateConfig = HashMap(pipeline)
       templateConfig.remove("trigger") // template configurations don't have a 'trigger' field.
       pipeline.put("config", templateConfig)
+      pipeline.put("type", "templatedPipeline")
     }
 
 
