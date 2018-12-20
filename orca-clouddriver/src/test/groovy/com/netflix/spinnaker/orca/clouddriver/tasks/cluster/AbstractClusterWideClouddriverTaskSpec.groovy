@@ -78,6 +78,20 @@ class AbstractClusterWideClouddriverTaskSpec extends Specification {
   }
 
   @Unroll
+  def "shouldSkipTrafficGuardCheck=#skip for katoOps with #description"() {
+    expect:
+    AbstractClusterWideClouddriverTask.shouldSkipTrafficGuardCheck(katoOps) == skip
+
+    where:
+    skip  || description                  | katoOps
+    false || "no desiredPercentage"       | [[destroyServerGroup:[credentials:"test", accountName:"test", serverGroupName:"test-v468", asgName:"test-v468", cloudProvider:"cloud", region:"region"]]]
+    false || "a null desiredPercentage"   | [[disableServerGroup:[credentials:"test", accountName:"test", serverGroupName:"test-v468", asgName:"test-v468", cloudProvider:"cloud", region:"region", desiredPercentage:null]]]
+    false || "a desiredPercentage at 100" | [[disableServerGroup:[credentials:"test", accountName:"test", serverGroupName:"test-v468", asgName:"test-v468", cloudProvider:"cloud", region:"region", desiredPercentage:100]]]
+    true  || "a desiredPercentage at 50"  | [[disableServerGroup:[credentials:"test", accountName:"test", serverGroupName:"test-v468", asgName:"test-v468", cloudProvider:"cloud", region:"region", desiredPercentage:50]]]
+    true  || "only one partial disable"   | [[disableServerGroup:[credentials:"test", accountName:"test", serverGroupName:"test-v468", asgName:"test-v468", cloudProvider:"cloud", region:"region"]], [disableServerGroup:[credentials:"test", accountName:"test", serverGroupName:"test-v468", asgName:"test-v468", cloudProvider:"cloud", region:"region", desiredPercentage:50]]]
+  }
+
+  @Unroll
   def "should filter out server groups that are newer than parent deploys"() {
     when:
     def targetServerGroups = AbstractClusterWideClouddriverTask.filterParentAndNewerThanParentDeploys(

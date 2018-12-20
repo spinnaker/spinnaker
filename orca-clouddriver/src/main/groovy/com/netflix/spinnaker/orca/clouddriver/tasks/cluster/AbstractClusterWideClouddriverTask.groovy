@@ -122,8 +122,10 @@ abstract class AbstractClusterWideClouddriverTask extends AbstractCloudProviderA
       return TaskResult.SUCCEEDED
     }
 
-    checkTrafficGuards(filteredServerGroupsByLocation, serverGroupsByLocation,
-      clusterSelection.credentials, locations, clusterSelection.cloudProvider, getClouddriverOperation())
+    if (!shouldSkipTrafficGuardCheck(katoOps)) {
+      checkTrafficGuards(filteredServerGroupsByLocation, serverGroupsByLocation,
+        clusterSelection.credentials, locations, clusterSelection.cloudProvider, getClouddriverOperation())
+    }
 
     // "deploy.server.groups" is keyed by region, and all TSGs will have this value.
     def locationGroups = filteredServerGroups.groupBy {
@@ -139,6 +141,14 @@ abstract class AbstractClusterWideClouddriverTask extends AbstractCloudProviderA
       "kato.last.task.id"   : taskId,
       "deploy.server.groups": locationGroups
     ])
+  }
+
+  private static boolean shouldSkipTrafficGuardCheck(List<Map<String, Map>> katoOps) {
+    // if any operation has a non-null desiredPercentage that indicates an entire server group is not going away
+    // (e.g. in the case of rolling red/black), let's bypass the traffic guard check
+    return katoOps.any {
+      it.values().any { it.desiredPercentage && it.desiredPercentage < 100 }
+    }
   }
 
   private void checkTrafficGuards(Map<Location, List<TargetServerGroup>> filteredServerGroupsByLocation,
