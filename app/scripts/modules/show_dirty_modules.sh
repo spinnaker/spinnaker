@@ -1,5 +1,6 @@
 #!/bin/bash
 # Reports if any modules are dirty, and what commits have been made since the last package.json commit
+cd `dirname $0`;
 
 for PKGJSON in `ls */package.json` ; do
   MODULE=`dirname $PKGJSON`;

@@ -1,4 +1,5 @@
 #!/bin/bash
+cd `dirname $0`
 
 MODULE=$1;
 if [ "$MODULE" == "" ] ; then
