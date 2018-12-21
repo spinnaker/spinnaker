@@ -88,7 +88,7 @@ public abstract class KubernetesV2CachingAgent extends KubernetesCachingAgent<Ku
             return credentials.list(primaryKinds(), n);
           } catch (KubectlException e) {
             log.warn("Failed to read kind {} from namespace {}: {}", primaryKinds(), n, e.getMessage());
-            return null;
+            throw e;
           }
         })
         .filter(Objects::nonNull)
