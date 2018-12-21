@@ -108,10 +108,10 @@ public class AWSBakeHandler extends CloudProviderBakeHandler {
 
     if (awsVirtualizationSettings.spotPrice) {
       parameterMap.aws_spot_price = awsVirtualizationSettings.spotPrice
+    }
 
-      if (awsVirtualizationSettings.spotPriceAutoProduct) {
-        parameterMap.aws_spot_price_auto_product = awsVirtualizationSettings.spotPriceAutoProduct
-      }
+    if (awsVirtualizationSettings.spotPrice == "auto" && awsVirtualizationSettings.spotPriceAutoProduct) {
+      parameterMap.aws_spot_price_auto_product = awsVirtualizationSettings.spotPriceAutoProduct
     }
 
     if (awsBakeryDefaults.awsAccessKey && awsBakeryDefaults.awsSecretKey) {
