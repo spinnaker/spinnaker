@@ -7,7 +7,7 @@ DeploymentStrategyRegistry.registerStrategy({
   description: `Creates a new version of this server group, then incrementally resizes the new server group while disabling the same percentage in the previous server group.`,
   key: 'rollingredblack',
   providerRestricted: true,
-  additionalFields: ['targetPercentages'],
+  additionalFields: ['targetPercentages', 'scaleDown'],
   AdditionalFieldsComponent: AdditionalFields,
   initializationMethod: command => {
     if (!command.targetPercentages) {

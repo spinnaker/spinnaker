@@ -12,6 +12,7 @@ export interface IRollingRedBlackCommand extends IServerGroupCommand {
   pipelineBeforeCleanup: {
     application: string;
   };
+  scaleDown: boolean;
   targetPercentages: number[] | string;
 }
 
@@ -30,6 +31,11 @@ export class AdditionalFields extends React.Component<IRollingRedBlackStrategyAd
     this.forceUpdate();
   };
 
+  private scaleDownChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    this.props.command.scaleDown = e.target.checked;
+    this.forceUpdate();
+  };
+
   public render() {
     const { NumberList } = NgReact;
     const { command } = this.props;
@@ -41,6 +47,13 @@ export class AdditionalFields extends React.Component<IRollingRedBlackStrategyAd
             Rollback to previous server group if deployment fails <HelpField id="strategy.rollingRedBlack.rollback" />
           </label>
         </div>
+        <div className="col-md-12 checkbox">
+          <label>
+            <input type="checkbox" checked={command.scaleDown} onChange={this.scaleDownChange} />
+            Scale down replaced server groups to zero instances <HelpField id="strategy.redblack.scaleDown" />
+          </label>
+        </div>
+
         <div className="col-md-6" style={{ marginTop: '5px' }}>
           <h4>
             Percentages
