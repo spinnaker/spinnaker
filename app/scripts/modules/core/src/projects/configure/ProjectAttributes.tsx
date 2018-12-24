@@ -1,12 +1,14 @@
 import * as React from 'react';
-import { FormikErrors } from 'formik';
+import { FormikErrors, FormikProps } from 'formik';
+
 import { IProject } from 'core/domain';
-import { IWizardPageProps, wizardPage } from 'core/modal';
+import { IWizardPageComponent } from 'core/modal';
 import { FormField, FormikFormField, TextInput } from 'core/presentation';
 
-export interface IProjectAttributesProps extends IWizardPageProps<IProject> {
-  onDelete?: Function;
+export interface IProjectAttributesProps {
   allProjects: IProject[];
+  formik: FormikProps<IProject>;
+  onDelete?: Function;
 }
 
 interface IProjectAttributesState {
@@ -14,9 +16,8 @@ interface IProjectAttributesState {
   projectNameForDeletion: string;
 }
 
-class ProjectAttributesImpl extends React.Component<IProjectAttributesProps, IProjectAttributesState> {
-  public static LABEL = 'Project Attributes';
-
+export class ProjectAttributes extends React.Component<IProjectAttributesProps, IProjectAttributesState>
+  implements IWizardPageComponent<IProject> {
   public state = {
     showProjectDeleteForm: false,
     projectNameForDeletion: null as string,
@@ -128,5 +129,3 @@ class ProjectAttributesImpl extends React.Component<IProjectAttributesProps, IPr
     );
   }
 }
-
-export const ProjectAttributes = wizardPage(ProjectAttributesImpl);

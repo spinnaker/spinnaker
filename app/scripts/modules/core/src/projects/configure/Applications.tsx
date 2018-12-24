@@ -1,19 +1,18 @@
 import * as React from 'react';
-import { FormikErrors, getIn } from 'formik';
+import { FormikErrors, getIn, FormikProps } from 'formik';
 import { isEqual } from 'lodash';
 
 import { IProject, IProjectPipeline } from 'core/domain';
-import { IWizardPageProps, wizardPage } from 'core/modal';
+import { IWizardPageComponent } from 'core/modal';
 import { FormikApplicationsPicker } from 'core/projects/configure/FormikApplicationsPicker';
 
-export interface IApplicationsProps extends IWizardPageProps<IProject> {
+export interface IApplicationsProps {
+  formik: FormikProps<IProject>;
   allApplications: string[];
   onApplicationsChanged: (applications: string[]) => void;
 }
 
-class ApplicationsImpl extends React.Component<IApplicationsProps> {
-  public static LABEL = 'Applications';
-
+export class Applications extends React.Component<IApplicationsProps> implements IWizardPageComponent<IProject> {
   public validate(project: IProject): FormikErrors<IProject> {
     const configuredApps = (project.config && project.config.applications) || [];
     const getApplicationError = (app: string) =>
@@ -61,5 +60,3 @@ class ApplicationsImpl extends React.Component<IApplicationsProps> {
     );
   }
 }
-
-export const Applications = wizardPage(ApplicationsImpl);

@@ -4,18 +4,16 @@ import { FieldArray, FormikErrors, getIn } from 'formik';
 import { FormikFormField, ReactSelectInput, StringsAsOptions } from 'core/presentation';
 import { Spinner } from 'core/widgets';
 import { IPipeline, IProject, IProjectPipeline } from 'core/domain';
-import { IWizardPageProps, wizardPage } from 'core/modal';
+import { IWizardPageComponent } from 'core/modal';
 
-export interface IPipelinesProps extends IWizardPageProps<{}> {
+export interface IPipelinesProps {
   appsPipelines: {
     [appName: string]: IPipeline[];
   };
 }
 
-class PipelinesImpl extends React.Component<IPipelinesProps> {
-  public static LABEL = 'Pipelines';
-
-  public validate = (value: IProject): FormikErrors<IProject> | void => {
+export class Pipelines extends React.Component<IPipelinesProps> implements IWizardPageComponent<IProject> {
+  public validate = (value: IProject): FormikErrors<IProject> => {
     const projectApplications = (value.config && value.config.applications) || [];
     const { appsPipelines } = this.props;
 
@@ -136,5 +134,3 @@ class PipelinesImpl extends React.Component<IPipelinesProps> {
     );
   }
 }
-
-export const Pipelines = wizardPage(PipelinesImpl);

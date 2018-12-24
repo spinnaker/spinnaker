@@ -3,19 +3,17 @@ import { FieldArray, FormikErrors, FormikProps, getIn } from 'formik';
 
 import { IAccount } from 'core/account';
 import { IProject, IProjectCluster } from 'core/domain';
-import { IWizardPageProps, wizardPage } from 'core/modal';
+import { IWizardPageComponent } from 'core/modal';
 import { FormikFormField, ReactSelectInput, TextInput } from 'core/presentation';
 import { NgReact } from 'core/reactShims';
 
 import { FormikApplicationsPicker } from './FormikApplicationsPicker';
 
-export interface IClustersProps extends IWizardPageProps<IProject> {
+export interface IClustersProps {
   accounts: IAccount[];
 }
 
-class ClustersImpl extends React.Component<IClustersProps> {
-  public static LABEL = 'Clusters';
-
+export class Clusters extends React.Component<IClustersProps> implements IWizardPageComponent<IProject> {
   public validate = (value: IProject): FormikErrors<IProject> => {
     const applications = value.config.applications || [];
     if (value.config.clusters && value.config.clusters.length) {
@@ -155,5 +153,3 @@ class ClustersImpl extends React.Component<IClustersProps> {
     );
   }
 }
-
-export const Clusters = wizardPage(ClustersImpl);

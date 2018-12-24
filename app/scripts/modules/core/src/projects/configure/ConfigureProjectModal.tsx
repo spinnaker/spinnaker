@@ -1,10 +1,9 @@
 import * as React from 'react';
-import { FormikErrors } from 'formik';
 
 import { AccountService, IAccount } from 'core/account';
 import { ApplicationReader, IApplicationSummary } from 'core/application';
 import { IPipeline, IProject } from 'core/domain';
-import { WizardModal } from 'core/modal';
+import { WizardModal, WizardPage } from 'core/modal';
 import { PipelineConfigService } from 'core/pipeline';
 import { IModalComponentProps, ReactModal } from 'core/presentation';
 import { TaskMonitor } from 'core/task';
@@ -99,10 +98,6 @@ export class ConfigureProjectModal extends React.Component<IConfigureProjectModa
     taskMonitor.submit(() => ProjectWriter.upsertProject(project));
   };
 
-  public validate = (): FormikErrors<IProject> => {
-    return {};
-  };
-
   private initialFetch(): Promise<any> {
     const fetchAccounts = AccountService.listAccounts();
     const fetchApps = ApplicationReader.listApplications();
@@ -148,31 +143,59 @@ export class ConfigureProjectModal extends React.Component<IConfigureProjectModa
 
   public render() {
     const { dismissModal, projectConfiguration } = this.props;
-    const { allAccounts, allApplications, appPipelines, loading, taskMonitor } = this.state;
+    const { allAccounts, allApplications, allProjects, appPipelines, loading, taskMonitor } = this.state;
+    const appNames = allApplications.map(app => app.name);
 
     return (
       <WizardModal<IProject>
+        closeModal={this.submit}
+        dismissModal={dismissModal}
         heading="Configure Project"
         initialValues={projectConfiguration}
         loading={loading}
-        taskMonitor={taskMonitor}
-        dismissModal={dismissModal}
-        closeModal={this.submit}
         submitButtonLabel="Save"
-        validate={this.validate}
-      >
-        <ProjectAttributes allProjects={this.state.allProjects} onDelete={this.onDelete} done={true} />
+        taskMonitor={taskMonitor}
+        render={({ nextIdx, wizard, formik }) => (
+          <>
+            <WizardPage
+              label="Project Attributes"
+              wizard={wizard}
+              order={nextIdx()}
+              render={({ innerRef }) => (
+                <ProjectAttributes ref={innerRef} formik={formik} allProjects={allProjects} onDelete={this.onDelete} />
+              )}
+            />
 
-        <Applications
-          allApplications={allApplications.map(app => app.name)}
-          onApplicationsChanged={this.handleApplicationsChanged}
-          done={true}
-        />
+            <WizardPage
+              label="Applications"
+              wizard={wizard}
+              order={nextIdx()}
+              render={({ innerRef }) => (
+                <Applications
+                  ref={innerRef}
+                  formik={formik}
+                  allApplications={appNames}
+                  onApplicationsChanged={this.handleApplicationsChanged}
+                />
+              )}
+            />
 
-        <Clusters accounts={allAccounts} done={true} />
+            <WizardPage
+              label="Clusters"
+              wizard={wizard}
+              order={nextIdx()}
+              render={({ innerRef }) => <Clusters ref={innerRef} accounts={allAccounts} />}
+            />
 
-        <Pipelines appsPipelines={appPipelines} done={true} />
-      </WizardModal>
+            <WizardPage
+              label="Pipelines"
+              wizard={wizard}
+              order={nextIdx()}
+              render={({ innerRef }) => <Pipelines ref={innerRef} appsPipelines={appPipelines} />}
+            />
+          </>
+        )}
+      />
     );
   }
 }
