@@ -88,7 +88,7 @@ class AwsDeployStagePreProcessor implements DeployStagePreProcessor {
       )
     }
 
-    def unpinServerGroupStage = buildUnpinServerGroupStage(stageData)
+    def unpinServerGroupStage = buildUnpinServerGroupStage(stageData, false)
     if (unpinServerGroupStage) {
       stageDefinitions << unpinServerGroupStage
     }
@@ -101,7 +101,7 @@ class AwsDeployStagePreProcessor implements DeployStagePreProcessor {
     def stageData = stage.mapTo(StageData)
     def stageDefinitions = []
 
-    def unpinServerGroupStage = buildUnpinServerGroupStage(stageData)
+    def unpinServerGroupStage = buildUnpinServerGroupStage(stageData, true)
     if (unpinServerGroupStage) {
       stageDefinitions << unpinServerGroupStage
     }
@@ -140,8 +140,13 @@ class AwsDeployStagePreProcessor implements DeployStagePreProcessor {
     return baseContext
   }
 
-  private StageDefinition buildUnpinServerGroupStage(StageData stageData) {
+  private StageDefinition buildUnpinServerGroupStage(StageData stageData, boolean deployFailed) {
     if (!shouldPinSourceServerGroup(stageData.strategy)) {
+      return null;
+    }
+
+    if (stageData.scaleDown && !deployFailed) {
+      // source server group has been scaled down, no need to unpin if deploy was successful
       return null;
     }
 

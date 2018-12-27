@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies
 
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.DisableClusterStage
+import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.ScaleDownClusterStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.ResizeServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.DetermineTargetServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
@@ -56,6 +57,9 @@ class RollingRedBlackStrategy implements Strategy, ApplicationContextAware {
 
   @Autowired
   TargetServerGroupResolver targetServerGroupResolver
+
+  @Autowired
+  ScaleDownClusterStage scaleDownClusterStage
 
   @Override
   List<Stage> composeFlow(Stage stage) {
@@ -152,6 +156,22 @@ class RollingRedBlackStrategy implements Strategy, ApplicationContextAware {
         SyntheticStageOwner.STAGE_AFTER
       )
     })
+
+    if (stageData.scaleDown) {
+      def scaleDown = baseContext + [
+        allowScaleDownActive         : false,
+        remainingFullSizeServerGroups: 1,
+        preferLargerOverNewer        : false
+      ]
+      stages << newStage(
+        stage.execution,
+        scaleDownClusterStage.type,
+        "scaleDown",
+        scaleDown,
+        stage,
+        SyntheticStageOwner.STAGE_AFTER
+      )
+    }
 
     return stages
   }
