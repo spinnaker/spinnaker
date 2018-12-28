@@ -32,6 +32,9 @@ var slack = {
   botName: '{%notifications.slack.botName%}',
   enabled: '{%notifications.slack.enabled%}' === 'true',
 };
+var sms = {
+  enabled: '{%notifications.twilio.enabled%}' === 'true',
+};
 var templatesEnabled = '{%canary.templatesEnabled%}' === 'true';
 var travisEnabled = '{%features.travis%}' === 'true';
 var timezone = '{%timezone%}';
@@ -192,9 +195,7 @@ window.spinnakerSettings = {
       enabled: true,
     },
     slack: slack,
-    sms: {
-      enabled: true,
-    },
+    sms: sms,
   },
   onDemandClusterThreshold: onDemandClusterThreshold,
   pagerDuty: {
