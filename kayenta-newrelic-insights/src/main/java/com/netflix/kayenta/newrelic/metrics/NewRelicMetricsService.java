@@ -81,10 +81,11 @@ public class NewRelicMetricsService implements MetricsService {
     // Example for a query produced by this class:
     // SELECT count(*) FROM Transaction TIMESERIES MAX SINCE 1540382125 UNTIL 1540392125
     // WHERE appName LIKE 'PROD - Service' AND httpResponseCode >= '500'
-    StringBuilder query = new StringBuilder("SELECT ");
 
-    query.append(queryConfig.getSelect());
-    query.append(" FROM Transaction TIMESERIES ");
+    // we expect the full select statement to be in the config
+    StringBuilder query = new StringBuilder(queryConfig.getSelect());
+    query.append(" TIMESERIES ");
+
     if (newRelicCanaryScope.getStep() == 0) {
       query.append("MAX");
     } else {

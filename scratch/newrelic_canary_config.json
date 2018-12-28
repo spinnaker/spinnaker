@@ -14,7 +14,7 @@
       "name": "Apdex",
       "query": {
         "type": "newrelic",
-        "select": "apdex(duration, 0.2)"
+        "select": "SELECT apdex(duration, 0.2) FROM Transaction"
       },
       "groups": [
         "apdex"
@@ -58,7 +58,7 @@
       "name": "Error Rate",
       "query": {
         "type": "newrelic",
-        "select": "percentage(count(*), WHERE error IS true)"
+        "select": "SELECT percentage(count(*), WHERE error IS true) FROM Transaction"
       },
       "groups": [
         "err"
@@ -80,7 +80,7 @@
       "name": "Average Database Call Duration",
       "query": {
         "type": "newrelic",
-        "select": "average(databaseDuration*1000)"
+        "select": "SELECT average(databaseDuration*1000) FROM Transaction"
       },
       "groups": [
         "database"
