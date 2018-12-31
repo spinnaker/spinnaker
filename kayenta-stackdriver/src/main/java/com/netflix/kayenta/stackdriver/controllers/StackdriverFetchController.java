@@ -83,7 +83,7 @@ public class StackdriverFetchController {
                             @RequestParam(required = false) String startTimeIso,
                           @ApiParam(value = "An ISO format timestamp, e.g.: 2018-02-21T12:51:00Z")
                             @RequestParam(required = false) String endTimeIso,
-                          @ApiParam(defaultValue = "60", value = "seconds") @RequestParam Long step,
+                          @ApiParam(example = "60", value = "seconds") @RequestParam Long step,
                           @RequestParam(required = false) final String customFilter,
                           @ApiParam @RequestBody final Map<String, String> extendedScopeParams,
                           @ApiParam(defaultValue = "false")
