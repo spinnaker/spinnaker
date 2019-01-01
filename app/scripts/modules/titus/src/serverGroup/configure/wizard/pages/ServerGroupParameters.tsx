@@ -1,11 +1,10 @@
 import * as React from 'react';
-import { Field } from 'formik';
+import { Field, FormikProps } from 'formik';
 import Select, { Option } from 'react-select';
 
 import {
-  IWizardPageProps,
-  wizardPage,
   HelpField,
+  IWizardPageComponent,
   AccountTag,
   MapEditor,
   PlatformHealthOverride,
@@ -14,8 +13,9 @@ import {
 
 import { ITitusServerGroupCommand, Constraint } from '../../../configure/serverGroupConfiguration.service';
 
-export interface IServerGroupParametersProps extends IWizardPageProps<ITitusServerGroupCommand> {
+export interface IServerGroupParametersProps {
   app: Application;
+  formik: FormikProps<ITitusServerGroupCommand>;
 }
 
 export interface IServerGroupParametersState {
@@ -34,9 +34,8 @@ const migrationPolicyOptions = [
   { label: 'Self Managed', value: 'selfManaged' },
 ];
 
-class ServerGroupParametersImpl extends React.Component<IServerGroupParametersProps, IServerGroupParametersState> {
-  public static LABEL = 'Advanced Settings';
-
+export class ServerGroupParameters extends React.Component<IServerGroupParametersProps, IServerGroupParametersState>
+  implements IWizardPageComponent<ITitusServerGroupCommand> {
   private duplicateKeys: { [name: string]: boolean } = {};
 
   constructor(props: IServerGroupParametersProps) {
@@ -211,5 +210,3 @@ class ServerGroupParametersImpl extends React.Component<IServerGroupParametersPr
     );
   }
 }
-
-export const ServerGroupParameters = wizardPage(ServerGroupParametersImpl);

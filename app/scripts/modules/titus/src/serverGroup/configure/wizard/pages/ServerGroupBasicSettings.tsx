@@ -1,16 +1,15 @@
 import * as React from 'react';
-import { Field, FormikErrors } from 'formik';
+import { Field, FormikErrors, FormikProps } from 'formik';
 
 import {
   DeploymentStrategySelector,
   HelpField,
-  IWizardPageProps,
-  wizardPage,
   NameUtils,
   RegionSelectField,
   Application,
   ReactInjector,
   IServerGroup,
+  IWizardPageComponent,
   AccountSelectInput,
   AccountTag,
 } from '@spinnaker/core';
@@ -25,8 +24,9 @@ const isStackPattern = (stack: string) =>
 const isDetailPattern = (detail: string) =>
   isNotExpressionLanguage(detail) ? /^([a-zA-Z_0-9._$-{}\\\^~]*(\${.+})*)*$/.test(detail) : true;
 
-export interface IServerGroupBasicSettingsProps extends IWizardPageProps<ITitusServerGroupCommand> {
+export interface IServerGroupBasicSettingsProps {
   app: Application;
+  formik: FormikProps<ITitusServerGroupCommand>;
 }
 
 export interface IServerGroupBasicSettingsState {
@@ -36,12 +36,9 @@ export interface IServerGroupBasicSettingsState {
   showPreviewAsWarning: boolean;
 }
 
-class ServerGroupBasicSettingsImpl extends React.Component<
-  IServerGroupBasicSettingsProps,
-  IServerGroupBasicSettingsState
-> {
-  public static LABEL = 'Basic Settings';
-
+export class ServerGroupBasicSettings
+  extends React.Component<IServerGroupBasicSettingsProps, IServerGroupBasicSettingsState>
+  implements IWizardPageComponent<ITitusServerGroupCommand> {
   constructor(props: IServerGroupBasicSettingsProps) {
     super(props);
 
@@ -333,5 +330,3 @@ class ServerGroupBasicSettingsImpl extends React.Component<
     );
   }
 }
-
-export const ServerGroupBasicSettings = wizardPage(ServerGroupBasicSettingsImpl);
