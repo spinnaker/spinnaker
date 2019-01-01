@@ -1,10 +1,10 @@
 import * as React from 'react';
-import { FormikErrors, FormikValues } from 'formik';
 
 import {
   Application,
   TaskMonitor,
   WizardModal,
+  WizardPage,
   IModalComponentProps,
   noop,
   ReactModal,
@@ -68,11 +68,6 @@ export class ManifestWizard extends React.Component<IKubernetesManifestModalProp
     this.state.taskMonitor.submit(submitMethod);
   };
 
-  private validate = (_values: FormikValues): FormikErrors<IKubernetesManifestCommandData> => {
-    const errors = {} as FormikErrors<IKubernetesManifestCommandData>;
-    return errors;
-  };
-
   public render() {
     const { application, dismissModal, isNew } = this.props;
     const { loaded, taskMonitor, command } = this.state;
@@ -86,11 +81,24 @@ export class ManifestWizard extends React.Component<IKubernetesManifestModalProp
         dismissModal={dismissModal}
         closeModal={this.submit}
         submitButtonLabel={isNew ? 'Create' : 'Edit'}
-        validate={this.validate}
-      >
-        <ManifestBasicSettings done={true} app={application} />
-        <ManifestEntry done={true} app={application} />
-      </WizardModal>
+        render={({ formik, nextIdx, wizard }) => (
+          <>
+            <WizardPage
+              label="Basic Settings"
+              wizard={wizard}
+              order={nextIdx()}
+              render={({ innerRef }) => <ManifestBasicSettings ref={innerRef} formik={formik} app={application} />}
+            />
+
+            <WizardPage
+              label="Manifest"
+              wizard={wizard}
+              order={nextIdx()}
+              render={({ innerRef }) => <ManifestEntry ref={innerRef} formik={formik} app={application} />}
+            />
+          </>
+        )}
+      />
     );
   }
 }

@@ -1,23 +1,22 @@
 import * as React from 'react';
-import { FormikErrors } from 'formik';
+import { FormikProps } from 'formik';
 import { dump } from 'js-yaml';
 
-import { IWizardPageProps, wizardPage, Application } from '@spinnaker/core';
+import { Application } from '@spinnaker/core';
 
 import { YamlEditor } from 'kubernetes/v2/manifest/editor/yaml/YamlEditor';
 import { IKubernetesManifestCommandData } from 'kubernetes/v2/manifest/manifestCommandBuilder.service';
 
-export interface IManifestBasicSettingsProps extends IWizardPageProps<IKubernetesManifestCommandData> {
+export interface IManifestBasicSettingsProps {
   app: Application;
+  formik: FormikProps<IKubernetesManifestCommandData>;
 }
 
 export interface IManifestBasicSettingsState {
   rawManifest: string;
 }
 
-class ManifestEntryImpl extends React.Component<IManifestBasicSettingsProps, IManifestBasicSettingsState> {
-  public static LABEL = 'Manifest';
-
+export class ManifestEntry extends React.Component<IManifestBasicSettingsProps, IManifestBasicSettingsState> {
   constructor(props: IManifestBasicSettingsProps) {
     super(props);
 
@@ -33,18 +32,8 @@ class ManifestEntryImpl extends React.Component<IManifestBasicSettingsProps, IMa
     }
   }
 
-  public validate = (_values: IKubernetesManifestCommandData) => {
-    return {} as FormikErrors<IKubernetesManifestCommandData>;
-  };
-
   private handleChange = (rawManifest: string, manifest: any) => {
-    const { values } = this.props.formik;
-    if (!values.command.manifests) {
-      values.command.manifests = [];
-    }
-    if (manifest) {
-      values.command.manifests = Array.isArray(manifest) ? manifest : [manifest];
-    }
+    this.props.formik.setFieldValue('command.manifests', [].concat(manifest).filter(x => !!x));
     this.setState({ rawManifest });
   };
 
@@ -52,5 +41,3 @@ class ManifestEntryImpl extends React.Component<IManifestBasicSettingsProps, IMa
     return <YamlEditor value={this.state.rawManifest} onChange={this.handleChange} />;
   }
 }
-
-export const ManifestEntry = wizardPage(ManifestEntryImpl);
