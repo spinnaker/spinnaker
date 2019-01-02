@@ -1,12 +1,12 @@
 package cmd
 
 import (
-	"github.com/spinnaker/spin/cmd/pipeline-template"
 	"io"
 
 	"github.com/spf13/cobra"
 	"github.com/spinnaker/spin/cmd/application"
 	"github.com/spinnaker/spin/cmd/pipeline"
+	"github.com/spinnaker/spin/cmd/pipeline-template"
 	"github.com/spinnaker/spin/version"
 )
 
@@ -28,9 +28,9 @@ func NewCmdRoot(out io.Writer) *cobra.Command {
 	options := RootOptions{}
 
 	cmd := &cobra.Command{
-		SilenceUsage: true,
+		SilenceUsage:  true,
 		SilenceErrors: true,
-		Version:      version.String(),
+		Version:       version.String(),
 	}
 
 	cmd.PersistentFlags().StringVar(&options.configFile, "config", "", "path to config file (default $HOME/.spin/config)")

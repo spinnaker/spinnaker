@@ -31,19 +31,20 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/spinnaker/spin/config"
+	iap "github.com/spinnaker/spin/config/auth/iap"
+	"github.com/spinnaker/spin/util"
+	"github.com/spinnaker/spin/version"
+
 	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/pflag"
 	"gopkg.in/yaml.v2"
 
-	"github.com/spinnaker/spin/util"
-
-
-	"github.com/spinnaker/spin/config"
-	gate "github.com/spinnaker/spin/gateapi"
-	"github.com/spinnaker/spin/version"
-	"golang.org/x/oauth2"
-	"encoding/base64"
 	"crypto/sha256"
+	"encoding/base64"
+
+	gate "github.com/spinnaker/spin/gateapi"
+	"golang.org/x/oauth2"
 )
 
 // GatewayClient is the wrapper with authentication
@@ -71,7 +72,6 @@ type GatewayClient struct {
 
 	// Raw Http Client to do OAuth2 login.
 	httpClient *http.Client
-
 }
 
 func (m *GatewayClient) GateEndpoint() string {
@@ -254,6 +254,10 @@ func (m *GatewayClient) initializeClient() (*http.Client, error) {
 			// Misconfigured.
 			return nil, errors.New("Incorrect x509 auth configuration.\nMust specify certPath/keyPath or cert/key pair.")
 		}
+	} else if auth != nil && auth.Enabled && auth.Iap != nil {
+		accessToken, err := m.authenticateIAP()
+		m.Context = context.WithValue(context.Background(), gate.ContextAccessToken, accessToken)
+		return &client, err
 	} else if auth != nil && auth.Enabled && auth.Basic != nil {
 		if !auth.Basic.IsValid() {
 			return nil, errors.New("Incorrect Basic auth configuration. Must include username and password.")
@@ -350,6 +354,13 @@ func (m *GatewayClient) authenticateOAuth2() error {
 		m.Context = context.Background()
 	}
 	return nil
+}
+
+func (m *GatewayClient) authenticateIAP() (string, error) {
+	auth := m.Config.Auth
+	iapConfig := auth.Iap
+	token, err := iap.GetIapToken(*iapConfig)
+	return token, err
 }
 
 func (m *GatewayClient) login(accessToken string) error {

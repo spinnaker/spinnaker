@@ -35,3 +35,9 @@ auth:
     scopes:
     - scope1
     - scope2
+
+  iap:
+    # check detailed config in https://cloud.google.com/iap/docs/authentication-howto#authenticating_from_a_desktop_app
+    oauthClientId: "xxxx-xxxx.apps.googleusercontent.com"
+    oauthClientSecret: "oauth client secret"
+    iapClientId: "yyyy-yyyy.apps.googleusercontent.com"
