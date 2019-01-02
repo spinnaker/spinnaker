@@ -222,12 +222,14 @@ public class ProjectClustersService {
     public String stack;
     public String detail;
     public List<ApplicationClusterModel> applications;
+    public ServerGroup.InstanceCounts instanceCounts;
 
     public ClusterModel(String account, String stack, String detail, List<ApplicationClusterModel> applications) {
       this.account = account;
       this.stack = stack;
       this.detail = detail;
       this.applications = applications;
+      this.instanceCounts = getInstanceCounts();
     }
 
     ServerGroup.InstanceCounts getInstanceCounts() {

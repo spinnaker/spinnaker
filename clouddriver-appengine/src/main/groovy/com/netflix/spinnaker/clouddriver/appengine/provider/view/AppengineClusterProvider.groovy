@@ -98,12 +98,12 @@ class AppengineClusterProvider implements ClusterProvider<AppengineCluster> {
 
   @Override
   Map<String, Set<AppengineCluster>> getClusterSummaries(String applicationName) {
-    translateClusters(getClusterData(applicationName), false)?.groupBy { it.accountName } as Map<String, Set<AppengineCluster>>
+    translateClusters(getClusterData(applicationName), false)?.groupBy { it.accountName }.collectEntries { k, v -> [k, new HashSet<>(v)] }
   }
 
   @Override
   Map<String, Set<AppengineCluster>> getClusterDetails(String applicationName) {
-    translateClusters(getClusterData(applicationName), true)?.groupBy { it.accountName } as Map<String, Set<AppengineCluster>>
+    translateClusters(getClusterData(applicationName), true)?.groupBy { it.accountName }.collectEntries { k, v -> [k, new HashSet<>(v)] }
   }
 
   Set<CacheData> getClusterData(String applicationName) {

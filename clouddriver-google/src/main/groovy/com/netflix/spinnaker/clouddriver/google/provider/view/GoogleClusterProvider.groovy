@@ -68,12 +68,12 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster.View> {
 
   @Override
   Map<String, Set<GoogleCluster.View>> getClusterDetails(String applicationName) {
-    getClusters(applicationName, true /* detailed */)
+    getClusters(applicationName, true /* detailed */).collectEntries { k, v -> [k, new HashSet<>(v)] }
   }
 
   @Override
   Map<String, Set<GoogleCluster.View>> getClusterSummaries(String applicationName) {
-    getClusters(applicationName, false /* detailed */)
+    getClusters(applicationName, false /* detailed */).collectEntries { k, v -> [k, new HashSet<>(v)] }
   }
 
   Map<String, Set<GoogleCluster.View>> getClusters(String applicationName, boolean includeInstanceDetails) {
