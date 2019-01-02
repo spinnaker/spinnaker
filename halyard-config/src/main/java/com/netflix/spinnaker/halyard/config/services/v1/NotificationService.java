@@ -25,6 +25,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Notification;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Notifications;
 import com.netflix.spinnaker.halyard.config.model.v1.notifications.SlackNotification;
+import com.netflix.spinnaker.halyard.config.model.v1.notifications.TwilioNotification;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
@@ -82,6 +83,9 @@ public class NotificationService {
     switch (notification.getNotificationType()) {
       case SLACK:
         notifications.setSlack((SlackNotification) notification);
+        break;
+      case TWILIO:
+        notifications.setTwilio((TwilioNotification) notification);
         break;
       default:
         throw new IllegalArgumentException("Unknown notification type " + notification.getNotificationType());

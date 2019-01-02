@@ -210,6 +210,10 @@
  * [**hal config notification slack disable**](#hal-config-notification-slack-disable)
  * [**hal config notification slack edit**](#hal-config-notification-slack-edit)
  * [**hal config notification slack enable**](#hal-config-notification-slack-enable)
+ * [**hal config notification twilio**](#hal-config-notification-twilio)
+ * [**hal config notification twilio disable**](#hal-config-notification-twilio-disable)
+ * [**hal config notification twilio edit**](#hal-config-notification-twilio-edit)
+ * [**hal config notification twilio enable**](#hal-config-notification-twilio-enable)
  * [**hal config provider**](#hal-config-provider)
  * [**hal config provider appengine**](#hal-config-provider-appengine)
  * [**hal config provider appengine account**](#hal-config-provider-appengine-account)
@@ -3969,6 +3973,7 @@ hal config notification [parameters] [subcommands]
 
 #### Subcommands
  * `slack`: Manage and view Spinnaker configuration for the slack notification
+ * `twilio`: Manage and view Spinnaker configuration for the Twilio SMS notification
 
 ---
 ## hal config notification slack
@@ -4029,6 +4034,73 @@ Set the slack notification as enabled
 #### Usage
 ```
 hal config notification slack enable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config notification twilio
+
+Manage and view Spinnaker configuration for the Twilio SMS notification
+
+#### Usage
+```
+hal config notification twilio [parameters] [subcommands]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `disable`: Set the Twilio SMS notification as disabled
+ * `edit`: Edit the Twilio SMS notification type
+ * `enable`: Set the Twilio SMS notification as enabled
+
+---
+## hal config notification twilio disable
+
+Set the Twilio SMS notification as disabled
+
+#### Usage
+```
+hal config notification twilio disable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config notification twilio edit
+
+Edit the Twilio SMS notification type
+
+#### Usage
+```
+hal config notification twilio edit [parameters]
+```
+
+#### Parameters
+ * `--account`: Your Twilio account SID.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--from`: The phone number from which the SMS will be sent (i.e. +1234-567-8910).
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--token`: (*Sensitive data* - user will be prompted on standard input) Your Twilio auth token.
+
+
+---
+## hal config notification twilio enable
+
+Set the Twilio SMS notification as enabled
+
+#### Usage
+```
+hal config notification twilio enable [parameters]
 ```
 
 #### Parameters

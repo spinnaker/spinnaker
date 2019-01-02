@@ -39,7 +39,8 @@ public abstract class Notification extends Node implements Cloneable {
   }
 
   public enum NotificationType {
-    SLACK("slack");
+    SLACK("slack"),
+    TWILIO("twilio");
 
     private final String name;
 
