@@ -28,6 +28,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
 
+import static java.net.HttpURLConnection.HTTP_FORBIDDEN
+
 @Component
 @Slf4j
 // TODO: This should all be made less AWS-specific.
@@ -87,6 +89,11 @@ class DetermineSourceServerGroupTask implements RetryableTask {
       attempt: (stage.context.attempt ?: 1) + 1,
       consecutiveNotFound: isNotFound ? (stage.context.consecutiveNotFound ?: 0) + 1 : 0
     ]
+
+    if (lastException instanceof RetrofitError && lastException.response?.status == HTTP_FORBIDDEN) {
+      // short-circuit on a 403 and allow the `RetrofitExceptionHandler` to handle and propagate any error messages
+      throw lastException;
+    }
 
     if (ctx.consecutiveNotFound >= MIN_CONSECUTIVE_404 && preferSourceCapacity(stage)) {
       if (!stage.context.capacity) {
