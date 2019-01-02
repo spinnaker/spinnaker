@@ -3973,7 +3973,7 @@ hal config notification [parameters] [subcommands]
 
 #### Subcommands
  * `slack`: Manage and view Spinnaker configuration for the slack notification
- * `twilio`: Manage and view Spinnaker configuration for the Twilio SMS notification
+ * `twilio`: Manage and view Spinnaker configuration for the twilio notification
 
 ---
 ## hal config notification slack
@@ -4044,7 +4044,7 @@ hal config notification slack enable [parameters]
 ---
 ## hal config notification twilio
 
-Manage and view Spinnaker configuration for the Twilio SMS notification
+Manage and view Spinnaker configuration for the twilio notification
 
 #### Usage
 ```
@@ -4056,14 +4056,14 @@ hal config notification twilio [parameters] [subcommands]
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 #### Subcommands
- * `disable`: Set the Twilio SMS notification as disabled
- * `edit`: Edit the Twilio SMS notification type
- * `enable`: Set the Twilio SMS notification as enabled
+ * `disable`: Set the twilio notification as disabled
+ * `edit`: Edit the twilio notification type
+ * `enable`: Set the twilio notification as enabled
 
 ---
 ## hal config notification twilio disable
 
-Set the Twilio SMS notification as disabled
+Set the twilio notification as disabled
 
 #### Usage
 ```
@@ -4078,7 +4078,7 @@ hal config notification twilio disable [parameters]
 ---
 ## hal config notification twilio edit
 
-Edit the Twilio SMS notification type
+Edit the twilio notification type
 
 #### Usage
 ```
@@ -4096,7 +4096,7 @@ hal config notification twilio edit [parameters]
 ---
 ## hal config notification twilio enable
 
-Set the Twilio SMS notification as enabled
+Set the twilio notification as enabled
 
 #### Usage
 ```
