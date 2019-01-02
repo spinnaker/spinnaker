@@ -165,8 +165,7 @@ class TaskController {
   @RequestMapping(value = "/tasks/{id}/cancel", method = RequestMethod.PUT)
   @ResponseStatus(HttpStatus.ACCEPTED)
   void cancelTask(@PathVariable String id) {
-    executionRepository.cancel(ORCHESTRATION, id, AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"), null)
-    executionRepository.updateStatus(ORCHESTRATION, id, ExecutionStatus.CANCELED)
+    cancelExecution(ORCHESTRATION, id)
   }
 
   @PreFilter("hasPermission(this.getOrchestration(filterObject)?.application, 'APPLICATION', 'WRITE')")
@@ -174,8 +173,7 @@ class TaskController {
   @ResponseStatus(HttpStatus.ACCEPTED)
   void cancelTasks(@RequestBody List<String> taskIds) {
     taskIds.each {
-      executionRepository.cancel(ORCHESTRATION, it, AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"), null)
-      executionRepository.updateStatus(ORCHESTRATION, it, ExecutionStatus.CANCELED)
+      cancelExecution(ORCHESTRATION, it)
     }
   }
 
@@ -406,14 +404,7 @@ class TaskController {
   void cancel(
     @PathVariable String id, @RequestParam(required = false) String reason,
     @RequestParam(defaultValue = "false") boolean force) {
-    executionRepository.retrieve(PIPELINE, id).with { pipeline ->
-      executionRunner.cancel(
-        pipeline,
-        AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"),
-        reason
-      )
-    }
-    executionRepository.updateStatus(PIPELINE, id, ExecutionStatus.CANCELED)
+    cancelExecution(PIPELINE, id, reason)
   }
 
   @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'WRITE')")
@@ -554,6 +545,21 @@ class TaskController {
     }
 
     return filterPipelinesByHistoryCutoff(allPipelines, limit)
+  }
+
+  private void cancelExecution(ExecutionType executionType, String id) {
+    cancelExecution(executionType, id, null)
+  }
+
+  private void cancelExecution(ExecutionType executionType, String id, String reason) {
+    executionRepository.retrieve(executionType, id).with { execution ->
+      executionRunner.cancel(
+              execution,
+              AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"),
+              reason
+      )
+    }
+    executionRepository.updateStatus(executionType, id, ExecutionStatus.CANCELED)
   }
 
   private static void validateSearchForPipelinesByTriggerParameters(long triggerTimeStartBoundary, long triggerTimeEndBoundary, int startIndex, int size) {

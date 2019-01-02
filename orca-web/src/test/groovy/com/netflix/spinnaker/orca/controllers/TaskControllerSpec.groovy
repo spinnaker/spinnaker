@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.controllers
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.collect.Collections2
 import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.ExecutionRunner
@@ -84,6 +85,9 @@ class TaskControllerSpec extends Specification {
   }
 
   void 'should cancel a list of tasks by id'() {
+    given:
+    def orc1 = Stub(Execution)
+    def orc2 = Stub(Execution)
     when:
     def response = mockMvc.perform(
       put('/tasks/cancel').contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(["id1", "id2"]))
@@ -91,8 +95,13 @@ class TaskControllerSpec extends Specification {
 
     then:
     response.andExpect(status().isAccepted())
-    1 * executionRepository.cancel(ORCHESTRATION, 'id2', _, null)
-    1 * executionRepository.cancel(ORCHESTRATION, 'id1', _, null)
+    1 * executionRepository.retrieve(ORCHESTRATION, 'id2') >> orc2
+    1 * executionRunner.cancel(orc2, 'anonymous', null)
+    1 * executionRepository.updateStatus(ORCHESTRATION, 'id2', ExecutionStatus.CANCELED)
+    1 * executionRepository.retrieve(ORCHESTRATION, 'id1') >> orc1
+    1 * executionRunner.cancel(orc1, 'anonymous', null)
+    1 * executionRepository.updateStatus(ORCHESTRATION, 'id1', ExecutionStatus.CANCELED)
+    0 * _
   }
 
   void 'step names are properly translated'() {
