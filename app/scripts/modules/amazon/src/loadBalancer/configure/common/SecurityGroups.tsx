@@ -119,7 +119,7 @@ class SecurityGroupsImpl extends React.Component<ISecurityGroupsProps, ISecurity
           if (matches.length) {
             existingNames.push(matches[0].name);
           } else {
-            if (defaultSecurityGroups.includes(securityGroup)) {
+            if (!defaultSecurityGroups.includes(securityGroup)) {
               newRemoved.push(securityGroup);
             }
           }
