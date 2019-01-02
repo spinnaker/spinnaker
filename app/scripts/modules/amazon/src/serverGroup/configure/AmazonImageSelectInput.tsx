@@ -43,7 +43,7 @@ export class AmazonImageSelectInput extends React.Component<IAmazonImageSelector
   private props$ = new Subject<IAmazonImageSelectorProps>();
   private searchInput$ = new Subject<string>();
   private destroy$ = new Subject();
-  private sortImagesBy$ = new BehaviorSubject<sortImagesByOptions>('name');
+  private sortImagesBy$ = new BehaviorSubject<sortImagesByOptions>('ts');
 
   public static makeFakeImage(imageName: string, imageId: string, region: string): IAmazonImage {
     if (!imageName && !imageId) {
@@ -52,7 +52,7 @@ export class AmazonImageSelectInput extends React.Component<IAmazonImageSelector
 
     // assume that the specific image exists in the selected region
     const amis = { [region]: [imageId] };
-    const attributes = { virtualizationType: '*' };
+    const attributes = { virtualizationType: '*', creationDate: new Date().toISOString() };
 
     return { imageName, amis, attributes } as IAmazonImage;
   }
@@ -216,15 +216,20 @@ export class AmazonImageSelectInput extends React.Component<IAmazonImageSelector
     return (
       <div
         className="sp-padding-s-xaxis sp-padding-xs-yaxis small"
-        style={{ borderBottom: '1px solid var(--color-silver)' }}
+        style={{
+          borderBottom: '1px solid var(--color-silver)',
+          position: 'sticky',
+          top: 0,
+          backgroundColor: 'var(--color-white)',
+        }}
       >
         <b>Sort by: </b>
-        <a className="clickable sp-padding-xs-xaxis" onClick={() => this.setSortImagesBy('name')}>
-          {sortImagesBy === 'name' ? <b>name (A-Z)</b> : 'name (A-Z)'}
-        </a>
-        <span> | </span>
         <a className="clickable sp-padding-xs-xaxis" onClick={() => this.setSortImagesBy('ts')}>
           {sortImagesBy === 'ts' ? <b>timestamp (newest first)</b> : 'timestamp (newest first)'}
+        </a>
+        <span> | </span>
+        <a className="clickable sp-padding-xs-xaxis" onClick={() => this.setSortImagesBy('name')}>
+          {sortImagesBy === 'name' ? <b>name (A-Z)</b> : 'name (A-Z)'}
         </a>
       </div>
     );
