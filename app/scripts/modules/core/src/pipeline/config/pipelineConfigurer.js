@@ -390,11 +390,12 @@ module.exports = angular
 
     this.savePipeline = () => {
       this.setViewState({ saving: true });
-      PipelineConfigService.savePipeline($scope.pipeline)
+      const toSave = _.cloneDeep($scope.pipeline);
+      PipelineConfigService.savePipeline(toSave)
         .then(() => $scope.application.pipelineConfigs.refresh(true))
         .then(
           () => {
-            setOriginal($scope.pipeline);
+            setOriginal(toSave);
             markDirty();
             this.setViewState({ saving: false });
           },
