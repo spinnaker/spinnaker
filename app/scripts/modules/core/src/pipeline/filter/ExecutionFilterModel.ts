@@ -136,7 +136,7 @@ export class ExecutionFilterModel {
     key = key || this.mostRecentApplication || GLOBAL_CACHE_KEY;
     const cachedApp = this.configViewStateCache.get(key) || {};
     const cachedGlobal = this.configViewStateCache.get(GLOBAL_CACHE_KEY) || {};
-    const defaults = { count: 2, groupBy: 'name', showDurations: false };
+    const defaults = { count: 2, groupBy: 'name', showDurations: true };
     this.configViewStateCache.touch(key); // prevents cache from expiring just because it hasn't been changed
     return extend(defaults, cachedApp, { showDurations: cachedGlobal.showDurations });
   }
