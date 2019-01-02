@@ -30,28 +30,13 @@ export class NextRunTag extends React.Component<INextRunTagProps, INextRunTagSta
       ) as ICronTrigger[];
       const nextTimes: number[] = [];
       crons.forEach(cron => {
-        const parts = cron.cronExpression.split(' ');
-        const hours = parts[2];
-        if (!isNaN(parseInt(hours, 10))) {
-          const allHours = hours.split('/');
-          const tz = SETTINGS.defaultTimeZone;
-          let offset = moment.tz.zone(tz).offset(Date.now());
-          if (offset) {
-            offset /= 60;
-            const start = parseInt(allHours[0], 10);
-            allHours[0] = ((start + offset) % 24).toString();
-            parts[2] = allHours.join('/');
-          }
-        }
-        const schedule = later.parse.cron(parts.join(' '), true);
-        const nextRun = later.schedule(schedule).next(1);
+        const timezoneOffsetInMs = moment.tz.zone(SETTINGS.defaultTimeZone).offset(Date.now()) * 60 * 1000;
+        const nextRun = later
+          .schedule(later.parse.cron(cron.cronExpression, true))
+          .next(1, new Date(Date.now() - timezoneOffsetInMs));
+
         if (nextRun) {
-          nextTimes.push(
-            later
-              .schedule(schedule)
-              .next(1)
-              .getTime(),
-          );
+          nextTimes.push(nextRun.getTime() + timezoneOffsetInMs);
         }
       });
       if (nextTimes.length) {
