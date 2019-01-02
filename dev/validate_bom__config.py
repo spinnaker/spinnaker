@@ -1437,7 +1437,7 @@ class MonitoringConfigurator(Configurator):
 
     Add these to the start of the script so we can monitor installation.
     """
-    version = '0.15.2'
+    version = '0.17.0'
     node_version = 'node_exporter-{0}.linux-amd64'.format(version)
     install_node_exporter = [
         'curl -s -S -L -o /tmp/node_exporter.gz'
