@@ -101,18 +101,6 @@ export class ManualJudgmentApproval extends React.Component<
             )}
             <div className="action-buttons">
               <button
-                className="btn btn-primary"
-                disabled={
-                  this.state.submitting ||
-                  stage.context.judgmentStatus ||
-                  (options.length && !this.state.judgmentInput.value)
-                }
-                onClick={this.handleContinueClick}
-              >
-                {this.isSubmitting('continue') && <ButtonBusyIndicator />}
-                {stage.context.continueButtonLabel || 'Continue'}
-              </button>
-              <button
                 className="btn btn-danger"
                 onClick={this.handleStopClick}
                 disabled={
@@ -123,6 +111,18 @@ export class ManualJudgmentApproval extends React.Component<
               >
                 {this.isSubmitting('stop') && <ButtonBusyIndicator />}
                 {stage.context.stopButtonLabel || 'Stop'}
+              </button>
+              <button
+                className="btn btn-primary"
+                disabled={
+                  this.state.submitting ||
+                  stage.context.judgmentStatus ||
+                  (options.length && !this.state.judgmentInput.value)
+                }
+                onClick={this.handleContinueClick}
+              >
+                {this.isSubmitting('continue') && <ButtonBusyIndicator />}
+                {stage.context.continueButtonLabel || 'Continue'}
               </button>
             </div>
           </div>
