@@ -75,7 +75,13 @@
         <dd>{{ipRangeRule.address}}</dd>
         <dt>Port Ranges</dt>
         <dd ng-repeat="rule in ipRangeRule.rules">
-          {{rule.protocol}}: {{rule.startPort}} &rarr; {{rule.endPort}}
+          <span ng-if="rule.protocol === '-1'">
+            All ports and protocols
+            <div ng-if="ipRangeRule.rules.length > 1"><em>Additional port ranges are specified, but redundant:</em></div>
+          </span>
+          <span ng-if="rule.protocol !== '-1'">
+            {{rule.protocol}}: {{rule.startPort}} &rarr; {{rule.endPort}}
+          </span>
         </dd>
       </dl>
     </collapsible-section>
