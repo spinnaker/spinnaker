@@ -1456,6 +1456,96 @@ paths:
           description: "Forbidden"
         404:
           description: "Not Found"
+  /projects:
+    get:
+      tags:
+      - project-controller
+      summary: Get all projects
+      operationId: allUsingGET_3
+      consumes:
+      - application/json
+      produces:
+      - '*/*'
+      parameters: []
+      responses:
+        200:
+          description: OK
+          schema:
+            type: array
+            items:
+              type: object
+              properties: {}
+        401:
+          description: Unauthorized
+        403:
+          description: Forbidden
+        404:
+          description: Not Found
+  /projects/{id}:
+    get:
+      tags:
+      - project-controller
+      summary: Get a project
+      operationId: getUsingGET_1
+      consumes:
+      - application/json
+      produces:
+      - '*/*'
+      parameters:
+      - name: id
+        in: path
+        description: id
+        required: true
+        type: string
+      responses:
+        200:
+          description: OK
+          schema:
+            type: object
+            additionalProperties:
+              type: object
+              properties: {}
+        401:
+          description: Unauthorized
+        403:
+          description: Forbidden
+        404:
+          description: Not Found
+  /projects/{id}/clusters:
+    get:
+      tags:
+      - project-controller
+      summary: Get a project's clusters
+      operationId: getClustersUsingGET_3
+      consumes:
+      - application/json
+      produces:
+      - '*/*'
+      parameters:
+      - name: id
+        in: path
+        description: id
+        required: true
+        type: string
+      - name: X-RateLimit-App
+        in: header
+        description: X-RateLimit-App
+        required: false
+        type: string
+      responses:
+        200:
+          description: OK
+          schema:
+            type: array
+            items:
+              type: object
+              properties: {}
+        401:
+          description: Unauthorized
+        403:
+          description: Forbidden
+        404:
+          description: Not Found
   /projects/{id}/pipelines:
     get:
       tags:
