@@ -109,8 +109,9 @@ class DockerMonitor extends CommonPollingMonitor<ImageDelta, DockerPollingDelta>
         List<ImageDelta> delta = []
         images.findAll { it != null }.forEach { TaggedImage image ->
             String imageId = new DockerRegistryV2Key(igorProperties.spinnaker.jedis.prefix, DockerRegistryCache.ID, account, image.repository, image.tag)
-            if (shouldUpdateCache(cachedImages, imageId, image, trackDigests)) {
-                delta.add(new ImageDelta(imageId: imageId, image: image))
+            UpdateType updateType = getUpdateType(cachedImages, imageId, image, trackDigests)
+            if (updateType.updateCache) {
+                delta.add(new ImageDelta(imageId: imageId, image: image, sendEvent: updateType.sendEvent))
             }
         }
 
@@ -119,22 +120,26 @@ class DockerMonitor extends CommonPollingMonitor<ImageDelta, DockerPollingDelta>
         return new DockerPollingDelta(items: delta, cachedImages: cachedImages)
     }
 
-    private boolean shouldUpdateCache(Set<String> cachedImages, String imageId, TaggedImage image, boolean trackDigests) {
-        boolean updateCache = false
-        if (imageId in cachedImages) {
-            if (trackDigests) {
-                String lastDigest = cache.getLastDigest(image.account, image.repository, image.tag)
-
-                if (lastDigest != image.digest) {
-                    log.info("Updated tagged image: {}: {}. Digest changed from [$lastDigest] -> [$image.digest].", kv("account", image.account), kv("image", imageId))
-                    // If either is null, there was an error retrieving the manifest in this or the previous cache cycle.
-                    updateCache = image.digest != null && lastDigest != null
-                }
-            }
-        } else {
-            updateCache = true
+    private UpdateType getUpdateType(Set<String> cachedImages, String imageId, TaggedImage image, boolean trackDigests) {
+        if (!cachedImages.contains(imageId)) {
+            // We have not seen this tag before; do a full update
+            return UpdateType.full()
         }
-        return updateCache
+
+        if (!trackDigests) {
+            // We have seen this tag before and are not tracking digests, so there is nothing to update
+            return UpdateType.none()
+        }
+
+        String lastDigest = cache.getLastDigest(image.account, image.repository, image.tag)
+        if (lastDigest == image.digest || image.digest == null) {
+            return UpdateType.none();
+        }
+
+        log.info("Updated tagged image: {}: {}. Digest changed from [$lastDigest] -> [$image.digest].", kv("account", image.account), kv("image", imageId))
+        // If the last digest was null, update the cache but don't send events as we don't actually know if the digest
+        // changed. This is to prevent triggering multiple pipelines when trackDigests is initially turned on.
+        return lastDigest == null ? UpdateType.cacheOnly() : UpdateType.full()
     }
 
     /**
@@ -147,7 +152,7 @@ class DockerMonitor extends CommonPollingMonitor<ImageDelta, DockerPollingDelta>
             if (item != null) {
                 cache.setLastDigest(item.image.account, item.image.repository, item.image.tag, item.image.digest)
                 log.info("New tagged image: {}, {}. Digest is now [$item.image.digest].", kv("account", item.image.account), kv("image", item.imageId))
-                if (sendEvents) {
+                if (sendEvents && item.sendEvent) {
                     postEvent(delta.cachedImages, item.image, item.imageId)
                 } else {
                     registry.counter(missedNotificationId.withTags("monitor", getClass().simpleName, "reason", "fastForward")).increment()
@@ -202,5 +207,28 @@ class DockerMonitor extends CommonPollingMonitor<ImageDelta, DockerPollingDelta>
     private static class ImageDelta implements DeltaItem {
         String imageId
         TaggedImage image
+        boolean sendEvent = true
+    }
+
+    private static class UpdateType {
+        final boolean updateCache
+        final boolean sendEvent
+
+        private UpdateType(boolean updateCache, boolean sendEvent) {
+            this.updateCache = updateCache
+            this.sendEvent = sendEvent
+        }
+
+        static UpdateType full() {
+            return new UpdateType(true, true);
+        }
+
+        static UpdateType cacheOnly() {
+            return new UpdateType(true, false)
+        }
+
+        static UpdateType none() {
+            return new UpdateType(false, false)
+        }
     }
 }

@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.igor.docker
 
+import com.netflix.discovery.DiscoveryClient
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.igor.IgorConfigurationProperties
 import com.netflix.spinnaker.igor.config.DockerRegistryProperties
@@ -24,6 +25,7 @@ import com.netflix.spinnaker.igor.docker.model.DockerRegistryAccounts
 import com.netflix.spinnaker.igor.docker.service.TaggedImage
 import com.netflix.spinnaker.igor.history.EchoService
 import com.netflix.spinnaker.igor.history.model.DockerEvent
+import com.netflix.spinnaker.igor.polling.LockService
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -31,11 +33,12 @@ class DockerMonitorSpec extends Specification {
 
     def properties = new IgorConfigurationProperties()
     def registry = new NoopRegistry()
-    def discoveryClient = Optional.empty()
-    def lockService = Optional.empty()
+    Optional<DiscoveryClient> discoveryClient = Optional.empty()
+    Optional<LockService> lockService = Optional.empty()
     def dockerRegistryCache = Mock(DockerRegistryCache)
     def dockerRegistryAccounts = Mock(DockerRegistryAccounts)
     def echoService = Mock(EchoService)
+    Optional<DockerRegistryCacheV2KeysMigration> keysMigration = Optional.empty()
     def dockerRegistryProperties = new DockerRegistryProperties(enabled: true, itemUpperThreshold: 5)
 
     @Unroll
@@ -64,8 +67,7 @@ class DockerMonitorSpec extends Specification {
         })
 
         when: "should short circuit if `echoService` is not available"
-        new DockerMonitor(properties, registry, discoveryClient, lockService, dockerRegistryCache, dockerRegistryAccounts, Optional.empty(), Optional.empty(), dockerRegistryProperties)
-            .postEvent(["imageId"] as Set, taggedImage, "imageId")
+        createSubject().postEvent(["imageId"] as Set, taggedImage, "imageId")
 
         then:
         notThrown(NullPointerException)
@@ -89,8 +91,7 @@ class DockerMonitorSpec extends Specification {
         )
 
         when:
-        new DockerMonitor(properties, registry, discoveryClient, lockService, dockerRegistryCache, dockerRegistryAccounts, Optional.of(echoService), Optional.empty(), dockerRegistryProperties)
-            .postEvent(["job1"] as Set, taggedImage, "imageId")
+        createSubject().postEvent(["job1"] as Set, taggedImage, "imageId")
 
         then:
         1 * echoService.postEvent({ DockerEvent event ->
@@ -114,17 +115,25 @@ class DockerMonitorSpec extends Specification {
         ]
 
         when:
-        def result = subject.shouldUpdateCache(cachedImages, keyFromTaggedImage(taggedImage), taggedImage, trackDigest)
+        def taggedImage = new TaggedImage(tag: tag, account: "account", registry: "registry", repository: "repository", digest: digest)
+        def result = subject.getUpdateType(cachedImages, keyFromTaggedImage(taggedImage), taggedImage, trackDigest)
 
         then:
-        dockerRegistryCache.getLastDigest(_, _, _) >> { "digest" }
-        assert result == updateCache
+        dockerRegistryCache.getLastDigest(_, _, _) >> cachedDigest
+        assert result.updateCache == updateCache
+        assert result.sendEvent == sendEvent
 
         where:
-        taggedImage                                                                                                        | trackDigest || updateCache
-        new TaggedImage(tag: "tag", account: "account", registry: "registry", repository: "repository", digest: "digest")  | false       || false
-        new TaggedImage(tag: "new", account: "account", registry: "registry", repository: "repository", digest: "digest")  | false       || true
-        new TaggedImage(tag: "tag", account: "account", registry: "registry", repository: "repository", digest: "digest2") | true        || true
+        tag   | digest    | cachedDigest | trackDigest || updateCache | sendEvent
+        "tag" | "digest"  | "digest"     | false       || false       | false
+        "new" | "digest"  | "digest"     | false       || true        | true
+        "tag" | "digest2" | "digest"     | true        || true        | true
+        "tag" | null      | "digest"     | true        || false       | false
+        "tag" | "digest"  | null         | true        || true        | false
+        "tag" | null      | null         | true        || false       | false
+        "tag" | null      | "digest"     | false       || false       | false
+        "tag" | "digest"  | null         | false       || false       | false
+        "tag" | null      | null         | false       || false       | false
     }
 
     @Unroll
@@ -154,8 +163,8 @@ class DockerMonitorSpec extends Specification {
         'partition4' | null              || null
     }
 
-    private DockerMonitor createSubject(Optional<EchoService> echoService) {
-        return new DockerMonitor(properties, registry, discoveryClient, lockService, dockerRegistryCache, dockerRegistryAccounts, echoService, Optional.empty(), dockerRegistryProperties)
+    private DockerMonitor createSubject() {
+        return new DockerMonitor(properties, registry, discoveryClient, lockService, dockerRegistryCache, dockerRegistryAccounts, Optional.of(echoService), keysMigration, dockerRegistryProperties)
     }
 
     private static String keyFromTaggedImage(TaggedImage taggedImage) {
