@@ -333,6 +333,15 @@ interface ClouddriverService {
   @PUT('/artifacts/fetch')
   Response getArtifactContent(@Body Map artifact)
 
+  @GET('/artifacts/account/{accountName}/names')
+  List<String> getArtifactNames(@Path("accountName") String accountName,
+                                @Query("type") String type)
+
+  @GET('/artifacts/account/{accountName}/versions')
+  List<String> getArtifactVersions(@Path("accountName") String accountName,
+                                   @Query("type") String type,
+                                   @Query("artifactName") String artifactName)
+
   @GET('/roles/{cloudProvider}')
   List<Map> getRoles(@Path("cloudProvider") String cloudProvider)
 

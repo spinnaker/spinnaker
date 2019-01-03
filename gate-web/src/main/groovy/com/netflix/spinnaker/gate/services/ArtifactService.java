@@ -38,7 +38,11 @@ public class ArtifactService {
   @Autowired
   private ClouddriverServiceSelector clouddriverServiceSelector;
 
-  private static HystrixCommand<List<Map>> listCommand(String type, Callable<List<Map>> work) {
+  private static HystrixCommand<List<Map>> mapListCommand(String type, Callable<List<Map>> work) {
+    return HystrixFactory.newListCommand(GROUP, type, work);
+  }
+
+  private static HystrixCommand<List<String>> stringListCommand(String type, Callable<List<String>> work) {
     return HystrixFactory.newListCommand(GROUP, type, work);
   }
 
@@ -47,12 +51,24 @@ public class ArtifactService {
   }
 
   public List<Map> getArtifactCredentials(String selectorKey) {
-    return listCommand("artifactCredentials",
-        clouddriverServiceSelector.select(selectorKey)::getArtifactCredentials)
-        .execute();
+    return mapListCommand("artifactCredentials",
+      clouddriverServiceSelector.select(selectorKey)::getArtifactCredentials)
+      .execute();
   }
 
-  public Void getArtifactContents(String selectorKey, Map<String, String> artifact, OutputStream outputStream)  {
+  public List<String> getArtifactNames(String selectorKey, String accountName, String type) {
+    return stringListCommand("artifactNames",
+      () -> clouddriverServiceSelector.select(selectorKey).getArtifactNames(accountName, type))
+      .execute();
+  }
+
+  public List<String> getArtifactVersions(String selectorKey, String accountName, String type, String artifactName) {
+    return stringListCommand("artifactVersions",
+      () -> clouddriverServiceSelector.select(selectorKey).getArtifactVersions(accountName, type, artifactName))
+      .execute();
+  }
+
+  public Void getArtifactContents(String selectorKey, Map<String, String> artifact, OutputStream outputStream) {
     return voidCommand("artifactContents", () -> {
       Response contentResponse = clouddriverServiceSelector.select(selectorKey).getArtifactContent(artifact);
       IOUtils.copy(contentResponse.getBody().in(), outputStream);

@@ -23,12 +23,9 @@ import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 @RestController
@@ -56,5 +53,26 @@ public class ArtifactController {
         outputStream.flush();
       }
     };
+  }
+
+  @ApiOperation(value = "Retrieve the list of artifact names that belong to chosen account")
+  @RequestMapping(value = "/account/{accountName}/names", method = RequestMethod.GET)
+  List<String> artifactNames(
+    @PathVariable String accountName,
+    @RequestParam String type,
+    @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp
+  ) {
+    return artifactService.getArtifactNames(sourceApp, accountName, type);
+  }
+
+  @ApiOperation(value = "Retrieve the list of artifact versions by account and artifact names")
+  @RequestMapping(value = "/account/{accountName}/versions", method = RequestMethod.GET)
+  List<String> artifactVersions(
+    @PathVariable String accountName,
+    @RequestParam String type,
+    @RequestParam String artifactName,
+    @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp
+  ) {
+    return artifactService.getArtifactVersions(sourceApp, accountName, type, artifactName);
   }
 }
