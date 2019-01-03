@@ -4,16 +4,17 @@
   .icon {
     display: inline-block;
     vertical-align: sub;
-    -webkit-filter: invert(53%) sepia(100%) hue-rotate(50deg);
-    filter: invert(53%) sepia(100%) hue-rotate(50deg);
+    mask-repeat: no-repeat;
+    mask-position: 50% 50%;
+    mask-size: cover;
+    background-color: var(--color-success);
   }
 }
 
 .disabled {
   .cloud-provider-logo {
     .icon {
-      -webkit-filter: opacity(64%);
-      filter: opacity(64%);
+      background-color: var(--color-dovegray);
     }
   }
 }
