@@ -201,11 +201,11 @@ usage: $0 [-y] [--version=<version>] [--user=<user>]
     -y                              Accept all default options during install
                                     (non-interactive mode).
 
-    --halyard-bucket <name>         The bucket the Halyard JAR to be installed
-                                    is stored in.
+    --halyard-bucket-base-url <name>   The bucket the Halyard JAR to be installed
+                                       is stored in.
 
     --download-with-gsutil          If specifying a GCS bucket using
-                                    --halyard-bucket, this flag causes the 
+                                    --halyard-bucket-base-url, this flag causes the 
                                     install script to rely on gsutil and its 
                                     authentication to fetch the Halyard JAR.
 
