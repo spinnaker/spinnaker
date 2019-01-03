@@ -36,6 +36,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion.APPS_V1BETA2;
@@ -96,7 +97,6 @@ public class KubernetesReplicaSetHandler extends KubernetesHandler implements
 
   private Status status(V1beta2ReplicaSet replicaSet) {
     Status result = new Status();
-    int desiredReplicas = replicaSet.getSpec().getReplicas();
     V1beta2ReplicaSetStatus status = replicaSet.getStatus();
     if (status == null) {
       result.unstable("No status reported yet")
@@ -109,20 +109,26 @@ public class KubernetesReplicaSetHandler extends KubernetesHandler implements
       result.unstable("Waiting for replicaset spec update to be observed");
     }
 
-    Integer existing = status.getFullyLabeledReplicas();
-    if (existing == null || desiredReplicas > existing) {
+    int desired = replicaSet.getSpec().getReplicas();
+    int fullyLabeled = Optional.ofNullable(status.getFullyLabeledReplicas()).orElse(0);
+    int available = Optional.ofNullable(status.getAvailableReplicas()).orElse(0);
+    int ready = Optional.ofNullable(status.getReadyReplicas()).orElse(0);
+
+    if (desired == 0 && fullyLabeled == 0 && available == 0 && ready == 0) {
+      return result;
+    }
+
+    if (desired > fullyLabeled) {
       return result.unstable("Waiting for all replicas to be fully-labeled")
           .unavailable("Not all replicas have become labeled yet");
     }
 
-    existing = status.getAvailableReplicas();
-    if (existing == null || desiredReplicas > existing) {
+    if (desired > available) {
       return result.unstable("Waiting for all replicas to be available")
           .unavailable("Not all replicas have become available yet");
     }
 
-    existing = status.getReadyReplicas();
-    if (existing == null || desiredReplicas > existing) {
+    if (desired > ready) {
       return result.unstable("Waiting for all replicas to be ready");
     }
 
