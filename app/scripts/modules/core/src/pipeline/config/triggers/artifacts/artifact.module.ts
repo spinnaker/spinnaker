@@ -18,6 +18,8 @@ import { BASE64_ARTIFACT } from 'core/pipeline/config/triggers/artifacts/base64/
 import { DEFAULT_BASE64_ARTIFACT } from 'core/pipeline/config/triggers/artifacts/base64/defaultBase64.artifact';
 import { S3_ARTIFACT } from 'core/pipeline/config/triggers/artifacts/s3/s3.artifact';
 import { DEFAULT_S3_ARTIFACT } from 'core/pipeline/config/triggers/artifacts/s3/defaultS3.artifact';
+import { IVY_ARTIFACT } from 'core/pipeline/config/triggers/artifacts/ivy/ivy.artifact';
+import { MAVEN_ARTIFACT } from 'core/pipeline/config/triggers/artifacts/maven/maven.artifact';
 
 export const ARTIFACT_MODULE = 'spinnaker.core.pipeline.config.trigger.artifacts';
 
@@ -32,6 +34,8 @@ module(ARTIFACT_MODULE, [
   DOCKER_ARTIFACT,
   BASE64_ARTIFACT,
   S3_ARTIFACT,
+  IVY_ARTIFACT,
+  MAVEN_ARTIFACT,
   DEFAULT_S3_ARTIFACT,
   DEFAULT_DOCKER_ARTIFACT,
   DEFAULT_GCS_ARTIFACT,

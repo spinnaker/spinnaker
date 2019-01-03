@@ -9,4 +9,6 @@ export const ArtifactTypePatterns = {
   KUBERNETES: /kubernetes\/(.*)/,
   S3_OBJECT: /s3\/object/,
   HELM_CHART: /helm\/chart/,
+  IVY_FILE: /ivy\/file/,
+  MAVEN_FILE: /maven\/file/,
 };
