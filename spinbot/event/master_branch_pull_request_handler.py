@@ -1,6 +1,6 @@
 from .handler import Handler
 from .pull_request_event import GetBaseBranch, GetPullRequest, GetTitle, GetRepo
-from gh import ReleaseBranchFor, ParseCommitMessage
+from gh import ReleaseBranchFor, ParseCommitMessage, FormatCommit
 
 format_message = ('The following commits need their title changed:\n\n{}\n\n' +
     'Please format your commit title into the form: \n\n' +
@@ -35,14 +35,14 @@ class MasterBranchPullRequestHandler(Handler):
         bad_commits = []
 
         for commit in commits:
-            commit_message = commit.commit.message 
+            commit_message = commit.commit.message
             parsed_message = ParseCommitMessage(commit_message)
             if parsed_message is None and not commit_message.startswith('Merge branch'):
                 bad_commits.append(commit.commit)
 
         if len(bad_commits) > 0:
             pull_request.create_issue_comment(format_message.format(
-                '\n\n'.join(map(lambda c: '{}: {}'.format(c.sha, c.message), bad_commits))
+                '\n\n'.join(map(lambda c: ' * {}'.format(FormatCommit(c)), bad_commits))
             ))
 
 MasterBranchPullRequestHandler()
