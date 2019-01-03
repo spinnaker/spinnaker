@@ -52,6 +52,8 @@ import java.util.stream.IntStream;
 @Slf4j
 public class ExecutionMapper {
 
+  public static final String PIPELINE_NAME = "Standard Canary Pipeline";
+
   private final StorageServiceRepository storageServiceRepository;
   private final AccountCredentialsRepository accountCredentialsRepository;
   private final ObjectMapper objectMapper;
@@ -406,7 +408,7 @@ public class ExecutionMapper {
     String canaryPipelineConfigId = application + "-standard-canary-pipeline";
     PipelineBuilder pipelineBuilder =
       new PipelineBuilder(application)
-        .withName("Standard Canary Pipeline")
+        .withName(PIPELINE_NAME)
         .withPipelineConfigId(canaryPipelineConfigId)
         .withStage("setupCanary", "Setup Canary", setupCanaryContext)
         .withStage("metricSetMixer", "Mix Control and Experiment Results", mixMetricSetsContext)

@@ -129,3 +129,4 @@ swagger:
     - /metricSetPairList.*
     - /metricServices.*
     - /pipeline.*
+    - /standalone.*

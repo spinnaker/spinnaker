@@ -17,23 +17,16 @@
 
 package com.netflix.kayenta.signalfx;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
-import com.netflix.kayenta.Main;
 import com.netflix.kayenta.canary.CanaryAdhocExecutionRequest;
 import com.netflix.kayenta.canary.CanaryClassifierThresholdsConfig;
-import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.CanaryExecutionRequest;
 import com.netflix.kayenta.canary.CanaryScope;
 import com.netflix.kayenta.canary.CanaryScopePair;
 import io.restassured.response.ValidatableResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.embedded.LocalServerPort;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -50,53 +43,34 @@ import static org.hamcrest.Matchers.*;
 /**
  * End to end integration tests
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest(
-    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-    classes = Main.class
-)
 @Slf4j
-public class EndToEndIntegrationTests {
+public class EndToEndCanaryIntegrationTests extends BaseSignalFxIntegrationTest {
 
   public static final int CANARY_WINDOW_IN_MINUTES = 1;
 
-  @Autowired
-  private ObjectMapper objectMapper = new ObjectMapper();
-
-  @Autowired
-  private String testId;
-
-  @Autowired
-  private Instant metricsReportingStartTime;
-
-  @LocalServerPort
-  protected int serverPort;
-
-  private String getUriTemplate() {
-    return "http://localhost:" + serverPort + "%s";
+  @BeforeClass
+  public static void beforeClass() {
+    System.setProperty("block.for.metrics", System.getProperty("block.for.metrics", "true"));
   }
 
   @Test
-  public void test_that_signalfx_can_be_used_as_a_data_source_for_a_canary_execution_healthy() throws IOException {
+  public void test_that_signalfx_can_be_used_as_a_data_source_for_a_canary_execution_healthy() throws IOException, InterruptedException {
     ValidatableResponse response = doCanaryExec(HEALTHY_EXPERIMENT_SCOPE_NAME);
     response.body("result.judgeResult.score.classification", is("Pass"));
   }
 
   @Test
-  public void test_that_signalfx_can_be_used_as_a_data_source_for_a_canary_execution_unhealthy() throws IOException {
+  public void test_that_signalfx_can_be_used_as_a_data_source_for_a_canary_execution_unhealthy() throws IOException, InterruptedException {
     ValidatableResponse response = doCanaryExec(UNHEALTHY_EXPERIMENT_SCOPE_NAME);
     response.body("result.judgeResult.score.classification", is("Fail"));
-    response.body("result.judgeResult.score.classificationReason", containsString("Bad Request Rate for /v1/some-endpoint"));
+    response.body("result.judgeResult.score.classificationReason", containsString("High"));
   }
 
-  private ValidatableResponse doCanaryExec(String expScope) throws IOException {
+  private ValidatableResponse doCanaryExec(String expScope) throws IOException, InterruptedException {
     // Build the Canary Adhoc Execution Request for our test
     CanaryAdhocExecutionRequest request = new CanaryAdhocExecutionRequest();
 
-    CanaryConfig canaryConfig = objectMapper.readValue(getClass().getClassLoader()
-        .getResourceAsStream("integration-test-canary-config.json"), CanaryConfig.class);
-
-    request.setCanaryConfig(canaryConfig);
+    request.setCanaryConfig(integrationTestCanaryConfig);
 
     CanaryExecutionRequest executionRequest = new CanaryExecutionRequest();
     CanaryClassifierThresholdsConfig canaryClassifierThresholdsConfig = CanaryClassifierThresholdsConfig.builder()
@@ -120,9 +94,9 @@ public class EndToEndIntegrationTests {
         .setScope(expScope)
         .setExtendedScopeParams(ImmutableMap.of(
             SCOPE_KEY_KEY, SIGNAL_FX_SCOPE_IDENTIFYING_DIMENSION_NAME,
-            "test-id", testId
+            TEST_ID, testId
         ))
-        .setLocation("us-west-2")
+        .setLocation(LOCATION)
         .setStep(1l)
         .setStart(metricsReportingStartTime)
         .setEnd(end);
@@ -137,8 +111,8 @@ public class EndToEndIntegrationTests {
     ValidatableResponse canaryExRes =
         given()
             .contentType("application/json")
-            .queryParam("metricsAccountName", "sfx-integration-test-account")
-            .queryParam("storageAccountName", "in-memory-store")
+            .queryParam(METRICS_ACCOUNT_NAME_QUERY_KEY, METRICS_ACCOUNT_NAME)
+            .queryParam(STORAGE_ACCOUNT_NAME_QUERY_KEY, STORAGE_ACCOUNT_NAME)
             .body(request)
         .when()
             .post(String.format(getUriTemplate(), "/canary"))
@@ -153,6 +127,7 @@ public class EndToEndIntegrationTests {
     do {
       response = when().get(String.format(getUriTemplate(), "/canary/" + canaryExecutionId))
           .then().statusCode(200);
+      Thread.sleep(1000);
     } while (!response.extract().body().jsonPath().getBoolean("complete"));
 
     // verify the results are as expected

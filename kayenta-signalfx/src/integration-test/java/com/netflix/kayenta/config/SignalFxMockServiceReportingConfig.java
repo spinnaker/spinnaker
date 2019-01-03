@@ -39,7 +39,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import static com.netflix.kayenta.signalfx.EndToEndIntegrationTests.CANARY_WINDOW_IN_MINUTES;
+import static com.netflix.kayenta.signalfx.EndToEndCanaryIntegrationTests.CANARY_WINDOW_IN_MINUTES;
 import static io.restassured.RestAssured.given;
 
 /**
@@ -119,14 +119,16 @@ public class SignalFxMockServiceReportingConfig {
 
     metricsReportingStartTime = Instant.now();
 
-    // Wait for the mock services to send data, before allowing the tests to run
-    try {
-      long pause = TimeUnit.MINUTES.toMillis(CANARY_WINDOW_IN_MINUTES) + TimeUnit.SECONDS.toMillis(15);
-      log.info("Waiting for {} milliseconds for mock data to flow through SignalFx, before letting the integration tests run", pause);
-      Thread.sleep(pause);
-    } catch (InterruptedException e) {
-      log.error("Failed to wait to send metrics", e);
-      throw new RuntimeException(e);
+    if (Boolean.valueOf(System.getProperty("block.for.metrics", "true"))) {
+      // Wait for the mock services to send data, before allowing the tests to run
+      try {
+        long pause = TimeUnit.MINUTES.toMillis(CANARY_WINDOW_IN_MINUTES) + TimeUnit.SECONDS.toMillis(15);
+        log.info("Waiting for {} milliseconds for mock data to flow through SignalFx, before letting the integration tests run", pause);
+        Thread.sleep(pause);
+      } catch (InterruptedException e) {
+        log.error("Failed to wait to send metrics", e);
+        throw new RuntimeException(e);
+      }
     }
   }
 

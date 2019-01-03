@@ -50,6 +50,8 @@ kayenta:
   configbin:
     enabled: false
 
+  standaloneCanaryAnalysis.enabled: true
+
 management.security.enabled: false
 
 keiko:
@@ -81,3 +83,4 @@ swagger:
   - /metricSetList.*
   - /metricSetPairList.*
   - /pipeline.*
+  - /standalone.*

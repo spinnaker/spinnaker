@@ -1,0 +1,17 @@
+dependencies {
+  compile project(":kayenta-core")
+
+  compile spinnaker.dependency('bootWeb')
+  compile spinnaker.dependency("korkSwagger")
+  compile spinnaker.dependency('lombok')
+
+  compile "com.netflix.spinnaker.orca:orca-core:$orcaVersion"
+
+  testCompile group: 'com.tngtech.java', name: 'junit-dataprovider', version: '1.13.1'
+}
+
+test {
+  testLogging {
+    events "passed", "skipped", "failed"
+  }
+}
