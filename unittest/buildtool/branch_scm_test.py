@@ -51,6 +51,7 @@ def make_default_options():
   options.command = 'test-command'
   options.git_branch = 'testing'
   options.github_hostname = 'test-githost'
+  options.github_upstream_owner = 'spinnaker'
   return options
 
 
