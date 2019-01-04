@@ -264,7 +264,9 @@ public class ProjectClustersService {
           );
           incrementInstanceCounts(serverGroup, regionCluster.instanceCounts);
 
-          JenkinsBuildInfo buildInfo = extractJenkinsBuildInfo(serverGroup.getImagesSummary().getSummaries());
+          ServerGroup.ImagesSummary imagesSummary = serverGroup.getImagesSummary();
+          List<? extends ServerGroup.ImageSummary> imageSummaries = imagesSummary == null ? new ArrayList() : imagesSummary.getSummaries();
+          JenkinsBuildInfo buildInfo = extractJenkinsBuildInfo(imageSummaries);
           Optional<DeployedBuild> existingBuild = regionCluster.builds.stream()
             .filter(b -> b.buildNumber.equals(buildInfo.number) &&
               Optional.ofNullable(b.host).equals(Optional.ofNullable(buildInfo.host)) &&
@@ -278,7 +280,7 @@ public class ProjectClustersService {
               buildInfo.name,
               buildInfo.number,
               serverGroup.getCreatedTime(),
-              getServerGroupBuildInfoImages(serverGroup.getImagesSummary().getSummaries())
+              getServerGroupBuildInfoImages(imageSummaries)
             ))
           ).accept(existingBuild);
         });

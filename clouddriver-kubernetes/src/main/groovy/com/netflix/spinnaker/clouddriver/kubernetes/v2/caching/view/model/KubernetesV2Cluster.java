@@ -38,12 +38,14 @@ public class KubernetesV2Cluster implements Cluster {
   String accountName;
   Set<ServerGroup> serverGroups = new HashSet<>();
   Set<LoadBalancer> loadBalancers = new HashSet<>();
+  String application;
 
   public KubernetesV2Cluster(String rawKey) {
     Keys.ClusterCacheKey key = (Keys.ClusterCacheKey) Keys.parseKey(rawKey).get();
     this.name = key.getName();
     this.accountName = key.getAccount();
-    this.moniker = Moniker.builder().cluster(name).build(); // TODO(lwander) if it turns out that cluster -> app is important, enforce constraints here.
+    this.application = key.getApplication();
+    this.moniker = Moniker.builder().cluster(name).app(application).build();
   }
 
   public KubernetesV2Cluster(String rawKey, List<KubernetesV2ServerGroup> serverGroups, List<KubernetesV2LoadBalancer> loadBalancers) {

@@ -371,6 +371,27 @@ public class KubernetesCacheDataConverter {
     return result;
   }
 
+  static CacheData getClusterRelationships(String account, CacheData cacheData) {
+    Moniker moniker = getMoniker(cacheData);
+
+    if (moniker == null) {
+      return null;
+    }
+
+    String cluster = moniker.getCluster();
+    String application = moniker.getApp();
+
+    if (cluster == null || application == null) {
+      return null;
+    }
+
+    Map<String, Object> attributes = new HashMap<>();
+    Map<String, Collection<String>> relationships = new HashMap<>();
+    relationships.put(CLUSTERS.toString(), Collections.singletonList(Keys.cluster(account, application, cluster)));
+    CacheData appToCluster = defaultCacheData(Keys.application(application), logicalTtlSeconds, attributes, relationships);
+    return appToCluster;
+  }
+
   static void logStratifiedCacheData(String agentType, Map<String, Collection<CacheData>> stratifiedCacheData) {
     for (Map.Entry<String, Collection<CacheData>> entry : stratifiedCacheData.entrySet()) {
       log.info(agentType + ": grouping " + entry.getKey() + " has " + entry.getValue().size() + " entries and " + relationshipCount(entry.getValue()) + " relationships");
@@ -442,7 +463,7 @@ public class KubernetesCacheDataConverter {
   /*
    * Worth noting the strange behavior here. If we are inverting a relationship to create a cache data for
    * either a cluster or an application we need to insert attributes to ensure the cache data gets entered into
-   * the cache. If we are caching anything else, we don't want competing agents to overrwrite attributes, so
+   * the cache. If we are caching anything else, we don't want competing agents to overwrite attributes, so
    * we leave them blank.
    */
   private static Optional<CacheData> invertSingleRelationship(String group, String key, String relationship) {

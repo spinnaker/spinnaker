@@ -178,6 +178,11 @@ public abstract class KubernetesV2CachingAgent extends KubernetesCachingAgent<Ku
 
     resourceData.addAll(invertedRelationships);
 
+    resourceData.addAll(resourceData.stream()
+      .map(rs -> KubernetesCacheDataConverter.getClusterRelationships(accountName, rs))
+      .filter(Objects::nonNull)
+      .collect(Collectors.toList()));
+
     Map<String, Collection<CacheData>> entries = KubernetesCacheDataConverter.stratifyCacheDataByGroup(KubernetesCacheDataConverter.dedupCacheData(resourceData));
     KubernetesCacheDataConverter.logStratifiedCacheData(getAgentType(), entries);
 
