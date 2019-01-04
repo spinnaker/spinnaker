@@ -1,22 +1,22 @@
 import { get, upperFirst } from 'lodash';
 
 import { IPipeline, IStage, IStageOrTriggerValidator, ITrigger, PipelineConfigValidator } from '@spinnaker/core';
-import { IManifestFieldValidatorConfig } from 'cloudfoundry/pipeline/config/validation/ManifestConfigValidator';
+import { IServiceFieldValidatorConfig } from 'cloudfoundry/pipeline/config/validation/ServiceFieldValidatorConfig';
 
 export class ServiceParameterJsonFieldValidator implements IStageOrTriggerValidator {
-  private static validationMessage(validationConfig: IManifestFieldValidatorConfig): string {
+  private static validationMessage(validationConfig: IServiceFieldValidatorConfig): string {
     const fieldLabel: string = ServiceParameterJsonFieldValidator.printableFieldLabel(validationConfig);
     return validationConfig.message || `<strong>${fieldLabel}</strong> should be a valid JSON string.`;
   }
 
-  private static printableFieldLabel(config: IManifestFieldValidatorConfig): string {
+  private static printableFieldLabel(config: IServiceFieldValidatorConfig): string {
     const fieldLabel: string = config.fieldLabel || config.fieldName;
     return upperFirst(fieldLabel);
   }
 
-  private static fieldIsValid(stage: IStage | ITrigger, config: IManifestFieldValidatorConfig): boolean {
-    const manifest: any = get(stage, 'manifest');
-    const content: any = get(manifest, config.fieldName);
+  private static fieldIsValid(stage: IStage | ITrigger, config: IServiceFieldValidatorConfig): boolean {
+    const serviceInput = get(stage, 'manifest');
+    const content: any = get(serviceInput, config.fieldName);
 
     if (!content) {
       return true;
@@ -33,11 +33,10 @@ export class ServiceParameterJsonFieldValidator implements IStageOrTriggerValida
   public validate(
     _pipeline: IPipeline,
     stage: IStage | ITrigger,
-    validationConfig: IManifestFieldValidatorConfig,
+    validationConfig: IServiceFieldValidatorConfig,
   ): string {
-    const manifest: any = get(stage, 'manifest');
-
-    if (manifest.type !== validationConfig.manifestType) {
+    const serviceInput: any = get(stage, 'manifest');
+    if (serviceInput.type !== validationConfig.serviceInputType) {
       return null;
     }
 

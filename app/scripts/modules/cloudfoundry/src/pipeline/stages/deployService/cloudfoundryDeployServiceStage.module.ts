@@ -4,7 +4,7 @@ import { react2angular } from 'react2angular';
 import { CloudfoundryDeployServiceStageConfig } from './CloudfoundryDeployServiceStageConfig';
 import { ExecutionDetailsTasks, IStage, Registry } from '@spinnaker/core';
 import { CloudfoundryDeployServiceExecutionDetails } from 'cloudfoundry/pipeline/stages/deployService/CloudfoundryDeployServiceExecutionDetails';
-import { IManifestFieldValidatorConfig } from 'cloudfoundry/pipeline/config/validation/ManifestConfigValidator';
+import { IServiceFieldValidatorConfig } from 'cloudfoundry/pipeline/config/validation/ServiceFieldValidatorConfig';
 
 class CloudFoundryDeployServiceStageCtrl implements IController {
   constructor(public $scope: IScope) {
@@ -12,45 +12,59 @@ class CloudFoundryDeployServiceStageCtrl implements IController {
   }
 }
 
-const serviceNameValidatorConfig: IManifestFieldValidatorConfig = {
-  type: 'requiredManifestField',
-  manifestType: 'direct',
+const serviceNameValidatorConfig: IServiceFieldValidatorConfig = {
+  type: 'requiredServiceField',
+  serviceInputType: 'direct',
   fieldName: 'serviceName',
   preventSave: true,
 };
 
-const serviceValidatorConfig: IManifestFieldValidatorConfig = {
-  type: 'requiredManifestField',
-  manifestType: 'direct',
+const serviceValidatorConfig: IServiceFieldValidatorConfig = {
+  type: 'requiredServiceField',
+  serviceInputType: 'direct',
   fieldName: 'service',
   preventSave: true,
 };
 
-const servicePlanValidatorConfig: IManifestFieldValidatorConfig = {
-  type: 'requiredManifestField',
-  manifestType: 'direct',
+const servicePlanValidatorConfig: IServiceFieldValidatorConfig = {
+  type: 'requiredServiceField',
+  serviceInputType: 'direct',
   fieldName: 'servicePlan',
   preventSave: true,
 };
 
-const jsonValidatorConfig: IManifestFieldValidatorConfig = {
+const jsonValidatorConfig: IServiceFieldValidatorConfig = {
   type: 'validServiceParameterJson',
-  manifestType: 'direct',
+  serviceInputType: 'direct',
   fieldName: 'parameters',
   preventSave: true,
 };
 
-const accountValidatorConfig: IManifestFieldValidatorConfig = {
-  type: 'requiredManifestField',
-  manifestType: 'artifact',
+const accountValidatorConfig: IServiceFieldValidatorConfig = {
+  type: 'requiredServiceField',
+  serviceInputType: 'artifact',
   fieldName: 'account',
   preventSave: true,
 };
 
-const referenceValidatorConfig: IManifestFieldValidatorConfig = {
-  type: 'requiredManifestField',
-  manifestType: 'artifact',
+const referenceValidatorConfig: IServiceFieldValidatorConfig = {
+  type: 'requiredServiceField',
+  serviceInputType: 'artifact',
   fieldName: 'reference',
+  preventSave: true,
+};
+
+const userProvidedServiceNameValidatorConfig: IServiceFieldValidatorConfig = {
+  type: 'requiredServiceField',
+  serviceInputType: 'userProvided',
+  fieldName: 'serviceName',
+  preventSave: true,
+};
+
+const credentialsJsonValidatorConfig: IServiceFieldValidatorConfig = {
+  type: 'validServiceParameterJson',
+  serviceInputType: 'userProvided',
+  fieldName: 'credentials',
   preventSave: true,
 };
 
@@ -75,6 +89,8 @@ module(CLOUD_FOUNDRY_DEPLOY_SERVICE_STAGE, [])
         jsonValidatorConfig,
         accountValidatorConfig,
         referenceValidatorConfig,
+        userProvidedServiceNameValidatorConfig,
+        credentialsJsonValidatorConfig,
       ],
     });
   })
