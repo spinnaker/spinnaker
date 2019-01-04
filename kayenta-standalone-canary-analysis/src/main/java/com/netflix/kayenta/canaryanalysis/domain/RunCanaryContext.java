@@ -46,6 +46,7 @@ public class RunCanaryContext {
   private String user;
   private String metricsAccountName;
   private String storageAccountName;
+  private Map<String, Object> siteLocal;
   @NonNull
   private CanaryConfig canaryConfig;
   @NonNull

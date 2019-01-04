@@ -122,6 +122,7 @@ public class SetupAndExecuteCanariesStage implements StageDefinitionBuilder {
           .canaryConfig(canaryAnalysisConfig.getCanaryConfig())
           .scopes(buildRequestScopes(canaryAnalysisExecutionRequest, i, analysisInterval))
           .scoreThresholds(canaryAnalysisExecutionRequest.getThresholds())
+          .siteLocal(canaryAnalysisExecutionRequest.getSiteLocal())
           .build();
 
       graph.append(stage -> {

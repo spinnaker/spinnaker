@@ -30,6 +30,7 @@ import javax.validation.constraints.NotNull;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 
 @Data
 @Builder
@@ -79,6 +80,12 @@ public class CanaryAnalysisExecutionRequest {
       "If this field is omitted then it will default to the set lifetime." +
       "If this is set to a value greater than the lifetime, it will be reset to lifetime.")
   private Long analysisIntervalMins;
+
+  @ApiModelProperty(value =
+      "A map of customizable data that among other things can be used in org-specific external modules such as event " +
+      "listeners to handle notifications such as Slack, email, async http callbacks, etc.\n" +
+      "The contents of this field don't have an effect on the actual canary analysis execution.")
+  protected Map<String, Object> siteLocal;
 
   @JsonIgnore
   public Duration getBeginCanaryAnalysisAfterAsDuration() {

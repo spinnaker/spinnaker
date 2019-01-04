@@ -77,7 +77,8 @@ public class RunCanaryTask implements Task {
 
     CanaryExecutionRequest executionRequest = new CanaryExecutionRequest()
         .setScopes(context.getScopes())
-        .setThresholds(context.getScoreThresholds());
+        .setThresholds(context.getScoreThresholds())
+        .setSiteLocal(context.getSiteLocal());
 
     request.setExecutionRequest(executionRequest);
 
