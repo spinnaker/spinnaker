@@ -64,6 +64,7 @@ def make_default_options(options):
   options.bintray_debian_repository = 'test-debian-repo'
   options.docker_registry = 'test-docker-registry'
   options.publish_gce_image_project = 'test-image-project-name'
+  options.github_upstream_owner = 'spinnaker'
   return options
 
 

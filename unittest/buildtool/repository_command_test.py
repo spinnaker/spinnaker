@@ -91,6 +91,7 @@ class RepositoryCommandProcessorTest(BaseGitRepoTestFixture):
     options.one_at_a_time = False
     options.only_repositories = None
     options.exclude_repositories = None
+    options.github_upstream_owner = None
     return options
 
   def test_filter(self):
