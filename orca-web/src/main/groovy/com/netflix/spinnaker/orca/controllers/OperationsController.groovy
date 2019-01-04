@@ -105,12 +105,12 @@ class OperationsController {
     planOrOrchestratePipeline(pipelineConfig)
   }
 
-  @RequestMapping(value = "/plan/{pipelineConfigId}", method = RequestMethod.POST)
+  @RequestMapping(value = "/plan", method = RequestMethod.POST)
   Map<String, Object> plan(@RequestBody Map pipeline, @Query("resolveArtifacts") boolean resolveArtifacts, HttpServletResponse response) {
     planPipeline(pipeline, resolveArtifacts)
   }
 
-  @RequestMapping(value = "/plan", method = RequestMethod.POST)
+  @RequestMapping(value = "/plan/{pipelineConfigId}", method = RequestMethod.POST)
   Map<String, Object> planPipelineConfig(@PathVariable String pipelineConfigId, @Query("resolveArtifacts") boolean resolveArtifacts, @RequestBody Map trigger) {
     Map pipelineConfig = buildPipelineConfig(pipelineConfigId, trigger)
     planPipeline(pipelineConfig, resolveArtifacts)
