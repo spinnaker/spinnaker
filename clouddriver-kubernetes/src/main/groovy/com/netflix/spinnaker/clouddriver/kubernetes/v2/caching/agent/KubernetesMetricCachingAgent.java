@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
+import com.netflix.spinnaker.cats.agent.AgentIntervalAware;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult;
 import com.netflix.spinnaker.cats.cache.CacheData;
@@ -42,9 +43,12 @@ import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITA
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.Kind.KUBERNETES_METRIC;
 
 @Slf4j
-public class KubernetesMetricCachingAgent extends KubernetesCachingAgent<KubernetesV2Credentials> {
+public class KubernetesMetricCachingAgent extends KubernetesCachingAgent<KubernetesV2Credentials> implements AgentIntervalAware {
   @Getter
   protected String providerName = KubernetesCloudProvider.getID();
+
+  @Getter
+  private final Long agentInterval;
 
   @Getter
   protected Collection<AgentDataType> providedDataTypes = Collections.unmodifiableCollection(
@@ -55,8 +59,10 @@ public class KubernetesMetricCachingAgent extends KubernetesCachingAgent<Kuberne
       ObjectMapper objectMapper,
       Registry registry,
       int agentIndex,
-      int agentCount) {
+      int agentCount,
+      Long agentInterval) {
     super(namedAccountCredentials, objectMapper, registry, agentIndex, agentCount);
+    this.agentInterval = agentInterval;
   }
 
   @Override

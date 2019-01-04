@@ -77,8 +77,9 @@ public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2Cachi
       ObjectMapper objectMapper,
       Registry registry,
       int agentIndex,
-      int agentCount) {
-    super(namedAccountCredentials, resourcePropertyRegistry, objectMapper, registry, agentIndex, agentCount);
+      int agentCount,
+      Long agentInterval) {
+    super(namedAccountCredentials, resourcePropertyRegistry, objectMapper, registry, agentIndex, agentCount, agentInterval);
     namer = NamerRegistry.lookup()
         .withProvider(KubernetesCloudProvider.getID())
         .withAccount(namedAccountCredentials.getName())

@@ -33,6 +33,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -54,6 +56,10 @@ public class KubernetesV2CachingAgentDispatcher implements KubernetesCachingAgen
   public Collection<KubernetesCachingAgent> buildAllCachingAgents(KubernetesNamedAccountCredentials credentials) {
     KubernetesV2Credentials v2Credentials = (KubernetesV2Credentials) credentials.getCredentials();
     List<KubernetesCachingAgent> result = new ArrayList<>();
+    Long agentInterval = Optional.ofNullable(credentials.getCacheIntervalSeconds())
+        .map(TimeUnit.SECONDS::toMillis)
+        .orElse(null);
+
     IntStream.range(0, credentials.getCacheThreads())
         .boxed()
         .forEach(i -> propertyRegistry.values()
@@ -61,7 +67,7 @@ public class KubernetesV2CachingAgentDispatcher implements KubernetesCachingAgen
             .map(KubernetesResourceProperties::getHandler)
             .filter(Objects::nonNull)
             .filter(h -> v2Credentials.isValidKind(h.kind()) || h.kind() == NONE)
-            .map(h -> h.buildCachingAgent(credentials, propertyRegistry, objectMapper, registry, i, credentials.getCacheThreads()))
+            .map(h -> h.buildCachingAgent(credentials, propertyRegistry, objectMapper, registry, i, credentials.getCacheThreads(), agentInterval))
             .filter(Objects::nonNull)
             .forEach(c -> result.add((KubernetesCachingAgent) c))
         );
@@ -69,7 +75,7 @@ public class KubernetesV2CachingAgentDispatcher implements KubernetesCachingAgen
     if (v2Credentials.isMetrics()) {
       IntStream.range(0, credentials.getCacheThreads())
           .boxed()
-          .forEach(i -> result.add(new KubernetesMetricCachingAgent(credentials, objectMapper, registry, i, credentials.getCacheThreads())));
+          .forEach(i -> result.add(new KubernetesMetricCachingAgent(credentials, objectMapper, registry, i, credentials.getCacheThreads(), agentInterval)));
     }
 
     return result.stream()

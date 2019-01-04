@@ -72,6 +72,7 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
   private final KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap;
   private final Boolean onlySpinnakerManaged;
   private final Boolean liveManifestCalls;
+  private final Long cacheIntervalSeconds;
   KubernetesNamedAccountCredentials(String name,
                                     ProviderVersion providerVersion,
                                     AccountCredentialsRepository accountCredentialsRepository,
@@ -96,7 +97,8 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
                                     KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap,
                                     C credentials,
                                     Boolean onlySpinnakerManaged,
-                                    Boolean liveManifestCalls) {
+                                    Boolean liveManifestCalls,
+                                    Long cacheIntervalSeconds) {
     this.name = name;
     this.providerVersion = providerVersion;
     this.environment = environment;
@@ -122,6 +124,7 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
     this.kubernetesSpinnakerKindMap = kubernetesSpinnakerKindMap;
     this.onlySpinnakerManaged = onlySpinnakerManaged;
     this.liveManifestCalls = liveManifestCalls;
+    this.cacheIntervalSeconds = cacheIntervalSeconds;
   }
 
   public List<String> getNamespaces() {
@@ -177,6 +180,10 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
 
   public Permissions getPermissions() {
     return permissions;
+  }
+
+  public Long getCacheIntervalSeconds() {
+    return cacheIntervalSeconds;
   }
 
   public Map<String, String> getSpinnakerKindMap() {
@@ -239,6 +246,7 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
     KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap;
     Boolean onlySpinnakerManaged;
     Boolean liveManifestCalls;
+    Long cacheIntervalSeconds;
 
     Builder kubernetesSpinnakerKindMap(KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap) {
       this.kubernetesSpinnakerKindMap = kubernetesSpinnakerKindMap;
@@ -433,6 +441,11 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
       return this;
     }
 
+    Builder cacheIntervalSeconds(Long cacheIntervalSeconds) {
+      this.cacheIntervalSeconds = cacheIntervalSeconds;
+      return this;
+    }
+
     private C buildCredentials() {
       switch (providerVersion) {
         case v1:
@@ -570,7 +583,8 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
           kubernetesSpinnakerKindMap,
           credentials,
           onlySpinnakerManaged,
-          liveManifestCalls
+          liveManifestCalls,
+          cacheIntervalSeconds
       );
     }
   }

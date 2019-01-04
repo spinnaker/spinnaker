@@ -57,6 +57,7 @@ class KubernetesConfigurationProperties {
     List<String> omitKinds
     Boolean onlySpinnakerManaged
     Boolean liveManifestCalls
+    Long cacheIntervalSeconds
   }
 
   List<ManagedAccount> accounts = []

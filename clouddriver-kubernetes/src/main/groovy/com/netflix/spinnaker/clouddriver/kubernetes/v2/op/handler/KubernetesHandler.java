@@ -93,7 +93,8 @@ public abstract class KubernetesHandler implements CanDeploy, CanDelete, CanPatc
       ObjectMapper objectMapper,
       Registry registry,
       int agentIndex,
-      int agentCount
+      int agentCount,
+      Long agentInterval
   ) {
     Constructor constructor;
     Class<? extends KubernetesV2CachingAgent> clazz = cachingAgentClass();
@@ -109,7 +110,8 @@ public abstract class KubernetesHandler implements CanDeploy, CanDelete, CanPatc
           ObjectMapper.class,
           Registry.class,
           int.class,
-          int.class
+          int.class,
+          Long.class
       );
     } catch (NoSuchMethodException e) {
       log.warn("Missing canonical constructor for {} caching agent", kind(), e);
@@ -124,7 +126,8 @@ public abstract class KubernetesHandler implements CanDeploy, CanDelete, CanPatc
           objectMapper,
           registry,
           agentIndex,
-          agentCount
+          agentCount,
+          agentInterval
       );
     } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
       log.warn("Can't invoke caching agent constructor for {} caching agent", kind(), e);

@@ -43,8 +43,9 @@ public class KubernetesCoreCachingAgent extends KubernetesV2OnDemandCachingAgent
       ObjectMapper objectMapper,
       Registry registry,
       int agentIndex,
-      int agentCount) {
-    super(namedAccountCredentials, propertyRegistry, objectMapper, registry, agentIndex, agentCount);
+      int agentCount,
+      Long agentInterval) {
+    super(namedAccountCredentials, propertyRegistry, objectMapper, registry, agentIndex, agentCount, agentInterval);
   }
 
   public Collection<AgentDataType> getProvidedDataTypes() {

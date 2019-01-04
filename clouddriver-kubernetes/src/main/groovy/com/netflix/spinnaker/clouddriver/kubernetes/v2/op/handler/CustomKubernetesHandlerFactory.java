@@ -87,7 +87,8 @@ public class CustomKubernetesHandlerFactory {
         ObjectMapper objectMapper,
         Registry registry,
         int agentIndex,
-        int agentCount
+        int agentCount,
+        Long agentInterval
     ) {
       return CustomKubernetesCachingAgentFactory.create(
           kubernetesKind,
@@ -96,7 +97,8 @@ public class CustomKubernetesHandlerFactory {
           objectMapper,
           registry,
           agentIndex,
-          agentCount
+          agentCount,
+          agentInterval
       );
     }
 

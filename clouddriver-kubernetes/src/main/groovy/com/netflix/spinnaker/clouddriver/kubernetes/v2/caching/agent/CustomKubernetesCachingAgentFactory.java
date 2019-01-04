@@ -39,7 +39,8 @@ public class CustomKubernetesCachingAgentFactory {
       ObjectMapper objectMapper,
       Registry registry,
       int agentIndex,
-      int agentCount
+      int agentCount,
+      Long agentInterval
   ) {
     return new Agent(
         kind,
@@ -48,7 +49,8 @@ public class CustomKubernetesCachingAgentFactory {
         objectMapper,
         registry,
         agentIndex,
-        agentCount
+        agentCount,
+        agentInterval
     );
   }
 
@@ -62,9 +64,10 @@ public class CustomKubernetesCachingAgentFactory {
         ObjectMapper objectMapper,
         Registry registry,
         int agentIndex,
-        int agentCount
+        int agentCount,
+        Long agentInterval
     ) {
-      super(namedAccountCredentials, propertyRegistry, objectMapper, registry, agentIndex, agentCount);
+      super(namedAccountCredentials, propertyRegistry, objectMapper, registry, agentIndex, agentCount, agentInterval);
       this.kind = kind;
     }
 

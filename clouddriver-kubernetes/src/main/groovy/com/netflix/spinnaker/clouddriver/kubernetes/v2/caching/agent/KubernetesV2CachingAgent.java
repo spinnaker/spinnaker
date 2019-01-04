@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.cats.agent.AgentIntervalAware;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult;
 import com.netflix.spinnaker.cats.cache.CacheData;
@@ -48,11 +49,14 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Slf4j
-public abstract class KubernetesV2CachingAgent extends KubernetesCachingAgent<KubernetesV2Credentials> {
+public abstract class KubernetesV2CachingAgent extends KubernetesCachingAgent<KubernetesV2Credentials> implements AgentIntervalAware {
   protected KubectlJobExecutor jobExecutor;
 
   @Getter
   protected String providerName = KubernetesCloudProvider.getID();
+
+  @Getter
+  final protected Long agentInterval;
 
   private final KubernetesResourcePropertyRegistry propertyRegistry;
 
@@ -61,9 +65,11 @@ public abstract class KubernetesV2CachingAgent extends KubernetesCachingAgent<Ku
       ObjectMapper objectMapper,
       Registry registry,
       int agentIndex,
-      int agentCount) {
+      int agentCount,
+      Long agentInterval) {
     super(namedAccountCredentials, objectMapper, registry, agentIndex, agentCount);
     this.propertyRegistry = propertyRegistry;
+    this.agentInterval = agentInterval;
   }
 
   protected KubernetesKind primaryKind() {
