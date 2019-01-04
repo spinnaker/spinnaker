@@ -11,7 +11,16 @@ import { SERVER_GROUP_DETAILS_MODULE } from './serverGroup/details/serverGroupDe
 import { CLOUD_FOUNDRY_SEARCH_FORMATTER } from './search/searchResultFormatter';
 import './help/cloudfoundry.help';
 
-import { CloudFoundryInfoDetailsSection } from 'cloudfoundry/serverGroup';
+import {
+  ServerGroupInformationSection,
+  ApplicationManagerSection,
+  MetricsSection,
+  ServerGroupSizingSection,
+  HealthCheckSection,
+  PackageSection,
+  BoundServicesSection,
+  EvironmentVariablesSection,
+} from 'cloudfoundry/serverGroup';
 import { CloudFoundryServerGroupActions } from './serverGroup/details/cloudFoundryServerGroupActions';
 import { cfServerGroupDetailsGetter } from './serverGroup/details/cfServerGroupDetailsGetter';
 
@@ -69,7 +78,16 @@ module(CLOUD_FOUNDRY_MODULE, [
       transformer: 'cfServerGroupTransformer',
       detailsActions: CloudFoundryServerGroupActions,
       detailsGetter: cfServerGroupDetailsGetter,
-      detailsSections: [CloudFoundryInfoDetailsSection],
+      detailsSections: [
+        ServerGroupInformationSection,
+        ApplicationManagerSection,
+        MetricsSection,
+        ServerGroupSizingSection,
+        HealthCheckSection,
+        PackageSection,
+        BoundServicesSection,
+        EvironmentVariablesSection,
+      ],
       CloneServerGroupModal: CloudFoundryCreateServerGroupModal,
       commandBuilder: 'cfServerGroupCommandBuilder',
       scalingActivitiesEnabled: false, // FIXME enable?
