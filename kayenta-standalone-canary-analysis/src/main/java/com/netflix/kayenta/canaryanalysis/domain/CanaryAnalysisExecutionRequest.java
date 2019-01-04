@@ -42,8 +42,9 @@ public class CanaryAnalysisExecutionRequest {
 
   @NotNull
   @ApiModelProperty(value =
-      "List of CanaryAnalysisExecutionRequestScopes, the list must have at least on value. " +
-      "This tells the Canary Analysis Execution how to find the experiment and control metrics in the metrics source.")
+      "This is a list of Canary Analysis Execution Request scopes. " +
+      "This directs the Canary Analysis Execution where to find the experiment and control metrics in the metrics source. " +
+      "The list must have at least one value.")
   private List<CanaryAnalysisExecutionRequestScope> scopes;
 
   @NotNull
@@ -54,31 +55,32 @@ public class CanaryAnalysisExecutionRequest {
   private CanaryClassifierThresholdsConfig thresholds;
 
   @ApiModelProperty(value =
-      "This is how long in minutes the analysis phase of the canary analysis execution will last. " +
-      "You must set this or set the endTimeIso in the scopes.")
+      "This is the amount of time in minutes the analysis phase of the canary analysis execution will last. " +
+      "Either this value or endTimeIso (in scopes) must be set. ")
   private Long lifetimeDurationMins;
 
   @NotNull
   @Builder.Default
   @ApiModelProperty(value =
       "This is how long the canary analysis execution will wait before beginning the analysis phase. " +
-      "This can be useful in a CI situation where you want to fire and forget the canary analysis execution but " +
-      "wait some time period for metrics to be ready for consumption.")
+      "This can be useful in a continuous integration situation where the canary analysis execution is triggered asynchronously " +
+      "and metrics are ready for consumption after a time period.")
   private Long beginAfterMins = 0L;
 
   @NotNull
   @Builder.Default
   @ApiModelProperty(value =
-      "If you supply a value for this field then the canary analysis execution will do judgements on a sliding time window rather than a growing time window.\n" +
-      "If you omit this field the judgements will be from startTime + (judgementNumber - 1 * interval) to startTime + (judgementNumber * interval).\n" +
-      "If you supply this field the judgements will be from endTime - lookbackMins to startTime + (judgementNumber * interval).\n" +
-      "If the lookbackMins is not exactly equal to the interval then the metrics analysed will be overlapping or discontiguous.")
+      "If this optional value is supplied, then the canary analysis execution will perform judgements on a sliding time window. " +
+      "The judgements will be from endTime - lookbackMins to startTime + (judgementNumber * interval). " +
+      "If lookbackMins is not exactly equal to interval, then the metrics analyzed will be overlapping or discontiguous.\n" +
+      "If this field is omitted, the judgements will be performed on a growing time window, " +
+      "from startTime + (judgementNumber - 1 * interval) to startTime + (judgementNumber * interval).\n")
   private Long lookbackMins = 0L;
 
   @ApiModelProperty(value =
-      "The value of analysisIntervalMins is used to calculate how many judgements will occur over the lifetime of the canary analysis execution." +
-      "If this field is omitted then it will default to the set lifetime." +
-      "If this is set to a value greater than the lifetime, it will be reset to lifetime.")
+      "The value of analysisIntervalMins is used to calculate how many judgements will occur over the lifetime of the canary analysis execution.\n" +
+      "If this field is omitted then it will default to lifetime.\n" +
+      "If this field is set to a value greater than lifetime, it will be reset to lifetime.")
   private Long analysisIntervalMins;
 
   @ApiModelProperty(value =

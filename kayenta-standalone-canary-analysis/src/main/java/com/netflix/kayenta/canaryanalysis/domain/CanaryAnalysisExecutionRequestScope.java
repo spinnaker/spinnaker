@@ -34,63 +34,67 @@ import java.util.Map;
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
-@ApiModel(description="Defines how to find the metrics for the experiment and control in the metrics source")
+@ApiModel(description="Defines where to find the metrics for the experiment and control in the metrics source.")
 public class CanaryAnalysisExecutionRequestScope {
 
   @Builder.Default
   @ApiModelProperty(
-      value = "TODO: someone who uses this, should update this",
+      value = "TODO: needs to be updated",
       example = "default")
   String scopeName = "default";
 
   @ApiModelProperty(
-      value = "Value used in the metric source metrics service to fetch the data for the control. " +
-          "The ASG name is the default value supplied via the Spinnaker UX when using AWS EC2.",
+      value = "This value is used to fetch the data for the control from the metrics service. " +
+              "It is often a server group name (e.g. ASG on EC2 or MIG on GCE).",
       example = "examplemicroservice--control-v001")
   String controlScope;
 
   @ApiModelProperty(
-      value = "The location of the control, used by some metrics sources to further differentiate metrics",
+      value = "This is the location of the control which is used by some metrics sources to further differentiate metrics." +
+              "Examples include a region or zone.",
       example = "us-west-2")
   String controlLocation;
 
   @ApiModelProperty(
-      value = "Value used in the metric source metrics service to fetch the data for the experiment. " +
-          "The ASG name is the default value supplied via the Spinnaker UX when using AWS EC2.",
+      value = "This value is used to fetch the data for the experiment from the metrics service. " +
+              "It is often a server group name (e.g. ASG on EC2 or MIG on GCE).",
       example = "examplemicroservice--experiment-v001")
   String experimentScope;
 
   @ApiModelProperty(
-      value = "The location of the experiment, used by some metrics sources to further differentiate metrics.",
+      value = "This is the location of the experiment which is used by some metrics sources to further differentiate metrics." +
+              "Examples include a region or zone.",
       example = "us-west-2")
   String experimentLocation;
 
   @ApiModelProperty(
-      value = "If supplied this value will be used instead of the current time at execution for looking up metrics.",
+      value = "This optional value indicates the start time for looking up metrics. " +
+              "If this value is omitted, the current time at execution will be used instead.",
       example = "2018-12-17T20:56:39.689Z"
   )
   String startTimeIso;
 
   @ApiModelProperty(
-      value = "Either this value or lifetime from the parent object must be supplied." +
-          "If supplied then the value of this field will be used to calculate the lifetime of the analysis execution.\n" +
-          "This field takes precedent over lifetime",
+      value = "This value will be used to calculate the length of time of the analysis execution.\n" +
+              "Either this value or lifetime (in the parent object) must be supplied. " +
+              "This field takes precedence over lifetime.",
       example = "2018-12-17T21:56:39.689Z"
   )
   String endTimeIso;
 
   @ApiModelProperty(
-      value = "The frequency of data points that will be requested from the metrics sources when querying for metrics.\n" +
-          "Defaults to 60, meaning a data point ever 60 seconds is the resolution of data that will be requested if applicable from the datasource.",
+      value = "This indicates the period in seconds for how often data points will be requested from the metrics sources when querying for metrics.\n" +
+              "The value defaults to 60 which means a data point will be requested every 60 seconds from the data source.\n" +
+              "The resulting resolution (data points per the calculated interval) needs to be at least 50 " +
+              "in order to produce accurate results.",
       example = "60"
   )
   @Builder.Default
   Long step = 60L;
 
   @ApiModelProperty(
-      value = "Additional scope defining key values, some metric sources have required scope params such as New Relic " +
-          "and SignalFx which require _scope_key to be supplied."
-  )
+      value = "This is an additional scope to define key values as some metric sources require additional scope params. " +
+              "For example New Relic and SignalFx require _scope_key to be supplied.")
   @Builder.Default
   Map<String, String> extendedScopeParams = new HashMap<>();
 

@@ -31,35 +31,35 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel(description="The canary analysis execution results")
+@ApiModel(description="The canary analysis execution results.")
 public class CanaryAnalysisExecutionResult {
 
-  @ApiModelProperty(value = "This is a boolean that represents if the canary was determined to pass the defined thresholds or not")
+  @ApiModelProperty(value = "This boolean represents whether the canary passed the defined thresholds.")
   protected boolean didPassThresholds;
 
-  @ApiModelProperty(value = "This will be set to true, if any of the judgements had warnings")
+  @ApiModelProperty(value = "This boolean is set to true if any of the judgements had warnings.")
   protected boolean hasWarnings;
 
-  @ApiModelProperty(value = "This will be a string that describes the aggregated judgement results")
+  @ApiModelProperty(value = "This string describes the aggregated judgement results.")
   protected String canaryScoreMessage;
 
   @NonNull
   @Builder.Default
-  @ApiModelProperty(value = "This will be an ordered list of the individual judgement scores. " +
-      "The last score is used for determining the final result")
+  @ApiModelProperty(value = "This is an ordered list of the individual judgement scores. " +
+      "The last score is used for determining the final result.")
   protected List<Double> canaryScores = new LinkedList<>();
 
   @NonNull
   @Builder.Default
-  @ApiModelProperty(value = "List of canary execution summaries.")
+  @ApiModelProperty(value = "This is a list of canary execution summaries.")
   protected List<CanaryExecutionResult> canaryExecutionResults = new LinkedList<>();
 
-  @ApiModelProperty(value = "buildTime is when the pipeline was first created.")
+  @ApiModelProperty(value = "buildTimeIso is an ISO 8061 string and refers to the time the pipeline was first created.")
   protected String buildTimeIso;
 
-  @ApiModelProperty(value = "startTime refers to the time the pipeline started running.")
+  @ApiModelProperty(value = "startTimeIso is an ISO 8061 string and refers to the time the pipeline started running.")
   protected String startTimeIso;
 
-  @ApiModelProperty(value = "endTime refers to the time the pipeline ended, either successfully or unsuccessfully.")
+  @ApiModelProperty(value = "endTimeIso is an ISO 8061 string and refers to the time the pipeline ended, either successfully or unsuccessfully.")
   protected String endTimeIso;
 }

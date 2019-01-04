@@ -58,7 +58,7 @@ public class CanaryExecutionStatusResponse {
   protected String metricSetPairListId;
 
   //
-  // buildTime is when the pipeline was first created.
+  // buildTime refers to the time the pipeline was first created.
   // startTime refers to the time the pipeline started running.
   // endTime refers to the time the pipeline ended, either successfully or unsuccessfully.
   //

@@ -24,7 +24,7 @@ import lombok.NonNull;
 
 @Data
 @Builder
-@ApiModel(description="Wrapper object around the canary analysis execution id")
+@ApiModel(description="Wrapper object around the canary analysis execution id.")
 public class CanaryAnalysisExecutionResponse {
 
   @NonNull

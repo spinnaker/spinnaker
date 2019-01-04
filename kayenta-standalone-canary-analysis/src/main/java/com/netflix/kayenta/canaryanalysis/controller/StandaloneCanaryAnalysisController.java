@@ -81,7 +81,7 @@ public class StandaloneCanaryAnalysisController {
    * @param canaryConfigId The id for the canary configuration to use for the analysis execution
    * @return Object with the execution id
    */
-  @ApiOperation(value = "Initiate a canary analysis execution with multiple canary judgements with a stored canary config")
+  @ApiOperation(value = "Initiate a canary analysis execution with multiple canary judgements using a stored canary config")
   @RequestMapping(value = "/{canaryConfigId:.+}", consumes = "application/json", method = POST)
   public CanaryAnalysisExecutionResponse initiateCanaryAnalysis(
       @ApiParam(value = "The initiating user", defaultValue = "anonymous", example = "justin.field@example.com")
