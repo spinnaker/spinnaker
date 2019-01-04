@@ -112,12 +112,29 @@ public class ArtifactPostProcessor implements PipelinePostProcessor {
     }
 
     JinjaTemplate.TemplateType templateType = JinjaTemplate.TemplateType.STANDARD;
-    String customTemplate = (String) properties.get("customFormat");
-    if (Boolean.parseBoolean(customTemplate)) {
+
+    Object customFormat = properties.get("customFormat");
+    if (parseCustomFormat(customFormat)) {
       templateType = JinjaTemplate.TemplateType.CUSTOM;
     }
 
     return jinjaTemplateService.getTemplate(messageFormat, templateType);
+  }
+
+  private boolean parseCustomFormat(Object customFormat) {
+    if (customFormat == null) {
+      return false;
+    }
+
+    if (customFormat instanceof Boolean) {
+      return (Boolean) customFormat;
+    }
+
+    if (customFormat instanceof String) {
+      return Boolean.parseBoolean((String) customFormat);
+    }
+
+    throw new RuntimeException("Unexpected customFormat in property file: " + customFormat);
   }
 
   public PostProcessorPriority priority() {
