@@ -547,24 +547,24 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
           compute.instanceTemplates().get(project, Utils.getLocalName(templateUrl)),
           "compute.instancesTemplates.get",
           TAG_SCOPE, SCOPE_GLOBAL)
-      def instanceDescription = GCEUtil.buildInstanceDescriptionFromTemplate(template)
+    def instanceDescription = GCEUtil.buildInstanceDescriptionFromTemplate(project, template)
 
       def templateOpMap = [
-        image: instanceDescription.image,
-        instanceType: instanceDescription.instanceType,
-        credentials: credentials.getName(),
-        disks: instanceDescription.disks,
-        instanceMetadata: instanceDescription.instanceMetadata,
-        tags: instanceDescription.tags,
-        network: instanceDescription.network,
-        subnet: instanceDescription.subnet,
+        image              : instanceDescription.image,
+        instanceType       : instanceDescription.instanceType,
+        credentials        : credentials.getName(),
+        disks              : instanceDescription.disks,
+        instanceMetadata   : instanceDescription.instanceMetadata,
+        tags               : instanceDescription.tags,
+        network            : instanceDescription.network,
+        subnet             : instanceDescription.subnet,
         serviceAccountEmail: instanceDescription.serviceAccountEmail,
-        authScopes: instanceDescription.authScopes,
-        preemptible: instanceDescription.preemptible,
-        automaticRestart: instanceDescription.automaticRestart,
-        onHostMaintenance: instanceDescription.onHostMaintenance,
-        region: groupRegion,
-        serverGroupName: groupName
+        authScopes         : instanceDescription.authScopes,
+        preemptible        : instanceDescription.preemptible,
+        automaticRestart   : instanceDescription.automaticRestart,
+        onHostMaintenance  : instanceDescription.onHostMaintenance,
+        region             : groupRegion,
+        serverGroupName    : groupName
       ]
 
       if (instanceDescription.minCpuPlatform) {

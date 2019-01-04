@@ -55,8 +55,8 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
   private static final REGION_URL = "https://www.googleapis.com/compute/v1/projects/$PROJECT_NAME/regions/$REGION"
 
   private static final MACHINE_TYPE = "f1-micro"
-  private static final NETWORK_1 = "default"
-  private static final NETWORK_2 = "other-network"
+  private static final NETWORK_1 = "projects/$PROJECT_NAME/networks/default"
+  private static final NETWORK_2 = "projects/$PROJECT_NAME/networks/other-network"
   private static final IMAGE = "debian"
   private static final DISK_TYPE = "pd-standard"
   private static final DISK_SIZE_GB = 120

@@ -331,7 +331,7 @@ class UpsertGoogleAutoscalingPolicyAtomicOperation extends GoogleAtomicOperation
       compute.instanceTemplates().get(project, Utils.getLocalName(templateUrl)),
       "compute.instancesTemplates.get",
       TAG_SCOPE, SCOPE_GLOBAL)
-    def instanceDescription = GCEUtil.buildInstanceDescriptionFromTemplate(template)
+    def instanceDescription = GCEUtil.buildInstanceDescriptionFromTemplate(project, template)
 
     def templateOpMap = [
       image              : instanceDescription.image,

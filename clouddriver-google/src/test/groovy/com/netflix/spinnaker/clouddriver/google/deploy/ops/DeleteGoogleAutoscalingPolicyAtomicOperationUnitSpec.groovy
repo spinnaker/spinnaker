@@ -181,7 +181,7 @@ class DeleteGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
     def template = new InstanceTemplate(properties: [
       disks: [[getBoot: { return [initializeParams: [sourceImage: 'images/sourceImage']] }, initializeParams: [diskType: 'huge', diskSizeGb: 42], autoDelete: false]],
       name: 'template',
-      networkInterfaces: [[network: 'networks/my-network']],
+      networkInterfaces: [[network: "projects/$PROJECT_NAME/networks/my-network"]],
       serviceAccounts: [[email: 'serviceAccount@google.com']]
     ])
 

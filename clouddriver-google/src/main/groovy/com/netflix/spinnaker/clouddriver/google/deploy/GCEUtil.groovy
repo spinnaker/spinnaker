@@ -525,7 +525,7 @@ class GCEUtil {
     }
   }
 
-  static BaseGoogleInstanceDescription buildInstanceDescriptionFromTemplate(InstanceTemplate instanceTemplate) {
+  static BaseGoogleInstanceDescription buildInstanceDescriptionFromTemplate(String project, InstanceTemplate instanceTemplate) {
     def instanceTemplateProperties = instanceTemplate?.properties
 
     if (instanceTemplateProperties == null) {
@@ -569,7 +569,8 @@ class GCEUtil {
         [it.key, it.value]
       },
       tags: instanceTemplateProperties.tags?.items,
-      network: getLocalName(networkInterface.network),
+      network: Utils.decorateXpnResourceIdIfNeeded(project, networkInterface.network),
+      subnet: Utils.decorateXpnResourceIdIfNeeded(project, networkInterface.subnet),
       serviceAccountEmail: serviceAccountEmail,
       authScopes: retrieveScopesFromServiceAccount(serviceAccountEmail, instanceTemplateProperties.serviceAccounts)
     )
