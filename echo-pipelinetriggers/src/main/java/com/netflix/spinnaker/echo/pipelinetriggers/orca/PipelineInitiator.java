@@ -98,7 +98,7 @@ public class PipelineInitiator {
           boolean propagateAuth = pipeline.getTrigger() != null && pipeline.getTrigger().isPropagateAuth();
           log.debug("Planning templated pipeline {} before triggering", pipeline.getId());
           pipeline = pipeline.withPlan(true);
-          Map resolvedPipelineMap = orca.plan(objectMapper.convertValue(pipeline, Map.class));
+          Map resolvedPipelineMap = orca.plan(objectMapper.convertValue(pipeline, Map.class), true);
           pipeline = objectMapper.convertValue(resolvedPipelineMap, Pipeline.class);
           if (propagateAuth) {
             pipeline = pipeline.withTrigger(pipeline.getTrigger().atPropagateAuth(true));

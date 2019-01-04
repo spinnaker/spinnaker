@@ -53,7 +53,7 @@ class PipelineInitiatorSpec extends Specification {
 
     then:
     1 * fiatStatus.isEnabled() >> { return true }
-    orcaCalls * orca.plan(_) >> pipelineMap
+    orcaCalls * orca.plan(_, true) >> pipelineMap
     objectMapper.convertValue(pipelineMap, Pipeline.class) >> pipeline
     1 * orca.trigger(_) >> empty()
 

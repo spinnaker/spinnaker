@@ -32,8 +32,8 @@ public interface OrcaService {
   @POST("/orchestrate")
   Observable<TriggerResponse> trigger(@Body Pipeline pipeline);
 
-  @POST("/orchestrate")
-  Map plan(@Body Map pipelineConfig);
+  @POST("/plan")
+  Map plan(@Body Map pipelineConfig, @Query("resolveArtifacts") boolean resolveArtifacts);
 
   @POST("/orchestrate")
   Observable<TriggerResponse> trigger(@Body Pipeline pipeline, @Header(AuthenticatedRequest.SPINNAKER_USER) String runAsUser);
