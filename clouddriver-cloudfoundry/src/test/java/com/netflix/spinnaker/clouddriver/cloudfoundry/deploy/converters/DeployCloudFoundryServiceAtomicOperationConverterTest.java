@@ -47,6 +47,7 @@ import static org.mockito.Mockito.when;
 class DeployCloudFoundryServiceAtomicOperationConverterTest {
 
   private final CloudFoundryClient cloudFoundryClient = new MockCloudFoundryClient();
+
   {
     when(cloudFoundryClient.getOrganizations().findByName(any()))
       .thenAnswer((Answer<Optional<CloudFoundryOrganization>>) invocation -> {
@@ -71,24 +72,27 @@ class DeployCloudFoundryServiceAtomicOperationConverterTest {
   };
 
   private final ArtifactCredentialsRepository artifactCredentialsRepository = new ArtifactCredentialsRepository();
+
   {
     artifactCredentialsRepository.save(new ArtifactCredentialsFromString(
       "test",
       List.of("a").asJava(),
-      "service_name: my-service-name\n" +
-      "service: my-service\n" +
-      "service_plan: my-service-plan\n" +
-      "tags:\n" +
-      "- tag1\n" +
-      "parameters: |\n" +
-      "  { \"foo\": \"bar\" }\n"
+        "service_name: my-service-name\n" +
+        "service: my-service\n" +
+        "service_plan: my-service-plan\n" +
+        "tags:\n" +
+        "- tag1\n" +
+        "parameters: |\n" +
+        "  { \"foo\": \"bar\" }\n"
     ));
   }
 
   private final AccountCredentialsRepository accountCredentialsRepository = new MapBackedAccountCredentialsRepository();
+
   {
     accountCredentialsRepository.update("test", cloudFoundryCredentials);
   }
+
   private final AccountCredentialsProvider accountCredentialsProvider =
     new DefaultAccountCredentialsProvider(accountCredentialsRepository);
   private final DeployCloudFoundryServiceAtomicOperationConverter converter =
@@ -119,7 +123,7 @@ class DeployCloudFoundryServiceAtomicOperationConverterTest {
         .setParameterMap(HashMap.<String, Object>of(
           "foo", "bar"
         ).toJavaMap())
-      );
+    );
   }
 
   @Test
@@ -176,8 +180,66 @@ class DeployCloudFoundryServiceAtomicOperationConverterTest {
         .setServicePlan("my-service-plan")
         .setTags(Collections.singleton("tag1"))
         .setParameterMap(HashMap.<String, Object>of(
-        "foo", "bar"
-      ).toJavaMap())
+          "foo", "bar"
+        ).toJavaMap())
+    );
+  }
+
+  @Test
+  void convertDescriptionWithUserProvidedInput() {
+    final Map input = HashMap.of(
+      "credentials", "test",
+      "region", "org > space",
+      "manifest", HashMap.of(
+        "type", "userProvided",
+        "serviceName", "userProvidedServiceName",
+        "tags", List.of(
+          "my-tag"
+        ).asJava(),
+        "syslogDrainUrl", "http://syslogDrainUrl.io",
+        "credentials", "{\"foo\": \"bar\"}",
+        "routeServiceUrl", "http://routeServiceUrl.io"
+      ).toJavaMap()
+    ).toJavaMap();
+
+    final DeployCloudFoundryServiceDescription result = converter.convertDescription(input);
+    assertThat(result.getServiceAttributes()).isNull();
+    assertThat(result.getUserProvidedServiceAttributes()).isEqualToComparingFieldByFieldRecursively(
+      new DeployCloudFoundryServiceDescription.UserProvidedServiceAttributes()
+        .setServiceName("userProvidedServiceName")
+        .setSyslogDrainUrl("http://syslogDrainUrl.io")
+        .setRouteServiceUrl("http://routeServiceUrl.io")
+        .setTags(Collections.singleton("my-tag"))
+        .setCredentialsMap(HashMap.<String, Object>of(
+          "foo", "bar"
+        ).toJavaMap())
+    );
+  }
+
+  @Test
+  void convertDescriptionWithUserProvidedInputWithoutCredentials() {
+    final Map input = HashMap.of(
+      "credentials", "test",
+      "region", "org > space",
+      "manifest", HashMap.of(
+        "type", "userProvided",
+        "serviceName", "userProvidedServiceName",
+        "tags", List.of(
+          "my-tag"
+        ).asJava(),
+        "syslogDrainUrl", "http://syslogDrainUrl.io",
+        "routeServiceUrl", "http://routeServiceUrl.io"
+      ).toJavaMap()
+    ).toJavaMap();
+
+    final DeployCloudFoundryServiceDescription result = converter.convertDescription(input);
+    assertThat(result.getServiceAttributes()).isNull();
+    assertThat(result.getUserProvidedServiceAttributes()).isEqualToComparingFieldByFieldRecursively(
+      new DeployCloudFoundryServiceDescription.UserProvidedServiceAttributes()
+        .setServiceName("userProvidedServiceName")
+        .setSyslogDrainUrl("http://syslogDrainUrl.io")
+        .setRouteServiceUrl("http://routeServiceUrl.io")
+        .setTags(Collections.singleton("my-tag"))
     );
   }
 }

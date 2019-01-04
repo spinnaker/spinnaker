@@ -73,13 +73,15 @@ class ApplicationsTest {
       .setState("STARTED")
       .setLinks(HashMap.of("space", new Link().setHref("http://capi.io/space/space-guid")).toJavaMap());
 
+    ServiceInstance serviceInstance = new ServiceInstance();
+    serviceInstance
+      .setPlan("service-plan")
+      .setServicePlanGuid("service-plan-guid")
+      .setTags(new HashSet<>(Arrays.asList("tag1", "tag2")))
+      .setName("service-instance");
+
     ApplicationEnv.SystemEnv systemEnv = new ApplicationEnv.SystemEnv()
-      .setVcapServices(HashMap.of("service-name-1", Collections.singletonList(new ServiceInstance()
-        .setName("service-instance")
-        .setPlan("service-plan")
-        .setServicePlanGuid("service-plan-guid")
-        .setTags(new HashSet<>(Arrays.asList("tag1", "tag2")))
-      )).toJavaMap());
+      .setVcapServices(HashMap.of("service-name-1", Collections.singletonList(serviceInstance)).toJavaMap());
     ApplicationEnv applicationEnv = new ApplicationEnv()
       .setSystemEnvJson(systemEnv);
 

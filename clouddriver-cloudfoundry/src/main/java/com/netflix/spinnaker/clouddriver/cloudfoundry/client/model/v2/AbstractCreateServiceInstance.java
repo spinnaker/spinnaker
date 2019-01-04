@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,9 +18,13 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2;
 
 import lombok.Data;
 
+import javax.annotation.Nullable;
+import java.util.Set;
+
 @Data
-public class ServiceInstance extends AbstractServiceInstance{
-  private String plan;
-  private String servicePlanGuid;
-  private LastOperation lastOperation;
+public abstract class AbstractCreateServiceInstance {
+  private String name;
+
+  @Nullable
+  private Set<String> tags;
 }

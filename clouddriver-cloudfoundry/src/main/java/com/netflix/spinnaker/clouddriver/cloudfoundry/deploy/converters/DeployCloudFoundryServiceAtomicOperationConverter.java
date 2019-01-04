@@ -56,16 +56,28 @@ public class DeployCloudFoundryServiceAtomicOperationConverter extends AbstractC
     converted.setClient(getClient(input));
     converted.setSpace(findSpace(converted.getRegion(), converted.getClient())
       .orElseThrow(() -> new IllegalArgumentException("Unable to find space '" + converted.getRegion() + "'.")));
-
     Map manifest = (Map) input.get("manifest");
-    if ("direct".equals(manifest.get("type"))) {
-      DeployCloudFoundryServiceDescription.ServiceAttributes attrs = getObjectMapper().convertValue(manifest, DeployCloudFoundryServiceDescription.ServiceAttributes.class);
-      attrs.setParameterMap(parseParameters(manifest.get("parameters").toString()));
-      converted.setServiceAttributes(attrs);
-    } else if ("artifact".equals(manifest.get("type"))) {
-      downloadAndProcessManifest(manifest, credentialsRepository, myMap -> converted.setServiceAttributes(convertManifest(myMap)));
+    String type = manifest.get("type").toString();
+    switch (type) {
+      case "direct":
+        DeployCloudFoundryServiceDescription.ServiceAttributes attrs = getObjectMapper().convertValue(manifest, DeployCloudFoundryServiceDescription.ServiceAttributes.class);
+        if (manifest.get("parameters") != null) {
+          attrs.setParameterMap(parseParameters(manifest.get("parameters").toString()));
+        }
+        converted.setServiceAttributes(attrs);
+        break;
+      case "artifact":
+        downloadAndProcessManifest(manifest, credentialsRepository, myMap -> converted.setServiceAttributes(convertManifest(myMap)));
+        break;
+      case "userProvided":
+        converted.setServiceType("userProvided");
+        DeployCloudFoundryServiceDescription.UserProvidedServiceAttributes userProvidedAttrs = getObjectMapper().convertValue(manifest, DeployCloudFoundryServiceDescription.UserProvidedServiceAttributes.class);
+        if (manifest.get("credentials") != null) {
+          userProvidedAttrs.setCredentialsMap(parseParameters(manifest.get("credentials").toString()));
+        }
+        converted.setUserProvidedServiceAttributes(userProvidedAttrs);
+        break;
     }
-
     return converted;
   }
 

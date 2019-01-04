@@ -24,13 +24,13 @@ import java.util.List;
 
 public interface ServiceInstanceService {
   @GET("/v2/spaces/{guid}/service_instances")
-  Page<ServiceInstance> all(@Query("page") Integer page, @Path("guid") String spaceGuid, @Query("q") String queryParam);
+  Page<ServiceInstance> all(@Query("page") Integer page, @Path("guid") String spaceGuid, @Query("q") List<String> queryParams);
+
+  @GET("/v2/user_provided_service_instances")
+  Page<UserProvidedServiceInstance> allUserProvided(@Query("page") Integer page, @Query("q") List<String> queryParam);
 
   @POST("/v2/service_bindings?accepts_incomplete=true")
   Response createServiceBinding(@Body CreateServiceBinding body);
-
-  @GET("/v2/spaces/{guid}/service_instances")
-  Page<ServiceInstance> findAllServiceInstancesBySpaceId(@Path("guid") String spaceGuid, @Query("page") Integer page, @Query("q") List<String> queryParams);
 
   @GET("/v2/services")
   Page<Service> findService(@Query("page") Integer page, @Query("q") List<String> queryParams);
@@ -44,15 +44,28 @@ public interface ServiceInstanceService {
   @POST("/v2/service_instances?accepts_incomplete=true")
   Resource<ServiceInstance> createServiceInstance(@Body CreateServiceInstance body);
 
+  @POST("/v2/user_provided_service_instances")
+  Resource<UserProvidedServiceInstance> createUserProvidedServiceInstance(@Body CreateUserProvidedServiceInstance body);
+
   @PUT("/v2/service_instances/{guid}?accepts_incomplete=true")
   Resource<ServiceInstance> updateServiceInstance(@Path("guid") String serviceInstanceGuid, @Body CreateServiceInstance body);
+
+  @PUT("/v2/user_provided_service_instances/{guid}")
+  Resource<UserProvidedServiceInstance> updateUserProvidedServiceInstance(@Path("guid") String userProvidedServiceInstanceGuid, @Body CreateUserProvidedServiceInstance body);
 
   @GET("/v2/service_instances/{guid}/service_bindings")
   Page<ServiceBinding> getBindingsForServiceInstance(@Path("guid") String serviceInstanceGuid, @Query("page") Integer page, @Query("q") List<String> queryParams);
 
+  @GET("/v2/user_provided_service_instances/{guid}/service_bindings")
+  Page<ServiceBinding> getBindingsForUserProvidedServiceInstance(@Path("guid") String userProvidedServiceInstanceGuid, @Query("page") Integer page, @Query("q") List<String> queryParams);
+
   @DELETE("/v2/service_instances/{guid}?accepts_incomplete=true")
   Response destroyServiceInstance(@Path("guid") String serviceInstanceGuid);
 
+  @DELETE("/v2/user_provided_service_instances/{guid}")
+  Response destroyUserProvidedServiceInstance(@Path("guid") String serviceInstanceGuid);
+
   @GET("/v2/service_instances/{guid}")
   Resource<ServiceInstance> getServiceInstanceById(@Path("guid") String serviceInstanceGuid);
+
 }
