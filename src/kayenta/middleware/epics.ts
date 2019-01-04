@@ -142,6 +142,28 @@ const updateStackdriverMetricDescriptionFilterEpic = (
       });
     });
 
+const updateGraphiteMetricDescriptionFilterEpic = (
+  action$: Observable<Action & any>,
+  store: MiddlewareAPI<ICanaryState>,
+) =>
+  action$
+    .filter(typeMatches(Actions.UPDATE_GRAPHITE_METRIC_DESCRIPTOR_FILTER))
+    .filter(action => action.payload.filter && action.payload.filter.length > 2)
+    .debounceTime(200 /* milliseconds */)
+    .map(action => {
+      const [metricsAccountName] = store
+        .getState()
+        .data.kayentaAccounts.data.filter(
+          account => account.supportedTypes.includes(KayentaAccountType.MetricsStore) && account.type === 'graphite',
+        )
+        .map(account => account.name);
+
+      return Creators.loadMetricsServiceMetadataRequest({
+        filter: action.payload.filter,
+        metricsAccountName,
+      });
+    });
+
 const updateDatadogMetricDescriptionFilterEpic = (
   action$: Observable<Action & any>,
   store: MiddlewareAPI<ICanaryState>,
@@ -186,6 +208,7 @@ const rootEpic = combineEpics(
   deleteConfigSuccessEpic,
   loadCanaryRunRequestEpic,
   loadMetricSetPairEpic,
+  updateGraphiteMetricDescriptionFilterEpic,
   updatePrometheusMetricDescriptionFilterEpic,
   updateStackdriverMetricDescriptionFilterEpic,
   updateDatadogMetricDescriptionFilterEpic,

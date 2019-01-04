@@ -4,6 +4,7 @@ import { get, omit } from 'lodash';
 import * as classNames from 'classnames';
 import Select, { ReactSelectProps } from 'react-select';
 import { ICanaryState } from 'kayenta/reducers';
+import { Typeahead, TypeaheadProps } from 'react-bootstrap-typeahead';
 
 // Well-known keys that flag if a component should be disabled.
 export const DISABLE_EDIT_CONFIG = 'app.disableConfigEdit';
@@ -62,6 +63,11 @@ export const DisableableInput = disableable<IDisableableInputProps>(props => {
 export const DisableableReactSelect = disableable<ReactSelectProps>(props => {
   const { children, ...selectProps } = props;
   return <Select {...selectProps}>{children}</Select>;
+});
+
+export const DisableableReactTypeahead = disableable<TypeaheadProps<any>>(props => {
+  const { children, ...selectProps } = props;
+  return <Typeahead {...selectProps}>{children}</Typeahead>;
 });
 
 type IDisableableSelectProps = React.DetailedHTMLProps<React.InputHTMLAttributes<HTMLSelectElement>, HTMLSelectElement>;

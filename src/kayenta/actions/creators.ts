@@ -115,6 +115,9 @@ export const loadMetricsServiceMetadataFailure = createAction<{ error: Error }>(
 export const updatePrometheusMetricDescriptorFilter = createAction<{ filter: string }>(
   Actions.UPDATE_PROMETHEUS_METRIC_DESCRIPTOR_FILTER,
 );
+export const updateGraphiteMetricDescriptorFilter = createAction<{ filter: string }>(
+  Actions.UPDATE_GRAPHITE_METRIC_DESCRIPTOR_FILTER,
+);
 export const updateStackdriverMetricDescriptorFilter = createAction<{ filter: string }>(
   Actions.UPDATE_STACKDRIVER_METRIC_DESCRIPTOR_FILTER,
 );
@@ -143,3 +146,4 @@ export const updateSignalFxAggregationMethod = createAction<{ aggregationMethod:
   Actions.UPDATE_SIGNAL_FX_AGGREGATION_METHOD,
 );
 export const updateSignalFxQueryPairs = createAction<IUpdateKeyValueListPayload>(Actions.UPDATE_SIGNAL_FX_QUERY_PAIRS);
+export const updateGraphiteMetricName = createAction<{ metricName: string }>(Actions.UPDATE_GRAPHITE_METRIC_NAME);

@@ -179,6 +179,9 @@ const editingMetric = handleActions(
       ...state,
       scopeName: action.payload.scopeName,
     }),
+    [Actions.UPDATE_GRAPHITE_METRIC_NAME]: (state: ICanaryMetricConfig, action: Action & any) => ({
+      ...state, query: { ...state.query, metricName: action.payload.metricName }
+    }),
     [Actions.EDIT_INLINE_TEMPLATE]: (state: ICanaryMetricConfig, action: Action & any) => ({
       ...state,
       query: { ...state.query, customInlineTemplate: action.payload.value },
