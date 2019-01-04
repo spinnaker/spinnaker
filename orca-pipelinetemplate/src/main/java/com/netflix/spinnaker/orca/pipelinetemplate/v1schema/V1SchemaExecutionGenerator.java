@@ -77,6 +77,9 @@ public class V1SchemaExecutionGenerator implements ExecutionGenerator {
     if (request.getTrigger() != null && !request.getTrigger().isEmpty()) {
       pipeline.put("trigger", request.getTrigger());
     }
+    if (request.getExpectedArtifacts() != null) {
+      pipeline.put("expectedArtifacts", request.getExpectedArtifacts());
+    }
 
     return pipeline;
   }
