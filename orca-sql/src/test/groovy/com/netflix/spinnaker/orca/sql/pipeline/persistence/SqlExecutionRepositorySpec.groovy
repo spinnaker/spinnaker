@@ -288,6 +288,8 @@ class SqlExecutionRepositorySpec extends ExecutionRepositoryTck<SqlExecutionRepo
         application = "spinnaker"
         name = "Orchestration #${i + 1}"
       })
+      // our ULID implementation isn't monotonic
+      sleep(1)
     }
 
     when:
@@ -346,6 +348,8 @@ class SqlExecutionRepositorySpec extends ExecutionRepositoryTck<SqlExecutionRepo
         application = "spinnaker"
         name = "Orchestration #${i + 1}"
       })
+      // our ULID implementation isn't monotonic
+      sleep(1)
     }
 
     when:
