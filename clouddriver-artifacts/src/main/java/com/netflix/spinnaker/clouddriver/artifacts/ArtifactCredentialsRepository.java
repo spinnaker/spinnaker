@@ -20,28 +20,19 @@ package com.netflix.spinnaker.clouddriver.artifacts;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 @Component
 public class ArtifactCredentialsRepository {
-  private Map<String, List<ArtifactCredentials>> credentialsMap = new ConcurrentHashMap<>();
+  private List<ArtifactCredentials> allCredentials = new CopyOnWriteArrayList<>();
 
   public void save(ArtifactCredentials credentials) {
-    String name = credentials.getName();
-    List<ArtifactCredentials> stored = credentialsMap.getOrDefault(name, new ArrayList<>());
-    stored.add(credentials);
-    credentialsMap.put(credentials.getName(), stored);
+    allCredentials.add(credentials);
   }
 
   public List<ArtifactCredentials> getAllCredentials() {
-    return credentialsMap.values()
-        .stream()
-        .flatMap(Collection::stream)
-        .collect(Collectors.toList());
+    return Collections.unmodifiableList(allCredentials);
   }
 }

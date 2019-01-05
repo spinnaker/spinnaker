@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -48,7 +49,7 @@ public class ArtifactController {
   @RequestMapping(method = RequestMethod.GET, value = "/credentials")
   List<ArtifactCredentials> list() {
     if (artifactCredentialsRepository == null) {
-      return new ArrayList<>();
+      return Collections.emptyList();
     } else {
       return artifactCredentialsRepository.getAllCredentials();
     }

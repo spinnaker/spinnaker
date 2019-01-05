@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Data
-@ConfigurationProperties("artifacts.ivy")
+@ConfigurationProperties("artifacts.maven")
 public class MavenArtifactProviderProperties {
   private boolean enabled;
   private List<MavenArtifactAccount> accounts = new ArrayList<>();

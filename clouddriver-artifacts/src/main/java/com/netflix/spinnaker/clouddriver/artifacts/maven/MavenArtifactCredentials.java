@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.artifacts.ivy.settings.IBiblioResolver;
 import com.netflix.spinnaker.clouddriver.artifacts.ivy.settings.IvySettings;
 import com.netflix.spinnaker.clouddriver.artifacts.ivy.settings.Resolvers;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 
 import java.nio.file.Path;
@@ -29,6 +30,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 
+@EqualsAndHashCode(callSuper = true)
 @Slf4j
 @Data
 public class MavenArtifactCredentials extends IvyArtifactCredentials {
@@ -58,6 +60,7 @@ public class MavenArtifactCredentials extends IvyArtifactCredentials {
     IvySettings settings = new IvySettings();
     settings.setResolvers(resolvers);
 
+    ivy.setName(maven.getName());
     ivy.setSettings(settings);
 
     return ivy;
