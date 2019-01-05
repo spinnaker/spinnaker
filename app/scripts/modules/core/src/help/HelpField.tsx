@@ -14,38 +14,21 @@ export interface IHelpFieldProps {
   label?: string;
 }
 
-export interface IState {
-  contents: React.ReactElement<any>;
-}
-
-export class HelpField extends React.Component<IHelpFieldProps, IState> {
+export class HelpField extends React.PureComponent<IHelpFieldProps> {
   public static defaultProps: IHelpFieldProps = {
     placement: 'top',
   };
 
   private popoverShownStart: number;
 
-  constructor(props: IHelpFieldProps) {
-    super(props);
-
-    this.state = this.getState();
-  }
-
-  private getState(): IState {
-    const { id, fallback, content } = this.props;
+  private renderContents(id: string, fallback: string, content: string): JSX.Element {
     let contentString = content;
     if (id && !contentString) {
       contentString = HelpContentsRegistry.getHelpField(id) || fallback;
     }
 
     const config = { ADD_ATTR: ['target'] }; // allow: target="_blank"
-    return {
-      contents: <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(contentString, config) }} />,
-    };
-  }
-
-  public componentWillReceiveProps(): void {
-    this.setState(this.getState());
+    return <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(contentString, config) }} />;
   }
 
   private onShow = (): void => {
@@ -59,8 +42,8 @@ export class HelpField extends React.Component<IHelpFieldProps, IState> {
   };
 
   public render() {
-    const { placement, label, expand } = this.props;
-    const { contents } = this.state;
+    const { placement, label, expand, id, fallback, content } = this.props;
+    const contents = this.renderContents(id, fallback, content);
 
     const icon = <i className="small glyphicon glyphicon-question-sign" />;
 
