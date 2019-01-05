@@ -1,0 +1,35 @@
+{
+  "name": "integration-test-canary-config",
+  "description": "A simple config for integration testing the Graphite metric source Kayenta module.",
+  "judge": {
+    "judgeConfigurations": {},
+    "name": "NetflixACAJudge-v1.0"
+  },
+  "metrics": [
+    {
+      "name": "test",
+      "query": {
+        "metricName": "test.server.request.400.$scope",
+        "type": "graphite"
+      },
+      "analysisConfigurations": {
+        "canary": {
+          "direction": "increase"
+        }
+      },
+      "groups": [
+        "Integration Test Group"
+      ],
+      "scopeName": "default"
+    }
+  ],
+  "classifier": {
+    "groupWeights": {
+      "Integration Test Group": 100
+    },
+    "scoreThresholds": {
+      "marginal": 50,
+      "pass": 75
+    }
+  }
+}

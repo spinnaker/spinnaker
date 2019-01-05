@@ -272,6 +272,41 @@ Atlas, Stackdriver and Prometheus are used.
   }
 }
 ```
+```JSON
+{
+  "name": "MySampleGraphiteCanaryConfig",
+  "description": "Example Kayenta Configuration using Graphite",
+  "configVersion": "1.0",
+  "applications": [
+    "myapp"
+  ],
+  "judge": {
+    "name": "dredd-v1.0",
+    "judgeConfigurations": { }
+  },
+  "metrics": [
+    {
+      "name": "CPU",
+      "query": {
+        "type": "graphite",
+        "metricName": "system.cpu.user"
+      },
+      "groups": ["system"],
+      "analysisConfigurations": { },
+      "scopeName": "default"
+    }
+  ],
+  "classifier": {
+    "groupWeights": {
+      "system": 100.0
+    },
+    "scoreThresholds": {
+      "pass": 95.0,
+      "marginal": 75.0
+    }
+  }
+}
+```
 
 ## Canary Data Archival Format
 

@@ -50,6 +50,15 @@ kayenta:
 #          - METRICS_STORE
 #        endpoint.baseUrl: https://app.datadoghq.com
 
+  graphite:
+    enabled: false
+#    accounts:
+#      - name: my-graphite-account
+#        endpoint:
+#          baseUrl: http://localhost
+#        supportedTypes:
+#          - METRICS_STORE
+
   newrelic:
     enabled: false
 #    accounts:

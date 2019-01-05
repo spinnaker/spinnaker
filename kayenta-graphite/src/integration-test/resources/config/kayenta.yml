@@ -1,0 +1,87 @@
+redis:
+  connection: redis://localhost:${redis.port}
+
+#retrofit:
+#  logLevel: FULL
+
+kayenta:
+  atlas:
+    enabled: false
+
+  google:
+    enabled: false
+
+  aws:
+    enabled: false
+
+  datadog:
+    enabled: false
+
+  prometheus:
+    enabled: false
+
+  influxdb:
+    enabled: false
+
+  gcs:
+    enabled: false
+
+  s3:
+    enabled: false
+
+  signalfx:
+    enabled: false
+
+  stackdriver:
+    enabled: false
+
+  graphite:
+    enabled: true
+    accounts:
+    - name: my-graphite-account
+      endpoint:
+        baseUrl: http://localhost:${graphite.queryPort}
+      supportedTypes:
+      - METRICS_STORE
+
+  memory:
+    enabled: true
+    accounts:
+    - name: in-memory-store
+      supportedTypes:
+      - OBJECT_STORE
+
+  configbin:
+    enabled: false
+
+management.security.enabled: false
+
+keiko:
+  queue:
+    redis:
+      queueName: kayenta.keiko.queue
+      deadLetterQueueName: kayenta.keiko.queue.deadLetters
+
+spectator:
+  applicationName: ${spring.application.name}
+  webEndpoint:
+    enabled: true
+
+swagger:
+  enabled: true
+  title: Kayenta API
+  description:
+  contact:
+  patterns:
+  - /admin.*
+  - /canary.*
+  - /canaryConfig.*
+  - /canaryJudgeResult.*
+  - /credentials.*
+  - /fetch.*
+  - /health
+  - /judges.*
+  - /metadata.*
+  - /metricSetList.*
+  - /metricSetPairList.*
+  - /pipeline.*
