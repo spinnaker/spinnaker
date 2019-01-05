@@ -126,7 +126,7 @@ export class AccountService {
     region: string,
   ): IPromise<string[]> {
     return this.getPreferredZonesByAccount(provider).then(
-      (result: IAccountZone) => (result[account] ? result[account][region] : []),
+      (result: IAccountZone) => (result[account] && result[account][region]) || [],
     );
   }
 
