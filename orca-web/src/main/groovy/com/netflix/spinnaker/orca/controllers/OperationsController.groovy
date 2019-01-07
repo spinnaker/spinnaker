@@ -25,6 +25,7 @@ import com.netflix.spinnaker.kork.web.exceptions.ValidationException
 import com.netflix.spinnaker.orca.clouddriver.service.JobService
 import com.netflix.spinnaker.orca.extensionpoint.pipeline.PipelinePreprocessor
 import com.netflix.spinnaker.orca.front50.Front50Service
+import com.netflix.spinnaker.orca.front50.PipelineModelMutator
 import com.netflix.spinnaker.orca.igor.BuildService
 import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher
 import com.netflix.spinnaker.orca.pipeline.model.Execution
@@ -75,6 +76,9 @@ class OperationsController {
 
   @Autowired(required = false)
   List<PipelinePreprocessor> pipelinePreprocessors
+
+  @Autowired(required = false)
+  private List<PipelineModelMutator> pipelineModelMutators = new ArrayList<>();
 
   @Autowired(required = false)
   WebhookService webhookService
@@ -140,6 +144,7 @@ class OperationsController {
 
   private Map<String, Object> planPipeline(Map pipeline, boolean resolveArtifacts) {
     log.info('Not starting pipeline (plan: true): {}', value("pipelineId", pipeline.id))
+    pipelineModelMutators.stream().filter({m -> m.supports(pipeline)}).forEach({m -> m.mutate(pipeline)})
     return parseAndValidatePipeline(pipeline, resolveArtifacts)
   }
 
