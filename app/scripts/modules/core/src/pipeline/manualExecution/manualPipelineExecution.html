@@ -166,7 +166,7 @@
       <button type="button" class="btn btn-default" ng-click="vm.cancel()">Cancel</button>
       <button type="submit"
               class="btn btn-primary"
-              ng-disabled="!vm.command.pipeline || !manualExecutionForm.$valid"
+              ng-disabled="!vm.command.pipeline || !manualExecutionForm.$valid || vm.command.triggerInvalid"
               ng-click="vm.execute()">
         <span class="glyphicon glyphicon-play"></span> Run
       </button>

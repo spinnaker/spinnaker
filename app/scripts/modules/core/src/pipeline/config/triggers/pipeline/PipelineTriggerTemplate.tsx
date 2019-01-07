@@ -54,6 +54,7 @@ export class PipelineTriggerTemplate extends React.Component<
 
   private initialize = () => {
     const { command } = this.props;
+    command.triggerInvalid = true;
     const trigger = command.trigger as IPipelineTrigger;
 
     // structure is a little different if this is a re-run; need to extract the fields from the parentExecution
@@ -112,6 +113,7 @@ export class PipelineTriggerTemplate extends React.Component<
   private updateSelectedExecution = (item: IExecution) => {
     this.props.command.extraFields.parentPipelineId = item.id;
     this.props.command.extraFields.parentPipelineApplication = item.application;
+    this.props.command.triggerInvalid = false;
     this.setState({ selectedExecution: item.id });
   };
 

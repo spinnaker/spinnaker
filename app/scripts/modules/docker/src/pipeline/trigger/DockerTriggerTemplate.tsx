@@ -89,6 +89,7 @@ export class DockerTriggerTemplate extends React.Component<
   private updateSelectedTag = (tag: string) => {
     this.updateArtifact(this.props.command, tag);
     this.setState({ selectedTag: tag });
+    this.props.command.triggerInvalid = false;
   };
 
   private updateDigest = (digest: string) => {
@@ -120,6 +121,7 @@ export class DockerTriggerTemplate extends React.Component<
 
   private initialize = () => {
     const { command } = this.props;
+    command.triggerInvalid = true;
 
     this.subscription = this.queryStream
       .debounceTime(250)
@@ -183,8 +185,6 @@ export class DockerTriggerTemplate extends React.Component<
                 </div>
               </div>
             )}
-            {/* prevent form submission while tags are loading */}
-            <input type="hidden" required={tagsLoading} value={selectedTag} />
             {loadError && <div className="col-md-6">Error loading tags!</div>}
             {!tagsLoading && (
               <div className="col-md-6">

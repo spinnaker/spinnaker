@@ -50,6 +50,7 @@ export interface IParameterOption {
 
 export interface IPipelineCommand {
   extraFields?: { [key: string]: any };
+  triggerInvalid?: boolean;
   pipeline: IPipeline;
   trigger: ITrigger;
   notificationEnabled: boolean;
