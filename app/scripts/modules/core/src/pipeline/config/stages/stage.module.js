@@ -1,5 +1,7 @@
 'use strict';
 
+import { ReactModal } from 'root/app/scripts/modules/core/src/presentation';
+
 const angular = require('angular');
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
@@ -9,16 +11,15 @@ import { AccountService } from 'core/account/AccountService';
 import { API } from 'core/api';
 import { BASE_EXECUTION_DETAILS_CTRL } from './core/baseExecutionDetails.controller';
 import { CONFIRMATION_MODAL_SERVICE } from 'core/confirmationModal/confirmationModal.service';
-import { EDIT_STAGE_JSON_CONTROLLER } from './core/editStageJson.controller';
 import { STAGE_NAME } from './StageName';
 import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
 import { Registry } from 'core/registry';
 import { StageConfigWrapper } from './StageConfigWrapper';
+import { EditStageJsonModal } from 'root/app/scripts/modules/core/src/pipeline/config/stages/core/EditStageJsonModal';
 
 module.exports = angular
   .module('spinnaker.core.pipeline.config.stage', [
     BASE_EXECUTION_DETAILS_CTRL,
-    EDIT_STAGE_JSON_CONTROLLER,
     STAGE_NAME,
     require('./overrideTimeout/overrideTimeout.directive.js').name,
     require('./overrideFailure/overrideFailure.component.js').name,
@@ -111,19 +112,12 @@ module.exports = angular
     };
 
     this.editStageJson = () => {
-      $uibModal
-        .open({
-          size: 'lg modal-fullscreen',
-          templateUrl: require('./core/editStageJson.modal.html'),
-          controller: 'editStageJsonCtrl as $ctrl',
-          resolve: {
-            stage: () => $scope.stage,
-          },
+      const modalProps = { dialogClassName: 'modal-lg modal-fullscreen' };
+      ReactModal.show(EditStageJsonModal, { stage: $scope.stage }, modalProps)
+        .then(() => {
+          $scope.$applyAsync(() => $scope.$broadcast('pipeline-json-edited'));
         })
-        .result.then(() => {
-          $scope.$broadcast('pipeline-json-edited');
-        })
-        .catch(() => {});
+        .catch(() => {}); // user closed modal
     };
 
     this.selectStageType = stage => {

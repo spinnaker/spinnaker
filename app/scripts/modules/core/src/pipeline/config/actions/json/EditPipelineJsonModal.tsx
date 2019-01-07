@@ -1,0 +1,188 @@
+import * as React from 'react';
+import { cloneDeepWith } from 'lodash';
+
+import 'brace/mode/json';
+
+import { IPipeline, IStage } from 'core/domain';
+import { JsonUtils, noop } from 'core/utils';
+import { IModalComponentProps, JsonEditor } from 'core/presentation';
+
+export interface IEditPipelineJsonModalProps extends IModalComponentProps {
+  pipeline: IPipeline;
+  plan: IPipeline;
+}
+
+export interface IEditPipelineJsonModalState {
+  errorMessage?: string;
+  pipelineJSON: string;
+  pipelinePlanJSON?: string;
+  locked: boolean;
+  isStrategy: boolean;
+  activeTab: mode;
+}
+
+type mode = 'pipeline' | 'renderedPipeline';
+
+export class EditPipelineJsonModal extends React.Component<IEditPipelineJsonModalProps, IEditPipelineJsonModalState> {
+  public static defaultProps: Partial<IEditPipelineJsonModalProps> = {
+    closeModal: noop,
+    dismissModal: noop,
+  };
+
+  // these fields are not user-editable, so we hide them
+  private immutableFields = ['name', 'application', 'index', 'id', '$$hashKey'];
+
+  constructor(props: IEditPipelineJsonModalProps) {
+    super(props);
+
+    const copy = this.clone(props.pipeline);
+    let copyPlan: IPipeline;
+    if (props.plan) {
+      copyPlan = this.clone(props.plan);
+    }
+
+    this.state = {
+      pipelineJSON: JsonUtils.makeSortedStringFromObject(copy),
+      pipelinePlanJSON: copyPlan ? JsonUtils.makeSortedStringFromObject(copyPlan) : null,
+      locked: copy.locked,
+      isStrategy: copy.strategy || false,
+      activeTab: 'pipeline',
+    };
+  }
+
+  private removeImmutableFields(pipeline: IPipeline): void {
+    // no index signature on pipeline
+    this.immutableFields.forEach(k => delete (pipeline as any)[k]);
+  }
+
+  private validatePipeline(pipeline: IPipeline): void {
+    const refIds = new Set<string | number>();
+    const badIds = new Set<string | number>();
+    if (pipeline.stages) {
+      pipeline.stages.forEach((stage: IStage) => {
+        if (refIds.has(stage.refId)) {
+          badIds.add(stage.refId);
+        }
+        refIds.add(stage.refId);
+      });
+
+      if (badIds.size) {
+        throw new Error(
+          `The refId property must be unique across stages.  Duplicate id(s): ${Array.from(badIds).toString()}`,
+        );
+      }
+    }
+  }
+
+  private updatePipeline = (): void => {
+    const { pipelineJSON } = this.state;
+    const { pipeline } = this.props;
+
+    try {
+      const parsed = JSON.parse(pipelineJSON);
+      parsed.appConfig = parsed.appConfig || {};
+
+      this.validatePipeline(parsed);
+
+      Object.keys(pipeline)
+        .filter(k => !this.immutableFields.includes(k) && !parsed.hasOwnProperty(k))
+        .forEach(k => delete (pipeline as any)[k]);
+      this.removeImmutableFields(parsed);
+      Object.assign(pipeline, parsed);
+
+      this.props.closeModal();
+    } catch (e) {
+      this.setState({ errorMessage: e.message });
+    }
+  };
+
+  private clone(pipeline: IPipeline): IPipeline {
+    const copy = cloneDeepWith<IPipeline>(pipeline, (value: any) => {
+      if (value && value.$$hashKey) {
+        delete value.$$hashKey;
+      }
+      return undefined; // required for clone operation and typescript happiness
+    });
+    this.removeImmutableFields(copy);
+    return copy;
+  }
+
+  private setActiveTab(activeTab: mode) {
+    this.setState({ activeTab });
+  }
+
+  private updateJson = (pipelineJSON: string) => {
+    this.setState({ pipelineJSON });
+  };
+
+  private onValidate = (errorMessage: string) => {
+    this.setState({ errorMessage });
+  };
+
+  public render() {
+    const { pipelineJSON, pipelinePlanJSON, locked, isStrategy, activeTab, errorMessage } = this.state;
+    const invalid = !!errorMessage;
+    const { dismissModal } = this.props;
+
+    return (
+      <div className="flex-fill">
+        <div className="modal-header">
+          <h3>
+            {!locked && <span>Edit </span>}
+            {isStrategy ? 'Strategy' : 'Pipeline'} JSON
+          </h3>
+        </div>
+        {!!pipelinePlanJSON && (
+          <ul className="tabs-basic" style={{ listStyle: 'none' }}>
+            <li role="presentation" className={activeTab === 'pipeline' ? 'selected' : ''}>
+              <a onClick={() => this.setActiveTab('pipeline')}>Configuration</a>
+            </li>
+            <li role="presentation" className={activeTab === 'renderedPipeline' ? 'selected' : ''}>
+              <a onClick={() => this.setActiveTab('renderedPipeline')}>Rendered pipeline</a>
+            </li>
+          </ul>
+        )}
+        {activeTab === 'pipeline' && (
+          <div className="modal-body flex-fill">
+            <p>
+              The JSON below represents the {isStrategy ? 'strategy' : 'pipeline'} configuration in its persisted state.
+            </p>
+            {!locked && (
+              <p>
+                <strong>Note:</strong> Clicking "Update {isStrategy ? 'Strategy' : 'Pipeline'}" below will not save your
+                changes to the server - it only updates the configuration within the browser, so you'll want to verify
+                your changes and click "Save Changes" when you're ready.
+              </p>
+            )}
+            <JsonEditor value={pipelineJSON} onChange={this.updateJson} onValidation={this.onValidate} />
+          </div>
+        )}
+        {activeTab === 'renderedPipeline' && (
+          <div className="modal-body flex-fill">
+            <p>This pipeline is based on a template. The JSON below represents the rendered pipeline.</p>
+            <form role="form" name="form" className="form-horizontal flex-fill">
+              <div className="flex-fill">
+                <JsonEditor value={pipelinePlanJSON} readOnly={true} />
+              </div>
+            </form>
+          </div>
+        )}
+        <div className="modal-footer">
+          {invalid && (
+            <div className="slide-in">
+              <div className="error-message">Error: {errorMessage}</div>
+            </div>
+          )}
+          <button className="btn btn-default" onClick={() => dismissModal()}>
+            Cancel
+          </button>
+          {!locked && (
+            <button disabled={invalid} className="btn btn-primary" onClick={this.updatePipeline}>
+              <span className="far fa-check-circle" /> Update {isStrategy ? 'Strategy' : 'Pipeline'}
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+}

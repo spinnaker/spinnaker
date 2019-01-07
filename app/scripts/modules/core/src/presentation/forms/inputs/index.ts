@@ -1,4 +1,5 @@
 export * from './CheckboxInput';
+export * from './JsonEditor';
 export * from './NumberInput';
 export * from './RadioButtonInput';
 export * from './ReactSelectInput';
