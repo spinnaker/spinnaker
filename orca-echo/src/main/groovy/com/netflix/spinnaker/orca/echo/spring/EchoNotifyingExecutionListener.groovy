@@ -65,7 +65,7 @@ class EchoNotifyingExecutionListener implements ExecutionListener {
         )
       }
     } catch (Exception e) {
-      log.error("Failed to send pipeline start event: ${execution?.id}")
+      log.error("Failed to send pipeline start event: ${execution?.id}", e)
     }
   }
 
@@ -89,7 +89,7 @@ class EchoNotifyingExecutionListener implements ExecutionListener {
         )
       }
     } catch (Exception e) {
-      log.error("Failed to send pipeline end event: ${execution?.id}")
+      log.error("Failed to send pipeline end event: ${execution?.id}", e)
     }
   }
 
