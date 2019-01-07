@@ -43,6 +43,7 @@ dependencies {
   compileOnly spinnaker.dependency("lombok")
 
   testCompile project(":gate-ldap") // TODO: Move system tests to own module
+  testCompile project(":gate-basic")
   testCompile "com.squareup.okhttp:mockwebserver:${spinnaker.version('okHttp')}"
   testCompile apachedsDependencies
   testCompile spinnaker.dependency("korkJedisTest")
