@@ -1,18 +1,16 @@
-import { IController, IPromise, IQService, module } from 'angular';
-import { StateService } from '@uirouter/angularjs';
-import { cloneDeep, flattenDeep } from 'lodash';
+import { IController, IPromise, IQService, IScope, module } from 'angular';
+import { react2angular } from 'react2angular';
 
+import { CloudFoundryInstanceDetails } from './CloudFoundryInstanceDetails';
 import {
   Application,
-  CONFIRMATION_MODAL_SERVICE,
   ConfirmationModalService,
-  INSTANCE_WRITE_SERVICE,
   InstanceReader,
   InstanceWriter,
   RecentHistoryService,
 } from '@spinnaker/core';
-
 import { ICloudFoundryInstance } from 'cloudfoundry/domain';
+import { flattenDeep } from 'lodash';
 
 interface InstanceFromStateParams {
   instanceId: string;
@@ -26,65 +24,33 @@ interface InstanceManager {
   instances: ICloudFoundryInstance[];
 }
 
-class CloudFoundryInstanceDetailsController implements IController {
-  public state = { loading: true };
-  public instance: ICloudFoundryInstance;
-  public instanceIdNotFound: string;
-  public upToolTip = `A CloudFoundry instance is 'Up' if a load balancer is directing traffic to its server group.`;
-  public outOfServiceToolTip = `
-    A CloudFoundry instance is 'Out Of Service' if no load balancers are directing traffic to its server group.`;
-
+class CloudFoundryInstanceDetailsCtrl implements IController {
   constructor(
-    private $state: StateService,
-    private $q: IQService,
+    public $scope: IScope,
     private app: Application,
+    private instance: InstanceFromStateParams,
     private instanceWriter: InstanceWriter,
     private confirmationModalService: ConfirmationModalService,
-    instance: InstanceFromStateParams,
+    private $q: IQService,
   ) {
     'ngInject';
-
+    this.$scope.application = this.app;
+    this.$scope.instanceWriter = this.instanceWriter;
+    this.$scope.confirmationModalService = this.confirmationModalService;
+    this.$scope.qService = this.$q;
+    this.$scope.loading = true;
     this.app
       .ready()
-      .then(() => this.retrieveInstance(instance))
+      .then(() => this.retrieveInstance(this.instance))
       .then(instanceDetails => {
-        this.instance = instanceDetails;
-        this.state.loading = false;
+        this.$scope.instance = instanceDetails;
+        this.$scope.loading = false;
       })
       .catch(() => {
-        this.instanceIdNotFound = instance.instanceId;
-        this.state.loading = false;
+        this.$scope.instanceIdNotFound = this.instance.instanceId;
+        this.$scope.loading = false;
       });
   }
-
-  public terminateInstance(): void {
-    const instance = cloneDeep(this.instance) as any;
-    instance.placement = {};
-    instance.id = instance.name;
-    const $state = this.$state;
-    const taskMonitor = {
-      application: this.app,
-      title: 'Terminating ' + instance.name,
-      onTaskComplete() {
-        if ($state.includes('**.instanceDetails', { instanceId: instance.name })) {
-          $state.go('^');
-        }
-      },
-    };
-
-    const submitMethod = () => {
-      return this.instanceWriter.terminateInstance(instance, this.app, { cloudProvider: 'cloudfoundry' });
-    };
-
-    this.confirmationModalService.confirm({
-      header: 'Really terminate ' + instance.name + '?',
-      buttonText: 'Terminate',
-      account: instance.account,
-      taskMonitorConfig: taskMonitor,
-      submitMethod,
-    });
-  }
-
   private retrieveInstance(instance: InstanceFromStateParams): IPromise<ICloudFoundryInstance> {
     const instanceLocatorPredicate = (dataSource: InstanceManager) => {
       return dataSource.instances.some(possibleMatch => possibleMatch.id === instance.instanceId);
@@ -123,9 +89,17 @@ class CloudFoundryInstanceDetailsController implements IController {
   }
 }
 
-export const CLOUD_FOUNDRY_INSTANCE_DETAILS_CTRL = 'spinnaker.cloudfoundry.instanceDetails.controller';
-
-module(CLOUD_FOUNDRY_INSTANCE_DETAILS_CTRL, [INSTANCE_WRITE_SERVICE, CONFIRMATION_MODAL_SERVICE]).controller(
-  'cloudfoundryInstanceDetailsCtrl',
-  CloudFoundryInstanceDetailsController,
-);
+export const CLOUD_FOUNDRY_INSTANCE_DETAILS = 'spinnaker.cloudfoundry.instanceDetails';
+module(CLOUD_FOUNDRY_INSTANCE_DETAILS, [])
+  .component(
+    'cfInstanceDetails',
+    react2angular(CloudFoundryInstanceDetails, [
+      'application',
+      'confirmationModalService',
+      'instance',
+      'instanceIdNotFound',
+      'instanceWriter',
+      'loading',
+    ]),
+  )
+  .controller('cfInstanceDetailsCtrl', CloudFoundryInstanceDetailsCtrl);
