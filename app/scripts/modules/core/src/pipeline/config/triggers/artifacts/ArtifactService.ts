@@ -4,21 +4,19 @@ import { IPromise } from 'angular';
 export class ArtifactService {
   public static getArtifactNames(type: string, accountName: string): IPromise<string[]> {
     return API.one('artifacts')
-      .one(type)
       .one('account')
       .one(accountName)
       .one('names')
+      .withParams({ type: type })
       .get();
   }
 
-  public static getArtifactVersions(type: string, accountName: string, chartName: string): IPromise<string[]> {
+  public static getArtifactVersions(type: string, accountName: string, artifactName: string): IPromise<string[]> {
     return API.one('artifacts')
-      .one(type)
       .one('account')
       .one(accountName)
-      .one('names')
-      .one(chartName)
       .one('versions')
+      .withParams({ type: type, artifactName: artifactName })
       .get();
   }
 }

@@ -24,13 +24,14 @@ module(HELM_ARTIFACT, []).config(() => {
 
       this.onAccountChange = () => {
         this.artifact.artifactAccount = this.selectedArtifactAccount;
-        ArtifactService.getArtifactNames('helm', this.artifact.artifactAccount).then(definitions => {
-          this.chartNames = definitions;
+        this.artifact.reference = this.selectedArtifactAccount;
+        ArtifactService.getArtifactNames('helm/chart', this.artifact.artifactAccount).then(names => {
+          this.chartNames = names;
         });
         this.chartVersions = [];
       };
       this.onNameChange = () => {
-        ArtifactService.getArtifactVersions('helm', this.artifact.artifactAccount, this.artifact.name).then(
+        ArtifactService.getArtifactVersions('helm/chart', this.artifact.artifactAccount, this.artifact.name).then(
           versions => {
             this.chartVersions = versions;
           },
@@ -48,11 +49,11 @@ module(HELM_ARTIFACT, []).config(() => {
       });
 
       if (artifact.artifactAccount) {
-        ArtifactService.getArtifactNames('helm', this.artifact.artifactAccount).then(names => {
+        ArtifactService.getArtifactNames('helm/chart', this.artifact.artifactAccount).then(names => {
           this.chartNames = names;
         });
         if (artifact.name) {
-          ArtifactService.getArtifactVersions('helm', this.artifact.artifactAccount, this.artifact.name).then(
+          ArtifactService.getArtifactVersions('helm/chart', this.artifact.artifactAccount, this.artifact.name).then(
             versions => {
               this.chartVersions = versions;
             },

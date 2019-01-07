@@ -17,7 +17,8 @@ export class HelmArtifactEditor extends React.Component<IArtifactEditorProps, IS
     super(props);
     this.state = { names: [], versions: [], artifact: this.props.artifact };
     this.state.artifact.artifactAccount = this.props.account.name;
-    ArtifactService.getArtifactNames('helm', this.props.account.name).then(names => {
+    this.state.artifact.reference = this.props.account.name;
+    ArtifactService.getArtifactNames('helm/chart', this.props.account.name).then(names => {
       this.setState({ names });
     });
   }
@@ -27,8 +28,9 @@ export class HelmArtifactEditor extends React.Component<IArtifactEditorProps, IS
       this.state.artifact.artifactAccount = nextProps.account.name;
       this.state.artifact.name = '';
       this.state.artifact.version = '';
+      this.state.artifact.reference = nextProps.account.name;
       nextProps.onChange({ ...this.state.artifact });
-      ArtifactService.getArtifactNames('helm', nextProps.account.name).then(names => {
+      ArtifactService.getArtifactNames('helm/chart', nextProps.account.name).then(names => {
         this.setState({ names, versions: [] });
       });
     }
@@ -72,10 +74,12 @@ export class HelmArtifactEditor extends React.Component<IArtifactEditorProps, IS
   };
 
   private onNameChange = () => {
-    ArtifactService.getArtifactVersions('helm', this.state.artifact.artifactAccount, this.state.artifact.name).then(
-      versions => {
-        this.setState({ versions });
-      },
-    );
+    ArtifactService.getArtifactVersions(
+      'helm/chart',
+      this.state.artifact.artifactAccount,
+      this.state.artifact.name,
+    ).then(versions => {
+      this.setState({ versions });
+    });
   };
 }
