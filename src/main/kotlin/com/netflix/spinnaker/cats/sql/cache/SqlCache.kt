@@ -267,6 +267,7 @@ class SqlCache(
       }
       // TODO better error handling
     } catch (e: Exception) {
+      log.error("Failed selecting ids for type $type, ids $ids", e)
       return mutableListOf()
     }
 
