@@ -6,6 +6,7 @@ import _ from 'lodash';
 import { AuthenticationService } from 'core/authentication';
 import { Registry } from 'core/registry';
 import { SETTINGS } from 'core/config/settings';
+import { UrlParser } from 'core/navigation';
 import { AppNotificationsService } from 'core/notification/AppNotificationsService';
 import { PipelineTemplateReader } from 'core/pipeline/config/templates/PipelineTemplateReader';
 
@@ -168,6 +169,8 @@ module.exports = angular
     };
 
     this.addParameter = parameterConfig => {
+      const [, queryString] = window.location.href.split('?');
+      const queryParams = UrlParser.parseQueryString(queryString);
       // Inject the default value into the options list if it is absent
       if (
         parameterConfig.default &&
@@ -178,6 +181,9 @@ module.exports = angular
       }
       const { name } = parameterConfig;
       const parameters = trigger ? trigger.parameters : {};
+      if (queryParams[name]) {
+        this.parameters[name] = queryParams[name];
+      }
       if (this.parameters[name] === undefined) {
         this.parameters[name] = parameters[name] !== undefined ? parameters[name] : parameterConfig.default;
       }

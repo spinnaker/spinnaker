@@ -9,10 +9,6 @@ export interface IQueryParams {
 }
 
 export class UrlParser {
-  public static parseLocationHash(hash = ''): string {
-    return hash.indexOf('?') <= 1 ? '' : hash.substring(hash.indexOf('?') + 1);
-  }
-
   /**
    * Parses an escaped url query string into key-value pairs.
    * @returns {Object.<string,boolean|Array>}
