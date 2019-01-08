@@ -12,7 +12,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.echo.pipelinetriggers.monitor
+package com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry

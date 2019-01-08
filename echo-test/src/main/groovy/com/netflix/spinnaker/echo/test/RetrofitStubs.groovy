@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.echo.test
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.echo.model.Metadata
 import com.netflix.spinnaker.echo.model.Pipeline
 import com.netflix.spinnaker.echo.model.Trigger
@@ -90,7 +91,7 @@ trait RetrofitStubs {
     def res = new WebhookEvent()
     res.details = new Metadata([type: WebhookEvent.TYPE, source: source])
     res.payload = payload
-    res.content = payload
+    res.content = new ObjectMapper().convertValue(payload, WebhookEvent.Content)
     return res
   }
 

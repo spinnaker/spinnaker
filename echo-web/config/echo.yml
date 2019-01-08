@@ -1,14 +1,14 @@
+server:
+  port: 8089
+
 spinnaker:
   cassandra:
     cluster: 'spinnaker'
     keyspace: 'echo'
   baseUrl: 'http://localhost:9000'
 
-echo:
-  baseUrl: 'http://localhost:8080'
-
 front50:
-  baseUrl: 'http://localhost:8081'
+  baseUrl: 'http://localhost:8080'
 
 orca:
   baseUrl: 'http://localhost:8083'

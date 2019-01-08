@@ -17,9 +17,11 @@
 package com.netflix.spinnaker.echo.model.trigger;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.util.List;
 import java.util.Map;
 
 @Data
@@ -27,5 +29,12 @@ import java.util.Map;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class WebhookEvent extends TriggerEvent {
   public static final String TYPE = "WEBHOOK";
-  private Map content;
+  private Content content;
+
+  @Data
+  @JsonIgnoreProperties(ignoreUnknown = true)
+  public static class Content {
+    private List<Artifact> artifacts;
+    private Map<?, ?> parameters;
+  }
 }

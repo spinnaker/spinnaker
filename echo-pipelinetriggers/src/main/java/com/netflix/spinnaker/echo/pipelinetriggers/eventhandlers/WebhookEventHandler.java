@@ -14,25 +14,21 @@
 
 package com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers;
 
-import static com.netflix.spinnaker.echo.pipelinetriggers.artifacts.ArtifactMatcher.isConstraintInPayload;
-import static java.util.Collections.emptyList;
-
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.model.Pipeline;
 import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.model.trigger.WebhookEvent;
 import com.netflix.spinnaker.echo.pipelinetriggers.artifacts.ArtifactMatcher;
-import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+
+import static com.netflix.spinnaker.echo.pipelinetriggers.artifacts.ArtifactMatcher.isConstraintInPayload;
 
 /**
  * Implementation of TriggerEventHandler for events of type {@link WebhookEvent}, which occur when
@@ -41,9 +37,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class WebhookEventHandler extends BaseTriggerEventHandler<WebhookEvent> {
   private static final String TRIGGER_TYPE = "webhook";
-
-  private static final TypeReference<List<Artifact>> ARTIFACT_LIST =
-      new TypeReference<List<Artifact>>() {};
 
   @Autowired
   public WebhookEventHandler(Registry registry, ObjectMapper objectMapper) {
@@ -67,14 +60,12 @@ public class WebhookEventHandler extends BaseTriggerEventHandler<WebhookEvent> {
 
   @Override
   protected Function<Trigger, Pipeline> buildTrigger(Pipeline pipeline, WebhookEvent webhookEvent) {
-    Map content = webhookEvent.getContent();
+    WebhookEvent.Content content = webhookEvent.getContent();
     Map payload = webhookEvent.getPayload();
-    Map parameters = content.containsKey("parameters") ? (Map) content.get("parameters") : new HashMap();
-    List<Artifact> artifacts = objectMapper.convertValue(content.getOrDefault("artifacts", emptyList()), ARTIFACT_LIST);
 
     return trigger -> pipeline
-        .withReceivedArtifacts(artifacts)
-        .withTrigger(trigger.atParameters(parameters)
+        .withReceivedArtifacts(content.getArtifacts())
+        .withTrigger(trigger.atParameters(content.getParameters())
           .atPayload(payload)
           .atEventId(webhookEvent.getEventId()));
   }
@@ -88,8 +79,6 @@ public class WebhookEventHandler extends BaseTriggerEventHandler<WebhookEvent> {
   protected Predicate<Trigger> matchTriggerFor(WebhookEvent webhookEvent, Pipeline pipeline) {
     final String type = webhookEvent.getDetails().getType();
     final String source = webhookEvent.getDetails().getSource();
-    final Map content = webhookEvent.getContent();
-    final List<Artifact> messageArtifacts = objectMapper.convertValue(content.getOrDefault("artifacts", emptyList()), ARTIFACT_LIST);
 
     return trigger ->
         trigger.getType() != null && trigger.getType().equalsIgnoreCase(type) &&
@@ -105,7 +94,7 @@ public class WebhookEventHandler extends BaseTriggerEventHandler<WebhookEvent> {
 
         ) &&
         // note this returns true when no artifacts are expected
-        ArtifactMatcher.anyArtifactsMatchExpected(messageArtifacts, trigger, pipeline);
+        ArtifactMatcher.anyArtifactsMatchExpected(webhookEvent.getContent().getArtifacts(), trigger, pipeline);
   }
 
   @Override
