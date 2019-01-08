@@ -17,11 +17,13 @@
 package com.netflix.spinnaker.okhttp
 
 import com.fasterxml.jackson.annotation.JsonAlias
+import groovy.transform.AutoClone
 import groovy.transform.Canonical
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.NestedConfigurationProperty
 import org.springframework.core.annotation.AliasFor
 
+@AutoClone
 @Canonical
 @ConfigurationProperties(prefix="okHttpClient")
 class OkHttpClientConfigurationProperties {
