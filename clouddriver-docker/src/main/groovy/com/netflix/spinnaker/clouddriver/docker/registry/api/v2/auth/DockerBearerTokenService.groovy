@@ -174,7 +174,8 @@ class DockerBearerTokenService {
       throw new DockerRegistryAuthenticationException("Www-Authenticate header must provide 'realm' parameter.")
     }
     if (!result.service) {
-      throw new DockerRegistryAuthenticationException("Www-Authenticate header must provide 'service' parameter.")
+      // This e.g. is the case for OpenShift Container Registry
+      result.service = null
     }
 
     return result

@@ -50,6 +50,19 @@ class DockerBearerTokenServiceSpec extends Specification {
       result.scope == SCOPE1
   }
 
+  void "should parse Www-Authenticate header with missing service and path."() {
+    setup:
+      def input = "realm=\"${REALM1}/${PATH1}\",scope=\"${SCOPE1}\""
+    when:
+      def result = tokenService.parseBearerAuthenticateHeader(input)
+
+    then:
+      result.path == PATH1
+      result.realm == REALM1
+      result.service == null
+      result.scope == SCOPE1
+  }
+
   void "should parse Www-Authenticate header with some privileges and path."() {
     setup:
       def input = "realm=\"${REALM1}/${PATH1}\",service=\"${SERVICE1}\",scope=\"${SCOPE2}\""
@@ -73,6 +86,19 @@ class DockerBearerTokenServiceSpec extends Specification {
       !result.path
       result.realm == REALM1
       result.service == SERVICE1
+      result.scope == SCOPE2
+  }
+
+  void "should parse Www-Authenticate header with missing service and no path."() {
+    setup:
+      def input = "realm=\"${REALM1}\",scope=\"${SCOPE2}\""
+    when:
+      def result = tokenService.parseBearerAuthenticateHeader(input)
+
+    then:
+      !result.path
+      result.realm == REALM1
+      result.service == null
       result.scope == SCOPE2
   }
 
