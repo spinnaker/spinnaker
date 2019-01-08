@@ -18,6 +18,8 @@ package com.netflix.spinnaker.halyard.config.model.v1.providers.dockerRegistry;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.LocalFile;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Secret;
+import com.netflix.spinnaker.halyard.config.model.v1.node.SecretFile;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -29,6 +31,7 @@ import java.util.List;
 public class DockerRegistryAccount extends Account {
   private String address;
   private String username;
+  @Secret
   private String password;
   private String passwordCommand;
   private String email;
@@ -40,7 +43,8 @@ public class DockerRegistryAccount extends Account {
   private Boolean trackDigests = false;
   private Boolean insecureRegistry = false;
   private List<String> repositories = new ArrayList<>();
-  @LocalFile private String passwordFile;
+  @LocalFile @SecretFile
+  private String passwordFile;
   @LocalFile private String dockerconfigFile;
 
   public String getAddress() {

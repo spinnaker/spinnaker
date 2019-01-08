@@ -18,6 +18,7 @@ package com.netflix.spinnaker.halyard.config.model.v1.providers.google;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.LocalFile;
+import com.netflix.spinnaker.halyard.config.model.v1.node.SecretFile;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -27,5 +28,5 @@ import lombok.ToString;
 @ToString(callSuper = true)
 public class CommonGoogleAccount extends Account {
   private String project;
-  @LocalFile private String jsonPath;
+  @LocalFile @SecretFile private String jsonPath;
 }

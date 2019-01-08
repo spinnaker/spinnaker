@@ -25,6 +25,7 @@ import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.aws.AwsComm
 import com.netflix.spinnaker.halyard.cli.command.v1.converter.LocalFileConverter;
 import com.netflix.spinnaker.halyard.config.model.v1.artifacts.s3.S3ArtifactAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.node.ArtifactAccount;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Secret;
 import org.springframework.data.repository.query.Param;
 
 @Parameters(separators = "=")
@@ -49,6 +50,7 @@ public class S3EditArtifactAccountCommand extends AbstractArtifactEditAccountCom
       description = AwsCommandProperties.ACCESS_KEY_ID_DESCRIPTION
   )
   private String awsAccessKeyId;
+  @Secret
   @Parameter(
       names = "--aws-secret-access-key",
       description = AwsCommandProperties.SECRET_KEY_DESCRIPTION,

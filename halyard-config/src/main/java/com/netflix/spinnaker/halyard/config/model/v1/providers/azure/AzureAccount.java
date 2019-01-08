@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.halyard.config.model.v1.providers.azure;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Secret;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -24,7 +25,7 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 public class AzureAccount extends Account {
   private String clientId;
-  private String appKey;
+  @Secret private String appKey;
   private String tenantId;
   private String subscriptionId;
   private String objectId;

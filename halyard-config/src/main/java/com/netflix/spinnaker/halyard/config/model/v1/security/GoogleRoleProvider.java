@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.halyard.config.model.v1.security;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.LocalFile;
+import com.netflix.spinnaker.halyard.config.model.v1.node.SecretFile;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -30,8 +31,7 @@ public class GoogleRoleProvider extends RoleProvider {
     return "google";
   }
 
-  @LocalFile
-  private String credentialPath;
+  @LocalFile @SecretFile private String credentialPath;
   private String adminUsername;
   private String domain;
 }

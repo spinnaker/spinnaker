@@ -18,6 +18,8 @@
 package com.netflix.spinnaker.halyard.config.model.v1.security;
 
 import java.net.URI;
+
+import com.netflix.spinnaker.halyard.config.model.v1.node.Secret;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -30,7 +32,7 @@ public class LdapRoleProvider extends RoleProvider {
 
   URI url;
   String managerDn;
-  String managerPassword;
+  @Secret String managerPassword;
 
   String userDnPattern;
   String userSearchBase;

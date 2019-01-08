@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.halyard.config.model.v1.providers.appengine;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.LocalFile;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Secret;
+import com.netflix.spinnaker.halyard.config.model.v1.node.SecretFile;
 import com.netflix.spinnaker.halyard.config.model.v1.node.ValidForSpinnakerVersion;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.google.CommonGoogleAccount;
 import lombok.Data;
@@ -29,11 +31,18 @@ import java.util.List;
 public class AppengineAccount extends CommonGoogleAccount {
   private String localRepositoryDirectory;
   private String gitHttpsUsername;
+  @Secret
   private String gitHttpsPassword;
+  @Secret
   private String githubOAuthAccessToken;
-  @LocalFile private String sshPrivateKeyFilePath;
+  @LocalFile
+  @SecretFile
+  private String sshPrivateKeyFilePath;
+  @Secret
   private String sshPrivateKeyPassphrase;
-  @LocalFile private String sshKnownHostsFilePath;
+  @LocalFile
+  @SecretFile
+  private String sshKnownHostsFilePath;
   private boolean sshTrustUnknownHosts;
   @ValidForSpinnakerVersion(
       lowerBound = "1.6.0",

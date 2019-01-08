@@ -21,6 +21,7 @@ import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCrede
 import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryServiceIntegration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.LocalFile;
+import com.netflix.spinnaker.halyard.config.model.v1.node.SecretFile;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.config.validate.v1.util.ValidatingFileReader;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
@@ -39,7 +40,7 @@ import java.util.Set;
 @Slf4j
 public class GoogleCanaryAccount extends AbstractCanaryAccount implements Cloneable {
   private String project;
-  @LocalFile private String jsonPath;
+  @LocalFile @SecretFile private String jsonPath;
   private String bucket;
   private String bucketLocation;
   private String rootFolder = "kayenta";

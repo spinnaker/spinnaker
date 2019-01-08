@@ -18,6 +18,7 @@ package com.netflix.spinnaker.halyard.config.model.v1.canary.aws;
 
 import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryServiceIntegration;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Secret;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -37,6 +38,6 @@ public class AwsCanaryAccount extends AbstractCanaryAccount implements Cloneable
   private String profileName;
   private String endpoint;
   private String accessKeyId;
-  private String secretAccessKey;
+  @Secret private String secretAccessKey;
   private Set<AbstractCanaryServiceIntegration.SupportedTypes> supportedTypes = new HashSet<>();
 }

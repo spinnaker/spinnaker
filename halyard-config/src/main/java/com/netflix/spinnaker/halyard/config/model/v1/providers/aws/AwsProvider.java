@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.halyard.config.model.v1.providers.aws;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.HasImageProvider;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Secret;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -28,7 +29,7 @@ import java.util.List;
 @Data
 public class AwsProvider extends HasImageProvider<AwsAccount, AwsBakeryDefaults> implements Cloneable {
   private String accessKeyId;
-  private String secretAccessKey;
+  @Secret String secretAccessKey;
 
   private String defaultAssumeRole;
   private String defaultKeyPairTemplate = "{{name}}-keypair";

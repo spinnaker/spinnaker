@@ -2,10 +2,10 @@ package com.netflix.spinnaker.halyard.config.model.v1.providers.dcos;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.*;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.containers.ContainerAccount;
-import com.netflix.spinnaker.halyard.config.model.v1.providers.dockerRegistry.DockerRegistryProvider;
-import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.dockerRegistry.DockerRegistryProvider;
+import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -44,8 +44,8 @@ public class DCOSAccount extends ContainerAccount {
   public static class ClusterCredential extends Node implements Cloneable {
     private final String name;
     private final String uid;
-    private final String password;
-    @LocalFile private final String serviceKeyFile;
+    @Secret private final String password;
+    @LocalFile @SecretFile private final String serviceKeyFile;
 
     @Override
     public String getNodeName() {

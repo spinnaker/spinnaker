@@ -11,6 +11,8 @@ package com.netflix.spinnaker.halyard.config.model.v1.providers.oracle;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.LocalFile;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Secret;
+import com.netflix.spinnaker.halyard.config.model.v1.node.SecretFile;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -20,8 +22,8 @@ public class OracleAccount extends Account {
   private String compartmentId;
   private String userId;
   private String fingerprint;
-  @LocalFile private String sshPrivateKeyFilePath;
-  private String privateKeyPassphrase;
+  @LocalFile @SecretFile private String sshPrivateKeyFilePath;
+  @Secret private String privateKeyPassphrase;
   private String tenancyId;
   private String region;
 }

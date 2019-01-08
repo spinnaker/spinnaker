@@ -12,6 +12,8 @@ package com.netflix.spinnaker.halyard.config.model.v1.persistentStorage;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.netflix.spinnaker.halyard.config.model.v1.node.LocalFile;
 import com.netflix.spinnaker.halyard.config.model.v1.node.PersistentStore;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Secret;
+import com.netflix.spinnaker.halyard.config.model.v1.node.SecretFile;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -45,9 +47,11 @@ public class OraclePersistentStore extends PersistentStore {
 
   @NotNull
   @LocalFile
+  @SecretFile
   @Size(min = 1)
   private String sshPrivateKeyFilePath;
 
+  @Secret
   private String privateKeyPassphrase;
 
   @NotNull

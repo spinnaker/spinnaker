@@ -20,6 +20,7 @@ package com.netflix.spinnaker.halyard.config.model.v1.notifications;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Notification;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Secret;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -27,7 +28,7 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 public class SlackNotification extends Notification {
   String botName;
-  String token;
+  @Secret String token;
 
   @Override
   @JsonIgnore

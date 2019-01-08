@@ -24,6 +24,8 @@ import com.netflix.spinnaker.halyard.cli.command.v1.config.artifacts.account.Abs
 import com.netflix.spinnaker.halyard.cli.command.v1.converter.LocalFileConverter;
 import com.netflix.spinnaker.halyard.config.model.v1.artifacts.helm.HelmArtifactAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.node.ArtifactAccount;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Secret;
+import com.netflix.spinnaker.halyard.config.model.v1.node.SecretFile;
 
 @Parameters(separators = "=")
 public class HelmEditArtifactAccountCommand extends AbstractArtifactEditAccountCommand<HelmArtifactAccount> {
@@ -37,12 +39,14 @@ public class HelmEditArtifactAccountCommand extends AbstractArtifactEditAccountC
       description = "Helm chart repository basic auth username"
   )
   private String username;
+  @Secret
   @Parameter(
       names = "--password",
       password = true,
       description = "Helm chart repository basic auth password"
   )
   private String password;
+  @SecretFile
   @Parameter(
       names = "--username-password-file",
       converter = LocalFileConverter.class,

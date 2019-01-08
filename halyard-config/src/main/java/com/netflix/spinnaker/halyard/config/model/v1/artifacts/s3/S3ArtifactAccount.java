@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.halyard.config.model.v1.artifacts.s3;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.ArtifactAccount;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Secret;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -28,5 +29,5 @@ public class S3ArtifactAccount extends ArtifactAccount {
     public String apiRegion;
     public String region;
     public String awsAccessKeyId;
-    public String awsSecretAccessKey;
+    @Secret public String awsSecretAccessKey;
 }

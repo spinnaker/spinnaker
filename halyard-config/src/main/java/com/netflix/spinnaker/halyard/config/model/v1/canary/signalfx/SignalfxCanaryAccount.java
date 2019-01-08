@@ -18,6 +18,7 @@ package com.netflix.spinnaker.halyard.config.model.v1.canary.signalfx;
 
 import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryServiceIntegration;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Secret;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -31,6 +32,6 @@ import java.util.Set;
 @ToString(callSuper = true)
 @Slf4j
 public class SignalfxCanaryAccount extends AbstractCanaryAccount implements Cloneable {
-  private String accessToken;
+  @Secret private String accessToken;
   private Set<AbstractCanaryServiceIntegration.SupportedTypes> supportedTypes = Collections.singleton(AbstractCanaryServiceIntegration.SupportedTypes.METRICS_STORE);
 }

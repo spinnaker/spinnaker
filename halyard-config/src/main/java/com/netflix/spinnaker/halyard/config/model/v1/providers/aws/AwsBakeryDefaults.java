@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.halyard.config.model.v1.providers.aws;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.BakeryDefaults;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Secret;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -24,7 +25,7 @@ import lombok.EqualsAndHashCode;
 @Data
 public class AwsBakeryDefaults extends BakeryDefaults<AwsBaseImage> {
   private String awsAccessKey;
-  private String awsSecretKey;
+  @Secret private String awsSecretKey;
   private String awsSubnetId;
   private String awsVpcId;
   private Boolean awsAssociatePublicIpAddress;

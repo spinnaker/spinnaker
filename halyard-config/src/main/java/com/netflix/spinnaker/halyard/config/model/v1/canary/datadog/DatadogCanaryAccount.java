@@ -18,6 +18,7 @@ package com.netflix.spinnaker.halyard.config.model.v1.canary.datadog;
 
 import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryServiceIntegration;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Secret;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -32,8 +33,8 @@ import java.util.Set;
 @Slf4j
 public class DatadogCanaryAccount extends AbstractCanaryAccount implements Cloneable {
   private Endpoint endpoint;
-  private String apiKey;
-  private String applicationKey;
+  @Secret private String apiKey;
+  @Secret private String applicationKey;
   private Set<AbstractCanaryServiceIntegration.SupportedTypes> supportedTypes = Collections.singleton(AbstractCanaryServiceIntegration.SupportedTypes.METRICS_STORE);
 
   @Data
