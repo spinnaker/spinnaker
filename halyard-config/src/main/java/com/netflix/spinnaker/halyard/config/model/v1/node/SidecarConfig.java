@@ -29,10 +29,12 @@ import java.util.Map;
 public class SidecarConfig {
   String name = "custom-sidecar";
   String dockerImage;
+  Integer port;
   Map<String, String> env = new HashMap<>();
   List<String> args = new ArrayList<>();
   List<String> command = new ArrayList<>();
   List<ConfigMapVolumeMount> configMapVolumeMounts = new ArrayList<>();
+  List<SecretVolumeMount> secretVolumeMounts = new ArrayList<>();
   String mountPath;
   SecurityContext securityContext;
 
@@ -44,6 +46,11 @@ public class SidecarConfig {
   @Data
   public static class ConfigMapVolumeMount {
     String configMapName;
+    String mountPath;
+  }
+  @Data
+  public static class SecretVolumeMount {
+    String secretName;
     String mountPath;
   }
 }

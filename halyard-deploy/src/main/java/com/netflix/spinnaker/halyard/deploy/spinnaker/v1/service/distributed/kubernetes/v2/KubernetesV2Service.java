@@ -235,6 +235,17 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
         .map(this::getVolumeYaml)
         .collect(Collectors.toList()));
 
+    volumes.addAll(sidecarConfigs.stream()
+        .map(SidecarConfig::getSecretVolumeMounts)
+        .flatMap(Collection::stream)
+        .map(c -> new ConfigSource()
+                .setMountPath(c.getMountPath())
+                .setId(c.getSecretName())
+                .setType(ConfigSource.Type.secret)
+        )
+        .map(this::getVolumeYaml)
+        .collect(Collectors.toList()));
+
     env.putAll(settings.getEnv());
 
     Integer targetSize = settings.getTargetSize();
@@ -318,6 +329,16 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
         })
         .collect(Collectors.toList()));
 
+    volumeMounts.addAll(config.getSecretVolumeMounts()
+        .stream()
+        .map( c -> {
+          TemplatedResource volume = new JinjaJarResource("/kubernetes/manifests/volumeMount.yml");
+          volume.addBinding("name", c.getSecretName());
+          volume.addBinding("mountPath", c.getMountPath());
+          return volume.toString();
+        })
+        .collect(Collectors.toList()));
+
     TemplatedResource container = new JinjaJarResource("/kubernetes/manifests/container.yml");
     if (config.getSecurityContext() != null) {
       TemplatedResource securityContext = new JinjaJarResource("/kubernetes/manifests/securityContext.yml");
@@ -325,9 +346,16 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
       container.addBinding("securityContext", securityContext.toString());
     }
 
+    if (config.getPort() != null) {
+      TemplatedResource containerPort = new JinjaJarResource("/kubernetes/manifests/port.yml");
+      containerPort.addBinding("port", config.getPort());
+      container.addBinding("port", containerPort.toString());
+    } else {
+      container.addBinding("port", null);
+    }
+
     container.addBinding("name", config.getName());
     container.addBinding("imageId", config.getDockerImage());
-    container.addBinding("port", null);
     container.addBinding("command", config.getCommand());
     container.addBinding("args", config.getArgs());
     container.addBinding("volumeMounts", volumeMounts);
