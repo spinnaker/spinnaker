@@ -37,7 +37,7 @@ class WebhookController {
   @RequestMapping(value = "/{type}/{source}", method = RequestMethod.POST)
   Map webhooks(@PathVariable("type") String type,
                @PathVariable("source") String source,
-               @RequestBody Map event,
+               @RequestBody(required = false) Map event,
                @RequestHeader(value = "X-Hub-Signature", required = false) String gitHubSignature,
                @RequestHeader(value = "X-Event-Key", required = false) String bitBucketEventType)
   {
