@@ -136,13 +136,11 @@ export class PipelineGraphNode extends React.Component<IPipelineGraphNodeProps> 
 
     // Wrap all the label html in a foreignObject to make SVG happy
     GraphLabel = (
-      <foreignObject
-        width={maxLabelWidth}
-        height="34"
-        transform={`translate(${labelOffsetX}, ${node.leaf && !node.executionStage ? -8 : labelOffsetY * -1})`}
-      >
-        {GraphLabel}
-      </foreignObject>
+      <g transform={`translate(${labelOffsetX}, ${node.leaf && !node.executionStage ? -8 : labelOffsetY * -1})`}>
+        <foreignObject width={maxLabelWidth} height="34">
+          {GraphLabel}
+        </foreignObject>
+      </g>
     );
 
     let NodeContents = (
