@@ -12,6 +12,8 @@ import {
   StageConfigField,
 } from '@spinnaker/core';
 
+import { AccountRegionClusterSelector } from 'cloudfoundry/presentation';
+
 export interface ICloudfoundryResizeAsgStageProps extends IStageConfigProps {
   pipeline: IPipeline;
 }
@@ -126,6 +128,13 @@ export class CloudfoundryResizeAsgStageConfig extends React.Component<
     this.props.stageFieldUpdated();
   };
 
+  private componentUpdate = (stage: any): void => {
+    this.props.stage.credentials = stage.credentials;
+    this.props.stage.regions = stage.regions;
+    this.props.stage.cluster = stage.cluster;
+    this.props.stageFieldUpdated();
+  };
+
   public render() {
     const { accounts, application, pipeline, resizeLabel, resizeMessage } = this.state;
     const { stage } = this.props;
@@ -133,19 +142,17 @@ export class CloudfoundryResizeAsgStageConfig extends React.Component<
     const diskQuota = this.props.stage.diskQuota;
     const instanceCount = capacity.desired;
     const memory = this.props.stage.memory;
-    const { AccountRegionClusterSelector, TargetSelect } = NgReact;
+    const { TargetSelect } = NgReact;
     return (
       <div className="cloudfoundry-resize-asg-stage form-horizontal">
         {!pipeline.strategy && (
-          <div>
-            <AccountRegionClusterSelector
-              application={application}
-              clusterField="cluster"
-              component={stage}
-              onAccountUpdate={this.props.stageFieldUpdated}
-              accounts={accounts}
-            />
-          </div>
+          <AccountRegionClusterSelector
+            accounts={accounts}
+            application={application}
+            cloudProvider={'cloudfoundry'}
+            onComponentUpdate={this.componentUpdate}
+            component={stage}
+          />
         )}
         <StageConfigField label="Target">
           <TargetSelect model={{ target: target }} options={StageConstants.TARGET_LIST} onChange={this.targetUpdated} />

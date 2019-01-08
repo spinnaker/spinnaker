@@ -11,6 +11,8 @@ import {
   StageConfigField,
 } from '@spinnaker/core';
 
+import { AccountRegionClusterSelector } from 'cloudfoundry/presentation';
+
 export interface ICloudfoundryDisableAsgStageProps extends IStageConfigProps {
   pipeline: IPipeline;
 }
@@ -65,31 +67,36 @@ export class CloudfoundryDisableAsgStageConfig extends React.Component<
   };
 
   private targetUpdated = (target: string) => {
-    this.setState({ target: target });
+    this.setState({ target });
     this.props.stage.target = target;
     this.props.stageFieldUpdated();
   };
 
+  private componentUpdate = (stage: any): void => {
+    this.props.stage.credentials = stage.credentials;
+    this.props.stage.regions = stage.regions;
+    this.props.stage.cluster = stage.cluster;
+    this.props.stageFieldUpdated();
+  };
+
   public render() {
-    const { stage, stageFieldUpdated } = this.props;
+    const { stage } = this.props;
     const { accounts, application, pipeline, target } = this.state;
-    const { AccountRegionClusterSelector, TargetSelect } = NgReact;
+    const { TargetSelect } = NgReact;
     return (
       <div className="form-horizontal">
         {!pipeline.strategy && (
-          <div>
-            <AccountRegionClusterSelector
-              application={application}
-              clusterField="cluster"
-              component={stage}
-              onAccountUpdate={stageFieldUpdated}
-              accounts={accounts}
-            />
-          </div>
+          <AccountRegionClusterSelector
+            accounts={accounts}
+            application={application}
+            cloudProvider={'cloudfoundry'}
+            onComponentUpdate={this.componentUpdate}
+            component={stage}
+          />
         )}
 
         <StageConfigField label="Target">
-          <TargetSelect model={{ target: target }} options={StageConstants.TARGET_LIST} onChange={this.targetUpdated} />
+          <TargetSelect model={{ target }} options={StageConstants.TARGET_LIST} onChange={this.targetUpdated} />
         </StageConfigField>
       </div>
     );

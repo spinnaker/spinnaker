@@ -6,9 +6,10 @@ import {
   IPipeline,
   IRegion,
   IStageConfigProps,
-  NgReact,
   StageConfigField,
 } from '@spinnaker/core';
+
+import { AccountRegionClusterSelector } from 'cloudfoundry/presentation';
 
 export interface ICloudfoundryRollbackClusterStageProps extends IStageConfigProps {
   pipeline: IPipeline;
@@ -62,23 +63,27 @@ export class CloudfoundryRollbackClusterStageConfig extends React.Component<
     this.props.stageFieldUpdated();
   };
 
+  private componentUpdate = (stage: any): void => {
+    this.props.stage.credentials = stage.credentials;
+    this.props.stage.regions = stage.regions;
+    this.props.stage.cluster = stage.cluster;
+    this.props.stageFieldUpdated();
+  };
+
   public render() {
-    const { stage, stageFieldUpdated } = this.props;
+    const { stage } = this.props;
     const { waitTimeBetweenRegions } = stage;
     const { accounts, application, pipeline } = this.state;
-    const { AccountRegionClusterSelector } = NgReact;
     return (
       <div className="form-horizontal">
         {!pipeline.strategy && (
-          <div>
-            <AccountRegionClusterSelector
-              application={application}
-              clusterField="cluster"
-              component={stage}
-              onAccountUpdate={stageFieldUpdated}
-              accounts={accounts}
-            />
-          </div>
+          <AccountRegionClusterSelector
+            accounts={accounts}
+            application={application}
+            cloudProvider={'cloudfoundry'}
+            onComponentUpdate={this.componentUpdate}
+            component={stage}
+          />
         )}
 
         {stage.regions.length > 1 && (
