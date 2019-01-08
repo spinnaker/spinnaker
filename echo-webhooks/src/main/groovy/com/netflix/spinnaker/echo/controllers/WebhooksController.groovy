@@ -68,7 +68,7 @@ class WebhooksController {
     if (type == 'git') {
       if (source == 'stash') {
         event.content.hash = postedEvent.refChanges?.first().toHash
-        event.content.branch = postedEvent.refChanges?.first().refId.replace('refs/heads/', '')
+        event.content.branch = postedEvent.refChanges?.first().refId.replace('refs/heads/', '') ?: ""
         event.content.repoProject = postedEvent.repository.project.key
         event.content.slug = postedEvent.repository.slug
         if (event.content.hash.toString().startsWith('000000000')) {
@@ -80,7 +80,7 @@ class WebhooksController {
           sendEvent = false
         } else {
           event.content.hash = postedEvent.after
-          event.content.branch = postedEvent.ref.replace('refs/heads/', '')
+          event.content.branch = postedEvent.ref?.replace('refs/heads/', '') ?: ""
           event.content.repoProject = postedEvent.repository.owner.name
           event.content.slug = postedEvent.repository.name
         }
@@ -92,7 +92,7 @@ class WebhooksController {
 
         if (event.content.event_type == "repo:push" && event.content.push) {
           event.content.hash = postedEvent.push.changes?.first().commits?.first().hash
-          event.content.branch = postedEvent.push.changes?.first().new.name
+          event.content.branch = postedEvent.push.changes?.first().new.name ?: ""
         } else if (event.content.event_type == "pullrequest:fulfilled" && event.content.pullrequest) {
           event.content.hash = postedEvent.pullrequest.merge_commit?.hash
           event.content.branch = postedEvent.pullrequest.destination?.branch?.name
@@ -105,7 +105,7 @@ class WebhooksController {
         log.info('Webhook event received {} {} {} {} {} {}', kv('type', type), kv('event_type', event.content.event_type), kv('hook_id', event.content.hook_id), kv('repository', event.content.repository.full_name), kv('request_id', event.content.request_id), kv('branch', event.content.branch))
       } else if (source == 'gitlab') {
         event.content.hash = postedEvent.after;
-        event.content.branch = postedEvent.ref.replace('refs/heads/', '')
+        event.content.branch = postedEvent.ref?.replace('refs/heads/', '') ?: ""
         event.content.repoProject = postedEvent.project.namespace
         event.content.slug = postedEvent.project.name
       }
