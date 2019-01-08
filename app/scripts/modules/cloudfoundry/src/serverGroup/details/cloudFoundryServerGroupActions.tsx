@@ -1,14 +1,13 @@
 import * as React from 'react';
 
 import { Dropdown, Tooltip } from 'react-bootstrap';
-import { get, find, filter, orderBy } from 'lodash';
+import { filter, find, get, orderBy } from 'lodash';
 
 import {
   ClusterTargetBuilder,
   IOwnerOption,
   IServerGroupActionsProps,
   IServerGroupJob,
-  ModalInjector,
   NgReact,
   ReactInjector,
   ServerGroupWarningMessageService,
@@ -19,6 +18,8 @@ import { ICloudFoundryServerGroup } from 'cloudfoundry/domain';
 import { ICloudFoundryCreateServerGroupCommand } from 'cloudfoundry/serverGroup/configure/serverGroupConfigurationModel.cf';
 import { CloudFoundryCreateServerGroupModal } from 'cloudfoundry/serverGroup/configure/wizard/CreateServerGroupModal';
 import { CloudFoundryReactInjector } from 'cloudfoundry/reactShims';
+import { CloudFoundryResizeServerGroupModal } from './resize/CloudFoundryResizeServerGroupModal';
+import { CloudFoundryRollbackServerGroupModal } from './rollback/CloudFoundryRollbackServerGroupModal';
 
 export interface ICloudFoundryServerGroupActionsProps extends IServerGroupActionsProps {
   serverGroup: ICloudFoundryServerGroup;
@@ -238,43 +239,28 @@ export class CloudFoundryServerGroupActions extends React.Component<ICloudFoundr
       // if there is only one other server group, default to it being the rollback target
       previousServerGroup = allServerGroups[0];
     }
+    const cluster = find(app.clusters, {
+      name: serverGroup.cluster,
+      account: serverGroup.account,
+      serverGroups: [],
+    });
+    const disabledServerGroups: ICloudFoundryServerGroup[] = filter(cluster.serverGroups, {
+      isDisabled: true,
+      region: serverGroup.region,
+    }) as ICloudFoundryServerGroup[];
 
-    ModalInjector.modalService.open({
-      templateUrl: ReactInjector.overrideRegistry.getTemplate(
-        'cf.rollback.modal',
-        require('./rollback/rollbackServerGroup.html'),
-      ),
-      controller: 'cloudfoundryRollbackServerGroupCtrl as ctrl',
-      resolve: {
-        serverGroup: () => serverGroup,
-        previousServerGroup: () => previousServerGroup,
-        disabledServerGroups: () => {
-          const cluster = find(app.clusters, {
-            name: serverGroup.cluster,
-            account: serverGroup.account,
-            serverGroups: [],
-          });
-          return filter(cluster.serverGroups, { isDisabled: true, region: serverGroup.region });
-        },
-        allServerGroups: () => allServerGroups,
-        application: () => app,
-      },
+    CloudFoundryRollbackServerGroupModal.show({
+      serverGroup,
+      previousServerGroup,
+      disabledServerGroups: disabledServerGroups.sort((a, b) => b.name.localeCompare(a.name)),
+      allServerGroups: allServerGroups.sort((a, b) => b.name.localeCompare(a.name)),
+      application: app,
     });
   };
 
   private resizeServerGroup = (): void => {
-    ModalInjector.modalService.open({
-      templateUrl: ReactInjector.overrideRegistry.getTemplate(
-        'cf.resize.modal',
-        require('./resize/resizeServerGroup.html'),
-      ),
-      size: 'lg',
-      controller: 'cloudfoundryResizeServerGroupCtrl as ctrl',
-      resolve: {
-        serverGroup: () => this.props.serverGroup,
-        application: () => this.props.app,
-      },
-    });
+    const { app, serverGroup } = this.props;
+    CloudFoundryResizeServerGroupModal.show({ application: app, serverGroup });
   };
 
   private cloneServerGroup = (): void => {

@@ -6,7 +6,6 @@ import { CLOUD_FOUNDRY_LOAD_BALANCER_MODULE } from './loadBalancer/loadBalancer.
 import { CLOUD_FOUNDRY_REACT_MODULE } from './reactShims/cf.react.module';
 import { CLOUD_FOUNDRY_SERVER_GROUP_TRANSFORMER } from './serverGroup/serverGroup.transformer';
 import { CLOUD_FOUNDRY_SERVER_GROUP_COMMAND_BUILDER } from './serverGroup/configure/serverGroupCommandBuilder.service.cf';
-import { SERVER_GROUP_DETAILS_MODULE } from './serverGroup/details/serverGroupDetails.module';
 import { CLOUD_FOUNDRY_SEARCH_FORMATTER } from './search/searchResultFormatter';
 import './help/cloudfoundry.help';
 
@@ -60,7 +59,6 @@ module(CLOUD_FOUNDRY_MODULE, [
   CLOUD_FOUNDRY_SEARCH_FORMATTER,
   CLOUD_FOUNDRY_SERVER_GROUP_COMMAND_BUILDER,
   CLOUD_FOUNDRY_SERVER_GROUP_TRANSFORMER,
-  SERVER_GROUP_DETAILS_MODULE,
 ]).config(() => {
   CloudProviderRegistry.registerProvider('cloudfoundry', {
     name: 'Cloud Foundry',
