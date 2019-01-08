@@ -6,5 +6,14 @@
     "name": "{{ image.name }}",
     "version": "{{ image.digest }}",
     "type": "docker/image"
-  } {% if not loop.last %} , {% endif %} {% endfor %}
+  } {% if (not loop.last) or ((artifacts.objects.paths | length) > 0) %} , {% endif %} {% endfor %}
+
+  {% set location = artifacts.objects.location %}
+  {% for path in artifacts.objects.paths %}
+    {
+      "reference": "{{ location }}{{ path }}",
+      "name": "{{ location }}{{ path }}",
+      "version": "{{ location }}{{ path }}",
+      "type": "gcs/object"
+    } {% if not loop.last %} , {% endif %}{% endfor %}
 ]
