@@ -12,5 +12,6 @@ export interface IStageOrTriggerTypeConfig {
   controller?: string;
   controllerAs?: string;
   component?: React.ComponentType;
+  providesVersionForBake?: boolean;
   validators?: IValidatorConfig[];
 }

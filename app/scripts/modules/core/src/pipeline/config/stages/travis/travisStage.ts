@@ -166,6 +166,7 @@ module(TRAVIS_STAGE, [])
         templateUrl: require('./travisStage.html'),
         executionDetailsUrl: require('./travisExecutionDetails.html'),
         executionLabelComponent: TravisExecutionLabel,
+        providesVersionForBake: true,
         extraLabelLines: (stage: IStage) => {
           if (!stage.masterStage.context || !stage.masterStage.context.buildInfo) {
             return 0;

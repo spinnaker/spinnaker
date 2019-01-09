@@ -21,6 +21,7 @@ module.exports = angular
       templateUrl: require('./jenkinsStage.html'),
       executionDetailsUrl: require('./jenkinsExecutionDetails.html'),
       executionLabelComponent: JenkinsExecutionLabel,
+      providesVersionForBake: true,
       extraLabelLines: stage => {
         if (!stage.masterStage.context || !stage.masterStage.context.buildInfo) {
           return 0;

@@ -10,6 +10,7 @@ import './validation/anyFieldRequired.validator';
 import './validation/serviceAccountAccess.validator';
 import './validation/stageBeforeType.validator';
 import './validation/stageOrTriggerBeforeType.validator';
+import './validation/upstreamVersionProvided.validator';
 import './validation/targetImpedance.validator';
 
 import './pipelineConfig.less';

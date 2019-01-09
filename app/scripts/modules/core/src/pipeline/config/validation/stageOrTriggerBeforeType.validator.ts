@@ -6,10 +6,12 @@ import { PipelineConfigService } from 'core/pipeline/config/services/PipelineCon
 import { IStageOrTriggerValidator, IValidatorConfig, PipelineConfigValidator } from './PipelineConfigValidator';
 
 export interface IStageOrTriggerBeforeTypeValidationConfig extends IValidatorConfig {
+  getStageTypes?: Function;
   stageTypes?: string[];
   stageType?: string;
   checkParentTriggers?: boolean;
-  message: string;
+  getMessage?: Function;
+  message?: string;
 }
 
 export class StageOrTriggerBeforeTypeValidator implements IStageOrTriggerValidator {
@@ -22,14 +24,16 @@ export class StageOrTriggerBeforeTypeValidator implements IStageOrTriggerValidat
     validator: IStageOrTriggerBeforeTypeValidationConfig,
     _config: IStageOrTriggerTypeConfig,
   ): IPromise<string> {
-    const stageTypes = validator.stageTypes || [validator.stageType];
+    const stageTypes = validator.getStageTypes
+      ? validator.getStageTypes()
+      : validator.stageTypes || [validator.stageType];
     const stagesToTest: Array<IStage | ITrigger> = PipelineConfigService.getAllUpstreamDependencies(pipeline, stage);
     stagesToTest.push(...pipeline.triggers);
 
     const parentTriggersToCheck = validator.checkParentTriggers ? this.addPipelineTriggers(pipeline, stagesToTest) : [];
     return $q.all(parentTriggersToCheck).then(() => {
       if (stagesToTest.every(test => !stageTypes.includes(test.type))) {
-        return validator.message;
+        return validator.getMessage ? validator.getMessage() : validator.message;
       }
       return null;
     });

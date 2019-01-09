@@ -19,6 +19,7 @@ module.exports = angular
       controllerAs: 'jenkinsTriggerCtrl',
       templateUrl: require('./jenkinsTrigger.html'),
       manualExecutionComponent: JenkinsTriggerTemplate,
+      providesVersionForBake: true,
       validators: [
         {
           type: 'requiredField',

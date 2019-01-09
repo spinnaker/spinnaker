@@ -89,6 +89,7 @@ module(TRAVIS_TRIGGER, [require('../trigger.directive.js').name])
       controllerAs: '$ctrl',
       templateUrl: require('./travisTrigger.html'),
       manualExecutionComponent: TravisTriggerTemplate,
+      providesVersionForBake: true,
       validators: [
         {
           type: 'requiredField',
