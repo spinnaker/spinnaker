@@ -80,7 +80,7 @@ public class ExpressionsSupport {
    * @param allowUnknownKeys flag to control what helper functions are available
    * @return an evaluation context hooked with helper functions and correct ACL via whitelisting
    */
-  static StandardEvaluationContext newEvaluationContext(Object rootObject, boolean allowUnknownKeys) {
+  public static StandardEvaluationContext newEvaluationContext(Object rootObject, boolean allowUnknownKeys) {
     StandardEvaluationContext evaluationContext = new StandardEvaluationContext(rootObject);
     evaluationContext.setTypeLocator(new WhitelistTypeLocator());
     evaluationContext.setMethodResolvers(Collections.singletonList(new FilteredMethodResolver()));

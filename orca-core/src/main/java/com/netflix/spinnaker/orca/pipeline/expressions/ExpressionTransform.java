@@ -43,7 +43,7 @@ public class ExpressionTransform {
   private final ParserContext parserContext;
   private final ExpressionParser parser;
 
-  ExpressionTransform(ParserContext parserContext, ExpressionParser parser) {
+  public ExpressionTransform(ParserContext parserContext, ExpressionParser parser) {
     this.parserContext = parserContext;
     this.parser = parser;
   }
