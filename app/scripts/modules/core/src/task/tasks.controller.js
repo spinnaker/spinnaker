@@ -46,16 +46,18 @@ module.exports = angular
     function initializeViewState() {
       var viewState = tasksViewStateCache.get(application.name) || {
         taskStateFilter: '',
-        nameFilter: '',
         expandedTasks: [],
       };
+      viewState.nameFilter = $stateParams.q || '';
       viewState.loading = true;
       viewState.itemsPerPage = tasksViewStateCache.get('#common')
         ? tasksViewStateCache.get('#common').itemsPerPage
         : 20;
 
       $scope.viewState = viewState;
-      setTaskFilter();
+      if ($stateParams.taskId) {
+        setTaskFilter();
+      }
     }
 
     const setTaskFilter = () => {
