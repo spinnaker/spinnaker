@@ -388,6 +388,14 @@ module.exports = angular
       gceServerGroupConfigurationService.refreshHealthChecks($scope.command);
     };
 
+    this.onEnableAutoHealingChange = function() {
+      // Prevent empty auto-healing policies from being overwritten by those of their ancestors
+      $scope.command.overwriteAncestorAutoHealingPolicy =
+        $scope.command.stack === 'clone' &&
+        $scope.command.autoHealingPolicy != null &&
+        $scope.command.enableAutoHealing === false;
+    };
+
     this.setAutoHealingPolicy = function(autoHealingPolicy) {
       $scope.command.autoHealingPolicy = autoHealingPolicy;
     };
