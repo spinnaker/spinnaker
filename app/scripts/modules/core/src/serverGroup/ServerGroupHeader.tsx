@@ -126,7 +126,7 @@ export class SequenceAndBuildAndImages extends React.Component<IServerGroupHeade
         )}
         {!!docker && (
           <a className="build-link" href={docker.href} target="_blank">
-            {docker.image}:{docker.tag}
+            {docker.image}:{docker.tag || docker.digest}
           </a>
         )}
         {!!images && <ImageList {...this.props} />}
