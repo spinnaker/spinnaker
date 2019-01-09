@@ -21,7 +21,6 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.data.task.jedis.RedisTaskRepository
 import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
-import com.netflix.spinnaker.kork.jedis.telemetry.InstrumentedJedis
 import com.netflix.spinnaker.kork.jedis.telemetry.InstrumentedJedisPool
 import org.apache.commons.pool2.impl.GenericObjectPool
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig
@@ -47,6 +46,7 @@ class RedisConfig {
   }
 
   @Bean
+  @ConditionalOnExpression('${redis.taskRepository.enabled:true}')
   TaskRepository taskRepository(RedisClientDelegate redisClientDelegate, Optional<RedisClientDelegate> redisClientDelegatePrevious) {
     new RedisTaskRepository(redisClientDelegate, redisClientDelegatePrevious)
   }
