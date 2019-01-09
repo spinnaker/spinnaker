@@ -73,4 +73,19 @@ class ScaleCloudFoundryServerGroupAtomicOperationTest extends AbstractCloudFound
       .has(status("Resizing 'myapp'"), atIndex(1))
       .has(status("Failed to start 'myapp' which instead crashed"), atIndex(2));
   }
+
+  @Test
+  void scaleDownToZero() {
+    desc.setCapacity(new ServerGroup.Capacity(1, 1, 0));
+    OperationPoller poller = mock(OperationPoller.class);
+
+    //noinspection unchecked
+    when(poller.waitForOperation(any(Supplier.class), any(), anyLong(), any(), any(), any())).thenReturn(ProcessStats.State.DOWN);
+
+    ScaleCloudFoundryServerGroupAtomicOperation op = new ScaleCloudFoundryServerGroupAtomicOperation(poller, desc);
+
+    assertThat(runOperation(op).getHistory())
+      .has(status("Resizing 'myapp'"), atIndex(1))
+      .has(status("Resized 'myapp'"), atIndex(2));
+  }
 }

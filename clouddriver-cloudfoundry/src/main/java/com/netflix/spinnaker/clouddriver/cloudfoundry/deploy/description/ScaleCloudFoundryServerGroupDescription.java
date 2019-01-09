@@ -25,7 +25,6 @@ import javax.annotation.Nullable;
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class ScaleCloudFoundryServerGroupDescription extends AbstractCloudFoundryServerGroupDescription {
-  @Nullable
   ServerGroup.Capacity capacity;
 
   @Nullable
