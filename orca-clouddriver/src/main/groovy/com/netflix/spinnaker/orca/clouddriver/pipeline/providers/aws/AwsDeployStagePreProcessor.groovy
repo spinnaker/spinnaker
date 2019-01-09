@@ -147,7 +147,7 @@ class AwsDeployStagePreProcessor implements DeployStagePreProcessor {
 
     if (stageData.scaleDown && !deployFailed) {
       // source server group has been scaled down, no need to unpin if deploy was successful
-      return null;
+      return null
     }
 
     def resizeContext = getResizeContext(stageData)
