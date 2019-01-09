@@ -25,6 +25,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties("search.executor")
 class SearchExecutorConfigProperties {
   private Boolean enabled;
-  private Integer threadPoolSize;
-  private Integer timeout;
+  private Integer threadPoolSize = 3;
+  private Integer timeout = 10;
 }
