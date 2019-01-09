@@ -25,6 +25,8 @@ import java.time.Clock
 import java.util.Arrays
 import java.util.concurrent.ConcurrentSkipListSet
 import java.util.concurrent.atomic.AtomicInteger
+import org.jooq.util.mysql.MySQLDSL
+
 
 class SqlCache(
   private val name: String,
@@ -34,7 +36,8 @@ class SqlCache(
   private val sqlRetryProperties: SqlRetryProperties, // TODO use this
   private val tablePrefix: String?,
   private val cacheMetrics: SqlCacheMetrics,
-  batchSize: Int
+  writeChunkSize: Int,
+  readChunkSize: Int
 ) : WriteableCache {
 
   private val schemaVersion = 1 // TODO: move somewhere sane
@@ -47,7 +50,8 @@ class SqlCache(
     "elasticIps", "instanceTypes", "keyPairs", "securityGroups", "subnets", "taggedImage"
   )
 
-  private val sqlChunkSize = batchSize
+  private val writeBatchSize = writeChunkSize
+  private val readBatchSize = readChunkSize
 
   private val log = LoggerFactory.getLogger(javaClass)
 
@@ -64,12 +68,12 @@ class SqlCache(
     var deletedCount = 0
     var opCount = 0
     try {
-      ids.chunked(sqlChunkSize) { chunk ->
+      ids.chunked(readBatchSize) { chunk ->
         jooq.deleteFrom(table(resourceTableName(type)))
           .where("id in (${chunk.joinToString(",") { "'$it'" }})")
           .execute()
       }
-      deletedCount += sqlChunkSize
+      deletedCount += readBatchSize
       opCount += 1
     } catch (e: Exception) {
       log.error("error evicting records", e)
@@ -247,7 +251,7 @@ class SqlCache(
     var selectQueries = 0
     try {
       //TODO make configurable
-      ids.chunked(sqlChunkSize) { chunk ->
+      ids.chunked(readBatchSize) { chunk ->
         val results = jooq.select(field("body"))
           .from(table(resourceTableName(type)))
           .where("ID in (${chunk.joinToString(",") { "'$it'" }})")
@@ -299,7 +303,6 @@ class SqlCache(
   }
 
   override fun merge(type: String, cacheData: CacheData) {
-//    mergeAll(type, mutableListOf(cacheData))
     mergeAll(type, null, mutableListOf(cacheData), true, false)
   }
 
@@ -397,7 +400,7 @@ class SqlCache(
     val existingHashIds = getHashIds(type, agent)
     result.selectQueries.incrementAndGet()
 
-    val existingHashes = existingHashIds
+    val existingHashes = existingHashIds // ids previously store by the calling caching agent
       .asSequence()
       .map { it.body_hash }
       .toSet()
@@ -405,7 +408,10 @@ class SqlCache(
       .asSequence()
       .map { it.id }
       .toSet()
-    val currentIds = mutableSetOf<String>()
+    val currentIds = mutableSetOf<String>() // current ids from the caching agent
+    val toStore = mutableListOf<String>() // ids that are new or changed
+    val bodies = mutableMapOf<String, String>() // id to body
+    val hashes = mutableMapOf<String, String>() // id to sha256(body)
 
     items
       .filter { it.id != "_ALL_" }
@@ -417,14 +423,61 @@ class SqlCache(
         keys.forEach { na -> it.attributes.remove(na) }
         val body: String? = mapper.writeValueAsString(it)
         val bodyHash = getHash(body)
-        val skip = if (bodyHash == null) {
-          true
-        } else {
-          existingHashes.contains(bodyHash)
+
+        if (body != null && bodyHash != null && !existingHashes.contains(bodyHash)) {
+          toStore.add(it.id)
+          bodies[it.id] = body
+          hashes[it.id] = bodyHash
+        }
+      }
+
+    val now = clock.millis()
+
+    toStore.chunked(writeBatchSize) { chunk ->
+      try {
+        val insert = jooq.insertInto(
+          table(resourceTableName(type)),
+          field("id"),
+          field("agent"),
+          field("location"),
+          field("body_hash"),
+          field("body"),
+          field("last_updated")
+        )
+
+        insert.apply {
+          chunk.forEach {
+            values(it, agent, location, hashes[it], bodies[it], now)
+          }
+
+          onDuplicateKeyUpdate()
+            .set(field("body_hash"), MySQLDSL.values(field("body_hash")) as Any)
+            .set(field("last_updated"), MySQLDSL.values(field("last_updated")) as Any)
         }
 
-        if (!skip) {
-          try {
+        insert.execute()
+        result.insertQueries.incrementAndGet()
+      } catch (e: DataAccessException) {
+        log.error("Error inserting ids: $chunk", e)
+      } catch (e: SQLDialectNotSupportedException) {
+        chunk.forEach {
+          val exists = jooq.fetchExists(
+            jooq.select()
+              .from(resourceTableName(type))
+              .where(field("id").eq(it), field("agent").eq(agent))
+              .forUpdate()
+          )
+          result.selectQueries.incrementAndGet()
+          if (exists) {
+            jooq.update(table(resourceTableName(type)))
+              .set(field("body_hash"), hashes[it])
+              .set(field("body"), bodies[it])
+              .set(field("last_updated"), clock.millis())
+              .where(field("id").eq(it), field("agent").eq(agent))
+              .execute()
+            result.updateQueries.incrementAndGet()
+            result.itemCount.incrementAndGet()
+          } else {
             jooq.insertInto(
               table(resourceTableName(type)),
               field("id"),
@@ -434,61 +487,19 @@ class SqlCache(
               field("body"),
               field("last_updated")
             ).values(
-              it.id,
+              it,
               agent,
               location,
-              bodyHash,
-              body,
+              hashes[it],
+              bodies[it],
               clock.millis()
-            ).onDuplicateKeyUpdate()
-              .set(field("body_hash"), bodyHash)
-              .set(field("body"), body)
-              .set(field("last_updated"), clock.millis())
-              .execute()
+            ).execute()
             result.insertQueries.incrementAndGet()
             result.itemCount.incrementAndGet()
-          } catch (e: DataAccessException) {
-            log.error("Error inserting id: ${it.id}", e)
-          } catch (e: SQLDialectNotSupportedException) {
-            val exists = jooq.fetchExists(
-              jooq.select()
-                .from(resourceTableName(type))
-                .where(field("id").eq(it.id), field("agent").eq(agent))
-                .forUpdate()
-            )
-            result.selectQueries.incrementAndGet()
-            if (exists) {
-              jooq.update(table(resourceTableName(type)))
-                .set(field("body_hash"), bodyHash)
-                .set(field("body"), body)
-                .set(field("last_updated"), clock.millis())
-                .where(field("id").eq(it.id), field("agent").eq(agent))
-                .execute()
-              result.updateQueries.incrementAndGet()
-              result.itemCount.incrementAndGet()
-            } else {
-              jooq.insertInto(
-                table(resourceTableName(type)),
-                field("id"),
-                field("agent"),
-                field("location"),
-                field("body_hash"),
-                field("body"),
-                field("last_updated")
-              ).values(
-                it.id,
-                agent,
-                location,
-                bodyHash,
-                body,
-                clock.millis()
-              ).execute()
-              result.insertQueries.incrementAndGet()
-              result.itemCount.incrementAndGet()
-            }
           }
         }
       }
+    }
 
     if (!cleanup) {
       return result
@@ -568,6 +579,8 @@ class SqlCache(
       }
 
     val currentIds = mutableSetOf<String>()
+    val newFwdRelPointers = mutableMapOf<String, MutableList<RelPointer>>()
+    val newRevRelIds = mutableSetOf<String>()
 
     items
       .filter { it.id != "_ALL_" }
@@ -581,55 +594,72 @@ class SqlCache(
             currentIds.add(revKey)
 
             if (!oldFwdIds.contains(fwdKey)) {
-              try {
-                jooq.insertInto(
-                  table(relTableName(type)),
-                  field("uuid"),
-                  field("id"),
-                  field("rel_id"),
-                  field("rel_agent"),
-                  field("rel_type"),
-                  field("last_updated")
-                ).values(
-                  ULID().nextULID(),
-                  cacheData.id,
-                  r,
-                  rels.key,
-                  relType,
-                  clock.millis()
-                ).execute()
-                result.insertQueries.incrementAndGet()
-              } catch (e: Exception) {
-                log.error("Error inserting relationship ${cacheData.id} -> $r ${e.message}", e)
-              }
+              newFwdRelPointers.getOrPut(relType) { mutableListOf() }
+                .add(RelPointer(cacheData.id, r, rels.key))
             }
 
-            if (!oldRevIds.contains(revKey)) {
-              try {
-                jooq.insertInto(
-                  table(relTableName(relType)),
-                  field("uuid"),
-                  field("id"),
-                  field("rel_id"),
-                  field("rel_agent"),
-                  field("rel_type"),
-                  field("last_updated")
-                ).values(
-                  ULID().nextULID(),
-                  r,
-                  cacheData.id,
-                  rels.key,
-                  type,
-                  clock.millis()
-                ).execute()
-                result.insertQueries.incrementAndGet()
-              } catch (e: Exception) {
-                log.error("Error inserting $r -> ${cacheData.id} ${e.message}", e)
-              }
+            if (!oldRevIds.containsKey(revKey)) {
+              newRevRelIds.add(revKey)
             }
           }
         }
       }
+
+    newFwdRelPointers.forEach { (relType, pointers) ->
+      val now = clock.millis()
+      var ulid = ULID().nextValue()
+
+      pointers.chunked(writeBatchSize) { chunk ->
+        try {
+          val insert = jooq.insertInto(
+            table(relTableName(type)),
+            field("uuid"),
+            field("id"),
+            field("rel_id"),
+            field("rel_agent"),
+            field("rel_type"),
+            field("last_updated")
+          )
+
+          insert.apply {
+            chunk.forEach {
+              values(ulid.toString(), it.id, it.rel_id, it.rel_type, relType, now)
+              ulid = ULID().nextMonotonicValue(ulid)
+            }
+          }
+
+          insert.execute()
+        } catch (e: Exception) {
+          log.error("Error inserting forward relationships for $type -> $relType", e)
+        }
+      }
+
+      pointers.asSequence().filter { newRevRelIds.contains("${it.rel_id}|${it.id}") }
+        .chunked(writeBatchSize) { chunk ->
+          try {
+            val insert = jooq.insertInto(
+              table(relTableName(relType)),
+              field("uuid"),
+              field("id"),
+              field("rel_id"),
+              field("rel_agent"),
+              field("rel_type"),
+              field("last_updated")
+            )
+
+            insert.apply {
+              chunk.forEach {
+                values(ulid.toString(), it.rel_id, it.id, it.rel_type, type, now)
+                ulid = ULID().nextMonotonicValue(ulid)
+              }
+            }
+
+            insert.execute()
+          } catch (e: Exception) {
+            log.error("Error inserting reverse relationships for $relType -> $type", e)
+          }
+        }.toList()
+    }
 
     if (!cleanup) {
       return result
@@ -789,7 +819,7 @@ class SqlCache(
     val relationshipPointers = mutableListOf<RelPointer>()
 
     var selectQueries = 0
-    ids.chunked(sqlChunkSize) { chunk ->
+    ids.chunked(readBatchSize) { chunk ->
       val sql = "ID in (${chunk.joinToString(",") { "'$it'" }})"
 
       if (relationshipPrefixes.isNotEmpty()) {

@@ -1,8 +1,11 @@
 package com.netflix.spinnaker.cats.sql
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.WriteableCacheSpec
+import com.netflix.spinnaker.cats.sql.cache.SpectatorSqlCacheMetrics
 import com.netflix.spinnaker.cats.sql.cache.SqlCache
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import de.huxhorn.sulky.ulid.ULID
@@ -16,8 +19,6 @@ import java.time.ZoneId
 import static com.netflix.spinnaker.kork.sql.test.SqlTestUtil.*
 
 class SqlCacheSpec extends WriteableCacheSpec {
-
-  def ulid = new ULID()
 
   @Shared
   @AutoCleanup("close")
@@ -38,8 +39,9 @@ class SqlCacheSpec extends WriteableCacheSpec {
     def mapper = new ObjectMapper()
     def clock = new Clock.FixedClock(Instant.EPOCH, ZoneId.of("UTC"))
     def sqlRetryProperties = new SqlRetryProperties()
+    def sqlMetrics = new SpectatorSqlCacheMetrics(new NoopRegistry())
     currentDatabase = initDatabase()
-    return new SqlCache("test", currentDatabase.context, mapper, clock, sqlRetryProperties, "test", 10)
+    return new SqlCache("test", currentDatabase.context, mapper, clock, sqlRetryProperties, "test", sqlMetrics, 10, 10)
   }
 
 }

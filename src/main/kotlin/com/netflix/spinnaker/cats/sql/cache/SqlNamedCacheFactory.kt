@@ -13,11 +13,12 @@ class SqlNamedCacheFactory(
   private val clock: Clock,
   private val sqlRetryProperties: SqlRetryProperties,
   private val prefix: String?,
-  private val batchSize: Int,
+  private val writeBatchSize: Int,
+  private val readBatchSize: Int,
   private val cacheMetrics: SqlCacheMetrics
 ) : NamedCacheFactory {
 
   override fun getCache(name: String): WriteableCache {
-    return SqlCache(name, jooq, mapper, clock, sqlRetryProperties, prefix, cacheMetrics, batchSize)
+    return SqlCache(name, jooq, mapper, clock, sqlRetryProperties, prefix, cacheMetrics, writeBatchSize, readBatchSize)
   }
 }
