@@ -37,3 +37,4 @@ ArtifactIconService.registerType(ArtifactTypePatterns.S3_OBJECT, require('./icon
 ArtifactIconService.registerType(ArtifactTypePatterns.HELM_CHART, require('./icons/helm-chart-artifact.svg'));
 ArtifactIconService.registerType(ArtifactTypePatterns.IVY_FILE, require('./icons/ivy-artifact.svg'));
 ArtifactIconService.registerType(ArtifactTypePatterns.MAVEN_FILE, require('./icons/maven-artifact.svg'));
+ArtifactIconService.registerType(ArtifactTypePatterns.HTTP_FILE, require('./icons/http-artifact.svg'));

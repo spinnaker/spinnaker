@@ -20,6 +20,7 @@ import { S3_ARTIFACT } from 'core/pipeline/config/triggers/artifacts/s3/s3.artif
 import { DEFAULT_S3_ARTIFACT } from 'core/pipeline/config/triggers/artifacts/s3/defaultS3.artifact';
 import { IVY_ARTIFACT } from 'core/pipeline/config/triggers/artifacts/ivy/ivy.artifact';
 import { MAVEN_ARTIFACT } from 'core/pipeline/config/triggers/artifacts/maven/maven.artifact';
+import { HTTP_ARTIFACT } from 'core/pipeline/config/triggers/artifacts/http/http.artifact';
 
 export const ARTIFACT_MODULE = 'spinnaker.core.pipeline.config.trigger.artifacts';
 
@@ -36,6 +37,7 @@ module(ARTIFACT_MODULE, [
   S3_ARTIFACT,
   IVY_ARTIFACT,
   MAVEN_ARTIFACT,
+  HTTP_ARTIFACT,
   DEFAULT_S3_ARTIFACT,
   DEFAULT_DOCKER_ARTIFACT,
   DEFAULT_GCS_ARTIFACT,

@@ -11,4 +11,5 @@ export const ArtifactTypePatterns = {
   HELM_CHART: /helm\/chart/,
   IVY_FILE: /ivy\/file/,
   MAVEN_FILE: /maven\/file/,
+  HTTP_FILE: /http\/file/,
 };
