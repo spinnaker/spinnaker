@@ -11,7 +11,7 @@ import { ExecutionService } from '../pipeline/service/execution.service';
 import { InfrastructureSearchService } from '../search/infrastructure/infrastructureSearch.service';
 import { InfrastructureSearchServiceV2 } from 'core/search/infrastructure/infrastructureSearchV2.service';
 import { InsightFilterStateModel } from '../insight/insightFilterState.model';
-import { InstanceTypeService } from 'core/instance';
+import { InstanceTypeService, InstanceWriter } from 'core/instance';
 import { ManualJudgmentService } from '../pipeline/config/stages/manualJudgment/manualJudgment.service';
 import { OverrideRegistry } from '../overrideRegistry/override.registry';
 import { PageTitleService } from 'core/pageTitle';
@@ -57,6 +57,7 @@ export class CoreReactInject extends ReactInject {
   public get infrastructureSearchServiceV2() { return this.$injector.get('infrastructureSearchServiceV2') as InfrastructureSearchServiceV2; }
   public get insightFilterStateModel() { return this.$injector.get('insightFilterStateModel') as InsightFilterStateModel; }
   public get instanceTypeService() { return this.$injector.get('instanceTypeService') as InstanceTypeService; }
+  public get instanceWriter() { return this.$injector.get('instanceWriter') as InstanceWriter; }
   public get manualJudgmentService() { return this.$injector.get('manualJudgmentService') as ManualJudgmentService; }
   public get overrideRegistry() { return this.$injector.get('overrideRegistry') as OverrideRegistry; }
   public get pageTitleService() { return this.$injector.get('pageTitleService') as PageTitleService; }
