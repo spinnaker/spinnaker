@@ -80,7 +80,7 @@ public class ExpressionEvaluationSummary {
     );
   }
 
-  static class Result {
+  public static class Result {
     private String description;
     private Class<?> exceptionType;
     private long timestamp;
