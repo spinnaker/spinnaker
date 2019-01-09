@@ -26,4 +26,5 @@ class UpsertGoogleAutoscalingPolicyDescription extends AbstractGoogleCredentials
   String accountName
   GoogleAutoscalingPolicy autoscalingPolicy
   GoogleAutoHealingPolicy autoHealingPolicy
+  Boolean writeMetadata = true
 }

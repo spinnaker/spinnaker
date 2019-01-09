@@ -65,6 +65,15 @@ class ResizeGoogleServerGroupAtomicOperationConverter extends AbstractAtomicOper
       upsertGoogleAutoscalingPolicyDescription.autoscalingPolicy = googleAutoscalingPolicy
       upsertGoogleAutoscalingPolicyDescription.autoscalingPolicy.minNumReplicas = input.capacity?.min
       upsertGoogleAutoscalingPolicyDescription.autoscalingPolicy.maxNumReplicas = input.capacity?.max
+      if (input?.writeMetadata != null) {
+        upsertGoogleAutoscalingPolicyDescription.writeMetadata = input?.writeMetadata
+      }
+
+      // Override autoscaling mode. This is useful in situations where we need the resize to happen
+      // regardless of previous autoscaling mode (e.g. scale down in red/black deployment strategies).
+      if (input?.autoscalingMode) {
+        upsertGoogleAutoscalingPolicyDescription.autoscalingPolicy.mode = input.autoscalingMode
+      }
 
       return upsertGoogleAutoscalingPolicyDescription
     } else {
