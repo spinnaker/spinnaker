@@ -1,6 +1,10 @@
 # oss-reviewers
-* claymccoy
+* andrewbackes
 * clareliguori
+* dotdotdotpaul
+* imosquera
 * Jammy-Louie
 * jmelchio
+* kevinawoo
 * stuart-pollock
+
