@@ -257,10 +257,8 @@ class CopyLastGoogleServerGroupAtomicOperation extends GoogleAtomicOperation<Dep
     GoogleAutoHealingPolicy ancestorAutoHealingPolicyDescription =
       GCEUtil.buildAutoHealingPolicyDescriptionFromAutoHealingPolicy(ancestorAutoHealingPolicy)
 
-    println(",, description autohealing policy ${description.autoHealingPolicy}")
-    println(",, ancestor autohealing policy ${ancestorAutoscalingPolicy}")
-    println(",, ancestor autohealing policy description ${ancestorAutoscalingPolicyDescription}")
-    newDescription.autoHealingPolicy = description.autoHealingPolicy ?: ancestorAutoHealingPolicyDescription
+    newDescription.autoHealingPolicy = (description.autoHealingPolicy != null || description.overwriteAncestorAutoHealingPolicy) ?
+      description.autoHealingPolicy : ancestorAutoHealingPolicyDescription
 
     return newDescription
   }

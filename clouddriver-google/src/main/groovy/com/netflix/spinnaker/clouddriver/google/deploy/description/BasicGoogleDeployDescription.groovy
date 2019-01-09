@@ -48,6 +48,7 @@ class BasicGoogleDeployDescription extends BaseGoogleInstanceDescription impleme
   GoogleAutoscalingPolicy autoscalingPolicy
   GoogleHttpLoadBalancingPolicy loadBalancingPolicy
   GoogleAutoHealingPolicy autoHealingPolicy
+  Boolean overwriteAncestorAutoHealingPolicy = false
   /**
    * Optional explicit specification of zones for an RMIG.
    */
