@@ -523,6 +523,9 @@ export class ExecutionService {
     if (unhydrated.hydrator) {
       return unhydrated.hydrator;
     }
+    if (unhydrated.hydrated) {
+      return Promise.resolve(unhydrated);
+    }
     const executionHydrator = this.getExecution(unhydrated.id).then(hydrated => {
       this.transformExecution(application, hydrated);
       hydrated.stages.forEach(s => {
