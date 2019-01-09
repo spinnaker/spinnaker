@@ -274,6 +274,9 @@ export class ExecutionsTransformer {
     if (steps.find(s => s.isFailed)) {
       summary.firstActiveStage = steps.findIndex(s => s.isFailed);
     }
+    if (steps.find(s => s.isFailed && !!s.failureMessage)) {
+      summary.firstActiveStage = steps.findIndex(s => s.isFailed && !!s.failureMessage);
+    }
   }
 
   public static transformExecution(application: Application, execution: IExecution): void {

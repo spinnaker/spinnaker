@@ -114,7 +114,10 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
 
   public toggleDetails = (stageIndex?: number, subIndex?: number): void => {
     const { executionService } = ReactInjector;
-    executionService.toggleDetails(this.props.execution, stageIndex, subIndex);
+    const { execution, application } = this.props;
+    executionService.hydrate(application, execution).then(() => {
+      executionService.toggleDetails(execution, stageIndex, subIndex);
+    });
   };
 
   public getUrl(): string {
