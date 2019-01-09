@@ -9,6 +9,7 @@
 * brandonnelson3
 * cfieber
 * christopherthielen
+* claymccoy
 * csanden
 * dibyom
 * dorbin
