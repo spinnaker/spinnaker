@@ -38,9 +38,9 @@ export interface IDockerImageAndTagSelectorProps {
 
 export interface IDockerImageAndTagSelectorState {
   accountOptions: Array<Option<string>>;
+  switchedManualWarning: string;
   imagesLoaded: boolean;
   imagesLoading: boolean;
-  imagesRefreshing: boolean;
   organizationOptions: Array<Option<string>>;
   repositoryOptions: Array<Option<string>>;
   defineManually: boolean;
@@ -89,9 +89,9 @@ export class DockerImageAndTagSelector extends React.Component<
 
     this.state = {
       accountOptions,
+      switchedManualWarning: undefined,
       imagesLoaded: false,
       imagesLoading: false,
-      imagesRefreshing: false,
       organizationOptions,
       repositoryOptions,
       defineManually,
@@ -241,28 +241,27 @@ export class DockerImageAndTagSelector extends React.Component<
 
   private updateThings(props: IDockerImageAndTagSelectorProps) {
     let { imageId, organization, registry, repository } = props;
-    const { account, showRegistry } = props;
 
-    organization =
-      !this.organizations.includes(organization) && organization && !organization.includes('${') ? '' : organization;
+    if (props.showRegistry) {
+      registry = this.registryMap[props.account];
+    }
 
-    if (showRegistry) {
-      registry = this.registryMap[account];
+    const organizationFound = !organization || this.organizations.includes(organization) || organization.includes('${');
+    if (!organizationFound) {
+      organization = '';
     }
 
     const repositories = this.getRepositoryList(this.organizationMap, organization, registry);
+    const repositoryFound = !repository || repository.includes('${') || repositories.includes(repository);
 
-    if (!repositories.includes(repository) && repository && !repository.includes('${')) {
+    if (!repositoryFound) {
       repository = '';
     }
 
     const { tag, tags } = this.getTags(props.tag, this.repositoryMap, repository);
+    const tagFound = tag !== props.tag;
 
-    if (!imageId || !imageId.includes('${')) {
-      this.synchronizeChanges({ organization, repository, tag, digest: this.props.digest }, registry);
-    }
-
-    this.setState({
+    const newState = {
       accountOptions: this.newAccounts.sort().map(a => ({ label: a, value: a })),
       organizationOptions: this.organizations
         .filter(o => o)
@@ -271,10 +270,30 @@ export class DockerImageAndTagSelector extends React.Component<
       imagesLoaded: true,
       repositoryOptions: repositories.sort().map(r => ({ label: r, value: r })),
       tagOptions: tags.sort().map(t => ({ label: t, value: t })),
-    });
+    } as IDockerImageAndTagSelectorState;
+
+    if (imageId && !this.state.imagesLoaded && (!organizationFound || !repositoryFound || !tagFound)) {
+      newState.defineManually = true;
+
+      const missingFields: string[] = [];
+      if (!organizationFound) {
+        missingFields.push('organization');
+      }
+      if (!repositoryFound) {
+        missingFields.push('image');
+      }
+      if (!tagFound) {
+        missingFields.push('tag');
+      }
+      newState.switchedManualWarning = `Could not find ${missingFields.join(' or ')}, switched to manual entry`;
+    } else if (!imageId || !imageId.includes('${')) {
+      this.synchronizeChanges({ organization, repository, tag, digest: this.props.digest }, registry);
+    }
+
+    this.setState(newState);
   }
 
-  private initializeImages(props: IDockerImageAndTagSelectorProps, refresh?: boolean) {
+  private initializeImages(props: IDockerImageAndTagSelectorProps) {
     if (this.state.imagesLoading) {
       return;
     }
@@ -288,7 +307,6 @@ export class DockerImageAndTagSelector extends React.Component<
 
     this.setState({
       imagesLoading: true,
-      imagesRefreshing: refresh ? true : false,
     });
     DockerImageReader.findImages(imageConfig)
       .then((images: IDockerImage[]) => {
@@ -305,7 +323,6 @@ export class DockerImageAndTagSelector extends React.Component<
       .finally(() => {
         this.setState({
           imagesLoading: false,
-          imagesRefreshing: false,
         });
       });
   }
@@ -315,7 +332,7 @@ export class DockerImageAndTagSelector extends React.Component<
   };
 
   public refreshImages(props: IDockerImageAndTagSelectorProps): void {
-    this.initializeImages(props, true);
+    this.initializeImages(props);
   }
 
   private initializeAccounts(props: IDockerImageAndTagSelectorProps) {
@@ -371,6 +388,9 @@ export class DockerImageAndTagSelector extends React.Component<
     if (!defineManually) {
       const newFields = DockerImageUtils.splitImageId(this.props.imageId || '');
       this.props.onChange(newFields);
+      if (this.state.switchedManualWarning) {
+        this.setState({ switchedManualWarning: undefined });
+      }
     }
     this.setState({ defineManually });
   };
@@ -391,8 +411,8 @@ export class DockerImageAndTagSelector extends React.Component<
     } = this.props;
     const {
       accountOptions,
+      switchedManualWarning,
       imagesLoading,
-      imagesRefreshing,
       lookupType,
       organizationOptions,
       repositoryOptions,
@@ -415,7 +435,7 @@ export class DockerImageAndTagSelector extends React.Component<
             <span className="field">
               <Select
                 value={defineManually}
-                disabled={imagesRefreshing}
+                disabled={imagesLoading}
                 onChange={(o: Option<boolean>) => this.showManualInput(o.value)}
                 options={defineOptions}
                 clearable={false}
@@ -425,6 +445,18 @@ export class DockerImageAndTagSelector extends React.Component<
         </div>
       </div>
     );
+
+    const warning = switchedManualWarning ? (
+      <div className="sp-formItem">
+        <div className="sp-formItem__left" />
+        <div className="sp-formItem__right">
+          <div className="messageContainer warningMessage">
+            <i className="fa icon-alert-triangle" />
+            <div className="message">{switchedManualWarning}</div>
+          </div>
+        </div>
+      </div>
+    ) : null;
 
     if (defineManually) {
       return (
@@ -449,6 +481,7 @@ export class DockerImageAndTagSelector extends React.Component<
               </div>
             </div>
           </div>
+          {warning}
         </div>
       );
     }
@@ -463,17 +496,17 @@ export class DockerImageAndTagSelector extends React.Component<
             <span className="field">
               <Select
                 value={account}
-                disabled={imagesRefreshing}
+                disabled={imagesLoading}
                 onChange={(o: Option<string>) => this.valueChanged('account', o ? o.value : '')}
                 options={accountOptions}
-                isLoading={imagesRefreshing}
+                isLoading={imagesLoading}
               />
             </span>
             <span className="sp-formActions sp-formActions--web">
               <span className="action">
-                <Tooltip value={imagesRefreshing ? 'Images refreshing' : 'Refresh images list'}>
+                <Tooltip value={imagesLoading ? 'Images refreshing' : 'Refresh images list'}>
                   <i
-                    className={`fa icon-button-refresh-arrows ${imagesRefreshing ? 'fa-spin' : ''}`}
+                    className={`fa icon-button-refresh-arrows ${imagesLoading ? 'fa-spin' : ''}`}
                     onClick={this.handleRefreshImages}
                   />
                 </Tooltip>
@@ -495,7 +528,7 @@ export class DockerImageAndTagSelector extends React.Component<
             <span className="field">
               {organization.includes('${') ? (
                 <input
-                  disabled={imagesRefreshing}
+                  disabled={imagesLoading}
                   className="form-control input-sm"
                   value={organization || ''}
                   onChange={e => this.valueChanged('organization', e.target.value)}
@@ -503,11 +536,11 @@ export class DockerImageAndTagSelector extends React.Component<
               ) : (
                 <Select
                   value={organization || ''}
-                  disabled={imagesRefreshing}
+                  disabled={imagesLoading}
                   onChange={(o: Option<string>) => this.valueChanged('organization', (o && o.value) || '')}
                   placeholder="No organization"
                   options={organizationOptions}
-                  isLoading={imagesRefreshing}
+                  isLoading={imagesLoading}
                 />
               )}
             </span>
@@ -528,18 +561,18 @@ export class DockerImageAndTagSelector extends React.Component<
               {repository.includes('${') ? (
                 <input
                   className="form-control input-sm"
-                  disabled={imagesRefreshing}
+                  disabled={imagesLoading}
                   value={repository || ''}
                   onChange={e => this.valueChanged('repository', e.target.value)}
                 />
               ) : (
                 <Select
                   value={repository || ''}
-                  disabled={imagesRefreshing}
+                  disabled={imagesLoading}
                   onChange={(o: Option<string>) => this.valueChanged('repository', (o && o.value) || '')}
                   options={repositoryOptions}
                   required={true}
-                  isLoading={imagesRefreshing}
+                  isLoading={imagesLoading}
                 />
               )}
             </span>
@@ -565,7 +598,7 @@ export class DockerImageAndTagSelector extends React.Component<
                     type="text"
                     className="form-control input-sm"
                     value={tag || ''}
-                    disabled={imagesRefreshing || !repository}
+                    disabled={imagesLoading || !repository}
                     onChange={e => this.valueChanged('tag', e.target.value)}
                   />
                 </span>
@@ -584,7 +617,7 @@ export class DockerImageAndTagSelector extends React.Component<
                   {tag && tag.includes('${') ? (
                     <input
                       className="form-control input-sm"
-                      disabled={imagesRefreshing}
+                      disabled={imagesLoading}
                       value={tag || ''}
                       onChange={e => this.valueChanged('tag', e.target.value)}
                       required={true}
@@ -592,7 +625,7 @@ export class DockerImageAndTagSelector extends React.Component<
                   ) : (
                     <Select
                       value={tag || ''}
-                      disabled={imagesRefreshing || !repository}
+                      disabled={imagesLoading || !repository}
                       isLoading={imagesLoading}
                       onChange={(o: Option<string>) => this.valueChanged('tag', o ? o.value : undefined)}
                       options={tagOptions}

@@ -41,7 +41,7 @@
 
 .sp-formItem {
   font-size: 14px;
-  padding: 8px;
+  padding: 0 8px 8px 8px;
   max-width: @form-max-width;
 
   @media only screen and (min-width: @desktop) {
@@ -53,6 +53,7 @@
     border-bottom: 1px dotted #999999;
     padding-bottom: 0;
     margin-bottom: 7px;
+    padding-top: 8px;
   }
 }
 .sp-formItem__left {
@@ -170,4 +171,37 @@
   input[type='checkbox'] {
     background-color: red;
   }
+}
+
+.messageContainer {
+  min-height: 40px;
+  display: flex;
+  margin-bottom: 2px;
+
+  &:last-child {
+    margin-bottom: 8px;
+  }
+
+  i {
+    flex: 0 0 40px;
+    height: 40px;
+    font-size: 24px;
+    padding: 7px;
+  }
+
+  .message {
+    margin: 8px 8px 8px 0;
+    align-self: center;
+  }
+}
+.warningMessage {
+  background-color: rgba(255, 220, 60, 0.4);
+}
+.previewMessage {
+  background-color: rgba(60, 200, 255, 0.15);
+  color: #0050b4;
+}
+.errorMessage {
+  background-color: rgba(255, 0, 0, 0.1);
+  color: #960000;
 }
