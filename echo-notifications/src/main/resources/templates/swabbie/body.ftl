@@ -154,7 +154,7 @@
                 last seen
               </td>
               <td align="left" style="padding: 4px 0; font-family: Helvetica, Arial, sans-serif; font-size: 12px;">
-                ${resource.lastSeenInfo.timeSeen?number_to_date?string("EEE, d MMM yyyy")} - <span style="color: #999999;">${resource.lastSeenInfo.usedByResourceIdentifier}</span>
+                ${resource.lastSeenInfo.timeSeen?number_to_date?string("EEE, d MMM yyyy")} - <span style="color: #999999;">${resource.lastSeenInfo.usedByResourceIdentifier!""}</span>
               </td>
             </tr>
             </#if>
