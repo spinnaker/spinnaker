@@ -54,6 +54,10 @@ class WebhooksController {
     event.details.requestHeaders = headers
     event.rawContent = rawPayload
 
+    if (!rawPayload && source == 'bitbucket') {
+      rawPayload = '{}'
+    }
+
     Map postedEvent
     try {
       postedEvent = mapper.readValue(rawPayload, Map) ?: [:]
@@ -90,19 +94,55 @@ class WebhooksController {
           event.content.event_type = headers['X-Event-Key'][0]
         }
 
-        if (event.content.event_type == "repo:push" && event.content.push) {
-          event.content.hash = postedEvent.push.changes?.first().commits?.first().hash
-          event.content.branch = postedEvent.push.changes?.first().new.name ?: ""
+        boolean isCloud
+        String fullRepoName
+        if (!event.rawContent) {
+          isCloud = false // Seems like Bitbucket Server
+          log.info('Webhook ping received from Bitbucket Server')
+          sendEvent = false
+          fullRepoName = ''
+        } else if (event.content.event_type == "repo:push" && event.content.push?.changes) {
+          isCloud = true // Seems like Bitbucket Cloud
+          event.content.hash = postedEvent.push.changes.first().commits?.first().hash
+          event.content.branch = postedEvent.push.changes.first().new.name ?: ""
+        } else if (event.content.event_type == "repo:refs_changed") {
+          isCloud = false // Seems like Bitbucket Server
+
+          event.content.hash = postedEvent.changes?.first().toHash
+          event.content.branch = postedEvent.changes?.first().ref.id
+
+          event.content.repoProject = postedEvent.repository.name
+          event.content.slug = postedEvent.repository.slug
+          fullRepoName = event.content.repository.name
         } else if (event.content.event_type == "pullrequest:fulfilled" && event.content.pullrequest) {
+          isCloud = true // Seems like Bitbucket Cloud
           event.content.hash = postedEvent.pullrequest.merge_commit?.hash
           event.content.branch = postedEvent.pullrequest.destination?.branch?.name
+        } else if (event.content.event_type == "pr:merged" && event.content.pullrequest) {
+          isCloud = false // Seems like Bitbucket Server
+          event.content.hash = postedEvent.pullrequest.properties?.merge_commit?.id
+          event.content.branch = postedEvent.pullrequest.toRef.id
+
+          event.content.repoProject = postedEvent.pullrequest.toRef.repository.name
+          event.content.slug = postedEvent.pullrequest.toRef.repository.slug
+          fullRepoName = event.content.pullrequest.toRef.repository.name
         }
-        event.content.repoProject = postedEvent.repository.owner.username
-        event.content.slug = postedEvent.repository.full_name.tokenize('/')[1]
+
+        if (isCloud) {
+          event.content.repoProject = postedEvent.repository.owner.username
+          event.content.slug = postedEvent.repository.full_name.tokenize('/')[1]
+          fullRepoName = event.content.repository.full_name
+        }
+
+        if (fullRepoName) {
+          log.info('Webhook event received {} {} {} {} {} {}', kv('type', type), kv('event_type', event.content.event_type), kv('hook_id', event.content.hook_id), kv('repository', fullRepoName), kv('request_id', event.content.request_id), kv('branch', event.content.branch))
+        } else {
+          log.info('Webhook event received {} {} {} {} {}', kv('type', type), kv('event_type', event.content.event_type), kv('hook_id', event.content.hook_id), kv('request_id', event.content.request_id), kv('branch', event.content.branch))
+        }
+
         if (event.content.hash.toString().startsWith('000000000')) {
           sendEvent = false
         }
-        log.info('Webhook event received {} {} {} {} {} {}', kv('type', type), kv('event_type', event.content.event_type), kv('hook_id', event.content.hook_id), kv('repository', event.content.repository.full_name), kv('request_id', event.content.request_id), kv('branch', event.content.branch))
       } else if (source == 'gitlab') {
         event.content.hash = postedEvent.after;
         event.content.branch = postedEvent.ref?.replace('refs/heads/', '') ?: ""
