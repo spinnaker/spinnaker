@@ -1,8 +1,9 @@
 import * as React from 'react';
 import * as classNames from 'classnames';
 import { IPromise } from 'angular';
-import { chain, find, isEqual, isNil, trimEnd, uniq } from 'lodash';
+import { chain, isNil, uniq, groupBy } from 'lodash';
 import { Field, FormikErrors } from 'formik';
+import { Observable, Subject } from 'rxjs';
 
 import {
   AccountSelectInput,
@@ -65,6 +66,9 @@ class LoadBalancerLocationImpl extends React.Component<ILoadBalancerLocationProp
     subnets: [],
   };
 
+  private props$ = new Subject<ILoadBalancerLocationProps>();
+  private destroy$ = new Subject<void>();
+
   public validate(values: IAmazonLoadBalancerUpsertCommand) {
     const errors = {} as FormikErrors<IAmazonLoadBalancerUpsertCommand>;
 
@@ -111,28 +115,97 @@ class LoadBalancerLocationImpl extends React.Component<ILoadBalancerLocationProp
   }
 
   public componentDidMount(): void {
-    if (this.props.isNew || this.props.forPipelineConfig) {
-      this.loadAccounts();
-      const hideInternalFlag = this.shouldHideInternalFlag();
-      this.setState({ hideInternalFlag });
-    }
-
+    this.setState({ hideInternalFlag: this.shouldHideInternalFlag() });
     if (this.props.loadBalancer && this.props.isNew) {
       this.buildName();
     }
-  }
 
-  private loadAccounts(): void {
-    AccountService.listAccounts('aws').then(accounts => {
-      this.setState({ accounts });
-      this.accountUpdated(this.props.formik.values.credentials);
+    const formValues$ = this.props$.map(props => props.formik.values);
+    const appName$ = this.props$.map(props => props.app.name).distinctUntilChanged();
+
+    const form = {
+      account$: formValues$.map(x => x.credentials).distinctUntilChanged(),
+      region$: formValues$.map(x => x.region).distinctUntilChanged(),
+      subnetPurpose$: formValues$.map(x => x.subnetType).distinctUntilChanged(),
+      stack$: formValues$.map(x => x.stack).distinctUntilChanged(),
+      detail$: formValues$.map(x => x.detail).distinctUntilChanged(),
+    };
+
+    const allAccounts$ = Observable.fromPromise(AccountService.listAccounts('aws')).shareReplay(1);
+
+    // combineLatest with allAccounts to wait for accounts to load and be cached
+    const accountRegions$ = Observable.combineLatest(form.account$, allAccounts$)
+      .switchMap(([currentAccount, _allAccounts]) => AccountService.getRegionsForAccount(currentAccount))
+      .shareReplay(1);
+
+    const allLoadBalancers$ = this.props.app.getDataSource('loadBalancers').data$ as Observable<IAmazonLoadBalancer[]>;
+    const regionLoadBalancers$ = Observable.combineLatest(allLoadBalancers$, form.account$, form.region$)
+      .map(([allLoadBalancers, currentAccount, currentRegion]) => {
+        return allLoadBalancers
+          .filter(lb => lb.account === currentAccount && lb.region === currentRegion)
+          .map(lb => lb.name);
+      })
+      .shareReplay(1);
+
+    const regionSubnets$ = Observable.combineLatest(form.account$, form.region$)
+      .switchMap(([currentAccount, currentRegion]) => this.getAvailableSubnets(currentAccount, currentRegion))
+      .map(availableSubnets => this.makeSubnetOptions(availableSubnets))
+      .shareReplay(1);
+
+    const subnet$ = Observable.combineLatest(regionSubnets$, form.subnetPurpose$).map(
+      ([allSubnets, subnetPurpose]) => allSubnets && allSubnets.find(subnet => subnet.purpose === subnetPurpose),
+    );
+
+    // I don't understand why we use subnet.availabilityZones here, but region.availabilityZones below.
+    const availabilityZones$ = subnet$.map(subnet => (subnet ? uniq(subnet.availabilityZones).sort() : []));
+
+    // Update selected zones when the selected region changes
+    const regionZones$ = form.region$
+      .withLatestFrom(accountRegions$)
+      .map(([currentRegion, accountRegions]) => accountRegions.find(region => region.name === currentRegion))
+      .map(region => (region ? region.availabilityZones : []));
+
+    const moniker$ = Observable.combineLatest(appName$, form.stack$, form.detail$).map(([app, stack, detail]) => {
+      return { app, stack, detail, cluster: NameUtils.getClusterName(app, stack, detail) } as IMoniker;
     });
+
+    accountRegions$
+      .withLatestFrom(form.region$)
+      .takeUntil(this.destroy$)
+      .subscribe(([accountRegions, selectedRegion]) => {
+        // If the selected region doesn't exist in the new list of regions (for a new acct), select the first region.
+        if (!accountRegions.some(x => x.name === selectedRegion)) {
+          this.props.formik.setFieldValue('region', accountRegions[0] && accountRegions[0].name);
+        }
+      });
+
+    regionZones$.takeUntil(this.destroy$).subscribe(regionZones => {
+      this.props.formik.setFieldValue('regionZones', regionZones);
+    });
+
+    subnet$.takeUntil(this.destroy$).subscribe(subnet => {
+      this.props.formik.setFieldValue('vpcId', subnet && subnet.vpcIds[0]);
+      this.props.formik.setFieldValue('subnetType', subnet && subnet.purpose);
+    });
+
+    moniker$.takeUntil(this.destroy$).subscribe(moniker => {
+      this.props.formik.setFieldValue('moniker', moniker);
+      this.props.formik.setFieldValue('name', moniker.cluster);
+    });
+
+    Observable.combineLatest(allAccounts$, accountRegions$, availabilityZones$, regionLoadBalancers$, regionSubnets$)
+      .takeUntil(this.destroy$)
+      .subscribe(([accounts, regions, availabilityZones, existingLoadBalancerNames, subnets]) => {
+        return this.setState({ accounts, regions, availabilityZones, existingLoadBalancerNames, subnets });
+      });
   }
 
-  private getName(): string {
-    const elb = this.props.formik.values;
-    const elbName = [this.props.app.name, elb.stack || '', elb.detail || ''].join('-');
-    return trimEnd(elbName, '-');
+  public componentDidUpdate() {
+    this.props$.next(this.props);
+  }
+
+  public componentWillUnmount(): void {
+    this.destroy$.next();
   }
 
   private internalFlagChanged = (event: React.ChangeEvent<any>): void => {
@@ -140,22 +213,7 @@ class LoadBalancerLocationImpl extends React.Component<ILoadBalancerLocationProp
     this.props.formik.handleChange(event);
   };
 
-  private getAvailabilityZones(regions: IRegion[]): string[] {
-    const { setFieldValue, values } = this.props.formik;
-    const selected = regions ? regions.filter(region => region.name === values.region) : [];
-    if (selected.length) {
-      const newRegionZones = uniq(selected[0].availabilityZones);
-      if (!isEqual(newRegionZones, values.regionZones)) {
-        setFieldValue('regionZones', newRegionZones);
-      }
-      return newRegionZones;
-    } else {
-      return [];
-    }
-  }
-
-  private getAvailableSubnets(): IPromise<ISubnet[]> {
-    const { credentials, region } = this.props.formik.values;
+  private getAvailableSubnets(credentials: string, region: string): IPromise<ISubnet[]> {
     return SubnetReader.listSubnets().then(subnets => {
       return chain(subnets)
         .filter({ account: credentials, region })
@@ -165,143 +223,38 @@ class LoadBalancerLocationImpl extends React.Component<ILoadBalancerLocationProp
     });
   }
 
-  private setSubnetTypeFromVpc(subnetOptions: { [purpose: string]: ISubnetOption }): void {
-    const { setFieldValue, values } = this.props.formik;
-    if (values.vpcId) {
-      const currentSelection = find(subnetOptions, option => option.vpcIds.includes(values.vpcId));
-      if (currentSelection) {
-        values.subnetType = currentSelection.purpose;
-      }
-      setFieldValue('vpcId', null);
-    }
-  }
-
-  private subnetUpdated(subnets: ISubnetOption[]): void {
-    const { setFieldValue, values } = this.props.formik;
-
-    const subnetPurpose = values.subnetType || null,
-      subnet = subnets.find(test => test.purpose === subnetPurpose),
-      availableVpcIds = subnet ? subnet.vpcIds : [];
-
-    let availabilityZones: string[];
-
-    if (subnetPurpose) {
-      setFieldValue('vpcId', availableVpcIds.length ? availableVpcIds[0] : null);
-      if (!this.state.hideInternalFlag && !this.state.internalFlagToggled) {
-        setFieldValue('isInternal', subnetPurpose.includes('internal'));
-      }
-      availabilityZones = uniq(subnets.find(o => o.purpose === values.subnetType).availabilityZones.sort());
-    } else {
-      availabilityZones = this.getAvailabilityZones(this.state.regions);
-      setFieldValue('vpcId', null);
-    }
-    this.setState({ availabilityZones });
-  }
-
-  private handleSubnetUpdated = (): void => {
-    this.subnetUpdated(this.state.subnets);
+  private handleSubnetUpdated = (subnetType: string): void => {
+    this.props.formik.setFieldValue('subnetType', subnetType);
   };
 
-  private updateSubnets(): void {
-    this.getAvailableSubnets().then(availableSubnets => {
-      const subnetOptions = availableSubnets.reduce(
-        (accumulator, subnet) => {
-          if (!accumulator[subnet.purpose]) {
-            accumulator[subnet.purpose] = {
-              purpose: subnet.purpose,
-              label: subnet.label,
-              deprecated: subnet.deprecated,
-              vpcIds: [],
-              availabilityZones: [],
-            } as ISubnetOption;
-          }
-          const acc = accumulator[subnet.purpose];
-          if (acc.vpcIds.indexOf(subnet.vpcId) === -1) {
-            acc.vpcIds.push(subnet.vpcId);
-          }
-          acc.availabilityZones.push(subnet.availabilityZone);
-          acc.availabilityZones = uniq(acc.availabilityZones);
-          return accumulator;
-        },
-        {} as { [purpose: string]: ISubnetOption },
-      );
-
-      this.setSubnetTypeFromVpc(subnetOptions);
-
-      if (!subnetOptions[this.props.formik.values.subnetType]) {
-        this.props.formik.values.subnetType = '';
-        this.props.formik.setFieldValue('subnetType', '');
-      }
-      const subnets = Object.keys(subnetOptions).map(k => subnetOptions[k]);
-      this.setState({ subnets });
-      this.subnetUpdated(subnets);
-    });
-  }
-
-  protected updateExistingLoadBalancerNames(): void {
-    const { credentials, region } = this.props.formik.values;
-
-    const accountLoadBalancersByRegion: { [region: string]: string[] } = {};
-    this.props.app
-      .getDataSource('loadBalancers')
-      .refresh(true)
-      .then(() => {
-        this.props.app.getDataSource('loadBalancers').data.forEach(loadBalancer => {
-          if (loadBalancer.account === credentials) {
-            accountLoadBalancersByRegion[loadBalancer.region] = accountLoadBalancersByRegion[loadBalancer.region] || [];
-            accountLoadBalancersByRegion[loadBalancer.region].push(loadBalancer.name);
-          }
-        });
-
-        this.setState({ existingLoadBalancerNames: accountLoadBalancersByRegion[region] || [] });
-        this.props.revalidate();
-      });
-  }
-
-  private updateName(): void {
-    const loadBalancerCommand = this.props.formik.values;
-    const moniker: IMoniker = {
-      app: this.props.app.name,
-      cluster: this.getName(),
-      stack: loadBalancerCommand.stack,
-      detail: loadBalancerCommand.detail,
+  private makeSubnetOptions(availableSubnets: ISubnet[]): ISubnetOption[] {
+    const makeSubnetOption = (subnets: ISubnet[]) => {
+      const { purpose, label, deprecated } = subnets[0];
+      const vpcIds = uniq(subnets.map(x => x.vpcId));
+      const availabilityZones = uniq(subnets.map(x => x.availabilityZone));
+      return { purpose, label, deprecated, vpcIds, availabilityZones } as ISubnetOption;
     };
-    loadBalancerCommand.moniker = moniker;
-    this.props.formik.setFieldValue('name', this.getName());
+
+    const grouped = groupBy(availableSubnets, sn => sn.purpose);
+    return Object.keys(grouped)
+      .map(k => grouped[k])
+      .map(subnets => makeSubnetOption(subnets));
   }
 
   private accountUpdated = (account: string): void => {
     this.props.formik.setFieldValue('credentials', account);
-    AccountService.getRegionsForAccount(account).then(regions => {
-      const availabilityZones = this.getAvailabilityZones(regions);
-      this.setState({ availabilityZones, regions });
-      this.updateExistingLoadBalancerNames();
-      this.updateSubnets();
-      this.updateName();
-    });
   };
 
   private regionUpdated = (region: string): void => {
     this.props.formik.setFieldValue('region', region);
-    const availabilityZones = this.getAvailabilityZones(this.state.regions.filter(r => r.name === region));
-    this.setState({ availabilityZones });
-    this.updateExistingLoadBalancerNames();
-    this.updateSubnets();
-    this.updateName();
   };
 
   private stackChanged = (event: React.ChangeEvent<HTMLInputElement>): void => {
-    const stack = event.target.value;
-    this.props.formik.values.stack = stack;
-    this.props.formik.setFieldValue('stack', stack);
-    this.updateName();
+    this.props.formik.setFieldValue('stack', event.target.value);
   };
 
   private detailChanged = (event: React.ChangeEvent<HTMLInputElement>): void => {
-    const detail = event.target.value;
-    this.props.formik.values.detail = detail;
-    this.props.formik.setFieldValue('detail', detail);
-    this.updateName();
+    this.props.formik.setFieldValue('detail', event.target.value);
   };
 
   private handleAvailabilityZonesChanged = (zones: string[]): void => {
@@ -411,7 +364,7 @@ class LoadBalancerLocationImpl extends React.Component<ILoadBalancerLocationProp
               region={values.region}
               subnets={subnets as any}
               application={app}
-              onChange={this.handleSubnetUpdated}
+              onChange={() => this.handleSubnetUpdated(values.subnetType)}
             />
             {values.vpcId &&
               !hideInternalFlag && (

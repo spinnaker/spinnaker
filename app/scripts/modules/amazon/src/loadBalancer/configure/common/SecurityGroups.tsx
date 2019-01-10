@@ -1,14 +1,11 @@
 import * as React from 'react';
-import { IPromise } from 'angular';
-import { filter, get, isEqual, map, uniq } from 'lodash';
-import { FormikErrors } from 'formik';
+import { get, isEqual, uniq, partition } from 'lodash';
+import { Subject, Observable } from 'rxjs';
 import VirtualizedSelect from 'react-virtualized-select';
-import { Observable, Subject } from 'rxjs';
 
 import {
   InfrastructureCaches,
   ISecurityGroup,
-  ISecurityGroupsByAccountSourceData,
   IWizardPageProps,
   ReactInjector,
   Spinner,
@@ -38,7 +35,9 @@ class SecurityGroupsImpl extends React.Component<ISecurityGroupsProps, ISecurity
     return FirewallLabels.get('Firewalls');
   }
 
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
+  private props$ = new Subject<ISecurityGroupsProps>();
+  private refresh$ = new Subject<void>();
 
   constructor(props: ISecurityGroupsProps) {
     super(props);
@@ -55,121 +54,88 @@ class SecurityGroupsImpl extends React.Component<ISecurityGroupsProps, ISecurity
   }
 
   public validate() {
-    return {} as FormikErrors<IAmazonLoadBalancerUpsertCommand>;
+    const { removed } = this.state;
+    if (removed && removed.length) {
+      const label = FirewallLabels.get('Firewalls');
+      return { securityGroupsRemoved: `${label} removed: ${removed.join(', ')}` };
+    }
+    return {};
   }
 
   private clearRemoved = (): void => {
-    this.props.dirtyCallback(SecurityGroups.label, false);
-    this.setState({ removed: [] });
+    this.setState({ removed: [] }, () => this.props.formik.validateForm());
   };
 
-  private preloadSecurityGroups(): IPromise<ISecurityGroupsByAccountSourceData> {
-    return ReactInjector.securityGroupReader.getAllSecurityGroups().then(securityGroups => {
-      this.setState({
-        loaded: true,
-      });
-      return securityGroups;
-    });
-  }
-
-  private availableGroupsSorter(a: ISecurityGroup, b: ISecurityGroup): number {
-    const { securityGroups } = this.props.formik.values;
-    const { defaultSecurityGroups } = this.state;
-
-    if (defaultSecurityGroups) {
-      if (defaultSecurityGroups.includes(a.name)) {
-        return -1;
-      }
-      if (defaultSecurityGroups.includes(b.name)) {
-        return 1;
-      }
-    }
-    return securityGroups.includes(a.id) ? -1 : securityGroups.includes(b.id) ? 1 : 0;
-  }
-
-  private updateAvailableSecurityGroups(
-    availableVpcIds: string[],
-    allSecurityGroups: ISecurityGroupsByAccountSourceData,
-  ): void {
+  private updateRemovedSecurityGroups(selectedGroups: string[], availableGroups: ISecurityGroup[]): void {
     const { isNew } = this.props;
-    const { credentials: account, region, securityGroups } = this.props.formik.values;
     const { defaultSecurityGroups, removed } = this.state;
 
-    const newRemoved = removed.slice();
+    const getDesiredGroupNames = (): string[] => {
+      const desired = selectedGroups.concat(removed).sort();
+      const defaults = isNew ? defaultSecurityGroups : [];
+      return uniq(defaults.concat(desired));
+    };
 
-    let availableSecurityGroups: Array<{ label: string; value: string }> = [];
+    const getAvailableSecurityGroup = (name: string) => availableGroups.find(sg => sg.name === name || sg.id === name);
 
-    if (
-      account &&
-      region &&
-      allSecurityGroups &&
-      allSecurityGroups[account] &&
-      allSecurityGroups[account].aws[region]
-    ) {
-      const regionalSecurityGroups = filter(allSecurityGroups[account].aws[region], securityGroup => {
-        return availableVpcIds.includes(securityGroup.vpcId);
-      }).sort((a, b) => this.availableGroupsSorter(a, b)); // push existing groups to top
-      const existingSecurityGroupNames = map(regionalSecurityGroups, 'name');
-      const existingNames = isNew
-        ? defaultSecurityGroups.filter(name => existingSecurityGroupNames.includes(name))
-        : [];
-      securityGroups.forEach(securityGroup => {
-        if (!existingSecurityGroupNames.includes(securityGroup)) {
-          const matches = filter(regionalSecurityGroups, { id: securityGroup });
-          if (matches.length) {
-            existingNames.push(matches[0].name);
-          } else {
-            if (!defaultSecurityGroups.includes(securityGroup)) {
-              newRemoved.push(securityGroup);
-            }
-          }
-        } else {
-          existingNames.push(securityGroup);
-        }
-      });
-      const updatedSecurityGroups = uniq(existingNames);
-      if (newRemoved.length) {
-        this.props.dirtyCallback(SecurityGroups.label, true);
-      }
+    // Organize selected security groups into available/not available
+    const [available, notAvailable] = partition(getDesiredGroupNames(), name => !!getAvailableSecurityGroup(name));
 
-      availableSecurityGroups = regionalSecurityGroups.map(sg => {
-        return { label: `${sg.name} (${sg.id})`, value: sg.name };
-      });
-
-      if (!isEqual(updatedSecurityGroups, securityGroups)) {
-        this.props.formik.setFieldValue('securityGroups', updatedSecurityGroups);
-      }
+    // Normalize available security groups from [name or id] to name
+    const securityGroups = available.map(name => getAvailableSecurityGroup(name).name);
+    if (!isEqual(selectedGroups, securityGroups)) {
+      this.props.formik.setFieldValue('securityGroups', securityGroups);
     }
-    this.setState({ availableSecurityGroups, removed: newRemoved });
+    this.setState({ removed: notAvailable }, () => this.props.formik.validateForm());
   }
-
-  private refreshSecurityGroups = (): void => {
-    this.setState({ refreshing: true });
-    this.props.setWaiting(SecurityGroups.label, true);
-
-    Observable.fromPromise(ReactInjector.cacheInitializer.refreshCache('securityGroups'))
-      .takeUntil(this.destroy$)
-      .subscribe(() => {
-        this.setState({
-          refreshing: false,
-          refreshTime: InfrastructureCaches.get('securityGroups').getStats().ageMax,
-        });
-        this.props.setWaiting(SecurityGroups.label, false);
-
-        Observable.fromPromise(this.preloadSecurityGroups())
-          .takeUntil(this.destroy$)
-          .subscribe(securityGroups => {
-            this.updateAvailableSecurityGroups([this.props.formik.values.vpcId], securityGroups);
-          });
-      });
-  };
 
   private handleSecurityGroupsChanged = (newValues: Array<{ label: string; value: string }>): void => {
     this.props.formik.setFieldValue('securityGroups', newValues.map(sg => sg.value));
   };
 
+  private onRefreshStart() {
+    this.props.setWaiting(SecurityGroups.label, true);
+    this.setState({ refreshing: true });
+  }
+
+  private onRefreshComplete() {
+    this.props.setWaiting(SecurityGroups.label, false);
+    const refreshTime = InfrastructureCaches.get('securityGroups').getStats().ageMax;
+    this.setState({ refreshing: false, loaded: true, refreshTime });
+  }
+
   public componentDidMount(): void {
-    this.refreshSecurityGroups();
+    const allSecurityGroups$ = this.refresh$
+      .do(() => this.onRefreshStart())
+      .switchMap(() => ReactInjector.cacheInitializer.refreshCache('securityGroups'))
+      .mergeMap(() => ReactInjector.securityGroupReader.getAllSecurityGroups())
+      .do(() => this.onRefreshComplete());
+
+    const formValues$ = this.props$.map(props => props.formik.values);
+    const vpcId$ = formValues$.map(values => values.vpcId).distinctUntilChanged();
+
+    const availableSecurityGroups$ = Observable.combineLatest(vpcId$, allSecurityGroups$)
+      .withLatestFrom(formValues$)
+      .map(([[vpcId, allSecurityGroups], formValues]) => {
+        const forAccount = allSecurityGroups[formValues.credentials] || {};
+        const forRegion = (forAccount.aws && forAccount.aws[formValues.region]) || [];
+        return forRegion.filter(securityGroup => vpcId === securityGroup.vpcId).sort();
+      });
+
+    availableSecurityGroups$
+      .withLatestFrom(formValues$)
+      .takeUntil(this.destroy$)
+      .subscribe(([availableSecurityGroups, formValues]) => {
+        const makeOption = (sg: ISecurityGroup) => ({ label: `${sg.name} (${sg.id})`, value: sg.name });
+        this.setState({ availableSecurityGroups: availableSecurityGroups.map(makeOption) });
+        this.updateRemovedSecurityGroups(formValues.securityGroups, availableSecurityGroups);
+      });
+
+    this.refresh$.next();
+  }
+
+  public componentDidUpdate(): void {
+    this.props$.next(this.props);
   }
 
   public componentWillUnmount() {
@@ -242,7 +208,7 @@ class SecurityGroupsImpl extends React.Component<ISecurityGroupsProps, ISecurity
               </p>
               <p>
                 If you're not finding a {FirewallLabels.get('firewall')} that was recently added,{' '}
-                <a className="clickable" onClick={this.refreshSecurityGroups}>
+                <a className="clickable" onClick={() => this.refresh$.next()}>
                   click here
                 </a>{' '}
                 to refresh the list.
