@@ -1,20 +1,15 @@
 import * as React from 'react';
-import { Field, FormikErrors } from 'formik';
+import { Field, FormikProps } from 'formik';
 
-import { HelpField, IWizardPageProps, wizardPage } from '@spinnaker/core';
+import { HelpField } from '@spinnaker/core';
 
 import { IAmazonNetworkLoadBalancerUpsertCommand } from 'amazon/domain';
 
-export type INLBAdvancedSettingsProps = IWizardPageProps<IAmazonNetworkLoadBalancerUpsertCommand>;
+export interface INLBAdvancedSettingsProps {
+  formik: FormikProps<IAmazonNetworkLoadBalancerUpsertCommand>;
+}
 
-class NLBAdvancedSettingsImpl extends React.Component<INLBAdvancedSettingsProps> {
-  public static LABEL = 'Advanced Settings';
-
-  public validate() {
-    const errors = {} as FormikErrors<IAmazonNetworkLoadBalancerUpsertCommand>;
-    return errors;
-  }
-
+export class NLBAdvancedSettings extends React.Component<INLBAdvancedSettingsProps> {
   public render() {
     const { values } = this.props.formik;
     return (
@@ -32,5 +27,3 @@ class NLBAdvancedSettingsImpl extends React.Component<INLBAdvancedSettingsProps>
     );
   }
 }
-
-export const NLBAdvancedSettings = wizardPage(NLBAdvancedSettingsImpl);

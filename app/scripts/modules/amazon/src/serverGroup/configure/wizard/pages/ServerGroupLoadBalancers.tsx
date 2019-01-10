@@ -1,13 +1,15 @@
 import * as React from 'react';
 import { Option } from 'react-select';
+import { FormikProps } from 'formik';
 
-import { IWizardPageProps, wizardPage, HelpField, TetheredSelect, ReactInjector } from '@spinnaker/core';
+import { HelpField, IWizardPageComponent, TetheredSelect, ReactInjector } from '@spinnaker/core';
 
 import { IAmazonServerGroupCommand } from '../../serverGroupConfiguration.service';
 
-export interface IServerGroupLoadBalancersProps extends IWizardPageProps<IAmazonServerGroupCommand> {
+export interface IServerGroupLoadBalancersProps {
   hideLoadBalancers?: boolean;
   hideTargetGroups?: boolean;
+  formik: FormikProps<IAmazonServerGroupCommand>;
 }
 
 export interface IServerGroupLoadBalancersState {
@@ -20,22 +22,17 @@ const stringToOption = (value: string): Option<string> => {
   return { value, label: value };
 };
 
-class ServerGroupLoadBalancersImpl extends React.Component<
-  IServerGroupLoadBalancersProps,
-  IServerGroupLoadBalancersState
-> {
-  public static LABEL = 'Load Balancers';
-
+export class ServerGroupLoadBalancers
+  extends React.Component<IServerGroupLoadBalancersProps, IServerGroupLoadBalancersState>
+  implements IWizardPageComponent<IAmazonServerGroupCommand> {
   public state = {
     refreshing: false,
     refreshed: false,
     showVpcLoadBalancers: false,
   };
 
-  public validate(_values: IAmazonServerGroupCommand) {
+  public validate(values: IAmazonServerGroupCommand) {
     const errors = {} as any;
-    // TODO: check if this is correct, or if we should use the 'values' argument
-    const { values } = this.props.formik;
 
     if (values.viewState.dirty.targetGroups) {
       errors.targetGroups = 'You must confirm the removed target groups.';
@@ -64,7 +61,7 @@ class ServerGroupLoadBalancersImpl extends React.Component<
 
   public clearWarnings(key: 'loadBalancers' | 'targetGroups'): void {
     this.props.formik.values.viewState.dirty[key] = null;
-    this.props.revalidate();
+    this.props.formik.validateForm();
   }
 
   private targetGroupsChanged = (options: Array<Option<string>>) => {
@@ -259,5 +256,3 @@ class ServerGroupLoadBalancersImpl extends React.Component<
     );
   }
 }
-
-export const ServerGroupLoadBalancers = wizardPage(ServerGroupLoadBalancersImpl);

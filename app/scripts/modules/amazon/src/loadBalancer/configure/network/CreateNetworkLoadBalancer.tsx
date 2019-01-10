@@ -5,13 +5,14 @@ import { IPromise } from 'angular';
 
 import {
   AccountService,
+  ILoadBalancerModalProps,
   LoadBalancerWriter,
   ReactInjector,
+  ReactModal,
   TaskMonitor,
   WizardModal,
+  WizardPage,
   noop,
-  ReactModal,
-  ILoadBalancerModalProps,
 } from '@spinnaker/core';
 
 import { AWSProviderSettings } from 'amazon/aws.settings';
@@ -229,16 +230,12 @@ export class CreateNetworkLoadBalancer extends React.Component<
     const { app, dismissModal, forPipelineConfig, loadBalancer } = this.props;
     const { isNew, loadBalancerCommand, taskMonitor } = this.state;
 
-    const hideSections = new Set<string>();
-
-    if (!isNew && !forPipelineConfig) {
-      hideSections.add(LoadBalancerLocation.label);
-    }
-
     let heading = forPipelineConfig ? 'Configure Network Load Balancer' : 'Create New Network Load Balancer';
     if (!isNew) {
       heading = `Edit ${loadBalancerCommand.name}: ${loadBalancerCommand.region}: ${loadBalancerCommand.credentials}`;
     }
+
+    const showLocationSection = isNew || forPipelineConfig;
 
     return (
       <WizardModal<IAmazonNetworkLoadBalancerUpsertCommand>
@@ -249,18 +246,51 @@ export class CreateNetworkLoadBalancer extends React.Component<
         closeModal={this.submit}
         submitButtonLabel={forPipelineConfig ? (isNew ? 'Add' : 'Done') : isNew ? 'Create' : 'Update'}
         validate={this.validate}
-        hideSections={hideSections}
-      >
-        <LoadBalancerLocation
-          app={app}
-          isNew={isNew}
-          forPipelineConfig={forPipelineConfig}
-          loadBalancer={loadBalancer}
-        />
-        <TargetGroups app={app} isNew={isNew} loadBalancer={loadBalancer} done={true} />
-        <NLBListeners done={true} />
-        <NLBAdvancedSettings done={true} />
-      </WizardModal>
+        render={({ formik, nextIdx, wizard }) => (
+          <>
+            {showLocationSection && (
+              <WizardPage
+                label="Location"
+                wizard={wizard}
+                order={nextIdx()}
+                render={({ innerRef }) => (
+                  <LoadBalancerLocation
+                    app={app}
+                    forPipelineConfig={forPipelineConfig}
+                    formik={formik}
+                    isNew={isNew}
+                    loadBalancer={loadBalancer}
+                    ref={innerRef}
+                  />
+                )}
+              />
+            )}
+
+            <WizardPage
+              label="Target Groups"
+              wizard={wizard}
+              order={nextIdx()}
+              render={({ innerRef }) => (
+                <TargetGroups ref={innerRef} formik={formik} app={app} isNew={isNew} loadBalancer={loadBalancer} />
+              )}
+            />
+
+            <WizardPage
+              label="Listeners"
+              wizard={wizard}
+              order={nextIdx()}
+              render={({ innerRef }) => <NLBListeners ref={innerRef} formik={formik} />}
+            />
+
+            <WizardPage
+              label="Advanced Settings"
+              wizard={wizard}
+              order={nextIdx()}
+              render={({ innerRef }) => <NLBAdvancedSettings ref={innerRef} formik={formik} />}
+            />
+          </>
+        )}
+      />
     );
   }
 }

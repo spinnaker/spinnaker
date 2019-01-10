@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { get } from 'lodash';
-import { FormikErrors } from 'formik';
+import { FormikProps } from 'formik';
 
-import { Application, IWizardPageProps, wizardPage } from '@spinnaker/core';
+import { Application } from '@spinnaker/core';
 
 import { AWSProviderSettings } from 'amazon/aws.settings';
 import {
@@ -16,7 +16,8 @@ import { AmazonCertificateSelectField } from '../common/AmazonCertificateSelectF
 
 import './Listeners.less';
 
-export interface IListenersProps extends IWizardPageProps<IAmazonClassicLoadBalancerUpsertCommand> {
+export interface IListenersProps {
+  formik: FormikProps<IAmazonClassicLoadBalancerUpsertCommand>;
   app: Application;
 }
 
@@ -24,8 +25,7 @@ export interface IListenersState {
   certificates: { [accountId: number]: IAmazonCertificate[] };
 }
 
-class ListenersImpl extends React.Component<IListenersProps, IListenersState> {
-  public static LABEL = 'Listeners';
+export class Listeners extends React.Component<IListenersProps, IListenersState> {
   public protocols = ['HTTP', 'HTTPS', 'TCP', 'SSL'];
   public secureProtocols = ['HTTPS', 'SSL'];
   private certificateTypes = get(AWSProviderSettings, 'loadBalancers.certificateTypes', ['iam', 'acm']);
@@ -33,10 +33,6 @@ class ListenersImpl extends React.Component<IListenersProps, IListenersState> {
   public state: IListenersState = {
     certificates: [],
   };
-
-  public validate() {
-    return {} as FormikErrors<IAmazonClassicLoadBalancerUpsertCommand>;
-  }
 
   public componentDidMount(): void {
     this.loadCertificates();
@@ -271,5 +267,3 @@ class ListenersImpl extends React.Component<IListenersProps, IListenersState> {
     );
   }
 }
-
-export const Listeners = wizardPage(ListenersImpl);

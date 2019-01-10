@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { FormikErrors, FormikProps } from 'formik';
 import { get, isEqual, uniq, partition } from 'lodash';
 import { Subject, Observable } from 'rxjs';
 import VirtualizedSelect from 'react-virtualized-select';
@@ -6,19 +7,20 @@ import VirtualizedSelect from 'react-virtualized-select';
 import {
   InfrastructureCaches,
   ISecurityGroup,
-  IWizardPageProps,
+  IWizardPageComponent,
   ReactInjector,
   Spinner,
   timestamp,
-  wizardPage,
   FirewallLabels,
 } from '@spinnaker/core';
 
 import { AWSProviderSettings } from 'amazon/aws.settings';
 import { IAmazonLoadBalancerUpsertCommand } from 'amazon/domain';
 
-export interface ISecurityGroupsProps extends IWizardPageProps<IAmazonLoadBalancerUpsertCommand> {
+export interface ISecurityGroupsProps {
+  formik: FormikProps<IAmazonLoadBalancerUpsertCommand>;
   isNew?: boolean;
+  onLoadingChanged(isLoading: boolean): void;
 }
 
 export interface ISecurityGroupsState {
@@ -30,11 +32,8 @@ export interface ISecurityGroupsState {
   refreshTime: number;
 }
 
-class SecurityGroupsImpl extends React.Component<ISecurityGroupsProps, ISecurityGroupsState> {
-  public static get LABEL() {
-    return FirewallLabels.get('Firewalls');
-  }
-
+export class SecurityGroups extends React.Component<ISecurityGroupsProps, ISecurityGroupsState>
+  implements IWizardPageComponent<IAmazonLoadBalancerUpsertCommand> {
   private destroy$ = new Subject<void>();
   private props$ = new Subject<ISecurityGroupsProps>();
   private refresh$ = new Subject<void>();
@@ -53,7 +52,7 @@ class SecurityGroupsImpl extends React.Component<ISecurityGroupsProps, ISecurity
     };
   }
 
-  public validate() {
+  public validate(): FormikErrors<IAmazonLoadBalancerUpsertCommand> {
     const { removed } = this.state;
     if (removed && removed.length) {
       const label = FirewallLabels.get('Firewalls');
@@ -94,12 +93,12 @@ class SecurityGroupsImpl extends React.Component<ISecurityGroupsProps, ISecurity
   };
 
   private onRefreshStart() {
-    this.props.setWaiting(SecurityGroups.label, true);
+    this.props.onLoadingChanged(true);
     this.setState({ refreshing: true });
   }
 
   private onRefreshComplete() {
-    this.props.setWaiting(SecurityGroups.label, false);
+    this.props.onLoadingChanged(false);
     const refreshTime = InfrastructureCaches.get('securityGroups').getStats().ageMax;
     this.setState({ refreshing: false, loaded: true, refreshTime });
   }
@@ -220,5 +219,3 @@ class SecurityGroupsImpl extends React.Component<ISecurityGroupsProps, ISecurity
     );
   }
 }
-
-export const SecurityGroups = wizardPage(SecurityGroupsImpl);

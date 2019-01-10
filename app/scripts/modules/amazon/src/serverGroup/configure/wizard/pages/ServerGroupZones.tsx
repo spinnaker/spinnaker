@@ -1,15 +1,16 @@
 import * as React from 'react';
-
-import { IWizardPageProps, wizardPage } from '@spinnaker/core';
+import { FormikProps } from 'formik';
+import { IWizardPageComponent } from '@spinnaker/core';
 
 import { IAmazonServerGroupCommand } from '../../serverGroupConfiguration.service';
 import { AvailabilityZoneSelector } from '../../../AvailabilityZoneSelector';
 
-export type IServerGroupZonesProps = IWizardPageProps<IAmazonServerGroupCommand>;
+export interface IServerGroupZonesProps {
+  formik: FormikProps<IAmazonServerGroupCommand>;
+}
 
-class ServerGroupZonesImpl extends React.Component<IServerGroupZonesProps> {
-  public static LABEL = 'Availability Zones';
-
+export class ServerGroupZones extends React.Component<IServerGroupZonesProps>
+  implements IWizardPageComponent<IAmazonServerGroupCommand> {
   public validate(values: IAmazonServerGroupCommand) {
     const errors = {} as any;
 
@@ -62,5 +63,3 @@ class ServerGroupZonesImpl extends React.Component<IServerGroupZonesProps> {
     );
   }
 }
-
-export const ServerGroupZones = wizardPage(ServerGroupZonesImpl);

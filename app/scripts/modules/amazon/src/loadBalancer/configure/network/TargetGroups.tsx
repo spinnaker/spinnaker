@@ -1,22 +1,22 @@
 import * as React from 'react';
 import { filter, flatten, get, groupBy, set, uniq } from 'lodash';
-import { FormikErrors } from 'formik';
+import { FormikErrors, FormikProps } from 'formik';
 import { Observable, Subject } from 'rxjs';
 
 import {
   Application,
   HelpField,
-  IWizardPageProps,
+  IWizardPageComponent,
   spelNumberCheck,
   SpInput,
   ValidationMessage,
-  wizardPage,
 } from '@spinnaker/core';
 
 import { IAmazonApplicationLoadBalancer, IAmazonNetworkLoadBalancerUpsertCommand } from 'amazon/domain';
 
-export interface ITargetGroupsProps extends IWizardPageProps<IAmazonNetworkLoadBalancerUpsertCommand> {
+export interface ITargetGroupsProps {
   app: Application;
+  formik: FormikProps<IAmazonNetworkLoadBalancerUpsertCommand>;
   isNew: boolean;
   loadBalancer: IAmazonApplicationLoadBalancer;
 }
@@ -26,9 +26,8 @@ export interface ITargetGroupsState {
   oldTargetGroupCount: number;
 }
 
-class TargetGroupsImpl extends React.Component<ITargetGroupsProps, ITargetGroupsState> {
-  public static LABEL = 'Target Groups';
-
+export class TargetGroups extends React.Component<ITargetGroupsProps, ITargetGroupsState>
+  implements IWizardPageComponent<IAmazonNetworkLoadBalancerUpsertCommand> {
   public protocols = ['TCP'];
   public healthProtocols = ['TCP', 'HTTP', 'HTTPS'];
   public targetTypes = ['instance', 'ip'];
@@ -132,7 +131,9 @@ class TargetGroupsImpl extends React.Component<ITargetGroupsProps, ITargetGroups
           }
         });
 
-        this.setState({ existingTargetGroupNames: targetGroupsByAccountAndRegion }, this.props.revalidate);
+        this.setState({ existingTargetGroupNames: targetGroupsByAccountAndRegion }, () =>
+          this.props.formik.validateForm(),
+        );
       });
   }
 
@@ -417,5 +418,3 @@ class TargetGroupsImpl extends React.Component<ITargetGroupsProps, ITargetGroups
     );
   }
 }
-
-export const TargetGroups = wizardPage(TargetGroupsImpl);

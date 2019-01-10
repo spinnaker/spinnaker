@@ -1,21 +1,17 @@
 import * as React from 'react';
-import { FormikErrors } from 'formik';
+import { FormikProps } from 'formik';
 
-import { Validation, FormikFormField, NumberInput, HelpField, IWizardPageProps, wizardPage } from '@spinnaker/core';
+import { Validation, FormikFormField, NumberInput, HelpField } from '@spinnaker/core';
 
 import { IAmazonClassicLoadBalancerUpsertCommand } from 'amazon/domain';
 
 import './AdvancedSettings.css';
 
-export type IAdvancedSettingsProps = IWizardPageProps<IAmazonClassicLoadBalancerUpsertCommand>;
+export interface IAdvancedSettingsProps {
+  formik: FormikProps<IAmazonClassicLoadBalancerUpsertCommand>;
+}
 
-class AdvancedSettingsImpl extends React.Component<IAdvancedSettingsProps> {
-  public static LABEL = 'Advanced Settings';
-
-  public validate(): FormikErrors<IAmazonClassicLoadBalancerUpsertCommand> {
-    return {};
-  }
-
+export class AdvancedSettings extends React.Component<IAdvancedSettingsProps> {
   public render() {
     const { values } = this.props.formik;
     return (
@@ -72,5 +68,3 @@ class AdvancedSettingsImpl extends React.Component<IAdvancedSettingsProps> {
     );
   }
 }
-
-export const AdvancedSettings = wizardPage(AdvancedSettingsImpl);

@@ -1,29 +1,29 @@
 import * as React from 'react';
-import { FormikErrors } from 'formik';
+import { FormikProps } from 'formik';
 
-import { IWizardPageProps, wizardPage, Application } from '@spinnaker/core';
+import { Application, IWizardPageComponent } from '@spinnaker/core';
 
 import { IAmazonServerGroupCommand } from 'amazon/serverGroup/configure/serverGroupConfiguration.service';
 import { ServerGroupAdvancedSettingsInner } from './ServerGroupAdvancedSettingsInner';
 
-export interface IServerGroupAdvancedSettingsProps extends IWizardPageProps<IAmazonServerGroupCommand> {
+export interface IServerGroupAdvancedSettingsProps {
   app: Application;
+  formik: FormikProps<IAmazonServerGroupCommand>;
 }
 
-class ServerGroupAdvancedSettingsImpl extends React.Component<IServerGroupAdvancedSettingsProps> {
-  public static LABEL = 'Advanced Settings';
+export class ServerGroupAdvancedSettings extends React.Component<IServerGroupAdvancedSettingsProps>
+  implements IWizardPageComponent<IAmazonServerGroupCommand> {
   private ref: any = React.createRef();
 
-  public validate = (values: IAmazonServerGroupCommand) => {
+  public validate(values: IAmazonServerGroupCommand) {
     if (this.ref && this.ref.current) {
       return this.ref.current.validate(values);
     }
-    return {} as FormikErrors<IAmazonServerGroupCommand>;
-  };
+    return {};
+  }
 
   public render() {
-    return <ServerGroupAdvancedSettingsInner {...this.props} ref={this.ref} />;
+    const { app, formik } = this.props;
+    return <ServerGroupAdvancedSettingsInner formik={formik} app={app} ref={this.ref} />;
   }
 }
-
-export const ServerGroupAdvancedSettings = wizardPage(ServerGroupAdvancedSettingsImpl);

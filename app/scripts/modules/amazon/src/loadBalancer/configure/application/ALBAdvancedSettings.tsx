@@ -1,19 +1,8 @@
 import * as React from 'react';
-import { FormikErrors } from 'formik';
 
-import { FormikFormField, CheckboxInput, NumberInput, HelpField, IWizardPageProps, wizardPage } from '@spinnaker/core';
+import { FormikFormField, CheckboxInput, NumberInput, HelpField } from '@spinnaker/core';
 
-import { IAmazonApplicationLoadBalancerUpsertCommand } from 'amazon/domain';
-
-export type IALBAdvancedSettingsProps = IWizardPageProps<IAmazonApplicationLoadBalancerUpsertCommand>;
-
-class ALBAdvancedSettingsImpl extends React.Component<IALBAdvancedSettingsProps> {
-  public static LABEL = 'Advanced Settings';
-
-  public validate(): FormikErrors<IAmazonApplicationLoadBalancerUpsertCommand> {
-    return {};
-  }
-
+export class ALBAdvancedSettings extends React.Component {
   public render() {
     return (
       <div>
@@ -34,5 +23,3 @@ class ALBAdvancedSettingsImpl extends React.Component<IALBAdvancedSettingsProps>
     );
   }
 }
-
-export const ALBAdvancedSettings = wizardPage(ALBAdvancedSettingsImpl);

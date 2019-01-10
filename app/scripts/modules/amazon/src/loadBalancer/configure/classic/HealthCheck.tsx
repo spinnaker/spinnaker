@@ -1,19 +1,15 @@
 import * as React from 'react';
-import { FormikErrors } from 'formik';
+import { FormikProps } from 'formik';
 
-import { FormikFormField, SelectInput, TextInput, NumberInput, IWizardPageProps, wizardPage } from '@spinnaker/core';
+import { FormikFormField, SelectInput, TextInput, NumberInput } from '@spinnaker/core';
 
 import { IAmazonClassicLoadBalancerUpsertCommand } from 'amazon/domain';
 
-export type IHealthCheckProps = IWizardPageProps<IAmazonClassicLoadBalancerUpsertCommand>;
+export interface IHealthCheckProps {
+  formik: FormikProps<IAmazonClassicLoadBalancerUpsertCommand>;
+}
 
-class HealthCheckImpl extends React.Component<IHealthCheckProps> {
-  public static LABEL = 'Health Check';
-
-  public validate() {
-    return {} as FormikErrors<IAmazonClassicLoadBalancerUpsertCommand>;
-  }
-
+export class HealthCheck extends React.Component<IHealthCheckProps> {
   public requiresHealthCheckPath(): boolean {
     const { values } = this.props.formik;
     return values.healthCheckProtocol && values.healthCheckProtocol.indexOf('HTTP') === 0;
@@ -72,5 +68,3 @@ class HealthCheckImpl extends React.Component<IHealthCheckProps> {
     );
   }
 }
-
-export const HealthCheck = wizardPage(HealthCheckImpl);

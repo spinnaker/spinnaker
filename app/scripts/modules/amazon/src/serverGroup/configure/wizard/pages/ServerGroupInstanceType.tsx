@@ -1,15 +1,16 @@
 import * as React from 'react';
-import { FormikErrors } from 'formik';
+import { FormikErrors, FormikProps } from 'formik';
 
-import { IWizardPageProps, wizardPage, NgReact } from '@spinnaker/core';
+import { IWizardPageComponent, NgReact } from '@spinnaker/core';
 
 import { IAmazonServerGroupCommand } from '../../serverGroupConfiguration.service';
 
-export type IServerGroupInstanceTypeProps = IWizardPageProps<IAmazonServerGroupCommand>;
+export interface IServerGroupInstanceTypeProps {
+  formik: FormikProps<IAmazonServerGroupCommand>;
+}
 
-class ServerGroupInstanceTypeImpl extends React.Component<IServerGroupInstanceTypeProps> {
-  public static LABEL = 'Instance Type';
-
+export class ServerGroupInstanceType extends React.Component<IServerGroupInstanceTypeProps>
+  implements IWizardPageComponent<IAmazonServerGroupCommand> {
   public validate(values: IAmazonServerGroupCommand) {
     const errors: FormikErrors<IAmazonServerGroupCommand> = {};
 
@@ -60,5 +61,3 @@ class ServerGroupInstanceTypeImpl extends React.Component<IServerGroupInstanceTy
     return <h5 className="text-center">Please select an image.</h5>;
   }
 }
-
-export const ServerGroupInstanceType = wizardPage(ServerGroupInstanceTypeImpl);

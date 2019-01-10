@@ -1,14 +1,17 @@
 import * as React from 'react';
 import { difference, flatten, uniq } from 'lodash';
 
-import { IWizardPageProps, ValidationMessage, wizardPage } from '@spinnaker/core';
+import { ValidationMessage, IWizardPageComponent } from '@spinnaker/core';
 
 import { NLBListenerProtocol, IListenerDescription, IAmazonNetworkLoadBalancerUpsertCommand } from 'amazon/domain';
+import { FormikProps } from 'formik';
 
-export type INLBListenersProps = IWizardPageProps<IAmazonNetworkLoadBalancerUpsertCommand>;
+export interface INLBListenersProps {
+  formik: FormikProps<IAmazonNetworkLoadBalancerUpsertCommand>;
+}
 
-class NLBListenersImpl extends React.Component<INLBListenersProps> {
-  public static LABEL = 'Listeners';
+export class NLBListeners extends React.Component<INLBListenersProps>
+  implements IWizardPageComponent<IAmazonNetworkLoadBalancerUpsertCommand> {
   public protocols = ['TCP'];
 
   private getAllTargetGroupsFromListeners(listeners: IListenerDescription[]): string[] {
@@ -191,5 +194,3 @@ class NLBListenersImpl extends React.Component<INLBListenersProps> {
     );
   }
 }
-
-export const NLBListeners = wizardPage(NLBListenersImpl);

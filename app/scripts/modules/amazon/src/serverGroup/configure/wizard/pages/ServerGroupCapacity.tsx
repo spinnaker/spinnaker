@@ -1,19 +1,19 @@
 import * as React from 'react';
-import { Field } from 'formik';
+import { Field, FormikProps } from 'formik';
 
-import { IServerGroupCommand, IWizardPageProps, wizardPage } from '@spinnaker/core';
+import { IServerGroupCommand, IWizardPageComponent } from '@spinnaker/core';
 
 import { CapacitySelector } from '../capacity/CapacitySelector';
 import { MinMaxDesired } from '../capacity/MinMaxDesired';
 import { IAmazonServerGroupCommand } from '../../serverGroupConfiguration.service';
 
-export interface IServerGroupCapacityProps extends IWizardPageProps<IServerGroupCommand> {
+export interface IServerGroupCapacityProps {
+  formik: FormikProps<IServerGroupCommand>;
   hideTargetHealthyDeployPercentage?: boolean;
 }
 
-class ServerGroupCapacityImpl extends React.Component<IServerGroupCapacityProps> {
-  public static LABEL = 'Capacity';
-
+export class ServerGroupCapacity extends React.Component<IServerGroupCapacityProps>
+  implements IWizardPageComponent<IAmazonServerGroupCommand> {
   public validate(values: IServerGroupCommand): { [key: string]: string } {
     const errors: { [key: string]: string } = {};
 
@@ -67,5 +67,3 @@ class ServerGroupCapacityImpl extends React.Component<IServerGroupCapacityProps>
     );
   }
 }
-
-export const ServerGroupCapacity = wizardPage(ServerGroupCapacityImpl);

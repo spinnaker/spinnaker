@@ -1,18 +1,17 @@
 import * as React from 'react';
-
-import { IWizardPageProps, wizardPage, FirewallLabels } from '@spinnaker/core';
+import { FormikProps } from 'formik';
+import { IWizardPageComponent } from '@spinnaker/core';
 
 import { SecurityGroupSelector } from '../securityGroups/SecurityGroupSelector';
 import { IAmazonServerGroupCommand } from '../../serverGroupConfiguration.service';
 import { ServerGroupSecurityGroupsRemoved } from '../securityGroups/ServerGroupSecurityGroupsRemoved';
 
-export type IServerGroupSecurityGroupsProps = IWizardPageProps<IAmazonServerGroupCommand>;
+export interface IServerGroupSecurityGroupsProps {
+  formik: FormikProps<IAmazonServerGroupCommand>;
+}
 
-class ServerGroupSecurityGroupsImpl extends React.Component<IServerGroupSecurityGroupsProps> {
-  public static get LABEL() {
-    return FirewallLabels.get('Firewalls');
-  }
-
+export class ServerGroupSecurityGroups extends React.Component<IServerGroupSecurityGroupsProps>
+  implements IWizardPageComponent<IAmazonServerGroupCommand> {
   public validate(values: IAmazonServerGroupCommand) {
     const errors = {} as any;
 
@@ -49,5 +48,3 @@ class ServerGroupSecurityGroupsImpl extends React.Component<IServerGroupSecurity
     );
   }
 }
-
-export const ServerGroupSecurityGroups = wizardPage(ServerGroupSecurityGroupsImpl);
