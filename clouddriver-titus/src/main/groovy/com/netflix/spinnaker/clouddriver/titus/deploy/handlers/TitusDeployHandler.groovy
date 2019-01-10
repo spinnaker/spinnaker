@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.titus.deploy.handlers
 
+import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.TargetGroupLookupHelper
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.TargetGroupLookupHelper.TargetGroupLookupResult
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
@@ -113,6 +114,13 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
 
       if (description.source.asgName) {
         task.updateStatus BASE_PHASE, "Getting Source ASG Name Details... ${System.currentTimeMillis()}"
+
+
+        // If cluster name info was not provided, use the fields from the source asg
+        def sourceName = Names.parseName(description.source.asgName)
+        description.application = description.application != null ? description.application : sourceName.app
+        description.stack = description.stack != null ? description.stack : sourceName.stack
+        description.freeFormDetails = description.freeFormDetails != null ? description.freeFormDetails : sourceName.detail
 
         Source source = description.source
 
