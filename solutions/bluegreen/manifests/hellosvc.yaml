@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    artifact.spinnaker.io/location: default
+    artifact.spinnaker.io/name: hellosvc
+    artifact.spinnaker.io/type: kubernetes/service
+    moniker.spinnaker.io/application: helloworld
+    moniker.spinnaker.io/cluster: service hellosvc
+  labels:
+    app.kubernetes.io/managed-by: spinnaker
+    app.kubernetes.io/name: helloworld
+  name: hellosvc
+  namespace: default
+spec:
+  ports:
+    - port: 80
+      protocol: TCP
+      targetPort: 6000
+  selector:
+    app: helloworld
+  type: LoadBalancer
