@@ -1,11 +1,10 @@
 import * as React from 'react';
 
-import { FormikFormField, IWizardPageProps, ReactSelectInput, TextInput } from '@spinnaker/core';
+import { FormikFormField, ReactSelectInput, TextInput } from '@spinnaker/core';
 
-import { ICloudFoundryCreateServerGroupCommand } from 'cloudfoundry/serverGroup/configure/serverGroupConfigurationModel.cf';
 import { IArtifactAccount } from 'core/index';
 
-export interface IArtifactSelectionProps extends IWizardPageProps<ICloudFoundryCreateServerGroupCommand> {
+export interface IArtifactSelectionProps {
   artifactAccounts: IArtifactAccount[];
 }
 

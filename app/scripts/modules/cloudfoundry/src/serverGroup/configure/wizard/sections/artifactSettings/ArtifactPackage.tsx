@@ -1,14 +1,6 @@
 import * as React from 'react';
 
-import {
-  AccountService,
-  FormikFormField,
-  IAccount,
-  IAccountDetails,
-  IRegion,
-  IWizardPageProps,
-  ReactSelectInput,
-} from '@spinnaker/core';
+import { AccountService, FormikFormField, IAccount, IAccountDetails, IRegion, ReactSelectInput } from '@spinnaker/core';
 
 import {
   ICloudFoundryCreateServerGroupCommand,
@@ -18,8 +10,8 @@ import { ICloudFoundryCluster, ICloudFoundryServerGroup } from 'cloudfoundry/dom
 import { CloudFoundryImageReader } from 'cloudfoundry/image/image.reader.cf';
 import { FormikProps } from 'formik';
 
-export interface IArtifactPackageProps extends IWizardPageProps<ICloudFoundryCreateServerGroupCommand> {
-  formik: FormikProps<any>;
+export interface IArtifactPackageProps {
+  formik: FormikProps<ICloudFoundryCreateServerGroupCommand>;
 }
 
 export interface IArtifactPackageState {

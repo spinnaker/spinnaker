@@ -2,25 +2,24 @@ import * as React from 'react';
 
 import { Option } from 'react-select';
 
-import { FormikFormField, IArtifactAccount, IWizardPageProps, wizardPage } from '@spinnaker/core';
+import { FormikFormField, IArtifactAccount } from '@spinnaker/core';
 
 import { ICloudFoundryCreateServerGroupCommand } from 'cloudfoundry/serverGroup/configure//serverGroupConfigurationModel.cf';
 import { ArtifactSelection } from 'cloudfoundry/serverGroup/configure/wizard/sections/artifactSettings/ArtifactSelection';
 import { ArtifactTrigger } from 'cloudfoundry/serverGroup/configure/wizard/sections/artifactSettings/ArtifactTrigger';
 import { CloudFoundryRadioButtonInput } from 'cloudfoundry/presentation/forms/inputs/CloudFoundryRadioButtonInput';
 import { ArtifactPackage } from 'cloudfoundry/serverGroup/configure/wizard/sections/artifactSettings/ArtifactPackage';
+import { FormikProps } from 'formik';
 
-export interface ICloudFoundryCreateServerGroupArtifactSettingsProps
-  extends IWizardPageProps<ICloudFoundryCreateServerGroupCommand> {
+export interface ICloudFoundryCreateServerGroupArtifactSettingsProps {
   artifactAccounts: IArtifactAccount[];
   artifact?: any;
+  formik: FormikProps<ICloudFoundryCreateServerGroupCommand>;
 }
 
-class ArtifactSettingsImpl extends React.Component<ICloudFoundryCreateServerGroupArtifactSettingsProps> {
-  public static get LABEL() {
-    return 'Artifact';
-  }
-
+export class CloudFoundryServerGroupArtifactSettings extends React.Component<
+  ICloudFoundryCreateServerGroupArtifactSettingsProps
+> {
   private artifactTypeUpdated = (type: string): void => {
     switch (type) {
       case 'package':
@@ -86,10 +85,4 @@ class ArtifactSettingsImpl extends React.Component<ICloudFoundryCreateServerGrou
       </div>
     );
   }
-
-  public validate(_values: ICloudFoundryCreateServerGroupArtifactSettingsProps) {
-    return {};
-  }
 }
-
-export const CloudFoundryServerGroupArtifactSettings = wizardPage(ArtifactSettingsImpl);

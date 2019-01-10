@@ -1,18 +1,6 @@
 import * as React from 'react';
 
-import { FormikErrors } from 'formik';
-
-import { wizardPage, IWizardPageProps, IJob } from '@spinnaker/core';
-
-export type IDisclaimerProps = IWizardPageProps<IJob>;
-
-class CfDisclaimerWizardPage extends React.Component<IDisclaimerProps> {
-  public static LABEL = 'Disclaimer';
-
-  public validate(_values: IDisclaimerProps) {
-    return {} as FormikErrors<IDisclaimerProps>;
-  }
-
+export class CfDisclaimerPage extends React.Component {
   public render() {
     return (
       <div className="row">
@@ -33,5 +21,3 @@ class CfDisclaimerWizardPage extends React.Component<IDisclaimerProps> {
     );
   }
 }
-
-export const CfDisclaimerPage = wizardPage(CfDisclaimerWizardPage);

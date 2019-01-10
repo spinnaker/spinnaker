@@ -3,13 +3,13 @@ import { IDeferred } from 'angular';
 import * as React from 'react';
 
 import { IModalServiceInstance } from 'angular-ui-bootstrap';
-import { FormikErrors } from 'formik';
 import { cloneDeep } from 'lodash';
 import { $q } from 'ngimport';
 
 import {
   ILoadBalancerModalProps,
   WizardModal,
+  WizardPage,
   TaskMonitor,
   LoadBalancerWriter,
   ReactModal,
@@ -118,14 +118,9 @@ export class CloudFoundryLoadBalancerCreateModal extends React.Component<
     this.setState({ taskMonitor });
   };
 
-  private validate = (): FormikErrors<ICloudFoundryLoadBalancerUpsertCommand> => {
-    return {} as FormikErrors<ICloudFoundryLoadBalancerUpsertCommand>;
-  };
-
   public render() {
     const { app, forPipelineConfig } = this.props;
     const { isNew, loadBalancerCommand, taskMonitor } = this.state;
-    const hideSections = new Set<string>();
 
     return (
       <WizardModal<ICloudFoundryLoadBalancerUpsertCommand>
@@ -135,11 +130,17 @@ export class CloudFoundryLoadBalancerCreateModal extends React.Component<
         dismissModal={this.dismiss}
         closeModal={this.submit}
         submitButtonLabel={forPipelineConfig ? (isNew ? 'Add' : 'Done') : isNew ? 'Create' : 'Update'}
-        validate={this.validate}
-        hideSections={hideSections}
-      >
-        <LoadBalancerDetails app={app} isNew={isNew} />
-      </WizardModal>
+        render={({ formik, nextIdx, wizard }) => (
+          <>
+            <WizardPage
+              label="Details"
+              wizard={wizard}
+              order={nextIdx()}
+              render={({ innerRef }) => <LoadBalancerDetails ref={innerRef} formik={formik} app={app} isNew={isNew} />}
+            />
+          </>
+        )}
+      />
     );
   }
 }

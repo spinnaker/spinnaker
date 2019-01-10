@@ -2,7 +2,7 @@ import { IDeferred } from 'angular';
 
 import * as React from 'react';
 
-import { ILoadBalancerModalProps, WizardModal, ReactModal, noop } from '@spinnaker/core';
+import { ILoadBalancerModalProps, WizardModal, WizardPage, ReactModal, noop } from '@spinnaker/core';
 import { ICloudFoundryLoadBalancerUpsertCommand } from 'cloudfoundry/domain/ICloudFoundryLoadBalancer';
 import { NoLoadBalancerDetails } from 'cloudfoundry/loadBalancer/configure/noLoadBalancer';
 import { CfDisclaimerPage } from 'cloudfoundry/common/wizard/sections/cfDisclaimer.cf';
@@ -69,11 +69,24 @@ export class CloudFoundryNoLoadBalancerModal extends React.Component<
         dismissModal={this.props.dismissModal}
         closeModal={this.submit}
         submitButtonLabel={'Ok'}
-        validate={noop}
-      >
-        <NoLoadBalancerDetails />
-        <CfDisclaimerPage />
-      </WizardModal>
+        render={({ nextIdx, wizard }) => (
+          <>
+            <WizardPage
+              label="Message"
+              wizard={wizard}
+              order={nextIdx()}
+              render={({ innerRef }) => <NoLoadBalancerDetails ref={innerRef} />}
+            />
+
+            <WizardPage
+              label="Disclaimer"
+              wizard={wizard}
+              order={nextIdx()}
+              render={({ innerRef }) => <CfDisclaimerPage ref={innerRef} />}
+            />
+          </>
+        )}
+      />
     );
   }
 }

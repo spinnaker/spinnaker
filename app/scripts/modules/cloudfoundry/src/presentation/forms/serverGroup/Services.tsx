@@ -5,9 +5,7 @@ import { FormikFormField, TextInput } from '@spinnaker/core';
 
 import { ICloudFoundryCreateServerGroupCommand } from 'cloudfoundry/serverGroup/configure/serverGroupConfigurationModel.cf';
 
-export interface IServicesProps {}
-
-export class Services extends React.Component<IServicesProps> {
+export class Services extends React.Component {
   public render() {
     return (
       <div>

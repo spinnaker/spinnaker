@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { FormikErrors } from 'formik';
+import { FormikErrors, FormikProps } from 'formik';
 
 import {
   AccountService,
@@ -8,8 +8,7 @@ import {
   FormikFormField,
   IAccount,
   IRegion,
-  IWizardPageProps,
-  wizardPage,
+  IWizardPageComponent,
   HelpField,
   ReactSelectInput,
   TextInput,
@@ -20,7 +19,9 @@ import { CloudFoundryDeploymentStrategySelector } from 'cloudfoundry/deploymentS
 
 import 'cloudfoundry/common/cloudFoundry.less';
 
-export type ICloudFoundryServerGroupBasicSettingsProps = IWizardPageProps<ICloudFoundryCreateServerGroupCommand>;
+export interface ICloudFoundryServerGroupBasicSettingsProps {
+  formik: FormikProps<ICloudFoundryCreateServerGroupCommand>;
+}
 
 export interface ICloudFoundryServerGroupLocationSettingsState {
   account: string;
@@ -28,14 +29,9 @@ export interface ICloudFoundryServerGroupLocationSettingsState {
   regions: IRegion[];
 }
 
-class BasicSettingsImpl extends React.Component<
-  ICloudFoundryServerGroupBasicSettingsProps,
-  ICloudFoundryServerGroupLocationSettingsState
-> {
-  public static get LABEL() {
-    return 'Basic Settings';
-  }
-
+export class CloudFoundryServerGroupBasicSettings
+  extends React.Component<ICloudFoundryServerGroupBasicSettingsProps, ICloudFoundryServerGroupLocationSettingsState>
+  implements IWizardPageComponent<ICloudFoundryCreateServerGroupCommand> {
   public state: ICloudFoundryServerGroupLocationSettingsState = {
     account: '',
     accounts: [],
@@ -160,5 +156,3 @@ class BasicSettingsImpl extends React.Component<
     return errors;
   }
 }
-
-export const CloudFoundryServerGroupBasicSettings = wizardPage(BasicSettingsImpl);

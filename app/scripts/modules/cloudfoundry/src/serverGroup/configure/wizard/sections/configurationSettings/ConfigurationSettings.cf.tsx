@@ -6,10 +6,9 @@ import {
   FormikFormField,
   HelpField,
   IArtifactAccount,
-  IWizardPageProps,
+  IWizardPageComponent,
   ReactSelectInput,
   TextInput,
-  wizardPage,
 } from '@spinnaker/core';
 
 import {
@@ -27,16 +26,17 @@ import {
   Routes,
   Services,
 } from 'cloudfoundry/presentation';
+import { FormikProps } from 'formik';
 
-export interface ICloudFoundryServerGroupConfigurationSettingsProps
-  extends IWizardPageProps<ICloudFoundryCreateServerGroupCommand> {
+export interface ICloudFoundryServerGroupConfigurationSettingsProps {
   artifactAccounts: IArtifactAccount[];
+  formik: FormikProps<ICloudFoundryCreateServerGroupCommand>;
   manifest?: any;
 }
 
-class ConfigurationSettingsImpl extends React.Component<ICloudFoundryServerGroupConfigurationSettingsProps> {
-  public static LABEL = 'Configuration';
-
+export class CloudFoundryServerGroupConfigurationSettings
+  extends React.Component<ICloudFoundryServerGroupConfigurationSettingsProps>
+  implements IWizardPageComponent<ICloudFoundryCreateServerGroupCommand> {
   private manifestTypeUpdated = (type: string): void => {
     switch (type) {
       case 'artifact':
@@ -213,7 +213,7 @@ class ConfigurationSettingsImpl extends React.Component<ICloudFoundryServerGroup
     );
   }
 
-  public validate(values: ICloudFoundryServerGroupConfigurationSettingsProps) {
+  public validate(values: ICloudFoundryCreateServerGroupCommand) {
     const errors = {} as any;
     const isStorageSize = (value: string) => /\d+[MG]/.test(value);
     if (values.manifest.type === 'direct') {
@@ -270,5 +270,3 @@ class ConfigurationSettingsImpl extends React.Component<ICloudFoundryServerGroup
     return errors;
   }
 }
-
-export const CloudFoundryServerGroupConfigurationSettings = wizardPage(ConfigurationSettingsImpl);

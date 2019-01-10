@@ -1,18 +1,18 @@
 import * as React from 'react';
 
-import { FormikErrors } from 'formik';
 import { get } from 'lodash';
 
 import {
+  AccountService,
   Application,
+  IArtifactAccount,
+  IModalComponentProps,
+  ReactInjector,
+  ReactModal,
   TaskMonitor,
   WizardModal,
-  IArtifactAccount,
-  AccountService,
-  IModalComponentProps,
-  ReactModal,
+  WizardPage,
   noop,
-  ReactInjector,
 } from '@spinnaker/core';
 
 import { ICloudFoundryCreateServerGroupCommand } from '../serverGroupConfigurationModel.cf';
@@ -78,10 +78,6 @@ export class CloudFoundryCreateServerGroupModal extends React.Component<
     this.setState({ requiresTemplateSelection: false });
   };
 
-  private validate = (): FormikErrors<ICloudFoundryCreateServerGroupCommand> => {
-    return {};
-  };
-
   private onTaskComplete = () => {
     this.props.application.serverGroups.refresh();
   };
@@ -98,7 +94,6 @@ export class CloudFoundryCreateServerGroupModal extends React.Component<
   };
 
   public render(): React.ReactElement<CloudFoundryCreateServerGroupModal> {
-    const hideSections = new Set<string>();
     const { artifactAccounts, requiresTemplateSelection, taskMonitor } = this.state;
     const { application, command, dismissModal, isSourceConstant, serverGroup, title } = this.props;
 
@@ -121,15 +116,67 @@ export class CloudFoundryCreateServerGroupModal extends React.Component<
         dismissModal={dismissModal}
         closeModal={this.submit}
         submitButtonLabel={command.viewState.submitButtonLabel}
-        validate={this.validate}
-        hideSections={hideSections}
-      >
-        <CloudFoundryServerGroupBasicSettings />
-        {isSourceConstant && <CloudFoundryServerGroupConstantArtifactSettings serverGroup={serverGroup} />}
-        {!isSourceConstant && <CloudFoundryServerGroupArtifactSettings artifactAccounts={artifactAccounts} />}
-        <CloudFoundryServerGroupConfigurationSettings artifactAccounts={artifactAccounts} />
-        <CfDisclaimerPage />
-      </WizardModal>
+        render={({ formik, nextIdx, wizard }) => (
+          <>
+            <WizardPage
+              label="Basic Settings"
+              wizard={wizard}
+              order={nextIdx()}
+              render={({ innerRef }) => <CloudFoundryServerGroupBasicSettings ref={innerRef} formik={formik} />}
+            />
+
+            {isSourceConstant && (
+              <WizardPage
+                label="Artifact"
+                wizard={wizard}
+                order={nextIdx()}
+                render={({ innerRef }) => (
+                  <CloudFoundryServerGroupConstantArtifactSettings
+                    ref={innerRef}
+                    formik={formik}
+                    serverGroup={serverGroup}
+                  />
+                )}
+              />
+            )}
+
+            {!isSourceConstant && (
+              <WizardPage
+                label="Artifact"
+                wizard={wizard}
+                order={nextIdx()}
+                render={({ innerRef }) => (
+                  <CloudFoundryServerGroupArtifactSettings
+                    ref={innerRef}
+                    formik={formik}
+                    artifactAccounts={artifactAccounts}
+                  />
+                )}
+              />
+            )}
+
+            <WizardPage
+              label="Configuration"
+              wizard={wizard}
+              order={nextIdx()}
+              render={({ innerRef }) => (
+                <CloudFoundryServerGroupConfigurationSettings
+                  ref={innerRef}
+                  formik={formik}
+                  artifactAccounts={artifactAccounts}
+                />
+              )}
+            />
+
+            <WizardPage
+              label="Disclaimer"
+              wizard={wizard}
+              order={nextIdx()}
+              render={({ innerRef }) => <CfDisclaimerPage ref={innerRef} />}
+            />
+          </>
+        )}
+      />
     );
   }
 }

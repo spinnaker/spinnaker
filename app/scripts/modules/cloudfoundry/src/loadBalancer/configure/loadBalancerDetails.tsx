@@ -2,15 +2,16 @@ import * as React from 'react';
 
 import Select, { Option } from 'react-select';
 
-import { FormikErrors } from 'formik';
+import { FormikErrors, FormikProps } from 'formik';
 
-import { AccountService, Application, IAccount, IWizardPageProps, wizardPage, IRegion } from '@spinnaker/core';
+import { AccountService, Application, IAccount, IRegion, IWizardPageComponent } from '@spinnaker/core';
 
 import { ICloudFoundryAccount, ICloudFoundryDomain, ICloudFoundryLoadBalancerUpsertCommand } from 'cloudfoundry/domain';
 import { RouteDomainSelectField } from 'cloudfoundry/routeDomains';
 
-export interface ILoadBalancerDetailsProps extends IWizardPageProps<ICloudFoundryLoadBalancerUpsertCommand> {
+export interface ILoadBalancerDetailsProps {
   app: Application;
+  formik: FormikProps<ICloudFoundryLoadBalancerUpsertCommand>;
   isNew?: boolean;
 }
 
@@ -22,9 +23,8 @@ export interface ILoadBalancerDetailsState {
   regions: IRegion[];
 }
 
-class LoadBalancerDetailsImpl extends React.Component<ILoadBalancerDetailsProps, ILoadBalancerDetailsState> {
-  public static LABEL = 'Details';
-
+export class LoadBalancerDetails extends React.Component<ILoadBalancerDetailsProps, ILoadBalancerDetailsState>
+  implements IWizardPageComponent<ICloudFoundryLoadBalancerUpsertCommand> {
   public state: ILoadBalancerDetailsState = {
     accounts: undefined,
     availabilityZones: [],
@@ -215,5 +215,3 @@ class LoadBalancerDetailsImpl extends React.Component<ILoadBalancerDetailsProps,
     );
   }
 }
-
-export const LoadBalancerDetails = wizardPage(LoadBalancerDetailsImpl);
