@@ -31,11 +31,17 @@ public class ParameterDefinition {
 
     @XmlElement(name = "defaultValue")
     public String getDefaultValue() {
+        if (defaultParameterValue == null) {
+            return null;
+        }
         return defaultParameterValue.getValue();
     }
 
     @XmlElement(name = "defaultName")
     public String getDefaultName() {
+        if (defaultParameterValue == null) {
+            return null;
+        }
         return defaultParameterValue.getName();
     }
 }
