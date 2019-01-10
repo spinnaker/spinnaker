@@ -388,6 +388,7 @@ module.exports = angular
         .then(() => $scope.application.pipelineConfigs.refresh(true))
         .then(
           () => {
+            $scope.viewState.hasHistory = true;
             setOriginal(toSave);
             markDirty();
             this.setViewState({ saving: false });

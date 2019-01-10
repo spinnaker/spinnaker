@@ -62,18 +62,22 @@ describe('PipelineConfigService', () => {
         ],
       });
 
-      $http.expectPOST(API.baseUrl + '/pipelines').respond(200, '');
+      $http
+        .expectPOST(API.baseUrl + '/pipelines', (requestString: string) => {
+          const request = JSON.parse(requestString) as IPipeline;
+          return (
+            request.stages[0].name === 'explicit name' &&
+            !request.stages[1].name &&
+            !request.stages[2].name &&
+            request.stages.every(s => !s.isNew)
+          );
+        })
+        .respond(200, '');
 
       PipelineConfigService.savePipeline(pipeline);
       $scope.$digest();
-
-      expect(pipeline.stages[0].name).toBe('explicit name');
-      expect(pipeline.stages[1].name).toBeUndefined();
-      expect(pipeline.stages[2].name).toBeUndefined();
-
-      expect(pipeline.stages[0].isNew).toBeUndefined();
-      expect(pipeline.stages[1].isNew).toBeUndefined();
-      expect(pipeline.stages[2].isNew).toBeUndefined();
+      $http.flush();
+      $http.verifyNoOutstandingRequest();
     });
   });
 

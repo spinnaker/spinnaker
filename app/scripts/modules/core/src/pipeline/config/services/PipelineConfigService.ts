@@ -1,5 +1,5 @@
 import { IPromise } from 'angular';
-import { sortBy, uniq } from 'lodash';
+import { sortBy, uniq, cloneDeep } from 'lodash';
 import { $q } from 'ngimport';
 
 import { API } from 'core/api/ApiService';
@@ -57,7 +57,8 @@ export class PipelineConfigService {
       .remove();
   }
 
-  public static savePipeline(pipeline: IPipeline): IPromise<void> {
+  public static savePipeline(toSave: IPipeline): IPromise<void> {
+    const pipeline = cloneDeep(toSave);
     delete pipeline.isNew;
     pipeline.name = pipeline.name.trim();
     if (Array.isArray(pipeline.stages)) {
