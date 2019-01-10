@@ -219,8 +219,7 @@ module.exports = angular
         $scope.state.notFoundStandalone = true;
         RecentHistoryService.removeLastItem('instances');
       } else {
-        $state.params.allowModalToStayOpen = true;
-        $state.go('^', null, { location: 'replace' });
+        $state.go('^', { allowModalToStayOpen: true }, { location: 'replace' });
       }
     }
 

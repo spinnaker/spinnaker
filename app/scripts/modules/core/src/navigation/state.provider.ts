@@ -31,6 +31,9 @@ export class StateConfigProvider implements IServiceProvider {
   private root: INestedState = {
     name: 'home',
     abstract: true,
+    params: {
+      allowModalToStayOpen: { dynamic: true, value: null },
+    },
     url: '?{debug:boolean}&{vis:query}&{trace:query}',
     dynamic: true,
     children: [],

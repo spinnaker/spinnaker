@@ -18,8 +18,8 @@ module.exports = angular
     V2_MODAL_WIZARD_COMPONENT,
   ])
   .run(function($rootScope, $uibModalStack) {
-    $rootScope.$on('$stateChangeStart', function(event, toState, toParams, fromState, fromParams) {
-      if (!fromParams.allowModalToStayOpen) {
+    $rootScope.$on('$stateChangeStart', function(event, toState, toParams) {
+      if (!toParams.allowModalToStayOpen) {
         $uibModalStack.dismissAll();
       }
     });

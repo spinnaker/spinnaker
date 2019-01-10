@@ -76,8 +76,7 @@ module.exports = angular
       if ($scope.$$destroyed) {
         return;
       }
-      $state.params.allowModalToStayOpen = true;
-      $state.go('^', null, { location: 'replace' });
+      $state.go('^', { allowModalToStayOpen: true }, { location: 'replace' });
     };
 
     let cancelLoader = () => {
