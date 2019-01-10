@@ -41,9 +41,3 @@ dependencies {
   testRuntime "org.junit.platform:junit-platform-launcher:${spinnaker.version("junit5")}"
   testRuntime "org.junit.vintage:junit-vintage-engine:${spinnaker.version("junitVintage")}"
 }
-
-test {
-  useJUnitPlatform {
-    includeEngines "junit-vintage", "junit-jupiter"
-  }
-}

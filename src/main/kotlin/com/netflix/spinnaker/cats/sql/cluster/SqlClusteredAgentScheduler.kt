@@ -21,10 +21,10 @@ import com.netflix.spinnaker.cats.agent.AgentLock
 import com.netflix.spinnaker.cats.agent.AgentScheduler
 import com.netflix.spinnaker.cats.agent.AgentSchedulerAware
 import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation
-import com.netflix.spinnaker.cats.module.CatsModuleAware
 import com.netflix.spinnaker.cats.cluster.AgentIntervalProvider
 import com.netflix.spinnaker.cats.cluster.NodeIdentity
 import com.netflix.spinnaker.cats.cluster.NodeStatusProvider
+import com.netflix.spinnaker.cats.module.CatsModuleAware
 import com.netflix.spinnaker.cats.thread.NamedThreadFactory
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import org.jooq.DSLContext
@@ -40,6 +40,9 @@ import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 
+/**
+ * TODO(rz): Namespace the table
+ */
 class SqlClusteredAgentScheduler(
   private val jooq: DSLContext,
   private val nodeIdentity: NodeIdentity,
@@ -96,10 +99,10 @@ class SqlClusteredAgentScheduler(
   private fun runAgents() {
     val acquiredAgents = tryAcquire()
     activeAgents.putAll(acquiredAgents)
-    acquiredAgents.forEach { agentType, action ->
+    acquiredAgents.forEach { agentType, nextAttempt ->
       val exec = agents[agentType]
       if (exec != null) {
-        agentExecutionPool.submit(AgentJob(action, exec, this::agentCompleted))
+        agentExecutionPool.submit(AgentJob(nextAttempt, exec, this::agentCompleted))
       }
     }
   }
