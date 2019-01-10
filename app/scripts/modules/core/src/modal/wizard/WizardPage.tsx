@@ -1,111 +1,111 @@
 import * as React from 'react';
-import * as classNames from 'classnames';
-import { FormikProps } from 'formik';
+import { isFunction, isEqual } from 'lodash';
 
-import { noop } from 'core/utils';
+import { IWizardModalApi } from './WizardModal';
 
-export type IWizardPageProps<T> = Partial<{
-  formik: FormikProps<T>;
-  mandatory: boolean;
-  dirty: boolean;
-  dontMarkCompleteOnView: boolean;
-  done: boolean;
-  onMount: (self: IWizardPageWrapper<IWizardPageProps<T>>) => void;
-  dirtyCallback: (name: string, dirty: boolean) => void;
-  ref: () => void;
-  revalidate: () => void;
-  setWaiting: (section: string, isWaiting: boolean) => void;
-  note: React.ReactElement<any>;
-}>;
+export interface IWizardPageComponent<T> {
+  validate(values: T): { [key: string]: any };
+}
+
+export interface IWizardPageRenderProps {
+  // TODO: try to enforce that the ref'd component extends IWizardPageComponent?
+  // innerRef: React.RefObject<IWizardPageComponent<any>>;
+  innerRef: React.RefObject<any>;
+  onLoadingChanged(isLoading: boolean): void;
+}
+
+export interface IWizardPageProps {
+  label: string;
+  order: number;
+  note?: React.ReactNode;
+  render: (props: IWizardPageRenderProps) => JSX.Element;
+  wizard: IWizardModalApi;
+}
 
 export interface IWizardPageState {
-  hasErrors: boolean;
-  isDirty: boolean;
-  label: string;
+  errors: object;
+  order: number;
+  isLoading: boolean;
+  status: WizardPageStatus;
 }
 
-export interface IWizardPage<P> extends React.ComponentClass<P> {
-  LABEL: string;
-}
+export type WizardPageStatus = 'default' | 'error' | 'loading';
 
-export interface IWizardPageWrapper<P> extends React.ComponentClass<P> {
-  label: string;
-}
+export class WizardPage<T> extends React.Component<IWizardPageProps, IWizardPageState> {
+  public state: IWizardPageState = {
+    errors: {},
+    order: 0,
+    isLoading: false,
+    status: 'default',
+  };
 
-export type IWizardPageValidate<T> = (values: T) => any;
+  public ref = React.createRef<HTMLDivElement>();
+  private innerRef = React.createRef<IWizardPageComponent<T>>();
 
-export function wizardPage<P extends IWizardPageProps<T>, T>(WrappedComponent: IWizardPage<P>): IWizardPageWrapper<P> {
-  class WizardPage extends React.Component<P, IWizardPageState> {
-    public static defaultProps: Partial<IWizardPageProps<T>> = {
-      dirtyCallback: noop,
-    };
-    public static label = WrappedComponent.LABEL;
+  public static getStatusClass(status: WizardPageStatus): string {
+    const statusToCssClass = { error: 'dirty', loading: 'waiting', default: 'done' };
+    return statusToCssClass[status] || statusToCssClass.default;
+  }
 
-    public element: any;
-    public validate: IWizardPageValidate<T>;
+  private computeStatus(errors: any, isLoading: boolean): WizardPageStatus {
+    return !!Object.keys(errors).length ? 'error' : isLoading ? 'loading' : 'default';
+  }
 
-    constructor(props: P) {
-      super(props);
-      this.state = {
-        hasErrors: false,
-        isDirty: false,
-        label: WizardPage.label,
-      };
+  private onLoadingChanged = (isLoading: boolean) => {
+    const status = this.computeStatus(this.state.errors, isLoading);
+    return this.setState({ isLoading, status }, this.onWizardPageStateChanged);
+  };
+
+  public validate = (values: any) => {
+    const component = this.innerRef.current;
+    const errors = (component && isFunction(component.validate) && component.validate(values)) || {};
+
+    if (!isEqual(errors, this.state.errors)) {
+      // Save errors, notify Wizard
+      const status = this.computeStatus(errors, this.state.isLoading);
+      this.setState({ errors, status }, this.onWizardPageStateChanged);
     }
 
-    public componentDidMount(): void {
-      this.props.onMount(this as any);
-    }
+    return errors;
+  };
 
-    public componentWillUnmount(): void {
-      this.props.onMount(undefined);
-    }
+  public componentDidMount(): void {
+    this.props.wizard.onWizardPageAdded(this);
+  }
 
-    private dirtyCallback = (name: string, dirty: boolean): void => {
-      if (name === this.state.label) {
-        this.setState({ isDirty: dirty });
-        this.props.dirtyCallback(name, dirty);
-      }
-    };
+  public componentWillUnmount(): void {
+    this.props.wizard.onWizardPageRemoved(this);
+  }
 
-    private handleRef = (element: any) => {
-      if (element) {
-        this.element = element;
-      }
-    };
-
-    private handleWrappedRef = (wrappedComponent: any) => {
-      if (wrappedComponent) {
-        this.validate = (values: { [key: string]: any }) => {
-          const errors = wrappedComponent.validate(values);
-          this.setState({ hasErrors: Object.keys(errors).length > 0 });
-          return errors;
-        };
-      }
-    };
-
-    public render() {
-      const { done, mandatory, note } = this.props;
-      const { hasErrors, isDirty, label } = this.state;
-      const showDone = done || !mandatory;
-      const className = classNames({
-        default: !showDone,
-        dirty: hasErrors || isDirty,
-        done: showDone,
-      });
-
-      return (
-        <div className="modal-page" ref={this.handleRef}>
-          <div className="wizard-subheading sticky-header">
-            <h4 className={className}>{label}</h4>
-          </div>
-          <div className="wizard-page-body">
-            <WrappedComponent {...this.props} dirtyCallback={this.dirtyCallback} ref={this.handleWrappedRef} />
-            {note && <div className="row">{note}</div>}
-          </div>
-        </div>
-      );
+  public componentDidUpdate(prevProps: IWizardPageProps): void {
+    // Update label or order if changed, notify Wizard
+    if (this.props.order !== prevProps.order) {
+      this.setState({ order: this.props.order }, this.onWizardPageStateChanged);
     }
   }
-  return WizardPage as any;
+
+  private onWizardPageStateChanged() {
+    this.props.wizard.onWizardPageStateChanged(this);
+  }
+
+  public render() {
+    const { note, label, render } = this.props;
+    const { status } = this.state;
+    const { innerRef, onLoadingChanged } = this;
+
+    const pageContents = render({ innerRef, onLoadingChanged });
+    const className = WizardPage.getStatusClass(status);
+
+    return (
+      <div className="modal-page" ref={this.ref}>
+        <div className="wizard-subheading sticky-header">
+          <h4 className={className}>{label}</h4>
+        </div>
+        <div className="wizard-page-body">
+          {pageContents}
+          {note && <div className="row">{note}</div>}
+        </div>
+      </div>
+    );
+  }
 }
