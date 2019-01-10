@@ -37,5 +37,14 @@ public class PrometheusManagedAccount {
   @Setter
   private RemoteService endpoint;
 
+  // Optional parameter for use when protecting prometheus with basic auth.
+  private String username;
+
+  // Optional parameter for use when protecting prometheus with basic auth.
+  private String password;
+
+  // Optional parameter for use when protecting prometheus with basic auth.
+  private String usernamePasswordFile;
+
   private List<AccountCredentials.Type> supportedTypes;
 }

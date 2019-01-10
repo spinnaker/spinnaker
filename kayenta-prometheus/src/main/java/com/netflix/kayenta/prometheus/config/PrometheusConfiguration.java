@@ -71,33 +71,43 @@ public class PrometheusConfiguration {
 
       log.info("Registering Prometheus account {} with supported types {}.", name, supportedTypes);
 
-      PrometheusCredentials prometheusCredentials =
-        PrometheusCredentials
-          .builder()
-          .build();
-      PrometheusNamedAccountCredentials.PrometheusNamedAccountCredentialsBuilder prometheusNamedAccountCredentialsBuilder =
-        PrometheusNamedAccountCredentials
-          .builder()
-          .name(name)
-          .endpoint(prometheusManagedAccount.getEndpoint())
-          .credentials(prometheusCredentials);
+      try {
+        PrometheusCredentials prometheusCredentials =
+          PrometheusCredentials
+            .builder()
+            .username(prometheusManagedAccount.getUsername())
+            .password(prometheusManagedAccount.getPassword())
+            .usernamePasswordFile(prometheusManagedAccount.getUsernamePasswordFile())
+            .build();
+        PrometheusNamedAccountCredentials.PrometheusNamedAccountCredentialsBuilder prometheusNamedAccountCredentialsBuilder =
+          PrometheusNamedAccountCredentials
+            .builder()
+            .name(name)
+            .endpoint(prometheusManagedAccount.getEndpoint())
+            .credentials(prometheusCredentials);
 
-      if (!CollectionUtils.isEmpty(supportedTypes)) {
-        if (supportedTypes.contains(AccountCredentials.Type.METRICS_STORE)) {
-          PrometheusRemoteService prometheusRemoteService = retrofitClientFactory.createClient(PrometheusRemoteService.class,
-                                                                                               prometheusConverter,
-                                                                                               prometheusManagedAccount.getEndpoint(),
-                                                                                               okHttpClient);
+        if (!CollectionUtils.isEmpty(supportedTypes)) {
+          if (supportedTypes.contains(AccountCredentials.Type.METRICS_STORE)) {
+            PrometheusRemoteService prometheusRemoteService = retrofitClientFactory.createClient(PrometheusRemoteService.class,
+                                                                                                 prometheusConverter,
+                                                                                                 prometheusManagedAccount.getEndpoint(),
+                                                                                                 okHttpClient,
+                                                                                                 prometheusManagedAccount.getUsername(),
+                                                                                                 prometheusManagedAccount.getPassword(),
+                                                                                                 prometheusManagedAccount.getUsernamePasswordFile());
 
-          prometheusNamedAccountCredentialsBuilder.prometheusRemoteService(prometheusRemoteService);
+            prometheusNamedAccountCredentialsBuilder.prometheusRemoteService(prometheusRemoteService);
+          }
+
+          prometheusNamedAccountCredentialsBuilder.supportedTypes(supportedTypes);
         }
 
-        prometheusNamedAccountCredentialsBuilder.supportedTypes(supportedTypes);
+        PrometheusNamedAccountCredentials prometheusNamedAccountCredentials = prometheusNamedAccountCredentialsBuilder.build();
+        accountCredentialsRepository.save(name, prometheusNamedAccountCredentials);
+        prometheusMetricsServiceBuilder.accountName(name);
+      } catch (IOException e) {
+        log.error("Problem registering Prometheus account {}:", name, e);
       }
-
-      PrometheusNamedAccountCredentials prometheusNamedAccountCredentials = prometheusNamedAccountCredentialsBuilder.build();
-      accountCredentialsRepository.save(name, prometheusNamedAccountCredentials);
-      prometheusMetricsServiceBuilder.accountName(name);
     }
 
     PrometheusMetricsService prometheusMetricsService = prometheusMetricsServiceBuilder.build();

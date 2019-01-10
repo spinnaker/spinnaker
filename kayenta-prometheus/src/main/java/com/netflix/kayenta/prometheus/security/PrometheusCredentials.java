@@ -25,11 +25,14 @@ import java.util.Optional;
 @Builder
 @Data
 @Slf4j
-// TODO(ewisbelatt): Not sure what kind of credentials or configuration is really required here yet.
-//       Prometheus does not have security. To secure it, you front it with a webserver that adds security (e.g. basic auth).
-//       So this is likely just a username/password.
 public class PrometheusCredentials {
 
   private static String applicationVersion =
     Optional.ofNullable(PrometheusCredentials.class.getPackage().getImplementationVersion()).orElse("Unknown");
+
+  private String username;
+
+  private String password;
+
+  private String usernamePasswordFile;
 }

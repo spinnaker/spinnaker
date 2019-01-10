@@ -18,7 +18,13 @@ package com.netflix.kayenta.retrofit.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
+import com.squareup.okhttp.Authenticator;
+import com.squareup.okhttp.Credentials;
 import com.squareup.okhttp.OkHttpClient;
+import com.squareup.okhttp.Request;
+import com.squareup.okhttp.Response;
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
@@ -27,6 +33,11 @@ import retrofit.RestAdapter;
 import retrofit.client.OkClient;
 import retrofit.converter.Converter;
 import retrofit.converter.JacksonConverter;
+
+import java.io.IOException;
+import java.net.Proxy;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 import static retrofit.Endpoints.newFixedEndpoint;
 
@@ -41,12 +52,33 @@ public class RetrofitClientFactory {
     return new JacksonConverter(objectMapper);
   }
 
-  public <T> T createClient(Class<T> type, Converter converter, RemoteService remoteService, OkHttpClient okHttpClient) {
+  public <T> T createClient(Class<T> type,
+                            Converter converter,
+                            RemoteService remoteService,
+                            OkHttpClient okHttpClient) {
+    try {
+      return createClient(type, converter, remoteService, okHttpClient, null, null, null);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public <T> T createClient(Class<T> type,
+                            Converter converter,
+                            RemoteService remoteService,
+                            OkHttpClient okHttpClient,
+                            String username,
+                            String password,
+                            String usernamePasswordFile) throws IOException {
     String baseUrl = remoteService.getBaseUrl();
 
     baseUrl = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
 
     Endpoint endpoint = newFixedEndpoint(baseUrl);
+
+    if (!(StringUtils.isEmpty(username) && StringUtils.isEmpty(password) && StringUtils.isEmpty(usernamePasswordFile))) {
+      okHttpClient = createAuthenticatedClient(username, password, usernamePasswordFile);
+    }
 
     return new RestAdapter.Builder()
       .setEndpoint(endpoint)
@@ -57,4 +89,35 @@ public class RetrofitClientFactory {
       .build()
       .create(type);
   }
+
+  private static OkHttpClient createAuthenticatedClient(String username,
+                                                        String password,
+                                                        String usernamePasswordFile) throws IOException {
+    final String credential;
+
+    if (StringUtils.isNotEmpty(usernamePasswordFile)) {
+      String trimmedFileContent = new String(Files.readAllBytes(Paths.get(usernamePasswordFile))).trim();
+
+      credential = "Basic " + Base64.encodeBase64String(trimmedFileContent.getBytes());
+    } else {
+      credential = Credentials.basic(username, password);
+    }
+
+    OkHttpClient httpClient = new OkHttpClient();
+
+    httpClient.setAuthenticator(new Authenticator() {
+      @Override
+      public Request authenticate(Proxy proxy, Response response) throws IOException {
+        return response.request().newBuilder().header("Authorization", credential).build();
+      }
+
+      @Override
+      public Request authenticateProxy(Proxy proxy, Response response) throws IOException {
+        return response.request().newBuilder().header("Proxy-Authorization", credential).build();
+      }
+    });
+
+    return httpClient;
+  }
 }
+
