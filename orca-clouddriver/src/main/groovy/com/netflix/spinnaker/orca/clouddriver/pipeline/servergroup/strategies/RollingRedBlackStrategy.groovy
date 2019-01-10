@@ -158,6 +158,18 @@ class RollingRedBlackStrategy implements Strategy, ApplicationContextAware {
     })
 
     if (stageData.scaleDown) {
+      if(stageData?.getDelayBeforeScaleDown()) {
+        def waitContext = [waitTime: stageData?.getDelayBeforeScaleDown()]
+        stages << newStage(
+          stage.execution,
+          waitStage.type,
+          "Wait Before Scale Down",
+          waitContext,
+          stage,
+          SyntheticStageOwner.STAGE_AFTER
+        )
+      }
+
       def scaleDown = baseContext + [
         allowScaleDownActive         : false,
         remainingFullSizeServerGroups: 1,
