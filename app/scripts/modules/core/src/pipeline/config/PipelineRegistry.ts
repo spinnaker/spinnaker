@@ -24,7 +24,7 @@ export class PipelineRegistry {
   private stageTypes: IStageTypeConfig[] = [];
   private transformers: ITransformer[] = [];
   private artifactKinds: IArtifactKindConfig[] = [];
-  private defaultArtifactKind: IArtifactKindConfig;
+  private customArtifactKind: IArtifactKindConfig;
 
   constructor() {
     this.getStageConfig = memoize(this.getStageConfig.bind(this), (stage: IStage) =>
@@ -84,8 +84,8 @@ export class PipelineRegistry {
     this.artifactKinds.push(artifactKindConfig);
   }
 
-  public registerDefaultArtifactKind(artifactKindConfig: IArtifactKindConfig): void {
-    this.defaultArtifactKind = artifactKindConfig;
+  public registerCustomArtifactKind(artifactKindConfig: IArtifactKindConfig): void {
+    this.customArtifactKind = artifactKindConfig;
     this.registerArtifactKind(artifactKindConfig);
   }
 
@@ -101,12 +101,16 @@ export class PipelineRegistry {
     return cloneDeep(this.stageTypes);
   }
 
-  public getArtifactKinds(): IArtifactKindConfig[] {
-    return cloneDeep(this.artifactKinds);
+  public getMatchArtifactKinds(): IArtifactKindConfig[] {
+    return cloneDeep(this.artifactKinds.filter(k => k.isMatch));
   }
 
-  public getDefaultArtifactKind(): IArtifactKindConfig {
-    return cloneDeep(this.defaultArtifactKind);
+  public getDefaultArtifactKinds(): IArtifactKindConfig[] {
+    return cloneDeep(this.artifactKinds.filter(k => k.isDefault));
+  }
+
+  public getCustomArtifactKind(): IArtifactKindConfig {
+    return cloneDeep(this.customArtifactKind);
   }
 
   private getCloudProvidersForStage(

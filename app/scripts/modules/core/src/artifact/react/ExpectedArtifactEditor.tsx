@@ -59,9 +59,7 @@ export class ExpectedArtifactEditor extends React.Component<
   constructor(props: IExpectedArtifactEditorProps) {
     super(props);
     this.state = {
-      expectedArtifact: props.default
-        ? cloneDeep(props.default)
-        : ExpectedArtifactService.createEmptyArtifact('custom'),
+      expectedArtifact: props.default ? cloneDeep(props.default) : ExpectedArtifactService.createEmptyArtifact(),
       source: props.sources[0],
       account: null,
     };
@@ -113,7 +111,7 @@ export class ExpectedArtifactEditor extends React.Component<
     const kinds = this.props.kinds || [];
     const accounts = this.props.accounts || [];
     if (this.props.showAccounts) {
-      return kinds.filter(k => k.key === 'custom' || accounts.find(a => a.types.includes(k.type)));
+      return kinds.filter(k => k.customKind || accounts.find(a => a.types.includes(k.type)));
     } else {
       return kinds.slice(0);
     }

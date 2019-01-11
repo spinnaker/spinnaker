@@ -42,18 +42,20 @@ export class ExpectedArtifactService {
         .reduce((array, value) => array.concat(value), []);
   }
 
-  public static createEmptyArtifact(kind: string): IExpectedArtifact {
+  public static createEmptyArtifact(): IExpectedArtifact {
     return {
       id: UUIDGenerator.generateUuid(),
       usePriorArtifact: false,
       useDefaultArtifact: false,
       matchArtifact: {
         id: UUIDGenerator.generateUuid(),
-        kind,
+        kind: 'custom',
+        customKind: true,
       },
       defaultArtifact: {
         id: UUIDGenerator.generateUuid(),
-        kind,
+        kind: 'custom',
+        customKind: true,
       },
     };
   }
@@ -67,7 +69,7 @@ export class ExpectedArtifactService {
   }
 
   public static addNewArtifactTo(obj: any): IExpectedArtifact {
-    return ExpectedArtifactService.addArtifactTo(ExpectedArtifactService.createEmptyArtifact('custom'), obj);
+    return ExpectedArtifactService.addArtifactTo(ExpectedArtifactService.createEmptyArtifact(), obj);
   }
 
   public static artifactFromExpected(expected: IExpectedArtifact): IArtifact | null {
@@ -99,22 +101,14 @@ export class ExpectedArtifactService {
   }
 
   public static getKindConfig(artifact: IArtifact, isDefault: boolean): IArtifactKindConfig {
-    if (artifact != null) {
-      if (artifact.kind) {
-        return Registry.pipeline.getArtifactKinds().find(k => k.key === artifact.kind);
-      } else {
-        const isMatchFilter = (k: IArtifactKindConfig) => k.isMatch;
-        const isDefaultFilter = (k: IArtifactKindConfig) => k.isDefault;
-        const typeFilter = isDefault ? isDefaultFilter : isMatchFilter;
-        const inferredKindConfig = Registry.pipeline
-          .getArtifactKinds()
-          .filter(typeFilter)
-          .find(k => k.type === artifact.type);
-        if (inferredKindConfig !== undefined) {
-          return inferredKindConfig;
-        }
-      }
+    if (artifact == null || artifact.customKind || artifact.kind === 'custom') {
+      return Registry.pipeline.getCustomArtifactKind();
     }
-    return Registry.pipeline.getDefaultArtifactKind();
+    const kinds = isDefault ? Registry.pipeline.getDefaultArtifactKinds() : Registry.pipeline.getMatchArtifactKinds();
+    const inferredKindConfig = kinds.find(k => k.type === artifact.type);
+    if (inferredKindConfig !== undefined) {
+      return inferredKindConfig;
+    }
+    return Registry.pipeline.getCustomArtifactKind();
   }
 }

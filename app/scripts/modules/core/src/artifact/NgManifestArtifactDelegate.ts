@@ -20,8 +20,7 @@ export class NgManifestArtifactDelegate
       this.$scope.stage,
     );
     this.kinds = Registry.pipeline
-      .getArtifactKinds()
-      .filter((a: IArtifactKindConfig) => a.isMatch)
+      .getMatchArtifactKinds()
       .filter((a: IArtifactKindConfig) => !this.getExcludedArtifactTypes().find(t => t.test(a.type)));
     this.refreshExpectedArtifacts();
   }

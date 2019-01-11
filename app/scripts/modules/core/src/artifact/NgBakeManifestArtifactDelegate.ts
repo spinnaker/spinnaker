@@ -20,7 +20,7 @@ export class NgBakeManifestArtifactDelegate
       () => this.$scope.$parent.pipeline,
       this.$scope.stage,
     );
-    this.kinds = Registry.pipeline.getArtifactKinds().filter(a => a.isMatch);
+    this.kinds = Registry.pipeline.getMatchArtifactKinds();
   }
 
   public setAccounts = (accounts: any) => {
