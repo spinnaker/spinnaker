@@ -514,7 +514,7 @@ class SqlCache(
     try {
       toDelete.forEach { id ->
         jooq.deleteFrom(table(resourceTableName(type)))
-          .where(field("id").eq(id))
+          .where(field("id").eq(id), field("agent").eq(agent))
           .execute()
         result.deleteQueries.incrementAndGet()
       }

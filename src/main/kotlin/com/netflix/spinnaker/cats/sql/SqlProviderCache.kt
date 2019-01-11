@@ -173,7 +173,7 @@ class SqlProviderCache(private val backingStore: WriteableCache) : ProviderCache
 
     // TODO terrible hack because no AWS agent is authoritative for clusters, fix in ClusterCachingAgent
     // TODO same with namedImages - fix in AWS ImageCachingAgent
-    val override =
+    val authOverride =
       if (
         (type == CLUSTERS.toString() && agent.contains("clustercaching", ignoreCase = true)) ||
         (type == NAMED_IMAGES.toString() && agent.contains("imagecaching", ignoreCase = true)) ||
@@ -184,7 +184,9 @@ class SqlProviderCache(private val backingStore: WriteableCache) : ProviderCache
         authoritative
       }
 
-    (backingStore as SqlCache).mergeAll(type, agent, toStore, override, true)
+    val cleanup = !agent.contains(ON_DEMAND.ns, ignoreCase = true)
+
+    (backingStore as SqlCache).mergeAll(type, agent, toStore, authOverride, cleanup)
   }
 
   private fun uniqueifyRelationships(source: CacheData, sourceAgentType: String): CacheData {
