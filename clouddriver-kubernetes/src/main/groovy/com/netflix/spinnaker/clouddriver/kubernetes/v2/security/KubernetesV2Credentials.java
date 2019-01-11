@@ -412,6 +412,9 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
         return new ArrayList<>();
       }
     }, crdExpirySeconds, TimeUnit.SECONDS);
+
+    // ensure this is called at least once before the credentials object is created to ensure all crds are registered
+    this.liveCrdSupplier.get();
   }
 
   public List<KubernetesKind> getCrds() {
