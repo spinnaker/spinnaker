@@ -21,33 +21,21 @@ import java.net.NetworkInterface;
 import java.net.URI;
 import java.util.*;
 import java.util.regex.Pattern;
+import lombok.Data;
+import org.springframework.security.web.util.matcher.IpAddressMatcher;
 
 public class UserConfiguredUrlRestrictions {
+  @Data
   public static class Builder {
     private String allowedHostnamesRegex = ".*";
     private List<String> allowedSchemes = new ArrayList<>(Arrays.asList("http", "https"));
     private boolean rejectLocalhost = true;
     private boolean rejectLinkLocal = true;
-
-    public String getAllowedHostnamesRegex() {
-      return allowedHostnamesRegex;
-    }
-
-    public void setAllowedHostnamesRegex(String allowedHostnamesRegex) {
-      this.allowedHostnamesRegex = allowedHostnamesRegex;
-    }
+    private List<String> rejectedIps = new ArrayList<>(); // can contain IP addresses and/or IP ranges (CIDR block)
 
     public Builder withAllowedHostnamesRegex(String allowedHostnamesRegex) {
       setAllowedHostnamesRegex(allowedHostnamesRegex);
       return this;
-    }
-
-    public List<String> getAllowedSchemes() {
-      return allowedSchemes;
-    }
-
-    public void setAllowedSchemes(List<String> allowedSchemes) {
-      this.allowedSchemes = allowedSchemes;
     }
 
     public Builder withAllowedSchemes(List<String> allowedSchemes) {
@@ -55,25 +43,9 @@ public class UserConfiguredUrlRestrictions {
       return this;
     }
 
-    public boolean isRejectLocalhost() {
-      return rejectLocalhost;
-    }
-
-    public void setRejectLocalhost(boolean rejectLocalhost) {
-      this.rejectLocalhost = rejectLocalhost;
-    }
-
     public Builder withRejectLocalhost(boolean rejectLocalhost) {
       setRejectLocalhost(rejectLocalhost);
       return this;
-    }
-
-    public boolean isRejectLinkLocal() {
-      return rejectLinkLocal;
-    }
-
-    public void setRejectLinkLocal(boolean rejectLinkLocal) {
-      this.rejectLinkLocal = rejectLinkLocal;
     }
 
     public Builder withRejectLinkLocal(boolean rejectLinkLocal) {
@@ -81,8 +53,13 @@ public class UserConfiguredUrlRestrictions {
       return this;
     }
 
+    public Builder withRejectedIps(List<String> rejectedIpRanges) {
+      setRejectedIps(rejectedIpRanges);
+      return this;
+    }
+
     public UserConfiguredUrlRestrictions build() {
-      return new UserConfiguredUrlRestrictions(Pattern.compile(allowedHostnamesRegex), allowedSchemes, rejectLocalhost, rejectLinkLocal);
+      return new UserConfiguredUrlRestrictions(Pattern.compile(allowedHostnamesRegex), allowedSchemes, rejectLocalhost, rejectLinkLocal, rejectedIps);
     }
   }
 
@@ -90,12 +67,14 @@ public class UserConfiguredUrlRestrictions {
   private final Set<String> allowedSchemes;
   private final boolean rejectLocalhost;
   private final boolean rejectLinkLocal;
+  private final Set<String> rejectedIps;
 
-  public UserConfiguredUrlRestrictions(Pattern allowedHostnames, Collection<String> allowedSchemes, boolean rejectLocalhost, boolean rejectLinkLocal) {
+  public UserConfiguredUrlRestrictions(Pattern allowedHostnames, Collection<String> allowedSchemes, boolean rejectLocalhost, boolean rejectLinkLocal, Collection<String> rejectedIps) {
     this.allowedHostnames = allowedHostnames;
     this.allowedSchemes = allowedSchemes == null ? Collections.emptySet() : Collections.unmodifiableSet(new HashSet<>(allowedSchemes));
     this.rejectLocalhost = rejectLocalhost;
     this.rejectLinkLocal = rejectLinkLocal;
+    this.rejectedIps = rejectedIps == null ? Collections.emptySet() : Collections.unmodifiableSet(new HashSet<>(rejectedIps));
   }
 
   public URI validateURI(String url) throws IllegalArgumentException {
@@ -120,6 +99,14 @@ public class UserConfiguredUrlRestrictions {
         }
         if (rejectLinkLocal && addr.isLinkLocalAddress()) {
           throw new IllegalArgumentException("invalid address for " + u.getHost());
+        }
+      }
+
+      for (String ip : rejectedIps) {
+        IpAddressMatcher ipMatcher = new IpAddressMatcher(ip);
+
+        if (ipMatcher.matches(u.getHost())) {
+          throw new IllegalArgumentException("address " + u.getHost() + " is within rejected IPs: " + ip);
         }
       }
 

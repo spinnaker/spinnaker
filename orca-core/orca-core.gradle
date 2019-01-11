@@ -35,11 +35,13 @@ dependencies {
   compile spinnaker.dependency('korkExceptions')
   compile spinnaker.dependency('korkArtifacts')
   compile spinnaker.dependency("logstashEncoder")
+  compile spinnaker.dependency("springSecurityWeb")
   compile "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:${spinnaker.version('jackson')}"
   compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${spinnaker.version('jackson')}"
   compile "com.fasterxml.jackson.module:jackson-module-kotlin:${spinnaker.version('jackson')}"
   compile "org.apache.commons:commons-lang3:3.7"
   compile "de.huxhorn.sulky:de.huxhorn.sulky.ulid:8.1.1"
+  compile "javax.servlet:javax.servlet-api:4.0.1"
 
   compileOnly spinnaker.dependency("lombok")
 
