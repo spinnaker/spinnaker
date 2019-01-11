@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  annotations:
+    artifact.spinnaker.io/location: default
+    artifact.spinnaker.io/name: helloworld
+    artifact.spinnaker.io/type: kubernetes/replicaSet
+    artifact.spinnaker.io/version: v000
+    moniker.spinnaker.io/application: helloworld
+    moniker.spinnaker.io/cluster: replicaSet helloworld
+    moniker.spinnaker.io/sequence: '0'
+    strategy.spinnaker.io/max-version-history: '2'
+    traffic.spinnaker.io/load-balancers: '["service hellosvc"]'
+  labels:
+    app.kubernetes.io/managed-by: spinnaker
+    app.kubernetes.io/name: helloworld
+    tier: helloworld
+  name: helloworld-v000
+  namespace: default
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      tier: helloworld
+  template:
+    metadata:
+      annotations:
+        artifact.spinnaker.io/location: default
+        artifact.spinnaker.io/name: helloworld
+        artifact.spinnaker.io/type: kubernetes/replicaSet
+        artifact.spinnaker.io/version: v000
+        moniker.spinnaker.io/application: helloworld
+        moniker.spinnaker.io/cluster: replicaSet helloworld
+        moniker.spinnaker.io/sequence: '0'
+      labels:
+        app: helloworld
+        app.kubernetes.io/name: helloworld
+        tier: helloworld
+    spec:
+      containers:
+        - image: 'gcr.io/spinnaker-marketplace/helloworld:v1'
+          imagePullPolicy: IfNotPresent
+          name: helloworld
+          ports:
+            - containerPort: 6000
