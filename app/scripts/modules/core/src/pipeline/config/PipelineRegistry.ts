@@ -24,6 +24,7 @@ export class PipelineRegistry {
   private stageTypes: IStageTypeConfig[] = [];
   private transformers: ITransformer[] = [];
   private artifactKinds: IArtifactKindConfig[] = [];
+  private defaultArtifactKind: IArtifactKindConfig;
 
   constructor() {
     this.getStageConfig = memoize(this.getStageConfig.bind(this), (stage: IStage) =>
@@ -83,6 +84,11 @@ export class PipelineRegistry {
     this.artifactKinds.push(artifactKindConfig);
   }
 
+  public registerDefaultArtifactKind(artifactKindConfig: IArtifactKindConfig): void {
+    this.defaultArtifactKind = artifactKindConfig;
+    this.registerArtifactKind(artifactKindConfig);
+  }
+
   public getExecutionTransformers(): ITransformer[] {
     return this.transformers;
   }
@@ -97,6 +103,10 @@ export class PipelineRegistry {
 
   public getArtifactKinds(): IArtifactKindConfig[] {
     return cloneDeep(this.artifactKinds);
+  }
+
+  public getDefaultArtifactKind(): IArtifactKindConfig {
+    return cloneDeep(this.defaultArtifactKind);
   }
 
   private getCloudProvidersForStage(

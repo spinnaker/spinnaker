@@ -59,7 +59,9 @@ export class ExpectedArtifactEditor extends React.Component<
   constructor(props: IExpectedArtifactEditorProps) {
     super(props);
     this.state = {
-      expectedArtifact: props.default ? cloneDeep(props.default) : ExpectedArtifactService.createEmptyArtifact(null),
+      expectedArtifact: props.default
+        ? cloneDeep(props.default)
+        : ExpectedArtifactService.createEmptyArtifact('custom'),
       source: props.sources[0],
       account: null,
     };
@@ -123,7 +125,7 @@ export class ExpectedArtifactEditor extends React.Component<
     const accounts = this.accountsForExpectedArtifact(expectedArtifact);
     const artifact = ExpectedArtifactService.artifactFromExpected(expectedArtifact);
     const kinds = this.availableKinds().sort((a, b) => a.label.localeCompare(b.label));
-    const kind = artifact ? kinds.find(k => k.key === artifact.kind) : null;
+    const kind = ExpectedArtifactService.getKindConfig(artifact, false);
     const EditCmp = kind && kind.editCmp;
     return (
       <>

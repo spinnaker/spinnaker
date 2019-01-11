@@ -83,21 +83,11 @@ class ArtifactCtrl implements IController {
   }
 
   public loadArtifactKind(): void {
-    const kind = ExpectedArtifactService.getKind(this.artifact) || 'custom';
-    if (!kind) {
-      return;
-    }
-    const artifactKindConfig = this.options.filter(function(config) {
-      return config.key === kind;
-    });
-
-    if (artifactKindConfig.length) {
-      const config = artifactKindConfig[0];
-      this.description = config.description;
-      this.renderArtifactConfigTemplate(config);
-      this.selectedLabel = config.label;
-      this.selectedIcon = ArtifactIconService.getPath(config.type);
-    }
+    const config = ExpectedArtifactService.getKindConfig(this.artifact, this.isDefault);
+    this.description = config.description;
+    this.renderArtifactConfigTemplate(config);
+    this.selectedLabel = config.label;
+    this.selectedIcon = ArtifactIconService.getPath(config.type);
   }
 
   public artifactIconPath(artifact: IArtifact) {

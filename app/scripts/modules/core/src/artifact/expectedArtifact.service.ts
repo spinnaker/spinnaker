@@ -1,6 +1,14 @@
 import { PipelineConfigService } from 'core/pipeline';
 import { Registry } from 'core/registry';
-import { IPipeline, IStage, IExpectedArtifact, IExecutionContext, IArtifact, IArtifactSource } from 'core/domain';
+import {
+  IPipeline,
+  IStage,
+  IExpectedArtifact,
+  IExecutionContext,
+  IArtifact,
+  IArtifactSource,
+  IArtifactKindConfig,
+} from 'core/domain';
 import { UUIDGenerator } from 'core/utils';
 
 export class ExpectedArtifactService {
@@ -90,20 +98,23 @@ export class ExpectedArtifactService {
     return sources;
   }
 
-  public static getKind(artifact: IArtifact): string {
+  public static getKindConfig(artifact: IArtifact, isDefault: boolean): IArtifactKindConfig {
     if (artifact != null) {
       if (artifact.kind) {
-        return artifact.kind;
+        return Registry.pipeline.getArtifactKinds().find(k => k.key === artifact.kind);
       } else {
-        const artifactType = artifact.type;
-        const inferredKindConfig = Registry.pipeline.getArtifactKinds().find(k => {
-          return k.type === artifactType;
-        });
-        if (inferredKindConfig != null) {
-          return inferredKindConfig.key;
+        const isMatchFilter = (k: IArtifactKindConfig) => k.isMatch;
+        const isDefaultFilter = (k: IArtifactKindConfig) => k.isDefault;
+        const typeFilter = isDefault ? isDefaultFilter : isMatchFilter;
+        const inferredKindConfig = Registry.pipeline
+          .getArtifactKinds()
+          .filter(typeFilter)
+          .find(k => k.type === artifact.type);
+        if (inferredKindConfig !== undefined) {
+          return inferredKindConfig;
         }
       }
     }
-    return null;
+    return Registry.pipeline.getDefaultArtifactKind();
   }
 }
