@@ -1,11 +1,11 @@
 import * as React from 'react';
 import { FieldArray, getIn } from 'formik';
 
-import { FormikFormField, IWizardPageProps, TextInput } from '@spinnaker/core';
+import { FormikFormField, TextInput } from '@spinnaker/core';
 
 import { ICloudFoundryCreateServerGroupCommand } from 'cloudfoundry/serverGroup/configure/serverGroupConfigurationModel.cf';
 
-export interface IServicesProps extends IWizardPageProps<ICloudFoundryCreateServerGroupCommand> {}
+export interface IServicesProps {}
 
 export class Services extends React.Component<IServicesProps> {
   public render() {
@@ -18,9 +18,7 @@ export class Services extends React.Component<IServicesProps> {
               name="manifest.services"
               render={arrayHelpers => {
                 const serverGroupCommand: ICloudFoundryCreateServerGroupCommand = arrayHelpers.form.values;
-                const services: string[] = getIn(serverGroupCommand, 'manifest.services')
-                  ? getIn(serverGroupCommand, 'manifest.services')
-                  : [];
+                const services: string[] = getIn(serverGroupCommand, 'manifest.services') || [];
 
                 return (
                   <table className="table table-condensed packed metadata">

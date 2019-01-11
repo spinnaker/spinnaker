@@ -25,7 +25,6 @@ export interface ICloudfoundryDisableAsgStageConfigState {
   pipeline: IPipeline;
   region: string;
   regions: IRegion[];
-  serviceName: string;
   target: string;
 }
 
@@ -44,7 +43,6 @@ export class CloudfoundryDisableAsgStageConfig extends React.Component<
       pipeline: props.pipeline,
       region: props.stage.region,
       regions: [],
-      serviceName: props.stage.serviceName,
       target: props.stage.target,
     };
   }

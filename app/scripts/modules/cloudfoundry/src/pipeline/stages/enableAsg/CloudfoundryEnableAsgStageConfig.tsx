@@ -25,7 +25,6 @@ export interface ICloudfoundryEnableAsgStageConfigState {
   pipeline: IPipeline;
   region: string;
   regions: IRegion[];
-  serviceName: string;
   target: string;
 }
 
@@ -44,7 +43,6 @@ export class CloudfoundryEnableAsgStageConfig extends React.Component<
       pipeline: props.pipeline,
       region: props.stage.region,
       regions: [],
-      serviceName: props.stage.serviceName,
       target: props.stage.target,
     };
   }
@@ -94,7 +92,6 @@ export class CloudfoundryEnableAsgStageConfig extends React.Component<
             component={stage}
           />
         )}
-
         <StageConfigField label="Target">
           <TargetSelect model={{ target: target }} options={StageConstants.TARGET_LIST} onChange={this.targetUpdated} />
         </StageConfigField>

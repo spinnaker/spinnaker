@@ -19,10 +19,14 @@ import {
 
 import { CloudFoundryRadioButtonInput } from 'cloudfoundry/presentation/forms/inputs/CloudFoundryRadioButtonInput';
 import { ICloudFoundryEnvVar } from 'cloudfoundry/domain';
-import { Buildpacks } from 'cloudfoundry/serverGroup/configure/wizard/sections/configurationSettings/Buildpacks';
-import { Routes } from 'cloudfoundry/serverGroup/configure/wizard/sections/configurationSettings/Routes';
-import { Services } from 'cloudfoundry/serverGroup/configure/wizard/sections/configurationSettings/Services';
-import { EnvironmentVariables } from 'cloudfoundry/serverGroup/configure/wizard/sections/configurationSettings/EnvironmentVariables';
+import {
+  Buildpacks,
+  EnvironmentVariables,
+  HealthCheck,
+  InstanceParameters,
+  Routes,
+  Services,
+} from 'cloudfoundry/presentation';
 
 export interface ICloudFoundryServerGroupConfigurationSettingsProps
   extends IWizardPageProps<ICloudFoundryCreateServerGroupCommand> {
@@ -36,25 +40,37 @@ class ConfigurationSettingsImpl extends React.Component<ICloudFoundryServerGroup
   private manifestTypeUpdated = (type: string): void => {
     switch (type) {
       case 'artifact':
-        this.props.formik.setFieldValue('manifest.account', '');
-        this.props.formik.setFieldValue('manifest.reference', '');
+        const emptyManifestArtifact = {
+          account: '',
+          reference: '',
+          type: 'artifact',
+        };
+        this.props.formik.setFieldValue('manifest', emptyManifestArtifact);
         this.capacityUpdated('1');
         break;
       case 'trigger':
-        this.props.formik.setFieldValue('manifest.account', '');
-        this.props.formik.setFieldValue('manifest.pattern', '');
+        const emptyManifestTrigger = {
+          account: '',
+          pattern: '',
+          type: 'trigger',
+        };
+        this.props.formik.setFieldValue('manifest', emptyManifestTrigger);
         this.capacityUpdated('1');
         break;
       case 'direct':
-        this.props.formik.setFieldValue('manifest.memory', '1024M');
-        this.props.formik.setFieldValue('manifest.diskQuota', '1024M');
-        this.props.formik.setFieldValue('manifest.instances', 1);
-        this.props.formik.setFieldValue('manifest.buildpacks', []);
-        this.props.formik.setFieldValue('manifest.healthCheckType', 'port');
-        this.props.formik.setFieldValue('manifest.healthCheckHttpEndpoint', undefined);
-        this.props.formik.setFieldValue('manifest.routes', []);
-        this.props.formik.setFieldValue('manifest.environment', []);
-        this.props.formik.setFieldValue('manifest.services', []);
+        const emptyManifestDirect = {
+          memory: '1024M',
+          diskQuota: '1024M',
+          instances: 1,
+          buildpacks: [] as string[],
+          healthCheckType: 'port',
+          healthCheckHttpEndpoint: undefined as string,
+          routes: [] as string[],
+          environment: [] as string[],
+          services: [] as string[],
+          type: 'direct',
+        };
+        this.props.formik.setFieldValue('manifest', emptyManifestDirect);
         break;
     }
   };
@@ -132,80 +148,27 @@ class ConfigurationSettingsImpl extends React.Component<ICloudFoundryServerGroup
     );
   };
 
-  private getContainerInput = (): JSX.Element => {
-    return (
-      <div>
-        <div className="col-md-9">
-          <div className="sp-margin-m-bottom">
-            <FormikFormField
-              name="manifest.memory"
-              fastField={false}
-              input={props => <TextInput {...props} />}
-              label="Memory"
-              required={true}
-            />
-          </div>
-          <div className="sp-margin-m-bottom">
-            <FormikFormField
-              name="manifest.diskQuota"
-              fastField={false}
-              input={props => <TextInput {...props} />}
-              label="Disk Quota"
-              required={true}
-            />
-          </div>
-          <div className="sp-margin-m-bottom">
-            <FormikFormField
-              name="manifest.instances"
-              fastField={false}
-              input={props => <TextInput type="number" {...props} />}
-              label="Instances"
-              required={true}
-            />
-          </div>
-        </div>
-        <Buildpacks />
-      </div>
-    );
-  };
-
-  private getHealthCheckInput = (): JSX.Element => {
-    const manifest = this.props.formik.values.manifest as { type: string } & ICloudFoundryManifestDirectSource;
-    const HEALTH_CHECK_TYPE_OPTIONS = [
-      { label: 'port', value: 'port' },
-      { label: 'HTTP', value: 'http' },
-      { label: 'process', value: 'process' },
-    ];
-    return (
-      <div className="col-md-9">
-        <div className="sp-margin-m-bottom">
-          <FormikFormField
-            name="manifest.healthCheckType"
-            label="Health Check Type"
-            fastField={false}
-            input={props => <CloudFoundryRadioButtonInput {...props} options={HEALTH_CHECK_TYPE_OPTIONS} />}
-          />
-        </div>
-        {manifest.healthCheckType === 'http' && (
-          <div className="sp-margin-m-bottom">
-            <FormikFormField
-              name="manifest.healthCheckHttpEndpoint"
-              label="Endpoint"
-              input={props => <TextInput {...props} required={true} />}
-            />
-          </div>
-        )}
-      </div>
-    );
-  };
-
   private getDirectInput = (): JSX.Element => {
+    const m = this.props.formik.values.manifest as { type: string } & ICloudFoundryManifestDirectSource;
     return (
       <div>
-        {this.getContainerInput()}
-        {this.getHealthCheckInput()}
-        {<Routes />}
-        {<EnvironmentVariables />}
+        {
+          <InstanceParameters
+            diskQuotaFieldName={'manifest.diskQuota'}
+            instancesFieldName={'manifest.instances'}
+            memoryFieldName={'manifest.memory'}
+          />
+        }
+        {<Buildpacks fieldName="manifest.buildpacks" />}
+        {
+          <HealthCheck
+            healthCheckHttpEndpointFieldName={'manifest.healthCheckHttpEndpoint'}
+            healthCheckType={m.healthCheckType}
+            healthCheckTypeFieldName={'manifest.healthCheckType'}
+          />
+        }
+        {<Routes fieldName="manifest.routes" />}
+        {<EnvironmentVariables fieldName="manifest.environment" />}
         {<Services />}
       </div>
     );
@@ -271,6 +234,7 @@ class ConfigurationSettingsImpl extends React.Component<ICloudFoundryServerGroup
           return null;
         });
         if (routeErrors.some((val: string) => !!val)) {
+          errors.manifest = errors.manifest || {};
           errors.manifest.routes = routeErrors;
         }
       }

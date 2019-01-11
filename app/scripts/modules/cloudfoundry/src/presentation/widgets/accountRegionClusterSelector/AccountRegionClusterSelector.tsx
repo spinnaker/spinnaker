@@ -18,6 +18,7 @@ export interface IAccountRegionClusterSelectorProps {
   clusterField?: string;
   component: any;
   componentName?: string;
+  isSingleRegion?: boolean;
   onComponentUpdate?: (component: any) => void;
 }
 
@@ -85,14 +86,24 @@ export class AccountRegionClusterSelector extends React.Component<
       });
   };
 
-  public onRegionUpdate = (option: Option<string>): void => {
-    const credentials = option.value;
+  public onRegionsUpdate = (option: Option<string>): void => {
     const regions = option.map((o: Option) => o.value);
-    this.setClusterList(credentials, regions);
+    this.setClusterList(this.props.component.credentials, regions);
     this.props.onComponentUpdate &&
       this.props.onComponentUpdate({
         ...this.props.component,
         regions,
+        [this.state.clusterField]: undefined,
+      });
+  };
+
+  public onRegionUpdate = (option: Option<string>): void => {
+    const region = option.value;
+    this.setClusterList(this.props.component.credentials, [region]);
+    this.props.onComponentUpdate &&
+      this.props.onComponentUpdate({
+        ...this.props.component,
+        region,
         [this.state.clusterField]: undefined,
       });
   };
@@ -106,7 +117,7 @@ export class AccountRegionClusterSelector extends React.Component<
   };
 
   public render() {
-    const { accounts, component } = this.props;
+    const { accounts, isSingleRegion, component } = this.props;
     const { availableRegions, clusters, clusterField, componentName } = this.state;
     return (
       <>
@@ -125,22 +136,43 @@ export class AccountRegionClusterSelector extends React.Component<
             onChange={this.onAccountUpdate}
           />
         </StageConfigField>
-        <StageConfigField label="Region">
-          <Select
-            name={componentName ? `${componentName}.regions` : 'regions'}
-            options={
-              availableRegions &&
-              availableRegions.map((r: string) => ({
-                label: r,
-                value: r,
-              }))
-            }
-            multi={true}
-            clearable={false}
-            value={component.regions}
-            onChange={this.onRegionUpdate}
-          />
-        </StageConfigField>
+
+        {!isSingleRegion && (
+          <StageConfigField label="Region">
+            <Select
+              name={componentName ? `${componentName}.regions` : 'regions'}
+              options={
+                availableRegions &&
+                availableRegions.map((r: string) => ({
+                  label: r,
+                  value: r,
+                }))
+              }
+              multi={true}
+              clearable={false}
+              value={component.regions}
+              onChange={this.onRegionsUpdate}
+            />
+          </StageConfigField>
+        )}
+        {isSingleRegion && (
+          <StageConfigField label="Region">
+            <Select
+              name={componentName ? `${componentName}.region` : 'region'}
+              options={
+                availableRegions &&
+                availableRegions.map((r: string) => ({
+                  label: r,
+                  value: r,
+                }))
+              }
+              multi={false}
+              clearable={false}
+              value={component.region}
+              onChange={this.onRegionUpdate}
+            />
+          </StageConfigField>
+        )}
         <StageConfigField label="Cluster" helpKey={'pipeline.config.findAmi.cluster'}>
           <Select
             name={componentName ? `${componentName}.${clusterField}` : `${clusterField}`}
