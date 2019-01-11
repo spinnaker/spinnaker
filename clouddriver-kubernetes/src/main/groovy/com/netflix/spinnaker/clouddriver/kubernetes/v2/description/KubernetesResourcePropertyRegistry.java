@@ -21,6 +21,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.KubernetesUnvers
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.KubernetesVersionedArtifactConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -31,6 +32,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Component
+@Slf4j
 public class KubernetesResourcePropertyRegistry {
   @Autowired
   public KubernetesResourcePropertyRegistry(List<KubernetesHandler> handlers,
@@ -66,6 +68,10 @@ public class KubernetesResourcePropertyRegistry {
       properties = globalProperties.get(kind);
     }
 
+    if (properties == null) {
+      log.warn("Unable to find kind in either account properties ({}) or global properties ({})", propertyMap, globalProperties);
+    }
+
     return properties;
   }
 
@@ -73,7 +79,7 @@ public class KubernetesResourcePropertyRegistry {
     globalProperties.put(kind, properties);
   }
 
-  public void registerAccountProperty(String account, KubernetesResourceProperties properties) {
+  public synchronized void registerAccountProperty(String account, KubernetesResourceProperties properties) {
     ConcurrentHashMap<KubernetesKind, KubernetesResourceProperties> propertyMap = accountProperties.get(account);
     if (propertyMap == null) {
       propertyMap = new ConcurrentHashMap<>();
