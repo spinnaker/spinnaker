@@ -240,7 +240,11 @@ export class DockerImageAndTagSelector extends React.Component<
   }
 
   private updateThings(props: IDockerImageAndTagSelectorProps) {
-    let { imageId, organization, registry, repository } = props;
+    if (!this.repositoryMap) {
+      return;
+    }
+
+    let { imageId, organization, registry, repository, specifyTagByRegex } = props;
 
     if (props.showRegistry) {
       registry = this.registryMap[props.account];
@@ -259,7 +263,7 @@ export class DockerImageAndTagSelector extends React.Component<
     }
 
     const { tag, tags } = this.getTags(props.tag, this.repositoryMap, repository);
-    const tagFound = tag !== props.tag;
+    const tagFound = tag === props.tag || specifyTagByRegex;
 
     const newState = {
       accountOptions: this.newAccounts.sort().map(a => ({ label: a, value: a })),
