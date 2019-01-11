@@ -171,6 +171,38 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
       }
   }
 
+  void 'can scrape packer 1.3+ logs for unencrypted image name'() {
+    setup:
+    @Subject
+    AWSBakeHandler awsBakeHandler = new AWSBakeHandler(awsBakeryDefaults: awsBakeryDefaults)
+
+    when:
+    def logsContent =
+      "==> amazon-ebs: Creating unencrypted AMI test-ami-123456789_123456789 from instance i-123456789\n" +
+      "    amazon-ebs: AMI: ami-2c014644\n" +
+      "==> amazon-ebs: Waiting for AMI to become ready...\n" +
+      "==> amazon-ebs: Terminating the source AWS instance...\n" +
+      "==> amazon-ebs: Cleaning up any extra volumes...\n" +
+      "==> amazon-ebs: No volumes to clean up, skipping\n" +
+      "==> amazon-ebs: Deleting temporary security group...\n" +
+      "==> amazon-ebs: Deleting temporary keypair...\n" +
+      "Build 'amazon-ebs' finished.\n" +
+      "\n" +
+      "==> Builds finished. The artifacts of successful builds are:\n" +
+      "--> amazon-ebs: AMIs were created:\n" +
+      "\n" +
+      "us-east-1: ami-2c014644"
+
+    Bake bake = awsBakeHandler.scrapeCompletedBakeResults(REGION, "123", logsContent)
+
+    then:
+    with (bake) {
+      id == "123"
+      ami == "ami-2c014644"
+      image_name == "test-ami-123456789_123456789"
+    }
+  }
+
   void 'can scrape packer (amazon-chroot) logs for image name'() {
     setup:
       @Subject

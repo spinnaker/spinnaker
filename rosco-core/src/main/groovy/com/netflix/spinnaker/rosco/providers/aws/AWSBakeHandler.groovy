@@ -29,6 +29,7 @@ import org.springframework.stereotype.Component
 public class AWSBakeHandler extends CloudProviderBakeHandler {
 
   private static final String IMAGE_NAME_TOKEN = "amazon-(chroot|ebs): Creating the AMI:"
+  private static final String UNENCRYPTED_IMAGE_NAME_TOKEN = "(==> |)amazon-(chroot|ebs): Creating unencrypted AMI"
 
   ImageNameFactory imageNameFactory = new ImageNameFactory()
 
@@ -161,6 +162,9 @@ public class AWSBakeHandler extends CloudProviderBakeHandler {
     logsContent.eachLine { String line ->
       if (line =~ IMAGE_NAME_TOKEN) {
         imageName = line.split(" ").last()
+      } else if (line =~ UNENCRYPTED_IMAGE_NAME_TOKEN) {
+        line = line.replaceAll(UNENCRYPTED_IMAGE_NAME_TOKEN, "").trim()
+        imageName = line.split(" ").first()
       } else if (line =~ "$region:") {
         amiId = line.split(" ").last()
       }
