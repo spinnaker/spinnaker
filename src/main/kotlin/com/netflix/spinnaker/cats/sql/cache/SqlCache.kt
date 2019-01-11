@@ -452,6 +452,7 @@ class SqlCache(
 
           onDuplicateKeyUpdate()
             .set(field("body_hash"), MySQLDSL.values(field("body_hash")) as Any)
+            .set(field("body"), MySQLDSL.values(field("body")) as Any)
             .set(field("last_updated"), MySQLDSL.values(field("last_updated")) as Any)
         }
 
