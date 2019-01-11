@@ -126,6 +126,12 @@ module.exports = angular
         $scope.stage.alias = stage.alias;
       }
       this.selectStage();
+      // clear stage-specific fields
+      Object.keys($scope.stage).forEach(k => {
+        if (!['requisiteStageRefIds', 'refId', 'isNew', 'name', 'type'].includes(k)) {
+          delete $scope.stage[k];
+        }
+      });
     };
 
     this.selectStage = function(newVal, oldVal) {
