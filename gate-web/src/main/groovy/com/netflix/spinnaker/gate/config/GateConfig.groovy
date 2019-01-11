@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.hystrix.strategy.concurrency.HystrixRequestContext
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.config.OkHttpClientConfiguration
 import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.fiat.shared.FiatService
@@ -46,6 +47,8 @@ import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.web.selector.DefaultServiceSelector
 import com.netflix.spinnaker.kork.web.selector.SelectableService
 import com.netflix.spinnaker.kork.web.selector.ServiceSelector
+import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties
+import com.netflix.spinnaker.okhttp.OkHttpMetricsInterceptor
 import com.squareup.okhttp.OkHttpClient
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -209,8 +212,20 @@ class GateConfig extends RedisHttpSessionConfiguration {
 
   @Bean
   @ConditionalOnProperty('services.kayenta.enabled')
-  KayentaService kayentaService(OkHttpClient okHttpClient) {
-    createClient "kayenta", KayentaService, okHttpClient
+  KayentaService kayentaService(OkHttpClient defaultClient,
+                                OkHttpClientConfigurationProperties props,
+                                OkHttpMetricsInterceptor interceptor,
+                                @Value('${services.kayenta.externalhttps:false}') boolean kayentaExternalHttps)
+  {
+    if (kayentaExternalHttps) {
+      def noSslCustomizationProps = props.clone()
+      noSslCustomizationProps.keyStore = null
+      noSslCustomizationProps.trustStore = null
+      def okHttpClient = new OkHttpClientConfiguration(noSslCustomizationProps, interceptor).create()
+      createClient "kayenta", KayentaService, okHttpClient
+    } else {
+      createClient "kayenta", KayentaService, defaultClient
+    }
   }
 
   @Bean
