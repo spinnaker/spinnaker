@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { Subject } from 'rxjs';
+import { isEqual } from 'lodash';
 import * as classNames from 'classnames';
 
 import { IServerGroup, IInstance, ILoadBalancerHealth } from 'core/domain';
@@ -19,10 +20,10 @@ export interface IInstanceListBodyState {
   selectedInstanceIds: string[];
   activeInstanceId: string;
   multiselect: boolean;
+  instanceSort?: string;
 }
 
 export class InstanceListBody extends React.Component<IInstanceListBodyProps, IInstanceListBodyState> {
-  private clusterFilterModel = ClusterState.filterModel.asFilterModel;
   private $uiRouter = ReactInjector.$uiRouter;
   private $state = ReactInjector.$state;
   private destroy$ = new Subject();
@@ -33,6 +34,7 @@ export class InstanceListBody extends React.Component<IInstanceListBodyProps, II
       selectedInstanceIds: this.getSelectedInstanceIds(),
       activeInstanceId: this.$state.params.instanceId,
       multiselect: this.$state.params.multiselect,
+      instanceSort: this.$state.params.instanceSort,
     };
   }
 
@@ -42,20 +44,22 @@ export class InstanceListBody extends React.Component<IInstanceListBodyProps, II
     });
 
     this.$uiRouter.globals.params$
-      .map(params => params.instanceId + params.multiselect)
-      .distinctUntilChanged()
+      .map(params => [params.instanceId, params.multiselect, params.instanceSort])
+      .distinctUntilChanged(isEqual)
       .takeUntil(this.destroy$)
       .subscribe(() => {
+        const { params } = this.$state;
         this.setState({
-          activeInstanceId: this.$state.params.instanceId,
-          multiselect: this.$state.params.multiselect,
+          activeInstanceId: params.instanceId,
+          multiselect: params.multiselect,
+          instanceSort: params.instanceSort,
         });
       });
   }
 
   private getSelectedInstanceIds(): string[] {
     const { instances, serverGroup } = this.props;
-    if (this.clusterFilterModel.sortFilter.multiselect) {
+    if (this.$state.params.multiselect) {
       return instances.filter(i => ClusterState.multiselectModel.instanceIsSelected(serverGroup, i.id)).map(i => i.id);
     }
     return [];
@@ -81,16 +85,18 @@ export class InstanceListBody extends React.Component<IInstanceListBodyProps, II
     ) {
       return true;
     }
+    const { state } = this;
     return (
-      this.state.activeInstanceId !== nextState.activeInstanceId ||
-      this.state.selectedInstanceIds.sort().join(',') !== nextState.selectedInstanceIds.sort().join(',') ||
-      this.state.multiselect !== nextState.multiselect
+      state.activeInstanceId !== nextState.activeInstanceId ||
+      state.selectedInstanceIds.sort().join(',') !== nextState.selectedInstanceIds.sort().join(',') ||
+      state.multiselect !== nextState.multiselect ||
+      state.instanceSort !== nextState.instanceSort
     );
   }
 
   private instanceSorter = (a1: IInstance, b1: IInstance): number => {
-    const { sortFilter } = this.clusterFilterModel;
-    const filterSplit = sortFilter.instanceSort.split('-'),
+    const { instanceSort = '' } = this.state;
+    const filterSplit = instanceSort.split('-'),
       filterType = filterSplit.length === 1 ? filterSplit[0] : filterSplit[1],
       reverse = filterSplit.length === 2,
       a = reverse ? b1 : a1,

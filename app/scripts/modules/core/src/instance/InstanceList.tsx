@@ -1,10 +1,10 @@
 import * as React from 'react';
 import { Subject } from 'rxjs';
+import { isEqual } from 'lodash';
 
 import { IServerGroup, IInstance } from 'core/domain';
 import { InstanceListBody } from 'core/instance/InstanceListBody';
 import { SortToggle } from 'core/presentation/sortToggle/SortToggle';
-import { ISortFilter } from 'core/filterModel';
 import { ReactInjector } from 'core/reactShims';
 import { ClusterState } from 'core/state';
 
@@ -12,13 +12,13 @@ export interface IInstanceListProps {
   hasDiscovery: boolean;
   hasLoadBalancers: boolean;
   instances: IInstance[];
-  sortFilter: ISortFilter;
   serverGroup: IServerGroup;
 }
 
 export interface IInstanceListState {
   multiselect: boolean;
   allSelected: boolean;
+  instanceSort?: string;
 }
 
 interface IColumnWidths {
@@ -43,6 +43,7 @@ export class InstanceList extends React.Component<IInstanceListProps, IInstanceL
     this.state = {
       multiselect: this.$state.params.multiselect,
       allSelected: this.instanceGroup.selectAll,
+      instanceSort: this.$state.params.instanceSort,
     };
   }
 
@@ -52,12 +53,13 @@ export class InstanceList extends React.Component<IInstanceListProps, IInstanceL
     });
 
     this.$uiRouter.globals.params$
-      .map(params => params.multiselect)
-      .distinctUntilChanged()
+      .map(params => [params.multiselect, params.instanceSort])
+      .distinctUntilChanged(isEqual)
       .takeUntil(this.destroy$)
       .subscribe(() => {
         this.setState({
           multiselect: this.$state.params.multiselect,
+          instanceSort: this.$state.params.instanceSort,
         });
       });
   }
@@ -114,7 +116,11 @@ export class InstanceList extends React.Component<IInstanceListProps, IInstanceL
     ) {
       return true;
     }
-    return this.state.multiselect !== nextState.multiselect || this.state.allSelected !== nextState.allSelected;
+    return (
+      this.state.multiselect !== nextState.multiselect ||
+      this.state.allSelected !== nextState.allSelected ||
+      this.state.instanceSort !== nextState.instanceSort
+    );
   }
 
   private toggleSort = (sortKey: string): void => {
@@ -124,8 +130,7 @@ export class InstanceList extends React.Component<IInstanceListProps, IInstanceL
 
   private renderHeader(): JSX.Element {
     const { hasDiscovery, hasLoadBalancers } = this.props;
-    const { sortFilter } = this.clusterFilterModel;
-    const sortKey = sortFilter.instanceSort;
+    const sortKey = this.state.instanceSort;
     const showProviderHealth = !hasDiscovery && !hasLoadBalancers;
     const columnWidths = this.getColumnWidths();
 

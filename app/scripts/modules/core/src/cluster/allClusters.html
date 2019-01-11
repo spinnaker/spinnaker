@@ -16,7 +16,7 @@
           <label>
             <input type="checkbox"
                    ng-model="sortFilter.showAllInstances"
-                   ng-change="ctrl.updateClusterGroups()"/>
+                   ng-change="ctrl.syncUrlAndUpdateClusterGroups()"/>
             Instances
           </label>
         </div>
@@ -24,7 +24,7 @@
           <label>
             <input type="checkbox"
                    ng-model="sortFilter.listInstances"
-                   ng-change="ctrl.updateClusterGroups()"/>
+                   ng-change="ctrl.syncUrlAndUpdateClusterGroups()"/>
             with details
           </label>
         </div>

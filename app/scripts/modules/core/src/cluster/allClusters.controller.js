@@ -97,6 +97,11 @@ module.exports = angular
       updateClusterGroups();
     };
 
+    this.syncUrlAndUpdateClusterGroups = () => {
+      ClusterState.filterModel.applyParamsToUrl();
+      this.updateClusterGroups();
+    };
+
     this.clearFilters = function() {
       ClusterState.filterService.clearFilters();
       updateClusterGroups();

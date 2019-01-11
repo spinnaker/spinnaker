@@ -204,7 +204,6 @@ export class ServerGroup extends React.Component<IServerGroupProps, IServerGroup
                     hasLoadBalancers={hasLoadBalancers}
                     instances={instances}
                     serverGroup={serverGroup}
-                    sortFilter={sortFilter}
                   />
                 </div>
               ) : (
