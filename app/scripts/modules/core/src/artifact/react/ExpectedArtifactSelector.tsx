@@ -38,7 +38,7 @@ export class ExpectedArtifactSelector extends React.Component<IExpectedArtifactS
     showIcons: true,
   };
 
-  private summarizeExpectedArtifact = summarizeExpectedArtifact(['kind', 'id']);
+  private summarizeExpectedArtifact = summarizeExpectedArtifact(['kind', 'id', 'customKind']);
 
   private renderOption = (e: IExpectedArtifactSelectorOption) => {
     if (!e.expectedArtifact && !e.requestingNew) {

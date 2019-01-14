@@ -49,12 +49,10 @@ export class ExpectedArtifactService {
       useDefaultArtifact: false,
       matchArtifact: {
         id: UUIDGenerator.generateUuid(),
-        kind: 'custom',
         customKind: true,
       },
       defaultArtifact: {
         id: UUIDGenerator.generateUuid(),
-        kind: 'custom',
         customKind: true,
       },
     };

@@ -6,9 +6,8 @@ import { IExpectedArtifact } from 'core/domain';
 
 import { ExpectedArtifactSelector } from './ExpectedArtifactSelector';
 
-const artifact = (kind: string, type: string): IExpectedArtifact => {
+const artifact = (type: string): IExpectedArtifact => {
   const ea = ExpectedArtifactService.createEmptyArtifact();
-  ea.matchArtifact.kind = kind;
   ea.matchArtifact.customKind = false;
   ea.matchArtifact.type = type;
   return ea;
@@ -17,7 +16,7 @@ const artifact = (kind: string, type: string): IExpectedArtifact => {
 describe('<ExpectedArtifactSelector/>', () => {
   describe('filtering offered artifact types', () => {
     it('only includes those artifacts with type matching a single offeredArtifactTypes regex', () => {
-      const artifacts = [artifact('GCS', 'gcs/object'), artifact('Docker', 'docker/image')];
+      const artifacts = [artifact('gcs/object'), artifact('docker/image')];
       const sel = mount(
         <ExpectedArtifactSelector
           expectedArtifacts={artifacts}
@@ -31,11 +30,7 @@ describe('<ExpectedArtifactSelector/>', () => {
     });
 
     it('only includes those artifacts whose type matches any of the regexes in the offeredArtifactTypes array', () => {
-      const artifacts = [
-        artifact('GCS', 'gcs/object'),
-        artifact('FooBar', 'foo/bar'),
-        artifact('Docker', 'docker/image'),
-      ];
+      const artifacts = [artifact('gcs/object'), artifact('foo/bar'), artifact('docker/image')];
       const sel = mount(
         <ExpectedArtifactSelector
           expectedArtifacts={artifacts}
@@ -52,7 +47,7 @@ describe('<ExpectedArtifactSelector/>', () => {
 
   describe('excluding artifact types', () => {
     it('excludes single artifact types defined by regex', () => {
-      const artifacts = [artifact('GCS', 'gcs/object'), artifact('Docker', 'docker/image')];
+      const artifacts = [artifact('gcs/object'), artifact('docker/image')];
       const sel = mount(
         <ExpectedArtifactSelector
           expectedArtifacts={artifacts}
@@ -66,11 +61,7 @@ describe('<ExpectedArtifactSelector/>', () => {
     });
 
     it('excludes multiple artifact types defined by regex', () => {
-      const artifacts = [
-        artifact('GCS', 'gcs/object'),
-        artifact('GCS', 'gcs/bucket'),
-        artifact('Docker', 'docker/image'),
-      ];
+      const artifacts = [artifact('gcs/object'), artifact('gcs/bucket'), artifact('docker/image')];
       const sel = mount(
         <ExpectedArtifactSelector
           expectedArtifacts={artifacts}
@@ -84,7 +75,7 @@ describe('<ExpectedArtifactSelector/>', () => {
     });
 
     it('excludes multiple artifact types defined by multiples regexes', () => {
-      const artifacts = [artifact('GCS', 'gcs/object'), artifact('Docker', 'docker/image')];
+      const artifacts = [artifact('gcs/object'), artifact('docker/image')];
       const sel = mount(
         <ExpectedArtifactSelector
           expectedArtifacts={artifacts}
@@ -99,7 +90,7 @@ describe('<ExpectedArtifactSelector/>', () => {
 
   describe('creating a new artifact', () => {
     it('provides an option to create a new artifact when an onRequestCreate prop is given', () => {
-      const artifacts = [artifact('GCS', 'gcs/object')];
+      const artifacts = [artifact('gcs/object')];
       const sel = mount(
         <ExpectedArtifactSelector expectedArtifacts={artifacts} onChange={_ea => {}} onRequestCreate={() => {}} />,
       );
@@ -108,7 +99,7 @@ describe('<ExpectedArtifactSelector/>', () => {
     });
 
     it('doesnt provide an option to create a new artifact when an onRequestCreate prop is not given', () => {
-      const artifacts = [artifact('GCS', 'gcs/object')];
+      const artifacts = [artifact('gcs/object')];
       const sel = mount(<ExpectedArtifactSelector expectedArtifacts={artifacts} onChange={_ea => {}} />);
       const options = sel.find('TetheredSelect').prop('options') as any[];
       expect(options.length).toBe(1);

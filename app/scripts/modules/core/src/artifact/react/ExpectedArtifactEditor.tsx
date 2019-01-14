@@ -88,7 +88,9 @@ export class ExpectedArtifactEditor extends React.Component<
   private onKindChange = (kind: IArtifactKindConfig) => {
     const expectedArtifact = cloneDeep(this.state.expectedArtifact);
     expectedArtifact.matchArtifact.type = kind.type;
-    expectedArtifact.matchArtifact.kind = kind.key;
+    // kind is deprecated; remove it from artifacts as they are updated
+    delete expectedArtifact.matchArtifact.kind;
+    expectedArtifact.matchArtifact.customKind = kind.customKind;
     const accounts = this.accountsForExpectedArtifact(expectedArtifact);
     this.setState({ expectedArtifact, account: accounts[0] });
   };

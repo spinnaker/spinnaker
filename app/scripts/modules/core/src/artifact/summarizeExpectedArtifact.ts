@@ -1,7 +1,7 @@
 import { module } from 'angular';
 import { IArtifact, IExpectedArtifact } from 'core/domain';
 
-export function summarizeExpectedArtifact(excludeKeys = ['kind']) {
+export function summarizeExpectedArtifact(excludeKeys = ['customKind', 'kind']) {
   return function(expected: IExpectedArtifact): string {
     if (!expected) {
       return '';

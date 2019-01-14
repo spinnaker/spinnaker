@@ -38,6 +38,7 @@ export class UpstreamVersionProvidedValidator implements IStageOrTriggerValidato
     const message = validator.getMessage(labels);
     const downstreamValidatorConfig: IStageOrTriggerBeforeTypeValidationConfig = {
       type: 'stageOrTriggerBeforeType',
+      checkParentTriggers: validator.checkParentTriggers,
       stageTypes,
       message,
     };
