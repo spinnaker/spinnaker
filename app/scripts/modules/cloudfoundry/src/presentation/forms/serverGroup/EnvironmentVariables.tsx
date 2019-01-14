@@ -1,27 +1,29 @@
 import * as React from 'react';
 import { FieldArray, getIn } from 'formik';
 
-import { FormikFormField, IWizardPageProps, TextInput } from '@spinnaker/core';
+import { FormikFormField, TextInput } from '@spinnaker/core';
 
 import { ICloudFoundryCreateServerGroupCommand } from 'cloudfoundry/serverGroup/configure/serverGroupConfigurationModel.cf';
 import { ICloudFoundryEnvVar } from 'cloudfoundry/domain';
 
-export interface IEnvironmentVariablesProps extends IWizardPageProps<ICloudFoundryCreateServerGroupCommand> {}
+export interface IEnvironmentVariablesProps {
+  fieldName: string;
+  onChange?: (value: string[]) => void;
+}
 
 export class EnvironmentVariables extends React.Component<IEnvironmentVariablesProps> {
   public render() {
+    const { fieldName, onChange } = this.props;
     return (
       <div>
         <div className="form-group">
           <div className="col-md-12">
             <b>Environment Variables</b>
             <FieldArray
-              name="manifest.environment"
+              name={fieldName}
               render={arrayHelpers => {
                 const serverGroupCommand: ICloudFoundryCreateServerGroupCommand = arrayHelpers.form.values;
-                const environmentVariables: string[] = getIn(serverGroupCommand, 'manifest.environment')
-                  ? getIn(serverGroupCommand, 'manifest.environment')
-                  : [];
+                const environmentVariables: string[] = getIn(serverGroupCommand, fieldName) || [];
 
                 return (
                   <table className="table table-condensed packed tags">
@@ -33,12 +35,15 @@ export class EnvironmentVariables extends React.Component<IEnvironmentVariablesP
                     </thead>
                     <tbody>
                       {environmentVariables.map((_, index: number) => {
-                        const envPath = `manifest.environment[${index}]`;
+                        const envPath = `${fieldName}[${index}]`;
                         return (
                           <tr key={index}>
                             <td>
                               <FormikFormField
                                 name={`${envPath}.key`}
+                                onChange={() => {
+                                  onChange && onChange(getIn(serverGroupCommand, fieldName) || []);
+                                }}
                                 input={props => <TextInput {...props} />}
                                 required={true}
                               />
@@ -46,6 +51,9 @@ export class EnvironmentVariables extends React.Component<IEnvironmentVariablesP
                             <td>
                               <FormikFormField
                                 name={`${envPath}.value`}
+                                onChange={() => {
+                                  onChange && onChange(getIn(serverGroupCommand, fieldName) || []);
+                                }}
                                 input={props => <TextInput {...props} />}
                                 required={true}
                               />

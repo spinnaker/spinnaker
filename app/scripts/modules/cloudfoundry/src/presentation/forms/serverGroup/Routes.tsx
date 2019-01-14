@@ -1,14 +1,18 @@
 import * as React from 'react';
 import { FieldArray, getIn } from 'formik';
 
-import { FormikFormField, HelpField, IWizardPageProps, TextInput } from '@spinnaker/core';
+import { FormikFormField, HelpField, TextInput } from '@spinnaker/core';
 
 import { ICloudFoundryCreateServerGroupCommand } from 'cloudfoundry/serverGroup/configure/serverGroupConfigurationModel.cf';
 
-export interface IRoutesProps extends IWizardPageProps<ICloudFoundryCreateServerGroupCommand> {}
+export interface IRoutesProps {
+  fieldName: string;
+  onChange?: (value: string[]) => void;
+}
 
 export class Routes extends React.Component<IRoutesProps> {
   public render() {
+    const { fieldName, onChange } = this.props;
     return (
       <div>
         <div className="form-group">
@@ -20,9 +24,7 @@ export class Routes extends React.Component<IRoutesProps> {
               name="manifest.routes"
               render={arrayHelpers => {
                 const serverGroupCommand: ICloudFoundryCreateServerGroupCommand = arrayHelpers.form.values;
-                const routes: string[] = getIn(serverGroupCommand, 'manifest.routes')
-                  ? getIn(serverGroupCommand, 'manifest.routes')
-                  : [];
+                const routes: string[] = getIn(serverGroupCommand, fieldName) || [];
 
                 return (
                   <table className="table table-condensed packed metadata">
@@ -32,7 +34,10 @@ export class Routes extends React.Component<IRoutesProps> {
                           <td>
                             <div className="sp-margin-m-bottom">
                               <FormikFormField
-                                name={`manifest.routes[${index}]`}
+                                name={`${fieldName}[${index}]`}
+                                onChange={() => {
+                                  onChange && onChange(getIn(serverGroupCommand, fieldName) || []);
+                                }}
                                 input={props => <TextInput {...props} />}
                                 required={true}
                               />

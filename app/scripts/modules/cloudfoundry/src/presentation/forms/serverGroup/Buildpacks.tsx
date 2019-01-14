@@ -1,26 +1,28 @@
 import * as React from 'react';
 import { FieldArray, getIn } from 'formik';
 
-import { FormikFormField, IWizardPageProps, TextInput } from '@spinnaker/core';
+import { FormikFormField, TextInput } from '@spinnaker/core';
 
 import { ICloudFoundryCreateServerGroupCommand } from 'cloudfoundry/serverGroup/configure/serverGroupConfigurationModel.cf';
 
-export interface IBuildpacksProps extends IWizardPageProps<ICloudFoundryCreateServerGroupCommand> {}
+export interface IBuildpacksProps {
+  fieldName: string;
+  onChange?: (value: string[]) => void;
+}
 
 export class Buildpacks extends React.Component<IBuildpacksProps> {
   public render() {
+    const { fieldName, onChange } = this.props;
     return (
       <div>
         <div className="form-group">
           <div className="col-md-12">
             <b>Buildpacks</b>
             <FieldArray
-              name="manifest.buildpacks"
+              name={fieldName}
               render={arrayHelpers => {
                 const serverGroupCommand: ICloudFoundryCreateServerGroupCommand = arrayHelpers.form.values;
-                const buildpacks: string[] = getIn(serverGroupCommand, 'manifest.buildpacks')
-                  ? getIn(serverGroupCommand, 'manifest.buildpacks')
-                  : [];
+                const buildpacks: string[] = getIn(serverGroupCommand, fieldName) || [];
 
                 return (
                   <table className="table table-condensed packed metadata">
@@ -30,7 +32,10 @@ export class Buildpacks extends React.Component<IBuildpacksProps> {
                           <td>
                             <div className="sp-margin-m-bottom">
                               <FormikFormField
-                                name={`manifest.buildpacks[${index}]`}
+                                name={`${fieldName}[${index}]`}
+                                onChange={() => {
+                                  onChange && onChange(getIn(serverGroupCommand, fieldName) || []);
+                                }}
                                 input={props => <TextInput {...props} />}
                                 required={true}
                               />
