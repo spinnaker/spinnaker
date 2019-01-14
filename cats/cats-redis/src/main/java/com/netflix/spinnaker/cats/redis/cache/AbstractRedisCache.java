@@ -57,7 +57,7 @@ public abstract class AbstractRedisCache implements WriteableCache {
                                RedisCacheOptions options) {
     this.prefix = prefix;
     this.redisClientDelegate = redisClientDelegate;
-    this.objectMapper = objectMapper.disable(SerializationFeature.WRITE_NULL_MAP_VALUES);
+    this.objectMapper = objectMapper;
     this.options = options;
   }
 

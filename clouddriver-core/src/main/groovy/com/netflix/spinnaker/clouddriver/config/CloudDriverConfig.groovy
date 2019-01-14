@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.config
 
+import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation
@@ -24,7 +25,12 @@ import com.netflix.spinnaker.cats.redis.cache.RedisCacheOptions
 import com.netflix.spinnaker.clouddriver.cache.CacheConfig
 import com.netflix.spinnaker.clouddriver.cache.NoopOnDemandCacheUpdater
 import com.netflix.spinnaker.clouddriver.cache.OnDemandCacheUpdater
-import com.netflix.spinnaker.clouddriver.core.*
+import com.netflix.spinnaker.clouddriver.core.CloudProvider
+import com.netflix.spinnaker.clouddriver.core.DynomiteConfig
+import com.netflix.spinnaker.clouddriver.core.NoopAtomicOperationConverter
+import com.netflix.spinnaker.clouddriver.core.NoopCloudProvider
+import com.netflix.spinnaker.clouddriver.core.ProjectClustersService
+import com.netflix.spinnaker.clouddriver.core.RedisConfig
 import com.netflix.spinnaker.clouddriver.core.agent.CleanupPendingOnDemandCachesAgent
 import com.netflix.spinnaker.clouddriver.core.agent.ProjectClustersCachingAgent
 import com.netflix.spinnaker.clouddriver.core.limits.ServiceLimitConfiguration
@@ -32,7 +38,37 @@ import com.netflix.spinnaker.clouddriver.core.limits.ServiceLimitConfigurationBu
 import com.netflix.spinnaker.clouddriver.core.provider.CoreProvider
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionAuthorizer
-import com.netflix.spinnaker.clouddriver.model.*
+import com.netflix.spinnaker.clouddriver.model.ApplicationProvider
+import com.netflix.spinnaker.clouddriver.model.CloudMetricProvider
+import com.netflix.spinnaker.clouddriver.model.ClusterProvider
+import com.netflix.spinnaker.clouddriver.model.ElasticIpProvider
+import com.netflix.spinnaker.clouddriver.model.ImageProvider
+import com.netflix.spinnaker.clouddriver.model.InstanceProvider
+import com.netflix.spinnaker.clouddriver.model.InstanceTypeProvider
+import com.netflix.spinnaker.clouddriver.model.KeyPairProvider
+import com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider
+import com.netflix.spinnaker.clouddriver.model.ManifestProvider
+import com.netflix.spinnaker.clouddriver.model.NetworkProvider
+import com.netflix.spinnaker.clouddriver.model.NoopApplicationProvider
+import com.netflix.spinnaker.clouddriver.model.NoopCloudMetricProvider
+import com.netflix.spinnaker.clouddriver.model.NoopClusterProvider
+import com.netflix.spinnaker.clouddriver.model.NoopElasticIpProvider
+import com.netflix.spinnaker.clouddriver.model.NoopImageProvider
+import com.netflix.spinnaker.clouddriver.model.NoopInstanceProvider
+import com.netflix.spinnaker.clouddriver.model.NoopInstanceTypeProvider
+import com.netflix.spinnaker.clouddriver.model.NoopKeyPairProvider
+import com.netflix.spinnaker.clouddriver.model.NoopLoadBalancerProvider
+import com.netflix.spinnaker.clouddriver.model.NoopManifestProvider
+import com.netflix.spinnaker.clouddriver.model.NoopNetworkProvider
+import com.netflix.spinnaker.clouddriver.model.NoopReservationReportProvider
+import com.netflix.spinnaker.clouddriver.model.NoopSecurityGroupProvider
+import com.netflix.spinnaker.clouddriver.model.NoopServerGroupManagerProvider
+import com.netflix.spinnaker.clouddriver.model.NoopSubnetProvider
+import com.netflix.spinnaker.clouddriver.model.ReservationReportProvider
+import com.netflix.spinnaker.clouddriver.model.SecurityGroupProvider
+import com.netflix.spinnaker.clouddriver.model.ServerGroupManager
+import com.netflix.spinnaker.clouddriver.model.ServerGroupManagerProvider
+import com.netflix.spinnaker.clouddriver.model.SubnetProvider
 import com.netflix.spinnaker.clouddriver.names.NamerRegistry
 import com.netflix.spinnaker.clouddriver.names.NamingStrategy
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationConverter
@@ -50,6 +86,7 @@ import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
+import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.ApplicationContext
@@ -58,7 +95,7 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import org.springframework.context.annotation.PropertySource
 import org.springframework.core.env.Environment
-import org.springframework.security.access.PermissionEvaluator
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder
 import org.springframework.web.client.RestTemplate
 
 import javax.inject.Provider
@@ -79,6 +116,18 @@ class CloudDriverConfig {
   @ConditionalOnMissingBean(Clock)
   Clock clock() {
     Clock.systemDefaultZone()
+  }
+
+  @Bean
+  Jackson2ObjectMapperBuilderCustomizer defaultObjectMapperCustomizer() {
+    return new Jackson2ObjectMapperBuilderCustomizer() {
+      @Override
+      void customize(Jackson2ObjectMapperBuilder jacksonObjectMapperBuilder) {
+        jacksonObjectMapperBuilder.serializationInclusion(JsonInclude.Include.NON_NULL)
+        jacksonObjectMapperBuilder.failOnEmptyBeans(false)
+        jacksonObjectMapperBuilder.failOnUnknownProperties(false)
+      }
+    }
   }
 
   @Bean
