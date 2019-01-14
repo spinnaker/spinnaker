@@ -16,13 +16,11 @@
 
 package com.netflix.spinnaker.halyard.config.validate.v1.canary.aws;
 
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.aws.AwsCanaryAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.aws.AwsCanaryServiceIntegration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
-import lombok.Setter;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;

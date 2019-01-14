@@ -22,10 +22,12 @@ import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryServic
 import com.netflix.spinnaker.halyard.config.model.v1.canary.Canary;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.aws.AwsCanaryServiceIntegration;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.google.GoogleCanaryServiceIntegration;
+import com.netflix.spinnaker.halyard.config.model.v1.canary.prometheus.PrometheusCanaryServiceIntegration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.config.validate.v1.canary.aws.AwsCanaryValidator;
 import com.netflix.spinnaker.halyard.config.validate.v1.canary.google.GoogleCanaryValidator;
+import com.netflix.spinnaker.halyard.config.validate.v1.canary.prometheus.PrometheusCanaryValidator;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.TaskScheduler;
@@ -85,6 +87,10 @@ public class CanaryValidator extends Validator<Canary> {
         if (!configurationAndObjectStoresAreConfigured) {
           configurationAndObjectStoresAreConfigured = awsCanaryServiceIntegration.isEnabled() && awsCanaryServiceIntegration.isS3Enabled();
         }
+      } else if (s instanceof PrometheusCanaryServiceIntegration) {
+        PrometheusCanaryServiceIntegration prometheusCanaryServiceIntegration = (PrometheusCanaryServiceIntegration)s;
+
+        new PrometheusCanaryValidator().validate(p, prometheusCanaryServiceIntegration);
       }
     }
 
