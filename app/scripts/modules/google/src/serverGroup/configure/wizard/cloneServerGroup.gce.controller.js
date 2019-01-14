@@ -391,7 +391,7 @@ module.exports = angular
     this.onEnableAutoHealingChange = function() {
       // Prevent empty auto-healing policies from being overwritten by those of their ancestors
       $scope.command.overwriteAncestorAutoHealingPolicy =
-        $scope.command.stack === 'clone' &&
+        $scope.command.viewState.mode === 'clone' &&
         $scope.command.autoHealingPolicy != null &&
         $scope.command.enableAutoHealing === false;
     };
