@@ -35,6 +35,8 @@ import java.util.Map;
 public class Artifact {
   @JsonProperty("type")
   private String type;
+  @JsonProperty("customKind")
+  private boolean customKind;
   @JsonProperty("name")
   private String name;
   @JsonProperty("version")
