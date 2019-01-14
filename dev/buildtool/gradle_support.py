@@ -171,7 +171,9 @@ class GradleRunner(object):
         '{home}/.gradle'.format(home=os.environ['HOME'])
         if os.environ.get('HOME') else None,
         help='Path to a gradle cache directory to use for the builds.')
-
+    add_parser_argument(
+        parser, 'gradle_network_timeout_secs', defaults, 60,
+        help='Seconds to configure gradle timeouts (e.g. with bintray).')
     add_parser_argument(
         parser, 'maven_custom_init_file', defaults,
         os.path.join(os.path.dirname(__file__), '..', 'maven-init.gradle'),
@@ -353,6 +355,12 @@ class GradleRunner(object):
 
     full_args = list(args)
     full_args.append('-PbintrayPackageBuildNumber=%s' % build_number)
+
+    # This gradle options wasnt introduced until 4.10.2
+    timeout = self.__options.gradle_network_timeout_secs * 1000
+    if timeout:
+      full_args.append('-Dorg.gradle.internal.http.socketTimeout=%d' % timeout)
+      full_args.append('-Dorg.gradle.internal.http.connectionTimeout=%d' % timeout)
 
     name = repository.name
     logfile = command_processor.get_logfile_path(name + '-' + context)
