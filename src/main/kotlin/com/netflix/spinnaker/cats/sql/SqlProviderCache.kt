@@ -116,18 +116,46 @@ class SqlProviderCache(private val backingStore: WriteableCache) : ProviderCache
     return backingStore.getIdentifiers(type)
   }
 
-  override fun putCacheResult(source: String, authoritativeTypes: MutableCollection<String>?, cacheResult: CacheResult?) {
+  override fun putCacheResult(source: String,
+                              authoritativeTypes: MutableCollection<String>,
+                              cacheResult: CacheResult?) {
     if (cacheResult == null) {
       return
     }
 
+    // TODO every source type should have an authoritative agent and every agent should be authoritative for something
+    // TODO terrible hack because no AWS agent is authoritative for clusters, fix in ClusterCachingAgent
+    // TODO same with namedImages - fix in AWS ImageCachingAgent
+    // All OnDemand agents must also be treated as authoritative
+    if (source.contains(ON_DEMAND.ns, ignoreCase = true) && !authoritativeTypes.contains(source)) {
+      authoritativeTypes.add(source)
+    } else if (
+      source.contains("clustercaching", ignoreCase = true) &&
+      !authoritativeTypes.contains(CLUSTERS.ns) &&
+      cacheResult.cacheResults.any { it.key.startsWith(CLUSTERS.ns) }
+    ) {
+      authoritativeTypes.add(CLUSTERS.ns)
+    } else if (
+      source.contains("imagecaching", ignoreCase = true) &&
+      cacheResult.cacheResults.any { it.key.startsWith(NAMED_IMAGES.ns) }
+    ) {
+      authoritativeTypes.add(NAMED_IMAGES.ns)
+    }
+
     val cachedTypes = mutableSetOf<String>()
     // Update resource table from Authoritative sources only
-    if (authoritativeTypes != null && authoritativeTypes.isNotEmpty()) {
+    if (authoritativeTypes.isNotEmpty()) {
       cacheResult.cacheResults
         .filter { authoritativeTypes.contains(it.key) }
         .forEach {
           cacheDataType(it.key, source, it.value, true)
+          cachedTypes.add(it.key)
+        }
+    } else {
+      // If there are no authoritative types in cacheResult, override all as authoritative without cleanup
+      cacheResult.cacheResults
+        .forEach {
+          cacheDataType(it.key, source, it.value, true, false)
           cachedTypes.add(it.key)
         }
     }
@@ -166,27 +194,27 @@ class SqlProviderCache(private val backingStore: WriteableCache) : ProviderCache
   }
 
   private fun cacheDataType(type: String, agent: String, items: Collection<CacheData>, authoritative: Boolean) {
+    cacheDataType(type, agent, items, authoritative, true)
+  }
+
+  private fun cacheDataType(type: String,
+                            agent: String,
+                            items: Collection<CacheData>,
+                            authoritative: Boolean,
+                            cleanup: Boolean) {
     val toStore = ArrayList<CacheData>(items.size + 1)
     items.forEach {
       toStore.add(uniqueifyRelationships(it, agent))
     }
 
-    // TODO terrible hack because no AWS agent is authoritative for clusters, fix in ClusterCachingAgent
-    // TODO same with namedImages - fix in AWS ImageCachingAgent
-    val authOverride =
-      if (
-        (type == CLUSTERS.toString() && agent.contains("clustercaching", ignoreCase = true)) ||
-        (type == NAMED_IMAGES.toString() && agent.contains("imagecaching", ignoreCase = true)) ||
-        (type == ON_DEMAND.toString())
-      ) {
-        true
-      } else {
-        authoritative
-      }
+    // OnDemand agents are always updated incrementally and should not trigger auto-cleanup at the WriteableCache layer
+    val cleanupOverride = if (agent.contains(ON_DEMAND.ns, ignoreCase = true)) {
+      false
+    } else {
+      cleanup
+    }
 
-    val cleanup = !agent.contains(ON_DEMAND.ns, ignoreCase = true)
-
-    (backingStore as SqlCache).mergeAll(type, agent, toStore, authOverride, cleanup)
+    (backingStore as SqlCache).mergeAll(type, agent, toStore, authoritative, cleanupOverride)
   }
 
   private fun uniqueifyRelationships(source: CacheData, sourceAgentType: String): CacheData {

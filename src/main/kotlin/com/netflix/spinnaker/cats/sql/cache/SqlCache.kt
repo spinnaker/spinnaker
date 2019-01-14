@@ -431,6 +431,14 @@ class SqlCache(
           .filter { e -> e.value == null }
           .keys
         keys.forEach { na -> it.attributes.remove(na) }
+
+        val keysToNormalize = it.relationships.keys.filter { k -> k.contains(':') }
+        if (keysToNormalize.isNotEmpty()) {
+          val normalized = normalizeRelationships(it.relationships, emptyList())
+          keysToNormalize.forEach { k -> it.relationships.remove(k) }
+          it.relationships.putAll(normalized)
+        }
+
         val body: String? = mapper.writeValueAsString(it)
         val bodyHash = getHash(body)
 
@@ -574,6 +582,9 @@ class SqlCache(
           existingRevRelTypes.add(relType)
         }
       }
+
+    existingRevRelTypes.filter { !createdTables.contains(it) }
+      .forEach { createTables(it) }
 
     val existingRevRelIds = existingRevRelTypes
       .map { relType ->
@@ -909,7 +920,9 @@ class SqlCache(
         // however I think we should leave relationships stored in a key's body and only use filter
         // to prevent fetching more. TODO: update the test?
         if (relationshipPrefixes.isNotEmpty()) {
-          data[item.id]!!.relationships.putAll(normalizeRelationships(item.relationships, relationshipPrefixes))
+          if (item.relationships.any { it.key.contains(':') }) {
+            data[item.id]!!.relationships.putAll(normalizeRelationships(item.relationships, relationshipPrefixes))
+          }
         } else {
           relKeysToRemove.getOrPut(item.id) { mutableSetOf() }
             .addAll(data[item.id]!!.relationships.keys)
@@ -923,7 +936,6 @@ class SqlCache(
           normalizeRelationships(item.relationships, relationshipPrefixes).forEach {
             if (rel.contains(it.key)) {
               it.value.forEach { rv ->
-                // TODO can relationships = Map<String, Set<String>> instead of String to Collection?
                 if (!rel[it.key]!!.contains(rv)) {
                   rel[it.key]!!.add(rv)
                 }
