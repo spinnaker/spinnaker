@@ -180,24 +180,45 @@ class DualExecutionRepository(
     )
   }
 
-  override fun retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(pipelineConfigIds: MutableList<String>,
-                                                                             buildTimeStartBoundary: Long,
-                                                                             buildTimeEndBoundary: Long,
-                                                                             limit: Int): Observable<Execution> {
-    return Observable.merge(
-      primary.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(
+  override fun retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(
+    pipelineConfigIds: MutableList<String>,
+    buildTimeStartBoundary: Long,
+    buildTimeEndBoundary: Long,
+    executionCriteria: ExecutionCriteria
+  ): List<Execution> {
+    return primary
+      .retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(
         pipelineConfigIds,
         buildTimeStartBoundary,
         buildTimeEndBoundary,
-        limit
-      ),
-      previous.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(
-        pipelineConfigIds,
-        buildTimeStartBoundary,
-        buildTimeEndBoundary,
-        limit
+        executionCriteria
       )
-    )
+      .plus(previous.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(
+        pipelineConfigIds,
+        buildTimeStartBoundary,
+        buildTimeEndBoundary,
+        executionCriteria)
+      )
+  }
+
+  override fun retrieveAllPipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(
+    pipelineConfigIds: List<String>,
+    buildTimeStartBoundary: Long,
+    buildTimeEndBoundary: Long,
+    executionCriteria: ExecutionCriteria
+  ): List<Execution> {
+    return primary
+      .retrieveAllPipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(
+        pipelineConfigIds,
+        buildTimeStartBoundary,
+        buildTimeEndBoundary,
+        executionCriteria
+      ).plus(previous.retrieveAllPipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(
+        pipelineConfigIds,
+        buildTimeStartBoundary,
+        buildTimeEndBoundary,
+        executionCriteria)
+      )
   }
 
   override fun retrieveOrchestrationsForApplication(application: String,

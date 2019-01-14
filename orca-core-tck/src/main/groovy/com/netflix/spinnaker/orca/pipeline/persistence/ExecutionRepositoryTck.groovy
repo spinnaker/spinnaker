@@ -35,7 +35,7 @@ import static com.netflix.spinnaker.orca.ExecutionStatus.*
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.ORCHESTRATION
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
-import static com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator.NATURAL
+import static com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator.NATURAL_ASC
 import static com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator.START_TIME_OR_ID
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.*
 import static java.time.ZoneOffset.UTC
@@ -78,7 +78,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     repository.store(runningExecution)
     repository.store(succeededExecution)
     def pipelines = repository.retrievePipelinesForPipelineConfigId(
-      "pipeline-1", new ExecutionCriteria(limit: 5, statuses: ["RUNNING", "SUCCEEDED", "TERMINAL"])
+      "pipeline-1", new ExecutionCriteria(pageSize: 5, statuses: ["RUNNING", "SUCCEEDED", "TERMINAL"])
     ).subscribeOn(Schedulers.io()).toList().toBlocking().single()
 
     then:
@@ -86,7 +86,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
 
     when:
     pipelines = repository.retrievePipelinesForPipelineConfigId(
-      "pipeline-1", new ExecutionCriteria(limit: 5, statuses: ["RUNNING"])
+      "pipeline-1", new ExecutionCriteria(pageSize: 5, statuses: ["RUNNING"])
     ).subscribeOn(Schedulers.io()).toList().toBlocking().single()
 
     then:
@@ -94,7 +94,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
 
     when:
     pipelines = repository.retrievePipelinesForPipelineConfigId(
-      "pipeline-1", new ExecutionCriteria(limit: 5, statuses: ["TERMINAL"])
+      "pipeline-1", new ExecutionCriteria(pageSize: 5, statuses: ["TERMINAL"])
     ).subscribeOn(Schedulers.io()).toList().toBlocking().single()
 
     then:
@@ -119,7 +119,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     repository.store(runningExecution)
     repository.store(succeededExecution)
     def orchestrations = repository.retrieveOrchestrationsForApplication(
-      runningExecution.application, new ExecutionCriteria(limit: 5, statuses: ["RUNNING", "SUCCEEDED", "TERMINAL"])
+      runningExecution.application, new ExecutionCriteria(pageSize: 5, statuses: ["RUNNING", "SUCCEEDED", "TERMINAL"])
     ).subscribeOn(Schedulers.io()).toList().toBlocking().single()
 
     then:
@@ -127,7 +127,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
 
     when:
     orchestrations = repository.retrieveOrchestrationsForApplication(
-      runningExecution.application, new ExecutionCriteria(limit: 5, statuses: ["RUNNING"])
+      runningExecution.application, new ExecutionCriteria(pageSize: 5, statuses: ["RUNNING"])
     ).subscribeOn(Schedulers.io()).toList().toBlocking().single()
 
     then:
@@ -135,7 +135,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
 
     when:
     orchestrations = repository.retrieveOrchestrationsForApplication(
-      runningExecution.application, new ExecutionCriteria(limit: 5, statuses: ["TERMINAL"])
+      runningExecution.application, new ExecutionCriteria(pageSize: 5, statuses: ["TERMINAL"])
     ).subscribeOn(Schedulers.io()).toList().toBlocking().single()
 
     then:
@@ -160,8 +160,8 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     repository.store(succeededExecution)
     def orchestrations = repository.retrieveOrchestrationsForApplication(
       runningExecution.application,
-      new ExecutionCriteria(limit: 5, statuses: ["RUNNING", "SUCCEEDED", "TERMINAL"]),
-      NATURAL
+      new ExecutionCriteria(pageSize: 5, statuses: ["RUNNING", "SUCCEEDED", "TERMINAL"]),
+      NATURAL_ASC
     )
 
     then:
@@ -172,8 +172,8 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     when:
     orchestrations = repository.retrieveOrchestrationsForApplication(
       runningExecution.application,
-      new ExecutionCriteria(limit: 5, statuses: ["RUNNING"]),
-      NATURAL
+      new ExecutionCriteria(pageSize: 5, statuses: ["RUNNING"]),
+      NATURAL_ASC
     )
 
     then:
@@ -182,8 +182,8 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     when:
     orchestrations = repository.retrieveOrchestrationsForApplication(
       runningExecution.application,
-      new ExecutionCriteria(limit: 5, statuses: ["TERMINAL"]),
-      NATURAL
+      new ExecutionCriteria(pageSize: 5, statuses: ["TERMINAL"]),
+      NATURAL_ASC
     )
 
     then:
@@ -613,7 +613,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     and:
     def criteria = new ExecutionCriteria()
       .setStatuses(statuses.collect { it.toString() })
-      .setLimit(limit)
+      .setPageSize(limit)
 
     expect:
     with(repository.retrieve(type, criteria).toList().toBlocking().single()) {

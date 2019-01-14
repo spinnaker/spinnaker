@@ -207,17 +207,33 @@ class RedisInstrumentedExecutionRepository(
     }
   }
 
-  override fun retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(pipelineConfigIds: MutableList<String>,
-                                                                             buildTimeStartBoundary: Long,
-                                                                             buildTimeEndBoundary: Long,
-                                                                             limit: Int): Observable<Execution> {
+  override fun retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(
+    pipelineConfigIds: MutableList<String>,
+    buildTimeStartBoundary: Long,
+    buildTimeEndBoundary: Long,
+    executionCriteria: ExecutionRepository.ExecutionCriteria
+  ): List<Execution> {
     return withMetrics("retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary") {
       executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(
         pipelineConfigIds,
         buildTimeStartBoundary,
         buildTimeEndBoundary,
-        limit
-      )
+        executionCriteria)
+    }
+  }
+
+  override fun retrieveAllPipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(
+    pipelineConfigIds: List<String>,
+    buildTimeStartBoundary: Long,
+    buildTimeEndBoundary: Long,
+    executionCriteria: ExecutionRepository.ExecutionCriteria
+  ): List<Execution> {
+    return withMetrics("retrieveAllPipelinesForPipelineConfigIdsBetweenBuildTimeBoundary") {
+      executionRepository.retrieveAllPipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(
+        pipelineConfigIds,
+        buildTimeStartBoundary,
+        buildTimeEndBoundary,
+        executionCriteria)
     }
   }
 

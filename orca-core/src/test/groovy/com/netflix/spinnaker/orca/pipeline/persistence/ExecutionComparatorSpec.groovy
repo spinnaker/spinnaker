@@ -19,8 +19,8 @@ import com.netflix.spinnaker.orca.pipeline.model.Execution
 import spock.lang.Specification
 
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.*
-import static com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator.NATURAL
-import static com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator.REVERSE_BUILD_TIME
+import static com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator.NATURAL_ASC
+import static com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator.BUILD_TIME_DESC
 import static com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator.START_TIME_OR_ID
 
 class ExecutionComparatorSpec extends Specification {
@@ -34,7 +34,7 @@ class ExecutionComparatorSpec extends Specification {
     ]
 
     when:
-    executions.sort(NATURAL)
+    executions.sort(NATURAL_ASC)
 
     then:
     assert executions*.id == ["3", "2", "1"]
@@ -66,7 +66,7 @@ class ExecutionComparatorSpec extends Specification {
     ]
 
     when:
-    executions.sort(REVERSE_BUILD_TIME)
+    executions.sort(BUILD_TIME_DESC)
 
     then:
     assert executions*.id == ["2", "3", "1", "4"]

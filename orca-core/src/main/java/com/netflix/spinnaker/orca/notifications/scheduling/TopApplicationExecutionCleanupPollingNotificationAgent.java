@@ -111,7 +111,7 @@ public class TopApplicationExecutionCleanupPollingNotificationAgent extends Abst
         log.info("Cleaning up orchestration executions (application: {}, threshold: {})", app, threshold);
 
         ExecutionCriteria executionCriteria = new ExecutionCriteria();
-        executionCriteria.setLimit(Integer.MAX_VALUE);
+        executionCriteria.setPageSize(Integer.MAX_VALUE);
         cleanup(executionRepository.retrieveOrchestrationsForApplication(app, executionCriteria), app, "orchestration");
       });
     } catch (Exception e) {

@@ -41,7 +41,7 @@ class OrchestrationMigrationAgent(
     val previouslyMigratedOrchestrationIds = dualExecutionRepository.primary.retrieveAllExecutionIds(ORCHESTRATION)
 
     val executionCriteria = ExecutionRepository.ExecutionCriteria().apply {
-      limit = 3500
+      pageSize = 3500
       setStatuses(ExecutionStatus.COMPLETED.map { it.name })
     }
 

@@ -59,7 +59,7 @@ class ProjectController {
 
     statuses = statuses ?: ExecutionStatus.values()*.toString().join(",")
     def executionCriteria = new ExecutionRepository.ExecutionCriteria(
-      limit: limit,
+      pageSize: limit,
       statuses: (statuses.split(",") as Collection)
     )
 

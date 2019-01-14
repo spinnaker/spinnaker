@@ -33,8 +33,8 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator
-import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator.NATURAL
-import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator.REVERSE_BUILD_TIME
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator.NATURAL_ASC
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator.BUILD_TIME_DESC
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator.START_TIME_OR_ID
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionCriteria
 import com.netflix.spinnaker.orca.pipeline.persistence.UnpausablePipelineException
@@ -230,8 +230,8 @@ class SqlExecutionRepository(
       seek = {
         it.orderBy(field("id").desc())
           .run {
-            if (criteria.limit > 0) {
-              limit(criteria.limit)
+            if (criteria.pageSize > 0) {
+              limit(criteria.pageSize)
             } else {
               this
             }
@@ -259,7 +259,7 @@ class SqlExecutionRepository(
           .statusIn(criteria.statuses)
       },
       seek = {
-        it.orderBy(field("id").desc()).limit(criteria.limit)
+        it.orderBy(field("id").desc()).limit(criteria.pageSize)
       }
     )
 
@@ -270,7 +270,7 @@ class SqlExecutionRepository(
     application: String,
     criteria: ExecutionCriteria
   ): Observable<Execution> {
-    return Observable.from(retrieveOrchestrationsForApplication(application, criteria, NATURAL))
+    return Observable.from(retrieveOrchestrationsForApplication(application, criteria, NATURAL_ASC))
   }
 
   override fun retrieveOrchestrationsForApplication(
@@ -298,11 +298,11 @@ class SqlExecutionRepository(
       seek = {
         val ordered = when (sorter) {
           START_TIME_OR_ID -> it.orderBy(field("start_time").desc().nullsFirst(), field("id").desc())
-          REVERSE_BUILD_TIME -> it.orderBy(field("build_time").asc(), field("id").asc())
+          BUILD_TIME_DESC -> it.orderBy(field("build_time").asc(), field("id").asc())
           else -> it.orderBy(field("id").desc())
         }
 
-        ordered.offset((criteria.page - 1) * criteria.limit).limit(criteria.limit)
+        ordered.offset((criteria.page - 1) * criteria.pageSize).limit(criteria.pageSize)
       }
     ).fetchExecutions().toMutableList()
   }
@@ -405,24 +405,67 @@ class SqlExecutionRepository(
     )
   }
 
-  override fun retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(pipelineConfigIds: MutableList<String>,
-                                                                             buildTimeStartBoundary: Long,
-                                                                             buildTimeEndBoundary: Long,
-                                                                             limit: Int): Observable<Execution> {
+  override fun retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(
+    pipelineConfigIds: List<String>,
+    buildTimeStartBoundary: Long,
+    buildTimeEndBoundary: Long,
+    executionCriteria: ExecutionCriteria
+  ): List<Execution> {
     val select = jooq.selectExecutions(
       PIPELINE,
       conditions = {
         val inClause = "config_id IN (${pipelineConfigIds.joinToString(",") { "'$it'" }})"
-        it.where(inClause)
+        val timeCondition = it.where(inClause)
           .and(field("build_time").gt(buildTimeStartBoundary))
           .and(field("build_time").lt(buildTimeEndBoundary))
+        var conditions = timeCondition
+        if (executionCriteria.statuses.isNotEmpty()) {
+          conditions = timeCondition.and("status IN (${executionCriteria.statuses.joinToString(",") { "'$it'" }})")
+        }
+        conditions
       },
       seek = {
-        it.orderBy(field("id").desc())
-        it.limit(limit)
+        val seek = when (executionCriteria.sortType) {
+          ExecutionComparator.BUILD_TIME_ASC -> it.orderBy(field("build_time").asc())
+          ExecutionComparator.BUILD_TIME_DESC -> it.orderBy(field("build_time").desc())
+          ExecutionComparator.START_TIME_OR_ID -> it.orderBy(field("start_time").desc())
+          ExecutionComparator.NATURAL_ASC -> it.orderBy(field("id").desc())
+          else -> it.orderBy(field("id").asc())
+        }
+        seek
+          .limit(executionCriteria.pageSize)
+          .offset((executionCriteria.page - 1) * executionCriteria.pageSize)
       }
     )
-    return Observable.from(select.fetchExecutions())
+
+    return select.fetchExecutions().toList()
+  }
+
+  override fun retrieveAllPipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(
+    pipelineConfigIds: List<String>,
+    buildTimeStartBoundary: Long,
+    buildTimeEndBoundary: Long,
+    executionCriteria: ExecutionCriteria
+  ): List<Execution> {
+    val allExecutions = mutableListOf<Execution>()
+    var page = 1
+    val pageSize = executionCriteria.pageSize
+    var moreResults = true
+
+    while (moreResults) {
+      val results = retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(
+        pipelineConfigIds,
+        buildTimeStartBoundary,
+        buildTimeEndBoundary,
+        executionCriteria.setPage(page)
+      )
+      moreResults = results.size >= pageSize
+      page += 1
+
+      allExecutions.addAll(results)
+    }
+
+    return allExecutions
   }
 
   override fun hasExecution(type: ExecutionType, id: String): Boolean {

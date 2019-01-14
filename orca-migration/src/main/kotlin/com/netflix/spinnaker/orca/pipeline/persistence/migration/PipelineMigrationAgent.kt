@@ -40,7 +40,7 @@ class PipelineMigrationAgent(
     val previouslyMigratedPipelineIds = dualExecutionRepository.primary.retrieveAllExecutionIds(PIPELINE)
 
     val executionCriteria = ExecutionRepository.ExecutionCriteria().apply {
-      limit = 50
+      pageSize = 50
       setStatuses(ExecutionStatus.COMPLETED.map { it.name })
     }
 

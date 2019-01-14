@@ -92,7 +92,7 @@ internal interface OrcaMessageHandler<M : Message> : MessageHandler<M> {
       !isLimitConcurrent -> false
       configId == null   -> false
       else               -> {
-        val criteria = ExecutionCriteria().setLimit(2).setStatuses(RUNNING)
+        val criteria = ExecutionCriteria().setPageSize(2).setStatuses(RUNNING)
         repository
           .retrievePipelinesForPipelineConfigId(configId, criteria)
           .filter { it.id != id }

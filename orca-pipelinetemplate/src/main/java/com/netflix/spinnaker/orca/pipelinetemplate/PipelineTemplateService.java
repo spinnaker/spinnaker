@@ -84,7 +84,7 @@ public class PipelineTemplateService {
       return executionRepository.retrieve(PIPELINE, executionId);
     } else if (pipelineConfigId != null) {
       // No executionId set - use last execution
-      ExecutionRepository.ExecutionCriteria criteria = new ExecutionRepository.ExecutionCriteria().setLimit(1);
+      ExecutionRepository.ExecutionCriteria criteria = new ExecutionRepository.ExecutionCriteria().setPageSize(1);
       try {
         return executionRepository.retrievePipelinesForPipelineConfigId(pipelineConfigId, criteria)
           .toSingle()

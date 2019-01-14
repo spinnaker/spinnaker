@@ -59,7 +59,8 @@ import java.util.stream.Collectors
 
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.ORCHESTRATION
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
-import static com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator.START_TIME_OR_ID
+import static com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.*
+import static com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator.*
 
 @Slf4j
 @RestController
@@ -105,9 +106,9 @@ class TaskController {
     @RequestParam(value = "statuses", required = false) String statuses
   ) {
     statuses = statuses ?: ExecutionStatus.values()*.toString().join(",")
-    def executionCriteria = new ExecutionRepository.ExecutionCriteria()
+    def executionCriteria = new ExecutionCriteria()
       .setPage(page)
-      .setLimit(limit)
+      .setPageSize(limit)
       .setStatuses(statuses.split(",") as Collection)
       .setStartTimeCutoff(
         clock
@@ -202,8 +203,8 @@ class TaskController {
     @RequestParam(value = "expand", defaultValue = "true") boolean expand) {
     statuses = statuses ?: ExecutionStatus.values()*.toString().join(",")
     limit = limit ?: 1
-    ExecutionRepository.ExecutionCriteria executionCriteria = new ExecutionRepository.ExecutionCriteria(
-      limit: limit,
+    ExecutionCriteria executionCriteria = new ExecutionCriteria(
+      pageSize: limit,
       statuses: (statuses.split(",") as Collection)
     )
 
@@ -312,29 +313,52 @@ class TaskController {
   ) {
     validateSearchForPipelinesByTriggerParameters(triggerTimeStartBoundary, triggerTimeEndBoundary, startIndex, size)
 
-    final Map triggerParams = decodeTriggerParams(encodedTriggerParams) // Returned map will be empty if encodedTriggerParams is null
+    ExecutionComparator sortType = BUILD_TIME_DESC
+    if (reverse) {
+      sortType = BUILD_TIME_ASC
+    }
 
-    Set<String> triggerTypesAsSet = (triggerTypes && triggerTypes != "*") ? triggerTypes.split(",") as Set : null // null means all trigger types
-    Set<String> statusesAsSet = (statuses && statuses != "*") ? statuses.split(",") as Set : null // null means all statuses
+    // Returned map will be empty if encodedTriggerParams is null
+    final Map triggerParams = decodeTriggerParams(encodedTriggerParams)
 
-    // Filter by application
-    List<String> pipelineConfigIds = application == "*" ?
-    getPipelineConfigIdsOfReadableApplications() :
-    front50Service.getPipelines(application, false)*.id as List<String>
+    Set<String> triggerTypesAsSet = (triggerTypes && triggerTypes != "*")
+      ? triggerTypes.split(",") as Set
+      : null // null means all trigger types
 
-    List<Execution> pipelineExecutions = executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(pipelineConfigIds, triggerTimeStartBoundary, triggerTimeEndBoundary, size)
-      .subscribeOn(Schedulers.io())
-      .filter{
-        // Filter by pipeline name
-        if (pipelineName && pipelineName != it.name) {
-          return false
+    // Filter by application (and pipeline name, if that parameter has been given in addition to application name)
+    List<String> pipelineConfigIds
+    if (application == "*") {
+      pipelineConfigIds = getPipelineConfigIdsOfReadableApplications()
+    } else {
+      List<Map<String, Object>> pipelines = front50Service.getPipelines(application, false)
+      pipelines = pipelines.stream().filter({ pipeline ->
+        if (pipelineName != null && pipelineName != "") {
+          return pipeline.get("name") == pipelineName
+        } else {
+          return true
         }
+      }).collect(Collectors.toList())
+      pipelineConfigIds = pipelines*.id as List<String>
+    }
+
+    ExecutionCriteria executionCriteria =  new ExecutionCriteria()
+      .setSortType( sortType )
+    if (statuses != null && statuses != "") {
+      executionCriteria.setStatuses(statuses.split(",").toList())
+    }
+
+    List<Execution> allExecutions = executionRepository.retrieveAllPipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(
+      pipelineConfigIds,
+      triggerTimeStartBoundary,
+      triggerTimeEndBoundary,
+      executionCriteria
+    )
+
+    List<Execution> matchingExecutions = allExecutions
+      .stream()
+      .filter({
         // Filter by trigger type
         if (triggerTypesAsSet && !triggerTypesAsSet.contains(it.getTrigger().type)) {
-          return false
-        }
-        // Filter by statuses
-        if (statusesAsSet && !statusesAsSet.contains(it.getStatus().toString())) {
           return false
         }
         // Filter by event ID
@@ -343,21 +367,14 @@ class TaskController {
         }
         // Filter by trigger params
         return compareTriggerWithTriggerSubset(it.getTrigger(), triggerParams)
-      }
-      .toList()
-      .toBlocking()
-      .single()
-      .sort(reverseBuildTime)
-
-    if (reverse) {
-      pipelineExecutions.reverse(true)
-    }
+      })
+      .collect(Collectors.toList())
 
     List<Execution> rval
-    if (startIndex >= pipelineExecutions.size()) {
+    if (startIndex >= matchingExecutions.size()) {
       rval = []
     } else {
-      rval = pipelineExecutions.subList(startIndex, Math.min(pipelineExecutions.size(), startIndex + size))
+      rval = matchingExecutions.subList(startIndex, Math.min(matchingExecutions.size(), startIndex + size))
     }
 
     if (!expand) {
@@ -527,8 +544,8 @@ class TaskController {
     }
 
     statuses = statuses ?: ExecutionStatus.values()*.toString().join(",")
-    def executionCriteria = new ExecutionRepository.ExecutionCriteria(
-      limit: limit,
+    def executionCriteria = new ExecutionCriteria(
+      pageSize: limit,
       statuses: (statuses.split(",") as Collection)
     )
 
