@@ -13,10 +13,11 @@ class CustomArtifactController implements IController {
 export const CUSTOM_ARTIFACT = 'spinnaker.core.pipeline.trigger.custom.artifact';
 module(CUSTOM_ARTIFACT, [])
   .config(() => {
-    Registry.pipeline.registerDefaultArtifactKind({
+    Registry.pipeline.registerCustomArtifactKind({
       label: 'Custom',
       description: 'A custom-defined artifact.',
       key: 'custom',
+      customKind: true,
       isDefault: true,
       isMatch: true,
       controller: function(artifact: IArtifact) {

@@ -7,7 +7,9 @@ import { IExpectedArtifact } from 'core/domain';
 import { ExpectedArtifactSelector } from './ExpectedArtifactSelector';
 
 const artifact = (kind: string, type: string): IExpectedArtifact => {
-  const ea = ExpectedArtifactService.createEmptyArtifact(kind);
+  const ea = ExpectedArtifactService.createEmptyArtifact();
+  ea.matchArtifact.kind = kind;
+  ea.matchArtifact.customKind = false;
   ea.matchArtifact.type = type;
   return ea;
 };

@@ -26,7 +26,7 @@ export class NgAppengineConfigArtifactDelegate
     super(artifact.$scope);
     this.refreshExpectedArtifacts();
     this.sources = ExpectedArtifactService.sourcesForPipelineStage(() => this.getPipeline(), this.getStage());
-    this.kinds = Registry.pipeline.getArtifactKinds().filter(a => a.isMatch);
+    this.kinds = Registry.pipeline.getMatchArtifactKinds();
   }
 
   public setAccounts = (accounts: any) => {

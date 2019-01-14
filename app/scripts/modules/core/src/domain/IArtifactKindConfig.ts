@@ -8,6 +8,7 @@ export interface IArtifactKindConfig {
   key: string;
   isDefault: boolean;
   isMatch: boolean;
+  customKind?: boolean;
   isPubliclyAccessible?: boolean;
   editCmp?: ComponentType<IArtifactEditorProps> | SFC<IArtifactEditorProps>;
   template: string;

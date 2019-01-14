@@ -14,9 +14,7 @@ export class NgGCEImageArtifactDelegate
   extends ExpectedArtifactSelectorViewControllerAngularDelegate<IArtifactSource<IStage | IPipeline>>
   implements IExpectedArtifactSelectorViewControllerDelegate {
   // TODO(sbws): Add UI components for a gce/image expected artifact kind, currently user must define custom.
-  protected kinds: IArtifactKindConfig[] = Registry.pipeline
-    .getArtifactKinds()
-    .filter((a: IArtifactKindConfig) => a.key === 'custom');
+  protected kinds: IArtifactKindConfig[] = [Registry.pipeline.getCustomArtifactKind()];
 
   constructor(protected $scope: IScope) {
     super($scope);

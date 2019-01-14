@@ -23,6 +23,7 @@ class ExpectedArtifactController implements IComponentController {
       const defaultKindConfig = ExpectedArtifactService.getKindConfig(matchArtifact, true);
       defaultArtifact.type = defaultKindConfig.type || matchArtifact.type;
       defaultArtifact.kind = defaultKindConfig.key;
+      defaultArtifact.customKind = defaultKindConfig.customKind;
     }
   }
 }
