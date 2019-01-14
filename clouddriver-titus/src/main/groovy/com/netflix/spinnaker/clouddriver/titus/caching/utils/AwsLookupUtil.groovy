@@ -118,7 +118,11 @@ class AwsLookupUtil {
   }
 
   public Map lookupAccount(account, region) {
-    Map awsDetails = awsAccountLookup.find {
+    // rz - avoid a concurrent access exception while interacting with awsAccountLookup (via Titus streaming agent)
+    List accounts = new ArrayList<>(awsAccountLookup.size())
+    accounts.addAll(awsAccountLookup)
+
+    Map awsDetails = accounts.find {
       it.titusAccount == account && it.region == region
     }
     if (!awsDetails) {
