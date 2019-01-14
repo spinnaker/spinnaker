@@ -16,14 +16,21 @@
 
 package com.netflix.spinnaker.gate.controllers
 
+import com.netflix.spinnaker.gate.services.internal.EchoService
+import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector
 import com.netflix.spinnaker.gate.services.WebhookService
 import com.squareup.okhttp.mockwebserver.MockWebServer
+import org.mockito.MockitoAnnotations;
 import org.springframework.http.MediaType
 import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
+import org.springframework.web.util.NestedServletException
+import retrofit.RestAdapter
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import retrofit.client.OkClient
+import retrofit.http.*
 import spock.lang.Specification
 
 class WebhooksControllerSpec extends Specification {
@@ -31,14 +38,26 @@ class WebhooksControllerSpec extends Specification {
   MockMvc mockMvc
 
   def server = new MockWebServer()
-  WebhookService webhookService = Mock(WebhookService)
+  WebhookService webhookService
 
   void cleanup() {
     server.shutdown()
   }
 
   void setup() {
-    webhookService = Mock(WebhookService)
+    def sock = new ServerSocket(0)
+    def localPort = sock.localPort
+    sock.close()
+
+    EchoService echoService = new RestAdapter.Builder()
+      .setEndpoint("http://localhost:${localPort}")
+      .setClient(new OkClient())
+      .build()
+      .create(EchoService)
+
+    OrcaServiceSelector orcaServiceSelector = Mock(OrcaServiceSelector)
+    webhookService = new WebhookService(echoService: echoService, orcaServiceSelector: orcaServiceSelector)
+
     server.start()
     mockMvc = MockMvcBuilders.standaloneSetup(new WebhookController(webhookService: webhookService)).build()
   }
@@ -55,19 +74,21 @@ class WebhooksControllerSpec extends Specification {
     )
 
     then:
-    1 * webhookService.webhooks('git', 'bitbucket', null, null, 'repo:refs_changed')
+    retrofit.RetrofitError ex = thrown()
+    ex.message.startsWith("Failed to connect to localhost")
+
   }
 
   void 'handles Bitbucket Server Ping'() {
     given:
 
     when:
-    def result = mockMvc.perform(post("/webhooks/git/bitbucket")
+    mockMvc.perform(post("/webhooks/git/bitbucket")
       .accept(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk()).andReturn()
 
     then:
-    result != null
-    1 * webhookService.webhooks('git', 'bitbucket', null)
+    NestedServletException ex = thrown()
+    ex.message.startsWith("Request processing failed; nested exception is retrofit.RetrofitError: Failed to connect to localhost")
   }
 }

@@ -32,10 +32,18 @@ class WebhookService {
   OrcaServiceSelector orcaServiceSelector
 
   Map webhooks(String type, String source, Map event) {
+    if (event == null) {
+      // Need this since Retrofit.Body does not work with null as Body
+      event = new HashMap();
+    }
     echoService.webhooks(type, source, event)
   }
 
   Map webhooks(String type, String source, Map event, String gitHubSignature, String bitBucketEventType) {
+    if (event == null) {
+      // Need this since Retrofit.Body does not work with null as Body
+      event = new HashMap();
+    }
     echoService.webhooks(type, source, event, gitHubSignature, bitBucketEventType)
   }
 
