@@ -12,6 +12,7 @@ import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.NAMED_IMA
 import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.ON_DEMAND
 import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.RESERVATION_REPORTS
 import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.RESERVED_INSTANCES
+import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import de.huxhorn.sulky.ulid.ULID
 import org.jooq.DSLContext
@@ -19,21 +20,20 @@ import org.jooq.exception.DataAccessException
 import org.jooq.exception.SQLDialectNotSupportedException
 import org.jooq.impl.DSL.field
 import org.jooq.impl.DSL.table
+import org.jooq.util.mysql.MySQLDSL
 import org.slf4j.LoggerFactory
 import java.security.MessageDigest
 import java.time.Clock
 import java.util.Arrays
 import java.util.concurrent.ConcurrentSkipListSet
 import java.util.concurrent.atomic.AtomicInteger
-import org.jooq.util.mysql.MySQLDSL
-
 
 class SqlCache(
   private val name: String,
   private val jooq: DSLContext,
   private val mapper: ObjectMapper,
   private val clock: Clock,
-  private val sqlRetryProperties: SqlRetryProperties, // TODO use this
+  private val sqlRetryProperties: SqlRetryProperties,
   private val tablePrefix: String?,
   private val cacheMetrics: SqlCacheMetrics,
   writeChunkSize: Int,
@@ -57,6 +57,8 @@ class SqlCache(
 
   private var createdTables = ConcurrentSkipListSet<String>()
 
+  private val retrySupport = RetrySupport()
+
   init {
     log.info("Using ${javaClass.simpleName}")
   }
@@ -69,9 +71,11 @@ class SqlCache(
     var opCount = 0
     try {
       ids.chunked(readBatchSize) { chunk ->
-        jooq.deleteFrom(table(resourceTableName(type)))
-          .where("id in (${chunk.joinToString(",") { "'$it'" }})")
-          .execute()
+        withRetry(RetryCategory.WRITE) {
+          jooq.deleteFrom(table(resourceTableName(type)))
+            .where("id in (${chunk.joinToString(",") { "'$it'" }})")
+            .execute()
+        }
       }
       deletedCount += readBatchSize
       opCount += 1
@@ -162,15 +166,17 @@ class SqlCache(
 
     val cacheData = mutableListOf<CacheData>()
     try {
-      cacheData.addAll(
-        jooq.select(field("body"))
-          .from(table(resourceTableName(type)))
-          .fetch()
-          .getValues(0)
-          .asSequence()
-          .map { mapper.readValue(it as String, DefaultCacheData::class.java) }
-          .toList()
-      )
+      withRetry(RetryCategory.READ) {
+        cacheData.addAll(
+          jooq.select(field("body"))
+            .from(table(resourceTableName(type)))
+            .fetch()
+            .getValues(0)
+            .asSequence()
+            .map { mapper.readValue(it as String, DefaultCacheData::class.java) }
+            .toList()
+        )
+      }
       selectQueries += 1
     } catch (e: Exception) {
       log.error("Failed selecting ids for type $type", e)
@@ -252,11 +258,13 @@ class SqlCache(
     try {
       //TODO make configurable
       ids.chunked(readBatchSize) { chunk ->
-        val results = jooq.select(field("body"))
-          .from(table(resourceTableName(type)))
-          .where("ID in (${chunk.joinToString(",") { "'$it'" }})")
-          .fetch()
-          .getValues(0)
+        val results = withRetry(RetryCategory.READ) {
+          jooq.select(field("body"))
+            .from(table(resourceTableName(type)))
+            .where("ID in (${chunk.joinToString(",") { "'$it'" }})")
+            .fetch()
+            .getValues(0)
+        }
         selectQueries += 1
 
         cacheData.addAll(
@@ -313,10 +321,12 @@ class SqlCache(
    * @return the identifiers for the type
    */
   override fun getIdentifiers(type: String): MutableCollection<String> {
-    return jooq.select(field("id"))
-      .from(table(resourceTableName(type)))
-      .fetch()
-      .intoSet(field("id"), String::class.java)
+    return withRetry(RetryCategory.READ) {
+      jooq.select(field("id"))
+        .from(table(resourceTableName(type)))
+        .fetch()
+        .intoSet(field("id"), String::class.java)
+    }
   }
 
   /**
@@ -351,9 +361,9 @@ class SqlCache(
       "SELECT id FROM ${resourceTableName(type)} WHERE id LIKE '${glob.replace('*', '%')}'"
     }
     return try {
-      return jooq
-        .fetch(sql)
-        .getValues(0, String::class.java)
+      return withRetry(RetryCategory.READ) {
+        jooq.fetch(sql).getValues(0, String::class.java)
+      }
     } catch (e: Exception) {
       log.error("Failed searching for identifiers type: $type glob: $glob reason: ${e.message}", e)
       mutableSetOf()
@@ -456,45 +466,54 @@ class SqlCache(
             .set(field("last_updated"), MySQLDSL.values(field("last_updated")) as Any)
         }
 
-        insert.execute()
+        withRetry(RetryCategory.WRITE) {
+          insert.execute()
+        }
         result.insertQueries.incrementAndGet()
       } catch (e: DataAccessException) {
         log.error("Error inserting ids: $chunk", e)
       } catch (e: SQLDialectNotSupportedException) {
         chunk.forEach {
-          val exists = jooq.fetchExists(
-            jooq.select()
-              .from(resourceTableName(type))
-              .where(field("id").eq(it), field("agent").eq(agent))
-              .forUpdate()
-          )
+          val exists = withRetry(RetryCategory.READ) {
+            jooq.fetchExists(
+              jooq.select()
+                .from(resourceTableName(type))
+                .where(field("id").eq(it), field("agent").eq(agent))
+                .forUpdate()
+            )
+          }
           result.selectQueries.incrementAndGet()
           if (exists) {
-            jooq.update(table(resourceTableName(type)))
-              .set(field("body_hash"), hashes[it])
-              .set(field("body"), bodies[it])
-              .set(field("last_updated"), clock.millis())
-              .where(field("id").eq(it), field("agent").eq(agent))
-              .execute()
+            withRetry(RetryCategory.WRITE) {
+              jooq.update(table(resourceTableName(type)))
+                .set(field("body_hash"), hashes[it])
+                .set(field("body"), bodies[it])
+                .set(field("last_updated"), clock.millis())
+                .where(field("id").eq(it), field("agent").eq(agent))
+                .execute()
+
+            }
             result.updateQueries.incrementAndGet()
             result.itemCount.incrementAndGet()
           } else {
-            jooq.insertInto(
-              table(resourceTableName(type)),
-              field("id"),
-              field("agent"),
-              field("location"),
-              field("body_hash"),
-              field("body"),
-              field("last_updated")
-            ).values(
-              it,
-              agent,
-              location,
-              hashes[it],
-              bodies[it],
-              clock.millis()
-            ).execute()
+            withRetry(RetryCategory.WRITE) {
+              jooq.insertInto(
+                table(resourceTableName(type)),
+                field("id"),
+                field("agent"),
+                field("location"),
+                field("body_hash"),
+                field("body"),
+                field("last_updated")
+              ).values(
+                it,
+                agent,
+                location,
+                hashes[it],
+                bodies[it],
+                clock.millis()
+              ).execute()
+            }
             result.insertQueries.incrementAndGet()
             result.itemCount.incrementAndGet()
           }
@@ -513,9 +532,11 @@ class SqlCache(
 
     try {
       toDelete.forEach { id ->
-        jooq.deleteFrom(table(resourceTableName(type)))
-          .where(field("id").eq(id), field("agent").eq(agent))
-          .execute()
+        withRetry(RetryCategory.WRITE) {
+          jooq.deleteFrom(table(resourceTableName(type)))
+            .where(field("id").eq(id), field("agent").eq(agent))
+            .execute()
+        }
         result.deleteQueries.incrementAndGet()
       }
     } catch (e: Exception) {
@@ -629,7 +650,9 @@ class SqlCache(
             }
           }
 
-          insert.execute()
+          withRetry(RetryCategory.WRITE) {
+            insert.execute()
+          }
         } catch (e: Exception) {
           log.error("Error inserting forward relationships for $type -> $relType", e)
         }
@@ -655,7 +678,9 @@ class SqlCache(
               }
             }
 
-            insert.execute()
+            withRetry(RetryCategory.WRITE) {
+              insert.execute()
+            }
           } catch (e: Exception) {
             log.error("Error inserting reverse relationships for $relType -> $type", e)
           }
@@ -672,16 +697,20 @@ class SqlCache(
     if (fwdToDelete.isNotEmpty() || revToDelete.isNotEmpty()) {
       try {
         fwdToDelete.forEach {
-          jooq.deleteFrom(table(relTableName(type)))
-            .where(field("uuid").eq(it.value))
-            .execute()
+          withRetry(RetryCategory.WRITE) {
+            jooq.deleteFrom(table(relTableName(type)))
+              .where(field("uuid").eq(it.value))
+              .execute()
+          }
           result.deleteQueries.incrementAndGet()
         }
         revToDelete.forEach {
           if (oldRevIdsToType.getOrDefault(it.key, "").isNotBlank()) {
-            jooq.deleteFrom(table(relTableName(oldRevIdsToType[it.key]!!)))
-              .where(field("uuid").eq(it.value))
-              .execute()
+            withRetry(RetryCategory.WRITE) {
+              jooq.deleteFrom(table(relTableName(oldRevIdsToType[it.key]!!)))
+                .where(field("uuid").eq(it.value))
+                .execute()
+            }
             result.deleteQueries.incrementAndGet()
           } else {
             log.warn("Couldn't delete ${it.key}, no mapping to type")
@@ -699,17 +728,21 @@ class SqlCache(
     if (!createdTables.contains(type)) {
       try {
         if (jooq.dialect().name != "H2") {
-          jooq.execute("CREATE TABLE IF NOT EXISTS ${resourceTableName(type)} " +
-            "LIKE cats_v${schemaVersion}_resource_template")
-          jooq.execute("CREATE TABLE IF NOT EXISTS ${relTableName(type)} " +
-            "LIKE cats_v${schemaVersion}_rel_template")
+          withRetry(RetryCategory.WRITE) {
+            jooq.execute("CREATE TABLE IF NOT EXISTS ${resourceTableName(type)} " +
+              "LIKE cats_v${schemaVersion}_resource_template")
+            jooq.execute("CREATE TABLE IF NOT EXISTS ${relTableName(type)} " +
+              "LIKE cats_v${schemaVersion}_rel_template")
+          }
 
           createdTables.add(type)
         } else {
-          jooq.execute("CREATE TABLE ${resourceTableName(type)} " +
-            "AS SELECT * FROM cats_v${schemaVersion}_resource_template WHERE 1=0")
-          jooq.execute("CREATE TABLE ${relTableName(type)} " +
-            "AS SELECT * FROM cats_v${schemaVersion}_rel_template WHERE 1=0")
+          withRetry(RetryCategory.WRITE) {
+            jooq.execute("CREATE TABLE ${resourceTableName(type)} " +
+              "AS SELECT * FROM cats_v${schemaVersion}_resource_template WHERE 1=0")
+            jooq.execute("CREATE TABLE ${relTableName(type)} " +
+              "AS SELECT * FROM cats_v${schemaVersion}_rel_template WHERE 1=0")
+          }
 
           createdTables.add(type)
         }
@@ -721,17 +754,21 @@ class SqlCache(
       // TODO not sure if best schema for onDemand
       try {
         if (jooq.dialect().name != "H2") {
-          jooq.execute("CREATE TABLE IF NOT EXISTS ${resourceTableName(onDemandType)} " +
-            "LIKE cats_v${schemaVersion}_resource_template")
-          jooq.execute("CREATE TABLE IF NOT EXISTS ${relTableName(onDemandType)} " +
-            "LIKE cats_v${schemaVersion}_rel_template")
+          withRetry(RetryCategory.WRITE) {
+            jooq.execute("CREATE TABLE IF NOT EXISTS ${resourceTableName(onDemandType)} " +
+              "LIKE cats_v${schemaVersion}_resource_template")
+            jooq.execute("CREATE TABLE IF NOT EXISTS ${relTableName(onDemandType)} " +
+              "LIKE cats_v${schemaVersion}_rel_template")
+          }
 
           createdTables.add(onDemandType)
         } else {
-          jooq.execute("CREATE TABLE ${resourceTableName(onDemandType)} " +
-            "AS SELECT * FROM cats_v${schemaVersion}_resource_template WHERE 1=0")
-          jooq.execute("CREATE TABLE ${relTableName(onDemandType)} " +
-            "AS SELECT * FROM cats_v${schemaVersion}_rel_template WHERE 1=0")
+          withRetry(RetryCategory.WRITE) {
+            jooq.execute("CREATE TABLE ${resourceTableName(onDemandType)} " +
+              "AS SELECT * FROM cats_v${schemaVersion}_resource_template WHERE 1=0")
+            jooq.execute("CREATE TABLE ${relTableName(onDemandType)} " +
+              "AS SELECT * FROM cats_v${schemaVersion}_rel_template WHERE 1=0")
+          }
 
           createdTables.add(onDemandType)
         }
@@ -781,35 +818,41 @@ class SqlCache(
   }
 
   private fun getHashIds(type: String, agent: String?): List<HashId> {
-    return jooq
-      .select(field("body_hash"), field("id"))
-      .from(table(resourceTableName(type)))
-      .where(
-        field("agent").eq(agent)
-      )
-      .fetch()
-      .into(HashId::class.java)
+    return withRetry(RetryCategory.READ) {
+      jooq
+        .select(field("body_hash"), field("id"))
+        .from(table(resourceTableName(type)))
+        .where(
+          field("agent").eq(agent)
+        )
+        .fetch()
+        .into(HashId::class.java)
+    }
   }
 
   private fun getRelationshipKeys(type: String, sourceAgent: String): MutableList<RelId> {
-    return jooq
-      .select(field("uuid"), field("id"), field("rel_id"), field("rel_agent"))
-      .from(table(relTableName(type)))
-      .where(field("rel_agent").eq(sourceAgent))
-      .fetch()
-      .into(RelId::class.java)
+    return withRetry(RetryCategory.READ) {
+      jooq
+        .select(field("uuid"), field("id"), field("rel_id"), field("rel_agent"))
+        .from(table(relTableName(type)))
+        .where(field("rel_agent").eq(sourceAgent))
+        .fetch()
+        .into(RelId::class.java)
+    }
   }
 
   private fun getRelationshipKeys(type: String, origType: String, sourceAgent: String): MutableList<RelId> {
-    return jooq
-      .select(field("uuid"), field("id"), field("rel_id"), field("rel_agent"))
-      .from(table(relTableName(type)))
-      .where(
-        field("rel_agent").eq(sourceAgent),
-        field("rel_type").eq(origType)
-      )
-      .fetch()
-      .into(RelId::class.java)
+    return withRetry(RetryCategory.READ) {
+      jooq
+        .select(field("uuid"), field("id"), field("rel_id"), field("rel_agent"))
+        .from(table(relTableName(type)))
+        .where(
+          field("rel_agent").eq(sourceAgent),
+          field("rel_type").eq(origType)
+        )
+        .fetch()
+        .into(RelId::class.java)
+    }
   }
 
   private fun getRelationshipPointers(
@@ -826,19 +869,23 @@ class SqlCache(
       if (relationshipPrefixes.isNotEmpty()) {
         relationshipPointers.addAll(
           if (relationshipPrefixes.contains("ALL")) {
-            jooq.select(field("id"), field("rel_id"), field("rel_type"))
-              .from(table(relTableName(type)))
-              .where(sql)
-              .fetch()
-              .into(RelPointer::class.java)
+            withRetry(RetryCategory.READ) {
+              jooq.select(field("id"), field("rel_id"), field("rel_type"))
+                .from(table(relTableName(type)))
+                .where(sql)
+                .fetch()
+                .into(RelPointer::class.java)
+            }
           } else {
             val relWhere = " AND ('rel_type' LIKE " +
               relationshipPrefixes.joinToString(" OR 'rel_type' LIKE ") { "'$it%'" } + ")"
-            jooq.select(field("id"), field("rel_id"), field("rel_type"))
-              .from(table(relTableName(type)))
-              .where(sql + relWhere)
-              .fetch()
-              .into(RelPointer::class.java)
+            withRetry(RetryCategory.READ) {
+              jooq.select(field("id"), field("rel_id"), field("rel_type"))
+                .from(table(relTableName(type)))
+                .where(sql + relWhere)
+                .fetch()
+                .into(RelPointer::class.java)
+            }
           }
         )
         selectQueries += 1
@@ -949,6 +996,24 @@ class SqlCache(
 
     return relationships
   }
+
+  private enum class RetryCategory {
+    WRITE, READ
+  }
+
+  private fun <T> withRetry(category: RetryCategory, action: () -> T): T =
+    retrySupport.retry(
+      action,
+      when (category) {
+        RetryCategory.READ -> sqlRetryProperties.reads.maxRetries
+        RetryCategory.WRITE -> sqlRetryProperties.transactions.maxRetries
+      },
+      when (category) {
+        RetryCategory.READ -> sqlRetryProperties.reads.backoffMs
+        RetryCategory.WRITE -> sqlRetryProperties.transactions.backoffMs
+      },
+      false
+    )
 
   // Assists with unit testing
   fun clearCreatedTables() {
