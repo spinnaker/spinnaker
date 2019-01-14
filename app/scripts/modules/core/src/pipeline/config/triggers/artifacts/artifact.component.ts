@@ -69,7 +69,7 @@ class ArtifactCtrl implements IController {
     let options = this.options;
     if (this.artifactAccounts) {
       options = options.filter(o => {
-        const isCustomArtifact = o.type == null;
+        const isCustomArtifact = o.customKind;
         const isPublic = !!o.isPubliclyAccessible;
         const hasCredential = this.artifactAccounts.find(a => a.types.includes(o.type));
         return isCustomArtifact || isPublic || hasCredential;
@@ -87,7 +87,8 @@ class ArtifactCtrl implements IController {
   }
 
   public onKindChange(artifactKind: IArtifactKindConfig): void {
-    this.artifact.kind = artifactKind.key;
+    // kind is deprecated; remove it from artifacts as they are updated
+    delete this.artifact.kind;
     this.artifact.customKind = artifactKind.customKind;
     this.renderArtifactConfigTemplate(artifactKind);
   }
