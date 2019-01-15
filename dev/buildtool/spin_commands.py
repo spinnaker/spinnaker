@@ -46,10 +46,9 @@ class DistArch(namedtuple('DistArch', ['dist', 'arch'])):
   def __repl__(self):
     return '{},{}'.format(self.dist, self.arch)
 
-  def get_filename(self):
+  @property
+  def filename(self):
     return 'spin.exe' if self.dist == 'windows' else 'spin'
-
-  filename = property(get_filename)
 
 
 DIST_ARCH_LIST = [
