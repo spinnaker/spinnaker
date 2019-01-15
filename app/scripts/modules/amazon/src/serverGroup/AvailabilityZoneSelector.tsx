@@ -27,9 +27,7 @@ export class AvailabilityZoneSelector extends React.Component<
       usePreferredZones: props.usePreferredZones || (!props.selectedZones || props.selectedZones.length === 0),
     };
 
-    AccountService.getAvailabilityZonesForAccountAndRegion('aws', props.credentials, props.region).then(
-      preferredZones => this.setState({ defaultZones: preferredZones }),
-    );
+    this.setDefaultZones(props);
   }
 
   public componentWillReceiveProps(nextProps: IAvailabilityZoneSelectorProps): void {
