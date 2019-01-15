@@ -5,7 +5,7 @@ set -e
 PLATFORMS=(debian docker macos)
 VERSIONS=$@
 
-./gradlew clean -Prelease.useLastTag=true && ./gradlew installDist -Prelease.useLastTag=true
+./gradlew clean installDist -I gradle/init-publish.gradle -Prelease.useLastTag=true
 
 USAGE="You must supply a list of <versions>, e.g.\n $0 <version1> <version2>"
 
