@@ -17,9 +17,8 @@ package application
 import (
 	"errors"
 	"fmt"
-	"net/http"
-
 	"github.com/spinnaker/spin/util"
+	"net/http"
 
 	"github.com/spf13/cobra"
 	"github.com/spinnaker/spin/cmd/gateclient"
@@ -27,7 +26,7 @@ import (
 
 type GetOptions struct {
 	*applicationOptions
-	output string
+	expand bool
 }
 
 var (
@@ -37,19 +36,29 @@ var (
 )
 
 func NewGetCmd(appOptions applicationOptions) *cobra.Command {
+	options := GetOptions{
+		applicationOptions: &appOptions,
+		expand: false,
+	}
+
 	cmd := &cobra.Command{
 		Use:     "get",
 		Aliases: []string{"get"},
 		Short:   getApplicationShort,
 		Long:    getApplicationLong,
 		Example: getApplicationExample,
-		RunE:    getApplication,
+		RunE:    func(cmd *cobra.Command, args []string) error {
+			return getApplication(cmd, options, args)
+		},
 	}
+
+	// Note that false here means defaults to false, and flips to true if the flag is present.
+	cmd.PersistentFlags().BoolVarP(&options.expand, "expand", "x", false, "email of the application owner")
 
 	return cmd
 }
 
-func getApplication(cmd *cobra.Command, args []string) error {
+func getApplication(cmd *cobra.Command, options GetOptions, args []string) error {
 	gateClient, err := gateclient.NewGateClient(cmd.InheritedFlags())
 	if err != nil {
 		return err
@@ -58,7 +67,7 @@ func getApplication(cmd *cobra.Command, args []string) error {
 		return errors.New("application name required")
 	}
 	applicationName := args[0]
-	app, resp, err := gateClient.ApplicationControllerApi.GetApplicationUsingGET(gateClient.Context, applicationName, map[string]interface{}{})
+	app, resp, err := gateClient.ApplicationControllerApi.GetApplicationUsingGET(gateClient.Context, applicationName, map[string]interface{}{"expand": options.expand})
 	if resp != nil {
 		if resp.StatusCode == http.StatusNotFound {
 			return fmt.Errorf("Application '%s' not found\n", applicationName)
@@ -71,6 +80,14 @@ func getApplication(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	util.UI.JsonOutput(app, util.UI.OutputFormat)
+	if options.expand {
+		// NOTE: expand returns the actual attributes as well as the app's cluster details, nested in
+		// their own fields. This means that the expanded output can't be submitted as input to `save`.
+		util.UI.JsonOutput(app, util.UI.OutputFormat)
+	} else {
+		// NOTE: app GET wraps the actual app attributes in an 'attributes' field.
+		util.UI.JsonOutput(app["attributes"], util.UI.OutputFormat)
+	}
+
 	return nil
 }

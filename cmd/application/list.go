@@ -25,7 +25,6 @@ import (
 
 type ListOptions struct {
 	*applicationOptions
-	output string
 }
 
 var (
