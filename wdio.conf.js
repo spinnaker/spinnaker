@@ -56,7 +56,7 @@ const config = {
   services: ['selenium-standalone'],
   seleniumLogs: './selenium-logs',
   framework: 'jasmine',
-  reporters: ['dot'],
+  reporters: ['spec'],
   jasmineNodeOpts: {
     defaultTimeoutInterval: 60000,
   },

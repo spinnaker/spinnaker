@@ -1,0 +1,826 @@
+{
+  "protocol": "http",
+  "port": 8084,
+  "stubs": [
+    {
+      "predicates": [
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "method": "GET"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "path": "/auth/user"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "query": {}
+          },
+          "keyCaseSensitive": true
+        }
+      ],
+      "responses": [
+        {
+          "is": {
+            "statusCode": 200,
+            "headers": {
+              "Access-Control-Allow-Credentials": "true",
+              "Access-Control-Allow-Origin": "http://localhost:9000",
+              "Access-Control-Allow-Methods": "POST, GET, OPTIONS, DELETE, PUT, PATCH",
+              "Access-Control-Max-Age": "3600",
+              "Access-Control-Allow-Headers": "x-requested-with, content-type, authorization, X-RateLimit-App, X-Spinnaker-Priority",
+              "Access-Control-Expose-Headers": "X-AUTH-REDIRECT-URL",
+              "X-Application-Context": "gate:test,local:18084",
+              "X-SPINNAKER-REQUEST-ID": "15362443-21b4-424a-94f6-88f99ce8138f",
+              "ETag": "\"03cf418cf00dd7ec96b2cb447fd951ffc\"",
+              "X-Content-Type-Options": "nosniff",
+              "X-XSS-Protection": "1; mode=block",
+              "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+              "Pragma": "no-cache",
+              "Expires": "0",
+              "X-Frame-Options": "DENY",
+              "Content-Type": "application/json;charset=UTF-8",
+              "Content-Length": 224,
+              "Date": "Tue, 15 Jan 2019 17:58:52 GMT",
+              "Connection": "close"
+            },
+            "body": "{\"accountNonExpired\":true,\"accountNonLocked\":true,\"allowedAccounts\":[\"gae\"],\"authorities\":[],\"credentialsNonExpired\":true,\"email\":\"anonymous\",\"enabled\":true,\"firstName\":null,\"lastName\":null,\"roles\":[],\"username\":\"anonymous\"}",
+            "_mode": "text"
+          }
+        }
+      ]
+    },
+    {
+      "predicates": [
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "method": "OPTIONS"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "path": "/credentials"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "query": {
+              "expand": "true"
+            }
+          },
+          "keyCaseSensitive": true
+        }
+      ],
+      "responses": [
+        {
+          "is": {
+            "statusCode": 200,
+            "headers": {
+              "Access-Control-Allow-Credentials": "true",
+              "Access-Control-Allow-Origin": "http://localhost:9000",
+              "Access-Control-Allow-Methods": "POST, GET, OPTIONS, DELETE, PUT, PATCH",
+              "Access-Control-Max-Age": "3600",
+              "Access-Control-Allow-Headers": "x-requested-with, content-type, authorization, X-RateLimit-App, X-Spinnaker-Priority",
+              "Access-Control-Expose-Headers": "X-AUTH-REDIRECT-URL",
+              "X-Application-Context": "gate:test,local:18084",
+              "X-SPINNAKER-REQUEST-ID": "f57519d0-ae67-4378-8eb1-76ffc2d60d01",
+              "Allow": "GET, HEAD, POST, PUT, DELETE, TRACE, OPTIONS, PATCH",
+              "X-Content-Type-Options": "nosniff",
+              "X-XSS-Protection": "1; mode=block",
+              "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+              "Pragma": "no-cache",
+              "Expires": "0",
+              "X-Frame-Options": "DENY",
+              "Content-Length": 0,
+              "Date": "Tue, 15 Jan 2019 17:58:52 GMT",
+              "Connection": "close"
+            },
+            "body": "",
+            "_mode": "text"
+          }
+        }
+      ]
+    },
+    {
+      "predicates": [
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "method": "OPTIONS"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "path": "/webhooks/preconfigured"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "query": {}
+          },
+          "keyCaseSensitive": true
+        }
+      ],
+      "responses": [
+        {
+          "is": {
+            "statusCode": 200,
+            "headers": {
+              "Access-Control-Allow-Credentials": "true",
+              "Access-Control-Allow-Origin": "http://localhost:9000",
+              "Access-Control-Allow-Methods": "POST, GET, OPTIONS, DELETE, PUT, PATCH",
+              "Access-Control-Max-Age": "3600",
+              "Access-Control-Allow-Headers": "x-requested-with, content-type, authorization, X-RateLimit-App, X-Spinnaker-Priority",
+              "Access-Control-Expose-Headers": "X-AUTH-REDIRECT-URL",
+              "X-Application-Context": "gate:test,local:18084",
+              "X-SPINNAKER-REQUEST-ID": "b4d98db9-e4b9-43ba-bb33-18e24371c40b",
+              "Allow": "GET, HEAD, POST, PUT, DELETE, TRACE, OPTIONS, PATCH",
+              "X-Content-Type-Options": "nosniff",
+              "X-XSS-Protection": "1; mode=block",
+              "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+              "Pragma": "no-cache",
+              "Expires": "0",
+              "X-Frame-Options": "DENY",
+              "Content-Length": 0,
+              "Date": "Tue, 15 Jan 2019 17:58:52 GMT",
+              "Connection": "close"
+            },
+            "body": "",
+            "_mode": "text"
+          }
+        }
+      ]
+    },
+    {
+      "predicates": [
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "method": "OPTIONS"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "path": "/jobs/preconfigured"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "query": {}
+          },
+          "keyCaseSensitive": true
+        }
+      ],
+      "responses": [
+        {
+          "is": {
+            "statusCode": 200,
+            "headers": {
+              "Access-Control-Allow-Credentials": "true",
+              "Access-Control-Allow-Origin": "http://localhost:9000",
+              "Access-Control-Allow-Methods": "POST, GET, OPTIONS, DELETE, PUT, PATCH",
+              "Access-Control-Max-Age": "3600",
+              "Access-Control-Allow-Headers": "x-requested-with, content-type, authorization, X-RateLimit-App, X-Spinnaker-Priority",
+              "Access-Control-Expose-Headers": "X-AUTH-REDIRECT-URL",
+              "X-Application-Context": "gate:test,local:18084",
+              "Allow": "GET, HEAD, POST, PUT, DELETE, TRACE, OPTIONS, PATCH",
+              "X-Content-Type-Options": "nosniff",
+              "X-XSS-Protection": "1; mode=block",
+              "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+              "Pragma": "no-cache",
+              "Expires": "0",
+              "X-Frame-Options": "DENY",
+              "Content-Length": 0,
+              "Date": "Tue, 15 Jan 2019 17:58:52 GMT",
+              "Connection": "close"
+            },
+            "body": "",
+            "_mode": "text"
+          }
+        }
+      ]
+    },
+    {
+      "predicates": [
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "method": "OPTIONS"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "path": "/applications"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "query": {}
+          },
+          "keyCaseSensitive": true
+        }
+      ],
+      "responses": [
+        {
+          "is": {
+            "statusCode": 200,
+            "headers": {
+              "Access-Control-Allow-Credentials": "true",
+              "Access-Control-Allow-Origin": "http://localhost:9000",
+              "Access-Control-Allow-Methods": "POST, GET, OPTIONS, DELETE, PUT, PATCH",
+              "Access-Control-Max-Age": "3600",
+              "Access-Control-Allow-Headers": "x-requested-with, content-type, authorization, X-RateLimit-App, X-Spinnaker-Priority",
+              "Access-Control-Expose-Headers": "X-AUTH-REDIRECT-URL",
+              "X-Application-Context": "gate:test,local:18084",
+              "X-SPINNAKER-REQUEST-ID": "d09600e9-fa18-4a07-b4ed-c842290372d9",
+              "Allow": "GET, HEAD, POST, PUT, DELETE, TRACE, OPTIONS, PATCH",
+              "X-Content-Type-Options": "nosniff",
+              "X-XSS-Protection": "1; mode=block",
+              "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+              "Pragma": "no-cache",
+              "Expires": "0",
+              "X-Frame-Options": "DENY",
+              "Content-Length": 0,
+              "Date": "Tue, 15 Jan 2019 17:58:52 GMT",
+              "Connection": "close"
+            },
+            "body": "",
+            "_mode": "text"
+          }
+        }
+      ]
+    },
+    {
+      "predicates": [
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "method": "GET"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "path": "/applications"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "query": {}
+          },
+          "keyCaseSensitive": true
+        }
+      ],
+      "responses": [
+        {
+          "is": {
+            "statusCode": 200,
+            "headers": {
+              "Access-Control-Allow-Credentials": "true",
+              "Access-Control-Allow-Origin": "http://localhost:9000",
+              "Access-Control-Allow-Methods": "POST, GET, OPTIONS, DELETE, PUT, PATCH",
+              "Access-Control-Max-Age": "3600",
+              "Access-Control-Allow-Headers": "x-requested-with, content-type, authorization, X-RateLimit-App, X-Spinnaker-Priority",
+              "Access-Control-Expose-Headers": "X-AUTH-REDIRECT-URL",
+              "X-Application-Context": "gate:test,local:18084",
+              "X-SPINNAKER-REQUEST-ID": "5e4b1bd3-355e-453d-ae07-1e04ad7c1b79",
+              "ETag": "\"04d4993afcf395796cd0aa542eaef337f\"",
+              "X-Content-Type-Options": "nosniff",
+              "X-XSS-Protection": "1; mode=block",
+              "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+              "Pragma": "no-cache",
+              "Expires": "0",
+              "X-Frame-Options": "DENY",
+              "Content-Type": "application/json;charset=UTF-8",
+              "Content-Length": 3116,
+              "Date": "Tue, 15 Jan 2019 17:58:52 GMT",
+              "Connection": "close"
+            },
+            "body": "[{\"cloudProviders\":\"gce\",\"createTs\":\"1519160914577\",\"dataSources\":{\"disabled\":[],\"enabled\":[\"canaryConfigs\",\"serverGroups\",\"loadBalancers\",\"securityGroups\"]},\"email\":\"sbws@google.com\",\"instancePort\":80,\"lastModifiedBy\":\"anonymous\",\"name\":\"compute\",\"platformHealthOnly\":true,\"providerSettings\":{\"gce\":{\"associatePublicIpAddress\":false}},\"updateTs\":\"1544636963981\",\"user\":\"[anonymous]\"},{\"cloudProviders\":\"kubernetes\",\"createTs\":\"1538510658871\",\"email\":\"sbws@google.com\",\"instancePort\":80,\"lastModifiedBy\":\"anonymous\",\"name\":\"decktests\",\"providerSettings\":{\"gce\":{\"associatePublicIpAddress\":false}},\"updateTs\":\"1538510659285\",\"user\":\"[anonymous]\"},{\"cloudProviders\":\"\",\"createTs\":\"1538677167189\",\"dataSources\":{\"disabled\":[],\"enabled\":[]},\"email\":\"sbws@google.com\",\"instancePort\":80,\"lastModifiedBy\":\"anonymous\",\"name\":\"default\",\"providerSettings\":{\"gce\":{\"associatePublicIpAddress\":true}},\"updateTs\":\"1538677167684\",\"user\":\"[anonymous]\"},{\"accounts\":\"gae\",\"cloudProviders\":\"appengine\",\"createTs\":\"1534427928238\",\"email\":\"sbws@google.com\",\"instancePort\":80,\"lastModifiedBy\":\"anonymous\",\"name\":\"gae\",\"providerSettings\":{\"gce\":{\"associatePublicIpAddress\":true}},\"updateTs\":\"1534427928639\",\"user\":\"[anonymous]\"},{\"cloudProviders\":\"kubernetes\",\"createTs\":\"1541171269568\",\"dataSources\":{\"disabled\":[],\"enabled\":[]},\"email\":\"sbws@google.com\",\"instancePort\":80,\"lastModifiedBy\":\"anonymous\",\"name\":\"gke\",\"providerSettings\":{\"gce\":{\"associatePublicIpAddress\":true}},\"updateTs\":\"1541171383693\",\"user\":\"[anonymous]\"},{\"cloudProviders\":\"kubernetes\",\"createTs\":\"1517519573155\",\"dataSources\":{\"disabled\":[\"canaryConfigs\"],\"enabled\":[]},\"email\":\"sbws@google.com\",\"instancePort\":80,\"lastModifiedBy\":\"anonymous\",\"name\":\"k8sdeploy\",\"platformHealthOnly\":true,\"platformHealthOnlyShowOverride\":false,\"providerSettings\":{\"gce\":{\"associatePublicIpAddress\":true}},\"updateTs\":\"1537888187968\",\"user\":\"[anonymous]\"},{\"cloudProviders\":\"kubernetes\",\"createTs\":\"1528200354465\",\"dataSources\":{\"disabled\":[],\"enabled\":[]},\"email\":\"sbws@google.com\",\"instancePort\":80,\"lastModifiedBy\":\"anonymous\",\"name\":\"k8sv1\",\"providerSettings\":{\"gce\":{\"associatePublicIpAddress\":true}},\"updateTs\":\"1530215134941\",\"user\":\"[anonymous]\"},{\"cloudProviders\":\"kubernetes\",\"createTs\":\"1528463950711\",\"email\":\"sbws@google.com\",\"instancePort\":80,\"lastModifiedBy\":\"anonymous\",\"name\":\"k8sv2\",\"providerSettings\":{\"gce\":{\"associatePublicIpAddress\":true}},\"updateTs\":\"1528463951018\",\"user\":\"[anonymous]\"},{\"cloudProviders\":\"kubernetes\",\"createTs\":\"1539277132331\",\"dataSources\":{\"disabled\":[],\"enabled\":[\"canaryConfigs\"]},\"email\":\"sbws@google.com\",\"instancePort\":80,\"lastModifiedBy\":\"anonymous\",\"name\":\"kubekayentacodelab\",\"providerSettings\":{\"gce\":{\"associatePublicIpAddress\":true}},\"updateTs\":\"1539361701183\",\"user\":\"[anonymous]\"},{\"cloudProviders\":\"kubernetes,appengine,gce\",\"createTs\":\"1537888240754\",\"email\":\"sbws@google.com\",\"instancePort\":80,\"lastModifiedBy\":\"anonymous\",\"name\":\"multiaccount\",\"platformHealthOnly\":true,\"providerSettings\":{\"gce\":{\"associatePublicIpAddress\":true}},\"updateTs\":\"1537888241078\",\"user\":\"[anonymous]\"},{\"accounts\":\"gae\",\"name\":\"20181101t094428\"}]",
+            "_mode": "text"
+          }
+        }
+      ]
+    },
+    {
+      "predicates": [
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "method": "GET"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "path": "/jobs/preconfigured"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "query": {}
+          },
+          "keyCaseSensitive": true
+        }
+      ],
+      "responses": [
+        {
+          "is": {
+            "statusCode": 404,
+            "headers": {
+              "Access-Control-Allow-Credentials": "true",
+              "Access-Control-Allow-Origin": "http://localhost:9000",
+              "Access-Control-Allow-Methods": "POST, GET, OPTIONS, DELETE, PUT, PATCH",
+              "Access-Control-Max-Age": "3600",
+              "Access-Control-Allow-Headers": "x-requested-with, content-type, authorization, X-RateLimit-App, X-Spinnaker-Priority",
+              "Access-Control-Expose-Headers": "X-AUTH-REDIRECT-URL",
+              "X-Application-Context": "gate:test,local:18084",
+              "X-Content-Type-Options": "nosniff",
+              "X-XSS-Protection": "1; mode=block",
+              "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+              "Pragma": "no-cache",
+              "Expires": "0",
+              "X-Frame-Options": "DENY",
+              "Content-Type": "application/json;charset=UTF-8",
+              "Transfer-Encoding": "chunked",
+              "Date": "Tue, 15 Jan 2019 17:58:52 GMT",
+              "Connection": "close"
+            },
+            "body": "{\"error\":\"Not Found\",\"message\":\"No message available\",\"status\":404,\"timestamp\":1547575132328}",
+            "_mode": "text"
+          }
+        }
+      ]
+    },
+    {
+      "predicates": [
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "method": "GET"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "path": "/credentials"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "query": {
+              "expand": "true"
+            }
+          },
+          "keyCaseSensitive": true
+        }
+      ],
+      "responses": [
+        {
+          "is": {
+            "statusCode": 200,
+            "headers": {
+              "Access-Control-Allow-Credentials": "true",
+              "Access-Control-Allow-Origin": "http://localhost:9000",
+              "Access-Control-Allow-Methods": "POST, GET, OPTIONS, DELETE, PUT, PATCH",
+              "Access-Control-Max-Age": "3600",
+              "Access-Control-Allow-Headers": "x-requested-with, content-type, authorization, X-RateLimit-App, X-Spinnaker-Priority",
+              "Access-Control-Expose-Headers": "X-AUTH-REDIRECT-URL",
+              "X-Application-Context": "gate:test,local:18084",
+              "X-SPINNAKER-REQUEST-ID": "05f57952-2e4c-4419-a3d2-fbd3b095c7cb",
+              "ETag": "\"06a44634f61f29368b8bc445cce02b7bd\"",
+              "X-Content-Type-Options": "nosniff",
+              "X-XSS-Protection": "1; mode=block",
+              "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+              "Pragma": "no-cache",
+              "Expires": "0",
+              "X-Frame-Options": "DENY",
+              "Content-Type": "application/json;charset=UTF-8",
+              "Content-Length": 411,
+              "Date": "Tue, 15 Jan 2019 17:58:52 GMT",
+              "Connection": "close"
+            },
+            "body": "[{\"accountType\":\"gae\",\"challengeDestructiveActions\":false,\"cloudProvider\":\"appengine\",\"environment\":\"gae\",\"name\":\"gae\",\"permissions\":{},\"primaryAccount\":false,\"providerVersion\":\"v1\",\"requiredGroupMembership\":[],\"skin\":\"v1\",\"type\":\"appengine\",\"regions\":[\"us-central\"],\"supportedGitCredentialTypes\":[\"NONE\"],\"authorized\":true,\"project\":\"hebridean-sun\",\"region\":\"us-central\",\"applicationName\":\"Spinnaker/Unknown\"}]",
+            "_mode": "text"
+          }
+        }
+      ]
+    },
+    {
+      "predicates": [
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "method": "GET"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "path": "/webhooks/preconfigured"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "query": {}
+          },
+          "keyCaseSensitive": true
+        }
+      ],
+      "responses": [
+        {
+          "is": {
+            "statusCode": 200,
+            "headers": {
+              "Access-Control-Allow-Credentials": "true",
+              "Access-Control-Allow-Origin": "http://localhost:9000",
+              "Access-Control-Allow-Methods": "POST, GET, OPTIONS, DELETE, PUT, PATCH",
+              "Access-Control-Max-Age": "3600",
+              "Access-Control-Allow-Headers": "x-requested-with, content-type, authorization, X-RateLimit-App, X-Spinnaker-Priority",
+              "Access-Control-Expose-Headers": "X-AUTH-REDIRECT-URL",
+              "X-Application-Context": "gate:test,local:18084",
+              "X-SPINNAKER-REQUEST-ID": "45028db8-fc92-4877-9768-fae09ab48809",
+              "ETag": "\"0d751713988987e9331980363e24189ce\"",
+              "X-Content-Type-Options": "nosniff",
+              "X-XSS-Protection": "1; mode=block",
+              "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+              "Pragma": "no-cache",
+              "Expires": "0",
+              "X-Frame-Options": "DENY",
+              "Content-Type": "application/json;charset=UTF-8",
+              "Content-Length": 2,
+              "Date": "Tue, 15 Jan 2019 17:58:52 GMT",
+              "Connection": "close"
+            },
+            "body": "[]",
+            "_mode": "text"
+          }
+        }
+      ]
+    },
+    {
+      "predicates": [
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "method": "OPTIONS"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "path": "/loadBalancers"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "query": {
+              "provider": "appengine"
+            }
+          },
+          "keyCaseSensitive": true
+        }
+      ],
+      "responses": [
+        {
+          "is": {
+            "statusCode": 200,
+            "headers": {
+              "Access-Control-Allow-Credentials": "true",
+              "Access-Control-Allow-Origin": "http://localhost:9000",
+              "Access-Control-Allow-Methods": "POST, GET, OPTIONS, DELETE, PUT, PATCH",
+              "Access-Control-Max-Age": "3600",
+              "Access-Control-Allow-Headers": "x-requested-with, content-type, authorization, X-RateLimit-App, X-Spinnaker-Priority",
+              "Access-Control-Expose-Headers": "X-AUTH-REDIRECT-URL",
+              "X-Application-Context": "gate:test,local:18084",
+              "X-SPINNAKER-REQUEST-ID": "456beca7-5224-45e7-8b28-fd1e6b613f64",
+              "Allow": "GET, HEAD, POST, PUT, DELETE, TRACE, OPTIONS, PATCH",
+              "X-Content-Type-Options": "nosniff",
+              "X-XSS-Protection": "1; mode=block",
+              "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+              "Pragma": "no-cache",
+              "Expires": "0",
+              "X-Frame-Options": "DENY",
+              "Content-Length": 0,
+              "Date": "Tue, 15 Jan 2019 17:58:52 GMT",
+              "Connection": "close"
+            },
+            "body": "",
+            "_mode": "text"
+          }
+        }
+      ]
+    },
+    {
+      "predicates": [
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "method": "OPTIONS"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "path": "/v2/builds"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "query": {}
+          },
+          "keyCaseSensitive": true
+        }
+      ],
+      "responses": [
+        {
+          "is": {
+            "statusCode": 200,
+            "headers": {
+              "Access-Control-Allow-Credentials": "true",
+              "Access-Control-Allow-Origin": "http://localhost:9000",
+              "Access-Control-Allow-Methods": "POST, GET, OPTIONS, DELETE, PUT, PATCH",
+              "Access-Control-Max-Age": "3600",
+              "Access-Control-Allow-Headers": "x-requested-with, content-type, authorization, X-RateLimit-App, X-Spinnaker-Priority",
+              "Access-Control-Expose-Headers": "X-AUTH-REDIRECT-URL",
+              "X-Application-Context": "gate:test,local:18084",
+              "X-SPINNAKER-REQUEST-ID": "301bed51-25f6-47d6-a3b8-9a3d651d8d74",
+              "Allow": "GET, HEAD, POST, PUT, DELETE, TRACE, OPTIONS, PATCH",
+              "X-Content-Type-Options": "nosniff",
+              "X-XSS-Protection": "1; mode=block",
+              "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+              "Pragma": "no-cache",
+              "Expires": "0",
+              "X-Frame-Options": "DENY",
+              "Content-Length": 0,
+              "Date": "Tue, 15 Jan 2019 17:58:52 GMT",
+              "Connection": "close"
+            },
+            "body": "",
+            "_mode": "text"
+          }
+        }
+      ]
+    },
+    {
+      "predicates": [
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "method": "GET"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "path": "/loadBalancers"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "query": {
+              "provider": "appengine"
+            }
+          },
+          "keyCaseSensitive": true
+        }
+      ],
+      "responses": [
+        {
+          "is": {
+            "statusCode": 200,
+            "headers": {
+              "Access-Control-Allow-Credentials": "true",
+              "Access-Control-Allow-Origin": "http://localhost:9000",
+              "Access-Control-Allow-Methods": "POST, GET, OPTIONS, DELETE, PUT, PATCH",
+              "Access-Control-Max-Age": "3600",
+              "Access-Control-Allow-Headers": "x-requested-with, content-type, authorization, X-RateLimit-App, X-Spinnaker-Priority",
+              "Access-Control-Expose-Headers": "X-AUTH-REDIRECT-URL",
+              "X-Application-Context": "gate:test,local:18084",
+              "X-SPINNAKER-REQUEST-ID": "3d55cbd0-6bed-4a12-ae41-e4fecc492fdc",
+              "ETag": "\"0d751713988987e9331980363e24189ce\"",
+              "X-Content-Type-Options": "nosniff",
+              "X-XSS-Protection": "1; mode=block",
+              "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+              "Pragma": "no-cache",
+              "Expires": "0",
+              "X-Frame-Options": "DENY",
+              "Content-Type": "application/json;charset=UTF-8",
+              "Content-Length": 2,
+              "Date": "Tue, 15 Jan 2019 17:58:52 GMT",
+              "Connection": "close"
+            },
+            "body": "[]",
+            "_mode": "text"
+          }
+        }
+      ]
+    },
+    {
+      "predicates": [
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "method": "GET"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "path": "/v2/builds"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "query": {}
+          },
+          "keyCaseSensitive": true
+        }
+      ],
+      "responses": [
+        {
+          "is": {
+            "statusCode": 200,
+            "headers": {
+              "Access-Control-Allow-Credentials": "true",
+              "Access-Control-Allow-Origin": "http://localhost:9000",
+              "Access-Control-Allow-Methods": "POST, GET, OPTIONS, DELETE, PUT, PATCH",
+              "Access-Control-Max-Age": "3600",
+              "Access-Control-Allow-Headers": "x-requested-with, content-type, authorization, X-RateLimit-App, X-Spinnaker-Priority",
+              "Access-Control-Expose-Headers": "X-AUTH-REDIRECT-URL",
+              "X-Application-Context": "gate:test,local:18084",
+              "X-SPINNAKER-REQUEST-ID": "175ecbb0-8989-48e8-a458-fac10d21f067",
+              "ETag": "\"0d751713988987e9331980363e24189ce\"",
+              "X-Content-Type-Options": "nosniff",
+              "X-XSS-Protection": "1; mode=block",
+              "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+              "Pragma": "no-cache",
+              "Expires": "0",
+              "X-Frame-Options": "DENY",
+              "Content-Type": "application/json;charset=UTF-8",
+              "Content-Length": 2,
+              "Date": "Tue, 15 Jan 2019 17:58:52 GMT",
+              "Connection": "close"
+            },
+            "body": "[]",
+            "_mode": "text"
+          }
+        }
+      ]
+    },
+    {
+      "predicates": [
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "method": "OPTIONS"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "path": "/securityGroups"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "query": {}
+          },
+          "keyCaseSensitive": true
+        }
+      ],
+      "responses": [
+        {
+          "is": {
+            "statusCode": 200,
+            "headers": {
+              "Access-Control-Allow-Credentials": "true",
+              "Access-Control-Allow-Origin": "http://localhost:9000",
+              "Access-Control-Allow-Methods": "POST, GET, OPTIONS, DELETE, PUT, PATCH",
+              "Access-Control-Max-Age": "3600",
+              "Access-Control-Allow-Headers": "x-requested-with, content-type, authorization, X-RateLimit-App, X-Spinnaker-Priority",
+              "Access-Control-Expose-Headers": "X-AUTH-REDIRECT-URL",
+              "X-Application-Context": "gate:test,local:18084",
+              "X-SPINNAKER-REQUEST-ID": "568316cf-7ed9-4670-8edf-c9069300d200",
+              "Allow": "GET, HEAD, POST, PUT, DELETE, TRACE, OPTIONS, PATCH",
+              "X-Content-Type-Options": "nosniff",
+              "X-XSS-Protection": "1; mode=block",
+              "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+              "Pragma": "no-cache",
+              "Expires": "0",
+              "X-Frame-Options": "DENY",
+              "Content-Length": 0,
+              "Date": "Tue, 15 Jan 2019 17:58:52 GMT",
+              "Connection": "close"
+            },
+            "body": "",
+            "_mode": "text"
+          }
+        }
+      ]
+    },
+    {
+      "predicates": [
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "method": "GET"
+          }
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "path": "/securityGroups"
+          }
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "query": {}
+          }
+        }
+      ],
+      "responses": [
+        {
+          "is": {
+            "statusCode": 200,
+            "headers": {
+              "Access-Control-Allow-Credentials": "true",
+              "Access-Control-Allow-Origin": "http://localhost:9000",
+              "Access-Control-Allow-Methods": "POST, GET, OPTIONS, DELETE, PUT, PATCH",
+              "Access-Control-Max-Age": "3600",
+              "Access-Control-Allow-Headers": "x-requested-with, content-type, authorization, X-RateLimit-App, X-Spinnaker-Priority",
+              "Access-Control-Expose-Headers": "X-AUTH-REDIRECT-URL",
+              "X-Application-Context": "gate:test,local:18084",
+              "X-SPINNAKER-REQUEST-ID": "6601dc74-3ddc-4dc8-86d6-5f4ff0466eff",
+              "ETag": "\"099914b932bd37a50b983c5e7c90ae93b\"",
+              "X-Content-Type-Options": "nosniff",
+              "X-XSS-Protection": "1; mode=block",
+              "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+              "Pragma": "no-cache",
+              "Expires": "0",
+              "X-Frame-Options": "DENY",
+              "Content-Type": "application/json;charset=UTF-8",
+              "Content-Length": 2,
+              "Date": "Tue, 15 Jan 2019 17:58:53 GMT",
+              "Connection": "close"
+            },
+            "body": "{}",
+            "_mode": "text"
+          }
+        }
+      ]
+    }
+  ]
+}

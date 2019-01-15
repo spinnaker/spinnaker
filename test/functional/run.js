@@ -59,7 +59,8 @@ function main() {
       return;
     }
     if (!flagDefaults.hasOwnProperty(f)) {
-      throw new Error(`unrecognized flag --${f}`);
+      console.log(`unrecognized flag --${f}`);
+      printUsage(1);
     }
   });
 
@@ -74,7 +75,7 @@ function main() {
   testRunner.run(flags);
 }
 
-function printUsage() {
+function printUsage(errorCode = 0) {
   console.log(
     `
 Usage: test/functional/run.js [options] -- [webdriver.io options]
@@ -116,7 +117,7 @@ Example usage:
 test/functional/run.js --serve-deck --replay-fixtures --headless --savelogs
 `.trim(),
   );
-  process.exit(0);
+  process.exit(errorCode);
 }
 
 main();

@@ -2251,7 +2251,7 @@ babel-register@^6.26.0, babel-register@^6.9.0:
     mkdirp "^0.5.1"
     source-map-support "^0.4.15"
 
-babel-runtime@6.26.0, babel-runtime@^6.0.0, babel-runtime@^6.11.6, babel-runtime@^6.18.0, babel-runtime@^6.26.0:
+babel-runtime@6.26.0, babel-runtime@^6.0.0, babel-runtime@^6.11.6, babel-runtime@^6.18.0, babel-runtime@^6.26.0, babel-runtime@~6.26.0:
   version "6.26.0"
   resolved "https://registry.yarnpkg.com/babel-runtime/-/babel-runtime-6.26.0.tgz#965c7058668e82b55d7bfe04ff2337bc8b5647fe"
   integrity sha1-llxwWGaOgrVde/4E/yM3vItWR/4=
@@ -8300,6 +8300,11 @@ https-proxy-agent@^2.2.1:
   dependencies:
     agent-base "^4.1.0"
     debug "^3.1.0"
+
+humanize-duration@~3.15.0:
+  version "3.15.3"
+  resolved "https://registry.yarnpkg.com/humanize-duration/-/humanize-duration-3.15.3.tgz#600a939bd9d9a16b696e907b3fc08d1a4f15e8c9"
+  integrity sha512-BMz6w8p3NVa6QP9wDtqUkXfwgBqDaZ5z/np0EYdoWrLqL849Onp6JWMXMhbHtuvO9jUThLN5H1ThRQ8dUWnYkA==
 
 husky@^0.14.3:
   version "0.14.3"
@@ -17141,6 +17146,15 @@ wdio-selenium-standalone-service@^0.0.12:
   dependencies:
     fs-extra "^0.30.0"
     selenium-standalone "^6.15.4"
+
+wdio-spec-reporter@^0.1.5:
+  version "0.1.5"
+  resolved "https://registry.yarnpkg.com/wdio-spec-reporter/-/wdio-spec-reporter-0.1.5.tgz#6d6f865deac6b36f96988c1204cc81099b75fc7e"
+  integrity sha512-MqvgTow8hFwhFT47q67JwyJyeynKodGRQCxF7ijKPGfsaG1NLssbXYc0JhiL7SiAyxnQxII0UxzTCd3I6sEdkg==
+  dependencies:
+    babel-runtime "~6.26.0"
+    chalk "^2.3.0"
+    humanize-duration "~3.15.0"
 
 wdio-sync@0.7.3:
   version "0.7.3"
