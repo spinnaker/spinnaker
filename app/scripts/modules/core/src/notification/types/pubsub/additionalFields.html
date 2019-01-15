@@ -1,18 +1,18 @@
 <ng-form name="pubsubForm">
   <div class="form-group row">
-    <div class="col-sm-3 sm-label-right">Topic</div>
+    <div class="col-sm-3 sm-label-right">Publisher Name</div>
     <div class="col-sm-9">
       <input type="text"
              name="topic"
              class="form-control input-sm "
-             ng-model="vm.notification.topic"
-             placeholder="enter an pubsub topic name"
-             ng-required="!vm.notification.topic.length">
+             ng-model="vm.notification.publisherName"
+             placeholder="enter a pubsub publisher name"
+             ng-required="!vm.notification.publisherName.length">
       </input>
     </div>
   </div>
   <div class="form-group row slide-in"
-       ng-if="pubsubForm.topic.$dirty && pubsubForm.topic.$invalid">
+       ng-if="pubsubForm.publisherName.$dirty && pubsubForm.publisherName.$invalid">
     <div class="col-sm-9 col-sm-offset-3 error-message">
       <span>Please enter a valid pubsub topic</span>
     </div>
