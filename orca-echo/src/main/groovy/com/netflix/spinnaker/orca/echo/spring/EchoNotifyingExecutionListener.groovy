@@ -111,7 +111,11 @@ class EchoNotifyingExecutionListener implements ExecutionListener {
         appNotification = contextParameterProcessor.process(appNotification, executionMap, true)
 
         Map<String, Object> targetMatch = pipeline.notifications.find { pipelineNotification ->
-          pipelineNotification.address == appNotification.address && pipelineNotification.type == appNotification.type
+          def addressMatches = pipelineNotification.address == appNotification.address
+          def publisherMatches = pipelineNotification.publisherName == appNotification.publisherName
+          def typeMatches = pipelineNotification.type == appNotification.type
+
+          return (addressMatches || publisherMatches) && typeMatches
         }
         if (!targetMatch) {
           pipeline.notifications.push(appNotification)

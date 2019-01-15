@@ -57,14 +57,15 @@ class ManualJudgmentStageSpec extends Specification {
       new Notification(type: "email", address: "test@netflix.com"),
       new Notification(type: "hipchat", address: "Hipchat Channel"),
       new Notification(type: "sms", address: "11122223333"),
-      new Notification(type: "unknown", address: "unknown")
+      new Notification(type: "unknown", address: "unknown"),
+      new Notification(type: "pubsub", publisherName: "foobar")
     ]]))
 
     then:
     result.status == ExecutionStatus.RUNNING
     result.context.notifications.findAll {
       it.lastNotifiedByNotificationState["manualJudgment"]
-    }*.type == ["email", "hipchat", "sms"]
+    }*.type == ["email", "hipchat", "sms", "pubsub"]
   }
 
   @Unroll

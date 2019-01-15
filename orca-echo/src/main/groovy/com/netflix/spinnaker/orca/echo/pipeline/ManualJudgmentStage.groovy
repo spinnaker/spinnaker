@@ -144,6 +144,7 @@ class ManualJudgmentStage implements StageDefinitionBuilder, AuthenticatedStage 
     String address
     String cc
     String type
+    String publisherName
     List<String> when
     Map<String, Map> message
 
@@ -173,7 +174,7 @@ class ManualJudgmentStage implements StageDefinitionBuilder, AuthenticatedStage 
     void notify(EchoService echoService, Stage stage, String notificationState) {
       echoService.create(new EchoService.Notification(
         notificationType: EchoService.Notification.Type.valueOf(type.toUpperCase()),
-        to: address ? [address] : null,
+        to: address ? [address] : (publisherName ? [publisherName] : null),
         cc: cc ? [cc] : null,
         templateGroup: notificationState,
         severity: EchoService.Notification.Severity.HIGH,
