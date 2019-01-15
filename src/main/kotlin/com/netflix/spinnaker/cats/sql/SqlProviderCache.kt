@@ -126,46 +126,71 @@ class SqlProviderCache(private val backingStore: WriteableCache) : ProviderCache
     // TODO every source type should have an authoritative agent and every agent should be authoritative for something
     // TODO terrible hack because no AWS agent is authoritative for clusters, fix in ClusterCachingAgent
     // TODO same with namedImages - fix in AWS ImageCachingAgent
-    // All OnDemand agents must also be treated as authoritative
-    if (source.contains(ON_DEMAND.ns, ignoreCase = true) && !authoritativeTypes.contains(source)) {
-      authoritativeTypes.add(source)
-    } else if (
+    if (
       source.contains("clustercaching", ignoreCase = true) &&
       !authoritativeTypes.contains(CLUSTERS.ns) &&
-      cacheResult.cacheResults.any { it.key.startsWith(CLUSTERS.ns) }
+      cacheResult.cacheResults
+        .any {
+          it.key.startsWith(CLUSTERS.ns)
+        }
     ) {
       authoritativeTypes.add(CLUSTERS.ns)
     } else if (
       source.contains("imagecaching", ignoreCase = true) &&
-      cacheResult.cacheResults.any { it.key.startsWith(NAMED_IMAGES.ns) }
+      cacheResult.cacheResults
+        .any {
+          it.key.startsWith(NAMED_IMAGES.ns)
+        }
     ) {
       authoritativeTypes.add(NAMED_IMAGES.ns)
     }
 
+    cacheResult.cacheResults
+      .filter {
+        it.key.contains(ON_DEMAND.ns, ignoreCase = true)
+      }
+      .forEach {
+        authoritativeTypes.add(it.key)
+      }
+
     val cachedTypes = mutableSetOf<String>()
     // Update resource table from Authoritative sources only
-    if (authoritativeTypes.isNotEmpty()) {
-      cacheResult.cacheResults
-        .filter { authoritativeTypes.contains(it.key) }
+    when {
+      // OnDemand agents should only be treated as authoritative
+      source.contains(ON_DEMAND.ns, ignoreCase = true) -> cacheResult.cacheResults
+        // And OnDemand agents shouldn't update other resource type tables
+        .filter {
+          it.key.contains(ON_DEMAND.ns, ignoreCase = true)
+        }
+        .forEach {
+          cacheDataType(it.key, source, it.value, true)
+        }
+      authoritativeTypes.isNotEmpty() -> cacheResult.cacheResults
+        .filter {
+          authoritativeTypes.contains(it.key)
+        }
         .forEach {
           cacheDataType(it.key, source, it.value, true)
           cachedTypes.add(it.key)
         }
-    } else {
-      // If there are no authoritative types in cacheResult, override all as authoritative without cleanup
-      cacheResult.cacheResults
-        .forEach {
-          cacheDataType(it.key, source, it.value, true, false)
-          cachedTypes.add(it.key)
-        }
+      else -> // If there are no authoritative types in cacheResult, override all as authoritative without cleanup
+        cacheResult.cacheResults
+          .forEach {
+            cacheDataType(it.key, source, it.value, true, false)
+            cachedTypes.add(it.key)
+          }
     }
 
     // Update relationships for non-authoritative types
-    cacheResult.cacheResults
-      .filter { !cachedTypes.contains(it.key) }
-      .forEach {
-        cacheDataType(it.key, source, it.value, false)
-      }
+    if (!source.contains(ON_DEMAND.ns, ignoreCase = true)) {
+      cacheResult.cacheResults
+        .filter {
+          !cachedTypes.contains(it.key)
+        }
+        .forEach {
+          cacheDataType(it.key, source, it.value, false)
+        }
+    }
 
     if (cacheResult.evictions.isNotEmpty()) {
       cacheResult.evictions.forEach {
