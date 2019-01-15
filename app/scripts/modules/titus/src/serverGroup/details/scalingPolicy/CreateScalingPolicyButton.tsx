@@ -2,7 +2,7 @@ import * as React from 'react';
 
 import { AccountService, Application, IServerGroup, ModalInjector } from '@spinnaker/core';
 
-import { PolicyTypeSelectionModal } from './upsert/PolicyTypeSelectionModal';
+import { PolicyTypeSelectionModal } from '@spinnaker/amazon';
 import { UpsertTargetTrackingController } from './targetTracking/upsertTargetTracking.controller';
 import { TitusReactInjector } from '../../../reactShims';
 
@@ -104,6 +104,7 @@ export class CreateScalingPolicyButton extends React.Component<
   };
 
   public render() {
+    const { min, max } = this.props.serverGroup.capacity;
     return (
       <div>
         {this.state.awsAccount ? (
@@ -112,7 +113,11 @@ export class CreateScalingPolicyButton extends React.Component<
           </a>
         ) : null}
         {this.state.showSelection && (
-          <PolicyTypeSelectionModal typeSelectedCallback={this.typeSelected} showCallback={this.showModalCallback} />
+          <PolicyTypeSelectionModal
+            warnOnMinMaxCapacity={min === max}
+            typeSelectedCallback={this.typeSelected}
+            showCallback={this.showModalCallback}
+          />
         )}
       </div>
     );

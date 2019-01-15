@@ -86,13 +86,18 @@ export class CreateScalingPolicyButton extends React.Component<
   };
 
   public render() {
+    const { min, max } = this.props.serverGroup.capacity;
     return (
       <div>
         <a className="clickable" onClick={this.handleClick}>
           Create new scaling policy
         </a>
         {this.state.showSelection && (
-          <PolicyTypeSelectionModal typeSelectedCallback={this.typeSelected} showCallback={this.showModalCallback} />
+          <PolicyTypeSelectionModal
+            warnOnMinMaxCapacity={min === max}
+            typeSelectedCallback={this.typeSelected}
+            showCallback={this.showModalCallback}
+          />
         )}
       </div>
     );

@@ -8,6 +8,7 @@ export interface IPolicyTypeSelectionModalState {
 export interface IPolicyTypeSelectionModalProps {
   showCallback: () => void;
   typeSelectedCallback: (type: string) => void;
+  warnOnMinMaxCapacity?: boolean;
 }
 
 export class PolicyTypeSelectionModal extends React.Component<
@@ -55,6 +56,21 @@ export class PolicyTypeSelectionModal extends React.Component<
               </div>
             </div>
           </div>
+          {this.props.warnOnMinMaxCapacity && (
+            <div className="messageContainer warningMessage">
+              <i className="fa icon-alert-triangle" />
+              <div className="message">
+                <p>
+                  This server group's <em>min</em> and <em>max</em> capacity are identical, so scaling policies will
+                  have <b>no effect.</b>
+                </p>
+                <p>
+                  Scaling policies work by adjusting the server group's <em>desired</em> capacity to a value between the
+                  min and max.
+                </p>
+              </div>
+            </div>
+          )}
         </Modal.Body>
         <Modal.Footer>
           <button className="btn btn-default" onClick={this.close}>
