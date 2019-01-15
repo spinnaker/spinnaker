@@ -46,10 +46,16 @@ class DistArch(namedtuple('DistArch', ['dist', 'arch'])):
   def __repl__(self):
     return '{},{}'.format(self.dist, self.arch)
 
+  def get_filename(self):
+    return 'spin.exe' if self.dist == 'windows' else 'spin'
+
+  filename = property(get_filename)
+
 
 DIST_ARCH_LIST = [
     DistArch('darwin', 'amd64'),
-    DistArch('linux', 'amd64')
+    DistArch('linux', 'amd64'),
+    DistArch('windows', 'amd64')
 ]
 
 
@@ -74,7 +80,7 @@ class BuildSpinCommand(RepositoryCommandProcessor):
 
     version_exists = [
       self.__gcs_uploader.check_file_exists(
-        'spin/{}/{}/{}/spin'.format(self.__build_version, d.dist, d.arch))
+        'spin/{}/{}/{}/{}'.format(self.__build_version, d.dist, d.arch, d.filename))
       for d in DIST_ARCH_LIST
     ]
     all_exist = all(version_exists)
@@ -111,12 +117,16 @@ class BuildSpinCommand(RepositoryCommandProcessor):
     env.update({'GOPATH': gopath})
 
     # spin source + dependency update.
-    check_subprocess('go get -v -u {}'.format(spin_package_path), cwd=gopath, env=env)
+    for dist_arch in DIST_ARCH_LIST:
+      env.update({'GOOS': dist_arch.dist,
+                  'GOARCH': dist_arch.arch})
+      check_subprocess('go get -v -u {}'.format(spin_package_path), cwd=gopath, env=env)
+    
     for dist_arch in DIST_ARCH_LIST:
       # GCS sub-directory the binaries are stored in are specified by
       # ${build_version}/${dist}.
-      version_bin_path = ('spin/{}/{}/{}/spin'
-                          .format(self.__build_version, dist_arch.dist, dist_arch.arch))
+      version_bin_path = ('spin/{}/{}/{}/{}'
+                          .format(self.__build_version, dist_arch.dist, dist_arch.arch, dist_arch.filename))
 
       context = '%s-%s' % (dist_arch.dist, dist_arch.arch)
       logfile = self.get_logfile_path(
@@ -146,7 +156,7 @@ class BuildSpinCommand(RepositoryCommandProcessor):
           check_subprocesses_to_logfile, 'Building spin ' + context, logfile,
           [cmd], cwd=config_root, env=env)
 
-      spin_path = '{}/spin'.format(config_root)
+      spin_path = '{}/{}'.format(config_root, dist_arch.filename)
       self.__gcs_uploader.upload_from_filename(
         version_bin_path, spin_path)
       os.remove(spin_path)
@@ -304,8 +314,8 @@ class PublishSpinCommand(CommandProcessor):
       logging.info('No changes in spin since last tag, skipping publish.')
     else:
       for d in DIST_ARCH_LIST:
-        source = 'spin/{}/{}/{}/spin'.format(candidate, d.dist, d.arch)
-        dest = 'spin/{}/{}/{}/spin'.format(self.__stable_version, d.dist, d.arch)
+        source = 'spin/{}/{}/{}/{}'.format(candidate, d.dist, d.arch, d.filename)
+        dest = 'spin/{}/{}/{}/{}'.format(self.__stable_version, d.dist, d.arch, d.filename)
         self.__gcs_uploader.copy_file(source, dest)
 
       self.__update_release_latest_file(gate_major, gate_min)
