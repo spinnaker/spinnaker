@@ -62,7 +62,7 @@ class UnexpectedError(BuildtoolError):
 
 def exception_to_message(ex):
   """Get the message from an exception."""
-  return ex.args[0]
+  return ex.args[0] if ex.args else str(ex)
 
 
 def maybe_log_exception(where, ex, action_msg='propagating exception'):
