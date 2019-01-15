@@ -26,6 +26,10 @@ import java.util.Optional;
 
 @Slf4j
 public class KubernetesManifestLabeler {
+  private static final String SPINNAKER_LABEL = "spinnaker.io";
+  private static final String MONIKER_LABEL_PREFIX = "moniker." + SPINNAKER_LABEL;
+  private static final String SEQUENCE = MONIKER_LABEL_PREFIX + "/sequence";
+
   private static final String KUBERNETES_LABEL = "kubernetes.io";
   private static final String APP_LABEL_PREFIX = "app." + KUBERNETES_LABEL;
   private static final String APP_NAME = APP_LABEL_PREFIX + "/name";
@@ -74,6 +78,9 @@ public class KubernetesManifestLabeler {
     // other properties aren't currently set by Spinnaker
     storeLabel(labels, APP_NAME, moniker.getApp());
     storeLabelAndOverwrite(labels, APP_MANAGED_BY, "spinnaker");
+    if (moniker.getSequence() != null) {
+      storeLabelAndOverwrite(labels, SEQUENCE, moniker.getSequence() + "");
+    }
   }
 
   public static KubernetesApplicationProperties getApplicationProperties(KubernetesManifest manifest) {
