@@ -2706,6 +2706,9 @@ hal config canary prometheus account add ACCOUNT [parameters]
  * `--base-url`: (*Required*) The base URL to the Prometheus server.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--password`: (*Sensitive data* - user will be prompted on standard input) A basic auth password.
+ * `--username`: A basic auth username.
+ * `--username-password-file`: The path to a file containing "username:password".
 
 
 ---
@@ -2739,6 +2742,9 @@ hal config canary prometheus account edit ACCOUNT [parameters]
  * `--base-url`: The base URL to the Prometheus server.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--password`: (*Sensitive data* - user will be prompted on standard input) A basic auth password.
+ * `--username`: A basic auth username.
+ * `--username-password-file`: The path to a file containing "username:password".
 
 
 ---
