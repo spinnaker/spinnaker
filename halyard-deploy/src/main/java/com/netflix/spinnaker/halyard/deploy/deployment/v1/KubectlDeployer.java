@@ -27,6 +27,7 @@ import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService.Type;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.SidecarService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.v2.KubectlServiceProvider;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.v2.KubernetesV2Service;
@@ -81,16 +82,20 @@ public class KubectlDeployer implements Deployer<KubectlServiceProvider,AccountD
             }
 
             String resourceDefinition = service.getResourceYaml(deploymentDetails, resolvedConfiguration);
-            DaemonTaskHandler.message("Running kubectl apply on the resource definition...");
-            KubernetesV2Utils.apply(account, resourceDefinition);
+            if (((SpinnakerService) service).getType().equals(Type.REDIS) && KubernetesV2Utils.exists(account, resourceDefinition)) {
+              // We do not want to bounce the Redis pod because user data will be lost.
+              DaemonTaskHandler.message("Redis deployment already exists... not redeploying...");
+            } else {
+              DaemonTaskHandler.message("Running kubectl apply on the resource definition...");
+              KubernetesV2Utils.apply(account, resourceDefinition);
 
-            if (waitForCompletion) {
-              DaemonTaskHandler.message("Waiting for service to be ready...");
-              while (!KubernetesV2Utils.isReady(account, service.getNamespace(settings), service.getServiceName())) {
-                DaemonTaskHandler.safeSleep(TimeUnit.SECONDS.toMillis(5));
+              if (waitForCompletion) {
+                DaemonTaskHandler.message("Waiting for service to be ready...");
+                while (!KubernetesV2Utils.isReady(account, service.getNamespace(settings), service.getServiceName())) {
+                  DaemonTaskHandler.safeSleep(TimeUnit.SECONDS.toMillis(5));
+                }
               }
             }
-
             return null;
           });
       DaemonTaskHandler
