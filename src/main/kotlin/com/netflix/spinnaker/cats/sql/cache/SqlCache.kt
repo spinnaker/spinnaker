@@ -107,7 +107,6 @@ class SqlCache(
 
     createTables(type)
 
-    var location: String? = null
     var agent: String? = agentHint
 
     val first: String? = items
@@ -116,21 +115,16 @@ class SqlCache(
       ?.keys
       ?.firstOrNull()
 
-    if (first != null) {
-      val match = relationshipKeyRegex.find(first)
-      if (match?.groupValues?.size == 3) {
-        location = match.destructured.component1()
-      }
-      if (agent == null) {
+    if (first != null && agent == null) {
         agent = first.substringAfter(":", first)
-      }
     }
+
     if (agent == null) {
       log.debug("warning: null agent for type $type")
     }
 
     val storeResult = if (authoritative) {
-      storeAuthoritative(type, agent, items, location, cleanup)
+      storeAuthoritative(type, agent, items, cleanup)
     } else {
       storeInformative(type, items, cleanup)
     }
@@ -395,7 +389,6 @@ class SqlCache(
   private fun storeAuthoritative(type: String,
                                  agentHint: String?,
                                  items: MutableCollection<CacheData>,
-                                 location: String?,
                                  cleanup: Boolean): StoreResult {
     val result = StoreResult()
 
@@ -457,7 +450,6 @@ class SqlCache(
           table(resourceTableName(type)),
           field("id"),
           field("agent"),
-          field("location"),
           field("body_hash"),
           field("body"),
           field("last_updated")
@@ -465,7 +457,7 @@ class SqlCache(
 
         insert.apply {
           chunk.forEach {
-            values(it, agent, location, hashes[it], bodies[it], now)
+            values(it, agent, hashes[it], bodies[it], now)
           }
 
           onDuplicateKeyUpdate()
@@ -509,14 +501,12 @@ class SqlCache(
                 table(resourceTableName(type)),
                 field("id"),
                 field("agent"),
-                field("location"),
                 field("body_hash"),
                 field("body"),
                 field("last_updated")
               ).values(
                 it,
                 agent,
-                location,
                 hashes[it],
                 bodies[it],
                 clock.millis()
