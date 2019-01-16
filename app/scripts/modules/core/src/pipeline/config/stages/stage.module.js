@@ -122,9 +122,6 @@ module.exports = angular
 
     this.selectStageType = stage => {
       $scope.stage.type = stage.key;
-      if (stage.addAliasToConfig) {
-        $scope.stage.alias = stage.alias;
-      }
       this.selectStage();
       // clear stage-specific fields
       Object.keys($scope.stage).forEach(k => {
@@ -180,6 +177,9 @@ module.exports = angular
           $scope.description = config.description;
           $scope.extendedDescription = config.extendedDescription;
           $scope.label = config.label;
+          if (config.addAliasToConfig) {
+            $scope.stage.alias = config.alias;
+          }
           if (config.defaults) {
             defaultsDeep($scope.stage, config.defaults);
           }
