@@ -16,6 +16,10 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
+import com.netflix.discovery.converters.Auto
+import com.netflix.spectator.api.Id
+import com.netflix.spectator.api.Registry
+
 import java.time.Clock
 import java.util.concurrent.TimeUnit
 import com.fasterxml.jackson.annotation.JsonProperty
@@ -37,21 +41,32 @@ import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
 class ServerGroupCacheForceRefreshTask extends AbstractCloudProviderAwareTask implements RetryableTask {
   static final String REFRESH_TYPE = "ServerGroup"
 
+  private final CloudDriverCacheStatusService cacheStatusService
+  private final CloudDriverCacheService cacheService
+  private final ObjectMapper objectMapper
+  private final Registry registry
+
+  private final Id cacheForceRefreshTaskId
+
   long backoffPeriod = TimeUnit.SECONDS.toMillis(10)
   long timeout = TimeUnit.MINUTES.toMillis(15)
 
   long autoSucceedAfterMs = TimeUnit.MINUTES.toMillis(12)
 
-  @Autowired
-  CloudDriverCacheStatusService cacheStatusService
-
-  @Autowired
-  CloudDriverCacheService cacheService
-
-  @Autowired
-  ObjectMapper objectMapper
-
   Clock clock = Clock.systemUTC()
+
+  @Autowired
+  ServerGroupCacheForceRefreshTask(CloudDriverCacheStatusService cacheStatusService,
+                                   CloudDriverCacheService cacheService,
+                                   ObjectMapper objectMapper,
+                                   Registry registry) {
+    this.cacheStatusService = cacheStatusService
+    this.cacheService = cacheService
+    this.objectMapper = objectMapper
+    this.registry = registry
+
+    this.cacheForceRefreshTaskId = registry.createId("tasks.serverGroupCacheForceRefresh")
+  }
 
   @Override
   TaskResult execute(Stage stage) {
@@ -66,6 +81,8 @@ class ServerGroupCacheForceRefreshTask extends AbstractCloudProviderAwareTask im
       log.warn("After {}ms no progress has been made with the force cache refresh. Shorting the circuit.",
         clock.millis() - stage.startTime
       )
+
+      registry.counter(cacheForceRefreshTaskId.withTag("stageType", stage.type)).increment()
       return new TaskResult(SUCCEEDED, ["shortCircuit": true])
     }
 
@@ -83,6 +100,8 @@ class ServerGroupCacheForceRefreshTask extends AbstractCloudProviderAwareTask im
     if (allAreComplete) {
       // ensure clean stage data such that a subsequent ServerGroupCacheForceRefresh (in this stage) starts fresh
       stageData.reset()
+
+      registry.counter(cacheForceRefreshTaskId.withTag("stageType", stage.type)).increment()
     }
 
     return new TaskResult(allAreComplete ? SUCCEEDED : RUNNING, convertAndStripNullValues(stageData))

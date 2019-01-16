@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.instance.WaitForTerminatedInstancesTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask
@@ -30,12 +31,22 @@ import org.springframework.stereotype.Component
 @Component
 @CompileStatic
 class DetachInstancesStage implements StageDefinitionBuilder {
+  private final DynamicConfigService dynamicConfigService
+
+  DetachInstancesStage(DynamicConfigService dynamicConfigService) {
+    this.dynamicConfigService = dynamicConfigService
+  }
+
   @Override
   void taskGraph(Stage stage, TaskNode.Builder builder) {
     builder
       .withTask("detachInstances", DetachInstancesTask)
       .withTask("monitorDetach", MonitorKatoTask)
-      .withTask("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
-      .withTask("waitForTerminatedInstances", WaitForTerminatedInstancesTask)
+
+    if (isForceCacheRefreshEnabled(dynamicConfigService)) {
+      builder.withTask("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
+    }
+
+    builder.withTask("waitForTerminatedInstances", WaitForTerminatedInstancesTask)
   }
 }

@@ -16,6 +16,8 @@
 package com.netflix.spinnaker.orca.kato.pipeline;
 
 import java.util.Map;
+
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.clouddriver.FeaturesService;
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask;
@@ -44,6 +46,9 @@ public class RollingPushStage implements StageDefinitionBuilder {
   @Autowired
   private FeaturesService featuresService;
 
+  @Autowired
+  private DynamicConfigService dynamicConfigService;
+
   @Override
   public void taskGraph(Stage stage, TaskNode.Builder builder) {
     boolean taggingEnabled = featuresService.areEntityTagsAvailable();
@@ -64,8 +69,13 @@ public class RollingPushStage implements StageDefinitionBuilder {
             .withTask("waitForDisabledState", WaitForDownInstanceHealthTask.class)
             .withTask("terminateInstances", TerminateInstancesTask.class)
             .withTask("waitForTerminateOperation", MonitorKatoTask.class)
-            .withTask("waitForTerminatedInstances", WaitForTerminatedInstancesTask.class)
-            .withTask("forceCacheRefresh", ServerGroupCacheForceRefreshTask.class)
+            .withTask("waitForTerminatedInstances", WaitForTerminatedInstancesTask.class);
+
+          if (isForceCacheRefreshEnabled(dynamicConfigService)) {
+            subGraph.withTask("forceCacheRefresh", ServerGroupCacheForceRefreshTask.class);
+          }
+
+          subGraph
             .withTask("waitForNewInstances", WaitForNewUpInstancesLaunchTask.class)
             .withTask("checkForRemainingTerminations", CheckForRemainingTerminationsTask.class);
         });

@@ -37,7 +37,6 @@ public class BulkDestroyServerGroupStage implements StageDefinitionBuilder, Name
     this.dynamicConfigService = dynamicConfigService;
   }
 
-
   @Override
   public void taskGraph(Stage stage, TaskNode.Builder builder) {
     //TODO(cfieber): how to do locking here...

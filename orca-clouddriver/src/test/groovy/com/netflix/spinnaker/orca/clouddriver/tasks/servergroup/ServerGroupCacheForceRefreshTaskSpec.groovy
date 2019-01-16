@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheService
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheStatusService
 import retrofit.client.Response
@@ -36,8 +37,16 @@ import static java.net.HttpURLConnection.HTTP_OK
 
 class ServerGroupCacheForceRefreshTaskSpec extends Specification {
 
+  def cacheStatusService = Mock(CloudDriverCacheStatusService)
+  def cacheService = Mock(CloudDriverCacheService)
+
   @Subject
-  def task = new ServerGroupCacheForceRefreshTask(objectMapper: new ObjectMapper())
+  def task = new ServerGroupCacheForceRefreshTask(
+    cacheStatusService,
+    cacheService,
+    new ObjectMapper(),
+    new NoopRegistry()
+  )
   def stage = stage()
 
   def deployConfig = [
@@ -49,8 +58,6 @@ class ServerGroupCacheForceRefreshTaskSpec extends Specification {
   def setup() {
     stage.context.putAll(deployConfig)
     stage.startTime = 0
-    task.cacheService = Mock(CloudDriverCacheService)
-    task.cacheStatusService = Mock(CloudDriverCacheStatusService)
   }
 
   void "should force cache refresh server groups via clouddriver"() {

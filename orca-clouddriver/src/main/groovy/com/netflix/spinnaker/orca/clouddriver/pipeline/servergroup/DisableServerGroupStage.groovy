@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup
 
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroupLinearStageSupport
 import com.netflix.spinnaker.orca.clouddriver.tasks.DetermineHealthProvidersTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
@@ -25,12 +26,20 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.WaitForRequiredI
 import com.netflix.spinnaker.orca.pipeline.TaskNode
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
 @CompileStatic
 class DisableServerGroupStage extends TargetServerGroupLinearStageSupport {
   static final String PIPELINE_CONFIG_TYPE = "disableServerGroup"
+
+  private final DynamicConfigService dynamicConfigService;
+
+  @Autowired
+  DisableServerGroupStage(DynamicConfigService dynamicConfigService) {
+    this.dynamicConfigService = dynamicConfigService;
+  }
 
   @Override
   protected void taskGraphInternal(Stage stage, TaskNode.Builder builder) {
@@ -39,6 +48,9 @@ class DisableServerGroupStage extends TargetServerGroupLinearStageSupport {
       .withTask("disableServerGroup", DisableServerGroupTask)
       .withTask("monitorServerGroup", MonitorKatoTask)
       .withTask("waitForDownInstances", WaitForRequiredInstancesDownTask)
-      .withTask("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
+
+    if (isForceCacheRefreshEnabled(dynamicConfigService)) {
+      builder.withTask("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
+    }
   }
 }

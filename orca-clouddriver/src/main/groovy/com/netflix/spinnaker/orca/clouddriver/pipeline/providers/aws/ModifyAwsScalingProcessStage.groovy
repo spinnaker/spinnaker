@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws
 
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
@@ -39,6 +40,13 @@ class ModifyAwsScalingProcessStage extends TargetServerGroupLinearStageSupport {
 
   public static final String TYPE = getType(ModifyAwsScalingProcessStage)
 
+  private final DynamicConfigService dynamicConfigService
+
+  @Autowired
+  ModifyAwsScalingProcessStage(DynamicConfigService dynamicConfigService) {
+    this.dynamicConfigService = dynamicConfigService
+  }
+
   @Override
   protected void taskGraphInternal(Stage stage, TaskNode.Builder builder) {
     def data = stage.mapTo(StageData)
@@ -54,10 +62,15 @@ class ModifyAwsScalingProcessStage extends TargetServerGroupLinearStageSupport {
       default:
         throw new RuntimeException("No action specified!")
     }
+
     builder
       .withTask("monitor", MonitorKatoTask)
-      .withTask("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
-      .withTask("waitForScalingProcesses", WaitForScalingProcess)
+
+    if (isForceCacheRefreshEnabled(dynamicConfigService)) {
+      builder.withTask("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
+    }
+
+    builder.withTask("waitForScalingProcesses", WaitForScalingProcess)
   }
 
   enum StageAction {
