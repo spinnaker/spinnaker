@@ -32,7 +32,7 @@ cd $GOPATH/src/github.com/spinnaker/spin
 Fetch dependencies and build with with
 
 ```bash
-go get -d -v
+go get -d -v -u
 go build -v
 ```
 
