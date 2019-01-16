@@ -41,7 +41,12 @@ import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 
 /**
- * TODO(rz): Namespace the table
+ * IMPORTANT: Using SQL for locking isn't a good idea. By enabling this scheduler, you'll be adding a fair amount of
+ * unnecessary load to your database. This implementation is offered for operational topology simplicity, but is not
+ * recommended for real workloads. Instead, use the Redis scheduler (`redis.scheduler.enabled=true` and
+ * `sql.scheduler.enabled=false`) or implement a scheduler based on ZooKeeper, etcd, consul, and so-on.
+ *
+ * TODO(rz): namespace the table?
  */
 class SqlClusteredAgentScheduler(
   private val jooq: DSLContext,
