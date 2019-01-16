@@ -75,12 +75,20 @@ class MonitorJenkinsJobTask implements OverridableTimeoutRetryableTask {
 
         if (stage.context.propertyFile) {
           Map<String, Object> properties = [:]
-          retrySupport.retry({
-            properties = buildService.getPropertyFile(buildNumber, stage.context.propertyFile, master, job)
-            if (properties.size() == 0 && result == 'SUCCESS') {
-              throw new IllegalStateException("Expected properties file ${stage.context.propertyFile} but it was either missing, empty or contained invalid syntax")
+          try {
+            retrySupport.retry({
+              properties = buildService.getPropertyFile(buildNumber, stage.context.propertyFile, master, job)
+              if (properties.size() == 0 && result == 'SUCCESS') {
+                throw new IllegalStateException("Expected properties file ${stage.context.propertyFile} but it was either missing, empty or contained invalid syntax")
+              }
+            }, 6, 5000, false)
+          } catch (RetrofitError e) {
+            if (e.response?.status == 404) {
+              throw new IllegalStateException("Expected properties file " + stage.context.propertyFile + " but it was missing")
+            } else {
+              throw e
             }
-          }, 6, 5000, false)
+          }
           outputs << properties
           outputs.propertyFileContents = properties
         }
