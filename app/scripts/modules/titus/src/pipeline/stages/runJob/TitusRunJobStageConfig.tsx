@@ -58,7 +58,9 @@ export class TitusRunJobStageConfig extends React.Component<IStageConfigProps, I
 
     const clusterDefaults = {
       application: application.name,
+      containerAttributes: {},
       env: {},
+      labels: {},
       resources: {
         cpu: 1,
         disk: 10000,
@@ -348,6 +350,20 @@ export class TitusRunJobStageConfig extends React.Component<IStageConfigProps, I
               )}
           </StageConfigField>
 
+          <StageConfigField label="Job Attributes (optional)">
+            <MapEditor
+              model={stage.cluster.labels}
+              allowEmpty={true}
+              onChange={(v: any) => this.mapChanged('cluster.labels', v)}
+            />
+          </StageConfigField>
+          <StageConfigField label="Container Attributes (optional)">
+            <MapEditor
+              model={stage.cluster.containerAttributes}
+              allowEmpty={true}
+              onChange={(v: any) => this.mapChanged('cluster.containerAttributes', v)}
+            />
+          </StageConfigField>
           <StageConfigField label="Environment Variables (optional)">
             <MapEditor
               model={stage.cluster.env}
