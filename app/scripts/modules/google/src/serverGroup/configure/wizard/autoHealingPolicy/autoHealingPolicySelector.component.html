@@ -4,9 +4,9 @@
   </div>
   <div class="col-md-6">
     <ui-select ng-model="$ctrl.autoHealingPolicy.healthCheck" class="form-control input-sm" required>
-      <ui-select-match placeholder="Select...">{{$select.selected}}</ui-select-match>
-      <ui-select-choices repeat="healthCheck in $ctrl.healthChecks | filter: $select.search">
-        <span ng-bind-html="healthCheck | highlight: $select.search"></span>
+      <ui-select-match placeholder="Select...">{{$select.selected.displayName}}</ui-select-match>
+      <ui-select-choices repeat="healthCheck.selfLink as healthCheck in $ctrl.healthChecks | orderBy: 'displayName' | filter: { displayName: $select.search }">
+        <span ng-bind-html="healthCheck.displayName | highlight: $select.search"></span>
       </ui-select-choices>
     </ui-select>
   </div>

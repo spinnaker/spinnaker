@@ -14,6 +14,7 @@ import {
 
 import { GCEProviderSettings } from 'google/gce.settings';
 import { GCE_HEALTH_CHECK_READER } from 'google/healthCheck/healthCheck.read.service';
+import { getHealthCheckOptions } from 'google/healthCheck/healthCheckUtils';
 import { GCE_HTTP_LOAD_BALANCER_UTILS } from 'google/loadBalancer/httpLoadBalancerUtils.service';
 import { LOAD_BALANCER_SET_TRANSFORMER } from 'google/loadBalancer/loadBalancer.setTransformer';
 
@@ -133,6 +134,7 @@ module.exports = angular
             const healthChecks = getHealthChecks(command);
             if (
               !_.chain(healthChecks)
+                .map('selfLink')
                 .includes(command.autoHealingPolicy.healthCheck)
                 .value()
             ) {
@@ -357,10 +359,8 @@ module.exports = angular
     }
 
     function getHealthChecks(command) {
-      return _.chain(command.backingData.healthChecks)
-        .filter({ account: command.credentials })
-        .map('name')
-        .value();
+      const matchingHealthChecks = _.filter(command.backingData.healthChecks, { account: command.credentials });
+      return getHealthCheckOptions(matchingHealthChecks);
     }
 
     function configureHealthChecks(command) {
@@ -376,6 +376,7 @@ module.exports = angular
       if (
         _.has(command, 'autoHealingPolicy.healthCheck') &&
         !_.chain(filteredData.healthChecks)
+          .map('selfLink')
           .includes(command.autoHealingPolicy.healthCheck)
           .value()
       ) {

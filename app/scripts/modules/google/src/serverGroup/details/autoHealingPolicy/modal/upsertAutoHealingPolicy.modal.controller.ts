@@ -1,17 +1,19 @@
-import { Application, TaskMonitor } from '@spinnaker/core';
 import { IController, module } from 'angular';
 import { IModalServiceInstance } from 'angular-ui-bootstrap';
-import { chain, cloneDeep, last } from 'lodash';
+import { cloneDeep } from 'lodash';
+
+import { Application, TaskMonitor } from '@spinnaker/core';
 
 import { IGceAutoHealingPolicy, IGceServerGroup } from 'google/domain/index';
 import { GCE_HEALTH_CHECK_READER, GceHealthCheckReader } from 'google/healthCheck/healthCheck.read.service';
+import { getHealthCheckOptions, IGceHealthCheckOption, parseHealthCheckUrl } from 'google/healthCheck/healthCheckUtils';
 
 import './upsertAutoHealingPolicy.modal.less';
 
 class GceUpsertAutoHealingPolicyModalCtrl implements IController {
   public autoHealingPolicy: IGceAutoHealingPolicy;
   public taskMonitor: TaskMonitor;
-  public healthChecks: string[];
+  public healthChecks: IGceHealthCheckOption[];
   public action: 'Edit' | 'New';
   public isNew: boolean;
   public submitButtonLabel: string;
@@ -29,6 +31,9 @@ class GceUpsertAutoHealingPolicyModalCtrl implements IController {
 
   public submit(): void {
     const submitMethod = () => {
+      const { healthCheckName, healthCheckKind } = parseHealthCheckUrl(this.autoHealingPolicy.healthCheck);
+      this.autoHealingPolicy.healthCheck = healthCheckName;
+      this.autoHealingPolicy.healthCheckKind = healthCheckKind;
       return this.gceAutoscalingPolicyWriter.upsertAutoHealingPolicy(
         this.application,
         this.serverGroup,
@@ -48,10 +53,8 @@ class GceUpsertAutoHealingPolicyModalCtrl implements IController {
 
   public onHealthCheckRefresh(): void {
     this.gceHealthCheckReader.listHealthChecks().then(healthChecks => {
-      this.healthChecks = chain(healthChecks)
-        .filter({ account: this.serverGroup.account })
-        .map('name')
-        .value() as string[];
+      const matchingHealthChecks = healthChecks.filter(hc => hc.account === this.serverGroup.account);
+      this.healthChecks = getHealthCheckOptions(matchingHealthChecks);
     });
   }
 
@@ -62,9 +65,6 @@ class GceUpsertAutoHealingPolicyModalCtrl implements IController {
     this.submitButtonLabel = this.isNew ? 'Create' : 'Update';
     if (!this.isNew) {
       this.autoHealingPolicy = cloneDeep(this.serverGroup.autoHealingPolicy);
-      if (this.autoHealingPolicy.healthCheck) {
-        this.autoHealingPolicy.healthCheck = last(this.autoHealingPolicy.healthCheck.split('/'));
-      }
     }
     this.taskMonitor = new TaskMonitor({
       application: this.application,

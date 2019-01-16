@@ -193,7 +193,7 @@ module.exports = angular
 
         if (autoHealingPolicyHealthCheck) {
           command.autoHealingPolicy = {
-            healthCheck: autoHealingPolicyHealthCheck,
+            healthCheck: healthCheckUrl,
             initialDelaySec: autoHealingPolicy.initialDelaySec,
           };
         }
