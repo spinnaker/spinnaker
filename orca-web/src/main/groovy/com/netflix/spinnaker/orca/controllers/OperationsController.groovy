@@ -45,6 +45,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
+import retrofit.RetrofitError
 import retrofit.http.Query
 
 import javax.servlet.http.HttpServletResponse
@@ -271,12 +272,20 @@ class OperationsController {
       }
       trigger.buildInfo = buildInfo
       if (trigger.propertyFile) {
-        trigger.properties = buildService.getPropertyFile(
-          trigger.buildNumber as Integer,
-          trigger.propertyFile as String,
-          trigger.master as String,
-          trigger.job as String
-        )
+        try {
+          trigger.properties = buildService.getPropertyFile(
+            trigger.buildNumber as Integer,
+            trigger.propertyFile as String,
+            trigger.master as String,
+            trigger.job as String
+          )
+        } catch (RetrofitError e) {
+          if (e.response?.status == 404) {
+            throw new IllegalStateException("Expected properties file " + trigger.propertyFile + " (configured on trigger), but it was missing")
+          } else {
+            throw e
+          }
+        }
       }
     } else if (trigger?.registry && trigger?.repository && trigger?.tag) {
       trigger.buildInfo = [
