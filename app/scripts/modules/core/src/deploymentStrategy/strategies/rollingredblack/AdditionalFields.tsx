@@ -47,11 +47,12 @@ export class AdditionalFields extends React.Component<IRollingRedBlackStrategyAd
   public render() {
     const { NumberList } = NgReact;
     const { command } = this.props;
+    const rollbackOnFailure = command.rollback && command.rollback.onFailure;
     return (
       <div className="form-group">
         <div className="col-md-12 checkbox" style={{ marginTop: 0 }}>
           <label>
-            <input type="checkbox" checked={command.rollback.onFailure} onChange={this.rollbackOnFailureChange} />
+            <input type="checkbox" checked={rollbackOnFailure} onChange={this.rollbackOnFailureChange} />
             Rollback to previous server group if deployment fails <HelpField id="strategy.rollingRedBlack.rollback" />
           </label>
         </div>
