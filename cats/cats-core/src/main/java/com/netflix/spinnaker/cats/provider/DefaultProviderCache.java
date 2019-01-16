@@ -20,6 +20,7 @@ import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.CacheFilter;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
+import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter;
 import com.netflix.spinnaker.cats.cache.WriteableCache;
 
 import java.util.ArrayList;
@@ -194,7 +195,7 @@ public class DefaultProviderCache implements ProviderCache {
     }
 
     private Collection<String> getExistingSourceIdentifiers(String type, String sourceAgentType) {
-        CacheData all = backingStore.get(type, ALL_ID);
+        CacheData all = backingStore.get(type, ALL_ID, RelationshipCacheFilter.include(sourceAgentType));
         if (all == null) {
             return new HashSet<>();
         }
