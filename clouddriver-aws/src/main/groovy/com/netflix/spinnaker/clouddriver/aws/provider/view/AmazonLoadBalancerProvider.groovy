@@ -54,8 +54,8 @@ class AmazonLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalan
     this.awsProvider = awsProvider
   }
 
-  Collection<CacheData> resolveRelationshipData(CacheData source, String relationship) {
-    source.relationships[relationship] ? cacheView.getAll(relationship, source.relationships[relationship]) : []
+  Collection<CacheData> resolveRelationshipData(CacheData source, String relationship, CacheFilter cacheFilter = null) {
+    source.relationships[relationship] ? cacheView.getAll(relationship, source.relationships[relationship], cacheFilter) : []
   }
 
   private Collection<CacheData> resolveRelationshipDataForCollection(Collection<CacheData> sources, String relationship, CacheFilter cacheFilter = null) {
@@ -74,7 +74,15 @@ class AmazonLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalan
 
     CacheData application = cacheView.get(APPLICATIONS.ns, Keys.getApplicationKey(applicationName))
 
-    Collection<CacheData> applicationServerGroups = application ? resolveRelationshipData(application, SERVER_GROUPS.ns) : []
+    Collection<CacheData> applicationServerGroups = []
+    if (application) {
+      applicationServerGroups = resolveRelationshipData(
+        application,
+        SERVER_GROUPS.ns,
+        RelationshipCacheFilter.include(INSTANCES.ns, LOAD_BALANCERS.ns, TARGET_GROUPS.ns)
+      )
+    }
+
     Collection<String> allLoadBalancerKeys = cacheView.getIdentifiers(LOAD_BALANCERS.ns)
     Collection<String> allTargetGroupKeys = cacheView.getIdentifiers(TARGET_GROUPS.ns)
 
@@ -105,7 +113,12 @@ class AmazonLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalan
     targetGroupKeys.addAll(targetGroupKeyMatches)
 
     // Add load balancer keys for all target groups that are associated with the application
-    Collection<CacheData> tgd = cacheView.getAll(TARGET_GROUPS.ns, targetGroupKeys)
+    Collection<CacheData> tgd = cacheView.getAll(
+      TARGET_GROUPS.ns,
+      targetGroupKeys,
+      RelationshipCacheFilter.include(LOAD_BALANCERS.ns)
+    )
+
     tgd.each { targetGroup ->
       Collection<String> targetGroupLoadBalancers = targetGroup.relationships[LOAD_BALANCERS.ns] ?: []
       targetGroupLoadBalancers.each {
@@ -116,16 +129,42 @@ class AmazonLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalan
     }
 
     // Get all load balancers
-    Collection<CacheData> loadBalancerData = cacheView.getAll(LOAD_BALANCERS.ns, loadBalancerKeys)
-    Collection<CacheData> allLoadBalancerServerGroups = resolveRelationshipDataForCollection(loadBalancerData, SERVER_GROUPS.ns)
-    Collection<CacheData> allLoadBalancerInstances = resolveRelationshipDataForCollection(allLoadBalancerServerGroups, INSTANCES.ns, RelationshipCacheFilter.none())
+    Collection<CacheData> loadBalancerData = cacheView.getAll(
+      LOAD_BALANCERS.ns,
+      loadBalancerKeys,
+      RelationshipCacheFilter.include(TARGET_GROUPS.ns, SERVER_GROUPS.ns, INSTANCES.ns)
+    )
+    Collection<CacheData> allLoadBalancerServerGroups = resolveRelationshipDataForCollection(
+      loadBalancerData,
+      SERVER_GROUPS.ns,
+      RelationshipCacheFilter.include(INSTANCES.ns)
+    )
+    Collection<CacheData> allLoadBalancerInstances = resolveRelationshipDataForCollection(
+      allLoadBalancerServerGroups,
+      INSTANCES.ns,
+      RelationshipCacheFilter.none()
+    )
+
     Map<String, AmazonInstance> loadBalancerInstances = translateInstances(allLoadBalancerInstances)
     Map<String, AmazonServerGroup> loadBalancerServerGroups = translateServerGroups(allLoadBalancerServerGroups, loadBalancerInstances)
 
     // Get all target groups
-    Collection<CacheData> targetGroupData = resolveRelationshipDataForCollection(loadBalancerData, TARGET_GROUPS.ns)
-    Collection<CacheData> allTargetGroupServerGroups = resolveRelationshipDataForCollection(targetGroupData, SERVER_GROUPS.ns)
-    Collection<CacheData> allTargetGroupInstances = resolveRelationshipDataForCollection(allTargetGroupServerGroups, INSTANCES.ns, RelationshipCacheFilter.none())
+    Collection<CacheData> targetGroupData = resolveRelationshipDataForCollection(
+      loadBalancerData,
+      TARGET_GROUPS.ns,
+      RelationshipCacheFilter.include(SERVER_GROUPS.ns, INSTANCES.ns)
+    )
+    Collection<CacheData> allTargetGroupServerGroups = resolveRelationshipDataForCollection(
+      targetGroupData,
+      SERVER_GROUPS.ns,
+      RelationshipCacheFilter.include(INSTANCES.ns)
+    )
+    Collection<CacheData> allTargetGroupInstances = resolveRelationshipDataForCollection(
+      allTargetGroupServerGroups,
+      INSTANCES.ns,
+      RelationshipCacheFilter.none()
+    )
+
     Map<String, AmazonInstance> targetGroupInstances = translateInstances(allTargetGroupInstances)
     Map<String, AmazonServerGroup> targetGroupServerGroups = translateServerGroups(allTargetGroupServerGroups, targetGroupInstances)
     Map<String, AmazonTargetGroup> allTargetGroups = translateTargetGroups(targetGroupData, targetGroupServerGroups)
