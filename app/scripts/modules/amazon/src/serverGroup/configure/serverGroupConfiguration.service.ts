@@ -519,7 +519,7 @@ export class AwsServerGroupConfigurationService {
       command.spelLoadBalancers = spel || [];
     }
 
-    if (currentTargetGroups && command.targetGroups) {
+    if (currentTargetGroups && command.targetGroups && !currentTargetGroups.includes('${')) {
       const { valid, invalid, spel } = this.getValidMatches(allTargetGroups, currentTargetGroups);
       command.targetGroups = valid;
       if (invalid.length) {
