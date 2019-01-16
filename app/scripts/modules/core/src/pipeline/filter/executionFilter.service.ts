@@ -145,7 +145,7 @@ export class ExecutionFilterService {
   }
 
   private static addEmptyPipelines(groups: IExecutionGroup[], application: Application): void {
-    const configs = application.pipelineConfigs.data || [];
+    const configs = (application.pipelineConfigs.data || []).concat(application.strategyConfigs.data || []);
     const sortFilter: ISortFilter = ExecutionState.filterModel.asFilterModel.sortFilter;
     if (!this.isFilterable(sortFilter.pipeline) && !this.isFilterable(sortFilter.status) && !sortFilter.filter) {
       configs.filter((config: any) => !groups[config.name]).forEach((config: any) =>
