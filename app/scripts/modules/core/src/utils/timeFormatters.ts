@@ -29,7 +29,7 @@ export function timestamp(input: any) {
   if (!isInputValid(input)) {
     return '-';
   }
-  const tz = SETTINGS.defaultTimeZone;
+  const tz = SETTINGS.displayTimestampsInUserLocalTime ? moment.tz.guess() : SETTINGS.defaultTimeZone;
   const thisMoment = moment.tz(parseInt(input, 10), tz);
   return thisMoment.isValid() ? thisMoment.format('YYYY-MM-DD HH:mm:ss z') : '-';
 }

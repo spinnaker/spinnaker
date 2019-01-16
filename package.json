@@ -67,7 +67,7 @@
     "lodash": "^4.16.1",
     "lodash-decorators": "4.5.0",
     "memoize-one": "^4.0.2",
-    "moment-timezone": "^0.4.0",
+    "moment-timezone": "^0.5.23",
     "n3-charts": "^2.0.18",
     "ngimport": "^0.6.0",
     "prop-types": "15.6.1",

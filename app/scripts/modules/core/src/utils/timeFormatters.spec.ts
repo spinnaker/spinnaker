@@ -1,4 +1,5 @@
 import { IFilterService, mock } from 'angular';
+import * as moment from 'moment';
 
 import { SETTINGS } from 'core/config/settings';
 import { duration } from './timeFormatters';
@@ -59,6 +60,13 @@ describe('Filter: timeFormatters', function() {
       });
       it('returns formatted date when valid value is provided', function() {
         expect(filter(1445707299020)).toBe('2015-10-24 17:21:39 GMT');
+      });
+      it('returns formatted date in user local time when valid value is provided', function() {
+        SETTINGS.displayTimestampsInUserLocalTime = true;
+        spyOn(moment.tz, 'guess').and.callFake(function() {
+          return 'Asia/Tokyo'; // +09:00
+        });
+        expect(filter(1445707299020)).toBe('2015-10-25 02:21:39 JST');
       });
     });
 

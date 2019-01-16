@@ -14,6 +14,7 @@ var canaryStagesEnabled = process.env.CANARY_STAGES_ENABLED === 'true';
 var chaosEnabled = process.env.CHAOS_ENABLED === 'true' ? true : false;
 var debugEnabled = process.env.DEBUG_ENABLED === 'false' ? false : true;
 var defaultMetricStore = process.env.METRIC_STORE || 'atlas';
+var displayTimestampsInUserLocalTime = process.env.DISPLAY_TIMESTAMPS_IN_USER_LOCAL_TIME === 'true';
 var dryRunEnabled = process.env.DRYRUN_ENABLED === 'true' ? true : false;
 var entityTagsEnabled = process.env.ENTITY_TAGS_ENABLED === 'true' ? true : false;
 var fiatEnabled = process.env.FIAT_ENABLED === 'true' ? true : false;
@@ -53,6 +54,7 @@ window.spinnakerSettings = {
     artifacts: artifactsEnabled,
     canary: canaryEnabled,
     chaosMonkey: chaosEnabled,
+    displayTimestampsInUserLocalTime: displayTimestampsInUserLocalTime,
     dryRunEnabled: dryRunEnabled,
     entityTags: entityTagsEnabled,
     fiatEnabled: fiatEnabled,

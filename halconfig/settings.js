@@ -15,6 +15,7 @@ var defaultCanaryJudge = '{%canary.defaultJudge%}';
 var defaultMetricsStore = '{%canary.defaultMetricsStore%}';
 var defaultMetricsAccountName = '{%canary.defaultMetricsAccount%}';
 var defaultStorageAccountName = '{%canary.defaultStorageAccount%}';
+var displayTimestampsInUserLocalTime = '{%features.displayTimestampsInUserLocalTime%}' === 'true';
 var entityTagsEnabled = false;
 var fiatEnabled = '{%features.fiat%}' === 'true';
 var iapRefresherEnabled = '{%features.iapRefresherEnabled}' === 'true';
@@ -150,6 +151,7 @@ window.spinnakerSettings = {
     artifacts: artifactsEnabled,
     canary: mineCanaryEnabled,
     chaosMonkey: chaosEnabled,
+    displayTimestampsInUserLocalTime: displayTimestampsInUserLocalTime,
     entityTags: entityTagsEnabled,
     fiatEnabled: fiatEnabled,
     iapRefresherEnabled: iapRefresherEnabled,
