@@ -16,19 +16,19 @@
 
 package com.netflix.spinnaker.config.secrets;
 
-public class SecretDecryptionException extends Exception {
+public class SecretDecryptionException extends SecretException {
 
-  public SecretDecryptionException () { }
+  public SecretDecryptionException() { }
 
-  public SecretDecryptionException (String message) {
-    super (message);
+  public SecretDecryptionException(String message) {
+    super(message);
   }
 
-  public SecretDecryptionException (Throwable cause) {
-    super (cause);
+  public SecretDecryptionException(Throwable cause) {
+    super(cause);
   }
 
-  public SecretDecryptionException (String message, Throwable cause) {
-    super (message, cause);
+  public SecretDecryptionException(String message, Throwable cause) {
+    super(message, cause);
   }
 }

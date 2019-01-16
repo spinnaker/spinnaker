@@ -16,21 +16,21 @@
 
 package com.netflix.spinnaker.config.secrets;
 
-public class InvalidSecretFormatException extends SecretException {
+public class SecretException extends RuntimeException {
 
-  public InvalidSecretFormatException() {
+  public SecretException() {
     super();
   }
 
-  public InvalidSecretFormatException(String message) {
+  public SecretException(String message) {
     super(message);
   }
 
-  public InvalidSecretFormatException(Throwable cause) {
+  public SecretException(Throwable cause) {
     super(cause);
   }
 
-  public InvalidSecretFormatException(String message, Throwable cause) {
+  public SecretException(String message, Throwable cause) {
     super(message, cause);
   }
 }
