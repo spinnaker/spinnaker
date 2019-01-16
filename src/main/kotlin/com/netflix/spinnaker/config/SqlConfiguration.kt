@@ -40,7 +40,7 @@ class SqlConfiguration {
 
   @Bean
   @ConditionalOnProperty("sql.taskRepository.enabled")
-  fun taskRepository(jooq: DSLContext, clock: Clock, sqlProperties: SqlProperties): TaskRepository =
+  fun sqlTaskRepository(jooq: DSLContext, clock: Clock, sqlProperties: SqlProperties): TaskRepository =
     SqlTaskRepository(jooq, ObjectMapper(), clock, sqlProperties.retries)
 
   @Bean
