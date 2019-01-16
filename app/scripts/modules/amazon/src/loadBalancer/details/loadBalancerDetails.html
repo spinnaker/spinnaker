@@ -45,6 +45,14 @@
           load-balancer="ctrl.loadBalancer"
           load-balancer-from-params="ctrl.loadBalancerFromParams"
           ></load-balancer-actions>
+        <div class="dropdown" ng-if="ctrl.loadBalancer.elb.insightActions.length > 0" uib-dropdown dropdown-append-to-body>
+          <button type="button" class="btn btn-sm btn-default dropdown-toggle" uib-dropdown-toggle>
+            Insight <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu" uib-dropdown-menu role="menu">
+            <li ng-repeat="action in ctrl.loadBalancer.elb.insightActions"><a target=_blank href="{{action.url}}">{{action.label}}</a></li>
+          </ul>
+        </div>
       </div>
     </div>
   </div>
