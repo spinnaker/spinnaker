@@ -40,24 +40,28 @@ class SqlCache(
   readChunkSize: Int
 ) : WriteableCache {
 
-  private val schemaVersion = 1 // TODO: move somewhere sane
-  private val relationshipKeyRegex = """^(?:\w+:)?(?:[\w+\-]+)\/([\w+\-]+)\/.*$""".toRegex()
-  private val onDemandType = "onDemand"
+  companion object {
+    private const val schemaVersion = 1 // TODO: move somewhere sane
+    private const val onDemandType = "onDemand"
 
-  // TODO: this may be incorrect for !aws and definitely shouldn't be a hand maintained list here
-  private val typesWithoutFwdRelationships = setOf<String>(
-    CLUSTERS.ns, CERTIFICATES.ns, NAMED_IMAGES.ns, RESERVATION_REPORTS.ns, RESERVED_INSTANCES.ns,
-    "elasticIps", "instanceTypes", "keyPairs", "securityGroups", "subnets", "taggedImage"
-  )
+    private val useRegexp = """.*[\?\[].*""".toRegex()
+    private val cleanRegexp = """\.+\*""".toRegex()
+    private val typeSanitization = """[:/\-]""".toRegex()
+
+    // TODO: this may be incorrect for !aws and definitely shouldn't be a hand maintained list here
+    private val typesWithoutFwdRelationships = setOf<String>(
+      CLUSTERS.ns, CERTIFICATES.ns, NAMED_IMAGES.ns, RESERVATION_REPORTS.ns, RESERVED_INSTANCES.ns,
+      "elasticIps", "instanceTypes", "keyPairs", "securityGroups", "subnets", "taggedImage"
+    )
+
+    private val log = LoggerFactory.getLogger(javaClass)
+    private val retrySupport = RetrySupport()
+  }
 
   private val writeBatchSize = writeChunkSize
   private val readBatchSize = readChunkSize
 
-  private val log = LoggerFactory.getLogger(javaClass)
-
   private var createdTables = ConcurrentSkipListSet<String>()
-
-  private val retrySupport = RetrySupport()
 
   init {
     log.info("Using ${javaClass.simpleName}")
@@ -116,7 +120,7 @@ class SqlCache(
       ?.firstOrNull()
 
     if (first != null && agent == null) {
-        agent = first.substringAfter(":", first)
+      agent = first.substringAfter(":", first)
     }
 
     if (agent == null) {
@@ -347,9 +351,8 @@ class SqlCache(
       return mutableSetOf()
     }
 
-    val sql = if (glob.matches(""".*[\?\[].*""".toRegex())) {
-      // TODO replace with a compiled regex
-      val filter = glob.replace("?", ".", true).replace("*", ".*").replace("""\.+\*""".toRegex(), ".*")
+    val sql = if (glob.matches(useRegexp)) {
+      val filter = glob.replace("?", ".", true).replace("*", ".*").replace(cleanRegexp, ".*")
       "SELECT id FROM ${resourceTableName(type)} WHERE id REGEXP '^$filter\$'"
     } else {
       "SELECT id FROM ${resourceTableName(type)} WHERE id LIKE '${glob.replace('*', '%')}'"
@@ -799,7 +802,7 @@ class SqlCache(
     "cats_v${schemaVersion}_${if (tablePrefix != null) "${tablePrefix}_" else ""}${sanitizeType(type)}_rel"
 
   private fun sanitizeType(type: String): String {
-    return type.replace("""[:/\-]""".toRegex(), "_")
+    return type.replace(typeSanitization, "_")
   }
 
   private fun getHash(body: String?): String? {
