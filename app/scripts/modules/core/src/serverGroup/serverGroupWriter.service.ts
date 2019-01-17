@@ -112,6 +112,15 @@ export class ServerGroupWriter {
     });
   }
 
+  private getCapacityString(capacity: Partial<ICapacity>): string {
+    if (!capacity) {
+      return null;
+    }
+    return Object.keys(capacity)
+      .map((k: keyof ICapacity) => `${k}: ${capacity[k]}`)
+      .join(', ');
+  }
+
   public resizeServerGroup(
     serverGroup: IServerGroup,
     application: Application,
@@ -124,14 +133,14 @@ export class ServerGroupWriter {
     params.region = serverGroup.region;
     params.credentials = serverGroup.account;
     params.cloudProvider = serverGroup.type || serverGroup.provider;
-    const newSize: string = Object.keys(params.capacity)
-      .map((k: keyof ICapacity) => `${k}: ${params.capacity[k]}`)
-      .join(', ');
+    const currentSize: string = this.getCapacityString(serverGroup.capacity);
+    const newSize: string = this.getCapacityString(params.capacity);
+    const currentSizeText = currentSize ? ` from (${currentSize}) ` : ' ';
 
     return TaskExecutor.executeTask({
       job: [params],
       application,
-      description: `Resize Server Group: ${serverGroup.name} to ${newSize}`,
+      description: `Resize Server Group: ${serverGroup.name}${currentSizeText}to (${newSize})`,
     });
   }
 
