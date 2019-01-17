@@ -34,6 +34,7 @@ class InsightConfiguration {
   List<Link> serverGroup = []
   List<Link> job = []
   List<Link> instance = []
+  List<Link> loadBalancer = []
 
   static class Link {
     private static final GStringTemplateEngine templateEngine = new GStringTemplateEngine()

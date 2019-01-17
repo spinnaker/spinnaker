@@ -16,11 +16,14 @@
 
 package com.netflix.spinnaker.gate.services
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.gate.config.InsightConfiguration
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import retrofit.RetrofitError
 
 @CompileStatic
 @Component
@@ -30,7 +33,13 @@ class LoadBalancerService {
   @Autowired
   ClouddriverServiceSelector clouddriverServiceSelector
 
-  List<Map> getAll(String provider = "aws", String selectorKey) {
+  @Autowired
+  InsightConfiguration insightConfiguration
+
+  @Autowired
+  ObjectMapper objectMapper
+
+  List getAll(String provider = "aws", String selectorKey) {
     HystrixFactory.newListCommand(GROUP, "getAllLoadBalancersForProvider-$provider") {
       clouddriverServiceSelector.select(selectorKey).getLoadBalancers(provider)
     } execute()
@@ -42,9 +51,31 @@ class LoadBalancerService {
     } execute()
   }
 
-  List<Map> getDetailsForAccountAndRegion(String account, String region, String name, String selectorKey, String provider = "aws") {
+  List getDetailsForAccountAndRegion(String account, String region, String name, String selectorKey, String provider = "aws") {
     HystrixFactory.newListCommand(GROUP, "getLoadBalancerDetails-$provider") {
-      clouddriverServiceSelector.select(selectorKey).getLoadBalancerDetails(provider, account, region, name)
+      try {
+        def service = clouddriverServiceSelector.select(selectorKey)
+        def accountDetails = objectMapper.convertValue(service.getAccount(account), Map)
+        def loadBalancerDetails = service.getLoadBalancerDetails(provider, account, region, name)
+        
+        loadBalancerDetails = loadBalancerDetails.collect { loadBalancerDetail ->
+          def loadBalancerContext = loadBalancerDetail.collectEntries {
+            return it.value instanceof String ? [it.key, it.value] : [it.key, ""]
+          } as Map<String, String>
+
+          def context = [ "account": account, "region": region ] + loadBalancerContext + accountDetails
+          def foo = loadBalancerDetail + [
+            "insightActions": insightConfiguration.loadBalancer.findResults { it.applyContext(context) }
+          ]
+          return foo
+        }
+        return loadBalancerDetails
+      } catch (RetrofitError e) {
+        if (e.response?.status == 404) {
+          return [:]
+        }
+        throw e
+      }
     } execute()
   }
 
