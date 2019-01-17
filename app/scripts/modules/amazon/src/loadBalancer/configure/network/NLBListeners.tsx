@@ -1,27 +1,15 @@
 import * as React from 'react';
-import { difference, flatten, get, uniq } from 'lodash';
+import { difference, flatten, uniq } from 'lodash';
 
 import { IWizardPageProps, ValidationMessage, wizardPage } from '@spinnaker/core';
 
-import { AWSProviderSettings } from 'amazon/aws.settings';
 import { NLBListenerProtocol, IListenerDescription, IAmazonNetworkLoadBalancerUpsertCommand } from 'amazon/domain';
-import { AmazonCertificateReader, IAmazonCertificate } from 'amazon/certificates/AmazonCertificateReader';
 
 export type INLBListenersProps = IWizardPageProps<IAmazonNetworkLoadBalancerUpsertCommand>;
 
-export interface INLBListenersState {
-  certificates: { [accountId: number]: IAmazonCertificate[] };
-  certificateTypes: string[];
-}
-
-class NLBListenersImpl extends React.Component<INLBListenersProps, INLBListenersState> {
+class NLBListenersImpl extends React.Component<INLBListenersProps> {
   public static LABEL = 'Listeners';
   public protocols = ['TCP'];
-
-  public state: INLBListenersState = {
-    certificates: [],
-    certificateTypes: get(AWSProviderSettings, 'loadBalancers.certificateTypes', ['iam', 'acm']),
-  };
 
   private getAllTargetGroupsFromListeners(listeners: IListenerDescription[]): string[] {
     const actions = flatten(listeners.map(l => l.defaultActions));
@@ -44,16 +32,6 @@ class NLBListenersImpl extends React.Component<INLBListenersProps, INLBListeners
     }
 
     return errors;
-  }
-
-  public componentDidMount(): void {
-    this.loadCertificates();
-  }
-
-  private loadCertificates(): void {
-    AmazonCertificateReader.listCertificates().then(certificates => {
-      this.setState({ certificates });
-    });
   }
 
   private updateListeners(): void {
