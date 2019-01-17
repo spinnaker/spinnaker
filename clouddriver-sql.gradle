@@ -21,6 +21,7 @@ dependencies {
   compile("com.netflix.spinnaker.clouddriver:clouddriver-core:${clouddriverVersion}")
   compile spinnaker.dependency("korkSql")
   compile spinnaker.dependency("ulid")
+  compile spinnaker.dependency("resilience4jRetry")
 
   runtime "mysql:mysql-connector-java:8.0.12"
 
