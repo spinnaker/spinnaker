@@ -53,7 +53,7 @@ class Application implements Timestamped {
   String updateTs
   String createTs
   String lastModifiedBy
-  public List<TrafficGuard> trafficGuards
+  public List<TrafficGuard> trafficGuards = []
 
   private Map<String, Object> details = new HashMap<String, Object>()
 
