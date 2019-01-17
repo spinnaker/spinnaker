@@ -111,7 +111,6 @@ class EcsCreateServergroupDescriptionValidatorSpec extends AbstractValidatorSpec
     def description = (CreateServerGroupDescription) getDescription()
     description.placementStrategySequence = null
     description.availabilityZones = null
-    description.autoscalingPolicies = null
     description.application = null
     description.ecsClusterName = null
     description.dockerImageAddress = null
@@ -127,7 +126,7 @@ class EcsCreateServergroupDescriptionValidatorSpec extends AbstractValidatorSpec
 
   @Override
   Set<String> notNullableProperties() {
-    ['placementStrategySequence', 'availabilityZones', 'autoscalingPolicies', 'application',
+    ['placementStrategySequence', 'availabilityZones', 'application',
      'ecsClusterName', 'dockerImageAddress', 'credentials', 'containerPort', 'computeUnits',
      'reservedMemory', 'capacity.desired', 'capacity.min', 'capacity.max']
   }
@@ -184,7 +183,6 @@ class EcsCreateServergroupDescriptionValidatorSpec extends AbstractValidatorSpec
     description.dockerImageAddress = 'docker-image-url'
     description.capacity = new ServerGroup.Capacity(1, 2, 1)
     description.availabilityZones = ['us-west-1': ['us-west-1a']]
-    description.autoscalingPolicies = []
     description.placementStrategySequence = [new PlacementStrategy().withType(PlacementStrategyType.Random)]
 
     description

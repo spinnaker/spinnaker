@@ -18,10 +18,7 @@ package com.netflix.spinnaker.clouddriver.ecs.deploy.ops;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.applicationautoscaling.AWSApplicationAutoScaling;
-import com.amazonaws.services.applicationautoscaling.model.RegisterScalableTargetRequest;
-import com.amazonaws.services.applicationautoscaling.model.ScalableDimension;
-import com.amazonaws.services.applicationautoscaling.model.ServiceNamespace;
-import com.amazonaws.services.cloudwatch.model.MetricAlarm;
+import com.amazonaws.services.applicationautoscaling.model.*;
 import com.amazonaws.services.ecs.AmazonECS;
 import com.amazonaws.services.ecs.model.*;
 import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing;
@@ -47,13 +44,7 @@ import com.netflix.spinnaker.clouddriver.ecs.services.SubnetSelector;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class CreateServerGroupAtomicOperation extends AbstractEcsAtomicOperation<CreateServerGroupDescription, DeploymentResult> {
@@ -96,21 +87,32 @@ public class CreateServerGroupAtomicOperation extends AbstractEcsAtomicOperation
     String newServerGroupName = serverGroupNameResolver.resolveNextServerGroupName(description.getApplication(),
       description.getStack(), description.getFreeFormDetails(), false);
 
+    ScalableTarget sourceTarget = getSourceScalableTarget();
+    Service sourceService = getSourceService();
+
     String ecsServiceRole = inferAssumedRoleArn(credentials);
 
     updateTaskStatus("Creating Amazon ECS Task Definition...");
     TaskDefinition taskDefinition = registerTaskDefinition(ecs, ecsServiceRole, newServerGroupName);
     updateTaskStatus("Done creating Amazon ECS Task Definition...");
 
-    Service service = createService(ecs, taskDefinition, ecsServiceRole, newServerGroupName);
+    Service service = createService(ecs, taskDefinition, ecsServiceRole, newServerGroupName, sourceService);
 
-    String resourceId = registerAutoScalingGroup(credentials, service);
+    String resourceId = registerAutoScalingGroup(credentials, service, sourceTarget);
 
-    if (!description.getAutoscalingPolicies().isEmpty()) {
-      List<String> alarmNames = description.getAutoscalingPolicies().stream()
-        .map(MetricAlarm::getAlarmName)
-        .collect(Collectors.toList());
-      ecsCloudMetricService.associateAsgWithMetrics(description.getCredentialAccount(), getRegion(), alarmNames, service.getServiceName(), resourceId);
+    if (description.isCopySourceScalingPoliciesAndActions() && sourceTarget != null) {
+      updateTaskStatus("Copying scaling policies...");
+      ecsCloudMetricService.copyScalingPolicies(
+        description.getCredentialAccount(),
+        getRegion(),
+        service.getServiceName(),
+        resourceId,
+        description.getSource().getAccount(),
+        description.getSource().getRegion(),
+        description.getSource().getAsgName(),
+        sourceTarget.getResourceId(),
+        description.getEcsClusterName());
+      updateTaskStatus("Done copying scaling policies...");
     }
 
     return makeDeploymentResult(service);
@@ -224,11 +226,18 @@ public class CreateServerGroupAtomicOperation extends AbstractEcsAtomicOperation
   }
 
   private Service createService(AmazonECS ecs, TaskDefinition taskDefinition, String ecsServiceRole,
-                                String newServerGroupName) {
+                                String newServerGroupName, Service sourceService) {
     Collection<LoadBalancer> loadBalancers = new LinkedList<>();
     loadBalancers.add(retrieveLoadBalancer(EcsServerGroupNameResolver.getEcsContainerName(newServerGroupName)));
 
     Integer desiredCount = description.getCapacity().getDesired();
+    if (sourceService != null &&
+      description.getSource() != null &&
+      description.getSource().getUseSourceCapacity() != null &&
+      description.getSource().getUseSourceCapacity()) {
+      desiredCount = sourceService.getDesiredCount();
+    }
+
     String taskDefinitionArn = taskDefinition.getTaskDefinitionArn();
 
     DeploymentConfiguration deploymentConfiguration = new DeploymentConfiguration()
@@ -288,24 +297,83 @@ public class CreateServerGroupAtomicOperation extends AbstractEcsAtomicOperation
   }
 
   private String registerAutoScalingGroup(AmazonCredentials credentials,
-                                          Service service) {
+                                          Service service,
+                                          ScalableTarget sourceTarget) {
 
     AWSApplicationAutoScaling autoScalingClient = getAmazonApplicationAutoScalingClient();
     String assumedRoleArn = inferAssumedRoleArn(credentials);
+
+    Integer min = description.getCapacity().getMin();
+    Integer max = description.getCapacity().getMax();
+
+    if (sourceTarget != null &&
+      description.getSource() != null &&
+      description.getSource().getUseSourceCapacity() != null &&
+      description.getSource().getUseSourceCapacity()) {
+      min = sourceTarget.getMinCapacity();
+      max = sourceTarget.getMaxCapacity();
+    }
 
     RegisterScalableTargetRequest request = new RegisterScalableTargetRequest()
       .withServiceNamespace(ServiceNamespace.Ecs)
       .withScalableDimension(ScalableDimension.EcsServiceDesiredCount)
       .withResourceId(String.format("service/%s/%s", description.getEcsClusterName(), service.getServiceName()))
       .withRoleARN(assumedRoleArn)
-      .withMinCapacity(description.getCapacity().getMin())
-      .withMaxCapacity(description.getCapacity().getMax());
+      .withMinCapacity(min)
+      .withMaxCapacity(max);
 
     updateTaskStatus("Creating Amazon Application Auto Scaling Scalable Target Definition...");
     autoScalingClient.registerScalableTarget(request);
     updateTaskStatus("Done creating Amazon Application Auto Scaling Scalable Target Definition.");
 
     return request.getResourceId();
+  }
+
+  private ScalableTarget getSourceScalableTarget() {
+    if (description.getSource() != null
+      && description.getSource().getRegion() != null
+      && description.getSource().getAccount() != null
+      && description.getSource().getAsgName() != null) {
+
+      AWSApplicationAutoScaling autoScalingClient = getSourceAmazonApplicationAutoScalingClient();
+
+      DescribeScalableTargetsRequest request = new DescribeScalableTargetsRequest()
+        .withServiceNamespace(ServiceNamespace.Ecs)
+        .withScalableDimension(ScalableDimension.EcsServiceDesiredCount)
+        .withResourceIds(String.format("service/%s/%s", description.getEcsClusterName(), description.getSource().getAsgName()));
+
+      DescribeScalableTargetsResult result = autoScalingClient.describeScalableTargets(request);
+      if (result.getScalableTargets() != null && !result.getScalableTargets().isEmpty()) {
+        return result.getScalableTargets().get(0);
+      }
+
+      return null;
+    }
+
+    return null;
+  }
+
+  private Service getSourceService() {
+    if (description.getSource() != null
+      && description.getSource().getRegion() != null
+      && description.getSource().getAccount() != null
+      && description.getSource().getAsgName() != null) {
+
+      AmazonECS ecsClient = getSourceAmazonEcsClient();
+
+      DescribeServicesRequest request = new DescribeServicesRequest()
+        .withCluster(description.getEcsClusterName())
+        .withServices(description.getSource().getAsgName());
+
+      DescribeServicesResult result = ecsClient.describeServices(request);
+      if (result.getServices() != null && !result.getServices().isEmpty()) {
+        return result.getServices().get(0);
+      }
+
+      return null;
+    }
+
+    return null;
   }
 
   private String inferAssumedRoleArn(AmazonCredentials credentials) {
@@ -375,6 +443,18 @@ public class CreateServerGroupAtomicOperation extends AbstractEcsAtomicOperation
 
     }
     return loadBalancer;
+  }
+
+  private AWSApplicationAutoScaling getSourceAmazonApplicationAutoScalingClient() {
+    String sourceRegion = description.getSource().getRegion();
+    NetflixAmazonCredentials sourceCredentials = (NetflixAmazonCredentials)accountCredentialsProvider.getCredentials(description.getSource().getAccount());
+    return amazonClientProvider.getAmazonApplicationAutoScaling(sourceCredentials, sourceRegion, false);
+  }
+
+  private AmazonECS getSourceAmazonEcsClient() {
+    String sourceRegion = description.getSource().getRegion();
+    NetflixAmazonCredentials sourceCredentials = (NetflixAmazonCredentials)accountCredentialsProvider.getCredentials(description.getSource().getAccount());
+    return amazonClientProvider.getAmazonEcs(sourceCredentials, sourceRegion, false);
   }
 
   private AWSApplicationAutoScaling getAmazonApplicationAutoScalingClient() {

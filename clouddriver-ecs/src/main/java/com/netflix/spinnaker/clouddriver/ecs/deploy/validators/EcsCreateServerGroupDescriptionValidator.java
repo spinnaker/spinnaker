@@ -98,10 +98,6 @@ public class EcsCreateServerGroupDescriptionValidator extends CommonValidator {
       rejectValue(errors, "placementStrategySequence", "not.nullable");
     }
 
-    if (createServerGroupDescription.getAutoscalingPolicies() == null) {
-      rejectValue(errors, "autoscalingPolicies", "not.nullable");
-    }
-
     if (createServerGroupDescription.getApplication() == null) {
       rejectValue(errors, "application", "not.nullable");
     }

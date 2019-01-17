@@ -47,7 +47,6 @@ class EcsCreateServerGroupAtomicOperationConverterSpec extends Specification {
       dockerImageAddress       : 'docker-url',
       capacity                 : new ServerGroup.Capacity(0, 2, 1,),
       availabilityZones        : ['us-west-1': ['us-west-1a']],
-      autoscalingPolicies      : [],
       placementStrategySequence: [new PlacementStrategy().withType(PlacementStrategyType.Random)],
       region                   : 'us-west-1',
       credentials              : 'test'

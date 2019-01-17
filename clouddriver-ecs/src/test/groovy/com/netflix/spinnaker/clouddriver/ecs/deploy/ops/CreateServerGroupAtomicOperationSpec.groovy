@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.ecs.deploy.ops
 
 import com.amazonaws.services.applicationautoscaling.AWSApplicationAutoScaling
+import com.amazonaws.services.applicationautoscaling.model.*
 import com.amazonaws.services.ecs.model.*
 import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing
 import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetGroupsResult
@@ -25,7 +26,7 @@ import com.amazonaws.services.identitymanagement.AmazonIdentityManagement
 import com.amazonaws.services.identitymanagement.model.GetRoleResult
 import com.amazonaws.services.identitymanagement.model.Role
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
-import com.netflix.spinnaker.clouddriver.aws.security.AssumeRoleAmazonCredentials
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAssumeRoleAmazonCredentials
 import com.netflix.spinnaker.clouddriver.ecs.TestCredential
 import com.netflix.spinnaker.clouddriver.ecs.deploy.description.CreateServerGroupDescription
 import com.netflix.spinnaker.clouddriver.ecs.provider.agent.IamPolicyReader
@@ -34,10 +35,8 @@ import com.netflix.spinnaker.clouddriver.ecs.services.EcsCloudMetricService
 import com.netflix.spinnaker.clouddriver.ecs.services.SecurityGroupSelector
 import com.netflix.spinnaker.clouddriver.ecs.services.SubnetSelector
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
-import com.netflix.spinnaker.fiat.model.resources.Permissions
 
 import static com.netflix.spinnaker.clouddriver.ecs.deploy.ops.CreateServerGroupAtomicOperation.DOCKER_LABEL_KEY_SERVERGROUP
-import static com.netflix.spinnaker.clouddriver.ecs.deploy.ops.CreateServerGroupAtomicOperation.NO_IAM_ROLE
 
 class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
   def iamClient = Mock(AmazonIdentityManagement)
@@ -57,19 +56,29 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
 
   def role = new Role(assumeRolePolicyDocument: "json-encoded-string-here")
 
-  def creds = new AssumeRoleAmazonCredentials("test", "test", "test", "test", "test",
-    [new AmazonCredentials.AWSRegion('us-west-1', ['us-west-1a', 'us-west-1b'])],
-    [], [], Permissions.factory([:]), [], false, 'test-role', "test")
+  def creds = Mock(NetflixAssumeRoleAmazonCredentials) {
+    getName() >> { "test" }
+    getRegions() >> { [new AmazonCredentials.AWSRegion('us-west-1', ['us-west-1a', 'us-west-1b'])] }
+    getAssumeRole() >> { 'test-role' }
+    getAccountId() >> { 'test' }
+  }
 
   def taskDefinition = new TaskDefinition().withTaskDefinitionArn("task-def-arn")
 
   def targetGroup = new TargetGroup().withLoadBalancerArns("loadbalancer-arn").withTargetGroupArn('target-group-arn')
 
-  def service = new Service(serviceName: "${serviceName}")
+  def service = new Service(serviceName: "${serviceName}-v008")
 
   def 'should create a service'() {
     given:
+    def source = new CreateServerGroupDescription.Source()
+    source.account = "test"
+    source.region = "us-west-1"
+    source.asgName = "${serviceName}-v007"
+    source.useSourceCapacity = true
+
     def description = new CreateServerGroupDescription(
+      credentials: TestCredential.named('Test', [:]),
       application: applicationName,
       stack: stack,
       freeFormDetails: detail,
@@ -83,8 +92,8 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
       dockerImageAddress: 'docker-image-url',
       capacity: new ServerGroup.Capacity(1, 1, 1),
       availabilityZones: ['us-west-1': ['us-west-1a', 'us-west-1b', 'us-west-1c']],
-      autoscalingPolicies: [],
-      placementStrategySequence: []
+      placementStrategySequence: [],
+      source: source
     )
 
     def operation = new CreateServerGroupAtomicOperation(description)
@@ -107,8 +116,8 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
 
     then:
     1 * ecs.listServices(_) >> new ListServicesResult().withServiceArns("${serviceName}-v007")
-    1 * ecs.describeServices(_) >> new DescribeServicesResult().withServices(
-      new Service(serviceName: "${serviceName}-v007", createdAt: new Date()))
+    2 * ecs.describeServices(_) >> new DescribeServicesResult().withServices(
+      new Service(serviceName: "${serviceName}-v007", createdAt: new Date(), desiredCount: 3))
 
     1 * ecs.registerTaskDefinition({RegisterTaskDefinitionRequest request ->
       request.containerDefinitions.size() == 1
@@ -127,7 +136,7 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     1 * loadBalancingV2.describeTargetGroups(_) >> new DescribeTargetGroupsResult().withTargetGroups(targetGroup)
 
     1 * ecs.createService({ CreateServiceRequest request ->
-      request.serviceName.startsWith(serviceName)
+      request.serviceName == "service/test-cluster/${serviceName}-v008"
       request.desiredCount == 1
       request.cluster = 'test-cluster'
       request.loadBalancers.size() == 1
@@ -140,9 +149,39 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
 
     result.getServerGroupNames().size() == 1
     result.getServerGroupNameByRegion().size() == 1
-    result.getServerGroupNames().contains("us-west-1:" + serviceName)
+    result.getServerGroupNames().contains("us-west-1:" + serviceName + "-v008")
     result.getServerGroupNameByRegion().containsKey('us-west-1')
-    result.getServerGroupNameByRegion().get('us-west-1').contains(serviceName)
+    result.getServerGroupNameByRegion().get('us-west-1').contains(serviceName + "-v008")
+
+    1 * autoScalingClient.registerScalableTarget({RegisterScalableTargetRequest request ->
+      request.serviceNamespace == ServiceNamespace.Ecs
+      request.scalableDimension == ScalableDimension.EcsServiceDesiredCount
+      request.resourceId == "service/test-cluster/${serviceName}-v008"
+      request.roleARN == 'test-role'
+      request.minCapacity == 2
+      request.maxCapacity == 4
+    })
+
+    1 * autoScalingClient.describeScalableTargets({ DescribeScalableTargetsRequest request ->
+      request.scalableDimension == ScalableDimension.EcsServiceDesiredCount
+      request.serviceNamespace == ServiceNamespace.Ecs
+      request.resourceIds == ["service/test-cluster/${serviceName}-v007"]
+    }) >> new DescribeScalableTargetsResult()
+      .withScalableTargets(new ScalableTarget()
+      .withResourceId("service/test-cluster/${serviceName}-v007")
+      .withMinCapacity(2)
+      .withMaxCapacity(4))
+
+    1 * operation.ecsCloudMetricService.copyScalingPolicies(
+      "Test",
+      "us-west-1",
+      "${serviceName}-v008",
+      "service/test-cluster/${serviceName}-v008",
+      "test",
+      "us-west-1",
+      "${serviceName}-v007",
+      "service/test-cluster/${serviceName}-v007",
+      "test-cluster");
   }
 
   def 'should create a service using VPC and Fargate mode'() {
@@ -162,7 +201,6 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
       dockerImageAddress: 'docker-image-url',
       capacity: new ServerGroup.Capacity(1, 1, 1),
       availabilityZones: ['us-west-1': ['us-west-1a', 'us-west-1b', 'us-west-1c']],
-      autoscalingPolicies: [],
       placementStrategySequence: [],
       launchType: 'FARGATE',
       networkMode: 'awsvpc',
@@ -224,13 +262,23 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
       request.networkConfiguration.awsvpcConfiguration.assignPublicIp == 'ENABLED'
       request.role == null
       request.launchType == 'FARGATE'
+      request.desiredCount == 1
     } as CreateServiceRequest) >> new CreateServiceResult().withService(service)
+
+    1 * autoScalingClient.registerScalableTarget({RegisterScalableTargetRequest request ->
+      request.serviceNamespace == ServiceNamespace.Ecs
+      request.scalableDimension == ScalableDimension.EcsServiceDesiredCount
+      request.resourceId == "service/test-cluster/${serviceName}-v008"
+      request.roleARN == 'test-role'
+      request.minCapacity == 1
+      request.maxCapacity == 1
+    })
 
     result.getServerGroupNames().size() == 1
     result.getServerGroupNameByRegion().size() == 1
-    result.getServerGroupNames().contains("us-west-1:" + serviceName)
+    result.getServerGroupNames().contains("us-west-1:" + serviceName + "-v008")
     result.getServerGroupNameByRegion().containsKey('us-west-1')
-    result.getServerGroupNameByRegion().get('us-west-1').contains(serviceName)
+    result.getServerGroupNameByRegion().get('us-west-1').contains(serviceName + "-v008")
   }
 
   def 'should create default Docker labels'() {
@@ -383,7 +431,6 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     description.getDockerImageAddress() >> 'docker-image-url'
     description.capacity = new ServerGroup.Capacity(1, 1, 1)
     description.availabilityZones = ['us-west-1': ['us-west-1a', 'us-west-1b', 'us-west-1c']]
-    description.autoscalingPolicies = []
     description.placementStrategySequence = []
 
     def operation = new CreateServerGroupAtomicOperation(description)

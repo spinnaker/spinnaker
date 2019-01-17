@@ -17,21 +17,10 @@
 package com.netflix.spinnaker.clouddriver.ecs.services;
 
 import com.amazonaws.services.applicationautoscaling.AWSApplicationAutoScaling;
-import com.amazonaws.services.applicationautoscaling.model.DeregisterScalableTargetRequest;
-import com.amazonaws.services.applicationautoscaling.model.DescribeScalableTargetsRequest;
-import com.amazonaws.services.applicationautoscaling.model.DescribeScalableTargetsResult;
-import com.amazonaws.services.applicationautoscaling.model.DescribeScalingPoliciesRequest;
-import com.amazonaws.services.applicationautoscaling.model.DescribeScalingPoliciesResult;
-import com.amazonaws.services.applicationautoscaling.model.PutScalingPolicyRequest;
-import com.amazonaws.services.applicationautoscaling.model.PutScalingPolicyResult;
-import com.amazonaws.services.applicationautoscaling.model.ScalingPolicy;
-import com.amazonaws.services.applicationautoscaling.model.ServiceNamespace;
+import com.amazonaws.services.applicationautoscaling.model.*;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatch;
-import com.amazonaws.services.cloudwatch.model.DeleteAlarmsRequest;
-import com.amazonaws.services.cloudwatch.model.DescribeAlarmsRequest;
-import com.amazonaws.services.cloudwatch.model.DescribeAlarmsResult;
-import com.amazonaws.services.cloudwatch.model.MetricAlarm;
-import com.amazonaws.services.cloudwatch.model.PutMetricAlarmRequest;
+import com.amazonaws.services.cloudwatch.model.*;
+import com.google.common.collect.Iterables;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
@@ -39,15 +28,12 @@ import com.netflix.spinnaker.clouddriver.ecs.cache.client.EcsCloudWatchAlarmCach
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.EcsMetricAlarm;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
@@ -59,6 +45,8 @@ public class EcsCloudMetricService {
   @Autowired
   AmazonClientProvider amazonClientProvider;
 
+  private final Logger log = LoggerFactory.getLogger(getClass());
+
   public void deleteMetrics(String serviceName, String account, String region) {
     List<EcsMetricAlarm> metricAlarms = metricAlarmCacheClient.getMetricAlarms(serviceName, account, region);
 
@@ -66,8 +54,8 @@ public class EcsCloudMetricService {
       return;
     }
 
-    AmazonCredentials credentials = (AmazonCredentials) accountCredentialsProvider.getCredentials(account);
-    AmazonCloudWatch amazonCloudWatch = amazonClientProvider.getAmazonCloudWatch(account, credentials.getCredentialsProvider(), region);
+    NetflixAmazonCredentials credentials = (NetflixAmazonCredentials) accountCredentialsProvider.getCredentials(account);
+    AmazonCloudWatch amazonCloudWatch = amazonClientProvider.getAmazonCloudWatch(credentials, region, false);
 
     amazonCloudWatch.deleteAlarms(new DeleteAlarmsRequest().withAlarmNames(metricAlarms.stream()
       .map(MetricAlarm::getAlarmName)
@@ -143,18 +131,24 @@ public class EcsCloudMetricService {
   }
 
   private PutMetricAlarmRequest buildPutMetricAlarmRequest(MetricAlarm metricAlarm,
-                                                           String serviceName,
-                                                           Set<String> insufficientActionPolicyArns,
-                                                           Set<String> okActionPolicyArns,
-                                                           Set<String> alarmActionPolicyArns) {
+                                                           String alarmName,
+                                                           String dstServiceName,
+                                                           String clusterName,
+                                                           String srcRegion,
+                                                           String dstRegion,
+                                                           String srcAccountId,
+                                                           String dstAccountId,
+                                                           Map<String, String> policyArnReplacements) {
     return new PutMetricAlarmRequest()
-      .withAlarmName(metricAlarm.getAlarmName() + "-" + serviceName)
+      .withAlarmName(alarmName)
       .withEvaluationPeriods(metricAlarm.getEvaluationPeriods())
       .withThreshold(metricAlarm.getThreshold())
       .withActionsEnabled(metricAlarm.getActionsEnabled())
       .withAlarmDescription(metricAlarm.getAlarmDescription())
       .withComparisonOperator(metricAlarm.getComparisonOperator())
-      .withDimensions(metricAlarm.getDimensions())
+      .withDimensions(metricAlarm.getDimensions().stream()
+        .map(dimension -> buildNewServiceAlarmDimension(dimension, metricAlarm.getNamespace(), dstServiceName, clusterName))
+        .collect(Collectors.toSet()))
       .withMetricName(metricAlarm.getMetricName())
       .withUnit(metricAlarm.getUnit())
       .withPeriod(metricAlarm.getPeriod())
@@ -163,9 +157,51 @@ public class EcsCloudMetricService {
       .withEvaluateLowSampleCountPercentile(metricAlarm.getEvaluateLowSampleCountPercentile())
       .withTreatMissingData(metricAlarm.getTreatMissingData())
       .withExtendedStatistic(metricAlarm.getExtendedStatistic())
-      .withInsufficientDataActions(insufficientActionPolicyArns)
-      .withOKActions(okActionPolicyArns)
-      .withAlarmActions(alarmActionPolicyArns);
+      .withInsufficientDataActions(replacePolicyArnActions(
+        srcRegion, dstRegion, srcAccountId, dstAccountId, policyArnReplacements, metricAlarm.getInsufficientDataActions()))
+      .withOKActions(replacePolicyArnActions(
+        srcRegion, dstRegion, srcAccountId, dstAccountId, policyArnReplacements, metricAlarm.getOKActions()))
+      .withAlarmActions(replacePolicyArnActions(
+        srcRegion, dstRegion, srcAccountId, dstAccountId, policyArnReplacements, metricAlarm.getAlarmActions()));
+  }
+
+  protected Collection<String> replacePolicyArnActions(String srcRegion,
+                                             String dstRegion,
+                                             String srcAccountId,
+                                             String dstAccountId,
+                                             Map<String, String> replacements,
+                                             Collection<String> actions) {
+    return actions.stream()
+      // Replace src scaling policy ARNs with dst scaling policy ARNs
+      .map(action -> replacements.keySet().contains(action) ? replacements.get(action) : action)
+      // If we are copying across accounts or regions, do not copy over unrelated actions like SNS topics
+      .filter(action -> srcRegion.equals(dstRegion) || !action.contains(srcRegion))
+      .filter(action -> srcAccountId.equals(dstAccountId) || !action.contains(srcAccountId))
+      .collect(Collectors.toSet());
+  }
+
+  private Dimension buildNewServiceAlarmDimension(Dimension oldDimension, String namespace, String serviceName, String clusterName) {
+    String value = oldDimension.getValue();
+    if (namespace.equals("AWS/ECS")) {
+      if (oldDimension.getName().equals("ClusterName")) {
+        value = clusterName;
+      } else if (oldDimension.getName().equals("ServiceName")) {
+        value = serviceName;
+      }
+    }
+    return new Dimension().withName(oldDimension.getName()).withValue(value);
+  }
+
+  private MetricDimension buildNewServiceTargetTrackingDimension(MetricDimension oldDimension, String namespace, String serviceName, String clusterName) {
+    String value = oldDimension.getValue();
+    if (namespace.equals("AWS/ECS")) {
+      if (oldDimension.getName().equals("ClusterName")) {
+        value = clusterName;
+      } else if (oldDimension.getName().equals("ServiceName")) {
+        value = serviceName;
+      }
+    }
+    return new MetricDimension().withName(oldDimension.getName()).withValue(value);
   }
 
   private PutScalingPolicyRequest buildPutScalingPolicyRequest(ScalingPolicy policy) {
@@ -179,51 +215,50 @@ public class EcsCloudMetricService {
       .withTargetTrackingScalingPolicyConfiguration(policy.getTargetTrackingScalingPolicyConfiguration());
   }
 
-  public void associateAsgWithMetrics(String account,
-                                      String region,
-                                      List<String> alarmNames,
-                                      String serviceName,
-                                      String resourceId) {
+  public void copyScalingPolicies(String dstAccount,
+                                  String dstRegion,
+                                  String dstServiceName,
+                                  String dstResourceId,
+                                  String srcAccount,
+                                  String srcRegion,
+                                  String srcServiceName,
+                                  String srcResourceId,
+                                  String clusterName) {
+    NetflixAmazonCredentials dstCredentials = (NetflixAmazonCredentials) accountCredentialsProvider.getCredentials(dstAccount);
+    NetflixAmazonCredentials srcCredentials = (NetflixAmazonCredentials) accountCredentialsProvider.getCredentials(srcAccount);
 
-    NetflixAmazonCredentials credentials = (NetflixAmazonCredentials) accountCredentialsProvider.getCredentials(account);
+    AWSApplicationAutoScaling dstAutoScalingClient = amazonClientProvider.getAmazonApplicationAutoScaling(dstCredentials, dstRegion, false);
+    AWSApplicationAutoScaling srcAutoScalingClient = amazonClientProvider.getAmazonApplicationAutoScaling(srcCredentials, srcRegion, false);
+    AmazonCloudWatch dstCloudWatchClient = amazonClientProvider.getAmazonCloudWatch(dstCredentials, dstRegion, false);
+    AmazonCloudWatch srcCloudWatchClient = amazonClientProvider.getAmazonCloudWatch(srcCredentials, srcRegion, false);
 
-    AmazonCloudWatch cloudWatch = amazonClientProvider.getAmazonCloudWatch(credentials, region, false);
-    AWSApplicationAutoScaling autoScalingClient = amazonClientProvider.getAmazonApplicationAutoScaling(credentials, region, false);
+    // Copy the scaling policies
+    Set<ScalingPolicy> sourceScalingPolicies = getScalingPolicies(srcAutoScalingClient, srcResourceId);
 
-    DescribeAlarmsResult describeAlarmsResult = cloudWatch.describeAlarms(new DescribeAlarmsRequest()
-      .withAlarmNames(alarmNames));
+    Map<String, String> srcPolicyArnToDstPolicyArn = putScalingPolicies(dstAutoScalingClient,
+      srcServiceName, dstServiceName, dstResourceId, clusterName, sourceScalingPolicies);
 
-    for (MetricAlarm metricAlarm : describeAlarmsResult.getMetricAlarms()) {
-      Set<String> okScalingPolicyArns = putScalingPolicies(autoScalingClient, metricAlarm.getOKActions(),
-        serviceName, resourceId, "ok", "scaling-policy-" + metricAlarm.getAlarmName());
-      Set<String> alarmScalingPolicyArns = putScalingPolicies(autoScalingClient, metricAlarm.getAlarmActions(),
-        serviceName, resourceId, "alarm", "scaling-policy-" + metricAlarm.getAlarmName());
-      Set<String> insufficientActionPolicyArns = putScalingPolicies(autoScalingClient, metricAlarm.getInsufficientDataActions(),
-        serviceName, resourceId, "insuffiicient", "scaling-policy-" + metricAlarm.getAlarmName());
-
-      cloudWatch.putMetricAlarm(buildPutMetricAlarmRequest(metricAlarm, serviceName,
-        insufficientActionPolicyArns, okScalingPolicyArns, alarmScalingPolicyArns));
-    }
+    // Copy the alarms that target the scaling policies
+    Set<String> allSourceAlarmNames = sourceScalingPolicies.stream()
+      .flatMap(policy -> policy.getAlarms().stream())
+      .map(alarm -> alarm.getAlarmName())
+      .collect(Collectors.toSet());
+    copyAlarmsForAsg(srcCloudWatchClient, dstCloudWatchClient,
+      srcRegion, dstRegion,
+      srcCredentials.getAccountId(), dstCredentials.getAccountId(),
+      srcServiceName, dstServiceName,
+      clusterName,
+      allSourceAlarmNames, srcPolicyArnToDstPolicyArn);
   }
 
-  private Set<String> putScalingPolicies(AWSApplicationAutoScaling autoScalingClient,
-                                         List<String> actionArns,
-                                         String serviceName,
-                                         String resourceId,
-                                         String type,
-                                         String suffix) {
-    if (actionArns.isEmpty()) {
-      return Collections.emptySet();
-    }
-
+  private Set<ScalingPolicy> getScalingPolicies(AWSApplicationAutoScaling autoScalingClient, String resourceId) {
     Set<ScalingPolicy> scalingPolicies = new HashSet<>();
 
     String nextToken = null;
     do {
-      DescribeScalingPoliciesRequest request = new DescribeScalingPoliciesRequest().withPolicyNames(actionArns.stream()
-        .map(arn -> StringUtils.substringAfterLast(arn, ":policyName/"))
-        .collect(Collectors.toSet()))
-        .withServiceNamespace(ServiceNamespace.Ecs);
+      DescribeScalingPoliciesRequest request = new DescribeScalingPoliciesRequest()
+        .withServiceNamespace(ServiceNamespace.Ecs)
+        .withResourceId(resourceId);
       if (nextToken != null) {
         request.setNextToken(nextToken);
       }
@@ -234,17 +269,75 @@ public class EcsCloudMetricService {
       nextToken = result.getNextToken();
     } while (nextToken != null && nextToken.length() != 0);
 
-    Set<String> policyArns = new HashSet<>();
-    for (ScalingPolicy scalingPolicy : scalingPolicies) {
-      String newPolicyName = serviceName + "-" + type + "-" + suffix;
+    return scalingPolicies;
+  }
+
+  // Return map of src policy ARN -> dst policy ARN
+  private Map<String, String> putScalingPolicies(AWSApplicationAutoScaling dstAutoScalingClient,
+                                         String srcServiceName,
+                                         String dstServiceName,
+                                         String dstResourceId,
+                                         String clusterName,
+                                         Set<ScalingPolicy> srcScalingPolicies) {
+    Map<String, String> srcPolicyArnToDstPolicyArn = new HashMap<>();
+
+    for (ScalingPolicy scalingPolicy : srcScalingPolicies) {
+      String newPolicyName = scalingPolicy.getPolicyName().replaceAll(srcServiceName, dstServiceName);
+      if (!newPolicyName.contains(dstServiceName)) {
+        newPolicyName = newPolicyName + "-" + dstServiceName;
+      }
+
       ScalingPolicy clone = scalingPolicy.clone();
       clone.setPolicyName(newPolicyName);
-      clone.setResourceId(resourceId);
+      clone.setResourceId(dstResourceId);
 
-      PutScalingPolicyResult result = autoScalingClient.putScalingPolicy(buildPutScalingPolicyRequest(clone));
-      policyArns.add(result.getPolicyARN());
+      if (clone.getTargetTrackingScalingPolicyConfiguration() != null &&
+        clone.getTargetTrackingScalingPolicyConfiguration().getCustomizedMetricSpecification() != null) {
+        CustomizedMetricSpecification spec = clone.getTargetTrackingScalingPolicyConfiguration().getCustomizedMetricSpecification();
+        spec.setDimensions(
+          spec.getDimensions().stream()
+            .map(dimension -> buildNewServiceTargetTrackingDimension(dimension, spec.getNamespace(), dstServiceName, clusterName))
+            .collect(Collectors.toSet()));
+      }
+
+      PutScalingPolicyResult result = dstAutoScalingClient.putScalingPolicy(buildPutScalingPolicyRequest(clone));
+
+      srcPolicyArnToDstPolicyArn.put(scalingPolicy.getPolicyARN(), result.getPolicyARN());
     }
 
-    return policyArns;
+    return srcPolicyArnToDstPolicyArn;
+  }
+
+  private void copyAlarmsForAsg(AmazonCloudWatch srcCloudWatchClient,
+                                AmazonCloudWatch dstCloudWatchClient,
+                                String srcRegion,
+                                String dstRegion,
+                                String srcAccountId,
+                                String dstAccountId,
+                                String srcServiceName,
+                                String dstServiceName,
+                                String clusterName,
+                                Set<String> srcAlarmNames,
+                                Map<String, String> srcPolicyArnToDstPolicyArn) {
+
+    for(List<String> srcAlarmsPartition : Iterables.partition(srcAlarmNames, 100)) {
+      DescribeAlarmsResult describeAlarmsResult = srcCloudWatchClient.describeAlarms(new DescribeAlarmsRequest()
+        .withAlarmNames(srcAlarmsPartition));
+
+      for (MetricAlarm srcMetricAlarm : describeAlarmsResult.getMetricAlarms()) {
+        if (srcMetricAlarm.getAlarmName().startsWith("TargetTracking-")) {
+          // Target Tracking policies auto-create their alarms, so we don't need to copy them
+          continue;
+        }
+
+        String dstAlarmName = srcMetricAlarm.getAlarmName().replaceAll(srcServiceName, dstServiceName);
+        if (!dstAlarmName.contains(dstServiceName)) {
+          dstAlarmName = dstAlarmName + "-" + dstServiceName;
+        }
+
+        dstCloudWatchClient.putMetricAlarm(buildPutMetricAlarmRequest(srcMetricAlarm, dstAlarmName, dstServiceName, clusterName,
+          srcRegion, dstRegion, srcAccountId, dstAccountId, srcPolicyArnToDstPolicyArn));
+      }
+    }
   }
 }
