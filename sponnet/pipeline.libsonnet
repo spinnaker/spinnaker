@@ -25,8 +25,9 @@
 
   // artifacts
 
-  artifact(type):: {
+  artifact(type, kind):: {
     type: type,
+    kind: kind,
     withArtifactAccount(artifactAccount):: self + { artifactAccount: artifactAccount },
     withLocation(location):: self + { location: location },
     withName(name):: self + { name: name },
@@ -36,15 +37,15 @@
 
   local artifact = self.artifact,
   artifacts:: {
-    bitbucketFile():: artifact('bitbucket/file'),
-    dockerImage():: artifact('docker/image'),
-    embeddedBase64():: artifact('embedded/base64'),
-    gcsObject():: artifact('gcs/object'),
-    githubFile():: artifact('github/file'),
-    gitlabFile():: artifact('gitlab/file'),
-    httpFile():: artifact('http/file'),
+    bitbucketFile():: artifact('bitbucket/file', 'bitbucket'),
+    dockerImage():: artifact('docker/image', 'docker'),
+    embeddedBase64():: artifact('embedded/base64', 'base64'),
+    gcsObject():: artifact('gcs/object', 'gcs'),
+    githubFile():: artifact('github/file', 'github'),
+    gitlabFile():: artifact('gitlab/file', 'gitlab'),
+    httpFile():: artifact('http/file', 'http'),
     // kubernetesObject to be tested. Where kind is Deployment/Configmap/Service/etc
-    kubernetesObject(kind):: artifact('kubernetes/' + kind),
+    kubernetesObject(kind):: artifact('kubernetes/' + kind, 'custom'),
   },
 
   // expected artifacts
@@ -57,12 +58,14 @@
         // TODO: For Docker, the name field should be registry and repository.
         name: matchArtifact.name,
         type: matchArtifact.type,
+        kind: matchArtifact.kind,
       },
     },
     withDefaultArtifact(defaultArtifact):: self + {
       defaultArtifact: {
         reference: defaultArtifact.reference,
         type: defaultArtifact.type,
+        kind: if defaultArtifact.kind == 'custom' then defaultArtifact else 'default.' + defaultArtifact.kind,
         // TODO: Some Artifact types (docker) don't require version to be set. It may be better to do this differently.
         [if std.objectHas(defaultArtifact, 'version') then 'version']: defaultArtifact.version,
       },
