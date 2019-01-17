@@ -18,7 +18,7 @@ package com.netflix.spinnaker.kork.artifacts.model
 import spock.lang.Shared
 import spock.lang.Specification
 
-class ExepectedArtifactSpec extends Specification {
+class ExpectedArtifactSpec extends Specification {
   private static final EXPECTED_STRING = 'abc.*'
   private static final MATCH_STRING = 'abcd'
   private static final NO_MATCH_STRING = 'zzz'
