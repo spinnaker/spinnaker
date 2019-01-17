@@ -12,9 +12,11 @@ import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.NAMED_IMA
 import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.ON_DEMAND
 import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.RESERVATION_REPORTS
 import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.RESERVED_INSTANCES
-import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import de.huxhorn.sulky.ulid.ULID
+import io.github.resilience4j.retry.Retry
+import io.github.resilience4j.retry.RetryConfig
+import io.vavr.control.Try
 import org.jooq.DSLContext
 import org.jooq.exception.DataAccessException
 import org.jooq.exception.SQLDialectNotSupportedException
@@ -24,6 +26,7 @@ import org.jooq.util.mysql.MySQLDSL
 import org.slf4j.LoggerFactory
 import java.security.MessageDigest
 import java.time.Clock
+import java.time.Duration
 import java.util.Arrays
 import java.util.concurrent.ConcurrentSkipListSet
 import java.util.concurrent.atomic.AtomicInteger
@@ -55,7 +58,6 @@ class SqlCache(
     )
 
     private val log = LoggerFactory.getLogger(javaClass)
-    private val retrySupport = RetrySupport()
   }
 
   private val writeBatchSize = writeChunkSize
@@ -1006,19 +1008,28 @@ class SqlCache(
     WRITE, READ
   }
 
-  private fun <T> withRetry(category: RetryCategory, action: () -> T): T =
-    retrySupport.retry(
-      action,
-      when (category) {
-        RetryCategory.READ -> sqlRetryProperties.reads.maxRetries
-        RetryCategory.WRITE -> sqlRetryProperties.transactions.maxRetries
-      },
-      when (category) {
-        RetryCategory.READ -> sqlRetryProperties.reads.backoffMs
-        RetryCategory.WRITE -> sqlRetryProperties.transactions.backoffMs
-      },
-      false
-    )
+  private fun <T> withRetry(category: RetryCategory, action: () -> T): T {
+    val retry = if (category == RetryCategory.WRITE) {
+      Retry.of(
+        "sqlWrite",
+        RetryConfig.custom<T>()
+          .maxAttempts(sqlRetryProperties.transactions.maxRetries)
+          .waitDuration(Duration.ofMillis(sqlRetryProperties.transactions.backoffMs))
+          .ignoreExceptions(SQLDialectNotSupportedException::class.java)
+          .build()
+      )
+    } else {
+      Retry.of(
+        "sqlRead",
+        RetryConfig.custom<T>()
+          .maxAttempts(sqlRetryProperties.reads.maxRetries)
+          .waitDuration(Duration.ofMillis(sqlRetryProperties.reads.backoffMs))
+          .ignoreExceptions(SQLDialectNotSupportedException::class.java)
+          .build()
+      )
+    }
+    return Try.ofSupplier(Retry.decorateSupplier(retry, action)).get()
+  }
 
   // Assists with unit testing
   fun clearCreatedTables() {
