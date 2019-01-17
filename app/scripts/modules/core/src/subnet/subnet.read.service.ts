@@ -18,7 +18,7 @@ export class SubnetReader {
             subnet.label += ' (deprecated)';
           }
         });
-        return subnets;
+        return subnets.filter(s => s.label);
       });
   }
 
