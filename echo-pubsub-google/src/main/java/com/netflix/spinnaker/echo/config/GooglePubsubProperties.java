@@ -89,6 +89,9 @@ public class GooglePubsubProperties {
   public static class GooglePubsubPublisherConfig {
 
     @NotEmpty
+    private String name;
+
+    @NotEmpty
     private String topicName;
 
     @NotEmpty

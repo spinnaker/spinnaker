@@ -82,7 +82,8 @@ public class GooglePubsubConfig {
       .stream()
       .map(publisherConfig -> {
         log.info(
-          "Bootstrapping Google Pubsub Publisher on topic {} in project {} publishing content {}",
+          "Bootstrapping Google Pubsub Publisher named {} on topic {} in project {} publishing content {}",
+          publisherConfig.getName(),
           publisherConfig.getTopicName(),
           publisherConfig.getProject(),
           publisherConfig.getContent());

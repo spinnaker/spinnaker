@@ -16,10 +16,8 @@
 
 package com.netflix.spinnaker.echo.pubsub;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -27,17 +25,20 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.stream.Collectors;
-
 /**
  * Controller for configured pub/sub subscriptions.
  */
 @RestController
+@RequestMapping(value = "/pubsub")
 public class PubsubSubscriptionController {
 
   @Autowired
   private PubsubSubscribers pubsubSubscribers;
 
-  @RequestMapping(value = "/pubsub/subscriptions", method = RequestMethod.GET)
+  @Autowired
+  private PubsubPublishers pubsubPublishers;
+
+  @RequestMapping(value = "/subscriptions", method = RequestMethod.GET)
   List<PubsubSubscriptionBySystem> getSubscriptions() {
     return pubsubSubscribers
         .getAll()
@@ -51,10 +52,29 @@ public class PubsubSubscriptionController {
 
   @Data
   @Builder
-  @NoArgsConstructor
-  @AllArgsConstructor
   public static class PubsubSubscriptionBySystem {
     private String pubsubSystem;
     private String subscriptionName;
+  }
+
+  @RequestMapping(value = "/publishers", method = RequestMethod.GET)
+  List<PubsubPublishersBySystem> getPublishers() {
+    return pubsubPublishers
+      .getAll()
+      .stream()
+      .map(p -> PubsubPublishersBySystem.builder()
+        .pubsubSystem(p.getPubsubSystem().toString())
+        .publisherName(p.getName())
+        .topicName(p.getTopicName())
+        .build())
+      .collect(Collectors.toList());
+  }
+
+  @Data
+  @Builder
+  public static class PubsubPublishersBySystem {
+    private String pubsubSystem;
+    private String publisherName;
+    private String topicName;
   }
 }

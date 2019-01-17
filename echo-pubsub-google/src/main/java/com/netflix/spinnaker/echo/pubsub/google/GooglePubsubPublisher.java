@@ -48,6 +48,8 @@ public class GooglePubsubPublisher implements PubsubPublisher {
 
   private final PubsubSystem pubsubSystem = PubsubSystem.GOOGLE;
 
+  private String name;
+
   private String topicName;
 
   private String fullTopicName;
@@ -60,6 +62,7 @@ public class GooglePubsubPublisher implements PubsubPublisher {
 
   public static GooglePubsubPublisher buildPublisher(GooglePubsubPublisherConfig config, ObjectMapper mapper) {
     GooglePubsubPublisher publisher = new GooglePubsubPublisher();
+    publisher.setName(config.getName());
     ProjectTopicName fullName = ProjectTopicName.of(config.getProject(), config.getTopicName());
     publisher.setTopicName(config.getTopicName());
     publisher.setFullTopicName(fullName.toString());

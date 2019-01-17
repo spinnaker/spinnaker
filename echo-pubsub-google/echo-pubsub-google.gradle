@@ -17,5 +17,5 @@
 dependencies {
   compile project(':echo-pubsub-core')
   compile project(':echo-notifications')
-  compile 'com.google.cloud:google-cloud-pubsub:1.56.0'
+  compile 'com.google.cloud:google-cloud-pubsub:1.59.0'
 }
