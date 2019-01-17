@@ -883,8 +883,8 @@ class SqlCache(
                 .into(RelPointer::class.java)
             }
           } else {
-            val relWhere = " AND ('rel_type' LIKE " +
-              relationshipPrefixes.joinToString(" OR 'rel_type' LIKE ") { "'$it%'" } + ")"
+            val relWhere = " AND (rel_type LIKE " +
+              relationshipPrefixes.joinToString(" OR rel_type LIKE ") { "'$it%'" } + ")"
             withRetry(RetryCategory.READ) {
               jooq.select(field("id"), field("rel_id"), field("rel_type"))
                 .from(table(relTableName(type)))
