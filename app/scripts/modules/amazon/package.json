@@ -1,6 +1,6 @@
 {
   "name": "@spinnaker/amazon",
-  "version": "0.0.152",
+  "version": "0.0.153",
   "main": "lib/lib.js",
   "typings": "lib/index.d.ts",
   "scripts": {
