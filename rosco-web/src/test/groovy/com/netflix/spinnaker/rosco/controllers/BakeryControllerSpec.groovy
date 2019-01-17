@@ -538,6 +538,22 @@ class BakeryControllerSpec extends Specification {
       response == [logsContent: LOGS_CONTENT]
   }
 
+  void 'lookup logs by image id queries bake store and returns logs content'() {
+    setup:
+    def bakeStoreMock = Mock(RedisBackedBakeStore)
+
+    @Subject
+    def bakeryController = new BakeryController(bakeStore: bakeStoreMock)
+
+    when:
+    def response = bakeryController.lookupLogsByImageId(REGION, "ami-1234567890")
+
+    then:
+    1 * bakeStoreMock.getBakeIdFromImage(REGION, "ami-1234567890") >> JOB_ID
+    1 * bakeStoreMock.retrieveBakeLogsById(JOB_ID) >> [logsContent: LOGS_CONTENT]
+    response == [logsContent: LOGS_CONTENT]
+  }
+
   void 'lookup logs throws exception when job logs are empty or malformed'() {
     setup:
       def bakeStoreMock = Mock(RedisBackedBakeStore)

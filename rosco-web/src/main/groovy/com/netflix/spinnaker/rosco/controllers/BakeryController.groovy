@@ -248,6 +248,21 @@ class BakeryController {
     }
   }
 
+  @RequestMapping(value = "/api/v1/{region}/logs/image/{imageId}", produces = ["application/json"], method = RequestMethod.GET)
+  Map lookupLogsByImageId(@PathVariable("region") String region, @PathVariable("imageId") String imageId) {
+    def bakeId = bakeStore.getBakeIdFromImage(region, imageId)
+    if (!bakeId) {
+      throw new LogsNotFoundException("Unable to retrieve logs for image id '$imageId'.")
+    }
+    Map<String, String> logsContentMap = bakeStore.retrieveBakeLogsById(bakeId)
+
+    if (logsContentMap?.logsContent) {
+      return logsContentMap
+    } else {
+      throw new LogsNotFoundException("Unable to retrieve logs for '$bakeId'.")
+    }
+  }
+
   @InheritConstructors
   @ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "Logs not found.")
   static class LogsNotFoundException extends RuntimeException {}

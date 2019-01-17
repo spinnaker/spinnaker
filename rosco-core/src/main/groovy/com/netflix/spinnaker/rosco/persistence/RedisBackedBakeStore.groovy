@@ -21,7 +21,6 @@ import com.netflix.spinnaker.rosco.api.Bake
 import com.netflix.spinnaker.rosco.api.BakeRequest
 import com.netflix.spinnaker.rosco.api.BakeStatus
 import com.netflix.spinnaker.rosco.jobs.BakeRecipe
-import com.netflix.spinnaker.rosco.providers.CloudProviderBakeHandler
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import redis.clients.jedis.JedisPool
@@ -329,6 +328,8 @@ class RedisBackedBakeStore implements BakeStore {
     def keyList = [bakeDetails.id]
     def argList = [bakeDetailsJson]
 
+    saveImageToBakeRelationship(bakeDetails.artifact.getLocation(), bakeDetails.artifact.getReference(), bakeDetails.id)
+
     evalSHA("updateBakeDetailsSHA", keyList, argList)
   }
 
@@ -533,6 +534,24 @@ class RedisBackedBakeStore implements BakeStore {
 
         [(roscoInstanceId): jedis.smembers(incompleteBakesKey)]
       }
+    }
+  }
+
+  @Override
+  public void saveImageToBakeRelationship(String region, String image, String bakeId) {
+    def jedis = jedisPool.getResource()
+
+    jedis.withCloseable {
+      jedis.set("${region}:${image}", bakeId)
+    }
+  }
+
+  @Override
+  String getBakeIdFromImage(String region, String image) {
+    def jedis = jedisPool.getResource()
+
+    jedis.withCloseable {
+      return jedis.get("${region}:${image}")
     }
   }
 

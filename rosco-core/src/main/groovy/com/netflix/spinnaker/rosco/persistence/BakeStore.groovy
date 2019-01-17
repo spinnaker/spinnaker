@@ -128,6 +128,10 @@ interface BakeStore {
    */
   public Map<String, Set<String>> getAllIncompleteBakeIds()
 
+  public void saveImageToBakeRelationship(String region, String image, String bakeId)
+
+  public String getBakeIdFromImage(String region, String image)
+
   /**
    * Get the current redis server time in milliseconds.
    */

@@ -220,9 +220,8 @@ class BakePoller implements ApplicationListener<ContextRefreshedEvent> {
               bakeDetails.artifact = cloudProviderBakeHandler.produceArtifactDecorationFrom(
                 bakeRequest, bakeRecipe, bakeDetails, cloudProvider, region
               )
+              bakeStore.updateBakeDetails(bakeDetails)
             }
-
-            bakeStore.updateBakeDetails(bakeDetails)
 
             return
           }
