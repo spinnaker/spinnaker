@@ -2,6 +2,7 @@ import * as process from 'process';
 import * as path from 'path';
 import { exec, ChildProcess } from 'child_process';
 import { MountebankService } from './MountebankService';
+import { FixtureService } from './FixtureService';
 import { StaticServer } from './StaticServer';
 
 const COPY_FLAGS_TO_WDIO = [
@@ -21,6 +22,7 @@ export class TestRunner {
   private mountebankService: MountebankService;
   private staticServer: StaticServer;
   private wdioProc: ChildProcess;
+  private fixtureService = new FixtureService();
   private launchReadinessPromises: Promise<any>[] = [];
 
   constructor(private repoRoot: string) {}
@@ -73,6 +75,20 @@ export class TestRunner {
         console.error(`couldnt start webdriver.io: ${err}`);
         this.cleanUp();
         process.exit(3);
+      });
+  }
+
+  public serveFixture(testpath: string) {
+    console.log(`serving fixture for test ${testpath}`);
+    const fixturePath = this.fixtureService.fixturePathForTestPath(testpath);
+    Promise.all(this.launchReadinessPromises)
+      .then(() => {
+        return this.mountebankService.createImposterFromFixtureFile(fixturePath);
+      })
+      .catch(err => {
+        console.error(`error serving fixture: ${err}`);
+        this.cleanUp();
+        process.exit(6);
       });
   }
 

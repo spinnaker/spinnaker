@@ -16,10 +16,10 @@ export class Page {
     return browser.url(url);
   }
 
-  public awaitLocator(locator: string) {
-    browser.waitForEnabled(locator, this.options.awaitExistsTime);
-    browser.waitForExist(locator, this.options.awaitExistsTime);
-    browser.waitForVisible(locator, this.options.awaitExistsTime);
+  public awaitLocator(locator: string, awaitExistsTime = this.options.awaitExistsTime) {
+    browser.waitForEnabled(locator, awaitExistsTime);
+    browser.waitForExist(locator, awaitExistsTime);
+    browser.waitForVisible(locator, awaitExistsTime);
   }
 
   public click(locator: string) {

@@ -2,6 +2,7 @@ import { HomePage } from '../core/pages/HomePage';
 import { ApplicationsListPage } from '../core/pages/ApplicationsListPage';
 import { InfrastructurePage } from '../core/pages/InfrastructurePage';
 import { PipelinesListPage } from '../core/pages/PipelinesListPage';
+import { HeaderNavLocators } from '../core/locators/HeaderNavLocators';
 
 describe('AppEngine Pipelines', () => {
   describe('List', () => {
@@ -11,9 +12,9 @@ describe('AppEngine Pipelines', () => {
       const infra = new InfrastructurePage();
       const pipelines = new PipelinesListPage();
       home.open();
-      home.click(HomePage.locators.headerNav.applicationsButton);
+      home.click(HeaderNavLocators.applicationsButton);
       apps.clickOnApplicationLink('gae');
-      infra.click(InfrastructurePage.locators.headerNav.pipelinesButton);
+      infra.click(HeaderNavLocators.pipelinesButton);
       pipelines.awaitLocator(PipelinesListPage.locators.executionGroup);
       const executionGroups = browser.$$(PipelinesListPage.locators.executionGroup);
       const firstAccountTag = browser.$(PipelinesListPage.locators.accountTag);
