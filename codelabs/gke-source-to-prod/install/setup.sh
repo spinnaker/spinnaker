@@ -72,6 +72,8 @@ rm -rf front50/ # TODO remove front50.tgz as well
 
 bold "Pushing sample images into gcr.io/$PROJECT_ID..."
 
+gcloud auth configure-docker -q
+
 gcloud docker -- pull gcr.io/spinnaker-marketplace/frontend
 gcloud docker -- pull gcr.io/spinnaker-marketplace/backend
 
