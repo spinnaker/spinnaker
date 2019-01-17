@@ -499,6 +499,7 @@ class ALBListenersImpl extends React.Component<IALBListenersProps, IALBListeners
                             </select>
                             {this.showCertificateSelect(certificate) && (
                               <Select
+                                className="input-sm"
                                 wrapperStyle={{ width: '100%' }}
                                 clearable={false}
                                 required={true}

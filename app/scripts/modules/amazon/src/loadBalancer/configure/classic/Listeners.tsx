@@ -59,7 +59,6 @@ class ListenersImpl extends React.Component<IListenersProps, IListenersState> {
   private showCertificateSelect(listener: IClassicListenerDescription): boolean {
     return (
       listener.sslCertificateType === 'iam' &&
-      this.secureProtocols.includes(listener.externalProtocol) &&
       this.state.certificates &&
       Object.keys(this.state.certificates).length > 0
     );

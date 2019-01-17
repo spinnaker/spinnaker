@@ -1240,6 +1240,25 @@ select.input-sm {
   padding-right: 0;
 }
 
+.Select.input-sm {
+  display: flex;
+  align-items: center;
+  .Select-control {
+    display: flex;
+    justify-content: space-between;
+    .Select-value,
+    .Select-arrow-zone {
+      line-height: 30px;
+    }
+  }
+  .Select-menu-outer {
+    margin: -1px 10px 0;
+    left: 0;
+    right: 0;
+    width: unset;
+  }
+}
+
 .select-placeholder {
   display: inline-block;
   padding-left: 14px;
