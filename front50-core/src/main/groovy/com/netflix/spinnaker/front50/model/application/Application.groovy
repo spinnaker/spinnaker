@@ -53,6 +53,7 @@ class Application implements Timestamped {
   String updateTs
   String createTs
   String lastModifiedBy
+  public List<TrafficGuard> trafficGuards
 
   private Map<String, Object> details = new HashMap<String, Object>()
 
@@ -386,5 +387,13 @@ class Application implements Timestamped {
         permissions = b.build()
       }
     }
+  }
+
+  static class TrafficGuard {
+    String account
+    String stack
+    String detail
+    String location
+    Boolean enabled = true
   }
 }
