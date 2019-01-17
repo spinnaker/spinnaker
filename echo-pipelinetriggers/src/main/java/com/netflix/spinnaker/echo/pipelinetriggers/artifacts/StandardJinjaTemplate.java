@@ -19,7 +19,8 @@ package com.netflix.spinnaker.echo.pipelinetriggers.artifacts;
 import java.io.InputStream;
 
 public enum StandardJinjaTemplate implements JinjaTemplate {
-  JAR("/jar.jinja");
+  JAR("/jar.jinja"),
+  DOCKER("/docker.jinja");
 
   private String jarPath;
 
