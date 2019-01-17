@@ -373,7 +373,7 @@ module.exports = angular
         return $uibModalInstance.close($scope.command);
       }
 
-      const healthCheckUrl = $scope.command.autoHealingPolicy.healthCheck;
+      const healthCheckUrl = _.get($scope.command, 'autoHealingPolicy.healthCheck');
       if (healthCheckUrl) {
         const { healthCheckName, healthCheckKind } = parseHealthCheckUrl(healthCheckUrl);
         $scope.command.autoHealingPolicy.healthCheck = healthCheckName;
@@ -389,7 +389,10 @@ module.exports = angular
         $scope.command.tags = origTags;
         $scope.command.loadBalancers = origLoadBalancers;
         $scope.command.securityGroups = gceTagManager.inferSecurityGroupIdsFromTags($scope.command.tags);
-        $scope.command.autoHealingPolicy.healthCheck = healthCheckUrl;
+
+        if (healthCheckUrl) {
+          $scope.command.autoHealingPolicy.healthCheck = healthCheckUrl;
+        }
 
         return promise;
       });
