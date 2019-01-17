@@ -20,6 +20,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.jooq.DSLContext
+import org.slf4j.LoggerFactory
 import java.sql.ResultSet
 
 /**
@@ -31,6 +32,8 @@ import java.sql.ResultSet
 class ExecutionMapper(
   private val mapper: ObjectMapper
 ) {
+
+  private val log = LoggerFactory.getLogger(javaClass)
 
   fun map(rs: ResultSet, context: DSLContext): Collection<Execution> {
     val results = mutableListOf<Execution>()
@@ -45,7 +48,13 @@ class ExecutionMapper(
           }
           execution.stages.sortBy { it.refId }
         }
-        .also { results.add(it) }
+        .also {
+          if (!results.contains(it)) {
+            results.add(it)
+          } else {
+            log.warn("Duplicate execution for ${it.id} found in sql result")
+          }
+        }
     }
 
     return results
