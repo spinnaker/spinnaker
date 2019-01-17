@@ -272,28 +272,28 @@ class GCEUtil {
   static def queryHealthCheck(String projectName,
                               String account,
                               String healthCheckName,
+                              GoogleHealthCheck.HealthCheckKind healthCheckKind,
                               Compute compute,
                               Cache cacheView,
                               Task task,
                               String phase,
                               GoogleExecutorTraits executor) {
-    task.updateStatus phase, "Looking up http(s) health check $healthCheckName..."
+    task.updateStatus phase, "Looking up health check $healthCheckName..."
 
-    def httpHealthCheckIdentifiers = cacheView.filterIdentifiers(HTTP_HEALTH_CHECKS.ns, Keys.getHttpHealthCheckKey(account, healthCheckName))
-    def results = cacheView.getAll(HTTP_HEALTH_CHECKS.ns, httpHealthCheckIdentifiers, RelationshipCacheFilter.none())
-
-    if (results[0]?.attributes?.httpHealthCheck) {
-      return results[0]?.attributes?.httpHealthCheck
-    } else {
-      try {
-        // TODO(duftler): Update this to use the cache instead of a live call once we are caching https health checks.
-        return executor.timeExecute(
-          compute.httpsHealthChecks().get(projectName, healthCheckName),
-          "compute.httpsHealthChecks.get",
-          executor.TAG_SCOPE, executor.SCOPE_GLOBAL)
-      } catch (GoogleJsonResponseException | SocketTimeoutException | SocketException _) {
-        updateStatusAndThrowNotFoundException("Http(s) health check $healthCheckName not found.", task, phase)
-      }
+    switch (healthCheckKind) {
+      case GoogleHealthCheck.HealthCheckKind.healthCheck:
+        return queryNestedHealthCheck(projectName, account, healthCheckName, compute, cacheView, task, phase, executor)
+      case GoogleHealthCheck.HealthCheckKind.httpHealthCheck:
+        return queryLegacyHttpHealthCheck(account, healthCheckName, cacheView, task, phase)
+      case GoogleHealthCheck.HealthCheckKind.httpsHealthCheck:
+        return queryLegacyHttpsHealthCheck(projectName, healthCheckName, compute, task, phase, executor)
+      default:
+        // Note: Cache queries for these health checks must occur in this order since queryLegacyHttpsHealthCheck() will make a live
+        // call that fails on a missing health check.
+        // todo(mneterval): return null instead of querying for each type once all health check payloads include `healthCheckKind`
+        return queryNestedHealthCheck(projectName, account, healthCheckName, compute, cacheView, task, phase, executor) ?:
+          queryLegacyHttpHealthCheck(account, healthCheckName, cacheView, task, phase) ?:
+          queryLegacyHttpsHealthCheck(projectName, healthCheckName, compute, task, phase, executor)
     }
   }
 
@@ -311,6 +311,36 @@ class GCEUtil {
     def results = cacheView.getAll(HEALTH_CHECKS.ns, healthCheckIdentifiers, RelationshipCacheFilter.none())
 
     return results[0]?.attributes?.healthCheck
+  }
+
+  static def queryLegacyHttpHealthCheck(String account,
+                                        String healthCheckName,
+                                        Cache cacheView,
+                                        Task task,
+                                        String phase) {
+    task.updateStatus phase, "Looking up http health check $healthCheckName..."
+
+    def httpHealthCheckIdentifiers = cacheView.filterIdentifiers(HTTP_HEALTH_CHECKS.ns, Keys.getHttpHealthCheckKey(account, healthCheckName))
+    def results = cacheView.getAll(HTTP_HEALTH_CHECKS.ns, httpHealthCheckIdentifiers, RelationshipCacheFilter.none())
+    return results[0]?.attributes?.httpHealthCheck
+  }
+
+  static def queryLegacyHttpsHealthCheck(String projectName,
+                                         String healthCheckName,
+                                         Compute compute,
+                                         Task task,
+                                         String phase,
+                                         GoogleExecutorTraits executor) {
+    task.updateStatus phase, "Looking up https health check $healthCheckName..."
+    try {
+      // TODO(duftler): Update this to use the cache instead of a live call once we are caching https health checks.
+      return executor.timeExecute(
+        compute.httpsHealthChecks().get(projectName, healthCheckName),
+        "compute.httpsHealthChecks.get",
+        executor.TAG_SCOPE, executor.SCOPE_GLOBAL)
+    } catch (GoogleJsonResponseException | SocketTimeoutException | SocketException _) {
+      updateStatusAndThrowNotFoundException("Https health check $healthCheckName not found.", task, phase)
+    }
   }
 
   static List<ForwardingRule> queryRegionalForwardingRules(String projectName,

@@ -25,6 +25,7 @@ import groovy.transform.ToString
 @ToString(includeNames = true)
 class GoogleAutoHealingPolicy {
   String healthCheck
+  GoogleHealthCheck.HealthCheckKind healthCheckKind
   Integer initialDelaySec
   FixedOrPercent maxUnavailable
 
