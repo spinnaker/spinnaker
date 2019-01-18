@@ -16,8 +16,11 @@
 
 package com.netflix.spinnaker.orca.pipeline;
 
+import static java.util.stream.Collectors.toList;
+
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import javax.annotation.Nonnull;
 import com.netflix.spinnaker.orca.pipeline.ExecutionRunner.NoSuchStageDefinitionBuilder;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
@@ -40,6 +43,9 @@ public class DefaultStageDefinitionBuilderFactory implements StageDefinitionBuil
       .stream()
       .filter((it) -> it.getType().equals(stage.getType()) || it.getType().equals(stage.getContext().get("alias")))
       .findFirst()
-      .orElseThrow(() -> new NoSuchStageDefinitionBuilder(stage.getType()));
+      .orElseThrow(() -> {
+        List<String> knownTypes = stageDefinitionBuilders.stream().map(it -> it.getType()).sorted().collect(toList());
+        return new NoSuchStageDefinitionBuilder(stage.getType(), knownTypes);
+      });
   }
 }

@@ -16,9 +16,12 @@
 
 package com.netflix.spinnaker.orca.pipeline;
 
+import java.util.Collection;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
+
 import static java.lang.String.format;
 
 public interface ExecutionRunner {
@@ -46,8 +49,9 @@ public interface ExecutionRunner {
   }
 
   class NoSuchStageDefinitionBuilder extends RuntimeException {
-    public NoSuchStageDefinitionBuilder(String type) {
-      super(format("No StageDefinitionBuilder implementation for %s found", type));
+    public NoSuchStageDefinitionBuilder(String type, Collection<String> knownTypes) {
+      super(format("No StageDefinitionBuilder implementation for %s found. %s", type,
+        knownTypes == null || knownTypes.size() == 0 ? "There are no known stage types." : format(" Known stage types: %s", String.join(",", knownTypes))));
     }
   }
 }
