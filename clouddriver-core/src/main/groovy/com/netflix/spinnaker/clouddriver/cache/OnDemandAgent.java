@@ -44,6 +44,7 @@ public interface OnDemandAgent {
     LoadBalancer,
     Job,
     TargetGroup,
+    CloudFormation,
     Manifest;
 
     static OnDemandType fromString(String s) {

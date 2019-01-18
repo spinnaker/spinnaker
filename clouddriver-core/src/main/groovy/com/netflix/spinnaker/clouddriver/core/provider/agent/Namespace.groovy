@@ -37,7 +37,8 @@ enum Namespace {
   ON_DEMAND,
   RESERVATION_REPORTS,
   RESERVED_INSTANCES,
-  PROJECT_CLUSTERS
+  PROJECT_CLUSTERS,
+  CLOUDFORMATION
 
   public final String ns
   final Set<String> fields

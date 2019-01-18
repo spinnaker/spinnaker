@@ -35,6 +35,7 @@ class Keys implements KeyParser {
     KEY_PAIRS,
     INSTANCE_TYPES,
     ELASTIC_IPS,
+    CLOUDFORMATION,
     ON_DEMAND
 
     final String ns
@@ -108,6 +109,9 @@ class Keys implements KeyParser {
       case Namespace.ELASTIC_IPS.ns:
         result << [address: parts[2], account: parts[3], region: parts[4]]
         break
+      case Namespace.CLOUDFORMATION.ns:
+        result << [id: parts[2], account: parts[3], region: parts[4]]
+        break;
       default:
         return null
         break
@@ -159,5 +163,11 @@ class Keys implements KeyParser {
                                 String region,
                                 String account) {
     "$ID:${Namespace.ELASTIC_IPS}:${ipAddress}:${account}:${region}"
+  }
+
+  static String getCloudFormationKey(String stackId,
+                                     String region,
+                                     String account) {
+    "$ID:${Namespace.CLOUDFORMATION}:${account}:${region}:${stackId}"
   }
 }

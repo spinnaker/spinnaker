@@ -46,6 +46,8 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import com.amazonaws.services.secretsmanager.AWSSecretsManagerClientBuilder;
+import com.amazonaws.services.cloudformation.AmazonCloudFormation;
+import com.amazonaws.services.cloudformation.AmazonCloudFormationClientBuilder;
 import com.amazonaws.services.shield.AWSShield;
 import com.amazonaws.services.shield.AWSShieldClientBuilder;
 import com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflow;
@@ -312,6 +314,10 @@ public class AmazonClientProvider {
 
   public AmazonS3 getAmazonS3(NetflixAmazonCredentials amazonCredentials, String region) {
     return proxyHandlerBuilder.getProxyHandler(AmazonS3.class, AmazonS3ClientBuilder.class, amazonCredentials, region, true);
+  }
+
+  public AmazonCloudFormation getAmazonCloudFormation(NetflixAmazonCredentials amazonCredentials, String region) {
+    return proxyHandlerBuilder.getProxyHandler(AmazonCloudFormation.class, AmazonCloudFormationClientBuilder.class, amazonCredentials, region, true);
   }
 
   public AmazonAutoScaling getAutoScaling(NetflixAmazonCredentials amazonCredentials, String region) {

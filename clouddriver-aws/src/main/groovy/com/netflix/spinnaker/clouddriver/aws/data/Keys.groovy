@@ -40,6 +40,7 @@ class Keys implements KeyParser {
       .put(Namespace.TARGET_GROUPS.ns, "targetGroup")
       .put(Namespace.CLUSTERS.ns, "cluster")
       .put(Namespace.APPLICATIONS.ns, "application")
+      .put(Namespace.CLOUDFORMATION.ns, "cloudformation")
       .build()
 
   private static final Set<String> PARSEABLE_FIELDS =
@@ -126,6 +127,9 @@ class Keys implements KeyParser {
       case Namespace.HEALTH.ns:
         result << [instanceId: parts[2], account: parts[3], region: parts[4], provider: parts[5]]
         break
+      case Namespace.CLOUDFORMATION.ns:
+        result << [stackId: parts[2], account: parts[3], region: parts[4]]
+        break
       default:
         return null
         break
@@ -188,5 +192,9 @@ class Keys implements KeyParser {
 
   static String getReservedInstancesKey(String reservedInstancesId, String account, String region) {
     "${ID}:${Namespace.RESERVED_INSTANCES}:${account}:${region}:${reservedInstancesId}"
+  }
+
+  static String getCloudFormationKey(String stackId, String account, String region) {
+    "${ID}:${Namespace.CLOUDFORMATION}:${account}:${region}:${stackId}"
   }
 }
