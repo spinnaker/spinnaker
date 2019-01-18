@@ -330,6 +330,7 @@ class OperationsController {
         preconfiguredProperties: it.preconfiguredProperties,
         noUserConfigurableFields: it.noUserConfigurableFields(),
         parameters: it.parameters,
+        parameterData: it.parameterData,
       ]
     }
   }
