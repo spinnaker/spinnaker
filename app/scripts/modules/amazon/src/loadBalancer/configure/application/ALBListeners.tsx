@@ -1,5 +1,4 @@
 import * as React from 'react';
-import Select, { Option } from 'react-select';
 import { $q } from 'ngimport';
 import { SortableContainer, SortableElement, SortableHandle, arrayMove, SortEnd } from 'react-sortable-hoc';
 import { difference, flatten, get, uniq } from 'lodash';
@@ -32,6 +31,7 @@ import { AmazonCertificateReader, IAmazonCertificate } from 'amazon/certificates
 import { IAuthenticateOidcActionConfig, OidcConfigReader } from 'amazon/loadBalancer/OidcConfigReader';
 
 import { ConfigureOidcConfigModal } from './ConfigureOidcConfigModal';
+import { AmazonCertificateSelectField } from '../common/AmazonCertificateSelectField';
 
 export interface IALBListenersState {
   certificates: { [accountId: number]: IAmazonCertificate[] };
@@ -430,11 +430,6 @@ class ALBListenersImpl extends React.Component<IALBListenersProps, IALBListeners
     const { errors, values } = this.props.formik;
     const { certificates, certificateTypes, oidcConfigs } = this.state;
 
-    const certificatesForAccount = certificates[values.credentials as any] || [];
-    const certificateOptions = certificatesForAccount.map(cert => {
-      return { label: cert.serverCertificateName, value: cert.serverCertificateName };
-    });
-
     return (
       <div className="container-fluid form-horizontal">
         <div className="form-group">
@@ -498,16 +493,11 @@ class ALBListenersImpl extends React.Component<IALBListenersProps, IALBListeners
                               ))}
                             </select>
                             {this.showCertificateSelect(certificate) && (
-                              <Select
-                                className="input-sm"
-                                wrapperStyle={{ width: '100%' }}
-                                clearable={false}
-                                required={true}
-                                options={certificateOptions}
-                                onChange={(value: Option<string>) =>
-                                  this.handleCertificateChanged(certificate, value.value)
-                                }
-                                value={certificate.name}
+                              <AmazonCertificateSelectField
+                                certificates={certificates}
+                                accountId={values.credentials as any}
+                                currentValue={certificate.name}
+                                onCertificateSelect={value => this.handleCertificateChanged(certificate, value)}
                               />
                             )}
                             {!this.showCertificateSelect(certificate) && (

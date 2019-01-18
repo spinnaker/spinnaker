@@ -9,7 +9,7 @@ export interface IAmazonCertificate extends ICertificate {
 }
 
 export class AmazonCertificateReader {
-  public static listCertificates(): IPromise<{ [accountId: number]: IAmazonCertificate[] }> {
+  public static listCertificates(): IPromise<{ [accountId: string]: IAmazonCertificate[] }> {
     return CertificateReader.listCertificatesByProvider('aws').then((certificates: IAmazonCertificate[]) => {
       // This account grouping should really go into clouddriver but since it's not, put it here for now.
       return AccountService.getAllAccountDetailsForProvider('aws').then(allAccountDetails => {

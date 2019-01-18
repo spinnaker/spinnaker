@@ -1,5 +1,4 @@
 import * as React from 'react';
-import Select, { Option } from 'react-select';
 import { get } from 'lodash';
 import { FormikErrors } from 'formik';
 
@@ -12,6 +11,7 @@ import {
   IClassicListenerDescription,
 } from 'amazon/domain';
 import { AmazonCertificateReader, IAmazonCertificate } from 'amazon/certificates/AmazonCertificateReader';
+import { AmazonCertificateSelectField } from '../common/AmazonCertificateSelectField';
 
 import './Listeners.less';
 
@@ -124,18 +124,18 @@ class ListenersImpl extends React.Component<IListenersProps, IListenersState> {
     this.updateListeners();
   };
 
-  private renderCertificateSelector(listener: IClassicListenerDescription, certificateOptions: Option[]): JSX.Element {
+  private renderCertificateSelector(listener: IClassicListenerDescription): JSX.Element {
     if (!this.secureProtocols.includes(listener.externalProtocol)) {
       return null;
     } else if (this.showCertificateSelect(listener)) {
+      const { values } = this.props.formik;
+      const { certificates } = this.state;
       return (
-        <Select
-          className="input-sm"
-          clearable={false}
-          required={true}
-          options={certificateOptions}
-          onChange={(value: Option<string>) => this.handleListenerCertificateChanged(listener, value.value)}
-          value={listener.sslCertificateName}
+        <AmazonCertificateSelectField
+          certificates={certificates}
+          accountId={values.credentials as any}
+          currentValue={listener.sslCertificateName}
+          onCertificateSelect={value => this.handleListenerCertificateChanged(listener, value)}
         />
       );
     } else {
@@ -152,12 +152,8 @@ class ListenersImpl extends React.Component<IListenersProps, IListenersState> {
 
   public render() {
     const { values } = this.props.formik;
-    const { certificates, certificateTypes } = this.state;
+    const { certificateTypes } = this.state;
 
-    const certificatesForAccount = certificates[values.credentials as any] || [];
-    const certificateOptions = certificatesForAccount.map(cert => {
-      return { label: cert.serverCertificateName, value: cert.serverCertificateName };
-    });
     const showCertNameColumn = this.someListenersUseSSL();
     const showCertTypeColumn = showCertNameColumn && certificateTypes.length > 1;
     const colSpan = showCertTypeColumn ? 7 : showCertNameColumn ? 6 : 5;
@@ -248,7 +244,7 @@ class ListenersImpl extends React.Component<IListenersProps, IListenersState> {
                       </td>
                     )}
 
-                    {showCertNameColumn && <td>{this.renderCertificateSelector(listener, certificateOptions)}</td>}
+                    {showCertNameColumn && <td>{this.renderCertificateSelector(listener)}</td>}
 
                     <td>
                       <a className="sm-label clickable" onClick={() => this.removeListener(index)}>
