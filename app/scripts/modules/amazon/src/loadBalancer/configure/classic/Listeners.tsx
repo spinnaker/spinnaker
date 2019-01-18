@@ -7,10 +7,11 @@ import { IWizardPageProps, wizardPage } from '@spinnaker/core';
 import { AWSProviderSettings } from 'amazon/aws.settings';
 import {
   ClassicListenerProtocol,
+  IAmazonCertificate,
   IAmazonClassicLoadBalancerUpsertCommand,
   IClassicListenerDescription,
 } from 'amazon/domain';
-import { AmazonCertificateReader, IAmazonCertificate } from 'amazon/certificates/AmazonCertificateReader';
+import { AmazonCertificateReader } from 'amazon/certificates/AmazonCertificateReader';
 import { AmazonCertificateSelectField } from '../common/AmazonCertificateSelectField';
 
 import './Listeners.less';

@@ -2,7 +2,7 @@ import * as React from 'react';
 import Select, { Option } from 'react-select';
 import { Overridable } from '@spinnaker/core';
 
-import { IAmazonCertificate } from 'amazon/certificates/AmazonCertificateReader';
+import { IAmazonCertificate } from 'amazon/domain';
 
 export interface IAmazonCertificateSelectFieldProps {
   certificates: { [accountId: string]: IAmazonCertificate[] };

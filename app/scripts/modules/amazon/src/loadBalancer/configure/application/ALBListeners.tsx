@@ -19,6 +19,7 @@ import { AWSProviderSettings } from 'amazon/aws.settings';
 import {
   ALBListenerProtocol,
   IALBListenerCertificate,
+  IAmazonCertificate,
   IListenerDescription,
   IALBTargetGroupDescription,
   IAmazonApplicationLoadBalancerUpsertCommand,
@@ -27,7 +28,7 @@ import {
   IListenerRuleCondition,
   ListenerRuleConditionField,
 } from 'amazon/domain';
-import { AmazonCertificateReader, IAmazonCertificate } from 'amazon/certificates/AmazonCertificateReader';
+import { AmazonCertificateReader } from 'amazon/certificates/AmazonCertificateReader';
 import { IAuthenticateOidcActionConfig, OidcConfigReader } from 'amazon/loadBalancer/OidcConfigReader';
 
 import { ConfigureOidcConfigModal } from './ConfigureOidcConfigModal';

@@ -1,3 +1,4 @@
+export * from './IAmazonCertificate';
 export * from './IAmazonInstance';
 export * from './IAmazonLoadBalancer';
 export * from './IAmazonLoadBalancerSourceData';
