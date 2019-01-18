@@ -134,7 +134,7 @@ class ListenersImpl extends React.Component<IListenersProps, IListenersState> {
       return (
         <AmazonCertificateSelectField
           certificates={certificates}
-          accountId={values.credentials as any}
+          accountName={values.credentials}
           currentValue={listener.sslCertificateName}
           onCertificateSelect={value => this.handleListenerCertificateChanged(listener, value)}
         />

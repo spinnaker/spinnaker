@@ -5,8 +5,8 @@ import { Overridable } from '@spinnaker/core';
 import { IAmazonCertificate } from 'amazon/domain';
 
 export interface IAmazonCertificateSelectFieldProps {
-  certificates: { [accountId: string]: IAmazonCertificate[] };
-  accountId: string;
+  certificates: { [accountName: string]: IAmazonCertificate[] };
+  accountName: string;
   currentValue: string;
   onCertificateSelect: (certificateName: string) => void;
 }
@@ -16,14 +16,14 @@ export class AmazonCertificateSelectField extends React.Component<IAmazonCertifi
   public shouldComponentUpdate(nextProps: Readonly<IAmazonCertificateSelectFieldProps>): boolean {
     return (
       nextProps.currentValue !== this.props.currentValue ||
-      nextProps.accountId !== this.props.accountId ||
+      nextProps.accountName !== this.props.accountName ||
       nextProps.certificates !== this.props.certificates
     );
   }
 
   public render() {
-    const { certificates, accountId, onCertificateSelect, currentValue } = this.props;
-    const certificatesForAccount = certificates[accountId] || [];
+    const { certificates, accountName, onCertificateSelect, currentValue } = this.props;
+    const certificatesForAccount = certificates[accountName] || [];
     const certificateOptions = certificatesForAccount.map(cert => {
       return { label: cert.serverCertificateName, value: cert.serverCertificateName };
     });

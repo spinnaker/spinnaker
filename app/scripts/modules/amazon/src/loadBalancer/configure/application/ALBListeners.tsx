@@ -496,7 +496,7 @@ class ALBListenersImpl extends React.Component<IALBListenersProps, IALBListeners
                             {this.showCertificateSelect(certificate) && (
                               <AmazonCertificateSelectField
                                 certificates={certificates}
-                                accountId={values.credentials as any}
+                                accountName={values.credentials}
                                 currentValue={certificate.name}
                                 onCertificateSelect={value => this.handleCertificateChanged(certificate, value)}
                               />
