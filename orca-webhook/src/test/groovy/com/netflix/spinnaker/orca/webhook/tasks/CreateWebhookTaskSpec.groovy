@@ -25,8 +25,10 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.web.client.HttpServerErrorException
 import spock.lang.Specification
 import spock.lang.Subject
+import java.nio.charset.Charset
 
 class CreateWebhookTaskSpec extends Specification {
 
@@ -122,6 +124,7 @@ class CreateWebhookTaskSpec extends Specification {
       payload: [:],
       customHeaders: [:]
     ])
+    def bodyString = "Oh noes, you can't do this"
 
     createWebhookTask.webhookService = Stub(WebhookService) {
       exchange(
@@ -129,7 +132,7 @@ class CreateWebhookTaskSpec extends Specification {
         "https://my-service.io/api/",
         [:],
         [:]
-      ) >> new ResponseEntity<Map>([error: "Oh noes, you can't do this"], HttpStatus.BAD_REQUEST)
+      ) >> new ResponseEntity<Map>([error: bodyString], HttpStatus.BAD_REQUEST)
     }
 
     when:
@@ -140,14 +143,111 @@ class CreateWebhookTaskSpec extends Specification {
     result.context as Map == [
       deprecationWarning: "All webhook information will be moved beneath the key 'webhook', and the keys 'statusCode', 'buildInfo', 'statusEndpoint' and 'error' will be removed. Please migrate today.",
       statusCode: HttpStatus.BAD_REQUEST,
-      buildInfo: [error: "Oh noes, you can't do this"],
+      buildInfo: [error: bodyString],
       webhook: [
         statusCode: HttpStatus.BAD_REQUEST,
         statusCodeValue: HttpStatus.BAD_REQUEST.value(),
-        body: [error: "Oh noes, you can't do this"],
+        body: [error: bodyString],
         error: "The request did not return a 2xx/3xx status"
       ]
     ]
+  }
+
+  def "should retry on HTTP status 429"() {
+    setup:
+    def stage = new Stage(pipeline, "webhook", "My webhook", [
+      url: "https://my-service.io/api/",
+      method: "delete",
+      payload: [:],
+      customHeaders: [:]
+    ])
+    def bodyString = "Retry later, please"
+
+    createWebhookTask.webhookService = Stub(WebhookService) {
+      exchange(
+        HttpMethod.DELETE,
+        "https://my-service.io/api/",
+        [:],
+        [:]
+      ) >> { throwHttpException(HttpStatus.TOO_MANY_REQUESTS, bodyString) }
+    }
+
+    when:
+    def result = createWebhookTask.execute(stage)
+
+    then:
+    def errorMessage = "error submitting webhook for pipeline ${stage.execution.id} to ${stage.context.url}, will retry."
+
+    result.status == ExecutionStatus.RUNNING
+    (result.context as Map) == [
+      webhook: [
+        statusCode: HttpStatus.TOO_MANY_REQUESTS,
+        statusCodeValue: HttpStatus.TOO_MANY_REQUESTS.value(),
+        errorMessage: errorMessage
+      ]
+    ]
+  }
+
+  def "should return TERMINAL status if webhook returns one of fail fast HTTP status codes"() {
+    setup:
+    def stage = new Stage(pipeline, "webhook", "My webhook", [
+      url: "https://my-service.io/api/",
+      method: "get",
+      payload: [:],
+      customHeaders: [:],
+      "failFastStatusCodes": [503]
+    ])
+    def bodyString = "Fail fast, ok?"
+
+    createWebhookTask.webhookService = Stub(WebhookService) {
+      exchange(
+        HttpMethod.GET,
+        "https://my-service.io/api/",
+        [:],
+        [:]
+      ) >> { throwHttpException(HttpStatus.SERVICE_UNAVAILABLE, bodyString) }
+    }
+
+    when:
+    def result = createWebhookTask.execute(stage)
+
+    then:
+    result.status == ExecutionStatus.TERMINAL
+    result.context as Map == [
+      webhook: [
+        errorMessage: "Received a status code configured to fail fast, terminating stage.",
+        statusCode: HttpStatus.SERVICE_UNAVAILABLE,
+        statusCodeValue: HttpStatus.SERVICE_UNAVAILABLE.value(),
+        body: bodyString
+      ]
+    ]
+  }
+
+  def "should throw on invalid payload"() {
+    setup:
+    def stage = new Stage(pipeline, "webhook", "My webhook", [
+      url: "https://my-service.io/api/",
+      method: "get",
+      payload: [:],
+      customHeaders: [:],
+      "failFastStatusCodes": 503
+    ])
+    def bodyString = "Fail fast, ok?"
+
+    createWebhookTask.webhookService = Stub(WebhookService) {
+      exchange(
+        HttpMethod.GET,
+        "https://my-service.io/api/",
+        [:],
+        [:]
+      ) >> { throwHttpException(HttpStatus.SERVICE_UNAVAILABLE, bodyString) }
+    }
+
+    when:
+    createWebhookTask.execute(stage)
+
+    then:
+    thrown IllegalArgumentException
   }
 
   def "if statusUrlResolution is getMethod, should return SUCCEEDED status"() {
@@ -380,5 +480,17 @@ class CreateWebhookTaskSpec extends Specification {
         statusCodeValue: HttpStatus.OK.value(),
       ]
     ]
+  }
+
+  private HttpServerErrorException throwHttpException(HttpStatus statusCode, String body) {
+    if (body != null) {
+      throw new HttpServerErrorException(
+        statusCode,
+        statusCode.name(),
+        body.getBytes(Charset.defaultCharset()),
+        Charset.defaultCharset())
+    }
+
+    throw new HttpServerErrorException(statusCode, statusCode.name())
   }
 }

@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.orca.webhook.tasks
 
+import com.fasterxml.jackson.annotation.JsonFormat
 import com.jayway.jsonpath.JsonPath
 import com.jayway.jsonpath.PathNotFoundException
 import com.jayway.jsonpath.internal.JsonContext
@@ -24,6 +25,7 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.webhook.config.WebhookProperties
 import com.netflix.spinnaker.orca.webhook.service.WebhookService
 import groovy.util.logging.Slf4j
 import org.apache.http.HttpHeaders
@@ -49,22 +51,34 @@ class CreateWebhookTask implements RetryableTask {
     Map<String, ?> outputsDeprecated = [deprecationWarning: "All webhook information will be moved beneath the key 'webhook', " +
       "and the keys 'statusCode', 'buildInfo', 'statusEndpoint' and 'error' will be removed. Please migrate today."]
 
-    String url = stage.context.url
-    def method = stage.context.method ? HttpMethod.valueOf(stage.context.method.toString().toUpperCase()) : HttpMethod.POST
-    def payload = stage.context.payload
-    def customHeaders = stage.context.customHeaders
-    boolean waitForCompletion = (stage.context.waitForCompletion as String)?.toBoolean()
+    StageData stageData = stage.mapTo(StageData)
 
     def response
     try {
-       response = webhookService.exchange(method, url, payload, customHeaders)
+      response = webhookService.exchange(stageData.method, stageData.url, stageData.payload, stageData.customHeaders)
     } catch (HttpStatusCodeException e) {
       def statusCode = e.getStatusCode()
+
+      if ((stageData.failFastStatusCodes != null) &&
+        (stageData.failFastStatusCodes.contains(statusCode.value()))) {
+        String webhookMessage = "Received a status code configured to fail fast, terminating stage."
+        outputs.webhook << [errorMessage: webhookMessage]
+
+        outputs.webhook << [statusCode: statusCode, statusCodeValue: statusCode.value()]
+        if (e.responseBodyAsString) {
+          outputs.webhook << [body: e.responseBodyAsString]
+        }
+
+        return new TaskResult(ExecutionStatus.TERMINAL, outputs)
+      }
+
       if (statusCode.is5xxServerError() || statusCode.value() == 429) {
-        String errorMessage = "error submitting webhook for pipeline ${stage.execution.id} to ${url}, will retry."
+        String errorMessage = "error submitting webhook for pipeline ${stage.execution.id} to ${stageData.url}, will retry."
         log.warn(errorMessage, e)
+
         outputs.webhook << [statusCode: statusCode, statusCodeValue: statusCode.value()]
         outputs.webhook << [errorMessage: errorMessage]
+
         return new TaskResult(ExecutionStatus.RUNNING, outputs)
       }
       throw e
@@ -79,19 +93,19 @@ class CreateWebhookTask implements RetryableTask {
       outputsDeprecated << [buildInfo: response.body]
     }
     if (statusCode.is2xxSuccessful() || statusCode.is3xxRedirection()) {
-      if (waitForCompletion) {
+      if (stageData.waitForCompletion) {
         def statusUrl = null
-        def statusUrlResolution = stage.context.statusUrlResolution
+        def statusUrlResolution = stageData.statusUrlResolution
         switch (statusUrlResolution) {
-          case "getMethod":
-            statusUrl = url
+          case WebhookProperties.StatusUrlResolution.getMethod:
+            statusUrl = stageData.url
             break
-          case "locationHeader":
+          case WebhookProperties.StatusUrlResolution.locationHeader:
             statusUrl = response.headers.getFirst(HttpHeaders.LOCATION)
             break
-          case "webhookResponse":
+          case WebhookProperties.StatusUrlResolution.webhookResponse:
             try {
-              JsonPath path = JsonPath.compile(stage.context.statusUrlJsonPath as String)
+              JsonPath path = JsonPath.compile(stageData.statusUrlJsonPath as String)
               statusUrl = new JsonContext().parse(response.body).read(path)
             } catch (PathNotFoundException e) {
               outputs.webhook << [error: e.message]
@@ -100,7 +114,7 @@ class CreateWebhookTask implements RetryableTask {
         }
         if (!statusUrl || !(statusUrl instanceof String)) {
           outputs.webhook << [
-            error: "The status URL couldn't be resolved, but 'Wait for completion' was checked",
+            error         : "The status URL couldn't be resolved, but 'Wait for completion' was checked",
             statusEndpoint: statusUrl
           ]
           return new TaskResult(ExecutionStatus.TERMINAL, outputs)
@@ -113,7 +127,7 @@ class CreateWebhookTask implements RetryableTask {
         try {
           def artifacts = new JsonContext().parse(response.body).read("artifacts")
           outputs << [artifacts: artifacts]
-        } catch(Exception e) {
+        } catch (Exception e) {
           outputs.webhook << [error: "Expected artifacts in webhook response none were found"]
           return new TaskResult(ExecutionStatus.TERMINAL, outputs)
         }
@@ -123,5 +137,18 @@ class CreateWebhookTask implements RetryableTask {
       outputs.webhook << [error: "The request did not return a 2xx/3xx status"]
       return new TaskResult(ExecutionStatus.TERMINAL, outputsDeprecated + outputs)
     }
+  }
+
+  private static class StageData {
+    public String url
+    public Object payload
+    public Object customHeaders
+    public List<Integer> failFastStatusCodes
+    public Boolean waitForCompletion
+    public WebhookProperties.StatusUrlResolution statusUrlResolution
+    public String statusUrlJsonPath
+
+    @JsonFormat(with = [JsonFormat.Feature.ACCEPT_CASE_INSENSITIVE_PROPERTIES])
+    public HttpMethod method = HttpMethod.POST
   }
 }
