@@ -10,7 +10,11 @@ spec:
   selector:
     app: spin
     cluster: spin-{{ name }}
+  type: {{ type }}
   ports:
   - protocol: TCP
     port: {{ port }}
     targetPort: {{ port }}
+  {% if nodePort and type == "NodePort" %}
+    nodePort: {{ nodePort }}
+  {% endif %}
