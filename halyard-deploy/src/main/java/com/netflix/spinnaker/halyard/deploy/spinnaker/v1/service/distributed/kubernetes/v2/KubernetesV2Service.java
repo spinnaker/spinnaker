@@ -548,10 +548,14 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
 
   default List<SidecarService> getSidecars(SpinnakerRuntimeSettings runtimeSettings) {
     SpinnakerMonitoringDaemonService monitoringService = getMonitoringDaemonService();
+    List<SidecarService> result = new ArrayList<>();
+    if (monitoringService == null) {
+      return result;
+    }
+
     ServiceSettings monitoringSettings = runtimeSettings.getServiceSettings(monitoringService);
     ServiceSettings thisSettings = runtimeSettings.getServiceSettings(getService());
 
-    List<SidecarService> result = new ArrayList<>();
     if (monitoringSettings.getEnabled() && thisSettings.getMonitored()) {
       result.add(monitoringService);
     }

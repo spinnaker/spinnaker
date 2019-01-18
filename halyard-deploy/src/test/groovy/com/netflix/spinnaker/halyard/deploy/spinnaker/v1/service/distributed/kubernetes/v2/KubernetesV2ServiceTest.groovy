@@ -21,6 +21,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.SidecarConfig
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.AccountDeploymentDetails
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.SidecarService
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings
 import spock.lang.Specification
 
@@ -50,6 +51,16 @@ class KubernetesV2ServiceTest extends Specification {
         GenerateService.ResolvedConfiguration config = Mock(GenerateService.ResolvedConfiguration)
         config.runtimeSettings = Mock(SpinnakerRuntimeSettings)
         details = new AccountDeploymentDetails()
+    }
+    def "Does getSidecars work with default RuntimeSettings"() {
+        setup:
+        SpinnakerRuntimeSettings runtimeSettings = new SpinnakerRuntimeSettings()
+
+        when:
+        List<SidecarService> sidecar = testService.getSidecars(runtimeSettings)
+
+        then:
+        sidecar.size() == 0
     }
     def "Can we submit an empty port?"() {
         setup:
