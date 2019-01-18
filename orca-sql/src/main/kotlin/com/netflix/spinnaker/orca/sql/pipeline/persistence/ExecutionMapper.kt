@@ -49,7 +49,7 @@ class ExecutionMapper(
           execution.stages.sortBy { it.refId }
         }
         .also {
-          if (!results.contains(it)) {
+          if (!results.any { r -> r.id == it.id }) {
             results.add(it)
           } else {
             log.warn("Duplicate execution for ${it.id} found in sql result")
