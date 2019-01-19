@@ -52,34 +52,20 @@
   <div class="form-group">
     <div class="col-md-12 checkbox">
       <label>
-        <input type="checkbox" ng-checked="true" ng-model="$ctrl.command.capacity.usePreviousCapacityIfAvailable"/> <!-- TODO: Use the controller to set a default, just like there are many defaults on this page -->
+        <input type="checkbox" ng-model="$ctrl.command.useSourceCapacity"/>
         <b>If available, use the previous server group's capacity</b>
       </label>
       <help-field key="ecs.capacity.overwrite"></help-field>
     </div>
   </div>
 
-  <br />
-
-  </div>
-
   <div class="form-group">
-    <div class="col-md-4 sm-label-right">
-      <b>Autoscaling policy</b> <help-field key="ecs.capacity.autoscalingPolicies"></help-field>
-    </div>
-    <div class="col-md-8">
-      <div class="form-control-static" ng-if="!$ctrl.command.backingData.filtered.metricAlarms.length">
-        No autoscaling policies found in the selected account/region
-      </div>
-      <ui-select multiple
-                 ng-if="$ctrl.command.backingData.filtered.metricAlarms.length"
-                 ng-model="$ctrl.command.autoscalingPolicies"
-                 class="form-control input-sm">
-        <ui-select-match>{{$item.alarmName}}</ui-select-match>
-        <ui-select-choices repeat="policy in $ctrl.command.backingData.filtered.metricAlarms | filter: $select.search">
-          <span ng-bind-html="policy.alarmName"></span>
-        </ui-select-choices>
-      </ui-select>
+    <div class="col-md-12 checkbox">
+      <label>
+        <input type="checkbox" ng-model="$ctrl.command.copySourceScalingPoliciesAndActions"/>
+        <b>If available, copy the previous server group's autoscaling policies</b>
+      </label>
+      <help-field key="ecs.capacity.copySourceScalingPoliciesAndActions"></help-field>
     </div>
   </div>
 

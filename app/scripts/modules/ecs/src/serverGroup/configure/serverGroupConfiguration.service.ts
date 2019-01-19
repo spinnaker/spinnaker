@@ -158,7 +158,6 @@ export class EcsServerGroupConfigurationService {
         this.configureAvailableIamRoles(cmd);
         this.configureAvailableSubnetTypes(cmd);
         this.configureAvailableSecurityGroups(cmd);
-        this.configureAvailableMetricAlarms(cmd);
         this.configureAvailableEcsClusters(cmd);
         this.configureAvailableSecrets(cmd);
 
@@ -191,38 +190,6 @@ export class EcsServerGroupConfigurationService {
       { name: command.region },
     ).availabilityZones;
     command.availabilityZones = command.backingData.filtered.availabilityZones;
-  }
-
-  public configureAvailableMetricAlarms(command: IEcsServerGroupCommand): void {
-    // const previouslyFiltered = command.backingData.filtered.metricAlarms;
-    command.backingData.filtered.metricAlarms = chain(command.backingData.metricAlarms)
-      .filter({
-        accountName: command.credentials,
-        region: command.region,
-      })
-      .map(metricAlarm => {
-        return {
-          alarmName: metricAlarm.alarmName,
-          alarmArn: metricAlarm.alarmArn,
-        } as IMetricAlarmDescriptor;
-      })
-      .value();
-
-    /* TODO: Determine if it's needed to detect which (if not all) metricAlarms/Autoscaling Policies have become invalid due to account/region change.
-    const result: IEcsServerGroupCommandResult = { dirty: {} };
-    const currentAutoscalingPolicies = command.autoscalingPolicies;
-    const newAutoscalingPolicies = command.backingData.filtered.metricAlarms;
-
-    if (currentAutoscalingPolicies) {
-      const matched = insersection(newAutoscalingPolicies, currentAutoscalingPolicies);
-      const removedAutoscalingPolicies = xor(matched, currentAutoscalingPolicies)
-      command.autoscalingPolicies = intersection(newAutoscalingPolicies, matched);
-
-      if (removedAutoscalingPolicies.length) {
-        result.dirty.autoscalingPolicies = removedAutoscalingPolicies;
-      }
-    }
-    */
   }
 
   public configureAvailableSecurityGroups(command: IEcsServerGroupCommand): void {
@@ -434,7 +401,6 @@ export class EcsServerGroupConfigurationService {
       if (command.region) {
         extend(result.dirty, command.subnetChanged(command).dirty);
         this.configureAvailabilityZones(command);
-        this.configureAvailableMetricAlarms(command);
         this.configureAvailableEcsClusters(command);
         this.configureAvailableSubnetTypes(command);
         this.configureAvailableSecurityGroups(command);
@@ -455,7 +421,6 @@ export class EcsServerGroupConfigurationService {
       const backingData = command.backingData;
       if (command.credentials) {
         this.configureAvailableIamRoles(command);
-        this.configureAvailableMetricAlarms(command);
         this.configureAvailableEcsClusters(command);
         this.configureAvailableSubnetTypes(command);
         this.configureAvailableSecurityGroups(command);

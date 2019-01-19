@@ -57,7 +57,6 @@ module.exports = angular
             iamRole: defaultIamRole,
             dockerImageCredentialsSecret: defaultImageCredentials,
             availabilityZones: availabilityZones,
-            autoscalingPolicies: [],
             subnetType: '',
             securityGroups: [],
             healthgraceperiod: '',
@@ -65,6 +64,8 @@ module.exports = angular
             placementStrategySequence: [],
             ecsClusterName: '',
             targetGroup: '',
+            copySourceScalingPoliciesAndActions: true,
+            useSourceCapacity: true,
             viewState: {
               useAllImageSelection: false,
               useSimpleCapacity: true,
@@ -175,7 +176,7 @@ module.exports = angular
           healthCheckType: serverGroup.asg.healthCheckType,
           loadBalancers: serverGroup.asg.loadBalancerNames,
           region: serverGroup.region,
-          useSourceCapacity: false,
+          useSourceCapacity: true,
           capacity: {
             min: serverGroup.asg.minSize,
             max: serverGroup.asg.maxSize,
@@ -192,6 +193,7 @@ module.exports = angular
             .map(process => process.processName)
             .filter(name => !enabledProcesses.includes(name)),
           targetGroup: serverGroup.targetGroup,
+          copySourceScalingPoliciesAndActions: true,
           viewState: {
             instanceProfile: asyncData.instanceProfile,
             useAllImageSelection: false,
@@ -202,10 +204,6 @@ module.exports = angular
             dirty: {},
           },
         };
-
-        if (mode === 'clone' || mode === 'editPipeline') {
-          command.useSourceCapacity = true;
-        }
 
         if (mode === 'editPipeline') {
           command.strategy = 'redblack';

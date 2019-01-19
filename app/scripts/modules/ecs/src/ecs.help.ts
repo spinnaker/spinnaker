@@ -28,8 +28,8 @@ const helpContents: { [key: string]: string } = {
     '<p>The AWS Secrets Manager secret that contains private registry credentials.</p><p>Define credentials only for private registries other than Amazon ECR.</p>',
   'ecs.placementStrategy':
     '<p>The strategy the container scheduler will be using.  See <a href="http://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-placement-strategies.html" target="_blank">AWS documentation</a> for more details. </p><p>You should at least balance across availability zones</p><p>Custom placement strategies have not been implemented yet.</p>',
-  'ecs.capacity.autoscalingPolicies':
-    '<p>A predefined MetricAlarm and Autoscaling policy with an Action must exist.</p><p>There is a delay in MetricAlarm recognizing the Autoscaling policy.</p>',
+  'ecs.capacity.copySourceScalingPoliciesAndActions':
+    '<p>Copy Application Autoscaling policies and their associated alarms from the previous ECS service.</p>',
   'ecs.launchtype': '<p>Launch service tasks on your own EC2 instances or on Fargate.</p>',
   'ecs.healthgraceperiod':
     '<p>How long a container will be kept alive despite the load balancer health checks, in seconds.</p>',
