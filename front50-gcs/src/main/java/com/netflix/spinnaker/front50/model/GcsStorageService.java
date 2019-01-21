@@ -24,6 +24,8 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.googleapis.services.AbstractGoogleClientRequest;
 import com.google.api.client.http.ByteArrayContent;
+import com.google.api.client.http.HttpRequestInitializer;
+import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpResponseException;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
@@ -167,6 +169,8 @@ GcsStorageService implements StorageService {
                            String projectName,
                            String credentialsPath,
                            String applicationVersion,
+                           Integer connectTimeoutSec,
+                           Integer readTimeoutSec,
                            Long maxWaitInterval,
                            Long retryIntervalBase,
                            Long jitterMultiplier,
@@ -180,6 +184,8 @@ GcsStorageService implements StorageService {
          credentialsPath,
          applicationVersion,
          DEFAULT_DATA_FILENAME,
+         connectTimeoutSec,
+         readTimeoutSec,
          maxWaitInterval,
          retryIntervalBase,
          jitterMultiplier,
@@ -195,6 +201,8 @@ GcsStorageService implements StorageService {
                            String credentialsPath,
                            String applicationVersion,
                            String dataFilename,
+                           Integer connectTimeoutSec,
+                           Integer readTimeoutSec,
                            Long maxWaitInterval,
                            Long retryIntervalBase,
                            Long jitterMultiplier,
@@ -208,10 +216,18 @@ GcsStorageService implements StorageService {
       JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
       GoogleCredential credential = loadCredential(httpTransport, jsonFactory,
                                                    credentialsPath);
+      HttpRequestInitializer requestInitializer = new HttpRequestInitializer() {
+        public void initialize(HttpRequest request) throws IOException {
+            credential.initialize(request);
+            request.setConnectTimeout(connectTimeoutSec * 1000);
+            request.setReadTimeout(readTimeoutSec * 1000);
+        }
+      };
 
       String applicationName = "Spinnaker/" + applicationVersion;
       storage = new Storage.Builder(httpTransport, jsonFactory, credential)
                            .setApplicationName(applicationName)
+                           .setHttpRequestInitializer(requestInitializer)
                            .build();
     } catch (IOException|java.security.GeneralSecurityException e) {
         throw new IllegalStateException(e);

@@ -54,6 +54,12 @@ public class GcsConfig extends CommonStorageServiceDAOConfig {
   @Value("${spinnaker.gcs.safeRetry.maxRetries:10}")
   Long maxRetries;
 
+  @Value("${spinnaker.gcs.connectTimeoutSec:45}")
+  Integer connectTimeoutSec;
+
+  @Value("${spinnaker.gcs.readTimeoutSec:45}")
+  Integer readTimeoutSec;
+
   @Autowired
   Registry registry;
 
@@ -80,6 +86,8 @@ public class GcsConfig extends CommonStorageServiceDAOConfig {
         gcsProperties.getProject(),
         gcsProperties.getJsonPath(),
         applicationVersion,
+        connectTimeoutSec,
+        readTimeoutSec,
         maxWaitInterval,
         retryIntervalBase,
         jitterMultiplier,
@@ -94,6 +102,8 @@ public class GcsConfig extends CommonStorageServiceDAOConfig {
         gcsProperties.getJsonPath(),
         applicationVersion,
         dataFilename,
+        connectTimeoutSec,
+        readTimeoutSec,
         maxWaitInterval,
         retryIntervalBase,
         jitterMultiplier,
