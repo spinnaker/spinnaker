@@ -39,6 +39,7 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSetting
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ConfigSource;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.HasServiceSettings;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.KubernetesSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerMonitoringDaemonService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.DistributedService.DeployPriority;
@@ -61,6 +62,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
   String getServiceName();
@@ -175,41 +177,7 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
             Entry::getValue
         ));
 
-    List<String> volumes = configSources.stream()
-        .collect(Collectors.toMap(ConfigSource::getId, (i) -> i, (a, b) -> a))
-        .values()
-        .stream()
-        .map(this::getVolumeYaml)
-        .collect(Collectors.toList());
-
-    volumes.addAll(settings.getKubernetes().getVolumes().stream()
-        .collect(Collectors.toMap(ConfigSource::getId, (i) -> i, (a, b) -> a))
-        .values()
-        .stream()
-        .map(this::getVolumeYaml)
-        .collect(Collectors.toList()));
-
-    volumes.addAll(sidecarConfigs.stream()
-        .map(SidecarConfig::getConfigMapVolumeMounts)
-        .flatMap(Collection::stream)
-        .map(c -> new ConfigSource()
-            .setMountPath(c.getMountPath())
-            .setId(c.getConfigMapName())
-            .setType(ConfigSource.Type.configMap)
-        )
-        .map(this::getVolumeYaml)
-        .collect(Collectors.toList()));
-
-    volumes.addAll(sidecarConfigs.stream()
-        .map(SidecarConfig::getSecretVolumeMounts)
-        .flatMap(Collection::stream)
-        .map(c -> new ConfigSource()
-                .setMountPath(c.getMountPath())
-                .setId(c.getSecretName())
-                .setType(ConfigSource.Type.secret)
-        )
-        .map(this::getVolumeYaml)
-        .collect(Collectors.toList()));
+    List<String> volumes = combineVolumes(configSources, settings.getKubernetes(), sidecarConfigs);
 
     env.putAll(settings.getEnv());
 
@@ -393,6 +361,48 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
 
   default String getNamespace(ServiceSettings settings) {
     return settings.getLocation();
+  }
+
+  default List<String> combineVolumes(List<ConfigSource> configSources, KubernetesSettings settings, List<SidecarConfig> sidecarConfigs) {
+
+    Stream<ConfigSource> configStream = configSources.stream()
+        .collect(Collectors.toMap(ConfigSource::getId, (i) -> i, (a, b) -> a))
+        .values()
+        .stream();
+
+    Stream<ConfigSource> settingStream = settings.getVolumes().stream()
+        .collect(Collectors.toMap(ConfigSource::getId, (i) -> i, (a, b) -> a))
+        .values()
+        .stream();
+
+    Stream<ConfigSource> sidecarStream = sidecarConfigs.stream()
+        .map(SidecarConfig::getConfigMapVolumeMounts)
+        .flatMap(Collection::stream)
+        .map(c -> new ConfigSource()
+            .setMountPath(c.getMountPath())
+            .setId(c.getConfigMapName())
+            .setType(ConfigSource.Type.configMap)
+        );
+
+    Stream<ConfigSource> secretStream = sidecarConfigs.stream()
+        .map(SidecarConfig::getSecretVolumeMounts)
+        .flatMap(Collection::stream)
+        .map(c -> new ConfigSource()
+                .setMountPath(c.getMountPath())
+                .setId(c.getSecretName())
+                .setType(ConfigSource.Type.secret)
+        );
+
+    Stream<ConfigSource> volumeConfigStream = Stream.of(
+      configStream,
+      settingStream,
+      sidecarStream,
+      secretStream
+    ).flatMap(s -> s);
+
+    return volumeConfigStream
+      .map(this::getVolumeYaml)
+      .collect(Collectors.toList());
   }
 
   default List<ConfigSource> stageConfig(AccountDeploymentDetails<KubernetesAccount> details,

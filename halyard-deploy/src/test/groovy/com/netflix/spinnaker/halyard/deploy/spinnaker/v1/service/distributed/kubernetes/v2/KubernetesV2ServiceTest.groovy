@@ -21,6 +21,8 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.SidecarConfig
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.AccountDeploymentDetails
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ConfigSource
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.KubernetesSettings
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.SidecarService
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings
 import spock.lang.Specification
@@ -119,5 +121,51 @@ class KubernetesV2ServiceTest extends Specification {
         then:
         customSidecar.contains('"mountPath": "/secrets/cloudsql"')
         customSidecar.contains('"mountPath": "/var/run/secrets/kubernetes.io/serviceaccount"')
+    }
+
+    def "Does combineVolumes produce correct output"() {
+        setup:
+        List<ConfigSource> configSources = new ArrayList<>()
+        configSources.add(new ConfigSource().setId("myid").setMountPath("mypath"))
+        KubernetesSettings settings = new KubernetesSettings()
+        settings.volumes.add(new ConfigSource().setId("kubid").setMountPath("kubpath"))
+        List<SidecarConfig> sidecarConfigs = new ArrayList<>()
+        SidecarConfig car = new SidecarConfig()
+        SidecarConfig.ConfigMapVolumeMount cvm = new SidecarConfig.ConfigMapVolumeMount(configMapName: "cMap", mountPath: "/configMap")
+        car.getConfigMapVolumeMounts().add(cvm)
+        SidecarConfig.SecretVolumeMount svm = new SidecarConfig.SecretVolumeMount(secretName: "sMap", mountPath: "/secretMap")
+        car.getSecretVolumeMounts().add(svm)
+        sidecarConfigs.add(car)
+
+        when:
+        List<String> volumes = testService.combineVolumes(configSources, settings, sidecarConfigs)
+
+        then:
+        volumes.contains('''{
+  "name": "myid",
+  "secret": {
+    "secretName": "myid"
+  }
+}''')
+        volumes.contains('''{
+  "name": "kubid",
+  "secret": {
+    "secretName": "kubid"
+  }
+}''')
+
+        volumes.contains('''{
+  "name": "cMap",
+  "configMap": {
+    "name": "cMap"
+  }
+}''')
+
+        volumes.contains('''{
+  "name": "sMap",
+  "secret": {
+    "secretName": "sMap"
+  }
+}''')
     }
 }
