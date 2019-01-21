@@ -126,8 +126,28 @@ azure:
     templateFile: azure-linux.json
     baseImages:
     - baseImage:
-        id: ubuntu
-        shortDescription: v14.05
+        id: ubuntu-1604
+        shortDescription: v16.04
+        detailedDescription: Ubuntu Server 16.04-LTS
+        publisher: Canonical
+        offer: UbuntuServer
+        sku: 16.04-LTS
+        version: 16.04.201612140
+        osType: Linux
+        packageType: deb
+    - baseImage:
+        id: ubuntu-1804
+        shortDescription: v18.04
+        detailedDescription: Ubuntu Server 18.04-LTS
+        publisher: Canonical
+        offer: UbuntuServer
+        sku: 18.04-LTS
+        version: 18.04.201804262
+        osType: Linux
+        packageType: deb
+    - baseImage:
+        id: ubuntu-1404
+        shortDescription: v14.04
         detailedDescription: Ubuntu Server 14.04.5-LTS
         publisher: Canonical
         offer: UbuntuServer
