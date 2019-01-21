@@ -59,15 +59,15 @@ class CreateWebhookTask implements RetryableTask {
     } catch (HttpStatusCodeException e) {
       def statusCode = e.getStatusCode()
 
+      outputs.webhook << [statusCode: statusCode, statusCodeValue: statusCode.value()]
+      if (e.responseBodyAsString) {
+        outputs.webhook << [body: e.responseBodyAsString]
+      }
+
       if ((stageData.failFastStatusCodes != null) &&
         (stageData.failFastStatusCodes.contains(statusCode.value()))) {
         String webhookMessage = "Received a status code configured to fail fast, terminating stage."
         outputs.webhook << [errorMessage: webhookMessage]
-
-        outputs.webhook << [statusCode: statusCode, statusCodeValue: statusCode.value()]
-        if (e.responseBodyAsString) {
-          outputs.webhook << [body: e.responseBodyAsString]
-        }
 
         return new TaskResult(ExecutionStatus.TERMINAL, outputs)
       }
@@ -76,7 +76,6 @@ class CreateWebhookTask implements RetryableTask {
         String errorMessage = "error submitting webhook for pipeline ${stage.execution.id} to ${stageData.url}, will retry."
         log.warn(errorMessage, e)
 
-        outputs.webhook << [statusCode: statusCode, statusCodeValue: statusCode.value()]
         outputs.webhook << [errorMessage: errorMessage]
 
         return new TaskResult(ExecutionStatus.RUNNING, outputs)
@@ -92,6 +91,7 @@ class CreateWebhookTask implements RetryableTask {
       outputs.webhook << [body: response.body]
       outputsDeprecated << [buildInfo: response.body]
     }
+
     if (statusCode.is2xxSuccessful() || statusCode.is3xxRedirection()) {
       if (stageData.waitForCompletion) {
         def statusUrl = null
@@ -134,7 +134,7 @@ class CreateWebhookTask implements RetryableTask {
       }
       return new TaskResult(ExecutionStatus.SUCCEEDED, outputsDeprecated + outputs)
     } else {
-      outputs.webhook << [error: "The request did not return a 2xx/3xx status"]
+      outputs.webhook << [error: "The webhook request failed"]
       return new TaskResult(ExecutionStatus.TERMINAL, outputsDeprecated + outputs)
     }
   }

@@ -148,7 +148,7 @@ class CreateWebhookTaskSpec extends Specification {
         statusCode: HttpStatus.BAD_REQUEST,
         statusCodeValue: HttpStatus.BAD_REQUEST.value(),
         body: [error: bodyString],
-        error: "The request did not return a 2xx/3xx status"
+        error: "The webhook request failed"
       ]
     ]
   }
@@ -161,7 +161,6 @@ class CreateWebhookTaskSpec extends Specification {
       payload: [:],
       customHeaders: [:]
     ])
-    def bodyString = "Retry later, please"
 
     createWebhookTask.webhookService = Stub(WebhookService) {
       exchange(
@@ -169,7 +168,7 @@ class CreateWebhookTaskSpec extends Specification {
         "https://my-service.io/api/",
         [:],
         [:]
-      ) >> { throwHttpException(HttpStatus.TOO_MANY_REQUESTS, bodyString) }
+      ) >> { throwHttpException(HttpStatus.TOO_MANY_REQUESTS, null) }
     }
 
     when:
