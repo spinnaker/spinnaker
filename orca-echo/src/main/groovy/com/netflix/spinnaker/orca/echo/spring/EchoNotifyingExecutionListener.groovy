@@ -24,8 +24,10 @@ import com.netflix.spinnaker.orca.listeners.ExecutionListener
 import com.netflix.spinnaker.orca.listeners.Persister
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
+import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
+
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 
 @Slf4j
@@ -102,7 +104,15 @@ class EchoNotifyingExecutionListener implements ExecutionListener {
    * @param pipeline
    */
   private void addApplicationNotifications(Execution pipeline) {
-    ApplicationNotifications notifications = front50Service.getApplicationNotifications(pipeline.application)
+    def user = pipeline.getAuthentication()?.toKorkUser()
+    ApplicationNotifications notifications
+    if (user?.isPresent()) {
+      notifications = AuthenticatedRequest.propagate({
+        front50Service.getApplicationNotifications(pipeline.application)
+      }, user.get()).call()
+    } else {
+      notifications = front50Service.getApplicationNotifications(pipeline.application)
+    }
 
     if (notifications) {
       notifications.getPipelineNotifications().each { appNotification ->
