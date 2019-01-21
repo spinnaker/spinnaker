@@ -296,10 +296,11 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
     Map<String, T> resultMap = new HashMap<>();
     for (T item : existingItems) {
       if (keyUpdateTime.containsKey(buildObjectKey(item))) {
-        if (resultMap.containsKey(item.getId())) {
-          log.error("Duplicate item id found, last-write wins: (id: {})", value("id", item.getId()));
+        String itemId = buildObjectKey(item.getId());
+        if (resultMap.containsKey(itemId)) {
+          log.error("Duplicate item id found, last-write wins: (id: {})", value("id", itemId));
         }
-        resultMap.put(item.getId(), item);
+        resultMap.put(itemId, item);
       }
     }
 
