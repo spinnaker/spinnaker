@@ -2,7 +2,7 @@ import * as React from 'react';
 import * as classNames from 'classnames';
 import { IPromise } from 'angular';
 import { chain, isNil, uniq, groupBy } from 'lodash';
-import { Field, FormikErrors } from 'formik';
+import { Field, FormikErrors, FieldProps } from 'formik';
 import { Observable, Subject } from 'rxjs';
 
 import {
@@ -107,6 +107,7 @@ class LoadBalancerLocationImpl extends React.Component<ILoadBalancerLocationProp
   private shouldHideInternalFlag(): boolean {
     if (AWSProviderSettings) {
       if (AWSProviderSettings.loadBalancers && AWSProviderSettings.loadBalancers.inferInternalFlagFromSubnet) {
+        // clouddriver will check the subnet if isInternal is competely omitted
         delete this.props.formik.values.isInternal;
         return true;
       }
@@ -186,6 +187,10 @@ class LoadBalancerLocationImpl extends React.Component<ILoadBalancerLocationProp
     subnet$.takeUntil(this.destroy$).subscribe(subnet => {
       this.props.formik.setFieldValue('vpcId', subnet && subnet.vpcIds[0]);
       this.props.formik.setFieldValue('subnetType', subnet && subnet.purpose);
+      if (!this.state.hideInternalFlag && !this.state.internalFlagToggled && subnet && subnet.purpose) {
+        // Even if inferInternalFlagFromSubnet is false, deck will still try to guess which the user wants unless explicitly toggled
+        this.props.formik.setFieldValue('isInternal', subnet.purpose.includes('internal'));
+      }
     });
 
     moniker$.takeUntil(this.destroy$).subscribe(moniker => {
@@ -374,7 +379,11 @@ class LoadBalancerLocationImpl extends React.Component<ILoadBalancerLocationProp
                   </div>
                   <div className="col-md-7 checkbox">
                     <label>
-                      <input type="checkbox" name="isInternal" onChange={this.internalFlagChanged} />
+                      <Field
+                        name="isInternal"
+                        onChange={this.internalFlagChanged}
+                        render={({ field }: FieldProps) => <input type="checkbox" checked={!!field.value} />}
+                      />
                       Create an internal load balancer
                     </label>
                   </div>
