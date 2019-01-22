@@ -89,7 +89,7 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification implemen
 
       googleBatchMock.demand.execute {
         def imageList = new ImageList(
-          selfLink: "https://www.googleapis.com/compute/alpha/projects/$PROJECT_NAME/global/images",
+          selfLink: "https://compute.googleapis.com/compute/alpha/projects/$PROJECT_NAME/global/images",
           items: [new Image(name: IMAGE)]
         )
         callback.onSuccess(imageList, null)

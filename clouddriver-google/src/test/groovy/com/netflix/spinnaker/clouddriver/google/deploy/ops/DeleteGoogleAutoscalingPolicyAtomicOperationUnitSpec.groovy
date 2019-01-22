@@ -208,7 +208,7 @@ class DeleteGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
 
     where:
     isRegional | location | groupUrl
-    false      | ZONE     | "https://www.googleapis.com/compute/v1/projects/spinnaker-jtk54/zones/us-central1-f/autoscalers/okra-auto-v005"
-    true       | REGION   | "https://www.googleapis.com/compute/v1/projects/spinnaker-jtk54/regions/us-central1/autoscalers/okra-auto-v005"
+    false      | ZONE     | "https://compute.googleapis.com/compute/v1/projects/spinnaker-jtk54/zones/us-central1-f/autoscalers/okra-auto-v005"
+    true       | REGION   | "https://compute.googleapis.com/compute/v1/projects/spinnaker-jtk54/regions/us-central1/autoscalers/okra-auto-v005"
   }
 }

@@ -74,7 +74,7 @@ class UpsertGoogleImageTagsAtomicOperation extends GoogleAtomicOperation<Void> {
 
     if (image) {
       // Image self links are constructed like this:
-      // https://www.googleapis.com/compute/alpha/projects/rosco-oss-2/global/images/spinnaker-rosco-all-20161229193556-precise
+      // https://compute.googleapis.com/compute/alpha/projects/rosco-oss-2/global/images/spinnaker-rosco-all-20161229193556-precise
       def imageSelfLinkTokens = image.getSelfLink().split("/")
       def imageProject = imageSelfLinkTokens[imageSelfLinkTokens.length - 4]
 

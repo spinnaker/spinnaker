@@ -34,15 +34,15 @@ import spock.lang.Unroll
 class TerminateAndDecrementGoogleServerGroupAtomicOperationUnitSpec extends Specification {
   private static final SERVER_GROUP_NAME = "my-server-group"
   private static final SERVER_GROUP_SELF_LINK =
-    "https://www.googleapis.com/compute/v1/projects/shared-spinnaker/zones/us-central1-f/instanceGroupManagers/$SERVER_GROUP_NAME"
+    "https://compute.googleapis.com/compute/v1/projects/shared-spinnaker/zones/us-central1-f/instanceGroupManagers/$SERVER_GROUP_NAME"
   private static final REGION = "us-central1"
   private static final ZONE = "us-central1-f"
   private static final ACCOUNT_NAME = "auto"
   private static final PROJECT_NAME = "my_project"
   private static final INSTANCE_IDS = ["my-app7-dev-v000-1", "my-app7-dev-v000-2"]
   private static final INSTANCE_URLS = [
-    "https://www.googleapis.com/compute/v1/projects/shared-spinnaker/zones/us-central1-f/instances/my-app7-dev-v000-1",
-    "https://www.googleapis.com/compute/v1/projects/shared-spinnaker/zones/us-central1-f/instances/my-app7-dev-v000-2"
+    "https://compute.googleapis.com/compute/v1/projects/shared-spinnaker/zones/us-central1-f/instances/my-app7-dev-v000-1",
+    "https://compute.googleapis.com/compute/v1/projects/shared-spinnaker/zones/us-central1-f/instances/my-app7-dev-v000-2"
   ]
 
   def setupSpec() {

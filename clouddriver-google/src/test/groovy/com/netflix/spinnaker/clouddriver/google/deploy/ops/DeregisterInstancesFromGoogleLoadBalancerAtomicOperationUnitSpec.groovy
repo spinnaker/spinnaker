@@ -50,9 +50,9 @@ class DeregisterInstancesFromGoogleLoadBalancerAtomicOperationUnitSpec extends S
   private static final INSTANCE_ID1 = "my-app7-dev-v000-instance1"
   private static final INSTANCE_ID2 = "my-app7-dev-v000-instance2"
   private static final INSTANCE_URL1 =
-    "https://www.googleapis.com/compute/v1/projects/$PROJECT_NAME/zones/$ZONE/instances/$INSTANCE_ID1"
+    "https://compute.googleapis.com/compute/v1/projects/$PROJECT_NAME/zones/$ZONE/instances/$INSTANCE_ID1"
   private static final INSTANCE_URL2 =
-    "https://www.googleapis.com/compute/v1/projects/$PROJECT_NAME/zones/$ZONE/instances/$INSTANCE_ID2"
+    "https://compute.googleapis.com/compute/v1/projects/$PROJECT_NAME/zones/$ZONE/instances/$INSTANCE_ID2"
 
   private static final INSTANCE_IDS = [INSTANCE_ID1, INSTANCE_ID2]
   private static final INSTANCE_URLS = [INSTANCE_URL1, INSTANCE_URL2]

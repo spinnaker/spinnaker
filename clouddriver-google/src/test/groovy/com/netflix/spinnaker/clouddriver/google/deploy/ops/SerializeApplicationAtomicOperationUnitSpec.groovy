@@ -59,8 +59,8 @@ class SerializeApplicationAtomicOperationUnitSpec extends Specification {
   private static final DISK_SIZE_GB = 100
   private static final DISK_SOURCE = "https://pantheon.corp.google.com/compute/disksDetail/zones/us-central1-f/disks/spinnaker-test-disk"
 
-  private static final NETWORK_URL = "https://www.googleapis.com/compute/v1/projects/test-proj/networking/networks/details/default"
-  private static final SUBNETWORK_URL = "https://www.googleapis.com/compute/v1/projects/test-proj/networking/subnetworks/details/us-central1/default"
+  private static final NETWORK_URL = "https://compute.googleapis.com/compute/v1/projects/test-proj/networking/networks/details/default"
+  private static final SUBNETWORK_URL = "https://compute.googleapis.com/compute/v1/projects/test-proj/networking/subnetworks/details/us-central1/default"
   private static final NETWORK_ACCESS_CONFIG = []
 
   private static final AUTOSCALING_MAX_NUM_REPLICAS = 6
@@ -76,7 +76,7 @@ class SerializeApplicationAtomicOperationUnitSpec extends Specification {
   private static final LOAD_BALANCER_IP_PROTOCOL = "TCP"
   private static final LOAD_BALANCER_PORT_RANGE = "8080-8080"
   private static final LOAD_BALANCER_REGION = "us-east1"
-  private static final LOAD_BALANCER_TARGET_POOL = "https://www.googleapis.com/compute/v1/projects/test-proj/regions/us-central1/targetPools/spinnaker-load_balancer-tp"
+  private static final LOAD_BALANCER_TARGET_POOL = "https://compute.googleapis.com/compute/v1/projects/test-proj/regions/us-central1/targetPools/spinnaker-load_balancer-tp"
 
   private static final HEALTH_CHECK_NAME = "spinnaker-load-balancer-hc"
   private static final HEALTH_CHECK_INTERVAL = 15

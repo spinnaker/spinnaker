@@ -57,8 +57,8 @@ class GCEUtilSpec extends Specification {
   private static final PHASE = "SOME-PHASE"
   private static final INSTANCE_LOCAL_NAME_1 = "some-instance-name-1"
   private static final INSTANCE_LOCAL_NAME_2 = "some-instance-name-2"
-  private static final INSTANCE_URL_1 = "https://www.googleapis.com/compute/v1/projects/$PROJECT_NAME/zones/us-central1-b/instances/$INSTANCE_LOCAL_NAME_1"
-  private static final INSTANCE_URL_2 = "https://www.googleapis.com/compute/v1/projects/$PROJECT_NAME/zones/us-central1-b/instances/$INSTANCE_LOCAL_NAME_2"
+  private static final INSTANCE_URL_1 = "https://compute.googleapis.com/compute/v1/projects/$PROJECT_NAME/zones/us-central1-b/instances/$INSTANCE_LOCAL_NAME_1"
+  private static final INSTANCE_URL_2 = "https://compute.googleapis.com/compute/v1/projects/$PROJECT_NAME/zones/us-central1-b/instances/$INSTANCE_LOCAL_NAME_2"
   private static final IMAGE_PROJECT_NAME = "some-image-project"
   private static final GOOGLE_APPLICATION_NAME = "test"
   private static final BASE_IMAGE_PROJECTS = ["centos-cloud", "ubuntu-os-cloud"]
@@ -94,7 +94,7 @@ class GCEUtilSpec extends Specification {
         httpTransport, jsonFactory, httpRequestInitializer).setApplicationName(GOOGLE_APPLICATION_NAME).build()
       def soughtImage = new Image(name: IMAGE_NAME)
       def imageList = new ImageList(
-        selfLink: "https://www.googleapis.com/compute/alpha/projects/$PROJECT_NAME/global/images",
+        selfLink: "https://compute.googleapis.com/compute/alpha/projects/$PROJECT_NAME/global/images",
         items: [soughtImage]
       )
 
@@ -127,7 +127,7 @@ class GCEUtilSpec extends Specification {
       def credentials = new GoogleNamedAccountCredentials.Builder().compute(compute).imageProjects([IMAGE_PROJECT_NAME]).build()
       def soughtImage = new Image(name: IMAGE_NAME)
       def imageList = new ImageList(
-        selfLink: "https://www.googleapis.com/compute/alpha/projects/$PROJECT_NAME/global/images",
+        selfLink: "https://compute.googleapis.com/compute/alpha/projects/$PROJECT_NAME/global/images",
         items: [soughtImage]
       )
 
@@ -206,7 +206,7 @@ class GCEUtilSpec extends Specification {
     def soughtImage = new Image(name: IMAGE_NAME)
     def artifact = Artifact.builder()
       .name(IMAGE_NAME)
-      .reference("https://www.googleapis.com/compute/v1/projects/$PROJECT_NAME/global/images/$IMAGE_NAME")
+      .reference("https://compute.googleapis.com/compute/v1/projects/$PROJECT_NAME/global/images/$IMAGE_NAME")
       .type("gce/image")
       .build()
 
@@ -598,8 +598,8 @@ class GCEUtilSpec extends Specification {
 
     where:
       fullResourceLink << [
-        "https://www.googleapis.com/compute/v1/projects/my-test-project/global/firewalls/name-a",
-        "www.googleapis.com/compute/v1/projects/my-test-project/global/firewalls/name-a",
+        "https://compute.googleapis.com/compute/v1/projects/my-test-project/global/firewalls/name-a",
+        "compute.googleapis.com/compute/v1/projects/my-test-project/global/firewalls/name-a",
         "compute/v1/projects/my-test-project/global/firewalls/name-a",
         "projects/my-test-project/global/firewalls/name-a"
       ]
@@ -617,7 +617,7 @@ class GCEUtilSpec extends Specification {
       fullResourceLink << [
         null,
         "",
-        "https://www.googleapis.com/compute/v1/my-test-project/global/firewalls/name-a"
+        "https://compute.googleapis.com/compute/v1/my-test-project/global/firewalls/name-a"
       ]
   }
 }

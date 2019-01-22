@@ -53,19 +53,19 @@ class GoogleNetworkProviderSpec extends Specification {
     [
       id: 6614377178691015954,
       name: 'some-network',
-      selfLink: 'https://www.googleapis.com/compute/alpha/projects/some-project/global/networks/some-network',
+      selfLink: 'https://compute.googleapis.com/compute/alpha/projects/some-project/global/networks/some-network',
       autoCreateSubnets: Boolean.TRUE,
-      subnets: ['https://www.googleapis.com/compute/alpha/projects/some-project/regions/europe-west1/subnetworks/some-network',
-                'https://www.googleapis.com/compute/alpha/projects/some-project/regions/europe-west2/subnetworks/some-network'],
+      subnets: ['https://compute.googleapis.com/compute/alpha/projects/some-project/regions/europe-west1/subnetworks/some-network',
+                'https://compute.googleapis.com/compute/alpha/projects/some-project/regions/europe-west2/subnetworks/some-network'],
       routingConfig: [routingMode: 'GLOBAL']
     ],
     [
       id: 6614377178691015955,
       name: 'some-network-2',
-      selfLink: 'https://www.googleapis.com/compute/alpha/projects/some-project/global/networks/some-network02',
+      selfLink: 'https://compute.googleapis.com/compute/alpha/projects/some-project/global/networks/some-network02',
       autoCreateSubnets: Boolean.TRUE,
-      subnets: ['https://www.googleapis.com/compute/alpha/projects/some-project/regions/europe-west1/subnetworks/some-network-2',
-                'https://www.googleapis.com/compute/alpha/projects/some-project/regions/europe-west2/subnetworks/some-network-2'],
+      subnets: ['https://compute.googleapis.com/compute/alpha/projects/some-project/regions/europe-west1/subnetworks/some-network-2',
+                'https://compute.googleapis.com/compute/alpha/projects/some-project/regions/europe-west2/subnetworks/some-network-2'],
       routingConfig: [routingMode: 'GLOBAL']
     ]
   ]

@@ -35,7 +35,7 @@ import spock.lang.Subject
 class TerminateGoogleInstancesAtomicOperationUnitSpec extends Specification {
   private static final MANAGED_INSTANCE_GROUP_NAME = "my-app7-dev-v000"
   private static final MANAGED_INSTANCE_GROUP_SELF_LINK =
-    "https://www.googleapis.com/compute/v1/projects/shared-spinnaker/zones/us-central1-f/instanceGroupManagers/$MANAGED_INSTANCE_GROUP_NAME"
+    "https://compute.googleapis.com/compute/v1/projects/shared-spinnaker/zones/us-central1-f/instanceGroupManagers/$MANAGED_INSTANCE_GROUP_NAME"
   private static final REGION = "us-central1"
   private static final ZONE = "us-central1-b"
   private static final ACCOUNT_NAME = "auto"
@@ -47,8 +47,8 @@ class TerminateGoogleInstancesAtomicOperationUnitSpec extends Specification {
   private static final ALL_INSTANCE_IDS = ["${ID_GOOD_PREFIX}1", "${ID_BAD_PREFIX}1",
                                            "${ID_GOOD_PREFIX}2", "${ID_BAD_PREFIX}2"]
   private static final GOOD_INSTANCE_URLS = [
-    "https://www.googleapis.com/compute/v1/projects/shared-spinnaker/zones/us-central1-f/instances/${ID_GOOD_PREFIX}1",
-    "https://www.googleapis.com/compute/v1/projects/shared-spinnaker/zones/us-central1-f/instances/${ID_GOOD_PREFIX}2"
+    "https://compute.googleapis.com/compute/v1/projects/shared-spinnaker/zones/us-central1-f/instances/${ID_GOOD_PREFIX}1",
+    "https://compute.googleapis.com/compute/v1/projects/shared-spinnaker/zones/us-central1-f/instances/${ID_GOOD_PREFIX}2"
   ]
 
   def setupSpec() {

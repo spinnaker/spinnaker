@@ -41,7 +41,7 @@ class UpsertGoogleImageTagsAtomicOperationUnitSpec extends Specification impleme
   private static final ACCOUNT_NAME = "auto"
   private static final PROJECT_NAME = "my-project"
   private static final IMAGE_NAME = "debian-7-wheezy-v20140415"
-  private static final IMAGE_SELF_LINK = "https://www.googleapis.com/compute/alpha/projects/$PROJECT_NAME/global/images/spinnaker-rosco-all-20161229193556-precise"
+  private static final IMAGE_SELF_LINK = "https://compute.googleapis.com/compute/alpha/projects/$PROJECT_NAME/global/images/spinnaker-rosco-all-20161229193556-precise"
   private static final BASE_IMAGE_PROJECTS = ["centos-cloud", "ubuntu-os-cloud"]
   private static final TAGS = ['some-key-1': 'some-val-2']
   private static final LABELS = ['some-existing-key-1': 'some-existing-val-2']
@@ -83,7 +83,7 @@ class UpsertGoogleImageTagsAtomicOperationUnitSpec extends Specification impleme
       googleBatchMock.demand.size { return 1 }
       googleBatchMock.demand.execute {
         def imageList = new ImageList(
-          selfLink: "https://www.googleapis.com/compute/alpha/projects/$PROJECT_NAME/global/images",
+          selfLink: "https://compute.googleapis.com/compute/alpha/projects/$PROJECT_NAME/global/images",
           items: [new Image(name: IMAGE_NAME, selfLink: IMAGE_SELF_LINK)]
         )
         callback.onSuccess(imageList, null)
@@ -154,7 +154,7 @@ class UpsertGoogleImageTagsAtomicOperationUnitSpec extends Specification impleme
       googleBatchMock.demand.size { return 1 }
       googleBatchMock.demand.execute {
         def imageList = new ImageList(
-          selfLink: "https://www.googleapis.com/compute/alpha/projects/$PROJECT_NAME/global/images",
+          selfLink: "https://compute.googleapis.com/compute/alpha/projects/$PROJECT_NAME/global/images",
           items: [new Image(name: IMAGE_NAME, selfLink: IMAGE_SELF_LINK, labels: LABELS)]
         )
         callback.onSuccess(imageList, null)
@@ -208,7 +208,7 @@ class UpsertGoogleImageTagsAtomicOperationUnitSpec extends Specification impleme
       def images = new Compute.Builder(
         httpTransport, jsonFactory, httpRequestInitializer).setApplicationName("test").build().images()
       def emptyImageList = new ImageList(
-        selfLink: "https://www.googleapis.com/compute/alpha/projects/$PROJECT_NAME/global/images",
+        selfLink: "https://compute.googleapis.com/compute/alpha/projects/$PROJECT_NAME/global/images",
         items: []
       )
 

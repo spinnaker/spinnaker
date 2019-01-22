@@ -128,9 +128,9 @@ class Utils {
   /**
    * Parses region from a full server group Url of the form:
    *
-   * "https://www.googleapis.com/compute/v1/projects/$projectName/zones/$zone/instanceGroups/$serverGroupName"
+   * "https://compute.googleapis.com/compute/v1/projects/$projectName/zones/$zone/instanceGroups/$serverGroupName"
    * OR
-   * "https://www.googleapis.com/compute/v1/projects/$projectName/regions/$region/instanceGroups/$serverGroupName"
+   * "https://compute.googleapis.com/compute/v1/projects/$projectName/regions/$region/instanceGroups/$serverGroupName"
    */
   static String getRegionFromGroupUrl(String fullUrl) {
     if (!fullUrl) {

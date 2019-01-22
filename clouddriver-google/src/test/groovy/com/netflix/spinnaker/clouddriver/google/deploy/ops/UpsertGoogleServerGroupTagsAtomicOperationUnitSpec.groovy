@@ -48,16 +48,16 @@ class UpsertGoogleServerGroupTagsAtomicOperationUnitSpec extends Specification {
   private static final TAGS = ["some-tag-1", "some-tag-2", "some-tag-3"]
   private static final ORIG_INSTANCE_TEMPLATE_NAME = "$SERVER_GROUP_NAME-123"
   private static final ORIG_INSTANCE_TEMPLATE_URL =
-      "https://www.googleapis.com/compute/v1/projects/$PROJECT_NAME/global/instanceTemplates/$ORIG_INSTANCE_TEMPLATE_NAME"
+      "https://compute.googleapis.com/compute/v1/projects/$PROJECT_NAME/global/instanceTemplates/$ORIG_INSTANCE_TEMPLATE_NAME"
   private static final NEW_INSTANCE_TEMPLATE_NAME = "new-instance-template"
   private static final INSTANCE_TEMPLATE_INSERTION_OP_NAME = "instance-template-insertion-op"
   private static final SET_INSTANCE_TEMPLATE_OP_NAME = "set-instance-template-op"
   private static final INSTANCE_1_NAME = "instance-1"
   private static final INSTANCE_2_NAME = "instance-2"
   private static final INSTANCE_1_URL =
-      "https://www.googleapis.com/compute/v1/projects/$PROJECT_NAME/zones/$ZONE/instances/$INSTANCE_1_NAME"
+      "https://compute.googleapis.com/compute/v1/projects/$PROJECT_NAME/zones/$ZONE/instances/$INSTANCE_1_NAME"
   private static final INSTANCE_2_URL =
-      "https://www.googleapis.com/compute/v1/projects/$PROJECT_NAME/zones/$ZONE/instances/$INSTANCE_2_NAME"
+      "https://compute.googleapis.com/compute/v1/projects/$PROJECT_NAME/zones/$ZONE/instances/$INSTANCE_2_NAME"
   private static final DONE = "DONE"
   private static final INSTANCES_SET_TAGS_1_OP_NAME = "instances-set-tags-1-op"
   private static final INSTANCES_SET_TAGS_2_OP_NAME = "instances-set-tags-2-op"

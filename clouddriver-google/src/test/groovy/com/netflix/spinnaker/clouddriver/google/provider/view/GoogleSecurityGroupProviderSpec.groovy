@@ -183,7 +183,7 @@ class GoogleSecurityGroupProviderSpec extends Specification {
         id: 'name-a',
         name: 'name-a',
         network: 'default',
-        selfLink: 'https://www.googleapis.com/compute/v1/projects/my-project/global/firewalls/name-a',
+        selfLink: 'https://compute.googleapis.com/compute/v1/projects/my-project/global/firewalls/name-a',
         targetTags: ['tag-1', 'tag-2'],
         description: 'a',
         accountName: account,
@@ -294,7 +294,7 @@ class GoogleSecurityGroupProviderSpec extends Specification {
         new Firewall(
           name: 'name-a',
           id: 6614377178691015951,
-          network: 'https://www.googleapis.com/compute/v1/projects/my-project/global/networks/default',
+          network: 'https://compute.googleapis.com/compute/v1/projects/my-project/global/networks/default',
           targetTags: ['tag-1', 'tag-2'],
           description: 'a',
           sourceRanges: ['192.168.2.0/24'],
@@ -303,19 +303,19 @@ class GoogleSecurityGroupProviderSpec extends Specification {
             new Firewall.Allowed(IPProtocol: 'udp', ports: ['4040-4042']),
             new Firewall.Allowed(IPProtocol: 'tcp', ports: ['9090']),
           ],
-          selfLink: 'https://www.googleapis.com/compute/v1/projects/my-project/global/firewalls/name-a'
+          selfLink: 'https://compute.googleapis.com/compute/v1/projects/my-project/global/firewalls/name-a'
         ),
         new Firewall(
           name: 'name-b',
           id: 6614377178691015952,
-          network: 'https://www.googleapis.com/compute/v1/projects/my-project/global/networks/default',
-          selfLink: 'https://www.googleapis.com/compute/v1/projects/my-project/global/firewalls/name-b'
+          network: 'https://compute.googleapis.com/compute/v1/projects/my-project/global/networks/default',
+          selfLink: 'https://compute.googleapis.com/compute/v1/projects/my-project/global/firewalls/name-b'
         ),
         new Firewall(
           name: 'name-c',
           id: 6614377178691015954,
-          network: 'https://www.googleapis.com/compute/v1/projects/some-xpn-host-project/global/networks/default',
-          selfLink: 'https://www.googleapis.com/compute/v1/projects/some-xpn-host-project/global/firewalls/name-c'
+          network: 'https://compute.googleapis.com/compute/v1/projects/some-xpn-host-project/global/networks/default',
+          selfLink: 'https://compute.googleapis.com/compute/v1/projects/some-xpn-host-project/global/firewalls/name-c'
         ),
       ]
     ],
@@ -324,13 +324,13 @@ class GoogleSecurityGroupProviderSpec extends Specification {
         new Firewall(
           name: 'a',
           id: 6614377178691015953,
-          network: 'https://www.googleapis.com/compute/v1/projects/my-project/global/networks/default',
-          selfLink: 'https://www.googleapis.com/compute/v1/projects/my-project/global/firewalls/a'
+          network: 'https://compute.googleapis.com/compute/v1/projects/my-project/global/networks/default',
+          selfLink: 'https://compute.googleapis.com/compute/v1/projects/my-project/global/firewalls/a'
         ),
         new Firewall(
           name: 'b',
           id: 123,
-          network: 'https://www.googleapis.com/compute/v1/projects/my-project/global/networks/default',
+          network: 'https://compute.googleapis.com/compute/v1/projects/my-project/global/networks/default',
           description: 'description of b',
           sourceRanges: ['192.168.3.100'],
           allowed: [
@@ -338,19 +338,19 @@ class GoogleSecurityGroupProviderSpec extends Specification {
             new Firewall.Allowed(IPProtocol: 'tcp', ports: ['1', '2', '3-100']),
             new Firewall.Allowed(IPProtocol: 'udp', ports: ['5050']),
           ],
-          selfLink: 'https://www.googleapis.com/compute/v1/projects/my-project/global/firewalls/b'
+          selfLink: 'https://compute.googleapis.com/compute/v1/projects/my-project/global/firewalls/b'
         ),
         new Firewall(
           name: 'c',
           id: 456,
-          network: 'https://www.googleapis.com/compute/v1/projects/my-project/global/networks/default',
+          network: 'https://compute.googleapis.com/compute/v1/projects/my-project/global/networks/default',
           description: 'description of c',
           sourceRanges: ['192.168.4.100/32'],
           allowed: [
             new Firewall.Allowed(IPProtocol: 'tcp'),
             new Firewall.Allowed(IPProtocol: 'udp', ports: []),
           ],
-          selfLink: 'https://www.googleapis.com/compute/v1/projects/my-project/global/firewalls/c'
+          selfLink: 'https://compute.googleapis.com/compute/v1/projects/my-project/global/firewalls/c'
         ),
       ]
     ]

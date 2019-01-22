@@ -78,10 +78,10 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
   private static final GoogleDisk DISK_PD_STANDARD = new GoogleDisk(type: DISK_TYPE, sizeGb: DISK_SIZE_GB, sourceImage: IMAGE)
   private static final String DEFAULT_NETWORK_NAME = "default"
   private static final String DEFAULT_NETWORK_URL =
-          "https://www.googleapis.com/compute/v1/projects/$PROJECT_NAME/global/networks/$DEFAULT_NETWORK_NAME"
+          "https://compute.googleapis.com/compute/v1/projects/$PROJECT_NAME/global/networks/$DEFAULT_NETWORK_NAME"
   private static final String SUBNET_NAME = "some-subnet"
   private static final String SUBNET_URL =
-          "https://www.googleapis.com/compute/v1/projects/$PROJECT_NAME/regions/$REGION/subnetworks/$SUBNET_NAME"
+          "https://compute.googleapis.com/compute/v1/projects/$PROJECT_NAME/regions/$REGION/subnetworks/$SUBNET_NAME"
   private static final String ACCESS_CONFIG_NAME = "External NAT"
   private static final String ACCESS_CONFIG_TYPE = "ONE_TO_ONE_NAT"
 

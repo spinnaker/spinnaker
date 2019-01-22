@@ -42,9 +42,9 @@ class GoogleSecurityGroupCachingAgentSpec extends Specification {
       def firewallsMock = Mock(Compute.Firewalls)
       def firewallsListMock = Mock(Compute.Firewalls.List)
       def securityGroupA = new Firewall(name: 'name-a',
-                                        selfLink: 'https://www.googleapis.com/compute/v1/projects/my-project/global/firewalls/name-a')
+                                        selfLink: 'https://compute.googleapis.com/compute/v1/projects/my-project/global/firewalls/name-a')
       def securityGroupB = new Firewall(name: 'name-b',
-                                        selfLink: 'https://www.googleapis.com/compute/v1/projects/my-project/global/firewalls/name-b')
+                                        selfLink: 'https://compute.googleapis.com/compute/v1/projects/my-project/global/firewalls/name-b')
       def keyGroupA = Keys.getSecurityGroupKey(securityGroupA.name as String,
                                                securityGroupA.name as String,
                                                REGION,

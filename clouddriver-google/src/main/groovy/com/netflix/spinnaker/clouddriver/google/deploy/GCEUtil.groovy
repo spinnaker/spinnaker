@@ -62,7 +62,7 @@ import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.HTTP
 class GCEUtil {
   private static final String DISK_TYPE_PERSISTENT = "PERSISTENT"
   private static final String DISK_TYPE_SCRATCH = "SCRATCH"
-  private static final String GCE_API_PREFIX = "https://www.googleapis.com/compute/v1/projects/"
+  private static final String GCE_API_PREFIX = "https://compute.googleapis.com/compute/v1/projects/"
   private static final List<Integer> RETRY_ERROR_CODES = [400, 403, 412]
 
   public static final String TARGET_POOL_NAME_PREFIX = "tp"

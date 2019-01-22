@@ -44,14 +44,14 @@ class DisableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
   private static final TARGET_POOL_NAME_1 = "testlb-target-pool-1417967954401";
   private static final TARGET_POOL_NAME_2 = "testlb2-target-pool-1417963107058";
   private static final TARGET_POOL_URL_1 =
-          "https://www.googleapis.com/compute/v1/projects/shared-spinnaker/regions/us-central1/targetPools/$TARGET_POOL_NAME_1"
+          "https://compute.googleapis.com/compute/v1/projects/shared-spinnaker/regions/us-central1/targetPools/$TARGET_POOL_NAME_1"
   private static final TARGET_POOL_URL_2 =
-          "https://www.googleapis.com/compute/v1/projects/shared-spinnaker/regions/us-central1/targetPools/$TARGET_POOL_NAME_2"
+          "https://compute.googleapis.com/compute/v1/projects/shared-spinnaker/regions/us-central1/targetPools/$TARGET_POOL_NAME_2"
   private static final TARGET_POOL_URLS = [TARGET_POOL_URL_1, TARGET_POOL_URL_2]
   private static final INSTANCE_URL_1 =
-          "https://www.googleapis.com/compute/v1/projects/shared-spinnaker/zones/us-central1-a/instances/mjdapp-dev-v009-hnyp"
+          "https://compute.googleapis.com/compute/v1/projects/shared-spinnaker/zones/us-central1-a/instances/mjdapp-dev-v009-hnyp"
   private static final INSTANCE_URL_2 =
-          "https://www.googleapis.com/compute/v1/projects/shared-spinnaker/zones/us-central1-a/instances/mjdapp-dev-v009-qtow"
+          "https://compute.googleapis.com/compute/v1/projects/shared-spinnaker/zones/us-central1-a/instances/mjdapp-dev-v009-qtow"
   private static final ZONE = "us-central1-b"
   private static final REGION = "us-central1"
 

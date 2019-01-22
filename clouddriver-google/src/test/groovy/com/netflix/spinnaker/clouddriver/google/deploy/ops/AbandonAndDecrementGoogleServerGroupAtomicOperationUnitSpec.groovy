@@ -39,8 +39,8 @@ class AbandonAndDecrementGoogleServerGroupAtomicOperationUnitSpec extends Specif
   private static final PROJECT_NAME = "my_project"
   private static final INSTANCE_IDS = ["my-app7-dev-v000-1", "my-app7-dev-v000-2"]
   private static final INSTANCE_URLS = [
-    "https://www.googleapis.com/compute/v1/projects/shared-spinnaker/zones/us-central1-f/instances/my-app7-dev-v000-1",
-    "https://www.googleapis.com/compute/v1/projects/shared-spinnaker/zones/us-central1-f/instances/my-app7-dev-v000-2"
+    "https://compute.googleapis.com/compute/v1/projects/shared-spinnaker/zones/us-central1-f/instances/my-app7-dev-v000-1",
+    "https://compute.googleapis.com/compute/v1/projects/shared-spinnaker/zones/us-central1-f/instances/my-app7-dev-v000-2"
   ]
 
   def registry = new DefaultRegistry()

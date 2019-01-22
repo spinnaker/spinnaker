@@ -55,11 +55,11 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
   private static final INSTANCE_2 = "instance-2"
   private static final INSTANCE_3 = "instance-3"
   private static final INSTANCE_1_URL =
-    "https://www.googleapis.com/compute/v1/projects/$PROJECT_NAME/zones/us-central1-a/instances/$INSTANCE_1"
+    "https://compute.googleapis.com/compute/v1/projects/$PROJECT_NAME/zones/us-central1-a/instances/$INSTANCE_1"
   private static final INSTANCE_2_URL =
-    "https://www.googleapis.com/compute/v1/projects/$PROJECT_NAME/zones/us-central1-a/instances/$INSTANCE_2"
+    "https://compute.googleapis.com/compute/v1/projects/$PROJECT_NAME/zones/us-central1-a/instances/$INSTANCE_2"
   private static final INSTANCE_3_URL =
-    "https://www.googleapis.com/compute/v1/projects/$PROJECT_NAME/zones/us-central1-a/instances/$INSTANCE_3"
+    "https://compute.googleapis.com/compute/v1/projects/$PROJECT_NAME/zones/us-central1-a/instances/$INSTANCE_3"
   private static final IP_PROTOCOL_TCP = "TCP"
   private static final IP_PROTOCOL_UDP = "UDP"
   private static final IP_ADDRESS = "1.1.1.1"

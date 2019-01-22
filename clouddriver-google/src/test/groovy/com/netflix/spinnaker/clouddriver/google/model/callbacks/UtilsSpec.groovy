@@ -78,10 +78,10 @@ class UtilsSpec extends Specification {
 
     where:
       input                                                                                                  | expected
-      "https://www.googleapis.com/compute/v1/projects/spinnaker-jtk54/global/targetHttpsProxies/https-proxy" | GoogleTargetProxyType.HTTPS
-      "https://www.googleapis.com/compute/v1/projects/spinnaker-jtk54/global/targetHttpProxies/http-proxy"   | GoogleTargetProxyType.HTTP
-      "https://www.googleapis.com/compute/v1/projects/spinnaker-jtk54/global/targetSslProxies/ssl-proxy"     | GoogleTargetProxyType.SSL
-      "https://www.googleapis.com/compute/v1/projects/spinnaker-jtk54/global/targetTcpProxies/tcp-proxy"     | GoogleTargetProxyType.TCP
+      "https://compute.googleapis.com/compute/v1/projects/spinnaker-jtk54/global/targetHttpsProxies/https-proxy" | GoogleTargetProxyType.HTTPS
+      "https://compute.googleapis.com/compute/v1/projects/spinnaker-jtk54/global/targetHttpProxies/http-proxy"   | GoogleTargetProxyType.HTTP
+      "https://compute.googleapis.com/compute/v1/projects/spinnaker-jtk54/global/targetSslProxies/ssl-proxy"     | GoogleTargetProxyType.SSL
+      "https://compute.googleapis.com/compute/v1/projects/spinnaker-jtk54/global/targetTcpProxies/tcp-proxy"     | GoogleTargetProxyType.TCP
       "projects/spinnaker-jtk54/global/targetHttpsProxies/https-proxy"                                       | GoogleTargetProxyType.HTTPS
       "projects/spinnaker-jtk54/global/targetHttpProxies/http-proxy"                                         | GoogleTargetProxyType.HTTP
       "projects/spinnaker-jtk54/global/targetSslProxies/ssl-proxy"                                           | GoogleTargetProxyType.SSL
@@ -94,9 +94,9 @@ class UtilsSpec extends Specification {
 
     where:
       input                                                                                                      | expected
-      "https://www.googleapis.com/compute/v1/projects/PROJECT/zones/us-central1-f/instanceGroups/svg-stack-v000" | "us-central1"
+      "https://compute.googleapis.com/compute/v1/projects/PROJECT/zones/us-central1-f/instanceGroups/svg-stack-v000" | "us-central1"
       "/projects/PROJECT/zones/us-central1-f/instanceGroups/svg-stack-v000"                                      | "us-central1"
-      "https://www.googleapis.com/compute/v1/projects/PROJECT/regions/us-central1/instanceGroups/svg-stack-v00"  | "us-central1"
+      "https://compute.googleapis.com/compute/v1/projects/PROJECT/regions/us-central1/instanceGroups/svg-stack-v00"  | "us-central1"
       "projects/PROJECT/regions/us-central1/instanceGroups/svg-stack-v00"                                        | "us-central1"
   }
 
@@ -118,9 +118,9 @@ class UtilsSpec extends Specification {
 
     where:
       input                                                                                                | expected
-      "https://www.googleapis.com/compute/beta/projects/spinnaker-jtk54/global/healthChecks/jake-ilb"      | "healthChecks"
-      "https://www.googleapis.com/compute/beta/projects/spinnaker-jtk54/global/httpHealthChecks/jake-ilb"  | "httpHealthChecks"
-      "https://www.googleapis.com/compute/beta/projects/spinnaker-jtk54/global/httpsHealthChecks/jake-ilb" | "httpsHealthChecks"
+      "https://compute.googleapis.com/compute/beta/projects/spinnaker-jtk54/global/healthChecks/jake-ilb"      | "healthChecks"
+      "https://compute.googleapis.com/compute/beta/projects/spinnaker-jtk54/global/httpHealthChecks/jake-ilb"  | "httpHealthChecks"
+      "https://compute.googleapis.com/compute/beta/projects/spinnaker-jtk54/global/httpsHealthChecks/jake-ilb" | "httpsHealthChecks"
   }
 
   @Unroll

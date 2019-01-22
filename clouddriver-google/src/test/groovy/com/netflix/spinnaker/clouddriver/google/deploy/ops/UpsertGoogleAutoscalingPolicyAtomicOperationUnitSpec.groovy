@@ -63,7 +63,7 @@ class UpsertGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
     loadBalancingUtilization: LOAD_BALANCING_UTILIZATION,
     customMetricUtilizations: CUSTOM_METRIC_UTILIZATIONS)
   private static
-  final SELF_LINK = "https://www.googleapis.com/compute/v1/projects/shared-spinnaker/zones/us-central1-f/instances/my-app7-dev-v000-1"
+  final SELF_LINK = "https://compute.googleapis.com/compute/v1/projects/shared-spinnaker/zones/us-central1-f/instances/my-app7-dev-v000-1"
   private static final REGION = "us-central1"
   private static final AUTOSCALER = GCEUtil.buildAutoscaler(SERVER_GROUP_NAME, SELF_LINK, GOOGLE_SCALING_POLICY)
 
@@ -446,7 +446,7 @@ class UpsertGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
 
     where:
     isRegional | location | groupUrl
-    false      | ZONE     | "https://www.googleapis.com/compute/v1/projects/spinnaker-jtk54/zones/us-central1-f/autoscalers/okra-auto-v005"
-    true       | REGION   | "https://www.googleapis.com/compute/v1/projects/spinnaker-jtk54/regions/us-central1/autoscalers/okra-auto-v005"
+    false      | ZONE     | "https://compute.googleapis.com/compute/v1/projects/spinnaker-jtk54/zones/us-central1-f/autoscalers/okra-auto-v005"
+    true       | REGION   | "https://compute.googleapis.com/compute/v1/projects/spinnaker-jtk54/regions/us-central1/autoscalers/okra-auto-v005"
   }
 }
