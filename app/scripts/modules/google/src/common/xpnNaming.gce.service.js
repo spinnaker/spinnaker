@@ -17,8 +17,8 @@ module.exports = angular
         return null;
       }
 
-      // A network selfLink looks like: https://www.googleapis.com/compute/beta/projects/test-host-project/global/networks/default
-      // A subnet selfLink looks like: https://www.googleapis.com/compute/beta/projects/my-test-service-project/regions/us-west1/subnetworks/default
+      // A network selfLink looks like: https://compute.googleapis.com/compute/beta/projects/test-host-project/global/networks/default
+      // A subnet selfLink looks like: https://compute.googleapis.com/compute/beta/projects/my-test-service-project/regions/us-west1/subnetworks/default
       const xpnResourcePathSegments = xpnResource.split('/');
       const xpnResourceProjectId = xpnResourcePathSegments[xpnResourcePathSegments.indexOf('projects') + 1];
       const xpnResourceName = _.last(xpnResourcePathSegments);
