@@ -16,19 +16,17 @@ import com.nhaarman.mockito_kotlin.never
 import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.whenever
-import com.oneeyedmen.minutest.junit.toTestFactory
+import com.oneeyedmen.minutest.junit.JUnit5Minutests
 import com.oneeyedmen.minutest.rootContext
-import org.junit.jupiter.api.TestFactory
 import java.util.*
 
-internal object AssetStateMonitorTests {
+internal object AssetStateMonitorTests : JUnit5Minutests {
 
   val assetRepository = InMemoryAssetRepository()
   val plugin1 = mock<AssetPlugin>()
   val plugin2 = mock<AssetPlugin>()
 
-  @TestFactory
-  fun monitoring() = rootContext<AssetStateMonitor> {
+  override val tests = rootContext<AssetStateMonitor> {
 
     fixture {
       AssetStateMonitor(assetRepository, listOf(plugin1, plugin2))
@@ -106,5 +104,4 @@ internal object AssetStateMonitorTests {
     }
 
   }
-    .toTestFactory()
 }

@@ -126,8 +126,8 @@ internal class AssetPluginKubernetesAdapter(
       } catch (e: Exception) {
         when {
           e.cause is SocketTimeoutException -> log.debug("Socket timed out.")
-          e.cause is SocketException -> log.debug("Call was cancelled?")
-          else -> throw e
+          e.cause is SocketException -> log.debug("Call was cancelled.")
+          else -> log.error("Exception polling for changes to {}: {}", crd.metadata.name, e.message)
         }
       }
       yield()

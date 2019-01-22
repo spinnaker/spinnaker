@@ -17,13 +17,12 @@ import com.nhaarman.mockito_kotlin.never
 import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.whenever
-import com.oneeyedmen.minutest.junit.toTestFactory
+import com.oneeyedmen.minutest.junit.JUnit5Minutests
 import com.oneeyedmen.minutest.rootContext
-import org.junit.jupiter.api.TestFactory
 import strikt.api.expectThrows
 import java.util.*
 
-internal object AssetPluginKubernetesAdapterTest {
+internal object AssetPluginKubernetesAdapterTest : JUnit5Minutests {
 
   data class Fixture(
     val plugin: AssetPlugin = mock(),
@@ -39,8 +38,7 @@ internal object AssetPluginKubernetesAdapterTest {
     )
   }
 
-  @TestFactory
-  fun tests() = rootContext<Fixture> {
+  override val tests = rootContext<Fixture> {
     fixture { Fixture() }
 
     after { reset(plugin, assetRepository, resourceVersionTracker) }
@@ -248,5 +246,4 @@ internal object AssetPluginKubernetesAdapterTest {
       }
     }
   }
-    .toTestFactory()
 }

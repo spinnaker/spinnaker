@@ -29,9 +29,8 @@ import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.times
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyZeroInteractions
-import com.oneeyedmen.minutest.junit.toTestFactory
+import com.oneeyedmen.minutest.junit.JUnit5Minutests
 import com.oneeyedmen.minutest.rootContext
-import org.junit.jupiter.api.TestFactory
 import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.containsExactlyInAnyOrder
@@ -45,7 +44,7 @@ import java.time.Instant
 import java.time.ZoneId
 import java.util.UUID.randomUUID
 
-abstract class AssetRepositoryTests<T : AssetRepository> {
+abstract class AssetRepositoryTests<T : AssetRepository> : JUnit5Minutests {
 
   abstract fun factory(clock: Clock): T
 
@@ -56,8 +55,7 @@ abstract class AssetRepositoryTests<T : AssetRepository> {
     val callback: (Triple<AssetName, ApiVersion, String>) -> Unit
   )
 
-  @TestFactory
-  fun `an asset repository`() = rootContext<Fixture<T>> {
+  override val tests = rootContext<Fixture<T>> {
 
     fixture {
       val clock = Clock.fixed(Instant.now(), ZoneId.systemDefault())
@@ -207,7 +205,6 @@ abstract class AssetRepositoryTests<T : AssetRepository> {
       }
     }
   }
-    .toTestFactory()
 }
 
 fun randomData(length: Int = 4): Map<String, Any> {

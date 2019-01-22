@@ -10,7 +10,7 @@ import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.persistence.AssetRepository
 import com.netflix.spinnaker.keel.persistence.ResourceVersionTracker
 import com.nhaarman.mockito_kotlin.mock
-import com.oneeyedmen.minutest.junit.toTestFactory
+import com.oneeyedmen.minutest.junit.JUnit5Minutests
 import com.oneeyedmen.minutest.rootContext
 import com.squareup.okhttp.Response
 import io.kubernetes.client.ApiClient
@@ -24,7 +24,6 @@ import io.kubernetes.client.models.V1beta1CustomResourceDefinition
 import io.kubernetes.client.util.Config
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.yield
-import org.junit.jupiter.api.TestFactory
 import strikt.api.expectThat
 import strikt.assertions.contains
 import strikt.assertions.first
@@ -45,7 +44,7 @@ import java.util.concurrent.atomic.AtomicReference
 /**
  * NOTE: requires local k8s to be running (either Docker for Mac or Minikube).
  */
-internal object KubernetesIntegrationTest {
+internal object KubernetesIntegrationTest : JUnit5Minutests {
 
   private val client: ApiClient = Config.defaultClient().also {
     with(it.httpClient) {
@@ -142,8 +141,7 @@ internal object KubernetesIntegrationTest {
     }
   }
 
-  @TestFactory
-  fun `kubernetes integration`() = rootContext<CustomResourceDefinitionRegistrar> {
+  override val tests = rootContext<CustomResourceDefinitionRegistrar> {
     if (assumeK8sAvailable()) {
       fixture {
         CustomResourceDefinitionRegistrar(extensionsApi, listOf(crdLocator))
@@ -366,7 +364,6 @@ internal object KubernetesIntegrationTest {
       }
     }
   }
-    .toTestFactory()
 }
 
 data class ResourceList<T : Any>(

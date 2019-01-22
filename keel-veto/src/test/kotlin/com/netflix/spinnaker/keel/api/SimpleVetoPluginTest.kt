@@ -8,15 +8,14 @@ import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.whenever
-import com.oneeyedmen.minutest.junit.toTestFactory
+import com.oneeyedmen.minutest.junit.JUnit5Minutests
 import com.oneeyedmen.minutest.rootContext
-import org.junit.jupiter.api.TestFactory
 import strikt.api.expectThat
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import java.util.*
 
-internal object SimpleVetoPluginSpec {
+internal object SimpleVetoPluginSpec : JUnit5Minutests {
 
   data class Fixture(
     val dynamicConfigService: DynamicConfigService,
@@ -25,8 +24,7 @@ internal object SimpleVetoPluginSpec {
     val subject: VetoPlugin = SimpleVetoPlugin(dynamicConfigService)
   }
 
-  @TestFactory
-  fun `vetoing asset convergence`() = rootContext<Fixture> {
+  override val tests = rootContext<Fixture> {
     fixture {
       Fixture(
         dynamicConfigService = mock(),
@@ -71,7 +69,6 @@ internal object SimpleVetoPluginSpec {
       }
     }
   }
-    .toTestFactory()
 }
 
 fun randomData(length: Int = 4): Map<String, Any> {

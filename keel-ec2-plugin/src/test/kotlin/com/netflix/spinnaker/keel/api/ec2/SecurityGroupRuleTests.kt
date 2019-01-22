@@ -6,23 +6,21 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupRule.Protocol.TCP
 import com.oneeyedmen.minutest.Context
-import com.oneeyedmen.minutest.junit.toTestFactory
+import com.oneeyedmen.minutest.junit.JUnit5Minutests
 import com.oneeyedmen.minutest.rootContext
-import org.junit.jupiter.api.TestFactory
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import strikt.assertions.propertiesAreEqualTo
 
-internal object SecurityGroupRuleTests {
+internal object SecurityGroupRuleTests : JUnit5Minutests {
 
-  private data class Fixture(
+  data class Fixture(
     val mapper: ObjectMapper = YAMLMapper().registerKotlinModule(),
     val yaml: String,
     val model: SecurityGroupRule
   )
 
-  @TestFactory
-  fun `serializing and deserializing security group rules`() = rootContext<Fixture> {
+  override val tests = rootContext<Fixture> {
     context("a self referencing ingress rule") {
       fixture {
         Fixture(
@@ -117,7 +115,6 @@ internal object SecurityGroupRuleTests {
       canDeserialize()
     }
   }
-    .toTestFactory()
 
   private fun Context<Fixture, Fixture>.canDeserialize() {
     test("deserializes") {
