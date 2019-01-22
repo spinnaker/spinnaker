@@ -26,7 +26,6 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
 import com.netflix.spinnaker.clouddriver.deploy.DeployHandler
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
-import com.netflix.spinnaker.config.GoogleConfiguration
 import com.netflix.spinnaker.clouddriver.google.GoogleExecutorTraits
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEServerGroupNameResolver
@@ -44,6 +43,7 @@ import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleNetworkProvider
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleSubnetProvider
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
+import com.netflix.spinnaker.config.GoogleConfiguration
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -342,8 +342,12 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
     labels['spinnaker-region'] = region
     labels['spinnaker-server-group'] = serverGroupName
 
+    // Accelerators are supported for zonal server groups only.
+    List<AcceleratorConfig> acceleratorConfigs = description.regional ? [] : description.acceleratorConfigs
+
     def instanceProperties = new InstanceProperties(machineType: machineTypeName,
                                                     disks: attachedDisks,
+                                                    guestAccelerators: acceleratorConfigs ?: [],
                                                     networkInterfaces: [networkInterface],
                                                     canIpForward: canIpForward,
                                                     metadata: metadata,
