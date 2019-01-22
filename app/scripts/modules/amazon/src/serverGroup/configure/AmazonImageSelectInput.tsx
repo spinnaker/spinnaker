@@ -98,7 +98,7 @@ export class AmazonImageSelectInput extends React.Component<IAmazonImageSelector
       }
 
       return this.searchForImages(this.buildQueryForSimilarImages(image.imageName)).then(similarImages => {
-        if (!similarImages.find(img => img.imageName !== image.imageName)) {
+        if (!similarImages.find(img => img.imageName === image.imageName)) {
           // findImages has a limit of 1000 and may not always include the current image, which is confusing
           return similarImages.concat(image);
         }
