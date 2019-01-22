@@ -98,10 +98,10 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent {
 
   private static final Set<AgentDataType> TYPES = Collections.unmodifiableSet(Stream.of(
     AUTHORITATIVE.forType(SERVER_GROUPS.ns),
+    AUTHORITATIVE.forType(CLUSTERS.ns),
     AUTHORITATIVE.forType(APPLICATIONS.ns),
     AUTHORITATIVE.forType(INSTANCES.ns),
     INFORMATIVE.forType(IMAGES.ns),
-    INFORMATIVE.forType(CLUSTERS.ns),
     INFORMATIVE.forType(TARGET_GROUPS.ns)
   ).collect(Collectors.toSet()));
 
