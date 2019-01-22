@@ -50,6 +50,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static java.util.Collections.singletonList;
+
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Slf4j
@@ -204,5 +206,47 @@ public class KubernetesV2ServerGroup extends ManifestBasedModel implements Serve
       .region(getRegion())
       .isDisabled(isDisabled())
       .build();
+  }
+
+  @Override
+  public ImagesSummary getImagesSummary() {
+    Map<String, Object> buildInfo = getBuildInfo();
+    Set<String> images = (HashSet<String>) buildInfo.get("images");
+    return new ImagesSummary() {
+      @Override
+      public List<? extends ImageSummary> getSummaries() {
+        return singletonList(
+          new ImageSummary() {
+
+            @Override
+            public String getServerGroupName() {
+              return getManifest().getName();
+            }
+
+            @Override
+            public String getImageId() {
+              return null;
+            }
+
+            @Override
+            public String getImageName() {
+              return null;
+            }
+
+            @Override
+            public Map<String, Object> getImage() {
+              return null;
+            }
+
+            @Override
+            public Map<String, Object> getBuildInfo() {
+              return new ImmutableMap.Builder<String, Object>()
+                .put("images", new ArrayList<>(images))
+                .build();
+            }
+          }
+        );
+      }
+    };
   }
 }

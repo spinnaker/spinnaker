@@ -274,7 +274,17 @@ public class ProjectClustersService {
             .findFirst();
 
           new OptionalConsumer<>(
-            (DeployedBuild b) -> b.deployed = Math.max(b.deployed, serverGroup.getCreatedTime()),
+            (DeployedBuild b) -> {
+              b.deployed = Math.max(b.deployed, serverGroup.getCreatedTime());
+              List images = getServerGroupBuildInfoImages(imageSummaries);
+              if (images != null) {
+                images.forEach(image -> {
+                  if (image != null && !b.images.contains(image)) {
+                    b.images.add(image);
+                  }
+                });
+              }
+            },
             () -> regionCluster.builds.add(new DeployedBuild(
               buildInfo.host,
               buildInfo.name,
