@@ -109,7 +109,7 @@ class WebhooksController {
           isCloud = false // Seems like Bitbucket Server
 
           event.content.hash = postedEvent.changes?.first().toHash
-          event.content.branch = postedEvent.changes?.first().ref.id
+          event.content.branch = postedEvent.changes?.first().ref.id.replace('refs/heads/', '')
 
           event.content.repoProject = postedEvent.repository.name
           event.content.slug = postedEvent.repository.slug
@@ -121,7 +121,7 @@ class WebhooksController {
         } else if (event.content.event_type == "pr:merged" && event.content.pullrequest) {
           isCloud = false // Seems like Bitbucket Server
           event.content.hash = postedEvent.pullrequest.properties?.merge_commit?.id
-          event.content.branch = postedEvent.pullrequest.toRef.id
+          event.content.branch = postedEvent.pullrequest.toRef.id.replace('refs/heads/', '')
 
           event.content.repoProject = postedEvent.pullrequest.toRef.repository.name
           event.content.slug = postedEvent.pullrequest.toRef.repository.slug

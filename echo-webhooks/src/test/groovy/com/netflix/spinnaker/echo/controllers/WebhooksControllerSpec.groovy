@@ -149,6 +149,7 @@ class WebhooksControllerSpec extends Specification {
     then:
     1 * controller.propagator.processEvent(_) >> {
       event = it[0]
+      event.content.branch == 'master'
     }
 
     response.eventProcessed == true
@@ -280,6 +281,7 @@ class WebhooksControllerSpec extends Specification {
     then:
     1 * controller.propagator.processEvent(_) >> {
       event = it[0]
+      event.content.branch == 'master'
     }
 
     response.eventProcessed == true
