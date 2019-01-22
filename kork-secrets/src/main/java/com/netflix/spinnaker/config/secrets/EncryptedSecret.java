@@ -91,7 +91,7 @@ public class EncryptedSecret {
    * @return boolean representing whether or not the secretConfig is formatted correctly
    */
   public static boolean isEncryptedSecret(String secretConfig) {
-    return secretConfig.startsWith(ENCRYPTED_STRING_PREFIX) && secretConfig.matches(ENCRYPTED_STRING_REGEX);
+    return secretConfig != null && secretConfig.startsWith(ENCRYPTED_STRING_PREFIX) && secretConfig.matches(ENCRYPTED_STRING_REGEX);
   }
 
   /**
