@@ -111,7 +111,7 @@ class WebhooksController {
           event.content.hash = postedEvent.changes?.first().toHash
           event.content.branch = postedEvent.changes?.first().ref.id.replace('refs/heads/', '')
 
-          event.content.repoProject = postedEvent.repository.name
+          event.content.repoProject = postedEvent.repository.project?.key
           event.content.slug = postedEvent.repository.slug
           fullRepoName = event.content.repository.name
         } else if (event.content.event_type == "pullrequest:fulfilled" && event.content.pullrequest) {
@@ -123,7 +123,7 @@ class WebhooksController {
           event.content.hash = postedEvent.pullrequest.properties?.merge_commit?.id
           event.content.branch = postedEvent.pullrequest.toRef.id.replace('refs/heads/', '')
 
-          event.content.repoProject = postedEvent.pullrequest.toRef.repository.name
+          event.content.repoProject = postedEvent.pullrequest.toRef.repository.project?.key
           event.content.slug = postedEvent.pullrequest.toRef.repository.slug
           fullRepoName = event.content.pullrequest.toRef.repository.name
         }

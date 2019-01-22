@@ -307,6 +307,7 @@ class WebhooksControllerSpec extends Specification {
     then:
     1 * controller.propagator.processEvent(_) >> {
       event = it[0]
+      event.content.repoProject == 'PROJ'
     }
 
     response.eventProcessed == true
@@ -331,6 +332,7 @@ class WebhooksControllerSpec extends Specification {
     then:
     1 * controller.propagator.processEvent(_) >> {
       event = it[0]
+      event.content.repoProject == 'PROJ'
     }
 
     response.eventProcessed == true
