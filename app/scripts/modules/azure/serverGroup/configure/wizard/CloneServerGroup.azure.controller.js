@@ -39,6 +39,12 @@ module.exports = angular
     $scope.application = application;
     $scope.command = serverGroupCommand;
 
+    // Give regions an init value to prevent it being undefined. If so, the React component RegionSelectField would get "undefined" for property regions
+    // and then be unmounted so that the region selector would be hidden.
+    $scope.command.backingData = $scope.command.backingData || {};
+    $scope.command.backingData.filtered = $scope.command.backingData.filtered || {};
+    $scope.command.backingData.filtered.regions = $scope.command.backingData.filtered.regions || [];
+
     $scope.state = {
       loaded: false,
       requiresTemplateSelection: !!serverGroupCommand.viewState.requiresTemplateSelection,
