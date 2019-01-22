@@ -13,7 +13,7 @@
         <dl class="dl-narrow dl-horizontal"
             ng-if="ctrl.stage.context.waitForCompletion">
           <dt>Status endpoint</dt>
-          <dd>{{ctrl.stage.context.statusEndpoint}}</dd>
+          <dd><p ng-bind-html="ctrl.stage.context.statusEndpoint | linky:'_blank'"></p></dd>
         </dl>
       </div>
       <div class="col-md-12" ng-if="ctrl.stage.context.parameterValues">
@@ -31,7 +31,7 @@
         <dt>Status</dt>
         <dd class="ng-binding">{{ctrl.stage.status}}</dd>
         <dt>Info</dt>
-        <dd class="ng-binding">{{ctrl.stage.context.progressMessage}}</dd>
+        <dd class="ng-binding"><p ng-bind-html="ctrl.stage.context.progressMessage | linky:'_blank'"></p></dd>
         <dt>Code</dt>
         <dd class="ng-binding">{{ctrl.stage.context.webhook.statusCodeValue}}</dd>
         <dt>Response</dt>
