@@ -138,4 +138,4 @@ export const PAGE_TITLE_SERVICE = 'spinnaker.core.pageTitle.service';
 
 module(PAGE_TITLE_SERVICE, [require('@uirouter/angularjs').default])
   .service('pageTitleService', PageTitleService)
-  .run(['pageTitleService', (pts: PageTitleService) => pts]);
+  .run(['pageTitleService', (pageTitleService: PageTitleService) => pageTitleService]);
