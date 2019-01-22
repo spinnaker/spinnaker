@@ -8,7 +8,8 @@ import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.whenever
-import com.oneeyedmen.minutest.junit.junitTests
+import com.oneeyedmen.minutest.junit.toTestFactory
+import com.oneeyedmen.minutest.rootContext
 import org.junit.jupiter.api.TestFactory
 import strikt.api.expectThat
 import strikt.assertions.isA
@@ -25,7 +26,7 @@ internal object SimpleVetoPluginSpec {
   }
 
   @TestFactory
-  fun `vetoing asset convergence`() = junitTests<Fixture> {
+  fun `vetoing asset convergence`() = rootContext<Fixture> {
     fixture {
       Fixture(
         dynamicConfigService = mock(),
@@ -70,6 +71,7 @@ internal object SimpleVetoPluginSpec {
       }
     }
   }
+    .toTestFactory()
 }
 
 fun randomData(length: Int = 4): Map<String, Any> {

@@ -4,7 +4,8 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.google.gson.GsonBuilder
-import com.oneeyedmen.minutest.junit.junitTests
+import com.oneeyedmen.minutest.junit.toTestFactory
+import com.oneeyedmen.minutest.rootContext
 import org.junit.jupiter.api.TestFactory
 import strikt.api.expectThat
 import strikt.assertions.containsKey
@@ -20,7 +21,7 @@ internal object AssetMetadataTest {
   val gson = GsonBuilder().setPrettyPrinting().serializeNulls().create()
 
   @TestFactory
-  fun serialize() = junitTests<AssetMetadata> {
+  fun serialize() = rootContext<AssetMetadata> {
     fixture {
       AssetMetadata(
         AssetName("my-new-cron-object"),
@@ -67,9 +68,10 @@ internal object AssetMetadataTest {
           |}""".trimMargin())
     }
   }
+    .toTestFactory()
 
   @TestFactory
-  fun deserializeWithJackson() = junitTests<String> {
+  fun deserializeWithJackson() = rootContext<String> {
     fixture {
       """---
         |clusterName: ""
@@ -98,9 +100,10 @@ internal object AssetMetadataTest {
         .hasEntry("namespace", "default")
     }
   }
+    .toTestFactory()
 
   @TestFactory
-  fun deserializeWithGson() = junitTests<String> {
+  fun deserializeWithGson() = rootContext<String> {
     fixture {
       """{
         |  "annotations" : {
@@ -131,4 +134,5 @@ internal object AssetMetadataTest {
         .containsKey("annotations")
     }
   }
+    .toTestFactory()
 }

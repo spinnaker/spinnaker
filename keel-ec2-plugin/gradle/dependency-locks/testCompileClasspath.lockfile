@@ -30,7 +30,7 @@ com.netflix.spinnaker.kork:kork-security:2.6.0
 com.netflix.spinnaker.kork:kork-web:2.6.0
 com.netflix.spinnaker.moniker:moniker:0.2.0
 com.nhaarman:mockito-kotlin:1.5.0
-com.oneeyedmen:minutest:0.26.0
+com.oneeyedmen:minutest:0.41.0
 com.squareup.okhttp3:okhttp:3.10.0
 com.squareup.okhttp:okhttp-apache:2.7.5
 com.squareup.okhttp:okhttp-urlconnection:2.7.5

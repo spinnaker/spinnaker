@@ -10,7 +10,8 @@ import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.persistence.AssetRepository
 import com.netflix.spinnaker.keel.persistence.ResourceVersionTracker
 import com.nhaarman.mockito_kotlin.mock
-import com.oneeyedmen.minutest.junit.junitTests
+import com.oneeyedmen.minutest.junit.toTestFactory
+import com.oneeyedmen.minutest.rootContext
 import com.squareup.okhttp.Response
 import io.kubernetes.client.ApiClient
 import io.kubernetes.client.ApiException
@@ -142,7 +143,7 @@ internal object KubernetesIntegrationTest {
   }
 
   @TestFactory
-  fun `kubernetes integration`() = junitTests<CustomResourceDefinitionRegistrar> {
+  fun `kubernetes integration`() = rootContext<CustomResourceDefinitionRegistrar> {
     if (assumeK8sAvailable()) {
       fixture {
         CustomResourceDefinitionRegistrar(extensionsApi, listOf(crdLocator))
@@ -365,6 +366,7 @@ internal object KubernetesIntegrationTest {
       }
     }
   }
+    .toTestFactory()
 }
 
 data class ResourceList<T : Any>(

@@ -65,11 +65,11 @@ org.apache.httpcomponents:httpcore:4.4.9
 org.checkerframework:checker-qual:2.5.2
 org.codehaus.jettison:jettison:1.3.7
 org.codehaus.mojo:animal-sniffer-annotations:1.17
-org.jetbrains.kotlin:kotlin-reflect:1.3.10
-org.jetbrains.kotlin:kotlin-stdlib-common:1.3.10
-org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.3.10
-org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.3.10
-org.jetbrains.kotlin:kotlin-stdlib:1.3.10
+org.jetbrains.kotlin:kotlin-reflect:1.3.11
+org.jetbrains.kotlin:kotlin-stdlib-common:1.3.11
+org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.3.11
+org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.3.11
+org.jetbrains.kotlin:kotlin-stdlib:1.3.11
 org.jetbrains:annotations:13.0
 org.slf4j:jcl-over-slf4j:1.7.25
 org.slf4j:jul-to-slf4j:1.7.25

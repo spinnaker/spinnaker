@@ -35,7 +35,7 @@ com.nhaarman:mockito-kotlin:1.5.0
 com.nimbusds:lang-tag:1.4.4
 com.nimbusds:nimbus-jose-jwt:6.4.1
 com.nimbusds:oauth2-oidc-sdk:5.24.1
-com.oneeyedmen:minutest:0.26.0
+com.oneeyedmen:minutest:0.41.0
 com.squareup.okhttp:logging-interceptor:2.7.5
 com.squareup.okhttp:okhttp-ws:2.7.5
 com.squareup.okhttp:okhttp:2.7.5

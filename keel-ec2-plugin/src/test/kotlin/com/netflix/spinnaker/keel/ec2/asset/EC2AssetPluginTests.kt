@@ -50,7 +50,8 @@ import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.whenever
-import com.oneeyedmen.minutest.junit.junitTests
+import com.oneeyedmen.minutest.junit.toTestFactory
+import com.oneeyedmen.minutest.rootContext
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.TestFactory
@@ -93,7 +94,7 @@ internal object EC2AssetPluginTests {
   }
 
   @TestFactory
-  fun `fetching security group status`() = junitTests<Unit> {
+  fun `fetching security group status`() = rootContext<Unit> {
     val securityGroup = SecurityGroup(
       application = "keel",
       name = "fnord",
@@ -179,6 +180,7 @@ internal object EC2AssetPluginTests {
       }
     }
   }
+    .toTestFactory()
 
   private open class SecurityGroupFixture(
     val spec: SecurityGroup
@@ -216,7 +218,7 @@ internal object EC2AssetPluginTests {
   }
 
   @TestFactory
-  fun `upserting a security group`() = junitTests<SecurityGroupFixture> {
+  fun `upserting a security group`() = rootContext<SecurityGroupFixture> {
     fixture {
       SecurityGroupFixture(
         spec = SecurityGroup(
@@ -354,9 +356,10 @@ internal object EC2AssetPluginTests {
       }
     }
   }
+    .toTestFactory()
 
   @TestFactory
-  fun `deleting a security group`() = junitTests<SecurityGroupFixture> {
+  fun `deleting a security group`() = rootContext<SecurityGroupFixture> {
     fixture {
       SecurityGroupFixture(
         spec = SecurityGroup(
@@ -396,6 +399,7 @@ internal object EC2AssetPluginTests {
       }
     }
   }
+    .toTestFactory()
 }
 
 private val Assertion.Builder<OrchestrationRequest>.application: Assertion.Builder<String>

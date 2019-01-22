@@ -29,7 +29,8 @@ import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.times
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyZeroInteractions
-import com.oneeyedmen.minutest.junit.junitTests
+import com.oneeyedmen.minutest.junit.toTestFactory
+import com.oneeyedmen.minutest.rootContext
 import org.junit.jupiter.api.TestFactory
 import strikt.api.expectThat
 import strikt.api.expectThrows
@@ -56,7 +57,7 @@ abstract class AssetRepositoryTests<T : AssetRepository> {
   )
 
   @TestFactory
-  fun `an asset repository`() = junitTests<Fixture<T>>() {
+  fun `an asset repository`() = rootContext<Fixture<T>> {
 
     fixture {
       val clock = Clock.fixed(Instant.now(), ZoneId.systemDefault())
@@ -206,6 +207,7 @@ abstract class AssetRepositoryTests<T : AssetRepository> {
       }
     }
   }
+    .toTestFactory()
 }
 
 fun randomData(length: Int = 4): Map<String, Any> {

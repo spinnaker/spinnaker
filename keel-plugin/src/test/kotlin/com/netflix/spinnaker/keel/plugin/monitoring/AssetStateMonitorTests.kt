@@ -16,7 +16,8 @@ import com.nhaarman.mockito_kotlin.never
 import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.whenever
-import com.oneeyedmen.minutest.junit.junitTests
+import com.oneeyedmen.minutest.junit.toTestFactory
+import com.oneeyedmen.minutest.rootContext
 import org.junit.jupiter.api.TestFactory
 import java.util.*
 
@@ -27,7 +28,7 @@ internal object AssetStateMonitorTests {
   val plugin2 = mock<AssetPlugin>()
 
   @TestFactory
-  fun monitoring() = junitTests<AssetStateMonitor> {
+  fun monitoring() = rootContext<AssetStateMonitor> {
 
     fixture {
       AssetStateMonitor(assetRepository, listOf(plugin1, plugin2))
@@ -105,4 +106,5 @@ internal object AssetStateMonitorTests {
     }
 
   }
+    .toTestFactory()
 }
