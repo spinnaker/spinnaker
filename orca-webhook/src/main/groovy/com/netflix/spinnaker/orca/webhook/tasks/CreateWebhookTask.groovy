@@ -67,7 +67,7 @@ class CreateWebhookTask implements RetryableTask {
       if ((stageData.failFastStatusCodes != null) &&
         (stageData.failFastStatusCodes.contains(statusCode.value()))) {
         String webhookMessage = "Received a status code configured to fail fast, terminating stage."
-        outputs.webhook << [errorMessage: webhookMessage]
+        outputs.webhook << [error: webhookMessage]
 
         return new TaskResult(ExecutionStatus.TERMINAL, outputs)
       }
@@ -76,7 +76,7 @@ class CreateWebhookTask implements RetryableTask {
         String errorMessage = "error submitting webhook for pipeline ${stage.execution.id} to ${stageData.url}, will retry."
         log.warn(errorMessage, e)
 
-        outputs.webhook << [errorMessage: errorMessage]
+        outputs.webhook << [error: errorMessage]
 
         return new TaskResult(ExecutionStatus.RUNNING, outputs)
       }

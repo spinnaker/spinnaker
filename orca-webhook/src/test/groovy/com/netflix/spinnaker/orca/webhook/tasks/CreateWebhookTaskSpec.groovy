@@ -182,7 +182,7 @@ class CreateWebhookTaskSpec extends Specification {
       webhook: [
         statusCode: HttpStatus.TOO_MANY_REQUESTS,
         statusCodeValue: HttpStatus.TOO_MANY_REQUESTS.value(),
-        errorMessage: errorMessage
+        error: errorMessage
       ]
     ]
   }
@@ -214,7 +214,7 @@ class CreateWebhookTaskSpec extends Specification {
     result.status == ExecutionStatus.TERMINAL
     result.context as Map == [
       webhook: [
-        errorMessage: "Received a status code configured to fail fast, terminating stage.",
+        error: "Received a status code configured to fail fast, terminating stage.",
         statusCode: HttpStatus.SERVICE_UNAVAILABLE,
         statusCodeValue: HttpStatus.SERVICE_UNAVAILABLE.value(),
         body: bodyString
