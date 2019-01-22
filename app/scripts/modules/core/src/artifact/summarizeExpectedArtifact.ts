@@ -1,6 +1,8 @@
 import { module } from 'angular';
 import { IArtifact, IExpectedArtifact } from 'core/domain';
 
+summarizeExpectedArtifact.$inject = [] as any;
+// eslint-disable-next-line strictdi
 export function summarizeExpectedArtifact(excludeKeys = ['customKind', 'kind']) {
   return function(expected: IExpectedArtifact): string {
     if (!expected) {
