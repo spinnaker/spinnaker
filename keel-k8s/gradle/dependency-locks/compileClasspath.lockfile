@@ -38,10 +38,10 @@ org.bouncycastle:bcprov-ext-jdk15on:1.59
 org.bouncycastle:bcprov-jdk15on:1.59
 org.checkerframework:checker-qual:2.0.0
 org.codehaus.mojo:animal-sniffer-annotations:1.14
-org.jetbrains.kotlin:kotlin-stdlib-common:1.3.11
-org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.3.11
-org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.3.11
-org.jetbrains.kotlin:kotlin-stdlib:1.3.11
+org.jetbrains.kotlin:kotlin-stdlib-common:1.3.20
+org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.3.20
+org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.3.20
+org.jetbrains.kotlin:kotlin-stdlib:1.3.20
 org.jetbrains:annotations:13.0
 org.joda:joda-convert:1.2
 org.slf4j:slf4j-api:1.7.25
