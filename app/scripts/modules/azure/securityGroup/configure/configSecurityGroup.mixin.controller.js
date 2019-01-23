@@ -245,5 +245,5 @@ module.exports = angular
     };
 
     var classicPattern = /^[\x00-\x7F]+$/;
-    var vpcPattern = /^[a-zA-Z0-9\s._\-:\/()#,@[\]+=&;{}!$*]+$/;
+    var vpcPattern = /^[a-zA-Z0-9\s._\-:/()#,@[\]+=&;{}!$*]+$/;
   });

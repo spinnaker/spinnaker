@@ -1,41 +1,48 @@
 {
-  "extends": "eslint:recommended",
-  "rules": {
-    "eol-last": 1,
-    "semi": 2,
-    "quotes": [1, "single", { "allowTemplateLiterals": true, "avoidEscape": true }],
-    "comma-dangle": 0,
-    "no-extra-boolean-cast": 1,
-    "no-unused-vars": 1,
-    "no-debugger": 1,
-    "no-loop-func": 1,
-    "space-infix-ops": 1,
-    "no-multi-spaces": 1,
-    "key-spacing": 0, // TODO
-    "no-spaced-func": 0,
-    "no-alert": 1,
-    "no-use-before-define": 0, // TODO
-    "no-underscore-dangle": 1,
-    "no-shadow": 0, // TODO
-    "no-unexpected-multiline": 1,
-    "consistent-return": 0, // ANG, shutting this off for now....it's a bit chatty
-    "no-extend-native": 1,
-    "space-before-blocks": 1,
-    "semi-spacing": 1,
-    "no-array-constructor": 1,
-    "no-negated-condition": 0, // TODO
-    "no-trailing-spaces": 1,
-    "operator-assignment": [1, "always"],
-    "no-const-assign": 1,
-    "no-console": 1,
-    "no-control-regex": 0,
-    "no-case-declarations": 0,
-    "no-empty-pattern": 0
-  },
+  "parser": "@typescript-eslint/parser",
   "parserOptions": {
     "ecmaVersion": 8,
     "sourceType": "module"
   },
+  "plugins": ["@typescript-eslint"],
+  "extends": [
+    "eslint:recommended",
+//    "plugin:@typescript-eslint/recommended",
+    "prettier",
+    "prettier/@typescript-eslint"
+  ],
+//  "rules": {
+//    "eol-last": 1,
+//    "semi": 2,
+//    "quotes": [1, "single", { "allowTemplateLiterals": true, "avoidEscape": true }],
+//    "comma-dangle": 0,
+//    "no-extra-boolean-cast": 1,
+//    "no-unused-vars": 1,
+//    "no-debugger": 1,
+//    "no-loop-func": 1,
+//    "space-infix-ops": 1,
+//    "no-multi-spaces": 1,
+//    "key-spacing": 0, // TODO
+//    "no-spaced-func": 0,
+//    "no-alert": 1,
+//    "no-use-before-define": 0, // TODO
+//    "no-underscore-dangle": 1,
+//    "no-shadow": 0, // TODO
+//    "no-unexpected-multiline": 1,
+//    "consistent-return": 0, // ANG, shutting this off for now....it's a bit chatty
+//    "no-extend-native": 1,
+//    "space-before-blocks": 1,
+//    "semi-spacing": 1,
+//    "no-array-constructor": 1,
+//    "no-negated-condition": 0, // TODO
+//    "no-trailing-spaces": 1,
+//    "operator-assignment": [1, "always"],
+//    "no-const-assign": 1,
+//    "no-console": 1,
+//    "no-control-regex": 0,
+//    "no-case-declarations": 0,
+//    "no-empty-pattern": 0
+//  },
   "env": {
     "browser": true,
     "node": true,
