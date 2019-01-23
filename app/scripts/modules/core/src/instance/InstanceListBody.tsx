@@ -95,7 +95,7 @@ export class InstanceListBody extends React.Component<IInstanceListBodyProps, II
   }
 
   private instanceSorter = (a1: IInstance, b1: IInstance): number => {
-    const { instanceSort = '' } = this.state;
+    const { instanceSort = 'launchTime' } = this.state;
     const filterSplit = instanceSort.split('-'),
       filterType = filterSplit.length === 1 ? filterSplit[0] : filterSplit[1],
       reverse = filterSplit.length === 2,
