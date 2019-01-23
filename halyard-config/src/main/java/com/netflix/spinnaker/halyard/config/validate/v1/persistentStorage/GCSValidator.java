@@ -39,6 +39,8 @@ public class GCSValidator extends Validator<GcsPersistentStore> {
   @Autowired
   TaskScheduler taskScheduler;
 
+  private int connectTimeoutSec = 45;
+  private int readTimeoutSec = 45;
   private long maxWaitInterval = 60000;
   private long retryIntervalbase = 2;
   private long jitterMultiplier = 1000;
@@ -55,6 +57,8 @@ public class GCSValidator extends Validator<GcsPersistentStore> {
           n.getProject(),
           jsonPath != null ? jsonPath : "",
           "halyard",
+          connectTimeoutSec,
+          readTimeoutSec,
           maxWaitInterval,
           retryIntervalbase,
           jitterMultiplier,

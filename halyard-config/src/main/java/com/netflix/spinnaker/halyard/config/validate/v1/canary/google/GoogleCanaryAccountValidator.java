@@ -46,6 +46,8 @@ public class GoogleCanaryAccountValidator extends CanaryAccountValidator {
   @Setter
   TaskScheduler taskScheduler;
 
+  private int connectTimeoutSec = 45;
+  private int readTimeoutSec = 45;
   private long maxWaitInterval = 60000;
   private long retryIntervalBase = 2;
   private long jitterMultiplier = 1000;
@@ -75,6 +77,8 @@ public class GoogleCanaryAccountValidator extends CanaryAccountValidator {
           canaryAccount.getProject(),
           jsonPath != null ? jsonPath : "",
           "halyard",
+          connectTimeoutSec,
+          readTimeoutSec,
           maxWaitInterval,
           retryIntervalBase,
           jitterMultiplier,
