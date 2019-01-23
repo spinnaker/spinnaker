@@ -11,4 +11,8 @@ export class FixtureService {
   public fixturePathForTestPath(testpath: string) {
     return path.join(path.dirname(testpath), this.fixtureNameForTestPath(testpath));
   }
+
+  public anonymousAuthFixturePath(): string {
+    return path.resolve(__dirname, '../fixtures/anonymous_auth_response.mountebank_fixture.json');
+  }
 }

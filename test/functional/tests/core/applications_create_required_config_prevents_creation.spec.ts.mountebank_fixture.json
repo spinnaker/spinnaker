@@ -7,60 +7,6 @@
         {
           "caseSensitive": true,
           "deepEquals": {
-            "method": "GET"
-          },
-          "keyCaseSensitive": true
-        },
-        {
-          "caseSensitive": true,
-          "deepEquals": {
-            "path": "/auth/user"
-          },
-          "keyCaseSensitive": true
-        },
-        {
-          "caseSensitive": true,
-          "deepEquals": {
-            "query": {}
-          },
-          "keyCaseSensitive": true
-        }
-      ],
-      "responses": [
-        {
-          "is": {
-            "statusCode": 200,
-            "headers": {
-              "Access-Control-Allow-Credentials": "true",
-              "Access-Control-Allow-Origin": "http://localhost:9000",
-              "Access-Control-Allow-Methods": "POST, GET, OPTIONS, DELETE, PUT, PATCH",
-              "Access-Control-Max-Age": "3600",
-              "Access-Control-Allow-Headers": "x-requested-with, content-type, authorization, X-RateLimit-App, X-Spinnaker-Priority",
-              "Access-Control-Expose-Headers": "X-AUTH-REDIRECT-URL",
-              "X-Content-Type-Options": "nosniff",
-              "X-XSS-Protection": "1; mode=block",
-              "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
-              "Pragma": "no-cache",
-              "Expires": "0",
-              "X-Frame-Options": "DENY",
-              "X-Application-Context": "gate:test,local:18084",
-              "X-SPINNAKER-REQUEST-ID": "ccefe8a8-d740-4ca8-8804-79e8e31fc983",
-              "Content-Type": "application/json;charset=UTF-8",
-              "Content-Length": 359,
-              "Date": "Thu, 04 Oct 2018 23:45:51 GMT",
-              "Connection": "close"
-            },
-            "body": "{\"accountNonExpired\":true,\"accountNonLocked\":true,\"allowedAccounts\":[\"kubernetes-v2-provider\",\"dockerhub\",\"gcr-docker-registry\",\"k8s-v2\",\"compute-engine\",\"gce\",\"gae\",\"deck-functional-tests\",\"appengine-heb-sun\"],\"authorities\":[],\"credentialsNonExpired\":true,\"email\":\"anonymous\",\"enabled\":true,\"firstName\":null,\"lastName\":null,\"roles\":[],\"username\":\"anonymous\"}",
-            "_mode": "text"
-          }
-        }
-      ]
-    },
-    {
-      "predicates": [
-        {
-          "caseSensitive": true,
-          "deepEquals": {
             "method": "OPTIONS"
           },
           "keyCaseSensitive": true

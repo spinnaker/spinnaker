@@ -7,61 +7,6 @@
         {
           "caseSensitive": true,
           "deepEquals": {
-            "method": "GET"
-          },
-          "keyCaseSensitive": true
-        },
-        {
-          "caseSensitive": true,
-          "deepEquals": {
-            "path": "/auth/user"
-          },
-          "keyCaseSensitive": true
-        },
-        {
-          "caseSensitive": true,
-          "deepEquals": {
-            "query": {}
-          },
-          "keyCaseSensitive": true
-        }
-      ],
-      "responses": [
-        {
-          "is": {
-            "statusCode": 200,
-            "headers": {
-              "Access-Control-Allow-Credentials": "true",
-              "Access-Control-Allow-Origin": "http://localhost:9000",
-              "Access-Control-Allow-Methods": "POST, GET, OPTIONS, DELETE, PUT, PATCH",
-              "Access-Control-Max-Age": "3600",
-              "Access-Control-Allow-Headers": "x-requested-with, content-type, authorization, X-RateLimit-App, X-Spinnaker-Priority",
-              "Access-Control-Expose-Headers": "X-AUTH-REDIRECT-URL",
-              "X-Application-Context": "gate:test,local:18084",
-              "X-SPINNAKER-REQUEST-ID": "15362443-21b4-424a-94f6-88f99ce8138f",
-              "ETag": "\"03cf418cf00dd7ec96b2cb447fd951ffc\"",
-              "X-Content-Type-Options": "nosniff",
-              "X-XSS-Protection": "1; mode=block",
-              "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
-              "Pragma": "no-cache",
-              "Expires": "0",
-              "X-Frame-Options": "DENY",
-              "Content-Type": "application/json;charset=UTF-8",
-              "Content-Length": 224,
-              "Date": "Tue, 15 Jan 2019 17:58:52 GMT",
-              "Connection": "close"
-            },
-            "body": "{\"accountNonExpired\":true,\"accountNonLocked\":true,\"allowedAccounts\":[\"gae\"],\"authorities\":[],\"credentialsNonExpired\":true,\"email\":\"anonymous\",\"enabled\":true,\"firstName\":null,\"lastName\":null,\"roles\":[],\"username\":\"anonymous\"}",
-            "_mode": "text"
-          }
-        }
-      ]
-    },
-    {
-      "predicates": [
-        {
-          "caseSensitive": true,
-          "deepEquals": {
             "method": "OPTIONS"
           },
           "keyCaseSensitive": true

@@ -75,7 +75,10 @@ const config = {
       if (flags['record-fixtures']) {
         return mountebankService.beginRecording();
       } else {
-        return mountebankService.createImposterFromFixtureFile(testRun.fixtureFile);
+        return mountebankService.createImposterFromFixtureFile(
+          testRun.fixtureFile,
+          fixtureService.anonymousAuthFixturePath(),
+        );
       }
     });
   },

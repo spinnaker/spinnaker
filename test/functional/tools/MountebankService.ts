@@ -46,21 +46,29 @@ export class MountebankService {
     }
   }
 
-  public createImposterFromFixtureFile(filepath: string): request.RequestPromise<any> | Promise<any> {
-    console.log('Creating imposter from fixture file', filepath);
+  public createImposterFromFixtureFile(filepath: string, authpath: string): request.RequestPromise<any> | Promise<any> {
+    console.log(`Creating imposter\n- Fixture File: ${filepath}\n- Auth File: ${authpath}`);
     try {
       const rawFixture = fs.readFileSync(filepath, { encoding: 'utf8' });
       const fixture = JSON.parse(rawFixture);
-      if (fixture) {
-        return request({
-          method: 'post',
-          json: true,
-          uri: `http://localhost:${this.options.mountebankPort}/imposters`,
-          body: fixture,
-        });
-      } else {
+      const rawAuth = fs.readFileSync(authpath, { encoding: 'utf8' });
+      const auth = JSON.parse(rawAuth);
+      if (!fixture) {
         throw new Error(`no fixture found: ${filepath}`);
       }
+      if (!fixture.stubs) {
+        throw new Error(`found fixture does not have any response stubs: ${filepath}`);
+      }
+      if (!auth) {
+        throw new Error(`no auth fixture found: ${authpath}`);
+      }
+      fixture.stubs.push(auth);
+      return request({
+        method: 'post',
+        json: true,
+        uri: `http://localhost:${this.options.mountebankPort}/imposters`,
+        body: fixture,
+      });
     } catch (e) {
       // Clean up on failure
       return this.removeImposters().then(() => {
