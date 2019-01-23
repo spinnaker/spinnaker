@@ -62,7 +62,9 @@ describe('<AccountRegionClusterSelector />', () => {
       },
     };
 
-    const component = shallow(<AccountRegionClusterSelector {...accountRegionClusterProps} />);
+    const component = shallow<AccountRegionClusterSelector>(
+      <AccountRegionClusterSelector {...accountRegionClusterProps} />,
+    );
     $scope.$digest();
 
     expect(component.state().availableRegions.length).toBe(2, 'number of available regions do not match');
@@ -104,7 +106,9 @@ describe('<AccountRegionClusterSelector />', () => {
       },
     };
 
-    const component = mount(<AccountRegionClusterSelector {...accountRegionClusterProps} />);
+    const component = mount<AccountRegionClusterSelector>(
+      <AccountRegionClusterSelector {...accountRegionClusterProps} />,
+    );
     $scope.$digest();
 
     expect(component.state().availableRegions.length).toBe(2, 'number of available regions do not match');
@@ -156,7 +160,9 @@ describe('<AccountRegionClusterSelector />', () => {
       },
     };
 
-    const component = mount(<AccountRegionClusterSelector {...accountRegionClusterProps} />);
+    const component = mount<AccountRegionClusterSelector>(
+      <AccountRegionClusterSelector {...accountRegionClusterProps} />,
+    );
     $scope.$digest();
 
     expect(component.state().availableRegions.length).toBe(2, 'number of available regions do not match');
@@ -211,7 +217,9 @@ describe('<AccountRegionClusterSelector />', () => {
       },
     };
 
-    const component = mount(<AccountRegionClusterSelector {...accountRegionClusterProps} />);
+    const component = mount<AccountRegionClusterSelector>(
+      <AccountRegionClusterSelector {...accountRegionClusterProps} />,
+    );
     $scope.$digest();
 
     expect(component.state().availableRegions.length).toBe(2, 'number of available regions do not match');

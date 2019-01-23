@@ -79,6 +79,9 @@ module.exports = function(config) {
 
     client: {
       captureConsole: true,
+      jasmine: {
+        random: false,
+      },
     },
 
     browserNoActivityTimeout: 200000,

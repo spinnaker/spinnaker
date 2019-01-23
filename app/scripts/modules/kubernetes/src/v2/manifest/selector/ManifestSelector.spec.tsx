@@ -13,7 +13,7 @@ import {
 } from '@spinnaker/core';
 
 import { ManifestKindSearchService } from 'kubernetes/v2/manifest/ManifestKindSearch';
-import { ManifestSelector } from 'kubernetes/v2/manifest/selector/ManifestSelector';
+import { ManifestSelector, IManifestSelectorState } from 'kubernetes/v2/manifest/selector/ManifestSelector';
 import { SelectorMode } from 'kubernetes/v2/manifest/selector/IManifestSelector';
 
 describe('<ManifestSelector />', () => {
@@ -274,7 +274,7 @@ describe('<ManifestSelector />', () => {
           { name: 'my-account', namespaces: ['default'] },
           { name: 'my-other-account', namespaces: ['default'] },
         ],
-      });
+      } as IManifestSelectorState);
 
       const account = wrapper.find(AccountSelectInput).first();
       account.props().onChange(createFakeReactSyntheticEvent({ value: 'my-other-account' }));
@@ -292,7 +292,7 @@ describe('<ManifestSelector />', () => {
           { name: 'my-account', namespaces: ['default'] },
           { name: 'my-other-account', namespaces: ['other-default'] },
         ],
-      });
+      } as IManifestSelectorState);
 
       const account = wrapper.find(AccountSelectInput).first();
       account.props().onChange(createFakeReactSyntheticEvent({ value: 'my-other-account' }));
@@ -342,4 +342,4 @@ describe('<ManifestSelector />', () => {
 });
 
 const component = (selector: any, props: any = {}) =>
-  mount(<ManifestSelector onChange={noop} selector={selector} {...props} /> as any);
+  mount<ManifestSelector>(<ManifestSelector onChange={noop} selector={selector} {...props} /> as any);
