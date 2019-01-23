@@ -59,7 +59,6 @@ public class EndToEndStandaloneCanaryAnalysisIntegrationTests extends BaseSignal
                 .experimentScope(HEALTHY_EXPERIMENT_SCOPE_NAME)
                 .experimentLocation(LOCATION)
                 .extendedScopeParams(ImmutableMap.of(
-                    SCOPE_KEY_KEY, SIGNAL_FX_SCOPE_IDENTIFYING_DIMENSION_NAME,
                     TEST_ID, testId
                 ))
                 .startTimeIso(metricsReportingStartTime.toString())

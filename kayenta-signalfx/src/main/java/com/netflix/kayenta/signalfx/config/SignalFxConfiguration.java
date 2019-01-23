@@ -38,6 +38,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Configuration
@@ -53,6 +54,16 @@ public class SignalFxConfiguration {
   @ConfigurationProperties("kayenta.signalfx")
   SignalFxConfigurationProperties signalFxConfigurationProperties() {
     return new SignalFxConfigurationProperties();
+  }
+
+  @Bean
+  Map<String, SignalFxScopeConfiguration> signalFxScopeConfigurationMap(SignalFxConfigurationProperties signalFxConfigurationProperties) {
+    return signalFxConfigurationProperties.getAccounts().stream()
+        .collect(Collectors.toMap(SignalFxManagedAccount::getName,
+            accountConfig -> SignalFxScopeConfiguration.builder()
+                .defaultScopeKey(accountConfig.getDefaultScopeKey())
+                .defaultLocationKey(accountConfig.getDefaultLocationKey())
+                .build()));
   }
 
   @Bean

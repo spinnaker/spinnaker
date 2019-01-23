@@ -19,10 +19,9 @@ package com.netflix.kayenta.signalfx.metrics;
 
 import com.netflix.kayenta.canary.providers.metrics.QueryPair;
 import com.netflix.kayenta.signalfx.canary.SignalFxCanaryScope;
+import com.netflix.kayenta.signalfx.config.SignalFxScopeConfiguration;
 
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -33,23 +32,26 @@ public class SimpleSignalFlowProgramBuilder {
   public static final String FILTER_TEMPLATE = "filter('%s', '%s')";
   private final String metricName;
   private final String aggregationMethod;
+  private final SignalFxScopeConfiguration scopeConfiguration;
 
   private List<QueryPair> queryPairs;
   private List<String> filterSegments;
   private List<String> scopeKeys;
 
-  private SimpleSignalFlowProgramBuilder(String metricName, String aggregationMethod) {
+  private SimpleSignalFlowProgramBuilder(String metricName, String aggregationMethod, SignalFxScopeConfiguration scopeConfiguration) {
     this.metricName = metricName;
     this.aggregationMethod = aggregationMethod;
+    this.scopeConfiguration = scopeConfiguration;
     queryPairs = new LinkedList<>();
     filterSegments = new LinkedList<>();
     scopeKeys = new LinkedList<>();
   }
 
   public static SimpleSignalFlowProgramBuilder create(String metricName,
-                                                      String aggregationMethod) {
+                                                      String aggregationMethod,
+                                                      SignalFxScopeConfiguration scopeConfiguration) {
 
-    return new SimpleSignalFlowProgramBuilder(metricName, aggregationMethod);
+    return new SimpleSignalFlowProgramBuilder(metricName, aggregationMethod, scopeConfiguration);
   }
 
   public SimpleSignalFlowProgramBuilder withQueryPair(QueryPair queryPair) {
@@ -63,21 +65,37 @@ public class SimpleSignalFlowProgramBuilder {
   }
 
   public SimpleSignalFlowProgramBuilder withScope(SignalFxCanaryScope canaryScope) {
-    scopeKeys.addAll(canaryScope.getExtendedScopeParams().keySet().stream()
-        .filter(key -> !key.startsWith("_")).collect(Collectors.toList()));
+    scopeKeys.addAll(Optional.ofNullable(canaryScope.getExtendedScopeParams()).orElse(new HashMap<>())
+        .keySet().stream().filter(key -> !key.startsWith("_")).collect(Collectors.toList()));
+
+    canaryScope.setScopeKey(Optional.ofNullable(canaryScope.getScopeKey())
+        .orElseGet(() -> Optional.ofNullable(scopeConfiguration.getDefaultScopeKey())
+            .orElseThrow(() -> new IllegalArgumentException("The SignalFx account must define a default scope key or " +
+                "it must be supplied in the extendedScopeParams in the `_scope_key` key"))));
+
+    Optional.ofNullable(Optional.ofNullable(canaryScope.getLocationKey())
+        .orElse(Optional.ofNullable(scopeConfiguration.getDefaultLocationKey()).orElse(null)))
+        .ifPresent( locationKey -> {
+          canaryScope.setLocationKey(locationKey);
+          scopeKeys.add(locationKey);
+        });
+
     scopeKeys.add(canaryScope.getScopeKey());
     filterSegments.add(buildFilterSegmentFromScope(canaryScope));
     return this;
   }
 
   private String buildFilterSegmentFromScope(SignalFxCanaryScope canaryScope) {
-
     List<String> filters = new LinkedList<>();
+    Map<String, String> extendedScopeParams = Optional.ofNullable(canaryScope.getExtendedScopeParams())
+        .orElse(new HashMap<>());
 
     filters.add(String.format(FILTER_TEMPLATE, canaryScope.getScopeKey(), canaryScope.getScope()));
+    Optional.ofNullable(canaryScope.getLocationKey()).ifPresent(locationKey ->
+        filters.add(String.format(FILTER_TEMPLATE, locationKey, canaryScope.getLocation())));
 
-    if (canaryScope.getExtendedScopeParams().size() > 0) {
-      filters.addAll(canaryScope.getExtendedScopeParams().entrySet().stream()
+    if (extendedScopeParams.size() > 0) {
+      filters.addAll(extendedScopeParams.entrySet().stream()
           .filter(entry -> !entry.getKey().startsWith("_")) // filter out keys that start with _
           .map(entry -> String.format(FILTER_TEMPLATE, entry.getKey(), entry.getValue()))
           .collect(Collectors.toList()));

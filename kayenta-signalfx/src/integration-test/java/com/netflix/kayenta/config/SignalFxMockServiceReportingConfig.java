@@ -58,6 +58,7 @@ public class SignalFxMockServiceReportingConfig {
   private static final int MOCK_SERVICE_REPORTING_INTERVAL_IN_MILLISECONDS = 1000;
 
   public static final String SIGNAL_FX_SCOPE_IDENTIFYING_DIMENSION_NAME = "canary-scope";
+  public static final String SIGNAL_FX_LOCATION_IDENTIFYING_DIMENSION_NAME = "location";
   public static final String KAYENTA_INTEGRATION_TEST_CPU_AVG_METRIC_NAME = "kayenta.integration-test.cpu.avg";
   public static final String KAYENTA_INTEGRATION_TEST_REQUEST_COUNT_METRIC_NAME = "kayenta.integration-test.request.count";
   public static final String CONTROL_SCOPE_NAME = "control";
@@ -148,6 +149,7 @@ public class SignalFxMockServiceReportingConfig {
                   "dimensions", ImmutableMap.builder()
                       .putAll(metric.getDimensions())
                       .put(SIGNAL_FX_SCOPE_IDENTIFYING_DIMENSION_NAME, scopeName)
+                      .put(SIGNAL_FX_LOCATION_IDENTIFYING_DIMENSION_NAME, "us-west-2")
                       .put("env", "integration")
                       .put("test-id", testId)
                       .put("uuid", uuid)

@@ -36,6 +36,8 @@ kayenta:
       accessToken: ${kayenta.signalfx.apiKey}
       supportedTypes:
       - METRICS_STORE
+      defaultScopeKey: canary-scope
+      defaultLocationKey: location
 
   stackdriver:
     enabled: false

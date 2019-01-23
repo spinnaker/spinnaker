@@ -82,10 +82,9 @@ public class EndToEndCanaryIntegrationTests extends BaseSignalFxIntegrationTest 
     CanaryScope control = new CanaryScope()
         .setScope(CONTROL_SCOPE_NAME)
         .setExtendedScopeParams(ImmutableMap.of(
-            SCOPE_KEY_KEY, SIGNAL_FX_SCOPE_IDENTIFYING_DIMENSION_NAME,
             "test-id", testId
         ))
-        .setLocation("us-west-2")
+        .setLocation(LOCATION)
         .setStep(1l)
         .setStart(metricsReportingStartTime)
         .setEnd(end);
@@ -93,7 +92,6 @@ public class EndToEndCanaryIntegrationTests extends BaseSignalFxIntegrationTest 
     CanaryScope experiment = new CanaryScope()
         .setScope(expScope)
         .setExtendedScopeParams(ImmutableMap.of(
-            SCOPE_KEY_KEY, SIGNAL_FX_SCOPE_IDENTIFYING_DIMENSION_NAME,
             TEST_ID, testId
         ))
         .setLocation(LOCATION)

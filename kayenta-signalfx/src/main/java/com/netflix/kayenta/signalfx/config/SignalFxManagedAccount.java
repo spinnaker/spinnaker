@@ -20,6 +20,7 @@ package com.netflix.kayenta.signalfx.config;
 import com.netflix.kayenta.security.AccountCredentials;
 import lombok.Data;
 
+import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 
@@ -32,4 +33,10 @@ public class SignalFxManagedAccount {
   private String accessToken;
 
   private List<AccountCredentials.Type> supportedTypes;
+
+  @Nullable
+  private String defaultScopeKey;
+
+  @Nullable
+  private String defaultLocationKey;
 }

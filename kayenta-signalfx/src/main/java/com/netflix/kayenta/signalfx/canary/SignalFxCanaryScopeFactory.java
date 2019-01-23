@@ -21,7 +21,6 @@ import com.netflix.kayenta.canary.CanaryScope;
 import com.netflix.kayenta.canary.CanaryScopeFactory;
 import org.springframework.stereotype.Component;
 
-import java.util.Map;
 import java.util.Optional;
 
 import static com.netflix.kayenta.canary.providers.metrics.SignalFxCanaryMetricSetQueryConfig.SERVICE_TYPE;
@@ -30,6 +29,7 @@ import static com.netflix.kayenta.canary.providers.metrics.SignalFxCanaryMetricS
 public class SignalFxCanaryScopeFactory implements CanaryScopeFactory {
 
   public static String SCOPE_KEY_KEY = "_scope_key";
+  public static String LOCATION_KEY_KEY = "_location_key";
 
   @Override
   public boolean handles(String serviceType) {
@@ -39,25 +39,19 @@ public class SignalFxCanaryScopeFactory implements CanaryScopeFactory {
   @Override
   public CanaryScope buildCanaryScope(CanaryScope canaryScope) {
 
-    Map<String, String> extendedParameters = Optional.ofNullable(canaryScope.getExtendedScopeParams())
-        .orElseThrow(() -> new IllegalArgumentException("SignalFx requires extended parameters"));
-
     SignalFxCanaryScope signalFxCanaryScope = new SignalFxCanaryScope();
     signalFxCanaryScope.setScope(canaryScope.getScope());
     signalFxCanaryScope.setLocation(canaryScope.getLocation());
     signalFxCanaryScope.setStart(canaryScope.getStart());
     signalFxCanaryScope.setEnd(canaryScope.getEnd());
     signalFxCanaryScope.setStep(canaryScope.getStep());
-    signalFxCanaryScope.setScopeKey(getRequiredExtendedParam(SCOPE_KEY_KEY, extendedParameters));
-    signalFxCanaryScope.setExtendedScopeParams(extendedParameters);
+
+    Optional.ofNullable(canaryScope.getExtendedScopeParams()).ifPresent(extendedParameters -> {
+      signalFxCanaryScope.setScopeKey(extendedParameters.getOrDefault(SCOPE_KEY_KEY, null));
+      signalFxCanaryScope.setLocationKey(extendedParameters.getOrDefault(LOCATION_KEY_KEY, null));
+      signalFxCanaryScope.setExtendedScopeParams(extendedParameters);
+    });
 
     return signalFxCanaryScope;
-  }
-
-  private String getRequiredExtendedParam(String key, Map<String, String> extendedParameters) {
-    if (! extendedParameters.containsKey(key)) {
-      throw new IllegalArgumentException(String.format("SignalFx requires that %s is set in the extended scope params", key));
-    }
-    return extendedParameters.get(key);
   }
 }

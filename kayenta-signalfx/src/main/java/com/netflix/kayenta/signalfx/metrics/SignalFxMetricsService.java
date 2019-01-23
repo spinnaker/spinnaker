@@ -26,6 +26,7 @@ import com.netflix.kayenta.metrics.MetricSet;
 import com.netflix.kayenta.metrics.MetricsService;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.signalfx.canary.SignalFxCanaryScope;
+import com.netflix.kayenta.signalfx.config.SignalFxScopeConfiguration;
 import com.netflix.kayenta.signalfx.security.SignalFxNamedAccountCredentials;
 import com.netflix.kayenta.signalfx.service.ErrorResponse;
 import com.netflix.kayenta.signalfx.service.SignalFlowExecutionResult;
@@ -64,6 +65,9 @@ public class SignalFxMetricsService implements MetricsService {
   @Autowired
   private final AccountCredentialsRepository accountCredentialsRepository;
 
+  @Autowired
+  private final Map<String, SignalFxScopeConfiguration> signalFxScopeConfigurationMap;
+
   @Override
   public String getType() {
     return "signalfx";
@@ -80,13 +84,14 @@ public class SignalFxMetricsService implements MetricsService {
                            CanaryMetricConfig canaryMetricConfig,
                            CanaryScope canaryScope) {
 
-    SignalFxCanaryScope signalFxCanaryScope = (SignalFxCanaryScope)canaryScope;
+    SignalFxScopeConfiguration scopeConfiguration = signalFxScopeConfigurationMap.get(metricsAccountName);
+    SignalFxCanaryScope signalFxCanaryScope = (SignalFxCanaryScope) canaryScope;
     SignalFxCanaryMetricSetQueryConfig queryConfig = (SignalFxCanaryMetricSetQueryConfig) canaryMetricConfig.getQuery();
     String aggregationMethod = Optional.ofNullable(queryConfig.getAggregationMethod()).orElse("mean");
     List<QueryPair> queryPairs = Optional.ofNullable(queryConfig.getQueryPairs()).orElse(new LinkedList<>());
 
     return SimpleSignalFlowProgramBuilder
-        .create(queryConfig.getMetricName(), aggregationMethod)
+        .create(queryConfig.getMetricName(), aggregationMethod, scopeConfiguration)
         .withQueryPairs(queryPairs)
         .withScope(signalFxCanaryScope)
         .build();

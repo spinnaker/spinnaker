@@ -119,6 +119,8 @@ dependencies {
 
   compile group: 'com.signalfx.public', name: 'signalfx-java', version: '0.0.48'
 
+  testCompile group: 'com.tngtech.java', name: 'junit-dataprovider', version: '1.13.1'
+
   // Integration Test dependencies
   integrationTestCompile sourceSets.main.output
   integrationTestCompile configurations.testCompile
