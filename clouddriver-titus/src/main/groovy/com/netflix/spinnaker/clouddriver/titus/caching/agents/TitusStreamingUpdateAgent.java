@@ -78,8 +78,10 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent {
   private final Registry registry;
   private final Id metricId;
   private final Provider<AwsLookupUtil> awsLookupUtil;
-  private final long TIME_UPDATE_THRESHHOLD_MS = 5000;
-  private final long ITEMS_CHANGED_THRESHHOLD = 1000;
+
+  // TODO: these thresholds should be dynamic properties
+  private final long TIME_UPDATE_THRESHOLD_MS = TimeUnit.SECONDS.toMillis(15);
+  private final long ITEMS_CHANGED_THRESHOLD = 10000;
 
   private final Logger log = LoggerFactory.getLogger(TitusStreamingUpdateAgent.class);
 
@@ -285,7 +287,7 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent {
 
     /**
      * Once we persist the first snapshot, we only update the cache if the time from the last update exceeds
-     * TIME_UPDATE_THRESHHOLD_MS or the number of changes exceeds ITEMS_CHANGED_THRESHHOLD.
+     * TIME_UPDATE_THRESHOLD_MS or the number of changes exceeds ITEMS_CHANGED_THRESHOLD.
      * <p>
      * TODO: After the full snapshot write, we should support incremental updates to the ProviderCache.
      * Instead of always calling ProviderCache.putCacheResult (which requires the full result set from
@@ -296,8 +298,8 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent {
       long startTime = System.currentTimeMillis();
 
       if (firstSnapshotWrite ||
-        changes.get() >= ITEMS_CHANGED_THRESHHOLD ||
-        (startTime - lastUpdate.get() > TIME_UPDATE_THRESHHOLD_MS && changes.get() > 0)
+        changes.get() >= ITEMS_CHANGED_THRESHOLD ||
+        (startTime - lastUpdate.get() > TIME_UPDATE_THRESHOLD_MS && changes.get() > 0)
       ) {
         if (firstSnapshotWrite) {
           log.info("Storing snapshot with {} job and tasks in {}", changes.get(), getAgentType());
@@ -334,7 +336,7 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent {
           .collect(Collectors.toSet());
 
         cache.putCacheResult(getAgentType(), authoritative, result);
-        lastUpdate.set(startTime);
+        lastUpdate.set(System.currentTimeMillis());
         changes.set(0);
 
         PercentileTimer
