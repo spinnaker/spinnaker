@@ -31,7 +31,7 @@
     "max-classes-per-file": false,
     "max-line-length": false,
     "member-access": true,
-    "member-ordering": [true, "static-before-instance", "variables-before-functions"],
+    "member-ordering": false,
     "no-arg": true,
     "no-bitwise": true,
     "no-console": [true, "log", "warn", "debug", "info", "time", "timeEnd", "trace"],
