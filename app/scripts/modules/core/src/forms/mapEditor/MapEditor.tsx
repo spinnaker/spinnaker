@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { isString } from 'util';
+import { isString } from 'lodash';
 
 export interface IMapPair {
   key: string;
