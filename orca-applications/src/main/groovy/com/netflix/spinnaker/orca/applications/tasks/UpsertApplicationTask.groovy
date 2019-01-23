@@ -19,17 +19,18 @@ package com.netflix.spinnaker.orca.applications.tasks
 import com.netflix.spinnaker.fiat.model.resources.Permissions
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.applications.utils.ApplicationNameValidator
 import com.netflix.spinnaker.orca.front50.model.Application
 import com.netflix.spinnaker.orca.front50.tasks.AbstractFront50Task
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.stereotype.Component
-import retrofit.RetrofitError
 
 @Slf4j
 @Component
 @CompileStatic
-class UpsertApplicationTask extends AbstractFront50Task {
+class UpsertApplicationTask extends AbstractFront50Task implements ApplicationNameValidator {
+
   @Override
   TaskResult performRequest(Application application) {
     Map<String, Object> outputs = [:]
@@ -38,6 +39,11 @@ class UpsertApplicationTask extends AbstractFront50Task {
     /*
      * Upsert application to all global registries.
      */
+
+    def validationErrors = validate(application)
+    if (validationErrors) {
+      throw new IllegalArgumentException("Invalid application name, errors: ${validationErrors}")
+    }
 
     def existingApplication = fetchApplication(application.name)
     if (existingApplication) {

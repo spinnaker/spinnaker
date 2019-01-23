@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2019 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-apply from: "$rootDir/gradle/groovy.gradle"
+package com.netflix.spinnaker.orca.applications.utils;
 
-dependencies {
-  compile project(":orca-clouddriver")
-  compile project(":orca-front50")
-  compile project(":orca-retrofit")
-  compile spinnaker.dependency('lombok')
-  testCompile project(":orca-test-groovy")
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
+@Data
+@AllArgsConstructor
+public class NameConstraint {
+  private int maxLength;
+  private String nameRegex;
 }

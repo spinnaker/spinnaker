@@ -37,6 +37,7 @@ class Application {
   public String email
   public String updateTs
   public String createTs
+  public String cloudProviders // comma delimited list of cloud provider strings
   public Boolean platformHealthOnly
   public Boolean platformHealthOnlyShowOverride
 
