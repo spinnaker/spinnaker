@@ -150,6 +150,8 @@ class OperationsController {
   }
 
   private Map<String, Object> orchestratePipeline(Map pipeline) {
+    def request = objectMapper.writeValueAsString(pipeline)
+
     Exception pipelineError = null
     try {
       pipeline = parseAndValidatePipeline(pipeline)
@@ -165,9 +167,12 @@ class OperationsController {
     processedPipeline.trigger = objectMapper.convertValue(processedPipeline.trigger, Trigger)
 
     if (pipelineError == null) {
-      startPipeline(processedPipeline)
+      def id = startPipeline(processedPipeline)
+      log.info("Started pipeline {} based on request body {}", id, request)
+      return [ref: "/pipelines/" + id]
     } else {
-      markPipelineFailed(processedPipeline, pipelineError)
+      def id = markPipelineFailed(processedPipeline, pipelineError)
+      log.info("Failed to start pipeline {} based on request body {}", id, request)
       throw pipelineError
     }
   }
@@ -182,9 +187,6 @@ class OperationsController {
     for (PipelinePreprocessor preprocessor : (pipelinePreprocessors ?: [])) {
       pipeline = preprocessor.process(pipeline)
     }
-
-    def json = objectMapper.writeValueAsString(pipeline)
-    log.info('received pipeline {}:{}', value("pipelineId", pipeline.id), json)
 
     if (pipeline.disabled) {
       throw new InvalidRequestException("Pipeline is disabled and cannot be started.")
@@ -350,7 +352,7 @@ class OperationsController {
       ]
     }
   }
-  
+
   private static void applyStageRefIds(Map<String, Serializable> pipelineConfig) {
     def stages = (List<Map<String, Object>>) pipelineConfig.stages
     stages.eachWithIndex { Map<String, Object> stage, int index ->
@@ -363,24 +365,18 @@ class OperationsController {
     }
   }
 
-  private Map<String, String> startPipeline(Map config) {
+  private String startPipeline(Map config) {
     injectPipelineOrigin(config)
     def json = objectMapper.writeValueAsString(config)
-    log.info('requested pipeline: {}', json)
-
     def pipeline = executionLauncher.start(PIPELINE, json)
-
-    [ref: "/pipelines/${pipeline.id}".toString()]
+    return pipeline.id
   }
 
-  private Map<String, String> markPipelineFailed(Map config, Exception e) {
+  private String markPipelineFailed(Map config, Exception e) {
     injectPipelineOrigin(config)
     def json = objectMapper.writeValueAsString(config)
-    log.warn('requested pipeline marked as failed: {}', json)
-
     def pipeline = executionLauncher.fail(PIPELINE, json, e)
-
-    [ref: "/pipelines/${pipeline.id}".toString()]
+    return pipeline.id
   }
 
   private Map<String, String> startTask(Map config) {
