@@ -18,12 +18,12 @@ package com.netflix.kayenta.canaryanalysis.domain;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NonNull;
+import lombok.*;
 
 @Data
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @ApiModel(description="Wrapper object around the canary analysis execution id.")
 public class CanaryAnalysisExecutionResponse {
 
