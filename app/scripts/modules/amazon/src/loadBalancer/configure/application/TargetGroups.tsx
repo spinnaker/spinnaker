@@ -73,12 +73,19 @@ class TargetGroupsImpl extends React.Component<ITargetGroupsProps, ITargetGroups
         tgErrors.name = 'Duplicate target group name in this load balancer.';
       }
 
-      ['port', 'healthCheckInterval', 'healthCheckPort', 'healthyThreshold', 'unhealthyThreshold'].forEach(key => {
+      ['port', 'healthCheckInterval', 'healthyThreshold', 'unhealthyThreshold'].forEach(key => {
         const err = spelNumberCheck(targetGroup[key]);
         if (err) {
           tgErrors[key] = err;
         }
       });
+
+      if (targetGroup.healthCheckPort !== 'traffic-port') {
+        const err = spelNumberCheck(targetGroup.healthCheckPort);
+        if (err) {
+          tgErrors.healthCheckPort = err;
+        }
+      }
 
       [
         'name',
@@ -297,9 +304,28 @@ class TargetGroupsImpl extends React.Component<ITargetGroupsProps, ITargetGroups
                           </span>
                           <span className="wizard-pod-content">
                             <label>Port </label>
+                            <HelpField id="aws.targetGroup.attributes.healthCheckPort.trafficPort" />{' '}
+                            <select
+                              className="form-control input-sm inline-number"
+                              style={{ width: '90px' }}
+                              value={targetGroup.healthCheckPort === 'traffic-port' ? 'traffic-port' : 'manual'}
+                              onChange={event =>
+                                this.targetGroupFieldChanged(
+                                  index,
+                                  'healthCheckPort',
+                                  event.target.value === 'traffic-port' ? 'traffic-port' : '',
+                                )
+                              }
+                            >
+                              <option value="traffic-port">Traffic Port</option>
+                              <option value="manual">Manual</option>
+                            </select>{' '}
                             <SpInput
                               className="form-control input-sm inline-number"
                               error={tgErrors.healthCheckPort}
+                              style={{
+                                visibility: targetGroup.healthCheckPort === 'traffic-port' ? 'hidden' : 'inherit',
+                              }}
                               name="healthCheckPort"
                               required={true}
                               value={targetGroup.healthCheckPort}

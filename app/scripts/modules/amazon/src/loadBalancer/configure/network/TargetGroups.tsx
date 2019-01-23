@@ -155,7 +155,7 @@ class TargetGroupsImpl extends React.Component<ITargetGroupsProps, ITargetGroups
       port: 7001,
       targetType: 'instance',
       healthCheckProtocol: 'TCP',
-      healthCheckPort: '7001',
+      healthCheckPort: 'traffic-port',
       healthCheckPath: '/healthcheck',
       healthCheckTimeout: 5,
       healthCheckInterval: 10,
