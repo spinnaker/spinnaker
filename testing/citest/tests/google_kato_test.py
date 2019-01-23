@@ -147,10 +147,10 @@ class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
     # Give the instances images and machine types. Again we're forcing
     # one to be different to ensure that we're using the values.
     image_name = [self.bindings['TEST_GCE_IMAGE_NAME'],
-                  'debian-7-wheezy-v20150818',
+                  'debian-9-stretch-v20190116',
                   self.bindings['TEST_GCE_IMAGE_NAME']]
     if image_name[0] == image_name[1]:
-      image_name[1] = 'ubuntu-1404-trusty-v20150805'
+      image_name[1] = 'ubuntu-minimal-1604-xenial-v20190122'
     machine_type = ['f1-micro', 'g1-small', 'f1-micro']
 
     # The instance_spec will turn into the payload of instances we request.
