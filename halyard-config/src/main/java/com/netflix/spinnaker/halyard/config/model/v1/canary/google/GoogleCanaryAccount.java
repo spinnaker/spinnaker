@@ -31,8 +31,8 @@ import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -44,7 +44,7 @@ public class GoogleCanaryAccount extends AbstractCanaryAccount implements Clonea
   private String bucket;
   private String bucketLocation;
   private String rootFolder = "kayenta";
-  private Set<AbstractCanaryServiceIntegration.SupportedTypes> supportedTypes = new HashSet<>();
+  private SortedSet<AbstractCanaryServiceIntegration.SupportedTypes> supportedTypes = new TreeSet<>();
 
   @JsonIgnore
   public GoogleNamedAccountCredentials getNamedAccountCredentials(String version, ConfigProblemSetBuilder p) {

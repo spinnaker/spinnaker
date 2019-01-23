@@ -24,8 +24,8 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -39,5 +39,5 @@ public class AwsCanaryAccount extends AbstractCanaryAccount implements Cloneable
   private String endpoint;
   private String accessKeyId;
   @Secret private String secretAccessKey;
-  private Set<AbstractCanaryServiceIntegration.SupportedTypes> supportedTypes = new HashSet<>();
+  private SortedSet<AbstractCanaryServiceIntegration.SupportedTypes> supportedTypes = new TreeSet<>();
 }
