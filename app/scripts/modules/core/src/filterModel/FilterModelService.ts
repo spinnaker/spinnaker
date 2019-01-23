@@ -268,6 +268,7 @@ export class FilterModelService {
         if (checkedDetails.includes('(none)')) {
           checkedDetails.push(''); // TODO: remove when moniker is source of truth for naming
           checkedDetails.push(null);
+          checkedDetails.push(undefined);
         }
         return includes(checkedDetails, target.detail);
       } else {
