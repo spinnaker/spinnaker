@@ -13,6 +13,9 @@
       </ui-select-choices>
     </ui-select>
   </stage-config-field>
+  <stage-config-field label="Fail Fast HTTP Statuses" help-key="pipeline.config.webhook.failFastCodes">
+    <input type="text" class="form-control input-sm" ng-model="$ctrl.viewState.failFastStatusCodes" ng-change="$ctrl.failFastCodesChanged()"/>
+  </stage-config-field>
   <stage-config-field label="Parameters"
                       ng-if="$ctrl.parameters.length">
     <div class="form-group" ng-repeat="parameter in $ctrl.parameters | orderBy:['order','name']">

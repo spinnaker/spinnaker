@@ -420,6 +420,8 @@ const helpContents: { [key: string]: string } = {
   'pipeline.config.webhook.terminalStatuses':
     'Comma-separated list of strings that will be considered as TERMINAL status.',
   'pipeline.config.webhook.customHeaders': 'Key-value pairs to be sent as additional headers to the service.',
+  'pipeline.config.webhook.failFastCodes':
+    'Comma-separated HTTP status codes (4xx or 5xx) that will cause this webhook stage to fail without retrying.',
   'pipeline.config.parameter.label': '(Optional): a label to display when users are triggering the pipeline manually',
   'pipeline.config.parameter.description': `(Optional): if supplied, will be displayed to users as a tooltip
       when triggering the pipeline manually. You can include HTML in this field.`,
