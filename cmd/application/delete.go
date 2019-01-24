@@ -64,12 +64,22 @@ func deleteApplication(cmd *cobra.Command, args []string) error {
 		},
 	}
 
-	createAppTask := map[string]interface{}{
+	_, resp, err := gateClient.ApplicationControllerApi.GetApplicationUsingGET(gateClient.Context, applicationName, map[string]interface{}{"expand": false})
+
+	if resp != nil && resp.StatusCode == http.StatusNotFound {
+		return fmt.Errorf("Attempting to delete application '%s' which does not exist, exiting...", applicationName)
+	}
+
+	if err != nil {
+		return fmt.Errorf("Encountered an error checking application existence, status code: %d\n", resp.StatusCode)
+	}
+
+	deleteAppTask := map[string]interface{}{
 		"job":         []interface{}{appSpec},
 		"application": applicationName,
 		"description": fmt.Sprintf("Delete Application: %s", applicationName),
 	}
-	_, resp, err := gateClient.TaskControllerApi.TaskUsingPOST1(gateClient.Context, createAppTask)
+	_, resp, err = gateClient.TaskControllerApi.TaskUsingPOST1(gateClient.Context, deleteAppTask)
 
 	if err != nil {
 		return err

@@ -53,7 +53,7 @@ func NewGetCmd(appOptions applicationOptions) *cobra.Command {
 	}
 
 	// Note that false here means defaults to false, and flips to true if the flag is present.
-	cmd.PersistentFlags().BoolVarP(&options.expand, "expand", "x", false, "email of the application owner")
+	cmd.PersistentFlags().BoolVarP(&options.expand, "expand", "x", false, "expand app payload to include clusters")
 
 	return cmd
 }
