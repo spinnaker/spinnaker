@@ -3,7 +3,7 @@ import { module } from 'angular';
 import 'bootstrap/dist/css/bootstrap.css';
 import 'jquery-ui';
 // Must come after jquery-ui - we want the bootstrap tooltip, JavaScript is fun
-import 'bootstrap/dist/js/bootstrap.js';
+import 'bootstrap/dist/js/bootstrap';
 
 import '@fortawesome/fontawesome-free/css/solid.css';
 import '@fortawesome/fontawesome-free/css/regular.css';

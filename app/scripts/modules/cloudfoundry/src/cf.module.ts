@@ -27,7 +27,7 @@ import { CloudFoundryNoLoadBalancerModal } from './loadBalancer/configure/cloudF
 import 'cloudfoundry/pipeline/config/validation/instanceSize.validator';
 import 'cloudfoundry/pipeline/config/validation/cfTargetImpedance.validator';
 import 'cloudfoundry/pipeline/config/validation/validServiceParameterJson.validator';
-import 'cloudfoundry/pipeline/config/validation/validateServiceRequiredField.validator.ts';
+import 'cloudfoundry/pipeline/config/validation/validateServiceRequiredField.validator';
 import { CLOUD_FOUNDRY_DEPLOY_SERVICE_STAGE } from './pipeline/stages/deployService/cloudfoundryDeployServiceStage.module';
 import { CLOUD_FOUNDRY_DESTROY_ASG_STAGE } from './pipeline/stages/destroyAsg/cloudfoundryDestroyAsgStage.module';
 import { CLOUD_FOUNDRY_DESTROY_SERVICE_STAGE } from './pipeline/stages/destroyService/cloudfoundryDestroyServiceStage.module';
