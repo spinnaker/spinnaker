@@ -12,7 +12,7 @@ describe('Controller: Project Dashboard', function() {
     clusters = [],
     executions = [];
 
-  beforeEach(window.module(require('./dashboard.controller.js').name));
+  beforeEach(window.module(require('./dashboard.controller').name));
 
   beforeEach(
     window.inject(function($controller, $rootScope, _executionService_, _$q_) {

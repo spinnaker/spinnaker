@@ -9,8 +9,8 @@ import './upsertAutoscalingPolicy.modal.less';
 module.exports = angular
   .module('spinnaker.deck.gce.upsertAutoscalingPolicy.modal.controller', [
     require('google/autoscalingPolicy/autoscalingPolicy.write.service').name,
-    require('google/autoscalingPolicy/components/basicSettings/basicSettings.component.js').name,
-    require('google/autoscalingPolicy/components/metricSettings/metricSettings.component.js').name,
+    require('google/autoscalingPolicy/components/basicSettings/basicSettings.component').name,
+    require('google/autoscalingPolicy/components/metricSettings/metricSettings.component').name,
   ])
   .controller('gceUpsertAutoscalingPolicyModalCtrl', function(
     policy,

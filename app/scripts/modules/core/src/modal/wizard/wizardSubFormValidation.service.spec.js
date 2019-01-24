@@ -6,7 +6,7 @@ describe('Service: wizardSubFormValidation', function() {
   const angular = require('angular');
   let wizardSubFormValidation, $rootScope, $compile;
 
-  beforeEach(window.module(require('./wizardSubFormValidation.service.js').name));
+  beforeEach(window.module(require('./wizardSubFormValidation.service').name));
 
   beforeEach(
     window.inject(function(_wizardSubFormValidation_, _$rootScope_, _$compile_) {

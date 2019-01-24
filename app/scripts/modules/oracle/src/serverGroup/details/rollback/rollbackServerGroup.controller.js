@@ -7,7 +7,7 @@ import { SERVER_GROUP_WRITER, TaskMonitor } from '@spinnaker/core';
 module.exports = angular
   .module('spinnaker.oracle.serverGroup.details.rollback.controller', [
     SERVER_GROUP_WRITER,
-    require('oracle/common/footer.component.js').name,
+    require('oracle/common/footer.component').name,
   ])
   .controller('oracleRollbackServerGroupCtrl', function(
     $scope,

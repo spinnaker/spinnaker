@@ -8,7 +8,7 @@ module.exports = angular
   .module('spinnaker.azure.serverGroup.configure.basicSettings', [
     require('@uirouter/angularjs').default,
     require('angular-ui-bootstrap'),
-    require('./image.regional.filter.js').name,
+    require('./image.regional.filter').name,
     IMAGE_READER,
   ])
   .controller('azureServerGroupBasicSettingsCtrl', function($scope, $controller, $uibModalStack, $state, imageReader) {

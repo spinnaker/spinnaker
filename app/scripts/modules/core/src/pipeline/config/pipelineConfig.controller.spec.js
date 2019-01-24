@@ -5,7 +5,7 @@ describe('Controller: PipelineConfigCtrl', function() {
   var scope;
   var applicationModelBuilder;
 
-  beforeEach(window.module(require('./pipelineConfig.controller.js').name, APPLICATION_MODEL_BUILDER));
+  beforeEach(window.module(require('./pipelineConfig.controller').name, APPLICATION_MODEL_BUILDER));
 
   beforeEach(
     window.inject(function($rootScope, $controller, _applicationModelBuilder_) {

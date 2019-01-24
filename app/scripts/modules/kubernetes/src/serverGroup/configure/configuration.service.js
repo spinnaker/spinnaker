@@ -9,7 +9,7 @@ module.exports = angular
   .module('spinnaker.serverGroup.configure.kubernetes.configuration.service', [
     CACHE_INITIALIZER_SERVICE,
     LOAD_BALANCER_READ_SERVICE,
-    require('../../image/image.reader.js').name,
+    require('../../image/image.reader').name,
   ])
   .factory('kubernetesServerGroupConfigurationService', function(
     $q,

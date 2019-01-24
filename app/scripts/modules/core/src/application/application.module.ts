@@ -11,8 +11,8 @@ export const APPLICATION_MODULE = 'spinnaker.core.application';
 module(APPLICATION_MODULE, [
   APPLICATION_STATE_PROVIDER,
   APPLICATIONS_STATE_PROVIDER,
-  require('./config/applicationConfig.controller.js').name,
-  require('./modal/createApplication.modal.controller.js').name,
+  require('./config/applicationConfig.controller').name,
+  require('./modal/createApplication.modal.controller').name,
   require('./modal/platformHealthOverride.directive').name,
   require('./config/appConfig.dataSource').name,
   PERMISSIONS_CONFIGURER_COMPONENT,

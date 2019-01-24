@@ -10,9 +10,9 @@ module.exports = angular
     require('@uirouter/angularjs').default,
     require('angular-ui-bootstrap'),
     IMAGE_READER,
-    require('../../../../gceRegionSelectField.directive.js').name,
-    require('../../../../gceNetworkSelectField.directive.js').name,
-    require('../../../../subnet/subnetSelectField.directive.js').name,
+    require('../../../../gceRegionSelectField.directive').name,
+    require('../../../../gceNetworkSelectField.directive').name,
+    require('../../../../subnet/subnetSelectField.directive').name,
   ])
   .controller('gceServerGroupBasicSettingsCtrl', function($scope, $controller, $uibModalStack, $state, imageReader) {
     function searchImages(q) {

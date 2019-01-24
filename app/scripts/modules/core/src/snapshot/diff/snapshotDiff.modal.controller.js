@@ -14,7 +14,7 @@ import './snapshotDiff.modal.less';
 module.exports = angular
   .module('spinnaker.deck.core.snapshot.diff.modal.controller', [
     CONFIRMATION_MODAL_SERVICE,
-    require('../../pipeline/config/actions/history/diffSummary.component.js').name,
+    require('../../pipeline/config/actions/history/diffSummary.component').name,
     DIFF_VIEW_COMPONENT,
   ])
   .controller('SnapshotDiffModalCtrl', function(

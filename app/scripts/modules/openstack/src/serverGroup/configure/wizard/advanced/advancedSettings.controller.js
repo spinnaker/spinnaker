@@ -6,7 +6,7 @@ module.exports = angular
   .module('spinnaker.openstack.serverGroup.configure.wizard.advancedSettings', [
     require('@uirouter/angularjs').default,
     require('angular-ui-bootstrap'),
-    require('../../../../common/cacheBackedMultiSelectField.directive.js').name,
+    require('../../../../common/cacheBackedMultiSelectField.directive').name,
   ])
   .controller('openstackServerGroupAdvancedSettingsCtrl', function($scope) {
     $scope.selectedAZs = $scope.command.zones

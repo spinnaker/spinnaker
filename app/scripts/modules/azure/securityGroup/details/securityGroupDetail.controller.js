@@ -9,9 +9,9 @@ module.exports = angular
   .module('spinnaker.azure.securityGroup.azure.details.controller', [
     require('@uirouter/angularjs').default,
     SECURITY_GROUP_READER,
-    require('../securityGroup.write.service.js').name,
+    require('../securityGroup.write.service').name,
     CONFIRMATION_MODAL_SERVICE,
-    require('../clone/cloneSecurityGroup.controller.js').name,
+    require('../clone/cloneSecurityGroup.controller').name,
   ])
   .controller('azureSecurityGroupDetailsCtrl', function(
     $scope,

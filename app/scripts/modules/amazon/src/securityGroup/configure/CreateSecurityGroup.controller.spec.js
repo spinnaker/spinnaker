@@ -9,10 +9,7 @@ import { VpcReader } from 'amazon/vpc';
 
 describe('Controller: CreateSecurityGroup', function() {
   beforeEach(
-    window.module(
-      require('./CreateSecurityGroupCtrl.js').name,
-      require('./configSecurityGroup.mixin.controller.js').name,
-    ),
+    window.module(require('./CreateSecurityGroupCtrl').name, require('./configSecurityGroup.mixin.controller').name),
   );
 
   afterEach(AWSProviderSettings.resetToOriginal);

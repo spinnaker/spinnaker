@@ -7,7 +7,7 @@ import { SERVER_GROUP_WRITER, TaskMonitor } from '@spinnaker/core';
 module.exports = angular
   .module('spinnaker.google.serverGroup.details.rollback.controller', [
     SERVER_GROUP_WRITER,
-    require('../../../common/footer.directive.js').name,
+    require('../../../common/footer.directive').name,
   ])
   .controller('gceRollbackServerGroupCtrl', function(
     $scope,

@@ -7,7 +7,7 @@ describe('Controller: gceCreateLoadBalancerCtrl', function() {
 
   // load the controller's module
   beforeEach(function() {
-    window.module(require('./createLoadBalancer.controller.js').name, APPLICATION_MODEL_BUILDER);
+    window.module(require('./createLoadBalancer.controller').name, APPLICATION_MODEL_BUILDER);
   });
 
   // Initialize the controller and a mock scope

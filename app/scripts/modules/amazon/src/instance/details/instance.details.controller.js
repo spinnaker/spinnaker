@@ -19,7 +19,7 @@ module.exports = angular
     require('@uirouter/angularjs').default,
     require('angular-ui-bootstrap'),
     AMAZON_INSTANCE_WRITE_SERVICE,
-    require('../../vpc/vpcTag.directive.js').name,
+    require('../../vpc/vpcTag.directive').name,
     CONFIRMATION_MODAL_SERVICE,
   ])
   .controller('awsInstanceDetailsCtrl', function(

@@ -3,7 +3,7 @@
 describe('Controller: AllSecurityGroupsCtrl', function() {
   var scope;
 
-  beforeEach(window.module(require('./AllSecurityGroupsCtrl.js').name));
+  beforeEach(window.module(require('./AllSecurityGroupsCtrl').name));
 
   beforeEach(
     window.inject(function($rootScope, $controller) {

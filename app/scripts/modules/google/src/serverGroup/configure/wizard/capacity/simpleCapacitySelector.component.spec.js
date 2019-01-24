@@ -4,7 +4,7 @@ const angular = require('angular');
 require('./simpleCapacitySelector.component.html');
 
 describe('Directive: GCE Server Group Capacity Selector', function() {
-  beforeEach(window.module(require('./simpleCapacitySelector.component.js').name));
+  beforeEach(window.module(require('./simpleCapacitySelector.component').name));
 
   beforeEach(
     window.inject(function($rootScope, $compile) {

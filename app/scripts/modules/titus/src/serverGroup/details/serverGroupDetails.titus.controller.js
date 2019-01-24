@@ -27,7 +27,7 @@ import { TITUS_SECURITY_GROUPS_DETAILS } from './titusSecurityGroups.component';
 module.exports = angular
   .module('spinnaker.serverGroup.details.titus.controller', [
     require('@uirouter/angularjs').default,
-    require('../configure/ServerGroupCommandBuilder.js').name,
+    require('../configure/ServerGroupCommandBuilder').name,
     CONFIG_BIN_LINK_COMPONENT,
     CONFIRMATION_MODAL_SERVICE,
     SERVER_GROUP_WRITER,

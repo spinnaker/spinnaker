@@ -7,8 +7,8 @@ import { Registry } from '@spinnaker/core';
 module.exports = angular
   .module('spinnaker.canary.summary.controller', [
     require('@uirouter/angularjs').default,
-    require('./actions/generateScore.controller.js').name,
-    require('./actions/endCanary.controller.js').name,
+    require('./actions/generateScore.controller').name,
+    require('./actions/endCanary.controller').name,
   ])
   .controller('CanaryExecutionSummaryCtrl', function($scope, $http, $uibModal) {
     this.generateCanaryScore = function() {

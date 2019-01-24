@@ -6,7 +6,7 @@ import { TaskExecutor, TaskMonitor } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.amazon.serverGroup.editAsgAdvancedSettings.modal.controller', [
-    require('../../configure/serverGroupCommandBuilder.service.js').name,
+    require('../../configure/serverGroupCommandBuilder.service').name,
   ])
   .controller('EditAsgAdvancedSettingsCtrl', function(
     $scope,

@@ -16,9 +16,9 @@ module.exports = angular
     require('@uirouter/angularjs').default,
     CONFIRMATION_MODAL_SERVICE,
     SERVER_GROUP_WRITER,
-    require('../../image/image.reader.js').name,
-    require('./resize/resizeServerGroup.controller.js').name,
-    require('./rollback/rollbackServerGroup.controller.js').name,
+    require('../../image/image.reader').name,
+    require('./resize/resizeServerGroup.controller').name,
+    require('./rollback/rollbackServerGroup.controller').name,
   ])
   .controller('oracleServerGroupDetailsCtrl', function(
     $scope,

@@ -9,7 +9,7 @@ import { TRAVIS_STAGE_ADD_PARAMETER_MODAL_CONTROLLER } from './modal/addParamete
 export const TRAVIS_STAGE_MODULE = 'spinnaker.core.pipeline.stage.travis';
 module(TRAVIS_STAGE_MODULE, [
   TRAVIS_STAGE,
-  require('../stage.module.js').name,
+  require('../stage.module').name,
   STAGE_CORE_MODULE,
   TIME_FORMATTERS,
   TRAVIS_EXECUTION_DETAILS_CONTROLLER,

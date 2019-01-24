@@ -9,8 +9,8 @@ import { GCE_HTTP_LOAD_BALANCER_UTILS } from 'google/loadBalancer/httpLoadBalanc
 module.exports = angular
   .module('spinnaker.google.serverGroup.configure.wizard.loadBalancers.selector.directive', [
     GCE_HTTP_LOAD_BALANCER_UTILS,
-    require('./elSevenOptions/elSevenOptionsGenerator.component.js').name,
-    require('../../serverGroupConfiguration.service.js').name,
+    require('./elSevenOptions/elSevenOptionsGenerator.component').name,
+    require('../../serverGroupConfiguration.service').name,
   ])
   .directive('gceServerGroupLoadBalancerSelector', function() {
     return {

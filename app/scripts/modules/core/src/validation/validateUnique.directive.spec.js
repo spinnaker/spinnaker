@@ -1,7 +1,7 @@
 'use strict';
 
 describe('Validator: validateUnique', function() {
-  beforeEach(window.module(require('./validateUnique.directive.js').name));
+  beforeEach(window.module(require('./validateUnique.directive').name));
 
   beforeEach(
     window.inject(function($rootScope, $compile, $controller) {

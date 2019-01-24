@@ -8,7 +8,7 @@ module.exports = angular
   .module('spinnaker.serverGroup.configure.openstack.accessSettings', [
     require('@uirouter/angularjs').default,
     require('angular-ui-bootstrap'),
-    require('../../../../common/cacheBackedMultiSelectField.directive.js').name,
+    require('../../../../common/cacheBackedMultiSelectField.directive').name,
   ])
   .controller('openstackServerGroupAccessSettingsCtrl', function($scope) {
     $scope.firewallsLabel = FirewallLabels.get('Firewalls');

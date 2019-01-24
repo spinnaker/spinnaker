@@ -6,7 +6,7 @@ import { AccountService, Registry, StageConstants } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.oracle.pipeline.stage.disableAsgStage', [
-    require('core/application/modal/platformHealthOverride.directive.js').name,
+    require('core/application/modal/platformHealthOverride.directive').name,
   ])
   .config(function() {
     Registry.pipeline.registerStage({

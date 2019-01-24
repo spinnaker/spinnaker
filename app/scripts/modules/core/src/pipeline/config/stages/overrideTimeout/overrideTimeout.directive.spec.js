@@ -7,7 +7,7 @@ require('./overrideTimeout.directive.html');
 describe('Directives: overrideTimeout', function() {
   let stageConfig;
 
-  beforeEach(window.module(require('./overrideTimeout.directive.js').name));
+  beforeEach(window.module(require('./overrideTimeout.directive').name));
 
   beforeEach(function() {
     window.inject(function($rootScope, $compile, $controller) {

@@ -5,7 +5,7 @@ import { API } from '@spinnaker/core';
 describe('Service: Azure Image Reader', function() {
   var service, $http;
 
-  beforeEach(window.module(require('./image.reader.js').name));
+  beforeEach(window.module(require('./image.reader').name));
 
   beforeEach(
     window.inject(function(azureImageReader, $httpBackend) {

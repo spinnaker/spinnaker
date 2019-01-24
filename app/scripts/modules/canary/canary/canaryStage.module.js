@@ -9,14 +9,14 @@ import { CANARY_SCORES_CONFIG_COMPONENT } from './canaryScores.component';
 
 module.exports = angular
   .module('spinnaker.canary.stage', [
-    require('./canaryStage.js').name,
-    require('./canaryExecutionDetails.controller.js').name,
-    require('./canaryExecutionSummary.controller.js').name,
-    require('./canaryDeployment/canaryDeployment.module.js').name,
-    require('./canaryStage.transformer.js').name,
+    require('./canaryStage').name,
+    require('./canaryExecutionDetails.controller').name,
+    require('./canaryExecutionSummary.controller').name,
+    require('./canaryDeployment/canaryDeployment.module').name,
+    require('./canaryStage.transformer').name,
     CANARY_SCORE_COMPONENT,
     CANARY_SCORES_CONFIG_COMPONENT,
-    require('./canaryStatus.directive.js').name,
+    require('./canaryStatus.directive').name,
   ])
   .run(function(canaryStageTransformer) {
     Registry.pipeline.registerTransformer(canaryStageTransformer);

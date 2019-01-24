@@ -3,7 +3,7 @@
 describe('azureServerGroupTransformer', function() {
   var transformer;
 
-  beforeEach(window.module(require('./serverGroup.transformer.js').name));
+  beforeEach(window.module(require('./serverGroup.transformer').name));
 
   beforeEach(function() {
     window.inject(function(_azureServerGroupTransformer_) {

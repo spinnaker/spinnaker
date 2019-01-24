@@ -1,7 +1,7 @@
 'use strict';
 
 describe('Filter: regional', function() {
-  beforeEach(window.module(require('./image.regional.filter.js').name));
+  beforeEach(window.module(require('./image.regional.filter').name));
 
   beforeEach(
     window.inject(function(_regionalFilter_) {

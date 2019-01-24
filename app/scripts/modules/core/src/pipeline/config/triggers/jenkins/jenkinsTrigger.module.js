@@ -9,7 +9,7 @@ import { SETTINGS } from 'core/config/settings';
 import { JenkinsTriggerTemplate } from './JenkinsTriggerTemplate';
 
 module.exports = angular
-  .module('spinnaker.core.pipeline.config.trigger.jenkins', [require('../trigger.directive.js').name])
+  .module('spinnaker.core.pipeline.config.trigger.jenkins', [require('../trigger.directive').name])
   .config(function() {
     Registry.pipeline.registerTrigger({
       label: 'Jenkins',

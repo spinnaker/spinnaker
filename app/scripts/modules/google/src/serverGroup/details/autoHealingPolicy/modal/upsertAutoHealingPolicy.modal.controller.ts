@@ -77,5 +77,5 @@ class GceUpsertAutoHealingPolicyModalCtrl implements IController {
 export const GCE_UPSERT_AUTOHEALING_POLICY_MODAL_CTRL = 'spinnaker.gce.upsertAutoHealingPolicy.modal.controller';
 module(GCE_UPSERT_AUTOHEALING_POLICY_MODAL_CTRL, [
   GCE_HEALTH_CHECK_READER,
-  require('google/autoscalingPolicy/autoscalingPolicy.write.service.js').name,
+  require('google/autoscalingPolicy/autoscalingPolicy.write.service').name,
 ]).controller('gceUpsertAutoHealingPolicyModalCtrl', GceUpsertAutoHealingPolicyModalCtrl);

@@ -21,12 +21,12 @@ module.exports = angular
   .module('spinnaker.core.pipeline.config.stage', [
     BASE_EXECUTION_DETAILS_CTRL,
     STAGE_NAME,
-    require('./overrideTimeout/overrideTimeout.directive.js').name,
-    require('./overrideFailure/overrideFailure.component.js').name,
-    require('./optionalStage/optionalStage.directive.js').name,
-    require('./failOnFailedExpressions/failOnFailedExpressions.directive.js').name,
+    require('./overrideTimeout/overrideTimeout.directive').name,
+    require('./overrideFailure/overrideFailure.component').name,
+    require('./optionalStage/optionalStage.directive').name,
+    require('./failOnFailedExpressions/failOnFailedExpressions.directive').name,
     CONFIRMATION_MODAL_SERVICE,
-    require('./core/stageConfigField/stageConfigField.directive.js').name,
+    require('./core/stageConfigField/stageConfigField.directive').name,
   ])
   .directive('pipelineConfigStage', function() {
     return {

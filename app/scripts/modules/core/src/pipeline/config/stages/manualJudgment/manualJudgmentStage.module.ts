@@ -8,9 +8,9 @@ import './manualJudgmentExecutionDetails.less';
 export const MANUAL_JUDGMENT_STAGE_MODULE = 'spinnaker.core.pipeline.stage.manualJudgment';
 
 module(MANUAL_JUDGMENT_STAGE_MODULE, [
-  require('../stage.module.js').name,
+  require('../stage.module').name,
   MANUAL_JUDGMENT_SERVICE,
   STAGE_CORE_MODULE,
-  require('./manualJudgmentStage.js').name,
-  require('../../../../notification/modal/editNotification.controller.modal.js').name,
+  require('./manualJudgmentStage').name,
+  require('../../../../notification/modal/editNotification.controller.modal').name,
 ]);

@@ -5,7 +5,7 @@ import { NameUtils } from 'core/naming';
 import { TitusProviderSettings } from '../../titus.settings';
 
 describe('titusServerGroupCommandBuilder', function() {
-  beforeEach(window.module(require('./ServerGroupCommandBuilder.js').name));
+  beforeEach(window.module(require('./ServerGroupCommandBuilder').name));
 
   beforeEach(
     window.inject(function(titusServerGroupCommandBuilder, $q, $rootScope) {

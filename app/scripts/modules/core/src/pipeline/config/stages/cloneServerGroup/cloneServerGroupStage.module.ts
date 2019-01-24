@@ -7,7 +7,7 @@ import { ExecutionDetailsTasks } from '../core';
 import { STAGE_CORE_MODULE } from '../core/stage.core.module';
 
 export const CLONE_SERVER_GROUP_STAGE = 'spinnaker.core.pipeline.stage.cloneServerGroup';
-module(CLONE_SERVER_GROUP_STAGE, [require('../stage.module.js').name, STAGE_CORE_MODULE]).config(() => {
+module(CLONE_SERVER_GROUP_STAGE, [require('../stage.module').name, STAGE_CORE_MODULE]).config(() => {
   Registry.pipeline.registerStage({
     useBaseProvider: true,
     key: 'cloneServerGroup',

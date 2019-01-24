@@ -8,8 +8,8 @@ module.exports = angular
   .module('spinnaker.gce.instance.details.scalingPolicy.directive', [
     CONFIRMATION_MODAL_SERVICE,
     require('angular-ui-bootstrap'),
-    require('./../../../autoscalingPolicy/autoscalingPolicy.write.service.js').name,
-    require('./modal/upsertAutoscalingPolicy.modal.controller.js').name,
+    require('./../../../autoscalingPolicy/autoscalingPolicy.write.service').name,
+    require('./modal/upsertAutoscalingPolicy.modal.controller').name,
   ])
   .component('gceAutoscalingPolicy', {
     bindings: {

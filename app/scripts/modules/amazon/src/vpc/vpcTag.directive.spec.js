@@ -5,7 +5,7 @@ import { VpcReader } from '../vpc/VpcReader';
 describe('Directives: vpcTag', function() {
   var $q;
 
-  beforeEach(window.module(require('./vpcTag.directive.js').name));
+  beforeEach(window.module(require('./vpcTag.directive').name));
 
   beforeEach(
     window.inject(function($rootScope, $compile, _$q_) {

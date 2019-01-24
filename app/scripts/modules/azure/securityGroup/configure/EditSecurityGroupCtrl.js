@@ -15,7 +15,7 @@ module.exports = angular
     require('@uirouter/angularjs').default,
     CACHE_INITIALIZER_SERVICE,
     SECURITY_GROUP_READER,
-    require('../securityGroup.write.service.js').name,
+    require('../securityGroup.write.service').name,
   ])
   .controller('azureEditSecurityGroupCtrl', function(
     $scope,

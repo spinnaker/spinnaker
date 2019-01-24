@@ -63,7 +63,7 @@ describe('pipelineConfigValidator', () => {
 
   beforeEach(() => Registry.reinitialize());
 
-  beforeEach(mock.module(require('../pipelineConfig.module.js').name));
+  beforeEach(mock.module(require('../pipelineConfig.module').name));
 
   beforeEach(function() {
     SETTINGS.feature.fiatEnabled = true;

@@ -6,9 +6,9 @@ import { InfrastructureCaches } from 'core/cache';
 
 module.exports = angular
   .module('spinnaker.core.serverGroup.configure.common.instanceArchetypeSelector', [
-    require('./costFactor.js').name,
-    require('../../../presentation/isVisible/isVisible.directive.js').name,
-    require('./dirtyInstanceTypeNotification.component.js').name,
+    require('./costFactor').name,
+    require('../../../presentation/isVisible/isVisible.directive').name,
+    require('./dirtyInstanceTypeNotification.component').name,
   ])
   .directive('instanceArchetypeSelector', function() {
     return {

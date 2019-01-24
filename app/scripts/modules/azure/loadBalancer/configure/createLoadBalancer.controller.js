@@ -15,7 +15,7 @@ import {
 module.exports = angular
   .module('spinnaker.azure.loadBalancer.create.controller', [
     require('@uirouter/angularjs').default,
-    require('../loadBalancer.transformer.js').name,
+    require('../loadBalancer.transformer').name,
   ])
   .controller('azureCreateLoadBalancerCtrl', function(
     $scope,

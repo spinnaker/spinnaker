@@ -3,7 +3,7 @@
 const angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.core.pipeline.trigger.cron.validator.directive', [require('./cron.validator.service.js').name])
+  .module('spinnaker.core.pipeline.trigger.cron.validator.directive', [require('./cron.validator.service').name])
   .directive('cronValidator', function($q, cronValidationService) {
     return {
       restrict: 'A',

@@ -5,7 +5,7 @@ describe('dcosServerGroupOptionalController', function() {
   var controller;
   var scope;
 
-  beforeEach(window.module(require('./optional.controller.js').name));
+  beforeEach(window.module(require('./optional.controller').name));
 
   beforeEach(
     window.inject(function($rootScope, $controller) {

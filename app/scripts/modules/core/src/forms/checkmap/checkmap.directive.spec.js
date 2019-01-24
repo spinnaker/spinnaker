@@ -3,7 +3,7 @@
 describe('Directives: checkmap', function() {
   require('./checkmap.directive.html');
 
-  beforeEach(window.module(require('./checkmap.directive.js').name));
+  beforeEach(window.module(require('./checkmap.directive').name));
 
   beforeEach(
     window.inject(function($rootScope, $compile) {

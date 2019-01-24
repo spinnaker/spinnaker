@@ -6,7 +6,7 @@ describe('Controller: gceInstanceDetailsCtrl', function() {
   let controller;
   let scope;
 
-  beforeEach(window.module(require('./instance.details.controller.js').name));
+  beforeEach(window.module(require('./instance.details.controller').name));
 
   beforeEach(
     window.inject(function($rootScope, $controller) {

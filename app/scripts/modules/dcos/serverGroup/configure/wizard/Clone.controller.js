@@ -5,10 +5,7 @@ const angular = require('angular');
 import { ModalWizard, SERVER_GROUP_WRITER, TaskMonitor } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.dcos.serverGroup.configure.clone', [
-    SERVER_GROUP_WRITER,
-    require('../configuration.service.js').name,
-  ])
+  .module('spinnaker.dcos.serverGroup.configure.clone', [SERVER_GROUP_WRITER, require('../configuration.service').name])
   .controller('dcosCloneServerGroupController', function(
     $scope,
     $uibModalInstance,

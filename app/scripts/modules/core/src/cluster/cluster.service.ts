@@ -318,7 +318,7 @@ export class ClusterService {
 }
 
 export const CLUSTER_SERVICE = 'spinnaker.core.cluster.service';
-module(CLUSTER_SERVICE, [require('../serverGroup/serverGroup.transformer.js').name]).service(
+module(CLUSTER_SERVICE, [require('../serverGroup/serverGroup.transformer').name]).service(
   'clusterService',
   ClusterService,
 );

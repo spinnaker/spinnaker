@@ -4,7 +4,7 @@ const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.kubernetes.serverGroupCommandBuilder.service', [
-    require('../../cluster/cluster.kubernetes.module.js').name,
+    require('../../cluster/cluster.kubernetes.module').name,
   ])
   .factory('kubernetesServerGroupCommandBuilder', function($q, kubernetesClusterCommandBuilder) {
     function buildNewServerGroupCommand(application, defaults) {

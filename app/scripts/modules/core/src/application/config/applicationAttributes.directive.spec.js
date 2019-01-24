@@ -6,7 +6,7 @@ describe('Controller: Config', function() {
   var $uibModal;
   var application;
 
-  beforeEach(window.module(require('./applicationAttributes.directive.js').name, require('angular-ui-bootstrap')));
+  beforeEach(window.module(require('./applicationAttributes.directive').name, require('angular-ui-bootstrap')));
 
   beforeEach(
     window.inject(function(_$controller_, _$uibModal_) {

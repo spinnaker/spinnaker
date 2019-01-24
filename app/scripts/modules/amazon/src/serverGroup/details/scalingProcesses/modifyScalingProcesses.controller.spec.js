@@ -5,7 +5,7 @@ import { TaskExecutor } from '@spinnaker/core';
 describe('Controller: modifyScalingProcesses', function() {
   const angular = require('angular');
 
-  beforeEach(window.module(require('./modifyScalingProcesses.controller.js').name));
+  beforeEach(window.module(require('./modifyScalingProcesses.controller').name));
 
   beforeEach(
     window.inject(function($controller, $rootScope, $q) {

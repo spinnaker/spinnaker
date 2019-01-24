@@ -11,8 +11,8 @@ module.exports = angular
   .module('spinnaker.projects.controller', [
     require('@uirouter/angularjs').default,
     ANY_FIELD_FILTER,
-    require('../presentation/sortToggle/sorttoggle.directive.js').name,
-    require('../insight/insightmenu.directive.js').name,
+    require('../presentation/sortToggle/sorttoggle.directive').name,
+    require('../insight/insightmenu.directive').name,
   ])
   .controller('ProjectsCtrl', function($scope, $uibModal, $log, $filter, $state) {
     var projectsViewStateCache =

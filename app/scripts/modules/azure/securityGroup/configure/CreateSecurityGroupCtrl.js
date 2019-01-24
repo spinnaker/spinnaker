@@ -7,7 +7,7 @@ import { AccountService, TaskMonitor, FirewallLabels } from '@spinnaker/core';
 module.exports = angular
   .module('spinnaker.azure.securityGroup.create.controller', [
     require('@uirouter/angularjs').default,
-    require('../securityGroup.write.service.js').name,
+    require('../securityGroup.write.service').name,
   ])
 
   .controller('azureCreateSecurityGroupCtrl', function(

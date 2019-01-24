@@ -15,13 +15,13 @@ import { HttpLoadBalancerTemplate, ListenerTemplate } from './templates';
 
 module.exports = angular
   .module('spinnaker.deck.gce.httpLoadBalancer.backing.service', [
-    require('../../../backendService/backendService.reader.js').name,
+    require('../../../backendService/backendService.reader').name,
     GCE_CERTIFICATE_READER,
     LOAD_BALANCER_READ_SERVICE,
     GCE_HTTP_LOAD_BALANCER_UTILS,
     GCE_ADDRESS_READER,
     GCE_HEALTH_CHECK_READER,
-    require('./transformer.service.js').name,
+    require('./transformer.service').name,
   ])
   .factory('gceHttpLoadBalancerCommandBuilder', function(
     $q,

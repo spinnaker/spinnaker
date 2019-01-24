@@ -13,11 +13,11 @@ import './dashboard.less';
 
 module.exports = angular
   .module('spinnaker.core.projects.dashboard.controller', [
-    require('./cluster/projectCluster.directive.js').name,
+    require('./cluster/projectCluster.directive').name,
     PROJECT_PIPELINE_COMPONENT,
     EXECUTION_SERVICE,
-    require('./regionFilter/regionFilter.component.js').name,
-    require('./regionFilter/regionFilter.service.js').name,
+    require('./regionFilter/regionFilter.component').name,
+    require('./regionFilter/regionFilter.service').name,
   ])
   .controller('ProjectDashboardCtrl', function(
     $scope,

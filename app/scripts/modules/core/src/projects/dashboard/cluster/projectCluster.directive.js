@@ -16,7 +16,7 @@ module.exports = angular
     URL_BUILDER_SERVICE,
     TIME_FORMATTERS,
     HEALTH_COUNTS_COMPONENT,
-    require('../regionFilter/regionFilter.service.js').name,
+    require('../regionFilter/regionFilter.service').name,
   ])
   .directive('projectCluster', function() {
     return {

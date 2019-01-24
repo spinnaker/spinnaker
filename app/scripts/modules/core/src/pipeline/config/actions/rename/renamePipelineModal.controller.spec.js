@@ -4,7 +4,7 @@ import { PipelineConfigService } from 'core/pipeline/config/services/PipelineCon
 describe('Controller: renamePipelineModal', function() {
   const angular = require('angular');
 
-  beforeEach(window.module(require('./rename.module.js').name, APPLICATION_MODEL_BUILDER));
+  beforeEach(window.module(require('./rename.module').name, APPLICATION_MODEL_BUILDER));
 
   beforeEach(
     window.inject(function($controller, $rootScope, $log, $q, applicationModelBuilder) {

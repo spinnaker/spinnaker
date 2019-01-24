@@ -6,9 +6,7 @@ import _ from 'lodash';
 import { NetworkReader } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.openstack.network.networkSelectField.directive', [
-    require('../common/selectField.component.js').name,
-  ])
+  .module('spinnaker.openstack.network.networkSelectField.directive', [require('../common/selectField.component').name])
   .directive('networkSelectField', function() {
     return {
       restrict: 'E',

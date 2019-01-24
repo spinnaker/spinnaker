@@ -7,7 +7,7 @@ import { ON_DEMAND_CLUSTER_PICKER_COMPONENT } from './onDemand/onDemandClusterPi
 export const CLUSTER_MODULE = 'spinnaker.core.cluster';
 
 module(CLUSTER_MODULE, [
-  require('./allClusters.controller.js').name,
+  require('./allClusters.controller').name,
   CLUSTER_ALLCLUSTERSGROUPINGS,
   ON_DEMAND_CLUSTER_PICKER_COMPONENT,
 ]);

@@ -8,15 +8,15 @@ const angular = require('angular');
 module.exports = angular
   .module('spinnaker.core.application.config.controller', [
     require('@uirouter/angularjs').default,
-    require('./applicationAttributes.directive.js').name,
-    require('./applicationNotifications.directive.js').name,
-    require('./applicationCacheManagement.directive.js').name,
-    require('./deleteApplicationSection.directive.js').name,
-    require('./applicationSnapshotSection.component.js').name,
+    require('./applicationAttributes.directive').name,
+    require('./applicationNotifications.directive').name,
+    require('./applicationCacheManagement.directive').name,
+    require('./deleteApplicationSection.directive').name,
+    require('./applicationSnapshotSection.component').name,
     APPLICATION_DATA_SOURCE_EDITOR,
     CHAOS_MONKEY_CONFIG_COMPONENT,
     TRAFFIC_GUARD_CONFIG_COMPONENT,
-    require('./links/applicationLinks.component.js').name,
+    require('./links/applicationLinks.component').name,
   ])
   .controller('ApplicationConfigController', function($state, app) {
     this.application = app;

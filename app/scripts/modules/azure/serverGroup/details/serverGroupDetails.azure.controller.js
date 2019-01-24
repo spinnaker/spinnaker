@@ -11,12 +11,12 @@ import {
   FirewallLabels,
 } from '@spinnaker/core';
 
-require('../configure/serverGroup.configure.azure.module.js');
+require('../configure/serverGroup.configure.azure.module');
 
 module.exports = angular
   .module('spinnaker.azure.serverGroup.details.controller', [
     require('@uirouter/angularjs').default,
-    require('../configure/serverGroupCommandBuilder.service.js').name,
+    require('../configure/serverGroupCommandBuilder.service').name,
     CONFIRMATION_MODAL_SERVICE,
     SERVER_GROUP_WRITER,
   ])

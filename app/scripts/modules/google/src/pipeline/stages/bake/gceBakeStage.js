@@ -15,7 +15,7 @@ import {
 } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.gce.pipeline.stage..bakeStage', [require('./bakeExecutionDetails.controller.js').name])
+  .module('spinnaker.gce.pipeline.stage..bakeStage', [require('./bakeExecutionDetails.controller').name])
   .config(function() {
     Registry.pipeline.registerStage({
       provides: 'bake',

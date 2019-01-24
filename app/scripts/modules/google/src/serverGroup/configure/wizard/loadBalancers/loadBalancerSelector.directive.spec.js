@@ -10,8 +10,8 @@ require('./loadBalancerSelector.directive.html');
 describe('Directive: GCE Load Balancers Selector', function() {
   beforeEach(
     window.module(
-      require('./loadBalancerSelector.directive.js').name,
-      require('./../../serverGroupConfiguration.service.js').name,
+      require('./loadBalancerSelector.directive').name,
+      require('./../../serverGroupConfiguration.service').name,
       require('ui-select'),
       TIME_FORMATTERS,
     ),

@@ -5,7 +5,7 @@ import _ from 'lodash';
 import { IgorService } from 'core/ci';
 
 describe('Controller: jenkinsTrigger', function() {
-  beforeEach(window.module(require('./jenkinsTrigger.module.js').name));
+  beforeEach(window.module(require('./jenkinsTrigger.module').name));
 
   beforeEach(
     window.inject(function($controller, $rootScope, $q) {

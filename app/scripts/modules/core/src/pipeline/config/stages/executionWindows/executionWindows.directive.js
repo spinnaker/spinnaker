@@ -3,9 +3,7 @@
 const angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.core.pipeline.stage.executionWindows.directive', [
-    require('./executionWindows.controller.js').name,
-  ])
+  .module('spinnaker.core.pipeline.stage.executionWindows.directive', [require('./executionWindows.controller').name])
   .directive('executionWindows', function() {
     return {
       restrict: 'E',

@@ -19,10 +19,10 @@ module.exports = angular.module('spinnaker.core.presentation', [
   AUTO_SCROLL_DIRECTIVE,
   PAGE_NAVIGATOR_COMPONENT,
   PAGE_SECTION_COMPONENT,
-  require('./collapsibleSection/collapsibleSection.directive.js').name,
-  require('./isVisible/isVisible.directive.js').name,
+  require('./collapsibleSection/collapsibleSection.directive').name,
+  require('./isVisible/isVisible.directive').name,
   ROBOT_TO_HUMAN_FILTER,
-  require('./sortToggle/sorttoggle.directive.js').name,
+  require('./sortToggle/sorttoggle.directive').name,
   require('./percent.filter').name,
   REPLACE_FILTER,
 ]);

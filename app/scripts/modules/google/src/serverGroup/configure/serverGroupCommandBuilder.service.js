@@ -9,9 +9,9 @@ import { GCEProviderSettings } from 'google/gce.settings';
 module.exports = angular
   .module('spinnaker.gce.serverGroupCommandBuilder.service', [
     INSTANCE_TYPE_SERVICE,
-    require('google/common/xpnNaming.gce.service.js').name,
-    require('./../../instance/custom/customInstanceBuilder.gce.service.js').name,
-    require('./wizard/hiddenMetadataKeys.value.js').name,
+    require('google/common/xpnNaming.gce.service').name,
+    require('./../../instance/custom/customInstanceBuilder.gce.service').name,
+    require('./wizard/hiddenMetadataKeys.value').name,
   ])
   .factory('gceServerGroupCommandBuilder', function(
     $q,

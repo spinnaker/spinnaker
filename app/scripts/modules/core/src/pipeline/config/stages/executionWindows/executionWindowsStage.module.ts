@@ -10,9 +10,9 @@ export const EXECUTION_WINDOWS_STAGE_MODULE = 'spinnaker.core.pipeline.stage.exe
 
 module(EXECUTION_WINDOWS_STAGE_MODULE, [
   EXECUTION_WINDOWS_STAGE,
-  require('./executionWindows.transformer.js').name,
-  require('./executionWindows.directive.js').name,
+  require('./executionWindows.transformer').name,
+  require('./executionWindows.directive').name,
   EXECUTION_WINDOW_ACTIONS_COMPONENT,
-  require('../stage.module.js').name,
+  require('../stage.module').name,
   STAGE_CORE_MODULE,
 ]);

@@ -3,7 +3,7 @@
 import { AccountService } from '@spinnaker/core';
 
 describe('dcosServerGroupCommandBuilder', function() {
-  beforeEach(window.module(require('./CommandBuilder.js').name));
+  beforeEach(window.module(require('./CommandBuilder').name));
 
   beforeEach(
     window.inject(function(dcosServerGroupCommandBuilder, $q, $rootScope) {

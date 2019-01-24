@@ -8,7 +8,7 @@ module.exports = angular
   .module('spinnaker.openstack.serverGroup.configure.clone', [
     require('@uirouter/angularjs').default,
     SERVER_GROUP_WRITER,
-    require('../serverGroupConfiguration.service.js').name,
+    require('../serverGroupConfiguration.service').name,
   ])
   .controller('openstackCloneServerGroupCtrl', function(
     $scope,

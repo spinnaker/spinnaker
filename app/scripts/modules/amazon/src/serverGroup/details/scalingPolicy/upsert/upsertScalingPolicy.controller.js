@@ -11,10 +11,10 @@ import './upsertScalingPolicy.modal.less';
 
 module.exports = angular
   .module('spinnaker.amazon.serverGroup.details.scalingPolicy.upsertScalingPolicy.controller', [
-    require('exports-loader?"n3-line-chart"!n3-charts/build/LineChart.js'),
-    require('./simple/simplePolicyAction.component.js').name,
+    require('exports-loader?"n3-line-chart"!n3-charts/build/LineChart'),
+    require('./simple/simplePolicyAction.component').name,
     STEP_POLICY_ACTION,
-    require('./alarm/alarmConfigurer.component.js').name,
+    require('./alarm/alarmConfigurer.component').name,
   ])
   .controller('awsUpsertScalingPolicyCtrl', function($uibModalInstance, serverGroup, application, policy) {
     this.serverGroup = serverGroup;

@@ -3,7 +3,7 @@
 import { AccountService, SECURITY_GROUP_READER } from '@spinnaker/core';
 
 describe('Controller: Azure.CreateSecurityGroup', function() {
-  beforeEach(window.module(SECURITY_GROUP_READER, require('./CreateSecurityGroupCtrl.js').name));
+  beforeEach(window.module(SECURITY_GROUP_READER, require('./CreateSecurityGroupCtrl').name));
 
   describe('filtering', function() {
     // Initialize the controller and a mock scope

@@ -18,7 +18,7 @@ describe('Service: clusterFilterService', function() {
   let application: Application;
 
   beforeEach(function() {
-    mock.module(APPLICATION_MODEL_BUILDER, CLUSTER_SERVICE, require('./mockApplicationData.js').name, 'ui.router');
+    mock.module(APPLICATION_MODEL_BUILDER, CLUSTER_SERVICE, require('./mockApplicationData').name, 'ui.router');
     mock.inject(function(
       _applicationJSON_: any,
       _groupedJSON_: any,

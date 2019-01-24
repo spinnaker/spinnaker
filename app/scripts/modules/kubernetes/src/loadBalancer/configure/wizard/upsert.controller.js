@@ -7,8 +7,8 @@ import { AccountService, LoadBalancerWriter, TaskMonitor } from '@spinnaker/core
 module.exports = angular
   .module('spinnaker.loadBalancer.kubernetes.create.controller', [
     require('@uirouter/angularjs').default,
-    require('../../../namespace/selectField.directive.js').name,
-    require('../../transformer.js').name,
+    require('../../../namespace/selectField.directive').name,
+    require('../../transformer').name,
   ])
   .controller('kubernetesUpsertLoadBalancerController', function(
     $scope,

@@ -4,7 +4,7 @@ describe('dcosServerGroupContainerSettingsController', function() {
   var controller;
   var scope;
 
-  beforeEach(window.module(require('./containerSettings.controller.js').name));
+  beforeEach(window.module(require('./containerSettings.controller').name));
 
   beforeEach(
     window.inject(function($rootScope, $controller) {

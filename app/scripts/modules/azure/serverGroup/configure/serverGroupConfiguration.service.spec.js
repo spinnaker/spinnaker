@@ -3,7 +3,7 @@
 describe('Service: azureServerGroupConfiguration', function() {
   var service;
 
-  beforeEach(window.module(require('./serverGroupConfiguration.service.js').name));
+  beforeEach(window.module(require('./serverGroupConfiguration.service').name));
 
   beforeEach(
     window.inject(function(_azureServerGroupConfigurationService_) {

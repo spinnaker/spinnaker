@@ -6,7 +6,7 @@ const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.deck.gce.serverGroup.details.resizeAutoscalingPolicy.component', [
-    require('../../../autoscalingPolicy/autoscalingPolicy.write.service.js').name,
+    require('../../../autoscalingPolicy/autoscalingPolicy.write.service').name,
   ])
   .component('gceResizeAutoscalingPolicy', {
     bindings: {

@@ -3,7 +3,7 @@
 const angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.deck.gce.tagSelector.component', [require('./tagManager.service.js').name])
+  .module('spinnaker.deck.gce.tagSelector.component', [require('./tagManager.service').name])
   .component('gceTagSelector', {
     bindings: {
       command: '=',

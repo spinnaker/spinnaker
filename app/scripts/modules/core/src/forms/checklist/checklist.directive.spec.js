@@ -3,7 +3,7 @@
 describe('Directives: checklist', function() {
   require('./checklist.directive.html');
 
-  beforeEach(window.module(require('./checklist.directive.js').name));
+  beforeEach(window.module(require('./checklist.directive').name));
 
   beforeEach(
     window.inject(function($rootScope, $compile) {

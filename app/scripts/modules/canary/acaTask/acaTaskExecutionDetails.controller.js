@@ -7,7 +7,7 @@ import { ClusterState, SETTINGS } from '@spinnaker/core';
 module.exports = angular
   .module('spinnaker.canary.acaTask.details.controller', [
     require('@uirouter/angularjs').default,
-    require('../canary/canaryDeployment/canaryDeploymentHistory.service.js').name,
+    require('../canary/canaryDeployment/canaryDeploymentHistory.service').name,
   ])
   .controller('acaTaskExecutionDetailsCtrl', function(
     $scope,

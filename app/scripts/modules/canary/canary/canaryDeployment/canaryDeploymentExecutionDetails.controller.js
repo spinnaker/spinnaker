@@ -8,7 +8,7 @@ module.exports = angular
   .module('spinnaker.canary.canaryDeployment.details.controller', [
     require('@uirouter/angularjs').default,
     URL_BUILDER_SERVICE,
-    require('./canaryDeploymentHistory.service.js').name,
+    require('./canaryDeploymentHistory.service').name,
   ])
   .controller('CanaryDeploymentExecutionDetailsCtrl', function(
     $scope,

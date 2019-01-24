@@ -8,7 +8,7 @@ import { CloudProviderRegistry } from 'core/cloudProvider';
 const angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.deck.core.viewSnapshotDiff.component', [require('./snapshotDiff.modal.controller.js').name])
+  .module('spinnaker.deck.core.viewSnapshotDiff.component', [require('./snapshotDiff.modal.controller').name])
   .component('viewSnapshotDiffButton', {
     bindings: {
       application: '=',

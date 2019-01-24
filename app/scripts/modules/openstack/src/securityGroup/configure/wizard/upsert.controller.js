@@ -15,8 +15,8 @@ module.exports = angular
   .module('spinnaker.securityGroup.openstack.create.controller', [
     require('@uirouter/angularjs').default,
     SECURITY_GROUP_READER,
-    require('../../../region/regionSelectField.directive.js').name,
-    require('../../transformer.js').name,
+    require('../../../region/regionSelectField.directive').name,
+    require('../../transformer').name,
   ])
   .controller('openstackUpsertSecurityGroupController', function(
     $q,

@@ -7,7 +7,7 @@ describe('Directives: stageConfigField', function() {
 
   require('./stageConfigField.directive.html');
 
-  beforeEach(window.module(require('./stageConfigField.directive.js').name));
+  beforeEach(window.module(require('./stageConfigField.directive').name));
 
   // https://docs.angularjs.org/guide/migration#migrate1.5to1.6-ng-services-$compile
   beforeEach(

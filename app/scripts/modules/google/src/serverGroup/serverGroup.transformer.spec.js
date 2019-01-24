@@ -2,7 +2,7 @@
 
 describe('gceServerGroupTransformer', () => {
   let transformer, $q, $scope;
-  beforeEach(window.module(require('./serverGroup.transformer.js').name));
+  beforeEach(window.module(require('./serverGroup.transformer').name));
 
   beforeEach(() => {
     window.inject((_$q_, $rootScope, _gceServerGroupTransformer_) => {

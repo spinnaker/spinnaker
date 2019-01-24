@@ -6,7 +6,7 @@ import { PipelineTriggerTemplate } from './PipelineTriggerTemplate';
 describe('Pipeline Trigger: ExecutionHandler', function() {
   var $scope, $q;
 
-  beforeEach(window.module(require('./pipelineTrigger.module.js').name));
+  beforeEach(window.module(require('./pipelineTrigger.module').name));
 
   beforeEach(
     window.inject(function($rootScope, _$q_) {

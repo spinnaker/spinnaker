@@ -6,9 +6,7 @@ import _ from 'lodash';
 import { AccountService } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.openstack.region.regionSelectField.directive', [
-    require('../common/selectField.component.js').name,
-  ])
+  .module('spinnaker.openstack.region.regionSelectField.directive', [require('../common/selectField.component').name])
   .directive('osRegionSelectField', function() {
     return {
       restrict: 'E',

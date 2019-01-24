@@ -6,8 +6,8 @@ require('./advancedSettings.directive.html');
 describe('Directive: GCE Group Advanced Settings Selector', function() {
   beforeEach(
     window.module(
-      require('./advancedSettingsSelector.directive.js').name,
-      require('../securityGroups/tagManager.service.js').name,
+      require('./advancedSettingsSelector.directive').name,
+      require('../securityGroups/tagManager.service').name,
     ),
   );
 

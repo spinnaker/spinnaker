@@ -3,7 +3,7 @@
 describe('Controller: ConfirmationModal', function() {
   var controller, params, $scope, modalInstance;
 
-  beforeEach(window.module(require('./confirmationModal.controller.js').name));
+  beforeEach(window.module(require('./confirmationModal.controller').name));
 
   beforeEach(
     window.inject(function($controller, $rootScope) {

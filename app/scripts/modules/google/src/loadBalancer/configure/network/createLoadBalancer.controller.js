@@ -7,8 +7,8 @@ import { AccountService, LoadBalancerWriter, TaskMonitor, ModalWizard } from '@s
 module.exports = angular
   .module('spinnaker.loadBalancer.gce.create.controller', [
     require('@uirouter/angularjs').default,
-    require('../../loadBalancer.transformer.js').name,
-    require('../../../gceRegionSelectField.directive.js').name,
+    require('../../loadBalancer.transformer').name,
+    require('../../../gceRegionSelectField.directive').name,
   ])
   .controller('gceCreateLoadBalancerCtrl', function(
     $scope,

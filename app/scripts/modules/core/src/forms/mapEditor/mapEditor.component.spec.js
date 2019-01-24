@@ -3,7 +3,7 @@
 describe('Component: mapEditor', function() {
   var scope;
 
-  beforeEach(window.module(require('./mapEditor.component.js').name));
+  beforeEach(window.module(require('./mapEditor.component').name));
 
   // https://docs.angularjs.org/guide/migration#migrate1.5to1.6-ng-services-$compile
   beforeEach(

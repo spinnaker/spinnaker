@@ -7,7 +7,7 @@ import { AccountService, FirewallLabels } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.amazon.securityGroup.clone.controller', [
-    require('../configure/configSecurityGroup.mixin.controller.js').name,
+    require('../configure/configSecurityGroup.mixin.controller').name,
   ])
   .controller('awsCloneSecurityGroupController', function(
     $scope,

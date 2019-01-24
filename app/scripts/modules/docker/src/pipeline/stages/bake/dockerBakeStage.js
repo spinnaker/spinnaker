@@ -11,7 +11,7 @@ import { AuthenticationService, BakeExecutionLabel, BakeryReader, Registry } fro
   execution details.
  */
 module.exports = angular
-  .module('spinnaker.docker.pipeline.stage.bakeStage', [require('./bakeExecutionDetails.controller.js').name])
+  .module('spinnaker.docker.pipeline.stage.bakeStage', [require('./bakeExecutionDetails.controller').name])
   .config(function() {
     Registry.pipeline.registerStage({
       provides: 'bake',

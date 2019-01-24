@@ -8,7 +8,7 @@ Error.stackTraceLimit = Infinity;
 // jquery has to be first or many a test will break
 global.$ = global.jQuery = require('jquery');
 
-require('./settings.js');
+require('./settings');
 require('./app/scripts/app');
 
 // angular 1 test harnesss

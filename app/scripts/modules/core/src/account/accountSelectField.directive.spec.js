@@ -3,7 +3,7 @@
 import { AccountService } from 'core/account/AccountService';
 
 describe('Directives: accountSelectField', function() {
-  beforeEach(window.module(require('./accountSelectField.directive.js').name));
+  beforeEach(window.module(require('./accountSelectField.directive').name));
 
   var scope, accounts, ctrl, $q;
 

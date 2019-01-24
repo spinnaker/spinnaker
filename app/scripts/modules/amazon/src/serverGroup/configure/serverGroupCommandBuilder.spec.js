@@ -7,7 +7,7 @@ import { AWSProviderSettings } from 'amazon/aws.settings';
 describe('awsServerGroupCommandBuilder', function() {
   const AccountServiceFixture = require('./AccountServiceFixtures');
 
-  beforeEach(window.module(require('./serverGroupCommandBuilder.service.js').name));
+  beforeEach(window.module(require('./serverGroupCommandBuilder.service').name));
 
   beforeEach(
     window.inject(function(awsServerGroupCommandBuilder, $q, $rootScope, instanceTypeService) {

@@ -10,7 +10,7 @@ module.exports = angular
     require('@uirouter/angularjs').default,
     require('angular-ui-bootstrap'),
     IMAGE_READER,
-    require('../../../../instance/osInstanceTypeSelectField.directive.js').name,
+    require('../../../../instance/osInstanceTypeSelectField.directive').name,
   ])
   .controller('openstackServerGroupInstanceSettingsCtrl', function(
     $scope,

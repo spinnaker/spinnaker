@@ -19,7 +19,7 @@ module.exports = angular
     require('@uirouter/angularjs').default,
     SECURITY_GROUP_READER,
     CONFIRMATION_MODAL_SERVICE,
-    require('../clone/cloneSecurityGroup.controller.js').name,
+    require('../clone/cloneSecurityGroup.controller').name,
   ])
   .controller('awsSecurityGroupDetailsCtrl', function(
     $scope,

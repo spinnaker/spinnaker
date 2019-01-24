@@ -3,8 +3,8 @@
 const angular = require('angular');
 
 module.exports = angular.module('spinnaker.securityGroup.configure.kubernetes', [
-  require('./wizard/backend.controller.js').name,
-  require('./wizard/rules.controller.js').name,
-  require('./wizard/tls.controller.js').name,
-  require('./wizard/upsert.controller.js').name,
+  require('./wizard/backend.controller').name,
+  require('./wizard/rules.controller').name,
+  require('./wizard/tls.controller').name,
+  require('./wizard/upsert.controller').name,
 ]);

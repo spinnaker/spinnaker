@@ -8,7 +8,7 @@ import { SETTINGS } from 'core/config/settings';
 describe('Controller: ApplicationProviderFieldsCtrl', function() {
   let controller, scope;
 
-  beforeEach(window.module(require('./applicationProviderFields.component.js').name));
+  beforeEach(window.module(require('./applicationProviderFields.component').name));
 
   beforeEach(() => {
     SETTINGS.providers.aws.defaultPath = '/path/to/somewhere';

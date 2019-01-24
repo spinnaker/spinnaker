@@ -7,7 +7,7 @@ import { AccountService, LOAD_BALANCER_READ_SERVICE, LoadBalancerWriter, TaskMon
 module.exports = angular
   .module('spinnaker.dcos.loadBalancer.create.controller', [
     LOAD_BALANCER_READ_SERVICE,
-    require('../../transformer.js').name,
+    require('../../transformer').name,
   ])
   .controller('dcosUpsertLoadBalancerController', function(
     $scope,

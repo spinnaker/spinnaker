@@ -11,7 +11,7 @@ import { Registry } from 'core/registry';
 import { SETTINGS } from 'core/config/settings';
 
 module.exports = angular
-  .module('spinnaker.core.pipeline.config.trigger.pipeline', [require('../trigger.directive.js').name])
+  .module('spinnaker.core.pipeline.config.trigger.pipeline', [require('../trigger.directive').name])
   .config(function() {
     Registry.pipeline.registerTrigger({
       label: 'Pipeline',

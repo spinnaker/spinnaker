@@ -6,9 +6,7 @@ import _ from 'lodash';
 import { SubnetReader } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.openstack.subnet.subnetSelectField.directive', [
-    require('../common/selectField.component.js').name,
-  ])
+  .module('spinnaker.openstack.subnet.subnetSelectField.directive', [require('../common/selectField.component').name])
   .directive('osSubnetSelectField', function() {
     return {
       restrict: 'E',

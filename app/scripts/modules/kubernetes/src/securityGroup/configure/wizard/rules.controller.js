@@ -3,7 +3,7 @@
 const angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.securityGroup.configure.kubernetes.ports', [require('../../transformer.js').name])
+  .module('spinnaker.securityGroup.configure.kubernetes.ports', [require('../../transformer').name])
   .controller('kubernetesSecurityGroupRulesController', function($scope, kubernetesSecurityGroupTransformer) {
     this.addRule = function() {
       $scope.securityGroup.rules.push(kubernetesSecurityGroupTransformer.constructNewIngressRule());

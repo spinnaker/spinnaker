@@ -4,7 +4,7 @@ describe('dcosServerGroupNetworkController', function() {
   var controller;
   var scope;
 
-  beforeEach(window.module(require('./network.controller.js').name));
+  beforeEach(window.module(require('./network.controller').name));
 
   beforeEach(
     window.inject(function($rootScope, $controller) {

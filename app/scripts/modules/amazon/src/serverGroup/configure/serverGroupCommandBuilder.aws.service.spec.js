@@ -5,7 +5,7 @@ import { AccountService, SubnetReader } from '@spinnaker/core';
 import { AWSProviderSettings } from 'amazon/aws.settings';
 
 describe('Service: awsServerGroup', function() {
-  beforeEach(window.module(require('./serverGroupCommandBuilder.service.js').name));
+  beforeEach(window.module(require('./serverGroupCommandBuilder.service').name));
 
   beforeEach(
     window.inject(function(_$httpBackend_, awsServerGroupCommandBuilder, _instanceTypeService_, _$q_, $rootScope) {

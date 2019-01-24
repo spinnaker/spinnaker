@@ -15,7 +15,7 @@ import { GCE_HEALTH_CHECK_READER } from '../healthCheck/healthCheck.read.service
 
 module.exports = angular
   .module('spinnaker.gce.cache.initializer', [
-    require('../backendService/backendService.reader.js').name,
+    require('../backendService/backendService.reader').name,
     GCE_ADDRESS_READER,
     GCE_HEALTH_CHECK_READER,
     INSTANCE_TYPE_SERVICE,

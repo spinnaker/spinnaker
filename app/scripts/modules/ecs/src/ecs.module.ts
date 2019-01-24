@@ -19,7 +19,7 @@ import { ECS_SERVER_GROUP_LOGGING } from './serverGroup/configure/wizard/logging
 
 import './logo/ecs.logo.less';
 
-require('./ecs.settings.ts');
+require('./ecs.settings');
 
 // load all templates into the $templateCache
 const templates = require.context('./', true, /\.html$/);
@@ -56,7 +56,7 @@ angular
     require('./pipeline/stages/resizeAsg/ecsResizeAsgStage').name,
     require('./pipeline/stages/scaleDownCluster/ecsScaleDownClusterStage').name,
     require('./pipeline/stages/shrinkCluster/ecsShrinkClusterStage').name,
-    require('./securityGroup/securityGroup.transformer.js').name,
+    require('./securityGroup/securityGroup.transformer').name,
     ECS_SERVERGROUP_MODULE,
   ])
   .config(function() {

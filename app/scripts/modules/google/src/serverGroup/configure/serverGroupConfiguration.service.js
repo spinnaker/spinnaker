@@ -24,12 +24,12 @@ module.exports = angular
     SECURITY_GROUP_READER,
     CACHE_INITIALIZER_SERVICE,
     LOAD_BALANCER_READ_SERVICE,
-    require('../../image/image.reader.js').name,
-    require('../../instance/gceInstanceType.service.js').name,
-    require('./../../instance/custom/customInstanceBuilder.gce.service.js').name,
+    require('../../image/image.reader').name,
+    require('../../instance/gceInstanceType.service').name,
+    require('./../../instance/custom/customInstanceBuilder.gce.service').name,
     GCE_HTTP_LOAD_BALANCER_UTILS,
     GCE_HEALTH_CHECK_READER,
-    require('./wizard/securityGroups/tagManager.service.js').name,
+    require('./wizard/securityGroups/tagManager.service').name,
   ])
   .factory('gceServerGroupConfigurationService', function(
     gceImageReader,

@@ -130,7 +130,7 @@ export class WerckerTrigger implements IController {
 }
 
 export const WERCKER_TRIGGER = 'spinnaker.core.pipeline.config.trigger.wercker';
-module(WERCKER_TRIGGER, [require('../trigger.directive.js').name])
+module(WERCKER_TRIGGER, [require('../trigger.directive').name])
   .config(() => {
     Registry.pipeline.registerTrigger({
       label: 'Wercker',

@@ -4,7 +4,7 @@ describe('dcosServerGroupVolumesController', function() {
   var controller;
   var scope;
 
-  beforeEach(window.module(require('./volumes.controller.js').name));
+  beforeEach(window.module(require('./volumes.controller').name));
 
   beforeEach(
     window.inject(function($rootScope, $controller) {

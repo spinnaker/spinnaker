@@ -4,7 +4,7 @@ describe('dcosServerGroupHealthChecksController', function() {
   var controller;
   var scope;
 
-  beforeEach(window.module(require('./healthChecks.controller.js').name));
+  beforeEach(window.module(require('./healthChecks.controller').name));
 
   beforeEach(
     window.inject(function($rootScope, $controller) {

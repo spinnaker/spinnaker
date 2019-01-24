@@ -5,7 +5,7 @@ const angular = require('angular');
 module.exports = angular
   .module('spinnaker.deck.gce.loadBalancer.hostAndPathRulesButton.component', [
     require('angular-ui-bootstrap'),
-    require('./hostAndPathRules.controller.js').name,
+    require('./hostAndPathRules.controller').name,
   ])
   .component('gceHostAndPathRulesButton', {
     bindings: {

@@ -9,13 +9,13 @@ import { KUBERNETES_CONTAINER_ENVIRONMENT_FROM } from 'kubernetes/container/envi
 
 module.exports = angular
   .module('spinnaker.kubernetes.pipeline.stage.runJobStage.configure', [
-    require('kubernetes/container/commands.component.js').name,
-    require('kubernetes/container/arguments.component.js').name,
-    require('kubernetes/container/environmentVariables.component.js').name,
-    require('kubernetes/container/volumes.component.js').name,
-    require('kubernetes/container/ports.component.js').name,
-    require('kubernetes/container/resources.component.js').name,
-    require('kubernetes/container/probe.directive.js').name,
+    require('kubernetes/container/commands.component').name,
+    require('kubernetes/container/arguments.component').name,
+    require('kubernetes/container/environmentVariables.component').name,
+    require('kubernetes/container/volumes.component').name,
+    require('kubernetes/container/ports.component').name,
+    require('kubernetes/container/resources.component').name,
+    require('kubernetes/container/probe.directive').name,
     KUBERNETES_LIFECYCLE_HOOK_CONFIGURER,
     KUBERNETES_CONTAINER_ENVIRONMENT_FROM,
   ])

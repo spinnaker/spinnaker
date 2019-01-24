@@ -23,7 +23,7 @@ module.exports = angular
     CONFIRMATION_MODAL_SERVICE,
     OVERRIDE_REGISTRY,
     SERVER_GROUP_WRITER,
-    require('../configure/serverGroupCommandBuilder.service.js').name,
+    require('../configure/serverGroupCommandBuilder.service').name,
     require('./resize/resizeServerGroup.controller').name,
     require('./rollback/rollbackServerGroup.controller').name,
   ])

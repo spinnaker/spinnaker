@@ -15,11 +15,11 @@ import '../../loadBalancer.less';
 module.exports = angular
   .module('spinnaker.loadBalancer.openstack.create.controller', [
     require('@uirouter/angularjs').default,
-    require('../../transformer.js').name,
-    require('../../../region/regionSelectField.directive.js').name,
-    require('../../../subnet/subnetSelectField.directive.js').name,
-    require('../../../network/networkSelectField.directive.js').name,
-    require('../../../common/isolateForm.directive.js').name,
+    require('../../transformer').name,
+    require('../../../region/regionSelectField.directive').name,
+    require('../../../subnet/subnetSelectField.directive').name,
+    require('../../../network/networkSelectField.directive').name,
+    require('../../../common/isolateForm.directive').name,
     SECURITY_GROUP_READER,
   ])
   .controller('openstackUpsertLoadBalancerController', function(

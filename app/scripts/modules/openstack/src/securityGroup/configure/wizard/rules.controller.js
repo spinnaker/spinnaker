@@ -6,8 +6,8 @@ import { FirewallLabels, InfrastructureCaches, SECURITY_GROUP_READER } from '@sp
 
 module.exports = angular
   .module('spinnaker.securityGroup.configure.openstack.ports', [
-    require('../../transformer.js').name,
-    require('../../../common/validateType.directive.js').name,
+    require('../../transformer').name,
+    require('../../../common/validateType.directive').name,
     SECURITY_GROUP_READER,
   ])
   .controller('openstackSecurityGroupRulesController', function(

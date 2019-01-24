@@ -132,6 +132,6 @@ export class V2InstanceArchetypeSelector implements IComponentOptions {
 
 export const V2_INSTANCE_ARCHETYPE_SELECTOR = 'spinnaker.core.serverGroup.configure.common.v2instanceArchetypeSelector';
 module(V2_INSTANCE_ARCHETYPE_SELECTOR, [
-  require('./costFactor.js').name,
-  require('core/presentation/isVisible/isVisible.directive.js').name,
+  require('./costFactor').name,
+  require('core/presentation/isVisible/isVisible.directive').name,
 ]).component('v2InstanceArchetypeSelector', new V2InstanceArchetypeSelector());

@@ -187,7 +187,7 @@ export class ServerGroupWriter {
 }
 
 export const SERVER_GROUP_WRITER = 'spinnaker.core.serverGroup.write.service';
-module(SERVER_GROUP_WRITER, [require('./serverGroup.transformer.js').name]).service(
+module(SERVER_GROUP_WRITER, [require('./serverGroup.transformer').name]).service(
   'serverGroupWriter',
   ServerGroupWriter,
 );

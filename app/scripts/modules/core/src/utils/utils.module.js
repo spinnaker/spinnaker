@@ -12,7 +12,7 @@ module.exports = angular.module('spinnaker.utils', [
   COPY_TO_CLIPBOARD_COMPONENT,
   TIME_FORMATTERS,
   SELECT_ON_DOUBLE_CLICK_DIRECTIVE,
-  require('./infiniteScroll.directive.js').name,
+  require('./infiniteScroll.directive').name,
   RENDER_IF_FEATURE,
   UIB_MODAL_REJECTIONS,
   require('./waypoints/waypoint.directive').name,

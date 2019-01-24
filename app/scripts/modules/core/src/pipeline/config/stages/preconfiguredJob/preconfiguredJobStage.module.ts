@@ -7,7 +7,7 @@ import { PRECONFIGUREDJOB_STAGE } from './preconfiguredJobStage';
 export const PRECONFIGUREDJOB_STAGE_MODULE = 'spinnaker.core.pipeline.stage.preconfiguredjob';
 module(PRECONFIGUREDJOB_STAGE_MODULE, [
   PRECONFIGUREDJOB_STAGE,
-  require('../stage.module.js').name,
+  require('../stage.module').name,
   STAGE_CORE_MODULE,
   TIME_FORMATTERS,
 ]);

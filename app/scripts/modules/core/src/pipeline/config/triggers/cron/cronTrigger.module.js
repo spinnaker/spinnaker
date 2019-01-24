@@ -12,8 +12,8 @@ import './cronTrigger.less';
 module.exports = angular
   .module('spinnaker.core.pipeline.trigger.cron', [
     require('angular-cron-gen'),
-    require('../trigger.directive.js').name,
-    require('./cron.validator.directive.js').name,
+    require('../trigger.directive').name,
+    require('./cron.validator.directive').name,
   ])
   .config(function() {
     Registry.pipeline.registerTrigger({

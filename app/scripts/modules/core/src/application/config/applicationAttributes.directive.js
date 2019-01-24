@@ -8,7 +8,7 @@ import { OVERRIDE_REGISTRY } from 'core/overrideRegistry/override.registry';
 
 module.exports = angular
   .module('spinnaker.core.application.config.attributes.directive', [
-    require('../modal/editApplication.controller.modal.js').name,
+    require('../modal/editApplication.controller.modal').name,
     OVERRIDE_REGISTRY,
   ])
   .directive('applicationAttributes', function(overrideRegistry) {

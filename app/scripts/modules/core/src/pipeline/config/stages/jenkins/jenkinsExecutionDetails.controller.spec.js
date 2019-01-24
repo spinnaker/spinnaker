@@ -3,7 +3,7 @@
 describe('Jenkins Execution Details Controller:', function() {
   var $scope;
 
-  beforeEach(window.module(require('./jenkinsExecutionDetails.controller.js').name));
+  beforeEach(window.module(require('./jenkinsExecutionDetails.controller').name));
 
   beforeEach(
     window.inject(function($controller, $rootScope) {

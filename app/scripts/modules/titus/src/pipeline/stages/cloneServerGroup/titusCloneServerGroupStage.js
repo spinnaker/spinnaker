@@ -7,7 +7,7 @@ import { AccountService, NameUtils, Registry, StageConstants } from '@spinnaker/
 
 module.exports = angular
   .module('spinnaker.titus.pipeline.stage.cloneServerGroupStage', [
-    require('./cloneServerGroupExecutionDetails.controller.js').name,
+    require('./cloneServerGroupExecutionDetails.controller').name,
   ])
   .config(function() {
     Registry.pipeline.registerStage({

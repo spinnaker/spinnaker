@@ -6,7 +6,7 @@ import { InfrastructureCaches } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.kubernetes.serverGroup.configure.loadBalancers.controller', [
-    require('../configuration.service.js').name,
+    require('../configuration.service').name,
   ])
   .controller('kubernetesServerGroupLoadBalancersController', function(
     kubernetesServerGroupConfigurationService,

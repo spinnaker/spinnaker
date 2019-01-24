@@ -9,7 +9,7 @@ import './consoleOutput.modal.less';
 module.exports = angular
   .module('spinnaker.core.instance.details.console.link', [
     require('angular-ui-bootstrap'),
-    require('./consoleOutput.modal.controller.js').name,
+    require('./consoleOutput.modal.controller').name,
   ])
   .directive('consoleOutputLink', function() {
     return {

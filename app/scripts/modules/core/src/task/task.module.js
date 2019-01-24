@@ -9,11 +9,11 @@ import { TASK_STATES } from './task.states';
 import './tasks.less';
 
 module.exports = angular.module('spinnaker.core.task', [
-  require('./verification/userVerification.directive.js').name,
+  require('./verification/userVerification.directive').name,
   require('./modal/reason.directive').name,
-  require('./monitor/taskMonitor.module.js').name,
+  require('./monitor/taskMonitor.module').name,
   STATUS_GLYPH_COMPONENT,
-  require('./tasks.controller.js').name,
+  require('./tasks.controller').name,
   require('./task.dataSource').name,
   TASK_STATES,
   PLATFORM_HEALTH_OVERRIDE_MESSAGE,

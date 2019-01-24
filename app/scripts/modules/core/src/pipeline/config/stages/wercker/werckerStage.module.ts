@@ -9,7 +9,7 @@ import { WERCKER_STAGE_ADD_PARAMETER_MODAL_CONTROLLER } from './modal/addParamet
 export const WERCKER_STAGE_MODULE = 'spinnaker.core.pipeline.stage.wercker';
 module(WERCKER_STAGE_MODULE, [
   WERCKER_STAGE,
-  require('../stage.module.js').name,
+  require('../stage.module').name,
   STAGE_CORE_MODULE,
   TIME_FORMATTERS,
   WERCKER_EXECUTION_DETAILS_CONTROLLER,

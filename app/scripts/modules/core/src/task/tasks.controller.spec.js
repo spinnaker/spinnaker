@@ -6,7 +6,7 @@ describe('Controller: tasks', function() {
   var scope;
   var $q;
 
-  beforeEach(window.module(require('./tasks.controller.js').name, APPLICATION_MODEL_BUILDER));
+  beforeEach(window.module(require('./tasks.controller').name, APPLICATION_MODEL_BUILDER));
 
   beforeEach(
     window.inject(function($controller, $rootScope, _$q_, applicationModelBuilder) {

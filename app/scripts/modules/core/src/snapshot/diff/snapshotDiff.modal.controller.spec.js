@@ -3,7 +3,7 @@
 import { JsonUtils } from 'core/utils';
 
 describe('Controller: SnapshotDiffModalCtrl', function() {
-  beforeEach(window.module(require('./snapshotDiff.modal.controller.js').name));
+  beforeEach(window.module(require('./snapshotDiff.modal.controller').name));
 
   beforeEach(
     window.inject(function($controller, $filter) {

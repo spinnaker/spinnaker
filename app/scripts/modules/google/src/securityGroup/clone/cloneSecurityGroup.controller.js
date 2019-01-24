@@ -7,7 +7,7 @@ import { AccountService, FirewallLabels } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.google.securityGroup.clone.controller', [
-    require('../configure/ConfigSecurityGroupMixin.controller.js').name,
+    require('../configure/ConfigSecurityGroupMixin.controller').name,
   ])
   .controller('gceCloneSecurityGroupController', function(
     $scope,

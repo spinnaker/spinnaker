@@ -10,10 +10,10 @@ import { parseHealthCheckUrl } from 'google/healthCheck/healthCheckUtils';
 module.exports = angular
   .module('spinnaker.serverGroup.configure.gce.cloneServerGroup', [
     require('@uirouter/angularjs').default,
-    require('google/instance/custom/customInstanceBuilder.gce.service.js').name,
+    require('google/instance/custom/customInstanceBuilder.gce.service').name,
     INSTANCE_TYPE_SERVICE,
-    require('./hiddenMetadataKeys.value.js').name,
-    require('./securityGroups/tagManager.service.js').name,
+    require('./hiddenMetadataKeys.value').name,
+    require('./securityGroups/tagManager.service').name,
   ])
   .controller('gceCloneServerGroupCtrl', function(
     $scope,

@@ -14,7 +14,7 @@ import './metricAlarmChart.component.less';
 
 module.exports = angular
   .module('spinnaker.amazon.serverGroup.details.scalingPolicy.metricAlarmChart.component', [
-    require('exports-loader?"n3-line-chart"!n3-charts/build/LineChart.js'),
+    require('exports-loader?"n3-line-chart"!n3-charts/build/LineChart'),
   ])
   .component('metricAlarmChart', {
     bindings: {

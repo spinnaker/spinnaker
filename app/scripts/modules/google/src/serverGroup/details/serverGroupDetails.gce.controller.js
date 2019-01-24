@@ -14,21 +14,21 @@ import {
   ServerGroupTemplates,
 } from '@spinnaker/core';
 
-require('../configure/serverGroup.configure.gce.module.js');
+require('../configure/serverGroup.configure.gce.module');
 
 import './serverGroupDetails.less';
 
 module.exports = angular
   .module('spinnaker.serverGroup.details.gce.controller', [
     require('@uirouter/angularjs').default,
-    require('../configure/serverGroupCommandBuilder.service.js').name,
+    require('../configure/serverGroupCommandBuilder.service').name,
     CONFIRMATION_MODAL_SERVICE,
     SERVER_GROUP_WRITER,
-    require('google/common/xpnNaming.gce.service.js').name,
+    require('google/common/xpnNaming.gce.service').name,
     require('./resize/resizeServerGroup.controller').name,
     require('./rollback/rollbackServerGroup.controller').name,
-    require('./autoscalingPolicy/autoscalingPolicy.directive.js').name,
-    require('./autoscalingPolicy/addAutoscalingPolicyButton.component.js').name,
+    require('./autoscalingPolicy/autoscalingPolicy.directive').name,
+    require('./autoscalingPolicy/addAutoscalingPolicyButton.component').name,
   ])
   .controller('gceServerGroupDetailsCtrl', function(
     $scope,

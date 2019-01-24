@@ -4,7 +4,7 @@ describe('dcosServerGroupEnvironmentVariablesController', function() {
   var controller;
   var scope;
 
-  beforeEach(window.module(require('./environmentVariables.controller.js').name));
+  beforeEach(window.module(require('./environmentVariables.controller').name));
 
   beforeEach(
     window.inject(function($rootScope, $controller) {

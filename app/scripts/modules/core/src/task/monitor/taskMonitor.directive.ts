@@ -9,7 +9,7 @@ export const TASKS_MONITOR_DIRECTIVE = 'spinnaker.tasks.monitor.directive';
 
 const ngmodule = module(TASKS_MONITOR_DIRECTIVE, [
   AUTO_SCROLL_DIRECTIVE,
-  require('../../modal/modalOverlay.directive.js').name,
+  require('../../modal/modalOverlay.directive').name,
   MODAL_CLOSE_COMPONENT,
   require('./taskMonitorError.component').name,
   require('./taskMonitorStatus.component').name,

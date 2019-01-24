@@ -9,7 +9,7 @@ import { WEBHOOK_STAGE_ADD_CUSTOM_HEADER_MODAL_CONTROLLER } from './modal/addCus
 export const WEBHOOK_STAGE_MODULE = 'spinnaker.core.pipeline.stage.webhook';
 module(WEBHOOK_STAGE_MODULE, [
   WEBHOOK_STAGE,
-  require('../stage.module.js').name,
+  require('../stage.module').name,
   STAGE_CORE_MODULE,
   TIME_FORMATTERS,
   WEBHOOK_EXECUTION_DETAILS_CONTROLLER,

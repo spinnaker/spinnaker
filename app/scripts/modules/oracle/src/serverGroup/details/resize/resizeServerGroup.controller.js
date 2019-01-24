@@ -6,8 +6,8 @@ import { TaskMonitor } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.oracle.serverGroup.details.resize.controller', [
-    require('./resizeCapacity.component.js').name,
-    require('oracle/common/footer.component.js').name,
+    require('./resizeCapacity.component').name,
+    require('oracle/common/footer.component').name,
   ])
   .controller('oracleResizeServerGroupCtrl', function($scope, $uibModalInstance, application, serverGroup) {
     $scope.serverGroup = serverGroup;

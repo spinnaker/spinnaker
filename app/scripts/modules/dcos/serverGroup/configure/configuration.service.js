@@ -7,7 +7,7 @@ import { AccountService } from '@spinnaker/core';
 const angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.dcos.serverGroup.configure.configuration.service', [require('../../image/image.reader.js').name])
+  .module('spinnaker.dcos.serverGroup.configure.configuration.service', [require('../../image/image.reader').name])
   .factory('dcosServerGroupConfigurationService', function($q, dcosImageReader) {
     function configureCommand(application, command, query = '') {
       let queries = command.docker.image ? [grabImageAndTag(command.docker.image.imageId)] : [];

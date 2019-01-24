@@ -17,7 +17,7 @@ module.exports = angular
     require('@uirouter/angularjs').default,
     APPLICATION_NAME_VALIDATION_MESSAGES,
     VALIDATE_APPLICATION_NAME,
-    require('./applicationProviderFields.component.js').name,
+    require('./applicationProviderFields.component').name,
     CHAOS_MONKEY_NEW_APPLICATION_CONFIG_COMPONENT,
   ])
   .controller('CreateApplicationModalCtrl', function($scope, $q, $log, $state, $uibModalInstance, $timeout) {

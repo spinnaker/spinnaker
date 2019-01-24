@@ -3,7 +3,7 @@
 describe('Basic Settings Mixin Controller:', function() {
   var controller, $scope;
 
-  beforeEach(window.module(require('./basicSettingsMixin.controller.js').name));
+  beforeEach(window.module(require('./basicSettingsMixin.controller').name));
 
   beforeEach(
     window.inject(function($controller, $rootScope) {

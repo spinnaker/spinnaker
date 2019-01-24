@@ -3,9 +3,7 @@
 const angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.core.pipeline.config.preconditions.service', [
-    require('./preconditionTypeConfig.provider.js').name,
-  ])
+  .module('spinnaker.core.pipeline.config.preconditions.service', [require('./preconditionTypeConfig.provider').name])
   .factory('preconditionTypeService', function(preconditionTypeConfig) {
     function listPreconditionTypes() {
       return preconditionTypeConfig.listPreconditionTypes();

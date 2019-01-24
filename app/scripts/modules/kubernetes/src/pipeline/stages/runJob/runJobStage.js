@@ -10,13 +10,13 @@ const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.kubernetes.pipeline.stage.runJobStage', [
-    require('kubernetes/container/commands.component.js').name,
-    require('kubernetes/container/arguments.component.js').name,
-    require('kubernetes/container/environmentVariables.component.js').name,
-    require('kubernetes/container/volumes.component.js').name,
-    require('kubernetes/image/image.reader.js').name,
-    require('./runJobExecutionDetails.controller.js').name,
-    require('./configureJob.controller.js').name,
+    require('kubernetes/container/commands.component').name,
+    require('kubernetes/container/arguments.component').name,
+    require('kubernetes/container/environmentVariables.component').name,
+    require('kubernetes/container/volumes.component').name,
+    require('kubernetes/image/image.reader').name,
+    require('./runJobExecutionDetails.controller').name,
+    require('./configureJob.controller').name,
     KUBERNETES_IMAGE_ID_FILTER,
   ])
   .config(function() {

@@ -7,7 +7,7 @@ import { GCE_UPSERT_AUTOHEALING_POLICY_MODAL_CTRL } from './autoHealingPolicy/mo
 const angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.details.gce', [
-  require('./serverGroupDetails.gce.controller.js').name,
+  require('./serverGroupDetails.gce.controller').name,
   GCE_ADD_AUTOHEALING_POLICY_BUTTON,
   GCE_UPSERT_AUTOHEALING_POLICY_MODAL_CTRL,
   GCE_AUTOHEALING_POLICY_DETAILS,

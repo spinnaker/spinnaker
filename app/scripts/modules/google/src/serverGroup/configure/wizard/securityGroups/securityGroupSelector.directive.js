@@ -6,9 +6,9 @@ import { InfrastructureCaches } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.google.serverGroup.configure.wizard.securityGroups.selector.directive', [
-    require('../../serverGroupConfiguration.service.js').name,
-    require('./tagSelectorGenerator.component.js').name,
-    require('./tagManager.service.js').name,
+    require('../../serverGroupConfiguration.service').name,
+    require('./tagSelectorGenerator.component').name,
+    require('./tagManager.service').name,
   ])
   .directive('gceServerGroupSecurityGroupSelector', function() {
     return {

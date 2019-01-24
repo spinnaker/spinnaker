@@ -4,7 +4,7 @@ import { PipelineConfigService } from 'core/pipeline/config/services/PipelineCon
 describe('Controller: deletePipelineModal', function() {
   const angular = require('angular');
 
-  beforeEach(window.module(require('./delete.module.js').name, APPLICATION_MODEL_BUILDER));
+  beforeEach(window.module(require('./delete.module').name, APPLICATION_MODEL_BUILDER));
   beforeEach(
     window.inject(function($controller, $rootScope, $log, $q, $state, applicationModelBuilder) {
       this.$rootScope = $rootScope;

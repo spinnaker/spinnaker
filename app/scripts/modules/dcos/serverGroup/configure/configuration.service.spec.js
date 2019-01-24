@@ -3,7 +3,7 @@
 describe('dcosServerGroupConfigurationService', function() {
   var service;
 
-  beforeEach(window.module(require('./configuration.service.js').name));
+  beforeEach(window.module(require('./configuration.service').name));
 
   beforeEach(
     window.inject(function(_dcosServerGroupConfigurationService_) {

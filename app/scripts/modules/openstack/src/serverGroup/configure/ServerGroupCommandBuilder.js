@@ -9,7 +9,7 @@ import { ApplicationReader, NameUtils, SubnetReader } from '@spinnaker/core';
 import { OpenStackProviderSettings } from '../../openstack.settings';
 
 module.exports = angular
-  .module('spinnaker.openstack.serverGroupCommandBuilder.service', [require('../../image/image.reader.js').name])
+  .module('spinnaker.openstack.serverGroupCommandBuilder.service', [require('../../image/image.reader').name])
   .factory('openstackServerGroupCommandBuilder', function($q, openstackImageReader, loadBalancerReader) {
     function buildNewServerGroupCommand(application, defaults) {
       defaults = defaults || {};

@@ -3,9 +3,7 @@
 const angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.deck.gce.loadBalancer.hostAndPathRules.controller', [
-    require('./hostAndPathRules.service.js').name,
-  ])
+  .module('spinnaker.deck.gce.loadBalancer.hostAndPathRules.controller', [require('./hostAndPathRules.service').name])
   .controller('gceHostAndPathRulesCtrl', function(
     hostRules,
     defaultService,

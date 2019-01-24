@@ -10,7 +10,7 @@ import './infrastructure.less';
 
 export const SEARCH_INFRASTRUCTURE = 'spinnaker.search.infrastructure';
 module(SEARCH_INFRASTRUCTURE, [
-  require('./infrastructure.controller.js').name,
+  require('./infrastructure.controller').name,
   PROJECT_SUMMARY_POD_COMPONENT,
   RECENTLY_VIEWED_ITEMS_COMPONENT,
   SEARCH_COMPONENT,

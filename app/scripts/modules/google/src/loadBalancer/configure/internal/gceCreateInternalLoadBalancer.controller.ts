@@ -263,5 +263,5 @@ export const GCE_INTERNAL_LOAD_BALANCER_CTRL = 'spinnaker.gce.internalLoadBalanc
 module(GCE_INTERNAL_LOAD_BALANCER_CTRL, [
   GCE_HEALTH_CHECK_SELECTOR_COMPONENT,
   GCE_COMMON_LOAD_BALANCER_COMMAND_BUILDER,
-  require('google/common/xpnNaming.gce.service.js').name,
+  require('google/common/xpnNaming.gce.service').name,
 ]).controller('gceInternalLoadBalancerCtrl', InternalLoadBalancerCtrl);

@@ -7,8 +7,8 @@ import { AccountService, TaskMonitor, FirewallLabels } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.azure.securityGroup.clone.controller', [
-    require('../securityGroup.write.service.js').name,
-    require('../configure/CreateSecurityGroupCtrl.js').name,
+    require('../securityGroup.write.service').name,
+    require('../configure/CreateSecurityGroupCtrl').name,
   ])
   .controller('azureCloneSecurityGroupController', function(
     $scope,

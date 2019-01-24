@@ -16,7 +16,7 @@ import {
   SubnetReader,
 } from '@spinnaker/core';
 
-require('../configure/serverGroup.configure.openstack.module.js');
+require('../configure/serverGroup.configure.openstack.module');
 
 module.exports = angular
   .module('spinnaker.serverGroup.details.openstack.controller', [
@@ -25,8 +25,8 @@ module.exports = angular
     SERVER_GROUP_WRITER,
     SECURITY_GROUP_READER,
     OVERRIDE_REGISTRY,
-    require('../configure/ServerGroupCommandBuilder.js').name,
-    require('../serverGroup.transformer.js').name,
+    require('../configure/ServerGroupCommandBuilder').name,
+    require('../serverGroup.transformer').name,
   ])
   .controller('openstackServerGroupDetailsCtrl', function(
     $scope,

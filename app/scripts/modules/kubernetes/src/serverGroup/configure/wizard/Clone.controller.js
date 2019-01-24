@@ -8,7 +8,7 @@ module.exports = angular
   .module('spinnaker.serverGroup.configure.kubernetes.clone', [
     require('@uirouter/angularjs').default,
     SERVER_GROUP_WRITER,
-    require('../configuration.service.js').name,
+    require('../configuration.service').name,
   ])
   .controller('kubernetesCloneServerGroupController', function(
     $scope,

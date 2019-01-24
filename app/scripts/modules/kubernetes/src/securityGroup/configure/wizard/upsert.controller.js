@@ -16,8 +16,8 @@ module.exports = angular
     require('@uirouter/angularjs').default,
     LOAD_BALANCER_READ_SERVICE,
     SECURITY_GROUP_READER,
-    require('../../../namespace/selectField.directive.js').name,
-    require('../../transformer.js').name,
+    require('../../../namespace/selectField.directive').name,
+    require('../../transformer').name,
   ])
   .controller('kubernetesUpsertSecurityGroupController', function(
     $q,

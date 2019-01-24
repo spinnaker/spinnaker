@@ -6,9 +6,9 @@ import { TaskMonitor } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.google.serverGroup.details.resize.controller', [
-    require('./resizeCapacity.component.js').name,
-    require('./resizeAutoscalingPolicy.component.js').name,
-    require('../../../common/footer.directive.js').name,
+    require('./resizeCapacity.component').name,
+    require('./resizeAutoscalingPolicy.component').name,
+    require('../../../common/footer.directive').name,
   ])
   .controller('gceResizeServerGroupCtrl', function($scope, $uibModalInstance, application, serverGroup) {
     $scope.serverGroup = serverGroup;

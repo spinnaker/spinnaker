@@ -10,7 +10,7 @@ import { SETTINGS } from 'core/config/settings';
 const angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.editApplication.modal.controller', [require('./applicationProviderFields.component.js').name])
+  .module('spinnaker.editApplication.modal.controller', [require('./applicationProviderFields.component').name])
   .controller('EditApplicationController', function($scope, $window, $state, $uibModalInstance, application) {
     var vm = this;
     this.data = {

@@ -6,12 +6,12 @@ import { NUMBER_LIST_COMPONENT } from './numberList/numberList.component';
 const angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.forms', [
-  require('./autofocus/autofocus.directive.js').name,
-  require('./checklist/checklist.directive.js').name,
-  require('./checkmap/checkmap.directive.js').name,
-  require('./ignoreEmptyDelete.directive.js').name,
+  require('./autofocus/autofocus.directive').name,
+  require('./checklist/checklist.directive').name,
+  require('./checkmap/checkmap.directive').name,
+  require('./ignoreEmptyDelete.directive').name,
   BUTTON_BUSY_INDICATOR_COMPONENT,
-  require('./mapEditor/mapEditor.component.js').name,
-  require('./validateOnSubmit/validateOnSubmit.directive.js').name,
+  require('./mapEditor/mapEditor.component').name,
+  require('./validateOnSubmit/validateOnSubmit.directive').name,
   NUMBER_LIST_COMPONENT,
 ]);

@@ -12,7 +12,7 @@ import {
 
 module.exports = angular
   .module('spinnaker.openstack.serverGroup.configure.configuration.service', [
-    require('../../image/image.reader.js').name,
+    require('../../image/image.reader').name,
     LOAD_BALANCER_READ_SERVICE,
     SECURITY_GROUP_READER,
     CACHE_INITIALIZER_SERVICE,
