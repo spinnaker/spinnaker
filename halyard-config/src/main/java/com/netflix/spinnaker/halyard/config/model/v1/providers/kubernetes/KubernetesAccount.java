@@ -67,6 +67,7 @@ public class KubernetesAccount extends ContainerAccount implements Cloneable {
   String kubectlPath;
   Integer kubectlRequestTimeoutSeconds;
   Boolean checkPermissionsOnStartup;
+  Boolean liveManifestCalls;
 
   // Without the annotations, these are written as `oauthServiceAccount` and `oauthScopes`, respectively.
   @JsonProperty("oAuthServiceAccount") @LocalFile @SecretFile String oAuthServiceAccount;
