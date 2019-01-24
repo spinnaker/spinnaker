@@ -74,4 +74,15 @@ public class Pubsubs extends Node implements Cloneable {
       throw new IllegalArgumentException("No subscription for class \"" + subscriptionClassName + "\" found", e);
     }
   }
+
+  public static Class<? extends Publisher> translatePublisherType(String pubsubName) {
+    Class<? extends Pubsub> pubsubClass = translatePubsubType(pubsubName);
+
+    String publisherClassName = pubsubClass.getName().replaceAll("Pubsub", "Publisher");
+    try {
+      return (Class<? extends Publisher>) Class.forName(publisherClassName);
+    } catch (ClassNotFoundException e) {
+      throw new IllegalArgumentException("No publisher for class \"" + publisherClassName + "\" found", e);
+    }
+  }
 }

@@ -84,12 +84,12 @@ public class PubsubService {
   public void setPubsub(String deploymentName, Pubsub pubsub) {
     DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
     Pubsubs pubsubs = deploymentConfiguration.getPubsub();
-    switch (pubsub.pubsubType()) {
+    switch (pubsub.getPubsubType()) {
       case GOOGLE:
         pubsubs.setGoogle((GooglePubsub) pubsub);
         break;
       default:
-        throw new IllegalArgumentException("Unknown pubsub type " + pubsub.pubsubType());
+        throw new IllegalArgumentException("Unknown pubsub type " + pubsub.getPubsubType());
     }
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Google, Inc.
+ * Copyright 2019 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,23 @@
  *
  */
 
-package com.netflix.spinnaker.halyard.config.model.v1.pubsub.google;
+package com.netflix.spinnaker.halyard.config.model.v1.node;
 
-import com.netflix.spinnaker.halyard.config.model.v1.node.Pubsub;
-import java.util.ArrayList;
-import java.util.List;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-@EqualsAndHashCode(callSuper = true)
 @Data
-public class GooglePubsub extends Pubsub<GoogleSubscription, GooglePublisher> {
+@EqualsAndHashCode(callSuper = false)
+public abstract class Publisher extends Node implements Cloneable {
+  String name;
 
-  private PubsubType pubsubType = PubsubType.GOOGLE;
+  @Override
+  public String getNodeName() {
+    return name;
+  }
 
-  private List<GoogleSubscription> subscriptions = new ArrayList<>();
-  private List<GooglePublisher> publishers = new ArrayList<>();
+  @Override
+  public NodeIterator getChildren() {
+    return NodeIteratorFactory.makeEmptyIterator();
+  }
 }

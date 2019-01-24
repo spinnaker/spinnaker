@@ -25,6 +25,8 @@ public class GooglePubsubCommandProperties {
 
   public static final String SUBSCRIPTION_NAME_DESCRIPTION = "The name of the subscription to listen to. This identifier does not include the name of the project, and must already be configured for Spinnaker to work.";
 
+  public static final String TOPIC_NAME_DESCRIPTION = "The name of the topic to publish to. This identifier does not include the name of the project, and must already be configured for Spinnaker to work.";
+
   public static final String ACK_DEADLINE_SECONDS_DESCRIPTION = "Time in seconds before an outstanding message is considered unacknowledged and is re-sent.\n" +
       "Configurable in your Google Cloud Pubsub subscription. See the docs here: https://cloud.google.com/pubsub/docs/subscriber";
 

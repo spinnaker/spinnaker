@@ -370,6 +370,34 @@ public class Daemon {
     };
   }
 
+  public static Supplier<Publisher> getPublisher(String deploymentName, String pubsubName, String publisherName, boolean validate) {
+    return () -> {
+      Object rawPublisher = ResponseUnwrapper.get(getService().getPublisher(deploymentName, pubsubName, publisherName, validate));
+      return getObjectMapper().convertValue(rawPublisher, Pubsubs.translatePublisherType(pubsubName));
+    };
+  }
+
+  public static Supplier<Void> addPublisher(String deploymentName, String pubsubName, boolean validate, Publisher publisher) {
+    return () -> {
+      ResponseUnwrapper.get(getService().addPublisher(deploymentName, pubsubName, validate, publisher));
+      return null;
+    };
+  }
+
+  public static Supplier<Void> setPublisher(String deploymentName, String pubsubName, String publisherName, boolean validate, Publisher publisher) {
+    return () -> {
+      ResponseUnwrapper.get(getService().setPublisher(deploymentName, pubsubName, publisherName, validate, publisher));
+      return null;
+    };
+  }
+
+  public static Supplier<Void> deletePublisher(String deploymentName, String pubsubName, String publisherName, boolean validate) {
+    return () -> {
+      ResponseUnwrapper.get(getService().deletePublisher(deploymentName, pubsubName, publisherName, validate));
+      return null;
+    };
+  }
+
   public static Supplier<Void> setPubsub(String deploymentName, String pubsubName, boolean validate, Pubsub pubsub) {
     return () -> {
       ResponseUnwrapper.get(getService().setPubsub(deploymentName, pubsubName, validate, pubsub));

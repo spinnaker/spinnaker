@@ -206,6 +206,15 @@
  * [**hal config metric-stores stackdriver edit**](#hal-config-metric-stores-stackdriver-edit)
  * [**hal config metric-stores stackdriver enable**](#hal-config-metric-stores-stackdriver-enable)
  * [**hal config notification**](#hal-config-notification)
+ * [**hal config notification pubsub**](#hal-config-notification-pubsub)
+ * [**hal config notification pubsub google**](#hal-config-notification-pubsub-google)
+ * [**hal config notification pubsub google add**](#hal-config-notification-pubsub-google-add)
+ * [**hal config notification pubsub google delete**](#hal-config-notification-pubsub-google-delete)
+ * [**hal config notification pubsub google disable**](#hal-config-notification-pubsub-google-disable)
+ * [**hal config notification pubsub google edit**](#hal-config-notification-pubsub-google-edit)
+ * [**hal config notification pubsub google enable**](#hal-config-notification-pubsub-google-enable)
+ * [**hal config notification pubsub google get**](#hal-config-notification-pubsub-google-get)
+ * [**hal config notification pubsub google list**](#hal-config-notification-pubsub-google-list)
  * [**hal config notification slack**](#hal-config-notification-slack)
  * [**hal config notification slack disable**](#hal-config-notification-slack-disable)
  * [**hal config notification slack edit**](#hal-config-notification-slack-edit)
@@ -3978,8 +3987,160 @@ hal config notification [parameters] [subcommands]
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 #### Subcommands
+ * `pubsub`: Configure, validate, and view the specified pubsub.
  * `slack`: Manage and view Spinnaker configuration for the slack notification
  * `twilio`: Manage and view Spinnaker configuration for the twilio notification
+
+---
+## hal config notification pubsub
+
+Configure, validate, and view the specified pubsub.
+
+#### Usage
+```
+hal config notification pubsub [subcommands]
+```
+
+#### Subcommands
+ * `google`: Manage and view Spinnaker configuration for the google pubsub
+
+---
+## hal config notification pubsub google
+
+Manage and view Spinnaker configuration for the google pubsub
+
+#### Usage
+```
+hal config notification pubsub google [parameters] [subcommands]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `add`: Add a publisher of type google
+ * `delete`: Delete a specific google publisher by name.
+ * `disable`: Set the google pubsub as disabled
+ * `edit`: Edit an publisher in the google pubsub.
+ * `enable`: Set the google pubsub as enabled
+ * `get`: Get the specified publisher details for the google pubsub.
+ * `list`: List the publisher names for the google pubsub.
+
+---
+## hal config notification pubsub google add
+
+Add a publisher of type google
+
+#### Usage
+```
+hal config notification pubsub google add PUBLISHER [parameters]
+```
+
+#### Parameters
+`PUBLISHER`: The name of the publishers to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--json-path`: The path to a JSON service account that Spinnaker will use as credentials. This is only needed if Spinnaker is not deployed on a Google Compute Engine VM, or needs permissions not afforded to the VM it is running on. See https://cloud.google.com/compute/docs/access/service-accounts for more information.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--project`: The name of the GCP project your subscription lives in.
+ * `--topic-name`: The name of the topic to publish to. This identifier does not include the name of the project, and must already be configured for Spinnaker to work.
+
+
+---
+## hal config notification pubsub google delete
+
+Delete a specific google publisher by name.
+
+#### Usage
+```
+hal config notification pubsub google delete PUBLISHER [parameters]
+```
+
+#### Parameters
+`PUBLISHER`: The name of the publishers to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config notification pubsub google disable
+
+Set the google pubsub as disabled
+
+#### Usage
+```
+hal config notification pubsub google disable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config notification pubsub google edit
+
+Edit an publisher in the google pubsub.
+
+#### Usage
+```
+hal config notification pubsub google edit PUBLISHER [parameters]
+```
+
+#### Parameters
+`PUBLISHER`: The name of the publishers to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--json-path`: The path to a JSON service account that Spinnaker will use as credentials. This is only needed if Spinnaker is not deployed on a Google Compute Engine VM, or needs permissions not afforded to the VM it is running on. See https://cloud.google.com/compute/docs/access/service-accounts for more information.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--project`: The name of the GCP project your subscription lives in.
+ * `--topic-name`: The name of the topic to publish to. This identifier does not include the name of the project, and must already be configured for Spinnaker to work.
+
+
+---
+## hal config notification pubsub google enable
+
+Set the google pubsub as enabled
+
+#### Usage
+```
+hal config notification pubsub google enable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config notification pubsub google get
+
+Get the specified publisher details for the google pubsub.
+
+#### Usage
+```
+hal config notification pubsub google get PUBLISHER [parameters]
+```
+
+#### Parameters
+`PUBLISHER`: The name of the publishers to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config notification pubsub google list
+
+List the publisher names for the google pubsub.
+
+#### Usage
+```
+hal config notification pubsub google list [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
 
 ---
 ## hal config notification slack

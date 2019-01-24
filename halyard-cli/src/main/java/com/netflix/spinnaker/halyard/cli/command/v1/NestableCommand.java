@@ -563,7 +563,7 @@ public abstract class NestableCommand {
 
   @Deprecated
   protected String getDescription() {
-    throw new UnsupportedOperationException("Each command must implement a description. Preferably `get[Long/Short]Description()`.");
+    throw new UnsupportedOperationException("Each command must implement a description. Preferably `get[Long/Short]Description()`. Missing class: " + getClass().getCanonicalName());
   }
 
   // TODO(lwander) make abstract once `getDescription` is removed.

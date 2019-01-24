@@ -254,6 +254,35 @@ public interface DaemonService {
       @Query("validate") boolean validate,
       @Body boolean enabled);
 
+  @POST("/v1/config/deployments/{deploymentName}/pubsubs/{pubsubName}/publishers/")
+  DaemonTask<Halconfig, Void> addPublisher(
+      @Path("deploymentName") String deploymentName,
+      @Path("pubsubName") String pubsubName,
+      @Query("validate") boolean validate,
+      @Body Publisher publisher);
+
+  @GET("/v1/config/deployments/{deploymentName}/pubsubs/{pubsubName}/publishers/publisher/{publisherName}/")
+  DaemonTask<Halconfig, Object> getPublisher(
+      @Path("deploymentName") String deploymentName,
+      @Path("pubsubName") String pubsubName,
+      @Path("publisherName") String publisherName,
+      @Query("validate") boolean validate);
+
+  @PUT("/v1/config/deployments/{deploymentName}/pubsubs/{pubsubName}/publishers/publisher/{publisherName}/")
+  DaemonTask<Halconfig, Void> setPublisher(
+      @Path("deploymentName") String deploymentName,
+      @Path("pubsubName") String pubsubName,
+      @Path("publisherName") String publisherName,
+      @Query("validate") boolean validate,
+      @Body Publisher publisher);
+
+  @DELETE("/v1/config/deployments/{deploymentName}/pubsubs/{pubsubName}/publishers/publisher/{publisherName}/")
+  DaemonTask<Halconfig, Void> deletePublisher(
+      @Path("deploymentName") String deploymentName,
+      @Path("pubsubName") String pubsubName,
+      @Path("publisherName") String publisherName,
+      @Query("validate") boolean validate);
+
   @POST("/v1/config/deployments/{deploymentName}/pubsubs/{pubsubName}/subscriptions/")
   DaemonTask<Halconfig, Void> addSubscription(
       @Path("deploymentName") String deploymentName,

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Google, Inc.
+ * Copyright 2019 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -18,18 +18,24 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.pubsub.google;
 
-import com.netflix.spinnaker.halyard.config.model.v1.node.Pubsub;
-import java.util.ArrayList;
-import java.util.List;
+import com.netflix.spinnaker.halyard.config.model.v1.node.LocalFile;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Publisher;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
-@EqualsAndHashCode(callSuper = true)
 @Data
-public class GooglePubsub extends Pubsub<GoogleSubscription, GooglePublisher> {
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
+public class GooglePublisher extends Publisher {
+  private String project;
+  private String topicName;
+  @LocalFile
+  private String jsonPath;
+  private Content content;
 
-  private PubsubType pubsubType = PubsubType.GOOGLE;
-
-  private List<GoogleSubscription> subscriptions = new ArrayList<>();
-  private List<GooglePublisher> publishers = new ArrayList<>();
+  public enum Content {
+    NOTIFICATIONS,
+    ALL
+  }
 }

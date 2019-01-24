@@ -18,35 +18,36 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.node;
 
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
 @Data
 @EqualsAndHashCode(callSuper = false)
-public abstract class Pubsub<A extends Subscription> extends Node implements Cloneable {
-  boolean enabled = false;
-  List<A> subscriptions = new ArrayList<>();
+public abstract class Pubsub<S extends Subscription, P extends Publisher> extends Node implements
+    Cloneable {
 
-  private boolean hasSubscription(String name) {
-    return subscriptions.stream().anyMatch(a -> a.getName().equals(name));
-  }
+  boolean enabled = false;
+
+  abstract public List<S> getSubscriptions();
+
+  abstract public List<P> getPublishers();
 
   @Override
   public NodeIterator getChildren() {
-    return NodeIteratorFactory.makeListIterator(subscriptions.stream().map(a -> (Node) a).collect(Collectors.toList()));
+    Stream<Node> all = Stream.concat(getSubscriptions().stream(), getPublishers().stream());
+    return NodeIteratorFactory.makeListIterator(all.collect(Collectors.toList()));
   }
 
   @Override
   public String getNodeName() {
-    return pubsubType().getName();
+    return getPubsubType().getName();
   }
 
-  abstract public PubsubType pubsubType();
+  abstract public PubsubType getPubsubType();
 
   public enum PubsubType {
     GOOGLE("google");
