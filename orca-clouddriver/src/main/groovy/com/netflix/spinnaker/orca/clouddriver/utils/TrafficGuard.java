@@ -292,9 +292,11 @@ public class TrafficGuard {
     if (application == null || !application.details().containsKey("trafficGuards")) {
       return false;
     }
-    List<Map<String, String>> trafficGuards = (List<Map<String, String>>) application.details().get("trafficGuards");
-    List<ClusterMatchRule> rules = trafficGuards.stream().map(guard ->
-      new ClusterMatchRule(guard.get("account"), guard.get("location"), guard.get("stack"), guard.get("detail"), 1)
+    List<Map<String, Object>> trafficGuards = (List<Map<String, Object>>) application.details().get("trafficGuards");
+    List<ClusterMatchRule> rules = trafficGuards.stream()
+      .filter(guard -> (boolean) guard.getOrDefault("enabled", true))
+      .map(guard ->
+        new ClusterMatchRule((String) guard.get("account"), (String) guard.get("location"), (String) guard.get("stack"), (String) guard.get("detail"), 1)
     ).collect(Collectors.toList());
     return ClusterMatcher.getMatchingRule(account, location.getValue(), clusterMoniker, rules) != null;
   }

@@ -67,6 +67,24 @@ class TrafficGuardSpec extends Specification {
     ] + overrides
   }
 
+  void "should ignore disabled traffic guards"() {
+    given:
+    addGuard([account: "test", location: "us-east-1", stack: "foo", enabled: false])
+
+    when:
+    trafficGuard.verifyTrafficRemoval(targetName, moniker, "test", location, "aws", "x")
+
+    then:
+    notThrown(TrafficGuardException)
+    1 * front50Service.get("app") >> application
+    1 * oortHelper.getCluster("app", "test", "app-foo", "aws") >> [
+      serverGroups: [
+        makeServerGroup(targetName, 1),
+        makeServerGroup(otherName, 0, 1, [isDisabled: true])
+      ]
+    ]
+  }
+
   void "should throw exception when target server group is the only one enabled in cluster"() {
     given:
     addGuard([account: "test", location: "us-east-1", stack: "foo"])
@@ -508,6 +526,9 @@ class TrafficGuardSpec extends Specification {
   }
 
   private void addGuard(Map guard) {
+    if (!guard.containsKey("enabled")) {
+      guard.enabled = true
+    }
     applicationDetails.putIfAbsent("trafficGuards", [])
     applicationDetails.get("trafficGuards") << guard
   }
