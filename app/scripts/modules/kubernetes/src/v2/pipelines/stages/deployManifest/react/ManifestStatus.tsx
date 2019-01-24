@@ -1,10 +1,9 @@
 import * as React from 'react';
+import { IManifest, NgReact } from '@spinnaker/core';
 import { DeployManifestStatusPills } from './DeployStatusPills';
-import { IManifest } from '@spinnaker/core';
 import { ManifestDetailsLink } from './ManifestDetailsLink';
 import { ManifestEvents } from './ManifestEvents';
 import { ManifestYaml } from './ManifestYaml';
-import { NgReact } from '@spinnaker/core';
 
 import './ManifestStatus.less';
 
