@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.halyard.config.validate.v1.providers.dockerRegistry;
 
+import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client.DefaultDockerOkClientProvider;
 import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client.DockerRegistryCatalog;
 import com.netflix.spinnaker.clouddriver.docker.registry.security.DockerRegistryNamedAccountCredentials;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
@@ -118,6 +119,7 @@ public class DockerRegistryAccountValidator extends Validator<DockerRegistryAcco
           .sortTagsByDate(n.getSortTagsByDate())
           .trackDigests(n.getTrackDigests())
           .insecureRegistry(n.getInsecureRegistry())
+          .dockerOkClientProvider(new DefaultDockerOkClientProvider())
           .build();
     } catch (Exception e) {
       p.addProblem(Severity.ERROR, "Failed to instantiate docker credentials for account \"" + n.getName() + "\".");
