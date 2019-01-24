@@ -90,7 +90,6 @@
     "source-map": "^0.4.4",
     "source-sans-pro": "^2.0.10",
     "spel2js": "^0.2.1",
-    "spin.js": "git://github.com/fgnass/spin.js.git#2.3.1",
     "ui-select": "^0.19.6"
   },
   "devDependencies": {
