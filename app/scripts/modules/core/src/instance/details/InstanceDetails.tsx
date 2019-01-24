@@ -7,6 +7,7 @@ import { AccountService } from 'core/account/AccountService';
 import { Spinner } from 'core/widgets';
 import { SkinService } from 'core/cloudProvider/skin.service';
 import { IMoniker } from 'core/naming';
+import { InstanceDetailsPane } from './InstanceDetailsPane';
 
 export interface IInstanceDetailsProps extends IOverridableProps {
   $stateParams: {
@@ -19,37 +20,41 @@ export interface IInstanceDetailsProps extends IOverridableProps {
 }
 export interface IInstanceDetailsState {
   accountId: string;
-  moniker: IMoniker;
   environment: string;
+  instanceId: string;
   loading: boolean;
+  moniker: IMoniker;
+  provider: string;
 }
 
 export class InstanceDetails extends React.Component<IInstanceDetailsProps, IInstanceDetailsState> {
-  public state = {
+  public state: IInstanceDetailsState = {
     accountId: null,
-    moniker: null,
     environment: null,
+    instanceId: null,
     loading: false,
-  } as IInstanceDetailsState;
+    moniker: null,
+    provider: null,
+  };
 
   private destroy$ = new Subject();
   private props$ = new Subject<IInstanceDetailsProps>();
 
   public componentDidMount() {
     this.props$
-      .do(() => this.setState({ loading: true, accountId: null, moniker: null, environment: null }))
+      .do(({ $stateParams: { provider, instanceId } }) => {
+        this.setState({ provider, instanceId, loading: true, accountId: null, moniker: null, environment: null });
+      })
       .switchMap(({ app, $stateParams }) => {
-        const accountId = SkinService.getAccountForInstance($stateParams.provider, $stateParams.instanceId, app);
-        return Observable.fromPromise(
-          Promise.all([
-            accountId,
-            SkinService.getMonikerForInstance($stateParams.provider, $stateParams.instanceId, app),
-            accountId.then(id => AccountService.getAccountDetails(id)),
-          ]),
-        );
+        const { provider, instanceId } = $stateParams;
+        const accountId = Observable.fromPromise(SkinService.getAccountForInstance(provider, instanceId, app));
+        const moniker = Observable.fromPromise(SkinService.getMonikerForInstance(provider, instanceId, app));
+        const accountDetails = accountId.mergeMap(id => AccountService.getAccountDetails(id));
+        return Observable.forkJoin(accountId, moniker, accountDetails);
       })
       .takeUntil(this.destroy$)
-      .subscribe(([accountId, moniker, { environment }]) => {
+      .subscribe(([accountId, moniker, accountDetails]) => {
+        const environment = accountDetails && accountDetails.environment;
         this.setState({ accountId, moniker, environment, loading: false });
       });
 
@@ -65,12 +70,21 @@ export class InstanceDetails extends React.Component<IInstanceDetailsProps, IIns
   }
 
   public render() {
-    const { accountId, moniker, environment, loading } = this.state;
+    const { accountId, instanceId, moniker, environment, loading, provider } = this.state;
+
     if (loading) {
       return (
-        <div className="full-width text-center">
+        <InstanceDetailsPane>
           <Spinner size="medium" message=" " />
-        </div>
+        </InstanceDetailsPane>
+      );
+    } else if (!accountId || !moniker || !environment) {
+      return (
+        <InstanceDetailsPane>
+          <h4>
+            Could not find {provider} instance {instanceId}.
+          </h4>
+        </InstanceDetailsPane>
       );
     }
 
