@@ -60,7 +60,7 @@ func savePipeline(cmd *cobra.Command, options SaveOptions) error {
 		return err
 	}
 
-	pipelineJson, err := util.ParseJsonFromFileOrStdin(options.pipelineFile)
+	pipelineJson, err := util.ParseJsonFromFileOrStdin(options.pipelineFile, false)
 	if err != nil {
 		return err
 	}

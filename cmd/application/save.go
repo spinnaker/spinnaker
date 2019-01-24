@@ -64,9 +64,10 @@ func saveApplication(cmd *cobra.Command, options SaveOptions) error {
 	if err != nil {
 		return err
 	}
-	initialApp, err := util.ParseJsonFromFileOrStdin(options.applicationFile)
+
+	initialApp, err := util.ParseJsonFromFileOrStdin(options.applicationFile, true)
 	if err != nil {
-		util.UI.Error(fmt.Sprintf("%s\n", err))
+		return fmt.Errorf("Could not parse supplied application: %v.\n", err)
 	}
 
 	var app map[string]interface{}

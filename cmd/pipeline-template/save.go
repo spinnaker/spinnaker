@@ -58,7 +58,7 @@ func savePipelineTemplate(cmd *cobra.Command, options SaveOptions) error {
 		return err
 	}
 
-	templateJson, err := util.ParseJsonFromFileOrStdin(options.pipelineFile)
+	templateJson, err := util.ParseJsonFromFileOrStdin(options.pipelineFile, false)
 	if err != nil {
 		return err
 	}

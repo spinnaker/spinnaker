@@ -57,7 +57,7 @@ func planPipelineTemplate(cmd *cobra.Command, options PlanOptions) error {
 		return err
 	}
 
-	configJson, err := util.ParseJsonFromFileOrStdin(options.configPath)
+	configJson, err := util.ParseJsonFromFileOrStdin(options.configPath, false)
 	if err != nil {
 		return err
 	}

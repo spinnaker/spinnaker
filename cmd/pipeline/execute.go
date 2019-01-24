@@ -18,7 +18,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -70,11 +69,7 @@ func executePipeline(cmd *cobra.Command, options ExecuteOptions) error {
 		return errors.New("one of required parameters 'application' or 'name' not set")
 	}
 	parameters := map[string]interface{}{}
-	parameters, err = util.ParseJsonFromFileOrStdin(options.parameterFile)
-	if err != nil && strings.HasPrefix(err.Error(), "No json input") {
-		// Pipeline can be executed with no parameters.
-		parameters, err = nil, nil
-	}
+	parameters, err = util.ParseJsonFromFileOrStdin(options.parameterFile, true)
 	if err != nil {
 		return fmt.Errorf("Could not parse supplied pipeline parameters: %v.\n", err)
 	}

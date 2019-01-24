@@ -20,7 +20,7 @@ import (
 	"os"
 )
 
-func ParseJsonFromFileOrStdin(filePath string) (map[string]interface{}, error) {
+func ParseJsonFromFileOrStdin(filePath string, tolerateEmptyStdin bool) (map[string]interface{}, error) {
 	var fromFile *os.File
 	var err error
 	var jsonContent map[string]interface{}
@@ -41,7 +41,11 @@ func ParseJsonFromFileOrStdin(filePath string) (map[string]interface{}, error) {
 
 	pipedStdin := (fi.Mode() & os.ModeCharDevice) == 0
 	if fi.Size() <= 0 && !pipedStdin {
-		return nil, errors.New("No json input to parse.")
+		err = nil
+		if !tolerateEmptyStdin {
+      err = errors.New("No json input to parse.")
+		}
+		return nil, err
 	}
 
 	err = json.NewDecoder(fromFile).Decode(&jsonContent)
