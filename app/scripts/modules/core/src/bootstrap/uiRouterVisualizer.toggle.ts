@@ -1,4 +1,3 @@
-declare const System: any;
 import { UIRouter, Transition, Glob, UIRouterPlugin } from '@uirouter/core';
 
 import { bootstrapModule } from './bootstrap.module';
@@ -23,7 +22,7 @@ bootstrapModule.run(($uiRouter: UIRouter) => {
       .filter(state => collapseGlobs.some(glob => glob.matches(state.name)));
     collapsedStates.forEach(state => ((state.$$state() as any)._collapsed = true));
 
-    return System.import('@uirouter/visualizer')
+    return import('@uirouter/visualizer')
       .then((vis: any) => (VisualizerPlugin = vis.Visualizer))
       .then(createVisualizer);
   };
