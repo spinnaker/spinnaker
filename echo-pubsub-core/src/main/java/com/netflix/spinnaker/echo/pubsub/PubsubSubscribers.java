@@ -37,7 +37,7 @@ public class PubsubSubscribers {
   public List<PubsubSubscriber> subscribersMatchingType(PubsubSystem pubsubSystem) {
     return subscribers
         .stream()
-        .filter(subscriber -> subscriber.pubsubSystem().equals(pubsubSystem))
+        .filter(subscriber -> subscriber.getPubsubSystem().equals(pubsubSystem))
         .collect(Collectors.toList());
   }
 }

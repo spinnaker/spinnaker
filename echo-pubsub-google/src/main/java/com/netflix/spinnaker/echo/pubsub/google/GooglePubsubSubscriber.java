@@ -77,12 +77,12 @@ public class GooglePubsubSubscriber implements PubsubSubscriber {
   }
 
   @Override
-  public PubsubSystem pubsubSystem() {
+  public PubsubSystem getPubsubSystem() {
     return pubsubSystem;
   }
 
   @Override
-  public String subscriptionName() {
+  public String getSubscriptionName() {
     return subscriptionName;
   }
 

@@ -23,7 +23,7 @@ import com.netflix.spinnaker.echo.model.pubsub.PubsubSystem;
  * getting messages from the subscription.
  */
 public interface PubsubSubscriber {
-  PubsubSystem pubsubSystem();
-  String subscriptionName();
+  PubsubSystem getPubsubSystem();
+  String getSubscriptionName();
   String getName();
 }

@@ -42,7 +42,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -104,18 +103,18 @@ public class SQSSubscriber implements Runnable, PubsubSubscriber {
   }
 
   @Override
-  public PubsubSystem pubsubSystem() {
+  public PubsubSystem getPubsubSystem() {
     return pubsubSystem;
   }
 
   @Override
-  public String subscriptionName() {
+  public String getSubscriptionName() {
     return subscription.getName();
   }
 
   @Override
   public String getName() {
-    return subscriptionName();
+    return getSubscriptionName();
   }
 
   @Override
@@ -181,7 +180,7 @@ public class SQSSubscriber implements Runnable, PubsubSubscriber {
 
 
       MessageDescription description = MessageDescription.builder()
-        .subscriptionName(subscriptionName())
+        .subscriptionName(getSubscriptionName())
         .messagePayload(messagePayload)
         .messageAttributes(stringifiedMessageAttributes)
         .pubsubSystem(pubsubSystem)

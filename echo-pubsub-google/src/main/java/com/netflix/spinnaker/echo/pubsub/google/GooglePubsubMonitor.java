@@ -67,7 +67,7 @@ public class GooglePubsubMonitor implements PollingMonitor {
   }
 
   private void openConnection(PubsubSubscriber subscriber) {
-    log.info("Opening async connection to {}", subscriber.subscriptionName());
+    log.info("Opening async connection to {}", subscriber.getSubscriptionName());
     lastPoll = System.currentTimeMillis();
 
     GooglePubsubSubscriber googleSubscriber = (GooglePubsubSubscriber) subscriber;
@@ -75,7 +75,7 @@ public class GooglePubsubMonitor implements PollingMonitor {
   }
 
   private void closeConnection(PubsubSubscriber subscriber) {
-    log.info("Closing async connection to {}", subscriber.subscriptionName());
+    log.info("Closing async connection to {}", subscriber.getSubscriptionName());
     GooglePubsubSubscriber googleSubscriber = (GooglePubsubSubscriber) subscriber;
     googleSubscriber.stop();
   }

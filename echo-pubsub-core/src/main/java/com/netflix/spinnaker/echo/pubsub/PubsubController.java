@@ -25,12 +25,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.stream.Collectors;
+
 /**
- * Controller for configured pub/sub subscriptions.
+ * Controller for configured pub/sub publishers and subscriptions.
  */
 @RestController
 @RequestMapping(value = "/pubsub")
-public class PubsubSubscriptionController {
+public class PubsubController {
 
   @Autowired
   private PubsubSubscribers pubsubSubscribers;
@@ -44,7 +45,7 @@ public class PubsubSubscriptionController {
         .getAll()
         .stream()
         .map(s -> PubsubSubscriptionBySystem.builder()
-          .pubsubSystem(s.pubsubSystem().toString())
+          .pubsubSystem(s.getPubsubSystem().toString())
           .subscriptionName(s.getName())
           .build())
         .collect(Collectors.toList());
