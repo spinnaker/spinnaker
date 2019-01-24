@@ -19,14 +19,14 @@ package com.netflix.spinnaker.echo.controllers
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.echo.artifacts.ArtifactExtractor
 import com.netflix.spinnaker.echo.events.EventPropagator
+import com.netflix.spinnaker.echo.scm.ScmWebhookHandler
+import com.netflix.spinnaker.echo.scm.GitWebhookHandler
 import com.netflix.spinnaker.echo.model.Event
 import com.netflix.spinnaker.echo.model.Metadata
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpHeaders
 import org.springframework.web.bind.annotation.*
-
-import static net.logstash.logback.argument.StructuredArguments.kv
 
 @RestController
 @Slf4j
@@ -40,6 +40,9 @@ class WebhooksController {
 
   @Autowired
   ArtifactExtractor artifactExtractor
+
+  @Autowired
+  ScmWebhookHandler scmWebhookHandler
 
   @RequestMapping(value = '/webhooks/{type}/{source}', method = RequestMethod.POST)
   WebhooksController.WebhookResponse forwardEvent(@PathVariable String type,
@@ -67,88 +70,16 @@ class WebhooksController {
     }
     event.content = postedEvent
     event.payload = new HashMap(postedEvent)
+    if (headers.containsKey('X-Event-Key')) {
+      event.content.event_type = headers['X-Event-Key'][0]
+    }
 
-    // TODO: refactor this large if/else block
     if (type == 'git') {
-      if (source == 'stash') {
-        event.content.hash = postedEvent.refChanges?.first().toHash
-        event.content.branch = postedEvent.refChanges?.first().refId.replace('refs/heads/', '') ?: ""
-        event.content.repoProject = postedEvent.repository.project.key
-        event.content.slug = postedEvent.repository.slug
-        if (event.content.hash.toString().startsWith('000000000')) {
-          sendEvent = false
-        }
-      } else if (source == 'github') {
-        if (event.content.hook_id) {
-          log.info('Webhook ping received from github {} {} {}', kv('hook_id', event.content.hook_id), kv('repository', event.content.repository.full_name))
-          sendEvent = false
-        } else {
-          event.content.hash = postedEvent.after
-          event.content.branch = postedEvent.ref?.replace('refs/heads/', '') ?: ""
-          event.content.repoProject = postedEvent.repository.owner.name
-          event.content.slug = postedEvent.repository.name
-        }
-      } else if (source == 'bitbucket') {
-
-        if (headers.containsKey('X-Event-Key')) {
-          event.content.event_type = headers['X-Event-Key'][0]
-        }
-
-        boolean isCloud
-        String fullRepoName
-        if (!event.rawContent) {
-          isCloud = false // Seems like Bitbucket Server
-          log.info('Webhook ping received from Bitbucket Server')
-          sendEvent = false
-          fullRepoName = ''
-        } else if (event.content.event_type == "repo:push" && event.content.push?.changes) {
-          isCloud = true // Seems like Bitbucket Cloud
-          event.content.hash = postedEvent.push.changes.first().commits?.first().hash
-          event.content.branch = postedEvent.push.changes.first().new.name ?: ""
-        } else if (event.content.event_type == "repo:refs_changed") {
-          isCloud = false // Seems like Bitbucket Server
-
-          event.content.hash = postedEvent.changes?.first().toHash
-          event.content.branch = postedEvent.changes?.first().ref.id.replace('refs/heads/', '')
-
-          event.content.repoProject = postedEvent.repository.project?.key
-          event.content.slug = postedEvent.repository.slug
-          fullRepoName = event.content.repository.name
-        } else if (event.content.event_type == "pullrequest:fulfilled" && event.content.pullrequest) {
-          isCloud = true // Seems like Bitbucket Cloud
-          event.content.hash = postedEvent.pullrequest.merge_commit?.hash
-          event.content.branch = postedEvent.pullrequest.destination?.branch?.name
-        } else if (event.content.event_type == "pr:merged" && event.content.pullrequest) {
-          isCloud = false // Seems like Bitbucket Server
-          event.content.hash = postedEvent.pullrequest.properties?.merge_commit?.id
-          event.content.branch = postedEvent.pullrequest.toRef.id.replace('refs/heads/', '')
-
-          event.content.repoProject = postedEvent.pullrequest.toRef.repository.project?.key
-          event.content.slug = postedEvent.pullrequest.toRef.repository.slug
-          fullRepoName = event.content.pullrequest.toRef.repository.name
-        }
-
-        if (isCloud) {
-          event.content.repoProject = postedEvent.repository.owner.username
-          event.content.slug = postedEvent.repository.full_name.tokenize('/')[1]
-          fullRepoName = event.content.repository.full_name
-        }
-
-        if (fullRepoName) {
-          log.info('Webhook event received {} {} {} {} {} {}', kv('type', type), kv('event_type', event.content.event_type), kv('hook_id', event.content.hook_id), kv('repository', fullRepoName), kv('request_id', event.content.request_id), kv('branch', event.content.branch))
-        } else {
-          log.info('Webhook event received {} {} {} {} {}', kv('type', type), kv('event_type', event.content.event_type), kv('hook_id', event.content.hook_id), kv('request_id', event.content.request_id), kv('branch', event.content.branch))
-        }
-
-        if (event.content.hash.toString().startsWith('000000000')) {
-          sendEvent = false
-        }
-      } else if (source == 'gitlab') {
-        event.content.hash = postedEvent.after;
-        event.content.branch = postedEvent.ref?.replace('refs/heads/', '') ?: ""
-        event.content.repoProject = postedEvent.project.namespace
-        event.content.slug = postedEvent.project.name
-      }
+      GitWebhookHandler handler = scmWebhookHandler.getHandler(source)
+      handler.handle(event, postedEvent)
+      // shouldSendEvent should be called after the event
+      // has been processed
+      sendEvent = handler.shouldSendEvent(event)
     }
 
     if (!event.content.artifacts) {
