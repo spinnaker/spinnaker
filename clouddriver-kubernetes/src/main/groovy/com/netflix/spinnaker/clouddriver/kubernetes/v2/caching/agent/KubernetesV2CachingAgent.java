@@ -93,7 +93,7 @@ public abstract class KubernetesV2CachingAgent extends KubernetesCachingAgent<Ku
           try {
             return credentials.list(primaryKinds(), n);
           } catch (KubectlException e) {
-            log.warn("Failed to read kind {} from namespace {}: {}", primaryKinds(), n, e.getMessage());
+            log.warn("{}: Failed to read kind {} from namespace {}: {}", getAgentType(), primaryKinds(), n, e.getMessage());
             throw e;
           }
         })
@@ -128,7 +128,7 @@ public abstract class KubernetesV2CachingAgent extends KubernetesCachingAgent<Ku
 
   @Override
   public CacheResult loadData(ProviderCache providerCache) {
-    log.info(getAgentType() + " is starting");
+    log.info(getAgentType() + ": agent is starting");
     reloadNamespaces();
     Map<String, Object> details = defaultIntrospectionDetails();
 
@@ -163,7 +163,7 @@ public abstract class KubernetesV2CachingAgent extends KubernetesCachingAgent<Ku
               return cacheData;
             }
           } catch (Exception e) {
-            log.warn("Failure converting {} as resource", rs, e);
+            log.warn("{}: Failure converting {} as resource", getAgentType(), rs, e);
             return null;
           }
         })
@@ -201,7 +201,7 @@ public abstract class KubernetesV2CachingAgent extends KubernetesCachingAgent<Ku
       try {
         RegistryUtils.addRelationships(propertyRegistry, accountName, k, allResources, result);
       } catch (Exception e) {
-        log.warn("Failure adding relationships for {}", k, e);
+        log.warn("{}: Failure adding relationships for {}", getAgentType(), k, e);
       }
     });
     return result;

@@ -90,7 +90,7 @@ public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2Cachi
 
   @Override
   public CacheResult loadData(ProviderCache providerCache) {
-    log.info(getAgentType() + " is starting");
+    log.info(getAgentType() + ": agent is starting");
     reloadNamespaces();
     Map<String, Object> details = defaultIntrospectionDetails();
 
@@ -221,7 +221,7 @@ public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2Cachi
     Map<String, Collection<String>> evictions = new HashMap<>();
     CacheResult cacheResult = new DefaultCacheResult(new HashMap<>());
 
-    log.info("Evicting on demand '{}'", key);
+    log.info("{}: Evicting on demand '{}'", getAgentType(), key);
     providerCache.evictDeletedItems(ON_DEMAND_TYPE, Collections.singletonList(key));
     evictions.put(kind.toString(), Collections.singletonList(key));
 
@@ -260,9 +260,6 @@ public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2Cachi
     String name;
     KubernetesKind kind;
 
-    // todo(lwander): this can be removed
-    log.debug("Queried for on demand cache refresh of '{}'", data);
-
     if (!getAccountName().equals(account)) {
       return null;
     }
@@ -286,7 +283,7 @@ public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2Cachi
     }
 
     if (!kind.isNamespaced() && StringUtils.isNotEmpty(namespace)) {
-      log.warn("Kind {} is not namespace but namespace {} was provided, ignoring", kind, namespace);
+      log.warn("{}: Kind {} is not namespace but namespace {} was provided, ignoring", getAgentType(), kind, namespace);
       namespace = "";
     }
 
@@ -297,7 +294,7 @@ public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2Cachi
       return null;
     }
 
-    log.info("Accepted on demand refresh of '{}'", data);
+    log.info("{}: Accepted on demand refresh of '{}'", getAgentType(), data);
     OnDemandAgent.OnDemandResult result;
     KubernetesManifest manifest = loadPrimaryResource(kind, namespace, name);
     String resourceKey = Keys.infrastructure(kind, account, namespace, name);
@@ -308,7 +305,7 @@ public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2Cachi
       return null;
     }
 
-    log.info("On demand cache refresh of (data: {}) succeeded", data);
+    log.info("{}: On demand cache refresh of (data: {}) succeeded", getAgentType(), data);
     return result;
   }
 

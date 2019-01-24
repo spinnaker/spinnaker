@@ -67,7 +67,7 @@ public class KubernetesMetricCachingAgent extends KubernetesCachingAgent<Kuberne
 
   @Override
   public CacheResult loadData(ProviderCache providerCache) {
-    log.info(getAgentType() + " is starting");
+    log.info(getAgentType() + ": agent is starting");
     reloadNamespaces();
 
     List<CacheData> cacheData = namespaces.parallelStream()
@@ -78,7 +78,7 @@ public class KubernetesMetricCachingAgent extends KubernetesCachingAgent<Kuberne
                     .map(m -> KubernetesCacheDataConverter.convertPodMetric(accountName, n, m));
               } catch (KubectlJobExecutor.KubectlException e) {
                 if (e.getMessage().contains("not available")) {
-                  log.warn("Metrics for namespace '" + n + "' in account '" + accountName + "' have not been recorded yet.");
+                  log.warn("{}: Metrics for namespace '" + n + "' in account '" + accountName + "' have not been recorded yet.", getAgentType());
                   return null;
                 } else {
                   throw e;
