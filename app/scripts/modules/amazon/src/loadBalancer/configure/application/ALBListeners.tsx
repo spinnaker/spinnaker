@@ -498,6 +498,7 @@ class ALBListenersImpl extends React.Component<IALBListenersProps, IALBListeners
                                 certificates={certificates}
                                 accountName={values.credentials}
                                 currentValue={certificate.name}
+                                app={this.props.app}
                                 onCertificateSelect={value => this.handleCertificateChanged(certificate, value)}
                               />
                             )}

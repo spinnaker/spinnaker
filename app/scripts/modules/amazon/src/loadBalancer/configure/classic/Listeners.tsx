@@ -2,7 +2,7 @@ import * as React from 'react';
 import { get } from 'lodash';
 import { FormikErrors } from 'formik';
 
-import { IWizardPageProps, wizardPage } from '@spinnaker/core';
+import { Application, IWizardPageProps, wizardPage } from '@spinnaker/core';
 
 import { AWSProviderSettings } from 'amazon/aws.settings';
 import {
@@ -16,21 +16,22 @@ import { AmazonCertificateSelectField } from '../common/AmazonCertificateSelectF
 
 import './Listeners.less';
 
-export type IListenersProps = IWizardPageProps<IAmazonClassicLoadBalancerUpsertCommand>;
+export interface IListenersProps extends IWizardPageProps<IAmazonClassicLoadBalancerUpsertCommand> {
+  app: Application;
+}
 
 export interface IListenersState {
   certificates: { [accountId: number]: IAmazonCertificate[] };
-  certificateTypes: string[];
 }
 
 class ListenersImpl extends React.Component<IListenersProps, IListenersState> {
   public static LABEL = 'Listeners';
   public protocols = ['HTTP', 'HTTPS', 'TCP', 'SSL'];
   public secureProtocols = ['HTTPS', 'SSL'];
+  private certificateTypes = get(AWSProviderSettings, 'loadBalancers.certificateTypes', ['iam', 'acm']);
 
   public state: IListenersState = {
     certificates: [],
-    certificateTypes: get(AWSProviderSettings, 'loadBalancers.certificateTypes', ['iam', 'acm']),
   };
 
   public validate() {
@@ -52,11 +53,6 @@ class ListenersImpl extends React.Component<IListenersProps, IListenersState> {
     setFieldValue('listeners', values.listeners);
   }
 
-  private someListenersUseSSL(): boolean {
-    const { listeners } = this.props.formik.values;
-    return listeners.some(listener => this.secureProtocols.includes(listener.externalProtocol));
-  }
-
   private showCertificateSelect(listener: IClassicListenerDescription): boolean {
     return (
       listener.sslCertificateType === 'iam' &&
@@ -72,8 +68,8 @@ class ListenersImpl extends React.Component<IListenersProps, IListenersState> {
     listener.externalProtocol = newProtocol;
     if (this.secureProtocols.includes(newProtocol)) {
       listener.externalPort = 443;
-      if (this.state.certificateTypes.length >= 1) {
-        listener.sslCertificateType = this.state.certificateTypes[0];
+      if (this.certificateTypes.length >= 1) {
+        listener.sslCertificateType = this.certificateTypes[0];
       }
     }
     if (newProtocol === 'HTTP') {
@@ -136,6 +132,7 @@ class ListenersImpl extends React.Component<IListenersProps, IListenersState> {
           certificates={certificates}
           accountName={values.credentials}
           currentValue={listener.sslCertificateName}
+          app={this.props.app}
           onCertificateSelect={value => this.handleListenerCertificateChanged(listener, value)}
         />
       );
@@ -143,6 +140,7 @@ class ListenersImpl extends React.Component<IListenersProps, IListenersState> {
       return (
         <input
           className="input-sm"
+          style={{ width: '100%', marginLeft: '10px' }}
           required={true}
           onChange={e => this.handleListenerCertificateChanged(listener, e.target.value)}
           value={listener.sslCertificateName}
@@ -153,11 +151,6 @@ class ListenersImpl extends React.Component<IListenersProps, IListenersState> {
 
   public render() {
     const { values } = this.props.formik;
-    const { certificateTypes } = this.state;
-
-    const showCertNameColumn = this.someListenersUseSSL();
-    const showCertTypeColumn = showCertNameColumn && certificateTypes.length > 1;
-    const colSpan = showCertTypeColumn ? 7 : showCertNameColumn ? 6 : 5;
 
     return (
       <div className="container-fluid form-horizontal create-classic-load-balancer-wizard-listeners">
@@ -171,93 +164,99 @@ class ListenersImpl extends React.Component<IListenersProps, IListenersState> {
                   <th />
                   <th>Internal Protocol</th>
                   <th>Internal Port</th>
-                  {showCertTypeColumn && <th style={{ width: '10%' }}>SSL Certificate Type</th>}
-                  {showCertNameColumn && <th style={{ width: '30%' }}>SSL Certificate Name</th>}
                   <th />
                 </tr>
               </thead>
               <tbody>
                 {values.listeners.map((listener, index) => (
-                  <tr key={index}>
-                    <td>
-                      <select
-                        className="form-control input-sm"
-                        value={listener.externalProtocol}
-                        onChange={event =>
-                          this.listenerExternalProtocolChanged(listener, event.target.value as ClassicListenerProtocol)
-                        }
-                      >
-                        {this.protocols.map(p => (
-                          <option key={p}>{p}</option>
-                        ))}
-                      </select>
-                    </td>
-                    <td>
-                      <input
-                        className="form-control input-sm"
-                        type="number"
-                        min="0"
-                        value={listener.externalPort}
-                        onChange={event => this.listenerExternalPortChanged(listener, event.target.value)}
-                        required={true}
-                      />
-                    </td>
-                    <td className="small" style={{ paddingTop: '10px' }}>
-                      &rarr;
-                    </td>
-                    <td>
-                      <select
-                        className="form-control input-sm"
-                        value={listener.internalProtocol}
-                        onChange={event =>
-                          this.listenerInternalProtocolChanged(listener, event.target.value as ClassicListenerProtocol)
-                        }
-                      >
-                        {this.protocols.map(p => (
-                          <option key={p}>{p}</option>
-                        ))}
-                      </select>
-                    </td>
-                    <td>
-                      <input
-                        className="form-control input-sm"
-                        type="number"
-                        min="0"
-                        value={listener.internalPort}
-                        onChange={event => this.listenerInternalPortChanged(listener, event.target.value)}
-                        required={true}
-                      />
-                    </td>
-
-                    {showCertTypeColumn && (
+                  <React.Fragment key={index}>
+                    {/* Using React.Fragment to supply the key only */}
+                    <tr key={index + '-main'}>
                       <td>
-                        {this.secureProtocols.includes(listener.externalProtocol) && (
-                          <select
-                            className="form-control input-sm"
-                            value={listener.sslCertificateType}
-                            onChange={event => this.listenerCertificateTypeChanged(listener, event.target.value)}
-                          >
-                            {this.state.certificateTypes.map(t => (
-                              <option key={t}>{t}</option>
-                            ))}
-                          </select>
-                        )}
+                        <select
+                          className="form-control input-sm"
+                          value={listener.externalProtocol}
+                          onChange={event =>
+                            this.listenerExternalProtocolChanged(listener, event.target
+                              .value as ClassicListenerProtocol)
+                          }
+                        >
+                          {this.protocols.map(p => (
+                            <option key={p}>{p}</option>
+                          ))}
+                        </select>
                       </td>
+                      <td>
+                        <input
+                          className="form-control input-sm"
+                          type="number"
+                          min="0"
+                          value={listener.externalPort}
+                          onChange={event => this.listenerExternalPortChanged(listener, event.target.value)}
+                          required={true}
+                        />
+                      </td>
+                      <td className="small" style={{ paddingTop: '10px' }}>
+                        &rarr;
+                      </td>
+                      <td>
+                        <select
+                          className="form-control input-sm"
+                          value={listener.internalProtocol}
+                          onChange={event =>
+                            this.listenerInternalProtocolChanged(listener, event.target
+                              .value as ClassicListenerProtocol)
+                          }
+                        >
+                          {this.protocols.map(p => (
+                            <option key={p}>{p}</option>
+                          ))}
+                        </select>
+                      </td>
+                      <td>
+                        <input
+                          className="form-control input-sm"
+                          type="number"
+                          min="0"
+                          value={listener.internalPort}
+                          onChange={event => this.listenerInternalPortChanged(listener, event.target.value)}
+                          required={true}
+                        />
+                      </td>
+                      <td>
+                        <a className="sm-label clickable" onClick={() => this.removeListener(index)}>
+                          <span className="glyphicon glyphicon-trash" />
+                        </a>
+                      </td>
+                    </tr>
+                    {this.secureProtocols.includes(listener.externalProtocol) && (
+                      <tr key={index + '-ssl'}>
+                        <td colSpan={5} style={{ borderTopWidth: 0 }}>
+                          <div className="horizontal space-between">
+                            <div className="sm-label-right">Certificate</div>
+                            {this.certificateTypes.length > 1 && (
+                              <select
+                                style={{ width: '45px', marginLeft: '10px' }}
+                                className="form-control input-sm"
+                                value={listener.sslCertificateType}
+                                onChange={event => this.listenerCertificateTypeChanged(listener, event.target.value)}
+                              >
+                                {this.certificateTypes.map(t => (
+                                  <option key={t}>{t}</option>
+                                ))}
+                              </select>
+                            )}
+                            {this.renderCertificateSelector(listener)}
+                          </div>
+                        </td>
+                      </tr>
                     )}
-
-                    {showCertNameColumn && <td>{this.renderCertificateSelector(listener)}</td>}
-
-                    <td>
-                      <a className="sm-label clickable" onClick={() => this.removeListener(index)}>
-                        <span className="glyphicon glyphicon-trash" />
-                      </a>
-                    </td>
-                  </tr>
+                  </React.Fragment>
                 ))}
               </tbody>
               <tfoot>
                 <tr>
-                  <td colSpan={colSpan}>
+                  <td colSpan={5}>
                     <button className="add-new col-md-12" onClick={this.addListener} type="button">
                       <span className="glyphicon glyphicon-plus-sign" />
                       <span> Add new port mapping</span>

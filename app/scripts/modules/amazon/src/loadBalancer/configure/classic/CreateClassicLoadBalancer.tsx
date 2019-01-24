@@ -241,7 +241,7 @@ export class CreateClassicLoadBalancer extends React.Component<
           loadBalancer={loadBalancer}
         />
         <SecurityGroups done={true} isNew={isNew} />
-        <Listeners done={true} />
+        <Listeners done={true} app={app} />
         <HealthCheck done={true} />
         <AdvancedSettings done={true} />
       </WizardModal>

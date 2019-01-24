@@ -1,6 +1,6 @@
 import * as React from 'react';
 import Select, { Option } from 'react-select';
-import { Overridable } from '@spinnaker/core';
+import { Application, Overridable } from '@spinnaker/core';
 
 import { IAmazonCertificate } from 'amazon/domain';
 
@@ -9,18 +9,11 @@ export interface IAmazonCertificateSelectFieldProps {
   accountName: string;
   currentValue: string;
   onCertificateSelect: (certificateName: string) => void;
+  app: Application;
 }
 
 @Overridable('amazon.certificateSelectField')
 export class AmazonCertificateSelectField extends React.Component<IAmazonCertificateSelectFieldProps> {
-  public shouldComponentUpdate(nextProps: Readonly<IAmazonCertificateSelectFieldProps>): boolean {
-    return (
-      nextProps.currentValue !== this.props.currentValue ||
-      nextProps.accountName !== this.props.accountName ||
-      nextProps.certificates !== this.props.certificates
-    );
-  }
-
   public render() {
     const { certificates, accountName, onCertificateSelect, currentValue } = this.props;
     const certificatesForAccount = certificates[accountName] || [];
@@ -31,7 +24,7 @@ export class AmazonCertificateSelectField extends React.Component<IAmazonCertifi
       <Select
         className="input-sm"
         wrapperStyle={{ width: '100%' }}
-        clearable={false}
+        clearable={true}
         required={true}
         options={certificateOptions}
         onChange={(value: Option<string>) => onCertificateSelect(value.value)}

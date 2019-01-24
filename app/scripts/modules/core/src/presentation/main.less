@@ -12,6 +12,9 @@
 
 .Select-input {
   font-size: 12px;
+  input:invalid {
+    box-shadow: none;
+  }
 }
 
 .Select-placeholder {
@@ -1243,6 +1246,7 @@ select.input-sm {
 .Select.input-sm {
   display: flex;
   align-items: center;
+  padding-right: 0;
   .Select-control {
     display: flex;
     justify-content: space-between;
@@ -1256,6 +1260,11 @@ select.input-sm {
     left: 0;
     right: 0;
     width: unset;
+  }
+  .Select-clear-zone {
+    position: absolute;
+    right: 25px;
+    line-height: 30px;
   }
 }
 
