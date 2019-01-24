@@ -54,28 +54,24 @@ public class StashWebhookEventHandler implements GitWebhookHandler {
   }
 
   @Data
-  @JsonIgnoreProperties(ignoreUnknown = true)
   private static class StashWebhookEvent {
     List<StashRefChanges> refChanges;
     StashRepository repository;
   }
 
   @Data
-  @JsonIgnoreProperties(ignoreUnknown = true)
   private static class StashRefChanges {
     String toHash;
     String refId;
   }
 
   @Data
-  @JsonIgnoreProperties(ignoreUnknown = true)
   private static class StashRepository {
     String slug;
     StashProject project;
   }
 
   @Data
-  @JsonIgnoreProperties(ignoreUnknown = true)
   private static class StashProject {
     String key;
   }

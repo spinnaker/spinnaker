@@ -64,7 +64,6 @@ public class GithubWebhookEventHandler implements GitWebhookHandler {
   }
 
   @Data
-  @JsonIgnoreProperties(ignoreUnknown = true)
   private static class GithubWebhookEvent {
     String after;
     String ref;
@@ -72,14 +71,12 @@ public class GithubWebhookEventHandler implements GitWebhookHandler {
   }
 
   @Data
-  @JsonIgnoreProperties(ignoreUnknown = true)
   private static class GithubWebhookRepository {
      GithubOwner owner;
      String name;
   }
 
   @Data
-  @JsonIgnoreProperties(ignoreUnknown = true)
   private static class GithubOwner {
     String name;
   }

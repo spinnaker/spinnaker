@@ -52,7 +52,6 @@ public class GitlabWehbookEventHandler implements GitWebhookHandler {
   }
 
   @Data
-  @JsonIgnoreProperties(ignoreUnknown = true)
   private static class GitlabWebhookEvent {
     String after;
     String ref;
@@ -60,7 +59,6 @@ public class GitlabWehbookEventHandler implements GitWebhookHandler {
   }
 
   @Data
-  @JsonIgnoreProperties(ignoreUnknown = true)
   private static class GitlabProject {
     String name;
     String namespace;
