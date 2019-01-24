@@ -20,6 +20,7 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.utils.URIBuilder;
@@ -165,5 +166,16 @@ public class ServiceSettings {
           .setHost(getAddress()));
     }
     return Optional.empty();
+  }
+
+  public SlimServiceSettings slim() {
+    return new SlimServiceSettings(getBaseUrl(), getEnabled());
+  }
+
+  @Data
+  @AllArgsConstructor
+  public static class SlimServiceSettings {
+    private String baseUrl;
+    private Boolean enabled;
   }
 }
