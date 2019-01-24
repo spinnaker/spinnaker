@@ -35,6 +35,14 @@
 
   "terminationGracePeriodSeconds": {{ terminationGracePeriodSeconds }},
 
+  {% if nodeSelector %}
+    "nodeSelector": {
+      {% for key, value in nodeSelector.items() %}
+      "{{ key }}": "{{ value }}" {% if not loop.last %} , {% endif %}
+      {% endfor %}
+    },
+  {% endif %}
+
   "volumes": [
     {% for volume in volumes %}
     {{ volume }} {% if not loop.last %} , {% endif %}

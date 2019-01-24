@@ -29,6 +29,7 @@ import java.util.Map;
 @EqualsAndHashCode(callSuper = false)
 public class KubernetesSettings {
   List<String> imagePullSecrets = new ArrayList<>();
+  Map<String, String> nodeSelector = new HashMap<>();
   Map<String, String> podAnnotations = new HashMap<>();
   List<ConfigSource> volumes = new ArrayList<>();
   String serviceAccountName = null;

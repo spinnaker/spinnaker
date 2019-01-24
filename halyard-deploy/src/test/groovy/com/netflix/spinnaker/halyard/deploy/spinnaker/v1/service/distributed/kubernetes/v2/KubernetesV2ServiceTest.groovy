@@ -18,6 +18,7 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.ku
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration
 import com.netflix.spinnaker.halyard.config.model.v1.node.SidecarConfig
+import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesAccount
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.AccountDeploymentDetails
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings
@@ -31,6 +32,8 @@ class KubernetesV2ServiceTest extends Specification {
 
     private KubernetesV2Service testService
     private AccountDeploymentDetails details
+    private GenerateService.ResolvedConfiguration config
+    private ServiceSettings serviceSettings
 
     def setup() {
         testService = new KubernetesV2OrcaService() {
@@ -49,10 +52,19 @@ class KubernetesV2ServiceTest extends Specification {
                 return 42
             }
         }
-        testService.serviceDelegate = Mock(KubernetesV2ServiceDelegate)
-        GenerateService.ResolvedConfiguration config = Mock(GenerateService.ResolvedConfiguration)
-        config.runtimeSettings = Mock(SpinnakerRuntimeSettings)
+        testService.serviceDelegate = new KubernetesV2ServiceDelegate()
+
+        serviceSettings = new ServiceSettings()
+        serviceSettings.env = new HashMap<String, String>()
+
+        config = new GenerateService.ResolvedConfiguration()
+        config.runtimeSettings = Stub(SpinnakerRuntimeSettings) {
+            getServiceSettings(_) >> serviceSettings
+        }
+
         details = new AccountDeploymentDetails()
+        details.account = new KubernetesAccount()
+        details.deploymentConfiguration = new DeploymentConfiguration()
     }
     def "Does getSidecars work with default RuntimeSettings"() {
         setup:
@@ -88,6 +100,39 @@ class KubernetesV2ServiceTest extends Specification {
 
         then:
         customSidecar.contains('"ports": [{ "containerPort": 8080 }]')
+    }
+
+    def "Defaults Service.type to ClusterIP?"() {
+        when:
+        String yaml = testService.getServiceYaml(config)
+
+        then:
+        yaml.contains('type: ClusterIP')
+    }
+
+    def "Can we set Service.nodePort?"() {
+        setup:
+        serviceSettings.getKubernetes().serviceType = "NodePort"
+        serviceSettings.getKubernetes().nodePort = "1234"
+
+        when:
+        String yaml = testService.getServiceYaml(config)
+
+        then:
+        yaml.contains('type: NodePort')
+        yaml.contains('nodePort: 1234')
+    }
+
+    def "Can we set PodSpec.nodeSelector?"() {
+        setup:
+        serviceSettings.getKubernetes().nodeSelector = new HashMap<String, String>()
+        serviceSettings.getKubernetes().nodeSelector["kops.k8s.io/instancegroup"] = "clouddriver"
+
+        when:
+        String yaml = testService.getPodSpecYaml(details, config)
+
+        then:
+        yaml.contains('"kops.k8s.io/instancegroup": "clouddriver"')
     }
 
     def "Do SecretVolumeMounts end up being valid mountPaths?"() {
