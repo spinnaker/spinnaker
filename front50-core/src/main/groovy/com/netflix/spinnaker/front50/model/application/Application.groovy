@@ -53,9 +53,15 @@ class Application implements Timestamped {
   String updateTs
   String createTs
   String lastModifiedBy
+  Object cloudProviders // might be persisted as a List or a String
   public List<TrafficGuard> trafficGuards = []
 
   private Map<String, Object> details = new HashMap<String, Object>()
+
+  String getCloudProviders() {
+    // Orca expects a String
+    return cloudProviders instanceof List ? cloudProviders.join(',') : cloudProviders
+  }
 
   String getName() {
     // there is an expectation that application names are uppercased (historical)
