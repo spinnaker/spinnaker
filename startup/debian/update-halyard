@@ -69,6 +69,10 @@ function configure_bash_completion() {
   fi
 }
 
+function kill_daemon() {
+    pkill -f '/opt/halyard/lib/halyard-web' || true
+}
+
 function install_halyard() {
   TEMPDIR=$(mktemp -d installhalyard.XXXX)
   pushd $TEMPDIR
@@ -92,6 +96,9 @@ process_args $@
 configure_defaults
 
 install_halyard
+
+echo "Install completed... restarting Halyard"
+kill_daemon
 
 su -l -c "hal -v" -s /bin/bash $HAL_USER
 
