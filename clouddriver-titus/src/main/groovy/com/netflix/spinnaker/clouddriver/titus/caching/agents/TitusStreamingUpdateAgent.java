@@ -181,6 +181,8 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent {
 
     @Override
     public void executeAgent(Agent agent) {
+      Long startTime = System.currentTimeMillis();
+
       ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
       final Future handler = executor.submit(() -> {
         Iterator<JobChangeNotification> notificationIt = titusClient.observeJobs(
@@ -192,8 +194,6 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent {
 
         Boolean snapshotComplete = false;
         Boolean savedSnapshot = false;
-
-        Long startTime = System.currentTimeMillis();
 
         while (continueStreaming(startTime)) {
           try {
@@ -495,7 +495,7 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent {
 
   @Override
   public long getPollIntervalMillis() {
-    return TimeUnit.SECONDS.toMillis(10);
+    return TimeUnit.MINUTES.toMillis(3);
   }
 
   // TODO: AgentSchedulers need to support ttl heartbeats for proper streaming agent support.
