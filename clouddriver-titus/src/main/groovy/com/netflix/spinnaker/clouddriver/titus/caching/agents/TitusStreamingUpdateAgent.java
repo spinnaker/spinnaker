@@ -167,9 +167,6 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent {
     private AtomicInteger changes = new AtomicInteger(0);
     private AtomicLong lastUpdate = new AtomicLong(0);
 
-    Map<String, Job> jobs = new HashMap<>();
-    Map<String, Set<Task>> tasks = new HashMap<>();
-
     StreamingCacheExecution(ProviderRegistry providerRegistry) {
       this.providerRegistry = providerRegistry;
       this.cache = providerRegistry.getProviderCache(getProviderName());
@@ -182,6 +179,9 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent {
     @Override
     public void executeAgent(Agent agent) {
       Long startTime = System.currentTimeMillis();
+
+      Map<String, Job> jobs = new HashMap<>();
+      Map<String, Set<Task>> tasks = new HashMap<>();
 
       ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
       final Future handler = executor.submit(() -> {
@@ -201,10 +201,10 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent {
               JobChangeNotification notification = notificationIt.next();
               switch (notification.getNotificationCase()) {
                 case JOBUPDATE:
-                  updateJob(notification.getJobUpdate().getJob(), snapshotComplete);
+                  updateJob(jobs, tasks, notification.getJobUpdate().getJob(), snapshotComplete);
                   break;
                 case TASKUPDATE:
-                  updateTask(notification.getTaskUpdate().getTask(), snapshotComplete);
+                  updateTask(tasks, notification.getTaskUpdate().getTask(), snapshotComplete);
                   break;
                 case SNAPSHOTEND:
                   lastUpdate.set(0);
@@ -220,7 +220,7 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent {
               }
 
               if (snapshotComplete) {
-                writeToCache(!savedSnapshot);
+                writeToCache(jobs, tasks, !savedSnapshot);
                 if (!savedSnapshot) {
                   savedSnapshot = true;
                 }
@@ -248,7 +248,7 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent {
       CompletableFuture.completedFuture(handler).join();
     }
 
-    private void updateJob(Job job, Boolean snapshotComplete) {
+    private void updateJob(Map<String, Job> jobs, Map<String, Set<Task>> tasks, Job job, Boolean snapshotComplete) {
       String jobId = job.getId();
       if (FINISHED_JOB_STATES.contains(job.getStatus().getState())) {
         tasks.remove(jobId);
@@ -266,7 +266,7 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent {
       changes.incrementAndGet();
     }
 
-    private void updateTask(Task task, Boolean snapshotComplete) {
+    private void updateTask(Map<String, Set<Task>> tasks, Task task, Boolean snapshotComplete) {
       String jobId = task.getJobId();
       if (FILTERED_TASK_STATES.contains(task.getStatus().getState())) {
         tasks.computeIfAbsent(jobId, t -> new HashSet<>()).remove(task);
@@ -295,7 +295,7 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent {
      * a caching agent, and calls backingStore.mergeAll()), we should call i.e. ProviderCache.putCacheData
      * (calls backingStore.merge()) and ProviderCache.evictDeletedItems() as needed.
      */
-    private void writeToCache(Boolean firstSnapshotWrite) {
+    private void writeToCache(Map<String, Job> jobs, Map<String, Set<Task>> tasks, Boolean firstSnapshotWrite) {
       long startTime = System.currentTimeMillis();
 
       if (firstSnapshotWrite ||
@@ -328,10 +328,7 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent {
           .get(registry, metricId.withTag("operation", "getLoadBalancers"))
           .record(System.currentTimeMillis() - startLoadBalancerTime, MILLISECONDS);
 
-        CacheResult result = buildCacheResult(
-          scalingPolicyResults,
-          allLoadBalancers
-        );
+        CacheResult result = buildCacheResult(jobs, tasks, scalingPolicyResults, allLoadBalancers);
 
         Collection<String> authoritative = TYPES.stream()
           .filter(t -> t.getAuthority().equals(AUTHORITATIVE))
@@ -348,7 +345,9 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent {
       }
     }
 
-    private CacheResult buildCacheResult(List<ScalingPolicyResult> scalingPolicyResults,
+    private CacheResult buildCacheResult(Map<String, Job> jobs,
+                                         Map<String, Set<Task>> tasks,
+                                         List<ScalingPolicyResult> scalingPolicyResults,
                                          Map<String, List<String>> allLoadBalancers) {
       // INITIALIZE CACHES
       Map<String, CacheData> applicationCache = createCache();
