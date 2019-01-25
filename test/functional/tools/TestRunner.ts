@@ -83,7 +83,10 @@ export class TestRunner {
     const fixturePath = this.fixtureService.fixturePathForTestPath(testpath);
     Promise.all(this.launchReadinessPromises)
       .then(() => {
-        return this.mountebankService.createImposterFromFixtureFile(fixturePath);
+        return this.mountebankService.createImposterFromFixtureFile(
+          fixturePath,
+          this.fixtureService.anonymousAuthFixturePath(),
+        );
       })
       .catch(err => {
         console.error(`error serving fixture: ${err}`);

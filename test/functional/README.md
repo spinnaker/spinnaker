@@ -25,6 +25,9 @@ The options available for the runner script are as follows:
                        running Gate server.
 --record-fixtures      Boolean. Record network fixtures for later replay.
                        Requires a running Spinnaker deployment.
+--serve-fixture        Boolean. Serve a pre-recorded network fixture in place
+                       of a running Gate server. Used during development to
+                       allow debugging of fixture responses.
 --gate-port            (only used when recording fixtures) Port on which a
                        real Gate server is currently running. The imposter
                        recording a test's network fixture will proxy requests
