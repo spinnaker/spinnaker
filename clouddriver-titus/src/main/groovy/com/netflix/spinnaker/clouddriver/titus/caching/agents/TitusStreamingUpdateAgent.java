@@ -201,7 +201,7 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent {
               JobChangeNotification notification = notificationIt.next();
               switch (notification.getNotificationCase()) {
                 case JOBUPDATE:
-                  updateJob(notification.getJobUpdate().getJob());
+                  updateJob(notification.getJobUpdate().getJob(), snapshotComplete);
                   break;
                 case TASKUPDATE:
                   updateTask(notification.getTaskUpdate().getTask(), snapshotComplete);
@@ -248,39 +248,40 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent {
       CompletableFuture.completedFuture(handler).join();
     }
 
-    private void updateJob(Job job) {
+    private void updateJob(Job job, Boolean snapshotComplete) {
       String jobId = job.getId();
       if (FINISHED_JOB_STATES.contains(job.getStatus().getState())) {
+        tasks.remove(jobId);
         if (jobs.containsKey(jobId)) {
           jobs.remove(jobId);
-          if (tasks.containsKey(jobId)) {
-            tasks.remove(jobId);
-          }
-          changes.incrementAndGet();
+        } else if (snapshotComplete) {
+          log.debug("{} updateJob: jobId: {} has finished, but not present in current snapshot set",
+            getAgentType(),
+            jobId
+          );
         }
       } else {
         jobs.put(jobId, job);
-        changes.incrementAndGet();
       }
+      changes.incrementAndGet();
     }
 
     private void updateTask(Task task, Boolean snapshotComplete) {
       String jobId = task.getJobId();
       if (FILTERED_TASK_STATES.contains(task.getStatus().getState())) {
-        tasks.computeIfAbsent(jobId, t -> new HashSet<>()).add(task);
+        tasks.computeIfAbsent(jobId, t -> new HashSet<>()).remove(task);
+        tasks.get(jobId).add(task);
         changes.incrementAndGet();
       } else if (FINISHED_TASK_STATES.contains(task.getStatus().getState())) {
         if (tasks.containsKey(jobId)) {
           tasks.get(jobId).remove(task);
           changes.incrementAndGet();
-        } else {
-          if (snapshotComplete) {
-            log.warn("{} jobId {} (task {}) has finished, but not present in current snapshot set",
-              getAgentType(),
-              jobId,
-              task.getId()
-            );
-          }
+        } else if (snapshotComplete) {
+          log.debug("{} updateTask: task: {} jobId: {} has finished, but not present in current snapshot set",
+            getAgentType(),
+            task.getId(),
+            jobId
+          );
         }
       }
     }
@@ -304,6 +305,8 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent {
         if (firstSnapshotWrite) {
           log.info("Storing snapshot with {} job and tasks in {}", changes.get(), getAgentType());
         } else {
+          tasks.keySet().retainAll(jobs.keySet());
+
           log.info("Updating: {} changes ( last update {} milliseconds ) in {}",
             changes.get(),
             startTime - lastUpdate.get(),
