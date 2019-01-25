@@ -92,7 +92,6 @@ public class KubernetesEventHandler extends KubernetesHandler {
     if (ref == null
         || StringUtils.isEmpty(ref.getApiVersion())
         || StringUtils.isEmpty(ref.getKind())
-        || StringUtils.isEmpty(ref.getNamespace())
         || StringUtils.isEmpty(ref.getName())) {
       return null;
     }
