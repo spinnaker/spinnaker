@@ -120,11 +120,7 @@ class SqlProviderCache(private val backingStore: WriteableCache) : ProviderCache
 
   override fun putCacheResult(source: String,
                               authoritativeTypes: MutableCollection<String>,
-                              cacheResult: CacheResult?) {
-    if (cacheResult == null) {
-      return
-    }
-
+                              cacheResult: CacheResult) {
     // TODO every source type should have an authoritative agent and every agent should be authoritative for something
     // TODO terrible hack because no AWS agent is authoritative for clusters, fix in ClusterCachingAgent
     // TODO same with namedImages - fix in AWS ImageCachingAgent
@@ -199,6 +195,29 @@ class SqlProviderCache(private val backingStore: WriteableCache) : ProviderCache
         evictDeletedItems(it.key, it.value)
       }
     }
+  }
+
+  override fun addCacheResult(source: String,
+                              authoritativeTypes: MutableCollection<String>,
+                              cacheResult: CacheResult): Unit {
+    val cachedTypes = mutableSetOf<String>()
+
+    if (authoritativeTypes.isNotEmpty()) {
+      cacheResult.cacheResults
+        .filter {
+          authoritativeTypes.contains(it.key)
+        }
+        .forEach {
+          cacheDataType(it.key, source, it.value, authoritative = true, cleanup = false)
+          cachedTypes.add(it.key)
+        }
+    }
+
+    cacheResult.cacheResults
+      .filter { !cachedTypes.contains(it.key) }
+      .forEach {
+        cacheDataType(it.key, source, it.value, authoritative = false, cleanup = false)
+      }
   }
 
   override fun putCacheData(type: String, cacheData: CacheData) {
