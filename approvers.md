@@ -13,7 +13,7 @@
 * csanden
 * dibyom
 * dorbin
-* dpeach
+* danielpeach
 * dreynaud
 * duftler
 * edwinavalos
