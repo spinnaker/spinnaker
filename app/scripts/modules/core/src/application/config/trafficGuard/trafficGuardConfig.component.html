@@ -16,6 +16,7 @@
       <table class="table table-condensed">
         <thead>
           <tr>
+            <th>Enabled</th>
             <th>Account</th>
             <th>Region <help-field key="trafficGuard.region"></help-field></th>
             <th>Stack <help-field key="trafficGuard.stack"></help-field></th>
@@ -26,7 +27,10 @@
         </thead>
         <tbody>
         <tr ng-repeat="guard in $ctrl.config">
-          <td>
+          <td class="text-center">
+            <input type="checkbox" ng-model="guard.enabled" ng-change="$ctrl.configChanged()"/>
+          </td>
+          <td ng-style="{ opacity: guard.enabled ? 1 : 0.5 }">
             <account-select-field
               component="guard"
               field="account"
@@ -34,7 +38,7 @@
               accounts="$ctrl.accounts"
               on-change="$ctrl.configChanged()"></account-select-field>
           </td>
-          <td>
+          <td ng-style="{ opacity: guard.enabled ? 1 : 0.5 }">
             <span ng-if="!guard.account">(select account)</span>
             <select class="form-control input-sm"
                     ng-model="guard.location"
@@ -44,17 +48,17 @@
               <option ng-repeat="location in $ctrl.locationsByAccount[guard.account]" value="{{location}}">{{location}}</option>
             </select>
           </td>
-          <td>
+          <td ng-style="{ opacity: guard.enabled ? 1 : 0.5 }">
             <input type="text" class="form-control input-sm"
                    ng-model="guard.stack"
                    ng-change="$ctrl.configChanged()"/>
           </td>
-          <td>
+          <td ng-style="{ opacity: guard.enabled ? 1 : 0.5 }">
             <input type="text" class="form-control input-sm"
                    ng-model="guard.detail"
                    ng-change="$ctrl.configChanged()"/>
           </td>
-          <td>
+          <td ng-style="{ opacity: guard.enabled ? 1 : 0.5 }">
             <cluster-matches matches="$ctrl.clusterMatches[$index]"></cluster-matches>
           </td>
           <td><a href ng-click="$ctrl.removeGuard($index)"><span class="glyphicon glyphicon-trash" uib-tooltip="Remove guard"></span></a></td>
