@@ -4,27 +4,29 @@
 @fixed-header-z-index: 1030;
 
 /* Resets for React select */
-.Select--multi .Select-multi-value-wrapper,
-.Select-control,
-.Select-input {
-  height: 30px;
-}
-
-.Select-input {
-  font-size: 12px;
-  input:invalid {
-    box-shadow: none;
+html {
+  .Select--multi .Select-multi-value-wrapper,
+  .Select-control,
+  .Select-input {
+    height: 30px;
   }
-}
 
-.Select-placeholder {
-  line-height: 30px;
-  height: inherit;
-}
+  .Select-input {
+    font-size: 12px;
+    input:invalid {
+      box-shadow: none;
+    }
+  }
 
-.Select-placeholder,
-.Select--single > .Select-control .Select-value {
-  line-height: 30px;
+  .Select-placeholder {
+    line-height: 30px;
+    height: inherit;
+  }
+
+  .Select-placeholder,
+  .Select--single > .Select-control .Select-value {
+    line-height: 30px;
+  }
 }
 
 .form-field-loading {

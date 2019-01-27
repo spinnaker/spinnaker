@@ -1,6 +1,5 @@
 import * as React from 'react';
 import Select, { Option } from 'react-select';
-import 'react-select/dist/react-select.css';
 
 import { IExecution, IExecutionStage } from 'core/domain';
 import { Application } from 'core/application/application.model';
