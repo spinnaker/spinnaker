@@ -9,7 +9,7 @@
     "jsx": "react",
     "lib": ["es2017", "dom"],
     "moduleResolution": "node",
-    "module": "commonjs",
+    "module": "esnext",
     "noEmitHelpers": false,
     "noImplicitAny": true,
     "noImplicitReturns": true,

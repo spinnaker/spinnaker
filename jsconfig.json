@@ -1,7 +1,7 @@
 {
-    "purpose": "This file is used to support Microsoft Visual Studio Code users. See http://blogs.msdn.com/b/vscode/archive/2015/07/06/vs-code-es6.aspx for more details.",
-    "compilerOptions": {
-        "target": "ES6",
-        "module": "commonjs"
-    }
+  "purpose": "This file is used to support Microsoft Visual Studio Code users. See http://blogs.msdn.com/b/vscode/archive/2015/07/06/vs-code-es6.aspx for more details.",
+  "compilerOptions": {
+    "target": "ES6",
+    "module": "esnext"
+  }
 }
