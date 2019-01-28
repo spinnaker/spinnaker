@@ -12,8 +12,8 @@ module.exports = angular
 
       var imageLoader = azureImageReader.findImages({ provider: 'azure' });
 
-      var defaultCredentials = defaults.account || application.defaultCredentials;
-      var defaultRegion = defaults.region || application.defaultRegion;
+      var defaultCredentials = defaults.account || application.defaultCredentials.azure;
+      var defaultRegion = defaults.region || application.defaultRegions.azure;
 
       return $q
         .all({
