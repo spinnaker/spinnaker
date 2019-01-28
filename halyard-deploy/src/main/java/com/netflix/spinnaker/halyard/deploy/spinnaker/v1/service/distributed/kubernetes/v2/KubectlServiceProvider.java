@@ -100,7 +100,7 @@ public class KubectlServiceProvider extends SpinnakerServiceProvider<AccountDepl
     DaemonTaskHandler.newStage("Invoking kubectl");
     DaemonTaskHandler.message("Deleting all 'svc,deploy,secret' resources with label 'app=spin'...");
     KubernetesSharedServiceSettings kubernetesSharedServiceSettings = new KubernetesSharedServiceSettings(details.getDeploymentConfiguration());
-    KubernetesV2Utils.deleteSpinnaker(details.getAccount(), kubernetesSharedServiceSettings.getDeployLocation());
+    new KubernetesV2Executor(DaemonTaskHandler.getJobExecutor(), details.getAccount()).deleteSpinnaker(kubernetesSharedServiceSettings.getDeployLocation());
     return new RemoteAction();
   }
 

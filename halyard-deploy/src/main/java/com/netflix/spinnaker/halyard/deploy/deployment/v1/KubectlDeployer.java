@@ -30,8 +30,10 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerServic
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService.Type;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.SidecarService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.v2.KubectlServiceProvider;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.v2.KubernetesV2Executor;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.v2.KubernetesV2Service;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.v2.KubernetesV2Utils;
+
 import java.util.concurrent.TimeUnit;
 import org.springframework.stereotype.Component;
 
@@ -70,28 +72,29 @@ public class KubectlDeployer implements Deployer<KubectlServiceProvider,AccountD
             DaemonTaskHandler.newStage("Deploying " + service.getServiceName() + " with kubectl");
 
             KubernetesAccount account = deploymentDetails.getAccount();
+            KubernetesV2Executor executor = new KubernetesV2Executor(DaemonTaskHandler.getJobExecutor(), account);
             String namespaceDefinition = service.getNamespaceYaml(resolvedConfiguration);
             String serviceDefinition = service.getServiceYaml(resolvedConfiguration);
 
-            if (!KubernetesV2Utils.exists(account, namespaceDefinition)) {
-              KubernetesV2Utils.apply(account, namespaceDefinition);
+            if (!executor.exists(namespaceDefinition)) {
+              executor.apply(namespaceDefinition);
             }
 
-            if (!KubernetesV2Utils.exists(account, serviceDefinition)) {
-              KubernetesV2Utils.apply(account, serviceDefinition);
+            if (!executor.exists(serviceDefinition)) {
+              executor.apply(serviceDefinition);
             }
 
-            String resourceDefinition = service.getResourceYaml(deploymentDetails, resolvedConfiguration);
-            if (((SpinnakerService) service).getType().equals(Type.REDIS) && KubernetesV2Utils.exists(account, resourceDefinition)) {
+            String resourceDefinition = service.getResourceYaml(executor, deploymentDetails, resolvedConfiguration);
+            if (((SpinnakerService) service).getType().equals(Type.REDIS) && executor.exists(resourceDefinition)) {
               // We do not want to bounce the Redis pod because user data will be lost.
               DaemonTaskHandler.message("Redis deployment already exists... not redeploying...");
             } else {
               DaemonTaskHandler.message("Running kubectl apply on the resource definition...");
-              KubernetesV2Utils.apply(account, resourceDefinition);
+              executor.apply(resourceDefinition);
 
               if (waitForCompletion) {
                 DaemonTaskHandler.message("Waiting for service to be ready...");
-                while (!KubernetesV2Utils.isReady(account, service.getNamespace(settings), service.getServiceName())) {
+                while (!executor.isReady(service.getNamespace(settings), service.getServiceName())) {
                   DaemonTaskHandler.safeSleep(TimeUnit.SECONDS.toMillis(5));
                 }
               }
@@ -175,10 +178,11 @@ public class KubectlDeployer implements Deployer<KubectlServiceProvider,AccountD
         return;
       }
       KubernetesAccount account = deploymentDetails.getAccount();
+      KubernetesV2Executor executor = new KubernetesV2Executor(DaemonTaskHandler.getJobExecutor(), account);
 
       DaemonTaskHandler.newStage("Deleting disabled service " + service.getServiceName() + " with kubectl");
       DaemonTaskHandler.message("Running kubectl delete on the resource, service, and secret definitions...");
-      KubernetesV2Utils.delete(account, service.getNamespace(settings), service.getServiceName());
+      executor.delete(service.getNamespace(settings), service.getServiceName());
     });
   }
 }

@@ -151,7 +151,7 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
     return volume.toString();
   }
 
-  default String getResourceYaml(AccountDeploymentDetails<KubernetesAccount> details,
+  default String getResourceYaml(KubernetesV2Executor executor, AccountDeploymentDetails<KubernetesAccount> details,
       GenerateService.ResolvedConfiguration resolvedConfiguration) {
     ServiceSettings settings = resolvedConfiguration.getServiceSettings(getService());
 
@@ -173,16 +173,17 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
         .addBinding("replicas", targetSize)
         .addBinding("version", version)
         .addBinding("podAnnotations", settings.getKubernetes().getPodAnnotations())
-        .addBinding("podSpec", getPodSpecYaml(details, resolvedConfiguration))
+        .addBinding("podSpec", getPodSpecYaml(executor, details, resolvedConfiguration))
         .toString();
   }
 
-  default String getPodSpecYaml(AccountDeploymentDetails<KubernetesAccount> details,
+  default String getPodSpecYaml(KubernetesV2Executor executor,
+                                AccountDeploymentDetails<KubernetesAccount> details,
                                 GenerateService.ResolvedConfiguration resolvedConfiguration) {
       SpinnakerRuntimeSettings runtimeSettings = resolvedConfiguration.getRuntimeSettings();
       ServiceSettings settings = resolvedConfiguration.getServiceSettings(getService());
 
-      List<ConfigSource> configSources = stageConfig(details, resolvedConfiguration);
+      List<ConfigSource> configSources = stageConfig(executor, details, resolvedConfiguration);
       List<SidecarConfig> sidecarConfigs = getSidecarConfigs(details);
 
       configSources.addAll(sidecarConfigs.stream()
@@ -408,7 +409,7 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
       .collect(Collectors.toList());
   }
 
-  default List<ConfigSource> stageConfig(AccountDeploymentDetails<KubernetesAccount> details,
+  default List<ConfigSource> stageConfig(KubernetesV2Executor executor, AccountDeploymentDetails<KubernetesAccount> details,
       GenerateService.ResolvedConfiguration resolvedConfiguration) {
     Map<String, Profile> profiles = resolvedConfiguration.getProfilesForService(getService().getType());
     String stagingPath = getSpinnakerStagingPath(details.getDeploymentName());
@@ -465,9 +466,10 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
               Entry::getValue
           ));
 
-      String name = KubernetesV2Utils.createSecret(account, namespace, getService().getCanonicalName(), secretNamePrefix, files);
+      KubernetesV2Utils.SecretSpec spec = KubernetesV2Utils.createSecretSpec(namespace, getService().getCanonicalName(), secretNamePrefix, files);
+      executor.apply(spec.resource.toString());
       configSources.add(new ConfigSource()
-          .setId(name)
+          .setId(spec.name)
           .setMountPath(mountPath)
           .setEnv(env)
       );
@@ -479,9 +481,10 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
           .map(SecretMountPair::new)
           .collect(Collectors.toList());
 
-      String name = KubernetesV2Utils.createSecret(account, namespace, getService().getCanonicalName(), secretNamePrefix, files);
+      KubernetesV2Utils.SecretSpec spec = KubernetesV2Utils.createSecretSpec(namespace, getService().getCanonicalName(), secretNamePrefix, files);
+      executor.apply(spec.resource.toString());
       configSources.add(new ConfigSource()
-          .setId(name)
+          .setId(spec.name)
           .setMountPath(files.get(0).getContents().getParent())
       );
     }

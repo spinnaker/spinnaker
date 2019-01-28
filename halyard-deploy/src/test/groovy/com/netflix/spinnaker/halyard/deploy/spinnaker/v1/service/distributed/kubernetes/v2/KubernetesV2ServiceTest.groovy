@@ -127,9 +127,10 @@ class KubernetesV2ServiceTest extends Specification {
         setup:
         serviceSettings.getKubernetes().nodeSelector = new HashMap<String, String>()
         serviceSettings.getKubernetes().nodeSelector["kops.k8s.io/instancegroup"] = "clouddriver"
+        def executor = Mock(KubernetesV2Executor)
 
         when:
-        String yaml = testService.getPodSpecYaml(details, config)
+        String yaml = testService.getPodSpecYaml(executor, details, config)
 
         then:
         yaml.contains('"kops.k8s.io/instancegroup": "clouddriver"')
