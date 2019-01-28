@@ -89,13 +89,13 @@ interface Front50Service {
 
   // v2
   @POST("/v2/pipelineTemplates")
-  Response saveV2PipelineTemplate(@Body Map pipelineTemplate)
+  Response saveV2PipelineTemplate(@Query("version") String version, @Body Map pipelineTemplate)
 
   @GET("/v2/pipelineTemplates/{pipelineTemplateId}/dependentPipelines")
   List<Map<String, Object>> getDependentPipelinesForTemplate(@Path("pipelineTemplateId") String pipelineTemplateId)
 
   @PUT("/v2/pipelineTemplates/{pipelineTemplateId}")
-  Response updateV2PipelineTemplate(@Path("pipelineTemplateId") String pipelineTemplateId, @Body Map pipelineTemplate)
+  Response updateV2PipelineTemplate(@Path("pipelineTemplateId") String pipelineTemplateId, @Query("version") String version, @Body Map pipelineTemplate)
 
   @DELETE("/v2/pipelineTemplates/{pipelineTemplateId}")
   Response deleteV2PipelineTemplate(@Path("pipelineTemplateId") String pipelineTemplateId)

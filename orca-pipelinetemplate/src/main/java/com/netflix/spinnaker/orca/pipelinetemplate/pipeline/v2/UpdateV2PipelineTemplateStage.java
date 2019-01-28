@@ -28,14 +28,6 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class UpdateV2PipelineTemplateStage implements StageDefinitionBuilder {
-  @Autowired(required = false)
-  private Front50Service front50Service;
-
-  @Autowired
-  private ObjectMapper pipelineTemplateObjectMapper;
-
-  @Autowired(required = false)
-  private UpdatePipelineStage updatePipelineStage;
 
   @Override
   public void taskGraph(Stage stage, Builder builder) {

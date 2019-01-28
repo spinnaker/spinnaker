@@ -84,15 +84,15 @@ public class UpdateV2PipelineTemplateTask implements RetryableTask, SaveV2Pipeli
 
     validate(pipelineTemplate);
 
-    // TODO(jacobkiefer): move this to an update call to front50.
-    Response response = front50Service.updateV2PipelineTemplate(
-      (String) stage.getContext().get("id"),
-      (Map<String, Object>) stage.decodeBase64("/pipelineTemplate", Map.class)
-    );
+    String version = (String) stage.getContext().get("version");
+    Response response = front50Service.updateV2PipelineTemplate((String) stage.getContext().get("id"),
+      version, (Map<String, Object>) stage.decodeBase64("/pipelineTemplate", Map.class, pipelineTemplateObjectMapper));
 
+    // TODO(jacobkiefer): Reduce duplicated code.
+    String templateId = StringUtils.isEmpty(version) ? pipelineTemplate.getId() : String.format("%s:%s", pipelineTemplate.getId(), version);
     Map<String, Object> outputs = new HashMap<>();
     outputs.put("notification.type", "updatepipelinetemplate");
-    outputs.put("pipelineTemplate.id", pipelineTemplate.getId());
+    outputs.put("pipelineTemplate.id", templateId);
 
     if (response.getStatus() == HttpStatus.OK.value()) {
       return new TaskResult(ExecutionStatus.SUCCEEDED, outputs);

@@ -27,6 +27,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import retrofit.client.Response;
 
 import java.util.HashMap;
@@ -66,15 +67,15 @@ public class CreateV2PipelineTemplateTask implements RetryableTask, SaveV2Pipeli
 
     validate(pipelineTemplate);
 
-    Response response = front50Service.saveV2PipelineTemplate((Map<String, Object>) stage.decodeBase64(
-      "/pipelineTemplate",
-      Map.class,
-      pipelineTemplateObjectMapper
-    ));
+    String version = (String) stage.getContext().get("version");
+    Response response = front50Service.saveV2PipelineTemplate(version,
+      (Map<String, Object>) stage.decodeBase64("/pipelineTemplate", Map.class, pipelineTemplateObjectMapper));
 
+    // TODO(jacobkiefer): Reduce duplicated code.
+    String templateId = StringUtils.isEmpty(version) ? pipelineTemplate.getId() : String.format("%s:%s", pipelineTemplate.getId(), version);
     Map<String, Object> outputs = new HashMap<>();
     outputs.put("notification.type", "createpipelinetemplate");
-    outputs.put("pipelineTemplate.id", pipelineTemplate.getId());
+    outputs.put("pipelineTemplate.id", templateId);
 
     if (response.getStatus() == HttpStatus.OK.value()) {
       return new TaskResult(ExecutionStatus.SUCCEEDED, outputs);
