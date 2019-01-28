@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.clouddriver.controllers
+package com.netflix.spinnaker.clouddriver.aws.controllers
 
 import com.fasterxml.jackson.annotation.JsonInclude
-import com.netflix.spinnaker.clouddriver.model.CloudFormation
-import com.netflix.spinnaker.clouddriver.model.CloudFormationProvider
+import com.netflix.spinnaker.clouddriver.aws.controllers.CloudFormationController
+import com.netflix.spinnaker.clouddriver.aws.model.CloudFormation
+import com.netflix.spinnaker.clouddriver.aws.model.CloudFormationProvider
 import groovy.transform.Immutable
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
@@ -51,7 +52,7 @@ class CloudFormationControllerSpec extends Specification {
     cloudFormationProvider.list(accountId, '*') >> [ new CloudFormationTest(accountId: accountId) ]
 
     when:
-    def results = mvc.perform(get("/cloudFormation/list/$accountId"))
+    def results = mvc.perform(get("/aws/cloudFormation/stacks?accountId=$accountId"))
 
     then:
     results.andExpect(status().is2xxSuccessful())
@@ -65,7 +66,7 @@ class CloudFormationControllerSpec extends Specification {
     cloudFormationProvider.list(accountId, region) >> [ new CloudFormationTest(accountId: accountId, region: region) ]
 
     when:
-    def results = mvc.perform(get("/cloudFormation/list/$accountId?region=$region"))
+    def results = mvc.perform(get("/aws/cloudFormation/stacks?accountId=$accountId&region=$region"))
 
     then:
     results.andExpect(status().is2xxSuccessful())
@@ -79,7 +80,7 @@ class CloudFormationControllerSpec extends Specification {
     cloudFormationProvider.get(stackId) >> Optional.of(new CloudFormationTest(stackId: stackId))
 
     when:
-    def results = mvc.perform(get("/cloudFormation/get?stackId=$stackId"))
+    def results = mvc.perform(get("/aws/cloudFormation/stacks/$stackId"))
 
     then:
     results.andExpect(status().is2xxSuccessful())
@@ -92,7 +93,7 @@ class CloudFormationControllerSpec extends Specification {
     cloudFormationProvider.get(stackId) >> { throw new ResourceNotFoundException() }
 
     when:
-    def results = mvc.perform(get("/cloudFormation/get?stackId=$stackId"))
+    def results = mvc.perform(get("/aws/cloudFormation/stacks/$stackId"))
 
     then:
     results.andExpect(status().is(404))

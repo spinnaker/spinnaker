@@ -21,7 +21,7 @@ import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter;
 import com.netflix.spinnaker.clouddriver.aws.cache.Keys;
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonCloudFormation;
-import com.netflix.spinnaker.clouddriver.model.CloudFormationProvider;
+import com.netflix.spinnaker.clouddriver.aws.model.CloudFormationProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
