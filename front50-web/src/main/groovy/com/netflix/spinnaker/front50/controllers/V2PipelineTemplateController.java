@@ -20,6 +20,7 @@ package com.netflix.spinnaker.front50.controllers;
 import static com.netflix.spinnaker.front50.model.pipeline.Pipeline.TYPE_TEMPLATED;
 import static com.netflix.spinnaker.front50.model.pipeline.TemplateConfiguration.TemplateSource.SPINNAKER_PREFIX;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.netflix.spinnaker.front50.exception.BadRequestException;
@@ -31,9 +32,16 @@ import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO;
 import com.netflix.spinnaker.front50.model.pipeline.PipelineTemplate;
 import com.netflix.spinnaker.front50.model.pipeline.PipelineTemplateDAO;
 import com.netflix.spinnaker.front50.model.pipeline.TemplateConfiguration;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -44,7 +52,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/v2/pipelineTemplates")
+@Slf4j
 public class V2PipelineTemplateController {
+
+  // TODO(jacobkiefer): Does this handle all the version strings we want to support?
+  private static final String VALID_TEMPLATE_VERSION_REGEX = "^[a-zA-Z0-9-_.]+$";
 
   @Autowired(required = false)
   PipelineTemplateDAO pipelineTemplateDAO = null;
@@ -62,27 +74,58 @@ public class V2PipelineTemplateController {
   }
 
   @RequestMapping(value = "", method = RequestMethod.POST)
-  void save(@RequestBody PipelineTemplate pipelineTemplate) {
-    checkForDuplicatePipelineTemplate(pipelineTemplate.getId());
-    getPipelineTemplateDAO().create(pipelineTemplate.getId(), pipelineTemplate);
+  void save(@RequestParam(value = "version", required = false) String version, @RequestBody PipelineTemplate pipelineTemplate) {
+    if (StringUtils.isNotEmpty(version)) {
+      validatePipelineTemplateVersion(version);
+    }
+
+    String templateId = StringUtils.isNotEmpty(version) ?
+      String.format("%s:%s", pipelineTemplate.getId(), version) :
+      String.format("%s:%s", pipelineTemplate.getId(), "latest");
+
+    try {
+      checkForDuplicatePipelineTemplate(templateId);
+    } catch (DuplicateEntityException dee) {
+      log.debug("Updating latest version for template with id: {}", templateId);
+      return;
+    }
+    getPipelineTemplateDAO().create(templateId, pipelineTemplate);
+    saveDigest(pipelineTemplate);
   }
 
-  @RequestMapping(value = "{id}", method = RequestMethod.GET)
-  PipelineTemplate get(@PathVariable String id) {
-    return getPipelineTemplateDAO().findById(id);
+  private void saveDigest(PipelineTemplate pipelineTemplate) {
+    String digestId = String.format("%s@sha256:%s", pipelineTemplate.getId(), computeSHA256Digest(pipelineTemplate));
+    try {
+      checkForDuplicatePipelineTemplate(digestId);
+    } catch (DuplicateEntityException dee) {
+      log.debug("Duplicate pipeline digest calculated, not updating key {}", digestId);
+      return;
+    }
+    getPipelineTemplateDAO().create(digestId, pipelineTemplate);
   }
 
   @RequestMapping(value = "{id}", method = RequestMethod.PUT)
-  PipelineTemplate update(@PathVariable String id, @RequestBody PipelineTemplate pipelineTemplate) {
-    PipelineTemplate existingPipelineTemplate = getPipelineTemplateDAO().findById(id);
-    if (!pipelineTemplate.getId().equals(existingPipelineTemplate.getId())) {
-      throw new InvalidRequestException("The provided id " + id + " doesn't match the pipeline template id " + pipelineTemplate.getId());
+  PipelineTemplate update(@PathVariable String id, @RequestParam(value = "version", required = false) String version, @RequestBody PipelineTemplate pipelineTemplate) {
+    if (StringUtils.isNotEmpty(version)) {
+      validatePipelineTemplateVersion(version);
     }
 
+    String templateId = StringUtils.isNotEmpty(version) ? String.format("%s:%s", id, version) : pipelineTemplate.getId();
     pipelineTemplate.setLastModified(System.currentTimeMillis());
-    getPipelineTemplateDAO().update(id, pipelineTemplate);
-
+    getPipelineTemplateDAO().update(templateId, pipelineTemplate);
+    updateDigest(pipelineTemplate);
     return pipelineTemplate;
+  }
+
+  private void updateDigest(PipelineTemplate pipelineTemplate) {
+    String digestId = String.format("%s@sha256:%s", pipelineTemplate.getId(), computeSHA256Digest(pipelineTemplate));
+    getPipelineTemplateDAO().update(digestId, pipelineTemplate);
+  }
+
+  // TODO(jacobkiefer): Move id field to be a query param so we can fully support versioned MPTs.
+  @RequestMapping(value = "{id}", method = RequestMethod.GET)
+  PipelineTemplate get(@PathVariable String id) {
+    return getPipelineTemplateDAO().findById(id);
   }
 
   @RequestMapping(value = "{id}", method = RequestMethod.DELETE)
@@ -145,10 +188,31 @@ public class V2PipelineTemplateController {
     throw new DuplicateEntityException("A pipeline template with the id " + id + " already exists");
   }
 
+  @VisibleForTesting
+  String computeSHA256Digest(PipelineTemplate pipelineTemplate) {
+    // Sorted RB Tree by keys.
+    TreeMap<String, Object> sortedMap = new TreeMap<>(pipelineTemplate);
+    try {
+      String jsonPayload = objectMapper.writeValueAsString(sortedMap).replaceAll("\\s+", "");
+      MessageDigest digest = MessageDigest.getInstance("SHA-256");
+      byte[] hashBytes = digest.digest(jsonPayload.getBytes(StandardCharsets.UTF_8));
+      return Hex.encodeHexString(hashBytes);
+    } catch (NoSuchAlgorithmException | JsonProcessingException e) {
+      throw new InvalidRequestException(String.format("Computing digest for pipeline template %s failed. Nested exception is %s", pipelineTemplate.getId(), e));
+    }
+  }
+
   private PipelineTemplateDAO getPipelineTemplateDAO() {
     if (pipelineTemplateDAO == null) {
       throw new BadRequestException("Pipeline Templates are not supported with your current storage backend");
     }
     return pipelineTemplateDAO;
+  }
+
+  private void validatePipelineTemplateVersion(String version) {
+    if (!version.matches(VALID_TEMPLATE_VERSION_REGEX)) {
+      throw new InvalidRequestException(String.format("The provided version %s contains illegal characters."
+        + " Pipeline template versions must match %s", version, VALID_TEMPLATE_VERSION_REGEX));
+    }
   }
 }

@@ -44,6 +44,7 @@ dependencies {
   compile spinnaker.dependency("korkStackdriver")
   compile spinnaker.dependency("korkSwagger")
   compile spinnaker.dependency("kork")
+  compile spinnaker.dependency("lombok")
 
   compile "com.graphql-java:graphql-spring-boot-starter:3.9.2"
 
