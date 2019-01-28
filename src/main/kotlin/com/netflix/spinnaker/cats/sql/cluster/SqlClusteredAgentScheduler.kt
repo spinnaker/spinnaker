@@ -39,6 +39,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
+import java.util.regex.Pattern.CASE_INSENSITIVE
 
 /**
  * IMPORTANT: Using SQL for locking isn't a good idea. By enabling this scheduler, you'll be adding a fair amount of
@@ -74,7 +75,7 @@ class SqlClusteredAgentScheduler(
     val lockInterval = agentLockAcquisitionIntervalSeconds ?: 1L
     lockPollingScheduler.scheduleAtFixedRate(this, 0, lockInterval, TimeUnit.SECONDS)
 
-    enabledAgents = Pattern.compile(enabledAgentPattern)
+    enabledAgents = Pattern.compile(enabledAgentPattern, CASE_INSENSITIVE)
   }
 
   override fun schedule(agent: Agent,
