@@ -37,6 +37,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
@@ -190,8 +191,7 @@ public class V2PipelineTemplateController {
 
   @VisibleForTesting
   String computeSHA256Digest(PipelineTemplate pipelineTemplate) {
-    // Sorted RB Tree by keys.
-    TreeMap<String, Object> sortedMap = new TreeMap<>(pipelineTemplate);
+    Map<String, Object> sortedMap = (Map<String, Object>) sortObjectRecursive(pipelineTemplate);
     try {
       String jsonPayload = objectMapper.writeValueAsString(sortedMap).replaceAll("\\s+", "");
       MessageDigest digest = MessageDigest.getInstance("SHA-256");
@@ -199,6 +199,20 @@ public class V2PipelineTemplateController {
       return Hex.encodeHexString(hashBytes);
     } catch (NoSuchAlgorithmException | JsonProcessingException e) {
       throw new InvalidRequestException(String.format("Computing digest for pipeline template %s failed. Nested exception is %s", pipelineTemplate.getId(), e));
+    }
+  }
+
+  private Object sortObjectRecursive(Object initialObj) {
+    if (initialObj instanceof Map) {
+      Map<String, Object> initialMap = (Map<String, Object>) initialObj;
+      TreeMap<String, Object> sortedMap = new TreeMap<>();
+      initialMap.forEach((k, v) -> sortedMap.put(k, sortObjectRecursive(v)));
+      return sortedMap;
+    } else if (initialObj instanceof List) {
+      List initialList = (List) initialObj;
+      return initialList.stream().map(this::sortObjectRecursive).collect(Collectors.toList());
+    }  else {
+      return initialObj;
     }
   }
 

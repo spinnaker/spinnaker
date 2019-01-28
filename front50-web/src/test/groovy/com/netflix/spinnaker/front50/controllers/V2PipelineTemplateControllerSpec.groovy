@@ -56,11 +56,12 @@ class V2PipelineTemplateControllerSpec extends Specification {
       "stages": [
         [
           "name": "My Wait Stage",
-          "refId": "wait1",
           "requisiteStageRefIds": [],
+          "refId": "wait1",
           "type": "wait",
           "waitTime": '${ templateVariables.waitTime }'
-        ]
+        ],
+        "deeerp"
       ],
       "triggers": [
         [
@@ -79,8 +80,8 @@ class V2PipelineTemplateControllerSpec extends Specification {
     "schema": "v2",
     "variables": [
       [
-        "defaultValue": 43,
         "description": "The time a wait stage shall pauseth",
+        "defaultValue": 43,
         "name": "waitTime",
         "type": "int"
       ]
@@ -119,7 +120,8 @@ class V2PipelineTemplateControllerSpec extends Specification {
           "requisiteStageRefIds": [],
           "type": "wait",
           "waitTime": '${ templateVariables.waitTime }'
-        ]
+        ],
+        "deeerp"
       ],
       "triggers": [
         [
