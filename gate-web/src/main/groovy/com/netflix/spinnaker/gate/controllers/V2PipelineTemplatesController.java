@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -82,16 +83,15 @@ public class V2PipelineTemplatesController {
   }
 
   @ApiOperation(value = "Create a pipeline template.", response = HashMap.class)
-  @RequestMapping(method = RequestMethod.POST)
+  @RequestMapping(value = "/create", method = RequestMethod.POST)
   @ResponseStatus(value = HttpStatus.ACCEPTED)
-  public Map create(@RequestBody Map<String, Object> pipelineTemplate) {
-    String schema = (String) pipelineTemplate.get(SCHEMA);
-    if (schema != null && !schema.equals(V2_SCHEMA_VERSION)) {
-      throw new RuntimeException("Pipeline template schema version is invalid");
-    } else if (schema == null) {
-      pipelineTemplate.put(SCHEMA, V2_SCHEMA_VERSION);
-    }
+  public Map create(@RequestParam(value = "version", required = false) String version, @RequestBody Map<String, Object> pipelineTemplate) {
+    validateSchema(pipelineTemplate);
+    Map<String, Object> operation = makeCreateOp(pipelineTemplate, version);
+    return taskService.create(operation);
+  }
 
+  private Map<String, Object> makeCreateOp(Map<String, Object> pipelineTemplate, String version) {
     PipelineTemplate template;
     try {
       template = objectMapper.convertValue(pipelineTemplate, PipelineTemplate.class);
@@ -104,28 +104,40 @@ public class V2PipelineTemplatesController {
     job.put("type", "createV2PipelineTemplate");
     job.put("pipelineTemplate", encodeAsBase64(pipelineTemplate, objectMapper));
     job.put("user", AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"));
+    if (!StringUtils.isEmpty(version)) {
+      job.put("version", version);
+    }
     jobs.add(job);
 
     Map<String, Object> operation = new HashMap<>();
     operation.put("description", "Create pipeline template '" + getNameFromTemplate(template) + "'");
     operation.put("application", getApplicationFromTemplate(template));
     operation.put("job", jobs);
-
-    return taskService.create(operation);
+    return operation;
   }
 
-  @ApiOperation(value = "Get a pipeline template.", response = HashMap.class)
-  @RequestMapping(value = "/{id}", method = RequestMethod.GET)
-  public Map get(@PathVariable String id) {
-    return v2PipelineTemplateService.get(id);
+  private void validateSchema(Map<String, Object> pipelineTemplate) {
+    String schema = (String) pipelineTemplate.get(SCHEMA);
+    if (schema != null && !schema.equals(V2_SCHEMA_VERSION)) {
+      throw new RuntimeException("Pipeline template schema version is invalid");
+    } else if (schema == null) {
+      pipelineTemplate.put(SCHEMA, V2_SCHEMA_VERSION);
+    }
   }
 
   @ApiOperation(value = "Update a pipeline template.", response = HashMap.class)
-  @RequestMapping(value = "/{id}", method = RequestMethod.POST)
+  @RequestMapping(value = "/update/{id}", method = RequestMethod.POST)
   @ResponseStatus(value = HttpStatus.ACCEPTED)
   public Map update(@PathVariable String id,
-                    @RequestBody Map<String, Object> pipelineTemplate,
-                    @RequestParam(value = "skipPlanDependents", defaultValue = "false") boolean skipPlanDependents) {
+    @RequestParam(value = "version", required = false) String version,
+    @RequestBody Map<String, Object> pipelineTemplate,
+    @RequestParam(value = "skipPlanDependents", defaultValue = "false") boolean skipPlanDependents) {
+    Map<String, Object> operation = makeUpdateOp(pipelineTemplate, id, skipPlanDependents, version);
+    return taskService.create(operation);
+  }
+
+  private Map<String, Object> makeUpdateOp(Map<String, Object> pipelineTemplate, String id,
+                                           boolean skipPlanDependents, String version) {
     PipelineTemplate template;
     try {
       template = objectMapper.convertValue(pipelineTemplate, PipelineTemplate.class);
@@ -140,14 +152,22 @@ public class V2PipelineTemplatesController {
     job.put("pipelineTemplate", encodeAsBase64(pipelineTemplate, objectMapper));
     job.put("user", AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"));
     job.put("skipPlanDependents", skipPlanDependents);
+    if (!StringUtils.isEmpty(version)) {
+      job.put("version", version);
+    }
     jobs.add(job);
 
     Map<String, Object> operation = new HashMap<>();
     operation.put("description", "Update pipeline template '" + getNameFromTemplate(template) + "'");
     operation.put("application", getApplicationFromTemplate(template));
     operation.put("job", jobs);
+    return operation;
+  }
 
-    return taskService.create(operation);
+  @ApiOperation(value = "Get a pipeline template.", response = HashMap.class)
+  @RequestMapping(value = "/{id}", method = RequestMethod.GET)
+  public Map get(@PathVariable String id) {
+    return v2PipelineTemplateService.get(id);
   }
 
   @ApiOperation(value = "Delete a pipeline template.", response = HashMap.class)
