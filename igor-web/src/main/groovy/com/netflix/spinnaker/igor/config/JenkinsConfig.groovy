@@ -113,7 +113,7 @@ class JenkinsConfig {
     static ObjectMapper getObjectMapper() {
         return new XmlMapper()
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-            .registerModule(new JaxbAnnotationModule());
+            .registerModule(new JaxbAnnotationModule())
     }
 
     static JenkinsClient jenkinsClient(JenkinsProperties.JenkinsHost host,
@@ -124,7 +124,13 @@ class JenkinsConfig {
 
         new RestAdapter.Builder()
             .setEndpoint(Endpoints.newFixedEndpoint(host.address))
-            .setRequestInterceptor(requestInterceptor)
+            .setRequestInterceptor(new RequestInterceptor() {
+            @Override
+            void intercept(RequestInterceptor.RequestFacade request) {
+                request.addHeader("User-Agent", "Spinnaker-igor")
+                requestInterceptor.intercept(request)
+            }
+        })
             .setClient(new OkClient(client))
             .setConverter(new JacksonConverter(getObjectMapper()))
             .build()
