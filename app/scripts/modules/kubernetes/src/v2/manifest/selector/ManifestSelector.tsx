@@ -221,7 +221,7 @@ export class ManifestSelector extends React.Component<IManifestSelectorProps, IM
     this.setStateAndUpdateStage({ selector: this.state.selector });
   };
 
-  private isExpression = (value = ''): boolean => value.includes('${');
+  private isExpression = (value: string): boolean => (typeof value === 'string' ? value.includes('${') : false);
 
   private search = (kind: string, namespace: string, account: string): IPromise<string[]> => {
     if (this.isExpression(account)) {
