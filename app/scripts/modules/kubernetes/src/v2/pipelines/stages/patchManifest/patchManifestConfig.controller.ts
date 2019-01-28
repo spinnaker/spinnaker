@@ -76,7 +76,12 @@ export class KubernetesV2PatchManifestConfigCtrl implements IController {
 
   public handlePatchBodyChange = (rawPatchBody: string, patchBody: any): void => {
     this.rawPatchBody = rawPatchBody;
-    this.$scope.stage.patchBody = patchBody;
+    if (this.getEditorMode() === EditorMode.yaml) {
+      // YamlEditor patchBody is list of YAML documents, take first as patch
+      this.$scope.stage.patchBody = Array.isArray(patchBody) && patchBody.length > 0 ? patchBody[0] : null;
+    } else {
+      this.$scope.stage.patchBody = patchBody;
+    }
     // Called from a React component.
     this.$scope.$applyAsync();
   };
@@ -115,8 +120,8 @@ export class KubernetesV2PatchManifestConfigCtrl implements IController {
     }
   };
 
-  public handleMergeStrategyChange = (mergeStrategy: MergeStrategy): void => {
-    this.setRawPatchBody(mergeStrategy);
+  public handleMergeStrategyChange = (): void => {
+    this.handlePatchBodyChange('', null);
     this.$scope.$applyAsync();
   };
 }

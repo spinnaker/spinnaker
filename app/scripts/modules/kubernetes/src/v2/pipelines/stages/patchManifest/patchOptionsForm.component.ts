@@ -44,7 +44,7 @@ class KubernetesPatchManifestOptionsFormComponent implements IComponentOptions {
           <div class="input-group">
             <select class="form-control input-sm"
                     ng-model="ctrl.options.mergeStrategy"
-                    ng-change="ctrl.onChange(ctrl.options.mergeStrategy)">
+                    ng-change="ctrl.onChange()">
               <option ng-repeat="strategy in ctrl.mergeStrategies" value="{{strategy}}"
                       ng-selected="ctrl.options.mergeStrategy === strategy">
                 {{strategy}}
