@@ -91,7 +91,7 @@ public class WaitForManifestStableTask implements OverridableTimeoutRetryableTas
         Status status = manifest.getStatus();
         if (status.getStable() == null || !status.getStable().isState()) {
           allStable = false;
-          messages.add(identifier + ": " + status.getStable().getMessage());
+          messages.add(identifier + ": waiting for manifest to stabilize");
         }
 
         Map<String, String> manifestNameAndLocation = ImmutableMap.<String, String>builder().
