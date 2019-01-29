@@ -166,8 +166,10 @@ public class V2PipelineTemplatesController {
 
   @ApiOperation(value = "Get a pipeline template.", response = HashMap.class)
   @RequestMapping(value = "/{id}", method = RequestMethod.GET)
-  public Map get(@PathVariable String id) {
-    return v2PipelineTemplateService.get(id);
+  public Map get(@PathVariable String id,
+    @RequestParam(value = "version", required = false) String version,
+    @RequestParam(value = "digest", required = false) String digest) {
+    return v2PipelineTemplateService.get(id, version, digest);
   }
 
   @ApiOperation(value = "Delete a pipeline template.", response = HashMap.class)
