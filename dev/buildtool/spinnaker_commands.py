@@ -244,7 +244,7 @@ class PublishSpinnakerCommand(CommandProcessor):
                     have=existing_commit, want=want_commit)))
 
   def __branch_and_tag_repository(self, repository, branch, version):
-    """Create a branch and/or verison tag in the repository, if needed."""
+    """Create a branch and/or version tag in the repository, if needed."""
     tag = 'version-' + version
     if self.__already_have_tag(repository, tag):
       return False
@@ -254,7 +254,7 @@ class PublishSpinnakerCommand(CommandProcessor):
 
   def __push_branch_and_maybe_tag_repository(self, repository, branch, version,
                                              also_tag):
-    """Push the branch and verison tag to the origin."""
+    """Push the branch and version tag to the origin."""
     tag = 'version-' + version
     self.__git.push_branch_to_origin(repository.git_dir, branch)
     if also_tag:
