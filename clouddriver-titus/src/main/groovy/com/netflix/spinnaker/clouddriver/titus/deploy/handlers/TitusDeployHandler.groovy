@@ -363,10 +363,11 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
           if (e.status.code == Status.UNAVAILABLE.code || e.status.code == Status.DEADLINE_EXCEEDED.code) {
             retryCount++
             task.updateStatus BASE_PHASE, "Retrying after ${retryCount} attempts ${System.currentTimeMillis()}"
-            throw e;
+            throw e
           } else {
             log.error("Could not submit job and not retrying for status ${e.status} ", e)
             task.updateStatus BASE_PHASE, "could not submit job ${e.status} ${e.message} ${System.currentTimeMillis()}"
+            throw e
           }
         }
       }, 8, 100, true)
