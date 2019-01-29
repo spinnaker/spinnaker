@@ -80,9 +80,15 @@ public class V2PipelineTemplateController {
       validatePipelineTemplateVersion(version);
     }
 
-    String templateId = StringUtils.isNotEmpty(version) ?
-      String.format("%s:%s", pipelineTemplate.getId(), version) :
-      String.format("%s:%s", pipelineTemplate.getId(), "latest");
+    // NOTE: We need to store the version in the template blob to resolve the proper id later.
+    String templateId;
+    if (StringUtils.isNotEmpty(version)) {
+      templateId = String.format("%s:%s", pipelineTemplate.undecoratedId(), version);
+      pipelineTemplate.setVersion(version);
+    } else {
+      templateId = String.format("%s:latest", pipelineTemplate.undecoratedId());
+      pipelineTemplate.setVersion("latest");
+    }
 
     try {
       checkForDuplicatePipelineTemplate(templateId);
@@ -94,8 +100,11 @@ public class V2PipelineTemplateController {
     saveDigest(pipelineTemplate);
   }
 
-  private void saveDigest(PipelineTemplate pipelineTemplate) {
-    String digestId = String.format("%s@sha256:%s", pipelineTemplate.getId(), computeSHA256Digest(pipelineTemplate));
+  public void saveDigest(PipelineTemplate pipelineTemplate) {
+    pipelineTemplate.remove("digest");
+    String digest = computeSHA256Digest(pipelineTemplate);
+    String digestId = String.format("%s@sha256:%s", pipelineTemplate.undecoratedId(), digest);
+    pipelineTemplate.setDigest(digest);
     try {
       checkForDuplicatePipelineTemplate(digestId);
     } catch (DuplicateEntityException dee) {
@@ -111,7 +120,7 @@ public class V2PipelineTemplateController {
       validatePipelineTemplateVersion(version);
     }
 
-    String templateId = StringUtils.isNotEmpty(version) ? String.format("%s:%s", id, version) : pipelineTemplate.getId();
+    String templateId = StringUtils.isNotEmpty(version) ? String.format("%s:%s", id, version) : pipelineTemplate.undecoratedId();
     pipelineTemplate.setLastModified(System.currentTimeMillis());
     getPipelineTemplateDAO().update(templateId, pipelineTemplate);
     updateDigest(pipelineTemplate);
@@ -119,14 +128,34 @@ public class V2PipelineTemplateController {
   }
 
   private void updateDigest(PipelineTemplate pipelineTemplate) {
-    String digestId = String.format("%s@sha256:%s", pipelineTemplate.getId(), computeSHA256Digest(pipelineTemplate));
+    String digestId = String.format("%s@sha256:%s", pipelineTemplate.undecoratedId(), computeSHA256Digest(pipelineTemplate));
     getPipelineTemplateDAO().update(digestId, pipelineTemplate);
   }
 
-  // TODO(jacobkiefer): Move id field to be a query param so we can fully support versioned MPTs.
   @RequestMapping(value = "{id}", method = RequestMethod.GET)
-  PipelineTemplate get(@PathVariable String id) {
-    return getPipelineTemplateDAO().findById(id);
+  PipelineTemplate get(@PathVariable String id,
+                       @RequestParam(value = "version", required = false) String version,
+                       @RequestParam(value = "digest", required = false) String digest) {
+    if (StringUtils.isNotEmpty(digest) && StringUtils.isNotEmpty(version)) {
+      throw new InvalidRequestException("Cannot query pipeline by 'version' and 'digest' simultaneously. Specify one of 'version' or 'digest'.");
+    }
+
+    String templateId;
+    if (StringUtils.isNotEmpty(digest)) {
+      templateId = String.format("%s@sha256:%s", id, digest);
+    } else if (StringUtils.isNotEmpty(version)) {
+      templateId = String.format("%s:%s", id, version);
+    } else {
+      templateId = String.format("%s:latest", id);
+    }
+
+    // We don't need to surface our internal accounting information to the user.
+    // This would muddle the API and probably be bug-friendly.
+    PipelineTemplate foundTemplate = getPipelineTemplateDAO().findById(templateId);
+    foundTemplate.remove("digest");
+    foundTemplate.remove("version");
+
+    return foundTemplate;
   }
 
   @RequestMapping(value = "{id}", method = RequestMethod.DELETE)
@@ -190,7 +219,7 @@ public class V2PipelineTemplateController {
   }
 
   @VisibleForTesting
-  String computeSHA256Digest(PipelineTemplate pipelineTemplate) {
+  public String computeSHA256Digest(PipelineTemplate pipelineTemplate) {
     Map<String, Object> sortedMap = (Map<String, Object>) sortObjectRecursive(pipelineTemplate);
     try {
       String jsonPayload = objectMapper.writeValueAsString(sortedMap).replaceAll("\\s+", "");
@@ -198,7 +227,7 @@ public class V2PipelineTemplateController {
       byte[] hashBytes = digest.digest(jsonPayload.getBytes(StandardCharsets.UTF_8));
       return Hex.encodeHexString(hashBytes);
     } catch (NoSuchAlgorithmException | JsonProcessingException e) {
-      throw new InvalidRequestException(String.format("Computing digest for pipeline template %s failed. Nested exception is %s", pipelineTemplate.getId(), e));
+      throw new InvalidRequestException(String.format("Computing digest for pipeline template %s failed. Nested exception is %s", pipelineTemplate.undecoratedId(), e));
     }
   }
 

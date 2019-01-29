@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.PatternSyntaxException;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,12 +41,47 @@ public class PipelineTemplate extends HashMap<String, Object> implements Timesta
     return scopes != null ? scopes : Collections.emptyList();
   }
 
-  @Override
-  public String getId() {
+  /**
+   * @return Un-decorated MPT id.
+   */
+  public String undecoratedId() {
     return (String) super.get("id");
   }
 
+  /**
+   * @return Decorated id with appended digest or version.
+   */
+  @Override
+  public String getId() {
+    String digest = getDigest();
+    String version = getVersion();
+    String id = (String) super.get("id");
+    if (StringUtils.isNotEmpty(digest)) {
+      return String.format("%s@sha256:%s", id, digest);
+    } else if (StringUtils.isNotEmpty(version)) {
+      return String.format("%s:%s", id, version);
+    } else {
+      return id;
+    }
+  }
+
   public void setId(String id) { super.put("id", id); }
+
+  public String getVersion() {
+    return (String) super.get("version");
+  }
+
+  public void setVersion(String version) {
+    super.put("version", version);
+  }
+
+  public String getDigest() {
+    return (String) super.get("digest");
+  }
+
+  public void setDigest(String digest) {
+    super.put("digest", digest);
+  }
 
   @Override
   public Long getLastModified() {
