@@ -5,6 +5,7 @@ import { CloudProviderRegistry, DeploymentStrategyRegistry } from '@spinnaker/co
 import { KUBERNETES_KEY_VALUE_DETAILS } from '../common/keyValueDetails.component';
 import { KUBERNETES_TOLERATIONS } from '../common/tolerations/tolerations.component';
 import { KUBERNETES_SECURITY_CONTEXT_SELECTOR } from '../container/securityContext/securityContextSelector.component';
+import { KUBERNETES_SERVERGROUP_ARTIFACTEXTRACTOR } from '../serverGroup/artifactExtractor';
 import '../help/kubernetes.help';
 import { KubernetesProviderSettings } from '../kubernetes.settings';
 
@@ -50,7 +51,7 @@ module(KUBERNETES_V1_MODULE, [
   require('../serverGroup/configure/CommandBuilder').name,
   require('../serverGroup/configure/configure.kubernetes.module').name,
   require('../serverGroup/details/details.kubernetes.module').name,
-  require('../serverGroup/artifactExtractor').name,
+  KUBERNETES_SERVERGROUP_ARTIFACTEXTRACTOR,
   require('../serverGroup/paramsMixin').name,
   require('../serverGroup/transformer').name,
   require('../validation/applicationName.validator').name,

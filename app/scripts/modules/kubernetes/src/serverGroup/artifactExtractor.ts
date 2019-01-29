@@ -1,12 +1,12 @@
+import { module } from 'angular';
 import { ICluster } from '@spinnaker/core';
 
 import { get } from 'lodash';
 
-const angular = require('angular');
-
-module.exports = angular
-  .module('spinnaker.kubernetes.serverGroup.artifactExtractor', [])
-  .factory('kubernetesServerGroupArtifactExtractor', function() {
+export const KUBERNETES_SERVERGROUP_ARTIFACTEXTRACTOR = 'spinnaker.kubernetes.serverGroup.artifactExtractor';
+module('spinnaker.kubernetes.serverGroup.artifactExtractor', []).factory(
+  'kubernetesServerGroupArtifactExtractor',
+  function() {
     function extractArtifacts(cluster: ICluster): string[] {
       const containers = (cluster.containers || []).concat(cluster.initContainers || []);
       return containers
@@ -24,4 +24,5 @@ module.exports = angular
     }
 
     return { extractArtifacts, removeArtifact };
-  });
+  },
+);
