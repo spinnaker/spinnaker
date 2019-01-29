@@ -136,7 +136,7 @@ usage: $0 [-y] [--version=<version>] [--user=<user>]
     -y                              Accept all default options during install
                                     (non-interactive mode).
 
-    --version <version>             Specify the exact verison of Halyard to
+    --version <version>             Specify the exact version of Halyard to
                                     install.
 
     --user <user>                   Specify the user to run Halyard as. This

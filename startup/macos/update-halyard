@@ -46,7 +46,7 @@ function configure_defaults() {
 function print_usage() {
   cat <<EOF
 usage: $0 [-y] [--version=<version>] [--user=<user>]
-    --version <version>             Specify the exact verison of Halyard to
+    --version <version>             Specify the exact version of Halyard to
                                     install. Default is 'stable'.
 EOF
 }
