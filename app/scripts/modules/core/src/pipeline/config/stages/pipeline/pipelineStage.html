@@ -13,8 +13,8 @@
     </ui-select>
   </stage-config-field>
   <stage-config-field label="Pipeline">
-    <input ng-model="stage.pipeline" class="form-control input-sm" ng-if="stage.application.includes('${')" />
-    <div ng-if="stage.application && viewState.pipelinesLoaded && !stage.application.includes('${')">
+    <input ng-model="stage.pipeline" class="form-control input-sm" ng-if="stage.pipeline.includes('${') || stage.application.includes('${')" />
+    <div ng-if="stage.application && viewState.pipelinesLoaded && stage !== null && !stage.pipeline.includes('${') && !stage.application.includes('${')">
       <ui-select class="form-control input-sm"
                  ng-model="stage.pipeline">
         <ui-select-match placeholder="Select a pipeline...">{{$select.selected.name}}</ui-select-match>

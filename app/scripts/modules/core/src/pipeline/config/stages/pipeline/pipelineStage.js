@@ -58,14 +58,10 @@ module.exports = angular
     function initializeMasters() {
       if ($scope.stage.application && !$scope.stage.application.includes('${')) {
         PipelineConfigService.getPipelinesForApplication($scope.stage.application).then(function(pipelines) {
-          $scope.pipelines = _.filter(pipelines, function(pipeline) {
-            return pipeline.id !== $scope.pipeline.id;
-          });
-          if (
-            !_.find(pipelines, function(pipeline) {
-              return pipeline.id === $scope.stage.pipeline;
-            })
-          ) {
+          $scope.pipelines = _.filter(pipelines, pipeline => pipeline.id !== $scope.pipeline.id);
+          const pipelineId = $scope.stage.pipeline;
+          const isFound = _.find(pipelines, pipeline => pipeline.id === pipelineId);
+          if (!isFound && pipelineId && !pipelineId.includes('${')) {
             $scope.stage.pipeline = null;
           }
           $scope.viewState.pipelinesLoaded = true;
@@ -75,10 +71,13 @@ module.exports = angular
     }
 
     function updatePipelineConfig() {
-      if ($scope.stage && $scope.stage.application && $scope.stage.pipeline) {
-        var config = _.find($scope.pipelines, function(pipeline) {
-          return pipeline.id === $scope.stage.pipeline;
-        });
+      const pipeline = $scope.stage && $scope.stage.pipeline;
+      if (pipeline && pipeline.includes('${')) {
+        return;
+      }
+
+      if ($scope.stage && $scope.stage.application && pipeline) {
+        const config = _.find($scope.pipelines, pipeline => pipeline.id === $scope.stage.pipeline);
         if (config && config.parameterConfig) {
           if (!$scope.stage.pipelineParameters) {
             $scope.stage.pipelineParameters = {};
