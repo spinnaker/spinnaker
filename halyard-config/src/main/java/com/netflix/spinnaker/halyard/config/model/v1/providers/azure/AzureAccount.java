@@ -21,6 +21,9 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Secret;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class AzureAccount extends Account {
@@ -33,4 +36,5 @@ public class AzureAccount extends Account {
   private String defaultKeyVault;
   private String packerResourceGroup;
   private String packerStorageAccount;
+  private List<String> regions = new ArrayList<>();
 }

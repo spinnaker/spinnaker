@@ -21,6 +21,10 @@ import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.account.AbstractEditAccountCommand;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.azure.AzureAccount;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.azure.AzureProvider;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Parameters(separators = "=")
 public class AzureEditAccountCommand extends AbstractEditAccountCommand<AzureAccount> {
@@ -83,6 +87,13 @@ public class AzureEditAccountCommand extends AbstractEditAccountCommand<AzureAcc
   )
   private String packerStorageAccount;
 
+  @Parameter(
+      names = "--regions",
+      variableArity = true,
+      description = AzureCommandProperties.REGIONS_DESCRIPTION
+  )
+  private List<String> regions;
+
   @Override
   protected Account editAccount(AzureAccount account) {
     account.setClientId(isSet(clientId) ? clientId : account.getClientId());
@@ -94,6 +105,12 @@ public class AzureEditAccountCommand extends AbstractEditAccountCommand<AzureAcc
     account.setDefaultKeyVault(isSet(defaultKeyVault) ? defaultKeyVault : account.getDefaultKeyVault());
     account.setPackerResourceGroup(isSet(packerResourceGroup) ? packerResourceGroup : account.getPackerResourceGroup());
     account.setPackerStorageAccount(isSet(packerStorageAccount) ? packerStorageAccount : account.getPackerStorageAccount());
+
+    try {
+      account.setRegions(regions);
+    } catch (IllegalArgumentException e) {
+      throw new IllegalArgumentException("Set --regions");
+    }
     
     return account;
   }
