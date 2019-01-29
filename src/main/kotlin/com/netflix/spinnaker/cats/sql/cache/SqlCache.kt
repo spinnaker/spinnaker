@@ -20,11 +20,12 @@ import io.vavr.control.Try
 import org.jooq.DSLContext
 import org.jooq.exception.DataAccessException
 import org.jooq.exception.SQLDialectNotSupportedException
-import org.jooq.impl.DSL.field
-import org.jooq.impl.DSL.table
+import org.jooq.impl.DSL.*
 import org.jooq.util.mysql.MySQLDSL
 import org.slf4j.LoggerFactory
 import java.security.MessageDigest
+import java.sql.ResultSet
+import java.sql.SQLException
 import java.time.Clock
 import java.time.Duration
 import java.util.Arrays
@@ -57,7 +58,7 @@ class SqlCache(
       "elasticIps", "instanceTypes", "keyPairs", "securityGroups", "subnets", "taggedImage"
     )
 
-    private val log = LoggerFactory.getLogger(javaClass)
+    private val log = LoggerFactory.getLogger(SqlCache::class.java)
   }
 
   private val writeBatchSize = writeChunkSize
@@ -162,74 +163,32 @@ class SqlCache(
   }
 
   override fun getAll(type: String, cacheFilter: CacheFilter?): MutableCollection<CacheData> {
-    var selectQueries = 0
-
-    val cacheData = mutableListOf<CacheData>()
-    try {
-      withRetry(RetryCategory.READ) {
-        cacheData.addAll(
-          jooq.select(field("body"))
-            .from(table(resourceTableName(type)))
-            .fetch()
-            .getValues(0)
-            .asSequence()
-            .map { mapper.readValue(it as String, DefaultCacheData::class.java) }
-            .toList()
-        )
-      }
-      selectQueries += 1
-    } catch (e: Exception) {
-      log.error("Failed selecting ids for type $type", e)
-
-      cacheMetrics.get(
-        prefix = name,
-        type = type,
-        itemCount = 0,
-        requestedSize = -1,
-        relationshipsRequested = -1,
-        selectOperations = selectQueries
-      )
-
-      return mutableListOf()
-    }
-
-    if (typesWithoutFwdRelationships.contains(type)) {
-      cacheMetrics.get(
-        prefix = name,
-        type = type,
-        itemCount = cacheData.size,
-        requestedSize = cacheData.size,
-        relationshipsRequested = 0,
-        selectOperations = selectQueries
-      )
-      return cacheData
-    }
-
     val relationshipPrefixes = getRelationshipFilterPrefixes(cacheFilter)
-    val relationshipPointers = getRelationshipPointers(
-      type,
-      cacheData.asSequence().map { it.id }.toMutableList(),
-      relationshipPrefixes
-    )
 
-    val result = mergeDataAndRelationships(cacheData, relationshipPointers.data, relationshipPrefixes)
+    val result = if (relationshipPrefixes.isEmpty() || typesWithoutFwdRelationships.contains(type)) {
+      getDataWithoutRelationships(type)
+    } else {
+      getDataWithRelationships(type, relationshipPrefixes)
+    }
 
-    cacheMetrics.get(
-      prefix = name,
-      type = type,
-      itemCount = result.size,
-      requestedSize = result.size,
-      relationshipsRequested = 0,
-      selectOperations = selectQueries + relationshipPointers.selectQueries
-    )
+    if (result.selectQueries > -1) {
+      cacheMetrics.get(
+        prefix = name,
+        type = type,
+        itemCount = result.data.size,
+        requestedSize = result.data.size,
+        relationshipsRequested = result.relPointers.size,
+        selectOperations = result.selectQueries
+      )
+    }
 
-    return result
+    return mergeDataAndRelationships(result.data, result.relPointers, relationshipPrefixes)
   }
 
   /**
    * Retrieves the items for the specified type matching the provided ids
    *
-   * @param type        the type for which to retrieve items
+   * @param type the type for which to retrieve items
    * @param ids the ids
    * @return the items matching the type and ids
    */
@@ -237,7 +196,9 @@ class SqlCache(
     return getAll(type, ids, null as CacheFilter?)
   }
 
-  override fun getAll(type: String, ids: MutableCollection<String>?, cacheFilter: CacheFilter?): MutableCollection<CacheData> {
+  override fun getAll(type: String,
+                      ids: MutableCollection<String>?,
+                      cacheFilter: CacheFilter?): MutableCollection<CacheData> {
     if (ids.isNullOrEmpty()) {
       cacheMetrics.get(
         prefix = name,
@@ -250,51 +211,26 @@ class SqlCache(
       return mutableListOf()
     }
 
-    val cacheData = mutableListOf<CacheData>()
-    val relationshipPointers = mutableListOf<RelPointer>()
     val relationshipPrefixes = getRelationshipFilterPrefixes(cacheFilter)
 
-    var selectQueries = 0
-    try {
-      //TODO make configurable
-      ids.chunked(readBatchSize) { chunk ->
-        val results = withRetry(RetryCategory.READ) {
-          jooq.select(field("body"))
-            .from(table(resourceTableName(type)))
-            .where("ID in (${chunk.joinToString(",") { "'$it'" }})")
-            .fetch()
-            .getValues(0)
-        }
-        selectQueries += 1
-
-        cacheData.addAll(
-          results.map { mapper.readValue(it as String, DefaultCacheData::class.java) }
-        )
-
-        if (!typesWithoutFwdRelationships.contains(type)) {
-          val result = getRelationshipPointers(type, chunk, relationshipPrefixes)
-          relationshipPointers.addAll(result.data)
-          selectQueries += result.selectQueries
-        }
-      }
-      // TODO better error handling
-    } catch (e: Exception) {
-      log.error("Failed selecting ids for type $type, ids $ids", e)
-      return mutableListOf()
+    val result = if (relationshipPrefixes.isEmpty() || typesWithoutFwdRelationships.contains(type)) {
+      getDataWithoutRelationships(type, ids)
+    } else {
+      getDataWithRelationships(type, ids, relationshipPrefixes)
     }
 
-    val result = mergeDataAndRelationships(cacheData, relationshipPointers, relationshipPrefixes)
+    if (result.selectQueries > -1) {
+      cacheMetrics.get(
+        prefix = name,
+        type = type,
+        itemCount = result.data.size,
+        requestedSize = ids.size,
+        relationshipsRequested = result.relPointers.size,
+        selectOperations = result.selectQueries
+      )
+    }
 
-    cacheMetrics.get(
-      prefix = name,
-      type = type,
-      itemCount = result.size,
-      requestedSize = ids.size,
-      relationshipsRequested = relationshipPrefixes.size,
-      selectOperations = selectQueries
-    )
-
-    return result
+    return mergeDataAndRelationships(result.data, result.relPointers, relationshipPrefixes)
   }
 
   /**
@@ -861,43 +797,200 @@ class SqlCache(
     }
   }
 
-  private fun getRelationshipPointers(
+  private fun getDataWithoutRelationships(type: String): DataWithRelationshipPointersResult {
+    return getDataWithoutRelationships(type, emptyList())
+  }
+
+  private fun getDataWithoutRelationships(
+    type: String,
+    ids: Collection<String>
+  ): DataWithRelationshipPointersResult {
+    val cacheData = mutableListOf<CacheData>()
+    val relPointers = mutableListOf<RelPointer>()
+    var selectQueries = 0
+
+    try {
+      val select = jooq.select(field("body"))
+        .from(table(resourceTableName(type)))
+
+      if (ids.isEmpty()) {
+        withRetry(RetryCategory.READ) {
+          cacheData.addAll(
+            select
+              .fetch()
+              .getValues(0)
+              .asSequence()
+              .map { mapper.readValue(it as String, DefaultCacheData::class.java) }
+              .toList()
+          )
+        }
+        selectQueries += 1
+      } else {
+        ids.chunked(readBatchSize) { chunk ->
+          withRetry(RetryCategory.READ) {
+            cacheData.addAll(
+              select
+                .where("ID in (${chunk.joinToString(",") { "'$it'" }})")
+                .fetch()
+                .getValues(0)
+                .map { mapper.readValue(it as String, DefaultCacheData::class.java) }
+                .toList()
+            )
+          }
+          selectQueries += 1
+        }
+      }
+
+      return DataWithRelationshipPointersResult(cacheData, relPointers, selectQueries)
+
+    } catch (e: Exception) {
+      log.error("Failed selecting ids for type $type", e)
+
+      cacheMetrics.get(
+        prefix = name,
+        type = type,
+        itemCount = 0,
+        requestedSize = -1,
+        relationshipsRequested = -1,
+        selectOperations = selectQueries
+      )
+
+      selectQueries = -1
+
+      return DataWithRelationshipPointersResult(mutableListOf(), mutableListOf(), selectQueries)
+    }
+  }
+
+  private fun getDataWithRelationships(type: String,
+                                       relationshipPrefixes: List<String>):
+    DataWithRelationshipPointersResult {
+    return getDataWithRelationships(type, emptyList(), relationshipPrefixes)
+  }
+
+
+  private fun getDataWithRelationships(
     type: String,
     ids: Collection<String>,
-    relationshipPrefixes: List<String>): RelationshipPointersResult {
-
-    val relationshipPointers = mutableListOf<RelPointer>()
-
+    relationshipPrefixes: List<String>
+  ): DataWithRelationshipPointersResult {
+    val cacheData = mutableListOf<CacheData>()
+    val relPointers = mutableListOf<RelPointer>()
     var selectQueries = 0
-    ids.chunked(readBatchSize) { chunk ->
-      val sql = "ID in (${chunk.joinToString(",") { "'$it'" }})"
 
-      if (relationshipPrefixes.isNotEmpty()) {
-        relationshipPointers.addAll(
-          if (relationshipPrefixes.contains("ALL")) {
-            withRetry(RetryCategory.READ) {
-              jooq.select(field("id"), field("rel_id"), field("rel_type"))
+    /*
+        Approximating the following query pattern in jooq:
+
+        (select body, null as r_id, null as rel, null as rel_type from `cats_v1_a_applications` where id IN
+        ('aws:applications:spintest', 'aws:applications:spindemo')) UNION
+        (select null as body, id as r_id, rel_id as rel, rel_type from `cats_v1_a_applications_rel` where id IN
+        ('aws:applications:spintest', 'aws:applications:spindemo') and rel_type like 'load%');
+
+        TODO: Jooq adds an unnecessary "select * from (..)" sub-query, benchmark vs. the intended pattern
+    */
+
+    try {
+      if (ids.isEmpty()) {
+        val resultSet = withRetry(RetryCategory.READ) {
+          jooq
+            .select(
+              field("body").`as`("body"),
+              field(sql("null")).`as`("id"),
+              field(sql("null")).`as`("rel_id"),
+              field(sql("null")).`as`("rel_type")
+            )
+            .from(table(resourceTableName(type)))
+            .unionAll(
+              jooq.select(
+                field(sql("null")).`as`("body"),
+                field("id").`as`("id"),
+                field("rel_id").`as`("rel_id"),
+                field("rel_type").`as`("rel_type")
+              )
                 .from(table(relTableName(type)))
-                .where(sql)
-                .fetch()
-                .into(RelPointer::class.java)
-            }
-          } else {
-            val relWhere = " AND (rel_type LIKE " +
-              relationshipPrefixes.joinToString(" OR rel_type LIKE ") { "'$it%'" } + ")"
-            withRetry(RetryCategory.READ) {
-              jooq.select(field("id"), field("rel_id"), field("rel_type"))
-                .from(table(relTableName(type)))
-                .where(sql + relWhere)
-                .fetch()
-                .into(RelPointer::class.java)
-            }
-          }
-        )
+            )
+            .fetch()
+            .intoResultSet()
+        }
+
+        parseCacheRelResultSet(type, resultSet, cacheData, relPointers)
         selectQueries += 1
+      } else {
+        ids.chunked(readBatchSize) { chunk ->
+          val where = "ID in (${chunk.joinToString(",") { "'$it'" }})"
+
+          val relWhere = if (relationshipPrefixes.isNotEmpty() && !relationshipPrefixes.contains("ALL")) {
+            where + "AND (rel_type LIKE " +
+              relationshipPrefixes.joinToString(" OR rel_type LIKE ") { "'$it%'" } + ")"
+          } else {
+            where
+          }
+
+          val resultSet = withRetry(RetryCategory.READ) {
+            jooq
+              .select(
+                field("body").`as`("body"),
+                field(sql("null")).`as`("id"),
+                field(sql("null")).`as`("rel_id"),
+                field(sql("null")).`as`("rel_type")
+              )
+              .from(table(resourceTableName(type)))
+              .where(where)
+              .unionAll(
+                jooq.select(
+                  field(sql("null")).`as`("body"),
+                  field("id").`as`("id"),
+                  field("rel_id").`as`("rel_id"),
+                  field("rel_type").`as`("rel_type")
+                )
+                  .from(table(relTableName(type)))
+                  .where(relWhere)
+              )
+              .fetch()
+              .intoResultSet()
+          }
+
+          parseCacheRelResultSet(type, resultSet, cacheData, relPointers)
+          selectQueries += 1
+        }
+      }
+      return DataWithRelationshipPointersResult(cacheData, relPointers, selectQueries)
+    } catch (e: Exception) {
+      log.error("Failed selecting ids for type $type", e)
+
+      cacheMetrics.get(
+        prefix = name,
+        type = type,
+        itemCount = 0,
+        requestedSize = -1,
+        relationshipsRequested = -1,
+        selectOperations = selectQueries
+      )
+
+      selectQueries = -1
+
+      return DataWithRelationshipPointersResult(mutableListOf(), mutableListOf(), selectQueries)
+    }
+  }
+
+  private fun parseCacheRelResultSet(type: String,
+                                     resultSet: ResultSet,
+                                     cacheData: MutableList<CacheData>,
+                                     relPointers: MutableList<RelPointer>) {
+    while (resultSet.next()) {
+      if (!resultSet.getString(1).isNullOrBlank()) {
+        try {
+          cacheData.add(mapper.readValue(resultSet.getString(1), DefaultCacheData::class.java))
+        } catch (e: Exception) {
+          log.error("Failed to deserialize cached value: type $type, body ${resultSet.getString(1)}", e)
+        }
+      } else {
+        try {
+          relPointers.add(RelPointer(resultSet.getString(2), resultSet.getString(3), resultSet.getString(4)))
+        } catch (e: SQLException) {
+          log.error("Error reading relationship of type $type", e)
+        }
       }
     }
-    return RelationshipPointersResult(relationshipPointers, selectQueries)
   }
 
   private fun mergeDataAndRelationships(cacheData: Collection<CacheData>,
@@ -1059,8 +1152,9 @@ class SqlCache(
     val rel_type: String
   )
 
-  private data class RelationshipPointersResult(
-    val data: MutableList<RelPointer>,
+  private data class DataWithRelationshipPointersResult(
+    val data: MutableList<CacheData>,
+    val relPointers: MutableList<RelPointer>,
     val selectQueries: Int
   )
 
