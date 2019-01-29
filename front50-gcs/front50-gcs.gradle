@@ -16,11 +16,16 @@
 
 dependencies {
   compile project(":front50-core")
-  compile 'io.reactivex:rxjava:1.0.10'
 
-  spinnaker.group('google')
+  compile spinnaker.dependency('bootAutoConfigure')
   compile spinnaker.dependency('clouddriverGoogleCommon')
-  compile spinnaker.dependency("korkSecurity")
+  compile spinnaker.dependency('commonsLang')
+  compile spinnaker.dependency('googleStorage')
+  compile spinnaker.dependency('korkHystrix')
+  compile spinnaker.dependency('korkSecurity')
+  compile spinnaker.dependency('logstashEncoder')
+  compile spinnaker.dependency('rxJava')
+  compile spinnaker.dependency('spectatorApi')
 
   testCompile project(":front50-test")
 }
