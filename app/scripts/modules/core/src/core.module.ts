@@ -42,7 +42,7 @@ import { DIFF_MODULE } from './diffs';
 import { ENTITY_TAGS_MODULE } from './entityTag/entityTags.module';
 import { HEALTH_COUNTS_MODULE } from './healthCounts/healthCounts.module';
 import { HELP_MODULE } from './help/help.module';
-import { INSIGHT_NGMODULE } from './insight/insight.module';
+import { INSIGHT_MODULE } from './insight/insight.module';
 import { INTERCEPTOR_MODULE } from './interceptor/interceptor.module';
 import { LOAD_BALANCER_MODULE } from './loadBalancer/loadBalancer.module';
 
@@ -107,7 +107,7 @@ module(CORE_MODULE, [
   HEALTH_COUNTS_MODULE,
   HELP_MODULE,
 
-  INSIGHT_NGMODULE.name,
+  INSIGHT_MODULE,
   require('./instance/instance.module').name,
   INTERCEPTOR_MODULE,
 

@@ -2,6 +2,7 @@
 const angular = require('angular');
 
 import { ANY_FIELD_FILTER } from '../presentation/anyFieldFilter/anyField.filter';
+import { INSIGHT_MENU_DIRECTIVE } from '../insight/insightmenu.directive';
 import { ViewStateCache } from 'core/cache';
 
 import { ConfigureProjectModal } from './configure';
@@ -12,7 +13,7 @@ module.exports = angular
     require('@uirouter/angularjs').default,
     ANY_FIELD_FILTER,
     require('../presentation/sortToggle/sorttoggle.directive').name,
-    require('../insight/insightmenu.directive').name,
+    INSIGHT_MENU_DIRECTIVE,
   ])
   .controller('ProjectsCtrl', function($scope, $uibModal, $log, $filter, $state) {
     var projectsViewStateCache =

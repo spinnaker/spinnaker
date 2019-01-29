@@ -4,7 +4,7 @@ const angular = require('angular');
 
 import { CloudProviderRegistry } from 'core/cloudProvider';
 import { SERVER_GROUP_COMMAND_BUILDER_SERVICE } from 'core/serverGroup/configure/common/serverGroupCommandBuilder.service';
-import { INSIGHT_NGMODULE } from 'core/insight/insight.module';
+import { INSIGHT_FILTER_COMPONENT } from 'core/insight/insightFilter.component';
 import { ClusterState } from 'core/state';
 import { PROVIDER_SELECTION_SERVICE } from 'core/cloudProvider/providerSelection/providerSelection.service';
 import { SKIN_SELECTION_SERVICE } from 'core/cloudProvider/skinSelection/skinSelection.service';
@@ -23,7 +23,7 @@ module.exports = angular
     SERVER_GROUP_COMMAND_BUILDER_SERVICE,
     FILTER_TAGS_COMPONENT,
     require('../utils/waypoints/waypointContainer.directive').name,
-    INSIGHT_NGMODULE.name,
+    INSIGHT_FILTER_COMPONENT,
     require('angular-ui-bootstrap'),
   ])
   .controller('AllClustersCtrl', function(

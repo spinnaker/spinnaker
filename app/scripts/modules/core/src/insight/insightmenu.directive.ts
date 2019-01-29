@@ -1,8 +1,7 @@
-'use strict';
+import { module } from 'angular';
 
-const angular = require('angular');
-
-module.exports = angular.module('spinnaker.core.insightMenu.directive', []).directive('insightMenu', function() {
+export const INSIGHT_MENU_DIRECTIVE = 'spinnaker.core.insightMenu.directive';
+module(INSIGHT_MENU_DIRECTIVE, []).directive('insightMenu', function() {
   return {
     templateUrl: require('./insightmenu.directive.html'),
     restrict: 'E',
