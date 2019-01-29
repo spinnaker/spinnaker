@@ -3,6 +3,6 @@ dependencies {
 
   compile spinnaker.dependency('bootWeb')
   compile spinnaker.dependency('lombok')
-  spinnaker.group('google')
   compile spinnaker.dependency('googleMonitoring')
+  compile spinnaker.dependency('googleStorage')
 }

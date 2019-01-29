@@ -8,6 +8,5 @@ dependencies {
 
   compile "com.netflix.spinnaker.orca:orca-core:$orcaVersion"
 
-  spinnaker.group('google')
   compile spinnaker.dependency('googleMonitoring')
 }

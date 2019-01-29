@@ -3,6 +3,7 @@ dependencies {
   compile project(":kayenta-google")
 
   compile spinnaker.dependency('bootWeb')
+  compile spinnaker.dependency('korkExceptions')
+  compile spinnaker.dependency('googleStorage')
   compile spinnaker.dependency('lombok')
-  spinnaker.group('google')
 }
