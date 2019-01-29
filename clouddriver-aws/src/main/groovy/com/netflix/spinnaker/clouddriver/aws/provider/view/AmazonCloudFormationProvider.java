@@ -20,8 +20,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter;
 import com.netflix.spinnaker.clouddriver.aws.cache.Keys;
-import com.netflix.spinnaker.clouddriver.aws.model.AmazonCloudFormation;
+import com.netflix.spinnaker.clouddriver.aws.model.AmazonCloudFormationStack;
 import com.netflix.spinnaker.clouddriver.aws.model.CloudFormationProvider;
+import com.netflix.spinnaker.clouddriver.aws.model.CloudFormationStack;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -31,40 +32,40 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static com.netflix.spinnaker.clouddriver.aws.cache.Keys.Namespace.CLOUDFORMATION;
+import static com.netflix.spinnaker.clouddriver.aws.cache.Keys.Namespace.STACKS;
 
 @Slf4j
 @Component
-class AmazonCloudFormationProvider implements CloudFormationProvider<AmazonCloudFormation> {
+public class AmazonCloudFormationProvider implements CloudFormationProvider<CloudFormationStack> {
 
   private final Cache cacheView;
   private final ObjectMapper objectMapper;
 
   @Autowired
-  AmazonCloudFormationProvider(Cache cacheView, ObjectMapper objectMapper) {
+  public AmazonCloudFormationProvider(Cache cacheView, ObjectMapper objectMapper) {
     this.cacheView = cacheView;
     this.objectMapper = objectMapper;
   }
 
-  public List<AmazonCloudFormation> list(String account, String region) {
-    String filter = Keys.getCloudFormationKey("*", region, account);
+  public List<CloudFormationStack> list(String accountName, String region) {
+    String filter = Keys.getCloudFormationKey("*", region, accountName);
     log.debug("List all stacks with filter {}", filter);
-    return loadResults(cacheView.filterIdentifiers(CLOUDFORMATION.getNs(), filter));
+    return loadResults(cacheView.filterIdentifiers(STACKS.getNs(), filter));
   }
 
   @Override
-  public Optional<AmazonCloudFormation> get(String stackId) {
+  public Optional<CloudFormationStack> get(String stackId) {
     String filter = Keys.getCloudFormationKey(stackId, "*", "*");
     log.debug("Get stack with filter {}", filter);
-    return loadResults(cacheView.filterIdentifiers(CLOUDFORMATION.getNs(), filter)).stream().findFirst();
+    return loadResults(cacheView.filterIdentifiers(STACKS.getNs(), filter)).stream().findFirst();
   }
 
-  List<AmazonCloudFormation> loadResults(Collection<String> identifiers) {
-    return cacheView.getAll(CLOUDFORMATION.getNs(), identifiers, RelationshipCacheFilter.none())
+  List<CloudFormationStack> loadResults(Collection<String> identifiers) {
+    return cacheView.getAll(STACKS.getNs(), identifiers, RelationshipCacheFilter.none())
       .stream()
       .map(data -> {
         log.debug("Cloud formation cached properties {}", data.getAttributes());
-        return objectMapper.convertValue(data.getAttributes(), AmazonCloudFormation.class);
+        return objectMapper.convertValue(data.getAttributes(), AmazonCloudFormationStack.class);
       })
       .collect(Collectors.toList());
   }

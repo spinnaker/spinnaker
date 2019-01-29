@@ -21,13 +21,13 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.mem.InMemoryCache
 import com.netflix.spinnaker.clouddriver.aws.cache.Keys
-import com.netflix.spinnaker.clouddriver.aws.model.AmazonCloudFormation
+import com.netflix.spinnaker.clouddriver.aws.model.AmazonCloudFormationStack
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
-import static com.netflix.spinnaker.clouddriver.aws.cache.Keys.Namespace.CLOUDFORMATION
+import static com.netflix.spinnaker.clouddriver.aws.cache.Keys.Namespace.STACKS
 
 class AmazonCloudFormationProviderSpec extends Specification {
   static final TypeReference<Map<String, Object>> ATTRIBUTES = new TypeReference<Map<String, Object>>() {}
@@ -40,7 +40,7 @@ class AmazonCloudFormationProviderSpec extends Specification {
   def setup() {
     def cache = new InMemoryCache()
     cloudFormations.each {
-      cache.merge(CLOUDFORMATION.ns,
+      cache.merge(STACKS.ns,
           new DefaultCacheData(makeKey(it), objectMapper.convertValue(it, ATTRIBUTES), [:]))
     }
 
@@ -99,16 +99,16 @@ class AmazonCloudFormationProviderSpec extends Specification {
   }
 
   @Shared
-  def stack1 = new AmazonCloudFormation(stackId: "stack1", region: "region1", accountId: "account1")
+  def stack1 = new AmazonCloudFormationStack(stackId: "stack1", region: "region1", accountId: "account1")
   @Shared
-  def stack2 = new AmazonCloudFormation(stackId: "stack2", region: "region2", accountId: "account1")
+  def stack2 = new AmazonCloudFormationStack(stackId: "stack2", region: "region2", accountId: "account1")
   @Shared
-  def stack3 = new AmazonCloudFormation(stackId: "stack3", region: "region1", accountId: "account2")
+  def stack3 = new AmazonCloudFormationStack(stackId: "stack3", region: "region1", accountId: "account2")
 
   @Shared
-  Set<AmazonCloudFormation> cloudFormations = [stack1, stack2, stack3]
+  Set<AmazonCloudFormationStack> cloudFormations = [stack1, stack2, stack3]
 
-  private static String makeKey(AmazonCloudFormation stack) {
+  private static String makeKey(AmazonCloudFormationStack stack) {
     Keys.getCloudFormationKey(stack.stackId, stack.region, stack.accountId)
   }
 

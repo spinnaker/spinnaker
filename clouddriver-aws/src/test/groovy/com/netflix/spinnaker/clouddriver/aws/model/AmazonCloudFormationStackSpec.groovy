@@ -19,7 +19,7 @@ package com.netflix.spinnaker.clouddriver.aws.model
 import com.fasterxml.jackson.databind.ObjectMapper
 import spock.lang.Specification
 
-class AmazonCloudFormationSpec extends Specification {
+class AmazonCloudFormationStackSpec extends Specification {
 
   def objectMapper = new ObjectMapper()
 
@@ -38,10 +38,10 @@ class AmazonCloudFormationSpec extends Specification {
     ]
 
     when:
-    def cf = objectMapper.convertValue(attributes, AmazonCloudFormation)
+    def cf = objectMapper.convertValue(attributes, AmazonCloudFormationStack)
 
     then:
-    assert cf instanceof AmazonCloudFormation
+    assert cf instanceof AmazonCloudFormationStack
     with(cf) {
       stackId == "stackId"
       tags == [tag1: "tag1", tag2: "tag2"]
@@ -60,10 +60,10 @@ class AmazonCloudFormationSpec extends Specification {
     def attributes = [stackId: "stackId"]
 
     when:
-    def cf = objectMapper.convertValue(attributes, AmazonCloudFormation)
+    def cf = objectMapper.convertValue(attributes, AmazonCloudFormationStack)
 
     then:
-    assert cf instanceof AmazonCloudFormation
+    assert cf instanceof AmazonCloudFormationStack
     with(cf) {
       stackId == "stackId"
       tags == null

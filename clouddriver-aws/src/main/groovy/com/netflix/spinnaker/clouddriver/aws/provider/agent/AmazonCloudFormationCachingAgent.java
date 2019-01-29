@@ -35,7 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.netflix.spinnaker.clouddriver.aws.cache.Keys.Namespace.CLOUDFORMATION;
+import static com.netflix.spinnaker.clouddriver.aws.cache.Keys.Namespace.STACKS;
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
 
 @Slf4j
@@ -45,7 +45,7 @@ public class AmazonCloudFormationCachingAgent implements CachingAgent, AccountAw
   private final String region;
 
   static final Set<AgentDataType> types = new HashSet<>(
-    Collections.singletonList(AUTHORITATIVE.forType(CLOUDFORMATION.getNs()))
+    Collections.singletonList(AUTHORITATIVE.forType(STACKS.getNs()))
   );
 
   public AmazonCloudFormationCachingAgent(AmazonClientProvider amazonClientProvider,
@@ -81,42 +81,46 @@ public class AmazonCloudFormationCachingAgent implements CachingAgent, AccountAw
     log.info("Describing items in {}", getAgentType());
     AmazonCloudFormation cloudformation = amazonClientProvider.getAmazonCloudFormation(account, region);
 
-    List<Stack> stacks = cloudformation.describeStacks().getStacks();
-
     Collection<CacheData> stackCacheData = new ArrayList<>();
 
-    for (Stack stack : stacks) {
-      Map<String, Object> stackAttributes = new HashMap<>();
-      stackAttributes.put("stackId", stack.getStackId());
-      stackAttributes.put("tags",
-        stack.getTags().stream().collect(Collectors.toMap(Tag::getKey, Tag::getValue)));
-      stackAttributes.put("outputs",
-        stack.getOutputs().stream().collect(Collectors.toMap(Output::getOutputKey, Output::getOutputValue)));
-      stackAttributes.put("stackName", stack.getStackName());
-      stackAttributes.put("region", region);
-      stackAttributes.put("accountName", account.getName());
-      stackAttributes.put("accountId", account.getAccountId());
-      stackAttributes.put("stackStatus", stack.getStackStatus());
-      stackAttributes.put("creationTime", stack.getCreationTime());
+    try {
+      List<Stack> stacks = cloudformation.describeStacks().getStacks();
 
-      if (stack.getStackStatus().equals("ROLLBACK_COMPLETE")) {
-        DescribeStackEventsRequest request = new DescribeStackEventsRequest().withStackName(stack.getStackName());
-        cloudformation.describeStackEvents(request).getStackEvents()
-          .stream()
-          .filter(e -> e.getResourceStatus().equals("CREATE_FAILED"))
-          .findFirst()
-          .map(StackEvent::getResourceStatusReason)
-          .map(statusReason -> stackAttributes.put("stackStatusReason", statusReason));
+      for (Stack stack : stacks) {
+        Map<String, Object> stackAttributes = new HashMap<>();
+        stackAttributes.put("stackId", stack.getStackId());
+        stackAttributes.put("tags",
+          stack.getTags().stream().collect(Collectors.toMap(Tag::getKey, Tag::getValue)));
+        stackAttributes.put("outputs",
+          stack.getOutputs().stream().collect(Collectors.toMap(Output::getOutputKey, Output::getOutputValue)));
+        stackAttributes.put("stackName", stack.getStackName());
+        stackAttributes.put("region", region);
+        stackAttributes.put("accountName", account.getName());
+        stackAttributes.put("accountId", account.getAccountId());
+        stackAttributes.put("stackStatus", stack.getStackStatus());
+        stackAttributes.put("creationTime", stack.getCreationTime());
+
+        if (stack.getStackStatus().equals("ROLLBACK_COMPLETE")) {
+          DescribeStackEventsRequest request = new DescribeStackEventsRequest().withStackName(stack.getStackName());
+          cloudformation.describeStackEvents(request).getStackEvents()
+            .stream()
+            .filter(e -> e.getResourceStatus().equals("CREATE_FAILED"))
+            .findFirst()
+            .map(StackEvent::getResourceStatusReason)
+            .map(statusReason -> stackAttributes.put("stackStatusReason", statusReason));
+        }
+        String stackCacheKey = Keys.getCloudFormationKey(stack.getStackId(), region, account.getName());
+        Map<String, Collection<String>> relationships = new HashMap<>();
+        relationships.put(STACKS.getNs(), Collections.singletonList(stackCacheKey));
+        stackCacheData.add(new DefaultCacheData(stackCacheKey, stackAttributes, relationships));
       }
-      String stackCacheKey = Keys.getCloudFormationKey(stack.getStackId(), region, account.getAccountId());
-      Map<String, Collection<String>> relationships = new HashMap<>();
-      relationships.put(CLOUDFORMATION.getNs(), Collections.singletonList(stackCacheKey));
-      stackCacheData.add(new DefaultCacheData(stackCacheKey, stackAttributes, relationships));
+    } catch (AmazonCloudFormationException e) {
+      log.error("Error retrieving stacks", e);
     }
 
     log.info("Caching {} items in {}", stackCacheData.size(), getAgentType());
     HashMap<String, Collection<CacheData>> result = new HashMap<>();
-    result.put(CLOUDFORMATION.getNs(), stackCacheData);
+    result.put(STACKS.getNs(), stackCacheData);
     return new DefaultCacheResult(result);
   }
 }

@@ -22,7 +22,7 @@ import java.util.Map;
 /**
  * A representation of a CloudFormation stack
  */
-public interface CloudFormation {
+public interface CloudFormationStack {
 
   String getStackId();
 
