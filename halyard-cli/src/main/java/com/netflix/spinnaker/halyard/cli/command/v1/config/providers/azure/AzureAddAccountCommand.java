@@ -26,7 +26,6 @@ import com.netflix.spinnaker.halyard.config.model.v1.providers.azure.AzureProvid
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Parameters(separators = "=")
 class AzureAddAccountCommand extends AbstractAddAccountCommand {
@@ -102,10 +101,8 @@ class AzureAddAccountCommand extends AbstractAddAccountCommand {
   )
   private List<String> regions = new ArrayList<String>(Arrays.asList("westus", "eastus"));
 
-
   @Override
   protected Account buildAccount(String accountName) {
-
     return ((AzureAccount) new AzureAccount().setName(accountName))
         .setClientId(clientId)
         .setAppKey(appKey)
