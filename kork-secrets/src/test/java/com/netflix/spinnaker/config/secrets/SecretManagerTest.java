@@ -85,8 +85,8 @@ public class SecretManagerTest {
   public void decryptFile() throws SecretDecryptionException, IOException {
     String secretConfig = "encrypted:s3!paramName:paramValue";
     when(secretEngine.decrypt(any())).thenReturn("test");
-    Path path = secretManager.decryptFile(secretConfig);
-    assertTrue(path.toAbsolutePath().toString().matches(".*s3.*.secret$"));
+    Path path = secretManager.decryptAsFile(secretConfig);
+    assertTrue(path.toAbsolutePath().toString().matches(".*.secret$"));
     BufferedReader reader = new BufferedReader(new FileReader(path.toFile()));
     assertEquals("test", reader.readLine());
     reader.close();
@@ -98,7 +98,7 @@ public class SecretManagerTest {
     String secretConfig = "encrypted:does-not-exist!paramName:paramValue";
     exceptionRule.expect(InvalidSecretFormatException.class);
     exceptionRule.expectMessage("Secret Engine does not exist: does-not-exist");
-    secretManager.decryptFile(secretConfig);
+    secretManager.decryptAsFile(secretConfig);
   }
 
   @Test
@@ -106,17 +106,18 @@ public class SecretManagerTest {
     doThrow(InvalidSecretFormatException.class).when(secretEngine).validate(any());
     String secretConfig = "encrypted:s3!paramName:paramValue";
     exceptionRule.expect(InvalidSecretFormatException.class);
-    secretManager.decryptFile(secretConfig);
+    secretManager.decryptAsFile(secretConfig);
   }
 
   @Test
   public void decryptFileNoDiskSpaceMock() throws SecretDecryptionException {
     SecretManager spy = spy(new SecretManager(secretEngineRegistry));
     doThrow(SecretDecryptionException.class).when(spy).decryptedFilePath(any(), any());
-    doCallRealMethod().when(spy).decryptFile(any());
+    doReturn("contents").when(spy).decrypt(any());
+    doCallRealMethod().when(spy).decryptAsFile(any());
     exceptionRule.expect(SecretDecryptionException.class);
     String secretConfig = "encrypted:s3!paramName:paramValue";
-    spy.decryptFile(secretConfig);
+    spy.decryptAsFile(secretConfig);
   }
 }
 

@@ -23,11 +23,16 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
 
 @Component
 public class SecretManager {
 
   final private SecretEngineRegistry secretEngineRegistry;
+
+  private Map<String, String> secretCache = new HashMap<>();
+  private Map<String, Path> secretFileCache = new HashMap<>();
 
   @Autowired
   SecretManager(SecretEngineRegistry secretEngineRegistry) {
@@ -47,17 +52,25 @@ public class SecretManager {
       return configValue;
     }
 
+    String clearText = getCachedSecret(configValue);
+    if (clearText != null) {
+      return clearText;
+    }
+
     SecretEngine secretEngine = secretEngineRegistry.getEngine(encryptedSecret.getEngineIdentifier());
     if (secretEngine == null) {
       throw new InvalidSecretFormatException("Secret Engine does not exist: " + encryptedSecret.getEngineIdentifier());
-    } else {
-      secretEngine.validate(encryptedSecret);
-      return secretEngine.decrypt(encryptedSecret);
     }
+
+    secretEngine.validate(encryptedSecret);
+    clearText = secretEngine.decrypt(encryptedSecret);
+    cacheSecret(configValue, clearText);
+
+    return clearText;
   }
 
   /**
-   * DecryptFile will deserialize the configValue into an EncryptedSecret object, decrypts the EncryptedSecret based
+   * DecryptAsFile deserializes the configValue into an EncryptedSecret object, decrypts the EncryptedSecret based
    * on the secretEngine referenced in the configValue, writes the decrypted value into a temporary file, and returns
    * the absolute path to the temporary file.
    *
@@ -69,29 +82,30 @@ public class SecretManager {
    * Note: The temporary file that is created is deleted upon exiting the application.
    *
    * @param filePathOrEncrypted
-   * @return path to temporary file that contains decrypted contents
+   * @return path to temporary file that contains decrypted contents or null if param not encrypted
    */
-  public Path decryptFile(String filePathOrEncrypted) {
-    if (!EncryptedSecret.isEncryptedSecret(filePathOrEncrypted)) {
+  public Path decryptAsFile(String filePathOrEncrypted) {
+    Path decryptedFile = getCachedSecretFile(filePathOrEncrypted);
+    if (decryptedFile != null) {
+      return decryptedFile;
+    }
+
+    String decryptedContents = decrypt(filePathOrEncrypted);
+    if (decryptedContents == null) {
       return null;
     }
 
-    EncryptedSecret encryptedSecret = EncryptedSecret.parse(filePathOrEncrypted);
-    SecretEngine secretEngine = secretEngineRegistry.getEngine(encryptedSecret.getEngineIdentifier());
-    if (secretEngine == null) {
-      throw new InvalidSecretFormatException("Secret Engine does not exist: " + encryptedSecret.getEngineIdentifier());
-    } else {
-      secretEngine.validate(encryptedSecret);
-      return decryptedFilePath(secretEngine, encryptedSecret);
-    }
+    decryptedFile = decryptedFilePath("tmp", decryptedContents);
+    cacheSecretFile(filePathOrEncrypted, decryptedFile);
+
+    return decryptedFile;
   }
 
-  protected Path decryptedFilePath(SecretEngine secretEngine, EncryptedSecret encryptedSecret) {
-    String plainText = secretEngine.decrypt(encryptedSecret);
+  protected Path decryptedFilePath(String prefix, String decryptedContents) {
     try {
-      File tempFile = File.createTempFile(secretEngine.identifier() + '-', ".secret");
+      File tempFile = File.createTempFile(prefix, ".secret");
       try (FileWriter fileWriter = new FileWriter(tempFile)) {
-        fileWriter.write(plainText);
+        fileWriter.write(decryptedContents);
       }
       tempFile.deleteOnExit();
       return tempFile.toPath();
@@ -100,8 +114,23 @@ public class SecretManager {
     }
   }
 
-  //void setSecretEngineRegistry(SecretEngineRegistry secretEngineRegistry) {
-  //  this.secretEngineRegistry = secretEngineRegistry;
-  //}
+  public void clearCachedFile(String encryptedFilePath) {
+    secretFileCache.remove(encryptedFilePath);
+  }
 
+  public String getCachedSecret(String encryptedSecret) {
+    return secretCache.get(encryptedSecret);
+  }
+
+  public void cacheSecret(String encryptedSecret, String clearText) {
+    secretCache.put(encryptedSecret, clearText);
+  }
+
+  public Path getCachedSecretFile(String encryptedSecret) {
+    return secretFileCache.get(encryptedSecret);
+  }
+
+  public void cacheSecretFile(String encryptedSecret, Path tempFile) {
+    secretFileCache.put(encryptedSecret, tempFile);
+  }
 }
