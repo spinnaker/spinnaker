@@ -18,11 +18,11 @@
     <div class="actions">
       <div class="dropdown" uib-dropdown dropdown-append-to-body>
         <button type="button" class="btn btn-sm btn-primary dropdown-toggle" ng-disabled="disabled" uib-dropdown-toggle>
-          <firewall-label label="Firewall"/> Actions <span class="caret"></span>
+          <firewall-label label="Firewall"></firewall-label> Actions <span class="caret"></span>
         </button>
         <ul class="dropdown-menu" uib-dropdown-menu role="menu">
-          <li><a href ng-click="ctrl.editSecurityGroup()">Edit <firewall-label label="Firewall"/></a></li>
-          <li><a href ng-click="ctrl.deleteSecurityGroup()">Delete <firewall-label label="Firewall"/></a></li>
+          <li><a href ng-click="ctrl.editSecurityGroup()">Edit <firewall-label label="Firewall"></firewall-label></a></li>
+          <li><a href ng-click="ctrl.deleteSecurityGroup()">Delete <firewall-label label="Firewall"></firewall-label></a></li>
         </ul>
       </div>
     </div>
@@ -60,7 +60,7 @@
 
           <dl ng-class="insightCtrl.vm.filtersExpanded ? '' : 'dl-horizontal dl-medium'"
               ng-repeat="rule in securityGroup.securityGroupRules | orderBy: 'securityGroup.name' ">
-            <dt><firewall-label label="Firewall"/></dt>
+            <dt><firewall-label label="Firewall"></firewall-label></dt>
             <dd ng-if="rule.securityGroup.name">
                   <a ui-sref="^.firewallDetails({name: rule.securityGroup.name, accountId: rule.securityGroup.accountName, region: rule.securityGroup.region, vpcId: rule.securityGroup.vpcId, provider: 'openstack'})">
                       <account-tag account="rule.securityGroup.accountName || rule.securityGroup.accountId" ng-if="rule.securityGroup.accountName !== securityGroup.accountName"></account-tag>

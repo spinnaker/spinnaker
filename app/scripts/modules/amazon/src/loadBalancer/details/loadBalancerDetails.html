@@ -20,7 +20,7 @@
       </a>
     </div>
     <div class="header-text horizontal middle">
-      <i class="fa icon-sitemap"/>
+      <i class="fa icon-sitemap"></i>
       <h3 class="horizontal middle space-between flex-1" select-on-dbl-click>
         {{ctrl.loadBalancer.name}}
         <render-if-feature feature="entityTags">
@@ -149,7 +149,7 @@
             <div ng-repeat="action in listener.actions">
               <!-- authenticate-oidc -->
               <span ng-if="action.type === 'authenticate-oidc'">
-                <i class="fas fa-fw fa-user-lock"/>
+                <i class="fas fa-fw fa-user-lock"></i>
                 <a ng-if="ctrl.oidcConfigPath"
                   href="{{ctrl.oidcConfigPath}}{{action.authenticateOidcConfig.clientId}}" target="_blank">
                   {{action.authenticateOidcConfig.clientId}}
@@ -160,7 +160,7 @@
               </span>
               <!-- forward -->
               <span ng-if="action.targetGroupName && action.targetGroup">
-                <i class="fa fa-fw fa-crosshairs icon" aria-hidden="true"/>
+                <i class="fa fa-fw fa-crosshairs icon" aria-hidden="true"></i>
                 <a ui-sref="^.targetGroupDetails({region: action.targetGroup.region,
                               loadBalancerName: ctrl.loadBalancer.name,
                               accountId: action.targetGroup.account,
@@ -171,7 +171,7 @@
                 </a>
               </span>
               <span ng-if="action.targetGroupName && !action.targetGroup">
-                <i class="fa fa-fw fa-crosshairs icon" aria-hidden="true"/>
+                <i class="fa fa-fw fa-crosshairs icon" aria-hidden="true"></i>
                 {{action.targetGroupName}}
               </span>
             </div>

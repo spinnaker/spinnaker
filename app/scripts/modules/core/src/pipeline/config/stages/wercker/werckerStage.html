@@ -24,7 +24,7 @@
       </a>
     </div>
   </div>
-  
+
   <div class="form-group">
     <label class="col-md-2 col-md-offset-1 sm-label-right">Application</label>
     <div class="col-md-6">
@@ -55,7 +55,7 @@
       </a>
     </div>
   </div>
-  
+
   <div class="form-group">
     <label class="col-md-2 col-md-offset-1 sm-label-right">Pipeline</label>
     <div class="col-md-6">
@@ -86,7 +86,7 @@
       </a>
     </div>
   </div>
- 
+
   <stage-config-field label="Wait for results" help-key="wercker.waitForCompletion">
     <input type="checkbox" class="input-sm" name="waitForCompletion"
            ng-model="$ctrl.viewState.waitForCompletion"
@@ -102,7 +102,7 @@
                  ng-model="$ctrl.viewState.markUnstableAsSuccessful"
                  ng-change="$ctrl.markUnstableChanged()"
                  ng-value="false"/> fail the stage
-          <help-field key="pipeline.config.wercker.markUnstableAsSuccessful.false"/>
+          <help-field key="pipeline.config.wercker.markUnstableAsSuccessful.false"></help-field>
         </label>
       </div>
       <div class="radio">
@@ -111,7 +111,7 @@
                  ng-model="$ctrl.viewState.markUnstableAsSuccessful"
                  ng-change="$ctrl.markUnstableChanged()"
                  ng-value="true"/> consider stage successful
-          <help-field key="pipeline.config.wercker.markUnstableAsSuccessful.true"/>
+          <help-field key="pipeline.config.wercker.markUnstableAsSuccessful.true"></help-field>
         </label>
       </div>
 

@@ -130,7 +130,7 @@
     </collapsible-section>
     <collapsible-section heading="Events">
       <div ng-if="instance.events && instance.events.length > 0">
-        <kubernetes-event ng-repeat="event in instance.events" event="event"/>
+        <kubernetes-event ng-repeat="event in instance.events" event="event"></kubernetes-event>
       </div>
       <div ng-if="!(instance.events && instance.events.length > 0)">
         No events.

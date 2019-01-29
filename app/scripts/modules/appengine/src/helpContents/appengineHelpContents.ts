@@ -9,7 +9,7 @@ const helpContents = [
   {
     key: 'appengine.serverGroup.git.repositoryUrl',
     value: `The full URL to the git repository containing the source files for this deployment,
-              including protocol. For example, <b>https://github.com/spinnaker/deck.git<b/>`,
+              including protocol. For example, <b>https://github.com/spinnaker/deck.git</b>`,
   },
   {
     key: 'appengine.serverGroup.gitCredentialType',

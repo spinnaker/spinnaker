@@ -2,7 +2,7 @@ import { HelpContentsRegistry } from '@spinnaker/core';
 
 const helpContents: { [key: string]: string } = {
   'dcos.loadBalancer.group':
-    '<p>(Optional) The DC/OS group under which the application should live.</p><p> It can be a hierarchical path, delimited by backslashes.<p/><p>This will often be referred to as <b>Region</b> in Spinnaker.</p>',
+    '<p>(Optional) The DC/OS group under which the application should live.</p><p> It can be a hierarchical path, delimited by backslashes.<p></p><p>This will often be referred to as <b>Region</b> in Spinnaker.</p>',
   'dcos.loadBalancer.cpus': '(Required) Amount of CPUs used for the load balancer (default: 2).',
   'dcos.loadBalancer.mem': '(Required) Amount of memory used for the load balancer (default: 1024).',
   'dcos.loadBalancer.instances': '(Required) Number of instances of the load balancer to be deployed (default: 1).',
@@ -23,7 +23,7 @@ const helpContents: { [key: string]: string } = {
   'dcos.serverGroup.region':
     '(Required) One of the core naming components of a cluster, used to create logical groupings with DCOS (using Marathon groups) of applications (default: "default").',
   'dcos.serverGroup.group':
-    '(Optional) The DC/OS group under which the application should live.<p> It can be a hierarchical path, delimited by backslashes.<p/>',
+    '(Optional) The DC/OS group under which the application should live.<p> It can be a hierarchical path, delimited by backslashes.</p>',
   'dcos.serverGroup.stack':
     '(Optional) One of the core naming components of a cluster, used to create vertical stacks of dependent services for integration testing.',
   'dcos.serverGroup.freeFormDetails':

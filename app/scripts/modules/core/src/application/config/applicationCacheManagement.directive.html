@@ -29,7 +29,7 @@
   </div>
 </div>
 <div class="row" ng-if="vm.hasCache('securityGroups')">
-  <div class="col-md-3 col-md-offset-1"><firewall-label label="Firewalls"/></div>
+  <div class="col-md-3 col-md-offset-1"><firewall-label label="Firewalls"></firewall-label></div>
   <div class="col-md-3">{{vm.getCacheInfo('securityGroups').ageMax | timestamp}}</div>
   <div class="col-md-1 text-center">
     <a href ng-click="vm.refreshCache('securityGroups')">

@@ -1,5 +1,5 @@
 <div class="text-center" ng-if="state.notFound">
-  <h3>Could not find <firewall-label label="firewall"/> {{group}}.</h3>
+  <h3>Could not find <firewall-label label="firewall"></firewall-label> {{group}}.</h3>
   <a ui-sref="home.infrastructure">Back to search results</a>
 </div>
 <div class="details-panel" ng-if="!state.notFound">
@@ -35,12 +35,12 @@
     <div class="actions">
       <div class="dropdown" uib-dropdown dropdown-append-to-body>
         <button type="button" class="btn btn-sm btn-primary dropdown-toggle" ng-disabled="disabled" uib-dropdown-toggle>
-          <firewall-label label="Firewall"/> Actions <span class="caret"></span>
+          <firewall-label label="Firewall"></firewall-label> Actions <span class="caret"></span>
         </button>
         <ul class="dropdown-menu" uib-dropdown-menu role="menu">
           <li><a href ng-click="ctrl.editInboundRules()">Edit Inbound Rules</a></li>
-          <li><a href ng-click="ctrl.deleteSecurityGroup()">Delete <firewall-label label="Firewall"/></a></li>
-          <li><a href ng-click="ctrl.cloneSecurityGroup()">Clone <firewall-label label="Firewall"/></a></li>
+          <li><a href ng-click="ctrl.deleteSecurityGroup()">Delete <firewall-label label="Firewall"></firewall-label></a></li>
+          <li><a href ng-click="ctrl.cloneSecurityGroup()">Clone <firewall-label label="Firewall"></firewall-label></a></li>
           <render-if-feature feature="entityTags">
             <add-entity-tag-links component="securityGroup"
                                   application="ctrl.application"
@@ -90,7 +90,7 @@
 
       <dl ng-class="insightCtrl.vm.filtersExpanded ? '' : 'dl-horizontal dl-medium'"
           ng-repeat="rule in securityGroupRules | orderBy: 'securityGroup.name' ">
-        <dt><firewall-label label="Firewall"/></dt>
+        <dt><firewall-label label="Firewall"></firewall-label></dt>
         <dd ng-if="rule.securityGroup.name">
           <a ui-sref="^.firewallDetails({name: rule.securityGroup.name, accountId: rule.securityGroup.accountName, region: rule.securityGroup.region, vpcId: rule.securityGroup.vpcId, provider: 'aws'})">
             <account-tag account="rule.securityGroup.accountName || rule.securityGroup.accountId" ng-if="rule.securityGroup.accountName !== securityGroup.accountName"></account-tag>

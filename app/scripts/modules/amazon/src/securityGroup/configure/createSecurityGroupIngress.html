@@ -4,7 +4,7 @@
         <div class="col-md-12" ng-if="state.removedRules.length">
           <div class="alert alert-warning">
             <p><i class="fa fa-exclamation-triangle"></i>
-              The following <firewall-label label="firewalls"/> could not be found in the selected account/region/VPC and were removed:
+              The following <firewall-label label="firewalls"></firewall-label> could not be found in the selected account/region/VPC and were removed:
             </p>
             <ul>
               <li ng-repeat="securityGroup in state.removedRules">{{securityGroup}}</li>
@@ -27,7 +27,7 @@
           <table class="table table-condensed packed">
             <thead>
             <tr>
-              <th style="width: 50%"><firewall-label label="Firewall"/></th>
+              <th style="width: 50%"><firewall-label label="Firewall"></firewall-label></th>
               <th style="width: 15%">Protocol</th>
               <th style="width: 15%">Start Port</th>
               <th style="width: 15%">End Port</th>
@@ -60,7 +60,7 @@
             <tr>
               <td colspan="5">
                 <button class="add-new col-md-12" ng-click="ctrl.addRule(securityGroup.securityGroupIngress)"><span
-                  class="glyphicon glyphicon-plus-sign"></span> Add new <firewall-label label="Firewall"/> Rule
+                  class="glyphicon glyphicon-plus-sign"></span> Add new <firewall-label label="Firewall"></firewall-label> Rule
                 </button>
               </td>
             </tr>
@@ -73,11 +73,11 @@
         <div class="col-md-12">
           <p>
             <span ng-if="state.refreshingSecurityGroups"><span class="fa fa-sync-alt fa-spin"></span></span>
-            <firewall-label label="Firewalls"/>
+            <firewall-label label="Firewalls"></firewall-label>
             <span ng-if="!state.refreshingSecurityGroups">last refreshed {{ state.refreshTime | timestamp }}</span>
             <span ng-if="state.refreshingSecurityGroups"> refreshing...</span>
           </p>
-          <p>If you're not finding a <firewall-label label="firewall"/> that was recently added,
+          <p>If you're not finding a <firewall-label label="firewall"></firewall-label> that was recently added,
             <a href ng-click="ctrl.refreshSecurityGroups()">click here</a> to refresh the list.
           </p>
         </div>

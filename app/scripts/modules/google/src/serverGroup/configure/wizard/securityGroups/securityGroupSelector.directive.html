@@ -1,5 +1,5 @@
 <div class="form-group">
-  <div class="col-md-3 sm-label-right"><b><firewall-label label="Firewalls"/></b></div>
+  <div class="col-md-3 sm-label-right"><b><firewall-label label="Firewalls"></firewall-label></b></div>
   <div class="col-md-9">
     <ui-select ng-if="vm.command.backingData.filtered.securityGroups.length"
                multiple
@@ -21,14 +21,14 @@
 <div class="form-group small" style="margin-top: 20px">
   <div class="col-md-9 col-md-offset-3 checkbox">
     <p>
-      <label><input type="checkbox" ng-model="vm.command.viewState.listImplicitSecurityGroups"/> Show Implicit <firewall-label label="Firewalls"/> </label>
+      <label><input type="checkbox" ng-model="vm.command.viewState.listImplicitSecurityGroups"/> Show Implicit <firewall-label label="Firewalls"></firewall-label> </label>
       <help-field key="gce.serverGroup.securityGroups.implicit"></help-field>
     </p>
   </div>
 </div>
 
 <div class="form-group" ng-if="vm.command.viewState.listImplicitSecurityGroups">
-  <div class="col-md-3 sm-label-right"><b>Implicit <firewall-label label="Firewalls"/></b></div>
+  <div class="col-md-3 sm-label-right"><b>Implicit <firewall-label label="Firewalls"></firewall-label></b></div>
   <div class="col-md-9">
     <ul ng-if="vm.command.implicitSecurityGroups.length" style="margin-top: 10px; list-style-type: none">
       <li ng-repeat="securityGroup in vm.command.implicitSecurityGroups">{{securityGroup.name}}</li>
@@ -43,11 +43,11 @@
   <div class="col-md-9 col-md-offset-3">
     <p>
       <span ng-if="refreshing"><span class="fa fa-sync-alt fa-spin"></span></span>
-      <firewall-label label="Firewalls"/>
+      <firewall-label label="Firewalls"></firewall-label>
       <span ng-if="!refreshing">last refreshed {{ vm.getSecurityGroupRefreshTime() | timestamp }}</span>
       <span ng-if="refreshing"> refreshing...</span>
     </p>
-    <p>If you're not finding a <firewall-label label="firewall"/> that was recently added,
+    <p>If you're not finding a <firewall-label label="firewall"></firewall-label> that was recently added,
       <a href ng-click="vm.refreshSecurityGroups()">click here</a> to refresh the list.
     </p>
   </div>

@@ -32,12 +32,12 @@
     <div class="actions">
       <div ng-if="!securityGroup.id.includes('/')" class="dropdown" uib-dropdown dropdown-append-to-body>
         <button type="button" class="btn btn-sm btn-primary dropdown-toggle" uib-dropdown-toggle>
-          <firewall-label label="Firewall"/> Actions <span class="caret"></span>
+          <firewall-label label="Firewall"></firewall-label> Actions <span class="caret"></span>
         </button>
         <ul class="dropdown-menu" uib-dropdown-menu role="menu">
           <li><a href ng-click="ctrl.editInboundRules()">Edit Inbound Rules</a></li>
-          <li><a href ng-click="ctrl.deleteSecurityGroup()">Delete <firewall-label label="Firewall"/></a></li>
-          <li><a href ng-click="ctrl.cloneSecurityGroup()">Clone <firewall-label label="Firewall"/></a></li>
+          <li><a href ng-click="ctrl.deleteSecurityGroup()">Delete <firewall-label label="Firewall"></firewall-label></a></li>
+          <li><a href ng-click="ctrl.cloneSecurityGroup()">Clone <firewall-label label="Firewall"></firewall-label></a></li>
           <render-if-feature feature="entityTags">
             <add-entity-tag-links component="securityGroup"
                                   application="ctrl.application"
@@ -48,12 +48,12 @@
       </div>
       <div ng-if="securityGroup.id.includes('/')" class="dropdown" uib-dropdown dropdown-append-to-body>
         <button type="button" class="btn btn-sm btn-primary dropdown-toggle" uib-dropdown-toggle>
-          <firewall-label label="Firewall"/> Actions <span class="caret"></span>
+          <firewall-label label="Firewall"></firewall-label> Actions <span class="caret"></span>
         </button>
         <ul uib-tooltip="You cannot modify shared VPC host project firewall rules." class="dropdown-menu" uib-dropdown-menu role="menu">
           <li class="disabled"><a>Edit Inbound Rules</a></li>
-          <li class="disabled"><a>Delete <firewall-label label="Firewall"/></a></li>
-          <li class="disabled"><a>Clone <firewall-label label="Firewall"/></a></li>
+          <li class="disabled"><a>Delete <firewall-label label="Firewall"></firewall-label></a></li>
+          <li class="disabled"><a>Clone <firewall-label label="Firewall"></firewall-label></a></li>
         </ul>
       </div>
     </div>

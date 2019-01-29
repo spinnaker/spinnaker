@@ -76,8 +76,8 @@
           <input ng-if="!useDefaultParameters[parameter.name]" type="checkbox" class="input-sm" ng-model="userSuppliedParameters[parameter.name]" ng-change="updateParam(parameter.name)"/>
         </div>
         <div ng-switch-when="TextParameterDefinition">
-          <textarea disabled ng-if="useDefaultParameters[parameter.name]" class="form-control input-sm" ng-model="parameter.defaultValue" style="max-width: 100%"/>
-          <textarea ng-if="!useDefaultParameters[parameter.name]" class="form-control input-sm" ng-model="userSuppliedParameters[parameter.name]" ng-change="updateParam(parameter.name)" style="max-width: 100%"/>
+          <textarea disabled ng-if="useDefaultParameters[parameter.name]" class="form-control input-sm" ng-model="parameter.defaultValue" style="max-width: 100%"></textarea>
+          <textarea ng-if="!useDefaultParameters[parameter.name]" class="form-control input-sm" ng-model="userSuppliedParameters[parameter.name]" ng-change="updateParam(parameter.name)" style="max-width: 100%"></textarea>
         </div>
         <div ng-switch-when="ChoiceParameterDefinition">
           <ui-select class="form-control input-sm" ng-if="!useDefaultParameters[parameter.name]" ng-model="userSuppliedParameters[parameter.name]">
@@ -125,7 +125,7 @@
                  ng-model="viewState.markUnstableAsSuccessful"
                  ng-change="jenkinsStageCtrl.markUnstableChanged()"
                  ng-value="false"/> fail the stage
-          <help-field key="pipeline.config.jenkins.markUnstableAsSuccessful.false"/>
+          <help-field key="pipeline.config.jenkins.markUnstableAsSuccessful.false"></help-field>
         </label>
       </div>
       <div class="radio">
@@ -134,7 +134,7 @@
                  ng-model="viewState.markUnstableAsSuccessful"
                  ng-change="jenkinsStageCtrl.markUnstableChanged()"
                  ng-value="true"/> consider stage successful
-          <help-field key="pipeline.config.jenkins.markUnstableAsSuccessful.true"/>
+          <help-field key="pipeline.config.jenkins.markUnstableAsSuccessful.true"></help-field>
         </label>
       </div>
 

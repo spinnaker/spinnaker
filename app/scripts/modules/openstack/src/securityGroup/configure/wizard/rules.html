@@ -110,11 +110,11 @@
     <div class="col-md-12">
         <p>
             <span ng-if="state.refreshingSecurityGroups"><span class="fa fa-sync-alt fa-spin"></span></span>
-            <firewall-label label="Firewalls"/>
+            <firewall-label label="Firewalls"></firewall-label>
             <span ng-if="!state.refreshingSecurityGroups">last refreshed {{ rulesController.getSecurityGroupRefreshTime() | timestamp }}</span>
             <span ng-if="state.refreshingSecurityGroups"> refreshing...</span>
         </p>
-        <p>If you're not finding a <firewall-label label="firewall"/> that was recently added,
+        <p>If you're not finding a <firewall-label label="firewall"></firewall-label> that was recently added,
             <a href ng-click="rulesController.refreshSecurityGroups()">click here</a> to refresh the list.
         </p>
     </div>
