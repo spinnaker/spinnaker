@@ -105,6 +105,8 @@ public class RoscoProfileFactory extends SpringProfileFactory {
 
     augmentProvidersBaseImages(providers, otherProviders);
 
+    List<String> files = backupRequiredFiles(providers, deploymentConfiguration.getName());
+
     Map imageProviders = new TreeMap();
 
     NodeIterator iterator = providers.getChildren();
@@ -121,7 +123,6 @@ public class RoscoProfileFactory extends SpringProfileFactory {
       profile.appendContents(yamlParser.dump(imageProviders));
     }
 
-    List<String> files = backupRequiredFiles(providers, deploymentConfiguration.getName());
     profile.appendContents(profile.getBaseContents())
         .setRequiredFiles(files);
   }
