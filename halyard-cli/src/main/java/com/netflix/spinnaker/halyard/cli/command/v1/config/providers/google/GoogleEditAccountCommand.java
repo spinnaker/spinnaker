@@ -101,6 +101,7 @@ public class GoogleEditAccountCommand extends AbstractEditAccountCommand<GoogleA
     account.setJsonPath(isSet(jsonPath) ? jsonPath : account.getJsonPath());
     account.setProject(isSet(project) ? project : account.getProject());
     account.setAlphaListed(alphaListed != null ? alphaListed : account.isAlphaListed());
+    account.setUserDataFile(userDataFile != null ? userDataFile : account.getUserDataFile());
 
     try {
       account.setImageProjects(
