@@ -18,8 +18,7 @@ package com.netflix.spinnaker.clouddriver.google
 import com.google.api.client.googleapis.services.AbstractGoogleClientRequest
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.google.security.AccountForClient
-import com.netflix.spinnaker.clouddriver.googlecommon.GoogleExecutor
-import com.netflix.spinnaker.clouddriver.googlecommon.batch.GoogleBatchRequest
+import com.netflix.spinnaker.clouddriver.google.batch.GoogleBatchRequest
 
 /**
  * This class is syntactic sugar atop the static GoogleExecutor.

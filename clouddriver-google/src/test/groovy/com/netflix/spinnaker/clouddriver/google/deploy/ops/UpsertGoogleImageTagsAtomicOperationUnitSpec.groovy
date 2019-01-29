@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.clouddriver.google.deploy.ops
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
-import com.google.api.client.googleapis.batch.BatchRequest
 import com.google.api.client.googleapis.batch.json.JsonBatchCallback
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
 import com.google.api.client.json.jackson2.JacksonFactory
@@ -32,7 +31,7 @@ import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleI
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleResourceNotFoundException
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.google.security.TestDefaults
-import com.netflix.spinnaker.clouddriver.googlecommon.batch.GoogleBatchRequest
+import com.netflix.spinnaker.clouddriver.google.batch.GoogleBatchRequest
 import groovy.mock.interceptor.MockFor
 import spock.lang.Specification
 import spock.lang.Subject

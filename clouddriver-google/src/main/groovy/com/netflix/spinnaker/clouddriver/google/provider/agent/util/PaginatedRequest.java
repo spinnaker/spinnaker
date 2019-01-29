@@ -19,7 +19,7 @@ package com.netflix.spinnaker.clouddriver.google.provider.agent.util;
 import com.google.api.client.googleapis.batch.json.JsonBatchCallback;
 import com.google.api.services.compute.ComputeRequest;
 import com.netflix.spinnaker.clouddriver.google.provider.agent.AbstractGoogleCachingAgent;
-import com.netflix.spinnaker.clouddriver.googlecommon.batch.GoogleBatchRequest;
+import com.netflix.spinnaker.clouddriver.google.batch.GoogleBatchRequest;
 
 import java.io.IOException;
 import java.util.ArrayList;
