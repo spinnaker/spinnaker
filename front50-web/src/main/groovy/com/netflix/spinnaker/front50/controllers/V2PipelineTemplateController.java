@@ -136,19 +136,7 @@ public class V2PipelineTemplateController {
   PipelineTemplate get(@PathVariable String id,
                        @RequestParam(value = "version", required = false) String version,
                        @RequestParam(value = "digest", required = false) String digest) {
-    if (StringUtils.isNotEmpty(digest) && StringUtils.isNotEmpty(version)) {
-      throw new InvalidRequestException("Cannot query pipeline by 'version' and 'digest' simultaneously. Specify one of 'version' or 'digest'.");
-    }
-
-    String templateId;
-    if (StringUtils.isNotEmpty(digest)) {
-      templateId = String.format("%s@sha256:%s", id, digest);
-    } else if (StringUtils.isNotEmpty(version)) {
-      templateId = String.format("%s:%s", id, version);
-    } else {
-      templateId = String.format("%s:latest", id);
-    }
-
+    String templateId = formatId(id, version, digest);
     // We don't need to surface our internal accounting information to the user.
     // This would muddle the API and probably be bug-friendly.
     PipelineTemplate foundTemplate = getPipelineTemplateDAO().findById(templateId);
@@ -159,9 +147,13 @@ public class V2PipelineTemplateController {
   }
 
   @RequestMapping(value = "{id}", method = RequestMethod.DELETE)
-  void delete(@PathVariable String id) {
-    checkForDependentConfigs(id);
-    getPipelineTemplateDAO().delete(id);
+  void delete(@PathVariable String id,
+              @RequestParam(value = "version", required = false) String version,
+              @RequestParam(value = "digest", required = false) String digest) {
+    String templateId = formatId(id, version, digest);
+    // TODO(jacobkiefer): Refactor dependent config checking once we replace templateSource with Artifact(s).
+    checkForDependentConfigs(templateId);
+    getPipelineTemplateDAO().delete(templateId);
   }
 
   @RequestMapping(value = "{id}/dependentPipelines", method = RequestMethod.GET)
@@ -256,6 +248,20 @@ public class V2PipelineTemplateController {
     if (!version.matches(VALID_TEMPLATE_VERSION_REGEX)) {
       throw new InvalidRequestException(String.format("The provided version %s contains illegal characters."
         + " Pipeline template versions must match %s", version, VALID_TEMPLATE_VERSION_REGEX));
+    }
+  }
+
+  private String formatId(String id, String version, String digest) {
+    if (StringUtils.isNotEmpty(digest) && StringUtils.isNotEmpty(version)) {
+      throw new InvalidRequestException("Cannot query pipeline by 'version' and 'digest' simultaneously. Specify one of 'version' or 'digest'.");
+    }
+
+    if (StringUtils.isNotEmpty(digest)) {
+      return String.format("%s@sha256:%s", id, digest);
+    } else if (StringUtils.isNotEmpty(version)) {
+      return String.format("%s:%s", id, version);
+    } else {
+      return String.format("%s:latest", id);
     }
   }
 }
