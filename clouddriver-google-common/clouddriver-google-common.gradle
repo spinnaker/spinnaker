@@ -1,9 +1,7 @@
 dependencies {
   spinnaker.group('fiat')
 
-  compile spinnaker.dependency('spectatorApi')
+  compile spinnaker.dependency('googleApiClient')
   compile spinnaker.dependency('lombok')
-
-  //TODO(ezimanyi): Push this to spinnaker-dependencies
-  compile 'com.google.api-client:google-api-client:1.25.0'
+  compile spinnaker.dependency('spectatorApi')
 }
