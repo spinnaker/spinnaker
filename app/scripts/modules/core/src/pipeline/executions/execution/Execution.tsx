@@ -6,6 +6,7 @@ import { Subscription } from 'rxjs';
 import * as classNames from 'classnames';
 
 import { Application } from 'core/application/application.model';
+import { CopyToClipboard } from 'core/utils';
 import { StageExecutionDetails } from 'core/pipeline/details/StageExecutionDetails';
 import { ExecutionStatus } from 'core/pipeline/status/ExecutionStatus';
 import { IExecution, IRestartDetails, IPipeline } from 'core/domain';
@@ -13,7 +14,7 @@ import { IExecutionViewState, IPipelineGraphNode } from 'core/pipeline/config/gr
 import { OrchestratedItemRunningTime } from './OrchestratedItemRunningTime';
 import { SETTINGS } from 'core/config/settings';
 import { AccountTag } from 'core/account';
-import { NgReact, ReactInjector } from 'core/reactShims';
+import { ReactInjector } from 'core/reactShims';
 import { duration, timestamp } from 'core/utils/timeFormatters';
 import { ISortFilter } from 'core/filterModel';
 import { ExecutionState } from 'core/state';
@@ -250,7 +251,6 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
     const { application, execution, showAccountLabels, showDurations, standalone, title } = this.props;
     const { pipelinesUrl, restartDetails, showingDetails, sortFilter, viewState } = this.state;
 
-    const { CopyToClipboard } = NgReact;
     const accountLabels = this.props.execution.deploymentTargets.map(account => (
       <AccountTag key={account} account={account} />
     ));

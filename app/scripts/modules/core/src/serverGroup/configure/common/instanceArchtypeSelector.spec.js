@@ -15,7 +15,7 @@ describe('Controller: Instance Archetype Selector', function() {
 
   beforeEach(
     window.module(
-      require('./instanceArchetypeSelector').name,
+      require('./instanceArchetypeSelector.js').name,
       INSTANCE_TYPE_SERVICE,
       SERVER_GROUP_CONFIGURATION_SERVICE,
     ),

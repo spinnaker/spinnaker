@@ -1,5 +1,6 @@
 ///<reference path="./classnames.d.ts" />
 
+export * from './clipboard/CopyToClipboard';
 export * from './debug';
 export * from './json/JsonUtils';
 export * from './noop';

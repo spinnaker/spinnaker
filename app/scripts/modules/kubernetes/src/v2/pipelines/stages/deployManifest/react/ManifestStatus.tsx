@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { IManifest, NgReact } from '@spinnaker/core';
+import { CopyToClipboard, IManifest } from '@spinnaker/core';
 import { DeployManifestStatusPills } from './DeployStatusPills';
 import { ManifestDetailsLink } from './ManifestDetailsLink';
 import { ManifestEvents } from './ManifestEvents';
@@ -14,15 +14,17 @@ export interface IManifestStatusProps {
 
 export class ManifestStatus extends React.Component<IManifestStatusProps> {
   public render() {
-    const { CopyToClipboard } = NgReact;
     const { manifest, stage } = this.props;
     const { account } = stage.context;
     return [
       <dl className="manifest-status" key="manifest-status">
         <dt>{manifest.manifest.kind}</dt>
         <dd>
-          {manifest.manifest.metadata.name}
-          <CopyToClipboard text={manifest.manifest.metadata.name} toolTip={`Copy ${manifest.manifest.metadata.name}`} />
+          <CopyToClipboard
+            displayText={true}
+            text={manifest.manifest.metadata.name}
+            toolTip={`Copy ${manifest.manifest.metadata.name}`}
+          />
           &nbsp;
           <DeployManifestStatusPills manifest={manifest} />
         </dd>
