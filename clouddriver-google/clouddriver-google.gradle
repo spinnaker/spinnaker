@@ -10,6 +10,5 @@ dependencies {
   compile spinnaker.dependency('googleCompute')
 
   // Move this to spinnaker-dependencies when we can confirm we'll use this feature.
-  compile "com.google.apis:google-api-services-iam:v1-rev225-1.23.0"
-  compile 'org.slf4j:jul-to-slf4j:1.7.25'
+  compile "com.google.apis:google-api-services-iam:v1-rev267-1.25.0"
 }
