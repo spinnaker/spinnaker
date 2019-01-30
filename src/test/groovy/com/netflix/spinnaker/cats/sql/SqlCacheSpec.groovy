@@ -2,6 +2,7 @@ package com.netflix.spinnaker.cats.sql
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
+import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.WriteableCacheSpec
 import com.netflix.spinnaker.cats.sql.cache.SqlCache
 import com.netflix.spinnaker.cats.sql.cache.SqlCacheMetrics
@@ -53,6 +54,19 @@ class SqlCacheSpec extends WriteableCacheSpec {
     1 * cacheMetrics.merge('test', 'foo', 0, 0, 1, 0, 0, 0)
   }
 
+  def 'all items are stored and retrieved when larger than sql chunk sizes'() {
+    given:
+    def data = (1..10).collect { createData("fnord-$it") }
+    ((SqlCache) cache).mergeAll('foo', data)
+
+    when:
+    def retrieved = ((SqlCache) cache).getAll('foo')
+
+    then:
+    retrieved.size() == 10
+    retrieved.findAll { it.id == "fnord-5" }.size() == 1
+  }
+
   @Override
   Cache getSubject() {
     def mapper = new ObjectMapper()
@@ -67,8 +81,8 @@ class SqlCacheSpec extends WriteableCacheSpec {
       sqlRetryProperties,
       "test",
       cacheMetrics,
-      10,
-      10
+      2,
+      2
     )
   }
 
