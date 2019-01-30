@@ -164,6 +164,11 @@ class BuildSpinCommand(RepositoryCommandProcessor):
     """Implements RepositoryCommandProcessor interface."""
     self.source_code_manager.ensure_local_repository(repository)
     self.build_all_distributions(repository)
+    built_version_file = os.path.join(self.get_output_dir(), 'built_spin_version')
+    with open(built_version_file, 'w') as output_version_file:
+      output_version_file.write(self.__build_version)
+      logging.info('Built spin version {} written to output file {}'
+                   .format(self.__build_version, built_version_file))
 
 
 class SpinGcsUploader(object):
