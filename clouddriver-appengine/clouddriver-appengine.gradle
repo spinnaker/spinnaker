@@ -8,9 +8,8 @@ dependencies {
   compile spinnaker.dependency("korkArtifacts")
 
   // TODO(dpeach): move to spinnaker/spinnaker-dependencies.
-  compile "com.google.apis:google-api-services-appengine:v1-rev32-1.23.0"
-  compile "org.eclipse.jgit:org.eclipse.jgit:4.5.0.201609210915-r"
+  compile "com.google.apis:google-api-services-appengine:v1-rev92-1.25.0"
+  compile "org.eclipse.jgit:org.eclipse.jgit:5.2.1.201812262042-r"
 
   compile spinnaker.dependency("googleStorage")
-  compile "org.apache.commons:commons-compress:1.14"
 }

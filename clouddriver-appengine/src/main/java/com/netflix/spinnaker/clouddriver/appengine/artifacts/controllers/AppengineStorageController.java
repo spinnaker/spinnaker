@@ -40,7 +40,7 @@ class AppengineStorageController {
   @RequestMapping(method = RequestMethod.GET)
   List<String> list() {
     if (storageAccountInfo == null) {
-      return new ArrayList();
+      return new ArrayList<>();
     }
     List<String> results = new ArrayList<String>(storageAccountInfo.getAccounts().size());
     for (StorageConfigurationProperties.ManagedAccount account : storageAccountInfo.getAccounts()) {
