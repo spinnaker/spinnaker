@@ -13,6 +13,7 @@ const template = `
       <loading-spinner size="'medium'"></loading-spinner>
     </div>
     <div class="navbar-inverse grid-header">
+      <custom-banner></custom-banner>
       <div ng-include="$ctrl.spinnakerHeaderTemplate"></div>
     </div>
 

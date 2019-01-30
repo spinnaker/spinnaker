@@ -24,6 +24,15 @@
     <page-section key="snapshot" label="Serialize Application" visible="config.feature.snapshots">
       <application-snapshot-section application="config.application"></application-snapshot-section>
     </page-section>
+    <page-section key="banner" label="Custom Banners">
+      <custom-banner-config
+        banner-configs="config.application.attributes.customBanners"
+        is-saving="config.bannerConfigProps.isSaving"
+        save-error="config.bannerConfigProps.saveError"
+        update-banner-configs="config.updateBannerConfigs"
+      >
+      </custom-banner-config>
+    </page-section>
     <page-section key="delete" label="Delete Application">
       <delete-application-section application="config.application"></delete-application-section>
     </page-section>

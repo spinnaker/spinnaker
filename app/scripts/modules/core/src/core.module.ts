@@ -34,6 +34,7 @@ import { ARTIFACT_MODULE } from './artifact/artifact.module';
 import { AUTHENTICATION_MODULE } from './authentication/authentication.module';
 import { CLOUD_PROVIDER_MODULE } from './cloudProvider/cloudProvider.module';
 import { CLUSTER_MODULE } from './cluster/cluster.module';
+import { CUSTOM_BANNER_CONFIG } from './application/config/customBanner/customBannerConfig.component';
 
 import { DEBUG_WINDOW } from './utils/consoleDebug';
 import { DEPLOYMENT_STRATEGY_MODULE } from './deploymentStrategy/deploymentStrategy.module';
@@ -92,6 +93,7 @@ module(CORE_MODULE, [
 
   CLOUD_PROVIDER_MODULE,
   CLUSTER_MODULE,
+  CUSTOM_BANNER_CONFIG,
 
   DEBUG_WINDOW,
   DEPLOYMENT_STRATEGY_MODULE,
