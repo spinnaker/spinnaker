@@ -3,10 +3,11 @@ dependencies {
   compile project(":clouddriver-core")
   compile project(":clouddriver-consul")
   compile project(":clouddriver-google-common")
-  spinnaker.group('google')
-  compile spinnaker.dependency('frigga')
+
   compile spinnaker.dependency('bootActuator')
   compile spinnaker.dependency('bootWeb')
+  compile spinnaker.dependency('frigga')
+  compile spinnaker.dependency('googleCompute')
 
   // Move this to spinnaker-dependencies when we can confirm we'll use this feature.
   compile "com.google.apis:google-api-services-iam:v1-rev225-1.23.0"
