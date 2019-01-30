@@ -143,8 +143,8 @@ class AzureBakeHandlerSpec extends Specification implements TestDefaults{
         "--> azure-arm: Azure.ResourceManagement.VMImage:\n" +
         "\n" +
         "StorageAccountLocation: westus\n" +
-        "OSDiskUri: https://lgpackervms.blob.core.windows.net/system/Microsoft.Compute/Images/images/packer-osDisk.0425d8dd-45a0-4f2e-aabb-b5f9a03b08c9.vhd\n" +
-        "OSDiskUriReadOnlySas: https://lgpackervms.blob.core.windows.net/system/Microsoft.Compute/Images/images/packer-osDisk.0425d8dd-45a0-4f2e-aabb-b5f9a03b08c9.vhd?se=2016-06-24T18%3A16%3A46Z&sig=RHZXFGD3gZq6BGo%2BOb09FXHW6BAYULVJ8thlBEblkmo%3D&sp=r&sr=b&sv=2015-02-21"
+        "ManagedImageName: pkroswfvmtp50x8\n" +
+        "ManagedImageId: pkroswfvmtp50x8id"
 
 
       Bake bake = azureBakeHandler.scrapeCompletedBakeResults(null, "123", logsContent)
@@ -152,8 +152,8 @@ class AzureBakeHandlerSpec extends Specification implements TestDefaults{
     then:
       with (bake) {
         id == "123"
-        ami == "https://lgpackervms.blob.core.windows.net/system/Microsoft.Compute/Images/images/packer-osDisk.0425d8dd-45a0-4f2e-aabb-b5f9a03b08c9.vhd"
-        image_name == "packer-osDisk.0425d8dd-45a0-4f2e-aabb-b5f9a03b08c9.vhd"
+        ami == "pkroswfvmtp50x8id"
+        image_name == "pkroswfvmtp50x8"
       }
   }
 
@@ -179,8 +179,8 @@ class AzureBakeHandlerSpec extends Specification implements TestDefaults{
         "--> azure-arm: Azure.ResourceManagement.VMImage:\n" +
         "\n" +
         "StorageAccountLocation: westus\n" +
-        "OSDiskUri: https://lgpackervms.blob.core.windows.net/system/Microsoft.Compute/Images/images/packer-osDisk.0425d8dd-45a0-4f2e-aabb-b5f9a03b08c9.vhd\n" +
-        "OSDiskUriReadOnlySas: https://lgpackervms.blob.core.windows.net/system/Microsoft.Compute/Images/images/packer-osDisk.0425d8dd-45a0-4f2e-aabb-b5f9a03b08c9.vhd?se=2016-06-24T18%3A16%3A46Z&sig=RHZXFGD3gZq6BGo%2BOb09FXHW6BAYULVJ8thlBEblkmo%3D&sp=r&sr=b&sv=2015-02-21"
+        "ManagedImageName: pkroswfvmtp50x8\n" +
+        "ManagedImageId: pkroswfvmtp50x8id"
 
 
     Bake bake = azureBakeHandler.scrapeCompletedBakeResults(null, "123", logsContent)
@@ -188,8 +188,8 @@ class AzureBakeHandlerSpec extends Specification implements TestDefaults{
     then:
     with (bake) {
       id == "123"
-      ami == "https://lgpackervms.blob.core.windows.net/system/Microsoft.Compute/Images/images/packer-osDisk.0425d8dd-45a0-4f2e-aabb-b5f9a03b08c9.vhd"
-      image_name == "packer-osDisk.0425d8dd-45a0-4f2e-aabb-b5f9a03b08c9.vhd"
+      ami == "pkroswfvmtp50x8id"
+      image_name == "pkroswfvmtp50x8"
     }
   }
 
@@ -249,7 +249,6 @@ class AzureBakeHandlerSpec extends Specification implements TestDefaults{
         azure_client_id: CLIENT_ID,
         azure_client_secret: CLIENT_SECRET,
         azure_resource_group: RESOURCE_GROUP,
-        azure_storage_account: STORAGE_ACCOUNT,
         azure_subscription_id: SUBSCRIPTION_ID,
         azure_tenant_id: TENANT_ID,
         azure_object_id: OBJECT_ID,
@@ -257,7 +256,7 @@ class AzureBakeHandlerSpec extends Specification implements TestDefaults{
         azure_image_publisher: IMAGE_PUBLISHER,
         azure_image_offer: IMAGE_OFFER,
         azure_image_sku: IMAGE_SKU,
-        azure_image_name: IMAGE_NAME,
+        azure_managed_image_name: IMAGE_NAME,
         repository: DEBIAN_REPOSITORY,
         package_type: DEB_PACKAGE_TYPE.util.packageType,
         packages: PACKAGES_NAME,
@@ -298,7 +297,6 @@ class AzureBakeHandlerSpec extends Specification implements TestDefaults{
       azure_client_id: CLIENT_ID,
       azure_client_secret: CLIENT_SECRET,
       azure_resource_group: RESOURCE_GROUP,
-      azure_storage_account: STORAGE_ACCOUNT,
       azure_subscription_id: SUBSCRIPTION_ID,
       azure_tenant_id: TENANT_ID,
       azure_object_id: OBJECT_ID,
@@ -306,7 +304,7 @@ class AzureBakeHandlerSpec extends Specification implements TestDefaults{
       azure_image_publisher: IMAGE_PUBLISHER_WINDOWS,
       azure_image_offer: IMAGE_OFFER_WINDOWS,
       azure_image_sku: IMAGE_SKU_WINDOWS,
-      azure_image_name: IMAGE_NAME,
+      azure_managed_image_name: IMAGE_NAME,
       repository: CHOCOLATEY_REPOSITORY,
       package_type: NUPKG_PACKAGE_TYPE.util.packageType,
       packages: NUPKG_PACKAGES_NAME,
@@ -346,18 +344,18 @@ class AzureBakeHandlerSpec extends Specification implements TestDefaults{
     def parameterMap = azureBakeHandler.buildParameterMap(REGION, azureVirtualizationSettings, imageName, bakeRequest, "SomeVersion")
 
     then:
-    parameterMap.azure_image_name == expectedAzureImageName
+    parameterMap.azure_managed_image_name == expectedAzureImageName
 
     where:
     buildNumber   | baseName    | imageName                                           || expectedAzureImageName
-    null          | null        | "namethatexceeds.23char.acters"                     || "namethatexceeds.23char"
+    null          | null        | "namethatexceeds.23char.acters"                     || "namethatexceeds.23char.acters"
     BUILD_NUMBER  | BUILD_NAME  | IMAGE_NAME                                          || IMAGE_NAME
     BUILD_NUMBER  | BUILD_NAME  | null                                                || IMAGE_NAME
     BUILD_NUMBER  | null        | IMAGE_NAME                                          || IMAGE_NAME
     null          | BUILD_NAME  | IMAGE_NAME                                          || IMAGE_NAME
     null          | null        | IMAGE_NAME                                          || IMAGE_NAME
-    null          | null        | "test-with!>#characters.morethan.23characters"      || "test-withcharacters.mor"
+    null          | null        | "test-with!>#characters.morethanmorethanmorethanmorethanmorethanmorethan.75characters"      || "test-withcharacters.morethanmorethanmorethanmorethanmorethanmorethan.75char"
     null          | null        | "test-with!>#characters..-."                        || "test-withcharacters"
-    BUILD_NUMBER  | BUILD_NAME  | "this-is-a--test-withnamethatexceeds.23characters"  || IMAGE_NAME
+    BUILD_NUMBER  | BUILD_NAME  | "this-is-a--test-withnamethatexceeds.75characters"  || IMAGE_NAME
   }
 }

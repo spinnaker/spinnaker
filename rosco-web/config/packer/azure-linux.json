@@ -25,13 +25,10 @@
 
     "client_id": "{{user `azure_client_id`}}",
     "client_secret": "{{user `azure_client_secret`}}",
-    "resource_group_name": "{{user `azure_resource_group`}}",
-    "storage_account": "{{user `azure_storage_account`}}",
+    "managed_image_resource_group_name": "{{user `azure_resource_group`}}",
+    "managed_image_name": "{{user `azure_managed_image_name`}}",
     "subscription_id": "{{user `azure_subscription_id`}}",
     "tenant_id": "{{user `azure_tenant_id`}}",
-
-    "capture_container_name": "images",
-    "capture_name_prefix": "{{user `azure_image_name`}}",
 
     "os_type": "Linux",
     "image_publisher": "{{user `azure_image_publisher`}}",
