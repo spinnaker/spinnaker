@@ -22,6 +22,7 @@ import com.netflix.spinnaker.cats.cluster.NodeStatusProvider
 import com.netflix.spinnaker.cats.sql.cluster.SqlClusteredAgentScheduler
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import org.jooq.DSLContext
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -36,17 +37,19 @@ class SqlAgentSchedulerConfiguration {
     "sql.scheduler.enabled"
   ])
   fun sqlAgentScheduler(jooq: DSLContext,
-                     agentIntervalProvider: AgentIntervalProvider,
-                     nodeStatusProvider: NodeStatusProvider,
-                     dynamicConfigService: DynamicConfigService,
-                     sqlAgentProperties: SqlAgentProperties): AgentScheduler<*> {
+                        agentIntervalProvider: AgentIntervalProvider,
+                        nodeStatusProvider: NodeStatusProvider,
+                        dynamicConfigService: DynamicConfigService,
+                        @Value("\${sql.tableNamespace:#{null}}") tableNamespace: String?,
+                        sqlAgentProperties: SqlAgentProperties): AgentScheduler<*> {
     return SqlClusteredAgentScheduler(
       jooq = jooq,
       nodeIdentity = DefaultNodeIdentity(),
-      intervalProvider =  agentIntervalProvider,
-      nodeStatusProvider =  nodeStatusProvider,
-      dynamicConfigService =  dynamicConfigService,
+      intervalProvider = agentIntervalProvider,
+      nodeStatusProvider = nodeStatusProvider,
+      dynamicConfigService = dynamicConfigService,
       enabledAgentPattern = sqlAgentProperties.enabledPattern,
+      tableNamespace = tableNamespace,
       agentLockAcquisitionIntervalSeconds = sqlAgentProperties.agentLockAcquisitionIntervalSeconds
     )
   }

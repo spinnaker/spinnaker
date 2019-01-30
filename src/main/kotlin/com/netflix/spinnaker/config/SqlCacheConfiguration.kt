@@ -60,7 +60,7 @@ class SqlCacheConfiguration {
                    clock: Clock,
                    sqlProperties: SqlProperties,
                    cacheMetrics: SqlCacheMetrics,
-                   @Value("\${sql.cache.tablePrefix:#{null}}") prefix: String?,
+                   @Value("\${sql.tableNamespace:#{null}}") tableNamespace: String?,
                    @Value("\${sql.cache.writeBatchSize:100}") writeBatchSize: Int,
                    @Value("\${sql.cache.readBatchSize:500}") readBatchSize: Int): NamedCacheFactory =
     SqlNamedCacheFactory(
@@ -68,7 +68,7 @@ class SqlCacheConfiguration {
       ObjectMapper(),
       clock,
       sqlProperties.retries,
-      prefix,
+      tableNamespace,
       writeBatchSize,
       readBatchSize,
       cacheMetrics

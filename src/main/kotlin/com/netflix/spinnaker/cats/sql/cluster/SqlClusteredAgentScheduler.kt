@@ -57,6 +57,7 @@ class SqlClusteredAgentScheduler(
   private val dynamicConfigService: DynamicConfigService,
   enabledAgentPattern: String,
   agentLockAcquisitionIntervalSeconds: Long? = null,
+  private val tableNamespace: String? = null,
   private val agentExecutionPool: ExecutorService = Executors.newCachedThreadPool(
     NamedThreadFactory(AgentExecutionAction::class.java.simpleName)
   ),
@@ -71,10 +72,20 @@ class SqlClusteredAgentScheduler(
   private val activeAgents: MutableMap<String, NextAttempt> = ConcurrentHashMap()
   private val enabledAgents: Pattern
 
+  private val referenceTable = "cats_agent_locks"
+  private val lockTable = if (tableNamespace.isNullOrBlank()) {
+    referenceTable
+  } else {
+    "${referenceTable}_$tableNamespace"
+  }
+
   init {
+    if (!tableNamespace.isNullOrBlank()) {
+      jooq.execute("CREATE TABLE IF NOT EXISTS $lockTable LIKE $referenceTable")
+    }
+
     val lockInterval = agentLockAcquisitionIntervalSeconds ?: 1L
     lockPollingScheduler.scheduleAtFixedRate(this, 0, lockInterval, TimeUnit.SECONDS)
-
     enabledAgents = Pattern.compile(enabledAgentPattern, CASE_INSENSITIVE)
   }
 
@@ -151,7 +162,7 @@ class SqlClusteredAgentScheduler(
       .toMutableMap()
 
     val existingLocks = jooq.select(field("agent_name"), field("lock_expiry"))
-      .from(table("cats_agent_locks"))
+      .from(table(lockTable))
       .fetch()
       .intoResultSet()
 
@@ -159,7 +170,7 @@ class SqlClusteredAgentScheduler(
     while (existingLocks.next()) {
       if (now > existingLocks.getLong("lock_expiry")) {
         try {
-          jooq.deleteFrom(table("cats_agent_locks"))
+          jooq.deleteFrom(table(lockTable))
             .where(field("agent_name").eq(existingLocks.getString("agent_name"))
               .and(field("lock_expiry").eq(existingLocks.getString("lock_expiry"))))
             .execute()
@@ -188,7 +199,7 @@ class SqlClusteredAgentScheduler(
 
   private fun tryAcquireSingle(agentType: String, now: Long, timeout: Long): Boolean {
     try {
-      jooq.insertInto(table("cats_agent_locks"))
+      jooq.insertInto(table(lockTable))
         .columns(
           field("agent_name"),
           field("owner_id"),
@@ -217,13 +228,13 @@ class SqlClusteredAgentScheduler(
 
     if (newTtl < 500L) {
       try {
-        jooq.delete(table("cats_agent_locks")).where(field("agent_name").eq(agentType)).execute()
+        jooq.delete(table(lockTable)).where(field("agent_name").eq(agentType)).execute()
       } catch (e: SQLException) {
         log.error("Failed to immediately release lock for agent: $agentType", e)
       }
     } else {
       try {
-        jooq.update(table("cats_agent_locks"))
+        jooq.update(table(lockTable))
           .set(field("lock_expiry"), System.currentTimeMillis() + newTtl)
           .where(field("agent_name").eq(agentType))
           .execute()

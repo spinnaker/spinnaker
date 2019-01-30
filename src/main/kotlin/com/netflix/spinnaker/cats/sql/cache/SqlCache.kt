@@ -38,7 +38,7 @@ class SqlCache(
   private val mapper: ObjectMapper,
   private val clock: Clock,
   private val sqlRetryProperties: SqlRetryProperties,
-  private val tablePrefix: String?,
+  private val tableNamespace: String?,
   private val cacheMetrics: SqlCacheMetrics,
   writeChunkSize: Int,
   readChunkSize: Int
@@ -734,10 +734,10 @@ class SqlCache(
   }
 
   private fun resourceTableName(type: String): String =
-    "cats_v${schemaVersion}_${if (tablePrefix != null) "${tablePrefix}_" else ""}${sanitizeType(type)}"
+    "cats_v${schemaVersion}_${if (tableNamespace != null) "${tableNamespace}_" else ""}${sanitizeType(type)}"
 
   private fun relTableName(type: String): String =
-    "cats_v${schemaVersion}_${if (tablePrefix != null) "${tablePrefix}_" else ""}${sanitizeType(type)}_rel"
+    "cats_v${schemaVersion}_${if (tableNamespace != null) "${tableNamespace}_" else ""}${sanitizeType(type)}_rel"
 
   private fun sanitizeType(type: String): String {
     return type.replace(typeSanitization, "_")
