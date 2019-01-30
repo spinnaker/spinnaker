@@ -810,13 +810,11 @@ class SqlCache(
     var selectQueries = 0
 
     try {
-      val select = jooq.select(field("body"))
-        .from(table(resourceTableName(type)))
-
       if (ids.isEmpty()) {
         withRetry(RetryCategory.READ) {
           cacheData.addAll(
-            select
+            jooq.select(field("body"))
+              .from(table(resourceTableName(type)))
               .fetch()
               .getValues(0)
               .asSequence()
@@ -829,7 +827,8 @@ class SqlCache(
         ids.chunked(readBatchSize) { chunk ->
           withRetry(RetryCategory.READ) {
             cacheData.addAll(
-              select
+              jooq.select(field("body"))
+                .from(table(resourceTableName(type)))
                 .where("ID in (${chunk.joinToString(",") { "'$it'" }})")
                 .fetch()
                 .getValues(0)
