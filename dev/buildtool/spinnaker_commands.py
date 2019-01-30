@@ -29,6 +29,7 @@ from buildtool import (
     SPINNAKER_BOM_REPOSITORY_NAMES,
     SPINNAKER_GITHUB_IO_REPOSITORY_NAME,
     SPINNAKER_PROCESS_REPOSITORY_NAMES,
+    SPIN_REPOSITORY_NAMES,
     BomSourceCodeManager,
     BranchSourceCodeManager,
     CommandProcessor,
@@ -51,6 +52,7 @@ class InitiateReleaseBranchFactory(RepositoryCommandFactory):
   def __init__(self, **kwargs):
     repo_names = list(SPINNAKER_BOM_REPOSITORY_NAMES)
     repo_names.extend(SPINNAKER_PROCESS_REPOSITORY_NAMES)
+    repo_names.extend(SPIN_REPOSITORY_NAMES)
     repo_names.append(SPINNAKER_GITHUB_IO_REPOSITORY_NAME)
     super(InitiateReleaseBranchFactory, self).__init__(
         'new_release_branch', InitiateReleaseBranchCommand,
