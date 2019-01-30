@@ -176,11 +176,15 @@ public class V2PipelineTemplatesController {
   @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
   @ResponseStatus(value = HttpStatus.ACCEPTED)
   public Map delete(@PathVariable String id,
+                    @RequestParam(value = "version", required = false) String version,
+                    @RequestParam(value = "digest", required = false) String digest,
                     @RequestParam(value = "application", required = false) String application) {
     List<Map<String, Object>> jobs = new ArrayList<>();
     Map<String, Object> job = new HashMap<>();
     job.put("type", "deleteV2PipelineTemplate");
     job.put("pipelineTemplateId", id);
+    job.put("version", version);
+    job.put("digest", digest);
     job.put("user", AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"));
     jobs.add(job);
 
