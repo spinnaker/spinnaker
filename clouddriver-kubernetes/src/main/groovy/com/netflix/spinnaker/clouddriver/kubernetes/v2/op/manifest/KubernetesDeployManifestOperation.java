@@ -149,6 +149,7 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
       KubernetesManifestTraffic traffic = KubernetesManifestAnnotater.getTraffic(manifest);
       boolean versioned = isVersioned(properties, strategy);
       boolean useSourceCapacity = isUseSourceCapacity(strategy);
+      boolean recreate = isRecreate(strategy);
 
       KubernetesArtifactConverter converter = versioned ? properties.getVersionedConverter() : properties.getUnversionedConverter();
       KubernetesHandler deployer = properties.getHandler();
@@ -191,7 +192,7 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
 
       getTask().updateStatus(OP_NAME, "Submitting manifest " + manifest.getFullResourceName() + " to kubernetes master...");
       log.debug("Manifest in {} to be deployed: {}", accountName, manifest);
-      result.merge(deployer.deploy(credentials, manifest));
+      result.merge(deployer.deploy(credentials, manifest, recreate));
 
       result.getCreatedArtifacts().add(artifact);
     }
@@ -238,6 +239,10 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
     }
 
     return properties.isVersioned();
+  }
+
+  private boolean isRecreate(KubernetesManifestStrategy strategy) {
+    return strategy.getRecreate() != null ? strategy.getRecreate() : false;
   }
 
   private boolean isUseSourceCapacity(KubernetesManifestStrategy strategy) {

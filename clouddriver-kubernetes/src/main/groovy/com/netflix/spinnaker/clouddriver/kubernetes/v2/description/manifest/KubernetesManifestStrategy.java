@@ -28,6 +28,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class KubernetesManifestStrategy {
   Boolean versioned;
+  Boolean recreate;
   Integer maxVersionHistory;
   Boolean useSourceCapacity;
 }
