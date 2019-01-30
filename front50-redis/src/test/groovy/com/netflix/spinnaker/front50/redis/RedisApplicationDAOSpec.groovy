@@ -158,6 +158,7 @@ class RedisApplicationDAOSpec extends Specification {
     attribute                        | value
     "email"                          | "updated@netflix.com"
     "description"                    | null
+    "cloudProviders"                 | "aws,titan"
   }
 
   @Unroll
@@ -180,7 +181,6 @@ class RedisApplicationDAOSpec extends Specification {
     "repoProjectKey"                 | "project-key"
     "repoSlug"                       | "repo"
     "repoType"                       | "github"
-    "cloudProviders"                 | "aws,titan"
     "platformHealthOnly"             | "true"
     "platformHealthOnlyShowOverride" | "false"
     "adHocField"                     | "postHocValidation"
