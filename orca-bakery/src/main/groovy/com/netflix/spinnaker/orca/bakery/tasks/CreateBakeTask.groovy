@@ -186,6 +186,10 @@ class CreateBakeTask implements RetryableTask {
       requestMap.remove("baseOs")
     }
 
+    if (requestMap.baseName == "") {
+      requestMap.remove("baseName")
+    }
+
     def request = mapper.convertValue(requestMap, BakeRequest)
     if (!roscoApisEnabled) {
       request.other.clear()
