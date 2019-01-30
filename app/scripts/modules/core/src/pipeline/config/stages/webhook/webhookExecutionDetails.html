@@ -7,8 +7,16 @@
         <dl class="dl-narrow dl-horizontal">
           <dt>Url</dt>
           <dd>{{ctrl.stage.context.url}}</dd>
-          <dt>Payload</dt>
-          <dd>{{ctrl.stage.context.payload}}</dd>
+          <dt>
+            <copy-to-clipboard class="copy-to-clipboard copy-to-clipboard-sm"
+              text="ctrl.payload"
+              tool-tip="'Copy response to clipboard'">
+            </copy-to-clipboard>
+            Payload
+          </dt>
+          <dd>
+            <pre class="ng-binding" style="border:unset;background:unset;padding:0">{{ctrl.payload}}</pre>
+          </dd>
         </dl>
         <dl class="dl-narrow dl-horizontal"
             ng-if="ctrl.stage.context.waitForCompletion">
@@ -33,9 +41,17 @@
         <dt>Info</dt>
         <dd class="ng-binding"><p ng-bind-html="ctrl.stage.context.progressMessage | linky:'_blank'"></p></dd>
         <dt>Code</dt>
-        <dd class="ng-binding">{{ctrl.stage.context.webhook.statusCodeValue}}</dd>
-        <dt>Response</dt>
-        <dd class="ng-binding" style="max-height:400px;overflow-y:auto;">{{ctrl.body}}</dd>
+        <dd class="ng-binding">{{ctrl.stage.context.webhook.monitor.statusCodeValue || ctrl.stage.context.webhook.statusCodeValue}}</dd>
+        <dt>
+          <copy-to-clipboard class="copy-to-clipboard copy-to-clipboard-sm"
+            text="ctrl.body"
+            tool-tip="'Copy response to clipboard'">
+          </copy-to-clipboard>
+          Response
+        </dt>
+        <dd>
+          <pre class="ng-binding" style="max-height:400px;overflow-y:auto;border:unset;background:unset;padding:0">{{ctrl.body}}</pre>
+        </dd>
       </dl>
     </div>
   </div>
