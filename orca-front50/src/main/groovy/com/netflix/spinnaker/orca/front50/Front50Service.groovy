@@ -98,7 +98,9 @@ interface Front50Service {
   Response updateV2PipelineTemplate(@Path("pipelineTemplateId") String pipelineTemplateId, @Query("version") String version, @Body Map pipelineTemplate)
 
   @DELETE("/v2/pipelineTemplates/{pipelineTemplateId}")
-  Response deleteV2PipelineTemplate(@Path("pipelineTemplateId") String pipelineTemplateId)
+  Response deleteV2PipelineTemplate(@Path("pipelineTemplateId") String pipelineTemplateId,
+                                    @Query("version") String version,
+                                    @Query("digest") String digest)
 
   @GET("/strategies")
   List<Map<String, Object>> getAllStrategies()
