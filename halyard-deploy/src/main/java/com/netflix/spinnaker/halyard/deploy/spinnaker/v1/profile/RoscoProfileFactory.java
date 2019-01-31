@@ -61,9 +61,6 @@ public class RoscoProfileFactory extends SpringProfileFactory {
   @Autowired
   ObjectMapper objectMapper;
 
-  @Autowired
-  ObjectMapper strictObjectMapper;
-
   protected Providers getImageProviders(String version, String deploymentName) {
     Providers providers;
 
@@ -106,14 +103,13 @@ public class RoscoProfileFactory extends SpringProfileFactory {
     augmentProvidersBaseImages(providers, otherProviders);
 
     List<String> files = backupRequiredFiles(providers, deploymentConfiguration.getName());
-
     Map imageProviders = new TreeMap();
 
     NodeIterator iterator = providers.getChildren();
     Provider child = (Provider) iterator.getNext();
     while (child != null) {
       if (child instanceof HasImageProvider && child.isEnabled()) {
-        imageProviders.put(child.getNodeName(), strictObjectMapper.convertValue(child, Map.class));
+        imageProviders.put(child.getNodeName(), convertToMap(deploymentConfiguration.getName(), profile, child));
       }
 
       child = (Provider) iterator.getNext();

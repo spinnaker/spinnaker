@@ -50,7 +50,7 @@ public class OrcaProfileFactory extends SpringProfileFactory {
     Webhook webhook = deploymentConfiguration.getWebhook();
     List<String> files = backupRequiredFiles(webhook, deploymentConfiguration.getName());
     profile.setRequiredFiles(files);
-    profile.appendContents(yamlToString(new WebhookWrapper(webhook)));
+    profile.appendContents(yamlToString(deploymentConfiguration.getName(), profile, new WebhookWrapper(webhook)));
 
     String pipelineTemplates = Boolean.toString(deploymentConfiguration.getFeatures().getPipelineTemplates() != null ? deploymentConfiguration.getFeatures().getPipelineTemplates() : false);
     profile.appendContents("pipelineTemplates.enabled: " + pipelineTemplates);

@@ -16,12 +16,14 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.halyard.config.config.v1.RelaxedObjectMapper;
 import com.netflix.spinnaker.halyard.config.model.v1.node.*;
 import com.netflix.spinnaker.halyard.config.model.v1.persistentStorage.RedisPersistentStore;
 import com.netflix.spinnaker.halyard.config.services.v1.AccountService;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
+import com.netflix.spinnaker.halyard.deploy.config.v1.secrets.DecryptingObjectMapper;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService.Type;
@@ -60,6 +62,8 @@ public class Front50ProfileFactory extends SpringProfileFactory {
 
     NodeIterator children = persistentStorage.getChildren();
     Node child = children.getNext();
+    ObjectMapper mapper = getRelaxedObjectMapper(deploymentConfiguration.getName(), profile);
+
     while (child != null) {
       if (child instanceof PersistentStore) {
         PersistentStore persistentStore = (PersistentStore) child;
@@ -76,7 +80,7 @@ public class Front50ProfileFactory extends SpringProfileFactory {
         persistentStore.setConnectionInfo(connectionUri);
 
         PersistentStore.PersistentStoreType persistentStoreType = persistentStore.persistentStoreType();
-        Map persistentStoreMap = objectMapper.convertValue(persistentStore, Map.class);
+        Map persistentStoreMap = mapper.convertValue(persistentStore, Map.class);
         persistentStoreMap.put("enabled", persistentStoreType.equals(persistentStorage.getPersistentStoreType()));
 
         persistentStorageMap.put(persistentStoreType.getId(), persistentStoreMap);
@@ -89,8 +93,17 @@ public class Front50ProfileFactory extends SpringProfileFactory {
     spinnakerObjectMap.put("spinnaker", persistentStorageMap);
 
     super.setProfile(profile, deploymentConfiguration, endpoints);
-    profile.appendContents(yamlToString(spinnakerObjectMap))
+    profile.appendContents(yamlToString(deploymentConfiguration.getName(), profile, spinnakerObjectMap))
         .appendContents(profile.getBaseContents())
         .setRequiredFiles(files);
+  }
+
+  protected ObjectMapper getRelaxedObjectMapper(String deploymentName, Profile profile) {
+    if (!supportsSecretDecryption(deploymentName)) {
+      return new DecryptingObjectMapper(secretSessionManager,
+              profile,
+              halconfigDirectoryStructure.getStagingDependenciesPath(deploymentName)).relax();
+    }
+    return objectMapper;
   }
 }

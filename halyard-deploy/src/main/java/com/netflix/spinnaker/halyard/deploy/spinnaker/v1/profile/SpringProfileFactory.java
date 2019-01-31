@@ -36,7 +36,7 @@ public class SpringProfileFactory extends RegistryBackedProfileFactory {
         .getWebEndpoint()
         .setEnabled(deploymentConfiguration.getMetricStores().isEnabled());
 
-    profile.appendContents(yamlToString(spectatorConfig));
+    profile.appendContents(yamlToString(deploymentConfiguration.getName(), profile, spectatorConfig));
   }
 
   @Override

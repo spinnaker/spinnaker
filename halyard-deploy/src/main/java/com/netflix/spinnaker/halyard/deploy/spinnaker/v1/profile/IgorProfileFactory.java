@@ -42,7 +42,7 @@ public class IgorProfileFactory extends SpringProfileFactory {
 
     Cis cis = deploymentConfiguration.getCi();
     List<String> files = backupRequiredFiles(cis, deploymentConfiguration.getName());
-    profile.appendContents(yamlToString(cis))
+    profile.appendContents(yamlToString(deploymentConfiguration.getName(), profile, cis))
         .appendContents(profile.getBaseContents())
         .setRequiredFiles(files);
   }

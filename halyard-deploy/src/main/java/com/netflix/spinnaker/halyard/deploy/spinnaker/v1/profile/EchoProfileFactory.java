@@ -48,19 +48,19 @@ public class EchoProfileFactory extends SpringProfileFactory {
     Notifications notifications = deploymentConfiguration.getNotifications();
     if (notifications != null) {
       files.addAll(backupRequiredFiles(notifications, deploymentConfiguration.getName()));
-      profile.appendContents(yamlToString(notifications));
+      profile.appendContents(yamlToString(deploymentConfiguration.getName(), profile, notifications));
     }
 
     Pubsubs pubsubs = deploymentConfiguration.getPubsub();
     if (pubsubs != null) {
       files.addAll(backupRequiredFiles(pubsubs, deploymentConfiguration.getName()));
-      profile.appendContents(yamlToString(new PubsubWrapper(pubsubs)));
+      profile.appendContents(yamlToString(deploymentConfiguration.getName(), profile, new PubsubWrapper(pubsubs)));
     }
 
     Artifacts artifacts = deploymentConfiguration.getArtifacts();
     if (artifacts != null) {
       files.addAll(backupRequiredFiles(artifacts, deploymentConfiguration.getName()));
-      profile.appendContents(yamlToString(new ArtifactWrapper(artifacts)));
+      profile.appendContents(yamlToString(deploymentConfiguration.getName(), profile, new ArtifactWrapper(artifacts)));
     }
 
     profile.appendContents(profile.getBaseContents())

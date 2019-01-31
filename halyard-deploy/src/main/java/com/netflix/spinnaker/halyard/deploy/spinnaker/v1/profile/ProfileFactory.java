@@ -19,8 +19,11 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigDirectoryStructure;
+import com.netflix.spinnaker.halyard.config.config.v1.secrets.SecretSessionManager;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
+import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
+import com.netflix.spinnaker.halyard.deploy.config.v1.secrets.DecryptingObjectMapper;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
@@ -35,13 +38,39 @@ abstract public class ProfileFactory {
   private ArtifactService artifactService;
 
   @Autowired
-  private HalconfigDirectoryStructure halconfigDirectoryStructure;
+  protected HalconfigDirectoryStructure halconfigDirectoryStructure;
 
   @Autowired
   private Yaml yamlParser;
 
   @Autowired
   private ObjectMapper strictObjectMapper;
+
+  @Autowired
+  protected SecretSessionManager secretSessionManager;
+
+  protected String getMinimumSecretDecryptionVersion(String deploymentName) {
+    return null;
+  }
+
+  /**
+   * @param deploymentName
+   * @return true if the target service supports decryption of secrets
+   */
+  protected boolean supportsSecretDecryption(String deploymentName) {
+    String minVersion = getMinimumSecretDecryptionVersion(deploymentName);
+    if (minVersion == null) {
+      return false;
+    }
+    String version = getArtifactService().getArtifactVersion(deploymentName, getArtifact());
+    try {
+      return !Versions.lessThan(version, minVersion);
+
+    } catch (IllegalArgumentException iae) {
+      return false;
+    }
+  }
+
 
   protected boolean showEditWarning() {
     return true;
@@ -86,7 +115,19 @@ abstract public class ProfileFactory {
     return node.backupLocalFiles(halconfigDirectoryStructure.getStagingDependenciesPath(deploymentName).toString());
   }
 
-  protected String yamlToString(Object o) {
-    return yamlParser.dump(strictObjectMapper.convertValue(o, Map.class));
+  protected String yamlToString(String deploymentName, Profile profile, Object o) {
+    return yamlParser.dump(convertToMap(deploymentName, profile, o));
+  }
+
+  protected Map convertToMap(String deploymentName, Profile profile, Object o) {
+    ObjectMapper mapper;
+    if (supportsSecretDecryption(deploymentName)) {
+      mapper = strictObjectMapper;
+    } else {
+      mapper = new DecryptingObjectMapper(secretSessionManager,
+              profile,
+              halconfigDirectoryStructure.getStagingDependenciesPath(deploymentName));
+    }
+    return mapper.convertValue(o, Map.class);
   }
 }
