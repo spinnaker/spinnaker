@@ -323,8 +323,14 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
 
     TemplatedResource probe;
     if (StringUtils.isNotEmpty(settings.getHealthEndpoint())) {
-      probe = new JinjaJarResource("/kubernetes/manifests/execReadinessProbe.yml");
-      probe.addBinding("command", getReadinessExecCommand(settings));
+      if (settings.getUseExecHealthCheck()) {
+        probe = new JinjaJarResource("/kubernetes/manifests/execReadinessProbe.yml");
+        probe.addBinding("command", getReadinessExecCommand(settings));
+      } else {
+        probe = new JinjaJarResource("/kubernetes/manifests/httpReadinessProbe.yml");
+        probe.addBinding("port", settings.getPort());
+        probe.addBinding("path", settings.getHealthEndpoint());
+      }
     } else {
       probe = new JinjaJarResource("/kubernetes/manifests/tcpSocketReadinessProbe.yml");
       probe.addBinding("port", settings.getPort());

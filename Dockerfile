@@ -2,9 +2,6 @@ FROM openjdk:8 as build
 
 LABEL maintainer="delivery-engineering@netflix.com"
 
-ENV KUBECTL_RELEASE=1.10.3
-ENV AWS_BINARY_RELEASE_DATE=2018-07-26
-
 COPY . workdir/
 
 WORKDIR workdir
@@ -20,9 +17,13 @@ RUN echo '#!/usr/bin/env bash' | tee /usr/local/bin/hal > /dev/null && \
 
 RUN chmod +x /usr/local/bin/hal
 
+ENV KUBECTL_RELEASE=1.10.3
+ENV AWS_BINARY_RELEASE_DATE=2018-07-26
+
 RUN curl -LO https://storage.googleapis.com/kubernetes-release/release/v${KUBECTL_RELEASE}/bin/linux/amd64/kubectl && \
     chmod +x ./kubectl && \
-    mv ./kubectl /usr/local/bin/kubectl
+    mv ./kubectl /usr/local/bin/kubectl && \
+    /usr/local/bin/kubectl version --client
 
 RUN curl -o aws-iam-authenticator https://amazon-eks.s3-us-west-2.amazonaws.com/${KUBECTL_RELEASE}/${AWS_BINARY_RELEASE_DATE}/bin/linux/amd64/aws-iam-authenticator && \
     chmod +x ./aws-iam-authenticator && \
