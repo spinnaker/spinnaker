@@ -93,9 +93,8 @@ export class CloudFoundryServerGroupCommandBuilder {
         routes: serverGroup.loadBalancers,
         environment: CloudFoundryServerGroupCommandBuilder.envVarsFromObject(serverGroup.env),
         services: (serverGroup.serviceInstances || []).map(serviceInstance => serviceInstance.name),
-        reference: '',
-        account: '',
-        pattern: '',
+        healthCheckType: '',
+        healthCheckHttpEndpoint: '',
       };
       command.region = serverGroup.region;
       command.stack = serverGroup.stack;
