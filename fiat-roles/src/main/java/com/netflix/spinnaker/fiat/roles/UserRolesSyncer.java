@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.fiat.roles;
 
-import com.diffplug.common.base.Functions;
 import com.netflix.appinfo.InstanceInfo;
 import com.netflix.discovery.DiscoveryClient;
 import com.netflix.spinnaker.fiat.config.ResourceProvidersHealthIndicator;
@@ -32,6 +31,7 @@ import com.netflix.spinnaker.fiat.providers.ProviderException;
 import com.netflix.spinnaker.fiat.providers.ResourceProvider;
 import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent;
 import com.netflix.spinnaker.kork.lock.LockManager;
+import java.util.function.Function;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -188,7 +188,7 @@ public class UserRolesSyncer implements ApplicationListener<RemoteStatusChangedE
         .getAll()
         .stream()
         .map(ServiceAccount::toUserPermission)
-        .collect(Collectors.toMap(UserPermission::getId, Functions.identity()));
+        .collect(Collectors.toMap(UserPermission::getId, Function.identity()));
   }
 
   private Map<String, UserPermission> getUserPermissions() {

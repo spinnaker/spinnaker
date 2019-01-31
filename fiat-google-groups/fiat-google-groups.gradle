@@ -16,15 +16,13 @@
 
 dependencies {
   compile project(":fiat-roles")
-
-  compileOnly spinnaker.dependency("retrofit")
-  compileOnly spinnaker.dependency("okHttp")
-  compileOnly spinnaker.dependency("okHttpUrlconnection")
-  compileOnly spinnaker.dependency("okHttpApache")
-  compileOnly spinnaker.dependency("retrofitJackson")
+  compile project(":fiat-core")
 
   compileOnly spinnaker.dependency("lombok")
 
-  compile "com.google.api-client:google-api-client:1.28.0"
+  compile spinnaker.dependency("bootWeb")
+  compile spinnaker.dependency("commonsLang")
+  compile spinnaker.dependency("googleApiClient")
+
   compile "com.google.apis:google-api-services-admin-directory:directory_v1-rev105-1.25.0"
 }

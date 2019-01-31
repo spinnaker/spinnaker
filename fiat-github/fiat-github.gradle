@@ -1,11 +1,12 @@
 dependencies {
+  compile project(":fiat-core")
   compile project(":fiat-roles")
 
-  compileOnly spinnaker.dependency("retrofit")
-  compileOnly spinnaker.dependency("okHttp")
-  compileOnly spinnaker.dependency("okHttpUrlconnection")
-  compileOnly spinnaker.dependency("okHttpApache")
-  compileOnly spinnaker.dependency("retrofitJackson")
+  compile spinnaker.dependency("bootWeb")
+  compile spinnaker.dependency("commonsLang")
+  compile spinnaker.dependency("guava")
+  compile spinnaker.dependency("retrofit")
+  compile spinnaker.dependency("retrofitJackson")
 
   compileOnly spinnaker.dependency("lombok")
 }
