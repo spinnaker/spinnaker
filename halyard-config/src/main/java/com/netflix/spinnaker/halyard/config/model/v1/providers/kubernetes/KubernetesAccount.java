@@ -17,7 +17,9 @@
 package com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.netflix.spinnaker.config.secrets.EncryptedSecret;
 import com.netflix.spinnaker.halyard.config.config.v1.ArtifactSourcesConfig;
+import com.netflix.spinnaker.halyard.config.config.v1.secrets.SecretSessionManager;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.LocalFile;
@@ -32,6 +34,7 @@ import io.fabric8.kubernetes.client.internal.KubeConfigUtils;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.File;
 import java.io.IOException;
@@ -77,6 +80,9 @@ public class KubernetesAccount extends ContainerAccount implements Cloneable {
   @JsonProperty("onlySpinnakerManaged") Boolean onlySpinnakerManaged;
   Boolean debug;
 
+  @Autowired
+  private SecretSessionManager secretSessionManager;
+
   public boolean usesServiceAccount() {
     return serviceAccount != null && serviceAccount;
   }
@@ -96,8 +102,12 @@ public class KubernetesAccount extends ContainerAccount implements Cloneable {
   protected List<String> contextOptions(ConfigProblemSetBuilder psBuilder) {
     Config kubeconfig;
     try {
-      File kubeconfigFileOpen = new File(getKubeconfigFile());
-      kubeconfig = KubeConfigUtils.parseConfig(kubeconfigFileOpen);
+      if (EncryptedSecret.isEncryptedSecret(getKubeconfigFile())) {
+        kubeconfig = KubeConfigUtils.parseConfigFromString(secretSessionManager.decrypt(getKubeconfigFile()));
+      } else {
+        File kubeconfigFileOpen = new File(getKubeconfigFile());
+        kubeconfig = KubeConfigUtils.parseConfig(kubeconfigFileOpen);
+      }
     } catch (IOException e) {
       psBuilder.addProblem(ERROR, e.getMessage());
       return null;

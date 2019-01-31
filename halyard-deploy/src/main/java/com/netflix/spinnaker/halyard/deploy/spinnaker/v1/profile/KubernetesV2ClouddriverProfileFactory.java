@@ -18,8 +18,11 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
+import com.amazonaws.util.IOUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.config.secrets.EncryptedSecret;
+import com.netflix.spinnaker.halyard.config.config.v1.secrets.SecretSessionManager;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Providers;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesAccount;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
@@ -48,6 +51,9 @@ public class KubernetesV2ClouddriverProfileFactory extends ClouddriverProfileFac
   @Autowired
   Yaml yamlParser;
 
+  @Autowired
+  SecretSessionManager secretSessionManager;
+
   @Override
   protected void processProviders(Providers providers) {
     if (providers.getKubernetes() != null && providers.getKubernetes().getAccounts() != null) {
@@ -61,15 +67,21 @@ public class KubernetesV2ClouddriverProfileFactory extends ClouddriverProfileFac
     }
 
     String kubeconfigFile = account.getKubeconfigFile();
+    String kubeconfigContents;
     String context = account.getContext();
-    FileInputStream is = null;
     try {
-      is = new FileInputStream(kubeconfigFile);
+      if (EncryptedSecret.isEncryptedSecret(kubeconfigFile)) {
+        kubeconfigContents = secretSessionManager.decrypt(kubeconfigFile);
+      } else {
+        kubeconfigContents = IOUtils.toString(new FileInputStream(kubeconfigFile));
+      }
     } catch (FileNotFoundException e) {
       throw new IllegalStateException("No kubeconfig file '" + kubeconfigFile + "' found, but validation passed: " + e.getMessage(), e);
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to read kubeconfig file '" + kubeconfigFile + "', but validation passed: " + e.getMessage(), e);
     }
 
-    Object obj = yamlParser.load(is);
+    Object obj = yamlParser.load(kubeconfigContents);
     Map<String, Object> parsedKubeconfig = objectMapper.convertValue(obj, new TypeReference<Map<String, Object>>() {});
 
     if (StringUtils.isEmpty(context)) {

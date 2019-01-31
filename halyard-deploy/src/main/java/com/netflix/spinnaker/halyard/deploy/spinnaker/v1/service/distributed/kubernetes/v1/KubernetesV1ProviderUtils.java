@@ -19,6 +19,8 @@
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.v1;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesConfigParser;
+import com.netflix.spinnaker.config.secrets.EncryptedSecret;
+import com.netflix.spinnaker.halyard.config.config.v1.secrets.SecretSessionManager;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesAccount;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.job.v1.JobExecutor;
@@ -38,6 +40,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.client.utils.URIBuilder;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -54,6 +57,9 @@ import java.util.regex.Pattern;
 class KubernetesV1ProviderUtils {
   // Map from deployment name -> the port & job managing the connection.
   private static ConcurrentHashMap<String, Proxy> proxyMap = new ConcurrentHashMap<>();
+
+  @Autowired
+  private static SecretSessionManager secretSessionManager;
 
   @Data
   static class Proxy {
@@ -125,7 +131,13 @@ class KubernetesV1ProviderUtils {
 
   static KubernetesClient getClient(AccountDeploymentDetails<KubernetesAccount> details) {
     KubernetesAccount account = details.getAccount();
-    Config config = KubernetesConfigParser.parse(account.getKubeconfigFile(),
+    String kubeconfig;
+    if (EncryptedSecret.isEncryptedSecret(account.getKubeconfigFile())) {
+      kubeconfig = secretSessionManager.decryptAsFile(account.getKubeconfigFile());
+    } else {
+      kubeconfig = account.getKubeconfigFile();
+    }
+    Config config = KubernetesConfigParser.parse(kubeconfig,
         account.getContext(),
         account.getCluster(),
         account.getUser(),
@@ -279,7 +291,12 @@ class KubernetesV1ProviderUtils {
       command.add(user);
     }
 
-    String kubeconfig = account.getKubeconfigFile();
+    String kubeconfig;
+    if (EncryptedSecret.isEncryptedSecret(account.getKubeconfigFile())) {
+      kubeconfig = secretSessionManager.decryptAsFile(account.getKubeconfigFile());
+    } else {
+      kubeconfig = account.getKubeconfigFile();
+    }
     if (kubeconfig != null && !kubeconfig.isEmpty()) {
       command.add("--kubeconfig");
       command.add(kubeconfig);

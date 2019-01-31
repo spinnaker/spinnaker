@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.halyard.config.validate.v1.providers.kubernetes;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesConfigParser;
+import com.netflix.spinnaker.halyard.config.config.v1.secrets.SecretSessionManager;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
@@ -38,9 +39,9 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.internal.KubeConfigUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -53,8 +54,13 @@ import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.ERR
 import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.FATAL;
 import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.WARNING;
 
+import com.netflix.spinnaker.config.secrets.EncryptedSecret;
+
 @Component
 public class KubernetesAccountValidator extends Validator<KubernetesAccount> {
+  @Autowired
+  private SecretSessionManager secretSessionManager;
+
   @Override
   public void validate(ConfigProblemSetBuilder psBuilder, KubernetesAccount account) {
     DeploymentConfiguration deploymentConfiguration;
@@ -139,7 +145,6 @@ public class KubernetesAccountValidator extends Validator<KubernetesAccount> {
   private void validateKubeconfig(ConfigProblemSetBuilder psBuilder, KubernetesAccount account) {
     io.fabric8.kubernetes.api.model.Config kubeconfig;
     String context = account.getContext();
-    String kubeconfigFile = account.getKubeconfigFile();
     String cluster = account.getCluster();
     String user = account.getUser() ;
     List<String> namespaces = account.getNamespaces();
@@ -159,12 +164,19 @@ public class KubernetesAccountValidator extends Validator<KubernetesAccount> {
 
     // TODO(lwander) find a good resource / list of resources for generating kubeconfig files to link to here.
     try {
-      if (ValidatingFileReader.contents(psBuilder, kubeconfigFile) == null) {
+      String kubeconfigContents;
+      if (EncryptedSecret.isEncryptedSecret(account.getKubeconfigFile())) {
+        kubeconfigContents = secretSessionManager.decrypt(account.getKubeconfigFile());
+      } else {
+        kubeconfigContents = ValidatingFileReader.contents(psBuilder, account.getKubeconfigFile());
+      }
+
+      if (kubeconfigContents == null) {
         return;
       }
 
-      File kubeconfigFileOpen = new File(kubeconfigFile);
-      kubeconfig = KubeConfigUtils.parseConfig(kubeconfigFileOpen);
+      kubeconfig = KubeConfigUtils.parseConfigFromString(kubeconfigContents);
+
     } catch (IOException e) {
       psBuilder.addProblem(ERROR, e.getMessage());
       return;
@@ -179,14 +191,14 @@ public class KubernetesAccountValidator extends Validator<KubernetesAccount> {
           .findFirst();
 
       if (!namedContext.isPresent()) {
-        psBuilder.addProblem(ERROR, "Context \"" + context + "\" not found in kubeconfig \"" + kubeconfigFile + "\".", "context")
+        psBuilder.addProblem(ERROR, "Context \"" + context + "\" not found in kubeconfig \"" + account.getKubeconfigFile() + "\".", "context")
             .setRemediation("Either add this context to your kubeconfig, rely on the default context, or pick another kubeconfig file.");
         smoketest = false;
       }
     } else {
       String currentContext = kubeconfig.getCurrentContext();
       if (StringUtils.isEmpty(currentContext)) {
-        psBuilder.addProblem(ERROR, "You have not specified a Kubernetes context, and your kubeconfig \"" + kubeconfigFile + "\" has no current-context.", "context")
+        psBuilder.addProblem(ERROR, "You have not specified a Kubernetes context, and your kubeconfig \"" + account.getKubeconfigFile() + "\" has no current-context.", "context")
             .setRemediation("Either specify a context in your halconfig, or set a current-context in your kubeconfig.");
         smoketest = false;
       } else {
@@ -196,7 +208,7 @@ public class KubernetesAccountValidator extends Validator<KubernetesAccount> {
     }
 
     if (smoketest) {
-      Config config = KubernetesConfigParser.parse(kubeconfigFile, context, cluster, user, namespaces, false);
+      Config config = KubernetesConfigParser.parse(secretSessionManager.decryptAsFile(account.getKubeconfigFile()), context, cluster, user, namespaces, false);
       try {
         KubernetesClient client = new DefaultKubernetesClient(config);
 
