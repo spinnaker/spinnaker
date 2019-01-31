@@ -176,7 +176,7 @@ class MonitorWebhookTaskSpec extends Specification {
 
     then:
     result.status == ExecutionStatus.TERMINAL
-    result.context.webhook.monitor == [error: 'Missing property in path $[\'doesnt\']', body: [status: "SUCCESS"], statusCode: HttpStatus.OK, statusCodeValue: HttpStatus.OK.value()]
+    result.context.webhook.monitor == [error: 'Unable to parse status: JSON property \'$.doesnt.exist\' not found in response body', body: [status: "SUCCESS"], statusCode: HttpStatus.OK, statusCodeValue: HttpStatus.OK.value()]
   }
 
   def "should return TERMINAL status if jsonPath isn't evaluated to single value"() {
