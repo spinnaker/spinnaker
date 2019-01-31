@@ -3,6 +3,10 @@
   "limitConcurrent": true,
   "application": "myApp",
   "name": "My super awesome pipeline",
+  "source": {
+    "id": "exampleCombined-template.yml",
+    "type": "templatedPipeline"
+  },
   "stages": [
     {
       "requisiteStageRefIds": [],

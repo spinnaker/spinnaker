@@ -119,6 +119,10 @@ class PipelineTemplatePipelinePreprocessorSpec extends Specification {
       keepWaitingPipelines: false,
       limitConcurrent: true,
       notifications: [],
+      source: [
+        id: source("simple-001.yml"),
+        type: "templatedPipeline"
+      ],
       stages: [
         [
           id: null,
@@ -334,7 +338,7 @@ class PipelineTemplatePipelinePreprocessorSpec extends Specification {
         pipeline: [
           application: 'myapp',
           template: [
-            source: getClass().getResource("/templates/${templatePath}").toURI()
+            source: source(templatePath)
           ],
           variables: variables
         ],
@@ -342,5 +346,9 @@ class PipelineTemplatePipelinePreprocessorSpec extends Specification {
       ],
       plan: plan
     ]
+  }
+
+  private String source(String templatePath) {
+    return getClass().getResource("/templates/${templatePath}").toURI()
   }
 }

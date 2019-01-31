@@ -5,6 +5,10 @@
   "application": "orca",
   "name": "MPT Stage Replacement Test",
   "notifications": [],
+  "source": {
+    "id": "stageReplacement-template.yml",
+    "type": "templatedPipeline"
+  },
   "stages": [
     {
       "cloudProvider": "aws",

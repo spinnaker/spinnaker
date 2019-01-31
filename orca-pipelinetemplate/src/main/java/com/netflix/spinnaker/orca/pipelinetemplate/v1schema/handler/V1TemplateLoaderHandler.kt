@@ -63,6 +63,10 @@ class V1TemplateLoaderHandler(
     } else {
       val templates = templateLoader.load(config.pipeline.template)
       template = TemplateMerge.merge(templates)
+
+      if (template.source == null) {
+        template.source = config.pipeline.template.source
+      }
     }
 
     // ensure that any expressions contained with template variables are rendered

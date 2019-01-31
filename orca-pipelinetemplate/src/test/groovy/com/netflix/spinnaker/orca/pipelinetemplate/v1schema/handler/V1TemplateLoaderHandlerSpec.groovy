@@ -125,6 +125,7 @@ class V1TemplateLoaderHandlerSpec extends Specification {
 
     then:
     ((V1PipelineTemplateContext) context.getSchemaContext()).template.stages*.name == expectedStageNames
+    ((V1PipelineTemplateContext) context.getSchemaContext()).template.source == source(template)
 
     where:
     template        || expectedStageNames
@@ -229,9 +230,13 @@ class V1TemplateLoaderHandlerSpec extends Specification {
             ]
           ]
         ],
-        source: getClass().getResource("/templates/${templatePath}").toURI()
+        source: source(templatePath)
       ],
       plan: plan
     )
+  }
+
+  String source(String templatePath) {
+    return getClass().getResource("/templates/${templatePath}").toURI()
   }
 }

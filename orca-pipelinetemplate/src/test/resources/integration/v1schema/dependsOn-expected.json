@@ -1,6 +1,10 @@
 {
   "application": "myApp",
   "name": "Stage dependsOn test",
+  "source": {
+    "id": "dependsOn-template.yml",
+    "type": "templatedPipeline"
+  },
   "stages": [
     {
       "requisiteStageRefIds": [],
