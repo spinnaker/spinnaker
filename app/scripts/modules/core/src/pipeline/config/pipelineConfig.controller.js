@@ -35,6 +35,9 @@ module.exports = angular
           this.state.notFound = true;
         }
       }
+      if (this.pipelineConfig) {
+        this.pipelineConfig = _.cloneDeep(this.pipelineConfig);
+      }
     };
 
     if (!app.notFound) {
