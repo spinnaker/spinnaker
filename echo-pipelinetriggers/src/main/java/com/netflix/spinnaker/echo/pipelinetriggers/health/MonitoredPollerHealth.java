@@ -17,11 +17,13 @@
 package com.netflix.spinnaker.echo.pipelinetriggers.health;
 
 import com.netflix.spinnaker.echo.pipelinetriggers.MonitoredPoller;
+import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.health.AbstractHealthIndicator;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
+import org.springframework.boot.actuate.health.Status;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
@@ -40,37 +42,38 @@ import static org.apache.commons.lang3.time.DurationFormatUtils.formatDurationWo
  * interval has passed since the last poll the poller is considered _down_.
  */
 @Component
+@Slf4j
 public class MonitoredPollerHealth extends AbstractHealthIndicator {
-
   private final MonitoredPoller poller;
+  private Status status;
 
   @Autowired
   public MonitoredPollerHealth(MonitoredPoller poller) {
     this.poller = poller;
+    this.status = Status.DOWN;
   }
 
   @Override
   protected void doHealthCheck(Health.Builder builder) {
     if (!poller.isRunning()) {
-      builder.outOfService();
-    } else {
-      polledRecently(builder);
+      log.warn("Poller {} is not currently running", poller);
     }
-  }
 
-  private void polledRecently(Health.Builder builder) {
-    Instant lastPollTimestamp = poller.getLastPollTimestamp();
-    if (lastPollTimestamp == null) {
-      builder.unknown();
-    } else {
-      val timeSinceLastPoll = Duration.between(lastPollTimestamp, now());
-      builder.withDetail("last.polled", formatDurationWords(timeSinceLastPoll.toMillis(), true, true) + " ago");
-      builder.withDetail("last.polled.at", ISO_LOCAL_DATE_TIME.format(lastPollTimestamp.atZone(ZoneId.systemDefault())));
-      if (timeSinceLastPoll.compareTo(Duration.of(poller.getPollingIntervalSeconds() * 2, SECONDS)) <= 0) {
-        builder.up();
-      } else {
-        builder.down();
-      }
+    // status is initially DOWN and can only flicked to UP (when the poller
+    // has completed one cycle successfully), never back to DOWN
+    // if poller staleness is a concern (i.e. poller.getLastPollTimestamp() is
+    // significantly old), rely on monitoring and alerting instead
+    if (status != Status.UP && poller.isInitialized()) {
+      status = Status.UP;
     }
+
+    Instant lastPollTimestamp = poller.getLastPollTimestamp();
+    if (lastPollTimestamp != null) {
+      val timeSinceLastPoll = Duration.between(lastPollTimestamp, now());
+      builder.withDetail("last.polled", formatDurationWords(timeSinceLastPoll.toMillis(), true, true) + " ago")
+        .withDetail("last.polled.at", ISO_LOCAL_DATE_TIME.format(lastPollTimestamp.atZone(ZoneId.systemDefault())));
+    }
+
+    builder.status(status);
   }
 }

@@ -204,4 +204,14 @@ public class PipelineCache implements MonitoredPoller {
       })
       .collect(Collectors.toList());
   }
+
+  @Override
+  public String toString() {
+    return "PipelineCache{" +
+      "pollingIntervalMs=" + pollingIntervalMs +
+      ", running=" + running +
+      ", lastPollTimestamp=" + lastPollTimestamp +
+      ", pipelines=" + (pipelines == null ? "null" : "<" + pipelines.size() + " pipelines>") +
+      '}';
+  }
 }

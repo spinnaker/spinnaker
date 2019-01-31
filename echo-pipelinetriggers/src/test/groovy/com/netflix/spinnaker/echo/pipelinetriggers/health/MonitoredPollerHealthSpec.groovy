@@ -15,6 +15,7 @@ class MonitoredPollerHealthSpec extends Specification {
   def poller = Stub(MonitoredPoller) {
     getPollingIntervalSeconds() >> 30
   }
+
   @Subject health = new MonitoredPollerHealth(poller)
 
   @Shared goodTimestamp = now().minusSeconds(30)
@@ -25,20 +26,20 @@ class MonitoredPollerHealthSpec extends Specification {
     given:
     poller.isRunning() >> running
     poller.getLastPollTimestamp() >> lastPollTimestamp
+    poller.isInitialized() >> (lastPollTimestamp != null)
 
     expect:
     health.health().status == status
 
     where:
     running | lastPollTimestamp || status
-    false   | null              || OUT_OF_SERVICE
-    false   | goodTimestamp     || OUT_OF_SERVICE
-    true    | null              || UNKNOWN
+    false   | null              || DOWN
+    false   | goodTimestamp     || UP
+    true    | null              || DOWN
     true    | goodTimestamp     || UP
-    true    | badTimestamp      || DOWN
+    true    | badTimestamp      || UP
 
     runningDescription = running ? "running" : "not running"
     timestampDescription = lastPollTimestamp ? "it last polled at ${lastPollTimestamp}" : "it has never polled"
   }
-
 }
