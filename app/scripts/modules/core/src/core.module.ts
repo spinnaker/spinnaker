@@ -27,6 +27,7 @@ import { RECENT_HISTORY_SERVICE } from 'core/history';
 require('root/app/fonts/spinnaker/icons.css');
 
 import './analytics/GoogleAnalyticsInitializer';
+import { ANALYTICS_MODULE } from './analytics/angulartics.module';
 import { APPLICATION_BOOTSTRAP_MODULE } from './bootstrap';
 import { APPLICATION_MODULE } from './application/application.module';
 import { ARTIFACT_MODULE } from './artifact/artifact.module';
@@ -83,6 +84,7 @@ module(CORE_MODULE, [
   require('ui-select'),
   require('angular-spinner').angularSpinner.name,
 
+  ANALYTICS_MODULE,
   APPLICATION_MODULE,
   APPLICATION_BOOTSTRAP_MODULE,
   ARTIFACT_MODULE,
