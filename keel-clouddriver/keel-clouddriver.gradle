@@ -1,16 +1,15 @@
 dependencies {
-  compile project(":keel-retrofit")
-  compile "com.netflix.spinnaker.moniker:moniker:+"
+  implementation project(":keel-retrofit")
+  implementation "com.netflix.spinnaker.moniker:moniker:+"
+  implementation "com.fasterxml.jackson.core:jackson-databind:[2.9.6,)"
+  implementation "com.fasterxml.jackson.core:jackson-annotations:[2.9.6,)"
+  implementation "com.fasterxml.jackson.module:jackson-module-kotlin:[2.9.6,)"
+  implementation "com.github.jonpeterson:jackson-module-model-versioning:+"
+  implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:[2.9.6,)"
 
-  compile "com.fasterxml.jackson.core:jackson-databind:[2.9.6,)"
-  compile "com.fasterxml.jackson.core:jackson-annotations:[2.9.6,)"
-
-  compile "com.fasterxml.jackson.module:jackson-module-kotlin:[2.9.6,)"
-  compile "com.github.jonpeterson:jackson-module-model-versioning:+"
-  compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:[2.9.6,)"
-
-  testCompile "com.squareup.retrofit:retrofit-mock:(,2.0["
-  testCompile "io.strikt:strikt-core:+"
+  testImplementation "com.squareup.retrofit:retrofit-mock:(,2.0["
+  testImplementation "com.oneeyedmen:minutest:+"
+  testImplementation "io.strikt:strikt-core:+"
 
   runtime "org.jetbrains.kotlin:kotlin-reflect"
 }

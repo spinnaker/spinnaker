@@ -14,9 +14,9 @@ com.google.guava:guava:27.0.1-jre
 com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava
 com.google.j2objc:j2objc-annotations:1.1
 com.nhaarman:mockito-kotlin:1.5.0
-com.oneeyedmen:minutest:0.41.0
+com.oneeyedmen:minutest:0.42.0
 io.github.classgraph:classgraph:4.6.6
-io.strikt:strikt-core:0.17.1
+io.strikt:strikt-core:0.17.2
 junit:junit:4.12
 net.bytebuddy:byte-buddy-agent:1.6.14
 net.bytebuddy:byte-buddy:1.6.14

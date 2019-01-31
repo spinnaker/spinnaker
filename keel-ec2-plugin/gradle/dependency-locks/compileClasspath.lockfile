@@ -26,7 +26,6 @@ com.netflix.spinnaker.kork:kork-core:2.6.0
 com.netflix.spinnaker.kork:kork-exceptions:2.6.0
 com.netflix.spinnaker.kork:kork-security:2.6.0
 com.netflix.spinnaker.kork:kork-web:2.6.0
-com.netflix.spinnaker.moniker:moniker:0.2.0
 com.squareup.okhttp3:okhttp:3.10.0
 com.squareup.okhttp:okhttp-apache:2.7.5
 com.squareup.okhttp:okhttp-urlconnection:2.7.5

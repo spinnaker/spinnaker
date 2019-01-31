@@ -15,10 +15,9 @@
  */
 
 dependencies {
-  compile "com.squareup.retrofit:retrofit:(,2.0["
-  compile "com.squareup.okhttp:okhttp-urlconnection:+"
-  compile "com.squareup.okhttp:okhttp-apache:+"
-  compile "com.squareup.retrofit:converter-jackson:(,2.0["
-
-  compile "com.netflix.spinnaker.kork:kork-web:2.+"
+  api "com.squareup.retrofit:retrofit:(,2.0["
+  api "com.squareup.retrofit:converter-jackson:(,2.0["
+  api "com.squareup.okhttp:okhttp-urlconnection:+"
+  api "com.squareup.okhttp:okhttp-apache:+"
+  api "com.netflix.spinnaker.kork:kork-web:2.+"
 }

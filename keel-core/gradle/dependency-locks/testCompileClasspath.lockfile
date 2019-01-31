@@ -14,8 +14,8 @@ com.google.guava:guava:27.0.1-jre
 com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava
 com.google.j2objc:j2objc-annotations:1.1
 com.nhaarman:mockito-kotlin:1.5.0
-com.oneeyedmen:minutest:0.41.0
-io.strikt:strikt-core:0.17.1
+com.oneeyedmen:minutest:0.42.0
+io.strikt:strikt-core:0.17.2
 junit:junit:4.12
 org.apiguardian:apiguardian-api:1.0.0
 org.checkerframework:checker-qual:2.5.2

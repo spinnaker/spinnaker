@@ -17,6 +17,7 @@
 apply plugin: "java-library"
 
 dependencies {
+  implementation project(":keel-retrofit")
   implementation project(":keel-clouddriver")
   implementation "com.fasterxml.jackson.core:jackson-databind:[2.9.6,)"
   implementation "com.fasterxml.jackson.core:jackson-annotations:[2.9.6,)"

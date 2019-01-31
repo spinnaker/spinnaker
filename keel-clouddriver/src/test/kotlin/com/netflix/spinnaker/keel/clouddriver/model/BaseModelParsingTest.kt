@@ -1,8 +1,9 @@
 package com.netflix.spinnaker.keel.clouddriver.model
 
-import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
+import com.fasterxml.jackson.databind.DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.github.jonpeterson.jackson.module.versioning.VersioningModule
@@ -28,12 +29,12 @@ import java.net.URL
 abstract class BaseModelParsingTest<out T> {
 
   private val mapper = ObjectMapper()
-    .enable(SerializationFeature.INDENT_OUTPUT)
     .registerModule(KotlinModule())
     .registerModule(VersioningModule())
     .registerModule(JavaTimeModule())
-    .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-    .disable(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS)
+    .enable(INDENT_OUTPUT)
+    .disable(FAIL_ON_UNKNOWN_PROPERTIES)
+    .disable(READ_DATE_TIMESTAMPS_AS_NANOSECONDS)
 
   private val client = mock<Client>()
   private val cloudDriver = RestAdapter.Builder()
