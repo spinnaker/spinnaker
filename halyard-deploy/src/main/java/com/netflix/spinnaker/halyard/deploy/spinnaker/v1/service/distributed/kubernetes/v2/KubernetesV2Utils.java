@@ -108,10 +108,14 @@ public class KubernetesV2Utils {
     Map<String, String> contentMap = new HashMap<>();
     for (SecretMountPair pair: files) {
       String contents;
-      try {
-        contents = new String(Base64.getEncoder().encode(IOUtils.toByteArray(new FileInputStream(pair.getContents()))));
-      } catch (IOException e) {
-        throw new HalException(Problem.Severity.FATAL, "Failed to read required config file: " + pair.getContents().getAbsolutePath() + ": " + e.getMessage(), e);
+      if (pair.getContentString() != null) {
+        contents = new String(Base64.getEncoder().encode(pair.getContentString().getBytes()));
+      } else {
+        try {
+          contents = new String(Base64.getEncoder().encode(IOUtils.toByteArray(new FileInputStream(pair.getContents()))));
+        } catch (IOException e) {
+          throw new HalException(Problem.Severity.FATAL, "Failed to read required config file: " + pair.getContents().getAbsolutePath() + ": " + e.getMessage(), e);
+        }
       }
 
       contentMap.put(pair.getName(), contents);
@@ -151,6 +155,7 @@ public class KubernetesV2Utils {
   @Data
   static public class SecretMountPair {
     File contents;
+    String contentString;
     String name;
 
     public SecretMountPair(File inputFile) {
@@ -160,6 +165,11 @@ public class KubernetesV2Utils {
     public SecretMountPair(File inputFile, File outputFile) {
       this.contents = inputFile;
       this.name = outputFile.getName();
+    }
+
+    public SecretMountPair(String name, String contentString) {
+      this.contentString = contentString;
+      this.name = name;
     }
   }
 }
