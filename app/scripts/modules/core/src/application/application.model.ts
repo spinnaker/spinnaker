@@ -108,12 +108,12 @@ export class Application {
     const rolledUpStatus: IFetchStatus['status'] =
       ERROR_STATUS || FETCHING_STATUS || FETCHED_STATUS || 'NOT_INITIALIZED';
 
-    const allFetched = statuses.every(({ status }) => status === 'FETCHED');
+    const noneLeftToFetch = statuses.every(({ status }) => ['FETCHED', 'NOT_INITIALIZED'].includes(status));
     const lastFetch = statuses.reduce((latest, status) => Math.max(latest, status.lastRefresh || 0), 0);
 
     return {
       status: rolledUpStatus,
-      lastRefresh: allFetched ? lastFetch : this.lastRefresh,
+      lastRefresh: noneLeftToFetch ? lastFetch : this.lastRefresh,
       data: undefined,
     };
   }
