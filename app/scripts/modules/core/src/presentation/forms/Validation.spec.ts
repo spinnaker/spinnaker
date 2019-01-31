@@ -96,6 +96,28 @@ describe('Synchronous validation', () => {
     expect(result).toEqual(expectedResult);
   });
 
+  it('arrays without errors should not be aggregated', () => {
+    const values = {
+      lotsastuff: [1, 2, 3, 4, 5],
+    };
+
+    const builder = buildValidators(values);
+    const arrayNotEmpty: Validator = (array, label) => array.length < 1 && `${label} must have at least 1 item.`;
+    const { arrayForEach } = builder;
+
+    builder.field('lotsastuff', 'Array').validate([
+      isRequired(),
+      arrayNotEmpty,
+      arrayForEach(itemBuilder => {
+        itemBuilder.item('Item').validate([isRequired()]);
+      }),
+    ]);
+
+    const result = builder.result();
+    const expectedResult = {};
+    expect(result).toEqual(expectedResult);
+  });
+
   it('validates keys on array items and aggregates errors into resulting arrays correctly', () => {
     const values = {
       lotsastuff: [{ key: 1 }, { value: 2 }, 3, 4, 5],
