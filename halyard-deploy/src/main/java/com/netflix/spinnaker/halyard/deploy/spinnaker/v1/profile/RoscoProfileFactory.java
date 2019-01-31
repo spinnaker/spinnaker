@@ -33,6 +33,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -102,13 +103,14 @@ public class RoscoProfileFactory extends SpringProfileFactory {
 
     augmentProvidersBaseImages(providers, otherProviders);
 
-    List<String> files = backupRequiredFiles(providers, deploymentConfiguration.getName());
     Map imageProviders = new TreeMap();
+    List<String> files = new ArrayList<>();
 
     NodeIterator iterator = providers.getChildren();
     Provider child = (Provider) iterator.getNext();
     while (child != null) {
       if (child instanceof HasImageProvider && child.isEnabled()) {
+        files.addAll(backupRequiredFiles(child, deploymentConfiguration.getName()));
         imageProviders.put(child.getNodeName(), convertToMap(deploymentConfiguration.getName(), profile, child));
       }
 
