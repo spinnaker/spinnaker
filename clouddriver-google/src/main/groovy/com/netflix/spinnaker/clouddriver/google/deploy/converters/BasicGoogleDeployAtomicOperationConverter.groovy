@@ -49,6 +49,16 @@ class BasicGoogleDeployAtomicOperationConverter extends AbstractAtomicOperations
       }
     }
 
+    def acceleratorConfigs = input?.acceleratorConfigs;
+    if (acceleratorConfigs && !acceleratorConfigs.isEmpty()) {
+      input.acceleratorConfigs = acceleratorConfigs.collect {
+        [
+          acceleratorType: it.acceleratorType,
+          acceleratorCount: new Integer((it.acceleratorCount as Double).intValue())
+        ]
+      }
+    }
+
     GoogleAtomicOperationConverterHelper.convertDescription(input, this, BasicGoogleDeployDescription)
   }
 }
