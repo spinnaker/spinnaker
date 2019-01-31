@@ -15,7 +15,6 @@
  */
 
 apply from: "$rootDir/gradle/kotlin.gradle"
-apply from: "$rootDir/gradle/spek.gradle"
 
 dependencies {
   compile("com.netflix.spinnaker.clouddriver:clouddriver-core:${clouddriverVersion}")
