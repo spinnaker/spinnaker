@@ -18,6 +18,7 @@ package com.netflix.spinnaker.fiat.permissions
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.fiat.config.FiatAdminConfig
+import com.netflix.spinnaker.fiat.config.FiatRoleConfig
 import com.netflix.spinnaker.fiat.model.UserPermission
 import com.netflix.spinnaker.fiat.model.resources.Account
 import com.netflix.spinnaker.fiat.model.resources.Application
@@ -65,7 +66,12 @@ class DefaultPermissionsResolverSpec extends Specification {
   }
 
   @Shared
-  DefaultServiceAccountProvider serviceAccountProvider = new DefaultServiceAccountProvider(front50Service)
+  FiatRoleConfig fiatRoleConfig = Mock(FiatRoleConfig) {
+    isOrMode() >> false
+  }
+
+  @Shared
+  DefaultServiceAccountProvider serviceAccountProvider = new DefaultServiceAccountProvider(front50Service, fiatRoleConfig)
 
   @Shared
   ResourceProvider<Application> applicationProvider = Mock(ResourceProvider) {

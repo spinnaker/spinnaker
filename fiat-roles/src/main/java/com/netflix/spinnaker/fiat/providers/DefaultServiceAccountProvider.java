@@ -16,12 +16,14 @@
 
 package com.netflix.spinnaker.fiat.providers;
 
+import com.netflix.spinnaker.fiat.config.FiatRoleConfig;
 import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.fiat.model.resources.ServiceAccount;
 import com.netflix.spinnaker.fiat.providers.internal.Front50Service;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -29,6 +31,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @Component
@@ -37,10 +40,13 @@ public class DefaultServiceAccountProvider extends BaseProvider<ServiceAccount> 
 
   private final Front50Service front50Service;
 
+  private final FiatRoleConfig fiatRoleConfig;
+
   @Autowired
-  public DefaultServiceAccountProvider(Front50Service front50Service) {
+  public DefaultServiceAccountProvider(Front50Service front50Service, FiatRoleConfig fiatRoleConfig) {
     super();
     this.front50Service = front50Service;
+    this.fiatRoleConfig = fiatRoleConfig;
   }
 
   @Override
@@ -58,8 +64,19 @@ public class DefaultServiceAccountProvider extends BaseProvider<ServiceAccount> 
     return getAll()
         .stream()
         .filter(svcAcct -> !svcAcct.getMemberOf().isEmpty())
-        .filter(svcAcct -> roleNames.containsAll(svcAcct.getMemberOf()) || isAdmin)
+        .filter(getServiceAccountPredicate(isAdmin, roleNames))
         .collect(Collectors.toSet());
+  }
+
+  private Predicate<ServiceAccount> getServiceAccountPredicate(boolean isAdmin, List<String> roleNames) {
+    if (isAdmin) {
+      return svcAcct -> true;
+    }
+    if (fiatRoleConfig.isOrMode()) {
+      return svcAcct -> CollectionUtils.intersection(roleNames, svcAcct.getMemberOf()).size() > 0;
+    } else {
+      return svcAcct -> roleNames.containsAll(svcAcct.getMemberOf());
+    }
   }
 
   @Override

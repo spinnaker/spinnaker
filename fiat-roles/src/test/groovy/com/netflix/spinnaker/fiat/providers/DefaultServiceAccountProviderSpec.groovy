@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.fiat.providers
 
+import com.netflix.spinnaker.fiat.config.FiatRoleConfig
 import com.netflix.spinnaker.fiat.model.resources.Role
 import com.netflix.spinnaker.fiat.model.resources.ServiceAccount
 import com.netflix.spinnaker.fiat.providers.internal.Front50Service
@@ -41,11 +42,14 @@ class DefaultServiceAccountProviderSpec extends Specification {
     getAllServiceAccounts() >> [aAcct, bAcct, cAcct]
   }
 
-  @Subject
-  DefaultServiceAccountProvider provider = new DefaultServiceAccountProvider(front50Service)
-
   @Unroll
   def "should return all accounts the specified groups has access to"() {
+    given:
+    FiatRoleConfig fiatRoleConfig = Mock(FiatRoleConfig) {
+      isOrMode() >> false
+    }
+    DefaultServiceAccountProvider provider = new DefaultServiceAccountProvider(front50Service, fiatRoleConfig)
+
     when:
     def result = provider.getAllRestricted(input.collect { new Role(it) } as Set, isAdmin)
 
@@ -63,6 +67,38 @@ class DefaultServiceAccountProviderSpec extends Specification {
     []              | false   || []
     ["a"]           | false   || [aAcct]
     ["b"]           | false   || []
+    ["c"]           | false   || []
+    ["a", "b"]      | false   || [aAcct, bAcct]
+    ["a", "b", "c"] | false   || [aAcct, bAcct]
+    []              | true    || [aAcct, bAcct]
+    []              | true    || [aAcct, bAcct]
+  }
+
+  @Unroll
+  def "should return all accounts the specified groups has access to in or mode"() {
+    given:
+    FiatRoleConfig fiatRoleConfig = Mock(FiatRoleConfig) {
+      isOrMode() >> true
+    }
+    DefaultServiceAccountProvider provider = new DefaultServiceAccountProvider(front50Service, fiatRoleConfig)
+
+    when:
+    def result = provider.getAllRestricted(input.collect { new Role(it) } as Set, isAdmin)
+
+    then:
+    CollectionUtils.disjunction(result, expected).isEmpty()
+
+    when:
+    provider.getAllRestricted(null, false)
+
+    then:
+    thrown IllegalArgumentException
+
+    where:
+    input           | isAdmin || expected
+    []              | false   || []
+    ["a"]           | false   || [aAcct, bAcct]
+    ["b"]           | false   || [bAcct]
     ["c"]           | false   || []
     ["a", "b"]      | false   || [aAcct, bAcct]
     ["a", "b", "c"] | false   || [aAcct, bAcct]
