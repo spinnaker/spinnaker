@@ -18,6 +18,7 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
+import com.netflix.spinnaker.halyard.config.config.v1.secrets.SecretSessionManager;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
@@ -36,6 +37,9 @@ import java.util.Map;
 public class AwsCredentialsProfileFactoryBuilder {
   @Autowired
   protected ArtifactService artifactService;
+
+  @Autowired
+  SecretSessionManager secretSessionManager;
 
   @Setter
   private String profileName = "default";
@@ -86,7 +90,7 @@ public class AwsCredentialsProfileFactoryBuilder {
     protected Map<String, Object> getBindings(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
       Map<String, Object> result = new HashMap<>();
       result.put("accessKeyId", accessKeyId);
-      result.put("secretAccessKey", secretAccessKey);
+      result.put("secretAccessKey", AwsCredentialsProfileFactoryBuilder.this.secretSessionManager.decrypt(secretAccessKey));
       return result;
     }
 
