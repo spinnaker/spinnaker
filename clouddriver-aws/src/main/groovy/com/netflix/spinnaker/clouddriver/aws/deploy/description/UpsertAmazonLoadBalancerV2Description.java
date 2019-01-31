@@ -16,10 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.description;
 
-import com.amazonaws.services.elasticloadbalancingv2.model.ActionTypeEnum;
-import com.amazonaws.services.elasticloadbalancingv2.model.AuthenticateOidcActionConfig;
-import com.amazonaws.services.elasticloadbalancingv2.model.Certificate;
-import com.amazonaws.services.elasticloadbalancingv2.model.ProtocolEnum;
+import com.amazonaws.services.elasticloadbalancingv2.model.*;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -283,6 +280,8 @@ public class UpsertAmazonLoadBalancerV2Description extends UpsertAmazonLoadBalan
     private String targetGroupName;
     private AuthenticateOidcActionConfig authenticateOidcActionConfig;
 
+    private RedirectActionConfig redirectActionConfig;
+
     public String getType() {
       return type;
     }
@@ -305,6 +304,14 @@ public class UpsertAmazonLoadBalancerV2Description extends UpsertAmazonLoadBalan
 
     public void setAuthenticateOidcActionConfig(AuthenticateOidcActionConfig authenticateOidcActionConfig) {
       this.authenticateOidcActionConfig = authenticateOidcActionConfig;
+    }
+
+    public RedirectActionConfig getRedirectActionConfig() {
+      return redirectActionConfig;
+    }
+
+    public void setRedirectActionConfig(RedirectActionConfig redirectActionConfig) {
+      this.redirectActionConfig = redirectActionConfig;
     }
   }
 

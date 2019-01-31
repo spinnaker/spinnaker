@@ -305,6 +305,9 @@ class LoadBalancerV2UpsertHandler {
       } else if (action.type == "authenticate-oidc") {
         Action awsAction = new Action().withType(action.type).withAuthenticateOidcConfig(action.authenticateOidcActionConfig).withOrder(index + 1)
         awsActions.add(awsAction)
+      } else if (action.type == "redirect") {
+        Action awsAction = new Action().withType(action.type).withRedirectConfig(action.redirectActionConfig).withOrder(index + 1)
+        awsActions.add(awsAction)
       }
     }
     awsActions
