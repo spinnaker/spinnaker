@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.sql;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.core.test.TaskRepositoryTck;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
+import com.netflix.spinnaker.kork.sql.config.RetryProperties;
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties;
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil;
 import org.junit.After;
@@ -33,11 +34,17 @@ public class SqlTaskRepositoryTest extends TaskRepositoryTck {
   @Override
   protected TaskRepository createTaskRepository() {
     database = SqlTestUtil.initDatabase();
+
+    RetryProperties retry = new RetryProperties(0, 0);
+    SqlRetryProperties properties = new SqlRetryProperties();
+    properties.setReads(retry);
+    properties.setTransactions(retry);
+
     return new SqlTaskRepository(
       database.context,
       new ObjectMapper(),
       Clock.systemDefaultZone(),
-      new SqlRetryProperties()
+      properties
     );
   }
 

@@ -169,3 +169,11 @@ databaseChangeLog:
     - dropIndex:
         indexName: result_objects_task_idx
         tableName: task_results
+
+- changeSet:
+    id: mysql-revert-change-state-stauts-to-enum-type
+    author: afeldman
+    changes:
+    - sql:
+        dbms: mysql
+        sql: ALTER TABLE task_states CHANGE COLUMN `state` `state` char(9) NOT NULL DEFAULT "STARTED"

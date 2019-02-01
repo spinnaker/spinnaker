@@ -15,26 +15,68 @@
  */
 package com.netflix.spinnaker.clouddriver.sql
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.clouddriver.data.task.DefaultTaskStatus
+import com.netflix.spinnaker.clouddriver.data.task.Status
 import com.netflix.spinnaker.clouddriver.data.task.Task
+import com.netflix.spinnaker.clouddriver.data.task.TaskState
+import java.io.IOException
+import java.lang.String.format
 import java.sql.ResultSet
 
 class TaskMapper(
-  private val sqlTaskRepository: SqlTaskRepository
+  private val sqlTaskRepository: SqlTaskRepository,
+  private val mapper: ObjectMapper
 ) {
 
   fun map(rs: ResultSet): Collection<Task> {
-    val results = mutableListOf<SqlTask>()
+    val tasks = mutableMapOf<String, SqlTask>()
+    val results = mutableMapOf<String, MutableList<Any>>()
+    val history = mutableMapOf<String, MutableList<Status>>()
+
     while (rs.next()) {
-      results.add(
-        SqlTask(
-          rs.getString("id"),
+      when {
+        rs.getString("owner_id") != null -> SqlTask(
+          rs.getString("task_id"),
           rs.getString("owner_id"),
           rs.getString("request_id"),
           rs.getLong("created_at"),
           sqlTaskRepository
-        )
-      )
+        ).let {
+          tasks[it.id] = it
+        }
+        rs.getString("body") != null -> {
+          try {
+            if (!results.containsKey(rs.getString("task_id"))) {
+              results[rs.getString("task_id")] = mutableListOf()
+            }
+            results[rs.getString("task_id")]!!.add(mapper.readValue(rs.getString("body"), Map::class.java))
+          } catch (e: IOException) {
+            val id = rs.getString("id")
+            val taskId = rs.getString("task_id")
+            throw RuntimeException(
+              format("Failed to convert result object body to map (id: %s, taskId: %s)", id, taskId),
+              e
+            )
+          }
+        }
+        rs.getString("state") != null -> {
+          if (!history.containsKey(rs.getString("task_id"))) {
+            history[rs.getString("task_id")] = mutableListOf()
+          }
+          history[rs.getString("task_id")]!!.add(DefaultTaskStatus.create(
+            rs.getString("phase"),
+            rs.getString("status"),
+            TaskState.valueOf(rs.getString("state"))
+          ))
+        }
+      }
     }
-    return results
+
+    return tasks.values.map { task ->
+      task.hydrateResultObjects(results.getOrDefault(task.id, mutableListOf()))
+      task.hydrateHistory(history.getOrDefault(task.id, mutableListOf()))
+      task
+    }
   }
 }

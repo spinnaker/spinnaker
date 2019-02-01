@@ -26,6 +26,7 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskState.FAILED
 import com.netflix.spinnaker.clouddriver.data.task.TaskState.STARTED
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import de.huxhorn.sulky.ulid.ULID
+import org.jooq.Condition
 import org.jooq.DSLContext
 import org.jooq.Record
 import org.jooq.Select
@@ -57,7 +58,7 @@ class SqlTaskRepository(
     val historyId = ulid.nextULID()
 
     jooq.transactional(sqlRetryProperties.transactions) { ctx ->
-      val existingTask = findByRequestId(clientRequestId)
+      val existingTask = getByClientRequestId(clientRequestId)
       if (existingTask != null) {
         task = existingTask as SqlTask
         addToHistory(ctx, historyId, existingTask.id, FAILED, phase, "Duplicate of $clientRequestId")
@@ -74,84 +75,65 @@ class SqlTaskRepository(
       }
     }
 
+    // TODO(rz): So janky and bad.
+    task.refreshHistoryState(true)
+
     return task
   }
 
   override fun get(id: String): Task? {
-    return jooq.withRetry(sqlRetryProperties.reads) {
-      it.select(tasksFields)
-        .from(tasksTable)
-        .where(field("id").eq(id))
-        .fetchTask()
-    }
+    return retrieveInternal(id)
   }
 
   override fun getByClientRequestId(clientRequestId: String): Task? {
     return jooq.withRetry(sqlRetryProperties.reads) {
-      it.select(tasksFields)
+      it.select(field("id"))
         .from(tasksTable)
         .where(field("request_id").eq(clientRequestId))
-        .fetchTask()
+        .fetchOne("id", String::class.java)
+        ?.let { taskId ->
+          retrieveInternal(taskId)
+        }
     }
   }
 
   override fun list(): MutableList<Task> {
     return jooq.withRetry(sqlRetryProperties.reads) {
-      it.select(tasksFields)
-        .from(tasksTable)
-        .where(field("id").`in`(*runningTaskIds(it)))
-        .fetchTasks()
-        .toMutableList()
+      runningTaskIds(it, false).let { taskIds ->
+        retrieveInternal(field("id").`in`(*taskIds), field("task_id").`in`(*taskIds)).toMutableList()
+      }
     }
   }
 
   override fun listByThisInstance(): MutableList<Task> {
     return jooq.withRetry(sqlRetryProperties.reads) {
-      it.select(tasksFields)
-        .from(tasksTable)
-        .where(
-          field("owner_id").eq(ClouddriverHostname.ID)
-            .and(field("id").`in`(*runningTaskIds(it)))
-        )
-        .fetchTasks()
-        .toMutableList()
-    }
-  }
-
-  private fun findByRequestId(requestId: String): Task? {
-    return jooq.withRetry(sqlRetryProperties.reads) {
-      it.select(tasksFields)
-        .from(tasksTable)
-        .where(field("request_id").eq(requestId))
-        .fetchTask()
+      runningTaskIds(it, true).let { taskIds ->
+        retrieveInternal(field("id").`in`(*taskIds), field("task_id").`in`(*taskIds)).toMutableList()
+      }
     }
   }
 
   internal fun getResultObjects(task: Task): MutableList<Any> {
     return jooq.withRetry(sqlRetryProperties.reads) {
-      it.select(taskResultsFields)
-        .from(taskResultsTable)
-        .where(field("task_id").eq(task.id))
-        .fetchResultObjects()
-        .toMutableList()
+      getResultObjects(it, task)
     }
   }
 
-  internal fun getHistory(task: Task): List<Status> {
-    return jooq.withRetry(sqlRetryProperties.reads) {
-      it.select(taskStatesFields)
-        .from(taskStatesTable)
-        .where(field("task_id").eq(task.id))
-        .orderBy(field("created_at").asc())
-        .fetchTaskStatuses()
-        .toList()
-    }
+  private fun getResultObjects(ctx: DSLContext, task: Task): MutableList<Any> {
+    return ctx.select(taskResultsFields)
+      .from(taskResultsTable)
+      .where(field("task_id").eq(task.id))
+      .fetchResultObjects()
+      .toMutableList()
   }
 
-  internal fun currentState(task: Task): DefaultTaskStatus? {
-    return jooq.withRetry(sqlRetryProperties.reads) {
-      selectLatestState(jooq, task.id)
-    }
+  private fun getHistory(ctx: DSLContext, task: Task): MutableList<Status> {
+    return ctx.select(taskStatesFields)
+      .from(taskStatesTable)
+      .where(field("task_id").eq(task.id))
+      .orderBy(field("created_at").asc())
+      .fetchTaskStatuses()
+      .toMutableList()
   }
 
   internal fun addResultObjects(results: List<Any>, task: Task) {
@@ -207,6 +189,78 @@ class SqlTaskRepository(
     }
   }
 
+  internal fun refreshTaskHistoryState(task: Task): List<Status> {
+    return jooq.withRetry(sqlRetryProperties.reads) {
+      getHistory(it, task)
+    }
+  }
+
+  private fun retrieveInternal(taskId: String): Task? {
+    return retrieveInternal(field("id").eq(taskId), field("task_id").eq(taskId)).firstOrNull()
+  }
+
+  private fun retrieveInternal(condition: Condition, relationshipCondition: Condition? = null): Collection<Task> {
+    return jooq.withRetry(sqlRetryProperties.reads) {
+      /**
+       *  (select id as task_id, owner_id, request_id, created_at, null as body, null as state, null as phase, null as status from tasks_copy where id = '01D2H4H50VTF7CGBMP0D6HTGTF')
+       *  UNION ALL
+       *  (select task_id, null as owner_id, null as request_id, null as created_at, body, null as state, null as phase, null as status from task_results_copy where task_id = '01D2H4H50VTF7CGBMP0D6HTGTF')
+       *  UNION ALL
+       *  (select task_id, null as owner_id, null as request_id, null as created_at, null as body, state, phase, status from task_states_copy where task_id = '01D2H4H50VTF7CGBMP0D6HTGTF')
+       */
+      jooq
+        .select(
+          field("id").`as`("task_id"),
+          field("owner_id"),
+          field("request_id"),
+          field("created_at"),
+          field(sql("null")).`as`("body"),
+          field(sql("null")).`as`("state"),
+          field(sql("null")).`as`("phase"),
+          field(sql("null")).`as`("status")
+        )
+        .from(tasksTable)
+        .where(condition)
+        .unionAll(
+          jooq
+            .select(
+              field("task_id"),
+              field(sql("null")).`as`("owner_id"),
+              field(sql("null")).`as`("request_id"),
+              field(sql("null")).`as`("created_at"),
+              field("body"),
+              field(sql("null")).`as`("state"),
+              field(sql("null")).`as`("phase"),
+              field(sql("null")).`as`("status")
+            )
+            .from(taskResultsTable)
+            .where(relationshipCondition ?: condition)
+        )
+        .unionAll(
+          jooq
+            .select(
+              field("task_id"),
+              field(sql("null")).`as`("owner_id"),
+              field(sql("null")).`as`("request_id"),
+              field(sql("null")).`as`("created_at"),
+              field(sql("null")).`as`("body"),
+              field("state"),
+              field("phase"),
+              field("status")
+            )
+            .from(taskStatesTable)
+            .where(relationshipCondition ?: condition)
+        )
+        .fetchTasks()
+    }
+  }
+
+  fun getLatestState(task: Task): DefaultTaskStatus? {
+    return jooq.withRetry(sqlRetryProperties.reads) {
+      selectLatestState(it, task.id)
+    }
+  }
+
   private fun selectLatestState(ctx: DSLContext, taskId: String): DefaultTaskStatus? {
     return ctx.select(taskStatesFields)
       .from(taskStatesTable)
@@ -221,7 +275,7 @@ class SqlTaskRepository(
    * recent status record for each task ID and the filter that result set
    * down to the ones that are running.
    */
-  private fun runningTaskIds(ctx: DSLContext): Array<String> {
+  private fun runningTaskIds(ctx: DSLContext, thisInstance: Boolean): Array<String> {
     return ctx.select()
       .from(taskStatesTable.`as`("a"))
       .innerJoin(
@@ -230,16 +284,20 @@ class SqlTaskRepository(
           .groupBy(field("task_id"))
           .asTable("b")
       ).on(sql("a.task_id = b.task_id and a.created_at = b.created"))
-      .where(field("a.state").eq(TaskState.STARTED.toString()))
+      .where(
+        if (thisInstance) {
+          field("a.owner_id").eq(ClouddriverHostname.ID)
+            .and(field("a.state").eq(TaskState.STARTED.toString()))
+        } else {
+          field("a.state").eq(TaskState.STARTED.toString())
+        }
+      )
       .fetch("task_id", String::class.java)
       .toTypedArray()
   }
 
   private fun Select<out Record>.fetchTasks() =
-    TaskMapper(this@SqlTaskRepository).map(fetch().intoResultSet())
-
-  private fun Select<out Record>.fetchTask() =
-    fetchTasks().firstOrNull()
+    TaskMapper(this@SqlTaskRepository, mapper).map(fetch().intoResultSet())
 
   private fun Select<out Record>.fetchTaskStatuses() =
     TaskStatusMapper().map(fetch().intoResultSet())
