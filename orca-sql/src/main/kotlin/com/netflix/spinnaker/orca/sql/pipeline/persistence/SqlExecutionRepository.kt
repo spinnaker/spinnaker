@@ -33,8 +33,8 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator
-import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator.NATURAL_ASC
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator.BUILD_TIME_DESC
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator.NATURAL_ASC
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator.START_TIME_OR_ID
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionCriteria
 import com.netflix.spinnaker.orca.pipeline.persistence.UnpausablePipelineException
@@ -307,8 +307,12 @@ class SqlExecutionRepository(
     ).fetchExecutions().toMutableList()
   }
 
-  // TODO rz - Refactor to not use exceptions
-  // TODO rz - Refactor to allow different ExecutionTypes
+  override fun retrieveByCorrelationId(executionType: ExecutionType, correlationId: String) =
+    when (executionType) {
+      PIPELINE -> retrievePipelineForCorrelationId(correlationId)
+      ORCHESTRATION -> retrieveOrchestrationForCorrelationId(correlationId)
+    }
+
   override fun retrieveOrchestrationForCorrelationId(correlationId: String): Execution {
     val execution = jooq.selectExecution(ORCHESTRATION)
       .where(field("id").eq(
@@ -331,6 +335,31 @@ class SqlExecutionRepository(
     }
 
     throw ExecutionNotFoundException("No Orchestration found for correlation ID $correlationId")
+  }
+
+  override fun retrievePipelineForCorrelationId(correlationId: String): Execution {
+    val execution = jooq.selectExecution(PIPELINE)
+      .where(field("id").eq(
+        field(
+          jooq.select(field("c.pipeline_id"))
+            .from(table("correlation_ids").`as`("c"))
+            .where(field("c.id").eq(correlationId))
+            .limit(1)
+        ) as Any
+      ))
+      .fetchExecution()
+
+    if (execution != null) {
+      if (!execution.status.isComplete) {
+        return execution
+      }
+      jooq.transactional {
+        it.deleteFrom(table("correlation_ids")).where(field("id").eq(correlationId)).execute()
+      }
+    }
+
+    throw ExecutionNotFoundException("No Pipeline found for correlation ID $correlationId")
+
   }
 
   override fun retrieveBufferedExecutions(): MutableList<Execution> =

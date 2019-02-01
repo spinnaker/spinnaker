@@ -189,9 +189,21 @@ class RedisInstrumentedExecutionRepository(
     }
   }
 
+  override fun retrieveByCorrelationId(executionType: Execution.ExecutionType, correlationId: String): Execution {
+    return withMetrics("retrieveByCorrelationId") {
+      executionRepository.retrieveByCorrelationId(executionType, correlationId)
+    }
+  }
+
   override fun retrieveOrchestrationForCorrelationId(correlationId: String): Execution {
     return withMetrics("retrieveOrchestrationForCorrelationId") {
       executionRepository.retrieveOrchestrationForCorrelationId(correlationId)
+    }
+  }
+
+  override fun retrievePipelineForCorrelationId(correlationId: String): Execution {
+    return withMetrics("retrievePipelineForCorrelationId") {
+      executionRepository.retrievePipelineForCorrelationId(correlationId)
     }
   }
 

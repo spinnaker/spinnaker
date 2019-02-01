@@ -626,6 +626,16 @@ public class RedisExecutionRepository implements ExecutionRepository {
     return executions.subList(0, Math.min(executions.size(), criteria.getPageSize()));
   }
 
+  @Nonnull
+  @Override
+  public Execution retrieveByCorrelationId(@Nonnull ExecutionType executionType,
+                                           @Nonnull String correlationId) throws ExecutionNotFoundException {
+    if (executionType == PIPELINE) {
+      return retrievePipelineForCorrelationId(correlationId);
+    }
+    return retrieveOrchestrationForCorrelationId(correlationId);
+  }
+
   @Override
   public @Nonnull
   Execution retrieveOrchestrationForCorrelationId(
@@ -636,7 +646,7 @@ public class RedisExecutionRepository implements ExecutionRepository {
 
       if (orchestrationId != null) {
         Execution orchestration = retrieveInternal(
-          getRedisDelegateForOrchestrationId(orchestrationId),
+          getRedisDelegate(orchestrationKey(orchestrationId)),
           ORCHESTRATION,
           orchestrationId);
         if (!orchestration.getStatus().isComplete()) {
@@ -646,6 +656,30 @@ public class RedisExecutionRepository implements ExecutionRepository {
       }
       throw new ExecutionNotFoundException(
         format("No Orchestration found for correlation ID %s", correlationId)
+      );
+    });
+  }
+
+  @Nonnull
+  @Override
+  public Execution retrievePipelineForCorrelationId(@Nonnull String correlationId) throws ExecutionNotFoundException {
+    String key = format("pipelineCorrelation:%s", correlationId);
+    return getRedisDelegate(key).withCommandsClient(correlationRedis -> {
+      String pipelineId = correlationRedis.get(key);
+
+      if (pipelineId != null) {
+        Execution pipeline = retrieveInternal(
+          getRedisDelegate(pipelineKey(pipelineId)),
+          PIPELINE,
+          pipelineId
+        );
+        if (!pipeline.getStatus().isComplete()) {
+          return pipeline;
+        }
+        correlationRedis.del(key);
+      }
+      throw new ExecutionNotFoundException(
+        format("No Pipeline found for correlation ID %s", correlationId)
       );
     });
   }
@@ -1309,7 +1343,7 @@ public class RedisExecutionRepository implements ExecutionRepository {
   }
 
   private RedisClientDelegate getRedisDelegate(String key) {
-    if (StringUtils.isBlank(key) || !previousRedisClientDelegate.isPresent()) {
+    if (Strings.isNullOrEmpty(key) || !previousRedisClientDelegate.isPresent()) {
       return redisClientDelegate;
     }
 
@@ -1324,32 +1358,6 @@ public class RedisExecutionRepository implements ExecutionRepository {
     if (delegate == null) {
       delegate = previousRedisClientDelegate.get().withCommandsClient(c -> {
         if (c.exists(key)) {
-          return previousRedisClientDelegate.get();
-        } else {
-          return null;
-        }
-      });
-    }
-
-    return (delegate == null) ? redisClientDelegate : delegate;
-  }
-
-  private RedisClientDelegate getRedisDelegateForOrchestrationId(String id) {
-    if (Strings.isNullOrEmpty(id) || !previousRedisClientDelegate.isPresent()) {
-      return redisClientDelegate;
-    }
-
-    RedisClientDelegate delegate = redisClientDelegate.withCommandsClient(c -> {
-      if (c.exists(orchestrationKey(id))) {
-        return redisClientDelegate;
-      } else {
-        return null;
-      }
-    });
-
-    if (delegate == null) {
-      delegate = previousRedisClientDelegate.get().withCommandsClient(c -> {
-        if (c.exists(orchestrationKey(id))) {
           return previousRedisClientDelegate.get();
         } else {
           return null;

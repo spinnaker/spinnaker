@@ -244,11 +244,27 @@ class DualExecutionRepository(
     }
   }
 
+  override fun retrieveByCorrelationId(executionType: Execution.ExecutionType, correlationId: String): Execution {
+    return try {
+      primary.retrieveByCorrelationId(executionType, correlationId)
+    } catch (e: ExecutionNotFoundException) {
+      previous.retrieveByCorrelationId(executionType, correlationId)
+    }
+  }
+
   override fun retrieveOrchestrationForCorrelationId(correlationId: String): Execution {
     return try {
       primary.retrieveOrchestrationForCorrelationId(correlationId)
     } catch (e: ExecutionNotFoundException) {
       previous.retrieveOrchestrationForCorrelationId(correlationId)
+    }
+  }
+
+  override fun retrievePipelineForCorrelationId(correlationId: String): Execution {
+    return try {
+      primary.retrievePipelineForCorrelationId(correlationId)
+    } catch (e: ExecutionNotFoundException) {
+      previous.retrievePipelineForCorrelationId(correlationId)
     }
   }
 

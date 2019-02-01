@@ -113,7 +113,16 @@ public interface ExecutionRepository {
                                                        @Nullable ExecutionComparator sorter);
 
   @Nonnull
+  Execution retrieveByCorrelationId(@Nonnull ExecutionType executionType,
+                                    @Nonnull String correlationId) throws ExecutionNotFoundException;
+
+  @Deprecated
+  @Nonnull
   Execution retrieveOrchestrationForCorrelationId(@Nonnull String correlationId) throws ExecutionNotFoundException;
+
+  @Deprecated
+  @Nonnull
+  Execution retrievePipelineForCorrelationId(@Nonnull String correlationId) throws ExecutionNotFoundException;
 
   @Nonnull
   List<Execution> retrieveBufferedExecutions();

@@ -41,7 +41,6 @@ import java.util.Optional;
 
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.AuthenticationDetails;
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType;
-import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.ORCHESTRATION;
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
 import static java.lang.Boolean.parseBoolean;
 import static java.lang.String.format;
@@ -127,10 +126,6 @@ public class ExecutionLauncher {
   }
 
   private Execution checkForCorrelatedExecution(Execution execution) {
-    if (execution.getType() != ORCHESTRATION) {
-      return null;
-    }
-
     if (execution.getTrigger().getCorrelationId() == null) {
       return null;
     }
@@ -138,10 +133,11 @@ public class ExecutionLauncher {
     Trigger trigger = execution.getTrigger();
 
     try {
-      Execution o = executionRepository.retrieveOrchestrationForCorrelationId(
+      Execution o = executionRepository.retrieveByCorrelationId(
+        execution.getType(),
         trigger.getCorrelationId()
       );
-      log.info("Found pre-existing Orchestration by correlation id (id: " +
+      log.info("Found pre-existing " + execution.getType() + " by correlation id (id: " +
         o.getId() + ", correlationId: " +
         trigger.getCorrelationId() +
         ")");
@@ -149,6 +145,7 @@ public class ExecutionLauncher {
     } catch (ExecutionNotFoundException e) {
       // Swallow
     }
+
     return null;
   }
 

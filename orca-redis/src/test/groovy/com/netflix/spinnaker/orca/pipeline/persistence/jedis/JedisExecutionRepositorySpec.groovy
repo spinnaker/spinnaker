@@ -216,7 +216,7 @@ class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<RedisExecution
 
   }
 
-  def "can retrieve running orchestration in previousRedis by correlation id"() {
+  def "can retrieve running execution in previousRedis by correlation id"() {
     given:
     def execution = orchestration {
       trigger = new DefaultTrigger("manual", "covfefe")
@@ -225,14 +225,14 @@ class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<RedisExecution
     previousRepository.updateStatus(execution.type, execution.id, RUNNING)
 
     when:
-    def result = repository.retrieveOrchestrationForCorrelationId('covfefe')
+    def result = repository.retrieveByCorrelationId(ORCHESTRATION, 'covfefe')
 
     then:
     result.id == execution.id
 
     when:
     repository.updateStatus(execution.type, execution.id, SUCCEEDED)
-    repository.retrieveOrchestrationForCorrelationId('covfefe')
+    repository.retrieveByCorrelationId(ORCHESTRATION, 'covfefe')
 
     then:
     thrown(ExecutionNotFoundException)
