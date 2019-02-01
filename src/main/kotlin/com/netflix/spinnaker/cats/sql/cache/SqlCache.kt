@@ -793,7 +793,7 @@ class SqlCache(
     ids: Collection<String>
   ): DataWithRelationshipPointersResult {
     val cacheData = mutableListOf<CacheData>()
-    val relPointers = mutableListOf<RelPointer>()
+    val relPointers = mutableSetOf<RelPointer>()
     var selectQueries = 0
 
     try {
@@ -843,7 +843,7 @@ class SqlCache(
 
       selectQueries = -1
 
-      return DataWithRelationshipPointersResult(mutableListOf(), mutableListOf(), selectQueries)
+      return DataWithRelationshipPointersResult(mutableListOf(), mutableSetOf(), selectQueries)
     }
   }
 
@@ -860,7 +860,7 @@ class SqlCache(
     relationshipPrefixes: List<String>
   ): DataWithRelationshipPointersResult {
     val cacheData = mutableListOf<CacheData>()
-    val relPointers = mutableListOf<RelPointer>()
+    val relPointers = mutableSetOf<RelPointer>()
     var selectQueries = 0
 
     /*
@@ -954,14 +954,14 @@ class SqlCache(
 
       selectQueries = -1
 
-      return DataWithRelationshipPointersResult(mutableListOf(), mutableListOf(), selectQueries)
+      return DataWithRelationshipPointersResult(mutableListOf(), mutableSetOf(), selectQueries)
     }
   }
 
   private fun parseCacheRelResultSet(type: String,
                                      resultSet: ResultSet,
                                      cacheData: MutableList<CacheData>,
-                                     relPointers: MutableList<RelPointer>) {
+                                     relPointers: MutableSet<RelPointer>) {
     while (resultSet.next()) {
       if (!resultSet.getString(1).isNullOrBlank()) {
         try {
@@ -1140,7 +1140,7 @@ class SqlCache(
 
   private data class DataWithRelationshipPointersResult(
     val data: MutableList<CacheData>,
-    val relPointers: MutableList<RelPointer>,
+    val relPointers: MutableSet<RelPointer>,
     val selectQueries: Int
   )
 
