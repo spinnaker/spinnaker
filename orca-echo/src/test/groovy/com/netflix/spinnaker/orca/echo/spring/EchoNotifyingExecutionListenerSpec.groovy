@@ -196,4 +196,31 @@ class EchoNotifyingExecutionListenerSpec extends Specification {
     }
     1 * echoService.recordEvent(_)
   }
+
+  def "handles cases with multiple notifications of the same type"() {
+    given:
+    def notification1 = new Notification([
+      address: "test-notify-1",
+      level  : "application",
+      type   : "slack",
+      when   : ["pipeline.starting", "pipeline.complete", "pipeline.failed"]
+    ])
+    def notification2 = new Notification([
+      address: "test-notify-2",
+      level  : "application",
+      type   : "slack",
+      when   : ["pipeline.starting", "pipeline.complete", "pipeline.failed"]
+    ])
+    notifications.set("slack", [notification1, notification2])
+    def pipeline = new Execution(PIPELINE, "myapp")
+
+    when:
+    echoListener.beforeExecution(null, pipeline)
+
+    then:
+    pipeline.notifications == [notification1, notification2]
+
+    1 * front50Service.getApplicationNotifications("myapp") >> notifications
+    1 * echoService.recordEvent(_)
+  }
 }
