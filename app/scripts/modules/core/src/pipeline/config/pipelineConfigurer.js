@@ -339,7 +339,12 @@ module.exports = angular
       $scope.renderablePipeline.stages.splice(stageIndex, 1);
       $scope.renderablePipeline.stages.forEach(test => {
         if (stage.refId && test.requisiteStageRefIds) {
-          test.requisiteStageRefIds = _.without(test.requisiteStageRefIds, stage.refId);
+          if (test.requisiteStageRefIds.includes(stage.refId)) {
+            test.requisiteStageRefIds = test.requisiteStageRefIds.filter(id => id !== stage.refId);
+            if (!test.requisiteStageRefIds.length) {
+              test.requisiteStageRefIds = [...stage.requisiteStageRefIds];
+            }
+          }
         }
       });
       if (stageIndex > 0) {
