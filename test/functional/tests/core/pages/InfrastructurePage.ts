@@ -5,6 +5,7 @@ export class InfrastructurePage extends Page {
     clickableServerGroup: '.server-group.clickable',
     actionsButton: '.details-panel .actions button',
     cloneMenuItem: `//*[contains(@class, 'dropdown-menu')]//a[contains(text(), 'Clone')]`,
+    createServerGroupButton: `//*[contains(@class, 'application-actions')]//button[contains(., 'Create Server Group')]`,
   };
 
   public openClustersForApplication(application: string) {

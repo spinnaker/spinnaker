@@ -7,6 +7,7 @@ export class ApplicationConfigPage extends Page {
       confirmDeleteButton: (appLabel: string) => `//button[contains(., 'Delete ${appLabel}')]`,
     },
   };
+
   public openForApp(appName: string, section = '') {
     let url = `/#/applications/${appName}/config`;
     if (section) {

@@ -7,6 +7,7 @@ import { GCE_AUTOHEALING_POLICY_SELECTOR } from './wizard/autoHealingPolicy/auto
 import { GCE_CACHE_REFRESH } from 'google/cache/cacheRefresh.component';
 import { GCE_CUSTOM_INSTANCE_CONFIGURER } from './wizard/customInstance/customInstanceConfigurer.component';
 import { GCE_DISK_CONFIGURER } from './wizard/advancedSettings/diskConfigurer.component';
+import { GCE_ACCELERATOR_CONFIGURER } from './wizard/advancedSettings/acceleratorConfigurer.component';
 
 module.exports = angular.module('spinnaker.serverGroup.configure.gce', [
   require('../../autoscalingPolicy/components/basicSettings/basicSettings.component').name,
@@ -17,6 +18,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce', [
   GCE_CACHE_REFRESH,
   GCE_CUSTOM_INSTANCE_CONFIGURER,
   GCE_DISK_CONFIGURER,
+  GCE_ACCELERATOR_CONFIGURER,
   require('../serverGroup.transformer').name,
   require('./serverGroupConfiguration.service').name,
   require('./wizard/advancedSettings/advancedSettingsSelector.directive').name,

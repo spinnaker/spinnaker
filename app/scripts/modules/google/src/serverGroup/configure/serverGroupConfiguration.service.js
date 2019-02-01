@@ -289,6 +289,33 @@ module.exports = angular
       return result;
     }
 
+    function configureAccelerators(command) {
+      const result = { dirty: {} };
+      const { credentials, zone, backingData } = command;
+      const accountBackingData = _.get(backingData, ['credentialsKeyedByAccount', credentials], {});
+      const acceleratorMap = accountBackingData.zoneToAcceleratorTypesMap || {};
+      const acceleratorTypes = _.get(acceleratorMap, [zone, 'acceleratorTypes', 'acceleratorTypes'], []).map(a => {
+        const maxCards = _.isFinite(a.maximumCardsPerInstance) ? a.maximumCardsPerInstance : 4;
+        const availableCardCounts = [];
+        for (let i = 1; i <= maxCards; i *= 2) {
+          availableCardCounts.push(i);
+        }
+        return _.assign({}, a, { availableCardCounts });
+      });
+      _.set(command, ['viewState', 'acceleratorTypes'], acceleratorTypes);
+      result.dirty.acceleratorTypes = true;
+      const chosenAccelerators = _.get(command, 'acceleratorConfigs', []);
+      if (chosenAccelerators.length > 0) {
+        command.acceleratorConfigs = chosenAccelerators.filter(
+          chosen => !!acceleratorTypes.find(a => a.name === chosen.acceleratorType),
+        );
+        if (command.acceleratorConfigs.length === 0) {
+          delete command.acceleratorConfigs;
+        }
+      }
+      return result;
+    }
+
     // n1-standard-8 should come before n1-standard-16, so we must sort by the individual segments of the names.
     function sortInstanceTypes(instanceTypes) {
       const tokenizedInstanceTypes = _.map(instanceTypes, instanceType => {
@@ -726,6 +753,7 @@ module.exports = angular
         angular.extend(command.viewState.dirty, result.dirty);
         angular.extend(command.viewState.dirty, configureInstanceTypes(command).dirty);
         angular.extend(command.viewState.dirty, configureCpuPlatforms(command).dirty);
+        angular.extend(command.viewState.dirty, configureAccelerators(command).dirty);
         return result;
       };
 
