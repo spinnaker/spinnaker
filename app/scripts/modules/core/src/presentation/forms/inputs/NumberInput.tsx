@@ -2,7 +2,7 @@ import * as React from 'react';
 import memoizeOne from 'memoize-one';
 
 import { orEmptyString, validationClassName } from './utils';
-import { composeValidators, Validation, Validator } from '../Validation';
+import { composeValidators, IValidator, Validators } from '../validation';
 import { IFormInputProps, OmitControlledInputPropsFrom } from '../interface';
 
 import './NumberInput.css';
@@ -14,10 +14,10 @@ interface INumberInputProps extends IFormInputProps, OmitControlledInputPropsFro
 const isNumber = (val: any): val is number => typeof val === 'number';
 
 export class NumberInput extends React.Component<INumberInputProps> {
-  private getMinValidator = memoizeOne((min: any) => (isNumber(min) ? Validation.minValue(min) : undefined));
-  private getMaxValidator = memoizeOne((max: any) => (isNumber(max) ? Validation.maxValue(max) : undefined));
+  private getMinValidator = memoizeOne((min: any) => (isNumber(min) ? Validators.minValue(min) : undefined));
+  private getMaxValidator = memoizeOne((max: any) => (isNumber(max) ? Validators.maxValue(max) : undefined));
 
-  private validator: Validator = (val: any, label?: string) => {
+  private validator: IValidator = (val: any, label?: string) => {
     const { min, max } = this.props;
     const validator = composeValidators([this.getMinValidator(min), this.getMaxValidator(max)]);
     return validator ? validator(val, label) : null;

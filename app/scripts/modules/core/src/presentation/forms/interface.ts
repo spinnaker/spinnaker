@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { FieldProps } from 'formik';
 
-import { Validator } from './Validation';
+import { IValidator } from './validation';
 export type IFieldValidationStatus = 'error' | 'warning' | 'message';
 
 /** These props are used by FormField and FormikFormField components */
@@ -36,8 +36,8 @@ export interface IValidationProps {
   touched?: boolean;
   validationMessage?: React.ReactNode;
   validationStatus?: IFieldValidationStatus;
-  addValidator?: (validator: Validator) => void;
-  removeValidator?: (validator: Validator) => void;
+  addValidator?: (validator: IValidator) => void;
+  removeValidator?: (validator: IValidator) => void;
 }
 
 /** These props are used by Input components, such as TextInput */
