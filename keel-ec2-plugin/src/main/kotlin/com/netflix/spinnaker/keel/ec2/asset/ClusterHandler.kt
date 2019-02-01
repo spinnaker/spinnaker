@@ -16,8 +16,9 @@ import com.netflix.spinnaker.keel.clouddriver.model.Tag
 import com.netflix.spinnaker.keel.ec2.AmazonAssetHandler
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.orca.OrcaService
+import kotlinx.coroutines.runBlocking
 import org.springframework.http.HttpStatus.NOT_FOUND
-import retrofit.RetrofitError
+import retrofit2.HttpException
 import java.time.Duration
 
 class ClusterHandler(
@@ -38,38 +39,41 @@ class ClusterHandler(
 
   private fun CloudDriverService.getCluster(spec: Cluster): Cluster? {
     try {
-      return activeServerGroup(spec.application, spec.accountName, spec.name, spec.region, CLOUD_PROVIDER)
-        .let { response ->
-          Cluster(
-            response.moniker.app,
-            response.moniker.cluster!!,
-            response.launchConfig.imageId,
-            response.accountName,
-            response.region,
-            response.zones,
-            response.vpcId.let { cloudDriverCache.networkBy(it).name },
-            response.capacity.let { Capacity(it.min, it.max, it.desired) },
-            InstanceType(response.launchConfig.instanceType),
-            response.launchConfig.ebsOptimized,
-            response.launchConfig.ramdiskId,
-            response.launchConfig.userData,
-            response.asg.tags.associateBy(Tag::key, Tag::value),
-            response.loadBalancers,
-            response.let { asg -> asg.securityGroups.map { cloudDriverCache.securityGroupSummaryBy(response.accountName, asg.region, it).name } },
-            response.targetGroups,
-            response.launchConfig.instanceMonitoring.enabled,
-            response.asg.enabledMetrics.map { Metric.valueOf(it) },
-            Duration.ofSeconds(response.asg.defaultCooldown),
-            Duration.ofSeconds(response.asg.healthCheckGracePeriod),
-            HealthCheckType.valueOf(response.asg.healthCheckType),
-            response.launchConfig.iamInstanceProfile,
-            response.launchConfig.keyName,
-            response.asg.suspendedProcesses.map { ScalingProcess.valueOf(it) },
-            response.asg.terminationPolicies.map { TerminationPolicy.valueOf(it) }
-          )
-        }
-    } catch (e: RetrofitError) {
-      if (e.response.status == NOT_FOUND.value()) {
+      return runBlocking {
+        activeServerGroup(spec.application, spec.accountName, spec.name, spec.region, CLOUD_PROVIDER)
+          .await()
+          .let { response ->
+            Cluster(
+              response.moniker.app,
+              response.moniker.cluster!!,
+              response.launchConfig.imageId,
+              response.accountName,
+              response.region,
+              response.zones,
+              response.vpcId.let { cloudDriverCache.networkBy(it).name },
+              response.capacity.let { Capacity(it.min, it.max, it.desired) },
+              InstanceType(response.launchConfig.instanceType),
+              response.launchConfig.ebsOptimized,
+              response.launchConfig.ramdiskId,
+              response.launchConfig.userData,
+              response.asg.tags.associateBy(Tag::key, Tag::value),
+              response.loadBalancers,
+              response.let { asg -> asg.securityGroups.map { cloudDriverCache.securityGroupSummaryBy(response.accountName, asg.region, it).name } },
+              response.targetGroups,
+              response.launchConfig.instanceMonitoring.enabled,
+              response.asg.enabledMetrics.map { Metric.valueOf(it) },
+              Duration.ofSeconds(response.asg.defaultCooldown),
+              Duration.ofSeconds(response.asg.healthCheckGracePeriod),
+              HealthCheckType.valueOf(response.asg.healthCheckType),
+              response.launchConfig.iamInstanceProfile,
+              response.launchConfig.keyName,
+              response.asg.suspendedProcesses.map { ScalingProcess.valueOf(it) },
+              response.asg.terminationPolicies.map { TerminationPolicy.valueOf(it) }
+            )
+          }
+      }
+    } catch (e: HttpException) {
+      if (e.code() == NOT_FOUND.value()) {
         return null
       }
       throw e

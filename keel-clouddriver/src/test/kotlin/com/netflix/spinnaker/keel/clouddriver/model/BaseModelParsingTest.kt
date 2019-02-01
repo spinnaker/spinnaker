@@ -7,24 +7,26 @@ import com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.github.jonpeterson.jackson.module.versioning.VersioningModule
+import com.jakewharton.retrofit2.adapter.kotlin.coroutines.CoroutineCallAdapterFactory
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
-import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.doAnswer
-import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.whenever
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.runBlocking
+import okhttp3.mockwebserver.MockResponse
+import okhttp3.mockwebserver.MockWebServer
+import org.junit.After
+import org.junit.Before
 import org.junit.jupiter.api.Test
-import retrofit.Endpoints.newFixedEndpoint
-import retrofit.RestAdapter
-import retrofit.client.Client
 import retrofit.client.Header
 import retrofit.client.Request
 import retrofit.client.Response
-import retrofit.converter.JacksonConverter
 import retrofit.mime.TypedByteArray
+import retrofit2.Retrofit
+import retrofit2.converter.jackson.JacksonConverterFactory
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotNull
 import java.net.URL
+import java.nio.charset.Charset
 
 abstract class BaseModelParsingTest<out T> {
 
@@ -36,27 +38,31 @@ abstract class BaseModelParsingTest<out T> {
     .disable(FAIL_ON_UNKNOWN_PROPERTIES)
     .disable(READ_DATE_TIMESTAMPS_AS_NANOSECONDS)
 
-  private val client = mock<Client>()
-  private val cloudDriver = RestAdapter.Builder()
-    .setEndpoint(newFixedEndpoint("https://spinnaker.💩"))
-    .setClient(client)
-    .setConverter(JacksonConverter(mapper))
+  private val server = MockWebServer()
+  private val cloudDriver = Retrofit.Builder()
+    .baseUrl(server.url("/"))
+    .addConverterFactory(JacksonConverterFactory.create(mapper))
+    .addCallAdapterFactory(CoroutineCallAdapterFactory())
     .build()
     .create(CloudDriverService::class.java)
 
   abstract val json: URL
-  abstract val call: CloudDriverService.() -> T?
+  abstract val call: CloudDriverService.() -> Deferred<T?>
   abstract val expected: T
+
+  @Before
+  fun startServer() = server.start()
+
+  @After
+  fun stopServer() = server.shutdown()
 
   @Test
   fun `can parse a CloudDriver response into the expected model`() {
-    whenever(
-      client.execute(any())
-    ) doAnswer {
-      it.getArgument<Request>(0).jsonResponse(body = json)
-    }
+    server.enqueue(MockResponse().setResponseCode(200).setBody(json.readText(Charset.forName("UTF-8"))))
 
-    val response = cloudDriver.call()
+    val response = runBlocking {
+      cloudDriver.call().await()
+    }
 
     expectThat(response)
       .isNotNull()

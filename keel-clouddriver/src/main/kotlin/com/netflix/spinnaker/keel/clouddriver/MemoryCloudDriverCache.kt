@@ -20,6 +20,8 @@ import com.google.common.cache.CacheBuilder
 import com.netflix.spinnaker.keel.clouddriver.model.Credential
 import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.runBlocking
 import java.util.concurrent.TimeUnit
 
 class MemoryCloudDriverCache(
@@ -49,7 +51,7 @@ class MemoryCloudDriverCache(
   private fun credentialBy(name: String): Credential =
     credentials.getOrNotFound(name, "Credentials with name $name not found") {
       cloudDriver
-        .getCredential(name)
+        .getCredential(name).await()
     }
 
   override fun securityGroupSummaryBy(account: String, region: String, id: String): SecurityGroupSummary =
@@ -62,13 +64,15 @@ class MemoryCloudDriverCache(
       // TODO-AJ should be able to swap this out for a call to `/search`
       cloudDriver
         .getSecurityGroupSummaries(account, credential.type, region)
+        .await()
         .firstOrNull { it.id == id }
     }
 
   override fun networkBy(id: String): Network =
     networks.getOrNotFound(id, "VPC network with id $id not found") {
       cloudDriver
-        .listNetworks()["aws"]
+        .listNetworks()
+        .await()["aws"]
         ?.firstOrNull { it.id == id }
     }
 
@@ -77,23 +81,31 @@ class MemoryCloudDriverCache(
   override fun networkBy(name: String?, account: String, region: String): Network =
     networks.getOrNotFound("$name:$account:$region", "VPC network named $name not found in $region") {
       cloudDriver
-        .listNetworks()["aws"]
+        .listNetworks()
+        .await()["aws"]
         ?.firstOrNull { it.name == name && it.account == account && it.region == region }
     }
 
   override fun availabilityZonesBy(account: String, vpcId: String, region: String): Set<String> =
     availabilityZones.get("$account:$vpcId:$region") {
-      cloudDriver
-        .listSubnets("aws")
-        .filter { it.account == account && it.vpcId == vpcId && it.region == region }
-        .map { it.availabilityZone }
-        .toSet()
+      runBlocking {
+        cloudDriver
+          .listSubnets("aws")
+          .await()
+          .filter { it.account == account && it.vpcId == vpcId && it.region == region }
+          .map { it.availabilityZone }
+          .toSet()
+      }
     }
 
-  private fun <T> Cache<String, T>.getOrNotFound(key: String, notFoundMessage: String, loader: () -> T?): T {
+  private fun <T> Cache<String, T>.getOrNotFound(
+    key: String,
+    notFoundMessage: String,
+    loader: suspend CoroutineScope.() -> T?
+  ): T {
     var v = getIfPresent(key)
     if (v == null) {
-      v = loader.invoke()
+      v = runBlocking(block = loader)
       if (v == null) {
         throw ResourceNotFound(notFoundMessage)
       }

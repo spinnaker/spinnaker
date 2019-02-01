@@ -52,6 +52,7 @@ import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.whenever
 import com.oneeyedmen.minutest.junit.toTestFactory
 import com.oneeyedmen.minutest.rootContext
+import kotlinx.coroutines.CompletableDeferred
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.TestFactory
@@ -151,7 +152,7 @@ internal object EC2AssetPluginTests {
             name,
             region,
             vpc.id
-          )) doReturn riverSecurityGroup
+          )) doReturn CompletableDeferred(riverSecurityGroup)
         }
       }
 
@@ -235,7 +236,7 @@ internal object EC2AssetPluginTests {
     context("a security group with no ingress rules") {
       before {
         whenever(orcaService.orchestrate(any())) doAnswer {
-          TaskRefResponse(TaskRef(UUID.randomUUID().toString()))
+          CompletableDeferred(TaskRefResponse(TaskRef(UUID.randomUUID().toString())))
         }
 
         subject.upsert(request)
@@ -280,7 +281,7 @@ internal object EC2AssetPluginTests {
       context("the referenced security group exists") {
         before {
           whenever(orcaService.orchestrate(any())) doAnswer {
-            TaskRefResponse(TaskRef(UUID.randomUUID().toString()))
+            CompletableDeferred(TaskRefResponse(TaskRef(UUID.randomUUID().toString())))
           }
 
           subject.upsert(request)
@@ -327,7 +328,7 @@ internal object EC2AssetPluginTests {
 
       before {
         whenever(orcaService.orchestrate(any())) doAnswer {
-          TaskRefResponse(TaskRef(UUID.randomUUID().toString()))
+          CompletableDeferred(TaskRefResponse(TaskRef(UUID.randomUUID().toString())))
         }
 
         subject.upsert(request)
@@ -375,7 +376,7 @@ internal object EC2AssetPluginTests {
 
     before {
       whenever(orcaService.orchestrate(any())) doAnswer {
-        TaskRefResponse(TaskRef(UUID.randomUUID().toString()))
+        CompletableDeferred(TaskRefResponse(TaskRef(UUID.randomUUID().toString())))
       }
 
       subject.delete(request)

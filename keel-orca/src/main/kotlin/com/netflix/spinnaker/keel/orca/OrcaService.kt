@@ -16,11 +16,13 @@
 package com.netflix.spinnaker.keel.orca
 
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
-import retrofit.http.Body
-import retrofit.http.GET
-import retrofit.http.Headers
-import retrofit.http.POST
-import retrofit.http.Path
+import kotlinx.coroutines.Deferred
+import retrofit2.Call
+import retrofit2.http.Body
+import retrofit2.http.GET
+import retrofit2.http.Headers
+import retrofit2.http.POST
+import retrofit2.http.Path
 import java.time.Instant
 
 // TODO Origin needs to be set on executions
@@ -29,10 +31,10 @@ interface OrcaService {
 
   @POST("/ops")
   @Headers("Content-Type: application/context+json")
-  fun orchestrate(@Body request: OrchestrationRequest): TaskRefResponse
+  fun orchestrate(@Body request: OrchestrationRequest): Deferred<TaskRefResponse>
 
   @GET("/tasks/{id}")
-  fun getTask(@Path("id") id: String): TaskDetailResponse
+  fun getTask(@Path("id") id: String): Deferred<TaskDetailResponse>
 }
 
 data class TaskRefResponse(

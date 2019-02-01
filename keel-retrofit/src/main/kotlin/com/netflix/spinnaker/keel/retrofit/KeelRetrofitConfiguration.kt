@@ -15,11 +15,12 @@
  */
 package com.netflix.spinnaker.keel.retrofit
 
-import com.netflix.spinnaker.config.OkHttpClientConfiguration
-import com.squareup.okhttp.ConnectionPool
-import com.squareup.okhttp.Interceptor
+import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
+import okhttp3.ConnectionPool
+import okhttp3.Interceptor
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -27,11 +28,11 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import org.springframework.context.annotation.Scope
-import retrofit.RestAdapter
-import retrofit.client.OkClient
+import java.util.concurrent.TimeUnit.MILLISECONDS
+
 
 @Configuration
-@Import(OkHttpClientConfiguration::class)
+@Import(OkHttp3ClientConfiguration::class)
 @EnableConfigurationProperties
 open class KeelRetrofitConfiguration {
 
@@ -51,8 +52,10 @@ open class KeelRetrofitConfiguration {
 
   @Bean(name = ["retrofitClient", "okClient"])
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  open fun retrofitClient(@Qualifier("okHttpClientConfiguration") okHttpClientConfig: OkHttpClientConfiguration,
-                          interceptors: Set<Interceptor>?): OkClient {
+  open fun retrofitClient(
+    okHttpClientConfig: OkHttp3ClientConfiguration,
+    interceptors: Set<Interceptor>?
+  ): OkHttpClient {
     val userAgent = "Spinnaker-${System.getProperty("spring.application.name", "unknown")}/${javaClass.`package`.implementationVersion
       ?: "1.0"}"
     val cfg = okHttpClientConfig.create().apply {
@@ -67,13 +70,15 @@ open class KeelRetrofitConfiguration {
         networkInterceptors().add(it)
       }
 
-      connectionPool = ConnectionPool(maxIdleConnections, keepAliveDurationMs)
-      retryOnConnectionFailure = retryOnConnectionFailure
+      connectionPool(ConnectionPool(maxIdleConnections, keepAliveDurationMs, MILLISECONDS))
+      retryOnConnectionFailure(retryOnConnectionFailure)
     }
-    return OkClient(cfg)
+    return cfg.build()
   }
 
   @Bean
-  open fun retrofitLogLevel(@Value("\${retrofit.logLevel:BASIC}") retrofitLogLevel: String) =
-    RestAdapter.LogLevel.valueOf(retrofitLogLevel)
+  open fun retrofitLoggingInterceptor(@Value("\${retrofit.logLevel:BASIC}") retrofitLogLevel: String) =
+    HttpLoggingInterceptor().apply {
+      level = HttpLoggingInterceptor.Level.valueOf(retrofitLogLevel)
+    }
 }

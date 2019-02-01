@@ -7,7 +7,8 @@ dependencies {
   implementation "com.github.jonpeterson:jackson-module-model-versioning:+"
   implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:[2.9.6,)"
 
-  testImplementation "com.squareup.retrofit:retrofit-mock:(,2.0["
+  testImplementation "com.squareup.retrofit2:retrofit-mock:+"
+  testImplementation "com.squareup.okhttp3:mockwebserver:+"
   testImplementation "com.oneeyedmen:minutest:+"
   testImplementation "io.strikt:strikt-core:+"
 

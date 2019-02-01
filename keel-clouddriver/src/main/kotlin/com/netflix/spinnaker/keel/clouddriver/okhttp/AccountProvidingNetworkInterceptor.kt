@@ -17,13 +17,14 @@ package com.netflix.spinnaker.keel.clouddriver.okhttp
 
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.Credential
-import com.squareup.okhttp.Interceptor
-import com.squareup.okhttp.Response
+import kotlinx.coroutines.runBlocking
+import okhttp3.Interceptor
+import okhttp3.Response
 import org.slf4j.LoggerFactory
 import org.springframework.beans.BeansException
 import org.springframework.context.ApplicationContext
 import org.springframework.scheduling.annotation.Scheduled
-import retrofit.RetrofitError
+import retrofit2.HttpException
 
 /**
  * Builds a local cache of clouddriver credentials that is used to populate X-SPINNAKER-ACCOUNTS header, allowing
@@ -41,11 +42,10 @@ class AccountProvidingNetworkInterceptor(
 
   private var credentials: Set<Credential> = setOf()
 
-  override fun intercept(chain: Interceptor.Chain): Response
-    = chain.proceed(chain.request().newBuilder()
-        .header("X-SPINNAKER-ACCOUNTS", credentials.joinToString(",") { it.name })
-        .build()
-    )
+  override fun intercept(chain: Interceptor.Chain): Response = chain.proceed(chain.request().newBuilder()
+    .header("X-SPINNAKER-ACCOUNTS", credentials.joinToString(",") { it.name })
+    .build()
+  )
 
   @Scheduled(initialDelay = 0L, fixedDelay = 60000L)
   fun refreshCredentials() {
@@ -60,8 +60,8 @@ class AccountProvidingNetworkInterceptor(
     }
 
     try {
-      credentials = cloudDriver.listCredentials()
-    } catch (e: RetrofitError) {
+      credentials = runBlocking { cloudDriver.listCredentials().await() }
+    } catch (e: HttpException) {
       log.error("Failed to refresh credentials from CloudDriverService", e)
     }
 

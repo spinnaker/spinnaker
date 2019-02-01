@@ -8,12 +8,13 @@ import com.netflix.spinnaker.keel.clouddriver.model.LaunchConfig
 import com.netflix.spinnaker.keel.clouddriver.model.Moniker
 import com.netflix.spinnaker.keel.clouddriver.model.ServerGroupCapacity
 import com.netflix.spinnaker.keel.clouddriver.model.Tag
+import kotlinx.coroutines.Deferred
 
 object ClusterActiveServerGroupTest : BaseModelParsingTest<ClusterActiveServerGroup>() {
 
   override val json = javaClass.getResource("/cluster.json")
 
-  override val call: CloudDriverService.() -> ClusterActiveServerGroup? = {
+  override val call: CloudDriverService.() -> Deferred<ClusterActiveServerGroup?> = {
     activeServerGroup("keel", "mgmttest", "keel-test", "eu-west-1", "aws")
   }
 

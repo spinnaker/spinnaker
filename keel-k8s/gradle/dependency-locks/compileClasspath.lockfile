@@ -10,7 +10,7 @@ com.google.j2objc:j2objc-annotations:1.1
 com.google.protobuf:protobuf-java:3.4.0
 com.microsoft.azure:adal4j:1.6.0
 com.nimbusds:lang-tag:1.4.4
-com.nimbusds:nimbus-jose-jwt:6.7
+com.nimbusds:nimbus-jose-jwt:6.8
 com.nimbusds:oauth2-oidc-sdk:5.24.1
 com.squareup.okhttp:logging-interceptor:2.7.5
 com.squareup.okhttp:okhttp-ws:2.7.5

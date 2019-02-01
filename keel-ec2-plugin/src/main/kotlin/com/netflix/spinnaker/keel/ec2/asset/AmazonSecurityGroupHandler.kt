@@ -29,9 +29,10 @@ import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.model.OrchestrationTrigger
 import com.netflix.spinnaker.keel.orca.OrcaService
+import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus.NOT_FOUND
-import retrofit.RetrofitError
+import retrofit2.HttpException
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup as RiverSecurityGroup
 
 class AmazonSecurityGroupHandler(
@@ -44,81 +45,91 @@ class AmazonSecurityGroupHandler(
     cloudDriverService.getSecurityGroup(spec)
 
   override fun converge(assetName: AssetName, spec: SecurityGroup) {
-    val taskRef = orcaService
-      .orchestrate(OrchestrationRequest(
-        "Upsert security group ${spec.name} in ${spec.accountName}/${spec.region}",
-        spec.application,
-        "Upsert security group ${spec.name} in ${spec.accountName}/${spec.region}",
-        listOf(Job(
-          "upsertSecurityGroup",
-          mutableMapOf(
-            "application" to spec.application,
-            "credentials" to spec.accountName,
-            "cloudProvider" to CLOUD_PROVIDER,
-            "name" to spec.name,
-            "regions" to listOf(spec.region),
-            "vpcId" to spec.vpcName,
-            "description" to spec.description,
-            "ingressAppendOnly" to true,
-            // TODO: would be nice if these two things were more homeomorphic
-            "securityGroupIngress" to portRangeRuleToJob(spec),
-            "ipIngress" to spec.inboundRules.flatMap { convertCidrRuleToJob(it) },
-            "accountName" to spec.accountName
-          )
-        )),
-        OrchestrationTrigger(assetName.toString())
-      ))
+    val taskRef = runBlocking {
+      orcaService
+        .orchestrate(OrchestrationRequest(
+          "Upsert security group ${spec.name} in ${spec.accountName}/${spec.region}",
+          spec.application,
+          "Upsert security group ${spec.name} in ${spec.accountName}/${spec.region}",
+          listOf(Job(
+            "upsertSecurityGroup",
+            mutableMapOf(
+              "application" to spec.application,
+              "credentials" to spec.accountName,
+              "cloudProvider" to CLOUD_PROVIDER,
+              "name" to spec.name,
+              "regions" to listOf(spec.region),
+              "vpcId" to spec.vpcName,
+              "description" to spec.description,
+              "ingressAppendOnly" to true,
+              // TODO: would be nice if these two things were more homeomorphic
+              "securityGroupIngress" to portRangeRuleToJob(spec),
+              "ipIngress" to spec.inboundRules.flatMap { convertCidrRuleToJob(it) },
+              "accountName" to spec.accountName
+            )
+          )),
+          OrchestrationTrigger(assetName.toString())
+        ))
+        .await()
+    }
     log.info("Started task {} to upsert security group", taskRef.ref)
   }
 
   override fun delete(assetName: AssetName, spec: SecurityGroup) {
-    val taskRef = orcaService
-      .orchestrate(OrchestrationRequest(
-        "Delete security group ${spec.name} in ${spec.accountName}/${spec.region}",
-        spec.application,
-        "Delete security group ${spec.name} in ${spec.accountName}/${spec.region}",
-        listOf(Job(
-          "deleteSecurityGroup",
-          mutableMapOf(
-            "application" to spec.application,
-            "credentials" to spec.accountName,
-            "cloudProvider" to CLOUD_PROVIDER,
-            "securityGroupName" to spec.name,
-            "regions" to listOf(spec.region),
-            "vpcId" to spec.vpcName,
-            "accountName" to spec.accountName
-          )
-        )),
-        OrchestrationTrigger(assetName.toString())
-      ))
+    val taskRef = runBlocking {
+      orcaService
+        .orchestrate(OrchestrationRequest(
+          "Delete security group ${spec.name} in ${spec.accountName}/${spec.region}",
+          spec.application,
+          "Delete security group ${spec.name} in ${spec.accountName}/${spec.region}",
+          listOf(Job(
+            "deleteSecurityGroup",
+            mutableMapOf(
+              "application" to spec.application,
+              "credentials" to spec.accountName,
+              "cloudProvider" to CLOUD_PROVIDER,
+              "securityGroupName" to spec.name,
+              "regions" to listOf(spec.region),
+              "vpcId" to spec.vpcName,
+              "accountName" to spec.accountName
+            )
+          )),
+          OrchestrationTrigger(assetName.toString())
+        ))
+        .await()
+    }
     log.info("Started task {} to upsert security group", taskRef.ref)
   }
 
-  private fun CloudDriverService.getSecurityGroup(spec: SecurityGroup): SecurityGroup? {
-    try {
-      return getSecurityGroup(
-        spec.accountName,
-        CLOUD_PROVIDER,
-        spec.name,
-        spec.region,
-        spec.vpcName?.let { cloudDriverCache.networkBy(it, spec.accountName, spec.region).id }
-      ).let { response ->
-        SecurityGroup(
-          response.moniker.app,
-          response.name,
-          response.accountName,
-          response.region,
-          response.vpcId?.let { cloudDriverCache.networkBy(it).name },
-          response.description
+  private fun CloudDriverService.getSecurityGroup(spec: SecurityGroup): SecurityGroup? =
+    runBlocking {
+      try {
+        getSecurityGroup(
+          spec.accountName,
+          CLOUD_PROVIDER,
+          spec.name,
+          spec.region,
+          spec.vpcName?.let { cloudDriverCache.networkBy(it, spec.accountName, spec.region).id }
         )
+          .await()
+          .let { response ->
+            SecurityGroup(
+              response.moniker.app,
+              response.name,
+              response.accountName,
+              response.region,
+              response.vpcId?.let { cloudDriverCache.networkBy(it).name },
+              response.description
+            )
+          }
+      } catch (e: HttpException) {
+        if (e.code() == NOT_FOUND.value()) {
+          null
+        } else {
+          throw e
+        }
       }
-    } catch (e: RetrofitError) {
-      if (e.response.status == NOT_FOUND.value()) {
-        return null
-      }
-      throw e
     }
-  }
 
   private fun portRangeRuleToJob(spec: SecurityGroup): JobRules {
     return spec
@@ -157,7 +168,7 @@ class AmazonSecurityGroupHandler(
 private typealias JobRules = List<MutableMap<String, Any?>>
 
 private fun convertCidrRuleToJob(rule: SecurityGroupRule): JobRules =
-  when(rule) {
+  when (rule) {
     is CidrSecurityGroupRule -> rule.portRange.let { ports ->
       listOf(mutableMapOf<String, Any?>(
         "type" to rule.protocol.name,

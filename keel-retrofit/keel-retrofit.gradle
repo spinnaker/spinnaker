@@ -13,11 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+apply plugin: "java-library"
 
 dependencies {
-  api "com.squareup.retrofit:retrofit:(,2.0["
-  api "com.squareup.retrofit:converter-jackson:(,2.0["
-  api "com.squareup.okhttp:okhttp-urlconnection:+"
-  api "com.squareup.okhttp:okhttp-apache:+"
-  api "com.netflix.spinnaker.kork:kork-web:2.+"
+  api "com.squareup.retrofit2:retrofit:+"
+  api "com.squareup.retrofit2:converter-jackson:+"
+  api("com.netflix.spinnaker.kork:kork-web:2.+")
+  api "com.jakewharton.retrofit:retrofit2-kotlin-coroutines-adapter:+"
+  api "org.jetbrains.kotlinx:kotlinx-coroutines-core:+"
+
+  implementation "com.squareup.okhttp3:logging-interceptor:+"
 }

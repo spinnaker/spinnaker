@@ -22,9 +22,11 @@ import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.clouddriver.model.Subnet
-import retrofit.http.GET
-import retrofit.http.Path
-import retrofit.http.Query
+import kotlinx.coroutines.Deferred
+import retrofit2.Call
+import retrofit2.http.GET
+import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface CloudDriverService {
 
@@ -35,29 +37,29 @@ interface CloudDriverService {
     @Path("securityGroupName") securityGroupName: String,
     @Path("region") region: String,
     @Query("vpcId") vpcId: String? = null
-  ): SecurityGroup
+  ): Deferred<SecurityGroup>
 
   @GET("/securityGroups/{account}/{provider}")
   fun getSecurityGroupSummaries(
     @Path("account") account: String,
     @Path("provider") provider: String,
     @Query("region") region: String
-  ): Collection<SecurityGroupSummary>
+  ): Deferred<Collection<SecurityGroupSummary>>
 
   @GET("/networks")
-  fun listNetworks(): Map<String, Set<Network>>
+  fun listNetworks(): Deferred<Map<String, Set<Network>>>
 
   @GET("/networks/{cloudProvider}")
-  fun listNetworksByCloudProvider(@Path("cloudProvider") cloudProvider: String): Set<Network>
+  fun listNetworksByCloudProvider(@Path("cloudProvider") cloudProvider: String): Deferred<Set<Network>>
 
   @GET("/subnets/{cloudProvider}")
-  fun listSubnets(@Path("cloudProvider") cloudProvider: String): Set<Subnet>
+  fun listSubnets(@Path("cloudProvider") cloudProvider: String): Deferred<Set<Subnet>>
 
   @GET("/credentials")
-  fun listCredentials(): Set<Credential>
+  fun listCredentials(): Deferred<Set<Credential>>
 
   @GET("/credentials/{account}")
-  fun getCredential(@Path("account") account: String): Credential
+  fun getCredential(@Path("account") account: String): Deferred<Credential>
 
   @GET("/{provider}/loadBalancers/{account}/{region}/{name}")
   fun getLoadBalancer(
@@ -65,7 +67,7 @@ interface CloudDriverService {
     @Path("account") account: String,
     @Path("region") region: String,
     @Path("name") name: String
-  ): List<LoadBalancer>
+  ): Deferred<List<LoadBalancer>>
 
   @GET("/applications/{app}/clusters/{account}/{cluster}/{cloudProvider}/{region}/serverGroups/target/current_asg_dynamic?onlyEnabled=true")
   fun activeServerGroup(
@@ -74,5 +76,5 @@ interface CloudDriverService {
     @Path("cluster") cluster: String,
     @Path("region") region: String,
     @Path("cloudProvider") cloudProvider: String
-  ): ClusterActiveServerGroup
+  ): Deferred<ClusterActiveServerGroup>
 }

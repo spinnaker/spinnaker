@@ -16,12 +16,18 @@
 package com.netflix.spinnaker.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.jakewharton.retrofit2.adapter.kotlin.coroutines.CoroutineCallAdapterFactory
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.MemoryCloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.okhttp.AccountProvidingNetworkInterceptor
+import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties
 import com.netflix.spinnaker.okhttp.SpinnakerRequestInterceptor
-import com.squareup.okhttp.Interceptor
+import com.netflix.spinnaker.security.AuthenticatedRequest
+import okhttp3.HttpUrl
+import okhttp3.Interceptor
+import okhttp3.OkHttpClient
+import org.springframework.beans.factory.BeanCreationException
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -29,11 +35,8 @@ import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
-import retrofit.Endpoint
-import retrofit.Endpoints
-import retrofit.RestAdapter
-import retrofit.client.Client
-import retrofit.converter.JacksonConverter
+import retrofit2.Retrofit
+import retrofit2.converter.jackson.JacksonConverterFactory
 
 @Configuration
 @ConditionalOnProperty("clouddriver.enabled")
@@ -45,24 +48,41 @@ open class ClouddriverConfiguration {
     AccountProvidingNetworkInterceptor(applicationContext)
 
   @Bean
-  open fun clouddriverEndpoint(@Value("\${clouddriver.baseUrl}") clouddriverBaseUrl: String): Endpoint =
-    Endpoints.newFixedEndpoint(clouddriverBaseUrl)
+  open fun clouddriverEndpoint(@Value("\${clouddriver.baseUrl}") clouddriverBaseUrl: String): HttpUrl =
+    HttpUrl.parse(clouddriverBaseUrl)
+      ?: throw BeanCreationException("Invalid URL: $clouddriverBaseUrl")
 
   @Bean
   open fun clouddriverService(
-    clouddriverEndpoint: Endpoint,
+    clouddriverEndpoint: HttpUrl,
     objectMapper: ObjectMapper,
-    retrofitClient: Client,
+    retrofitClient: OkHttpClient,
     spinnakerRequestInterceptor: SpinnakerRequestInterceptor,
-    retrofitLogLevel: RestAdapter.LogLevel): CloudDriverService =
-    RestAdapter.Builder()
-      .setRequestInterceptor(spinnakerRequestInterceptor)
-      .setEndpoint(clouddriverEndpoint)
-      .setClient(retrofitClient)
-      .setLogLevel(retrofitLogLevel)
-      .setConverter(JacksonConverter(objectMapper))
+    okHttpClientConfigurationProperties: OkHttpClientConfigurationProperties)
+    : CloudDriverService {
+
+    // Inline version of SpinnakerRequestInterceptor from kork-web
+    retrofitClient.interceptors().add(Interceptor { chain ->
+      val requestBuilder = chain.request().newBuilder()
+      if (okHttpClientConfigurationProperties.propagateSpinnakerHeaders) {
+        AuthenticatedRequest
+          .getAuthenticationHeaders()
+          .forEach { k, v ->
+            v.ifPresent {
+              requestBuilder.addHeader(k, it)
+            }
+          }
+      }
+      chain.proceed(requestBuilder.build())
+    })
+    return Retrofit.Builder()
+      .addConverterFactory(JacksonConverterFactory.create(objectMapper))
+      .addCallAdapterFactory(CoroutineCallAdapterFactory())
+      .baseUrl(clouddriverEndpoint)
+      .client(retrofitClient)
       .build()
       .create(CloudDriverService::class.java)
+  }
 
   @Bean
   @ConditionalOnMissingBean(CloudDriverCache::class)
