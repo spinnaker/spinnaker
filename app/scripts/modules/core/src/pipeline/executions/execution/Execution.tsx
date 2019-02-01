@@ -63,7 +63,7 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
     const initialViewState = {
       activeStageId: Number($stateParams.stage),
       activeSubStageId: Number($stateParams.subStage),
-      executionId: execution.id,
+      executionId: $stateParams.executionId,
       canTriggerPipelineManually: false,
       canConfigure: false,
     };
