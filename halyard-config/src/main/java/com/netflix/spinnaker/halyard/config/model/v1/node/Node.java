@@ -18,6 +18,7 @@ package com.netflix.spinnaker.halyard.config.model.v1.node;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.config.secrets.EncryptedSecret;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.core.GlobalApplicationOptions;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
@@ -176,12 +177,25 @@ abstract public class Node implements Validatable {
 
     while (clazz != null) {
       res.addAll(Arrays.stream(clazz.getDeclaredFields())
-          .filter(f -> f.getDeclaredAnnotation(LocalFile.class) != null)
+              .filter(f -> f.getDeclaredAnnotation(LocalFile.class) != null && !isSecretFile(f))
           .collect(Collectors.toList()));
       clazz = clazz.getSuperclass();
     }
 
     return res;
+  }
+
+  public boolean isSecretFile(Field field) {
+    if (field.getDeclaredAnnotation(SecretFile.class) != null) {
+      try {
+        field.setAccessible(true);
+        String val = (String) field.get(this);
+        return val != null && EncryptedSecret.isEncryptedSecret(val);
+      } catch (IllegalAccessException e) {
+        return false;
+      }
+    }
+    return false;
   }
 
   public void stageLocalFiles(Path outputPath) {
