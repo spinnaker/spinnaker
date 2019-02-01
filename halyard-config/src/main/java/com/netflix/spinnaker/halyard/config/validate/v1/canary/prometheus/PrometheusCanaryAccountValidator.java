@@ -17,15 +17,16 @@
 package com.netflix.spinnaker.halyard.config.validate.v1.canary.prometheus;
 
 import com.google.common.base.Strings;
+import com.netflix.spinnaker.halyard.config.config.v1.secrets.SecretSessionManager;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.prometheus.PrometheusCanaryAccount;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.config.validate.v1.canary.CanaryAccountValidator;
-import com.netflix.spinnaker.halyard.config.validate.v1.util.ValidatingFileReader;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.ERROR;
@@ -34,6 +35,9 @@ import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.ERR
 @EqualsAndHashCode(callSuper = false)
 @Component
 public class PrometheusCanaryAccountValidator extends CanaryAccountValidator {
+
+  @Autowired
+  private SecretSessionManager secretSessionManager;
 
   @Override
   public void validate(ConfigProblemSetBuilder p, AbstractCanaryAccount n) {
@@ -46,7 +50,7 @@ public class PrometheusCanaryAccountValidator extends CanaryAccountValidator {
     String usernamePasswordFile = canaryAccount.getUsernamePasswordFile();
 
     if (StringUtils.isNotEmpty(usernamePasswordFile)) {
-      String usernamePassword = ValidatingFileReader.contents(p, usernamePasswordFile);
+      String usernamePassword = secretSessionManager.validatingFileDecrypt(p, usernamePasswordFile);
 
       if (Strings.isNullOrEmpty(usernamePassword)) {
         p.addProblem(ERROR, "The supplied username password file does not exist or is empty.")

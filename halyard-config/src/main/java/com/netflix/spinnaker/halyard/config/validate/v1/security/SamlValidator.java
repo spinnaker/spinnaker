@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.halyard.config.validate.v1.security;
 
+import com.netflix.spinnaker.config.secrets.EncryptedSecret;
+import com.netflix.spinnaker.halyard.config.config.v1.secrets.SecretSessionManager;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.model.v1.security.Saml;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
@@ -24,8 +26,10 @@ import lombok.val;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -36,6 +40,8 @@ import java.util.Collections;
 
 @Component
 public class SamlValidator extends Validator<Saml> {
+  @Autowired
+  private SecretSessionManager secretSessionManager;
 
   @Override
   public void validate(ConfigProblemSetBuilder p, Saml saml) {
@@ -83,12 +89,17 @@ public class SamlValidator extends Validator<Saml> {
 
     InputStream is = null;
     try {
-      File f = new File(new URI("file:" + saml.getKeyStore()));
-      is = new FileInputStream(f);
+      if (EncryptedSecret.isEncryptedSecret(saml.getKeyStore())) {
+        is = new ByteArrayInputStream(secretSessionManager.decrypt(saml.getKeyStore()).getBytes());
+      } else {
+        File f = new File(new URI("file:" + saml.getKeyStore()));
+        is = new FileInputStream(f);
+      }
+
       val keystore = KeyStore.getInstance(KeyStore.getDefaultType());
 
       // will throw an exception if `keyStorePassword` is invalid
-      keystore.load(is, saml.getKeyStorePassword().toCharArray());
+      keystore.load(is, secretSessionManager.decrypt(saml.getKeyStorePassword()).toCharArray());
 
       Collections.list(keystore.aliases())
                  .stream()

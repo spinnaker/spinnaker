@@ -19,23 +19,25 @@ package com.netflix.spinnaker.halyard.config.validate.v1.providers.dockerRegistr
 import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client.DefaultDockerOkClientProvider;
 import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client.DockerRegistryCatalog;
 import com.netflix.spinnaker.clouddriver.docker.registry.security.DockerRegistryNamedAccountCredentials;
+import com.netflix.spinnaker.halyard.config.config.v1.secrets.SecretSessionManager;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.dockerRegistry.DockerRegistryAccount;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
-import com.netflix.spinnaker.halyard.config.validate.v1.util.ValidatingFileReader;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 
 @Component
 @Slf4j
 public class DockerRegistryAccountValidator extends Validator<DockerRegistryAccount> {
+  @Autowired
+  private SecretSessionManager secretSessionManager;
+
   @Override
   public void validate(ConfigProblemSetBuilder p, DockerRegistryAccount n) {
     String resolvedPassword = null;
@@ -54,9 +56,9 @@ public class DockerRegistryAccountValidator extends Validator<DockerRegistryAcco
     }
 
     if (passwordProvided) {
-      resolvedPassword = password;
+      resolvedPassword = secretSessionManager.decrypt(password);
     } else if (passwordFileProvided) {
-      resolvedPassword = ValidatingFileReader.contents(p, passwordFile);
+      resolvedPassword = secretSessionManager.validatingFileDecrypt(p, passwordFile);
       if (resolvedPassword == null) {
         return;
       }
@@ -108,9 +110,9 @@ public class DockerRegistryAccountValidator extends Validator<DockerRegistryAcco
           .accountName(n.getName())
           .address(n.getAddress())
           .email(n.getEmail())
-          .password(n.getPassword())
+          .password(secretSessionManager.decrypt(n.getPassword()))
           .passwordCommand(n.getPasswordCommand())
-          .passwordFile(n.getPasswordFile())
+          .passwordFile(secretSessionManager.decryptAsFile(n.getPasswordFile()))
           .dockerconfigFile(n.getDockerconfigFile())
           .username(n.getUsername())
           .clientTimeoutMillis(n.getClientTimeoutMillis())

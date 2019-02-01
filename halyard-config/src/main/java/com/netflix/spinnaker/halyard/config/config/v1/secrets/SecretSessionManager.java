@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.halyard.config.config.v1.secrets;
 
 import com.netflix.spinnaker.config.secrets.SecretManager;
+import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
+import com.netflix.spinnaker.halyard.config.validate.v1.util.ValidatingFileReader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -67,6 +69,14 @@ public class SecretSessionManager {
    */
   public String decrypt(String filePathOrEncryptedString) {
     return secretManager.decrypt(filePathOrEncryptedString);
+  }
+
+  public String validatingFileDecrypt(ConfigProblemSetBuilder ps, String filePath) {
+    String contents = secretManager.decrypt(filePath);
+    if (contents.equals(filePath)) {
+      contents = ValidatingFileReader.contents(ps, filePath);
+    }
+    return contents;
   }
 
   /**

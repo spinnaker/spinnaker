@@ -1,11 +1,11 @@
 package com.netflix.spinnaker.halyard.config.validate.v1.providers.dcos;
 
 import com.google.common.base.Strings;
+import com.netflix.spinnaker.halyard.config.config.v1.secrets.SecretSessionManager;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.dcos.DCOSCluster;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
-import com.netflix.spinnaker.halyard.config.validate.v1.util.ValidatingFileReader;
-
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.ERROR;
@@ -16,6 +16,9 @@ import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.WAR
  */
 @Component
 public class DCOSClusterValidator extends Validator<DCOSCluster> {
+  @Autowired
+  private SecretSessionManager secretSessionManager;
+
   @Override
   public void validate(final ConfigProblemSetBuilder problems, final DCOSCluster cluster) {
 
@@ -24,8 +27,7 @@ public class DCOSClusterValidator extends Validator<DCOSCluster> {
     }
 
     if (!Strings.isNullOrEmpty(cluster.getCaCertFile())) {
-      String resolvedServiceKey = ValidatingFileReader.contents(problems, cluster.getCaCertFile());
-
+      String resolvedServiceKey = secretSessionManager.validatingFileDecrypt(problems, cluster.getCaCertFile());
       if (Strings.isNullOrEmpty(resolvedServiceKey)) {
         problems.addProblem(ERROR, "The supplied CA certificate file does not exist or is empty.")
                 .setRemediation("Supply a valid CA certificate file.");

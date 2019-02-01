@@ -25,7 +25,6 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = false)
 public class AzsPersistentStore extends PersistentStore {
   private String storageAccountName;
-  //TODO - cli out of date?
   @Secret private String storageAccountKey;
   private String storageContainerName;
 

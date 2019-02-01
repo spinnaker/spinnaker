@@ -2,6 +2,7 @@ package com.netflix.spinnaker.halyard.config.validate.v1.providers.dcos;
 
 import com.beust.jcommander.Strings;
 import com.beust.jcommander.internal.Lists;
+import com.netflix.spinnaker.halyard.config.config.v1.secrets.SecretSessionManager;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIterator;
@@ -11,7 +12,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.providers.containers.Docker
 import com.netflix.spinnaker.halyard.config.model.v1.providers.dcos.DCOSAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.dcos.DCOSCluster;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
-import com.netflix.spinnaker.halyard.config.validate.v1.util.ValidatingFileReader;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.HashSet;
@@ -28,6 +29,9 @@ import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.WAR
  */
 @Component
 public class DCOSAccountValidator extends Validator<DCOSAccount> {
+  @Autowired
+  private SecretSessionManager secretSessionManager;
+
   @Override
   public void validate(final ConfigProblemSetBuilder problems, final DCOSAccount account) {
     DeploymentConfiguration deploymentConfiguration;
@@ -111,7 +115,7 @@ public class DCOSAccountValidator extends Validator<DCOSAccount> {
       }
 
       if (!Strings.isStringEmpty(c.getServiceKeyFile())) {
-        String resolvedServiceKey = ValidatingFileReader.contents(problems, c.getServiceKeyFile());
+        String resolvedServiceKey = secretSessionManager.validatingFileDecrypt(problems, c.getServiceKeyFile());
 
         if (Strings.isStringEmpty(resolvedServiceKey)) {
           problems.addProblem(ERROR, "The supplied service key file does not exist or is empty.")

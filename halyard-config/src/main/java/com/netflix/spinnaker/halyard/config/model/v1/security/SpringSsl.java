@@ -41,10 +41,14 @@ public class SpringSsl extends Node {
 
   boolean enabled = false;
   String keyAlias;
-  @LocalFile @SecretFile String keyStore;
+  @LocalFile
+  @SecretFile
+  String keyStore;
   String keyStoreType;
-  @Secret String keyStorePassword;
-  @LocalFile @SecretFile
+  @Secret
+  String keyStorePassword;
+  @LocalFile
+  @SecretFile
   String trustStore;
   String trustStoreType;
   @Secret

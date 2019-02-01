@@ -19,6 +19,7 @@ package com.netflix.spinnaker.halyard.config.validate.v1.persistentStorage;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.front50.model.GcsStorageService;
 import com.netflix.spinnaker.front50.model.StorageService;
+import com.netflix.spinnaker.halyard.config.config.v1.secrets.SecretSessionManager;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.model.v1.persistentStorage.GcsPersistentStore;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
@@ -35,6 +36,9 @@ public class GCSValidator extends Validator<GcsPersistentStore> {
 
   @Autowired
   private Registry registry;
+
+  @Autowired
+  private SecretSessionManager secretSessionManager;
 
   @Autowired
   TaskScheduler taskScheduler;
@@ -55,7 +59,7 @@ public class GCSValidator extends Validator<GcsPersistentStore> {
           n.getBucketLocation(),
           n.getRootFolder(),
           n.getProject(),
-          jsonPath != null ? jsonPath : "",
+          jsonPath != null ? secretSessionManager.decryptAsFile(jsonPath) : "",
           "halyard",
           connectTimeoutSec,
           readTimeoutSec,

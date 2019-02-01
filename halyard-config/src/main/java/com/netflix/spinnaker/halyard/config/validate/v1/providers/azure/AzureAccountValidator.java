@@ -20,12 +20,14 @@ import com.microsoft.azure.CloudException;
 import com.microsoft.azure.management.resources.ResourcesOperations;
 import com.netflix.spinnaker.clouddriver.azure.client.AzureResourceManagerClient;
 import com.netflix.spinnaker.clouddriver.azure.security.AzureCredentials;
+import com.netflix.spinnaker.halyard.config.config.v1.secrets.SecretSessionManager;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.azure.AzureAccount;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
@@ -36,10 +38,13 @@ public class AzureAccountValidator extends Validator<AzureAccount> {
 
   final private String halyardVersion;
 
+  @Autowired
+  private SecretSessionManager secretSessionManager;
+
   @Override
   public void validate(ConfigProblemSetBuilder p, AzureAccount n) {
     String clientId = n.getClientId();
-    String appKey = n.getAppKey();
+    String appKey = secretSessionManager.decrypt(n.getAppKey());
     String tenantId = n.getTenantId();
     String subscriptionId = n.getSubscriptionId();
     String defaultResourceGroup = n.getDefaultResourceGroup();

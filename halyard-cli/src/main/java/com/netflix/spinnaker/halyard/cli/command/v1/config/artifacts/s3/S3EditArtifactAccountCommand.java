@@ -50,7 +50,6 @@ public class S3EditArtifactAccountCommand extends AbstractArtifactEditAccountCom
       description = AwsCommandProperties.ACCESS_KEY_ID_DESCRIPTION
   )
   private String awsAccessKeyId;
-  @Secret
   @Parameter(
       names = "--aws-secret-access-key",
       description = AwsCommandProperties.SECRET_KEY_DESCRIPTION,

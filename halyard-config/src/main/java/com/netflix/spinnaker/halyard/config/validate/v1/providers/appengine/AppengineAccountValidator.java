@@ -21,10 +21,10 @@ import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.KeyPair;
 import com.netflix.spinnaker.clouddriver.appengine.security.AppengineNamedAccountCredentials;
+import com.netflix.spinnaker.halyard.config.config.v1.secrets.SecretSessionManager;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.appengine.AppengineAccount;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
-import com.netflix.spinnaker.halyard.config.validate.v1.util.ValidatingFileReader;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -33,7 +33,10 @@ import org.springframework.stereotype.Component;
 public class AppengineAccountValidator extends Validator<AppengineAccount> {
   @Autowired
   String halyardVersion;
-  
+
+  @Autowired
+  private SecretSessionManager secretSessionManager;
+
   @Override
   public void validate(ConfigProblemSetBuilder p, AppengineAccount account) {
     String jsonKey = null;
@@ -61,7 +64,7 @@ public class AppengineAccountValidator extends Validator<AppengineAccount> {
         p.addProblem(Severity.ERROR, "SSH private key filepath supplied without SSH private key passphrase.");
       }
     } else if (hasSshPrivateKeyPassphrase && hasSshPrivateKeyFilePath) {
-      String sshPrivateKey = ValidatingFileReader.contents(p, account.getSshPrivateKeyFilePath());
+      String sshPrivateKey = secretSessionManager.validatingFileDecrypt(p, account.getSshPrivateKeyFilePath());
       if (sshPrivateKey == null) {
         return;
       } else if (sshPrivateKey.isEmpty()) {
@@ -69,8 +72,8 @@ public class AppengineAccountValidator extends Validator<AppengineAccount> {
       } else {
         try {
           // Assumes that the public key is sitting next to the private key with the extension ".pub".
-          KeyPair keyPair = KeyPair.load(new JSch(), account.getSshPrivateKeyFilePath());
-          boolean decrypted = keyPair.decrypt(account.getSshPrivateKeyPassphrase());
+          KeyPair keyPair = KeyPair.load(new JSch(), secretSessionManager.decryptAsFile(account.getSshPrivateKeyFilePath()));
+          boolean decrypted = keyPair.decrypt(secretSessionManager.decrypt(account.getSshPrivateKeyPassphrase()));
           if (!decrypted) {
             p.addProblem(Severity.ERROR, "Could not unlock SSH public/private keypair with supplied passphrase.");
           }
@@ -81,7 +84,7 @@ public class AppengineAccountValidator extends Validator<AppengineAccount> {
     }
     
     if (knownHostsPath != null && !knownHostsPath.isEmpty()) {
-      String knownHosts = ValidatingFileReader.contents(p, knownHostsPath);
+      String knownHosts = secretSessionManager.validatingFileDecrypt(p, knownHostsPath);
       if (knownHosts == null) {
         return;
       }
@@ -91,7 +94,7 @@ public class AppengineAccountValidator extends Validator<AppengineAccount> {
     }
 
     if (jsonPath != null && !jsonPath.isEmpty()) {
-      jsonKey = ValidatingFileReader.contents(p, account.getJsonPath());
+      jsonKey = secretSessionManager.validatingFileDecrypt(p, jsonPath);
       if (jsonKey == null) {
         return;
       } 

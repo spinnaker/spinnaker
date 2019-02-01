@@ -39,14 +39,12 @@ public class HelmEditArtifactAccountCommand extends AbstractArtifactEditAccountC
       description = "Helm chart repository basic auth username"
   )
   private String username;
-  @Secret
   @Parameter(
       names = "--password",
       password = true,
       description = "Helm chart repository basic auth password"
   )
   private String password;
-  @SecretFile
   @Parameter(
       names = "--username-password-file",
       converter = LocalFileConverter.class,

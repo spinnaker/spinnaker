@@ -176,7 +176,6 @@ public class KubernetesAccountValidator extends Validator<KubernetesAccount> {
       }
 
       kubeconfig = KubeConfigUtils.parseConfigFromString(kubeconfigContents);
-
     } catch (IOException e) {
       psBuilder.addProblem(ERROR, e.getMessage());
       return;

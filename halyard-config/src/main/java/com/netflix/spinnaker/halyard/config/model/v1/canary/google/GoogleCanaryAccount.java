@@ -18,18 +18,19 @@ package com.netflix.spinnaker.halyard.config.model.v1.canary.google;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials;
+import com.netflix.spinnaker.halyard.config.config.v1.secrets.SecretSessionManager;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryServiceIntegration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.LocalFile;
 import com.netflix.spinnaker.halyard.config.model.v1.node.SecretFile;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
-import com.netflix.spinnaker.halyard.config.validate.v1.util.ValidatingFileReader;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -46,11 +47,14 @@ public class GoogleCanaryAccount extends AbstractCanaryAccount implements Clonea
   private String rootFolder = "kayenta";
   private SortedSet<AbstractCanaryServiceIntegration.SupportedTypes> supportedTypes = new TreeSet<>();
 
+  @Autowired
+  private SecretSessionManager secretSessionManager;
+
   @JsonIgnore
   public GoogleNamedAccountCredentials getNamedAccountCredentials(String version, ConfigProblemSetBuilder p) {
     String jsonKey = null;
     if (!StringUtils.isEmpty(getJsonPath())) {
-      jsonKey = ValidatingFileReader.contents(p, getJsonPath());
+      jsonKey = secretSessionManager.validatingFileDecrypt(p, getJsonPath());
 
       if (jsonKey == null) {
         return null;
