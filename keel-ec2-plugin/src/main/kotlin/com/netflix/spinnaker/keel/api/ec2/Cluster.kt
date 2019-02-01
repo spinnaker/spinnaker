@@ -34,7 +34,7 @@ data class Cluster(
 
   // health
   val instanceMonitoring: Boolean,
-  val enabledMetrics: Collection<Metric>,
+  val enabledMetrics: Collection<Metric> = emptyList(),
   val cooldown: Duration = Duration.ofSeconds(10),
   val healthCheckGracePeriod: Duration = Duration.ofSeconds(600),
   val healthCheckType: HealthCheckType = EC2,
