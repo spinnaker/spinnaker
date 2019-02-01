@@ -3,7 +3,7 @@ import { react2angular } from 'react2angular';
 
 import { CloudfoundryDeployServiceStageConfig } from './CloudfoundryDeployServiceStageConfig';
 import { ExecutionDetailsTasks, IStage, Registry } from '@spinnaker/core';
-import { CloudfoundryDeployServiceExecutionDetails } from 'cloudfoundry/pipeline/stages/deployService/CloudfoundryDeployServiceExecutionDetails';
+import { CloudfoundryDeployServiceExecutionDetails } from './CloudfoundryDeployServiceExecutionDetails';
 import { IServiceFieldValidatorConfig } from 'cloudfoundry/pipeline/config/validation/ServiceFieldValidatorConfig';
 
 class CloudFoundryDeployServiceStageCtrl implements IController {

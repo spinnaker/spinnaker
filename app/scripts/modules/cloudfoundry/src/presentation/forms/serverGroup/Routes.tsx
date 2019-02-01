@@ -21,7 +21,7 @@ export class Routes extends React.Component<IRoutesProps> {
             &nbsp;
             <HelpField id="cf.serverGroup.routes" />
             <FieldArray
-              name="manifest.routes"
+              name={fieldName}
               render={arrayHelpers => {
                 const serverGroupCommand: ICloudFoundryCreateServerGroupCommand = arrayHelpers.form.values;
                 const routes: string[] = getIn(serverGroupCommand, fieldName) || [];
