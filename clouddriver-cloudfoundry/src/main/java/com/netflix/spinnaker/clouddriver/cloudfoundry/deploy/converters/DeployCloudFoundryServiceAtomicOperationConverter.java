@@ -77,6 +77,10 @@ public class DeployCloudFoundryServiceAtomicOperationConverter extends AbstractC
         }
         converted.setUserProvidedServiceAttributes(userProvidedAttrs);
         break;
+      case "userProvidedArtifact":
+        converted.setServiceType("userProvided");
+        downloadAndProcessManifest(manifest, credentialsRepository, myMap -> converted.setUserProvidedServiceAttributes(convertUserProvidedServiceManifest(myMap)));
+        break;
     }
     return converted;
   }
@@ -88,14 +92,38 @@ public class DeployCloudFoundryServiceAtomicOperationConverter extends AbstractC
       .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
       .convertValue(manifestMap, new TypeReference<ServiceManifest>() {
       });
-
+    if (manifest.getService() == null) {
+      throw new IllegalArgumentException("Manifest is missing the service");
+    } else if (manifest.getServiceName() == null) {
+      throw new IllegalArgumentException("Manifest is missing the service name");
+    } else if(manifest.getServicePlan() == null) {
+      throw new IllegalArgumentException("Manifest is missing the service plan");
+    }
     DeployCloudFoundryServiceDescription.ServiceAttributes attrs = new DeployCloudFoundryServiceDescription.ServiceAttributes();
-
     attrs.setService(manifest.getService());
     attrs.setServiceName(manifest.getServiceName());
     attrs.setServicePlan(manifest.getServicePlan());
     attrs.setTags(manifest.getTags());
     attrs.setParameterMap(parseParameters(manifest.getParameters()));
+    return attrs;
+  }
+
+  @VisibleForTesting
+  DeployCloudFoundryServiceDescription.UserProvidedServiceAttributes convertUserProvidedServiceManifest(Map manifestMap) {
+    UserProvidedServiceManifest manifest = new ObjectMapper()
+      .setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE)
+      .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+      .convertValue(manifestMap, new TypeReference<UserProvidedServiceManifest>() {
+      });
+    if (manifest.getServiceName() == null) {
+      throw new IllegalArgumentException("Manifest is missing the service name");
+    }
+    DeployCloudFoundryServiceDescription.UserProvidedServiceAttributes attrs = new DeployCloudFoundryServiceDescription.UserProvidedServiceAttributes();
+    attrs.setServiceName(manifest.getServiceName());
+    attrs.setSyslogDrainUrl(manifest.getSyslogDrainUrl());
+    attrs.setRouteServiceUrl(manifest.getRouteServiceUrl());
+    attrs.setTags(manifest.getTags());
+    attrs.setCredentialsMap(parseParameters(manifest.getCredentialsMap()));
     return attrs;
   }
 
@@ -114,13 +142,10 @@ public class DeployCloudFoundryServiceAtomicOperationConverter extends AbstractC
 
   @Data
   private static class ServiceManifest {
-    @Nullable
     private String service;
 
-    @Nullable
     private String serviceName;
 
-    @Nullable
     private String servicePlan;
 
     @Nullable
@@ -128,5 +153,22 @@ public class DeployCloudFoundryServiceAtomicOperationConverter extends AbstractC
 
     @Nullable
     private String parameters;
+  }
+
+  @Data
+  private static class UserProvidedServiceManifest {
+    private String serviceName;
+
+    @Nullable
+    private String syslogDrainUrl;
+
+    @Nullable
+    private String routeServiceUrl;
+
+    @Nullable
+    private Set<String> tags;
+
+    @Nullable
+    private String credentialsMap;
   }
 }
