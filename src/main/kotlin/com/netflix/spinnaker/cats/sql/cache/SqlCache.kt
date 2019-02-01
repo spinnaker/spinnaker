@@ -71,9 +71,7 @@ class SqlCache(
   }
 
   override fun evictAll(type: String, ids: Collection<String>) {
-    // TODO: this only supports deleting resource records, not relationships. Both are primarily deleted
-    // TODO: by caching agents themselves. In both cases, this behavior may be incompatible with the
-    // TODO: titus streaming agent. Need to verify and potentially customize for this cache implementation.
+    // TODO: this only supports deleting resource records, not relationship rows.
     var deletedCount = 0
     var opCount = 0
     try {
@@ -83,8 +81,8 @@ class SqlCache(
             .where("id in (${chunk.joinToString(",") { "'$it'" }})")
             .execute()
         }
+        deletedCount += chunk.size
       }
-      deletedCount += readBatchSize
       opCount += 1
     } catch (e: Exception) {
       log.error("error evicting records", e)
@@ -469,18 +467,7 @@ class SqlCache(
       .filter { !currentIds.contains(it) }
       .toSet()
 
-    try {
-      toDelete.forEach { id ->
-        withRetry(RetryCategory.WRITE) {
-          jooq.deleteFrom(table(resourceTableName(type)))
-            .where(field("id").eq(id), field("agent").eq(agent))
-            .execute()
-        }
-        result.deleteQueries.incrementAndGet()
-      }
-    } catch (e: Exception) {
-      log.error("Error deleting stale resource", e)
-    }
+    evictAll(type, toDelete)
 
     return result
   }
