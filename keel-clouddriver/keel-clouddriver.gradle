@@ -1,16 +1,16 @@
 dependencies {
   implementation project(":keel-retrofit")
-  implementation "com.netflix.spinnaker.moniker:moniker:+"
-  implementation "com.fasterxml.jackson.core:jackson-databind:[2.9.6,)"
-  implementation "com.fasterxml.jackson.core:jackson-annotations:[2.9.6,)"
-  implementation "com.fasterxml.jackson.module:jackson-module-kotlin:[2.9.6,)"
-  implementation "com.github.jonpeterson:jackson-module-model-versioning:+"
-  implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:[2.9.6,)"
+  implementation "com.netflix.spinnaker.moniker:moniker:${spinnaker.version('moniker')}"
+  implementation "com.fasterxml.jackson.core:jackson-databind"
+  implementation "com.fasterxml.jackson.core:jackson-annotations"
+  implementation "com.fasterxml.jackson.module:jackson-module-kotlin"
+  implementation "com.github.jonpeterson:jackson-module-model-versioning:1.2.2"
+  implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
 
-  testImplementation "com.squareup.retrofit2:retrofit-mock:+"
-  testImplementation "com.squareup.okhttp3:mockwebserver:+"
-  testImplementation "com.oneeyedmen:minutest:+"
-  testImplementation "io.strikt:strikt-core:+"
+  testImplementation "com.squareup.retrofit2:retrofit-mock:${spinnaker.version('retrofit2')}"
+  testImplementation "com.squareup.okhttp3:mockwebserver:${spinnaker.version('okHttp3')}"
+  testImplementation "com.oneeyedmen:minutest:$minutestVersion"
+  testImplementation "io.strikt:strikt-core:$striktVersion"
 
   runtime "org.jetbrains.kotlin:kotlin-reflect"
 }

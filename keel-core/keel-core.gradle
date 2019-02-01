@@ -18,13 +18,13 @@ apply plugin: "java-library"
 apply from: "$rootDir/gradle/junit5.gradle"
 
 dependencies {
-  implementation "com.google.guava:guava:+"
-  implementation "com.fasterxml.jackson.core:jackson-databind:[2.9.6,)"
-  implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:[2.9.6,)"
-  implementation "com.fasterxml.jackson.module:jackson-module-kotlin:[2.9.6,)"
-  implementation "com.google.code.gson:gson:+"
+  implementation "com.google.guava:guava:${spinnaker.version('guava')}"
+  implementation "com.fasterxml.jackson.core:jackson-databind"
+  implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
+  implementation "com.fasterxml.jackson.module:jackson-module-kotlin"
+  implementation "com.google.code.gson:gson"
 
   testImplementation project(":keel-core-test")
-  testImplementation "io.strikt:strikt-core:+"
-  testImplementation "com.oneeyedmen:minutest:+"
+  testImplementation "io.strikt:strikt-core:$striktVersion"
+  testImplementation "com.oneeyedmen:minutest:$striktVersion"
 }

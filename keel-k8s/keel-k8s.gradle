@@ -5,10 +5,10 @@ apply from: "$rootDir/gradle/junit5.gradle"
 dependencies {
   implementation(project(":keel-core"))
   implementation("org.springframework.boot:spring-boot")
-  api("io.kubernetes:client-java:3.0.0")
+  api("io.kubernetes:client-java:$k8sVersion")
 
   testImplementation "org.springframework.boot:spring-boot-starter-web"
   testImplementation "org.springframework.boot:spring-boot-starter-test"
-  testImplementation "com.oneeyedmen:minutest:+"
-  testImplementation "io.strikt:strikt-core:+"
+  testImplementation "com.oneeyedmen:minutest:$minutestVersion"
+  testImplementation "io.strikt:strikt-core:$striktVersion"
 }

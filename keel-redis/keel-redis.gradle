@@ -19,13 +19,13 @@ apply from: "$rootDir/gradle/junit4.gradle"
 
 dependencies {
   implementation project(":keel-core")
-  implementation "com.netflix.spinnaker.kork:kork-jedis:2.+"
-  implementation("com.netflix.spinnaker.kork:kork-dynomite:2.+") {
+  implementation "com.netflix.spinnaker.kork:kork-jedis:${spinnaker.version('kork')}"
+  implementation("com.netflix.spinnaker.kork:kork-dynomite:${spinnaker.version('kork')}") {
     exclude module: "junit"
   }
   implementation "com.fasterxml.jackson.module:jackson-module-kotlin"
 
-  testImplementation "io.strikt:strikt-core:+"
+  testImplementation "io.strikt:strikt-core:$striktVersion"
   testImplementation project(":keel-spring-test-support")
   testImplementation project(":keel-core-test")
   testImplementation project(":keel-api")

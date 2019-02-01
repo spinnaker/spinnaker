@@ -3,9 +3,9 @@ apply from: "$rootDir/gradle/junit5.gradle"
 
 dependencies {
   implementation project(":keel-plugin")
-  implementation "com.netflix.spinnaker.kork:kork-core:2.+"
+  implementation "com.netflix.spinnaker.kork:kork-core:${spinnaker.version('kork')}"
 
-  testImplementation "io.strikt:strikt-core:+"
-  testImplementation "com.oneeyedmen:minutest:+"
+  testImplementation "io.strikt:strikt-core:$striktVersion"
+  testImplementation "com.oneeyedmen:minutest:$minutestVersion"
 }
 

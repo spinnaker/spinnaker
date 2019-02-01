@@ -5,8 +5,8 @@ apply from: "$rootDir/gradle/junit5.gradle"
 dependencies {
   api project(":keel-core")
   implementation project(":keel-k8s")
-  implementation "com.netflix.spinnaker.kork:kork-core:2.+"
-  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:+")
+  implementation "com.netflix.spinnaker.kork:kork-core:${spinnaker.version('kork')}"
+  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
   implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
   implementation "com.fasterxml.jackson.module:jackson-module-kotlin"
   implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
@@ -14,6 +14,6 @@ dependencies {
 
   testImplementation "org.springframework.boot:spring-boot-starter-web"
   testImplementation "org.springframework.boot:spring-boot-starter-test"
-  testImplementation "com.oneeyedmen:minutest:+"
-  testImplementation "io.strikt:strikt-core:+"
+  testImplementation "com.oneeyedmen:minutest:$minutestVersion"
+  testImplementation "io.strikt:strikt-core:$striktVersion"
 }

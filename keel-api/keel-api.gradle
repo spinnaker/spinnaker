@@ -12,14 +12,14 @@ dependencies {
   implementation project(":keel-file-plugin")
   implementation project(":keel-redis")
 
-  implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:+"
-  implementation "com.netflix.spinnaker.kork:kork-core:2.+"
+  implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion"
+  implementation "com.netflix.spinnaker.kork:kork-core:${spinnaker.version('kork')}"
   implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
   implementation "com.fasterxml.jackson.module:jackson-module-kotlin"
   implementation "org.springframework.boot:spring-boot-starter-actuator"
   implementation "org.springframework.boot:spring-boot-starter-web"
 
-  testImplementation "io.strikt:strikt-core:+"
+  testImplementation "io.strikt:strikt-core:$striktVersion"
   testImplementation project(":keel-spring-test-support")
 }
 
