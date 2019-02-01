@@ -42,7 +42,7 @@ class SqlCacheSpec extends WriteableCacheSpec {
     ((SqlCache) cache).merge('foo', data)
 
     then:
-    1 * cacheMetrics.merge('test', 'foo', 1, 0, 2, 1, 0, 0)
+    1 * cacheMetrics.merge('test', 'foo', 1, 1, 0, 0, 2, 1, 0)
 
     when:
     ((SqlCache) cache).merge('foo', data)
@@ -51,7 +51,7 @@ class SqlCacheSpec extends WriteableCacheSpec {
     // SqlCacheMetrics currently sets items to # of items stored. The redis impl
     // sets this to # of items passed to merge, regardless of how many are actually stored
     // after deduplication. TODO: Having both metrics would be nice.
-    1 * cacheMetrics.merge('test', 'foo', 0, 0, 1, 0, 0, 0)
+    1 * cacheMetrics.merge('test', 'foo', 1, 0, 0, 0, 1, 0, 0)
   }
 
   def 'all items are stored and retrieved when larger than sql chunk sizes'() {

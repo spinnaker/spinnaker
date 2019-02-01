@@ -70,8 +70,13 @@ class SqlCache(
     log.info("Using ${javaClass.simpleName}")
   }
 
+  /**
+   * Only evicts cache records but not relationship rows
+   */
   override fun evictAll(type: String, ids: Collection<String>) {
-    // TODO: this only supports deleting resource records, not relationship rows.
+    if (ids.isEmpty()) {
+      return
+    }
     var deletedCount = 0
     var opCount = 0
     try {
@@ -82,8 +87,8 @@ class SqlCache(
             .execute()
         }
         deletedCount += chunk.size
+        opCount += 1
       }
-      opCount += 1
     } catch (e: Exception) {
       log.error("error evicting records", e)
     }
@@ -138,10 +143,11 @@ class SqlCache(
       prefix = name,
       type = type,
       itemCount = storeResult.itemCount.get(),
-      relationshipCount = 0,
+      itemsStored = storeResult.itemsStored.get(),
+      relationshipCount = storeResult.relationshipCount.get(),
+      relationshipsStored = storeResult.relationshipsStored.get(),
       selectOperations = storeResult.selectQueries.get(),
-      insertOperations = storeResult.insertQueries.get(),
-      updateOperations = storeResult.updateQueries.get(),
+      writeOperations = storeResult.writeQueries.get(),
       deleteOperations = storeResult.deleteQueries.get()
     )
   }
@@ -255,12 +261,23 @@ class SqlCache(
    * @return the identifiers for the type
    */
   override fun getIdentifiers(type: String): MutableCollection<String> {
-    return withRetry(RetryCategory.READ) {
+    var ids = withRetry(RetryCategory.READ) {
       jooq.select(field("id"))
         .from(table(resourceTableName(type)))
         .fetch()
         .intoSet(field("id"), String::class.java)
     }
+
+    cacheMetrics.get(
+      prefix = name,
+      type = type,
+      itemCount = ids.size,
+      requestedSize = ids.size,
+      relationshipsRequested = 0,
+      selectOperations = 1
+    )
+
+    return ids
   }
 
   /**
@@ -293,14 +310,26 @@ class SqlCache(
     } else {
       "SELECT id FROM ${resourceTableName(type)} WHERE id LIKE '${glob.replace('*', '%')}'"
     }
-    return try {
+
+    val ids = try {
       return withRetry(RetryCategory.READ) {
         jooq.fetch(sql).getValues(0, String::class.java)
       }
     } catch (e: Exception) {
       log.error("Failed searching for identifiers type: $type glob: $glob reason: ${e.message}", e)
-      mutableSetOf()
+      mutableSetOf<String>()
     }
+
+    cacheMetrics.get(
+      prefix = name,
+      type = type,
+      itemCount = ids.size,
+      requestedSize = ids.size,
+      relationshipsRequested = 0,
+      selectOperations = 1
+    )
+
+    return ids
   }
 
   /**
@@ -330,6 +359,7 @@ class SqlCache(
                                  items: MutableCollection<CacheData>,
                                  cleanup: Boolean): StoreResult {
     val result = StoreResult()
+    result.itemCount.addAndGet(items.size)
 
     val agent = if (type == ON_DEMAND.ns) {
       // onDemand keys aren't initially written by the agents that update and expire them. since agent is
@@ -408,7 +438,8 @@ class SqlCache(
         withRetry(RetryCategory.WRITE) {
           insert.execute()
         }
-        result.insertQueries.incrementAndGet()
+        result.itemsStored.addAndGet(chunk.size)
+        result.writeQueries.incrementAndGet()
       } catch (e: DataAccessException) {
         log.error("Error inserting ids: $chunk", e)
       } catch (e: SQLDialectNotSupportedException) {
@@ -432,8 +463,8 @@ class SqlCache(
                 .execute()
 
             }
-            result.updateQueries.incrementAndGet()
-            result.itemCount.incrementAndGet()
+            result.writeQueries.incrementAndGet()
+            result.itemsStored.incrementAndGet()
           } else {
             withRetry(RetryCategory.WRITE) {
               jooq.insertInto(
@@ -451,8 +482,8 @@ class SqlCache(
                 clock.millis()
               ).execute()
             }
-            result.insertQueries.incrementAndGet()
-            result.itemCount.incrementAndGet()
+            result.writeQueries.incrementAndGet()
+            result.itemsStored.incrementAndGet()
           }
         }
       }
@@ -544,6 +575,8 @@ class SqlCache(
             currentIds.add(fwdKey)
             currentIds.add(revKey)
 
+            result.relationshipCount.incrementAndGet()
+
             if (!oldFwdIds.contains(fwdKey)) {
               newFwdRelPointers.getOrPut(relType) { mutableListOf() }
                 .add(RelPointer(cacheData.id, r, rels.key))
@@ -582,6 +615,8 @@ class SqlCache(
           withRetry(RetryCategory.WRITE) {
             insert.execute()
           }
+          result.writeQueries.incrementAndGet()
+          result.relationshipsStored.addAndGet(chunk.size)
         } catch (e: Exception) {
           log.error("Error inserting forward relationships for $type -> $relType", e)
         }
@@ -610,6 +645,8 @@ class SqlCache(
             withRetry(RetryCategory.WRITE) {
               insert.execute()
             }
+            result.writeQueries.incrementAndGet()
+            result.relationshipsStored.addAndGet(chunk.size)
           } catch (e: Exception) {
             log.error("Error inserting reverse relationships for $relType -> $type", e)
           }
@@ -1146,9 +1183,11 @@ class SqlCache(
 
   private inner class StoreResult {
     val itemCount = AtomicInteger(0)
+    val itemsStored = AtomicInteger(0)
+    val relationshipCount = AtomicInteger(0)
+    val relationshipsStored = AtomicInteger(0)
     val selectQueries = AtomicInteger(0)
-    val insertQueries = AtomicInteger(0)
-    val updateQueries = AtomicInteger(0)
+    val writeQueries = AtomicInteger(0)
     val deleteQueries = AtomicInteger(0)
   }
 }

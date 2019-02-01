@@ -19,10 +19,11 @@ interface SqlCacheMetrics {
   fun merge(prefix: String,
             type: String,
             itemCount: Int,
+            itemsStored: Int,
             relationshipCount: Int,
+            relationshipsStored: Int,
             selectOperations: Int,
-            insertOperations: Int,
-            updateOperations: Int,
+            writeOperations: Int,
             deleteOperations: Int) {}
 
   fun evict(prefix: String,

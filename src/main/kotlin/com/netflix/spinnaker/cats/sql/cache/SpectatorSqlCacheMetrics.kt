@@ -26,17 +26,19 @@ class SpectatorSqlCacheMetrics(
   override fun merge(prefix: String,
                      type: String,
                      itemCount: Int,
+                     itemsStored: Int,
                      relationshipCount: Int,
+                     relationshipsStored: Int,
                      selectOperations: Int,
-                     insertOperations: Int,
-                     updateOperations: Int,
+                     writeOperations: Int,
                      deleteOperations: Int) {
     val tags = tags(prefix, type)
     registry.counter(id("cats.sqlCache.merge", "itemCount", tags)).increment(itemCount.toLong())
+    registry.counter(id("cats.sqlCache.merge", "itemsStored", tags)).increment(itemsStored.toLong())
     registry.counter(id("cats.sqlCache.merge", "relationshipCount", tags)).increment(relationshipCount.toLong())
+    registry.counter(id("cats.sqlCache.merge", "relationshipsStored", tags)).increment(relationshipsStored.toLong())
     registry.counter(id("cats.sqlCache.merge", "selectOperations", tags)).increment(selectOperations.toLong())
-    registry.counter(id("cats.sqlCache.merge", "insertOperations", tags)).increment(insertOperations.toLong())
-    registry.counter(id("cats.sqlCache.merge", "updateOperations", tags)).increment(updateOperations.toLong())
+    registry.counter(id("cats.sqlCache.merge", "writeOperations", tags)).increment(writeOperations.toLong())
     registry.counter(id("cats.sqlCache.merge", "deleteOperations", tags)).increment(deleteOperations.toLong())
   }
 
