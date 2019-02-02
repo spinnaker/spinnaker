@@ -261,7 +261,7 @@ class SqlCache(
    * @return the identifiers for the type
    */
   override fun getIdentifiers(type: String): MutableCollection<String> {
-    var ids = withRetry(RetryCategory.READ) {
+    val ids = withRetry(RetryCategory.READ) {
       jooq.select(field("id"))
         .from(table(resourceTableName(type)))
         .fetch()
@@ -287,9 +287,33 @@ class SqlCache(
    * @param identifiers the identifiers for the items
    * @return the list of identifiers that are present in the cache from the provided identifiers
    */
-  override fun existingIdentifiers(type: String, identifiers: MutableCollection<String>?): MutableCollection<String> {
-    log.info("${javaClass.simpleName} existingIdentifiers type: $type identifiers: $identifiers")
-    return mutableListOf()
+  override fun existingIdentifiers(type: String, identifiers: MutableCollection<String>): MutableCollection<String> {
+    var selects = 0
+    val existing = mutableListOf<String>()
+
+    identifiers.chunked(readBatchSize) { chunk ->
+      existing.addAll(
+        withRetry(RetryCategory.READ) {
+          jooq.select(field("id"))
+            .from(table(resourceTableName(type)))
+            .where("id in (${chunk.joinToString(",") { "'$it'" }})")
+            .fetch()
+            .intoSet(field("id"), String::class.java)
+        }
+      )
+      selects += 1
+    }
+
+    cacheMetrics.get(
+      prefix = name,
+      type = type,
+      itemCount = 0,
+      requestedSize = 0,
+      relationshipsRequested = 0,
+      selectOperations = selects
+    )
+
+    return existing
   }
 
   /**

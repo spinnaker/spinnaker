@@ -30,10 +30,8 @@ class SqlProviderCache(private val backingStore: WriteableCache) : ProviderCache
    * @param identifiers the identifiers for the items
    * @return the list of identifiers that are present in the cache from the provided identifiers
    */
-  override fun existingIdentifiers(type: String?, identifiers: MutableCollection<String>?): MutableCollection<String>? {
-    // TODO: this is used by kubernetesV2 and possibly search so needs implementing
-    log.debug("existingIdentifiers not implemented in ${this.javaClass}, should only be passe existing ids")
-    return identifiers
+  override fun existingIdentifiers(type: String, identifiers: MutableCollection<String>): MutableCollection<String> {
+    return backingStore.existingIdentifiers(type, identifiers)
   }
 
   /**
@@ -266,7 +264,7 @@ class SqlProviderCache(private val backingStore: WriteableCache) : ProviderCache
   private fun uniqueifyRelationships(source: CacheData, sourceAgentType: String): CacheData {
     val relationships = HashMap<String, Collection<String>>(source.relationships.size)
     for ((key, value) in source.relationships) {
-      relationships[key + ':'.toString() + sourceAgentType] = value
+      relationships["$key:$sourceAgentType"] = value
     }
     return DefaultCacheData(source.id, source.ttlSeconds, source.attributes, relationships)
   }
