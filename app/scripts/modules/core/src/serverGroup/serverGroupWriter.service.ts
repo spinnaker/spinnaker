@@ -1,4 +1,4 @@
-import { module } from 'angular';
+import { IPromise, module } from 'angular';
 
 import { Application } from 'core/application/application.model';
 import { ISecurityGroup, IServerGroup, ITask } from 'core/domain';
@@ -121,6 +121,20 @@ export class ServerGroupWriter {
       .join(', ');
   }
 
+  public mapLoadBalancers(serverGroup: IServerGroup, application: Application, params: any = {}): IPromise<ITask> {
+    params.type = 'mapLoadBalancers';
+    params.name = [serverGroup.name];
+    params.loadBalancerNames = serverGroup.loadBalancers;
+    params.region = serverGroup.region;
+    params.credentials = serverGroup.account;
+    params.cloudProvider = serverGroup.cloudProvider;
+    return TaskExecutor.executeTask({
+      job: [params],
+      application,
+      description: `Map load balancers for server group: ${serverGroup.name}`,
+    });
+  }
+
   public resizeServerGroup(
     serverGroup: IServerGroup,
     application: Application,
@@ -159,6 +173,20 @@ export class ServerGroupWriter {
       job: [params],
       application,
       description: `Rollback Server Group: ${serverGroup.name}`,
+    });
+  }
+
+  public unmapLoadBalancers(serverGroup: IServerGroup, application: Application, params: any = {}): IPromise<ITask> {
+    params.type = 'unmapLoadBalancers';
+    params.name = [serverGroup.name];
+    params.loadBalancerNames = serverGroup.loadBalancers;
+    params.region = serverGroup.region;
+    params.credentials = serverGroup.account;
+    params.cloudProvider = serverGroup.cloudProvider;
+    return TaskExecutor.executeTask({
+      job: [params],
+      application,
+      description: `Unmap load balancers for server group: ${serverGroup.name}`,
     });
   }
 

@@ -20,6 +20,8 @@ import { CloudFoundryCreateServerGroupModal } from 'cloudfoundry/serverGroup/con
 import { CloudFoundryReactInjector } from 'cloudfoundry/reactShims';
 import { CloudFoundryResizeServerGroupModal } from './resize/CloudFoundryResizeServerGroupModal';
 import { CloudFoundryRollbackServerGroupModal } from './rollback/CloudFoundryRollbackServerGroupModal';
+import { CloudFoundryMapLoadBalancersModal } from './mapLoadBalancers/CloudFoundryMapLoadBalancersModal';
+import { CloudFoundryUnmapLoadBalancersModal } from './mapLoadBalancers/CloudFoundryUnmapLoadBalancersModal';
 
 export interface ICloudFoundryServerGroupActionsProps extends IServerGroupActionsProps {
   serverGroup: ICloudFoundryServerGroup;
@@ -263,6 +265,16 @@ export class CloudFoundryServerGroupActions extends React.Component<ICloudFoundr
     CloudFoundryResizeServerGroupModal.show({ application: app, serverGroup });
   };
 
+  private mapServerGroupToLoadBalancers = (): void => {
+    const { app, serverGroup } = this.props;
+    CloudFoundryMapLoadBalancersModal.show({ application: app, serverGroup });
+  };
+
+  private unmapServerGroupFromLoadBalancers = (): void => {
+    const { app, serverGroup } = this.props;
+    CloudFoundryUnmapLoadBalancersModal.show({ application: app, serverGroup });
+  };
+
   private cloneServerGroup = (): void => {
     const { app, serverGroup } = this.props;
     CloudFoundryReactInjector.cfServerGroupCommandBuilder
@@ -282,7 +294,7 @@ export class CloudFoundryServerGroupActions extends React.Component<ICloudFoundr
 
   public render(): JSX.Element {
     const { app, serverGroup } = this.props;
-
+    const { loadBalancers } = serverGroup;
     const { AddEntityTagLinks } = NgReact;
     const showEntityTags = SETTINGS.feature && SETTINGS.feature.entityTags;
     const entityTagTargets: IOwnerOption[] = ClusterTargetBuilder.buildClusterTargets(serverGroup);
@@ -338,6 +350,22 @@ export class CloudFoundryServerGroupActions extends React.Component<ICloudFoundr
               Clone
             </a>
           </li>
+          {!serverGroup.isDisabled && (
+            <li>
+              <a className="clickable" onClick={this.mapServerGroupToLoadBalancers}>
+                Map Load Balancers
+              </a>
+            </li>
+          )}
+          {!serverGroup.isDisabled &&
+            loadBalancers &&
+            !!loadBalancers.length && (
+              <li>
+                <a className="clickable" onClick={this.unmapServerGroupFromLoadBalancers}>
+                  Unmap Load Balancers
+                </a>
+              </li>
+            )}
           {showEntityTags && (
             <AddEntityTagLinks
               component={serverGroup}

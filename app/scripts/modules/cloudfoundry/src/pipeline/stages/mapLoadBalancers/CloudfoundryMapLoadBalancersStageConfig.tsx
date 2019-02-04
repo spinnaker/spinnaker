@@ -1,70 +1,58 @@
 import * as React from 'react';
+
 import {
-  AccountService,
   Application,
   IAccount,
   IPipeline,
-  IRegion,
   IStageConfigProps,
   NgReact,
-  StageConstants,
   StageConfigField,
+  StageConstants,
 } from '@spinnaker/core';
 
-import { AccountRegionClusterSelector } from 'cloudfoundry/presentation';
+import { AccountRegionClusterSelector, Routes } from 'cloudfoundry/presentation';
+import { Formik } from 'formik';
 
-export interface ICloudfoundryDestroyAsgStageProps extends IStageConfigProps {
+interface ICloudfoundryLoadBalancerStageConfigProps extends IStageConfigProps {
+  accounts: IAccount[];
   pipeline: IPipeline;
 }
 
-export interface ICloudfoundryDestroyAsgStageConfigState {
-  accounts: IAccount[];
+interface ICloudFoundryMapLoadBalancersValues {
+  routes: string[];
+}
+
+interface ICloudfoundryMapLoadBalancersStageConfigState {
   application: Application;
   cloudProvider: string;
   credentials: string;
+  initialValues: ICloudFoundryMapLoadBalancersValues;
   pipeline: IPipeline;
   region: string;
-  regions: IRegion[];
-  serviceName: string;
   target: string;
 }
 
-export class CloudfoundryDestroyAsgStageConfig extends React.Component<
-  ICloudfoundryDestroyAsgStageProps,
-  ICloudfoundryDestroyAsgStageConfigState
+export class CloudfoundryMapLoadBalancersStageConfig extends React.Component<
+  ICloudfoundryLoadBalancerStageConfigProps,
+  ICloudfoundryMapLoadBalancersStageConfigState
 > {
-  constructor(props: ICloudfoundryDestroyAsgStageProps) {
+  private formikRef = React.createRef<Formik<ICloudFoundryMapLoadBalancersValues>>();
+
+  constructor(props: ICloudfoundryLoadBalancerStageConfigProps) {
     super(props);
     props.stage.cloudProvider = 'cloudfoundry';
     this.state = {
-      accounts: [],
       application: props.application,
       cloudProvider: 'cloudfoundry',
       credentials: props.stage.credentials,
+      initialValues: {
+        routes: props.stage.loadBalancerNames,
+      },
       pipeline: props.pipeline,
       region: props.stage.region,
-      regions: [],
-      serviceName: props.stage.serviceName,
       target: props.stage.target,
     };
   }
-
-  public componentDidMount = (): void => {
-    AccountService.listAccounts('cloudfoundry').then(accounts => {
-      this.setState({ accounts });
-      this.accountUpdated();
-    });
-    this.props.stageFieldUpdated();
-  };
-
-  private accountUpdated = (): void => {
-    const { credentials } = this.props.stage;
-    if (credentials) {
-      AccountService.getRegionsForAccount(credentials).then(regions => {
-        this.setState({ regions });
-      });
-    }
-  };
 
   private targetUpdated = (target: string) => {
     this.setState({ target });
@@ -74,14 +62,15 @@ export class CloudfoundryDestroyAsgStageConfig extends React.Component<
 
   private componentUpdated = (stage: any): void => {
     this.props.stage.credentials = stage.credentials;
-    this.props.stage.regions = stage.regions;
+    this.props.stage.region = stage.region;
     this.props.stage.cluster = stage.cluster;
+    this.props.stage.loadBalancerNames = stage.loadBalancerNames;
     this.props.stageFieldUpdated();
   };
 
   public render() {
-    const { stage } = this.props;
-    const { accounts, application, pipeline, target } = this.state;
+    const { accounts, stage } = this.props;
+    const { application, initialValues, pipeline, target } = this.state;
     const { TargetSelect } = NgReact;
     return (
       <div className="form-horizontal">
@@ -90,14 +79,30 @@ export class CloudfoundryDestroyAsgStageConfig extends React.Component<
             accounts={accounts}
             application={application}
             cloudProvider={'cloudfoundry'}
+            isSingleRegion={true}
             onComponentUpdate={this.componentUpdated}
             component={stage}
           />
         )}
-
         <StageConfigField label="Target">
           <TargetSelect model={{ target }} options={StageConstants.TARGET_LIST} onChange={this.targetUpdated} />
         </StageConfigField>
+        <Formik<ICloudFoundryMapLoadBalancersValues>
+          ref={this.formikRef}
+          initialValues={initialValues}
+          onSubmit={null}
+          render={() => {
+            return (
+              <Routes
+                fieldName={'routes'}
+                onChange={(routes: string[]) => {
+                  stage.loadBalancerNames = routes;
+                  this.componentUpdated(stage);
+                }}
+              />
+            );
+          }}
+        />
       </div>
     );
   }

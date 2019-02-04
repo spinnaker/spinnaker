@@ -70,7 +70,7 @@ export class CloudfoundryEnableAsgStageConfig extends React.Component<
     this.props.stageFieldUpdated();
   };
 
-  private componentUpdate = (stage: any): void => {
+  private componentUpdated = (stage: any): void => {
     this.props.stage.credentials = stage.credentials;
     this.props.stage.regions = stage.regions;
     this.props.stage.cluster = stage.cluster;
@@ -88,7 +88,7 @@ export class CloudfoundryEnableAsgStageConfig extends React.Component<
             accounts={accounts}
             application={application}
             cloudProvider={'cloudfoundry'}
-            onComponentUpdate={this.componentUpdate}
+            onComponentUpdate={this.componentUpdated}
             component={stage}
           />
         )}
