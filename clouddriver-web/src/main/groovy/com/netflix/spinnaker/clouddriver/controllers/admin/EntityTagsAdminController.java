@@ -69,4 +69,15 @@ public class EntityTagsAdminController {
       Optional.ofNullable(deleteFromSource).orElse(false)
     );
   }
+
+  @RequestMapping(value = "/deleteByTag/{tag}", method = RequestMethod.POST)
+  Map deleteByTag(@PathVariable("tag") String namespace,
+                  @RequestParam(name = "dryRun", defaultValue = "true") Boolean dryRun,
+                  @RequestParam(name = "deleteFromSource", defaultValue = "false") Boolean deleteFromSource) {
+    return entityTagsProvider.deleteByTag(
+      namespace,
+      Optional.ofNullable(dryRun).orElse(true),
+      Optional.ofNullable(deleteFromSource).orElse(false)
+    );
+  }
 }

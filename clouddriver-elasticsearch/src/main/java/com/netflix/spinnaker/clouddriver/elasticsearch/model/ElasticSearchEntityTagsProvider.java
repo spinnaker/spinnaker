@@ -48,14 +48,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
@@ -344,7 +337,10 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
 
     Map<String, List<EntityTags>> entityTagsByEntityTypeElasticsearch = new HashMap<>();
     entityTagsByEntityTypeFront50.keySet().forEach(entityType ->
-      entityTagsByEntityTypeElasticsearch.put(entityType, fetchAll(entityType, 5000, "2m"))
+      entityTagsByEntityTypeElasticsearch.put(
+        entityType,
+        fetchAll(QueryBuilders.matchAllQuery(), entityType, 5000, "2m")
+      )
     );
 
     Map<String, Map> metadata = new HashMap<>();
@@ -469,6 +465,98 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
     return results;
   }
 
+  @Override
+  public Map<String, Object> deleteByTag(String tag, boolean dryRun, boolean deleteFromSource) {
+    List<EntityTags> entityTagsForTag = getAllMatchingEntityTags(null, tag);
+
+    for (EntityTags entityTags : entityTagsForTag) {
+      // ensure that all matching tags (and their metadata) are removed
+      entityTags.setTags(
+        entityTags
+          .getTags()
+          .stream()
+          .filter(e -> !tag.equalsIgnoreCase(e.getName()))
+          .collect(Collectors.toList())
+      );
+
+      Set<String> tagNames = entityTags
+        .getTags()
+        .stream()
+        .map(e -> e.getName().toLowerCase())
+        .collect(Collectors.toSet());
+
+      entityTags.setTagsMetadata(
+        entityTags
+          .getTagsMetadata()
+          .stream()
+          .filter(e -> tagNames.contains(e.getName().toLowerCase()))
+          .collect(Collectors.toList())
+      );
+    }
+
+    Map results = new HashMap() {{
+      put("affectedIds", entityTagsForTag.stream().map(EntityTags::getId).collect(Collectors.toList()));
+      put("deletedFromSource", false);
+      put("deletedFromElasticsearch", false);
+    }};
+
+    if (!dryRun) {
+      bulkIndex(entityTagsForTag);
+      results.put("deletedFromElasticsearch", true);
+
+      if (deleteFromSource) {
+        Lists.partition(entityTagsForTag, 50).forEach(front50Service::batchUpdate);
+        results.put("deletedFromSource", true);
+      }
+    }
+
+    return results;
+  }
+
+  private List<EntityTags> getAllMatchingEntityTags(String namespace, String tag) {
+    Set<String> entityTagsIdentifiers = new HashSet<>();
+
+    List<EntityTags> entityTagsForTag = front50Service
+      .getAllEntityTags(false)
+      .stream()
+      .filter(e -> e.getTags().stream().anyMatch(t ->
+        (namespace != null && namespace.equalsIgnoreCase(t.getNamespace())) || (tag != null && tag.equalsIgnoreCase(t.getName()))
+      ))
+      .collect(Collectors.toList());
+
+    entityTagsIdentifiers.addAll(
+      entityTagsForTag.stream().map(e -> e.getId().toLowerCase()).collect(Collectors.toSet())
+    );
+
+    if (tag != null) {
+      BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery().must(
+        applyTagsToBuilder(null, Collections.singletonMap(tag, "*"))
+      );
+
+      fetchAll(queryBuilder, null, 5000, "2m").forEach(entityTags -> {
+        if (!entityTagsIdentifiers.contains(entityTags.getId())) {
+          entityTagsForTag.add(entityTags);
+          entityTagsIdentifiers.add(entityTags.getId().toLowerCase());
+        }
+      });
+    }
+
+    if (namespace != null) {
+      BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery().must(
+        applyTagsToBuilder(namespace, null)
+      );
+
+      fetchAll(queryBuilder, null, 5000, "2m").forEach(entityTags -> {
+        if (!entityTagsIdentifiers.contains(entityTags.getId())) {
+          entityTagsForTag.add(entityTags);
+          entityTagsIdentifiers.add(entityTags.getId().toLowerCase());
+        }
+      });
+    }
+
+    return entityTagsForTag;
+  }
+
   private QueryBuilder applyTagsToBuilder(String namespace, Map<String, Object> tags) {
     BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
 
@@ -524,13 +612,18 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
     }
   }
 
-  private List<EntityTags> fetchAll(String type, int scrollSize, String scrollTime) {
+  private List<EntityTags> fetchAll(QueryBuilder queryBuilder, String type, int scrollSize, String scrollTime) {
     SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
-    searchSourceBuilder.query(QueryBuilders.matchAllQuery());
+    searchSourceBuilder.query(queryBuilder);
 
-    Search search = new Search.Builder(searchSourceBuilder.toString())
-      .addIndex(activeElasticSearchIndex)
-      .addType(type)
+    Search.Builder builder = new Search.Builder(searchSourceBuilder.toString())
+      .addIndex(activeElasticSearchIndex);
+
+    if (type != null) {
+      builder.addType(type);
+    }
+
+    Search search = builder
       .setParameter(Parameters.SIZE, scrollSize)
       .setParameter(Parameters.SCROLL, scrollTime)
       .build();
