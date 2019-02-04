@@ -35,4 +35,5 @@ public class KubernetesSettings {
   String serviceAccountName = null;
   String serviceType = "ClusterIP";
   String nodePort = null;
+  Boolean useExecHealthCheck = true;
 }

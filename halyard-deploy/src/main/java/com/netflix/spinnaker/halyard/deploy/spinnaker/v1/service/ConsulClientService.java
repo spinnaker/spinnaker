@@ -110,7 +110,6 @@ abstract public class ConsulClientService extends SpinnakerService<ConsulApi> im
     // Host is what's bound to by the service.
     String host = "0.0.0.0";
     String scheme = "http";
-    Boolean useExecHealthCheck = true;
     String healthEndpoint = null;
     Boolean enabled = true;
     Boolean safeToUpdate = true;

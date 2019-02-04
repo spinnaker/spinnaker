@@ -124,7 +124,6 @@ abstract public class ClouddriverService extends SpringService<ClouddriverServic
     String host = "0.0.0.0";
     String scheme = "http";
     String healthEndpoint = "/health";
-    Boolean useExecHealthCheck = true;
     Boolean enabled = true;
     Boolean safeToUpdate = true;
     Boolean monitored = true;

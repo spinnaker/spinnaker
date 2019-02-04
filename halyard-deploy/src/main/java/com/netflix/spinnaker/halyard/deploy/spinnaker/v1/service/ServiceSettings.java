@@ -57,7 +57,6 @@ public class ServiceSettings {
   String overrideBaseUrl;
   String location;
   KubernetesSettings kubernetes = new KubernetesSettings();
-  Boolean useExecHealthCheck;
   Boolean enabled;
   Boolean basicAuthEnabled;
   Boolean monitored;

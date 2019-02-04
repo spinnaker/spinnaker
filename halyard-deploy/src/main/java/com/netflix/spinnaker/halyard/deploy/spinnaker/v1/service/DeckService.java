@@ -114,7 +114,6 @@ abstract public class DeckService extends SpinnakerService<DeckService.Deck> {
     String host = "0.0.0.0";
     String scheme = "http";
     String healthEndpoint = null;
-    Boolean useExecHealthCheck = true;
     Boolean enabled = true;
     Boolean safeToUpdate = true;
     Boolean monitored = false;

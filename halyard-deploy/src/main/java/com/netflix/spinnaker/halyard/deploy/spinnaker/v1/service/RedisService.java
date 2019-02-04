@@ -63,7 +63,6 @@ abstract public class RedisService extends SpinnakerService<Jedis> {
     String host = "0.0.0.0";
     String scheme = "redis";
     String healthEndpoint = null;
-    Boolean useExecHealthCheck = true;
     Boolean enabled = true;
     Boolean safeToUpdate = false;
     Boolean monitored = false;

@@ -324,7 +324,7 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
 
     TemplatedResource probe;
     if (StringUtils.isNotEmpty(settings.getHealthEndpoint())) {
-      if (settings.getUseExecHealthCheck()) {
+      if (settings.getKubernetes().getUseExecHealthCheck()) {
         probe = new JinjaJarResource("/kubernetes/manifests/execReadinessProbe.yml");
         probe.addBinding("command", getReadinessExecCommand(settings));
       } else {
