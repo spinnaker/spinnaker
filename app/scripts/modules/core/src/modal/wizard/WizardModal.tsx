@@ -4,10 +4,10 @@ import { Modal } from 'react-bootstrap';
 import { without, merge } from 'lodash';
 
 import { TaskMonitor } from 'core/task';
-import { IModalComponentProps } from 'core/presentation';
 import { NgReact } from 'core/reactShims';
 import { Spinner } from 'core/widgets';
 
+import { IModalComponentProps } from '../../presentation/ReactModal';
 import { ModalClose } from '../buttons/ModalClose';
 import { SubmitButton } from '../buttons/SubmitButton';
 import { WizardPage } from './WizardPage';
