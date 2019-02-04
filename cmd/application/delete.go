@@ -17,6 +17,7 @@ package application
 import (
 	"errors"
 	"fmt"
+	"github.com/spinnaker/spin/cmd/orca-tasks"
 	"net/http"
 
 	"github.com/spf13/cobra"
@@ -79,14 +80,18 @@ func deleteApplication(cmd *cobra.Command, args []string) error {
 		"application": applicationName,
 		"description": fmt.Sprintf("Delete Application: %s", applicationName),
 	}
-	_, resp, err = gateClient.TaskControllerApi.TaskUsingPOST1(gateClient.Context, deleteAppTask)
 
+	taskRef, resp, err := gateClient.TaskControllerApi.TaskUsingPOST1(gateClient.Context, deleteAppTask)
 	if err != nil {
 		return err
 	}
-
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("Encountered an error deleting application, status code: %d\n", resp.StatusCode)
+	}
+
+	err = orca_tasks.WaitForSuccessfulTask(gateClient, taskRef, 5)
+	if err != nil {
+		return err
 	}
 
 	util.UI.Output(util.Colorize().Color(fmt.Sprintf("[reset][bold][green]Application deleted")))

@@ -17,11 +17,9 @@ package application
 import (
 	"errors"
 	"fmt"
-	"strings"
-	"time"
-
 	"github.com/spf13/cobra"
 	"github.com/spinnaker/spin/cmd/gateclient"
+	"github.com/spinnaker/spin/cmd/orca-tasks"
 	"github.com/spinnaker/spin/util"
 )
 
@@ -112,61 +110,11 @@ func saveApplication(cmd *cobra.Command, options SaveOptions) error {
 		return err
 	}
 
-	toks := strings.Split(ref["ref"].(string), "/")
-	id := toks[len(toks)-1]
-
-	task, resp, err := gateClient.TaskControllerApi.GetTaskUsingGET1(gateClient.Context, id)
-	attempts := 0
-	for (task == nil || !taskCompleted(task)) && attempts < 5 {
-		toks := strings.Split(ref["ref"].(string), "/")
-		id := toks[len(toks)-1]
-
-		task, resp, err = gateClient.TaskControllerApi.GetTaskUsingGET1(gateClient.Context, id)
-		attempts += 1
-		time.Sleep(time.Duration(attempts*attempts) * time.Second)
-	}
-
+	err = orca_tasks.WaitForSuccessfulTask(gateClient, ref, 5)
 	if err != nil {
 		return err
-	}
-	if resp.StatusCode < 200 || resp.StatusCode > 299 {
-		return fmt.Errorf("Encountered an error saving application, status code: %d\n", resp.StatusCode)
-	}
-	if !taskSucceeded(task) {
-		return fmt.Errorf("Encountered an error saving application, task output was: %v\n", task)
 	}
 
 	util.UI.Info(util.Colorize().Color(fmt.Sprintf("[reset][bold][green]Application save succeeded")))
 	return nil
-}
-
-// TODO(jacobkiefer): Consider generalizing if we need these functions elsewhere.
-func taskCompleted(task map[string]interface{}) bool {
-	taskStatus, exists := task["status"]
-	if !exists {
-		return false
-	}
-
-	COMPLETED := [...]string{"SUCCEEDED", "STOPPED", "SKIPPED", "TERMINAL", "FAILED_CONTINUE"}
-	for _, status := range COMPLETED {
-		if taskStatus == status {
-			return true
-		}
-	}
-	return false
-}
-
-func taskSucceeded(task map[string]interface{}) bool {
-	taskStatus, exists := task["status"]
-	if !exists {
-		return false
-	}
-
-	SUCCESSFUL := [...]string{"SUCCEEDED", "STOPPED", "SKIPPED"}
-	for _, status := range SUCCESSFUL {
-		if taskStatus == status {
-			return true
-		}
-	}
-	return false
 }

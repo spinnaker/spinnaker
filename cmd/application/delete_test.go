@@ -24,7 +24,7 @@ import (
 )
 
 func TestApplicationDelete_basic(t *testing.T) {
-	ts := GateAppDeleteSuccess()
+	ts := testGateApplicationDeleteSuccess()
 	defer ts.Close()
 
 	currentCmd := NewDeleteCmd(applicationOptions{})
@@ -60,7 +60,7 @@ func TestApplicationDelete_fail(t *testing.T) {
 }
 
 func TestApplicationDelete_flags(t *testing.T) {
-	ts := GateAppDeleteSuccess()
+	ts := testGateApplicationDeleteSuccess()
 	defer ts.Close()
 
 	currentCmd := NewDeleteCmd(applicationOptions{})
@@ -77,16 +77,30 @@ func TestApplicationDelete_flags(t *testing.T) {
 	}
 }
 
-// GateAppDeleteSuccess spins up a local http server that we will configure the GateClient
-// to direct requests to. Responds with a 200 OK.
-func GateAppDeleteSuccess() *httptest.Server {
-	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+// testGateApplicationDeleteSuccess spins up a local http server that we will configure the GateClient
+// to direct requests to. Responds with successful responses to pipeline execute API calls.
+func testGateApplicationDeleteSuccess() *httptest.Server {
+	mux := http.NewServeMux()
+	mux.Handle("/applications/" + APP, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		payload := map[string]string{} // We don't use the payload, we are just checking if the target app exists.
+		b, _ := json.Marshal(&payload)
+		fmt.Fprintln(w, string(b))
+	}))
+	mux.Handle("/tasks", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		payload := map[string]string{
-			"ref": "/tasks/somethingtotallyreasonable",
+			"ref": "/tasks/id",
 		}
 		b, _ := json.Marshal(&payload)
 		fmt.Fprintln(w, string(b))
 	}))
+	mux.Handle("/tasks/id", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		payload := map[string]string{
+			"status": "SUCCEEDED",
+		}
+		b, _ := json.Marshal(&payload)
+		fmt.Fprintln(w, string(b))
+	}))
+	return httptest.NewServer(mux)
 }
 
 // GateAppDeleteFail spins up a local http server that we will configure the GateClient
