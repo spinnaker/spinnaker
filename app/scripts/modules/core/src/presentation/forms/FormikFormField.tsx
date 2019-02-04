@@ -11,7 +11,7 @@ import {
 } from './interface';
 import { WatchValue } from '../WatchValue';
 import { StandardFieldLayout } from './layouts/index';
-import { composeValidators, Validator, Validation } from './Validation';
+import { composeValidators, IValidator, Validators } from './validation';
 import { renderContent } from './fields/renderContent';
 
 export interface IFormikFieldProps<T> {
@@ -29,13 +29,13 @@ export interface IFormikFieldProps<T> {
    */
   fastField?: boolean;
   /** Inline validation function or functions */
-  validate?: Validator | Validator[];
+  validate?: IValidator | IValidator[];
   /** A callback that is invoked whenever the field value changes */
   onChange?: (value: T, prevValue: T) => void;
 }
 
 export interface IFormikFormFieldImplState {
-  internalValidators: Validator[];
+  internalValidators: IValidator[];
 }
 
 export type IFormikFormFieldProps<T> = IFormikFieldProps<T> & ICommonFormFieldProps & IFieldLayoutPropsWithoutInput;
@@ -55,13 +55,13 @@ export class FormikFormFieldImpl<T = any>
     internalValidators: [],
   };
 
-  private addValidator = (internalValidator: Validator) => {
+  private addValidator = (internalValidator: IValidator) => {
     this.setState(prevState => ({
       internalValidators: prevState.internalValidators.concat(internalValidator),
     }));
   };
 
-  private removeValidator = (internalValidator: Validator) => {
+  private removeValidator = (internalValidator: IValidator) => {
     this.setState(prevState => ({
       internalValidators: prevState.internalValidators.filter(x => x !== internalValidator),
     }));
@@ -129,9 +129,9 @@ export class FormikFormFieldImpl<T = any>
 export function createFieldValidator<T>(
   label: IFormikFormFieldProps<T>['label'],
   required: boolean,
-  validate: Validator[],
-): Validator {
-  const validator = composeValidators([!!required && Validation.isRequired()].concat(validate));
+  validate: IValidator[],
+): IValidator {
+  const validator = composeValidators([!!required && Validators.isRequired()].concat(validate));
 
   if (!validator) {
     return null;

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { FormikProps } from 'formik';
 
-import { Validation, FormikFormField, NumberInput, HelpField } from '@spinnaker/core';
+import { Validators, FormikFormField, NumberInput, HelpField } from '@spinnaker/core';
 
 import { IAmazonClassicLoadBalancerUpsertCommand } from 'amazon/domain';
 
@@ -14,6 +14,7 @@ export interface IAdvancedSettingsProps {
 export class AdvancedSettings extends React.Component<IAdvancedSettingsProps> {
   public render() {
     const { values } = this.props.formik;
+    const { maxValue } = Validators;
     return (
       <div className="form-group AmazonLoadBalancer-AdvancedSettings">
         <FormikFormField
@@ -23,7 +24,7 @@ export class AdvancedSettings extends React.Component<IAdvancedSettingsProps> {
           fastField={false} /* This field depends on healthInterval */
           help={<HelpField id="loadBalancer.advancedSettings.healthTimeout" />}
           input={props => <NumberInput {...props} min={0} max={values.healthInterval} />}
-          validate={Validation.maxValue(values.healthInterval, 'Timeout must be less than the health interval.')}
+          validate={maxValue(values.healthInterval, 'Timeout must be less than the health interval.')}
         />
 
         <FormikFormField

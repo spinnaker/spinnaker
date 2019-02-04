@@ -7,7 +7,7 @@ import { noop } from 'core/utils';
 import { createFieldValidator } from './FormikFormField';
 import { renderContent } from './fields/renderContent';
 import { StandardFieldLayout } from './layouts/index';
-import { Validator } from './Validation';
+import { IValidator } from './validation';
 import { WatchValue } from '../WatchValue';
 import {
   ICommonFormFieldProps,
@@ -21,7 +21,7 @@ import {
 import './forms.less';
 
 export interface IFormFieldValidationProps {
-  validate?: Validator | Validator[];
+  validate?: IValidator | IValidator[];
 }
 
 export type IFormFieldProps = IFormFieldValidationProps &
@@ -33,7 +33,7 @@ export type IFormFieldProps = IFormFieldValidationProps &
 interface IFormFieldState {
   validationMessage: IValidationProps['validationMessage'];
   validationStatus: IValidationProps['validationStatus'];
-  internalValidators: Validator[];
+  internalValidators: IValidator[];
 }
 
 const ifString = (val: any): string => (isString(val) ? val : undefined);
@@ -68,13 +68,13 @@ export class FormField extends React.Component<IFormFieldProps, IFormFieldState>
 
   public validationStatus = () => this.props.validationStatus || this.state.validationStatus;
 
-  private addValidator = (internalValidator: Validator) => {
+  private addValidator = (internalValidator: IValidator) => {
     this.setState(prevState => ({
       internalValidators: prevState.internalValidators.concat(internalValidator),
     }));
   };
 
-  private removeValidator = (internalValidator: Validator) => {
+  private removeValidator = (internalValidator: IValidator) => {
     this.setState(prevState => ({
       internalValidators: prevState.internalValidators.filter(x => x !== internalValidator),
     }));
