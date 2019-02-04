@@ -29,6 +29,9 @@ import java.util.Arrays;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -63,6 +66,12 @@ class RoutesTest {
     assertThat(routeId.getHost()).isEqualTo("demo1-prod");
     assertThat(routeId.getDomainGuid()).isEqualTo("domainGuid");
     assertThat(routeId.getPath()).isEqualTo("/path");
+  }
+
+  @Test
+  void toRouteIdReturnsNullForInvalidRoute() {
+    Routes routes = new Routes(null, null, null, null, null);
+    assertNull(routes.toRouteId("demo1-pro cf-app.com/path"));
   }
 
   @Test
@@ -124,5 +133,22 @@ class RoutesTest {
 
   private Resource<Route> createRouteResource(Route route) {
     return new Resource<Route>().setEntity(route).setMetadata(new Resource.Metadata().setGuid("route-guid"));
+  }
+
+  @Test
+  void validRouteFormatsReturnTrue() {
+    assertTrue(Routes.isValidRouteFormat("a.b"));
+    assertTrue(Routes.isValidRouteFormat("foo.bar"));
+    assertTrue(Routes.isValidRouteFormat("10_bLAh.org:3000"));
+    assertTrue(Routes.isValidRouteFormat("unbe-lievable.b_c.gov:9999/fo-o_bar"));
+  }
+
+  @Test
+  void invalidRouteFormatsReturnFalse() {
+    assertFalse(Routes.isValidRouteFormat("abc"));
+    assertFalse(Routes.isValidRouteFormat("ab.c d.com"));
+    assertFalse(Routes.isValidRouteFormat("ab.cd.com:a5b0"));
+    assertFalse(Routes.isValidRouteFormat("EBCDIC.com/DVORAK:a5b0"));
+    assertFalse(Routes.isValidRouteFormat("ab.cd.com/fo ba"));
   }
 }

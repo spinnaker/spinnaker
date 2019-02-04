@@ -17,16 +17,11 @@
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops;
 
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.RouteId;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.ProcessStats;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.CloudFoundryServerGroupNameResolver;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.DeployCloudFoundryServerGroupDescription;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryLoadBalancer;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryServerGroup;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.provider.view.CloudFoundryClusterProvider;
-import com.netflix.spinnaker.clouddriver.data.task.Task;
-import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult;
 import com.netflix.spinnaker.clouddriver.helpers.OperationPoller;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
@@ -36,22 +31,26 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nullable;
 import java.io.*;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
 import java.util.function.Function;
 
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops.CloudFoundryOperationUtils.describeProcessState;
 import static java.util.stream.Collectors.toList;
 
 @RequiredArgsConstructor
-public class DeployCloudFoundryServerGroupAtomicOperation implements AtomicOperation<DeploymentResult> {
+public class DeployCloudFoundryServerGroupAtomicOperation
+  extends AbstractCloudFoundryLoadBalancerMappingOperation
+  implements AtomicOperation<DeploymentResult> {
   private static final String PHASE = "DEPLOY";
 
   private final OperationPoller operationPoller;
   private final DeployCloudFoundryServerGroupDescription description;
   private final CloudFoundryClusterProvider clusterProvider;
 
-  private static Task getTask() {
-    return TaskRepository.threadLocalTask.get();
+  @Override
+  protected String getPhase() {
+    return PHASE;
   }
 
   @Override
@@ -77,7 +76,7 @@ public class DeployCloudFoundryServerGroupAtomicOperation implements AtomicOpera
 
     client.getServiceInstances().createServiceBindingsByName(serverGroup, description.getApplicationAttributes().getServices());
 
-    if (!mapRoutes(description.getApplicationAttributes().getRoutes(), description.getSpace(), serverGroup.getId())) {
+    if (!mapRoutes(description, description.getApplicationAttributes().getRoutes(), description.getSpace(), serverGroup.getId())) {
       return deploymentResult();
     }
 
@@ -203,51 +202,5 @@ public class DeployCloudFoundryServerGroupAtomicOperation implements AtomicOpera
     }
 
     throw new IllegalArgumentException("Invalid size for application " + field + " = '" + size + "'");
-  }
-
-  // VisibleForTesting
-  boolean mapRoutes(@Nullable List<String> routes, CloudFoundrySpace space, String serverGroupId) {
-    if (routes == null) {
-      getTask().updateStatus(PHASE, "No load balancers provided to create or update");
-      return true;
-    }
-
-    getTask().updateStatus(PHASE, "Creating or updating load balancers");
-
-    List<String> invalidRoutes = new ArrayList<>();
-
-    CloudFoundryClient client = description.getClient();
-    List<RouteId> routeIds = routes.stream()
-      .map(routePath -> {
-        RouteId routeId = client.getRoutes().toRouteId(routePath);
-        if (routeId == null) {
-          invalidRoutes.add(routePath);
-        }
-        return routeId;
-      })
-      .filter(Objects::nonNull)
-      .collect(toList());
-
-    for (String routePath : invalidRoutes) {
-      getTask().updateStatus(PHASE, "Invalid format or domain for route '" + routePath + "'");
-    }
-
-    if (!invalidRoutes.isEmpty()) {
-      getTask().fail();
-      return false;
-    }
-
-    for (RouteId routeId : routeIds) {
-      CloudFoundryLoadBalancer loadBalancer = client.getRoutes().createRoute(routeId, space.getId());
-      if (loadBalancer == null) {
-        getTask().updateStatus(PHASE, "Load balancer already exists in another organization and space");
-        getTask().fail();
-        return false;
-      }
-      getTask().updateStatus(PHASE, "Mapping load balancer '" + loadBalancer.getName() + "' to " + description.getServerGroupName());
-      client.getApplications().mapRoute(serverGroupId, loadBalancer.getId());
-    }
-
-    return true;
   }
 }

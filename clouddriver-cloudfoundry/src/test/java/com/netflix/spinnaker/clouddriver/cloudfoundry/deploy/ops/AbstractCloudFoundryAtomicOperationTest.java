@@ -25,8 +25,6 @@ import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import org.assertj.core.api.Condition;
 
 import static java.util.Collections.emptyList;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 class AbstractCloudFoundryAtomicOperationTest {
   final CloudFoundryClient client;

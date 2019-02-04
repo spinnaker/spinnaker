@@ -20,7 +20,6 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.ProcessSta
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.ScaleCloudFoundryServerGroupDescription;
 import com.netflix.spinnaker.clouddriver.helpers.OperationPoller;
 import com.netflix.spinnaker.clouddriver.model.ServerGroup;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.function.Supplier;
@@ -33,14 +32,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class ScaleCloudFoundryServerGroupAtomicOperationTest extends AbstractCloudFoundryAtomicOperationTest {
-  private ScaleCloudFoundryServerGroupDescription desc = new ScaleCloudFoundryServerGroupDescription();
+  private final ScaleCloudFoundryServerGroupDescription desc;
 
   ScaleCloudFoundryServerGroupAtomicOperationTest() {
-    super();
-  }
-
-  @BeforeEach
-  void before() {
+    desc = new ScaleCloudFoundryServerGroupDescription();
     desc.setClient(client);
     desc.setServerGroupName("myapp");
     desc.setCapacity(ServerGroup.Capacity.builder().desired(2).build());

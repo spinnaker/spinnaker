@@ -60,6 +60,7 @@ public class CloudFoundryInstance extends CloudFoundryModel implements Instance 
   public List<Map<String, Object>> getHealth() {
     Map<String, Object> health = new HashMap<>();
     health.put("healthClass", "platform");
+    health.put("type", "TargetGroup");
     health.put("state", (healthState == null ? HealthState.Unknown : healthState).toString());
     return Collections.singletonList(health);
   }

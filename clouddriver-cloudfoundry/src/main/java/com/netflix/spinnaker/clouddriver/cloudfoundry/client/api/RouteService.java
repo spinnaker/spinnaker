@@ -30,9 +30,6 @@ public interface RouteService {
   @GET("/v2/routes?results-per-page=100")
   Page<Route> all(@Query("page") Integer page, @Query("q") List<String> queryParams);
 
-  @GET("/v2/apps/{guid}/routes?results-per-page=100")
-  Page<Route> allAppRoutes(@Query("page") Integer page, @Path("guid") String appGuid);
-
   @GET("/v2/routes/{guid}")
   Resource<Route> findById(@Path("guid") String guid);
 
