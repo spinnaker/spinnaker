@@ -24,6 +24,7 @@ from distutils.version import LooseVersion
 
 from buildtool import (
     DEFAULT_BUILD_NUMBER,
+    SPIN_REPOSITORY_NAMES,
 
     BomSourceCodeManager,
     BranchSourceCodeManager,
@@ -61,7 +62,7 @@ DIST_ARCH_LIST = [
 class BuildSpinCommand(RepositoryCommandProcessor):
   def __init__(self, factory, options, **kwargs):
     super(BuildSpinCommand, self).__init__(
-      factory, options, source_repository_names=['spin'], **kwargs)
+      factory, options, source_repository_names=SPIN_REPOSITORY_NAMES, **kwargs)
     self.__gcs_uploader = SpinGcsUploader(options)
     self.__build_version = None  # recorded after build
     bom_contents = BomSourceCodeManager.load_bom(options)
