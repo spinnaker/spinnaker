@@ -415,11 +415,7 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
 
   @Override
   public Map<String, Object> deleteByNamespace(String namespace, boolean dryRun, boolean deleteFromSource) {
-    List<EntityTags> entityTagsForNamespace = front50Service
-      .getAllEntityTags(false)
-      .stream()
-      .filter(e -> e.getTags().stream().anyMatch(t -> namespace.equalsIgnoreCase(t.getNamespace())))
-      .collect(Collectors.toList());
+    List<EntityTags> entityTagsForNamespace = getAllMatchingEntityTags(namespace, null);
 
     for (EntityTags entityTags : entityTagsForNamespace) {
       // ensure that all tags (and their metadata) in the offending namespace are removed
@@ -543,7 +539,7 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
 
     if (namespace != null) {
       BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery().must(
-        applyTagsToBuilder(namespace, null)
+        applyTagsToBuilder(namespace, Collections.emptyMap())
       );
 
       fetchAll(queryBuilder, null, 5000, "2m").forEach(entityTags -> {
@@ -560,11 +556,13 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
   private QueryBuilder applyTagsToBuilder(String namespace, Map<String, Object> tags) {
     BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
 
-    for (Map.Entry<String, Object> entry : flatten(new HashMap<>(), null, tags).entrySet()) {
-      // restrict to specific tags (optional)
-      boolQueryBuilder.must(QueryBuilders.termQuery("tags.name", entry.getKey()));
-      if (!entry.getValue().equals("*")) {
-        boolQueryBuilder.must(QueryBuilders.matchQuery("tags.value", entry.getValue()));
+    if (tags != null && !tags.isEmpty()) {
+      for (Map.Entry<String, Object> entry : flatten(new HashMap<>(), null, tags).entrySet()) {
+        // restrict to specific tags (optional)
+        boolQueryBuilder.must(QueryBuilders.termQuery("tags.name", entry.getKey()));
+        if (!entry.getValue().equals("*")) {
+          boolQueryBuilder.must(QueryBuilders.matchQuery("tags.value", entry.getValue()));
+        }
       }
     }
 

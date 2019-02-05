@@ -167,7 +167,11 @@ class EntityTags {
 
       switch (valueType) {
         case EntityTagValueType.object:
-          return objectMapper.readValue(value.toString(), Map.class)
+          try {
+            return objectMapper.readValue(value.toString(), Map.class)
+          } catch (Exception e) {
+            return value
+          }
         default:
           return value
       }
