@@ -43,12 +43,8 @@ public class FiatStatus {
     this.dynamicConfigService = dynamicConfigService;
     this.fiatClientConfigurationProperties = fiatClientConfigurationProperties;
 
-    this.enabled = new AtomicBoolean(
-        dynamicConfigService.isEnabled("fiat", fiatClientConfigurationProperties.isEnabled())
-    );
-    this.legacyFallbackEnabled = new AtomicBoolean(
-        dynamicConfigService.isEnabled("fiat.legacyFallback", fiatClientConfigurationProperties.isLegacyFallback())
-    );
+    this.enabled = new AtomicBoolean(fiatClientConfigurationProperties.isEnabled());
+    this.legacyFallbackEnabled = new AtomicBoolean(fiatClientConfigurationProperties.isLegacyFallback());
 
     registry.gauge("fiat.enabled", enabled, value -> enabled.get() ? 1 : 0);
     registry.gauge("fiat.legacyFallback.enabled", legacyFallbackEnabled, value -> legacyFallbackEnabled.get() ? 1 : 0);
@@ -65,6 +61,10 @@ public class FiatStatus {
   @Scheduled(fixedDelay = 30000L)
   void refreshStatus() {
     try {
+      if (!fiatClientConfigurationProperties.isRefreshable()) {
+        return;
+      }
+
       enabled.set(dynamicConfigService.isEnabled("fiat", fiatClientConfigurationProperties.isEnabled()));
       legacyFallbackEnabled.set(
           dynamicConfigService.isEnabled("fiat.legacyFallback", fiatClientConfigurationProperties.isLegacyFallback())

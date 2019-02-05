@@ -30,6 +30,8 @@ public class FiatClientConfigurationProperties {
 
   private boolean legacyFallback = false;
 
+  private boolean refreshable = true;
+
   @NestedConfigurationProperty
   private PermissionsCache cache = new PermissionsCache();
 
