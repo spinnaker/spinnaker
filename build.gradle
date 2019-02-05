@@ -33,7 +33,7 @@ allprojects {
   group = "com.netflix.spinnaker.orca"
 
   ext {
-    spinnakerDependenciesVersion = '1.21.0'
+    spinnakerDependenciesVersion = '1.26.0'
     if (project.hasProperty('spinnakerDependenciesVersion')) {
       spinnakerDependenciesVersion = project.property('spinnakerDependenciesVersion')
     }
