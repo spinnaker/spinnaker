@@ -35,6 +35,7 @@ export interface IFeatures {
   [key: string]: any;
   canary?: boolean;
   chaosMonkey?: boolean;
+  displayTimestampsInUserLocalTime?: boolean;
   dockerBake?: boolean;
   entityTags?: boolean;
   fiatEnabled?: boolean;
@@ -86,7 +87,6 @@ export interface ISpinnakerSettings {
   defaultProviders: string[];
   defaultTimeZone: string; // see http://momentjs.com/timezone/docs/#/data-utilities/
   dockerInsights: IDockerInsightSettings;
-  displayTimestampsInUserLocalTime: boolean;
   entityTags?: {
     maxUrlLength?: number;
   };
