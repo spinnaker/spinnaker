@@ -49,9 +49,8 @@ export class ConfigBinModal extends React.Component<IConfigBinModalProps, IConfi
     // only want to touch expressions in this account; will retain others to add back on save
     const allExpressions = props.config.expressions;
 
-    const [editableExpressions, nonEditableExpressions] = partition(
-      allExpressions,
-      e => e.account === props.awsAccountId,
+    const [editableExpressions, nonEditableExpressions] = partition(allExpressions, e =>
+      [props.awsAccountId, '$(nf.account)'].includes(e.account),
     );
 
     const customExpressions: IClusterConfigExpression[] = [];
@@ -85,7 +84,7 @@ export class ConfigBinModal extends React.Component<IConfigBinModalProps, IConfi
     if (!model.isCustom) {
       expression.atlasUri = `http://atlas-main.${model.region}.${model.env}.netflix.net/api/v1/graph?q=name,${
         model.metric
-      },:eq,nf.cluster,${this.props.clusterName},:eq,:and,:sum,(,nf.asg,),:by`;
+      },:eq,nf.cluster,${this.props.clusterName},:eq,:and,:sum,(,nf.account,nf.asg,),:by`;
     }
     expression.comment = 'Created via Spinnaker';
     // might consider leaving these fields and using that to drive the custom/not-custom behavior
@@ -101,11 +100,11 @@ export class ConfigBinModal extends React.Component<IConfigBinModalProps, IConfi
     // pretty gross, but let's take our best guess at whether these are canned expressions by parsing the URL
     // e.g. http://atlas-main.us-east-1.prod.netflix.net/api/v1/graph?q=name,cgroup.cpu.processingTime,:eq,nf.cluster,cbmigrate-titus-autoscale2,:eq,:and,:sum,(,nf.asg,),:by
     let uri = expression.atlasUri;
-    if (!uri.startsWith('http://atlas-main.') || !uri.endsWith(',:eq,:and,:sum,(,nf.asg,),:by')) {
+    if (!uri.startsWith('http://atlas-main.') || !uri.endsWith(',:eq,:and,:sum,(,nf.account,nf.asg,),:by')) {
       model.isCustom = true;
       return model;
     }
-    uri = uri.replace('http://atlas-main.', '').replace(',:eq,:and,:sum,(,nf.asg,),:by', '');
+    uri = uri.replace('http://atlas-main.', '').replace(',:eq,:and,:sum,(,nf.account,nf.asg,),:by', '');
     const parts = uri.split('/');
     // should now have [ us-east-1.prod.netflix.net, api, v1, (graph...) ]
     const [region, env] = parts[0].split('.');
@@ -169,7 +168,7 @@ export class ConfigBinModal extends React.Component<IConfigBinModalProps, IConfi
 
   private getExpressionTemplate(): IExpressionModel {
     return {
-      account: this.props.awsAccountId,
+      account: '$(nf.account)',
       env: this.props.env,
       atlasUri: null,
       metricName: null,
