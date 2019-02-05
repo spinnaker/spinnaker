@@ -6,7 +6,7 @@ import { TextInput, FormikFormField, ModalClose, ReactModal, SubmitButton, noop 
 
 import { IAuthenticateOidcActionConfig } from 'amazon/loadBalancer/OidcConfigReader';
 
-import './ConfigureOidcConfigModal.css';
+import './ConfigureConfigModal.css';
 
 export interface IConfigureOidcConfigModalProps {
   config: IAuthenticateOidcActionConfig;
@@ -68,7 +68,7 @@ export class ConfigureOidcConfigModal extends React.Component<
     const submitLabel = 'Save Client';
 
     return (
-      <div className="ConfigureOidcConfigModal">
+      <div className="configure-config-modal">
         <Formik<IAuthenticateOidcActionConfig>
           initialValues={initialValues}
           onSubmit={this.submit}

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { $q } from 'ngimport';
 import { SortableContainer, SortableElement, SortableHandle, arrayMove, SortEnd } from 'react-sortable-hoc';
-import { difference, flatten, get, uniq } from 'lodash';
+import { difference, flatten, get, some, uniq } from 'lodash';
 import { FormikErrors, FormikProps } from 'formik';
 
 import {
@@ -26,12 +26,15 @@ import {
   IListenerRule,
   IListenerRuleCondition,
   ListenerRuleConditionField,
+  IRedirectActionConfig,
+  IListenerActionType,
 } from 'amazon/domain';
 import { AmazonCertificateReader } from 'amazon/certificates/AmazonCertificateReader';
 import { IAuthenticateOidcActionConfig, OidcConfigReader } from 'amazon/loadBalancer/OidcConfigReader';
 
 import { ConfigureOidcConfigModal } from './ConfigureOidcConfigModal';
 import { AmazonCertificateSelectField } from '../common/AmazonCertificateSelectField';
+import { ConfigureRedirectConfigModal } from './ConfigureRedirectConfigModal';
 
 export interface IALBListenersState {
   certificates: { [accountId: number]: IAmazonCertificate[] };
@@ -125,7 +128,9 @@ export class ALBListeners extends React.Component<IALBListenersProps, IALBListen
       const defaultActionsHaveMissingTarget = !!l.defaultActions.find(
         da =>
           (da.type === 'forward' && !da.targetGroupName) ||
-          (da.type === 'authenticate-oidc' && !da.authenticateOidcConfig.clientId),
+          (da.type === 'authenticate-oidc' && !da.authenticateOidcConfig.clientId) ||
+          (da.type === 'redirect' &&
+            (!da.redirectActionConfig || !some(da.redirectActionConfig, field => field && field !== ''))),
       );
       const rulesHaveMissingFields = !!l.rules.find(rule => {
         const missingTargets = !!rule.actions.find(a => a.type === 'forward' && !a.targetGroupName);
@@ -345,6 +350,21 @@ export class ALBListeners extends React.Component<IALBListenersProps, IALBListen
     this.updateListeners();
   };
 
+  private handleRuleActionTypeChanged = (action: IListenerAction, newType: IListenerActionType): void => {
+    action.type = newType;
+
+    if (action.type === 'forward') {
+      delete action.redirectActionConfig;
+    } else if (action.type === 'redirect') {
+      action.redirectActionConfig = {
+        statusCode: 'HTTP_301',
+      };
+      delete action.targetGroupName;
+    }
+
+    this.updateListeners();
+  };
+
   private handleSortEnd = (sortEnd: SortEnd, listener: IListenerDescription): void => {
     listener.rules = arrayMove(listener.rules, sortEnd.oldIndex, sortEnd.newIndex);
     this.updateListeners();
@@ -354,6 +374,14 @@ export class ALBListeners extends React.Component<IALBListenersProps, IALBListen
     ConfigureOidcConfigModal.show({ config: action.authenticateOidcConfig })
       .then((config: any) => {
         action.authenticateOidcConfig = config;
+      })
+      .catch(() => {});
+  };
+
+  private configureRedirect = (action: IListenerAction): void => {
+    ConfigureRedirectConfigModal.show({ config: action.redirectActionConfig })
+      .then((config: any) => {
+        action.redirectActionConfig = config;
       })
       .catch(() => {});
   };
@@ -424,6 +452,11 @@ export class ALBListeners extends React.Component<IALBListenersProps, IALBListen
 
   private oidcConfigChanged = (action: IListenerAction, config: IAuthenticateOidcActionConfig) => {
     action.authenticateOidcConfig = { ...config };
+    this.updateListeners();
+  };
+
+  private redirectConfigChanged = (action: IListenerAction, config: IRedirectActionConfig) => {
+    action.redirectActionConfig = { ...config };
     this.updateListeners();
   };
 
@@ -536,6 +569,7 @@ export class ALBListeners extends React.Component<IALBListenersProps, IALBListen
                           handleConditionFieldChanged={this.handleConditionFieldChanged}
                           handleConditionValueChanged={this.handleConditionValueChanged}
                           handleRuleActionTargetChanged={this.handleRuleActionTargetChanged}
+                          handleRuleActionTypeChanged={this.handleRuleActionTypeChanged}
                           listener={listener}
                           helperClass="rule-sortable-helper"
                           removeRule={this.removeRule}
@@ -543,8 +577,10 @@ export class ALBListeners extends React.Component<IALBListenersProps, IALBListen
                           targetGroups={values.targetGroups}
                           oidcConfigs={oidcConfigs}
                           oidcConfigChanged={this.oidcConfigChanged}
+                          redirectConfigChanged={this.redirectConfigChanged}
                           onSortEnd={sortEnd => this.handleSortEnd(sortEnd, listener)}
                           configureOidcClient={this.configureOidcClient}
+                          configureRedirect={this.configureRedirect}
                         />
                       </table>
                     </div>
@@ -583,16 +619,19 @@ interface IRuleProps {
   index: number;
   targetGroups: IALBTargetGroupDescription[];
   oidcConfigChanged: (action: IListenerAction, config: IAuthenticateOidcActionConfig) => void;
+  redirectConfigChanged: (action: IListenerAction, config: IRedirectActionConfig) => void;
   oidcConfigs: IAuthenticateOidcActionConfig[];
   ruleIndex: number;
   authenticateRuleToggle: (listener: IListenerDescription, index: number) => void;
   removeRule: (listener: IListenerDescription, index: number) => void;
   handleRuleActionTargetChanged: (action: IListenerAction, newTarget: string) => void;
+  handleRuleActionTypeChanged: (action: IListenerAction, newType: string) => void;
   addCondition: (rule: IListenerRule) => void;
   removeCondition: (rule: IListenerRule, index: number) => void;
   handleConditionFieldChanged: (condition: IListenerRuleCondition, newField: ListenerRuleConditionField) => void;
   handleConditionValueChanged: (condition: IListenerRuleCondition, newValue: string) => void;
   configureOidcClient: (action: IListenerAction) => void;
+  configureRedirect: (action: IListenerAction) => void;
 }
 
 const Rule = SortableElement((props: IRuleProps) => (
@@ -661,11 +700,14 @@ const Rule = SortableElement((props: IRuleProps) => (
         <Action
           key={index}
           action={action}
+          actionTypeChanged={type => props.handleRuleActionTypeChanged(action, type)}
           oidcConfigChanged={config => props.oidcConfigChanged(action, config)}
+          redirectConfigChanged={config => props.redirectConfigChanged(action, config)}
           targetChanged={target => props.handleRuleActionTargetChanged(action, target)}
           targetGroups={props.targetGroups}
           oidcConfigs={props.oidcConfigs}
           configureOidcClient={props.configureOidcClient}
+          configureRedirect={props.configureRedirect}
         />
       ))}
     </td>
@@ -684,26 +726,49 @@ const Rule = SortableElement((props: IRuleProps) => (
 const Action = (props: {
   action: IListenerAction;
   oidcConfigChanged: (config: IAuthenticateOidcActionConfig) => void;
+  redirectConfigChanged: (config: IRedirectActionConfig) => void;
+  actionTypeChanged: (actionType: string) => void;
   targetChanged: (newTarget: string) => void;
   targetGroups: IALBTargetGroupDescription[];
   oidcConfigs: IAuthenticateOidcActionConfig[];
   configureOidcClient: (action: IListenerAction) => void;
+  configureRedirect: (action: IListenerAction) => void;
 }) => {
-  if (props.action.type === 'forward') {
+  if (props.action.type !== 'authenticate-oidc') {
+    // TODO: Support redirect
     return (
       <div className="horizontal middle" style={{ height: '30px' }}>
-        <span style={{ whiteSpace: 'pre' }}>forward to </span>
         <select
           className="form-control input-sm"
-          value={props.action.targetGroupName}
-          onChange={event => props.targetChanged(event.target.value)}
-          required={true}
+          style={{ width: '80px' }}
+          value={props.action.type}
+          onChange={event => props.actionTypeChanged(event.target.value)}
         >
-          <option value="" />
-          {uniq(props.targetGroups.map(tg => tg.name)).map(name => (
-            <option key={name}>{name}</option>
-          ))}
+          <option value="forward">forward to</option>
+          <option value="redirect">redirect to</option>
         </select>
+        {props.action.type === 'forward' && (
+          <select
+            className="form-control input-sm"
+            value={props.action.targetGroupName}
+            onChange={event => props.targetChanged(event.target.value)}
+            required={true}
+          >
+            <option value="" />
+            {uniq(props.targetGroups.map(tg => tg.name)).map(name => (
+              <option key={name}>{name}</option>
+            ))}
+          </select>
+        )}
+        {props.action.type === 'redirect' && (
+          <button
+            className="btn btn-link no-padding"
+            type="button"
+            onClick={() => props.configureRedirect(props.action)}
+          >
+            Configure...
+          </button>
+        )}
       </div>
     );
   }
@@ -798,6 +863,7 @@ interface IRulesProps {
   authenticateRuleToggle: (listener: IListenerDescription, index: number) => void;
   removeRule: (listener: IListenerDescription, index: number) => void;
   handleRuleActionTargetChanged: (action: IListenerAction, newTarget: string) => void;
+  handleRuleActionTypeChanged: (action: IListenerAction, type: string) => void;
   addCondition: (rule: IListenerRule) => void;
   removeCondition: (rule: IListenerRule, index: number) => void;
   handleConditionFieldChanged: (condition: IListenerRuleCondition, newField: ListenerRuleConditionField) => void;
@@ -805,8 +871,10 @@ interface IRulesProps {
   listener: IListenerDescription;
   targetGroups: IALBTargetGroupDescription[];
   oidcConfigChanged: (action: IListenerAction, config: IAuthenticateOidcActionConfig) => void;
+  redirectConfigChanged: (action: IListenerAction, config: IRedirectActionConfig) => void;
   oidcConfigs: IAuthenticateOidcActionConfig[];
   configureOidcClient: (action: IListenerAction) => void;
+  configureRedirect: (action: IListenerAction) => void;
 }
 
 const Rules = SortableContainer((props: IRulesProps) => (
@@ -819,11 +887,14 @@ const Rules = SortableContainer((props: IRulesProps) => (
           <Action
             key={index}
             action={action}
+            actionTypeChanged={type => props.handleRuleActionTypeChanged(action, type)}
             targetChanged={target => props.handleRuleActionTargetChanged(action, target)}
             targetGroups={props.targetGroups}
             oidcConfigs={props.oidcConfigs}
             oidcConfigChanged={config => props.oidcConfigChanged(action, config)}
+            redirectConfigChanged={config => props.redirectConfigChanged(action, config)}
             configureOidcClient={props.configureOidcClient}
+            configureRedirect={props.configureRedirect}
           />
         ))}
       </td>
@@ -843,7 +914,9 @@ const Rules = SortableContainer((props: IRulesProps) => (
         handleConditionFieldChanged={props.handleConditionFieldChanged}
         handleConditionValueChanged={props.handleConditionValueChanged}
         handleRuleActionTargetChanged={props.handleRuleActionTargetChanged}
+        handleRuleActionTypeChanged={props.handleRuleActionTypeChanged}
         oidcConfigChanged={props.oidcConfigChanged}
+        redirectConfigChanged={props.redirectConfigChanged}
         removeCondition={props.removeCondition}
         authenticateRuleToggle={props.authenticateRuleToggle}
         removeRule={props.removeRule}
@@ -853,6 +926,7 @@ const Rules = SortableContainer((props: IRulesProps) => (
         index={index}
         ruleIndex={index}
         configureOidcClient={props.configureOidcClient}
+        configureRedirect={props.configureRedirect}
       />
     ))}
     <tr className="not-sortable">

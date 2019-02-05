@@ -14,7 +14,7 @@ import { IAmazonServerGroup } from './IAmazonServerGroup';
 
 export type ClassicListenerProtocol = 'HTTP' | 'HTTPS' | 'TCP' | 'SSL';
 export type ALBListenerProtocol = 'HTTP' | 'HTTPS';
-export type IListenerActionType = 'forward' | 'authenticate-oidc';
+export type IListenerActionType = 'forward' | 'authenticate-oidc' | 'redirect';
 export type NLBListenerProtocol = 'TCP';
 
 export interface IAmazonLoadBalancer extends ILoadBalancer {
@@ -66,9 +66,19 @@ export interface IAmazonNetworkLoadBalancer extends IAmazonLoadBalancer {
   idleTimeout: number;
 }
 
+export interface IRedirectActionConfig {
+  host?: string;
+  path?: string;
+  port?: string;
+  protocol?: 'HTTP' | 'HTTPS' | '#{protocol}';
+  query?: string;
+  statusCode: 'HTTP_301' | 'HTTP_302';
+}
+
 export interface IListenerAction {
   authenticateOidcConfig?: IAuthenticateOidcActionConfig;
   order?: number;
+  redirectActionConfig?: IRedirectActionConfig;
   targetGroupName?: string;
   type: IListenerActionType;
 }
