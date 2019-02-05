@@ -65,6 +65,22 @@ abstract class CacheSpec extends Specification {
         cache.getIdentifiers('foo').sort() == ['bar', 'baz']
     }
 
+    def 'existingIdentifiers behavior'() {
+        given:
+        def writtenIds = ['this', 'is', 'not', 'a', 'test']
+        def idsToCheck = ['foo', 'bar', 'test', 'baz', 'this']
+
+        for (String id : writtenIds) {
+            populateOne('foo', id)
+        }
+
+        when:
+        def existingIds = cache.existingIdentifiers('foo', idsToCheck)
+
+        then:
+        existingIds.sort() == ['test', 'this']
+    }
+
     def 'filterIdentifiers behaviour'() {
         setup:
         for (String id : identifiers) {
