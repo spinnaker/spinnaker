@@ -147,9 +147,9 @@ export class AwsServerGroupConfigurationService {
       command.suspendedProcesses = command.suspendedProcesses || [];
       const processIndex = command.suspendedProcesses.indexOf(process);
       if (processIndex === -1) {
-        command.suspendedProcesses.push(process);
+        command.suspendedProcesses = command.suspendedProcesses.concat(process);
       } else {
-        command.suspendedProcesses.splice(processIndex, 1);
+        command.suspendedProcesses = command.suspendedProcesses.filter(p => p !== process);
       }
     };
 

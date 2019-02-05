@@ -27,8 +27,9 @@ export class ServerGroupZones extends React.Component<IServerGroupZonesProps>
   };
 
   private rebalanceToggled = () => {
-    const { values } = this.props.formik;
+    const { values, setFieldValue } = this.props.formik;
     values.toggleSuspendedProcess(values, 'AZRebalance');
+    setFieldValue('suspendedProcesses', values.suspendedProcesses);
     this.setState({});
   };
 

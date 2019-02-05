@@ -44,9 +44,7 @@ export class CapacitySelector extends React.Component<ICapacitySelectorProps> {
   private setMinMax(value: number) {
     const { command } = this.props;
     if (command.viewState.useSimpleCapacity) {
-      command.capacity.min = value;
-      command.capacity.max = value;
-      command.capacity.desired = value;
+      command.capacity = { min: value, max: value, desired: value };
       this.props.setFieldValue('useSourceCapacity', false);
       this.props.setFieldValue('capacity', command.capacity);
     }
@@ -61,6 +59,7 @@ export class CapacitySelector extends React.Component<ICapacitySelectorProps> {
   private capacityFieldChanged = (fieldName: 'min' | 'max' | 'desired', value: string) => {
     const { command, setFieldValue } = this.props;
     const num = Number.parseInt(value, 10);
+    command.capacity = { ...command.capacity };
     command.capacity[fieldName] = num;
     setFieldValue('capacity', command.capacity);
   };

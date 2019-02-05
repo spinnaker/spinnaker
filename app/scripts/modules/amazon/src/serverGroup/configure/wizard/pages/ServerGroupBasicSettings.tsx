@@ -131,8 +131,9 @@ export class ServerGroupBasicSettings
   }
 
   private clientRequestsChanged = () => {
-    const { values } = this.props.formik;
+    const { values, setFieldValue } = this.props.formik;
     values.toggleSuspendedProcess(values, 'AddToLoadBalancer');
+    setFieldValue('suspendedProcesses', values.suspendedProcesses);
     this.setState({});
   };
 

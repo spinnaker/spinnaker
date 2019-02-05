@@ -32,8 +32,9 @@ export class ServerGroupAdvancedSettingsCommon extends React.Component<IServerGr
   };
 
   private toggleSuspendedProcess = (process: string) => {
-    const { values } = this.props.formik;
+    const { values, setFieldValue } = this.props.formik;
     values.toggleSuspendedProcess(values, process);
+    setFieldValue('suspendedProcesses', values.suspendedProcesses);
     this.setState({});
   };
 
