@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.config.secrets;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -23,6 +24,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -91,8 +93,8 @@ public class SecretManager {
     }
 
     String decryptedContents = decrypt(filePathOrEncrypted);
-    if (decryptedContents == null) {
-      return null;
+    if (StringUtils.equals(decryptedContents, filePathOrEncrypted)) {
+      return Paths.get(filePathOrEncrypted);
     }
 
     decryptedFile = decryptedFilePath("tmp", decryptedContents);
