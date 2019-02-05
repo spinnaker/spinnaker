@@ -14,20 +14,19 @@ export interface IStepDetailsProps {
   stage: IExecutionStage;
 }
 
-export interface IStepDetailsState {
+export interface IStepDetailsSections {
   configSections?: string[];
   executionDetailsSections?: IExecutionDetailsSection[];
   provider: string;
   sourceUrl?: string;
 }
 
-export class StepDetails extends React.Component<IStepDetailsProps, IStepDetailsState> {
+export class StepDetails extends React.Component<IStepDetailsProps> {
   constructor(props: IStepDetailsProps) {
     super(props);
-    this.state = this.getState();
   }
 
-  private getState(): IStepDetailsState {
+  private deriveSectionsFromProps(): IStepDetailsSections {
     let configSections: string[] = [];
     let sourceUrl: string;
     let executionDetailsSections: IExecutionDetailsSection[];
@@ -50,13 +49,9 @@ export class StepDetails extends React.Component<IStepDetailsProps, IStepDetails
     return { configSections, executionDetailsSections, provider, sourceUrl };
   }
 
-  public componentWillReceiveProps() {
-    this.setState(this.getState());
-  }
-
   public render(): React.ReactElement<StepDetails> {
     const { application, config, execution, stage } = this.props;
-    const { executionDetailsSections, provider, sourceUrl, configSections } = this.state;
+    const { executionDetailsSections, provider, sourceUrl, configSections } = this.deriveSectionsFromProps();
     const { StepExecutionDetailsWrapper } = NgReact;
     const detailsProps = { application, config, execution, provider, stage };
 
