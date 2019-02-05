@@ -46,7 +46,7 @@ class ExpectedArtifactMultiSelectorComponent implements IComponentOptions {
                   height="16"
                   class="artifact-icon"
                   ng-src="{{ ctrl.iconPath($item) }}" />
-                {{ $item | summarizeExpectedArtifact }}
+                {{ $item.displayName }}
               </ui-select-match>
               <ui-select-choices repeat="expected.id as expected in ctrl.expectedArtifacts">
                 <img
@@ -55,7 +55,7 @@ class ExpectedArtifactMultiSelectorComponent implements IComponentOptions {
                   height="16"
                   class="artifact-icon"
                   ng-src="{{ ctrl.iconPath(expected) }}" />
-                <span>{{ expected | summarizeExpectedArtifact }}</span>
+                <span>{{ expected.displayName }}</span>
               </ui-select-choices>
             </ui-select>
           </stage-config-field>

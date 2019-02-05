@@ -1,3 +1,5 @@
+///<reference path="./human-readable-ids.d.ts" />
+
 import { PipelineConfigService } from 'core/pipeline';
 import { Registry } from 'core/registry';
 import {
@@ -10,6 +12,7 @@ import {
   IArtifactKindConfig,
 } from 'core/domain';
 import { UUIDGenerator } from 'core/utils';
+import { hri as HumanReadableIds } from 'human-readable-ids';
 
 export class ExpectedArtifactService {
   public static getExpectedArtifactsAvailableToStage(stage: IStage, pipeline: IPipeline): IExpectedArtifact[] {
@@ -55,6 +58,7 @@ export class ExpectedArtifactService {
         id: UUIDGenerator.generateUuid(),
         customKind: true,
       },
+      displayName: HumanReadableIds.random(),
     };
   }
 

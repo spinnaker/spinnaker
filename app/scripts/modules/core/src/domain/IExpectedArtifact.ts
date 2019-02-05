@@ -6,5 +6,6 @@ export interface IExpectedArtifact {
   useDefaultArtifact: boolean;
   defaultArtifact: IArtifact;
   boundArtifact?: IArtifact;
+  displayName: string;
   id: string;
 }

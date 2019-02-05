@@ -39,14 +39,6 @@ module.exports = angular
       $scope.pipeline.triggers.splice(triggerIndex, 1);
     };
 
-    this.summarizeExpectedArtifact = function(expected) {
-      const artifact = copy(expected.matchArtifact);
-      return Object.keys(artifact)
-        .filter(k => artifact[k])
-        .map(k => `${k}: ${artifact[k]}`)
-        .join(', ');
-    };
-
     this.loadTrigger = () => {
       const triggerBodyNode = $element.find('.trigger-body').get(0);
 

@@ -104,7 +104,10 @@ class ArtifactComponent implements IComponentOptions {
   public controllerAs = 'ctrl';
   public template = `
 <div class="form-group">
-  <div class="col-md-4 col-md-offset-1">
+  <label class="col-md-2 sm-label-right">
+      Kind
+  </label>
+  <div class="col-md-3">
     <ui-select class="form-control input-sm"
                required
                on-select="ctrl.onKindChange($item)"
@@ -123,11 +126,8 @@ class ArtifactComponent implements IComponentOptions {
     {{ctrl.kindConfig.description}}
   </div>
 </div>
-<hr>
 <div class="form-group">
-  <div class="col-md-12">
-    <div class="artifact-body"></div>
-  </div>
+  <div class="artifact-body"></div>
 </div>
 `;
 }

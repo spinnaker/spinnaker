@@ -85,6 +85,13 @@ export class ExpectedArtifactEditor extends React.Component<
     this.setState({ source: e });
   };
 
+  public onDisplayNameEdit = (e: React.FormEvent<HTMLInputElement>) => {
+    const newName = e.currentTarget.value;
+    const expectedArtifact = { ...this.state.expectedArtifact };
+    expectedArtifact.displayName = newName;
+    this.setState({ expectedArtifact });
+  };
+
   private onKindChange = (kind: IArtifactKindConfig) => {
     const expectedArtifact = cloneDeep(this.state.expectedArtifact);
     expectedArtifact.matchArtifact.type = kind.type;
@@ -129,6 +136,13 @@ export class ExpectedArtifactEditor extends React.Component<
     const EditCmp = kind && kind.editCmp;
     return (
       <>
+        <StageConfigField label="Display Name" fieldColumns={fieldColumns} groupClassName={fieldGroupClassName}>
+          <input
+            className="form-control input-sm"
+            value={expectedArtifact.displayName}
+            onChange={this.onDisplayNameEdit}
+          />
+        </StageConfigField>
         <StageConfigField label="Artifact Source" fieldColumns={fieldColumns} groupClassName={fieldGroupClassName}>
           <ExpectedArtifactSourceSelector sources={sources} selected={source} onChange={this.onSourceChange} />
         </StageConfigField>

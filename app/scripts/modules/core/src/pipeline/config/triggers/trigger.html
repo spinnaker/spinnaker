@@ -38,9 +38,9 @@
                            multiple
                            ng-model="trigger.expectedArtifactIds"
                            class="form-control input-sm">
-                  <ui-select-match>{{ triggerCtrl.summarizeExpectedArtifact($item) }}</ui-select-match>
+                  <ui-select-match>{{ $item.displayName }}</ui-select-match>
                   <ui-select-choices repeat="expected.id as expected in pipeline.expectedArtifacts">
-                    <span>{{ triggerCtrl.summarizeExpectedArtifact(expected) }}</span>
+                    <span>{{ expected.displayName }}</span>
                   </ui-select-choices>
                 </ui-select>
               </div>

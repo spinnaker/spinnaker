@@ -10,7 +10,6 @@ import { ExpectedArtifactService } from '../expectedArtifact.service';
 import { ARTIFACT_ACCOUNT_SELECTOR_COMPONENT_REACT } from './ArtifactAccountSelector';
 import { EXPECTED_ARTIFACT_KIND_SELECTOR_COMPONENT_REACT } from './ExpectedArtifactKindSelector';
 import { EXPECTED_ARTIFACT_SOURCE_SELECTOR_COMPONENT_REACT } from './ExpectedArtifactSourceSelector';
-import { summarizeExpectedArtifact } from '../summarizeExpectedArtifact';
 
 export interface IExpectedArtifactSelectorProps {
   expectedArtifacts: IExpectedArtifact[];
@@ -38,8 +37,6 @@ export class ExpectedArtifactSelector extends React.Component<IExpectedArtifactS
     showIcons: true,
   };
 
-  private summarizeExpectedArtifact = summarizeExpectedArtifact(['kind', 'id', 'customKind']);
-
   private renderOption = (e: IExpectedArtifactSelectorOption) => {
     if (!e.expectedArtifact && !e.requestingNew) {
       return <span />;
@@ -50,7 +47,7 @@ export class ExpectedArtifactSelector extends React.Component<IExpectedArtifactS
       return (
         <span>
           {this.props.showIcons && <ArtifactIcon expectedArtifact={e.expectedArtifact} width="16" height="16" />}
-          {this.summarizeExpectedArtifact(e.expectedArtifact)}
+          {e.expectedArtifact.displayName}
         </span>
       );
     }
