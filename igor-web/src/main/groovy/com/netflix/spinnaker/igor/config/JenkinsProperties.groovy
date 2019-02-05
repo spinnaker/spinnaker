@@ -22,6 +22,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.validation.annotation.Validated
 
 import javax.validation.Valid
+import java.security.KeyStore
+
 /**
  * Helper class to map masters in properties file into a validated property map
  */
@@ -53,5 +55,11 @@ class JenkinsProperties {
         String token
 
         Integer itemUpperThreshold;
+
+        String trustStore
+        String trustStoreType = KeyStore.getDefaultType()
+        String trustStorePassword
+
+        Boolean skipHostnameVerification = false
     }
 }

@@ -45,8 +45,15 @@ import retrofit.RestAdapter
 import retrofit.client.OkClient
 import retrofit.converter.JacksonConverter
 
+import javax.net.ssl.SSLContext
+import javax.net.ssl.TrustManager
+import javax.net.ssl.TrustManagerFactory
+import javax.net.ssl.X509TrustManager
 import javax.validation.Valid
 import java.lang.reflect.Proxy
+import java.security.KeyStore
+import java.security.cert.CertificateException
+import java.security.cert.X509Certificate
 import java.util.concurrent.TimeUnit
 
 /**
@@ -122,6 +129,37 @@ class JenkinsConfig {
                                        int timeout = 30000) {
         client.setReadTimeout(timeout, TimeUnit.MILLISECONDS)
 
+        if (host.skipHostnameVerification) {
+            client.setHostnameVerifier({ hostname, _ ->
+                true
+            })
+        }
+
+        if (host.trustStore) {
+            TrustManager[] trustManagers
+
+            if (host.trustStore.equals("*")) {
+                trustManagers = [new TrustAllTrustManager()]
+            } else {
+                def trustStorePassword = host.trustStorePassword
+
+                def trustStore = KeyStore.getInstance(host.trustStoreType)
+                new File(host.trustStore).withInputStream {
+                    trustStore.load(it, trustStorePassword.toCharArray())
+                }
+
+                def trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
+                trustManagerFactory.init(trustStore)
+
+                trustManagers = trustManagerFactory.trustManagers
+            }
+
+            def sslContext = SSLContext.getInstance("TLS")
+            sslContext.init(null, trustManagers, null);
+
+            client.setSslSocketFactory(sslContext.socketFactory)
+        }
+
         new RestAdapter.Builder()
             .setEndpoint(Endpoints.newFixedEndpoint(host.address))
             .setRequestInterceptor(new RequestInterceptor() {
@@ -141,4 +179,22 @@ class JenkinsConfig {
         OkHttpClient client = new OkHttpClient()
         jenkinsClient(host, client, RequestInterceptor.NONE, timeout)
     }
+
+    static class TrustAllTrustManager implements X509TrustManager {
+        @Override
+        void checkClientTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
+            // do nothing
+        }
+
+        @Override
+        void checkServerTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
+            // do nothing
+        }
+
+        @Override
+        X509Certificate[] getAcceptedIssuers() {
+            return new X509Certificate[0]
+        }
+    }
+
 }
