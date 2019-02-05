@@ -59,9 +59,6 @@ public class V2PipelineTemplatesController {
   private ObjectMapper objectMapper;
 
   @Autowired
-  private PipelineTemplatesController pipelineTemplatesController;
-
-  @Autowired
   public V2PipelineTemplatesController(V2PipelineTemplateService v2PipelineTemplateService,
                                        TaskService taskService,
                                        ObjectMapper objectMapper) {
@@ -88,7 +85,7 @@ public class V2PipelineTemplatesController {
   public Map create(@RequestParam(value = "version", required = false) String version, @RequestBody Map<String, Object> pipelineTemplate) {
     validateSchema(pipelineTemplate);
     Map<String, Object> operation = makeCreateOp(pipelineTemplate, version);
-    return taskService.create(operation);
+    return taskService.createAndWaitForCompletion(operation);
   }
 
   private Map<String, Object> makeCreateOp(Map<String, Object> pipelineTemplate, String version) {
@@ -133,7 +130,7 @@ public class V2PipelineTemplatesController {
     @RequestBody Map<String, Object> pipelineTemplate,
     @RequestParam(value = "skipPlanDependents", defaultValue = "false") boolean skipPlanDependents) {
     Map<String, Object> operation = makeUpdateOp(pipelineTemplate, id, skipPlanDependents, version);
-    return taskService.create(operation);
+    return taskService.createAndWaitForCompletion(operation);
   }
 
   private Map<String, Object> makeUpdateOp(Map<String, Object> pipelineTemplate, String id,
@@ -193,7 +190,7 @@ public class V2PipelineTemplatesController {
     operation.put("application", application != null ? application : DEFAULT_APPLICATION);
     operation.put("job", jobs);
 
-    return taskService.create(operation);
+    return taskService.createAndWaitForCompletion(operation);
   }
 
   @ApiOperation(value = "List all pipelines that implement a pipeline template", response = List.class)
