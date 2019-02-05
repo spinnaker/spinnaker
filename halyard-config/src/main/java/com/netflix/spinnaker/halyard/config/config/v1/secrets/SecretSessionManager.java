@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.halyard.config.config.v1.secrets;
 
+import com.netflix.spinnaker.config.secrets.EncryptedSecret;
 import com.netflix.spinnaker.config.secrets.SecretManager;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.config.validate.v1.util.ValidatingFileReader;
@@ -97,6 +98,10 @@ public class SecretSessionManager {
    * @return path to the decrypted temporary file
    */
   public String decryptAsFile(String filePath) {
+    if (!EncryptedSecret.isEncryptedSecret(filePath)) {
+      return filePath;
+    }
+
     Path decryptedFilePath = secretManager.decryptAsFile(filePath);
 
     if (decryptedFilePath != null) {
