@@ -50,7 +50,11 @@ interface JenkinsClient {
     @GET('/job/{jobName}/{buildNumber}/api/xml?exclude=/*/action[not(totalCount)]&tree=actions[failCount,skipCount,totalCount,urlName],duration,number,timestamp,result,building,url,fullDisplayName,artifacts[displayPath,fileName,relativePath]')
     Build getBuild(@EncodedPath('jobName') String jobName, @Path('buildNumber') Integer buildNumber)
 
-    @GET('/job/{jobName}/{buildNumber}/api/xml?exclude=/*/action[not(lastBuiltRevision)]&tree=actions[remoteUrls,lastBuiltRevision[branch[name,SHA1]]]')
+    // The location of the SCM details in the build xml changed in version 4.0.0 of the jenkins-git plugin; see the
+    // header comment in com.netflix.spinnaker.igor.jenkins.client.model.ScmDetails for more information.
+    // The exclude and tree parameters to this call must continue to support both formats to remain compatible with
+    // all versions of the plugin.
+    @GET('/job/{jobName}/{buildNumber}/api/xml?exclude=/*/action[not(build|lastBuiltRevision)]&tree=actions[remoteUrls,lastBuiltRevision[branch[name,SHA1]],build[revision[branch[name,SHA1]]]]')
     ScmDetails getGitDetails(@EncodedPath('jobName') String jobName, @Path('buildNumber') Integer buildNumber)
 
     @GET('/job/{jobName}/lastCompletedBuild/api/xml')

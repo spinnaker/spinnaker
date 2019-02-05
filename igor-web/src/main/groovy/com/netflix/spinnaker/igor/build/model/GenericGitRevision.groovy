@@ -17,9 +17,11 @@
 package com.netflix.spinnaker.igor.build.model
 
 import com.fasterxml.jackson.annotation.JsonInclude
+import groovy.transform.EqualsAndHashCode
 
 import java.time.Instant
 
+@EqualsAndHashCode
 @JsonInclude(JsonInclude.Include.NON_NULL)
 class GenericGitRevision {
     String name
