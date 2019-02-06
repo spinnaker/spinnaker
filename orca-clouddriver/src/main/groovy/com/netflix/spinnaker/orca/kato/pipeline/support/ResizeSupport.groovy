@@ -89,8 +89,9 @@ class ResizeSupport {
       if (newMin != null && newDesired != null && newMax != null) {
         description.capacity = [min: newMin, desired: newDesired, max: newMax]
       } else {
-        def capacity = stage.mapTo("/capacity", Capacity)
-        def newCapacity = ScaleExactResizeStrategy.mergeConfiguredCapacityWithCurrent(capacity, currentMin, currentDesired, currentMax)
+        def targetCapacity = stage.mapTo("/capacity", Capacity)
+        def currentCapacity = new Capacity(currentMax, currentDesired, currentMin)
+        def newCapacity = ScaleExactResizeStrategy.mergeConfiguredCapacityWithCurrent(targetCapacity, currentCapacity)
         description.capacity = [min: newCapacity.min, desired: newCapacity.desired, max: newCapacity.max]
       }
 

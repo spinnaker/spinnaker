@@ -20,12 +20,15 @@ package com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.ResizeServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.AbstractDeployStrategyStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.DeployStagePreProcessor
+import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroupResolver
 import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy
 import com.netflix.spinnaker.orca.kato.pipeline.support.StageData
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+
+import javax.annotation.Nullable
 
 import static com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategySupport.getSource
 
@@ -61,6 +64,12 @@ class AwsDeployStagePreProcessor implements DeployStagePreProcessor {
     def stageData = stage.mapTo(StageData)
     if (shouldPinSourceServerGroup(stageData.strategy)) {
       def resizeContext = getResizeContext(stageData)
+      if (resizeContext == null) {
+        // this means we don't need to resize anything
+        // happens in particular when there is no pre-existing source server group
+        return []
+      }
+
       resizeContext.pinMinimumCapacity = true
 
       return [
@@ -120,6 +129,7 @@ class AwsDeployStagePreProcessor implements DeployStagePreProcessor {
     return strategy == "rollingredblack"
   }
 
+  @Nullable
   private Map<String, Object> getResizeContext(StageData stageData) {
     def cleanupConfig = AbstractDeployStrategyStage.CleanupConfig.fromStage(stageData)
     def baseContext = [
@@ -130,14 +140,22 @@ class AwsDeployStagePreProcessor implements DeployStagePreProcessor {
       cloudProvider                          : cleanupConfig.cloudProvider,
     ]
 
-    def source = getSource(targetServerGroupResolver, stageData, baseContext)
-    baseContext.putAll([
-      serverGroupName   : source.serverGroupName,
-      action            : ResizeStrategy.ResizeAction.scale_to_server_group,
-      source            : source,
-      useNameAsLabel    : true     // hint to deck that it should _not_ override the name
-    ])
-    return baseContext
+    try {
+      def source = getSource(targetServerGroupResolver, stageData, baseContext)
+      if (!source) {
+        return null
+      }
+
+      baseContext.putAll([
+        serverGroupName   : source.serverGroupName,
+        action            : ResizeStrategy.ResizeAction.scale_to_server_group,
+        source            : source,
+        useNameAsLabel    : true     // hint to deck that it should _not_ override the name
+      ])
+      return baseContext
+    } catch(TargetServerGroup.NotFoundException e) {
+      return null
+    }
   }
 
   private StageDefinition buildUnpinServerGroupStage(StageData stageData, boolean deployFailed) {
@@ -151,6 +169,11 @@ class AwsDeployStagePreProcessor implements DeployStagePreProcessor {
     }
 
     def resizeContext = getResizeContext(stageData)
+    if (resizeContext == null) {
+      // no source server group, no need to unpin anything
+      return null
+    }
+
     resizeContext.unpinMinimumCapacity = true
 
     return new StageDefinition(

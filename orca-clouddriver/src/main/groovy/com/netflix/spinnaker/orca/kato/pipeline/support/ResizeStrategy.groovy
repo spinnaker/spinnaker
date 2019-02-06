@@ -80,6 +80,15 @@ interface ResizeStrategy {
     }
   }
 
+  static class StageData {
+    ResizeStrategy.Source source
+
+    // whether or not `min` capacity should be set to `desired` capacity
+    boolean pinMinimumCapacity
+    boolean unpinMinimumCapacity = false
+    boolean pinCapacity
+  }
+
   boolean handles(ResizeAction resizeAction)
   CapacitySet capacityForOperation(Stage stage, String account, String serverGroupName, String cloudProvider, Location location, OptionalConfiguration resizeConfig)
 }

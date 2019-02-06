@@ -29,6 +29,9 @@ class ScaleExactResizeStrategy implements ResizeStrategy {
   @Autowired
   OortHelper oortHelper
 
+  @Autowired
+  ResizeStrategySupport resizeStrategySupport
+
   @Override
   boolean handles(ResizeAction resizeAction) {
     resizeAction == ResizeAction.scale_exact
@@ -41,42 +44,36 @@ class ScaleExactResizeStrategy implements ResizeStrategy {
                                    String cloudProvider,
                                    Location location,
                                    OptionalConfiguration resizeConfig) {
-    TargetServerGroup tsg = oortHelper.getTargetServerGroup(account, serverGroupName, location.value, cloudProvider)
-      .orElseThrow({
-      new IllegalStateException("no server group found $cloudProvider/$account/$serverGroupName in $location")
-    })
+    Capacity currentCapacity = resizeStrategySupport.getCapacity(account, serverGroupName, cloudProvider, location.value)
+    Capacity targetCapacity = stage.mapTo("/capacity", Capacity)
+    Capacity mergedCapacity = mergeConfiguredCapacityWithCurrent(targetCapacity, currentCapacity)
 
-    def currentMin = Integer.parseInt(tsg.capacity.min.toString())
-    def currentDesired = Integer.parseInt(tsg.capacity.desired.toString())
-    def currentMax = Integer.parseInt(tsg.capacity.max.toString())
-
-    return new CapacitySet(
-      new Capacity(currentMax, currentDesired, currentMin),
-      mergeConfiguredCapacityWithCurrent(stage.mapTo("/capacity", Capacity), currentMin, currentDesired, currentMax)
-    )
+    return new ResizeStrategy.CapacitySet(
+      currentCapacity,
+      resizeStrategySupport.performScalingAndPinning(mergedCapacity, stage, resizeConfig))
   }
 
-  static Capacity mergeConfiguredCapacityWithCurrent(Capacity configured, int currentMin, int currentDesired, int currentMax) {
+  static Capacity mergeConfiguredCapacityWithCurrent(Capacity configured, Capacity current) {
     boolean minConfigured = configured.min != null;
     boolean desiredConfigured = configured.desired != null;
     boolean maxConfigured = configured.max != null;
     Capacity result = new Capacity(
-      min: minConfigured ? configured.min : currentMin,
+      min: minConfigured ? configured.min : current.min,
     )
     if (maxConfigured) {
       result.max = configured.max
       result.min = Math.min(result.min, configured.max)
     } else {
-      result.max = Math.max(result.min, currentMax)
+      result.max = Math.max(result.min, current.max)
     }
     if (desiredConfigured) {
       result.desired = configured.desired
     } else {
-      result.desired = currentDesired
-      if (currentDesired < result.min) {
+      result.desired = current.desired
+      if (current.desired < result.min) {
         result.desired = result.min
       }
-      if (currentDesired > result.max) {
+      if (current.desired > result.max) {
         result.desired = result.max
       }
     }

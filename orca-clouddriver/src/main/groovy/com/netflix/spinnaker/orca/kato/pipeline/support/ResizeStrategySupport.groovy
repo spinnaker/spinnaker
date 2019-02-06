@@ -17,14 +17,30 @@
 package com.netflix.spinnaker.orca.kato.pipeline.support
 
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.RollingRedBlackStageData
+import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroupResolver
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
+import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy.Capacity
+import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.util.logging.Slf4j
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Component;
 
+@Component
+@Slf4j
 public class ResizeStrategySupport {
+
+  @Autowired
+  OortHelper oortHelper;
+
   static ResizeStrategy.Source getSource(TargetServerGroupResolver targetServerGroupResolver,
                                          StageData stageData,
                                          Map baseContext) {
+    if (StageData.EMPTY_SOURCE.equals(stageData.source)) {
+      return null;
+    }
+
     if (stageData.source) {
       return new ResizeStrategy.Source(
         region: stageData.source.region,
@@ -49,5 +65,91 @@ public class ResizeStrategySupport {
       credentials: stageData.credentials ?: stageData.account,
       cloudProvider: stageData.cloudProvider
     )
+  }
+
+  public ResizeStrategy.Capacity getCapacity(String account,
+                                             String serverGroupName,
+                                             String cloudProvider,
+                                             String location) {
+    TargetServerGroup tsg = oortHelper.getTargetServerGroup(account, serverGroupName, location, cloudProvider)
+      .orElseThrow({
+      new IllegalStateException("no server group found $cloudProvider/$account/$serverGroupName in $location")
+    })
+
+    def currentMin = Integer.parseInt(tsg.capacity.min.toString())
+    def currentDesired = Integer.parseInt(tsg.capacity.desired.toString())
+    def currentMax = Integer.parseInt(tsg.capacity.max.toString())
+
+    return new ResizeStrategy.Capacity(currentMax, currentDesired, currentMin)
+  }
+
+  ResizeStrategy.Capacity pinMin(ResizeStrategy.Capacity capacity) {
+    return new ResizeStrategy.Capacity(
+      capacity.max,
+      capacity.desired,
+      capacity.desired
+    )
+  }
+
+  ResizeStrategy.Capacity unpinMin(ResizeStrategy.Capacity capacity, Integer originalMin) {
+    if (originalMin > capacity.min) {
+      log.warn("Can not unpin the minimum of ${capacity} to a higher originalMin=${originalMin}")
+      return capacity
+    }
+
+    return new ResizeStrategy.Capacity(
+      capacity.max,
+      capacity.desired,
+      originalMin)
+  }
+
+
+  ResizeStrategy.Capacity pinCapacity(ResizeStrategy.Capacity capacity) {
+    return new ResizeStrategy.Capacity(
+      capacity.desired,
+      capacity.desired,
+      capacity.desired
+    )
+  }
+
+  ResizeStrategy.Capacity scalePct(ResizeStrategy.Capacity capacity, double factor) {
+    // scalePct only applies to the desired capacity
+    def newDesired = (Integer) Math.ceil(capacity.desired * factor)
+    return new ResizeStrategy.Capacity(
+      Math.max(capacity.max, newDesired), // in case scalePct pushed desired above current max
+      newDesired,
+      Math.min(capacity.min, newDesired)) // in case scalePct pushed desired below current min
+  }
+
+  ResizeStrategy.Capacity performScalingAndPinning(Capacity sourceCapacity,
+                                                   Stage stage,
+                                                   ResizeStrategy.OptionalConfiguration resizeConfig) {
+    ResizeStrategy.StageData stageData = stage.mapTo(ResizeStrategy.StageData)
+
+    def newCapacity = sourceCapacity
+    if (resizeConfig.scalePct != null) {
+      double factor = resizeConfig.scalePct / 100.0d
+      newCapacity = scalePct(sourceCapacity, factor)
+    }
+
+    if (stageData.unpinMinimumCapacity) {
+      Integer originalMin = null
+      def originalSourceCapacity = stage.context.get("originalCapacity.${stageData.source?.serverGroupName}".toString()) as Capacity
+      originalMin = originalSourceCapacity?.min ?: stage.context.savedCapacity?.min
+
+      if (originalMin != null) {
+        newCapacity = unpinMin(newCapacity, originalMin as Integer)
+      } else {
+        log.warn("Resize stage has unpinMinimumCapacity==true but could not find the original minimum value in stage" +
+          " context with stageData.source=${stageData.source}, stage.context.originalCapacity=${stage.context.originalCapacity}, " +
+          "stage.context.savedCapacity=${stage.context.savedCapacity}")
+      }
+    }
+
+    if (stageData.pinCapacity) {
+      return pinCapacity(newCapacity)
+    }
+
+    return stageData.pinMinimumCapacity ? pinMin(newCapacity) : newCapacity
   }
 }

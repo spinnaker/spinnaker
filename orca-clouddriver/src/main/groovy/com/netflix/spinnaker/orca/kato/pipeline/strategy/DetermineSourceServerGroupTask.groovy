@@ -73,6 +73,10 @@ class DetermineSourceServerGroupTask implements RetryableTask {
           region           : source.region,
           useSourceCapacity: useSourceCapacity
         ]
+      } else {
+        // leave a breadcrumb in the context that showed there was no source server group before the deployment started
+        // to avoid later stages trying to dynamically resolve the source and actually get the newly deployed server group
+        stageOutputs.source = [:]
       }
       return new TaskResult(ExecutionStatus.SUCCEEDED, stageOutputs)
     } catch (ex) {

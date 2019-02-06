@@ -87,14 +87,22 @@ class RollingRedBlackStrategy implements Strategy, ApplicationContextAware {
       stage.context.useSourceCapacity = false
     }
 
+    // we expect a capacity object if a fixed capacity has been requested or as a fallback value when we are copying
+    // the capacity from the current server group
+    def savedCapacity = stage.context.savedCapacity ?: stage.context.capacity?.clone()
+    stage.context.savedCapacity = savedCapacity
+
+    // FIXME: this clobbers the input capacity value (if any). Should find a better way to request a new asg of size 0
     stage.context.capacity = [
       min    : 0,
       max    : 0,
       desired: 0
     ]
 
+
+
     def targetPercentages = stageData.getTargetPercentages()
-    if (targetPercentages.size() == 0 || targetPercentages[-1] != 100) {
+    if (targetPercentages.isEmpty() || targetPercentages[-1] != 100) {
       targetPercentages.add(100)
     }
 
@@ -112,20 +120,39 @@ class RollingRedBlackStrategy implements Strategy, ApplicationContextAware {
       SyntheticStageOwner.STAGE_AFTER
     )
 
-    def source = getSource(targetServerGroupResolver, stageData, baseContext)
+    def source = null
+    try {
+      source = getSource(targetServerGroupResolver, stageData, baseContext)
+    } catch (TargetServerGroup.NotFoundException e) {}
+
+    if (source == null) {
+      log.warn("no source server group -- will perform RRB to exact fallback capacity $savedCapacity with no disableCluster or scaleDownCluster stages")
+    }
 
     // java .forEach rather than groovy .each, since the nested .each closure sometimes omits parent context
     targetPercentages.forEach({ p ->
       def resizeContext = baseContext + [
         target              : TargetServerGroup.Params.Target.current_asg_dynamic,
-        action              : ResizeStrategy.ResizeAction.scale_to_server_group,
-        source              : source,
         targetLocation      : cleanupConfig.location,
         scalePct            : p,
-        pinCapacity         : p < 100, // if p < 100, capacity should be pinned (min == max == desired)
+        pinCapacity         : p < 100,  // if p < 100, capacity should be pinned (min == max == desired)
         unpinMinimumCapacity: p == 100, // if p == 100, min capacity should be restored to the original unpinned value from source
-        useNameAsLabel      : true     // hint to deck that it should _not_ override the name
+        useNameAsLabel      : true      // hint to deck that it should _not_ override the name
       ]
+
+      if (source) {
+        resizeContext = resizeContext + [
+          action: ResizeStrategy.ResizeAction.scale_to_server_group,
+          source: source
+        ]
+      } else {
+        resizeContext = resizeContext + [
+          action: ResizeStrategy.ResizeAction.scale_exact,
+        ]
+        resizeContext.capacity = savedCapacity // will scale to a percentage of that static capacity
+      }
+
+      log.info("Adding `Grow to $p% of Desired Size` stage with context $resizeContext")
 
       def resizeStage = newStage(
         stage.execution,
@@ -141,23 +168,29 @@ class RollingRedBlackStrategy implements Strategy, ApplicationContextAware {
       def deployedServerGroupName = '${' + "#stage('${resizeStage.id}')['context']['asgName']" + '}'.toString()
       stages.addAll(getBeforeCleanupStages(stage, stageData, source, deployedServerGroupName, p))
 
-      def disableContext = baseContext + [
-        desiredPercentage           : p,
-        remainingEnabledServerGroups: 1,
-        preferLargerOverNewer       : false
-      ]
+      // only generate the "disable p% of traffic" stages if we have something to disable
+      if (source) {
+        def disableContext = baseContext + [
+          desiredPercentage           : p,
+          remainingEnabledServerGroups: 1,
+          preferLargerOverNewer       : false
+        ]
 
-      stages << newStage(
-        stage.execution,
-        disableClusterStage.type,
-        "Disable $p% of Traffic",
-        disableContext,
-        stage,
-        SyntheticStageOwner.STAGE_AFTER
-      )
+        log.info("Adding `Disable $p% of Desired Size` stage with context $disableContext")
+
+        stages << newStage(
+          stage.execution,
+          disableClusterStage.type,
+          "Disable $p% of Traffic",
+          disableContext,
+          stage,
+          SyntheticStageOwner.STAGE_AFTER
+        )
+      }
     })
 
-    if (stageData.scaleDown) {
+    // only scale down if we have a source server group to scale down
+    if (source && stageData.scaleDown) {
       if(stageData?.getDelayBeforeScaleDown()) {
         def waitContext = [waitTime: stageData?.getDelayBeforeScaleDown()]
         stages << newStage(

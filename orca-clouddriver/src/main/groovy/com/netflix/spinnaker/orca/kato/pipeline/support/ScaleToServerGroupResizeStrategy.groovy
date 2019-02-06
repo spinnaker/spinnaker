@@ -21,14 +21,19 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Locat
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
+@Slf4j
 class ScaleToServerGroupResizeStrategy implements ResizeStrategy {
 
   @Autowired
   OortHelper oortHelper
+
+  @Autowired
+  ResizeStrategySupport resizeStrategySupport
 
   @Override
   boolean handles(ResizeStrategy.ResizeAction resizeAction) {
@@ -46,67 +51,13 @@ class ScaleToServerGroupResizeStrategy implements ResizeStrategy {
       throw new IllegalStateException("No source configuration available (${stage.context})")
     }
 
-    StageData stageData = stage.mapTo(StageData)
+    ResizeStrategy.StageData stageData = stage.mapTo(StageData)
     ResizeStrategy.Source source = stageData.source
-    TargetServerGroup tsg = oortHelper
-      .getTargetServerGroup(source.credentials, source.serverGroupName, source.location, source.cloudProvider)
-      .orElseThrow({
-      source.with {
-        new IllegalStateException("no server group found $cloudProvider/$account/$serverGroupName in $location")
-      }
-    })
+    def sourceCapacity = resizeStrategySupport.getCapacity(source.credentials,
+      source.serverGroupName, source.cloudProvider, source.location)
 
-    def currentMin = Integer.parseInt(tsg.capacity.min.toString())
-    def currentDesired = Integer.parseInt(tsg.capacity.desired.toString())
-    def currentMax = Integer.parseInt(tsg.capacity.max.toString())
-    def originalCapacity = new Capacity(currentMax, currentDesired, currentMin)
-
-    def scalePct = resizeConfig.scalePct
-    if (scalePct != null) {
-      double factor = scalePct / 100.0d
-
-      // scalePct only applies to the desired capacity
-      currentDesired = (Integer) Math.ceil(currentDesired * factor)
-
-      // min capacity may need adjusting iff scalePct pushed desired below current min
-      currentMin = Math.min(currentMin, currentDesired)
-    }
-
-    if (stageData.unpinMinimumCapacity) {
-      def originalSourceCapacity = stage.context.get("originalCapacity.${source.serverGroupName}".toString())
-      if (originalSourceCapacity) {
-        currentMin = Math.min(originalSourceCapacity.min as Integer, currentMin)
-      }
-    }
-
-    if (stageData.pinCapacity) {
-      return new CapacitySet(
-        originalCapacity,
-        new Capacity(
-          currentDesired,
-          currentDesired,
-          currentDesired
-        )
-      )
-    }
-
-    return new CapacitySet(
-      originalCapacity,
-      new Capacity(
-        currentMax,
-        currentDesired,
-        stageData.pinMinimumCapacity ? currentDesired : currentMin
-      )
-    )
-  }
-
-  private static class StageData {
-    ResizeStrategy.Source source
-
-    // whether or not `min` capacity should be set to `desired` capacity
-    boolean pinMinimumCapacity
-    boolean unpinMinimumCapacity = false
-
-    boolean pinCapacity
+    return new ResizeStrategy.CapacitySet(
+      sourceCapacity,
+      resizeStrategySupport.performScalingAndPinning(sourceCapacity, stage, resizeConfig))
   }
 }

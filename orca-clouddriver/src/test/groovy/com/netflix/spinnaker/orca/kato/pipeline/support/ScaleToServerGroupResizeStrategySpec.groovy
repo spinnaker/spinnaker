@@ -30,9 +30,10 @@ class ScaleToServerGroupResizeStrategySpec extends Specification {
   OortHelper oortHelper = Mock(OortHelper)
 
   def resizeConfig = new ResizeStrategy.OptionalConfiguration()
+  def resizeStrategySupport = new ResizeStrategySupport(oortHelper: oortHelper)
 
   @Subject
-  def strategy = new ScaleToServerGroupResizeStrategy(oortHelper: oortHelper)
+  def strategy = new ScaleToServerGroupResizeStrategy(oortHelper: oortHelper, resizeStrategySupport: resizeStrategySupport)
 
   def "should throw exception if no source is available"() {
     when:
@@ -71,7 +72,7 @@ class ScaleToServerGroupResizeStrategySpec extends Specification {
   }
 
   @Unroll
-  def "should return source server group capacity"() {
+  def "should return source server group capacity with scalePct=#scalePct pinCapacity=#pinCapacity pinMinimumCapacity=#pinMinimumCapacity"() {
     given:
     resizeConfig.scalePct = scalePct
 
