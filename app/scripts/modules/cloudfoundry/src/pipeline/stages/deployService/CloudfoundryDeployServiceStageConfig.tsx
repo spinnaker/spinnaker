@@ -96,6 +96,17 @@ export class CloudfoundryDeployServiceStageConfig extends React.Component<
         };
         this.setState({ type: 'userProvided' });
         break;
+      case 'userProvidedArtifact':
+        this.props.stage.manifest = {
+          service: '',
+          syslogDrainUrl: '',
+          routeServiceUrl: '',
+          tags: [],
+          credentialsMap: {},
+          type: 'userProvidedArtifact',
+        };
+        this.setState({ type: 'userProvidedArtifact' });
+        break;
     }
   };
 
@@ -185,6 +196,7 @@ export class CloudfoundryDeployServiceStageConfig extends React.Component<
           />
         );
         break;
+      case 'userProvidedArtifact':
       case 'artifact':
         const artifact = manifest as { type: string } & ICloudfoundryServiceManifestArtifactSource;
         manifestInput = (
@@ -244,6 +256,16 @@ export class CloudfoundryDeployServiceStageConfig extends React.Component<
                 onChange={() => this.manifestTypeUpdated('userProvided')}
               />{' '}
               User-Provided
+            </label>
+          </div>
+          <div className="radio radio-inline">
+            <label>
+              <input
+                type="radio"
+                checked={manifest.type === 'userProvidedArtifact'}
+                onChange={() => this.manifestTypeUpdated('userProvidedArtifact')}
+              />{' '}
+              User-Provided-Artifact
             </label>
           </div>
         </StageConfigField>
