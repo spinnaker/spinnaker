@@ -8,7 +8,7 @@ export class AmazonCertificateReader {
   public static listCertificates(): IPromise<{ [accountId: string]: IAmazonCertificate[] }> {
     return CertificateReader.listCertificatesByProvider('aws').then((certificates: IAmazonCertificate[]) => {
       // This account grouping should really go into clouddriver but since it's not, put it here for now.
-      return AccountService.getAllAccountDetailsForProvider('aws').then(allAccountDetails => {
+      return AccountService.listAllAccounts('aws').then(allAccountDetails => {
         const accountIdToName = allAccountDetails.reduce(
           (acc, accountDetails) => {
             acc[accountDetails.accountId] = accountDetails.name;
