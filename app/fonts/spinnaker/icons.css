@@ -1,7 +1,7 @@
 @font-face {
   font-family: 'icomoon';
-  src: url('fonts/icomoon.ttf?4n2yt2') format('truetype'), url('fonts/icomoon.woff?4n2yt2') format('woff'),
-    url('fonts/icomoon.svg?4n2yt2#icomoon') format('svg');
+  src: url('fonts/icomoon.ttf?omt480') format('truetype'), url('fonts/icomoon.woff?omt480') format('woff'),
+    url('fonts/icomoon.svg?omt480#icomoon') format('svg');
   font-weight: normal;
   font-style: normal;
 }
@@ -75,4 +75,7 @@
 }
 .icon-spinner:before {
   content: '\e911';
+}
+.icon-navigation-left-circle:before {
+  content: '\e912';
 }
