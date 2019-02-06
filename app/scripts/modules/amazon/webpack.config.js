@@ -5,7 +5,7 @@ const basePath = path.join(__dirname, '..', '..', '..', '..');
 const NODE_MODULE_PATH = path.join(basePath, 'node_modules');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const nodeExternals = require('webpack-node-externals');
-const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
 const exclusionPattern = /(node_modules|\.\.\/deck)/;
 const WEBPACK_THREADS = Math.max(require('physical-cpu-count') - 1, 1);
 
@@ -32,11 +32,17 @@ module.exports = {
   optimization: {
     minimizer: IS_PRODUCTION
       ? [
-          new UglifyJSPlugin({
+          new TerserPlugin({
             cache: true,
             parallel: true,
             sourceMap: true,
-            uglifyOptions: { mangle: false },
+            terserOptions: {
+              ecma: 6,
+              mangle: false,
+              output: {
+                comments: false,
+              },
+            },
           }),
         ]
       : [], // disable minification in development mode
