@@ -14,6 +14,7 @@ Registry.pipeline.registerStage({
   executionDetailsSections: [RunJobExecutionDetails, ExecutionDetailsTasks],
   defaultTimeoutMs: 2 * 60 * 60 * 1000, // 2 hours
   validators: [
+    { type: 'requiredField', fieldName: 'cluster.iamProfile' },
     { type: 'requiredField', fieldName: 'cluster.imageId' },
     { type: 'requiredField', fieldName: 'credentials' },
     { type: 'requiredField', fieldName: 'cluster.region' },

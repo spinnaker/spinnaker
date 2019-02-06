@@ -18,6 +18,7 @@ import {
 import { DockerImageAndTagSelector, DockerImageUtils, IDockerImageAndTagChanges } from '@spinnaker/docker';
 
 import { TitusSecurityGroupPicker } from './TitusSecurityGroupPicker';
+import { TitusProviderSettings } from '../../../titus.settings';
 
 export interface ITitusRunJobStageConfigState {
   credentials: string[];
@@ -56,10 +57,14 @@ export class TitusRunJobStageConfig extends React.Component<IStageConfigProps, I
       };
     }
 
+    let defaultIamProfile = TitusProviderSettings.defaults.iamProfile || '{{application}}InstanceProfile';
+    defaultIamProfile = defaultIamProfile.replace('{{application}}', application.name);
+
     const clusterDefaults = {
       application: application.name,
       containerAttributes: {},
       env: {},
+      iamProfile: defaultIamProfile,
       labels: {},
       resources: {
         cpu: 1,
@@ -306,14 +311,14 @@ export class TitusRunJobStageConfig extends React.Component<IStageConfigProps, I
         <div className={`${stage.showAdvancedOptions === true ? 'collapse.in' : 'collapse'}`}>
           <div className="form-group">
             <label className="col-md-3 sm-label-right">
-              <span className="label-text">IAM Instance Profile (optional)</span>
-              <HelpField id="titus.deploy.iamProfile" />
+              <span className="label-text">IAM Instance Profile</span> <HelpField id="titus.deploy.iamProfile" />
             </label>
             <div className="col-md-4">
               <input
                 type="text"
                 className="form-control input-sm"
                 value={stage.cluster.iamProfile}
+                required={true}
                 onChange={e => this.stageFieldChanged('cluster.iamProfile', e.target.value)}
               />
             </div>
