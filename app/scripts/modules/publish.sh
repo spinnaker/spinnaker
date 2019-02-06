@@ -103,7 +103,7 @@ done
 # Create a branch with the package bump versions in it
 # Github will use this as the PR title
 echo "Deck package publisher ---> Creating publish branch '${PUBLISHBRANCH}'..."
-git co -b ${PUBLISHBRANCH} || exit 4
+git checkout -b ${PUBLISHBRANCH} || exit 4
 echo "Deck package publisher ---> Deleting temporary branch '${TEMPORARYBRANCH}'..."
 git branch -D ${TEMPORARYBRANCH} || exit 5
 
@@ -139,7 +139,7 @@ if [ "$REPLY" == "y" ] ; then
 fi
 
 echo "Deck package publisher ---> Switching back to 'master'..."
-git co master
+git checkout master
 
 echo "Deck package publisher ---> Deleting pull request branch ${PUBLISHBRANCH}..."
 git branch -D ${PUBLISHBRANCH}
