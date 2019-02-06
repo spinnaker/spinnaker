@@ -2,10 +2,11 @@ import * as React from 'react';
 import * as ReactGA from 'react-ga';
 import { has } from 'lodash';
 
-import { IBuildTrigger, ICronTrigger, IDockerTrigger, IExecution, IArtifact } from 'core/domain';
+import { IExecution } from 'core/domain';
 import { HoverablePopover } from 'core/presentation';
 import { IScheduler } from 'core/scheduler/SchedulerFactory';
 import { SchedulerFactory } from 'core/scheduler';
+import { Registry } from 'core/registry';
 import { relativeTime, timestamp } from 'core/utils';
 import { ISortFilter } from 'core/filterModel';
 import { ExecutionState } from 'core/state';
@@ -13,6 +14,7 @@ import { SETTINGS } from 'core/config/settings';
 
 import { buildDisplayName } from '../executionBuild/buildDisplayName.filter';
 import { ExecutionBuildLink } from '../executionBuild/ExecutionBuildLink';
+import { ExecutionUserStatus } from './ExecutionUserStatus';
 import { ArtifactList } from './ArtifactList';
 
 import './executionStatus.less';
@@ -76,31 +78,26 @@ export class ExecutionStatus extends React.Component<IExecutionStatusProps, IExe
 
   private getExecutionTypeDisplay(): String {
     const trigger = this.props.execution.trigger;
-    switch (trigger.type) {
-      case 'jenkins':
-        return 'Triggered Build';
-      case 'manual':
-        return 'Manual Start';
-      case 'pipeline':
-        return 'Pipeline';
-      case 'docker':
-        return 'Docker Registry';
-      case 'cron':
-        return (trigger as ICronTrigger).cronExpression;
-      default:
-        return trigger.type;
+    if (trigger.type === 'manual') {
+      return 'Manual Start';
     }
+    const config = Registry.pipeline.getTriggerConfig(trigger.type);
+    if (config && config.executionTriggerLabel) {
+      return config.executionTriggerLabel(trigger);
+    }
+    return trigger.type;
   }
 
-  private executionUser(input: IExecution): string {
-    if (!input.trigger.user) {
-      return 'unknown user';
+  private getTriggerExecutionStatus() {
+    const { trigger } = this.props.execution;
+    const triggerConfig = Registry.pipeline.getTriggerConfig(trigger.type);
+    if (triggerConfig) {
+      return triggerConfig.executionStatusComponent;
     }
-    let user: string = input.trigger.user;
-    if (user === '[anonymous]' && has(input, 'trigger.parentExecution.trigger.user')) {
-      user = input.trigger.parentExecution.trigger.user;
+    if (trigger.type === 'manual') {
+      return ExecutionUserStatus;
     }
-    return user;
+    return null;
   }
 
   private toggleDetails = (): void => {
@@ -110,38 +107,28 @@ export class ExecutionStatus extends React.Component<IExecutionStatusProps, IExe
 
   public render() {
     const { execution, showingDetails, standalone } = this.props;
-    const artifacts: IArtifact[] = execution.trigger.artifacts;
-    const resolvedExpectedArtifacts = execution.trigger.resolvedExpectedArtifacts;
+    const { trigger } = execution;
+    const { artifacts, resolvedExpectedArtifacts } = trigger;
+    const TriggerExecutionStatus = this.getTriggerExecutionStatus();
     return (
       <div className="execution-status-section">
         <span className={`trigger-type ${this.state.sortFilter.groupBy !== name ? 'subheading' : ''}`}>
           <h5 className="build-number">
             <ExecutionBuildLink execution={execution} />
           </h5>
-          <h5 className={`execution-type ${execution.trigger.dryRun ? 'execution-dry-run' : ''}`}>
-            {execution.trigger.dryRun && 'DRY RUN: '}
+          <h5 className={`execution-type ${trigger.dryRun ? 'execution-dry-run' : ''}`}>
+            {trigger.dryRun && 'DRY RUN: '}
             {this.getExecutionTypeDisplay()}
           </h5>
         </span>
         <ul className="trigger-details">
-          {has(execution.trigger, 'buildInfo.url') && <li>{buildDisplayName(execution.trigger.buildInfo)}</li>}
-          {(execution.trigger as IDockerTrigger).tag && (
-            <li>
-              {(execution.trigger as IDockerTrigger).repository}:{(execution.trigger as IDockerTrigger).tag}
-            </li>
-          )}
-
-          <span>
-            <li>
-              {execution.trigger.type === 'jenkins' && (execution.trigger as IBuildTrigger).job}
-              {['manual', 'pipeline'].includes(execution.trigger.type) && this.executionUser(execution)}
-            </li>
-            <li>
-              <HoverablePopover delayShow={100} delayHide={0} template={<span>{timestamp(execution.startTime)}</span>}>
-                {this.state.timestamp}
-              </HoverablePopover>
-            </li>
-          </span>
+          {has(trigger, 'buildInfo.url') && <li>{buildDisplayName(trigger.buildInfo)}</li>}
+          {TriggerExecutionStatus && <TriggerExecutionStatus trigger={trigger} />}
+          <li>
+            <HoverablePopover delayShow={100} delayHide={0} template={<span>{timestamp(execution.startTime)}</span>}>
+              {this.state.timestamp}
+            </HoverablePopover>
+          </li>
           {this.state.parameters.map(p => (
             <li key={p.key} className="break-word">
               <span className="parameter-key">{p.key}</span>: {p.value}

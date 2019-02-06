@@ -1,5 +1,12 @@
+import * as React from 'react';
 import { IStageOrTriggerTypeConfig } from './IStageOrTriggerTypeConfig';
+import { ITrigger } from './ITrigger';
+
+export interface IExecutionTriggerStatusComponentProps {
+  trigger: ITrigger;
+}
 
 export interface ITriggerTypeConfig extends IStageOrTriggerTypeConfig {
-  // surely something will want to go in here
+  executionStatusComponent?: React.ComponentType<IExecutionTriggerStatusComponentProps>;
+  executionTriggerLabel?: (trigger: ITrigger) => string;
 }

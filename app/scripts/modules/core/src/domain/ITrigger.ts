@@ -27,14 +27,6 @@ export interface IBuildTrigger extends ITrigger {
   type: 'jenkins' | 'travis' | 'wercker';
 }
 
-export interface IDockerTrigger extends ITrigger {
-  account?: string;
-  tag: string;
-  registry?: string;
-  repository: string;
-  organization?: string;
-}
-
 export interface IPipelineTrigger extends ITrigger {
   application: string;
   parentExecution?: IExecution;

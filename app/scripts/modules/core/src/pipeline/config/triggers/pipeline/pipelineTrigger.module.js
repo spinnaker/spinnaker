@@ -7,6 +7,7 @@ import { ServiceAccountReader } from 'core/serviceAccount/ServiceAccountReader';
 import { ApplicationReader } from 'core/application/service/ApplicationReader';
 import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
 import { PipelineTriggerTemplate } from './PipelineTriggerTemplate';
+import { ExecutionUserStatus } from 'core/pipeline/status/ExecutionUserStatus';
 import { Registry } from 'core/registry';
 import { SETTINGS } from 'core/config/settings';
 
@@ -21,6 +22,8 @@ module.exports = angular
       controllerAs: 'pipelineTriggerCtrl',
       templateUrl: require('./pipelineTrigger.html'),
       manualExecutionComponent: PipelineTriggerTemplate,
+      executionStatusComponent: ExecutionUserStatus,
+      executionTriggerLabel: () => 'Pipeline',
     });
   })
   .controller('pipelineTriggerCtrl', function($scope, trigger) {

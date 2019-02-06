@@ -7,6 +7,7 @@ import { Registry } from 'core/registry';
 import { SETTINGS } from 'core/config/settings';
 
 import { JenkinsTriggerTemplate } from './JenkinsTriggerTemplate';
+import { JenkinsTriggerExecutionStatus } from './JenkinsTriggerExecutionStatus';
 
 module.exports = angular
   .module('spinnaker.core.pipeline.config.trigger.jenkins', [require('../trigger.directive').name])
@@ -19,6 +20,8 @@ module.exports = angular
       controllerAs: 'jenkinsTriggerCtrl',
       templateUrl: require('./jenkinsTrigger.html'),
       manualExecutionComponent: JenkinsTriggerTemplate,
+      executionStatusComponent: JenkinsTriggerExecutionStatus,
+      executionTriggerLabel: () => 'Triggered Build',
       providesVersionForBake: true,
       validators: [
         {

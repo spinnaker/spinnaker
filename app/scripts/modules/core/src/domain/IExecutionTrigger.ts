@@ -1,8 +1,9 @@
 import { IExecution } from './IExecution';
 import { IArtifact } from './IArtifact';
 import { IExpectedArtifact } from './IExpectedArtifact';
+import { ITrigger } from './ITrigger';
 
-export interface IExecutionTrigger {
+export interface IExecutionTrigger extends ITrigger {
   buildInfo?: any;
   isPipeline?: boolean;
   parameters?: { [key: string]: string };

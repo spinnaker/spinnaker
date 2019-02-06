@@ -23,6 +23,7 @@ module.exports = angular
       controller: 'CronTriggerCtrl',
       controllerAs: 'vm',
       templateUrl: require('./cronTrigger.html'),
+      executionTriggerLabel: trigger => trigger.cronExpression,
       validators: [
         {
           type: 'serviceAccountAccess',

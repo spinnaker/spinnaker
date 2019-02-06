@@ -1,8 +1,10 @@
 import * as React from 'react';
 
-import { ITriggerConfigProps, RunAsUser, SETTINGS, ServiceAccountReader, IDockerTrigger } from '@spinnaker/core';
+import { ITriggerConfigProps, RunAsUser, SETTINGS, ServiceAccountReader } from '@spinnaker/core';
 
 import { DockerImageAndTagSelector, IDockerImageAndTagChanges } from '../../image/DockerImageAndTagSelector';
+
+import { IDockerTrigger } from './IDockerTrigger';
 
 export interface IDockerTriggerConfigProps extends ITriggerConfigProps {
   trigger: IDockerTrigger;

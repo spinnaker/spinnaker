@@ -5,6 +5,7 @@ import { SETTINGS } from 'core/config/settings';
 import { IGitTrigger } from 'core/domain/ITrigger';
 import { Registry } from 'core/registry';
 import { ServiceAccountReader } from 'core/serviceAccount/ServiceAccountReader';
+import { GitTriggerExecutionStatus } from './GitTriggerExecutionStatus';
 
 class GitTriggerController implements IController {
   public fiatEnabled: boolean = SETTINGS.feature.fiatEnabled;
@@ -74,6 +75,7 @@ module(GIT_TRIGGER, [])
       controller: 'GitTriggerCtrl',
       controllerAs: 'vm',
       templateUrl: require('./gitTrigger.html'),
+      executionStatusComponent: GitTriggerExecutionStatus,
       validators: [
         {
           type: 'serviceAccountAccess',

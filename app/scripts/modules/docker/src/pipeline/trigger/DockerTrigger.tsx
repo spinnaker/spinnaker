@@ -1,7 +1,18 @@
-import { Registry } from '@spinnaker/core';
+import * as React from 'react';
+import { Registry, IExecutionTriggerStatusComponentProps } from '@spinnaker/core';
 
 import { DockerTriggerTemplate } from './DockerTriggerTemplate';
 import { DockerTriggerConfig } from './DockerTriggerConfig';
+import { IDockerTrigger } from './IDockerTrigger';
+
+const DockerTriggerExecutionStatus = (props: IExecutionTriggerStatusComponentProps) => {
+  const trigger = props.trigger as IDockerTrigger;
+  return (
+    <li>
+      {trigger.repository}:{trigger.tag}
+    </li>
+  );
+};
 
 Registry.pipeline.registerTrigger({
   label: 'Docker Registry',
@@ -9,6 +20,8 @@ Registry.pipeline.registerTrigger({
   key: 'docker',
   component: DockerTriggerConfig,
   manualExecutionComponent: DockerTriggerTemplate,
+  executionStatusComponent: DockerTriggerExecutionStatus,
+  executionTriggerLabel: () => 'Docker Registry',
   validators: [
     {
       type: 'requiredField',
