@@ -77,7 +77,7 @@ public class ExpressionTransform {
    * Helper to escape  a simple expression string
    * Used to extract a simple expression when parsing fails
    */
-  private static String escapeSimpleExpression(String expression) {
+  public static String escapeSimpleExpression(String expression) {
     String escaped = null;
     Matcher matcher = Pattern.compile("\\$\\{(.*)}").matcher(expression);
     if (matcher.matches()) {
@@ -120,7 +120,7 @@ public class ExpressionTransform {
     return result;
   }
 
-  private List transformList(List source,
+  public List transformList(List source,
                              EvaluationContext evaluationContext,
                              ExpressionEvaluationSummary summary,
                              Map<String, Object> additionalContext) {
