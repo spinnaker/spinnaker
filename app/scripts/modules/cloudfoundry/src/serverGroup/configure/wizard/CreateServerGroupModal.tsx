@@ -36,6 +36,7 @@ export interface ICloudFoundryCreateServerGroupProps extends IModalComponentProp
 
 export interface ICloudFoundryCreateServerGroupState {
   artifactAccounts: IArtifactAccount[];
+  loading: boolean;
   requiresTemplateSelection: boolean;
   taskMonitor: TaskMonitor;
 }
@@ -58,6 +59,7 @@ export class CloudFoundryCreateServerGroupModal extends React.Component<
     super(props);
     this.state = {
       artifactAccounts: [],
+      loading: false,
       requiresTemplateSelection: get(props, 'command.viewState.requiresTemplateSelection', false),
       taskMonitor: new TaskMonitor({
         application: props.application,
@@ -76,6 +78,11 @@ export class CloudFoundryCreateServerGroupModal extends React.Component<
 
   private templateSelected = () => {
     this.setState({ requiresTemplateSelection: false });
+    this.initialize();
+  };
+
+  private initialize = () => {
+    this.setState({ loading: false });
   };
 
   private onTaskComplete = () => {
@@ -94,7 +101,7 @@ export class CloudFoundryCreateServerGroupModal extends React.Component<
   };
 
   public render(): React.ReactElement<CloudFoundryCreateServerGroupModal> {
-    const { artifactAccounts, requiresTemplateSelection, taskMonitor } = this.state;
+    const { artifactAccounts, loading, requiresTemplateSelection, taskMonitor } = this.state;
     const { application, command, dismissModal, isSourceConstant, serverGroup, title } = this.props;
 
     if (requiresTemplateSelection) {
@@ -112,6 +119,7 @@ export class CloudFoundryCreateServerGroupModal extends React.Component<
       <WizardModal<ICloudFoundryCreateServerGroupCommand>
         heading={title}
         initialValues={command}
+        loading={loading}
         taskMonitor={taskMonitor}
         dismissModal={dismissModal}
         closeModal={this.submit}
