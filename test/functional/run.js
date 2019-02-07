@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 
+const process = require('process');
+process.env.TS_NODE_COMPILER_OPTIONS = '{"module":"commonjs"}';
+
 require('ts-node/register');
 
 const path = require('path');
-const process = require('process');
 const minimist = require('minimist');
 const { TestRunner } = require('./tools/TestRunner');
 
