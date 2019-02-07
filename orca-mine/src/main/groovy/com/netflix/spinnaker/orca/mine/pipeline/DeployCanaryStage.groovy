@@ -111,8 +111,8 @@ class DeployCanaryStage extends ParallelDeployStage implements CloudProviderAwar
 
     def findImageCtx = [application: stage.execution.application, account: stage.context.baseline.account, cluster: stage.context.baseline.cluster, regions: regions, cloudProvider: stage.context.baseline.cloudProvider ?: 'aws']
     Stage s = new Stage(Execution.newOrchestration(stage.execution.application), "findImage", findImageCtx)
-    TaskResult result = findImage.execute(s)
     try {
+      TaskResult result = findImage.execute(s)
       return result.context.amiDetails
     } catch (Exception e) {
       throw new IllegalStateException("Could not determine image for baseline deployment (account: ${findImageCtx.account}, " +
