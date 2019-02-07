@@ -25,6 +25,7 @@ dependencies {
   compile spinnaker.dependency('korkArtifacts')
   compile spinnaker.dependency('korkSecurity')
   compile spinnaker.dependency('korkWeb')
+  compile spinnaker.dependency('korkExpressions')
 
   compile spinnaker.dependency('bootWeb')
   compile spinnaker.dependency('bootActuator')

@@ -18,6 +18,7 @@ package com.netflix.spinnaker.echo.pipelinetriggers.postprocessors;
 
 public enum PostProcessorPriority implements Comparable<PostProcessorPriority> {
   HIGHEST,
+  EXPECTED_ARTIFACT_EXPRESSION_EVALUATION,
   BUILD_INFO,
   DEFAULT,
   ARTIFACT_EXTRACTION,
