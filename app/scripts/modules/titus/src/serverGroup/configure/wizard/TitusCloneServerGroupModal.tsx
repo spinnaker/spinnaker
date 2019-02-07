@@ -31,10 +31,8 @@ export interface ITitusCloneServerGroupModalProps extends IModalComponentProps {
 
 export interface ITitusCloneServerGroupModalState {
   firewallsLabel: string;
-  loadBalancerNote: React.ReactElement<any>;
   loaded: boolean;
   requiresTemplateSelection: boolean;
-  securityGroupNote: React.ReactElement<any>;
   taskMonitor: TaskMonitor;
 }
 
@@ -65,8 +63,6 @@ export class TitusCloneServerGroupModal extends React.Component<
 
     this.state = {
       firewallsLabel: FirewallLabels.get('Firewalls'),
-      loadBalancerNote: this.getLoadBalancerNote(props.command),
-      securityGroupNote: this.getSecurityGroupNote(props.command),
       loaded: false,
       requiresTemplateSelection,
       taskMonitor: new TaskMonitor({
@@ -190,7 +186,7 @@ export class TitusCloneServerGroupModal extends React.Component<
 
   public render() {
     const { application, command, dismissModal, title } = this.props;
-    const { loadBalancerNote, loaded, securityGroupNote, taskMonitor, requiresTemplateSelection } = this.state;
+    const { loaded, taskMonitor, requiresTemplateSelection } = this.state;
 
     if (requiresTemplateSelection) {
       return (
@@ -213,12 +209,6 @@ export class TitusCloneServerGroupModal extends React.Component<
         dismissModal={dismissModal}
         closeModal={this.submit}
         submitButtonLabel={command.viewState.submitButtonLabel}
-        validate={values => {
-          this.setState({
-            loadBalancerNote: this.getLoadBalancerNote(values),
-            securityGroupNote: this.getSecurityGroupNote(values),
-          });
-        }}
         render={({ formik, nextIdx, wizard }) => (
           <>
             <WizardPage
@@ -248,7 +238,7 @@ export class TitusCloneServerGroupModal extends React.Component<
               label="Load Balancers"
               wizard={wizard}
               order={nextIdx()}
-              note={loadBalancerNote}
+              note={this.getLoadBalancerNote(formik.values)}
               render={({ innerRef }) => (
                 <ServerGroupLoadBalancers ref={innerRef} formik={formik as any} hideLoadBalancers={true} />
               )}
@@ -258,7 +248,7 @@ export class TitusCloneServerGroupModal extends React.Component<
               label={FirewallLabels.get('Firewalls')}
               wizard={wizard}
               order={nextIdx()}
-              note={securityGroupNote}
+              note={this.getSecurityGroupNote(formik.values)}
               render={({ innerRef }) => <ServerGroupSecurityGroups ref={innerRef} formik={formik as any} />}
             />
 
