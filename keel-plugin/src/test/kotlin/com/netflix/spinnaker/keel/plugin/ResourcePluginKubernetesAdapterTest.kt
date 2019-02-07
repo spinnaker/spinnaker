@@ -1,13 +1,13 @@
 package com.netflix.spinnaker.keel.plugin
 
-import com.netflix.spinnaker.keel.api.Asset
-import com.netflix.spinnaker.keel.api.AssetMetadata
-import com.netflix.spinnaker.keel.api.AssetName
+import com.netflix.spinnaker.keel.api.Resource
+import com.netflix.spinnaker.keel.api.ResourceMetadata
+import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.k8s.WatchEventType.ADDED
 import com.netflix.spinnaker.keel.k8s.WatchEventType.DELETED
 import com.netflix.spinnaker.keel.k8s.WatchEventType.MODIFIED
-import com.netflix.spinnaker.keel.persistence.AssetRepository
+import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.ResourceVersionTracker
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.doReturn
@@ -22,15 +22,15 @@ import com.oneeyedmen.minutest.rootContext
 import strikt.api.expectThrows
 import java.util.*
 
-internal object AssetPluginKubernetesAdapterTest : JUnit5Minutests {
+internal object ResourcePluginKubernetesAdapterTest : JUnit5Minutests {
 
   data class Fixture(
-    val plugin: AssetPlugin = mock(),
-    val assetRepository: AssetRepository = mock(),
+    val plugin: ResourcePlugin = mock(),
+    val resourceRepository: ResourceRepository = mock(),
     val resourceVersionTracker: ResourceVersionTracker = mock()
   ) {
-    val adapter = AssetPluginKubernetesAdapter(
-      assetRepository,
+    val adapter = ResourcePluginKubernetesAdapter(
+      resourceRepository,
       resourceVersionTracker,
       mock(),
       mock(),
@@ -41,13 +41,13 @@ internal object AssetPluginKubernetesAdapterTest : JUnit5Minutests {
   override val tests = rootContext<Fixture> {
     fixture { Fixture() }
 
-    after { reset(plugin, assetRepository, resourceVersionTracker) }
+    after { reset(plugin, resourceRepository, resourceVersionTracker) }
 
-    val asset = Asset(
+    val resource = Resource(
       SPINNAKER_API_V1,
       "whatever",
-      AssetMetadata(
-        AssetName("my-resource"),
+      ResourceMetadata(
+        ResourceName("my-resource"),
         1234L,
         UUID.randomUUID()
       ),
@@ -55,39 +55,39 @@ internal object AssetPluginKubernetesAdapterTest : JUnit5Minutests {
     )
 
     context("a resource is created") {
-      context("the plugin handles the asset successfully") {
+      context("the plugin handles the resource successfully") {
         before {
           whenever(plugin.create(any())) doReturn ConvergeAccepted
 
-          adapter.onResourceEvent(ADDED, asset)
+          adapter.onResourceEvent(ADDED, resource)
         }
 
-        test("asset is stored in the repository") {
-          verify(assetRepository).store(asset)
+        test("resource is stored in the repository") {
+          verify(resourceRepository).store(resource)
         }
 
-        test("asset is passed to the plugin") {
-          verify(plugin).create(asset)
+        test("resource is passed to the plugin") {
+          verify(plugin).create(resource)
         }
 
         test("resource version is updated") {
-          verify(resourceVersionTracker).set(asset.metadata.resourceVersion!!)
+          verify(resourceVersionTracker).set(resource.metadata.resourceVersion!!)
         }
       }
 
-      context("the plugin does not handle the asset") {
+      context("the plugin does not handle the resource") {
         before {
           whenever(plugin.create(any())) doReturn ConvergeFailed("o noes")
 
-          adapter.onResourceEvent(ADDED, asset)
+          adapter.onResourceEvent(ADDED, resource)
         }
 
-        test("asset is stored in the repository") {
-          verify(assetRepository).store(asset)
+        test("resource is stored in the repository") {
+          verify(resourceRepository).store(resource)
         }
 
-        test("asset is passed to the plugin") {
-          verify(plugin).create(asset)
+        test("resource is passed to the plugin") {
+          verify(plugin).create(resource)
         }
 
         test("resource version is not updated") {
@@ -100,16 +100,16 @@ internal object AssetPluginKubernetesAdapterTest : JUnit5Minutests {
           whenever(plugin.create(any())) doThrow RuntimeException("o noes")
 
           expectThrows<RuntimeException> {
-            adapter.onResourceEvent(ADDED, asset)
+            adapter.onResourceEvent(ADDED, resource)
           }
         }
 
-        test("asset is stored in the repository") {
-          verify(assetRepository).store(asset)
+        test("resource is stored in the repository") {
+          verify(resourceRepository).store(resource)
         }
 
-        test("asset is passed to the plugin") {
-          verify(plugin).create(asset)
+        test("resource is passed to the plugin") {
+          verify(plugin).create(resource)
         }
 
         test("resource version is not updated") {
@@ -119,39 +119,39 @@ internal object AssetPluginKubernetesAdapterTest : JUnit5Minutests {
     }
 
     context("a resource is updated") {
-      context("the plugin handles the asset successfully") {
+      context("the plugin handles the resource successfully") {
         before {
           whenever(plugin.update(any())) doReturn ConvergeAccepted
 
-          adapter.onResourceEvent(MODIFIED, asset)
+          adapter.onResourceEvent(MODIFIED, resource)
         }
 
-        test("asset is stored in the repository") {
-          verify(assetRepository).store(asset)
+        test("resource is stored in the repository") {
+          verify(resourceRepository).store(resource)
         }
 
-        test("asset is passed to the plugin") {
-          verify(plugin).update(asset)
+        test("resource is passed to the plugin") {
+          verify(plugin).update(resource)
         }
 
         test("resource version is updated") {
-          verify(resourceVersionTracker).set(asset.metadata.resourceVersion!!)
+          verify(resourceVersionTracker).set(resource.metadata.resourceVersion!!)
         }
       }
 
-      context("the plugin does not handle the asset") {
+      context("the plugin does not handle the resource") {
         before {
           whenever(plugin.update(any())) doReturn ConvergeFailed("o noes")
 
-          adapter.onResourceEvent(MODIFIED, asset)
+          adapter.onResourceEvent(MODIFIED, resource)
         }
 
-        test("asset is stored in the repository") {
-          verify(assetRepository).store(asset)
+        test("resource is stored in the repository") {
+          verify(resourceRepository).store(resource)
         }
 
-        test("asset is passed to the plugin") {
-          verify(plugin).update(asset)
+        test("resource is passed to the plugin") {
+          verify(plugin).update(resource)
         }
 
         test("resource version is not updated") {
@@ -164,16 +164,16 @@ internal object AssetPluginKubernetesAdapterTest : JUnit5Minutests {
           whenever(plugin.update(any())) doThrow RuntimeException("o noes")
 
           expectThrows<RuntimeException> {
-            adapter.onResourceEvent(MODIFIED, asset)
+            adapter.onResourceEvent(MODIFIED, resource)
           }
         }
 
-        test("asset is stored in the repository") {
-          verify(assetRepository).store(asset)
+        test("resource is stored in the repository") {
+          verify(resourceRepository).store(resource)
         }
 
-        test("asset is passed to the plugin") {
-          verify(plugin).update(asset)
+        test("resource is passed to the plugin") {
+          verify(plugin).update(resource)
         }
 
         test("resource version is not updated") {
@@ -183,39 +183,39 @@ internal object AssetPluginKubernetesAdapterTest : JUnit5Minutests {
     }
 
     context("a resource is deleted") {
-      context("the plugin handles the asset successfully") {
+      context("the plugin handles the resource successfully") {
         before {
           whenever(plugin.delete(any())) doReturn ConvergeAccepted
 
-          adapter.onResourceEvent(DELETED, asset)
+          adapter.onResourceEvent(DELETED, resource)
         }
 
-        test("asset is deleted from the repository") {
-          verify(assetRepository).delete(asset.metadata.name)
+        test("resource is deleted from the repository") {
+          verify(resourceRepository).delete(resource.metadata.name)
         }
 
-        test("asset is passed to the plugin") {
-          verify(plugin).delete(asset)
+        test("resource is passed to the plugin") {
+          verify(plugin).delete(resource)
         }
 
         test("resource version is updated") {
-          verify(resourceVersionTracker).set(asset.metadata.resourceVersion!!)
+          verify(resourceVersionTracker).set(resource.metadata.resourceVersion!!)
         }
       }
 
-      context("the plugin does not handle the asset") {
+      context("the plugin does not handle the resource") {
         before {
           whenever(plugin.delete(any())) doReturn ConvergeFailed("o noes")
 
-          adapter.onResourceEvent(DELETED, asset)
+          adapter.onResourceEvent(DELETED, resource)
         }
 
-        test("asset is not deleted from the repository") {
-          verify(assetRepository, never()).delete(asset.metadata.name)
+        test("resource is not deleted from the repository") {
+          verify(resourceRepository, never()).delete(resource.metadata.name)
         }
 
-        test("asset is passed to the plugin") {
-          verify(plugin).delete(asset)
+        test("resource is passed to the plugin") {
+          verify(plugin).delete(resource)
         }
 
         test("resource version is not updated") {
@@ -228,16 +228,16 @@ internal object AssetPluginKubernetesAdapterTest : JUnit5Minutests {
           whenever(plugin.delete(any())) doThrow RuntimeException("o noes")
 
           expectThrows<RuntimeException> {
-            adapter.onResourceEvent(DELETED, asset)
+            adapter.onResourceEvent(DELETED, resource)
           }
         }
 
-        test("asset is not deleted from the repository") {
-          verify(assetRepository, never()).delete(asset.metadata.name)
+        test("resource is not deleted from the repository") {
+          verify(resourceRepository, never()).delete(resource.metadata.name)
         }
 
-        test("asset is passed to the plugin") {
-          verify(plugin).delete(asset)
+        test("resource is passed to the plugin") {
+          verify(plugin).delete(resource)
         }
 
         test("resource version is not updated") {

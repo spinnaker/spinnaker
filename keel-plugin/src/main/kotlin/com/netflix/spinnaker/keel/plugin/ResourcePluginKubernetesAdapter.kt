@@ -16,14 +16,14 @@
 package com.netflix.spinnaker.keel.plugin
 
 import com.google.gson.reflect.TypeToken
-import com.netflix.spinnaker.keel.api.Asset
-import com.netflix.spinnaker.keel.api.AssetKind
+import com.netflix.spinnaker.keel.api.Resource
+import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.k8s.WatchEventType
 import com.netflix.spinnaker.keel.k8s.WatchEventType.ADDED
 import com.netflix.spinnaker.keel.k8s.WatchEventType.DELETED
 import com.netflix.spinnaker.keel.k8s.WatchEventType.MODIFIED
 import com.netflix.spinnaker.keel.k8s.eventType
-import com.netflix.spinnaker.keel.persistence.AssetRepository
+import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.ResourceVersionTracker
 import com.squareup.okhttp.Call
 import io.kubernetes.client.ApiException
@@ -47,17 +47,17 @@ import java.net.SocketTimeoutException
 import javax.annotation.PostConstruct
 import javax.annotation.PreDestroy
 
-internal class AssetPluginKubernetesAdapter(
-  private val assetRepository: AssetRepository,
+internal class ResourcePluginKubernetesAdapter(
+  private val resourceRepository: ResourceRepository,
   private val resourceVersionTracker: ResourceVersionTracker,
   private val extensionsApi: ApiextensionsV1beta1Api,
   private val customObjectsApi: CustomObjectsApi,
-  private val plugin: AssetPlugin
+  private val plugin: ResourcePlugin
 ) {
   private var job: Job? = null
   private var calls: MutableMap<String, Call> = mutableMapOf()
 
-  private val AssetKind.crd: String
+  private val ResourceKind.crd: String
     get() = "$plural.$group"
 
   @PostConstruct
@@ -134,28 +134,28 @@ internal class AssetPluginKubernetesAdapter(
     }
   }
 
-  internal fun <T : Any> onResourceEvent(type: WatchEventType, asset: Asset<T>) {
-    log.info("Event {} on {}", type, asset)
+  internal fun <T : Any> onResourceEvent(type: WatchEventType, resource: Resource<T>) {
+    log.info("Event {} on {}", type, resource)
     val result = when (type) {
       ADDED -> {
-        assetRepository.store(asset)
-        plugin.create(asset)
+        resourceRepository.store(resource)
+        plugin.create(resource)
       }
       MODIFIED -> {
-        assetRepository.store(asset)
-        plugin.update(asset)
+        resourceRepository.store(resource)
+        plugin.update(resource)
       }
       DELETED -> {
-        plugin.delete(asset).also {
+        plugin.delete(resource).also {
           if (it is ConvergeAccepted) {
-            assetRepository.delete(asset.metadata.name)
+            resourceRepository.delete(resource.metadata.name)
           }
         }
       }
       else -> throw IllegalStateException("Unhandled event type: $type")
     }
     if (result is ConvergeAccepted) {
-      asset.metadata.resourceVersion!!.let(resourceVersionTracker::set)
+      resource.metadata.resourceVersion!!.let(resourceVersionTracker::set)
     }
   }
 
@@ -164,10 +164,10 @@ internal class AssetPluginKubernetesAdapter(
    * `T` is a runtime type and gets erased before the JSON parser can reference
    * it otherwise.
    */
-  private fun <T : Any> Call.createResourceWatch(type: Class<T>): Watch<Asset<T>> =
-    TypeToken.getParameterized(Asset::class.java, type).type
+  private fun <T : Any> Call.createResourceWatch(type: Class<T>): Watch<Resource<T>> =
+    TypeToken.getParameterized(Resource::class.java, type).type
       .let { TypeToken.getParameterized(Watch.Response::class.java, it).type }
-      .let { createWatch<Asset<T>>(Config.defaultClient(), this, it) }
+      .let { createWatch<Resource<T>>(Config.defaultClient(), this, it) }
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 }

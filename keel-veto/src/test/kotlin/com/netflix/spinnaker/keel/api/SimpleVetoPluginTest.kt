@@ -19,7 +19,7 @@ internal object SimpleVetoPluginSpec : JUnit5Minutests {
 
   data class Fixture(
     val dynamicConfigService: DynamicConfigService,
-    val request: Asset<*>
+    val request: Resource<*>
   ) {
     val subject: VetoPlugin = SimpleVetoPlugin(dynamicConfigService)
   }
@@ -28,11 +28,11 @@ internal object SimpleVetoPluginSpec : JUnit5Minutests {
     fixture {
       Fixture(
         dynamicConfigService = mock(),
-        request = Asset(
+        request = Resource(
           apiVersion = SPINNAKER_API_V1,
           kind = "ec2.SecurityGroup",
-          metadata = AssetMetadata(
-            name = AssetName("ec2.SecurityGroup:keel:prod:us-east-1:keel"),
+          metadata = ResourceMetadata(
+            name = ResourceName("ec2.SecurityGroup:keel:prod:us-east-1:keel"),
             uid = UUID.randomUUID(),
             resourceVersion = 1234L
           ),
@@ -50,7 +50,7 @@ internal object SimpleVetoPluginSpec : JUnit5Minutests {
         reset(dynamicConfigService)
       }
 
-      test("it approves asset convergence") {
+      test("it approves resource convergence") {
         expectThat(subject.allow(request)).isEqualTo(Proceed)
       }
     }
@@ -64,7 +64,7 @@ internal object SimpleVetoPluginSpec : JUnit5Minutests {
         reset(dynamicConfigService)
       }
 
-      test("it denies asset convergence") {
+      test("it denies resource convergence") {
         expectThat(subject.allow(request)).isA<Halt>()
       }
     }

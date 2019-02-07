@@ -1,3 +1,3 @@
 # keel-redis
 
-Redis implementation of the asset repository.
+Redis implementation of the resource repository.

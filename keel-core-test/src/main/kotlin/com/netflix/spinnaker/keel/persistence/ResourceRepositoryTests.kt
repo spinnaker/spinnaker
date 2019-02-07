@@ -16,13 +16,13 @@
 package com.netflix.spinnaker.keel.persistence
 
 import com.netflix.spinnaker.keel.api.ApiVersion
-import com.netflix.spinnaker.keel.api.Asset
-import com.netflix.spinnaker.keel.api.AssetMetadata
-import com.netflix.spinnaker.keel.api.AssetName
+import com.netflix.spinnaker.keel.api.Resource
+import com.netflix.spinnaker.keel.api.ResourceMetadata
+import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
-import com.netflix.spinnaker.keel.persistence.AssetState.Diff
-import com.netflix.spinnaker.keel.persistence.AssetState.Ok
-import com.netflix.spinnaker.keel.persistence.AssetState.Unknown
+import com.netflix.spinnaker.keel.persistence.ResourceState.Diff
+import com.netflix.spinnaker.keel.persistence.ResourceState.Ok
+import com.netflix.spinnaker.keel.persistence.ResourceState.Unknown
 import com.nhaarman.mockito_kotlin.argumentCaptor
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.reset
@@ -44,15 +44,15 @@ import java.time.Instant
 import java.time.ZoneId
 import java.util.UUID.randomUUID
 
-abstract class AssetRepositoryTests<T : AssetRepository> : JUnit5Minutests {
+abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests {
 
   abstract fun factory(clock: Clock): T
 
   open fun flush() {}
 
-  data class Fixture<T : AssetRepository>(
+  data class Fixture<T : ResourceRepository>(
     val subject: T,
-    val callback: (Triple<AssetName, ApiVersion, String>) -> Unit
+    val callback: (Triple<ResourceName, ApiVersion, String>) -> Unit
   )
 
   override val tests = rootContext<Fixture<T>> {
@@ -68,19 +68,19 @@ abstract class AssetRepositoryTests<T : AssetRepository> : JUnit5Minutests {
     after { reset(callback) }
     after { flush() }
 
-    context("no assets exist") {
-      test("allAssets is a no-op") {
-        subject.allAssets(callback)
+    context("no resources exist") {
+      test("allResources is a no-op") {
+        subject.allResources(callback)
 
         verifyZeroInteractions(callback)
       }
     }
 
-    context("an asset exists") {
-      val asset = Asset(
+    context("a resource exists") {
+      val resource = Resource(
         apiVersion = SPINNAKER_API_V1,
-        metadata = AssetMetadata(
-          name = AssetName("SecurityGroup:ec2:test:us-west-2:fnord"),
+        metadata = ResourceMetadata(
+          name = ResourceName("SecurityGroup:ec2:test:us-west-2:fnord"),
           resourceVersion = 1234L,
           uid = randomUUID()
         ),
@@ -89,18 +89,18 @@ abstract class AssetRepositoryTests<T : AssetRepository> : JUnit5Minutests {
       )
 
       before {
-        subject.store(asset)
+        subject.store(resource)
       }
 
-      test("it is returned by allAssets") {
-        subject.allAssets(callback)
+      test("it is returned by allResources") {
+        subject.allResources(callback)
 
-        verify(callback).invoke(Triple(asset.metadata.name, asset.apiVersion, asset.kind))
+        verify(callback).invoke(Triple(resource.metadata.name, resource.apiVersion, resource.kind))
       }
 
       test("it can be retrieved by id") {
-        val retrieved = subject.get<Map<String, Any>>(asset.metadata.name)
-        expectThat(retrieved).isEqualTo(asset)
+        val retrieved = subject.get<Map<String, Any>>(resource.metadata.name)
+        expectThat(retrieved).isEqualTo(resource)
       }
 
       test("its id can be retrieved by name") {
@@ -108,16 +108,16 @@ abstract class AssetRepositoryTests<T : AssetRepository> : JUnit5Minutests {
       }
 
       test("its state is unknown") {
-        expectThat(subject.lastKnownState(asset.metadata.name))
+        expectThat(subject.lastKnownState(resource.metadata.name))
           .isNotNull()
           .first
           .isEqualTo(Unknown)
       }
 
-      context("storing another asset with a different id") {
-        val anotherAsset = Asset(
-          metadata = AssetMetadata(
-            name = AssetName("SecurityGroup:ec2:test:us-east-1:fnord"),
+      context("storing another resource with a different id") {
+        val anotherResource = Resource(
+          metadata = ResourceMetadata(
+            name = ResourceName("SecurityGroup:ec2:test:us-east-1:fnord"),
             resourceVersion = 1234L,
             uid = randomUUID()
           ),
@@ -127,46 +127,46 @@ abstract class AssetRepositoryTests<T : AssetRepository> : JUnit5Minutests {
         )
 
         before {
-          subject.store(anotherAsset)
+          subject.store(anotherResource)
         }
 
-        test("it does not overwrite the first asset") {
-          subject.allAssets(callback)
+        test("it does not overwrite the first resource") {
+          subject.allResources(callback)
 
-          argumentCaptor<Triple<AssetName, ApiVersion, String>>().apply {
+          argumentCaptor<Triple<ResourceName, ApiVersion, String>>().apply {
             verify(callback, times(2)).invoke(capture())
             expectThat(allValues)
               .hasSize(2)
               .map { it.first }
-              .containsExactlyInAnyOrder(asset.metadata.name, anotherAsset.metadata.name)
+              .containsExactlyInAnyOrder(resource.metadata.name, anotherResource.metadata.name)
           }
         }
       }
 
 
-      context("storing a new version of the asset") {
-        val updatedAsset = asset.copy(
+      context("storing a new version of the resource") {
+        val updatedResource = resource.copy(
           spec = randomData()
         )
 
         before {
-          subject.store(updatedAsset)
+          subject.store(updatedResource)
         }
 
-        test("it replaces the original asset") {
-          expectThat(subject.get<Map<String, Any>>(asset.metadata.name))
-            .get(Asset<*>::spec)
-            .isEqualTo(updatedAsset.spec)
+        test("it replaces the original resource") {
+          expectThat(subject.get<Map<String, Any>>(resource.metadata.name))
+            .get(Resource<*>::spec)
+            .isEqualTo(updatedResource.spec)
         }
       }
 
-      context("updating the state of the asset") {
+      context("updating the state of the resource") {
         before {
-          subject.updateState(asset.metadata.name, Ok)
+          subject.updateState(resource.metadata.name, Ok)
         }
 
         test("it reports the new state") {
-          expectThat(subject.lastKnownState(asset.metadata.name))
+          expectThat(subject.lastKnownState(resource.metadata.name))
             .isNotNull()
             .first
             .isEqualTo(Ok)
@@ -174,11 +174,11 @@ abstract class AssetRepositoryTests<T : AssetRepository> : JUnit5Minutests {
 
         context("updating the state again") {
           before {
-            subject.updateState(asset.metadata.name, Diff)
+            subject.updateState(resource.metadata.name, Diff)
           }
 
           test("it reports the newest state") {
-            expectThat(subject.lastKnownState(asset.metadata.name))
+            expectThat(subject.lastKnownState(resource.metadata.name))
               .isNotNull()
               .first
               .isEqualTo(Diff)
@@ -186,20 +186,20 @@ abstract class AssetRepositoryTests<T : AssetRepository> : JUnit5Minutests {
         }
       }
 
-      context("deleting the asset") {
+      context("deleting the resource") {
         before {
-          subject.delete(asset.metadata.name)
+          subject.delete(resource.metadata.name)
         }
 
-        test("the asset is no longer returned by all assets") {
-          subject.allAssets(callback)
+        test("the resource is no longer returned when listing all resources") {
+          subject.allResources(callback)
 
           verifyZeroInteractions(callback)
         }
 
-        test("the asset can no longer be retrieved by id") {
-          expectThrows<NoSuchAssetException> {
-            subject.get<Map<String, Any>>(asset.metadata.name)
+        test("the resource can no longer be retrieved by id") {
+          expectThrows<NoSuchResourceException> {
+            subject.get<Map<String, Any>>(resource.metadata.name)
           }
         }
       }

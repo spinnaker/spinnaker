@@ -1,7 +1,7 @@
-package com.netflix.spinnaker.keel.ec2.asset
+package com.netflix.spinnaker.keel.ec2.resource
 
-import com.netflix.spinnaker.keel.api.Asset
-import com.netflix.spinnaker.keel.api.AssetName
+import com.netflix.spinnaker.keel.api.Resource
+import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.ec2.Capacity
 import com.netflix.spinnaker.keel.api.ec2.Cluster
 import com.netflix.spinnaker.keel.api.ec2.HealthCheckType
@@ -13,7 +13,7 @@ import com.netflix.spinnaker.keel.api.ec2.TerminationPolicy
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.Tag
-import com.netflix.spinnaker.keel.ec2.AmazonAssetHandler
+import com.netflix.spinnaker.keel.ec2.AmazonResourceHandler
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.orca.OrcaService
 import kotlinx.coroutines.runBlocking
@@ -25,15 +25,15 @@ class ClusterHandler(
   private val cloudDriverService: CloudDriverService,
   private val cloudDriverCache: CloudDriverCache,
   private val orcaService: OrcaService
-) : AmazonAssetHandler<Cluster> {
-  override fun current(spec: Cluster, request: Asset<Cluster>): Cluster? =
+) : AmazonResourceHandler<Cluster> {
+  override fun current(spec: Cluster, request: Resource<Cluster>): Cluster? =
     cloudDriverService.getCluster(spec)
 
-  override fun converge(assetName: AssetName, spec: Cluster) {
+  override fun converge(resourceName: ResourceName, spec: Cluster) {
     TODO("not implemented")
   }
 
-  override fun delete(assetName: AssetName, spec: SecurityGroup) {
+  override fun delete(resourceName: ResourceName, spec: SecurityGroup) {
     TODO("not implemented")
   }
 

@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.keel.ec2.asset
+package com.netflix.spinnaker.keel.ec2.resource
 
-import com.netflix.spinnaker.keel.api.Asset
-import com.netflix.spinnaker.keel.api.AssetName
+import com.netflix.spinnaker.keel.api.Resource
+import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.ec2.CidrSecurityGroupRule
 import com.netflix.spinnaker.keel.api.ec2.ReferenceSecurityGroupRule
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroup
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupRule
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
-import com.netflix.spinnaker.keel.ec2.AmazonAssetHandler
+import com.netflix.spinnaker.keel.ec2.AmazonResourceHandler
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
@@ -39,12 +39,12 @@ class AmazonSecurityGroupHandler(
   private val cloudDriverService: CloudDriverService,
   private val cloudDriverCache: CloudDriverCache,
   private val orcaService: OrcaService
-) : AmazonAssetHandler<SecurityGroup> {
+) : AmazonResourceHandler<SecurityGroup> {
 
-  override fun current(spec: SecurityGroup, request: Asset<SecurityGroup>): SecurityGroup? =
+  override fun current(spec: SecurityGroup, request: Resource<SecurityGroup>): SecurityGroup? =
     cloudDriverService.getSecurityGroup(spec)
 
-  override fun converge(assetName: AssetName, spec: SecurityGroup) {
+  override fun converge(resourceName: ResourceName, spec: SecurityGroup) {
     val taskRef = runBlocking {
       orcaService
         .orchestrate(OrchestrationRequest(
@@ -68,14 +68,14 @@ class AmazonSecurityGroupHandler(
               "accountName" to spec.accountName
             )
           )),
-          OrchestrationTrigger(assetName.toString())
+          OrchestrationTrigger(resourceName.toString())
         ))
         .await()
     }
     log.info("Started task {} to upsert security group", taskRef.ref)
   }
 
-  override fun delete(assetName: AssetName, spec: SecurityGroup) {
+  override fun delete(resourceName: ResourceName, spec: SecurityGroup) {
     val taskRef = runBlocking {
       orcaService
         .orchestrate(OrchestrationRequest(
@@ -94,7 +94,7 @@ class AmazonSecurityGroupHandler(
               "accountName" to spec.accountName
             )
           )),
-          OrchestrationTrigger(assetName.toString())
+          OrchestrationTrigger(resourceName.toString())
         ))
         .await()
     }

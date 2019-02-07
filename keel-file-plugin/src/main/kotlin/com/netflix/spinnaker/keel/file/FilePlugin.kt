@@ -16,23 +16,23 @@
 package com.netflix.spinnaker.keel.file
 
 import com.netflix.spinnaker.keel.api.ApiVersion
-import com.netflix.spinnaker.keel.api.Asset
-import com.netflix.spinnaker.keel.api.AssetKind
+import com.netflix.spinnaker.keel.api.Resource
+import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.file.Message
-import com.netflix.spinnaker.keel.plugin.AssetPlugin
 import com.netflix.spinnaker.keel.plugin.ConvergeAccepted
 import com.netflix.spinnaker.keel.plugin.ConvergeFailed
 import com.netflix.spinnaker.keel.plugin.ConvergeResponse
 import com.netflix.spinnaker.keel.plugin.CurrentResponse
 import com.netflix.spinnaker.keel.plugin.ResourceError
 import com.netflix.spinnaker.keel.plugin.ResourceMissing
+import com.netflix.spinnaker.keel.plugin.ResourcePlugin
 import com.netflix.spinnaker.keel.plugin.ResourceState
 import org.slf4j.LoggerFactory
 import java.io.File
 import javax.annotation.PostConstruct
 
-class FilePlugin(private val directory: File) : AssetPlugin {
+class FilePlugin(private val directory: File) : ResourcePlugin {
 
   @PostConstruct
   fun ensureDirectoryExists() {
@@ -52,10 +52,10 @@ class FilePlugin(private val directory: File) : AssetPlugin {
   override val apiVersion: ApiVersion = SPINNAKER_API_V1.subApi("file")
 
   override val supportedKinds = mapOf(
-    AssetKind(apiVersion.group, "message", "messages") to Message::class.java
+    ResourceKind(apiVersion.group, "message", "messages") to Message::class.java
   )
 
-  override fun current(request: Asset<*>): CurrentResponse {
+  override fun current(request: Resource<*>): CurrentResponse {
     val file = File(directory, request.metadata.name.value)
     return when {
       !file.exists() -> ResourceMissing
@@ -65,32 +65,32 @@ class FilePlugin(private val directory: File) : AssetPlugin {
     }
   }
 
-  override fun upsert(request: Asset<*>): ConvergeResponse {
+  override fun upsert(request: Resource<*>): ConvergeResponse {
     val spec = request.spec
     return if (spec is Message) {
-      log.info("Upsert asset {}", request)
+      log.info("Upsert resource {}", request)
       request.file.writer().use {
         it.append(spec.text)
       }
       ConvergeAccepted
     } else {
-      log.error("Invalid asset spec ${spec.javaClass.name}")
-      ConvergeFailed("Invalid asset spec ${spec.javaClass.name}")
+      log.error("Invalid resource spec ${spec.javaClass.name}")
+      ConvergeFailed("Invalid resource spec ${spec.javaClass.name}")
     }
   }
 
-  override fun delete(request: Asset<*>): ConvergeResponse {
+  override fun delete(request: Resource<*>): ConvergeResponse {
     val spec = request.spec
     return if (spec is Message) {
-      log.info("Delete asset {}", request)
+      log.info("Delete resource {}", request)
       request.file.delete()
       ConvergeAccepted
     } else {
-      ConvergeFailed("Invalid asset spec ${spec.javaClass.name}")
+      ConvergeFailed("Invalid resource spec ${spec.javaClass.name}")
     }
   }
 
-  private val Asset<*>.file: File
+  private val Resource<*>.file: File
     get() = File(directory, metadata.name.value)
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }

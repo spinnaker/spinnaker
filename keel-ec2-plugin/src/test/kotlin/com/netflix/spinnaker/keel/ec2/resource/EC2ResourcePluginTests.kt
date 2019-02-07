@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.keel.ec2.asset
+package com.netflix.spinnaker.keel.ec2.resource
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
-import com.netflix.spinnaker.keel.api.Asset
-import com.netflix.spinnaker.keel.api.AssetMetadata
-import com.netflix.spinnaker.keel.api.AssetName
+import com.netflix.spinnaker.keel.api.Resource
+import com.netflix.spinnaker.keel.api.ResourceMetadata
+import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.ec2.CidrSecurityGroupRule
 import com.netflix.spinnaker.keel.api.ec2.PortRange
@@ -32,7 +32,7 @@ import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.Moniker
 import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
-import com.netflix.spinnaker.keel.ec2.EC2AssetPlugin
+import com.netflix.spinnaker.keel.ec2.EC2ResourcePlugin
 import com.netflix.spinnaker.keel.ec2.RETROFIT_NOT_FOUND
 import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
@@ -68,7 +68,7 @@ import strikt.assertions.isEqualTo
 import java.util.*
 
 @TestInstance(PER_CLASS)
-internal object EC2AssetPluginTests {
+internal object EC2ResourcePluginTests {
 
   val cloudDriverService = mock<CloudDriverService>()
   val cloudDriverCache = mock<CloudDriverCache>()
@@ -76,7 +76,7 @@ internal object EC2AssetPluginTests {
 
   val objectMapper = ObjectMapper().registerKotlinModule()
 
-  val subject = EC2AssetPlugin(
+  val subject = EC2ResourcePlugin(
     cloudDriverService,
     cloudDriverCache,
     orcaService
@@ -122,10 +122,10 @@ internal object EC2AssetPluginTests {
         reset(cloudDriverService)
       }
 
-      val request = Asset(
+      val request = Resource(
         apiVersion = SPINNAKER_API_V1,
-        metadata = AssetMetadata(
-          name = AssetName("ec2.SecurityGroup:keel:test:us-west-2:keel"),
+        metadata = ResourceMetadata(
+          name = ResourceName("ec2.SecurityGroup:keel:test:us-west-2:keel"),
           uid = UUID.randomUUID(),
           resourceVersion = 1234L
         ),
@@ -160,10 +160,10 @@ internal object EC2AssetPluginTests {
         reset(cloudDriverService)
       }
 
-      val request = Asset(
+      val request = Resource(
         apiVersion = SPINNAKER_API_V1,
-        metadata = AssetMetadata(
-          name = AssetName("ec2.SecurityGroup:keel:test:us-west-2:keel"),
+        metadata = ResourceMetadata(
+          name = ResourceName("ec2.SecurityGroup:keel:test:us-west-2:keel"),
           uid = UUID.randomUUID(),
           resourceVersion = 1234L
         ),
@@ -186,11 +186,11 @@ internal object EC2AssetPluginTests {
   private open class SecurityGroupFixture(
     val spec: SecurityGroup
   ) {
-    val request: Asset<*> by lazy {
-      Asset(
+    val request: Resource<*> by lazy {
+      Resource(
         apiVersion = SPINNAKER_API_V1,
-        metadata = AssetMetadata(
-          name = AssetName("ec2.SecurityGroup:${spec.application}:${spec.accountName}:${spec.region}:${spec.name}"),
+        metadata = ResourceMetadata(
+          name = ResourceName("ec2.SecurityGroup:${spec.application}:${spec.accountName}:${spec.region}:${spec.name}"),
           uid = UUID.randomUUID(),
           resourceVersion = 1234L
         ),

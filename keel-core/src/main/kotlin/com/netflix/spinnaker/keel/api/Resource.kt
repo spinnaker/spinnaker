@@ -15,6 +15,12 @@
  */
 package com.netflix.spinnaker.keel.api
 
-import java.util.*
-
-typealias AssetId = UUID
+/**
+ * Internal representation of a resource.
+ */
+data class Resource<T : Any>(
+  val apiVersion: ApiVersion,
+  val kind: String, // TODO: create a type
+  val metadata: ResourceMetadata,
+  val spec: T
+)

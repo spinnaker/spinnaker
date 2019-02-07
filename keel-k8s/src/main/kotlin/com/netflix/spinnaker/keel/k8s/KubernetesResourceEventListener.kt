@@ -15,10 +15,10 @@
  */
 package com.netflix.spinnaker.keel.k8s
 
-import com.netflix.spinnaker.keel.events.AssetEvent
-import com.netflix.spinnaker.keel.events.AssetEventType.CREATE
-import com.netflix.spinnaker.keel.events.AssetEventType.DELETE
-import com.netflix.spinnaker.keel.events.AssetEventType.UPDATE
+import com.netflix.spinnaker.keel.events.ResourceEvent
+import com.netflix.spinnaker.keel.events.ResourceEventType.CREATE
+import com.netflix.spinnaker.keel.events.ResourceEventType.DELETE
+import com.netflix.spinnaker.keel.events.ResourceEventType.UPDATE
 import io.kubernetes.client.ApiException
 import io.kubernetes.client.apis.CustomObjectsApi
 import io.kubernetes.client.models.V1DeleteOptions
@@ -27,37 +27,37 @@ import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
 
 @Component
-class KubernetesAssetEventListener(
+class KubernetesResourceEventListener(
   private val customObjectsApi: CustomObjectsApi
 ) {
 
   @EventListener
-  fun handle(event: AssetEvent) {
+  fun handle(event: ResourceEvent) {
     log.info("Received event {}", event)
     try {
       when (event.type) {
         CREATE -> customObjectsApi
           .createClusterCustomObject(
-            event.asset.apiVersion.group,
-            event.asset.apiVersion.version,
-            event.asset.kind.substringBefore(".") + "s",
-            event.asset,
+            event.resource.apiVersion.group,
+            event.resource.apiVersion.version,
+            event.resource.kind.substringBefore(".") + "s",
+            event.resource,
             "true"
           )
         UPDATE -> customObjectsApi
           .patchClusterCustomObject(
-            event.asset.apiVersion.group,
-            event.asset.apiVersion.version,
-            event.asset.kind.substringBefore(".") + "s",
-            event.asset.metadata.name.value,
-            event.asset
+            event.resource.apiVersion.group,
+            event.resource.apiVersion.version,
+            event.resource.kind.substringBefore(".") + "s",
+            event.resource.metadata.name.value,
+            event.resource
           )
         DELETE -> customObjectsApi
           .deleteClusterCustomObject(
-            event.asset.apiVersion.group,
-            event.asset.apiVersion.version,
-            event.asset.kind.substringBefore(".") + "s",
-            event.asset.metadata.name.value,
+            event.resource.apiVersion.group,
+            event.resource.apiVersion.version,
+            event.resource.kind.substringBefore(".") + "s",
+            event.resource.metadata.name.value,
             V1DeleteOptions(),
             0,
             null,

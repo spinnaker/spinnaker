@@ -15,14 +15,14 @@
  */
 package com.netflix.spinnaker.keel.rest
 
-import com.netflix.spinnaker.keel.api.Asset
-import com.netflix.spinnaker.keel.api.AssetName
-import com.netflix.spinnaker.keel.events.AssetEvent
-import com.netflix.spinnaker.keel.events.AssetEventType.CREATE
-import com.netflix.spinnaker.keel.events.AssetEventType.DELETE
-import com.netflix.spinnaker.keel.events.AssetEventType.UPDATE
-import com.netflix.spinnaker.keel.persistence.AssetRepository
-import com.netflix.spinnaker.keel.persistence.NoSuchAssetException
+import com.netflix.spinnaker.keel.api.Resource
+import com.netflix.spinnaker.keel.api.ResourceName
+import com.netflix.spinnaker.keel.events.ResourceEvent
+import com.netflix.spinnaker.keel.events.ResourceEventType.CREATE
+import com.netflix.spinnaker.keel.events.ResourceEventType.DELETE
+import com.netflix.spinnaker.keel.events.ResourceEventType.UPDATE
+import com.netflix.spinnaker.keel.persistence.NoSuchResourceException
+import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.get
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
 import org.slf4j.LoggerFactory
@@ -41,10 +41,10 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping(path = ["/assets"])
-class AssetController(
+@RequestMapping(path = ["/resources"])
+class ResourceController(
   private val publisher: ApplicationEventPublisher,
-  private val assetRepository: AssetRepository
+  private val resourceRepository: ResourceRepository
 ) {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
@@ -53,9 +53,9 @@ class AssetController(
     consumes = [APPLICATION_YAML_VALUE, APPLICATION_JSON_VALUE],
     produces = [APPLICATION_YAML_VALUE, APPLICATION_JSON_VALUE]
   )
-  fun create(@RequestBody resource: Asset<*>): Asset<*> {
+  fun create(@RequestBody resource: Resource<*>): Resource<*> {
     log.info("Creating: $resource")
-    publisher.publishEvent(AssetEvent(CREATE, resource))
+    publisher.publishEvent(ResourceEvent(CREATE, resource))
     return resource // TODO: after it's been thru k8s
   }
 
@@ -63,18 +63,18 @@ class AssetController(
     path = ["/{name}"],
     produces = [APPLICATION_YAML_VALUE, APPLICATION_JSON_VALUE]
   )
-  fun get(@PathVariable("name") name: AssetName): Asset<Any> {
+  fun get(@PathVariable("name") name: ResourceName): Resource<Any> {
     log.info("Getting: $name")
-    return assetRepository.get(name)
+    return resourceRepository.get(name)
   }
 
   @PutMapping(
     path = ["/{name}"],
     produces = [APPLICATION_YAML_VALUE, APPLICATION_JSON_VALUE]
   )
-  fun update(@PathVariable("name") name: AssetName, @RequestBody resource: Asset<*>): Asset<*> {
+  fun update(@PathVariable("name") name: ResourceName, @RequestBody resource: Resource<*>): Resource<*> {
     log.info("Updating: $resource")
-    publisher.publishEvent(AssetEvent(UPDATE, resource))
+    publisher.publishEvent(ResourceEvent(UPDATE, resource))
     return resource // TODO: after it's been thru k8s
   }
 
@@ -82,16 +82,16 @@ class AssetController(
     path = ["/{name}"],
     produces = [APPLICATION_YAML_VALUE, APPLICATION_JSON_VALUE]
   )
-  fun delete(@PathVariable("name") name: AssetName): Asset<*> {
+  fun delete(@PathVariable("name") name: ResourceName): Resource<*> {
     log.info("Deleting: $name")
-    val resource = assetRepository.get<Any>(name)
-    publisher.publishEvent(AssetEvent(DELETE, resource))
+    val resource = resourceRepository.get<Any>(name)
+    publisher.publishEvent(ResourceEvent(DELETE, resource))
     return resource // TODO: after it's been thru k8s
   }
 
-  @ExceptionHandler(NoSuchAssetException::class)
+  @ExceptionHandler(NoSuchResourceException::class)
   @ResponseStatus(NOT_FOUND)
-  fun onNotFound(e: NoSuchAssetException) {
+  fun onNotFound(e: NoSuchResourceException) {
     log.error(e.message)
   }
 }

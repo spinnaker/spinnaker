@@ -27,18 +27,18 @@ import com.google.gson.annotations.JsonAdapter
 import java.lang.reflect.Type
 import java.util.*
 
-@JsonAdapter(AssetMetadataAdapter::class)
-data class AssetMetadata(
-  val name: AssetName,
+@JsonAdapter(ResourceMetadataAdapter::class)
+data class ResourceMetadata(
+  val name: ResourceName,
   @JsonProperty(defaultValue = "0") val resourceVersion: Long? = null,
   val uid: UUID? = null,
   @get:JsonAnyGetter val data: Map<String, Any?> = emptyMap()
 ) {
-  // Workaround for the inline class AssetName. Jackson can't deserialize it
+  // Workaround for the inline class ResourceName. Jackson can't deserialize it
   // since it's an erased type.
   @JsonCreator
   constructor(data: Map<String, Any?>) : this(
-    AssetName(data.getValue("name").toString()),
+    ResourceName(data.getValue("name").toString()),
     data["resourceVersion"]?.toString()?.toLong(),
     data["uid"]?.toString()?.let(UUID::fromString),
     data - "name" - "resourceVersion" - "uid"
@@ -53,12 +53,12 @@ data class AssetMetadata(
       .toString()
 }
 
-internal class AssetMetadataAdapter : JsonDeserializer<AssetMetadata>, JsonSerializer<AssetMetadata> {
-  override fun serialize(src: AssetMetadata, typeOfSrc: Type, context: JsonSerializationContext): JsonElement {
+internal class ResourceMetadataAdapter : JsonDeserializer<ResourceMetadata>, JsonSerializer<ResourceMetadata> {
+  override fun serialize(src: ResourceMetadata, typeOfSrc: Type, context: JsonSerializationContext): JsonElement {
     return context.serialize(mapOf("name" to src.name.value, "uid" to src.uid, "resourceVersion" to src.resourceVersion) + src.data, Map::class.java)
   }
 
-  override fun deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): AssetMetadata {
-    return AssetMetadata(context.deserialize<Map<String, Any?>>(json, Map::class.java))
+  override fun deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): ResourceMetadata {
+    return ResourceMetadata(context.deserialize<Map<String, Any?>>(json, Map::class.java))
   }
 }

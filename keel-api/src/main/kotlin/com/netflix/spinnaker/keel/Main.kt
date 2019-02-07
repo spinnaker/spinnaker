@@ -15,13 +15,13 @@
  */
 package com.netflix.spinnaker.keel
 
-import com.netflix.spinnaker.keel.persistence.AssetRepository
+import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.ResourceVersionTracker
-import com.netflix.spinnaker.keel.persistence.memory.InMemoryAssetRepository
+import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceVersionTracker
-import com.netflix.spinnaker.keel.plugin.AssetPlugin
 import com.netflix.spinnaker.keel.plugin.CustomResourceDefinitionLocator
 import com.netflix.spinnaker.keel.plugin.KeelPlugin
+import com.netflix.spinnaker.keel.plugin.ResourcePlugin
 import com.netflix.spinnaker.kork.PlatformComponents
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -60,7 +60,7 @@ class KeelApplication {
 
   @Bean
   @ConditionalOnMissingBean
-  fun assetRepository(clock: Clock): AssetRepository = InMemoryAssetRepository(clock)
+  fun resourceRepository(clock: Clock): ResourceRepository = InMemoryResourceRepository(clock)
 
   @Bean
   @ConditionalOnMissingBean(ResourceVersionTracker::class)
@@ -71,11 +71,11 @@ class KeelApplication {
   fun noCustomResourceDefinitions(): List<CustomResourceDefinitionLocator> = emptyList()
 
   @Bean
-  @ConditionalOnMissingBean(AssetPlugin::class)
-  fun noAssetPlugins(): List<AssetPlugin> = emptyList()
+  @ConditionalOnMissingBean(ResourcePlugin::class)
+  fun noResourcePlugins(): List<ResourcePlugin> = emptyList()
 
   @Autowired
-  lateinit var assetRepository: AssetRepository
+  lateinit var resourceRepository: ResourceRepository
 
   @Autowired
   lateinit var resourceVersionTracker: ResourceVersionTracker
@@ -85,7 +85,7 @@ class KeelApplication {
 
   @PostConstruct
   fun initialStatus() {
-    log.info("Using {} asset repository implementation", assetRepository.javaClass.simpleName)
+    log.info("Using {} resource repository implementation", resourceRepository.javaClass.simpleName)
     log.info("Using {} resource version tracker implementation", resourceVersionTracker.javaClass.simpleName)
     log.info("Using plugins: {}", plugins.joinToString { it.name })
   }

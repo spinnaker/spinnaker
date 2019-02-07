@@ -16,26 +16,26 @@
 package com.netflix.spinnaker.keel.plugin
 
 import com.netflix.spinnaker.keel.api.ApiVersion
-import com.netflix.spinnaker.keel.api.Asset
-import com.netflix.spinnaker.keel.api.AssetKind
+import com.netflix.spinnaker.keel.api.Resource
+import com.netflix.spinnaker.keel.api.ResourceKind
 
-interface AssetPlugin : KeelPlugin {
+interface ResourcePlugin : KeelPlugin {
 
   val apiVersion: ApiVersion
 
   /**
    * Maps the kind to the implementation type.
    */
-  val supportedKinds: Map<AssetKind, Class<out Any>>
+  val supportedKinds: Map<ResourceKind, Class<out Any>>
 
-  fun current(request: Asset<*>): CurrentResponse
-  fun create(request: Asset<*>): ConvergeResponse = upsert(request)
-  fun update(request: Asset<*>): ConvergeResponse = upsert(request)
-  fun upsert(request: Asset<*>): ConvergeResponse {
+  fun current(request: Resource<*>): CurrentResponse
+  fun create(request: Resource<*>): ConvergeResponse = upsert(request)
+  fun update(request: Resource<*>): ConvergeResponse = upsert(request)
+  fun upsert(request: Resource<*>): ConvergeResponse {
     TODO("Not implemented")
   }
 
-  fun delete(request: Asset<*>): ConvergeResponse
+  fun delete(request: Resource<*>): ConvergeResponse
 }
 
 sealed class CurrentResponse

@@ -15,27 +15,27 @@
  */
 package com.netflix.spinnaker.keel.ec2
 
-import com.netflix.spinnaker.keel.api.Asset
-import com.netflix.spinnaker.keel.api.AssetName
+import com.netflix.spinnaker.keel.api.Resource
+import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroup
 
-interface AmazonAssetHandler<S: Any> {
+interface AmazonResourceHandler<S : Any> {
   /**
-   * Retrieve the current state for the provided asset based on the [spec].
+   * Retrieve the current state for the provided resource based on the [spec].
    */
-  fun current(spec: S, request: Asset<S>): S?
+  fun current(spec: S, request: Resource<S>): S?
 
   /**
-   * Converge on the provided asset.
+   * Converge on the provided resource.
    *
-   * @param assetName is provided for use in correlation IDs.
+   * @param resourceName is provided for use in correlation IDs.
    */
-  fun converge(assetName: AssetName, spec: S)
+  fun converge(resourceName: ResourceName, spec: S)
 
   /**
-   * Delete an asset.
+   * Delete a resource.
 
-   * @param assetName is provided for use in correlation IDs.
+   * @param resourceName is provided for use in correlation IDs.
    */
-  fun delete(assetName: AssetName, spec: SecurityGroup)
+  fun delete(resourceName: ResourceName, spec: SecurityGroup)
 }

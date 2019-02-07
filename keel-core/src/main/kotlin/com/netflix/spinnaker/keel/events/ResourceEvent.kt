@@ -15,9 +15,9 @@
  */
 package com.netflix.spinnaker.keel.events
 
-import com.netflix.spinnaker.keel.api.Asset
+import com.netflix.spinnaker.keel.api.Resource
 
-data class AssetEvent(
-  val type: AssetEventType,
-  val asset: Asset<*>
+data class ResourceEvent(
+  val type: ResourceEventType,
+  val resource: Resource<*>
 )

@@ -3,11 +3,11 @@ package com.netflix.spinnaker.keel.plugin
 import com.google.gson.JsonSyntaxException
 import com.google.gson.reflect.TypeToken
 import com.netflix.spinnaker.keel.api.ApiVersion
-import com.netflix.spinnaker.keel.api.Asset
-import com.netflix.spinnaker.keel.api.AssetKind
-import com.netflix.spinnaker.keel.api.AssetName
+import com.netflix.spinnaker.keel.api.Resource
+import com.netflix.spinnaker.keel.api.ResourceKind
+import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
-import com.netflix.spinnaker.keel.persistence.AssetRepository
+import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.ResourceVersionTracker
 import com.nhaarman.mockito_kotlin.mock
 import com.oneeyedmen.minutest.junit.JUnit5Minutests
@@ -54,7 +54,7 @@ internal object KubernetesIntegrationTest : JUnit5Minutests {
     Configuration.setDefaultApiClient(it)
   }
 
-  private val assetRepository = mock<AssetRepository>()
+  private val resourceRepository = mock<ResourceRepository>()
   private val resourceVersionTracker = mock<ResourceVersionTracker>()
   private val extensionsApi = ApiextensionsV1beta1Api(client)
   private val customObjectsApi = CustomObjectsApi(client)
@@ -78,32 +78,32 @@ internal object KubernetesIntegrationTest : JUnit5Minutests {
   }
 
 
-  private class MockAssetPlugin : AssetPlugin {
-    val lastCreated = BlockingReference<Asset<*>>()
-    val lastUpdated = BlockingReference<Asset<*>>()
-    val lastDeleted = BlockingReference<Asset<*>>()
+  private class MockResourcePlugin : ResourcePlugin {
+    val lastCreated = BlockingReference<Resource<*>>()
+    val lastUpdated = BlockingReference<Resource<*>>()
+    val lastDeleted = BlockingReference<Resource<*>>()
 
     override val apiVersion: ApiVersion = SPINNAKER_API_V1.subApi("ec2")
 
     override val supportedKinds = mapOf(
-      AssetKind(apiVersion.group, "security-group", "security-groups") to SecurityGroup::class.java
+      ResourceKind(apiVersion.group, "security-group", "security-groups") to SecurityGroup::class.java
     )
 
-    override fun current(request: Asset<*>): CurrentResponse {
+    override fun current(request: Resource<*>): CurrentResponse {
       TODO("not implemented")
     }
 
-    override fun create(request: Asset<*>): ConvergeResponse {
+    override fun create(request: Resource<*>): ConvergeResponse {
       lastCreated.set(request)
       return ConvergeAccepted
     }
 
-    override fun update(request: Asset<*>): ConvergeResponse {
+    override fun update(request: Resource<*>): ConvergeResponse {
       lastUpdated.set(request)
       return ConvergeAccepted
     }
 
-    override fun delete(request: Asset<*>): ConvergeResponse {
+    override fun delete(request: Resource<*>): ConvergeResponse {
       lastDeleted.set(request)
       return ConvergeAccepted
     }
@@ -112,9 +112,9 @@ internal object KubernetesIntegrationTest : JUnit5Minutests {
   private class Fixture<T : Any>(
     val crd: V1beta1CustomResourceDefinition
   ) {
-    val plugin = MockAssetPlugin()
-    val adapter: AssetPluginKubernetesAdapter = AssetPluginKubernetesAdapter(
-      assetRepository,
+    val plugin = MockResourcePlugin()
+    val adapter: ResourcePluginKubernetesAdapter = ResourcePluginKubernetesAdapter(
+      resourceRepository,
       resourceVersionTracker,
       extensionsApi,
       customObjectsApi,
@@ -274,7 +274,7 @@ internal object KubernetesIntegrationTest : JUnit5Minutests {
         test("the plugin gets invoked") {
           expectThat(plugin.lastCreated.get())
             .get { metadata.name }
-            .isEqualTo(AssetName("my-security-group"))
+            .isEqualTo(ResourceName("my-security-group"))
         }
 
         test("there should be one object") {
@@ -358,7 +358,7 @@ internal object KubernetesIntegrationTest : JUnit5Minutests {
           test("the plugin gets invoked") {
             expectThat(plugin.lastDeleted.get())
               .get { metadata.name }
-              .isEqualTo(AssetName("my-security-group"))
+              .isEqualTo(ResourceName("my-security-group"))
           }
         }
       }
@@ -368,7 +368,7 @@ internal object KubernetesIntegrationTest : JUnit5Minutests {
 
 data class ResourceList<T : Any>(
   val apiVersion: String,
-  val items: List<Asset<T>>,
+  val items: List<Resource<T>>,
   val kind: String,
   val metadata: Map<String, Any?>
 )

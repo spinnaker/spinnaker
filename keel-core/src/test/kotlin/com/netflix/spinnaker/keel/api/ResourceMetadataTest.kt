@@ -12,7 +12,7 @@ import strikt.assertions.hasEntry
 import strikt.assertions.isEqualTo
 import java.util.*
 
-internal object AssetMetadataTest : JUnit5Minutests {
+internal object ResourceMetadataTest : JUnit5Minutests {
 
   val mapper = YAMLMapper()
     .registerKotlinModule()
@@ -20,10 +20,10 @@ internal object AssetMetadataTest : JUnit5Minutests {
   val gson = GsonBuilder().setPrettyPrinting().serializeNulls().create()
 
   override val tests = rootContext<Unit> {
-    derivedContext<AssetMetadata>("serialization") {
+    derivedContext<ResourceMetadata>("serialization") {
       fixture {
-        AssetMetadata(
-          AssetName("my-new-cron-object"),
+        ResourceMetadata(
+          ResourceName("my-new-cron-object"),
           285,
           UUID.fromString("9423255b-4600-11e7-af6a-28d2447dc82b"),
           mapOf(
@@ -84,15 +84,15 @@ internal object AssetMetadataTest : JUnit5Minutests {
       }
 
       test("deserializes properties") {
-        expectThat(mapper.readValue<AssetMetadata>(this)) {
-          get { name }.isEqualTo(AssetName("my-new-cron-object"))
+        expectThat(mapper.readValue<ResourceMetadata>(this)) {
+          get { name }.isEqualTo(ResourceName("my-new-cron-object"))
           get { uid }.isEqualTo(UUID.fromString("9423255b-4600-11e7-af6a-28d2447dc82b"))
           get { resourceVersion }.isEqualTo(285L)
         }
       }
 
       test("deserializes extra data") {
-        expectThat(mapper.readValue<AssetMetadata>(this))
+        expectThat(mapper.readValue<ResourceMetadata>(this))
           .get { data }
           .hasEntry("namespace", "default")
       }
@@ -115,15 +115,15 @@ internal object AssetMetadataTest : JUnit5Minutests {
         |}""".trimMargin()
       }
       test("deserializes properties using Gson") {
-        expectThat(gson.fromJson(this, AssetMetadata::class.java)) {
-          get { name }.isEqualTo(AssetName("my-message"))
+        expectThat(gson.fromJson(this, ResourceMetadata::class.java)) {
+          get { name }.isEqualTo(ResourceName("my-message"))
           get { uid }.isEqualTo(UUID.fromString("16742412-f8e0-11e8-8396-025000000001"))
           get { resourceVersion }.isEqualTo(280688L)
         }
       }
 
       test("deserializes extra data using Gson") {
-        expectThat(gson.fromJson(this, AssetMetadata::class.java))
+        expectThat(gson.fromJson(this, ResourceMetadata::class.java))
           .get { data }
           .hasEntry("namespace", "")
           .containsKey("annotations")

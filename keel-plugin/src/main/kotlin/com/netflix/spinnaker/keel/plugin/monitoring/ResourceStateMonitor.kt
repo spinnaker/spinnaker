@@ -4,12 +4,12 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.google.common.hash.Hashing
 import com.netflix.spinnaker.keel.api.ApiVersion
-import com.netflix.spinnaker.keel.api.Asset
-import com.netflix.spinnaker.keel.api.AssetKind
-import com.netflix.spinnaker.keel.persistence.AssetRepository
-import com.netflix.spinnaker.keel.plugin.AssetPlugin
+import com.netflix.spinnaker.keel.api.Resource
+import com.netflix.spinnaker.keel.api.ResourceKind
+import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.plugin.ResourceError
 import com.netflix.spinnaker.keel.plugin.ResourceMissing
+import com.netflix.spinnaker.keel.plugin.ResourcePlugin
 import com.netflix.spinnaker.keel.plugin.ResourceState
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
@@ -17,33 +17,33 @@ import org.springframework.stereotype.Component
 import java.nio.charset.Charset
 
 @Component
-class AssetStateMonitor(
-  private val assetRepository: AssetRepository,
-  private val plugins: List<AssetPlugin>
+class ResourceStateMonitor(
+  private val resourceRepository: ResourceRepository,
+  private val plugins: List<ResourcePlugin>
 ) {
 
-  @Scheduled(fixedDelayString = "\${keel.asset.monitoring.frequency.ms:60000}")
-  fun validateManagedAssets() {
-    assetRepository.allAssets { (uid, apiVersion, singular) ->
+  @Scheduled(fixedDelayString = "\${keel.resource.monitoring.frequency.ms:60000}")
+  fun validateManagedResources() {
+    resourceRepository.allResources { (uid, apiVersion, singular) ->
       val plugin = pluginFor(apiVersion, singular) ?: throw UnsupportedKind(apiVersion, singular)
       val type = plugin.typeFor(singular)
-      val asset = assetRepository.get(uid, type)
-      when (val response = plugin.current(asset)) {
+      val resource = resourceRepository.get(uid, type)
+      when (val response = plugin.current(resource)) {
         is ResourceMissing -> {
-          log.warn("Asset {} {} is missing", asset.kind)
-          plugin.create(asset)
+          log.warn("Resource {} {} is missing", resource.kind)
+          plugin.create(resource)
         }
-        is ResourceState<*> -> if (asset.matches(response.spec)) {
-          log.info("Asset {} {} is valid", asset.kind, asset.metadata.name)
+        is ResourceState<*> -> if (resource.matches(response.spec)) {
+          log.info("Resource {} {} is valid", resource.kind, resource.metadata.name)
         } else {
-          log.warn("Asset {} {} is invalid", asset.kind, asset.metadata.name)
-          plugin.update(asset)
+          log.warn("Resource {} {} is invalid", resource.kind, resource.metadata.name)
+          plugin.update(resource)
         }
         is ResourceError ->
           log.error(
-            "Asset {} {} current state could not be determined due to \"{}\"",
-            asset.kind,
-            asset.metadata.name,
+            "Resource {} {} current state could not be determined due to \"{}\"",
+            resource.kind,
+            resource.metadata.name,
             response.reason
           )
       }
@@ -53,15 +53,15 @@ class AssetStateMonitor(
   private val hashFunction = Hashing
     .murmur3_128()
 
-  private fun AssetPlugin.typeFor(singular: String): Class<out Any> =
+  private fun ResourcePlugin.typeFor(singular: String): Class<out Any> =
     supportedKinds.entries.find { it.key.singular == singular }?.value
       ?: throw IllegalArgumentException("Plugin $name does not support $singular")
 
-  private fun Asset<*>.matches(current: Any): Boolean =
+  private fun Resource<*>.matches(current: Any): Boolean =
     hashFunction.hashString(mapper.writeValueAsString(spec), UTF_8) == hashFunction.hashString(mapper.writeValueAsString(current), UTF_8)
 
-  private fun pluginFor(apiVersion: ApiVersion, singular: String): AssetPlugin? =
-    plugins.find { it.apiVersion == apiVersion && it.supportedKinds.keys.map(AssetKind::singular).contains(singular) }
+  private fun pluginFor(apiVersion: ApiVersion, singular: String): ResourcePlugin? =
+    plugins.find { it.apiVersion == apiVersion && it.supportedKinds.keys.map(ResourceKind::singular).contains(singular) }
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
   private val mapper by lazy { YAMLMapper().registerKotlinModule() }

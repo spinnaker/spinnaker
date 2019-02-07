@@ -31,7 +31,7 @@ internal class KubernetesAdapterBeanPostProcessor()
 
   override fun postProcessBeanFactory(beanFactory: ConfigurableListableBeanFactory) {
     beanFactory
-      .getBeanNamesForType(AssetPlugin::class.java)
+      .getBeanNamesForType(ResourcePlugin::class.java)
       .also {
         log.info("Found these plugins: {}", it.joinToString())
       }
@@ -40,8 +40,8 @@ internal class KubernetesAdapterBeanPostProcessor()
           is BeanDefinitionRegistry -> beanFactory.registerBeanDefinition(
             "${name}Adapter",
             BeanDefinitionBuilder
-              .genericBeanDefinition(AssetPluginKubernetesAdapter::class.java)
-              .addConstructorArgReference("assetRepository")
+              .genericBeanDefinition(ResourcePluginKubernetesAdapter::class.java)
+              .addConstructorArgReference("resourceRepository")
               .addConstructorArgReference("resourceVersionTracker")
               .addConstructorArgReference("extensionsApi")
               .addConstructorArgReference("customObjectsApi")

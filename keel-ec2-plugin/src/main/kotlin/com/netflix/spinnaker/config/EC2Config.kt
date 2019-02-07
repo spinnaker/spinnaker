@@ -17,7 +17,7 @@ package com.netflix.spinnaker.config
 
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
-import com.netflix.spinnaker.keel.ec2.EC2AssetPlugin
+import com.netflix.spinnaker.keel.ec2.EC2ResourcePlugin
 import com.netflix.spinnaker.keel.orca.OrcaService
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
@@ -32,7 +32,7 @@ class EC2Config {
     cloudDriverService: CloudDriverService,
     cloudDriverCache: CloudDriverCache,
     orcaService: OrcaService
-  ): EC2AssetPlugin =
-    EC2AssetPlugin(cloudDriverService, cloudDriverCache, orcaService)
+  ): EC2ResourcePlugin =
+    EC2ResourcePlugin(cloudDriverService, cloudDriverCache, orcaService)
 
 }

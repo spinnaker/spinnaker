@@ -1,9 +1,9 @@
 package com.netflix.spinnaker.keel.redis.spring
 
 import com.netflix.spinnaker.keel.KeelApplication
-import com.netflix.spinnaker.keel.persistence.AssetRepository
+import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.ResourceVersionTracker
-import com.netflix.spinnaker.keel.redis.RedisAssetRepository
+import com.netflix.spinnaker.keel.redis.RedisResourceRepository
 import com.netflix.spinnaker.keel.redis.RedisResourceVersionTracker
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -26,14 +26,14 @@ import strikt.assertions.isA
 internal class SpringStartupTests {
 
   @Autowired
-  lateinit var assetRepository: AssetRepository
+  lateinit var resourceRepository: ResourceRepository
 
   @Autowired
   lateinit var resourceVersionTracker: ResourceVersionTracker
 
   @Test
-  fun `uses RedisAssetRepository`() {
-    expectThat(assetRepository).isA<RedisAssetRepository>()
+  fun `uses RedisResourceRepository`() {
+    expectThat(resourceRepository).isA<RedisResourceRepository>()
   }
 
   @Test

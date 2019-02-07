@@ -28,9 +28,9 @@ import retrofit2.HttpException
 
 /**
  * Builds a local cache of clouddriver credentials that is used to populate X-SPINNAKER-ACCOUNTS header, allowing
- * Keel to perform orchestrations against any account. Security of applying an Asset should be performed at Asset
- * submission time into Keel, validating the that user who is submitting the Asset has access to affect the accounts
- * and applications the Asset touches.
+ * Keel to perform orchestrations against any account. Security of applying a resource should be performed at resource
+ * submission time into Keel, validating the that user who is submitting the resource has access to affect the accounts
+ * and applications the resource touches.
  *
  * TODO rz - should have an account provider that is injected, rather than each interceptor running its own cache
  */

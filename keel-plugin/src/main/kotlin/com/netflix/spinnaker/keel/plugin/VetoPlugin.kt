@@ -15,10 +15,10 @@
  */
 package com.netflix.spinnaker.keel.plugin
 
-import com.netflix.spinnaker.keel.api.Asset
+import com.netflix.spinnaker.keel.api.Resource
 
 interface VetoPlugin : KeelPlugin {
-  fun allow(request: Asset<*>) : AllowResponse
+  fun allow(request: Resource<*>): AllowResponse
 }
 
 sealed class AllowResponse

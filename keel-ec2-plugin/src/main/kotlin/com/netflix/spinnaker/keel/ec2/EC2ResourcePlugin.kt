@@ -16,44 +16,44 @@
 package com.netflix.spinnaker.keel.ec2
 
 import com.netflix.spinnaker.keel.api.ApiVersion
-import com.netflix.spinnaker.keel.api.Asset
-import com.netflix.spinnaker.keel.api.AssetKind
+import com.netflix.spinnaker.keel.api.Resource
+import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroup
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupRule
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
-import com.netflix.spinnaker.keel.ec2.asset.AmazonSecurityGroupHandler
+import com.netflix.spinnaker.keel.ec2.resource.AmazonSecurityGroupHandler
 import com.netflix.spinnaker.keel.orca.OrcaService
-import com.netflix.spinnaker.keel.plugin.AssetPlugin
 import com.netflix.spinnaker.keel.plugin.ConvergeAccepted
 import com.netflix.spinnaker.keel.plugin.ConvergeFailed
 import com.netflix.spinnaker.keel.plugin.ConvergeResponse
 import com.netflix.spinnaker.keel.plugin.CurrentResponse
 import com.netflix.spinnaker.keel.plugin.ResourceError
 import com.netflix.spinnaker.keel.plugin.ResourceMissing
+import com.netflix.spinnaker.keel.plugin.ResourcePlugin
 import com.netflix.spinnaker.keel.plugin.ResourceState
 import org.slf4j.LoggerFactory
 
-class EC2AssetPlugin(
+class EC2ResourcePlugin(
   cloudDriverService: CloudDriverService,
   cloudDriverCache: CloudDriverCache,
   orcaService: OrcaService
-) : AssetPlugin {
+) : ResourcePlugin {
 
   override val apiVersion: ApiVersion = SPINNAKER_API_V1.subApi("ec2")
 
   override val supportedKinds = mapOf(
-    AssetKind(apiVersion.group, "security-group", "security-groups") to SecurityGroup::class.java,
-    AssetKind(apiVersion.group, "security-group-rule", "security-group-rules") to SecurityGroupRule::class.java
+    ResourceKind(apiVersion.group, "security-group", "security-groups") to SecurityGroup::class.java,
+    ResourceKind(apiVersion.group, "security-group-rule", "security-group-rules") to SecurityGroupRule::class.java
   )
 
-  override fun current(request: Asset<*>): CurrentResponse {
+  override fun current(request: Resource<*>): CurrentResponse {
     val spec = request.spec
     return when (spec) {
       is SecurityGroup -> {
         @Suppress("UNCHECKED_CAST")
-        val current = securityGroupHandler.current(spec, request as Asset<SecurityGroup>)
+        val current = securityGroupHandler.current(spec, request as Resource<SecurityGroup>)
         log.info("{} desired state: {}", request.metadata.name, spec)
         log.info("{} current state: {}", request.metadata.name, current)
         if (current == null) {
@@ -63,14 +63,14 @@ class EC2AssetPlugin(
         }
       }
       else -> {
-        val message = "Unsupported asset type ${request.kind} with id ${request.metadata.name}"
+        val message = "Unsupported resource type ${request.kind} with id ${request.metadata.name}"
         log.error("Current failed: {}", message)
         ResourceError(message)
       }
     }
   }
 
-  override fun upsert(request: Asset<*>): ConvergeResponse {
+  override fun upsert(request: Resource<*>): ConvergeResponse {
     val spec = request.spec
     return try {
       when (spec) {
@@ -79,7 +79,7 @@ class EC2AssetPlugin(
           ConvergeAccepted
         }
         else -> {
-          val message = "Unsupported asset type ${request.kind} with id ${request.metadata.name}"
+          val message = "Unsupported resource type ${request.kind} with id ${request.metadata.name}"
           log.error("Converge failed: {}", message)
           ConvergeFailed(message)
         }
@@ -90,7 +90,7 @@ class EC2AssetPlugin(
     }
   }
 
-  override fun delete(request: Asset<*>): ConvergeResponse {
+  override fun delete(request: Resource<*>): ConvergeResponse {
     val spec = request.spec
     return try {
       when (spec) {
@@ -99,7 +99,7 @@ class EC2AssetPlugin(
           ConvergeAccepted
         }
         else -> {
-          val message = "Unsupported asset type ${request.kind} with id ${request.metadata.name}"
+          val message = "Unsupported resource type ${request.kind} with id ${request.metadata.name}"
           log.error("Converge failed: {}", message)
           ConvergeFailed(message)
         }

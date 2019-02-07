@@ -1,12 +1,12 @@
 package com.netflix.spinnaker.keel.rest
 
 import com.netflix.spinnaker.keel.KeelApplication
-import com.netflix.spinnaker.keel.api.Asset
-import com.netflix.spinnaker.keel.api.AssetMetadata
-import com.netflix.spinnaker.keel.api.AssetName
+import com.netflix.spinnaker.keel.api.Resource
+import com.netflix.spinnaker.keel.api.ResourceMetadata
+import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
-import com.netflix.spinnaker.keel.persistence.AssetRepository
-import com.netflix.spinnaker.keel.persistence.NoSuchAssetException
+import com.netflix.spinnaker.keel.persistence.NoSuchResourceException
+import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.get
 import com.netflix.spinnaker.keel.redis.spring.EmbeddedRedisConfiguration
 import com.netflix.spinnaker.keel.redis.spring.MockEurekaConfig
@@ -44,16 +44,16 @@ import java.util.*
   webEnvironment = RANDOM_PORT
 )
 @AutoConfigureMockMvc
-internal class AssetControllerTest {
+internal class ResourceControllerTest {
   @Autowired
   lateinit var mvc: MockMvc
 
   @Autowired
-  lateinit var assetRepository: AssetRepository
+  lateinit var resourceRepository: ResourceRepository
 
   @Test
   fun `can create a resource as YAML`() {
-    val request = post("/assets")
+    val request = post("/resources")
       .accept(APPLICATION_YAML)
       .contentType(APPLICATION_YAML)
       .content(
@@ -75,7 +75,7 @@ internal class AssetControllerTest {
 
   @Test
   fun `can create a resource as JSON`() {
-    val request = post("/assets")
+    val request = post("/resources")
       .accept(APPLICATION_JSON)
       .contentType(APPLICATION_JSON)
       .content(
@@ -100,19 +100,19 @@ internal class AssetControllerTest {
 
   @Test
   fun `can get a resource as YAML`() {
-    val asset = Asset(
+    val resource = Resource(
       apiVersion = SPINNAKER_API_V1,
       kind = "whatever",
-      metadata = AssetMetadata(
-        name = AssetName("my-resource"),
+      metadata = ResourceMetadata(
+        name = ResourceName("my-resource"),
         uid = UUID.randomUUID(),
         resourceVersion = 1234L
       ),
       spec = "some spec content"
     )
-    assetRepository.store(asset)
+    resourceRepository.store(resource)
 
-    val request = get("/assets/${asset.metadata.name}")
+    val request = get("/resources/${resource.metadata.name}")
       .accept(APPLICATION_YAML)
     val result = mvc
       .perform(request)
@@ -128,32 +128,32 @@ internal class AssetControllerTest {
   @Test
   @Ignore("TODO: Event needs to go via k8s for delete to happen")
   fun `can delete a resource`() {
-    val asset = Asset(
+    val resource = Resource(
       apiVersion = SPINNAKER_API_V1,
       kind = "whatever",
-      metadata = AssetMetadata(
-        name = AssetName("my-resource"),
+      metadata = ResourceMetadata(
+        name = ResourceName("my-resource"),
         uid = UUID.randomUUID(),
         resourceVersion = 1234L
       ),
       spec = "some spec content"
     )
-    assetRepository.store(asset)
+    resourceRepository.store(resource)
 
-    val request = delete("/assets/${asset.metadata.name}")
+    val request = delete("/resources/${resource.metadata.name}")
       .accept(APPLICATION_YAML)
     mvc
       .perform(request)
       .andExpect(status().isOk)
 
-    expectThrows<NoSuchAssetException> {
-      assetRepository.get<Any>(asset.metadata.name)
+    expectThrows<NoSuchResourceException> {
+      resourceRepository.get<Any>(resource.metadata.name)
     }
   }
 
   @Test
-  fun `unknown asset name results in a 404`() {
-    val request = get("/assets/i-do-not-exist")
+  fun `unknown resource name results in a 404`() {
+    val request = get("/resources/i-do-not-exist")
       .accept(APPLICATION_YAML)
     mvc
       .perform(request)
