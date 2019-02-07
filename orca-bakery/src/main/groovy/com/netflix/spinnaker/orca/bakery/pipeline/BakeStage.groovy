@@ -26,9 +26,11 @@ import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.TaskNode
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.tasks.artifacts.BindProducedArtifactsTask
+import com.netflix.spinnaker.orca.pipeline.util.RegionCollector
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 import javax.annotation.Nonnull
@@ -41,6 +43,9 @@ import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAG
 class BakeStage implements StageDefinitionBuilder {
 
   public static final String PIPELINE_CONFIG_TYPE = "bake"
+
+  @Autowired
+  RegionCollector regionCollector
 
   @Override
   void taskGraph(Stage stage, TaskNode.Builder builder) {
@@ -80,31 +85,8 @@ class BakeStage implements StageDefinitionBuilder {
     deployRegions.addAll(stage.context.regions as Set<String> ?: [])
 
     if (!deployRegions.contains("global")) {
-      deployRegions.addAll(stage.execution.stages.findAll {
-        it.type == "deploy"
-      }.collect {
-        Set<String> regions = it.context?.clusters?.inject([] as Set<String>) { Set<String> accum, Map cluster ->
-          if (cluster.cloudProvider == stage.context.cloudProviderType) {
-            accum.addAll(cluster.availabilityZones?.keySet() ?: [])
-          }
-          return accum
-        } ?: []
-        if (it.context?.cluster?.cloudProvider == stage.context.cloudProviderType) {
-          regions.addAll(it.context?.cluster?.availabilityZones?.keySet() ?: [])
-        }
-        return regions
-      }.flatten())
+      deployRegions.addAll(regionCollector.getRegionsFromChildStages(stage))
       // TODO(duftler): Also filter added canary regions once canary supports multiple platforms.
-      deployRegions.addAll(stage.execution.stages.findAll {
-        it.type == "canary"
-      }.collect {
-        Set<String> regions = it.context?.clusterPairs?.inject([] as Set<String>) { Set<String> accum, Map clusterPair ->
-          accum.addAll(clusterPair.baseline?.availabilityZones?.keySet() ?: [])
-          accum.addAll(clusterPair.canary?.availabilityZones?.keySet() ?: [])
-          return accum
-        } ?: []
-        return regions
-      }.flatten())
     }
 
     log.info("Preparing package `${stage.context.package}` for bake in ${deployRegions.join(", ")}")

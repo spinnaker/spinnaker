@@ -18,9 +18,11 @@ package com.netflix.spinnaker.orca.bakery.pipeline
 
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.util.RegionCollector
 import groovy.time.TimeCategory
 import spock.lang.Specification
 import spock.lang.Unroll
+
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
@@ -34,11 +36,13 @@ class BakeStageSpec extends Specification {
           type = "deploy"
           name = "Deploy!"
           context = zones
+          refId = "2"
+          requisiteStageRefIds = ["1"]
         }
       }
     }
 
-    def bakeStage = new Stage(pipeline, "bake", "Bake!", bakeStageContext)
+    def bakeStage = new Stage(pipeline, "bake", "Bake!", bakeStageContext + [refId: "1"])
     def builder = Spy(BakeStage, {
       (0..1) * now() >> {
         use([TimeCategory]) {
@@ -46,6 +50,8 @@ class BakeStageSpec extends Specification {
         }
       }
     })
+
+    builder.regionCollector = new RegionCollector()
 
     when:
     def parallelContexts = builder.parallelContexts(bakeStage)
@@ -93,7 +99,8 @@ class BakeStageSpec extends Specification {
     }
 
     def bakeStage = pipeline.stageById("1")
-    def parallelStages = new BakeStage().parallelStages(bakeStage)
+    def parallelStages = new BakeStage(regionCollector: new RegionCollector()).parallelStages(bakeStage)
+
     parallelStages.eachWithIndex { it, idx -> it.context.ami = idx + 1 }
     pipeline.stages.addAll(parallelStages)
 
@@ -127,7 +134,7 @@ class BakeStageSpec extends Specification {
   private
   static List<Map> expectedContexts(String cloudProvider, String amiSuffix, String... regions) {
     return regions.collect {
-      [cloudProviderType: cloudProvider, amiSuffix: amiSuffix, type: BakeStage.PIPELINE_CONFIG_TYPE, "region": it, name: "Bake in ${it}"]
+      [cloudProviderType: cloudProvider, amiSuffix: amiSuffix, type: BakeStage.PIPELINE_CONFIG_TYPE, "region": it, name: "Bake in ${it}", refId: "1"]
     }
   }
 }

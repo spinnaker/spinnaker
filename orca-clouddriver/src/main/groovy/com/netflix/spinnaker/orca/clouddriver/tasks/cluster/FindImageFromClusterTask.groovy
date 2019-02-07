@@ -28,6 +28,7 @@ import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.util.RegionCollector
 import groovy.transform.Canonical
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -80,6 +81,9 @@ class FindImageFromClusterTask extends AbstractCloudProviderAwareTask implements
   @Autowired
   ObjectMapper objectMapper
 
+  @Autowired
+  RegionCollector regionCollector
+
   @Canonical
   static class FindImageConfiguration {
     String cluster
@@ -118,6 +122,16 @@ class FindImageFromClusterTask extends AbstractCloudProviderAwareTask implements
 
     Set<String> imageNames = []
     Map<Location, String> imageIds = [:]
+
+    // Supplement config with regions from subsequent deploy/canary stages:
+    def deployRegions = regionCollector.getRegionsFromChildStages(stage)
+
+    deployRegions.forEach {
+      if (!config.regions.contains(it)) {
+        config.regions.add(it)
+        log.info("Inferred and added region ($it) from deploy stage to FindImageFromClusterTask (executionId: ${stage.execution.id})")
+      }
+    }
 
     Map<Location, List<Map<String, Object>>> imageSummaries = config.requiredLocations.collectEntries { location ->
       try {
@@ -164,11 +178,13 @@ class FindImageFromClusterTask extends AbstractCloudProviderAwareTask implements
 
     if (!locationsWithMissingImageIds.isEmpty()) {
       // signifies that at least one summary was missing image details, let's retry until we see image details
-      log.warn("One or more locations are missing image details (locations: ${locationsWithMissingImageIds*.value}, cluster: ${config.cluster}, account: ${account})")
+      log.warn("One or more locations are missing image details (locations: ${locationsWithMissingImageIds*.value}, cluster: ${config.cluster}, account: ${account}, executionId: ${stage.execution.id})")
       return new TaskResult(ExecutionStatus.RUNNING)
     }
 
     if (missingLocations) {
+      log.info("Resolving images in missing locations: ${missingLocations.collect({it -> it.value}).join(",")}, executionId ${stage.execution.id}")
+
       Set<String> searchNames = extractBaseImageNames(imageNames)
       if (searchNames.size() != 1) {
         throw new IllegalStateException("Request to resolve images for missing ${config.requiredLocations.first().pluralType()} requires exactly one image. (Found ${searchNames}, missing locations: ${missingLocations*.value.join(',')})")
@@ -180,7 +196,7 @@ class FindImageFromClusterTask extends AbstractCloudProviderAwareTask implements
       }
 
       List<Map> images = oortService.findImage(cloudProvider, searchNames[0] + '*', account, null, null)
-      resolveFromBaseImageName(images, missingLocations, imageSummaries, deploymentDetailTemplate, config)
+      resolveFromBaseImageName(images, missingLocations, imageSummaries, deploymentDetailTemplate, config, stage.execution.id)
 
       def unresolved = imageSummaries.findResults { it.value == null ? it.key : null }
       if (unresolved) {
@@ -188,7 +204,7 @@ class FindImageFromClusterTask extends AbstractCloudProviderAwareTask implements
           // fallback to look it default bake account; the deploy operation will execute the allowLaunchOperation to share
           // the image into the target account
           List<Map> defaultImages = oortService.findImage(cloudProvider, searchNames[0] + '*', defaultBakeAccount, null, null)
-          resolveFromBaseImageName(defaultImages, missingLocations, imageSummaries, deploymentDetailTemplate, config)
+          resolveFromBaseImageName(defaultImages, missingLocations, imageSummaries, deploymentDetailTemplate, config, stage.execution.id)
           def stillUnresolved = imageSummaries.findResults { it.value == null ? it.key : null }
           if (stillUnresolved) {
             throw new IllegalStateException("Missing images in $stillUnresolved.value")
@@ -275,10 +291,19 @@ class FindImageFromClusterTask extends AbstractCloudProviderAwareTask implements
     ])
   }
 
-  private void resolveFromBaseImageName(List<Map> images, ArrayList<Location> missingLocations, Map<Location, List<Map<String, Object>>> imageSummaries, Map<String, Object> deploymentDetailTemplate, FindImageConfiguration config) {
+  private void resolveFromBaseImageName(
+    List<Map> images,
+    ArrayList<Location> missingLocations,
+    Map<Location, List<Map<String, Object>>> imageSummaries,
+    Map<String, Object> deploymentDetailTemplate,
+    FindImageConfiguration config,
+    String executionId
+  ) {
     for (Map image : images) {
       for (Location location : missingLocations) {
         if (imageSummaries[location] == null && image.amis && image.amis[location.value]) {
+          log.info("Resolved missing image in '$location.value' with '$image.imageName' (executionId: $executionId)")
+
           imageSummaries[location] = [
             mkDeploymentDetail((String) image.imageName, (String) image.amis[location.value][0], deploymentDetailTemplate, config)
           ]

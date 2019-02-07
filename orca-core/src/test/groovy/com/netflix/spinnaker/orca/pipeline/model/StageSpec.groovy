@@ -154,6 +154,74 @@ class StageSpec extends Specification {
     println e.message
   }
 
+  def "can find all descendent with loop and branch"() {
+    given:
+    def pipeline = pipeline {
+      stage {
+        refId = "0"
+      }
+      stage {
+        refId = "1"
+        requisiteStageRefIds = ["0"]
+      }
+      stage {
+        refId = "2"
+        requisiteStageRefIds = ["1", "3"]
+      }
+      stage {
+        refId = "3"
+        requisiteStageRefIds = ["2"]
+      }
+      stage {
+        refId = "4"
+        requisiteStageRefIds = ["3"]
+      }
+      stage {
+        refId = "5"
+        requisiteStageRefIds = ["3"]
+      }
+      stage {
+        refId = "6"
+        requisiteStageRefIds = ["5"]
+      }
+      stage {
+        refId = "7"
+        requisiteStageRefIds = ["1"]
+      }
+    }
+
+    def stage = pipeline.stageByRef("1")
+
+    when:
+    def descendants = stage.allDownstreamStages()
+
+    then:
+    descendants.size() == 6
+    descendants.find {it.refId == "2"} != null
+    descendants.find {it.refId == "3"} != null
+    descendants.find {it.refId == "4"} != null
+    descendants.find {it.refId == "5"} != null
+    descendants.find {it.refId == "6"} != null
+    descendants.find {it.refId == "7"} != null
+  }
+
+  def "should not fail on no descendents"() {
+    given:
+    def pipeline = pipeline {
+      stage {
+        refId = "0"
+      }
+    }
+
+    def stage = pipeline.stageByRef("0")
+
+    when:
+    def descendants = stage.allDownstreamStages()
+
+    then:
+    descendants.size() == 0
+  }
+
   def "ancestors of a STAGE_AFTER stage should include STAGE_BEFORE siblings"() {
     given:
     def pipeline = pipeline {
