@@ -76,7 +76,7 @@ class SqlTaskRepository(
     }
 
     // TODO(rz): So janky and bad.
-    task.refreshHistoryState(true)
+    task.refresh(true)
 
     return task
   }
@@ -195,7 +195,7 @@ class SqlTaskRepository(
     }
   }
 
-  private fun retrieveInternal(taskId: String): Task? {
+  internal fun retrieveInternal(taskId: String): Task? {
     return retrieveInternal(field("id").eq(taskId), field("task_id").eq(taskId)).firstOrNull()
   }
 
@@ -252,12 +252,6 @@ class SqlTaskRepository(
             .where(relationshipCondition ?: condition)
         )
         .fetchTasks()
-    }
-  }
-
-  fun getLatestState(task: Task): DefaultTaskStatus? {
-    return jooq.withRetry(sqlRetryProperties.reads) {
-      selectLatestState(it, task.id)
     }
   }
 

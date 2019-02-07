@@ -40,19 +40,14 @@ class SqlTask(
   private var resultObjects: MutableList<Any> = mutableListOf()
   private var history: MutableList<Status> = mutableListOf()
 
-  private val resultObjectsDirty = AtomicBoolean(false)
-  private val historyDirty = AtomicBoolean(false)
+  private val dirty = AtomicBoolean(false)
 
   override fun getId() = id
   override fun getOwnerId() = ownerId
   override fun getStartTimeMs() = startTimeMs
-  override fun getStatus(): Status? = repository.getLatestState(this)
 
   override fun getResultObjects(): MutableList<Any> {
-    if (resultObjectsDirty.getAndSet(false)) {
-      resultObjects.clear()
-      resultObjects.addAll(repository.getResultObjects(this))
-    }
+    refresh()
     return resultObjects
   }
 
@@ -60,12 +55,12 @@ class SqlTask(
     if (results.isEmpty()) {
       return
     }
-    resultObjectsDirty.set(true)
+    this.dirty.set(true)
     repository.addResultObjects(results, this)
   }
 
   override fun getHistory(): List<Status> {
-    refreshHistoryState()
+    refresh()
 
     val status = history.map { TaskDisplayStatus(it) }
     return if (status.isNotEmpty() && status.last().isCompleted) {
@@ -75,37 +70,46 @@ class SqlTask(
     }
   }
 
+  override fun getStatus(): Status? {
+    refresh()
+
+    return history.lastOrNull()
+  }
+
   override fun updateStatus(phase: String, status: String) {
-    historyDirty.set(true)
+    this.dirty.set(true)
     repository.updateCurrentStatus(this, phase, status)
     log.debug("Updated status: phase={} status={}", phase, status)
   }
 
   override fun complete() {
-    historyDirty.set(true)
+    this.dirty.set(true)
     repository.updateState(this, TaskState.COMPLETED)
   }
 
   override fun fail() {
-    historyDirty.set(true)
+    this.dirty.set(true)
     repository.updateState(this, TaskState.FAILED)
   }
 
   internal fun hydrateResultObjects(resultObjects: MutableList<Any>) {
-    this.resultObjectsDirty.set(false)
+    this.dirty.set(false)
     this.resultObjects = resultObjects
   }
 
   internal fun hydrateHistory(history: MutableList<Status>) {
-    this.historyDirty.set(false)
+    this.dirty.set(false)
     this.history = history
   }
 
-  internal fun refreshHistoryState(force: Boolean = false) {
-    if (historyDirty.getAndSet(false) || force) {
-      repository.refreshTaskHistoryState(this).also {
+  internal fun refresh(force: Boolean = false) {
+    if (this.dirty.getAndSet(false) || force) {
+      val task = repository.retrieveInternal(this.id)
+      if (task != null) {
         history.clear()
-        history.addAll(it)
+        resultObjects.clear()
+        history.addAll(task.history)
+        resultObjects.addAll(task.resultObjects)
       }
     }
   }
