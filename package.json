@@ -47,7 +47,7 @@
     "angular-ui-sortable": "^0.17.0",
     "angular2react": "^3.0.2",
     "babel-preset-env": "^1.6.1",
-    "bootstrap": "3.3.7",
+    "bootstrap": "3.4.0",
     "cachefactory": "^3.0.0",
     "classname": "^0.0.0",
     "clipboard": "^1.5.12",
