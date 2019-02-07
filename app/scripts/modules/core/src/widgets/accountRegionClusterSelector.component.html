@@ -27,11 +27,13 @@
     include-select-all-button="true">
   </checklist>
 </stage-config-field>
-<stage-config-field label="Cluster" help-key="pipeline.config.findAmi.cluster">
-  <cluster-selector
-    clusters="vm.clusterList"
-    model="vm.component[vm.clusterField]"
-    toggled="vm.clusterSelectInputToggled(isToggled)"
-    on-change="vm.clusterChanged(clusterName)">
-  </cluster-selector>
-</stage-config-field>
+<div ng-if="vm.showClusterSelect">
+  <stage-config-field label="Cluster" help-key="pipeline.config.findAmi.cluster">
+    <cluster-selector
+      clusters="vm.clusterList"
+      model="vm.component[vm.clusterField]"
+      toggled="vm.clusterSelectInputToggled(isToggled)"
+      on-change="vm.clusterChanged(clusterName)">
+    </cluster-selector>
+  </stage-config-field>
+</div>

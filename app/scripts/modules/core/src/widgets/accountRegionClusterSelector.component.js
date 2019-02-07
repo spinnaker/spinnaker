@@ -22,6 +22,7 @@ module.exports = angular
         showAllRegions: '=?',
         onAccountUpdate: '&?',
         disableRegionSelect: '=?',
+        showClusterSelect: '=?',
       },
       templateUrl: require('./accountRegionClusterSelector.component.html'),
       controllerAs: 'vm',
@@ -29,6 +30,11 @@ module.exports = angular
         this.clusterField = this.clusterField || 'cluster';
 
         let vm = this;
+
+        if (vm.showClusterSelect === undefined) {
+          vm.showClusterSelect = true;
+        }
+
         let showAllRegions = vm.showAllRegions || false;
 
         let isTextInputForClusterFiled;
