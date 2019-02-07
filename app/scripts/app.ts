@@ -1,4 +1,4 @@
-require('jquery'); // ensures jQuery is loaded before Angular so Angular does not use jqlite
+import 'jquery'; // ensures jQuery is loaded before Angular so Angular does not use jqlite
 import { module } from 'angular';
 
 import { CORE_MODULE } from '@spinnaker/core';
