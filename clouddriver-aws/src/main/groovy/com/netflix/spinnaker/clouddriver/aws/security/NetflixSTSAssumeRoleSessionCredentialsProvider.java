@@ -28,6 +28,17 @@ public class NetflixSTSAssumeRoleSessionCredentialsProvider extends STSAssumeRol
                                                         String accountId) {
     super(longLivedCredentialsProvider, roleArn, roleSessionName);
     this.accountId = accountId;
+
+    /**
+     Need to explicitly set sts region if GovCloud or China as per
+     https://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/STSAssumeRoleSessionCredentialsProvider.html
+     */
+    if (roleArn.contains("aws-us-gov")) {
+      setSTSClientEndpoint("sts.us-gov-west-1.amazonaws.com");
+    }
+    if (roleArn.contains("aws-cn")) {
+      setSTSClientEndpoint("sts.cn-north-1.amazonaws.com.cn");
+    }
   }
 
   public String getAccountId() {

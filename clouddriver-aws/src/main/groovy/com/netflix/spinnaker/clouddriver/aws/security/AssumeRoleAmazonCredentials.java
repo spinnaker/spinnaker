@@ -35,6 +35,14 @@ public class AssumeRoleAmazonCredentials extends AmazonCredentials {
     static AWSCredentialsProvider createSTSCredentialsProvider(AWSCredentialsProvider credentialsProvider, String accountId, String assumeRole, String sessionName) {
         String assumeRoleValue = Objects.requireNonNull(assumeRole, "assumeRole");
         if (!assumeRoleValue.startsWith("arn:")) {
+
+          /**
+           GovCloud and China regions need to have the full arn passed because of differing formats
+              Govcloud: arn:aws-us-gov:iam
+              China: arn:aws-cn:iam
+           Longer term fix is to have separate providers for aws-ec2-gov and aws-ec2-cn since their IAM realms are separate
+           from standard AWS cloud
+           */
           assumeRoleValue = String.format("arn:aws:iam::%s:%s", Objects.requireNonNull(accountId, "accountId"), assumeRoleValue);
         }
         return credentialsProvider == null ? null : new NetflixSTSAssumeRoleSessionCredentialsProvider(
