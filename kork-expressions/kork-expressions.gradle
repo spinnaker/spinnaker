@@ -1,0 +1,15 @@
+test {
+  useJUnitPlatform()
+}
+
+dependencies {
+  compile "com.fasterxml.jackson.core:jackson-databind:${spinnaker.version('jackson')}"
+  compile "org.springframework:spring-context:${spinnaker.version('spring')}"
+  compile spinnaker.dependency('slf4jApi')
+  compile spinnaker.dependency('lombok')
+
+  testCompile "org.assertj:assertj-core:${spinnaker.version('assertj')}"
+  testCompile "org.junit.jupiter:junit-jupiter-api:${spinnaker.version('jupiter')}"
+  testRuntime "org.junit.jupiter:junit-jupiter-engine:${spinnaker.version('jupiter')}"
+  testRuntime spinnaker.dependency('slf4jSimple')
+}

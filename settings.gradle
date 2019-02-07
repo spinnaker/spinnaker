@@ -31,7 +31,8 @@ include 'kork-core',
   'kork-sql',
   'kork-sql-test',
   'kork-test',
-  'kork-telemetry'
+  'kork-telemetry',
+  'kork-expressions'
 
 rootProject.name='kork'
 
