@@ -2,20 +2,20 @@
 @form-max-width: 800px;
 
 .sp-formSection {
-  border: 1px solid #a1a1a1;
+  border: 1px solid var(--color-concrete);
   border-radius: 16px;
   max-width: @form-max-width;
   overflow: hidden;
   margin-bottom: 16px;
-  box-shadow: 0 4px 0 0 #a1a1a1;
-  background-color: #ffffff;
+  box-shadow: 0 4px 0 0 var(--color-concrete);
+  background-color: var(--color-white);
   padding-bottom: 8px;
 }
 
 .sp-formSection__header {
   font-size: 18px;
   font-weight: 600;
-  border-bottom: 1px solid #999999;
+  border-bottom: 1px solid var(--color-concrete);
   display: flex;
   align-items: center;
   width: 100%;
@@ -30,10 +30,10 @@
 }
 
 .sp-formGroup {
-  border: 1px solid #b1b1b1;
+  border: 1px solid var(--color-titanium);
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 2px 0 0 #b1b1b1;
+  box-shadow: 0 2px 0 0 var(--color-titanium);
   max-width: @form-max-width;
   margin-bottom: 16px;
   overflow: visible;
@@ -50,7 +50,7 @@
 
   &.groupHeader {
     background-color: rgba(0, 0, 0, 0.025);
-    border-bottom: 1px dotted #999999;
+    border-bottom: 1px dotted var(--color-concrete);
     padding-bottom: 0;
     margin-bottom: 7px;
     padding-top: 8px;
@@ -100,7 +100,7 @@
     width: 32px;
     height: 32px;
     padding: 3px 4px;
-    border: 1px solid #999999;
+    border: 1px solid var(--color-concrete);
     cursor: pointer;
     border-radius: 2px;
     margin-left: 4px;
@@ -160,7 +160,7 @@
   }
 
   input[type='text'] {
-    border: 1px solid #999;
+    border: 1px solid var(--color-concrete);
     border-radius: 2px;
     width: 100%;
     height: 32px;
@@ -169,7 +169,7 @@
     font-size: 14px;
   }
   input[type='checkbox'] {
-    background-color: red;
+    background-color: var(--color-danger);
   }
 }
 
@@ -199,9 +199,9 @@
 }
 .previewMessage {
   background-color: rgba(60, 200, 255, 0.15);
-  color: #0050b4;
+  color: var(--color-accent);
 }
 .errorMessage {
   background-color: rgba(255, 0, 0, 0.1);
-  color: #960000;
+  color: var(--color-danger);
 }
