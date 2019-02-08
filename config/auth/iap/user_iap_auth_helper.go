@@ -56,6 +56,7 @@ func GetIapToken(iapConfig IapConfig) (string, error) {
 	url := getOauthUrl(clientId, clientState, port)
 
 	if err = execcmd.OpenUrl(url); err != nil {
+		err = nil
 		fmt.Printf("Go to the following link in your browser:\n%s\n\n", url)
 	} else {
 		fmt.Printf("Your browser has been opened to visit:\n%s\n\n", url)
