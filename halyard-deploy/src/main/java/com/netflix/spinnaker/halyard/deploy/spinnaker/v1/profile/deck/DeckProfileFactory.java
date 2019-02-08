@@ -25,6 +25,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.notifications.SlackNotifica
 import com.netflix.spinnaker.halyard.config.model.v1.notifications.TwilioNotification;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.appengine.AppengineProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.azure.AzureProvider;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.cloudfoundry.CloudFoundryProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.dcos.DCOSProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.aws.AwsAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.aws.AwsProvider;
@@ -165,6 +166,10 @@ public class DeckProfileFactory extends RegistryBackedProfileFactory {
     // Configure ECS
     EcsProvider ecsProvider = deploymentConfiguration.getProviders().getEcs();
     bindings.put("ecs.default.account", ecsProvider.getPrimaryAccount());
+
+    // Configure CloudFoundry
+    CloudFoundryProvider cloudFoundryProvider = deploymentConfiguration.getProviders().getCloudfoundry();
+    bindings.put("cloudfoundry.default.account", cloudFoundryProvider.getPrimaryAccount());
 
     // Configure notifications
     bindings.put("notifications.enabled", notifications.isEnabled() + "");
