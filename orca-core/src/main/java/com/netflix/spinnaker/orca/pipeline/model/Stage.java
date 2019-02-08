@@ -426,10 +426,11 @@ public class Stage implements Serializable {
    * Recursively get all stages that are children of the current one
    */
   public List<Stage> allDownstreamStages() {
+    List<Stage> children = new ArrayList<>();
+
     if (execution != null) {
       HashSet<String> visited = new HashSet<>();
       LinkedList<Stage> queue = new LinkedList<>();
-      List<Stage> children = new ArrayList<>();
 
       queue.push(this);
       boolean first = true;
@@ -450,11 +451,9 @@ public class Stage implements Serializable {
           .filter(s -> !visited.contains(s.refId))
           .forEach(s -> queue.add(s));
       }
-
-      return children;
     }
 
-    return emptyList();
+    return children;
   }
 
   /**
