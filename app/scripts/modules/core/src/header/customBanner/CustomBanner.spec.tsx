@@ -33,13 +33,13 @@ describe('<CustomBanner />', () => {
       it('updates state appropriately when no enabled banner found on app attributes', () => {
         expect(wrapper.state('bannerConfig')).toBeNull();
         application.attributes.customBanners = null;
-        wrapper.instance().updateBannerConfig(application);
+        wrapper.instance().updateBannerConfig(application.attributes);
         expect(wrapper.state('bannerConfig')).toBeNull();
       });
       it('updates state appropriately when enabled banner found on app attributes', () => {
         expect(wrapper.state('bannerConfig')).toBeNull();
         application.attributes.customBanners = bannerConfigs;
-        wrapper.instance().updateBannerConfig(application);
+        wrapper.instance().updateBannerConfig(application.attributes);
         expect(wrapper.state('bannerConfig')).toEqual(bannerConfigs[0]);
       });
     });
