@@ -62,4 +62,14 @@ class ExpectedArtifactExpressionEvaluationPostProcessorSpec extends Specificatio
     then:
     evaluatedArtifact.name == '''group:artifact:${#stage('deploy')['version']}'''
   }
+
+  def 'no exception is thrown when expectedArtifacts is null'() {
+    def inputPipeline = createPipelineWith(null, trigger).withTrigger(trigger)
+
+    when:
+    artifactPostProcessor.processPipeline(inputPipeline)
+
+    then:
+    noExceptionThrown()
+  }
 }

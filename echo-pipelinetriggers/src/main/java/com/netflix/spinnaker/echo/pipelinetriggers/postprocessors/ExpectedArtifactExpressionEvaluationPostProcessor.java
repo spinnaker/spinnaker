@@ -14,6 +14,8 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -36,7 +38,12 @@ public class ExpectedArtifactExpressionEvaluationPostProcessor implements Pipeli
   public Pipeline processPipeline(Pipeline inputPipeline) {
     EvaluationContext evaluationContext = new StandardEvaluationContext(inputPipeline);
 
-    return inputPipeline.withExpectedArtifacts(inputPipeline.getExpectedArtifacts().stream()
+    List<ExpectedArtifact> expectedArtifacts = inputPipeline.getExpectedArtifacts();
+    if (expectedArtifacts == null) {
+      expectedArtifacts = Collections.emptyList();
+    }
+
+    return inputPipeline.withExpectedArtifacts(expectedArtifacts.stream()
       .map(artifact -> {
         ExpressionEvaluationSummary summary = new ExpressionEvaluationSummary();
         Map<String, Object> artifactMap = mapper.convertValue(artifact,
