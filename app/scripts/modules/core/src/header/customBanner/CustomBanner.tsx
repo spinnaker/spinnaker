@@ -2,7 +2,6 @@ import * as React from 'react';
 import { get } from 'lodash';
 
 import { ICustomBannerConfig } from 'core/application/config/customBanner/CustomBannerConfig';
-import { Application } from 'core/application/application.model';
 import { ApplicationReader } from 'core/application/service/ApplicationReader';
 import { ReactInjector } from 'core/reactShims';
 import { noop } from 'core/utils';
@@ -35,18 +34,18 @@ export class CustomBanner extends React.Component<{}, ICustomBannerState> {
         applicationName,
         bannerConfig: null,
       });
-      if (applicationName != null) {
-        ApplicationReader.getApplication(applicationName)
-          .then((app: Application) => {
-            this.updateBannerConfig(app);
+      if (applicationName) {
+        ApplicationReader.getApplicationAttributes(applicationName)
+          .then((attributes: any) => {
+            this.updateBannerConfig(attributes);
           })
           .catch(noop);
       }
     }
   }
 
-  public updateBannerConfig(application: Application): void {
-    const bannerConfigs: ICustomBannerConfig[] = get(application, 'attributes.customBanners') || [];
+  public updateBannerConfig(attributes: any): void {
+    const bannerConfigs: ICustomBannerConfig[] = get(attributes, 'customBanners') || [];
     const bannerConfig = bannerConfigs.find(config => config.enabled) || null;
     this.setState({
       bannerConfig,
