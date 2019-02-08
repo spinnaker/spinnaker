@@ -34,6 +34,7 @@ export interface IWizardModalProps<T> extends IModalComponentProps {
 
 export interface IWizardModalState<T> {
   currentPage: WizardPage<T>;
+  initialized: boolean;
   pages: Array<WizardPage<T>>;
 }
 
@@ -51,7 +52,7 @@ export class WizardModal<T = {}> extends React.Component<IWizardModalProps<T>, I
   implements IWizardModalApi {
   private stepsElement = React.createRef<HTMLDivElement>();
   private formikRef = React.createRef<Formik<any>>();
-  public state: IWizardModalState<T> = { pages: [], currentPage: null };
+  public state: IWizardModalState<T> = { pages: [], initialized: false, currentPage: null };
 
   private static incrementer() {
     let idx = 0;
@@ -60,6 +61,10 @@ export class WizardModal<T = {}> extends React.Component<IWizardModalProps<T>, I
 
   public get formik() {
     return this.formikRef.current && (this.formikRef.current.getFormikBag() as FormikProps<T>);
+  }
+
+  public componentDidMount(): void {
+    this.setState({ initialized: true });
   }
 
   public onWizardPageAdded = (wizardPage: WizardPage<T>): void => {
@@ -125,7 +130,7 @@ export class WizardModal<T = {}> extends React.Component<IWizardModalProps<T>, I
       closeModal,
       dismissModal,
     } = this.props;
-    const { currentPage, pages } = this.state;
+    const { currentPage, initialized, pages } = this.state;
     const { TaskMonitorWrapper } = NgReact;
 
     const spinner = (
@@ -171,7 +176,7 @@ export class WizardModal<T = {}> extends React.Component<IWizardModalProps<T>, I
               <Modal.Header>{heading && <h3>{heading}</h3>}</Modal.Header>
 
               <Modal.Body>
-                {loading ? (
+                {loading || !initialized ? (
                   spinner
                 ) : (
                   <div className="row">
