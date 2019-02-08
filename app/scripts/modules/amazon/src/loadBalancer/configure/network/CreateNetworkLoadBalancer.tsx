@@ -221,7 +221,6 @@ export class CreateNetworkLoadBalancer extends React.Component<
   };
 
   private validate = (): FormikErrors<IAmazonNetworkLoadBalancerUpsertCommand> => {
-    this.setState({});
     const errors = {} as FormikErrors<IAmazonNetworkLoadBalancerUpsertCommand>;
     return errors;
   };

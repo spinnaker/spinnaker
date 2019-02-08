@@ -201,7 +201,6 @@ export class CreateClassicLoadBalancer extends React.Component<
   };
 
   private validate = (values: FormikValues): FormikErrors<IAmazonClassicLoadBalancerUpsertCommand> => {
-    this.setState({ includeSecurityGroups: !!values.vpcId });
     const errors = {} as FormikErrors<IAmazonClassicLoadBalancerUpsertCommand>;
     return errors;
   };
@@ -246,7 +245,7 @@ export class CreateClassicLoadBalancer extends React.Component<
               />
             )}
 
-            {includeSecurityGroups && (
+            {!!formik.values.vpcId && (
               <WizardPage
                 label={FirewallLabels.get('Firewall')}
                 wizard={wizard}
@@ -261,7 +260,7 @@ export class CreateClassicLoadBalancer extends React.Component<
               label="Listeners"
               wizard={wizard}
               order={nextIdx()}
-              render={({ innerRef }) => <Listeners ref={innerRef} formik={formik} app={app}/>}
+              render={({ innerRef }) => <Listeners ref={innerRef} formik={formik} app={app} />}
             />
 
             <WizardPage
