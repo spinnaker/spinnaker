@@ -39,6 +39,7 @@ class DeployAtomicOperationUnitSpec extends Specification {
     }
 
     and:
+    def deploymentResult = Mock(DeploymentResult)
     def deployHandlerRegistry = Mock(DeployHandlerRegistry)
     def testDeployHandler = Mock(DeployHandler)
     def deployAtomicOperation = new DeployAtomicOperation(deployDescription)
@@ -49,7 +50,8 @@ class DeployAtomicOperationUnitSpec extends Specification {
 
     then:
     1 * deployHandlerRegistry.findHandler(_) >> testDeployHandler
-    1 * testDeployHandler.handle(_, _) >> { Mock(DeploymentResult) }
+    1 * testDeployHandler.handle(_, _) >> { deploymentResult }
+    1 * deploymentResult.normalize() >> { return deploymentResult }
 
     deployAtomicOperation.getEvents() == [ createServerGroupEvent ]
   }

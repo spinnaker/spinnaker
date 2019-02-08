@@ -100,9 +100,10 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
 
   @Override
   DeploymentResult handle(BasicAmazonDeployDescription description, List priorOutputs) {
-    task.updateStatus BASE_PHASE, "Initializing handler..."
     def deploymentResult = new DeploymentResult()
+
     task.updateStatus BASE_PHASE, "Preparing deployment to ${description.availabilityZones}..."
+
     for (Map.Entry<String, List<String>> entry : description.availabilityZones) {
       String region = entry.key
 
@@ -251,6 +252,12 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
         description.spotPrice = null
       }
 
+      def capacity = new DeploymentResult.Deployment.Capacity(
+          min: description.capacity.min ?: 0,
+          max: description.capacity.max ?: 0,
+          desired: description.capacity.desired ?: 0
+      )
+
       def autoScalingWorker = new AutoScalingWorker(
         application: description.application,
         region: region,
@@ -260,9 +267,9 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
         ami: ami.amiId,
         classicLinkVpcId: classicLinkVpcId,
         classicLinkVpcSecurityGroups: classicLinkVpcSecurityGroups,
-        minInstances: description.capacity.min != null ? description.capacity.min : 0,
-        maxInstances: description.capacity.max != null ? description.capacity.max : 0,
-        desiredInstances: description.capacity.desired != null ? description.capacity.desired : 0,
+        minInstances: capacity.min,
+        maxInstances: capacity.max,
+        desiredInstances: capacity.desired,
         securityGroups: description.securityGroups,
         iamRole: iamRole(description, deployDefaults),
         keyPair: description.keyPair ?: account?.defaultKeyPair,
@@ -312,6 +319,16 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
 
       description.events << new CreateServerGroupEvent(
         AmazonCloudProvider.ID, account.accountId, region, asgName
+      )
+
+      deploymentResult.deployments.add(
+          new DeploymentResult.Deployment(
+              cloudProvider: "aws",
+              account: description.getCredentialAccount(),
+              location: region,
+              serverGroupName: asgName,
+              capacity: capacity
+          )
       )
     }
 

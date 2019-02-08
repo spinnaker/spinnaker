@@ -36,6 +36,7 @@ import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing
 import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetGroupsRequest
 import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetGroupsResult
 import com.amazonaws.services.elasticloadbalancingv2.model.TargetGroup
+import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
 import com.netflix.spinnaker.config.AwsConfiguration
 import com.netflix.spinnaker.config.AwsConfiguration.DeployDefaults
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
@@ -184,6 +185,25 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     1 * amazonEC2.describeVpcClassicLink() >> new DescribeVpcClassicLinkResult()
 
     classicLbs == ['lb']
+  }
+
+  void "should store capacity on DeploymentResult"() {
+    given:
+    def description = new BasicAmazonDeployDescription(
+        amiName: "ami-12345",
+        capacity: new BasicAmazonDeployDescription.Capacity(min: 1, max: 10, desired: 5),
+        availabilityZones: ["us-east-1": []],
+        credentials: TestCredential.named('baz')
+    )
+
+    when:
+    def deploymentResult = handler.handle(description, [])
+
+    then:
+    1 * amazonEC2.describeVpcClassicLink() >> new DescribeVpcClassicLinkResult()
+
+    deploymentResult.deployments.size() == 1
+    deploymentResult.deployments[0].capacity == new DeploymentResult.Deployment.Capacity(min: 1, max: 10, desired: 5)
   }
 
   void "handles application load balancers"() {
