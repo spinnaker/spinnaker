@@ -25,6 +25,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.artifacts.github.GitHubArti
 import com.netflix.spinnaker.halyard.config.model.v1.artifacts.gitlab.GitlabArtifactProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.artifacts.helm.HelmArtifactProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.artifacts.http.HttpArtifactProvider;
+import com.netflix.spinnaker.halyard.config.model.v1.artifacts.maven.MavenArtifactProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.artifacts.oracle.OracleArtifactProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.artifacts.s3.S3ArtifactProvider;
 import lombok.Data;
@@ -48,6 +49,7 @@ public class Artifacts extends Node {
   HttpArtifactProvider http = new HttpArtifactProvider();
   HelmArtifactProvider helm = new HelmArtifactProvider();
   S3ArtifactProvider s3 = new S3ArtifactProvider();
+  MavenArtifactProvider maven = new MavenArtifactProvider();
   List<ArtifactTemplate> templates = new ArrayList<>();
 
   @Override
