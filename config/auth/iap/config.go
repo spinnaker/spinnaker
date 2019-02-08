@@ -19,4 +19,5 @@ type IapConfig struct {
 	OAuthClientId     string `yaml:"oauthClientId"`
 	OAuthClientSecret string `yaml:"oauthClientSecret"`
 	IapClientId       string `yaml:"iapClientId"`
+	IapIdToken        string `yaml:"iapIdToken"`
 }

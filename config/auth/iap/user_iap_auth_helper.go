@@ -36,6 +36,10 @@ const (
 
 // returns the token get from google for IAP
 func GetIapToken(iapConfig IapConfig) (string, error) {
+	if iapConfig.IapIdToken != "" {
+		return iapConfig.IapIdToken, nil
+	}
+
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	done := make(chan error)
 
