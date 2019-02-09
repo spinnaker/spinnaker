@@ -1,8 +1,8 @@
 package com.netflix.spinnaker.keel.ec2.asset
 
-import com.netflix.spinnaker.keel.api.Asset
-import com.netflix.spinnaker.keel.api.AssetMetadata
-import com.netflix.spinnaker.keel.api.AssetName
+import com.netflix.spinnaker.keel.api.Resource
+import com.netflix.spinnaker.keel.api.ResourceMetadata
+import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.ec2.Capacity
 import com.netflix.spinnaker.keel.api.ec2.Cluster
@@ -24,6 +24,7 @@ import com.netflix.spinnaker.keel.clouddriver.model.ServerGroupCapacity
 import com.netflix.spinnaker.keel.clouddriver.model.Tag
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.ec2.RETROFIT_NOT_FOUND
+import com.netflix.spinnaker.keel.ec2.resource.ClusterHandler
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.doThrow
@@ -60,11 +61,11 @@ internal object ClusterHandlerTest : JUnit5Minutests {
     securityGroupNames = listOf(sg1.name, sg2.name),
     instanceMonitoring = false
   )
-  val request = Asset(
+  val request = Resource(
     SPINNAKER_API_V1,
     "cluster",
-    AssetMetadata(
-      name = AssetName("my-cluster"),
+    ResourceMetadata(
+      name = ResourceName("my-cluster"),
       uid = UUID.randomUUID(),
       resourceVersion = 1234L
     ),
