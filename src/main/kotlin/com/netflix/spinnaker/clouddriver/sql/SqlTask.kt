@@ -57,6 +57,7 @@ class SqlTask(
     }
     this.dirty.set(true)
     repository.addResultObjects(results, this)
+    log.debug("Added {} results to task {}", results.size, id)
   }
 
   override fun getHistory(): List<Status> {
@@ -79,12 +80,13 @@ class SqlTask(
   override fun updateStatus(phase: String, status: String) {
     this.dirty.set(true)
     repository.updateCurrentStatus(this, phase, status)
-    log.debug("Updated status: phase={} status={}", phase, status)
+    log.debug("Updated status for task {} phase={} status={}", id, phase, status)
   }
 
   override fun complete() {
     this.dirty.set(true)
     repository.updateState(this, TaskState.COMPLETED)
+    log.debug("Set task {} as complete", id)
   }
 
   override fun fail() {
