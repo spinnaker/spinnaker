@@ -43,7 +43,7 @@ module.exports = angular
   })
   .controller('awsBakeStageCtrl', function($scope, $q, $uibModal) {
     $scope.stage.extendedAttributes = $scope.stage.extendedAttributes || {};
-    $scope.stage.regions = $scope.stage.regions || [];
+    $scope.stage.regions = ($scope.stage.regions && $scope.stage.regions.sort()) || [];
 
     if (!$scope.stage.user) {
       $scope.stage.user = AuthenticationService.getAuthenticatedUser().name;
