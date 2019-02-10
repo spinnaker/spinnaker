@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.orca.webhook.tasks
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -185,6 +186,51 @@ class CreateWebhookTaskSpec extends Specification {
         error: errorMessage
       ]
     ]
+  }
+
+  def "should parse response correctly on failure"() {
+    setup:
+    def stage = new Stage(pipeline, "webhook", "My webhook", [
+      url: "https://my-service.io/api/",
+      method: "delete",
+      payload: [:],
+      customHeaders: [:]
+    ])
+    
+    HttpStatus statusCode = HttpStatus.BAD_REQUEST
+
+    createWebhookTask.webhookService = Stub(WebhookService) {
+      exchange(
+        HttpMethod.DELETE,
+        "https://my-service.io/api/",
+        [:],
+        [:]
+      ) >> { throwHttpException(statusCode, bodyString) }
+    }
+
+    when:
+    def result = createWebhookTask.execute(stage)
+
+    then:
+    def errorMessage = "Error submitting webhook for pipeline ${stage.execution.id} to ${stage.context.url} with status code ${statusCode.value()}."
+
+    result.status == ExecutionStatus.TERMINAL
+    (result.context as Map) == [
+      webhook: [
+        statusCode: statusCode,
+        statusCodeValue: statusCode.value(),
+        body: body,
+        error: errorMessage
+      ]
+    ]
+
+    where:
+    bodyString                                | body
+    "true"                                    | "true"
+    "123"                                     | "123"
+    "{\"bad json\":"                          | "{\"bad json\":"
+    "{\"key\" : {\"subkey\" : \"subval\"}}"   | [key: [subkey: "subval"]]
+    "[\"1\", {\"k\": \"v\"}, 2]"              | ["1", [k: "v"], 2]
   }
 
   def "should return TERMINAL status if webhook returns one of fail fast HTTP status codes"() {

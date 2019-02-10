@@ -18,6 +18,9 @@
 package com.netflix.spinnaker.orca.webhook.tasks
 
 import com.fasterxml.jackson.annotation.JsonFormat
+import com.fasterxml.jackson.core.JsonParseException
+import com.fasterxml.jackson.databind.JsonMappingException
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.jayway.jsonpath.JsonPath
 import com.jayway.jsonpath.PathNotFoundException
 import com.jayway.jsonpath.internal.JsonContext
@@ -61,7 +64,21 @@ class CreateWebhookTask implements RetryableTask {
 
       outputs.webhook << [statusCode: statusCode, statusCodeValue: statusCode.value()]
       if (e.responseBodyAsString) {
-        outputs.webhook << [body: e.responseBodyAsString]
+        // Best effort parse of body in case it's JSON
+        def body = e.responseBodyAsString
+        try {
+          ObjectMapper objectMapper = new ObjectMapper()
+
+          if (body.startsWith("{")) {
+            body = objectMapper.readValue(body, Map.class)
+          } else if (body.startsWith("[")) {
+            body = objectMapper.readValue(body, List.class)
+          }
+        } catch (JsonParseException | JsonMappingException ex) {
+          // Just leave body as string, probs not JSON
+        }
+
+        outputs.webhook << [body: body]
       }
 
       if ((stageData.failFastStatusCodes != null) &&
@@ -80,7 +97,11 @@ class CreateWebhookTask implements RetryableTask {
 
         return new TaskResult(ExecutionStatus.RUNNING, outputs)
       }
-      throw e
+
+      String errorMessage = "Error submitting webhook for pipeline ${stage.execution.id} to ${stageData.url} with status code ${statusCode}."
+      outputs.webhook << [error: errorMessage]
+
+      return new TaskResult(ExecutionStatus.TERMINAL, outputs)
     }
 
     def statusCode = response.statusCode
