@@ -47,38 +47,49 @@ class SqlTaskCleanupAgent(
   private val timingId = registry.createId("sql.taskCleanupAgent.timing")
 
   override fun run() {
-    val candidates = jooq.withRetry(sqlRetryProperties.reads) {
-      val candidates = it.select(field("id"), field("task_id"))
+    val candidates = jooq.withRetry(sqlRetryProperties.reads) { j ->
+      val candidates = j.select(field("id"), field("task_id"))
         .from(taskStatesTable)
         .where(
           field("state").`in`(COMPLETED.toString(), FAILED.toString())
-            .and(field("created_at").greaterOrEqual(
+            .and(field("created_at").lessOrEqual(
               clock.instant().minusMillis(properties.completedTtlMs).toEpochMilli())
             )
         )
         .fetch()
 
-      val candidateTaskIds = candidates.map { r -> r.field("task_id").getValue(r) }.filterNotNull().toTypedArray()
-      val candidateTaskStateIds = candidates.map { r -> r.field("id").getValue(r) }.filterNotNull().toTypedArray()
+      val candidateTaskIds = candidates.map { r -> r.field("task_id").getValue(r).toString() }
+        .filterNotNull()
+        .toList()
 
-      val candidateResultIds =
-        if (candidateTaskIds.isNotEmpty()) {
-          it.select(field("id"))
-            .from(taskResultsTable)
-            .where(field("task_id").`in`(candidateTaskIds))
-            .fetch("id")
-            .filterNotNull()
-            .toTypedArray()
-        } else {
-          emptyArray()
+      val candidateTaskStateIds = mutableListOf<String>()
+      val candidateResultIds = mutableListOf<String>()
+
+      if (candidateTaskIds.isNotEmpty()) {
+        candidateTaskIds.chunked(properties.batchSize) { chunk ->
+          candidateTaskStateIds.addAll(
+            j.select(field("id"))
+              .from(taskStatesTable)
+              .where("task_id IN (${chunk.joinToString(",") { id -> "'$id'" }})")
+              .fetch("id", String::class.java)
+              .filterNotNull()
+          )
+
+          candidateResultIds.addAll(
+            j.select(field("id"))
+              .from(taskResultsTable)
+              .where("task_id IN (${chunk.joinToString(",") { id -> "'$id'" }})")
+              .fetch("id", String::class.java)
+              .filterNotNull()
+          )
         }
+      }
 
       CleanupCandidateIds(
         taskIds = candidateTaskIds,
         stateIds = candidateTaskStateIds,
         resultIds = candidateResultIds
       )
-
     }
 
     if (candidates.hasAny()) {
@@ -90,12 +101,31 @@ class SqlTaskCleanupAgent(
       )
 
       registry.timer(timingId).record {
-        jooq.transactional(sqlRetryProperties.transactions) {
-          jooq.deleteFrom(taskResultsTable).where(field("id").`in`(candidates.resultIds))
-          jooq.deleteFrom(taskStatesTable).where(field("id").`in`(candidates.stateIds))
-          jooq.deleteFrom(tasksTable).where(field("id").`in`(candidates.taskIds))
+        candidates.resultIds.chunked(properties.batchSize) { chunk ->
+          jooq.withRetry(sqlRetryProperties.transactions) { ctx ->
+            ctx.deleteFrom(taskResultsTable)
+              .where("id IN (${chunk.joinToString(",") { "'$it'" }})")
+              .execute()
+          }
+        }
+
+        candidates.stateIds.chunked(properties.batchSize) { chunk ->
+          jooq.withRetry(sqlRetryProperties.transactions) { ctx ->
+            ctx.deleteFrom(taskStatesTable)
+              .where("id IN (${chunk.joinToString(",") { "'$it'" }})")
+              .execute()
+          }
+        }
+
+        candidates.taskIds.chunked(properties.batchSize) { chunk ->
+          jooq.withRetry(sqlRetryProperties.transactions) { ctx ->
+            ctx.deleteFrom(tasksTable)
+              .where("id IN (${chunk.joinToString(",") { "'$it'" }})")
+              .execute()
+          }
         }
       }
+
       registry.counter(deletedId).increment(candidates.taskIds.size.toLong())
     }
   }
@@ -106,15 +136,15 @@ class SqlTaskCleanupAgent(
   override fun getTimeoutMillis(): Long = DEFAULT_TIMEOUT_MILLIS
 
   companion object {
-    private val DEFAULT_POLL_INTERVAL_MILLIS = TimeUnit.MINUTES.toMillis(5)
+    private val DEFAULT_POLL_INTERVAL_MILLIS = TimeUnit.MINUTES.toMillis(3)
     private val DEFAULT_TIMEOUT_MILLIS = TimeUnit.MINUTES.toMillis(3)
   }
 }
 
 private data class CleanupCandidateIds(
-  val taskIds: Array<Any>,
-  val stateIds: Array<Any>,
-  val resultIds: Array<Any>
+  val taskIds: List<String>,
+  val stateIds: List<String>,
+  val resultIds: List<String>
 ) {
   fun hasAny() = taskIds.isNotEmpty()
 
@@ -124,17 +154,17 @@ private data class CleanupCandidateIds(
 
     other as CleanupCandidateIds
 
-    if (!Arrays.equals(taskIds, other.taskIds)) return false
-    if (!Arrays.equals(stateIds, other.stateIds)) return false
-    if (!Arrays.equals(resultIds, other.resultIds)) return false
+    if (taskIds.size != other.taskIds.size || !taskIds.containsAll(other.taskIds)) return false
+    if (stateIds.size != other.stateIds.size || !stateIds.containsAll(other.stateIds)) return false
+    if (resultIds.size != other.resultIds.size || !resultIds.containsAll(other.resultIds)) return false
 
     return true
   }
 
   override fun hashCode(): Int {
-    var result = Arrays.hashCode(taskIds)
-    result = 31 * result + Arrays.hashCode(stateIds)
-    result = 31 * result + Arrays.hashCode(resultIds)
+    var result = Arrays.hashCode(taskIds.toTypedArray())
+    result = 31 * result + Arrays.hashCode(stateIds.toTypedArray())
+    result = 31 * result + Arrays.hashCode(resultIds.toTypedArray())
     return result
   }
 }

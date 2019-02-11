@@ -113,20 +113,6 @@ class SqlTaskRepository(
     }
   }
 
-  internal fun getResultObjects(task: Task): MutableList<Any> {
-    return jooq.withRetry(sqlRetryProperties.reads) {
-      getResultObjects(it, task)
-    }
-  }
-
-  private fun getResultObjects(ctx: DSLContext, task: Task): MutableList<Any> {
-    return ctx.select(taskResultsFields)
-      .from(taskResultsTable)
-      .where(field("task_id").eq(task.id))
-      .fetchResultObjects()
-      .toMutableList()
-  }
-
   private fun getHistory(ctx: DSLContext, task: Task): MutableList<Status> {
     return ctx.select(taskStatesFields)
       .from(taskStatesTable)

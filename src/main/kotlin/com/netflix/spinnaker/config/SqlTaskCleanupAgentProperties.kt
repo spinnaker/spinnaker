@@ -20,5 +20,6 @@ import java.util.concurrent.TimeUnit
 
 @ConfigurationProperties("sql.agent.taskCleanup")
 data class SqlTaskCleanupAgentProperties(
-  var completedTtlMs: Long = TimeUnit.MINUTES.toMillis(30)
+  var completedTtlMs: Long = TimeUnit.MINUTES.toMillis(60),
+  var batchSize: Int = 100
 )
