@@ -1,6 +1,6 @@
 import { IController, IScope } from 'angular';
 import { get, defaults } from 'lodash';
-import { ExpectedArtifactSelectorViewController, NgManifestArtifactDelegate, IManifest } from '@spinnaker/core';
+import { ExpectedArtifactSelectorViewController, NgGenericArtifactDelegate, IManifest } from '@spinnaker/core';
 
 import {
   IKubernetesManifestCommandMetadata,
@@ -18,7 +18,7 @@ export class KubernetesV2DeployManifestConfigCtrl implements IController {
   public artifactSource = 'artifact';
   public sources = [this.textSource, this.artifactSource];
 
-  public manifestArtifactDelegate: NgManifestArtifactDelegate;
+  public manifestArtifactDelegate: NgGenericArtifactDelegate;
   public manifestArtifactController: ExpectedArtifactSelectorViewController;
 
   constructor(private $scope: IScope) {
@@ -40,7 +40,7 @@ export class KubernetesV2DeployManifestConfigCtrl implements IController {
       this.manifestArtifactController.updateAccounts(this.manifestArtifactDelegate.getSelectedExpectedArtifact());
     });
 
-    this.manifestArtifactDelegate = new NgManifestArtifactDelegate($scope);
+    this.manifestArtifactDelegate = new NgGenericArtifactDelegate($scope, 'manifest');
     this.manifestArtifactController = new ExpectedArtifactSelectorViewController(this.manifestArtifactDelegate);
   }
 

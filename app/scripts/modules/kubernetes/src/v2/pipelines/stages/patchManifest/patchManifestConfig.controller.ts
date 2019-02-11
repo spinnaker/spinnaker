@@ -1,7 +1,7 @@
 import { IController, IScope } from 'angular';
 import { get, defaults } from 'lodash';
 import { dump } from 'js-yaml';
-import { ExpectedArtifactSelectorViewController, NgManifestArtifactDelegate } from '@spinnaker/core';
+import { ExpectedArtifactSelectorViewController, NgGenericArtifactDelegate } from '@spinnaker/core';
 import { IPatchOptions, MergeStrategy } from './patchOptionsForm.component';
 import {
   IKubernetesManifestCommandMetadata,
@@ -31,7 +31,7 @@ export class KubernetesV2PatchManifestConfigCtrl implements IController {
   public sources = [this.textSource, this.artifactSource];
   public rawPatchBody: string;
 
-  private manifestArtifactDelegate: NgManifestArtifactDelegate;
+  private manifestArtifactDelegate: NgGenericArtifactDelegate;
   private manifestArtifactController: ExpectedArtifactSelectorViewController;
 
   constructor(private $scope: IScope) {
@@ -48,7 +48,7 @@ export class KubernetesV2PatchManifestConfigCtrl implements IController {
 
     this.setRawPatchBody(this.getMergeStrategy());
 
-    this.manifestArtifactDelegate = new NgManifestArtifactDelegate($scope);
+    this.manifestArtifactDelegate = new NgGenericArtifactDelegate($scope, 'manifest');
     this.manifestArtifactController = new ExpectedArtifactSelectorViewController(this.manifestArtifactDelegate);
 
     KubernetesManifestCommandBuilder.buildNewManifestCommand(

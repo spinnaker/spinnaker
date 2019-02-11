@@ -8,7 +8,7 @@ export * from './react/ExecutionArtifactTab';
 export * from './react/ArtifactIconList';
 export * from './ArtifactTypes';
 export * from './ExpectedArtifactSelectorViewController';
-export * from './NgManifestArtifactDelegate';
+export * from './NgGenericArtifactDelegate';
 export * from './NgGCEImageArtifactDelegate';
 export * from './NgAppEngineDeployArtifactDelegate';
 export * from './NgBakeManifestArtifactDelegate';

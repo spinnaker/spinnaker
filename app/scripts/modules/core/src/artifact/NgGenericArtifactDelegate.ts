@@ -10,10 +10,14 @@ import { ArtifactTypePatterns } from './ArtifactTypes';
 
 const defaultExcludedArtifactTypes = [ArtifactTypePatterns.KUBERNETES, ArtifactTypePatterns.DOCKER_IMAGE];
 
-export class NgManifestArtifactDelegate
+export class NgGenericArtifactDelegate
   extends ExpectedArtifactSelectorViewControllerAngularDelegate<IArtifactSource<IStage | IPipeline>>
   implements IExpectedArtifactSelectorViewControllerDelegate {
-  constructor(protected $scope: IScope, private excludedArtifactTypes = defaultExcludedArtifactTypes) {
+  constructor(
+    protected $scope: IScope,
+    private tag: String,
+    private excludedArtifactTypes = defaultExcludedArtifactTypes,
+  ) {
     super($scope);
     this.sources = ExpectedArtifactService.sourcesForPipelineStage(
       () => this.$scope.$parent.pipeline,
@@ -37,7 +41,7 @@ export class NgManifestArtifactDelegate
   };
 
   public getSelectedExpectedArtifact = (): IExpectedArtifact => {
-    const id = this.$scope.stage.manifestArtifactId;
+    const id = this.$scope.stage[`${this.tag}ArtifacId`];
     if (id == null) {
       return null;
     }
@@ -45,7 +49,7 @@ export class NgManifestArtifactDelegate
   };
 
   public getSelectedAccount = (): IArtifactAccount => {
-    const accountName = this.$scope.stage.manifestArtifactAccount;
+    const accountName = this.$scope.stage[`${this.tag}ArtifactAccount`];
     if (accountName == null) {
       return null;
     }
@@ -54,15 +58,15 @@ export class NgManifestArtifactDelegate
 
   public setSelectedExpectedArtifact = (expectedArtifact: IExpectedArtifact) => {
     this.$scope.showCreateArtifactForm = false;
-    this.$scope.stage.manifestArtifactId = expectedArtifact.id;
+    this.$scope.stage[`${this.tag}ArtifactId`] = expectedArtifact.id;
     this.scopeApply();
   };
 
   public setSelectedArtifactAccount(account: IArtifactAccount) {
     if (account) {
-      this.$scope.stage.manifestArtifactAccount = account.name;
+      this.$scope.stage[`${this.tag}ArtifactAccount`] = account.name;
     } else {
-      this.$scope.stage.manifestArtifactAccount = '';
+      this.$scope.stage[`${this.tag}ArtifactAccount`] = '';
     }
     this.scopeApply();
   }
