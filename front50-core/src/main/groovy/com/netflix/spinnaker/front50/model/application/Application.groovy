@@ -118,6 +118,7 @@ class Application implements Timestamped {
     updatedApplication.createTs = this.createTs
     updatedApplication.description = updatedApplication.description ?: this.description
     updatedApplication.email = updatedApplication.email ?: this.email
+    updatedApplication.trafficGuards = updatedApplication.trafficGuards ?: this.trafficGuards
     mergeDetails(updatedApplication, this)
     validate(updatedApplication)
 
