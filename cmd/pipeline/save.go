@@ -31,8 +31,8 @@ type SaveOptions struct {
 }
 
 var (
-	savePipelineShort   = "Save the provided pipeline"
-	savePipelineLong    = "Save the provided pipeline"
+	savePipelineShort = "Save the provided pipeline"
+	savePipelineLong  = "Save the provided pipeline"
 )
 
 func NewSaveCmd(pipelineOptions pipelineOptions) *cobra.Command {
@@ -80,21 +80,38 @@ func savePipeline(cmd *cobra.Command, options SaveOptions) error {
 			util.UI.Error("Required pipeline key 'schema' missing for templated pipeline...\n")
 			valid = false
 		}
-		pipelineJson["type"] = "templatedPipeline"
 	}
 
 	if !valid {
 		return fmt.Errorf("Submitted pipeline is invalid: %s\n", pipelineJson)
 	}
+	pipelineJson["type"] = "templatedPipeline"
+	application := pipelineJson["application"].(string)
+	pipelineName := pipelineJson["name"].(string)
 
-	resp, err := gateClient.PipelineControllerApi.SavePipelineUsingPOST(gateClient.Context, pipelineJson)
+	foundPipeline, queryResp, _ := gateClient.ApplicationControllerApi.GetPipelineConfigUsingGET(gateClient.Context, application, pipelineName)
 
-	if err != nil {
-		return err
+	if queryResp.StatusCode != http.StatusOK {
+		return fmt.Errorf("Encountered an error querying pipeline, status code: %d\n", queryResp.StatusCode)
 	}
 
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Encountered an error saving pipeline, status code: %d\n", resp.StatusCode)
+	_, exists := pipelineJson["id"].(string)
+	var foundPipelineId string
+	if len(foundPipeline) > 0 {
+		foundPipelineId = foundPipeline["id"].(string)
+	}
+	if !exists && foundPipelineId != "" {
+		pipelineJson["id"] = foundPipelineId
+	}
+
+	saveResp, saveErr := gateClient.PipelineControllerApi.SavePipelineUsingPOST(gateClient.Context, pipelineJson)
+
+	if saveErr != nil {
+		fmt.Printf("s err: %v", saveErr)
+		return err
+	}
+	if saveResp.StatusCode != http.StatusOK {
+		return fmt.Errorf("Encountered an error saving pipeline, status code: %d\n", saveResp.StatusCode)
 	}
 
 	util.UI.Info(util.Colorize().Color(fmt.Sprintf("[reset][bold][green]Pipeline save succeeded")))
