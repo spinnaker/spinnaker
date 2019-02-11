@@ -28,7 +28,7 @@ DeploymentStrategyRegistry.registerStrategy({
       rollback: {
         onFailure: false,
       },
-      maxRemainingAsgs: 2,
+      maxRemainingAsgs: !command.strategy ? 2 : command.maxRemainingAsgs,
       delayBeforeDisableSec: 0,
       delayBeforeScaleDownSec: 0,
       scaleDown: false,
