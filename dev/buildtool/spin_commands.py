@@ -138,17 +138,10 @@ class BuildSpinCommand(RepositoryCommandProcessor):
                   'GOOS': dist_arch.dist,
                   'GOARCH': dist_arch.arch})
 
-      # Note: spin CLI is coupled to the Gate major and minor version.
-      # Gate is a routing server, so features and breaking changes in Gate
-      # must be reflected in spin since it is a client.
-      dash = self.__gate_version.find('-')
-      gate_semver = self.__gate_version[:dash]
-
       version_package_prefix = os.path.join(spin_package_path, 'version')
-
       # Unset ReleasePhase tag for proper versions.
-      ldflags = '-ldflags "-X {pref}.Version={gate_version} -X {pref}.ReleasePhase="'.format(pref=version_package_prefix,
-                                                                                             gate_version=gate_semver)
+      ldflags = '-ldflags "-X {pref}.Version={internal_version} -X {pref}.ReleasePhase="'.format(pref=version_package_prefix,
+                                                                                                 internal_version=self.__determine_internal_version(repository))
       logging.info('Building spin binary for %s with ldflags: %s', dist_arch, ldflags)
       cmd = 'go build {ldflags} .'.format(ldflags=ldflags)
       self.metrics.time_call(
@@ -170,6 +163,34 @@ class BuildSpinCommand(RepositoryCommandProcessor):
       output_version_file.write(self.__build_version)
       logging.info('Built spin version {} written to output file {}'
                    .format(self.__build_version, built_version_file))
+
+  def __determine_internal_version(self, repository):
+    # Note: spin CLI is coupled to the Gate major and minor version.
+    # Gate is a routing server, so features and breaking changes in Gate
+    # must be reflected in spin since it is a client.
+    git_dir = repository.git_dir
+    git = self.__scm.git
+    match = re.match(r'(\d+)\.(\d+)\.(\d+)-\d+', self.__gate_version)
+    if match is None:
+      raise_and_log_error(
+          ConfigError('gate version {version} is not X.Y.Z-<buildnum>'
+                      .format(version=self.__gate_version)))
+    gate_major = match.group(1)
+    gate_min = match.group(2)
+
+    tag_matcher = re.compile(r'version-{maj}.{min}.(\d+)'
+                             .format(maj=gate_major, min=gate_min))
+    tags = git.fetch_tags(git_dir)
+    tag_matches = [tag_matcher.match(t) for t in tags if tag_matcher.match(t)]
+    if tag_matches:
+      patch_versions = [int(m.group(1)) for m in tag_matches]
+      max_patch = max(patch_versions)
+      patch = str(max_patch + 1)
+      return '{major}.{minor}.{patch}'.format(
+          major=match.group(1), minor=match.group(2), patch=patch)
+    else:
+      raise_and_log_error(ConfigError('No semver tags found in {}, cannot calculate internal version'.format(git_dir)))
+
 
 
 class SpinGcsUploader(object):
@@ -261,7 +282,7 @@ class PublishSpinCommand(CommandProcessor):
           ConfigError('Expected spinnaker version in the form X.Y.Z-N, got {}'
                       .format(self.__spinnaker_version)))
 
-    release_branch = 'release-{maj}.{min}.x'.format(
+    release_branch = 'origin/release-{maj}.{min}.x'.format(
         maj=semver_parts[0], min=semver_parts[1])
     release_tag = 'version-' + self.__stable_version
     logging.info('Pushing branch=%s and tag=%s to %s',
@@ -269,11 +290,10 @@ class PublishSpinCommand(CommandProcessor):
     git.check_run_sequence(
         git_dir,
         [
-            'checkout -b ' + release_branch,
-            'push origin ' + release_branch,
+            'checkout ' + release_branch,
             'tag ' + release_tag,
-            'push origin ' + release_tag
         ])
+    git.push_tag_to_origin(git_dir, release_tag)
 
   def promote_spin(self, repository):
     """Promote an existing build to become the spin CLI stable version."""
@@ -288,8 +308,7 @@ class PublishSpinCommand(CommandProcessor):
           ConfigError('gate version {version} is not X.Y.Z-<buildnum>'
                       .format(version=self.__gate_version)))
 
-    semver_parts = self.__spinnaker_version.split('.')
-    if len(semver_parts) != 3:
+    if len(self.__spinnaker_version.split('.')) != 3:
       raise_and_log_error(
           ConfigError('Expected spinnaker version in the form X.Y.Z-N'))
 
