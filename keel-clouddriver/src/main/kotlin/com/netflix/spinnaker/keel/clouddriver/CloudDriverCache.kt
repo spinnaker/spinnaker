@@ -19,7 +19,8 @@ import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 
 interface CloudDriverCache {
-  fun securityGroupSummaryBy(account: String, region: String, id: String): SecurityGroupSummary
+  fun securityGroupById(account: String, region: String, id: String): SecurityGroupSummary
+  fun securityGroupByName(account: String, region: String, name: String): SecurityGroupSummary
   fun networkBy(id: String): Network
   fun networkBy(name: String?, account: String, region: String): Network
   fun availabilityZonesBy(account: String, vpcId: String, region: String): Collection<String>

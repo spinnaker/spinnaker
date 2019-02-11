@@ -28,7 +28,7 @@ class MemoryCloudDriverCache(
   private val cloudDriver: CloudDriverService
 ) : CloudDriverCache {
 
-  private val securityGroupSummaries = CacheBuilder.newBuilder()
+  private val securityGroupSummariesById = CacheBuilder.newBuilder()
     .maximumSize(1000)
     .expireAfterWrite(30, TimeUnit.SECONDS)
     .build<String, SecurityGroupSummary>()
@@ -54,8 +54,8 @@ class MemoryCloudDriverCache(
         .getCredential(name).await()
     }
 
-  override fun securityGroupSummaryBy(account: String, region: String, id: String): SecurityGroupSummary =
-    securityGroupSummaries.getOrNotFound(
+  override fun securityGroupById(account: String, region: String, id: String): SecurityGroupSummary =
+    securityGroupSummariesById.getOrNotFound(
       "$account:$region:$id",
       "Security group with id $id not found in the $account account and $region region"
     ) {
@@ -66,6 +66,20 @@ class MemoryCloudDriverCache(
         .getSecurityGroupSummaries(account, credential.type, region)
         .await()
         .firstOrNull { it.id == id }
+    }
+
+  override fun securityGroupByName(account: String, region: String, name: String): SecurityGroupSummary =
+    securityGroupSummariesById.getOrNotFound(
+      "$account:$region:$name",
+      "Security group with name $name not found in the $account account and $region region"
+    ) {
+      val credential = credentialBy(account)
+
+      // TODO-AJ should be able to swap this out for a call to `/search`
+      cloudDriver
+        .getSecurityGroupSummaries(account, credential.type, region)
+        .await()
+        .firstOrNull { it.name == name }
     }
 
   override fun networkBy(id: String): Network =

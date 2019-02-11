@@ -8,7 +8,6 @@ import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.whenever
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Deferred
 import org.junit.jupiter.api.Test
 import strikt.api.catching
 import strikt.api.expectThat
@@ -50,11 +49,24 @@ object MemoryCloudDriverCacheTest {
   )
 
   @Test
-  fun `security group summaries are looked up from CloudDriver`() {
+  fun `security groups are looked up from CloudDriver when accessed by id`() {
     whenever(cloudDriver.getSecurityGroupSummaries("prod", "aws", "us-east-1")) doReturn CompletableDeferred(securityGroupSummaries)
     whenever(cloudDriver.getCredential("prod")) doReturn CompletableDeferred(Credential("prod", "aws"))
 
-    subject.securityGroupSummaryBy("prod", "us-east-1", "sg-2").let { securityGroupSummary ->
+    subject.securityGroupById("prod", "us-east-1", "sg-2").let { securityGroupSummary ->
+      expectThat(securityGroupSummary) {
+        get { name }.isEqualTo("bar")
+        get { id }.isEqualTo("sg-2")
+      }
+    }
+  }
+
+  @Test
+  fun `security groups are looked up from CloudDriver when accessed by name`() {
+    whenever(cloudDriver.getSecurityGroupSummaries("prod", "aws", "us-east-1")) doReturn CompletableDeferred(securityGroupSummaries)
+    whenever(cloudDriver.getCredential("prod")) doReturn CompletableDeferred(Credential("prod", "aws"))
+
+    subject.securityGroupByName("prod", "us-east-1", "bar").let { securityGroupSummary ->
       expectThat(securityGroupSummary) {
         get { name }.isEqualTo("bar")
         get { id }.isEqualTo("sg-2")
@@ -67,7 +79,7 @@ object MemoryCloudDriverCacheTest {
     whenever(cloudDriver.getSecurityGroupSummaries("prod", "aws", "us-east-1")) doReturn CompletableDeferred(securityGroupSummaries)
 
     expectThat(catching {
-      subject.securityGroupSummaryBy("prod", "us-east-1", "sg-4")
+      subject.securityGroupById("prod", "us-east-1", "sg-4")
     })
       .throws<ResourceNotFound>()
   }

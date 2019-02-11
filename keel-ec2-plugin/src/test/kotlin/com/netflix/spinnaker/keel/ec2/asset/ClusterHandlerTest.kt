@@ -6,6 +6,7 @@ import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.ec2.Capacity
 import com.netflix.spinnaker.keel.api.ec2.Cluster
+import com.netflix.spinnaker.keel.api.ec2.ClusterName
 import com.netflix.spinnaker.keel.api.ec2.HealthCheckType
 import com.netflix.spinnaker.keel.api.ec2.InstanceType
 import com.netflix.spinnaker.keel.api.ec2.Metric
@@ -37,6 +38,7 @@ import kotlinx.coroutines.CompletableDeferred
 import strikt.api.expectThat
 import strikt.assertions.isNotNull
 import strikt.assertions.isNull
+import java.time.Clock
 import java.util.*
 
 internal object ClusterHandlerTest : JUnit5Minutests {
@@ -46,7 +48,7 @@ internal object ClusterHandlerTest : JUnit5Minutests {
   val sg2 = SecurityGroupSummary("keel-elb", "sg-235425234")
   val spec = Cluster(
     application = "keel",
-    name = "keel-test",
+    name = ClusterName(application = "keel", stack = "test"),
     imageId = "i-123543254134",
     accountName = vpc.account,
     region = vpc.region,
@@ -72,7 +74,7 @@ internal object ClusterHandlerTest : JUnit5Minutests {
     spec
   )
   val activeServerGroupResponse = ClusterActiveServerGroup(
-    spec.name,
+    spec.name.toString(),
     spec.region,
     spec.availabilityZones,
     LaunchConfig(
@@ -101,7 +103,7 @@ internal object ClusterHandlerTest : JUnit5Minutests {
     spec.capacity.let { ServerGroupCapacity(it.min, it.max, it.desired) },
     listOf(sg1.id, sg2.id),
     spec.accountName,
-    Moniker(app = spec.application, cluster = spec.name, stack = "test")
+    Moniker(app = spec.name.application, cluster = spec.name.toString(), stack = spec.name.stack)
   )
 
   val cloudDriverService = mock<CloudDriverService>()
@@ -110,14 +112,14 @@ internal object ClusterHandlerTest : JUnit5Minutests {
 
   fun tests() = rootContext<ClusterHandler> {
     fixture {
-      ClusterHandler(cloudDriverService, cloudDriverCache, orcaService)
+      ClusterHandler(cloudDriverService, cloudDriverCache, orcaService, Clock.systemDefaultZone())
     }
 
     before {
       cloudDriverCache.apply {
         whenever(networkBy(vpc.id)) doReturn vpc
-        whenever(securityGroupSummaryBy(spec.accountName, spec.region, sg1.id)) doReturn sg1
-        whenever(securityGroupSummaryBy(spec.accountName, spec.region, sg2.id)) doReturn sg2
+        whenever(securityGroupById(spec.accountName, spec.region, sg1.id)) doReturn sg1
+        whenever(securityGroupById(spec.accountName, spec.region, sg2.id)) doReturn sg2
       }
     }
 
@@ -141,7 +143,7 @@ internal object ClusterHandlerTest : JUnit5Minutests {
   private fun CloudDriverService.activeServerGroup() = activeServerGroup(
     spec.application,
     spec.accountName,
-    spec.name,
+    spec.name.toString(),
     spec.region,
     CLOUD_PROVIDER
   )
