@@ -50,8 +50,8 @@ import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.whenever
-import com.oneeyedmen.minutest.junit.toTestFactory
-import com.oneeyedmen.minutest.rootContext
+import dev.minutest.junit.toTestFactory
+import dev.minutest.rootContext
 import kotlinx.coroutines.CompletableDeferred
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll

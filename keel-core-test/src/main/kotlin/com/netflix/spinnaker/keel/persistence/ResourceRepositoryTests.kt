@@ -29,8 +29,8 @@ import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.times
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyZeroInteractions
-import com.oneeyedmen.minutest.junit.JUnit5Minutests
-import com.oneeyedmen.minutest.rootContext
+import dev.minutest.junit.JUnit5Minutests
+import dev.minutest.rootContext
 import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.containsExactlyInAnyOrder
@@ -55,7 +55,7 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
     val callback: (Triple<ResourceName, ApiVersion, String>) -> Unit
   )
 
-  override val tests = rootContext<Fixture<T>> {
+  fun tests() = rootContext<Fixture<T>> {
 
     fixture {
       val clock = Clock.fixed(Instant.now(), ZoneId.systemDefault())

@@ -16,8 +16,8 @@ import com.nhaarman.mockito_kotlin.never
 import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.whenever
-import com.oneeyedmen.minutest.junit.JUnit5Minutests
-import com.oneeyedmen.minutest.rootContext
+import dev.minutest.junit.JUnit5Minutests
+import dev.minutest.rootContext
 import java.util.*
 
 internal object ResourceStateMonitorTests : JUnit5Minutests {
@@ -26,7 +26,7 @@ internal object ResourceStateMonitorTests : JUnit5Minutests {
   val plugin1 = mock<ResourcePlugin>()
   val plugin2 = mock<ResourcePlugin>()
 
-  override val tests = rootContext<ResourceStateMonitor> {
+  fun tests() = rootContext<ResourceStateMonitor> {
 
     fixture {
       ResourceStateMonitor(resourceRepository, listOf(plugin1, plugin2))

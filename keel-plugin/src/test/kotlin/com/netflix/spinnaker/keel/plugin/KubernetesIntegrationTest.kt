@@ -10,9 +10,9 @@ import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.ResourceVersionTracker
 import com.nhaarman.mockito_kotlin.mock
-import com.oneeyedmen.minutest.junit.JUnit5Minutests
-import com.oneeyedmen.minutest.rootContext
 import com.squareup.okhttp.Response
+import dev.minutest.junit.JUnit5Minutests
+import dev.minutest.rootContext
 import io.kubernetes.client.ApiClient
 import io.kubernetes.client.ApiException
 import io.kubernetes.client.Configuration
@@ -59,7 +59,7 @@ internal object KubernetesIntegrationTest : JUnit5Minutests {
   private val extensionsApi = ApiextensionsV1beta1Api(client)
   private val customObjectsApi = CustomObjectsApi(client)
   val crdName = "security-groups.ec2.${SPINNAKER_API_V1.group}"
-  private val crdLocator = object : CustomResourceDefinitionLocator {
+  private val crdLocator: CustomResourceDefinitionLocator = object : CustomResourceDefinitionLocator {
     override fun locate(): Reader =
       """---
       |apiVersion: apiextensions.k8s.io/v1beta1
@@ -76,7 +76,6 @@ internal object KubernetesIntegrationTest : JUnit5Minutests {
     """.trimMargin()
         .let(::StringReader)
   }
-
 
   private class MockResourcePlugin : ResourcePlugin {
     val lastCreated = BlockingReference<Resource<*>>()
@@ -141,7 +140,7 @@ internal object KubernetesIntegrationTest : JUnit5Minutests {
     }
   }
 
-  override val tests = rootContext<CustomResourceDefinitionRegistrar> {
+  fun tests() = rootContext<CustomResourceDefinitionRegistrar> {
     if (assumeK8sAvailable()) {
       fixture {
         CustomResourceDefinitionRegistrar(extensionsApi, listOf(crdLocator))

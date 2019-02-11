@@ -5,9 +5,9 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupRule.Protocol.TCP
-import com.oneeyedmen.minutest.Context
-import com.oneeyedmen.minutest.junit.JUnit5Minutests
-import com.oneeyedmen.minutest.rootContext
+import dev.minutest.TestContextBuilder
+import dev.minutest.junit.JUnit5Minutests
+import dev.minutest.rootContext
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import strikt.assertions.propertiesAreEqualTo
@@ -20,7 +20,7 @@ internal object SecurityGroupRuleTests : JUnit5Minutests {
     val model: SecurityGroupRule
   )
 
-  override val tests = rootContext<Fixture> {
+  fun tests() = rootContext<Fixture> {
     context("a self referencing ingress rule") {
       fixture {
         Fixture(
@@ -116,14 +116,14 @@ internal object SecurityGroupRuleTests : JUnit5Minutests {
     }
   }
 
-  private fun Context<Fixture, Fixture>.canDeserialize() {
+  private fun TestContextBuilder<Fixture, Fixture>.canDeserialize() {
     test("deserializes") {
       val deserialized = mapper.readValue<SecurityGroupRule>(yaml)
       expectThat(deserialized).propertiesAreEqualTo(model)
     }
   }
 
-  private fun Context<Fixture, Fixture>.canSerialize() {
+  private fun TestContextBuilder<Fixture, Fixture>.canSerialize() {
     test("serializes") {
       val serialized = mapper.writeValueAsString(model)
       expectThat(serialized).isEqualTo(yaml)

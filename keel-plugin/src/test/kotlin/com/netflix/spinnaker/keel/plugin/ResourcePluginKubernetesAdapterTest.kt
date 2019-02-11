@@ -17,8 +17,8 @@ import com.nhaarman.mockito_kotlin.never
 import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.whenever
-import com.oneeyedmen.minutest.junit.JUnit5Minutests
-import com.oneeyedmen.minutest.rootContext
+import dev.minutest.junit.JUnit5Minutests
+import dev.minutest.rootContext
 import strikt.api.expectThrows
 import java.util.*
 
@@ -38,7 +38,7 @@ internal object ResourcePluginKubernetesAdapterTest : JUnit5Minutests {
     )
   }
 
-  override val tests = rootContext<Fixture> {
+  fun tests() = rootContext<Fixture> {
     fixture { Fixture() }
 
     after { reset(plugin, resourceRepository, resourceVersionTracker) }

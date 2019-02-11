@@ -8,8 +8,8 @@ import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.whenever
-import com.oneeyedmen.minutest.junit.JUnit5Minutests
-import com.oneeyedmen.minutest.rootContext
+import dev.minutest.junit.JUnit5Minutests
+import dev.minutest.rootContext
 import strikt.api.expectThat
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
@@ -24,7 +24,7 @@ internal object SimpleVetoPluginSpec : JUnit5Minutests {
     val subject: VetoPlugin = SimpleVetoPlugin(dynamicConfigService)
   }
 
-  override val tests = rootContext<Fixture> {
+  fun tests() = rootContext<Fixture> {
     fixture {
       Fixture(
         dynamicConfigService = mock(),

@@ -9,7 +9,7 @@ dependencies {
 
   testImplementation "com.squareup.retrofit2:retrofit-mock:${spinnaker.version('retrofit2')}"
   testImplementation "com.squareup.okhttp3:mockwebserver:${spinnaker.version('okHttp3')}"
-  testImplementation "com.oneeyedmen:minutest:$minutestVersion"
+  testImplementation "dev.minutest:minutest:$minutestVersion"
   testImplementation "io.strikt:strikt-core:$striktVersion"
 
   runtime "org.jetbrains.kotlin:kotlin-reflect"

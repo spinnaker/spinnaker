@@ -6,6 +6,6 @@ dependencies {
   implementation "com.netflix.spinnaker.kork:kork-core:${spinnaker.version('kork')}"
 
   testImplementation "io.strikt:strikt-core:$striktVersion"
-  testImplementation "com.oneeyedmen:minutest:$minutestVersion"
+  testImplementation "dev.minutest:minutest:$minutestVersion"
 }
 

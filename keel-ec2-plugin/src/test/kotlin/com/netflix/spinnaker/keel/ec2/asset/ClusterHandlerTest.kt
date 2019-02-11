@@ -31,8 +31,8 @@ import com.nhaarman.mockito_kotlin.doThrow
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.whenever
-import com.oneeyedmen.minutest.junit.JUnit5Minutests
-import com.oneeyedmen.minutest.rootContext
+import dev.minutest.junit.JUnit5Minutests
+import dev.minutest.rootContext
 import kotlinx.coroutines.CompletableDeferred
 import strikt.api.expectThat
 import strikt.assertions.isNotNull
@@ -108,7 +108,7 @@ internal object ClusterHandlerTest : JUnit5Minutests {
   val cloudDriverCache = mock<CloudDriverCache>()
   val orcaService = mock<OrcaService>()
 
-  override val tests = rootContext<ClusterHandler> {
+  fun tests() = rootContext<ClusterHandler> {
     fixture {
       ClusterHandler(cloudDriverService, cloudDriverCache, orcaService)
     }

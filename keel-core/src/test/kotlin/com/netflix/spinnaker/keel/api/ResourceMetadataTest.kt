@@ -4,8 +4,8 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.google.gson.GsonBuilder
-import com.oneeyedmen.minutest.junit.JUnit5Minutests
-import com.oneeyedmen.minutest.rootContext
+import dev.minutest.junit.JUnit5Minutests
+import dev.minutest.rootContext
 import strikt.api.expectThat
 import strikt.assertions.containsKey
 import strikt.assertions.hasEntry
@@ -19,7 +19,7 @@ internal object ResourceMetadataTest : JUnit5Minutests {
 
   val gson = GsonBuilder().setPrettyPrinting().serializeNulls().create()
 
-  override val tests = rootContext<Unit> {
+  fun tests() = rootContext<Unit> {
     derivedContext<ResourceMetadata>("serialization") {
       fixture {
         ResourceMetadata(
