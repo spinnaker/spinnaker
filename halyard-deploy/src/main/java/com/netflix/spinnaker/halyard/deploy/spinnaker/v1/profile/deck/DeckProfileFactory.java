@@ -115,6 +115,7 @@ public class DeckProfileFactory extends RegistryBackedProfileFactory {
     bindings.put("features.appengineContainerImageUrlDeployments", Boolean.toString(features.getAppengineContainerImageUrlDeployments() != null ? features.getAppengineContainerImageUrlDeployments() : false));
     bindings.put("features.travis", Boolean.toString(features.getTravis() != null ? features.getTravis() : false));
     bindings.put("features.wercker", Boolean.toString(features.getWercker() != null ? features.getWercker() : false));
+    bindings.put("features.managedPipelineTemplatesV2UI", Boolean.toString(features.getManagedPipelineTemplatesV2UI() != null ? features.getManagedPipelineTemplatesV2UI() : false));
 
     // Configure Kubernetes
     KubernetesProvider kubernetesProvider = deploymentConfiguration.getProviders().getKubernetes();

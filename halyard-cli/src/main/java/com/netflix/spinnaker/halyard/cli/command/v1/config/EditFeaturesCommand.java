@@ -99,6 +99,13 @@ public class EditFeaturesCommand extends AbstractConfigCommand {
   )
   private Boolean wercker = null;
 
+  @Parameter(
+          names = "--managed-pipeline-templates-v2-ui",
+          description = "Enable managed pipeline templates v2 UI support.",
+          arity = 1
+  )
+  private Boolean managedPipelineTemplatesV2UI = null;
+
   @Override
   protected void executeThis() {
     String currentDeployment = getCurrentDeployment();
@@ -119,6 +126,7 @@ public class EditFeaturesCommand extends AbstractConfigCommand {
     features.setAppengineContainerImageUrlDeployments(appengineContainerImageUrlDeployments != null ? appengineContainerImageUrlDeployments : features.getAppengineContainerImageUrlDeployments());
     features.setTravis(travis != null ? travis : features.getTravis());
     features.setWercker(wercker != null ? wercker : features.getWercker());
+    features.setManagedPipelineTemplatesV2UI(managedPipelineTemplatesV2UI != null ? managedPipelineTemplatesV2UI : features.getManagedPipelineTemplatesV2UI());
 
     if (originalHash == features.hashCode()) {
       AnsiUi.failure("No changes supplied.");

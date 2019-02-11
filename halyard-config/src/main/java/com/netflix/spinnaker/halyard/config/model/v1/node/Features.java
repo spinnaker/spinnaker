@@ -56,6 +56,8 @@ public class Features extends Node {
   private Boolean travis;
   @ValidForSpinnakerVersion(lowerBound = "1.9.0", tooLowMessage = "Wercker stage is not available prior to this release.")
   private Boolean wercker;
+  @ValidForSpinnakerVersion(lowerBound = "1.13.0", tooLowMessage = "Managed Pipeline Templates v2 UI is not available prior to this release.")
+  private Boolean managedPipelineTemplatesV2UI;
 
   public boolean isAuth(DeploymentConfiguration deploymentConfiguration) {
     return deploymentConfiguration.getSecurity().getAuthn().isEnabled();
