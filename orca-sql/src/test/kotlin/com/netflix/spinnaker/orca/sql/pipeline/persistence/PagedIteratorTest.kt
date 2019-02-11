@@ -16,15 +16,15 @@
 package com.netflix.spinnaker.orca.sql.pipeline.persistence
 
 import com.nhaarman.mockito_kotlin.mock
-import com.oneeyedmen.minutest.junit.JupiterTests
-import com.oneeyedmen.minutest.junit.context
+import dev.minutest.junit.JUnit5Minutests
+import dev.minutest.rootContext
 import org.assertj.core.api.AbstractAssert
 import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
 
-class PagedIteratorTest : JupiterTests {
+class PagedIteratorTest : JUnit5Minutests {
 
-  override val tests = context<PagedIterator<String, String>> {
+  override val tests = rootContext<PagedIterator<String, String>> {
 
     val pageSize = 3
     val nextPage = mock<(Int, String?) -> Iterable<String>>()
@@ -37,8 +37,8 @@ class PagedIteratorTest : JupiterTests {
         }
 
         test("won't return anything") {
-          Assertions.assertThat(it.hasNext()).isFalse()
-          Assertions.assertThatThrownBy { it.next() }
+          Assertions.assertThat(this.hasNext()).isFalse()
+          Assertions.assertThatThrownBy { this.next() }
             .isInstanceOf<NoSuchElementException>()
         }
       }
@@ -54,10 +54,10 @@ class PagedIteratorTest : JupiterTests {
         }
 
         test("iterates over available elements") {
-          assertThat(it.hasNext()).isTrue()
+          assertThat(this.hasNext()).isTrue()
 
           val results = mutableListOf<String>()
-          it.forEachRemaining { results.add(it) }
+          this.forEachRemaining { results.add(it) }
 
           assertThat(results).containsExactly("ONE", "TWO")
         }
@@ -74,10 +74,10 @@ class PagedIteratorTest : JupiterTests {
         }
 
         test("iterates over available elements") {
-          assertThat(it.hasNext()).isTrue()
+          assertThat(this.hasNext()).isTrue()
 
           val results = mutableListOf<String>()
-          it.forEachRemaining { results.add(it) }
+          this.forEachRemaining { results.add(it) }
 
           assertThat(results).containsExactly("ONE", "TWO", "THREE")
         }
@@ -96,10 +96,10 @@ class PagedIteratorTest : JupiterTests {
         }
 
         test("iterates over the available elements") {
-          assertThat(it.hasNext()).isTrue()
+          assertThat(this.hasNext()).isTrue()
 
           val results = mutableListOf<String>()
-          it.forEachRemaining { results.add(it) }
+          this.forEachRemaining { results.add(it) }
 
           assertThat(results).containsExactly("ONE", "TWO", "THREE", "FOUR", "FIVE", "SIX", "SEVEN")
         }

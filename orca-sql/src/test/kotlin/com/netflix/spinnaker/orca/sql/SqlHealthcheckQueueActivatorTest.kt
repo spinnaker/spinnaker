@@ -22,17 +22,17 @@ import com.nhaarman.mockito_kotlin.isA
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.whenever
-import com.oneeyedmen.minutest.junit.JupiterTests
-import com.oneeyedmen.minutest.junit.context
+import dev.minutest.junit.JUnit5Minutests
+import dev.minutest.rootContext
 import org.jooq.DSLContext
 import org.jooq.DeleteWhereStep
 import org.jooq.Table
 import strikt.api.expect
 import strikt.assertions.isEqualTo
 
-class SqlHealthcheckQueueActivatorTest : JupiterTests {
+class SqlHealthcheckQueueActivatorTest : JUnit5Minutests {
 
-  override val tests = context<Unit> {
+  override val tests = rootContext<Unit> {
 
     val dslContext = mock<DSLContext>()
     val query = mock<DeleteWhereStep<*>>()

@@ -36,7 +36,7 @@ dependencies {
   testCompile "io.strikt:strikt-core:0.11.5"
   testCompile "org.assertj:assertj-core:3.9.0"
   testCompile "org.junit.jupiter:junit-jupiter-api:$jupiterVersion"
-  testCompile "com.oneeyedmen:minutest:0.34.0"
+  testCompile "dev.minutest:minutest:0.45.0"
   testCompile "com.nhaarman:mockito-kotlin:1.5.0"
 
   testRuntime "org.junit.jupiter:junit-jupiter-engine:$jupiterVersion"

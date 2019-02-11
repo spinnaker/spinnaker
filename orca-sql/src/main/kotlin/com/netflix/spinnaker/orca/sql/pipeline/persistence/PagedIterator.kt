@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.sql.pipeline.persistence
 /**
  * An iterator that can fetch paginated data transparently to clients.
  */
-internal class PagedIterator<T, C>(
+class PagedIterator<T, C>(
   private val pageSize: Int,
   private val toCursor: (T) -> C,
   private val nextPage: (Int, C?) -> Iterable<T>
