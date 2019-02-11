@@ -6,7 +6,7 @@ This config defines the metrics and analysis thresholds set for a canary run.
 Typically, thresholds can be overridden at execution time as well.
 
 It is normal to have all metrics for a given canary run come from the same source.  In these examples,
-Atlas, Stackdriver and Prometheus are used.
+Atlas, Stackdriver, Prometheus, Datadog, SignalFx, and Wavefront are used.
 
 
 ```JSON
@@ -203,7 +203,6 @@ Atlas, Stackdriver and Prometheus are used.
   }
 }
 ```
-
 ```JSON
 {
   "name": "SignalFxIntegrationTestCanaryConfig",
@@ -290,6 +289,43 @@ Atlas, Stackdriver and Prometheus are used.
       "query": {
         "type": "graphite",
         "metricName": "system.cpu.user"
+      },
+      "groups": ["system"],
+      "analysisConfigurations": { },
+      "scopeName": "default"
+    }
+  ],
+  "classifier": {
+    "groupWeights": {
+      "system": 100.0
+    },
+    "scoreThresholds": {
+      "pass": 95.0,
+      "marginal": 75.0
+    }
+  }
+}
+```
+```JSON
+{
+  "name": "MySampleWavefrontCanaryConfig",
+  "description": "Example Kayenta Configuration using Wavefront",
+  "configVersion": "1.0",
+  "applications": [
+    "myapp"
+  ],
+  "judge": {
+    "name": "dredd-v1.0",
+    "judgeConfigurations": { }
+  },
+  "metrics": [
+    {
+      "name": "CPU",
+      "query": {
+        "type": "wavefront",
+        "metricName": "heapster.pod.cpu.usage_rate",
+        "aggregate": "avg",
+        "summerization": "MEAN"
       },
       "groups": ["system"],
       "analysisConfigurations": { },

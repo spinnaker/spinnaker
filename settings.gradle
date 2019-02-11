@@ -35,6 +35,7 @@ include 'kayenta-s3'
 include 'kayenta-signalfx'
 include 'kayenta-stackdriver'
 include 'kayenta-standalone-canary-analysis'
+include 'kayenta-wavefront'
 include 'kayenta-web'
 
 def setBuildFile(project) {

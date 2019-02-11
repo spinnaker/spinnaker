@@ -85,6 +85,15 @@ kayenta:
 #          baseUrl: http://localhost:8086
 #        supportedTypes:
 #          - METRICS_STORE
+  wavefront:
+   enabled: false
+#   accounts:
+#      - name:
+#        endpoint:
+#          baseUrl:
+#        apiToken:
+#        supportedTypes:
+#          - METRICS_STORE
 
   gcs:
     enabled: false

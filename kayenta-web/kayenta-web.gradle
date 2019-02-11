@@ -34,6 +34,7 @@ dependencies {
   compile project(':kayenta-signalfx')
   compile project(':kayenta-stackdriver')
   compile project(':kayenta-standalone-canary-analysis')
+  compile project(':kayenta-wavefront')
 
   compile spinnaker.dependency('bootActuator')
   compile spinnaker.dependency('bootWeb')

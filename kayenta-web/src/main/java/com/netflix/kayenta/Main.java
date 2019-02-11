@@ -34,6 +34,7 @@ import com.netflix.kayenta.prometheus.config.PrometheusConfiguration;
 import com.netflix.kayenta.s3.config.S3Configuration;
 import com.netflix.kayenta.signalfx.config.SignalFxConfiguration;
 import com.netflix.kayenta.stackdriver.config.StackdriverConfiguration;
+import com.netflix.kayenta.wavefront.config.WavefrontConfiguration;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -64,6 +65,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
   SignalFxConfiguration.class,
   StackdriverConfiguration.class,
   StandaloneCanaryAnalysisModuleConfiguration.class,
+  WavefrontConfiguration.class,
   WebConfiguration.class,
   NetflixJudgeConfiguration.class,
 })
