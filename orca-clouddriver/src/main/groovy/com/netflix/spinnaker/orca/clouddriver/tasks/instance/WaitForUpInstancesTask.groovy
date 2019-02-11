@@ -35,13 +35,27 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
 
   @Override
   Map getAdditionalRunningStageContext(Stage stage, Map serverGroup) {
-    [
-      targetDesiredSize: calculateTargetDesiredSize(stage, serverGroup),
-      lastCapacityCheck: getHealthCountSnapshot(stage, serverGroup)
+    def additionalRunningStageContext = [
+        targetDesiredSize: calculateTargetDesiredSize(stage, serverGroup),
+        lastCapacityCheck: getHealthCountSnapshot(stage, serverGroup)
     ]
+
+    if (!stage.context.capacitySnapshot) {
+      def initialTargetCapacity = getServerGroupCapacity(stage, serverGroup)
+      additionalRunningStageContext.capacitySnapshot = [
+          minSize        : initialTargetCapacity.min,
+          desiredCapacity: initialTargetCapacity.desired,
+          maxSize        : initialTargetCapacity.max
+      ]
+    }
+
+    return additionalRunningStageContext
   }
 
-  static boolean allInstancesMatch(Stage stage, Map serverGroup, List<Map> instances, Collection<String> interestingHealthProviderNames) {
+  static boolean allInstancesMatch(Stage stage,
+                                   Map serverGroup,
+                                   List<Map> instances,
+                                   Collection<String> interestingHealthProviderNames) {
     if (!(serverGroup?.capacity)) {
       return false
     }
@@ -76,8 +90,7 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
   }
 
   static int calculateTargetDesiredSize(Stage stage, Map serverGroup) {
-    // favor using configured target capacity whenever available (rather than in-progress server group's desiredCapacity)
-    Map capacity = (Map) serverGroup.capacity
+    Map<String, Integer> capacity = getServerGroupCapacity(stage, serverGroup)
     Integer targetDesiredSize = capacity.desired as Integer
 
     // Don't wait for spot instances to come up if the deployment strategy is None. All other deployment strategies rely on
@@ -153,5 +166,57 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
 
     // no health indicators is indicative of being down
     return !healths || healths.any { it.state == 'Down' || it.state == 'OutOfService' }
+  }
+
+  /**
+   * Determine the server group's current capacity.
+   *
+   * There is an edge-case with respect to AWS where the server group may be created at 0/0/0 and
+   * immediately resized up.
+   *
+   * This method aims to generically detect these scenarios and use the target capacity of the
+   * server group rather than 0/0/0.
+   */
+  private static Map<String, Integer> getServerGroupCapacity(Stage stage, Map serverGroup) {
+    def serverGroupCapacity = serverGroup.capacity as Map<String, Integer>
+
+    def initialTargetCapacity = getInitialTargetCapacity(stage, serverGroup)
+    if (!initialTargetCapacity) {
+      return serverGroupCapacity
+    }
+
+    if (serverGroup.capacity.max == 0 && initialTargetCapacity.max != 0) {
+      log.info(
+          "Overriding server group capacity (serverGroup: {}, initialTargetCapacity: {}, executionId: {})",
+          "${serverGroup.region}:${serverGroup.name}",
+          initialTargetCapacity,
+          stage.execution.id
+      )
+      serverGroupCapacity = initialTargetCapacity
+    }
+
+    return serverGroupCapacity
+  }
+
+  /**
+   * Fetch the new server group's initial capacity _if_ it was passed back from clouddriver.
+   */
+  private static Map<String, Integer> getInitialTargetCapacity(Stage stage, Map serverGroup) {
+    def katoTasks = (stage.context."kato.tasks" as List<Map<String, Object>>)?.reverse()
+    def katoTask = katoTasks?.find {
+      ((List<Map>) it.getOrDefault("resultObjects", [])).any {
+        it.containsKey("deployments")
+      }
+    }
+
+    def deployments = ((List<Map>) katoTask?.getOrDefault("resultObjects", []))?.find {
+      it.containsKey("deployments")
+    }?.get("deployments") as List<Map>
+
+    def deployment = deployments?.find {
+      serverGroup.name == it.get("serverGroupName") && serverGroup.region == it.get("location")
+    }
+
+    return deployment?.capacity as Map<String, Integer>
   }
 }

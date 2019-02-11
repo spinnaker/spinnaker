@@ -27,6 +27,8 @@ import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
+
 class WaitForUpInstancesTaskSpec extends Specification {
 
   @Subject task = new WaitForUpInstancesTask() {
@@ -459,4 +461,62 @@ class WaitForUpInstancesTaskSpec extends Specification {
     false        || 2               | []                  | [ [ health: [ [ type: 'a', state : "Down"], [ type: 'b', state : "Unknown"] ] ] ]
   }
 
+  @Unroll
+  void 'should extract target server group capacity from kato.tasks'() {
+    given:
+    def stage = stage {
+      context = [
+          "kato.tasks": katoTasks
+      ]
+    }
+
+    def serverGroup = [name: "app-v001", region: "us-west-2"]
+
+    expect:
+    WaitForUpInstancesTask.getInitialTargetCapacity(stage, serverGroup) == expectedInitialTargetCapacity
+
+    where:
+    katoTasks || expectedInitialTargetCapacity
+    null      || null
+    []        || null
+    [[:]]     || null
+    [
+        [resultObjects: [[deployments: [
+            deployment("app-v001", "us-west-2", 0, 1, 1),
+            deployment("app-v002", "us-west-2", 0, 2, 2),
+            deployment("app-v001", "us-east-1", 0, 3, 3),
+        ]]]]
+    ]         || [min: 0, max: 1, desired: 1]     // should match on serverGroupName and location
+    [
+        [resultObjects: [[deployments: [deployment("app-v001", "us-west-2", 0, 1, 1)]]]],
+        [resultObjects: [[deployments: [deployment("app-v001", "us-west-2", 0, 2, 2)]]]],
+    ]         || [min: 0, max: 2, desired: 2]     // should look for most recent katoTask result object
+  }
+
+  @Unroll
+  void 'should favor initial target capacity if current capacity is 0/0/0'() {
+    given:
+    def stage = stage {
+      context = [
+          "kato.tasks": katoTasks
+      ]
+    }
+
+    def serverGroup = [name: "app-v001", region: "us-west-2", capacity: serverGroupCapacity]
+
+    expect:
+    WaitForUpInstancesTask.getServerGroupCapacity(stage, serverGroup) == expectedServerGroupCapacity
+
+    where:
+    katoTasks                                                                          | serverGroupCapacity          || expectedServerGroupCapacity
+    null                                                                               | [min: 0, max: 0, desired: 0] || [min: 0, max: 0, desired: 0]
+    [[resultObjects: [[deployments: [deployment("app-v001", "us-west-2", 0, 1, 1)]]]]] | [min: 0, max: 0, desired: 0] || [min: 0, max: 1, desired: 1]   // should take initial capacity b/c max = 0
+    [[resultObjects: [[deployments: [deployment("app-v001", "us-west-2", 0, 1, 1)]]]]] | [min: 0, max: 2, desired: 2] || [min: 0, max: 2, desired: 2]   // should take current capacity b/c max > 0
+  }
+
+  static Map deployment(String serverGroupName, String location, int min, int max, int desired) {
+    return [
+        serverGroupName: serverGroupName, location: location, capacity: [min: min, max: max, desired: desired]
+    ]
+  }
 }

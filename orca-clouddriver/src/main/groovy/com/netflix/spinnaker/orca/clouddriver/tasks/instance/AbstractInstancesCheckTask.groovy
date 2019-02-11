@@ -122,15 +122,16 @@ abstract class AbstractInstancesCheckTask extends AbstractCloudProviderAwareTask
         def isComplete = hasSucceeded(stage, serverGroup, serverGroup.instances ?: [], interestingHealthProviderNames)
         if (!isComplete) {
           Map newContext = getAdditionalRunningStageContext(stage, serverGroup)
-          if (seenServerGroup && !stage.context.capacitySnapshot) {
-            newContext.zeroDesiredCapacityCount = 0
-            newContext.capacitySnapshot = [
-              minSize        : serverGroup.capacity.min,
-              desiredCapacity: serverGroup.capacity.desired,
-              maxSize        : serverGroup.capacity.max
-            ]
-          }
           if (seenServerGroup) {
+            if (!stage.context.capacitySnapshot) {
+              newContext.zeroDesiredCapacityCount = 0
+              newContext.capacitySnapshot = newContext.capacitySnapshot ?: [
+                  minSize        : serverGroup.capacity.min,
+                  desiredCapacity: serverGroup.capacity.desired,
+                  maxSize        : serverGroup.capacity.max
+              ]
+            }
+
             if (serverGroup.capacity.desired == 0) {
               newContext.zeroDesiredCapacityCount = (stage.context.zeroDesiredCapacityCount ?: 0) + 1
             } else {
