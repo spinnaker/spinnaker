@@ -20,7 +20,7 @@ var entityTagsEnabled = false;
 var fiatEnabled = '{%features.fiat%}' === 'true';
 var iapRefresherEnabled = '{%features.iapRefresherEnabled}' === 'true';
 var infrastructureStagesEnabled = '{%features.infrastructureStages%}' === 'true';
-var managedPipelineTemplatesV2Enabled = '{%features.managedPipelineTemplatesV2%}' === 'true';
+var managedPipelineTemplatesV2UIEnabled = '{%features.managedPipelineTemplatesV2UI%}' === 'true';
 var jobsEnabled = '{%features.jobs%}' === 'true';
 var maxPipelineAgeDays = '{%maxPipelineAgeDays%}';
 var mineCanaryEnabled = '{%features.mineCanary%}' === 'true';
@@ -161,7 +161,7 @@ window.spinnakerSettings = {
     iapRefresherEnabled: iapRefresherEnabled,
     infrastructureStages: infrastructureStagesEnabled,
     jobs: jobsEnabled,
-    managedPipelineTemplatesV2: managedPipelineTemplatesV2Enabled,
+    managedPipelineTemplatesV2UI: managedPipelineTemplatesV2UIEnabled,
     notifications: notificationsEnabled,
     pagerDuty: false,
     pipelines: true,

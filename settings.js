@@ -20,7 +20,7 @@ var entityTagsEnabled = process.env.ENTITY_TAGS_ENABLED === 'true' ? true : fals
 var fiatEnabled = process.env.FIAT_ENABLED === 'true' ? true : false;
 var iapRefresherEnabled = process.env.IAP_REFRESHER_ENABLED === 'true' ? true : false;
 var infrastructureEnabled = process.env.INFRA_ENABLED === 'true' ? true : false;
-var managedPipelineTemplatesV2Enabled = process.env.MANAGED_PIPELINE_TEMPLATES_V2_ENABLED === 'true';
+var managedPipelineTemplatesV2UIEnabled = process.env.MANAGED_PIPELINE_TEMPLATES_V2_UI_ENABLED === 'true';
 var managedServiceAccountsEnabled = process.env.MANAGED_SERVICE_ACCOUNTS_ENABLED === 'true';
 var onDemandClusterThreshold = process.env.ON_DEMAND_CLUSTER_THRESHOLD || '350';
 var reduxLoggerEnabled = process.env.REDUX_LOGGER === 'true';
@@ -63,7 +63,7 @@ window.spinnakerSettings = {
     // whether stages affecting infrastructure (like "Create Load Balancer") should be enabled or not
     infrastructureStages: infrastructureEnabled,
     jobs: false,
-    managedPipelineTemplatesV2: managedPipelineTemplatesV2Enabled,
+    managedPipelineTemplatesV2UI: managedPipelineTemplatesV2UIEnabled,
     managedServiceAccounts: managedServiceAccountsEnabled,
     notifications: false,
     pagerDuty: false,
