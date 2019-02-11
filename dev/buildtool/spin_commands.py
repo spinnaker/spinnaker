@@ -261,7 +261,7 @@ class PublishSpinCommand(CommandProcessor):
           ConfigError('Expected spinnaker version in the form X.Y.Z-N, got {}'
                       .format(self.__spinnaker_version)))
 
-    release_branch = 'release-{maj}.{min}.x'.format(
+    release_branch = 'origin/release-{maj}.{min}.x'.format(
         maj=semver_parts[0], min=semver_parts[1])
     release_tag = 'version-' + self.__stable_version
     logging.info('Pushing branch=%s and tag=%s to %s',
@@ -269,8 +269,7 @@ class PublishSpinCommand(CommandProcessor):
     git.check_run_sequence(
         git_dir,
         [
-            'checkout -b ' + release_branch,
-            'push origin ' + release_branch,
+            'checkout ' + release_branch,
             'tag ' + release_tag,
             'push origin ' + release_tag
         ])
