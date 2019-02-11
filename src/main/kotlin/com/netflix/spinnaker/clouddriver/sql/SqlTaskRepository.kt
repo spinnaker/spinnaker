@@ -200,59 +200,68 @@ class SqlTaskRepository(
   }
 
   private fun retrieveInternal(condition: Condition, relationshipCondition: Condition? = null): Collection<Task> {
-    return jooq.withRetry(sqlRetryProperties.reads) {
+    val tasks = mutableSetOf<Task>()
+
+    // TODO: AWS Aurora enforces REPEATABLE_READ on replicas. Kork's dataSourceConnectionProvider sets READ_COMMITTED
+    //  on every connection acquire - need to change this so running on !aurora will behave consistently.
+    //  REPEATABLE_READ is correct here.
+    jooq.transactional(sqlRetryProperties.transactions) { ctx ->
       /**
        *  (select id as task_id, owner_id, request_id, created_at, null as body, null as state, null as phase, null as status from tasks_copy where id = '01D2H4H50VTF7CGBMP0D6HTGTF')
        *  UNION ALL
-       *  (select task_id, null as owner_id, null as request_id, null as created_at, body, null as state, null as phase, null as status from task_results_copy where task_id = '01D2H4H50VTF7CGBMP0D6HTGTF')
-       *  UNION ALL
        *  (select task_id, null as owner_id, null as request_id, null as created_at, null as body, state, phase, status from task_states_copy where task_id = '01D2H4H50VTF7CGBMP0D6HTGTF')
+       *  UNION ALL
+       *  (select task_id, null as owner_id, null as request_id, null as created_at, body, null as state, null as phase, null as status from task_results_copy where task_id = '01D2H4H50VTF7CGBMP0D6HTGTF')
        */
-      jooq
-        .select(
-          field("id").`as`("task_id"),
-          field("owner_id"),
-          field("request_id"),
-          field("created_at"),
-          field(sql("null")).`as`("body"),
-          field(sql("null")).`as`("state"),
-          field(sql("null")).`as`("phase"),
-          field(sql("null")).`as`("status")
-        )
-        .from(tasksTable)
-        .where(condition)
-        .unionAll(
-          jooq
-            .select(
-              field("task_id"),
-              field(sql("null")).`as`("owner_id"),
-              field(sql("null")).`as`("request_id"),
-              field(sql("null")).`as`("created_at"),
-              field("body"),
-              field(sql("null")).`as`("state"),
-              field(sql("null")).`as`("phase"),
-              field(sql("null")).`as`("status")
-            )
-            .from(taskResultsTable)
-            .where(relationshipCondition ?: condition)
-        )
-        .unionAll(
-          jooq
-            .select(
-              field("task_id"),
-              field(sql("null")).`as`("owner_id"),
-              field(sql("null")).`as`("request_id"),
-              field(sql("null")).`as`("created_at"),
-              field(sql("null")).`as`("body"),
-              field("state"),
-              field("phase"),
-              field("status")
-            )
-            .from(taskStatesTable)
-            .where(relationshipCondition ?: condition)
-        )
-        .fetchTasks()
+      tasks.addAll(
+        ctx
+          .select(
+            field("id").`as`("task_id"),
+            field("owner_id"),
+            field("request_id"),
+            field("created_at"),
+            field(sql("null")).`as`("body"),
+            field(sql("null")).`as`("state"),
+            field(sql("null")).`as`("phase"),
+            field(sql("null")).`as`("status")
+          )
+          .from(tasksTable)
+          .where(condition)
+          .unionAll(
+            ctx
+              .select(
+                field("task_id"),
+                field(sql("null")).`as`("owner_id"),
+                field(sql("null")).`as`("request_id"),
+                field(sql("null")).`as`("created_at"),
+                field(sql("null")).`as`("body"),
+                field("state"),
+                field("phase"),
+                field("status")
+              )
+              .from(taskStatesTable)
+              .where(relationshipCondition ?: condition)
+          )
+          .unionAll(
+            ctx
+              .select(
+                field("task_id"),
+                field(sql("null")).`as`("owner_id"),
+                field(sql("null")).`as`("request_id"),
+                field(sql("null")).`as`("created_at"),
+                field("body"),
+                field(sql("null")).`as`("state"),
+                field(sql("null")).`as`("phase"),
+                field(sql("null")).`as`("status")
+              )
+              .from(taskResultsTable)
+              .where(relationshipCondition ?: condition)
+          )
+          .fetchTasks()
+      )
     }
+
+    return tasks
   }
 
   private fun selectLatestState(ctx: DSLContext, taskId: String): DefaultTaskStatus? {
