@@ -74,6 +74,15 @@ public class V2PipelineTemplateController {
     return (List<PipelineTemplate>) getPipelineTemplateDAO().getPipelineTemplatesByScope(scopes);
   }
 
+  @RequestMapping(value = "listIds", method = RequestMethod.GET)
+  List<String> listIds(@RequestParam(required = false, value = "scopes") List<String> scopes) {
+    return getPipelineTemplateDAO()
+      .getPipelineTemplatesByScope(scopes)
+      .stream()
+      .map(PipelineTemplate::getId)
+      .collect(Collectors.toList());
+  }
+
   @RequestMapping(value = "", method = RequestMethod.POST)
   void save(@RequestParam(value = "version", required = false) String version, @RequestBody PipelineTemplate pipelineTemplate) {
     if (StringUtils.isNotEmpty(version)) {
