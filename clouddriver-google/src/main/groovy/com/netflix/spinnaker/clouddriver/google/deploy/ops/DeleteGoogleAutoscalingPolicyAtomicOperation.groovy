@@ -86,15 +86,16 @@ class DeleteGoogleAutoscalingPolicyAtomicOperation extends GoogleAtomicOperation
           compute.regionInstanceGroupManagers().setAutoHealingPolicies(project, region, serverGroupName, request),
           "compute.regionInstanceGroupManagers.setAutoHealingPolicies",
           TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region)
+        deletePolicyMetadata(compute, credentials, project, GCEUtil.buildRegionalServerGroupUrl(project, region, serverGroupName))
       } else {
         def request = new InstanceGroupManagersSetAutoHealingRequest().setAutoHealingPolicies([])
         timeExecute(
           compute.instanceGroupManagers().setAutoHealingPolicies(project, zone, serverGroupName, request),
           "compute.instanceGroupManagers.setAutoHealingPolicies",
           TAG_SCOPE, SCOPE_ZONAL, TAG_ZONE, zone)
+        deletePolicyMetadata(compute, credentials, project, GCEUtil.buildZonalServerGroupUrl(project, zone, serverGroupName))
       }
       task.updateStatus BASE_PHASE, "Done deleting autoHealing policy for $serverGroupName."
-      deletePolicyMetadata(compute, credentials, project, GCEUtil.buildRegionalServerGroupUrl(project, region, serverGroupName))
     } else {
       task.updateStatus BASE_PHASE, "Initializing deletion of scaling policy for $description.serverGroupName..."
       if (isRegional) {
@@ -102,14 +103,15 @@ class DeleteGoogleAutoscalingPolicyAtomicOperation extends GoogleAtomicOperation
             compute.regionAutoscalers().delete(project, region, serverGroupName),
             "compute.regionAutoscalers.delete",
             TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region)
+        deletePolicyMetadata(compute, credentials, project, GCEUtil.buildRegionalServerGroupUrl(project, region, serverGroupName))
       } else {
         timeExecute(
             compute.autoscalers().delete(project, zone, serverGroupName),
             "compute.autoscalers.delete",
             TAG_SCOPE, SCOPE_ZONAL, TAG_ZONE, zone)
+        deletePolicyMetadata(compute, credentials, project, GCEUtil.buildZonalServerGroupUrl(project, zone, serverGroupName))
       }
       task.updateStatus BASE_PHASE, "Done deleting scaling policy for $serverGroupName."
-      deletePolicyMetadata(compute, credentials, project, GCEUtil.buildZonalServerGroupUrl(project, zone, serverGroupName))
     }
 
     return null
