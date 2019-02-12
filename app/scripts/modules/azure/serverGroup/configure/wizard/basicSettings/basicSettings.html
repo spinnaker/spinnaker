@@ -24,7 +24,7 @@
       </div>
       <div class="form-group row slide-in" ng-if="basicSettings.stack.$error.pattern">
         <div class="col-sm-9 col-sm-offset-2 error-message">
-          <span>Only dot(.) and underscore(_) special characters are allowed in the Stack field.</span>
+          <span>Stack can only contain letters and numbers.</span>
         </div>
       </div>
       <div class="form-group">
@@ -39,7 +39,7 @@
       </div>
       <div class="form-group row slide-in" ng-if="basicSettings.details.$error.pattern">
         <div class="col-sm-9 col-sm-offset-2 error-message">
-          <span>Only dot(.), underscore(_), and dash(-) special characters are allowed in the Detail field.</span>
+          <span>Detail can only contain letters, numbers, and dashes(-).</span>
         </div>
       </div>
       <div class="form-group" ng-if="!command.viewState.disableImageSelection">

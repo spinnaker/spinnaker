@@ -36,4 +36,20 @@ module.exports = angular
         $state: $state,
       }),
     );
+
+    this.stackPattern = {
+      test: function(stack) {
+        var pattern = $scope.command.viewState.templatingEnabled ? /^([a-zA-Z0-9]*(\${.+})*)*$/ : /^[a-zA-Z0-9]*$/;
+
+        return pattern.test(stack);
+      },
+    };
+
+    this.detailPattern = {
+      test: function(detail) {
+        var pattern = $scope.command.viewState.templatingEnabled ? /^([a-zA-Z0-9-]*(\${.+})*)*$/ : /^[a-zA-Z0-9-]*$/;
+
+        return pattern.test(detail);
+      },
+    };
   });
