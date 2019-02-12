@@ -36,7 +36,7 @@
     "image_sku": "{{user `azure_image_sku`}}",
 
     "location": "{{user `azure_location`}}",
-    "vm_size": "Standard_A2"
+    "vm_size": "Standard_DS2_v2"
   }],
   "provisioners": [{
     "type": "shell",
