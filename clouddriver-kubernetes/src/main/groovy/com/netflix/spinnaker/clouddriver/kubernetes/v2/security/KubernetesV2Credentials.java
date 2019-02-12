@@ -42,13 +42,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -460,24 +455,12 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     List<KubernetesKind> allKinds = KubernetesKind.getValues();
 
     log.info("Checking permissions on configured kinds for account {}... {}", accountName, allKinds);
-    for (KubernetesKind kind : allKinds) {
-      if (kind == KubernetesKind.NONE || omitKinds.contains(kind)) {
-        continue;
-      }
-
-      try {
-        log.info("Checking if {} is readable...", kind);
-        if (kind.isNamespaced()) {
-          list(kind, checkNamespace);
-        } else {
-          list(kind, null);
-        }
-      } catch (Exception e) {
-        log.info("Kind '{}' will not be cached in account '{}' for reason: '{}'", kind, accountName, e.getMessage());
-        log.debug("Reading kind '{}' failed with exception: ", kind, e);
-        omitKinds.add(kind);
-      }
-    }
+    Set<KubernetesKind> unreadableKinds = allKinds.parallelStream()
+      .filter(k -> k != KubernetesKind.NONE)
+      .filter(k -> !omitKinds.contains(k))
+      .filter(k -> !canReadKind(k, checkNamespace))
+      .collect(Collectors.toCollection(ConcurrentHashMap::newKeySet));
+    omitKinds.addAll(unreadableKinds);
 
     if (metrics) {
       try {
@@ -488,6 +471,22 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
         log.debug("Reading logs failed with exception: ", e);
         metrics = false;
       }
+    }
+  }
+
+  private boolean canReadKind(KubernetesKind kind, String checkNamespace) {
+    try {
+      log.info("Checking if {} is readable...", kind);
+      if (kind.isNamespaced()) {
+        list(kind, checkNamespace);
+      } else {
+        list(kind, null);
+      }
+      return true;
+    } catch (Exception e) {
+      log.info("Kind '{}' will not be cached in account '{}' for reason: '{}'", kind, accountName, e.getMessage());
+      log.debug("Reading kind '{}' failed with exception: ", kind, e);
+      return false;
     }
   }
 
