@@ -23,7 +23,7 @@ module.exports = angular.module('spinnaker.widgets.spelSelect.component', []).co
               ng-focus="$ctrl.glow(true)"
               ng-blur="$ctrl.glow(false)"
               uib-tooltip="Toggle to enter expression">
-              $\{…\}
+              $\{…}
               </button>
           </span>
           <input

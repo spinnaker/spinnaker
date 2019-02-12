@@ -39,7 +39,7 @@ describe('Controller: SnapshotDiffModalCtrl', function() {
       spyOn(this.controller, 'getSnapshotHistoryForAccount');
     });
 
-    it(`when compareTo === \'most recent\', it should compare each snapshot version
+    it(`when compareTo === 'most recent', it should compare each snapshot version
         to the most recent snapshot`, function() {
       this.controller.compareTo = 'most recent';
       [0, 1, 2].forEach(version => {
@@ -52,7 +52,7 @@ describe('Controller: SnapshotDiffModalCtrl', function() {
       });
     });
 
-    it(`when compareTo === \'previous\', it should compare each snapshot version
+    it(`when compareTo === 'previous', it should compare each snapshot version
         to the previous snapshot (if previous exists)`, function() {
       this.controller.version = 0;
       this.controller.updateDiff();

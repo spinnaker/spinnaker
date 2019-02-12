@@ -1,6 +1,5 @@
 'use strict';
 
-import { copy } from 'angular';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 

@@ -45,7 +45,7 @@ module.exports = angular
       },
     };
   })
-  .controller('StageConfigCtrl', function($scope, $element, $compile, $controller, $templateCache, $uibModal) {
+  .controller('StageConfigCtrl', function($scope, $element, $compile, $controller, $templateCache) {
     var lastStageScope, reactComponentMounted;
 
     $scope.options = {
