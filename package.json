@@ -204,7 +204,6 @@
   },
   "resolutionsPurpose": "This temporarily chooses the right versions of these libs, which are specified in both deck AND deck-kayenta",
   "resolutions": {
-    "**/**/node-gyp": "^3.8.0",
     "@uirouter/react-hybrid": "0.3.8",
     "@uirouter/react": "0.8.7",
     "@uirouter/angularjs": "1.0.20",

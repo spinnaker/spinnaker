@@ -54,7 +54,7 @@ describe('Controller: deletePipelineModal', function() {
         newStateTarget = null,
         newStateOptions = null;
 
-      spyOn(PipelineConfigService, 'deletePipeline').and.callFake(function(applicationName, {}, pipelineName) {
+      spyOn(PipelineConfigService, 'deletePipeline').and.callFake(function(applicationName, _, pipelineName) {
         submittedPipeline = pipelineName;
         submittedApplication = applicationName;
         return $q.when(null);

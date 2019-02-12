@@ -57,7 +57,7 @@ describe('Controller: renamePipelineModal', function() {
         newName: 'd',
       };
 
-      spyOn(PipelineConfigService, 'renamePipeline').and.callFake(function(applicationName, {}, currentName, newName) {
+      spyOn(PipelineConfigService, 'renamePipeline').and.callFake(function(applicationName, _, currentName, newName) {
         submittedNewName = newName;
         submittedCurrentName = currentName;
         submittedApplication = applicationName;

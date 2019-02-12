@@ -26,19 +26,32 @@ module.exports = angular
             // default display names are created for the sake of readability for pipelines that existed
             // before display names were introduced to expected artifacts
             const { kind, name } = artifact.matchArtifact;
+
+            const dockerDisplayName = () => {
+              const [, project = 'no-project', image = 'no-image'] = name.split('/');
+              return `DOCKER-IMAGE-${project}/${image}`;
+            };
+
+            const bucketDisplayName = () => {
+              const [, bucket = 'no-bucket', ...path] = name.split(/\/+/);
+              return `${kind.toUpperCase()}-${bucket}/${path.join('/') || 'no-file'}`;
+            };
+
+            const httpDisplayName = () => {
+              const [, host = 'no-host', ...file] = name.split(/\/+/);
+              return `HTTP-${host}/${file.join('/') || 'no-file'}`;
+            };
+
             switch (kind) {
               case 'docker':
-                const [, project = 'no-project', image = 'no-image'] = name.split('/');
-                artifact.displayName = `DOCKER-IMAGE-${project}/${image}`;
+                artifact.displayName = dockerDisplayName();
                 break;
               case 'gcs':
               case 's3':
-                const [, bucket = 'no-bucket', ...path] = name.split(/\/+/);
-                artifact.displayName = `${kind.toUpperCase()}-${bucket}/${path.join('/') || 'no-file'}`;
+                artifact.displayName = bucketDisplayName();
                 break;
               case 'http':
-                const [, host = 'no-host', ...file] = name.split(/\/+/);
-                artifact.displayName = `HTTP-${host}/${file.join('/') || 'no-file'}`;
+                artifact.displayName = httpDisplayName();
                 break;
               case 'bitbucket':
               case 'github':
