@@ -26,7 +26,6 @@ import org.springframework.context.annotation.Configuration
 @Slf4j
 @Configuration
 class LocalJobConfig {
-
   @Bean
   @ConditionalOnMissingBean(JobExecutor)
   JobExecutor jobExecutorLocal() {

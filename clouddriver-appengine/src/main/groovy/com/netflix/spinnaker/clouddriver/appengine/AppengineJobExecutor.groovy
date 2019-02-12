@@ -32,24 +32,13 @@ class AppengineJobExecutor {
   JobExecutor jobExecutor
 
   void runCommand(List<String> command) {
-    String jobId = jobExecutor.startJob(new JobRequest(tokenizedCommand: command),
+    JobStatus jobStatus = jobExecutor.runJob(new JobRequest(command),
                                         System.getenv(),
                                         new ByteArrayInputStream())
-    waitForJobCompletion(jobId)
-  }
-
-  void waitForJobCompletion(String jobId) {
-    sleep(sleepMs)
-    JobStatus jobStatus = jobExecutor.updateJob(jobId)
-    while (jobStatus != null && jobStatus.state == JobStatus.State.RUNNING) {
-      sleep(sleepMs)
-      jobStatus = jobExecutor.updateJob(jobId)
-    }
-    if (jobStatus == null) {
-      throw new RuntimeException("job timed out or was cancelled")
-    }
-    if (jobStatus.result == JobStatus.Result.FAILURE && jobStatus.stdOut) {
-      throw new IllegalArgumentException("$jobStatus.stdOut + $jobStatus.stdErr")
+    if (jobStatus.getResult() == JobStatus.Result.FAILURE && jobStatus.getStdOut()) {
+      String stdOut = jobStatus.getStdOut()
+      String stdErr = jobStatus.getStdErr()
+      throw new IllegalArgumentException("$stdOut + $stdErr")
     }
   }
 }

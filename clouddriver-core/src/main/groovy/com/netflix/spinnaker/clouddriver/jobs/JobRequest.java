@@ -13,14 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.netflix.spinnaker.clouddriver.jobs;
 
-package com.netflix.spinnaker.clouddriver.jobs
+import lombok.Getter;
 
-import groovy.transform.CompileStatic
-import groovy.transform.Immutable
+import java.util.List;
 
-@Immutable(copyWith = true)
-@CompileStatic
-class JobRequest {
-  List<String> tokenizedCommand
+@Getter
+public class JobRequest {
+  private final List<String> tokenizedCommand;
+
+  public JobRequest(List<String> tokenizedCommand) {
+    this.tokenizedCommand = tokenizedCommand;
+  }
 }

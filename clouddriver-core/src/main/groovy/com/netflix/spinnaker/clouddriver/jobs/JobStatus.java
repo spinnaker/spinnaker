@@ -14,11 +14,19 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.jobs
+package com.netflix.spinnaker.clouddriver.jobs;
 
-interface JobExecutor {
-  String startJob(JobRequest jobRequest, Map<String, String> environment, InputStream inputStream)
-  boolean jobExists(String jobId)
-  JobStatus updateJob(String jobId)
-  void cancelJob(String jobId)
+import lombok.Builder;
+import lombok.Getter;
+
+@Builder
+@Getter
+public class JobStatus {
+  private final Result result;
+  private final String stdOut;
+  private final String stdErr;
+
+  public enum Result {
+    SUCCESS, FAILURE;
+  }
 }

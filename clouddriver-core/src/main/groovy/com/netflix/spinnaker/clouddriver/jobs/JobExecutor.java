@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Google, Inc.
+ * Copyright 2019 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.netflix.spinnaker.clouddriver.jobs;
 
-package com.netflix.spinnaker.clouddriver.jobs
+import java.io.InputStream;
+import java.util.Map;
 
-class JobStatus {
-
-  String id
-  State state
-  Result result
-  String stdOut
-  String stdErr
-
-  static enum State {
-    RUNNING, COMPLETED
-  }
-
-  static enum Result {
-    SUCCESS, FAILURE
-  }
+public interface JobExecutor {
+  JobStatus runJob(JobRequest jobRequest, Map<String, String> environment, InputStream inputStream);
 }
