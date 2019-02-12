@@ -57,8 +57,8 @@ export class TriggersTag extends React.Component<ITriggersTagProps, ITriggersTag
         triggerCount === 1
           ? 'Trigger'
           : activeTriggerCount === triggerCount || inQuietPeriod
-            ? 'All triggers'
-            : 'Some triggers';
+          ? 'All triggers'
+          : 'Some triggers';
       const displayTriggers = `${triggers}: ${activeTriggerCount === 0 || inQuietPeriod ? 'disabled' : 'enabled'}`;
 
       return (

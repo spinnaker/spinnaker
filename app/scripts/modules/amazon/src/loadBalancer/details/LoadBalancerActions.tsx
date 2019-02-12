@@ -136,15 +136,14 @@ export class LoadBalancerActions extends React.Component<ILoadBalancerActionsPro
                 </a>
               </li>
             )}
-            {SETTINGS &&
-              SETTINGS.feature.entityTags && (
-                <AddEntityTagLinks
-                  component={loadBalancer}
-                  application={app}
-                  entityType="loadBalancer"
-                  onUpdate={this.entityTagUpdate}
-                />
-              )}
+            {SETTINGS && SETTINGS.feature.entityTags && (
+              <AddEntityTagLinks
+                component={loadBalancer}
+                application={app}
+                entityType="loadBalancer"
+                onUpdate={this.entityTagUpdate}
+              />
+            )}
           </Dropdown.Menu>
         </Dropdown>
       </div>

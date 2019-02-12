@@ -51,10 +51,9 @@ export class TargetGroup extends React.Component<ITargetGroupProps> {
           </UISref>
         </UISrefActive>
         {showServerGroups && ServerGroups}
-        {!showServerGroups &&
-          showInstances && (
-            <LoadBalancerInstances serverGroups={targetGroup.serverGroups} instances={targetGroup.instances} />
-          )}
+        {!showServerGroups && showInstances && (
+          <LoadBalancerInstances serverGroups={targetGroup.serverGroups} instances={targetGroup.instances} />
+        )}
       </div>
     );
   }

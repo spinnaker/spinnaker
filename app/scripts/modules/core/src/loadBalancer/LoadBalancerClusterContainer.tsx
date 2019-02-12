@@ -41,10 +41,9 @@ export class LoadBalancerClusterContainer extends React.Component<ILoadBalancerC
     return (
       <div className="cluster-container">
         {showServerGroups && ServerGroups}
-        {!showServerGroups &&
-          showInstances && (
-            <LoadBalancerInstances serverGroups={loadBalancer.serverGroups} instances={loadBalancer.instances} />
-          )}
+        {!showServerGroups && showInstances && (
+          <LoadBalancerInstances serverGroups={loadBalancer.serverGroups} instances={loadBalancer.instances} />
+        )}
       </div>
     );
   }

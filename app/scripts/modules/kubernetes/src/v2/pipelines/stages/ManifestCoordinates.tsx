@@ -105,23 +105,21 @@ export const ManifestCoordinates = ({
       {formatManifestNames(manifestName, manifestNamesByNamespace)}
       <dt>Namespace</dt>
       <dd>{location}</dd>
-      {mapCriteriaToLabel(criteria) != null &&
-        cluster != null && (
-          <>
-            <dt>Target</dt>
-            <dd>{`${mapCriteriaToLabel(criteria)} in cluster ${cluster}`}</dd>
-          </>
-        )}
-      {labelSelectors != null &&
-        !!formatLabelSelectors(labelSelectors) && (
-          <>
-            <dt>
-              Selector
-              {(labelSelectors.selectors || []).length > 1 ? 's' : ''}
-            </dt>
-            <dd>{formatLabelSelectors(labelSelectors)}</dd>
-          </>
-        )}
+      {mapCriteriaToLabel(criteria) != null && cluster != null && (
+        <>
+          <dt>Target</dt>
+          <dd>{`${mapCriteriaToLabel(criteria)} in cluster ${cluster}`}</dd>
+        </>
+      )}
+      {labelSelectors != null && !!formatLabelSelectors(labelSelectors) && (
+        <>
+          <dt>
+            Selector
+            {(labelSelectors.selectors || []).length > 1 ? 's' : ''}
+          </dt>
+          <dd>{formatLabelSelectors(labelSelectors)}</dd>
+        </>
+      )}
     </>
   );
 };

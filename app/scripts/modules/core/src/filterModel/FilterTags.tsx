@@ -62,18 +62,17 @@ export class FilterTags extends React.Component<IFilterTagsProps, IFilterTagsSta
     const { tags } = this.state;
     return (
       <div className="col-md-12 filter-tags">
-        {tags &&
-          tags.length > 0 && (
-            <span>
-              <span>Filtered by: </span>
-              {tags.map(tag => this.generateTag(tag))}
-              {tags.length > 1 && (
-                <a className="clickable clear-filters" onClick={this.clearAllFilters}>
-                  Clear All
-                </a>
-              )}
-            </span>
-          )}
+        {tags && tags.length > 0 && (
+          <span>
+            <span>Filtered by: </span>
+            {tags.map(tag => this.generateTag(tag))}
+            {tags.length > 1 && (
+              <a className="clickable clear-filters" onClick={this.clearAllFilters}>
+                Clear All
+              </a>
+            )}
+          </span>
+        )}
       </div>
     );
   }

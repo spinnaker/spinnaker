@@ -73,8 +73,8 @@ module.exports = angular
           stack: serverGroupName.stack,
           freeFormDetails: serverGroupName.freeFormDetails,
           credentials: serverGroup.account,
-          loadBalancers: serverGroup.loadBalancers.map(
-            lbName => (/^openstack:/.test(lbName) ? lbName.split(':')[4] : loadBalancers[lbName]),
+          loadBalancers: serverGroup.loadBalancers.map(lbName =>
+            /^openstack:/.test(lbName) ? lbName.split(':')[4] : loadBalancers[lbName],
           ),
           region: serverGroup.region,
           minSize: parseInt(serverGroup.scalingConfig.minSize),

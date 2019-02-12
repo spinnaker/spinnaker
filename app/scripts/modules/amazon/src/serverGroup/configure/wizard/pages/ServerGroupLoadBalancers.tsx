@@ -194,16 +194,15 @@ export class ServerGroupLoadBalancers
           </div>
           {!values.vpcId && (
             <div className="form-group">
-              {!hasVpcLoadBalancers &&
-                !showVpcLoadBalancers && (
-                  <div>
-                    <div className="col-md-8 col-md-offset-3">
-                      <a className="clickable" onClick={() => this.setState({ showVpcLoadBalancers: true })}>
-                        Add VPC Load Balancers
-                      </a>
-                    </div>
+              {!hasVpcLoadBalancers && !showVpcLoadBalancers && (
+                <div>
+                  <div className="col-md-8 col-md-offset-3">
+                    <a className="clickable" onClick={() => this.setState({ showVpcLoadBalancers: true })}>
+                      Add VPC Load Balancers
+                    </a>
                   </div>
-                )}
+                </div>
+              )}
               {hasVpcLoadBalancers && (
                 <div>
                   <div className="col-md-4 sm-label-right">

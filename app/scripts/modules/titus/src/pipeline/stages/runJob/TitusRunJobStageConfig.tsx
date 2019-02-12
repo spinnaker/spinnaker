@@ -340,19 +340,17 @@ export class TitusRunJobStageConfig extends React.Component<IStageConfigProps, I
             {(!stage.credentials || !stage.cluster.region) && (
               <div>Account and region must be selected before {FirewallLabels.get('firewalls')} can be added</div>
             )}
-            {loaded &&
-              stage.credentials &&
-              stage.cluster.region && (
-                <TitusSecurityGroupPicker
-                  account={stage.credentials}
-                  region={stage.cluster.region}
-                  command={stage}
-                  amazonAccount={awsAccount}
-                  hideLabel={true}
-                  groupsToEdit={stage.cluster.securityGroups}
-                  onChange={this.groupsChanged}
-                />
-              )}
+            {loaded && stage.credentials && stage.cluster.region && (
+              <TitusSecurityGroupPicker
+                account={stage.credentials}
+                region={stage.cluster.region}
+                command={stage}
+                amazonAccount={awsAccount}
+                hideLabel={true}
+                groupsToEdit={stage.cluster.securityGroups}
+                onChange={this.groupsChanged}
+              />
+            )}
           </StageConfigField>
 
           <StageConfigField label="Job Attributes (optional)">

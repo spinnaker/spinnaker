@@ -39,12 +39,14 @@ class GceAddressReader {
       )
         .then((searchResults: ISearchResults<IAddressSearchResults>) => {
           if (searchResults && searchResults.results) {
-            return searchResults.results.filter(result => result.provider === 'gce').map(result => {
-              const address = JSON.parse(result.address) as IGceAddress;
-              address.account = result.account;
-              address.region = result.region;
-              return address;
-            });
+            return searchResults.results
+              .filter(result => result.provider === 'gce')
+              .map(result => {
+                const address = JSON.parse(result.address) as IGceAddress;
+                address.account = result.account;
+                address.region = result.region;
+                return address;
+              });
           } else {
             return [];
           }

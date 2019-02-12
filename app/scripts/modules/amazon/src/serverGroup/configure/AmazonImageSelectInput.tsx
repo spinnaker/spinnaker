@@ -330,8 +330,8 @@ export class AmazonImageSelectInput extends React.Component<IAmazonImageSelector
       const searchNoResultsText = lessThanThreeChars
         ? 'Please enter at least 3 characters'
         : isSearching
-          ? 'Searching...'
-          : noResultsText;
+        ? 'Searching...'
+        : noResultsText;
 
       return (
         <div className="col-md-9">

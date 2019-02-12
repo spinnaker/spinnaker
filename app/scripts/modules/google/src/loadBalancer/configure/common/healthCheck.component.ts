@@ -36,10 +36,11 @@ class HealthCheckCreateCtrl implements IController {
 
   public setExistingHealthChecksForProtocol() {
     this.existingHealthChecksForProtocol =
-      get<{}, IGceHealthCheck[]>(
-        this,
-        ['healthChecksByAccountAndType', this.credentials, this.healthCheck.healthCheckType],
-      ) || [];
+      get<{}, IGceHealthCheck[]>(this, [
+        'healthChecksByAccountAndType',
+        this.credentials,
+        this.healthCheck.healthCheckType,
+      ]) || [];
 
     if (!this.existingHealthChecksForProtocol.find(healthCheck => healthCheck.name === this.healthCheck.name)) {
       delete this.healthCheck.name;

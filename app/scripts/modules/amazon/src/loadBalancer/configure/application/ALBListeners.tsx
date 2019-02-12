@@ -841,19 +841,17 @@ const RuleActions = (props: {
           <HelpField id="aws.loadBalancer.oidcAuthentication" />
         </>
       )}
-      {props.ruleIndex !== undefined &&
-        props.ruleIndex >= 0 &&
-        props.removeRule && (
-          <a
-            className="btn btn-sm btn-link clickable"
-            onClick={() => props.removeRule(props.listener, props.ruleIndex)}
-            style={{ padding: '0' }}
-          >
-            <Tooltip value="Remove Rule">
-              <i className="far fa-fw fa-trash-alt" />
-            </Tooltip>
-          </a>
-        )}
+      {props.ruleIndex !== undefined && props.ruleIndex >= 0 && props.removeRule && (
+        <a
+          className="btn btn-sm btn-link clickable"
+          onClick={() => props.removeRule(props.listener, props.ruleIndex)}
+          style={{ padding: '0' }}
+        >
+          <Tooltip value="Remove Rule">
+            <i className="far fa-fw fa-trash-alt" />
+          </Tooltip>
+        </a>
+      )}
     </span>
   );
 };

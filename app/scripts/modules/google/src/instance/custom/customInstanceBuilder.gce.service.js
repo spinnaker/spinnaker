@@ -13,8 +13,8 @@ module.exports = angular
     }
 
     /*
-    * Above 1, vCPU count must be even.
-    * */
+     * Above 1, vCPU count must be even.
+     * */
     function numberOfVCpusIsValid(vCpuCount) {
       if (vCpuCount === 1) {
         return true;
@@ -28,9 +28,9 @@ module.exports = angular
     }
 
     /*
-    * Memory per vCPU must be between .9 GB and 6.5 GB
-    * Total memory must be a multiple of 256 MB.
-    * */
+     * Memory per vCPU must be between .9 GB and 6.5 GB
+     * Total memory must be a multiple of 256 MB.
+     * */
     function minMemoryForVCpuCount(vCpuCount) {
       return Math.ceil(0.9 * vCpuCount * 4) / 4;
     }
@@ -52,9 +52,9 @@ module.exports = angular
     }
 
     /*
-    * In the API, you must always provide memory in MB units.
-    * Format: custom-NUMBER_OF_CPUS-AMOUNT_OF_MEMORY
-    * */
+     * In the API, you must always provide memory in MB units.
+     * Format: custom-NUMBER_OF_CPUS-AMOUNT_OF_MEMORY
+     * */
     function generateInstanceTypeString(vCpuCount, totalMemory) {
       const memoryInMbs = Number(totalMemory) * 1024;
       return `custom-${vCpuCount}-${memoryInMbs}`;

@@ -450,12 +450,11 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
               {app.executions.reloadingForFilters && (
                 <div className="text-center transition-overlay" style={{ marginLeft: '-25px' }} />
               )}
-              {!loading &&
-                !hasPipelines && (
-                  <div className="text-center">
-                    <h4>No pipelines configured for this application.</h4>
-                  </div>
-                )}
+              {!loading && !hasPipelines && (
+                <div className="text-center">
+                  <h4>No pipelines configured for this application.</h4>
+                </div>
+              )}
               {app.executions.loadFailure && (
                 <div className="text-center">
                   <h4>There was an error loading executions. We'll try again shortly.</h4>

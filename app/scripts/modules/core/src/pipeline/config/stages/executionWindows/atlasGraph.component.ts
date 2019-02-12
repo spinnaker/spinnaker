@@ -112,13 +112,15 @@ class ExecutionWindowAtlasGraphController implements IController {
           (e: any) => e.type === 'timeseries' && e.data.values.some((v: any) => v !== 'NaN'),
         );
         timeseries.forEach((series: any) => {
-          const datapoints = series.data.values.filter((v: any) => !isNaN(v)).map((val: any, idx2: number) => {
-            this.maxCount = Math.max(this.maxCount, val);
-            return {
-              val: Math.round(val),
-              timestamp: new Date(metadata.startTime + metadata.step * idx2),
-            };
-          });
+          const datapoints = series.data.values
+            .filter((v: any) => !isNaN(v))
+            .map((val: any, idx2: number) => {
+              this.maxCount = Math.max(this.maxCount, val);
+              return {
+                val: Math.round(val),
+                timestamp: new Date(metadata.startTime + metadata.step * idx2),
+              };
+            });
           datapoints.unshift({
             val: 0,
             timestamp: new Date(metadata.startTime - metadata.step),
@@ -164,23 +166,25 @@ class ExecutionWindowAtlasGraphController implements IController {
         }
         return {
           abscissas: this.$filter('timestamp')(rows[0].row.x.getTime()),
-          rows: rows.filter(r => r.row.y1).map(row => {
-            if (row.series.dataset === 'windows') {
-              return {
-                label: '(in selected window)',
-                value: '',
-                color: row.series.color,
-                id: row.series.id,
-              };
-            } else {
-              return {
-                label: 'SPS',
-                value: row.row.y1,
-                color: row.series.color,
-                id: row.series.id,
-              };
-            }
-          }),
+          rows: rows
+            .filter(r => r.row.y1)
+            .map(row => {
+              if (row.series.dataset === 'windows') {
+                return {
+                  label: '(in selected window)',
+                  value: '',
+                  color: row.series.color,
+                  id: row.series.id,
+                };
+              } else {
+                return {
+                  label: 'SPS',
+                  value: row.row.y1,
+                  color: row.series.color,
+                  id: row.series.id,
+                };
+              }
+            }),
         };
       },
       series: [

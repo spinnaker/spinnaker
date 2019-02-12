@@ -410,125 +410,118 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
                     </div>
                   </div>
                 )}
-                {SETTINGS.feature.pipelineTemplates &&
-                  !this.state.command.strategy && (
+                {SETTINGS.feature.pipelineTemplates && !this.state.command.strategy && (
+                  <div className="form-group clearfix">
+                    <div className="col-md-3 sm-label-right">
+                      <strong>Create From</strong>
+                    </div>
+                    <div className="col-md-7">
+                      <label className="radio-inline">
+                        <input
+                          type="radio"
+                          checked={!this.state.useTemplate}
+                          onChange={this.handleUseTemplateSelection(false)}
+                        />
+                        Pipeline
+                      </label>
+                      <label className="radio-inline">
+                        <input
+                          type="radio"
+                          checked={this.state.useTemplate}
+                          onChange={this.handleUseTemplateSelection(true)}
+                        />
+                        Template
+                      </label>
+                    </div>
+                  </div>
+                )}
+                {this.state.configs.length > 1 && !this.state.command.strategy && !this.state.useTemplate && (
+                  <div>
+                    {SETTINGS.feature.pipelineTemplates && <hr />}
                     <div className="form-group clearfix">
                       <div className="col-md-3 sm-label-right">
-                        <strong>Create From</strong>
+                        <strong>Copy From</strong>
                       </div>
                       <div className="col-md-7">
-                        <label className="radio-inline">
-                          <input
-                            type="radio"
-                            checked={!this.state.useTemplate}
-                            onChange={this.handleUseTemplateSelection(false)}
-                          />
-                          Pipeline
-                        </label>
-                        <label className="radio-inline">
-                          <input
-                            type="radio"
-                            checked={this.state.useTemplate}
-                            onChange={this.handleUseTemplateSelection(true)}
-                          />
-                          Template
-                        </label>
-                      </div>
-                    </div>
-                  )}
-                {this.state.configs.length > 1 &&
-                  !this.state.command.strategy &&
-                  !this.state.useTemplate && (
-                    <div>
-                      {SETTINGS.feature.pipelineTemplates && <hr />}
-                      <div className="form-group clearfix">
-                        <div className="col-md-3 sm-label-right">
-                          <strong>Copy From</strong>
-                        </div>
-                        <div className="col-md-7">
-                          <Select
-                            options={this.state.configOptions}
-                            clearable={false}
-                            value={{ value: this.state.command.config.name, label: this.state.command.config.name }}
-                            optionRenderer={this.configOptionRenderer}
-                            onChange={this.handleConfigChange}
-                            onSelectResetsInput={false}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                {SETTINGS.feature.pipelineTemplates &&
-                  this.state.useTemplate && (
-                    <div>
-                      <hr />
-                      {this.state.templates.length > 0 && (
-                        <div className="form-group clearfix">
-                          <div className="col-md-3 sm-label-right">Template Source</div>
-                          <div className="col-md-7">
-                            <label className="radio-inline">
-                              <input
-                                type="radio"
-                                checked={this.state.useManagedTemplate}
-                                onChange={this.handleUseManagedTemplateSelection(true)}
-                              />
-                              Managed Templates
-                            </label>
-                            <label className="radio-inline">
-                              <input
-                                type="radio"
-                                checked={!this.state.useManagedTemplate}
-                                onChange={this.handleUseManagedTemplateSelection(false)}
-                              />
-                              URL
-                            </label>
-                          </div>
-                        </div>
-                      )}
-                      {this.state.useManagedTemplate && (
-                        <ManagedTemplateSelector
-                          templates={this.state.templates}
-                          onChange={this.handleTemplateSelection}
-                          selectedTemplate={this.state.command.template}
+                        <Select
+                          options={this.state.configOptions}
+                          clearable={false}
+                          value={{ value: this.state.command.config.name, label: this.state.command.config.name }}
+                          optionRenderer={this.configOptionRenderer}
+                          onChange={this.handleConfigChange}
+                          onSelectResetsInput={false}
                         />
-                      )}
-                      {!this.state.useManagedTemplate && (
-                        <div className="form-group clearfix">
-                          {this.state.templates.length === 0 && (
-                            <div className="col-md-3 sm-label-right">Source URL</div>
-                          )}
-                          <div className={this.state.templates.length ? 'col-md-7 col-md-offset-3' : 'col-md-7'}>
-                            <input
-                              type="text"
-                              className="form-control"
-                              value={this.state.templateSourceUrl}
-                              onChange={this.handleSourceUrlChange}
-                            />
-                          </div>
-                        </div>
-                      )}
-                      <TemplateDescription
-                        loading={this.state.loadingTemplateFromSource}
-                        loadingError={this.state.loadingTemplateFromSourceError}
-                        template={this.state.command.template}
-                      />
+                      </div>
                     </div>
-                  )}
+                  </div>
+                )}
+                {SETTINGS.feature.pipelineTemplates && this.state.useTemplate && (
+                  <div>
+                    <hr />
+                    {this.state.templates.length > 0 && (
+                      <div className="form-group clearfix">
+                        <div className="col-md-3 sm-label-right">Template Source</div>
+                        <div className="col-md-7">
+                          <label className="radio-inline">
+                            <input
+                              type="radio"
+                              checked={this.state.useManagedTemplate}
+                              onChange={this.handleUseManagedTemplateSelection(true)}
+                            />
+                            Managed Templates
+                          </label>
+                          <label className="radio-inline">
+                            <input
+                              type="radio"
+                              checked={!this.state.useManagedTemplate}
+                              onChange={this.handleUseManagedTemplateSelection(false)}
+                            />
+                            URL
+                          </label>
+                        </div>
+                      </div>
+                    )}
+                    {this.state.useManagedTemplate && (
+                      <ManagedTemplateSelector
+                        templates={this.state.templates}
+                        onChange={this.handleTemplateSelection}
+                        selectedTemplate={this.state.command.template}
+                      />
+                    )}
+                    {!this.state.useManagedTemplate && (
+                      <div className="form-group clearfix">
+                        {this.state.templates.length === 0 && <div className="col-md-3 sm-label-right">Source URL</div>}
+                        <div className={this.state.templates.length ? 'col-md-7 col-md-offset-3' : 'col-md-7'}>
+                          <input
+                            type="text"
+                            className="form-control"
+                            value={this.state.templateSourceUrl}
+                            onChange={this.handleSourceUrlChange}
+                          />
+                        </div>
+                      </div>
+                    )}
+                    <TemplateDescription
+                      loading={this.state.loadingTemplateFromSource}
+                      loadingError={this.state.loadingTemplateFromSourceError}
+                      template={this.state.command.template}
+                    />
+                  </div>
+                )}
               </form>
             )}
           </Modal.Body>
         )}
         <Modal.Footer>
           <Button onClick={this.close}>Cancel</Button>
-          {SETTINGS.feature.pipelineTemplates &&
-            this.state.useTemplate && (
-              <SubmitButton
-                label="Continue"
-                submitting={this.state.submitting}
-                isDisabled={!formValid || this.state.submitting || this.state.saveError || this.state.loading}
-                onClick={this.submitPipelineTemplateConfig}
-              />
-            )}
+          {SETTINGS.feature.pipelineTemplates && this.state.useTemplate && (
+            <SubmitButton
+              label="Continue"
+              submitting={this.state.submitting}
+              isDisabled={!formValid || this.state.submitting || this.state.saveError || this.state.loading}
+              onClick={this.submitPipelineTemplateConfig}
+            />
+          )}
           {!this.state.useTemplate && (
             <SubmitButton
               label="Create"

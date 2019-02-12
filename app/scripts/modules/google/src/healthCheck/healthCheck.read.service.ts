@@ -27,11 +27,13 @@ export class GceHealthCheckReader {
       )
         .then((searchResults: ISearchResults<IHealthCheckSearchResults>) => {
           if (searchResults && searchResults.results) {
-            const healthChecks = searchResults.results.filter(result => result.provider === 'gce').map(result => {
-              const healthCheck = JSON.parse(result.healthCheck) as IGceHealthCheck;
-              healthCheck.account = result.account;
-              return healthCheck;
-            });
+            const healthChecks = searchResults.results
+              .filter(result => result.provider === 'gce')
+              .map(result => {
+                const healthCheck = JSON.parse(result.healthCheck) as IGceHealthCheck;
+                healthCheck.account = result.account;
+                return healthCheck;
+              });
             return uniqWith(healthChecks, (checkA: IGceHealthCheck, checkB: IGceHealthCheck) => {
               return (
                 checkA.name === checkB.name &&

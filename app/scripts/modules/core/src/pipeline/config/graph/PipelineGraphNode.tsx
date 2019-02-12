@@ -95,18 +95,16 @@ export class PipelineGraphNode extends React.Component<IPipelineGraphNodeProps> 
           />
         )}
 
-        {(node.root || node.leaf) &&
-          !node.executionStage &&
-          !isGroup && (
-            <rect
-              transform={
-                node.root ? `translate(${nodeRadius * -1},${nodeRadius * -1})` : `translate(0,${nodeRadius * -1})`
-              }
-              className={circleClassName}
-              height={nodeRadius * 2}
-              width={nodeRadius}
-            />
-          )}
+        {(node.root || node.leaf) && !node.executionStage && !isGroup && (
+          <rect
+            transform={
+              node.root ? `translate(${nodeRadius * -1},${nodeRadius * -1})` : `translate(0,${nodeRadius * -1})`
+            }
+            className={circleClassName}
+            height={nodeRadius * 2}
+            width={nodeRadius}
+          />
+        )}
       </g>
     );
 

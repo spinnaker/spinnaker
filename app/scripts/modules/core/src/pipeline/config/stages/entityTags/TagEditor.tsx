@@ -33,8 +33,8 @@ export class TagEditor extends React.Component<ITagEditorProps, ITagEditorState>
     const type = props.tag.name.startsWith('spinnaker_ui_notice')
       ? 'notice'
       : props.tag.name.startsWith('spinnaker_ui_alert')
-        ? 'alert'
-        : 'custom';
+      ? 'alert'
+      : 'custom';
 
     this.state = {
       type,

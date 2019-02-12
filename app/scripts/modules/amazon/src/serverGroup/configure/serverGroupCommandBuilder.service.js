@@ -218,9 +218,11 @@ module.exports = angular
         // Might be worth feature flagging this if it turns out other folks are hard-coding these values
         const reservedTags = ['spinnaker:application', 'spinnaker:stack', 'spinnaker:details'];
         if (serverGroup.asg.tags) {
-          serverGroup.asg.tags.filter(t => !reservedTags.includes(t.key)).forEach(tag => {
-            existingTags[tag.key] = tag.value;
-          });
+          serverGroup.asg.tags
+            .filter(t => !reservedTags.includes(t.key))
+            .forEach(tag => {
+              existingTags[tag.key] = tag.value;
+            });
         }
 
         var command = {

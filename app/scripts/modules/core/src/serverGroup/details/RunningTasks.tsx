@@ -27,9 +27,11 @@ export class RunningTasks extends React.Component<IRunningTasksProps> {
           defaultExpanded={true}
           bodyClassName="content-body details-running-tasks"
         >
-          {tasks.sort((a, b) => a.startTime - b.startTime).map(task => (
-            <Task key={task.id} task={task} application={application} />
-          ))}
+          {tasks
+            .sort((a, b) => a.startTime - b.startTime)
+            .map(task => (
+              <Task key={task.id} task={task} application={application} />
+            ))}
           {executions.map(execution => (
             <Execution key={execution.id} execution={execution} />
           ))}

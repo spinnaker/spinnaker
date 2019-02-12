@@ -208,22 +208,21 @@ export class PipelineSelector extends React.Component<IPipelineSelectorProps, IP
             </div>
           </div>
 
-          {application &&
-            pipelinesLoaded && (
-              <div className="form-group">
-                <label className="col-md-2 col-md-offset-1 sm-label-right">Pipeline</label>
-                <div className="col-md-6">
-                  <div>
-                    <VirtualizedSelect
-                      placeholder="Select a pipeline..."
-                      value={pipelineId}
-                      options={pipelineOptions}
-                      onChange={this.pipelineChange as any}
-                    />
-                  </div>
+          {application && pipelinesLoaded && (
+            <div className="form-group">
+              <label className="col-md-2 col-md-offset-1 sm-label-right">Pipeline</label>
+              <div className="col-md-6">
+                <div>
+                  <VirtualizedSelect
+                    placeholder="Select a pipeline..."
+                    value={pipelineId}
+                    options={pipelineOptions}
+                    onChange={this.pipelineChange as any}
+                  />
                 </div>
               </div>
-            )}
+            </div>
+          )}
 
           {pipelineParameters.length > 0 && (
             <div className="well well-sm clearfix ng-scope col-md-12">
@@ -238,38 +237,35 @@ export class PipelineSelector extends React.Component<IPipelineSelectorProps, IP
                     {useDefaultParameters[parameter.name] && (
                       <input disabled={true} type="text" className="form-control input-sm" value={parameter.default} />
                     )}
-                    {useDefaultParameters[parameter.name] &&
-                      !parameter.hasOptions && (
-                        <input
-                          type="text"
-                          className="form-control input-sm"
-                          value={userSuppliedParameters[parameter.name]}
-                          onChange={e => this.updateParam(parameter.name, e.target.value)}
-                        />
-                      )}
-                    {!useDefaultParameters[parameter.name] &&
-                      parameter.hasOptions && (
-                        <VirtualizedSelect
-                          style={{ width: '100%' }}
-                          value={userSuppliedParameters[parameter.name]}
-                          onChange={(o: Option<string>) => this.updateParam(parameter.name, o ? o.value : '')}
-                          options={parameter.options.map(o => ({ label: o.value, value: o.value }))}
-                        />
-                      )}
-                  </div>
-                  {parameter.default !== null &&
-                    parameter.default !== undefined && (
-                      <div className="checkbox col-md-3">
-                        <label>
-                          <input
-                            type="checkbox"
-                            checked={useDefaultParameters[parameter.name]}
-                            onChange={e => this.updateParam(parameter.name, e.target.checked)}
-                          />
-                          Use default
-                        </label>
-                      </div>
+                    {useDefaultParameters[parameter.name] && !parameter.hasOptions && (
+                      <input
+                        type="text"
+                        className="form-control input-sm"
+                        value={userSuppliedParameters[parameter.name]}
+                        onChange={e => this.updateParam(parameter.name, e.target.value)}
+                      />
                     )}
+                    {!useDefaultParameters[parameter.name] && parameter.hasOptions && (
+                      <VirtualizedSelect
+                        style={{ width: '100%' }}
+                        value={userSuppliedParameters[parameter.name]}
+                        onChange={(o: Option<string>) => this.updateParam(parameter.name, o ? o.value : '')}
+                        options={parameter.options.map(o => ({ label: o.value, value: o.value }))}
+                      />
+                    )}
+                  </div>
+                  {parameter.default !== null && parameter.default !== undefined && (
+                    <div className="checkbox col-md-3">
+                      <label>
+                        <input
+                          type="checkbox"
+                          checked={useDefaultParameters[parameter.name]}
+                          onChange={e => this.updateParam(parameter.name, e.target.checked)}
+                        />
+                        Use default
+                      </label>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

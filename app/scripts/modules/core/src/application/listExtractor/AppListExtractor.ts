@@ -122,8 +122,8 @@ export class AppListExtractor {
         serverGroup && Array.isArray(region) && region.length
           ? region.includes(serverGroup.region)
           : region
-            ? serverGroup.region === region
-            : true;
+          ? serverGroup.region === region
+          : true;
 
       return accountMatches && regionMatches;
     };

@@ -599,9 +599,8 @@ module.exports = angular
 
       // Only include explicitly-selected firewalls in the body of the command.
       const xpnHostProject = getXpnHostProjectIfAny(command.network);
-      const decoratedSecurityGroups = _.map(
-        command.securityGroups,
-        sg => (!sg.startsWith(xpnHostProject) ? xpnHostProject + sg : sg),
+      const decoratedSecurityGroups = _.map(command.securityGroups, sg =>
+        !sg.startsWith(xpnHostProject) ? xpnHostProject + sg : sg,
       );
       command.securityGroups = _.difference(decoratedSecurityGroups, _.map(command.implicitSecurityGroups, 'id'));
 

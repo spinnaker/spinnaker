@@ -363,9 +363,11 @@ export class OracleLoadBalancerController implements IController {
   public backendSetNameChanged(idx: number) {
     const prevName = this.$scope.prevBackendSetNames && this.$scope.prevBackendSetNames[idx];
     if (prevName && prevName !== this.backendSets[idx].name) {
-      this.listeners.filter(lis => lis.defaultBackendSetName === prevName).forEach(lis => {
-        lis.defaultBackendSetName = this.backendSets[idx].name;
-      });
+      this.listeners
+        .filter(lis => lis.defaultBackendSetName === prevName)
+        .forEach(lis => {
+          lis.defaultBackendSetName = this.backendSets[idx].name;
+        });
     }
   }
 

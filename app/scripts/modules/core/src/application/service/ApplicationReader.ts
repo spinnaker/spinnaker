@@ -90,12 +90,14 @@ export class ApplicationReader {
         }
       });
     }
-    allDataSources.filter(ds => ds.requiresDataSource).forEach(ds => {
-      const parent = allDataSources.find(p => p.key === ds.requiresDataSource);
-      if (parent) {
-        this.setDataSourceDisabled(ds, application, parent.disabled);
-      }
-    });
+    allDataSources
+      .filter(ds => ds.requiresDataSource)
+      .forEach(ds => {
+        const parent = allDataSources.find(p => p.key === ds.requiresDataSource);
+        if (parent) {
+          this.setDataSourceDisabled(ds, application, parent.disabled);
+        }
+      });
   }
 
   private static setDataSourceDisabled(dataSource: ApplicationDataSource, application: Application, disabled: boolean) {

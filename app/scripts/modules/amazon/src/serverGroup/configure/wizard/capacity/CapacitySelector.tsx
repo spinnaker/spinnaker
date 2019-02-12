@@ -86,58 +86,57 @@ export class CapacitySelector extends React.Component<ICapacitySelectorProps> {
           </div>
 
           {/* // TODO: Test this in a clone server group dialog or an edit pipeline dialog */}
-          {!readOnlyFields.useSourceCapacity &&
-            command.viewState.mode === 'editPipeline' && (
-              <div className="form-group">
-                <div className="col-md-3 sm-label-right">Capacity</div>
-                <div className="col-md-9 radio">
-                  <label>
-                    <input
-                      type="radio"
-                      checked={command.useSourceCapacity}
-                      value="true"
-                      id="useSourceCapacityTrue"
-                      onChange={this.useSourceCapacityUpdated}
-                    />
-                    Copy the capacity from the current server group
-                    <HelpField id="serverGroupCapacity.useSourceCapacityTrue" />
-                  </label>
-                </div>
-                {command.useSourceCapacity && (
-                  <div className="col-md-9 col-md-offset-3 radio" style={{ paddingLeft: '35px' }}>
-                    <div>
-                      If no current server group is found,
-                      <Select
-                        clearable={false}
-                        value={!!command.preferSourceCapacity}
-                        options={this.preferSourceCapacityOptions}
-                        onChange={this.preferSourceCapacityChanged}
-                      />
-                    </div>
-                    {command.preferSourceCapacity && (
-                      <div>
-                        <b>Fallback values</b>
-                        <MinMaxDesired command={command} fieldChanged={this.capacityFieldChanged} />
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                <div className="col-md-9 col-md-offset-3 radio">
-                  <label>
-                    <input
-                      type="radio"
-                      checked={!command.useSourceCapacity}
-                      value="false"
-                      id="useSourceCapacityFalse"
-                      onChange={this.useSourceCapacityUpdated}
-                    />
-                    Let me specify the capacity
-                    <HelpField id="serverGroupCapacity.useSourceCapacityFalse" />
-                  </label>
-                </div>
+          {!readOnlyFields.useSourceCapacity && command.viewState.mode === 'editPipeline' && (
+            <div className="form-group">
+              <div className="col-md-3 sm-label-right">Capacity</div>
+              <div className="col-md-9 radio">
+                <label>
+                  <input
+                    type="radio"
+                    checked={command.useSourceCapacity}
+                    value="true"
+                    id="useSourceCapacityTrue"
+                    onChange={this.useSourceCapacityUpdated}
+                  />
+                  Copy the capacity from the current server group
+                  <HelpField id="serverGroupCapacity.useSourceCapacityTrue" />
+                </label>
               </div>
-            )}
+              {command.useSourceCapacity && (
+                <div className="col-md-9 col-md-offset-3 radio" style={{ paddingLeft: '35px' }}>
+                  <div>
+                    If no current server group is found,
+                    <Select
+                      clearable={false}
+                      value={!!command.preferSourceCapacity}
+                      options={this.preferSourceCapacityOptions}
+                      onChange={this.preferSourceCapacityChanged}
+                    />
+                  </div>
+                  {command.preferSourceCapacity && (
+                    <div>
+                      <b>Fallback values</b>
+                      <MinMaxDesired command={command} fieldChanged={this.capacityFieldChanged} />
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div className="col-md-9 col-md-offset-3 radio">
+                <label>
+                  <input
+                    type="radio"
+                    checked={!command.useSourceCapacity}
+                    value="false"
+                    id="useSourceCapacityFalse"
+                    onChange={this.useSourceCapacityUpdated}
+                  />
+                  Let me specify the capacity
+                  <HelpField id="serverGroupCapacity.useSourceCapacityFalse" />
+                </label>
+              </div>
+            </div>
+          )}
 
           {(!command.useSourceCapacity || command.viewState.mode !== 'editPipeline') && (
             <div>

@@ -1,5 +1,5 @@
 /* Directive to prevent form validation from propagating to the parent/enclosing form.
-*/
+ */
 
 'use strict';
 

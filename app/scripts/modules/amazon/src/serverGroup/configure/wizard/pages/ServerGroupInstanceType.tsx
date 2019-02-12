@@ -49,10 +49,9 @@ export class ServerGroupInstanceType extends React.Component<IServerGroupInstanc
             onProfileChanged={this.instanceProfileChanged}
           />
           <div style={{ padding: '0 15px' }}>
-            {values.viewState.instanceProfile &&
-              values.viewState.instanceProfile !== 'custom' && (
-                <InstanceTypeSelector command={values} onTypeChanged={this.instanceTypeChanged} />
-              )}
+            {values.viewState.instanceProfile && values.viewState.instanceProfile !== 'custom' && (
+              <InstanceTypeSelector command={values} onTypeChanged={this.instanceTypeChanged} />
+            )}
           </div>
         </div>
       );

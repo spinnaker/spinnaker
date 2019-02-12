@@ -23,17 +23,16 @@ export function AsgActionExecutionDetailsSection(props: IExecutionDetailsSection
         </div>
       </div>
       <StageFailureMessage stage={stage} message={stage.failureMessage} />
-      {stage.isCompleted &&
-        stage.context.serverGroupName && (
-          <div className="row">
-            <div className="col-md-12">
-              <div className="well alert alert-info">
-                <strong>{action}: </strong>
-                {stage.context.serverGroupName}
-              </div>
+      {stage.isCompleted && stage.context.serverGroupName && (
+        <div className="row">
+          <div className="col-md-12">
+            <div className="well alert alert-info">
+              <strong>{action}: </strong>
+              {stage.context.serverGroupName}
             </div>
           </div>
-        )}
+        </div>
+      )}
       <StageExecutionLogs stage={stage} />
     </ExecutionDetailsSection>
   );

@@ -165,12 +165,11 @@ export class TitusSecurityGroupPicker extends React.Component<
             helpKey="titus.deploy.securityGroups"
           />
 
-          {amazonAccount &&
-            command.credentials !== undefined && (
-              <div className={`small ${!hideLabel ? 'col-md-offset-3 col-md-9' : ''}`}>
-                Uses {firewallsLabel} from the Amazon account <AccountTag account={amazonAccount} />
-              </div>
-            )}
+          {amazonAccount && command.credentials !== undefined && (
+            <div className={`small ${!hideLabel ? 'col-md-offset-3 col-md-9' : ''}`}>
+              Uses {firewallsLabel} from the Amazon account <AccountTag account={amazonAccount} />
+            </div>
+          )}
         </div>
       );
     }

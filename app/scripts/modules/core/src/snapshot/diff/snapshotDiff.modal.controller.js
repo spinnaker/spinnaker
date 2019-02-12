@@ -50,15 +50,17 @@ module.exports = angular
     };
 
     let formatSnapshots = snapshots => {
-      let formatted = snapshots.sort((a, b) => b.timestamp - a.timestamp).map((s, index) => {
-        return {
-          formattedTimestamp: $filter('timestamp')(s.timestamp),
-          timestamp: s.timestamp,
-          contents: JSON.stringify(s.infrastructure, null, 2),
-          json: s.infrastructure,
-          index: index,
-        };
-      });
+      let formatted = snapshots
+        .sort((a, b) => b.timestamp - a.timestamp)
+        .map((s, index) => {
+          return {
+            formattedTimestamp: $filter('timestamp')(s.timestamp),
+            timestamp: s.timestamp,
+            contents: JSON.stringify(s.infrastructure, null, 2),
+            json: s.infrastructure,
+            index: index,
+          };
+        });
 
       _.head(formatted).formattedTimestamp += ' (most recent)';
       return formatted;

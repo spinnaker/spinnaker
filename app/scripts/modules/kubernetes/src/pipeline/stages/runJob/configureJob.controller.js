@@ -71,10 +71,12 @@ module.exports = angular
       })
       .filter(image => !!image);
 
-    this.triggerImages = (this.pipeline.triggers || []).filter(trigger => trigger.type === 'docker').map(image => {
-      image.fromTrigger = true;
-      return image;
-    });
+    this.triggerImages = (this.pipeline.triggers || [])
+      .filter(trigger => trigger.type === 'docker')
+      .map(image => {
+        image.fromTrigger = true;
+        return image;
+      });
 
     this.searchImages = query => {
       kubernetesImageReader

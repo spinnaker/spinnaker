@@ -34,12 +34,11 @@ export class ExecutionBuildLink extends React.Component<IExecutionBuildLinkProps
     const { trigger } = this.props.execution;
     return (
       <span>
-        {trigger.parentExecution &&
-          trigger.parentExecution.id && (
-            <a className="execution-build-number clickable" onClick={this.handleParentPipelineClick}>
-              {trigger.parentExecution.name}
-            </a>
-          )}
+        {trigger.parentExecution && trigger.parentExecution.id && (
+          <a className="execution-build-number clickable" onClick={this.handleParentPipelineClick}>
+            {trigger.parentExecution.name}
+          </a>
+        )}
         {this.getBuildLink()}
       </span>
     );

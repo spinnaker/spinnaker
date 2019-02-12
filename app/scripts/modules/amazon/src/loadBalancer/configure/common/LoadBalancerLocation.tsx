@@ -370,24 +370,23 @@ export class LoadBalancerLocation extends React.Component<ILoadBalancerLocationP
               application={app}
               onChange={() => this.handleSubnetUpdated(values.subnetType)}
             />
-            {values.vpcId &&
-              !hideInternalFlag && (
-                <div className="form-group">
-                  <div className="col-md-3 sm-label-right">
-                    <b>Internal</b> <HelpField id="aws.loadBalancer.internal" />
-                  </div>
-                  <div className="col-md-7 checkbox">
-                    <label>
-                      <Field
-                        name="isInternal"
-                        onChange={this.internalFlagChanged}
-                        render={({ field }: FieldProps) => <input type="checkbox" checked={!!field.value} />}
-                      />
-                      Create an internal load balancer
-                    </label>
-                  </div>
+            {values.vpcId && !hideInternalFlag && (
+              <div className="form-group">
+                <div className="col-md-3 sm-label-right">
+                  <b>Internal</b> <HelpField id="aws.loadBalancer.internal" />
                 </div>
-              )}
+                <div className="col-md-7 checkbox">
+                  <label>
+                    <Field
+                      name="isInternal"
+                      onChange={this.internalFlagChanged}
+                      render={({ field }: FieldProps) => <input type="checkbox" checked={!!field.value} />}
+                    />
+                    Create an internal load balancer
+                  </label>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

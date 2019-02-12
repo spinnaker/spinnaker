@@ -199,29 +199,27 @@ export class AmazonLoadBalancersTag extends React.Component<ILoadBalancersTagPro
           </HoverablePopover>
         )}
 
-        {loadBalancers.length === 1 &&
-          targetGroups.length === 0 && (
-            <span className="btn-load-balancer">
-              <LoadBalancerButton
-                key={loadBalancers[0].name}
-                label="Load Balancer"
-                loadBalancer={loadBalancers[0]}
-                onItemClick={this.showLoadBalancerDetails}
-              />
-            </span>
-          )}
+        {loadBalancers.length === 1 && targetGroups.length === 0 && (
+          <span className="btn-load-balancer">
+            <LoadBalancerButton
+              key={loadBalancers[0].name}
+              label="Load Balancer"
+              loadBalancer={loadBalancers[0]}
+              onItemClick={this.showLoadBalancerDetails}
+            />
+          </span>
+        )}
 
-        {targetGroups.length === 1 &&
-          loadBalancers.length === 0 && (
-            <span className="btn-load-balancer">
-              <LoadBalancerButton
-                key={targetGroups[0].name}
-                label="Target Group"
-                loadBalancer={targetGroups[0]}
-                onItemClick={this.showTargetGroupDetails}
-              />
-            </span>
-          )}
+        {targetGroups.length === 1 && loadBalancers.length === 0 && (
+          <span className="btn-load-balancer">
+            <LoadBalancerButton
+              key={targetGroups[0].name}
+              label="Target Group"
+              loadBalancer={targetGroups[0]}
+              onItemClick={this.showTargetGroupDetails}
+            />
+          </span>
+        )}
       </span>
     );
   }

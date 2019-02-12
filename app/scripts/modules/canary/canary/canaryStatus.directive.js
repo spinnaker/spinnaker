@@ -15,16 +15,16 @@ module.exports = angular.module('spinnaker.canary.status.directive', []).directi
           scope.status === 'LAUNCHED'
             ? 'launched'
             : scope.status === 'RUNNING'
-              ? 'running'
-              : scope.status === 'SUCCEEDED'
-                ? 'succeeded'
-                : scope.status === 'FAILED'
-                  ? 'failed'
-                  : scope.status === 'TERMINATED'
-                    ? 'terminated'
-                    : scope.status === 'CANCELED'
-                      ? 'canceled'
-                      : 'unknown';
+            ? 'running'
+            : scope.status === 'SUCCEEDED'
+            ? 'succeeded'
+            : scope.status === 'FAILED'
+            ? 'failed'
+            : scope.status === 'TERMINATED'
+            ? 'terminated'
+            : scope.status === 'CANCELED'
+            ? 'canceled'
+            : 'unknown';
       }
       scope.$watch('status', applyLabel);
     },

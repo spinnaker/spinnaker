@@ -28,7 +28,7 @@ module(DEFAULT_BASE64_ARTIFACT, []).config(() => {
       this.decoded = '';
       this.encodeDecodeError = '';
 
-      this.convert = (fn: ((s: string) => string), str: string): string => {
+      this.convert = (fn: (s: string) => string, str: string): string => {
         this.encodeDecodeError = '';
         try {
           return fn(str);

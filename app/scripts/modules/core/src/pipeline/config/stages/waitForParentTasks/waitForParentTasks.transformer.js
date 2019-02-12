@@ -7,8 +7,8 @@ module.exports = angular
     // injects wait for parent tasks stage
     function injectWaitForParentStages(execution) {
       /*
-      * Every time you see one, look at its requisite ids, then set it as the child of any that match it
-      * */
+       * Every time you see one, look at its requisite ids, then set it as the child of any that match it
+       * */
       let stagesToInject = [];
       execution.stages
         .filter(stage => stage.requisiteStageRefIds && stage.requisiteStageRefIds.length > 1)

@@ -28,8 +28,8 @@ module.exports = angular
         command.account = defaultAccountIsValid
           ? defaultAccount
           : firstKubernetesAccount
-            ? firstKubernetesAccount
-            : 'my-account-name';
+          ? firstKubernetesAccount
+          : 'my-account-name';
       });
     }
 

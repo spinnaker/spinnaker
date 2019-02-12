@@ -148,15 +148,17 @@ export class ExecutionFilterService {
     const configs = (application.pipelineConfigs.data || []).concat(application.strategyConfigs.data || []);
     const sortFilter: ISortFilter = ExecutionState.filterModel.asFilterModel.sortFilter;
     if (!this.isFilterable(sortFilter.pipeline) && !this.isFilterable(sortFilter.status) && !sortFilter.filter) {
-      configs.filter((config: any) => !groups[config.name]).forEach((config: any) =>
-        groups.push({
-          heading: config.name,
-          config,
-          executions: [],
-          targetAccounts: this.extractAccounts(config),
-          fromTemplate: (config && config.type === 'templatedPipeline') || false,
-        }),
-      );
+      configs
+        .filter((config: any) => !groups[config.name])
+        .forEach((config: any) =>
+          groups.push({
+            heading: config.name,
+            config,
+            executions: [],
+            targetAccounts: this.extractAccounts(config),
+            fromTemplate: (config && config.type === 'templatedPipeline') || false,
+          }),
+        );
     } else {
       configs
         .filter((config: any) => !groups[config.name] && sortFilter.pipeline[config.name])

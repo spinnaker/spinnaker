@@ -27,8 +27,8 @@ module.exports = angular
         command.account = defaultAccountIsValid
           ? defaultAccount
           : firstDcosAccount
-            ? firstDcosAccount
-            : 'my-dcos-account';
+          ? firstDcosAccount
+          : 'my-dcos-account';
 
         attemptToSetValidDcosCluster(dcosAccountsByName, defaultDcosCluster, command);
       });
@@ -42,8 +42,8 @@ module.exports = angular
         command.dcosCluster = defaultDcosClusterIsValid
           ? defaultDcosCluster
           : clusterNames.length == 1
-            ? clusterNames[0]
-            : null;
+          ? clusterNames[0]
+          : null;
         command.region = command.dcosCluster;
       }
     }
