@@ -175,12 +175,6 @@ class SqlTaskRepository(
     }
   }
 
-  internal fun refreshTaskHistoryState(task: Task): List<Status> {
-    return jooq.withRetry(sqlRetryProperties.reads) {
-      getHistory(it, task)
-    }
-  }
-
   internal fun retrieveInternal(taskId: String): Task? {
     return retrieveInternal(field("id").eq(taskId), field("task_id").eq(taskId)).firstOrNull()
   }
@@ -293,9 +287,6 @@ class SqlTaskRepository(
 
   private fun Select<out Record>.fetchTaskStatus() =
     fetchTaskStatuses().firstOrNull()
-
-  private fun Select<out Record>.fetchResultObjects() =
-    TaskResultObjectMapper(mapper).map(fetch().intoResultSet())
 
   companion object {
     private val ulid = ULID()

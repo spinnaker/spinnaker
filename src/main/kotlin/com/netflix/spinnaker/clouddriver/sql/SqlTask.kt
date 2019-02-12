@@ -63,12 +63,7 @@ class SqlTask(
   override fun getHistory(): List<Status> {
     refresh()
 
-    val status = history.map { TaskDisplayStatus(it) }
-    return if (status.isNotEmpty() && status.last().isCompleted) {
-      status.subList(0, status.size - 1)
-    } else {
-      status
-    }
+    return history.map { TaskDisplayStatus(it) }
   }
 
   override fun getStatus(): Status? {

@@ -20,6 +20,7 @@ import com.netflix.spinnaker.clouddriver.data.task.DefaultTaskStatus
 import com.netflix.spinnaker.clouddriver.data.task.Status
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskState
+import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.lang.String.format
 import java.sql.ResultSet
@@ -28,6 +29,10 @@ class TaskMapper(
   private val sqlTaskRepository: SqlTaskRepository,
   private val mapper: ObjectMapper
 ) {
+
+  companion object {
+    private val log = LoggerFactory.getLogger(TaskMapper::class.java)
+  }
 
   fun map(rs: ResultSet): Collection<Task> {
     val tasks = mutableMapOf<String, SqlTask>()
