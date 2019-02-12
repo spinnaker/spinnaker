@@ -360,7 +360,9 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
             task.updateStatus BASE_PHASE, "Retrying with ${nextServerGroupName} after ${retryCount} attempts ${System.currentTimeMillis()}"
             throw e
           }
-          if (e.status.code == Status.UNAVAILABLE.code || e.status.code == Status.DEADLINE_EXCEEDED.code) {
+          if (e.status.code == Status.UNAVAILABLE.code ||
+              e.status.code == Status.INTERNAL.code ||
+              e.status.code == Status.DEADLINE_EXCEEDED.code) {
             retryCount++
             task.updateStatus BASE_PHASE, "Retrying after ${retryCount} attempts ${System.currentTimeMillis()}"
             throw e
