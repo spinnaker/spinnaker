@@ -24,7 +24,8 @@ interface INamedValidatorResult {
 }
 
 interface IValidatableField {
-  validate: (validators: IValidator[]) => undefined | Promise<INamedValidatorResult>;
+  required: (validators?: IValidator[]) => undefined | Promise<INamedValidatorResult>;
+  optional: (validators?: IValidator[]) => undefined | Promise<INamedValidatorResult>;
 }
 
 interface IArrayItemValidationBuilder extends IValidationBuilder {
@@ -80,7 +81,19 @@ const buildValidatorsSync = (values: any): IValidationBuilder => {
     field(name: string, label: string): IValidatableField {
       const value = get(values, name);
       return {
-        validate(validators: IValidator[]): undefined {
+        required(validators = [], message?: string): undefined {
+          if (value === undefined || value === null || value === '') {
+            message = message || `${label} is required.`;
+            synchronousErrors.push({ name, error: message });
+            return undefined;
+          }
+          return this.optional(validators);
+        },
+        optional(validators: IValidator[]): undefined {
+          if (value === undefined || value === null || value === '') {
+            // Don't run validation on an undefined/null/empty
+            return undefined;
+          }
           const error = validateSync(validators, value, label, name);
           synchronousErrors.push(isError(error) && { name, error });
           return undefined;
@@ -103,7 +116,16 @@ export const buildValidatorsAsync = (values: any): IValidationBuilder => {
     field(name, label) {
       const value = get(values, name);
       return {
-        validate(validators): Promise<INamedValidatorResult> {
+        required(validators = [], message?: string): Promise<INamedValidatorResult> {
+          if (value === undefined || value === null || value === '') {
+            message = message || `${label} is required.`;
+            const chain = Promise.resolve({ name, error: message });
+            promises.push(chain);
+            return chain;
+          }
+          return this.optional(validators);
+        },
+        optional(validators: IValidator[]): Promise<INamedValidatorResult> {
           const chain: Promise<INamedValidatorResult> = chainAsyncValidators(validators, value, label)
             // We need to catch and resolve internal rejections because we'll be aggregating them using Promise.all() which fails fast
             // and only rejects the first rejection.
@@ -149,7 +171,7 @@ const createItemBuilder = (arrayBuilder: IValidationBuilder, index: number): IAr
       return arrayBuilder.field(`[${index}]`, itemLabel);
     },
     field(name, itemLabel) {
-      return arrayBuilder.field(`[${index}]${name}`, itemLabel);
+      return arrayBuilder.field(`[${index}].${name}`, itemLabel);
     },
     result: arrayBuilder.result,
     arrayForEach: arrayBuilder.arrayForEach,

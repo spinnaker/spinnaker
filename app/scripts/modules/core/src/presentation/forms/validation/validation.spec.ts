@@ -1,7 +1,7 @@
 import { Validators } from 'core/presentation/forms/validation/validators';
 import { buildValidators, IValidator, IArrayItemValidator, buildValidatorsAsync } from './validation';
 
-const { isRequired, minValue, maxValue } = Validators;
+const { minValue, maxValue, arrayNotEmpty } = Validators;
 
 const makeAsync = (syncValidator: IValidator): IValidator => {
   return (value, label) => {
@@ -15,41 +15,52 @@ const makeAsync = (syncValidator: IValidator): IValidator => {
 };
 
 describe('Synchronous validation', () => {
-  it('returns empty errors when validating no validators', () => {
+  it('returns empty errors when validating no validators for an optional field', () => {
     const values = { foo: 'bar' };
 
     const builder = buildValidators(values);
-    builder.field('foo', 'Foo').validate([]);
+    builder.field('foo', 'Foo').optional([]);
 
     const result = builder.result();
     const expectedResult = {};
     expect(result).toEqual(expectedResult);
   });
 
-  it('returns correct error when validating top level field', () => {
-    const values = {};
+  it('returns correct error when validating an optional top level field', () => {
+    const values = { foo: 42 };
 
     const builder = buildValidators(values);
-    builder.field('foo', 'Foo').validate([isRequired()]);
+    builder.field('foo', 'Foo').optional([maxValue(1)]);
 
     const result = builder.result();
     const expectedResult = {
-      foo: 'Foo is required.',
+      foo: 'Foo cannot be greater than 1',
     };
     expect(result).toEqual(expectedResult);
   });
 
-  it('returns correct error when validating a deep field', () => {
+  it('returns no error when optionally validating a deep field that is absent', () => {
     const values = {};
 
     const builder = buildValidators(values);
-    builder.field('foo.bar.baz', 'Foo').validate([isRequired()]);
+    builder.field('foo.bar.baz', 'Foo').optional([maxValue(1)]);
+
+    const result = builder.result();
+    const expectedResult = {};
+    expect(result).toEqual(expectedResult);
+  });
+
+  it('returns correct error when optionally validating a deep field', () => {
+    const values = { foo: { bar: { baz: 42 } } };
+
+    const builder = buildValidators(values);
+    builder.field('foo.bar.baz', 'Foo').optional([maxValue(1)]);
 
     const result = builder.result();
     const expectedResult = {
       foo: {
         bar: {
-          baz: 'Foo is required.',
+          baz: 'Foo cannot be greater than 1',
         },
       },
     };
@@ -60,8 +71,8 @@ describe('Synchronous validation', () => {
     const values = {};
 
     const builder = buildValidators(values);
-    builder.field('foo', 'Foo').validate([isRequired()]);
-    builder.field('bar.baz', 'Baz').validate([isRequired()]);
+    builder.field('foo', 'Foo').required();
+    builder.field('bar.baz', 'Baz').required();
 
     const result = builder.result();
     const expectedResult = {
@@ -79,14 +90,12 @@ describe('Synchronous validation', () => {
     };
 
     const builder = buildValidators(values);
-    const arrayNotEmpty: IValidator = (array, label) => array.length < 1 && `${label} must have at least 1 item.`;
     const { arrayForEach } = builder;
 
-    builder.field('lotsastuff', 'Array').validate([
-      isRequired(),
-      arrayNotEmpty,
+    builder.field('lotsastuff', 'Array').required([
+      arrayNotEmpty(),
       arrayForEach(itemBuilder => {
-        itemBuilder.item('Item').validate([isRequired(), maxValue(3)]);
+        itemBuilder.item('Item').required([maxValue(3)]);
       }),
     ]);
 
@@ -103,14 +112,12 @@ describe('Synchronous validation', () => {
     };
 
     const builder = buildValidators(values);
-    const arrayNotEmpty: IValidator = (array, label) => array.length < 1 && `${label} must have at least 1 item.`;
     const { arrayForEach } = builder;
 
-    builder.field('lotsastuff', 'Array').validate([
-      isRequired(),
-      arrayNotEmpty,
+    builder.field('lotsastuff', 'Array').required([
+      arrayNotEmpty(),
       arrayForEach(itemBuilder => {
-        itemBuilder.item('Item').validate([isRequired()]);
+        itemBuilder.item('Item').required();
       }),
     ]);
 
@@ -126,11 +133,11 @@ describe('Synchronous validation', () => {
 
     const builder = buildValidators(values);
     const { arrayForEach } = builder;
-    builder.field('lotsastuff', 'Array').validate([
+    builder.field('lotsastuff', 'Array').required([
       (array, label) => array.length < 1 && `${label} must have at least 1 item.`,
       arrayForEach(itemBuilder => {
-        itemBuilder.field(`key`, `Item Key`).validate([isRequired()]);
-        itemBuilder.field(`value`, `Item Value`).validate([isRequired()]);
+        itemBuilder.field(`key`, `Item Key`).required();
+        itemBuilder.field(`value`, `Item Value`).required();
       }),
     ]);
 
@@ -172,19 +179,19 @@ describe('Synchronous validation', () => {
     const builder = buildValidators(values);
     const isArray: IValidator = (array, label) => !Array.isArray(array) && `${label} must be an array.`;
     const allOfTheThingsValidator: IArrayItemValidator = itemBuilder => {
-      itemBuilder.field(`all`, 'All').validate([isRequired()]);
-      itemBuilder.field(`of`, 'Of').validate([isRequired()]);
-      itemBuilder.field(`the`, 'The').validate([isRequired()]);
-      itemBuilder.field(`things`, 'Things').validate([isRequired()]);
+      itemBuilder.field(`all`, 'All').required();
+      itemBuilder.field(`of`, 'Of').required();
+      itemBuilder.field(`the`, 'The').required();
+      itemBuilder.field(`things`, 'Things').required();
     };
 
     const outerArrayItemValidator: IArrayItemValidator = itemBuilder => {
-      itemBuilder.field('key', 'Item key').validate([isRequired()]);
-      itemBuilder.field('data', 'Item data').validate([isRequired(), isArray, arrayForEach(allOfTheThingsValidator)]);
+      itemBuilder.field('key', 'Item key').required();
+      itemBuilder.field('data', 'Item data').required([isArray, arrayForEach(allOfTheThingsValidator)]);
     };
 
     const { arrayForEach } = builder;
-    builder.field('letsgetcrazy', 'Outer array').validate([arrayForEach(outerArrayItemValidator)]);
+    builder.field('letsgetcrazy', 'Outer array').optional([arrayForEach(outerArrayItemValidator)]);
 
     const result = builder.result();
     const expectedResult = {
@@ -217,7 +224,7 @@ describe('Asynchronous validation of synchronous validators', () => {
     const values = { foo: 'bar' };
 
     const builder = buildValidatorsAsync(values);
-    builder.field('foo', 'Foo').validate([]);
+    builder.field('foo', 'Foo').optional([]);
 
     const result = builder.result();
     const expectedResult = {};
@@ -231,7 +238,7 @@ describe('Asynchronous validation of synchronous validators', () => {
     const values = {};
 
     const builder = buildValidatorsAsync(values);
-    builder.field('foo', 'Foo').validate([isRequired()]);
+    builder.field('foo', 'Foo').required();
 
     const result = builder.result();
     const expectedResult = {
@@ -247,7 +254,7 @@ describe('Asynchronous validation of synchronous validators', () => {
     const values = {};
 
     const builder = buildValidatorsAsync(values);
-    builder.field('foo.bar.baz', 'Foo').validate([isRequired()]);
+    builder.field('foo.bar.baz', 'Foo').required();
 
     const result = builder.result();
     const expectedResult = {
@@ -267,8 +274,8 @@ describe('Asynchronous validation of synchronous validators', () => {
     const values = {};
 
     const builder = buildValidatorsAsync(values);
-    builder.field('foo', 'Foo').validate([isRequired()]);
-    builder.field('bar.baz', 'Baz').validate([isRequired()]);
+    builder.field('foo', 'Foo').required();
+    builder.field('bar.baz', 'Baz').required();
 
     const result = builder.result();
     const expectedResult = {
@@ -289,14 +296,12 @@ describe('Asynchronous validation of synchronous validators', () => {
     };
 
     const builder = buildValidatorsAsync(values);
-    const arrayNotEmpty: IValidator = (array, label) => array.length < 1 && `${label} must have at least 1 item.`;
     const { arrayForEach } = builder;
 
-    builder.field('lotsastuff', 'Array').validate([
-      isRequired(),
-      arrayNotEmpty,
+    builder.field('lotsastuff', 'Array').required([
+      arrayNotEmpty(),
       arrayForEach(itemBuilder => {
-        itemBuilder.item('Item').validate([isRequired(), maxValue(3)]);
+        itemBuilder.item('Item').required([maxValue(3)]);
       }),
     ]);
 
@@ -317,11 +322,11 @@ describe('Asynchronous validation of synchronous validators', () => {
 
     const builder = buildValidatorsAsync(values);
     const { arrayForEach } = builder;
-    builder.field('lotsastuff', 'Array').validate([
+    builder.field('lotsastuff', 'Array').required([
       (array, label) => array.length < 1 && `${label} must have at least 1 item.`,
       arrayForEach(itemBuilder => {
-        itemBuilder.field(`key`, `Item Key`).validate([isRequired()]);
-        itemBuilder.field(`value`, `Item Value`).validate([isRequired()]);
+        itemBuilder.field(`key`, `Item Key`).required();
+        itemBuilder.field(`value`, `Item Value`).required();
       }),
     ]);
 
@@ -366,19 +371,19 @@ describe('Asynchronous validation of synchronous validators', () => {
     const builder = buildValidatorsAsync(values);
     const isArray: IValidator = (array, label) => !Array.isArray(array) && `${label} must be an array.`;
     const allOfTheThingsValidator: IArrayItemValidator = itemBuilder => {
-      itemBuilder.field(`all`, 'All').validate([isRequired()]);
-      itemBuilder.field(`of`, 'Of').validate([isRequired()]);
-      itemBuilder.field(`the`, 'The').validate([isRequired()]);
-      itemBuilder.field(`things`, 'Things').validate([isRequired()]);
+      itemBuilder.field(`all`, 'All').required();
+      itemBuilder.field(`of`, 'Of').required();
+      itemBuilder.field(`the`, 'The').required();
+      itemBuilder.field(`things`, 'Things').required();
     };
 
     const outerArrayItemValidator: IArrayItemValidator = itemBuilder => {
-      itemBuilder.field('key', 'Item key').validate([isRequired()]);
-      itemBuilder.field('data', 'Item data').validate([isRequired(), isArray, arrayForEach(allOfTheThingsValidator)]);
+      itemBuilder.field('key', 'Item key').required();
+      itemBuilder.field('data', 'Item data').required([isArray, arrayForEach(allOfTheThingsValidator)]);
     };
 
     const { arrayForEach } = builder;
-    builder.field('letsgetcrazy', 'Outer array').validate([arrayForEach(outerArrayItemValidator)]);
+    builder.field('letsgetcrazy', 'Outer array').required([arrayForEach(outerArrayItemValidator)]);
 
     const result = builder.result();
     const expectedResult = {
@@ -413,10 +418,10 @@ describe('Guarantees identical interfaces and results between sync and async', (
   it('crazy complicated arrays of objects with arrays of objects', done => {
     const isArray: IValidator = (array, label) => !Array.isArray(array) && `${label} must be an array.`;
     const allOfTheThingsValidator: IArrayItemValidator = itemBuilder => {
-      itemBuilder.field(`all`, 'All').validate([isRequired()]);
-      itemBuilder.field(`of`, 'Of').validate([isRequired()]);
-      itemBuilder.field(`the`, 'The').validate([isRequired()]);
-      itemBuilder.field(`things`, 'Things').validate([isRequired()]);
+      itemBuilder.field(`all`, 'All').required();
+      itemBuilder.field(`of`, 'Of').required();
+      itemBuilder.field(`the`, 'The').required();
+      itemBuilder.field(`things`, 'Things').required();
     };
 
     const values = {
@@ -446,10 +451,10 @@ describe('Guarantees identical interfaces and results between sync and async', (
     [builderSync, builderAsync].forEach(builder => {
       const { arrayForEach } = builder;
       const outerArrayItemValidator: IArrayItemValidator = itemBuilder => {
-        itemBuilder.field('key', 'Item key').validate([isRequired()]);
-        itemBuilder.field('data', 'Item data').validate([isRequired(), isArray, arrayForEach(allOfTheThingsValidator)]);
+        itemBuilder.field('key', 'Item key').required();
+        itemBuilder.field('data', 'Item data').required([isArray, arrayForEach(allOfTheThingsValidator)]);
       };
-      builder.field('letsgetcrazy', 'Outer array').validate([arrayForEach(outerArrayItemValidator)]);
+      builder.field('letsgetcrazy', 'Outer array').required([arrayForEach(outerArrayItemValidator)]);
     });
 
     const expectedResult = {
@@ -490,7 +495,7 @@ describe('Asynchronous simple validation', () => {
     const values = { foo: 'bar' };
 
     const builder = buildValidatorsAsync(values);
-    builder.field('foo', 'Foo').validate([]);
+    builder.field('foo', 'Foo').optional([]);
 
     builder.result().then((result: any) => {
       expect(result).toEqual({});
@@ -502,9 +507,9 @@ describe('Asynchronous simple validation', () => {
     const values = { bar: 1, baz: 2 };
 
     const builder = buildValidatorsAsync(values);
-    builder.field('foo', 'Foo').validate([isRequired()]);
-    builder.field('bar', 'Bar').validate([makeAsync(isRequired()), minValue(2)]);
-    builder.field('baz', 'Baz').validate([isRequired(), makeAsync(maxValue(1))]);
+    builder.field('foo', 'Foo').required();
+    builder.field('bar', 'Bar').required([makeAsync(maxValue(2)), minValue(2)]);
+    builder.field('baz', 'Baz').required([minValue(1), makeAsync(maxValue(1))]);
 
     builder.result().catch((result: any) => {
       expect(result).toEqual({
@@ -525,10 +530,9 @@ describe('Asynchronous array validation', () => {
     const builder = buildValidators(values, true);
     const { arrayForEach } = builder;
 
-    builder.field('lotsastuff', 'Array').validate([
-      makeAsync(isRequired()),
+    builder.field('lotsastuff', 'Array').required([
       arrayForEach(itemBuilder => {
-        itemBuilder.item('Item').validate([makeAsync(isRequired()), makeAsync(maxValue(3))]);
+        itemBuilder.item('Item').required([makeAsync(maxValue(3))]);
       }),
     ]);
 
@@ -543,18 +547,18 @@ describe('Asynchronous array validation', () => {
 
 describe('Errors', () => {
   it('Sneaking a promise into synchronous validation', () => {
-    const values = { foo: 'bar' };
+    const values = { foo: 'bar', bar: 'steve' };
 
     const builder = buildValidators(values);
 
     expect(() => {
-      builder.field('foo', 'Foo').validate([isRequired(), () => Promise.resolve(undefined)]);
+      builder.field('foo', 'Foo').required([() => Promise.resolve(undefined)]);
     }).toThrowError(
       Error,
       'Synchronous validator cannot return a Promise (while validating foo). Use buildValidatorsAsync(values) instead.',
     );
     expect(() => {
-      builder.field('bar', 'Bar').validate([() => Promise.reject('Bars should be awesome.')]);
+      builder.field('bar', 'Bar').optional([() => Promise.reject('Bars should be awesome.')]);
     }).toThrowError(
       Error,
       'Synchronous validator cannot return a Promise (while validating bar). Use buildValidatorsAsync(values) instead.',
@@ -568,11 +572,10 @@ describe('Errors', () => {
     const builder = buildValidators(values, true);
     const { arrayForEach } = builder;
 
-    builder.field('lotsastuff', 'Array').validate([
-      makeAsync(isRequired()),
+    builder.field('lotsastuff', 'Array').required([
       makeAsync(
         arrayForEach(itemBuilder => {
-          itemBuilder.item('Item').validate([makeAsync(isRequired()), makeAsync(maxValue(3))]);
+          itemBuilder.item('Item').required([makeAsync(maxValue(3))]);
         }),
       ),
     ]);

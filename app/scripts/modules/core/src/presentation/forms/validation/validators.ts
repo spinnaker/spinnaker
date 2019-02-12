@@ -35,7 +35,7 @@ const oneOf = (list: any[], message?: string): IValidator => {
 const arrayNotEmpty = (message?: string): IValidator => {
   return (val: string | any[], label = THIS_FIELD) => {
     message = message || `${label} must contain at least one entry`;
-    return val && val.length && message;
+    return val && val.length < 1 && message;
   };
 };
 
