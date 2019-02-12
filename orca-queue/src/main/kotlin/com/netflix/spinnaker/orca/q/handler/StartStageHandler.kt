@@ -109,7 +109,7 @@ class StartStageHandler(
           }
         }
       } else {
-        log.warn("Re-queuing $message as upstream stages are not yet complete")
+        log.info("Re-queuing $message as upstream stages are not yet complete")
         queue.push(message, retryDelay)
       }
     }

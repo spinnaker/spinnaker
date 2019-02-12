@@ -17,7 +17,10 @@
 package com.netflix.spinnaker.orca.q.handler
 
 import com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED
-import com.netflix.spinnaker.orca.ext.*
+import com.netflix.spinnaker.orca.ext.allAfterStagesComplete
+import com.netflix.spinnaker.orca.ext.allBeforeStagesSuccessful
+import com.netflix.spinnaker.orca.ext.anyBeforeStagesFailed
+import com.netflix.spinnaker.orca.ext.hasTasks
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
@@ -50,14 +53,14 @@ class ContinueParentStageHandler(
             else             -> queue.push(CompleteStage(stage))
           }
         } else if (!stage.anyBeforeStagesFailed()) {
-          log.warn("Re-queuing $message as other ${message.phase} stages are still running")
+          log.info("Re-queuing $message as other ${message.phase} stages are still running")
           queue.push(message, retryDelay)
         }
       } else {
         if (stage.allAfterStagesComplete()) {
           queue.push(CompleteStage(stage))
         } else {
-          log.warn("Re-queuing $message as other ${message.phase} stages are still running")
+          log.info("Re-queuing $message as other ${message.phase} stages are still running")
           queue.push(message, retryDelay)
         }
       }
