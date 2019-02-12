@@ -283,6 +283,8 @@ class AutoScalingWorker {
     }
 
     retrySupport.retry({ ->
+      task.updateStatus AWS_PHASE, "Setting size of $asgName in ${credentials.name}/$region to " +
+        "[min=$minInstances, max=$maxInstances, desired=$desiredInstances]"
       autoScaling.updateAutoScalingGroup(
         new UpdateAutoScalingGroupRequest(
           autoScalingGroupName: asgName,
