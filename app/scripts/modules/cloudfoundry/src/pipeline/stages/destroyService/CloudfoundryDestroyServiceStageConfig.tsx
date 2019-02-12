@@ -10,7 +10,7 @@ export interface ICloudfoundryDestroyServiceStageConfigState {
   credentials: string;
   region: string;
   regions: IRegion[];
-  serviceName: string;
+  serviceInstanceName: string;
 }
 
 export class CloudfoundryDestroyServiceStageConfig extends React.Component<
@@ -26,7 +26,7 @@ export class CloudfoundryDestroyServiceStageConfig extends React.Component<
       credentials: props.stage.credentials,
       region: props.stage.region,
       regions: [],
-      serviceName: props.stage.serviceName,
+      serviceInstanceName: props.stage.serviceInstanceName,
     };
   }
 
@@ -63,10 +63,10 @@ export class CloudfoundryDestroyServiceStageConfig extends React.Component<
     this.props.stageFieldUpdated();
   };
 
-  private serviceNameUpdated = (event: React.ChangeEvent<HTMLInputElement>): void => {
-    const serviceName = event.target.value;
-    this.setState({ serviceName });
-    this.props.stage.serviceName = serviceName;
+  private serviceInstanceNameUpdated = (event: React.ChangeEvent<HTMLInputElement>): void => {
+    const serviceInstanceName = event.target.value;
+    this.setState({ serviceInstanceName });
+    this.props.stage.serviceInstanceName = serviceInstanceName;
     this.props.stageFieldUpdated();
   };
 
@@ -77,7 +77,7 @@ export class CloudfoundryDestroyServiceStageConfig extends React.Component<
 
   public render() {
     const { stage } = this.props;
-    const { credentials, region, serviceName, timeout } = stage;
+    const { credentials, region, serviceInstanceName, timeout } = stage;
     const { accounts, regions } = this.state;
     return (
       <div className="form-horizontal">
@@ -109,13 +109,13 @@ export class CloudfoundryDestroyServiceStageConfig extends React.Component<
             onChange={this.regionUpdated}
           />
         </StageConfigField>
-        <StageConfigField label="Service Name">
+        <StageConfigField label="Service Instance Name">
           <input
             type="text"
             className="form-control"
             required={true}
-            onChange={this.serviceNameUpdated}
-            value={serviceName}
+            onChange={this.serviceInstanceNameUpdated}
+            value={serviceInstanceName}
           />
         </StageConfigField>
         <StageConfigField label="Override Destroy Timeout (Seconds)" helpKey="cf.service.destroy.timeout">

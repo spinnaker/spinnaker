@@ -25,7 +25,7 @@ module(CLOUD_FOUNDRY_DESTROY_SERVICE_STAGE, [])
       executionDetailsSections: [CloudfoundryDestroyServiceExecutionDetails, ExecutionDetailsTasks],
       validators: [
         { type: 'requiredField', fieldName: 'region' },
-        { type: 'requiredField', fieldName: 'serviceName', preventSave: true },
+        { type: 'requiredField', fieldName: 'serviceInstanceName', preventSave: true },
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account' },
       ],
     });

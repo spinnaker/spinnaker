@@ -25,7 +25,7 @@ export interface ICloudfoundryDestroyAsgStageConfigState {
   pipeline: IPipeline;
   region: string;
   regions: IRegion[];
-  serviceName: string;
+  serviceInstanceName: string;
   target: string;
 }
 
@@ -44,7 +44,7 @@ export class CloudfoundryDestroyAsgStageConfig extends React.Component<
       pipeline: props.pipeline,
       region: props.stage.region,
       regions: [],
-      serviceName: props.stage.serviceName,
+      serviceInstanceName: props.stage.serviceInstanceName,
       target: props.stage.target,
     };
   }

@@ -1,7 +1,7 @@
 export interface ICloudfoundryServiceManifestDirectSource {
   parameters?: string;
   service: string;
-  serviceName: string;
+  serviceInstanceName: string;
   servicePlan: string;
   tags?: string[];
 }
@@ -14,7 +14,7 @@ export interface ICloudfoundryServiceManifestArtifactSource {
 export interface ICloudFoundryServiceUserProvidedSource {
   credentials?: string;
   routeServiceUrl: string;
-  serviceName: string;
+  serviceInstanceName: string;
   syslogDrainUrl?: string;
   tags?: string[];
 }

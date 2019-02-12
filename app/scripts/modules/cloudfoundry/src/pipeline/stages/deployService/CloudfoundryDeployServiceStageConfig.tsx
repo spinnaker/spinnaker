@@ -49,7 +49,7 @@ export class CloudfoundryDeployServiceStageConfig extends React.Component<
     props.stage.cloudProvider = 'cloudfoundry';
     props.stage.manifest = props.stage.manifest || {
       service: '',
-      serviceName: '',
+      serviceInstanceName: '',
       servicePlan: '',
       parameters: '',
       type: 'direct',
@@ -71,7 +71,7 @@ export class CloudfoundryDeployServiceStageConfig extends React.Component<
       case 'direct':
         this.props.stage.manifest = {
           service: '',
-          serviceName: '',
+          serviceInstanceName: '',
           servicePlan: '',
           type: 'direct',
         };
@@ -89,7 +89,7 @@ export class CloudfoundryDeployServiceStageConfig extends React.Component<
         this.props.stage.manifest = {
           credentials: '',
           routeServiceUrl: '',
-          serviceName: '',
+          serviceInstanceName: '',
           syslogDrainUrl: '',
           tags: [],
           type: 'userProvided',
@@ -147,7 +147,7 @@ export class CloudfoundryDeployServiceStageConfig extends React.Component<
     this.props.stage.credentials = credentials;
     this.props.stage.region = '';
     this.props.stage.manifest.service = '';
-    this.props.stage.manifest.serviceName = '';
+    this.props.stage.manifest.serviceInstanceName = '';
     this.props.stage.manifest.servicePlan = '';
     this.props.stageFieldUpdated();
     if (credentials) {
@@ -160,7 +160,7 @@ export class CloudfoundryDeployServiceStageConfig extends React.Component<
     this.setState({ region: region });
     this.props.stage.region = region;
     this.props.stage.manifest.service = '';
-    this.props.stage.manifest.serviceName = '';
+    this.props.stage.manifest.serviceInstanceName = '';
     this.props.stage.manifest.servicePlan = '';
     this.props.stageFieldUpdated();
     this.clearAndReloadServices();

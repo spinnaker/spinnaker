@@ -11,7 +11,7 @@ interface ICreateServiceInstanceUserProvidedInputProps {
 }
 
 interface ICreateServiceInstanceUserProvidedInputState {
-  serviceName: string;
+  serviceInstanceName: string;
   tags?: string[];
   syslogDrainUrl?: string;
   credentials?: string;
@@ -28,13 +28,13 @@ export class CreateUserProvidedInput extends React.Component<
     this.state = { ...serviceInput };
   }
 
-  private serviceNameUpdated = (event: React.ChangeEvent<HTMLInputElement>): void => {
-    const serviceName = event.target.value;
+  private serviceInstanceNameUpdated = (event: React.ChangeEvent<HTMLInputElement>): void => {
+    const serviceInstanceName = event.target.value;
     const { onChange, serviceInput } = this.props;
-    this.setState({ serviceName });
+    this.setState({ serviceInstanceName });
     onChange({
       ...serviceInput,
-      serviceName,
+      serviceInstanceName,
     } as ICloudFoundryServiceManifestSource);
   };
 
@@ -78,11 +78,16 @@ export class CreateUserProvidedInput extends React.Component<
   };
 
   public render() {
-    const { serviceName, tags, syslogDrainUrl, credentials, routeServiceUrl } = this.state;
+    const { serviceInstanceName, tags, syslogDrainUrl, credentials, routeServiceUrl } = this.state;
     return (
       <>
-        <StageConfigField label="Service Name">
-          <TextInput type="text" className="form-control" onChange={this.serviceNameUpdated} value={serviceName} />
+        <StageConfigField label="Service Instance Name">
+          <TextInput
+            type="text"
+            className="form-control"
+            onChange={this.serviceInstanceNameUpdated}
+            value={serviceInstanceName}
+          />
         </StageConfigField>
         <StageConfigField label="Syslog Drain URL">
           <TextInput onChange={this.syslogDrainUrlUpdated} value={syslogDrainUrl} />

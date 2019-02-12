@@ -16,7 +16,7 @@ interface ICreateServiceInstanceDirectInputProps {
 interface ICreateServiceInstanceDirectInputState {
   parameters?: string;
   service: string;
-  serviceName: string;
+  serviceInstanceName: string;
   servicePlan: string;
   tags?: string[];
 }
@@ -33,13 +33,13 @@ export class CreateServiceInstanceDirectInput extends React.Component<
     };
   }
 
-  private serviceNameUpdated = (event: React.ChangeEvent<HTMLInputElement>): void => {
-    const serviceName = event.target.value;
+  private serviceInstanceNameUpdated = (event: React.ChangeEvent<HTMLInputElement>): void => {
+    const serviceInstanceName = event.target.value;
     const { onChange, serviceInput } = this.props;
-    this.setState({ serviceName });
+    this.setState({ serviceInstanceName });
     onChange({
       ...serviceInput,
-      serviceName,
+      serviceInstanceName,
     } as ICloudFoundryServiceManifestSource);
   };
 
@@ -88,14 +88,19 @@ export class CreateServiceInstanceDirectInput extends React.Component<
 
   public render() {
     const { serviceInput, serviceNamesAndPlans } = this.props;
-    const { parameters, service, serviceName, servicePlan, tags } = serviceInput;
+    const { parameters, service, serviceInstanceName, servicePlan, tags } = serviceInput;
     const services = serviceNamesAndPlans.map(item => item.name);
     const serviceWithPlans = serviceNamesAndPlans.find(it => it.name === serviceInput.service);
     const servicePlans = serviceWithPlans ? serviceWithPlans.servicePlans.map((it: IServicePlan) => it.name) : [];
     return (
       <div>
-        <StageConfigField label="Service Name">
-          <TextInput type="text" className="form-control" onChange={this.serviceNameUpdated} value={serviceName} />
+        <StageConfigField label="Service Instance Name">
+          <TextInput
+            type="text"
+            className="form-control"
+            onChange={this.serviceInstanceNameUpdated}
+            value={serviceInstanceName}
+          />
         </StageConfigField>
         <StageConfigField label="Service">
           <ReactSelectInput clearable={false} onChange={this.serviceUpdated} value={service} stringOptions={services} />
