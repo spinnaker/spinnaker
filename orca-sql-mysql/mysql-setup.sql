@@ -1,5 +1,6 @@
 SET tx_isolation = 'READ-COMMITTED';
 
+CREATE DATABASE orca;
 CREATE USER orca_migrate;
 CREATE USER orca_service;
 
