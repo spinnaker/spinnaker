@@ -24,7 +24,6 @@
     "test": "karma start",
     "tslint": "tslint --project tsconfig.json",
     "int": "protractor protractor.conf.js",
-    "precommit": "pretty-quick --staged",
     "modules": "./gradle/buildModules.sh",
     "functional": "test/functional/run.js --serve-deck --replay-fixtures --browser chrome --headless"
   },
@@ -147,7 +146,7 @@
     "fork-ts-checker-webpack-plugin": "0.5.2",
     "html-loader": "0.5.5",
     "html-webpack-plugin": "3.2.0",
-    "husky": "^0.14.3",
+    "husky": "^1.3.1",
     "imports-loader": "^0.8.0",
     "istanbul-instrumenter-loader": "3.0.1",
     "jasmine-core": "3.3.0",
@@ -170,8 +169,8 @@
     "physical-cpu-count": "^2.0.0",
     "postcss-colorfix": "^0.0.4",
     "postcss-loader": "3.0.0",
-    "prettier": "^1.14.3",
-    "pretty-quick": "^1.4.1",
+    "prettier": "^1.16.4",
+    "pretty-quick": "^1.10.0",
     "react-addons-test-utils": "15.6.2",
     "react-test-renderer": "16.3.2",
     "request-promise-native": "^1.0.5",
@@ -206,5 +205,10 @@
     "@uirouter/react": "0.8.7",
     "@uirouter/angularjs": "1.0.20",
     "@uirouter/core": "5.0.21"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "pretty-quick --staged"
+    }
   }
 }
