@@ -20,6 +20,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.moniker.Moniker;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Map;
 import java.util.Optional;
@@ -60,24 +61,30 @@ public class KubernetesManifestLabeler {
     labels.put(key, value);
   }
 
-  public static void labelManifest(KubernetesManifest manifest, Moniker moniker) {
+  public static void labelManifest(String managedBySuffix, KubernetesManifest manifest, Moniker moniker) {
     Map<String, String> labels = manifest.getLabels();
-    storeLabels(labels, moniker);
+    storeLabels(managedBySuffix, labels, moniker);
 
     manifest.getSpecTemplateLabels().flatMap(l -> {
-      storeLabels(l, moniker);
+      storeLabels(managedBySuffix, l, moniker);
       return Optional.empty();
     });
   }
 
-  private static void storeLabels(Map<String, String> labels, Moniker moniker) {
+  public static void storeLabels(String managedBySuffix, Map<String, String> labels, Moniker moniker) {
     if (moniker == null) {
       return;
     }
 
+    String appManagedByValue = "spinnaker";
+
+    if (StringUtils.isNotEmpty(managedBySuffix)) {
+      appManagedByValue = appManagedByValue + "-" + managedBySuffix;
+    }
+
     // other properties aren't currently set by Spinnaker
     storeLabel(labels, APP_NAME, moniker.getApp());
-    storeLabelAndOverwrite(labels, APP_MANAGED_BY, "spinnaker");
+    storeLabelAndOverwrite(labels, APP_MANAGED_BY, appManagedByValue);
     if (moniker.getSequence() != null) {
       storeLabelAndOverwrite(labels, SEQUENCE, moniker.getSequence() + "");
     }

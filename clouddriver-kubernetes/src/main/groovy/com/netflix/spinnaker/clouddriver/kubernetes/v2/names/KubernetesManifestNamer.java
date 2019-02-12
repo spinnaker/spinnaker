@@ -30,6 +30,9 @@ public class KubernetesManifestNamer implements NamingStrategy<KubernetesManifes
   @Value("${kubernetes.v2.applyAppLabels:true}")
   boolean applyAppLabels;
 
+  @Value("${kubernetes.v2.managedBySuffix:}")
+  String managedBySuffix;
+
   @Override
   public String getName() {
     return "kubernetesAnnotations";
@@ -39,7 +42,7 @@ public class KubernetesManifestNamer implements NamingStrategy<KubernetesManifes
   public void applyMoniker(KubernetesManifest obj, Moniker moniker) {
     KubernetesManifestAnnotater.annotateManifest(obj, moniker);
     if (applyAppLabels) {
-      KubernetesManifestLabeler.labelManifest(obj, moniker);
+      KubernetesManifestLabeler.labelManifest(managedBySuffix, obj, moniker);
     }
   }
 
