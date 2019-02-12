@@ -77,6 +77,15 @@ abstract public class TaskRepositoryTck<T extends TaskRepository> {
   }
 
   @Test
+  public void testTaskCompletion() {
+    Task t1 = subject.create("TEST", "Test Status");
+    t1.updateStatus("Orchestration", "completed");
+    t1.complete();
+
+    assert(t1.getStatus().isCompleted());
+  }
+
+  @Test
   public void testListRunningTasks() {
     Task t1 = subject.create("TEST", "Test Status");
     Task t2 = subject.create("TEST", "Test Status");
