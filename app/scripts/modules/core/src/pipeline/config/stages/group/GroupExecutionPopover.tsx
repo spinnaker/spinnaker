@@ -9,6 +9,7 @@ export interface IGroupExecutionPopoverProps {
   stage: IExecutionStageSummary;
   width: number;
   subStageClicked?: (groupStage: IExecutionStageSummary, stage: IExecutionStageSummary) => void;
+  svgMode?: boolean;
 }
 
 export interface IGroupedStageListItemProps {
@@ -55,7 +56,7 @@ export class GroupExecutionPopover extends React.Component<IGroupExecutionPopove
   };
 
   public render() {
-    const { stage, width } = this.props;
+    const { stage, width, svgMode } = this.props;
 
     const template = (
       <div style={{ minWidth: width - 30 + 'px' }}>
@@ -69,7 +70,13 @@ export class GroupExecutionPopover extends React.Component<IGroupExecutionPopove
     );
 
     return (
-      <HoverablePopover className="group-stages-list-popover" delayHide={50} placement="bottom" template={template}>
+      <HoverablePopover
+        className="group-stages-list-popover"
+        svgMode={svgMode}
+        delayHide={50}
+        placement="bottom"
+        template={template}
+      >
         {this.props.children}
       </HoverablePopover>
     );

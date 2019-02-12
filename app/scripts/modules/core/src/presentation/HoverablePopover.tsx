@@ -41,6 +41,7 @@ export interface IHoverablePopoverProps extends React.HTMLProps<any> {
 
   onShow?: () => void;
   onHide?: () => void;
+  svgMode?: boolean;
 }
 
 export interface IHoverablePopoverState {
@@ -58,11 +59,10 @@ export class HoverablePopover extends React.Component<IHoverablePopoverProps, IH
     delayHide: 300,
   };
 
-  private target: Element;
-
   private mouseEvents$ = new Subject<React.SyntheticEvent<any>>();
   private hidePopoverEvents$ = new Subject();
   private destroy$ = new Subject();
+  private targetRef = React.createRef<HTMLElement>();
 
   constructor(props: IHoverablePopoverProps) {
     super(props);
@@ -103,14 +103,10 @@ export class HoverablePopover extends React.Component<IHoverablePopoverProps, IH
     this.mouseEvents$.next(e);
   };
 
-  private refCallback = (ref: Element): void => {
-    this.target = ref;
-  };
-
   private rendererRefCallback = (ref: React.Component): void => {
     if (ref) {
       const { clientWidth, clientHeight } = ReactDOM.findDOMNode(ref) as Element;
-      const bounds = this.target.getBoundingClientRect();
+      const bounds = this.targetRef.current.getBoundingClientRect();
       const bottomSpace = window.innerHeight - bounds.bottom;
       const rightSpace = window.innerWidth - bounds.right;
 
@@ -133,9 +129,26 @@ export class HoverablePopover extends React.Component<IHoverablePopoverProps, IH
     }
   };
 
+  private Wrapper = ({ children, ...otherProps }: any) => {
+    const { svgMode } = this.props;
+    if (svgMode) {
+      return (
+        <g {...otherProps} ref={this.targetRef}>
+          {children}
+        </g>
+      );
+    }
+    return (
+      <div {...otherProps} ref={this.targetRef}>
+        {children}
+      </div>
+    );
+  };
+
   public render() {
     const { Component, template, placement, container, hOffsetPercent, id, title, className } = this.props;
     const { popoverIsOpen, animation, placementOverride } = this.state;
+    const { Wrapper } = this;
 
     const popoverContent: JSX.Element = Component ? (
       <Component {...this.props} hidePopover={() => this.hidePopoverEvents$.next()} />
@@ -144,18 +157,13 @@ export class HoverablePopover extends React.Component<IHoverablePopoverProps, IH
     );
 
     return (
-      <g
-        style={{ display: 'inline' }}
-        onMouseEnter={this.handleMouseEvent}
-        onMouseLeave={this.handleMouseEvent}
-        ref={this.refCallback}
-      >
+      <Wrapper style={{ display: 'inline' }} onMouseEnter={this.handleMouseEvent} onMouseLeave={this.handleMouseEvent}>
         {this.props.children}
         <Overlay
           show={popoverIsOpen}
           animation={animation}
           placement={placementOverride || placement}
-          target={this.target as any}
+          target={this.targetRef.current}
           container={container}
         >
           <PopoverOffset
@@ -170,7 +178,7 @@ export class HoverablePopover extends React.Component<IHoverablePopoverProps, IH
             {popoverContent}
           </PopoverOffset>
         </Overlay>
-      </g>
+      </Wrapper>
     );
   }
 }

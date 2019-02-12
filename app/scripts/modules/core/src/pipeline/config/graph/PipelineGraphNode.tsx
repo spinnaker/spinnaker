@@ -152,7 +152,12 @@ export class PipelineGraphNode extends React.Component<IPipelineGraphNodeProps> 
 
     if (node.stage && node.stage.type === 'group') {
       NodeContents = (
-        <GroupExecutionPopover stage={node.stage} subStageClicked={this.subStageClicked} width={maxLabelWidth}>
+        <GroupExecutionPopover
+          stage={node.stage}
+          subStageClicked={this.subStageClicked}
+          width={maxLabelWidth}
+          svgMode={true}
+        >
           {NodeContents}
         </GroupExecutionPopover>
       );
