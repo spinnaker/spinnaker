@@ -8,9 +8,9 @@ import { IMoniker, NameUtils } from 'core/naming';
 import { IJob, TaskExecutor } from 'core/task/taskExecutor';
 
 export interface ICapacity {
-  desired: number;
-  max: number;
-  min: number;
+  desired: number | string;
+  max: number | string;
+  min: number | string;
 }
 
 export interface IServerGroupJob extends IJob {

@@ -55,8 +55,8 @@ export interface IResizeJob extends IServerGroupJob {
 
 interface IChangedField {
   field: keyof ICapacity;
-  prevValue: number;
-  value: number;
+  prevValue: number | string;
+  value: number | string;
 }
 
 export class AmazonResizeServerGroupModal extends React.Component<

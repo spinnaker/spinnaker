@@ -31,7 +31,7 @@ export interface ICloudFoundryResizeServerGroupModalState {
 }
 
 export interface ICloudFoundryResizeServerGroupValues {
-  desired: number;
+  desired: number | string;
   diskQuota?: number;
   memory?: number;
   reason?: string;

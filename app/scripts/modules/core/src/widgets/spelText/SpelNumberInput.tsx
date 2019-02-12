@@ -50,10 +50,11 @@ export class SpelNumberInput extends React.Component<INumberInputProps, INumberI
     const { expressionActive, glowing } = this.state;
     const { value, min, max } = this.props;
     return (
-      <div className="navbar-form" style={{ padding: 0 }}>
+      <div className="navbar-form" style={{ padding: 0, margin: 0 }}>
         <div className={`button-input ${expressionActive ? 'text' : 'number'}${glowing ? ' focus' : ''}`}>
           <span className="btn-group btn-group-xs" role="group">
             <button
+              type="button"
               className={`btn btn-default ${expressionActive ? '' : 'active'}`}
               onClick={() => this.setExpressionActive(false)}
               onFocus={() => this.setGlow(true)}
@@ -64,6 +65,7 @@ export class SpelNumberInput extends React.Component<INumberInputProps, INumberI
               </Tooltip>
             </button>
             <button
+              type="button"
               className={`btn btn-default ${expressionActive ? 'active' : ''}`}
               onClick={() => this.setExpressionActive(true)}
               onFocus={() => this.setGlow(true)}
