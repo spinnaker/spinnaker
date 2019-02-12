@@ -197,7 +197,7 @@
     "webpack-node-externals": "1.7.2"
   },
   "optionalDependencies": {
-    "fsevents": "^1.1.3"
+    "fsevents": "^1.2.7"
   },
   "resolutionsPurpose": "This temporarily chooses the right versions of these libs, which are specified in both deck AND deck-kayenta",
   "resolutions": {
