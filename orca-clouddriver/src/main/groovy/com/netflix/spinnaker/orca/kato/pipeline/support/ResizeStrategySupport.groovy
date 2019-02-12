@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline.support
 
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.RollingRedBlackStageData
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
@@ -32,7 +33,10 @@ import org.springframework.stereotype.Component;
 public class ResizeStrategySupport {
 
   @Autowired
-  OortHelper oortHelper;
+  OortHelper oortHelper
+
+  @Autowired
+  Registry registry
 
   static ResizeStrategy.Source getSource(TargetServerGroupResolver targetServerGroupResolver,
                                          StageData stageData,
@@ -143,6 +147,13 @@ public class ResizeStrategySupport {
         log.warn("Resize stage has unpinMinimumCapacity==true but could not find the original minimum value in stage" +
           " context with stageData.source=${stageData.source}, stage.context.originalCapacity=${stage.context.originalCapacity}, " +
           "stage.context.savedCapacity=${stage.context.savedCapacity}")
+
+        // stage ids and execution ids are both high cardinality, but we expect this to happen very rarely (if ever)
+        Registry.counter(
+          "orca.failedUnpinMin",
+          "stage", stage.id,
+          "execution", stage.execution.id)
+          .increment()
       }
     }
 
