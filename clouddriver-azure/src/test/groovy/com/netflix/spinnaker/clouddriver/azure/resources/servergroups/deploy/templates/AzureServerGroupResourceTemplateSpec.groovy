@@ -106,7 +106,7 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
       image.isCustom = true
       image.ostype = 'Linux'
       image.region = 'westus'
-      image.uri = 'https://storevm112345.blob.core.windows.net/vhds/vm1-1234520161917555.vhd'
+      image.uri = '/subscriptions/faab228d-df7a-4086-991e-e81c4659d41a/resourceGroups/zhqqi-sntest/providers/Microsoft.Compute/images/hello-karyon-rxnetty-all-20190125054410-ubuntu-1604'
     } else {
       image.sku = '14.04.3-LTS'
       image.offer = 'UbuntuServer'
@@ -187,7 +187,7 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
     }
   },
   "variables" : {
-    "apiVersion" : "2015-06-15",
+    "apiVersion" : "2018-10-01",
     "publicIPAddressName" : "pip-azureMASM-st1-d11",
     "publicIPAddressID" : "[resourceId('Microsoft.Network/publicIPAddresses', variables('publicIPAddressName'))]",
     "publicIPAddressType" : "Dynamic",
@@ -393,7 +393,7 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
     }
   },
   "variables" : {
-    "apiVersion" : "2015-06-15",
+    "apiVersion" : "2018-10-01",
     "publicIPAddressName" : "pip-azureMASM-st1-d11",
     "publicIPAddressID" : "[resourceId('Microsoft.Network/publicIPAddresses', variables('publicIPAddressName'))]",
     "publicIPAddressType" : "Dynamic",
@@ -483,14 +483,8 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
       },
       "virtualMachineProfile" : {
         "storageProfile" : {
-          "osDisk" : {
-            "name" : "osdisk-azureMASM-st1-d11",
-            "caching" : "ReadOnly",
-            "createOption" : "FromImage",
-            "osType" : "Linux",
-            "image" : {
-              "uri" : "https://storevm112345.blob.core.windows.net/vhds/vm1-1234520161917555.vhd"
-            }
+          "imageReference" : {
+            "id" : "/subscriptions/faab228d-df7a-4086-991e-e81c4659d41a/resourceGroups/zhqqi-sntest/providers/Microsoft.Compute/images/hello-karyon-rxnetty-all-20190125054410-ubuntu-1604"
           }
         },
         "osProfile" : {
@@ -571,7 +565,7 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
     }
   },
   "variables" : {
-    "apiVersion" : "2015-06-15",
+    "apiVersion" : "2018-10-01",
     "publicIPAddressName" : "pip-azureMASM-st1-d11",
     "publicIPAddressID" : "[resourceId('Microsoft.Network/publicIPAddresses', variables('publicIPAddressName'))]",
     "publicIPAddressType" : "Dynamic",
@@ -792,7 +786,7 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
     }
   },
   "variables" : {
-    "apiVersion" : "2015-06-15",
+    "apiVersion" : "2018-10-01",
     "publicIPAddressName" : "pip-azureMASM-st1-d11",
     "publicIPAddressID" : "[resourceId('Microsoft.Network/publicIPAddresses', variables('publicIPAddressName'))]",
     "publicIPAddressType" : "Dynamic",
@@ -1013,7 +1007,7 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
     }
   },
   "variables" : {
-    "apiVersion" : "2015-06-15",
+    "apiVersion" : "2018-10-01",
     "publicIPAddressName" : "pip-azureMASM-st1-d11",
     "publicIPAddressID" : "[resourceId('Microsoft.Network/publicIPAddresses', variables('publicIPAddressName'))]",
     "publicIPAddressType" : "Dynamic",
