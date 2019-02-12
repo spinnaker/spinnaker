@@ -125,10 +125,12 @@ class FindImageFromClusterTask extends AbstractCloudProviderAwareTask implements
 
     // Supplement config with regions from subsequent deploy/canary stages:
     def deployRegions = regionCollector.getRegionsFromChildStages(stage)
+    Set<String> inferredRegions = new HashSet<>()
 
     deployRegions.forEach {
       if (!config.regions.contains(it)) {
         config.regions.add(it)
+        inferredRegions.add(it)
         log.info("Inferred and added region ($it) from deploy stage to FindImageFromClusterTask (executionId: ${stage.execution.id})")
       }
     }
@@ -170,7 +172,7 @@ class FindImageFromClusterTask extends AbstractCloudProviderAwareTask implements
             return [(location): null]
           }
 
-          throw new IllegalStateException("Could not find cluster '$config.cluster' for '$account' in '$location.value'.")
+          throw new IllegalStateException("Could not find cluster '${config.cluster}' for '$account' in '${location.value}'.")
         }
         throw e
       }
@@ -205,13 +207,18 @@ class FindImageFromClusterTask extends AbstractCloudProviderAwareTask implements
           // the image into the target account
           List<Map> defaultImages = oortService.findImage(cloudProvider, searchNames[0] + '*', defaultBakeAccount, null, null)
           resolveFromBaseImageName(defaultImages, missingLocations, imageSummaries, deploymentDetailTemplate, config, stage.execution.id)
-          def stillUnresolved = imageSummaries.findResults { it.value == null ? it.key : null }
-          if (stillUnresolved) {
-            throw new IllegalStateException("Missing images in $stillUnresolved.value")
-          }
-        } else {
-          throw new IllegalStateException("Missing images in $unresolved.value")
+          unresolved = imageSummaries.findResults { it.value == null ? it.key : null }
         }
+      }
+
+      if (unresolved) {
+        def errorMessage = "Missing image '${searchNames[0]}' in regions: ${unresolved.value}"
+
+        if (unresolved.value.any {it -> inferredRegions.contains(it)}) {
+          errorMessage = "Missing image '${searchNames[0]}' in regions: ${unresolved.value}; ${inferredRegions} were inferred from subsequent deploy stages"
+        }
+
+        throw new IllegalStateException(errorMessage)
       }
     }
 
@@ -302,7 +309,7 @@ class FindImageFromClusterTask extends AbstractCloudProviderAwareTask implements
     for (Map image : images) {
       for (Location location : missingLocations) {
         if (imageSummaries[location] == null && image.amis && image.amis[location.value]) {
-          log.info("Resolved missing image in '$location.value' with '$image.imageName' (executionId: $executionId)")
+          log.info("Resolved missing image in '${location.value}' with '${image.imageName}' (executionId: $executionId)")
 
           imageSummaries[location] = [
             mkDeploymentDetail((String) image.imageName, (String) image.amis[location.value][0], deploymentDetailTemplate, config)

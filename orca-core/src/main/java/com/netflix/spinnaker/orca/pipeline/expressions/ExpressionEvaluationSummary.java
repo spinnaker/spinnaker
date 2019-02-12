@@ -80,6 +80,14 @@ public class ExpressionEvaluationSummary {
     );
   }
 
+  public boolean wasAttempted(String expression) {
+    return attempts.contains(expression);
+  }
+
+  public boolean hasFailed(String expression) {
+    return expressionResult.containsKey(expression);
+  }
+
   public static class Result {
     private String description;
     private Class<?> exceptionType;

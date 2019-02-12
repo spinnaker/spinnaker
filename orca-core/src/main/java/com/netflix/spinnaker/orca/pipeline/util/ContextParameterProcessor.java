@@ -62,11 +62,21 @@ public class ContextParameterProcessor {
   }
 
   public Map<String, Object> process(Map<String, Object> source, Map<String, Object> context, boolean allowUnknownKeys) {
+    ExpressionEvaluationSummary summary = new ExpressionEvaluationSummary();
+
+    return process(source, context, allowUnknownKeys, summary);
+  }
+
+  public Map<String, Object> process(
+    Map<String, Object> source,
+    Map<String, Object> context,
+    boolean allowUnknownKeys,
+    ExpressionEvaluationSummary summary) {
+
     if (source.isEmpty()) {
       return new HashMap<>();
     }
 
-    ExpressionEvaluationSummary summary = new ExpressionEvaluationSummary();
     Map<String, Object> result = expressionEvaluator.evaluate(
       source,
       precomputeValues(context),

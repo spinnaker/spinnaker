@@ -81,7 +81,7 @@ class BakeStage implements StageDefinitionBuilder {
 
   @CompileDynamic
   Collection<Map<String, Object>> parallelContexts(Stage stage) {
-    Set<String> deployRegions = stage.context.region ? [stage.context.region] as Set<String> : []
+    Set<String> deployRegions = (stage.context.region ? [stage.context.region] : []) as Set<String>
     deployRegions.addAll(stage.context.regions as Set<String> ?: [])
 
     if (!deployRegions.contains("global")) {

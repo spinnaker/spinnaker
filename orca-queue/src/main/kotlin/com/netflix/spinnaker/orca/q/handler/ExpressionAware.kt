@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.q.handler
 
 import com.netflix.spinnaker.orca.exceptions.ExceptionHandler
+import com.netflix.spinnaker.orca.pipeline.expressions.ExpressionEvaluationSummary
 import com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
@@ -36,7 +37,8 @@ interface ExpressionAware {
     get() = LoggerFactory.getLogger(javaClass)
 
   fun Stage.withMergedContext(): Stage {
-    val processed = processEntries(this)
+    val evalSummary = ExpressionEvaluationSummary()
+    val processed = processEntries(this, evalSummary)
     val execution = execution
     this.context = object : MutableMap<String, Any?> by processed {
       override fun get(key: String): Any? {
@@ -60,12 +62,28 @@ interface ExpressionAware {
         return result
       }
     }
+
+    // Clean up errors: since expressions are evaluated multiple times, it's possible that when
+    // they were evaluated before the execution started not all data was available and the evaluation failed for
+    // some property. If that evaluation subsequently succeeds, make sure to remove past error messages from the
+    // context. Otherwise, it's very confusing in the UI because the value is clearly correctly evaluated but
+    // the error is still shown
+    if (hasFailedExpressions()) {
+      val failedExpressions = this.context[PipelineExpressionEvaluator.SUMMARY] as MutableMap<String, *>
+
+      failedExpressions.keys.forEach { expressionKey ->
+        if (evalSummary.wasAttempted(expressionKey) && !evalSummary.hasFailed(expressionKey)) {
+          failedExpressions.remove(expressionKey)
+        }
+      }
+    }
+
     return this
   }
 
   fun Stage.includeExpressionEvaluationSummary() {
     when {
-      PipelineExpressionEvaluator.SUMMARY in this.context ->
+      hasFailedExpressions() ->
         try {
           val expressionEvaluationSummary = this.context[PipelineExpressionEvaluator.SUMMARY] as Map<*, *>
           val evaluationErrors: List<String> = expressionEvaluationSummary.values.flatMap { (it as List<*>).map { (it as Map<*, *>)["description"] as String } }
@@ -76,7 +94,9 @@ interface ExpressionAware {
     }
   }
 
-  fun Stage.hasFailedExpressions(): Boolean = PipelineExpressionEvaluator.SUMMARY in this.context
+  fun Stage.hasFailedExpressions(): Boolean =
+    (PipelineExpressionEvaluator.SUMMARY in this.context) &&
+    ((this.context[PipelineExpressionEvaluator.SUMMARY] as Map<*, *>).size > 0)
 
   fun Stage.shouldFailOnFailedExpressionEvaluation(): Boolean {
     return this.hasFailedExpressions() && this.context.containsKey("failOnFailedExpressions")
@@ -92,11 +112,12 @@ interface ExpressionAware {
       mapOf("details" to mapOf("errors" to mergedErrors))
     }
 
-  private fun processEntries(stage: Stage): StageContext =
+  private fun processEntries(stage: Stage, summary: ExpressionEvaluationSummary): StageContext =
     StageContext(stage, contextParameterProcessor.process(
       stage.context,
       (stage.context as StageContext).augmentContext(stage.execution),
-      true
+      true,
+      summary
     )
     )
 
