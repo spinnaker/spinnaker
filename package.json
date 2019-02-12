@@ -11,7 +11,7 @@
     "registry": "http://artifacts.netflix.com/api/npm/npm-local"
   },
   "engines": {
-    "node": ">=8.9.0",
+    "node": ">=10.15.1",
     "npm": ">=5.5.1",
     "yarn": ">=1.10.0"
   },
@@ -138,8 +138,8 @@
     "envify-loader": "^0.1.0",
     "enzyme": "^3.8.0",
     "enzyme-adapter-react-16": "1.7.1",
-    "eslint": "^3.17.0",
-    "eslint-loader": "^2.0.0",
+    "eslint": "^5.13.0",
+    "eslint-loader": "^2.1.2",
     "exports-loader": "^0.7.0",
     "expose-loader": "^0.7.5",
     "file-loader": "3.0.1",

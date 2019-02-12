@@ -1,8 +1,4 @@
 {
-  "ecmaFeatures": {
-    "jsx": false,
-    "modules": true,
-  },
   "extends": "eslint:recommended",
   "rules": {
     "eol-last": 1,
