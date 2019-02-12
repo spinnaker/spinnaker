@@ -198,7 +198,7 @@ public class Applications {
         .stream()
         .flatMap(vcap -> vcap.getValue().stream()
           .map(instance -> CloudFoundryServiceInstance.builder()
-            .serviceName(vcap.getKey())
+            .serviceInstanceName(vcap.getKey())
             .name(instance.getName())
             .plan(instance.getPlan())
             .tags(instance.getTags())

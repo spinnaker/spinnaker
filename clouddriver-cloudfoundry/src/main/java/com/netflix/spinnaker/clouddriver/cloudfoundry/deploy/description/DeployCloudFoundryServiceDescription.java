@@ -46,7 +46,7 @@ public class DeployCloudFoundryServiceDescription extends AbstractCloudFoundrySe
   @Data
   public static class ServiceAttributes {
     String service;
-    String serviceName;
+    String serviceInstanceName;
     String servicePlan;
 
     @Nullable
@@ -58,7 +58,7 @@ public class DeployCloudFoundryServiceDescription extends AbstractCloudFoundrySe
 
   @Data
   public static class UserProvidedServiceAttributes {
-    String serviceName;
+    String serviceInstanceName;
 
     @Nullable
     Set<String> tags;

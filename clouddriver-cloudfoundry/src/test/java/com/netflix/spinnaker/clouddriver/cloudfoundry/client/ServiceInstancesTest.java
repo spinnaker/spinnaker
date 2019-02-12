@@ -151,7 +151,7 @@ class ServiceInstancesTest {
     when(serviceInstanceService.getServiceInstanceById(any())).thenReturn(succeededServiceInstanceResource);
 
     serviceInstances.createServiceInstance("new-service-instance-name",
-      "serviceName",
+      "serviceInstanceName",
       "ServicePlan1",
       Collections.emptySet(),
       null,
@@ -173,7 +173,7 @@ class ServiceInstancesTest {
 
     assertThrows(CloudFoundryApiException.class, () ->
       serviceInstances.createServiceInstance("newServiceInstanceName",
-        "serviceName",
+        "serviceInstanceName",
         "ServicePlan1",
         Collections.emptySet(),
         null,
@@ -196,7 +196,7 @@ class ServiceInstancesTest {
 
     assertThrows(ResourceNotFoundException.class, () ->
       serviceInstances.createServiceInstance("newServiceInstanceName",
-        "serviceName",
+        "serviceInstanceName",
         "servicePlanName",
         Collections.emptySet(),
         null,
@@ -219,7 +219,7 @@ class ServiceInstancesTest {
     when(serviceInstanceService.getServiceInstanceById(any())).thenReturn(polledServiceInstanceResource);
 
     serviceInstances.createServiceInstance("newServiceInstanceName",
-      "serviceName",
+      "serviceInstanceName",
       "ServicePlan1",
       Collections.emptySet(),
       null,
@@ -246,7 +246,7 @@ class ServiceInstancesTest {
 
     assertThrows(CloudFoundryApiException.class, () ->
       serviceInstances.createServiceInstance("newServiceInstanceName",
-        "serviceName",
+        "serviceInstanceName",
         "ServicePlan1",
         Collections.emptySet(),
         null,
@@ -282,7 +282,7 @@ class ServiceInstancesTest {
 
     assertThrows(CloudFoundryApiException.class, () ->
       serviceInstances.createServiceInstance("newServiceInstanceName",
-        "serviceName",
+        "serviceInstanceName",
         "ServicePlan1",
         Collections.emptySet(),
         null,

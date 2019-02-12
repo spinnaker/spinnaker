@@ -39,35 +39,35 @@ public class DeployCloudFoundryServiceAtomicOperation implements AtomicOperation
     switch (description.getServiceType()) {
       case "service":
         DeployCloudFoundryServiceDescription.ServiceAttributes serviceAttributes = description.getServiceAttributes();
-        task.updateStatus(PHASE, "Creating service instance '" + serviceAttributes.getServiceName() + "' from service " + serviceAttributes.getService() + " and service plan " + serviceAttributes.getServicePlan());
+        task.updateStatus(PHASE, "Creating service instance '" + serviceAttributes.getServiceInstanceName() + "' from service " + serviceAttributes.getService() + " and service plan " + serviceAttributes.getServicePlan());
         description
           .getClient()
           .getServiceInstances()
           .createServiceInstance(
-            serviceAttributes.getServiceName(),
+            serviceAttributes.getServiceInstanceName(),
             serviceAttributes.getService(),
             serviceAttributes.getServicePlan(),
             serviceAttributes.getTags(),
             serviceAttributes.getParameterMap(),
             description.getSpace(),
             description.getTimeout());
-        task.updateStatus(PHASE, "Created service instance '" + serviceAttributes.getServiceName() + "'");
+        task.updateStatus(PHASE, "Created service instance '" + serviceAttributes.getServiceInstanceName() + "'");
         break;
       case "userProvided":
         DeployCloudFoundryServiceDescription.UserProvidedServiceAttributes userProvidedServiceAttributes = description.getUserProvidedServiceAttributes();
-        task.updateStatus(PHASE, "Creating user provided service instance '" + userProvidedServiceAttributes.getServiceName() + "'");
+        task.updateStatus(PHASE, "Creating user provided service instance '" + userProvidedServiceAttributes.getServiceInstanceName() + "'");
         description
           .getClient()
           .getServiceInstances()
           .createUserProvidedServiceInstance(
-            userProvidedServiceAttributes.getServiceName(),
+            userProvidedServiceAttributes.getServiceInstanceName(),
             userProvidedServiceAttributes.getSyslogDrainUrl(),
             userProvidedServiceAttributes.getTags(),
             userProvidedServiceAttributes.getCredentialsMap(),
             userProvidedServiceAttributes.getRouteServiceUrl(),
             description.getSpace()
           );
-        task.updateStatus(PHASE, "Created user provided service instance '" + userProvidedServiceAttributes.getServiceName() + "'");
+        task.updateStatus(PHASE, "Created user provided service instance '" + userProvidedServiceAttributes.getServiceInstanceName() + "'");
         break;
     }
     return null;

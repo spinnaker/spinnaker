@@ -94,14 +94,14 @@ public class DeployCloudFoundryServiceAtomicOperationConverter extends AbstractC
       });
     if (manifest.getService() == null) {
       throw new IllegalArgumentException("Manifest is missing the service");
-    } else if (manifest.getServiceName() == null) {
-      throw new IllegalArgumentException("Manifest is missing the service name");
+    } else if (manifest.getServiceInstanceName() == null) {
+      throw new IllegalArgumentException("Manifest is missing the service instance name");
     } else if(manifest.getServicePlan() == null) {
       throw new IllegalArgumentException("Manifest is missing the service plan");
     }
     DeployCloudFoundryServiceDescription.ServiceAttributes attrs = new DeployCloudFoundryServiceDescription.ServiceAttributes();
     attrs.setService(manifest.getService());
-    attrs.setServiceName(manifest.getServiceName());
+    attrs.setServiceInstanceName(manifest.getServiceInstanceName());
     attrs.setServicePlan(manifest.getServicePlan());
     attrs.setTags(manifest.getTags());
     attrs.setParameterMap(parseParameters(manifest.getParameters()));
@@ -115,11 +115,11 @@ public class DeployCloudFoundryServiceAtomicOperationConverter extends AbstractC
       .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
       .convertValue(manifestMap, new TypeReference<UserProvidedServiceManifest>() {
       });
-    if (manifest.getServiceName() == null) {
+    if (manifest.getServiceInstanceName() == null) {
       throw new IllegalArgumentException("Manifest is missing the service name");
     }
     DeployCloudFoundryServiceDescription.UserProvidedServiceAttributes attrs = new DeployCloudFoundryServiceDescription.UserProvidedServiceAttributes();
-    attrs.setServiceName(manifest.getServiceName());
+    attrs.setServiceInstanceName(manifest.getServiceInstanceName());
     attrs.setSyslogDrainUrl(manifest.getSyslogDrainUrl());
     attrs.setRouteServiceUrl(manifest.getRouteServiceUrl());
     attrs.setTags(manifest.getTags());
@@ -144,7 +144,7 @@ public class DeployCloudFoundryServiceAtomicOperationConverter extends AbstractC
   private static class ServiceManifest {
     private String service;
 
-    private String serviceName;
+    private String serviceInstanceName;
 
     private String servicePlan;
 
@@ -157,7 +157,7 @@ public class DeployCloudFoundryServiceAtomicOperationConverter extends AbstractC
 
   @Data
   private static class UserProvidedServiceManifest {
-    private String serviceName;
+    private String serviceInstanceName;
 
     @Nullable
     private String syslogDrainUrl;

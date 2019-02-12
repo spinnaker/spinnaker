@@ -31,7 +31,7 @@ import java.util.Set;
 @JsonDeserialize(builder = CloudFoundryServiceInstance.CloudFoundryServiceInstanceBuilder.class)
 public class CloudFoundryServiceInstance {
   @JsonView(Views.Cache.class)
-  String serviceName;
+  String serviceInstanceName;
 
   @JsonView(Views.Cache.class)
   String name;
