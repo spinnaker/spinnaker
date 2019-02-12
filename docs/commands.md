@@ -73,6 +73,15 @@
  * [**hal config artifact http account list**](#hal-config-artifact-http-account-list)
  * [**hal config artifact http disable**](#hal-config-artifact-http-disable)
  * [**hal config artifact http enable**](#hal-config-artifact-http-enable)
+ * [**hal config artifact maven**](#hal-config-artifact-maven)
+ * [**hal config artifact maven account**](#hal-config-artifact-maven-account)
+ * [**hal config artifact maven account add**](#hal-config-artifact-maven-account-add)
+ * [**hal config artifact maven account delete**](#hal-config-artifact-maven-account-delete)
+ * [**hal config artifact maven account edit**](#hal-config-artifact-maven-account-edit)
+ * [**hal config artifact maven account get**](#hal-config-artifact-maven-account-get)
+ * [**hal config artifact maven account list**](#hal-config-artifact-maven-account-list)
+ * [**hal config artifact maven disable**](#hal-config-artifact-maven-disable)
+ * [**hal config artifact maven enable**](#hal-config-artifact-maven-enable)
  * [**hal config artifact oracle**](#hal-config-artifact-oracle)
  * [**hal config artifact oracle account**](#hal-config-artifact-oracle-account)
  * [**hal config artifact oracle account add**](#hal-config-artifact-oracle-account-add)
@@ -262,6 +271,15 @@
  * [**hal config provider azure bakery edit**](#hal-config-provider-azure-bakery-edit)
  * [**hal config provider azure disable**](#hal-config-provider-azure-disable)
  * [**hal config provider azure enable**](#hal-config-provider-azure-enable)
+ * [**hal config provider cloudfoundry**](#hal-config-provider-cloudfoundry)
+ * [**hal config provider cloudfoundry account**](#hal-config-provider-cloudfoundry-account)
+ * [**hal config provider cloudfoundry account add**](#hal-config-provider-cloudfoundry-account-add)
+ * [**hal config provider cloudfoundry account delete**](#hal-config-provider-cloudfoundry-account-delete)
+ * [**hal config provider cloudfoundry account edit**](#hal-config-provider-cloudfoundry-account-edit)
+ * [**hal config provider cloudfoundry account get**](#hal-config-provider-cloudfoundry-account-get)
+ * [**hal config provider cloudfoundry account list**](#hal-config-provider-cloudfoundry-account-list)
+ * [**hal config provider cloudfoundry disable**](#hal-config-provider-cloudfoundry-disable)
+ * [**hal config provider cloudfoundry enable**](#hal-config-provider-cloudfoundry-enable)
  * [**hal config provider dcos**](#hal-config-provider-dcos)
  * [**hal config provider dcos account**](#hal-config-provider-dcos-account)
  * [**hal config provider dcos account add**](#hal-config-provider-dcos-account-add)
@@ -715,6 +733,7 @@ hal config artifact [subcommands]
  * `gitlab`: Manage and view Spinnaker configuration for the gitlab provider
  * `helm`: Manage and view Spinnaker configuration for the helm provider
  * `http`: Manage and view Spinnaker configuration for the http provider
+ * `maven`: Manage and view Spinnaker configuration for the maven provider
  * `oracle`: Manage and view Spinnaker configuration for the oracle provider
  * `s3`: Manage and view Spinnaker configuration for the s3 provider
  * `templates`: Show Spinnaker's configured artifact templates.
@@ -1648,6 +1667,158 @@ Set the http artifact provider as enabled
 #### Usage
 ```
 hal config artifact http enable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config artifact maven
+
+Manage and view Spinnaker configuration for the maven provider
+
+#### Usage
+```
+hal config artifact maven [parameters] [subcommands]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `account`: Manage and view Spinnaker configuration for the maven artifact provider's account
+ * `disable`: Set the maven artifact provider as disabled
+ * `enable`: Set the maven artifact provider as enabled
+
+---
+## hal config artifact maven account
+
+Manage and view Spinnaker configuration for the maven artifact provider's account
+
+#### Usage
+```
+hal config artifact maven account ACCOUNT [parameters] [subcommands]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `add`: Add an artifact account to the maven artifact provider.
+ * `delete`: Delete a specific maven artifact account by name.
+ * `edit`: Edit an artifact account in the maven artifact provider.
+ * `get`: Get the specified account details for the maven provider.
+ * `list`: List the artifact account names for the maven artifact provider.
+
+---
+## hal config artifact maven account add
+
+Add an artifact account to the maven artifact provider.
+
+#### Usage
+```
+hal config artifact maven account add ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--repository-url`: (*Required*) Full URI for the Maven repository ie. `http://some.host.com/repository/path`
+
+
+---
+## hal config artifact maven account delete
+
+Delete a specific maven artifact account by name.
+
+#### Usage
+```
+hal config artifact maven account delete ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config artifact maven account edit
+
+Edit an artifact account in the maven artifact provider.
+
+#### Usage
+```
+hal config artifact maven account edit ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--repository-url`: Full URI for the Maven repository ie. `http://some.host.com/repository/path`
+
+
+---
+## hal config artifact maven account get
+
+Get the specified account details for the maven provider.
+
+#### Usage
+```
+hal config artifact maven account get ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config artifact maven account list
+
+List the artifact account names for the maven artifact provider.
+
+#### Usage
+```
+hal config artifact maven account list [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config artifact maven disable
+
+Set the maven artifact provider as disabled
+
+#### Usage
+```
+hal config artifact maven disable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config artifact maven enable
+
+Set the maven artifact provider as enabled
+
+#### Usage
+```
+hal config artifact maven enable [parameters]
 ```
 
 #### Parameters
@@ -4290,6 +4461,7 @@ hal config provider [subcommands]
  * `appengine`: Manage and view Spinnaker configuration for the appengine provider
  * `aws`: Manage and view Spinnaker configuration for the aws provider
  * `azure`: Manage and view Spinnaker configuration for the azure provider
+ * `cloudfoundry`: Manage and view Spinnaker configuration for the cloudfoundry provider
  * `dcos`: Manage and view Spinnaker configuration for the dcos provider
  * `docker-registry`: Manage and view Spinnaker configuration for the dockerRegistry provider
  * `ecs`: Manage and view Spinnaker configuration for the ecs provider
@@ -5074,6 +5246,182 @@ Set the azure provider as enabled
 #### Usage
 ```
 hal config provider azure enable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config provider cloudfoundry
+
+Manage and view Spinnaker configuration for the cloudfoundry provider
+
+#### Usage
+```
+hal config provider cloudfoundry [parameters] [subcommands]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `account`: Manage and view Spinnaker configuration for the cloudfoundry provider's account
+ * `disable`: Set the cloudfoundry provider as disabled
+ * `enable`: Set the cloudfoundry provider as enabled
+
+---
+## hal config provider cloudfoundry account
+
+Manage and view Spinnaker configuration for the cloudfoundry provider's account
+
+#### Usage
+```
+hal config provider cloudfoundry account ACCOUNT [parameters] [subcommands]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `add`: Add an account to the cloudfoundry provider.
+ * `delete`: Delete a specific cloudfoundry account by name.
+ * `edit`: Edit an account in the cloudfoundry provider.
+ * `get`: Get the specified account details for the cloudfoundry provider.
+ * `list`: List the account names for the cloudfoundry provider.
+
+---
+## hal config provider cloudfoundry account add
+
+Add an account to the cloudfoundry provider.
+
+#### Usage
+```
+hal config provider cloudfoundry account add ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--api`: (*Required*) Host name of the CloudFoundry Foundation API endpoint without protocol indicator ie. `api.sys.somesystem.com`
+ * `--appsManagerURI`: Full URI for the Apps Manager application for the CloudFoundry Foundation ie. `https://apps.sys.somesystem.com`
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--environment`: The environment name for the account. Many accounts can share the same environment (e.g. dev, test, prod)
+ * `--metricsURI`: Full URI for the metrics application for the CloudFoundry Foundation ie. `https://metrics.sys.somesystem.com`
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--password`: (*Required*) Password for the account to use on for this CloudFoundry Foundation
+ * `--provider-version`: Some providers support multiple versions/release tracks. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.
+ * `--read-permissions`: (*Default*: `[]`) A user must have at least one of these roles in order to view this account's cloud resources.
+ * `--required-group-membership`: (*Default*: `[]`) A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
+ * `--user`: (*Required*) User name for the account to use on for this CloudFoundry Foundation
+ * `--write-permissions`: (*Default*: `[]`) A user must have at least one of these roles in order to make changes to this account's cloud resources.
+
+
+---
+## hal config provider cloudfoundry account delete
+
+Delete a specific cloudfoundry account by name.
+
+#### Usage
+```
+hal config provider cloudfoundry account delete ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config provider cloudfoundry account edit
+
+Edit an account in the cloudfoundry provider.
+
+#### Usage
+```
+hal config provider cloudfoundry account edit ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--add-read-permission`: Add this permission to the list of read permissions.
+ * `--add-required-group-membership`: Add this group to the list of required group memberships.
+ * `--add-write-permission`: Add this permission to the list of write permissions.
+ * `--api`: (*Required*) Host name of the CloudFoundry Foundation API endpoint without protocol indicator ie. `api.sys.somesystem.com`
+ * `--appsManagerURI`: Full URI for the Apps Manager application for the CloudFoundry Foundation ie. `https://apps.sys.somesystem.com`
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--environment`: The environment name for the account. Many accounts can share the same environment (e.g. dev, test, prod)
+ * `--metricsURI`: Full URI for the metrics application for the CloudFoundry Foundation ie. `https://metrics.sys.somesystem.com`
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--password`: (*Required*) Password for the account to use on for this CloudFoundry Foundation
+ * `--provider-version`: Some providers support multiple versions/release tracks. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.
+ * `--read-permissions`: A user must have at least one of these roles in order to view this account's cloud resources.
+ * `--remove-read-permission`: Remove this permission from the list of read permissions.
+ * `--remove-required-group-membership`: Remove this group from the list of required group memberships.
+ * `--remove-write-permission`: Remove this permission to from list of write permissions.
+ * `--required-group-membership`: A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
+ * `--user`: (*Required*) User name for the account to use on for this CloudFoundry Foundation
+ * `--write-permissions`: A user must have at least one of these roles in order to make changes to this account's cloud resources.
+
+
+---
+## hal config provider cloudfoundry account get
+
+Get the specified account details for the cloudfoundry provider.
+
+#### Usage
+```
+hal config provider cloudfoundry account get ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config provider cloudfoundry account list
+
+List the account names for the cloudfoundry provider.
+
+#### Usage
+```
+hal config provider cloudfoundry account list [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config provider cloudfoundry disable
+
+Set the cloudfoundry provider as disabled
+
+#### Usage
+```
+hal config provider cloudfoundry disable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config provider cloudfoundry enable
+
+Set the cloudfoundry provider as enabled
+
+#### Usage
+```
+hal config provider cloudfoundry enable [parameters]
 ```
 
 #### Parameters
