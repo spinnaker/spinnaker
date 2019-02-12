@@ -63,7 +63,9 @@ class BuildSpinCommand(RepositoryCommandProcessor):
   def __init__(self, factory, options, **kwargs):
     super(BuildSpinCommand, self).__init__(
       factory, options, source_repository_names=SPIN_REPOSITORY_NAMES, **kwargs)
+    options_copy = copy.copy(options)
     self.__gcs_uploader = SpinGcsUploader(options)
+    self.__scm = BranchSourceCodeManager(options_copy, self.get_input_dir())
     self.__build_version = None  # recorded after build
     bom_contents = BomSourceCodeManager.load_bom(options)
     gate_entry = bom_contents.get('services', {}).get('gate', {})
@@ -186,10 +188,10 @@ class BuildSpinCommand(RepositoryCommandProcessor):
       patch_versions = [int(m.group(1)) for m in tag_matches]
       max_patch = max(patch_versions)
       patch = str(max_patch + 1)
-      return '{major}.{minor}.{patch}'.format(
-          major=match.group(1), minor=match.group(2), patch=patch)
     else:
-      raise_and_log_error(ConfigError('No semver tags found in {}, cannot calculate internal version'.format(git_dir)))
+      patch = '0'
+    return '{major}.{minor}.{patch}'.format(
+        major=match.group(1), minor=match.group(2), patch=patch)
 
 
 
