@@ -9,6 +9,12 @@ module.exports = angular
   .controller('azureServerGroupNetworkSettingsCtrl', function($scope) {
     ModalWizard.markClean('network-settings');
 
+    $scope.command.selectedVnet = {
+      name: $scope.command.vnet,
+    };
+
+    $scope.command.selectedSubnet = $scope.command.subnet;
+
     this.networkSettingsChanged = function(item) {
       $scope.command.vnet = $scope.command.selectedVnet.name;
       $scope.command.subnet = item;

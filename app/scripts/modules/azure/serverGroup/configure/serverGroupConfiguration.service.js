@@ -192,28 +192,30 @@ module.exports = angular
     }
 
     function attachEventHandlers(cmd) {
-      cmd.regionChanged = function regionChanged(command) {
+      cmd.regionChanged = function regionChanged(command, isInit = false) {
         var result = { dirty: {} };
         if (command.region && command.credentials) {
           angular.extend(result.dirty, configureLoadBalancers(command).dirty);
           angular.extend(result.dirty, configureSecurityGroupOptions(command).dirty);
         }
         // reset previous set values
-        command.loadBalancerName = null;
-        command.vnet = null;
-        command.vnetResourceGroup = null;
-        command.subnet = null;
-        command.selectedSubnet = null;
-        command.selectedVnet = null;
-        command.selectedVnetSubnets = [];
-        command.viewState.networkSettingsConfigured = false;
-        command.selectedSecurityGroup = null;
-        command.securityGroupName = null;
+        if (!isInit) {
+          command.loadBalancerName = null;
+          command.vnet = null;
+          command.vnetResourceGroup = null;
+          command.subnet = null;
+          command.selectedSubnet = null;
+          command.selectedVnet = null;
+          command.selectedVnetSubnets = [];
+          command.viewState.networkSettingsConfigured = false;
+          command.selectedSecurityGroup = null;
+          command.securityGroupName = null;
+        }
 
         return result;
       };
 
-      cmd.credentialsChanged = function credentialsChanged(command) {
+      cmd.credentialsChanged = function credentialsChanged(command, isInit) {
         var result = { dirty: {} };
         var backingData = command.backingData;
         if (command.credentials) {
@@ -230,7 +232,7 @@ module.exports = angular
             command.region = null;
             result.dirty.region = true;
           } else {
-            angular.extend(result.dirty, command.regionChanged(command).dirty);
+            angular.extend(result.dirty, command.regionChanged(command, isInit).dirty);
           }
           if (command.region) {
             angular.extend(result.dirty, configureLoadBalancers(command).dirty);

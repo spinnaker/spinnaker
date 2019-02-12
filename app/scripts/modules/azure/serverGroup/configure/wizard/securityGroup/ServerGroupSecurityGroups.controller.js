@@ -10,6 +10,10 @@ module.exports = angular
     ModalWizard.markClean('security-groups');
     ModalWizard.markComplete('security-groups');
 
+    $scope.command.selectedSecurityGroup = {
+      id: $scope.command.securityGroupName,
+    };
+
     this.securityGroupChanged = function(securityGroup) {
       $scope.command.securityGroupName = securityGroup.id;
       ModalWizard.markComplete('security-groups');
