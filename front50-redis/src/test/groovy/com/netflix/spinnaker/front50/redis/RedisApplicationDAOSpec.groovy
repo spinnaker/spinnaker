@@ -46,7 +46,7 @@ class RedisApplicationDAOSpec extends Specification {
   @Shared
   Map<String, String> newApplicationAttrs = [
       name: "new-application", email: "email@netflix.com", description: "My application", pdApiKey: "pdApiKey",
-      accounts: "prod,test", repoProjectKey: "project-key", repoSlug: "repo", repoType: "github"
+      accounts: "prod,test", repoProjectKey: "project-key", repoSlug: "repo", repoType: "github", trafficGuards: []
   ]
 
   void setupSpec() {
@@ -191,7 +191,10 @@ class RedisApplicationDAOSpec extends Specification {
     given:
     def application = new Application([
         name       : "app1",
-        description: "My description"
+        description: "My description",
+        details: [
+            trafficGuards: []
+        ]
     ])
     redisApplicationDAO.create("app1", application)
 
