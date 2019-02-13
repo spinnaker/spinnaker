@@ -126,8 +126,11 @@ class AwsDeployStagePreProcessor implements DeployStagePreProcessor {
   }
 
   private static boolean shouldPinSourceServerGroup(String strategy) {
-    // TODO-AJ consciously only enabling for rolling red/black -- will add support for other strategies after it's working
-    return strategy == "rollingredblack"
+    // TODO(dreynaud): consider adding support for highlander
+    // it would make sense to avoid the source server group getting scaled down in case of a long running
+    // deploy that needs to be canceled, but if we just add "highlander" in the supported strategies here
+    // the unpin task fails as it is started after the shrinkCluster task
+    return strategy in ["rollingredblack", "redblack"]
   }
 
   private Optional<Map<String, Object>> getResizeContext(StageData stageData) {
