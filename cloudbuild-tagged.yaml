@@ -1,5 +1,5 @@
 steps:
-- name: 'java:8'
+- name: 'openjdk:8-stretch'
   env: ["GRADLE_USER_HOME=cache"]
   entrypoint: "bash"
   args: [ "-c", "./gradlew build -PskipTests"]
