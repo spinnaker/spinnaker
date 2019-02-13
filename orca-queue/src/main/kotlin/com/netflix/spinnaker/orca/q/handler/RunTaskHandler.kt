@@ -305,6 +305,7 @@ class RunTaskHandler(
 
   private fun Stage.withLoggingContext(taskModel: com.netflix.spinnaker.orca.pipeline.model.Task, block: () -> Unit) {
     try {
+      MDC.put("application", this.execution.application)
       MDC.put("stageType", type)
       MDC.put("taskType", taskModel.implementingClass)
 
@@ -317,6 +318,7 @@ class RunTaskHandler(
       MDC.remove("stageType")
       MDC.remove("taskType")
       MDC.remove("taskStartTime")
+      MDC.remove("application")
     }
   }
 }
