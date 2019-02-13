@@ -152,7 +152,7 @@ class RollingRedBlackStrategy implements Strategy, ApplicationContextAware {
         resizeContext.capacity = savedCapacity // will scale to a percentage of that static capacity
       }
 
-      log.info("Adding `Grow to $p% of Desired Size` stage with context $resizeContext")
+      log.info("Adding `Grow to $p% of Desired Size` stage with context $resizeContext [executionId=${stage.execution.id}]")
 
       def resizeStage = newStage(
         stage.execution,
@@ -176,7 +176,7 @@ class RollingRedBlackStrategy implements Strategy, ApplicationContextAware {
           preferLargerOverNewer       : false
         ]
 
-        log.info("Adding `Disable $p% of Desired Size` stage with context $disableContext")
+        log.info("Adding `Disable $p% of Desired Size` stage with context $disableContext [executionId=${stage.execution.id}]")
 
         stages << newStage(
           stage.execution,
