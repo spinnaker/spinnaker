@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.clouddriver.core.services
 
 import com.netflix.spinnaker.clouddriver.model.EntityTags
-import com.netflix.spinnaker.clouddriver.model.EntityTags.EntityTag
 import retrofit.client.Response
 import retrofit.http.*
 
@@ -62,4 +61,13 @@ interface Front50Service {
 
   @DELETE('/v2/tags/{id}')
   Response deleteEntityTags(@Path('id') String id)
+
+  // v2 MPT APIs
+  @GET('/v2/pipelineTemplates/{pipelineTemplateId}')
+  Map getV2PipelineTemplate(@Path("pipelineTemplateId") String pipelineTemplateId,
+                            @Query("version") String version,
+                            @Query("digest") String digest)
+
+  @GET('/v2/pipelineTemplates')
+  List<Map> listV2PipelineTemplates(@Query("scopes") List<String> scopes)
 }
