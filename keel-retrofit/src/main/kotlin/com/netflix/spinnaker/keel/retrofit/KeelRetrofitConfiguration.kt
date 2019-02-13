@@ -16,6 +16,8 @@
 package com.netflix.spinnaker.keel.retrofit
 
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
+import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties
+import com.netflix.spinnaker.security.AuthenticatedRequest
 import okhttp3.ConnectionPool
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
@@ -67,7 +69,7 @@ open class KeelRetrofitConfiguration {
       })
       interceptors?.forEach {
         log.info("Adding OkHttp Interceptor: ${it.javaClass.simpleName}")
-        networkInterceptors().add(it)
+        addNetworkInterceptor(it)
       }
 
       connectionPool(ConnectionPool(maxIdleConnections, keepAliveDurationMs, MILLISECONDS))
@@ -80,5 +82,25 @@ open class KeelRetrofitConfiguration {
   open fun retrofitLoggingInterceptor(@Value("\${retrofit.logLevel:BASIC}") retrofitLogLevel: String) =
     HttpLoggingInterceptor().apply {
       level = HttpLoggingInterceptor.Level.valueOf(retrofitLogLevel)
+    }
+
+  // TODO: this should only be applied to spinnaker-to-spinnaker requests
+  @Bean
+  open fun spinnakerRequestInterceptor(
+    okHttpClientConfigurationProperties: OkHttpClientConfigurationProperties
+  ) =
+  // Inline version of SpinnakerRequestInterceptor from kork-web
+    Interceptor { chain ->
+      val requestBuilder = chain.request().newBuilder()
+      if (okHttpClientConfigurationProperties.propagateSpinnakerHeaders) {
+        AuthenticatedRequest
+          .getAuthenticationHeaders()
+          .forEach { k, v ->
+            v.ifPresent {
+              requestBuilder.addHeader(k, it)
+            }
+          }
+      }
+      chain.proceed(requestBuilder.build())
     }
 }

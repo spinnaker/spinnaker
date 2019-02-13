@@ -19,10 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.jakewharton.retrofit2.adapter.kotlin.coroutines.CoroutineCallAdapterFactory
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.retrofit.KeelRetrofitConfiguration
-import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties
-import com.netflix.spinnaker.security.AuthenticatedRequest
 import okhttp3.HttpUrl
-import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -47,31 +44,13 @@ open class OrcaConfiguration {
   open fun orcaService(
     orcaEndpoint: HttpUrl,
     objectMapper: ObjectMapper,
-    retrofitClient: OkHttpClient,
-    okHttpClientConfigurationProperties: OkHttpClientConfigurationProperties
-  ): OrcaService {
-
-    // Inline version of SpinnakerRequestInterceptor from kork-web
-    retrofitClient.interceptors().add(Interceptor { chain ->
-      val requestBuilder = chain.request().newBuilder()
-      if (okHttpClientConfigurationProperties.propagateSpinnakerHeaders) {
-        AuthenticatedRequest
-          .getAuthenticationHeaders()
-          .forEach { k, v ->
-            v.ifPresent {
-              requestBuilder.addHeader(k, it)
-            }
-          }
-      }
-      chain.proceed(requestBuilder.build())
-    })
-
-    return Retrofit.Builder()
+    retrofitClient: OkHttpClient
+  ): OrcaService =
+    Retrofit.Builder()
       .baseUrl(orcaEndpoint)
       .client(retrofitClient)
       .addConverterFactory(JacksonConverterFactory.create(objectMapper))
       .addCallAdapterFactory(CoroutineCallAdapterFactory())
       .build()
       .create(OrcaService::class.java)
-    }
 }

@@ -21,9 +21,6 @@ import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.MemoryCloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.okhttp.AccountProvidingNetworkInterceptor
-import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties
-import com.netflix.spinnaker.okhttp.SpinnakerRequestInterceptor
-import com.netflix.spinnaker.security.AuthenticatedRequest
 import okhttp3.HttpUrl
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
@@ -56,33 +53,15 @@ open class ClouddriverConfiguration {
   open fun clouddriverService(
     clouddriverEndpoint: HttpUrl,
     objectMapper: ObjectMapper,
-    retrofitClient: OkHttpClient,
-    spinnakerRequestInterceptor: SpinnakerRequestInterceptor,
-    okHttpClientConfigurationProperties: OkHttpClientConfigurationProperties)
-    : CloudDriverService {
-
-    // Inline version of SpinnakerRequestInterceptor from kork-web
-    retrofitClient.interceptors().add(Interceptor { chain ->
-      val requestBuilder = chain.request().newBuilder()
-      if (okHttpClientConfigurationProperties.propagateSpinnakerHeaders) {
-        AuthenticatedRequest
-          .getAuthenticationHeaders()
-          .forEach { k, v ->
-            v.ifPresent {
-              requestBuilder.addHeader(k, it)
-            }
-          }
-      }
-      chain.proceed(requestBuilder.build())
-    })
-    return Retrofit.Builder()
+    retrofitClient: OkHttpClient)
+    : CloudDriverService =
+    Retrofit.Builder()
       .addConverterFactory(JacksonConverterFactory.create(objectMapper))
       .addCallAdapterFactory(CoroutineCallAdapterFactory())
       .baseUrl(clouddriverEndpoint)
       .client(retrofitClient)
       .build()
       .create(CloudDriverService::class.java)
-  }
 
   @Bean
   @ConditionalOnMissingBean(CloudDriverCache::class)
