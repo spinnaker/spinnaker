@@ -26,16 +26,25 @@ import com.netflix.spinnaker.keel.clouddriver.model.Tag
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.ec2.RETROFIT_NOT_FOUND
 import com.netflix.spinnaker.keel.ec2.resource.ClusterHandler
+import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.orca.OrcaService
+import com.netflix.spinnaker.keel.orca.TaskRef
+import com.netflix.spinnaker.keel.orca.TaskRefResponse
+import com.nhaarman.mockito_kotlin.any
+import com.nhaarman.mockito_kotlin.argumentCaptor
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.doThrow
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.reset
+import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.whenever
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import kotlinx.coroutines.CompletableDeferred
 import strikt.api.expectThat
+import strikt.assertions.hasEntry
+import strikt.assertions.isA
+import strikt.assertions.isEqualTo
 import strikt.assertions.isNotNull
 import strikt.assertions.isNull
 import java.time.Clock
@@ -120,6 +129,8 @@ internal object ClusterHandlerTest : JUnit5Minutests {
         whenever(networkBy(vpc.id)) doReturn vpc
         whenever(securityGroupById(spec.accountName, spec.region, sg1.id)) doReturn sg1
         whenever(securityGroupById(spec.accountName, spec.region, sg2.id)) doReturn sg2
+        whenever(securityGroupByName(spec.accountName, spec.region, sg1.name)) doReturn sg1
+        whenever(securityGroupByName(spec.accountName, spec.region, sg2.name)) doReturn sg2
       }
     }
 
@@ -127,16 +138,54 @@ internal object ClusterHandlerTest : JUnit5Minutests {
       reset(cloudDriverService, cloudDriverCache, orcaService)
     }
 
-    test("the current model is null if the cluster does not exist or has no active server groups") {
-      whenever(cloudDriverService.activeServerGroup()) doThrow RETROFIT_NOT_FOUND
+    context("the cluster does not exist or has no active server groups") {
+      before {
+        whenever(cloudDriverService.activeServerGroup()) doThrow RETROFIT_NOT_FOUND
+      }
 
-      expectThat(current(spec, request)).isNull()
+      test("the current model is null") {
+        expectThat(current(spec, request)).isNull()
+      }
+
+      test("annealing a diff creates a new server group") {
+        whenever(orcaService.orchestrate(any())) doReturn CompletableDeferred(TaskRefResponse(TaskRef("1")))
+
+        converge(request.metadata.name, spec)
+
+        argumentCaptor<OrchestrationRequest>().apply {
+          verify(orcaService).orchestrate(capture())
+
+          expectThat(firstValue.job.first()["type"]).isEqualTo("createServerGroup")
+        }
+      }
     }
 
-    test("the current model is converted to a cluster if it has active server groups") {
-      whenever(cloudDriverService.activeServerGroup()) doReturn CompletableDeferred(activeServerGroupResponse)
+    context("the cluster has active server groups") {
+      before {
+        whenever(cloudDriverService.activeServerGroup()) doReturn CompletableDeferred(activeServerGroupResponse)
+      }
 
-      expectThat(current(spec, request)).isNotNull()
+      test("the current model is converted to a cluster") {
+        expectThat(current(spec, request)).isNotNull()
+      }
+
+      test("annealing a diff clones the current server group") {
+        whenever(orcaService.orchestrate(any())) doReturn CompletableDeferred(TaskRefResponse(TaskRef("1")))
+
+        converge(request.metadata.name, spec)
+
+        argumentCaptor<OrchestrationRequest>().apply {
+          verify(orcaService).orchestrate(capture())
+
+          expectThat(firstValue.job.first()["source"])
+            .isA<Map<String, Any>>()
+            .and {
+              hasEntry("account", activeServerGroupResponse.accountName)
+              hasEntry("region", activeServerGroupResponse.region)
+              hasEntry("asgName", activeServerGroupResponse.asg.autoScalingGroupName)
+            }
+        }
+      }
     }
   }
 

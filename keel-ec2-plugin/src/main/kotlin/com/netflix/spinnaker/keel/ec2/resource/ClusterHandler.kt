@@ -21,11 +21,11 @@ import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.model.OrchestrationTrigger
 import com.netflix.spinnaker.keel.orca.OrcaService
+import com.netflix.spinnaker.keel.retrofit.isNotFound
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.slf4j.LoggerFactory
-import org.springframework.http.HttpStatus.NOT_FOUND
 import retrofit2.HttpException
 import java.time.Clock
 import java.time.Duration
@@ -46,71 +46,110 @@ class ClusterHandler(
 
   override fun converge(resourceName: ResourceName, spec: Cluster) {
     val taskRef = runBlocking {
+      val job = mutableMapOf(
+        "application" to spec.application,
+        "credentials" to spec.accountName,
+        // <things to do with the strategy>
+        // TODO: this will be parameterizable ultimately
+        "strategy" to "redblack",
+        "delayBeforeDisableSec" to 0,
+        "delayBeforeScaleDownSec" to 0,
+        "maxRemainingAsgs" to 2,
+        "rollback" to mapOf(
+          "onFailure" to false
+        ),
+        "scaleDown" to false,
+        // </things to do with the strategy>
+        "capacity" to mapOf(
+          "min" to spec.capacity.min,
+          "max" to spec.capacity.max,
+          "desired" to spec.capacity.desired
+        ),
+        "targetHealthyDeployPercentage" to 100, // TODO: any reason to do otherwise?
+        "cooldown" to spec.cooldown.seconds,
+        "enabledMetrics" to spec.enabledMetrics,
+        "healthCheckType" to spec.healthCheckType.name,
+        "healthCheckGracePeriod" to spec.healthCheckGracePeriod.seconds,
+        "instanceMonitoring" to spec.instanceMonitoring,
+        "ebsOptimized" to spec.ebsOptimized,
+        "iamRole" to spec.iamRole,
+        "terminationPolicies" to spec.terminationPolicies.map(TerminationPolicy::name),
+        "subnetType" to spec.vpcName,
+        "availabilityZones" to mapOf(
+          spec.region to spec.availabilityZones
+        ),
+        "keyPair" to spec.keyPair,
+        "suspendedProcesses" to spec.suspendedProcesses,
+        "securityGroups" to spec.securityGroupIds,
+        "stack" to spec.name.stack,
+        "freeFormDetails" to spec.name.detail,
+        "tags" to spec.tags,
+        "useAmiBlockDeviceMappings" to false, // TODO: any reason to do otherwise?
+        "copySourceCustomBlockDeviceMappings" to false, // TODO: any reason to do otherwise?
+        "base64UserData" to spec.base64UserData,
+        "virtualizationType" to "hvm", // TODO: any reason to do otherwise?
+        "moniker" to mapOf(
+          "app" to spec.application,
+          "stack" to spec.name.stack,
+          "detail" to spec.name.detail,
+          "cluster" to spec.name.toString()
+        ),
+        "amiName" to spec.imageId,
+        "reason" to "Diff detected at ${clock.instant().iso()}",
+        "instanceType" to spec.instanceType.value,
+        "type" to "createServerGroup",
+        "cloudProvider" to CLOUD_PROVIDER,
+        "loadBalancers" to spec.loadBalancerNames,
+        "targetGroups" to spec.targetGroups,
+        "account" to spec.accountName
+      )
+
+      cloudDriverService.getAncestorServerGroupName(spec)
+        ?.let { ancestorServerGroup ->
+          job["source"] = mapOf(
+            "account" to spec.accountName,
+            "region" to spec.region,
+            "asgName" to ancestorServerGroup
+          )
+          job["copySourceCustomBlockDeviceMappings"] = true
+        }
+
       orcaService
         .orchestrate(OrchestrationRequest(
           "Upsert cluster ${spec.name} in ${spec.accountName}/${spec.region}",
           spec.application,
           "Upsert security cluster ${spec.name} in ${spec.accountName}/${spec.region}",
-          listOf(Job(
-            "createServerGroup",
-            mutableMapOf(
-              "application" to spec.application,
-              "credentials" to spec.accountName,
-              "strategy" to "redblack",
-              "capacity" to mapOf(
-                "min" to spec.capacity.min,
-                "max" to spec.capacity.max,
-                "desired" to spec.capacity.desired
-              ),
-              "targetHealthyDeployPercentage" to 100, // TODO: any reason to do otherwise?
-              "cooldown" to spec.cooldown.seconds,
-              "enabledMetrics" to spec.enabledMetrics,
-              "healthCheckType" to spec.healthCheckType.name,
-              "healthCheckGracePeriod" to spec.healthCheckGracePeriod.seconds,
-              "instanceMonitoring" to spec.instanceMonitoring,
-              "ebsOptimized" to spec.ebsOptimized,
-              "iamRole" to spec.iamRole,
-              "terminationPolicies" to spec.terminationPolicies.map(TerminationPolicy::name),
-              "subnetType" to spec.vpcName,
-              "availabilityZones" to mapOf(
-                spec.region to spec.availabilityZones
-              ),
-              "keyPair" to spec.keyPair,
-              "suspendedProcesses" to spec.suspendedProcesses,
-              "securityGroups" to spec.securityGroupIds,
-              "stack" to spec.name.stack,
-              "freeFormDetails" to spec.name.detail,
-              "tags" to spec.tags,
-              "useAmiBlockDeviceMappings" to false, // TODO: any reason to do otherwise?
-              "copySourceCustomBlockDeviceMappings" to false, // TODO: any reason to do otherwise?
-              "base64UserData" to spec.base64UserData,
-              "virtualizationType" to "hvm", // TODO: any reason to do otherwise?
-              "moniker" to mapOf(
-                "app" to spec.application,
-                "stack" to spec.name.stack,
-                "detail" to spec.name.detail,
-                "cluster" to spec.name.toString()
-              ),
-              "amiName" to spec.imageId,
-              "reason" to "Diff detected at ${clock.instant().iso()}",
-              "instanceType" to spec.instanceType.value,
-              "type" to "createServerGroup",
-              "cloudProvider" to CLOUD_PROVIDER,
-              "loadBalancers" to spec.loadBalancerNames,
-              "targetGroups" to spec.targetGroups,
-              "account" to spec.accountName
-            )
-          )),
+          listOf(Job("createServerGroup", job)),
           OrchestrationTrigger(resourceName.toString())
         ))
         .await()
     }
-    log.info("Started task {} to upsert security group", taskRef.ref)
+    log.info("Started task {} to upsert cluster", taskRef.ref)
   }
 
   override fun delete(resourceName: ResourceName, spec: SecurityGroup) {
     TODO("not implemented")
   }
+
+  private suspend fun CloudDriverService.getAncestorServerGroupName(spec: Cluster): String? =
+    try {
+      activeServerGroup(
+        spec.application,
+        spec.accountName,
+        spec.name.toString(),
+        spec.region,
+        CLOUD_PROVIDER
+      )
+        .await()
+        .asg
+        .autoScalingGroupName
+    } catch (e: HttpException) {
+      if (e.isNotFound) {
+        null
+      } else {
+        throw e
+      }
+    }
 
   private suspend fun CloudDriverService.getCluster(spec: Cluster): Cluster? {
     try {
@@ -148,7 +187,7 @@ class ClusterHandler(
           }
       }
     } catch (e: HttpException) {
-      if (e.code() == NOT_FOUND.value()) {
+      if (e.isNotFound) {
         return null
       }
       throw e

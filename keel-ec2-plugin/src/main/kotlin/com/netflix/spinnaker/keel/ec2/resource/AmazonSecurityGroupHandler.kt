@@ -29,9 +29,9 @@ import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.model.OrchestrationTrigger
 import com.netflix.spinnaker.keel.orca.OrcaService
+import com.netflix.spinnaker.keel.retrofit.isNotFound
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
-import org.springframework.http.HttpStatus.NOT_FOUND
 import retrofit2.HttpException
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup as RiverSecurityGroup
 
@@ -123,7 +123,7 @@ class AmazonSecurityGroupHandler(
             )
           }
       } catch (e: HttpException) {
-        if (e.code() == NOT_FOUND.value()) {
+        if (e.isNotFound) {
           null
         } else {
           throw e
