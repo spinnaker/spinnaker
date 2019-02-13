@@ -38,19 +38,19 @@ import retrofit2.converter.jackson.JacksonConverterFactory
 @Configuration
 @ConditionalOnProperty("clouddriver.enabled")
 @Import(RetrofitConfiguration::class)
-open class ClouddriverConfiguration {
+class ClouddriverConfiguration {
 
   @Bean
-  open fun accountProvidingNetworkInterceptor(applicationContext: ApplicationContext): Interceptor =
+  fun accountProvidingNetworkInterceptor(applicationContext: ApplicationContext): Interceptor =
     AccountProvidingNetworkInterceptor(applicationContext)
 
   @Bean
-  open fun clouddriverEndpoint(@Value("\${clouddriver.baseUrl}") clouddriverBaseUrl: String): HttpUrl =
+  fun clouddriverEndpoint(@Value("\${clouddriver.baseUrl}") clouddriverBaseUrl: String): HttpUrl =
     HttpUrl.parse(clouddriverBaseUrl)
       ?: throw BeanCreationException("Invalid URL: $clouddriverBaseUrl")
 
   @Bean
-  open fun clouddriverService(
+  fun clouddriverService(
     clouddriverEndpoint: HttpUrl,
     objectMapper: ObjectMapper,
     retrofitClient: OkHttpClient)
@@ -65,6 +65,6 @@ open class ClouddriverConfiguration {
 
   @Bean
   @ConditionalOnMissingBean(CloudDriverCache::class)
-  open fun cloudDriverCache(cloudDriverService: CloudDriverService) =
+  fun cloudDriverCache(cloudDriverService: CloudDriverService) =
     MemoryCloudDriverCache(cloudDriverService)
 }

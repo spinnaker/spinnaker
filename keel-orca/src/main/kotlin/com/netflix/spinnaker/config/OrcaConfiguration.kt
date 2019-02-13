@@ -34,14 +34,14 @@ import retrofit2.converter.jackson.JacksonConverterFactory
 @ConditionalOnProperty("orca.enabled")
 @Import(KeelRetrofitConfiguration::class)
 @ComponentScan("com.netflix.spinnaker.keel.orca")
-open class OrcaConfiguration {
+class OrcaConfiguration {
 
   @Bean
-  open fun orcaEndpoint(@Value("\${orca.baseUrl}") orcaBaseUrl: String) =
+  fun orcaEndpoint(@Value("\${orca.baseUrl}") orcaBaseUrl: String) =
     HttpUrl.parse(orcaBaseUrl)
 
   @Bean
-  open fun orcaService(
+  fun orcaService(
     orcaEndpoint: HttpUrl,
     objectMapper: ObjectMapper,
     retrofitClient: OkHttpClient

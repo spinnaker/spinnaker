@@ -15,6 +15,7 @@
  */
 
 apply plugin: "java-library"
+apply plugin: "kotlin-spring"
 
 dependencies {
   implementation project(":keel-retrofit")

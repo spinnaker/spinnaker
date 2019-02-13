@@ -24,7 +24,7 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.beans.factory.config.ConfigurableBeanFactory
+import org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_PROTOTYPE
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -36,7 +36,7 @@ import java.util.concurrent.TimeUnit.MILLISECONDS
 @Configuration
 @Import(OkHttp3ClientConfiguration::class)
 @EnableConfigurationProperties
-open class KeelRetrofitConfiguration {
+class KeelRetrofitConfiguration {
 
   private val log = LoggerFactory.getLogger(javaClass)
 
@@ -53,8 +53,8 @@ open class KeelRetrofitConfiguration {
   var spinnakerUser = "keel@spinnaker.io"
 
   @Bean(name = ["retrofitClient", "okClient"])
-  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  open fun retrofitClient(
+  @Scope(SCOPE_PROTOTYPE)
+  fun retrofitClient(
     okHttpClientConfig: OkHttp3ClientConfiguration,
     interceptors: Set<Interceptor>?
   ): OkHttpClient {
@@ -79,14 +79,14 @@ open class KeelRetrofitConfiguration {
   }
 
   @Bean
-  open fun retrofitLoggingInterceptor(@Value("\${retrofit.logLevel:BASIC}") retrofitLogLevel: String) =
+  fun retrofitLoggingInterceptor(@Value("\${retrofit.logLevel:BASIC}") retrofitLogLevel: String) =
     HttpLoggingInterceptor().apply {
       level = HttpLoggingInterceptor.Level.valueOf(retrofitLogLevel)
     }
 
   // TODO: this should only be applied to spinnaker-to-spinnaker requests
   @Bean
-  open fun spinnakerRequestInterceptor(
+  fun spinnakerRequestInterceptor(
     okHttpClientConfigurationProperties: OkHttpClientConfigurationProperties
   ) =
   // Inline version of SpinnakerRequestInterceptor from kork-web
