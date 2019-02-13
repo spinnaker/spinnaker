@@ -63,18 +63,19 @@ class AwsDeployStagePreProcessor implements DeployStagePreProcessor {
   List<StageDefinition> beforeStageDefinitions(Stage stage) {
     def stageData = stage.mapTo(StageData)
     if (shouldPinSourceServerGroup(stageData.strategy)) {
-      def resizeContext = getResizeContext(stageData)
-      if (resizeContext == null) {
+      def optionalResizeContext = getResizeContext(stageData)
+      if (!optionalResizeContext.isPresent()) {
         // this means we don't need to resize anything
         // happens in particular when there is no pre-existing source server group
         return []
       }
 
+      def resizeContext = optionalResizeContext.get()
       resizeContext.pinMinimumCapacity = true
 
       return [
         new StageDefinition(
-          name: "Pin ${resizeContext.serverGroupName}".toString(),
+          name: "Pin ${resizeContext.serverGroupName}",
           stageDefinitionBuilder: resizeServerGroupStage,
           context: resizeContext
         )
@@ -129,8 +130,7 @@ class AwsDeployStagePreProcessor implements DeployStagePreProcessor {
     return strategy == "rollingredblack"
   }
 
-  @Nullable
-  private Map<String, Object> getResizeContext(StageData stageData) {
+  private Optional<Map<String, Object>> getResizeContext(StageData stageData) {
     def cleanupConfig = AbstractDeployStrategyStage.CleanupConfig.fromStage(stageData)
     def baseContext = [
       (cleanupConfig.location.singularType()): cleanupConfig.location.value,
@@ -143,7 +143,7 @@ class AwsDeployStagePreProcessor implements DeployStagePreProcessor {
     try {
       def source = getSource(targetServerGroupResolver, stageData, baseContext)
       if (!source) {
-        return null
+        return Optional.empty()
       }
 
       baseContext.putAll([
@@ -152,9 +152,9 @@ class AwsDeployStagePreProcessor implements DeployStagePreProcessor {
         source            : source,
         useNameAsLabel    : true     // hint to deck that it should _not_ override the name
       ])
-      return baseContext
+      return Optional.of(baseContext)
     } catch(TargetServerGroup.NotFoundException e) {
-      return null
+      return Optional.empty()
     }
   }
 
@@ -168,12 +168,13 @@ class AwsDeployStagePreProcessor implements DeployStagePreProcessor {
       return null
     }
 
-    def resizeContext = getResizeContext(stageData)
-    if (resizeContext == null) {
+    def optionalResizeContext = getResizeContext(stageData)
+    if (!optionalResizeContext.isPresent()) {
       // no source server group, no need to unpin anything
       return null
     }
 
+    def resizeContext = optionalResizeContext.get()
     resizeContext.unpinMinimumCapacity = true
 
     return new StageDefinition(
