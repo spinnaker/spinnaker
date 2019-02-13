@@ -137,7 +137,8 @@ class RollingRedBlackStrategy implements Strategy, ApplicationContextAware {
         scalePct            : p,
         pinCapacity         : p < 100,  // if p < 100, capacity should be pinned (min == max == desired)
         unpinMinimumCapacity: p == 100, // if p == 100, min capacity should be restored to the original unpinned value from source
-        useNameAsLabel      : true      // hint to deck that it should _not_ override the name
+        useNameAsLabel      : true,     // hint to deck that it should _not_ override the name
+        targetHealthyDeployPercentage: stage.context.targetHealthyDeployPercentage
       ]
 
       if (source) {

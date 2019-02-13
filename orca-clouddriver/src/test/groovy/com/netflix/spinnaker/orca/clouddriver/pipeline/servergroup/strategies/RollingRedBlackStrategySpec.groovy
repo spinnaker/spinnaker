@@ -48,7 +48,8 @@ class RollingRedBlackStrategySpec extends Specification {
       region           : "north",
       availabilityZones: [ north: ["pole-1a"] ],
       source           : [:],  // pretend there is no pre-existing server group
-      capacity         : fallbackCapacity
+      capacity         : fallbackCapacity,
+      targetHealthyDeployPercentage: 90
     ]
 
     def stage = new Stage(Execution.newPipeline("orca"), "whatever", ctx)
@@ -99,9 +100,13 @@ class RollingRedBlackStrategySpec extends Specification {
     afterStages.get(1).context.action == ResizeStrategy.ResizeAction.scale_exact
     afterStages.get(1).context.capacity == fallbackCapacity
 
+    // also verify that targetHealthyDeployPercentage from the base stage context percolates down to the resize context
+    afterStages.get(1).context.targetHealthyDeployPercentage == ctx.targetHealthyDeployPercentage
+
     afterStages.get(2).type == resizeServerGroupStage.type
     afterStages.get(2).name == "Grow to 100% of Desired Size"
     afterStages.get(2).context.action == ResizeStrategy.ResizeAction.scale_exact
     afterStages.get(2).context.capacity == fallbackCapacity
+
   }
 }
