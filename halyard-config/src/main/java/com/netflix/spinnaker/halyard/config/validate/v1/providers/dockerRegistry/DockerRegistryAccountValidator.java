@@ -146,17 +146,26 @@ public class DockerRegistryAccountValidator extends Validator<DockerRegistryAcco
         authFailureProblem = p.addProblem(Severity.ERROR, "Unable to connect the registries catalog endpoint: " + e.getMessage() + ".");
       }
     } else {
-      try {
-        // effectively final
-        int tagCount[] = new int[1];
-        tagCount[0] = 0;
-        n.getRepositories().forEach(r -> tagCount[0] += credentials.getCredentials().getClient().getTags(r).getTags().size());
-        if (tagCount[0] == 0) {
-          p.addProblem(Severity.WARNING, "None of your supplied repositories contain any tags. Spinnaker will not be able to deploy anything.")
-              .setRemediation("Push some images to your registry.");
+      // effectively final
+      int tagCount[] = new int[1];
+      tagCount[0] = 0;
+      n.getRepositories().forEach(r -> {
+          try {
+            tagCount[0] += credentials
+              .getCredentials()
+              .getClient()
+              .getTags(r)
+              .getTags()
+              .size();
+          } catch (Exception e) {
+            p.addProblem(Severity.ERROR, "Unable to fetch tags from the docker repository: " + r + ", " + e.getMessage())
+              .setRemediation("Can the provided user access this repository?");
+          }
         }
-      } catch (Exception e) {
-        authFailureProblem = p.addProblem(Severity.ERROR, "Unable to reach repository: " +  e.getMessage() + ".");
+      );
+      if (tagCount[0] == 0) {
+        p.addProblem(Severity.WARNING, "None of your supplied repositories contain any tags. Spinnaker will not be able to deploy any docker images.")
+          .setRemediation("Push some images to your registry.");
       }
     }
 
