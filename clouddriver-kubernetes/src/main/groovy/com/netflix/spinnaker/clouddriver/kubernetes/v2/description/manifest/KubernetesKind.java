@@ -51,7 +51,7 @@ public class KubernetesKind {
   public static KubernetesKind PERSISTENT_VOLUME_CLAIM = new KubernetesKind("persistentVolumeClaim", "pvc");
   public static KubernetesKind POD = new KubernetesKind("pod", "po", true, true);
   public static KubernetesKind POD_PRESET = new KubernetesKind("podPreset");
-  public static KubernetesKind POD_SECURITY_POLICY = new KubernetesKind("podSecurityPolicy");
+  public static KubernetesKind POD_SECURITY_POLICY = new KubernetesKind("podSecurityPolicy", false);
   public static KubernetesKind POD_DISRUPTION_BUDGET = new KubernetesKind("podDisruptionBudget");
   public static KubernetesKind REPLICA_SET = new KubernetesKind("replicaSet", "rs", true, true);
   public static KubernetesKind ROLE = new KubernetesKind("role", true);
