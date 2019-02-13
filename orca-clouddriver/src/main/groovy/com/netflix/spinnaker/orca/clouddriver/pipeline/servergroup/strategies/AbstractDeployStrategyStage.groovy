@@ -40,6 +40,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import javax.annotation.Nonnull
 
 import static com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.DeployStagePreProcessor.StageDefinition
+import static com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup.Support.locationFromStageData
 import static com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.newStage
 
 @Slf4j
@@ -226,7 +227,7 @@ abstract class AbstractDeployStrategyStage extends AbstractCloudProviderAwareSta
     }
 
     static CleanupConfig fromStage(StageData stageData) {
-      def loc = TargetServerGroup.Support.locationFromStageData(stageData)
+      def loc = locationFromStageData(stageData)
       new CleanupConfig(
         account: stageData.account,
         cluster: stageData.cluster,

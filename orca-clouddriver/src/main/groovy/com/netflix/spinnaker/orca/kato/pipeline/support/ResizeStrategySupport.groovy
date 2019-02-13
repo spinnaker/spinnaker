@@ -149,7 +149,7 @@ public class ResizeStrategySupport {
           "stage.context.savedCapacity=${stage.context.savedCapacity}")
 
         // stage ids and execution ids are both high cardinality, but we expect this to happen very rarely (if ever)
-        Registry.counter(
+        registry.counter(
           "orca.failedUnpinMin",
           "stage", stage.id,
           "execution", stage.execution.id)
