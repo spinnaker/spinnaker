@@ -53,7 +53,7 @@ class AmazonSecurityGroupHandler(
           "Upsert security group ${spec.name} in ${spec.accountName}/${spec.region}",
           listOf(Job(
             "upsertSecurityGroup",
-            mutableMapOf(
+            mapOf(
               "application" to spec.application,
               "credentials" to spec.accountName,
               "cloudProvider" to CLOUD_PROVIDER,
@@ -84,7 +84,7 @@ class AmazonSecurityGroupHandler(
           "Delete security group ${spec.name} in ${spec.accountName}/${spec.region}",
           listOf(Job(
             "deleteSecurityGroup",
-            mutableMapOf(
+            mapOf(
               "application" to spec.application,
               "credentials" to spec.accountName,
               "cloudProvider" to CLOUD_PROVIDER,

@@ -23,7 +23,7 @@ data class OrchestrationRequest(
   val trigger: OrchestrationTrigger
 )
 
-class Job(type: String, m: MutableMap<String, Any?>) : HashMap<String, Any?>(m.apply { put("type", type) })
+class Job(type: String, m: Map<String, Any?>) : HashMap<String, Any?>(m + mapOf("type" to type))
 
 data class OrchestrationTrigger(
   val correlationId: String,
