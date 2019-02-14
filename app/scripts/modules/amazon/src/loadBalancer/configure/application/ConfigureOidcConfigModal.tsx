@@ -50,8 +50,8 @@ export class ConfigureOidcConfigModal extends React.Component<
     };
   }
 
-  private close = (): void => {
-    this.props.dismissModal.apply(null, arguments);
+  private close = (reason?: any): void => {
+    this.props.dismissModal(reason);
   };
 
   private submit = (data: IAuthenticateOidcActionConfig): void => {

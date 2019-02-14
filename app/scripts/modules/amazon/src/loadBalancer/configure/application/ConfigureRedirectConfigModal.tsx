@@ -51,8 +51,8 @@ export class ConfigureRedirectConfigModal extends React.Component<IConfigureRedi
     };
   }
 
-  private close = (): void => {
-    this.props.dismissModal.apply(null, arguments);
+  private close = (reason?: null): void => {
+    this.props.dismissModal(reason);
   };
 
   private submit = (data: IRedirectActionConfig): void => {

@@ -49,8 +49,8 @@ export class AmazonLoadBalancerChoiceModal extends React.Component<
       .catch(() => {});
   };
 
-  public close = (): void => {
-    this.props.dismissModal.apply(null, arguments);
+  public close = (reason?: any): void => {
+    this.props.dismissModal(reason);
   };
 
   public render() {
