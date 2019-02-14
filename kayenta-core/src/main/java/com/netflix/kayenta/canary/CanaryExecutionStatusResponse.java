@@ -21,7 +21,6 @@ import lombok.*;
 import javax.validation.constraints.NotNull;
 import java.util.Map;
 
-@Getter
 @Data
 @Builder
 @NoArgsConstructor
@@ -32,7 +31,11 @@ public class CanaryExecutionStatusResponse {
   protected String parentPipelineExecutionId;
 
   @NotNull
-  public String pipelineId;
+  protected String pipelineId;
+
+  public String getPipelineId() {
+    return pipelineId;
+  }
 
   @NotNull
   protected Map<String, String> stageStatus;
@@ -80,6 +83,10 @@ public class CanaryExecutionStatusResponse {
   // If set, these are the account names used for this run.
 
   protected String storageAccountName;
+
+  public String getStorageAccountName() {
+    return storageAccountName;
+  }
 
   protected String configurationAccountName;
 }

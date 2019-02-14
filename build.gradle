@@ -32,6 +32,7 @@ allprojects {
   apply plugin: "spinnaker.base-project"
   apply plugin: "groovy"
   apply plugin: "java"
+  apply plugin: "kotlin"
 
   ext {
     spinnakerDependenciesVersion = '1.28.0'
