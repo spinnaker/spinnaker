@@ -152,3 +152,31 @@ databaseChangeLog:
     - dropIndex:
         indexName: rel_type_idx
         tableName: cats_v1_rel_template
+
+- changeSet:
+    id: update-cats-rel-table-v1-indices-1
+    author: afeldman
+    changes:
+    - createIndex:
+        indexName: rel_ids_type_idx
+        tableName: cats_v1_rel_template
+        columns:
+        - column:
+            name: id
+        - column:
+            name: rel_type
+        - column:
+            name: rel_id
+    - dropIndex:
+        indexName: rel_last_updated_idx
+        tableName: cats_v1_rel_template
+    rollback:
+    - dropIndex:
+        indexName: rel_ids_type_idx
+        tableName: cats_v1_rel_template
+    - createIndex:
+        indexName: rel_last_updated_idx
+        tableName: cats_v1_rel_template
+        columns:
+        - column:
+            name: last_updated
