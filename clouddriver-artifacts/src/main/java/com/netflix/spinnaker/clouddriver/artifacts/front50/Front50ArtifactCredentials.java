@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts.front50;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service;
@@ -43,7 +44,9 @@ public class Front50ArtifactCredentials implements ArtifactCredentials {
   private final String name = ACCOUNT_NAME;
   private final List<String> types = Arrays.asList("front50/pipelineTemplate");
 
+  @JsonIgnore
   private Front50Service front50Service;
+  @JsonIgnore
   private ObjectMapper objectMapper;
 
   Front50ArtifactCredentials(ObjectMapper objectMapper,
