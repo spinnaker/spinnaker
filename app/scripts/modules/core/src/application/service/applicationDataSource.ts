@@ -503,7 +503,7 @@ export class ApplicationDataSource implements IDataSourceConfig {
   private debug(message: string, object?: any) {
     if (this.debugEnabled) {
       // tslint:disable-next-line
-      console.log(`DEBUG ${this.application.name}.${this.key}: ${message}`, object);
+      console.log(`DEBUG ${this.application.name}.${this.key}: ${message}`, object); // eslint-disable-line
     }
   }
 }

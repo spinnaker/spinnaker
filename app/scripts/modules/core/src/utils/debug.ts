@@ -1,6 +1,6 @@
 export const now = performance ? performance.now.bind(performance) : Date.now.bind(Date);
 // tslint:disable-next-line:no-console
-const log = console.log.bind(console);
+const log = console.log.bind(console); // eslint-disable-line
 import { padStart } from 'lodash';
 
 const getMethodName = (target: any, propertyKey: string) => {
