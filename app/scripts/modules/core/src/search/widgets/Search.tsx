@@ -248,7 +248,7 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
       case Key.ENTER:
         this.handleFilterSelection();
         break;
-      case Key.ESCAPE:
+      case Key.ESCAPE: {
         const text = this.inputElement.value;
         if (this.hasModifier(text) && !this.getSearchText(text)) {
           this.inputElement.value = '';
@@ -258,6 +258,7 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
           isOpen: false,
         });
         break;
+      }
     }
   };
 

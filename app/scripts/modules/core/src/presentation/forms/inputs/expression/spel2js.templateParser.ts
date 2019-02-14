@@ -215,7 +215,7 @@ class TemplateAwareExpressionParser {
           break;
         case '}':
         case ']':
-        case ')':
+        case ')': {
           if (!stack.length) {
             throw new Error(
               "Found closing '" +
@@ -242,8 +242,9 @@ class TemplateAwareExpressionParser {
             );
           }
           break;
+        }
         case "'":
-        case '"':
+        case '"': {
           // jump to the end of the literal
           const endLiteral = expressionString.indexOf(ch, pos + 1);
           if (endLiteral === -1) {
@@ -251,6 +252,7 @@ class TemplateAwareExpressionParser {
           }
           pos = endLiteral;
           break;
+        }
       }
       pos++;
     }

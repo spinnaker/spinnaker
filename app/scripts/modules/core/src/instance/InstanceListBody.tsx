@@ -113,7 +113,7 @@ export class InstanceListBody extends React.Component<IInstanceListBodyProps, II
             ? a.id.localeCompare(b.id)
             : a.launchTime - b.launchTime
           : a.availabilityZone.localeCompare(b.availabilityZone);
-      case 'discoveryState':
+      case 'discoveryState': {
         const aHealth = (a.health || []).filter(health => health.type === 'Discovery'),
           bHealth = (b.health || []).filter(health => health.type === 'Discovery');
         if (aHealth.length && !bHealth.length) {
@@ -127,7 +127,8 @@ export class InstanceListBody extends React.Component<IInstanceListBodyProps, II
             ? a.id.localeCompare(b.id)
             : a.launchTime - b.launchTime
           : aHealth[0].state.localeCompare(bHealth[0].state);
-      case 'loadBalancerSort':
+      }
+      case 'loadBalancerSort': {
         const aHealth2 = (a.health || []).filter(health => health.type === 'LoadBalancer');
         const bHealth2 = (b.health || []).filter(health => health.type === 'LoadBalancer');
 
@@ -144,6 +145,7 @@ export class InstanceListBody extends React.Component<IInstanceListBodyProps, II
             ? a.id.localeCompare(b.id)
             : a.launchTime - b.launchTime
           : aHealthStr.localeCompare(bHealthStr);
+      }
       default:
         return -1;
     }

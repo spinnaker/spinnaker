@@ -186,7 +186,7 @@ export class CloudfoundryDeployServiceStageConfig extends React.Component<
     let manifestInput;
 
     switch (manifest.type) {
-      case 'direct':
+      case 'direct': {
         const direct = manifest as { type: string } & ICloudfoundryServiceManifestDirectSource;
         manifestInput = (
           <CreateServiceInstanceDirectInput
@@ -196,17 +196,20 @@ export class CloudfoundryDeployServiceStageConfig extends React.Component<
           />
         );
         break;
+      }
       case 'userProvidedArtifact':
-      case 'artifact':
+      case 'artifact': {
         const artifact = manifest as { type: string } & ICloudfoundryServiceManifestArtifactSource;
         manifestInput = (
           <CreateServiceInstanceArtifactInput onChange={serviceManifestSourceUpdated} serviceInput={artifact} />
         );
         break;
-      case 'userProvided':
+      }
+      case 'userProvided': {
         const userProvided = manifest as { type: string } & ICloudFoundryServiceUserProvidedSource;
         manifestInput = <CreateUserProvidedInput onChange={serviceManifestSourceUpdated} serviceInput={userProvided} />;
         break;
+      }
     }
 
     return (

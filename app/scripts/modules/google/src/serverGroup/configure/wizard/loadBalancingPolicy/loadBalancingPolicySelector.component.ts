@@ -103,7 +103,7 @@ class GceLoadBalancingPolicySelectorController implements IController {
       switch (get(index[loadBalancer], 'loadBalancerType')) {
         case 'SSL':
         case 'TCP':
-        case 'HTTP':
+        case 'HTTP': {
           const lbBackendServices: string[] = get(index[loadBalancer], 'backendServices');
           const filteredBackendServices = globalBackendServices.filter((service: IGceBackendService) =>
             lbBackendServices.includes(service.name),
@@ -111,6 +111,7 @@ class GceLoadBalancingPolicySelectorController implements IController {
           const portNames = filteredBackendServices.map((service: IGceBackendService) => service.portName);
           const portNameIntersection = intersection(portNames, inUsePortNames);
           return portNames.filter(portName => !portNameIntersection.includes(portName));
+        }
         default:
           return [];
       }

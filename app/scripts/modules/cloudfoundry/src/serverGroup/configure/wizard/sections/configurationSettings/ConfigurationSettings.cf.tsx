@@ -39,7 +39,7 @@ export class CloudFoundryServerGroupConfigurationSettings
   implements IWizardPageComponent<ICloudFoundryCreateServerGroupCommand> {
   private manifestTypeUpdated = (type: string): void => {
     switch (type) {
-      case 'artifact':
+      case 'artifact': {
         const emptyManifestArtifact = {
           account: '',
           reference: '',
@@ -48,7 +48,8 @@ export class CloudFoundryServerGroupConfigurationSettings
         this.props.formik.setFieldValue('manifest', emptyManifestArtifact);
         this.capacityUpdated('1');
         break;
-      case 'trigger':
+      }
+      case 'trigger': {
         const emptyManifestTrigger = {
           account: '',
           pattern: '',
@@ -57,7 +58,8 @@ export class CloudFoundryServerGroupConfigurationSettings
         this.props.formik.setFieldValue('manifest', emptyManifestTrigger);
         this.capacityUpdated('1');
         break;
-      case 'direct':
+      }
+      case 'direct': {
         const emptyManifestDirect = {
           memory: '1024M',
           diskQuota: '1024M',
@@ -72,6 +74,7 @@ export class CloudFoundryServerGroupConfigurationSettings
         };
         this.props.formik.setFieldValue('manifest', emptyManifestDirect);
         break;
+      }
     }
   };
 

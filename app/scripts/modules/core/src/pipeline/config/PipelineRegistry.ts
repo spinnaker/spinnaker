@@ -217,7 +217,7 @@ export class PipelineRegistry {
         return this.getStageTypes().find(s => s.key === 'unmatched') || null;
       case 1:
         return matches[0];
-      default:
+      default: {
         const provider = stage.cloudProvider || stage.cloudProviderType || 'aws';
         const matchesForStageCloudProvider = matches.filter(stageType => {
           return stageType.cloudProvider === provider;
@@ -232,6 +232,7 @@ export class PipelineRegistry {
         } else {
           return matchesForStageCloudProvider[0];
         }
+      }
     }
   }
 
