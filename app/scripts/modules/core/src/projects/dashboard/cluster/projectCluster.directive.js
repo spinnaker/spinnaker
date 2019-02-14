@@ -5,7 +5,7 @@ import _ from 'lodash';
 
 import { CollapsibleSectionStateCache } from 'core/cache';
 import { HEALTH_COUNTS_COMPONENT } from 'core/healthCounts/healthCounts.component';
-import { URL_BUILDER_SERVICE } from 'core/navigation/urlBuilder.service';
+import { UrlBuilder } from 'core/navigation';
 import { ClusterState } from 'core/state';
 import { TIME_FORMATTERS } from 'core/utils/timeFormatters';
 
@@ -13,7 +13,6 @@ import './projectCluster.less';
 
 module.exports = angular
   .module('spinnaker.core.projects.dashboard.clusters.projectCluster.directive', [
-    URL_BUILDER_SERVICE,
     TIME_FORMATTERS,
     HEALTH_COUNTS_COMPONENT,
     require('../regionFilter/regionFilter.service').name,
@@ -31,7 +30,7 @@ module.exports = angular
       controllerAs: 'vm',
     };
   })
-  .controller('ProjectClusterCtrl', function($scope, urlBuilderService, regionFilterService) {
+  .controller('ProjectClusterCtrl', function($scope, regionFilterService) {
     let stateCache = CollapsibleSectionStateCache;
 
     let getCacheKey = () => [this.project.name, this.cluster.account, this.cluster.stack].join(':');
@@ -67,11 +66,11 @@ module.exports = angular
     let addMetadata = application => {
       let baseMetadata = getMetadata(application);
       application.metadata = baseMetadata;
-      application.metadata.href = urlBuilderService.buildFromMetadata(baseMetadata);
+      application.metadata.href = UrlBuilder.buildFromMetadata(baseMetadata);
       application.clusters.forEach(cluster => {
         let clusterMetadata = getMetadata(application);
         clusterMetadata.region = cluster.region;
-        clusterMetadata.href = urlBuilderService.buildFromMetadata(clusterMetadata);
+        clusterMetadata.href = UrlBuilder.buildFromMetadata(clusterMetadata);
         cluster.metadata = clusterMetadata;
       });
     };

@@ -1,9 +1,8 @@
-import { module } from 'angular';
 import { isEmpty } from 'lodash';
 import { Observable, Subject } from 'rxjs';
 
 import { SETTINGS } from 'core/config';
-import { UrlBuilderService, URL_BUILDER_SERVICE, IQueryParams } from 'core/navigation';
+import { UrlBuilder, IQueryParams } from 'core/navigation';
 
 import { ISearchResultSet } from './infrastructureSearch.service';
 import { ISearchResult, ISearchResults } from '../search.service';
@@ -12,15 +11,11 @@ import { SearchStatus } from '../searchResult/SearchResults';
 import { searchResultTypeRegistry } from '../searchResult/searchResultType.registry';
 
 export class InfrastructureSearchServiceV2 {
-  private EMPTY_RESULTS: ISearchResultSet[] = searchResultTypeRegistry
+  private static EMPTY_RESULTS: ISearchResultSet[] = searchResultTypeRegistry
     .getAll()
     .map(type => ({ type, results: [], status: SearchStatus.FINISHED }));
 
-  constructor(private urlBuilderService: UrlBuilderService) {
-    'ngInject';
-  }
-
-  public search(apiParams: IQueryParams): Observable<ISearchResultSet> {
+  public static search(apiParams: IQueryParams): Observable<ISearchResultSet> {
     if (isEmpty(apiParams)) {
       return Observable.from(this.EMPTY_RESULTS);
     }
@@ -36,7 +31,7 @@ export class InfrastructureSearchServiceV2 {
     const addComputedAttributes = (result: ISearchResult, type: SearchResultType): ISearchResult => {
       return {
         ...result,
-        href: this.urlBuilderService.buildFromMetadata(result),
+        href: UrlBuilder.buildFromMetadata(result),
         displayName: type.displayFormatter(result),
       };
     };
@@ -63,9 +58,3 @@ export class InfrastructureSearchServiceV2 {
       .finally(() => otherResults$.complete());
   }
 }
-
-export const INFRASTRUCTURE_SEARCH_SERVICE_V2 = 'spinnaker.core.infrastructure.search.service.v2';
-module(INFRASTRUCTURE_SEARCH_SERVICE_V2, [URL_BUILDER_SERVICE]).service(
-  'infrastructureSearchServiceV2',
-  InfrastructureSearchServiceV2,
-);

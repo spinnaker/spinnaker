@@ -1,22 +1,19 @@
 'use strict';
 
 describe('Controller: projectCluster directive', function() {
-  var $controller, $scope, project, cluster, urlBuilder;
+  var $controller, $scope, project, cluster;
 
   beforeEach(window.module(require('./projectCluster.directive').name));
 
   beforeEach(
-    window.inject(function($rootScope, _$controller_, _urlBuilderService_) {
+    window.inject(function($rootScope, _$controller_) {
       $scope = $rootScope.$new();
       $controller = _$controller_;
-      urlBuilder = _urlBuilderService_;
     }),
   );
 
   describe('model construction', function() {
     beforeEach(function() {
-      spyOn(urlBuilder, 'buildFromMetadata').and.returnValue('url');
-
       cluster = {
         account: 'prod',
       };

@@ -3,18 +3,16 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { ClusterState, URL_BUILDER_SERVICE } from '@spinnaker/core';
+import { ClusterState, UrlBuilder } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.titus.pipeline.stage.cloneServerGroup.executionDetails.controller', [
     require('@uirouter/angularjs').default,
-    URL_BUILDER_SERVICE,
   ])
   .controller('titusCloneServerGroupExecutionDetailsCtrl', function(
     $scope,
     $stateParams,
     executionDetailsSectionService,
-    urlBuilderService,
   ) {
     $scope.configSections = ['cloneServerGroupConfig', 'taskStatus'];
 
@@ -39,7 +37,7 @@ module.exports = angular
                 provider: 'titus',
                 project: $stateParams.project,
               };
-              result.href = urlBuilderService.buildFromMetadata(result);
+              result.href = UrlBuilder.buildFromMetadata(result);
               results.push(result);
             }
           });

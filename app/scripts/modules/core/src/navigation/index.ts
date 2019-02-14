@@ -1,4 +1,4 @@
 export * from './state.provider';
-export * from './urlBuilder.registry';
-export * from './urlBuilder.service';
+export * from './UrlBuilderRegistry';
+export * from './UrlBuilder';
 export * from './urlParser';

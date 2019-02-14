@@ -4,13 +4,11 @@ import { react2angular } from 'react2angular';
 import { CACHE_INITIALIZER_SERVICE } from 'core/cache/cacheInitializer.service';
 import { OVERRIDE_REGISTRY } from 'core/overrideRegistry/override.registry';
 import { PAGE_TITLE_SERVICE } from 'core/pageTitle/pageTitle.service';
-import { INFRASTRUCTURE_SEARCH_SERVICE_V2 } from './infrastructureSearchV2.service';
 
 import { SearchV2 } from 'core/search/infrastructure/SearchV2';
 
 export const SEARCH_INFRASTRUCTURE_V2_CONTROLLER = 'spinnaker.search.infrastructureNew.controller';
 module(SEARCH_INFRASTRUCTURE_V2_CONTROLLER, [
-  INFRASTRUCTURE_SEARCH_SERVICE_V2,
   PAGE_TITLE_SERVICE,
   CACHE_INITIALIZER_SERVICE,
   OVERRIDE_REGISTRY,

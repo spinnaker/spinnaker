@@ -9,7 +9,6 @@ import { ConfirmationModalService } from '../confirmationModal/confirmationModal
 import { ExecutionDetailsSectionService } from 'core/pipeline/details/executionDetailsSection.service';
 import { ExecutionService } from '../pipeline/service/execution.service';
 import { InfrastructureSearchService } from '../search/infrastructure/infrastructureSearch.service';
-import { InfrastructureSearchServiceV2 } from 'core/search/infrastructure/infrastructureSearchV2.service';
 import { InsightFilterStateModel } from '../insight/insightFilterState.model';
 import { InstanceTypeService, InstanceWriter } from 'core/instance';
 import { ManualJudgmentService } from '../pipeline/config/stages/manualJudgment/manualJudgment.service';
@@ -21,7 +20,6 @@ import { SecurityGroupReader } from '../securityGroup/securityGroupReader.servic
 import { ServerGroupWriter } from '../serverGroup/serverGroupWriter.service';
 import { ImageReader } from 'core/image/image.reader';
 import { StateEvents } from './state.events';
-import { UrlBuilderService } from 'core/navigation/urlBuilder.service';
 import { SkinSelectionService } from '../cloudProvider/skinSelection/skinSelection.service';
 
 export abstract class ReactInject {
@@ -54,7 +52,6 @@ export class CoreReactInject extends ReactInject {
   public get executionService() { return this.$injector.get('executionService') as ExecutionService; }
   public get imageReader() { return this.$injector.get('imageReader') as ImageReader; }
   public get infrastructureSearchService() { return this.$injector.get('infrastructureSearchService') as InfrastructureSearchService; }
-  public get infrastructureSearchServiceV2() { return this.$injector.get('infrastructureSearchServiceV2') as InfrastructureSearchServiceV2; }
   public get insightFilterStateModel() { return this.$injector.get('insightFilterStateModel') as InsightFilterStateModel; }
   public get instanceTypeService() { return this.$injector.get('instanceTypeService') as InstanceTypeService; }
   public get instanceWriter() { return this.$injector.get('instanceWriter') as InstanceWriter; }
@@ -66,7 +63,6 @@ export class CoreReactInject extends ReactInject {
   public get securityGroupReader() { return this.$injector.get('securityGroupReader') as SecurityGroupReader; }
   public get serverGroupWriter() { return this.$injector.get('serverGroupWriter') as ServerGroupWriter; }
   public get stateEvents() { return this.$injector.get('stateEvents') as StateEvents; }
-  public get urlBuilderService() { return this.$injector.get('urlBuilderService') as UrlBuilderService; }
   public get skinSelectionService() { return this.$injector.get('skinSelectionService') as SkinSelectionService; }
 
   private createStateService(): StateService {

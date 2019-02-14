@@ -1,7 +1,6 @@
 import { module, IDeferred, IPromise, IQService } from 'angular';
 import { Observable, Subject } from 'rxjs';
 
-import { URL_BUILDER_SERVICE } from 'core/navigation';
 import { ProviderServiceDelegate, PROVIDER_SERVICE_DELEGATE } from 'core/cloudProvider';
 
 import { InfrastructureSearchServiceV2 } from './infrastructureSearchV2.service';
@@ -25,11 +24,7 @@ export class InfrastructureSearcher {
   private deferred: IDeferred<ISearchResultSet[]>;
   public querySubject: Subject<string> = new Subject<string>();
 
-  constructor(
-    private $q: IQService,
-    private providerServiceDelegate: ProviderServiceDelegate,
-    infrastructureSearchServiceV2: InfrastructureSearchServiceV2,
-  ) {
+  constructor(private $q: IQService, private providerServiceDelegate: ProviderServiceDelegate) {
     this.querySubject
       .switchMap((query: string) => {
         if (!query || query.trim() === '') {
@@ -38,7 +33,7 @@ export class InfrastructureSearcher {
             .map(type => ({ type, results: [], status: SearchStatus.INITIAL } as ISearchResultSet));
           return Observable.of(fallbackResults);
         }
-        return infrastructureSearchServiceV2.search({ key: query }).toArray();
+        return InfrastructureSearchServiceV2.search({ key: query }).toArray();
       })
       .subscribe((result: ISearchResultSet[]) => {
         this.deferred.resolve(result);
@@ -79,21 +74,17 @@ export class InfrastructureSearcher {
 }
 
 export class InfrastructureSearchService {
-  constructor(
-    private $q: IQService,
-    private providerServiceDelegate: any,
-    private infrastructureSearchServiceV2: InfrastructureSearchServiceV2,
-  ) {
+  constructor(private $q: IQService, private providerServiceDelegate: any) {
     'ngInject';
   }
 
   public getSearcher(): InfrastructureSearcher {
-    return new InfrastructureSearcher(this.$q, this.providerServiceDelegate, this.infrastructureSearchServiceV2);
+    return new InfrastructureSearcher(this.$q, this.providerServiceDelegate);
   }
 }
 
 export const INFRASTRUCTURE_SEARCH_SERVICE = 'spinnaker.infrastructure.search.service';
-module(INFRASTRUCTURE_SEARCH_SERVICE, [URL_BUILDER_SERVICE, PROVIDER_SERVICE_DELEGATE]).service(
+module(INFRASTRUCTURE_SEARCH_SERVICE, [PROVIDER_SERVICE_DELEGATE]).service(
   'infrastructureSearchService',
   InfrastructureSearchService,
 );

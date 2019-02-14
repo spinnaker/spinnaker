@@ -12,6 +12,7 @@ import { RecentlyViewedItems } from '../infrastructure/RecentlyViewedItems';
 import { ISearchResultSet } from '../infrastructure/infrastructureSearch.service';
 import { SearchResults, SearchStatus, searchResultTypeRegistry } from '../searchResult';
 import { SearchResultPods } from '../infrastructure/SearchResultPods';
+import { InfrastructureSearchServiceV2 } from '../infrastructure/infrastructureSearchV2.service';
 
 // These state parameters are passed through to Gate's search API
 const API_PARAMS = ['key', 'name', 'account', 'region', 'stack'];
@@ -27,7 +28,6 @@ export interface ISearchV2State {
 export class SearchV2 extends React.Component<{}, ISearchV2State> {
   private $state = ReactInjector.$state;
   private $uiRouter = ReactInjector.$uiRouter;
-  private infrastructureSearchServiceV2 = ReactInjector.infrastructureSearchServiceV2;
 
   private searchResultTypes = searchResultTypeRegistry.getAll();
 
@@ -81,14 +81,15 @@ export class SearchV2 extends React.Component<{}, ISearchV2State> {
 
           // Start fetching results for each search type from the search service.
           // Update the overall results with the results for each search type.
-          return this.infrastructureSearchServiceV2
-            .search({ ...params })
-            .scan((acc: ISearchResultSet[], resultSet: ISearchResultSet): ISearchResultSet[] => {
+          return InfrastructureSearchServiceV2.search({ ...params }).scan(
+            (acc: ISearchResultSet[], resultSet: ISearchResultSet): ISearchResultSet[] => {
               const status = resultSet.status === SearchStatus.SEARCHING ? SearchStatus.FINISHED : resultSet.status;
               resultSet = { ...resultSet, status };
               // Replace the result set placeholder with the results for this type
               return acc.filter(set => set.type !== resultSet.type).concat(resultSet);
-            }, this.INITIAL_RESULTS);
+            },
+            this.INITIAL_RESULTS,
+          );
         },
       )
       .takeUntil(this.destroy$)

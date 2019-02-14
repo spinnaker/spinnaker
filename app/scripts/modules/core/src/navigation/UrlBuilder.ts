@@ -1,11 +1,11 @@
 import { isDate, isObject, isUndefined } from 'lodash';
-import { module } from 'angular';
 import { StateService } from '@uirouter/core';
 
+import { ReactInjector } from 'core/reactShims';
 import { ITask } from 'core/domain';
 import { NameUtils } from 'core/naming';
 
-import { urlBuilderRegistry } from './urlBuilder.registry';
+import { Registry } from 'core/registry';
 
 // TODO: refactor to marker interface and have input types declare expected fields
 export interface IUrlBuilderInput {
@@ -274,7 +274,7 @@ class TasksUrlBuilder implements IUrlBuilder {
   }
 }
 
-export class UrlBuilderService {
+export class UrlBuilder {
   private createCloneTask(task: ITask): string | boolean {
     const regionAndName: any = task.getValueFor('deploy.server.groups');
     const account: string = task.getValueFor('deploy.account.name');
@@ -333,11 +333,11 @@ export class UrlBuilderService {
     'ngInject';
   }
 
-  public buildFromMetadata(input: IUrlBuilderInput) {
-    const builder: IUrlBuilder = urlBuilderRegistry.getBuilder(input.type);
+  public static buildFromMetadata(input: IUrlBuilderInput) {
+    const builder: IUrlBuilder = Registry.urlBuilder.getBuilder(input.type);
     let result: string;
     if (builder) {
-      result = builder.build(input, this.$state);
+      result = builder.build(input, ReactInjector.$state);
     } else {
       result = '/';
     }
@@ -379,15 +379,12 @@ export class UrlBuilderService {
   }
 }
 
-urlBuilderRegistry.register('applications', new ApplicationsUrlBuilder());
-urlBuilderRegistry.register('clusters', new ClustersUrlBuilder());
-urlBuilderRegistry.register('instances', new InstancesUrlBuilder());
-urlBuilderRegistry.register('loadBalancers', new LoadBalancersUrlBuilder());
-urlBuilderRegistry.register('projects', new ProjectsUrlBuilder());
-urlBuilderRegistry.register('securityGroups', new SecurityGroupsUrlBuilder());
-urlBuilderRegistry.register('serverGroups', new ServerGroupsUrlBuilder());
-urlBuilderRegistry.register('task', new TaskUrlBuilder());
-urlBuilderRegistry.register('tasks', new TasksUrlBuilder());
-
-export const URL_BUILDER_SERVICE = 'spinnaker.core.navigation.urlBuilder.service';
-module(URL_BUILDER_SERVICE, [require('@uirouter/angularjs').default]).service('urlBuilderService', UrlBuilderService);
+Registry.urlBuilder.register('applications', new ApplicationsUrlBuilder());
+Registry.urlBuilder.register('clusters', new ClustersUrlBuilder());
+Registry.urlBuilder.register('instances', new InstancesUrlBuilder());
+Registry.urlBuilder.register('loadBalancers', new LoadBalancersUrlBuilder());
+Registry.urlBuilder.register('projects', new ProjectsUrlBuilder());
+Registry.urlBuilder.register('securityGroups', new SecurityGroupsUrlBuilder());
+Registry.urlBuilder.register('serverGroups', new ServerGroupsUrlBuilder());
+Registry.urlBuilder.register('task', new TaskUrlBuilder());
+Registry.urlBuilder.register('tasks', new TasksUrlBuilder());

@@ -5,7 +5,7 @@ describe('Directives: projectCluster', function() {
 
   beforeEach(window.module(require('./projectCluster.directive').name));
 
-  var $compile, $scope, urlBuilder;
+  var $compile, $scope;
 
   // https://docs.angularjs.org/guide/migration#migrate1.5to1.6-ng-services-$compile
   beforeEach(
@@ -15,12 +15,9 @@ describe('Directives: projectCluster', function() {
   );
 
   beforeEach(
-    window.inject(function($rootScope, _$compile_, _urlBuilderService_) {
+    window.inject(function($rootScope, _$compile_) {
       $scope = $rootScope.$new();
       $compile = _$compile_;
-      urlBuilder = _urlBuilderService_;
-
-      spyOn(urlBuilder, 'buildFromMetadata').and.returnValue('url');
     }),
   );
 

@@ -2,8 +2,9 @@ import * as React from 'react';
 import { uniqBy } from 'lodash';
 import { Observable } from 'rxjs';
 
-import { IQueryParams, urlBuilderRegistry } from 'core/navigation';
+import { IQueryParams } from 'core/navigation';
 import { ReactInjector } from 'core/reactShims';
+import { Registry } from 'core/registry';
 import { IServerGroupSearchResult } from 'core/serverGroup/serverGroupSearchResultType';
 
 import {
@@ -69,7 +70,7 @@ class ClustersSearchResultType extends SearchResultType<IClusterSearchResult> {
 
   private makeSearchResult(serverGroup: IServerGroupSearchResult): IClusterSearchResult {
     const type = this.id;
-    const urlBuilder = urlBuilderRegistry.getBuilder(type);
+    const urlBuilder = Registry.urlBuilder.getBuilder(type);
     const input = { type, ...serverGroup };
     const href = urlBuilder.build(input, ReactInjector.$state);
 

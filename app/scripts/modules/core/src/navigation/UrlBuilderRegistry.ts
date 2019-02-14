@@ -1,4 +1,4 @@
-import { IUrlBuilder } from './urlBuilder.service';
+import { IUrlBuilder } from './UrlBuilder';
 
 export class UrlBuilderRegistry {
   private builders: { [key: string]: IUrlBuilder } = {};
@@ -11,5 +11,3 @@ export class UrlBuilderRegistry {
     return this.builders[key];
   }
 }
-
-export const urlBuilderRegistry = new UrlBuilderRegistry();

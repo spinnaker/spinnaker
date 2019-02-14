@@ -7,7 +7,7 @@ import { CloudProviderRegistry } from 'core/cloudProvider';
 import { NameUtils } from 'core/naming';
 import { EXECUTION_DETAILS_SECTION_SERVICE } from 'core/pipeline/details/executionDetailsSection.service';
 import { ServerGroupReader } from 'core/serverGroup/serverGroupReader.service';
-import { URL_BUILDER_SERVICE } from 'core/navigation/urlBuilder.service';
+import { UrlBuilder } from 'core/navigation';
 import { ClusterState } from 'core/state';
 import { HelpContentsRegistry } from 'core/help';
 
@@ -17,14 +17,8 @@ module.exports = angular
   .module('spinnaker.core.pipeline.stage.deploy.details.controller', [
     require('@uirouter/angularjs').default,
     EXECUTION_DETAILS_SECTION_SERVICE,
-    URL_BUILDER_SERVICE,
   ])
-  .controller('DeployExecutionDetailsCtrl', function(
-    $scope,
-    $stateParams,
-    executionDetailsSectionService,
-    urlBuilderService,
-  ) {
+  .controller('DeployExecutionDetailsCtrl', function($scope, $stateParams, executionDetailsSectionService) {
     $scope.configSections = ['deploymentConfig', 'taskStatus', 'artifactStatus'];
 
     function areJarDiffsEmpty() {
@@ -74,7 +68,7 @@ module.exports = angular
               cloudProvider: context.providerType || context.cloudProvider || 'aws',
               project: $stateParams.project,
             };
-            result.href = urlBuilderService.buildFromMetadata(result);
+            result.href = UrlBuilder.buildFromMetadata(result);
             results.push(result);
           });
         }

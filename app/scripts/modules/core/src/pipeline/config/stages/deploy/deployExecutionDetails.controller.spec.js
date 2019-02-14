@@ -17,11 +17,6 @@ describe('DeployExecutionDetailsCtrl', function() {
       this.$controller = $controller;
       this.$timeout = $timeout;
       this.$scope = $rootScope.$new();
-      this.urlBuilderService = {
-        buildFromMetadata: function() {
-          return '#';
-        },
-      };
     }),
   );
 
@@ -33,7 +28,6 @@ describe('DeployExecutionDetailsCtrl', function() {
         $scope: this.$scope,
         $stateParams: { details: 'deploymentConfig' },
         executionDetailsSectionService: { synchronizeSection: (a, fn) => fn() },
-        urlBuilderService: this.urlBuilderService,
       });
     };
   });
