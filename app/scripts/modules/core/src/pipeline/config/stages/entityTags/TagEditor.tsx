@@ -63,7 +63,9 @@ export class TagEditor extends React.Component<ITagEditorProps, ITagEditorState>
     if (key === 'value') {
       try {
         value = JSON.parse(value);
-      } catch (e) {}
+      } catch (ignored) {
+        /* noop */
+      }
     }
     const tag = { ...this.props.tag };
     set(tag, key, value);

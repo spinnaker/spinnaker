@@ -43,7 +43,9 @@ export function ApplyEntityTagsExecutionDetails(props: IExecutionDetailsSectionP
             if (typeof value === 'object') {
               try {
                 value = JSON.stringify(value);
-              } catch (e) {}
+              } catch (ignored) {
+                /* noop */
+              }
             }
 
             return (
