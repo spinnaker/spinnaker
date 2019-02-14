@@ -28,7 +28,7 @@ export class CollapsibleSectionStateCacheInternal {
   }
 
   public setExpanded(heading: string, expanded: boolean) {
-    if (!!heading) {
+    if (heading) {
       this.stateCache.put(heading, !!expanded);
     }
   }

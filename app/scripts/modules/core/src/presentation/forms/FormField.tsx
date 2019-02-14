@@ -89,8 +89,8 @@ export class FormField extends React.Component<IFormFieldProps, IFormFieldState>
         const { internalValidators } = this.state;
         const validator = createFieldValidator(label, required, [].concat(validate).concat(internalValidators));
         Promise.resolve(validator(value)).then(error => {
-          const validationMessage: string = !!error ? error : undefined;
-          const validationStatus: IFieldValidationStatus = !!validationMessage ? 'error' : undefined;
+          const validationMessage: string = error ? error : undefined;
+          const validationStatus: IFieldValidationStatus = validationMessage ? 'error' : undefined;
           this.setState({ validationMessage, validationStatus });
         });
       });

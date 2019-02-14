@@ -48,7 +48,7 @@ export class WizardPage<T> extends React.Component<IWizardPageProps, IWizardPage
   }
 
   private computeStatus(errors: any, isLoading: boolean): WizardPageStatus {
-    return !!Object.keys(errors).length ? 'error' : isLoading ? 'loading' : 'default';
+    return Object.keys(errors).length ? 'error' : isLoading ? 'loading' : 'default';
   }
 
   private onLoadingChanged = (isLoading: boolean) => {

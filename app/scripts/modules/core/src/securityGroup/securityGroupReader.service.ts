@@ -283,7 +283,7 @@ export class SecurityGroupReader {
     // Because these are cached in local storage, we unfortunately need to remove the moniker, as it triples the size
     // of the object being stored, which blows out our LS quota for a sufficiently large footprint
     const cache = InfrastructureCaches.get('securityGroups');
-    const cached = !!cache ? cache.get('allGroups') : null;
+    const cached = cache ? cache.get('allGroups') : null;
     if (cached) {
       return this.$q.resolve(cached);
     }
