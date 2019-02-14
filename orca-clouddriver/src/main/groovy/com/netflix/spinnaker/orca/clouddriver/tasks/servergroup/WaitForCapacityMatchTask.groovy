@@ -40,11 +40,30 @@ class WaitForCapacityMatchTask extends AbstractInstancesCheckTask {
 
   @Override
   protected boolean hasSucceeded(Stage stage, Map serverGroup, List<Map> instances, Collection<String> interestingHealthProviderNames) {
-    if (!serverGroup.capacity || serverGroup.capacity.desired != instances.size()) {
-      return false
+    def splainer = new WaitForUpInstancesTask.Splainer()
+      .add("Capacity match check for server group ${serverGroup?.name} [executionId=${stage.execution.id}, stagedId=${stage.execution.id}]")
+
+    try {
+      if (!serverGroup.capacity) {
+        splainer.add("short-circuiting out of WaitForCapacityMatchTask because of empty capacity in serverGroup=${serverGroup}")
+        return false
+      }
+
+      splainer.add("checking if capacity matches (capacity.desired=${serverGroup.capacity.desired}, instances.size()=${instances.size()}) ")
+      if (serverGroup.capacity.desired != instances.size()) {
+        splainer.add("short-circuiting out of WaitForCapacityMatchTask because expected and current capacity don't match}")
+        return false
+      }
+
+      if (serverGroup.disabled) {
+        splainer.add("capacity matches but server group is disabled, so returning hasSucceeded=true")
+        return true
+      }
+
+      splainer.add("capacity matches and server group is enabled, so we delegate to WaitForUpInstancesTask to check for healthy instances")
+      return WaitForUpInstancesTask.allInstancesMatch(stage, serverGroup, instances, interestingHealthProviderNames, splainer)
+    } finally {
+      splainer.splain()
     }
-    return !serverGroup.disabled ?
-      WaitForUpInstancesTask.allInstancesMatch(stage, serverGroup, instances, interestingHealthProviderNames) :
-      true
   }
 }

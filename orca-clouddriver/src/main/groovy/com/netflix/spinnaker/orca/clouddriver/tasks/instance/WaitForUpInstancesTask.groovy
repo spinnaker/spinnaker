@@ -58,16 +58,18 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
   static boolean allInstancesMatch(Stage stage,
                                    Map serverGroup,
                                    List<Map> instances,
-                                   Collection<String> interestingHealthProviderNames) {
-    if (!(serverGroup?.capacity)) {
-      return false
-    }
-
-    def splainer = new Splainer()
+                                   Collection<String> interestingHealthProviderNames,
+                                   Splainer parentSplainer = null) {
+    def splainer = parentSplainer ?: new Splainer()
+      .add("Instances up check for server group ${serverGroup?.name} [executionId=${stage.execution.id}, stagedId=${stage.execution.id}]")
 
     try {
-      int targetDesiredSize = calculateTargetDesiredSize(stage, serverGroup, splainer)
+      if (!(serverGroup?.capacity)) {
+        splainer.add("short-circuiting out of allInstancesMatch because of empty capacity in serverGroup=${serverGroup}")
+        return false
+      }
 
+      int targetDesiredSize = calculateTargetDesiredSize(stage, serverGroup, splainer)
       if (targetDesiredSize == 0 && stage.context.capacitySnapshot) {
         // if we've seen a non-zero value before, but we are seeing a target size of zero now, assume
         // it's a transient issue with edda unless we see it repeatedly
@@ -75,16 +77,19 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
         Integer snapshotDesiredCapacity = snapshot.desiredCapacity as Integer
         if (snapshotDesiredCapacity != 0) {
           Integer seenCount = stage.context.zeroDesiredCapacityCount as Integer
-          return seenCount >= MIN_ZERO_INSTANCE_RETRY_COUNT
+          boolean noLongerRetrying = seenCount >= MIN_ZERO_INSTANCE_RETRY_COUNT
+          splainer.add("seeing targetDesiredSize=0 but capacitySnapshot=${snapshot} has non-0 desiredCapacity after ${seenCount}/${MIN_ZERO_INSTANCE_RETRY_COUNT} retries}")
+          return noLongerRetrying
         }
       }
 
       if (targetDesiredSize > instances.size()) {
+        splainer.add("short-circuiting out of allInstancesMatch because targetDesiredSize=${targetDesiredSize} > instances.size()=${instances.size()}")
         return false
       }
 
       if (interestingHealthProviderNames != null && interestingHealthProviderNames.isEmpty()) {
-        splainer.add("${serverGroup.name}: Empty health providers supplied; considering it healthy")
+        splainer.add("empty health providers supplied; considering server group healthy")
         return true
       }
 
@@ -92,30 +97,36 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
         HealthHelper.someAreUpAndNoneAreDown(instance, interestingHealthProviderNames)
       }
 
-      splainer.add("${serverGroup.name}: Instances up check - healthy: $healthyCount, target: $targetDesiredSize")
+      splainer.add("returning healthyCount=${healthyCount} >= targetDesiredSize=${targetDesiredSize}")
       return healthyCount >= targetDesiredSize
     } finally {
-      splainer.splain()
+      // if we have a parent splainer, then it's not our job to splain
+      if (!parentSplainer) {
+        splainer.splain()
+      }
     }
   }
 
   static int calculateTargetDesiredSize(Stage stage, Map serverGroup, Splainer splainer = NOOPSPLAINER) {
-    Map<String, Integer> capacity = getServerGroupCapacity(stage, serverGroup)
-    Integer targetDesiredSize = capacity.desired as Integer
-
     // Don't wait for spot instances to come up if the deployment strategy is None. All other deployment strategies rely on
     // confirming the new serverGroup is up and working correctly, so doing this is only safe with the None strategy
     // This should probably be moved to an AWS-specific part of the codebase
     if (serverGroup?.launchConfig?.spotPrice != null && stage.context.strategy == '') {
+      splainer.add("setting targetDesiredSize=0 because the server group has a spot price configured and the strategy is None")
       return 0
     }
+
+    Map<String, Integer> capacity = getServerGroupCapacity(stage, serverGroup)
+    Integer targetDesiredSize = capacity.desired as Integer
+    splainer.add("setting targetDesiredSize=${targetDesiredSize} from the desired size in capacity=${capacity}")
 
     if (stage.context.capacitySnapshot) {
       Integer snapshotCapacity = ((Map) stage.context.capacitySnapshot).desiredCapacity as Integer
       // if the server group is being actively scaled down, this operation might never complete,
       // so take the min of the latest capacity from the server group and the snapshot
-      splainer.add("${serverGroup.name}: Calculating target desired size from snapshot (${snapshotCapacity}) and server group (${targetDesiredSize})")
-      targetDesiredSize = Math.min(targetDesiredSize, snapshotCapacity)
+      def newTargetDesiredSize = Math.min(targetDesiredSize, snapshotCapacity)
+      splainer.add("setting targetDesiredSize=${newTargetDesiredSize} as the min of desired in capacitySnapshot=${stage.context.capacitySnapshot} and the previous targetDesiredSize=${targetDesiredSize})")
+      targetDesiredSize = newTargetDesiredSize
     }
 
     if (stage.context.targetHealthyDeployPercentage != null) {
@@ -123,14 +134,17 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
       if (percentage < 0 || percentage > 100) {
         throw new NumberFormatException("targetHealthyDeployPercentage must be an integer between 0 and 100")
       }
-      targetDesiredSize = Math.ceil(percentage * targetDesiredSize / 100D) as Integer
-      splainer.add("${serverGroup.name}: Calculating target desired size based on configured percentage (${percentage}) as ${targetDesiredSize} instances")
+
+      def newTargetDesiredSize = Math.ceil(percentage * targetDesiredSize / 100D) as Integer
+      splainer.add("setting targetDesiredSize=${newTargetDesiredSize} based on configured targetHealthyDeployPercentage=${percentage}% of previous targetDesiredSize=${targetDesiredSize}")
+      targetDesiredSize = newTargetDesiredSize
     } else if (stage.context.desiredPercentage != null) {
       Integer percentage = (Integer) stage.context.desiredPercentage
       targetDesiredSize = getDesiredInstanceCount(capacity, percentage)
+      splainer.add("setting targetDesiredSize=${targetDesiredSize} based on desiredPercentage=${percentage}% of capacity=${capacity}")
     }
-    splainer.add("${serverGroup.name}: Target desired size is ${targetDesiredSize}")
-    targetDesiredSize
+
+    return targetDesiredSize
   }
 
   @Override
@@ -260,15 +274,16 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
     return deployment?.capacity as Map<String, Integer>
   }
 
-  private static class Splainer {
+  public static class Splainer {
     List<String> messages = new ArrayList<>()
 
     def add(String message) {
       messages.add(message)
+      return this
     }
 
     def splain() {
-      log.info(messages.join("\n"))
+      log.info(messages.join("\n  - "))
     }
   }
 
