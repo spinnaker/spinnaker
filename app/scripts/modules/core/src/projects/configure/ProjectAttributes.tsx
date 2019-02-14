@@ -27,12 +27,12 @@ export class ProjectAttributes extends React.Component<IProjectAttributesProps, 
     const errors: FormikErrors<IProject> = {};
 
     const isValidName = (name: string) => {
-      const namePattern = /^[^\\\^/^?^%^#]*$/;
+      const namePattern = /^[^\\^/?%#]*$/;
       return name.match(namePattern);
     };
 
     const isValidEmail = (email: string) => {
-      const emailPattern = /^(.+)\@(.+).([A-Za-z]{2,6})/;
+      const emailPattern = /^(.+)@(.+).([A-Za-z]{2,6})/;
       return email.match(emailPattern);
     };
 

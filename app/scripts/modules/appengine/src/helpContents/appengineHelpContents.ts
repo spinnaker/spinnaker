@@ -60,7 +60,7 @@ const helpContents = [
   },
   {
     key: 'appengine.serverGroup.stopPreviousVersion',
-    value: `If selected, the previously running server group in this server group\'s <b>service</b>
+    value: `If selected, the previously running server group in this server group's <b>service</b>
               (Spinnaker load balancer) will be stopped. This option will be respected only if this server group will
               be receiving all traffic and the previous server group is using manual scaling.`,
   },

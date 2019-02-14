@@ -19,10 +19,13 @@ import { DockerImageAndTagSelector, DockerImageUtils } from '@spinnaker/docker';
 import { ITitusServerGroupCommand } from '../../../configure/serverGroupConfiguration.service';
 
 const isNotExpressionLanguage = (field: string) => field && !field.includes('${');
-const isStackPattern = (stack: string) =>
-  isNotExpressionLanguage(stack) ? /^([a-zA-Z_0-9._${}]*(\${.+})*)*$/.test(stack) : true;
+
+// Allow dot, underscore, and spel
+const isStackPattern = (stack: string) => (isNotExpressionLanguage(stack) ? /^([\w.]+|\${[^}]+})*$/.test(stack) : true);
+
+// Allow dot, underscore, caret, tilde, dash and spel
 const isDetailPattern = (detail: string) =>
-  isNotExpressionLanguage(detail) ? /^([a-zA-Z_0-9._$-{}\\\^~]*(\${.+})*)*$/.test(detail) : true;
+  isNotExpressionLanguage(detail) ? /^([\w.^~-]+|\${[^}]+})*$/.test(detail) : true;
 
 export interface IServerGroupBasicSettingsProps {
   app: Application;

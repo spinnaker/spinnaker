@@ -24,6 +24,7 @@ export class JsonListBuilder {
   }
 
   public static escapeForRegEx(item: string): string {
+    // eslint-disable-next-line no-useless-escape
     return item ? item.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&') : null;
   }
 
@@ -43,7 +44,7 @@ export class JsonListBuilder {
       if (!(isObject(value) || Array.isArray(value))) {
         if (
           !ignoreList.some(ignoreItem => {
-            const testerString = `[\'${ignoreItem}`;
+            const testerString = `['${ignoreItem}`;
             return entry.substr(0, testerString.length) === testerString;
           })
         ) {

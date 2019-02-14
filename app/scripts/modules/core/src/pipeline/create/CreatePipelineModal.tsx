@@ -271,7 +271,7 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
   };
 
   public validateNameCharacters(): boolean {
-    return /^[^\\\^/^?^%^#]*$/.test(this.state.command.name); // Verify name does not include: \, ^, ?, %, #
+    return /^[^\\^/?%#]*$/.test(this.state.command.name); // Verify name does not include: \, ^, ?, %, #
   }
 
   public validateNameIsUnique(): boolean {

@@ -150,7 +150,7 @@ class GceDiskConfigurer implements IComponentOptions {
                     This disk will use the image selected at the top of this dialogue.
                   </p>
                   <p class="small" style="margin: 0;" ng-if="$ctrl.command.viewState.mode === 'createPipeline' || $ctrl.command.viewState.mode === 'editPipeline'">
-                    This disk will use the image inferred from this pipeline\'s execution context.
+                    This disk will use the image inferred from this pipeline's execution context.
                   </p>
                 </div>
                 <ui-select ng-if="$index > 0"

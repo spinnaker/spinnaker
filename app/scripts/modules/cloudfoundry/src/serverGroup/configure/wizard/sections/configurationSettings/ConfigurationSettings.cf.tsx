@@ -230,7 +230,7 @@ export class CloudFoundryServerGroupConfigurationSettings
       }
       if (values.manifest.routes) {
         const routeErrors = values.manifest.routes.map((route: string) => {
-          const regex = /^([a-zA-Z0-9_-]+)\.([a-zA-Z0-9_.-]+)(:[0-9]+)?([\/a-zA-Z0-9_-]+)?$/gm;
+          const regex = /^([-\w]+)\.([-.\w]+)(:\d+)?([-/\w]+)?$/gm;
           if (route && regex.exec(route) === null) {
             return `A route did not match the expected format "host.some.domain[:9999][/some/path]"`;
           }

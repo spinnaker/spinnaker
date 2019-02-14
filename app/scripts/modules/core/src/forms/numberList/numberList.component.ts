@@ -116,7 +116,7 @@ class NumberListComponent implements IComponentOptions {
               ng-class="{active: !$ctrl.parameterized}"
               ng-click="$ctrl.toggleParameterization(true)"
               uib-tooltip="Toggle to enter expression">
-              $\{…\}
+              $\{…}
       </button>
     </div>
     <div ng-if="!$ctrl.parameterized" class="row-number" ng-repeat="entry in $ctrl.backingModel track by $index">
