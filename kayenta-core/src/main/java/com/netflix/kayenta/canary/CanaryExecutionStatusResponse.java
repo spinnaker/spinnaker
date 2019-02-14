@@ -16,14 +16,12 @@
 package com.netflix.kayenta.canary;
 
 import com.netflix.kayenta.canary.results.CanaryResult;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.validation.constraints.NotNull;
 import java.util.Map;
 
+@Getter
 @Data
 @Builder
 @NoArgsConstructor
@@ -34,7 +32,7 @@ public class CanaryExecutionStatusResponse {
   protected String parentPipelineExecutionId;
 
   @NotNull
-  protected String pipelineId;
+  public String pipelineId;
 
   @NotNull
   protected Map<String, String> stageStatus;
@@ -66,14 +64,22 @@ public class CanaryExecutionStatusResponse {
   // (endTime - buildTime) should indicate the total time it took from request to result.
   // (endTime - startTime) should be the amount of time the canary was actually running.
   //
+
   protected Long buildTimeMillis;
+
   protected String buildTimeIso;
+
   protected Long startTimeMillis;
+
   protected String startTimeIso;
+
   protected Long endTimeMillis;
+
   protected String endTimeIso;
 
   // If set, these are the account names used for this run.
+
   protected String storageAccountName;
+
   protected String configurationAccountName;
 }

@@ -16,6 +16,9 @@ dependencies {
   compile "net.lariverosc:jesque-spring:1.0.1"
   compile "net.greghaines:jesque:1.3.1"
 
+  compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
+  compile "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
+
   spinnaker.group('bootWeb')
   compile spinnaker.dependency('bootFreemarker')
 
