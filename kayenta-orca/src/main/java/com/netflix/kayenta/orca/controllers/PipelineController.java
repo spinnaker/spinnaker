@@ -133,6 +133,12 @@ public class PipelineController {
     return new ResponseEntity(HttpStatus.OK);
   }
 
+  @ApiOperation(value = "List all pipeline IDs")
+  @RequestMapping(value = "/", method = RequestMethod.GET)
+  List<String> list() {
+    return executionRepository.retrieveAllExecutionIds(Execution.ExecutionType.PIPELINE);
+  }
+
   private static class FeatureNotEnabledException extends RuntimeException {
     public FeatureNotEnabledException(String message) {
       super(message);
