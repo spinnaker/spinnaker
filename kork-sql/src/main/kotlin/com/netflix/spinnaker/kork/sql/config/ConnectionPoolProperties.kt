@@ -29,5 +29,6 @@ data class ConnectionPoolProperties(
   var idleTimeoutMs: Long = TimeUnit.MINUTES.toMillis(1),
   var maxLifetimeMs: Long = TimeUnit.SECONDS.toMillis(30),
   var minIdle: Int = 5,
-  var maxPoolSize: Int = 20
+  var maxPoolSize: Int = 20,
+  var default: Boolean = false
 )

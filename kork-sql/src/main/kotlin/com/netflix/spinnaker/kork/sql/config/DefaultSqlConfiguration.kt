@@ -21,6 +21,8 @@ import com.netflix.spinnaker.kork.sql.JooqToSpringExceptionTransformer
 import com.netflix.spinnaker.kork.sql.health.SqlHealthIndicator
 import com.netflix.spinnaker.kork.sql.health.SqlHealthProvider
 import com.netflix.spinnaker.kork.sql.migration.SpringLiquibaseProxy
+import com.netflix.spinnaker.kork.sql.routing.NamedDataSourceRouter
+import com.netflix.spinnaker.kork.sql.routing.StaticDataSourceLookup
 import com.netflix.spinnaker.kork.sql.telemetry.JooqSlowQueryLogger
 import liquibase.integration.spring.SpringLiquibase
 import org.jooq.DSLContext
@@ -28,14 +30,18 @@ import org.jooq.impl.DataSourceConnectionProvider
 import org.jooq.impl.DefaultConfiguration
 import org.jooq.impl.DefaultDSLContext
 import org.jooq.impl.DefaultExecuteListenerProvider
+import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.BeanCreationException
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+import org.springframework.boot.autoconfigure.jdbc.metadata.DataSourcePoolMetadataProvidersConfiguration
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.DependsOn
 import org.springframework.context.annotation.Import
 import org.springframework.jdbc.datasource.DataSourceTransactionManager
 import org.springframework.jdbc.datasource.TransactionAwareDataSourceProxy
@@ -49,8 +55,10 @@ import javax.sql.DataSource
 @ConditionalOnProperty("sql.enabled")
 @EnableConfigurationProperties(SqlProperties::class)
 @EnableAutoConfiguration(exclude = [DataSourceAutoConfiguration::class])
-@Import(DataSourceConfiguration::class)
+@Import(HikariDataSourceConfiguration::class, DataSourcePoolMetadataProvidersConfiguration::class)
 class DefaultSqlConfiguration {
+
+  private val log = LoggerFactory.getLogger(javaClass)
 
   init {
     System.setProperty("org.jooq.no-logo", "true")
@@ -63,6 +71,52 @@ class DefaultSqlConfiguration {
   @ConditionalOnMissingBean(SpringLiquibase::class)
   fun liquibase(properties: SqlProperties): SpringLiquibase =
     SpringLiquibaseProxy(properties.migration)
+
+  @DependsOn("liquibase")
+  @Bean
+  fun dataSource(dataSourceFactory: DataSourceFactory, properties: SqlProperties): DataSource {
+    if (properties.connectionPools.isNotEmpty() && properties.connectionPool != null) {
+      throw MisconfiguredConnectionPoolsException.BOTH_PRESENT
+    }
+
+    if (properties.connectionPools.isEmpty()) {
+      if (properties.connectionPool == null) {
+        throw MisconfiguredConnectionPoolsException.NEITHER_PRESENT
+      }
+      log.warn("Use of 'sql.connectionPool' configuration is deprecated, use 'sql.connectionPools' instead")
+      return dataSourceFactory.build("default", properties.connectionPool!!)
+    }
+
+    val targets = properties.connectionPools
+      .map {
+        Pair(
+          it.key,
+          TargetDataSource(
+            dataSourceFactory.build(it.key, it.value),
+            if (properties.connectionPools.size == 1) true else it.value.default,
+            it.key
+          )
+        )
+      }
+      .toMap()
+
+    // No sense in wiring up the named router if we've only got one DataSource configured.
+    if (targets.size == 1) {
+      return targets.values.first().dataSource
+    }
+
+    validateDefaultTargetDataSources(targets.values)
+
+    val dataSources = targets.map { it.key.toLowerCase() to it.value.dataSource }.toMap()
+    val dataSource = NamedDataSourceRouter()
+    dataSource.setTargetDataSources(dataSources as Map<Any, Any>)
+    dataSource.setDataSourceLookup(StaticDataSourceLookup(dataSources))
+    dataSource.setDefaultTargetDataSource(
+      targets.values.first { it.default }.dataSource
+    )
+
+    return dataSource
+  }
 
   @Bean
   @ConditionalOnMissingBean(DataSourceTransactionManager::class)
@@ -92,7 +146,7 @@ class DefaultSqlConfiguration {
         JooqSlowQueryLogger()
       ))
       set(connectionProvider)
-      setSQLDialect(properties.connectionPool.dialect)
+      setSQLDialect(properties.getDefaultConnectionPoolProperties().dialect)
     }
 
   @Bean(destroyMethod = "close")
@@ -109,7 +163,7 @@ class DefaultSqlConfiguration {
   @Bean("dbHealthIndicator")
   fun dbHealthIndicator(sqlHealthProvider: SqlHealthProvider,
                         sqlProperties: SqlProperties) =
-    SqlHealthIndicator(sqlHealthProvider, sqlProperties.connectionPool.dialect)
+    SqlHealthIndicator(sqlHealthProvider, sqlProperties.getDefaultConnectionPoolProperties().dialect)
 }
 
 /**
@@ -131,3 +185,24 @@ private fun forceInetAddressCachePolicy() {
 }
 
 class InetAddressOverrideFailure(cause: Throwable) : IllegalStateException(cause)
+
+private fun validateDefaultTargetDataSources(targets: Collection<TargetDataSource>) {
+  if (targets.isEmpty()) {
+    throw BeanCreationException("At least one connection pool must be configured")
+  }
+  if (targets.none { it.default }) {
+    throw BeanCreationException("At least one connection pool must be configured as default")
+  }
+  val defaults = targets.filter { it.default }.map { it.name }
+  if (defaults.size > 1) {
+    throw BeanCreationException(
+      "Only one connection pool may be configured as the default (configured: ${defaults.joinToString { "," }})"
+    )
+  }
+}
+
+private data class TargetDataSource(
+  val dataSource: DataSource,
+  val default: Boolean,
+  val name: String
+)

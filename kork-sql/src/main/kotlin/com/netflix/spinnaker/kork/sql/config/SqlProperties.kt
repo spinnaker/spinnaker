@@ -20,6 +20,34 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 @ConfigurationProperties("sql")
 data class SqlProperties(
   var migration: SqlMigrationProperties = SqlMigrationProperties(),
-  var connectionPool: ConnectionPoolProperties = ConnectionPoolProperties(),
-  var retries: SqlRetryProperties = SqlRetryProperties()
-)
+  var connectionPools: MutableMap<String, ConnectionPoolProperties> = mutableMapOf(),
+  var retries: SqlRetryProperties = SqlRetryProperties(),
+
+  @Deprecated("use named connection pools instead")
+  var connectionPool: ConnectionPoolProperties? = null
+) {
+
+  fun getDefaultConnectionPoolProperties(): ConnectionPoolProperties {
+    if (connectionPools.isEmpty()) {
+      if (connectionPool == null) {
+        throw MisconfiguredConnectionPoolsException.NEITHER_PRESENT
+      }
+      return connectionPool!!
+    }
+    if (connectionPools.size == 1) {
+      return connectionPools.values.first()
+    }
+    return connectionPools.values.first { it.default }
+  }
+}
+
+internal class MisconfiguredConnectionPoolsException(message: String) : IllegalStateException(message) {
+  companion object {
+    val NEITHER_PRESENT = MisconfiguredConnectionPoolsException(
+      "Neither 'sql.connectionPools' nor 'sql.connectionPool' have been configured"
+    )
+    val BOTH_PRESENT = MisconfiguredConnectionPoolsException(
+      "Both 'sql.connectionPools' and 'sql.connectionPool' are configured: Use only one"
+    )
+  }
+}
