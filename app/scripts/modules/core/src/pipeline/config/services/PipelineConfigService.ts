@@ -74,6 +74,19 @@ export class PipelineConfigService {
       .post();
   }
 
+  public static reorderPipelines(
+    application: string,
+    idsToIndices: { [key: string]: number },
+    isStrategy = false,
+  ): IPromise<void> {
+    return API.one(`actions/${isStrategy ? 'strategies' : 'pipelines'}/reorder`)
+      .data({
+        application,
+        idsToIndices,
+      })
+      .post();
+  }
+
   public static renamePipeline(
     applicationName: string,
     pipeline: IPipeline,
