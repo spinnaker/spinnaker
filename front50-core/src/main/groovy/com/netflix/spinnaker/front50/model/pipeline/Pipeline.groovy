@@ -111,4 +111,14 @@ class Pipeline extends HashMap<String, Object> implements Timestamped {
   void setSchema(String schema) {
     super.put("schema", schema)
   }
+
+  @JsonIgnore
+  Integer getIndex() {
+    return (Integer) super.get("index")
+  }
+
+  @JsonIgnore
+  void setIndex(Integer index) {
+    super.put("index", index)
+  }
 }
