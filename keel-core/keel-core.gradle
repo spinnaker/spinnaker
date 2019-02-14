@@ -26,5 +26,5 @@ dependencies {
 
   testImplementation project(":keel-core-test")
   testImplementation "io.strikt:strikt-core:$striktVersion"
-  testImplementation "dev.minutest:minutest:$striktVersion"
+  testImplementation "dev.minutest:minutest:$minutestVersion"
 }
