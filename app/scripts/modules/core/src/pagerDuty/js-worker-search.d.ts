@@ -4,7 +4,7 @@ declare module 'js-worker-search' {
   class SearchApi {
     constructor(indexMode?: IndexMode, tokenizePattern?: RegExp, caseSensitive?: boolean);
     public indexDocument(uid: any, text: string): SearchApi;
-    public search(query: string): Promise<Array<any>>;
+    public search(query: string): Promise<any[]>;
   }
 
   export default SearchApi;
