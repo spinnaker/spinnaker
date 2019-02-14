@@ -2,14 +2,6 @@ import * as React from 'react';
 import { isFinite } from 'lodash';
 import { IArtifact, IArtifactEditorProps } from 'core/domain';
 
-export const CustomArtifactEditor = (props: IArtifactEditorProps) => {
-  if (props.singleColumn) {
-    return SingleColumnCustomArtifactEditor(props);
-  } else {
-    return MultiColumnCustomArtifactEditor(props);
-  }
-};
-
 const input = (artifact: IArtifact, field: keyof IArtifact, onChange: (a: IArtifact) => void) => (
   <input
     type="text"
@@ -79,4 +71,12 @@ const MultiColumnCustomArtifactEditor = (props: IArtifactEditorProps) => {
       </div>
     </div>
   );
+};
+
+export const CustomArtifactEditor = (props: IArtifactEditorProps) => {
+  if (props.singleColumn) {
+    return SingleColumnCustomArtifactEditor(props);
+  } else {
+    return MultiColumnCustomArtifactEditor(props);
+  }
 };

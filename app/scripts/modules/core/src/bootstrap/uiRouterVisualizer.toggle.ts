@@ -12,7 +12,7 @@ bootstrapModule.run(($uiRouter: UIRouter) => {
   let visualizerEnabled: 'true' | 'false' = 'false';
   let VisualizerPlugin: { new (): UIRouterPlugin } = null;
 
-  const loadVisualizer = () => {
+  function loadVisualizer() {
     // Auto-collapse certain states with lots of children
     const collapseGlobs = ['home.*', 'home.*.application.*', 'home.*.application.insight.*'].map(
       globStr => new Glob(globStr),
@@ -25,9 +25,9 @@ bootstrapModule.run(($uiRouter: UIRouter) => {
     return import('@uirouter/visualizer')
       .then((vis: any) => (VisualizerPlugin = vis.Visualizer))
       .then(createVisualizer);
-  };
+  }
 
-  const createVisualizer = () => {
+  function createVisualizer() {
     if (visualizerEnabled !== 'true') {
       return;
     }
@@ -40,14 +40,14 @@ bootstrapModule.run(($uiRouter: UIRouter) => {
     } else {
       loadVisualizer();
     }
-  };
+  }
 
-  const destroyVisualizer = () => {
+  function destroyVisualizer() {
     const plugin = $uiRouter.getPlugin('visualizer');
     plugin && $uiRouter.dispose(plugin);
-  };
+  }
 
-  const toggleVisualizer = (trans: Transition) => {
+  function toggleVisualizer(trans: Transition) {
     const enabled: 'true' | 'false' = trans.paramsChanged().vis;
     if (enabled === undefined) {
       return null;
@@ -66,7 +66,7 @@ bootstrapModule.run(($uiRouter: UIRouter) => {
     }
 
     return trans.targetState().withParams({ vis: undefined });
-  };
+  }
 
   (window as any).vis = createVisualizer;
   $uiRouter.transitionService.onStart({}, toggleVisualizer);

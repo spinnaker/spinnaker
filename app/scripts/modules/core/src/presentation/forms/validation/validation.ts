@@ -74,6 +74,35 @@ const isError = (maybeError: any): boolean => {
   return !!maybeError;
 };
 
+const createItemBuilder = (arrayBuilder: IValidationBuilder, index: number): IArrayItemValidationBuilder => {
+  return {
+    item(itemLabel) {
+      return arrayBuilder.field(`[${index}]`, itemLabel);
+    },
+    field(name, itemLabel) {
+      return arrayBuilder.field(`[${index}].${name}`, itemLabel);
+    },
+    result: arrayBuilder.result,
+    arrayForEach: arrayBuilder.arrayForEach,
+  };
+};
+
+// Utility to provide a builder for array items. The provided iteratee will be invoked for every array item.
+const arrayForEach = (builder: (values: any) => IValidationBuilder, iteratee: IArrayItemValidator) => {
+  return (array: any[], arrayLabel?: string) => {
+    // Silently ignore non-arrays (usually undefined). If strict type checking is desired, it should be done by a previous validator.
+    if (!Array.isArray(array)) {
+      return false;
+    }
+    const arrayBuilder = builder(array);
+    array.forEach((item: any, index: number) => {
+      const itemBuilder = createItemBuilder(arrayBuilder, index);
+      iteratee && iteratee(itemBuilder, item, index, array, arrayLabel);
+    });
+    return arrayBuilder.result();
+  };
+};
+
 const buildValidatorsSync = (values: any): IValidationBuilder => {
   const isArray = Array.isArray(values);
   const synchronousErrors: INamedValidatorResult[] = [];
@@ -163,35 +192,6 @@ export const buildValidatorsAsync = (values: any): IValidationBuilder => {
 
 export const buildValidators = (values: any, async?: boolean): IValidationBuilder => {
   return async ? buildValidatorsAsync(values) : buildValidatorsSync(values);
-};
-
-const createItemBuilder = (arrayBuilder: IValidationBuilder, index: number): IArrayItemValidationBuilder => {
-  return {
-    item(itemLabel) {
-      return arrayBuilder.field(`[${index}]`, itemLabel);
-    },
-    field(name, itemLabel) {
-      return arrayBuilder.field(`[${index}].${name}`, itemLabel);
-    },
-    result: arrayBuilder.result,
-    arrayForEach: arrayBuilder.arrayForEach,
-  };
-};
-
-// Utility to provide a builder for array items. The provided iteratee will be invoked for every array item.
-const arrayForEach = (builder: (values: any) => IValidationBuilder, iteratee: IArrayItemValidator) => {
-  return (array: any[], arrayLabel?: string) => {
-    // Silently ignore non-arrays (usually undefined). If strict type checking is desired, it should be done by a previous validator.
-    if (!Array.isArray(array)) {
-      return false;
-    }
-    const arrayBuilder = builder(array);
-    array.forEach((item: any, index: number) => {
-      const itemBuilder = createItemBuilder(arrayBuilder, index);
-      iteratee && iteratee(itemBuilder, item, index, array, arrayLabel);
-    });
-    return arrayBuilder.result();
-  };
 };
 
 export const composeValidators = (validators: IValidator[]): IValidator => {

@@ -1,25 +1,5 @@
 import * as spel2js from 'spel2js';
 
-export function parseSpelExpressions(template: string): spel2js.SpelExpression[] {
-  const spelExpressions = new TemplateAwareExpressionParser().parseExpressions(template);
-
-  // A Monkey patch which adds the current context when an exception occurs
-  spelExpressions.forEach(expr => {
-    const getValue = expr._compiledExpression.getValue;
-    expr._compiledExpression.getValue = function() {
-      const state = arguments[0];
-      try {
-        return getValue.apply(expr._compiledExpression, arguments);
-      } catch (err) {
-        err.state = state;
-        throw err;
-      }
-    };
-  });
-
-  return spelExpressions;
-}
-
 const literalExpression = (literalString: string) =>
   spel2js.SpelExpressionEvaluator.compile(`'${literalString.replace(/'/g, "''")}'`);
 
@@ -218,13 +198,7 @@ class TemplateAwareExpressionParser {
         case ')': {
           if (!stack.length) {
             throw new Error(
-              "Found closing '" +
-                ch +
-                "' at position " +
-                pos +
-                " without an opening '" +
-                Bracket.theOpenBracketFor(ch) +
-                "'",
+              `Found closing '${ch}' at position ${pos} without an opening '${Bracket.theOpenBracketFor(ch)}'`,
             );
           }
 
@@ -267,4 +241,24 @@ class TemplateAwareExpressionParser {
     }
     return pos;
   }
+}
+
+export function parseSpelExpressions(template: string): spel2js.SpelExpression[] {
+  const spelExpressions = new TemplateAwareExpressionParser().parseExpressions(template);
+
+  // A Monkey patch which adds the current context when an exception occurs
+  spelExpressions.forEach(expr => {
+    const getValue = expr._compiledExpression.getValue;
+    expr._compiledExpression.getValue = function() {
+      const state = arguments[0];
+      try {
+        return getValue.apply(expr._compiledExpression, arguments);
+      } catch (err) {
+        err.state = state;
+        throw err;
+      }
+    };
+  });
+
+  return spelExpressions;
 }

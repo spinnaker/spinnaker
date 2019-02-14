@@ -16,6 +16,25 @@ export interface IAppengineConfigFileConfigurerCtrlCommand {
   sourceType: string;
 }
 
+class ConfigArtifact implements IArtifactAccountPair {
+  public $scope: IScope;
+  public controller: ExpectedArtifactSelectorViewController;
+  public delegate: NgAppengineConfigArtifactDelegate;
+  public id: string;
+  public account: string;
+
+  constructor($scope: IScope, artifact = { id: '', account: '' }) {
+    const unserializable = { configurable: false, enumerable: false, writable: false };
+    this.id = artifact.id;
+    this.account = artifact.account;
+    Object.defineProperty(this, '$scope', { ...unserializable, value: $scope });
+    const delegate = new NgAppengineConfigArtifactDelegate(this);
+    const controller = new ExpectedArtifactSelectorViewController(delegate);
+    Object.defineProperty(this, 'delegate', { ...unserializable, value: delegate });
+    Object.defineProperty(this, 'controller', { ...unserializable, value: controller });
+  }
+}
+
 class AppengineConfigFileConfigurerCtrl implements IController {
   private artifactAccounts: IArtifactAccount[] = [];
   public command: IAppengineConfigFileConfigurerCtrlCommand;
@@ -75,25 +94,6 @@ class AppengineConfigFileConfigurerCtrl implements IController {
 
   public isContainerImageSource(): boolean {
     return this.command.sourceType === AppengineSourceType.CONTAINER_IMAGE;
-  }
-}
-
-class ConfigArtifact implements IArtifactAccountPair {
-  public $scope: IScope;
-  public controller: ExpectedArtifactSelectorViewController;
-  public delegate: NgAppengineConfigArtifactDelegate;
-  public id: string;
-  public account: string;
-
-  constructor($scope: IScope, artifact = { id: '', account: '' }) {
-    const unserializable = { configurable: false, enumerable: false, writable: false };
-    this.id = artifact.id;
-    this.account = artifact.account;
-    Object.defineProperty(this, '$scope', { ...unserializable, value: $scope });
-    const delegate = new NgAppengineConfigArtifactDelegate(this);
-    const controller = new ExpectedArtifactSelectorViewController(delegate);
-    Object.defineProperty(this, 'delegate', { ...unserializable, value: delegate });
-    Object.defineProperty(this, 'controller', { ...unserializable, value: controller });
   }
 }
 

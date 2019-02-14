@@ -8,6 +8,25 @@ import {
 } from 'core/artifact';
 import { UUIDGenerator } from 'core/utils';
 
+class InputArtifact implements IArtifactAccountPair {
+  public $scope: IScope;
+  public controller: ExpectedArtifactSelectorViewController;
+  public delegate: NgBakeManifestArtifactDelegate;
+  public id: string;
+  public account: string;
+
+  constructor($scope: IScope, artifact = { id: '', account: '' }) {
+    const unserializable = { configurable: false, enumerable: false, writable: false };
+    Object.defineProperty(this, '$scope', { ...unserializable, value: $scope });
+    const delegate = new NgBakeManifestArtifactDelegate(this);
+    const controller = new ExpectedArtifactSelectorViewController(delegate);
+    Object.defineProperty(this, 'delegate', { ...unserializable, value: delegate });
+    Object.defineProperty(this, 'controller', { ...unserializable, value: controller });
+    this.id = artifact.id;
+    this.account = artifact.account;
+  }
+}
+
 export class BakeManifestConfigCtrl implements IController {
   public artifactControllers: any[];
   public artifactAccounts: IArtifactAccount[] = [];
@@ -103,24 +122,5 @@ export class BakeManifestConfigCtrl implements IController {
       !artifact.delegate.requestingNew &&
       (artifact.controller.accountsForArtifact.length > 1 && artifact.delegate.getSelectedExpectedArtifact() != null)
     );
-  }
-}
-
-class InputArtifact implements IArtifactAccountPair {
-  public $scope: IScope;
-  public controller: ExpectedArtifactSelectorViewController;
-  public delegate: NgBakeManifestArtifactDelegate;
-  public id: string;
-  public account: string;
-
-  constructor($scope: IScope, artifact = { id: '', account: '' }) {
-    const unserializable = { configurable: false, enumerable: false, writable: false };
-    Object.defineProperty(this, '$scope', { ...unserializable, value: $scope });
-    const delegate = new NgBakeManifestArtifactDelegate(this);
-    const controller = new ExpectedArtifactSelectorViewController(delegate);
-    Object.defineProperty(this, 'delegate', { ...unserializable, value: delegate });
-    Object.defineProperty(this, 'controller', { ...unserializable, value: controller });
-    this.id = artifact.id;
-    this.account = artifact.account;
   }
 }
