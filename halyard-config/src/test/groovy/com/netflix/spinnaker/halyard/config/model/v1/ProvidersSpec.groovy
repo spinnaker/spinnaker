@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1
 
+import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration
+import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment
 import com.netflix.spinnaker.halyard.config.model.v1.node.Providers
 import com.netflix.spinnaker.halyard.config.model.v1.providers.appengine.AppengineProvider
 import com.netflix.spinnaker.halyard.config.model.v1.providers.aws.AwsProvider
@@ -35,7 +37,13 @@ class ProvidersSpec extends Specification {
   void "children includes #provider.simpleName"() {
 
     setup:
-    def iterator = new Providers().getChildren()
+    def deploymentEnvironment = new DeploymentEnvironment()
+    def deploymentConfiguration = new DeploymentConfiguration()
+    deploymentConfiguration.deploymentEnvironment = deploymentEnvironment
+    deploymentEnvironment.parent = deploymentConfiguration
+    def providers = new Providers()
+    providers.parent = deploymentEnvironment
+    def iterator = providers.getChildren()
 
     when:
     List actualProviders = []

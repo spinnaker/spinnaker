@@ -36,7 +36,19 @@ public abstract class Provider<A extends Account> extends Node implements Clonea
     if (accounts.size() == 0) {
       primaryAccount = null;
     } else if (primaryAccount == null || !hasAccount(primaryAccount)) {
-      primaryAccount = accounts.get(0).getName();
+      DeploymentConfiguration deploymentConfiguration = parentOfType(DeploymentConfiguration.class);
+      DeploymentEnvironment deploymentEnvironment = deploymentConfiguration
+          .getDeploymentEnvironment();
+      if (Boolean.TRUE.equals(deploymentEnvironment.getBootstrapOnly())) {
+        List<Account> nonBootstrapAccounts = accounts.stream().filter(a -> !a.name.equals(deploymentEnvironment.getAccountName())).collect(Collectors.toList());
+        if (nonBootstrapAccounts.size() == 0) {
+          return null;
+        } else {
+          return nonBootstrapAccounts.get(0).getName();
+        }
+      } else {
+        primaryAccount = accounts.get(0).getName();
+      }
     }
     return primaryAccount;
   }
@@ -47,7 +59,8 @@ public abstract class Provider<A extends Account> extends Node implements Clonea
 
   @Override
   public NodeIterator getChildren() {
-    return NodeIteratorFactory.makeListIterator(accounts.stream().map(a -> (Node) a).collect(Collectors.toList()));
+    return NodeIteratorFactory
+        .makeListIterator(accounts.stream().map(a -> (Node) a).collect(Collectors.toList()));
   }
 
   @Override

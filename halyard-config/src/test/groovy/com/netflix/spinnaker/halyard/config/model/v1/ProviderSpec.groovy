@@ -18,7 +18,10 @@
 package com.netflix.spinnaker.halyard.config.model.v1
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account
+import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration
+import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider
+import com.netflix.spinnaker.halyard.config.model.v1.node.Providers
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder
 import spock.lang.Specification
@@ -35,9 +38,42 @@ class ProviderSpec extends Specification {
     primary == null
   }
 
-  void "provider shows a primary account "() {
+  void "provider shows a primary account"() {
     setup:
+    def deploymentEnvironment = new DeploymentEnvironment()
+    def deploymentConfiguration = new DeploymentConfiguration()
+    deploymentConfiguration.deploymentEnvironment = deploymentEnvironment
+    deploymentEnvironment.parent = deploymentConfiguration
     def test = new TestProvider()
+    test.parent = deploymentEnvironment
+
+    def name = "my-account"
+    def account = new TestAccount().setName(name)
+    test.accounts.add(account)
+
+    when:
+    def primary = test.getPrimaryAccount()
+
+    then:
+    primary == name
+  }
+
+  void "provider shows a primary account avoiding bootstrap account"() {
+    setup:
+    def deploymentEnvironment = new DeploymentEnvironment()
+    deploymentEnvironment.bootstrapOnly = true
+    deploymentEnvironment.accountName = "my-bootstrap-account"
+
+    def deploymentConfiguration = new DeploymentConfiguration()
+    deploymentConfiguration.deploymentEnvironment = deploymentEnvironment
+    deploymentEnvironment.parent = deploymentConfiguration
+    def test = new TestProvider()
+    test.parent = deploymentEnvironment
+
+    def bootstrapname = "my-bootstrap-account"
+    def bootstrapaccount = new TestAccount().setName(bootstrapname)
+    test.accounts.add(bootstrapaccount)
+
     def name = "my-account"
     def account = new TestAccount().setName(name)
     test.accounts.add(account)
@@ -64,9 +100,38 @@ class ProviderSpec extends Specification {
     primary == null
   }
 
+  void "provider shows no primary account if only account is bootstrap only"() {
+    setup:
+    def deploymentEnvironment = new DeploymentEnvironment()
+    deploymentEnvironment.bootstrapOnly = true
+    deploymentEnvironment.accountName = "my-bootstrap-account"
+
+    def deploymentConfiguration = new DeploymentConfiguration()
+    deploymentConfiguration.deploymentEnvironment = deploymentEnvironment
+    deploymentEnvironment.parent = deploymentConfiguration
+    def test = new TestProvider()
+    test.parent = deploymentEnvironment
+
+    def name = "my-bootstrap-account"
+    def account = new TestAccount().setName(name)
+    test.accounts.add(account)
+
+    when:
+    def primary = test.getPrimaryAccount()
+
+    then:
+    primary == null
+  }
+
   void "provider shows a primary account after it's removed but another account remains"() {
     setup:
+    def deploymentEnvironment = new DeploymentEnvironment()
+    def deploymentConfiguration = new DeploymentConfiguration()
+    deploymentConfiguration.deploymentEnvironment = deploymentEnvironment
+    deploymentEnvironment.parent = deploymentConfiguration
     def test = new TestProvider()
+    test.parent = deploymentEnvironment
+
     def name = "my-account"
     def newName = "my-new-account"
     def account = new TestAccount().setName(name)
