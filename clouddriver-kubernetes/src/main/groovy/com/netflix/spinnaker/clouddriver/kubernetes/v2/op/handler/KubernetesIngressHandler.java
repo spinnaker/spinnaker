@@ -26,10 +26,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpi
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.model.Manifest.Status;
-import io.kubernetes.client.models.V1beta1HTTPIngressPath;
-import io.kubernetes.client.models.V1beta1Ingress;
-import io.kubernetes.client.models.V1beta1IngressBackend;
-import io.kubernetes.client.models.V1beta1IngressRule;
+import io.kubernetes.client.models.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -125,10 +122,13 @@ public class KubernetesIngressHandler extends KubernetesHandler {
     List<V1beta1IngressRule> rules = ingress.getSpec().getRules();
     rules = rules == null ? new ArrayList<>() : rules;
     for (V1beta1IngressRule rule : rules) {
-      for (V1beta1HTTPIngressPath path : rule.getHttp().getPaths()) {
-        backend = path.getBackend();
-        if (backend != null) {
-          result.add(backend.getServiceName());
+      V1beta1HTTPIngressRuleValue http = rule.getHttp();
+      if (http != null) {
+        for (V1beta1HTTPIngressPath path : http.getPaths()) {
+          backend = path.getBackend();
+          if (backend != null) {
+            result.add(backend.getServiceName());
+          }
         }
       }
     }
