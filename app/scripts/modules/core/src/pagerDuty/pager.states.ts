@@ -8,7 +8,7 @@ export const PAGER_STATES = 'spinnaker.core.pager.states';
 
 module(PAGER_STATES, [STATE_CONFIG_PROVIDER]).config((stateConfigProvider: StateConfigProvider) => {
   const pageState: INestedState = {
-    url: '/page?app&q&keys&by&direction&hide_no_apps',
+    url: '/page?app&q&keys&by&direction&hideNoApps',
     name: 'page',
     views: {
       'main@': { component: Pager, $type: 'react' },
@@ -26,7 +26,7 @@ module(PAGER_STATES, [STATE_CONFIG_PROVIDER]).config((stateConfigProvider: State
         value: '',
         squash: true,
       },
-      hide_no_apps: {
+      hideNoApps: {
         dynamic: true,
         type: 'boolean',
         value: false,

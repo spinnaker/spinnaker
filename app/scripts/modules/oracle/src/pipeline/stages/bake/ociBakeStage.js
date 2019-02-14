@@ -39,6 +39,7 @@ module.exports = angular
     }
 
     if (!$scope.stage.extended_attributes) {
+      // eslint-disable-next-line @typescript-eslint/camelcase
       $scope.stage.extended_attributes = {};
     }
 

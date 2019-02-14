@@ -191,7 +191,7 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
       q: filterString,
       by: sortBy,
       direction: sortDirection,
-      hide_no_apps: hideNoApps,
+      hideNoApps: hideNoApps,
       selectedKeys,
     });
 
@@ -449,7 +449,7 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
   private handleHideNoAppsChanged = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const hideNoApps = event.target.checked;
     this.setState({ hideNoApps });
-    ReactInjector.$state.go('.', { hide_no_apps: hideNoApps });
+    ReactInjector.$state.go('.', { hideNoApps });
   };
 
   private rowClicked = (info: RowMouseEventHandlerParams): void => {
