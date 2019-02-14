@@ -21,8 +21,10 @@ import com.netflix.spinnaker.clouddriver.cache.CustomScheduledAgent
 import com.netflix.spinnaker.clouddriver.core.provider.CoreProvider
 import com.netflix.spinnaker.clouddriver.data.task.TaskState.COMPLETED
 import com.netflix.spinnaker.clouddriver.data.task.TaskState.FAILED
+import com.netflix.spinnaker.config.ConnectionPools
 import com.netflix.spinnaker.config.SqlTaskCleanupAgentProperties
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
+import com.netflix.spinnaker.kork.sql.routing.withPool
 import org.jooq.DSLContext
 import org.jooq.impl.DSL.field
 import org.slf4j.LoggerFactory
@@ -47,86 +49,88 @@ class SqlTaskCleanupAgent(
   private val timingId = registry.createId("sql.taskCleanupAgent.timing")
 
   override fun run() {
-    val candidates = jooq.withRetry(sqlRetryProperties.reads) { j ->
-      val candidates = j.select(field("id"), field("task_id"))
-        .from(taskStatesTable)
-        .where(
-          field("state").`in`(COMPLETED.toString(), FAILED.toString())
-            .and(field("created_at").lessOrEqual(
-              clock.instant().minusMillis(properties.completedTtlMs).toEpochMilli())
+    withPool(ConnectionPools.TASKS.value) {
+      val candidates = jooq.withRetry(sqlRetryProperties.reads) { j ->
+        val candidates = j.select(field("id"), field("task_id"))
+          .from(taskStatesTable)
+          .where(
+            field("state").`in`(COMPLETED.toString(), FAILED.toString())
+              .and(field("created_at").lessOrEqual(
+                clock.instant().minusMillis(properties.completedTtlMs).toEpochMilli())
+              )
+          )
+          .fetch()
+
+        val candidateTaskIds = candidates.map { r -> r.field("task_id").getValue(r).toString() }
+          .filterNotNull()
+          .toList()
+
+        val candidateTaskStateIds = mutableListOf<String>()
+        val candidateResultIds = mutableListOf<String>()
+
+        if (candidateTaskIds.isNotEmpty()) {
+          candidateTaskIds.chunked(properties.batchSize) { chunk ->
+            candidateTaskStateIds.addAll(
+              j.select(field("id"))
+                .from(taskStatesTable)
+                .where("task_id IN (${chunk.joinToString(",") { id -> "'$id'" }})")
+                .fetch("id", String::class.java)
+                .filterNotNull()
             )
+
+            candidateResultIds.addAll(
+              j.select(field("id"))
+                .from(taskResultsTable)
+                .where("task_id IN (${chunk.joinToString(",") { id -> "'$id'" }})")
+                .fetch("id", String::class.java)
+                .filterNotNull()
+            )
+          }
+        }
+
+        CleanupCandidateIds(
+          taskIds = candidateTaskIds,
+          stateIds = candidateTaskStateIds,
+          resultIds = candidateResultIds
         )
-        .fetch()
-
-      val candidateTaskIds = candidates.map { r -> r.field("task_id").getValue(r).toString() }
-        .filterNotNull()
-        .toList()
-
-      val candidateTaskStateIds = mutableListOf<String>()
-      val candidateResultIds = mutableListOf<String>()
-
-      if (candidateTaskIds.isNotEmpty()) {
-        candidateTaskIds.chunked(properties.batchSize) { chunk ->
-          candidateTaskStateIds.addAll(
-            j.select(field("id"))
-              .from(taskStatesTable)
-              .where("task_id IN (${chunk.joinToString(",") { id -> "'$id'" }})")
-              .fetch("id", String::class.java)
-              .filterNotNull()
-          )
-
-          candidateResultIds.addAll(
-            j.select(field("id"))
-              .from(taskResultsTable)
-              .where("task_id IN (${chunk.joinToString(",") { id -> "'$id'" }})")
-              .fetch("id", String::class.java)
-              .filterNotNull()
-          )
-        }
       }
 
-      CleanupCandidateIds(
-        taskIds = candidateTaskIds,
-        stateIds = candidateTaskStateIds,
-        resultIds = candidateResultIds
-      )
-    }
+      if (candidates.hasAny()) {
+        log.info(
+          "Cleaning up {} completed tasks ({} states, {} result objects)",
+          candidates.taskIds.size,
+          candidates.stateIds.size,
+          candidates.resultIds.size
+        )
 
-    if (candidates.hasAny()) {
-      log.info(
-        "Cleaning up {} completed tasks ({} states, {} result objects)",
-        candidates.taskIds.size,
-        candidates.stateIds.size,
-        candidates.resultIds.size
-      )
+        registry.timer(timingId).record {
+          candidates.resultIds.chunked(properties.batchSize) { chunk ->
+            jooq.withRetry(sqlRetryProperties.transactions) { ctx ->
+              ctx.deleteFrom(taskResultsTable)
+                .where("id IN (${chunk.joinToString(",") { "'$it'" }})")
+                .execute()
+            }
+          }
 
-      registry.timer(timingId).record {
-        candidates.resultIds.chunked(properties.batchSize) { chunk ->
-          jooq.withRetry(sqlRetryProperties.transactions) { ctx ->
-            ctx.deleteFrom(taskResultsTable)
-              .where("id IN (${chunk.joinToString(",") { "'$it'" }})")
-              .execute()
+          candidates.stateIds.chunked(properties.batchSize) { chunk ->
+            jooq.withRetry(sqlRetryProperties.transactions) { ctx ->
+              ctx.deleteFrom(taskStatesTable)
+                .where("id IN (${chunk.joinToString(",") { "'$it'" }})")
+                .execute()
+            }
+          }
+
+          candidates.taskIds.chunked(properties.batchSize) { chunk ->
+            jooq.withRetry(sqlRetryProperties.transactions) { ctx ->
+              ctx.deleteFrom(tasksTable)
+                .where("id IN (${chunk.joinToString(",") { "'$it'" }})")
+                .execute()
+            }
           }
         }
 
-        candidates.stateIds.chunked(properties.batchSize) { chunk ->
-          jooq.withRetry(sqlRetryProperties.transactions) { ctx ->
-            ctx.deleteFrom(taskStatesTable)
-              .where("id IN (${chunk.joinToString(",") { "'$it'" }})")
-              .execute()
-          }
-        }
-
-        candidates.taskIds.chunked(properties.batchSize) { chunk ->
-          jooq.withRetry(sqlRetryProperties.transactions) { ctx ->
-            ctx.deleteFrom(tasksTable)
-              .where("id IN (${chunk.joinToString(",") { "'$it'" }})")
-              .execute()
-          }
-        }
+        registry.counter(deletedId).increment(candidates.taskIds.size.toLong())
       }
-
-      registry.counter(deletedId).increment(candidates.taskIds.size.toLong())
     }
   }
 
