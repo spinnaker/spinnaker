@@ -298,8 +298,9 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
 
   public render(): React.ReactElement<Search> {
     const { activeFilter, isFocused, isOpen, layouts, tags } = this.state;
+    // prettier-ignore
     const className = classNames({
-      search__input: true,
+      'search__input': true,
       'search__input--focus': isFocused,
       'search__input--blur': !isFocused,
     });
