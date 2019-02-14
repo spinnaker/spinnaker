@@ -41,3 +41,5 @@ auth:
     oauthClientId: "xxxx-xxxx.apps.googleusercontent.com"
     oauthClientSecret: "oauth client secret"
     iapClientId: "yyyy-yyyy.apps.googleusercontent.com"
+    iapIdToken: "example-token-blah-blah"
+    serviceAccountKeyPath: "$HOME/.spin/key.json"

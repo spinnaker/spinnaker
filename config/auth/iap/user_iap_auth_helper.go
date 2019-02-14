@@ -40,6 +40,10 @@ func GetIapToken(iapConfig IapConfig) (string, error) {
 		return iapConfig.IapIdToken, nil
 	}
 
+	if iapConfig.ServiceAccountKeyPath != "" && iapConfig.IapClientId != "" {
+		return GetIDTokenWithServiceAccount(iapConfig)
+	}
+
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	done := make(chan error)
 
