@@ -4,13 +4,13 @@
       <div class="col-md-11 col-md-offset-1">
         <div class="checkbox">
           <label>
-            <input type="checkbox" ng-model="pipeline.limitConcurrent">
+            <input type="checkbox" ng-model="pipeline.limitConcurrent" />
             <strong>Disable concurrent pipeline executions (only run one at a time). </strong>
           </label>
         </div>
         <div ng-if="pipeline.limitConcurrent" class="checkbox">
           <label>
-            <input type="checkbox" ng-model="pipeline.keepWaitingPipelines">
+            <input type="checkbox" ng-model="pipeline.keepWaitingPipelines" />
             <strong>Do not automatically cancel pipelines waiting in queue.</strong>
             <help-field key="pipeline.config.parallel.cancel.queue"></help-field>
           </label>
@@ -18,36 +18,41 @@
       </div>
     </div>
   </page-section>
-  <render-if-feature feature="artifacts">
-    <page-section key="artifacts" label="Expected Artifacts" badge="pipeline.expectedArtifacts.length" no-wrapper="true">
-      <div class="row">
-        <p class="col-md-12">
-          Declare artifacts your pipeline expects during execution in this section.
-          <help-field key="pipeline.config.artifact.help"></help-field>
-        </p>
+  <page-section
+    key="artifacts"
+    label="Expected Artifacts"
+    badge="pipeline.expectedArtifacts.length"
+    no-wrapper="true"
+    visible="triggersCtrl.checkFeatureFlag('artifacts')"
+  >
+    <div class="row">
+      <p class="col-md-12">
+        Declare artifacts your pipeline expects during execution in this section.
+        <help-field key="pipeline.config.artifact.help"></help-field>
+      </p>
+    </div>
+    <expected-artifact
+      use-prior-execution
+      ng-repeat="expectedArtifact in pipeline.expectedArtifacts"
+      expected-artifact="expectedArtifact"
+      context="pipeline"
+      remove-expected-artifact="triggersCtrl.removeExpectedArtifact"
+    >
+    </expected-artifact>
+    <hr />
+    <div class="row" ng-if="!pipeline.expectedArtifacts.length">
+      <p class="col-md-12">
+        You don't have any expected artifacts declared for {{pipeline.name}}.
+      </p>
+    </div>
+    <div class="row">
+      <div class="col-md-12">
+        <button class="btn btn-block btn-add-trigger add-new" ng-click="triggersCtrl.addArtifact()">
+          <span class="glyphicon glyphicon-plus-sign"></span> Add Artifact
+        </button>
       </div>
-      <expected-artifact
-        use-prior-execution
-        ng-repeat="expectedArtifact in pipeline.expectedArtifacts"
-        expected-artifact="expectedArtifact"
-        context="pipeline"
-        remove-expected-artifact="triggersCtrl.removeExpectedArtifact">
-      </expected-artifact>
-      <hr/>
-      <div class="row" ng-if="!pipeline.expectedArtifacts.length">
-        <p class="col-md-12">
-          You don't have any expected artifacts declared for {{pipeline.name}}.
-        </p>
-      </div>
-      <div class="row">
-        <div class="col-md-12">
-          <button class="btn btn-block btn-add-trigger add-new" ng-click="triggersCtrl.addArtifact()">
-            <span class="glyphicon glyphicon-plus-sign"></span> Add Artifact
-          </button>
-        </div>
-      </div>
-    </page-section>
-  </render-if-feature>
+    </div>
+  </page-section>
   <page-section key="triggers" label="Automated Triggers" badge="pipeline.triggers.length" no-wrapper="true">
     <div class="form-horizontal panel-pipeline-phase" ng-if="pipeline.triggers.length && triggersCtrl.showProperties">
       <div class="form-group row">
@@ -62,8 +67,10 @@
                   <div class="col-md-9 col-md-offset-3">
                     <div class="checkbox">
                       <label>
-                        <input type="checkbox" ng-model="pipeline.respectQuietPeriod">
-                        Disable automated triggers during quiet period (<strong>does not affect Pipeline triggers</strong>). <help-field key="pipeline.config.triggers.respectQuietPeriod"></help-field>
+                        <input type="checkbox" ng-model="pipeline.respectQuietPeriod" />
+                        Disable automated triggers during quiet period (<strong
+                          >does not affect Pipeline triggers</strong
+                        >). <help-field key="pipeline.config.triggers.respectQuietPeriod"></help-field>
                       </label>
                     </div>
                   </div>
@@ -74,7 +81,13 @@
         </div>
       </div>
     </div>
-    <trigger ng-repeat="trigger in pipeline.triggers" trigger="trigger" pipeline="pipeline" application="application" field-updated="fieldUpdated"></trigger>
+    <trigger
+      ng-repeat="trigger in pipeline.triggers"
+      trigger="trigger"
+      pipeline="pipeline"
+      application="application"
+      field-updated="fieldUpdated"
+    ></trigger>
     <div class="row" ng-if="!pipeline.triggers.length">
       <p class="col-md-12">
         You don't have any triggers configured for {{pipeline.name}}.
@@ -91,17 +104,29 @@
   <page-section key="parameters" label="Parameters" no-wrapper="true" badge="pipeline.parameterConfig.length">
     <parameters pipeline="pipeline"></parameters>
   </page-section>
-  <page-section key="notifications" label="Notifications" visible="!pipeline.strategy" badge="pipeline.notifications.length">
-    <notification-list ng-if="!pipeline.strategy" level="pipeline" notifications="pipeline.notifications" parent="pipeline">
+  <page-section
+    key="notifications"
+    label="Notifications"
+    visible="!pipeline.strategy"
+    badge="pipeline.notifications.length"
+  >
+    <notification-list
+      ng-if="!pipeline.strategy"
+      level="pipeline"
+      notifications="pipeline.notifications"
+      parent="pipeline"
+    >
     </notification-list>
   </page-section>
   <page-section key="description" label="Description" no-wrapper="true">
     <div class="row">
       <div class="col-md-12">
-        <textarea class="form-control"
-                  ng-model="pipeline.description"
-                  rows="3"
-                  placeholder="(Optional) anything that might be helpful to explain the purpose of this pipeline; Markdown is okay"></textarea>
+        <textarea
+          class="form-control"
+          ng-model="pipeline.description"
+          rows="3"
+          placeholder="(Optional) anything that might be helpful to explain the purpose of this pipeline; Markdown is okay"
+        ></textarea>
       </div>
     </div>
   </page-section>

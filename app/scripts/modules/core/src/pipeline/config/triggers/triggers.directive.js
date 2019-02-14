@@ -60,4 +60,14 @@ module.exports = angular
     this.addArtifact = () => {
       ExpectedArtifactService.addNewArtifactTo($scope.pipeline);
     };
+
+    /**
+     * PageNavigatorComponent relies on the ordering of items in the pages array of PageNavigationState.
+     * PageNavigationState pages are registered in the init of each <page-section>.
+     * Using <render-if-feature> / ng-if causes a <page-section> to init out of order with respect to html layout.
+     * Alternatively, checkFeatureFlag allows for init to happen and for the <page-section> to check for visibilty.
+     * https://github.com/spinnaker/spinnaker/issues/3970
+     */
+
+    this.checkFeatureFlag = flag => !!SETTINGS.feature[flag];
   });
