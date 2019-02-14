@@ -1,31 +1,33 @@
-  <div class="container-fluid form-horizontal">
-    <div class="modal-body">
-      <div class="row">
-        <div class="col-md-12" ng-if="state.removedRules.length">
-          <div class="alert alert-warning">
-            <p><i class="fa fa-exclamation-triangle"></i>
-              The following <firewall-label label="firewalls"></firewall-label> could not be found in the selected account/region/VPC and were removed:
-            </p>
-            <ul>
-              <li ng-repeat="securityGroup in state.removedRules">{{securityGroup}}</li>
-            </ul>
-            <p class="text-right">
-              <a class="btn btn-sm btn-default dirty-flag-dismiss" href ng-click="ctrl.dismissRemovedRules()">Okay</a>
-            </p>
-          </div>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col-md-12">
-          <p class="info">
-          <span class="glyphicon glyphicon-info-sign"></span> IP range rules can only be edited through the AWS Console.
+<div class="container-fluid form-horizontal">
+  <div class="modal-body">
+    <div class="row">
+      <div class="col-md-12" ng-if="state.removedRules.length">
+        <div class="alert alert-warning">
+          <p>
+            <i class="fa fa-exclamation-triangle"></i> The following
+            <firewall-label label="firewalls"></firewall-label> could not be found in the selected account/region/VPC
+            and were removed:
+          </p>
+          <ul>
+            <li ng-repeat="securityGroup in state.removedRules">{{securityGroup}}</li>
+          </ul>
+          <p class="text-right">
+            <a class="btn btn-sm btn-default dirty-flag-dismiss" href ng-click="ctrl.dismissRemovedRules()">Okay</a>
           </p>
         </div>
       </div>
-      <div class="form-group">
-        <div class="col-md-12">
-          <table class="table table-condensed packed">
-            <thead>
+    </div>
+    <div class="row">
+      <div class="col-md-12">
+        <p class="info">
+          <span class="glyphicon glyphicon-info-sign"></span> IP range rules can only be edited through the AWS Console.
+        </p>
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="col-md-12">
+        <table class="table table-condensed packed">
+          <thead>
             <tr>
               <th style="width: 50%"><firewall-label label="Firewall"></firewall-label></th>
               <th style="width: 15%">Protocol</th>
@@ -33,54 +35,64 @@
               <th style="width: 15%">End Port</th>
               <th></th>
             </tr>
-            </thead>
-            <tbody>
+          </thead>
+          <tbody>
             <tr ng-repeat="rule in securityGroup.securityGroupIngress">
               <td>
-                <ingress-rule-group-selector rule="rule"
-                                             ng-if="state.securityGroupsLoaded"
-                                             security-group="securityGroup"
-                                             vpcs="allVpcs"
-                                             accounts="accounts"
-                                             all-security-groups="allSecurityGroups"
-                                             coordinates-changed="coordinatesChanged"
-                                             all-security-groups-updated="allSecurityGroupsUpdated"></ingress-rule-group-selector>
+                <ingress-rule-group-selector
+                  rule="rule"
+                  ng-if="state.securityGroupsLoaded"
+                  security-group="securityGroup"
+                  vpcs="allVpcs"
+                  accounts="allAccounts"
+                  all-security-groups="allSecurityGroups"
+                  coordinates-changed="coordinatesChanged"
+                  all-security-groups-updated="allSecurityGroupsUpdated"
+                ></ingress-rule-group-selector>
               </td>
-              <td><select class="form-control input-sm" ng-model="rule.type"
-                          ng-options="protocol as protocol.toUpperCase() for protocol in ['tcp', 'udp', 'icmp']" required></select></td>
-              <td><input class="form-control input-sm" type="number" min="0" ng-model="rule.startPort" required/></td>
-              <td><input class="form-control input-sm" type="number" min="0" ng-model="rule.endPort" required/></td>
-              <td><a class="sm-label"
-                     ng-click="ctrl.removeRule(securityGroup.securityGroupIngress, $index)">
-                <span class="glyphicon glyphicon-trash"></span></a>
+              <td>
+                <select
+                  class="form-control input-sm"
+                  ng-model="rule.type"
+                  ng-options="protocol as protocol.toUpperCase() for protocol in ['tcp', 'udp', 'icmp']"
+                  required
+                ></select>
+              </td>
+              <td><input class="form-control input-sm" type="number" min="0" ng-model="rule.startPort" required /></td>
+              <td><input class="form-control input-sm" type="number" min="0" ng-model="rule.endPort" required /></td>
+              <td>
+                <a class="sm-label" ng-click="ctrl.removeRule(securityGroup.securityGroupIngress, $index)">
+                  <span class="glyphicon glyphicon-trash"></span
+                ></a>
               </td>
             </tr>
-            </tbody>
-            <tfoot>
+          </tbody>
+          <tfoot>
             <tr>
               <td colspan="5">
-                <button class="add-new col-md-12" ng-click="ctrl.addRule(securityGroup.securityGroupIngress)"><span
-                  class="glyphicon glyphicon-plus-sign"></span> Add new <firewall-label label="Firewall"></firewall-label> Rule
+                <button class="add-new col-md-12" ng-click="ctrl.addRule(securityGroup.securityGroupIngress)">
+                  <span class="glyphicon glyphicon-plus-sign"></span> Add new
+                  <firewall-label label="Firewall"></firewall-label> Rule
                 </button>
               </td>
             </tr>
-            </tfoot>
-          </table>
-
-        </div>
+          </tfoot>
+        </table>
       </div>
-      <div class="form-group small" style="margin-top: 20px">
-        <div class="col-md-12">
-          <p>
-            <span ng-if="state.refreshingSecurityGroups"><span class="fa fa-sync-alt fa-spin"></span></span>
-            <firewall-label label="Firewalls"></firewall-label>
-            <span ng-if="!state.refreshingSecurityGroups">last refreshed {{ state.refreshTime | timestamp }}</span>
-            <span ng-if="state.refreshingSecurityGroups"> refreshing...</span>
-          </p>
-          <p>If you're not finding a <firewall-label label="firewall"></firewall-label> that was recently added,
-            <a href ng-click="ctrl.refreshSecurityGroups()">click here</a> to refresh the list.
-          </p>
-        </div>
+    </div>
+    <div class="form-group small" style="margin-top: 20px">
+      <div class="col-md-12">
+        <p>
+          <span ng-if="state.refreshingSecurityGroups"><span class="fa fa-sync-alt fa-spin"></span></span>
+          <firewall-label label="Firewalls"></firewall-label>
+          <span ng-if="!state.refreshingSecurityGroups">last refreshed {{ state.refreshTime | timestamp }}</span>
+          <span ng-if="state.refreshingSecurityGroups"> refreshing...</span>
+        </p>
+        <p>
+          If you're not finding a <firewall-label label="firewall"></firewall-label> that was recently added,
+          <a href ng-click="ctrl.refreshSecurityGroups()">click here</a> to refresh the list.
+        </p>
       </div>
     </div>
   </div>
+</div>

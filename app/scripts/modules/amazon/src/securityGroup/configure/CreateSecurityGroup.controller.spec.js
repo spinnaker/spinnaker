@@ -37,7 +37,7 @@ describe('Controller: CreateSecurityGroup', function() {
         this.$q = $q;
         this.securityGroupReader = securityGroupReader;
 
-        spyOn(AccountService, 'listAccounts').and.returnValue($q.when(['prod', 'test']));
+        spyOn(AccountService, 'listAllAccounts').and.returnValue($q.when([{ name: 'prod' }, { name: 'test' }]));
 
         spyOn(AccountService, 'getRegionsForAccount').and.returnValue($q.when(['us-east-1', 'us-west-1']));
 

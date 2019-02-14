@@ -89,8 +89,9 @@ module.exports = angular
     $scope.securityGroup = securityGroup;
 
     ctrl.initializeAccounts = () => {
-      return AccountService.listAccounts('aws').then(function(accounts) {
-        $scope.accounts = accounts;
+      return AccountService.listAllAccounts('aws').then(function(accounts) {
+        $scope.accounts = accounts.filter(a => a.authorized !== false);
+        $scope.allAccounts = accounts;
         ctrl.accountUpdated();
       });
     };

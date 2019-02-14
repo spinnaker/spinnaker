@@ -1248,7 +1248,11 @@ select.input-sm {
 .Select.input-sm {
   display: flex;
   align-items: center;
-  padding-right: 0;
+  padding: 0;
+  border: none;
+  .Select-option {
+    padding: 5px 10px;
+  }
   .Select-control {
     display: flex;
     justify-content: space-between;
@@ -1258,7 +1262,7 @@ select.input-sm {
     }
   }
   .Select-menu-outer {
-    margin: -1px 10px 0;
+    margin: -1px 0 0;
     left: 0;
     right: 0;
     width: unset;

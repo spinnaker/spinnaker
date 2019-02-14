@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { $q } from 'ngimport';
 import { flatten, isEqual, map, uniq, xor } from 'lodash';
+import Select, { Option } from 'react-select';
 
 import { createFakeReactSyntheticEvent } from 'core/presentation/forms/inputs/utils';
 import { IFormInputProps } from 'core/presentation';
@@ -10,8 +11,8 @@ import { AccountService, IAccount } from './AccountService';
 export interface IAccountSelectInputProps extends IFormInputProps {
   accounts: IAccount[] | string[];
   provider: string;
-  loading?: boolean;
   readOnly?: boolean;
+  renderFilterableSelectThreshold?: number;
 }
 
 export interface IAccountSelectInputState {
@@ -23,6 +24,10 @@ export interface IAccountSelectInputState {
 const isExpression = (account: string) => !!account && account.includes('${');
 
 export class AccountSelectInput extends React.Component<IAccountSelectInputProps, IAccountSelectInputState> {
+  public static defaultProps = {
+    renderFilterableSelectThreshold: 6,
+  };
+
   public state: IAccountSelectInputState = {
     mergedAccounts: [],
     primaryAccounts: [],
@@ -43,14 +48,13 @@ export class AccountSelectInput extends React.Component<IAccountSelectInputProps
     const accountsAreObjects = Boolean((accounts[0] as IAccount).name);
     let getAccountDetails = $q.when([]);
     if (provider) {
-      if (accountsAreObjects) {
-        const providers = uniq(map(accounts as IAccount[], 'type'));
-        getAccountDetails = $q
-          .all(providers.map(p => AccountService.getAllAccountDetailsForProvider(p)))
-          .then(details => flatten(details));
-      } else {
-        getAccountDetails = AccountService.getAllAccountDetailsForProvider(provider);
-      }
+      getAccountDetails = AccountService.getAllAccountDetailsForProvider(provider);
+    }
+    if (!provider && accountsAreObjects) {
+      const providers = uniq(map(accounts as IAccount[], 'type'));
+      getAccountDetails = $q
+        .all(providers.map(p => AccountService.getAllAccountDetailsForProvider(p)))
+        .then(details => flatten(details));
     }
 
     getAccountDetails.then(details => {
@@ -90,30 +94,11 @@ export class AccountSelectInput extends React.Component<IAccountSelectInputProps
     }
   }
 
-  public render() {
-    const { value, onChange, readOnly, ...otherProps } = this.props;
+  private SimpleSelect = () => {
+    const { value, onChange, ...otherProps } = this.props;
+    delete otherProps.renderFilterableSelectThreshold; // not for DOM consumption
     const { primaryAccounts, secondaryAccounts } = this.state;
-
-    if (isExpression(value)) {
-      return (
-        <div className="sm-control-field">
-          <span>
-            Resolved at runtime from expression: <code>{value}</code>
-          </span>
-        </div>
-      );
-    }
-
-    if (readOnly) {
-      return (
-        <div>
-          <p className="form-control-static">{value}</p>
-        </div>
-      );
-    }
-
     const showSeparator = primaryAccounts.length > 0 && secondaryAccounts.length > 0;
-
     return (
       <div>
         <select className="form-control input-sm" value={value} onChange={onChange} required={true} {...otherProps}>
@@ -137,5 +122,60 @@ export class AccountSelectInput extends React.Component<IAccountSelectInputProps
         </select>
       </div>
     );
+  };
+
+  private FilterableSelect = () => {
+    const { value, onChange, ...otherProps } = this.props;
+    delete otherProps.renderFilterableSelectThreshold; // not for DOM consumption
+    const { primaryAccounts, secondaryAccounts } = this.state;
+    const showSeparator = primaryAccounts.length > 0 && secondaryAccounts.length > 0;
+    const options: Option[] = primaryAccounts.map(a => ({ label: a, value: a }));
+    if (showSeparator) {
+      options.push({ label: '---------------', value: '', disabled: true });
+    }
+    options.push(...secondaryAccounts.map(a => ({ label: a, value: a })));
+    return (
+      <Select
+        className="form-control input-sm"
+        options={options}
+        clearable={false}
+        value={value}
+        onChange={(option: Option<string>) => onChange(createFakeReactSyntheticEvent({ value: option.value }))}
+        required={true}
+        {...otherProps}
+      />
+    );
+  };
+
+  public render() {
+    const { value, readOnly, renderFilterableSelectThreshold } = this.props;
+    const { mergedAccounts } = this.state;
+    const { FilterableSelect, SimpleSelect } = this;
+
+    if (isExpression(value)) {
+      return (
+        <div className="sm-control-field">
+          <span>
+            Resolved at runtime from expression: <code>{value}</code>
+          </span>
+        </div>
+      );
+    }
+
+    if (readOnly) {
+      return (
+        <div>
+          <p className="form-control-static">{value}</p>
+        </div>
+      );
+    }
+
+    const useSimpleSelect = mergedAccounts.length < renderFilterableSelectThreshold;
+
+    if (useSimpleSelect) {
+      return <SimpleSelect />;
+    } else {
+      return <FilterableSelect />;
+    }
   }
 }
