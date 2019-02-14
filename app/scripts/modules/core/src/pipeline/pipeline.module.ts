@@ -16,6 +16,7 @@ import { ENABLE_ASG_STAGE } from './config/stages/enableAsg/enableAsgStage';
 import { EXECUTION_WINDOWS_STAGE_MODULE } from './config/stages/executionWindows/executionWindowsStage.module';
 import { FIND_AMI_STAGE } from './config/stages/findAmi/findAmiStage';
 import { FIND_ARTIFACT_FROM_EXECUTION_STAGE } from './config/stages/findArtifactFromExecution/findArtifactFromExecutionStage';
+import './config/stages/gremlin/gremlinStage';
 import { GROUP_STAGE_MODULE } from './config/stages/group/groupStage.module';
 import { MANUAL_JUDGMENT_STAGE_MODULE } from './config/stages/manualJudgment/manualJudgmentStage.module';
 import { RESIZE_ASG_STAGE } from './config/stages/resizeAsg/resizeAsgStage';
