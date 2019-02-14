@@ -58,6 +58,8 @@ export function RollbackClusterExecutionDetails(props: IExecutionDetailsSectionP
   );
 }
 
+// TODO: refactor this to not use namespace
+// eslint-disable-next-line
 export namespace RollbackClusterExecutionDetails {
   export const title = 'rollbackClusterConfig';
 }

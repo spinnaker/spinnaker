@@ -50,6 +50,8 @@ export function FindAmiExecutionDetails(props: IExecutionDetailsSectionProps) {
   );
 }
 
+// TODO: refactor this to not use namespace
+// eslint-disable-next-line
 export namespace FindAmiExecutionDetails {
   export const title = 'findImageConfig';
 }

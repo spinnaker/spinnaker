@@ -39,6 +39,8 @@ export function ScaleDownClusterExecutionDetails(props: IExecutionDetailsSection
   );
 }
 
+// TODO: refactor this to not use namespace
+// eslint-disable-next-line
 export namespace ScaleDownClusterExecutionDetails {
   export const title = 'scaleDownClusterConfig';
 }

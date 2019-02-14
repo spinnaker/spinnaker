@@ -32,6 +32,8 @@ export function FindArtifactFromExecutionExecutionDetails(props: IExecutionDetai
   );
 }
 
+// TODO: refactor this to not use namespace
+// eslint-disable-next-line
 export namespace FindArtifactFromExecutionExecutionDetails {
   export const title = 'findArtifactFromExecutionConfig';
 }

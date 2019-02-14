@@ -11,6 +11,8 @@ export function ExecutionDetailsTasks(props: IExecutionDetailsSectionProps) {
   );
 }
 
+// TODO: refactor this to not use namespace
+// eslint-disable-next-line
 export namespace ExecutionDetailsTasks {
   export const title = 'taskStatus';
 }

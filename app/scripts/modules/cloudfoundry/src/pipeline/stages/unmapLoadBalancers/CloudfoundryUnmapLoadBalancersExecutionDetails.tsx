@@ -16,6 +16,8 @@ export function CloudfoundryUnmapLoadBalancersExecutionDetails(props: IExecution
   );
 }
 
+// TODO: refactor this to not use namespace
+// eslint-disable-next-line
 export namespace CloudfoundryUnmapLoadBalancersExecutionDetails {
   export const title = 'cloudfoundryUnmapLoadBalancersConfig';
 }

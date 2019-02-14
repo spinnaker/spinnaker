@@ -18,6 +18,8 @@ export function WaitExecutionDetails(props: IExecutionDetailsSectionProps) {
   );
 }
 
+// TODO: refactor this to not use namespace
+// eslint-disable-next-line
 export namespace WaitExecutionDetails {
   export const title = 'waitConfig';
 }

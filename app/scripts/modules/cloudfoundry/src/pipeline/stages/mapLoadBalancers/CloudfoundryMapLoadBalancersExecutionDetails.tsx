@@ -16,6 +16,8 @@ export function CloudfoundryMapLoadBalancersExecutionDetails(props: IExecutionDe
   );
 }
 
+// TODO: refactor this to not use namespace
+// eslint-disable-next-line
 export namespace CloudfoundryMapLoadBalancersExecutionDetails {
   export const title = 'cloudfoundryMapLoadBalancersConfig';
 }

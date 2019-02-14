@@ -36,6 +36,8 @@ export function PreconfiguredJobExecutionDetails(props: IExecutionDetailsSection
   );
 }
 
+// TODO: refactor this to not use namespace
+// eslint-disable-next-line
 export namespace PreconfiguredJobExecutionDetails {
   export const title = 'preconfiguredJobConfig';
 }

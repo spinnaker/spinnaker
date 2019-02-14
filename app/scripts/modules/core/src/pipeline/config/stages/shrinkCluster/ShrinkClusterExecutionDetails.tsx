@@ -39,6 +39,8 @@ export function ShrinkClusterExecutionDetails(props: IExecutionDetailsSectionPro
   );
 }
 
+// TODO: refactor this to not use namespace
+// eslint-disable-next-line
 export namespace ShrinkClusterExecutionDetails {
   export const title = 'shrinkClusterConfig';
 }

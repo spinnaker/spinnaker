@@ -24,6 +24,8 @@ export function DeployServiceExecutionDetails(props: IExecutionDetailsSectionPro
   );
 }
 
+// TODO: refactor this to not use namespace
+// eslint-disable-next-line
 export namespace DeployServiceExecutionDetails {
   export const title = 'deployServiceConfig';
 }

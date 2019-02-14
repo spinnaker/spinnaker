@@ -74,6 +74,8 @@ export function ScriptExecutionDetails(props: IExecutionDetailsSectionProps) {
   );
 }
 
+// TODO: refactor this to not use namespace
+// eslint-disable-next-line
 export namespace ScriptExecutionDetails {
   export const title = 'scriptConfig';
 }

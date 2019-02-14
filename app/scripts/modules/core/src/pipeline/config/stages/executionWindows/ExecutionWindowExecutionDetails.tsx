@@ -18,6 +18,8 @@ export function ExecutionWindowExecutionDetails(props: IExecutionDetailsSectionP
   );
 }
 
+// TODO: refactor this to not use namespace
+// eslint-disable-next-line
 export namespace ExecutionWindowExecutionDetails {
   export const title = 'windowConfig';
 }

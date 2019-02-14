@@ -32,6 +32,8 @@ export function CheckPreconditionsExecutionDetails(props: IExecutionDetailsSecti
   );
 }
 
+// TODO: refactor this to not use namespace
+// eslint-disable-next-line
 export namespace CheckPreconditionsExecutionDetails {
   export const title = 'checkPreconditions';
 }

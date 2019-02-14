@@ -24,6 +24,8 @@ export function DestroyServiceExecutionDetails(props: IExecutionDetailsSectionPr
   );
 }
 
+// TODO: refactor this to not use namespace
+// eslint-disable-next-line
 export namespace DestroyServiceExecutionDetails {
   export const title = 'destroyServiceConfig';
 }

@@ -16,6 +16,8 @@ export function CloudfoundryDeployServiceExecutionDetails(props: IExecutionDetai
   );
 }
 
+// TODO: refactor this to not use namespace
+// eslint-disable-next-line
 export namespace CloudfoundryDeployServiceExecutionDetails {
   export const title = 'cloudfoundryDeployServiceConfig';
 }

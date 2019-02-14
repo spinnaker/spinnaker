@@ -37,6 +37,8 @@ export function DisableClusterExecutionDetails(props: IExecutionDetailsSectionPr
   );
 }
 
+// TODO: refactor this to not use namespace
+// eslint-disable-next-line
 export namespace DisableClusterExecutionDetails {
   export const title = 'disableClusterConfig';
 }

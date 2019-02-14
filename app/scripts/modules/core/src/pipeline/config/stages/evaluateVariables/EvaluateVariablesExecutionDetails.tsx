@@ -43,6 +43,8 @@ export function EvaluateVariablesExecutionDetails(props: IExecutionDetailsSectio
   );
 }
 
+// TODO: refactor this to not use namespace
+// eslint-disable-next-line
 export namespace EvaluateVariablesExecutionDetails {
   export const title = 'evaluateVariablesConfig';
 }
