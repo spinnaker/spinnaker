@@ -31,6 +31,7 @@ import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.Status;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.annotation.ScheduledAnnotationBeanPostProcessor;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -115,6 +116,21 @@ public class PipelineController {
 
     executionRepository.cancel(Execution.ExecutionType.PIPELINE, executionId);
     executionRepository.updateStatus(Execution.ExecutionType.PIPELINE, executionId, ExecutionStatus.CANCELED);
+  }
+
+  @ApiOperation(value = "Delete a pipeline execution")
+  @RequestMapping(value = "/{executionId}", method = RequestMethod.DELETE)
+  ResponseEntity delete(@PathVariable String executionId) {
+    log.info("Deleting pipeline execution {}...", executionId);
+
+    Execution pipeline = executionRepository.retrieve(Execution.ExecutionType.PIPELINE, executionId);
+    if (!pipeline.getStatus().isComplete()) {
+      log.info("Not deleting incomplete pipeline with id {}", executionId);
+      return new ResponseEntity(HttpStatus.UNAUTHORIZED);
+    }
+
+    executionRepository.delete(Execution.ExecutionType.PIPELINE, executionId);
+    return new ResponseEntity(HttpStatus.OK);
   }
 
   private static class FeatureNotEnabledException extends RuntimeException {
