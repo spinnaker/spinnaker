@@ -75,7 +75,7 @@ public class GcsStorageService {
 
     private GoogleCredential loadCredential(String credentialsPath) throws IOException {
       GoogleCredential credential;
-      if (!credentialsPath.isEmpty()) {
+      if (credentialsPath != null && !credentialsPath.isEmpty()) {
         FileInputStream stream = new FileInputStream(credentialsPath);
         credential = GoogleCredential.fromStream(stream, transport_, jsonFactory_)
           .createScoped(Collections.singleton(StorageScopes.DEVSTORAGE_READ_ONLY));
