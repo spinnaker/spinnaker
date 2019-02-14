@@ -68,6 +68,12 @@ interface Front50Service {
   @GET("/pipelines?restricted=false")
   List<Map<String, Object>> getAllPipelines()
 
+  @POST('/actions/pipelines/reorder')
+  Response reorderPipelines(@Body ReorderPipelinesCommand reorderPipelinesCommand)
+
+  @POST('/actions/strategies/reorder')
+  Response reorderPipelineStrategies(@Body ReorderPipelinesCommand reorderPipelinesCommand)
+
   // pipeline template related
   @GET("/pipelineTemplates")
   List<Map<String, Object>> getPipelineTemplates(@Query("scopes") List<String> scopes)
@@ -136,6 +142,16 @@ interface Front50Service {
     static class PipelineConfig {
       String application
       String pipelineConfigId
+    }
+  }
+
+  static class ReorderPipelinesCommand {
+    Map<String, Integer> idsToIndices
+    String application
+
+    ReorderPipelinesCommand(Map<String, Integer> idsToIndices, String application) {
+      this.idsToIndices = idsToIndices
+      this.application = application
     }
   }
 }
