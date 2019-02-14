@@ -49,7 +49,18 @@ window.spinnakerSettings = {
   debugEnabled: debugEnabled,
   defaultCategory: 'serverGroup',
   defaultInstancePort: 80,
-  defaultProviders: ['aws', 'gce', 'azure', 'cloudfoundry', 'kubernetes', 'dcos', 'openstack', 'oracle', 'ecs'],
+  defaultProviders: [
+    'appengine',
+    'aws',
+    'azure',
+    'cloudfoundry',
+    'dcos',
+    'ecs',
+    'gce',
+    'kubernetes',
+    'openstack',
+    'oracle',
+  ],
   defaultTimeZone: process.env.TIMEZONE || 'America/Los_Angeles', // see http://momentjs.com/timezone/docs/#/data-utilities/
   feature: {
     artifacts: artifactsEnabled,

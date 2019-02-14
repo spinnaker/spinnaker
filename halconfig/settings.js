@@ -139,6 +139,7 @@ window.spinnakerSettings = {
   defaultCategory: 'serverGroup',
   defaultInstancePort: 80,
   defaultProviders: [
+    'appengine',
     'aws',
     'azure',
     'cloudfoundry',
