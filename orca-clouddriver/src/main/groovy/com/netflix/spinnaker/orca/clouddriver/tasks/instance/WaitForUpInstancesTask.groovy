@@ -62,37 +62,44 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
     if (!(serverGroup?.capacity)) {
       return false
     }
-    int targetDesiredSize = calculateTargetDesiredSize(stage, serverGroup)
 
-    if (targetDesiredSize == 0 && stage.context.capacitySnapshot) {
-      // if we've seen a non-zero value before, but we are seeing a target size of zero now, assume
-      // it's a transient issue with edda unless we see it repeatedly
-      Map snapshot = stage.context.capacitySnapshot as Map
-      Integer snapshotDesiredCapacity = snapshot.desiredCapacity as Integer
-      if (snapshotDesiredCapacity != 0) {
-        Integer seenCount = stage.context.zeroDesiredCapacityCount as Integer
-        return seenCount >= MIN_ZERO_INSTANCE_RETRY_COUNT
+    def splainer = new Splainer()
+
+    try {
+      int targetDesiredSize = calculateTargetDesiredSize(stage, serverGroup, splainer)
+
+      if (targetDesiredSize == 0 && stage.context.capacitySnapshot) {
+        // if we've seen a non-zero value before, but we are seeing a target size of zero now, assume
+        // it's a transient issue with edda unless we see it repeatedly
+        Map snapshot = stage.context.capacitySnapshot as Map
+        Integer snapshotDesiredCapacity = snapshot.desiredCapacity as Integer
+        if (snapshotDesiredCapacity != 0) {
+          Integer seenCount = stage.context.zeroDesiredCapacityCount as Integer
+          return seenCount >= MIN_ZERO_INSTANCE_RETRY_COUNT
+        }
       }
-    }
 
-    if (targetDesiredSize > instances.size()) {
-      return false
-    }
+      if (targetDesiredSize > instances.size()) {
+        return false
+      }
 
-    if (interestingHealthProviderNames != null && interestingHealthProviderNames.isEmpty()) {
-      log.info("${serverGroup.name}: Empty health providers supplied; considering it healthy")
-      return true
-    }
+      if (interestingHealthProviderNames != null && interestingHealthProviderNames.isEmpty()) {
+        splainer.add("${serverGroup.name}: Empty health providers supplied; considering it healthy")
+        return true
+      }
 
-    def healthyCount = instances.count { Map instance ->
-      HealthHelper.someAreUpAndNoneAreDown(instance, interestingHealthProviderNames)
-    }
+      def healthyCount = instances.count { Map instance ->
+        HealthHelper.someAreUpAndNoneAreDown(instance, interestingHealthProviderNames)
+      }
 
-    log.info("${serverGroup.name}: Instances up check - healthy: $healthyCount, target: $targetDesiredSize")
-    return healthyCount >= targetDesiredSize
+      splainer.add("${serverGroup.name}: Instances up check - healthy: $healthyCount, target: $targetDesiredSize")
+      return healthyCount >= targetDesiredSize
+    } finally {
+      splainer.splain()
+    }
   }
 
-  static int calculateTargetDesiredSize(Stage stage, Map serverGroup) {
+  static int calculateTargetDesiredSize(Stage stage, Map serverGroup, Splainer splainer = NOOPSPLAINER) {
     Map<String, Integer> capacity = getServerGroupCapacity(stage, serverGroup)
     Integer targetDesiredSize = capacity.desired as Integer
 
@@ -107,7 +114,7 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
       Integer snapshotCapacity = ((Map) stage.context.capacitySnapshot).desiredCapacity as Integer
       // if the server group is being actively scaled down, this operation might never complete,
       // so take the min of the latest capacity from the server group and the snapshot
-      log.info("${serverGroup.name}: Calculating target desired size from snapshot (${snapshotCapacity}) and server group (${targetDesiredSize})")
+      splainer.add("${serverGroup.name}: Calculating target desired size from snapshot (${snapshotCapacity}) and server group (${targetDesiredSize})")
       targetDesiredSize = Math.min(targetDesiredSize, snapshotCapacity)
     }
 
@@ -117,12 +124,12 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
         throw new NumberFormatException("targetHealthyDeployPercentage must be an integer between 0 and 100")
       }
       targetDesiredSize = Math.ceil(percentage * targetDesiredSize / 100D) as Integer
-      log.info("${serverGroup.name}: Calculating target desired size based on configured percentage (${percentage}) as ${targetDesiredSize} instances")
+      splainer.add("${serverGroup.name}: Calculating target desired size based on configured percentage (${percentage}) as ${targetDesiredSize} instances")
     } else if (stage.context.desiredPercentage != null) {
       Integer percentage = (Integer) stage.context.desiredPercentage
       targetDesiredSize = getDesiredInstanceCount(capacity, percentage)
     }
-    log.info("${serverGroup.name}: Target desired size is ${targetDesiredSize}")
+    splainer.add("${serverGroup.name}: Target desired size is ${targetDesiredSize}")
     targetDesiredSize
   }
 
@@ -252,4 +259,23 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
 
     return deployment?.capacity as Map<String, Integer>
   }
+
+  private static class Splainer {
+    List<String> messages = new ArrayList<>()
+
+    def add(String message) {
+      messages.add(message)
+    }
+
+    def splain() {
+      log.info(messages.join("\n"))
+    }
+  }
+
+  private static class NoopSplainer extends Splainer {
+    def add(String message) {}
+    def splain() {}
+  }
+
+  private static NoopSplainer NOOPSPLAINER = new NoopSplainer()
 }

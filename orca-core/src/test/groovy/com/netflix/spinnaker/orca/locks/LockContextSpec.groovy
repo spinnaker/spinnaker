@@ -118,7 +118,5 @@ class LockContextSpec extends Specification {
         type = stageType
       }
     }
-
-
   }
 }
