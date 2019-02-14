@@ -21,7 +21,7 @@ export class SpinnakerHeader extends React.Component<{}, ISpinnakerHeaderState> 
     };
   }
 
-  public isDevicePhoneOrSmaller(): Boolean {
+  public isDevicePhoneOrSmaller(): boolean {
     const bodyStyles = window.getComputedStyle(document.body);
     const isPhone = bodyStyles.getPropertyValue('--is-phone');
     return isPhone.toLowerCase() === 'true';

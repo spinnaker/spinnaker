@@ -15,7 +15,7 @@ export class NgGenericArtifactDelegate
   implements IExpectedArtifactSelectorViewControllerDelegate {
   constructor(
     protected $scope: IScope,
-    private tag: String,
+    private tag: string,
     private excludedArtifactTypes = defaultExcludedArtifactTypes,
   ) {
     super($scope);

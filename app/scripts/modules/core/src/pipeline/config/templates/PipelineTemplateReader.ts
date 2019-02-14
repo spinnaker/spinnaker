@@ -78,7 +78,7 @@ export interface IPipelineTemplatePlanError {
 export class PipelineTemplateReader {
   public static getPipelineTemplateFromSourceUrl(
     source: string,
-    executionId?: String,
+    executionId?: string,
     pipelineConfigId?: string,
   ): IPromise<IPipelineTemplate> {
     return API.one('pipelineTemplates')
@@ -91,7 +91,7 @@ export class PipelineTemplateReader {
       });
   }
 
-  public static getPipelinePlan(config: IPipelineTemplateConfig, executionId?: String): IPromise<IPipeline> {
+  public static getPipelinePlan(config: IPipelineTemplateConfig, executionId?: string): IPromise<IPipeline> {
     return API.one('pipelines')
       .one('start')
       .post({ ...config, plan: true, executionId });

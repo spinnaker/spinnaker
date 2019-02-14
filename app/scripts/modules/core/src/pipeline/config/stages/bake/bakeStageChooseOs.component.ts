@@ -17,11 +17,11 @@ export class BakeStageChooseOSController implements IController {
     this.showRadioButtons = this.baseOsOptions && this.baseOsOptions.length <= 2;
   }
 
-  public getBaseOsDescription(baseOsOption: IBaseOsOption): String {
+  public getBaseOsDescription(baseOsOption: IBaseOsOption): string {
     return baseOsOption.id + (baseOsOption.shortDescription ? ' (' + baseOsOption.shortDescription + ')' : '');
   }
 
-  public getBaseOsDetailedDescription(baseOsOption: IBaseOsOption): String {
+  public getBaseOsDetailedDescription(baseOsOption: IBaseOsOption): string {
     return baseOsOption.detailedDescription + (baseOsOption.isImageFamily ? ' (family)' : '');
   }
 }

@@ -33,7 +33,7 @@ export class DockerImageReader {
   }
 
   public static findTags(params: IFindTagsParams): IPromise<string[]> {
-    return RetryService.buildRetrySequence<String[]>(
+    return RetryService.buildRetrySequence<string[]>(
       () => API.all('images/tags').getList(params),
       (results: string[]) => results.length > 0,
       10,

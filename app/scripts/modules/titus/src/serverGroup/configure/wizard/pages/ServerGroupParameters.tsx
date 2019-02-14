@@ -152,7 +152,7 @@ export class ServerGroupParameters extends React.Component<IServerGroupParameter
             <Select
               value={values.migrationPolicy.type}
               options={migrationPolicyOptions}
-              onChange={(option: Option<String>) =>
+              onChange={(option: Option<string>) =>
                 setFieldValue('migrationPolicy', { ...values.migrationPolicy, ...{ type: option.value } })
               }
               clearable={false}

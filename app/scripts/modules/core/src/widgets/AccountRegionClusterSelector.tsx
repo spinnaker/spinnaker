@@ -3,7 +3,7 @@ import { IAccount } from 'core/account';
 
 export interface IAccountRegionClusterSelectorProps {
   application: Application;
-  component: Object;
+  component: Record<string, any>;
   accounts: IAccount[] | string[];
   clusterField?: string;
   singleRegion?: string;

@@ -76,7 +76,7 @@ export class ExecutionStatus extends React.Component<IExecutionStatusProps, IExe
     this.timestampScheduler.unsubscribe();
   }
 
-  private getExecutionTypeDisplay(): String {
+  private getExecutionTypeDisplay(): string {
     const trigger = this.props.execution.trigger;
     if (trigger.type === 'manual') {
       return 'Manual Start';
