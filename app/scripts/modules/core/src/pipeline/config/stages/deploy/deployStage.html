@@ -18,7 +18,7 @@
       <tbody ui-sortable="deployStageCtrl.clusterSortOptions" ng-model="stage.clusters">
       <tr ng-repeat="cluster in stage.clusters">
         <td class="handle"><span class="glyphicon glyphicon-resize-vertical"></span></td>
-        <td if-multiple-providers class="text-center">
+        <td if-multiple-providers>
           <cloud-provider-logo provider="cluster.cloudProvider || cluster.provider || cluster.providerType || 'aws'"
                                width="'20px'" height="'20px'" show-tooltip="true"></cloud-provider-logo>
         </td>
