@@ -3,14 +3,14 @@ package com.netflix.spinnaker.keel.clouddriver.model
 data class ClusterActiveServerGroup(
   val name: String,
   val region: String,
-  val zones: Collection<String>,
+  val zones: Set<String>,
   val launchConfig: LaunchConfig,
   val asg: AutoScalingGroup,
   val vpcId: String,
-  val targetGroups: Collection<String>,
-  val loadBalancers: Collection<String>,
+  val targetGroups: Set<String>,
+  val loadBalancers: Set<String>,
   val capacity: ServerGroupCapacity,
-  val securityGroups: Collection<String>,
+  val securityGroups: Set<String>,
   val accountName: String,
   val moniker: Moniker
 )
@@ -30,10 +30,10 @@ data class AutoScalingGroup(
   val defaultCooldown: Long,
   val healthCheckType: String,
   val healthCheckGracePeriod: Long,
-  val suspendedProcesses: Collection<String>,
-  val enabledMetrics: Collection<String>,
-  val tags: Collection<Tag>,
-  val terminationPolicies: Collection<String>,
+  val suspendedProcesses: Set<String>,
+  val enabledMetrics: Set<String>,
+  val tags: Set<Tag>,
+  val terminationPolicies: Set<String>,
   val vpczoneIdentifier: String
 )
 

@@ -11,6 +11,7 @@ dependencies {
   implementation "com.fasterxml.jackson.module:jackson-module-kotlin"
   implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
   implementation "com.fasterxml.jackson.datatype:jackson-datatype-joda"
+  implementation "org.javers:javers-core:5.1.3"
 
   testImplementation "org.springframework.boot:spring-boot-starter-web"
   testImplementation "org.springframework.boot:spring-boot-starter-test"

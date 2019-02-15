@@ -58,8 +58,6 @@ class EC2ResourcePlugin(
       is Cluster -> {
         @Suppress("UNCHECKED_CAST")
         val current = clusterHandler.current(spec, request as Resource<Cluster>)
-        log.info("{} desired state: {}", request.metadata.name, spec)
-        log.info("{} current state: {}", request.metadata.name, current)
         if (current == null) {
           ResourceMissing
         } else {
@@ -69,8 +67,6 @@ class EC2ResourcePlugin(
       is SecurityGroup -> {
         @Suppress("UNCHECKED_CAST")
         val current = securityGroupHandler.current(spec, request as Resource<SecurityGroup>)
-        log.info("{} desired state: {}", request.metadata.name, spec)
-        log.info("{} current state: {}", request.metadata.name, current)
         if (current == null) {
           ResourceMissing
         } else {

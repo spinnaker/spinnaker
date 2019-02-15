@@ -175,13 +175,13 @@ class ClusterHandler(
               securityGroupNames,
               targetGroups,
               launchConfig.instanceMonitoring.enabled,
-              asg.enabledMetrics.map { Metric.valueOf(it) },
+              asg.enabledMetrics.map { Metric.valueOf(it) }.toSet(),
               asg.defaultCooldown.let(Duration::ofSeconds),
               asg.healthCheckGracePeriod.let(Duration::ofSeconds),
               asg.healthCheckType.let { HealthCheckType.valueOf(it) },
-              asg.suspendedProcesses.map { ScalingProcess.valueOf(it) },
-              asg.terminationPolicies.map { TerminationPolicy.valueOf(it) },
-              asg.tags.associateBy(Tag::key, Tag::value)
+              asg.suspendedProcesses.map { ScalingProcess.valueOf(it) }.toSet(),
+              asg.terminationPolicies.map { TerminationPolicy.valueOf(it) }.toSet(),
+              asg.tags.associateBy(Tag::key, Tag::value).filterNot { it.key in DEFAULT_TAGS }
             )
           }
       }
@@ -208,15 +208,26 @@ class ClusterHandler(
   private val ClusterActiveServerGroup.vpcName: String?
     get() = cloudDriverCache.networkBy(vpcId).name
 
-  private val ClusterActiveServerGroup.securityGroupNames: Collection<String>
+  private val ClusterActiveServerGroup.securityGroupNames: Set<String>
     get() = securityGroups.map {
       cloudDriverCache.securityGroupById(accountName, region, it).name
     }
+      .toSet()
 
   private fun Instant.iso() =
     atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ISO_DATE_TIME)
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
+
+  companion object {
+    // these tags are auto-applied by CloudDriver so we should not consider them in a diff as they
+    // will never be specified as part of desired state
+    private val DEFAULT_TAGS = setOf(
+      "spinnaker:application",
+      "spinnaker:stack",
+      "spinnaker:details"
+    )
+  }
 }
 
 /**

@@ -63,15 +63,15 @@ internal object ClusterHandlerTest : JUnit5Minutests {
     imageId = "i-123543254134",
     accountName = vpc.account,
     region = vpc.region,
-    availabilityZones = listOf("us-west-2a", "us-west-2b", "us-west-2c"),
+    availabilityZones = setOf("us-west-2a", "us-west-2b", "us-west-2c"),
     subnet = vpc.name,
     capacity = Capacity(1, 6, 4),
     instanceType = "r4.8xlarge",
     ebsOptimized = false,
     iamRole = "keelRole",
     keyPair = "keel-key-pair",
-    loadBalancerNames = listOf("keel-test-frontend"),
-    securityGroupNames = listOf(sg1.name, sg2.name),
+    loadBalancerNames = setOf("keel-test-frontend"),
+    securityGroupNames = setOf(sg1.name, sg2.name),
     instanceMonitoring = false
   )
   val request = Resource(
@@ -102,17 +102,17 @@ internal object ClusterHandlerTest : JUnit5Minutests {
       spec.cooldown.seconds,
       spec.healthCheckType.let(HealthCheckType::toString),
       spec.healthCheckGracePeriod.seconds,
-      spec.suspendedProcesses.map(ScalingProcess::toString),
-      spec.enabledMetrics.map(Metric::toString),
-      spec.tags.map { Tag(it.key, it.value) },
-      spec.terminationPolicies.map(TerminationPolicy::toString),
+      spec.suspendedProcesses.map(ScalingProcess::toString).toSet(),
+      spec.enabledMetrics.map(Metric::toString).toSet(),
+      spec.tags.map { Tag(it.key, it.value) }.toSet(),
+      spec.terminationPolicies.map(TerminationPolicy::toString).toSet(),
       listOf(subnet1, subnet2, subnet3).map(Subnet::id).joinToString(",")
     ),
     vpc.id,
     spec.targetGroups,
     spec.loadBalancerNames,
     spec.capacity.let { ServerGroupCapacity(it.min, it.max, it.desired) },
-    listOf(sg1.id, sg2.id),
+    setOf(sg1.id, sg2.id),
     spec.accountName,
     Moniker(app = spec.name.application, cluster = spec.name.toString(), stack = spec.name.stack)
   )

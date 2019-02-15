@@ -1,8 +1,5 @@
 package com.netflix.spinnaker.keel.plugin.monitoring
 
-import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
-import com.google.common.hash.Hashing
 import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind
@@ -11,10 +8,10 @@ import com.netflix.spinnaker.keel.plugin.ResourceError
 import com.netflix.spinnaker.keel.plugin.ResourceMissing
 import com.netflix.spinnaker.keel.plugin.ResourcePlugin
 import com.netflix.spinnaker.keel.plugin.ResourceState
+import org.javers.core.JaversBuilder
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
-import java.nio.charset.Charset
 
 @Component
 class ResourceStateMonitor(
@@ -30,18 +27,22 @@ class ResourceStateMonitor(
       val resource = resourceRepository.get(uid, type)
       when (val response = plugin.current(resource)) {
         is ResourceMissing -> {
-          log.warn("Resource {} {} is missing", resource.kind)
+          log.warn("Resource {} \"{}\" is missing", resource.kind)
           plugin.create(resource)
         }
-        is ResourceState<*> -> if (resource.matches(response.spec)) {
-          log.info("Resource {} {} is valid", resource.kind, resource.metadata.name)
-        } else {
-          log.warn("Resource {} {} is invalid", resource.kind, resource.metadata.name)
-          plugin.update(resource)
+        is ResourceState<*> -> {
+          val diff = resource.diff(response.spec)
+          if (diff.hasChanges()) {
+            log.warn("Resource {} \"{}\" is invalid", resource.kind, resource.metadata.name)
+            log.info("Resource {} \"{}\" delta: {}", resource.kind, resource.metadata.name, diff)
+            plugin.update(resource)
+          } else {
+            log.info("Resource {} \"{}\" is valid", resource.kind, resource.metadata.name)
+          }
         }
         is ResourceError ->
           log.error(
-            "Resource {} {} current state could not be determined due to \"{}\"",
+            "Resource {} \"{}\" current state could not be determined due to \"{}\"",
             resource.kind,
             resource.metadata.name,
             response.reason
@@ -50,25 +51,19 @@ class ResourceStateMonitor(
     }
   }
 
-  private val hashFunction = Hashing
-    .murmur3_128()
-
   private fun ResourcePlugin.typeFor(singular: String): Class<out Any> =
     supportedKinds.entries.find { it.key.singular == singular }?.value
       ?: throw IllegalArgumentException("Plugin $name does not support $singular")
 
-  private fun Resource<*>.matches(current: Any): Boolean =
-    hashFunction.hashString(mapper.writeValueAsString(spec), UTF_8) == hashFunction.hashString(mapper.writeValueAsString(current), UTF_8)
+  private val javers = JaversBuilder.javers().build()
+
+  private fun Resource<*>.diff(current: Any) =
+    javers.compare(spec, current)
 
   private fun pluginFor(apiVersion: ApiVersion, singular: String): ResourcePlugin? =
     plugins.find { it.apiVersion == apiVersion && it.supportedKinds.keys.map(ResourceKind::singular).contains(singular) }
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
-  private val mapper by lazy { YAMLMapper().registerKotlinModule() }
-
-  companion object {
-    private val UTF_8 = Charset.forName("UTF-8")
-  }
 }
 
 class UnsupportedKind(apiVersion: ApiVersion, kind: String) : IllegalStateException("No plugin supporting \"$kind\" in \"$apiVersion\" is available")

@@ -34,9 +34,9 @@ internal object ResourceStateMonitorTests : JUnit5Minutests {
 
     before {
       whenever(plugin1.apiVersion) doReturn SPINNAKER_API_V1.subApi("plugin1")
-      whenever(plugin1.supportedKinds) doReturn mapOf(ResourceKind(SPINNAKER_API_V1.subApi("plugin1").group, "foo", "foos") to String::class.java)
+      whenever(plugin1.supportedKinds) doReturn mapOf(ResourceKind(SPINNAKER_API_V1.subApi("plugin1").group, "foo", "foos") to DummyResource::class.java)
       whenever(plugin2.apiVersion) doReturn SPINNAKER_API_V1.subApi("plugin2")
-      whenever(plugin2.supportedKinds) doReturn mapOf(ResourceKind(SPINNAKER_API_V1.subApi("plugin2").group, "bar", "bars") to String::class.java, ResourceKind(SPINNAKER_API_V1.subApi("plugin2").group, "baz", "bazzes") to String::class.java)
+      whenever(plugin2.supportedKinds) doReturn mapOf(ResourceKind(SPINNAKER_API_V1.subApi("plugin2").group, "bar", "bars") to DummyResource::class.java, ResourceKind(SPINNAKER_API_V1.subApi("plugin2").group, "baz", "bazzes") to DummyResource::class.java)
     }
 
     after {
@@ -53,7 +53,7 @@ internal object ResourceStateMonitorTests : JUnit5Minutests {
           resourceVersion = 1234L,
           uid = UUID.randomUUID()
         ),
-        spec = "whatever"
+        spec = DummyResource("whatever")
       )
 
       before {
@@ -92,7 +92,7 @@ internal object ResourceStateMonitorTests : JUnit5Minutests {
 
       context("the current state is wrong") {
         before {
-          whenever(plugin1.current(resource)) doReturn ResourceState("some other state that does not match")
+          whenever(plugin1.current(resource)) doReturn ResourceState(DummyResource("some other state that does not match"))
 
           validateManagedResources()
         }
@@ -102,6 +102,7 @@ internal object ResourceStateMonitorTests : JUnit5Minutests {
         }
       }
     }
-
   }
 }
+
+private data class DummyResource(val state: String)

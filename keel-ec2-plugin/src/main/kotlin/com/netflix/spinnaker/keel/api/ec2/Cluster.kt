@@ -17,7 +17,7 @@ data class Cluster(
   val accountName: String,
   val region: String,
   val subnet: String?, // TODO: is this actually optional?
-  val availabilityZones: Collection<String>,
+  val availabilityZones: Set<String>,
 
   // instances
   val instanceType: String,
@@ -30,20 +30,20 @@ data class Cluster(
   val keyPair: String,
 
   // dependencies
-  val loadBalancerNames: Collection<String> = emptySet(),
-  val securityGroupNames: Collection<String> = emptySet(),
-  val targetGroups: Collection<String> = emptySet(),
+  val loadBalancerNames: Set<String> = emptySet(),
+  val securityGroupNames: Set<String> = emptySet(),
+  val targetGroups: Set<String> = emptySet(),
 
   // health
   val instanceMonitoring: Boolean = false,
-  val enabledMetrics: Collection<Metric> = emptyList(),
+  val enabledMetrics: Set<Metric> = emptySet(),
   val cooldown: Duration = Duration.ofSeconds(10),
   val healthCheckGracePeriod: Duration = Duration.ofSeconds(600),
   val healthCheckType: HealthCheckType = EC2,
 
   // scaling
-  val suspendedProcesses: Collection<ScalingProcess> = emptySet(),
-  val terminationPolicies: Collection<TerminationPolicy> = setOf(OldestInstance),
+  val suspendedProcesses: Set<ScalingProcess> = emptySet(),
+  val terminationPolicies: Set<TerminationPolicy> = setOf(OldestInstance),
 
   val tags: Map<String, String> = emptyMap()
 )
