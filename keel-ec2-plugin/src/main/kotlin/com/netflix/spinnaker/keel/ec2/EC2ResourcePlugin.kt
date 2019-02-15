@@ -19,11 +19,13 @@ import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
+import com.netflix.spinnaker.keel.api.ec2.Cluster
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroup
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupRule
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.ec2.resource.AmazonSecurityGroupHandler
+import com.netflix.spinnaker.keel.ec2.resource.ClusterHandler
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.plugin.ConvergeAccepted
 import com.netflix.spinnaker.keel.plugin.ConvergeFailed
@@ -34,6 +36,7 @@ import com.netflix.spinnaker.keel.plugin.ResourceMissing
 import com.netflix.spinnaker.keel.plugin.ResourcePlugin
 import com.netflix.spinnaker.keel.plugin.ResourceState
 import org.slf4j.LoggerFactory
+import java.time.Clock
 
 class EC2ResourcePlugin(
   cloudDriverService: CloudDriverService,
@@ -45,12 +48,24 @@ class EC2ResourcePlugin(
 
   override val supportedKinds = mapOf(
     ResourceKind(apiVersion.group, "security-group", "security-groups") to SecurityGroup::class.java,
-    ResourceKind(apiVersion.group, "security-group-rule", "security-group-rules") to SecurityGroupRule::class.java
+    ResourceKind(apiVersion.group, "security-group-rule", "security-group-rules") to SecurityGroupRule::class.java,
+    ResourceKind(apiVersion.group, "cluster", "clusters") to Cluster::class.java
   )
 
   override fun current(request: Resource<*>): CurrentResponse {
     val spec = request.spec
     return when (spec) {
+      is Cluster -> {
+        @Suppress("UNCHECKED_CAST")
+        val current = clusterHandler.current(spec, request as Resource<Cluster>)
+        log.info("{} desired state: {}", request.metadata.name, spec)
+        log.info("{} current state: {}", request.metadata.name, current)
+        if (current == null) {
+          ResourceMissing
+        } else {
+          ResourceState(current)
+        }
+      }
       is SecurityGroup -> {
         @Suppress("UNCHECKED_CAST")
         val current = securityGroupHandler.current(spec, request as Resource<SecurityGroup>)
@@ -74,6 +89,10 @@ class EC2ResourcePlugin(
     val spec = request.spec
     return try {
       when (spec) {
+        is Cluster -> {
+          clusterHandler.converge(request.metadata.name, spec)
+          ConvergeAccepted
+        }
         is SecurityGroup -> {
           securityGroupHandler.converge(request.metadata.name, spec)
           ConvergeAccepted
@@ -85,8 +104,13 @@ class EC2ResourcePlugin(
         }
       }
     } catch (e: Exception) {
-      ConvergeFailed(e.message
-        ?: "Caught ${e.javaClass.name} converging ${request.kind} with id ${request.metadata.name}")
+      ConvergeFailed(
+        e.message
+          ?: "Caught ${e.javaClass.name} converging ${request.kind} with id ${request.metadata.name}"
+      )
+        .also {
+          log.error(it.reason, e)
+        }
     }
   }
 
@@ -112,6 +136,9 @@ class EC2ResourcePlugin(
 
   private val securityGroupHandler =
     AmazonSecurityGroupHandler(cloudDriverService, cloudDriverCache, orcaService)
+
+  private val clusterHandler =
+    ClusterHandler(cloudDriverService, cloudDriverCache, orcaService, Clock.systemDefaultZone())
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 }

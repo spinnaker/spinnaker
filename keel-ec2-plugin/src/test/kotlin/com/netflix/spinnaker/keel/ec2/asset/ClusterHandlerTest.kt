@@ -8,7 +8,6 @@ import com.netflix.spinnaker.keel.api.ec2.Capacity
 import com.netflix.spinnaker.keel.api.ec2.Cluster
 import com.netflix.spinnaker.keel.api.ec2.ClusterName
 import com.netflix.spinnaker.keel.api.ec2.HealthCheckType
-import com.netflix.spinnaker.keel.api.ec2.InstanceType
 import com.netflix.spinnaker.keel.api.ec2.Metric
 import com.netflix.spinnaker.keel.api.ec2.ScalingProcess
 import com.netflix.spinnaker.keel.api.ec2.TerminationPolicy
@@ -22,13 +21,13 @@ import com.netflix.spinnaker.keel.clouddriver.model.Moniker
 import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.clouddriver.model.ServerGroupCapacity
+import com.netflix.spinnaker.keel.clouddriver.model.Subnet
 import com.netflix.spinnaker.keel.clouddriver.model.Tag
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.ec2.RETROFIT_NOT_FOUND
 import com.netflix.spinnaker.keel.ec2.resource.ClusterHandler
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.orca.OrcaService
-import com.netflix.spinnaker.keel.orca.TaskRef
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.argumentCaptor
@@ -55,6 +54,9 @@ internal object ClusterHandlerTest : JUnit5Minutests {
   val vpc = Network(CLOUD_PROVIDER, "vpc-1452353", "vpc0", "test", "us-west-2")
   val sg1 = SecurityGroupSummary("keel", "sg-325234532")
   val sg2 = SecurityGroupSummary("keel-elb", "sg-235425234")
+  val subnet1 = Subnet("subnet-1", vpc.id, vpc.account, vpc.region, "${vpc.region}a", "internal (vpc0)")
+  val subnet2 = Subnet("subnet-2", vpc.id, vpc.account, vpc.region, "${vpc.region}b", "internal (vpc0)")
+  val subnet3 = Subnet("subnet-3", vpc.id, vpc.account, vpc.region, "${vpc.region}c", "internal (vpc0)")
   val spec = Cluster(
     application = "keel",
     name = ClusterName(application = "keel", stack = "test"),
@@ -62,9 +64,9 @@ internal object ClusterHandlerTest : JUnit5Minutests {
     accountName = vpc.account,
     region = vpc.region,
     availabilityZones = listOf("us-west-2a", "us-west-2b", "us-west-2c"),
-    vpcName = vpc.name,
+    subnet = vpc.name,
     capacity = Capacity(1, 6, 4),
-    instanceType = InstanceType("r4.8xlarge"),
+    instanceType = "r4.8xlarge",
     ebsOptimized = false,
     iamRole = "keelRole",
     keyPair = "keel-key-pair",
@@ -90,8 +92,7 @@ internal object ClusterHandlerTest : JUnit5Minutests {
       spec.ramdiskId,
       spec.ebsOptimized,
       spec.imageId,
-      spec.base64UserData,
-      spec.instanceType.value,
+      spec.instanceType,
       spec.keyPair,
       spec.iamRole,
       InstanceMonitoring(spec.instanceMonitoring)
@@ -104,7 +105,8 @@ internal object ClusterHandlerTest : JUnit5Minutests {
       spec.suspendedProcesses.map(ScalingProcess::toString),
       spec.enabledMetrics.map(Metric::toString),
       spec.tags.map { Tag(it.key, it.value) },
-      spec.terminationPolicies.map(TerminationPolicy::toString)
+      spec.terminationPolicies.map(TerminationPolicy::toString),
+      listOf(subnet1, subnet2, subnet3).map(Subnet::id).joinToString(",")
     ),
     vpc.id,
     spec.targetGroups,
@@ -127,6 +129,9 @@ internal object ClusterHandlerTest : JUnit5Minutests {
     before {
       cloudDriverCache.apply {
         whenever(networkBy(vpc.id)) doReturn vpc
+        whenever(subnetBy(subnet1.id)) doReturn subnet1
+        whenever(subnetBy(subnet2.id)) doReturn subnet2
+        whenever(subnetBy(subnet3.id)) doReturn subnet3
         whenever(securityGroupById(spec.accountName, spec.region, sg1.id)) doReturn sg1
         whenever(securityGroupById(spec.accountName, spec.region, sg2.id)) doReturn sg2
         whenever(securityGroupByName(spec.accountName, spec.region, sg1.name)) doReturn sg1
@@ -148,7 +153,7 @@ internal object ClusterHandlerTest : JUnit5Minutests {
       }
 
       test("annealing a diff creates a new server group") {
-        whenever(orcaService.orchestrate(any())) doReturn CompletableDeferred(TaskRefResponse(TaskRef("1")))
+        whenever(orcaService.orchestrate(any())) doReturn CompletableDeferred(TaskRefResponse("/tasks/1"))
 
         converge(request.metadata.name, spec)
 
@@ -170,7 +175,7 @@ internal object ClusterHandlerTest : JUnit5Minutests {
       }
 
       test("annealing a diff clones the current server group") {
-        whenever(orcaService.orchestrate(any())) doReturn CompletableDeferred(TaskRefResponse(TaskRef("1")))
+        whenever(orcaService.orchestrate(any())) doReturn CompletableDeferred(TaskRefResponse("/tasks/1"))
 
         converge(request.metadata.name, spec)
 

@@ -19,6 +19,7 @@ import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.ec2.EC2ResourcePlugin
 import com.netflix.spinnaker.keel.orca.OrcaService
+import com.netflix.spinnaker.keel.plugin.CustomResourceDefinitionLocator
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -35,4 +36,10 @@ class EC2Config {
   ): EC2ResourcePlugin =
     EC2ResourcePlugin(cloudDriverService, cloudDriverCache, orcaService)
 
+  @Bean
+  fun clusterCRDLocator() =
+    object : CustomResourceDefinitionLocator {
+      override fun locate() =
+        javaClass.getResourceAsStream("/cluster.yml").reader()
+    }
 }
