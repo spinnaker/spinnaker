@@ -32,7 +32,6 @@ public enum ObjectType {
   CANARY_CONFIG(new TypeReference<CanaryConfig>() {}, "canary_config", "canary_config.json"),
   METRIC_SET_LIST(new TypeReference<List<MetricSet>>() {}, "metrics", "metric_sets.json"),
   METRIC_SET_PAIR_LIST(new TypeReference<List<MetricSetPair>>() {}, "metric_pairs", "metric_set_pairs.json"),
-  CANARY_RESULT(new TypeReference<CanaryResult>() {}, "judge_results", "judge_results.json"),
   CANARY_RESULT_ARCHIVE(new TypeReference<CanaryExecutionStatusResponse>() {}, "canary_archive", "canary_archive.json");
 
   @Getter
