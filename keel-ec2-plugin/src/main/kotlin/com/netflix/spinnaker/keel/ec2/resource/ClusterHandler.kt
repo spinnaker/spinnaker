@@ -7,8 +7,9 @@ import com.netflix.spinnaker.keel.api.ec2.Cluster
 import com.netflix.spinnaker.keel.api.ec2.Cluster.Dependencies
 import com.netflix.spinnaker.keel.api.ec2.Cluster.Health
 import com.netflix.spinnaker.keel.api.ec2.Cluster.LaunchConfiguration
-import com.netflix.spinnaker.keel.api.ec2.ClusterLocation
-import com.netflix.spinnaker.keel.api.ec2.ClusterMoniker
+import com.netflix.spinnaker.keel.api.ec2.Cluster.Location
+import com.netflix.spinnaker.keel.api.ec2.Cluster.Moniker
+import com.netflix.spinnaker.keel.api.ec2.Cluster.Scaling
 import com.netflix.spinnaker.keel.api.ec2.HealthCheckType
 import com.netflix.spinnaker.keel.api.ec2.Metric
 import com.netflix.spinnaker.keel.api.ec2.ScalingProcess
@@ -82,7 +83,7 @@ class ClusterHandler(
           spec.location.region to spec.location.availabilityZones
         ),
         "keyPair" to spec.launchConfiguration.keyPair,
-        "suspendedProcesses" to spec.suspendedProcesses,
+        "suspendedProcesses" to spec.scaling.suspendedProcesses,
         "securityGroups" to spec.securityGroupIds,
         "stack" to spec.moniker.stack,
         "freeFormDetails" to spec.moniker.detail,
@@ -168,8 +169,8 @@ class ClusterHandler(
           .await()
           .run {
             Cluster(
-              moniker = ClusterMoniker(moniker.app, moniker.stack, moniker.detail),
-              location = ClusterLocation(
+              moniker = Moniker(moniker.app, moniker.stack, moniker.detail),
+              location = Location(
                 accountName,
                 region,
                 subnet,
@@ -199,7 +200,9 @@ class ClusterHandler(
                 healthCheckType = asg.healthCheckType.let { HealthCheckType.valueOf(it) },
                 terminationPolicies = asg.terminationPolicies.map { TerminationPolicy.valueOf(it) }.toSet()
               ),
-              suspendedProcesses = asg.suspendedProcesses.map { ScalingProcess.valueOf(it) }.toSet(),
+              scaling = Scaling(
+                suspendedProcesses = asg.suspendedProcesses.map { ScalingProcess.valueOf(it) }.toSet()
+              ),
               tags = asg.tags.associateBy(Tag::key, Tag::value).filterNot { it.key in DEFAULT_TAGS }
             )
           }

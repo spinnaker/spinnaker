@@ -8,15 +8,34 @@ import java.time.Duration
 
 @JsonInclude(NON_NULL)
 data class Cluster(
-  val moniker: ClusterMoniker,
-  val location: ClusterLocation,
+  val moniker: Moniker,
+  val location: Location,
   val launchConfiguration: LaunchConfiguration,
   val capacity: Capacity = Capacity(1, 1, 1),
   val dependencies: Dependencies = Dependencies(),
   val health: Health = Health(),
-  val suspendedProcesses: Set<ScalingProcess> = emptySet(),
+  val scaling: Scaling = Scaling(),
   val tags: Map<String, String> = emptyMap()
 ) {
+  data class Moniker(
+    val application: String,
+    val stack: String? = null,
+    val detail: String? = null
+  ) {
+    val cluster: String
+      get() = when {
+        stack == null && detail == null -> application
+        detail == null -> "$application-$stack"
+        else -> "$application-${stack.orEmpty()}-$detail"
+      }
+  }
+
+  data class Location(
+    val accountName: String,
+    val region: String,
+    val subnet: String?, // TODO: is this actually optional?
+    val availabilityZones: Set<String>
+  )
 
   data class LaunchConfiguration(
     val imageId: String,
@@ -41,5 +60,8 @@ data class Cluster(
     val enabledMetrics: Set<Metric> = emptySet(),
     val terminationPolicies: Set<TerminationPolicy> = setOf(OldestInstance)
   )
-}
 
+  data class Scaling(
+    val suspendedProcesses: Set<ScalingProcess> = emptySet()
+  )
+}

@@ -1,14 +1,15 @@
 package com.netflix.spinnaker.keel.api.ec2
 
+import com.netflix.spinnaker.keel.api.ec2.Cluster.Moniker
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
 internal class ClusterMonikerTest : JUnit5Minutests {
-  fun tests() = rootContext<ClusterMoniker> {
+  fun tests() = rootContext<Moniker> {
     context("a cluster with no stack or detail") {
-      fixture { ClusterMoniker("fnord") }
+      fixture { Moniker("fnord") }
 
       test("has a cluster name that is just the application") {
         expectThat(cluster).isEqualTo(application)
@@ -16,7 +17,7 @@ internal class ClusterMonikerTest : JUnit5Minutests {
     }
 
     context("a cluster with a stack but no detail") {
-      fixture { ClusterMoniker("fnord", "test") }
+      fixture { Moniker("fnord", "test") }
 
       test("has a cluster name that is the application and stack") {
         expectThat(cluster).isEqualTo("$application-$stack")
@@ -24,7 +25,7 @@ internal class ClusterMonikerTest : JUnit5Minutests {
     }
 
     context("a cluster with both stack and detail") {
-      fixture { ClusterMoniker("fnord", "test", "foo") }
+      fixture { Moniker("fnord", "test", "foo") }
 
       test("has a cluster name that is the application, stack, and detail") {
         expectThat(cluster).isEqualTo("$application-$stack-$detail")
@@ -32,7 +33,7 @@ internal class ClusterMonikerTest : JUnit5Minutests {
     }
 
     context("a cluster with no stack and a detail") {
-      fixture { ClusterMoniker("fnord", detail = "foo") }
+      fixture { Moniker("fnord", detail = "foo") }
 
       test("has a cluster name that is the application and detail") {
         expectThat(cluster).isEqualTo("$application--$detail")

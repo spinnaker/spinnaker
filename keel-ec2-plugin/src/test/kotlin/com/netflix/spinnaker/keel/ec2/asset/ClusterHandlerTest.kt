@@ -6,8 +6,8 @@ import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.ec2.Capacity
 import com.netflix.spinnaker.keel.api.ec2.Cluster
-import com.netflix.spinnaker.keel.api.ec2.ClusterLocation
-import com.netflix.spinnaker.keel.api.ec2.ClusterMoniker
+import com.netflix.spinnaker.keel.api.ec2.Cluster.Location
+import com.netflix.spinnaker.keel.api.ec2.Cluster.Moniker
 import com.netflix.spinnaker.keel.api.ec2.HealthCheckType
 import com.netflix.spinnaker.keel.api.ec2.Metric
 import com.netflix.spinnaker.keel.api.ec2.ScalingProcess
@@ -18,7 +18,6 @@ import com.netflix.spinnaker.keel.clouddriver.model.AutoScalingGroup
 import com.netflix.spinnaker.keel.clouddriver.model.ClusterActiveServerGroup
 import com.netflix.spinnaker.keel.clouddriver.model.InstanceMonitoring
 import com.netflix.spinnaker.keel.clouddriver.model.LaunchConfig
-import com.netflix.spinnaker.keel.clouddriver.model.Moniker
 import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.clouddriver.model.ServerGroupCapacity
@@ -49,6 +48,7 @@ import strikt.assertions.isNotNull
 import strikt.assertions.isNull
 import java.time.Clock
 import java.util.*
+import com.netflix.spinnaker.keel.clouddriver.model.Moniker as CloudDriverMoniker
 
 internal object ClusterHandlerTest : JUnit5Minutests {
 
@@ -59,8 +59,8 @@ internal object ClusterHandlerTest : JUnit5Minutests {
   val subnet2 = Subnet("subnet-2", vpc.id, vpc.account, vpc.region, "${vpc.region}b", "internal (vpc0)")
   val subnet3 = Subnet("subnet-3", vpc.id, vpc.account, vpc.region, "${vpc.region}c", "internal (vpc0)")
   val spec = Cluster(
-    moniker = ClusterMoniker("keel", "test"),
-    location = ClusterLocation(
+    moniker = Moniker("keel", "test"),
+    location = Location(
       accountName = vpc.account,
       region = vpc.region,
       availabilityZones = setOf("us-west-2a", "us-west-2b", "us-west-2c"),
@@ -108,7 +108,7 @@ internal object ClusterHandlerTest : JUnit5Minutests {
       spec.health.cooldown.seconds,
       spec.health.healthCheckType.let(HealthCheckType::toString),
       spec.health.warmup.seconds,
-      spec.suspendedProcesses.map(ScalingProcess::toString).toSet(),
+      spec.scaling.suspendedProcesses.map(ScalingProcess::toString).toSet(),
       spec.health.enabledMetrics.map(Metric::toString).toSet(),
       spec.tags.map { Tag(it.key, it.value) }.toSet(),
       spec.health.terminationPolicies.map(TerminationPolicy::toString).toSet(),
@@ -120,7 +120,7 @@ internal object ClusterHandlerTest : JUnit5Minutests {
     spec.capacity.let { ServerGroupCapacity(it.min, it.max, it.desired) },
     setOf(sg1.id, sg2.id),
     spec.location.accountName,
-    spec.moniker.run { Moniker(application, toString(), detail, stack, "69") }
+    spec.moniker.run { CloudDriverMoniker(application, cluster, detail, stack, "69") }
   )
 
   val cloudDriverService = mock<CloudDriverService>()
