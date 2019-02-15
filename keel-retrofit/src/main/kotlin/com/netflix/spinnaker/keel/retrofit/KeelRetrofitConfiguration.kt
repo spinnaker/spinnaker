@@ -32,7 +32,6 @@ import org.springframework.context.annotation.Import
 import org.springframework.context.annotation.Scope
 import java.util.concurrent.TimeUnit.MILLISECONDS
 
-
 @Configuration
 @Import(OkHttp3ClientConfiguration::class)
 @EnableConfigurationProperties
@@ -79,7 +78,7 @@ class KeelRetrofitConfiguration {
   }
 
   @Bean
-  fun retrofitLoggingInterceptor(@Value("\${retrofit.logLevel:BASIC}") retrofitLogLevel: String) =
+  fun retrofitLoggingInterceptor(@Value("\${retrofit2.logLevel:BASIC}") retrofitLogLevel: String) =
     HttpLoggingInterceptor().apply {
       level = HttpLoggingInterceptor.Level.valueOf(retrofitLogLevel)
     }
