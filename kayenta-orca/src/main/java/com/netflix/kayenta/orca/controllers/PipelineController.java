@@ -134,7 +134,7 @@ public class PipelineController {
   }
 
   @ApiOperation(value = "List all pipeline IDs")
-  @RequestMapping(value = "/", method = RequestMethod.GET)
+  @RequestMapping(method = RequestMethod.GET)
   List<String> list() {
     return executionRepository.retrieveAllExecutionIds(Execution.ExecutionType.PIPELINE);
   }
