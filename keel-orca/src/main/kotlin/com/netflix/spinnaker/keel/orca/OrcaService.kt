@@ -17,7 +17,6 @@ package com.netflix.spinnaker.keel.orca
 
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import kotlinx.coroutines.Deferred
-import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Headers
@@ -38,11 +37,9 @@ interface OrcaService {
 }
 
 data class TaskRefResponse(
-  val ref: TaskRef
-)
-
-data class TaskRef(val ref: String) {
-  val id by lazy { ref.substringAfterLast("/") }
+  val ref: String
+) {
+  val taskId by lazy { ref.substringAfterLast("/") }
 }
 
 data class TaskDetailResponse(

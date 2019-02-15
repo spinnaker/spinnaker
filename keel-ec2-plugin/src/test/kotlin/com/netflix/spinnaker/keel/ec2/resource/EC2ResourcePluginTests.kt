@@ -37,7 +37,6 @@ import com.netflix.spinnaker.keel.ec2.RETROFIT_NOT_FOUND
 import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.orca.OrcaService
-import com.netflix.spinnaker.keel.orca.TaskRef
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
 import com.netflix.spinnaker.keel.plugin.ResourceMissing
 import com.netflix.spinnaker.keel.plugin.ResourceState
@@ -236,7 +235,7 @@ internal object EC2ResourcePluginTests {
     context("a security group with no ingress rules") {
       before {
         whenever(orcaService.orchestrate(any())) doAnswer {
-          CompletableDeferred(TaskRefResponse(TaskRef(UUID.randomUUID().toString())))
+          CompletableDeferred(TaskRefResponse("/tasks/${UUID.randomUUID()}"))
         }
 
         subject.upsert(request)
@@ -281,7 +280,7 @@ internal object EC2ResourcePluginTests {
       context("the referenced security group exists") {
         before {
           whenever(orcaService.orchestrate(any())) doAnswer {
-            CompletableDeferred(TaskRefResponse(TaskRef(UUID.randomUUID().toString())))
+            CompletableDeferred(TaskRefResponse("/tasks/${UUID.randomUUID()}"))
           }
 
           subject.upsert(request)
@@ -328,7 +327,7 @@ internal object EC2ResourcePluginTests {
 
       before {
         whenever(orcaService.orchestrate(any())) doAnswer {
-          CompletableDeferred(TaskRefResponse(TaskRef(UUID.randomUUID().toString())))
+          CompletableDeferred(TaskRefResponse("/tasks/${UUID.randomUUID()}"))
         }
 
         subject.upsert(request)
@@ -376,7 +375,7 @@ internal object EC2ResourcePluginTests {
 
     before {
       whenever(orcaService.orchestrate(any())) doAnswer {
-        CompletableDeferred(TaskRefResponse(TaskRef(UUID.randomUUID().toString())))
+        CompletableDeferred(TaskRefResponse("/tasks/${UUID.randomUUID()}"))
       }
 
       subject.delete(request)
