@@ -17,12 +17,10 @@
 package com.netflix.spinnaker.front50.redis
 
 import com.netflix.spinnaker.front50.model.application.Application
-import com.netflix.spinnaker.front50.model.intent.Intent
 import com.netflix.spinnaker.front50.model.notification.Notification
 import com.netflix.spinnaker.front50.model.pipeline.Pipeline
 import com.netflix.spinnaker.front50.model.pipeline.PipelineTemplate
 import com.netflix.spinnaker.front50.model.project.Project
-import jdk.nashorn.internal.ir.BreakableNode
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
@@ -60,11 +58,6 @@ class RedisConfig {
   @Bean
   RedisPipelineTemplateDAO redisPipelineTemplateDAO(RedisTemplate<String, PipelineTemplate> template) {
     new RedisPipelineTemplateDAO(redisTemplate: template)
-  }
-
-  @Bean
-  RedisIntentDAO redisIntentDAO(RedisTemplate<String, Intent> template) {
-    new RedisIntentDAO(redisTemplate: template)
   }
 
   @Bean
@@ -142,18 +135,6 @@ class RedisConfig {
     template.keySerializer = stringRedisSerializer
     template.hashKeySerializer = stringRedisSerializer
     template.hashValueSerializer = new Jackson2JsonRedisSerializer<>(Notification)
-
-    template
-  }
-
-  @Bean
-  RedisTemplate<String, Intent> intentRedisTemplate(RedisConnectionFactory connectionFactory,
-                                                    StringRedisSerializer stringRedisSerializer) {
-    RedisTemplate<String, Intent> template = new RedisTemplate<>()
-    template.connectionFactory = connectionFactory
-    template.keySerializer = stringRedisSerializer
-    template.hashKeySerializer = stringRedisSerializer
-    template.hashValueSerializer = new Jackson2JsonRedisSerializer<>(Intent)
 
     template
   }
