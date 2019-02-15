@@ -4,6 +4,7 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.ec2.Capacity
 import com.netflix.spinnaker.keel.api.ec2.Cluster
+import com.netflix.spinnaker.keel.api.ec2.Cluster.Dependencies
 import com.netflix.spinnaker.keel.api.ec2.Cluster.LaunchConfiguration
 import com.netflix.spinnaker.keel.api.ec2.ClusterLocation
 import com.netflix.spinnaker.keel.api.ec2.ClusterMoniker
@@ -99,8 +100,8 @@ class ClusterHandler(
         "instanceType" to spec.launchConfiguration.instanceType,
         "type" to "createServerGroup",
         "cloudProvider" to CLOUD_PROVIDER,
-        "loadBalancers" to spec.loadBalancerNames,
-        "targetGroups" to spec.targetGroups,
+        "loadBalancers" to spec.dependencies.loadBalancerNames,
+        "targetGroups" to spec.dependencies.targetGroups,
         "account" to spec.location.accountName
       )
 
@@ -166,14 +167,14 @@ class ClusterHandler(
           .await()
           .run {
             Cluster(
-              ClusterMoniker(moniker.app, moniker.stack, moniker.detail),
-              ClusterLocation(
+              moniker = ClusterMoniker(moniker.app, moniker.stack, moniker.detail),
+              location = ClusterLocation(
                 accountName,
                 region,
                 subnet,
                 zones
               ),
-              launchConfig.run {
+              launchConfiguration = launchConfig.run {
                 LaunchConfiguration(
                   imageId,
                   instanceType,
@@ -184,17 +185,19 @@ class ClusterHandler(
                   ramdiskId.orNull()
                 )
               },
-              capacity.let { Capacity(it.min, it.max, it.desired) },
-              loadBalancers,
-              securityGroupNames,
-              targetGroups,
-              asg.enabledMetrics.map { Metric.valueOf(it) }.toSet(),
-              asg.defaultCooldown.let(Duration::ofSeconds),
-              asg.healthCheckGracePeriod.let(Duration::ofSeconds),
-              asg.healthCheckType.let { HealthCheckType.valueOf(it) },
-              asg.suspendedProcesses.map { ScalingProcess.valueOf(it) }.toSet(),
-              asg.terminationPolicies.map { TerminationPolicy.valueOf(it) }.toSet(),
-              asg.tags.associateBy(Tag::key, Tag::value).filterNot { it.key in DEFAULT_TAGS }
+              capacity = capacity.let { Capacity(it.min, it.max, it.desired) },
+              dependencies = Dependencies(
+                loadBalancerNames = loadBalancers,
+                securityGroupNames = securityGroupNames,
+                targetGroups = targetGroups
+              ),
+              enabledMetrics = asg.enabledMetrics.map { Metric.valueOf(it) }.toSet(),
+              cooldown = asg.defaultCooldown.let(Duration::ofSeconds),
+              healthCheckGracePeriod = asg.healthCheckGracePeriod.let(Duration::ofSeconds),
+              healthCheckType = asg.healthCheckType.let { HealthCheckType.valueOf(it) },
+              suspendedProcesses = asg.suspendedProcesses.map { ScalingProcess.valueOf(it) }.toSet(),
+              terminationPolicies = asg.terminationPolicies.map { TerminationPolicy.valueOf(it) }.toSet(),
+              tags = asg.tags.associateBy(Tag::key, Tag::value).filterNot { it.key in DEFAULT_TAGS }
             )
           }
       }
@@ -207,7 +210,7 @@ class ClusterHandler(
   }
 
   private val Cluster.securityGroupIds: Collection<String>
-    get() = securityGroupNames.map {
+    get() = dependencies.securityGroupNames.map {
       cloudDriverCache.securityGroupByName(location.accountName, location.region, it).id
     }
 

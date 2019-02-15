@@ -12,12 +12,7 @@ data class Cluster(
   val location: ClusterLocation,
   val launchConfiguration: LaunchConfiguration,
   val capacity: Capacity = Capacity(1, 1, 1),
-
-  // dependencies
-  val loadBalancerNames: Set<String> = emptySet(),
-  val securityGroupNames: Set<String> = emptySet(),
-  val targetGroups: Set<String> = emptySet(),
-
+  val dependencies: Dependencies,
   // health
   val enabledMetrics: Set<Metric> = emptySet(),
   val cooldown: Duration = Duration.ofSeconds(10),
@@ -41,5 +36,10 @@ data class Cluster(
     val ramdiskId: String? = null
   )
 
+  data class Dependencies(
+    val loadBalancerNames: Set<String> = emptySet(),
+    val securityGroupNames: Set<String> = emptySet(),
+    val targetGroups: Set<String> = emptySet()
+  )
 }
 

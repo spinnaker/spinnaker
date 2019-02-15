@@ -45,11 +45,12 @@ internal object ClusterTests : JUnit5Minutests {
             |  min: 1
             |  max: 1
             |  desired: 1
-            |loadBalancerNames: []
-            |securityGroupNames:
-            |- fletch_test
-            |- nf_infrastructure
-            |- nf_datacenter
+            |dependencies:
+            |  loadBalancerNames: []
+            |  securityGroupNames:
+            |  - fletch_test
+            |  - nf_infrastructure
+            |  - nf_datacenter
             |enabledMetrics: []
           """.trimMargin()
         )

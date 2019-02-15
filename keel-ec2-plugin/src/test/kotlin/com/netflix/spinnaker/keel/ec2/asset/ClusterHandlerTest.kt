@@ -75,8 +75,10 @@ internal object ClusterHandlerTest : JUnit5Minutests {
       instanceMonitoring = false
     ),
     capacity = Capacity(1, 6, 4),
-    loadBalancerNames = setOf("keel-test-frontend"),
-    securityGroupNames = setOf(sg1.name, sg2.name)
+    dependencies = Cluster.Dependencies(
+      loadBalancerNames = setOf("keel-test-frontend"),
+      securityGroupNames = setOf(sg1.name, sg2.name)
+    )
   )
   val request = Resource(
     SPINNAKER_API_V1,
@@ -113,8 +115,8 @@ internal object ClusterHandlerTest : JUnit5Minutests {
       listOf(subnet1, subnet2, subnet3).map(Subnet::id).joinToString(",")
     ),
     vpc.id,
-    spec.targetGroups,
-    spec.loadBalancerNames,
+    spec.dependencies.targetGroups,
+    spec.dependencies.loadBalancerNames,
     spec.capacity.let { ServerGroupCapacity(it.min, it.max, it.desired) },
     setOf(sg1.id, sg2.id),
     spec.location.accountName,
