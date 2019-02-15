@@ -26,7 +26,6 @@ internal object ClusterTests : JUnit5Minutests {
             |  application: fletch_test
             |  stack: keel
             |  detail: k8s
-            |imageId: ami-01fdaa2821a7ea01e
             |location:
             |  accountName: test
             |  region: eu-west-1
@@ -35,21 +34,23 @@ internal object ClusterTests : JUnit5Minutests {
             |  - eu-west-1b
             |  - eu-west-1c
             |  subnet: internal (vpc0)
+            |launchConfiguration:
+            |  imageId: ami-01fdaa2821a7ea01e
+            |  instanceType: m5.large
+            |  ebsOptimized: true
+            |  instanceMonitoring: false
+            |  iamRole: fletch_testInstanceProfile
+            |  keyPair: nf-test-keypair-a
             |capacity:
             |  min: 1
             |  max: 1
             |  desired: 1
-            |instanceType: m5.large
-            |ebsOptimized: true
             |loadBalancerNames: []
             |securityGroupNames:
             |- fletch_test
             |- nf_infrastructure
             |- nf_datacenter
-            |instanceMonitoring: false
             |enabledMetrics: []
-            |iamRole: fletch_testInstanceProfile
-            |keyPair: nf-test-keypair-a
           """.trimMargin()
         )
       }

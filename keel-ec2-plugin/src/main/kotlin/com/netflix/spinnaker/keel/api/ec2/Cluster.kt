@@ -8,21 +8,10 @@ import java.time.Duration
 
 @JsonInclude(NON_NULL)
 data class Cluster(
-  // what
   val moniker: ClusterMoniker,
-  val imageId: String,
-
   val location: ClusterLocation,
-
-  // instances
-  val instanceType: String,
-  val ebsOptimized: Boolean,
+  val launchConfiguration: LaunchConfiguration,
   val capacity: Capacity = Capacity(1, 1, 1),
-  val ramdiskId: String? = null,
-
-  // auth
-  val iamRole: String,
-  val keyPair: String,
 
   // dependencies
   val loadBalancerNames: Set<String> = emptySet(),
@@ -30,7 +19,6 @@ data class Cluster(
   val targetGroups: Set<String> = emptySet(),
 
   // health
-  val instanceMonitoring: Boolean = false,
   val enabledMetrics: Set<Metric> = emptySet(),
   val cooldown: Duration = Duration.ofSeconds(10),
   val healthCheckGracePeriod: Duration = Duration.ofSeconds(600),
@@ -41,5 +29,17 @@ data class Cluster(
   val terminationPolicies: Set<TerminationPolicy> = setOf(OldestInstance),
 
   val tags: Map<String, String> = emptyMap()
-)
+) {
+
+  data class LaunchConfiguration(
+    val imageId: String,
+    val instanceType: String,
+    val ebsOptimized: Boolean,
+    val iamRole: String,
+    val keyPair: String,
+    val instanceMonitoring: Boolean = false,
+    val ramdiskId: String? = null
+  )
+
+}
 

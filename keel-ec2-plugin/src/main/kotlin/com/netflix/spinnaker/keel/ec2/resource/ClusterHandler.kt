@@ -4,6 +4,7 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.ec2.Capacity
 import com.netflix.spinnaker.keel.api.ec2.Cluster
+import com.netflix.spinnaker.keel.api.ec2.Cluster.LaunchConfiguration
 import com.netflix.spinnaker.keel.api.ec2.ClusterLocation
 import com.netflix.spinnaker.keel.api.ec2.ClusterMoniker
 import com.netflix.spinnaker.keel.api.ec2.HealthCheckType
@@ -70,15 +71,15 @@ class ClusterHandler(
         "enabledMetrics" to spec.enabledMetrics,
         "healthCheckType" to spec.healthCheckType.name,
         "healthCheckGracePeriod" to spec.healthCheckGracePeriod.seconds,
-        "instanceMonitoring" to spec.instanceMonitoring,
-        "ebsOptimized" to spec.ebsOptimized,
-        "iamRole" to spec.iamRole,
+        "instanceMonitoring" to spec.launchConfiguration.instanceMonitoring,
+        "ebsOptimized" to spec.launchConfiguration.ebsOptimized,
+        "iamRole" to spec.launchConfiguration.iamRole,
         "terminationPolicies" to spec.terminationPolicies.map(TerminationPolicy::name),
         "subnetType" to spec.location.subnet,
         "availabilityZones" to mapOf(
           spec.location.region to spec.location.availabilityZones
         ),
-        "keyPair" to spec.keyPair,
+        "keyPair" to spec.launchConfiguration.keyPair,
         "suspendedProcesses" to spec.suspendedProcesses,
         "securityGroups" to spec.securityGroupIds,
         "stack" to spec.moniker.stack,
@@ -93,9 +94,9 @@ class ClusterHandler(
           "detail" to spec.moniker.detail,
           "cluster" to spec.moniker.cluster
         ),
-        "amiName" to spec.imageId,
+        "amiName" to spec.launchConfiguration.imageId,
         "reason" to "Diff detected at ${clock.instant().iso()}",
-        "instanceType" to spec.instanceType,
+        "instanceType" to spec.launchConfiguration.instanceType,
         "type" to "createServerGroup",
         "cloudProvider" to CLOUD_PROVIDER,
         "loadBalancers" to spec.loadBalancerNames,
@@ -166,23 +167,27 @@ class ClusterHandler(
           .run {
             Cluster(
               ClusterMoniker(moniker.app, moniker.stack, moniker.detail),
-              launchConfig.imageId,
               ClusterLocation(
                 accountName,
                 region,
                 subnet,
                 zones
               ),
-              launchConfig.instanceType,
-              launchConfig.ebsOptimized,
+              launchConfig.run {
+                LaunchConfiguration(
+                  imageId,
+                  instanceType,
+                  ebsOptimized,
+                  iamInstanceProfile,
+                  keyName,
+                  instanceMonitoring.enabled,
+                  ramdiskId.orNull()
+                )
+              },
               capacity.let { Capacity(it.min, it.max, it.desired) },
-              launchConfig.ramdiskId.orNull(),
-              launchConfig.iamInstanceProfile,
-              launchConfig.keyName,
               loadBalancers,
               securityGroupNames,
               targetGroups,
-              launchConfig.instanceMonitoring.enabled,
               asg.enabledMetrics.map { Metric.valueOf(it) }.toSet(),
               asg.defaultCooldown.let(Duration::ofSeconds),
               asg.healthCheckGracePeriod.let(Duration::ofSeconds),

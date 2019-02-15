@@ -60,21 +60,23 @@ internal object ClusterHandlerTest : JUnit5Minutests {
   val subnet3 = Subnet("subnet-3", vpc.id, vpc.account, vpc.region, "${vpc.region}c", "internal (vpc0)")
   val spec = Cluster(
     moniker = ClusterMoniker("keel", "test"),
-    imageId = "i-123543254134",
     location = ClusterLocation(
       accountName = vpc.account,
       region = vpc.region,
       availabilityZones = setOf("us-west-2a", "us-west-2b", "us-west-2c"),
       subnet = vpc.name
     ),
+    launchConfiguration = Cluster.LaunchConfiguration(
+      imageId = "i-123543254134",
+      instanceType = "r4.8xlarge",
+      ebsOptimized = false,
+      iamRole = "keelRole",
+      keyPair = "keel-key-pair",
+      instanceMonitoring = false
+    ),
     capacity = Capacity(1, 6, 4),
-    instanceType = "r4.8xlarge",
-    ebsOptimized = false,
-    iamRole = "keelRole",
-    keyPair = "keel-key-pair",
     loadBalancerNames = setOf("keel-test-frontend"),
-    securityGroupNames = setOf(sg1.name, sg2.name),
-    instanceMonitoring = false
+    securityGroupNames = setOf(sg1.name, sg2.name)
   )
   val request = Resource(
     SPINNAKER_API_V1,
@@ -91,13 +93,13 @@ internal object ClusterHandlerTest : JUnit5Minutests {
     spec.location.region,
     spec.location.availabilityZones,
     LaunchConfig(
-      spec.ramdiskId,
-      spec.ebsOptimized,
-      spec.imageId,
-      spec.instanceType,
-      spec.keyPair,
-      spec.iamRole,
-      InstanceMonitoring(spec.instanceMonitoring)
+      spec.launchConfiguration.ramdiskId,
+      spec.launchConfiguration.ebsOptimized,
+      spec.launchConfiguration.imageId,
+      spec.launchConfiguration.instanceType,
+      spec.launchConfiguration.keyPair,
+      spec.launchConfiguration.iamRole,
+      InstanceMonitoring(spec.launchConfiguration.instanceMonitoring)
     ),
     AutoScalingGroup(
       "keel-test-v069",
