@@ -28,10 +28,7 @@ internal object ClusterTests : JUnit5Minutests {
           yaml = """
             |---
             |application: fletch_test
-            |name:
-            |  application: fletch_test
-            |  stack: keel
-            |  detail: k8s
+            |name: fletch_test-keel-k8s
             |imageId: ami-01fdaa2821a7ea01e
             |accountName: test
             |region: eu-west-1

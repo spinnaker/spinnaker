@@ -1,10 +1,10 @@
 package com.netflix.spinnaker.keel.ec2.resource
 
+import com.netflix.frigga.Names
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.ec2.Capacity
 import com.netflix.spinnaker.keel.api.ec2.Cluster
-import com.netflix.spinnaker.keel.api.ec2.ClusterName
 import com.netflix.spinnaker.keel.api.ec2.HealthCheckType
 import com.netflix.spinnaker.keel.api.ec2.Metric
 import com.netflix.spinnaker.keel.api.ec2.ScalingProcess
@@ -45,6 +45,7 @@ class ClusterHandler(
 
   override fun converge(resourceName: ResourceName, spec: Cluster) {
     val taskRef = runBlocking {
+      val name = Names.parseName(spec.name)
       val job = mutableMapOf(
         "application" to spec.application,
         "credentials" to spec.accountName,
@@ -80,17 +81,17 @@ class ClusterHandler(
         "keyPair" to spec.keyPair,
         "suspendedProcesses" to spec.suspendedProcesses,
         "securityGroups" to spec.securityGroupIds,
-        "stack" to spec.name.stack,
-        "freeFormDetails" to spec.name.detail,
+        "stack" to name.stack,
+        "freeFormDetails" to name.detail,
         "tags" to spec.tags,
         "useAmiBlockDeviceMappings" to false, // TODO: any reason to do otherwise?
         "copySourceCustomBlockDeviceMappings" to false, // TODO: any reason to do otherwise?
         "virtualizationType" to "hvm", // TODO: any reason to do otherwise?
         "moniker" to mapOf(
-          "app" to spec.application,
-          "stack" to spec.name.stack,
-          "detail" to spec.name.detail,
-          "cluster" to spec.name.toString()
+          "app" to name.app,
+          "stack" to name.stack,
+          "detail" to name.detail,
+          "cluster" to name.cluster
         ),
         "amiName" to spec.imageId,
         "reason" to "Diff detected at ${clock.instant().iso()}",
@@ -154,12 +155,12 @@ class ClusterHandler(
   private suspend fun CloudDriverService.getCluster(spec: Cluster): Cluster? {
     try {
       return withContext(Dispatchers.Default) {
-        activeServerGroup(spec.application, spec.accountName, spec.name.toString(), spec.region, CLOUD_PROVIDER)
+        activeServerGroup(spec.application, spec.accountName, spec.name, spec.region, CLOUD_PROVIDER)
           .await()
           .run {
             Cluster(
               moniker.app,
-              moniker.let { ClusterName(it.app, it.stack, it.detail) },
+              name,
               launchConfig.imageId,
               accountName,
               region,

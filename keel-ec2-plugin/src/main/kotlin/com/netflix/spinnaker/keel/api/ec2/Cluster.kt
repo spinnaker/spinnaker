@@ -10,7 +10,7 @@ import java.time.Duration
 data class Cluster(
   // what
   val application: String,
-  val name: ClusterName,
+  val name: String,
   val imageId: String,
 
   // where

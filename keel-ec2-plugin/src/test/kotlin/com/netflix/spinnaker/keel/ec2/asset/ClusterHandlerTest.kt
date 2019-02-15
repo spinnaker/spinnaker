@@ -1,12 +1,12 @@
 package com.netflix.spinnaker.keel.ec2.asset
 
+import com.netflix.frigga.Names
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceMetadata
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.ec2.Capacity
 import com.netflix.spinnaker.keel.api.ec2.Cluster
-import com.netflix.spinnaker.keel.api.ec2.ClusterName
 import com.netflix.spinnaker.keel.api.ec2.HealthCheckType
 import com.netflix.spinnaker.keel.api.ec2.Metric
 import com.netflix.spinnaker.keel.api.ec2.ScalingProcess
@@ -59,7 +59,7 @@ internal object ClusterHandlerTest : JUnit5Minutests {
   val subnet3 = Subnet("subnet-3", vpc.id, vpc.account, vpc.region, "${vpc.region}c", "internal (vpc0)")
   val spec = Cluster(
     application = "keel",
-    name = ClusterName(application = "keel", stack = "test"),
+    name = "keel-test",
     imageId = "i-123543254134",
     accountName = vpc.account,
     region = vpc.region,
@@ -114,7 +114,7 @@ internal object ClusterHandlerTest : JUnit5Minutests {
     spec.capacity.let { ServerGroupCapacity(it.min, it.max, it.desired) },
     setOf(sg1.id, sg2.id),
     spec.accountName,
-    Moniker(app = spec.name.application, cluster = spec.name.toString(), stack = spec.name.stack)
+    Names.parseName(spec.name).run { Moniker(app, cluster, detail, stack, sequence?.toString()) }
   )
 
   val cloudDriverService = mock<CloudDriverService>()
