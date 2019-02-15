@@ -8,7 +8,6 @@ dependencies {
   implementation project(":keel-clouddriver")
   implementation project(":keel-orca")
   implementation "com.netflix.spinnaker.kork:kork-core:${spinnaker.version('kork')}"
-  implementation "com.netflix.frigga:frigga:${spinnaker.version('frigga')}"
 
   testImplementation "io.strikt:strikt-core:$striktVersion"
   testImplementation "dev.minutest:minutest:$minutestVersion"

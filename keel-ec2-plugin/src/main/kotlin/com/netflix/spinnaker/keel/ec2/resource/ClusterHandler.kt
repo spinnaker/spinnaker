@@ -1,10 +1,10 @@
 package com.netflix.spinnaker.keel.ec2.resource
 
-import com.netflix.frigga.Names
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.ec2.Capacity
 import com.netflix.spinnaker.keel.api.ec2.Cluster
+import com.netflix.spinnaker.keel.api.ec2.ClusterMoniker
 import com.netflix.spinnaker.keel.api.ec2.HealthCheckType
 import com.netflix.spinnaker.keel.api.ec2.Metric
 import com.netflix.spinnaker.keel.api.ec2.ScalingProcess
@@ -45,9 +45,8 @@ class ClusterHandler(
 
   override fun converge(resourceName: ResourceName, spec: Cluster) {
     val taskRef = runBlocking {
-      val name = Names.parseName(spec.name)
       val job = mutableMapOf(
-        "application" to spec.application,
+        "application" to spec.moniker.application,
         "credentials" to spec.accountName,
         // <things to do with the strategy>
         // TODO: this will be parameterizable ultimately
@@ -81,17 +80,17 @@ class ClusterHandler(
         "keyPair" to spec.keyPair,
         "suspendedProcesses" to spec.suspendedProcesses,
         "securityGroups" to spec.securityGroupIds,
-        "stack" to name.stack,
-        "freeFormDetails" to name.detail,
+        "stack" to spec.moniker.stack,
+        "freeFormDetails" to spec.moniker.detail,
         "tags" to spec.tags,
         "useAmiBlockDeviceMappings" to false, // TODO: any reason to do otherwise?
         "copySourceCustomBlockDeviceMappings" to false, // TODO: any reason to do otherwise?
         "virtualizationType" to "hvm", // TODO: any reason to do otherwise?
         "moniker" to mapOf(
-          "app" to name.app,
-          "stack" to name.stack,
-          "detail" to name.detail,
-          "cluster" to name.cluster
+          "app" to spec.moniker.application,
+          "stack" to spec.moniker.stack,
+          "detail" to spec.moniker.detail,
+          "cluster" to spec.moniker.cluster
         ),
         "amiName" to spec.imageId,
         "reason" to "Diff detected at ${clock.instant().iso()}",
@@ -117,9 +116,9 @@ class ClusterHandler(
 
       orcaService
         .orchestrate(OrchestrationRequest(
-          "Upsert cluster ${spec.name} in ${spec.accountName}/${spec.region}",
-          spec.application,
-          "Upsert cluster ${spec.name} in ${spec.accountName}/${spec.region}",
+          "Upsert cluster ${spec.moniker.cluster} in ${spec.accountName}/${spec.region}",
+          spec.moniker.application,
+          "Upsert cluster ${spec.moniker.cluster} in ${spec.accountName}/${spec.region}",
           listOf(Job("createServerGroup", job)),
           OrchestrationTrigger(resourceName.toString())
         ))
@@ -135,9 +134,9 @@ class ClusterHandler(
   private suspend fun CloudDriverService.getAncestorServerGroupName(spec: Cluster): String? =
     try {
       activeServerGroup(
-        spec.application,
+        spec.moniker.application,
         spec.accountName,
-        spec.name.toString(),
+        spec.moniker.cluster,
         spec.region,
         CLOUD_PROVIDER
       )
@@ -155,12 +154,11 @@ class ClusterHandler(
   private suspend fun CloudDriverService.getCluster(spec: Cluster): Cluster? {
     try {
       return withContext(Dispatchers.Default) {
-        activeServerGroup(spec.application, spec.accountName, spec.name, spec.region, CLOUD_PROVIDER)
+        activeServerGroup(spec.moniker.application, spec.accountName, spec.moniker.cluster, spec.region, CLOUD_PROVIDER)
           .await()
           .run {
             Cluster(
-              moniker.app,
-              moniker.cluster ?: throw IllegalStateException("Cluster should have a cluster name"),
+              ClusterMoniker(moniker.app, moniker.stack, moniker.detail),
               launchConfig.imageId,
               accountName,
               region,

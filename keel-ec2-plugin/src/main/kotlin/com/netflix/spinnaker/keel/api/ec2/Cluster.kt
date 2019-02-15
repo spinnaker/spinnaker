@@ -9,8 +9,7 @@ import java.time.Duration
 @JsonInclude(NON_NULL)
 data class Cluster(
   // what
-  val application: String,
-  val name: String,
+  val moniker: ClusterMoniker,
   val imageId: String,
 
   // where

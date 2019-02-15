@@ -8,6 +8,7 @@ import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
+import java.time.Duration
 
 internal object ClusterTests : JUnit5Minutests {
   data class Fixture(
@@ -21,8 +22,10 @@ internal object ClusterTests : JUnit5Minutests {
         Fixture(
           yaml = """
             |---
-            |application: fletch_test
-            |name: fletch_test-keel-k8s
+            |moniker:
+            |  application: fletch_test
+            |  stack: keel
+            |  detail: k8s
             |imageId: ami-01fdaa2821a7ea01e
             |accountName: test
             |region: eu-west-1
@@ -50,10 +53,20 @@ internal object ClusterTests : JUnit5Minutests {
         )
       }
 
-      test("can be deserialized to a cluster object") {
-        val deserialized = mapper.readValue<Cluster>(yaml)
-        expectThat(deserialized)
-          .get { application }.isEqualTo("fletch_test")
+      derivedContext<Cluster>("when deserialized") {
+        deriveFixture {
+          mapper.readValue(yaml)
+        }
+
+        test("can be deserialized to a cluster object") {
+          expectThat(this)
+            .get { moniker.application }.isEqualTo("fletch_test")
+        }
+
+        test("populates optional fields") {
+          expectThat(this)
+            .get { cooldown }.isEqualTo(Duration.ofSeconds(10))
+        }
       }
     }
   }

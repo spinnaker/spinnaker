@@ -1,12 +1,12 @@
 package com.netflix.spinnaker.keel.ec2.asset
 
-import com.netflix.frigga.Names
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceMetadata
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.ec2.Capacity
 import com.netflix.spinnaker.keel.api.ec2.Cluster
+import com.netflix.spinnaker.keel.api.ec2.ClusterMoniker
 import com.netflix.spinnaker.keel.api.ec2.HealthCheckType
 import com.netflix.spinnaker.keel.api.ec2.Metric
 import com.netflix.spinnaker.keel.api.ec2.ScalingProcess
@@ -58,8 +58,7 @@ internal object ClusterHandlerTest : JUnit5Minutests {
   val subnet2 = Subnet("subnet-2", vpc.id, vpc.account, vpc.region, "${vpc.region}b", "internal (vpc0)")
   val subnet3 = Subnet("subnet-3", vpc.id, vpc.account, vpc.region, "${vpc.region}c", "internal (vpc0)")
   val spec = Cluster(
-    application = "keel",
-    name = "keel-test",
+    moniker = ClusterMoniker("keel", "test"),
     imageId = "i-123543254134",
     accountName = vpc.account,
     region = vpc.region,
@@ -114,7 +113,7 @@ internal object ClusterHandlerTest : JUnit5Minutests {
     spec.capacity.let { ServerGroupCapacity(it.min, it.max, it.desired) },
     setOf(sg1.id, sg2.id),
     spec.accountName,
-    Names.parseName(spec.name).run { Moniker(app, cluster, detail, stack, sequence?.toString()) }
+    spec.moniker.run { Moniker(application, toString(), detail, stack, "69") }
   )
 
   val cloudDriverService = mock<CloudDriverService>()
@@ -180,7 +179,7 @@ internal object ClusterHandlerTest : JUnit5Minutests {
         }
 
         test("the cluster name is derived correctly") {
-          expectThat(this).isNotNull().get { name }.isEqualTo(spec.name)
+          expectThat(this).isNotNull().get { moniker }.isEqualTo(spec.moniker)
         }
       }
 
@@ -205,9 +204,9 @@ internal object ClusterHandlerTest : JUnit5Minutests {
   }
 
   private fun CloudDriverService.activeServerGroup() = activeServerGroup(
-    spec.application,
+    spec.moniker.application,
     spec.accountName,
-    spec.name.toString(),
+    spec.moniker.cluster,
     spec.region,
     CLOUD_PROVIDER
   )
