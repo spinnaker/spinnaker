@@ -21,7 +21,7 @@ data class Cluster(
 
   // instances
   val capacity: Capacity = Capacity(1, 1, 1),
-  val instanceType: InstanceType,
+  val instanceType: String,
   val ebsOptimized: Boolean,
   val ramdiskId: String? = null,
   val base64UserData: String? = null,

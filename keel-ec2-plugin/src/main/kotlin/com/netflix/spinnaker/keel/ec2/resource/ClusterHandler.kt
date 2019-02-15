@@ -6,7 +6,6 @@ import com.netflix.spinnaker.keel.api.ec2.Capacity
 import com.netflix.spinnaker.keel.api.ec2.Cluster
 import com.netflix.spinnaker.keel.api.ec2.ClusterName
 import com.netflix.spinnaker.keel.api.ec2.HealthCheckType
-import com.netflix.spinnaker.keel.api.ec2.InstanceType
 import com.netflix.spinnaker.keel.api.ec2.Metric
 import com.netflix.spinnaker.keel.api.ec2.ScalingProcess
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroup
@@ -96,7 +95,7 @@ class ClusterHandler(
         ),
         "amiName" to spec.imageId,
         "reason" to "Diff detected at ${clock.instant().iso()}",
-        "instanceType" to spec.instanceType.value,
+        "instanceType" to spec.instanceType,
         "type" to "createServerGroup",
         "cloudProvider" to CLOUD_PROVIDER,
         "loadBalancers" to spec.loadBalancerNames,
@@ -114,11 +113,13 @@ class ClusterHandler(
           job["copySourceCustomBlockDeviceMappings"] = true
         }
 
+      log.info("Upserting cluster using task: {}", job)
+
       orcaService
         .orchestrate(OrchestrationRequest(
           "Upsert cluster ${spec.name} in ${spec.accountName}/${spec.region}",
           spec.application,
-          "Upsert security cluster ${spec.name} in ${spec.accountName}/${spec.region}",
+          "Upsert cluster ${spec.name} in ${spec.accountName}/${spec.region}",
           listOf(Job("createServerGroup", job)),
           OrchestrationTrigger(resourceName.toString())
         ))
@@ -166,7 +167,7 @@ class ClusterHandler(
               zones,
               vpcName,
               capacity.let { Capacity(it.min, it.max, it.desired) },
-              launchConfig.instanceType.let(::InstanceType),
+              launchConfig.instanceType,
               launchConfig.ebsOptimized,
               launchConfig.ramdiskId,
               launchConfig.userData,
