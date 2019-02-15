@@ -11,9 +11,7 @@ class DeliveryControllerSpec extends Specification {
   def configRepository = Mock(DeliveryRepository)
 
   @Subject
-  def controller = new DeliveryController(
-    deliveryRepository: configRepository
-  )
+  def controller = new DeliveryController(configRepository)
 
   def config = new Delivery(
     id: "aaa",
@@ -22,7 +20,7 @@ class DeliveryControllerSpec extends Specification {
     deliveryEnvironments: []
   )
 
-  def "reject deletion if config id is not in the right account"() {
+  def "reject deletion if config id is not in the right app"() {
     when:
     configRepository.findById("aaa") >> config
     controller.deleteConfig("myapp", "aaa")
@@ -31,17 +29,9 @@ class DeliveryControllerSpec extends Specification {
     thrown(InvalidRequestException)
   }
 
-  def "reject new config if application doesn't match request url"() {
-    when:
-    controller.createConfig("myapp", config)
-
-    then:
-    thrown(InvalidRequestException)
-  }
-
   def "reject update to config if application doesn't match request url"() {
     when:
-    controller.upsertConfig("myapp", config)
+    controller.upsertConfig("bbb", config)
 
     then:
     thrown(InvalidRequestException)

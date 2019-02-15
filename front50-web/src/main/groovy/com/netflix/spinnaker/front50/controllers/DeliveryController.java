@@ -8,6 +8,7 @@ import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.security.access.prepost.PostAuthorize;
+import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,58 +16,57 @@ import java.util.Collection;
 
 @Slf4j
 @RestController
-@RequestMapping("")
 @ConditionalOnExpression("${spinnaker.delivery.enabled:false}")
 public class DeliveryController {
 
-  @Autowired
-  DeliveryRepository deliveryRepository;
+  private final DeliveryRepository deliveryRepository;
 
-  @ApiOperation(value = "", notes = "Get all managed delivery configs")
-  @RequestMapping(method = RequestMethod.GET, value = "/delivery")
+  @Autowired
+  public DeliveryController(DeliveryRepository deliveryRepository) {
+    this.deliveryRepository = deliveryRepository;
+  }
+
+  @PostFilter("hasPermission(filterObject.application, 'APPLICATION', 'READ')")
+  @ApiOperation(value = "", notes = "Get all delivery configs")
+  @RequestMapping(method = RequestMethod.GET, value = "/deliveries")
   Collection<Delivery> getAllConfigs() {
     return deliveryRepository.getAllConfigs();
   }
 
   @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ')")
-  @ApiOperation(value = "", notes = "Get the managed delivery config for an application")
-  @RequestMapping(method = RequestMethod.GET, value = "/applications/{application}/delivery")
+  @ApiOperation(value = "", notes = "Get the delivery configs for an application")
+  @RequestMapping(method = RequestMethod.GET, value = "/applications/{application}/deliveries")
   Collection<Delivery> getConfigByAppName(@PathVariable String application) {
     return deliveryRepository.getConfigsByApplication(application);
   }
 
   @PostAuthorize("hasPermission(returnObject.application, 'APPLICATION', 'READ')")
-  @ApiOperation(value = "", notes = "Get a managed delivery config by id")
-  @RequestMapping(method = RequestMethod.GET, value = "delivery/id/{id}")
+  @ApiOperation(value = "", notes = "Get a delivery config by id")
+  @RequestMapping(method = RequestMethod.GET, value = "deliveries/{id}")
   Delivery getConfigById(@PathVariable String id) {
     return deliveryRepository.findById(id);
   }
 
-  @PreAuthorize("hasPermission(#application, 'APPLICATION', 'WRITE')")
-  @ApiOperation(value = "", notes = "Create a managed delivery config for an application")
-  @RequestMapping(method = RequestMethod.POST, value = "/applications/{application}/delivery")
-  Delivery createConfig(@PathVariable String application, @RequestBody Delivery config) {
-    if (!config.getApplication().equals(application)) {
-      throw new InvalidRequestException("Application in url (" + application + ") and " +
-        "application in config (" + config.getApplication() + ") don't match." );
+  @PreAuthorize("hasPermission(#config.application, 'APPLICATION', 'WRITE')")
+  @ApiOperation(value = "", notes = "Create a delivery config")
+  @RequestMapping(method = RequestMethod.POST, value = "/deliveries")
+  Delivery createConfig(@RequestBody Delivery config) {
+    return deliveryRepository.upsertConfig(config);
+  }
+
+  @PreAuthorize("hasPermission(#config.application, 'APPLICATION', 'WRITE')")
+  @ApiOperation(value = "", notes = "Update a delivery config")
+  @RequestMapping(method = RequestMethod.PUT, value = "/deliveries/{id}")
+  Delivery upsertConfig(@PathVariable String id, @RequestBody Delivery config) {
+    if (!id.equals(config.getId())){
+      throw new InvalidRequestException("URL id (" + id + ") does not match submitted id (" + config.getId() + ")");
     }
     return deliveryRepository.upsertConfig(config);
   }
 
   @PreAuthorize("hasPermission(#application, 'APPLICATION', 'WRITE')")
-  @ApiOperation(value = "", notes = "Update a managed delivery config for an application")
-  @RequestMapping(method = RequestMethod.PUT, value = "/applications/{application}/delivery")
-  Delivery upsertConfig(@PathVariable String application, @RequestBody Delivery config) {
-    if (!config.getApplication().equals(application)) {
-      throw new InvalidRequestException("Application in url (" + application + ") and " +
-        "application in config (" + config.getApplication() + ") don't match." );
-    }
-    return deliveryRepository.upsertConfig(config);
-  }
-
-  @PreAuthorize("hasPermission(#application, 'APPLICATION', 'WRITE')")
-  @ApiOperation(value = "", notes = "Delete a managed delivery config")
-  @RequestMapping(method = RequestMethod.DELETE, value = "/applications/{application}/delivery/id/{id}")
+  @ApiOperation(value = "", notes = "Delete a delivery config")
+  @RequestMapping(method = RequestMethod.DELETE, value = "/applications/{application}/deliveries/{id}")
   void deleteConfig(@PathVariable String application, @PathVariable String id) {
     Delivery config = deliveryRepository.findById(id);
     if (!config.getApplication().equals(application)) {
