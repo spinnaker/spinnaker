@@ -24,6 +24,7 @@ import retrofit.client.Response;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class DelegatingOortService
   extends DelegatingClouddriverService<OortService>
@@ -127,5 +128,10 @@ public class DelegatingOortService
   @Override
   public List<Map> getEntityTags(Map parameters) {
     return getService().getEntityTags(parameters);
+  }
+
+  @Override
+  public Map getCloudFormationStack(String stackId) {
+    return getService().getCloudFormationStack(stackId);
   }
 }

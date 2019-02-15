@@ -136,4 +136,7 @@ interface OortService {
 
   @GET('/tags')
   List<Map> getEntityTags(@QueryMap Map parameters)
+
+  @GET("/aws/cloudFormation/stacks/{stackId}")
+  Map getCloudFormationStack(@Path(value = "stackId", encode = false) String stackId)
 }
