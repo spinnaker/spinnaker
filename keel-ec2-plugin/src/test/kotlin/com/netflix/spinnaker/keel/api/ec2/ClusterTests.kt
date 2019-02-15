@@ -1,12 +1,6 @@
 package com.netflix.spinnaker.keel.api.ec2
 
-import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.cfg.MapperConfig
-import com.fasterxml.jackson.databind.introspect.Annotated
-import com.fasterxml.jackson.databind.introspect.AnnotatedMethod
-import com.fasterxml.jackson.databind.introspect.NopAnnotationIntrospector
-import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
@@ -17,7 +11,7 @@ import strikt.assertions.isEqualTo
 
 internal object ClusterTests : JUnit5Minutests {
   data class Fixture(
-    val mapper: ObjectMapper = YAMLMapper().registerKotlinModule().registerModule(InlineModule),
+    val mapper: ObjectMapper = YAMLMapper().registerKotlinModule(),
     val yaml: String
   )
 
@@ -61,22 +55,6 @@ internal object ClusterTests : JUnit5Minutests {
         expectThat(deserialized)
           .get { application }.isEqualTo("fletch_test")
       }
-    }
-  }
-}
-
-object InlineModule : SimpleModule("Inline") {
-  override fun setupModule(context: SetupContext) {
-    super.setupModule(context)
-    context.appendAnnotationIntrospector(InlineAnnotationIntrospector)
-  }
-
-  object InlineAnnotationIntrospector : NopAnnotationIntrospector() {
-    override fun findCreatorAnnotation(config: MapperConfig<*>, a: Annotated): JsonCreator.Mode? {
-      if (a is AnnotatedMethod && a.name == "box-impl") {
-        return JsonCreator.Mode.DEFAULT
-      }
-      return null
     }
   }
 }
