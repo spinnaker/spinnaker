@@ -1,4 +1,4 @@
-FROM openjdk:8
+FROM node:10
 
 COPY . deck/
 
@@ -6,7 +6,9 @@ WORKDIR deck
 
 RUN free -h && \
   docker/setup-apache2.sh && \
-  GRADLE_USER_HOME=cache ./gradlew build -PskipTests && \
+  npm i -g yarn && \
+  yarn && \
+  yarn build && \
   mkdir -p /opt/deck/html/ && \
   cp build/webpack/* /opt/deck/html/ && \
   cd .. && \
