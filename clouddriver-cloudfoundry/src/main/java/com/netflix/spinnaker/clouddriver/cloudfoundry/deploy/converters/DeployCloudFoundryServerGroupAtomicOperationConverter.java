@@ -42,6 +42,7 @@ import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static io.vavr.API.*;
 import static java.util.stream.Collectors.toList;
@@ -69,16 +70,31 @@ public class DeployCloudFoundryServerGroupAtomicOperationConverter extends Abstr
   @Override
   public DeployCloudFoundryServerGroupDescription convertDescription(Map input) {
     DeployCloudFoundryServerGroupDescription converted = getObjectMapper().convertValue(input, DeployCloudFoundryServerGroupDescription.class);
-    CloudFoundryCredentials credentials = getCredentialsObject(input.get("credentials").toString());
+    String deployCredentials = Optional.ofNullable(converted.getDestination())
+      .map(DeployCloudFoundryServerGroupDescription.Destination::getAccount)
+      .orElse(input.get("credentials").toString());
+    CloudFoundryCredentials credentials = getCredentialsObject(deployCredentials);
     converted.setClient(credentials.getClient());
     converted.setAccountName(credentials.getName());
 
-    converted.setSpace(findSpace(converted.getRegion(), converted.getClient())
-      .orElseThrow(() -> new IllegalArgumentException("Unable to find space '" + converted.getRegion() + "'.")));
+    String region = Optional.ofNullable(converted.getDestination())
+      .map(DeployCloudFoundryServerGroupDescription.Destination::getRegion)
+      .orElse(converted.getRegion());
+    converted.setSpace(findSpace(region, converted.getClient())
+      .orElseThrow(() -> new IllegalArgumentException("Unable to find space '" + region + "'.")));
 
     Map artifactSource = (Map) input.get("artifact");
 
-    if ("artifact".equals(artifactSource.get("type"))) {
+    if (Optional.ofNullable(converted.getSource()).isPresent()) {
+      CloudFoundryCredentials artifactCredentials = getCredentialsObject(converted.getSource().getAccount());
+      converted.setArtifactCredentials(new PackageArtifactCredentials(artifactCredentials.getClient()));
+
+      Artifact artifact = new Artifact();
+      artifact.setType("package");
+      artifact.setReference(getServerGroupId(converted.getSource().getAsgName(),
+        converted.getSource().getRegion(), artifactCredentials.getClient()));
+      converted.setArtifact(artifact);
+    } else {
       ArtifactCredentials artifactCredentials = credentialsRepository.getAllCredentials().stream()
         .filter(creds -> creds.getName().equals(artifactSource.get("account")))
         .findAny()
@@ -86,15 +102,6 @@ public class DeployCloudFoundryServerGroupAtomicOperationConverter extends Abstr
 
       converted.setArtifact(convertToArtifact(artifactCredentials, artifactSource.get("reference").toString()));
       converted.setArtifactCredentials(artifactCredentials);
-    } else if ("package".equals(artifactSource.get("type"))) {
-      CloudFoundryCredentials artifactCredentials = getCredentialsObject(artifactSource.get("account").toString());
-      converted.setArtifactCredentials(new PackageArtifactCredentials(artifactCredentials.getClient()));
-
-      Artifact artifact = new Artifact();
-      artifact.setType("package");
-      artifact.setReference(getServerGroupId(artifactSource.get("serverGroupName").toString(),
-        artifactSource.get("region").toString(), artifactCredentials.getClient()));
-      converted.setArtifact(artifact);
     }
 
     Map manifest = (Map) input.get("manifest");

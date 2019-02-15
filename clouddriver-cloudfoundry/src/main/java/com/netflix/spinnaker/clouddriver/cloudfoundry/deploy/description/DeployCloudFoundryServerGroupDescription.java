@@ -35,8 +35,14 @@ public class DeployCloudFoundryServerGroupDescription extends AbstractCloudFound
   private String accountName;
   private String application;
   private String stack;
-  private String detail;
+  private String freeFormDetails;
   private CloudFoundrySpace space;
+
+  @Nullable
+  private Source source;
+
+  @Nullable
+  private Destination destination;
 
   @JsonIgnore
   private Artifact artifact;
@@ -70,5 +76,18 @@ public class DeployCloudFoundryServerGroupDescription extends AbstractCloudFound
 
     @Nullable
     private List<String> services;
+  }
+
+  @Data
+  public static class Source {
+    String account;
+    String region;
+    String asgName;
+  }
+
+  @Data
+  public static class Destination {
+    String account;
+    String region;
   }
 }

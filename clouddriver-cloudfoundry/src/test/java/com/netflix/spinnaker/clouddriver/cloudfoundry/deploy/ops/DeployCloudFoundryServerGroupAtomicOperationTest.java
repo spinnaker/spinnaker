@@ -72,7 +72,7 @@ class DeployCloudFoundryServerGroupAtomicOperationTest extends AbstractCloudFoun
       .setAccountName("account1")
       .setApplication("app1")
       .setStack("stack1")
-      .setDetail("detail1")
+      .setFreeFormDetails("detail1")
       .setArtifactCredentials(new ArtifactCredentialsFromString(
         "test",
         io.vavr.collection.List.of("a").asJava(),

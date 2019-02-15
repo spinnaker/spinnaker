@@ -62,16 +62,16 @@ class DeployCloudFoundryServerGroupAtomicOperationConverterTest {
       });
     }
 
-    return new CloudFoundryCredentials(name, "", "", "", "", "", "")
-    {
+    return new CloudFoundryCredentials(name, "", "", "", "", "", "") {
       public CloudFoundryClient getClient() {
         return cloudFoundryClient;
       }
     };
   }
 
-  private List<String> accounts = List.of("test", "sourceAccount", "destinationAccount");
+  private List<String> accounts = List.of("test", "sourceAccount", "sourceAccount1", "sourceAccount2", "destinationAccount");
   private final ArtifactCredentialsRepository artifactCredentialsRepository = new ArtifactCredentialsRepository();
+
   {
     accounts.toStream().forEach(account -> artifactCredentialsRepository.save(new ArtifactCredentialsFromString(
       account,
@@ -81,9 +81,11 @@ class DeployCloudFoundryServerGroupAtomicOperationConverterTest {
   }
 
   private final AccountCredentialsRepository accountCredentialsRepository = new MapBackedAccountCredentialsRepository();
+
   {
     accounts.toStream().forEach(account -> accountCredentialsRepository.update(account, createCredentials(account)));
   }
+
   private final AccountCredentialsProvider accountCredentialsProvider =
     new DefaultAccountCredentialsProvider(accountCredentialsRepository);
 
@@ -97,14 +99,13 @@ class DeployCloudFoundryServerGroupAtomicOperationConverterTest {
   }
 
   @Test
-  void convertDescriptionWithPackageArtifactSourceAndDownloadedManifest() {
+  void convertDescriptionWitSourceSet() {
     final Map input = HashMap.of(
       "credentials", "destinationAccount",
       "region", "org > space",
-      "artifact", HashMap.of(
-        "type", "package",
+      "source", HashMap.of(
         "account", "sourceAccount",
-        "serverGroupName", "serverGroupName1",
+        "asgName", "serverGroupName1",
         "region", "org > space"
       ).toJavaMap(),
       "manifest", HashMap.of(
@@ -123,6 +124,45 @@ class DeployCloudFoundryServerGroupAtomicOperationConverterTest {
     assertThat(result.getSpace()).isEqualToComparingFieldByFieldRecursively(
       CloudFoundrySpace.builder().id("spaceID").name("space").organization(
         CloudFoundryOrganization.builder().id("orgID").name("org").build()).build());
+    assertThat(result.getApplicationAttributes()).isEqualToComparingFieldByFieldRecursively(
+      new DeployCloudFoundryServerGroupDescription.ApplicationAttributes()
+        .setInstances(42)
+        .setMemory("1024")
+        .setDiskQuota("1024")
+        .setBuildpacks(Collections.emptyList())
+    );
+  }
+
+  @Test
+  void convertDescriptionWithDestinationSet() {
+    final Map input = HashMap.of(
+      "credentials", "destinationAccount",
+      "region", "org > space",
+      "destination", HashMap.of(
+        "account", "sourceAccount1",
+        "region", "org1 > space1"
+      ).toJavaMap(),
+      "source", HashMap.of(
+        "account", "sourceAccount2",
+        "asgName", "serverGroupName1",
+        "region", "org > space"
+      ).toJavaMap(),
+      "manifest", HashMap.of(
+        "type", "artifact",
+        "account", "test",
+        "reference", "ref1"
+      ).toJavaMap()
+    ).toJavaMap();
+
+    final DeployCloudFoundryServerGroupDescription result = converter.convertDescription(input);
+
+    CloudFoundryCredentials sourceCredentials = converter.getCredentialsObject("sourceAccount2");
+    assertThat(result.getAccountName()).isEqualTo("sourceAccount1");
+    assertThat(result.getArtifactCredentials())
+      .isEqualToComparingFieldByFieldRecursively(new PackageArtifactCredentials(sourceCredentials.getClient()));
+    assertThat(result.getSpace()).isEqualToComparingFieldByFieldRecursively(
+      CloudFoundrySpace.builder().id("space1ID").name("space1").organization(
+        CloudFoundryOrganization.builder().id("org1ID").name("org1").build()).build());
     assertThat(result.getApplicationAttributes()).isEqualToComparingFieldByFieldRecursively(
       new DeployCloudFoundryServerGroupDescription.ApplicationAttributes()
         .setInstances(42)

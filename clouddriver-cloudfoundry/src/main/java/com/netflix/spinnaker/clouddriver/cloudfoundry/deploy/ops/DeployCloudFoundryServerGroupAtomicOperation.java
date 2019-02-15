@@ -33,6 +33,7 @@ import javax.annotation.Nullable;
 import java.io.*;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops.CloudFoundryOperationUtils.describeProcessState;
@@ -63,7 +64,7 @@ public class DeployCloudFoundryServerGroupAtomicOperation
       clusterProvider, description.getSpace());
 
     description.setServerGroupName(serverGroupNameResolver.resolveNextServerGroupName(description.getApplication(),
-      description.getStack(), description.getDetail(), false));
+      description.getStack(), description.getFreeFormDetails(), false));
 
     final CloudFoundryServerGroup serverGroup = createApplication(description);
     String packageId = buildPackage(serverGroup.getId(), description);
@@ -99,8 +100,11 @@ public class DeployCloudFoundryServerGroupAtomicOperation
 
   private DeploymentResult deploymentResult() {
     DeploymentResult deploymentResult = new DeploymentResult();
-    deploymentResult.setServerGroupNames(Collections.singletonList(description.getRegion() + ":" + description.getServerGroupName()));
-    deploymentResult.getServerGroupNameByRegion().put(description.getRegion(), description.getServerGroupName());
+    String destinationRegion = Optional.ofNullable(description.getDestination())
+      .map(DeployCloudFoundryServerGroupDescription.Destination::getRegion)
+      .orElse(description.getRegion());
+    deploymentResult.setServerGroupNames(Collections.singletonList(destinationRegion + ":" + description.getServerGroupName()));
+    deploymentResult.getServerGroupNameByRegion().put(destinationRegion, description.getServerGroupName());
     deploymentResult.setMessages(getTask().getHistory().stream()
       .map(hist -> hist.getPhase() + ":" + hist.getStatus())
       .collect(toList()));
