@@ -28,6 +28,7 @@ import 'cloudfoundry/pipeline/config/validation/instanceSize.validator';
 import 'cloudfoundry/pipeline/config/validation/cfTargetImpedance.validator';
 import 'cloudfoundry/pipeline/config/validation/validServiceParameterJson.validator';
 import 'cloudfoundry/pipeline/config/validation/validateServiceRequiredField.validator';
+import { CLOUD_FOUNDRY_CLONE_SERVER_GROUP_STAGE } from './pipeline/stages/cloneServerGroup/cloudfoundryCloneServerGroupStage.module';
 import { CLOUD_FOUNDRY_DEPLOY_SERVICE_STAGE } from './pipeline/stages/deployService/cloudfoundryDeployServiceStage.module';
 import { CLOUD_FOUNDRY_DESTROY_ASG_STAGE } from './pipeline/stages/destroyAsg/cloudfoundryDestroyAsgStage.module';
 import { CLOUD_FOUNDRY_DESTROY_SERVICE_STAGE } from './pipeline/stages/destroyService/cloudfoundryDestroyServiceStage.module';
@@ -48,6 +49,7 @@ templates.keys().forEach(function(key) {
 
 export const CLOUD_FOUNDRY_MODULE = 'spinnaker.cloudfoundry';
 module(CLOUD_FOUNDRY_MODULE, [
+  CLOUD_FOUNDRY_CLONE_SERVER_GROUP_STAGE,
   CLOUD_FOUNDRY_DESTROY_SERVICE_STAGE,
   CLOUD_FOUNDRY_DEPLOY_SERVICE_STAGE,
   CLOUD_FOUNDRY_DESTROY_ASG_STAGE,

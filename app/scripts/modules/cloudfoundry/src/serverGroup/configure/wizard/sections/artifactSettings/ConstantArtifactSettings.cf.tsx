@@ -16,12 +16,10 @@ export class CloudFoundryServerGroupConstantArtifactSettings extends React.Compo
     super(props);
     const { serverGroup } = props;
 
-    this.props.formik.values.artifact = {
+    this.props.formik.values.source = {
       account: serverGroup.account,
-      clusterName: serverGroup.cluster,
+      asgName: serverGroup.name,
       region: serverGroup.region,
-      serverGroupName: serverGroup.name,
-      type: 'package',
     };
   }
 

@@ -1,5 +1,7 @@
 import * as React from 'react';
 
+import { get } from 'lodash';
+
 import { FormikErrors, FormikProps } from 'formik';
 
 import {
@@ -21,10 +23,10 @@ import 'cloudfoundry/common/cloudFoundry.less';
 
 export interface ICloudFoundryServerGroupBasicSettingsProps {
   formik: FormikProps<ICloudFoundryCreateServerGroupCommand>;
+  isPipelineClone: boolean;
 }
 
 export interface ICloudFoundryServerGroupLocationSettingsState {
-  account: string;
   accounts: IAccount[];
   regions: IRegion[];
 }
@@ -33,7 +35,6 @@ export class CloudFoundryServerGroupBasicSettings
   extends React.Component<ICloudFoundryServerGroupBasicSettingsProps, ICloudFoundryServerGroupLocationSettingsState>
   implements IWizardPageComponent<ICloudFoundryCreateServerGroupCommand> {
   public state: ICloudFoundryServerGroupLocationSettingsState = {
-    account: '',
     accounts: [],
     regions: [],
   };
@@ -47,11 +48,13 @@ export class CloudFoundryServerGroupBasicSettings
 
   private accountChanged = (): void => {
     this.updateRegionList();
-    this.props.formik.setFieldValue('region', '');
+    const regionField = this.props.isPipelineClone ? 'destination.region' : 'region';
+    this.props.formik.setFieldValue(regionField, '');
   };
 
   private updateRegionList = (): void => {
-    const { credentials } = this.props.formik.values;
+    const accountField = this.props.isPipelineClone ? 'destination.account' : 'credentials';
+    const credentials = get(this.props.formik.values, accountField, undefined);
     if (credentials) {
       AccountService.getRegionsForAccount(credentials).then(regions => {
         this.setState({ regions: regions });
@@ -68,14 +71,17 @@ export class CloudFoundryServerGroupBasicSettings
   };
 
   public render(): JSX.Element {
+    const { formik, isPipelineClone } = this.props;
     const { accounts, regions } = this.state;
-    const { values } = this.props.formik;
+    const { values } = formik;
+    const accountField = isPipelineClone ? 'destination.account' : 'credentials';
+    const regionField = isPipelineClone ? 'destination.region' : 'region';
     return (
       <div className="form-group">
         <div className="col-md-9">
           <div className="sp-margin-m-bottom">
             <FormikFormField
-              name="credentials"
+              name={accountField}
               label="Account"
               fastField={false}
               input={props => (
@@ -92,7 +98,7 @@ export class CloudFoundryServerGroupBasicSettings
           </div>
           <div className="sp-margin-m-bottom">
             <FormikFormField
-              name="region"
+              name={regionField}
               label="Region"
               fastField={false}
               input={props => (

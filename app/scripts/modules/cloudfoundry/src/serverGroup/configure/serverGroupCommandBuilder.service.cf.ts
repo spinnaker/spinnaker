@@ -29,6 +29,7 @@ export class CloudFoundryServerGroupCommandBuilder {
       case 'createPipeline':
         return 'Add';
       case 'editPipeline':
+      case 'editClonePipeline':
         return 'Done';
       case 'clone':
         return 'Clone';
@@ -93,13 +94,12 @@ export class CloudFoundryServerGroupCommandBuilder {
         routes: serverGroup.loadBalancers,
         environment: CloudFoundryServerGroupCommandBuilder.envVarsFromObject(serverGroup.env),
         services: (serverGroup.serviceInstances || []).map(serviceInstance => serviceInstance.name),
-        healthCheckHttpEndpoint: '',
-        healthCheckType: '',
+        healthCheckHttpEndpoint: undefined,
+        healthCheckType: 'port',
       };
       command.region = serverGroup.region;
       command.stack = serverGroup.stack;
       command.freeFormDetails = serverGroup.detail;
-      command.source = { asgName: serverGroup.name };
       return command;
     });
   }
@@ -120,25 +120,49 @@ export class CloudFoundryServerGroupCommandBuilder {
     application: ICloudFoundryApplication,
     originalCluster: ICloudFoundryDeployConfiguration,
   ) {
-    return this.buildNewServerGroupCommand(application, { mode: 'editPipeline' }).then(app => {
-      app.credentials = originalCluster.account;
-      app.artifact = originalCluster.artifact;
-      app.delayBeforeDisableSec = originalCluster.delayBeforeDisableSec;
-      app.manifest = originalCluster.manifest;
-      app.maxRemainingAsgs = originalCluster.maxRemainingAsgs;
-      app.region = originalCluster.region;
-      app.rollback = originalCluster.rollback;
-      app.strategy = originalCluster.strategy;
-      app.startApplication = originalCluster.startApplication;
+    return this.buildNewServerGroupCommand(application, { mode: 'editClonePipeline' }).then(command => {
+      command.credentials = originalCluster.account;
+      command.artifact = originalCluster.artifact;
+      command.delayBeforeDisableSec = originalCluster.delayBeforeDisableSec;
+      command.manifest = originalCluster.manifest;
+      command.maxRemainingAsgs = originalCluster.maxRemainingAsgs;
+      command.region = originalCluster.region;
+      command.rollback = originalCluster.rollback;
+      command.strategy = originalCluster.strategy;
+      command.startApplication = originalCluster.startApplication;
       if (originalCluster.stack) {
-        app.stack = originalCluster.stack;
+        command.stack = originalCluster.stack;
       }
 
       if (originalCluster.freeFormDetails) {
-        app.freeFormDetails = originalCluster.freeFormDetails;
+        command.freeFormDetails = originalCluster.freeFormDetails;
       }
 
-      return app;
+      return command;
+    });
+  }
+
+  public buildCloneServerGroupCommandFromPipeline(
+    stage: IStage,
+    pipeline: IPipeline,
+  ): IPromise<ICloudFoundryCreateServerGroupCommand> {
+    return this.buildNewServerGroupCommand({ name: pipeline.application } as ICloudFoundryApplication, {
+      mode: 'editClonePipeline',
+    }).then(command => {
+      command.credentials = stage.credentials;
+      command.capacity = stage.capacity;
+      command.destination = stage.destination;
+      command.delayBeforeDisableSec = stage.delayBeforeDisableSec;
+      command.freeFormDetails = stage.freeFormDetails || command.freeFormDetails;
+      command.maxRemainingAsgs = stage.maxRemainingAsgs;
+      command.region = stage.region;
+      command.startApplication = stage.startApplication;
+      command.stack = stage.stack || command.stack;
+      command.strategy = stage.strategy;
+      command.target = stage.target;
+      command.targetCluster = stage.targetCluster;
+      command.manifest = stage.manifest || command.manifest;
+      return command;
     });
   }
 }

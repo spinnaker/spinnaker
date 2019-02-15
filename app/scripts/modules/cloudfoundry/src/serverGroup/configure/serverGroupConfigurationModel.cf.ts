@@ -4,11 +4,26 @@ import { ICloudFoundryEnvVar } from 'cloudfoundry/domain';
 
 export interface ICloudFoundryCreateServerGroupCommand extends IServerGroupCommand {
   artifact: ICloudFoundryBinarySource;
+  destination?: ICloudFoundryDestination;
   delayBeforeDisableSec?: number;
   manifest: ICloudFoundryManifestSource;
   maxRemainingAsgs?: number;
   rollback?: boolean;
+  source?: ICloudFoundrySource;
   startApplication: boolean;
+  target?: string;
+  targetCluster?: string;
+}
+
+export interface ICloudFoundrySource {
+  asgName: string;
+  region: string;
+  account: string;
+}
+
+export interface ICloudFoundryDestination {
+  region: string;
+  account: string;
 }
 
 export interface ICloudFoundryArtifactSource {
