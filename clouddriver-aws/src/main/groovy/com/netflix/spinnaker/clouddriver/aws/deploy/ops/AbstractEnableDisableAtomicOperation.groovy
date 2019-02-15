@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
 import com.amazonaws.services.ec2.model.DescribeInstancesRequest
 import com.amazonaws.services.ec2.model.DescribeInstancesResult
+import com.amazonaws.services.ec2.model.Filter
 import com.amazonaws.services.ec2.model.InstanceStateName
 import com.amazonaws.services.ec2.model.Reservation
 import com.amazonaws.services.elasticloadbalancing.model.DeregisterInstancesFromLoadBalancerRequest
@@ -126,23 +127,37 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
             }
 
             describeInstancesRequest.setNextToken(describeInstancesResult.nextToken)
-          } catch(Exception e) {
+          } catch (Exception e1) {
             failedAttempts++
-            log.error("Failed to describe one of the instances in  {}", instanceIds, e)
+            log.error("Failed to describe one of the instances in {}", instanceIds, e1)
             if (failedAttempts >= 10) {
               task.updateStatus phaseName, "Failed to describe instances 10 times, aborting. This may happen if the server group has been disabled for a long period of time."
-              return false
+
+              try {
+                // fallback to a tag-based instance lookup (will be slower in large region/accounts)
+                task.updateStatus phaseName, "Falling back to tag-based instance lookup"
+                reservations.addAll(fetchInstancesTaggedWithServerGroup(regionScopedProvider, serverGroupName))
+                break
+              } catch (Exception e2) {
+                task.updateStatus phaseName, "Failed to lookup instances server group tag"
+                log.error(
+                    "Failed to describe instances using server group name filter (serverGroup: {})",
+                    serverGroupName,
+                    e2
+                )
+                return false
+              }
             }
           }
         }
 
-        List<String> filteredInstanceIds = []
+        Set<String> filteredInstanceIds = []
         for (Reservation reservation : reservations) {
           filteredInstanceIds += reservation.getInstances().findAll {
             [ InstanceStateName.Running, InstanceStateName.Pending ].contains(InstanceStateName.fromValue(it.getState().getName()))
           }*.instanceId
         }
-        instanceIds = filteredInstanceIds
+        instanceIds = filteredInstanceIds as List<String>
       }
 
       if (instanceIds && credentials.discoveryEnabled && description.desiredPercentage && disable) {
@@ -209,6 +224,31 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
       }
       return false
     }
+  }
+
+  /**
+   * Fetch all instances associated with server group (as determined by `tag:aws:autoscaling:groupName` tag)
+   */
+  private List<Reservation> fetchInstancesTaggedWithServerGroup(
+      RegionScopedProviderFactory.RegionScopedProvider regionScopedProvider,
+      String serverGroupName
+  ) {
+    DescribeInstancesRequest describeInstancesRequest = new DescribeInstancesRequest().withFilters(
+        new Filter().withName(INSTANCE_ASG_TAG_NAME).withValues(serverGroupName)
+    )
+
+    DescribeInstancesResult describeInstancesResult = regionScopedProvider.amazonEC2.describeInstances(
+        describeInstancesRequest
+    )
+    List<Reservation> reservations = describeInstancesResult.getReservations()
+
+    while (describeInstancesResult.getNextToken()) {
+      describeInstancesRequest.setNextToken(describeInstancesResult.getNextToken())
+      describeInstancesResult = regionScopedProvider.amazonEC2.describeInstances(describeInstancesRequest)
+      reservations += describeInstancesResult.getReservations()
+    }
+
+    return reservations
   }
 
   private static void changeRegistrationOfInstancesWithTargetGroups(Collection<String> targetGroupArns, Collection<String> instanceIds, Closure actOnInstancesAndTargetGroup) {
