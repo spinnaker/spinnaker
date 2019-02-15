@@ -27,7 +27,6 @@ import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.ResourceVersionTracker
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceVersionTracker
-import com.netflix.spinnaker.keel.plugin.CustomResourceDefinitionLocator
 import com.netflix.spinnaker.keel.plugin.KeelPlugin
 import com.netflix.spinnaker.keel.plugin.ResourcePlugin
 import com.netflix.spinnaker.kork.PlatformComponents
@@ -91,10 +90,6 @@ class KeelApplication {
   @Bean
   @ConditionalOnMissingBean(ResourceVersionTracker::class)
   fun resourceVersionTracker(): ResourceVersionTracker = InMemoryResourceVersionTracker()
-
-  @Bean
-  @ConditionalOnMissingBean(CustomResourceDefinitionLocator::class)
-  fun noCustomResourceDefinitions(): List<CustomResourceDefinitionLocator> = emptyList()
 
   @Bean
   @ConditionalOnMissingBean(ResourcePlugin::class)

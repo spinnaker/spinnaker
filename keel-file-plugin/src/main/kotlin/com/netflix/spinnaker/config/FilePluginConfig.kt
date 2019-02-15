@@ -16,7 +16,6 @@
 package com.netflix.spinnaker.config
 
 import com.netflix.spinnaker.keel.file.FilePlugin
-import com.netflix.spinnaker.keel.plugin.CustomResourceDefinitionLocator
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
@@ -26,13 +25,6 @@ import java.io.File
 @Configuration
 @ConditionalOnProperty("keel.plugins.file.enabled")
 class FilePluginConfig {
-
-  @Bean
-  fun messageCRDLocator() =
-    object : CustomResourceDefinitionLocator {
-      override fun locate() =
-        javaClass.getResourceAsStream("/message.yml").bufferedReader()
-    }
 
   @Bean
   fun filePlugin(@Value("\${keel.file.directory:#{systemEnvironment['HOME']}/keel}") directory: File) =

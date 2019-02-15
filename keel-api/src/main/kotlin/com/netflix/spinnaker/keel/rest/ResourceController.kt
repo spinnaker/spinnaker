@@ -54,9 +54,10 @@ class ResourceController(
     produces = [APPLICATION_YAML_VALUE, APPLICATION_JSON_VALUE]
   )
   fun create(@RequestBody resource: Resource<*>): Resource<*> {
+    // TODO: we need to take the resource type as well so we can actually parse and validate here
     log.info("Creating: $resource")
     publisher.publishEvent(ResourceEvent(CREATE, resource))
-    return resource // TODO: after it's been thru k8s
+    return resource
   }
 
   @GetMapping(
@@ -75,7 +76,7 @@ class ResourceController(
   fun update(@PathVariable("name") name: ResourceName, @RequestBody resource: Resource<*>): Resource<*> {
     log.info("Updating: $resource")
     publisher.publishEvent(ResourceEvent(UPDATE, resource))
-    return resource // TODO: after it's been thru k8s
+    return resource
   }
 
   @DeleteMapping(
@@ -86,7 +87,7 @@ class ResourceController(
     log.info("Deleting: $name")
     val resource = resourceRepository.get<Any>(name)
     publisher.publishEvent(ResourceEvent(DELETE, resource))
-    return resource // TODO: after it's been thru k8s
+    return resource
   }
 
   @ExceptionHandler(NoSuchResourceException::class)

@@ -12,7 +12,6 @@ import com.netflix.spinnaker.keel.redis.spring.EmbeddedRedisConfiguration
 import com.netflix.spinnaker.keel.redis.spring.MockEurekaConfig
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
-import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -126,7 +125,6 @@ internal class ResourceControllerTest {
   }
 
   @Test
-  @Ignore("TODO: Event needs to go via k8s for delete to happen")
   fun `can delete a resource`() {
     val resource = Resource(
       apiVersion = SPINNAKER_API_V1,

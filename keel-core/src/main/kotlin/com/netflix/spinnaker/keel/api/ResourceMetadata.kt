@@ -18,16 +18,8 @@ package com.netflix.spinnaker.keel.api
 import com.fasterxml.jackson.annotation.JsonAnyGetter
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.google.gson.JsonDeserializationContext
-import com.google.gson.JsonDeserializer
-import com.google.gson.JsonElement
-import com.google.gson.JsonSerializationContext
-import com.google.gson.JsonSerializer
-import com.google.gson.annotations.JsonAdapter
-import java.lang.reflect.Type
 import java.util.*
 
-@JsonAdapter(ResourceMetadataAdapter::class)
 data class ResourceMetadata(
   val name: ResourceName,
   @JsonProperty(defaultValue = "0") val resourceVersion: Long? = null,
@@ -51,14 +43,4 @@ data class ResourceMetadata(
       "uid" to uid
     ) + data)
       .toString()
-}
-
-internal class ResourceMetadataAdapter : JsonDeserializer<ResourceMetadata>, JsonSerializer<ResourceMetadata> {
-  override fun serialize(src: ResourceMetadata, typeOfSrc: Type, context: JsonSerializationContext): JsonElement {
-    return context.serialize(mapOf("name" to src.name.value, "uid" to src.uid, "resourceVersion" to src.resourceVersion) + src.data, Map::class.java)
-  }
-
-  override fun deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): ResourceMetadata {
-    return ResourceMetadata(context.deserialize<Map<String, Any?>>(json, Map::class.java))
-  }
 }
