@@ -5,6 +5,7 @@ import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.ec2.Capacity
 import com.netflix.spinnaker.keel.api.ec2.Cluster
 import com.netflix.spinnaker.keel.api.ec2.Cluster.Dependencies
+import com.netflix.spinnaker.keel.api.ec2.Cluster.Health
 import com.netflix.spinnaker.keel.api.ec2.Cluster.LaunchConfiguration
 import com.netflix.spinnaker.keel.api.ec2.ClusterLocation
 import com.netflix.spinnaker.keel.api.ec2.ClusterMoniker
@@ -68,14 +69,14 @@ class ClusterHandler(
           "desired" to spec.capacity.desired
         ),
         "targetHealthyDeployPercentage" to 100, // TODO: any reason to do otherwise?
-        "cooldown" to spec.cooldown.seconds,
-        "enabledMetrics" to spec.enabledMetrics,
-        "healthCheckType" to spec.healthCheckType.name,
-        "healthCheckGracePeriod" to spec.healthCheckGracePeriod.seconds,
+        "cooldown" to spec.health.cooldown.seconds,
+        "enabledMetrics" to spec.health.enabledMetrics,
+        "healthCheckType" to spec.health.healthCheckType.name,
+        "healthCheckGracePeriod" to spec.health.warmup.seconds,
         "instanceMonitoring" to spec.launchConfiguration.instanceMonitoring,
         "ebsOptimized" to spec.launchConfiguration.ebsOptimized,
         "iamRole" to spec.launchConfiguration.iamRole,
-        "terminationPolicies" to spec.terminationPolicies.map(TerminationPolicy::name),
+        "terminationPolicies" to spec.health.terminationPolicies.map(TerminationPolicy::name),
         "subnetType" to spec.location.subnet,
         "availabilityZones" to mapOf(
           spec.location.region to spec.location.availabilityZones
@@ -191,12 +192,14 @@ class ClusterHandler(
                 securityGroupNames = securityGroupNames,
                 targetGroups = targetGroups
               ),
-              enabledMetrics = asg.enabledMetrics.map { Metric.valueOf(it) }.toSet(),
-              cooldown = asg.defaultCooldown.let(Duration::ofSeconds),
-              healthCheckGracePeriod = asg.healthCheckGracePeriod.let(Duration::ofSeconds),
-              healthCheckType = asg.healthCheckType.let { HealthCheckType.valueOf(it) },
+              health = Health(
+                enabledMetrics = asg.enabledMetrics.map { Metric.valueOf(it) }.toSet(),
+                cooldown = asg.defaultCooldown.let(Duration::ofSeconds),
+                warmup = asg.healthCheckGracePeriod.let(Duration::ofSeconds),
+                healthCheckType = asg.healthCheckType.let { HealthCheckType.valueOf(it) },
+                terminationPolicies = asg.terminationPolicies.map { TerminationPolicy.valueOf(it) }.toSet()
+              ),
               suspendedProcesses = asg.suspendedProcesses.map { ScalingProcess.valueOf(it) }.toSet(),
-              terminationPolicies = asg.terminationPolicies.map { TerminationPolicy.valueOf(it) }.toSet(),
               tags = asg.tags.associateBy(Tag::key, Tag::value).filterNot { it.key in DEFAULT_TAGS }
             )
           }

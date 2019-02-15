@@ -105,13 +105,13 @@ internal object ClusterHandlerTest : JUnit5Minutests {
     ),
     AutoScalingGroup(
       "keel-test-v069",
-      spec.cooldown.seconds,
-      spec.healthCheckType.let(HealthCheckType::toString),
-      spec.healthCheckGracePeriod.seconds,
+      spec.health.cooldown.seconds,
+      spec.health.healthCheckType.let(HealthCheckType::toString),
+      spec.health.warmup.seconds,
       spec.suspendedProcesses.map(ScalingProcess::toString).toSet(),
-      spec.enabledMetrics.map(Metric::toString).toSet(),
+      spec.health.enabledMetrics.map(Metric::toString).toSet(),
       spec.tags.map { Tag(it.key, it.value) }.toSet(),
-      spec.terminationPolicies.map(TerminationPolicy::toString).toSet(),
+      spec.health.terminationPolicies.map(TerminationPolicy::toString).toSet(),
       listOf(subnet1, subnet2, subnet3).map(Subnet::id).joinToString(",")
     ),
     vpc.id,

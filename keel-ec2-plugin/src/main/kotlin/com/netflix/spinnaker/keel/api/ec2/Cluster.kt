@@ -12,17 +12,9 @@ data class Cluster(
   val location: ClusterLocation,
   val launchConfiguration: LaunchConfiguration,
   val capacity: Capacity = Capacity(1, 1, 1),
-  val dependencies: Dependencies,
-  // health
-  val enabledMetrics: Set<Metric> = emptySet(),
-  val cooldown: Duration = Duration.ofSeconds(10),
-  val healthCheckGracePeriod: Duration = Duration.ofSeconds(600),
-  val healthCheckType: HealthCheckType = EC2,
-
-  // scaling
+  val dependencies: Dependencies = Dependencies(),
+  val health: Health = Health(),
   val suspendedProcesses: Set<ScalingProcess> = emptySet(),
-  val terminationPolicies: Set<TerminationPolicy> = setOf(OldestInstance),
-
   val tags: Map<String, String> = emptyMap()
 ) {
 
@@ -40,6 +32,14 @@ data class Cluster(
     val loadBalancerNames: Set<String> = emptySet(),
     val securityGroupNames: Set<String> = emptySet(),
     val targetGroups: Set<String> = emptySet()
+  )
+
+  data class Health(
+    val cooldown: Duration = Duration.ofSeconds(10),
+    val warmup: Duration = Duration.ofSeconds(600),
+    val healthCheckType: HealthCheckType = EC2,
+    val enabledMetrics: Set<Metric> = emptySet(),
+    val terminationPolicies: Set<TerminationPolicy> = setOf(OldestInstance)
   )
 }
 

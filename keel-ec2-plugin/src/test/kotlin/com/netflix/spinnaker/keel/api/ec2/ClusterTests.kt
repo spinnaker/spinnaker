@@ -51,7 +51,8 @@ internal object ClusterTests : JUnit5Minutests {
             |  - fletch_test
             |  - nf_infrastructure
             |  - nf_datacenter
-            |enabledMetrics: []
+            |health:
+            |  enabledMetrics: []
           """.trimMargin()
         )
       }
@@ -68,7 +69,7 @@ internal object ClusterTests : JUnit5Minutests {
 
         test("populates optional fields") {
           expectThat(this)
-            .get { cooldown }.isEqualTo(Duration.ofSeconds(10))
+            .get { health.cooldown }.isEqualTo(Duration.ofSeconds(10))
         }
       }
     }
