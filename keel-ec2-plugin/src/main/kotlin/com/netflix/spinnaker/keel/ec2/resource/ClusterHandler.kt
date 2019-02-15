@@ -163,13 +163,14 @@ class ClusterHandler(
               launchConfig.imageId,
               accountName,
               region,
-              zones,
               subnet,
-              capacity.let { Capacity(it.min, it.max, it.desired) },
+              zones,
               launchConfig.instanceType,
               launchConfig.ebsOptimized,
-              launchConfig.ramdiskId,
-              asg.tags.associateBy(Tag::key, Tag::value),
+              capacity.let { Capacity(it.min, it.max, it.desired) },
+              launchConfig.ramdiskId.orNull(),
+              launchConfig.iamInstanceProfile,
+              launchConfig.keyName,
               loadBalancers,
               securityGroupNames,
               targetGroups,
@@ -178,10 +179,9 @@ class ClusterHandler(
               asg.defaultCooldown.let(Duration::ofSeconds),
               asg.healthCheckGracePeriod.let(Duration::ofSeconds),
               asg.healthCheckType.let { HealthCheckType.valueOf(it) },
-              launchConfig.iamInstanceProfile,
-              launchConfig.keyName,
               asg.suspendedProcesses.map { ScalingProcess.valueOf(it) },
-              asg.terminationPolicies.map { TerminationPolicy.valueOf(it) }
+              asg.terminationPolicies.map { TerminationPolicy.valueOf(it) },
+              asg.tags.associateBy(Tag::key, Tag::value)
             )
           }
       }
@@ -218,3 +218,8 @@ class ClusterHandler(
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 }
+
+/**
+ * Returns `null` if the string is empty or null. Otherwise returns the string.
+ */
+private fun String?.orNull(): String? = if (isNullOrBlank()) null else this
