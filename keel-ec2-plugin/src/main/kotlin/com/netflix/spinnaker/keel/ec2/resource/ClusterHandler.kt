@@ -4,6 +4,7 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.ec2.Capacity
 import com.netflix.spinnaker.keel.api.ec2.Cluster
+import com.netflix.spinnaker.keel.api.ec2.ClusterLocation
 import com.netflix.spinnaker.keel.api.ec2.ClusterMoniker
 import com.netflix.spinnaker.keel.api.ec2.HealthCheckType
 import com.netflix.spinnaker.keel.api.ec2.Metric
@@ -47,7 +48,7 @@ class ClusterHandler(
     val taskRef = runBlocking {
       val job = mutableMapOf(
         "application" to spec.moniker.application,
-        "credentials" to spec.accountName,
+        "credentials" to spec.location.accountName,
         // <things to do with the strategy>
         // TODO: this will be parameterizable ultimately
         "strategy" to "redblack",
@@ -73,9 +74,9 @@ class ClusterHandler(
         "ebsOptimized" to spec.ebsOptimized,
         "iamRole" to spec.iamRole,
         "terminationPolicies" to spec.terminationPolicies.map(TerminationPolicy::name),
-        "subnetType" to spec.subnet,
+        "subnetType" to spec.location.subnet,
         "availabilityZones" to mapOf(
-          spec.region to spec.availabilityZones
+          spec.location.region to spec.location.availabilityZones
         ),
         "keyPair" to spec.keyPair,
         "suspendedProcesses" to spec.suspendedProcesses,
@@ -99,14 +100,14 @@ class ClusterHandler(
         "cloudProvider" to CLOUD_PROVIDER,
         "loadBalancers" to spec.loadBalancerNames,
         "targetGroups" to spec.targetGroups,
-        "account" to spec.accountName
+        "account" to spec.location.accountName
       )
 
       cloudDriverService.getAncestorServerGroupName(spec)
         ?.let { ancestorServerGroup ->
           job["source"] = mapOf(
-            "account" to spec.accountName,
-            "region" to spec.region,
+            "account" to spec.location.accountName,
+            "region" to spec.location.region,
             "asgName" to ancestorServerGroup
           )
           job["copySourceCustomBlockDeviceMappings"] = true
@@ -116,9 +117,9 @@ class ClusterHandler(
 
       orcaService
         .orchestrate(OrchestrationRequest(
-          "Upsert cluster ${spec.moniker.cluster} in ${spec.accountName}/${spec.region}",
+          "Upsert cluster ${spec.moniker.cluster} in ${spec.location.accountName}/${spec.location.region}",
           spec.moniker.application,
-          "Upsert cluster ${spec.moniker.cluster} in ${spec.accountName}/${spec.region}",
+          "Upsert cluster ${spec.moniker.cluster} in ${spec.location.accountName}/${spec.location.region}",
           listOf(Job("createServerGroup", job)),
           OrchestrationTrigger(resourceName.toString())
         ))
@@ -135,9 +136,9 @@ class ClusterHandler(
     try {
       activeServerGroup(
         spec.moniker.application,
-        spec.accountName,
+        spec.location.accountName,
         spec.moniker.cluster,
-        spec.region,
+        spec.location.region,
         CLOUD_PROVIDER
       )
         .await()
@@ -154,16 +155,24 @@ class ClusterHandler(
   private suspend fun CloudDriverService.getCluster(spec: Cluster): Cluster? {
     try {
       return withContext(Dispatchers.Default) {
-        activeServerGroup(spec.moniker.application, spec.accountName, spec.moniker.cluster, spec.region, CLOUD_PROVIDER)
+        activeServerGroup(
+          spec.moniker.application,
+          spec.location.accountName,
+          spec.moniker.cluster,
+          spec.location.region,
+          CLOUD_PROVIDER
+        )
           .await()
           .run {
             Cluster(
               ClusterMoniker(moniker.app, moniker.stack, moniker.detail),
               launchConfig.imageId,
-              accountName,
-              region,
-              subnet,
-              zones,
+              ClusterLocation(
+                accountName,
+                region,
+                subnet,
+                zones
+              ),
               launchConfig.instanceType,
               launchConfig.ebsOptimized,
               capacity.let { Capacity(it.min, it.max, it.desired) },
@@ -194,7 +203,7 @@ class ClusterHandler(
 
   private val Cluster.securityGroupIds: Collection<String>
     get() = securityGroupNames.map {
-      cloudDriverCache.securityGroupByName(accountName, region, it).id
+      cloudDriverCache.securityGroupByName(location.accountName, location.region, it).id
     }
 
   private val ClusterActiveServerGroup.subnet: String
@@ -203,9 +212,6 @@ class ClusterHandler(
         .subnetBy(subnetId)
         .purpose ?: throw IllegalStateException("Subnet $subnetId has no purpose!")
     }
-
-  private val ClusterActiveServerGroup.vpcName: String?
-    get() = cloudDriverCache.networkBy(vpcId).name
 
   private val ClusterActiveServerGroup.securityGroupNames: Set<String>
     get() = securityGroups.map {

@@ -12,11 +12,7 @@ data class Cluster(
   val moniker: ClusterMoniker,
   val imageId: String,
 
-  // where
-  val accountName: String,
-  val region: String,
-  val subnet: String?, // TODO: is this actually optional?
-  val availabilityZones: Set<String>,
+  val location: ClusterLocation,
 
   // instances
   val instanceType: String,

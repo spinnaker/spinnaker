@@ -27,13 +27,14 @@ internal object ClusterTests : JUnit5Minutests {
             |  stack: keel
             |  detail: k8s
             |imageId: ami-01fdaa2821a7ea01e
-            |accountName: test
-            |region: eu-west-1
-            |availabilityZones:
-            |- eu-west-1a
-            |- eu-west-1b
-            |- eu-west-1c
-            |subnet: internal (vpc0)
+            |location:
+            |  accountName: test
+            |  region: eu-west-1
+            |  availabilityZones:
+            |  - eu-west-1a
+            |  - eu-west-1b
+            |  - eu-west-1c
+            |  subnet: internal (vpc0)
             |capacity:
             |  min: 1
             |  max: 1

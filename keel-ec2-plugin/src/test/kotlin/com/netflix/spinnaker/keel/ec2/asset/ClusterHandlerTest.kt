@@ -6,6 +6,7 @@ import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.ec2.Capacity
 import com.netflix.spinnaker.keel.api.ec2.Cluster
+import com.netflix.spinnaker.keel.api.ec2.ClusterLocation
 import com.netflix.spinnaker.keel.api.ec2.ClusterMoniker
 import com.netflix.spinnaker.keel.api.ec2.HealthCheckType
 import com.netflix.spinnaker.keel.api.ec2.Metric
@@ -60,10 +61,12 @@ internal object ClusterHandlerTest : JUnit5Minutests {
   val spec = Cluster(
     moniker = ClusterMoniker("keel", "test"),
     imageId = "i-123543254134",
-    accountName = vpc.account,
-    region = vpc.region,
-    availabilityZones = setOf("us-west-2a", "us-west-2b", "us-west-2c"),
-    subnet = vpc.name,
+    location = ClusterLocation(
+      accountName = vpc.account,
+      region = vpc.region,
+      availabilityZones = setOf("us-west-2a", "us-west-2b", "us-west-2c"),
+      subnet = vpc.name
+    ),
     capacity = Capacity(1, 6, 4),
     instanceType = "r4.8xlarge",
     ebsOptimized = false,
@@ -85,8 +88,8 @@ internal object ClusterHandlerTest : JUnit5Minutests {
   )
   val activeServerGroupResponse = ClusterActiveServerGroup(
     "keel-test-v069",
-    spec.region,
-    spec.availabilityZones,
+    spec.location.region,
+    spec.location.availabilityZones,
     LaunchConfig(
       spec.ramdiskId,
       spec.ebsOptimized,
@@ -112,7 +115,7 @@ internal object ClusterHandlerTest : JUnit5Minutests {
     spec.loadBalancerNames,
     spec.capacity.let { ServerGroupCapacity(it.min, it.max, it.desired) },
     setOf(sg1.id, sg2.id),
-    spec.accountName,
+    spec.location.accountName,
     spec.moniker.run { Moniker(application, toString(), detail, stack, "69") }
   )
 
@@ -131,10 +134,10 @@ internal object ClusterHandlerTest : JUnit5Minutests {
         whenever(subnetBy(subnet1.id)) doReturn subnet1
         whenever(subnetBy(subnet2.id)) doReturn subnet2
         whenever(subnetBy(subnet3.id)) doReturn subnet3
-        whenever(securityGroupById(spec.accountName, spec.region, sg1.id)) doReturn sg1
-        whenever(securityGroupById(spec.accountName, spec.region, sg2.id)) doReturn sg2
-        whenever(securityGroupByName(spec.accountName, spec.region, sg1.name)) doReturn sg1
-        whenever(securityGroupByName(spec.accountName, spec.region, sg2.name)) doReturn sg2
+        whenever(securityGroupById(spec.location.accountName, spec.location.region, sg1.id)) doReturn sg1
+        whenever(securityGroupById(spec.location.accountName, spec.location.region, sg2.id)) doReturn sg2
+        whenever(securityGroupByName(spec.location.accountName, spec.location.region, sg1.name)) doReturn sg1
+        whenever(securityGroupByName(spec.location.accountName, spec.location.region, sg2.name)) doReturn sg2
       }
     }
 
@@ -205,9 +208,9 @@ internal object ClusterHandlerTest : JUnit5Minutests {
 
   private fun CloudDriverService.activeServerGroup() = activeServerGroup(
     spec.moniker.application,
-    spec.accountName,
+    spec.location.accountName,
     spec.moniker.cluster,
-    spec.region,
+    spec.location.region,
     CLOUD_PROVIDER
   )
 }
