@@ -19,7 +19,6 @@ data class LaunchConfig(
   val ramdiskId: String?,
   val ebsOptimized: Boolean,
   val imageId: String,
-  val userData: String?,
   val instanceType: String,
   val keyName: String,
   val iamInstanceProfile: String,

@@ -85,7 +85,6 @@ class ClusterHandler(
         "tags" to spec.tags,
         "useAmiBlockDeviceMappings" to false, // TODO: any reason to do otherwise?
         "copySourceCustomBlockDeviceMappings" to false, // TODO: any reason to do otherwise?
-        "base64UserData" to spec.base64UserData,
         "virtualizationType" to "hvm", // TODO: any reason to do otherwise?
         "moniker" to mapOf(
           "app" to spec.application,
@@ -170,7 +169,6 @@ class ClusterHandler(
               launchConfig.instanceType,
               launchConfig.ebsOptimized,
               launchConfig.ramdiskId,
-              launchConfig.userData,
               asg.tags.associateBy(Tag::key, Tag::value),
               loadBalancers,
               securityGroupNames,
