@@ -85,7 +85,7 @@ internal object ClusterHandlerTest : JUnit5Minutests {
     spec
   )
   val activeServerGroupResponse = ClusterActiveServerGroup(
-    spec.name.toString(),
+    "keel-test-v069",
     spec.region,
     spec.availabilityZones,
     LaunchConfig(
@@ -170,8 +170,18 @@ internal object ClusterHandlerTest : JUnit5Minutests {
         whenever(cloudDriverService.activeServerGroup()) doReturn CompletableDeferred(activeServerGroupResponse)
       }
 
-      test("the current model is converted to a cluster") {
-        expectThat(current(spec, request)).isNotNull()
+      derivedContext<Cluster?>("fetching the current cluster state") {
+        deriveFixture {
+          current(spec, request)
+        }
+
+        test("the current model is converted to a cluster") {
+          expectThat(this).isNotNull()
+        }
+
+        test("the cluster name is derived correctly") {
+          expectThat(this).isNotNull().get { name }.isEqualTo(spec.name)
+        }
       }
 
       test("annealing a diff clones the current server group") {

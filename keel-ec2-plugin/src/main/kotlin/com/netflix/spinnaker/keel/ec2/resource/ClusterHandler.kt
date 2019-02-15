@@ -160,7 +160,7 @@ class ClusterHandler(
           .run {
             Cluster(
               moniker.app,
-              name,
+              moniker.cluster ?: throw IllegalStateException("Cluster should have a cluster name"),
               launchConfig.imageId,
               accountName,
               region,
