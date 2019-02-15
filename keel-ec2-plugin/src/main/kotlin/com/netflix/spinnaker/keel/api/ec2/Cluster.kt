@@ -17,7 +17,7 @@ data class Cluster(
   val accountName: String,
   val region: String,
   val availabilityZones: Collection<String>,
-  val vpcName: String?,
+  val subnet: String?,
 
   // instances
   val capacity: Capacity = Capacity(1, 1, 1),

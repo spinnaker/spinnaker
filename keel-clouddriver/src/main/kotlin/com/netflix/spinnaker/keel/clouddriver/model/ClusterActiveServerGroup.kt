@@ -33,7 +33,8 @@ data class AutoScalingGroup(
   val suspendedProcesses: Collection<String>,
   val enabledMetrics: Collection<String>,
   val tags: Collection<Tag>,
-  val terminationPolicies: Collection<String>
+  val terminationPolicies: Collection<String>,
+  val vpczoneIdentifier: String
 )
 
 data class Tag(

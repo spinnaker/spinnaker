@@ -20,9 +20,11 @@ import com.google.common.cache.CacheBuilder
 import com.netflix.spinnaker.keel.clouddriver.model.Credential
 import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
+import com.netflix.spinnaker.keel.clouddriver.model.Subnet
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.runBlocking
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeUnit.HOURS
+import java.util.concurrent.TimeUnit.SECONDS
 
 class MemoryCloudDriverCache(
   private val cloudDriver: CloudDriverService
@@ -30,23 +32,28 @@ class MemoryCloudDriverCache(
 
   private val securityGroupSummariesById = CacheBuilder.newBuilder()
     .maximumSize(1000)
-    .expireAfterWrite(30, TimeUnit.SECONDS)
+    .expireAfterWrite(30, SECONDS)
     .build<String, SecurityGroupSummary>()
 
   private val networks = CacheBuilder.newBuilder()
     .maximumSize(1000)
-    .expireAfterWrite(30, TimeUnit.SECONDS)
+    .expireAfterWrite(30, SECONDS)
     .build<String, Network>()
 
   private val availabilityZones = CacheBuilder.newBuilder()
     .maximumSize(1000)
-    .expireAfterWrite(30, TimeUnit.SECONDS)
+    .expireAfterWrite(30, SECONDS)
     .build<String, Set<String>>()
 
   private val credentials = CacheBuilder.newBuilder()
     .maximumSize(100)
-    .expireAfterWrite(1, TimeUnit.HOURS)
+    .expireAfterWrite(1, HOURS)
     .build<String, Credential>()
+
+  private val subnets = CacheBuilder.newBuilder()
+    .maximumSize(1000)
+    .expireAfterWrite(30, SECONDS)
+    .build<String, Subnet>()
 
   private fun credentialBy(name: String): Credential =
     credentials.getOrNotFound(name, "Credentials with name $name not found") {
@@ -110,6 +117,14 @@ class MemoryCloudDriverCache(
           .map { it.availabilityZone }
           .toSet()
       }
+    }
+
+  override fun subnetBy(subnetId: String): Subnet =
+    subnets.getOrNotFound(subnetId, "Subnet with id $subnetId not found") {
+      cloudDriver
+        .listSubnets("aws")
+        .await()
+        .find { it.id == subnetId }
     }
 
   private fun <T> Cache<String, T>.getOrNotFound(

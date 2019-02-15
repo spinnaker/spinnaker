@@ -73,7 +73,7 @@ class ClusterHandler(
         "ebsOptimized" to spec.ebsOptimized,
         "iamRole" to spec.iamRole,
         "terminationPolicies" to spec.terminationPolicies.map(TerminationPolicy::name),
-        "subnetType" to spec.vpcName,
+        "subnetType" to spec.subnet,
         "availabilityZones" to mapOf(
           spec.region to spec.availabilityZones
         ),
@@ -164,7 +164,7 @@ class ClusterHandler(
               accountName,
               region,
               zones,
-              vpcName,
+              subnet,
               capacity.let { Capacity(it.min, it.max, it.desired) },
               launchConfig.instanceType,
               launchConfig.ebsOptimized,
@@ -196,6 +196,13 @@ class ClusterHandler(
   private val Cluster.securityGroupIds: Collection<String>
     get() = securityGroupNames.map {
       cloudDriverCache.securityGroupByName(accountName, region, it).id
+    }
+
+  private val ClusterActiveServerGroup.subnet: String
+    get() = asg.vpczoneIdentifier.substringBefore(",").let { subnetId ->
+      cloudDriverCache
+        .subnetBy(subnetId)
+        .purpose ?: throw IllegalStateException("Subnet $subnetId has no purpose!")
     }
 
   private val ClusterActiveServerGroup.vpcName: String?
