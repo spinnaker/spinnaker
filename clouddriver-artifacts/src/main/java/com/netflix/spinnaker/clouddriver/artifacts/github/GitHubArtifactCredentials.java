@@ -22,13 +22,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import com.squareup.okhttp.HttpUrl;
-import com.squareup.okhttp.OkHttpClient;
-import com.squareup.okhttp.Request;
-import com.squareup.okhttp.Request.Builder;
-import com.squareup.okhttp.Response;
-import java.util.Arrays;
-import java.util.List;
+import com.squareup.okhttp.*;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Base64;
@@ -38,15 +32,17 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collections;
+import java.util.List;
 
 @Slf4j
 @Data
 public class GitHubArtifactCredentials implements ArtifactCredentials {
   private final String name;
-  private final List<String> types = Arrays.asList("github/file");
+  private final List<String> types = Collections.singletonList("github/file");
 
   @JsonIgnore
-  private final Builder requestBuilder;
+  private final Headers headers;
 
   @JsonIgnore
   OkHttpClient okHttpClient;
@@ -58,29 +54,43 @@ public class GitHubArtifactCredentials implements ArtifactCredentials {
     this.name = account.getName();
     this.okHttpClient = okHttpClient;
     this.objectMapper = objectMapper;
-    Builder builder = new Request.Builder();
-    boolean useLogin = !StringUtils.isEmpty(account.getUsername()) && !StringUtils.isEmpty(account.getPassword());
-    boolean useUsernamePasswordFile = !StringUtils.isEmpty(account.getUsernamePasswordFile());
-    boolean useToken = !StringUtils.isEmpty(account.getToken());
-    boolean useTokenFile = !StringUtils.isEmpty(account.getTokenFile());
-    boolean useAuth = useLogin || useToken || useUsernamePasswordFile || useTokenFile;
-    if (useAuth) {
-      String authHeader = "";
-      if (useTokenFile) {
-        authHeader = "token " + credentialsFromFile(account.getTokenFile());
-      } else if (useUsernamePasswordFile) {
-        authHeader = "Basic " + Base64.encodeBase64String((credentialsFromFile(account.getUsernamePasswordFile())).getBytes());
-      }  else if (useToken) {
-        authHeader = "token " + account.getToken();
-      } else if (useLogin) {
-        authHeader = "Basic " + Base64.encodeBase64String((account.getUsername() + ":" + account.getPassword()).getBytes());
-      }
-      builder.header("Authorization", authHeader);
+    this.headers = getHeaders(account);
+  }
+
+  private Request.Builder requestBuilder() {
+    return new Request.Builder().headers(headers);
+  }
+
+  private Headers getHeaders(GitHubArtifactAccount account) {
+    Headers.Builder headers = new Headers.Builder();
+    String authHeader = getAuthHeader(account);
+    if (authHeader != null) {
+      headers.set("Authorization", authHeader);
       log.info("Loaded credentials for GitHub Artifact Account {}", account.getName());
     } else {
       log.info("No credentials included with GitHub Artifact Account {}", account.getName());
     }
-    requestBuilder = builder;
+    return headers.build();
+  }
+
+  private String getAuthHeader(GitHubArtifactAccount account) {
+    if (StringUtils.isNotEmpty(account.getTokenFile())) {
+      return "token " + credentialsFromFile(account.getTokenFile());
+    }
+
+    if (StringUtils.isNotEmpty(account.getUsernamePasswordFile())) {
+      return "Basic " + Base64.encodeBase64String(credentialsFromFile(account.getUsernamePasswordFile()).getBytes());
+    }
+
+    if (StringUtils.isNotEmpty(account.getToken())) {
+      return "token " + account.getToken();
+    }
+
+    if (StringUtils.isNotEmpty(account.getUsername()) && StringUtils.isNotEmpty(account.getPassword())) {
+      return "Basic " + Base64.encodeBase64String((account.getUsername() + ":" + account.getPassword()).getBytes());
+    }
+
+    return null;
   }
 
   private String credentialsFromFile(String filename) {
@@ -107,7 +117,7 @@ public class GitHubArtifactCredentials implements ArtifactCredentials {
     }
 
     metadataUrlBuilder.addQueryParameter("ref", version);
-    Request metadataRequest = requestBuilder
+    Request metadataRequest = requestBuilder()
       .url(metadataUrlBuilder.build().toString())
       .build();
 
@@ -124,7 +134,7 @@ public class GitHubArtifactCredentials implements ArtifactCredentials {
       throw new FailedDownloadException("Failed to retrieve your github artifact's download URL. This is likely due to incorrect auth setup. Artifact: " + artifact);
     }
 
-    Request downloadRequest = requestBuilder
+    Request downloadRequest = requestBuilder()
       .url(metadata.getDownloadUrl())
       .build();
 
