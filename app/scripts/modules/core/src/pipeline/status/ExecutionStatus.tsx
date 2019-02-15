@@ -105,6 +105,14 @@ export class ExecutionStatus extends React.Component<IExecutionStatusProps, IExe
     this.props.toggleDetails();
   };
 
+  private unescapeIfJSON = (value: any): any => {
+    try {
+      return JSON.parse(value);
+    } catch {
+      return value;
+    }
+  };
+
   public render() {
     const { execution, showingDetails, standalone } = this.props;
     const { trigger } = execution;
@@ -131,7 +139,7 @@ export class ExecutionStatus extends React.Component<IExecutionStatusProps, IExe
           </li>
           {this.state.parameters.map(p => (
             <li key={p.key} className="break-word">
-              <span className="parameter-key">{p.key}</span>: {p.value}
+              <span className="parameter-key">{p.key}</span>: {this.unescapeIfJSON(p.value)}
             </li>
           ))}
         </ul>
