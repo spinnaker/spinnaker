@@ -20,19 +20,13 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.file.Message
-import com.netflix.spinnaker.keel.plugin.ConvergeAccepted
-import com.netflix.spinnaker.keel.plugin.ConvergeFailed
-import com.netflix.spinnaker.keel.plugin.ConvergeResponse
-import com.netflix.spinnaker.keel.plugin.CurrentResponse
-import com.netflix.spinnaker.keel.plugin.ResourceError
-import com.netflix.spinnaker.keel.plugin.ResourceMissing
-import com.netflix.spinnaker.keel.plugin.ResourcePlugin
-import com.netflix.spinnaker.keel.plugin.ResourceState
+import com.netflix.spinnaker.keel.plugin.ResourceConflict
+import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import org.slf4j.LoggerFactory
 import java.io.File
 import javax.annotation.PostConstruct
 
-class FilePlugin(private val directory: File) : ResourcePlugin {
+class FileHandler(private val directory: File) : ResourceHandler<Message> {
 
   @PostConstruct
   fun ensureDirectoryExists() {
@@ -51,43 +45,29 @@ class FilePlugin(private val directory: File) : ResourcePlugin {
 
   override val apiVersion: ApiVersion = SPINNAKER_API_V1.subApi("file")
 
-  override val supportedKinds = mapOf(
+  override val supportedKind =
     ResourceKind(apiVersion.group, "message", "messages") to Message::class.java
-  )
 
-  override fun current(request: Resource<*>): CurrentResponse {
-    val file = File(directory, request.metadata.name.value)
+  override fun current(resource: Resource<Message>): Message? {
+    val file = File(directory, resource.metadata.name.value)
     return when {
-      !file.exists() -> ResourceMissing
-      !file.canRead() -> ResourceError("Resource found but it cannot be read")
-      file.isDirectory -> ResourceError("Resource found but it is a directory not a regular file")
-      else -> ResourceState(Message(file.readText()))
+      !file.exists() -> null
+      !file.canRead() -> throw ResourceConflict("Resource found but it cannot be read")
+      file.isDirectory -> throw ResourceConflict("Resource found but it is a directory not a regular file")
+      else -> Message(file.readText())
     }
   }
 
-  override fun upsert(request: Resource<*>): ConvergeResponse {
-    val spec = request.spec
-    return if (spec is Message) {
-      log.info("Upsert resource {}", request)
-      request.file.writer().use {
-        it.append(spec.text)
-      }
-      ConvergeAccepted
-    } else {
-      log.error("Invalid resource spec ${spec.javaClass.name}")
-      ConvergeFailed("Invalid resource spec ${spec.javaClass.name}")
+  override fun upsert(resource: Resource<Message>) {
+    log.info("Upsert resource {}", resource)
+    resource.file.writer().use {
+      it.append(resource.spec.text)
     }
   }
 
-  override fun delete(request: Resource<*>): ConvergeResponse {
-    val spec = request.spec
-    return if (spec is Message) {
-      log.info("Delete resource {}", request)
-      request.file.delete()
-      ConvergeAccepted
-    } else {
-      ConvergeFailed("Invalid resource spec ${spec.javaClass.name}")
-    }
+  override fun delete(resource: Resource<Message>) {
+    log.info("Delete resource {}", resource)
+    resource.file.delete()
   }
 
   private val Resource<*>.file: File

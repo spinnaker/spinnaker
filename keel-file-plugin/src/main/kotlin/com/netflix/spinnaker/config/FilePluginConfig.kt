@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.config
 
-import com.netflix.spinnaker.keel.file.FilePlugin
+import com.netflix.spinnaker.keel.file.FileHandler
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
@@ -28,5 +28,5 @@ class FilePluginConfig {
 
   @Bean
   fun filePlugin(@Value("\${keel.file.directory:#{systemEnvironment['HOME']}/keel}") directory: File) =
-    FilePlugin(directory)
+    FileHandler(directory)
 }

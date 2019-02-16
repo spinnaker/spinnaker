@@ -1,4 +1,4 @@
-package com.netflix.spinnaker.keel.ec2.asset
+package com.netflix.spinnaker.keel.ec2.resource
 
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceMetadata
@@ -25,7 +25,6 @@ import com.netflix.spinnaker.keel.clouddriver.model.Subnet
 import com.netflix.spinnaker.keel.clouddriver.model.Tag
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.ec2.RETROFIT_NOT_FOUND
-import com.netflix.spinnaker.keel.ec2.resource.ClusterHandler
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
@@ -50,7 +49,7 @@ import java.time.Clock
 import java.util.*
 import com.netflix.spinnaker.keel.clouddriver.model.Moniker as CloudDriverMoniker
 
-internal object ClusterHandlerTest : JUnit5Minutests {
+internal object ClusterHandlerTests : JUnit5Minutests {
 
   val vpc = Network(CLOUD_PROVIDER, "vpc-1452353", "vpc0", "test", "us-west-2")
   val sg1 = SecurityGroupSummary("keel", "sg-325234532")
@@ -80,7 +79,7 @@ internal object ClusterHandlerTest : JUnit5Minutests {
       securityGroupNames = setOf(sg1.name, sg2.name)
     )
   )
-  val request = Resource(
+  val resource = Resource(
     SPINNAKER_API_V1,
     "cluster",
     ResourceMetadata(
@@ -155,13 +154,13 @@ internal object ClusterHandlerTest : JUnit5Minutests {
       }
 
       test("the current model is null") {
-        expectThat(current(spec, request)).isNull()
+        expectThat(current(resource)).isNull()
       }
 
       test("annealing a diff creates a new server group") {
         whenever(orcaService.orchestrate(any())) doReturn CompletableDeferred(TaskRefResponse("/tasks/1"))
 
-        converge(request.metadata.name, spec)
+        upsert(resource)
 
         argumentCaptor<OrchestrationRequest>().apply {
           verify(orcaService).orchestrate(capture())
@@ -178,7 +177,7 @@ internal object ClusterHandlerTest : JUnit5Minutests {
 
       derivedContext<Cluster?>("fetching the current cluster state") {
         deriveFixture {
-          current(spec, request)
+          current(resource)
         }
 
         test("the current model is converted to a cluster") {
@@ -193,7 +192,7 @@ internal object ClusterHandlerTest : JUnit5Minutests {
       test("annealing a diff clones the current server group") {
         whenever(orcaService.orchestrate(any())) doReturn CompletableDeferred(TaskRefResponse("/tasks/1"))
 
-        converge(request.metadata.name, spec)
+        upsert(resource)
 
         argumentCaptor<OrchestrationRequest>().apply {
           verify(orcaService).orchestrate(capture())

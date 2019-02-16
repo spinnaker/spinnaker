@@ -17,21 +17,32 @@ package com.netflix.spinnaker.config
 
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
-import com.netflix.spinnaker.keel.ec2.EC2ResourcePlugin
+import com.netflix.spinnaker.keel.ec2.resource.ClusterHandler
+import com.netflix.spinnaker.keel.ec2.resource.SecurityGroupHandler
 import com.netflix.spinnaker.keel.orca.OrcaService
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import java.time.Clock
 
 @Configuration
 @ConditionalOnProperty("keel.plugins.ec2.enabled")
 class EC2Config {
 
   @Bean
-  fun ec2Plugin(
+  fun clusterHandler(
+    cloudDriverService: CloudDriverService,
+    cloudDriverCache: CloudDriverCache,
+    orcaService: OrcaService,
+    clock: Clock
+  ): ClusterHandler =
+    ClusterHandler(cloudDriverService, cloudDriverCache, orcaService, clock)
+
+  @Bean
+  fun securityGroupHandler(
     cloudDriverService: CloudDriverService,
     cloudDriverCache: CloudDriverCache,
     orcaService: OrcaService
-  ): EC2ResourcePlugin =
-    EC2ResourcePlugin(cloudDriverService, cloudDriverCache, orcaService)
+  ): SecurityGroupHandler =
+    SecurityGroupHandler(cloudDriverService, cloudDriverCache, orcaService)
 }

@@ -6,9 +6,7 @@ import com.netflix.spinnaker.keel.api.ResourceMetadata
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
-import com.netflix.spinnaker.keel.plugin.ResourceMissing
-import com.netflix.spinnaker.keel.plugin.ResourcePlugin
-import com.netflix.spinnaker.keel.plugin.ResourceState
+import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
@@ -23,8 +21,8 @@ import java.util.*
 internal object ResourceStateMonitorTests : JUnit5Minutests {
 
   val resourceRepository = InMemoryResourceRepository()
-  val plugin1 = mock<ResourcePlugin>()
-  val plugin2 = mock<ResourcePlugin>()
+  val plugin1 = mock<ResourceHandler<DummyResource>>()
+  val plugin2 = mock<ResourceHandler<DummyResource>>()
 
   fun tests() = rootContext<ResourceStateMonitor> {
 
@@ -34,9 +32,9 @@ internal object ResourceStateMonitorTests : JUnit5Minutests {
 
     before {
       whenever(plugin1.apiVersion) doReturn SPINNAKER_API_V1.subApi("plugin1")
-      whenever(plugin1.supportedKinds) doReturn mapOf(ResourceKind(SPINNAKER_API_V1.subApi("plugin1").group, "foo", "foos") to DummyResource::class.java)
+      whenever(plugin1.supportedKind) doReturn (ResourceKind(SPINNAKER_API_V1.subApi("plugin1").group, "foo", "foos") to DummyResource::class.java)
       whenever(plugin2.apiVersion) doReturn SPINNAKER_API_V1.subApi("plugin2")
-      whenever(plugin2.supportedKinds) doReturn mapOf(ResourceKind(SPINNAKER_API_V1.subApi("plugin2").group, "bar", "bars") to DummyResource::class.java, ResourceKind(SPINNAKER_API_V1.subApi("plugin2").group, "baz", "bazzes") to DummyResource::class.java)
+      whenever(plugin2.supportedKind) doReturn (ResourceKind(SPINNAKER_API_V1.subApi("plugin2").group, "bar", "bars") to DummyResource::class.java)
     }
 
     after {
@@ -62,7 +60,7 @@ internal object ResourceStateMonitorTests : JUnit5Minutests {
 
       context("the current state matches the desired state") {
         before {
-          whenever(plugin1.current(resource)) doReturn ResourceState(resource.spec)
+          whenever(plugin1.current(resource)) doReturn resource.spec
 
           validateManagedResources()
         }
@@ -80,7 +78,7 @@ internal object ResourceStateMonitorTests : JUnit5Minutests {
 
       context("the current state is missing") {
         before {
-          whenever(plugin1.current(resource)) doReturn ResourceMissing
+          whenever(plugin1.current(resource)) doReturn null as DummyResource?
 
           validateManagedResources()
         }
@@ -92,7 +90,7 @@ internal object ResourceStateMonitorTests : JUnit5Minutests {
 
       context("the current state is wrong") {
         before {
-          whenever(plugin1.current(resource)) doReturn ResourceState(DummyResource("some other state that does not match"))
+          whenever(plugin1.current(resource)) doReturn DummyResource("some other state that does not match")
 
           validateManagedResources()
         }
@@ -105,4 +103,4 @@ internal object ResourceStateMonitorTests : JUnit5Minutests {
   }
 }
 
-private data class DummyResource(val state: String)
+internal data class DummyResource(val state: String)

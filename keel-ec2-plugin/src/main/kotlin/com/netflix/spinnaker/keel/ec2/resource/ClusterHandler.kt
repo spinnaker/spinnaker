@@ -1,7 +1,8 @@
 package com.netflix.spinnaker.keel.ec2.resource
 
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceName
+import com.netflix.spinnaker.keel.api.ResourceKind
+import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.ec2.Capacity
 import com.netflix.spinnaker.keel.api.ec2.Cluster
 import com.netflix.spinnaker.keel.api.ec2.Cluster.Dependencies
@@ -13,18 +14,17 @@ import com.netflix.spinnaker.keel.api.ec2.Cluster.Scaling
 import com.netflix.spinnaker.keel.api.ec2.HealthCheckType
 import com.netflix.spinnaker.keel.api.ec2.Metric
 import com.netflix.spinnaker.keel.api.ec2.ScalingProcess
-import com.netflix.spinnaker.keel.api.ec2.SecurityGroup
 import com.netflix.spinnaker.keel.api.ec2.TerminationPolicy
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.ClusterActiveServerGroup
 import com.netflix.spinnaker.keel.clouddriver.model.Tag
-import com.netflix.spinnaker.keel.ec2.AmazonResourceHandler
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.model.OrchestrationTrigger
 import com.netflix.spinnaker.keel.orca.OrcaService
+import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.netflix.spinnaker.keel.retrofit.isNotFound
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
@@ -42,14 +42,23 @@ class ClusterHandler(
   private val cloudDriverCache: CloudDriverCache,
   private val orcaService: OrcaService,
   private val clock: Clock
-) : AmazonResourceHandler<Cluster> {
-  override fun current(spec: Cluster, request: Resource<Cluster>): Cluster? =
+) : ResourceHandler<Cluster> {
+
+  override val apiVersion = SPINNAKER_API_V1.subApi("ec2")
+  override val supportedKind = ResourceKind(
+    apiVersion.group,
+    "cluster",
+    "clusters"
+  ) to Cluster::class.java
+
+  override fun current(resource: Resource<Cluster>) =
     runBlocking {
-      cloudDriverService.getCluster(spec)
+      cloudDriverService.getCluster(resource.spec)
     }
 
-  override fun converge(resourceName: ResourceName, spec: Cluster) {
+  override fun upsert(resource: Resource<Cluster>) {
     val taskRef = runBlocking {
+      val spec = resource.spec
       val job = mutableMapOf(
         "application" to spec.moniker.application,
         "credentials" to spec.location.accountName,
@@ -125,14 +134,14 @@ class ClusterHandler(
           spec.moniker.application,
           "Upsert cluster ${spec.moniker.cluster} in ${spec.location.accountName}/${spec.location.region}",
           listOf(Job("createServerGroup", job)),
-          OrchestrationTrigger(resourceName.toString())
+          OrchestrationTrigger(resource.metadata.name.toString())
         ))
         .await()
     }
     log.info("Started task {} to upsert cluster", taskRef.ref)
   }
 
-  override fun delete(resourceName: ResourceName, spec: SecurityGroup) {
+  override fun delete(resource: Resource<Cluster>) {
     TODO("not implemented")
   }
 

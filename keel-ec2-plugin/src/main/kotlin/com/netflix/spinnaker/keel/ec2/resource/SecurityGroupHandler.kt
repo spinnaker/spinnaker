@@ -16,87 +16,99 @@
 package com.netflix.spinnaker.keel.ec2.resource
 
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceName
+import com.netflix.spinnaker.keel.api.ResourceKind
+import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.ec2.CidrSecurityGroupRule
 import com.netflix.spinnaker.keel.api.ec2.ReferenceSecurityGroupRule
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroup
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupRule
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
-import com.netflix.spinnaker.keel.ec2.AmazonResourceHandler
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.model.OrchestrationTrigger
 import com.netflix.spinnaker.keel.orca.OrcaService
+import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.netflix.spinnaker.keel.retrofit.isNotFound
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import retrofit2.HttpException
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup as RiverSecurityGroup
 
-class AmazonSecurityGroupHandler(
+class SecurityGroupHandler(
   private val cloudDriverService: CloudDriverService,
   private val cloudDriverCache: CloudDriverCache,
   private val orcaService: OrcaService
-) : AmazonResourceHandler<SecurityGroup> {
+) : ResourceHandler<SecurityGroup> {
 
-  override fun current(spec: SecurityGroup, request: Resource<SecurityGroup>): SecurityGroup? =
-    cloudDriverService.getSecurityGroup(spec)
+  override val apiVersion = SPINNAKER_API_V1.subApi("ec2")
+  override val supportedKind = ResourceKind(
+    apiVersion.group,
+    "security-group",
+    "security-groups"
+  ) to SecurityGroup::class.java
 
-  override fun converge(resourceName: ResourceName, spec: SecurityGroup) {
+  override fun current(resource: Resource<SecurityGroup>): SecurityGroup? =
+    cloudDriverService.getSecurityGroup(resource.spec)
+
+  override fun upsert(resource: Resource<SecurityGroup>) {
     val taskRef = runBlocking {
-      orcaService
-        .orchestrate(OrchestrationRequest(
-          "Upsert security group ${spec.name} in ${spec.accountName}/${spec.region}",
-          spec.application,
-          "Upsert security group ${spec.name} in ${spec.accountName}/${spec.region}",
-          listOf(Job(
-            "upsertSecurityGroup",
-            mapOf(
-              "application" to spec.application,
-              "credentials" to spec.accountName,
-              "cloudProvider" to CLOUD_PROVIDER,
-              "name" to spec.name,
-              "regions" to listOf(spec.region),
-              "vpcId" to spec.vpcName,
-              "description" to spec.description,
-              "ingressAppendOnly" to true,
-              // TODO: would be nice if these two things were more homeomorphic
-              "securityGroupIngress" to portRangeRuleToJob(spec),
-              "ipIngress" to spec.inboundRules.flatMap { convertCidrRuleToJob(it) },
-              "accountName" to spec.accountName
-            )
-          )),
-          OrchestrationTrigger(resourceName.toString())
-        ))
-        .await()
+      resource.spec.let { spec ->
+        orcaService
+          .orchestrate(OrchestrationRequest(
+            "Upsert security group ${spec.name} in ${spec.accountName}/${spec.region}",
+            spec.application,
+            "Upsert security group ${spec.name} in ${spec.accountName}/${spec.region}",
+            listOf(Job(
+              "upsertSecurityGroup",
+              mapOf(
+                "application" to spec.application,
+                "credentials" to spec.accountName,
+                "cloudProvider" to CLOUD_PROVIDER,
+                "name" to spec.name,
+                "regions" to listOf(spec.region),
+                "vpcId" to spec.vpcName,
+                "description" to spec.description,
+                "ingressAppendOnly" to true,
+                // TODO: would be nice if these two things were more homeomorphic
+                "securityGroupIngress" to portRangeRuleToJob(spec),
+                "ipIngress" to spec.inboundRules.flatMap { convertCidrRuleToJob(it) },
+                "accountName" to spec.accountName
+              )
+            )),
+            OrchestrationTrigger(resource.metadata.name.toString())
+          ))
+          .await()
+      }
     }
     log.info("Started task {} to upsert security group", taskRef.ref)
   }
 
-  override fun delete(resourceName: ResourceName, spec: SecurityGroup) {
+  override fun delete(resource: Resource<SecurityGroup>) {
     val taskRef = runBlocking {
-      orcaService
-        .orchestrate(OrchestrationRequest(
-          "Delete security group ${spec.name} in ${spec.accountName}/${spec.region}",
-          spec.application,
-          "Delete security group ${spec.name} in ${spec.accountName}/${spec.region}",
-          listOf(Job(
-            "deleteSecurityGroup",
-            mapOf(
-              "application" to spec.application,
-              "credentials" to spec.accountName,
-              "cloudProvider" to CLOUD_PROVIDER,
-              "securityGroupName" to spec.name,
-              "regions" to listOf(spec.region),
-              "vpcId" to spec.vpcName,
-              "accountName" to spec.accountName
-            )
-          )),
-          OrchestrationTrigger(resourceName.toString())
-        ))
-        .await()
+      resource.spec.let { spec ->
+        orcaService
+          .orchestrate(OrchestrationRequest(
+            "Delete security group ${spec.name} in ${spec.accountName}/${spec.region}",
+            spec.application,
+            "Delete security group ${spec.name} in ${spec.accountName}/${spec.region}",
+            listOf(Job(
+              "deleteSecurityGroup",
+              mapOf(
+                "application" to spec.application,
+                "credentials" to spec.accountName,
+                "cloudProvider" to CLOUD_PROVIDER,
+                "securityGroupName" to spec.name,
+                "regions" to listOf(spec.region),
+                "vpcId" to spec.vpcName,
+                "accountName" to spec.accountName
+              )
+            )),
+            OrchestrationTrigger(resource.metadata.name.toString())
+          ))
+          .await()
+      }
     }
     log.info("Started task {} to upsert security group", taskRef.ref)
   }

@@ -32,14 +32,11 @@ import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.Moniker
 import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
-import com.netflix.spinnaker.keel.ec2.EC2ResourcePlugin
 import com.netflix.spinnaker.keel.ec2.RETROFIT_NOT_FOUND
 import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
-import com.netflix.spinnaker.keel.plugin.ResourceMissing
-import com.netflix.spinnaker.keel.plugin.ResourceState
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.argumentCaptor
 import com.nhaarman.mockito_kotlin.doAnswer
@@ -64,10 +61,12 @@ import strikt.assertions.get
 import strikt.assertions.hasSize
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
+import strikt.assertions.isNotNull
+import strikt.assertions.isNull
 import java.util.*
 
 @TestInstance(PER_CLASS)
-internal object EC2ResourcePluginTests {
+internal object SecurityGroupHandlerTests {
 
   val cloudDriverService = mock<CloudDriverService>()
   val cloudDriverCache = mock<CloudDriverCache>()
@@ -75,7 +74,7 @@ internal object EC2ResourcePluginTests {
 
   val objectMapper = ObjectMapper().registerKotlinModule()
 
-  val subject = EC2ResourcePlugin(
+  val subject = SecurityGroupHandler(
     cloudDriverService,
     cloudDriverCache,
     orcaService
@@ -135,7 +134,7 @@ internal object EC2ResourcePluginTests {
       test("it returns null") {
         val response = subject.current(request)
 
-        expectThat(response).isA<ResourceMissing>()
+        expectThat(response).isNull()
       }
     }
 
@@ -174,8 +173,7 @@ internal object EC2ResourcePluginTests {
         val response = subject.current(request)
 
         expectThat(response)
-          .isA<ResourceState<SecurityGroup>>()
-          .get { spec }
+          .isNotNull()
           .isEqualTo(securityGroup)
       }
     }
@@ -185,7 +183,7 @@ internal object EC2ResourcePluginTests {
   private open class SecurityGroupFixture(
     val spec: SecurityGroup
   ) {
-    val request: Resource<*> by lazy {
+    val request: Resource<SecurityGroup> by lazy {
       Resource(
         apiVersion = SPINNAKER_API_V1,
         metadata = ResourceMetadata(

@@ -28,7 +28,7 @@ import com.netflix.spinnaker.keel.persistence.ResourceVersionTracker
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceVersionTracker
 import com.netflix.spinnaker.keel.plugin.KeelPlugin
-import com.netflix.spinnaker.keel.plugin.ResourcePlugin
+import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.netflix.spinnaker.kork.PlatformComponents
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -92,8 +92,8 @@ class KeelApplication {
   fun resourceVersionTracker(): ResourceVersionTracker = InMemoryResourceVersionTracker()
 
   @Bean
-  @ConditionalOnMissingBean(ResourcePlugin::class)
-  fun noResourcePlugins(): List<ResourcePlugin> = emptyList()
+  @ConditionalOnMissingBean(ResourceHandler::class)
+  fun noResourcePlugins(): List<ResourceHandler<*>> = emptyList()
 
   @Autowired
   lateinit var resourceRepository: ResourceRepository
