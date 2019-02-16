@@ -39,9 +39,9 @@ import com.nhaarman.mockito_kotlin.whenever
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import kotlinx.coroutines.CompletableDeferred
+import org.javers.core.JaversBuilder
 import strikt.api.expectThat
-import strikt.assertions.hasEntry
-import strikt.assertions.isA
+import strikt.assertions.get
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotNull
 import strikt.assertions.isNull
@@ -117,6 +117,7 @@ internal object ClusterHandlerTests : JUnit5Minutests {
     spec.dependencies.targetGroups,
     spec.dependencies.loadBalancerNames,
     spec.capacity.let { ServerGroupCapacity(it.min, it.max, it.desired) },
+    CLOUD_PROVIDER,
     setOf(sg1.id, sg2.id),
     spec.location.accountName,
     spec.moniker.run { CloudDriverMoniker(application, cluster, detail, stack, "69") }
@@ -125,6 +126,8 @@ internal object ClusterHandlerTests : JUnit5Minutests {
   val cloudDriverService = mock<CloudDriverService>()
   val cloudDriverCache = mock<CloudDriverCache>()
   val orcaService = mock<OrcaService>()
+
+  val javers = JaversBuilder.javers().build()
 
   fun tests() = rootContext<ClusterHandler> {
     fixture {
@@ -141,6 +144,8 @@ internal object ClusterHandlerTests : JUnit5Minutests {
         whenever(securityGroupById(spec.location.accountName, spec.location.region, sg2.id)) doReturn sg2
         whenever(securityGroupByName(spec.location.accountName, spec.location.region, sg1.name)) doReturn sg1
         whenever(securityGroupByName(spec.location.accountName, spec.location.region, sg2.name)) doReturn sg2
+
+        whenever(orcaService.orchestrate(any())) doReturn CompletableDeferred(TaskRefResponse("/tasks/${UUID.randomUUID()}"))
       }
     }
 
@@ -158,14 +163,14 @@ internal object ClusterHandlerTests : JUnit5Minutests {
       }
 
       test("annealing a diff creates a new server group") {
-        whenever(orcaService.orchestrate(any())) doReturn CompletableDeferred(TaskRefResponse("/tasks/1"))
-
         upsert(resource)
 
         argumentCaptor<OrchestrationRequest>().apply {
           verify(orcaService).orchestrate(capture())
 
-          expectThat(firstValue.job.first()["type"]).isEqualTo("createServerGroup")
+          expectThat(firstValue.job.first()) {
+            get("type").isEqualTo("createServerGroup")
+          }
         }
       }
     }
@@ -189,21 +194,52 @@ internal object ClusterHandlerTests : JUnit5Minutests {
         }
       }
 
-      test("annealing a diff clones the current server group") {
-        whenever(orcaService.orchestrate(any())) doReturn CompletableDeferred(TaskRefResponse("/tasks/1"))
+      context("the diff is only in capacity") {
 
-        upsert(resource)
+        val diff = javers.compare(resource.spec.withDoubleCapacity(), resource.spec)
 
-        argumentCaptor<OrchestrationRequest>().apply {
-          verify(orcaService).orchestrate(capture())
+        test("annealing resizes the current server group") {
+          upsert(resource, diff)
 
-          expectThat(firstValue.job.first()["source"])
-            .isA<Map<String, Any>>()
-            .and {
-              hasEntry("account", activeServerGroupResponse.accountName)
-              hasEntry("region", activeServerGroupResponse.region)
-              hasEntry("asgName", activeServerGroupResponse.asg.autoScalingGroupName)
+          argumentCaptor<OrchestrationRequest>().apply {
+            verify(orcaService).orchestrate(capture())
+
+            expectThat(firstValue.job.first()) {
+              get("type").isEqualTo("resizeServerGroup")
+              get("capacity").isEqualTo(
+                mapOf(
+                  "min" to spec.capacity.min,
+                  "max" to spec.capacity.max,
+                  "desired" to spec.capacity.desired
+                )
+              )
+              get("serverGroupName").isEqualTo(activeServerGroupResponse.asg.autoScalingGroupName)
             }
+          }
+        }
+      }
+
+      context("the diff is something other than just capacity") {
+
+        val diff = javers.compare(resource.spec.withDoubleCapacity().withDifferentInstanceType(), resource.spec)
+
+        test("annealing clones the current server group") {
+          upsert(resource, diff)
+
+          argumentCaptor<OrchestrationRequest>().apply {
+            verify(orcaService).orchestrate(capture())
+
+            expectThat(firstValue.job.first()) {
+              get("type").isEqualTo("createServerGroup")
+              get("source").isEqualTo(
+                mapOf(
+                  "account" to activeServerGroupResponse.accountName,
+                  "region" to activeServerGroupResponse.region,
+                  "asgName" to activeServerGroupResponse.asg.autoScalingGroupName
+                )
+              )
+            }
+          }
         }
       }
     }
@@ -216,4 +252,22 @@ internal object ClusterHandlerTests : JUnit5Minutests {
     spec.location.region,
     CLOUD_PROVIDER
   )
+
+
 }
+
+private fun Cluster.withDoubleCapacity(): Cluster =
+  copy(
+    capacity = Capacity(
+      min = capacity.min * 2,
+      max = capacity.max * 2,
+      desired = capacity.desired * 2
+    )
+  )
+
+private fun Cluster.withDifferentInstanceType(): Cluster =
+  copy(
+    launchConfiguration = launchConfiguration.copy(
+      instanceType = "r4.16xlarge"
+    )
+  )

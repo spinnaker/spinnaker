@@ -10,6 +10,7 @@ data class ClusterActiveServerGroup(
   val targetGroups: Set<String>,
   val loadBalancers: Set<String>,
   val capacity: ServerGroupCapacity,
+  val cloudProvider: String,
   val securityGroups: Set<String>,
   val accountName: String,
   val moniker: Moniker

@@ -6,6 +6,7 @@ import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.plugin.ResourceConflict
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import org.javers.core.JaversBuilder
+import org.javers.core.diff.Diff
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
@@ -33,7 +34,7 @@ class ResourceStateMonitor(
             if (diff.hasChanges()) {
               log.warn("Resource {} \"{}\" is invalid", resource.kind, resource.metadata.name)
               log.info("Resource {} \"{}\" delta: {}", resource.kind, resource.metadata.name, diff)
-              plugin.update(resource)
+              plugin.update(resource, diff)
             } else {
               log.info("Resource {} \"{}\" is valid", resource.kind, resource.metadata.name)
             }
@@ -52,12 +53,14 @@ class ResourceStateMonitor(
 
   private val javers = JaversBuilder.javers().build()
 
-  private fun Resource<*>.diff(current: Any) =
-    javers.compare(spec, current)
+  private fun Resource<*>.diff(current: Any): Diff =
+    javers.compare(current, spec)
 
   private fun pluginFor(apiVersion: ApiVersion, singular: String): ResourceHandler<*>? =
     handlers.find { it.apiVersion == apiVersion && it.supportedKind.first.singular == singular }
 
+  // These extensions get round the fact tht we don't know the spec type of the resource from
+  // the repository. I don't want the `ResourceHandler` interface to be untyped though.
   @Suppress("UNCHECKED_CAST")
   private fun <T : Any> ResourceHandler<T>.current(resource: Resource<*>): T? =
     current(resource as Resource<T>)
@@ -68,9 +71,10 @@ class ResourceStateMonitor(
   }
 
   @Suppress("UNCHECKED_CAST")
-  private fun <T : Any> ResourceHandler<T>.update(resource: Resource<*>) {
-    update(resource as Resource<T>)
+  private fun <T : Any> ResourceHandler<T>.update(resource: Resource<*>, diff: Diff) {
+    update(resource as Resource<T>, diff)
   }
+  // end type coercing extensions
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 }

@@ -22,6 +22,7 @@ import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.file.Message
 import com.netflix.spinnaker.keel.plugin.ResourceConflict
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
+import org.javers.core.diff.Diff
 import org.slf4j.LoggerFactory
 import java.io.File
 import javax.annotation.PostConstruct
@@ -58,7 +59,7 @@ class FileHandler(private val directory: File) : ResourceHandler<Message> {
     }
   }
 
-  override fun upsert(resource: Resource<Message>) {
+  override fun upsert(resource: Resource<Message>, diff: Diff?) {
     log.info("Upsert resource {}", resource)
     resource.file.writer().use {
       it.append(resource.spec.text)

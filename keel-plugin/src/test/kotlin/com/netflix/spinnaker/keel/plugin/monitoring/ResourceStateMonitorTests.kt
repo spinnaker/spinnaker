@@ -9,6 +9,7 @@ import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.doReturn
+import com.nhaarman.mockito_kotlin.eq
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.never
 import com.nhaarman.mockito_kotlin.reset
@@ -67,7 +68,7 @@ internal object ResourceStateMonitorTests : JUnit5Minutests {
 
         test("the resource is not updated") {
           verify(plugin1, never()).create(any())
-          verify(plugin1, never()).update(any())
+          verify(plugin1, never()).update(any(), any())
           verify(plugin1, never()).delete(any())
         }
 
@@ -95,8 +96,8 @@ internal object ResourceStateMonitorTests : JUnit5Minutests {
           validateManagedResources()
         }
 
-        test("the resource is created") {
-          verify(plugin1).update(resource)
+        test("the resource is updated") {
+          verify(plugin1).update(eq(resource), any())
         }
       }
     }

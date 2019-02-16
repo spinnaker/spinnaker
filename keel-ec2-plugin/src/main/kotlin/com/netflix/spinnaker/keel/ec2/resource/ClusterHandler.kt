@@ -24,11 +24,13 @@ import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.model.OrchestrationTrigger
 import com.netflix.spinnaker.keel.orca.OrcaService
+import com.netflix.spinnaker.keel.plugin.ResourceConflict
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.netflix.spinnaker.keel.retrofit.isNotFound
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import org.javers.core.diff.Diff
 import org.slf4j.LoggerFactory
 import retrofit2.HttpException
 import java.time.Clock
@@ -56,75 +58,13 @@ class ClusterHandler(
       cloudDriverService.getCluster(resource.spec)
     }
 
-  override fun upsert(resource: Resource<Cluster>) {
+  override fun upsert(resource: Resource<Cluster>, diff: Diff?) {
     val taskRef = runBlocking {
       val spec = resource.spec
-      val job = mutableMapOf(
-        "application" to spec.moniker.application,
-        "credentials" to spec.location.accountName,
-        // <things to do with the strategy>
-        // TODO: this will be parameterizable ultimately
-        "strategy" to "redblack",
-        "delayBeforeDisableSec" to 0,
-        "delayBeforeScaleDownSec" to 0,
-        "maxRemainingAsgs" to 2,
-        "rollback" to mapOf(
-          "onFailure" to false
-        ),
-        "scaleDown" to false,
-        // </things to do with the strategy>
-        "capacity" to mapOf(
-          "min" to spec.capacity.min,
-          "max" to spec.capacity.max,
-          "desired" to spec.capacity.desired
-        ),
-        "targetHealthyDeployPercentage" to 100, // TODO: any reason to do otherwise?
-        "cooldown" to spec.health.cooldown.seconds,
-        "enabledMetrics" to spec.health.enabledMetrics,
-        "healthCheckType" to spec.health.healthCheckType.name,
-        "healthCheckGracePeriod" to spec.health.warmup.seconds,
-        "instanceMonitoring" to spec.launchConfiguration.instanceMonitoring,
-        "ebsOptimized" to spec.launchConfiguration.ebsOptimized,
-        "iamRole" to spec.launchConfiguration.iamRole,
-        "terminationPolicies" to spec.health.terminationPolicies.map(TerminationPolicy::name),
-        "subnetType" to spec.location.subnet,
-        "availabilityZones" to mapOf(
-          spec.location.region to spec.location.availabilityZones
-        ),
-        "keyPair" to spec.launchConfiguration.keyPair,
-        "suspendedProcesses" to spec.scaling.suspendedProcesses,
-        "securityGroups" to spec.securityGroupIds,
-        "stack" to spec.moniker.stack,
-        "freeFormDetails" to spec.moniker.detail,
-        "tags" to spec.tags,
-        "useAmiBlockDeviceMappings" to false, // TODO: any reason to do otherwise?
-        "copySourceCustomBlockDeviceMappings" to false, // TODO: any reason to do otherwise?
-        "virtualizationType" to "hvm", // TODO: any reason to do otherwise?
-        "moniker" to mapOf(
-          "app" to spec.moniker.application,
-          "stack" to spec.moniker.stack,
-          "detail" to spec.moniker.detail,
-          "cluster" to spec.moniker.cluster
-        ),
-        "amiName" to spec.launchConfiguration.imageId,
-        "reason" to "Diff detected at ${clock.instant().iso()}",
-        "instanceType" to spec.launchConfiguration.instanceType,
-        "type" to "createServerGroup",
-        "cloudProvider" to CLOUD_PROVIDER,
-        "loadBalancers" to spec.dependencies.loadBalancerNames,
-        "targetGroups" to spec.dependencies.targetGroups,
-        "account" to spec.location.accountName
-      )
-
-      cloudDriverService.getAncestorServerGroupName(spec)
-        ?.let { ancestorServerGroup ->
-          job["source"] = mapOf(
-            "account" to spec.location.accountName,
-            "region" to spec.location.region,
-            "asgName" to ancestorServerGroup
-          )
-          job["copySourceCustomBlockDeviceMappings"] = true
-        }
+      val job = when {
+        diff.isCapacityOnly() -> spec.resizeServerGroupJob()
+        else -> spec.createServerGroupJob()
+      }
 
       log.info("Upserting cluster using task: {}", job)
 
@@ -133,7 +73,7 @@ class ClusterHandler(
           "Upsert cluster ${spec.moniker.cluster} in ${spec.location.accountName}/${spec.location.region}",
           spec.moniker.application,
           "Upsert cluster ${spec.moniker.cluster} in ${spec.location.accountName}/${spec.location.region}",
-          listOf(Job("createServerGroup", job)),
+          listOf(Job(job["type"].toString(), job)),
           OrchestrationTrigger(resource.metadata.name.toString())
         ))
         .await()
@@ -141,11 +81,116 @@ class ClusterHandler(
     log.info("Started task {} to upsert cluster", taskRef.ref)
   }
 
+  /**
+   * @return `true` if the only changes in the diff are to capacity.
+   */
+  private fun Diff?.isCapacityOnly(): Boolean =
+    this != null && affectedObjects.all { it is Capacity }
+
+  private val Diff.affectedObjects: List<Any>
+    get() = changes
+      .map { it.affectedObject }
+      // TODO: what kind of change has no affected object?
+      .mapNotNull { it.orElse(null) }
+
+  private suspend fun Cluster.createServerGroupJob(): Map<String, Any?> =
+    mutableMapOf(
+      "application" to moniker.application,
+      "credentials" to location.accountName,
+      // <things to do with the strategy>
+      // TODO: this will be parameterizable ultimately
+      "strategy" to "redblack",
+      "delayBeforeDisableSec" to 0,
+      "delayBeforeScaleDownSec" to 0,
+      "maxRemainingAsgs" to 2,
+      "rollback" to mapOf(
+        "onFailure" to false
+      ),
+      "scaleDown" to false,
+      // </things to do with the strategy>
+      "capacity" to mapOf(
+        "min" to capacity.min,
+        "max" to capacity.max,
+        "desired" to capacity.desired
+      ),
+      "targetHealthyDeployPercentage" to 100, // TODO: any reason to do otherwise?
+      "cooldown" to health.cooldown.seconds,
+      "enabledMetrics" to health.enabledMetrics,
+      "healthCheckType" to health.healthCheckType.name,
+      "healthCheckGracePeriod" to health.warmup.seconds,
+      "instanceMonitoring" to launchConfiguration.instanceMonitoring,
+      "ebsOptimized" to launchConfiguration.ebsOptimized,
+      "iamRole" to launchConfiguration.iamRole,
+      "terminationPolicies" to health.terminationPolicies.map(TerminationPolicy::name),
+      "subnetType" to location.subnet,
+      "availabilityZones" to mapOf(
+        location.region to location.availabilityZones
+      ),
+      "keyPair" to launchConfiguration.keyPair,
+      "suspendedProcesses" to scaling.suspendedProcesses,
+      "securityGroups" to securityGroupIds,
+      "stack" to moniker.stack,
+      "freeFormDetails" to moniker.detail,
+      "tags" to tags,
+      "useAmiBlockDeviceMappings" to false, // TODO: any reason to do otherwise?
+      "copySourceCustomBlockDeviceMappings" to false, // TODO: any reason to do otherwise?
+      "virtualizationType" to "hvm", // TODO: any reason to do otherwise?
+      "moniker" to mapOf(
+        "app" to moniker.application,
+        "stack" to moniker.stack,
+        "detail" to moniker.detail,
+        "cluster" to moniker.cluster
+      ),
+      "amiName" to launchConfiguration.imageId,
+      "reason" to "Diff detected at ${clock.instant().iso()}",
+      "instanceType" to launchConfiguration.instanceType,
+      "type" to "createServerGroup",
+      "cloudProvider" to CLOUD_PROVIDER,
+      "loadBalancers" to dependencies.loadBalancerNames,
+      "targetGroups" to dependencies.targetGroups,
+      "account" to location.accountName
+    ).also { job ->
+      cloudDriverService.getAncestorServerGroup(this)
+        ?.let { ancestorServerGroup ->
+          job["source"] = mapOf(
+            "account" to location.accountName,
+            "region" to location.region,
+            "asgName" to ancestorServerGroup.asg.autoScalingGroupName
+          )
+          job["copySourceCustomBlockDeviceMappings"] = true
+        }
+    }
+
+  private suspend fun Cluster.resizeServerGroupJob(): Map<String, Any?> =
+    cloudDriverService.getAncestorServerGroup(this)
+      ?.let { currentServerGroup ->
+        mapOf(
+          "type" to "resizeServerGroup",
+          "capacity" to mapOf(
+            "min" to capacity.min,
+            "max" to capacity.max,
+            "desired" to capacity.desired
+          ),
+          "cloudProvider" to currentServerGroup.cloudProvider,
+          "credentials" to location.accountName,
+          "moniker" to mapOf(
+            "app" to currentServerGroup.moniker.app,
+            "stack" to currentServerGroup.moniker.stack,
+            "detail" to currentServerGroup.moniker.detail,
+            "cluster" to currentServerGroup.moniker.cluster,
+            "sequence" to currentServerGroup.moniker.sequence
+          ),
+          "region" to currentServerGroup.region,
+          "serverGroupName" to currentServerGroup.asg.autoScalingGroupName
+        )
+      }
+      ?: throw ResourceConflict("Could not find current server group for cluster ${moniker.cluster} in ${location.accountName} / ${location.region}")
+
   override fun delete(resource: Resource<Cluster>) {
     TODO("not implemented")
   }
 
-  private suspend fun CloudDriverService.getAncestorServerGroupName(spec: Cluster): String? =
+  private suspend fun CloudDriverService.getAncestorServerGroup(spec: Cluster): ClusterActiveServerGroup? =
     try {
       activeServerGroup(
         spec.moniker.application,
@@ -155,8 +200,6 @@ class ClusterHandler(
         CLOUD_PROVIDER
       )
         .await()
-        .asg
-        .autoScalingGroupName
     } catch (e: HttpException) {
       if (e.isNotFound) {
         null

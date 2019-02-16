@@ -20,6 +20,7 @@ object ClusterActiveServerGroupTest : BaseModelParsingTest<ClusterActiveServerGr
 
   override val expected = ClusterActiveServerGroup(
     name = "fletch_test-v000",
+    cloudProvider = "aws",
     accountName = "test",
     targetGroups = emptySet(),
     region = "eu-west-1",
