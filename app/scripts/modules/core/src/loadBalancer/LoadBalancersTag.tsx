@@ -9,6 +9,7 @@ import { LoadBalancerDataUtils } from 'core/loadBalancer/loadBalancerDataUtils';
 import { Tooltip } from 'core/presentation/Tooltip';
 import { ReactInjector } from 'core/reactShims';
 import { HoverablePopover } from 'core/presentation';
+import { Spinner } from 'core/widgets';
 
 interface ILoadBalancerListItemProps {
   loadBalancer: ILoadBalancer;
@@ -54,6 +55,7 @@ class LoadBalancerButton extends React.Component<ILoadBalancerListItemProps> {
 
 export interface ILoadBalancersTagState {
   loadBalancers: ILoadBalancer[];
+  isLoading: boolean;
 }
 
 export class LoadBalancersTag extends React.Component<ILoadBalancersTagProps, ILoadBalancersTagState> {
@@ -63,13 +65,9 @@ export class LoadBalancersTag extends React.Component<ILoadBalancersTagProps, IL
     super(props);
     this.state = {
       loadBalancers: [],
+      isLoading: true,
     };
-
-    LoadBalancerDataUtils.populateLoadBalancers(props.application, props.serverGroup).then(loadBalancers =>
-      this.setState({ loadBalancers }),
-    );
   }
-
   private showLoadBalancerDetails = (loadBalancer: ILoadBalancer): void => {
     const { $state } = ReactInjector;
     const serverGroup = this.props.serverGroup;
@@ -93,6 +91,10 @@ export class LoadBalancersTag extends React.Component<ILoadBalancersTagProps, IL
   };
 
   public componentDidMount(): void {
+    LoadBalancerDataUtils.populateLoadBalancers(this.props.application, this.props.serverGroup).then(loadBalancers =>
+      this.setState({ loadBalancers, isLoading: false }),
+    );
+
     this.loadBalancersRefreshUnsubscribe = this.props.application.getDataSource('loadBalancers').onRefresh(null, () => {
       this.forceUpdate();
     });
@@ -103,12 +105,12 @@ export class LoadBalancersTag extends React.Component<ILoadBalancersTagProps, IL
   }
 
   public render(): React.ReactElement<LoadBalancersTag> {
-    const { loadBalancers } = this.state;
+    const { loadBalancers, isLoading } = this.state;
 
     const totalCount = loadBalancers.length;
 
     if (!totalCount) {
-      return null;
+      return isLoading ? <Spinner size="nano" /> : null;
     }
 
     const className = `load-balancers-tag ${totalCount > 1 ? 'overflowing' : ''}`;
@@ -128,6 +130,7 @@ export class LoadBalancersTag extends React.Component<ILoadBalancersTagProps, IL
 
     return (
       <span className={className}>
+        {!isLoading && <Spinner size="nano" />}
         {totalCount > 1 && (
           <HoverablePopover
             delayShow={100}
