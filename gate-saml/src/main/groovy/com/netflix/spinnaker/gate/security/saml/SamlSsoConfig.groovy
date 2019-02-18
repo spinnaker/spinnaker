@@ -123,6 +123,7 @@ class SamlSsoConfig extends WebSecurityConfigurerAdapter {
     String firstName = "User.FirstName"
     String lastName = "User.LastName"
     String roles = "memberOf"
+    String rolesDelimiter = ";"
     String username
   }
 
@@ -238,7 +239,7 @@ class SamlSsoConfig extends WebSecurityConfigurerAdapter {
                                Map<String, List<String>> attributes,
                                UserAttributeMapping userAttributeMapping) {
         def assertionRoles = attributes[userAttributeMapping.roles].collect { String roles ->
-          def commonNames = roles.split(";")
+          def commonNames = roles.split(userAttributeMapping.rolesDelimiter)
           commonNames.collect {
             return it.indexOf("CN=") < 0 ? it : it.substring(it.indexOf("CN=") + 3, it.indexOf(","))
           }
