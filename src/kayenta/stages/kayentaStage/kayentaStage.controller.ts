@@ -61,6 +61,15 @@ export class KayentaStageController implements IComponentController {
   public accounts: IAccountDetails[];
   public clusterList: string[];
 
+  public static $inject = [
+    '$scope',
+    '$uibModal',
+    '$log',
+    'providerSelectionService',
+    'serverGroupCommandBuilder',
+    'serverGroupTransformer',
+    'stage',
+  ];
   constructor(
     private $scope: IScope,
     private $uibModal: IModalService,

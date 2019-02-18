@@ -186,7 +186,10 @@ module(KAYENTA_CANARY_STAGE, [
     });
   })
   .controller('KayentaCanaryStageCtrl', KayentaStageController)
-  .run((kayentaStageTransformer: KayentaStageTransformer) => {
-    'ngInject';
-    Registry.pipeline.registerTransformer(kayentaStageTransformer);
-  });
+  .run([
+    'kayentaStageTransformer',
+    (kayentaStageTransformer: KayentaStageTransformer) => {
+      'ngInject';
+      Registry.pipeline.registerTransformer(kayentaStageTransformer);
+    },
+  ]);

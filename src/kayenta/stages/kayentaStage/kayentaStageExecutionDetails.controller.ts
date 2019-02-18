@@ -15,6 +15,7 @@ class KayentaStageExecutionDetailsController {
   public resolvedControl: string;
   public resolvedExperiment: string;
 
+  public static $inject = ['$scope', '$stateParams', 'executionDetailsSectionService'];
   constructor(
     public $scope: IScope,
     private $stateParams: StateParams,
