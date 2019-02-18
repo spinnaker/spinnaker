@@ -52,9 +52,10 @@ function renderHistogram(container: HTMLElement, metricSetPair: IMetricSetPair) 
     },
     barmode: 'overlay',
     bargroupgap: 0.01,
-    plot_bgcolor: '#f5f5f5',
-    paper_bgcolor: '#f5f5f5',
+    plot_bgcolor: '#f5f5f5', // eslint-disable-line @typescript-eslint/camelcase
+    paper_bgcolor: '#f5f5f5', // eslint-disable-line @typescript-eslint/camelcase
   };
+  // eslint-enable
 
   const promise = Plotly.newPlot(container, [canaryHisto as any, baselineHisto as any], layout);
   promise.then((plot: any) => {
