@@ -53,7 +53,7 @@ function ConfigJsonModal({
   diff,
 }: IConfigJsonDispatchProps & IConfigJsonStateProps) {
   return (
-    <Modal show={show} onHide={onHide} bsSize="large">
+    <Modal show={show} onHide={(): void => null} bsSize="large">
       <Styleguide>
         <Modal.Header>
           <Modal.Title>JSON</Modal.Title>
@@ -158,8 +158,6 @@ function mapStateToProps(state: ICanaryState): IConfigJsonStateProps {
     diff: state.selectedConfig.json.error ? null : JsonUtils.diff(persistedConfig, configJson, true),
   };
 }
-
-const onHide = (): void => null;
 
 export default connect(
   mapStateToProps,

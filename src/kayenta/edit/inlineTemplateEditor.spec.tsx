@@ -10,6 +10,13 @@ import { IInlineTemplateEditorProps, InlineTemplateEditor } from './inlineTempla
 import { DisableableTextarea } from '../layout/disableable';
 
 describe('<InlineTemplateEditor />', () => {
+  const buildComponent = (props: IInlineTemplateEditorProps) =>
+    mount(
+      <Provider store={createMockStore()}>
+        <InlineTemplateEditor {...props} />
+      </Provider>,
+    ).find(InlineTemplateEditor);
+
   it('renders a textarea with template value', () => {
     const component = buildComponent({
       templateValue: 'metadata.user_labels."app"="${scope}"',
@@ -38,10 +45,3 @@ describe('<InlineTemplateEditor />', () => {
     expect(component.find(ValidationMessage).props().message).toEqual('Template is required');
   });
 });
-
-const buildComponent = (props: IInlineTemplateEditorProps) =>
-  mount(
-    <Provider store={createMockStore()}>
-      <InlineTemplateEditor {...props} />
-    </Provider>,
-  ).find(InlineTemplateEditor);

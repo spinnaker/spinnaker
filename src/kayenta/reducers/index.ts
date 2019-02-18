@@ -37,6 +37,18 @@ const combined = combineReducers<ICanaryState>({
   selectedRun,
 });
 
+const getRenderState = (judges: IJudge[], judgeConfig: ICanaryJudgeConfig): JudgeSelectRenderState => {
+  if (judges.some(judge => judge.name === judgeConfig.name)) {
+    if (judges.length === 1) {
+      return JudgeSelectRenderState.None;
+    } else {
+      return JudgeSelectRenderState.Multiple;
+    }
+  } else {
+    return JudgeSelectRenderState.Single;
+  }
+};
+
 const judgeRenderStateReducer = handleActions(
   {
     [combineActions(Actions.SELECT_CONFIG, Actions.UPDATE_JUDGES)]: (state: ICanaryState) => {
@@ -67,18 +79,6 @@ const judgeRenderStateReducer = handleActions(
   },
   null,
 );
-
-const getRenderState = (judges: IJudge[], judgeConfig: ICanaryJudgeConfig): JudgeSelectRenderState => {
-  if (judges.some(judge => judge.name === judgeConfig.name)) {
-    if (judges.length === 1) {
-      return JudgeSelectRenderState.None;
-    } else {
-      return JudgeSelectRenderState.Multiple;
-    }
-  } else {
-    return JudgeSelectRenderState.Single;
-  }
-};
 
 const isInSyncWithServerReducer = (state: ICanaryState): ICanaryState => {
   return {

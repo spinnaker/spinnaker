@@ -9,6 +9,13 @@ import { noop, ValidationMessage } from '@spinnaker/core';
 import { FilterTemplateSelector, IFilterTemplateSelectorProps } from './filterTemplateSelector';
 import { DisableableInput, DisableableTextarea } from 'kayenta/layout/disableable';
 
+const buildComponent = (props: IFilterTemplateSelectorProps) =>
+  mount(
+    <Provider store={createMockStore()}>
+      <FilterTemplateSelector {...props} />
+    </Provider>,
+  ).find(FilterTemplateSelector);
+
 describe('<FilterTemplateSelector />', () => {
   let defaultProps: IFilterTemplateSelectorProps;
   beforeEach(() => {
@@ -103,10 +110,3 @@ describe('<FilterTemplateSelector />', () => {
     expect(component.find(DisableableTextarea).length).toEqual(1);
   });
 });
-
-const buildComponent = (props: IFilterTemplateSelectorProps) =>
-  mount(
-    <Provider store={createMockStore()}>
-      <FilterTemplateSelector {...props} />
-    </Provider>,
-  ).find(FilterTemplateSelector);

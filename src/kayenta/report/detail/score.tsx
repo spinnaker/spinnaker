@@ -10,17 +10,6 @@ export interface ICanaryJudgeScoreProps {
   inverse?: boolean;
 }
 
-export default ({ score, showClassification, inverse }: ICanaryJudgeScoreProps) => (
-  <CanaryScore
-    className="score-report"
-    score={round(score.score, 2)}
-    result={mapKayentaToACA(score).result}
-    health={mapKayentaToACA(score).health}
-    classification={showClassification ? score.classification : null}
-    inverse={inverse}
-  />
-);
-
 // TODO(dpeach): don't use ACA statuses in the CanaryScore component.
 const mapKayentaToACA = (score: ICanaryJudgeScore): { health: string; result: string } => {
   if (score.classification === ScoreClassificationLabel.Pass) {
@@ -31,3 +20,14 @@ const mapKayentaToACA = (score: ICanaryJudgeScore): { health: string; result: st
     return { health: null, result: null };
   }
 };
+
+export default ({ score, showClassification, inverse }: ICanaryJudgeScoreProps) => (
+  <CanaryScore
+    className="score-report"
+    score={round(score.score, 2)}
+    result={mapKayentaToACA(score).result}
+    health={mapKayentaToACA(score).health}
+    classification={showClassification ? score.classification : null}
+    inverse={inverse}
+  />
+);

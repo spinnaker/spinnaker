@@ -9,6 +9,24 @@ import { IGroupWeights, ICanaryMetricConfig } from '../domain/ICanaryConfig';
 import { IGroupState } from './group';
 
 describe('Reducer: editGroupConfirmReducer', () => {
+  const createSelectedConfigState = (groupName: string): ISelectedConfigState =>
+    ({
+      metricList: [
+        {
+          name: 'metricA',
+          groups: [groupName, 'groupC'],
+        },
+      ] as ICanaryMetricConfig[],
+      group: {
+        list: [groupName, 'groupC'],
+        groupWeights: {
+          [groupName]: 50,
+          otherGroupName: 50,
+        },
+        selected: groupName,
+      },
+    } as any); // Ignore missing fields for type ISelectedConfigState.
+
   let state: ISelectedConfigState;
 
   beforeEach(() => {
@@ -58,27 +76,35 @@ describe('Reducer: editGroupConfirmReducer', () => {
 
     expect(editGroupConfirmReducer(state, action)).toEqual(createSelectedConfigState('groupA'));
   });
-
-  const createSelectedConfigState = (groupName: string): ISelectedConfigState =>
-    ({
-      metricList: [
-        {
-          name: 'metricA',
-          groups: [groupName, 'groupC'],
-        },
-      ] as ICanaryMetricConfig[],
-      group: {
-        list: [groupName, 'groupC'],
-        groupWeights: {
-          [groupName]: 50,
-          otherGroupName: 50,
-        },
-        selected: groupName,
-      },
-    } as any); // Ignore missing fields for type ISelectedConfigState.
 });
 
 describe('Reducer: changeMetricGroupConfirmReducer', () => {
+  const createAction = (metricId: string) => ({
+    type: Actions.CHANGE_METRIC_GROUP_CONFIRM,
+    payload: {
+      metricId,
+    },
+  });
+
+  const createSelectedConfigState = (groups: string[], toGroup: string): ISelectedConfigState =>
+    ({
+      metricList: [
+        {
+          name: 'myMetric',
+          id: '1',
+          groups,
+        },
+        {
+          name: 'myOtherMetric',
+          id: '2',
+          groups: [],
+        },
+      ] as ICanaryMetricConfig[],
+      changeMetricGroup: {
+        toGroup,
+      },
+    } as any);
+
   it("updates a metric's group, leaving other metrics's groups unchanged", () => {
     const state = createSelectedConfigState(['myGroup'], 'updatedGroup');
     const action = createAction('1');
@@ -105,35 +131,22 @@ describe('Reducer: changeMetricGroupConfirmReducer', () => {
 
     expect(updatedState.metricList.find(m => m.id === '1').groups).toEqual(['b']);
   });
-
-  const createAction = (metricId: string) => ({
-    type: Actions.CHANGE_METRIC_GROUP_CONFIRM,
-    payload: {
-      metricId,
-    },
-  });
-
-  const createSelectedConfigState = (groups: string[], toGroup: string): ISelectedConfigState =>
-    ({
-      metricList: [
-        {
-          name: 'myMetric',
-          id: '1',
-          groups,
-        },
-        {
-          name: 'myOtherMetric',
-          id: '2',
-          groups: [],
-        },
-      ] as ICanaryMetricConfig[],
-      changeMetricGroup: {
-        toGroup,
-      },
-    } as any);
 });
 
 describe('Reducer: updateGroupWeightsReducer', () => {
+  const createAction = () => ({ type: Actions.SELECT_CONFIG });
+
+  const createSelectedConfigState = (
+    metricList: ICanaryMetricConfig[],
+    groupWeights: IGroupWeights,
+  ): ISelectedConfigState =>
+    ({
+      metricList,
+      group: {
+        groupWeights,
+      } as IGroupState,
+    } as any);
+
   it('prunes weights for groups that do not exist', () => {
     const metrics = [
       {
@@ -173,17 +186,4 @@ describe('Reducer: updateGroupWeightsReducer', () => {
     const updatedState = updateGroupWeightsReducer(state, action);
     expect(updatedState.group.groupWeights).toEqual({ a: 50, b: 50, c: 0 });
   });
-
-  const createAction = () => ({ type: Actions.SELECT_CONFIG });
-
-  const createSelectedConfigState = (
-    metricList: ICanaryMetricConfig[],
-    groupWeights: IGroupWeights,
-  ): ISelectedConfigState =>
-    ({
-      metricList,
-      group: {
-        groupWeights,
-      } as IGroupState,
-    } as any);
 });
