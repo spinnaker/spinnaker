@@ -32,6 +32,7 @@ export function GremlinExecutionDetails(props: IExecutionDetailsSectionProps) {
   );
 }
 
+// eslint-disable-next-line
 export namespace GremlinExecutionDetails {
   export const title = 'gremlinConfig';
 }
