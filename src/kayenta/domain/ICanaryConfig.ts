@@ -35,7 +35,9 @@ export interface ICanaryMetricSetQueryConfig {
   customFilterTemplate?: string;
 }
 
-export type IGroupWeights = { [group: string]: number };
+export interface IGroupWeights {
+  [group: string]: number;
+}
 
 export interface ICanaryClassifierConfig {
   groupWeights: IGroupWeights;

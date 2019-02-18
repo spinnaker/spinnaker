@@ -5,7 +5,9 @@ export interface ICanaryMetricValidationError {
   message: string;
 }
 
-export type ICanaryMetricValidationErrors = { [key: string]: ICanaryMetricValidationError };
+export interface ICanaryMetricValidationErrors {
+  [key: string]: ICanaryMetricValidationError;
+}
 export type MetricValidatorFunction = (
   errors: ICanaryMetricValidationErrors,
   editingMetric: ICanaryMetricConfig,

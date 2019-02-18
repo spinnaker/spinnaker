@@ -6,10 +6,10 @@ import {
   IDuration,
 } from './duration';
 
-type DurationTest = {
+interface DurationTest {
   str: string;
   obj: IDuration;
-};
+}
 
 describe('Duration utils', () => {
   let validDurationStringsToObjects: DurationTest[];
