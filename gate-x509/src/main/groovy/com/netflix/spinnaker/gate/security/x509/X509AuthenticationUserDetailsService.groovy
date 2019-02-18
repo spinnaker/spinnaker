@@ -27,6 +27,8 @@ import com.netflix.spinnaker.security.User
 import groovy.transform.PackageScope
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.core.userdetails.AuthenticationUserDetailsService
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UsernameNotFoundException
@@ -68,6 +70,9 @@ class X509AuthenticationUserDetailsService implements AuthenticationUserDetailsS
   @Autowired
   FiatPermissionEvaluator fiatPermissionEvaluator
 
+  @Value('${x509.requiredRoles:}#{T(java.util.Collections).emptyList()}')
+  List<String> requiredRoles = []
+
   final Cache<String, Instant> loginDebounce = CacheBuilder.newBuilder().expireAfterWrite(30, TimeUnit.MINUTES).build()
   final Clock clock
 
@@ -103,6 +108,12 @@ class X509AuthenticationUserDetailsService implements AuthenticationUserDetailsS
     }
 
     def roles = handleLogin(email, x509)
+
+    if (requiredRoles) {
+      if (!requiredRoles.any { it in roles }) {
+        throw new BadCredentialsException("User $email does not have all roles $requiredRoles")
+      }
+    }
 
     log.debug("Roles for user {}: {}", email, roles)
     return new User(
