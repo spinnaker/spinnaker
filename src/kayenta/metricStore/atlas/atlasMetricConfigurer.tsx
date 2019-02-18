@@ -54,6 +54,7 @@ if (CanarySettings.atlasWebComponentsUrl) {
 
 // Add <atlas-query-selector> to the elements allowed in TSX, using the AtlasQuerySelector interface.
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace JSX {
     interface IntrinsicElements {
       'atlas-query-selector': AtlasQuerySelector;
