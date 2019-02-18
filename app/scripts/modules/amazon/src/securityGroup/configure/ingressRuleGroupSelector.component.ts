@@ -1,5 +1,5 @@
 import { IController, IComponentOptions, module } from 'angular';
-import { Subject } from 'rxjs';
+import { Subject, Subscription } from 'rxjs';
 import { get, intersection, uniq } from 'lodash';
 
 import { ISecurityGroupRule, ISecurityGroup, IVpc } from '@spinnaker/core';
@@ -31,6 +31,8 @@ class IngressRuleSelectorController implements IController {
   public coordinatesChanged: Subject<void>;
   public allSecurityGroupsUpdated: Subject<void>;
   public availableSecurityGroups: string[];
+  public coordinatesChangedListener: Subscription;
+  public securityGroupsUpdatedListener: Subscription;
 
   public infiniteScroll: IInfiniteScroll = {
     currentItems: 20,
@@ -74,11 +76,15 @@ class IngressRuleSelectorController implements IController {
 
   public $onInit(): void {
     this.setAvailableSecurityGroups();
+    this.coordinatesChangedListener = this.coordinatesChanged.subscribe(() => this.setAvailableSecurityGroups());
+    this.securityGroupsUpdatedListener = this.allSecurityGroupsUpdated.subscribe(() =>
+      this.setAvailableSecurityGroups(),
+    );
   }
 
   public $onDestroy() {
-    this.coordinatesChanged.unsubscribe();
-    this.allSecurityGroupsUpdated.unsubscribe();
+    this.coordinatesChangedListener.unsubscribe();
+    this.securityGroupsUpdatedListener.unsubscribe();
   }
 
   public setAvailableSecurityGroups(): void {

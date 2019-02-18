@@ -63,7 +63,6 @@ module.exports = angular
     if (angular.isUndefined(stage.onlyEnabled)) {
       stage.onlyEnabled = true;
     }
-
     if (!stage.credentials && $scope.application.defaultCredentials.aws) {
       stage.credentials = $scope.application.defaultCredentials.aws;
     }
