@@ -1,4 +1,4 @@
-import { IScope, module } from 'angular';
+import { ITimeoutService, module } from 'angular';
 import * as React from 'react';
 
 export const ACCOUNT_SELECT_COMPONENT = 'spinnaker.core.account.accountSelectField.component';
@@ -22,9 +22,9 @@ module(ACCOUNT_SELECT_COMPONENT, []).component('accountSelectField', {
     onChange: '&',
     readOnly: '=',
   },
-  controller: function($scope: IScope) {
+  controller: function($timeout: ITimeoutService) {
     this.handleSelectChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
-      $scope.$apply(() => {
+      $timeout(() => {
         this.currentValue = this.component[this.field] = event.target.value;
         this.onChange && this.onChange();
       });

@@ -112,7 +112,11 @@ export class AccountSelectInput extends React.Component<IAccountSelectInputProps
             </option>
           ))}
 
-          {showSeparator && <option disabled={true}>---------------</option>}
+          {showSeparator && (
+            <option value="-" disabled={true}>
+              ---------------
+            </option>
+          )}
 
           {secondaryAccounts.map(account => (
             <option key={account} value={account}>
@@ -131,7 +135,7 @@ export class AccountSelectInput extends React.Component<IAccountSelectInputProps
     const showSeparator = primaryAccounts.length > 0 && secondaryAccounts.length > 0;
     const options: Option[] = primaryAccounts.map(a => ({ label: a, value: a }));
     if (showSeparator) {
-      options.push({ label: '---------------', value: '', disabled: true });
+      options.push({ label: '---------------', value: '-', disabled: true });
     }
     options.push(...secondaryAccounts.map(a => ({ label: a, value: a })));
     return (
