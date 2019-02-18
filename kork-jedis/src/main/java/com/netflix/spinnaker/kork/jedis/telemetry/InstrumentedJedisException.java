@@ -15,7 +15,9 @@
  */
 package com.netflix.spinnaker.kork.jedis.telemetry;
 
-class InstrumentedJedisException extends RuntimeException {
+import redis.clients.jedis.exceptions.JedisException;
+
+class InstrumentedJedisException extends JedisException {
   public InstrumentedJedisException(String message, Throwable cause) {
     super(message, cause);
   }
