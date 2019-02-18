@@ -117,7 +117,7 @@ const resolveSelectedMetricId = (state: ICanaryState, action: Action & any): str
       return metricResultsSelector(state).length ? metricResultsSelector(state)[0].id : null;
 
     // On group select, pick the first metric in the group.
-    case Actions.SELECT_REPORT_METRIC_GROUP:
+    case Actions.SELECT_REPORT_METRIC_GROUP: {
       const results = metricResultsSelector(state);
       if (!results.length) {
         return null;
@@ -132,6 +132,7 @@ const resolveSelectedMetricId = (state: ICanaryState, action: Action & any): str
       }
 
       return results.find(filter) ? results.find(filter).id : null;
+    }
 
     default:
       return null;

@@ -180,7 +180,8 @@ const editingMetric = handleActions(
       scopeName: action.payload.scopeName,
     }),
     [Actions.UPDATE_GRAPHITE_METRIC_NAME]: (state: ICanaryMetricConfig, action: Action & any) => ({
-      ...state, query: { ...state.query, metricName: action.payload.metricName }
+      ...state,
+      query: { ...state.query, metricName: action.payload.metricName },
     }),
     [Actions.EDIT_INLINE_TEMPLATE]: (state: ICanaryMetricConfig, action: Action & any) => ({
       ...state,
@@ -321,12 +322,13 @@ function editingMetricReducer(state: ISelectedConfigState = null, action: Action
         editingMetric: state.metricList.find(metric => metric.id === action.payload.id),
       });
 
-    case Actions.EDIT_METRIC_CONFIRM:
+    case Actions.EDIT_METRIC_CONFIRM: {
       const editing: ICanaryMetricConfig = omit(state.editingMetric, 'isNew');
       return Object.assign({}, state, {
         metricList: state.metricList.map(metric => (metric.id === editing.id ? editing : metric)),
         editingMetric: null,
       });
+    }
 
     case Actions.EDIT_METRIC_CANCEL:
       return Object.assign({}, state, {
