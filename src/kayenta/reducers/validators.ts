@@ -38,7 +38,7 @@ const isConfigNameUnique: IConfigValidator = state => {
 };
 
 // See https://github.com/Netflix-Skunkworks/kayenta/blob/master/kayenta-web/src/main/java/com/netflix/kayenta/controllers/CanaryConfigController.java
-const pattern = /^[a-zA-Z0-9\_\-]*$/;
+const pattern = /^[a-zA-Z0-9_-]*$/;
 const isConfigNameValid: IConfigValidator = state => {
   const isValid = pattern.test(state.selectedConfig.config.name);
   return isValid
