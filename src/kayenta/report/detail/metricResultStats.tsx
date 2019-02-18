@@ -68,7 +68,7 @@ const ResultMetadataRow = ({ row }: { row: IResultMetadataRow }) => {
 };
 
 const MetricResultStats = ({ metricConfig, metricSetPair, run, service }: IMetricResultStatsStateProps) => {
-  const tableColumns: ITableColumn<string>[] = [
+  const tableColumns: Array<ITableColumn<string>> = [
     {
       getContent: target => <span>{target === 'control' ? 'Baseline' : 'Canary'}</span>,
     },

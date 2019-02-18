@@ -5,7 +5,7 @@ import { ITableColumn } from './tableColumn';
 
 export interface INativeTableHeaderProps<T = any> {
   rows: T[];
-  columns: ITableColumn<T>[];
+  columns: Array<ITableColumn<T>>;
   className: string;
 }
 

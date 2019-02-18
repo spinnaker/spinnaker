@@ -77,7 +77,8 @@ const PER_SERIES_ALIGNERS = [
 
 const STACKDRIVER_HELP_ID_PREFIX = 'stackdriver';
 
-const toReactSelectOptions = (values: string[]): Option<string>[] => values.map(value => ({ value, label: value }));
+const toReactSelectOptions = (values: string[]): Array<Option<string>> =>
+  values.map(value => ({ value, label: value }));
 
 /*
 * Component for configuring a Stackdriver metric.

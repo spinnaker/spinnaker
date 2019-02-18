@@ -22,7 +22,7 @@ export interface ICanaryRunColumn {
 }
 
 export default function CanaryRunSummaries({ canaryRuns, firstScopeName }: ICanarySummariesProps) {
-  const canaryRunColumns: ITableColumn<IStage>[] = [
+  const canaryRunColumns: Array<ITableColumn<IStage>> = [
     {
       label: 'Canary Result',
       getContent: run => {

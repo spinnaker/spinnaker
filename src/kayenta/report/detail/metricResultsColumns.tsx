@@ -4,7 +4,7 @@ import { IMetricResultsTableRow } from './metricResultsList';
 import MetricResultClassification from './metricResultClassification';
 import MetricResultDeviation from './metricResultDeviation';
 
-export const metricResultsColumns: ITableColumn<IMetricResultsTableRow>[] = [
+export const metricResultsColumns: Array<ITableColumn<IMetricResultsTableRow>> = [
   {
     label: 'metric name',
     getContent: ({ metricName }) => <span>{metricName}</span>,

@@ -4,7 +4,7 @@ import * as classNames from 'classnames';
 import { ITableColumn } from './tableColumn';
 
 export interface ITableHeaderProps {
-  columns: ITableColumn<any>[];
+  columns: Array<ITableColumn<any>>;
   className: string;
 }
 

@@ -6,7 +6,7 @@ import { NativeTableHeader } from './nativeTableHeader';
 
 export interface INativeTableProps<T> {
   rows: T[];
-  columns: ITableColumn<T>[];
+  columns: Array<ITableColumn<T>>;
   rowKey: (row: T) => string;
   tableBodyClassName?: string;
   headerClassName?: string;

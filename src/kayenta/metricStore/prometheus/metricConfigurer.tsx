@@ -35,7 +35,8 @@ interface IPrometheusMetricConfigurerDispatchProps {
 
 const RESOURCE_TYPES = ['gce_instance', 'aws_ec2_instance'];
 
-const toReactSelectOptions = (values: string[]): Option<string>[] => values.map(value => ({ value, label: value }));
+const toReactSelectOptions = (values: string[]): Array<Option<string>> =>
+  values.map(value => ({ value, label: value }));
 
 /*
 * Component for configuring a Prometheus metric.

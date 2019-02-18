@@ -47,7 +47,7 @@ function MetricList({
   metricStore,
   disableEdit,
 }: IMetricListStateProps & IMetricListDispatchProps) {
-  const columns: ITableColumn<ICanaryMetricConfig>[] = [
+  const columns: Array<ITableColumn<ICanaryMetricConfig>> = [
     {
       label: 'Metric Name',
       getContent: metric => <span>{metric.name || '(new)'}</span>,

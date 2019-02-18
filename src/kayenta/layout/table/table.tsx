@@ -6,7 +6,7 @@ import { TableHeader } from './tableHeader';
 
 export interface ITableProps<T> {
   rows: T[];
-  columns: ITableColumn<T>[];
+  columns: Array<ITableColumn<T>>;
   rowKey: (row: T) => string;
   tableBodyClassName?: string;
   headerClassName?: string;

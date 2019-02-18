@@ -34,7 +34,7 @@ const MultipleResultsTable = ({
     .uniq()
     .value();
 
-  let columns: ITableColumn<ICanaryAnalysisResult>[] = tagKeys.map(key => ({
+  let columns: Array<ITableColumn<ICanaryAnalysisResult>> = tagKeys.map(key => ({
     label: key,
     width: 5,
     getContent: (result: ICanaryAnalysisResult) => <span>{result.tags[key]}</span>,
