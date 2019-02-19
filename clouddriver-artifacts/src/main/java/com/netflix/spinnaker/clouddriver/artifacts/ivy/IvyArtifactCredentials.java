@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.artifacts.ivy;
 
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import lombok.Data;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ivy.Ivy;
 import org.apache.ivy.core.module.id.ModuleId;
@@ -41,8 +41,8 @@ import java.util.UUID;
 import java.util.function.Supplier;
 
 @Slf4j
-@Data
 public class IvyArtifactCredentials implements ArtifactCredentials {
+  @Getter
   private final List<String> types = Collections.singletonList("ivy/file");
   private final IvyArtifactAccount account;
   private final Supplier<Path> cacheBuilder;

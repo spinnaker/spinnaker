@@ -46,7 +46,8 @@ public class HelmArtifactConfiguration {
 
   @Bean
   List<? extends HelmArtifactCredentials> helmArtifactCredentials(OkHttpClient helmOkHttpClient) {
-    List<HelmArtifactCredentials> result = helmArtifactProviderProperties.getAccounts()
+
+    return helmArtifactProviderProperties.getAccounts()
       .stream()
       .map(a -> {
         try {
@@ -60,7 +61,5 @@ public class HelmArtifactConfiguration {
       })
       .filter(Objects::nonNull)
       .collect(Collectors.toList());
-
-    return result;
   }
 }

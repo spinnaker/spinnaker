@@ -26,7 +26,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 @Component
 public class ArtifactCredentialsRepository {
-  private List<ArtifactCredentials> allCredentials = new CopyOnWriteArrayList<>();
+  private final List<ArtifactCredentials> allCredentials = new CopyOnWriteArrayList<>();
 
   public void save(ArtifactCredentials credentials) {
     allCredentials.add(credentials);

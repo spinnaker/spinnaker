@@ -51,7 +51,7 @@ public class GitlabArtifactConfiguration {
       .stream()
       .map(a -> {
         try {
-          GitlabArtifactCredentials c = new GitlabArtifactCredentials(a, gitlabOkHttpClient, objectMapper);
+          GitlabArtifactCredentials c = new GitlabArtifactCredentials(a, gitlabOkHttpClient);
           artifactCredentialsRepository.save(c);
           return c;
         } catch (Exception e) {

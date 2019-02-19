@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Armory
+ * Copyright 2019 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.artifacts.gitlab;
+package com.netflix.spinnaker.clouddriver.artifacts.exceptions;
 
-import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactAccount;
-import com.netflix.spinnaker.clouddriver.artifacts.config.TokenAuth;
-import lombok.Data;
+import java.io.IOException;
 
-@Data
-public class GitlabArtifactAccount implements ArtifactAccount, TokenAuth {
-  private String name;
-  private String token;
-  private String tokenFile;
+public class FailedDownloadException extends IOException {
+  public FailedDownloadException(String message) {
+    super(message);
+  }
+
+  public FailedDownloadException(String message, Throwable cause) {
+    super(message, cause);
+  }
 }

@@ -16,36 +16,36 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts.s3;
 
-import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.client.builder.AwsClientBuilder;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.S3Object;
-import java.util.Arrays;
-import java.util.List;
-import org.apache.commons.lang3.StringUtils;
-
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import groovy.util.logging.Slf4j;
-import lombok.Data;
+import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.InputStream;
+import java.util.Collections;
+import java.util.List;
 
 @Slf4j
-@Data
 public class S3ArtifactCredentials implements ArtifactCredentials {
+  @Getter
   private final String name;
+  @Getter
+  private final List<String> types = Collections.singletonList("s3/object");
+
   private final String apiEndpoint;
   private final String apiRegion;
   private final String region;
   private final String awsAccessKeyId;
   private final String awsSecretAccessKey;
-  private final List<String> types = Arrays.asList("s3/object");
 
-  public S3ArtifactCredentials(S3ArtifactAccount account) throws IllegalArgumentException {
+  S3ArtifactCredentials(S3ArtifactAccount account) throws IllegalArgumentException {
     name = account.getName();
     apiEndpoint = account.getApiEndpoint();
     apiRegion = account.getApiRegion();
@@ -54,7 +54,7 @@ public class S3ArtifactCredentials implements ArtifactCredentials {
     awsSecretAccessKey = account.getAwsSecretAccessKey();
   }
 
-  protected AmazonS3 getS3Client() {
+  private AmazonS3 getS3Client() {
     AmazonS3ClientBuilder builder = AmazonS3ClientBuilder.standard();
 
     if (!StringUtils.isEmpty(apiEndpoint)) {

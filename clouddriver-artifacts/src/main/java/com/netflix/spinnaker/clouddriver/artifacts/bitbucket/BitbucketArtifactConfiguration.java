@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts.bitbucket;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.artifacts.ArtifactCredentialsRepository;
 import com.squareup.okhttp.OkHttpClient;
 import lombok.RequiredArgsConstructor;
@@ -39,7 +38,6 @@ import java.util.stream.Collectors;
 public class BitbucketArtifactConfiguration {
   private final BitbucketArtifactProviderProperties bitbucketArtifactProviderProperties;
   private final ArtifactCredentialsRepository artifactCredentialsRepository;
-  private final ObjectMapper objectMapper;
 
   @Bean
   OkHttpClient bitbucketOkHttpClient() {
@@ -52,7 +50,7 @@ public class BitbucketArtifactConfiguration {
       .stream()
       .map(a -> {
         try {
-          BitbucketArtifactCredentials c = new BitbucketArtifactCredentials(a, bitbucketOkHttpClient, objectMapper);
+          BitbucketArtifactCredentials c = new BitbucketArtifactCredentials(a, bitbucketOkHttpClient);
           artifactCredentialsRepository.save(c);
           return c;
         } catch (Exception e) {

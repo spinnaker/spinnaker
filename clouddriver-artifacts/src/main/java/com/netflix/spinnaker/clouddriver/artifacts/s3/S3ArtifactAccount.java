@@ -20,8 +20,7 @@ import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactAccount;
 import lombok.Data;
 
 @Data
-public class S3ArtifactAccount implements ArtifactAccount
-{
+public class S3ArtifactAccount implements ArtifactAccount {
   private String name;
   private String apiEndpoint;
   private String apiRegion;

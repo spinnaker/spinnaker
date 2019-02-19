@@ -19,10 +19,12 @@ package com.netflix.spinnaker.clouddriver.artifacts.github;
 
 
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactAccount;
+import com.netflix.spinnaker.clouddriver.artifacts.config.BasicAuth;
+import com.netflix.spinnaker.clouddriver.artifacts.config.TokenAuth;
 import lombok.Data;
 
 @Data
-public class GitHubArtifactAccount implements ArtifactAccount {
+public class GitHubArtifactAccount implements ArtifactAccount, BasicAuth, TokenAuth {
   private String name;
   /*
     One of the following are required for auth:

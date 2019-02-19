@@ -16,15 +16,12 @@
  */
 
 package com.netflix.spinnaker.clouddriver.artifacts;
+
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.utils.IOUtils;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.Stack;
 
 public class ArtifactUtils {
@@ -38,10 +35,10 @@ public class ArtifactUtils {
       }
       public File directory;
       public long millis;
-    };
+    }
     // Directories come in hierarchical order within the stream, but
     // we need to set their timestamps after their children have been written.
-    Stack<DirectoryTimestamp> directoryStack = new Stack<DirectoryTimestamp>();
+    Stack<DirectoryTimestamp> directoryStack = new Stack<>();
 
     File baseDirectory = new File(basePath);
     baseDirectory.mkdir();

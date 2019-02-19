@@ -17,8 +17,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.io.IOException;
-import java.security.GeneralSecurityException;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -41,7 +39,7 @@ public class OracleArtifactConfiguration {
                 OracleArtifactCredentials c = new OracleArtifactCredentials(clouddriverUserAgentApplicationName, a);
                 artifactCredentialsRepository.save(c);
                 return c;
-              } catch (IOException | GeneralSecurityException e) {
+              } catch (Exception e) {
                 log.warn("Failure instantiating oracle artifact account {}: ", a, e);
                 return null;
               }

@@ -23,31 +23,32 @@ import com.netflix.spinnaker.clouddriver.core.services.Front50Service;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
-@Data
 public class Front50ArtifactCredentials implements ArtifactCredentials {
   public static final String ACCOUNT_NAME = "front50ArtifactCredentials";
   private static final String URL_PREFIX = "spinnaker://";
 
+  @Getter
   private final String name = ACCOUNT_NAME;
-  private final List<String> types = Arrays.asList("front50/pipelineTemplate");
+  @Getter
+  private final List<String> types = Collections.singletonList("front50/pipelineTemplate");
 
   @JsonIgnore
-  private Front50Service front50Service;
+  private final Front50Service front50Service;
   @JsonIgnore
-  private ObjectMapper objectMapper;
+  private final ObjectMapper objectMapper;
 
   Front50ArtifactCredentials(ObjectMapper objectMapper,
                              Front50Service front50Service) {

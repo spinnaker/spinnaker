@@ -23,8 +23,6 @@ import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.constructor.SafeConstructor;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,14 +31,9 @@ import java.io.InputStream;
 public class ArtifactDownloader {
   final private ArtifactCredentialsRepository artifactCredentialsRepository;
 
-  final private ObjectMapper objectMapper;
-
-  final static private ThreadLocal<Yaml> yamlParser = ThreadLocal.withInitial(() -> new Yaml(new SafeConstructor()));
-
   @Autowired
   public ArtifactDownloader(ArtifactCredentialsRepository artifactCredentialsRepository, ObjectMapper objectMapper) {
     this.artifactCredentialsRepository = artifactCredentialsRepository;
-    this.objectMapper = objectMapper;
   }
 
   public InputStream download(Artifact artifact) throws IOException {
@@ -62,9 +55,4 @@ public class ArtifactDownloader {
     return credentials.download(artifact);
   }
 
-  public <T> T downloadAsYaml(Artifact artifact, Class<T> clazz) throws IOException {
-    InputStream is = download(artifact);
-    Object parsed = yamlParser.get().load(is);
-    return objectMapper.convertValue(parsed, clazz);
-  }
 }

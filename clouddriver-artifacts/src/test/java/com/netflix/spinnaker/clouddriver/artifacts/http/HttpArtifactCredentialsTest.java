@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.artifacts.github;
+package com.netflix.spinnaker.clouddriver.artifacts.http;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
@@ -37,38 +36,16 @@ import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith({WiremockResolver.class, TempDirectory.class})
-class GithubArtifactCredentialsTest {
-  private final ObjectMapper objectMapper = new ObjectMapper();
+class HttpArtifactCredentialsTest {
   private final OkHttpClient okHttpClient = new OkHttpClient();
 
-  private final String METADATA_PATH = "/repos/spinnaker/testing/manifest.yml";
+  private final String URL = "/my/file.yaml";
   private final String FILE_CONTENTS = "file contents";
 
   @Test
-  void downloadWithToken(@WiremockResolver.Wiremock WireMockServer server) throws IOException {
-    GitHubArtifactAccount account = new GitHubArtifactAccount();
-    account.setName("my-github-account");
-    account.setToken("abc");
-
-    runTestCase(server, account, m -> m.withHeader("Authorization", equalTo("token abc")));
-  }
-
-  @Test
-  void downloadWithTokenFromFile(@TempDirectory.TempDir Path tempDir, @WiremockResolver.Wiremock WireMockServer server) throws IOException {
-    Path authFile = tempDir.resolve("auth-file");
-    Files.write(authFile, "zzz".getBytes());
-
-    GitHubArtifactAccount account = new GitHubArtifactAccount();
-    account.setName("my-github-account");
-    account.setTokenFile(authFile.toAbsolutePath().toString());
-
-    runTestCase(server, account, m -> m.withHeader("Authorization", equalTo("token zzz")));
-  }
-
-  @Test
   void downloadWithBasicAuth(@WiremockResolver.Wiremock WireMockServer server) throws IOException {
-    GitHubArtifactAccount account = new GitHubArtifactAccount();
-    account.setName("my-github-account");
+    HttpArtifactAccount account = new HttpArtifactAccount();
+    account.setName("my-http-account");
     account.setUsername("user");
     account.setPassword("passw0rd");
 
@@ -80,8 +57,8 @@ class GithubArtifactCredentialsTest {
     Path authFile = tempDir.resolve("auth-file");
     Files.write(authFile, "someuser:somepassw0rd!".getBytes());
 
-    GitHubArtifactAccount account = new GitHubArtifactAccount();
-    account.setName("my-github-account");
+    HttpArtifactAccount account = new HttpArtifactAccount();
+    account.setName("my-http-account");
     account.setUsernamePasswordFile(authFile.toAbsolutePath().toString());
 
     runTestCase(server, account, m -> m.withBasicAuth("someuser", "somepassw0rd!"));
@@ -89,20 +66,19 @@ class GithubArtifactCredentialsTest {
 
   @Test
   void downloadWithNoAuth(@WiremockResolver.Wiremock WireMockServer server) throws IOException {
-    GitHubArtifactAccount account = new GitHubArtifactAccount();
-    account.setName("my-github-account");
+    HttpArtifactAccount account = new HttpArtifactAccount();
+    account.setName("my-http-account");
 
     runTestCase(server, account, m -> m.withHeader("Authorization", absent()));
   }
 
 
-  private void runTestCase(WireMockServer server, GitHubArtifactAccount account, Function<MappingBuilder, MappingBuilder> expectedAuth) throws IOException {
-    GitHubArtifactCredentials credentials = new GitHubArtifactCredentials(account, okHttpClient, objectMapper);
+  private void runTestCase(WireMockServer server, HttpArtifactAccount account, Function<MappingBuilder, MappingBuilder> expectedAuth) throws IOException {
+    HttpArtifactCredentials credentials = new HttpArtifactCredentials(account, okHttpClient);
 
     Artifact artifact = Artifact.builder()
-      .reference(server.baseUrl() + METADATA_PATH)
-      .version("master")
-      .type("github/file")
+      .reference(server.baseUrl() + URL)
+      .type("http/file")
       .build();
 
     prepareServer(server, expectedAuth);
@@ -112,22 +88,10 @@ class GithubArtifactCredentialsTest {
     assertThat(server.findUnmatchedRequests().getRequests()).isEmpty();
   }
 
-  private void prepareServer(WireMockServer server, Function<MappingBuilder, MappingBuilder> withAuth) throws IOException {
-    final String downloadPath = "/download/spinnaker/testing/master/manifest.yml";
-
-    GitHubArtifactCredentials.ContentMetadata contentMetadata = new GitHubArtifactCredentials.ContentMetadata().setDownloadUrl(server.baseUrl() + downloadPath);
-
+  private void prepareServer(WireMockServer server, Function<MappingBuilder, MappingBuilder> withAuth) {
     server.stubFor(
       withAuth.apply(
-        any(urlPathEqualTo(METADATA_PATH))
-          .withQueryParam("ref", equalTo("master"))
-          .willReturn(aResponse().withBody(objectMapper.writeValueAsString(contentMetadata)))
-      )
-    );
-
-    server.stubFor(
-      withAuth.apply(
-        any(urlPathEqualTo(downloadPath))
+        any(urlPathEqualTo(URL))
           .willReturn(aResponse().withBody(FILE_CONTENTS))
       )
     );

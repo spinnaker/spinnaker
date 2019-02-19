@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.artifacts.github;
+package com.netflix.spinnaker.clouddriver.artifacts.helm;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
@@ -31,44 +31,28 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.function.Function;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith({WiremockResolver.class, TempDirectory.class})
-class GithubArtifactCredentialsTest {
+class HelmArtifactCredentialsTest {
   private final ObjectMapper objectMapper = new ObjectMapper();
   private final OkHttpClient okHttpClient = new OkHttpClient();
 
-  private final String METADATA_PATH = "/repos/spinnaker/testing/manifest.yml";
+  private final String REPOSITORY = "my-repository";
+  private final String CHART_PATH = "/my-chart/data.tgz";
+  private final String CHART_NAME = "my-chart";
+  private final String CHART_VERSION = "1.0.0";
   private final String FILE_CONTENTS = "file contents";
 
   @Test
-  void downloadWithToken(@WiremockResolver.Wiremock WireMockServer server) throws IOException {
-    GitHubArtifactAccount account = new GitHubArtifactAccount();
-    account.setName("my-github-account");
-    account.setToken("abc");
-
-    runTestCase(server, account, m -> m.withHeader("Authorization", equalTo("token abc")));
-  }
-
-  @Test
-  void downloadWithTokenFromFile(@TempDirectory.TempDir Path tempDir, @WiremockResolver.Wiremock WireMockServer server) throws IOException {
-    Path authFile = tempDir.resolve("auth-file");
-    Files.write(authFile, "zzz".getBytes());
-
-    GitHubArtifactAccount account = new GitHubArtifactAccount();
-    account.setName("my-github-account");
-    account.setTokenFile(authFile.toAbsolutePath().toString());
-
-    runTestCase(server, account, m -> m.withHeader("Authorization", equalTo("token zzz")));
-  }
-
-  @Test
   void downloadWithBasicAuth(@WiremockResolver.Wiremock WireMockServer server) throws IOException {
-    GitHubArtifactAccount account = new GitHubArtifactAccount();
-    account.setName("my-github-account");
+    HelmArtifactAccount account = new HelmArtifactAccount();
+    account.setRepository(server.baseUrl() + "/" + REPOSITORY);
+    account.setName("my-helm-account");
     account.setUsername("user");
     account.setPassword("passw0rd");
 
@@ -80,8 +64,9 @@ class GithubArtifactCredentialsTest {
     Path authFile = tempDir.resolve("auth-file");
     Files.write(authFile, "someuser:somepassw0rd!".getBytes());
 
-    GitHubArtifactAccount account = new GitHubArtifactAccount();
-    account.setName("my-github-account");
+    HelmArtifactAccount account = new HelmArtifactAccount();
+    account.setRepository(server.baseUrl() + "/" + REPOSITORY);
+    account.setName("my-helm-account");
     account.setUsernamePasswordFile(authFile.toAbsolutePath().toString());
 
     runTestCase(server, account, m -> m.withBasicAuth("someuser", "somepassw0rd!"));
@@ -89,20 +74,21 @@ class GithubArtifactCredentialsTest {
 
   @Test
   void downloadWithNoAuth(@WiremockResolver.Wiremock WireMockServer server) throws IOException {
-    GitHubArtifactAccount account = new GitHubArtifactAccount();
-    account.setName("my-github-account");
+    HelmArtifactAccount account = new HelmArtifactAccount();
+    account.setRepository(server.baseUrl() + "/" + REPOSITORY);
+    account.setName("my-helm-account");
 
     runTestCase(server, account, m -> m.withHeader("Authorization", absent()));
   }
 
 
-  private void runTestCase(WireMockServer server, GitHubArtifactAccount account, Function<MappingBuilder, MappingBuilder> expectedAuth) throws IOException {
-    GitHubArtifactCredentials credentials = new GitHubArtifactCredentials(account, okHttpClient, objectMapper);
+  private void runTestCase(WireMockServer server, HelmArtifactAccount account, Function<MappingBuilder, MappingBuilder> expectedAuth) throws IOException {
+    HelmArtifactCredentials credentials = new HelmArtifactCredentials(account, okHttpClient);
 
     Artifact artifact = Artifact.builder()
-      .reference(server.baseUrl() + METADATA_PATH)
-      .version("master")
-      .type("github/file")
+      .name(CHART_NAME)
+      .version(CHART_VERSION)
+      .type("helm/chart")
       .build();
 
     prepareServer(server, expectedAuth);
@@ -113,23 +99,33 @@ class GithubArtifactCredentialsTest {
   }
 
   private void prepareServer(WireMockServer server, Function<MappingBuilder, MappingBuilder> withAuth) throws IOException {
-    final String downloadPath = "/download/spinnaker/testing/master/manifest.yml";
-
-    GitHubArtifactCredentials.ContentMetadata contentMetadata = new GitHubArtifactCredentials.ContentMetadata().setDownloadUrl(server.baseUrl() + downloadPath);
+    final String indexPath = "/" + REPOSITORY + "/index.yaml";
+    IndexConfig indexConfig = getIndexConfig(server.baseUrl());
 
     server.stubFor(
       withAuth.apply(
-        any(urlPathEqualTo(METADATA_PATH))
-          .withQueryParam("ref", equalTo("master"))
-          .willReturn(aResponse().withBody(objectMapper.writeValueAsString(contentMetadata)))
+        any(urlPathEqualTo(indexPath))
+          .willReturn(aResponse().withBody(objectMapper.writeValueAsString(indexConfig)))
       )
     );
 
     server.stubFor(
       withAuth.apply(
-        any(urlPathEqualTo(downloadPath))
+        any(urlPathEqualTo(CHART_PATH))
           .willReturn(aResponse().withBody(FILE_CONTENTS))
       )
     );
+  }
+
+  private IndexConfig getIndexConfig(String baseUrl) {
+    EntryConfig entryConfig = new EntryConfig();
+    entryConfig.setName(CHART_NAME);
+    entryConfig.setVersion(CHART_VERSION);
+    entryConfig.setUrls(Collections.singletonList(baseUrl + CHART_PATH));
+
+    IndexConfig indexConfig = new IndexConfig();
+    indexConfig.setEntries(Collections.singletonMap("my-chart", Collections.singletonList(entryConfig)));
+
+    return indexConfig;
   }
 }

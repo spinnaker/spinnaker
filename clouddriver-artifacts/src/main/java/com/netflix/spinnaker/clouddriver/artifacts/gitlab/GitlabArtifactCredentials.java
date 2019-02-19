@@ -16,107 +16,55 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts.gitlab;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
+import com.netflix.spinnaker.clouddriver.artifacts.config.SimpleHttpArtifactCredentials;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.squareup.okhttp.Headers;
 import com.squareup.okhttp.HttpUrl;
 import com.squareup.okhttp.OkHttpClient;
-import com.squareup.okhttp.Request;
-import com.squareup.okhttp.Request.Builder;
-import com.squareup.okhttp.Response;
-import java.util.Arrays;
-import java.util.List;
-import lombok.Data;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 @Slf4j
-@Data
-public class GitlabArtifactCredentials implements ArtifactCredentials {
+public class GitlabArtifactCredentials extends SimpleHttpArtifactCredentials<GitlabArtifactAccount> implements ArtifactCredentials {
+  @Getter
   private final String name;
-  private final List<String> types = Arrays.asList("gitlab/file");
+  @Getter
+  private final List<String> types = Collections.singletonList("gitlab/file");
 
-  @JsonIgnore
-  private final Builder requestBuilder;
-
-  @JsonIgnore
-  OkHttpClient okHttpClient;
-
-  @JsonIgnore
-  ObjectMapper objectMapper;
-
-  public GitlabArtifactCredentials(GitlabArtifactAccount account, OkHttpClient okHttpClient, ObjectMapper objectMapper) {
+  GitlabArtifactCredentials(GitlabArtifactAccount account, OkHttpClient okHttpClient) {
+    super(okHttpClient, account);
     this.name = account.getName();
-    this.okHttpClient = okHttpClient;
-    this.objectMapper = objectMapper;
-    Builder builder = new Request.Builder();
-    boolean useToken = !StringUtils.isEmpty(account.getToken());
-    boolean useTokenFile = !StringUtils.isEmpty(account.getTokenFile());
-    boolean useAuth =  useToken || useTokenFile;
-    if (useAuth) {
-      String authHeader = "";
-      if (useTokenFile) {
-        authHeader = credentialsFromFile(account.getTokenFile());
-      } else if (useToken) {
-        authHeader = account.getToken();
-      }
+  }
 
-      builder.header("Private-Token", authHeader);
-      log.info("Loaded credentials for Gitlab Artifact Account {}", account.getName());
+  @Override
+  protected Headers getHeaders(GitlabArtifactAccount account) {
+    Headers.Builder headers = new Headers.Builder();
+    Optional<String> token = account.getTokenAsString();
+    if (token.isPresent()) {
+      headers.set("Private-Token", token.get());
+      log.info("Loaded credentials for GitHub Artifact Account {}", account.getName());
     } else {
-      log.info("No credentials included with Gitlab Artifact Account {}", account.getName());
+      log.info("No credentials included with GitHub Artifact Account {}", account.getName());
     }
-    requestBuilder = builder;
+    return headers.build();
   }
 
-  private String credentialsFromFile(String filename) {
-    try {
-      String credentials = FileUtils.readFileToString(new File(filename));
-      return credentials.replace("\n", "");
-    } catch (IOException e) {
-      log.error("Could not read Gitlab credentials file {}", filename, e);
-      return null;
-    }
-  }
-
-  public InputStream download(Artifact artifact) throws IOException {
-    HttpUrl.Builder fileUrl;
-    try {
-      // reference should use the Gitlab raw file download url: https://docs.gitlab.com/ee/api/repository_files.html#get-raw-file-from-repository
-      fileUrl = HttpUrl.parse(artifact.getReference()).newBuilder();
-    } catch (Exception e) {
-      throw new IllegalArgumentException("Malformed gitlab content URL in 'reference'. Read more here https://www.spinnaker.io/reference/artifacts/types/gitlab-file/: " + e.getMessage(), e);
-    }
-
+  @Override
+  protected HttpUrl getDownloadUrl(Artifact artifact) {
     String version = artifact.getVersion();
     if (StringUtils.isEmpty(version)) {
       log.info("No version specified for artifact {}, using 'master'.", version);
       version = "master";
     }
-
-    fileUrl.addQueryParameter("ref", version);
-    Request fileRequest = requestBuilder
-      .url(fileUrl.build().toString())
+    return parseUrl(artifact.getReference())
+      .newBuilder()
+      .addQueryParameter("ref", version)
       .build();
-
-    try {
-      Response downloadResponse = okHttpClient.newCall(fileRequest).execute();
-      return downloadResponse.body().byteStream();
-    } catch (IOException e) {
-      throw new com.netflix.spinnaker.clouddriver.artifacts.gitlab.GitlabArtifactCredentials.FailedDownloadException("Unable to download the contents of artifact " + artifact + ": " + e.getMessage(), e);
-    }
-  }
-
-  public class FailedDownloadException extends IOException {
-
-    public FailedDownloadException(String message, Throwable cause) {
-      super(message, cause);
-    }
   }
 }

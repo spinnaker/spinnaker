@@ -15,11 +15,7 @@ import com.oracle.bmc.auth.SimpleAuthenticationDetailsProvider;
 import com.oracle.bmc.auth.SimplePrivateKeySupplier;
 import com.oracle.bmc.http.signing.DefaultRequestSigner;
 import com.oracle.bmc.http.signing.RequestSigner;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientHandlerException;
-import com.sun.jersey.api.client.ClientRequest;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.api.client.*;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.client.filter.ClientFilter;
@@ -33,11 +29,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class OracleArtifactClient {
+class OracleArtifactClient {
 
-  private Client client;
+  private final Client client;
 
-  public OracleArtifactClient(String userId, String sshPrivateKeyFilePath, String privateKeyPassphrase, String fingerprint, String tenancyId) {
+  OracleArtifactClient(String userId, String sshPrivateKeyFilePath, String privateKeyPassphrase, String fingerprint, String tenancyId) {
     Supplier<InputStream> privateKeySupplier = new SimplePrivateKeySupplier(sshPrivateKeyFilePath);
     AuthenticationDetailsProvider provider = SimpleAuthenticationDetailsProvider.builder()
             .userId(userId)

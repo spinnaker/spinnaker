@@ -65,7 +65,11 @@ dependencies {
   compile spinnaker.dependency("frigga")
   compile spinnaker.dependency("bootActuator")
   compile spinnaker.dependency("bootWeb")
+  compile spinnaker.dependency("commonsLang")
   compile spinnaker.dependency("korkArtifacts")
+  compile spinnaker.dependency("korkExceptions")
+  compile spinnaker.dependency("lombok")
+  compile spinnaker.dependency("okHttp")
 
   compile spinnaker.dependency("googleStorage")
   compile spinnaker.dependency("awsS3")
