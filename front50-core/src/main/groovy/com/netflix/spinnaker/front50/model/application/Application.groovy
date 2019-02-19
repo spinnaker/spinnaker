@@ -99,7 +99,7 @@ class Application implements Timestamped {
   }
 
   @JsonIgnore
-  ApplicationDAO dao
+  public ApplicationDAO dao
 
   @JsonIgnore
   ProjectDAO projectDao

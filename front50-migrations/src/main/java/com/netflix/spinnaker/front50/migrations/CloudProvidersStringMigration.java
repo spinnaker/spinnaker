@@ -60,6 +60,7 @@ public class CloudProvidersStringMigration implements Migration {
       application.details().get("cloudProviders").toString(),
       application.getName());
     application.set("cloudProviders", String.join(",", (List<String>) application.details().get("cloudProviders")));
+    application.dao = applicationDAO;
     application.update(application);
   }
 }

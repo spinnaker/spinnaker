@@ -61,10 +61,9 @@ public class RemoveApplicationAccountsMigration implements Migration {
   }
 
   private void migrate(Application application) {
-    log.info("Removing accounts field ({}) from application {}",
-      application.details().get("accounts").toString(),
-      application.getName());
-    application.details().put("accounts", null);
+    log.info("Removing accounts field from application {}", application.getName());
+    application.details().remove("accounts");
+    application.dao = applicationDAO;
     application.update(application);
   }
 }
