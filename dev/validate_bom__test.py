@@ -407,6 +407,7 @@ class ValidateBomTestController(object):
         'clouddriver-caching': 7002,
         'clouddriver-rw': 7002,
         'clouddriver-ro': 7002,
+        'clouddriver-ro-deck': 7002,
         'gate': 8084,
         'front50': 8080,
 
