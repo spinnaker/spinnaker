@@ -18,6 +18,7 @@ import com.netflix.spinnaker.cats.sql.cache.SqlNamedCacheFactory
 import com.netflix.spinnaker.clouddriver.cache.CustomSchedulableAgentIntervalProvider
 import com.netflix.spinnaker.clouddriver.cache.EurekaStatusNodeStatusProvider
 import com.netflix.spinnaker.clouddriver.core.provider.CoreProvider
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.sql.config.DefaultSqlConfiguration
 import com.netflix.spinnaker.kork.sql.config.SqlProperties
 import org.jooq.DSLContext
@@ -60,18 +61,16 @@ class SqlCacheConfiguration {
                    clock: Clock,
                    sqlProperties: SqlProperties,
                    cacheMetrics: SqlCacheMetrics,
-                   @Value("\${sql.tableNamespace:#{null}}") tableNamespace: String?,
-                   @Value("\${sql.cache.writeBatchSize:100}") writeBatchSize: Int,
-                   @Value("\${sql.cache.readBatchSize:500}") readBatchSize: Int): NamedCacheFactory =
+                   dynamicConfigService: DynamicConfigService,
+                   @Value("\${sql.tableNamespace:#{null}}") tableNamespace: String?): NamedCacheFactory =
     SqlNamedCacheFactory(
       jooq,
       ObjectMapper(),
       clock,
       sqlProperties.retries,
       tableNamespace,
-      writeBatchSize,
-      readBatchSize,
-      cacheMetrics
+      cacheMetrics,
+      dynamicConfigService
     )
 
   @Bean

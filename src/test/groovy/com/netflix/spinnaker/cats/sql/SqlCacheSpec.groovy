@@ -2,10 +2,10 @@ package com.netflix.spinnaker.cats.sql
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
-import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.WriteableCacheSpec
 import com.netflix.spinnaker.cats.sql.cache.SqlCache
 import com.netflix.spinnaker.cats.sql.cache.SqlCacheMetrics
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import spock.lang.AutoCleanup
 import spock.lang.Shared
@@ -14,7 +14,8 @@ import java.time.Clock
 import java.time.Instant
 import java.time.ZoneId
 
-import static com.netflix.spinnaker.kork.sql.test.SqlTestUtil.*
+import static com.netflix.spinnaker.kork.sql.test.SqlTestUtil.TestDatabase
+import static com.netflix.spinnaker.kork.sql.test.SqlTestUtil.initDatabase
 
 class SqlCacheSpec extends WriteableCacheSpec {
 
@@ -72,6 +73,11 @@ class SqlCacheSpec extends WriteableCacheSpec {
     def mapper = new ObjectMapper()
     def clock = new Clock.FixedClock(Instant.EPOCH, ZoneId.of("UTC"))
     def sqlRetryProperties = new SqlRetryProperties()
+
+    def dynamicConfigService = Mock(DynamicConfigService) {
+      getConfig(_, _, _) >> 2
+    }
+
     currentDatabase = initDatabase()
     return new SqlCache(
       "test",
@@ -81,8 +87,7 @@ class SqlCacheSpec extends WriteableCacheSpec {
       sqlRetryProperties,
       "test",
       cacheMetrics,
-      2,
-      2
+      dynamicConfigService
     )
   }
 

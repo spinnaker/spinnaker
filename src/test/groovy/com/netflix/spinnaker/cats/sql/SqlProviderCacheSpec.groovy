@@ -10,6 +10,7 @@ import com.netflix.spinnaker.cats.cache.WriteableCache
 import com.netflix.spinnaker.cats.provider.ProviderCacheSpec
 import com.netflix.spinnaker.cats.sql.cache.SpectatorSqlCacheMetrics
 import com.netflix.spinnaker.cats.sql.cache.SqlCache
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
 import spock.lang.AutoCleanup
@@ -51,6 +52,9 @@ class SqlProviderCacheSpec extends ProviderCacheSpec {
     def clock = new Clock.FixedClock(Instant.EPOCH, ZoneId.of("UTC"))
     def sqlRetryProperties = new SqlRetryProperties()
     def sqlMetrics = new SpectatorSqlCacheMetrics(new NoopRegistry())
+    def dynamicConfigService = Mock(DynamicConfigService) {
+      getConfig(_, _, _) >> 10
+    }
     currentDatabase = initDatabase()
     backingStore = new SqlCache(
       "test",
@@ -60,8 +64,7 @@ class SqlProviderCacheSpec extends ProviderCacheSpec {
       sqlRetryProperties,
       "test",
       sqlMetrics,
-      10,
-      10
+      dynamicConfigService
     )
 
     return new SqlProviderCache(backingStore)

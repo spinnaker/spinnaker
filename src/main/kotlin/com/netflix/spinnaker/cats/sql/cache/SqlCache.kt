@@ -12,6 +12,7 @@ import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.NAMED_IMA
 import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.ON_DEMAND
 import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.RESERVATION_REPORTS
 import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.RESERVED_INSTANCES
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import de.huxhorn.sulky.ulid.ULID
 import io.github.resilience4j.retry.Retry
@@ -42,8 +43,7 @@ class SqlCache(
   private val sqlRetryProperties: SqlRetryProperties,
   private val tableNamespace: String?,
   private val cacheMetrics: SqlCacheMetrics,
-  writeChunkSize: Int,
-  readChunkSize: Int
+  private val dynamicConfigService: DynamicConfigService
 ) : WriteableCache {
 
   companion object {
@@ -63,9 +63,6 @@ class SqlCache(
     private val log = LoggerFactory.getLogger(SqlCache::class.java)
   }
 
-  private val writeBatchSize = writeChunkSize
-  private val readBatchSize = readChunkSize
-
   private var createdTables = ConcurrentSkipListSet<String>()
 
   init {
@@ -82,7 +79,7 @@ class SqlCache(
     var deletedCount = 0
     var opCount = 0
     try {
-      ids.chunked(readBatchSize) { chunk ->
+      ids.chunked(dynamicConfigService.getConfig(Int::class.java, "sql.cache.readBatchSize", 500)) { chunk ->
         withRetry(RetryCategory.WRITE) {
           jooq.deleteFrom(table(resourceTableName(type)))
             .where("id in (${chunk.joinToString(",") { "'$it'" }})")
@@ -298,7 +295,7 @@ class SqlCache(
     var selects = 0
     val existing = mutableListOf<String>()
 
-    identifiers.chunked(readBatchSize) { chunk ->
+    identifiers.chunked(dynamicConfigService.getConfig(Int::class.java, "sql.cache.readBatchSize", 500)) { chunk ->
       existing.addAll(
         withRetry(RetryCategory.READ) {
           jooq.select(field("id"))
@@ -444,7 +441,7 @@ class SqlCache(
 
     val now = clock.millis()
 
-    toStore.chunked(writeBatchSize) { chunk ->
+    toStore.chunked(dynamicConfigService.getConfig(Int::class.java, "sql.cache.writeBatchSize", 100)) { chunk ->
       try {
         val insert = jooq.insertInto(
           table(resourceTableName(type)),
@@ -624,7 +621,7 @@ class SqlCache(
       val now = clock.millis()
       var ulid = ULID().nextValue()
 
-      pointers.chunked(writeBatchSize) { chunk ->
+      pointers.chunked(dynamicConfigService.getConfig(Int::class.java, "sql.cache.writeBatchSize", 100)) { chunk ->
         try {
           val insert = jooq.insertInto(
             table(relTableName(type)),
@@ -654,7 +651,7 @@ class SqlCache(
       }
 
       pointers.asSequence().filter { newRevRelIds.contains("${it.rel_id}|${it.id}") }
-        .chunked(writeBatchSize) { chunk ->
+        .chunked(dynamicConfigService.getConfig(Int::class.java, "sql.cache.writeBatchSize", 100)) { chunk ->
           try {
             val insert = jooq.insertInto(
               table(relTableName(relType)),
@@ -879,7 +876,7 @@ class SqlCache(
         }
         selectQueries += 1
       } else {
-        ids.chunked(readBatchSize) { chunk ->
+        ids.chunked(dynamicConfigService.getConfig(Int::class.java, "sql.cache.readBatchSize", 500)) { chunk ->
           withRetry(RetryCategory.READ) {
             cacheData.addAll(
               jooq.select(field("body"))
@@ -969,7 +966,7 @@ class SqlCache(
         parseCacheRelResultSet(type, resultSet, cacheData, relPointers)
         selectQueries += 1
       } else {
-        ids.chunked(readBatchSize) { chunk ->
+        ids.chunked(dynamicConfigService.getConfig(Int::class.java, "sql.cache.readBatchSize", 500)) { chunk ->
           val where = "ID in (${chunk.joinToString(",") { "'$it'" }})"
 
           val relWhere = if (relationshipPrefixes.isNotEmpty() && !relationshipPrefixes.contains("ALL")) {
