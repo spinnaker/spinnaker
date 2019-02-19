@@ -21,4 +21,6 @@ dependencies {
   compile spinnaker.dependency('kork')
   compile spinnaker.dependency('korkHystrix')
   compile spinnaker.dependency('korkSecurity')
+  compile spinnaker.dependency('korkArtifacts')
+  compile spinnaker.dependency('lombok')
 }

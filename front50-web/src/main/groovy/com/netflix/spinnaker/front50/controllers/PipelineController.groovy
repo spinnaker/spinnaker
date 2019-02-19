@@ -169,7 +169,7 @@ class PipelineController {
       switch (pipeline.getSchema()) {
         case "v2":
           V2TemplateConfiguration config = objectMapper.convertValue(pipeline, V2TemplateConfiguration.class)
-          source = config.template.source
+          source = config.template?.reference
           break
         default:
           TemplateConfiguration config = objectMapper.convertValue(pipeline.getConfig(), TemplateConfiguration.class)
@@ -177,11 +177,14 @@ class PipelineController {
           break
       }
 
-
       // With the source check if it starts with "spinnaker://"
       // Check if template id which is after :// is in the store
-      if (source.startsWith(SPINNAKER_PREFIX)) {
+      if (source?.startsWith(SPINNAKER_PREFIX)) {
         String templateId = source.substring(SPINNAKER_PREFIX.length())
+        if (pipeline.getSchema() == "v2") {
+          templateId = templateId?.contains("@sha256:") || templateId?.contains(":") ?
+              templateId : "$templateId:latest"
+        }
 
         try {
           templateDAO.findById(templateId)

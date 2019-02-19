@@ -17,45 +17,13 @@
 
 package com.netflix.spinnaker.front50.model.pipeline;
 
-import com.netflix.spinnaker.front50.model.pipeline.TemplateConfiguration.TemplateSource;
+import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import lombok.Data;
 
+@Data
 public class V2TemplateConfiguration {
   private String schema;
   private String application;
   private String name;
-  private TemplateSource template;
-
-  public String getSchema() {
-    return schema;
-  }
-
-  public void setSchema(String schema) {
-    this.schema = schema;
-  }
-
-  public String getApplication() {
-    return application;
-  }
-
-  public void setApplication(String application) {
-    this.application = application;
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
-  }
-
-
-  public TemplateSource getTemplate() {
-    return template;
-  }
-
-  public void setTemplate(
-    TemplateSource template) {
-    this.template = template;
-  }
+  private Artifact template;
 }
