@@ -120,7 +120,7 @@ export class CloudFoundryServerGroupCommandBuilder {
     application: ICloudFoundryApplication,
     originalCluster: ICloudFoundryDeployConfiguration,
   ) {
-    return this.buildNewServerGroupCommand(application, { mode: 'editClonePipeline' }).then(command => {
+    return this.buildNewServerGroupCommand(application, { mode: 'editPipeline' }).then(command => {
       command.credentials = originalCluster.account;
       command.artifact = originalCluster.artifact;
       command.delayBeforeDisableSec = originalCluster.delayBeforeDisableSec;
