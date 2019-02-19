@@ -26,11 +26,16 @@ import org.springframework.stereotype.Component;
 import java.time.Clock;
 import java.util.Date;
 import java.util.GregorianCalendar;
-import java.util.List;
+
+/**
+ * The "accounts" field was once required but no longer. The value of "accounts" is now inferred from existing
+ * infrastructure indexed by Clouddriver, so the value, when present in Front50, just ends up causing confusion.
+ */
 
 @Component
-public class CloudProvidersStringMigration implements Migration {
-  private static final Logger log = LoggerFactory.getLogger(CloudProvidersStringMigration.class);
+public class RemoveApplicationAccountsMigration implements Migration {
+
+  private static final Logger log = LoggerFactory.getLogger(RemoveApplicationAccountsMigration.class);
 
   // Only valid until June 1st, 2020
   private static final Date VALID_UNTIL = new GregorianCalendar(2020, 6, 1).getTime();
@@ -47,19 +52,19 @@ public class CloudProvidersStringMigration implements Migration {
 
   @Override
   public void run() {
-    log.info("Starting cloud provider string migration");
+    log.info("Starting account field removal migration");
     for (Application a : applicationDAO.all()) {
-      if (a.details().get("cloudProviders") instanceof List) {
+      if (a.details().containsKey("accounts")) {
         migrate(a);
       }
     }
   }
 
   private void migrate(Application application) {
-    log.info("Converting cloudProviders ({}) for application {} from a List to a String for {}",
-      application.details().get("cloudProviders").toString(),
+    log.info("Removing accounts field ({}) from application {}",
+      application.details().get("accounts").toString(),
       application.getName());
-    application.set("cloudProviders", String.join(",", (List<String>) application.details().get("cloudProviders")));
+    application.details().put("accounts", null);
     application.update(application);
   }
 }
