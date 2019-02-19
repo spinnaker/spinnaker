@@ -3,7 +3,7 @@ import * as React from 'react';
 import { IStageConfigProps } from 'core/pipeline';
 import { SpelNumberInput } from 'core/widgets/spelText/SpelNumberInput';
 import { IStage } from 'core/domain';
-import { StageConfigField } from '../core/stageConfigField/StageConfigField';
+import { StageConfigField } from '../common/stageConfigField/StageConfigField';
 
 export interface IWaitStageConfigState {
   enableCustomSkipWaitText: boolean;

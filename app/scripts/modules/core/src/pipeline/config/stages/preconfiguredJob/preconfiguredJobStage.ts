@@ -3,7 +3,7 @@ import { module } from 'angular';
 import { API } from 'core/api/ApiService';
 import { Registry } from 'core/registry';
 
-import { ExecutionDetailsTasks } from '../core';
+import { ExecutionDetailsTasks } from '../common';
 import { PreconfiguredJobExecutionDetails } from './PreconfiguredJobExecutionDetails';
 import { PreconfiguredJobStageConfig } from './PreconfiguredJobStageConfig';
 

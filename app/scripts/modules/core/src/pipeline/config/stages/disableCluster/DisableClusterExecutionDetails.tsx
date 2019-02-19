@@ -7,7 +7,7 @@ import {
   StageFailureMessage,
 } from 'core/pipeline';
 import { AccountTag } from 'core/account';
-import { ServerGroupStageContext } from '../core/ServerGroupStageContext';
+import { ServerGroupStageContext } from '../common/ServerGroupStageContext';
 
 export function DisableClusterExecutionDetails(props: IExecutionDetailsSectionProps) {
   const { stage } = props;

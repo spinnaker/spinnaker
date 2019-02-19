@@ -2,7 +2,7 @@ import * as React from 'react';
 import { get } from 'lodash';
 
 import { StageFailureMessage } from 'core/pipeline';
-import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from '../core';
+import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from '../common';
 import { robotToHuman } from 'core/presentation/robotToHumanFilter/robotToHuman.filter';
 
 export function CheckPreconditionsExecutionDetails(props: IExecutionDetailsSectionProps) {

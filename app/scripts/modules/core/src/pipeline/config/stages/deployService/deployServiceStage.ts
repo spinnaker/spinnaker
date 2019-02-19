@@ -1,7 +1,7 @@
 import { module } from 'angular';
 
 import { Registry } from 'core/registry';
-import { ExecutionDetailsTasks } from '../core';
+import { ExecutionDetailsTasks } from '../common';
 import { DeployServiceExecutionDetails } from './DeployServiceExecutionDetails';
 
 export const DEPLOY_SERVICE_STAGE = 'spinnaker.core.pipeline.stage.deployService';

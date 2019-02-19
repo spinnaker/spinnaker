@@ -6,7 +6,7 @@ import { SETTINGS } from 'core/config/settings';
 import { ManualJudgmentExecutionDetails } from './ManualJudgmentExecutionDetails';
 import { ManualJudgmentExecutionLabel } from './ManualJudgmentExecutionLabel';
 import { ManualJudgmentMarkerIcon } from './ManualJudgmentMarkerIcon';
-import { ExecutionDetailsTasks } from '../core/ExecutionDetailsTasks';
+import { ExecutionDetailsTasks } from '../common/ExecutionDetailsTasks';
 
 const angular = require('angular');
 

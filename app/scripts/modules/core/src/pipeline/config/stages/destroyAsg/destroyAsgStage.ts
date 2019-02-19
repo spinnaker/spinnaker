@@ -1,7 +1,7 @@
 import { module } from 'angular';
 
 import { Registry } from 'core/registry';
-import { ExecutionDetailsTasks } from '../core';
+import { ExecutionDetailsTasks } from '../common';
 import { DestroyAsgExecutionDetails } from './DestroyAsgExecutionDetails';
 
 export const DESTROY_ASG_STAGE = 'spinnaker.core.pipeline.stage.destroyAsg';

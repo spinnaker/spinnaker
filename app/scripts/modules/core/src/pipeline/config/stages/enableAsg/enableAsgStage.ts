@@ -2,7 +2,7 @@ import { module } from 'angular';
 
 import { Registry } from 'core/registry';
 import { EnableAsgExecutionDetails } from './EnableAsgExecutionDetails';
-import { ExecutionDetailsTasks } from '../core';
+import { ExecutionDetailsTasks } from '../common';
 
 export const ENABLE_ASG_STAGE = 'spinnaker.core.pipeline.stage.enableAsg';
 

@@ -35,7 +35,8 @@ export class BaseExecutionDetailsCtrl {
   }
 }
 
-export const BASE_EXECUTION_DETAILS_CTRL = 'spinnaker.core.pipeline.config.stages.core.baseExecutionDetails.controller';
+export const BASE_EXECUTION_DETAILS_CTRL =
+  'spinnaker.core.pipeline.config.stages.common.baseExecutionDetails.controller';
 
 module(BASE_EXECUTION_DETAILS_CTRL, [
   require('@uirouter/angularjs').default,

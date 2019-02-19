@@ -15,11 +15,7 @@ export interface IStageSummaryProps {
 
 export class StageSummary extends React.Component<IStageSummaryProps> {
   private getSourceUrl(): string {
-    return get(
-      this.props,
-      'config.executionSummaryUrl',
-      require('../../pipeline/config/stages/core/executionSummary.html'),
-    );
+    return get(this.props, 'config.executionSummaryUrl', require('../config/stages/common/executionSummary.html'));
   }
 
   public render(): React.ReactElement<StageSummary> {

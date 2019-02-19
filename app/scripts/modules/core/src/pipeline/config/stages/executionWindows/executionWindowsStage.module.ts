@@ -2,7 +2,7 @@ import { module } from 'angular';
 
 import { EXECUTION_WINDOW_ACTIONS_COMPONENT } from './executionWindowActions.component';
 import { EXECUTION_WINDOWS_STAGE } from './executionWindowsStage';
-import { STAGE_CORE_MODULE } from '../core/stage.core.module';
+import { STAGE_COMMON_MODULE } from '../common/stage.common.module';
 
 import './executionWindows.less';
 
@@ -14,5 +14,5 @@ module(EXECUTION_WINDOWS_STAGE_MODULE, [
   require('./executionWindows.directive').name,
   EXECUTION_WINDOW_ACTIONS_COMPONENT,
   require('../stage.module').name,
-  STAGE_CORE_MODULE,
+  STAGE_COMMON_MODULE,
 ]);

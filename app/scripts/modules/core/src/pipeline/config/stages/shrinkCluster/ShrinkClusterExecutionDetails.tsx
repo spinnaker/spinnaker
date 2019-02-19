@@ -7,7 +7,7 @@ import {
   StageFailureMessage,
 } from 'core/pipeline';
 import { AccountTag } from 'core/account';
-import { ServerGroupStageContext } from '../core/ServerGroupStageContext';
+import { ServerGroupStageContext } from '../common/ServerGroupStageContext';
 
 export function ShrinkClusterExecutionDetails(props: IExecutionDetailsSectionProps) {
   const { stage } = props;

@@ -3,7 +3,7 @@ import { IScope, module } from 'angular';
 import { Registry } from 'core/registry';
 
 import { CheckPreconditionsExecutionDetails } from './CheckPreconditionsExecutionDetails';
-import { ExecutionDetailsTasks } from '../core/ExecutionDetailsTasks';
+import { ExecutionDetailsTasks } from '../common/ExecutionDetailsTasks';
 
 export const CHECK_PRECONDITIONS_STAGE = 'spinnaker.pipelines.stage.checkPreconditionsStage';
 

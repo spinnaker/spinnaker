@@ -4,7 +4,7 @@ import { IExecutionDetailsSectionProps, StageFailureMessage } from 'core/pipelin
 import { IStage } from 'core/domain';
 import { robotToHuman } from 'core/presentation/robotToHumanFilter/robotToHuman.filter';
 import { timestamp } from 'core/utils/timeFormatters';
-import { ExecutionDetailsSection } from '../core';
+import { ExecutionDetailsSection } from '../common';
 import { ManualJudgmentApproval } from './ManualJudgmentApproval';
 
 export interface IManualJudgmentExecutionDetailsState {

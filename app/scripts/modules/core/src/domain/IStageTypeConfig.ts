@@ -1,5 +1,5 @@
 import { IStage } from './IStage';
-import { IExecutionDetailsSectionProps } from 'core/pipeline/config/stages/core';
+import { IExecutionDetailsSectionProps } from 'core/pipeline/config/stages/common';
 import { IExecutionContext, IExecutionStageLabelComponentProps, IExecutionStageSummary } from './IExecutionStage';
 import { IStageOrTriggerTypeConfig } from './IStageOrTriggerTypeConfig';
 

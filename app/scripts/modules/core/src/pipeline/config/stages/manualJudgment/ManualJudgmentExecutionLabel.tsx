@@ -5,7 +5,7 @@ import { ManualJudgmentApproval } from './ManualJudgmentApproval';
 import { IExecutionStageSummary, IExecution } from 'core/domain';
 import { Application } from 'core/application/application.model';
 import { HoverablePopover } from 'core/presentation/HoverablePopover';
-import { ExecutionBarLabel } from 'core/pipeline/config/stages/core/ExecutionBarLabel';
+import { ExecutionBarLabel } from 'core/pipeline/config/stages/common/ExecutionBarLabel';
 
 export interface IManualJudgmentExecutionLabelProps {
   stage: IExecutionStageSummary;

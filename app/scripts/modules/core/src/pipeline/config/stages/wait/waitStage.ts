@@ -1,6 +1,6 @@
 import { Registry } from 'core/registry';
 
-import { ExecutionDetailsTasks } from '../core';
+import { ExecutionDetailsTasks } from '../common';
 import { WaitExecutionDetails } from './WaitExecutionDetails';
 import { WaitExecutionLabel } from './WaitExecutionLabel';
 import { WaitStageConfig } from './WaitStageConfig';

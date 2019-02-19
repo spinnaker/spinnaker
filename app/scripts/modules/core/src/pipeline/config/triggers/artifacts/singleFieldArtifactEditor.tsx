@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { isFinite } from 'lodash';
-import { StageConfigField } from 'core/pipeline/config/stages/core/stageConfigField/StageConfigField';
+import { StageConfigField } from 'core/pipeline/config/stages/common/stageConfigField/StageConfigField';
 import { IArtifactEditorProps, IArtifact } from 'core/domain';
 
 export const singleFieldArtifactEditor = (

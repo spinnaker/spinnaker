@@ -1,6 +1,6 @@
 import { Registry } from 'core/registry';
 
-import { ExecutionDetailsTasks } from '../core';
+import { ExecutionDetailsTasks } from '../common';
 import { ApplyEntityTagsExecutionDetails } from './ApplyEntityTagsExecutionDetails';
 import { ApplyEntityTagsStageConfig } from './ApplyEntityTagsStageConfig';
 

@@ -52,7 +52,7 @@ export class StageSummaryController implements IController {
     if (stageConfig && stageConfig.executionStepLabelUrl) {
       return stageConfig.executionStepLabelUrl;
     } else {
-      return require('../../pipeline/config/stages/core/stepLabel.html');
+      return require('../config/stages/common/stepLabel.html');
     }
   }
 

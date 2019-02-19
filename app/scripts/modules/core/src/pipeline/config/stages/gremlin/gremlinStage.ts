@@ -1,7 +1,7 @@
 import { Registry } from 'core/registry';
 import { SETTINGS } from 'core/config/settings';
 
-import { ExecutionDetailsTasks } from '../core';
+import { ExecutionDetailsTasks } from '../common';
 import { GremlinExecutionDetails } from './GremlinExecutionDetails';
 import { GremlinStageConfig } from './GremlinStageConfig';
 

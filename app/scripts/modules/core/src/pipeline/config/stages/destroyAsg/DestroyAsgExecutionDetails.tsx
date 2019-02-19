@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { AsgActionExecutionDetailsSection, IExecutionDetailsSectionProps } from '../core';
+import { AsgActionExecutionDetailsSection, IExecutionDetailsSectionProps } from '../common';
 
 export function DestroyAsgExecutionDetails(props: IExecutionDetailsSectionProps) {
   return <AsgActionExecutionDetailsSection {...props} action="Destroyed" />;

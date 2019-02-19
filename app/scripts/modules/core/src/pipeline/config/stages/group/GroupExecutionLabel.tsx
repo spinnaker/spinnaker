@@ -2,7 +2,7 @@ import * as React from 'react';
 
 import { IExecutionStageSummary, IExecution } from 'core/domain';
 import { Application } from 'core/application/application.model';
-import { ExecutionBarLabel } from 'core/pipeline/config/stages/core/ExecutionBarLabel';
+import { ExecutionBarLabel } from 'core/pipeline/config/stages/common/ExecutionBarLabel';
 import { ReactInjector } from 'core/reactShims';
 
 import { GroupExecutionPopover } from './GroupExecutionPopover';

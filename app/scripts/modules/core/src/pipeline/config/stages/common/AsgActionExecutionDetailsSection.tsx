@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 import { StageExecutionLogs, StageFailureMessage } from 'core/pipeline';
-import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from '../core';
+import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from './';
 import { AccountTag } from 'core/account';
 
 export function AsgActionExecutionDetailsSection(props: IExecutionDetailsSectionProps & { action: string }) {

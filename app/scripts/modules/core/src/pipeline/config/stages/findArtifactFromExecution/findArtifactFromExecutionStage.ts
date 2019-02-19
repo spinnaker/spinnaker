@@ -3,7 +3,7 @@ import { module } from 'angular';
 import { Registry } from 'core/registry';
 import { SETTINGS } from 'core/config/settings';
 
-import { ExecutionDetailsTasks } from '../core';
+import { ExecutionDetailsTasks } from '../common';
 import { FindArtifactFromExecutionCtrl } from '../findArtifactFromExecution/findArtifactFromExecution.controller';
 import { FindArtifactFromExecutionExecutionDetails } from '../findArtifactFromExecution/FindArtifactFromExecutionExecutionDetails';
 

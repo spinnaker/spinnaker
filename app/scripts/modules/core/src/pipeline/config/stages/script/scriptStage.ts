@@ -4,7 +4,7 @@ import { AuthenticationService } from 'core/authentication/AuthenticationService
 import { IStage } from 'core/domain';
 import { Registry } from 'core/registry';
 
-import { ExecutionDetailsTasks } from '../core';
+import { ExecutionDetailsTasks } from '../common';
 import { ScriptExecutionDetails } from '../script/ScriptExecutionDetails';
 
 export const SCRIPT_STAGE = 'spinnaker.core.pipeline.stage.scriptStage';

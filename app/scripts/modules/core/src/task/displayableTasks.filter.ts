@@ -16,5 +16,5 @@ export function displayableTaskFilter() {
   return displayableTasks;
 }
 
-export const DISPLAYABLE_TASKS_FILTER = 'spinnaker.pipelines.stages.core.displayableTasks.filter';
+export const DISPLAYABLE_TASKS_FILTER = 'spinnaker.pipelines.stages.common.displayableTasks.filter';
 module(DISPLAYABLE_TASKS_FILTER, []).filter('displayableTasks', displayableTaskFilter);

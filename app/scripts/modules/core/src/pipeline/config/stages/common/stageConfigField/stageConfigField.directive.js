@@ -7,7 +7,7 @@ import { HELP_FIELD_COMPONENT } from 'core/help/helpField.component';
 import './stageConfigField.directive.less';
 
 module.exports = angular
-  .module('spinnaker.core.pipeline.config.stages.core.stageField.directive', [HELP_FIELD_COMPONENT])
+  .module('spinnaker.core.pipeline.config.stages.common.stageField.directive', [HELP_FIELD_COMPONENT])
   .directive('stageConfigField', function() {
     return {
       restrict: 'E',

@@ -7,7 +7,7 @@ import {
   ExecutionDetailsSectionService,
 } from 'core/pipeline/details/executionDetailsSection.service';
 
-import { BaseExecutionDetailsCtrl, IExecutionDetailsScope } from '../core/baseExecutionDetails.controller';
+import { BaseExecutionDetailsCtrl, IExecutionDetailsScope } from '../common/baseExecutionDetails.controller';
 
 export class CreateLoadBalancerDetailsCtrl extends BaseExecutionDetailsCtrl {
   constructor(

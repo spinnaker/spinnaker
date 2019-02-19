@@ -1,7 +1,5 @@
 'use strict';
 
-import { ReactModal } from 'root/app/scripts/modules/core/src/presentation';
-
 const angular = require('angular');
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
@@ -9,13 +7,14 @@ import { defaultsDeep, extend } from 'lodash';
 
 import { AccountService } from 'core/account/AccountService';
 import { API } from 'core/api';
-import { BASE_EXECUTION_DETAILS_CTRL } from './core/baseExecutionDetails.controller';
+import { BASE_EXECUTION_DETAILS_CTRL } from './common/baseExecutionDetails.controller';
 import { CONFIRMATION_MODAL_SERVICE } from 'core/confirmationModal/confirmationModal.service';
 import { STAGE_NAME } from './StageName';
 import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
 import { Registry } from 'core/registry';
 import { StageConfigWrapper } from './StageConfigWrapper';
-import { EditStageJsonModal } from 'root/app/scripts/modules/core/src/pipeline/config/stages/core/EditStageJsonModal';
+import { EditStageJsonModal } from './common/EditStageJsonModal';
+import { ReactModal } from 'core/presentation';
 
 module.exports = angular
   .module('spinnaker.core.pipeline.config.stage', [
@@ -26,7 +25,7 @@ module.exports = angular
     require('./optionalStage/optionalStage.directive').name,
     require('./failOnFailedExpressions/failOnFailedExpressions.directive').name,
     CONFIRMATION_MODAL_SERVICE,
-    require('./core/stageConfigField/stageConfigField.directive').name,
+    require('./common/stageConfigField/stageConfigField.directive').name,
   ])
   .directive('pipelineConfigStage', function() {
     return {

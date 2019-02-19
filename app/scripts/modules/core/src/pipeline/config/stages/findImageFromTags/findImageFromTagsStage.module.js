@@ -2,10 +2,10 @@
 
 const angular = require('angular');
 
-import { STAGE_CORE_MODULE } from '../core/stage.core.module';
+import { STAGE_COMMON_MODULE } from '../common/stage.common.module';
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.findImageFromTags', [
   require('../stage.module').name,
-  STAGE_CORE_MODULE,
+  STAGE_COMMON_MODULE,
   require('./findImageFromTagsStage').name,
 ]);

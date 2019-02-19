@@ -2,7 +2,7 @@ import { module } from 'angular';
 
 import { Registry } from 'core/registry';
 
-import { ExecutionDetailsTasks } from '../core';
+import { ExecutionDetailsTasks } from '../common';
 import { FindAmiExecutionDetails } from './FindAmiExecutionDetails';
 
 export interface IFindAmiStageContext {

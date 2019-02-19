@@ -3,7 +3,7 @@ import * as React from 'react';
 import { Application } from 'core/application';
 import { IExecution, IExecutionDetailsSection, IExecutionStage, IStageTypeConfig } from 'core/domain';
 import { NgReact } from 'core/reactShims';
-import { StepExecutionDetails } from 'core/pipeline/config/stages/core/StepExecutionDetails';
+import { StepExecutionDetails } from 'core/pipeline/config/stages/common/StepExecutionDetails';
 import { StatusGlyph } from 'core/task/StatusGlyph';
 import { robotToHuman } from 'core/presentation/robotToHumanFilter/robotToHuman.filter';
 
