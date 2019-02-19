@@ -70,15 +70,16 @@ class DeployCloudFoundryServerGroupAtomicOperationConverterTest {
   }
 
   private List<String> accounts = List.of("test", "sourceAccount", "sourceAccount1", "sourceAccount2", "destinationAccount");
-  private final ArtifactCredentialsRepository artifactCredentialsRepository = new ArtifactCredentialsRepository();
 
-  {
-    accounts.toStream().forEach(account -> artifactCredentialsRepository.save(new ArtifactCredentialsFromString(
-      account,
-      List.of("a").asJava(),
-      "applications: [{instances: 42}]"
-    )));
-  }
+  private final ArtifactCredentialsRepository artifactCredentialsRepository = new ArtifactCredentialsRepository(
+    Collections.singletonList(
+      accounts.map(account -> new ArtifactCredentialsFromString(
+        account,
+        List.of("a").asJava(),
+        "applications: [{instances: 42}]"
+      )).asJava()
+    )
+  );
 
   private final AccountCredentialsRepository accountCredentialsRepository = new MapBackedAccountCredentialsRepository();
 

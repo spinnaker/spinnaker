@@ -9,7 +9,6 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts.oracle;
 
-import com.netflix.spinnaker.clouddriver.artifacts.ArtifactCredentialsRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -28,7 +27,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class OracleArtifactConfiguration {
   private  final OracleArtifactProviderProperties oracleArtifactProviderProperties;
-  private final ArtifactCredentialsRepository artifactCredentialsRepository;
 
   @Bean
   List<? extends OracleArtifactCredentials> oracleArtifactCredentials(String clouddriverUserAgentApplicationName) {
@@ -36,9 +34,7 @@ public class OracleArtifactConfiguration {
             .stream()
             .map(a -> {
               try {
-                OracleArtifactCredentials c = new OracleArtifactCredentials(clouddriverUserAgentApplicationName, a);
-                artifactCredentialsRepository.save(c);
-                return c;
+                return new OracleArtifactCredentials(clouddriverUserAgentApplicationName, a);
               } catch (Exception e) {
                 log.warn("Failure instantiating oracle artifact account {}: ", a, e);
                 return null;

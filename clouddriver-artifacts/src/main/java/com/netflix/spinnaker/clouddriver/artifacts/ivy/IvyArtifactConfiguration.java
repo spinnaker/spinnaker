@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts.ivy;
 
-import com.netflix.spinnaker.clouddriver.artifacts.ArtifactCredentialsRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -35,7 +34,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class IvyArtifactConfiguration {
   private final IvyArtifactProviderProperties ivyArtifactProviderProperties;
-  private final ArtifactCredentialsRepository artifactCredentialsRepository;
 
   @Bean
   List<? extends IvyArtifactCredentials> ivyArtifactCredentials() {
@@ -43,9 +41,7 @@ public class IvyArtifactConfiguration {
       .stream()
       .map(a -> {
         try {
-          IvyArtifactCredentials c = new IvyArtifactCredentials(a);
-          artifactCredentialsRepository.save(c);
-          return c;
+          return new IvyArtifactCredentials(a);
         } catch (Exception e) {
           log.warn("Failure instantiating ivy artifact account {}: ", a, e);
           return null;

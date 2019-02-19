@@ -71,21 +71,21 @@ class DeployCloudFoundryServiceAtomicOperationConverterTest {
     }
   };
 
-  private final ArtifactCredentialsRepository artifactCredentialsRepository = new ArtifactCredentialsRepository();
-
-  {
-    artifactCredentialsRepository.save(new ArtifactCredentialsFromString(
-      "test",
-      List.of("a").asJava(),
-      "service_instance_name: my-service-instance-name\n" +
-        "service: my-service\n" +
-        "service_plan: my-service-plan\n" +
-        "tags:\n" +
-        "- tag1\n" +
-        "parameters: |\n" +
-        "  { \"foo\": \"bar\" }\n"
-    ));
-  }
+  private final ArtifactCredentialsRepository artifactCredentialsRepository = new ArtifactCredentialsRepository(
+    Collections.singletonList(
+      Collections.singletonList(new ArtifactCredentialsFromString(
+        "test",
+        List.of("a").asJava(),
+        "service_instance_name: my-service-instance-name\n" +
+          "service: my-service\n" +
+          "service_plan: my-service-plan\n" +
+          "tags:\n" +
+          "- tag1\n" +
+          "parameters: |\n" +
+          "  { \"foo\": \"bar\" }\n"
+      ))
+    )
+  );
 
   private final AccountCredentialsRepository accountCredentialsRepository = new MapBackedAccountCredentialsRepository();
 

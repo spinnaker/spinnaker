@@ -68,10 +68,7 @@ public class ArtifactController {
   @RequestMapping(method = RequestMethod.GET, value = "/account/{accountName}/names")
   List<String> getNames(@PathVariable("accountName") String accountName,
                         @RequestParam(value = "type") String type) {
-    ArtifactCredentials credentials = findArtifactCredentials(accountName);
-    if (!credentials.handlesType(type)) {
-      throw new IllegalArgumentException("Artifact credentials '" + accountName + "' cannot handle artifacts of type '" + type + "'");
-    }
+    ArtifactCredentials credentials = artifactCredentialsRepository.getCredentials(accountName, type);
     return credentials.getArtifactNames();
   }
 
@@ -79,18 +76,7 @@ public class ArtifactController {
   List<String> getVersions(@PathVariable("accountName") String accountName,
                            @RequestParam(value = "type") String type,
                            @RequestParam(value = "artifactName") String artifactName) {
-    ArtifactCredentials credentials = findArtifactCredentials(accountName);
-    if (!credentials.handlesType(type)) {
-      throw new IllegalArgumentException("Artifact credentials '" + accountName + "' cannot handle artifacts of type '" + type + "'");
-    }
+    ArtifactCredentials credentials = artifactCredentialsRepository.getCredentials(accountName, type);
     return credentials.getArtifactVersions(artifactName);
-  }
-
-  private ArtifactCredentials findArtifactCredentials(String accountName) {
-    return artifactCredentialsRepository.getAllCredentials()
-      .stream()
-      .filter(e -> e.getName().equals(accountName))
-      .findFirst()
-      .orElseThrow(() -> new IllegalArgumentException("No credentials with name '" + accountName + "' could be found."));
   }
 }

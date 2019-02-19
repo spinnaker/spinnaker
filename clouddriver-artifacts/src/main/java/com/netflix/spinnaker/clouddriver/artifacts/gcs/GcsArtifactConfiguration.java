@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts.gcs;
 
-import com.netflix.spinnaker.clouddriver.artifacts.ArtifactCredentialsRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -38,7 +37,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class GcsArtifactConfiguration {
   private final GcsArtifactProviderProperties gcsArtifactProviderProperties;
-  private final ArtifactCredentialsRepository artifactCredentialsRepository;
 
   @Bean
   List<? extends GcsArtifactCredentials> gcsArtifactCredentials(String clouddriverUserAgentApplicationName) {
@@ -46,9 +44,7 @@ public class GcsArtifactConfiguration {
         .stream()
         .map(a -> {
           try {
-            GcsArtifactCredentials c = new GcsArtifactCredentials(clouddriverUserAgentApplicationName, a);
-            artifactCredentialsRepository.save(c);
-            return c;
+            return new GcsArtifactCredentials(clouddriverUserAgentApplicationName, a);
           } catch (IOException | GeneralSecurityException e) {
             log.warn("Failure instantiating gcs artifact account {}: ", a, e);
             return null;

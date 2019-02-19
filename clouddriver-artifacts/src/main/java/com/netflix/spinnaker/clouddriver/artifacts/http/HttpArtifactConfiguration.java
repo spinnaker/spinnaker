@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts.http;
 
-import com.netflix.spinnaker.clouddriver.artifacts.ArtifactCredentialsRepository;
 import com.squareup.okhttp.OkHttpClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,22 +36,14 @@ import java.util.stream.Collectors;
 @Slf4j
 public class HttpArtifactConfiguration {
   private final HttpArtifactProviderProperties httpArtifactProviderProperties;
-  private final ArtifactCredentialsRepository artifactCredentialsRepository;
 
   @Bean
-  OkHttpClient httpOkHttpClient() {
-    return new OkHttpClient();
-  }
-
-  @Bean
-  List<? extends HttpArtifactCredentials> httpArtifactCredentials(OkHttpClient httpOkHttpClient) {
+  List<? extends HttpArtifactCredentials> httpArtifactCredentials(OkHttpClient okHttpClient) {
     List<HttpArtifactCredentials> result = httpArtifactProviderProperties.getAccounts()
       .stream()
       .map(a -> {
         try {
-          HttpArtifactCredentials c = new HttpArtifactCredentials(a, httpOkHttpClient);
-          artifactCredentialsRepository.save(c);
-          return c;
+          return new HttpArtifactCredentials(a, okHttpClient);
         } catch (Exception e) {
           log.warn("Failure instantiating Http artifact account {}: ", a, e);
           return null;
@@ -64,7 +55,7 @@ public class HttpArtifactConfiguration {
     if (httpArtifactProviderProperties.getAccounts().stream().noneMatch(HttpArtifactAccount::usesAuth)) {
       HttpArtifactAccount noAuthAccount = new HttpArtifactAccount()
         .setName("no-auth-http-account");
-      HttpArtifactCredentials noAuthCredentials = new HttpArtifactCredentials(noAuthAccount, httpOkHttpClient);
+      HttpArtifactCredentials noAuthCredentials = new HttpArtifactCredentials(noAuthAccount, okHttpClient);
 
       result.add(noAuthCredentials);
     }

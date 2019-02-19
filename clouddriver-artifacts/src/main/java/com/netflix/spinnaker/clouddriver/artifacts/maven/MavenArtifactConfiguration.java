@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts.maven;
 
-import com.netflix.spinnaker.clouddriver.artifacts.ArtifactCredentialsRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -35,7 +34,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class MavenArtifactConfiguration {
   private final MavenArtifactProviderProperties mavenArtifactProviderProperties;
-  private final ArtifactCredentialsRepository artifactCredentialsRepository;
 
   @Bean
   List<? extends MavenArtifactCredentials> mavenArtifactCredentials() {
@@ -43,9 +41,7 @@ public class MavenArtifactConfiguration {
       .stream()
       .map(a -> {
         try {
-          MavenArtifactCredentials c = new MavenArtifactCredentials(a);
-          artifactCredentialsRepository.save(c);
-          return c;
+          return new MavenArtifactCredentials(a);
         } catch (Exception e) {
           log.warn("Failure instantiating maven artifact account {}: ", a, e);
           return null;

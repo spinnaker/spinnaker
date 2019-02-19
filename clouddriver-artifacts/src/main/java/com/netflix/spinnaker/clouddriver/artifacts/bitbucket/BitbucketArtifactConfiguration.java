@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts.bitbucket;
 
-import com.netflix.spinnaker.clouddriver.artifacts.ArtifactCredentialsRepository;
 import com.squareup.okhttp.OkHttpClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,22 +36,14 @@ import java.util.stream.Collectors;
 @Slf4j
 public class BitbucketArtifactConfiguration {
   private final BitbucketArtifactProviderProperties bitbucketArtifactProviderProperties;
-  private final ArtifactCredentialsRepository artifactCredentialsRepository;
 
   @Bean
-  OkHttpClient bitbucketOkHttpClient() {
-    return new OkHttpClient();
-  }
-
-  @Bean
-  List<? extends BitbucketArtifactCredentials> bitbucketArtifactCredentials(OkHttpClient bitbucketOkHttpClient) {
+  List<? extends BitbucketArtifactCredentials> bitbucketArtifactCredentials(OkHttpClient okHttpClient) {
     return bitbucketArtifactProviderProperties.getAccounts()
       .stream()
       .map(a -> {
         try {
-          BitbucketArtifactCredentials c = new BitbucketArtifactCredentials(a, bitbucketOkHttpClient);
-          artifactCredentialsRepository.save(c);
-          return c;
+          return new BitbucketArtifactCredentials(a, okHttpClient);
         } catch (Exception e) {
           log.warn("Failure instantiating Bitbucket artifact account {}: ", a, e);
           return null;

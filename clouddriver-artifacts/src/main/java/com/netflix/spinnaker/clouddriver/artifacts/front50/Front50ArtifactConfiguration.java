@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.clouddriver.artifacts.front50;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spinnaker.clouddriver.artifacts.ArtifactCredentialsRepository;
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,13 +30,9 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 public class Front50ArtifactConfiguration {
-
-  private final ArtifactCredentialsRepository artifactCredentialsRepository;
-
   @Bean
   List<? extends Front50ArtifactCredentials> front50ArtifactCredentials(ObjectMapper objectMapper, Front50Service front50Service) {
     Front50ArtifactCredentials c = new Front50ArtifactCredentials(objectMapper, front50Service);
-    artifactCredentialsRepository.save(c);
     return Collections.singletonList(c);
   }
 }

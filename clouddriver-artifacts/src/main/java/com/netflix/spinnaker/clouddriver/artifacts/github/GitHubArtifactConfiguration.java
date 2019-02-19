@@ -18,7 +18,6 @@
 package com.netflix.spinnaker.clouddriver.artifacts.github;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spinnaker.clouddriver.artifacts.ArtifactCredentialsRepository;
 import com.squareup.okhttp.OkHttpClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,23 +37,15 @@ import java.util.stream.Collectors;
 @Slf4j
 public class GitHubArtifactConfiguration {
   private final GitHubArtifactProviderProperties gitHubArtifactProviderProperties;
-  private final ArtifactCredentialsRepository artifactCredentialsRepository;
   private final ObjectMapper objectMapper;
 
   @Bean
-  OkHttpClient gitHubOkHttpClient() {
-    return new OkHttpClient();
-  }
-
-  @Bean
-  List<? extends GitHubArtifactCredentials> gitHubArtifactCredentials(OkHttpClient gitHubOkHttpClient) {
+  List<? extends GitHubArtifactCredentials> gitHubArtifactCredentials(OkHttpClient okHttpClient) {
     return gitHubArtifactProviderProperties.getAccounts()
       .stream()
       .map(a -> {
         try {
-          GitHubArtifactCredentials c = new GitHubArtifactCredentials(a, gitHubOkHttpClient, objectMapper);
-          artifactCredentialsRepository.save(c);
-          return c;
+          return new GitHubArtifactCredentials(a, okHttpClient, objectMapper);
         } catch (Exception e) {
           log.warn("Failure instantiating GitHub artifact account {}: ", a, e);
           return null;

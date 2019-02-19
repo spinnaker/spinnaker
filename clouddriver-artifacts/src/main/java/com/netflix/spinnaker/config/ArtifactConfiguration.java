@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.config;
 
-import com.netflix.spinnaker.clouddriver.artifacts.ArtifactCredentialsRepository;
+import com.squareup.okhttp.OkHttpClient;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -31,7 +31,7 @@ import org.springframework.stereotype.Component;
 @ComponentScan("com.netflix.spinnaker.clouddriver.artifacts")
 public class ArtifactConfiguration {
   @Bean
-  ArtifactCredentialsRepository artifactCredentialsRepository() {
-    return new ArtifactCredentialsRepository();
+  OkHttpClient okHttpClient() {
+    return new OkHttpClient();
   }
 }

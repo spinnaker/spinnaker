@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts.helm;
 
-import com.netflix.spinnaker.clouddriver.artifacts.ArtifactCredentialsRepository;
 import com.squareup.okhttp.OkHttpClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,23 +36,15 @@ import java.util.stream.Collectors;
 @Slf4j
 public class HelmArtifactConfiguration {
   private final HelmArtifactProviderProperties helmArtifactProviderProperties;
-  private final ArtifactCredentialsRepository artifactCredentialsRepository;
 
   @Bean
-  OkHttpClient helmOkHttpClient() {
-    return new OkHttpClient();
-  }
-
-  @Bean
-  List<? extends HelmArtifactCredentials> helmArtifactCredentials(OkHttpClient helmOkHttpClient) {
+  List<? extends HelmArtifactCredentials> helmArtifactCredentials(OkHttpClient okHttpClient) {
 
     return helmArtifactProviderProperties.getAccounts()
       .stream()
       .map(a -> {
         try {
-          HelmArtifactCredentials c = new HelmArtifactCredentials(a, helmOkHttpClient);
-          artifactCredentialsRepository.save(c);
-          return c;
+          return new HelmArtifactCredentials(a, okHttpClient);
         } catch (Exception e) {
           log.warn("Failure instantiating Helm artifact account {}: ", a, e);
           return null;
