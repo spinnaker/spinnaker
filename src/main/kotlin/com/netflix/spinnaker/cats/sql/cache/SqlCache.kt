@@ -23,9 +23,11 @@ import org.jooq.exception.SQLDialectNotSupportedException
 import org.jooq.impl.DSL.*
 import org.jooq.util.mysql.MySQLDSL
 import org.slf4j.LoggerFactory
+import org.springframework.jdbc.BadSqlGrammarException
 import java.security.MessageDigest
 import java.sql.ResultSet
 import java.sql.SQLException
+import java.sql.SQLSyntaxErrorException
 import java.time.Clock
 import java.time.Duration
 import java.util.Arrays
@@ -261,11 +263,16 @@ class SqlCache(
    * @return the identifiers for the type
    */
   override fun getIdentifiers(type: String): MutableCollection<String> {
-    val ids = withRetry(RetryCategory.READ) {
-      jooq.select(field("id"))
-        .from(table(resourceTableName(type)))
-        .fetch()
-        .intoSet(field("id"), String::class.java)
+    val ids = try {
+      withRetry(RetryCategory.READ) {
+        jooq.select(field("id"))
+          .from(table(resourceTableName(type)))
+          .fetch()
+          .intoSet(field("id"), String::class.java)
+      }
+    } catch (e: BadSqlGrammarException) {
+      suppressedLog("Failed getting ids for type $type", e)
+      return mutableListOf()
     }
 
     cacheMetrics.get(
@@ -340,7 +347,7 @@ class SqlCache(
         jooq.fetch(sql).getValues(0, String::class.java)
       }
     } catch (e: Exception) {
-      log.error("Failed searching for identifiers type: $type glob: $glob reason: ${e.message}", e)
+      suppressedLog("Failed searching for identifiers type: $type glob: $glob reason: ${e.message}", e)
       mutableSetOf<String>()
     }
 
@@ -891,7 +898,7 @@ class SqlCache(
       return DataWithRelationshipPointersResult(cacheData, relPointers, selectQueries)
 
     } catch (e: Exception) {
-      log.error("Failed selecting ids for type $type", e)
+      suppressedLog("Failed selecting ids for type $type", e)
 
       cacheMetrics.get(
         prefix = name,
@@ -1002,7 +1009,7 @@ class SqlCache(
       }
       return DataWithRelationshipPointersResult(cacheData, relPointers, selectQueries)
     } catch (e: Exception) {
-      log.error("Failed selecting ids for type $type", e)
+      suppressedLog("Failed selecting ids for type $type", e)
 
       cacheMetrics.get(
         prefix = name,
@@ -1169,6 +1176,28 @@ class SqlCache(
       )
     }
     return Try.ofSupplier(Retry.decorateSupplier(retry, action)).get()
+  }
+
+  /**
+   * Provides best-effort suppression of "table doesn't exist" exceptions which come up in large volume during initial
+   * setup of a new SQL database. This isn't really an error we care to report, as the tables are created on-demand by
+   * the cache writer, but may be read against by readers before the caching agents have been run.
+   */
+  private fun suppressTableNotExistsException(e: Exception): Exception? {
+    if (e is BadSqlGrammarException && e.sqlException is SQLSyntaxErrorException) {
+      // Best effort suppression of "table doesn't exist" exceptions.
+      return if (
+        e.sqlException.sqlState.toLowerCase() == "42s02" ||
+        e.sqlException.message?.matches(Regex("Table.*doesn't exist")) == true
+      ) null else e
+    }
+    return e
+  }
+
+  private fun suppressedLog(message: String, e: Exception) {
+    if (suppressTableNotExistsException(e) != null) {
+      log.error(message, e)
+    }
   }
 
   // Assists with unit testing
