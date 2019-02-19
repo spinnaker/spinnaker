@@ -114,10 +114,10 @@ func executePipeline(cmd *cobra.Command, options ExecuteOptions) error {
 		return fmt.Errorf("Unable to start any executions, server response was: %v", resp)
 	}
 
-	refIds := make([]string, 0)
-	for _, execution := range executions {
-		refIds = append(refIds, execution.(map[string]interface{})["id"].(string))
+	if len(executions) > 1 {
+		return fmt.Errorf("Started more than one execution: %v", executions)
 	}
-	util.UI.Output(fmt.Sprintf("%v", refIds))
+
+	util.UI.JsonOutput(executions[0], util.UI.OutputFormat)
 	return nil
 }
