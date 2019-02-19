@@ -1,8 +1,6 @@
 import * as React from 'react';
 import * as ReactGA from 'react-ga';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
-import { PositionProperty } from 'csstype';
-import { padStart, padEnd } from 'lodash';
 
 import './CopyToClipboard.less';
 
@@ -13,19 +11,9 @@ export interface ICopyToClipboardProps {
   toolTip: string;
 }
 
-interface IInputStyle {
-  backgroundColor: string;
-  borderWidth: string;
-  display: string;
-  height?: string;
-  marginLeft?: string;
-  overflow?: string;
-  position?: PositionProperty;
-}
-
 interface ICopyToClipboardState {
   tooltipCopy: boolean | string;
-  inputWidth: number | 'auto';
+  shouldUpdatePosition: boolean;
 }
 
 /**
@@ -42,43 +30,23 @@ export class CopyToClipboard extends React.Component<ICopyToClipboardProps, ICop
     displayText: false,
   };
 
-  // Handles onto our DOM elements. We need to select data from the input
-  // and use the hiddenRef span to measure the width of our text
   private inputRef: React.RefObject<HTMLInputElement> = React.createRef();
-  private hiddenRef: React.RefObject<HTMLSpanElement> = React.createRef();
-
-  private inputStyle: IInputStyle = {
-    backgroundColor: 'transparent',
-    borderWidth: '0px',
-    display: 'inline-block',
-  };
-
-  private hiddenStyle = {
-    height: 0,
-    overflow: 'hidden',
-    position: 'absolute' as 'absolute',
-    whiteSpace: 'pre' as 'pre',
-  };
+  private mounted = false;
 
   constructor(props: ICopyToClipboardProps) {
     super(props);
     this.state = {
       tooltipCopy: false,
-      inputWidth: 'auto',
+      shouldUpdatePosition: false,
     };
   }
 
-  /**
-   * We need to play some games to get the correct width of the container
-   * input element but grabbing the offsetWidth of a hidden span containing
-   * the same value text as the input.
-   */
   public componentDidMount() {
-    const { displayText } = this.props;
-    if (displayText) {
-      const hiddenNode = this.hiddenRef.current;
-      this.setState({ inputWidth: hiddenNode.offsetWidth + 3 });
-    }
+    this.mounted = true;
+  }
+
+  public componentWillUnmount(): void {
+    this.mounted = false;
   }
 
   /**
@@ -90,7 +58,7 @@ export class CopyToClipboard extends React.Component<ICopyToClipboardProps, ICop
   public handleClick = (e: React.SyntheticEvent): void => {
     e.preventDefault();
 
-    const { analyticsLabel, toolTip, text } = this.props;
+    const { analyticsLabel, text } = this.props;
     ReactGA.event({
       category: 'Copy to Clipboard',
       action: 'copy',
@@ -101,67 +69,53 @@ export class CopyToClipboard extends React.Component<ICopyToClipboardProps, ICop
     node.focus();
     node.select();
 
-    // A best attempt at trying to keep the Copied! text centered in the
-    // Tooltip, otherwise it jumps around.
-    let copiedText = 'Copied!';
-
-    const toolTipPadding = Math.round(Math.max(0, toolTip.length - copiedText.length) / 2);
-    copiedText = padStart(copiedText, copiedText.length + toolTipPadding, '\u2007');
-    copiedText = padEnd(copiedText, copiedText.length + toolTipPadding, '\u2007');
+    const copiedText = 'Copied!';
 
     try {
       document.execCommand('copy');
       node.blur();
-      this.setState({ tooltipCopy: copiedText });
+      this.setState({ tooltipCopy: copiedText, shouldUpdatePosition: true });
       window.setTimeout(this.resetToolTip, 3000);
     } catch (e) {
-      this.setState({ tooltipCopy: "Couldn't copy!" });
+      node.blur();
+      this.setState({ tooltipCopy: "Couldn't copy!", shouldUpdatePosition: true });
     }
   };
 
   public resetToolTip = () => {
-    this.setState({ tooltipCopy: false });
+    this.mounted && this.setState({ tooltipCopy: false, shouldUpdatePosition: true });
   };
 
   public render() {
-    const { displayText, toolTip, text = '' } = this.props;
-    const { inputWidth, tooltipCopy } = this.state;
+    const { toolTip, text = '' } = this.props;
+    const { tooltipCopy, shouldUpdatePosition } = this.state;
 
     const persistOverlay = Boolean(tooltipCopy);
     const copy = tooltipCopy || toolTip;
     const id = `clipboardValue-${text.replace(' ', '-')}`;
     const tooltipComponent = <Tooltip id={id}>{copy}</Tooltip>;
 
-    let updatedStyle = {
-      ...this.inputStyle,
-      width: inputWidth,
+    // Hack - shouldUpdatePosition is a valid prop, just not declared in typings
+    const otherProps = {
+      shouldUpdatePosition,
     };
 
-    if (!displayText) {
-      updatedStyle = {
-        ...updatedStyle,
-        position: 'absolute' as 'absolute',
-        height: '0px',
-        marginLeft: '-9999px',
-        overflow: 'hidden',
-      };
-    }
-
     return (
-      <React.Fragment>
-        {displayText && (
-          <span ref={this.hiddenRef} style={this.hiddenStyle}>
-            {text}
-          </span>
-        )}
+      <>
         <input
           onChange={e => e} // no-op to prevent warnings
           ref={this.inputRef}
           value={text}
           type="text"
-          style={updatedStyle}
+          style={{ zIndex: -1, position: 'fixed', opacity: 0 }}
         />
-        <OverlayTrigger defaultOverlayShown={persistOverlay} placement="top" overlay={tooltipComponent} delayHide={250}>
+        <OverlayTrigger
+          defaultOverlayShown={persistOverlay}
+          placement="top"
+          overlay={tooltipComponent}
+          delayHide={250}
+          {...otherProps}
+        >
           <button
             onClick={this.handleClick}
             className="btn btn-xs btn-default clipboard-btn"
@@ -171,7 +125,7 @@ export class CopyToClipboard extends React.Component<ICopyToClipboardProps, ICop
             <span className="glyphicon glyphicon-copy" />
           </button>
         </OverlayTrigger>
-      </React.Fragment>
+      </>
     );
   }
 }

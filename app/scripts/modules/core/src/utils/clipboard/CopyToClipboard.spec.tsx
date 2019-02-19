@@ -21,10 +21,6 @@ describe('<CopyToClipboard />', () => {
     // Grab the overlay from document by generated ID
     const overlay = document.getElementById('clipboardValue-Rebel-Girl');
     expect(overlay.innerText).toEqual('Copy Rebel Girl');
-
-    // Click replaces overlay text with padding + Copied!
-    button.simulate('click');
-    expect(overlay.innerText).toEqual('    Copied!    ');
   });
 
   it('fires a GA event on click', () => {
