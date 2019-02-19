@@ -41,6 +41,15 @@ class UpsertSecurityGroupTask extends AbstractCloudProviderAwareTask {
       throw new IllegalStateException("SecurityGroupUpserter not found for cloudProvider $cloudProvider")
     }
 
+    // We used to get the `name` directly from the `context` which works for
+    // tasks but not for pipelines because orca will remove `name` from the context
+    // before it passes it on to stages/tasks.
+    // Switch to using `securityGroupName` field but for backwards compat we will support
+    // both while all services deploy and queues drain with the old field
+    if (!stage.context.securityGroupName) {
+      stage.context.securityGroupName = stage.context.name
+    }
+
     SecurityGroupUpserter.OperationContext result = upserter.getOperationContext(stage)
     def taskId = kato.requestOperations(cloudProvider, result.operations).toBlocking().first()
 

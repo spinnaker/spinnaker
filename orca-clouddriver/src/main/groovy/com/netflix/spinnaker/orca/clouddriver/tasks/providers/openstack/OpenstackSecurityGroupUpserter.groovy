@@ -35,8 +35,9 @@ class OpenstackSecurityGroupUpserter implements SecurityGroupUpserter, CloudProv
   @Override
   SecurityGroupUpserter.OperationContext getOperationContext(Stage stage) {
     def ops = [[(SecurityGroupUpserter.OPERATION): stage.context]]
+
     def targets = [
-      new MortService.SecurityGroup(name: stage.context.name,
+      new MortService.SecurityGroup(name: stage.context.securityGroupName,
         region: stage.context.region,
         accountName: getCredentials(stage))
     ]

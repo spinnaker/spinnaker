@@ -26,6 +26,7 @@ import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 import static com.netflix.spinnaker.orca.clouddriver.MortService.SecurityGroup.filterForSecurityGroupIngress
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 import static java.net.HttpURLConnection.HTTP_NOT_FOUND
 
 class AmazonSecurityGroupUpserterSpec extends Specification {
@@ -34,7 +35,7 @@ class AmazonSecurityGroupUpserterSpec extends Specification {
   def upserter = new AmazonSecurityGroupUpserter()
 
   @Shared
-  def ctx = [name: "SG1", credentials: "test"]
+  def ctx = [securityGroupName: "SG1", credentials: "test"]
 
   @Shared
   def error404 = RetrofitError.httpError(null, new Response("", HTTP_NOT_FOUND, "Not Found", [], null), null, null)
@@ -53,7 +54,10 @@ class AmazonSecurityGroupUpserterSpec extends Specification {
   @Unroll
   def "should return ops and extra outputs"() {
     given:
-    def stage = new Stage(Execution.newPipeline("orca"), "upsertSecurityGroup", context)
+    def pipe = pipeline {
+      application = "orca"
+    }
+    def stage = new Stage(pipe, "upsertSecurityGroup", context)
       upserter.mortService = Mock(MortService) {
         1 * getVPCs() >> allVPCs
       }
@@ -98,7 +102,10 @@ class AmazonSecurityGroupUpserterSpec extends Specification {
           currentSecurityGroupProvider.call()
         }
       }
-    def stage = new Stage(Execution.newPipeline("orca"), "whatever", [
+    def pipe = pipeline {
+      application = "orca"
+    }
+    def stage = new Stage(pipe, "whatever", [
           targets : [bT(account, region, null, groupName)],
           securityGroupIngress: filterForSecurityGroupIngress(upserter.mortService, expectedSecurityGroup)
       ])

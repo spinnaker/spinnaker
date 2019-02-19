@@ -18,13 +18,14 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.providers.gce
 
 import com.netflix.spinnaker.orca.clouddriver.MortService
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
-import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import retrofit.RetrofitError
 import retrofit.client.Response
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 
 class GoogleSecurityGroupUpserterSpec extends Specification {
 
@@ -35,11 +36,14 @@ class GoogleSecurityGroupUpserterSpec extends Specification {
     given:
       upserter = new GoogleSecurityGroupUpserter()
       def ctx = [
-          name       : "test-security-group",
-          region     : "global",
-          credentials: "abc",
+          securityGroupName : "test-security-group",
+          region            : "global",
+          credentials       : "abc",
       ]
-    def stage = new Stage(Execution.newPipeline("orca"), "whatever", ctx)
+    def pipe = pipeline {
+      application = "orca"
+    }
+    def stage = new Stage(pipe, "whatever", ctx)
 
     when:
       def results = upserter.getOperationContext(stage)
@@ -68,13 +72,16 @@ class GoogleSecurityGroupUpserterSpec extends Specification {
       MortService mortService = Mock(MortService)
 
       def ctx = [
-        name        : "test-security-group",
-        region      : "global",
-        credentials : "abc",
-        sourceRanges: [],
-        ipIngress   : []
+        securityGroupName : "test-security-group",
+        region            : "global",
+        credentials       : "abc",
+        sourceRanges      : [],
+        ipIngress         : []
       ]
-    def stage = new Stage(Execution.newPipeline("orca"), "whatever", ctx)
+    def pipe = pipeline {
+      application = "orca"
+    }
+    def stage = new Stage(pipe, "whatever", ctx)
       upserter = new GoogleSecurityGroupUpserter(mortService: mortService)
 
     when:
@@ -132,11 +139,11 @@ class GoogleSecurityGroupUpserterSpec extends Specification {
       MortService mortService = Mock(MortService)
 
       def ctx = [
-        name        : "test-security-group",
-        region      : "global",
-        credentials : "abc",
-        sourceRanges: ["192.168.1.100/32"],
-        ipIngress   : [
+        securityGroupName : "test-security-group",
+        region            : "global",
+        credentials       : "abc",
+        sourceRanges      : ["192.168.1.100/32"],
+        ipIngress         : [
           [
             startPort: 8080,
             endPort: 8083,
@@ -144,7 +151,10 @@ class GoogleSecurityGroupUpserterSpec extends Specification {
           ]
         ]
       ]
-    def stage = new Stage(Execution.newPipeline("orca"), "whatever", ctx)
+    def pipe = pipeline {
+      application = "orca"
+    }
+    def stage = new Stage(pipe, "whatever", ctx)
       upserter = new GoogleSecurityGroupUpserter(mortService: mortService, objectMapper: OrcaObjectMapper.newInstance())
 
     when:

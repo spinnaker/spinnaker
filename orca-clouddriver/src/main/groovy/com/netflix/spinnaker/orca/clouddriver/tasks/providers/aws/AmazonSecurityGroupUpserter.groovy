@@ -55,7 +55,7 @@ class AmazonSecurityGroupUpserter implements SecurityGroupUpserter, CloudProvide
 
       return [
           (SecurityGroupUpserter.OPERATION): [
-              name                : operation.name,
+              name                : operation.securityGroupName,
               credentials         : getCredentials(stage),
               region              : region,
               vpcId               : vpcId,

@@ -72,7 +72,7 @@ interface MortService {
     String vpcId
     List<Map> inboundRules
 
-    //Custon Jackson settings to handle either String or JSON Object for description
+    //Custom Jackson settings to handle either String or JSON Object for description
     @JsonRawValue
     String getDescription() {
       return description != null ? description.toString() : null

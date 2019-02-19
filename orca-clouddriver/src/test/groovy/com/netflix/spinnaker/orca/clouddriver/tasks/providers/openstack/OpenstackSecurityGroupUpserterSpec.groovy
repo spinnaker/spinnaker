@@ -17,12 +17,13 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.openstack
 
 import com.netflix.spinnaker.orca.clouddriver.MortService
-import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import retrofit.RetrofitError
 import retrofit.client.Response
 import spock.lang.Specification
 import spock.lang.Subject
+
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 
 class OpenstackSecurityGroupUpserterSpec extends Specification {
 
@@ -33,11 +34,14 @@ class OpenstackSecurityGroupUpserterSpec extends Specification {
     given:
     upserter = new OpenstackSecurityGroupUpserter()
     def context = [
-      name       : 'my-security-group',
-      region     : 'west',
-      credentials: 'cred'
+      securityGroupName : 'my-security-group',
+      region            : 'west',
+      credentials       : 'cred'
     ]
-    def stage = new Stage(Execution.newPipeline("orca"), 'whatever', context)
+    def pipe = pipeline {
+      application = "orca"
+    }
+    def stage = new Stage(pipe, 'whatever', context)
 
     when:
     def results = upserter.getOperationContext(stage)
@@ -59,7 +63,8 @@ class OpenstackSecurityGroupUpserterSpec extends Specification {
 
   def "should return the correct result if the security group has been upserted"() {
     given:
-    MortService.SecurityGroup sg = new MortService.SecurityGroup(name: "my-security-group",
+    MortService.SecurityGroup sg = new MortService.SecurityGroup(
+      name: "my-security-group",
       region: "west",
       accountName: "abc")
     MortService mortService = Mock(MortService) {
@@ -76,7 +81,8 @@ class OpenstackSecurityGroupUpserterSpec extends Specification {
 
   def "handles null when getting the security group"() {
     given:
-    MortService.SecurityGroup sg = new MortService.SecurityGroup(name: "my-security-group",
+    MortService.SecurityGroup sg = new MortService.SecurityGroup(
+      name: "my-security-group",
       region: "west",
       accountName: "abc")
     MortService mortService = Mock(MortService) {
@@ -93,7 +99,8 @@ class OpenstackSecurityGroupUpserterSpec extends Specification {
 
   def "returns false for 404 retrofit error"() {
     given:
-    MortService.SecurityGroup sg = new MortService.SecurityGroup(name: "my-security-group",
+    MortService.SecurityGroup sg = new MortService.SecurityGroup(
+      name: "my-security-group",
       region: "west",
       accountName: "abc")
     MortService mortService = Mock(MortService) {
@@ -112,7 +119,8 @@ class OpenstackSecurityGroupUpserterSpec extends Specification {
 
   def "throws error for non-404 retrofit error"() {
     given:
-    MortService.SecurityGroup sg = new MortService.SecurityGroup(name: "my-security-group",
+    MortService.SecurityGroup sg = new MortService.SecurityGroup(
+      name: "my-security-group",
       region: "west",
       accountName: "abc")
     MortService mortService = Mock(MortService) {

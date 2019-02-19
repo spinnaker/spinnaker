@@ -35,10 +35,11 @@ class KubernetesSecurityGroupUpserter implements SecurityGroupUpserter, CloudPro
   @Override
   SecurityGroupUpserter.OperationContext getOperationContext(Stage stage) {
     def ops = [[(SecurityGroupUpserter.OPERATION): stage.context]]
+
     def targets = [
-        new MortService.SecurityGroup(name: stage.context.name,
-                                      region: stage.context.region,
-                                      accountName: getCredentials(stage))
+      new MortService.SecurityGroup(name: stage.context.securityGroupName,
+                                    region: stage.context.region,
+                                    accountName: getCredentials(stage))
     ]
 
     return new SecurityGroupUpserter.OperationContext(ops, [targets: targets])
