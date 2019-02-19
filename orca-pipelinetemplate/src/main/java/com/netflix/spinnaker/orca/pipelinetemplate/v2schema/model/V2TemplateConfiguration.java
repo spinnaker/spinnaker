@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.pipelinetemplate.v2schema.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration;
+import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.VersionedSchema;
 import lombok.Data;
 
@@ -30,7 +30,7 @@ public class V2TemplateConfiguration implements VersionedSchema {
   private String application;
   private String pipelineConfigId;
   private String name;
-  private TemplateConfiguration.TemplateSource template;
+  private Artifact template;
   private Map<String, Object> variables = new HashMap<>();
   private List<V2StageDefinition> stages = new ArrayList<>();
   private List<String> inherit = new ArrayList<>();

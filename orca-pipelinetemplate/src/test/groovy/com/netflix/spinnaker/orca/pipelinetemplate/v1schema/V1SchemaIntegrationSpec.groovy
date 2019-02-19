@@ -17,6 +17,7 @@ package com.netflix.spinnaker.orca.pipelinetemplate.v1schema
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.*
+import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.pipelinetemplate.PipelineTemplatePreprocessor
@@ -24,7 +25,6 @@ import com.netflix.spinnaker.orca.pipelinetemplate.handler.PipelineTemplateError
 import com.netflix.spinnaker.orca.pipelinetemplate.handler.SchemaVersionHandler
 import com.netflix.spinnaker.orca.pipelinetemplate.loader.ResourceSchemeLoader
 import com.netflix.spinnaker.orca.pipelinetemplate.loader.TemplateLoader
-import com.netflix.spinnaker.orca.pipelinetemplate.loader.v2.V2FileTemplateSchemeLoader
 import com.netflix.spinnaker.orca.pipelinetemplate.loader.v2.V2TemplateLoader
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.handler.V1SchemaHandlerGroup
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.handler.v2.V2SchemaHandlerGroup
@@ -46,9 +46,10 @@ import static org.unitils.reflectionassert.ReflectionAssert.assertReflectionEqua
 class V1SchemaIntegrationSpec extends Specification {
 
   ObjectMapper objectMapper = new ObjectMapper()
+  def oortService = Mock(OortService)
 
   TemplateLoader templateLoader = new TemplateLoader([new ResourceSchemeLoader("/integration/v1schema", objectMapper)])
-  V2TemplateLoader v2TemplateLoader = new V2TemplateLoader([new V2FileTemplateSchemeLoader(objectMapper)])
+  V2TemplateLoader v2TemplateLoader = new V2TemplateLoader(oortService, objectMapper)
   ContextParameterProcessor contextParameterProcessor = new ContextParameterProcessor()
 
   Renderer renderer = new JinjaRenderer(

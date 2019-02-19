@@ -16,48 +16,36 @@
 
 package com.netflix.spinnaker.orca.pipelinetemplate.loader.v2;
 
-import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateLoaderException;
-import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.pipelinetemplate.v2schema.model.V2PipelineTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import retrofit.client.Response;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Collection;
-
-import static java.lang.String.format;
+import java.io.IOException;
 
 @Component
 public class V2TemplateLoader {
-  private Collection<V2TemplateSchemeLoader> schemeLoaders;
 
-  // TODO(jacobkiefer): Use Artifact resolution instead of custom template loaders.
+  private OortService oortService;
+
+  private ObjectMapper objectMapper;
+
   @Autowired
-  public V2TemplateLoader(Collection<V2TemplateSchemeLoader> schemeLoaders) {
-    this.schemeLoaders = schemeLoaders;
+  public V2TemplateLoader(OortService oortService,
+                          ObjectMapper objectMapper) {
+    this.oortService = oortService;
+    this.objectMapper = objectMapper;
   }
 
-  /**
-   * @return a LIFO list of pipeline templates
-   */
-  public V2PipelineTemplate load(TemplateConfiguration.TemplateSource source) {
-    return load(source.getSource());
-  }
-
-  private V2PipelineTemplate load(String source) {
-    URI uri;
+  public V2PipelineTemplate load(Artifact template) {
+    Response templateContent = oortService.fetchArtifact(template);
     try {
-      uri = new URI(source);
-    } catch (URISyntaxException e) {
-      throw new TemplateLoaderException(format("Invalid URI '%s'", source), e);
+      return objectMapper.readValue(templateContent.getBody().in(), V2PipelineTemplate.class);
+    } catch (IOException ioe) {
+      throw new IllegalArgumentException("Error resolving pipeline template: " + template, ioe);
     }
-
-    V2TemplateSchemeLoader schemeLoader = schemeLoaders.stream()
-      .filter(l -> l.supports(uri))
-      .findFirst()
-      .orElseThrow(() -> new TemplateLoaderException(format("No TemplateSchemeLoader found for '%s'", uri.getScheme())));
-
-    return schemeLoader.load(uri);
   }
 }

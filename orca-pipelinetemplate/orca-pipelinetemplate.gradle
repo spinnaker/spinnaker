@@ -5,6 +5,7 @@ dependencies {
   compile project(":orca-extensionpoint")
   compile project(":orca-core")
   compile project(":orca-front50")
+  compile project(":orca-clouddriver")
 
   compile('com.hubspot.jinjava:jinjava:2.2.3')
 
