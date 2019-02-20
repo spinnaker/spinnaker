@@ -2,7 +2,7 @@
   <div class="modal-body">
     <div class="row">
       <div class="col-md-12" ng-if="state.removedRules.length">
-        <div class="alert alert-warning">
+        <div class="alert alert-danger">
           <p>
             <i class="fa fa-exclamation-triangle"></i> The following
             <firewall-label label="firewalls"></firewall-label> could not be found in the selected account/region/VPC
@@ -12,7 +12,7 @@
             <li ng-repeat="securityGroup in state.removedRules">{{securityGroup}}</li>
           </ul>
           <p class="text-right">
-            <a class="btn btn-sm btn-default dirty-flag-dismiss" href ng-click="ctrl.dismissRemovedRules()">Okay</a>
+            <a class="btn btn-sm btn-primary dirty-flag-dismiss" href ng-click="ctrl.dismissRemovedRules()">Okay</a>
           </p>
         </div>
       </div>

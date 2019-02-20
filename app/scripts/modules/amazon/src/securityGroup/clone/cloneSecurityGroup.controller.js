@@ -38,6 +38,10 @@ module.exports = angular
       }),
     );
 
+    // We want to let people clone as a means to copy security groups across
+    // regions so don't block them because the names already exist.
+    $scope.allowDuplicateNames = true;
+
     AccountService.listAccounts('aws').then(function(accounts) {
       $scope.accounts = accounts;
       vm.accountUpdated();
