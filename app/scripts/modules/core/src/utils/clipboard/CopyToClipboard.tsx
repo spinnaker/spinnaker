@@ -6,7 +6,7 @@ import './CopyToClipboard.less';
 
 export interface ICopyToClipboardProps {
   analyticsLabel?: string;
-  displayText: boolean;
+  displayText?: boolean;
   text: string;
   toolTip: string;
 }
