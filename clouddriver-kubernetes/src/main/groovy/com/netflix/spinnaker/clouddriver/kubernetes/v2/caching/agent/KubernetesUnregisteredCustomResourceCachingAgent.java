@@ -63,6 +63,8 @@ public class KubernetesUnregisteredCustomResourceCachingAgent extends Kubernetes
 
   @Override
   protected List<KubernetesKind> primaryKinds() {
-    return credentials.getCrds();
+    return credentials.getCrds().stream()
+      .filter(credentials::isValidKind)
+      .collect(Collectors.toList());
   }
 }

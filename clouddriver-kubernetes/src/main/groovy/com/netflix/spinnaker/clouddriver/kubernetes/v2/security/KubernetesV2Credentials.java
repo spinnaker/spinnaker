@@ -385,10 +385,6 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
         .map(KubernetesManifest::getName)
         .collect(Collectors.toList()), namespaceExpirySeconds, TimeUnit.SECONDS);
 
-    if (checkPermissionsOnStartup) {
-      determineOmitKinds();
-    }
-
     this.liveCrdSupplier = Suppliers.memoizeWithExpiration(() -> {
       try {
         return this.list(KubernetesKind.CUSTOM_RESOURCE_DEFINITION, "")
@@ -410,6 +406,10 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
 
     // ensure this is called at least once before the credentials object is created to ensure all crds are registered
     this.liveCrdSupplier.get();
+
+    if (checkPermissionsOnStartup) {
+      determineOmitKinds();
+    }
   }
 
   public List<KubernetesKind> getCrds() {
