@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { CollapsibleSection, Tooltip } from '@spinnaker/core';
+import { CollapsibleSection, Overridable, Tooltip } from '@spinnaker/core';
 
 import { IScalingProcess } from 'amazon/domain';
 import { AwsNgReact } from 'amazon/reactShims';
@@ -13,6 +13,7 @@ export interface IScalingPoliciesDetailsSectionState {
   scalingPoliciesDisabled: boolean;
 }
 
+@Overridable('aws.serverGroup.ScalingPoliciesDetailsSection')
 export class ScalingPoliciesDetailsSection extends React.Component<
   IAmazonServerGroupDetailsSectionProps,
   IScalingPoliciesDetailsSectionState
