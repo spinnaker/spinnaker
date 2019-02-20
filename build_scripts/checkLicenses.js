@@ -19,6 +19,8 @@ const ALLOWED_LICENSES = [
   'MIT*',
   '(MIT AND CC-BY-3.0)',
   'MPL-2.0 OR Apache-2.0',
+  '(MIT OR Apache-2.0)',
+  '(CC-BY-4.0 AND OFL-1.1 AND MIT)',
   '(OFL-1.1 AND MIT)',
   'Unlicense',
   'Zlib',

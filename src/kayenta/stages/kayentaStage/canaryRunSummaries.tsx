@@ -1,12 +1,10 @@
 import * as React from 'react';
 import { get, has } from 'lodash';
 
-import { HoverablePopover, IStage, timestamp, NgReact, ReactInjector } from '@spinnaker/core';
+import { HoverablePopover, CopyToClipboard, IStage, timestamp, ReactInjector } from '@spinnaker/core';
 import { CanaryScore } from 'kayenta/components/canaryScore';
 import Styleguide from 'kayenta/layout/styleguide';
 import { ITableColumn, NativeTable } from 'kayenta/layout/table';
-
-const { CopyToClipboard } = NgReact;
 
 import './canaryRunSummaries.less';
 
@@ -90,11 +88,19 @@ function CanaryRunTimestamps({ canaryRun, firstScopeName }: { canaryRun: IStage;
       <ul className="list-unstyled">
         <li>
           <b>Start:</b> {timestamp(Date.parse(canaryRun.context.scopes[firstScopeName].controlScope.start))}
-          <CopyToClipboard text={canaryRun.context.scopes[firstScopeName].controlScope.start} toolTip={toolTipText} />
+          <CopyToClipboard
+            displayText={false}
+            text={canaryRun.context.scopes[firstScopeName].controlScope.start}
+            toolTip={toolTipText}
+          />
         </li>
         <li>
           <b>End:</b> {timestamp(Date.parse(canaryRun.context.scopes[firstScopeName].controlScope.end))}
-          <CopyToClipboard text={canaryRun.context.scopes[firstScopeName].controlScope.end} toolTip={toolTipText} />
+          <CopyToClipboard
+            displayText={false}
+            text={canaryRun.context.scopes[firstScopeName].controlScope.end}
+            toolTip={toolTipText}
+          />
         </li>
       </ul>
     </section>
