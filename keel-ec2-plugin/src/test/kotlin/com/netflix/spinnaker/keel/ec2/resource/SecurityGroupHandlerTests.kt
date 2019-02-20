@@ -15,8 +15,6 @@
  */
 package com.netflix.spinnaker.keel.ec2.resource
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceMetadata
 import com.netflix.spinnaker.keel.api.ResourceName
@@ -25,7 +23,6 @@ import com.netflix.spinnaker.keel.api.ec2.CidrSecurityGroupRule
 import com.netflix.spinnaker.keel.api.ec2.PortRange
 import com.netflix.spinnaker.keel.api.ec2.ReferenceSecurityGroupRule
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroup
-import com.netflix.spinnaker.keel.api.ec2.SecurityGroupRule
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupRule.Protocol.TCP
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
@@ -46,14 +43,9 @@ import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.whenever
-import dev.minutest.junit.toTestFactory
+import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import kotlinx.coroutines.CompletableDeferred
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.TestFactory
-import org.junit.jupiter.api.TestInstance
-import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import strikt.api.Assertion
 import strikt.api.expectThat
 import strikt.assertions.first
@@ -65,223 +57,121 @@ import strikt.assertions.isNotNull
 import strikt.assertions.isNull
 import java.util.*
 
-@TestInstance(PER_CLASS)
-internal object SecurityGroupHandlerTests {
+internal object SecurityGroupHandlerTests : JUnit5Minutests {
 
-  val cloudDriverService = mock<CloudDriverService>()
-  val cloudDriverCache = mock<CloudDriverCache>()
-  val orcaService = mock<OrcaService>()
-
-  val objectMapper = ObjectMapper().registerKotlinModule()
-
-  val subject = SecurityGroupHandler(
-    cloudDriverService,
-    cloudDriverCache,
-    orcaService
-  )
-
-  val vpc = Network(CLOUD_PROVIDER, UUID.randomUUID().toString(), "vpc1", "prod", "us-west-3")
-  @BeforeAll
-  fun setUpVpcs() {
-    whenever(cloudDriverCache.networkBy(vpc.name, vpc.account, vpc.region)) doReturn vpc
-    whenever(cloudDriverCache.networkBy(vpc.id)) doReturn vpc
-  }
-
-  @AfterAll
-  fun resetVpcs() {
-    reset(cloudDriverCache)
-  }
-
-  @TestFactory
-  fun `fetching security group status`() = rootContext<Unit> {
-    val securityGroup = SecurityGroup(
+  data class Fixture(
+    val vpc: Network = Network(
+      CLOUD_PROVIDER,
+      UUID.randomUUID().toString(),
+      "vpc1",
+      "prod",
+      "us-west-3"
+    ),
+    val securityGroup: SecurityGroup = SecurityGroup(
       application = "keel",
       name = "fnord",
       accountName = vpc.account,
       region = vpc.region,
       vpcName = vpc.name,
       description = "dummy security group"
+    ),
+    val cloudDriverService: CloudDriverService = mock(),
+    val cloudDriverCache: CloudDriverCache = mock(),
+    val orcaService: OrcaService = mock(),
+    val handler: SecurityGroupHandler = SecurityGroupHandler(
+      cloudDriverService,
+      cloudDriverCache,
+      orcaService
     )
+  ) {
+    val resource: Resource<SecurityGroup>
+      get() = Resource(
+        apiVersion = SPINNAKER_API_V1,
+        metadata = ResourceMetadata(
+          name = ResourceName("ec2.SecurityGroup:keel:test:us-west-2:keel"),
+          uid = UUID.randomUUID(),
+          resourceVersion = 1234L
+        ),
+        kind = "ec2.SecurityGroup",
+        spec = securityGroup
+      )
+  }
 
-    context("no matching security group exists") {
-      before {
-        securityGroup.apply {
+  fun tests() = rootContext<Fixture> {
+    fixture {
+      Fixture()
+    }
+
+    before {
+      whenever(cloudDriverCache.networkBy(vpc.name, vpc.account, vpc.region)) doReturn vpc
+      whenever(cloudDriverCache.networkBy(vpc.id)) doReturn vpc
+    }
+
+    after {
+      reset(cloudDriverCache)
+    }
+
+    context("fetching current state of a security group") {
+      context("no matching security group exists") {
+        before {
           whenever(cloudDriverService.getSecurityGroup(
-            accountName,
+            securityGroup.accountName,
             CLOUD_PROVIDER,
-            name,
-            region,
+            securityGroup.name,
+            securityGroup.region,
             vpc.id
           )) doThrow RETROFIT_NOT_FOUND
         }
-      }
 
-      after {
-        reset(cloudDriverService)
-      }
+        after {
+          reset(cloudDriverService)
+        }
 
-      val request = Resource(
-        apiVersion = SPINNAKER_API_V1,
-        metadata = ResourceMetadata(
-          name = ResourceName("ec2.SecurityGroup:keel:test:us-west-2:keel"),
-          uid = UUID.randomUUID(),
-          resourceVersion = 1234L
-        ),
-        kind = "ec2.SecurityGroup",
-        spec = securityGroup
-      )
+        test("current returns null") {
+          val response = handler.current(resource)
 
-      test("it returns null") {
-        val response = subject.current(request)
-
-        expectThat(response).isNull()
-      }
-    }
-
-    context("a matching security group exists") {
-      before {
-        securityGroup.apply {
-          val riverSecurityGroup = com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup(
-            CLOUD_PROVIDER, UUID.randomUUID().toString(), name, description, accountName, region, vpc.id, emptySet(), Moniker(application)
-          )
-          whenever(cloudDriverService.getSecurityGroup(
-            accountName,
-            CLOUD_PROVIDER,
-            name,
-            region,
-            vpc.id
-          )) doReturn CompletableDeferred(riverSecurityGroup)
+          expectThat(response).isNull()
         }
       }
 
-      after {
-        reset(cloudDriverService)
-      }
-
-      val request = Resource(
-        apiVersion = SPINNAKER_API_V1,
-        metadata = ResourceMetadata(
-          name = ResourceName("ec2.SecurityGroup:keel:test:us-west-2:keel"),
-          uid = UUID.randomUUID(),
-          resourceVersion = 1234L
-        ),
-        kind = "ec2.SecurityGroup",
-        spec = securityGroup
-      )
-
-      test("it returns the security group") {
-        val response = subject.current(request)
-
-        expectThat(response)
-          .isNotNull()
-          .isEqualTo(securityGroup)
-      }
-    }
-  }
-    .toTestFactory()
-
-  private open class SecurityGroupFixture(
-    val spec: SecurityGroup
-  ) {
-    val request: Resource<SecurityGroup> by lazy {
-      Resource(
-        apiVersion = SPINNAKER_API_V1,
-        metadata = ResourceMetadata(
-          name = ResourceName("ec2.SecurityGroup:${spec.application}:${spec.accountName}:${spec.region}:${spec.name}"),
-          uid = UUID.randomUUID(),
-          resourceVersion = 1234L
-        ),
-        kind = "ec2.SecurityGroup",
-        spec = spec.copy(inboundRules = rules)
-      )
-    }
-
-    open val rules: List<SecurityGroupRule> = emptyList()
-  }
-
-  private class SecurityGroupWithReferenceRuleFixture(
-    spec: SecurityGroup,
-    val rule: ReferenceSecurityGroupRule
-  ) : SecurityGroupFixture(spec) {
-    override val rules: List<SecurityGroupRule>
-      get() = listOf(rule)
-  }
-
-  private class SecurityGroupWithCidrRuleFixture(
-    spec: SecurityGroup,
-    val rule: CidrSecurityGroupRule
-  ) : SecurityGroupFixture(spec) {
-    override val rules: List<SecurityGroupRule>
-      get() = listOf(rule)
-  }
-
-  @TestFactory
-  fun `upserting a security group`() = rootContext<SecurityGroupFixture> {
-    fixture {
-      SecurityGroupFixture(
-        spec = SecurityGroup(
-          application = "keel",
-          name = "fnord",
-          accountName = vpc.account,
-          region = vpc.region,
-          vpcName = vpc.name,
-          description = "dummy security group"
-        )
-      )
-    }
-
-    context("a security group with no ingress rules") {
-      before {
-        whenever(orcaService.orchestrate(any())) doAnswer {
-          CompletableDeferred(TaskRefResponse("/tasks/${UUID.randomUUID()}"))
-        }
-
-        subject.upsert(request)
-      }
-
-      after {
-        reset(cloudDriverService, orcaService)
-      }
-
-      test("it upserts the security group via Orca") {
-        argumentCaptor<OrchestrationRequest>().apply {
-          verify(orcaService).orchestrate(capture())
-          expectThat(firstValue) {
-            application.isEqualTo(spec.application)
-            job
-              .hasSize(1)
-              .first()
-              .type
-              .isEqualTo("upsertSecurityGroup")
+      context("a matching security group exists") {
+        before {
+          securityGroup.apply {
+            val riverSecurityGroup = com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup(
+              CLOUD_PROVIDER, UUID.randomUUID().toString(), name, description, accountName, region, vpc.id, emptySet(), Moniker(application)
+            )
+            whenever(cloudDriverService.getSecurityGroup(
+              accountName,
+              CLOUD_PROVIDER,
+              name,
+              region,
+              vpc.id
+            )) doReturn CompletableDeferred(riverSecurityGroup)
           }
         }
+
+        after {
+          reset(cloudDriverService)
+        }
+
+        test("current returns the security group") {
+          val response = handler.current(resource)
+
+          expectThat(response)
+            .isNotNull()
+            .isEqualTo(securityGroup)
+        }
       }
     }
 
-    derivedContext<SecurityGroupWithReferenceRuleFixture>("a security group with a reference ingress rule") {
-      deriveFixture {
-        SecurityGroupWithReferenceRuleFixture(
-          spec = spec,
-          rule = ReferenceSecurityGroupRule(
-            protocol = TCP,
-            account = "test",
-            name = "otherapp",
-            vpcName = "vpc0",
-            portRange = PortRange(
-              startPort = 443,
-              endPort = 443
-            )
-          )
-        )
-      }
-
-      context("the referenced security group exists") {
+    context("upserting a security group") {
+      context("a security group with no ingress rules") {
         before {
           whenever(orcaService.orchestrate(any())) doAnswer {
             CompletableDeferred(TaskRefResponse("/tasks/${UUID.randomUUID()}"))
           }
 
-          subject.upsert(request)
+          handler.upsert(resource)
         }
 
         after {
@@ -292,15 +182,115 @@ internal object SecurityGroupHandlerTests {
           argumentCaptor<OrchestrationRequest>().apply {
             verify(orcaService).orchestrate(capture())
             expectThat(firstValue) {
-              application.isEqualTo(spec.application)
+              application.isEqualTo(securityGroup.application)
+              job
+                .hasSize(1)
+                .first()
+                .type
+                .isEqualTo("upsertSecurityGroup")
+            }
+          }
+        }
+      }
+
+      derivedContext<Fixture>("a security group with a reference ingress rule") {
+        deriveFixture {
+          copy(
+            securityGroup = securityGroup.copy(
+              inboundRules = listOf(
+                ReferenceSecurityGroupRule(
+                  protocol = TCP,
+                  account = "test",
+                  name = "otherapp",
+                  vpcName = "vpc0",
+                  portRange = PortRange(
+                    startPort = 443,
+                    endPort = 443
+                  )
+                )
+              )
+            )
+          )
+        }
+
+        before {
+          whenever(orcaService.orchestrate(any())) doAnswer {
+            CompletableDeferred(TaskRefResponse("/tasks/${UUID.randomUUID()}"))
+          }
+
+          handler.upsert(resource)
+        }
+
+        after {
+          reset(cloudDriverService, orcaService)
+        }
+
+        test("it upserts the security group via Orca") {
+          argumentCaptor<OrchestrationRequest>().apply {
+            verify(orcaService).orchestrate(capture())
+            expectThat(firstValue) {
+              application.isEqualTo(securityGroup.application)
               job.hasSize(1)
               job[0]["securityGroupIngress"].isA<List<*>>()
                 .hasSize(1).first().isA<Map<String, *>>()
                 .and {
-                  get("type").isEqualTo(rule.protocol.name)
-                  get("startPort").isEqualTo(rule.portRange.startPort)
-                  get("endPort").isEqualTo(rule.portRange.endPort)
-                  get("name").isEqualTo(rule.name)
+                  securityGroup.inboundRules.first().also { rule ->
+                    get("type").isEqualTo(rule.protocol.name)
+                    get("startPort").isEqualTo(rule.portRange.startPort)
+                    get("endPort").isEqualTo(rule.portRange.endPort)
+                    get("name").isEqualTo((rule as ReferenceSecurityGroupRule).name)
+                  }
+                }
+            }
+          }
+        }
+      }
+
+      derivedContext<Fixture>("a security group with an IP block range ingress rule") {
+        deriveFixture {
+          copy(
+            securityGroup = securityGroup.copy(
+              inboundRules = listOf(
+                CidrSecurityGroupRule(
+                  protocol = TCP,
+                  blockRange = "10.0.0.0/16",
+                  portRange = PortRange(
+                    startPort = 443,
+                    endPort = 443
+                  )
+                )
+              )
+            )
+          )
+        }
+
+        before {
+          whenever(orcaService.orchestrate(any())) doAnswer {
+            CompletableDeferred(TaskRefResponse("/tasks/${UUID.randomUUID()}"))
+          }
+
+          handler.upsert(resource)
+        }
+
+        after {
+          reset(cloudDriverService, orcaService)
+        }
+
+        test("it upserts the security group via Orca") {
+          argumentCaptor<OrchestrationRequest>().apply {
+            verify(orcaService).orchestrate(capture())
+            expectThat(firstValue) {
+              application.isEqualTo(securityGroup.application)
+              job.hasSize(1)
+              job[0]["ipIngress"].isA<List<*>>()
+                .hasSize(1).first().isA<Map<String, *>>()
+                .and {
+                  securityGroup.inboundRules.first().also { rule ->
+                    get("type").isEqualTo(rule.protocol.name)
+                    get("cidr").isEqualTo((rule as CidrSecurityGroupRule).blockRange)
+                    get("startPort").isEqualTo(rule.portRange.startPort)
+                    get("endPort").isEqualTo(rule.portRange.endPort)
+                  }
                 }
             }
           }
@@ -308,96 +298,34 @@ internal object SecurityGroupHandlerTests {
       }
     }
 
-    derivedContext<SecurityGroupWithCidrRuleFixture>("a security group with an IP block range ingress rule") {
-      deriveFixture {
-        SecurityGroupWithCidrRuleFixture(
-          spec = spec,
-          rule = CidrSecurityGroupRule(
-            protocol = TCP,
-            blockRange = "10.0.0.0/16",
-            portRange = PortRange(
-              startPort = 443,
-              endPort = 443
-            )
-          )
-        )
-      }
-
+    context("deleting a security group") {
       before {
         whenever(orcaService.orchestrate(any())) doAnswer {
           CompletableDeferred(TaskRefResponse("/tasks/${UUID.randomUUID()}"))
         }
 
-        subject.upsert(request)
+        handler.delete(resource)
       }
 
       after {
         reset(cloudDriverService, orcaService)
       }
 
-      test("it upserts the security group via Orca") {
+      test("it deletes the security group via Orca") {
         argumentCaptor<OrchestrationRequest>().apply {
           verify(orcaService).orchestrate(capture())
           expectThat(firstValue) {
-            application.isEqualTo(spec.application)
-            job.hasSize(1)
-            job[0]["ipIngress"].isA<List<*>>()
-              .hasSize(1).first().isA<Map<String, *>>()
-              .and {
-                get("type").isEqualTo(rule.protocol.name)
-                get("cidr").isEqualTo(rule.blockRange)
-                get("startPort").isEqualTo(rule.portRange.startPort)
-                get("endPort").isEqualTo(rule.portRange.endPort)
-              }
+            application.isEqualTo(securityGroup.application)
+            job
+              .hasSize(1)
+              .first()
+              .type
+              .isEqualTo("deleteSecurityGroup")
           }
         }
       }
     }
   }
-    .toTestFactory()
-
-  @TestFactory
-  fun `deleting a security group`() = rootContext<SecurityGroupFixture> {
-    fixture {
-      SecurityGroupFixture(
-        spec = SecurityGroup(
-          application = "keel",
-          name = "fnord",
-          accountName = vpc.account,
-          region = vpc.region,
-          vpcName = vpc.name,
-          description = "dummy security group"
-        )
-      )
-    }
-
-    before {
-      whenever(orcaService.orchestrate(any())) doAnswer {
-        CompletableDeferred(TaskRefResponse("/tasks/${UUID.randomUUID()}"))
-      }
-
-      subject.delete(request)
-    }
-
-    after {
-      reset(cloudDriverService, orcaService)
-    }
-
-    test("it deletes the security group via Orca") {
-      argumentCaptor<OrchestrationRequest>().apply {
-        verify(orcaService).orchestrate(capture())
-        expectThat(firstValue) {
-          application.isEqualTo(spec.application)
-          job
-            .hasSize(1)
-            .first()
-            .type
-            .isEqualTo("deleteSecurityGroup")
-        }
-      }
-    }
-  }
-    .toTestFactory()
 }
 
 private val Assertion.Builder<OrchestrationRequest>.application: Assertion.Builder<String>
