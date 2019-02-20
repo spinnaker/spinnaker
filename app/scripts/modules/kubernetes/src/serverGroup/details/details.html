@@ -111,13 +111,13 @@
     </collapsible-section>
     <collapsible-section heading="Replicas" expanded="true">
       <dl class="dl-horizontal dl-flex">
-        <div ng-show="serverGroup.autoscalerStatus === null">
+        <div ng-show="!serverGroup.autoscalerStatus">
           <dt>Current</dt>
           <dd>{{serverGroup.instances.length}}</dd>
           <dt>Desired</dt>
           <dd>{{serverGroup.capacity.desired}}</dd>
         </div>
-        <div ng-show="serverGroup.autoscalerStatus !== null">
+        <div ng-show="serverGroup.autoscalerStatus">
           <dt>Min</dt>
           <dd>{{serverGroup.deployDescription.capacity.min}}</dd>
           <dt>Max</dt>
@@ -129,10 +129,10 @@
     </collapsible-section>
     <collapsible-section heading="Horizontal Pod Autoscaling" expanded="true">
       <dl class="dl-horizontal dl-flex">
-        <div ng-show="serverGroup.autoscalerStatus === null">
+        <div ng-show="!serverGroup.autoscalerStatus">
           No autoscaler found.
         </div>
-        <div ng-show="serverGroup.autoscalerStatus !== null">
+        <div ng-show="serverGroup.autoscalerStatus">
           <dt>Desired</dt>
           <dd>{{serverGroup.autoscalerStatus.desiredReplicas}}</dd>
           <dt>Target CPU</dt>

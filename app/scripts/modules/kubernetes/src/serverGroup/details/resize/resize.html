@@ -5,7 +5,7 @@
     <div class="modal-header">
       <h3>Resize {{serverGroup.name}}</h3>
     </div>
-    <div class="modal-body confirmation-modal" ng-if="serverGroup.autoscalerStatus !== null">
+    <div class="modal-body confirmation-modal" ng-if="serverGroup.autoscalerStatus">
       <div class="form-horizontal">
         <div class="form-group form-inline">
           <div class="col-md-3 col-md-offset-3">Min</div>
@@ -86,7 +86,7 @@
       </div>
       <task-reason command="command"></task-reason>
     </div>
-    <div class="modal-body confirmation-modal" ng-if="serverGroup.autoscalerStatus === null">
+    <div class="modal-body confirmation-modal" ng-if="!serverGroup.autoscalerStatus">
       <div class="form-horizontal">
         <div class="form-group form-inline">
           <div class="col-md-3 sm-label-right">
