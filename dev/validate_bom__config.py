@@ -1584,6 +1584,9 @@ class HaConfigurator(Configurator):
         parser, 'ha_clouddriver_redis_slave_endpoint', defaults, None,
         help='The endpoint of the clouddriver Redis slave service')
     add_parser_argument(
+        parser, 'ha_clouddriver_redis_slave_deck_endpoint', defaults, None,
+        help='The endpoint of the clouddriver-ro-deck Redis slave service')
+    add_parser_argument(
         parser, 'ha_echo_enabled', defaults, False, type=bool,
         help='Whether or not to deploy echo in HA mode.')
 
@@ -1607,6 +1610,9 @@ class HaConfigurator(Configurator):
       if options.ha_clouddriver_redis_master_endpoint is not None:
         ha_clouddriver_params.extend(['--redis-master-endpoint',
                                       options.ha_clouddriver_redis_master_endpoint])
+      if options.ha_clouddriver_redis_slave_deck_endpoint is not None:
+        ha_clouddriver_params.extend(['--redis-slave-deck-endpoint',
+                                      options.ha_clouddriver_redis_slave_deck_endpoint])
       if options.ha_clouddriver_redis_slave_endpoint is not None:
         ha_clouddriver_params.extend(['--redis-slave-endpoint',
                                       options.ha_clouddriver_redis_slave_endpoint])
