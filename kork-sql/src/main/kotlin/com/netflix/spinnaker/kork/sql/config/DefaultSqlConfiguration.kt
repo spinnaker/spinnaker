@@ -88,6 +88,16 @@ class DefaultSqlConfiguration {
     }
 
     val targets = properties.connectionPools
+      .filter {
+        if (it.value.jdbcUrl == null) {
+          log.warn(
+            "Skipping creation of connection pool '${it.key}': No jdbcUrl configured, but other config values present"
+          )
+          false
+        } else {
+          true
+        }
+      }
       .map {
         Pair(
           it.key,
