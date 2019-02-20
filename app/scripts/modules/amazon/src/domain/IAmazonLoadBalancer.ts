@@ -78,7 +78,8 @@ export interface IRedirectActionConfig {
 export interface IListenerAction {
   authenticateOidcConfig?: IAuthenticateOidcActionConfig;
   order?: number;
-  redirectActionConfig?: IRedirectActionConfig;
+  redirectActionConfig?: IRedirectActionConfig; // writes
+  redirectConfig?: IRedirectActionConfig; // reads
   targetGroupName?: string;
   type: IListenerActionType;
 }

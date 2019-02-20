@@ -310,6 +310,7 @@ export class AwsLoadBalancerTransformer {
             if (action.targetGroupName) {
               action.targetGroupName = action.targetGroupName.replace(`${applicationName}-`, '');
             }
+            action.redirectActionConfig = action.redirectConfig;
           });
 
           // Remove the default rule because it already exists in defaultActions
@@ -319,6 +320,7 @@ export class AwsLoadBalancerTransformer {
               if (action.targetGroupName) {
                 action.targetGroupName = action.targetGroupName.replace(`${applicationName}-`, '');
               }
+              action.redirectActionConfig = action.redirectConfig;
             });
             rule.conditions = rule.conditions || [];
           });
