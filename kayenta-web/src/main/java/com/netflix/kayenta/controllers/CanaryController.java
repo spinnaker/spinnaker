@@ -187,7 +187,7 @@ public class CanaryController {
       .filter(s -> !StringUtils.isEmpty(s))
       .collect(Collectors.toList());
     ExecutionRepository.ExecutionCriteria executionCriteria = new ExecutionRepository.ExecutionCriteria()
-      .setLimit(limit)
+      .setPageSize(limit)
       .setStatuses(statusesList);
 
     // Users of the ad-hoc endpoint can either omit application or pass 'ad-hoc' explicitly.
