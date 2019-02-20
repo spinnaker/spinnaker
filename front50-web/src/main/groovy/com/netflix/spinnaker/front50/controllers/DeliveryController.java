@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.front50.controllers;
 
+import com.netflix.spinnaker.front50.exception.NotFoundException;
 import com.netflix.spinnaker.front50.exceptions.InvalidRequestException;
 import com.netflix.spinnaker.front50.model.delivery.Delivery;
 import com.netflix.spinnaker.front50.model.delivery.DeliveryRepository;
@@ -61,6 +62,13 @@ public class DeliveryController {
     if (!id.equals(config.getId())){
       throw new InvalidRequestException("URL id (" + id + ") does not match submitted id (" + config.getId() + ")");
     }
+    try {
+      Delivery existing = deliveryRepository.findById(id);
+      config.setCreateTs(existing.getCreateTs());
+    } catch (NotFoundException e) {
+      // ignore because we will create config
+    }
+
     return deliveryRepository.upsertConfig(config);
   }
 
