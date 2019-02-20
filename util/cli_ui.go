@@ -20,6 +20,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/mitchellh/cli"
 	"github.com/mitchellh/colorstring"
@@ -103,8 +104,15 @@ func (u *ColorizeUi) JsonOutput(input interface{}, outputFormat *output.OutputFo
 		if err != nil {
 			u.Error(fmt.Sprintf("%v", err))
 		}
-		u.Output(u.colorize(string(prettyStr), u.OutputColor))
+		// unquote since go quotes the string if the bytes is a string.
+		u.Output(u.colorize(u.unquote(string(prettyStr)), u.OutputColor))
 	}
+}
+
+func (u *ColorizeUi) unquote(input string) string {
+	input = strings.TrimPrefix(input, "\"")
+	input = strings.TrimSuffix(input, "\"")
+	return input
 }
 
 // parseJsonPath finds the values specified in the input data as specified with the template.

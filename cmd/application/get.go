@@ -15,7 +15,6 @@
 package application
 
 import (
-	"errors"
 	"fmt"
 	"github.com/spinnaker/spin/util"
 	"net/http"
@@ -63,10 +62,12 @@ func getApplication(cmd *cobra.Command, options GetOptions, args []string) error
 	if err != nil {
 		return err
 	}
-	if len(args) == 0 || args[0] == "" {
-		return errors.New("application name required")
+
+	applicationName, err := util.ReadArgsOrStdin(args)
+	if err != nil {
+		return err
 	}
-	applicationName := args[0]
+
 	app, resp, err := gateClient.ApplicationControllerApi.GetApplicationUsingGET(gateClient.Context, applicationName, map[string]interface{}{"expand": options.expand})
 	if resp != nil {
 		if resp.StatusCode == http.StatusNotFound {

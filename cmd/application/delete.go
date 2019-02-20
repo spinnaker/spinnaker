@@ -15,7 +15,6 @@
 package application
 
 import (
-	"errors"
 	"fmt"
 	"github.com/spinnaker/spin/cmd/orca-tasks"
 	"net/http"
@@ -53,10 +52,10 @@ func deleteApplication(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	if len(args) == 0 || args[0] == "" {
-		return errors.New("application name required")
+	applicationName, err := util.ReadArgsOrStdin(args)
+	if err != nil {
+		return err
 	}
-	applicationName := args[0]
 
 	appSpec := map[string]interface{}{
 		"type": "deleteApplication",

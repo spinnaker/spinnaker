@@ -2,6 +2,7 @@ package pipeline
 
 import (
 	"github.com/spf13/cobra"
+	"github.com/spinnaker/spin/cmd/pipeline/execution"
 	"io"
 )
 
@@ -29,5 +30,6 @@ func NewPipelineCmd(out io.Writer) *cobra.Command {
 	cmd.AddCommand(NewDeleteCmd(options))
 	cmd.AddCommand(NewSaveCmd(options))
 	cmd.AddCommand(NewExecuteCmd(options))
+	cmd.AddCommand(execution.NewExecutionCmd(out))
 	return cmd
 }
