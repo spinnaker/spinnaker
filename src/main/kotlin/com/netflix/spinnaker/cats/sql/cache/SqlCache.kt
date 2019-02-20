@@ -54,12 +54,6 @@ class SqlCache(
     private val cleanRegexp = """\.+\*""".toRegex()
     private val typeSanitization = """[:/\-]""".toRegex()
 
-    // TODO: this may be incorrect for !aws and definitely shouldn't be a hand maintained list here
-    private val typesWithoutFwdRelationships = setOf<String>(
-      CLUSTERS.ns, CERTIFICATES.ns, NAMED_IMAGES.ns, RESERVATION_REPORTS.ns, RESERVED_INSTANCES.ns,
-      "elasticIps", "instanceTypes", "keyPairs", "securityGroups", "subnets", "taggedImage"
-    )
-
     private val log = LoggerFactory.getLogger(SqlCache::class.java)
   }
 
@@ -168,7 +162,7 @@ class SqlCache(
   override fun getAll(type: String, cacheFilter: CacheFilter?): MutableCollection<CacheData> {
     val relationshipPrefixes = getRelationshipFilterPrefixes(cacheFilter)
 
-    val result = if (relationshipPrefixes.isEmpty() || typesWithoutFwdRelationships.contains(type)) {
+    val result = if (relationshipPrefixes.isEmpty()) {
       getDataWithoutRelationships(type)
     } else {
       getDataWithRelationships(type, relationshipPrefixes)
@@ -216,7 +210,7 @@ class SqlCache(
 
     val relationshipPrefixes = getRelationshipFilterPrefixes(cacheFilter)
 
-    val result = if (relationshipPrefixes.isEmpty() || typesWithoutFwdRelationships.contains(type)) {
+    val result = if (relationshipPrefixes.isEmpty()) {
       getDataWithoutRelationships(type, ids)
     } else {
       getDataWithRelationships(type, ids, relationshipPrefixes)
