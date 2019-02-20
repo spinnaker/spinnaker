@@ -41,6 +41,8 @@ public class SamlConfig {
   String redirectHostname;
   String redirectBasePath;
 
+  Saml.UserAttributeMapping userAttributeMapping;
+
   public SamlConfig(Security security) {
     if (!security.getAuthn().getSaml().isEnabled()) {
       return;
@@ -68,5 +70,7 @@ public class SamlConfig {
     if (StringUtils.isNotEmpty(u.getPath())) {
       this.redirectBasePath = u.getPath();
     }
+
+    this.userAttributeMapping = saml.getUserAttributeMapping();
   }
 }

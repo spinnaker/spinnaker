@@ -44,4 +44,15 @@ public class Saml extends AuthnMethod {
   private String keyStoreAliasName;
 
   private URL serviceAddress;
+
+  private UserAttributeMapping userAttributeMapping = new UserAttributeMapping();
+
+  @Data
+  public static class UserAttributeMapping {
+    private String firstName;
+    private String lastName;
+    private String roles;
+    private String rolesDelimiter;
+    private String username;
+  }
 }

@@ -86,6 +86,36 @@ public class EditSamlCommand extends AbstractEditAuthnMethodCommand<Saml> {
   )
   private URL serviceAddress;
 
+  @Parameter(
+    names = "--user-attribute-mapping-first-name",
+    description = "The first name field returned from your SAML provider."
+  )
+  private String userInfoMappingFirstName;
+
+  @Parameter(
+    names = "--user-attribute-mapping-last-name",
+    description = "The last name field returned from your SAML provider."
+  )
+  private String userAttributeMappingLastName;
+
+  @Parameter(
+    names = "--user-attribute-mapping-username",
+    description = "The username field returned from your SAML provider."
+  )
+  private String userAttributeMappingUsername;
+
+  @Parameter(
+    names = "--user-attribute-mapping-roles",
+    description = "The roles field returned from your SAML provider."
+  )
+  private String userAttributeMappingRoles;
+
+  @Parameter(
+    names = "--user-attribute-mapping-roles-delimiter",
+    description = "The roles delimiter field returned from your SAML provider."
+  )
+  private String userAttributeMappingRolesDelimiter;
+
   @Override
   protected AuthnMethod editAuthnMethod(Saml s) {
     s.setIssuerId(isSet(issuerId) ? issuerId : s.getIssuerId());
@@ -103,6 +133,13 @@ public class EditSamlCommand extends AbstractEditAuthnMethodCommand<Saml> {
         s.setMetadataRemote(null);
       }
     }
+
+    Saml.UserAttributeMapping userAttributeMapping = s.getUserAttributeMapping();
+    userAttributeMapping.setFirstName(isSet(userInfoMappingFirstName) ? userInfoMappingFirstName : userAttributeMapping.getFirstName());
+    userAttributeMapping.setLastName(isSet(userAttributeMappingLastName) ? userAttributeMappingLastName : userAttributeMapping.getLastName());
+    userAttributeMapping.setRoles(isSet(userAttributeMappingRoles) ? userAttributeMappingRoles : userAttributeMapping.getRoles());
+    userAttributeMapping.setRolesDelimiter(isSet(userAttributeMappingRolesDelimiter) ? userAttributeMappingRolesDelimiter : userAttributeMapping.getRolesDelimiter());
+    userAttributeMapping.setUsername(isSet(userAttributeMappingUsername) ? userAttributeMappingUsername : userAttributeMapping.getUsername());
 
     return s;
   }
