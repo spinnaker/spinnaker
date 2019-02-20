@@ -34,6 +34,7 @@ import org.springframework.stereotype.Component;
 import retrofit.converter.JacksonConverter;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @Component
 @ConditionalOnProperty("kayenta.remoteJudge.enabled")
@@ -42,18 +43,15 @@ public class RemoteJudge extends CanaryJudge {
 
   private final RetrofitClientFactory retrofitClientFactory;
   private final ObjectMapper kayentaObjectMapper;
-  private final OkHttpClient httpClient;
   private final RemoteService endpoint;
 
   private final String JUDGE_NAME = "RemoteJudge-v1.0";
 
   public RemoteJudge(RetrofitClientFactory retrofitClientFactory,
                      ObjectMapper kayentaObjectMapper,
-                     OkHttpClient httpClient,
                      RemoteJudgeConfigurationProperties config) {
     this.retrofitClientFactory = retrofitClientFactory;
     this.kayentaObjectMapper = kayentaObjectMapper;
-    this.httpClient = httpClient;
     this.endpoint = config.getEndpoint();
 
     log.info("Configured " + JUDGE_NAME + " with base URI " + endpoint.getBaseUrl());
@@ -74,11 +72,15 @@ public class RemoteJudge extends CanaryJudge {
                                  CanaryClassifierThresholdsConfig scoreThresholds,
                                  List<MetricSetPair> metricSetPairList) {
 
+    OkHttpClient okHttpClient = new OkHttpClient();
+    okHttpClient.setConnectTimeout(30, TimeUnit.SECONDS);
+    okHttpClient.setReadTimeout(90, TimeUnit.SECONDS);
+
     RemoteJudgeService remoteJudge = retrofitClientFactory.createClient(
       RemoteJudgeService.class,
       new JacksonConverter(kayentaObjectMapper),
       endpoint,
-      httpClient);
+      okHttpClient);
 
     RemoteJudgeRequest judgeRequest = RemoteJudgeRequest.builder()
       .canaryConfig(canaryConfig)
