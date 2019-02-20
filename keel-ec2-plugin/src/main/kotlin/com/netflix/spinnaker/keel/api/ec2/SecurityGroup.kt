@@ -27,5 +27,5 @@ data class SecurityGroup(
   val vpcName: String?,
   val description: String?,
   // TODO: it's possible this should be a list of other resources that have rules as specs
-  val inboundRules: List<SecurityGroupRule> = emptyList()
+  val inboundRules: Set<SecurityGroupRule> = emptySet()
 )

@@ -19,9 +19,11 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.ec2.CidrSecurityGroupRule
+import com.netflix.spinnaker.keel.api.ec2.PortRange
 import com.netflix.spinnaker.keel.api.ec2.ReferenceSecurityGroupRule
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroup
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupRule
+import com.netflix.spinnaker.keel.api.ec2.SecurityGroupRule.Protocol
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
@@ -132,7 +134,34 @@ class SecurityGroupHandler(
               response.accountName,
               response.region,
               response.vpcId?.let { cloudDriverCache.networkBy(it).name },
-              response.description
+              response.description,
+              response.inboundRules.flatMap { rule ->
+                val ingressGroup = rule.securityGroup
+                val ingressRange = rule.range
+                when {
+                  ingressGroup != null -> rule.portRanges?.map { portRange ->
+                    ReferenceSecurityGroupRule(
+                      Protocol.valueOf(rule.protocol!!.toUpperCase()),
+                      ingressGroup.name,
+                      ingressGroup.accountName,
+                      cloudDriverCache.networkBy(ingressGroup.vpcId!!).name,
+                      portRange.let {
+                        PortRange(it.startPort!!, it.endPort!!)
+                      }
+                    )
+                  } ?: emptyList()
+                  ingressRange != null -> rule.portRanges?.map { portRange ->
+                    CidrSecurityGroupRule(
+                      Protocol.valueOf(rule.protocol!!.toUpperCase()),
+                      portRange.let {
+                        PortRange(it.startPort!!, it.endPort!!)
+                      },
+                      ingressRange.ip + ingressRange.cidr
+                    )
+                  } ?: emptyList()
+                  else -> emptyList()
+                }
+              }.toSet()
             )
           }
       } catch (e: HttpException) {

@@ -95,6 +95,19 @@ internal object SecurityGroupHandlerTests : JUnit5Minutests {
         kind = "ec2.SecurityGroup",
         spec = securityGroup
       )
+
+    fun toCloudDriverFormat(): com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup =
+      com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup(
+        CLOUD_PROVIDER,
+        UUID.randomUUID().toString(),
+        securityGroup.name,
+        securityGroup.description,
+        securityGroup.accountName,
+        securityGroup.region,
+        vpc.id,
+        emptySet(),
+        Moniker(securityGroup.application)
+      )
   }
 
   fun tests() = rootContext<Fixture> {
@@ -137,9 +150,108 @@ internal object SecurityGroupHandlerTests : JUnit5Minutests {
       context("a matching security group exists") {
         before {
           securityGroup.apply {
-            val riverSecurityGroup = com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup(
-              CLOUD_PROVIDER, UUID.randomUUID().toString(), name, description, accountName, region, vpc.id, emptySet(), Moniker(application)
+            whenever(cloudDriverService.getSecurityGroup(
+              accountName,
+              CLOUD_PROVIDER,
+              name,
+              region,
+              vpc.id
+            )) doReturn CompletableDeferred(toCloudDriverFormat())
+          }
+        }
+
+        after {
+          reset(cloudDriverService)
+        }
+
+        test("current returns the security group") {
+          val response = handler.current(resource)
+          expectThat(response)
+            .isNotNull()
+            .isEqualTo(securityGroup)
+        }
+      }
+
+      context("a matching security group with ingress rules exists") {
+        deriveFixture {
+          copy(
+            securityGroup = securityGroup.copy(
+              inboundRules = setOf(
+                ReferenceSecurityGroupRule(
+                  protocol = TCP,
+                  account = "test",
+                  name = "otherapp",
+                  vpcName = "vpc0",
+                  portRange = PortRange(
+                    startPort = 443,
+                    endPort = 443
+                  )
+                ),
+                ReferenceSecurityGroupRule(
+                  protocol = TCP,
+                  account = securityGroup.accountName,
+                  name = securityGroup.name,
+                  vpcName = securityGroup.vpcName,
+                  portRange = PortRange(
+                    startPort = 7001,
+                    endPort = 7002
+                  )
+                ),
+                CidrSecurityGroupRule(
+                  protocol = TCP,
+                  blockRange = "10.0.0.0/16",
+                  portRange = PortRange(
+                    startPort = 443,
+                    endPort = 443
+                  )
+                )
+              )
             )
+          )
+        }
+
+        before {
+          val riverSecurityGroup = com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup(
+            CLOUD_PROVIDER,
+            UUID.randomUUID().toString(),
+            securityGroup.name,
+            securityGroup.description,
+            securityGroup.accountName,
+            securityGroup.region,
+            vpc.id,
+            setOf(
+              com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup.SecurityGroupRule(
+                "tcp",
+                listOf(com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup.SecurityGroupRulePortRange(7001, 7002)),
+                com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup.SecurityGroupRuleReference(
+                  securityGroup.name,
+                  vpc.account,
+                  vpc.region,
+                  vpc.id
+                ),
+                null
+              ),
+              com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup.SecurityGroupRule(
+                "tcp",
+                listOf(com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup.SecurityGroupRulePortRange(443, 443)),
+                com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup.SecurityGroupRuleReference(
+                  "otherapp",
+                  "test",
+                  vpc.region,
+                  vpc.id
+                ),
+                null
+              ),
+              com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup.SecurityGroupRule(
+                "tcp",
+                listOf(com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup.SecurityGroupRulePortRange(443, 443)),
+                null,
+                com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup.SecurityGroupRuleCidr("10.0.0.0", "/16")
+              )
+            ),
+            Moniker(securityGroup.application)
+          )
+          securityGroup.apply {
             whenever(cloudDriverService.getSecurityGroup(
               accountName,
               CLOUD_PROVIDER,
@@ -154,12 +266,12 @@ internal object SecurityGroupHandlerTests : JUnit5Minutests {
           reset(cloudDriverService)
         }
 
-        test("current returns the security group") {
+        test("rules are attached to the current security group") {
           val response = handler.current(resource)
-
           expectThat(response)
             .isNotNull()
-            .isEqualTo(securityGroup)
+            .get { inboundRules }
+            .hasSize(securityGroup.inboundRules.size)
         }
       }
     }
@@ -197,7 +309,7 @@ internal object SecurityGroupHandlerTests : JUnit5Minutests {
         deriveFixture {
           copy(
             securityGroup = securityGroup.copy(
-              inboundRules = listOf(
+              inboundRules = setOf(
                 ReferenceSecurityGroupRule(
                   protocol = TCP,
                   account = "test",
@@ -250,7 +362,7 @@ internal object SecurityGroupHandlerTests : JUnit5Minutests {
         deriveFixture {
           copy(
             securityGroup = securityGroup.copy(
-              inboundRules = listOf(
+              inboundRules = setOf(
                 CidrSecurityGroupRule(
                   protocol = TCP,
                   blockRange = "10.0.0.0/16",

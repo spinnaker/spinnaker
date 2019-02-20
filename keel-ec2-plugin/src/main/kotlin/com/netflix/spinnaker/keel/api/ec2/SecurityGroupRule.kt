@@ -23,7 +23,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id
 
-@JsonTypeInfo(use = Id.NAME, include = As.PROPERTY)
+@JsonTypeInfo(use = Id.NAME, include = As.PROPERTY, property = "type")
 @JsonSubTypes(
   Type(value = ReferenceSecurityGroupRule::class, name = "Reference"),
   Type(value = CidrSecurityGroupRule::class, name = "Cidr")
