@@ -19,23 +19,14 @@ package com.netflix.spinnaker.front50.redis
 import com.netflix.spinnaker.front50.exception.NotFoundException
 import com.netflix.spinnaker.front50.model.pipeline.Pipeline
 import com.netflix.spinnaker.front50.pipeline.PipelineDAOSpec
+import com.netflix.spinnaker.front50.redis.config.EmbeddedRedisConfig
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Import
-import org.springframework.data.redis.connection.RedisConnectionFactory
-import org.springframework.test.context.ContextConfiguration
-import org.springframework.test.context.web.WebAppConfiguration
-import spock.lang.IgnoreIf
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.test.context.TestPropertySource
 
-@IgnoreIf({ RedisTestHelper.redisUnavailable() })
-@WebAppConfiguration
-@ContextConfiguration(classes = [RedisSetup])
+@SpringBootTest(classes = [RedisConfig, EmbeddedRedisConfig])
+@TestPropertySource(properties = ["spinnaker.redis.enabled = true"])
 class RedisPipelineDAOSpec extends PipelineDAOSpec<RedisPipelineDAO> {
-
-  @Configuration
-  @Import(RedisConfig)
-  static class RedisSetup {}
-
   @Autowired
   RedisPipelineDAO redisPipelineDAO
 
@@ -44,11 +35,7 @@ class RedisPipelineDAOSpec extends PipelineDAOSpec<RedisPipelineDAO> {
     return redisPipelineDAO
   }
 
-  void setupSpec() {
-    System.setProperty('spinnaker.redis.enabled', 'true')
-  }
-
-  void setup() {
+  void cleanup() {
     deleteAll()
   }
 
@@ -133,21 +120,6 @@ class RedisPipelineDAOSpec extends PipelineDAOSpec<RedisPipelineDAO> {
     redisPipelineDAO.healthy == true
   }
 
-  def "should report failing redis connection as not healthy"() {
-    given:
-    redisPipelineDAO.redisTemplate.connectionFactory = Mock(RedisConnectionFactory)
-
-    when:
-    def healthy = redisPipelineDAO.healthy
-
-    then:
-    healthy == false
-
-    1 * redisPipelineDAO.redisTemplate.connectionFactory.getConnection() >> {
-      throw new RuntimeException('Failed')
-    }
-    0 * redisPipelineDAO.redisTemplate.connectionFactory._
-  }
 
   void deleteAll() {
     redisPipelineDAO.redisTemplate.delete(RedisPipelineDAO.BOOK_KEEPING_KEY)

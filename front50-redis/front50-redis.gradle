@@ -24,4 +24,5 @@ dependencies {
   compile 'redis.clients:jedis:2.8.1'
 
   testCompile project(":front50-test")
+  testCompile spinnaker.dependency('korkJedisTest')
 }

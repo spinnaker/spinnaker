@@ -15,36 +15,22 @@
  */
 
 package com.netflix.spinnaker.front50.redis
+
 import com.netflix.spinnaker.front50.exception.NotFoundException
 import com.netflix.spinnaker.front50.model.project.Project
+import com.netflix.spinnaker.front50.redis.config.EmbeddedRedisConfig
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Import
-import org.springframework.data.redis.connection.RedisConnectionFactory
-import org.springframework.test.context.ContextConfiguration
-import org.springframework.test.context.web.WebAppConfiguration
-import spock.lang.IgnoreIf
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.test.context.TestPropertySource
 import spock.lang.Specification
 
-@IgnoreIf({ RedisTestHelper.redisUnavailable() })
-@WebAppConfiguration
-@ContextConfiguration(classes = [RedisSetup])
+@SpringBootTest(classes = [RedisConfig, EmbeddedRedisConfig])
+@TestPropertySource(properties = ["spinnaker.redis.enabled = true"])
 class RedisProjectDAOSpec extends Specification {
-
-  @Configuration
-  @Import(RedisConfig)
-  static class RedisSetup {
-
-  }
-
   @Autowired
   RedisProjectDAO redisProjectDAO
 
-  void setupSpec() {
-    System.setProperty('spinnaker.redis.enabled', 'true')
-  }
-
-  void setup() {
+  void cleanup() {
     deleteAll()
   }
 
@@ -130,20 +116,6 @@ class RedisProjectDAOSpec extends Specification {
 
     then:
     thrown(NotFoundException)
-  }
-
-  def "should report failing redis connection as not healthy"() {
-    given:
-    redisProjectDAO.redisTemplate.connectionFactory = Mock(RedisConnectionFactory)
-
-    when:
-    def healthy = redisProjectDAO.healthy
-
-    then:
-    healthy == false
-
-    1 * redisProjectDAO.redisTemplate.connectionFactory.getConnection() >> { throw new RuntimeException('Failed') }
-    0 * redisProjectDAO.redisTemplate.connectionFactory._
   }
 
   void deleteAll() {

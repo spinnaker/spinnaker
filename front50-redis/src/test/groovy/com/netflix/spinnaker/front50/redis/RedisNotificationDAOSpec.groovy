@@ -18,33 +18,19 @@ package com.netflix.spinnaker.front50.redis
 
 import com.netflix.spinnaker.front50.model.notification.HierarchicalLevel
 import com.netflix.spinnaker.front50.model.notification.Notification
+import com.netflix.spinnaker.front50.redis.config.EmbeddedRedisConfig
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Import
-import org.springframework.test.context.ContextConfiguration
-import org.springframework.test.context.web.WebAppConfiguration
-import spock.lang.IgnoreIf
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.test.context.TestPropertySource
 import spock.lang.Specification
 
-@IgnoreIf({ RedisTestHelper.redisUnavailable() })
-@WebAppConfiguration
-@ContextConfiguration(classes = [RedisSetup])
+@SpringBootTest(classes = [RedisConfig, EmbeddedRedisConfig])
+@TestPropertySource(properties = ["spinnaker.redis.enabled = true"])
 class RedisNotificationDAOSpec extends Specification {
-
-  @Configuration
-  @Import(RedisConfig)
-  static class RedisSetup {
-
-  }
-
   @Autowired
   RedisNotificationDAO redisNotificationDAO
 
-  void setupSpec() {
-    System.setProperty('spinnaker.redis.enabled', 'true')
-  }
-
-  void setup() {
+  void cleanup() {
     deleteAll()
   }
 
@@ -101,5 +87,4 @@ class RedisNotificationDAOSpec extends Specification {
   void deleteAll() {
     redisNotificationDAO.redisTemplate.delete(RedisNotificationDAO.BOOKING_KEEPING_KEY)
   }
-
 }

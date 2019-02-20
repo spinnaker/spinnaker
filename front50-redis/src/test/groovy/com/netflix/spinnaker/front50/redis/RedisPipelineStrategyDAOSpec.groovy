@@ -15,32 +15,20 @@
  */
 
 package com.netflix.spinnaker.front50.redis
+
 import com.netflix.spinnaker.front50.exception.NotFoundException
 import com.netflix.spinnaker.front50.model.pipeline.Pipeline
+import com.netflix.spinnaker.front50.redis.config.EmbeddedRedisConfig
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Import
-import org.springframework.data.redis.connection.RedisConnectionFactory
-import org.springframework.test.context.ContextConfiguration
-import org.springframework.test.context.web.WebAppConfiguration
-import spock.lang.IgnoreIf
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.test.context.TestPropertySource
 import spock.lang.Specification
 
-@IgnoreIf({ RedisTestHelper.redisUnavailable() })
-@WebAppConfiguration
-@ContextConfiguration(classes = [RedisSetup])
+@SpringBootTest(classes = [RedisConfig, EmbeddedRedisConfig])
+@TestPropertySource(properties = ["spinnaker.redis.enabled = true"])
 class RedisPipelineStrategyDAOSpec extends Specification {
-
-  @Configuration
-  @Import(RedisConfig)
-  static class RedisSetup {}
-
   @Autowired
   RedisPipelineStrategyDAO redisPipelineStrategyDAO
-
-  void setupSpec() {
-    System.setProperty('spinnaker.redis.enabled', 'true')
-  }
 
   void setup() {
     deleteAll()
@@ -123,20 +111,6 @@ class RedisPipelineStrategyDAOSpec extends Specification {
 
     expect:
     redisPipelineStrategyDAO.healthy == true
-  }
-
-  def "should report failing redis connection as not healthy"() {
-    given:
-    redisPipelineStrategyDAO.redisTemplate.connectionFactory = Mock(RedisConnectionFactory)
-
-    when:
-    def healthy = redisPipelineStrategyDAO.healthy
-
-    then:
-    healthy == false
-
-    1 * redisPipelineStrategyDAO.redisTemplate.connectionFactory.getConnection() >> { throw new RuntimeException('Failed') }
-    0 * redisPipelineStrategyDAO.redisTemplate.connectionFactory._
   }
 
   void deleteAll() {

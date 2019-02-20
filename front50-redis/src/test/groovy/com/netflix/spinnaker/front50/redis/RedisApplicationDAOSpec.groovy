@@ -18,28 +18,17 @@ package com.netflix.spinnaker.front50.redis
 
 import com.netflix.spinnaker.front50.exception.NotFoundException
 import com.netflix.spinnaker.front50.model.application.Application
+import com.netflix.spinnaker.front50.redis.config.EmbeddedRedisConfig
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Import
-import org.springframework.data.redis.connection.RedisConnectionFactory
-import org.springframework.test.context.ContextConfiguration
-import org.springframework.test.context.web.WebAppConfiguration
-import spock.lang.IgnoreIf
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.test.context.TestPropertySource
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
-@IgnoreIf({ RedisTestHelper.redisUnavailable() })
-@WebAppConfiguration
-@ContextConfiguration(classes = [RedisSetup])
+@SpringBootTest(classes = [RedisConfig, EmbeddedRedisConfig])
+@TestPropertySource(properties = ["spinnaker.redis.enabled = true"])
 class RedisApplicationDAOSpec extends Specification {
-
-  @Configuration
-  @Import(RedisConfig)
-  static class RedisSetup {
-
-  }
-
   @Autowired
   RedisApplicationDAO redisApplicationDAO
 
@@ -49,11 +38,7 @@ class RedisApplicationDAOSpec extends Specification {
       accounts: "prod,test", repoProjectKey: "project-key", repoSlug: "repo", repoType: "github", trafficGuards: []
   ]
 
-  void setupSpec() {
-    System.setProperty('spinnaker.redis.enabled', 'true')
-  }
-
-  void setup() {
+  void cleanup() {
     deleteAll()
   }
 
@@ -285,25 +270,7 @@ class RedisApplicationDAOSpec extends Specification {
     thrown(NotFoundException)
   }
 
-  def "should report failing redis connection as not healthy"() {
-    given:
-    redisApplicationDAO.redisTemplate.connectionFactory = Mock(RedisConnectionFactory)
-
-    when:
-    def healthy = redisApplicationDAO.healthy
-
-    then:
-    healthy == false
-
-    0 * redisApplicationDAO.redisTemplate._
-
-    1 * redisApplicationDAO.redisTemplate.connectionFactory.getConnection() >> { throw new RuntimeException('Failed') }
-    0 * redisApplicationDAO.redisTemplate.connectionFactory
-  }
-
   void deleteAll() {
     redisApplicationDAO.redisTemplate.delete(RedisApplicationDAO.BOOK_KEEPING_KEY)
   }
-
-
 }
