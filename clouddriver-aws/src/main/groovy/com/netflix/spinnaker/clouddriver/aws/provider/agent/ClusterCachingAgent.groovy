@@ -68,9 +68,9 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
   private static final TypeReference<Map<String, Object>> ATTRIBUTES = new TypeReference<Map<String, Object>>() {}
 
   static final Set<AgentDataType> types = Collections.unmodifiableSet([
+    AUTHORITATIVE.forType(CLUSTERS.ns),
     AUTHORITATIVE.forType(SERVER_GROUPS.ns),
     AUTHORITATIVE.forType(APPLICATIONS.ns),
-    INFORMATIVE.forType(CLUSTERS.ns),
     INFORMATIVE.forType(LOAD_BALANCERS.ns),
     INFORMATIVE.forType(TARGET_GROUPS.ns),
     INFORMATIVE.forType(LAUNCH_CONFIGS.ns),

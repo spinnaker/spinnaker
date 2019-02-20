@@ -41,7 +41,6 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
-import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.IMAGES
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.NAMED_IMAGES
 
@@ -53,7 +52,7 @@ class ImageCachingAgent implements CachingAgent, AccountAware, DriftMetric, Cust
 
   final Set<AgentDataType> types = Collections.unmodifiableSet([
     AUTHORITATIVE.forType(IMAGES.ns),
-    INFORMATIVE.forType(NAMED_IMAGES.ns)
+    AUTHORITATIVE.forType(NAMED_IMAGES.ns)
   ] as Set)
 
   final AmazonClientProvider amazonClientProvider
