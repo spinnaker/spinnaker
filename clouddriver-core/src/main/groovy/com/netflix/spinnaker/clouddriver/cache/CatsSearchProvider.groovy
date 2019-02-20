@@ -226,7 +226,7 @@ class CatsSearchProvider implements SearchProvider, Runnable {
 
   private List<String> findMatches(String q, List<String> cachesToQuery, Map<String, String> filters) {
 
-    if (!q && keyParsers) {
+    if (!q && keyParsers && filters) {
       // no keyword search so find sensible default value to set for searching
       Set<String> filterKeys = filters.keySet()
       keyParsers.find {
