@@ -74,7 +74,7 @@ class ElasticSearchEntityTagsProviderSpec extends Specification {
 
     elasticSearchConfigProperties = new ElasticSearchConfigProperties(
       activeIndex: "tags_v1",
-      connection: "http://localhost:9200"
+      connection: getConnectionString(node)
     )
     def config = new ElasticSearchConfig()
     jestClient = config.jestClient(elasticSearchConfigProperties)
@@ -343,5 +343,13 @@ class ElasticSearchEntityTagsProviderSpec extends Specification {
         entityId: idSplit[2]
       )
     )
+  }
+
+  // The Node object does not store its connection string, so we need to make a request to the cluster
+  // to get it using the Node's client.
+  private static String getConnectionString(Node node) {
+    def nodeName = node.settings().get("name")
+    def nodeInfoResponse = node.client().admin().cluster().prepareNodesInfo(nodeName).execute().get()
+    return "http://" + nodeInfoResponse[0].serviceAttributes.http_address
   }
 }
