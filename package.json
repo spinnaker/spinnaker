@@ -133,7 +133,6 @@
     "autoprefixer": "^7.1.2",
     "babel-core": "^6.21.1",
     "babel-loader": "^7.1.5",
-    "babel-plugin-angularjs-annotate": "0.10.0",
     "cache-loader": "2.0.1",
     "copy-webpack-plugin": "4.6.0",
     "css-loader": "2.1.0",
