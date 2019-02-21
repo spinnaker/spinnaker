@@ -85,7 +85,18 @@ export class EcsServerGroupConfigurationService {
   // private terminationPolicies = ['OldestInstance', 'NewestInstance', 'OldestLaunchConfiguration', 'ClosestToNextInstanceHour', 'Default'];
   private launchTypes = ['EC2', 'FARGATE'];
 
-  public static $inject = ['$q', 'cacheInitializer', 'loadBalancerReader', 'serverGroupCommandRegistry', 'iamRoleReader', 'ecsClusterReader', 'metricAlarmReader', 'placementStrategyService', 'securityGroupReader', 'secretReader'];
+  public static $inject = [
+    '$q',
+    'cacheInitializer',
+    'loadBalancerReader',
+    'serverGroupCommandRegistry',
+    'iamRoleReader',
+    'ecsClusterReader',
+    'metricAlarmReader',
+    'placementStrategyService',
+    'securityGroupReader',
+    'secretReader',
+  ];
   constructor(
     private $q: IQService,
     private cacheInitializer: CacheInitializerService,

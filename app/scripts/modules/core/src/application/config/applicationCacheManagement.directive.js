@@ -25,39 +25,43 @@ module.exports = angular
       controllerAs: 'vm',
     };
   })
-  .controller('ApplicationCacheManagementCtrl', ['$log', 'cacheInitializer', function($log, cacheInitializer) {
-    this.refreshCaches = () => {
-      this.clearingCaches = true;
-      cacheInitializer.refreshCaches().then(
-        () => {
-          this.clearingCaches = false;
-        },
-        e => {
-          $log.error('Error refreshing caches:', e);
-          this.clearingCaches = false;
-        },
-      );
-    };
+  .controller('ApplicationCacheManagementCtrl', [
+    '$log',
+    'cacheInitializer',
+    function($log, cacheInitializer) {
+      this.refreshCaches = () => {
+        this.clearingCaches = true;
+        cacheInitializer.refreshCaches().then(
+          () => {
+            this.clearingCaches = false;
+          },
+          e => {
+            $log.error('Error refreshing caches:', e);
+            this.clearingCaches = false;
+          },
+        );
+      };
 
-    this.hasCache = cache => {
-      return InfrastructureCaches.get(cache) !== undefined;
-    };
+      this.hasCache = cache => {
+        return InfrastructureCaches.get(cache) !== undefined;
+      };
 
-    this.getCacheInfo = cache => {
-      return InfrastructureCaches.get(cache).getStats();
-    };
+      this.getCacheInfo = cache => {
+        return InfrastructureCaches.get(cache).getStats();
+      };
 
-    this.refreshCache = function(key) {
-      this.clearingCache = this.clearingCache || {};
-      this.clearingCache[key] = true;
-      cacheInitializer.refreshCache(key).then(
-        () => {
-          this.clearingCache[key] = false;
-        },
-        e => {
-          $log.error('Error refreshing caches:', e);
-          this.clearingCaches = false;
-        },
-      );
-    };
-  }]);
+      this.refreshCache = function(key) {
+        this.clearingCache = this.clearingCache || {};
+        this.clearingCache[key] = true;
+        cacheInitializer.refreshCache(key).then(
+          () => {
+            this.clearingCache[key] = false;
+          },
+          e => {
+            $log.error('Error refreshing caches:', e);
+            this.clearingCaches = false;
+          },
+        );
+      };
+    },
+  ]);

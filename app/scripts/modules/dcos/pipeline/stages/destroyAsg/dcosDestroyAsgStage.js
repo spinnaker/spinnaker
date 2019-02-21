@@ -26,32 +26,35 @@ module.exports = angular
       ],
     });
   })
-  .controller('dcosDestroyAsgStageCtrl', ['$scope', function($scope) {
-    let stage = $scope.stage;
+  .controller('dcosDestroyAsgStageCtrl', [
+    '$scope',
+    function($scope) {
+      let stage = $scope.stage;
 
-    $scope.state = {
-      accounts: false,
-      regionsLoaded: false,
-    };
+      $scope.state = {
+        accounts: false,
+        regionsLoaded: false,
+      };
 
-    AccountService.listAccounts('dcos').then(function(accounts) {
-      $scope.accounts = accounts;
-      $scope.state.accounts = true;
-    });
+      AccountService.listAccounts('dcos').then(function(accounts) {
+        $scope.accounts = accounts;
+        $scope.state.accounts = true;
+      });
 
-    $scope.targets = StageConstants.TARGET_LIST;
+      $scope.targets = StageConstants.TARGET_LIST;
 
-    stage.regions = stage.regions || [];
-    stage.cloudProvider = 'dcos';
+      stage.regions = stage.regions || [];
+      stage.cloudProvider = 'dcos';
 
-    if (!stage.credentials && $scope.application.defaultCredentials.dcos) {
-      stage.credentials = $scope.application.defaultCredentials.dcos;
-    }
-    if (!stage.regions.length && $scope.application.defaultRegions.dcos) {
-      stage.regions.push($scope.application.defaultRegions.dcos);
-    }
+      if (!stage.credentials && $scope.application.defaultCredentials.dcos) {
+        stage.credentials = $scope.application.defaultCredentials.dcos;
+      }
+      if (!stage.regions.length && $scope.application.defaultRegions.dcos) {
+        stage.regions.push($scope.application.defaultRegions.dcos);
+      }
 
-    if (!stage.target) {
-      stage.target = $scope.targets[0].val;
-    }
-  }]);
+      if (!stage.target) {
+        stage.target = $scope.targets[0].val;
+      }
+    },
+  ]);

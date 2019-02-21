@@ -16,29 +16,33 @@ module.exports = angular
     bindings: {
       application: '=',
     },
-    controller: ['$state', 'confirmationModalService', function($state, confirmationModalService) {
-      if (this.application.notFound) {
-        return;
-      }
+    controller: [
+      '$state',
+      'confirmationModalService',
+      function($state, confirmationModalService) {
+        if (this.application.notFound) {
+          return;
+        }
 
-      this.takeSnapshot = () => {
-        var submitMethod = () => {
-          return SnapshotWriter.takeSnapshot(this.application.attributes);
+        this.takeSnapshot = () => {
+          var submitMethod = () => {
+            return SnapshotWriter.takeSnapshot(this.application.attributes);
+          };
+
+          var taskMonitor = {
+            application: this.application,
+            title: 'Taking snapshot of ' + this.application.name,
+            hasKatoTask: true,
+          };
+
+          confirmationModalService.confirm({
+            header: 'Are you sure you want to take a snapshot of: ' + this.application.name + '?',
+            buttonText: 'Take snapshot',
+            provider: 'gce',
+            taskMonitorConfig: taskMonitor,
+            submitMethod: submitMethod,
+          });
         };
-
-        var taskMonitor = {
-          application: this.application,
-          title: 'Taking snapshot of ' + this.application.name,
-          hasKatoTask: true,
-        };
-
-        confirmationModalService.confirm({
-          header: 'Are you sure you want to take a snapshot of: ' + this.application.name + '?',
-          buttonText: 'Take snapshot',
-          provider: 'gce',
-          taskMonitorConfig: taskMonitor,
-          submitMethod: submitMethod,
-        });
-      };
-    }],
+      },
+    ],
   });

@@ -28,7 +28,13 @@ class DeleteLoadBalancerModalController implements IController {
   public params: Params = new Params();
   public taskMonitor: any;
 
-  public static $inject = ['application', 'gceHttpLoadBalancerUtils', 'gceHttpLoadBalancerWriter', 'loadBalancer', '$uibModalInstance'];
+  public static $inject = [
+    'application',
+    'gceHttpLoadBalancerUtils',
+    'gceHttpLoadBalancerWriter',
+    'loadBalancer',
+    '$uibModalInstance',
+  ];
   constructor(
     private application: Application,
     private gceHttpLoadBalancerUtils: GceHttpLoadBalancerUtils,

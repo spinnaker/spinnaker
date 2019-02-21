@@ -12,9 +12,12 @@ module.exports = angular
       regions: '=',
     },
     templateUrl: require('./regionFilter.component.html'),
-    controller: ['regionFilterService', function(regionFilterService) {
-      this.clearFilter = regionFilterService.clearFilter;
-      this.toggleRegion = regionFilterService.toggleRegion;
-      this.sortFilter = regionFilterService.sortFilter;
-    }],
+    controller: [
+      'regionFilterService',
+      function(regionFilterService) {
+        this.clearFilter = regionFilterService.clearFilter;
+        this.toggleRegion = regionFilterService.toggleRegion;
+        this.sortFilter = regionFilterService.sortFilter;
+      },
+    ],
   });

@@ -9,22 +9,28 @@ module.exports = angular
     require('@uirouter/angularjs').default,
     require('angular-ui-bootstrap'),
   ])
-  .controller('ecsServerGroupBasicSettingsCtrl', ['$scope', '$controller', '$uibModalStack', '$state', function($scope, $controller, $uibModalStack, $state) {
-    angular.extend(
-      this,
-      $controller('BasicSettingsMixin', {
-        $scope: $scope,
-        $uibModalStack: $uibModalStack,
-        $state: $state,
-      }),
-    );
+  .controller('ecsServerGroupBasicSettingsCtrl', [
+    '$scope',
+    '$controller',
+    '$uibModalStack',
+    '$state',
+    function($scope, $controller, $uibModalStack, $state) {
+      angular.extend(
+        this,
+        $controller('BasicSettingsMixin', {
+          $scope: $scope,
+          $uibModalStack: $uibModalStack,
+          $state: $state,
+        }),
+      );
 
-    $scope.$watch('form.$valid', function(newVal) {
-      if (newVal) {
-        ModalWizard.markClean('location');
-        ModalWizard.markComplete('location');
-      } else {
-        ModalWizard.markIncomplete('location');
-      }
-    });
-  }]);
+      $scope.$watch('form.$valid', function(newVal) {
+        if (newVal) {
+          ModalWizard.markClean('location');
+          ModalWizard.markComplete('location');
+        } else {
+          ModalWizard.markIncomplete('location');
+        }
+      });
+    },
+  ]);

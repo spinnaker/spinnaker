@@ -19,56 +19,59 @@ module.exports = angular
       ],
     });
   })
-  .controller('titusFindAmiStageCtrl', ['$scope', function($scope) {
-    let stage = $scope.stage;
+  .controller('titusFindAmiStageCtrl', [
+    '$scope',
+    function($scope) {
+      let stage = $scope.stage;
 
-    $scope.state = {
-      accounts: false,
-      regionsLoaded: false,
-    };
+      $scope.state = {
+        accounts: false,
+        regionsLoaded: false,
+      };
 
-    AccountService.listAccounts('titus').then(function(accounts) {
-      $scope.accounts = accounts;
-      $scope.state.accounts = true;
-    });
+      AccountService.listAccounts('titus').then(function(accounts) {
+        $scope.accounts = accounts;
+        $scope.state.accounts = true;
+      });
 
-    $scope.selectionStrategies = [
-      {
-        label: 'Largest',
-        val: 'LARGEST',
-        description: 'When multiple server groups exist, prefer the server group with the most instances',
-      },
-      {
-        label: 'Newest',
-        val: 'NEWEST',
-        description: 'When multiple server groups exist, prefer the newest',
-      },
-      {
-        label: 'Oldest',
-        val: 'OLDEST',
-        description: 'When multiple server groups exist, prefer the oldest',
-      },
-      {
-        label: 'Fail',
-        val: 'FAIL',
-        description: 'When multiple server groups exist, fail',
-      },
-    ];
+      $scope.selectionStrategies = [
+        {
+          label: 'Largest',
+          val: 'LARGEST',
+          description: 'When multiple server groups exist, prefer the server group with the most instances',
+        },
+        {
+          label: 'Newest',
+          val: 'NEWEST',
+          description: 'When multiple server groups exist, prefer the newest',
+        },
+        {
+          label: 'Oldest',
+          val: 'OLDEST',
+          description: 'When multiple server groups exist, prefer the oldest',
+        },
+        {
+          label: 'Fail',
+          val: 'FAIL',
+          description: 'When multiple server groups exist, fail',
+        },
+      ];
 
-    stage.regions = stage.regions || [];
-    stage.cloudProvider = 'titus';
-    stage.selectionStrategy = stage.selectionStrategy || $scope.selectionStrategies[0].val;
+      stage.regions = stage.regions || [];
+      stage.cloudProvider = 'titus';
+      stage.selectionStrategy = stage.selectionStrategy || $scope.selectionStrategies[0].val;
 
-    if (angular.isUndefined(stage.onlyEnabled)) {
-      stage.onlyEnabled = true;
-    }
+      if (angular.isUndefined(stage.onlyEnabled)) {
+        stage.onlyEnabled = true;
+      }
 
-    if (!stage.credentials && $scope.application.defaultCredentials.titus) {
-      stage.credentials = $scope.application.defaultCredentials.titus;
-    }
-    if (!stage.regions.length && $scope.application.defaultRegions.titus) {
-      stage.regions.push($scope.application.defaultRegions.titus);
-    }
+      if (!stage.credentials && $scope.application.defaultCredentials.titus) {
+        stage.credentials = $scope.application.defaultCredentials.titus;
+      }
+      if (!stage.regions.length && $scope.application.defaultRegions.titus) {
+        stage.regions.push($scope.application.defaultRegions.titus);
+      }
 
-    $scope.$watch('stage.credentials', $scope.accountUpdated);
-  }]);
+      $scope.$watch('stage.credentials', $scope.accountUpdated);
+    },
+  ]);

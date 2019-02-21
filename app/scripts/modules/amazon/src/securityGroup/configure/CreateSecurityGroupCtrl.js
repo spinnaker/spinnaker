@@ -9,37 +9,38 @@ module.exports = angular
     require('@uirouter/angularjs').default,
     CACHE_INITIALIZER_SERVICE,
   ])
-  .controller('awsCreateSecurityGroupCtrl', ['$scope', '$uibModalInstance', '$state', '$controller', 'cacheInitializer', 'application', 'securityGroup', function(
-    $scope,
-    $uibModalInstance,
-    $state,
-    $controller,
-    cacheInitializer,
-    application,
-    securityGroup,
-  ) {
-    $scope.pages = {
-      location: require('./createSecurityGroupProperties.html'),
-      ingress: require('./createSecurityGroupIngress.html'),
-    };
+  .controller('awsCreateSecurityGroupCtrl', [
+    '$scope',
+    '$uibModalInstance',
+    '$state',
+    '$controller',
+    'cacheInitializer',
+    'application',
+    'securityGroup',
+    function($scope, $uibModalInstance, $state, $controller, cacheInitializer, application, securityGroup) {
+      $scope.pages = {
+        location: require('./createSecurityGroupProperties.html'),
+        ingress: require('./createSecurityGroupIngress.html'),
+      };
 
-    var ctrl = this;
+      var ctrl = this;
 
-    ctrl.translate = label => FirewallLabels.get(label);
+      ctrl.translate = label => FirewallLabels.get(label);
 
-    angular.extend(
-      this,
-      $controller('awsConfigSecurityGroupMixin', {
-        $scope: $scope,
-        $uibModalInstance: $uibModalInstance,
-        application: application,
-        securityGroup: securityGroup,
-      }),
-    );
+      angular.extend(
+        this,
+        $controller('awsConfigSecurityGroupMixin', {
+          $scope: $scope,
+          $uibModalInstance: $uibModalInstance,
+          application: application,
+          securityGroup: securityGroup,
+        }),
+      );
 
-    $scope.state.isNew = true;
+      $scope.state.isNew = true;
 
-    ctrl.upsert = () => ctrl.mixinUpsert('Create');
+      ctrl.upsert = () => ctrl.mixinUpsert('Create');
 
-    ctrl.initializeSecurityGroups().then(ctrl.initializeAccounts);
-  }]);
+      ctrl.initializeSecurityGroups().then(ctrl.initializeAccounts);
+    },
+  ]);

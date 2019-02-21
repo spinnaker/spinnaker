@@ -2,9 +2,9 @@
 
 let angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.dcos.search.formatter', [])
-  .factory('dcosSearchResultFormatter', ['$q', function($q) {
+module.exports = angular.module('spinnaker.dcos.search.formatter', []).factory('dcosSearchResultFormatter', [
+  '$q',
+  function($q) {
     return {
       instances: function(entry) {
         return $q.when((entry.name || entry.instanceId) + ' (' + entry.namespace + ')');
@@ -16,4 +16,5 @@ module.exports = angular
         return $q.when(entry.name + ' (' + (entry.namespace || entry.region) + ')');
       },
     };
-  }]);
+  },
+]);

@@ -16,10 +16,13 @@ module.exports = angular
       controller: 'RunningTaskTagController',
     };
   })
-  .controller('RunningTaskTagController', ['$scope', function($scope) {
-    $scope.popoverTemplate = require('./runningTasksPopover.html');
-    $scope.popover = { show: false };
-    $scope.runningExecutions = function() {
-      return ($scope.executions || []).filter(e => e.isRunning || e.hasNotStarted);
-    };
-  }]);
+  .controller('RunningTaskTagController', [
+    '$scope',
+    function($scope) {
+      $scope.popoverTemplate = require('./runningTasksPopover.html');
+      $scope.popover = { show: false };
+      $scope.runningExecutions = function() {
+        return ($scope.executions || []).filter(e => e.isRunning || e.hasNotStarted);
+      };
+    },
+  ]);

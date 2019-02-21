@@ -4,9 +4,10 @@ const angular = require('angular');
 
 import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
 
-module.exports = angular
-  .module('spinnaker.core.pipeline.config.actions.lock', [])
-  .controller('LockPipelineModalCtrl', ['$uibModalInstance', 'pipeline', function($uibModalInstance, pipeline) {
+module.exports = angular.module('spinnaker.core.pipeline.config.actions.lock', []).controller('LockPipelineModalCtrl', [
+  '$uibModalInstance',
+  'pipeline',
+  function($uibModalInstance, pipeline) {
     this.viewState = {};
     this.pipelineName = pipeline.name;
     this.cancel = $uibModalInstance.dismiss;
@@ -29,4 +30,5 @@ module.exports = angular
         },
       );
     };
-  }]);
+  },
+]);

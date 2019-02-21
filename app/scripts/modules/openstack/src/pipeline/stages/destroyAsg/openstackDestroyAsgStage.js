@@ -27,32 +27,35 @@ module.exports = angular
       ],
     });
   })
-  .controller('openstackDestroyAsgStageCtrl', ['$scope', function($scope) {
-    let stage = $scope.stage;
+  .controller('openstackDestroyAsgStageCtrl', [
+    '$scope',
+    function($scope) {
+      let stage = $scope.stage;
 
-    $scope.state = {
-      accounts: false,
-      regionsLoaded: false,
-    };
+      $scope.state = {
+        accounts: false,
+        regionsLoaded: false,
+      };
 
-    AccountService.listAccounts('openstack').then(function(accounts) {
-      $scope.accounts = accounts;
-      $scope.state.accounts = true;
-    });
+      AccountService.listAccounts('openstack').then(function(accounts) {
+        $scope.accounts = accounts;
+        $scope.state.accounts = true;
+      });
 
-    $scope.targets = StageConstants.TARGET_LIST;
+      $scope.targets = StageConstants.TARGET_LIST;
 
-    stage.regions = stage.regions || [];
-    stage.cloudProvider = 'openstack';
+      stage.regions = stage.regions || [];
+      stage.cloudProvider = 'openstack';
 
-    if (!stage.credentials && $scope.application.defaultCredentials.openstack) {
-      stage.credentials = $scope.application.defaultCredentials.openstack;
-    }
-    if (!stage.regions.length && $scope.application.defaultRegions.openstack) {
-      stage.regions.push($scope.application.defaultRegions.openstack);
-    }
+      if (!stage.credentials && $scope.application.defaultCredentials.openstack) {
+        stage.credentials = $scope.application.defaultCredentials.openstack;
+      }
+      if (!stage.regions.length && $scope.application.defaultRegions.openstack) {
+        stage.regions.push($scope.application.defaultRegions.openstack);
+      }
 
-    if (!stage.target) {
-      stage.target = $scope.targets[0].val;
-    }
-  }]);
+      if (!stage.target) {
+        stage.target = $scope.targets[0].val;
+      }
+    },
+  ]);

@@ -28,31 +28,34 @@ module.exports = angular
       ],
     });
   })
-  .controller('kubernetesDestroyAsgStageCtrl', ['$scope', function($scope) {
-    let stage = $scope.stage;
+  .controller('kubernetesDestroyAsgStageCtrl', [
+    '$scope',
+    function($scope) {
+      let stage = $scope.stage;
 
-    $scope.state = {
-      accounts: false,
-      namespacesLoaded: false,
-    };
+      $scope.state = {
+        accounts: false,
+        namespacesLoaded: false,
+      };
 
-    AccountService.listAccounts('kubernetes').then(function(accounts) {
-      $scope.accounts = accounts;
-      $scope.state.accounts = true;
-    });
+      AccountService.listAccounts('kubernetes').then(function(accounts) {
+        $scope.accounts = accounts;
+        $scope.state.accounts = true;
+      });
 
-    $scope.targets = StageConstants.TARGET_LIST;
+      $scope.targets = StageConstants.TARGET_LIST;
 
-    stage.namespaces = stage.namespaces || [];
-    stage.cloudProvider = 'kubernetes';
+      stage.namespaces = stage.namespaces || [];
+      stage.cloudProvider = 'kubernetes';
 
-    stage.interestingHealthProviderNames = ['KubernetesService'];
+      stage.interestingHealthProviderNames = ['KubernetesService'];
 
-    if (!stage.credentials && $scope.application.defaultCredentials.kubernetes) {
-      stage.credentials = $scope.application.defaultCredentials.kubernetes;
-    }
+      if (!stage.credentials && $scope.application.defaultCredentials.kubernetes) {
+        stage.credentials = $scope.application.defaultCredentials.kubernetes;
+      }
 
-    if (!stage.target) {
-      stage.target = $scope.targets[0].val;
-    }
-  }]);
+      if (!stage.target) {
+        stage.target = $scope.targets[0].val;
+      }
+    },
+  ]);

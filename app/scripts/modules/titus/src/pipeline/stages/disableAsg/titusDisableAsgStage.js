@@ -26,40 +26,43 @@ module.exports = angular
       ],
     });
   })
-  .controller('titusDisableAsgStageCtrl', ['$scope', function($scope) {
-    let stage = $scope.stage;
+  .controller('titusDisableAsgStageCtrl', [
+    '$scope',
+    function($scope) {
+      let stage = $scope.stage;
 
-    $scope.state = {
-      accounts: false,
-      regionsLoaded: false,
-    };
+      $scope.state = {
+        accounts: false,
+        regionsLoaded: false,
+      };
 
-    AccountService.listAccounts('titus').then(function(accounts) {
-      $scope.accounts = accounts;
-      $scope.state.accounts = true;
-    });
+      AccountService.listAccounts('titus').then(function(accounts) {
+        $scope.accounts = accounts;
+        $scope.state.accounts = true;
+      });
 
-    $scope.targets = StageConstants.TARGET_LIST;
+      $scope.targets = StageConstants.TARGET_LIST;
 
-    stage.regions = stage.regions || [];
-    stage.cloudProvider = 'titus';
+      stage.regions = stage.regions || [];
+      stage.cloudProvider = 'titus';
 
-    if (
-      stage.isNew &&
-      $scope.application.attributes.platformHealthOnlyShowOverride &&
-      $scope.application.attributes.platformHealthOnly
-    ) {
-      stage.interestingHealthProviderNames = ['Titus'];
-    }
+      if (
+        stage.isNew &&
+        $scope.application.attributes.platformHealthOnlyShowOverride &&
+        $scope.application.attributes.platformHealthOnly
+      ) {
+        stage.interestingHealthProviderNames = ['Titus'];
+      }
 
-    if (!stage.credentials && $scope.application.defaultCredentials.titus) {
-      stage.credentials = $scope.application.defaultCredentials.titus;
-    }
-    if (!stage.regions.length && $scope.application.defaultRegions.titus) {
-      stage.regions.push($scope.application.defaultRegions.titus);
-    }
+      if (!stage.credentials && $scope.application.defaultCredentials.titus) {
+        stage.credentials = $scope.application.defaultCredentials.titus;
+      }
+      if (!stage.regions.length && $scope.application.defaultRegions.titus) {
+        stage.regions.push($scope.application.defaultRegions.titus);
+      }
 
-    if (!stage.target) {
-      stage.target = $scope.targets[0].val;
-    }
-  }]);
+      if (!stage.target) {
+        stage.target = $scope.targets[0].val;
+      }
+    },
+  ]);

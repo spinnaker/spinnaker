@@ -21,48 +21,51 @@ module.exports = angular
       ],
     });
   })
-  .controller('OpenstackShrinkClusterStageCtrl', ['$scope', function($scope) {
-    var ctrl = this;
+  .controller('OpenstackShrinkClusterStageCtrl', [
+    '$scope',
+    function($scope) {
+      var ctrl = this;
 
-    let stage = $scope.stage;
+      let stage = $scope.stage;
 
-    $scope.state = {
-      accounts: false,
-      regionsLoaded: false,
-    };
+      $scope.state = {
+        accounts: false,
+        regionsLoaded: false,
+      };
 
-    AccountService.listAccounts('openstack').then(function(accounts) {
-      $scope.accounts = accounts;
-      $scope.state.accounts = true;
-    });
+      AccountService.listAccounts('openstack').then(function(accounts) {
+        $scope.accounts = accounts;
+        $scope.state.accounts = true;
+      });
 
-    stage.regions = stage.regions || [];
-    stage.cloudProvider = 'openstack';
+      stage.regions = stage.regions || [];
+      stage.cloudProvider = 'openstack';
 
-    if (!stage.credentials && $scope.application.defaultCredentials.openstack) {
-      stage.credentials = $scope.application.defaultCredentials.openstack;
-    }
-    if (!stage.regions.length && $scope.application.defaultRegions.openstack) {
-      stage.regions.push($scope.application.defaultRegions.openstack);
-    }
-
-    if (stage.shrinkToSize === undefined) {
-      stage.shrinkToSize = 1;
-    }
-
-    if (stage.allowDeleteActive === undefined) {
-      stage.allowDeleteActive = false;
-    }
-
-    ctrl.pluralize = function(str, val) {
-      if (val === 1) {
-        return str;
+      if (!stage.credentials && $scope.application.defaultCredentials.openstack) {
+        stage.credentials = $scope.application.defaultCredentials.openstack;
       }
-      return str + 's';
-    };
+      if (!stage.regions.length && $scope.application.defaultRegions.openstack) {
+        stage.regions.push($scope.application.defaultRegions.openstack);
+      }
 
-    if (stage.retainLargerOverNewer === undefined) {
-      stage.retainLargerOverNewer = 'false';
-    }
-    stage.retainLargerOverNewer = stage.retainLargerOverNewer.toString();
-  }]);
+      if (stage.shrinkToSize === undefined) {
+        stage.shrinkToSize = 1;
+      }
+
+      if (stage.allowDeleteActive === undefined) {
+        stage.allowDeleteActive = false;
+      }
+
+      ctrl.pluralize = function(str, val) {
+        if (val === 1) {
+          return str;
+        }
+        return str + 's';
+      };
+
+      if (stage.retainLargerOverNewer === undefined) {
+        stage.retainLargerOverNewer = 'false';
+      }
+      stage.retainLargerOverNewer = stage.retainLargerOverNewer.toString();
+    },
+  ]);

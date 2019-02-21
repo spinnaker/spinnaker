@@ -16,6 +16,9 @@ module.exports = angular
     CLUSTER_NAME_FILTER,
     STAGE_COMMON_MODULE,
   ])
-  .run(['deployStageTransformer', function(deployStageTransformer) {
-    Registry.pipeline.registerTransformer(deployStageTransformer);
-  }]);
+  .run([
+    'deployStageTransformer',
+    function(deployStageTransformer) {
+      Registry.pipeline.registerTransformer(deployStageTransformer);
+    },
+  ]);

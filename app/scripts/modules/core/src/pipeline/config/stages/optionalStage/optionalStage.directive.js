@@ -15,18 +15,21 @@ module.exports = angular
       controllerAs: 'optionalStageCtrl',
     };
   })
-  .controller('OptionalStageCtrl', ['$scope', function($scope) {
-    this.isOptional = function() {
-      return $scope.stage && $scope.stage.stageEnabled;
-    };
+  .controller('OptionalStageCtrl', [
+    '$scope',
+    function($scope) {
+      this.isOptional = function() {
+        return $scope.stage && $scope.stage.stageEnabled;
+      };
 
-    this.toggleOptional = function() {
-      if (this.isOptional()) {
-        delete $scope.stage.stageEnabled;
-      } else {
-        $scope.stage.stageEnabled = {
-          type: 'expression',
-        };
-      }
-    };
-  }]);
+      this.toggleOptional = function() {
+        if (this.isOptional()) {
+          delete $scope.stage.stageEnabled;
+        } else {
+          $scope.stage.stageEnabled = {
+            type: 'expression',
+          };
+        }
+      };
+    },
+  ]);

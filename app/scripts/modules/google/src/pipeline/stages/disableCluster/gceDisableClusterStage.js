@@ -23,52 +23,55 @@ module.exports = angular
       ],
     });
   })
-  .controller('gceDisableClusterStageCtrl', ['$scope', function($scope) {
-    const ctrl = this;
+  .controller('gceDisableClusterStageCtrl', [
+    '$scope',
+    function($scope) {
+      const ctrl = this;
 
-    const stage = $scope.stage;
+      const stage = $scope.stage;
 
-    $scope.state = {
-      accounts: false,
-      regionsLoaded: false,
-    };
+      $scope.state = {
+        accounts: false,
+        regionsLoaded: false,
+      };
 
-    AccountService.listAccounts('gce').then(function(accounts) {
-      $scope.accounts = accounts;
-      $scope.state.accounts = true;
-    });
+      AccountService.listAccounts('gce').then(function(accounts) {
+        $scope.accounts = accounts;
+        $scope.state.accounts = true;
+      });
 
-    stage.regions = stage.regions || [];
-    stage.cloudProvider = 'gce';
+      stage.regions = stage.regions || [];
+      stage.cloudProvider = 'gce';
 
-    if (
-      stage.isNew &&
-      $scope.application.attributes.platformHealthOnlyShowOverride &&
-      $scope.application.attributes.platformHealthOnly
-    ) {
-      stage.interestingHealthProviderNames = ['Google'];
-    }
-
-    if (!stage.credentials && $scope.application.defaultCredentials.gce) {
-      stage.credentials = $scope.application.defaultCredentials.gce;
-    }
-    if (!stage.regions.length && $scope.application.defaultRegions.gce) {
-      stage.regions.push($scope.application.defaultRegions.gce);
-    }
-
-    if (stage.remainingEnabledServerGroups === undefined) {
-      stage.remainingEnabledServerGroups = 1;
-    }
-
-    ctrl.pluralize = function(str, val) {
-      if (val === 1) {
-        return str;
+      if (
+        stage.isNew &&
+        $scope.application.attributes.platformHealthOnlyShowOverride &&
+        $scope.application.attributes.platformHealthOnly
+      ) {
+        stage.interestingHealthProviderNames = ['Google'];
       }
-      return str + 's';
-    };
 
-    if (stage.preferLargerOverNewer === undefined) {
-      stage.preferLargerOverNewer = 'false';
-    }
-    stage.preferLargerOverNewer = stage.preferLargerOverNewer.toString();
-  }]);
+      if (!stage.credentials && $scope.application.defaultCredentials.gce) {
+        stage.credentials = $scope.application.defaultCredentials.gce;
+      }
+      if (!stage.regions.length && $scope.application.defaultRegions.gce) {
+        stage.regions.push($scope.application.defaultRegions.gce);
+      }
+
+      if (stage.remainingEnabledServerGroups === undefined) {
+        stage.remainingEnabledServerGroups = 1;
+      }
+
+      ctrl.pluralize = function(str, val) {
+        if (val === 1) {
+          return str;
+        }
+        return str + 's';
+      };
+
+      if (stage.preferLargerOverNewer === undefined) {
+        stage.preferLargerOverNewer = 'false';
+      }
+      stage.preferLargerOverNewer = stage.preferLargerOverNewer.toString();
+    },
+  ]);

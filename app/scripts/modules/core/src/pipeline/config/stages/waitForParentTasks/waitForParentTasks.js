@@ -13,6 +13,9 @@ module.exports = angular
       executionDetailsUrl: require('./waitForParentTasksExecutionDetails.html'),
     });
   })
-  .run(['waitForParentTasksTransformer', function(waitForParentTasksTransformer) {
-    Registry.pipeline.registerTransformer(waitForParentTasksTransformer);
-  }]);
+  .run([
+    'waitForParentTasksTransformer',
+    function(waitForParentTasksTransformer) {
+      Registry.pipeline.registerTransformer(waitForParentTasksTransformer);
+    },
+  ]);

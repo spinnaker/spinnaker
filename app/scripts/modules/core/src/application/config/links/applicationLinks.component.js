@@ -19,97 +19,100 @@ module.exports = angular
       application: '=',
     },
     templateUrl: require('./applicationLinks.component.html'),
-    controller: ['$uibModal', function($uibModal) {
-      let initialize = () => {
-        if (this.application.notFound) {
-          return;
-        }
+    controller: [
+      '$uibModal',
+      function($uibModal) {
+        let initialize = () => {
+          if (this.application.notFound) {
+            return;
+          }
 
-        this.cloudProviders = this.application.attributes.cloudProviders
-          ? this.application.attributes.cloudProviders
-          : [];
+          this.cloudProviders = this.application.attributes.cloudProviders
+            ? this.application.attributes.cloudProviders
+            : [];
 
-        this.sections = _.cloneDeep(
-          this.application.attributes.instanceLinks || SETTINGS.defaultInstanceLinks || [],
-        ).filter(
-          section =>
-            !section.cloudProviders ||
-            section.cloudProviders.length === 0 ||
-            _.intersection(section.cloudProviders, this.cloudProviders).length > 0,
-        );
+          this.sections = _.cloneDeep(
+            this.application.attributes.instanceLinks || SETTINGS.defaultInstanceLinks || [],
+          ).filter(
+            section =>
+              !section.cloudProviders ||
+              section.cloudProviders.length === 0 ||
+              _.intersection(section.cloudProviders, this.cloudProviders).length > 0,
+          );
 
-        this.viewState = {
-          originalSections: _.cloneDeep(this.sections),
-          originalStringVal: JSON.stringify(this.sections),
-          saving: false,
-          saveError: false,
-          isDirty: false,
+          this.viewState = {
+            originalSections: _.cloneDeep(this.sections),
+            originalStringVal: JSON.stringify(this.sections),
+            saving: false,
+            saveError: false,
+            isDirty: false,
+          };
+
+          this.setDefaultLinkState();
         };
 
-        this.setDefaultLinkState();
-      };
+        this.setDefaultLinkState = () => {
+          this.usingDefaultLinks = angular.toJson(this.sections) === angular.toJson(SETTINGS.defaultInstanceLinks);
+          this.defaultLinksConfigured = !!SETTINGS.defaultInstanceLinks;
+        };
 
-      this.setDefaultLinkState = () => {
-        this.usingDefaultLinks = angular.toJson(this.sections) === angular.toJson(SETTINGS.defaultInstanceLinks);
-        this.defaultLinksConfigured = !!SETTINGS.defaultInstanceLinks;
-      };
+        this.revert = initialize;
 
-      this.revert = initialize;
+        this.useDefaultLinks = () => {
+          this.sections = _.cloneDeep(SETTINGS.defaultInstanceLinks);
+          this.configChanged();
+        };
 
-      this.useDefaultLinks = () => {
-        this.sections = _.cloneDeep(SETTINGS.defaultInstanceLinks);
-        this.configChanged();
-      };
+        this.addLink = section => {
+          section.links.push({ title: '', path: '' });
+          this.configChanged();
+        };
 
-      this.addLink = section => {
-        section.links.push({ title: '', path: '' });
-        this.configChanged();
-      };
+        this.removeLink = (section, index) => {
+          section.links.splice(index, 1);
+          this.configChanged();
+        };
 
-      this.removeLink = (section, index) => {
-        section.links.splice(index, 1);
-        this.configChanged();
-      };
+        this.addSection = () => {
+          let section = { title: '', links: [] };
+          this.sections.push(section);
+          this.addLink(section);
+        };
 
-      this.addSection = () => {
-        let section = { title: '', links: [] };
-        this.sections.push(section);
-        this.addLink(section);
-      };
+        this.removeSection = index => {
+          this.sections.splice(index, 1);
+          this.configChanged();
+        };
 
-      this.removeSection = index => {
-        this.sections.splice(index, 1);
-        this.configChanged();
-      };
+        this.configChanged = () => {
+          this.setDefaultLinkState();
+          this.viewState.isDirty = this.viewState.originalStringVal !== JSON.stringify(angular.copy(this.sections));
+        };
 
-      this.configChanged = () => {
-        this.setDefaultLinkState();
-        this.viewState.isDirty = this.viewState.originalStringVal !== JSON.stringify(angular.copy(this.sections));
-      };
+        this.editJson = () => {
+          $uibModal
+            .open({
+              templateUrl: require('./editLinks.modal.html'),
+              controller: 'EditLinksModalCtrl as vm',
+              size: 'lg modal-fullscreen',
+              resolve: {
+                sections: () => this.sections,
+              },
+            })
+            .result.then(newSections => {
+              this.sections = newSections;
+              this.configChanged();
+            })
+            .catch(() => {});
+        };
 
-      this.editJson = () => {
-        $uibModal
-          .open({
-            templateUrl: require('./editLinks.modal.html'),
-            controller: 'EditLinksModalCtrl as vm',
-            size: 'lg modal-fullscreen',
-            resolve: {
-              sections: () => this.sections,
-            },
-          })
-          .result.then(newSections => {
-            this.sections = newSections;
-            this.configChanged();
-          })
-          .catch(() => {});
-      };
+        this.sortOptions = {
+          axis: 'y',
+          delay: 150,
+          stop: () => this.configChanged(),
+        };
 
-      this.sortOptions = {
-        axis: 'y',
-        delay: 150,
-        stop: () => this.configChanged(),
-      };
-
-      this.$onInit = initialize;
-    }],
+        this.$onInit = initialize;
+      },
+    ],
   });

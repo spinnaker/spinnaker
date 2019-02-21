@@ -9,25 +9,26 @@ module.exports = angular
     EXECUTION_DETAILS_SECTION_SERVICE,
     require('@uirouter/angularjs').default,
   ])
-  .controller('oracleBakeExecutionDetailsCtrl', ['$log', '$scope', '$stateParams', 'executionDetailsSectionService', '$interpolate', function(
-    $log,
-    $scope,
-    $stateParams,
-    executionDetailsSectionService,
-    $interpolate,
-  ) {
-    $scope.configSections = ['bakeConfig', 'taskStatus'];
+  .controller('oracleBakeExecutionDetailsCtrl', [
+    '$log',
+    '$scope',
+    '$stateParams',
+    'executionDetailsSectionService',
+    '$interpolate',
+    function($log, $scope, $stateParams, executionDetailsSectionService, $interpolate) {
+      $scope.configSections = ['bakeConfig', 'taskStatus'];
 
-    let initialized = () => {
-      $scope.detailsSection = $stateParams.details;
-      $scope.provider = $scope.stage.context.cloudProviderType || 'oracle';
-      $scope.roscoMode = SETTINGS.feature.roscoMode;
-      $scope.bakeryDetailUrl = $interpolate(SETTINGS.bakeryDetailUrl);
-    };
+      let initialized = () => {
+        $scope.detailsSection = $stateParams.details;
+        $scope.provider = $scope.stage.context.cloudProviderType || 'oracle';
+        $scope.roscoMode = SETTINGS.feature.roscoMode;
+        $scope.bakeryDetailUrl = $interpolate(SETTINGS.bakeryDetailUrl);
+      };
 
-    let initialize = () => executionDetailsSectionService.synchronizeSection($scope.configSections, initialized);
+      let initialize = () => executionDetailsSectionService.synchronizeSection($scope.configSections, initialized);
 
-    initialize();
+      initialize();
 
-    $scope.$on('$stateChangeSuccess', initialize);
-  }]);
+      $scope.$on('$stateChangeSuccess', initialize);
+    },
+  ]);

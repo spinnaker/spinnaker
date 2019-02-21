@@ -35,6 +35,9 @@ module.exports = angular
       validate: validate,
     };
   })
-  .run(['azureApplicationNameValidator', function(azureApplicationNameValidator) {
-    ApplicationNameValidator.registerValidator('azure', azureApplicationNameValidator);
-  }]);
+  .run([
+    'azureApplicationNameValidator',
+    function(azureApplicationNameValidator) {
+      ApplicationNameValidator.registerValidator('azure', azureApplicationNameValidator);
+    },
+  ]);

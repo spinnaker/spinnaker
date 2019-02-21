@@ -4,9 +4,9 @@ import _ from 'lodash';
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.titus.serverGroup.transformer', [])
-  .factory('titusServerGroupTransformer', ['$q', function($q) {
+module.exports = angular.module('spinnaker.titus.serverGroup.transformer', []).factory('titusServerGroupTransformer', [
+  '$q',
+  function($q) {
     function normalizeServerGroup(serverGroup) {
       return $q.when(serverGroup); // no-op
     }
@@ -77,4 +77,5 @@ module.exports = angular
       constructNewStepScalingPolicyTemplate,
       constructNewTargetTrackingPolicyTemplate,
     };
-  }]);
+  },
+]);

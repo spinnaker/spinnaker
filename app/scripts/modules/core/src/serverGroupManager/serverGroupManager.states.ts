@@ -13,8 +13,9 @@ export interface IServerGroupManagerStateParams {
 }
 
 export const SERVER_GROUP_MANAGER_STATES = 'spinnaker.core.serverGroupManager.states';
-module(SERVER_GROUP_MANAGER_STATES, [APPLICATION_STATE_PROVIDER]).config(
-  ['applicationStateProvider', (applicationStateProvider: ApplicationStateProvider) => {
+module(SERVER_GROUP_MANAGER_STATES, [APPLICATION_STATE_PROVIDER]).config([
+  'applicationStateProvider',
+  (applicationStateProvider: ApplicationStateProvider) => {
     const serverGroupManagerDetails: INestedState = {
       name: 'serverGroupManager',
       url: '/serverGroupManagerDetails/:provider/:accountId/:region/:serverGroupManager',
@@ -42,5 +43,5 @@ module(SERVER_GROUP_MANAGER_STATES, [APPLICATION_STATE_PROVIDER]).config(
     };
 
     applicationStateProvider.addInsightDetailState(serverGroupManagerDetails);
-  }],
-);
+  },
+]);

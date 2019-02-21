@@ -19,31 +19,34 @@ module.exports = angular
       controller: 'gceServerGroupAdvancedSettingsSelectorCtrl',
     };
   })
-  .controller('gceServerGroupAdvancedSettingsSelectorCtrl', ['gceTagManager', function(gceTagManager) {
-    this.addTag = () => {
-      this.command.tags.push({});
-    };
+  .controller('gceServerGroupAdvancedSettingsSelectorCtrl', [
+    'gceTagManager',
+    function(gceTagManager) {
+      this.addTag = () => {
+        this.command.tags.push({});
+      };
 
-    this.removeTag = index => {
-      this.command.tags.splice(index, 1);
-      gceTagManager.updateSelectedTags();
-    };
+      this.removeTag = index => {
+        this.command.tags.splice(index, 1);
+        gceTagManager.updateSelectedTags();
+      };
 
-    this.setDisks = disks => {
-      this.command.disks = disks;
-    };
+      this.setDisks = disks => {
+        this.command.disks = disks;
+      };
 
-    this.inferSelectedSecurityGroupFromTag = gceTagManager.inferSelectedSecurityGroupFromTag;
-    this.showToolTip = gceTagManager.showToolTip;
-    this.getToolTipContent = gceTagManager.getToolTipContent;
+      this.inferSelectedSecurityGroupFromTag = gceTagManager.inferSelectedSecurityGroupFromTag;
+      this.showToolTip = gceTagManager.showToolTip;
+      this.getToolTipContent = gceTagManager.getToolTipContent;
 
-    this.setPreemptible = () => {
-      if (this.command.preemptible) {
-        this.command.automaticRestart = false;
-        this.command.onHostMaintenance = 'TERMINATE';
-      } else {
-        this.command.automaticRestart = true;
-        this.command.onHostMaintenance = 'MIGRATE';
-      }
-    };
-  }]);
+      this.setPreemptible = () => {
+        if (this.command.preemptible) {
+          this.command.automaticRestart = false;
+          this.command.onHostMaintenance = 'TERMINATE';
+        } else {
+          this.command.automaticRestart = true;
+          this.command.onHostMaintenance = 'MIGRATE';
+        }
+      };
+    },
+  ]);

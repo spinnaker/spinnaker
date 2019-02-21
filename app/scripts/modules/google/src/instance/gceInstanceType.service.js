@@ -5,9 +5,11 @@ import _ from 'lodash';
 
 import { AccountService, SETTINGS } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.gce.instanceType.service', [])
-  .factory('gceInstanceTypeService', ['$http', '$q', '$log', function($http, $q, $log) {
+module.exports = angular.module('spinnaker.gce.instanceType.service', []).factory('gceInstanceTypeService', [
+  '$http',
+  '$q',
+  '$log',
+  function($http, $q, $log) {
     const cachedResult = null;
 
     const n1standard = {
@@ -339,4 +341,5 @@ module.exports = angular
       getAvailableTypesForLocations: getAvailableTypesForLocations,
       resolveInstanceTypeDetails: resolveInstanceTypeDetails,
     };
-  }]);
+  },
+]);

@@ -22,12 +22,15 @@ module(ACCOUNT_SELECT_COMPONENT, []).component('accountSelectField', {
     onChange: '&',
     readOnly: '=',
   },
-  controller: ['$timeout', function($timeout: ITimeoutService) {
-    this.handleSelectChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
-      $timeout(() => {
-        this.currentValue = this.component[this.field] = event.target.value;
-        this.onChange && this.onChange();
-      });
-    };
-  }],
+  controller: [
+    '$timeout',
+    function($timeout: ITimeoutService) {
+      this.handleSelectChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
+        $timeout(() => {
+          this.currentValue = this.component[this.field] = event.target.value;
+          this.onChange && this.onChange();
+        });
+      };
+    },
+  ],
 });

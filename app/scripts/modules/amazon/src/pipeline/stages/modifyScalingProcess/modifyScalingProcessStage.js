@@ -27,66 +27,70 @@ module.exports = angular
       strategy: true,
     });
   })
-  .controller('ModifyScalingProcessStageCtrl', ['$scope', 'stage', function($scope, stage) {
-    $scope.stage = stage;
+  .controller('ModifyScalingProcessStageCtrl', [
+    '$scope',
+    'stage',
+    function($scope, stage) {
+      $scope.stage = stage;
 
-    $scope.state = {
-      accounts: false,
-      regionsLoaded: false,
-    };
+      $scope.state = {
+        accounts: false,
+        regionsLoaded: false,
+      };
 
-    AccountService.listAccounts('aws').then(function(accounts) {
-      $scope.accounts = accounts;
-      $scope.state.accounts = true;
-    });
+      AccountService.listAccounts('aws').then(function(accounts) {
+        $scope.accounts = accounts;
+        $scope.state.accounts = true;
+      });
 
-    $scope.targets = StageConstants.TARGET_LIST;
+      $scope.targets = StageConstants.TARGET_LIST;
 
-    $scope.actions = [
-      {
-        label: 'Suspend',
-        val: 'suspend',
-      },
-      {
-        label: 'Resume',
-        val: 'resume',
-      },
-    ];
-    $scope.processes = [
-      'Launch',
-      'Terminate',
-      'AddToLoadBalancer',
-      'AlarmNotification',
-      'AZRebalance',
-      'HealthCheck',
-      'ReplaceUnhealthy',
-      'ScheduledActions',
-    ];
+      $scope.actions = [
+        {
+          label: 'Suspend',
+          val: 'suspend',
+        },
+        {
+          label: 'Resume',
+          val: 'resume',
+        },
+      ];
+      $scope.processes = [
+        'Launch',
+        'Terminate',
+        'AddToLoadBalancer',
+        'AlarmNotification',
+        'AZRebalance',
+        'HealthCheck',
+        'ReplaceUnhealthy',
+        'ScheduledActions',
+      ];
 
-    stage.processes = stage.processes || [];
-    stage.regions = stage.regions || [];
-    stage.action = stage.action || $scope.actions[0].val;
-    stage.target = stage.target || $scope.targets[0].val;
-    stage.cloudProvider = 'aws';
+      stage.processes = stage.processes || [];
+      stage.regions = stage.regions || [];
+      stage.action = stage.action || $scope.actions[0].val;
+      stage.target = stage.target || $scope.targets[0].val;
+      stage.cloudProvider = 'aws';
 
-    if (!stage.credentials && $scope.application.defaultCredentials.aws) {
-      stage.credentials = $scope.application.defaultCredentials.aws;
-    }
-    if (!stage.regions.length && $scope.application.defaultRegions.aws) {
-      stage.regions.push($scope.application.defaultRegions.aws);
-    }
-
-    $scope.toggleProcess = function(process) {
-      if (!stage.processes) {
-        stage.processes = [];
+      if (!stage.credentials && $scope.application.defaultCredentials.aws) {
+        stage.credentials = $scope.application.defaultCredentials.aws;
       }
-      var idx = stage.processes.indexOf(process);
-      if (idx > -1) {
-        stage.processes.splice(idx, 1);
-      } else {
-        stage.processes.push(process);
+      if (!stage.regions.length && $scope.application.defaultRegions.aws) {
+        stage.regions.push($scope.application.defaultRegions.aws);
       }
-    };
 
-    $scope.$watch('stage.credentials', $scope.accountUpdated);
-  }]);
+      $scope.toggleProcess = function(process) {
+        if (!stage.processes) {
+          stage.processes = [];
+        }
+        var idx = stage.processes.indexOf(process);
+        if (idx > -1) {
+          stage.processes.splice(idx, 1);
+        } else {
+          stage.processes.push(process);
+        }
+      };
+
+      $scope.$watch('stage.credentials', $scope.accountUpdated);
+    },
+  ]);

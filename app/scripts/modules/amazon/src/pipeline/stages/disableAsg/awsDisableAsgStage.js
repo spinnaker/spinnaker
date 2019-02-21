@@ -26,40 +26,43 @@ module.exports = angular
       ],
     });
   })
-  .controller('awsDisableAsgStageCtrl', ['$scope', function($scope) {
-    let stage = $scope.stage;
+  .controller('awsDisableAsgStageCtrl', [
+    '$scope',
+    function($scope) {
+      let stage = $scope.stage;
 
-    $scope.state = {
-      accounts: false,
-      regionsLoaded: false,
-    };
+      $scope.state = {
+        accounts: false,
+        regionsLoaded: false,
+      };
 
-    AccountService.listAccounts('aws').then(function(accounts) {
-      $scope.accounts = accounts;
-      $scope.state.accounts = true;
-    });
+      AccountService.listAccounts('aws').then(function(accounts) {
+        $scope.accounts = accounts;
+        $scope.state.accounts = true;
+      });
 
-    $scope.targets = StageConstants.TARGET_LIST;
+      $scope.targets = StageConstants.TARGET_LIST;
 
-    stage.regions = stage.regions || [];
-    stage.cloudProvider = 'aws';
+      stage.regions = stage.regions || [];
+      stage.cloudProvider = 'aws';
 
-    if (
-      stage.isNew &&
-      $scope.application.attributes.platformHealthOnlyShowOverride &&
-      $scope.application.attributes.platformHealthOnly
-    ) {
-      stage.interestingHealthProviderNames = ['Amazon'];
-    }
+      if (
+        stage.isNew &&
+        $scope.application.attributes.platformHealthOnlyShowOverride &&
+        $scope.application.attributes.platformHealthOnly
+      ) {
+        stage.interestingHealthProviderNames = ['Amazon'];
+      }
 
-    if (!stage.credentials && $scope.application.defaultCredentials.aws) {
-      stage.credentials = $scope.application.defaultCredentials.aws;
-    }
-    if (!stage.regions.length && $scope.application.defaultRegions.aws) {
-      stage.regions.push($scope.application.defaultRegions.aws);
-    }
+      if (!stage.credentials && $scope.application.defaultCredentials.aws) {
+        stage.credentials = $scope.application.defaultCredentials.aws;
+      }
+      if (!stage.regions.length && $scope.application.defaultRegions.aws) {
+        stage.regions.push($scope.application.defaultRegions.aws);
+      }
 
-    if (!stage.target) {
-      stage.target = $scope.targets[0].val;
-    }
-  }]);
+      if (!stage.target) {
+        stage.target = $scope.targets[0].val;
+      }
+    },
+  ]);

@@ -29,47 +29,51 @@ module.exports = angular
       restartable: true,
     });
   })
-  .controller('dockerBakeStageCtrl', ['$scope', '$q', function($scope, $q) {
-    var stage = $scope.stage;
+  .controller('dockerBakeStageCtrl', [
+    '$scope',
+    '$q',
+    function($scope, $q) {
+      var stage = $scope.stage;
 
-    stage.region = 'global';
+      stage.region = 'global';
 
-    if (!$scope.stage.user) {
-      $scope.stage.user = AuthenticationService.getAuthenticatedUser().name;
-    }
+      if (!$scope.stage.user) {
+        $scope.stage.user = AuthenticationService.getAuthenticatedUser().name;
+      }
 
-    $scope.viewState = {
-      loading: true,
-    };
+      $scope.viewState = {
+        loading: true,
+      };
 
-    function initialize() {
-      $scope.viewState.providerSelected = true;
-      $q.all({
-        baseOsOptions: BakeryReader.getBaseOsOptions('docker'),
-        baseLabelOptions: BakeryReader.getBaseLabelOptions(),
-      }).then(function(results) {
-        $scope.baseOsOptions = results.baseOsOptions.baseImages;
-        $scope.baseLabelOptions = results.baseLabelOptions;
+      function initialize() {
+        $scope.viewState.providerSelected = true;
+        $q.all({
+          baseOsOptions: BakeryReader.getBaseOsOptions('docker'),
+          baseLabelOptions: BakeryReader.getBaseLabelOptions(),
+        }).then(function(results) {
+          $scope.baseOsOptions = results.baseOsOptions.baseImages;
+          $scope.baseLabelOptions = results.baseLabelOptions;
 
-        if (!$scope.stage.baseOs && $scope.baseOsOptions && $scope.baseOsOptions.length) {
-          $scope.stage.baseOs = $scope.baseOsOptions[0].id;
-        }
-        if (!$scope.stage.baseLabel && $scope.baseLabelOptions && $scope.baseLabelOptions.length) {
-          $scope.stage.baseLabel = $scope.baseLabelOptions[0];
-        }
-        $scope.viewState.loading = false;
-      });
-    }
+          if (!$scope.stage.baseOs && $scope.baseOsOptions && $scope.baseOsOptions.length) {
+            $scope.stage.baseOs = $scope.baseOsOptions[0].id;
+          }
+          if (!$scope.stage.baseLabel && $scope.baseLabelOptions && $scope.baseLabelOptions.length) {
+            $scope.stage.baseLabel = $scope.baseLabelOptions[0];
+          }
+          $scope.viewState.loading = false;
+        });
+      }
 
-    function deleteEmptyProperties() {
-      _.forOwn($scope.stage, function(val, key) {
-        if (val === '') {
-          delete $scope.stage[key];
-        }
-      });
-    }
+      function deleteEmptyProperties() {
+        _.forOwn($scope.stage, function(val, key) {
+          if (val === '') {
+            delete $scope.stage[key];
+          }
+        });
+      }
 
-    $scope.$watch('stage', deleteEmptyProperties, true);
+      $scope.$watch('stage', deleteEmptyProperties, true);
 
-    initialize();
-  }]);
+      initialize();
+    },
+  ]);

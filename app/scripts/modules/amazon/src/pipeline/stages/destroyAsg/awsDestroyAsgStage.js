@@ -28,34 +28,37 @@ module.exports = angular
       ],
     });
   })
-  .controller('awsDestroyAsgStageCtrl', ['$scope', function($scope) {
-    let stage = $scope.stage;
+  .controller('awsDestroyAsgStageCtrl', [
+    '$scope',
+    function($scope) {
+      let stage = $scope.stage;
 
-    $scope.state = {
-      accounts: false,
-      regionsLoaded: false,
-    };
+      $scope.state = {
+        accounts: false,
+        regionsLoaded: false,
+      };
 
-    AccountService.listAccounts('aws').then(function(accounts) {
-      $scope.accounts = accounts;
-      $scope.state.accounts = true;
-    });
+      AccountService.listAccounts('aws').then(function(accounts) {
+        $scope.accounts = accounts;
+        $scope.state.accounts = true;
+      });
 
-    $scope.regions = ['us-east-1', 'us-west-1', 'eu-west-1', 'us-west-2'];
+      $scope.regions = ['us-east-1', 'us-west-1', 'eu-west-1', 'us-west-2'];
 
-    $scope.targets = StageConstants.TARGET_LIST;
+      $scope.targets = StageConstants.TARGET_LIST;
 
-    stage.regions = stage.regions || [];
-    stage.cloudProvider = 'aws';
+      stage.regions = stage.regions || [];
+      stage.cloudProvider = 'aws';
 
-    if (!stage.credentials && $scope.application.defaultCredentials.aws) {
-      stage.credentials = $scope.application.defaultCredentials.aws;
-    }
-    if (!stage.regions.length && $scope.application.defaultRegions.aws) {
-      stage.regions.push($scope.application.defaultRegions.aws);
-    }
+      if (!stage.credentials && $scope.application.defaultCredentials.aws) {
+        stage.credentials = $scope.application.defaultCredentials.aws;
+      }
+      if (!stage.regions.length && $scope.application.defaultRegions.aws) {
+        stage.regions.push($scope.application.defaultRegions.aws);
+      }
 
-    if (!stage.target) {
-      stage.target = $scope.targets[0].val;
-    }
-  }]);
+      if (!stage.target) {
+        stage.target = $scope.targets[0].val;
+      }
+    },
+  ]);

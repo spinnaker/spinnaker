@@ -8,9 +8,11 @@ import { PipelineConfigService } from 'core/pipeline/config/services/PipelineCon
 import { SETTINGS } from 'core/config/settings';
 import { CLUSTER_SERVICE } from 'core/cluster/cluster.service';
 
-module.exports = angular
-  .module('spinnaker.core.pipeline.dataSource', [EXECUTION_SERVICE, CLUSTER_SERVICE])
-  .run(['$q', 'executionService', 'clusterService', function($q, executionService, clusterService) {
+module.exports = angular.module('spinnaker.core.pipeline.dataSource', [EXECUTION_SERVICE, CLUSTER_SERVICE]).run([
+  '$q',
+  'executionService',
+  'clusterService',
+  function($q, executionService, clusterService) {
     let addExecutions = (application, executions) => {
       executionService.transformExecutions(application, executions, application.executions.data);
       return $q.when(executionService.addExecutionsToApplication(application, executions));
@@ -94,4 +96,5 @@ module.exports = angular
         afterLoad: runningExecutionsLoaded,
       });
     }
-  }]);
+  },
+]);

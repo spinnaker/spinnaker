@@ -27,48 +27,51 @@ module.exports = angular
       strategy: true,
     });
   })
-  .controller('titusScaleDownClusterStageCtrl', ['$scope', function($scope) {
-    var ctrl = this;
+  .controller('titusScaleDownClusterStageCtrl', [
+    '$scope',
+    function($scope) {
+      var ctrl = this;
 
-    let stage = $scope.stage;
+      let stage = $scope.stage;
 
-    $scope.state = {
-      accounts: false,
-      regionsLoaded: false,
-    };
+      $scope.state = {
+        accounts: false,
+        regionsLoaded: false,
+      };
 
-    AccountService.listAccounts('titus').then(function(accounts) {
-      $scope.accounts = accounts;
-      $scope.state.accounts = true;
-    });
+      AccountService.listAccounts('titus').then(function(accounts) {
+        $scope.accounts = accounts;
+        $scope.state.accounts = true;
+      });
 
-    stage.regions = stage.regions || [];
-    stage.cloudProvider = 'titus';
+      stage.regions = stage.regions || [];
+      stage.cloudProvider = 'titus';
 
-    if (!stage.credentials && $scope.application.defaultCredentials.titus) {
-      stage.credentials = $scope.application.defaultCredentials.titus;
-    }
-    if (!stage.regions.length && $scope.application.defaultRegions.titus) {
-      stage.regions.push($scope.application.defaultRegions.titus);
-    }
-
-    if (stage.remainingFullSizeServerGroups === undefined) {
-      stage.remainingFullSizeServerGroups = 1;
-    }
-
-    if (stage.allowScaleDownActive === undefined) {
-      stage.allowScaleDownActive = false;
-    }
-
-    ctrl.pluralize = function(str, val) {
-      if (val === 1) {
-        return str;
+      if (!stage.credentials && $scope.application.defaultCredentials.titus) {
+        stage.credentials = $scope.application.defaultCredentials.titus;
       }
-      return str + 's';
-    };
+      if (!stage.regions.length && $scope.application.defaultRegions.titus) {
+        stage.regions.push($scope.application.defaultRegions.titus);
+      }
 
-    if (stage.preferLargerOverNewer === undefined) {
-      stage.preferLargerOverNewer = 'false';
-    }
-    stage.preferLargerOverNewer = stage.preferLargerOverNewer.toString();
-  }]);
+      if (stage.remainingFullSizeServerGroups === undefined) {
+        stage.remainingFullSizeServerGroups = 1;
+      }
+
+      if (stage.allowScaleDownActive === undefined) {
+        stage.allowScaleDownActive = false;
+      }
+
+      ctrl.pluralize = function(str, val) {
+        if (val === 1) {
+          return str;
+        }
+        return str + 's';
+      };
+
+      if (stage.preferLargerOverNewer === undefined) {
+        stage.preferLargerOverNewer = 'false';
+      }
+      stage.preferLargerOverNewer = stage.preferLargerOverNewer.toString();
+    },
+  ]);

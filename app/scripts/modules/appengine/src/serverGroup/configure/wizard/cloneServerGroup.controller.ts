@@ -21,7 +21,14 @@ class AppengineCloneServerGroupCtrl implements IController {
   };
   public taskMonitor: TaskMonitor;
 
-  public static $inject = ['$scope', '$uibModalInstance', 'serverGroupCommand', 'application', 'serverGroupWriter', 'appengineServerGroupCommandBuilder'];
+  public static $inject = [
+    '$scope',
+    '$uibModalInstance',
+    'serverGroupCommand',
+    'application',
+    'serverGroupWriter',
+    'appengineServerGroupCommandBuilder',
+  ];
   constructor(
     public $scope: IScope,
     private $uibModalInstance: IModalInstanceService,

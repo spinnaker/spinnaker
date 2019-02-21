@@ -30,32 +30,36 @@ module.exports = angular
       validators: [{ type: 'requiredField', fieldName: 'account' }, { type: 'requiredField', fieldName: 'namespace' }],
     });
   })
-  .controller('kubernetesRunJobStageCtrl', ['$scope', '$uibModal', function($scope, $uibModal) {
-    this.stage = $scope.stage;
-    this.pipeline = $scope.pipeline;
-    this.stage.cloudProvider = 'kubernetes';
-    this.stage.application = $scope.application.name;
+  .controller('kubernetesRunJobStageCtrl', [
+    '$scope',
+    '$uibModal',
+    function($scope, $uibModal) {
+      this.stage = $scope.stage;
+      this.pipeline = $scope.pipeline;
+      this.stage.cloudProvider = 'kubernetes';
+      this.stage.application = $scope.application.name;
 
-    if (this.stage.container && !this.stage.containers) {
-      this.stage.containers = [this.stage.container];
-      delete this.stage.container;
-    }
+      if (this.stage.container && !this.stage.containers) {
+        this.stage.containers = [this.stage.container];
+        delete this.stage.container;
+      }
 
-    this.configureJob = () => {
-      return $uibModal
-        .open({
-          templateUrl: require('./configureJob.html'),
-          controller: 'kubernetesConfigureJobController as ctrl',
-          size: 'lg',
-          resolve: {
-            stage: () => angular.copy(this.stage),
-            pipeline: () => this.pipeline,
-            application: () => $scope.application,
-          },
-        })
-        .result.then(stage => {
-          _.extend(this.stage, stage);
-        })
-        .catch(() => {});
-    };
-  }]);
+      this.configureJob = () => {
+        return $uibModal
+          .open({
+            templateUrl: require('./configureJob.html'),
+            controller: 'kubernetesConfigureJobController as ctrl',
+            size: 'lg',
+            resolve: {
+              stage: () => angular.copy(this.stage),
+              pipeline: () => this.pipeline,
+              application: () => $scope.application,
+            },
+          })
+          .result.then(stage => {
+            _.extend(this.stage, stage);
+          })
+          .catch(() => {});
+      };
+    },
+  ]);

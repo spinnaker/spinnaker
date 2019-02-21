@@ -25,45 +25,48 @@ module.exports = angular
       strategy: true,
     });
   })
-  .controller('kubernetesScaleDownClusterStageCtrl', ['$scope', function($scope) {
-    var ctrl = this;
+  .controller('kubernetesScaleDownClusterStageCtrl', [
+    '$scope',
+    function($scope) {
+      var ctrl = this;
 
-    let stage = $scope.stage;
+      let stage = $scope.stage;
 
-    $scope.state = {
-      accounts: false,
-      namespacesLoaded: false,
-    };
+      $scope.state = {
+        accounts: false,
+        namespacesLoaded: false,
+      };
 
-    AccountService.listAccounts('kubernetes').then(function(accounts) {
-      $scope.accounts = accounts;
-      $scope.state.accounts = true;
-    });
+      AccountService.listAccounts('kubernetes').then(function(accounts) {
+        $scope.accounts = accounts;
+        $scope.state.accounts = true;
+      });
 
-    stage.namespaces = stage.namespaces || [];
-    stage.cloudProvider = 'kubernetes';
+      stage.namespaces = stage.namespaces || [];
+      stage.cloudProvider = 'kubernetes';
 
-    if (!stage.credentials && $scope.application.defaultCredentials.kubernetes) {
-      stage.credentials = $scope.application.defaultCredentials.kubernetes;
-    }
-
-    if (stage.remainingFullSizeServerGroups === undefined) {
-      stage.remainingFullSizeServerGroups = 1;
-    }
-
-    if (stage.allowScaleDownActive === undefined) {
-      stage.allowScaleDownActive = false;
-    }
-
-    ctrl.pluralize = function(str, val) {
-      if (val === 1) {
-        return str;
+      if (!stage.credentials && $scope.application.defaultCredentials.kubernetes) {
+        stage.credentials = $scope.application.defaultCredentials.kubernetes;
       }
-      return str + 's';
-    };
 
-    if (stage.preferLargerOverNewer === undefined) {
-      stage.preferLargerOverNewer = 'false';
-    }
-    stage.preferLargerOverNewer = stage.preferLargerOverNewer.toString();
-  }]);
+      if (stage.remainingFullSizeServerGroups === undefined) {
+        stage.remainingFullSizeServerGroups = 1;
+      }
+
+      if (stage.allowScaleDownActive === undefined) {
+        stage.allowScaleDownActive = false;
+      }
+
+      ctrl.pluralize = function(str, val) {
+        if (val === 1) {
+          return str;
+        }
+        return str + 's';
+      };
+
+      if (stage.preferLargerOverNewer === undefined) {
+        stage.preferLargerOverNewer = 'false';
+      }
+      stage.preferLargerOverNewer = stage.preferLargerOverNewer.toString();
+    },
+  ]);

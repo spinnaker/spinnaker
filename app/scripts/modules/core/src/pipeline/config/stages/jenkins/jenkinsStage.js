@@ -34,106 +34,111 @@ module.exports = angular
       strategy: true,
     });
   })
-  .controller('JenkinsStageCtrl', ['$scope', 'stage', function($scope, stage) {
-    $scope.stage = stage;
-    $scope.stage.failPipeline = $scope.stage.failPipeline === undefined ? true : $scope.stage.failPipeline;
-    $scope.stage.continuePipeline = $scope.stage.continuePipeline === undefined ? false : $scope.stage.continuePipeline;
+  .controller('JenkinsStageCtrl', [
+    '$scope',
+    'stage',
+    function($scope, stage) {
+      $scope.stage = stage;
+      $scope.stage.failPipeline = $scope.stage.failPipeline === undefined ? true : $scope.stage.failPipeline;
+      $scope.stage.continuePipeline =
+        $scope.stage.continuePipeline === undefined ? false : $scope.stage.continuePipeline;
 
-    $scope.viewState = {
-      mastersLoaded: false,
-      mastersRefreshing: false,
-      jobsLoaded: false,
-      jobsRefreshing: false,
-      failureOption: 'fail',
-      markUnstableAsSuccessful: !!stage.markUnstableAsSuccessful,
-      waitForCompletion: stage.waitForCompletion || stage.waitForCompletion === undefined,
-    };
+      $scope.viewState = {
+        mastersLoaded: false,
+        mastersRefreshing: false,
+        jobsLoaded: false,
+        jobsRefreshing: false,
+        failureOption: 'fail',
+        markUnstableAsSuccessful: !!stage.markUnstableAsSuccessful,
+        waitForCompletion: stage.waitForCompletion || stage.waitForCompletion === undefined,
+      };
 
-    // Using viewState to avoid marking pipeline as dirty if field is not set
-    this.markUnstableChanged = () => (stage.markUnstableAsSuccessful = $scope.viewState.markUnstableAsSuccessful);
+      // Using viewState to avoid marking pipeline as dirty if field is not set
+      this.markUnstableChanged = () => (stage.markUnstableAsSuccessful = $scope.viewState.markUnstableAsSuccessful);
 
-    this.waitForCompletionChanged = () => (stage.waitForCompletion = $scope.viewState.waitForCompletion);
+      this.waitForCompletionChanged = () => (stage.waitForCompletion = $scope.viewState.waitForCompletion);
 
-    function initializeMasters() {
-      IgorService.listMasters(BuildServiceType.Jenkins).then(function(masters) {
-        $scope.masters = masters;
-        $scope.viewState.mastersLoaded = true;
-        $scope.viewState.mastersRefreshing = false;
-      });
-    }
-
-    this.refreshMasters = function() {
-      $scope.viewState.mastersRefreshing = true;
-      initializeMasters();
-    };
-
-    this.refreshJobs = function() {
-      $scope.viewState.jobsRefreshing = true;
-      updateJobsList();
-    };
-
-    function updateJobsList() {
-      if ($scope.stage && $scope.stage.master) {
-        let master = $scope.stage.master,
-          job = $scope.stage.job || '';
-        $scope.viewState.masterIsParameterized = master.includes('${');
-        $scope.viewState.jobIsParameterized = job.includes('${');
-        if ($scope.viewState.masterIsParameterized || $scope.viewState.jobIsParameterized) {
-          $scope.viewState.jobsLoaded = true;
-          return;
-        }
-        $scope.viewState.jobsLoaded = false;
-        $scope.jobs = [];
-        IgorService.listJobsForMaster($scope.stage.master).then(function(jobs) {
-          $scope.viewState.jobsLoaded = true;
-          $scope.viewState.jobsRefreshing = false;
-          $scope.jobs = jobs;
-          if (!$scope.jobs.includes($scope.stage.job)) {
-            $scope.stage.job = '';
-          }
+      function initializeMasters() {
+        IgorService.listMasters(BuildServiceType.Jenkins).then(function(masters) {
+          $scope.masters = masters;
+          $scope.viewState.mastersLoaded = true;
+          $scope.viewState.mastersRefreshing = false;
         });
-        $scope.useDefaultParameters = {};
-        $scope.userSuppliedParameters = {};
-        $scope.jobParams = null;
       }
-    }
 
-    function updateJobConfig() {
-      let stage = $scope.stage,
-        view = $scope.viewState;
-      if (stage && stage.master && stage.job && !view.masterIsParameterized && !view.jobIsParameterized) {
-        IgorService.getJobConfig($scope.stage.master, $scope.stage.job).then(config => {
-          config = config || {};
-          if (!$scope.stage.parameters) {
-            $scope.stage.parameters = {};
+      this.refreshMasters = function() {
+        $scope.viewState.mastersRefreshing = true;
+        initializeMasters();
+      };
+
+      this.refreshJobs = function() {
+        $scope.viewState.jobsRefreshing = true;
+        updateJobsList();
+      };
+
+      function updateJobsList() {
+        if ($scope.stage && $scope.stage.master) {
+          let master = $scope.stage.master,
+            job = $scope.stage.job || '';
+          $scope.viewState.masterIsParameterized = master.includes('${');
+          $scope.viewState.jobIsParameterized = job.includes('${');
+          if ($scope.viewState.masterIsParameterized || $scope.viewState.jobIsParameterized) {
+            $scope.viewState.jobsLoaded = true;
+            return;
           }
-          $scope.jobParams = config.parameterDefinitionList;
-          $scope.userSuppliedParameters = $scope.stage.parameters;
-          $scope.useDefaultParameters = {};
-          let params = $scope.jobParams || [];
-          params.forEach(property => {
-            if (!(property.name in $scope.stage.parameters) && property.defaultValue !== null) {
-              $scope.useDefaultParameters[property.name] = true;
+          $scope.viewState.jobsLoaded = false;
+          $scope.jobs = [];
+          IgorService.listJobsForMaster($scope.stage.master).then(function(jobs) {
+            $scope.viewState.jobsLoaded = true;
+            $scope.viewState.jobsRefreshing = false;
+            $scope.jobs = jobs;
+            if (!$scope.jobs.includes($scope.stage.job)) {
+              $scope.stage.job = '';
             }
           });
-        });
+          $scope.useDefaultParameters = {};
+          $scope.userSuppliedParameters = {};
+          $scope.jobParams = null;
+        }
       }
-    }
 
-    $scope.useDefaultParameters = {};
-    $scope.userSuppliedParameters = {};
-
-    this.updateParam = function(parameter) {
-      if ($scope.useDefaultParameters[parameter] === true) {
-        delete $scope.userSuppliedParameters[parameter];
-        delete $scope.stage.parameters[parameter];
-      } else if ($scope.userSuppliedParameters[parameter]) {
-        $scope.stage.parameters[parameter] = $scope.userSuppliedParameters[parameter];
+      function updateJobConfig() {
+        let stage = $scope.stage,
+          view = $scope.viewState;
+        if (stage && stage.master && stage.job && !view.masterIsParameterized && !view.jobIsParameterized) {
+          IgorService.getJobConfig($scope.stage.master, $scope.stage.job).then(config => {
+            config = config || {};
+            if (!$scope.stage.parameters) {
+              $scope.stage.parameters = {};
+            }
+            $scope.jobParams = config.parameterDefinitionList;
+            $scope.userSuppliedParameters = $scope.stage.parameters;
+            $scope.useDefaultParameters = {};
+            let params = $scope.jobParams || [];
+            params.forEach(property => {
+              if (!(property.name in $scope.stage.parameters) && property.defaultValue !== null) {
+                $scope.useDefaultParameters[property.name] = true;
+              }
+            });
+          });
+        }
       }
-    };
 
-    initializeMasters();
+      $scope.useDefaultParameters = {};
+      $scope.userSuppliedParameters = {};
 
-    $scope.$watch('stage.master', updateJobsList);
-    $scope.$watch('stage.job', updateJobConfig);
-  }]);
+      this.updateParam = function(parameter) {
+        if ($scope.useDefaultParameters[parameter] === true) {
+          delete $scope.userSuppliedParameters[parameter];
+          delete $scope.stage.parameters[parameter];
+        } else if ($scope.userSuppliedParameters[parameter]) {
+          $scope.stage.parameters[parameter] = $scope.userSuppliedParameters[parameter];
+        }
+      };
+
+      initializeMasters();
+
+      $scope.$watch('stage.master', updateJobsList);
+      $scope.$watch('stage.job', updateJobConfig);
+    },
+  ]);

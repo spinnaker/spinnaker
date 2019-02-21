@@ -22,17 +22,21 @@ module.exports = angular
       controller: 'gceServerGroupSecurityGroupsSelectorCtrl',
     };
   })
-  .controller('gceServerGroupSecurityGroupsSelectorCtrl', ['gceServerGroupConfigurationService', 'gceTagManager', function(gceServerGroupConfigurationService, gceTagManager) {
-    this.getSecurityGroupRefreshTime = () => {
-      return InfrastructureCaches.get('securityGroups').getStats().ageMax;
-    };
+  .controller('gceServerGroupSecurityGroupsSelectorCtrl', [
+    'gceServerGroupConfigurationService',
+    'gceTagManager',
+    function(gceServerGroupConfigurationService, gceTagManager) {
+      this.getSecurityGroupRefreshTime = () => {
+        return InfrastructureCaches.get('securityGroups').getStats().ageMax;
+      };
 
-    this.refreshSecurityGroups = () => {
-      this.refreshing = true;
-      gceServerGroupConfigurationService.refreshSecurityGroups(this.command).then(() => {
-        this.refreshing = false;
-      });
-    };
+      this.refreshSecurityGroups = () => {
+        this.refreshing = true;
+        gceServerGroupConfigurationService.refreshSecurityGroups(this.command).then(() => {
+          this.refreshing = false;
+        });
+      };
 
-    this.onRemove = gceTagManager.removeSecurityGroup;
-  }]);
+      this.onRemove = gceTagManager.removeSecurityGroup;
+    },
+  ]);

@@ -22,40 +22,44 @@ module.exports = angular
       application: '=',
     },
     templateUrl: require('./alarmBasedSummary.component.html'),
-    controller: ['$uibModal', 'confirmationModalService', function($uibModal, confirmationModalService) {
-      this.popoverTemplate = require('./popover/scalingPolicyDetails.popover.html');
+    controller: [
+      '$uibModal',
+      'confirmationModalService',
+      function($uibModal, confirmationModalService) {
+        this.popoverTemplate = require('./popover/scalingPolicyDetails.popover.html');
 
-      this.editPolicy = () => {
-        $uibModal.open({
-          templateUrl: require('./upsert/upsertScalingPolicy.modal.html'),
-          controller: 'awsUpsertScalingPolicyCtrl',
-          controllerAs: 'ctrl',
-          size: 'lg',
-          resolve: {
-            policy: () => this.policy,
-            serverGroup: () => this.serverGroup,
-            application: () => this.application,
-          },
-        });
-      };
-
-      this.deletePolicy = () => {
-        var taskMonitor = {
-          application: this.application,
-          title: 'Deleting scaling policy ' + this.policy.policyName,
+        this.editPolicy = () => {
+          $uibModal.open({
+            templateUrl: require('./upsert/upsertScalingPolicy.modal.html'),
+            controller: 'awsUpsertScalingPolicyCtrl',
+            controllerAs: 'ctrl',
+            size: 'lg',
+            resolve: {
+              policy: () => this.policy,
+              serverGroup: () => this.serverGroup,
+              application: () => this.application,
+            },
+          });
         };
 
-        var submitMethod = () =>
-          ScalingPolicyWriter.deleteScalingPolicy(this.application, this.serverGroup, this.policy);
+        this.deletePolicy = () => {
+          var taskMonitor = {
+            application: this.application,
+            title: 'Deleting scaling policy ' + this.policy.policyName,
+          };
 
-        confirmationModalService.confirm({
-          header: 'Really delete ' + this.policy.policyName + '?',
-          buttonText: 'Delete scaling policy',
-          account: this.serverGroup.account,
-          provider: 'aws',
-          taskMonitorConfig: taskMonitor,
-          submitMethod: submitMethod,
-        });
-      };
-    }],
+          var submitMethod = () =>
+            ScalingPolicyWriter.deleteScalingPolicy(this.application, this.serverGroup, this.policy);
+
+          confirmationModalService.confirm({
+            header: 'Really delete ' + this.policy.policyName + '?',
+            buttonText: 'Delete scaling policy',
+            account: this.serverGroup.account,
+            provider: 'aws',
+            taskMonitorConfig: taskMonitor,
+            submitMethod: submitMethod,
+          });
+        };
+      },
+    ],
   });

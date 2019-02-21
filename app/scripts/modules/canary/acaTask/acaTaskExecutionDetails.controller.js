@@ -9,70 +9,71 @@ module.exports = angular
     require('@uirouter/angularjs').default,
     require('../canary/canaryDeployment/canaryDeploymentHistory.service').name,
   ])
-  .controller('acaTaskExecutionDetailsCtrl', ['$scope', '$stateParams', 'executionDetailsSectionService', 'canaryDeploymentHistoryService', function(
-    $scope,
-    $stateParams,
-    executionDetailsSectionService,
-    canaryDeploymentHistoryService,
-  ) {
-    $scope.configSections = ['canarySummary', 'canaryConfig', 'canaryAnalysisHistory'];
+  .controller('acaTaskExecutionDetailsCtrl', [
+    '$scope',
+    '$stateParams',
+    'executionDetailsSectionService',
+    'canaryDeploymentHistoryService',
+    function($scope, $stateParams, executionDetailsSectionService, canaryDeploymentHistoryService) {
+      $scope.configSections = ['canarySummary', 'canaryConfig', 'canaryAnalysisHistory'];
 
-    $scope.queryListUrl = SETTINGS.canaryConfig ? SETTINGS.canaryConfig.queryListUrl : null;
+      $scope.queryListUrl = SETTINGS.canaryConfig ? SETTINGS.canaryConfig.queryListUrl : null;
 
-    let initialized = () => {
-      $scope.detailsSection = $stateParams.details;
+      let initialized = () => {
+        $scope.detailsSection = $stateParams.details;
 
-      $scope.canary = $scope.stage.context.canary;
+        $scope.canary = $scope.stage.context.canary;
 
-      if ($scope.canary) {
-        $scope.canaryConfig = $scope.canary.canaryConfig;
-        $scope.baseline = $scope.stage.context.baseline;
-        $scope.canaryDeployments = $scope.canary.canaryDeployments;
-      }
+        if ($scope.canary) {
+          $scope.canaryConfig = $scope.canary.canaryConfig;
+          $scope.baseline = $scope.stage.context.baseline;
+          $scope.canaryDeployments = $scope.canary.canaryDeployments;
+        }
 
-      $scope.deployment = $scope.stage.context;
+        $scope.deployment = $scope.stage.context;
 
-      $scope.viewState = {
-        loadingHistory: true,
-        loadingHistoryError: false,
+        $scope.viewState = {
+          loadingHistory: true,
+          loadingHistoryError: false,
+        };
+
+        $scope.detailsSection = $stateParams.details;
+
+        $scope.loadHistory();
       };
 
-      $scope.detailsSection = $stateParams.details;
+      $scope.loadHistory = function() {
+        if (
+          $scope.deployment.canary &&
+          $scope.deployment.canary.canaryDeployments &&
+          $scope.deployment.canary.canaryDeployments.length > 0
+        ) {
+          $scope.viewState.loadingHistory = true;
+          $scope.viewState.loadingHistoryError = false;
 
-      $scope.loadHistory();
-    };
+          var canaryDeploymentId = $scope.deployment.canary.canaryDeployments[0].id;
+          canaryDeploymentHistoryService.getAnalysisHistory(canaryDeploymentId).then(
+            function(results) {
+              $scope.analysisHistory = results;
+              $scope.viewState.loadingHistory = false;
+            },
+            function() {
+              $scope.viewState.loadingHistory = false;
+              $scope.viewState.loadingHistoryError = true;
+            },
+          );
+        } else {
+          $scope.analysisHistory = [];
+          $scope.viewState.loadingHistory = false;
+        }
+      };
 
-    $scope.loadHistory = function() {
-      if (
-        $scope.deployment.canary &&
-        $scope.deployment.canary.canaryDeployments &&
-        $scope.deployment.canary.canaryDeployments.length > 0
-      ) {
-        $scope.viewState.loadingHistory = true;
-        $scope.viewState.loadingHistoryError = false;
+      this.overrideFiltersForUrl = r => ClusterState.filterService.overrideFiltersForUrl(r);
 
-        var canaryDeploymentId = $scope.deployment.canary.canaryDeployments[0].id;
-        canaryDeploymentHistoryService.getAnalysisHistory(canaryDeploymentId).then(
-          function(results) {
-            $scope.analysisHistory = results;
-            $scope.viewState.loadingHistory = false;
-          },
-          function() {
-            $scope.viewState.loadingHistory = false;
-            $scope.viewState.loadingHistoryError = true;
-          },
-        );
-      } else {
-        $scope.analysisHistory = [];
-        $scope.viewState.loadingHistory = false;
-      }
-    };
+      let initialize = () => executionDetailsSectionService.synchronizeSection($scope.configSections, initialized);
 
-    this.overrideFiltersForUrl = r => ClusterState.filterService.overrideFiltersForUrl(r);
+      initialize();
 
-    let initialize = () => executionDetailsSectionService.synchronizeSection($scope.configSections, initialized);
-
-    initialize();
-
-    $scope.$on('$stateChangeSuccess', initialize);
-  }]);
+      $scope.$on('$stateChangeSuccess', initialize);
+    },
+  ]);

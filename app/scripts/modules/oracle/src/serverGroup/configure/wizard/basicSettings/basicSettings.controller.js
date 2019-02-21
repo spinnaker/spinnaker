@@ -10,14 +10,21 @@ module.exports = angular
     require('angular-ui-bootstrap'),
     IMAGE_READER,
   ])
-  .controller('oracleServerGroupBasicSettingsCtrl', ['$scope', '$state', '$uibModalStack', '$controller', 'imageReader', function($scope, $state, $uibModalStack, $controller, imageReader) {
-    angular.extend(
-      this,
-      $controller('BasicSettingsMixin', {
-        $scope: $scope,
-        imageReader: imageReader,
-        $uibModalStack: $uibModalStack,
-        $state: $state,
-      }),
-    );
-  }]);
+  .controller('oracleServerGroupBasicSettingsCtrl', [
+    '$scope',
+    '$state',
+    '$uibModalStack',
+    '$controller',
+    'imageReader',
+    function($scope, $state, $uibModalStack, $controller, imageReader) {
+      angular.extend(
+        this,
+        $controller('BasicSettingsMixin', {
+          $scope: $scope,
+          imageReader: imageReader,
+          $uibModalStack: $uibModalStack,
+          $state: $state,
+        }),
+      );
+    },
+  ]);

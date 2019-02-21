@@ -70,6 +70,9 @@ module.exports = angular
       validate: validate,
     };
   })
-  .run(['kubernetesApplicationNameValidator', function(kubernetesApplicationNameValidator) {
-    ApplicationNameValidator.registerValidator('kubernetes', kubernetesApplicationNameValidator);
-  }]);
+  .run([
+    'kubernetesApplicationNameValidator',
+    function(kubernetesApplicationNameValidator) {
+      ApplicationNameValidator.registerValidator('kubernetes', kubernetesApplicationNameValidator);
+    },
+  ]);

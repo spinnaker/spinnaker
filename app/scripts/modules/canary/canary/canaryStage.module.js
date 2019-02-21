@@ -18,6 +18,9 @@ module.exports = angular
     CANARY_SCORES_CONFIG_COMPONENT,
     require('./canaryStatus.directive').name,
   ])
-  .run(['canaryStageTransformer', function(canaryStageTransformer) {
-    Registry.pipeline.registerTransformer(canaryStageTransformer);
-  }]);
+  .run([
+    'canaryStageTransformer',
+    function(canaryStageTransformer) {
+      Registry.pipeline.registerTransformer(canaryStageTransformer);
+    },
+  ]);

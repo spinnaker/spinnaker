@@ -6,56 +6,59 @@ import { Pager } from './Pager';
 
 export const PAGER_STATES = 'spinnaker.core.pager.states';
 
-module(PAGER_STATES, [STATE_CONFIG_PROVIDER]).config(['stateConfigProvider', (stateConfigProvider: StateConfigProvider) => {
-  const pageState: INestedState = {
-    url: '/page?app&q&keys&by&direction&hideNoApps',
-    name: 'page',
-    views: {
-      'main@': { component: Pager, $type: 'react' },
-    },
-    params: {
-      app: {
-        dynamic: true,
-        type: 'string',
-        value: '',
-        squash: true,
+module(PAGER_STATES, [STATE_CONFIG_PROVIDER]).config([
+  'stateConfigProvider',
+  (stateConfigProvider: StateConfigProvider) => {
+    const pageState: INestedState = {
+      url: '/page?app&q&keys&by&direction&hideNoApps',
+      name: 'page',
+      views: {
+        'main@': { component: Pager, $type: 'react' },
       },
-      q: {
-        dynamic: true,
-        type: 'string',
-        value: '',
-        squash: true,
+      params: {
+        app: {
+          dynamic: true,
+          type: 'string',
+          value: '',
+          squash: true,
+        },
+        q: {
+          dynamic: true,
+          type: 'string',
+          value: '',
+          squash: true,
+        },
+        hideNoApps: {
+          dynamic: true,
+          type: 'boolean',
+          value: false,
+          squash: true,
+        },
+        keys: {
+          dynamic: true,
+          value: [],
+          squash: true,
+          array: true,
+        },
+        by: {
+          dynamic: true,
+          type: 'string',
+          value: 'service',
+          squash: true,
+        },
+        direction: {
+          dynamic: true,
+          type: 'string',
+          value: 'ASC',
+          squash: true,
+        },
       },
-      hideNoApps: {
-        dynamic: true,
-        type: 'boolean',
-        value: false,
-        squash: true,
+      data: {
+        pageTitleSection: {
+          title: 'Pager',
+        },
       },
-      keys: {
-        dynamic: true,
-        value: [],
-        squash: true,
-        array: true,
-      },
-      by: {
-        dynamic: true,
-        type: 'string',
-        value: 'service',
-        squash: true,
-      },
-      direction: {
-        dynamic: true,
-        type: 'string',
-        value: 'ASC',
-        squash: true,
-      },
-    },
-    data: {
-      pageTitleSection: {
-        title: 'Pager',
-      },
-    },
-  };
-  stateConfigProvider.addToRootState(pageState);
-}]);
+    };
+    stateConfigProvider.addToRootState(pageState);
+  },
+]);

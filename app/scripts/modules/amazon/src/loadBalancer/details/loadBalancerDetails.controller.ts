@@ -52,7 +52,15 @@ export class AwsLoadBalancerDetailsController implements IController {
   public firewallsLabel = FirewallLabels.get('Firewalls');
   public oidcConfigPath = SETTINGS.oidcConfigPath;
 
-  public static $inject = ['$scope', '$state', '$q', 'loadBalancer', 'app', 'securityGroupReader', 'loadBalancerReader'];
+  public static $inject = [
+    '$scope',
+    '$state',
+    '$q',
+    'loadBalancer',
+    'app',
+    'securityGroupReader',
+    'loadBalancerReader',
+  ];
   constructor(
     private $scope: IScope,
     private $state: StateService,

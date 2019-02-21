@@ -24,38 +24,39 @@ module.exports = angular
       controller: 'gceServerGroupLoadBalancerSelectorCtrl',
     };
   })
-  .controller('gceServerGroupLoadBalancerSelectorCtrl', ['gceHttpLoadBalancerUtils', 'gceServerGroupConfigurationService', function(
-    gceHttpLoadBalancerUtils,
-    gceServerGroupConfigurationService,
-  ) {
-    this.getLoadBalancerRefreshTime = () => {
-      return InfrastructureCaches.get('loadBalancers').getStats().ageMax;
-    };
+  .controller('gceServerGroupLoadBalancerSelectorCtrl', [
+    'gceHttpLoadBalancerUtils',
+    'gceServerGroupConfigurationService',
+    function(gceHttpLoadBalancerUtils, gceServerGroupConfigurationService) {
+      this.getLoadBalancerRefreshTime = () => {
+        return InfrastructureCaches.get('loadBalancers').getStats().ageMax;
+      };
 
-    this.refreshLoadBalancers = () => {
-      this.refreshing = true;
-      gceServerGroupConfigurationService.refreshLoadBalancers(this.command).then(() => {
-        this.refreshing = false;
-      });
-    };
+      this.refreshLoadBalancers = () => {
+        this.refreshing = true;
+        gceServerGroupConfigurationService.refreshLoadBalancers(this.command).then(() => {
+          this.refreshing = false;
+        });
+      };
 
-    this.showLoadBalancingPolicy = () => {
-      if (_.has(this, 'command.backingData.filtered.loadBalancerIndex')) {
-        const index = this.command.backingData.filtered.loadBalancerIndex;
-        const selected = this.command.loadBalancers;
+      this.showLoadBalancingPolicy = () => {
+        if (_.has(this, 'command.backingData.filtered.loadBalancerIndex')) {
+          const index = this.command.backingData.filtered.loadBalancerIndex;
+          const selected = this.command.loadBalancers;
 
-        return (
-          angular.isDefined(selected) &&
-          _.some(selected, s => {
-            return (
-              index[s].loadBalancerType === 'HTTP' ||
-              index[s].loadBalancerType === 'SSL' ||
-              index[s].loadBalancerType === 'TCP'
-            );
-          })
-        );
-      }
-    };
+          return (
+            angular.isDefined(selected) &&
+            _.some(selected, s => {
+              return (
+                index[s].loadBalancerType === 'HTTP' ||
+                index[s].loadBalancerType === 'SSL' ||
+                index[s].loadBalancerType === 'TCP'
+              );
+            })
+          );
+        }
+      };
 
-    this.isHttpLoadBalancer = lb => gceHttpLoadBalancerUtils.isHttpLoadBalancer(lb);
-  }]);
+      this.isHttpLoadBalancer = lb => gceHttpLoadBalancerUtils.isHttpLoadBalancer(lb);
+    },
+  ]);

@@ -16,32 +16,38 @@ module.exports = angular
     template: `<button class="btn btn-link" ng-click="$ctrl.viewSnapshotDiffs()">
                   <span class="glyphicon glyphicon-cloud"></span> View Snapshot History
                </button>`,
-    controller: ['$q', '$uibModal', function($q, $uibModal) {
-      function getSnapshotEnabledAccounts(application) {
-        return AccountService.listProviders(application)
-          .then(providers => providers.filter(provider => CloudProviderRegistry.getValue(provider, 'snapshotsEnabled')))
-          .then(snapshotEnabledProviders =>
-            $q.all(snapshotEnabledProviders.map(provider => AccountService.listAccounts(provider))),
-          )
-          .then(accounts =>
-            _.chain(accounts)
-              .flatten()
-              .map('name')
-              .value(),
-          );
-      }
+    controller: [
+      '$q',
+      '$uibModal',
+      function($q, $uibModal) {
+        function getSnapshotEnabledAccounts(application) {
+          return AccountService.listProviders(application)
+            .then(providers =>
+              providers.filter(provider => CloudProviderRegistry.getValue(provider, 'snapshotsEnabled')),
+            )
+            .then(snapshotEnabledProviders =>
+              $q.all(snapshotEnabledProviders.map(provider => AccountService.listAccounts(provider))),
+            )
+            .then(accounts =>
+              _.chain(accounts)
+                .flatten()
+                .map('name')
+                .value(),
+            );
+        }
 
-      this.viewSnapshotDiffs = () => {
-        $uibModal.open({
-          templateUrl: require('./snapshotDiff.modal.html'),
-          controller: 'SnapshotDiffModalCtrl',
-          controllerAs: 'ctrl',
-          size: 'lg modal-fullscreen',
-          resolve: {
-            availableAccounts: () => getSnapshotEnabledAccounts(this.application),
-            application: () => this.application,
-          },
-        });
-      };
-    }],
+        this.viewSnapshotDiffs = () => {
+          $uibModal.open({
+            templateUrl: require('./snapshotDiff.modal.html'),
+            controller: 'SnapshotDiffModalCtrl',
+            controllerAs: 'ctrl',
+            size: 'lg modal-fullscreen',
+            resolve: {
+              availableAccounts: () => getSnapshotEnabledAccounts(this.application),
+              application: () => this.application,
+            },
+          });
+        };
+      },
+    ],
   });

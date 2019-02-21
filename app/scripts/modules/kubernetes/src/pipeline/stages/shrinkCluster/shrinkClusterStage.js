@@ -22,45 +22,48 @@ module.exports = angular
       ],
     });
   })
-  .controller('kubernetesShrinkClusterStageCtrl', ['$scope', function($scope) {
-    var ctrl = this;
+  .controller('kubernetesShrinkClusterStageCtrl', [
+    '$scope',
+    function($scope) {
+      var ctrl = this;
 
-    let stage = $scope.stage;
+      let stage = $scope.stage;
 
-    $scope.state = {
-      accounts: false,
-      namespacesLoaded: false,
-    };
+      $scope.state = {
+        accounts: false,
+        namespacesLoaded: false,
+      };
 
-    AccountService.listAccounts('kubernetes').then(function(accounts) {
-      $scope.accounts = accounts;
-      $scope.state.accounts = true;
-    });
+      AccountService.listAccounts('kubernetes').then(function(accounts) {
+        $scope.accounts = accounts;
+        $scope.state.accounts = true;
+      });
 
-    stage.namespaces = stage.namespaces || [];
-    stage.cloudProvider = 'kubernetes';
+      stage.namespaces = stage.namespaces || [];
+      stage.cloudProvider = 'kubernetes';
 
-    if (!stage.credentials && $scope.application.defaultCredentials.kubernetes) {
-      stage.credentials = $scope.application.defaultCredentials.kubernetes;
-    }
-
-    if (stage.shrinkToSize === undefined) {
-      stage.shrinkToSize = 1;
-    }
-
-    if (stage.allowDeleteActive === undefined) {
-      stage.allowDeleteActive = false;
-    }
-
-    ctrl.pluralize = function(str, val) {
-      if (val === 1) {
-        return str;
+      if (!stage.credentials && $scope.application.defaultCredentials.kubernetes) {
+        stage.credentials = $scope.application.defaultCredentials.kubernetes;
       }
-      return str + 's';
-    };
 
-    if (stage.retainLargerOverNewer === undefined) {
-      stage.retainLargerOverNewer = 'false';
-    }
-    stage.retainLargerOverNewer = stage.retainLargerOverNewer.toString();
-  }]);
+      if (stage.shrinkToSize === undefined) {
+        stage.shrinkToSize = 1;
+      }
+
+      if (stage.allowDeleteActive === undefined) {
+        stage.allowDeleteActive = false;
+      }
+
+      ctrl.pluralize = function(str, val) {
+        if (val === 1) {
+          return str;
+        }
+        return str + 's';
+      };
+
+      if (stage.retainLargerOverNewer === undefined) {
+        stage.retainLargerOverNewer = 'false';
+      }
+      stage.retainLargerOverNewer = stage.retainLargerOverNewer.toString();
+    },
+  ]);

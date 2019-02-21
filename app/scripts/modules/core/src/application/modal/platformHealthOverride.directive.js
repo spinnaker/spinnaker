@@ -25,12 +25,15 @@ module.exports = angular
         .attr('checked', _.isEqual(scope.command.interestingHealthProviderNames, [scope.platformHealthType]));
     };
   })
-  .controller('PlatformHealthOverrideCtrl', ['$scope', function($scope) {
-    $scope.clicked = function($event) {
-      if ($event.currentTarget.checked) {
-        $scope.command.interestingHealthProviderNames = [$scope.platformHealthType];
-      } else {
-        delete $scope.command.interestingHealthProviderNames;
-      }
-    };
-  }]);
+  .controller('PlatformHealthOverrideCtrl', [
+    '$scope',
+    function($scope) {
+      $scope.clicked = function($event) {
+        if ($event.currentTarget.checked) {
+          $scope.command.interestingHealthProviderNames = [$scope.platformHealthType];
+        } else {
+          delete $scope.command.interestingHealthProviderNames;
+        }
+      };
+    },
+  ]);

@@ -46,6 +46,9 @@ module.exports = angular
       validate: validate,
     };
   })
-  .run(['dcosApplicationNameValidator', function(dcosApplicationNameValidator) {
-    ApplicationNameValidator.registerValidator('dcos', dcosApplicationNameValidator);
-  }]);
+  .run([
+    'dcosApplicationNameValidator',
+    function(dcosApplicationNameValidator) {
+      ApplicationNameValidator.registerValidator('dcos', dcosApplicationNameValidator);
+    },
+  ]);

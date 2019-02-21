@@ -17,8 +17,10 @@ import { filterModelConfig } from './filter/SecurityGroupFilterModel';
 import { SecurityGroupDetails } from './SecurityGroupDetails';
 
 export const SECURITY_GROUP_STATES = 'spinnaker.core.securityGroup.states';
-module(SECURITY_GROUP_STATES, [APPLICATION_STATE_PROVIDER, STATE_CONFIG_PROVIDER, APPLICATION_MODEL_BUILDER]).config(
-  ['applicationStateProvider', 'stateConfigProvider', (applicationStateProvider: ApplicationStateProvider, stateConfigProvider: StateConfigProvider) => {
+module(SECURITY_GROUP_STATES, [APPLICATION_STATE_PROVIDER, STATE_CONFIG_PROVIDER, APPLICATION_MODEL_BUILDER]).config([
+  'applicationStateProvider',
+  'stateConfigProvider',
+  (applicationStateProvider: ApplicationStateProvider, stateConfigProvider: StateConfigProvider) => {
     const firewallDetails: INestedState = {
       name: 'firewallDetails',
       url: '/firewallDetails/:provider/:accountId/:region/:vpcId/:name',
@@ -163,5 +165,5 @@ module(SECURITY_GROUP_STATES, [APPLICATION_STATE_PROVIDER, STATE_CONFIG_PROVIDER
     stateConfigProvider.addRewriteRule(/(.+?)\/securityGroupDetails\/(.*)/, ($match: string[]) => {
       return `${$match[1]}/firewallDetails/${$match[2]}`;
     });
-  }],
-);
+  },
+]);

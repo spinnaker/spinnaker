@@ -27,32 +27,36 @@ module.exports = angular
       controller: 'DeleteApplicationSectionCtrl',
     };
   })
-  .controller('DeleteApplicationSectionCtrl', ['$state', 'confirmationModalService', function($state, confirmationModalService) {
-    if (this.application.notFound) {
-      return;
-    }
+  .controller('DeleteApplicationSectionCtrl', [
+    '$state',
+    'confirmationModalService',
+    function($state, confirmationModalService) {
+      if (this.application.notFound) {
+        return;
+      }
 
-    this.serverGroupCount = this.application.serverGroups.data.length;
-    this.hasServerGroups = Boolean(this.serverGroupCount);
+      this.serverGroupCount = this.application.serverGroups.data.length;
+      this.hasServerGroups = Boolean(this.serverGroupCount);
 
-    this.deleteApplication = () => {
-      var submitMethod = () => ApplicationWriter.deleteApplication(this.application.attributes);
+      this.deleteApplication = () => {
+        var submitMethod = () => ApplicationWriter.deleteApplication(this.application.attributes);
 
-      var taskMonitor = {
-        application: this.application,
-        title: 'Deleting ' + this.application.name,
-        hasKatoTask: false,
-        onTaskComplete: () => {
-          $state.go('home.infrastructure');
-        },
+        var taskMonitor = {
+          application: this.application,
+          title: 'Deleting ' + this.application.name,
+          hasKatoTask: false,
+          onTaskComplete: () => {
+            $state.go('home.infrastructure');
+          },
+        };
+
+        confirmationModalService.confirm({
+          header: 'Really delete ' + this.application.name + '?',
+          buttonText: 'Delete ' + this.application.name,
+          provider: 'aws',
+          taskMonitorConfig: taskMonitor,
+          submitMethod: submitMethod,
+        });
       };
-
-      confirmationModalService.confirm({
-        header: 'Really delete ' + this.application.name + '?',
-        buttonText: 'Delete ' + this.application.name,
-        provider: 'aws',
-        taskMonitorConfig: taskMonitor,
-        submitMethod: submitMethod,
-      });
-    };
-  }]);
+    },
+  ]);

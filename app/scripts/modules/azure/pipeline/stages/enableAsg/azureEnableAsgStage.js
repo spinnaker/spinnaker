@@ -21,46 +21,49 @@ module.exports = angular
       ],
     });
   })
-  .controller('azureEnableAsgStageCtrl', ['$scope', function($scope) {
-    var ctrl = this;
+  .controller('azureEnableAsgStageCtrl', [
+    '$scope',
+    function($scope) {
+      var ctrl = this;
 
-    let stage = $scope.stage;
+      let stage = $scope.stage;
 
-    $scope.state = {
-      accounts: false,
-      regionsLoaded: false,
-    };
+      $scope.state = {
+        accounts: false,
+        regionsLoaded: false,
+      };
 
-    AccountService.listAccounts('azure').then(function(accounts) {
-      $scope.accounts = accounts;
-      $scope.state.accounts = true;
-    });
+      AccountService.listAccounts('azure').then(function(accounts) {
+        $scope.accounts = accounts;
+        $scope.state.accounts = true;
+      });
 
-    ctrl.reset = () => {
-      ctrl.accountUpdated();
-      ctrl.resetSelectedCluster();
-    };
+      ctrl.reset = () => {
+        ctrl.accountUpdated();
+        ctrl.resetSelectedCluster();
+      };
 
-    $scope.targets = StageConstants.TARGET_LIST;
+      $scope.targets = StageConstants.TARGET_LIST;
 
-    stage.regions = stage.regions || [];
-    stage.cloudProvider = 'azure';
+      stage.regions = stage.regions || [];
+      stage.cloudProvider = 'azure';
 
-    if (stage.isNew) {
-      // bypass the health check for now; will change this later to ['azureService'] and we will also add back the check for $scope.application.attributes.platformHealthOnly
-      stage.interestingHealthProviderNames = [];
-    }
+      if (stage.isNew) {
+        // bypass the health check for now; will change this later to ['azureService'] and we will also add back the check for $scope.application.attributes.platformHealthOnly
+        stage.interestingHealthProviderNames = [];
+      }
 
-    if (!stage.credentials && $scope.application.defaultCredentials.azure) {
-      stage.credentials = $scope.application.defaultCredentials.azure;
-    }
-    if (!stage.regions.length && $scope.application.defaultRegions.azure) {
-      stage.regions.push($scope.application.defaultRegions.azure);
-    }
+      if (!stage.credentials && $scope.application.defaultCredentials.azure) {
+        stage.credentials = $scope.application.defaultCredentials.azure;
+      }
+      if (!stage.regions.length && $scope.application.defaultRegions.azure) {
+        stage.regions.push($scope.application.defaultRegions.azure);
+      }
 
-    if (!stage.target) {
-      stage.target = $scope.targets[0].val;
-    }
+      if (!stage.target) {
+        stage.target = $scope.targets[0].val;
+      }
 
-    $scope.$watch('stage.credentials', $scope.accountUpdated);
-  }]);
+      $scope.$watch('stage.credentials', $scope.accountUpdated);
+    },
+  ]);

@@ -6,16 +6,19 @@ import { AccountService, LOAD_BALANCER_READ_SERVICE } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.kubernetes.cache.initializer', [LOAD_BALANCER_READ_SERVICE])
-  .factory('kubernetesCacheConfigurer', ['loadBalancerReader', function(loadBalancerReader) {
-    let config = Object.create(null);
+  .factory('kubernetesCacheConfigurer', [
+    'loadBalancerReader',
+    function(loadBalancerReader) {
+      let config = Object.create(null);
 
-    config.account = {
-      initializers: [() => AccountService.getCredentialsKeyedByAccount('kubernetes')],
-    };
+      config.account = {
+        initializers: [() => AccountService.getCredentialsKeyedByAccount('kubernetes')],
+      };
 
-    config.loadBalancers = {
-      initializers: [() => loadBalancerReader.listLoadBalancers('kubernetes')],
-    };
+      config.loadBalancers = {
+        initializers: [() => loadBalancerReader.listLoadBalancers('kubernetes')],
+      };
 
-    return config;
-  }]);
+      return config;
+    },
+  ]);

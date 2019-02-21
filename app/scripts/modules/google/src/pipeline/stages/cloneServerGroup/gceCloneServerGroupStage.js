@@ -21,58 +21,61 @@ module.exports = angular
       ],
     });
   })
-  .controller('gceCloneServerGroupStageCtrl', ['$scope', function($scope) {
-    const stage = $scope.stage;
+  .controller('gceCloneServerGroupStageCtrl', [
+    '$scope',
+    function($scope) {
+      const stage = $scope.stage;
 
-    $scope.viewState = {
-      accountsLoaded: false,
-    };
+      $scope.viewState = {
+        accountsLoaded: false,
+      };
 
-    AccountService.listAccounts('gce').then(accounts => {
-      $scope.accounts = accounts;
-      $scope.viewState.accountsLoaded = true;
-    });
+      AccountService.listAccounts('gce').then(accounts => {
+        $scope.accounts = accounts;
+        $scope.viewState.accountsLoaded = true;
+      });
 
-    this.cloneTargets = StageConstants.TARGET_LIST;
-    stage.target = stage.target || this.cloneTargets[0].val;
-    stage.application = $scope.application.name;
-    stage.cloudProvider = 'gce';
-    stage.cloudProviderType = 'gce';
+      this.cloneTargets = StageConstants.TARGET_LIST;
+      stage.target = stage.target || this.cloneTargets[0].val;
+      stage.application = $scope.application.name;
+      stage.cloudProvider = 'gce';
+      stage.cloudProviderType = 'gce';
 
-    if (
-      stage.isNew &&
-      $scope.application.attributes.platformHealthOnlyShowOverride &&
-      $scope.application.attributes.platformHealthOnly
-    ) {
-      stage.interestingHealthProviderNames = ['Google'];
-    }
-
-    if (!stage.credentials && $scope.application.defaultCredentials.gce) {
-      stage.credentials = $scope.application.defaultCredentials.gce;
-    }
-
-    this.targetClusterUpdated = () => {
-      if (stage.targetCluster) {
-        const clusterName = NameUtils.parseServerGroupName(stage.targetCluster);
-        stage.stack = clusterName.stack;
-        stage.freeFormDetails = clusterName.freeFormDetails;
-      } else {
-        stage.stack = '';
-        stage.freeFormDetails = '';
+      if (
+        stage.isNew &&
+        $scope.application.attributes.platformHealthOnlyShowOverride &&
+        $scope.application.attributes.platformHealthOnly
+      ) {
+        stage.interestingHealthProviderNames = ['Google'];
       }
-    };
 
-    $scope.$watch('stage.targetCluster', this.targetClusterUpdated);
+      if (!stage.credentials && $scope.application.defaultCredentials.gce) {
+        stage.credentials = $scope.application.defaultCredentials.gce;
+      }
 
-    this.removeCapacity = () => {
-      delete stage.capacity;
-    };
+      this.targetClusterUpdated = () => {
+        if (stage.targetCluster) {
+          const clusterName = NameUtils.parseServerGroupName(stage.targetCluster);
+          stage.stack = clusterName.stack;
+          stage.freeFormDetails = clusterName.freeFormDetails;
+        } else {
+          stage.stack = '';
+          stage.freeFormDetails = '';
+        }
+      };
 
-    if (!_.has(stage, 'useSourceCapacity')) {
-      stage.useSourceCapacity = true;
-    }
+      $scope.$watch('stage.targetCluster', this.targetClusterUpdated);
 
-    this.toggleDisableTraffic = () => {
-      stage.disableTraffic = !stage.disableTraffic;
-    };
-  }]);
+      this.removeCapacity = () => {
+        delete stage.capacity;
+      };
+
+      if (!_.has(stage, 'useSourceCapacity')) {
+        stage.useSourceCapacity = true;
+      }
+
+      this.toggleDisableTraffic = () => {
+        stage.disableTraffic = !stage.disableTraffic;
+      };
+    },
+  ]);

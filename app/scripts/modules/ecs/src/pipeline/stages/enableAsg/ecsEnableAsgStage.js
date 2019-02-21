@@ -21,49 +21,52 @@ module.exports = angular
       ],
     });
   })
-  .controller('ecsEnableAsgStageCtrl', ['$scope', function($scope) {
-    var ctrl = this;
+  .controller('ecsEnableAsgStageCtrl', [
+    '$scope',
+    function($scope) {
+      var ctrl = this;
 
-    let stage = $scope.stage;
+      let stage = $scope.stage;
 
-    $scope.state = {
-      accounts: false,
-      regionsLoaded: false,
-    };
+      $scope.state = {
+        accounts: false,
+        regionsLoaded: false,
+      };
 
-    AccountService.listAccounts('ecs').then(function(accounts) {
-      $scope.accounts = accounts;
-      $scope.state.accounts = true;
-    });
+      AccountService.listAccounts('ecs').then(function(accounts) {
+        $scope.accounts = accounts;
+        $scope.state.accounts = true;
+      });
 
-    ctrl.reset = () => {
-      ctrl.accountUpdated();
-      ctrl.resetSelectedCluster();
-    };
+      ctrl.reset = () => {
+        ctrl.accountUpdated();
+        ctrl.resetSelectedCluster();
+      };
 
-    $scope.targets = StageConstants.TARGET_LIST;
+      $scope.targets = StageConstants.TARGET_LIST;
 
-    stage.regions = stage.regions || [];
-    stage.cloudProvider = 'ecs';
+      stage.regions = stage.regions || [];
+      stage.cloudProvider = 'ecs';
 
-    if (
-      stage.isNew &&
-      $scope.application.attributes.platformHealthOnlyShowOverride &&
-      $scope.application.attributes.platformHealthOnly
-    ) {
-      stage.interestingHealthProviderNames = ['Ecs'];
-    }
+      if (
+        stage.isNew &&
+        $scope.application.attributes.platformHealthOnlyShowOverride &&
+        $scope.application.attributes.platformHealthOnly
+      ) {
+        stage.interestingHealthProviderNames = ['Ecs'];
+      }
 
-    if (!stage.credentials && $scope.application.defaultCredentials.ecs) {
-      stage.credentials = $scope.application.defaultCredentials.ecs;
-    }
-    if (!stage.regions.length && $scope.application.defaultRegions.ecs) {
-      stage.regions.push($scope.application.defaultRegions.ecs);
-    }
+      if (!stage.credentials && $scope.application.defaultCredentials.ecs) {
+        stage.credentials = $scope.application.defaultCredentials.ecs;
+      }
+      if (!stage.regions.length && $scope.application.defaultRegions.ecs) {
+        stage.regions.push($scope.application.defaultRegions.ecs);
+      }
 
-    if (!stage.target) {
-      stage.target = $scope.targets[0].val;
-    }
+      if (!stage.target) {
+        stage.target = $scope.targets[0].val;
+      }
 
-    $scope.$watch('stage.credentials', $scope.accountUpdated);
-  }]);
+      $scope.$watch('stage.credentials', $scope.accountUpdated);
+    },
+  ]);

@@ -180,274 +180,324 @@ module.exports = angular
       });
     }
   })
-  .controller('CanaryStageCtrl', ['$scope', '$uibModal', 'stage', 'providerSelectionService', 'serverGroupCommandBuilder', 'awsServerGroupTransformer', function(
-    $scope,
-    $uibModal,
-    stage,
-    providerSelectionService,
-    serverGroupCommandBuilder,
-    awsServerGroupTransformer,
-  ) {
-    'ngInject';
+  .controller('CanaryStageCtrl', [
+    '$scope',
+    '$uibModal',
+    'stage',
+    'providerSelectionService',
+    'serverGroupCommandBuilder',
+    'awsServerGroupTransformer',
+    function($scope, $uibModal, stage, providerSelectionService, serverGroupCommandBuilder, awsServerGroupTransformer) {
+      'ngInject';
 
-    $scope.isExpression = function(value) {
-      return isString(value) && value.includes('${');
-    };
-
-    const user = AuthenticationService.getAuthenticatedUser();
-    $scope.stage = stage;
-    stage.baseline = stage.baseline || {};
-    stage.scaleUp = stage.scaleUp || { enabled: false };
-
-    stage.canary = stage.canary || {};
-    stage.canary.owner = stage.canary.owner || (user.authenticated ? user.name : null);
-    stage.canary.watchers = stage.canary.watchers || [];
-
-    const cc = stage.canary.canaryConfig;
-    if (cc) {
-      if (cc.actionsForUnhealthyCanary && cc.actionsForUnhealthyCanary.some(action => action.action === 'TERMINATE')) {
-        this.terminateUnhealthyCanaryEnabled = true;
-      }
-
-      // ensure string values from canary config are numbers or expressions
-      const cac = cc.canaryAnalysisConfig;
-      cc.lifetimeHours = !$scope.isExpression(cc.lifetimeHours)
-        ? toInteger(cc.lifetimeHours) || undefined
-        : cc.lifetimeHours;
-      cac.lookbackMins = !$scope.isExpression(cac.lookbackMins)
-        ? toInteger(cac.lookbackMins) || undefined
-        : cac.lookbackMins;
-      cac.canaryAnalysisIntervalMins = !$scope.isExpression(cac.canaryAnalysisIntervalMins)
-        ? toInteger(cac.canaryAnalysisIntervalMins) || undefined
-        : cac.canaryAnalysisIntervalMins;
-      if (stage.scaleUp) {
-        stage.scaleUp.delay = !$scope.isExpression(stage.scaleUp.delay)
-          ? toInteger(stage.scaleUp.delay) || undefined
-          : stage.scaleUp.delay;
-        stage.scaleUp.capacity = !$scope.isExpression(stage.scaleUp.capacity)
-          ? toInteger(stage.scaleUp.capacity) || undefined
-          : stage.scaleUp.capacity;
-      }
-
-      if (cc.canaryAnalysisConfig.useLookback) {
-        this.analysisType = 'SLIDING_LOOKBACK';
-      } else {
-        this.analysisType = 'GROWING';
-      }
-    }
-
-    let overriddenCloudProvider = 'aws';
-    if ($scope.stage.isNew) {
-      // apply defaults
-      this.terminateUnhealthyCanaryEnabled = true;
-      this.analysisType = 'GROWING';
-      stage.canary.canaryConfig = {
-        name: [$scope.pipeline.name, 'Canary'].join(' - '),
-        lifetimeHours: 3,
-        canaryHealthCheckHandler: {
-          minimumCanaryResultScore: 75,
-        },
-        canarySuccessCriteria: {
-          canaryResultScore: 95,
-        },
-        actionsForUnhealthyCanary: [{ action: 'DISABLE' }, { action: 'TERMINATE', delayBeforeActionInMins: 60 }],
-        canaryAnalysisConfig: {
-          combinedCanaryResultStrategy: 'AGGREGATE',
-          notificationHours: [1, 2, 3],
-          canaryAnalysisIntervalMins: 30,
-          useLookback: false,
-          lookbackMins: 0,
-          beginCanaryAnalysisAfterMins: 0,
-        },
+      $scope.isExpression = function(value) {
+        return isString(value) && value.includes('${');
       };
 
-      AccountService.listProviders($scope.application).then(function(providers) {
-        if (providers.length === 1) {
-          overriddenCloudProvider = providers[0];
-        } else if (!$scope.stage.cloudProviderType && $scope.stage.cloudProvider) {
-          overriddenCloudProvider = $scope.stage.cloudProvider;
+      const user = AuthenticationService.getAuthenticatedUser();
+      $scope.stage = stage;
+      stage.baseline = stage.baseline || {};
+      stage.scaleUp = stage.scaleUp || { enabled: false };
+
+      stage.canary = stage.canary || {};
+      stage.canary.owner = stage.canary.owner || (user.authenticated ? user.name : null);
+      stage.canary.watchers = stage.canary.watchers || [];
+
+      const cc = stage.canary.canaryConfig;
+      if (cc) {
+        if (
+          cc.actionsForUnhealthyCanary &&
+          cc.actionsForUnhealthyCanary.some(action => action.action === 'TERMINATE')
+        ) {
+          this.terminateUnhealthyCanaryEnabled = true;
+        }
+
+        // ensure string values from canary config are numbers or expressions
+        const cac = cc.canaryAnalysisConfig;
+        cc.lifetimeHours = !$scope.isExpression(cc.lifetimeHours)
+          ? toInteger(cc.lifetimeHours) || undefined
+          : cc.lifetimeHours;
+        cac.lookbackMins = !$scope.isExpression(cac.lookbackMins)
+          ? toInteger(cac.lookbackMins) || undefined
+          : cac.lookbackMins;
+        cac.canaryAnalysisIntervalMins = !$scope.isExpression(cac.canaryAnalysisIntervalMins)
+          ? toInteger(cac.canaryAnalysisIntervalMins) || undefined
+          : cac.canaryAnalysisIntervalMins;
+        if (stage.scaleUp) {
+          stage.scaleUp.delay = !$scope.isExpression(stage.scaleUp.delay)
+            ? toInteger(stage.scaleUp.delay) || undefined
+            : stage.scaleUp.delay;
+          stage.scaleUp.capacity = !$scope.isExpression(stage.scaleUp.capacity)
+            ? toInteger(stage.scaleUp.capacity) || undefined
+            : stage.scaleUp.capacity;
+        }
+
+        if (cc.canaryAnalysisConfig.useLookback) {
+          this.analysisType = 'SLIDING_LOOKBACK';
         } else {
-          $scope.providers = providers;
-        }
-      });
-    }
-
-    this.recipients = $scope.stage.canary.watchers
-      ? angular.isArray($scope.stage.canary.watchers)
-        ? $scope.stage.canary.watchers.join(', ')
-        : $scope.stage.canary.watchers
-      : '';
-
-    this.updateWatchersList = () => {
-      if (this.recipients.includes('${')) {
-        //check if SpEL; we don't want to convert to array
-        $scope.stage.canary.watchers = this.recipients;
-      } else {
-        $scope.stage.canary.watchers = [];
-        this.recipients.split(',').forEach(email => {
-          $scope.stage.canary.watchers.push(email.trim());
-        });
-      }
-    };
-
-    this.toggleTerminateUnhealthyCanary = function() {
-      if (this.terminateUnhealthyCanaryEnabled) {
-        $scope.stage.canary.canaryConfig.actionsForUnhealthyCanary = [
-          { action: 'DISABLE' },
-          { action: 'TERMINATE', delayBeforeActionInMins: 60 },
-        ];
-      } else {
-        $scope.stage.canary.canaryConfig.actionsForUnhealthyCanary = [{ action: 'DISABLE' }];
-      }
-
-      return $scope.stage.canary.canaryConfig.actionsForUnhealthyCanary.some(action => action.action === 'TERMINATE');
-    };
-
-    this.terminateUnhealthyCanaryMinutes = function(delayBeforeActionInMins) {
-      const terminateAction = $scope.stage.canary.canaryConfig.actionsForUnhealthyCanary.find(
-        action => action.action === 'TERMINATE',
-      );
-
-      if (delayBeforeActionInMins) {
-        terminateAction.delayBeforeActionInMins = delayBeforeActionInMins;
-      }
-
-      return terminateAction ? terminateAction.delayBeforeActionInMins : 60;
-    };
-
-    let filterServerGroups = () => {
-      AccountService.listAccounts(this.getCloudProvider()).then(accounts => ($scope.accounts = accounts));
-      setClusterList();
-    };
-
-    $scope.application.serverGroups.ready().then(() => {
-      filterServerGroups();
-    });
-
-    this.notificationHours = $scope.stage.canary.canaryConfig.canaryAnalysisConfig.notificationHours.join(',');
-
-    this.splitNotificationHours = () => {
-      const hoursField = this.notificationHours || '';
-      $scope.stage.canary.canaryConfig.canaryAnalysisConfig.notificationHours = hoursField.split(',').map(item => {
-        const parsed = parseInt(item.trim());
-        if (!isNaN(parsed)) {
-          return parsed;
-        } else {
-          return 0;
-        }
-      });
-    };
-
-    this.getRegion = function(cluster) {
-      if (cluster.region) {
-        return cluster.region;
-      }
-      var availabilityZones = cluster.availabilityZones;
-      if (availabilityZones) {
-        var regions = Object.keys(availabilityZones);
-        if (regions && regions.length) {
-          return regions[0];
+          this.analysisType = 'GROWING';
         }
       }
-      return 'n/a';
-    };
 
-    this.updateLookback = function() {
-      $scope.stage.canary.canaryConfig.canaryAnalysisConfig.useLookback = this.analysisType === 'SLIDING_LOOKBACK';
-      if (this.analysisType !== 'SLIDING_LOOKBACK') {
-        $scope.stage.canary.canaryConfig.canaryAnalysisConfig.lookbackMins = 0;
-      }
-    };
-
-    let clusterFilter = cluster => {
-      return $scope.stage.baseline.account ? cluster.account === $scope.stage.baseline.account : true;
-    };
-
-    let setClusterList = () => {
-      $scope.clusterList = AppListExtractor.getClusters([$scope.application], clusterFilter);
-    };
-
-    $scope.resetSelectedCluster = () => {
-      $scope.stage.baseline.cluster = undefined;
-      setClusterList();
-    };
-
-    let getCloudProvider = () => {
-      return $scope.stage.baseline.cloudProvider || overriddenCloudProvider || 'aws';
-    };
-
-    this.getCloudProvider = getCloudProvider;
-
-    let resetCloudProvider = () => {
-      delete $scope.stage.baseline.cluster;
-      delete $scope.stage.baseline.account;
-      delete $scope.stage.clusterPairs;
-      filterServerGroups();
-    };
-
-    if ($scope.stage.isNew) {
-      $scope.$watch('stage.baseline.cloudProvider', resetCloudProvider);
-    }
-
-    function getClusterName(cluster) {
-      return NameUtils.getClusterName(cluster.application, cluster.stack, cluster.freeFormDetails);
-    }
-
-    this.getClusterName = getClusterName;
-
-    function cleanupClusterConfig(cluster, type) {
-      delete cluster.credentials;
-      if (cluster.freeFormDetails && cluster.freeFormDetails.split('-').pop() === type.toLowerCase()) {
-        return;
-      }
-      if (cluster.freeFormDetails) {
-        cluster.freeFormDetails += '-';
-      }
-      cluster.freeFormDetails += type.toLowerCase();
-      cluster.moniker = NameUtils.getMoniker(cluster.application, cluster.stack, cluster.freeFormDetails);
-    }
-
-    function configureServerGroupCommandForEditing(command) {
-      command.viewState.disableStrategySelection = true;
-      command.viewState.hideClusterNamePreview = true;
-      command.viewState.readOnlyFields = { credentials: true, region: true, subnet: true, useSourceCapacity: true };
-      delete command.strategy;
-    }
-
-    this.addClusterPair = function() {
-      $scope.stage.clusterPairs = $scope.stage.clusterPairs || [];
-      providerSelectionService.selectProvider($scope.application).then(function(selectedProvider) {
-        const config = CloudProviderRegistry.getValue(getCloudProvider(), 'serverGroup');
-
-        const handleResult = function(command) {
-          const baselineCluster = awsServerGroupTransformer.convertServerGroupCommandToDeployConfiguration(command);
-          const canaryCluster = _.cloneDeep(baselineCluster);
-          cleanupClusterConfig(baselineCluster, 'baseline');
-          cleanupClusterConfig(canaryCluster, 'canary');
-          $scope.stage.clusterPairs.push({ baseline: baselineCluster, canary: canaryCluster });
+      let overriddenCloudProvider = 'aws';
+      if ($scope.stage.isNew) {
+        // apply defaults
+        this.terminateUnhealthyCanaryEnabled = true;
+        this.analysisType = 'GROWING';
+        stage.canary.canaryConfig = {
+          name: [$scope.pipeline.name, 'Canary'].join(' - '),
+          lifetimeHours: 3,
+          canaryHealthCheckHandler: {
+            minimumCanaryResultScore: 75,
+          },
+          canarySuccessCriteria: {
+            canaryResultScore: 95,
+          },
+          actionsForUnhealthyCanary: [{ action: 'DISABLE' }, { action: 'TERMINATE', delayBeforeActionInMins: 60 }],
+          canaryAnalysisConfig: {
+            combinedCanaryResultStrategy: 'AGGREGATE',
+            notificationHours: [1, 2, 3],
+            canaryAnalysisIntervalMins: 30,
+            useLookback: false,
+            lookbackMins: 0,
+            beginCanaryAnalysisAfterMins: 0,
+          },
         };
 
-        const title = 'Add Cluster Pair';
+        AccountService.listProviders($scope.application).then(function(providers) {
+          if (providers.length === 1) {
+            overriddenCloudProvider = providers[0];
+          } else if (!$scope.stage.cloudProviderType && $scope.stage.cloudProvider) {
+            overriddenCloudProvider = $scope.stage.cloudProvider;
+          } else {
+            $scope.providers = providers;
+          }
+        });
+      }
+
+      this.recipients = $scope.stage.canary.watchers
+        ? angular.isArray($scope.stage.canary.watchers)
+          ? $scope.stage.canary.watchers.join(', ')
+          : $scope.stage.canary.watchers
+        : '';
+
+      this.updateWatchersList = () => {
+        if (this.recipients.includes('${')) {
+          //check if SpEL; we don't want to convert to array
+          $scope.stage.canary.watchers = this.recipients;
+        } else {
+          $scope.stage.canary.watchers = [];
+          this.recipients.split(',').forEach(email => {
+            $scope.stage.canary.watchers.push(email.trim());
+          });
+        }
+      };
+
+      this.toggleTerminateUnhealthyCanary = function() {
+        if (this.terminateUnhealthyCanaryEnabled) {
+          $scope.stage.canary.canaryConfig.actionsForUnhealthyCanary = [
+            { action: 'DISABLE' },
+            { action: 'TERMINATE', delayBeforeActionInMins: 60 },
+          ];
+        } else {
+          $scope.stage.canary.canaryConfig.actionsForUnhealthyCanary = [{ action: 'DISABLE' }];
+        }
+
+        return $scope.stage.canary.canaryConfig.actionsForUnhealthyCanary.some(action => action.action === 'TERMINATE');
+      };
+
+      this.terminateUnhealthyCanaryMinutes = function(delayBeforeActionInMins) {
+        const terminateAction = $scope.stage.canary.canaryConfig.actionsForUnhealthyCanary.find(
+          action => action.action === 'TERMINATE',
+        );
+
+        if (delayBeforeActionInMins) {
+          terminateAction.delayBeforeActionInMins = delayBeforeActionInMins;
+        }
+
+        return terminateAction ? terminateAction.delayBeforeActionInMins : 60;
+      };
+
+      let filterServerGroups = () => {
+        AccountService.listAccounts(this.getCloudProvider()).then(accounts => ($scope.accounts = accounts));
+        setClusterList();
+      };
+
+      $scope.application.serverGroups.ready().then(() => {
+        filterServerGroups();
+      });
+
+      this.notificationHours = $scope.stage.canary.canaryConfig.canaryAnalysisConfig.notificationHours.join(',');
+
+      this.splitNotificationHours = () => {
+        const hoursField = this.notificationHours || '';
+        $scope.stage.canary.canaryConfig.canaryAnalysisConfig.notificationHours = hoursField.split(',').map(item => {
+          const parsed = parseInt(item.trim());
+          if (!isNaN(parsed)) {
+            return parsed;
+          } else {
+            return 0;
+          }
+        });
+      };
+
+      this.getRegion = function(cluster) {
+        if (cluster.region) {
+          return cluster.region;
+        }
+        var availabilityZones = cluster.availabilityZones;
+        if (availabilityZones) {
+          var regions = Object.keys(availabilityZones);
+          if (regions && regions.length) {
+            return regions[0];
+          }
+        }
+        return 'n/a';
+      };
+
+      this.updateLookback = function() {
+        $scope.stage.canary.canaryConfig.canaryAnalysisConfig.useLookback = this.analysisType === 'SLIDING_LOOKBACK';
+        if (this.analysisType !== 'SLIDING_LOOKBACK') {
+          $scope.stage.canary.canaryConfig.canaryAnalysisConfig.lookbackMins = 0;
+        }
+      };
+
+      let clusterFilter = cluster => {
+        return $scope.stage.baseline.account ? cluster.account === $scope.stage.baseline.account : true;
+      };
+
+      let setClusterList = () => {
+        $scope.clusterList = AppListExtractor.getClusters([$scope.application], clusterFilter);
+      };
+
+      $scope.resetSelectedCluster = () => {
+        $scope.stage.baseline.cluster = undefined;
+        setClusterList();
+      };
+
+      let getCloudProvider = () => {
+        return $scope.stage.baseline.cloudProvider || overriddenCloudProvider || 'aws';
+      };
+
+      this.getCloudProvider = getCloudProvider;
+
+      let resetCloudProvider = () => {
+        delete $scope.stage.baseline.cluster;
+        delete $scope.stage.baseline.account;
+        delete $scope.stage.clusterPairs;
+        filterServerGroups();
+      };
+
+      if ($scope.stage.isNew) {
+        $scope.$watch('stage.baseline.cloudProvider', resetCloudProvider);
+      }
+
+      function getClusterName(cluster) {
+        return NameUtils.getClusterName(cluster.application, cluster.stack, cluster.freeFormDetails);
+      }
+
+      this.getClusterName = getClusterName;
+
+      function cleanupClusterConfig(cluster, type) {
+        delete cluster.credentials;
+        if (cluster.freeFormDetails && cluster.freeFormDetails.split('-').pop() === type.toLowerCase()) {
+          return;
+        }
+        if (cluster.freeFormDetails) {
+          cluster.freeFormDetails += '-';
+        }
+        cluster.freeFormDetails += type.toLowerCase();
+        cluster.moniker = NameUtils.getMoniker(cluster.application, cluster.stack, cluster.freeFormDetails);
+      }
+
+      function configureServerGroupCommandForEditing(command) {
+        command.viewState.disableStrategySelection = true;
+        command.viewState.hideClusterNamePreview = true;
+        command.viewState.readOnlyFields = { credentials: true, region: true, subnet: true, useSourceCapacity: true };
+        delete command.strategy;
+      }
+
+      this.addClusterPair = function() {
+        $scope.stage.clusterPairs = $scope.stage.clusterPairs || [];
+        providerSelectionService.selectProvider($scope.application).then(function(selectedProvider) {
+          const config = CloudProviderRegistry.getValue(getCloudProvider(), 'serverGroup');
+
+          const handleResult = function(command) {
+            const baselineCluster = awsServerGroupTransformer.convertServerGroupCommandToDeployConfiguration(command);
+            const canaryCluster = _.cloneDeep(baselineCluster);
+            cleanupClusterConfig(baselineCluster, 'baseline');
+            cleanupClusterConfig(canaryCluster, 'canary');
+            $scope.stage.clusterPairs.push({ baseline: baselineCluster, canary: canaryCluster });
+          };
+
+          const title = 'Add Cluster Pair';
+          const application = $scope.application;
+
+          serverGroupCommandBuilder
+            .buildNewServerGroupCommandForPipeline(selectedProvider)
+            .then(function(command) {
+              configureServerGroupCommandForEditing(command);
+              command.viewState.overrides = {
+                capacity: {
+                  min: 1,
+                  max: 1,
+                  desired: 1,
+                },
+                useSourceCapacity: false,
+              };
+              command.viewState.disableNoTemplateSelection = true;
+              command.viewState.customTemplateMessage =
+                'Select a template to configure the canary and baseline ' +
+                'cluster pair. If you want to configure the server groups differently, you can do so by clicking ' +
+                '"Edit" after adding the pair.';
+
+              if (config.CloneServerGroupModal) {
+                // react
+                return config.CloneServerGroupModal.show({ title, application, command });
+              } else {
+                // angular
+                return $uibModal.open({
+                  templateUrl: config.cloneServerGroupTemplateUrl,
+                  controller: `${config.cloneServerGroupController} as ctrl`,
+                  size: 'lg',
+                  resolve: {
+                    title: () => title,
+                    application: () => application,
+                    serverGroupCommand: () => command,
+                  },
+                }).result;
+              }
+            })
+            .then(handleResult)
+            .catch(() => {});
+        });
+      };
+
+      this.editCluster = function(cluster, index, type) {
+        cluster.provider = cluster.provider || getCloudProvider() || 'aws';
+        const config = CloudProviderRegistry.getValue(cluster.provider, 'serverGroup');
+
+        const handleResult = command => {
+          const stageCluster = awsServerGroupTransformer.convertServerGroupCommandToDeployConfiguration(command);
+          cleanupClusterConfig(stageCluster, type);
+          $scope.stage.clusterPairs[index][type.toLowerCase()] = stageCluster;
+        };
+
+        const title = `Configure ${type} Cluster`;
         const application = $scope.application;
 
         serverGroupCommandBuilder
-          .buildNewServerGroupCommandForPipeline(selectedProvider)
-          .then(function(command) {
+          .buildServerGroupCommandFromPipeline(application, cluster)
+          .then(command => {
             configureServerGroupCommandForEditing(command);
-            command.viewState.overrides = {
-              capacity: {
-                min: 1,
-                max: 1,
-                desired: 1,
-              },
-              useSourceCapacity: false,
-            };
-            command.viewState.disableNoTemplateSelection = true;
-            command.viewState.customTemplateMessage =
-              'Select a template to configure the canary and baseline ' +
-              'cluster pair. If you want to configure the server groups differently, you can do so by clicking ' +
-              '"Edit" after adding the pair.';
-
+            const detailsParts = command.freeFormDetails.split('-');
+            const lastPart = detailsParts.pop();
+            if (lastPart === type.toLowerCase()) {
+              command.freeFormDetails = detailsParts.join('-');
+            }
+            return command;
+          })
+          .then(command => {
             if (config.CloneServerGroupModal) {
               // react
               return config.CloneServerGroupModal.show({ title, application, command });
@@ -467,64 +517,18 @@ module.exports = angular
           })
           .then(handleResult)
           .catch(() => {});
-      });
-    };
-
-    this.editCluster = function(cluster, index, type) {
-      cluster.provider = cluster.provider || getCloudProvider() || 'aws';
-      const config = CloudProviderRegistry.getValue(cluster.provider, 'serverGroup');
-
-      const handleResult = command => {
-        const stageCluster = awsServerGroupTransformer.convertServerGroupCommandToDeployConfiguration(command);
-        cleanupClusterConfig(stageCluster, type);
-        $scope.stage.clusterPairs[index][type.toLowerCase()] = stageCluster;
       };
 
-      const title = `Configure ${type} Cluster`;
-      const application = $scope.application;
+      this.deleteClusterPair = function(index) {
+        $scope.stage.clusterPairs.splice(index, 1);
+      };
 
-      serverGroupCommandBuilder
-        .buildServerGroupCommandFromPipeline(application, cluster)
-        .then(command => {
-          configureServerGroupCommandForEditing(command);
-          const detailsParts = command.freeFormDetails.split('-');
-          const lastPart = detailsParts.pop();
-          if (lastPart === type.toLowerCase()) {
-            command.freeFormDetails = detailsParts.join('-');
-          }
-          return command;
-        })
-        .then(command => {
-          if (config.CloneServerGroupModal) {
-            // react
-            return config.CloneServerGroupModal.show({ title, application, command });
-          } else {
-            // angular
-            return $uibModal.open({
-              templateUrl: config.cloneServerGroupTemplateUrl,
-              controller: `${config.cloneServerGroupController} as ctrl`,
-              size: 'lg',
-              resolve: {
-                title: () => title,
-                application: () => application,
-                serverGroupCommand: () => command,
-              },
-            }).result;
-          }
-        })
-        .then(handleResult)
-        .catch(() => {});
-    };
-
-    this.deleteClusterPair = function(index) {
-      $scope.stage.clusterPairs.splice(index, 1);
-    };
-
-    this.updateScores = ({ successfulScore, unhealthyScore }) => {
-      // Called from a React component.
-      $scope.$apply(() => {
-        $scope.stage.canary.canaryConfig.canarySuccessCriteria.canaryResultScore = successfulScore;
-        $scope.stage.canary.canaryConfig.canaryHealthCheckHandler.minimumCanaryResultScore = unhealthyScore;
-      });
-    };
-  }]);
+      this.updateScores = ({ successfulScore, unhealthyScore }) => {
+        // Called from a React component.
+        $scope.$apply(() => {
+          $scope.stage.canary.canaryConfig.canarySuccessCriteria.canaryResultScore = successfulScore;
+          $scope.stage.canary.canaryConfig.canaryHealthCheckHandler.minimumCanaryResultScore = unhealthyScore;
+        });
+      };
+    },
+  ]);

@@ -27,32 +27,35 @@ module.exports = angular
       ],
     });
   })
-  .controller('gceDestroyAsgStageCtrl', ['$scope', function($scope) {
-    const stage = $scope.stage;
+  .controller('gceDestroyAsgStageCtrl', [
+    '$scope',
+    function($scope) {
+      const stage = $scope.stage;
 
-    $scope.state = {
-      accounts: false,
-      regionsLoaded: false,
-    };
+      $scope.state = {
+        accounts: false,
+        regionsLoaded: false,
+      };
 
-    AccountService.listAccounts('gce').then(function(accounts) {
-      $scope.accounts = accounts;
-      $scope.state.accounts = true;
-    });
+      AccountService.listAccounts('gce').then(function(accounts) {
+        $scope.accounts = accounts;
+        $scope.state.accounts = true;
+      });
 
-    $scope.targets = StageConstants.TARGET_LIST;
+      $scope.targets = StageConstants.TARGET_LIST;
 
-    stage.regions = stage.regions || [];
-    stage.cloudProvider = 'gce';
+      stage.regions = stage.regions || [];
+      stage.cloudProvider = 'gce';
 
-    if (!stage.credentials && $scope.application.defaultCredentials.gce) {
-      stage.credentials = $scope.application.defaultCredentials.gce;
-    }
-    if (!stage.regions.length && $scope.application.defaultRegions.gce) {
-      stage.regions.push($scope.application.defaultRegions.gce);
-    }
+      if (!stage.credentials && $scope.application.defaultCredentials.gce) {
+        stage.credentials = $scope.application.defaultCredentials.gce;
+      }
+      if (!stage.regions.length && $scope.application.defaultRegions.gce) {
+        stage.regions.push($scope.application.defaultRegions.gce);
+      }
 
-    if (!stage.target) {
-      stage.target = $scope.targets[0].val;
-    }
-  }]);
+      if (!stage.target) {
+        stage.target = $scope.targets[0].val;
+      }
+    },
+  ]);

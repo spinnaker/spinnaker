@@ -9,8 +9,10 @@ import { ApplicationModelBuilder } from '../application/applicationModel.builder
 import { InstanceDetails } from './details/InstanceDetails';
 
 export const INSTANCE_STATES = 'spinnaker.core.instance.states';
-module(INSTANCE_STATES, [APPLICATION_STATE_PROVIDER, STATE_CONFIG_PROVIDER]).config(
-  ['applicationStateProvider', 'stateConfigProvider', (applicationStateProvider: ApplicationStateProvider, stateConfigProvider: StateConfigProvider) => {
+module(INSTANCE_STATES, [APPLICATION_STATE_PROVIDER, STATE_CONFIG_PROVIDER]).config([
+  'applicationStateProvider',
+  'stateConfigProvider',
+  (applicationStateProvider: ApplicationStateProvider, stateConfigProvider: StateConfigProvider) => {
     const instanceDetails: INestedState = {
       name: 'instanceDetails',
       url: '/instanceDetails/:provider/:instanceId',
@@ -114,5 +116,5 @@ module(INSTANCE_STATES, [APPLICATION_STATE_PROVIDER, STATE_CONFIG_PROVIDER]).con
     applicationStateProvider.addInsightDetailState(instanceDetails);
     applicationStateProvider.addInsightDetailState(multipleInstances);
     stateConfigProvider.addToRootState(standaloneInstance);
-  }],
-);
+  },
+]);

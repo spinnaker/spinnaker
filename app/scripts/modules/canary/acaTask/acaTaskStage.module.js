@@ -14,6 +14,9 @@ module.exports = angular
     CANARY_SCORE_COMPONENT,
     require('../canary/canaryStatus.directive').name,
   ])
-  .run(['acaTaskTransformer', function(acaTaskTransformer) {
-    Registry.pipeline.registerTransformer(acaTaskTransformer);
-  }]);
+  .run([
+    'acaTaskTransformer',
+    function(acaTaskTransformer) {
+      Registry.pipeline.registerTransformer(acaTaskTransformer);
+    },
+  ]);

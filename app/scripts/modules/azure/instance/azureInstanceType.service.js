@@ -5,9 +5,10 @@ import _ from 'lodash';
 
 import { API, InfrastructureCaches } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.azure.instanceType.service', [])
-  .factory('azureInstanceTypeService', ['$http', '$q', function($http, $q) {
+module.exports = angular.module('spinnaker.azure.instanceType.service', []).factory('azureInstanceTypeService', [
+  '$http',
+  '$q',
+  function($http, $q) {
     var m3 = {
       type: 'M3',
       description:
@@ -305,4 +306,5 @@ module.exports = angular
       getAvailableTypesForRegions: getAvailableTypesForRegions,
       getAllTypesByRegion: getAllTypesByRegion,
     };
-  }]);
+  },
+]);

@@ -23,60 +23,64 @@ module.exports = angular
       controllerAs: 'preconditionListCtrl',
     };
   })
-  .controller('PreconditionListCtrl', ['$scope', '$uibModal', function($scope, $uibModal) {
-    var vm = this;
+  .controller('PreconditionListCtrl', [
+    '$scope',
+    '$uibModal',
+    function($scope, $uibModal) {
+      var vm = this;
 
-    vm.editPrecondition = function(precondition, strategy) {
-      var modalInstance = $uibModal.open({
-        templateUrl: require('./modal/editPrecondition.html'),
-        controller: 'EditPreconditionController',
-        controllerAs: 'editPrecondition',
-        resolve: {
-          precondition: function() {
-            return precondition;
+      vm.editPrecondition = function(precondition, strategy) {
+        var modalInstance = $uibModal.open({
+          templateUrl: require('./modal/editPrecondition.html'),
+          controller: 'EditPreconditionController',
+          controllerAs: 'editPrecondition',
+          resolve: {
+            precondition: function() {
+              return precondition;
+            },
+            strategy: function() {
+              return strategy;
+            },
+            application: function() {
+              return $scope.application;
+            },
           },
-          strategy: function() {
-            return strategy;
-          },
-          application: function() {
-            return $scope.application;
-          },
-        },
-      });
+        });
 
-      modalInstance.result
-        .then(function(newPrecondition) {
-          if (!precondition) {
-            $scope.preconditions.push(newPrecondition);
-          } else {
-            $scope.preconditions[$scope.preconditions.indexOf(precondition)] = newPrecondition;
-          }
-          vm.isPreconditionsDirty = true;
-        })
-        .catch(() => {});
-    };
+        modalInstance.result
+          .then(function(newPrecondition) {
+            if (!precondition) {
+              $scope.preconditions.push(newPrecondition);
+            } else {
+              $scope.preconditions[$scope.preconditions.indexOf(precondition)] = newPrecondition;
+            }
+            vm.isPreconditionsDirty = true;
+          })
+          .catch(() => {});
+      };
 
-    vm.addPrecondition = function(strategy) {
-      if ($scope.parent && !$scope.parent.preconditions) {
-        $scope.parent.preconditions = [];
-      }
-      vm.editPrecondition(undefined, strategy);
-    };
+      vm.addPrecondition = function(strategy) {
+        if ($scope.parent && !$scope.parent.preconditions) {
+          $scope.parent.preconditions = [];
+        }
+        vm.editPrecondition(undefined, strategy);
+      };
 
-    vm.removePrecondition = function(precondition) {
-      $scope.preconditions = $scope.preconditions.filter(function(el) {
-        return el !== precondition;
-      });
-      vm.isPreconditionsDirty = true;
-    };
+      vm.removePrecondition = function(precondition) {
+        $scope.preconditions = $scope.preconditions.filter(function(el) {
+          return el !== precondition;
+        });
+        vm.isPreconditionsDirty = true;
+      };
 
-    vm.renderContext = function(precondition) {
-      var renderedContext = '';
-      _.forEach(precondition.context, function(value, key) {
-        renderedContext += '<strong>' + key + ': </strong>' + value + '<br/>';
-      });
-      return renderedContext;
-    };
+      vm.renderContext = function(precondition) {
+        var renderedContext = '';
+        _.forEach(precondition.context, function(value, key) {
+          renderedContext += '<strong>' + key + ': </strong>' + value + '<br/>';
+        });
+        return renderedContext;
+      };
 
-    return vm;
-  }]);
+      return vm;
+    },
+  ]);

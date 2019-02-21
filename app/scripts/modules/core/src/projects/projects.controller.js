@@ -15,78 +15,84 @@ module.exports = angular
     require('../presentation/sortToggle/sorttoggle.directive').name,
     INSIGHT_MENU_DIRECTIVE,
   ])
-  .controller('ProjectsCtrl', ['$scope', '$uibModal', '$log', '$filter', function($scope, $uibModal, $log, $filter) {
-    var projectsViewStateCache =
-      ViewStateCache.get('projects') || ViewStateCache.createCache('projects', { version: 1 });
+  .controller('ProjectsCtrl', [
+    '$scope',
+    '$uibModal',
+    '$log',
+    '$filter',
+    function($scope, $uibModal, $log, $filter) {
+      var projectsViewStateCache =
+        ViewStateCache.get('projects') || ViewStateCache.createCache('projects', { version: 1 });
 
-    function cacheViewState() {
-      projectsViewStateCache.put('#global', $scope.viewState);
-    }
+      function cacheViewState() {
+        projectsViewStateCache.put('#global', $scope.viewState);
+      }
 
-    function initializeViewState() {
-      $scope.viewState = projectsViewStateCache.get('#global') || {
-        sortModel: { key: 'name' },
-        projectFilter: '',
-      };
-    }
+      function initializeViewState() {
+        $scope.viewState = projectsViewStateCache.get('#global') || {
+          sortModel: { key: 'name' },
+          projectFilter: '',
+        };
+      }
 
-    $scope.projectsLoaded = false;
+      $scope.projectsLoaded = false;
 
-    $scope.projectFilter = '';
+      $scope.projectFilter = '';
 
-    $scope.menuActions = [
-      {
-        displayName: 'Create Project',
-        action: function() {
-          ConfigureProjectModal.show().catch(() => {});
+      $scope.menuActions = [
+        {
+          displayName: 'Create Project',
+          action: function() {
+            ConfigureProjectModal.show().catch(() => {});
+          },
         },
-      },
-    ];
+      ];
 
-    this.filterProjects = function filterProjects() {
-      var filtered = $filter('anyFieldFilter')($scope.projects, {
-          name: $scope.viewState.projectFilter,
-          email: $scope.viewState.projectFilter,
-        }),
-        sorted = $filter('orderBy')(filtered, $scope.viewState.sortModel.key);
-      $scope.filteredProjects = sorted;
-      this.resetPaginator();
-    };
-
-    this.resultPage = function resultPage() {
-      var pagination = $scope.pagination,
-        allFiltered = $scope.filteredProjects,
-        start = (pagination.currentPage - 1) * pagination.itemsPerPage,
-        end = pagination.currentPage * pagination.itemsPerPage;
-      if (!allFiltered || !allFiltered.length) {
-        return [];
-      }
-      if (allFiltered.length < pagination.itemsPerPage) {
-        return allFiltered;
-      }
-      if (allFiltered.length < end) {
-        return allFiltered.slice(start);
-      }
-      return allFiltered.slice(start, end);
-    };
-
-    this.resetPaginator = function resetPaginator() {
-      $scope.pagination = {
-        currentPage: 1,
-        itemsPerPage: 12,
-        maxSize: 12,
+      this.filterProjects = function filterProjects() {
+        var filtered = $filter('anyFieldFilter')($scope.projects, {
+            name: $scope.viewState.projectFilter,
+            email: $scope.viewState.projectFilter,
+          }),
+          sorted = $filter('orderBy')(filtered, $scope.viewState.sortModel.key);
+        $scope.filteredProjects = sorted;
+        this.resetPaginator();
       };
-    };
 
-    var ctrl = this;
+      this.resultPage = function resultPage() {
+        var pagination = $scope.pagination,
+          allFiltered = $scope.filteredProjects,
+          start = (pagination.currentPage - 1) * pagination.itemsPerPage,
+          end = pagination.currentPage * pagination.itemsPerPage;
+        if (!allFiltered || !allFiltered.length) {
+          return [];
+        }
+        if (allFiltered.length < pagination.itemsPerPage) {
+          return allFiltered;
+        }
+        if (allFiltered.length < end) {
+          return allFiltered.slice(start);
+        }
+        return allFiltered.slice(start, end);
+      };
 
-    ProjectReader.listProjects().then(function(projects) {
-      $scope.projects = projects;
-      ctrl.filterProjects();
-      $scope.projectsLoaded = true;
-    });
+      this.resetPaginator = function resetPaginator() {
+        $scope.pagination = {
+          currentPage: 1,
+          itemsPerPage: 12,
+          maxSize: 12,
+        };
+      };
 
-    $scope.$watch('viewState', cacheViewState, true);
+      var ctrl = this;
 
-    initializeViewState();
-  }]);
+      ProjectReader.listProjects().then(function(projects) {
+        $scope.projects = projects;
+        ctrl.filterProjects();
+        $scope.projectsLoaded = true;
+      });
+
+      $scope.$watch('viewState', cacheViewState, true);
+
+      initializeViewState();
+    },
+  ]);

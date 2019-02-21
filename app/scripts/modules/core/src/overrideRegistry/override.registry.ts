@@ -36,7 +36,10 @@ export class OverrideRegistry {
 export const OVERRIDE_REGISTRY = 'spinnaker.core.override.registry';
 module(OVERRIDE_REGISTRY, [])
   .service('overrideRegistry', OverrideRegistry)
-  .run(['overrideRegistry', (overrideRegistry: OverrideRegistry) => {
-    'ngInject';
-    overrideRegistrationQueue.setRegistries(overrideRegistry);
-  }]);
+  .run([
+    'overrideRegistry',
+    (overrideRegistry: OverrideRegistry) => {
+      'ngInject';
+      overrideRegistrationQueue.setRegistries(overrideRegistry);
+    },
+  ]);

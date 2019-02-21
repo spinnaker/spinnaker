@@ -4,9 +4,9 @@ import _ from 'lodash';
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.dcos.serverGroup.transformer', [])
-  .factory('dcosServerGroupTransformer', ['$q', function($q) {
+module.exports = angular.module('spinnaker.dcos.serverGroup.transformer', []).factory('dcosServerGroupTransformer', [
+  '$q',
+  function($q) {
     function normalizeServerGroup(serverGroup) {
       return $q.when(serverGroup); // no-op
     }
@@ -36,4 +36,5 @@ module.exports = angular
       convertServerGroupCommandToDeployConfiguration: convertServerGroupCommandToDeployConfiguration,
       normalizeServerGroup: normalizeServerGroup,
     };
-  }]);
+  },
+]);

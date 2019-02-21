@@ -53,6 +53,9 @@ module.exports = angular
       validate: validate,
     };
   })
-  .run(['openstackApplicationNameValidator', function(openstackApplicationNameValidator) {
-    ApplicationNameValidator.registerValidator('openstack', openstackApplicationNameValidator);
-  }]);
+  .run([
+    'openstackApplicationNameValidator',
+    function(openstackApplicationNameValidator) {
+      ApplicationNameValidator.registerValidator('openstack', openstackApplicationNameValidator);
+    },
+  ]);

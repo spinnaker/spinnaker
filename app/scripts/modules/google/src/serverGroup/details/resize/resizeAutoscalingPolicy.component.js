@@ -16,33 +16,37 @@ module.exports = angular
       application: '=',
     },
     templateUrl: require('./resizeAutoscalingPolicy.component.html'),
-    controller: ['$scope', 'gceAutoscalingPolicyWriter', function($scope, gceAutoscalingPolicyWriter) {
-      const newPolicyBounds = ['newMinNumReplicas', 'newMaxNumReplicas'];
-      newPolicyBounds.forEach(prop => (this.command[prop] = null));
+    controller: [
+      '$scope',
+      'gceAutoscalingPolicyWriter',
+      function($scope, gceAutoscalingPolicyWriter) {
+        const newPolicyBounds = ['newMinNumReplicas', 'newMaxNumReplicas'];
+        newPolicyBounds.forEach(prop => (this.command[prop] = null));
 
-      angular.extend(this.formMethods, {
-        formIsValid: () =>
-          _.every([
-            _.chain(newPolicyBounds)
-              .map(bound => this.command[bound] !== null)
-              .every()
-              .value(),
-            $scope.resizeAutoscalingPolicyForm.$valid,
-          ]),
-        submitMethod: () => {
-          return gceAutoscalingPolicyWriter.upsertAutoscalingPolicy(
-            this.application,
-            this.serverGroup,
-            {
-              minNumReplicas: this.command.newMinNumReplicas,
-              maxNumReplicas: this.command.newMaxNumReplicas,
-            },
-            {
-              reason: this.command.reason,
-              interestingHealthProviderNames: this.command.interestingHealthProviderNames,
-            },
-          );
-        },
-      });
-    }],
+        angular.extend(this.formMethods, {
+          formIsValid: () =>
+            _.every([
+              _.chain(newPolicyBounds)
+                .map(bound => this.command[bound] !== null)
+                .every()
+                .value(),
+              $scope.resizeAutoscalingPolicyForm.$valid,
+            ]),
+          submitMethod: () => {
+            return gceAutoscalingPolicyWriter.upsertAutoscalingPolicy(
+              this.application,
+              this.serverGroup,
+              {
+                minNumReplicas: this.command.newMinNumReplicas,
+                maxNumReplicas: this.command.newMaxNumReplicas,
+              },
+              {
+                reason: this.command.reason,
+                interestingHealthProviderNames: this.command.interestingHealthProviderNames,
+              },
+            );
+          },
+        });
+      },
+    ],
   });

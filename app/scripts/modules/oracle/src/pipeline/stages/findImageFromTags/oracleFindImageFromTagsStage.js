@@ -19,13 +19,16 @@ module.exports = angular
       ],
     });
   })
-  .controller('oracleFindImageFromTagsStageCtrl', ['$scope', function($scope) {
-    $scope.stage.packageName = $scope.stage.packageName || '*';
-    $scope.stage.tags = $scope.stage.tags || {};
-    $scope.stage.regions = $scope.stage.regions || [];
-    $scope.stage.cloudProvider = $scope.stage.cloudProvider || 'oracle';
+  .controller('oracleFindImageFromTagsStageCtrl', [
+    '$scope',
+    function($scope) {
+      $scope.stage.packageName = $scope.stage.packageName || '*';
+      $scope.stage.tags = $scope.stage.tags || {};
+      $scope.stage.regions = $scope.stage.regions || [];
+      $scope.stage.cloudProvider = $scope.stage.cloudProvider || 'oracle';
 
-    BakeryReader.getRegions('oracle').then(function(regions) {
-      $scope.regions = regions;
-    });
-  }]);
+      BakeryReader.getRegions('oracle').then(function(regions) {
+        $scope.regions = regions;
+      });
+    },
+  ]);

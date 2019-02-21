@@ -15,21 +15,25 @@ module.exports = angular
       formMethods: '=',
     },
     templateUrl: require('./resizeCapacity.component.html'),
-    controller: ['$scope', 'serverGroupWriter', function($scope, serverGroupWriter) {
-      this.command.newSize = null;
+    controller: [
+      '$scope',
+      'serverGroupWriter',
+      function($scope, serverGroupWriter) {
+        this.command.newSize = null;
 
-      angular.extend(this.formMethods, {
-        formIsValid: () => _.every([this.command.newSize !== null, $scope.resizeCapacityForm.$valid]),
-        submitMethod: () => {
-          return serverGroupWriter.resizeServerGroup(this.serverGroup, this.application, {
-            capacity: { min: this.command.newSize, max: this.command.newSize, desired: this.command.newSize },
-            serverGroupName: this.serverGroup.name,
-            targetSize: this.command.newSize,
-            region: this.serverGroup.region,
-            interestingHealthProviderNames: this.command.interestingHealthProviderNames,
-            reason: this.command.reason,
-          });
-        },
-      });
-    }],
+        angular.extend(this.formMethods, {
+          formIsValid: () => _.every([this.command.newSize !== null, $scope.resizeCapacityForm.$valid]),
+          submitMethod: () => {
+            return serverGroupWriter.resizeServerGroup(this.serverGroup, this.application, {
+              capacity: { min: this.command.newSize, max: this.command.newSize, desired: this.command.newSize },
+              serverGroupName: this.serverGroup.name,
+              targetSize: this.command.newSize,
+              region: this.serverGroup.region,
+              interestingHealthProviderNames: this.command.interestingHealthProviderNames,
+              reason: this.command.reason,
+            });
+          },
+        });
+      },
+    ],
   });

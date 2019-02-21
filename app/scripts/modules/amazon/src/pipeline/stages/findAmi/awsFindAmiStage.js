@@ -20,55 +20,58 @@ module.exports = angular
       ],
     });
   })
-  .controller('awsFindAmiStageCtrl', ['$scope', function($scope) {
-    let stage = $scope.stage;
+  .controller('awsFindAmiStageCtrl', [
+    '$scope',
+    function($scope) {
+      let stage = $scope.stage;
 
-    $scope.state = {
-      accounts: false,
-      regionsLoaded: false,
-    };
+      $scope.state = {
+        accounts: false,
+        regionsLoaded: false,
+      };
 
-    AccountService.listAccounts('aws').then(function(accounts) {
-      $scope.accounts = accounts;
-      $scope.state.accounts = true;
-    });
+      AccountService.listAccounts('aws').then(function(accounts) {
+        $scope.accounts = accounts;
+        $scope.state.accounts = true;
+      });
 
-    $scope.selectionStrategies = [
-      {
-        label: 'Largest',
-        val: 'LARGEST',
-        description: 'When multiple server groups exist, prefer the server group with the most instances',
-      },
-      {
-        label: 'Newest',
-        val: 'NEWEST',
-        description: 'When multiple server groups exist, prefer the newest',
-      },
-      {
-        label: 'Oldest',
-        val: 'OLDEST',
-        description: 'When multiple server groups exist, prefer the oldest',
-      },
-      {
-        label: 'Fail',
-        val: 'FAIL',
-        description: 'When multiple server groups exist, fail',
-      },
-    ];
+      $scope.selectionStrategies = [
+        {
+          label: 'Largest',
+          val: 'LARGEST',
+          description: 'When multiple server groups exist, prefer the server group with the most instances',
+        },
+        {
+          label: 'Newest',
+          val: 'NEWEST',
+          description: 'When multiple server groups exist, prefer the newest',
+        },
+        {
+          label: 'Oldest',
+          val: 'OLDEST',
+          description: 'When multiple server groups exist, prefer the oldest',
+        },
+        {
+          label: 'Fail',
+          val: 'FAIL',
+          description: 'When multiple server groups exist, fail',
+        },
+      ];
 
-    stage.regions = stage.regions || [];
-    stage.cloudProvider = 'aws';
-    stage.selectionStrategy = stage.selectionStrategy || $scope.selectionStrategies[0].val;
+      stage.regions = stage.regions || [];
+      stage.cloudProvider = 'aws';
+      stage.selectionStrategy = stage.selectionStrategy || $scope.selectionStrategies[0].val;
 
-    if (angular.isUndefined(stage.onlyEnabled)) {
-      stage.onlyEnabled = true;
-    }
-    if (!stage.credentials && $scope.application.defaultCredentials.aws) {
-      stage.credentials = $scope.application.defaultCredentials.aws;
-    }
-    if (!stage.regions.length && $scope.application.defaultRegions.aws) {
-      stage.regions.push($scope.application.defaultRegions.aws);
-    }
+      if (angular.isUndefined(stage.onlyEnabled)) {
+        stage.onlyEnabled = true;
+      }
+      if (!stage.credentials && $scope.application.defaultCredentials.aws) {
+        stage.credentials = $scope.application.defaultCredentials.aws;
+      }
+      if (!stage.regions.length && $scope.application.defaultRegions.aws) {
+        stage.regions.push($scope.application.defaultRegions.aws);
+      }
 
-    $scope.$watch('stage.credentials', $scope.accountUpdated);
-  }]);
+      $scope.$watch('stage.credentials', $scope.accountUpdated);
+    },
+  ]);

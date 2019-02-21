@@ -9,8 +9,10 @@ import { filterModelConfig } from 'core/cluster/filter/ClusterFilterModel';
 import { ServerGroupDetailsWrapper } from './details/ServerGroupDetailsWrapper';
 
 export const SERVER_GROUP_STATES = 'spinnaker.core.serverGroup.states';
-module(SERVER_GROUP_STATES, [APPLICATION_STATE_PROVIDER, STATE_CONFIG_PROVIDER]).config(
-  ['applicationStateProvider', 'stateConfigProvider', (applicationStateProvider: ApplicationStateProvider, stateConfigProvider: StateConfigProvider) => {
+module(SERVER_GROUP_STATES, [APPLICATION_STATE_PROVIDER, STATE_CONFIG_PROVIDER]).config([
+  'applicationStateProvider',
+  'stateConfigProvider',
+  (applicationStateProvider: ApplicationStateProvider, stateConfigProvider: StateConfigProvider) => {
     const clusters: INestedState = {
       name: 'clusters',
       url: `/clusters?${stateConfigProvider.paramsToQuery(filterModelConfig)}`,
@@ -102,5 +104,5 @@ module(SERVER_GROUP_STATES, [APPLICATION_STATE_PROVIDER, STATE_CONFIG_PROVIDER])
     applicationStateProvider.addInsightDetailState(multipleServerGroups);
 
     stateConfigProvider.addRewriteRule('/applications/{application}', '/applications/{application}/clusters');
-  }],
-);
+  },
+]);

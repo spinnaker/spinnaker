@@ -24,17 +24,21 @@ module(SCRIPT_STAGE, [])
       validators: [{ type: 'requiredField', fieldName: 'command' }],
     });
   })
-  .controller('ScriptStageCtrl', ['$scope', 'stage', function($scope: IScope, stage: IStage) {
-    $scope.stage = stage;
-    $scope.stage.failPipeline = $scope.stage.failPipeline === undefined ? true : $scope.stage.failPipeline;
-    $scope.stage.waitForCompletion =
-      $scope.stage.waitForCompletion === undefined ? true : $scope.stage.waitForCompletion;
+  .controller('ScriptStageCtrl', [
+    '$scope',
+    'stage',
+    function($scope: IScope, stage: IStage) {
+      $scope.stage = stage;
+      $scope.stage.failPipeline = $scope.stage.failPipeline === undefined ? true : $scope.stage.failPipeline;
+      $scope.stage.waitForCompletion =
+        $scope.stage.waitForCompletion === undefined ? true : $scope.stage.waitForCompletion;
 
-    if (!$scope.stage.user) {
-      $scope.stage.user = AuthenticationService.getAuthenticatedUser().name;
-    }
+      if (!$scope.stage.user) {
+        $scope.stage.user = AuthenticationService.getAuthenticatedUser().name;
+      }
 
-    $scope.viewState = {
-      loading: false,
-    };
-  }]);
+      $scope.viewState = {
+        loading: false,
+      };
+    },
+  ]);

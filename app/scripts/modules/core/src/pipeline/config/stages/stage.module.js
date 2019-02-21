@@ -44,237 +44,256 @@ module.exports = angular
       },
     };
   })
-  .controller('StageConfigCtrl', ['$scope', '$element', '$compile', '$controller', '$templateCache', function($scope, $element, $compile, $controller, $templateCache) {
-    var lastStageScope, reactComponentMounted;
+  .controller('StageConfigCtrl', [
+    '$scope',
+    '$element',
+    '$compile',
+    '$controller',
+    '$templateCache',
+    function($scope, $element, $compile, $controller, $templateCache) {
+      var lastStageScope, reactComponentMounted;
 
-    $scope.options = {
-      stageTypes: [],
-      selectedStageType: null,
-    };
+      $scope.options = {
+        stageTypes: [],
+        selectedStageType: null,
+      };
 
-    AccountService.applicationAccounts($scope.application).then(accounts => {
-      $scope.options.stageTypes = Registry.pipeline.getConfigurableStageTypes(accounts);
-      $scope.showProviders = new Set(accounts.map(a => a.cloudProvider)).size > 1;
-    });
-
-    if ($scope.pipeline.strategy) {
-      $scope.options.stageTypes = $scope.options.stageTypes.filter(stageType => {
-        return stageType.strategy || false;
-      });
-    }
-
-    function getConfig(stage) {
-      return Registry.pipeline.getStageConfig(stage);
-    }
-
-    $scope.groupDependencyOptions = function(stage) {
-      var requisiteStageRefIds = $scope.stage.requisiteStageRefIds || [];
-      return stage.available
-        ? 'Available'
-        : requisiteStageRefIds.includes(stage.refId)
-        ? null
-        : 'Downstream dependencies (unavailable)';
-    };
-
-    $scope.stageProducesArtifacts = function() {
-      if (!$scope.stage) {
-        return false;
-      }
-
-      const stageConfig = Registry.pipeline.getStageConfig($scope.stage);
-
-      if (!stageConfig) {
-        return false;
-      } else {
-        return !!stageConfig.producesArtifacts;
-      }
-    };
-
-    $scope.updateAvailableDependencyStages = function() {
-      var availableDependencyStages = PipelineConfigService.getDependencyCandidateStages($scope.pipeline, $scope.stage);
-      $scope.options.dependencies = availableDependencyStages.map(function(stage) {
-        return {
-          name: stage.name,
-          refId: stage.refId,
-          available: true,
-        };
+      AccountService.applicationAccounts($scope.application).then(accounts => {
+        $scope.options.stageTypes = Registry.pipeline.getConfigurableStageTypes(accounts);
+        $scope.showProviders = new Set(accounts.map(a => a.cloudProvider)).size > 1;
       });
 
-      $scope.pipeline.stages.forEach(function(stage) {
-        if (stage !== $scope.stage && !availableDependencyStages.includes(stage)) {
-          $scope.options.dependencies.push({
+      if ($scope.pipeline.strategy) {
+        $scope.options.stageTypes = $scope.options.stageTypes.filter(stageType => {
+          return stageType.strategy || false;
+        });
+      }
+
+      function getConfig(stage) {
+        return Registry.pipeline.getStageConfig(stage);
+      }
+
+      $scope.groupDependencyOptions = function(stage) {
+        var requisiteStageRefIds = $scope.stage.requisiteStageRefIds || [];
+        return stage.available
+          ? 'Available'
+          : requisiteStageRefIds.includes(stage.refId)
+          ? null
+          : 'Downstream dependencies (unavailable)';
+      };
+
+      $scope.stageProducesArtifacts = function() {
+        if (!$scope.stage) {
+          return false;
+        }
+
+        const stageConfig = Registry.pipeline.getStageConfig($scope.stage);
+
+        if (!stageConfig) {
+          return false;
+        } else {
+          return !!stageConfig.producesArtifacts;
+        }
+      };
+
+      $scope.updateAvailableDependencyStages = function() {
+        var availableDependencyStages = PipelineConfigService.getDependencyCandidateStages(
+          $scope.pipeline,
+          $scope.stage,
+        );
+        $scope.options.dependencies = availableDependencyStages.map(function(stage) {
+          return {
             name: stage.name,
             refId: stage.refId,
+            available: true,
+          };
+        });
+
+        $scope.pipeline.stages.forEach(function(stage) {
+          if (stage !== $scope.stage && !availableDependencyStages.includes(stage)) {
+            $scope.options.dependencies.push({
+              name: stage.name,
+              refId: stage.refId,
+            });
+          }
+        });
+      };
+
+      this.editStageJson = () => {
+        const modalProps = { dialogClassName: 'modal-lg modal-fullscreen' };
+        ReactModal.show(EditStageJsonModal, { stage: $scope.stage }, modalProps)
+          .then(() => {
+            $scope.$applyAsync(() => $scope.$broadcast('pipeline-json-edited'));
+          })
+          .catch(() => {}); // user closed modal
+      };
+
+      this.selectStageType = stage => {
+        $scope.stage.type = stage.key;
+        this.selectStage();
+        // clear stage-specific fields
+        Object.keys($scope.stage).forEach(k => {
+          if (!['requisiteStageRefIds', 'refId', 'isNew', 'name', 'type'].includes(k)) {
+            delete $scope.stage[k];
+          }
+        });
+      };
+
+      this.selectStage = function(newVal, oldVal) {
+        const stageDetailsNode = $element.find('.stage-details').get(0);
+        if ($scope.viewState.stageIndex >= $scope.pipeline.stages.length) {
+          $scope.viewState.stageIndex = $scope.pipeline.stages.length - 1;
+        }
+        $scope.stage = $scope.pipeline.stages[$scope.viewState.stageIndex];
+
+        if (!$scope.stage) {
+          return;
+        }
+
+        if (!$scope.stage.type) {
+          $scope.options.selectedStageType = null;
+        } else {
+          $scope.options.selectedStageType = $scope.stage.type;
+        }
+
+        $scope.updateAvailableDependencyStages();
+        var type = $scope.stage.type,
+          stageScope = $scope.$new();
+
+        // clear existing contents
+        if (reactComponentMounted) {
+          ReactDOM.unmountComponentAtNode(stageDetailsNode);
+          reactComponentMounted = false;
+        } else {
+          $element.find('.stage-details').html('');
+        }
+
+        $scope.description = '';
+        if (lastStageScope) {
+          lastStageScope.$destroy();
+        }
+        $scope.extendedDescription = '';
+        lastStageScope = stageScope;
+        $scope.$on('$destroy', function() {
+          stageScope.$destroy();
+        });
+
+        if (type && stageDetailsNode) {
+          let config = getConfig($scope.stage);
+          if (config) {
+            $scope.canConfigureNotifications = !$scope.pipeline.strategy && !config.disableNotifications;
+            $scope.description = config.description;
+            $scope.extendedDescription = config.extendedDescription;
+            $scope.label = config.label;
+            if (config.addAliasToConfig) {
+              $scope.stage.alias = config.alias;
+            }
+            if (config.defaults) {
+              defaultsDeep($scope.stage, config.defaults);
+            }
+            if (config.useBaseProvider || config.provides) {
+              config.templateUrl = require('./baseProviderStage/baseProviderStage.html');
+              config.controller = 'BaseProviderStageCtrl as baseProviderStageCtrl';
+            }
+            updateStageName(config, oldVal);
+            applyConfigController(config, stageScope);
+
+            if (config.component) {
+              const props = {
+                application: $scope.application,
+                stageFieldUpdated: $scope.stageFieldUpdated,
+                updateStageField: changes => {
+                  extend($scope.stage, changes);
+                  $scope.stageFieldUpdated();
+                },
+                stage: $scope.stage,
+                component: config.component,
+                configuration: config.configuration,
+              };
+              ReactDOM.render(React.createElement(StageConfigWrapper, props), stageDetailsNode);
+            } else {
+              const template = $templateCache.get(config.templateUrl);
+              const templateBody = $compile(template)(stageScope);
+              $element.find('.stage-details').html(templateBody);
+            }
+            reactComponentMounted = !!config.component;
+          }
+        } else {
+          $scope.label = null;
+          $scope.description = null;
+          $scope.extendedDescription = null;
+        }
+      };
+
+      function applyConfigController(config, stageScope) {
+        if (config.controller) {
+          var ctrl = config.controller.split(' as ');
+          var controller = $controller(ctrl[0], {
+            $scope: stageScope,
+            stage: $scope.stage,
+            viewState: $scope.viewState,
           });
-        }
-      });
-    };
-
-    this.editStageJson = () => {
-      const modalProps = { dialogClassName: 'modal-lg modal-fullscreen' };
-      ReactModal.show(EditStageJsonModal, { stage: $scope.stage }, modalProps)
-        .then(() => {
-          $scope.$applyAsync(() => $scope.$broadcast('pipeline-json-edited'));
-        })
-        .catch(() => {}); // user closed modal
-    };
-
-    this.selectStageType = stage => {
-      $scope.stage.type = stage.key;
-      this.selectStage();
-      // clear stage-specific fields
-      Object.keys($scope.stage).forEach(k => {
-        if (!['requisiteStageRefIds', 'refId', 'isNew', 'name', 'type'].includes(k)) {
-          delete $scope.stage[k];
-        }
-      });
-    };
-
-    this.selectStage = function(newVal, oldVal) {
-      const stageDetailsNode = $element.find('.stage-details').get(0);
-      if ($scope.viewState.stageIndex >= $scope.pipeline.stages.length) {
-        $scope.viewState.stageIndex = $scope.pipeline.stages.length - 1;
-      }
-      $scope.stage = $scope.pipeline.stages[$scope.viewState.stageIndex];
-
-      if (!$scope.stage) {
-        return;
-      }
-
-      if (!$scope.stage.type) {
-        $scope.options.selectedStageType = null;
-      } else {
-        $scope.options.selectedStageType = $scope.stage.type;
-      }
-
-      $scope.updateAvailableDependencyStages();
-      var type = $scope.stage.type,
-        stageScope = $scope.$new();
-
-      // clear existing contents
-      if (reactComponentMounted) {
-        ReactDOM.unmountComponentAtNode(stageDetailsNode);
-        reactComponentMounted = false;
-      } else {
-        $element.find('.stage-details').html('');
-      }
-
-      $scope.description = '';
-      if (lastStageScope) {
-        lastStageScope.$destroy();
-      }
-      $scope.extendedDescription = '';
-      lastStageScope = stageScope;
-      $scope.$on('$destroy', function() {
-        stageScope.$destroy();
-      });
-
-      if (type && stageDetailsNode) {
-        let config = getConfig($scope.stage);
-        if (config) {
-          $scope.canConfigureNotifications = !$scope.pipeline.strategy && !config.disableNotifications;
-          $scope.description = config.description;
-          $scope.extendedDescription = config.extendedDescription;
-          $scope.label = config.label;
-          if (config.addAliasToConfig) {
-            $scope.stage.alias = config.alias;
+          if (ctrl.length === 2) {
+            stageScope[ctrl[1]] = controller;
           }
-          if (config.defaults) {
-            defaultsDeep($scope.stage, config.defaults);
+          if (config.controllerAs) {
+            stageScope[config.controllerAs] = controller;
           }
-          if (config.useBaseProvider || config.provides) {
-            config.templateUrl = require('./baseProviderStage/baseProviderStage.html');
-            config.controller = 'BaseProviderStageCtrl as baseProviderStageCtrl';
-          }
-          updateStageName(config, oldVal);
-          applyConfigController(config, stageScope);
-
-          if (config.component) {
-            const props = {
-              application: $scope.application,
-              stageFieldUpdated: $scope.stageFieldUpdated,
-              updateStageField: changes => {
-                extend($scope.stage, changes);
-                $scope.stageFieldUpdated();
-              },
-              stage: $scope.stage,
-              component: config.component,
-              configuration: config.configuration,
-            };
-            ReactDOM.render(React.createElement(StageConfigWrapper, props), stageDetailsNode);
-          } else {
-            const template = $templateCache.get(config.templateUrl);
-            const templateBody = $compile(template)(stageScope);
-            $element.find('.stage-details').html(templateBody);
-          }
-          reactComponentMounted = !!config.component;
-        }
-      } else {
-        $scope.label = null;
-        $scope.description = null;
-        $scope.extendedDescription = null;
-      }
-    };
-
-    function applyConfigController(config, stageScope) {
-      if (config.controller) {
-        var ctrl = config.controller.split(' as ');
-        var controller = $controller(ctrl[0], { $scope: stageScope, stage: $scope.stage, viewState: $scope.viewState });
-        if (ctrl.length === 2) {
-          stageScope[ctrl[1]] = controller;
-        }
-        if (config.controllerAs) {
-          stageScope[config.controllerAs] = controller;
         }
       }
-    }
 
-    function updateStageName(config, oldVal) {
-      // apply a default name if the type changes and the user has not specified a name
-      if (oldVal) {
-        var oldConfig = getConfig({ type: oldVal });
-        if (oldConfig && $scope.stage.name === oldConfig.label) {
+      function updateStageName(config, oldVal) {
+        // apply a default name if the type changes and the user has not specified a name
+        if (oldVal) {
+          var oldConfig = getConfig({ type: oldVal });
+          if (oldConfig && $scope.stage.name === oldConfig.label) {
+            $scope.stage.name = config.label;
+          }
+        }
+        if (!$scope.stage.name && config.label) {
           $scope.stage.name = config.label;
         }
       }
-      if (!$scope.stage.name && config.label) {
-        $scope.stage.name = config.label;
-      }
-    }
 
-    $scope.$on('pipeline-reverted', this.selectStage);
-    $scope.$on('pipeline-json-edited', this.selectStage);
-    $scope.$watch('stage.type', this.selectStage);
-    $scope.$watch('viewState.stageIndex', this.selectStage);
-    $scope.$watch('stage.refId', this.selectStage);
-  }])
-  .controller('RestartStageCtrl', ['$scope', '$stateParams', 'confirmationModalService', function($scope, $stateParams, confirmationModalService) {
-    var restartStage = function() {
-      return API.one('pipelines')
-        .one($stateParams.executionId)
-        .one('stages', $scope.stage.id)
-        .one('restart')
-        .data({ skip: false })
-        .put()
-        .then(function() {
-          $scope.stage.isRestarting = true;
+      $scope.$on('pipeline-reverted', this.selectStage);
+      $scope.$on('pipeline-json-edited', this.selectStage);
+      $scope.$watch('stage.type', this.selectStage);
+      $scope.$watch('viewState.stageIndex', this.selectStage);
+      $scope.$watch('stage.refId', this.selectStage);
+    },
+  ])
+  .controller('RestartStageCtrl', [
+    '$scope',
+    '$stateParams',
+    'confirmationModalService',
+    function($scope, $stateParams, confirmationModalService) {
+      var restartStage = function() {
+        return API.one('pipelines')
+          .one($stateParams.executionId)
+          .one('stages', $scope.stage.id)
+          .one('restart')
+          .data({ skip: false })
+          .put()
+          .then(function() {
+            $scope.stage.isRestarting = true;
+          });
+      };
+
+      this.restart = function() {
+        let body = null;
+        if ($scope.execution.isRunning) {
+          body =
+            '<p><strong>This pipeline is currently running - restarting this stage will result in multiple concurrently running pipelines.</strong></p>';
+        }
+        confirmationModalService.confirm({
+          header: 'Really restart ' + $scope.stage.name + '?',
+          buttonText: 'Restart ' + $scope.stage.name,
+          body: body,
+          submitMethod: restartStage,
         });
-    };
-
-    this.restart = function() {
-      let body = null;
-      if ($scope.execution.isRunning) {
-        body =
-          '<p><strong>This pipeline is currently running - restarting this stage will result in multiple concurrently running pipelines.</strong></p>';
-      }
-      confirmationModalService.confirm({
-        header: 'Really restart ' + $scope.stage.name + '?',
-        buttonText: 'Restart ' + $scope.stage.name,
-        body: body,
-        submitMethod: restartStage,
-      });
-    };
-  }])
+      };
+    },
+  ])
   .filter('stageTypeMatch', () => {
     return (stageTypes, search) => {
       const q = search.toLowerCase();

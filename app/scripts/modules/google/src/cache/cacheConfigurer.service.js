@@ -21,51 +21,59 @@ module.exports = angular
     INSTANCE_TYPE_SERVICE,
     LOAD_BALANCER_READ_SERVICE,
   ])
-  .factory('gceCacheConfigurer', ['gceAddressReader', 'gceBackendServiceReader', 'gceCertificateReader', 'gceHealthCheckReader', 'instanceTypeService', 'loadBalancerReader', function(
-    gceAddressReader,
-    gceBackendServiceReader,
-    gceCertificateReader,
-    gceHealthCheckReader,
-    instanceTypeService,
-    loadBalancerReader,
-  ) {
-    const config = Object.create(null);
+  .factory('gceCacheConfigurer', [
+    'gceAddressReader',
+    'gceBackendServiceReader',
+    'gceCertificateReader',
+    'gceHealthCheckReader',
+    'instanceTypeService',
+    'loadBalancerReader',
+    function(
+      gceAddressReader,
+      gceBackendServiceReader,
+      gceCertificateReader,
+      gceHealthCheckReader,
+      instanceTypeService,
+      loadBalancerReader,
+    ) {
+      const config = Object.create(null);
 
-    config.addresses = {
-      initializers: [() => gceAddressReader.listAddresses()],
-    };
+      config.addresses = {
+        initializers: [() => gceAddressReader.listAddresses()],
+      };
 
-    config.backendServices = {
-      initializers: [() => gceBackendServiceReader.listBackendServices()],
-    };
+      config.backendServices = {
+        initializers: [() => gceBackendServiceReader.listBackendServices()],
+      };
 
-    config.certificates = {
-      initializers: [() => gceCertificateReader.listCertificates()],
-    };
+      config.certificates = {
+        initializers: [() => gceCertificateReader.listCertificates()],
+      };
 
-    config.credentials = {
-      initializers: [() => AccountService.getCredentialsKeyedByAccount('gce')],
-    };
+      config.credentials = {
+        initializers: [() => AccountService.getCredentialsKeyedByAccount('gce')],
+      };
 
-    config.healthChecks = {
-      initializers: [() => gceHealthCheckReader.listHealthChecks()],
-    };
+      config.healthChecks = {
+        initializers: [() => gceHealthCheckReader.listHealthChecks()],
+      };
 
-    config.instanceTypes = {
-      initializers: [() => instanceTypeService.getAllTypesByRegion('gce')],
-    };
+      config.instanceTypes = {
+        initializers: [() => instanceTypeService.getAllTypesByRegion('gce')],
+      };
 
-    config.loadBalancers = {
-      initializers: [() => loadBalancerReader.listLoadBalancers('gce')],
-    };
+      config.loadBalancers = {
+        initializers: [() => loadBalancerReader.listLoadBalancers('gce')],
+      };
 
-    config.networks = {
-      initializers: [() => NetworkReader.listNetworksByProvider('gce')],
-    };
+      config.networks = {
+        initializers: [() => NetworkReader.listNetworksByProvider('gce')],
+      };
 
-    config.subnets = {
-      initializers: [() => SubnetReader.listSubnetsByProvider('gce')],
-    };
+      config.subnets = {
+        initializers: [() => SubnetReader.listSubnetsByProvider('gce')],
+      };
 
-    return config;
-  }]);
+      return config;
+    },
+  ]);

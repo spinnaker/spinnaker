@@ -10,35 +10,36 @@ module.exports = angular
     require('angular-ui-bootstrap'),
     IMAGE_READER,
   ])
-  .controller('openstackServerGroupBasicSettingsCtrl', ['$scope', '$controller', '$uibModalStack', '$state', 'imageReader', function(
-    $scope,
-    $controller,
-    $uibModalStack,
-    $state,
-    imageReader,
-  ) {
-    $scope.$watch('form.$valid', function(newVal) {
-      if (newVal) {
+  .controller('openstackServerGroupBasicSettingsCtrl', [
+    '$scope',
+    '$controller',
+    '$uibModalStack',
+    '$state',
+    'imageReader',
+    function($scope, $controller, $uibModalStack, $state, imageReader) {
+      $scope.$watch('form.$valid', function(newVal) {
+        if (newVal) {
+          ModalWizard.markClean('basic-settings');
+          ModalWizard.markComplete('basic-settings');
+        } else {
+          ModalWizard.markDirty('basic-settings');
+        }
+      });
+
+      this.imageChanged = image => {
+        $scope.command.imageName = image.imageName;
+        $scope.command.selectedImage = image;
         ModalWizard.markClean('basic-settings');
-        ModalWizard.markComplete('basic-settings');
-      } else {
-        ModalWizard.markDirty('basic-settings');
-      }
-    });
+      };
 
-    this.imageChanged = image => {
-      $scope.command.imageName = image.imageName;
-      $scope.command.selectedImage = image;
-      ModalWizard.markClean('basic-settings');
-    };
-
-    angular.extend(
-      this,
-      $controller('BasicSettingsMixin', {
-        $scope: $scope,
-        imageReader: imageReader,
-        $uibModalStack: $uibModalStack,
-        $state: $state,
-      }),
-    );
-  }]);
+      angular.extend(
+        this,
+        $controller('BasicSettingsMixin', {
+          $scope: $scope,
+          imageReader: imageReader,
+          $uibModalStack: $uibModalStack,
+          $state: $state,
+        }),
+      );
+    },
+  ]);

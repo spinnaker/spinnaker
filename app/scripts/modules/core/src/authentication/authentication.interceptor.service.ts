@@ -34,8 +34,11 @@ export class AuthenticationInterceptor implements ng.IHttpInterceptor {
 export const AUTHENTICATION_INTERCEPTOR_SERVICE = 'spinnaker.authentication.interceptor.service';
 module(AUTHENTICATION_INTERCEPTOR_SERVICE, [])
   .service('authenticationInterceptor', AuthenticationInterceptor)
-  .config(['$httpProvider', ($httpProvider: ng.IHttpProvider) => {
-    if (SETTINGS.authEnabled) {
-      $httpProvider.interceptors.push('authenticationInterceptor');
-    }
-  }]);
+  .config([
+    '$httpProvider',
+    ($httpProvider: ng.IHttpProvider) => {
+      if (SETTINGS.authEnabled) {
+        $httpProvider.interceptors.push('authenticationInterceptor');
+      }
+    },
+  ]);

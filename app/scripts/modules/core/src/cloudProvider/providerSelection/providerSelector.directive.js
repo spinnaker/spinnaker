@@ -39,20 +39,25 @@ module.exports = angular
       },
     };
   })
-  .controller('ProviderSelectCtrl', ['$scope', '$uibModalInstance', 'providerOptions', function($scope, $uibModalInstance, providerOptions) {
-    $scope.command = {
-      provider: '',
-    };
+  .controller('ProviderSelectCtrl', [
+    '$scope',
+    '$uibModalInstance',
+    'providerOptions',
+    function($scope, $uibModalInstance, providerOptions) {
+      $scope.command = {
+        provider: '',
+      };
 
-    $scope.getImage = function(provider) {
-      return CloudProviderRegistry.getValue(provider, 'logo.path');
-    };
+      $scope.getImage = function(provider) {
+        return CloudProviderRegistry.getValue(provider, 'logo.path');
+      };
 
-    $scope.providerOptions = providerOptions;
+      $scope.providerOptions = providerOptions;
 
-    this.selectProvider = function() {
-      $uibModalInstance.close($scope.command.provider);
-    };
+      this.selectProvider = function() {
+        $uibModalInstance.close($scope.command.provider);
+      };
 
-    this.cancel = $uibModalInstance.dismiss;
-  }]);
+      this.cancel = $uibModalInstance.dismiss;
+    },
+  ]);

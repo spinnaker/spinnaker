@@ -34,26 +34,31 @@ module.exports = angular
       ],
     });
   })
-  .controller('CronTriggerCtrl', ['trigger', function(trigger) {
-    this.trigger = trigger;
-    this.fiatEnabled = SETTINGS.feature.fiatEnabled;
+  .controller('CronTriggerCtrl', [
+    'trigger',
+    function(trigger) {
+      this.trigger = trigger;
+      this.fiatEnabled = SETTINGS.feature.fiatEnabled;
 
-    ServiceAccountReader.getServiceAccounts().then(accounts => {
-      this.serviceAccounts = accounts || [];
-    });
+      ServiceAccountReader.getServiceAccounts().then(accounts => {
+        this.serviceAccounts = accounts || [];
+      });
 
-    this.validationMessages = {};
+      this.validationMessages = {};
 
-    trigger.id = trigger.id || UUIDGenerator.generateUuid();
-    trigger.cronExpression = trigger.cronExpression || '0 0 10 ? * MON-FRI *';
+      trigger.id = trigger.id || UUIDGenerator.generateUuid();
+      trigger.cronExpression = trigger.cronExpression || '0 0 10 ? * MON-FRI *';
 
-    this.cronOptions = {
-      formSelectClass: 'form-control input-sm',
-      hideAdvancedTab: false,
-      hideSeconds: true,
-      use24HourTime: true,
-    };
-  }])
-  .run(['$templateCache', $templateCache =>
-    $templateCache.put('spinnaker-custom-cron-picker-template', $templateCache.get(require('./cronPicker.html')))],
-  );
+      this.cronOptions = {
+        formSelectClass: 'form-control input-sm',
+        hideAdvancedTab: false,
+        hideSeconds: true,
+        use24HourTime: true,
+      };
+    },
+  ])
+  .run([
+    '$templateCache',
+    $templateCache =>
+      $templateCache.put('spinnaker-custom-cron-picker-template', $templateCache.get(require('./cronPicker.html'))),
+  ]);

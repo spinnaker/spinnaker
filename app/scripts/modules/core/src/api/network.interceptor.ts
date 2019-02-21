@@ -80,6 +80,9 @@ export class NetworkInterceptor implements IHttpInterceptor {
 export const NETWORK_INTERCEPTOR = 'spinnaker.core.network.interceptor';
 module(NETWORK_INTERCEPTOR, [])
   .service('networkInterceptor', NetworkInterceptor)
-  .config(['$httpProvider', ($httpProvider: IHttpProvider) => {
-    $httpProvider.interceptors.push('networkInterceptor');
-  }]);
+  .config([
+    '$httpProvider',
+    ($httpProvider: IHttpProvider) => {
+      $httpProvider.interceptors.push('networkInterceptor');
+    },
+  ]);

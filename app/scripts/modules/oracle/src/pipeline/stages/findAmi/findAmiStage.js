@@ -19,59 +19,62 @@ module.exports = angular
       ],
     });
   })
-  .controller('oracleFindAmiStageCtrl', ['$scope', $scope => {
-    const provider = 'oracle';
+  .controller('oracleFindAmiStageCtrl', [
+    '$scope',
+    $scope => {
+      const provider = 'oracle';
 
-    let stage = $scope.stage;
+      let stage = $scope.stage;
 
-    $scope.state = {
-      accounts: false,
-      regionsLoaded: false,
-    };
+      $scope.state = {
+        accounts: false,
+        regionsLoaded: false,
+      };
 
-    AccountService.listAccounts(provider).then(accounts => {
-      $scope.accounts = accounts;
-      $scope.state.accounts = true;
-    });
+      AccountService.listAccounts(provider).then(accounts => {
+        $scope.accounts = accounts;
+        $scope.state.accounts = true;
+      });
 
-    $scope.selectionStrategies = [
-      {
-        label: 'Largest',
-        val: 'LARGEST',
-        description: 'When multiple server groups exist, prefer the server group with the most instances',
-      },
-      {
-        label: 'Newest',
-        val: 'NEWEST',
-        description: 'When multiple server groups exist, prefer the newest',
-      },
-      {
-        label: 'Oldest',
-        val: 'OLDEST',
-        description: 'When multiple server groups exist, prefer the oldest',
-      },
-      {
-        label: 'Fail',
-        val: 'FAIL',
-        description: 'When multiple server groups exist, fail',
-      },
-    ];
+      $scope.selectionStrategies = [
+        {
+          label: 'Largest',
+          val: 'LARGEST',
+          description: 'When multiple server groups exist, prefer the server group with the most instances',
+        },
+        {
+          label: 'Newest',
+          val: 'NEWEST',
+          description: 'When multiple server groups exist, prefer the newest',
+        },
+        {
+          label: 'Oldest',
+          val: 'OLDEST',
+          description: 'When multiple server groups exist, prefer the oldest',
+        },
+        {
+          label: 'Fail',
+          val: 'FAIL',
+          description: 'When multiple server groups exist, fail',
+        },
+      ];
 
-    stage.regions = stage.regions || [];
-    stage.cloudProvider = provider;
-    stage.selectionStrategy = stage.selectionStrategy || $scope.selectionStrategies[0].val;
+      stage.regions = stage.regions || [];
+      stage.cloudProvider = provider;
+      stage.selectionStrategy = stage.selectionStrategy || $scope.selectionStrategies[0].val;
 
-    if (angular.isUndefined(stage.onlyEnabled)) {
-      stage.onlyEnabled = true;
-    }
+      if (angular.isUndefined(stage.onlyEnabled)) {
+        stage.onlyEnabled = true;
+      }
 
-    if (!stage.credentials && $scope.application.defaultCredentials.oracle) {
-      stage.credentials = $scope.application.defaultCredentials.oracle;
-    }
+      if (!stage.credentials && $scope.application.defaultCredentials.oracle) {
+        stage.credentials = $scope.application.defaultCredentials.oracle;
+      }
 
-    if (!stage.regions.length && $scope.application.defaultRegions.oracle) {
-      stage.regions.push($scope.application.defaultRegions.oracle);
-    }
+      if (!stage.regions.length && $scope.application.defaultRegions.oracle) {
+        stage.regions.push($scope.application.defaultRegions.oracle);
+      }
 
-    $scope.$watch('stage.credentials', $scope.accountUpdated);
-  }]);
+      $scope.$watch('stage.credentials', $scope.accountUpdated);
+    },
+  ]);

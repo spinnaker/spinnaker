@@ -6,8 +6,9 @@ import { APPLICATION_STATE_PROVIDER, ApplicationStateProvider, INestedState } fr
 import { TargetGroupDetails } from './TargetGroupDetails';
 
 export const TARGET_GROUP_STATES = 'spinnaker.amazon.loadBalancer.targetGroup.states';
-module(TARGET_GROUP_STATES, [APPLICATION_STATE_PROVIDER]).config(
-  ['applicationStateProvider', (applicationStateProvider: ApplicationStateProvider) => {
+module(TARGET_GROUP_STATES, [APPLICATION_STATE_PROVIDER]).config([
+  'applicationStateProvider',
+  (applicationStateProvider: ApplicationStateProvider) => {
     const targetGroupDetails: INestedState = {
       name: 'targetGroupDetails',
       url: '/targetGroupDetails/:provider/:accountId/:region/:vpcId/:loadBalancerName/:name',
@@ -49,5 +50,5 @@ module(TARGET_GROUP_STATES, [APPLICATION_STATE_PROVIDER]).config(
     };
 
     applicationStateProvider.addInsightDetailState(targetGroupDetails);
-  }],
-);
+  },
+]);

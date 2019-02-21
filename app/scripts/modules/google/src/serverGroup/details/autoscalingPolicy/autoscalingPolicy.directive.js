@@ -18,89 +18,94 @@ module.exports = angular
       serverGroup: '=',
     },
     templateUrl: require('./autoscalingPolicy.directive.html'),
-    controller: ['$uibModal', 'gceAutoscalingPolicyWriter', 'confirmationModalService', function($uibModal, gceAutoscalingPolicyWriter, confirmationModalService) {
-      const policy = this.policy;
+    controller: [
+      '$uibModal',
+      'gceAutoscalingPolicyWriter',
+      'confirmationModalService',
+      function($uibModal, gceAutoscalingPolicyWriter, confirmationModalService) {
+        const policy = this.policy;
 
-      policy.bases = [];
+        policy.bases = [];
 
-      if (policy.cpuUtilization) {
-        let basis = {
-          description: 'CPU Usage',
-          helpKey: 'gce.serverGroup.autoscaling.targetCPUUsage',
-        };
+        if (policy.cpuUtilization) {
+          let basis = {
+            description: 'CPU Usage',
+            helpKey: 'gce.serverGroup.autoscaling.targetCPUUsage',
+          };
 
-        if (policy.cpuUtilization.utilizationTarget) {
-          basis.targets = [Math.round(policy.cpuUtilization.utilizationTarget * 100) + '%'];
+          if (policy.cpuUtilization.utilizationTarget) {
+            basis.targets = [Math.round(policy.cpuUtilization.utilizationTarget * 100) + '%'];
+          }
+
+          policy.bases.push(basis);
         }
 
-        policy.bases.push(basis);
-      }
+        if (policy.loadBalancingUtilization) {
+          let basis = {
+            description: 'HTTP Load Balancing Usage',
+            helpKey: 'gce.serverGroup.autoscaling.targetHTTPLoadBalancingUsage',
+          };
 
-      if (policy.loadBalancingUtilization) {
-        let basis = {
-          description: 'HTTP Load Balancing Usage',
-          helpKey: 'gce.serverGroup.autoscaling.targetHTTPLoadBalancingUsage',
-        };
+          if (policy.loadBalancingUtilization.utilizationTarget) {
+            basis.targets = [Math.round(policy.loadBalancingUtilization.utilizationTarget * 100) + '%'];
+          }
 
-        if (policy.loadBalancingUtilization.utilizationTarget) {
-          basis.targets = [Math.round(policy.loadBalancingUtilization.utilizationTarget * 100) + '%'];
+          policy.bases.push(basis);
         }
 
-        policy.bases.push(basis);
-      }
+        if (policy.customMetricUtilizations) {
+          let basis = {
+            description: policy.customMetricUtilizations.length > 1 ? 'Monitoring Metrics' : 'Monitoring Metric',
+            helpKey: 'gce.serverGroup.autoscaling.targetMetric',
+          };
 
-      if (policy.customMetricUtilizations) {
-        let basis = {
-          description: policy.customMetricUtilizations.length > 1 ? 'Monitoring Metrics' : 'Monitoring Metric',
-          helpKey: 'gce.serverGroup.autoscaling.targetMetric',
-        };
+          if (policy.customMetricUtilizations.length > 0) {
+            basis.targets = [];
+            policy.customMetricUtilizations.forEach(metric => {
+              let target = metric.metric + ': ' + metric.utilizationTarget;
 
-        if (policy.customMetricUtilizations.length > 0) {
-          basis.targets = [];
-          policy.customMetricUtilizations.forEach(metric => {
-            let target = metric.metric + ': ' + metric.utilizationTarget;
+              if (metric.utilizationTargetType === 'DELTA_PER_SECOND') {
+                target += '/sec';
+              } else if (metric.utilizationTargetType === 'DELTA_PER_MINUTE') {
+                target += '/min';
+              }
 
-            if (metric.utilizationTargetType === 'DELTA_PER_SECOND') {
-              target += '/sec';
-            } else if (metric.utilizationTargetType === 'DELTA_PER_MINUTE') {
-              target += '/min';
-            }
+              basis.targets.push(target);
+            });
+          }
 
-            basis.targets.push(target);
+          policy.bases.push(basis);
+        }
+
+        this.editPolicy = () => {
+          $uibModal.open({
+            templateUrl: require('./modal/upsertAutoscalingPolicy.modal.html'),
+            controller: 'gceUpsertAutoscalingPolicyModalCtrl',
+            controllerAs: 'ctrl',
+            size: 'lg',
+            resolve: {
+              policy: () => this.policy,
+              application: () => this.application,
+              serverGroup: () => this.serverGroup,
+            },
           });
-        }
-
-        policy.bases.push(basis);
-      }
-
-      this.editPolicy = () => {
-        $uibModal.open({
-          templateUrl: require('./modal/upsertAutoscalingPolicy.modal.html'),
-          controller: 'gceUpsertAutoscalingPolicyModalCtrl',
-          controllerAs: 'ctrl',
-          size: 'lg',
-          resolve: {
-            policy: () => this.policy,
-            application: () => this.application,
-            serverGroup: () => this.serverGroup,
-          },
-        });
-      };
-
-      this.deletePolicy = () => {
-        const taskMonitor = {
-          application: this.application,
-          title: `Deleting autoscaler for ${this.serverGroup.name}`,
         };
 
-        confirmationModalService.confirm({
-          header: `Really delete autoscaler for ${this.serverGroup.name}?`,
-          buttonText: 'Delete autoscaler',
-          account: this.serverGroup.account,
-          provider: 'gce',
-          taskMonitorConfig: taskMonitor,
-          submitMethod: () => gceAutoscalingPolicyWriter.deleteAutoscalingPolicy(this.application, this.serverGroup),
-        });
-      };
-    }],
+        this.deletePolicy = () => {
+          const taskMonitor = {
+            application: this.application,
+            title: `Deleting autoscaler for ${this.serverGroup.name}`,
+          };
+
+          confirmationModalService.confirm({
+            header: `Really delete autoscaler for ${this.serverGroup.name}?`,
+            buttonText: 'Delete autoscaler',
+            account: this.serverGroup.account,
+            provider: 'gce',
+            taskMonitorConfig: taskMonitor,
+            submitMethod: () => gceAutoscalingPolicyWriter.deleteAutoscalingPolicy(this.application, this.serverGroup),
+          });
+        };
+      },
+    ],
   });

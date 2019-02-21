@@ -4,12 +4,16 @@ const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.securityGroup.configure.kubernetes.tls', [require('../../transformer').name])
-  .controller('kubernetesSecurityGroupTLSController', ['$scope', 'kubernetesSecurityGroupTransformer', function($scope, kubernetesSecurityGroupTransformer) {
-    this.addTLSEntry = function() {
-      $scope.securityGroup.tls.push(kubernetesSecurityGroupTransformer.constructNewIngressTLS());
-    };
+  .controller('kubernetesSecurityGroupTLSController', [
+    '$scope',
+    'kubernetesSecurityGroupTransformer',
+    function($scope, kubernetesSecurityGroupTransformer) {
+      this.addTLSEntry = function() {
+        $scope.securityGroup.tls.push(kubernetesSecurityGroupTransformer.constructNewIngressTLS());
+      };
 
-    this.removeTLSEntry = function(i) {
-      $scope.securityGroup.tls.splice(i, 1);
-    };
-  }]);
+      this.removeTLSEntry = function(i) {
+        $scope.securityGroup.tls.splice(i, 1);
+      };
+    },
+  ]);

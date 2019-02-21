@@ -21,6 +21,9 @@ module(CHECK_PRECONDITIONS_STAGE, [])
       strategy: true,
     });
   })
-  .controller('CheckPreconditionsStageCtrl', ['$scope', function($scope: IScope) {
-    $scope.stage.preconditions = $scope.stage.preconditions || [];
-  }]);
+  .controller('CheckPreconditionsStageCtrl', [
+    '$scope',
+    function($scope: IScope) {
+      $scope.stage.preconditions = $scope.stage.preconditions || [];
+    },
+  ]);

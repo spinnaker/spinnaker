@@ -27,43 +27,46 @@ module.exports = angular
       ],
     });
   })
-  .controller('azureDestroyAsgStageCtrl', ['$scope', function($scope) {
-    var ctrl = this;
+  .controller('azureDestroyAsgStageCtrl', [
+    '$scope',
+    function($scope) {
+      var ctrl = this;
 
-    let stage = $scope.stage;
+      let stage = $scope.stage;
 
-    $scope.state = {
-      accounts: false,
-      regionsLoaded: false,
-    };
+      $scope.state = {
+        accounts: false,
+        regionsLoaded: false,
+      };
 
-    AccountService.listAccounts('azure').then(function(accounts) {
-      $scope.accounts = accounts;
-      $scope.state.accounts = true;
-    });
-
-    ctrl.accountUpdated = function() {
-      AccountService.getAccountDetails(stage.credentials).then(function(details) {
-        stage.regions = [details.org];
-        //        stage.regions = ['eastus', 'westus'];
+      AccountService.listAccounts('azure').then(function(accounts) {
+        $scope.accounts = accounts;
+        $scope.state.accounts = true;
       });
-    };
 
-    $scope.targets = StageConstants.TARGET_LIST;
+      ctrl.accountUpdated = function() {
+        AccountService.getAccountDetails(stage.credentials).then(function(details) {
+          stage.regions = [details.org];
+          //        stage.regions = ['eastus', 'westus'];
+        });
+      };
 
-    stage.regions = stage.regions || [];
-    stage.cloudProvider = 'azure';
+      $scope.targets = StageConstants.TARGET_LIST;
 
-    stage.interestingHealthProviderNames = []; // bypass the check for now; will change this later to ['azureService']
+      stage.regions = stage.regions || [];
+      stage.cloudProvider = 'azure';
 
-    if (!stage.credentials && $scope.application.defaultCredentials.azure) {
-      stage.credentials = $scope.application.defaultCredentials.azure;
-    }
+      stage.interestingHealthProviderNames = []; // bypass the check for now; will change this later to ['azureService']
 
-    if (stage.credentials) {
-      ctrl.accountUpdated();
-    }
-    if (!stage.target) {
-      stage.target = $scope.targets[0].val;
-    }
-  }]);
+      if (!stage.credentials && $scope.application.defaultCredentials.azure) {
+        stage.credentials = $scope.application.defaultCredentials.azure;
+      }
+
+      if (stage.credentials) {
+        ctrl.accountUpdated();
+      }
+      if (!stage.target) {
+        stage.target = $scope.targets[0].val;
+      }
+    },
+  ]);

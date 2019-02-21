@@ -20,12 +20,15 @@ module.exports = angular
       ],
     });
   })
-  .controller('awsFindImageFromTagsStageCtrl', ['$scope', function($scope) {
-    $scope.stage.tags = $scope.stage.tags || {};
-    $scope.stage.regions = $scope.stage.regions || [];
-    $scope.stage.cloudProvider = $scope.stage.cloudProvider || 'aws';
+  .controller('awsFindImageFromTagsStageCtrl', [
+    '$scope',
+    function($scope) {
+      $scope.stage.tags = $scope.stage.tags || {};
+      $scope.stage.regions = $scope.stage.regions || [];
+      $scope.stage.cloudProvider = $scope.stage.cloudProvider || 'aws';
 
-    BakeryReader.getRegions('aws').then(function(regions) {
-      $scope.regions = regions;
-    });
-  }]);
+      BakeryReader.getRegions('aws').then(function(regions) {
+        $scope.regions = regions;
+      });
+    },
+  ]);

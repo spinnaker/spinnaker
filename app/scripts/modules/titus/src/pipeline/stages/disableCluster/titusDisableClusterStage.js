@@ -24,57 +24,60 @@ module.exports = angular
       ],
     });
   })
-  .controller('titusDisableClusterStageCtrl', ['$scope', function($scope) {
-    var ctrl = this;
+  .controller('titusDisableClusterStageCtrl', [
+    '$scope',
+    function($scope) {
+      var ctrl = this;
 
-    let stage = $scope.stage;
+      let stage = $scope.stage;
 
-    $scope.state = {
-      accounts: false,
-      regionsLoaded: false,
-    };
+      $scope.state = {
+        accounts: false,
+        regionsLoaded: false,
+      };
 
-    AccountService.listAccounts('titus').then(function(accounts) {
-      $scope.accounts = accounts;
-      $scope.state.accounts = true;
-    });
+      AccountService.listAccounts('titus').then(function(accounts) {
+        $scope.accounts = accounts;
+        $scope.state.accounts = true;
+      });
 
-    ctrl.reset = () => {
-      ctrl.accountUpdated();
-      ctrl.resetSelectedCluster();
-    };
+      ctrl.reset = () => {
+        ctrl.accountUpdated();
+        ctrl.resetSelectedCluster();
+      };
 
-    stage.regions = stage.regions || [];
-    stage.cloudProvider = 'titus';
+      stage.regions = stage.regions || [];
+      stage.cloudProvider = 'titus';
 
-    if (
-      stage.isNew &&
-      $scope.application.attributes.platformHealthOnlyShowOverride &&
-      $scope.application.attributes.platformHealthOnly
-    ) {
-      stage.interestingHealthProviderNames = ['Titus'];
-    }
-
-    if (!stage.credentials && $scope.application.defaultCredentials.titus) {
-      stage.credentials = $scope.application.defaultCredentials.titus;
-    }
-    if (!stage.regions.length && $scope.application.defaultRegions.titus) {
-      stage.regions.push($scope.application.defaultRegions.titus);
-    }
-
-    if (stage.remainingEnabledServerGroups === undefined) {
-      stage.remainingEnabledServerGroups = 1;
-    }
-
-    ctrl.pluralize = function(str, val) {
-      if (val === 1) {
-        return str;
+      if (
+        stage.isNew &&
+        $scope.application.attributes.platformHealthOnlyShowOverride &&
+        $scope.application.attributes.platformHealthOnly
+      ) {
+        stage.interestingHealthProviderNames = ['Titus'];
       }
-      return str + 's';
-    };
 
-    if (stage.preferLargerOverNewer === undefined) {
-      stage.preferLargerOverNewer = 'false';
-    }
-    stage.preferLargerOverNewer = stage.preferLargerOverNewer.toString();
-  }]);
+      if (!stage.credentials && $scope.application.defaultCredentials.titus) {
+        stage.credentials = $scope.application.defaultCredentials.titus;
+      }
+      if (!stage.regions.length && $scope.application.defaultRegions.titus) {
+        stage.regions.push($scope.application.defaultRegions.titus);
+      }
+
+      if (stage.remainingEnabledServerGroups === undefined) {
+        stage.remainingEnabledServerGroups = 1;
+      }
+
+      ctrl.pluralize = function(str, val) {
+        if (val === 1) {
+          return str;
+        }
+        return str + 's';
+      };
+
+      if (stage.preferLargerOverNewer === undefined) {
+        stage.preferLargerOverNewer = 'false';
+      }
+      stage.preferLargerOverNewer = stage.preferLargerOverNewer.toString();
+    },
+  ]);

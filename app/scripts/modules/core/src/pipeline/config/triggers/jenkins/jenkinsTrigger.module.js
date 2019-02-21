@@ -38,54 +38,58 @@ module.exports = angular
       ],
     });
   })
-  .controller('JenkinsTriggerCtrl', ['$scope', 'trigger', function($scope, trigger) {
-    $scope.trigger = trigger;
-    this.fiatEnabled = SETTINGS.feature.fiatEnabled;
-    ServiceAccountReader.getServiceAccounts().then(accounts => {
-      this.serviceAccounts = accounts || [];
-    });
-
-    $scope.viewState = {
-      mastersLoaded: false,
-      mastersRefreshing: false,
-      jobsLoaded: false,
-      jobsRefreshing: false,
-    };
-
-    function initializeMasters() {
-      IgorService.listMasters(BuildServiceType.Jenkins).then(function(masters) {
-        $scope.masters = masters;
-        $scope.viewState.mastersLoaded = true;
-        $scope.viewState.mastersRefreshing = false;
+  .controller('JenkinsTriggerCtrl', [
+    '$scope',
+    'trigger',
+    function($scope, trigger) {
+      $scope.trigger = trigger;
+      this.fiatEnabled = SETTINGS.feature.fiatEnabled;
+      ServiceAccountReader.getServiceAccounts().then(accounts => {
+        this.serviceAccounts = accounts || [];
       });
-    }
 
-    this.refreshMasters = function() {
-      $scope.viewState.mastersRefreshing = true;
-      initializeMasters();
-    };
+      $scope.viewState = {
+        mastersLoaded: false,
+        mastersRefreshing: false,
+        jobsLoaded: false,
+        jobsRefreshing: false,
+      };
 
-    this.refreshJobs = function() {
-      $scope.viewState.jobsRefreshing = true;
-      updateJobsList();
-    };
-
-    function updateJobsList() {
-      if ($scope.trigger && $scope.trigger.master) {
-        $scope.viewState.jobsLoaded = false;
-        $scope.jobs = [];
-        IgorService.listJobsForMaster($scope.trigger.master).then(function(jobs) {
-          $scope.viewState.jobsLoaded = true;
-          $scope.viewState.jobsRefreshing = false;
-          $scope.jobs = jobs;
-          if (jobs.length && !$scope.jobs.includes($scope.trigger.job)) {
-            $scope.trigger.job = '';
-          }
+      function initializeMasters() {
+        IgorService.listMasters(BuildServiceType.Jenkins).then(function(masters) {
+          $scope.masters = masters;
+          $scope.viewState.mastersLoaded = true;
+          $scope.viewState.mastersRefreshing = false;
         });
       }
-    }
 
-    initializeMasters();
+      this.refreshMasters = function() {
+        $scope.viewState.mastersRefreshing = true;
+        initializeMasters();
+      };
 
-    $scope.$watch('trigger.master', updateJobsList);
-  }]);
+      this.refreshJobs = function() {
+        $scope.viewState.jobsRefreshing = true;
+        updateJobsList();
+      };
+
+      function updateJobsList() {
+        if ($scope.trigger && $scope.trigger.master) {
+          $scope.viewState.jobsLoaded = false;
+          $scope.jobs = [];
+          IgorService.listJobsForMaster($scope.trigger.master).then(function(jobs) {
+            $scope.viewState.jobsLoaded = true;
+            $scope.viewState.jobsRefreshing = false;
+            $scope.jobs = jobs;
+            if (jobs.length && !$scope.jobs.includes($scope.trigger.job)) {
+              $scope.trigger.job = '';
+            }
+          });
+        }
+      }
+
+      initializeMasters();
+
+      $scope.$watch('trigger.master', updateJobsList);
+    },
+  ]);
