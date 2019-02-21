@@ -9,13 +9,14 @@ import { ICanaryConfigSummary, KayentaAnalysisType } from 'kayenta/domain';
 import './kayentaStageExecutionDetails.less';
 
 class KayentaStageExecutionDetailsController {
+  public static $inject = ['$scope', '$stateParams', 'executionDetailsSectionService'];
+
   public canaryRuns: IExecutionStage[];
   public canaryConfigName: string;
   public firstScopeName: string;
   public resolvedControl: string;
   public resolvedExperiment: string;
 
-  public static $inject = ['$scope', '$stateParams', 'executionDetailsSectionService'];
   constructor(
     public $scope: IScope,
     private $stateParams: StateParams,

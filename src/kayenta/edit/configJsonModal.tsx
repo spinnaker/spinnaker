@@ -4,27 +4,30 @@ import { connect } from 'react-redux';
 import { Modal } from 'react-bootstrap';
 import { get, omit } from 'lodash';
 
-import { JsonUtils, NgReact, IJsonDiff } from '@spinnaker/core';
+import { JsonUtils, NgReact, IJsonDiff, JsonEditor } from '@spinnaker/core';
 import * as Creators from 'kayenta/actions/creators';
 import { ICanaryState } from 'kayenta/reducers';
 import { mapStateToConfig } from 'kayenta/service/canaryConfig.service';
 import Styleguide from 'kayenta/layout/styleguide';
 import { Tab, Tabs } from 'kayenta/layout/tabs';
-import { DisableableTextarea, DISABLE_EDIT_CONFIG } from 'kayenta/layout/disableable';
+import { DISABLE_EDIT_CONFIG } from 'kayenta/layout/disableable';
 
 const { DiffView } = NgReact;
 
 import './configJson.less';
+import 'brace/mode/json';
+import 'brace/ext/searchbox';
 
 interface IConfigJsonDispatchProps {
   closeModal: () => void;
-  setConfigJson: (event: React.ChangeEvent<HTMLTextAreaElement>) => void;
+  setConfigJson: (json: string) => void;
   updateConfig: (event: any) => void;
   setTabState: (state: ConfigJsonModalTabState) => () => void;
 }
 
 interface IConfigJsonStateProps {
   show: boolean;
+  disabled: boolean;
   configJson: string;
   id: string;
   deserializationError: string;
@@ -42,6 +45,7 @@ export enum ConfigJsonModalTabState {
  */
 function ConfigJsonModal({
   show,
+  disabled,
   configJson,
   id,
   deserializationError,
@@ -71,14 +75,7 @@ function ConfigJsonModal({
           </section>
           <section className="kayenta-config-json">
             {tabState === ConfigJsonModalTabState.Edit && (
-              <DisableableTextarea
-                rows={configJson.split('\n').length}
-                className="form-control code flex-fill"
-                spellCheck={false}
-                value={configJson}
-                onChange={setConfigJson}
-                disabledStateKeys={[DISABLE_EDIT_CONFIG]}
-              />
+              <JsonEditor value={configJson} debounceChangePeriod={500} onChange={setConfigJson} readOnly={disabled} />
             )}
             {tabState === ConfigJsonModalTabState.Diff &&
               !deserializationError && (
@@ -124,8 +121,7 @@ function mapDispatchToProps(dispatch: (action: Action & any) => void): IConfigJs
   return {
     closeModal: () => dispatch(Creators.closeConfigJsonModal()),
     setTabState: (state: ConfigJsonModalTabState) => () => dispatch(Creators.setConfigJsonModalTabState({ state })),
-    setConfigJson: (event: React.ChangeEvent<HTMLTextAreaElement>) =>
-      dispatch(Creators.setConfigJson({ json: event.target.value })),
+    setConfigJson: (json: string) => dispatch(Creators.setConfigJson({ json })),
     updateConfig: (event: any) => {
       dispatch(
         Creators.selectConfig({
@@ -149,9 +145,12 @@ function mapStateToProps(state: ICanaryState): IConfigJsonStateProps {
     state.selectedConfig.json.configJson ||
     JsonUtils.makeSortedStringFromObject(omit(mapStateToConfig(state) || {}, 'id'));
 
+  const disabled = get(state, DISABLE_EDIT_CONFIG, false);
+
   return {
     configJson,
     id,
+    disabled,
     show: state.app.configJsonModalOpen,
     deserializationError: state.selectedConfig.json.error,
     tabState: state.app.configJsonModalTabState,
