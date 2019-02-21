@@ -9,6 +9,8 @@ module.exports = angular
   .module('spinnaker.azure.securityGroup.write.service', [require('@uirouter/angularjs').default])
   .factory('azureSecurityGroupWriter', function() {
     function upsertSecurityGroup(securityGroup, application, descriptor, params = {}) {
+      params.securityGroupName = securityGroup.name;
+
       // We want to extend params with all attributes from securityGroup, but only if they don't already exist.
       _.assignWith(params, securityGroup, function(value, other) {
         return _.isUndefined(value) ? other : value;

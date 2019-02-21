@@ -40,7 +40,9 @@ export class SecurityGroupWriter {
     params: any = {},
   ): IPromise<ITask> {
     params.type = 'upsertSecurityGroup';
+    params.securityGroupName = securityGroup.name;
     params.credentials = securityGroup.credentials || securityGroup.accountName;
+
     const job: ISecurityGroupJob = { ...securityGroup, ...params };
 
     const operation: IPromise<ITask> = TaskExecutor.executeTask({

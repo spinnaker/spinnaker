@@ -113,7 +113,6 @@ module.exports = angular
 
         return SecurityGroupWriter.upsertSecurityGroup($scope.securityGroup, application, 'Update', {
           cloudProvider: 'gce',
-          securityGroupName: $scope.securityGroup.name,
           sourceRanges: _.uniq(_.map($scope.securityGroup.sourceRanges, 'value')),
           allowed: allowed,
           targetTags: $scope.securityGroup.targetTags || [],

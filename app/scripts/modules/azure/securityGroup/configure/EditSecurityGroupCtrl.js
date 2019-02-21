@@ -153,7 +153,6 @@ module.exports = angular
         let params = {
           cloudProvider: 'azure',
           appName: application.name,
-          securityGroupName: $scope.securityGroup.name,
           region: $scope.securityGroup.region,
           subnet: 'none',
           vpcId: 'null',
