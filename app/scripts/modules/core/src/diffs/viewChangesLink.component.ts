@@ -160,7 +160,7 @@ export const viewChangesLinkWrapper: IComponentOptions = {
     linkText: '<?',
     nameItem: '<',
   },
-  tempate: `<view-changes-link change-config="$ctrl.changeConfig" view-type="{{::$ctrl.viewType}}" link-text="{{::$ctrl.linkText}}" name-item="$ctrl.nameItem"></view-changes-link>`,
+  template: `<view-changes-link change-config="$ctrl.changeConfig" view-type="{{::$ctrl.viewType}}" link-text="{{::$ctrl.linkText}}" name-item="$ctrl.nameItem"></view-changes-link>`,
 };
 
 export const VIEW_CHANGES_LINK = 'spinnaker.diffs.view.changes.link';
