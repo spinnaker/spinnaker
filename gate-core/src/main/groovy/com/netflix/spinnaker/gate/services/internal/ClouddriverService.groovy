@@ -373,4 +373,10 @@ interface ClouddriverService {
                          @Query(value = "region") String region,
                          @Path(value = "account") String account)
 
+  @GET("/servicebroker/{account}/serviceInstance")
+  Map getServiceInstance(@Path(value = "account") String account,
+                         @Query(value = "cloudProvider") String cloudProvider,
+                         @Query(value = "region") String region,
+                         @Query(value = "serviceInstanceName") String serviceInstanceName)
+
 }
