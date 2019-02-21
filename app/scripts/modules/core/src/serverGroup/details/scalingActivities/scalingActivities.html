@@ -19,14 +19,13 @@
           <span class="label label-default pull-right">{{activity.startTime | timestamp}}</span>
         </p>
         <p>{{activity.cause}}</p>
-        <p>Summary of activities:
-          <ul>
-            <li ng-repeat="event in activity.events | orderBy: ['availabilityZone', 'description']">
-              {{event.description}}
-              <span ng-if="event.availabilityZone"> ({{event.availabilityZone}})</span>
-            </li>
-          </ul>
-        </p>
+        <p>Summary of activities:</p>
+        <ul>
+          <li ng-repeat="event in activity.events | orderBy: ['availabilityZone', 'description']">
+            {{event.description}}
+            <span ng-if="event.availabilityZone"> ({{event.availabilityZone}})</span>
+          </li>
+        </ul>
         <hr ng-if="!$last"/>
     </div>
   </div>
