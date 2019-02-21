@@ -32,7 +32,7 @@ export class GremlinStageConfig extends React.Component<IStageConfigProps> {
 
   private fetchCommands = (apiKey: string) => {
     return Observable.fromPromise(
-      API.one('gremlin/templates/command')
+      API.one('integrations/gremlin/templates/command')
         .post({
           apiKey,
         })
@@ -42,7 +42,7 @@ export class GremlinStageConfig extends React.Component<IStageConfigProps> {
 
   private fetchTargets = (apiKey: string) => {
     return Observable.fromPromise(
-      API.one('gremlin/templates/target')
+      API.one('integrations/gremlin/templates/target')
         .post({
           apiKey,
         })

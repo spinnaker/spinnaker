@@ -22,6 +22,7 @@ module(CLOUD_FOUNDRY_DESTROY_SERVICE_STAGE, [])
       templateUrl: require('./cloudfoundryDestroyServiceStage.html'),
       controller: 'cfDestroyServiceStageCtrl',
       executionDetailsSections: [CloudfoundryDestroyServiceExecutionDetails, ExecutionDetailsTasks],
+      defaultTimeoutMs: 30 * 60 * 1000,
       validators: [
         { type: 'requiredField', fieldName: 'region' },
         { type: 'requiredField', fieldName: 'serviceInstanceName', preventSave: true },

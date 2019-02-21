@@ -129,6 +129,9 @@ export class SingleExecutionDetails extends React.Component<
     const { app } = this.props;
     const { execution, sortFilter, stateNotFound } = this.state;
 
+    const defaultExecutionParams = { application: app.name, executionId: execution ? execution.id : '' };
+    const executionParams = ReactInjector.$state.params.executionParams || defaultExecutionParams;
+
     return (
       <div style={{ width: '100%', paddingTop: 0 }}>
         {execution && (
@@ -138,7 +141,7 @@ export class SingleExecutionDetails extends React.Component<
                 <div className="flex-container-h baseline">
                   <h3>
                     <Tooltip value="Back to Executions">
-                      <UISref to="^.executions.execution" params={{ application: app.name, executionId: execution.id }}>
+                      <UISref to="^.executions.execution" params={executionParams}>
                         <a className="btn btn-configure">
                           <span className="glyphicon glyphicon glyphicon-circle-arrow-left" />
                         </a>

@@ -18,9 +18,12 @@
       </div>
       <div class="col-md-12">
         <div class="well alert alert-info">
-          <a ng-if="stage.context.executionId"
-             ui-sref="home.applications.application.pipelines.executionDetails.execution({ application: stage.context.application, executionId: stage.context.executionId })"
-             ui-sref-opts="{inherit: false, reload: 'home.applications.application.pipelines.executionDetails'}">View Pipeline Execution</a>
+          <a
+            ng-if="stage.context.executionId"
+            ui-sref="home.applications.application.pipelines.executionDetails.execution({ application: stage.context.application, executionId: stage.context.executionId, executionParams: { application: application.name, executionId: execution.id } })"
+            ui-sref-opts="{inherit: false, reload: 'home.applications.application.pipelines.executionDetails'}"
+            >View Pipeline Execution</a
+          >
         </div>
       </div>
     </div>
@@ -41,6 +44,4 @@
       <execution-step-details item="stage"></execution-step-details>
     </div>
   </div>
-
-
 </div>
