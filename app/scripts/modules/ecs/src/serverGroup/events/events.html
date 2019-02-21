@@ -11,21 +11,19 @@
       <p>There was an error loading events for {{$ctrl.serverGroup.name}}. Please try again later.</p>
     </div>
     <div ng-if="!$ctrl.viewState.loading && !$ctrl.viewState.error && !$ctrl.events.length" class="text-center">
-      No scaling events found for {{$ctrl.serverGroup.name}}.</p>
+      <p>No scaling events found for {{$ctrl.serverGroup.name}}.</p>
     </div>
 
     <div ng-repeat="event in $ctrl.events" ng-if="!$ctrl.viewState.loading">
-        <p class="clearfix">
-          <div ng-if="event.status ==git ad= 'Success'">
+      <p class="clearfix"></p>
+          <div ng-if="event.status === 'Success'">
             <span class="label label-success pull-left">{{event.status}}</span>
           </div>
-          <div ng-if="event.status != 'Success'">
+          <div ng-if="event.status !== 'Success'">
             <span class="label label-{{event.status === 'Transition' ? 'info' : 'danger'}} pull-left">{{event.status}}</span>
           </div>
 
           <span class="label label-default pull-right">{{event.createdAt | timestamp}}</span>
-        </p>
-        <p>&nbsp;</p>
         <div>
           {{event.message}}
         </div>

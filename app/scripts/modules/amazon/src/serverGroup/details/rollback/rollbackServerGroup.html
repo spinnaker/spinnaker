@@ -82,11 +82,11 @@
               <strong>min</strong>: {{serverGroup.capacity.desired}},
               <strong>max</strong>: {{ serverGroup.capacity.max }},
               <strong>desired</strong>: {{ serverGroup.capacity.desired }}
-            ]<br/>(minimum capacity pinned at {{serverGroup.capacity.desired}} to prevent autoscaling down during rollback)
-              <li ng-if="command.rollbackContext.targetHealthyRollbackPercentage < 100">
-                Wait for at least {{minHealthy(command.rollbackContext.targetHealthyRollbackPercentage)}}
-                instances to report as healthy
-              </li>
+            ]
+            <br/>(minimum capacity pinned at {{serverGroup.capacity.desired}} to prevent autoscaling down during rollback)
+            <li ng-if="command.rollbackContext.targetHealthyRollbackPercentage < 100">
+              Wait for at least {{minHealthy(command.rollbackContext.targetHealthyRollbackPercentage)}}
+              instances to report as healthy
             </li>
             <li ng-if="command.rollbackContext.delayBeforeDisableSeconds > 0">
               Wait {{ command.rollbackContext.delayBeforeDisableSeconds }} seconds
@@ -104,15 +104,17 @@
       <div class="row" ng-if="command.rollbackType === 'PREVIOUS_IMAGE'">
         <div class="col-sm-11 col-sm-offset-1">
           <ol>
-            <li>Deploy <em>{{ previousServerGroup.imageId }}</em> [
+            <li>
+              Deploy <em>{{ previousServerGroup.imageId }}</em> [
               <strong>min</strong>: {{serverGroup.capacity.desired}},
               <strong>max</strong>: {{ serverGroup.capacity.max }},
               <strong>desired</strong>: {{ serverGroup.capacity.desired }}
-              ]<br/>(minimum capacity pinned at {{serverGroup.capacity.desired}} to prevent autoscaling down during deploy)
-              <li ng-if="command.rollbackContext.targetHealthyRollbackPercentage < 100">
-                Wait for at least {{minHealthy(command.rollbackContext.targetHealthyRollbackPercentage)}}
-                instances to report as healthy
-              </li>
+              ]
+              <br/>(minimum capacity pinned at {{serverGroup.capacity.desired}} to prevent autoscaling down during deploy)
+            </li>
+            <li ng-if="command.rollbackContext.targetHealthyRollbackPercentage < 100">
+              Wait for at least {{minHealthy(command.rollbackContext.targetHealthyRollbackPercentage)}}
+              instances to report as healthy
             </li>
             <li>Disable {{ serverGroup.name }}</li>
             <li>Restore minimum capacity of <em>new server group</em> [

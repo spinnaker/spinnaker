@@ -8,7 +8,6 @@
       <select class="form-control input-sm"
               ng-model="loadBalancer.healthMonitor.type"
               ng-options="protocol for protocol in ['HTTP', 'HTTPS', 'PING', 'TCP']"></select>
-      </select>
     </div>
     <div class="col-md-3 sm-label-right">
       Interval
@@ -46,7 +45,6 @@
       <select class="form-control input-sm"
               ng-model="loadBalancer.healthMonitor.httpMethod"
               ng-options="method for method in ['GET', 'POST', 'HEAD']"></select>
-      </select>
     </div>
   </div>
   <div class="form-group" ng-if="loadBalancer.healthMonitor.type === 'HTTP' || loadBalancer.healthMonitor.type === 'HTTPS'">

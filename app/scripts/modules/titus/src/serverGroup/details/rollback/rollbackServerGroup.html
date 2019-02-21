@@ -84,7 +84,6 @@
               Wait for at least {{minHealthy(command.rollbackContext.targetHealthyRollbackPercentage)}}
               instances to report as healthy
             </li>
-            </li>
             <li>Disable {{ serverGroup.name }}</li>
             <li>Restore minimum capacity of <em>{{ command.rollbackContext.restoreServerGroupName || 'previous server group' }}</em> [
               <strong>min</strong>: {{ serverGroup.capacity.min }}
@@ -103,10 +102,10 @@
               <strong>max</strong>: {{ serverGroup.capacity.max }},
               <strong>desired</strong>: {{ serverGroup.capacity.desired }}
               ]<br/>(minimum capacity pinned at {{serverGroup.capacity.desired}} to prevent autoscaling down during deploy)
-              <li ng-if="command.rollbackContext.targetHealthyRollbackPercentage < 100">
-                Wait for at least {{minHealthy(command.rollbackContext.targetHealthyRollbackPercentage)}}
-                instances to report as healthy
-              </li>
+            </li>
+            <li ng-if="command.rollbackContext.targetHealthyRollbackPercentage < 100">
+              Wait for at least {{minHealthy(command.rollbackContext.targetHealthyRollbackPercentage)}}
+              instances to report as healthy
             </li>
             <li>Disable <em>{{ serverGroup.name }}</em></li>
             <li>Restore minimum capacity of <em>new server group</em> [

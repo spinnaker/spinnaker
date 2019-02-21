@@ -25,8 +25,7 @@
                      required/></td>
           <td ng-if="ctrl.showSslCertificateIdField() && listener.externalProtocol !== 'TERMINATED_HTTPS'"></td>
           <td ng-if="listener.externalProtocol === 'TERMINATED_HTTPS'">
-            <input class="form-control input-sm" type="text" ng-model="listener.sslCertificateId"
-                   required/></td>
+            <input class="form-control input-sm" type="text" ng-model="listener.sslCertificateId" required/>
           </td>
           <td ng-if="loadBalancer.listeners.length > 1"><a href class="sm-label" ng-click="ctrl.removeListener($index)"><span
             class="glyphicon glyphicon-trash"></span></a></td>

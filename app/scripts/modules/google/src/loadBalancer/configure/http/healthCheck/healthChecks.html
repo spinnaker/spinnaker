@@ -3,10 +3,10 @@
     <div class="alert alert-warning">
       <p><i class="fa fa-exclamation-triangle"></i>
         The following health checks have not been associated with a backend service:
-        <ul>
-          <li ng-repeat="service in ctrl.command.getUnusedHealthChecks(ctrl.command)" ng-bind-html="service"></li>
-        </ul>
       </p>
+      <ul>
+        <li ng-repeat="service in ctrl.command.getUnusedHealthChecks(ctrl.command)" ng-bind-html="service"></li>
+      </ul>
       <p class="text-right">
         <a class="btn btn-sm btn-default dirty-flag-dismiss"
            href ng-click="ctrl.command.removeUnusedHealthChecks(ctrl.command)">Remove health checks</a>

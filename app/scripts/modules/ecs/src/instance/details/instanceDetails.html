@@ -120,6 +120,7 @@
             text="instance.networkInterface.privateIpv4Address"
             tool-tip="'Copy to clipboard'">
           </copy-to-clipboard>
+        </dd>
         <dd ng-if="instance.networkInterface.ipv6Address">
           Private address (ENI): <a href="http://{{instance.networkInterface.ipv6Address}}" target="_blank">{{instance.networkInterface.ipv6Address}}</a>
           <copy-to-clipboard
@@ -127,6 +128,7 @@
             text="instance.networkInterface.ipv6Address"
             tool-tip="'Copy to clipboard'">
           </copy-to-clipboard>
+        </dd>
         <dd ng-if="instance.privateAddress">
           Private address (Bridge): <a href="http://{{instance.privateAddress}}" target="_blank">{{instance.privateAddress}}</a>
           <copy-to-clipboard
@@ -136,13 +138,6 @@
           </copy-to-clipboard>
         </dd>
       </dl>
-    </collapsible-section>
-    <collapsible-section heading="Console Output" ng-if="baseIpAddress">
-      <ul>
-        <li>
-          <console-output-link instance="instance"></console-output-link>
-        </li>
-      </ul>
     </collapsible-section>
     <instance-links address="baseIpAddress" application="application" instance="instance" moniker="moniker" environment="environment"></instance-links>
   </div>

@@ -4,10 +4,10 @@
       <p><i class="fa fa-exclamation-triangle"></i>
         The following backend services have not been associated with a host or path rule, or set as this
         load balancer's default service:
-        <ul>
-          <li ng-repeat="service in ctrl.command.getUnusedBackendServices(ctrl.command)" ng-bind-html="service"></li>
-        </ul>
       </p>
+      <ul>
+        <li ng-repeat="service in ctrl.command.getUnusedBackendServices(ctrl.command)" ng-bind-html="service"></li>
+      </ul>
       <p class="text-right">
         <a class="btn btn-sm btn-default dirty-flag-dismiss"
            href ng-click="ctrl.command.removeUnusedBackendServices(ctrl.command)">Remove backend services</a>
