@@ -55,7 +55,6 @@ class OpenstackIdentityV3ProviderSpec extends Specification {
     mockClient = Mock(OSClient.OSClientV3) {
       getToken() >> { Mock(Token) }
     }
-    //IOSClientBuilder.V3.metaClass.authenticate = { mockClient }
     provider = Spy(OpenstackIdentityV3Provider, constructorArgs:[credentials]) {
       buildClient() >> { mockClient }
       getClient() >> { mockClient }

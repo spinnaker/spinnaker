@@ -19,11 +19,10 @@ package com.netflix.spinnaker.clouddriver.openstack.security
 import com.netflix.spinnaker.clouddriver.consul.config.ConsulConfig
 import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackClientProvider
 import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackIdentityV3Provider
-import com.netflix.spinnaker.clouddriver.openstack.config.OpenstackConfigurationProperties
+import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackProviderFactory
 import com.netflix.spinnaker.clouddriver.openstack.config.OpenstackConfigurationProperties.LbaasConfig
 import com.netflix.spinnaker.clouddriver.openstack.config.OpenstackConfigurationProperties.StackConfig
 import org.openstack4j.api.OSClient
-import org.openstack4j.api.client.IOSClientBuilder
 import org.openstack4j.model.identity.v3.Token
 import org.openstack4j.openstack.compute.domain.ext.ExtAvailabilityZone
 import spock.lang.Specification
@@ -41,7 +40,8 @@ class OpenstackNamedAccountCredentialsSpec extends Specification {
     setup:
     // Mock out the authenticate call within Openstack4J
     OSClient.OSClientV3 mockClient = Mock(OSClient.OSClientV3)
-    IOSClientBuilder.V3.metaClass.authenticate = { mockClient }
+    def openStackIdentityProvider = GroovySpy(OpenstackIdentityV3Provider, global: true)
+    openStackIdentityProvider.buildClient() >> mockClient
 
     when:
     def credentials = new OpenstackNamedAccountCredentials("name", "test", "main", "user", "pw", "project", "domain", "endpoint", [], false, "", new LbaasConfig(pollTimeout: 60, pollInterval: 5),new StackConfig(pollTimeout: 60, pollInterval: 5), new ConsulConfig(), null)
@@ -62,7 +62,9 @@ class OpenstackNamedAccountCredentialsSpec extends Specification {
   def "Builder populates region-to-zone map: #description"() {
     setup:
     OpenstackClientProvider mockProvider = Mock(OpenstackClientProvider)
-    OpenstackCredentials.metaClass.getProvider = { mockProvider }
+    GroovyMock(OpenstackProviderFactory, global: true) {
+      OpenstackProviderFactory.createProvider(_) >> mockProvider
+    }
 
     when:
     def builder = new OpenstackNamedAccountCredentials.Builder()
