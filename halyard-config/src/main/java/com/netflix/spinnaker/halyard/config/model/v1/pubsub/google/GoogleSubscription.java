@@ -19,6 +19,7 @@
 package com.netflix.spinnaker.halyard.config.model.v1.pubsub.google;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.LocalFile;
+import com.netflix.spinnaker.halyard.config.model.v1.node.SecretFile;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Subscription;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -30,7 +31,7 @@ import lombok.ToString;
 public class GoogleSubscription extends Subscription {
   private String project;
   private String subscriptionName;
-  @LocalFile private String jsonPath;
+  @LocalFile @SecretFile private String jsonPath;
   @LocalFile private String templatePath;
   private Integer ackDeadlineSeconds;
   private MessageFormat messageFormat;

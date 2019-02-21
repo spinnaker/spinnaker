@@ -20,6 +20,7 @@ package com.netflix.spinnaker.halyard.config.model.v1.pubsub.google;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.LocalFile;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Publisher;
+import com.netflix.spinnaker.halyard.config.model.v1.node.SecretFile;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -31,6 +32,7 @@ public class GooglePublisher extends Publisher {
   private String project;
   private String topicName;
   @LocalFile
+  @SecretFile
   private String jsonPath;
   private Content content;
 

@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.halyard.config.validate.v1.providers.google;
 
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials;
+import com.netflix.spinnaker.halyard.config.config.v1.secrets.SecretSessionManager;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleProvider;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
@@ -31,11 +32,14 @@ public class GoogleProviderValidator extends Validator<GoogleProvider> {
   @Autowired
   private String halyardVersion;
 
+  @Autowired
+  private SecretSessionManager secretSessionManager;
+
   @Override
   public void validate(ConfigProblemSetBuilder p, GoogleProvider n) {
     List<GoogleNamedAccountCredentials> credentialsList = new ArrayList<>();
 
-    GoogleAccountValidator googleAccountValidator = new GoogleAccountValidator(credentialsList, halyardVersion);
+    GoogleAccountValidator googleAccountValidator = new GoogleAccountValidator(credentialsList, halyardVersion, secretSessionManager);
 
     n.getAccounts().forEach(googleAccount -> googleAccountValidator.validate(p, googleAccount));
 

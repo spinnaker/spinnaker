@@ -18,13 +18,13 @@ package com.netflix.spinnaker.halyard.config.validate.v1.providers.google;
 
 import com.google.api.services.compute.Compute;
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials;
+import com.netflix.spinnaker.halyard.config.config.v1.secrets.SecretSessionManager;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleAccount;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
+import com.netflix.spinnaker.halyard.config.validate.v1.util.ValidatingFileReader;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
-import com.netflix.spinnaker.halyard.config.validate.v1.util.ValidatingFileReader;
-
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.apache.commons.lang.StringUtils;
@@ -39,11 +39,13 @@ public class GoogleAccountValidator extends Validator<GoogleAccount> {
 
   final private String halyardVersion;
 
+  final private SecretSessionManager secretSessionManager;
+
   @Override
   public void validate(ConfigProblemSetBuilder p, GoogleAccount n) {
     DaemonTaskHandler.message("Validating " + n.getNodeName() + " with " + GoogleAccountValidator.class.getSimpleName());
 
-    GoogleNamedAccountCredentials credentials = n.getNamedAccountCredentials(halyardVersion, p);
+    GoogleNamedAccountCredentials credentials = n.getNamedAccountCredentials(halyardVersion, secretSessionManager, p);
     if (credentials == null) {
       return;
     } else {

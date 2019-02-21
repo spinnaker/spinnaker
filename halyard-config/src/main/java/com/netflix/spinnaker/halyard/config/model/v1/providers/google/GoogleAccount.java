@@ -25,13 +25,13 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.LocalFile;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.consul.ConsulConfig;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.consul.SupportsConsul;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
+import com.netflix.spinnaker.halyard.config.validate.v1.util.ValidatingFileReader;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,14 +47,15 @@ public class GoogleAccount extends CommonGoogleAccount implements Cloneable, Sup
   @LocalFile String userDataFile;
   private List<String> regions;
 
-  @Autowired
-  private SecretSessionManager secretSessionManager;
-
   @JsonIgnore
-  public GoogleNamedAccountCredentials getNamedAccountCredentials(String version, ConfigProblemSetBuilder p) {
+  public GoogleNamedAccountCredentials getNamedAccountCredentials(String version, SecretSessionManager secretSessionManager, ConfigProblemSetBuilder p) {
     String jsonKey = null;
     if (!StringUtils.isEmpty(getJsonPath())) {
-      jsonKey = secretSessionManager.validatingFileDecrypt(p, getJsonPath());
+      if (secretSessionManager != null) {
+        jsonKey = secretSessionManager.validatingFileDecrypt(p, getJsonPath());
+      } else {
+        jsonKey = ValidatingFileReader.contents(p, getJsonPath());
+      }
 
       if (jsonKey == null) {
         return null;

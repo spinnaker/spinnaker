@@ -18,13 +18,14 @@ package com.netflix.spinnaker.halyard.config.model.v1.persistentStorage;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.LocalFile;
 import com.netflix.spinnaker.halyard.config.model.v1.node.PersistentStore;
+import com.netflix.spinnaker.halyard.config.model.v1.node.SecretFile;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
 public class GcsPersistentStore extends PersistentStore {
-  @LocalFile private String jsonPath;
+  @LocalFile @SecretFile private String jsonPath;
   private String project;
   private String bucket;
   private String rootFolder = "front50";

@@ -66,7 +66,7 @@ public class GoogleCanaryAccountValidator extends CanaryAccountValidator {
 
     DaemonTaskHandler.message("Validating " + n.getNodeName() + " with " + GoogleCanaryAccountValidator.class.getSimpleName());
 
-    GoogleNamedAccountCredentials credentials = canaryAccount.getNamedAccountCredentials(halyardVersion, p);
+    GoogleNamedAccountCredentials credentials = canaryAccount.getNamedAccountCredentials(halyardVersion, secretSessionManager, p);
 
     if (credentials == null) {
       return;

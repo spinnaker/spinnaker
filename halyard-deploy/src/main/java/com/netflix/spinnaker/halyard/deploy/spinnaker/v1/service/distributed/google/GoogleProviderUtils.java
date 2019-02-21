@@ -19,7 +19,11 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.go
 
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.*;
+import com.google.api.services.compute.model.AccessConfig;
+import com.google.api.services.compute.model.Firewall;
+import com.google.api.services.compute.model.Instance;
+import com.google.api.services.compute.model.Network;
+import com.google.api.services.compute.model.Operation;
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleAccount;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
@@ -407,7 +411,7 @@ class GoogleProviderUtils {
 
   static Compute getCompute(AccountDeploymentDetails<GoogleAccount> details) {
     ConfigProblemSetBuilder problemSetBuilder = new ConfigProblemSetBuilder(null);
-    GoogleNamedAccountCredentials credentials = details.getAccount().getNamedAccountCredentials("", problemSetBuilder);
+    GoogleNamedAccountCredentials credentials = details.getAccount().getNamedAccountCredentials("", null, problemSetBuilder);
 
     if (credentials == null) {
       throw new HalException(problemSetBuilder.build().getProblems());

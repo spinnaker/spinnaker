@@ -20,6 +20,7 @@ package com.netflix.spinnaker.halyard.config.model.v1.artifacts.gcs;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.ArtifactAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.node.LocalFile;
+import com.netflix.spinnaker.halyard.config.model.v1.node.SecretFile;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -29,5 +30,6 @@ public class GcsArtifactAccount extends ArtifactAccount {
   String name;
 
   @LocalFile
+  @SecretFile
   String jsonPath;
 }
