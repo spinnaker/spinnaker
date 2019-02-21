@@ -20,18 +20,15 @@ package com.netflix.spinnaker.config
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
-import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Scope
 import redis.clients.jedis.Jedis
 import redis.clients.util.Pool
 
 @Configuration
 class EmbeddedRedisConfig {
 
-  @Bean
-  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  @Bean(destroyMethod = "destroy")
   EmbeddedRedis redisServer() {
     def redis = EmbeddedRedis.embed()
     redis.jedis.withCloseable { Jedis jedis ->

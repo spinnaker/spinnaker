@@ -28,13 +28,11 @@ import com.netflix.spinnaker.fiat.model.resources.Account
 import com.netflix.spinnaker.fiat.permissions.PermissionsRepository
 import com.netflix.spinnaker.fiat.providers.internal.ClouddriverService
 import com.netflix.spinnaker.fiat.providers.internal.Front50Service
-import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import org.slf4j.MDC
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
-import spock.lang.AutoCleanup
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -68,10 +66,6 @@ class AuthorizeControllerSpec extends Specification {
 
   @Autowired
   ObjectMapper objectMapper
-
-  @Autowired
-  @AutoCleanup("destroy")
-  EmbeddedRedis embeddedRedis
 
   @Delegate
   FiatSystemTestSupport fiatIntegrationTestSupport = new FiatSystemTestSupport()

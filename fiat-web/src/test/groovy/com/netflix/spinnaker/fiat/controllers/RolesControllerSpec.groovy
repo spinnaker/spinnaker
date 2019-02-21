@@ -23,13 +23,11 @@ import com.netflix.spinnaker.fiat.model.UserPermission
 import com.netflix.spinnaker.fiat.permissions.PermissionsRepository
 import com.netflix.spinnaker.fiat.providers.internal.ClouddriverService
 import com.netflix.spinnaker.fiat.providers.internal.Front50Service
-import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 import retrofit.RetrofitError
-import spock.lang.AutoCleanup
 import spock.lang.Specification
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
@@ -52,10 +50,6 @@ class RolesControllerSpec extends Specification {
 
   @Autowired
   TestUserRoleProvider userRoleProvider
-
-  @Autowired
-  @AutoCleanup("destroy")
-  EmbeddedRedis embeddedRedis
 
   @Delegate
   FiatSystemTestSupport fiatIntegrationTestSupport = new FiatSystemTestSupport()
