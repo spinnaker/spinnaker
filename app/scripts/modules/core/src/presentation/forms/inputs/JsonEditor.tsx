@@ -3,6 +3,7 @@ import AceEditor, { AceEditorProps, Annotation } from 'react-ace';
 
 import 'brace/mode/json';
 import 'brace/ext/searchbox';
+import './aceEditor.less';
 
 export interface IJsonEditorProps extends AceEditorProps {
   value: string;

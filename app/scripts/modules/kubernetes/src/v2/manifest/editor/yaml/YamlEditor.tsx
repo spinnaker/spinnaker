@@ -7,7 +7,6 @@ import { yamlStringToDocuments } from 'kubernetes/v2/manifest/editor/yaml/yamlEd
 
 import 'brace/theme/textmate';
 import 'brace/mode/yaml';
-import '../editor.less';
 
 export interface IYamlEditorProps {
   value: string;

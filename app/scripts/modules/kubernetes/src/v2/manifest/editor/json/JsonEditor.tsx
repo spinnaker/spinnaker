@@ -4,7 +4,6 @@ import { $log } from 'ngimport';
 
 import 'brace/theme/textmate';
 import 'brace/mode/json';
-import '../editor.less';
 
 export interface IJsonEditorProps {
   value: string;
