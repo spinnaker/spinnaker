@@ -24,7 +24,7 @@ import org.springframework.context.annotation.Primary;
 
 @TestConfiguration
 public class EmbeddedRedisConfig {
-  @Bean
+  @Bean(destroyMethod = "destroy")
   EmbeddedRedis embeddedRedis() {
     return EmbeddedRedis.embed();
   }
