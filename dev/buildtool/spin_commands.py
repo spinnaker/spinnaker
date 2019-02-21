@@ -30,6 +30,7 @@ from buildtool import (
     BranchSourceCodeManager,
     CommandProcessor,
     CommandFactory,
+    GitRunner,
     RepositoryCommandFactory,
     RepositoryCommandProcessor,
     check_subprocess,
@@ -123,7 +124,7 @@ class BuildSpinCommand(RepositoryCommandProcessor):
       env.update({'GOOS': dist_arch.dist,
                   'GOARCH': dist_arch.arch})
       check_subprocess('go get -v -u {}'.format(spin_package_path), cwd=gopath, env=env)
-    
+
     for dist_arch in DIST_ARCH_LIST:
       # GCS sub-directory the binaries are stored in are specified by
       # ${build_version}/${dist}.
@@ -409,6 +410,8 @@ class PublishSpinCommandFactory(CommandFactory):
         'Publish a new spin CLI release.')
 
   def init_argparser(self, parser, defaults):
+    GitRunner.add_parser_args(parser, defaults)
+    GitRunner.add_publishing_parser_args(parser, defaults)
     super(PublishSpinCommandFactory, self).init_argparser(
         parser, defaults)
     self.add_argument(
