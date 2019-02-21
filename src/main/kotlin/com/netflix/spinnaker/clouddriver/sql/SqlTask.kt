@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.clouddriver.sql
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.clouddriver.data.task.Status
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskDisplayStatus
@@ -27,9 +28,9 @@ import java.util.concurrent.atomic.AtomicBoolean
  */
 class SqlTask(
   private val id: String,
-  internal val ownerId: String,
-  internal val requestId: String,
-  internal val startTimeMs: Long,
+  @JsonIgnore internal val ownerId: String,
+  @JsonIgnore internal val requestId: String,
+  @JsonIgnore internal val startTimeMs: Long,
   private val repository: SqlTaskRepository
 ) : Task {
 
