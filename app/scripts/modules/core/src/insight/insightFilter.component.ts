@@ -4,9 +4,7 @@ import { InsightFilterStateModel } from './insightFilterState.model';
 
 export class InsightFilterCtrl implements IController {
   public static $inject = ['insightFilterStateModel'];
-  constructor(public insightFilterStateModel: InsightFilterStateModel) {
-    'ngInject';
-  }
+  constructor(public insightFilterStateModel: InsightFilterStateModel) {}
 }
 
 export const INSIGHT_FILTER_COMPONENT = 'spinnaker.core.insight.filter.component';

@@ -8,7 +8,6 @@ export class KubernetesV2FindArtifactsFromResourceConfigCtrl implements IControl
 
   public static $inject = ['$scope'];
   constructor(private $scope: IScope) {
-    'ngInject';
     if (this.$scope.stage.isNew) {
       this.application = this.$scope.$parent.application;
       const defaultSelection: IManifestSelector = {

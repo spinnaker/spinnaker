@@ -40,7 +40,6 @@ class GitTriggerController implements IController {
 
   public static $inject = ['trigger', '$scope'];
   constructor(public trigger: IGitTrigger, private $scope: IScope) {
-    'ngInject';
     this.initialize();
   }
 

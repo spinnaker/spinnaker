@@ -36,8 +36,6 @@ export class KubernetesV2PatchManifestConfigCtrl implements IController {
 
   public static $inject = ['$scope'];
   constructor(private $scope: IScope) {
-    'ngInject';
-
     const defaultOptions: IPatchOptions = {
       mergeStrategy: MergeStrategy.strategic,
       record: true,

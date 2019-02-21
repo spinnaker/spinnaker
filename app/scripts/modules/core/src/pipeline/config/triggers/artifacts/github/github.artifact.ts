@@ -14,7 +14,6 @@ module(GITHUB_ARTIFACT, []).config(() => {
     isDefault: false,
     isMatch: true,
     controller: function(artifact: IArtifact) {
-      'ngInject';
       this.artifact = artifact;
       this.artifact.type = 'github/file';
     },

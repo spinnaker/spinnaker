@@ -41,9 +41,7 @@ class DeleteLoadBalancerModalController implements IController {
     private gceHttpLoadBalancerWriter: any,
     private loadBalancer: any,
     private $uibModalInstance: IModalInstanceService,
-  ) {
-    'ngInject';
-  }
+  ) {}
 
   public $onInit(): void {
     const taskMonitorConfig = {

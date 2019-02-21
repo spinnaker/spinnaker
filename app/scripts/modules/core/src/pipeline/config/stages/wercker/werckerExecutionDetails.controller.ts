@@ -19,7 +19,6 @@ export class WerckerExecutionDetailsCtrl implements IController {
     private executionDetailsSectionService: ExecutionDetailsSectionService,
     private $scope: IScope,
   ) {
-    'ngInject';
     this.stage = this.$scope.stage;
     this.initialize();
     this.$scope.$on('$stateChangeSuccess', () => this.initialize());

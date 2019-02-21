@@ -6,9 +6,7 @@ import { IvyArtifactEditor } from './IvyArtifactEditor';
 
 class IvyArtifactController implements IController {
   public static $inject = ['artifact'];
-  constructor(public artifact: IArtifact) {
-    'ngInject';
-  }
+  constructor(public artifact: IArtifact) {}
 }
 
 export const IVY_ARTIFACT = 'spinnaker.core.pipeline.trigger.ivy.artifact';
@@ -22,7 +20,6 @@ module(IVY_ARTIFACT, [])
       isDefault: false,
       isMatch: true,
       controller: function(artifact: IArtifact) {
-        'ngInject';
         this.artifact = artifact;
         this.artifact.type = 'ivy/file';
       },

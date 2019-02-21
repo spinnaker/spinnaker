@@ -6,9 +6,7 @@ import { MavenArtifactEditor } from './MavenArtifactEditor';
 
 class MavenArtifactController implements IController {
   public static $inject = ['artifact'];
-  constructor(public artifact: IArtifact) {
-    'ngInject';
-  }
+  constructor(public artifact: IArtifact) {}
 }
 
 export const MAVEN_ARTIFACT = 'spinnaker.core.pipeline.trigger.maven.artifact';
@@ -22,7 +20,6 @@ module(MAVEN_ARTIFACT, [])
       isDefault: false,
       isMatch: true,
       controller: function(artifact: IArtifact) {
-        'ngInject';
         this.artifact = artifact;
         this.artifact.type = 'maven/file';
       },

@@ -107,7 +107,6 @@ class SslLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements IControll
     private wizardSubFormValidation: any,
     $state: StateService,
   ) {
-    'ngInject';
     super($scope, application, $uibModalInstance, $state);
   }
 

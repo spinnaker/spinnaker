@@ -3,7 +3,6 @@ import { IController, IScope } from 'angular';
 export class KubernetesV2UndoRolloutManifestConfigCtrl implements IController {
   public static $inject = ['$scope'];
   constructor(private $scope: IScope) {
-    'ngInject';
     if (this.$scope.stage.isNew) {
       Object.assign(this.$scope.stage, {
         location: '',

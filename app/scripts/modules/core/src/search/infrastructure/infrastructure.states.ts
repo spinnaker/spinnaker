@@ -7,8 +7,6 @@ export const INFRASTRUCTURE_STATES = 'spinnaker.core.search.states';
 module(INFRASTRUCTURE_STATES, [STATE_CONFIG_PROVIDER]).config([
   'stateConfigProvider',
   (stateConfigProvider: StateConfigProvider) => {
-    'ngInject';
-
     stateConfigProvider.addToRootState({
       name: 'search',
       url: '/search?q&key&tab&name&account&region&stack',

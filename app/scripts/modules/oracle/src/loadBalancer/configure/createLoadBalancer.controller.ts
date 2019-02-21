@@ -78,7 +78,6 @@ export class OracleLoadBalancerController implements IController {
     private loadBalancer: IOracleLoadBalancer,
     private isNew: boolean,
   ) {
-    'ngInject';
     this.initializeController();
   }
 

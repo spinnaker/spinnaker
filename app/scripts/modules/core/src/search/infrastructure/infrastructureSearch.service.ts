@@ -75,9 +75,7 @@ export class InfrastructureSearcher {
 
 export class InfrastructureSearchService {
   public static $inject = ['$q', 'providerServiceDelegate'];
-  constructor(private $q: IQService, private providerServiceDelegate: any) {
-    'ngInject';
-  }
+  constructor(private $q: IQService, private providerServiceDelegate: any) {}
 
   public getSearcher(): InfrastructureSearcher {
     return new InfrastructureSearcher(this.$q, this.providerServiceDelegate);

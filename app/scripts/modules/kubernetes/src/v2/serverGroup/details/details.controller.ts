@@ -40,8 +40,6 @@ class KubernetesServerGroupDetailsController implements IController {
     private $scope: IScope,
     private confirmationModalService: ConfirmationModalService,
   ) {
-    'ngInject';
-
     const unsubscribe = KubernetesManifestService.makeManifestRefresher(
       this.app,
       {

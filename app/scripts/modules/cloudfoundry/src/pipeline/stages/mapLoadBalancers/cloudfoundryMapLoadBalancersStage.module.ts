@@ -8,7 +8,6 @@ import { CloudfoundryMapLoadBalancersExecutionDetails } from './CloudfoundryMapL
 class CloudFoundryMapLoadBalancersStageCtrl implements IController {
   public static $inject = ['$scope'];
   constructor(public $scope: IScope) {
-    'ngInject';
     $scope.accounts = [];
     AccountService.listAccounts('cloudfoundry').then(accounts => {
       $scope.accounts = accounts;

@@ -16,7 +16,6 @@ module(BASE64_ARTIFACT, []).config(() => {
     isDefault: false,
     isMatch: true,
     controller: function(artifact: IArtifact) {
-      'ngInject';
       this.artifact = artifact;
       this.artifact.type = 'embedded/base64';
     },

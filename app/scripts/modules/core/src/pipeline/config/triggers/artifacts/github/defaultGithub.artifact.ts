@@ -13,7 +13,6 @@ module(DEFAULT_GITHUB_ARTIFACT, []).config(() => {
     isDefault: true,
     isMatch: false,
     controller: function(artifact: IArtifact) {
-      'ngInject';
       this.artifact = artifact;
       this.artifact.type = 'github/file';
       const pathRegex = new RegExp('/repos/[^/]*/[^/]*/contents/(.*)$');

@@ -16,7 +16,6 @@ export class CreateLoadBalancerDetailsCtrl extends BaseExecutionDetailsCtrl {
     protected $stateParams: StateParams,
     protected executionDetailsSectionService: ExecutionDetailsSectionService,
   ) {
-    'ngInject';
     super($scope, $stateParams, executionDetailsSectionService);
 
     $scope.configSections = ['loadBalancerConfig', 'taskStatus'];

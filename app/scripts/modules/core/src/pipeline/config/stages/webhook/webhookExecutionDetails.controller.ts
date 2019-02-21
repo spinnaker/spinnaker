@@ -24,7 +24,6 @@ export class WebhookExecutionDetailsCtrl implements IController {
     private executionDetailsSectionService: ExecutionDetailsSectionService,
     private $scope: IScope,
   ) {
-    'ngInject';
     this.initialize();
     this.$scope.$on('$stateChangeSuccess', () => this.initialize());
   }

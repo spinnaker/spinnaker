@@ -3,9 +3,7 @@ import { IKubernetesServerGroup } from 'kubernetes/v2/serverGroup/details/IKuber
 
 export class KubernetesV2ServerGroupTransformer {
   public static $inject = ['$q'];
-  constructor(private $q: IQService) {
-    'ngInject';
-  }
+  constructor(private $q: IQService) {}
 
   public normalizeServerGroup(serverGroup: IKubernetesServerGroup): IPromise<IKubernetesServerGroup> {
     // TODO(dpeach): this isn't great, but we need to assume it's a deployment so that we can click

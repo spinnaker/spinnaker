@@ -35,7 +35,6 @@ class AppengineLoadBalancerDetailsController implements IController {
     private app: Application,
     private confirmationModalService: ConfirmationModalService,
   ) {
-    'ngInject';
     this.loadBalancerFromParams = loadBalancer;
     this.app
       .getDataSource('loadBalancers')

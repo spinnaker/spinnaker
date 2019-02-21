@@ -7,8 +7,6 @@ export class SkinSelectorCtrl implements IController {
 
   public static $inject = ['skinOptions', '$uibModalInstance'];
   constructor(public skinOptions: string[], private $uibModalInstance: IModalInstanceService) {
-    'ngInject';
-
     if (skinOptions.length > 0) {
       this.command.skin = skinOptions[0];
     }

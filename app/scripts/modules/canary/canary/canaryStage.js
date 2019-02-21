@@ -188,8 +188,6 @@ module.exports = angular
     'serverGroupCommandBuilder',
     'awsServerGroupTransformer',
     function($scope, $uibModal, stage, providerSelectionService, serverGroupCommandBuilder, awsServerGroupTransformer) {
-      'ngInject';
-
       $scope.isExpression = function(value) {
         return isString(value) && value.includes('${');
       };

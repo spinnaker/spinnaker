@@ -30,7 +30,6 @@ export class NetworkInterceptor implements IHttpInterceptor {
     private $timeout: ITimeoutService,
     private $injector: any,
   ) {
-    'ngInject';
     this.$window.addEventListener('offline', this.handleOffline);
     this.$window.addEventListener('online', this.handleOnline);
     this.resetNetworkAvailable();

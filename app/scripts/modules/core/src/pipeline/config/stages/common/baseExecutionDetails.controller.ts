@@ -18,7 +18,6 @@ export class BaseExecutionDetailsCtrl {
     protected $stateParams: StateParams,
     protected executionDetailsSectionService: ExecutionDetailsSectionService,
   ) {
-    'ngInject';
     this.$scope.$on('$stateChangeSuccess', () => this.initialize());
     this.$scope.$watch('configSections', () => this.initialize());
   }

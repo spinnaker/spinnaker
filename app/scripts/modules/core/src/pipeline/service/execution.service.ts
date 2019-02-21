@@ -42,9 +42,7 @@ export class ExecutionService {
     private $q: IQService,
     private $state: StateService,
     private $timeout: ITimeoutService,
-  ) {
-    'ngInject';
-  }
+  ) {}
 
   public getRunningExecutions(applicationName: string): IPromise<IExecution[]> {
     return this.getFilteredExecutions(applicationName, this.activeStatuses, this.runningLimit, null, true);

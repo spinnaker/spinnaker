@@ -47,9 +47,7 @@ export class UpsertTargetTrackingController implements IComponentController {
     public serverGroup: ITitusServerGroup,
     public alarmServerGroup: IAlarmRenderingServerGroup,
     public application: Application,
-  ) {
-    'ngInject';
-  }
+  ) {}
 
   public $onInit() {
     this.command = this.buildCommand();

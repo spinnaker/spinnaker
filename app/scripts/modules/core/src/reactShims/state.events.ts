@@ -14,7 +14,6 @@ export class StateEvents {
 
   public static $inject = ['$rootScope'];
   constructor(private $rootScope: IRootScopeService) {
-    'ngInject';
     const onChangeSuccess = (
       _event: IAngularEvent,
       to: StateDeclaration,

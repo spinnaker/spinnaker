@@ -13,7 +13,6 @@ module(DEFAULT_BITBUCKET_ARTIFACT, []).config(() => {
     isDefault: true,
     isMatch: false,
     controller: function(artifact: IArtifact) {
-      'ngInject';
       this.artifact = artifact;
       this.artifact.type = 'bitbucket/file';
       const pathRegex = new RegExp('/1.0/repositories/[^/]*/[^/]*/raw/[^/]*/(.*)$');

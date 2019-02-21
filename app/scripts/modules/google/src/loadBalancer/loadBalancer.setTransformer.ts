@@ -30,9 +30,7 @@ export class GceLoadBalancerSetTransformer {
   }
 
   public static $inject = ['gceHttpLoadBalancerUtils'];
-  constructor(private gceHttpLoadBalancerUtils: GceHttpLoadBalancerUtils) {
-    'ngInject';
-  }
+  constructor(private gceHttpLoadBalancerUtils: GceHttpLoadBalancerUtils) {}
 
   public normalizeLoadBalancerSet = (loadBalancers: IGceLoadBalancer[]): IGceLoadBalancer[] => {
     const [httpLoadBalancers, otherLoadBalancers] = partition(loadBalancers, lb =>

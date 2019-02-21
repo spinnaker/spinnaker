@@ -41,8 +41,6 @@ class AppengineInstanceDetailsController implements IController {
     private confirmationModalService: ConfirmationModalService,
     instance: InstanceFromStateParams,
   ) {
-    'ngInject';
-
     this.app
       .ready()
       .then(() => this.retrieveInstance(instance))

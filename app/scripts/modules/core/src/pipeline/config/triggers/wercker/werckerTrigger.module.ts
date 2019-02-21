@@ -31,7 +31,6 @@ export class WerckerTrigger implements IController {
 
   public static $inject = ['$scope', 'trigger'];
   constructor($scope: IScope, public trigger: IWerckerTrigger) {
-    'ngInject';
     this.fiatEnabled = SETTINGS.feature.fiatEnabled;
     ServiceAccountReader.getServiceAccounts().then(accounts => {
       this.serviceAccounts = accounts || [];

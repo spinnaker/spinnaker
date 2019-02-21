@@ -29,7 +29,6 @@ class KubernetesLoadBalancerDetailsController implements IController {
     loadBalancer: ILoadBalancerFromStateParams,
     private app: Application,
   ) {
-    'ngInject';
     this.loadBalancerFromParams = loadBalancer;
     this.app
       .getDataSource('loadBalancers')

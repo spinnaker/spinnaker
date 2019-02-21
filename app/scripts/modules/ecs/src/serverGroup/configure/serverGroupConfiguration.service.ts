@@ -108,9 +108,7 @@ export class EcsServerGroupConfigurationService {
     private placementStrategyService: PlacementStrategyService,
     private securityGroupReader: SecurityGroupReader,
     private secretReader: SecretReader,
-  ) {
-    'ngInject';
-  }
+  ) {}
 
   public configureUpdateCommand(command: IEcsServerGroupCommand): void {
     command.backingData = {

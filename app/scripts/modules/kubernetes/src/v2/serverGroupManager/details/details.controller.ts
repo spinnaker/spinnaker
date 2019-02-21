@@ -30,8 +30,6 @@ class KubernetesServerGroupManagerDetailsController implements IController {
     private $uibModal: IModalService,
     public app: Application,
   ) {
-    'ngInject';
-
     const unsubscribe = KubernetesManifestService.makeManifestRefresher(
       this.app,
       {

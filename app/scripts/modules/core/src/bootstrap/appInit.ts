@@ -10,7 +10,6 @@ bootstrapModule.run([
   '$rootScope',
   '$state',
   ($rootScope: IRootScopeService, $state: StateService) => {
-    'ngInject';
     $rootScope.feature = SETTINGS.feature;
     $rootScope.$state = $state; // TODO: Do we really need this?
   },
@@ -19,7 +18,6 @@ bootstrapModule.run([
 bootstrapModule.run([
   'cacheInitializer',
   (cacheInitializer: CacheInitializerService) => {
-    'ngInject';
     cacheInitializer.initialize();
   },
 ]);

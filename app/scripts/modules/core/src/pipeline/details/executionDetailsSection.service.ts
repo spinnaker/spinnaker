@@ -9,9 +9,7 @@ export class ExecutionDetailsSectionService {
     private $stateParams: StateParams,
     private $state: StateService,
     private $timeout: ITimeoutService,
-  ) {
-    'ngInject';
-  }
+  ) {}
 
   private sectionIsValid(availableSections: string[]): boolean {
     return availableSections.includes(this.$stateParams.details);

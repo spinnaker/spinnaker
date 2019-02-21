@@ -79,8 +79,6 @@ class AppengineServerGroupDetailsController implements IController {
     private appengineServerGroupWriter: AppengineServerGroupWriter,
     private appengineServerGroupCommandBuilder: AppengineServerGroupCommandBuilder,
   ) {
-    'ngInject';
-
     this.app
       .ready()
       .then(() => this.extractServerGroup(serverGroup))

@@ -19,9 +19,7 @@ export class ClusterService {
     private $q: IQService,
     private serverGroupTransformer: any,
     private providerServiceDelegate: ProviderServiceDelegate,
-  ) {
-    'ngInject';
-  }
+  ) {}
 
   // Retrieves and normalizes all server groups. If a server group for an unsupported cloud provider (i.e. one that does
   // not have a server group transformer) is encountered, it will be omitted from the result.

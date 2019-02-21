@@ -14,9 +14,7 @@ class OnDemandClusterPickerController implements IController {
   public optionTemplate: string = require('./onDemandOptionTemplate.html');
 
   public static $inject = ['$scope'];
-  constructor(private $scope: IScope) {
-    'ngInject';
-  }
+  constructor(private $scope: IScope) {}
 
   public $onInit(): void {
     this.setAvailableClusters();

@@ -17,9 +17,7 @@ export interface ILoadBalancersByAccount {
 
 export class LoadBalancerReader {
   public static $inject = ['$q', 'loadBalancerTransformer'];
-  public constructor(private $q: IQService, private loadBalancerTransformer: any) {
-    'ngInject';
-  }
+  public constructor(private $q: IQService, private loadBalancerTransformer: any) {}
 
   public loadLoadBalancers(applicationName: string): IPromise<ILoadBalancerSourceData[]> {
     return API.one('applications', applicationName)

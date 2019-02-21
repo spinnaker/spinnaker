@@ -37,7 +37,6 @@ class AppengineCloneServerGroupCtrl implements IController {
     private serverGroupWriter: ServerGroupWriter,
     appengineServerGroupCommandBuilder: AppengineServerGroupCommandBuilder,
   ) {
-    'ngInject';
     if (['create', 'clone', 'editPipeline'].includes(get<string>(serverGroupCommand, 'viewState.mode'))) {
       this.$scope.command = serverGroupCommand;
       this.state.loading = false;

@@ -44,9 +44,7 @@ class ClusterFilterCtrl {
     public $rootScope: IScope,
     public $timeout: ITimeoutService,
     public clusterDependentFilterHelper: any,
-  ) {
-    'ngInject';
-  }
+  ) {}
 
   public $onInit(): void {
     const { $scope, $rootScope, $timeout, app } = this;

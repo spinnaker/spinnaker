@@ -11,7 +11,6 @@ export class V2ModalWizard implements IController {
   public dismiss: () => any;
 
   public constructor(private $scope: ng.IScope) {
-    'ngInject';
     this.wizard = ModalWizard;
   }
 

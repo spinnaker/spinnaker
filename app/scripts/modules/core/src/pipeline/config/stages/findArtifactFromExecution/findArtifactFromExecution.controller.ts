@@ -31,7 +31,6 @@ export class FindArtifactFromExecutionCtrl implements IController {
 
   public static $inject = ['$scope'];
   constructor(private $scope: IScope) {
-    'ngInject';
     this.stage = this.$scope.stage as IFindArtifactFromExecutionStage;
     if (this.$scope.stage.isNew) {
       this.stage.executionOptions = {

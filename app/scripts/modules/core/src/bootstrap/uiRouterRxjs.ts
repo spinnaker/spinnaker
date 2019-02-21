@@ -6,7 +6,6 @@ import { UIRouter } from '@uirouter/core';
 bootstrapModule.config([
   '$uiRouterProvider',
   ($uiRouterProvider: UIRouter) => {
-    'ngInject';
     $uiRouterProvider.plugin(UIRouterRxPlugin);
   },
 ]);

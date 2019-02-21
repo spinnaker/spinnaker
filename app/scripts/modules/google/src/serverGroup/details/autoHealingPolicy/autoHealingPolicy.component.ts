@@ -14,9 +14,7 @@ class GceAutoHealingPolicyDetailsCtrl implements IController {
     private $uibModal: IModalService,
     private confirmationModalService: ConfirmationModalService,
     private gceAutoscalingPolicyWriter: any,
-  ) {
-    'ngInject';
-  }
+  ) {}
 
   public editPolicy(): void {
     this.$uibModal.open({

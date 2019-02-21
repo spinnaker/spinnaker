@@ -25,9 +25,7 @@ export class StageSummaryController implements IController {
     private $state: StateService,
     private confirmationModalService: ConfirmationModalService,
     private executionService: ExecutionService,
-  ) {
-    'ngInject';
-  }
+  ) {}
 
   public $onInit(): void {
     this.updateScope();

@@ -8,9 +8,7 @@ import { IServiceFieldValidatorConfig } from 'cloudfoundry/pipeline/config/valid
 
 class CloudFoundryDeployServiceStageCtrl implements IController {
   public static $inject = ['$scope'];
-  constructor(public $scope: IScope) {
-    'ngInject';
-  }
+  constructor(public $scope: IScope) {}
 }
 
 const serviceInstanceNameValidatorConfig: IServiceFieldValidatorConfig = {

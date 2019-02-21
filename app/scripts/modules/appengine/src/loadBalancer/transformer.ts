@@ -78,9 +78,7 @@ export class AppengineLoadBalancerUpsertDescription implements ILoadBalancerUpse
 
 export class AppengineLoadBalancerTransformer {
   public static $inject = ['$q'];
-  constructor(private $q: ng.IQService) {
-    'ngInject';
-  }
+  constructor(private $q: ng.IQService) {}
 
   public normalizeLoadBalancer(loadBalancer: ILoadBalancer): ng.IPromise<ILoadBalancer> {
     loadBalancer.provider = loadBalancer.type;

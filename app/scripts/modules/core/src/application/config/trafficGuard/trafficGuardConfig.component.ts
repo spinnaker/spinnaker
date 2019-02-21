@@ -28,9 +28,7 @@ export class TrafficGuardConfigController {
   };
 
   public static $inject = ['$log'];
-  public constructor(private $log: ILogService) {
-    'ngInject';
-  }
+  public constructor(private $log: ILogService) {}
 
   public $onInit(): void {
     if (this.application.notFound) {

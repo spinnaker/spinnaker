@@ -23,7 +23,6 @@ export class SecurityGroupFilterModel {
   public asFilterModel: IFilterModel;
 
   constructor() {
-    'ngInject';
     this.asFilterModel = FilterModelService.configureFilterModel(this as any, filterModelConfig);
     this.bindEvents();
     this.asFilterModel.activate();

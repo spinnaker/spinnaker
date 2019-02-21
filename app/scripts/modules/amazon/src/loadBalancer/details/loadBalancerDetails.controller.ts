@@ -70,7 +70,6 @@ export class AwsLoadBalancerDetailsController implements IController {
     private securityGroupReader: SecurityGroupReader,
     private loadBalancerReader: LoadBalancerReader,
   ) {
-    'ngInject';
     this.application = app;
     this.loadBalancerFromParams = loadBalancer;
 

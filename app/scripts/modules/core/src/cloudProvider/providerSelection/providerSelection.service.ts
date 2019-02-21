@@ -11,9 +11,7 @@ export type IProviderSelectionFilter = (app: Application, acc: IAccountDetails, 
 
 export class ProviderSelectionService {
   public static $inject = ['$uibModal', '$q'];
-  constructor(private $uibModal: IModalService, private $q: IQService) {
-    'ngInject';
-  }
+  constructor(private $uibModal: IModalService, private $q: IQService) {}
 
   public selectProvider(
     application: Application,

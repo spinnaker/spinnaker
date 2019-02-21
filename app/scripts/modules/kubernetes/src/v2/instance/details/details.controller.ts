@@ -48,8 +48,6 @@ class KubernetesInstanceDetailsController implements IController {
     private $scope: IScope,
     private app: Application,
   ) {
-    'ngInject';
-
     this.app
       .ready()
       .then(() => this.retrieveInstance(instance))

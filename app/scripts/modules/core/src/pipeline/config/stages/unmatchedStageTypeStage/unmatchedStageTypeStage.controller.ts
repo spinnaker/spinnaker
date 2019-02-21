@@ -24,9 +24,7 @@ export class UnmatchedStageTypeStageCtrl implements IController {
   ]);
 
   public static $inject = ['$scope'];
-  constructor(public $scope: IScope) {
-    'ngInject';
-  }
+  constructor(public $scope: IScope) {}
 
   public $onInit(): void {
     this.stageJson = JsonUtils.makeSortedStringFromObject(this.makeCleanStageCopy(this.$scope.stage || {}));

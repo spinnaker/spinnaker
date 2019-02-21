@@ -15,7 +15,6 @@ class AppengineLoadBalancerChoiceModalCtrl implements IController {
     private $uibModalInstance: IModalServiceInstance,
     private application: Application,
   ) {
-    'ngInject';
     this.initialize();
   }
 

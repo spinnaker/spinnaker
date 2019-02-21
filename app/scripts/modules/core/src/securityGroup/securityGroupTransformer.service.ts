@@ -6,9 +6,7 @@ import { ProviderServiceDelegate, PROVIDER_SERVICE_DELEGATE } from 'core/cloudPr
 
 export class SecurityGroupTransformerService {
   public static $inject = ['providerServiceDelegate'];
-  constructor(private providerServiceDelegate: ProviderServiceDelegate) {
-    'ngInject';
-  }
+  constructor(private providerServiceDelegate: ProviderServiceDelegate) {}
 
   public normalizeSecurityGroup(securityGroup: ISecurityGroup): IPromise<ISecurityGroup> {
     return AccountService.getAccountDetails(securityGroup.account).then((accountDetails: IAccountDetails) => {

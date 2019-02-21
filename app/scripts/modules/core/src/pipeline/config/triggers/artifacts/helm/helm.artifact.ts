@@ -18,7 +18,6 @@ module(HELM_ARTIFACT, []).config(() => {
     key: 'helm',
     editCmp: HelmArtifactEditor,
     controller: function(artifact: IArtifact) {
-      'ngInject';
       this.artifact = artifact;
       this.artifact.type = 'helm/chart';
 

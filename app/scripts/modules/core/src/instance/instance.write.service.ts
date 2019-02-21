@@ -30,9 +30,7 @@ export interface IMultiInstanceJob {
 
 export class InstanceWriter {
   public static $inject = ['providerServiceDelegate'];
-  public constructor(protected providerServiceDelegate: ProviderServiceDelegate) {
-    'ngInject';
-  }
+  public constructor(protected providerServiceDelegate: ProviderServiceDelegate) {}
 
   public terminateInstance(instance: IInstance, application: Application, params: IJob = {}): IPromise<ITask> {
     params.type = 'terminateInstances';

@@ -16,7 +16,6 @@ module(DOCKER_ARTIFACT, []).config(() => {
     description: 'A Docker image to be deployed.',
     key: 'docker',
     controller: function(artifact: IArtifact) {
-      'ngInject';
       this.artifact = artifact;
       this.artifact.type = 'docker/image';
     },

@@ -15,8 +15,6 @@ class LoadBalancerSelectorController implements IController {
 
   public static $inject = ['ecsServerGroupConfigurationService'];
   constructor(private ecsServerGroupConfigurationService: EcsServerGroupConfigurationService) {
-    'ngInject';
-
     this.setLoadBalancerRefreshTime();
   }
 

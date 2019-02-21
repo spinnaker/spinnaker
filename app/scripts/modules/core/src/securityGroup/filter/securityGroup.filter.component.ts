@@ -35,9 +35,7 @@ export class SecurityGroupFilterCtrl {
   private locationChangeUnsubscribe: () => void;
 
   public static $inject = ['$scope', '$rootScope'];
-  constructor(private $scope: IScope, private $rootScope: IScope) {
-    'ngInject';
-  }
+  constructor(private $scope: IScope, private $rootScope: IScope) {}
 
   public $onInit(): void {
     const { $scope, $rootScope, app } = this;

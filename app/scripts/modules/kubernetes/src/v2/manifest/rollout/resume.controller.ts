@@ -24,8 +24,6 @@ class KubernetesManifestResumeRolloutController implements IController {
     private $uibModalInstance: IModalServiceInstance,
     private application: Application,
   ) {
-    'ngInject';
-
     this.taskMonitor = new TaskMonitor({
       title: `Resume rollout of ${coordinates.name} in ${coordinates.namespace}`,
       application,

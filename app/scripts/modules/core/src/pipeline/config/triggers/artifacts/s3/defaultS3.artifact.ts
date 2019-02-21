@@ -14,7 +14,6 @@ module(DEFAULT_S3_ARTIFACT, []).config(() => {
     isDefault: true,
     isMatch: false,
     controller: function(artifact: IArtifact) {
-      'ngInject';
       this.artifact = artifact;
       this.artifact.type = 's3/object';
 

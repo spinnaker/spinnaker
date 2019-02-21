@@ -29,7 +29,6 @@ export class AwsTargetGroupDetailsController implements IController {
     targetGroup: ITargetGroupFromStateParams,
     private app: Application,
   ) {
-    'ngInject';
     this.application = app;
     this.targetGroupFromParams = targetGroup;
 

@@ -9,8 +9,6 @@ export const SERVER_GROUP_MANAGER_DATA_SOURCE = 'spinnaker.core.serverGroupManag
 module(SERVER_GROUP_MANAGER_DATA_SOURCE, []).run([
   '$q',
   ($q: IQService) => {
-    'ngInject';
-
     const loader = (application: Application) =>
       ServerGroupManagerReader.getServerGroupManagersForApplication(application.name);
 

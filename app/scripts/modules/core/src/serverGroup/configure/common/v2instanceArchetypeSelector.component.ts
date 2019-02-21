@@ -21,9 +21,7 @@ class V2InstanceArchetypeSelectorController implements IComponentController {
     public $scope: IScope,
     private instanceTypeService: InstanceTypeService,
     private serverGroupConfigurationService: ServerGroupConfigurationService,
-  ) {
-    'ngInject';
-  }
+  ) {}
 
   public $onInit(): void {
     const { $scope } = this;

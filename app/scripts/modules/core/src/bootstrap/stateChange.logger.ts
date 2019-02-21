@@ -9,8 +9,6 @@ bootstrapModule.run([
   '$uiRouter',
   '$log',
   ($uiRouter: UIRouter, $log: ILogService) => {
-    'ngInject';
-
     const subscription = $uiRouter.globals.start$.subscribe((transition: Transition) => {
       const details = {
         transition,

@@ -94,9 +94,7 @@ export class AppengineServerGroupCommandBuilder {
   }
 
   public static $inject = ['$q'];
-  constructor(private $q: IQService) {
-    'ngInject';
-  }
+  constructor(private $q: IQService) {}
 
   public buildNewServerGroupCommand(
     app: Application,

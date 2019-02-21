@@ -39,7 +39,6 @@ module(OVERRIDE_REGISTRY, [])
   .run([
     'overrideRegistry',
     (overrideRegistry: OverrideRegistry) => {
-      'ngInject';
       overrideRegistrationQueue.setRegistries(overrideRegistry);
     },
   ]);

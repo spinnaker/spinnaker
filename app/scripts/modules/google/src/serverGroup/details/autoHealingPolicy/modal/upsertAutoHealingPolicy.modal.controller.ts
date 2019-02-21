@@ -32,7 +32,6 @@ class GceUpsertAutoHealingPolicyModalCtrl implements IController {
     private gceHealthCheckReader: GceHealthCheckReader,
     private gceAutoscalingPolicyWriter: any,
   ) {
-    'ngInject';
     this.initialize();
   }
 

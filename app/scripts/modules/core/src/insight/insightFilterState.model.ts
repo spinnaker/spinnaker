@@ -6,7 +6,6 @@ export class InsightFilterStateModel {
   public filtersExpanded: boolean;
 
   public constructor() {
-    'ngInject';
     this.filtersExpanded =
       !CollapsibleSectionStateCache.isSet('insightFilters') ||
       CollapsibleSectionStateCache.isExpanded('insightFilters');

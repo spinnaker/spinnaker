@@ -27,8 +27,6 @@ class KubernetesManifestScaleController implements IController {
     private $uibModalInstance: IModalServiceInstance,
     private application: Application,
   ) {
-    'ngInject';
-
     this.taskMonitor = new TaskMonitor({
       title: `Scaling ${coordinates.name} in ${coordinates.namespace}`,
       application,

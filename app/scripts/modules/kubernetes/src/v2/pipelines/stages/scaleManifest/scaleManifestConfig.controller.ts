@@ -9,7 +9,6 @@ export class KubernetesV2ScaleManifestConfigCtrl implements IController {
 
   public static $inject = ['$scope'];
   constructor(private $scope: IScope) {
-    'ngInject';
     if (this.$scope.stage.isNew) {
       this.application = this.$scope.$parent.application;
       const defaultSelection: IManifestSelector = {

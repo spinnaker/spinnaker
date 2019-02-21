@@ -6,9 +6,7 @@ import { ICloudFoundryServerGroup, ICloudFoundryEnvVar } from 'cloudfoundry/doma
 
 export class CloudFoundryServerGroupTransformer {
   public static $inject = ['$q'];
-  public constructor(private $q: ng.IQService) {
-    'ngInject';
-  }
+  public constructor(private $q: ng.IQService) {}
 
   public normalizeServerGroupDetails(serverGroup: ICloudFoundryServerGroup): ICloudFoundryServerGroup {
     return serverGroup;

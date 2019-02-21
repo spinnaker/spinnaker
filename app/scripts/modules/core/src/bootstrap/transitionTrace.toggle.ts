@@ -7,8 +7,6 @@ import { paramChangedHelper } from 'core/bootstrap';
 bootstrapModule.run([
   '$uiRouter',
   ($uiRouter: UIRouter) => {
-    'ngInject';
-
     const changeTraceSetting = (newValue: string) => {
       const trace = $uiRouter.trace;
       trace.disable();

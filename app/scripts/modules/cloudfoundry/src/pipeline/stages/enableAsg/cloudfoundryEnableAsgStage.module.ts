@@ -7,7 +7,6 @@ import { Application, IStage, Registry } from '@spinnaker/core';
 class CloudFoundryEnableAsgStageCtrl implements IController {
   public static $inject = ['$scope', 'application'];
   constructor(public $scope: IScope, private application: Application) {
-    'ngInject';
     this.$scope.application = this.application;
   }
 }

@@ -25,7 +25,6 @@ export interface IAmazonMultiInstanceJob extends IMultiInstanceJob {
 export class AmazonInstanceWriter extends InstanceWriter {
   public static $inject = ['providerServiceDelegate'];
   public constructor(protected providerServiceDelegate: ProviderServiceDelegate) {
-    'ngInject';
     super(providerServiceDelegate);
   }
 

@@ -4,9 +4,7 @@ import { SETTINGS } from 'core/config/settings';
 
 export class AuthenticationInterceptor implements ng.IHttpInterceptor {
   public static $inject = ['$q'];
-  constructor(private $q: ng.IQService) {
-    'ngInject';
-  }
+  constructor(private $q: ng.IQService) {}
 
   // see http://www.couchcoder.com/angular-1-interceptors-using-typescript for more details on why we need to do this
   // in essense, we need to do this because "the ng1 implementaiton of interceptors only keeps references to the handler

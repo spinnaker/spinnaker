@@ -89,9 +89,7 @@ class ExecutionWindowAtlasGraphController implements IController {
   private maxCount = 0;
 
   public static $inject = ['$http', '$filter'];
-  public constructor(private $http: ng.IHttpService, private $filter: any) {
-    'ngInject';
-  }
+  public constructor(private $http: ng.IHttpService, private $filter: any) {}
 
   public buildGraph(): void {
     if (!this.stage.restrictedExecutionWindow.atlasEnabled) {

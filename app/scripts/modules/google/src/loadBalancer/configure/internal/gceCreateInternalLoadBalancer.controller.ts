@@ -107,7 +107,6 @@ class InternalLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ICon
     private gceXpnNamingService: any,
     $state: StateService,
   ) {
-    'ngInject';
     super($scope, application, $uibModalInstance, $state);
   }
 

@@ -37,9 +37,7 @@ export class UpsertTargetTrackingController implements IComponentController {
     public policy: ITargetTrackingPolicy,
     public serverGroup: IServerGroup,
     public application: Application,
-  ) {
-    'ngInject';
-  }
+  ) {}
 
   public $onInit() {
     const metricType = this.policy.targetTrackingConfiguration.customizedMetricSpecification ? 'custom' : 'predefined';

@@ -24,7 +24,6 @@ class CloudFoundryLoadBalancerDetailsCtrl implements IController {
     loadBalancer: ILoadBalancerFromStateParams,
     private $q: IQService,
   ) {
-    'ngInject';
     this.$scope.application = this.app;
     this.$scope.confirmationModalService = this.confirmationModalService;
     this.$scope.loading = true;

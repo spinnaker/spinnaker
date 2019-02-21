@@ -50,7 +50,6 @@ export class WebhookStage implements IController {
 
   public static $inject = ['stage', '$uibModal'];
   constructor(public stage: any, private $uibModal: IModalService) {
-    'ngInject';
     this.methods = ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE'];
 
     this.viewState = {

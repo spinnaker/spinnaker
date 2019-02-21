@@ -9,7 +9,6 @@ import { AppengineStageCtrl } from '../appengineStage.controller';
 class AppengineEnableAsgStageCtrl extends AppengineStageCtrl {
   public static $inject = ['$scope'];
   constructor(protected $scope: IAppengineStageScope) {
-    'ngInject';
     super($scope);
 
     super.setAccounts().then(() => {

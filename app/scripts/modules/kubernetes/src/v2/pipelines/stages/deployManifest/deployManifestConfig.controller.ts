@@ -23,7 +23,6 @@ export class KubernetesV2DeployManifestConfigCtrl implements IController {
 
   public static $inject = ['$scope'];
   constructor(private $scope: IScope) {
-    'ngInject';
     KubernetesManifestCommandBuilder.buildNewManifestCommand(
       this.$scope.application,
       this.$scope.stage.manifests || this.$scope.stage.manifest,

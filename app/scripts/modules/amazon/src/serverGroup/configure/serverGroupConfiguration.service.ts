@@ -135,9 +135,7 @@ export class AwsServerGroupConfigurationService {
     private cacheInitializer: CacheInitializerService,
     private loadBalancerReader: LoadBalancerReader,
     private serverGroupCommandRegistry: ServerGroupCommandRegistry,
-  ) {
-    'ngInject';
-  }
+  ) {}
 
   public configureUpdateCommand(command: IAmazonServerGroupCommand): void {
     command.backingData = {

@@ -27,8 +27,6 @@ class ViewChangesModalController {
     public jarDiffs: IJarDiff,
     public nameItem: { name: string },
   ) {
-    'ngInject';
-
     if (buildInfo.jenkins) {
       this.previousBuildLink = this.buildJenkinsLink(buildInfo.jenkins, buildInfo.ancestor);
       this.currentBuildLink = this.buildJenkinsLink(buildInfo.jenkins, buildInfo.target);
@@ -65,9 +63,7 @@ class ViewChangesLinkController implements IController {
   private executionLoaded = false;
 
   public static $inject = ['$uibModal', 'executionService'];
-  constructor(private $uibModal: IModalService, private executionService: ExecutionService) {
-    'ngInject';
-  }
+  constructor(private $uibModal: IModalService, private executionService: ExecutionService) {}
 
   private setJarDiffs(): void {
     this.hasJarChanges = Object.keys(this.jarDiffs).some(

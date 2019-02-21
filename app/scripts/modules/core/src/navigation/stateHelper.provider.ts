@@ -6,9 +6,7 @@ export class StateHelper implements ng.IServiceProvider {
   private registeredStates: string[] = [];
 
   public static $inject = ['$stateRegistryProvider'];
-  constructor(private $stateRegistryProvider: StateRegistry) {
-    'ngInject';
-  }
+  constructor(private $stateRegistryProvider: StateRegistry) {}
 
   public setNestedState(state: INestedState, keepOriginalNames = false) {
     const newState: INestedState = copy(state);

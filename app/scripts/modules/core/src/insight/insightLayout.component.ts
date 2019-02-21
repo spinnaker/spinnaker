@@ -8,9 +8,7 @@ class InsightLayoutCtrl {
   public ready = false;
 
   public static $inject = ['insightFilterStateModel'];
-  constructor(public insightFilterStateModel: InsightFilterStateModel) {
-    'ngInject';
-  }
+  constructor(public insightFilterStateModel: InsightFilterStateModel) {}
 
   public $onInit() {
     this.app.ready().then(() => (this.ready = true));

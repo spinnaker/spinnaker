@@ -13,9 +13,7 @@ class KubernetesManifestCtrl implements IController {
   public rawManifest: string;
 
   public static $inject = ['$scope'];
-  constructor(private $scope: IScope) {
-    'ngInject';
-  }
+  constructor(private $scope: IScope) {}
 
   // If we have more than one manifest, render as a
   // list of manifests. Otherwise, hide the fact

@@ -41,7 +41,6 @@ export class BakeManifestConfigCtrl implements IController {
 
   public static $inject = ['$scope'];
   constructor(public $scope: IScope) {
-    'ngInject';
     const { stage } = this.$scope;
     if (stage.isNew) {
       const defaultSelection = {

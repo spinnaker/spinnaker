@@ -13,7 +13,6 @@ module(DEFAULT_GITLAB_ARTIFACT, []).config(() => {
     isDefault: true,
     isMatch: false,
     controller: function(artifact: IArtifact) {
-      'ngInject';
       this.artifact = artifact;
       this.artifact.type = 'gitlab/file';
       const pathRegex = new RegExp('/api/v4/projects/[^/]*/[^/]*/repository/files/(.*)$');

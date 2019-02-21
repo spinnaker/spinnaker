@@ -329,9 +329,7 @@ export class UrlBuilder {
     return result;
   }
 
-  constructor(private $state: StateService) {
-    'ngInject';
-  }
+  constructor(private $state: StateService) {}
 
   public static buildFromMetadata(input: IUrlBuilderInput) {
     const builder: IUrlBuilder = Registry.urlBuilder.getBuilder(input.type);

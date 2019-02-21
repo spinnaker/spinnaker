@@ -105,7 +105,6 @@ class TcpLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.ICompo
     private wizardSubFormValidation: any,
     $state: StateService,
   ) {
-    'ngInject';
     super($scope, application, $uibModalInstance, $state);
   }
 

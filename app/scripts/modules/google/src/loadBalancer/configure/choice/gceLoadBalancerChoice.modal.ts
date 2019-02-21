@@ -19,9 +19,7 @@ class GceLoadBalancerChoiceCtrl implements IController {
     public $uibModalInstance: IModalInstanceService,
     private application: Application,
     private loadBalancerTypeToWizardMap: IGceLoadBalancerToWizardMap,
-  ) {
-    'ngInject';
-  }
+  ) {}
 
   public $onInit(): void {
     this.choices = map(this.loadBalancerTypeToWizardMap, wizardConfig => wizardConfig.label);

@@ -6,9 +6,7 @@ class ViewScalingActivitiesLinkCtrl implements IController {
   public serverGroup: any;
 
   public static $inject = ['$uibModal'];
-  public constructor(private $uibModal: IModalService) {
-    'ngInject';
-  }
+  public constructor(private $uibModal: IModalService) {}
 
   public showScalingActivities(): void {
     this.$uibModal.open({

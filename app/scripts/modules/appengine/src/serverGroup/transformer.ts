@@ -69,9 +69,7 @@ export class AppengineDeployDescription {
 
 class AppengineServerGroupTransformer {
   public static $inject = ['$q'];
-  constructor(private $q: ng.IQService) {
-    'ngInject';
-  }
+  constructor(private $q: ng.IQService) {}
 
   public normalizeServerGroup(serverGroup: IServerGroup): ng.IPromise<IServerGroup> {
     return this.$q.resolve(serverGroup);

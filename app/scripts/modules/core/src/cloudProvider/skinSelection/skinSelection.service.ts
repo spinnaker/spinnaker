@@ -7,9 +7,7 @@ import { CloudProviderRegistry } from 'core/cloudProvider';
 
 export class SkinSelectionService {
   public static $inject = ['$uibModal'];
-  constructor(private $uibModal: IModalService) {
-    'ngInject';
-  }
+  constructor(private $uibModal: IModalService) {}
 
   public selectSkin(provider: string): IPromise<string> {
     return AccountService.getAllAccountDetailsForProvider(provider).then(accounts => {

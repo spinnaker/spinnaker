@@ -9,8 +9,6 @@ import { bootstrapModule } from './bootstrap.module';
 bootstrapModule.run([
   '$uiRouter',
   ($uiRouter: UIRouter) => {
-    'ngInject';
-
     let visualizerEnabled: 'true' | 'false' = 'false';
     let VisualizerPlugin: { new (): UIRouterPlugin } = null;
 

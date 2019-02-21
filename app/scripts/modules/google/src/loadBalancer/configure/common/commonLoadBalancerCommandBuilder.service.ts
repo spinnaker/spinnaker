@@ -50,9 +50,7 @@ export class GceCommonLoadBalancerCommandBuilder {
     private loadBalancerReader: LoadBalancerReader,
     private gceHealthCheckReader: GceHealthCheckReader,
     private gceCertificateReader: GceCertificateReader,
-  ) {
-    'ngInject';
-  }
+  ) {}
 
   public getBackingData(dataTypes: string[]): IPromise<any> {
     const promises = dataTypes.reduce((promisesByDataType: { [dataType: string]: IPromise<any> }, dataType: string) => {

@@ -7,9 +7,7 @@ import { IKubernetesLoadBalancer } from './details/IKubernetesLoadBalancer';
 
 class KubernetesV2LoadBalancerTransformer {
   public static $inject = ['$q'];
-  constructor(private $q: IQService) {
-    'ngInject';
-  }
+  constructor(private $q: IQService) {}
 
   public normalizeLoadBalancer(loadBalancer: IKubernetesLoadBalancer): IPromise<IKubernetesLoadBalancer> {
     loadBalancer.provider = loadBalancer.type;

@@ -28,9 +28,7 @@ export interface IServerGroupJob extends IJob {
 
 export class ServerGroupWriter {
   public static $inject = ['serverGroupTransformer'];
-  constructor(private serverGroupTransformer: any) {
-    'ngInject';
-  }
+  constructor(private serverGroupTransformer: any) {}
 
   public cloneServerGroup(command: IServerGroupCommand, application: Application): ng.IPromise<ITask> {
     let description: string;

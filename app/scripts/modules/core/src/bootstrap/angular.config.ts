@@ -6,7 +6,6 @@ import { SETTINGS } from 'core/config';
 bootstrapModule.config([
   '$logProvider',
   ($logProvider: ILogProvider) => {
-    'ngInject';
     $logProvider.debugEnabled(SETTINGS.debugEnabled);
   },
 ]);
@@ -14,7 +13,6 @@ bootstrapModule.config([
 bootstrapModule.config([
   '$httpProvider',
   ($httpProvider: IHttpProvider) => {
-    'ngInject';
     $httpProvider.defaults.headers.patch = {
       'Content-Type': 'application/json;charset=utf-8',
     };
@@ -26,7 +24,6 @@ bootstrapModule.config([
 bootstrapModule.config([
   '$compileProvider',
   ($compileProvider: ICompileProvider) => {
-    'ngInject';
     $compileProvider.aHrefSanitizationWhitelist(/^\s*(https?|mailto|hipchat|slack|ssh):/);
     $compileProvider.preAssignBindingsEnabled(true);
   },
@@ -37,7 +34,6 @@ bootstrapModule.config([
 bootstrapModule.config([
   '$locationProvider',
   ($locationProvider: ILocationProvider) => {
-    'ngInject';
     $locationProvider.hashPrefix('');
   },
 ]);

@@ -66,9 +66,7 @@ export class ConfigurePipelineTemplateModalController implements IController {
     public isNew: boolean,
     private pipelineId: string,
     private executionId: string,
-  ) {
-    'ngInject';
-  }
+  ) {}
 
   public $onInit(): void {
     this.initialize();

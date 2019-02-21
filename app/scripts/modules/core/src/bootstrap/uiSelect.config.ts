@@ -75,7 +75,6 @@ bootstrapModule.config(uiSelectDecorator);
 bootstrapModule.config([
   'uiSelectConfig',
   (uiSelectConfig: any) => {
-    'ngInject';
     uiSelectConfig.theme = 'select2';
     uiSelectConfig.appendToBody = true;
   },

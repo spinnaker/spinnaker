@@ -30,9 +30,7 @@ class CopyStageModalCtrl implements IController {
     public application: Application,
     private $uibModalInstance: IModalInstanceService,
     private forStrategyConfig: boolean,
-  ) {
-    'ngInject';
-  }
+  ) {}
 
   public $onInit(): void {
     this.$q

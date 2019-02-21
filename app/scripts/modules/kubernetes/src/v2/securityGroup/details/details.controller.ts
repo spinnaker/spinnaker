@@ -28,7 +28,6 @@ class KubernetesSecurityGroupDetailsController implements IController {
     resolvedSecurityGroup: ISecurityGroupFromStateParams,
     private app: Application,
   ) {
-    'ngInject';
     this.securityGroupFromParams = resolvedSecurityGroup;
     this.extractSecurityGroup();
   }

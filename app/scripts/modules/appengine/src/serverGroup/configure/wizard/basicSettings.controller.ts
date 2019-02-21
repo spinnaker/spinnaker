@@ -23,8 +23,6 @@ class AppengineServerGroupBasicSettingsCtrl implements IController {
     $controller: IControllerService,
     $uibModalStack: any,
   ) {
-    'ngInject';
-
     extend(
       this,
       $controller('BasicSettingsMixin', {
