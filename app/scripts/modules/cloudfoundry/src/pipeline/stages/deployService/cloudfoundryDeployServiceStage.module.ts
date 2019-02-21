@@ -79,6 +79,7 @@ module(CLOUD_FOUNDRY_DEPLOY_SERVICE_STAGE, [])
       templateUrl: require('./cloudfoundryDeployServiceStage.html'),
       controller: 'cfDeployServiceStageCtrl',
       executionDetailsSections: [CloudfoundryDeployServiceExecutionDetails, ExecutionDetailsTasks],
+      defaultTimeoutMs: 30 * 60 * 1000,
       validators: [
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account' },
         { type: 'requiredField', fieldName: 'region' },
