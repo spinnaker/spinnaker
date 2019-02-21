@@ -17,7 +17,7 @@ const appengineComponentUrlDetailsComponent: IComponentOptions = {
                          tool-tip="'Copy URL to clipboard'"
                          text="$ctrl.component.httpUrl"></copy-to-clipboard>
     </dl>
-  `
+  `,
 };
 
 export const APPENGINE_COMPONENT_URL_DETAILS = 'spinnaker.appengine.componentUrlDetails.component';

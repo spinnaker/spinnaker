@@ -72,7 +72,7 @@ const healthCheckCreateComponent: ng.IComponentOptions = {
     existingHealthCheckNames: '<',
   },
   templateUrl: require('./healthCheck.component.html'),
-  controller: HealthCheckCreateCtrl
+  controller: HealthCheckCreateCtrl,
 };
 
 export const GCE_HEALTH_CHECK_SELECTOR_COMPONENT = 'spinnaker.gce.healthCheckSelector.component';

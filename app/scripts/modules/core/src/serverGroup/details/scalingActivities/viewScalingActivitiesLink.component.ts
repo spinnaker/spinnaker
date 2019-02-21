@@ -25,7 +25,7 @@ export const viewScalingActivitiesLink: IComponentOptions = {
     serverGroup: '<',
   },
   controller: ViewScalingActivitiesLinkCtrl,
-  template: `<a href ng-click="$ctrl.showScalingActivities()">View Scaling Activities</a>`
+  template: `<a href ng-click="$ctrl.showScalingActivities()">View Scaling Activities</a>`,
 };
 
 export const VIEW_SCALING_ACTIVITIES_LINK = 'spinnaker.core.serverGroup.details.viewScalingActivities.link';

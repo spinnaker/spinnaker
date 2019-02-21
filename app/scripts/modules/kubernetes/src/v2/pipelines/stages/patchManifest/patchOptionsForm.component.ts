@@ -53,7 +53,7 @@ const kubernetesPatchManifestOptionsFormComponent: IComponentOptions = {
         </div>
       </div>
     </div>
-  `
+  `,
 };
 
 export const KUBERNETES_PATCH_MANIFEST_OPTIONS_FORM = 'spinnaker.kubernetes.v2.manifest.patch.options.component';

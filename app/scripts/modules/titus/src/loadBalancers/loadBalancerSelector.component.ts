@@ -31,7 +31,7 @@ export const loadBalancerSelectorComponent: IComponentOptions = {
     command: '=',
   },
   controller: LoadBalancerSelectorController,
-  templateUrl: require('./loadBalancerSelector.component.html')
+  templateUrl: require('./loadBalancerSelector.component.html'),
 };
 
 export const TITUS_LOAD_BALANCER_SELECTOR =

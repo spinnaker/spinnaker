@@ -40,12 +40,9 @@ const capabilitiesSelectorComponent: IComponentOptions = {
     component: '=',
   },
   templateUrl: require('./capabilitiesSelector.component.html'),
-  controller: CapabilitiesSelector
+  controller: CapabilitiesSelector,
 };
 
 export const KUBERNETES_CAPABILITIES_SELECTOR = 'spinnaker.kubernetes.securityContext.capabilitiesSelector.component';
 
-module(KUBERNETES_CAPABILITIES_SELECTOR, []).component(
-  'kubernetesCapabilitiesSelector',
-  capabilitiesSelectorComponent,
-);
+module(KUBERNETES_CAPABILITIES_SELECTOR, []).component('kubernetesCapabilitiesSelector', capabilitiesSelectorComponent);

@@ -40,7 +40,7 @@ const kubernetesDeletManifestOptionsFormComponent: IComponentOptions = {
         </div>
       </div>
     </div>
-  `
+  `,
 };
 
 export const KUBERNETES_DELETE_MANIFEST_OPTIONS_FORM =

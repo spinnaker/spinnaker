@@ -68,7 +68,7 @@ export const entitySourceComponent: ng.IComponentOptions = {
         </span>
       </dd>
     </div>
-  `
+  `,
 };
 
 export const ENTITY_SOURCE_COMPONENT = 'spinnaker.core.entityTag.entitySource.component';

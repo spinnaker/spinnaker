@@ -137,7 +137,7 @@ const numberListComponent: IComponentOptions = {
         Add {{$ctrl.label}}
       </button>
     </div>
-`
+`,
 };
 
 export const numberListWrapperComponent: IComponentOptions = {
@@ -154,7 +154,7 @@ export const numberListWrapperComponent: IComponentOptions = {
       label={{$ctrl.label}}
       on-change="$ctrl.onChange($ctrl.model)">
     </number-list>
-  `
+  `,
 };
 
 export const NUMBER_LIST_COMPONENT = 'spinnaker.core.forms.numberList';

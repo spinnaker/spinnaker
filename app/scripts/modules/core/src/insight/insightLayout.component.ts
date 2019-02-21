@@ -20,7 +20,7 @@ export const insightLayoutComponent = {
     app: '<',
   },
   controller: InsightLayoutCtrl,
-  templateUrl: require('./insightLayout.component.html')
+  templateUrl: require('./insightLayout.component.html'),
 };
 
 export const INSIGHT_LAYOUT_COMPONENT = 'spinnaker.core.insight.insightLayout.component';

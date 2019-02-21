@@ -77,7 +77,7 @@ const kubernetesInstanceContainerDetail: IComponentOptions = {
         </dd>
       </div>
     </div>
-  `
+  `,
 };
 
 export const KUBERNETES_INSTANCE_CONTAINER_DETAIL = 'spinnaker.kubernetes.instance.container.detail';

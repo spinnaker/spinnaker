@@ -104,7 +104,7 @@ const wizardPageComponent: ng.IComponentOptions = {
   },
   transclude: true,
   templateUrl: require('./v2wizardPage.component.html'),
-  controller: WizardPageController
+  controller: WizardPageController,
 };
 
 export const V2_WIZARD_PAGE_COMPONENT = 'spinnaker.core.modal.wizard.wizardPage.component';

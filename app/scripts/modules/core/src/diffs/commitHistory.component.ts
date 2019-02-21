@@ -25,7 +25,7 @@ const commitHistoryComponent: IComponentOptions = {
       </tr>
     </table>
   </div>
-  `
+  `,
 };
 
 export const COMMIT_HISTORY_COMPONENT = 'spinnaker.diffs.commit.history.component';

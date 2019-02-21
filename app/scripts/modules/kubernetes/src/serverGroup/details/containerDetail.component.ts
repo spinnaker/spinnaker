@@ -74,7 +74,7 @@ const kubernetesServerGroupContainerDetail: IComponentOptions = {
         <kubernetes-lifecycle-hook-details handler="$ctrl.container.lifecycle.preStop"></kubernetes-lifecycle-hook-details>
       </div>
     </dl>
-  `
+  `,
 };
 
 export const KUBERNETES_SERVER_GROUP_CONTAINER_DETAIL = 'spinnaker.kubernetes.serverGroupContainerDetail.component';

@@ -48,7 +48,7 @@ const gceAutoHealingPolicySelectorComponent: IComponentOptions = {
     labelColumns: '@?',
   },
   templateUrl: require('./autoHealingPolicySelector.component.html'),
-  controller: GceAutoHealingPolicySelector
+  controller: GceAutoHealingPolicySelector,
 };
 
 export const GCE_AUTOHEALING_POLICY_SELECTOR = 'spinnaker.gce.autoHealingPolicy.selector.component';

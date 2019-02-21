@@ -126,7 +126,7 @@ const titusMigrationConfigurerComponent: ng.IComponentOptions = {
     configChanged: '&',
   },
   controller: TitusMigrationConfigurerController,
-  templateUrl: require('./titusMigrationConfigurer.component.html')
+  templateUrl: require('./titusMigrationConfigurer.component.html'),
 };
 
 export const TITUS_MIGRATION_CONFIGURER_COMPONENT = 'spinnaker.titus.migration.configurer.component';

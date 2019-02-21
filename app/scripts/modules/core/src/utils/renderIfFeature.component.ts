@@ -15,7 +15,7 @@ const renderIfFeatureComponent: IComponentOptions = {
   bindings: { feature: '@' },
   controller: RenderIfFeatureController,
   transclude: true,
-  template: `<ng-transclude ng-if="$ctrl.featureEnabled"></ng-transclude>`
+  template: `<ng-transclude ng-if="$ctrl.featureEnabled"></ng-transclude>`,
 };
 
 export const RENDER_IF_FEATURE = 'spinnaker.core.renderIfFeature.directive';

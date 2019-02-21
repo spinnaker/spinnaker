@@ -14,7 +14,7 @@ export const targetSelectComponent: IComponentOptions = {
     model: '=',
     onChange: '<?',
   },
-  templateUrl: require('./targetSelect.html')
+  templateUrl: require('./targetSelect.html'),
 };
 
 export const TARGET_SELECT_COMPONENT = 'spinnaker.pipeline.targetSelect.component';

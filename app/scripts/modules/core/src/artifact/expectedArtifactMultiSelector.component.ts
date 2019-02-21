@@ -61,7 +61,7 @@ const expectedArtifactMultiSelectorComponent: IComponentOptions = {
           </stage-config-field>
         </ng-form>
       </render-if-feature>
-  `
+  `,
 };
 
 export const EXPECTED_ARTIFACT_MULTI_SELECTOR_COMPONENT = 'spinnaker.core.artifacts.expected.multiSelector';

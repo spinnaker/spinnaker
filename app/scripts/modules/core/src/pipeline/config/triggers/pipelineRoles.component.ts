@@ -38,7 +38,7 @@ const pipelineRolesComponent: ng.IComponentOptions = {
   controllerAs: 'rolesCtrl',
   bindings: {
     pipeline: '=',
-  }
+  },
 };
 
 export const PIPELINE_ROLES_COMPONENT = 'spinnaker.core.pipeline.roles.component';

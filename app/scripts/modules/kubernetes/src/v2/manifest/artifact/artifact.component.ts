@@ -15,11 +15,8 @@ const kubernetesManifestArtifactComponent: IComponentOptions = {
         <b>{{ctrl.artifact.type}}</b>
         <i>{{ctrl.artifact.reference}}</i>
       </span>
-  `
+  `,
 };
 
 export const KUBERNETES_MANIFEST_ARTIFACT = 'spinnaker.kubernetes.v2.manifest.artifact.component';
-module(KUBERNETES_MANIFEST_ARTIFACT, []).component(
-  'kubernetesManifestArtifact',
-  kubernetesManifestArtifactComponent,
-);
+module(KUBERNETES_MANIFEST_ARTIFACT, []).component('kubernetesManifestArtifact', kubernetesManifestArtifactComponent);

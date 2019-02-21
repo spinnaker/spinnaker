@@ -24,7 +24,7 @@ const canaryAnalysisNameSelectorComponent: IComponentOptions = {
     className: '@',
   },
   controller: CanaryAnalysisNameSelectorController,
-  templateUrl: require('./canaryAnalysisNameSelector.component.html')
+  templateUrl: require('./canaryAnalysisNameSelector.component.html'),
 };
 
 export const CANARY_ANALYSIS_NAME_SELECTOR_COMPONENT = 'spinnaker.canary.canaryAnalysisNameSelector.component';

@@ -102,7 +102,7 @@ const kubernetesAnnotationCustomSectionsComponent: IComponentOptions = {
         </div>
       </div>
     </collapsible-section>
-  `
+  `,
 };
 
 export const KUBERNETES_ANNOTATION_CUSTOM_SECTIONS = 'spinnaker.kubernetes.v2.manifest.annotation.custom.sections';

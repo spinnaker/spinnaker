@@ -87,7 +87,7 @@ const expectedArtifactComponent: IComponentOptions = {
     </div>
   </div>
 </div>
-`
+`,
 };
 
 export const EXPECTED_ARTIFACT = 'spinnaker.core.pipeline.trigger.artifacts.expected';

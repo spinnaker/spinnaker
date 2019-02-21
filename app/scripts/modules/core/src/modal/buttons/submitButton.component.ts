@@ -13,7 +13,7 @@ export const submitButtonComponent: IComponentOptions = {
       <i ng-if="!$ctrl.submitting" class="far fa-check-circle"></i>
       <button-busy-indicator ng-if="$ctrl.submitting"></button-busy-indicator>
       {{$ctrl.label || ($ctrl.isNew ? 'Create' : 'Update')}}
-    </button>`
+    </button>`,
 };
 
 export const SUBMIT_BUTTON_COMPONENT = 'spinnaker.core.modal.buttons.submitButton.component';

@@ -72,7 +72,7 @@ const chaosMonkeyConfigComponent: ng.IComponentOptions = {
     application: '=',
   },
   controller: ChaosMonkeyConfigController,
-  templateUrl: require('./chaosMonkeyConfig.component.html')
+  templateUrl: require('./chaosMonkeyConfig.component.html'),
 };
 
 export const CHAOS_MONKEY_CONFIG_COMPONENT = 'spinnaker.core.chaosMonkey.config.component';

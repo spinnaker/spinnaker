@@ -19,7 +19,7 @@ const kubernetesLifecycleHookDetails: ng.IComponentOptions = {
     <dd ng-if="$ctrl.handler.httpGetAction.httpHeaders.length">
       <div ng-repeat="header in $ctrl.handler.httpGetAction.httpHeaders">{{header.name}}: <i>{{header.value}}</i></div>
     </dd>
-  `
+  `,
 };
 
 export const KUBERNETES_LIFECYCLE_HOOK_DETAILS = 'spinnaker.kubernetes.lifecycleHookDetails.component';

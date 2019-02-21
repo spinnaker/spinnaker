@@ -25,7 +25,7 @@ const appengineConditionalDescriptionListItem: IComponentOptions = {
     <dt ng-if="$ctrl.component[$ctrl.key]">{{$ctrl.label}}<span ng-transclude="keyLabel"></span></dt>
     <dd ng-if="$ctrl.component[$ctrl.key]">{{$ctrl.component[$ctrl.key]}}<span ng-transclude="valueLabel"></span></dd>
   `,
-  controller: AppengineConditionalDescriptionListItemCtrl
+  controller: AppengineConditionalDescriptionListItemCtrl,
 };
 
 export const APPENGINE_CONDITIONAL_DESCRIPTION_LIST_ITEM = 'spinnaker.appengine.conditionalDescriptionListItem';

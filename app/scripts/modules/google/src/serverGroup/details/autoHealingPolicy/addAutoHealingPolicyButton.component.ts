@@ -30,11 +30,8 @@ const gceAddAutoHealingPolicyButton: IComponentOptions = {
     serverGroup: '<',
   },
   template: '<a href ng-click="$ctrl.addAutoHealingPolicy()">Create new autohealing policy</a>',
-  controller: GceAddAutoHealingPolicyButtonCtrl
+  controller: GceAddAutoHealingPolicyButtonCtrl,
 };
 
 export const GCE_ADD_AUTOHEALING_POLICY_BUTTON = 'spinnaker.gce.addAutoHealingPolicyButton.component';
-module(GCE_ADD_AUTOHEALING_POLICY_BUTTON, []).component(
-  'gceAddAutoHealingPolicyButton',
-  gceAddAutoHealingPolicyButton,
-);
+module(GCE_ADD_AUTOHEALING_POLICY_BUTTON, []).component('gceAddAutoHealingPolicyButton', gceAddAutoHealingPolicyButton);

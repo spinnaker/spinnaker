@@ -102,7 +102,7 @@ export const v2InstanceTypeSelector: IComponentOptions = {
   },
   controller: V2InstanceTypeSelectorController,
   controllerAs: 'instanceTypeCtrl',
-  templateUrl: require('./instanceTypeDirective.html')
+  templateUrl: require('./instanceTypeDirective.html'),
 };
 
 export const V2_INSTANCE_TYPE_SELECTOR = 'spinnaker.core.serverGroup.configure.common.v2instanceTypeSelector';

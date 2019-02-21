@@ -76,7 +76,7 @@ const kubernetesContainerEnvironmentFrom: IComponentOptions = {
     envFrom: '=',
   },
   templateUrl: require('./environmentFrom.component.html'),
-  controller: KubernetesEnvironmentFromCtrl
+  controller: KubernetesEnvironmentFromCtrl,
 };
 
 export const KUBERNETES_CONTAINER_ENVIRONMENT_FROM = 'spinnaker.kubernetes.container.environmentFrom.component';

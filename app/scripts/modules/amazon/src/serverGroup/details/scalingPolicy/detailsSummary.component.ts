@@ -24,7 +24,7 @@ export const scalingPolicyDetailsSummary: IComponentOptions = {
     application: '<',
   },
   controller: ScalingPolicyDetailsSummaryController,
-  template: `<div ng-include src="$ctrl.templateUrl"></div>`
+  template: `<div ng-include src="$ctrl.templateUrl"></div>`,
 };
 
 export const DETAILS_SUMMARY = 'spinnaker.amazon.scalingPolicy.details.summary.component';

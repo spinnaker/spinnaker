@@ -25,7 +25,7 @@ export const viewEventsLink: IComponentOptions = {
     serverGroup: '<',
   },
   controller: ViewEventsLinkCtrl,
-  template: `<a href ng-click="$ctrl.showEvents()">View Events</a>`
+  template: `<a href ng-click="$ctrl.showEvents()">View Events</a>`,
 };
 
 export const VIEW_EVENTS_LINK_COMPONENT = 'spinnaker.ecs.serverGroup.details.viewEvents.link';

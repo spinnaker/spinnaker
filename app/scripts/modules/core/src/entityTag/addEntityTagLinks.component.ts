@@ -61,7 +61,7 @@ const addEntityTagLinksComponent: IComponentOptions = {
         Add alert <help-field key="entityTags.{{$ctrl.entityType}}.alert"></help-field>
       </a>
     </li>
-  `
+  `,
 };
 
 export const addEntityTagLinksWrapperComponent: IComponentOptions = {
@@ -83,7 +83,7 @@ export const addEntityTagLinksWrapperComponent: IComponentOptions = {
       tag-type={{$ctrl.tagType}}
       owner-options="$ctrl.ownerOptions">
     </add-entity-tag-links>
-  `
+  `,
 };
 
 export const ADD_ENTITY_TAG_LINKS_COMPONENT = 'spinnaker.core.entityTag.details.component';

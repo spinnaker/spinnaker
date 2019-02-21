@@ -62,7 +62,7 @@ const configSectionFooterComponent: IComponentOptions = {
     afterSave: '&?',
   },
   controller: ConfigSectionFooterController,
-  templateUrl: require('./configSectionFooter.component.html')
+  templateUrl: require('./configSectionFooter.component.html'),
 };
 
 export const CONFIG_SECTION_FOOTER = 'spinnaker.core.application.config.section.footer.component';

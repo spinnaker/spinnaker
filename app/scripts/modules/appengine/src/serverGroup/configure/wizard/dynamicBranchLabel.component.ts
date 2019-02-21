@@ -9,7 +9,7 @@ const appengineDynamicBranchLabelComponent: ng.IComponentOptions = {
     <span ng-if="$ctrl.trigger.type === 'jenkins'">
       Resolved at runtime by <b>Jenkins</b> trigger: {{$ctrl.trigger.master}}/{{$ctrl.trigger.job}}
     </span>
-  `
+  `,
 };
 
 export const APPENGINE_DYNAMIC_BRANCH_LABEL = 'spinnaker.appengine.dynamicBranchLabel.component';

@@ -44,7 +44,7 @@ const gceCacheRefresh: IComponentOptions = {
     renderCompact: '<',
   },
   controller: GceCacheRefreshCtrl,
-  templateUrl: require('./cacheRefresh.component.html')
+  templateUrl: require('./cacheRefresh.component.html'),
 };
 
 export const GCE_CACHE_REFRESH = 'spinnaker.gce.cacheRefresh.component';

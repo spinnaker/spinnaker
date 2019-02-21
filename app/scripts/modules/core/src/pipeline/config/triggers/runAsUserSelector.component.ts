@@ -35,7 +35,7 @@ const runAsUserSelectorComponent: IComponentOptions = {
     </div>
   `,
   controller: RunAsUserSelectorController,
-  controllerAs: '$ctrl'
+  controllerAs: '$ctrl',
 };
 
 export const RUN_AS_USER_SELECTOR_COMPONENT = 'spinnaker.core.runAsUser.selector.component';

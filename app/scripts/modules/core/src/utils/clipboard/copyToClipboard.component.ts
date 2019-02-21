@@ -62,7 +62,7 @@ export const copyToClipboardComponent: IComponentOptions = {
         data-clipboard-text="{{$ctrl.text}}"
         aria-label="Copy to clipboard">
         <span class="glyphicon glyphicon-copy"></span>
-      </button>`
+      </button>`,
 };
 
 export const COPY_TO_CLIPBOARD_COMPONENT = 'spinnaker.core.utils.copyToClipboard.directive';

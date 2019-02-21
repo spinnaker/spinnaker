@@ -25,7 +25,7 @@ export const accountTagComponent: IComponentOptions = {
     account: '<',
   },
   controller: AccountTagController,
-  template: '<span class="account-tag account-tag-{{$ctrl.accountType}}">{{$ctrl.account}}</span>'
+  template: '<span class="account-tag account-tag-{{$ctrl.accountType}}">{{$ctrl.account}}</span>',
 };
 
 export const ACCOUNT_TAG_COMPONENT = 'spinnaker.core.account.accountTag';

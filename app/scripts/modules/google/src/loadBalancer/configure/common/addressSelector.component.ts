@@ -39,7 +39,7 @@ const gceAddressSelector: IComponentOptions = {
         </span>
       </ui-select-choices>
     </ui-select>`,
-  controller: GceAddressSelectorCtrl
+  controller: GceAddressSelectorCtrl,
 };
 
 export const GCE_ADDRESS_SELECTOR = 'spinnaker.gce.addressSelector.component';

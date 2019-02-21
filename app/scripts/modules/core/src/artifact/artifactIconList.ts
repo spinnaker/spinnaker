@@ -23,7 +23,7 @@ const artifactIconListComponent: IComponentOptions = {
         height="20"
       /><span class="artifact-list-item-name">{{ artifact.name }}<span ng-if="artifact.version"> - {{ artifact.version }}</span></span>
     </div>
-  `
+  `,
 };
 
 export const ARTIFACT_ICON_LIST = 'spinnaker.core.artifact.iconList';

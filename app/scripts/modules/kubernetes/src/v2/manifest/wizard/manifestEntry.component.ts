@@ -37,7 +37,7 @@ const kubernetesManifestEntryComponent: IComponentOptions = {
     <yaml-editor
       value="ctrl.rawManifest"
       on-change="ctrl.handleChange"
-    ></yaml-editor>`
+    ></yaml-editor>`,
 };
 
 export const KUBERNETES_MANIFEST_ENTRY = 'spinnaker.kubernetes.v2.manifest.entry.component';

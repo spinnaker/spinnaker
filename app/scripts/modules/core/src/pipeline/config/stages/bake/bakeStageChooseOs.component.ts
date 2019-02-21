@@ -32,7 +32,7 @@ const bakeStageChooseOsComponent: IComponentOptions = {
     model: '=',
   },
   controller: BakeStageChooseOSController,
-  templateUrl: require('./bakeStageChooseOs.component.html')
+  templateUrl: require('./bakeStageChooseOs.component.html'),
 };
 
 export const PIPELINE_BAKE_STAGE_CHOOSE_OS = 'spinnaker.core.pipeline.bake.chooseOS.component';

@@ -21,7 +21,7 @@ export const accountRegionClusterSelectorWrapperComponent: IComponentOptions = {
       on-account-update="$ctrl.onAccountUpdate"
       disable-region-select="$ctrl.disableRegionSelect">
     </account-region-cluster-selector>
-  `
+  `,
 };
 export const ACCOUNT_REGION_CLUSTER_SELECTOR_WRAPPER = 'spinnaker.core.accountRegionClusterSelectorWrapper.component';
 module(ACCOUNT_REGION_CLUSTER_SELECTOR_WRAPPER, []).component(

@@ -28,7 +28,7 @@ const imageSourceSelectorComponent: IComponentOptions = {
         </div>
       </div>
     </render-if-feature>
-  `
+  `,
 };
 
 export const IMAGE_SOURCE_SELECTOR_COMPONENT = 'spinnaker.core.artifacts.expected.image.selector';

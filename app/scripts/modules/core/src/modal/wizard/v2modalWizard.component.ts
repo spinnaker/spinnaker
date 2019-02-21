@@ -38,7 +38,7 @@ const v2ModalWizardComponent: ng.IComponentOptions = {
   },
   transclude: true,
   templateUrl: require('./v2modalWizard.component.html'),
-  controller: V2ModalWizard
+  controller: V2ModalWizard,
 };
 
 export const V2_MODAL_WIZARD_COMPONENT = 'spinnaker.core.modal.wizard.wizard.component';

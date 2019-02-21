@@ -110,7 +110,7 @@ export const helpFieldComponent: IComponentOptions = {
         <i class="small glyphicon glyphicon-question-sign"></i>
       </a>
     </div>
-  `
+  `,
 };
 
 export const helpFieldWrapperComponent: IComponentOptions = {
@@ -127,7 +127,7 @@ export const helpFieldWrapperComponent: IComponentOptions = {
                                  fallback="{{$ctrl.fallback}}"
                                  placement="{{$ctrl.placement}}"
                                  expand="$ctrl.expand"
-                                 label="{{$ctrl.label}}"></help-field>`
+                                 label="{{$ctrl.label}}"></help-field>`,
 };
 
 export const HELP_FIELD_COMPONENT = 'spinnaker.core.help.helpField.component';

@@ -54,7 +54,7 @@ const serverGroupRunningTasksComponent: IComponentOptions = {
         </div>
       </div>
     </collapsible-section>
-  `
+  `,
 };
 
 export const RUNNING_TASKS_DETAILS_COMPONENT = 'spinnaker.core.serverGroup.details.runningTasks.component';

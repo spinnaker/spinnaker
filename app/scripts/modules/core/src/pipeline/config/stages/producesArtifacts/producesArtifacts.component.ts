@@ -55,7 +55,7 @@ const producesArtifactsComponent: IComponentOptions = {
         </div>
       </div>
     </div>
-  `
+  `,
 };
 
 export const PRODUCES_ARTIFACTS = 'spinnaker.core.pipeline.stage.producesArtifacts';

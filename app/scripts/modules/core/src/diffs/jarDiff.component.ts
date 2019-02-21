@@ -72,7 +72,7 @@ const jarDiffComponent: IComponentOptions = {
       </tr>
     </table>
   </div>
-  `
+  `,
 };
 
 export const JAR_DIFF_COMPONENT = 'spinnaker.diffs.jar.diff.component';

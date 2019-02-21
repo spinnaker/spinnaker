@@ -52,11 +52,8 @@ const platformHealthOverrideMessage: IComponentOptions = {
   controller: PlatformHealthOverrideMessageController,
   template: `<i ng-if="$ctrl.showMessage"
                         uib-tooltip-template="::$ctrl.messageTemplate"
-                        class="fa fa-exclamation-circle" style="font-size: smaller;"></i>`
+                        class="fa fa-exclamation-circle" style="font-size: smaller;"></i>`,
 };
 
 export const PLATFORM_HEALTH_OVERRIDE_MESSAGE = 'spinnaker.core.platformHealthOverrideMessage.component';
-module(PLATFORM_HEALTH_OVERRIDE_MESSAGE, []).component(
-  'platformHealthOverrideMessage',
-  platformHealthOverrideMessage,
-);
+module(PLATFORM_HEALTH_OVERRIDE_MESSAGE, []).component('platformHealthOverrideMessage', platformHealthOverrideMessage);

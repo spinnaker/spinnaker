@@ -65,7 +65,7 @@ const executionWindowDayPickerComponent: ng.IComponentOptions = {
     onChange: '&',
   },
   controller: ExecutionWindowDayPickerController,
-  templateUrl: require('./executionWindowDayPicker.component.html')
+  templateUrl: require('./executionWindowDayPicker.component.html'),
 };
 
 module(EXECUTION_WINDOWS_DAY_PICKER, []).component('executionWindowDayPicker', executionWindowDayPickerComponent);

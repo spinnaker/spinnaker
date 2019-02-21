@@ -103,7 +103,7 @@ const kubernetesLifecycleHookConfigurer: IComponentOptions = {
   },
   templateUrl: require('./lifecycleHook.component.html'),
   controller: KubernetesLifecycleHookConfigurerCtrl,
-  transclude: true
+  transclude: true,
 };
 
 export const KUBERNETES_LIFECYCLE_HOOK_CONFIGURER = 'spinnaker.kubernetes.lifecycleHookConfigurer.component';

@@ -54,7 +54,7 @@ const pageSectionComponent: IComponentOptions = {
       <h4 class="sticky-header">{{$ctrl.pageConfig.label}}</h4>
       <div ng-class="$ctrl.noWrapper ? 'no-wrapper' : 'section-body'" data-page-content="{{$ctrl.pageConfig.key}}" ng-transclude></div>
     </div>
-  `
+  `,
 };
 
 export const PAGE_SECTION_COMPONENT = 'spinnaker.core.presentation.navigation.pageSection';

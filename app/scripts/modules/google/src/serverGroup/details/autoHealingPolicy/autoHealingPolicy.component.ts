@@ -69,7 +69,7 @@ const gceAutoHealingPolicyDetails: IComponentOptions = {
                   destroy="$ctrl.deletePolicy()"
                   destroy-info="Delete Policy">
     </action-icons>`,
-  controller: GceAutoHealingPolicyDetailsCtrl
+  controller: GceAutoHealingPolicyDetailsCtrl,
 };
 
 export const GCE_AUTOHEALING_POLICY_DETAILS = 'spinnaker.gce.autoHealingPolicyDetails.component';

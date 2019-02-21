@@ -17,7 +17,7 @@ const kubernetesScaleManifestSettingsFormComponent: IComponentOptions = {
         </div>
       </div>
     </div>
-  `
+  `,
 };
 
 export const KUBERNETES_SCALE_MANIFEST_SETTINGS_FORM =

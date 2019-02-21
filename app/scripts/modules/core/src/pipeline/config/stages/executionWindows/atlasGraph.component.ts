@@ -338,7 +338,7 @@ const atlasGraphComponent: ng.IComponentOptions = {
         </div>
       </div>
     </div>
-  `
+  `,
 };
 
 export const EXECUTION_WINDOW_ATLAS_GRAPH = 'spinnaker.core.pipeline.config.executionWindow.atlas.graph';

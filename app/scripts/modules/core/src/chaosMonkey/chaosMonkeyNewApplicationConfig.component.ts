@@ -42,7 +42,7 @@ const chaosMonkeyNewApplicationConfigComponent: ng.IComponentOptions = {
         </div>
       </div>
     </div>
-  `
+  `,
 };
 
 export const CHAOS_MONKEY_NEW_APPLICATION_CONFIG_COMPONENT =

@@ -57,7 +57,7 @@ const appengineAllocationConfigurationRowComponent: IComponentOptions = {
       </div>
     </div>
   `,
-  controller: AppengineAllocationConfigurationRowCtrl
+  controller: AppengineAllocationConfigurationRowCtrl,
 };
 
 export const APPENGINE_ALLOCATION_CONFIGURATION_ROW = 'spinnaker.appengine.allocationConfigurationRow.component';

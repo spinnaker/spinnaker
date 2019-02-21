@@ -100,7 +100,7 @@ const kubernetesMultiManifestSelectorComponent: IComponentOptions = {
         </stage-config-field>
       </div>
     </div>
-  `
+  `,
 };
 
 export const KUBERNETES_MULTI_MANIFEST_SELECTOR = 'spinnaker.kubernetes.v2.multi.manifest.selector.component';

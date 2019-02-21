@@ -45,7 +45,7 @@ const securityContextSelectorComponent: IComponentOptions = {
     component: '=',
   },
   templateUrl: require('./securityContextSelector.component.html'),
-  controller: SecurityContextSelector
+  controller: SecurityContextSelector,
 };
 
 export const KUBERNETES_SECURITY_CONTEXT_SELECTOR = 'spinnaker.kubernetes.securityContextSelector.component';

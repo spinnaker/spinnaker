@@ -45,7 +45,7 @@ export const stepExecutionDetailsComponent: IComponentOptions = {
     stage: '<',
   },
   controller: StepExecutionDetailsController,
-  template: '<div ng-include="$ctrl.sourceUrl"></div>'
+  template: '<div ng-include="$ctrl.sourceUrl"></div>',
 };
 
 export const STEP_EXECUTION_DETAILS_COMPONENT = 'spinnaker.core.pipeline.stepExecutionDetails.component';

@@ -150,7 +150,7 @@ const viewChangesLink: IComponentOptions = {
     <span ng-if="$ctrl.viewType === 'linkOnly' && $ctrl.changesAvailable">
       <a href ng-click="$ctrl.showChanges()">{{ $ctrl.linkText }}</a>
     </span>
-  `
+  `,
 };
 
 export const viewChangesLinkWrapper: IComponentOptions = {
@@ -160,7 +160,7 @@ export const viewChangesLinkWrapper: IComponentOptions = {
     linkText: '<?',
     nameItem: '<',
   },
-  tempate: `<view-changes-link change-config="$ctrl.changeConfig" view-type="{{::$ctrl.viewType}}" link-text="{{::$ctrl.linkText}}" name-item="$ctrl.nameItem"></view-changes-link>`
+  tempate: `<view-changes-link change-config="$ctrl.changeConfig" view-type="{{::$ctrl.viewType}}" link-text="{{::$ctrl.linkText}}" name-item="$ctrl.nameItem"></view-changes-link>`,
 };
 
 export const VIEW_CHANGES_LINK = 'spinnaker.diffs.view.changes.link';

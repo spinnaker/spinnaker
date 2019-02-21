@@ -117,7 +117,7 @@ const pageNavigatorComponent: ng.IComponentOptions = {
         <div class="sections" ng-transclude></div>
       </div>
     </div>
-  `
+  `,
 };
 
 export const PAGE_NAVIGATOR_COMPONENT = 'spinnaker.core.presentation.navigation.pageNavigator';

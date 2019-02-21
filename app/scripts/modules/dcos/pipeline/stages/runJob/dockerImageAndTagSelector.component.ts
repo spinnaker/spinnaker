@@ -257,7 +257,7 @@ const dockerImageAndTagSelectorComponent: ng.IComponentOptions = {
     deferInitialization: '=?',
   },
   controller: DockerImageAndTagSelectorController,
-  templateUrl: require('./dockerImageAndTagSelector.component.html')
+  templateUrl: require('./dockerImageAndTagSelector.component.html'),
 };
 
 export const DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT = 'spinnaker.docker.imageAndTagSelector.component';

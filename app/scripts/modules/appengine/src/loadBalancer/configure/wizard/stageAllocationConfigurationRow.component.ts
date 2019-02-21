@@ -50,7 +50,7 @@ class AppengineStageAllocationLabelCtrl implements IController {
 const appengineStageAllocationLabel: IComponentOptions = {
   bindings: { allocationDescription: '<' },
   controller: AppengineStageAllocationLabelCtrl,
-  template: `<input ng-model="$ctrl.inputViewValue" type="text" class="form-control input-sm" readonly/>`
+  template: `<input ng-model="$ctrl.inputViewValue" type="text" class="form-control input-sm" readonly/>`,
 };
 
 class AppengineStageAllocationConfigurationRowCtrl implements IController {
@@ -96,7 +96,7 @@ const appengineStageAllocationConfigurationRow: IComponentOptions = {
     onAllocationChange: '&',
   },
   controller: AppengineStageAllocationConfigurationRowCtrl,
-  templateUrl: require('./stageAllocationConfigurationRow.component.html')
+  templateUrl: require('./stageAllocationConfigurationRow.component.html'),
 };
 
 export const APPENGINE_STAGE_ALLOCATION_CONFIGURATION_ROW =

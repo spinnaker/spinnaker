@@ -30,7 +30,7 @@ const kubernetesManifestBasicSettingsComponent: IComponentOptions = {
                  ng-model="ctrl.command.moniker.app"/>
         </stage-config-field>
       </ng-form>
-  `
+  `,
 };
 
 export const KUBERNETES_MANIFEST_BASIC_SETTINGS = 'spinnaker.kubernetes.v2.manifest.basicSettings.component';

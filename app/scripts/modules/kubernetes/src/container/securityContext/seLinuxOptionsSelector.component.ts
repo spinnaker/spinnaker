@@ -32,12 +32,9 @@ const seLinuxOptionsComponent: IComponentOptions = {
     component: '=',
   },
   templateUrl: require('./seLinuxOptionsSelector.component.html'),
-  controller: SeLinuxOptions
+  controller: SeLinuxOptions,
 };
 
 export const KUBERNETES_SE_LINUX_OPTIONS_SELECTOR = 'spinnaker.kubernetes.securityContext.seLinuxOptionsSelector';
 
-module(KUBERNETES_SE_LINUX_OPTIONS_SELECTOR, []).component(
-  'kubernetesSeLinuxOptionsSelector',
-  seLinuxOptionsComponent,
-);
+module(KUBERNETES_SE_LINUX_OPTIONS_SELECTOR, []).component('kubernetesSeLinuxOptionsSelector', seLinuxOptionsComponent);

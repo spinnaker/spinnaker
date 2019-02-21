@@ -22,7 +22,7 @@ const copyStageCardComponent: ng.IComponentOptions = {
     <p ng-if="$ctrl.stageWrapper.pipeline"><b>Pipeline:</b> {{::$ctrl.stageWrapper.pipeline}}</p>
     <p ng-if="$ctrl.stageWrapper.strategy"><b>Strategy:</b> {{::$ctrl.stageWrapper.strategy}}</p>
     <p class="small">{{::$ctrl.stageWrapper.stage.comments}}</p>
-  `
+  `,
 };
 
 export const COPY_STAGE_CARD_COMPONENT = 'spinnaker.core.copyStageCard.component';

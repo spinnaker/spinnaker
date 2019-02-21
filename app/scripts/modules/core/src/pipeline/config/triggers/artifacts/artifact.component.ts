@@ -129,7 +129,7 @@ const artifactComponent: IComponentOptions = {
 <div class="form-group">
   <div class="artifact-body"></div>
 </div>
-`
+`,
 };
 
 export const ARTIFACT = 'spinnaker.core.pipeline.config.trigger.artifacts.artifact';

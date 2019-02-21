@@ -182,7 +182,7 @@ const gceDiskConfigurer: IComponentOptions = {
           </tfoot>
         </table>
       </div>
-    </ng-form>`
+    </ng-form>`,
 };
 
 export const GCE_DISK_CONFIGURER = 'spinnaker.gce.diskConfigurer.component';

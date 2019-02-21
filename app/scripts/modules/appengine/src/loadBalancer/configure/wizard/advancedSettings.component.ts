@@ -43,7 +43,7 @@ const appengineLoadBalancerAdvancedSettingsComponent: IComponentOptions = {
       </div>
     </ng-form>
   `,
-  controller: AppengineLoadBalancerAdvancedSettingsCtrl
+  controller: AppengineLoadBalancerAdvancedSettingsCtrl,
 };
 
 export const APPENGINE_LOAD_BALANCER_ADVANCED_SETTINGS = 'spinnaker.appengine.loadBalancer.advancedSettings.component';

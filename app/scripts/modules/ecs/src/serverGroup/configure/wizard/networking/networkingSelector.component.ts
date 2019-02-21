@@ -36,7 +36,7 @@ export const applicationLoadBalancerSelectorComponent: IComponentOptions = {
     command: '=',
   },
   controller: LoadBalancerSelectorController,
-  templateUrl: require('./networkingSelector.component.html')
+  templateUrl: require('./networkingSelector.component.html'),
 };
 
 export const ECS_NETWORKING_SECTION = 'spinnaker.ecs.serverGroup.configure.wizard.loadBalancers.selector.component';

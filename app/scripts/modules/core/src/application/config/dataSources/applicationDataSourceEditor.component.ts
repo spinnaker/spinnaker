@@ -88,7 +88,7 @@ const applicationDataSourceEditorComponent: ng.IComponentOptions = {
     application: '=',
   },
   controller: DataSourceEditorController,
-  templateUrl: require('./applicationDataSourceEditor.component.html')
+  templateUrl: require('./applicationDataSourceEditor.component.html'),
 };
 
 export const APPLICATION_DATA_SOURCE_EDITOR = 'spinnaker.core.application.config.applicationDataSourceEditor';

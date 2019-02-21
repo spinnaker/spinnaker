@@ -80,7 +80,7 @@ const chaosMonkeyExceptionsComponent: ng.IComponentOptions = {
     configChanged: '&',
   },
   controller: ChaosMonkeyExceptionsController,
-  templateUrl: require('./chaosMonkeyExceptions.component.html')
+  templateUrl: require('./chaosMonkeyExceptions.component.html'),
 };
 
 export const CHAOS_MONKEY_EXCEPTIONS_COMPONENT = 'spinnaker.core.chaosMonkey.exceptions.directive';

@@ -135,7 +135,7 @@ const gceLoadBalancingPolicySelectorComponent: IComponentOptions = {
     command: '=',
   },
   controller: GceLoadBalancingPolicySelectorController,
-  templateUrl: require('./loadBalancingPolicySelector.component.html')
+  templateUrl: require('./loadBalancingPolicySelector.component.html'),
 };
 
 export const GCE_LOAD_BALANCING_POLICY_SELECTOR = 'spinnaker.gce.loadBalancingPolicy.selector.component';

@@ -6,7 +6,7 @@ const dcosKeyValueDetailsComponent: ng.IComponentOptions = {
   },
   template: `
     <div ng-repeat="(key, value) in $ctrl.map">{{key}}: <i>{{value}}</i></div>
-  `
+  `,
 };
 
 export const DCOS_KEY_VALUE_DETAILS = 'spinnaker.dcos.key.value.details.component';

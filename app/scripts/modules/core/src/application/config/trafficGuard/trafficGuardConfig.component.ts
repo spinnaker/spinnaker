@@ -117,7 +117,7 @@ const trafficGuardConfigComponent: ng.IComponentOptions = {
     application: '=',
   },
   controller: TrafficGuardConfigController,
-  templateUrl: require('./trafficGuardConfig.component.html')
+  templateUrl: require('./trafficGuardConfig.component.html'),
 };
 
 export const TRAFFIC_GUARD_CONFIG_COMPONENT = 'spinnaker.core.application.config.trafficGuard.component';

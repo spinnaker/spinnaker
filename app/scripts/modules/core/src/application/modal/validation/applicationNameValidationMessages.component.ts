@@ -34,7 +34,7 @@ const applicationNameValidationMessagesComponent: ng.IComponentOptions = {
         {{error.message}}
       </div>
     </div>
-  `
+  `,
 };
 
 export const APPLICATION_NAME_VALIDATION_MESSAGES = 'spinnaker.core.application.applicationNameValidationMessages';

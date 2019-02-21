@@ -125,7 +125,7 @@ export const v2InstanceArchetypeSelector: IComponentOptions = {
   },
   controller: V2InstanceArchetypeSelectorController,
   controllerAs: 'instanceArchetypeCtrl',
-  templateUrl: require('./v2instanceArchetype.directive.html')
+  templateUrl: require('./v2instanceArchetype.directive.html'),
 };
 
 export const V2_INSTANCE_ARCHETYPE_SELECTOR = 'spinnaker.core.serverGroup.configure.common.v2instanceArchetypeSelector';

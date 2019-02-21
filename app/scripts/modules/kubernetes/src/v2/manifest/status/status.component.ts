@@ -28,7 +28,7 @@ const kubernetesManifestStatusComponent: IComponentOptions = {
         Rollout Paused
       </div>
     </div>
-  `
+  `,
 };
 
 export const KUBERNETES_MANIFEST_STATUS = 'spinnaker.kubernetes.v2.kubernetes.manifest.status.component';

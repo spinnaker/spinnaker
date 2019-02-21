@@ -29,7 +29,7 @@ export const taskMonitorWrapperComponent: IComponentOptions = {
   template: `<task-monitor monitor="$ctrl.monitor"></task-monitor>`,
   bindings: {
     monitor: '<',
-  }
+  },
 };
 
 ngmodule.component('taskMonitorWrapper', taskMonitorWrapperComponent);

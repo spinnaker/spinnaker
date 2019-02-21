@@ -129,7 +129,7 @@ const gceAcceleratorConfigurer: IComponentOptions = {
         </tfoot>
       </table>
     </div>
-  `
+  `,
 };
 
 export const GCE_ACCELERATOR_CONFIGURER = 'spinnaker.gce.accelerator.component';

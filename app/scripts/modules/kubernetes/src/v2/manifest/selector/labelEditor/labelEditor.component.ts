@@ -80,7 +80,7 @@ const kubernetesManifestLabelEditorComponent: IComponentOptions = {
         </tfoot>
       </table>
     </div>
-  `
+  `,
 };
 
 export const KUBERNETES_MANIFEST_LABEL_EDITOR = 'spinnaker.kubernetes.v2.manifest.labelEditor.component';

@@ -157,7 +157,7 @@ export const stageSummaryComponent: IComponentOptions = {
     stageSummary: '<',
   },
   controller: StageSummaryController,
-  template: '<div className="stage-summary-wrapper" ng-include="$ctrl.sourceUrl"></div>'
+  template: '<div className="stage-summary-wrapper" ng-include="$ctrl.sourceUrl"></div>',
 };
 
 export const STAGE_SUMMARY_COMPONENT = 'spinnaker.core.pipeline.stageSummary.component';

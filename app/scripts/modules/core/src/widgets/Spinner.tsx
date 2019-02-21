@@ -8,7 +8,7 @@ export interface ILegacySpinnerProps {
 
 export const spinnerWrapperComponent: IComponentOptions = {
   template: '<span us-spinner="{radius: $ctrl.radius, width: $ctrl.width, length: $ctrl.length}"></span>',
-  bindings: { radius: '<', width: '<', length: '<' }
+  bindings: { radius: '<', width: '<', length: '<' },
 };
 
 export const SPINNER_WRAPPER = 'spinnaker.core.widgets.spinnerWrapper.component';

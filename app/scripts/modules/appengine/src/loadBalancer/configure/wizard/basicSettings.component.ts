@@ -86,7 +86,7 @@ class AppengineLoadBalancerSettingsController implements IController {
 const appengineLoadBalancerSettingsComponent: ng.IComponentOptions = {
   bindings: { loadBalancer: '=', forPipelineConfig: '<', application: '<' },
   controller: AppengineLoadBalancerSettingsController,
-  templateUrl: require('./basicSettings.component.html')
+  templateUrl: require('./basicSettings.component.html'),
 };
 
 export const APPENGINE_LOAD_BALANCER_BASIC_SETTINGS = 'spinnaker.appengine.loadBalancerSettings.component';

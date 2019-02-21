@@ -12,7 +12,7 @@ const gceBackendServiceDetailsComponent: ng.IComponentOptions = {
     <dt ng-if="$ctrl.backendService.sessionAffinity">Session Affinity</dt>
     <dd ng-if="$ctrl.backendService.sessionAffinity">{{$ctrl.backendService.sessionAffinity | gceSessionAffinityFilter}}</dd>
     <dt ng-if="$ctrl.backendService.sessionAffinity === 'GENERATED_COOKIE'">Affinity Cookie TTL</dt>
-    <dd ng-if="$ctrl.backendService.sessionAffinity === 'GENERATED_COOKIE'">{{$ctrl.backendService.affinityCookieTtlSec}}</dd>`
+    <dd ng-if="$ctrl.backendService.sessionAffinity === 'GENERATED_COOKIE'">{{$ctrl.backendService.affinityCookieTtlSec}}</dd>`,
 };
 
 export const GCE_BACKEND_SERVICE_DETAILS_COMPONENT =
