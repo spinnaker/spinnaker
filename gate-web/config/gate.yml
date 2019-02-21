@@ -35,7 +35,8 @@ services:
             packageType: RPM
 # optional services:
   echo:
-    enabled: false
+    baseUrl: http://localhost:8089
+    enabled: true
   fiat:
     enabled: false
   flapjack:
@@ -85,6 +86,11 @@ swagger:
     - .*version.*
     - .*pubsub.*
     - .*projects.*
+
+integrations:
+  gremlin:
+    enabled: false
+    baseUrl: https://api.gremlin.com/v1
 
 hystrix:
   command:

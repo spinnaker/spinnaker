@@ -1,0 +1,5 @@
+dependencies {
+  compile project(":gate-core")
+  compile spinnaker.dependency("korkSwagger")
+  compileOnly spinnaker.dependency("lombok")
+}

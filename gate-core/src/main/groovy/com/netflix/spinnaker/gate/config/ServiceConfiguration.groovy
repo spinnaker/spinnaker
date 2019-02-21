@@ -32,6 +32,7 @@ class ServiceConfiguration {
   List<String> healthCheckableServices
   List<String> discoveryHosts
   Map<String, Service> services = [:]
+  Map<String, Service> integrations = [:]
 
   @Autowired
   ApplicationContext ctx
@@ -45,6 +46,6 @@ class ServiceConfiguration {
   }
 
   Service getService(String name) {
-    services[name]
+    (services + integrations)[name]
   }
 }

@@ -21,6 +21,7 @@ repositories {
 dependencies {
   compile project(":gate-core")
   compile project(":gate-proxy")
+  compile project(":gate-integrations-gremlin")
 
   spinnaker.group('retrofitDefault')
   spinnaker.group("test")
