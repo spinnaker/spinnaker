@@ -21,12 +21,12 @@ export class ChaosMonkeyNewApplicationConfigController {
   }
 }
 
-class ChaosMonkeyNewApplicationConfigComponent implements ng.IComponentOptions {
-  public bindings: any = {
+const chaosMonkeyNewApplicationConfigComponent: ng.IComponentOptions = {
+  bindings: {
     applicationConfig: '<',
-  };
-  public controller: any = ChaosMonkeyNewApplicationConfigController;
-  public template = `
+  },
+  controller: ChaosMonkeyNewApplicationConfigController,
+  template: `
     <div class="form-group row" ng-if="$ctrl.enabled">
       <div class="col-sm-3 sm-label-right">
         Chaos Monkey
@@ -42,12 +42,12 @@ class ChaosMonkeyNewApplicationConfigComponent implements ng.IComponentOptions {
         </div>
       </div>
     </div>
-  `;
-}
+  `,
+};
 
 export const CHAOS_MONKEY_NEW_APPLICATION_CONFIG_COMPONENT =
   'spinnaker.core.chaosMonkey.newApplication.config.component';
 module(CHAOS_MONKEY_NEW_APPLICATION_CONFIG_COMPONENT, []).component(
   'chaosMonkeyNewApplicationConfig',
-  new ChaosMonkeyNewApplicationConfigComponent(),
+  chaosMonkeyNewApplicationConfigComponent,
 );

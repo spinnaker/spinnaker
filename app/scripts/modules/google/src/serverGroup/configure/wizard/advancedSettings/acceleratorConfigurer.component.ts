@@ -70,10 +70,10 @@ class GceAcceleratorConfigurerController implements IComponentController {
   }
 }
 
-class GceAcceleratorConfigurer implements IComponentOptions {
-  public controller = GceAcceleratorConfigurerController;
-  public bindings = { command: '<' };
-  public template = `
+const gceAcceleratorConfigurer: IComponentOptions = {
+  controller: GceAcceleratorConfigurerController,
+  bindings: { command: '<' },
+  template: `
     <div class="form-group">
       <div class="sm-label-left" style="margin-bottom: 5px;">
         Accelerators
@@ -129,8 +129,8 @@ class GceAcceleratorConfigurer implements IComponentOptions {
         </tfoot>
       </table>
     </div>
-  `;
-}
+  `,
+};
 
 export const GCE_ACCELERATOR_CONFIGURER = 'spinnaker.gce.accelerator.component';
-module(GCE_ACCELERATOR_CONFIGURER, []).component('gceAcceleratorConfigurer', new GceAcceleratorConfigurer());
+module(GCE_ACCELERATOR_CONFIGURER, []).component('gceAcceleratorConfigurer', gceAcceleratorConfigurer);

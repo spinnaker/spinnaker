@@ -26,14 +26,14 @@ export class BakeStageChooseOSController implements IController {
   }
 }
 
-class BakeStageChooseOSComponent implements IComponentOptions {
-  public bindings: any = {
+const bakeStageChooseOsComponent: IComponentOptions = {
+  bindings: {
     baseOsOptions: '<',
     model: '=',
-  };
-  public controller: any = BakeStageChooseOSController;
-  public templateUrl: string = require('./bakeStageChooseOs.component.html');
-}
+  },
+  controller: BakeStageChooseOSController,
+  templateUrl: require('./bakeStageChooseOs.component.html'),
+};
 
 export const PIPELINE_BAKE_STAGE_CHOOSE_OS = 'spinnaker.core.pipeline.bake.chooseOS.component';
-module(PIPELINE_BAKE_STAGE_CHOOSE_OS, []).component('bakeStageChooseOs', new BakeStageChooseOSComponent());
+module(PIPELINE_BAKE_STAGE_CHOOSE_OS, []).component('bakeStageChooseOs', bakeStageChooseOsComponent);

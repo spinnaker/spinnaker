@@ -83,16 +83,16 @@ export class DataSourceEditorController implements IController {
   }
 }
 
-class ApplicationDataSourceEditorComponent implements ng.IComponentOptions {
-  public bindings: any = {
+const applicationDataSourceEditorComponent: ng.IComponentOptions = {
+  bindings: {
     application: '=',
-  };
-  public controller: any = DataSourceEditorController;
-  public templateUrl: string = require('./applicationDataSourceEditor.component.html');
-}
+  },
+  controller: DataSourceEditorController,
+  templateUrl: require('./applicationDataSourceEditor.component.html'),
+};
 
 export const APPLICATION_DATA_SOURCE_EDITOR = 'spinnaker.core.application.config.applicationDataSourceEditor';
 module(APPLICATION_DATA_SOURCE_EDITOR, []).component(
   'applicationDataSourceEditor',
-  new ApplicationDataSourceEditorComponent(),
+  applicationDataSourceEditorComponent,
 );

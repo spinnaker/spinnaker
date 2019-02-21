@@ -67,17 +67,17 @@ export class ChaosMonkeyConfigController implements IController {
   }
 }
 
-class ChaosMonkeyConfigComponent implements ng.IComponentOptions {
-  public bindings: any = {
+const chaosMonkeyConfigComponent: ng.IComponentOptions = {
+  bindings: {
     application: '=',
-  };
-  public controller: any = ChaosMonkeyConfigController;
-  public templateUrl: string = require('./chaosMonkeyConfig.component.html');
-}
+  },
+  controller: ChaosMonkeyConfigController,
+  templateUrl: require('./chaosMonkeyConfig.component.html'),
+};
 
 export const CHAOS_MONKEY_CONFIG_COMPONENT = 'spinnaker.core.chaosMonkey.config.component';
 module(CHAOS_MONKEY_CONFIG_COMPONENT, [
   CLUSTER_MATCHES_COMPONENT,
   CHAOS_MONKEY_EXCEPTIONS_COMPONENT,
   CONFIG_SECTION_FOOTER,
-]).component('chaosMonkeyConfig', new ChaosMonkeyConfigComponent());
+]).component('chaosMonkeyConfig', chaosMonkeyConfigComponent);

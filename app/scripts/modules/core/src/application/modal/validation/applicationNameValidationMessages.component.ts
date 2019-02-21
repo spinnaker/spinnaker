@@ -15,13 +15,13 @@ class ApplicationNameValidationMessagesController implements IController {
   }
 }
 
-class ApplicationNameValidationMessagesComponent implements ng.IComponentOptions {
-  public bindings: any = {
+const applicationNameValidationMessagesComponent: ng.IComponentOptions = {
+  bindings: {
     name: '<',
     cloudProviders: '<',
-  };
-  public controller: any = ApplicationNameValidationMessagesController;
-  public template = `
+  },
+  controller: ApplicationNameValidationMessagesController,
+  template: `
     <div class="form-group row slide-in" ng-if="$ctrl.messages.warnings.length">
       <div class="col-sm-9 col-sm-offset-3 warning-message" ng-repeat="warning in $ctrl.messages.warnings">
         <cloud-provider-logo provider="warning.cloudProvider" height="'16px'" width="'16px'"></cloud-provider-logo>
@@ -34,12 +34,12 @@ class ApplicationNameValidationMessagesComponent implements ng.IComponentOptions
         {{error.message}}
       </div>
     </div>
-  `;
-}
+  `,
+};
 
 export const APPLICATION_NAME_VALIDATION_MESSAGES = 'spinnaker.core.application.applicationNameValidationMessages';
 
 module(APPLICATION_NAME_VALIDATION_MESSAGES, []).component(
   'applicationNameValidationMessages',
-  new ApplicationNameValidationMessagesComponent(),
+  applicationNameValidationMessagesComponent,
 );

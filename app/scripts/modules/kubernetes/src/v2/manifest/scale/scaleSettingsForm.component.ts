@@ -1,9 +1,9 @@
 import { IComponentOptions, module } from 'angular';
 
-class KubernetesScaleManifestSettingsFormComponent implements IComponentOptions {
-  public bindings: any = { settings: '=' };
-  public controllerAs = 'ctrl';
-  public template = `
+const kubernetesScaleManifestSettingsFormComponent: IComponentOptions = {
+  bindings: { settings: '=' },
+  controllerAs: 'ctrl',
+  template: `
     <div class="form-horizontal">
       <div class="form-group form-inline">
         <div class="col-md-3 sm-label-right">
@@ -17,12 +17,12 @@ class KubernetesScaleManifestSettingsFormComponent implements IComponentOptions 
         </div>
       </div>
     </div>
-  `;
-}
+  `,
+};
 
 export const KUBERNETES_SCALE_MANIFEST_SETTINGS_FORM =
   'spinnaker.kubernetes.v2.kubernetes.manifest.scale.settingsForm.component';
 module(KUBERNETES_SCALE_MANIFEST_SETTINGS_FORM, []).component(
   'kubernetesScaleManifestSettingsForm',
-  new KubernetesScaleManifestSettingsFormComponent(),
+  kubernetesScaleManifestSettingsFormComponent,
 );

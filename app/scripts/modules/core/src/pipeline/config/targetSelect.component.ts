@@ -8,14 +8,14 @@ export interface ITargetSelectProps {
   onChange(target: string): void;
 }
 
-export class TargetSelectComponent implements IComponentOptions {
-  public bindings = {
+export const targetSelectComponent: IComponentOptions = {
+  bindings: {
     options: '=',
     model: '=',
     onChange: '<?',
-  };
-  public templateUrl = require('./targetSelect.html');
-}
+  },
+  templateUrl: require('./targetSelect.html'),
+};
 
 export const TARGET_SELECT_COMPONENT = 'spinnaker.pipeline.targetSelect.component';
-module(TARGET_SELECT_COMPONENT, []).component('targetSelect', new TargetSelectComponent());
+module(TARGET_SELECT_COMPONENT, []).component('targetSelect', targetSelectComponent);

@@ -20,13 +20,13 @@ class AccountTagController implements IController {
   }
 }
 
-export class AccountTagComponent implements IComponentOptions {
-  public bindings: any = {
+export const accountTagComponent: IComponentOptions = {
+  bindings: {
     account: '<',
-  };
-  public controller: any = AccountTagController;
-  public template = '<span class="account-tag account-tag-{{$ctrl.accountType}}">{{$ctrl.account}}</span>';
-}
+  },
+  controller: AccountTagController,
+  template: '<span class="account-tag account-tag-{{$ctrl.accountType}}">{{$ctrl.account}}</span>',
+};
 
 export const ACCOUNT_TAG_COMPONENT = 'spinnaker.core.account.accountTag';
-module(ACCOUNT_TAG_COMPONENT, []).component('accountTag', new AccountTagComponent());
+module(ACCOUNT_TAG_COMPONENT, []).component('accountTag', accountTagComponent);

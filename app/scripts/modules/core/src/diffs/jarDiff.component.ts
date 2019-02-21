@@ -28,12 +28,12 @@ class JarDiffComponentController implements IController {
   }
 }
 
-class JarDiffComponent implements IComponentOptions {
-  public bindings: any = {
+const jarDiffComponent: IComponentOptions = {
+  bindings: {
     jarDiffs: '<',
-  };
-  public controller: any = JarDiffComponentController;
-  public template = `
+  },
+  controller: JarDiffComponentController,
+  template: `
   <div ng-if="$ctrl.hasJarDiffs">
     <table class="table table-condensed no-lines" ng-if="$ctrl.jarDiffs.added && $ctrl.jarDiffs.added.length">
       <tr><th>Added</th></tr>
@@ -72,8 +72,8 @@ class JarDiffComponent implements IComponentOptions {
       </tr>
     </table>
   </div>
-  `;
-}
+  `,
+};
 
 export const JAR_DIFF_COMPONENT = 'spinnaker.diffs.jar.diff.component';
-module(JAR_DIFF_COMPONENT, []).component('jarDiff', new JarDiffComponent());
+module(JAR_DIFF_COMPONENT, []).component('jarDiff', jarDiffComponent);

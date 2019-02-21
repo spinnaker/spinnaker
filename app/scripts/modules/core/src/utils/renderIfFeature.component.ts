@@ -11,12 +11,12 @@ class RenderIfFeatureController implements ng.IController {
   }
 }
 
-class RenderIfFeatureComponent implements IComponentOptions {
-  public bindings: any = { feature: '@' };
-  public controller: any = RenderIfFeatureController;
-  public transclude = true;
-  public template = `<ng-transclude ng-if="$ctrl.featureEnabled"></ng-transclude>`;
-}
+const renderIfFeatureComponent: IComponentOptions = {
+  bindings: { feature: '@' },
+  controller: RenderIfFeatureController,
+  transclude: true,
+  template: `<ng-transclude ng-if="$ctrl.featureEnabled"></ng-transclude>`,
+};
 
 export const RENDER_IF_FEATURE = 'spinnaker.core.renderIfFeature.directive';
-module(RENDER_IF_FEATURE, []).component('renderIfFeature', new RenderIfFeatureComponent());
+module(RENDER_IF_FEATURE, []).component('renderIfFeature', renderIfFeatureComponent);

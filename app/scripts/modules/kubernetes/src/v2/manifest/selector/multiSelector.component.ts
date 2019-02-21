@@ -56,11 +56,11 @@ class KubernetesManifestSelectorCtrl implements IController {
   }
 }
 
-class KubernetesMultiManifestSelectorComponent implements IComponentOptions {
-  public bindings: any = { selector: '=' };
-  public controller: any = KubernetesManifestSelectorCtrl;
-  public controllerAs = 'ctrl';
-  public template = `
+const kubernetesMultiManifestSelectorComponent: IComponentOptions = {
+  bindings: { selector: '=' },
+  controller: KubernetesManifestSelectorCtrl,
+  controllerAs: 'ctrl',
+  template: `
     <form name="manifestSelectorForm">
       <stage-config-field label="Account">
         <account-select-field component="ctrl.selector"
@@ -100,11 +100,11 @@ class KubernetesMultiManifestSelectorComponent implements IComponentOptions {
         </stage-config-field>
       </div>
     </div>
-  `;
-}
+  `,
+};
 
 export const KUBERNETES_MULTI_MANIFEST_SELECTOR = 'spinnaker.kubernetes.v2.multi.manifest.selector.component';
 module(KUBERNETES_MULTI_MANIFEST_SELECTOR, [KUBERNETES_MANIFEST_LABEL_EDITOR]).component(
   'kubernetesMultiManifestSelector',
-  new KubernetesMultiManifestSelectorComponent(),
+  kubernetesMultiManifestSelectorComponent,
 );

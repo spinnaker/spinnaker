@@ -27,17 +27,14 @@ class SeLinuxOptions implements IController {
   ];
 }
 
-class SeLinuxOptionsComponent implements IComponentOptions {
-  public bindings: any = {
+const seLinuxOptionsComponent: IComponentOptions = {
+  bindings: {
     component: '=',
-  };
-  public templateUrl: string = require('./seLinuxOptionsSelector.component.html');
-  public controller: any = SeLinuxOptions;
-}
+  },
+  templateUrl: require('./seLinuxOptionsSelector.component.html'),
+  controller: SeLinuxOptions,
+};
 
 export const KUBERNETES_SE_LINUX_OPTIONS_SELECTOR = 'spinnaker.kubernetes.securityContext.seLinuxOptionsSelector';
 
-module(KUBERNETES_SE_LINUX_OPTIONS_SELECTOR, []).component(
-  'kubernetesSeLinuxOptionsSelector',
-  new SeLinuxOptionsComponent(),
-);
+module(KUBERNETES_SE_LINUX_OPTIONS_SELECTOR, []).component('kubernetesSeLinuxOptionsSelector', seLinuxOptionsComponent);

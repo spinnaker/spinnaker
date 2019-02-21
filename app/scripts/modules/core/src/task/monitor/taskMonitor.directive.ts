@@ -25,11 +25,11 @@ ngmodule.directive('taskMonitor', function() {
   };
 });
 
-export class TaskMonitorWrapperComponent implements IComponentOptions {
-  public template = `<task-monitor monitor="$ctrl.monitor"></task-monitor>`;
-  public bindings = {
+export const taskMonitorWrapperComponent: IComponentOptions = {
+  template: `<task-monitor monitor="$ctrl.monitor"></task-monitor>`,
+  bindings: {
     monitor: '<',
-  };
-}
+  },
+};
 
-ngmodule.component('taskMonitorWrapper', new TaskMonitorWrapperComponent());
+ngmodule.component('taskMonitorWrapper', taskMonitorWrapperComponent);

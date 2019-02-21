@@ -59,13 +59,13 @@ class ExecutionWindowDayPickerController implements IController {
 
 export const EXECUTION_WINDOWS_DAY_PICKER = 'spinnaker.core.pipeline.stage.executionWindows.dayPicker';
 
-class ExecutionWindowDayPickerComponent implements ng.IComponentOptions {
-  public bindings: any = {
+const executionWindowDayPickerComponent: ng.IComponentOptions = {
+  bindings: {
     windowConfig: '<',
     onChange: '&',
-  };
-  public controller: any = ExecutionWindowDayPickerController;
-  public templateUrl: string = require('./executionWindowDayPicker.component.html');
-}
+  },
+  controller: ExecutionWindowDayPickerController,
+  templateUrl: require('./executionWindowDayPicker.component.html'),
+};
 
-module(EXECUTION_WINDOWS_DAY_PICKER, []).component('executionWindowDayPicker', new ExecutionWindowDayPickerComponent());
+module(EXECUTION_WINDOWS_DAY_PICKER, []).component('executionWindowDayPicker', executionWindowDayPickerComponent);

@@ -242,8 +242,8 @@ export class DockerImageAndTagSelectorController implements IController {
   }
 }
 
-class DockerImageAndTagSelectorComponent implements ng.IComponentOptions {
-  public bindings: any = {
+const dockerImageAndTagSelectorComponent: ng.IComponentOptions = {
+  bindings: {
     specifyTagByRegex: '=',
     organization: '=',
     registry: '<',
@@ -255,13 +255,13 @@ class DockerImageAndTagSelectorComponent implements ng.IComponentOptions {
     fieldClass: '@?',
     onChange: '=?',
     deferInitialization: '=?',
-  };
-  public controller: any = DockerImageAndTagSelectorController;
-  public templateUrl: string = require('./dockerImageAndTagSelector.component.html');
-}
+  },
+  controller: DockerImageAndTagSelectorController,
+  templateUrl: require('./dockerImageAndTagSelector.component.html'),
+};
 
 export const DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT = 'spinnaker.docker.imageAndTagSelector.component';
 module(DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT, []).component(
   'dockerImageAndTagSelector',
-  new DockerImageAndTagSelectorComponent(),
+  dockerImageAndTagSelectorComponent,
 );

@@ -25,9 +25,9 @@ class AppengineLoadBalancerAdvancedSettingsCtrl implements IController {
   }
 }
 
-class AppengineLoadBalancerAdvancedSettingsComponent implements IComponentOptions {
-  public bindings: any = { loadBalancer: '=', application: '<' };
-  public template = `
+const appengineLoadBalancerAdvancedSettingsComponent: IComponentOptions = {
+  bindings: { loadBalancer: '=', application: '<' },
+  template: `
     <ng-form name="advancedSettingsForm">
       <div class="row">
         <div class="form-group">
@@ -42,13 +42,13 @@ class AppengineLoadBalancerAdvancedSettingsComponent implements IComponentOption
         </div>
       </div>
     </ng-form>
-  `;
-  public controller: any = AppengineLoadBalancerAdvancedSettingsCtrl;
-}
+  `,
+  controller: AppengineLoadBalancerAdvancedSettingsCtrl,
+};
 
 export const APPENGINE_LOAD_BALANCER_ADVANCED_SETTINGS = 'spinnaker.appengine.loadBalancer.advancedSettings.component';
 
 module(APPENGINE_LOAD_BALANCER_ADVANCED_SETTINGS, []).component(
   'appengineLoadBalancerAdvancedSettings',
-  new AppengineLoadBalancerAdvancedSettingsComponent(),
+  appengineLoadBalancerAdvancedSettingsComponent,
 );
