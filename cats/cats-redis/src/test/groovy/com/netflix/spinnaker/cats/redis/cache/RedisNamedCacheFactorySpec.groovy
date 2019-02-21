@@ -32,7 +32,6 @@ class RedisNamedCacheFactorySpec extends Specification {
     @Subject
     RedisNamedCacheFactory factory
 
-    @Shared
     @AutoCleanup("destroy")
     EmbeddedRedis embeddedRedis
 

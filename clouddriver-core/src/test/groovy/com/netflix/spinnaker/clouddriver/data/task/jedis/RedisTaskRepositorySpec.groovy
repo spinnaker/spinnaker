@@ -71,5 +71,9 @@ class RedisTaskRepositorySpec extends Specification {
     fromOldPool.id == oldPoolTask.id
     fromOldPool.startTimeMs == oldPoolTask.startTimeMs
     fromOldPool.status.status == oldPoolTask.status.status
+
+    cleanup:
+    embeddedRedis1.destroy()
+    embeddedRedis2.destroy()
   }
 }
