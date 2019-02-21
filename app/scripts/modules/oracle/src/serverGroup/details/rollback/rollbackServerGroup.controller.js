@@ -9,7 +9,7 @@ module.exports = angular
     SERVER_GROUP_WRITER,
     require('oracle/common/footer.component').name,
   ])
-  .controller('oracleRollbackServerGroupCtrl', function(
+  .controller('oracleRollbackServerGroupCtrl', ['$scope', '$uibModalInstance', 'serverGroupWriter', 'application', 'serverGroup', 'disabledServerGroups', function(
     $scope,
     $uibModalInstance,
     serverGroupWriter,
@@ -67,4 +67,4 @@ module.exports = angular
     this.cancel = function() {
       $uibModalInstance.dismiss();
     };
-  });
+  }]);

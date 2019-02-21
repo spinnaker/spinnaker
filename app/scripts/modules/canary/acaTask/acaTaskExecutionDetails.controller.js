@@ -9,7 +9,7 @@ module.exports = angular
     require('@uirouter/angularjs').default,
     require('../canary/canaryDeployment/canaryDeploymentHistory.service').name,
   ])
-  .controller('acaTaskExecutionDetailsCtrl', function(
+  .controller('acaTaskExecutionDetailsCtrl', ['$scope', '$stateParams', 'executionDetailsSectionService', 'canaryDeploymentHistoryService', function(
     $scope,
     $stateParams,
     executionDetailsSectionService,
@@ -75,4 +75,4 @@ module.exports = angular
     initialize();
 
     $scope.$on('$stateChangeSuccess', initialize);
-  });
+  }]);

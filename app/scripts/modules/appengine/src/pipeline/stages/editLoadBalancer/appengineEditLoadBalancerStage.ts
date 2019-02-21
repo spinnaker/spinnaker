@@ -7,6 +7,7 @@ import { CloudProviderRegistry, ILoadBalancer, Registry } from '@spinnaker/core'
 import { APPENGINE_LOAD_BALANCER_CHOICE_MODAL_CTRL } from './loadBalancerChoice.modal.controller';
 
 class AppengineEditLoadBalancerStageCtrl implements IController {
+  public static $inject = ['$scope', '$uibModal'];
   constructor(public $scope: any, private $uibModal: IModalService) {
     'ngInject';
     $scope.stage.loadBalancers = $scope.stage.loadBalancers || [];

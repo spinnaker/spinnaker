@@ -27,7 +27,7 @@ module.exports = angular
       controller: 'DeleteApplicationSectionCtrl',
     };
   })
-  .controller('DeleteApplicationSectionCtrl', function($state, confirmationModalService) {
+  .controller('DeleteApplicationSectionCtrl', ['$state', 'confirmationModalService', function($state, confirmationModalService) {
     if (this.application.notFound) {
       return;
     }
@@ -55,4 +55,4 @@ module.exports = angular
         submitMethod: submitMethod,
       });
     };
-  });
+  }]);

@@ -20,7 +20,7 @@ module.exports = angular
     INSTANCE_WRITE_SERVICE,
     CONFIRMATION_MODAL_SERVICE,
   ])
-  .controller('openstackInstanceDetailsCtrl', function(
+  .controller('openstackInstanceDetailsCtrl', ['$scope', '$state', '$uibModal', 'instanceWriter', 'confirmationModalService', 'instance', 'app', 'moniker', 'environment', '$q', 'overrides', function(
     $scope,
     $state,
     $uibModal,
@@ -318,4 +318,4 @@ module.exports = angular
     });
 
     $scope.account = instance.account;
-  });
+  }]);

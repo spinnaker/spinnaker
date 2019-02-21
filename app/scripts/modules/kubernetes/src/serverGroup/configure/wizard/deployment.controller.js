@@ -6,7 +6,7 @@ import { NameUtils } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.serverGroup.configure.kubernetes.deployment', [])
-  .controller('kubernetesServerGroupDeploymentController', function($scope) {
+  .controller('kubernetesServerGroupDeploymentController', ['$scope', function($scope) {
     this.strategyTypes = ['RollingUpdate', 'Recreate'];
 
     this.deploymentConfigWarning = function() {
@@ -53,4 +53,4 @@ module.exports = angular
         return undefined;
       }
     };
-  });
+  }]);

@@ -6,7 +6,7 @@ import { SETTINGS } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.azure.pipeline.stage.bake.executionDetails.controller', [require('@uirouter/angularjs').default])
-  .controller('azureBakeExecutionDetailsCtrl', function(
+  .controller('azureBakeExecutionDetailsCtrl', ['$scope', '$stateParams', 'executionDetailsSectionService', '$interpolate', function(
     $scope,
     $stateParams,
     executionDetailsSectionService,
@@ -26,4 +26,4 @@ module.exports = angular
     initialize();
 
     $scope.$on('$stateChangeSuccess', initialize);
-  });
+  }]);

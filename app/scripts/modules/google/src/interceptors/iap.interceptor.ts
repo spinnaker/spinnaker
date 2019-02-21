@@ -27,6 +27,6 @@ export class IapInterceptor implements IHttpInterceptor {
 export const IAP_INTERCEPTOR = 'spinnaker.gce.iap.interceptor';
 module(IAP_INTERCEPTOR, [])
   .service('iapInterceptor', IapInterceptor)
-  .config(($httpProvider: IHttpProvider) => {
+  .config(['$httpProvider', ($httpProvider: IHttpProvider) => {
     $httpProvider.interceptors.push('iapInterceptor');
-  });
+  }]);

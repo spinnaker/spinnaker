@@ -4,7 +4,7 @@ import { CLUSTER_SERVICE } from 'core/cluster/cluster.service';
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.task.dataSource', [CLUSTER_SERVICE]).run(function($q, clusterService) {
+module.exports = angular.module('spinnaker.core.task.dataSource', [CLUSTER_SERVICE]).run(['$q', 'clusterService', function($q, clusterService) {
   let addTasks = (application, tasks) => {
     return $q.when(angular.isArray(tasks) ? tasks : []);
   };
@@ -45,4 +45,4 @@ module.exports = angular.module('spinnaker.core.task.dataSource', [CLUSTER_SERVI
     loader: loadRunningTasks,
     onLoad: addRunningTasks,
   });
-});
+}]);

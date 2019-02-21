@@ -25,7 +25,7 @@ module.exports = angular
       strategy: true,
     });
   })
-  .controller('kubernetesScaleDownClusterStageCtrl', function($scope) {
+  .controller('kubernetesScaleDownClusterStageCtrl', ['$scope', function($scope) {
     var ctrl = this;
 
     let stage = $scope.stage;
@@ -66,4 +66,4 @@ module.exports = angular
       stage.preferLargerOverNewer = 'false';
     }
     stage.preferLargerOverNewer = stage.preferLargerOverNewer.toString();
-  });
+  }]);

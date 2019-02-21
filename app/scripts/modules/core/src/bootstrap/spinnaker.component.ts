@@ -27,6 +27,7 @@ const template = `
 class SpinnakerController implements IController {
   public spinnakerHeaderTemplate: string;
   public feature: IFeatures;
+  public static $inject = ['overrideRegistry'];
   constructor(overrideRegistry: OverrideRegistry) {
     'ngInject';
     react2angular(SpinnakerHeader);

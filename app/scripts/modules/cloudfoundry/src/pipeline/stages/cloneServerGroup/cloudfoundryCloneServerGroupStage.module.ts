@@ -4,6 +4,7 @@ import { CloudfoundryCloneServerGroupStageConfig } from './CloudfoundryCloneServ
 import { IStage, Registry } from '@spinnaker/core';
 
 class CloudfoundryCloneServerGroupStageCtrl implements IController {
+  public static $inject = ['$scope'];
   constructor(public $scope: IScope) {
     'ngInject';
   }

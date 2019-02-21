@@ -270,6 +270,7 @@ export class SecurityGroupReader {
     }
   }
 
+  public static $inject = ['$log', '$q', 'securityGroupTransformer', 'providerServiceDelegate'];
   constructor(
     private $log: ILogService,
     private $q: IQService,

@@ -4,7 +4,7 @@ import { bootstrapModule } from './bootstrap.module';
 import { paramChangedHelper } from 'core/bootstrap';
 
 /** Changes UI-Router console tracing based on the query parameter `trace` */
-bootstrapModule.run(($uiRouter: UIRouter) => {
+bootstrapModule.run(['$uiRouter', ($uiRouter: UIRouter) => {
   'ngInject';
 
   const changeTraceSetting = (newValue: string) => {
@@ -23,4 +23,4 @@ bootstrapModule.run(($uiRouter: UIRouter) => {
   };
 
   $uiRouter.transitionService.onBefore({}, paramChangedHelper('trace', changeTraceSetting));
-});
+}]);

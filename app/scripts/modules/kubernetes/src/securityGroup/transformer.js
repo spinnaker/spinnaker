@@ -6,7 +6,7 @@ import { KubernetesProviderSettings } from '../kubernetes.settings';
 
 module.exports = angular
   .module('spinnaker.kubernetes.securityGroup.transformer', [])
-  .factory('kubernetesSecurityGroupTransformer', function($q) {
+  .factory('kubernetesSecurityGroupTransformer', ['$q', function($q) {
     function normalizeSecurityGroup(securityGroup) {
       return $q.when(securityGroup); // no-op
     }
@@ -63,4 +63,4 @@ module.exports = angular
       constructNewIngressPath: constructNewIngressPath,
       constructNewIngressTLS: constructNewIngressTLS,
     };
-  });
+  }]);

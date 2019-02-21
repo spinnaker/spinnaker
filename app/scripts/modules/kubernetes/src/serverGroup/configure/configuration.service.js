@@ -11,7 +11,7 @@ module.exports = angular
     LOAD_BALANCER_READ_SERVICE,
     require('../../image/image.reader').name,
   ])
-  .factory('kubernetesServerGroupConfigurationService', function(
+  .factory('kubernetesServerGroupConfigurationService', ['$q', 'kubernetesImageReader', 'loadBalancerReader', 'cacheInitializer', function(
     $q,
     kubernetesImageReader,
     loadBalancerReader,
@@ -312,4 +312,4 @@ module.exports = angular
       configureAccount: configureAccount,
       refreshLoadBalancers: refreshLoadBalancers,
     };
-  });
+  }]);

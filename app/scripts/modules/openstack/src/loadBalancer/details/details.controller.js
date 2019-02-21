@@ -9,7 +9,7 @@ module.exports = angular
     require('@uirouter/angularjs').default,
     CONFIRMATION_MODAL_SERVICE,
   ])
-  .controller('openstackLoadBalancerDetailsController', function(
+  .controller('openstackLoadBalancerDetailsController', ['$scope', '$state', '$uibModal', 'loadBalancer', 'app', 'confirmationModalService', '$q', function(
     $scope,
     $state,
     $uibModal,
@@ -118,4 +118,4 @@ module.exports = angular
         submitMethod: submitMethod,
       });
     };
-  });
+  }]);

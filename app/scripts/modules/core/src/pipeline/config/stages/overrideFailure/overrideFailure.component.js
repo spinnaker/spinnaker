@@ -7,7 +7,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.overrideFailure',
     stage: '=',
   },
   templateUrl: require('./overrideFailure.component.html'),
-  controller: function($scope) {
+  controller: ['$scope', function($scope) {
     this.viewState = {};
 
     this.failureOptionChanged = () => {
@@ -45,5 +45,5 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.overrideFailure',
     };
 
     $scope.$watch(() => this.stage, this.initializeFailureOption);
-  },
+  }],
 });

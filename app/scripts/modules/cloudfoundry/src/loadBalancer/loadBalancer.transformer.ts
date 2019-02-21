@@ -44,6 +44,7 @@ export class CloudFoundryLoadBalancerUpsertDescription
 }
 
 export class CloudFoundryLoadBalancerTransformer {
+  public static $inject = ['$q'];
   constructor(private $q: ng.IQService) {
     'ngInject';
   }

@@ -20,7 +20,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('awsFindAmiStageCtrl', function($scope) {
+  .controller('awsFindAmiStageCtrl', ['$scope', function($scope) {
     let stage = $scope.stage;
 
     $scope.state = {
@@ -71,4 +71,4 @@ module.exports = angular
     }
 
     $scope.$watch('stage.credentials', $scope.accountUpdated);
-  });
+  }]);

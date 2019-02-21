@@ -18,7 +18,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('awsRollbackClusterStageCtrl', function($scope) {
+  .controller('awsRollbackClusterStageCtrl', ['$scope', function($scope) {
     var ctrl = this;
 
     let stage = $scope.stage;
@@ -56,4 +56,4 @@ module.exports = angular
     if (!stage.regions.length && $scope.application.defaultRegions.aws) {
       stage.regions.push($scope.application.defaultRegions.aws);
     }
-  });
+  }]);

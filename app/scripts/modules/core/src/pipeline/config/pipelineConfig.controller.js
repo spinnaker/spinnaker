@@ -9,7 +9,7 @@ const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.pipeline.config.controller', [require('@uirouter/angularjs').default])
-  .controller('PipelineConfigCtrl', function($scope, $stateParams, app) {
+  .controller('PipelineConfigCtrl', ['$scope', '$stateParams', 'app', function($scope, $stateParams, app) {
     this.application = app;
     this.state = {
       pipelinesLoaded: false,
@@ -100,4 +100,4 @@ module.exports = angular
         .then(this.initialize)
         .then(() => (this.state.pipelinesLoaded = true));
     }
-  });
+  }]);

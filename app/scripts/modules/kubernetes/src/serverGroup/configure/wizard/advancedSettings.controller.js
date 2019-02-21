@@ -4,7 +4,7 @@ const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.serverGroup.configure.kubernetes.advancedSettings', [])
-  .controller('kubernetesServerGroupAdvancedSettingsController', function($scope) {
+  .controller('kubernetesServerGroupAdvancedSettingsController', ['$scope', function($scope) {
     if (!$scope.command.dnsPolicy) {
       $scope.command.dnsPolicy = 'ClusterFirst';
     }
@@ -15,4 +15,4 @@ module.exports = angular
       $scope.command.tolerations = tolerations;
       $scope.$applyAsync();
     };
-  });
+  }]);

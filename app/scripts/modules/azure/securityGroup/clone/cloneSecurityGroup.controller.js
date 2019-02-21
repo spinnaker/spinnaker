@@ -10,7 +10,7 @@ module.exports = angular
     require('../securityGroup.write.service').name,
     require('../configure/CreateSecurityGroupCtrl').name,
   ])
-  .controller('azureCloneSecurityGroupController', function(
+  .controller('azureCloneSecurityGroupController', ['$scope', '$uibModalInstance', '$controller', '$state', 'azureSecurityGroupWriter', 'securityGroup', 'application', function(
     $scope,
     $uibModalInstance,
     $controller,
@@ -156,4 +156,4 @@ module.exports = angular
         return azureSecurityGroupWriter.upsertSecurityGroup($scope.securityGroup, application, 'Clone', params);
       });
     };
-  });
+  }]);

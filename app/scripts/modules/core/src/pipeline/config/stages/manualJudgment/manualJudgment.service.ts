@@ -5,6 +5,7 @@ import { IExecution, IExecutionStage } from 'core/domain';
 import { Application } from 'core/application';
 
 export class ManualJudgmentService {
+  public static $inject = ['executionService'];
   constructor(private executionService: ExecutionService) {
     'ngInject';
   }

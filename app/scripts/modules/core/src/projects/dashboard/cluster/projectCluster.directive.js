@@ -30,7 +30,7 @@ module.exports = angular
       controllerAs: 'vm',
     };
   })
-  .controller('ProjectClusterCtrl', function($scope, regionFilterService) {
+  .controller('ProjectClusterCtrl', ['$scope', 'regionFilterService', function($scope, regionFilterService) {
     let stateCache = CollapsibleSectionStateCache;
 
     let getCacheKey = () => [this.project.name, this.cluster.account, this.cluster.stack].join(':');
@@ -171,4 +171,4 @@ module.exports = angular
     };
 
     this.$onInit = () => initialize();
-  });
+  }]);

@@ -11,7 +11,7 @@ const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.editApplication.modal.controller', [require('./applicationProviderFields.component').name])
-  .controller('EditApplicationController', function($scope, $window, $state, $uibModalInstance, application) {
+  .controller('EditApplicationController', ['$scope', '$window', '$state', '$uibModalInstance', 'application', function($scope, $window, $state, $uibModalInstance, application) {
     var vm = this;
     this.data = {
       gitSources: SETTINGS.gitSources || ['stash', 'github', 'bitbucket', 'gitlab'],
@@ -119,4 +119,4 @@ module.exports = angular
     };
 
     return vm;
-  });
+  }]);

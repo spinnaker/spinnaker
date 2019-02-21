@@ -8,7 +8,7 @@ import { DcosProviderSettings } from '../../dcos.settings';
 
 module.exports = angular
   .module('spinnaker.dcos.serverGroupCommandBuilder.service', [])
-  .factory('dcosServerGroupCommandBuilder', function($q) {
+  .factory('dcosServerGroupCommandBuilder', ['$q', function($q) {
     function attemptToSetValidAccount(application, defaultAccount, defaultDcosCluster, command) {
       return AccountService.getCredentialsKeyedByAccount('dcos').then(function(dcosAccountsByName) {
         var dcosAccountNames = _.keys(dcosAccountsByName);
@@ -265,4 +265,4 @@ module.exports = angular
       buildServerGroupCommandFromExisting: buildServerGroupCommandFromExisting,
       buildServerGroupCommandFromPipeline: buildServerGroupCommandFromPipeline,
     };
-  });
+  }]);

@@ -4,7 +4,7 @@ const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.securityGroup.configure.kubernetes.ports', [require('../../transformer').name])
-  .controller('kubernetesSecurityGroupRulesController', function($scope, kubernetesSecurityGroupTransformer) {
+  .controller('kubernetesSecurityGroupRulesController', ['$scope', 'kubernetesSecurityGroupTransformer', function($scope, kubernetesSecurityGroupTransformer) {
     this.addRule = function() {
       $scope.securityGroup.rules.push(kubernetesSecurityGroupTransformer.constructNewIngressRule());
     };
@@ -22,4 +22,4 @@ module.exports = angular
     };
 
     this.maxPort = 65535;
-  });
+  }]);

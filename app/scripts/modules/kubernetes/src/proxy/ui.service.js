@@ -6,7 +6,7 @@ import { KubernetesProviderSettings } from '../kubernetes.settings';
 
 module.exports = angular
   .module('spinnaker.proxy.kubernetes.ui.service', [])
-  .factory('kubernetesProxyUiService', function($interpolate) {
+  .factory('kubernetesProxyUiService', ['$interpolate', function($interpolate) {
     function getHost(accountName) {
       let host = KubernetesProviderSettings.defaults.proxy;
       let account = KubernetesProviderSettings[accountName];
@@ -44,4 +44,4 @@ module.exports = angular
       buildLink: buildLink,
       getInstanceLink: getInstanceLink,
     };
-  });
+  }]);

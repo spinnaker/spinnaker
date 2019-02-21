@@ -18,7 +18,7 @@ module.exports = angular
     SECURITY_GROUP_READER,
     CONFIRMATION_MODAL_SERVICE,
   ])
-  .controller('kubernetesSecurityGroupDetailsController', function(
+  .controller('kubernetesSecurityGroupDetailsController', ['$scope', '$state', 'resolvedSecurityGroup', 'app', 'confirmationModalService', 'securityGroupReader', '$uibModal', function(
     $scope,
     $state,
     resolvedSecurityGroup,
@@ -140,4 +140,4 @@ module.exports = angular
         refresh: extractSecurityGroup,
       };
     }
-  });
+  }]);

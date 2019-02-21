@@ -19,7 +19,7 @@ module.exports = angular
     require('../../../namespace/selectField.directive').name,
     require('../../transformer').name,
   ])
-  .controller('kubernetesUpsertSecurityGroupController', function(
+  .controller('kubernetesUpsertSecurityGroupController', ['$q', '$scope', '$uibModalInstance', '$state', 'application', 'securityGroup', 'kubernetesSecurityGroupTransformer', 'securityGroupReader', 'loadBalancerReader', function(
     $q,
     $scope,
     $uibModalInstance,
@@ -213,4 +213,4 @@ module.exports = angular
     this.cancel = function() {
       $uibModalInstance.dismiss();
     };
-  });
+  }]);

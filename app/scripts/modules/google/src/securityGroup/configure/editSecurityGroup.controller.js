@@ -6,7 +6,7 @@ import { FirewallLabels, InfrastructureCaches, SecurityGroupWriter, TaskMonitor 
 
 module.exports = angular
   .module('spinnaker.google.securityGroup.edit.controller', [require('@uirouter/angularjs').default])
-  .controller('gceEditSecurityGroupCtrl', function(
+  .controller('gceEditSecurityGroupCtrl', ['$scope', '$uibModalInstance', '$state', 'application', 'securityGroup', '$controller', function(
     $scope,
     $uibModalInstance,
     $state,
@@ -124,4 +124,4 @@ module.exports = angular
     this.cancel = function() {
       $uibModalInstance.dismiss();
     };
-  });
+  }]);

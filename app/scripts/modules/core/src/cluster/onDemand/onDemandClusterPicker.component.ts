@@ -13,6 +13,7 @@ class OnDemandClusterPickerController implements IController {
   public totalClusterCount: number;
   public optionTemplate: string = require('./onDemandOptionTemplate.html');
 
+  public static $inject = ['$scope'];
   constructor(private $scope: IScope) {
     'ngInject';
   }

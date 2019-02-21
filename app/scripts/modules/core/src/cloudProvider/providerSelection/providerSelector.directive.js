@@ -39,7 +39,7 @@ module.exports = angular
       },
     };
   })
-  .controller('ProviderSelectCtrl', function($scope, $uibModalInstance, providerOptions) {
+  .controller('ProviderSelectCtrl', ['$scope', '$uibModalInstance', 'providerOptions', function($scope, $uibModalInstance, providerOptions) {
     $scope.command = {
       provider: '',
     };
@@ -55,4 +55,4 @@ module.exports = angular
     };
 
     this.cancel = $uibModalInstance.dismiss;
-  });
+  }]);

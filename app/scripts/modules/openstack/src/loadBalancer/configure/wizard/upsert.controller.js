@@ -22,7 +22,7 @@ module.exports = angular
     require('../../../common/isolateForm.directive').name,
     SECURITY_GROUP_READER,
   ])
-  .controller('openstackUpsertLoadBalancerController', function(
+  .controller('openstackUpsertLoadBalancerController', ['$scope', '$uibModalInstance', '$state', 'application', 'loadBalancer', 'isNew', 'openstackLoadBalancerTransformer', 'securityGroupReader', function(
     $scope,
     $uibModalInstance,
     $state,
@@ -264,4 +264,4 @@ module.exports = angular
     this.cancel = function() {
       $uibModalInstance.dismiss();
     };
-  });
+  }]);

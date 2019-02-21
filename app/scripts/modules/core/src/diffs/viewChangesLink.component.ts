@@ -18,6 +18,7 @@ class ViewChangesModalController {
   public previousBuildLink: string;
   public currentBuildLink: string;
 
+  public static $inject = ['$uibModalInstance', 'buildInfo', 'commits', 'hasJarChanges', 'jarDiffs', 'nameItem'];
   constructor(
     private $uibModalInstance: IModalInstanceService,
     public buildInfo: IBuildDiffInfo,
@@ -63,6 +64,7 @@ class ViewChangesLinkController implements IController {
   private loadingExecution = false;
   private executionLoaded = false;
 
+  public static $inject = ['$uibModal', 'executionService'];
   constructor(private $uibModal: IModalService, private executionService: ExecutionService) {
     'ngInject';
   }

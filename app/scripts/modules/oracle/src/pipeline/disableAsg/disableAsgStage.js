@@ -27,7 +27,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('oracleDisableAsgStageCtrl', function($scope) {
+  .controller('oracleDisableAsgStageCtrl', ['$scope', function($scope) {
     let stage = $scope.stage;
 
     let provider = 'oracle';
@@ -57,4 +57,4 @@ module.exports = angular
     if (!stage.target) {
       stage.target = $scope.targets[0].val;
     }
-  });
+  }]);

@@ -5,6 +5,7 @@ import { INestedState } from './state.provider';
 export class StateHelper implements ng.IServiceProvider {
   private registeredStates: string[] = [];
 
+  public static $inject = ['$stateRegistryProvider'];
   constructor(private $stateRegistryProvider: StateRegistry) {
     'ngInject';
   }

@@ -16,7 +16,7 @@ module.exports = angular
     require('@uirouter/angularjs').default,
     SECURITY_GROUP_READER,
   ])
-  .controller('azureConfigSecurityGroupMixin', function(
+  .controller('azureConfigSecurityGroupMixin', ['$scope', '$state', '$uibModalInstance', 'application', 'securityGroup', 'securityGroupReader', 'modalWizardService', 'cacheInitializer', function(
     $scope,
     $state,
     $uibModalInstance,
@@ -246,4 +246,4 @@ module.exports = angular
 
     var classicPattern = /^[\x20-\x7F]+$/;
     var vpcPattern = /^[a-zA-Z0-9\s._\-:/()#,@[\]+=&;{}!$*]+$/;
-  });
+  }]);

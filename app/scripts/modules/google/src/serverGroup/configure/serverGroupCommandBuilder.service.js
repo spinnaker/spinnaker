@@ -13,7 +13,7 @@ module.exports = angular
     require('./../../instance/custom/customInstanceBuilder.gce.service').name,
     require('./wizard/hiddenMetadataKeys.value').name,
   ])
-  .factory('gceServerGroupCommandBuilder', function(
+  .factory('gceServerGroupCommandBuilder', ['$q', 'instanceTypeService', 'gceCustomInstanceBuilderService', 'gceServerGroupHiddenMetadataKeys', 'gceXpnNamingService', function(
     $q,
     instanceTypeService,
     gceCustomInstanceBuilderService,
@@ -537,4 +537,4 @@ module.exports = angular
       buildServerGroupCommandFromExisting: buildServerGroupCommandFromExisting,
       buildServerGroupCommandFromPipeline: buildServerGroupCommandFromPipeline,
     };
-  });
+  }]);

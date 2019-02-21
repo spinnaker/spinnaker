@@ -16,6 +16,7 @@ interface IAppengineBasicSettingsScope extends IScope {
 }
 
 class AppengineServerGroupBasicSettingsCtrl implements IController {
+  public static $inject = ['$scope', '$state', '$controller', '$uibModalStack'];
   constructor(
     public $scope: IAppengineBasicSettingsScope,
     $state: StateService,

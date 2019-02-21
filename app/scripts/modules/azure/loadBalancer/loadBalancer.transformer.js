@@ -8,7 +8,7 @@ const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.azure.loadBalancer.transformer', [])
-  .factory('azureLoadBalancerTransformer', function($q) {
+  .factory('azureLoadBalancerTransformer', ['$q', function($q) {
     function normalizeLoadBalancer(loadBalancer) {
       loadBalancer.serverGroups.forEach(function(serverGroup) {
         serverGroup.account = loadBalancer.account;
@@ -106,4 +106,4 @@ module.exports = angular
       convertLoadBalancerForEditing: convertLoadBalancerForEditing,
       constructNewLoadBalancerTemplate: constructNewLoadBalancerTemplate,
     };
-  });
+  }]);

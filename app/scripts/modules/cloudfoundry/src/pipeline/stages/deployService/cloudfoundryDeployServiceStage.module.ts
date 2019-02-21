@@ -7,6 +7,7 @@ import { CloudfoundryDeployServiceExecutionDetails } from './CloudfoundryDeployS
 import { IServiceFieldValidatorConfig } from 'cloudfoundry/pipeline/config/validation/ServiceFieldValidatorConfig';
 
 class CloudFoundryDeployServiceStageCtrl implements IController {
+  public static $inject = ['$scope'];
   constructor(public $scope: IScope) {
     'ngInject';
   }

@@ -25,7 +25,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('gceDisableAsgStageCtrl', function($scope) {
+  .controller('gceDisableAsgStageCtrl', ['$scope', function($scope) {
     const stage = $scope.stage;
 
     $scope.state = {
@@ -61,4 +61,4 @@ module.exports = angular
     if (!stage.target) {
       stage.target = $scope.targets[0].val;
     }
-  });
+  }]);

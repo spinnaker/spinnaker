@@ -6,7 +6,7 @@ import { IServerGroupManager } from 'core/domain/IServerGroupManager';
 import { EntityTagsReader } from '../entityTag/EntityTagsReader';
 
 export const SERVER_GROUP_MANAGER_DATA_SOURCE = 'spinnaker.core.serverGroupManager.dataSource';
-module(SERVER_GROUP_MANAGER_DATA_SOURCE, []).run(($q: IQService) => {
+module(SERVER_GROUP_MANAGER_DATA_SOURCE, []).run(['$q', ($q: IQService) => {
   'ngInject';
 
   const loader = (application: Application) =>
@@ -26,4 +26,4 @@ module(SERVER_GROUP_MANAGER_DATA_SOURCE, []).run(($q: IQService) => {
     onLoad,
     afterLoad: addTags,
   });
-});
+}]);

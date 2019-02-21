@@ -9,7 +9,7 @@ module.exports = angular
     LOAD_BALANCER_READ_SERVICE,
     require('../../transformer').name,
   ])
-  .controller('dcosUpsertLoadBalancerController', function(
+  .controller('dcosUpsertLoadBalancerController', ['$scope', '$uibModalInstance', '$state', 'application', 'loadBalancer', 'isNew', 'loadBalancerReader', 'dcosLoadBalancerTransformer', function(
     $scope,
     $uibModalInstance,
     $state,
@@ -154,4 +154,4 @@ module.exports = angular
     this.cancel = function() {
       $uibModalInstance.dismiss();
     };
-  });
+  }]);

@@ -29,7 +29,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('kubernetesResizeStageController', function($scope) {
+  .controller('kubernetesResizeStageController', ['$scope', function($scope) {
     var ctrl = this;
 
     let stage = $scope.stage;
@@ -109,4 +109,4 @@ module.exports = angular
         }
       }
     };
-  });
+  }]);

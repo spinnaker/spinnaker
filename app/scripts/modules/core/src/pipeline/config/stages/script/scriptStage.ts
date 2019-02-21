@@ -24,7 +24,7 @@ module(SCRIPT_STAGE, [])
       validators: [{ type: 'requiredField', fieldName: 'command' }],
     });
   })
-  .controller('ScriptStageCtrl', function($scope: IScope, stage: IStage) {
+  .controller('ScriptStageCtrl', ['$scope', 'stage', function($scope: IScope, stage: IStage) {
     $scope.stage = stage;
     $scope.stage.failPipeline = $scope.stage.failPipeline === undefined ? true : $scope.stage.failPipeline;
     $scope.stage.waitForCompletion =
@@ -37,4 +37,4 @@ module(SCRIPT_STAGE, [])
     $scope.viewState = {
       loading: false,
     };
-  });
+  }]);

@@ -10,7 +10,7 @@ module.exports = angular
     require('../securityGroup.write.service').name,
   ])
 
-  .controller('azureCreateSecurityGroupCtrl', function(
+  .controller('azureCreateSecurityGroupCtrl', ['$scope', '$uibModalInstance', '$state', '$controller', 'application', 'securityGroup', 'azureSecurityGroupWriter', function(
     $scope,
     $uibModalInstance,
     $state,
@@ -162,4 +162,4 @@ module.exports = angular
     }
 
     $scope.securityGroup.securityRules = [];
-  });
+  }]);

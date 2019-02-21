@@ -23,7 +23,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('dcosDisableClusterStageCtrl', function($scope) {
+  .controller('dcosDisableClusterStageCtrl', ['$scope', function($scope) {
     var ctrl = this;
 
     let stage = $scope.stage;
@@ -68,4 +68,4 @@ module.exports = angular
       stage.preferLargerOverNewer = 'false';
     }
     stage.preferLargerOverNewer = stage.preferLargerOverNewer.toString();
-  });
+  }]);

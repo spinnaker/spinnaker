@@ -9,7 +9,7 @@ module.exports = angular
   .module('spinnaker.google.securityGroup.clone.controller', [
     require('../configure/ConfigSecurityGroupMixin.controller').name,
   ])
-  .controller('gceCloneSecurityGroupController', function(
+  .controller('gceCloneSecurityGroupController', ['$scope', '$uibModalInstance', '$controller', 'securityGroup', 'application', function(
     $scope,
     $uibModalInstance,
     $controller,
@@ -77,4 +77,4 @@ module.exports = angular
     };
 
     vm.initializeSecurityGroups();
-  });
+  }]);

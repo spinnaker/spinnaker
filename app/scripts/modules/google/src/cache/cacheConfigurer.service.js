@@ -21,7 +21,7 @@ module.exports = angular
     INSTANCE_TYPE_SERVICE,
     LOAD_BALANCER_READ_SERVICE,
   ])
-  .factory('gceCacheConfigurer', function(
+  .factory('gceCacheConfigurer', ['gceAddressReader', 'gceBackendServiceReader', 'gceCertificateReader', 'gceHealthCheckReader', 'instanceTypeService', 'loadBalancerReader', function(
     gceAddressReader,
     gceBackendServiceReader,
     gceCertificateReader,
@@ -68,4 +68,4 @@ module.exports = angular
     };
 
     return config;
-  });
+  }]);

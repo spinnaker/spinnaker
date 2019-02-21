@@ -19,7 +19,7 @@ module.exports = angular
     require('./regionFilter/regionFilter.component').name,
     require('./regionFilter/regionFilter.service').name,
   ])
-  .controller('ProjectDashboardCtrl', function(
+  .controller('ProjectDashboardCtrl', ['$scope', '$rootScope', 'projectConfiguration', 'executionService', 'regionFilterService', '$q', function(
     $scope,
     $rootScope,
     projectConfiguration,
@@ -154,4 +154,4 @@ module.exports = angular
         regionFilterService.runCallbacks();
       }),
     );
-  });
+  }]);

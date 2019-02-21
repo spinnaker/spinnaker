@@ -18,7 +18,7 @@ module.exports = angular
     LOAD_BALANCER_READ_SERVICE,
     CONFIRMATION_MODAL_SERVICE,
   ])
-  .controller('azureLoadBalancerDetailsCtrl', function(
+  .controller('azureLoadBalancerDetailsCtrl', ['$scope', '$state', '$exceptionHandler', '$uibModal', 'loadBalancer', 'app', 'securityGroupReader', 'confirmationModalService', 'loadBalancerReader', '$q', function(
     $scope,
     $state,
     $exceptionHandler,
@@ -149,4 +149,4 @@ module.exports = angular
         submitMethod: submitMethod,
       });
     };
-  });
+  }]);

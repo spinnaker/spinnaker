@@ -13,7 +13,7 @@ module.exports = angular
     EXECUTION_WINDOWS_DAY_PICKER,
     EXECUTION_WINDOW_ATLAS_GRAPH,
   ])
-  .controller('ExecutionWindowsCtrl', function($scope) {
+  .controller('ExecutionWindowsCtrl', ['$scope', function($scope) {
     this.windowsUpdatedStream = new Subject();
     this.enableCustomSkipWindowText = false;
 
@@ -153,4 +153,4 @@ module.exports = angular
     $scope.$watch('stage.restrictedExecutionWindow.whitelist', this.updateTimelineWindows, true);
     $scope.$watch('stage.restrictExecutionDuringTimeWindow', this.toggleWindowRestriction);
     $scope.$watch('stage.restrictedExecutionWindow.jitter.enabled', this.toggleWindowJitter);
-  });
+  }]);

@@ -23,7 +23,7 @@ module.exports = angular
     CONFIRMATION_MODAL_SERVICE,
     GCE_HTTP_LOAD_BALANCER_UTILS,
   ])
-  .controller('gceInstanceDetailsCtrl', function(
+  .controller('gceInstanceDetailsCtrl', ['$scope', '$state', '$uibModal', 'instanceWriter', 'confirmationModalService', 'instance', 'app', 'moniker', 'environment', '$q', 'gceHttpLoadBalancerUtils', 'gceXpnNamingService', function(
     $scope,
     $state,
     $uibModal,
@@ -510,4 +510,4 @@ module.exports = angular
     });
 
     $scope.account = instance.account;
-  });
+  }]);

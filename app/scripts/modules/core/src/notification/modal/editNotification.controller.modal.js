@@ -10,7 +10,7 @@ import './editNotification.less';
 
 module.exports = angular
   .module('spinnaker.core.notification.modal.editNotification.modal.controller', [])
-  .controller('EditNotificationController', function($scope, $uibModalInstance, notification, level, stageType) {
+  .controller('EditNotificationController', ['$scope', '$uibModalInstance', 'notification', 'level', 'stageType', function($scope, $uibModalInstance, notification, level, stageType) {
     var vm = this;
 
     vm.notification = angular.copy(notification);
@@ -79,4 +79,4 @@ module.exports = angular
     );
 
     return vm;
-  });
+  }]);

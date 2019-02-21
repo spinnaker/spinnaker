@@ -26,7 +26,7 @@ module.exports = angular
       controllerAs: 'vm',
     };
   })
-  .controller('ApplicationAttributesCtrl', function($uibModal, overrideRegistry) {
+  .controller('ApplicationAttributesCtrl', ['$uibModal', 'overrideRegistry', function($uibModal, overrideRegistry) {
     const cpHealthMsg = 'considers only cloud provider health when executing tasks';
     const healthOverrideMsg = 'shows a health override option for each operation';
     const setHealthMessage = () => {
@@ -93,4 +93,4 @@ module.exports = angular
         })
         .catch(() => {});
     };
-  });
+  }]);

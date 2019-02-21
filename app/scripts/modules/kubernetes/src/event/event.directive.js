@@ -15,7 +15,7 @@ module.exports = angular
       },
     };
   })
-  .controller('kubernetesEventController', function($scope, $uibModal) {
+  .controller('kubernetesEventController', ['$scope', '$uibModal', function($scope, $uibModal) {
     if ($scope.event.message) {
       this.displayMessage = $scope.event.message.substring(0, 40);
     }
@@ -34,4 +34,4 @@ module.exports = angular
         scope: $scope,
       });
     };
-  });
+  }]);

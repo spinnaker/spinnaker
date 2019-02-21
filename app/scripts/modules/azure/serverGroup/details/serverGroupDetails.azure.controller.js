@@ -20,7 +20,7 @@ module.exports = angular
     CONFIRMATION_MODAL_SERVICE,
     SERVER_GROUP_WRITER,
   ])
-  .controller('azureServerGroupDetailsCtrl', function(
+  .controller('azureServerGroupDetailsCtrl', ['$scope', '$state', '$templateCache', 'app', 'serverGroup', 'azureServerGroupCommandBuilder', '$uibModal', 'confirmationModalService', 'serverGroupWriter', function(
     $scope,
     $state,
     $templateCache,
@@ -236,4 +236,4 @@ module.exports = angular
       }
       return null;
     };
-  });
+  }]);

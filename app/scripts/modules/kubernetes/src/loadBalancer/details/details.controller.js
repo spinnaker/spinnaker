@@ -12,7 +12,7 @@ module.exports = angular
     require('@uirouter/angularjs').default,
     CONFIRMATION_MODAL_SERVICE,
   ])
-  .controller('kubernetesLoadBalancerDetailsController', function(
+  .controller('kubernetesLoadBalancerDetailsController', ['$interpolate', '$scope', '$state', '$uibModal', 'loadBalancer', 'app', 'confirmationModalService', 'kubernetesProxyUiService', function(
     $interpolate,
     $scope,
     $state,
@@ -134,4 +134,4 @@ module.exports = angular
         submitMethod: submitMethod,
       });
     };
-  });
+  }]);

@@ -13,6 +13,7 @@ export class EventsController implements IController {
   public viewState: IScalingActivitiesViewState;
   public events: IEventDescription[] = [];
 
+  public static $inject = ['$uibModalInstance', 'serverGroup'];
   public constructor(private $uibModalInstance: IModalServiceInstance, public serverGroup: IServerGroup) {
     'ngInject';
   }

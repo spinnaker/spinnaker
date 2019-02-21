@@ -26,7 +26,7 @@ module.exports = angular
       strategy: true,
     });
   })
-  .controller('gceScaleDownClusterStageCtrl', function($scope) {
+  .controller('gceScaleDownClusterStageCtrl', ['$scope', function($scope) {
     const ctrl = this;
 
     const stage = $scope.stage;
@@ -70,4 +70,4 @@ module.exports = angular
       stage.preferLargerOverNewer = 'false';
     }
     stage.preferLargerOverNewer = stage.preferLargerOverNewer.toString();
-  });
+  }]);

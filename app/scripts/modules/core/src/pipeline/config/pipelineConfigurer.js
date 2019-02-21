@@ -32,7 +32,7 @@ module.exports = angular
       templateUrl: require('./pipelineConfigurer.html'),
     };
   })
-  .controller('PipelineConfigurerCtrl', function(
+  .controller('PipelineConfigurerCtrl', ['$scope', '$uibModal', '$timeout', '$window', '$q', 'executionService', 'overrideRegistry', '$location', function(
     $scope,
     $uibModal,
     $timeout,
@@ -527,4 +527,4 @@ module.exports = angular
     if ($scope.isTemplatedPipeline && $scope.pipeline.isNew && !$scope.hasDynamicSource) {
       this.configureTemplate();
     }
-  });
+  }]);

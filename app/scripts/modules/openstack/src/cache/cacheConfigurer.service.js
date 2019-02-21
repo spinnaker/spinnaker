@@ -6,7 +6,7 @@ import { AccountService, LOAD_BALANCER_READ_SERVICE, NetworkReader, SubnetReader
 
 module.exports = angular
   .module('spinnaker.openstack.cache.initializer', [LOAD_BALANCER_READ_SERVICE])
-  .factory('openstackCacheConfigurer', function(loadBalancerReader) {
+  .factory('openstackCacheConfigurer', ['loadBalancerReader', function(loadBalancerReader) {
     let config = Object.create(null);
 
     config.credentials = {
@@ -30,4 +30,4 @@ module.exports = angular
     };
 
     return config;
-  });
+  }]);

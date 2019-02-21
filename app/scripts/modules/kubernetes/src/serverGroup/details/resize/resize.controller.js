@@ -7,7 +7,7 @@ import { SERVER_GROUP_WRITER, TaskMonitor } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.kubernetes.serverGroup.details.resize.controller', [SERVER_GROUP_WRITER])
-  .controller('kubernetesResizeServerGroupController', function(
+  .controller('kubernetesResizeServerGroupController', ['$scope', '$uibModalInstance', 'serverGroupWriter', 'application', 'serverGroup', 'kubernetesAutoscalerWriter', function(
     $scope,
     $uibModalInstance,
     serverGroupWriter,
@@ -93,4 +93,4 @@ module.exports = angular
     this.cancel = function() {
       $uibModalInstance.dismiss();
     };
-  });
+  }]);

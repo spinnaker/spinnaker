@@ -26,7 +26,7 @@ module.exports = angular
     INSIGHT_FILTER_COMPONENT,
     require('angular-ui-bootstrap'),
   ])
-  .controller('AllClustersCtrl', function(
+  .controller('AllClustersCtrl', ['$scope', 'app', '$uibModal', '$timeout', 'providerSelectionService', 'insightFilterStateModel', 'serverGroupCommandBuilder', 'skinSelectionService', function(
     $scope,
     app,
     $uibModal,
@@ -150,4 +150,4 @@ module.exports = angular
       this.loadError = true;
       this.initialized = true;
     };
-  });
+  }]);

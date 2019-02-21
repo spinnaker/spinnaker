@@ -17,7 +17,7 @@ module.exports = angular
     SECURITY_GROUP_READER,
     CACHE_INITIALIZER_SERVICE,
   ])
-  .factory('openstackServerGroupConfigurationService', function(
+  .factory('openstackServerGroupConfigurationService', ['$q', 'openstackImageReader', 'securityGroupReader', 'cacheInitializer', 'loadBalancerReader', function(
     $q,
     openstackImageReader,
     securityGroupReader,
@@ -249,4 +249,4 @@ module.exports = angular
       refreshSecurityGroups: refreshSecurityGroups,
       getRegionalSecurityGroups: getRegionalSecurityGroups,
     };
-  });
+  }]);

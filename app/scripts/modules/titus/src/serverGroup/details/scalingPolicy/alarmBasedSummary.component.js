@@ -18,7 +18,7 @@ module.exports = angular
       application: '=',
     },
     templateUrl: require('./alarmBasedSummary.component.html'),
-    controller: function($uibModal, confirmationModalService) {
+    controller: ['$uibModal', 'confirmationModalService', function($uibModal, confirmationModalService) {
       this.$onInit = () => {
         AccountService.getAccountDetails(this.serverGroup.account).then(details => {
           // alarmServerGroup is used to trick the chart rendering into using AWS metrics
@@ -80,5 +80,5 @@ module.exports = angular
           submitMethod: submitMethod,
         });
       };
-    },
+    }],
   });

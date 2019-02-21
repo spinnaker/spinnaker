@@ -9,6 +9,7 @@ class GceAutoHealingPolicyDetailsCtrl implements IController {
   public serverGroup: IGceServerGroup;
   public application: Application;
 
+  public static $inject = ['$uibModal', 'confirmationModalService', 'gceAutoscalingPolicyWriter'];
   constructor(
     private $uibModal: IModalService,
     private confirmationModalService: ConfirmationModalService,

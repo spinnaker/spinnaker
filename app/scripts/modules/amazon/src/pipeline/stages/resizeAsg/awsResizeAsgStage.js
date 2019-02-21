@@ -29,7 +29,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('awsResizeAsgStageCtrl', function($scope) {
+  .controller('awsResizeAsgStageCtrl', ['$scope', function($scope) {
     var ctrl = this;
 
     let stage = $scope.stage;
@@ -120,4 +120,4 @@ module.exports = angular
         }
       }
     };
-  });
+  }]);

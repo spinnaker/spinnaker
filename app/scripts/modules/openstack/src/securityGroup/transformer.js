@@ -6,7 +6,7 @@ import { OpenStackProviderSettings } from '../openstack.settings';
 
 module.exports = angular
   .module('spinnaker.openstack.securityGroup.transformer', [])
-  .factory('openstackSecurityGroupTransformer', function($q) {
+  .factory('openstackSecurityGroupTransformer', ['$q', function($q) {
     function normalizeSecurityGroup(securityGroup) {
       return $q.when(securityGroup);
     }
@@ -74,4 +74,4 @@ module.exports = angular
       prepareForEdit: prepareForEdit,
       prepareForSaving: prepareForSaving,
     };
-  });
+  }]);

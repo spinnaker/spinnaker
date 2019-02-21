@@ -13,6 +13,7 @@ function replace($log: ILogService): Function {
     }
   };
 }
+replace.$inject = ['$log'];
 
 export const REPLACE_FILTER = 'spinnaker.core.replace.filter';
 module(REPLACE_FILTER, []).filter('replace', replace);

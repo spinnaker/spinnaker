@@ -6,7 +6,7 @@ require('./editPrecondition.html');
 
 module.exports = angular
   .module('spinnaker.core.pipeline.config.preconditions.modal.controller', [])
-  .controller('EditPreconditionController', function($scope, $uibModalInstance, precondition, strategy, application) {
+  .controller('EditPreconditionController', ['$scope', '$uibModalInstance', 'precondition', 'strategy', 'application', function($scope, $uibModalInstance, precondition, strategy, application) {
     var vm = this;
 
     vm.strategy = strategy;
@@ -17,4 +17,4 @@ module.exports = angular
     };
 
     return vm;
-  });
+  }]);

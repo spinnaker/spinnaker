@@ -10,7 +10,7 @@ module.exports = angular
     SERVER_GROUP_WRITER,
     require('../configuration.service').name,
   ])
-  .controller('kubernetesCloneServerGroupController', function(
+  .controller('kubernetesCloneServerGroupController', ['$scope', '$uibModalInstance', '$q', '$state', 'serverGroupWriter', 'kubernetesServerGroupConfigurationService', 'serverGroupCommand', 'application', 'title', '$timeout', 'wizardSubFormValidation', function(
     $scope,
     $uibModalInstance,
     $q,
@@ -136,4 +136,4 @@ module.exports = angular
       $scope.state.requiresTemplateSelection = false;
       configureCommand();
     };
-  });
+  }]);

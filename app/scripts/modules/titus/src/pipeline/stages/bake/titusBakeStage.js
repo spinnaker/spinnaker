@@ -16,7 +16,7 @@ module.exports = angular
       validators: [],
     });
   })
-  .controller('titusBakeCtrl', function($scope) {
+  .controller('titusBakeCtrl', ['$scope', function($scope) {
     let stage = $scope.stage;
 
     if (!stage.user) {
@@ -95,4 +95,4 @@ module.exports = angular
 
     $scope.$watch('stage.repository', this.updateRepository, true, true);
     $scope.$watch('stage.image', this.updateImage, true, true);
-  });
+  }]);

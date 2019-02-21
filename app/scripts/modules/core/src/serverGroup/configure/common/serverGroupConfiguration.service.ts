@@ -4,6 +4,7 @@ import { ProviderServiceDelegate, PROVIDER_SERVICE_DELEGATE } from 'core/cloudPr
 import { IServerGroupCommand } from './serverGroupCommandBuilder.service';
 
 export class ServerGroupConfigurationService {
+  public static $inject = ['providerServiceDelegate'];
   constructor(private providerServiceDelegate: ProviderServiceDelegate) {
     'ngImport';
   }

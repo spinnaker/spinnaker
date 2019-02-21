@@ -6,6 +6,7 @@ import IInjectorService = angular.auto.IInjectorService;
 import { CloudProviderRegistry } from './CloudProviderRegistry';
 
 export class ProviderServiceDelegate {
+  public static $inject = ['$injector'];
   constructor(private $injector: IInjectorService) {
     'ngInject';
   }

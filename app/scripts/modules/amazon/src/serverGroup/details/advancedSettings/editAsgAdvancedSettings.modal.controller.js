@@ -8,7 +8,7 @@ module.exports = angular
   .module('spinnaker.amazon.serverGroup.editAsgAdvancedSettings.modal.controller', [
     require('../../configure/serverGroupCommandBuilder.service').name,
   ])
-  .controller('EditAsgAdvancedSettingsCtrl', function(
+  .controller('EditAsgAdvancedSettingsCtrl', ['$scope', '$uibModalInstance', 'application', 'serverGroup', 'awsServerGroupCommandBuilder', function(
     $scope,
     $uibModalInstance,
     application,
@@ -41,4 +41,4 @@ module.exports = angular
     };
 
     this.cancel = $uibModalInstance.dismiss;
-  });
+  }]);

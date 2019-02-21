@@ -7,7 +7,7 @@ const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.widget.spelAutocomplete', [EXECUTION_SERVICE])
-  .factory('spelAutocomplete', function($q, executionService) {
+  .factory('spelAutocomplete', ['$q', 'executionService', function($q, executionService) {
     let brackets = [{ open: '(', close: ')' }, { open: '[', close: ']' }];
     let quotes = [{ open: "'", close: "'" }, { open: '"', close: '"' }];
     let helperFunctions = [
@@ -409,4 +409,4 @@ module.exports = angular
       textcompleteConfig: textcompleteConfig,
       addPipelineInfo: addPipelineInfo,
     };
-  });
+  }]);

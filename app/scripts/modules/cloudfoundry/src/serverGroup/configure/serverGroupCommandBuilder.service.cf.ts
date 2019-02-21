@@ -38,6 +38,7 @@ export class CloudFoundryServerGroupCommandBuilder {
     }
   }
 
+  public static $inject = ['$q'];
   constructor(private $q: IQService) {
     'ngInject';
   }

@@ -9,7 +9,7 @@ import { LOAD_BALANCER_READ_SERVICE, LoadBalancerReader } from 'core/loadBalance
 
 export const LOAD_BALANCER_DATA_SOURCE = 'spinnaker.core.loadBalancer.dataSource';
 module(LOAD_BALANCER_DATA_SOURCE, [LOAD_BALANCER_READ_SERVICE]).run(
-  ($q: IQService, loadBalancerReader: LoadBalancerReader) => {
+  ['$q', 'loadBalancerReader', ($q: IQService, loadBalancerReader: LoadBalancerReader) => {
     const loadLoadBalancers = (application: Application) => {
       return loadBalancerReader.loadLoadBalancers(application.name);
     };
@@ -36,5 +36,5 @@ module(LOAD_BALANCER_DATA_SOURCE, [LOAD_BALANCER_READ_SERVICE]).run(
       regionField: 'region',
       description: 'Traffic distribution management between servers',
     });
-  },
+  }],
 );

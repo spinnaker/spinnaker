@@ -16,6 +16,6 @@ module.exports = angular
       validators: [{ type: 'requiredField', fieldName: 'imageLabelOrSha' }],
     });
   })
-  .controller('ecsFindImageFromTagsStageCtrl', function($scope) {
+  .controller('ecsFindImageFromTagsStageCtrl', ['$scope', function($scope) {
     $scope.stage.cloudProvider = $scope.stage.cloudProvider || 'ecs';
-  });
+  }]);

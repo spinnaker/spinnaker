@@ -6,7 +6,7 @@ import { ModalWizard } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.azure.serverGroup.configure.networkSettings.controller', [])
-  .controller('azureServerGroupNetworkSettingsCtrl', function($scope) {
+  .controller('azureServerGroupNetworkSettingsCtrl', ['$scope', function($scope) {
     ModalWizard.markClean('network-settings');
 
     $scope.command.selectedVnet = {
@@ -28,4 +28,4 @@ module.exports = angular
         return 'Virtual network was not selected';
       }
     };
-  });
+  }]);

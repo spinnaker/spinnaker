@@ -6,7 +6,7 @@ import { SETTINGS } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.canary.actions.override.result.controller', [require('@uirouter/angularjs').default])
-  .controller('EndCanaryCtrl', function($scope, $http, $uibModalInstance, canaryId) {
+  .controller('EndCanaryCtrl', ['$scope', '$http', '$uibModalInstance', 'canaryId', function($scope, $http, $uibModalInstance, canaryId) {
     $scope.command = {
       reason: null,
       result: 'SUCCESS',
@@ -28,4 +28,4 @@ module.exports = angular
     };
 
     this.cancel = $uibModalInstance.dismiss;
-  });
+  }]);

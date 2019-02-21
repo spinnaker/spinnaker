@@ -25,6 +25,7 @@ class KubernetesManifestDeleteController implements IController {
     verified: false,
   };
 
+  public static $inject = ['coordinates', '$uibModalInstance', 'application', 'manifestController'];
   constructor(
     coordinates: IManifestCoordinates,
     private $uibModalInstance: IModalServiceInstance,

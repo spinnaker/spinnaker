@@ -26,7 +26,7 @@ module.exports = angular
       executionTriggerLabel: () => 'Pipeline',
     });
   })
-  .controller('pipelineTriggerCtrl', function($scope, trigger) {
+  .controller('pipelineTriggerCtrl', ['$scope', 'trigger', function($scope, trigger) {
     $scope.trigger = trigger;
 
     this.fiatEnabled = SETTINGS.feature.fiatEnabled;
@@ -93,4 +93,4 @@ module.exports = angular
     init();
 
     $scope.$watch('trigger.application', init);
-  });
+  }]);

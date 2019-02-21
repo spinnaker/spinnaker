@@ -81,6 +81,7 @@ export class CacheInitializerService {
     }
   }
 
+  public static $inject = ['$q', 'securityGroupReader', 'providerServiceDelegate'];
   constructor(
     private $q: ng.IQService,
     private securityGroupReader: SecurityGroupReader,

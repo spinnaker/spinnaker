@@ -6,6 +6,7 @@ import { AccountService } from 'core/account/AccountService';
 import { CloudProviderRegistry } from 'core/cloudProvider';
 
 export class SkinSelectionService {
+  public static $inject = ['$uibModal'];
   constructor(private $uibModal: IModalService) {
     'ngInject';
   }

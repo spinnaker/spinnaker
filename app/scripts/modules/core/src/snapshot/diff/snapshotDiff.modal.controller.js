@@ -17,7 +17,7 @@ module.exports = angular
     require('../../pipeline/config/actions/history/diffSummary.component').name,
     DIFF_VIEW_COMPONENT,
   ])
-  .controller('SnapshotDiffModalCtrl', function(
+  .controller('SnapshotDiffModalCtrl', ['availableAccounts', 'application', '$filter', '$uibModalInstance', 'confirmationModalService', function(
     availableAccounts,
     application,
     $filter,
@@ -128,4 +128,4 @@ module.exports = angular
 
     this.getSnapshotHistoryForAccount(this.selectedAccount);
     this.close = $uibModalInstance.dismiss;
-  });
+  }]);

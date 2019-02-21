@@ -28,7 +28,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('kubernetesDestroyAsgStageCtrl', function($scope) {
+  .controller('kubernetesDestroyAsgStageCtrl', ['$scope', function($scope) {
     let stage = $scope.stage;
 
     $scope.state = {
@@ -55,4 +55,4 @@ module.exports = angular
     if (!stage.target) {
       stage.target = $scope.targets[0].val;
     }
-  });
+  }]);

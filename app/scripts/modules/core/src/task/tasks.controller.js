@@ -17,7 +17,7 @@ module.exports = angular
     CONFIRMATION_MODAL_SERVICE,
     DISPLAYABLE_TASKS_FILTER,
   ])
-  .controller('TasksCtrl', function($scope, $state, $stateParams, $q, app, confirmationModalService) {
+  .controller('TasksCtrl', ['$scope', '$state', '$stateParams', '$q', 'app', 'confirmationModalService', function($scope, $state, $stateParams, $q, app, confirmationModalService) {
     if (app.notFound) {
       return;
     }
@@ -292,4 +292,4 @@ module.exports = angular
     $scope.$on('$stateChangeSuccess', (_event, _toState, toParams) => this.stateChanged(toParams.q));
 
     this.application.tasks.onRefresh($scope, this.sortTasks);
-  });
+  }]);

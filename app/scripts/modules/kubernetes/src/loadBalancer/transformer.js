@@ -8,7 +8,7 @@ const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.kubernetes.loadBalancer.transformer', [])
-  .factory('kubernetesLoadBalancerTransformer', function($q) {
+  .factory('kubernetesLoadBalancerTransformer', ['$q', function($q) {
     function normalizeLoadBalancer(loadBalancer) {
       loadBalancer.provider = loadBalancer.type;
       loadBalancer.instances = [];
@@ -75,4 +75,4 @@ module.exports = angular
       constructNewLoadBalancerTemplate: constructNewLoadBalancerTemplate,
       convertLoadBalancerForEditing: convertLoadBalancerForEditing,
     };
-  });
+  }]);

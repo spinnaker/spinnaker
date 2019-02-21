@@ -5,7 +5,7 @@ import '@uirouter/rx';
 
 import { bootstrapModule } from './bootstrap.module';
 
-bootstrapModule.run(($uiRouter: UIRouter, $log: ILogService) => {
+bootstrapModule.run(['$uiRouter', '$log', ($uiRouter: UIRouter, $log: ILogService) => {
   'ngInject';
 
   const subscription = $uiRouter.globals.start$.subscribe((transition: Transition) => {
@@ -25,4 +25,4 @@ bootstrapModule.run(($uiRouter: UIRouter, $log: ILogService) => {
   });
 
   $uiRouter.disposable({ dispose: () => subscription.unsubscribe() });
-});
+}]);

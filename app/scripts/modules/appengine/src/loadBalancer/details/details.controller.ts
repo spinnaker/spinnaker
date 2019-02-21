@@ -26,6 +26,7 @@ class AppengineLoadBalancerDetailsController implements IController {
   public loadBalancer: IAppengineLoadBalancer;
   public dispatchRules: string[] = [];
 
+  public static $inject = ['$uibModal', '$state', '$scope', 'loadBalancer', 'app', 'confirmationModalService'];
   constructor(
     private $uibModal: IModalService,
     private $state: StateService,

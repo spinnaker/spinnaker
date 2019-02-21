@@ -39,6 +39,7 @@ export class StateConfigProvider implements IServiceProvider {
     children: [],
   };
 
+  public static $inject = ['$urlRouterProvider', 'stateHelperProvider'];
   constructor(private $urlRouterProvider: UrlRouterProvider, private stateHelperProvider: StateHelper) {
     'ngInject';
   }
@@ -169,7 +170,7 @@ export const sortKeyParamType = {
 export const STATE_CONFIG_PROVIDER = 'spinnaker.core.navigation.state.config.provider';
 module(STATE_CONFIG_PROVIDER, [require('@uirouter/angularjs').default, STATE_HELPER])
   .provider('stateConfig', StateConfigProvider)
-  .config(($urlRouterProvider: UrlRouterProvider) => {
+  .config(['$urlRouterProvider', ($urlRouterProvider: UrlRouterProvider) => {
     $urlRouterProvider.otherwise('/');
     // Don't crash on trailing slashes
     $urlRouterProvider.when('/{path:.*}/', [
@@ -178,10 +179,10 @@ module(STATE_CONFIG_PROVIDER, [require('@uirouter/angularjs').default, STATE_HEL
         return '/' + $match.path;
       },
     ]);
-  })
-  .config(($urlServiceProvider: UrlService) => {
+  }])
+  .config(['$urlServiceProvider', ($urlServiceProvider: UrlService) => {
     $urlServiceProvider.config.type('trueKeyObject', trueKeyObjectParamType);
     $urlServiceProvider.config.type('inverse-boolean', inverseBooleanParamType);
     $urlServiceProvider.config.type('boolean', booleanParamType);
     $urlServiceProvider.config.type('sortKey', sortKeyParamType);
-  });
+  }]);

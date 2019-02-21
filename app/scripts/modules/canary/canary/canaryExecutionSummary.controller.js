@@ -10,7 +10,7 @@ module.exports = angular
     require('./actions/generateScore.controller').name,
     require('./actions/endCanary.controller').name,
   ])
-  .controller('CanaryExecutionSummaryCtrl', function($scope, $http, $uibModal) {
+  .controller('CanaryExecutionSummaryCtrl', ['$scope', '$http', '$uibModal', function($scope, $http, $uibModal) {
     this.generateCanaryScore = function() {
       $uibModal.open({
         templateUrl: require('./actions/generateScore.modal.html'),
@@ -43,4 +43,4 @@ module.exports = angular
 
       return stageConfig.restartable || false;
     };
-  });
+  }]);

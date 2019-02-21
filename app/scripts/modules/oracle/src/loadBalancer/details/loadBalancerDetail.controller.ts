@@ -19,6 +19,7 @@ import { sortBy } from 'lodash';
 import { OracleLoadBalancerController } from 'oracle/loadBalancer/configure/createLoadBalancer.controller';
 
 export class OracleLoadBalancerDetailController implements IController {
+  public static $inject = ['$scope', '$state', '$uibModal', 'loadBalancer', 'app', 'securityGroupReader', 'confirmationModalService', 'loadBalancerReader', '$q'];
   constructor(
     private $scope: ng.IScope,
     private $state: StateService,

@@ -41,7 +41,7 @@ module.exports = angular
       restartable: true,
     });
   })
-  .controller('awsBakeStageCtrl', function($scope, $q, $uibModal) {
+  .controller('awsBakeStageCtrl', ['$scope', '$q', '$uibModal', function($scope, $q, $uibModal) {
     $scope.stage.extendedAttributes = $scope.stage.extendedAttributes || {};
     $scope.stage.regions = ($scope.stage.regions && $scope.stage.regions.sort()) || [];
 
@@ -164,4 +164,4 @@ module.exports = angular
     $scope.$watch('stage', deleteEmptyProperties, true);
 
     initialize();
-  });
+  }]);

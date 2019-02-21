@@ -7,7 +7,7 @@ import { SecurityGroupWriter, TaskMonitor, FirewallLabels } from '@spinnaker/cor
 
 module.exports = angular
   .module('spinnaker.amazon.securityGroup.edit.controller', [require('@uirouter/angularjs').default])
-  .controller('awsEditSecurityGroupCtrl', function(
+  .controller('awsEditSecurityGroupCtrl', ['$scope', '$uibModalInstance', '$state', 'application', 'securityGroup', '$controller', function(
     $scope,
     $uibModalInstance,
     $state,
@@ -107,4 +107,4 @@ module.exports = angular
     };
 
     this.initializeSecurityGroups().then(this.initializeAccounts);
-  });
+  }]);

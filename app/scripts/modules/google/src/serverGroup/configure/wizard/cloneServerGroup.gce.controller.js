@@ -15,7 +15,7 @@ module.exports = angular
     require('./hiddenMetadataKeys.value').name,
     require('./securityGroups/tagManager.service').name,
   ])
-  .controller('gceCloneServerGroupCtrl', function(
+  .controller('gceCloneServerGroupCtrl', ['$scope', '$uibModalInstance', '$q', '$state', '$log', 'serverGroupWriter', 'gceServerGroupConfigurationService', 'serverGroupCommand', 'application', 'title', 'gceCustomInstanceBuilderService', 'instanceTypeService', 'wizardSubFormValidation', 'gceServerGroupHiddenMetadataKeys', 'gceTagManager', function(
     $scope,
     $uibModalInstance,
     $q,
@@ -437,4 +437,4 @@ module.exports = angular
     };
 
     $scope.$on('$destroy', gceTagManager.reset);
-  });
+  }]);

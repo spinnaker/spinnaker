@@ -6,7 +6,7 @@ import { AccountService, INSTANCE_TYPE_SERVICE, LOAD_BALANCER_READ_SERVICE, Subn
 
 module.exports = angular
   .module('spinnaker.azure.cache.initializer', [LOAD_BALANCER_READ_SERVICE, INSTANCE_TYPE_SERVICE])
-  .factory('azureCacheConfigurer', function($q, instanceTypeService, loadBalancerReader) {
+  .factory('azureCacheConfigurer', ['$q', 'instanceTypeService', 'loadBalancerReader', function($q, instanceTypeService, loadBalancerReader) {
     let config = Object.create(null);
 
     config.credentials = {
@@ -27,4 +27,4 @@ module.exports = angular
     };
 
     return config;
-  });
+  }]);

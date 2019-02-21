@@ -34,7 +34,7 @@ module.exports = angular
       strategy: true,
     });
   })
-  .controller('JenkinsStageCtrl', function($scope, stage) {
+  .controller('JenkinsStageCtrl', ['$scope', 'stage', function($scope, stage) {
     $scope.stage = stage;
     $scope.stage.failPipeline = $scope.stage.failPipeline === undefined ? true : $scope.stage.failPipeline;
     $scope.stage.continuePipeline = $scope.stage.continuePipeline === undefined ? false : $scope.stage.continuePipeline;
@@ -136,4 +136,4 @@ module.exports = angular
 
     $scope.$watch('stage.master', updateJobsList);
     $scope.$watch('stage.job', updateJobConfig);
-  });
+  }]);

@@ -15,7 +15,7 @@ const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.dcos.instance.details.controller', [INSTANCE_WRITE_SERVICE, CONFIRMATION_MODAL_SERVICE])
-  .controller('dcosInstanceDetailsController', function(
+  .controller('dcosInstanceDetailsController', ['$scope', '$state', '$uibModal', 'instanceWriter', 'confirmationModalService', 'instance', 'app', 'dcosProxyUiService', '$q', function(
     $scope,
     $state,
     $uibModal,
@@ -211,4 +211,4 @@ module.exports = angular
     });
 
     $scope.account = instance.account;
-  });
+  }]);

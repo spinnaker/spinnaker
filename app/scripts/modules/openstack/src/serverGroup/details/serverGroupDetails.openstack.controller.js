@@ -28,7 +28,7 @@ module.exports = angular
     require('../configure/ServerGroupCommandBuilder').name,
     require('../serverGroup.transformer').name,
   ])
-  .controller('openstackServerGroupDetailsCtrl', function(
+  .controller('openstackServerGroupDetailsCtrl', ['$scope', '$state', 'app', 'serverGroup', 'openstackServerGroupCommandBuilder', '$uibModal', 'confirmationModalService', 'serverGroupWriter', 'securityGroupReader', 'loadBalancerReader', 'openstackServerGroupTransformer', 'overrideRegistry', function(
     $scope,
     $state,
     app,
@@ -356,4 +356,4 @@ module.exports = angular
         ).name;
       });
     };
-  });
+  }]);

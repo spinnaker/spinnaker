@@ -21,6 +21,7 @@ export class KubernetesV2DeployManifestConfigCtrl implements IController {
   public manifestArtifactDelegate: NgGenericArtifactDelegate;
   public manifestArtifactController: ExpectedArtifactSelectorViewController;
 
+  public static $inject = ['$scope'];
   constructor(private $scope: IScope) {
     'ngInject';
     KubernetesManifestCommandBuilder.buildNewManifestCommand(

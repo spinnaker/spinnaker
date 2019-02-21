@@ -6,7 +6,7 @@ const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.titus.serverGroup.transformer', [])
-  .factory('titusServerGroupTransformer', function($q) {
+  .factory('titusServerGroupTransformer', ['$q', function($q) {
     function normalizeServerGroup(serverGroup) {
       return $q.when(serverGroup); // no-op
     }
@@ -77,4 +77,4 @@ module.exports = angular
       constructNewStepScalingPolicyTemplate,
       constructNewTargetTrackingPolicyTemplate,
     };
-  });
+  }]);

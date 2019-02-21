@@ -10,7 +10,7 @@ module.exports = angular
     require('../../../common/validateType.directive').name,
     SECURITY_GROUP_READER,
   ])
-  .controller('openstackSecurityGroupRulesController', function(
+  .controller('openstackSecurityGroupRulesController', ['$scope', 'openstackSecurityGroupTransformer', 'securityGroupReader', 'cacheInitializer', function(
     $scope,
     openstackSecurityGroupTransformer,
     securityGroupReader,
@@ -112,4 +112,4 @@ module.exports = angular
         $scope.initializeSecurityGroups();
       }
     };
-  });
+  }]);

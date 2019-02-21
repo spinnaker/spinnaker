@@ -6,13 +6,13 @@ import { SETTINGS } from 'core/config';
 import { CacheInitializerService } from 'core/cache';
 import { StateService } from '@uirouter/core';
 
-bootstrapModule.run(($rootScope: IRootScopeService, $state: StateService) => {
+bootstrapModule.run(['$rootScope', '$state', ($rootScope: IRootScopeService, $state: StateService) => {
   'ngInject';
   $rootScope.feature = SETTINGS.feature;
   $rootScope.$state = $state; // TODO: Do we really need this?
-});
+}]);
 
-bootstrapModule.run((cacheInitializer: CacheInitializerService) => {
+bootstrapModule.run(['cacheInitializer', (cacheInitializer: CacheInitializerService) => {
   'ngInject';
   cacheInitializer.initialize();
-});
+}]);

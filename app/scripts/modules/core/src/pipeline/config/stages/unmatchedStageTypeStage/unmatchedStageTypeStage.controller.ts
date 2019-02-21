@@ -23,6 +23,7 @@ export class UnmatchedStageTypeStageCtrl implements IController {
     'name',
   ]);
 
+  public static $inject = ['$scope'];
   constructor(public $scope: IScope) {
     'ngInject';
   }

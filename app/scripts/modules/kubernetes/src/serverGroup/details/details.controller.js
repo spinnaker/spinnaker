@@ -19,7 +19,7 @@ module.exports = angular
     SERVER_GROUP_WRITER,
     require('../paramsMixin').name,
   ])
-  .controller('kubernetesServerGroupDetailsController', function(
+  .controller('kubernetesServerGroupDetailsController', ['$scope', '$state', 'app', 'serverGroup', '$uibModal', 'serverGroupWriter', 'kubernetesServerGroupCommandBuilder', 'kubernetesServerGroupParamsMixin', 'confirmationModalService', 'kubernetesProxyUiService', function(
     $scope,
     $state,
     app,
@@ -280,4 +280,4 @@ module.exports = angular
         },
       });
     };
-  });
+  }]);

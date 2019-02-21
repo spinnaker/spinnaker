@@ -8,9 +8,9 @@ const angular = require('angular');
 export const AUTHENTICATION_MODULE = 'spinnaker.authentication';
 angular
   .module(AUTHENTICATION_MODULE, [AUTHENTICATION_INTERCEPTOR_SERVICE, require('./userMenu/userMenu.module').name])
-  .config(function($httpProvider: ng.IHttpProvider) {
+  .config(['$httpProvider', function($httpProvider: ng.IHttpProvider) {
     $httpProvider.interceptors.push('gateRequestInterceptor');
-  })
+  }])
   .factory('gateRequestInterceptor', function() {
     return {
       request(config: ng.IRequestConfig) {

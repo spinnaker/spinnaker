@@ -36,7 +36,7 @@ module.exports = angular
     SCALING_POLICY_MODULE,
     TITUS_SECURITY_GROUPS_DETAILS,
   ])
-  .controller('titusServerGroupDetailsCtrl', function(
+  .controller('titusServerGroupDetailsCtrl', ['$scope', '$state', '$templateCache', '$interpolate', 'app', 'serverGroup', 'titusServerGroupCommandBuilder', '$uibModal', 'confirmationModalService', 'serverGroupWriter', 'awsServerGroupTransformer', function(
     $scope,
     $state,
     $templateCache,
@@ -428,4 +428,4 @@ module.exports = angular
         },
       });
     };
-  });
+  }]);

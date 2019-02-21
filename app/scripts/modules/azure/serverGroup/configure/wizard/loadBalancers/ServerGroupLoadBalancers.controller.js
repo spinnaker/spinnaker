@@ -6,7 +6,7 @@ import { InfrastructureCaches, LOAD_BALANCER_READ_SERVICE, NetworkReader, ModalW
 
 module.exports = angular
   .module('spinnaker.azure.serverGroup.configure.loadBalancer.controller', [LOAD_BALANCER_READ_SERVICE])
-  .controller('azureServerGroupLoadBalancersCtrl', function($scope, loadBalancerReader) {
+  .controller('azureServerGroupLoadBalancersCtrl', ['$scope', 'loadBalancerReader', function($scope, loadBalancerReader) {
     ModalWizard.markClean('load-balancers');
 
     if ($scope.command.credentials && $scope.command.region && $scope.command.loadBalancerName) {
@@ -55,4 +55,4 @@ module.exports = angular
           }
         });
     };
-  });
+  }]);

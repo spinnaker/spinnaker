@@ -23,7 +23,7 @@ module.exports = angular
       controllerAs: 'preconditionListCtrl',
     };
   })
-  .controller('PreconditionListCtrl', function($scope, $uibModal) {
+  .controller('PreconditionListCtrl', ['$scope', '$uibModal', function($scope, $uibModal) {
     var vm = this;
 
     vm.editPrecondition = function(precondition, strategy) {
@@ -79,4 +79,4 @@ module.exports = angular
     };
 
     return vm;
-  });
+  }]);

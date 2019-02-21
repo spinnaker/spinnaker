@@ -68,6 +68,7 @@ export class AppengineDeployDescription {
 }
 
 class AppengineServerGroupTransformer {
+  public static $inject = ['$q'];
   constructor(private $q: ng.IQService) {
     'ngInject';
   }

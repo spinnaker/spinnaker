@@ -44,7 +44,7 @@ module.exports = angular
       },
     };
   })
-  .controller('StageConfigCtrl', function($scope, $element, $compile, $controller, $templateCache) {
+  .controller('StageConfigCtrl', ['$scope', '$element', '$compile', '$controller', '$templateCache', function($scope, $element, $compile, $controller, $templateCache) {
     var lastStageScope, reactComponentMounted;
 
     $scope.options = {
@@ -247,8 +247,8 @@ module.exports = angular
     $scope.$watch('stage.type', this.selectStage);
     $scope.$watch('viewState.stageIndex', this.selectStage);
     $scope.$watch('stage.refId', this.selectStage);
-  })
-  .controller('RestartStageCtrl', function($scope, $stateParams, confirmationModalService) {
+  }])
+  .controller('RestartStageCtrl', ['$scope', '$stateParams', 'confirmationModalService', function($scope, $stateParams, confirmationModalService) {
     var restartStage = function() {
       return API.one('pipelines')
         .one($stateParams.executionId)
@@ -274,7 +274,7 @@ module.exports = angular
         submitMethod: restartStage,
       });
     };
-  })
+  }])
   .filter('stageTypeMatch', () => {
     return (stageTypes, search) => {
       const q = search.toLowerCase();

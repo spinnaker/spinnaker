@@ -29,6 +29,7 @@ export class WerckerTrigger implements IController {
   public fiatEnabled: boolean;
   public serviceAccounts: string[];
 
+  public static $inject = ['$scope', 'trigger'];
   constructor($scope: IScope, public trigger: IWerckerTrigger) {
     'ngInject';
     this.fiatEnabled = SETTINGS.feature.fiatEnabled;

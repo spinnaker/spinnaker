@@ -18,7 +18,7 @@ module.exports = angular
     require('@uirouter/angularjs').default,
     EXECUTION_DETAILS_SECTION_SERVICE,
   ])
-  .controller('DeployExecutionDetailsCtrl', function($scope, $stateParams, executionDetailsSectionService) {
+  .controller('DeployExecutionDetailsCtrl', ['$scope', '$stateParams', 'executionDetailsSectionService', function($scope, $stateParams, executionDetailsSectionService) {
     $scope.configSections = ['deploymentConfig', 'taskStatus', 'artifactStatus'];
 
     function areJarDiffsEmpty() {
@@ -172,4 +172,4 @@ module.exports = angular
     if (_.hasIn($scope.application, 'executions.onRefresh')) {
       $scope.application.executions.onRefresh($scope, initialize);
     }
-  });
+  }]);

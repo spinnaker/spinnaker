@@ -21,6 +21,7 @@ export class HelpFieldCtrl implements IController {
   private popoverShownStart: number;
   private popoverClose: IPromise<void>;
 
+  public static $inject = ['$timeout', '$analytics'];
   constructor(private $timeout: ITimeoutService, private $analytics: any) {
     'ngInject';
   }

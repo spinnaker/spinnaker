@@ -18,7 +18,7 @@ module.exports = angular
     require('../../../region/regionSelectField.directive').name,
     require('../../transformer').name,
   ])
-  .controller('openstackUpsertSecurityGroupController', function(
+  .controller('openstackUpsertSecurityGroupController', ['$q', '$scope', '$uibModalInstance', '$state', 'application', 'securityGroup', 'openstackSecurityGroupTransformer', 'securityGroupReader', function(
     $q,
     $scope,
     $uibModalInstance,
@@ -195,4 +195,4 @@ module.exports = angular
     this.cancel = function() {
       $uibModalInstance.dismiss();
     };
-  });
+  }]);

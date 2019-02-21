@@ -25,7 +25,7 @@ module.exports = angular
         .attr('checked', _.isEqual(scope.command.interestingHealthProviderNames, [scope.platformHealthType]));
     };
   })
-  .controller('PlatformHealthOverrideCtrl', function($scope) {
+  .controller('PlatformHealthOverrideCtrl', ['$scope', function($scope) {
     $scope.clicked = function($event) {
       if ($event.currentTarget.checked) {
         $scope.command.interestingHealthProviderNames = [$scope.platformHealthType];
@@ -33,4 +33,4 @@ module.exports = angular
         delete $scope.command.interestingHealthProviderNames;
       }
     };
-  });
+  }]);

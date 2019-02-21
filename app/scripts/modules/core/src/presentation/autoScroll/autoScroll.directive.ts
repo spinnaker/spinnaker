@@ -51,6 +51,7 @@ export class AutoScrollController implements IController {
     this.$scope.$on('$destroy', () => this.scrollableContainer.off(this.containerEvent));
   }
 
+  public static $inject = ['$timeout'];
   public constructor(private $timeout: ITimeoutService) {}
 }
 

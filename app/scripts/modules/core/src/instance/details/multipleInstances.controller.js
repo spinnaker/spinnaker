@@ -13,7 +13,7 @@ module.exports = angular
     CONFIRMATION_MODAL_SERVICE,
     require('./multipleInstanceServerGroup.directive').name,
   ])
-  .controller('MultipleInstancesCtrl', function($scope, $state, confirmationModalService, instanceWriter, app) {
+  .controller('MultipleInstancesCtrl', ['$scope', '$state', 'confirmationModalService', 'instanceWriter', 'app', function($scope, $state, confirmationModalService, instanceWriter, app) {
     this.selectedGroups = [];
 
     /**
@@ -258,4 +258,4 @@ module.exports = angular
       ClusterState.multiselectModel.deselectAllInstances();
       multiselectWatcher.unsubscribe();
     });
-  });
+  }]);

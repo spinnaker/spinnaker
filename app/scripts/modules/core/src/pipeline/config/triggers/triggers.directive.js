@@ -22,7 +22,7 @@ module.exports = angular
       templateUrl: require('./triggers.html'),
     };
   })
-  .controller('triggersCtrl', function($scope) {
+  .controller('triggersCtrl', ['$scope', function($scope) {
     this.showProperties = SETTINGS.feature.quietPeriod || SETTINGS.feature.managedServiceAccounts;
     this.addTrigger = function() {
       var triggerTypes = Registry.pipeline.getTriggerTypes(),
@@ -70,4 +70,4 @@ module.exports = angular
      */
 
     this.checkFeatureFlag = flag => !!SETTINGS.feature[flag];
-  });
+  }]);

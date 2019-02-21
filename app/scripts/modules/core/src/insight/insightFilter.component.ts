@@ -3,6 +3,7 @@ import { INSIGHT_LAYOUT_COMPONENT } from 'core/insight/insightLayout.component';
 import { InsightFilterStateModel } from './insightFilterState.model';
 
 export class InsightFilterCtrl implements IController {
+  public static $inject = ['insightFilterStateModel'];
   constructor(public insightFilterStateModel: InsightFilterStateModel) {
     'ngInject';
   }

@@ -26,7 +26,7 @@ module.exports = angular
     ECS_CLUSTER_READ_SERVICE,
     ECS_SECRET_READ_SERVICE,
   ])
-  .controller('ecsCloneServerGroupCtrl', function(
+  .controller('ecsCloneServerGroupCtrl', ['$scope', '$uibModalInstance', '$q', '$state', 'serverGroupWriter', 'overrideRegistry', 'ecsServerGroupConfigurationService', 'serverGroupCommandRegistry', 'serverGroupCommand', 'iamRoleReader', 'ecsClusterReader', 'secretReader', 'application', 'title', function(
     $scope,
     $uibModalInstance,
     $q,
@@ -209,4 +209,4 @@ module.exports = angular
       $scope.state.requiresTemplateSelection = false;
       configureCommand();
     };
-  });
+  }]);

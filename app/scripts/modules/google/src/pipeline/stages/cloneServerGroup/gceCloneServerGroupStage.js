@@ -21,7 +21,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('gceCloneServerGroupStageCtrl', function($scope) {
+  .controller('gceCloneServerGroupStageCtrl', ['$scope', function($scope) {
     const stage = $scope.stage;
 
     $scope.viewState = {
@@ -75,4 +75,4 @@ module.exports = angular
     this.toggleDisableTraffic = () => {
       stage.disableTraffic = !stage.disableTraffic;
     };
-  });
+  }]);

@@ -26,7 +26,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('kubernetesDisableAsgStageController', function($scope) {
+  .controller('kubernetesDisableAsgStageController', ['$scope', function($scope) {
     let stage = $scope.stage;
 
     $scope.state = {
@@ -53,4 +53,4 @@ module.exports = angular
     if (!stage.target) {
       stage.target = $scope.targets[0].val;
     }
-  });
+  }]);

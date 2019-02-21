@@ -4,7 +4,7 @@ const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.dcos.serverGroup.configure.network', [])
-  .controller('dcosServerGroupNetworkController', function($scope) {
+  .controller('dcosServerGroupNetworkController', ['$scope', function($scope) {
     var HOST_NETWORK = 'HOST';
     var BRIDGE_NETWORK = 'BRIDGE';
     var USER_NETWORK = 'USER';
@@ -62,4 +62,4 @@ module.exports = angular
         endpoint.networkType = $scope.command.networkType;
       });
     };
-  });
+  }]);

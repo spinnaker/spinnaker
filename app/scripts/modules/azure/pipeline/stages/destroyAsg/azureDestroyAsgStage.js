@@ -27,7 +27,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('azureDestroyAsgStageCtrl', function($scope) {
+  .controller('azureDestroyAsgStageCtrl', ['$scope', function($scope) {
     var ctrl = this;
 
     let stage = $scope.stage;
@@ -66,4 +66,4 @@ module.exports = angular
     if (!stage.target) {
       stage.target = $scope.targets[0].val;
     }
-  });
+  }]);

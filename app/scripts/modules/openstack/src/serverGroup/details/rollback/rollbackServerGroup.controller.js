@@ -9,7 +9,7 @@ module.exports = angular
     SERVER_GROUP_WRITER,
     require('../../../common/footer.directive').name,
   ])
-  .controller('openstackRollbackServerGroupCtrl', function(
+  .controller('openstackRollbackServerGroupCtrl', ['$scope', '$uibModalInstance', 'serverGroupWriter', 'application', 'serverGroup', 'disabledServerGroups', function(
     $scope,
     $uibModalInstance,
     serverGroupWriter,
@@ -66,4 +66,4 @@ module.exports = angular
     this.cancel = function() {
       $uibModalInstance.dismiss();
     };
-  });
+  }]);

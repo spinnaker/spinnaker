@@ -16,7 +16,7 @@ module(PROJECTS_STATES_CONFIG, [
   require('./dashboard/dashboard.controller').name,
   APPLICATION_STATE_PROVIDER,
   STATE_CONFIG_PROVIDER,
-]).config((stateConfigProvider: StateConfigProvider, applicationStateProvider: ApplicationStateProvider) => {
+]).config(['stateConfigProvider', 'applicationStateProvider', (stateConfigProvider: StateConfigProvider, applicationStateProvider: ApplicationStateProvider) => {
   const dashboard: INestedState = {
     name: 'dashboard',
     url: '/dashboard',
@@ -99,4 +99,4 @@ module(PROJECTS_STATES_CONFIG, [
     '/projects/{project}/applications/{application}',
     '/projects/{project}/applications/{application}/clusters',
   );
-});
+}]);

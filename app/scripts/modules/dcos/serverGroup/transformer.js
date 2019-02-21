@@ -6,7 +6,7 @@ const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.dcos.serverGroup.transformer', [])
-  .factory('dcosServerGroupTransformer', function($q) {
+  .factory('dcosServerGroupTransformer', ['$q', function($q) {
     function normalizeServerGroup(serverGroup) {
       return $q.when(serverGroup); // no-op
     }
@@ -36,4 +36,4 @@ module.exports = angular
       convertServerGroupCommandToDeployConfiguration: convertServerGroupCommandToDeployConfiguration,
       normalizeServerGroup: normalizeServerGroup,
     };
-  });
+  }]);

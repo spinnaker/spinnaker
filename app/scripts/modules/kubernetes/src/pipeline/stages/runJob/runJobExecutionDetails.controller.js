@@ -8,7 +8,7 @@ module.exports = angular
   .module('spinnaker.kubernetes.pipeline.stage.disableCluster.runJobExecutionDetails.controller', [
     require('@uirouter/angularjs').default,
   ])
-  .controller('kubernetesRunJobExecutionDetailsCtrl', function(
+  .controller('kubernetesRunJobExecutionDetailsCtrl', ['$scope', '$stateParams', 'executionService', 'executionDetailsSectionService', '$uibModal', function(
     $scope,
     $stateParams,
     executionService,
@@ -55,4 +55,4 @@ module.exports = angular
         });
       }
     };
-  });
+  }]);

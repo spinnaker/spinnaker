@@ -7,7 +7,7 @@ import { PipelineConfigService } from 'core/pipeline/config/services/PipelineCon
 
 module.exports = angular
   .module('spinnaker.core.pipeline.config.actions.delete', [require('@uirouter/angularjs').default])
-  .controller('DeletePipelineModalCtrl', function($scope, $uibModalInstance, $log, application, pipeline, $state) {
+  .controller('DeletePipelineModalCtrl', ['$scope', '$uibModalInstance', '$log', 'application', 'pipeline', '$state', function($scope, $uibModalInstance, $log, application, pipeline, $state) {
     this.cancel = $uibModalInstance.dismiss;
 
     $scope.viewState = {};
@@ -41,4 +41,4 @@ module.exports = angular
         },
       );
     };
-  });
+  }]);

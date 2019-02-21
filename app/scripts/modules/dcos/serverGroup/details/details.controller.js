@@ -18,7 +18,7 @@ module.exports = angular
     SERVER_GROUP_WRITER,
     require('../paramsMixin').name,
   ])
-  .controller('dcosServerGroupDetailsController', function(
+  .controller('dcosServerGroupDetailsController', ['$scope', '$state', 'app', 'serverGroup', '$uibModal', 'serverGroupWriter', 'dcosServerGroupCommandBuilder', 'dcosServerGroupParamsMixin', 'confirmationModalService', 'dcosProxyUiService', function(
     $scope,
     $state,
     app,
@@ -237,4 +237,4 @@ module.exports = angular
         },
       });
     };
-  });
+  }]);

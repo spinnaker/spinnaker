@@ -15,7 +15,7 @@ module.exports = angular
     require('../presentation/sortToggle/sorttoggle.directive').name,
     INSIGHT_MENU_DIRECTIVE,
   ])
-  .controller('ProjectsCtrl', function($scope, $uibModal, $log, $filter) {
+  .controller('ProjectsCtrl', ['$scope', '$uibModal', '$log', '$filter', function($scope, $uibModal, $log, $filter) {
     var projectsViewStateCache =
       ViewStateCache.get('projects') || ViewStateCache.createCache('projects', { version: 1 });
 
@@ -89,4 +89,4 @@ module.exports = angular
     $scope.$watch('viewState', cacheViewState, true);
 
     initializeViewState();
-  });
+  }]);

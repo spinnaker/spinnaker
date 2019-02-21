@@ -16,7 +16,7 @@ module.exports = angular
       application: '=',
     },
     templateUrl: require('./resizeAutoscalingPolicy.component.html'),
-    controller: function($scope, gceAutoscalingPolicyWriter) {
+    controller: ['$scope', 'gceAutoscalingPolicyWriter', function($scope, gceAutoscalingPolicyWriter) {
       const newPolicyBounds = ['newMinNumReplicas', 'newMaxNumReplicas'];
       newPolicyBounds.forEach(prop => (this.command[prop] = null));
 
@@ -44,5 +44,5 @@ module.exports = angular
           );
         },
       });
-    },
+    }],
   });

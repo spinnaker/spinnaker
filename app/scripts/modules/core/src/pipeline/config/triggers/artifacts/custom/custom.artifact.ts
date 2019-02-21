@@ -5,6 +5,7 @@ import { Registry } from 'core/registry';
 import { CustomArtifactEditor } from './CustomArtifactEditor';
 
 class CustomArtifactController implements IController {
+  public static $inject = ['artifact'];
   constructor(public artifact: IArtifact) {
     'ngInject';
   }

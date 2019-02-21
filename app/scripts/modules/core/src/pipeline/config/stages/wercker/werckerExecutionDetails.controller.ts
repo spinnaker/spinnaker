@@ -13,6 +13,7 @@ export class WerckerExecutionDetailsCtrl implements IController {
   public failureMessage: string;
   public stage: any;
 
+  public static $inject = ['$stateParams', 'executionDetailsSectionService', '$scope'];
   constructor(
     private $stateParams: StateParams,
     private executionDetailsSectionService: ExecutionDetailsSectionService,

@@ -39,6 +39,7 @@ class AppengineConfigFileConfigurerCtrl implements IController {
   private artifactAccounts: IArtifactAccount[] = [];
   public command: IAppengineConfigFileConfigurerCtrlCommand;
 
+  public static $inject = ['$scope'];
   constructor(public $scope: IScope) {}
 
   public $onInit(): void {

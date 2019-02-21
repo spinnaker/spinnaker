@@ -19,7 +19,7 @@ module.exports = angular
       label: '@',
       hiddenKeys: '<',
     },
-    controller: function($scope) {
+    controller: ['$scope', function($scope) {
       this.backingModel = [];
 
       // Set default values for optional fields
@@ -77,6 +77,6 @@ module.exports = angular
       };
 
       $scope.$watch(() => JSON.stringify(this.backingModel), this.synchronize);
-    },
+    }],
     templateUrl: require('./mapEditor.component.html'),
   });

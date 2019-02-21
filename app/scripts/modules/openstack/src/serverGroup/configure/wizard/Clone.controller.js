@@ -10,7 +10,7 @@ module.exports = angular
     SERVER_GROUP_WRITER,
     require('../serverGroupConfiguration.service').name,
   ])
-  .controller('openstackCloneServerGroupCtrl', function(
+  .controller('openstackCloneServerGroupCtrl', ['$scope', '$uibModalInstance', '$q', '$state', 'serverGroupWriter', 'openstackServerGroupConfigurationService', 'serverGroupCommand', 'application', 'title', function(
     $scope,
     $uibModalInstance,
     $q,
@@ -119,4 +119,4 @@ module.exports = angular
       $scope.state.requiresTemplateSelection = false;
       configureCommand();
     };
-  });
+  }]);

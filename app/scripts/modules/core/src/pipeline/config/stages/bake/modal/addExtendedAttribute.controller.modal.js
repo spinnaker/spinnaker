@@ -4,7 +4,7 @@ const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.pipeline.stage.bake.modal.addExtendedAttribute', [])
-  .controller('bakeStageAddExtendedAttributeController', function($scope, $uibModalInstance, extendedAttribute) {
+  .controller('bakeStageAddExtendedAttributeController', ['$scope', '$uibModalInstance', 'extendedAttribute', function($scope, $uibModalInstance, extendedAttribute) {
     var vm = this;
     $scope.extendedAttribute = angular.copy(extendedAttribute);
 
@@ -13,4 +13,4 @@ module.exports = angular
     };
 
     return vm;
-  });
+  }]);

@@ -9,7 +9,7 @@ module.exports = angular
     require('@uirouter/angularjs').default,
     require('angular-ui-bootstrap'),
   ])
-  .controller('ecsServerGroupBasicSettingsCtrl', function($scope, $controller, $uibModalStack, $state) {
+  .controller('ecsServerGroupBasicSettingsCtrl', ['$scope', '$controller', '$uibModalStack', '$state', function($scope, $controller, $uibModalStack, $state) {
     angular.extend(
       this,
       $controller('BasicSettingsMixin', {
@@ -27,4 +27,4 @@ module.exports = angular
         ModalWizard.markIncomplete('location');
       }
     });
-  });
+  }]);

@@ -13,7 +13,7 @@ module.exports = angular
     require('./diffSummary.component').name,
     DIFF_VIEW_COMPONENT,
   ])
-  .controller('ShowHistoryCtrl', function(
+  .controller('ShowHistoryCtrl', ['$window', 'pipelineConfigId', 'currentConfig', 'isStrategy', '$uibModalInstance', '$filter', function(
     $window,
     pipelineConfigId,
     currentConfig,
@@ -78,4 +78,4 @@ module.exports = angular
     };
 
     PipelineConfigService.getHistory(pipelineConfigId, isStrategy, 100).then(historyLoaded, loadError);
-  });
+  }]);

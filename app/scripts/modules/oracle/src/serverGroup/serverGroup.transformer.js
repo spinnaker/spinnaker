@@ -6,7 +6,7 @@ import _ from 'lodash';
 
 module.exports = angular
   .module('spinnaker.oracle.serverGroup.transformer', [])
-  .factory('oracleServerGroupTransformer', function($q) {
+  .factory('oracleServerGroupTransformer', ['$q', function($q) {
     let PROVIDER = 'oracle';
 
     function normalizeServerGroup(serverGroup) {
@@ -23,4 +23,4 @@ module.exports = angular
       convertServerGroupCommandToDeployConfiguration,
       normalizeServerGroup,
     };
-  });
+  }]);

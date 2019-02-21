@@ -11,7 +11,7 @@ export interface IKubernetesResourceStateParams {
 
 export const KUBERNETES_V2_RESOURCE_STATES = 'spinnaker.core.kubernetesResource.states';
 module(KUBERNETES_V2_RESOURCE_STATES, [APPLICATION_STATE_PROVIDER]).config(
-  (applicationStateProvider: ApplicationStateProvider) => {
+  ['applicationStateProvider', (applicationStateProvider: ApplicationStateProvider) => {
     const kubernetesResourceDetails: INestedState = {
       name: 'kubernetesResource',
       url: '/manifest/:provider/:accountId/:region/:kubernetesResource',
@@ -39,5 +39,5 @@ module(KUBERNETES_V2_RESOURCE_STATES, [APPLICATION_STATE_PROVIDER]).config(
     };
 
     applicationStateProvider.addInsightDetailState(kubernetesResourceDetails);
-  },
+  }],
 );

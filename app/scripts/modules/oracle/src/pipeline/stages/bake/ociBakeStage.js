@@ -27,7 +27,7 @@ module.exports = angular
       restartable: true,
     });
   })
-  .controller('oracleBakeStageCtrl', function($scope, $q) {
+  .controller('oracleBakeStageCtrl', ['$scope', '$q', function($scope, $q) {
     const provider = 'oracle';
 
     if (!$scope.stage.cloudProvider) {
@@ -98,4 +98,4 @@ module.exports = angular
     $scope.$watch('stage.accountName', $scope.accountUpdated);
 
     initialize();
-  });
+  }]);

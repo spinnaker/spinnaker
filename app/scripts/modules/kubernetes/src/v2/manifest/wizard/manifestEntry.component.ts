@@ -12,6 +12,7 @@ class KubernetesManifestCtrl implements IController {
   public manifests: IManifest[];
   public rawManifest: string;
 
+  public static $inject = ['$scope'];
   constructor(private $scope: IScope) {
     'ngInject';
   }

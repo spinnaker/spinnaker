@@ -9,7 +9,7 @@ module.exports = angular
     require('@uirouter/angularjs').default,
     CACHE_INITIALIZER_SERVICE,
   ])
-  .controller('awsCreateSecurityGroupCtrl', function(
+  .controller('awsCreateSecurityGroupCtrl', ['$scope', '$uibModalInstance', '$state', '$controller', 'cacheInitializer', 'application', 'securityGroup', function(
     $scope,
     $uibModalInstance,
     $state,
@@ -42,4 +42,4 @@ module.exports = angular
     ctrl.upsert = () => ctrl.mixinUpsert('Create');
 
     ctrl.initializeSecurityGroups().then(ctrl.initializeAccounts);
-  });
+  }]);

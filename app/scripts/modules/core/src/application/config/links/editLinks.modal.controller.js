@@ -4,7 +4,7 @@ const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.application.config.links.editJson', [])
-  .controller('EditLinksModalCtrl', function(sections, $uibModalInstance) {
+  .controller('EditLinksModalCtrl', ['sections', '$uibModalInstance', function(sections, $uibModalInstance) {
     this.cancel = $uibModalInstance.dismiss;
 
     this.initialize = () => {
@@ -21,4 +21,4 @@ module.exports = angular
     };
 
     this.initialize();
-  });
+  }]);

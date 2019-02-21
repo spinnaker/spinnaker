@@ -6,6 +6,7 @@ import { ExecutionDetailsTasks, IStage, Registry } from '@spinnaker/core';
 import { CloudfoundryDestroyServiceExecutionDetails } from './CloudfoundryDestroyServiceExecutionDetails';
 
 class CloudFoundryDestroyServiceStageCtrl implements IController {
+  public static $inject = ['$scope'];
   constructor(public $scope: IScope) {
     'ngInject';
   }

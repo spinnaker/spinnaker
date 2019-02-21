@@ -9,7 +9,7 @@ module.exports = angular
     EXECUTION_DETAILS_SECTION_SERVICE,
     require('@uirouter/angularjs').default,
   ])
-  .controller('oracleBakeExecutionDetailsCtrl', function(
+  .controller('oracleBakeExecutionDetailsCtrl', ['$log', '$scope', '$stateParams', 'executionDetailsSectionService', '$interpolate', function(
     $log,
     $scope,
     $stateParams,
@@ -30,4 +30,4 @@ module.exports = angular
     initialize();
 
     $scope.$on('$stateChangeSuccess', initialize);
-  });
+  }]);

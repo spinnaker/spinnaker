@@ -16,7 +16,7 @@ module.exports = angular
       },
     };
   })
-  .controller('kubernetesContainerProbeController', function($scope) {
+  .controller('kubernetesContainerProbeController', ['$scope', function($scope) {
     this.uriSchemes = ['HTTP', 'HTTPS'];
     this.maxPort = 65535;
     this.handlers = ['EXEC', 'HTTP', 'TCP'];
@@ -105,4 +105,4 @@ module.exports = angular
     };
 
     this.prepareProbe();
-  });
+  }]);

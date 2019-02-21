@@ -16,7 +16,7 @@ module.exports = angular
     template: `<button class="btn btn-link" ng-click="$ctrl.viewSnapshotDiffs()">
                   <span class="glyphicon glyphicon-cloud"></span> View Snapshot History
                </button>`,
-    controller: function($q, $uibModal) {
+    controller: ['$q', '$uibModal', function($q, $uibModal) {
       function getSnapshotEnabledAccounts(application) {
         return AccountService.listProviders(application)
           .then(providers => providers.filter(provider => CloudProviderRegistry.getValue(provider, 'snapshotsEnabled')))
@@ -43,5 +43,5 @@ module.exports = angular
           },
         });
       };
-    },
+    }],
   });

@@ -21,7 +21,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('openstackCloneServerGroupStageCtrl', function($scope) {
+  .controller('openstackCloneServerGroupStageCtrl', ['$scope', function($scope) {
     let stage = $scope.stage;
 
     $scope.viewState = {
@@ -85,4 +85,4 @@ module.exports = angular
     this.processIsSuspended = process => {
       return stage.suspendedProcesses && stage.suspendedProcesses.includes(process);
     };
-  });
+  }]);

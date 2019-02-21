@@ -19,7 +19,7 @@ module.exports = angular
       application: '=',
     },
     templateUrl: require('./applicationLinks.component.html'),
-    controller: function($uibModal) {
+    controller: ['$uibModal', function($uibModal) {
       let initialize = () => {
         if (this.application.notFound) {
           return;
@@ -111,5 +111,5 @@ module.exports = angular
       };
 
       this.$onInit = initialize;
-    },
+    }],
   });

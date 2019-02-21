@@ -26,7 +26,7 @@ module.exports = angular
       validators: [{ type: 'requiredField', fieldName: 'account' }, { type: 'requiredField', fieldName: 'general.id' }],
     });
   })
-  .controller('dcosRunJobStageCtrl', function($scope, $q) {
+  .controller('dcosRunJobStageCtrl', ['$scope', '$q', function($scope, $q) {
     let stage = $scope.stage;
     this.stage = $scope.stage;
 
@@ -118,4 +118,4 @@ module.exports = angular
       setRegistry();
       this.updateRegions();
     });
-  });
+  }]);

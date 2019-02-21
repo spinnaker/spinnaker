@@ -15,7 +15,7 @@ module.exports = angular
       templateUrl: require('./parameters.html'),
     };
   })
-  .controller('parametersCtrl', function($scope) {
+  .controller('parametersCtrl', ['$scope', function($scope) {
     this.addParameter = function() {
       if (!$scope.pipeline.parameterConfig) {
         $scope.pipeline.parameterConfig = [];
@@ -29,4 +29,4 @@ module.exports = angular
       delay: 150,
       handle: '.glyphicon-resize-vertical',
     };
-  });
+  }]);

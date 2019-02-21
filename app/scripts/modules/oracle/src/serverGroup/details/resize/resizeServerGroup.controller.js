@@ -9,7 +9,7 @@ module.exports = angular
     require('./resizeCapacity.component').name,
     require('oracle/common/footer.component').name,
   ])
-  .controller('oracleResizeServerGroupCtrl', function($scope, $uibModalInstance, application, serverGroup) {
+  .controller('oracleResizeServerGroupCtrl', ['$scope', '$uibModalInstance', 'application', 'serverGroup', function($scope, $uibModalInstance, application, serverGroup) {
     $scope.serverGroup = serverGroup;
     $scope.application = application;
     $scope.verification = {};
@@ -49,4 +49,4 @@ module.exports = angular
     this.cancel = function() {
       $uibModalInstance.dismiss();
     };
-  });
+  }]);

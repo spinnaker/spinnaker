@@ -38,7 +38,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('JenkinsTriggerCtrl', function($scope, trigger) {
+  .controller('JenkinsTriggerCtrl', ['$scope', 'trigger', function($scope, trigger) {
     $scope.trigger = trigger;
     this.fiatEnabled = SETTINGS.feature.fiatEnabled;
     ServiceAccountReader.getServiceAccounts().then(accounts => {
@@ -88,4 +88,4 @@ module.exports = angular
     initializeMasters();
 
     $scope.$watch('trigger.master', updateJobsList);
-  });
+  }]);

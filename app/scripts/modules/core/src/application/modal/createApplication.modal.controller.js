@@ -20,7 +20,7 @@ module.exports = angular
     require('./applicationProviderFields.component').name,
     CHAOS_MONKEY_NEW_APPLICATION_CONFIG_COMPONENT,
   ])
-  .controller('CreateApplicationModalCtrl', function($scope, $q, $log, $state, $uibModalInstance, $timeout) {
+  .controller('CreateApplicationModalCtrl', ['$scope', '$q', '$log', '$state', '$uibModalInstance', '$timeout', function($scope, $q, $log, $state, $uibModalInstance, $timeout) {
     let applicationLoader = ApplicationReader.listApplications();
     applicationLoader.then(applications => (this.data.appNameList = _.map(applications, 'name')));
 
@@ -122,4 +122,4 @@ module.exports = angular
       }
       this.createApplicationForTests();
     };
-  });
+  }]);

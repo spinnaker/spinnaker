@@ -19,7 +19,7 @@ module.exports = angular
       controller: 'gceServerGroupAdvancedSettingsSelectorCtrl',
     };
   })
-  .controller('gceServerGroupAdvancedSettingsSelectorCtrl', function(gceTagManager) {
+  .controller('gceServerGroupAdvancedSettingsSelectorCtrl', ['gceTagManager', function(gceTagManager) {
     this.addTag = () => {
       this.command.tags.push({});
     };
@@ -46,4 +46,4 @@ module.exports = angular
         this.command.onHostMaintenance = 'MIGRATE';
       }
     };
-  });
+  }]);

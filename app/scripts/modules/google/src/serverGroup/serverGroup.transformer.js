@@ -7,7 +7,7 @@ const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.gce.serverGroup.transformer', [GCE_HTTP_LOAD_BALANCER_UTILS])
-  .factory('gceServerGroupTransformer', function(gceHttpLoadBalancerUtils) {
+  .factory('gceServerGroupTransformer', ['gceHttpLoadBalancerUtils', function(gceHttpLoadBalancerUtils) {
     function normalizeServerGroup(serverGroup, application) {
       return application
         .getDataSource('loadBalancers')
@@ -55,4 +55,4 @@ module.exports = angular
       convertServerGroupCommandToDeployConfiguration: convertServerGroupCommandToDeployConfiguration,
       normalizeServerGroup: normalizeServerGroup,
     };
-  });
+  }]);

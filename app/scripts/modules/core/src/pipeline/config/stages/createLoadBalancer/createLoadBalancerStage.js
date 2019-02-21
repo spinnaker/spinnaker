@@ -24,7 +24,7 @@ module.exports = angular
       });
     }
   })
-  .controller('createLoadBalancerStageCtrl', function($scope, $uibModal, providerSelectionService) {
+  .controller('createLoadBalancerStageCtrl', ['$scope', '$uibModal', 'providerSelectionService', function($scope, $uibModal, providerSelectionService) {
     function initializeCommand() {
       $scope.stage.loadBalancers = $scope.stage.loadBalancers || [];
     }
@@ -82,4 +82,4 @@ module.exports = angular
     };
 
     initializeCommand();
-  });
+  }]);

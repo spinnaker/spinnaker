@@ -6,6 +6,7 @@ import { AppengineHealth } from 'appengine/common/appengineHealth';
 import { IAppengineAccount, IAppengineStageScope } from 'appengine/domain';
 
 export class AppengineStageCtrl implements IController {
+  public static $inject = ['$scope'];
   constructor(protected $scope: IAppengineStageScope) {
     $scope.platformHealth = AppengineHealth.PLATFORM;
   }

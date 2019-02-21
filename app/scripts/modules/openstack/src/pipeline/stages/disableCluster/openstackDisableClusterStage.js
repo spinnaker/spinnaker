@@ -23,7 +23,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('openstackDisableClusterStageCtrl', function($scope) {
+  .controller('openstackDisableClusterStageCtrl', ['$scope', function($scope) {
     var ctrl = this;
 
     let stage = $scope.stage;
@@ -76,4 +76,4 @@ module.exports = angular
       stage.preferLargerOverNewer = 'false';
     }
     stage.preferLargerOverNewer = stage.preferLargerOverNewer.toString();
-  });
+  }]);

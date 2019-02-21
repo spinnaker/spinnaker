@@ -5,7 +5,7 @@ import { Observable, Subject } from 'rxjs';
 
 module.exports = angular
   .module('spinnaker.dcos.serverGroup.configure.containerSettings', [])
-  .controller('dcosServerGroupContainerSettingsController', function($scope, dcosServerGroupConfigurationService) {
+  .controller('dcosServerGroupContainerSettingsController', ['$scope', 'dcosServerGroupConfigurationService', function($scope, dcosServerGroupConfigurationService) {
     this.groupByRegistry = function(image) {
       if (image) {
         if (image.fromContext) {
@@ -53,4 +53,4 @@ module.exports = angular
     this.removeParameter = function(index) {
       $scope.command.docker.parameters.splice(index, 1);
     };
-  });
+  }]);

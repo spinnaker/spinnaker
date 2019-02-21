@@ -35,6 +35,7 @@ export class TravisStage implements IController {
   public filterLimit = 100;
   private filterThreshold = 500;
 
+  public static $inject = ['stage', '$scope', '$uibModal'];
   constructor(public stage: any, $scope: IScope, private $uibModal: IModalService) {
     this.stage.failPipeline = this.stage.failPipeline === undefined ? true : this.stage.failPipeline;
     this.stage.continuePipeline = this.stage.continuePipeline === undefined ? false : this.stage.continuePipeline;

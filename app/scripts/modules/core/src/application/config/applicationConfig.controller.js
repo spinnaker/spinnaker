@@ -21,7 +21,7 @@ module.exports = angular
     TRAFFIC_GUARD_CONFIG_COMPONENT,
     require('./links/applicationLinks.component').name,
   ])
-  .controller('ApplicationConfigController', function($state, app, $scope) {
+  .controller('ApplicationConfigController', ['$state', 'app', '$scope', function($state, app, $scope) {
     this.application = app;
     this.isDataSourceEnabled = key => app.dataSources.some(ds => ds.key === key && ds.disabled === false);
     this.feature = SETTINGS.feature;
@@ -54,4 +54,4 @@ module.exports = angular
           this.bannerConfigProps.saveError = true;
         });
     };
-  });
+  }]);

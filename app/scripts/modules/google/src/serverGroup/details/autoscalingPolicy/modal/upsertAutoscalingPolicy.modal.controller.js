@@ -12,7 +12,7 @@ module.exports = angular
     require('google/autoscalingPolicy/components/basicSettings/basicSettings.component').name,
     require('google/autoscalingPolicy/components/metricSettings/metricSettings.component').name,
   ])
-  .controller('gceUpsertAutoscalingPolicyModalCtrl', function(
+  .controller('gceUpsertAutoscalingPolicyModalCtrl', ['policy', 'application', 'serverGroup', '$uibModalInstance', 'gceAutoscalingPolicyWriter', function(
     policy,
     application,
     serverGroup,
@@ -36,4 +36,4 @@ module.exports = angular
 
       this.taskMonitor.submit(submitMethod);
     };
-  });
+  }]);

@@ -20,7 +20,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('awsFindImageFromTagsStageCtrl', function($scope) {
+  .controller('awsFindImageFromTagsStageCtrl', ['$scope', function($scope) {
     $scope.stage.tags = $scope.stage.tags || {};
     $scope.stage.regions = $scope.stage.regions || [];
     $scope.stage.cloudProvider = $scope.stage.cloudProvider || 'aws';
@@ -28,4 +28,4 @@ module.exports = angular
     BakeryReader.getRegions('aws').then(function(regions) {
       $scope.regions = regions;
     });
-  });
+  }]);

@@ -38,6 +38,7 @@ class ClusterFilterCtrl {
   private groupsUpdatedSubscription: Subscription;
   private locationChangeUnsubscribe: () => void;
 
+  public static $inject = ['$scope', '$rootScope', '$timeout', 'clusterDependentFilterHelper'];
   constructor(
     public $scope: IScope,
     public $rootScope: IScope,

@@ -6,7 +6,7 @@ import { SERVER_GROUP_WRITER, TaskMonitor } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.kubernetes.serverGroup.details.rollback.controller', [SERVER_GROUP_WRITER])
-  .controller('kubernetesRollbackServerGroupController', function(
+  .controller('kubernetesRollbackServerGroupController', ['$scope', '$uibModalInstance', 'serverGroupWriter', 'application', 'serverGroup', 'disabledServerGroups', function(
     $scope,
     $uibModalInstance,
     serverGroupWriter,
@@ -61,4 +61,4 @@ module.exports = angular
     this.cancel = function() {
       $uibModalInstance.dismiss();
     };
-  });
+  }]);

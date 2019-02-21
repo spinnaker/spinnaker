@@ -24,6 +24,7 @@ class KubernetesManifestUndoRolloutController implements IController {
     verified: false,
   };
 
+  public static $inject = ['coordinates', 'revisions', '$uibModalInstance', 'application'];
   constructor(
     coordinates: IManifestCoordinates,
     public revisions: IRolloutRevision[],

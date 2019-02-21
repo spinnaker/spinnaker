@@ -8,7 +8,7 @@ module.exports = angular
   .module('spinnaker.openstack.pipeline.stage.bake.executionDetails.controller', [
     require('@uirouter/angularjs').default,
   ])
-  .controller('openstackBakeExecutionDetailsCtrl', function(
+  .controller('openstackBakeExecutionDetailsCtrl', ['$scope', '$stateParams', 'executionDetailsSectionService', '$interpolate', function(
     $scope,
     $stateParams,
     executionDetailsSectionService,
@@ -28,4 +28,4 @@ module.exports = angular
     initialize();
 
     $scope.$on('$stateChangeSuccess', initialize);
-  });
+  }]);

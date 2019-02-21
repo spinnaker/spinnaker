@@ -22,7 +22,7 @@ module.exports = angular
     SECURITY_GROUP_READER,
     GCE_SECURITY_GROUP_HELP_TEXT_SERVICE,
   ])
-  .controller('gceConfigSecurityGroupMixin', function(
+  .controller('gceConfigSecurityGroupMixin', ['$scope', '$state', '$uibModalInstance', 'application', 'securityGroup', 'securityGroupReader', 'cacheInitializer', 'gceSecurityGroupHelpTextService', 'mode', function(
     $scope,
     $state,
     $uibModalInstance,
@@ -302,4 +302,4 @@ module.exports = angular
     ctrl.removeSourceTag = function(index) {
       $scope.securityGroup.sourceTags.splice(index, 1);
     };
-  });
+  }]);

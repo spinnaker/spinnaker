@@ -4,7 +4,7 @@ const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.loadBalancer.configure.kubernetes.ports', [])
-  .controller('kubernetesLoadBalancerPortsController', function($scope) {
+  .controller('kubernetesLoadBalancerPortsController', ['$scope', function($scope) {
     this.addPort = function() {
       $scope.loadBalancer.ports.push({});
     };
@@ -15,4 +15,4 @@ module.exports = angular
 
     this.protocols = ['TCP', 'UDP'];
     this.maxPort = 65535;
-  });
+  }]);

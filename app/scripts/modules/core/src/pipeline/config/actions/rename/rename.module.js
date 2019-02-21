@@ -8,7 +8,7 @@ import { PipelineConfigService } from 'core/pipeline/config/services/PipelineCon
 
 module.exports = angular
   .module('spinnaker.core.pipeline.config.actions.rename', [])
-  .controller('RenamePipelineModalCtrl', function($scope, application, pipeline, $uibModalInstance, $log) {
+  .controller('RenamePipelineModalCtrl', ['$scope', 'application', 'pipeline', '$uibModalInstance', '$log', function($scope, application, pipeline, $uibModalInstance, $log) {
     this.cancel = $uibModalInstance.dismiss;
 
     var currentName = pipeline.name;
@@ -38,4 +38,4 @@ module.exports = angular
         },
       );
     };
-  });
+  }]);

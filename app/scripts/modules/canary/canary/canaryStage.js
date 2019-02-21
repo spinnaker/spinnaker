@@ -180,7 +180,7 @@ module.exports = angular
       });
     }
   })
-  .controller('CanaryStageCtrl', function(
+  .controller('CanaryStageCtrl', ['$scope', '$uibModal', 'stage', 'providerSelectionService', 'serverGroupCommandBuilder', 'awsServerGroupTransformer', function(
     $scope,
     $uibModal,
     stage,
@@ -527,4 +527,4 @@ module.exports = angular
         $scope.stage.canary.canaryConfig.canaryHealthCheckHandler.minimumCanaryResultScore = unhealthyScore;
       });
     };
-  });
+  }]);

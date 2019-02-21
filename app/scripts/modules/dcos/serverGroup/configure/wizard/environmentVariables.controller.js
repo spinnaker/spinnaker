@@ -4,7 +4,7 @@ const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.dcos.serverGroup.configure.environmentVariables', [])
-  .controller('dcosServerGroupEnvironmentVariablesController', function($scope) {
+  .controller('dcosServerGroupEnvironmentVariablesController', ['$scope', function($scope) {
     $scope.command.viewModel.env = [];
 
     this.isEnvironmentValid = function(env) {
@@ -94,4 +94,4 @@ module.exports = angular
       });
     };
     $scope.$watch(() => JSON.stringify($scope.command.viewModel.env), this.synchronize);
-  });
+  }]);

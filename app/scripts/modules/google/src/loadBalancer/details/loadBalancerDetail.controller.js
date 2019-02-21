@@ -25,7 +25,7 @@ module.exports = angular
     SESSION_AFFINITY_FILTER,
     GCE_LOAD_BALANCER_TYPE_TO_WIZARD_CONSTANT,
   ])
-  .controller('gceLoadBalancerDetailsCtrl', function(
+  .controller('gceLoadBalancerDetailsCtrl', ['$scope', '$state', '$uibModal', 'loadBalancer', 'app', 'gceHttpLoadBalancerUtils', 'loadBalancerReader', '$q', 'loadBalancerTypeToWizardMap', 'gceXpnNamingService', function(
     $scope,
     $state,
     $uibModal,
@@ -235,4 +235,4 @@ module.exports = angular
     this.getSubnetId = function getSubnetId(loadBalancer) {
       return gceXpnNamingService.decorateXpnResourceIfNecessary(loadBalancer.project, loadBalancer.subnet);
     };
-  });
+  }]);

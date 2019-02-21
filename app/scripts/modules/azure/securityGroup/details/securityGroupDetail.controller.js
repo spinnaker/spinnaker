@@ -13,7 +13,7 @@ module.exports = angular
     CONFIRMATION_MODAL_SERVICE,
     require('../clone/cloneSecurityGroup.controller').name,
   ])
-  .controller('azureSecurityGroupDetailsCtrl', function(
+  .controller('azureSecurityGroupDetailsCtrl', ['$scope', '$state', 'resolvedSecurityGroup', 'app', 'confirmationModalService', 'azureSecurityGroupWriter', 'securityGroupReader', '$uibModal', function(
     $scope,
     $state,
     resolvedSecurityGroup,
@@ -135,4 +135,4 @@ module.exports = angular
         refresh: extractSecurityGroup,
       };
     }
-  });
+  }]);

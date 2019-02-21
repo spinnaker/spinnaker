@@ -27,7 +27,7 @@ module.exports = angular
       },
     };
   })
-  .controller('TriggerCtrl', function($scope, $element, $compile, $controller, $templateCache) {
+  .controller('TriggerCtrl', ['$scope', '$element', '$compile', '$controller', '$templateCache', function($scope, $element, $compile, $controller, $templateCache) {
     let reactComponentMounted;
     var triggerTypes = Registry.pipeline.getTriggerTypes();
     $scope.options = triggerTypes;
@@ -87,4 +87,4 @@ module.exports = angular
     };
 
     this.loadTrigger();
-  });
+  }]);

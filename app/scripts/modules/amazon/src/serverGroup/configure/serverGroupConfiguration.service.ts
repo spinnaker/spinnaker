@@ -122,6 +122,7 @@ export class AwsServerGroupConfigurationService {
     'Default',
   ];
 
+  public static $inject = ['securityGroupReader', 'awsInstanceTypeService', 'cacheInitializer', 'loadBalancerReader', 'serverGroupCommandRegistry'];
   constructor(
     private securityGroupReader: SecurityGroupReader,
     private awsInstanceTypeService: any,

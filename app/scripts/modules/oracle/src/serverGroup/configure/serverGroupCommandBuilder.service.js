@@ -9,7 +9,7 @@ import { OracleProviderSettings } from '../../oracle.settings';
 
 module.exports = angular
   .module('spinnaker.oracle.serverGroupCommandBuilder.service', [])
-  .factory('oracleServerGroupCommandBuilder', function($q) {
+  .factory('oracleServerGroupCommandBuilder', ['$q', function($q) {
     let oracle = 'oracle';
 
     function buildNewServerGroupCommand(application, defaults) {
@@ -96,4 +96,4 @@ module.exports = angular
       buildNewServerGroupCommandForPipeline: buildNewServerGroupCommandForPipeline,
       buildServerGroupCommandFromPipeline: buildServerGroupCommandFromPipeline,
     };
-  });
+  }]);

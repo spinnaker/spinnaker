@@ -19,7 +19,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('oracleShrinkClusterStageCtrl', function($scope) {
+  .controller('oracleShrinkClusterStageCtrl', ['$scope', function($scope) {
     let ctrl = this;
 
     let stage = $scope.stage;
@@ -63,4 +63,4 @@ module.exports = angular
     }
 
     stage.retainLargerOverNewer = stage.retainLargerOverNewer.toString();
-  });
+  }]);

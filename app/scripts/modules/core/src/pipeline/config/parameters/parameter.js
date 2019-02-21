@@ -15,7 +15,7 @@ module.exports = angular
       templateUrl: require('./parameter.html'),
     };
   })
-  .controller('ParameterCtrl', function($scope) {
+  .controller('ParameterCtrl', ['$scope', function($scope) {
     this.remove = function(parameter) {
       var index = $scope.pipeline.parameterConfig.indexOf(parameter);
       $scope.pipeline.parameterConfig.splice(index, 1);
@@ -35,4 +35,4 @@ module.exports = angular
     this.removeOption = function(index, parameter) {
       parameter.options.splice(index, 1);
     };
-  });
+  }]);

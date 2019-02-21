@@ -16,7 +16,7 @@ module.exports = angular
     bindings: {
       application: '=',
     },
-    controller: function($state, confirmationModalService) {
+    controller: ['$state', 'confirmationModalService', function($state, confirmationModalService) {
       if (this.application.notFound) {
         return;
       }
@@ -40,5 +40,5 @@ module.exports = angular
           submitMethod: submitMethod,
         });
       };
-    },
+    }],
   });

@@ -39,6 +39,7 @@ export class BakeManifestConfigCtrl implements IController {
     return inputArtifact;
   }
 
+  public static $inject = ['$scope'];
   constructor(public $scope: IScope) {
     'ngInject';
     const { stage } = this.$scope;

@@ -8,7 +8,7 @@ import { ECS_RESIZE_CAPACITY_COMPONENT } from './resizeCapacity.component';
 
 module.exports = angular
   .module('spinnaker.ecs.serverGroup.details.resize.controller', [SERVER_GROUP_WRITER, ECS_RESIZE_CAPACITY_COMPONENT])
-  .controller('ecsResizeServerGroupCtrl', function(
+  .controller('ecsResizeServerGroupCtrl', ['$scope', '$uibModalInstance', 'serverGroupWriter', 'application', 'serverGroup', function(
     $scope,
     $uibModalInstance,
     serverGroupWriter,
@@ -75,4 +75,4 @@ module.exports = angular
     this.cancel = function() {
       $uibModalInstance.dismiss();
     };
-  });
+  }]);

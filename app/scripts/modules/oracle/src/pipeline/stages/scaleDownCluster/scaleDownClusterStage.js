@@ -24,7 +24,7 @@ module.exports = angular
       strategy: true,
     });
   })
-  .controller('oracleScaleDownClusterStageCtrl', function($scope) {
+  .controller('oracleScaleDownClusterStageCtrl', ['$scope', function($scope) {
     let stage = $scope.stage;
 
     const provider = 'oracle';
@@ -67,4 +67,4 @@ module.exports = angular
     };
 
     stage.preferLargerOverNewer = stage.preferLargerOverNewer.toString();
-  });
+  }]);

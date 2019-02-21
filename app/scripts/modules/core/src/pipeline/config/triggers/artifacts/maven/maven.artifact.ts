@@ -5,6 +5,7 @@ import { Registry } from 'core/registry';
 import { MavenArtifactEditor } from './MavenArtifactEditor';
 
 class MavenArtifactController implements IController {
+  public static $inject = ['artifact'];
   constructor(public artifact: IArtifact) {
     'ngInject';
   }

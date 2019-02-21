@@ -30,7 +30,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('ecsResizeAsgStageCtrl', function($scope) {
+  .controller('ecsResizeAsgStageCtrl', ['$scope', function($scope) {
     var ctrl = this;
 
     let stage = $scope.stage;
@@ -121,4 +121,4 @@ module.exports = angular
         }
       }
     };
-  });
+  }]);

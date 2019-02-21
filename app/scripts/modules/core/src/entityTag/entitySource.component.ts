@@ -15,6 +15,7 @@ class EntitySourceCtrl implements IController {
   public comments: string;
   private loadingExecution = false;
 
+  public static $inject = ['executionService'];
   constructor(private executionService: ExecutionService) {
     'ngInject';
   }

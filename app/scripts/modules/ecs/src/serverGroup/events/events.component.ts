@@ -5,6 +5,7 @@ import { EVENTS_CTRL, EventsController } from './events.controller';
 class ViewEventsLinkCtrl implements IController {
   public serverGroup: any;
 
+  public static $inject = ['$uibModal'];
   public constructor(private $uibModal: IModalService) {
     'ngInject';
   }

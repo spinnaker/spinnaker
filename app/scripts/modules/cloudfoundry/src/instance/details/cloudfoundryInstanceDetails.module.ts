@@ -25,6 +25,7 @@ interface InstanceManager {
 }
 
 class CloudFoundryInstanceDetailsCtrl implements IController {
+  public static $inject = ['$scope', 'app', 'instance', 'instanceWriter', 'confirmationModalService', '$q'];
   constructor(
     public $scope: IScope,
     private app: Application,

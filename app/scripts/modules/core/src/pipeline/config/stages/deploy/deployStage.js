@@ -11,7 +11,7 @@ const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.pipeline.stage.deployStage', [SERVER_GROUP_COMMAND_BUILDER_SERVICE, CLUSTER_SERVICE])
-  .config(function(clusterServiceProvider) {
+  .config(['clusterServiceProvider', function(clusterServiceProvider) {
     Registry.pipeline.registerStage({
       label: 'Deploy',
       description: 'Deploys the previously baked or found image',
@@ -56,8 +56,8 @@ module.exports = angular
       },
       strategy: true,
     });
-  })
-  .controller('DeployStageCtrl', function(
+  }])
+  .controller('DeployStageCtrl', ['$injector', '$scope', '$uibModal', 'stage', 'providerSelectionService', 'serverGroupCommandBuilder', 'serverGroupTransformer', function(
     $injector,
     $scope,
     $uibModal,
@@ -233,4 +233,4 @@ module.exports = angular
     function providerFilterFn(application, account, provider) {
       return !provider.unsupportedStageTypes || provider.unsupportedStageTypes.indexOf('deploy') === -1;
     }
-  });
+  }]);

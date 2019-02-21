@@ -6,7 +6,7 @@ import { SERVER_GROUP_WRITER, TaskMonitor } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.titus.serverGroup.details.resize.controller', [SERVER_GROUP_WRITER])
-  .controller('titusResizeServerGroupCtrl', function(
+  .controller('titusResizeServerGroupCtrl', ['$scope', '$uibModalInstance', 'serverGroupWriter', 'application', 'serverGroup', function(
     $scope,
     $uibModalInstance,
     serverGroupWriter,
@@ -71,4 +71,4 @@ module.exports = angular
     this.cancel = function() {
       $uibModalInstance.dismiss();
     };
-  });
+  }]);

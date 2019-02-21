@@ -4,7 +4,7 @@ const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.serverGroup.configure.kubernetes.volumes', [])
-  .controller('kubernetesServerGroupVolumesController', function($scope) {
+  .controller('kubernetesServerGroupVolumesController', ['$scope', function($scope) {
     this.volumeTypes = [
       'CONFIGMAP',
       'EMPTYDIR',
@@ -139,4 +139,4 @@ module.exports = angular
     };
 
     this.prepVolumes();
-  });
+  }]);

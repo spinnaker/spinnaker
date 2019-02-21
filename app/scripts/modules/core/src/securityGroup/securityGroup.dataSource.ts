@@ -8,7 +8,7 @@ import { EntityTagsReader } from 'core/entityTag/EntityTagsReader';
 import { ISecurityGroup } from 'core/domain';
 
 export const SECURITY_GROUP_DATA_SOURCE = 'spinnaker.core.securityGroup.dataSource';
-module(SECURITY_GROUP_DATA_SOURCE, [SECURITY_GROUP_READER]).run((securityGroupReader: SecurityGroupReader) => {
+module(SECURITY_GROUP_DATA_SOURCE, [SECURITY_GROUP_READER]).run(['securityGroupReader', (securityGroupReader: SecurityGroupReader) => {
   const loadSecurityGroups = (application: Application) => {
     return securityGroupReader.loadSecurityGroupsByApplicationName(application.name);
   };
@@ -36,4 +36,4 @@ module(SECURITY_GROUP_DATA_SOURCE, [SECURITY_GROUP_READER]).run((securityGroupRe
     regionField: 'region',
     description: 'Network traffic access management',
   });
-});
+}]);

@@ -6,7 +6,7 @@ import { TaskMonitor } from 'core/task/monitor/TaskMonitor';
 
 module.exports = angular
   .module('spinnaker.core.confirmationModal.controller', [require('angular-ui-bootstrap')])
-  .controller('ConfirmationModalCtrl', function($scope, $uibModalInstance, params) {
+  .controller('ConfirmationModalCtrl', ['$scope', '$uibModalInstance', 'params', function($scope, $uibModalInstance, params) {
     $scope.params = params;
 
     $scope.state = {
@@ -74,4 +74,4 @@ module.exports = angular
     };
 
     this.cancel = () => $uibModalInstance.dismiss({ source: 'footer' });
-  });
+  }]);

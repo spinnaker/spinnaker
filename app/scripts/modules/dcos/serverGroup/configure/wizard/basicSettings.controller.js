@@ -4,7 +4,7 @@ const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.dcos.serverGroup.configure.basicSettings', [])
-  .controller('dcosServerGroupBasicSettingsController', function(
+  .controller('dcosServerGroupBasicSettingsController', ['$scope', '$controller', '$uibModalStack', '$state', 'dcosImageReader', function(
     $scope,
     $controller,
     $uibModalStack,
@@ -43,4 +43,4 @@ module.exports = angular
         return pattern.test(detail);
       },
     };
-  });
+  }]);

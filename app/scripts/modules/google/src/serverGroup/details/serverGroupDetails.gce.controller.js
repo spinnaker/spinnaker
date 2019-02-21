@@ -30,7 +30,7 @@ module.exports = angular
     require('./autoscalingPolicy/autoscalingPolicy.directive').name,
     require('./autoscalingPolicy/addAutoscalingPolicyButton.component').name,
   ])
-  .controller('gceServerGroupDetailsCtrl', function(
+  .controller('gceServerGroupDetailsCtrl', ['$scope', '$state', '$templateCache', '$interpolate', 'app', 'serverGroup', 'gceServerGroupCommandBuilder', '$uibModal', 'confirmationModalService', 'serverGroupWriter', 'gceXpnNamingService', function(
     $scope,
     $state,
     $templateCache,
@@ -542,4 +542,4 @@ module.exports = angular
     const configureEntityTagTargets = () => {
       this.entityTagTargets = ClusterTargetBuilder.buildClusterTargets(this.serverGroup);
     };
-  });
+  }]);

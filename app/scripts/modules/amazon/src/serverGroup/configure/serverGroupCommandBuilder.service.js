@@ -13,7 +13,7 @@ module.exports = angular
     INSTANCE_TYPE_SERVICE,
     AWS_SERVER_GROUP_CONFIGURATION_SERVICE,
   ])
-  .factory('awsServerGroupCommandBuilder', function($q, instanceTypeService, awsServerGroupConfigurationService) {
+  .factory('awsServerGroupCommandBuilder', ['$q', 'instanceTypeService', 'awsServerGroupConfigurationService', function($q, instanceTypeService, awsServerGroupConfigurationService) {
     function buildNewServerGroupCommand(application, defaults) {
       defaults = defaults || {};
       var credentialsLoader = AccountService.getCredentialsKeyedByAccount('aws');
@@ -334,4 +334,4 @@ module.exports = angular
       buildServerGroupCommandFromPipeline: buildServerGroupCommandFromPipeline,
       buildUpdateServerGroupCommand: buildUpdateServerGroupCommand,
     };
-  });
+  }]);

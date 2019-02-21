@@ -9,7 +9,7 @@ import { PROVIDER_SERVICE_DELEGATE } from 'core/cloudProvider/providerService.de
 
 module.exports = angular
   .module('spinnaker.core.loadBalancer.transformer', [PROVIDER_SERVICE_DELEGATE])
-  .factory('loadBalancerTransformer', function(providerServiceDelegate) {
+  .factory('loadBalancerTransformer', ['providerServiceDelegate', function(providerServiceDelegate) {
     function normalizeLoadBalancer(loadBalancer) {
       return AccountService.getAccountDetails(loadBalancer.account).then(accountDetails => {
         return providerServiceDelegate
@@ -45,4 +45,4 @@ module.exports = angular
       normalizeLoadBalancer: normalizeLoadBalancer,
       normalizeLoadBalancerSet: normalizeLoadBalancerSet,
     };
-  });
+  }]);

@@ -7,7 +7,7 @@ import { TitusProviderSettings } from '../../titus.settings';
 
 module.exports = angular
   .module('spinnaker.titus.serverGroupCommandBuilder.service', [])
-  .factory('titusServerGroupCommandBuilder', function($q) {
+  .factory('titusServerGroupCommandBuilder', ['$q', function($q) {
     function buildNewServerGroupCommand(application, defaults) {
       defaults = defaults || {};
 
@@ -188,4 +188,4 @@ module.exports = angular
       buildServerGroupCommandFromExisting: buildServerGroupCommandFromExisting,
       buildServerGroupCommandFromPipeline: buildServerGroupCommandFromPipeline,
     };
-  });
+  }]);

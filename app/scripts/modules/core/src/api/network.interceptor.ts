@@ -23,6 +23,7 @@ export class NetworkInterceptor implements IHttpInterceptor {
   private retryQueue: Dictionary<number> = {};
   private MAX_RETRIES = 4;
 
+  public static $inject = ['$q', '$window', '$timeout', '$injector'];
   constructor(
     private $q: IQService,
     private $window: IWindowService,
@@ -79,6 +80,6 @@ export class NetworkInterceptor implements IHttpInterceptor {
 export const NETWORK_INTERCEPTOR = 'spinnaker.core.network.interceptor';
 module(NETWORK_INTERCEPTOR, [])
   .service('networkInterceptor', NetworkInterceptor)
-  .config(($httpProvider: IHttpProvider) => {
+  .config(['$httpProvider', ($httpProvider: IHttpProvider) => {
     $httpProvider.interceptors.push('networkInterceptor');
-  });
+  }]);

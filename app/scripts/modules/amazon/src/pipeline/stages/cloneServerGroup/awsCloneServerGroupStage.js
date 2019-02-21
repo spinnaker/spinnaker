@@ -22,7 +22,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('awsCloneServerGroupStageCtrl', function($scope) {
+  .controller('awsCloneServerGroupStageCtrl', ['$scope', function($scope) {
     let stage = $scope.stage;
 
     $scope.viewState = {
@@ -128,4 +128,4 @@ module.exports = angular
         stage.useAmiBlockDeviceMappings = false;
       }
     };
-  });
+  }]);

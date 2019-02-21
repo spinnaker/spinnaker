@@ -29,6 +29,7 @@ export class GceLoadBalancerSetTransformer {
     return portRange.split('-')[0];
   }
 
+  public static $inject = ['gceHttpLoadBalancerUtils'];
   constructor(private gceHttpLoadBalancerUtils: GceHttpLoadBalancerUtils) {
     'ngInject';
   }

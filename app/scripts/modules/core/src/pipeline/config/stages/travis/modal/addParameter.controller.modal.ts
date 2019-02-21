@@ -2,6 +2,7 @@ import { IController, module } from 'angular';
 import { IModalInstanceService } from 'angular-ui-bootstrap';
 
 export class TravisStageAddParameter implements IController {
+  public static $inject = ['$scope', '$uibModalInstance'];
   constructor(private $scope: ng.IScope, private $uibModalInstance: IModalInstanceService) {
     'ngInject';
   }

@@ -27,7 +27,7 @@ module.exports = angular
     require('./resize/resizeServerGroup.controller').name,
     require('./rollback/rollbackServerGroup.controller').name,
   ])
-  .controller('ecsServerGroupDetailsCtrl', function(
+  .controller('ecsServerGroupDetailsCtrl', ['$scope', '$state', 'app', 'serverGroup', 'ecsServerGroupCommandBuilder', '$uibModal', 'confirmationModalService', 'serverGroupWriter', 'ecsServerGroupTransformer', 'overrideRegistry', function(
     $scope,
     $state,
     app,
@@ -345,4 +345,4 @@ module.exports = angular
         serverGroup.accountDetails = details;
       });
     };
-  });
+  }]);

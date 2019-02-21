@@ -6,7 +6,7 @@ const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.instance.details.console.controller', [])
-  .controller('ConsoleOutputCtrl', function($scope, $uibModalInstance, instance, usesMultiOutput) {
+  .controller('ConsoleOutputCtrl', ['$scope', '$uibModalInstance', 'instance', 'usesMultiOutput', function($scope, $uibModalInstance, instance, usesMultiOutput) {
     const instanceId = instance.instanceId || instance.id;
     $scope.vm = {
       loading: true,
@@ -46,4 +46,4 @@ module.exports = angular
     };
 
     $scope.fetchLogs(true);
-  });
+  }]);

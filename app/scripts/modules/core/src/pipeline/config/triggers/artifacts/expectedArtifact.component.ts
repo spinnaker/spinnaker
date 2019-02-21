@@ -9,6 +9,7 @@ class ExpectedArtifactController implements IComponentController {
   public removeExpectedArtifact: any;
   public context: any;
 
+  public static $inject = ['$attrs'];
   public constructor(private $attrs: IAttributes) {
     'nginject';
 

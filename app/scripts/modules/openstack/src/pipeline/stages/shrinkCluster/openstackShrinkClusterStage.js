@@ -21,7 +21,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('OpenstackShrinkClusterStageCtrl', function($scope) {
+  .controller('OpenstackShrinkClusterStageCtrl', ['$scope', function($scope) {
     var ctrl = this;
 
     let stage = $scope.stage;
@@ -65,4 +65,4 @@ module.exports = angular
       stage.retainLargerOverNewer = 'false';
     }
     stage.retainLargerOverNewer = stage.retainLargerOverNewer.toString();
-  });
+  }]);

@@ -22,7 +22,7 @@ module.exports = angular
       application: '=',
     },
     templateUrl: require('./alarmBasedSummary.component.html'),
-    controller: function($uibModal, confirmationModalService) {
+    controller: ['$uibModal', 'confirmationModalService', function($uibModal, confirmationModalService) {
       this.popoverTemplate = require('./popover/scalingPolicyDetails.popover.html');
 
       this.editPolicy = () => {
@@ -57,5 +57,5 @@ module.exports = angular
           submitMethod: submitMethod,
         });
       };
-    },
+    }],
   });

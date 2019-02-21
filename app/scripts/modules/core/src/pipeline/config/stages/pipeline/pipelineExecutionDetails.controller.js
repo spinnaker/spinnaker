@@ -10,7 +10,7 @@ module.exports = angular
     require('@uirouter/angularjs').default,
     EXECUTION_DETAILS_SECTION_SERVICE,
   ])
-  .controller('pipelineExecutionDetailsCtrl', function($scope, $stateParams, executionDetailsSectionService) {
+  .controller('pipelineExecutionDetailsCtrl', ['$scope', '$stateParams', 'executionDetailsSectionService', function($scope, $stateParams, executionDetailsSectionService) {
     $scope.configSections = ['pipelineConfig', 'taskStatus'];
 
     let initialized = () => {
@@ -31,4 +31,4 @@ module.exports = angular
     initialize();
 
     $scope.$on('$stateChangeSuccess', initialize);
-  });
+  }]);

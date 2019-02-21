@@ -10,7 +10,7 @@ module.exports = angular
     require('../../loadBalancer.transformer').name,
     require('../../../gceRegionSelectField.directive').name,
   ])
-  .controller('gceCreateLoadBalancerCtrl', function(
+  .controller('gceCreateLoadBalancerCtrl', ['$scope', '$uibModalInstance', '$state', 'gceLoadBalancerTransformer', 'application', 'loadBalancer', 'isNew', function(
     $scope,
     $uibModalInstance,
     $state,
@@ -207,4 +207,4 @@ module.exports = angular
     this.cancel = function() {
       $uibModalInstance.dismiss();
     };
-  });
+  }]);

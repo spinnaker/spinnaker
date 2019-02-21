@@ -22,7 +22,7 @@ module.exports = angular
       },
     };
   })
-  .controller('kubernetesContainerConfigurerController', function($scope) {
+  .controller('kubernetesContainerConfigurerController', ['$scope', function($scope) {
     this.cpuPattern = /^\d+(m)?$/;
     this.memoryPattern = /^\d+(Mi|Gi)?$/;
     this.pullPolicies = ['IFNOTPRESENT', 'ALWAYS', 'NEVER'];
@@ -75,4 +75,4 @@ module.exports = angular
       }
       $scope.container.lifecycle.preStop = handler;
     };
-  });
+  }]);

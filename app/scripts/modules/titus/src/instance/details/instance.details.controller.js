@@ -22,7 +22,7 @@ module.exports = angular
     CONFIRMATION_MODAL_SERVICE,
     require('../../securityGroup/securityGroup.read.service').name,
   ])
-  .controller('titusInstanceDetailsCtrl', function(
+  .controller('titusInstanceDetailsCtrl', ['$scope', '$q', '$state', '$uibModal', 'instanceWriter', 'confirmationModalService', 'instance', 'app', 'moniker', 'environment', function(
     $scope,
     $q,
     $state,
@@ -309,4 +309,4 @@ module.exports = angular
     });
 
     $scope.account = instance.account;
-  });
+  }]);

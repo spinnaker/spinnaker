@@ -5,7 +5,7 @@ import { FirewallLabels, ModalWizard, TaskMonitor } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.oracle.serverGroup.configure.cloneServerGroup', [require('@uirouter/angularjs').default])
-  .controller('oracleCloneServerGroupCtrl', function(
+  .controller('oracleCloneServerGroupCtrl', ['$scope', '$uibModalInstance', '$q', 'application', 'serverGroupWriter', 'serverGroupCommand', 'oracleServerGroupConfigurationService', 'title', function(
     $scope,
     $uibModalInstance,
     $q,
@@ -90,4 +90,4 @@ module.exports = angular
       $scope.state.requiresTemplateSelection = false;
       configureCommand();
     };
-  });
+  }]);

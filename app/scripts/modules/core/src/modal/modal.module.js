@@ -17,10 +17,10 @@ module.exports = angular
     SUBMIT_BUTTON_COMPONENT,
     V2_MODAL_WIZARD_COMPONENT,
   ])
-  .run(function($rootScope, $uibModalStack) {
+  .run(['$rootScope', '$uibModalStack', function($rootScope, $uibModalStack) {
     $rootScope.$on('$stateChangeStart', function(event, toState, toParams) {
       if (!toParams.allowModalToStayOpen) {
         $uibModalStack.dismissAll();
       }
     });
-  });
+  }]);

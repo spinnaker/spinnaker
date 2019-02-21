@@ -105,6 +105,6 @@ module.exports = angular
       validate: validate,
     };
   })
-  .run(function(gceApplicationNameValidator) {
+  .run(['gceApplicationNameValidator', function(gceApplicationNameValidator) {
     ApplicationNameValidator.registerValidator('gce', gceApplicationNameValidator);
-  });
+  }]);

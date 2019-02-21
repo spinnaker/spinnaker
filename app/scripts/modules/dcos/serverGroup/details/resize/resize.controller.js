@@ -6,7 +6,7 @@ import { SERVER_GROUP_WRITER, TaskMonitor } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.dcos.serverGroup.details.resize.controller', [SERVER_GROUP_WRITER])
-  .controller('dcosResizeServerGroupController', function(
+  .controller('dcosResizeServerGroupController', ['$scope', '$uibModalInstance', 'serverGroupWriter', 'application', 'serverGroup', function(
     $scope,
     $uibModalInstance,
     serverGroupWriter,
@@ -68,4 +68,4 @@ module.exports = angular
     this.cancel = function() {
       $uibModalInstance.dismiss();
     };
-  });
+  }]);

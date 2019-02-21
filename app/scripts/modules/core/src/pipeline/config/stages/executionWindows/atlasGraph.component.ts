@@ -88,6 +88,7 @@ class ExecutionWindowAtlasGraphController implements IController {
   // Used to determine how tall to make the execution window bars - it's just the max of the SPS data
   private maxCount = 0;
 
+  public static $inject = ['$http', '$filter'];
   public constructor(private $http: ng.IHttpService, private $filter: any) {
     'ngInject';
   }

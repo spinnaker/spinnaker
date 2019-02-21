@@ -17,7 +17,7 @@ module.exports = angular
     SECURITY_GROUP_READER,
     CACHE_INITIALIZER_SERVICE,
   ])
-  .factory('azureServerGroupConfigurationService', function(
+  .factory('azureServerGroupConfigurationService', ['$q', 'azureImageReader', 'securityGroupReader', 'cacheInitializer', 'loadBalancerReader', function(
     $q,
     azureImageReader,
     securityGroupReader,
@@ -254,4 +254,4 @@ module.exports = angular
       refreshSecurityGroups: refreshSecurityGroups,
       getRegionalSecurityGroups: getRegionalSecurityGroups,
     };
-  });
+  }]);

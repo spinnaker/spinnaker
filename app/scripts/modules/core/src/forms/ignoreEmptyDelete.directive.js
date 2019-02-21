@@ -4,8 +4,8 @@ const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.utils.ignoreEmptyDelete.directive', [require('ui-select')])
-  .config(function($provide) {
-    $provide.decorator('uiSelectMultipleDirective', function($delegate) {
+  .config(['$provide', function($provide) {
+    $provide.decorator('uiSelectMultipleDirective', ['$delegate', function($delegate) {
       // because we hacked the multiple select directive CSS so drastically,
       // when the focus is in the search field in multiselect mode, pressing delete
       // behaves unexpectedly out of the box: it will delete previous selections,
@@ -41,5 +41,5 @@ module.exports = angular
         };
       };
       return $delegate;
-    });
-  });
+    }]);
+  }]);

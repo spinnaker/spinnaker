@@ -7,7 +7,7 @@ import { API, InfrastructureCaches } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.openstack.instanceType.service', [])
-  .factory('openstackInstanceTypeService', function($http, $q) {
+  .factory('openstackInstanceTypeService', ['$http', '$q', function($http, $q) {
     var categories = [
       {
         type: 'custom',
@@ -75,4 +75,4 @@ module.exports = angular
       getAllTypesByRegion: getAllTypesByRegion,
       filterInstanceTypesByVirtualizationType: filterInstanceTypesByVirtualizationType,
     };
-  });
+  }]);

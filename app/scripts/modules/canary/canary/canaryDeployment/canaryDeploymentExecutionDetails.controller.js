@@ -9,7 +9,7 @@ module.exports = angular
     require('@uirouter/angularjs').default,
     require('./canaryDeploymentHistory.service').name,
   ])
-  .controller('CanaryDeploymentExecutionDetailsCtrl', function(
+  .controller('CanaryDeploymentExecutionDetailsCtrl', ['$scope', '$stateParams', 'executionDetailsSectionService', 'canaryDeploymentHistoryService', function(
     $scope,
     $stateParams,
     executionDetailsSectionService,
@@ -87,4 +87,4 @@ module.exports = angular
     initialize();
 
     $scope.$on('$stateChangeSuccess', initialize);
-  });
+  }]);

@@ -8,7 +8,7 @@ import { SETTINGS } from 'core/config/settings';
 
 module.exports = angular
   .module('spinnaker.core.pipeline.stage.baseProviderStage', [])
-  .controller('BaseProviderStageCtrl', function($scope, stage) {
+  .controller('BaseProviderStageCtrl', ['$scope', 'stage', function($scope, stage) {
     // Docker Bake is wedged in here because it doesn't really fit our existing cloud provider paradigm
     let dockerBakeEnabled = SETTINGS.feature.dockerBake && stage.type === 'bake';
 
@@ -60,4 +60,4 @@ module.exports = angular
     }
 
     $scope.$watch('stage.cloudProviderType', loadProvider);
-  });
+  }]);

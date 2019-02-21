@@ -17,6 +17,6 @@ module.exports = angular
       manualExecutionComponent: ManualExecutionBake,
     });
   })
-  .run(function(bakeStageTransformer) {
+  .run(['bakeStageTransformer', function(bakeStageTransformer) {
     Registry.pipeline.registerTransformer(bakeStageTransformer);
-  });
+  }]);

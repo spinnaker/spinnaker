@@ -140,3 +140,4 @@ function SelectFieldController($scope, $element, $attrs, $timeout, $q, $rootScop
 
   $scope.$on('updateOptions', updateOptions);
 }
+SelectFieldController.$inject = ['$scope', '$element', '$attrs', '$timeout', '$q', '$rootScope', 'cacheInitializer'];

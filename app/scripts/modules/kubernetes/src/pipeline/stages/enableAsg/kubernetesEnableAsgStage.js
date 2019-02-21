@@ -22,7 +22,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('kubernetesEnableAsgStageCtrl', function($scope) {
+  .controller('kubernetesEnableAsgStageCtrl', ['$scope', function($scope) {
     let stage = $scope.stage;
 
     $scope.state = {
@@ -50,4 +50,4 @@ module.exports = angular
     }
 
     $scope.$watch('stage.credentials', $scope.accountUpdated);
-  });
+  }]);

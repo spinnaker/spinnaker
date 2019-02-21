@@ -49,6 +49,7 @@ export class ConfigurePipelineTemplateModalController implements IController {
   private template: IPipelineTemplate;
   private source: string;
 
+  public static $inject = ['$scope', '$uibModalInstance', 'application', 'pipelineTemplateConfig', 'isNew', 'pipelineId', 'executionId'];
   constructor(
     private $scope: IScope,
     private $uibModalInstance: IModalInstanceService,

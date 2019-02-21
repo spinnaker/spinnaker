@@ -6,7 +6,7 @@ import { ModalWizard } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.azure.serverGroup.configure.securityGroups.controller', [])
-  .controller('azureServerGroupSecurityGroupsCtrl', function($scope) {
+  .controller('azureServerGroupSecurityGroupsCtrl', ['$scope', function($scope) {
     ModalWizard.markClean('security-groups');
     ModalWizard.markComplete('security-groups');
 
@@ -18,4 +18,4 @@ module.exports = angular
       $scope.command.securityGroupName = securityGroup.id;
       ModalWizard.markComplete('security-groups');
     };
-  });
+  }]);

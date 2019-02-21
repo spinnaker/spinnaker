@@ -28,7 +28,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('oracleResizeAsgStageCtrl', function($scope) {
+  .controller('oracleResizeAsgStageCtrl', ['$scope', function($scope) {
     let ctrl = this;
 
     let provider = 'oracle';
@@ -93,4 +93,4 @@ module.exports = angular
         }
       }
     };
-  });
+  }]);

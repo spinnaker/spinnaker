@@ -6,7 +6,7 @@ import { AccountService, InfrastructureCaches } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.gce.securityGroup.create.controller', [require('@uirouter/angularjs').default])
-  .controller('gceCreateSecurityGroupCtrl', function(
+  .controller('gceCreateSecurityGroupCtrl', ['$scope', '$uibModalInstance', '$state', '$controller', 'application', 'securityGroup', function(
     $scope,
     $uibModalInstance,
     $state,
@@ -54,4 +54,4 @@ module.exports = angular
     };
 
     ctrl.initializeSecurityGroups();
-  });
+  }]);

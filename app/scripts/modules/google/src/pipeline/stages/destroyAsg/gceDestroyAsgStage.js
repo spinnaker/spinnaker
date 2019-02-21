@@ -27,7 +27,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('gceDestroyAsgStageCtrl', function($scope) {
+  .controller('gceDestroyAsgStageCtrl', ['$scope', function($scope) {
     const stage = $scope.stage;
 
     $scope.state = {
@@ -55,4 +55,4 @@ module.exports = angular
     if (!stage.target) {
       stage.target = $scope.targets[0].val;
     }
-  });
+  }]);

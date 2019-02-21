@@ -9,7 +9,7 @@ module.exports = angular
     require('@uirouter/angularjs').default,
     require('angular-ui-bootstrap'),
   ])
-  .controller('openstackServerGroupBasicSettingsCtrl', function($scope, $controller, $uibModalStack, $state) {
+  .controller('openstackServerGroupBasicSettingsCtrl', ['$scope', '$controller', '$uibModalStack', '$state', function($scope, $controller, $uibModalStack, $state) {
     angular.extend(
       this,
       $controller('BasicSettingsMixin', {
@@ -51,4 +51,4 @@ module.exports = angular
         ModalWizard.markIncomplete('location');
       }
     });
-  });
+  }]);

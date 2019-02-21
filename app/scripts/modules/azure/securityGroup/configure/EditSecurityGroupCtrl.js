@@ -17,7 +17,7 @@ module.exports = angular
     SECURITY_GROUP_READER,
     require('../securityGroup.write.service').name,
   ])
-  .controller('azureEditSecurityGroupCtrl', function(
+  .controller('azureEditSecurityGroupCtrl', ['$scope', '$uibModalInstance', '$exceptionHandler', '$state', 'securityGroupReader', 'cacheInitializer', 'application', 'securityGroup', 'azureSecurityGroupWriter', function(
     $scope,
     $uibModalInstance,
     $exceptionHandler,
@@ -166,4 +166,4 @@ module.exports = angular
     this.cancel = function() {
       $uibModalInstance.dismiss();
     };
-  });
+  }]);

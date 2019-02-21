@@ -22,7 +22,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('ecsCloneServerGroupStageCtrl', function($scope) {
+  .controller('ecsCloneServerGroupStageCtrl', ['$scope', function($scope) {
     let stage = $scope.stage;
 
     $scope.viewState = {
@@ -86,4 +86,4 @@ module.exports = angular
     this.processIsSuspended = process => {
       return stage.suspendedProcesses && stage.suspendedProcesses.includes(process);
     };
-  });
+  }]);

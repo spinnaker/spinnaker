@@ -8,6 +8,7 @@ import { Application, InfrastructureCaches } from '@spinnaker/core';
 import { IGceLoadBalancer } from 'google/domain/loadBalancer';
 
 export class CommonGceLoadBalancerCtrl {
+  public static $inject = ['$scope', 'application', '$uibModalInstance', '$state'];
   constructor(
     public $scope: IScope,
     public application: Application,

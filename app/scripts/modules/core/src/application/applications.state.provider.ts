@@ -6,7 +6,7 @@ import { Applications } from 'core/application/search/Applications';
 
 export const APPLICATIONS_STATE_PROVIDER = 'spinnaker.core.application.applications.state';
 module(APPLICATIONS_STATE_PROVIDER, [STATE_CONFIG_PROVIDER, APPLICATION_STATE_PROVIDER]).config(
-  (stateConfigProvider: StateConfigProvider, applicationStateProvider: ApplicationStateProvider) => {
+  ['stateConfigProvider', 'applicationStateProvider', (stateConfigProvider: StateConfigProvider, applicationStateProvider: ApplicationStateProvider) => {
     const applicationsState: INestedState = {
       name: 'applications',
       url: '/applications',
@@ -27,5 +27,5 @@ module(APPLICATIONS_STATE_PROVIDER, [STATE_CONFIG_PROVIDER, APPLICATION_STATE_PR
     applicationStateProvider.addParentState(applicationsState, 'main@');
     stateConfigProvider.addToRootState(applicationsState);
     stateConfigProvider.addRewriteRule('/applications/{application}', '/applications/{application}/clusters');
-  },
+  }],
 );

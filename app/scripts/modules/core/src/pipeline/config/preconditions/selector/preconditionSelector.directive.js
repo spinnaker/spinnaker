@@ -21,7 +21,7 @@ module.exports = angular
       controllerAs: 'preconditionCtrl',
     };
   })
-  .controller('PreconditionSelectorCtrl', function($scope, preconditionTypeService) {
+  .controller('PreconditionSelectorCtrl', ['$scope', 'preconditionTypeService', function($scope, preconditionTypeService) {
     AccountService.listAccounts().then(accounts => {
       $scope.accounts = accounts;
       setClusterList();
@@ -93,4 +93,4 @@ module.exports = angular
     };
 
     this.accountUpdated();
-  });
+  }]);

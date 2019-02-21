@@ -22,7 +22,7 @@ module.exports = angular
     require('../../vpc/vpcTag.directive').name,
     CONFIRMATION_MODAL_SERVICE,
   ])
-  .controller('awsInstanceDetailsCtrl', function(
+  .controller('awsInstanceDetailsCtrl', ['$scope', '$state', '$uibModal', 'amazonInstanceWriter', 'confirmationModalService', 'instance', 'app', 'moniker', 'environment', '$q', 'overrides', function(
     $scope,
     $state,
     $uibModal,
@@ -514,4 +514,4 @@ module.exports = angular
     });
 
     $scope.account = instance.account;
-  });
+  }]);

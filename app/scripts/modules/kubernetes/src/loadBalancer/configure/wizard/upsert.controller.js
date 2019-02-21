@@ -10,7 +10,7 @@ module.exports = angular
     require('../../../namespace/selectField.directive').name,
     require('../../transformer').name,
   ])
-  .controller('kubernetesUpsertLoadBalancerController', function(
+  .controller('kubernetesUpsertLoadBalancerController', ['$scope', '$uibModalInstance', '$state', 'application', 'loadBalancer', 'isNew', 'kubernetesLoadBalancerTransformer', function(
     $scope,
     $uibModalInstance,
     $state,
@@ -154,4 +154,4 @@ module.exports = angular
     this.cancel = function() {
       $uibModalInstance.dismiss();
     };
-  });
+  }]);

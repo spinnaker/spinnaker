@@ -9,6 +9,7 @@ class WebhookTriggerController implements IController {
   public fiatEnabled: boolean;
   public serviceAccounts: string[];
 
+  public static $inject = ['trigger'];
   constructor(public trigger: IWebhookTrigger) {
     'ngInject';
     this.fiatEnabled = SETTINGS.feature.fiatEnabled;

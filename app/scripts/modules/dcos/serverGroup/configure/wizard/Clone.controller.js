@@ -6,7 +6,7 @@ import { ModalWizard, SERVER_GROUP_WRITER, TaskMonitor } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.dcos.serverGroup.configure.clone', [SERVER_GROUP_WRITER, require('../configuration.service').name])
-  .controller('dcosCloneServerGroupController', function(
+  .controller('dcosCloneServerGroupController', ['$scope', '$uibModalInstance', '$q', '$state', 'serverGroupWriter', 'dcosServerGroupConfigurationService', 'serverGroupCommand', 'application', 'title', '$timeout', 'wizardSubFormValidation', function(
     $scope,
     $uibModalInstance,
     $q,
@@ -114,4 +114,4 @@ module.exports = angular
       $scope.state.requiresTemplateSelection = false;
       configureCommand();
     };
-  });
+  }]);

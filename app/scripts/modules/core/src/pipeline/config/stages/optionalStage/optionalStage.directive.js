@@ -15,7 +15,7 @@ module.exports = angular
       controllerAs: 'optionalStageCtrl',
     };
   })
-  .controller('OptionalStageCtrl', function($scope) {
+  .controller('OptionalStageCtrl', ['$scope', function($scope) {
     this.isOptional = function() {
       return $scope.stage && $scope.stage.stageEnabled;
     };
@@ -29,4 +29,4 @@ module.exports = angular
         };
       }
     };
-  });
+  }]);

@@ -25,6 +25,7 @@ export class ApplicationStateProvider implements IServiceProvider {
     children: this.insightStates,
   };
 
+  public static $inject = ['stateConfigProvider'];
   constructor(private stateConfigProvider: StateConfigProvider) {
     'ngInject';
     this.childStates.push(this.insightState);

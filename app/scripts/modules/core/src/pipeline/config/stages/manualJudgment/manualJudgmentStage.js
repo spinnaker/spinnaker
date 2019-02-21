@@ -30,7 +30,7 @@ module.exports = angular
       disableNotifications: true,
     });
   })
-  .controller('ManualJudgmentStageCtrl', function($scope, $uibModal) {
+  .controller('ManualJudgmentStageCtrl', ['$scope', '$uibModal', function($scope, $uibModal) {
     $scope.authEnabled = SETTINGS.authEnabled;
     $scope.stage.notifications = $scope.stage.notifications || [];
     $scope.stage.judgmentInputs = $scope.stage.judgmentInputs || [];
@@ -109,4 +109,4 @@ module.exports = angular
     this.removeJudgmentInput = function(idx) {
       $scope.stage.judgmentInputs.splice(idx, 1);
     };
-  });
+  }]);

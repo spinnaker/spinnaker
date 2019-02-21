@@ -9,7 +9,7 @@ import { IServerGroup } from 'core/domain';
 
 export const SERVER_GROUP_DATA_SOURCE = 'spinnaker.core.serverGroup.dataSource';
 
-module(SERVER_GROUP_DATA_SOURCE, [CLUSTER_SERVICE]).run(($q: IQService, clusterService: ClusterService) => {
+module(SERVER_GROUP_DATA_SOURCE, [CLUSTER_SERVICE]).run(['$q', 'clusterService', ($q: IQService, clusterService: ClusterService) => {
   const loadServerGroups = (application: Application) => {
     return clusterService.loadServerGroups(application);
   };
@@ -49,4 +49,4 @@ module(SERVER_GROUP_DATA_SOURCE, [CLUSTER_SERVICE]).run(($q: IQService, clusterS
     regionField: 'region',
     description: 'Collections of server groups or jobs',
   });
-});
+}]);

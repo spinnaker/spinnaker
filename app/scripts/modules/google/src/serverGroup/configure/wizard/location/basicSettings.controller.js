@@ -14,7 +14,7 @@ module.exports = angular
     require('../../../../gceNetworkSelectField.directive').name,
     require('../../../../subnet/subnetSelectField.directive').name,
   ])
-  .controller('gceServerGroupBasicSettingsCtrl', function($scope, $controller, $uibModalStack, $state, imageReader) {
+  .controller('gceServerGroupBasicSettingsCtrl', ['$scope', '$controller', '$uibModalStack', '$state', 'imageReader', function($scope, $controller, $uibModalStack, $state, imageReader) {
     function searchImages(q) {
       $scope.command.backingData.filtered.images = [
         {
@@ -100,4 +100,4 @@ module.exports = angular
       delegate: gceImageDelegate,
       controller: new ExpectedArtifactSelectorViewController(gceImageDelegate),
     };
-  });
+  }]);

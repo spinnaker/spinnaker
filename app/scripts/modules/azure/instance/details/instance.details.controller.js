@@ -19,7 +19,7 @@ module.exports = angular
     INSTANCE_WRITE_SERVICE,
     CONFIRMATION_MODAL_SERVICE,
   ])
-  .controller('azureInstanceDetailsCtrl', function(
+  .controller('azureInstanceDetailsCtrl', ['$scope', '$state', '$uibModal', 'instanceWriter', 'confirmationModalService', 'instance', 'app', '$q', function(
     $scope,
     $state,
     $uibModal,
@@ -388,4 +388,4 @@ module.exports = angular
     });
 
     $scope.account = instance.account;
-  });
+  }]);

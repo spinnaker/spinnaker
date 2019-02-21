@@ -25,7 +25,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('kubernetesDisableClusterStageCtrl', function($scope) {
+  .controller('kubernetesDisableClusterStageCtrl', ['$scope', function($scope) {
     var ctrl = this;
 
     let stage = $scope.stage;
@@ -63,4 +63,4 @@ module.exports = angular
       stage.preferLargerOverNewer = 'false';
     }
     stage.preferLargerOverNewer = stage.preferLargerOverNewer.toString();
-  });
+  }]);

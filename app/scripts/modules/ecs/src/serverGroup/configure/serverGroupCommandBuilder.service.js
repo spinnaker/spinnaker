@@ -12,7 +12,7 @@ module.exports = angular
     INSTANCE_TYPE_SERVICE,
     ECS_SERVER_GROUP_CONFIGURATION_SERVICE,
   ])
-  .factory('ecsServerGroupCommandBuilder', function($q, instanceTypeService, ecsServerGroupConfigurationService) {
+  .factory('ecsServerGroupCommandBuilder', ['$q', 'instanceTypeService', 'ecsServerGroupConfigurationService', function($q, instanceTypeService, ecsServerGroupConfigurationService) {
     const CLOUD_PROVIDER = 'ecs';
 
     function buildNewServerGroupCommand(application, defaults) {
@@ -231,4 +231,4 @@ module.exports = angular
       buildServerGroupCommandFromPipeline: buildServerGroupCommandFromPipeline,
       buildUpdateServerGroupCommand: buildUpdateServerGroupCommand,
     };
-  });
+  }]);

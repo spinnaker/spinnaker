@@ -5,6 +5,7 @@ import { ISecurityGroup } from 'core/domain';
 import { ProviderServiceDelegate, PROVIDER_SERVICE_DELEGATE } from 'core/cloudProvider/providerService.delegate';
 
 export class SecurityGroupTransformerService {
+  public static $inject = ['providerServiceDelegate'];
   constructor(private providerServiceDelegate: ProviderServiceDelegate) {
     'ngInject';
   }

@@ -4,7 +4,7 @@ import { STATE_CONFIG_PROVIDER, StateConfigProvider } from 'core/navigation/stat
 import { SETTINGS } from 'core/config/settings';
 
 export const INFRASTRUCTURE_STATES = 'spinnaker.core.search.states';
-module(INFRASTRUCTURE_STATES, [STATE_CONFIG_PROVIDER]).config((stateConfigProvider: StateConfigProvider) => {
+module(INFRASTRUCTURE_STATES, [STATE_CONFIG_PROVIDER]).config(['stateConfigProvider', (stateConfigProvider: StateConfigProvider) => {
   'ngInject';
 
   stateConfigProvider.addToRootState({
@@ -41,4 +41,4 @@ module(INFRASTRUCTURE_STATES, [STATE_CONFIG_PROVIDER]).config((stateConfigProvid
   stateConfigProvider.addRewriteRule('/infrastructure?q', '/search?q');
   stateConfigProvider.addRewriteRule('', '/search');
   stateConfigProvider.addRewriteRule('/', '/search');
-});
+}]);

@@ -6,7 +6,7 @@ import { Pager } from './Pager';
 
 export const PAGER_STATES = 'spinnaker.core.pager.states';
 
-module(PAGER_STATES, [STATE_CONFIG_PROVIDER]).config((stateConfigProvider: StateConfigProvider) => {
+module(PAGER_STATES, [STATE_CONFIG_PROVIDER]).config(['stateConfigProvider', (stateConfigProvider: StateConfigProvider) => {
   const pageState: INestedState = {
     url: '/page?app&q&keys&by&direction&hideNoApps',
     name: 'page',
@@ -58,4 +58,4 @@ module(PAGER_STATES, [STATE_CONFIG_PROVIDER]).config((stateConfigProvider: State
     },
   };
   stateConfigProvider.addToRootState(pageState);
-});
+}]);

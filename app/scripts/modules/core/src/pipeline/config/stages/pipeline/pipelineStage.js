@@ -23,7 +23,7 @@ module.exports = angular
       validators: [{ type: 'requiredField', fieldName: 'pipeline' }],
     });
   })
-  .controller('pipelineStageCtrl', function($scope, stage) {
+  .controller('pipelineStageCtrl', ['$scope', 'stage', function($scope, stage) {
     $scope.stage = stage;
     $scope.stage.failPipeline = $scope.stage.failPipeline === undefined ? true : $scope.stage.failPipeline;
     $scope.stage.waitForCompletion =
@@ -118,4 +118,4 @@ module.exports = angular
 
     $scope.$watch('stage.application', initializeMasters);
     $scope.$watch('stage.pipeline', updatePipelineConfig);
-  });
+  }]);

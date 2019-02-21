@@ -13,7 +13,7 @@ module.exports = angular
     require('@uirouter/angularjs').default,
     IMAGE_READER,
   ])
-  .controller('BasicSettingsMixin', function($scope, imageReader, $uibModalStack, $state) {
+  .controller('BasicSettingsMixin', ['$scope', 'imageReader', '$uibModalStack', '$state', function($scope, imageReader, $uibModalStack, $state) {
     this.createsNewCluster = function() {
       var name = this.getNamePreview();
       $scope.latestServerGroup = this.getLatestServerGroup();
@@ -92,4 +92,4 @@ module.exports = angular
     let isNotExpressionLanguage = field => {
       return field && !field.includes('${');
     };
-  });
+  }]);

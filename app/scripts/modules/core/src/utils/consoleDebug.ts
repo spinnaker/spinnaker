@@ -20,7 +20,7 @@ export const DebugWindow = new ConsoleDebugWindow();
 (window as any).spinnaker = DebugWindow;
 
 export const DEBUG_WINDOW = 'spinnaker.core.utils.consoleDebug';
-module(DEBUG_WINDOW, []).run(($injector: IInjectorService) => {
+module(DEBUG_WINDOW, []).run(['$injector', ($injector: IInjectorService) => {
   DebugWindow.$injector = $injector;
   injectables.forEach(k => (DebugWindow[k] = $injector.get(k)));
-});
+}]);

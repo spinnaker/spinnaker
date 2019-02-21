@@ -44,6 +44,7 @@ export class GceCommonLoadBalancerCommandBuilder {
     certificates: (): IPromise<IGceCertificate[]> => this.gceCertificateReader.listCertificates(),
   };
 
+  public static $inject = ['$q', 'loadBalancerReader', 'gceHealthCheckReader', 'gceCertificateReader'];
   constructor(
     private $q: ng.IQService,
     private loadBalancerReader: LoadBalancerReader,

@@ -4,7 +4,7 @@ const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.dcos.serverGroup.configure.healthChecks', [])
-  .controller('dcosServerGroupHealthChecksController', function($scope) {
+  .controller('dcosServerGroupHealthChecksController', ['$scope', function($scope) {
     var HTTP_PROTOCOL = 'HTTP';
     var HTTPS_PROTOCOL = 'HTTPS';
     var TCP_PROTOCOL = 'TCP';
@@ -75,4 +75,4 @@ module.exports = angular
     this.removeHealthCheck = function(index) {
       $scope.command.healthChecks.splice(index, 1);
     };
-  });
+  }]);

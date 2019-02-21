@@ -6,7 +6,7 @@ import { bootstrapModule } from './bootstrap.module';
  * Toggles the @uirouter/visualizer based on query parameter `vis` changing
  * Type javascript:vis() in the browser url or add `&vis=true` to the spinnaker URL
  */
-bootstrapModule.run(($uiRouter: UIRouter) => {
+bootstrapModule.run(['$uiRouter', ($uiRouter: UIRouter) => {
   'ngInject';
 
   let visualizerEnabled: 'true' | 'false' = 'false';
@@ -70,4 +70,4 @@ bootstrapModule.run(($uiRouter: UIRouter) => {
 
   (window as any).vis = createVisualizer;
   $uiRouter.transitionService.onStart({}, toggleVisualizer);
-});
+}]);

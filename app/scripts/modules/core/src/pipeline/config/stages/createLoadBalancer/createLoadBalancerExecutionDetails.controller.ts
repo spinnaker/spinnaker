@@ -10,6 +10,7 @@ import {
 import { BaseExecutionDetailsCtrl, IExecutionDetailsScope } from '../common/baseExecutionDetails.controller';
 
 export class CreateLoadBalancerDetailsCtrl extends BaseExecutionDetailsCtrl {
+  public static $inject = ['$scope', '$stateParams', 'executionDetailsSectionService'];
   constructor(
     public $scope: IExecutionDetailsScope,
     protected $stateParams: StateParams,

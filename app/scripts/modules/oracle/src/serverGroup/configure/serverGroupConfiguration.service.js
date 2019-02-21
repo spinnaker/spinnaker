@@ -8,7 +8,7 @@ import { OracleProviderSettings } from '../../oracle.settings';
 
 module.exports = angular
   .module('spinnaker.oracle.serverGroup.configure.configuration.service', [SECURITY_GROUP_READER])
-  .factory('oracleServerGroupConfigurationService', function($q, oracleImageReader, securityGroupReader) {
+  .factory('oracleServerGroupConfigurationService', ['$q', 'oracleImageReader', 'securityGroupReader', function($q, oracleImageReader, securityGroupReader) {
     let oracle = 'oracle';
 
     let getShapes = image => {
@@ -212,4 +212,4 @@ module.exports = angular
     return {
       configureCommand: configureCommand,
     };
-  });
+  }]);

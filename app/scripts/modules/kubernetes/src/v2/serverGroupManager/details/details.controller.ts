@@ -23,6 +23,7 @@ class KubernetesServerGroupManagerDetailsController implements IController {
   public manifest: IManifest;
   public entityTagTargets: IOwnerOption[];
 
+  public static $inject = ['serverGroupManager', '$scope', '$uibModal', 'app'];
   constructor(
     serverGroupManager: IServerGroupManagerStateParams,
     private $scope: IScope,

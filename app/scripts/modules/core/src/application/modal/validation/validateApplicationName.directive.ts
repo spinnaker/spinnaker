@@ -17,6 +17,7 @@ class ValidateApplicationNameController implements IController {
   public $attrs: IValidateNameAttrs;
   public $scope: IScope;
 
+  public static $inject = ['$q'];
   constructor(private $q: IQService) {}
 
   public initialize() {

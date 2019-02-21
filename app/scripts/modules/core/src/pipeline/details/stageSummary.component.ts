@@ -18,6 +18,7 @@ export class StageSummaryController implements IController {
   private parser: Parser = new Parser();
   private renderer: HtmlRenderer = new HtmlRenderer();
 
+  public static $inject = ['$scope', '$stateParams', '$state', 'confirmationModalService', 'executionService'];
   constructor(
     private $scope: IScope,
     private $stateParams: StateParams,

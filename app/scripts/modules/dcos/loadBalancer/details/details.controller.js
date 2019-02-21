@@ -6,7 +6,7 @@ const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.dcos.loadBalancer.details.controller', [CONFIRMATION_MODAL_SERVICE])
-  .controller('dcosLoadBalancerDetailsController', function(
+  .controller('dcosLoadBalancerDetailsController', ['$scope', '$state', '$uibModal', 'loadBalancer', 'app', 'confirmationModalService', 'dcosProxyUiService', '$q', function(
     $scope,
     $state,
     $uibModal,
@@ -117,4 +117,4 @@ module.exports = angular
         submitMethod: submitMethod,
       });
     };
-  });
+  }]);

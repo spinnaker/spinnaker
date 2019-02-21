@@ -6,7 +6,7 @@ const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.kubernetes.serverGroup.transformer', [])
-  .factory('kubernetesServerGroupTransformer', function($q) {
+  .factory('kubernetesServerGroupTransformer', ['$q', function($q) {
     function normalizeServerGroup(serverGroup) {
       return $q.when(serverGroup); // no-op
     }
@@ -41,4 +41,4 @@ module.exports = angular
       convertServerGroupCommandToDeployConfiguration: convertServerGroupCommandToDeployConfiguration,
       normalizeServerGroup: normalizeServerGroup,
     };
-  });
+  }]);

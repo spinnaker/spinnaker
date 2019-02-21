@@ -15,7 +15,7 @@ module.exports = angular
       executionConfigSections: ['tagImageConfig', 'taskStatus'],
     });
   })
-  .controller('gceTagImageStageCtrl', $scope => {
+  .controller('gceTagImageStageCtrl', ['$scope', $scope => {
     AccountService.listAccounts('gce').then(accounts => ($scope.accounts = accounts));
 
     $scope.stage.tags = $scope.stage.tags || {};
@@ -29,4 +29,4 @@ module.exports = angular
       $scope.consideredStages = new Map(upstreamDependencies.map(stage => [stage.refId, stage.name]));
     };
     $scope.$watch('pipeline.stages', initUpstreamStages);
-  });
+  }]);

@@ -11,7 +11,7 @@ module.exports = angular
     require('../../serverGroup.transformer').name,
     SERVER_GROUP_WRITER,
   ])
-  .controller('azureCloneServerGroupCtrl', function(
+  .controller('azureCloneServerGroupCtrl', ['$scope', '$uibModalInstance', '$q', '$state', 'serverGroupWriter', 'azureServerGroupConfigurationService', 'serverGroupCommand', 'application', 'title', function(
     $scope,
     $uibModalInstance,
     $q,
@@ -202,4 +202,4 @@ module.exports = angular
       $scope.state.requiresTemplateSelection = false;
       configureCommand();
     };
-  });
+  }]);

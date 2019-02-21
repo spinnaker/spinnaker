@@ -6,7 +6,7 @@ import { SERVER_GROUP_WRITER, TaskMonitor } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.openstack.serverGroup.details.resize.controller', [SERVER_GROUP_WRITER])
-  .controller('openstackResizeServerGroupCtrl', function(
+  .controller('openstackResizeServerGroupCtrl', ['$scope', '$uibModalInstance', 'serverGroupWriter', 'application', 'serverGroup', function(
     $scope,
     $uibModalInstance,
     serverGroupWriter,
@@ -80,4 +80,4 @@ module.exports = angular
     this.cancel = function() {
       $uibModalInstance.dismiss();
     };
-  });
+  }]);

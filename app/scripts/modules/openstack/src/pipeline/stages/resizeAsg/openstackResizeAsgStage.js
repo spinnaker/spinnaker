@@ -29,7 +29,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('openstackResizeAsgStageCtrl', function($scope) {
+  .controller('openstackResizeAsgStageCtrl', ['$scope', function($scope) {
     var ctrl = this;
 
     let stage = $scope.stage;
@@ -113,4 +113,4 @@ module.exports = angular
         }
       }
     };
-  });
+  }]);

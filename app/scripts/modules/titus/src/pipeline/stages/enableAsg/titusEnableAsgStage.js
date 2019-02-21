@@ -21,7 +21,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('titusEnableAsgStageCtrl', function($scope) {
+  .controller('titusEnableAsgStageCtrl', ['$scope', function($scope) {
     var ctrl = this;
 
     let stage = $scope.stage;
@@ -66,4 +66,4 @@ module.exports = angular
     }
 
     $scope.$watch('stage.credentials', $scope.accountUpdated);
-  });
+  }]);

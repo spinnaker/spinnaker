@@ -10,7 +10,7 @@ module.exports = angular
     SERVER_GROUP_WRITER,
     SECURITY_GROUP_READER,
   ])
-  .controller('EditSecurityGroupsCtrl', function(
+  .controller('EditSecurityGroupsCtrl', ['$scope', '$uibModalInstance', 'serverGroupWriter', 'securityGroupReader', 'application', 'serverGroup', 'securityGroups', function(
     $scope,
     $uibModalInstance,
     serverGroupWriter,
@@ -76,4 +76,4 @@ module.exports = angular
     };
 
     this.cancel = $uibModalInstance.dismiss;
-  });
+  }]);

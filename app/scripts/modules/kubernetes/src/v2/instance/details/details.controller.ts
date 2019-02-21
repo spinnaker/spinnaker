@@ -40,6 +40,7 @@ class KubernetesInstanceDetailsController implements IController {
   public manifest: IManifest;
   public consoleOutputInstance: IConsoleOutputInstance;
 
+  public static $inject = ['instance', '$uibModal', '$q', '$scope', 'app'];
   constructor(
     instance: InstanceFromStateParams,
     private $uibModal: IModalService,

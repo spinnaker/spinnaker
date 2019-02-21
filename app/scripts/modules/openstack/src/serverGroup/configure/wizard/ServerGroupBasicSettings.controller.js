@@ -10,7 +10,7 @@ module.exports = angular
     require('angular-ui-bootstrap'),
     IMAGE_READER,
   ])
-  .controller('openstackServerGroupBasicSettingsCtrl', function(
+  .controller('openstackServerGroupBasicSettingsCtrl', ['$scope', '$controller', '$uibModalStack', '$state', 'imageReader', function(
     $scope,
     $controller,
     $uibModalStack,
@@ -41,4 +41,4 @@ module.exports = angular
         $state: $state,
       }),
     );
-  });
+  }]);

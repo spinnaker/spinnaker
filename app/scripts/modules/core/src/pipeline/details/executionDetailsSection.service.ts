@@ -4,6 +4,7 @@ import { StateParams, StateService } from '@uirouter/angularjs';
 export class ExecutionDetailsSectionService {
   private pendingOnComplete: IPromise<any>;
 
+  public static $inject = ['$stateParams', '$state', '$timeout'];
   public constructor(
     private $stateParams: StateParams,
     private $state: StateService,

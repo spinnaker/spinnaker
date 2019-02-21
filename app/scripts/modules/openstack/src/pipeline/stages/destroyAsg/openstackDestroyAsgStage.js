@@ -27,7 +27,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('openstackDestroyAsgStageCtrl', function($scope) {
+  .controller('openstackDestroyAsgStageCtrl', ['$scope', function($scope) {
     let stage = $scope.stage;
 
     $scope.state = {
@@ -55,4 +55,4 @@ module.exports = angular
     if (!stage.target) {
       stage.target = $scope.targets[0].val;
     }
-  });
+  }]);

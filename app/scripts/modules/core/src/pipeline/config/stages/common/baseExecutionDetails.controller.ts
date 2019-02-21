@@ -12,6 +12,7 @@ export interface IExecutionDetailsScope extends IScope {
 }
 
 export class BaseExecutionDetailsCtrl {
+  public static $inject = ['$scope', '$stateParams', 'executionDetailsSectionService'];
   constructor(
     public $scope: IExecutionDetailsScope,
     protected $stateParams: StateParams,

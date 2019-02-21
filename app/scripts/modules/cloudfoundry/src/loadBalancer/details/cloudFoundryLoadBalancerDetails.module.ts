@@ -16,6 +16,7 @@ class CloudFoundryLoadBalancerDetailsCtrl implements IController {
   private loadBalancerFromParams: ILoadBalancerFromStateParams;
   public loadBalancer: ICloudFoundryLoadBalancer;
 
+  public static $inject = ['$scope', 'app', 'confirmationModalService', 'loadBalancer', '$q'];
   constructor(
     public $scope: IScope,
     private app: Application,

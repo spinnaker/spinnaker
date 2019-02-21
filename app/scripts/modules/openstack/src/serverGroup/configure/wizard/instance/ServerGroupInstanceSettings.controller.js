@@ -12,7 +12,7 @@ module.exports = angular
     IMAGE_READER,
     require('../../../../instance/osInstanceTypeSelectField.directive').name,
   ])
-  .controller('openstackServerGroupInstanceSettingsCtrl', function(
+  .controller('openstackServerGroupInstanceSettingsCtrl', ['$scope', '$controller', '$uibModalStack', '$state', 'imageReader', function(
     $scope,
     $controller,
     $uibModalStack,
@@ -67,4 +67,4 @@ module.exports = angular
         ModalWizard.markIncomplete('instance-settings');
       }
     });
-  });
+  }]);

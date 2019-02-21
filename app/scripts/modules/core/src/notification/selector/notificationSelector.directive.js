@@ -17,7 +17,7 @@ module.exports = angular
       controllerAs: 'vm',
     };
   })
-  .controller('NotificationSelectorCtrl', function(notificationTypeService) {
+  .controller('NotificationSelectorCtrl', ['notificationTypeService', function(notificationTypeService) {
     this.notificationTypes = notificationTypeService.listNotificationTypes();
 
     this.originalType = this.notification.type;
@@ -41,4 +41,4 @@ module.exports = angular
     }
 
     this.updateNotificationType();
-  });
+  }]);

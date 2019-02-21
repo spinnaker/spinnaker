@@ -20,7 +20,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('gceEnableAsgStageCtrl', function($scope) {
+  .controller('gceEnableAsgStageCtrl', ['$scope', function($scope) {
     const stage = $scope.stage;
 
     $scope.state = {
@@ -58,4 +58,4 @@ module.exports = angular
     }
 
     $scope.$watch('stage.credentials', $scope.accountUpdated);
-  });
+  }]);

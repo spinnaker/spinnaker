@@ -609,8 +609,8 @@ export class ExecutionService {
 export const EXECUTION_SERVICE = 'spinnaker.core.pipeline.executions.service';
 module(EXECUTION_SERVICE, [require('@uirouter/angularjs').default]).factory(
   'executionService',
-  ($http: IHttpService, $q: IQService, $state: StateService, $timeout: ITimeoutService) =>
-    new ExecutionService($http, $q, $state, $timeout),
+  ['$http', '$q', '$state', '$timeout', ($http: IHttpService, $q: IQService, $state: StateService, $timeout: ITimeoutService) =>
+    new ExecutionService($http, $q, $state, $timeout)],
 );
 
 DebugWindow.addInjectable('executionService');

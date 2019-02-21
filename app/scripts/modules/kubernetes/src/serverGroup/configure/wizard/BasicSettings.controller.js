@@ -8,7 +8,7 @@ module.exports = angular
     require('@uirouter/angularjs').default,
     require('angular-ui-bootstrap'),
   ])
-  .controller('kubernetesServerGroupBasicSettingsController', function(
+  .controller('kubernetesServerGroupBasicSettingsController', ['$scope', '$controller', '$uibModalStack', '$state', 'kubernetesImageReader', 'kubernetesServerGroupConfigurationService', function(
     $scope,
     $controller,
     $uibModalStack,
@@ -47,4 +47,4 @@ module.exports = angular
         $state: $state,
       }),
     );
-  });
+  }]);

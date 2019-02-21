@@ -15,7 +15,7 @@ module.exports = angular
       executionConfigSections: ['tagImageConfig', 'taskStatus'],
     });
   })
-  .controller('awsTagImageStageCtrl', $scope => {
+  .controller('awsTagImageStageCtrl', ['$scope', $scope => {
     $scope.stage.tags = $scope.stage.tags || {};
     $scope.stage.cloudProvider = $scope.stage.cloudProvider || 'aws';
 
@@ -27,4 +27,4 @@ module.exports = angular
       $scope.consideredStages = new Map(upstreamDependencies.map(stage => [stage.refId, stage.name]));
     };
     $scope.$watch('stage.requisiteStageRefIds', initUpstreamStages);
-  });
+  }]);

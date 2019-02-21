@@ -7,7 +7,7 @@ import { ScalingPolicyWriter } from '@spinnaker/amazon';
 
 module.exports = angular
   .module('spinnaker.titus.serverGroup.details.scalingPolicy.upsertScalingPolicy.controller', [])
-  .controller('titusUpsertScalingPolicyCtrl', function(
+  .controller('titusUpsertScalingPolicyCtrl', ['$uibModalInstance', 'alarmServerGroup', 'serverGroup', 'application', 'policy', function(
     $uibModalInstance,
     alarmServerGroup,
     serverGroup,
@@ -159,4 +159,4 @@ module.exports = angular
     this.cancel = $uibModalInstance.dismiss;
 
     this.initialize();
-  });
+  }]);

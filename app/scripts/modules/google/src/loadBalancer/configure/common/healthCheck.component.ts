@@ -12,6 +12,7 @@ class HealthCheckCreateCtrl implements IController {
   public credentials: string;
   public max = Number.MAX_SAFE_INTEGER;
 
+  public static $inject = ['$scope'];
   constructor(private $scope: ng.IScope) {}
 
   public $onInit(): void {

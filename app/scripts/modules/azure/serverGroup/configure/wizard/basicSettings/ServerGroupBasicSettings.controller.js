@@ -11,7 +11,7 @@ module.exports = angular
     require('./image.regional.filter').name,
     IMAGE_READER,
   ])
-  .controller('azureServerGroupBasicSettingsCtrl', function($scope, $controller, $uibModalStack, $state, imageReader) {
+  .controller('azureServerGroupBasicSettingsCtrl', ['$scope', '$controller', '$uibModalStack', '$state', 'imageReader', function($scope, $controller, $uibModalStack, $state, imageReader) {
     $scope.$watch('form.$valid', function(newVal) {
       if (newVal) {
         ModalWizard.markClean('basic-settings');
@@ -52,4 +52,4 @@ module.exports = angular
         return pattern.test(detail);
       },
     };
-  });
+  }]);

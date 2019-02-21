@@ -87,6 +87,7 @@ class SslLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements IControll
 
   private sessionAffinityModelToViewMap: any = _.invert(this.sessionAffinityViewToModelMap);
 
+  public static $inject = ['$scope', 'application', '$uibModalInstance', 'loadBalancer', 'gceCommonLoadBalancerCommandBuilder', 'isNew', 'wizardSubFormValidation', '$state'];
   constructor(
     public $scope: IScope,
     public application: Application,

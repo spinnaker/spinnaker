@@ -4,7 +4,7 @@ const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.deck.gce.loadBalancer.hostAndPathRules.controller', [require('./hostAndPathRules.service').name])
-  .controller('gceHostAndPathRulesCtrl', function(
+  .controller('gceHostAndPathRulesCtrl', ['hostRules', 'defaultService', 'loadBalancerName', '$uibModalInstance', 'hostAndPathRulesService', function(
     hostRules,
     defaultService,
     loadBalancerName,
@@ -14,4 +14,4 @@ module.exports = angular
     this.table = hostAndPathRulesService.buildTable(hostRules, defaultService);
     this.loadBalancerName = loadBalancerName;
     this.close = $uibModalInstance.dismiss;
-  });
+  }]);

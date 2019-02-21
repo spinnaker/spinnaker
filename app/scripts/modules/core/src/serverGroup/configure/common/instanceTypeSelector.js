@@ -16,7 +16,7 @@ module.exports = angular
       controller: 'InstanceTypeSelectorCtrl as instanceTypeCtrl',
     };
   })
-  .controller('InstanceTypeSelectorCtrl', function($scope, instanceTypeService) {
+  .controller('InstanceTypeSelectorCtrl', ['$scope', 'instanceTypeService', function($scope, instanceTypeService) {
     function updateFamilies() {
       let availableTypes = $scope.command.backingData.filtered.instanceTypes;
       instanceTypeService.getCategories($scope.command.selectedProvider).then(function(categories) {
@@ -65,4 +65,4 @@ module.exports = angular
         ? 'instanceType.storageOverridden'
         : null;
     };
-  });
+  }]);

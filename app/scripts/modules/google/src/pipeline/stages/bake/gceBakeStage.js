@@ -44,7 +44,7 @@ module.exports = angular
       artifactRemover: ArtifactReferenceService.removeArtifactFromFields(['packageArtifactIds']),
     });
   })
-  .controller('gceBakeStageCtrl', function($scope, $q, $uibModal) {
+  .controller('gceBakeStageCtrl', ['$scope', '$q', '$uibModal', function($scope, $q, $uibModal) {
     $scope.stage.extendedAttributes = $scope.stage.extendedAttributes || {};
     $scope.stage.region = 'global';
 
@@ -151,4 +151,4 @@ module.exports = angular
     $scope.$watch('stage', deleteEmptyProperties, true);
 
     initialize();
-  });
+  }]);

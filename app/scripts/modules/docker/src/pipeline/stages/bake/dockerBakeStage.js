@@ -29,7 +29,7 @@ module.exports = angular
       restartable: true,
     });
   })
-  .controller('dockerBakeStageCtrl', function($scope, $q) {
+  .controller('dockerBakeStageCtrl', ['$scope', '$q', function($scope, $q) {
     var stage = $scope.stage;
 
     stage.region = 'global';
@@ -72,4 +72,4 @@ module.exports = angular
     $scope.$watch('stage', deleteEmptyProperties, true);
 
     initialize();
-  });
+  }]);

@@ -6,7 +6,7 @@ import { TaskExecutor, TaskMonitor } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.amazon.serverGroup.details.scheduledActions.editScheduledActions.modal.controller', [])
-  .controller('EditScheduledActionsCtrl', function($scope, $uibModalInstance, application, serverGroup) {
+  .controller('EditScheduledActionsCtrl', ['$scope', '$uibModalInstance', 'application', 'serverGroup', function($scope, $uibModalInstance, application, serverGroup) {
     $scope.command = {
       scheduledActions: serverGroup.scheduledActions.map(action => {
         return {
@@ -57,4 +57,4 @@ module.exports = angular
     };
 
     this.cancel = $uibModalInstance.dismiss;
-  });
+  }]);

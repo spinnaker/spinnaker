@@ -20,7 +20,7 @@ module.exports = angular
     require('./resize/resizeServerGroup.controller').name,
     require('./rollback/rollbackServerGroup.controller').name,
   ])
-  .controller('oracleServerGroupDetailsCtrl', function(
+  .controller('oracleServerGroupDetailsCtrl', ['$scope', '$state', '$uibModal', 'app', 'serverGroup', 'confirmationModalService', 'serverGroupWriter', 'oracleImageReader', function(
     $scope,
     $state,
     $uibModal,
@@ -223,4 +223,4 @@ module.exports = angular
         app.serverGroups.onRefresh($scope, retrieveServerGroup);
       }
     });
-  });
+  }]);

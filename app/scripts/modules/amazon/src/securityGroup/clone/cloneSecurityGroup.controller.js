@@ -9,7 +9,7 @@ module.exports = angular
   .module('spinnaker.amazon.securityGroup.clone.controller', [
     require('../configure/configSecurityGroup.mixin.controller').name,
   ])
-  .controller('awsCloneSecurityGroupController', function(
+  .controller('awsCloneSecurityGroupController', ['$scope', '$uibModalInstance', '$controller', 'securityGroup', 'application', function(
     $scope,
     $uibModalInstance,
     $controller,
@@ -95,4 +95,4 @@ module.exports = angular
     };
 
     vm.initializeSecurityGroups();
-  });
+  }]);

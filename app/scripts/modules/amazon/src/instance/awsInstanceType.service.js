@@ -7,7 +7,7 @@ import { API } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.amazon.instanceType.service', [])
-  .factory('awsInstanceTypeService', function($http, $q) {
+  .factory('awsInstanceTypeService', ['$http', '$q', function($http, $q) {
     var m5 = {
       type: 'm5',
       description:
@@ -289,4 +289,4 @@ module.exports = angular
       filterInstanceTypes,
       isEbsOptimized,
     };
-  });
+  }]);

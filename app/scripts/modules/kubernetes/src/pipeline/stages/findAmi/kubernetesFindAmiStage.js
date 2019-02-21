@@ -20,7 +20,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('kubernetesFindAmiStageController', function($scope) {
+  .controller('kubernetesFindAmiStageController', ['$scope', function($scope) {
     let stage = $scope.stage;
 
     $scope.state = {
@@ -69,4 +69,4 @@ module.exports = angular
     }
 
     $scope.$watch('stage.credentials', $scope.accountUpdated);
-  });
+  }]);

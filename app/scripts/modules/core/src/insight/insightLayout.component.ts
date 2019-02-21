@@ -7,6 +7,7 @@ class InsightLayoutCtrl {
   public app: Application;
   public ready = false;
 
+  public static $inject = ['insightFilterStateModel'];
   constructor(public insightFilterStateModel: InsightFilterStateModel) {
     'ngInject';
   }

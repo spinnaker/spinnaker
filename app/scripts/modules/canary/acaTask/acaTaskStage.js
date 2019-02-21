@@ -26,7 +26,7 @@ module.exports = angular
       });
     }
   })
-  .controller('AcaTaskStageCtrl', function($scope, $uibModal, stage) {
+  .controller('AcaTaskStageCtrl', ['$scope', '$uibModal', 'stage', function($scope, $uibModal, stage) {
     var user = AuthenticationService.getAuthenticatedUser();
     $scope.stage = stage;
     $scope.stage.baseline = $scope.stage.baseline || {};
@@ -102,4 +102,4 @@ module.exports = angular
         return 0;
       });
     };
-  });
+  }]);

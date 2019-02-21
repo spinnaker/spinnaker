@@ -5,6 +5,7 @@ import { Registry } from 'core/registry';
 import { IvyArtifactEditor } from './IvyArtifactEditor';
 
 class IvyArtifactController implements IController {
+  public static $inject = ['artifact'];
   constructor(public artifact: IArtifact) {
     'ngInject';
   }

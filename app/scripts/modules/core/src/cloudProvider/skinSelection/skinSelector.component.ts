@@ -5,6 +5,7 @@ import { IController, module } from 'angular';
 export class SkinSelectorCtrl implements IController {
   public command = { skin: '' };
 
+  public static $inject = ['skinOptions', '$uibModalInstance'];
   constructor(public skinOptions: string[], private $uibModalInstance: IModalInstanceService) {
     'ngInject';
 

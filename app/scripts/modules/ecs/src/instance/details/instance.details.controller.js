@@ -17,7 +17,7 @@ module.exports = angular
     require('angular-ui-bootstrap'),
     CONFIRMATION_MODAL_SERVICE,
   ])
-  .controller('ecsInstanceDetailsCtrl', function(
+  .controller('ecsInstanceDetailsCtrl', ['$scope', '$state', '$uibModal', 'confirmationModalService', 'instanceWriter', 'instance', 'app', 'moniker', 'environment', '$q', 'overrides', function(
     $scope,
     $state,
     $uibModal,
@@ -348,4 +348,4 @@ module.exports = angular
     });
 
     $scope.account = instance.account;
-  });
+  }]);

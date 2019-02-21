@@ -29,6 +29,7 @@ export interface IMultiInstanceJob {
 }
 
 export class InstanceWriter {
+  public static $inject = ['providerServiceDelegate'];
   public constructor(protected providerServiceDelegate: ProviderServiceDelegate) {
     'ngInject';
   }

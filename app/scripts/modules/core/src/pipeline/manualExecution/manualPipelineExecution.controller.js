@@ -21,7 +21,7 @@ module.exports = angular
     TRIGGER_TEMPLATE,
     STAGE_MANUAL_COMPONENTS,
   ])
-  .controller('ManualPipelineExecutionCtrl', function($scope, $uibModalInstance, pipeline, application, trigger) {
+  .controller('ManualPipelineExecutionCtrl', ['$scope', '$uibModalInstance', 'pipeline', 'application', 'trigger', function($scope, $uibModalInstance, pipeline, application, trigger) {
     let applicationNotifications = [];
     let pipelineNotifications = [];
 
@@ -290,4 +290,4 @@ module.exports = angular
     if (!pipeline) {
       this.pipelineOptions = application.pipelineConfigs.data.filter(c => !c.disabled);
     }
-  });
+  }]);

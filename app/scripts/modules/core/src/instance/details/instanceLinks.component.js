@@ -16,7 +16,7 @@ module.exports = angular.module('spinnaker.core.instance.details.instanceLinks',
     environment: '=',
   },
   templateUrl: require('./instanceLinks.component.html'),
-  controller: function($interpolate) {
+  controller: ['$interpolate', function($interpolate) {
     this.port = _.get(this.application, 'attributes.instancePort', SETTINGS.defaultInstancePort) || 80;
     this.sections = _.cloneDeep(
       _.get(this.application, 'attributes.instanceLinks', SETTINGS.defaultInstanceLinks) || [],
@@ -49,5 +49,5 @@ module.exports = angular.module('spinnaker.core.instance.details.instanceLinks',
         };
       });
     });
-  },
+  }],
 });

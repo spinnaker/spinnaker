@@ -30,7 +30,7 @@ module.exports = angular
       validators: [{ type: 'requiredField', fieldName: 'account' }, { type: 'requiredField', fieldName: 'namespace' }],
     });
   })
-  .controller('kubernetesRunJobStageCtrl', function($scope, $uibModal) {
+  .controller('kubernetesRunJobStageCtrl', ['$scope', '$uibModal', function($scope, $uibModal) {
     this.stage = $scope.stage;
     this.pipeline = $scope.pipeline;
     this.stage.cloudProvider = 'kubernetes';
@@ -58,4 +58,4 @@ module.exports = angular
         })
         .catch(() => {});
     };
-  });
+  }]);

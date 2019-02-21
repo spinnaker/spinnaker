@@ -24,7 +24,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('titusCloneServerGroupStageCtrl', function($scope) {
+  .controller('titusCloneServerGroupStageCtrl', ['$scope', function($scope) {
     let stage = $scope.stage;
 
     $scope.viewState = {
@@ -88,4 +88,4 @@ module.exports = angular
     this.processIsSuspended = process => {
       return stage.suspendedProcesses && stage.suspendedProcesses.includes(process);
     };
-  });
+  }]);

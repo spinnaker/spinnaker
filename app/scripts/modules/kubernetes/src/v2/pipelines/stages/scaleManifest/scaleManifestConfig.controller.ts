@@ -7,6 +7,7 @@ import { Application } from '@spinnaker/core';
 export class KubernetesV2ScaleManifestConfigCtrl implements IController {
   public application: Application;
 
+  public static $inject = ['$scope'];
   constructor(private $scope: IScope) {
     'ngInject';
     if (this.$scope.stage.isNew) {

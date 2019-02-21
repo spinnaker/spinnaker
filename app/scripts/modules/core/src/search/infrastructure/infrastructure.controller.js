@@ -31,7 +31,7 @@ module.exports = angular
     RECENTLY_VIEWED_ITEMS_COMPONENT,
     SPINNER_COMPONENT,
   ])
-  .controller('InfrastructureCtrl', function(
+  .controller('InfrastructureCtrl', ['$scope', 'infrastructureSearchService', '$stateParams', '$location', 'cacheInitializer', 'overrideRegistry', 'pageTitleService', '$uibModal', '$state', function(
     $scope,
     infrastructureSearchService,
     $stateParams,
@@ -166,7 +166,7 @@ module.exports = angular
       !$scope.viewState.searching &&
       !$scope.projects.length &&
       $scope.categories.every(category => !category.results.length);
-  })
+  }])
   .directive('infrastructureSearchV1', function() {
     return {
       restrict: 'E',

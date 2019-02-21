@@ -8,7 +8,7 @@ const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.gce.loadBalancer.transformer', [])
-  .factory('gceLoadBalancerTransformer', function($q) {
+  .factory('gceLoadBalancerTransformer', ['$q', function($q) {
     function updateHealthCounts(container) {
       const instances = container.instances;
       const serverGroups = container.serverGroups || [container];
@@ -166,4 +166,4 @@ module.exports = angular
       convertLoadBalancerForEditing: convertLoadBalancerForEditing,
       constructNewLoadBalancerTemplate: constructNewLoadBalancerTemplate,
     };
-  });
+  }]);

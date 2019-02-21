@@ -34,7 +34,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('CronTriggerCtrl', function(trigger) {
+  .controller('CronTriggerCtrl', ['trigger', function(trigger) {
     this.trigger = trigger;
     this.fiatEnabled = SETTINGS.feature.fiatEnabled;
 
@@ -53,7 +53,7 @@ module.exports = angular
       hideSeconds: true,
       use24HourTime: true,
     };
-  })
-  .run($templateCache =>
-    $templateCache.put('spinnaker-custom-cron-picker-template', $templateCache.get(require('./cronPicker.html'))),
+  }])
+  .run(['$templateCache', $templateCache =>
+    $templateCache.put('spinnaker-custom-cron-picker-template', $templateCache.get(require('./cronPicker.html')))],
   );

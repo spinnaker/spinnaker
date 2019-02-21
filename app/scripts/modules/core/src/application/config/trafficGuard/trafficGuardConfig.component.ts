@@ -27,6 +27,7 @@ export class TrafficGuardConfigController {
     isDirty: false,
   };
 
+  public static $inject = ['$log'];
   public constructor(private $log: ILogService) {
     'ngInject';
   }

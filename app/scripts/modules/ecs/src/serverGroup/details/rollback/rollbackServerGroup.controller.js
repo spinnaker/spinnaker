@@ -6,7 +6,7 @@ import { SERVER_GROUP_WRITER, TaskMonitor } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.ecs.serverGroup.details.rollback.controller', [SERVER_GROUP_WRITER])
-  .controller('ecsRollbackServerGroupCtrl', function(
+  .controller('ecsRollbackServerGroupCtrl', ['$scope', '$uibModalInstance', 'serverGroupWriter', 'application', 'serverGroup', 'disabledServerGroups', 'allServerGroups', function(
     $scope,
     $uibModalInstance,
     serverGroupWriter,
@@ -81,4 +81,4 @@ module.exports = angular
     this.group = function(serverGroup) {
       return serverGroup.isDisabled ? 'Disabled Server Groups' : 'Enabled Server Groups';
     };
-  });
+  }]);

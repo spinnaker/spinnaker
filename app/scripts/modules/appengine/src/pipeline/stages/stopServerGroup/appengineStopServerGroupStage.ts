@@ -7,6 +7,7 @@ import { IAppengineStageScope } from 'appengine/domain/index';
 import { AppengineStageCtrl } from '../appengineStage.controller';
 
 class AppengineStopServerGroupStageCtrl extends AppengineStageCtrl {
+  public static $inject = ['$scope'];
   constructor(public $scope: IAppengineStageScope) {
     'ngInject';
     super($scope);

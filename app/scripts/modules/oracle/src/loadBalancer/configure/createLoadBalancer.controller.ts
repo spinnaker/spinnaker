@@ -60,6 +60,7 @@ export class OracleLoadBalancerController implements IController {
   public backendSets: IOracleBackEndSet[] = [];
   public certificates: IOracleListenerCertificate[] = [];
 
+  public static $inject = ['$scope', '$uibModalInstance', '$state', 'oracleLoadBalancerTransformer', 'application', 'loadBalancer', 'isNew'];
   constructor(
     private $scope: ng.IScope,
     private $uibModalInstance: IModalServiceInstance,

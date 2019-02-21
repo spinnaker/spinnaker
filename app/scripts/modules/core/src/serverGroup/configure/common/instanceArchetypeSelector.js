@@ -21,7 +21,7 @@ module.exports = angular
       controllerAs: 'instanceArchetypeCtrl',
     };
   })
-  .controller('InstanceArchetypeSelectorCtrl', function($scope, instanceTypeService, serverGroupConfigurationService) {
+  .controller('InstanceArchetypeSelectorCtrl', ['$scope', 'instanceTypeService', 'serverGroupConfigurationService', function($scope, instanceTypeService, serverGroupConfigurationService) {
     var controller = this;
     instanceTypeService.getCategories($scope.command.selectedProvider).then(function(categories) {
       $scope.instanceProfiles = categories;
@@ -101,4 +101,4 @@ module.exports = angular
         controller.refreshInstanceTypes();
       }
     });
-  });
+  }]);

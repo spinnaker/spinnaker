@@ -19,7 +19,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('openstackFindAmiStageCtrl', function($scope) {
+  .controller('openstackFindAmiStageCtrl', ['$scope', function($scope) {
     let stage = $scope.stage;
 
     $scope.state = {
@@ -71,4 +71,4 @@ module.exports = angular
     }
 
     $scope.$watch('stage.credentials', $scope.accountUpdated);
-  });
+  }]);

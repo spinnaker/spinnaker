@@ -6,7 +6,7 @@ import { SETTINGS } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.docker.pipeline.stage.bake.executionDetails.controller', [require('@uirouter/angularjs').default])
-  .controller('dockerBakeExecutionDetailsCtrl', function(
+  .controller('dockerBakeExecutionDetailsCtrl', ['$scope', '$stateParams', 'executionDetailsSectionService', '$interpolate', function(
     $scope,
     $stateParams,
     executionDetailsSectionService,
@@ -25,4 +25,4 @@ module.exports = angular
     initialize();
 
     $scope.$on('$stateChangeSuccess', initialize);
-  });
+  }]);

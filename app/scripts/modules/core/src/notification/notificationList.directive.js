@@ -23,7 +23,7 @@ module.exports = angular
       controllerAs: 'notificationListCtrl',
     };
   })
-  .controller('NotificationListCtrl', function($scope, $uibModal) {
+  .controller('NotificationListCtrl', ['$scope', '$uibModal', function($scope, $uibModal) {
     var vm = this;
 
     vm.revertNotificationChanges = function() {
@@ -140,4 +140,4 @@ module.exports = angular
     };
 
     return vm;
-  });
+  }]);

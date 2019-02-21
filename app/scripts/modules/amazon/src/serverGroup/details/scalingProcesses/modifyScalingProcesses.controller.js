@@ -7,7 +7,7 @@ import { TaskExecutor, TaskMonitor } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.amazon.serverGroup.details.autoscaling.process.controller', [])
-  .controller('ModifyScalingProcessesCtrl', function($scope, $uibModalInstance, application, serverGroup, processes) {
+  .controller('ModifyScalingProcessesCtrl', ['$scope', '$uibModalInstance', 'application', 'serverGroup', 'processes', function($scope, $uibModalInstance, application, serverGroup, processes) {
     $scope.command = angular.copy(processes);
     $scope.serverGroup = serverGroup;
     $scope.verification = {};
@@ -100,4 +100,4 @@ module.exports = angular
     };
 
     this.cancel = $uibModalInstance.dismiss;
-  });
+  }]);

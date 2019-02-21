@@ -29,7 +29,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('gceResizeAsgStageCtrl', function($scope) {
+  .controller('gceResizeAsgStageCtrl', ['$scope', function($scope) {
     const ctrl = this;
 
     const stage = $scope.stage;
@@ -118,4 +118,4 @@ module.exports = angular
         }
       }
     };
-  });
+  }]);

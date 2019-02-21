@@ -93,6 +93,7 @@ export class AppengineServerGroupCommandBuilder {
     return pipeline.expectedArtifacts || [];
   }
 
+  public static $inject = ['$q'];
   constructor(private $q: IQService) {
     'ngInject';
   }

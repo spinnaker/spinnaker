@@ -17,7 +17,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('dcosFindAmiStageController', function($scope) {
+  .controller('dcosFindAmiStageController', ['$scope', function($scope) {
     let stage = $scope.stage;
 
     $scope.state = {
@@ -65,4 +65,4 @@ module.exports = angular
     }
 
     $scope.$watch('stage.credentials', $scope.accountUpdated);
-  });
+  }]);

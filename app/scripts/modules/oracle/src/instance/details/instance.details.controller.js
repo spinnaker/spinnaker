@@ -9,7 +9,7 @@ module.exports = angular
     require('@uirouter/angularjs').default,
     INSTANCE_WRITE_SERVICE,
   ])
-  .controller('oracleInstanceDetailsCtrl', function($scope, $q, instanceWriter, app, instance) {
+  .controller('oracleInstanceDetailsCtrl', ['$scope', '$q', 'instanceWriter', 'app', 'instance', function($scope, $q, instanceWriter, app, instance) {
     $scope.application = app;
 
     let initialize = app.isStandalone ? retrieveInstance() : $q.all([app.serverGroups.ready()]).then(retrieveInstance);
@@ -44,4 +44,4 @@ module.exports = angular
         Object.assign($scope.instance, instanceDetails);
       });
     }
-  });
+  }]);

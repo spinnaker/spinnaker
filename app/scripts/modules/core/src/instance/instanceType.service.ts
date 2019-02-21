@@ -56,6 +56,7 @@ export interface IInstanceTypeService {
 }
 
 export class InstanceTypeService {
+  public static $inject = ['providerServiceDelegate'];
   public constructor(private providerServiceDelegate: ProviderServiceDelegate) {
     'ngInject';
   }

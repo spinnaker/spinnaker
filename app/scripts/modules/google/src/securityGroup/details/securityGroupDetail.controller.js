@@ -22,7 +22,7 @@ module.exports = angular
     require('../clone/cloneSecurityGroup.controller').name,
     GCE_SECURITY_GROUP_HELP_TEXT_SERVICE,
   ])
-  .controller('gceSecurityGroupDetailsCtrl', function(
+  .controller('gceSecurityGroupDetailsCtrl', ['$scope', '$state', 'resolvedSecurityGroup', 'app', 'confirmationModalService', 'securityGroupReader', '$uibModal', 'gceSecurityGroupHelpTextService', function(
     $scope,
     $state,
     resolvedSecurityGroup,
@@ -231,4 +231,4 @@ module.exports = angular
         refresh: extractSecurityGroup,
       };
     }
-  });
+  }]);

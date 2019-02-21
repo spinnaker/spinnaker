@@ -4,7 +4,7 @@ import { STATE_CONFIG_PROVIDER, INestedState, StateConfigProvider } from 'core/n
 
 export const STYLEGUIDE_STATES = 'spinnaker.core.styleguide.states';
 
-angular.module(STYLEGUIDE_STATES, [STATE_CONFIG_PROVIDER]).config((stateConfigProvider: StateConfigProvider) => {
+angular.module(STYLEGUIDE_STATES, [STATE_CONFIG_PROVIDER]).config(['stateConfigProvider', (stateConfigProvider: StateConfigProvider) => {
   const styleguideState: INestedState = {
     url: '/styleguide',
     name: 'styleguide',
@@ -20,4 +20,4 @@ angular.module(STYLEGUIDE_STATES, [STATE_CONFIG_PROVIDER]).config((stateConfigPr
     },
   };
   stateConfigProvider.addToRootState(styleguideState);
-});
+}]);

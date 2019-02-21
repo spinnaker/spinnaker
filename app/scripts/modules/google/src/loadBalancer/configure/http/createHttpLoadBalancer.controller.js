@@ -24,7 +24,7 @@ module.exports = angular
     require('./listeners/listener.component').name,
     require('./transformer.service').name,
   ])
-  .controller('gceCreateHttpLoadBalancerCtrl', function(
+  .controller('gceCreateHttpLoadBalancerCtrl', ['$scope', '$uibModal', '$uibModalInstance', 'application', 'loadBalancer', 'isNew', 'gceHttpLoadBalancerWriter', '$state', 'wizardSubFormValidation', 'gceHttpLoadBalancerCommandBuilder', 'gceHttpLoadBalancerTransformer', function(
     $scope,
     $uibModal,
     $uibModalInstance,
@@ -134,4 +134,4 @@ module.exports = angular
     });
 
     this.cancel = $uibModalInstance.dismiss;
-  });
+  }]);

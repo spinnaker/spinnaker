@@ -4,7 +4,7 @@ const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.dcos.serverGroup.configure.volumes', [])
-  .controller('dcosServerGroupVolumesController', function($scope) {
+  .controller('dcosServerGroupVolumesController', ['$scope', function($scope) {
     this.volumeModes = [
       {
         mode: 'RW',
@@ -75,4 +75,4 @@ module.exports = angular
     this.removeExternalVolume = function(index) {
       $scope.command.externalVolumes.splice(index, 1);
     };
-  });
+  }]);

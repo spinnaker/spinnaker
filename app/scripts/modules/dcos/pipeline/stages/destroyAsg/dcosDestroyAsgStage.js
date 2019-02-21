@@ -26,7 +26,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('dcosDestroyAsgStageCtrl', function($scope) {
+  .controller('dcosDestroyAsgStageCtrl', ['$scope', function($scope) {
     let stage = $scope.stage;
 
     $scope.state = {
@@ -54,4 +54,4 @@ module.exports = angular
     if (!stage.target) {
       stage.target = $scope.targets[0].val;
     }
-  });
+  }]);

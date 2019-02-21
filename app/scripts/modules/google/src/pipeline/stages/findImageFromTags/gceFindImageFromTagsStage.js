@@ -16,7 +16,7 @@ module.exports = angular
       validators: [{ type: 'requiredField', fieldName: 'packageName' }, { type: 'requiredField', fieldName: 'tags' }],
     });
   })
-  .controller('gceFindImageFromTagsStageCtrl', function($scope) {
+  .controller('gceFindImageFromTagsStageCtrl', ['$scope', function($scope) {
     $scope.stage.tags = $scope.stage.tags || {};
     $scope.stage.regions = $scope.stage.regions || [];
     $scope.stage.cloudProvider = $scope.stage.cloudProvider || 'gce';
@@ -24,4 +24,4 @@ module.exports = angular
     BakeryReader.getRegions('gce').then(function(regions) {
       $scope.regions = regions;
     });
-  });
+  }]);

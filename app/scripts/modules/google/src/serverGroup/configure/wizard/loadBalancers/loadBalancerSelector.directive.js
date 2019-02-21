@@ -24,7 +24,7 @@ module.exports = angular
       controller: 'gceServerGroupLoadBalancerSelectorCtrl',
     };
   })
-  .controller('gceServerGroupLoadBalancerSelectorCtrl', function(
+  .controller('gceServerGroupLoadBalancerSelectorCtrl', ['gceHttpLoadBalancerUtils', 'gceServerGroupConfigurationService', function(
     gceHttpLoadBalancerUtils,
     gceServerGroupConfigurationService,
   ) {
@@ -58,4 +58,4 @@ module.exports = angular
     };
 
     this.isHttpLoadBalancer = lb => gceHttpLoadBalancerUtils.isHttpLoadBalancer(lb);
-  });
+  }]);

@@ -21,6 +21,7 @@ class KubernetesLoadBalancerDetailsController implements IController {
   private loadBalancerFromParams: ILoadBalancerFromStateParams;
   public loadBalancer: IKubernetesLoadBalancer;
 
+  public static $inject = ['$uibModal', '$state', '$scope', 'loadBalancer', 'app'];
   constructor(
     private $uibModal: IModalService,
     private $state: StateService,

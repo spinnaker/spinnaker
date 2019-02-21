@@ -4,7 +4,7 @@ import { INestedState } from 'core/navigation/state.provider';
 import { APPLICATION_STATE_PROVIDER, ApplicationStateProvider } from 'core/application/application.state.provider';
 
 export const TASK_STATES = 'spinnaker.core.task.states';
-module(TASK_STATES, [APPLICATION_STATE_PROVIDER]).config((applicationStateProvider: ApplicationStateProvider) => {
+module(TASK_STATES, [APPLICATION_STATE_PROVIDER]).config(['applicationStateProvider', (applicationStateProvider: ApplicationStateProvider) => {
   const taskDetails: INestedState = {
     name: 'taskDetails',
     url: '/:taskId',
@@ -39,4 +39,4 @@ module(TASK_STATES, [APPLICATION_STATE_PROVIDER]).config((applicationStateProvid
   };
 
   applicationStateProvider.addChildState(tasks);
-});
+}]);

@@ -18,6 +18,7 @@ class KubernetesManifestResumeRolloutController implements IController {
     verified: false,
   };
 
+  public static $inject = ['coordinates', '$uibModalInstance', 'application'];
   constructor(
     coordinates: IManifestCoordinates,
     private $uibModalInstance: IModalServiceInstance,

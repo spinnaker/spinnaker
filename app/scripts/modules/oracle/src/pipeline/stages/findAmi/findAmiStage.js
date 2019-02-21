@@ -19,7 +19,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('oracleFindAmiStageCtrl', $scope => {
+  .controller('oracleFindAmiStageCtrl', ['$scope', $scope => {
     const provider = 'oracle';
 
     let stage = $scope.stage;
@@ -74,4 +74,4 @@ module.exports = angular
     }
 
     $scope.$watch('stage.credentials', $scope.accountUpdated);
-  });
+  }]);

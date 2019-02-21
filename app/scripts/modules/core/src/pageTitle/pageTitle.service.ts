@@ -33,6 +33,7 @@ export class PageTitleService {
   private previousPageTitle = 'Spinnaker';
   private routeCount = 0;
 
+  public static $inject = ['$rootScope', '$stateParams', '$transitions'];
   constructor(private $rootScope: IScope, private $stateParams: StateParams, $transitions: TransitionService) {
     'ngInject';
     document.title = 'Spinnaker: Loading...';

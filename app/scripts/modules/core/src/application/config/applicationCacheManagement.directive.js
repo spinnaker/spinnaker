@@ -25,7 +25,7 @@ module.exports = angular
       controllerAs: 'vm',
     };
   })
-  .controller('ApplicationCacheManagementCtrl', function($log, cacheInitializer) {
+  .controller('ApplicationCacheManagementCtrl', ['$log', 'cacheInitializer', function($log, cacheInitializer) {
     this.refreshCaches = () => {
       this.clearingCaches = true;
       cacheInitializer.refreshCaches().then(
@@ -60,4 +60,4 @@ module.exports = angular
         },
       );
     };
-  });
+  }]);

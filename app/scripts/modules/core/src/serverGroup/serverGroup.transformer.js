@@ -7,7 +7,7 @@ import { AccountService } from 'core/account/AccountService';
 
 module.exports = angular
   .module('spinnaker.core.serverGroup.transformer', [PROVIDER_SERVICE_DELEGATE])
-  .factory('serverGroupTransformer', function(providerServiceDelegate, $q) {
+  .factory('serverGroupTransformer', ['providerServiceDelegate', '$q', function(providerServiceDelegate, $q) {
     function normalizeServerGroup(serverGroup, application) {
       const account = serverGroup.account;
       if (account) {
@@ -57,4 +57,4 @@ module.exports = angular
       convertServerGroupCommandToDeployConfiguration: convertServerGroupCommandToDeployConfiguration,
       jsonReplacer: jsonReplacer,
     };
-  });
+  }]);

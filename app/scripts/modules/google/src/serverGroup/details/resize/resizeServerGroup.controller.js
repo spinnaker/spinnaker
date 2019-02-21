@@ -10,7 +10,7 @@ module.exports = angular
     require('./resizeAutoscalingPolicy.component').name,
     require('../../../common/footer.directive').name,
   ])
-  .controller('gceResizeServerGroupCtrl', function($scope, $uibModalInstance, application, serverGroup) {
+  .controller('gceResizeServerGroupCtrl', ['$scope', '$uibModalInstance', 'application', 'serverGroup', function($scope, $uibModalInstance, application, serverGroup) {
     $scope.serverGroup = serverGroup;
     $scope.application = application;
     $scope.verification = {};
@@ -50,4 +50,4 @@ module.exports = angular
     this.cancel = function() {
       $uibModalInstance.dismiss();
     };
-  });
+  }]);

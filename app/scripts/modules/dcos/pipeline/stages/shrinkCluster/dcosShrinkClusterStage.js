@@ -19,7 +19,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('dcosShrinkClusterStageCtrl', function($scope) {
+  .controller('dcosShrinkClusterStageCtrl', ['$scope', function($scope) {
     var ctrl = this;
 
     let stage = $scope.stage;
@@ -63,4 +63,4 @@ module.exports = angular
       stage.retainLargerOverNewer = 'false';
     }
     stage.retainLargerOverNewer = stage.retainLargerOverNewer.toString();
-  });
+  }]);

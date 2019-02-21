@@ -15,6 +15,7 @@ class AppengineCacheConfigurer {
     initializers: [(): ng.IPromise<ILoadBalancer[]> => this.loadBalancerReader.listLoadBalancers('appengine')],
   };
 
+  public static $inject = ['loadBalancerReader'];
   constructor(private loadBalancerReader: any) {
     'ngInject';
   }

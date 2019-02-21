@@ -14,7 +14,7 @@ module.exports = angular
       loadBalancerName: '=',
     },
     template: '<a href ng-click="$ctrl.viewHostAndPathRules()">View Host and Path Rules</a>',
-    controller: function($uibModal) {
+    controller: ['$uibModal', function($uibModal) {
       this.viewHostAndPathRules = () => {
         $uibModal.open({
           templateUrl: require('./hostAndPathRules.modal.html'),
@@ -28,5 +28,5 @@ module.exports = angular
           },
         });
       };
-    },
+    }],
   });

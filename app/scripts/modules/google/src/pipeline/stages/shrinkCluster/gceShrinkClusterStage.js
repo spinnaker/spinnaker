@@ -21,7 +21,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('gceShrinkClusterStageCtrl', function($scope) {
+  .controller('gceShrinkClusterStageCtrl', ['$scope', function($scope) {
     const ctrl = this;
 
     const stage = $scope.stage;
@@ -65,4 +65,4 @@ module.exports = angular
       stage.retainLargerOverNewer = 'false';
     }
     stage.retainLargerOverNewer = stage.retainLargerOverNewer.toString();
-  });
+  }]);

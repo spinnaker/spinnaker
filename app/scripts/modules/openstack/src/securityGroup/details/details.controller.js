@@ -17,7 +17,7 @@ module.exports = angular
     CONFIRMATION_MODAL_SERVICE,
     SECURITY_GROUP_READER,
   ])
-  .controller('openstackSecurityGroupDetailsController', function(
+  .controller('openstackSecurityGroupDetailsController', ['$scope', '$state', 'resolvedSecurityGroup', 'app', 'confirmationModalService', 'securityGroupReader', '$uibModal', function(
     $scope,
     $state,
     resolvedSecurityGroup,
@@ -125,4 +125,4 @@ module.exports = angular
         refresh: extractSecurityGroup,
       };
     }
-  });
+  }]);

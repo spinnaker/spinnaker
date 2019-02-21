@@ -24,6 +24,7 @@ export class TravisTrigger implements IController {
   public fiatEnabled: boolean;
   public serviceAccounts: string[];
 
+  public static $inject = ['$scope', 'trigger'];
   constructor($scope: IScope, public trigger: IBuildTrigger) {
     'ngInject';
     this.fiatEnabled = SETTINGS.feature.fiatEnabled;

@@ -3,6 +3,7 @@ import { AuthenticationService } from './AuthenticationService';
 import { SETTINGS } from 'core/config/settings';
 
 export class AuthenticationInterceptor implements ng.IHttpInterceptor {
+  public static $inject = ['$q'];
   constructor(private $q: ng.IQService) {
     'ngInject';
   }
@@ -33,8 +34,8 @@ export class AuthenticationInterceptor implements ng.IHttpInterceptor {
 export const AUTHENTICATION_INTERCEPTOR_SERVICE = 'spinnaker.authentication.interceptor.service';
 module(AUTHENTICATION_INTERCEPTOR_SERVICE, [])
   .service('authenticationInterceptor', AuthenticationInterceptor)
-  .config(($httpProvider: ng.IHttpProvider) => {
+  .config(['$httpProvider', ($httpProvider: ng.IHttpProvider) => {
     if (SETTINGS.authEnabled) {
       $httpProvider.interceptors.push('authenticationInterceptor');
     }
-  });
+  }]);

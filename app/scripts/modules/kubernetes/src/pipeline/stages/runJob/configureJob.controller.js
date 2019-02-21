@@ -19,7 +19,7 @@ module.exports = angular
     KUBERNETES_LIFECYCLE_HOOK_CONFIGURER,
     KUBERNETES_CONTAINER_ENVIRONMENT_FROM,
   ])
-  .controller('kubernetesConfigureJobController', function(
+  .controller('kubernetesConfigureJobController', ['$scope', '$uibModalInstance', 'kubernetesImageReader', '$filter', 'stage', 'pipeline', function(
     $scope,
     $uibModalInstance,
     kubernetesImageReader,
@@ -182,4 +182,4 @@ module.exports = angular
     this.cancel = () => {
       $uibModalInstance.dismiss();
     };
-  });
+  }]);

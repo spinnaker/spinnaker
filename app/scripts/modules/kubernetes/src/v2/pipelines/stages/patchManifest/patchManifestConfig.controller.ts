@@ -34,6 +34,7 @@ export class KubernetesV2PatchManifestConfigCtrl implements IController {
   private manifestArtifactDelegate: NgGenericArtifactDelegate;
   private manifestArtifactController: ExpectedArtifactSelectorViewController;
 
+  public static $inject = ['$scope'];
   constructor(private $scope: IScope) {
     'ngInject';
 

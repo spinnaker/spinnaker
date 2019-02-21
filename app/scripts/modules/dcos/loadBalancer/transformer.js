@@ -9,7 +9,7 @@ import { DcosProviderSettings } from '../dcos.settings';
 
 module.exports = angular
   .module('spinnaker.dcos.loadBalancer.transformer', [])
-  .factory('dcosLoadBalancerTransformer', function($q) {
+  .factory('dcosLoadBalancerTransformer', ['$q', function($q) {
     function normalizeLoadBalancer(loadBalancer) {
       loadBalancer.provider = loadBalancer.type;
       loadBalancer.instances = [];
@@ -112,4 +112,4 @@ module.exports = angular
       constructNewLoadBalancerTemplate: constructNewLoadBalancerTemplate,
       convertLoadBalancerForEditing: convertLoadBalancerForEditing,
     };
-  });
+  }]);

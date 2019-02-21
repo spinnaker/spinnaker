@@ -4,7 +4,7 @@ const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.pipeline.stage.jenkins.executionDetails.controller', [require('@uirouter/angularjs').default])
-  .controller('JenkinsExecutionDetailsCtrl', function($scope, $stateParams, executionDetailsSectionService) {
+  .controller('JenkinsExecutionDetailsCtrl', ['$scope', '$stateParams', 'executionDetailsSectionService', function($scope, $stateParams, executionDetailsSectionService) {
     $scope.configSections = ['jenkinsConfig', 'taskStatus'];
 
     let initialized = () => {
@@ -40,4 +40,4 @@ module.exports = angular
     initialize();
 
     $scope.$on('$stateChangeSuccess', initialize);
-  });
+  }]);

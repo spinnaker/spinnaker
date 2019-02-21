@@ -31,7 +31,7 @@ module.exports = angular
     GCE_HEALTH_CHECK_READER,
     require('./wizard/securityGroups/tagManager.service').name,
   ])
-  .factory('gceServerGroupConfigurationService', function(
+  .factory('gceServerGroupConfigurationService', ['gceImageReader', 'securityGroupReader', 'gceInstanceTypeService', 'cacheInitializer', '$q', 'loadBalancerReader', 'gceCustomInstanceBuilderService', 'gceHttpLoadBalancerUtils', 'gceHealthCheckReader', 'gceTagManager', 'gceLoadBalancerSetTransformer', function(
     gceImageReader,
     securityGroupReader,
     gceInstanceTypeService,
@@ -778,4 +778,4 @@ module.exports = angular
       refreshInstanceTypes: refreshInstanceTypes,
       refreshHealthChecks: refreshHealthChecks,
     };
-  });
+  }]);

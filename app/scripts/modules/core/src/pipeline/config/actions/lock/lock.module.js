@@ -6,7 +6,7 @@ import { PipelineConfigService } from 'core/pipeline/config/services/PipelineCon
 
 module.exports = angular
   .module('spinnaker.core.pipeline.config.actions.lock', [])
-  .controller('LockPipelineModalCtrl', function($uibModalInstance, pipeline) {
+  .controller('LockPipelineModalCtrl', ['$uibModalInstance', 'pipeline', function($uibModalInstance, pipeline) {
     this.viewState = {};
     this.pipelineName = pipeline.name;
     this.cancel = $uibModalInstance.dismiss;
@@ -29,4 +29,4 @@ module.exports = angular
         },
       );
     };
-  });
+  }]);

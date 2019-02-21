@@ -8,7 +8,7 @@ const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.openstack.loadBalancer.transformer', [])
-  .factory('openstackLoadBalancerTransformer', function($q) {
+  .factory('openstackLoadBalancerTransformer', ['$q', function($q) {
     var defaults = {
       provider: 'openstack',
       account: OpenStackProviderSettings.defaults.account,
@@ -126,4 +126,4 @@ module.exports = angular
       constructNewLoadBalancerTemplate: constructNewLoadBalancerTemplate,
       convertLoadBalancerForEditing: convertLoadBalancerForEditing,
     };
-  });
+  }]);

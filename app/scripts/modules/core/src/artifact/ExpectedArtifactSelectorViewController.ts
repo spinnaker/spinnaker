@@ -20,6 +20,7 @@ export interface IExpectedArtifactSelectorViewControllerDelegate {
 export class ExpectedArtifactSelectorViewController {
   public accountsForArtifact: IArtifactAccount[] = [];
 
+  public static $inject = ['delegate'];
   constructor(private delegate: IExpectedArtifactSelectorViewControllerDelegate) {}
 
   public updateAccounts = (expectedArtifact: IExpectedArtifact) => {

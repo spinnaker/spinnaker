@@ -19,7 +19,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('oracleFindImageFromTagsStageCtrl', function($scope) {
+  .controller('oracleFindImageFromTagsStageCtrl', ['$scope', function($scope) {
     $scope.stage.packageName = $scope.stage.packageName || '*';
     $scope.stage.tags = $scope.stage.tags || {};
     $scope.stage.regions = $scope.stage.regions || [];
@@ -28,4 +28,4 @@ module.exports = angular
     BakeryReader.getRegions('oracle').then(function(regions) {
       $scope.regions = regions;
     });
-  });
+  }]);

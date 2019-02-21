@@ -27,7 +27,7 @@ module.exports = angular
       strategy: true,
     });
   })
-  .controller('ModifyScalingProcessStageCtrl', function($scope, stage) {
+  .controller('ModifyScalingProcessStageCtrl', ['$scope', 'stage', function($scope, stage) {
     $scope.stage = stage;
 
     $scope.state = {
@@ -89,4 +89,4 @@ module.exports = angular
     };
 
     $scope.$watch('stage.credentials', $scope.accountUpdated);
-  });
+  }]);

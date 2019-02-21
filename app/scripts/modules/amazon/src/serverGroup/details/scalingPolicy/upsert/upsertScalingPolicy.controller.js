@@ -16,7 +16,7 @@ module.exports = angular
     STEP_POLICY_ACTION,
     require('./alarm/alarmConfigurer.component').name,
   ])
-  .controller('awsUpsertScalingPolicyCtrl', function($uibModalInstance, serverGroup, application, policy) {
+  .controller('awsUpsertScalingPolicyCtrl', ['$uibModalInstance', 'serverGroup', 'application', 'policy', function($uibModalInstance, serverGroup, application, policy) {
     this.serverGroup = serverGroup;
 
     this.viewState = {
@@ -203,4 +203,4 @@ module.exports = angular
     this.cancel = $uibModalInstance.dismiss;
 
     this.initialize();
-  });
+  }]);

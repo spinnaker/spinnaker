@@ -6,7 +6,7 @@ const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.openstack.serverGroup.transformer', [])
-  .factory('openstackServerGroupTransformer', function($q) {
+  .factory('openstackServerGroupTransformer', ['$q', function($q) {
     function normalizeServerGroup(serverGroup) {
       if (serverGroup.loadBalancers) {
         serverGroup.loadBalancerIds = _.map(serverGroup.loadBalancers, function(lb) {
@@ -62,4 +62,4 @@ module.exports = angular
       convertServerGroupCommandToDeployConfiguration: convertServerGroupCommandToDeployConfiguration,
       normalizeServerGroup: normalizeServerGroup,
     };
-  });
+  }]);

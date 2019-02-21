@@ -132,11 +132,11 @@ export class RecentHistoryService {
 }
 
 export const RECENT_HISTORY_SERVICE = 'spinnaker.core.history.recentHistory.service';
-module(RECENT_HISTORY_SERVICE, []).run(($rootScope: ng.IRootScopeService) => {
+module(RECENT_HISTORY_SERVICE, []).run(['$rootScope', ($rootScope: ng.IRootScopeService) => {
   $rootScope.$on('$stateChangeSuccess', (_event: IAngularEvent, toState: Ng1StateDeclaration, toParams: any) => {
     if (toState.data && toState.data.history) {
       const params = omit(toParams || {}, ['debug', 'vis', 'trace']);
       RecentHistoryService.addItem(toState.data.history.type, toState.name, params, toState.data.history.keyParams);
     }
   });
-});
+}]);

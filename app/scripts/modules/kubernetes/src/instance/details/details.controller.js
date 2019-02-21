@@ -19,7 +19,7 @@ module.exports = angular
     INSTANCE_WRITE_SERVICE,
     CONFIRMATION_MODAL_SERVICE,
   ])
-  .controller('kubernetesInstanceDetailsController', function(
+  .controller('kubernetesInstanceDetailsController', ['$scope', '$state', '$uibModal', 'instanceWriter', 'confirmationModalService', 'instance', 'app', 'moniker', 'environment', 'kubernetesProxyUiService', '$q', function(
     $scope,
     $state,
     $uibModal,
@@ -300,4 +300,4 @@ module.exports = angular
     });
 
     $scope.account = instance.account;
-  });
+  }]);

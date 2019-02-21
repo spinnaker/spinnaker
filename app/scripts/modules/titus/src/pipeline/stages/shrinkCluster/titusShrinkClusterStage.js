@@ -21,7 +21,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('titusShrinkClusterStageCtrl', function($scope) {
+  .controller('titusShrinkClusterStageCtrl', ['$scope', function($scope) {
     var ctrl = this;
 
     let stage = $scope.stage;
@@ -65,4 +65,4 @@ module.exports = angular
       stage.retainLargerOverNewer = 'false';
     }
     stage.retainLargerOverNewer = stage.retainLargerOverNewer.toString();
-  });
+  }]);

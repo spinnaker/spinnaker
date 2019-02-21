@@ -48,6 +48,7 @@ export class WebhookStage implements IController {
   public noUserConfigurableFields: boolean;
   public parameters: IWebhookParameter[] = [];
 
+  public static $inject = ['stage', '$uibModal'];
   constructor(public stage: any, private $uibModal: IModalService) {
     'ngInject';
     this.methods = ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE'];

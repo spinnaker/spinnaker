@@ -27,7 +27,7 @@ module.exports = angular
       // not provide a unit of measurement for an alarm or a metric, only statistics
     },
     templateUrl: require('./metricAlarmChart.component.html'),
-    controller: function($filter) {
+    controller: ['$filter', function($filter) {
       // converts alarm into parameters used to retrieve statistic data
       let getFilterParameters = () => {
         let alarm = this.alarm;
@@ -188,5 +188,5 @@ module.exports = angular
           this.alarmUpdated.unsubscribe();
         }
       };
-    },
+    }],
   });

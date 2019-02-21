@@ -27,6 +27,7 @@ export interface IServerGroupJob extends IJob {
 }
 
 export class ServerGroupWriter {
+  public static $inject = ['serverGroupTransformer'];
   constructor(private serverGroupTransformer: any) {
     'ngInject';
   }

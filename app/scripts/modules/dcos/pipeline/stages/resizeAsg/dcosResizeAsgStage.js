@@ -28,7 +28,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('dcosResizeAsgStageCtrl', function($scope) {
+  .controller('dcosResizeAsgStageCtrl', ['$scope', function($scope) {
     var ctrl = this;
 
     let stage = $scope.stage;
@@ -108,4 +108,4 @@ module.exports = angular
         }
       }
     };
-  });
+  }]);

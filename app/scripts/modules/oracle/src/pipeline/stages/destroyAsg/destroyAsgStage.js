@@ -25,7 +25,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('oracleDestroyAsgStageCtrl', function($scope) {
+  .controller('oracleDestroyAsgStageCtrl', ['$scope', function($scope) {
     let stage = $scope.stage;
     let provider = 'oracle';
 
@@ -57,4 +57,4 @@ module.exports = angular
         stage.target = $scope.targets[0].val;
       }
     }
-  });
+  }]);

@@ -4,6 +4,7 @@ import { IMultiManifestSelector } from 'kubernetes/v2/manifest/selector/IManifes
 import { IDeleteOptions } from 'kubernetes/v2/manifest/delete/delete.controller';
 
 export class KubernetesV2DeleteManifestConfigCtrl implements IController {
+  public static $inject = ['$scope'];
   constructor(private $scope: IScope) {
     'ngInject';
     if (this.$scope.stage.isNew) {

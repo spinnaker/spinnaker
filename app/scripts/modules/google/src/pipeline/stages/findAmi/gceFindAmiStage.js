@@ -19,7 +19,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('gceFindAmiStageCtrl', function($scope) {
+  .controller('gceFindAmiStageCtrl', ['$scope', function($scope) {
     const stage = $scope.stage;
 
     $scope.state = {
@@ -71,4 +71,4 @@ module.exports = angular
     }
 
     $scope.$watch('stage.credentials', $scope.accountUpdated);
-  });
+  }]);

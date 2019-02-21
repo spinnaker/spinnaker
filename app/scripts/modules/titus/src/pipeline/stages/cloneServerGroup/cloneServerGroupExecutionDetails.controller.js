@@ -9,7 +9,7 @@ module.exports = angular
   .module('spinnaker.titus.pipeline.stage.cloneServerGroup.executionDetails.controller', [
     require('@uirouter/angularjs').default,
   ])
-  .controller('titusCloneServerGroupExecutionDetailsCtrl', function(
+  .controller('titusCloneServerGroupExecutionDetailsCtrl', ['$scope', '$stateParams', 'executionDetailsSectionService', function(
     $scope,
     $stateParams,
     executionDetailsSectionService,
@@ -60,4 +60,4 @@ module.exports = angular
     initialize();
 
     $scope.$on('$stateChangeSuccess', initialize);
-  });
+  }]);

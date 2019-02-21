@@ -8,7 +8,7 @@ module.exports = angular
     require('angular-ui-bootstrap'),
     require('../../../../common/cacheBackedMultiSelectField.directive').name,
   ])
-  .controller('openstackServerGroupAdvancedSettingsCtrl', function($scope) {
+  .controller('openstackServerGroupAdvancedSettingsCtrl', ['$scope', function($scope) {
     $scope.selectedAZs = $scope.command.zones
       ? $scope.command.zones.map(i => {
           return { id: i, name: i };
@@ -54,4 +54,4 @@ module.exports = angular
         });
       }
     }
-  });
+  }]);

@@ -30,7 +30,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('titusResizeAsgStageCtrl', function($scope) {
+  .controller('titusResizeAsgStageCtrl', ['$scope', function($scope) {
     var ctrl = this;
 
     let stage = $scope.stage;
@@ -118,4 +118,4 @@ module.exports = angular
         }
       }
     };
-  });
+  }]);

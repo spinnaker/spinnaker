@@ -15,7 +15,7 @@ module.exports = angular
     PROVIDER_SERVICE_DELEGATE,
     require('./multipleServerGroup.component').name,
   ])
-  .controller('MultipleServerGroupsCtrl', function(
+  .controller('MultipleServerGroupsCtrl', ['$scope', '$state', 'confirmationModalService', 'serverGroupWriter', 'providerServiceDelegate', 'app', function(
     $scope,
     $state,
     confirmationModalService,
@@ -133,4 +133,4 @@ module.exports = angular
       }
       multiselectWatcher.unsubscribe();
     });
-  });
+  }]);

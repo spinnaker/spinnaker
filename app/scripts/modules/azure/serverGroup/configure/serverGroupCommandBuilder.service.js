@@ -6,7 +6,7 @@ import { NameUtils } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.azure.serverGroupCommandBuilder.service', [require('../../image/image.reader').name])
-  .factory('azureServerGroupCommandBuilder', function($q, azureImageReader) {
+  .factory('azureServerGroupCommandBuilder', ['$q', 'azureImageReader', function($q, azureImageReader) {
     function buildNewServerGroupCommand(application, defaults) {
       defaults = defaults || {};
 
@@ -143,4 +143,4 @@ module.exports = angular
       buildServerGroupCommandFromExisting: buildServerGroupCommandFromExisting,
       buildServerGroupCommandFromPipeline: buildServerGroupCommandFromPipeline,
     };
-  });
+  }]);

@@ -10,7 +10,7 @@ module.exports = angular
       securityGroupId: '=',
     },
     templateUrl: require('./tagSelector.component.html'),
-    controller: function($scope, gceTagManager) {
+    controller: ['$scope', 'gceTagManager', function($scope, gceTagManager) {
       this.securityGroup = gceTagManager.securityGroupObjectsKeyedById[this.securityGroupId];
       this.onSelect = gceTagManager.addTag;
       this.onRemove = gceTagManager.removeTag;
@@ -18,5 +18,5 @@ module.exports = angular
       $scope.$on('uis:select', function(event) {
         event.preventDefault();
       });
-    },
+    }],
   });

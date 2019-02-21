@@ -15,7 +15,7 @@ module.exports = angular
       formMethods: '=',
     },
     templateUrl: require('./resizeCapacity.component.html'),
-    controller: function($scope, serverGroupWriter) {
+    controller: ['$scope', 'serverGroupWriter', function($scope, serverGroupWriter) {
       this.command.newSize = null;
 
       angular.extend(this.formMethods, {
@@ -31,5 +31,5 @@ module.exports = angular
           });
         },
       });
-    },
+    }],
   });

@@ -20,6 +20,7 @@ class KubernetesManifestScaleController implements IController {
     verified: false,
   };
 
+  public static $inject = ['coordinates', 'currentReplicas', '$uibModalInstance', 'application'];
   constructor(
     coordinates: IManifestCoordinates,
     currentReplicas: number,

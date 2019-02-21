@@ -27,4 +27,4 @@ export class DebugInterceptor implements IHttpInterceptor {
 export const DEBUG_INTERCEPTOR = 'spinnaker.core.debug.interceptor';
 module(DEBUG_INTERCEPTOR, [])
   .service('debugInterceptor', DebugInterceptor)
-  .config(($httpProvider: IHttpProvider) => $httpProvider.interceptors.push('debugInterceptor'));
+  .config(['$httpProvider', ($httpProvider: IHttpProvider) => $httpProvider.interceptors.push('debugInterceptor')]);

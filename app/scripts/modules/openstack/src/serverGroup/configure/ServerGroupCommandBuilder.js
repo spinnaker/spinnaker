@@ -10,7 +10,7 @@ import { OpenStackProviderSettings } from '../../openstack.settings';
 
 module.exports = angular
   .module('spinnaker.openstack.serverGroupCommandBuilder.service', [require('../../image/image.reader').name])
-  .factory('openstackServerGroupCommandBuilder', function($q, openstackImageReader, loadBalancerReader) {
+  .factory('openstackServerGroupCommandBuilder', ['$q', 'openstackImageReader', 'loadBalancerReader', function($q, openstackImageReader, loadBalancerReader) {
     function buildNewServerGroupCommand(application, defaults) {
       defaults = defaults || {};
 
@@ -147,4 +147,4 @@ module.exports = angular
       buildNewServerGroupCommandForPipeline: buildNewServerGroupCommandForPipeline,
       buildServerGroupCommandFromPipeline: buildServerGroupCommandFromPipeline,
     };
-  });
+  }]);

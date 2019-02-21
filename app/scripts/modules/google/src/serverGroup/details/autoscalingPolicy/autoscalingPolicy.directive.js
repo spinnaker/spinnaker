@@ -18,7 +18,7 @@ module.exports = angular
       serverGroup: '=',
     },
     templateUrl: require('./autoscalingPolicy.directive.html'),
-    controller: function($uibModal, gceAutoscalingPolicyWriter, confirmationModalService) {
+    controller: ['$uibModal', 'gceAutoscalingPolicyWriter', 'confirmationModalService', function($uibModal, gceAutoscalingPolicyWriter, confirmationModalService) {
       const policy = this.policy;
 
       policy.bases = [];
@@ -102,5 +102,5 @@ module.exports = angular
           submitMethod: () => gceAutoscalingPolicyWriter.deleteAutoscalingPolicy(this.application, this.serverGroup),
         });
       };
-    },
+    }],
   });

@@ -10,7 +10,7 @@ module.exports = angular
     require('angular-ui-bootstrap'),
     require('../../../../common/cacheBackedMultiSelectField.directive').name,
   ])
-  .controller('openstackServerGroupAccessSettingsCtrl', function($scope) {
+  .controller('openstackServerGroupAccessSettingsCtrl', ['$scope', function($scope) {
     $scope.firewallsLabel = FirewallLabels.get('Firewalls');
 
     // Loads all load balancers in the current application, region, and account
@@ -62,4 +62,4 @@ module.exports = angular
         $scope.command.floatingNetworkId = undefined;
       }
     }
-  });
+  }]);

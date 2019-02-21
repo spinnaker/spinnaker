@@ -31,6 +31,7 @@ export class ConfirmationModalService {
     cancelButtonText: 'Cancel',
   };
 
+  public static $inject = ['$uibModal', '$sce'];
   public constructor(private $uibModal: IModalService, private $sce: ng.ISCEService) {}
 
   public confirm(params: IConfirmationModalParams): ng.IPromise<any> {

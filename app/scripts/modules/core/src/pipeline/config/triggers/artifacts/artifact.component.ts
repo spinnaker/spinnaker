@@ -23,6 +23,7 @@ class ArtifactCtrl implements IController {
   private isDefault: boolean;
   private artifactAccounts?: IArtifactAccount[];
 
+  public static $inject = ['$attrs', '$controller', '$compile', '$element', '$rootScope', '$scope'];
   constructor(
     private $attrs: IAttributes,
     private $controller: IControllerService,

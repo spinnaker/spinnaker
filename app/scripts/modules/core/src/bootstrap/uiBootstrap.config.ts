@@ -1,7 +1,7 @@
 import { bootstrapModule } from './bootstrap.module';
 import { ITooltipProvider, IModalProvider } from 'angular-ui-bootstrap';
 
-bootstrapModule.config(($uibTooltipProvider: ITooltipProvider) => {
+bootstrapModule.config(['$uibTooltipProvider', ($uibTooltipProvider: ITooltipProvider) => {
   'ngInject';
   $uibTooltipProvider.options({
     appendToBody: true,
@@ -10,10 +10,10 @@ bootstrapModule.config(($uibTooltipProvider: ITooltipProvider) => {
   $uibTooltipProvider.setTriggers({
     'mouseenter focus': 'mouseleave blur',
   });
-});
+}]);
 
-bootstrapModule.config(($uibModalProvider: IModalProvider) => {
+bootstrapModule.config(['$uibModalProvider', ($uibModalProvider: IModalProvider) => {
   'ngInject';
   $uibModalProvider.options.backdrop = 'static';
   $uibModalProvider.options.keyboard = false;
-});
+}]);

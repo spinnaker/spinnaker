@@ -12,7 +12,7 @@ module.exports = angular
       loadBalancerName: '=',
     },
     templateUrl: require('./backendServiceSelector.component.html'),
-    controller: function($scope) {
+    controller: ['$scope', function($scope) {
       $scope.$on('$destroy', () => {
         if (this.command.backendServices) {
           delete this.command.backendServices[this.loadBalancerName];
@@ -22,5 +22,5 @@ module.exports = angular
       $scope.$on('uis:select', function(event) {
         event.preventDefault();
       });
-    },
+    }],
   });

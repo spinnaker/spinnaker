@@ -17,6 +17,6 @@ module(EXECUTION_WINDOWS_STAGE, [])
       executionDetailsSections: [ExecutionWindowExecutionDetails, ExecutionDetailsTasks],
     });
   })
-  .run((executionWindowsTransformer: any) => {
+  .run(['executionWindowsTransformer', (executionWindowsTransformer: any) => {
     Registry.pipeline.registerTransformer(executionWindowsTransformer);
-  });
+  }]);

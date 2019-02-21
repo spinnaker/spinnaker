@@ -26,7 +26,7 @@ module.exports = angular
       controller: 'UserVerificationCtrl',
     };
   })
-  .controller('UserVerificationCtrl', function($scope) {
+  .controller('UserVerificationCtrl', ['$scope', function($scope) {
     this.$onInit = () => {
       this.label =
         this.label ||
@@ -54,4 +54,4 @@ module.exports = angular
     this.verify = () => {
       this.verification.verified = this.userVerification.toUpperCase() === this.verification.toVerify.toUpperCase();
     };
-  });
+  }]);

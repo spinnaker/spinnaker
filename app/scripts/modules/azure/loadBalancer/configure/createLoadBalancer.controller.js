@@ -17,7 +17,7 @@ module.exports = angular
     require('@uirouter/angularjs').default,
     require('../loadBalancer.transformer').name,
   ])
-  .controller('azureCreateLoadBalancerCtrl', function(
+  .controller('azureCreateLoadBalancerCtrl', ['$scope', '$uibModalInstance', '$state', 'azureLoadBalancerTransformer', 'application', 'loadBalancer', 'isNew', function(
     $scope,
     $uibModalInstance,
     $state,
@@ -257,4 +257,4 @@ module.exports = angular
     this.cancel = function() {
       $uibModalInstance.dismiss();
     };
-  });
+  }]);

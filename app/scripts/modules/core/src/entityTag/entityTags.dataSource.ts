@@ -9,7 +9,7 @@ import { LOAD_BALANCER_READ_SERVICE } from 'core/loadBalancer/loadBalancer.read.
 import { SETTINGS } from 'core/config/settings';
 
 export const ENTITY_TAGS_DATA_SOURCE = 'spinnaker.core.entityTag.dataSource';
-module(ENTITY_TAGS_DATA_SOURCE, [LOAD_BALANCER_READ_SERVICE]).run(($q: IQService) => {
+module(ENTITY_TAGS_DATA_SOURCE, [LOAD_BALANCER_READ_SERVICE]).run(['$q', ($q: IQService) => {
   if (!SETTINGS.feature.entityTags) {
     return;
   }
@@ -55,4 +55,4 @@ module(ENTITY_TAGS_DATA_SOURCE, [LOAD_BALANCER_READ_SERVICE]).run(($q: IQService
     onLoad: addEntityTags,
     afterLoad: addTagsToEntities,
   });
-});
+}]);

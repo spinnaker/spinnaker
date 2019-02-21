@@ -14,6 +14,7 @@ import { SETTINGS } from 'core/config/settings';
 import { taskMatcher } from './task.matcher';
 
 export class ClusterService {
+  public static $inject = ['$q', 'serverGroupTransformer', 'providerServiceDelegate'];
   constructor(
     private $q: IQService,
     private serverGroupTransformer: any,

@@ -17,7 +17,7 @@ module.exports = angular
     SKIN_SELECTION_SERVICE,
     require('angular-ui-bootstrap'),
   ])
-  .controller('AllSecurityGroupsCtrl', function(
+  .controller('AllSecurityGroupsCtrl', ['$scope', 'app', '$uibModal', '$timeout', 'skinSelectionService', 'providerSelectionService', function(
     $scope,
     app,
     $uibModal,
@@ -111,4 +111,4 @@ module.exports = angular
     };
 
     this.updateSecurityGroups = _.debounce(updateSecurityGroups, 200);
-  });
+  }]);

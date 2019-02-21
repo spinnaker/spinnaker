@@ -23,7 +23,7 @@ module.exports = angular
     GCE_HEALTH_CHECK_READER,
     require('./transformer.service').name,
   ])
-  .factory('gceHttpLoadBalancerCommandBuilder', function(
+  .factory('gceHttpLoadBalancerCommandBuilder', ['$q', 'gceHttpLoadBalancerUtils', 'gceBackendServiceReader', 'gceCertificateReader', 'gceHealthCheckReader', 'gceHttpLoadBalancerTransformer', 'loadBalancerReader', 'gceAddressReader', function(
     $q,
     gceHttpLoadBalancerUtils,
     gceBackendServiceReader,
@@ -331,4 +331,4 @@ module.exports = angular
     }
 
     return { buildCommand };
-  });
+  }]);

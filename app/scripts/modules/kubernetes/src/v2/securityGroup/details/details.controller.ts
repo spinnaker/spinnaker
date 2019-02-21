@@ -19,6 +19,7 @@ class KubernetesSecurityGroupDetailsController implements IController {
   private securityGroupFromParams: ISecurityGroupFromStateParams;
   public securityGroup: IKubernetesSecurityGroup;
 
+  public static $inject = ['$uibModal', '$state', '$scope', 'securityGroupReader', 'resolvedSecurityGroup', 'app'];
   constructor(
     private $uibModal: IModalService,
     private $state: StateService,

@@ -18,7 +18,7 @@ module.exports = angular
       controllerAs: 'overrideTimeoutCtrl',
     };
   })
-  .controller('OverrideTimeoutCtrl', function($scope) {
+  .controller('OverrideTimeoutCtrl', ['$scope', function($scope) {
     function toHoursAndMinutes(ms) {
       if (!ms) {
         return { hours: 0, minutes: 0 };
@@ -65,4 +65,4 @@ module.exports = angular
     };
 
     $scope.$watch('stage', this.setOverrideValues, true);
-  });
+  }]);
