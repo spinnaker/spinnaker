@@ -1,8 +1,8 @@
 import { module, IComponentOptions } from 'angular';
 
-class AppengineComponentUrlDetailsComponent implements IComponentOptions {
-  public bindings: any = { component: '<' };
-  public template = `
+const appengineComponentUrlDetailsComponent: IComponentOptions = {
+  bindings: { component: '<' },
+  template: `
     <dt>HTTPS</dt>
     <dl class="small">
       <a href="{{$ctrl.component.httpsUrl}}" target="_blank">{{$ctrl.component.httpsUrl}}</a>
@@ -17,12 +17,12 @@ class AppengineComponentUrlDetailsComponent implements IComponentOptions {
                          tool-tip="'Copy URL to clipboard'"
                          text="$ctrl.component.httpUrl"></copy-to-clipboard>
     </dl>
-  `;
-}
+  `
+};
 
 export const APPENGINE_COMPONENT_URL_DETAILS = 'spinnaker.appengine.componentUrlDetails.component';
 
 module(APPENGINE_COMPONENT_URL_DETAILS, []).component(
   'appengineComponentUrlDetails',
-  new AppengineComponentUrlDetailsComponent(),
+  appengineComponentUrlDetailsComponent,
 );

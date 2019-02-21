@@ -9,11 +9,11 @@ export interface ICommit {
   timestamp: number;
 }
 
-class CommitHistoryComponent implements IComponentOptions {
-  public bindings: any = {
+const commitHistoryComponent: IComponentOptions = {
+  bindings: {
     commits: '<',
-  };
-  public template = `
+  },
+  template: `
   <div ng-if="$ctrl.commits && $ctrl.commits.length">
     <table class="table table-condensed">
       <tr><th>Date</th><th>Commit</th><th>Message</th><th>Author</th></tr>
@@ -25,8 +25,8 @@ class CommitHistoryComponent implements IComponentOptions {
       </tr>
     </table>
   </div>
-  `;
-}
+  `
+};
 
 export const COMMIT_HISTORY_COMPONENT = 'spinnaker.diffs.commit.history.component';
-module(COMMIT_HISTORY_COMPONENT, []).component('commitHistory', new CommitHistoryComponent());
+module(COMMIT_HISTORY_COMPONENT, []).component('commitHistory', commitHistoryComponent);

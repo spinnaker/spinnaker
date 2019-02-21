@@ -73,15 +73,15 @@ export class ChaosMonkeyExceptionsController {
   }
 }
 
-class ChaosMonkeyExceptionsComponent implements ng.IComponentOptions {
-  public bindings: any = {
+const chaosMonkeyExceptionsComponent: ng.IComponentOptions = {
+  bindings: {
     application: '=',
     config: '=',
     configChanged: '&',
-  };
-  public controller: any = ChaosMonkeyExceptionsController;
-  public templateUrl: string = require('./chaosMonkeyExceptions.component.html');
-}
+  },
+  controller: ChaosMonkeyExceptionsController,
+  templateUrl: require('./chaosMonkeyExceptions.component.html')
+};
 
 export const CHAOS_MONKEY_EXCEPTIONS_COMPONENT = 'spinnaker.core.chaosMonkey.exceptions.directive';
-module(CHAOS_MONKEY_EXCEPTIONS_COMPONENT, []).component('chaosMonkeyExceptions', new ChaosMonkeyExceptionsComponent());
+module(CHAOS_MONKEY_EXCEPTIONS_COMPONENT, []).component('chaosMonkeyExceptions', chaosMonkeyExceptionsComponent);

@@ -1,11 +1,11 @@
 import { module, IComponentOptions } from 'angular';
 
-class KubernetesServerGroupContainerDetail implements IComponentOptions {
-  public bindings: any = {
+const kubernetesServerGroupContainerDetail: IComponentOptions = {
+  bindings: {
     container: '<',
     initContainer: '<',
-  };
-  public template = `
+  },
+  template: `
     <dl class="dl-horizontal dl-flex">
       <dt>Name</dt>
       <dd>{{$ctrl.container.name}}</dd>
@@ -74,11 +74,11 @@ class KubernetesServerGroupContainerDetail implements IComponentOptions {
         <kubernetes-lifecycle-hook-details handler="$ctrl.container.lifecycle.preStop"></kubernetes-lifecycle-hook-details>
       </div>
     </dl>
-  `;
-}
+  `
+};
 
 export const KUBERNETES_SERVER_GROUP_CONTAINER_DETAIL = 'spinnaker.kubernetes.serverGroupContainerDetail.component';
 module(KUBERNETES_SERVER_GROUP_CONTAINER_DETAIL, []).component(
   'kubernetesServerGroupContainerDetail',
-  new KubernetesServerGroupContainerDetail(),
+  kubernetesServerGroupContainerDetail,
 );

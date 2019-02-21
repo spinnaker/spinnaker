@@ -16,12 +16,11 @@ class KubernetesPatchManifestOptionsFormCtrl implements IController {
   public mergeStrategies = MergeStrategy;
 }
 
-class KubernetesPatchManifestOptionsFormComponent implements IComponentOptions {
-  public bindings: any = { options: '=', onChange: '<' };
-  public controller: any = KubernetesPatchManifestOptionsFormCtrl;
-  public controllerAs = 'ctrl';
-
-  public template = `
+const kubernetesPatchManifestOptionsFormComponent: IComponentOptions = {
+  bindings: { options: '=', onChange: '<' },
+  controller: KubernetesPatchManifestOptionsFormCtrl,
+  controllerAs: 'ctrl',
+  template: `
     <div class="form-horizontal">
       <div class="form-group form-inline">
         <div class="col-md-3 sm-label-right">
@@ -54,11 +53,11 @@ class KubernetesPatchManifestOptionsFormComponent implements IComponentOptions {
         </div>
       </div>
     </div>
-  `;
-}
+  `
+};
 
 export const KUBERNETES_PATCH_MANIFEST_OPTIONS_FORM = 'spinnaker.kubernetes.v2.manifest.patch.options.component';
 module(KUBERNETES_PATCH_MANIFEST_OPTIONS_FORM, []).component(
   'kubernetesPatchManifestOptionsForm',
-  new KubernetesPatchManifestOptionsFormComponent(),
+  kubernetesPatchManifestOptionsFormComponent,
 );

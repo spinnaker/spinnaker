@@ -39,17 +39,17 @@ class AddEntityTagLinksCtrl implements IController {
   }
 }
 
-class AddEntityTagLinksComponent implements IComponentOptions {
-  public bindings: any = {
+const addEntityTagLinksComponent: IComponentOptions = {
+  bindings: {
     component: '<',
     application: '<',
     entityType: '@',
     onUpdate: '&?',
     tagType: '@',
     ownerOptions: '<?',
-  };
-  public controller: any = AddEntityTagLinksCtrl;
-  public template = `
+  },
+  controller: AddEntityTagLinksCtrl,
+  template: `
     <li role="presentation" class="divider"></li>
     <li>
       <a href ng-click="$ctrl.addTag('notice')">
@@ -61,20 +61,20 @@ class AddEntityTagLinksComponent implements IComponentOptions {
         Add alert <help-field key="entityTags.{{$ctrl.entityType}}.alert"></help-field>
       </a>
     </li>
-  `;
-}
+  `
+};
 
-export class AddEntityTagLinksWrapperComponent implements IComponentOptions {
-  public bindings: any = {
+export const addEntityTagLinksWrapperComponent: IComponentOptions = {
+  bindings: {
     component: '<',
     application: '<',
     entityType: '<',
     onUpdate: '<?',
     tagType: '<',
     ownerOptions: '<?',
-  };
-  public controller: any = AddEntityTagLinksCtrl;
-  public template = `
+  },
+  controller: AddEntityTagLinksCtrl,
+  template: `
     <add-entity-tag-links
       component="$ctrl.component"
       application="$ctrl.application"
@@ -83,10 +83,10 @@ export class AddEntityTagLinksWrapperComponent implements IComponentOptions {
       tag-type={{$ctrl.tagType}}
       owner-options="$ctrl.ownerOptions">
     </add-entity-tag-links>
-  `;
-}
+  `
+};
 
 export const ADD_ENTITY_TAG_LINKS_COMPONENT = 'spinnaker.core.entityTag.details.component';
 module(ADD_ENTITY_TAG_LINKS_COMPONENT, [])
-  .component('addEntityTagLinks', new AddEntityTagLinksComponent())
-  .component('addEntityTagLinksWrapper', new AddEntityTagLinksWrapperComponent());
+  .component('addEntityTagLinks', addEntityTagLinksComponent)
+  .component('addEntityTagLinksWrapper', addEntityTagLinksWrapperComponent);

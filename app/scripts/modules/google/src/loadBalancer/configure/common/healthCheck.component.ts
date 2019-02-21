@@ -64,17 +64,17 @@ class HealthCheckCreateCtrl implements IController {
   }
 }
 
-class HealthCheckCreateComponent implements ng.IComponentOptions {
-  public bindings: any = {
+const healthCheckCreateComponent: ng.IComponentOptions = {
+  bindings: {
     healthCheck: '=',
     credentials: '<',
     healthChecksByAccountAndType: '<',
     existingHealthCheckNames: '<',
-  };
-  public templateUrl: string = require('./healthCheck.component.html');
-  public controller: any = HealthCheckCreateCtrl;
-}
+  },
+  templateUrl: require('./healthCheck.component.html'),
+  controller: HealthCheckCreateCtrl
+};
 
 export const GCE_HEALTH_CHECK_SELECTOR_COMPONENT = 'spinnaker.gce.healthCheckSelector.component';
 
-module(GCE_HEALTH_CHECK_SELECTOR_COMPONENT, []).component('gceHealthCheckSelector', new HealthCheckCreateComponent());
+module(GCE_HEALTH_CHECK_SELECTOR_COMPONENT, []).component('gceHealthCheckSelector', healthCheckCreateComponent);

@@ -30,11 +30,11 @@ class ExpectedArtifactController implements IComponentController {
   }
 }
 
-class ExpectedArtifactComponent implements IComponentOptions {
-  public bindings = { expectedArtifact: '=', removeExpectedArtifact: '=', context: '=' };
-  public controller = ExpectedArtifactController;
-  public controllerAs = 'ctrl';
-  public template = `
+const expectedArtifactComponent: IComponentOptions = {
+  bindings: { expectedArtifact: '=', removeExpectedArtifact: '=', context: '=' },
+  controller: ExpectedArtifactController,
+  controllerAs: 'ctrl',
+  template: `
 <div class="row">
   <div class="col-md-12">
     <div class="form-horizontal panel-pipeline-phase">
@@ -87,8 +87,8 @@ class ExpectedArtifactComponent implements IComponentOptions {
     </div>
   </div>
 </div>
-`;
-}
+`
+};
 
 export const EXPECTED_ARTIFACT = 'spinnaker.core.pipeline.trigger.artifacts.expected';
-module(EXPECTED_ARTIFACT, []).component('expectedArtifact', new ExpectedArtifactComponent());
+module(EXPECTED_ARTIFACT, []).component('expectedArtifact', expectedArtifactComponent);

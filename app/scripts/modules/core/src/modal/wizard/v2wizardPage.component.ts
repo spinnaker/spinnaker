@@ -92,8 +92,8 @@ export class WizardPageController implements IController {
   }
 }
 
-class WizardPageComponent implements ng.IComponentOptions {
-  public bindings: any = {
+const wizardPageComponent: ng.IComponentOptions = {
+  bindings: {
     mandatory: '<',
     done: '<',
     markCleanOnView: '<',
@@ -101,11 +101,11 @@ class WizardPageComponent implements ng.IComponentOptions {
     key: '@',
     label: '@',
     render: '<',
-  };
-  public transclude = true;
-  public templateUrl: string = require('./v2wizardPage.component.html');
-  public controller: any = WizardPageController;
-}
+  },
+  transclude: true,
+  templateUrl: require('./v2wizardPage.component.html'),
+  controller: WizardPageController
+};
 
 export const V2_WIZARD_PAGE_COMPONENT = 'spinnaker.core.modal.wizard.wizardPage.component';
-module(V2_WIZARD_PAGE_COMPONENT, []).component('v2WizardPage', new WizardPageComponent());
+module(V2_WIZARD_PAGE_COMPONENT, []).component('v2WizardPage', wizardPageComponent);

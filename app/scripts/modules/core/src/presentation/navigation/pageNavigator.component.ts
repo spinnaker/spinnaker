@@ -90,15 +90,15 @@ class PageNavigatorController implements IController {
   }
 }
 
-class PageNavigatorComponent implements ng.IComponentOptions {
-  public bindings: any = {
+const pageNavigatorComponent: ng.IComponentOptions = {
+  bindings: {
     scrollableContainer: '@',
     deepLinkParam: '@?',
     hideNavigation: '<?',
-  };
-  public controller: any = PageNavigatorController;
-  public transclude = true;
-  public template = `
+  },
+  controller: PageNavigatorController,
+  transclude: true,
+  template: `
     <div class="row">
       <div class="col-md-3 hidden-sm hidden-xs" ng-show="!$ctrl.hideNavigation">
         <ul class="page-navigation">
@@ -117,9 +117,9 @@ class PageNavigatorComponent implements ng.IComponentOptions {
         <div class="sections" ng-transclude></div>
       </div>
     </div>
-  `;
-}
+  `
+};
 
 export const PAGE_NAVIGATOR_COMPONENT = 'spinnaker.core.presentation.navigation.pageNavigator';
 
-module(PAGE_NAVIGATOR_COMPONENT, [PAGE_SECTION_COMPONENT]).component('pageNavigator', new PageNavigatorComponent());
+module(PAGE_NAVIGATOR_COMPONENT, [PAGE_SECTION_COMPONENT]).component('pageNavigator', pageNavigatorComponent);

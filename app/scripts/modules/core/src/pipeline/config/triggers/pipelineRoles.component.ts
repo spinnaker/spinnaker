@@ -11,8 +11,8 @@ class PipelineRolesController implements IController {
   }
 }
 
-class PipelineRolesComponent implements ng.IComponentOptions {
-  public template = `
+const pipelineRolesComponent: ng.IComponentOptions = {
+  template: `
       <div class="form-group row">
         <div class="col-md-10">
           <div class="row">
@@ -33,14 +33,13 @@ class PipelineRolesComponent implements ng.IComponentOptions {
           </div>
         </div>
     </div>
- `;
-
-  public controller = PipelineRolesController;
-  public controllerAs = 'rolesCtrl';
-  public bindings = {
+ `,
+  controller: PipelineRolesController,
+  controllerAs: 'rolesCtrl',
+  bindings: {
     pipeline: '=',
-  };
-}
+  }
+};
 
 export const PIPELINE_ROLES_COMPONENT = 'spinnaker.core.pipeline.roles.component';
-module(PIPELINE_ROLES_COMPONENT, []).component('pipelineRoles', new PipelineRolesComponent());
+module(PIPELINE_ROLES_COMPONENT, []).component('pipelineRoles', pipelineRolesComponent);

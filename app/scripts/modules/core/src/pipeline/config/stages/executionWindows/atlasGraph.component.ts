@@ -291,14 +291,14 @@ class ExecutionWindowAtlasGraphController implements IController {
   }
 }
 
-class AtlasGraphComponent implements ng.IComponentOptions {
-  public bindings: any = {
+const atlasGraphComponent: ng.IComponentOptions = {
+  bindings: {
     windows: '=',
     windowsUpdated: '<',
     stage: '<',
-  };
-  public controller: any = ExecutionWindowAtlasGraphController;
-  public template = `
+  },
+  controller: ExecutionWindowAtlasGraphController,
+  template: `
     <div class="form-group" ng-if="$ctrl.atlasEnabled">
       <div class="col-md-9 col-md-offset-1">
         <div class="checkbox">
@@ -338,9 +338,9 @@ class AtlasGraphComponent implements ng.IComponentOptions {
         </div>
       </div>
     </div>
-  `;
-}
+  `
+};
 
 export const EXECUTION_WINDOW_ATLAS_GRAPH = 'spinnaker.core.pipeline.config.executionWindow.atlas.graph';
 
-module(EXECUTION_WINDOW_ATLAS_GRAPH, []).component('executionWindowAtlasGraph', new AtlasGraphComponent());
+module(EXECUTION_WINDOW_ATLAS_GRAPH, []).component('executionWindowAtlasGraph', atlasGraphComponent);

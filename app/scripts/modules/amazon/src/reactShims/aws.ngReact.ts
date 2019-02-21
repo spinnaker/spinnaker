@@ -4,7 +4,7 @@ import IInjectorService = angular.auto.IInjectorService;
 
 import { ReactInject } from '@spinnaker/core';
 
-import { ScalingPolicyDetailsSummary } from 'amazon/serverGroup/details/scalingPolicy/detailsSummary.component';
+import { scalingPolicyDetailsSummary } from 'amazon/serverGroup/details/scalingPolicy/detailsSummary.component';
 import { IScalingPolicySummaryProps } from 'amazon/serverGroup/details/scalingPolicy/ScalingPolicySummary';
 
 // prettier-ignore
@@ -12,7 +12,7 @@ export class AwsNgReactInjector extends ReactInject {
   public $injectorProxy = {} as IInjectorService;
 
   // Reactified components
-  public ScalingPolicySummary: React.ComponentClass<IScalingPolicySummaryProps> = angular2react('scalingPolicySummary', new ScalingPolicyDetailsSummary(), this.$injectorProxy) as any;
+  public ScalingPolicySummary: React.ComponentClass<IScalingPolicySummaryProps> = angular2react('scalingPolicySummary', scalingPolicyDetailsSummary, this.$injectorProxy) as any;
 
   public initialize($injector: IInjectorService) {
     const realInjector: { [key: string]: Function } = $injector as any;

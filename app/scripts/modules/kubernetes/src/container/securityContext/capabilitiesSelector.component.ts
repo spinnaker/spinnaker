@@ -35,17 +35,17 @@ class CapabilitiesSelector implements IController {
   }
 }
 
-class CapabilitiesSelectorComponent implements IComponentOptions {
-  public bindings: any = {
+const capabilitiesSelectorComponent: IComponentOptions = {
+  bindings: {
     component: '=',
-  };
-  public templateUrl: string = require('./capabilitiesSelector.component.html');
-  public controller: any = CapabilitiesSelector;
-}
+  },
+  templateUrl: require('./capabilitiesSelector.component.html'),
+  controller: CapabilitiesSelector
+};
 
 export const KUBERNETES_CAPABILITIES_SELECTOR = 'spinnaker.kubernetes.securityContext.capabilitiesSelector.component';
 
 module(KUBERNETES_CAPABILITIES_SELECTOR, []).component(
   'kubernetesCapabilitiesSelector',
-  new CapabilitiesSelectorComponent(),
+  capabilitiesSelectorComponent,
 );

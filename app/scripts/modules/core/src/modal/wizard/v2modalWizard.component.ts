@@ -30,17 +30,16 @@ export class V2ModalWizard implements IController {
   }
 }
 
-class V2ModalWizardComponent implements ng.IComponentOptions {
-  public bindings: any = {
+const v2ModalWizardComponent: ng.IComponentOptions = {
+  bindings: {
     heading: '@',
     taskMonitor: '<',
     dismiss: '&',
-  };
-
-  public transclude = true;
-  public templateUrl: string = require('./v2modalWizard.component.html');
-  public controller: any = V2ModalWizard;
-}
+  },
+  transclude: true,
+  templateUrl: require('./v2modalWizard.component.html'),
+  controller: V2ModalWizard
+};
 
 export const V2_MODAL_WIZARD_COMPONENT = 'spinnaker.core.modal.wizard.wizard.component';
-module(V2_MODAL_WIZARD_COMPONENT, [V2_WIZARD_PAGE_COMPONENT]).component('v2ModalWizard', new V2ModalWizardComponent());
+module(V2_MODAL_WIZARD_COMPONENT, [V2_WIZARD_PAGE_COMPONENT]).component('v2ModalWizard', v2ModalWizardComponent);

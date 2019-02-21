@@ -88,10 +88,10 @@ class GceDiskConfigurerController implements IComponentController {
   }
 }
 
-class GceDiskConfigurer implements IComponentOptions {
-  public controller = GceDiskConfigurerController;
-  public bindings = { command: '<', disks: '<', updateDisks: '&' };
-  public template = `
+const gceDiskConfigurer: IComponentOptions = {
+  controller: GceDiskConfigurerController,
+  bindings: { command: '<', disks: '<', updateDisks: '&' },
+  template: `
     <ng-form name="diskConfigurer">
       <div class="form-group">
         <div class="col-md-5 sm-label-right">
@@ -182,8 +182,8 @@ class GceDiskConfigurer implements IComponentOptions {
           </tfoot>
         </table>
       </div>
-    </ng-form>`;
-}
+    </ng-form>`
+};
 
 export const GCE_DISK_CONFIGURER = 'spinnaker.gce.diskConfigurer.component';
-module(GCE_DISK_CONFIGURER, []).component('gceDiskConfigurer', new GceDiskConfigurer());
+module(GCE_DISK_CONFIGURER, []).component('gceDiskConfigurer', gceDiskConfigurer);

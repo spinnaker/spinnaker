@@ -45,9 +45,9 @@ class GceAutoHealingPolicyDetailsCtrl implements IController {
   }
 }
 
-class GceAutoHealingPolicyDetails implements IComponentOptions {
-  public bindings: any = { serverGroup: '<', application: '<' };
-  public template = `
+const gceAutoHealingPolicyDetails: IComponentOptions = {
+  bindings: { serverGroup: '<', application: '<' },
+  template: `
     <dt>
       Health Check
       <help-field key="gce.serverGroup.autoHealing"></help-field>
@@ -68,9 +68,9 @@ class GceAutoHealingPolicyDetails implements IComponentOptions {
                   edit-info="Edit Policy"
                   destroy="$ctrl.deletePolicy()"
                   destroy-info="Delete Policy">
-    </action-icons>`;
-  public controller: any = GceAutoHealingPolicyDetailsCtrl;
-}
+    </action-icons>`,
+  controller: GceAutoHealingPolicyDetailsCtrl
+};
 
 export const GCE_AUTOHEALING_POLICY_DETAILS = 'spinnaker.gce.autoHealingPolicyDetails.component';
-module(GCE_AUTOHEALING_POLICY_DETAILS, []).component('gceAutoHealingPolicyDetails', new GceAutoHealingPolicyDetails());
+module(GCE_AUTOHEALING_POLICY_DETAILS, []).component('gceAutoHealingPolicyDetails', gceAutoHealingPolicyDetails);

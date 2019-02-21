@@ -134,15 +134,15 @@ class ViewChangesLinkController implements IController {
   }
 }
 
-class ViewChangesLink implements IComponentOptions {
-  public bindings: any = {
+const viewChangesLink: IComponentOptions = {
+  bindings: {
     changeConfig: '<',
     viewType: '@',
     linkText: '@?',
     nameItem: '<',
-  };
-  public controller: any = ViewChangesLinkController;
-  public template = `
+  },
+  controller: ViewChangesLinkController,
+  template: `
     <dt ng-if="$ctrl.viewType === 'description' && $ctrl.changesAvailable">Changes</dt>
     <dd ng-if="$ctrl.viewType === 'description' && $ctrl.changesAvailable">
       <a href ng-click="$ctrl.showChanges()">{{ $ctrl.linkText }}</a>
@@ -150,20 +150,20 @@ class ViewChangesLink implements IComponentOptions {
     <span ng-if="$ctrl.viewType === 'linkOnly' && $ctrl.changesAvailable">
       <a href ng-click="$ctrl.showChanges()">{{ $ctrl.linkText }}</a>
     </span>
-  `;
-}
+  `
+};
 
-export class ViewChangesLinkWrapper implements IComponentOptions {
-  public bindings: any = {
+export const viewChangesLinkWrapper: IComponentOptions = {
+  bindings: {
     changeConfig: '<',
     viewType: '<',
     linkText: '<?',
     nameItem: '<',
-  };
-  public tempate = `<view-changes-link change-config="$ctrl.changeConfig" view-type="{{::$ctrl.viewType}}" link-text="{{::$ctrl.linkText}}" name-item="$ctrl.nameItem"></view-changes-link>`;
-}
+  },
+  tempate: `<view-changes-link change-config="$ctrl.changeConfig" view-type="{{::$ctrl.viewType}}" link-text="{{::$ctrl.linkText}}" name-item="$ctrl.nameItem"></view-changes-link>`
+};
 
 export const VIEW_CHANGES_LINK = 'spinnaker.diffs.view.changes.link';
 module(VIEW_CHANGES_LINK, [COMMIT_HISTORY_COMPONENT, JAR_DIFF_COMPONENT, EXECUTION_SERVICE])
-  .component('viewChangesLink', new ViewChangesLink())
-  .component('viewChangesLinkWrapper', new ViewChangesLinkWrapper());
+  .component('viewChangesLink', viewChangesLink)
+  .component('viewChangesLinkWrapper', viewChangesLinkWrapper);

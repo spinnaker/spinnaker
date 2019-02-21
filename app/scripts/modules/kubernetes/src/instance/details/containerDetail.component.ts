@@ -1,12 +1,12 @@
 import { module, IComponentOptions } from 'angular';
 
-class KubernetesInstanceContainerDetail implements IComponentOptions {
-  public bindings: any = {
+const kubernetesInstanceContainerDetail: IComponentOptions = {
+  bindings: {
     container: '<',
     initContainer: '<',
     containerStatus: '<',
-  };
-  public template = `
+  },
+  template: `
     <div class="horizontal-when-filters-collapsed">
       <dt>Name</dt>
       <dd>{{$ctrl.container.name}}</dd>
@@ -77,11 +77,11 @@ class KubernetesInstanceContainerDetail implements IComponentOptions {
         </dd>
       </div>
     </div>
-  `;
-}
+  `
+};
 
 export const KUBERNETES_INSTANCE_CONTAINER_DETAIL = 'spinnaker.kubernetes.instance.container.detail';
 module(KUBERNETES_INSTANCE_CONTAINER_DETAIL, []).component(
   'kubernetesInstanceContainerDetail',
-  new KubernetesInstanceContainerDetail(),
+  kubernetesInstanceContainerDetail,
 );

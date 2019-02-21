@@ -71,16 +71,16 @@ class KubernetesEnvironmentFromCtrl implements IController {
   }
 }
 
-class KubernetesContainerEnvironmentFrom implements IComponentOptions {
-  public bindings: any = {
+const kubernetesContainerEnvironmentFrom: IComponentOptions = {
+  bindings: {
     envFrom: '=',
-  };
-  public templateUrl = require('./environmentFrom.component.html');
-  public controller: any = KubernetesEnvironmentFromCtrl;
-}
+  },
+  templateUrl: require('./environmentFrom.component.html'),
+  controller: KubernetesEnvironmentFromCtrl
+};
 
 export const KUBERNETES_CONTAINER_ENVIRONMENT_FROM = 'spinnaker.kubernetes.container.environmentFrom.component';
 module(KUBERNETES_CONTAINER_ENVIRONMENT_FROM, []).component(
   'kubernetesContainerEnvironmentFrom',
-  new KubernetesContainerEnvironmentFrom(),
+  kubernetesContainerEnvironmentFrom,
 );

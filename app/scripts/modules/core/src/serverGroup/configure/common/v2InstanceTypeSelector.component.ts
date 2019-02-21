@@ -95,16 +95,15 @@ class V2InstanceTypeSelectorController implements IComponentController {
   };
 }
 
-export class V2InstanceTypeSelector implements IComponentOptions {
-  public bindings: any = {
+export const v2InstanceTypeSelector: IComponentOptions = {
+  bindings: {
     command: '<',
     onTypeChanged: '=',
-  };
-
-  public controller: any = V2InstanceTypeSelectorController;
-  public controllerAs = 'instanceTypeCtrl';
-  public templateUrl = require('./instanceTypeDirective.html');
-}
+  },
+  controller: V2InstanceTypeSelectorController,
+  controllerAs: 'instanceTypeCtrl',
+  templateUrl: require('./instanceTypeDirective.html')
+};
 
 export const V2_INSTANCE_TYPE_SELECTOR = 'spinnaker.core.serverGroup.configure.common.v2instanceTypeSelector';
-module(V2_INSTANCE_TYPE_SELECTOR, []).component('v2InstanceTypeSelector', new V2InstanceTypeSelector());
+module(V2_INSTANCE_TYPE_SELECTOR, []).component('v2InstanceTypeSelector', v2InstanceTypeSelector);

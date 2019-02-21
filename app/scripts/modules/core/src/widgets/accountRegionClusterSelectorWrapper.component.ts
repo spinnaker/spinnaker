@@ -1,6 +1,6 @@
 import { IComponentOptions, module } from 'angular';
-export class AccountRegionClusterSelectorWrapperComponent implements IComponentOptions {
-  public bindings: any = {
+export const accountRegionClusterSelectorWrapperComponent: IComponentOptions = {
+  bindings: {
     application: '<',
     component: '<',
     accounts: '<',
@@ -9,8 +9,8 @@ export class AccountRegionClusterSelectorWrapperComponent implements IComponentO
     showAllRegions: '<?',
     onAccountUpdate: '<?',
     disableRegionSelect: '<?',
-  };
-  public template = `
+  },
+  template: `
     <account-region-cluster-selector
       application="$ctrl.application"
       component="$ctrl.component"
@@ -21,10 +21,10 @@ export class AccountRegionClusterSelectorWrapperComponent implements IComponentO
       on-account-update="$ctrl.onAccountUpdate"
       disable-region-select="$ctrl.disableRegionSelect">
     </account-region-cluster-selector>
-  `;
-}
+  `
+};
 export const ACCOUNT_REGION_CLUSTER_SELECTOR_WRAPPER = 'spinnaker.core.accountRegionClusterSelectorWrapper.component';
 module(ACCOUNT_REGION_CLUSTER_SELECTOR_WRAPPER, []).component(
   'accountRegionClusterSelectorWrapper',
-  new AccountRegionClusterSelectorWrapperComponent(),
+  accountRegionClusterSelectorWrapperComponent,
 );

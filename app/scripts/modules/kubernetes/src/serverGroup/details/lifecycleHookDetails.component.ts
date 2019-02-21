@@ -1,8 +1,8 @@
 import { module } from 'angular';
 
-class KubernetesLifecycleHookDetails implements ng.IComponentOptions {
-  public bindings: any = { handler: '<' };
-  public template = `
+const kubernetesLifecycleHookDetails: ng.IComponentOptions = {
+  bindings: { handler: '<' },
+  template: `
     <dt>Type</dt>
     <dd>{{$ctrl.handler.type === 'EXEC' ? 'exec' : 'httpGet'}}</dd>
     <dt ng-if="$ctrl.handler.execAction.commands">Command</dt>
@@ -19,11 +19,11 @@ class KubernetesLifecycleHookDetails implements ng.IComponentOptions {
     <dd ng-if="$ctrl.handler.httpGetAction.httpHeaders.length">
       <div ng-repeat="header in $ctrl.handler.httpGetAction.httpHeaders">{{header.name}}: <i>{{header.value}}</i></div>
     </dd>
-  `;
-}
+  `
+};
 
 export const KUBERNETES_LIFECYCLE_HOOK_DETAILS = 'spinnaker.kubernetes.lifecycleHookDetails.component';
 module(KUBERNETES_LIFECYCLE_HOOK_DETAILS, []).component(
   'kubernetesLifecycleHookDetails',
-  new KubernetesLifecycleHookDetails(),
+  kubernetesLifecycleHookDetails,
 );

@@ -17,15 +17,15 @@ class GceAddressSelectorCtrl implements IController {
   }
 }
 
-class GceAddressSelector implements IComponentOptions {
-  public bindings: any = {
+const gceAddressSelector: IComponentOptions = {
+  bindings: {
     initialIpAddress: '<',
     addressList: '<',
     readOnly: '<',
     onAddressSelect: '&',
     account: '<',
-  };
-  public template = `
+  },
+  template: `
     <ui-select on-select="$ctrl.onAddressSelect({address: $ctrl.selectedAddress})"
                ng-disabled="$ctrl.readOnly"
                ng-model="$ctrl.selectedAddress"
@@ -38,9 +38,9 @@ class GceAddressSelector implements IComponentOptions {
           {{address.address}} <span ng-if="address.name">({{address.name}})</span> <br>
         </span>
       </ui-select-choices>
-    </ui-select>`;
-  public controller: any = GceAddressSelectorCtrl;
-}
+    </ui-select>`,
+  controller: GceAddressSelectorCtrl
+};
 
 export const GCE_ADDRESS_SELECTOR = 'spinnaker.gce.addressSelector.component';
-module(GCE_ADDRESS_SELECTOR, []).component('gceAddressSelector', new GceAddressSelector());
+module(GCE_ADDRESS_SELECTOR, []).component('gceAddressSelector', gceAddressSelector);

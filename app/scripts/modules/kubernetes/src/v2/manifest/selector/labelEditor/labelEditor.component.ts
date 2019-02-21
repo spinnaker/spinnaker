@@ -28,11 +28,11 @@ class KubernetesManifestLabelEditorCtrl implements IController {
   }
 }
 
-class KubernetesManifestLabelEditorComponent implements IComponentOptions {
-  public bindings: any = { selectors: '=' };
-  public controller: any = KubernetesManifestLabelEditorCtrl;
-  public controllerAs = 'ctrl';
-  public template = `
+const kubernetesManifestLabelEditorComponent: IComponentOptions = {
+  bindings: { selectors: '=' },
+  controller: KubernetesManifestLabelEditorCtrl,
+  controllerAs: 'ctrl',
+  template: `
     <form name="labelEditor">
       <table class="table table-condensed packed tags">
         <thead>
@@ -80,11 +80,11 @@ class KubernetesManifestLabelEditorComponent implements IComponentOptions {
         </tfoot>
       </table>
     </div>
-  `;
-}
+  `
+};
 
 export const KUBERNETES_MANIFEST_LABEL_EDITOR = 'spinnaker.kubernetes.v2.manifest.labelEditor.component';
 module(KUBERNETES_MANIFEST_LABEL_EDITOR, []).component(
   'kubernetesManifestLabelEditor',
-  new KubernetesManifestLabelEditorComponent(),
+  kubernetesManifestLabelEditorComponent,
 );

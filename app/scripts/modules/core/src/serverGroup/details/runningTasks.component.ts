@@ -7,13 +7,13 @@ class ServerGroupRunningTasksCtrl implements IController {
   public application: Application;
 }
 
-class ServerGroupRunningTasksComponent implements IComponentOptions {
-  public bindings: any = {
+const serverGroupRunningTasksComponent: IComponentOptions = {
+  bindings: {
     serverGroup: '<',
     application: '<',
-  };
-  public controller: any = ServerGroupRunningTasksCtrl;
-  public template = `
+  },
+  controller: ServerGroupRunningTasksCtrl,
+  template: `
     <collapsible-section heading="Running Tasks" expanded="true" body-class="details-running-tasks" ng-if="$ctrl.serverGroup.runningTasks.length > 0 || $ctrl.serverGroup.runningExecutions.length > 0">
       <div class="container-fluid no-padding" ng-repeat="task in $ctrl.serverGroup.runningTasks | orderBy:'-startTime'">
         <div class="row">
@@ -54,11 +54,11 @@ class ServerGroupRunningTasksComponent implements IComponentOptions {
         </div>
       </div>
     </collapsible-section>
-  `;
-}
+  `
+};
 
 export const RUNNING_TASKS_DETAILS_COMPONENT = 'spinnaker.core.serverGroup.details.runningTasks.component';
 module(RUNNING_TASKS_DETAILS_COMPONENT, []).component(
   'serverGroupRunningTasksDetails',
-  new ServerGroupRunningTasksComponent(),
+  serverGroupRunningTasksComponent,
 );

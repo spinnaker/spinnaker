@@ -24,17 +24,17 @@ class GceAddAutoHealingPolicyButtonCtrl implements IController {
   }
 }
 
-class GceAddAutoHealingPolicyButton implements IComponentOptions {
-  public bindings: any = {
+const gceAddAutoHealingPolicyButton: IComponentOptions = {
+  bindings: {
     application: '<',
     serverGroup: '<',
-  };
-  public template = '<a href ng-click="$ctrl.addAutoHealingPolicy()">Create new autohealing policy</a>';
-  public controller: any = GceAddAutoHealingPolicyButtonCtrl;
-}
+  },
+  template: '<a href ng-click="$ctrl.addAutoHealingPolicy()">Create new autohealing policy</a>',
+  controller: GceAddAutoHealingPolicyButtonCtrl
+};
 
 export const GCE_ADD_AUTOHEALING_POLICY_BUTTON = 'spinnaker.gce.addAutoHealingPolicyButton.component';
 module(GCE_ADD_AUTOHEALING_POLICY_BUTTON, []).component(
   'gceAddAutoHealingPolicyButton',
-  new GceAddAutoHealingPolicyButton(),
+  gceAddAutoHealingPolicyButton,
 );

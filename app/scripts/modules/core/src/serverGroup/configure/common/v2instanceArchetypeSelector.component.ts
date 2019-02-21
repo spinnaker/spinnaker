@@ -117,20 +117,19 @@ class V2InstanceArchetypeSelectorController implements IComponentController {
   };
 }
 
-export class V2InstanceArchetypeSelector implements IComponentOptions {
-  public bindings: any = {
+export const v2InstanceArchetypeSelector: IComponentOptions = {
+  bindings: {
     command: '<',
     onProfileChanged: '=',
     onTypeChanged: '=',
-  };
-
-  public controller: any = V2InstanceArchetypeSelectorController;
-  public controllerAs = 'instanceArchetypeCtrl';
-  public templateUrl = require('./v2instanceArchetype.directive.html');
-}
+  },
+  controller: V2InstanceArchetypeSelectorController,
+  controllerAs: 'instanceArchetypeCtrl',
+  templateUrl: require('./v2instanceArchetype.directive.html')
+};
 
 export const V2_INSTANCE_ARCHETYPE_SELECTOR = 'spinnaker.core.serverGroup.configure.common.v2instanceArchetypeSelector';
 module(V2_INSTANCE_ARCHETYPE_SELECTOR, [
   require('./costFactor').name,
   require('core/presentation/isVisible/isVisible.directive').name,
-]).component('v2InstanceArchetypeSelector', new V2InstanceArchetypeSelector());
+]).component('v2InstanceArchetypeSelector', v2InstanceArchetypeSelector);

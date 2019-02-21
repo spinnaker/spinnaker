@@ -6,11 +6,11 @@ class KubernetesManifestStatusCtrl implements IController {
   public status: IManifestStatus;
 }
 
-class KubernetesManifestStatusComponent implements IComponentOptions {
-  public bindings: any = { status: '<' };
-  public controller: any = KubernetesManifestStatusCtrl;
-  public controllerAs = 'ctrl';
-  public template = `
+const kubernetesManifestStatusComponent: IComponentOptions = {
+  bindings: { status: '<' },
+  controller: KubernetesManifestStatusCtrl,
+  controllerAs: 'ctrl',
+  template: `
     <div ng-if="!ctrl.status" class="horizontal middle center spinner-section">
       <loading-spinner size="'small'"></loading-spinner>
     </div>
@@ -28,8 +28,8 @@ class KubernetesManifestStatusComponent implements IComponentOptions {
         Rollout Paused
       </div>
     </div>
-  `;
-}
+  `
+};
 
 export const KUBERNETES_MANIFEST_STATUS = 'spinnaker.kubernetes.v2.kubernetes.manifest.status.component';
-module(KUBERNETES_MANIFEST_STATUS, []).component('kubernetesManifestStatus', new KubernetesManifestStatusComponent());
+module(KUBERNETES_MANIFEST_STATUS, []).component('kubernetesManifestStatus', kubernetesManifestStatusComponent);

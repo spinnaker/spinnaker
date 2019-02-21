@@ -15,13 +15,13 @@ class InsightLayoutCtrl {
   }
 }
 
-export class InsightLayoutComponent {
-  public bindings: any = {
+export const insightLayoutComponent = {
+  bindings: {
     app: '<',
-  };
-  public controller: any = InsightLayoutCtrl;
-  public templateUrl: string = require('./insightLayout.component.html');
-}
+  },
+  controller: InsightLayoutCtrl,
+  templateUrl: require('./insightLayout.component.html')
+};
 
 export const INSIGHT_LAYOUT_COMPONENT = 'spinnaker.core.insight.insightLayout.component';
-module(INSIGHT_LAYOUT_COMPONENT, [INSIGHT_FILTER_STATE_MODEL]).component('insightLayout', new InsightLayoutComponent());
+module(INSIGHT_LAYOUT_COMPONENT, [INSIGHT_FILTER_STATE_MODEL]).component('insightLayout', insightLayoutComponent);

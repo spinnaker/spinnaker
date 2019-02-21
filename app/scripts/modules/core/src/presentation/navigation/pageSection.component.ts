@@ -39,24 +39,24 @@ class PageSectionController implements IController {
   }
 }
 
-class PageSectionComponent implements IComponentOptions {
-  public bindings: any = {
+const pageSectionComponent: IComponentOptions = {
+  bindings: {
     key: '@',
     label: '@',
     badge: '<',
     visible: '<',
     noWrapper: '<',
-  };
-  public controller: any = PageSectionController;
-  public transclude = true;
-  public template = `
+  },
+  controller: PageSectionController,
+  transclude: true,
+  template: `
     <div ng-if="$ctrl.pageConfig.visible" class="page-subheading" data-page-id="{{$ctrl.pageConfig.key}}">
       <h4 class="sticky-header">{{$ctrl.pageConfig.label}}</h4>
       <div ng-class="$ctrl.noWrapper ? 'no-wrapper' : 'section-body'" data-page-content="{{$ctrl.pageConfig.key}}" ng-transclude></div>
     </div>
-  `;
-}
+  `
+};
 
 export const PAGE_SECTION_COMPONENT = 'spinnaker.core.presentation.navigation.pageSection';
 
-module(PAGE_SECTION_COMPONENT, []).component('pageSection', new PageSectionComponent());
+module(PAGE_SECTION_COMPONENT, []).component('pageSection', pageSectionComponent);

@@ -35,18 +35,18 @@ export class StepExecutionDetailsController implements IController {
   }
 }
 
-export class StepExecutionDetailsComponent implements IComponentOptions {
-  public bindings: any = {
+export const stepExecutionDetailsComponent: IComponentOptions = {
+  bindings: {
     application: '<',
     config: '<',
     configSections: '<',
     execution: '<',
     sourceUrl: '<',
     stage: '<',
-  };
-  public controller: any = StepExecutionDetailsController;
-  public template = '<div ng-include="$ctrl.sourceUrl"></div>';
-}
+  },
+  controller: StepExecutionDetailsController,
+  template: '<div ng-include="$ctrl.sourceUrl"></div>'
+};
 
 export const STEP_EXECUTION_DETAILS_COMPONENT = 'spinnaker.core.pipeline.stepExecutionDetails.component';
-module(STEP_EXECUTION_DETAILS_COMPONENT, []).component('stepExecutionDetails', new StepExecutionDetailsComponent());
+module(STEP_EXECUTION_DETAILS_COMPONENT, []).component('stepExecutionDetails', stepExecutionDetailsComponent);

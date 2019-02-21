@@ -119,19 +119,19 @@ class TitusMigrationConfigurerController implements ng.IComponentController {
   }
 }
 
-class TitusMigrationConfigurerComponent implements ng.IComponentOptions {
-  public bindings: any = {
+const titusMigrationConfigurerComponent: ng.IComponentOptions = {
+  bindings: {
     application: '<',
     config: '<',
     configChanged: '&',
-  };
-  public controller: any = TitusMigrationConfigurerController;
-  public templateUrl: string = require('./titusMigrationConfigurer.component.html');
-}
+  },
+  controller: TitusMigrationConfigurerController,
+  templateUrl: require('./titusMigrationConfigurer.component.html')
+};
 
 export const TITUS_MIGRATION_CONFIGURER_COMPONENT = 'spinnaker.titus.migration.configurer.component';
 
 module(TITUS_MIGRATION_CONFIGURER_COMPONENT, []).component(
   'titusMigrationConfigurer',
-  new TitusMigrationConfigurerComponent(),
+  titusMigrationConfigurerComponent,
 );

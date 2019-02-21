@@ -15,22 +15,22 @@ class AppengineConditionalDescriptionListItemCtrl implements IController {
   }
 }
 
-class AppengineConditionalDescriptionListItem implements IComponentOptions {
-  public bindings: any = { label: '@', key: '@', component: '<' };
-  public transclude: any = {
+const appengineConditionalDescriptionListItem: IComponentOptions = {
+  bindings: { label: '@', key: '@', component: '<' },
+  transclude: {
     keyLabel: '?keyText',
     valueLabel: '?valueLabel',
-  };
-  public template = `
+  },
+  template: `
     <dt ng-if="$ctrl.component[$ctrl.key]">{{$ctrl.label}}<span ng-transclude="keyLabel"></span></dt>
     <dd ng-if="$ctrl.component[$ctrl.key]">{{$ctrl.component[$ctrl.key]}}<span ng-transclude="valueLabel"></span></dd>
-  `;
-  public controller: any = AppengineConditionalDescriptionListItemCtrl;
-}
+  `,
+  controller: AppengineConditionalDescriptionListItemCtrl
+};
 
 export const APPENGINE_CONDITIONAL_DESCRIPTION_LIST_ITEM = 'spinnaker.appengine.conditionalDescriptionListItem';
 
 module(APPENGINE_CONDITIONAL_DESCRIPTION_LIST_ITEM, []).component(
   'appengineConditionalDtDd',
-  new AppengineConditionalDescriptionListItem(),
+  appengineConditionalDescriptionListItem,
 );

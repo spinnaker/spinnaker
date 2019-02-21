@@ -98,14 +98,14 @@ class AppengineConfigFileConfigurerCtrl implements IController {
   }
 }
 
-class AppengineConfigFileConfigurerComponent implements ng.IComponentOptions {
-  public bindings: any = { command: '=' };
-  public controller: any = AppengineConfigFileConfigurerCtrl;
-  public templateUrl = require('./configFiles.component.html');
-}
+const appengineConfigFileConfigurerComponent: ng.IComponentOptions = {
+  bindings: { command: '=' },
+  controller: AppengineConfigFileConfigurerCtrl,
+  templateUrl: require('./configFiles.component.html')
+};
 
 export const APPENGINE_CONFIG_FILE_CONFIGURER = 'spinnaker.appengine.configFileConfigurer.component';
 module(APPENGINE_CONFIG_FILE_CONFIGURER, []).component(
   'appengineConfigFileConfigurer',
-  new AppengineConfigFileConfigurerComponent(),
+  appengineConfigFileConfigurerComponent,
 );

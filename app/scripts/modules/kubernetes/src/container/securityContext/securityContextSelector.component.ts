@@ -40,17 +40,17 @@ class SecurityContextSelector implements IController {
   ];
 }
 
-class SecurityContextSelectorComponent implements IComponentOptions {
-  public bindings: any = {
+const securityContextSelectorComponent: IComponentOptions = {
+  bindings: {
     component: '=',
-  };
-  public templateUrl: string = require('./securityContextSelector.component.html');
-  public controller: any = SecurityContextSelector;
-}
+  },
+  templateUrl: require('./securityContextSelector.component.html'),
+  controller: SecurityContextSelector
+};
 
 export const KUBERNETES_SECURITY_CONTEXT_SELECTOR = 'spinnaker.kubernetes.securityContextSelector.component';
 
 module(KUBERNETES_SECURITY_CONTEXT_SELECTOR, [
   KUBERNETES_SE_LINUX_OPTIONS_SELECTOR,
   KUBERNETES_CAPABILITIES_SELECTOR,
-]).component('kubernetesSecurityContextSelector', new SecurityContextSelectorComponent());
+]).component('kubernetesSecurityContextSelector', securityContextSelectorComponent);

@@ -148,17 +148,17 @@ export class StageSummaryController implements IController {
   }
 }
 
-export class StageSummaryComponent implements IComponentOptions {
-  public bindings: any = {
+export const stageSummaryComponent: IComponentOptions = {
+  bindings: {
     application: '<',
     execution: '<',
     sourceUrl: '<',
     stage: '<',
     stageSummary: '<',
-  };
-  public controller: any = StageSummaryController;
-  public template = '<div className="stage-summary-wrapper" ng-include="$ctrl.sourceUrl"></div>';
-}
+  },
+  controller: StageSummaryController,
+  template: '<div className="stage-summary-wrapper" ng-include="$ctrl.sourceUrl"></div>'
+};
 
 export const STAGE_SUMMARY_COMPONENT = 'spinnaker.core.pipeline.stageSummary.component';
-module(STAGE_SUMMARY_COMPONENT, []).component('stageSummary', new StageSummaryComponent());
+module(STAGE_SUMMARY_COMPONENT, []).component('stageSummary', stageSummaryComponent);

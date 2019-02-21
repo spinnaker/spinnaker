@@ -52,20 +52,19 @@ export class ConfigSectionFooterController implements IController {
   }
 }
 
-class ConfigSectionFooterComponent implements IComponentOptions {
-  public bindings: any = {
+const configSectionFooterComponent: IComponentOptions = {
+  bindings: {
     application: '=',
     config: '=',
     viewState: '=',
     configField: '@',
     revert: '&?',
     afterSave: '&?',
-  };
-
-  public controller: any = ConfigSectionFooterController;
-  public templateUrl: string = require('./configSectionFooter.component.html');
-}
+  },
+  controller: ConfigSectionFooterController,
+  templateUrl: require('./configSectionFooter.component.html')
+};
 
 export const CONFIG_SECTION_FOOTER = 'spinnaker.core.application.config.section.footer.component';
 
-module(CONFIG_SECTION_FOOTER, []).component('configSectionFooter', new ConfigSectionFooterComponent());
+module(CONFIG_SECTION_FOOTER, []).component('configSectionFooter', configSectionFooterComponent);

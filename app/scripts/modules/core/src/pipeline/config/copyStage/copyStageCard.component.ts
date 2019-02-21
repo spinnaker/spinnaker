@@ -1,10 +1,10 @@
 import { module } from 'angular';
 
-class CopyStageCardComponent implements ng.IComponentOptions {
-  public bindings: any = {
+const copyStageCardComponent: ng.IComponentOptions = {
+  bindings: {
     stageWrapper: '<',
-  };
-  public template = `
+  },
+  template: `
     <div class="row">
       <div class="col-md-10">
         <b>{{::$ctrl.stageWrapper.stage.name}}</b>
@@ -22,9 +22,9 @@ class CopyStageCardComponent implements ng.IComponentOptions {
     <p ng-if="$ctrl.stageWrapper.pipeline"><b>Pipeline:</b> {{::$ctrl.stageWrapper.pipeline}}</p>
     <p ng-if="$ctrl.stageWrapper.strategy"><b>Strategy:</b> {{::$ctrl.stageWrapper.strategy}}</p>
     <p class="small">{{::$ctrl.stageWrapper.stage.comments}}</p>
-  `;
-}
+  `
+};
 
 export const COPY_STAGE_CARD_COMPONENT = 'spinnaker.core.copyStageCard.component';
 
-module(COPY_STAGE_CARD_COMPONENT, []).component('copyStageCard', new CopyStageCardComponent());
+module(COPY_STAGE_CARD_COMPONENT, []).component('copyStageCard', copyStageCardComponent);

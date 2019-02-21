@@ -20,17 +20,17 @@ class ViewScalingActivitiesLinkCtrl implements IController {
   }
 }
 
-export class ViewScalingActivitiesLink implements IComponentOptions {
-  public bindings: any = {
+export const viewScalingActivitiesLink: IComponentOptions = {
+  bindings: {
     serverGroup: '<',
-  };
-  public controller: any = ViewScalingActivitiesLinkCtrl;
-  public template = `<a href ng-click="$ctrl.showScalingActivities()">View Scaling Activities</a>`;
-}
+  },
+  controller: ViewScalingActivitiesLinkCtrl,
+  template: `<a href ng-click="$ctrl.showScalingActivities()">View Scaling Activities</a>`
+};
 
 export const VIEW_SCALING_ACTIVITIES_LINK = 'spinnaker.core.serverGroup.details.viewScalingActivities.link';
 
 module(VIEW_SCALING_ACTIVITIES_LINK, [SCALING_ACTIVITIES_CTRL]).component(
   'viewScalingActivitiesLink',
-  new ViewScalingActivitiesLink(),
+  viewScalingActivitiesLink,
 );

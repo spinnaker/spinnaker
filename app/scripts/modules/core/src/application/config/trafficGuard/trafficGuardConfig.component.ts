@@ -112,16 +112,16 @@ export class TrafficGuardConfigController {
   }
 }
 
-class TrafficGuardConfigComponent implements ng.IComponentOptions {
-  public bindings: any = {
+const trafficGuardConfigComponent: ng.IComponentOptions = {
+  bindings: {
     application: '=',
-  };
-  public controller: any = TrafficGuardConfigController;
-  public templateUrl: string = require('./trafficGuardConfig.component.html');
-}
+  },
+  controller: TrafficGuardConfigController,
+  templateUrl: require('./trafficGuardConfig.component.html')
+};
 
 export const TRAFFIC_GUARD_CONFIG_COMPONENT = 'spinnaker.core.application.config.trafficGuard.component';
 module(TRAFFIC_GUARD_CONFIG_COMPONENT, [CLUSTER_MATCHES_COMPONENT]).component(
   'trafficGuardConfig',
-  new TrafficGuardConfigComponent(),
+  trafficGuardConfigComponent,
 );

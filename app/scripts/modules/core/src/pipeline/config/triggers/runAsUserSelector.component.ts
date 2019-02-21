@@ -12,13 +12,13 @@ class RunAsUserSelectorController implements IController {
   }
 }
 
-class RunAsUserSelectorComponent implements IComponentOptions {
-  public bindings: any = {
+const runAsUserSelectorComponent: IComponentOptions = {
+  bindings: {
     serviceAccounts: '<',
     component: '=',
     field: '@',
-  };
-  public template = `
+  },
+  template: `
     <div ng-if="$ctrl.enabled">
       <div class="col-md-3 sm-label-right">
         Run As User
@@ -33,10 +33,10 @@ class RunAsUserSelectorComponent implements IComponentOptions {
         </select>
       </div>
     </div>
-  `;
-  public controller = RunAsUserSelectorController;
-  public controllerAs = '$ctrl';
-}
+  `,
+  controller: RunAsUserSelectorController,
+  controllerAs: '$ctrl'
+};
 
 export const RUN_AS_USER_SELECTOR_COMPONENT = 'spinnaker.core.runAsUser.selector.component';
-module(RUN_AS_USER_SELECTOR_COMPONENT, []).component('runAsUserSelector', new RunAsUserSelectorComponent());
+module(RUN_AS_USER_SELECTOR_COMPONENT, []).component('runAsUserSelector', runAsUserSelectorComponent);

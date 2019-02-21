@@ -36,16 +36,16 @@ class GceCacheRefreshCtrl implements IController {
   }
 }
 
-class GceCacheRefresh implements IComponentOptions {
-  public bindings: any = {
+const gceCacheRefresh: IComponentOptions = {
+  bindings: {
     onRefresh: '&',
     cacheKey: '@',
     cacheKeyAlias: '@',
     renderCompact: '<',
-  };
-  public controller: any = GceCacheRefreshCtrl;
-  public templateUrl = require('./cacheRefresh.component.html');
-}
+  },
+  controller: GceCacheRefreshCtrl,
+  templateUrl: require('./cacheRefresh.component.html')
+};
 
 export const GCE_CACHE_REFRESH = 'spinnaker.gce.cacheRefresh.component';
-module(GCE_CACHE_REFRESH, [CACHE_INITIALIZER_SERVICE]).component('gceCacheRefresh', new GceCacheRefresh());
+module(GCE_CACHE_REFRESH, [CACHE_INITIALIZER_SERVICE]).component('gceCacheRefresh', gceCacheRefresh);

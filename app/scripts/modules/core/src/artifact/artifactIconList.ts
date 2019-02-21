@@ -9,11 +9,11 @@ class ArtifactIconListController implements IController {
   }
 }
 
-class ArtifactIconListComponent implements IComponentOptions {
-  public bindings: any = { artifacts: '<' };
-  public controller: any = ArtifactIconListController;
-  public controllerAs = 'ctrl';
-  public template = `
+const artifactIconListComponent: IComponentOptions = {
+  bindings: { artifacts: '<' },
+  controller: ArtifactIconListController,
+  controllerAs: 'ctrl',
+  template: `
     <div class="artifact-list-item" ng-repeat="artifact in ctrl.artifacts" title="{{ artifact.type }}">
       <img
         class="artifact-list-item-icon"
@@ -23,8 +23,8 @@ class ArtifactIconListComponent implements IComponentOptions {
         height="20"
       /><span class="artifact-list-item-name">{{ artifact.name }}<span ng-if="artifact.version"> - {{ artifact.version }}</span></span>
     </div>
-  `;
-}
+  `
+};
 
 export const ARTIFACT_ICON_LIST = 'spinnaker.core.artifact.iconList';
-module(ARTIFACT_ICON_LIST, []).component('artifactIconList', new ArtifactIconListComponent());
+module(ARTIFACT_ICON_LIST, []).component('artifactIconList', artifactIconListComponent);

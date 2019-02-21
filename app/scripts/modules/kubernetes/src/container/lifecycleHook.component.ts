@@ -95,19 +95,19 @@ class KubernetesLifecycleHookConfigurerCtrl implements IController {
   }
 }
 
-class KubernetesLifecycleHookConfigurer implements IComponentOptions {
-  public bindings: any = {
+const kubernetesLifecycleHookConfigurer: IComponentOptions = {
+  bindings: {
     heading: '@',
     handler: '<',
     onHandlerChange: '&',
-  };
-  public templateUrl = require('./lifecycleHook.component.html');
-  public controller: any = KubernetesLifecycleHookConfigurerCtrl;
-  public transclude = true;
-}
+  },
+  templateUrl: require('./lifecycleHook.component.html'),
+  controller: KubernetesLifecycleHookConfigurerCtrl,
+  transclude: true
+};
 
 export const KUBERNETES_LIFECYCLE_HOOK_CONFIGURER = 'spinnaker.kubernetes.lifecycleHookConfigurer.component';
 module(KUBERNETES_LIFECYCLE_HOOK_CONFIGURER, []).component(
   'kubernetesLifecycleHookConfigurer',
-  new KubernetesLifecycleHookConfigurer(),
+  kubernetesLifecycleHookConfigurer,
 );

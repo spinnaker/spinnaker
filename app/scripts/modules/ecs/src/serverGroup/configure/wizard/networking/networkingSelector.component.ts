@@ -31,16 +31,16 @@ class LoadBalancerSelectorController implements IController {
   }
 }
 
-export class ApplicationLoadBalancerSelectorComponent implements IComponentOptions {
-  public bindings: any = {
+export const applicationLoadBalancerSelectorComponent: IComponentOptions = {
+  bindings: {
     command: '=',
-  };
-  public controller: any = LoadBalancerSelectorController;
-  public templateUrl = require('./networkingSelector.component.html');
-}
+  },
+  controller: LoadBalancerSelectorController,
+  templateUrl: require('./networkingSelector.component.html')
+};
 
 export const ECS_NETWORKING_SECTION = 'spinnaker.ecs.serverGroup.configure.wizard.loadBalancers.selector.component';
 module(ECS_NETWORKING_SECTION, [ECS_SERVER_GROUP_CONFIGURATION_SERVICE]).component(
   'ecsServerGroupLoadBalancerSelector',
-  new ApplicationLoadBalancerSelectorComponent(),
+  applicationLoadBalancerSelectorComponent,
 );

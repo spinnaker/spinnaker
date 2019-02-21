@@ -47,11 +47,11 @@ class AppengineStageAllocationLabelCtrl implements IController {
   }
 }
 
-class AppengineStageAllocationLabel implements IComponentOptions {
-  public bindings: any = { allocationDescription: '<' };
-  public controller: any = AppengineStageAllocationLabelCtrl;
-  public template = `<input ng-model="$ctrl.inputViewValue" type="text" class="form-control input-sm" readonly/>`;
-}
+const appengineStageAllocationLabel: IComponentOptions = {
+  bindings: { allocationDescription: '<' },
+  controller: AppengineStageAllocationLabelCtrl,
+  template: `<input ng-model="$ctrl.inputViewValue" type="text" class="form-control input-sm" readonly/>`
+};
 
 class AppengineStageAllocationConfigurationRowCtrl implements IController {
   public allocationDescription: IAppengineAllocationDescription;
@@ -85,8 +85,8 @@ class AppengineStageAllocationConfigurationRowCtrl implements IController {
   }
 }
 
-class AppengineStageAllocationConfigurationRow implements IComponentOptions {
-  public bindings: any = {
+const appengineStageAllocationConfigurationRow: IComponentOptions = {
+  bindings: {
     application: '<',
     region: '@',
     account: '@',
@@ -94,13 +94,13 @@ class AppengineStageAllocationConfigurationRow implements IComponentOptions {
     removeAllocation: '&',
     serverGroupOptions: '<',
     onAllocationChange: '&',
-  };
-  public controller: any = AppengineStageAllocationConfigurationRowCtrl;
-  public templateUrl = require('./stageAllocationConfigurationRow.component.html');
-}
+  },
+  controller: AppengineStageAllocationConfigurationRowCtrl,
+  templateUrl: require('./stageAllocationConfigurationRow.component.html')
+};
 
 export const APPENGINE_STAGE_ALLOCATION_CONFIGURATION_ROW =
   'spinnaker.appengine.stageAllocationConfigurationRow.component';
 module(APPENGINE_STAGE_ALLOCATION_CONFIGURATION_ROW, [])
-  .component('appengineStageAllocationConfigurationRow', new AppengineStageAllocationConfigurationRow())
-  .component('appengineStageAllocationLabel', new AppengineStageAllocationLabel());
+  .component('appengineStageAllocationConfigurationRow', appengineStageAllocationConfigurationRow)
+  .component('appengineStageAllocationLabel', appengineStageAllocationLabel);

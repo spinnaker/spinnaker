@@ -38,21 +38,21 @@ class GceAutoHealingPolicySelector implements IController {
   }
 }
 
-class GceAutoHealingPolicySelectorComponent implements IComponentOptions {
-  public bindings: any = {
+const gceAutoHealingPolicySelectorComponent: IComponentOptions = {
+  bindings: {
     onHealthCheckRefresh: '&',
     setAutoHealingPolicy: '&',
     healthChecks: '<',
     autoHealingPolicy: '<',
     enabled: '<',
     labelColumns: '@?',
-  };
-  public templateUrl = require('./autoHealingPolicySelector.component.html');
-  public controller: any = GceAutoHealingPolicySelector;
-}
+  },
+  templateUrl: require('./autoHealingPolicySelector.component.html'),
+  controller: GceAutoHealingPolicySelector
+};
 
 export const GCE_AUTOHEALING_POLICY_SELECTOR = 'spinnaker.gce.autoHealingPolicy.selector.component';
 module(GCE_AUTOHEALING_POLICY_SELECTOR, []).component(
   'gceAutoHealingPolicySelector',
-  new GceAutoHealingPolicySelectorComponent(),
+  gceAutoHealingPolicySelectorComponent,
 );

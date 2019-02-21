@@ -18,17 +18,17 @@ class CanaryAnalysisNameSelectorController implements IController {
   }
 }
 
-class CanaryAnalysisNameSelectorComponent implements IComponentOptions {
-  public bindings: any = {
+const canaryAnalysisNameSelectorComponent: IComponentOptions = {
+  bindings: {
     model: '=',
     className: '@',
-  };
-  public controller: any = CanaryAnalysisNameSelectorController;
-  public templateUrl: string = require('./canaryAnalysisNameSelector.component.html');
-}
+  },
+  controller: CanaryAnalysisNameSelectorController,
+  templateUrl: require('./canaryAnalysisNameSelector.component.html')
+};
 
 export const CANARY_ANALYSIS_NAME_SELECTOR_COMPONENT = 'spinnaker.canary.canaryAnalysisNameSelector.component';
 module(CANARY_ANALYSIS_NAME_SELECTOR_COMPONENT, []).component(
   'canaryAnalysisNameSelector',
-  new CanaryAnalysisNameSelectorComponent(),
+  canaryAnalysisNameSelectorComponent,
 );

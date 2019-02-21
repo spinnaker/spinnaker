@@ -6,12 +6,11 @@ class KubernetesDeleteManifestOptionsFormCtrl implements IController {
   public options: IDeleteOptions;
 }
 
-class KubernetesDeletManifestOptionsFormComponent implements IComponentOptions {
-  public bindings: any = { options: '=' };
-  public controller: any = KubernetesDeleteManifestOptionsFormCtrl;
-  public controllerAs = 'ctrl';
-
-  public template = `
+const kubernetesDeletManifestOptionsFormComponent: IComponentOptions = {
+  bindings: { options: '=' },
+  controller: KubernetesDeleteManifestOptionsFormCtrl,
+  controllerAs: 'ctrl',
+  template: `
     <div class="form-horizontal">
       <div class="form-group form-inline">
         <div class="col-md-3 sm-label-right">
@@ -41,12 +40,12 @@ class KubernetesDeletManifestOptionsFormComponent implements IComponentOptions {
         </div>
       </div>
     </div>
-  `;
-}
+  `
+};
 
 export const KUBERNETES_DELETE_MANIFEST_OPTIONS_FORM =
   'spinnaker.kubernetes.v2.kubernetes.manifest.delete.options.component';
 module(KUBERNETES_DELETE_MANIFEST_OPTIONS_FORM, []).component(
   'kubernetesDeleteManifestOptionsForm',
-  new KubernetesDeletManifestOptionsFormComponent(),
+  kubernetesDeletManifestOptionsFormComponent,
 );

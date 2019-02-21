@@ -17,15 +17,15 @@ export class ScalingPolicyDetailsSummaryController implements IController {
   }
 }
 
-export class ScalingPolicyDetailsSummary implements IComponentOptions {
-  public bindings: any = {
+export const scalingPolicyDetailsSummary: IComponentOptions = {
+  bindings: {
     policy: '<',
     serverGroup: '<',
     application: '<',
-  };
-  public controller = ScalingPolicyDetailsSummaryController;
-  public template = `<div ng-include src="$ctrl.templateUrl"></div>`;
-}
+  },
+  controller: ScalingPolicyDetailsSummaryController,
+  template: `<div ng-include src="$ctrl.templateUrl"></div>`
+};
 
 export const DETAILS_SUMMARY = 'spinnaker.amazon.scalingPolicy.details.summary.component';
-module(DETAILS_SUMMARY, []).component('scalingPolicySummary', new ScalingPolicyDetailsSummary());
+module(DETAILS_SUMMARY, []).component('scalingPolicySummary', scalingPolicyDetailsSummary);

@@ -26,14 +26,14 @@ class ProducesArtifactsCtrl implements IController {
   }
 }
 
-class ProducesArtifactsComponent implements IComponentOptions {
-  public bindings: any = {
+const producesArtifactsComponent: IComponentOptions = {
+  bindings: {
     stage: '=',
     pipeline: '=',
-  };
-  public controllerAs = 'ctrl';
-  public controller = ProducesArtifactsCtrl;
-  public template = `
+  },
+  controllerAs: 'ctrl',
+  controller: ProducesArtifactsCtrl,
+  template: `
     <div class="container-fluid form-horizontal">
       <expected-artifact
         ng-repeat="expectedArtifact in ctrl.stage.expectedArtifacts"
@@ -55,8 +55,8 @@ class ProducesArtifactsComponent implements IComponentOptions {
         </div>
       </div>
     </div>
-  `;
-}
+  `
+};
 
 export const PRODUCES_ARTIFACTS = 'spinnaker.core.pipeline.stage.producesArtifacts';
-module(PRODUCES_ARTIFACTS, []).component('producesArtifacts', new ProducesArtifactsComponent());
+module(PRODUCES_ARTIFACTS, []).component('producesArtifacts', producesArtifactsComponent);

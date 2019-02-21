@@ -98,11 +98,11 @@ class ArtifactCtrl implements IController {
   }
 }
 
-class ArtifactComponent implements IComponentOptions {
-  public bindings: any = { artifact: '=' };
-  public controller: any = ArtifactCtrl;
-  public controllerAs = 'ctrl';
-  public template = `
+const artifactComponent: IComponentOptions = {
+  bindings: { artifact: '=' },
+  controller: ArtifactCtrl,
+  controllerAs: 'ctrl',
+  template: `
 <div class="form-group">
   <label class="col-md-2 sm-label-right">
       Kind
@@ -129,8 +129,8 @@ class ArtifactComponent implements IComponentOptions {
 <div class="form-group">
   <div class="artifact-body"></div>
 </div>
-`;
-}
+`
+};
 
 export const ARTIFACT = 'spinnaker.core.pipeline.config.trigger.artifacts.artifact';
-module(ARTIFACT, []).component('artifact', new ArtifactComponent());
+module(ARTIFACT, []).component('artifact', artifactComponent);

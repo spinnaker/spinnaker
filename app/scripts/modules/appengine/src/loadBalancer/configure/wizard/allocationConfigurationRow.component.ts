@@ -15,14 +15,14 @@ class AppengineAllocationConfigurationRowCtrl implements IController {
   }
 }
 
-class AppengineAllocationConfigurationRowComponent implements IComponentOptions {
-  public bindings: any = {
+const appengineAllocationConfigurationRowComponent: IComponentOptions = {
+  bindings: {
     allocationDescription: '<',
     removeAllocation: '&',
     serverGroupOptions: '<',
     onAllocationChange: '&',
-  };
-  public template = `
+  },
+  template: `
     <div class="form-group">
       <div class="row">
         <div class="col-md-7">
@@ -56,13 +56,13 @@ class AppengineAllocationConfigurationRowComponent implements IComponentOptions 
         </div>
       </div>
     </div>
-  `;
-  public controller: any = AppengineAllocationConfigurationRowCtrl;
-}
+  `,
+  controller: AppengineAllocationConfigurationRowCtrl
+};
 
 export const APPENGINE_ALLOCATION_CONFIGURATION_ROW = 'spinnaker.appengine.allocationConfigurationRow.component';
 
 module(APPENGINE_ALLOCATION_CONFIGURATION_ROW, []).component(
   'appengineAllocationConfigurationRow',
-  new AppengineAllocationConfigurationRowComponent(),
+  appengineAllocationConfigurationRowComponent,
 );
