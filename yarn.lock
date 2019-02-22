@@ -46,12 +46,7 @@
   dependencies:
     regenerator-runtime "^0.12.0"
 
-"@fortawesome/fontawesome-free-webfonts@^1.0.4":
-  version "1.0.4"
-  resolved "https://registry.yarnpkg.com/@fortawesome/fontawesome-free-webfonts/-/fontawesome-free-webfonts-1.0.4.tgz#bac5d89755bf3bc2d2b4deee47d92febf641bb1f"
-  integrity sha512-uYd3d748klO7/+0N2F0JFYO1JeSR8/VF50S2+anI3/tG56GDAaT7fwTwlhv3N+C023f4vw3z7IPRc9ixstaAcw==
-
-"@fortawesome/fontawesome-free@^5.4.1":
+"@fortawesome/fontawesome-free@5.5.0", "@fortawesome/fontawesome-free@^5.4.1":
   version "5.5.0"
   resolved "https://registry.yarnpkg.com/@fortawesome/fontawesome-free/-/fontawesome-free-5.5.0.tgz#0c6c53823d04457ae669cd19567b8a21dbb4fcfd"
   integrity sha512-p4lu0jfj5QN013ddArh99r3OXZ/fp9rbovs62LfaO70OMBsAXxtNd0lAq/97fitrscR0fqfd+/a5KNcp6Sh/0A==
@@ -114,17 +109,17 @@
     d3-collection "1"
     d3-interpolate "1"
 
-"@spinnaker/kayenta@0.0.69":
-  version "0.0.69"
-  resolved "https://registry.yarnpkg.com/@spinnaker/kayenta/-/kayenta-0.0.69.tgz#aa1edfa2c2ed29d03e853f8eb33f5e3aaf436c3a"
-  integrity sha512-1P2AYVHXMOIUPenQYJTS6UosAh+7TkYnkAjCEMW1nCZ2dr0qxupIov0sThNX3Y9eSLPn3DHJ4Sp8IyHMmGDgow==
+"@spinnaker/kayenta@0.0.70":
+  version "0.0.70"
+  resolved "https://registry.yarnpkg.com/@spinnaker/kayenta/-/kayenta-0.0.70.tgz#7646dcb3485566755d50a684564c5141908dbda8"
+  integrity sha512-UDjFFovVwswkbbJW5IfYqUMlI2gIClx+XrAVBlCWm0YggAaVBOipby1/g+zbDwnKDX5ecyaTXs6aY9PVXARuMw==
   dependencies:
-    "@fortawesome/fontawesome-free-webfonts" "^1.0.4"
+    "@fortawesome/fontawesome-free" "5.5.0"
     "@types/plotly.js" "^1.28.12"
     "@uirouter/angularjs" "^1.0.15"
-    "@uirouter/react-hybrid" "^0.1.0"
+    "@uirouter/react-hybrid" "0.3.9"
     Select2 "git://github.com/select2/select2.git#3.4.8"
-    angular "~1.6.3"
+    angular "1.6.10"
     angular-ui-bootstrap "^2.5.0"
     angular-ui-router "1.0.0"
     angular-ui-sortable "^0.17.0"
@@ -137,15 +132,18 @@
     classnames "^2.2.5"
     diff-match-patch "^1.0.0"
     dompurify "^1.0.4"
+    human-readable-ids "1.0.4"
     ify-loader "^1.1.0"
     js-yaml "^3.8.3"
     lodash "^4.16.1"
     lodash-decorators "^4.4.1"
+    memoize-one "4.0.2"
     moment-timezone "^0.4.0"
     n3-charts "^2.0.18"
     ngimport "^0.6.0"
     plotly.js "^1.35.2"
     react "16.3.2"
+    react-ace "6.4.0"
     react-bootstrap "^0.32.1"
     react-bootstrap-typeahead "^3.2.4"
     react-dom "16.3.2"
@@ -748,7 +746,7 @@
   resolved "https://registry.yarnpkg.com/@uirouter/core/-/core-5.0.21.tgz#b6c4c311e9416a1e8ce76b072e042a60224d1b3a"
   integrity sha512-QWHc0wT00qtYNkT0BXZaFNLLHZyux0qJjF8c2WklW5/Q0Z866NoJjJErEMWjQb/AR+olkR2NlfEEi8KTQU2OpA==
 
-"@uirouter/react-hybrid@0.3.8", "@uirouter/react-hybrid@^0.1.0":
+"@uirouter/react-hybrid@0.3.8":
   version "0.3.8"
   resolved "https://registry.yarnpkg.com/@uirouter/react-hybrid/-/react-hybrid-0.3.8.tgz#895fe1f42be0c27056549a4459eecd651b167b27"
   integrity sha512-3ESdlWWF4BzoikUBbhlA0POCmaNTWhmv5MaKR/Qh3q3q+zleIHMbPl2VLzoR5OfUN5fBVANwf/tVGnXt0/uZYA==
@@ -1245,7 +1243,7 @@ angular2react@^3.0.2:
     lodash.kebabcase "^4.1.1"
     ngimport "^1.0.0"
 
-angular@1.6.10, angular@>=1.5, angular@>=1.5.0, angular@^1.4.0, angular@~1.6.3:
+angular@1.6.10, angular@>=1.5, angular@>=1.5.0, angular@^1.4.0:
   version "1.6.10"
   resolved "https://registry.yarnpkg.com/angular/-/angular-1.6.10.tgz#eed3080a34d29d0f681ff119b18ce294e3f74826"
   integrity sha512-PCZ5/hVdvPQiYyH0VwsPjrErPHRcITnaXxhksceOXgtJeesKHLA7KDu4X/yvcAi+1zdGgGF+9pDxkJvghXI9Wg==
@@ -2588,7 +2586,7 @@ brace-expansion@^1.1.7:
     balanced-match "^0.4.1"
     concat-map "0.0.1"
 
-brace@^0.11.0:
+brace@^0.11.1:
   version "0.11.1"
   resolved "https://registry.yarnpkg.com/brace/-/brace-0.11.1.tgz#4896fcc9d544eef45f4bb7660db320d3b379fe58"
   integrity sha1-SJb8ydVE7vRfS7dmDbMg07N5/lg=
@@ -4856,10 +4854,10 @@ diagnostics@^1.0.1:
     enabled "1.0.x"
     kuler "1.0.x"
 
-diff-match-patch@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/diff-match-patch/-/diff-match-patch-1.0.0.tgz#1cc3c83a490d67f95d91e39f6ad1f2e086b63048"
-  integrity sha1-HMPIOkkNZ/ldkeOfatHy4Ia2MEg=
+diff-match-patch@^1.0.0, diff-match-patch@^1.0.4:
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/diff-match-patch/-/diff-match-patch-1.0.4.tgz#6ac4b55237463761c4daf0dc603eb869124744b1"
+  integrity sha512-Uv3SW8bmH9nAtHKaKSanOQmj2DnlH65fUpcrMdfdaOxUG02QQ4YGZ8AE7kKOMisF7UqvOlGKVYWRvezdncW9lg==
 
 diff@^3.1.0:
   version "3.5.0"
@@ -7957,7 +7955,7 @@ https-proxy-agent@^2.2.1:
     agent-base "^4.1.0"
     debug "^3.1.0"
 
-human-readable-ids@^1.0.4:
+human-readable-ids@1.0.4, human-readable-ids@^1.0.4:
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/human-readable-ids/-/human-readable-ids-1.0.4.tgz#41b3a2a6966636e104e41e0673b984b36dfde202"
   integrity sha512-h1zwThTims8A/SpqFGWyTx+jG1+WRMJaEeZgbtPGrIpj2AZjsOgy8Y+iNzJ0yAyN669Q6F02EK66WMWcst+2FA==
@@ -8919,15 +8917,7 @@ js-worker-search@^1.2.1:
     flow-bin "^0.50.0"
     uuid "^2.0.1"
 
-js-yaml@^3.10.0, js-yaml@^3.4.3, js-yaml@^3.7.0, js-yaml@^3.8.3, js-yaml@^3.9.0:
-  version "3.12.0"
-  resolved "https://registry.yarnpkg.com/js-yaml/-/js-yaml-3.12.0.tgz#eaed656ec8344f10f527c6bfa1b6e2244de167d1"
-  integrity sha512-PIt2cnwmPfL4hKNwqeiuz4bKfnzHTBv6HyVgjahA6mPLwPDzjDWrplJBMjHUFxku/N3FlmrbyPclad+I+4mJ3A==
-  dependencies:
-    argparse "^1.0.7"
-    esprima "^4.0.0"
-
-js-yaml@^3.12.0:
+js-yaml@^3.10.0, js-yaml@^3.12.0, js-yaml@^3.4.3, js-yaml@^3.7.0, js-yaml@^3.8.3, js-yaml@^3.9.0:
   version "3.12.1"
   resolved "https://registry.yarnpkg.com/js-yaml/-/js-yaml-3.12.1.tgz#295c8632a18a23e054cf5c9d3cecafe678167600"
   integrity sha512-um46hB9wNOKlwkHgiuyEVAybXBjwFUV0Z/RaHJblRd9DXltue9FTYvzCr9ErQrK9Adz5MU4gHWVaNUfdmrC8qA==
@@ -9511,7 +9501,7 @@ lodash.isarray@^3.0.0:
   resolved "https://registry.yarnpkg.com/lodash.isarray/-/lodash.isarray-3.0.4.tgz#79e4eb88c36a8122af86f844aa9bcd851b5fbb55"
   integrity sha1-eeTriMNqgSKvhvhEqpvNhRtfu1U=
 
-lodash.isequal@^4.1.1, lodash.isequal@^4.5.0:
+lodash.isequal@^4.5.0:
   version "4.5.0"
   resolved "https://registry.yarnpkg.com/lodash.isequal/-/lodash.isequal-4.5.0.tgz#415c4478f2bcc30120c22ce10ed3226f7d3e18e0"
   integrity sha1-QVxEePK8wwEgwizhDtMib30+GOA=
@@ -9929,7 +9919,7 @@ mem@^4.0.0:
     mimic-fn "^1.0.0"
     p-is-promise "^1.1.0"
 
-memoize-one@^4.0.2:
+memoize-one@4.0.2, memoize-one@^4.0.2:
   version "4.0.2"
   resolved "https://registry.yarnpkg.com/memoize-one/-/memoize-one-4.0.2.tgz#3fb8db695aa14ab9c0f1644e1585a8806adc1aee"
   integrity sha512-ucx2DmXTeZTsS4GPPUZCbULAN7kdPT1G+H49Y34JjbQ5ESc6OGhVxKvb1iKhr9v19ZB9OtnHwNnhUnNR/7Wteg==
@@ -12576,16 +12566,16 @@ rc@^1.2.7:
     minimist "^1.2.0"
     strip-json-comments "~2.0.1"
 
-react-ace@^6.1.4:
-  version "6.1.4"
-  resolved "https://registry.yarnpkg.com/react-ace/-/react-ace-6.1.4.tgz#33d93a83ae46c61f23b1801df79b71837a328b75"
-  integrity sha512-a8/lAsy2bfi7Ho+3Kaj8hBPR+PEiCTG9xFG9LIjCJrv5WQFYFpeFTiPWA96M3t+LgIDFFltwfVTwD2pmdAVOxQ==
+react-ace@6.4.0, react-ace@^6.1.4:
+  version "6.4.0"
+  resolved "https://registry.yarnpkg.com/react-ace/-/react-ace-6.4.0.tgz#49152a9e04108324fa3e7438ed9f1454fe0738c1"
+  integrity sha512-woTTgGk9x4GRRWiM4QLNOspjaJAYLX3UZ3J2XRYQvJiN6wyxrFY9x7rdOKc+4Tj+khb/ccPiDj/kll4UeJEDPw==
   dependencies:
-    brace "^0.11.0"
-    diff-match-patch "^1.0.0"
+    brace "^0.11.1"
+    diff-match-patch "^1.0.4"
     lodash.get "^4.4.2"
-    lodash.isequal "^4.1.1"
-    prop-types "^15.5.8"
+    lodash.isequal "^4.5.0"
+    prop-types "^15.6.2"
 
 react-addons-test-utils@15.6.2:
   version "15.6.2"
