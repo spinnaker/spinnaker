@@ -1,53 +1,62 @@
 <ng-form name="basicSettingsForm">
   <div class="row">
-      <div class="col-md-3 sm-label-right">
-        Minimum number of instances
-      </div>
-      <div class="col-md-2 content-fields">
-        <input type="number"
-               class="form-control input-sm"
-               name="minNumReplicas"
-               ng-model="$ctrl.policy.minNumReplicas"
-               min="0"
-               max="{{ $ctrl.policy.maxNumReplicas }}"
-               required/>
-      </div>
-      <div class="col-md-4 error-message" ng-if="basicSettingsForm.minNumReplicas.$error.min">
-        Must be greater than zero.
-      </div>
+    <div class="col-md-3 sm-label-right">
+      Minimum number of instances
     </div>
-    <div class="row">
-      <div class="col-md-3 sm-label-right">
-        Maximum number of instances
-      </div>
-      <div class="col-md-2 content-fields">
-        <input type="number"
-               class="form-control input-sm"
-               min="{{ $ctrl.policy.minNumReplicas }}"
-               required
-               name="maxNumReplicas"
-               ng-model="$ctrl.policy.maxNumReplicas"/>
-      </div>
-      <div class="col-md-4 error-message" ng-if="basicSettingsForm.maxNumReplicas.$error.min || basicSettingsForm.minNumReplicas.$error.max">
-        Must be greater than or equal to minimum.
-      </div>
+    <div class="col-md-2 content-fields">
+      <input
+        type="number"
+        class="form-control input-sm"
+        name="minNumReplicas"
+        ng-model="$ctrl.policy.minNumReplicas"
+        min="0"
+        max="{{ $ctrl.policy.maxNumReplicas }}"
+        required
+      />
     </div>
-    <div class="row">
-      <div class="col-md-3 sm-label-right">
-        Cool-down period (seconds)
-        <help-field key="gce.serverGroup.scalingPolicy.coolDownPeriodSec"></help-field>
-      </div>
-      <div class="col-md-2 content-fields">
-        <input type="number"
-               class="form-control input-sm"
-               min="15"
-               required
-               name="coolDownPeriodSec"
-               ng-model="$ctrl.policy.coolDownPeriodSec"/>
-      </div>
-      <div class="col-md-4 error-message" ng-if="basicSettingsForm.coolDownPeriodSec.$error.min">
-        Must be greater than or equal to 15 seconds.
-      </div>
+    <div class="col-md-4 error-message" ng-if="basicSettingsForm.minNumReplicas.$error.min">
+      Must be greater than zero.
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-3 sm-label-right">
+      Maximum number of instances
+    </div>
+    <div class="col-md-2 content-fields">
+      <input
+        type="number"
+        class="form-control input-sm"
+        min="{{ $ctrl.policy.minNumReplicas }}"
+        required
+        name="maxNumReplicas"
+        ng-model="$ctrl.policy.maxNumReplicas"
+      />
+    </div>
+    <div
+      class="col-md-4 error-message"
+      ng-if="basicSettingsForm.maxNumReplicas.$error.min || basicSettingsForm.minNumReplicas.$error.max"
+    >
+      Must be greater than or equal to minimum.
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-3 sm-label-right">
+      Cool-down period (seconds)
+      <help-field key="gce.serverGroup.scalingPolicy.coolDownPeriodSec"></help-field>
+    </div>
+    <div class="col-md-2 content-fields">
+      <input
+        type="number"
+        class="form-control input-sm"
+        min="15"
+        required
+        name="coolDownPeriodSec"
+        ng-model="$ctrl.policy.coolDownPeriodSec"
+      />
+    </div>
+    <div class="col-md-4 error-message" ng-if="basicSettingsForm.coolDownPeriodSec.$error.min">
+      Must be greater than or equal to 15 seconds.
+    </div>
   </div>
   <div class="row">
     <div class="col-md-3 sm-label-right">
@@ -55,12 +64,10 @@
       <help-field key="gce.serverGroup.autoscaling.mode"></help-field>
     </div>
     <div class="col-md-2 content-fields">
-      <select class="form-control input-sm"
-              name="mode"
-              ng-model="$ctrl.policy.mode">
-        <option ng-repeat="mode in $ctrl.modes"
-                value="{{mode}}"
-                ng-selected="$ctrl.policy.mode === mode">{{mode}}</option>
+      <select class="form-control input-sm" name="mode" ng-model="$ctrl.policy.mode">
+        <option ng-repeat="mode in $ctrl.modes" value="{{ mode }}" ng-selected="$ctrl.policy.mode === mode">{{
+          mode
+        }}</option>
       </select>
     </div>
   </div>

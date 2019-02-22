@@ -1,4 +1,8 @@
-<form ng-controller="kubernetesLoadBalancerAdvancedSettingsController as advancedController" class="container-fluid form-horizontal" name="advancedSettings">
+<form
+  ng-controller="kubernetesLoadBalancerAdvancedSettingsController as advancedController"
+  class="container-fluid form-horizontal"
+  name="advancedSettings"
+>
   <div class="col-md-12">
     <div class="form-group">
       <div class="col-md-3 sm-label-right">
@@ -6,7 +10,7 @@
         <help-field key="kubernetes.service.clusterIp"></help-field>
       </div>
       <div class="col-md-3">
-        <input type="text" class="form-control input-sm" name="details" ng-model="loadBalancer.clusterIp"/>
+        <input type="text" class="form-control input-sm" name="details" ng-model="loadBalancer.clusterIp" />
       </div>
     </div>
     <div class="form-group">
@@ -15,19 +19,26 @@
         <help-field key="kubernetes.service.loadBalancerIp"></help-field>
       </div>
       <div class="col-md-3">
-        <input type="text" class="form-control input-sm" name="details" ng-model="loadBalancer.loadBalancerIp"
-               ng-disabled="loadBalancer.serviceType != 'LoadBalancer'"/>
+        <input
+          type="text"
+          class="form-control input-sm"
+          name="details"
+          ng-model="loadBalancer.loadBalancerIp"
+          ng-disabled="loadBalancer.serviceType != 'LoadBalancer'"
+        />
       </div>
       <div class="col-md-2 sm-label-right">
         Type
         <help-field key="kubernetes.service.type"></help-field>
       </div>
       <div class="col-md-3">
-        <select class="form-control input-sm"
-                ng-model="loadBalancer.serviceType">
-          <option ng-repeat="type in advancedController.types"
-                  value="{{type}}"
-                  ng-selected="loadBalancer.serviceType === type">{{type}}</option>
+        <select class="form-control input-sm" ng-model="loadBalancer.serviceType">
+          <option
+            ng-repeat="type in advancedController.types"
+            value="{{type}}"
+            ng-selected="loadBalancer.serviceType === type"
+            >{{type}}</option
+          >
         </select>
       </div>
     </div>
@@ -37,47 +48,61 @@
         <help-field key="kubernetes.service.sessionAffinity"></help-field>
       </div>
       <div class="col-md-3">
-        <select class="form-control input-sm"
-                ng-model="loadBalancer.sessionAffinity">
-          <option ng-repeat="sessionAffinity in advancedController.sessionAffinities"
-                  value="{{sessionAffinity}}"
-                  ng-selected="loadBalancer.sessionAffinity === sessionAffinity">{{sessionAffinity}}</option>
+        <select class="form-control input-sm" ng-model="loadBalancer.sessionAffinity">
+          <option
+            ng-repeat="sessionAffinity in advancedController.sessionAffinities"
+            value="{{sessionAffinity}}"
+            ng-selected="loadBalancer.sessionAffinity === sessionAffinity"
+            >{{sessionAffinity}}</option
+          >
         </select>
       </div>
     </div>
-    <br/>
+    <br />
     <div class="form-group">
       <div class="col-md-12">
         <table class="table table-condensed packed tags">
           <b>External IPs</b>
           <help-field key="kubernetes.service.externalIps"></help-field>
           <tbody>
-          <tr ng-repeat="ip in loadBalancer.externalIps">
-            <td><input class="form-control input-sm" type="text" ng-model="ip.value"></td>
-            <td><a class="btn btn-link sm-label"
-                   ng-click="advancedController.removeExternalIp($index)"><span
-              class="glyphicon glyphicon-trash"></span></a></td>
-          </tr>
+            <tr ng-repeat="ip in loadBalancer.externalIps">
+              <td><input class="form-control input-sm" type="text" ng-model="ip.value" /></td>
+              <td>
+                <a class="btn btn-link sm-label" ng-click="advancedController.removeExternalIp($index)"
+                  ><span class="glyphicon glyphicon-trash"></span
+                ></a>
+              </td>
+            </tr>
           </tbody>
           <tfoot>
-          <tr>
-            <td colspan="1">
-              <button class="add-new btn btn-block btn-sm" ng-click="advancedController.addExternalIp()"><span
-                class="glyphicon glyphicon-plus-sign"></span> Add New External IP
-              </button>
-            </td>
-          </tr>
+            <tr>
+              <td colspan="1">
+                <button class="add-new btn btn-block btn-sm" ng-click="advancedController.addExternalIp()">
+                  <span class="glyphicon glyphicon-plus-sign"></span> Add New External IP
+                </button>
+              </td>
+            </tr>
           </tfoot>
         </table>
       </div>
     </div>
   </div>
   <div class="col-md-12">
-    <map-editor model="loadBalancer.serviceAnnotations" label="Service Annotations" add-button-label="Add Annotations" labels-left="true">
+    <map-editor
+      model="loadBalancer.serviceAnnotations"
+      label="Service Annotations"
+      add-button-label="Add Annotations"
+      labels-left="true"
+    >
     </map-editor>
   </div>
   <div class="col-md-12">
-    <map-editor model="loadBalancer.serviceLabels" label="Service Labels" add-button-label="Add Label" labels-left="true">
+    <map-editor
+      model="loadBalancer.serviceLabels"
+      label="Service Labels"
+      add-button-label="Add Label"
+      labels-left="true"
+    >
     </map-editor>
   </div>
 </form>

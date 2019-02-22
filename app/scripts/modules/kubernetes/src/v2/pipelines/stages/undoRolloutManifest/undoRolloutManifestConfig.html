@@ -1,7 +1,10 @@
 <div class="form-horizontal">
   <h4>Manifest</h4>
   <div class="horizontal-rule"></div>
-  <kubernetes-manifest-selector on-change="ctrl.handleManifestSelectorChange" selector="stage"></kubernetes-manifest-selector>
+  <kubernetes-manifest-selector
+    on-change="ctrl.handleManifestSelectorChange"
+    selector="stage"
+  ></kubernetes-manifest-selector>
   <h4>Settings</h4>
   <div class="form-horizontal">
     <div class="form-group form-inline">
@@ -11,10 +14,12 @@
       </div>
       <div class="col-md-4">
         <div class="input-group">
-          <input type="number"
-                 class="form-control input-sm highlight-pristine"
-                 ng-model="stage.numRevisionsBack"
-                 min="1"/>
+          <input
+            type="number"
+            class="form-control input-sm highlight-pristine"
+            ng-model="stage.numRevisionsBack"
+            min="1"
+          />
           <span class="input-group-addon">revision<span ng-if="ctrl.$scope.stage.numRevisionsBack !== 1">s</span></span>
         </div>
       </div>

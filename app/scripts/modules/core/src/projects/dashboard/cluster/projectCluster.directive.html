@@ -9,10 +9,10 @@
               <span class="cluster-name">{{vm.clusterLabel}}</span>
             </div>
             <span class="cluster-health">
-                {{vm.cluster.applications.length}} Application<span ng-if="vm.cluster.applications.length !== 1">s</span>
+              {{vm.cluster.applications.length}} Application<span ng-if="vm.cluster.applications.length !== 1">s</span>
             </span>
             <span class="cluster-health">
-                {{vm.instanceCounts.total}} Instances
+              {{vm.instanceCounts.total}} Instances
             </span>
             <health-counts container="vm.instanceCounts"></health-counts>
           </div>
@@ -39,48 +39,64 @@
         </tr>
       </thead>
       <tbody>
-      <tr ng-repeat="application in vm.cluster.applications | orderBy: 'name'">
-        <td>
-          <a class="heavy" ng-click="vm.clearFilters(application.metadata)" ng-href="{{application.metadata.href}}" ng-class="application.hasInconsistentBuilds ? 'text-warning' : ''">
-            {{application.application | uppercase}}
-          </a>
-        </td>
-        <td>
-          <a class="heavy" ng-if="application.build.buildNumber && !application.build.images" href="{{application.build.url}}" target="_blank">
-            <span>#</span>{{application.build.buildNumber}}
-          </a>
-          <ul class="list-unstyled" ng-if="application.build.images">
-            <li ng-repeat="image in application.build.images">{{ image }}</li>
-          </ul>
-          <i ng-if="application.hasInconsistentBuilds"
-             class="fa fa-exclamation-triangle text-warning"
-             uib-tooltip="Some server groups are deployed with an older build."></i>
-        </td>
-        <td>
-          <span ng-if="!application.lastPush">
-            -
-          </span>
-          <span class="small" ng-if="application.lastPush">
-            {{application.lastPush | relativeTime }}
-          </span>
-        </td>
-        <td ng-repeat="region in vm.regions">
-          <span ng-if="application.regions[region]">
-            <a ng-click="vm.clearFilters(application.regions[region].metadata)" ng-href="{{application.regions[region].metadata.href}}">
-              <health-counts container="application.regions[region].instanceCounts"
-                             additional-legend-text="'(Click to view cluster in this region)'"
-                             legend-placement="'right'"></health-counts>
+        <tr ng-repeat="application in vm.cluster.applications | orderBy: 'name'">
+          <td>
+            <a
+              class="heavy"
+              ng-click="vm.clearFilters(application.metadata)"
+              ng-href="{{application.metadata.href}}"
+              ng-class="application.hasInconsistentBuilds ? 'text-warning' : ''"
+            >
+              {{application.application | uppercase}}
             </a>
-            <span ng-if="application.regions[region].inconsistentBuilds.length">
-              <i class="fa fa-exclamation-triangle"
-                 uib-tooltip-template="vm.inconsistentBuildsTemplate"></i>
+          </td>
+          <td>
+            <a
+              class="heavy"
+              ng-if="application.build.buildNumber && !application.build.images"
+              href="{{application.build.url}}"
+              target="_blank"
+            >
+              <span>#</span>{{application.build.buildNumber}}
+            </a>
+            <ul class="list-unstyled" ng-if="application.build.images">
+              <li ng-repeat="image in application.build.images">{{ image }}</li>
+            </ul>
+            <i
+              ng-if="application.hasInconsistentBuilds"
+              class="fa fa-exclamation-triangle text-warning"
+              uib-tooltip="Some server groups are deployed with an older build."
+            ></i>
+          </td>
+          <td>
+            <span ng-if="!application.lastPush">
+              -
             </span>
-          </span>
-          <span ng-if="!application.regions[region]">
-            -
-          </span>
-        </td>
-      </tr>
+            <span class="small" ng-if="application.lastPush">
+              {{application.lastPush | relativeTime }}
+            </span>
+          </td>
+          <td ng-repeat="region in vm.regions">
+            <span ng-if="application.regions[region]">
+              <a
+                ng-click="vm.clearFilters(application.regions[region].metadata)"
+                ng-href="{{application.regions[region].metadata.href}}"
+              >
+                <health-counts
+                  container="application.regions[region].instanceCounts"
+                  additional-legend-text="'(Click to view cluster in this region)'"
+                  legend-placement="'right'"
+                ></health-counts>
+              </a>
+              <span ng-if="application.regions[region].inconsistentBuilds.length">
+                <i class="fa fa-exclamation-triangle" uib-tooltip-template="vm.inconsistentBuildsTemplate"></i>
+              </span>
+            </span>
+            <span ng-if="!application.regions[region]">
+              -
+            </span>
+          </td>
+        </tr>
       </tbody>
     </table>
   </div>

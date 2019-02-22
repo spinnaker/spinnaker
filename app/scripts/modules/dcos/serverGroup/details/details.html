@@ -1,20 +1,18 @@
-<div class="details-panel"
-     ng-class="{ disabled: serverGroup.isDisabled }">
+<div class="details-panel" ng-class="{ disabled: serverGroup.isDisabled }">
   <div class="header" ng-if="state.loading">
-      <div class="close-button">
-          <a class="btn btn-link" ui-sref="^">
-              <span class="glyphicon glyphicon-remove"></span>
-          </a>
-      </div>
-      <div class="horizontal center middle">
-        <loading-spinner size="'small'"></loading-spinner>
-      </div>
+    <div class="close-button">
+      <a class="btn btn-link" ui-sref="^">
+        <span class="glyphicon glyphicon-remove"></span>
+      </a>
+    </div>
+    <div class="horizontal center middle">
+      <loading-spinner size="'small'"></loading-spinner>
+    </div>
   </div>
 
   <div class="header" ng-if="!state.loading">
     <div class="close-button">
-      <a class="btn btn-link"
-          ui-sref="^">
+      <a class="btn btn-link" ui-sref="^">
         <span class="glyphicon glyphicon-remove"></span>
       </a>
     </div>
@@ -34,7 +32,14 @@
             <li role="presentation" class="divider" ng-if="!ctrl.serverGroup.isDisabled"></li>
             <li><a href ng-click="ctrl.resizeServerGroup()">Resize</a></li>
             <li><a href ng-if="!serverGroup.isDisabled" ng-click="ctrl.disableServerGroup()">Disable</a></li>
-            <li><a href ng-if="serverGroup.isDisabled && serverGroup.loadBalancers.length" ng-click="ctrl.enableServerGroup()">Enable</a></li>
+            <li>
+              <a
+                href
+                ng-if="serverGroup.isDisabled && serverGroup.loadBalancers.length"
+                ng-click="ctrl.enableServerGroup()"
+                >Enable</a
+              >
+            </li>
             <li><a href ng-click="ctrl.destroyServerGroup()">Destroy</a></li>
             <li><a href ng-click="ctrl.cloneServerGroup(serverGroup)">Clone</a></li>
           </ul>
@@ -49,29 +54,33 @@
         <dt>Created</dt>
         <dd>{{serverGroup.createdTime | timestamp }}</dd>
         <dt>In</dt>
-        <dd><account-tag account="serverGroup.account" pad="right"></account-tag><dd>
-        <dt>Region<dt>
+        <dd><account-tag account="serverGroup.account" pad="right"></account-tag></dd>
+        <dd></dd>
+        <dt>Region</dt>
+        <dt></dt>
         <dd>{{serverGroup.region}}</dd>
-        <dt>DC/OS Cluster<dt>
+        <dt>DC/OS Cluster</dt>
+        <dt></dt>
         <dd>{{serverGroup.dcosCluster}}</dd>
-        <dt>Group<dt>
+        <dt>Group</dt>
+        <dt></dt>
         <dd>{{serverGroup.group}}</dd>
         <dt>Kind</dt>
         <dd>{{serverGroup.kind}}</dd>
         <dt>JSON</dt>
         <dd><a href ng-click="ctrl.showJson()">Show JSON</a></dd>
         <dt>DC/OS UI</dt>
-        <dd><a href={{ctrl.uiLink()}} target="_blank">{{serverGroup.name}}</a></dd>
+        <dd><a href="{{ctrl.uiLink()}}" target="_blank">{{serverGroup.name}}</a></dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Capacity" expanded="true">
-        <dl class="dl-horizontal dl-flex">
-            <dt>Current</dt>
-            <dd>{{serverGroup.capacity.desired}}</dd>
-        </dl>
-        <div>
-            <a href ng-click="ctrl.resizeServerGroup()">Resize Server Group</a>
-        </div>
+      <dl class="dl-horizontal dl-flex">
+        <dt>Current</dt>
+        <dd>{{serverGroup.capacity.desired}}</dd>
+      </dl>
+      <div>
+        <a href ng-click="ctrl.resizeServerGroup()">Resize Server Group</a>
+      </div>
     </collapsible-section>
     <collapsible-section heading="Status" expanded="true">
       <dl class="dl-horizontal dl-flex" ng-if="serverGroup">
@@ -93,16 +102,14 @@
         <dd>{{serverGroup.disk}}</dd>
       </dl>
     </collapsible-section>
-      <collapsible-section heading="Environment" ng-if="serverGroup.env">
-          <dl class="dl-horizontal dl-flex">
-              <dcos-key-value-details map="serverGroup.env">
-              </dcos-key-value-details>
-          </dl>
-      </collapsible-section>
+    <collapsible-section heading="Environment" ng-if="serverGroup.env">
+      <dl class="dl-horizontal dl-flex">
+        <dcos-key-value-details map="serverGroup.env"> </dcos-key-value-details>
+      </dl>
+    </collapsible-section>
     <collapsible-section heading="Labels" ng-if="serverGroup.labels">
       <dl class="dl-horizontal dl-flex">
-        <dcos-key-value-details map="serverGroup.labels">
-        </dcos-key-value-details>
+        <dcos-key-value-details map="serverGroup.labels"> </dcos-key-value-details>
       </dl>
     </collapsible-section>
   </div>

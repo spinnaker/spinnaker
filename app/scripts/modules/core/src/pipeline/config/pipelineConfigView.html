@@ -1,15 +1,19 @@
 <div class="row">
   <div class="col-md-12">
-    <triggers ng-if="viewState.section === 'triggers'"
-              application="application"
-              field-updated="stageFieldUpdated"
-              pipeline="pipelineConfig">
+    <triggers
+      ng-if="viewState.section === 'triggers'"
+      application="application"
+      field-updated="stageFieldUpdated"
+      pipeline="pipelineConfig"
+    >
     </triggers>
-    <pipeline-config-stage ng-if="viewState.section === 'stage'"
-                           application="application"
-                           view-state="viewState"
-                           stage-field-updated="stageFieldUpdated"
-                           pipeline="pipeline">
+    <pipeline-config-stage
+      ng-if="viewState.section === 'stage'"
+      application="application"
+      view-state="viewState"
+      stage-field-updated="stageFieldUpdated"
+      pipeline="pipeline"
+    >
     </pipeline-config-stage>
   </div>
 </div>

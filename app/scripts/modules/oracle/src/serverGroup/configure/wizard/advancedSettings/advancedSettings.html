@@ -3,7 +3,9 @@
   <div class="col-md-6">
     <ui-select ng-model="$ctrl.command.keyPair" class="form-control input-sm" required on-select="$ctrl.fieldChanged()">
       <ui-select-match>{{$select.selected}}</ui-select-match>
-      <ui-select-choices repeat="regionalKeyPair in $ctrl.command.backingData.filtered.keyPairs | filter: $select.search">
+      <ui-select-choices
+        repeat="regionalKeyPair in $ctrl.command.backingData.filtered.keyPairs | filter: $select.search"
+      >
         <span ng-bind-html="regionalKeyPair"></span>
       </ui-select-choices>
     </ui-select>

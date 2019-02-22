@@ -1,12 +1,7 @@
 <div ng-controller="kubernetesEnableAsgStageCtrl as enableAsgStageCtrl" class="form-horizontal">
   <div ng-if="!pipeline.strategy">
-
-    <account-namespace-cluster-selector
-      application="application"
-      component="stage"
-      accounts="accounts">
+    <account-namespace-cluster-selector application="application" component="stage" accounts="accounts">
     </account-namespace-cluster-selector>
-
   </div>
   <stage-config-field label="Target">
     <target-select model="stage" options="targets"></target-select>

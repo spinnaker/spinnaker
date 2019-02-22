@@ -1,17 +1,17 @@
 <div ng-if="vm.pipelineConfig && vm.state.pipelinesLoaded" style="padding-top:0">
   <div class="row">
-    <div class="col-md-10 col-md-offset-1">
-
-    </div>
+    <div class="col-md-10 col-md-offset-1"></div>
   </div>
   <div class="row">
     <div class="col-md-10 col-md-offset-1">
-      <pipeline-configurer pipeline="vm.pipelineConfig"
-                           plan="vm.pipelinePlan"
-                           is-templated-pipeline="vm.isTemplatedPipeline"
-                           has-dynamic-source="vm.hasDynamicSource"
-                           application="vm.application"
-                           template-error="vm.templateError"></pipeline-configurer>
+      <pipeline-configurer
+        pipeline="vm.pipelineConfig"
+        plan="vm.pipelinePlan"
+        is-templated-pipeline="vm.isTemplatedPipeline"
+        has-dynamic-source="vm.hasDynamicSource"
+        application="vm.application"
+        template-error="vm.templateError"
+      ></pipeline-configurer>
     </div>
   </div>
 </div>
@@ -25,4 +25,3 @@
     No pipeline found with that name.
   </h4>
 </div>
-

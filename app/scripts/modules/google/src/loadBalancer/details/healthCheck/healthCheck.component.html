@@ -1,14 +1,14 @@
 <dt>Name</dt>
-<dd>{{$ctrl.healthCheck.name}}</dd>
+<dd>{{ $ctrl.healthCheck.name }}</dd>
 <dt ng-if="$ctrl.healthCheck.healthCheckType">Type</dt>
-<dd ng-if="$ctrl.healthCheck.healthCheckType">{{$ctrl.healthCheck.healthCheckType}}</dd>
+<dd ng-if="$ctrl.healthCheck.healthCheckType">{{ $ctrl.healthCheck.healthCheckType }}</dd>
 <dt ng-if="$ctrl.healthCheck.target">Target</dt>
-<dd ng-if="$ctrl.healthCheck.target">{{$ctrl.healthCheck.target}}</dd>
+<dd ng-if="$ctrl.healthCheck.target">{{ $ctrl.healthCheck.target }}</dd>
 <dt>Timeout</dt>
-<dd>{{$ctrl.healthCheck.timeout || $ctrl.healthCheck.timeoutSec}} seconds</dd>
+<dd>{{ $ctrl.healthCheck.timeout || $ctrl.healthCheck.timeoutSec }} seconds</dd>
 <dt>Interval</dt>
-<dd>{{$ctrl.healthCheck.interval || $ctrl.healthCheck.checkIntervalSec}} seconds</dd>
+<dd>{{ $ctrl.healthCheck.interval || $ctrl.healthCheck.checkIntervalSec }} seconds</dd>
 <dt>Healthy Threshold</dt>
-<dd>{{$ctrl.healthCheck.healthyThreshold}}</dd>
+<dd>{{ $ctrl.healthCheck.healthyThreshold }}</dd>
 <dt>Unhealthy Threshold</dt>
-<dd>{{$ctrl.healthCheck.unhealthyThreshold}}</dd>
+<dd>{{ $ctrl.healthCheck.unhealthyThreshold }}</dd>

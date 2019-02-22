@@ -1,4 +1,9 @@
-<ng-form class="container-fluid form-horizontal" ng-controller="kubernetesServerGroupDeploymentController as deploymentController" name="form" novalidate>
+<ng-form
+  class="container-fluid form-horizontal"
+  ng-controller="kubernetesServerGroupDeploymentController as deploymentController"
+  name="form"
+  novalidate
+>
   <div name="body">
     <div class="form-group">
       <div class="col-md-3 sm-label-right">
@@ -6,11 +11,16 @@
         <help-field key="kubernetes.serverGroup.deployment.enabled"></help-field>
       </div>
       <div class="col-md-2">
-        <input type="checkbox" name="details" ng-model="command.deployment.enabled" ng-click="deploymentController.removeVolume()"/>
+        <input
+          type="checkbox"
+          name="details"
+          ng-model="command.deployment.enabled"
+          ng-click="deploymentController.removeVolume()"
+        />
       </div>
     </div>
     <div ng-show="command.deployment.enabled">
-      <br>
+      <br />
       <div class="form-group">
         <div class="col-md-3 sm-label-right">
           Strategy
@@ -18,8 +28,12 @@
         </div>
         <div class="col-md-3">
           <select class="form-control input-sm" ng-model="command.deployment.deploymentStrategy.type">
-            <option ng-repeat="strategy in deploymentController.strategyTypes" value="{{strategy}}"
-                    ng-selected="command.deployment.deploymentStrategy.type === strategy">{{strategy}}</option>
+            <option
+              ng-repeat="strategy in deploymentController.strategyTypes"
+              value="{{strategy}}"
+              ng-selected="command.deployment.deploymentStrategy.type === strategy"
+              >{{strategy}}</option
+            >
           </select>
         </div>
       </div>
@@ -29,14 +43,25 @@
           <help-field key="kubernetes.serverGroup.deployment.minReadySeconds"></help-field>
         </div>
         <div class="col-md-2">
-          <input type="number" class="form-control input-sm" name="details" ng-model="command.deployment.minReadySeconds" min="0"/>
+          <input
+            type="number"
+            class="form-control input-sm"
+            name="details"
+            ng-model="command.deployment.minReadySeconds"
+            min="0"
+          />
         </div>
         <div class="col-md-3 sm-label-right">
           History Limit
           <help-field key="kubernetes.serverGroup.deployment.revisionHistoryLimit"></help-field>
         </div>
         <div class="col-md-2">
-          <input type="number" class="form-control input-sm" name="details" ng-model="command.deployment.revisionHistoryLimit"/>
+          <input
+            type="number"
+            class="form-control input-sm"
+            name="details"
+            ng-model="command.deployment.revisionHistoryLimit"
+          />
         </div>
       </div>
       <div class="form-group" ng-show="command.deployment.deploymentStrategy.type === 'RollingUpdate'">
@@ -45,19 +70,31 @@
           <help-field key="kubernetes.serverGroup.deployment.maxSurge"></help-field>
         </div>
         <div class="col-md-2">
-          <input type="string" class="form-control input-sm" name="details" ng-model="command.deployment.deploymentStrategy.rollingUpdate.maxSurge" min="0"/>
+          <input
+            type="string"
+            class="form-control input-sm"
+            name="details"
+            ng-model="command.deployment.deploymentStrategy.rollingUpdate.maxSurge"
+            min="0"
+          />
         </div>
         <div class="col-md-3 sm-label-right">
           Max Unavailable
           <help-field key="kubernetes.serverGroup.deployment.maxUnavailable"></help-field>
         </div>
         <div class="col-md-2">
-          <input type="string" class="form-control input-sm" name="details" ng-model="command.deployment.deploymentStrategy.rollingUpdate.maxUnavailable" min="0"/>
+          <input
+            type="string"
+            class="form-control input-sm"
+            name="details"
+            ng-model="command.deployment.deploymentStrategy.rollingUpdate.maxUnavailable"
+            min="0"
+          />
         </div>
       </div>
     </div>
     <div class="form-group" ng-show="deploymentController.deploymentConfigWarning()">
-      <br>
+      <br />
       <div class="col-md-9 col-md-offset-2">
         <div class="well-compact" ng-class="'alert alert-warning'">
           <h5 class="text-center">

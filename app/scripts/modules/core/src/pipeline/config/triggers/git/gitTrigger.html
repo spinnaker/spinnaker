@@ -8,7 +8,8 @@
       <select
         class="form-control input-sm"
         ng-options="repoType for repoType in vm.gitTriggerTypes"
-        ng-model="vm.trigger.source">
+        ng-model="vm.trigger.source"
+      >
         <option value="">Select Repo Type</option>
       </select>
     </div>
@@ -20,11 +21,13 @@
     </label>
 
     <div class="col-md-9">
-      <input type="text" class="form-control input-sm"
-             ng-model="vm.trigger.project"
-             name="project"
-             required
-             placeholder="{{ vm.displayText['vm.trigger.project'][vm.trigger.source] }}"
+      <input
+        type="text"
+        class="form-control input-sm"
+        ng-model="vm.trigger.project"
+        name="project"
+        required
+        placeholder="{{ vm.displayText['vm.trigger.project'][vm.trigger.source] }}"
       />
     </div>
   </div>
@@ -34,12 +37,14 @@
       <help-field key="pipeline.config.git.slug"></help-field>
     </label>
     <div class="col-md-9">
-      <input type="text" class="form-control input-sm"
-             ng-model="vm.trigger.slug"
-             name="slug"
-             required
-             placeholder="{{ vm.displayText['vm.trigger.slug'][vm.trigger.source] }}"
-             pattern="^((?!://).)*$"
+      <input
+        type="text"
+        class="form-control input-sm"
+        ng-model="vm.trigger.slug"
+        name="slug"
+        required
+        placeholder="{{ vm.displayText['vm.trigger.slug'][vm.trigger.source] }}"
+        pattern="^((?!://).)*$"
       />
     </div>
   </div>
@@ -49,7 +54,7 @@
       <help-field key="pipeline.config.git.trigger.branch"></help-field>
     </div>
     <div class="col-md-9">
-      <input type="text" class="form-control input-sm" ng-model="vm.trigger.branch" ng-change="vm.updateBranch()"/>
+      <input type="text" class="form-control input-sm" ng-model="vm.trigger.branch" ng-change="vm.updateBranch()" />
     </div>
   </div>
   <div class="form-group" ng-if="vm.trigger.source === 'github'">
@@ -58,13 +63,11 @@
       <help-field key="pipeline.config.git.trigger.githubSecret"></help-field>
     </div>
     <div class="col-md-9">
-      <input type="text" class="form-control input-sm" ng-model="vm.trigger.secret"/>
+      <input type="text" class="form-control input-sm" ng-model="vm.trigger.secret" />
     </div>
   </div>
   <div class="form-group" ng-if="vm.fiatEnabled">
-    <run-as-user-selector service-accounts="vm.serviceAccounts"
-                          component="vm.trigger"
-                          field="runAsUser">
+    <run-as-user-selector service-accounts="vm.serviceAccounts" component="vm.trigger" field="runAsUser">
     </run-as-user-selector>
   </div>
 </ng-form>

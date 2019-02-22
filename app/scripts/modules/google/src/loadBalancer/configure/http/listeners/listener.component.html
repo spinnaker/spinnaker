@@ -1,48 +1,58 @@
-<hr ng-if="$ctrl.index > 0">
+<hr ng-if="$ctrl.index > 0" />
 <div class="container-fluid form-horizontal">
   <ng-form name="listener">
     <div class="modal-body">
       <div class="form-group">
-        <div class="col-md-12 well"
-             ng-show="listener.stackName.$dirty || listener.detailName.$dirty || !$ctrl.listener.created"
-             ng-class="{'alert-danger': listener.listenerName.$error.validateUnique, 'alert-info': !listener.listenerName.$error.validateUnique}">
+        <div
+          class="col-md-12 well"
+          ng-show="listener.stackName.$dirty || listener.detailName.$dirty || !$ctrl.listener.created"
+          ng-class="{'alert-danger': listener.listenerName.$error.validateUnique, 'alert-info': !listener.listenerName.$error.validateUnique}"
+        >
           <strong>Your listener will be named:</strong>
-          <span>{{$ctrl.getName($ctrl.listener, $ctrl.application.name)}}</span>
+          <span>{{ $ctrl.getName($ctrl.listener, $ctrl.application.name) }}</span>
           <!-- Angular does not seem to run length validation on hidden inputs, hence the text + display:none -->
-          <input type="text"
-                 style="display: none"
-                 ng-maxlength="63"
-                 class="form-control input-sm"
-                 ng-model="$ctrl.listener.name"
-                 ng-readonly="$ctrl.listener.created"
-                 validate-unique="$ctrl.existingListenerNames()"
-                 validate-ignore-case="true"
-                 name="listenerName"/>
-          <validation-error ng-if="listener.listenerName.$error.validateUnique || $ctrl.localListenerHasSameName()"
-                            message="There is already a listener in {{$ctrl.command.loadBalancer.credentials}} with that name.">
+          <input
+            type="text"
+            style="display: none"
+            ng-maxlength="63"
+            class="form-control input-sm"
+            ng-model="$ctrl.listener.name"
+            ng-readonly="$ctrl.listener.created"
+            validate-unique="$ctrl.existingListenerNames()"
+            validate-ignore-case="true"
+            name="listenerName"
+          />
+          <validation-error
+            ng-if="listener.listenerName.$error.validateUnique || $ctrl.localListenerHasSameName()"
+            message="There is already a listener in {{ $ctrl.command.loadBalancer.credentials }} with that name."
+          >
           </validation-error>
         </div>
 
         <div class="col-md-2 sm-label-right">Stack <help-field key="aws.loadBalancer.stack"></help-field></div>
         <div class="col-md-3">
-          <input type="text"
-                 class="form-control input-sm"
-                 ng-model="$ctrl.listener.stack"
-                 ng-readonly="$ctrl.listener.created"
-                 name="stackName"
-                 ng-change="$ctrl.updateName($ctrl.listener, $ctrl.application.name)"
-                 ng-pattern="/^[a-z0-9]*$/"/>
+          <input
+            type="text"
+            class="form-control input-sm"
+            ng-model="$ctrl.listener.stack"
+            ng-readonly="$ctrl.listener.created"
+            name="stackName"
+            ng-change="$ctrl.updateName($ctrl.listener, $ctrl.application.name)"
+            ng-pattern="/^[a-z0-9]*$/"
+          />
         </div>
-        <div class="col-md-2 sm-label-right"> Detail <help-field key="gce.loadBalancer.detail"></help-field></div>
+        <div class="col-md-2 sm-label-right">Detail <help-field key="gce.loadBalancer.detail"></help-field></div>
 
         <div class="col-md-3">
-          <input type="text"
-                 class="form-control input-sm"
-                 ng-model="$ctrl.listener.detail"
-                 ng-readonly="$ctrl.listener.created"
-                 name="detailName"
-                 ng-change="$ctrl.updateName($ctrl.listener, $ctrl.application.name)"
-                 ng-pattern="/^[a-z0-9-]*$/"/>
+          <input
+            type="text"
+            class="form-control input-sm"
+            ng-model="$ctrl.listener.detail"
+            ng-readonly="$ctrl.listener.created"
+            name="detailName"
+            ng-change="$ctrl.updateName($ctrl.listener, $ctrl.application.name)"
+            ng-pattern="/^[a-z0-9-]*$/"
+          />
         </div>
 
         <div class="col-md-1">
@@ -56,58 +66,69 @@
       <div class="form-group">
         <div class="col-md-2 sm-label-right">Port<help-field key="gce.httpLoadBalancer.port"></help-field></div>
         <div class="col-md-3">
-          <ui-select ng-model="$ctrl.listener.port"
-                     ng-disabled="$ctrl.listener.created"
-                     required
-                     class="form-control input-sm">
+          <ui-select
+            ng-model="$ctrl.listener.port"
+            ng-disabled="$ctrl.listener.created"
+            required
+            class="form-control input-sm"
+          >
             <ui-select-match>
-              <span>{{$select.selected}}</span>
+              <span>{{ $select.selected }}</span>
             </ui-select-match>
             <ui-select-choices repeat="choice as choice in [8080, 80, 443]">
-              <span>{{choice}}</span>
+              <span>{{ choice }}</span>
             </ui-select-choices>
           </ui-select>
         </div>
         <div ng-if="$ctrl.isHttps($ctrl.listener.port)">
-          <div class="col-md-2 sm-label-right">Certificate
+          <div class="col-md-2 sm-label-right">
+            Certificate
             <help-field key="gce.httpLoadBalancer.certificate" class="help-field-absolute"></help-field>
           </div>
           <div class="col-md-3">
-            <ui-select ng-model="$ctrl.listener.certificate"
-                       ng-disabled="$ctrl.listener.created && !$ctrl.listener.certificate"
-                       required
-                       class="form-control input-sm">
-              <ui-select-match allow-clear placeholder="Select...">{{$select.selected}}</ui-select-match>
-              <ui-select-choices
-                repeat="certificate in $ctrl.getCertificates() | filter: $select.search">
+            <ui-select
+              ng-model="$ctrl.listener.certificate"
+              ng-disabled="$ctrl.listener.created && !$ctrl.listener.certificate"
+              required
+              class="form-control input-sm"
+            >
+              <ui-select-match allow-clear placeholder="Select...">{{ $select.selected }}</ui-select-match>
+              <ui-select-choices repeat="certificate in $ctrl.getCertificates() | filter: $select.search">
                 <span ng-bind-html="certificate | highlight: $select.search"></span>
               </ui-select-choices>
             </ui-select>
           </div>
           <div class="col-md-1" style="padding-left: 0; margin-top: 4px;">
-            <gce-cache-refresh cache-key="certificates"
-                               render-compact="true"
-                               on-refresh="$ctrl.command.onCertificateRefresh($ctrl.command)"></gce-cache-refresh>
+            <gce-cache-refresh
+              cache-key="certificates"
+              render-compact="true"
+              on-refresh="$ctrl.command.onCertificateRefresh($ctrl.command)"
+            ></gce-cache-refresh>
           </div>
         </div>
       </div>
 
       <div class="form-group">
-        <div class="col-md-2 sm-label-right">External IP
+        <div class="col-md-2 sm-label-right">
+          External IP
           <help-field key="gce.httpLoadBalancer.externalIP" class="help-field-absolute"></help-field>
         </div>
         <div class="col-md-5">
-          <gce-address-selector address-list="$ctrl.command.backingData.addresses"
-                                read-only="$ctrl.listener.created"
-                                account="$ctrl.command.loadBalancer.credentials"
-                                initial-ip-address="$ctrl.listener.ipAddress"
-                                on-address-select="$ctrl.onAddressSelect(address)"></gce-address-selector>
+          <gce-address-selector
+            address-list="$ctrl.command.backingData.addresses"
+            read-only="$ctrl.listener.created"
+            account="$ctrl.command.loadBalancer.credentials"
+            initial-ip-address="$ctrl.listener.ipAddress"
+            on-address-select="$ctrl.onAddressSelect(address)"
+          ></gce-address-selector>
         </div>
         <div class="col-md-1" style="padding-left: 0; margin-top: 4px;">
-          <gce-cache-refresh ng-if="!$ctrl.listener.created"
-                             cache-key="addresses"
-                             render-compact="true"
-                             on-refresh="$ctrl.command.onAddressRefresh($ctrl.command)"></gce-cache-refresh>
+          <gce-cache-refresh
+            ng-if="!$ctrl.listener.created"
+            cache-key="addresses"
+            render-compact="true"
+            on-refresh="$ctrl.command.onAddressRefresh($ctrl.command)"
+          ></gce-cache-refresh>
         </div>
       </div>
 
@@ -116,7 +137,9 @@
           <validation-error message="Stack can only contain lowercase letters and numbers."></validation-error>
         </div>
         <div class="col-md-7 col-md-offset-2" ng-if="listener.detailName.$error.pattern">
-          <validation-error message="Detail can only contain lowercase letters, numbers, and dashes(-)."></validation-error>
+          <validation-error
+            message="Detail can only contain lowercase letters, numbers, and dashes(-)."
+          ></validation-error>
         </div>
       </div>
     </div>

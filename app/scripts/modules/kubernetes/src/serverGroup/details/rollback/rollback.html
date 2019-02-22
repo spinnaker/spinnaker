@@ -24,12 +24,10 @@
     </div>
     <div class="modal-footer">
       <user-verification account="serverGroup.account" verification="verification"></user-verification>
-      <button type="submit" ng-click="ctrl.rollback()" style="display:none"></button> <!-- Allows form submission via enter keypress-->
+      <button type="submit" ng-click="ctrl.rollback()" style="display:none"></button>
+      <!-- Allows form submission via enter keypress-->
       <button class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
-      <button type="submit"
-              class="btn btn-primary"
-              ng-click="ctrl.rollback()"
-              ng-disabled="!ctrl.isValid()">
+      <button type="submit" class="btn btn-primary" ng-click="ctrl.rollback()" ng-disabled="!ctrl.isValid()">
         Submit
       </button>
     </div>

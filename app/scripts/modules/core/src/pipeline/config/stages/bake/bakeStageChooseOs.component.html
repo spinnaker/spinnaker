@@ -9,8 +9,7 @@
 </ui-select>
 
 <label ng-if="$ctrl.showRadioButtons" class="radio-inline" ng-repeat="baseOsOption in $ctrl.baseOsOptions">
-  <input type="radio"
-         ng-model="$ctrl.model"
-         ng-value="baseOsOption.id"/>
-  {{$ctrl.getBaseOsDescription(baseOsOption)}} <help-field content="{{$ctrl.getBaseOsDetailedDescription(baseOsOption)}}"></help-field>
+  <input type="radio" ng-model="$ctrl.model" ng-value="baseOsOption.id" />
+  {{ $ctrl.getBaseOsDescription(baseOsOption) }}
+  <help-field content="{{ $ctrl.getBaseOsDetailedDescription(baseOsOption) }}"></help-field>
 </label>

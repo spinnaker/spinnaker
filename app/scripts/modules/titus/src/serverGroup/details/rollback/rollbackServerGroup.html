@@ -11,19 +11,21 @@
           Restore to
         </div>
         <div class="col-sm-7">
-          <ui-select ng-model="command.rollbackContext.restoreServerGroupName"
-                     class="form-control input-sm"
-                     ng-if="command.rollbackType === 'EXPLICIT'">
+          <ui-select
+            ng-model="command.rollbackContext.restoreServerGroupName"
+            class="form-control input-sm"
+            ng-if="command.rollbackType === 'EXPLICIT'"
+          >
             <ui-select-match placeholder="Select...">{{ctrl.label($select.selected)}}</ui-select-match>
             <ui-select-choices group-by="ctrl.group" repeat="serverGroup.name as serverGroup in allServerGroups">
               <span ng-bind-html="ctrl.label(serverGroup)"></span>
             </ui-select-choices>
           </ui-select>
           <div ng-if="command.rollbackType === 'PREVIOUS_IMAGE'" style="margin-top: 5px">
-            {{ previousServerGroup.name }} <span class="small">(no longer deployed)</span><br/>
+            {{ previousServerGroup.name }} <span class="small">(no longer deployed)</span><br />
             <span class="small">
               <strong>Image</strong>: {{ previousServerGroup.imageName}}
-              <span ng-if="previousServerGroup.imageId">({{ previousServerGroup.imageId }})</span><br/>
+              <span ng-if="previousServerGroup.imageId">({{ previousServerGroup.imageId }})</span><br />
             </span>
           </div>
         </div>
@@ -31,10 +33,12 @@
 
       <div class="row" ng-if="command.platformHealthOnlyShowOverride">
         <div class="col-sm-10 col-sm-offset-1">
-          <platform-health-override command="command"
-                                    platform-health-type="'Titus'"
-                                    show-help-details="true"
-                                    field-columns="12">
+          <platform-health-override
+            command="command"
+            platform-health-type="'Titus'"
+            show-help-details="true"
+            field-columns="12"
+          >
           </platform-health-override>
         </div>
       </div>
@@ -44,11 +48,13 @@
       <div class="row">
         <div class="col-sm-11 col-sm-offset-1">
           Wait
-          <input placeholder="0"
-                 min="0"
-                 type="number"
-                 ng-model="command.rollbackContext.delayBeforeDisableSeconds"
-                 class="form-control input-sm inline-number">
+          <input
+            placeholder="0"
+            min="0"
+            type="number"
+            ng-model="command.rollbackContext.delayBeforeDisableSeconds"
+            class="form-control input-sm inline-number"
+          />
           seconds before disabling <em>{{ ctrl.label(serverGroup) }}</em>.
         </div>
       </div>
@@ -56,11 +62,12 @@
       <div class="row">
         <div class="col-sm-11 col-sm-offset-1">
           Consider rollback successful when
-          <input type="number"
-                 min="0"
-                 max="100"
-                 ng-model="command.rollbackContext.targetHealthyRollbackPercentage"
-                 class="form-control input-sm inline-number"
+          <input
+            type="number"
+            min="0"
+            max="100"
+            ng-model="command.rollbackContext.targetHealthyRollbackPercentage"
+            class="form-control input-sm inline-number"
           />
           percent of instances are healthy.
         </div>
@@ -75,19 +82,23 @@
         <div class="col-sm-11 col-sm-offset-1">
           <ol>
             <li>Enable <em>{{ command.rollbackContext.restoreServerGroupName || 'previous server group' }}</em></li>
-            <li>Resize <em>{{ command.rollbackContext.restoreServerGroupName || 'previous server group' }}</em> to [
-              <strong>min</strong>: {{serverGroup.capacity.desired}},
-              <strong>max</strong>: {{ serverGroup.capacity.max }},
-              <strong>desired</strong>: {{ serverGroup.capacity.desired }}
-              ]<br/>(minimum capacity pinned at {{serverGroup.capacity.desired}} to prevent autoscaling down during rollback)
+            <li>
+              Resize <em>{{ command.rollbackContext.restoreServerGroupName || 'previous server group' }}</em> to [
+              <strong>min</strong>: {{serverGroup.capacity.desired}}, <strong>max</strong>: {{ serverGroup.capacity.max
+              }}, <strong>desired</strong>: {{ serverGroup.capacity.desired }} ]<br />(minimum capacity pinned at
+              {{serverGroup.capacity.desired}} to prevent autoscaling down during rollback)
+            </li>
+
             <li ng-if="command.rollbackContext.targetHealthyRollbackPercentage < 100">
-              Wait for at least {{minHealthy(command.rollbackContext.targetHealthyRollbackPercentage)}}
-              instances to report as healthy
+              Wait for at least {{minHealthy(command.rollbackContext.targetHealthyRollbackPercentage)}} instances to
+              report as healthy
             </li>
             <li>Disable {{ serverGroup.name }}</li>
-            <li>Restore minimum capacity of <em>{{ command.rollbackContext.restoreServerGroupName || 'previous server group' }}</em> [
-              <strong>min</strong>: {{ serverGroup.capacity.min }}
-              ]</li>
+            <li>
+              Restore minimum capacity of
+              <em>{{ command.rollbackContext.restoreServerGroupName || 'previous server group' }}</em> [
+              <strong>min</strong>: {{ serverGroup.capacity.min }} ]
+            </li>
           </ol>
           <p>
             This rollback will affect server groups in {{ serverGroup.account }} ({{ serverGroup.region }}).
@@ -97,32 +108,34 @@
       <div class="row" ng-if="command.rollbackType === 'PREVIOUS_IMAGE'">
         <div class="col-sm-11 col-sm-offset-1">
           <ol>
-            <li>Deploy <em>{{ previousServerGroup.imageId }}</em> [
-              <strong>min</strong>: {{serverGroup.capacity.desired}},
-              <strong>max</strong>: {{ serverGroup.capacity.max }},
-              <strong>desired</strong>: {{ serverGroup.capacity.desired }}
-              ]<br/>(minimum capacity pinned at {{serverGroup.capacity.desired}} to prevent autoscaling down during deploy)
+            <li>
+              Deploy <em>{{ previousServerGroup.imageId }}</em> [ <strong>min</strong>:
+              {{serverGroup.capacity.desired}}, <strong>max</strong>: {{ serverGroup.capacity.max }},
+              <strong>desired</strong>: {{ serverGroup.capacity.desired }} ]<br />(minimum capacity pinned at
+              {{serverGroup.capacity.desired}} to prevent autoscaling down during deploy)
             </li>
             <li ng-if="command.rollbackContext.targetHealthyRollbackPercentage < 100">
-              Wait for at least {{minHealthy(command.rollbackContext.targetHealthyRollbackPercentage)}}
-              instances to report as healthy
+              Wait for at least {{minHealthy(command.rollbackContext.targetHealthyRollbackPercentage)}} instances to
+              report as healthy
             </li>
             <li>Disable <em>{{ serverGroup.name }}</em></li>
-            <li>Restore minimum capacity of <em>new server group</em> [
-              <strong>min</strong>: {{ serverGroup.capacity.min }}
-              ]</li>
+            <li>
+              Restore minimum capacity of <em>new server group</em> [ <strong>min</strong>: {{ serverGroup.capacity.min
+              }} ]
+            </li>
           </ol>
           <p>
             This rollback will affect server groups in {{ serverGroup.account }} ({{ serverGroup.region }}).
           </p>
         </div>
       </div>
-
     </div>
-    <aws-footer action="ctrl.rollback()"
-                cancel="ctrl.cancel()"
-                is-valid="ctrl.isValid()"
-                account="serverGroup.account"
-                verification="verification"></aws-footer>
+    <aws-footer
+      action="ctrl.rollback()"
+      cancel="ctrl.cancel()"
+      is-valid="ctrl.isValid()"
+      account="serverGroup.account"
+      verification="verification"
+    ></aws-footer>
   </form>
 </div>

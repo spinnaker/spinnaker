@@ -1,10 +1,12 @@
 <div class="form-group row">
   <div class="col-sm-3 sm-label-right" id="type">Check</div>
   <div class="col-sm-9">
-    <select class="input-sm"
-            ng-options="t.key as t.label for t in preconditionTypes"
-            ng-model="precondition.type"
-            ng-change="preconditionCtrl.clearContext()">
+    <select
+      class="input-sm"
+      ng-options="t.key as t.label for t in preconditionTypes"
+      ng-model="precondition.type"
+      ng-change="preconditionCtrl.clearContext()"
+    >
     </select>
   </div>
 </div>

@@ -16,20 +16,21 @@
 
     <div ng-repeat="event in $ctrl.events" ng-if="!$ctrl.viewState.loading">
       <p class="clearfix"></p>
-          <div ng-if="event.status === 'Success'">
-            <span class="label label-success pull-left">{{event.status}}</span>
-          </div>
-          <div ng-if="event.status !== 'Success'">
-            <span class="label label-{{event.status === 'Transition' ? 'info' : 'danger'}} pull-left">{{event.status}}</span>
-          </div>
+      <div ng-if="event.status === 'Success'">
+        <span class="label label-success pull-left">{{event.status}}</span>
+      </div>
+      <div ng-if="event.status !== 'Success'">
+        <span class="label label-{{event.status === 'Transition' ? 'info' : 'danger'}} pull-left"
+          >{{event.status}}</span
+        >
+      </div>
 
-          <span class="label label-default pull-right">{{event.createdAt | timestamp}}</span>
-        <div>
-          {{event.message}}
-        </div>
-        <hr ng-if="!$last"/>
+      <span class="label label-default pull-right">{{event.createdAt | timestamp}}</span>
+      <div>
+        {{event.message}}
+      </div>
+      <hr ng-if="!$last" />
     </div>
-
   </div>
   <div class="modal-footer">
     <button class="btn btn-primary" ng-click="$ctrl.close()">Close</button>

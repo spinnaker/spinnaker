@@ -8,14 +8,18 @@
     <div class="modal-body container-fluid form-horizontal">
       <div class="form-group">
         <div class="col-md-10 col-md-offset-1">
-          <ui-select multiple
-                     ng-model="$ctrl.command.securityGroups"
-                     uis-open-close="$ctrl.resetCurrentItems()"
-                     class="form-control input-sm">
+          <ui-select
+            multiple
+            ng-model="$ctrl.command.securityGroups"
+            uis-open-close="$ctrl.resetCurrentItems()"
+            class="form-control input-sm"
+          >
             <ui-select-match>{{$item.name}} ({{$item.id}})</ui-select-match>
-            <ui-select-choices repeat="securityGroup as securityGroup in $ctrl.availableSecurityGroups | filter: $select.search | limitTo: $ctrl.infiniteScroll.currentItems"
-                               infinite-scroll="$ctrl.addMoreItems()"
-                               infinite-scroll-distance="4">
+            <ui-select-choices
+              repeat="securityGroup as securityGroup in $ctrl.availableSecurityGroups | filter: $select.search | limitTo: $ctrl.infiniteScroll.currentItems"
+              infinite-scroll="$ctrl.addMoreItems()"
+              infinite-scroll-distance="4"
+            >
               <span ng-bind-html="securityGroup.name | highlight: $select.search"></span>
               (<span ng-bind-html="securityGroup.id  | highlight: $select.search"></span>)
             </ui-select-choices>
@@ -23,10 +27,12 @@
         </div>
       </div>
     </div>
-    <aws-footer action="$ctrl.submit()"
-                cancel="$ctrl.cancel()"
-                is-valid="$ctrl.isValid()"
-                account="$ctrl.serverGroup.account"
-                verification="$ctrl.state.verification"></aws-footer>
+    <aws-footer
+      action="$ctrl.submit()"
+      cancel="$ctrl.cancel()"
+      is-valid="$ctrl.isValid()"
+      account="$ctrl.serverGroup.account"
+      verification="$ctrl.state.verification"
+    ></aws-footer>
   </form>
 </div>

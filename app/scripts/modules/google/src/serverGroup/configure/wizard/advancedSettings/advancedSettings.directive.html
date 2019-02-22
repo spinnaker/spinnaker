@@ -6,26 +6,29 @@
   <div class="col-md-6">
     <ui-select ng-model="vm.command.minCpuPlatform" class="form-control input-sm" required>
       <ui-select-match placeholder="Select...">{{$select.selected}}</ui-select-match>
-      <ui-select-choices repeat="minCpuPlatform in vm.command.backingData.filtered.cpuPlatforms | filter: $select.search">
+      <ui-select-choices
+        repeat="minCpuPlatform in vm.command.backingData.filtered.cpuPlatforms | filter: $select.search"
+      >
         <span ng-bind-html="minCpuPlatform | highlight: $select.search"></span>
       </ui-select-choices>
     </ui-select>
   </div>
 </div>
 
-<gce-disk-configurer command="vm.command"
-                     disks="vm.command.disks"
-                     update-disks="vm.setDisks(disks)"></gce-disk-configurer>
+<gce-disk-configurer
+  command="vm.command"
+  disks="vm.command.disks"
+  update-disks="vm.setDisks(disks)"
+></gce-disk-configurer>
 
 <gce-accelerator-configurer command="vm.command"></gce-accelerator-configurer>
 
 <div class="form-group">
-  <div class="sm-label-left" style="margin-bottom: 5px;">User Data <help-field key="gce.serverGroup.userData"></help-field></div>
+  <div class="sm-label-left" style="margin-bottom: 5px;">
+    User Data <help-field key="gce.serverGroup.userData"></help-field>
+  </div>
   <div class="col-md-12">
-    <textarea class="form-control"
-              ng-model="vm.command.userData"
-              rows="3"
-              placeholder="Plaintext custom user data">
+    <textarea class="form-control" ng-model="vm.command.userData" rows="3" placeholder="Plaintext custom user data">
     </textarea>
   </div>
 </div>
@@ -41,24 +44,32 @@
     <table class="table table-condensed packed tags">
       <b>Tags</b>
       <tbody>
-      <tr ng-repeat="tag in vm.command.tags">
-        <td><input class="form-control input-sm" type="text" ng-model="tag.value"
-                   ng-change="vm.inferSelectedSecurityGroupFromTag(tag.value)" required/></td>
-        <td>
-          <help-field ng-if="vm.showToolTip(tag.value)" content="{{vm.getToolTipContent(tag.value)}}"></help-field>
-          <a class="btn btn-link sm-label"
-               ng-click="vm.removeTag($index)"><span
-          class="glyphicon glyphicon-trash"></span></a></td>
-      </tr>
+        <tr ng-repeat="tag in vm.command.tags">
+          <td>
+            <input
+              class="form-control input-sm"
+              type="text"
+              ng-model="tag.value"
+              ng-change="vm.inferSelectedSecurityGroupFromTag(tag.value)"
+              required
+            />
+          </td>
+          <td>
+            <help-field ng-if="vm.showToolTip(tag.value)" content="{{vm.getToolTipContent(tag.value)}}"></help-field>
+            <a class="btn btn-link sm-label" ng-click="vm.removeTag($index)"
+              ><span class="glyphicon glyphicon-trash"></span
+            ></a>
+          </td>
+        </tr>
       </tbody>
       <tfoot>
-      <tr>
-        <td colspan="1">
-          <button class="btn btn-block btn-sm add-new" ng-click="vm.addTag()"><span
-            class="glyphicon glyphicon-plus-sign"></span> Add New Tag
-          </button>
-        </td>
-      </tr>
+        <tr>
+          <td colspan="1">
+            <button class="btn btn-block btn-sm add-new" ng-click="vm.addTag()">
+              <span class="glyphicon glyphicon-plus-sign"></span> Add New Tag
+            </button>
+          </td>
+        </tr>
       </tfoot>
     </table>
   </div>
@@ -77,13 +88,25 @@
   </div>
   <div class="col-md-2 radio">
     <label>
-      <input type="radio" ng-model="vm.command.preemptible" ng-value="false" id="preemptibleFalse" ng-change="vm.setPreemptible()"/>
+      <input
+        type="radio"
+        ng-model="vm.command.preemptible"
+        ng-value="false"
+        id="preemptibleFalse"
+        ng-change="vm.setPreemptible()"
+      />
       Off
     </label>
   </div>
   <div class="col-md-2 radio">
     <label>
-      <input type="radio" ng-model="vm.command.preemptible" ng-value="true" id="preemptibleTrue" ng-change="vm.setPreemptible()"/>
+      <input
+        type="radio"
+        ng-model="vm.command.preemptible"
+        ng-value="true"
+        id="preemptibleTrue"
+        ng-change="vm.setPreemptible()"
+      />
       On
     </label>
   </div>
@@ -95,13 +118,13 @@
   </div>
   <div class="col-md-2 radio">
     <label>
-      <input type="radio" ng-model="vm.command.automaticRestart" ng-value="false" id="automaticRestartFalse"/>
+      <input type="radio" ng-model="vm.command.automaticRestart" ng-value="false" id="automaticRestartFalse" />
       Off
     </label>
   </div>
   <div class="col-md-2 radio">
     <label>
-      <input type="radio" ng-model="vm.command.automaticRestart" ng-value="true" id="automaticRestartTrue"/>
+      <input type="radio" ng-model="vm.command.automaticRestart" ng-value="true" id="automaticRestartTrue" />
       On
     </label>
   </div>
@@ -113,13 +136,18 @@
   </div>
   <div class="col-md-2 radio">
     <label>
-      <input type="radio" ng-model="vm.command.onHostMaintenance" ng-value="'MIGRATE'" id="onHostMaintenanceMigrate"/>
+      <input type="radio" ng-model="vm.command.onHostMaintenance" ng-value="'MIGRATE'" id="onHostMaintenanceMigrate" />
       Migrate
     </label>
   </div>
   <div class="col-md-2 radio">
     <label>
-      <input type="radio" ng-model="vm.command.onHostMaintenance" ng-value="'TERMINATE'" id="onHostMaintenanceTerminate"/>
+      <input
+        type="radio"
+        ng-model="vm.command.onHostMaintenance"
+        ng-value="'TERMINATE'"
+        id="onHostMaintenanceTerminate"
+      />
       Terminate
     </label>
   </div>
@@ -128,13 +156,23 @@
   <div class="col-md-5 sm-label-right"><b>Associate Public IP Address</b></div>
   <div class="col-md-2 radio">
     <label>
-      <input type="radio" ng-model="vm.command.associatePublicIpAddress" ng-value="true" id="associatePublicIpAddressTrue"/>
+      <input
+        type="radio"
+        ng-model="vm.command.associatePublicIpAddress"
+        ng-value="true"
+        id="associatePublicIpAddressTrue"
+      />
       Yes
     </label>
   </div>
   <div class="col-md-2 radio">
     <label>
-      <input type="radio" ng-model="vm.command.associatePublicIpAddress" ng-value="false" id="associatePublicIpAddressFalse"/>
+      <input
+        type="radio"
+        ng-model="vm.command.associatePublicIpAddress"
+        ng-value="false"
+        id="associatePublicIpAddressFalse"
+      />
       No
     </label>
   </div>
@@ -146,13 +184,13 @@
   </div>
   <div class="col-md-2 radio">
     <label>
-      <input type="radio" ng-model="vm.command.canIpForward" ng-value="true" id="canIpForwardTrue"/>
+      <input type="radio" ng-model="vm.command.canIpForward" ng-value="true" id="canIpForwardTrue" />
       Yes
     </label>
   </div>
   <div class="col-md-2 radio">
     <label>
-      <input type="radio" ng-model="vm.command.canIpForward" ng-value="false" id="canIpForwardFalse"/>
+      <input type="radio" ng-model="vm.command.canIpForward" ng-value="false" id="canIpForwardFalse" />
       No
     </label>
   </div>
@@ -163,9 +201,7 @@
     <help-field key="gce.instance.serviceAccount"></help-field>
   </div>
   <div class="col-md-6">
-    <input type="text"
-           class="form-control input-sm"
-           ng-model="vm.command.serviceAccountEmail"/>
+    <input type="text" class="form-control input-sm" ng-model="vm.command.serviceAccountEmail" />
   </div>
 </div>
 <div class="form-group">
@@ -174,7 +210,13 @@
     <help-field key="gce.instance.authScopes"></help-field>
   </div>
   <div class="col-md-6">
-    <ui-select multiple tagging tagging-label="(custom auth scope)" ng-model="vm.command.authScopes" class="form-control input-sm">
+    <ui-select
+      multiple
+      tagging
+      tagging-label="(custom auth scope)"
+      ng-model="vm.command.authScopes"
+      class="form-control input-sm"
+    >
       <ui-select-match>{{$item}}</ui-select-match>
       <ui-select-choices repeat="authScope in vm.command.backingData.authScopes | filter: $select.search">
         <span ng-bind-html="authScope | highlight: $select.search"></span>

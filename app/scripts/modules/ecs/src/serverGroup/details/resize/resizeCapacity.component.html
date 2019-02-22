@@ -12,48 +12,56 @@
   </div>
   <div class="form-group">
     <div class="col-md-3 sm-label-right">Current</div>
-    <div class="col-md-2"><input type="number"
-                                 class="form-control input-sm"
-                                 ng-model="$ctrl.currentSize.min"
-                                 readonly/>
+    <div class="col-md-2">
+      <input type="number" class="form-control input-sm" ng-model="$ctrl.currentSize.min" readonly />
     </div>
-    <div class="col-md-2"><input type="number"
-                                 class="form-control input-sm"
-                                 ng-model="$ctrl.currentSize.max"
-                                 readonly/>
+    <div class="col-md-2">
+      <input type="number" class="form-control input-sm" ng-model="$ctrl.currentSize.max" readonly />
     </div>
-    <div class="col-md-2"><input type="number"
-                                 class="form-control input-sm"
-                                 ng-model="$ctrl.currentSize.desired"
-                                 readonly/>
+    <div class="col-md-2">
+      <input type="number" class="form-control input-sm" ng-model="$ctrl.currentSize.desired" readonly />
     </div>
   </div>
   <div class="form-group">
     <div class="col-md-3 sm-label-right">Resize to</div>
-    <div class="col-md-2"><input type="number"
-                                 class="form-control input-sm"
-                                 ng-model="$ctrl.command.min"
-                                 min="0"
-                                 required
-                                 max="{{$ctrl.command.max}}"/></div>
-    <div class="col-md-2"><input type="number"
-                                 class="form-control input-sm"
-                                 ng-model="$ctrl.command.max"
-                                 required
-                                 min="{{$ctrl.command.min}}"/></div>
-    <div class="col-md-2"><input type="number"
-                                 class="form-control input-sm"
-                                 ng-model="$ctrl.command.desired"
-                                 required
-                                 min="{{$ctrl.command.min}}"
-                                 max="{{$ctrl.command.max}}"/></div>
+    <div class="col-md-2">
+      <input
+        type="number"
+        class="form-control input-sm"
+        ng-model="$ctrl.command.min"
+        min="0"
+        required
+        max="{{ $ctrl.command.max }}"
+      />
+    </div>
+    <div class="col-md-2">
+      <input
+        type="number"
+        class="form-control input-sm"
+        ng-model="$ctrl.command.max"
+        required
+        min="{{ $ctrl.command.min }}"
+      />
+    </div>
+    <div class="col-md-2">
+      <input
+        type="number"
+        class="form-control input-sm"
+        ng-model="$ctrl.command.desired"
+        required
+        min="{{ $ctrl.command.min }}"
+        max="{{ $ctrl.command.max }}"
+      />
+    </div>
   </div>
-
 </div>
 <div ng-if="!$ctrl.command.advancedMode">
   <div class="form-group">
     <div class="col-md-12">
-      <p> To modify min and max instance counts, use the <a href ng-click="$ctrl.command.advancedMode = true">Advanced Mode</a>.</p>
+      <p>
+        To modify min and max instance counts, use the
+        <a href ng-click="$ctrl.command.advancedMode = true">Advanced Mode</a>.
+      </p>
     </div>
   </div>
   <div class="form-group form-inline">
@@ -61,12 +69,14 @@
       Current size
     </div>
     <div class="col-md-6">
-        <input type="number"
-               class="form-control input-sm"
-               ng-model="$ctrl.currentSize.desired"
-               style="width: 60px"
-               readonly/>
-        instance<span ng-if="$ctrl.currentSize.desired > 1">s</span>
+      <input
+        type="number"
+        class="form-control input-sm"
+        ng-model="$ctrl.currentSize.desired"
+        style="width: 60px"
+        readonly
+      />
+      instance<span ng-if="$ctrl.currentSize.desired > 1">s</span>
     </div>
   </div>
   <div class="form-group form-inline">
@@ -74,13 +84,15 @@
       Resize to
     </div>
     <div class="col-md-6">
-        <input type="number"
-               class="form-control input-sm highlight-pristine"
-               ng-model="$ctrl.command.newSize"
-               min="0"
-               required
-               style="width: 60px"/>
-        instances
+      <input
+        type="number"
+        class="form-control input-sm highlight-pristine"
+        ng-model="$ctrl.command.newSize"
+        min="0"
+        required
+        style="width: 60px"
+      />
+      instances
     </div>
   </div>
 </div>

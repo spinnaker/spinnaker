@@ -1,28 +1,32 @@
 <div class="form-inline" ng-if="$ctrl.chaosEnabled">
   <div class="chaos-enabled">
-      <label class="checkbox-inline">
-        <input type="checkbox"
-               ng-model="$ctrl.config.enabled"
-               ng-change="$ctrl.configChanged()"/>
-        Enabled
-      </label>
+    <label class="checkbox-inline">
+      <input type="checkbox" ng-model="$ctrl.config.enabled" ng-change="$ctrl.configChanged()" />
+      Enabled
+    </label>
   </div>
   <h5 class="first-header">Termination frequency</h5>
   <div class="row">
     <div class="col-md-5 col-md-offset-1">
       <label>Mean time between terms</label>
-      <input type="number" class="form-control input-sm"
-             min="1"
-             ng-model="$ctrl.config.meanTimeBetweenKillsInWorkDays"
-             ng-change="$ctrl.configChanged()"/>
+      <input
+        type="number"
+        class="form-control input-sm"
+        min="1"
+        ng-model="$ctrl.config.meanTimeBetweenKillsInWorkDays"
+        ng-change="$ctrl.configChanged()"
+      />
       days <help-field key="chaos.meanTime"></help-field>
     </div>
     <div class="col-md-6">
       <label>Min time between terms</label>
-      <input type="number" class="form-control input-sm"
-             min="1"
-             ng-model="$ctrl.config.minTimeBetweenKillsInWorkDays"
-             ng-change="$ctrl.configChanged()"/>
+      <input
+        type="number"
+        class="form-control input-sm"
+        min="1"
+        ng-model="$ctrl.config.minTimeBetweenKillsInWorkDays"
+        ng-change="$ctrl.configChanged()"
+      />
       days <help-field key="chaos.minTime"></help-field>
     </div>
   </div>
@@ -30,19 +34,19 @@
     <div class="col-md-5 col-md-offset-1">
       <label class="control-label">Grouping <help-field key="chaos.grouping"></help-field></label>
       <label class="radio-inline" ng-repeat="grouping in $ctrl.groupingOptions">
-        <input type="radio"
-               ng-model="$ctrl.config.grouping"
-               ng-change="$ctrl.configChanged()"
-               ng-value="grouping.key"/>
-        {{grouping.label}}
+        <input
+          type="radio"
+          ng-model="$ctrl.config.grouping"
+          ng-change="$ctrl.configChanged()"
+          ng-value="grouping.key"
+        />
+        {{ grouping.label }}
       </label>
     </div>
     <div class="col-md-6">
       <div class="checkbox">
         <label>
-          <input type="checkbox"
-                 ng-model="$ctrl.config.regionsAreIndependent"
-                 ng-change="$ctrl.configChanged()"/>
+          <input type="checkbox" ng-model="$ctrl.config.regionsAreIndependent" ng-change="$ctrl.configChanged()" />
           Regions are independent
           <help-field key="chaos.regions"></help-field>
         </label>
@@ -50,7 +54,11 @@
     </div>
   </div>
 
-  <chaos-monkey-exceptions application="$ctrl.application" config="$ctrl.config" config-changed="$ctrl.configChanged()"></chaos-monkey-exceptions>
+  <chaos-monkey-exceptions
+    application="$ctrl.application"
+    config="$ctrl.config"
+    config-changed="$ctrl.configChanged()"
+  ></chaos-monkey-exceptions>
   <h5 style="margin-top: 0">Documentation</h5>
   <div class="row">
     <div class="col-md-12">
@@ -58,8 +66,10 @@
     </div>
   </div>
 
-  <config-section-footer application="$ctrl.application"
-                         config="$ctrl.config"
-                         view-state="$ctrl.viewState"
-                         config-field="chaosMonkey"></config-section-footer>
+  <config-section-footer
+    application="$ctrl.application"
+    config="$ctrl.config"
+    view-state="$ctrl.viewState"
+    config-field="chaosMonkey"
+  ></config-section-footer>
 </div>

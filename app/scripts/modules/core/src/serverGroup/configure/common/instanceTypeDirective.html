@@ -5,36 +5,47 @@
     <p>{{family.description}}</p>
     <table class="table table-hover">
       <thead>
-      <tr>
-        <th></th>
-        <th>Size</th>
-        <th>vCPU</th>
-        <th>Mem (GiB)</th>
-        <th>{{family.storageType || 'SSD'}} Storage (GB)
-          <help-field ng-if="family.storageHelpFieldKey" key="{{family.storageHelpFieldKey}}"></help-field>
-        </th>
-        <th>Cost</th>
-      </tr>
+        <tr>
+          <th></th>
+          <th>Size</th>
+          <th>vCPU</th>
+          <th>Mem (GiB)</th>
+          <th>
+            {{family.storageType || 'SSD'}} Storage (GB)
+            <help-field ng-if="family.storageHelpFieldKey" key="{{family.storageHelpFieldKey}}"></help-field>
+          </th>
+          <th>Cost</th>
+        </tr>
       </thead>
       <tbody>
-      <tr ng-repeat="instanceType in family.instanceTypes"
+        <tr
+          ng-repeat="instanceType in family.instanceTypes"
           ng-class="{info: instanceTypeCtrl.command.instanceType === instanceType.name, clickable: !instanceType.unavailable, unavailable: instanceType.unavailable}"
-          ng-click="instanceTypeCtrl.selectInstanceType(instanceType)">
-        <td>
-          <help-field ng-if="instanceType.unavailable" key="instanceType.unavailable"></help-field>
-          <help-field ng-if="instanceType.helpFieldKey" key="{{instanceType.helpFieldKey}}"></help-field>
-          <input type="radio" ng-value="instanceType.name" ng-model="instanceTypeCtrl.command.instanceType" ng-disabled="instanceType.unavailable"/>
-        </td>
-        <td>{{instanceType.label}}</td>
-        <td>{{instanceType.cpu}}</td>
-        <td>{{instanceType.memory}}</td>
-        <td ng-if="instanceType.storage.type === 'EBS'">EBS Only</td>
-        <td ng-if="instanceType.storage.type === 'SSD' || family.storageType">
-          <help-field ng-if="instanceTypeCtrl.getStorageDescriptionHelpKey(instanceType)" key="{{instanceTypeCtrl.getStorageDescriptionHelpKey(instanceType)}}"></help-field>
-          {{instanceTypeCtrl.getStorageDescription(instanceType)}}
-        </td>
-        <td><cost-factor factor="instanceType.costFactor"></cost-factor></td>
-      </tr>
+          ng-click="instanceTypeCtrl.selectInstanceType(instanceType)"
+        >
+          <td>
+            <help-field ng-if="instanceType.unavailable" key="instanceType.unavailable"></help-field>
+            <help-field ng-if="instanceType.helpFieldKey" key="{{instanceType.helpFieldKey}}"></help-field>
+            <input
+              type="radio"
+              ng-value="instanceType.name"
+              ng-model="instanceTypeCtrl.command.instanceType"
+              ng-disabled="instanceType.unavailable"
+            />
+          </td>
+          <td>{{instanceType.label}}</td>
+          <td>{{instanceType.cpu}}</td>
+          <td>{{instanceType.memory}}</td>
+          <td ng-if="instanceType.storage.type === 'EBS'">EBS Only</td>
+          <td ng-if="instanceType.storage.type === 'SSD' || family.storageType">
+            <help-field
+              ng-if="instanceTypeCtrl.getStorageDescriptionHelpKey(instanceType)"
+              key="{{instanceTypeCtrl.getStorageDescriptionHelpKey(instanceType)}}"
+            ></help-field>
+            {{instanceTypeCtrl.getStorageDescription(instanceType)}}
+          </td>
+          <td><cost-factor factor="instanceType.costFactor"></cost-factor></td>
+        </tr>
       </tbody>
     </table>
   </div>

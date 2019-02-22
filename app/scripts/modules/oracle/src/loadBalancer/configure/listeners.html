@@ -16,11 +16,23 @@
         <tbody>
           <tr ng-repeat="listener in ctrl.listeners">
             <td>
-              <input type="checkbox" name="isSsl" ng-model="listener.isSsl" on-change="ctrl.listenerIsSslChanged(listener)"/>
+              <input
+                type="checkbox"
+                name="isSsl"
+                ng-model="listener.isSsl"
+                on-change="ctrl.listenerIsSslChanged(listener)"
+              />
             </td>
             <td>
-              <ui-select ng-if="listener.isSsl" class="form-control input-sm" required ng-model="listener.sslConfiguration.certificateName">
-                <ui-select-match placeholder="Select certificate name">{{$select.selected.certificateName}}</ui-select-match>
+              <ui-select
+                ng-if="listener.isSsl"
+                class="form-control input-sm"
+                required
+                ng-model="listener.sslConfiguration.certificateName"
+              >
+                <ui-select-match placeholder="Select certificate name"
+                  >{{$select.selected.certificateName}}</ui-select-match
+                >
                 <ui-select-choices repeat="cert.certificateName as cert in ctrl.certificates | filter: $select.search">
                   <span ng-bind-html="cert.certificateName | highlight: $select.search"></span>
                 </ui-select-choices>
@@ -28,22 +40,31 @@
               <div ng-if="!listener.isSsl">N/A</div>
             </td>
             <td>
-              <select class="form-control input-sm" ng-model="listener.protocol" ng-options="protocol for protocol in ['HTTP', 'TCP']"></select>
+              <select
+                class="form-control input-sm"
+                ng-model="listener.protocol"
+                ng-options="protocol for protocol in ['HTTP', 'TCP']"
+              ></select>
             </td>
             <td>
-              <input class="form-control input-sm" type="number" ng-model="listener.port" required/>
+              <input class="form-control input-sm" type="number" ng-model="listener.port" required />
             </td>
             <td>
               <ui-select class="form-control input-sm" required ng-model="listener.defaultBackendSetName">
-                <ui-select-match placeholder="Select default backend set name">{{$select.selected.name}}</ui-select-match>
+                <ui-select-match placeholder="Select default backend set name"
+                  >{{$select.selected.name}}</ui-select-match
+                >
                 <ui-select-choices repeat="backendSet.name as backendSet in ctrl.backendSets | filter: $select.search">
                   <span ng-bind-html="backendSet.name | highlight: $select.search"></span>
                 </ui-select-choices>
               </ui-select>
               <!-- <select class="form-control input-sm" required ng-model="listener.defaultBackendSetName" ng-options="backendSetName as backendSet.name for backendSet in loadBalancerCmd.backendSets"></select> -->
             </td>
-            <td><a href class="sm-label" ng-click="ctrl.removeListener($index)"><span
-              class="glyphicon glyphicon-trash"></span></a></td>
+            <td>
+              <a href class="sm-label" ng-click="ctrl.removeListener($index)"
+                ><span class="glyphicon glyphicon-trash"></span
+              ></a>
+            </td>
           </tr>
           <tr ng-if="!ctrl.listenersUniqueProtocolPort()">
             <td colspan="3">
@@ -54,14 +75,14 @@
         <tfoot>
           <tr>
             <td colspan="5">
-              <button class="add-new col-md-12" ng-click="ctrl.addListener()"><span class="glyphicon glyphicon-plus-sign"></span>
+              <button class="add-new col-md-12" ng-click="ctrl.addListener()">
+                <span class="glyphicon glyphicon-plus-sign"></span>
                 Add Listener
               </button>
             </td>
           </tr>
         </tfoot>
       </table>
-
     </div>
   </div>
 </div>

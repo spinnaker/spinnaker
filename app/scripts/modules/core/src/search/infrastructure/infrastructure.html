@@ -4,15 +4,18 @@
       <h2 class="header-section">
         <i class="fa fa-search"></i>
         <span class="search-label">Search</span>
-        <input type="search"
-               class="form-control input-lg"
-               placeholder="projects, applications, clusters, load balancers, server groups, {{firewallsLabel}}"
-               autofocus
-               ng-model-options="{ updateOn: 'default blur', debounce: { 'default': 300, 'blur': 0 } }"
-               ng-model="query"/>
+        <input
+          type="search"
+          class="form-control input-lg"
+          placeholder="projects, applications, clusters, load balancers, server groups, {{firewallsLabel}}"
+          autofocus
+          ng-model-options="{ updateOn: 'default blur', debounce: { 'default': 300, 'blur': 0 } }"
+          ng-model="query"
+        />
         <div ng-if="query && query.length && query.length < viewState.minCharactersToSearch">
-          <p style="margin: 10px 20px 0">Please enter at least {{viewState.minCharactersToSearch}} characters to begin
-            searching.</p>
+          <p style="margin: 10px 20px 0">
+            Please enter at least {{viewState.minCharactersToSearch}} characters to begin searching.
+          </p>
         </div>
       </h2>
       <div class="header-actions">
@@ -22,12 +25,18 @@
           </button>
           <ul uib-dropdown-menu class="uib-dropdown-menu">
             <li ng-repeat="action in ctrl.menuActions">
-              <a href ng-if="action.disableAutoClose"
-                 ng-click="action.action(status)"
-                 ng-bind-html="action.displayName"></a>
-              <a href ng-if="!action.disableAutoClose"
-                 ng-click="action.action(); status.isOpen = false"
-                 ng-bind-html="action.displayName"></a>
+              <a
+                href
+                ng-if="action.disableAutoClose"
+                ng-click="action.action(status)"
+                ng-bind-html="action.displayName"
+              ></a>
+              <a
+                href
+                ng-if="!action.disableAutoClose"
+                ng-click="action.action(); status.isOpen = false"
+                ng-bind-html="action.displayName"
+              ></a>
             </li>
           </ul>
         </div>
@@ -50,12 +59,14 @@
         <div class="row">
           <div class="col-md-12">
             <div class="no-results" ng-if="!projects.length">
-              No projects found matching "{{query}}".<br/>
+              No projects found matching "{{query}}".<br />
               <a href ng-click="ctrl.createProject()">Create a new project</a>
             </div>
-            <project-summary-pod ng-repeat="project in projects[0].results"
-                                 project-name="project.name"
-                                 applications="project.config.applications">
+            <project-summary-pod
+              ng-repeat="project in projects[0].results"
+              project-name="project.name"
+              applications="project.config.applications"
+            >
             </project-summary-pod>
           </div>
         </div>
@@ -82,10 +93,12 @@
                 {{ category.type.displayName }} ({{category.results.length}})
               </div>
               <div class="details-container list-group">
-                <a class="list-group-item"
-                   ng-repeat="result in ::category.results | searchRank: query"
-                   ng-click="ctrl.clearFilters(result)"
-                   href="{{ ::result.href }}">
+                <a
+                  class="list-group-item"
+                  ng-repeat="result in ::category.results | searchRank: query"
+                  ng-click="ctrl.clearFilters(result)"
+                  href="{{ ::result.href }}"
+                >
                   <search-result display-name="::result.displayName" account="::result.account"></search-result>
                 </a>
               </div>

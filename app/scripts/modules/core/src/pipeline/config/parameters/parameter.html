@@ -1,10 +1,12 @@
 <div class="row">
-
   <div class="col-md-12">
     <div class="form-horizontal panel-pipeline-phase">
       <div class="row name-field">
         <div class="col-md-1">
-          <span ng-if="pipeline.parameterConfig.length > 1" class="clickable glyphicon glyphicon-resize-vertical"></span>
+          <span
+            ng-if="pipeline.parameterConfig.length > 1"
+            class="clickable glyphicon glyphicon-resize-vertical"
+          ></span>
         </div>
         <label class="col-md-2 sm-label-right">
           <span class="label-text">Name</span>
@@ -12,19 +14,18 @@
         <div class="col-md-9">
           <div class="row">
             <div class="col-md-4">
-              <input type="text" required ng-model="parameter.name"
-                     class="form-control input-sm"/>
+              <input type="text" required ng-model="parameter.name" class="form-control input-sm" />
             </div>
             <div class="col-md-2 sm-label-right">
               <span class="label-text">Label <help-field key="pipeline.config.parameter.label"></help-field></span>
             </div>
             <div class="col-md-4">
-              <input type="text" ng-model="parameter.label"
-                     class="form-control input-sm"/>
+              <input type="text" ng-model="parameter.label" class="form-control input-sm" />
             </div>
             <div class="col-md-1 col-md-offset-1">
               <button class="btn-link" ng-click="parameterCtrl.remove(parameter)">
-                <span class="glyphicon glyphicon-trash" uib-tooltip="Remove parameter"></span><span class="sr-only">Remove Parameter</span>
+                <span class="glyphicon glyphicon-trash" uib-tooltip="Remove parameter"></span
+                ><span class="sr-only">Remove Parameter</span>
               </button>
             </div>
           </div>
@@ -40,12 +41,10 @@
       </stage-config-field>
 
       <stage-config-field label="Description" help-key="pipeline.config.parameter.description">
-        <input type="text" ng-model="parameter.description"
-               class="form-control input-sm"/>
+        <input type="text" ng-model="parameter.description" class="form-control input-sm" />
       </stage-config-field>
       <stage-config-field label="Default Value">
-        <input type="text" ng-model="parameter.default"
-               class="form-control input-sm"/>
+        <input type="text" ng-model="parameter.default" class="form-control input-sm" />
       </stage-config-field>
       <stage-config-field label="Show Options">
         <div class="checkbox">
@@ -56,12 +55,17 @@
       </stage-config-field>
       <stage-config-field ng-if="parameter.hasOptions" label="Options">
         <div ng-repeat="item in parameter.options" style="margin-bottom:5px">
-          <input style="width:90%" class="col-md-4 form-control input-sm" ng-model="item.value" type="text"/>
+          <input style="width:90%" class="col-md-4 form-control input-sm" ng-model="item.value" type="text" />
           <button class="btn-link" ng-click="parameterCtrl.removeOption($index, parameter)">
-            <span class="glyphicon glyphicon-trash" uib-tooltip="Remove Option"></span><span class="sr-only">Remove Option</span>
+            <span class="glyphicon glyphicon-trash" uib-tooltip="Remove Option"></span
+            ><span class="sr-only">Remove Option</span>
           </button>
         </div>
-        <button class="btn btn-sm btn-default add-new" ng-click="parameterCtrl.addOption(parameter)" style="margin-top: 10px">
+        <button
+          class="btn btn-sm btn-default add-new"
+          ng-click="parameterCtrl.addOption(parameter)"
+          style="margin-top: 10px"
+        >
           <span class="glyphicon glyphicon-plus-sign"></span> Add New Option
         </button>
       </stage-config-field>

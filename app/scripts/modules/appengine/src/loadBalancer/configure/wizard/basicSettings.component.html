@@ -7,22 +7,26 @@
       </div>
       <div class="col-md-9">
         <div ng-if="!$ctrl.forPipelineConfig">
-          <appengine-allocation-configuration-row ng-repeat="description in $ctrl.loadBalancer.splitDescription.allocationDescriptions"
-                                                  allocation-description="description"
-                                                  server-group-options="$ctrl.serverGroupOptions"
-                                                  on-allocation-change="$ctrl.updateServerGroupOptions()"
-                                                  remove-allocation="$ctrl.removeAllocation($index)">
+          <appengine-allocation-configuration-row
+            ng-repeat="description in $ctrl.loadBalancer.splitDescription.allocationDescriptions"
+            allocation-description="description"
+            server-group-options="$ctrl.serverGroupOptions"
+            on-allocation-change="$ctrl.updateServerGroupOptions()"
+            remove-allocation="$ctrl.removeAllocation($index)"
+          >
           </appengine-allocation-configuration-row>
         </div>
         <div ng-if="$ctrl.forPipelineConfig">
-          <appengine-stage-allocation-configuration-row ng-repeat="description in $ctrl.loadBalancer.splitDescription.allocationDescriptions"
-                                                        allocation-description="description"
-                                                        application="$ctrl.application"
-                                                        region="{{$ctrl.loadBalancer.region}}"
-                                                        account="{{$ctrl.loadBalancer.account || $ctrl.loadBalancer.credentials}}"
-                                                        server-group-options="$ctrl.serverGroupOptions"
-                                                        on-allocation-change="$ctrl.updateServerGroupOptions()"
-                                                        remove-allocation="$ctrl.removeAllocation($index)">
+          <appengine-stage-allocation-configuration-row
+            ng-repeat="description in $ctrl.loadBalancer.splitDescription.allocationDescriptions"
+            allocation-description="description"
+            application="$ctrl.application"
+            region="{{ $ctrl.loadBalancer.region }}"
+            account="{{ $ctrl.loadBalancer.account || $ctrl.loadBalancer.credentials }}"
+            server-group-options="$ctrl.serverGroupOptions"
+            on-allocation-change="$ctrl.updateServerGroupOptions()"
+            remove-allocation="$ctrl.removeAllocation($index)"
+          >
           </appengine-stage-allocation-configuration-row>
         </div>
         <button class="add-new col-md-11" ng-if="$ctrl.showAddButton()" ng-click="$ctrl.addAllocation()">
@@ -46,12 +50,12 @@
         <form class="form-inline">
           <div class="form-group">
             <label class="radio-inline">
-              <input type="radio" ng-model="$ctrl.loadBalancer.splitDescription.shardBy" value="IP">
+              <input type="radio" ng-model="$ctrl.loadBalancer.splitDescription.shardBy" value="IP" />
               IP
               <help-field key="appengine.loadBalancer.shardBy.ip"></help-field>
             </label>
             <label class="radio-inline">
-              <input type="radio" ng-model="$ctrl.loadBalancer.splitDescription.shardBy" value="COOKIE">
+              <input type="radio" ng-model="$ctrl.loadBalancer.splitDescription.shardBy" value="COOKIE" />
               Cookie
               <help-field key="appengine.loadBalancer.shardBy.cookie"></help-field>
             </label>

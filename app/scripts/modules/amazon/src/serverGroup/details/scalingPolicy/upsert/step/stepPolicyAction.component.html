@@ -1,35 +1,46 @@
 <div class="row" ng-repeat="step in $ctrl.command.step.stepAdjustments">
   <div class="col-md-10 col-md-offset-1 step-policy-row">
-    <select ng-if="$first"
-            class="form-control input-sm"
-            style="width: 65px"
-            required
-            ng-model="$ctrl.viewState.operator"
-            ng-change="$ctrl.operatorChanged()"
-            ng-options="adjustment for adjustment in $ctrl.availableActions"></select>
-    <span style="width: 75px; text-transform: capitalize"
-          class="form-control-static select-placeholder"
-          ng-bind="$ctrl.viewState.operator"
-          ng-if="!$first"></span>
+    <select
+      ng-if="$first"
+      class="form-control input-sm"
+      style="width: 65px"
+      required
+      ng-model="$ctrl.viewState.operator"
+      ng-change="$ctrl.operatorChanged()"
+      ng-options="adjustment for adjustment in $ctrl.availableActions"
+    ></select>
+    <span
+      style="width: 75px; text-transform: capitalize"
+      class="form-control-static select-placeholder"
+      ng-bind="$ctrl.viewState.operator"
+      ng-if="!$first"
+    ></span>
 
-    <input type="number" min="1"
-           class="form-control input-sm"
-           required
-           style="width: 65px"
-           ng-model="step.scalingAdjustment"/>
+    <input
+      type="number"
+      min="1"
+      class="form-control input-sm"
+      required
+      style="width: 65px"
+      ng-model="step.scalingAdjustment"
+    />
 
-    <select ng-if="$first"
-            class="form-control input-sm"
-            style="width: 110px"
-            required
-            ng-model="$ctrl.viewState.adjustmentType"
-            ng-change="$ctrl.adjustmentTypeChanged()"
-            ng-options="option for option in $ctrl.adjustmentTypeOptions"></select>
-    <span style="width: 120px" class="form-control-static select-placeholder"
-          ng-if="!$first" ng-bind="$ctrl.viewState.adjustmentType"></span>
-    <span class="input-label">
-      when <strong ng-bind="$ctrl.command.alarm.metricName"></strong>
-    </span>
+    <select
+      ng-if="$first"
+      class="form-control input-sm"
+      style="width: 110px"
+      required
+      ng-model="$ctrl.viewState.adjustmentType"
+      ng-change="$ctrl.adjustmentTypeChanged()"
+      ng-options="option for option in $ctrl.adjustmentTypeOptions"
+    ></select>
+    <span
+      style="width: 120px"
+      class="form-control-static select-placeholder"
+      ng-if="!$first"
+      ng-bind="$ctrl.viewState.adjustmentType"
+    ></span>
+    <span class="input-label"> when <strong ng-bind="$ctrl.command.alarm.metricName"></strong> </span>
 
     <span ng-if="$ctrl.viewState.comparatorBound === 'max'">
       <span class="input-label" ng-if="!$last">
@@ -38,36 +49,40 @@
         <span class="input-label">and</span>
       </span>
       <span class="input-label" ng-if="$last">
-        is greater than 
+        is greater than
         <span ng-if="!$first || $ctrl.command.alarm.comparisonOperator.includes('Equal')"> or equal to </span>
         <span class="input-label" ng-bind="step.metricIntervalLowerBound"></span>
       </span>
 
-      <input type="number"
-             ng-if="!$last"
-             class="form-control input-sm"
-             ng-model="step.metricIntervalUpperBound"
-             ng-change="$ctrl.boundsChanged()"
-             required
-             ng-min="step.metricIntervalLowerBound"
-             style="width: 85px"/>
+      <input
+        type="number"
+        ng-if="!$last"
+        class="form-control input-sm"
+        ng-model="step.metricIntervalUpperBound"
+        ng-change="$ctrl.boundsChanged()"
+        required
+        ng-min="step.metricIntervalLowerBound"
+        style="width: 85px"
+      />
     </span>
 
     <span ng-if="$ctrl.viewState.comparatorBound === 'min'">
       <span class="input-label" ng-if="!$last">
         is between
       </span>
-      <input type="number"
-             ng-if="!$last"
-             class="form-control input-sm"
-             ng-model="step.metricIntervalLowerBound"
-             required
-             ng-max="step.metricIntervalUpperBound"
-             ng-change="$ctrl.boundsChanged()"
-             style="width: 85px"/>
+      <input
+        type="number"
+        ng-if="!$last"
+        class="form-control input-sm"
+        ng-model="step.metricIntervalLowerBound"
+        required
+        ng-max="step.metricIntervalUpperBound"
+        ng-change="$ctrl.boundsChanged()"
+        style="width: 85px"
+      />
       <span class="input-label" ng-if="!$last">and</span>
       <span class="input-label" ng-if="$last">
-        is less than 
+        is less than
         <span ng-if="!$first || $ctrl.command.alarm.comparisonOperator.includes('Equal')"> or equal to </span>
       </span>
       <span class="input-label text-right" ng-bind="step.metricIntervalUpperBound"></span>
@@ -92,7 +107,10 @@
 
 <div class="row">
   <div class="col-md-10 col-md-offset-1">
-    <a href="http://docs.aws.amazon.com/autoscaling/latest/userguide/as-scale-based-on-demand.html#as-scaling-steps" target="_blank">
+    <a
+      href="http://docs.aws.amazon.com/autoscaling/latest/userguide/as-scale-based-on-demand.html#as-scaling-steps"
+      target="_blank"
+    >
       <i class="far fa-file-alt"></i>
       Documentation
     </a>

@@ -5,28 +5,28 @@
       <div class="col-md-12">
         <table class="table table-condensed">
           <thead>
-          <tr>
-            <th>Account</th>
-            <th>Name</th>
-            <th>Region</th>
-            <th ng-if="hasSubnetDeployments()">Subnet</th>
-          </tr>
+            <tr>
+              <th>Account</th>
+              <th>Name</th>
+              <th>Region</th>
+              <th ng-if="hasSubnetDeployments()">Subnet</th>
+            </tr>
           </thead>
           <tbody>
-          <tr ng-repeat="loadBalancer in stage.context.loadBalancers">
-            <td>
-              <account-tag account="loadBalancer.credentials"></account-tag>
-            </td>
-            <td>
-              {{ loadBalancer.name }}
-            </td>
-            <td>
-              {{ loadBalancer.region }}
-            </td>
-            <td ng-if="hasSubnetDeployments()">
-              {{ loadBalancer.subnetType || '[none]' }}
-            </td>
-          </tr>
+            <tr ng-repeat="loadBalancer in stage.context.loadBalancers">
+              <td>
+                <account-tag account="loadBalancer.credentials"></account-tag>
+              </td>
+              <td>
+                {{ loadBalancer.name }}
+              </td>
+              <td>
+                {{ loadBalancer.region }}
+              </td>
+              <td ng-if="hasSubnetDeployments()">
+                {{ loadBalancer.subnetType || '[none]' }}
+              </td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -37,20 +37,20 @@
       <div class="col-md-12">
         <div class="well alert alert-info">
           <strong>Created:</strong>
-                    <div ng-repeat="lb in createdLoadBalancers">
-                        <a target=_blank href="http://{{lb.dnsName}}">
-                          {{lb.dnsName}}
-                        </a>
-                        <copy-to-clipboard
-                                class="copy-to-clipboard copy-to-clipboard-sm"
-                                text="lb.dnsName"
-                                tool-tip="'Copy DNS Name to clipboard'">
-                        </copy-to-clipboard>
-                    </div>
+          <div ng-repeat="lb in createdLoadBalancers">
+            <a target="_blank" href="http://{{lb.dnsName}}">
+              {{lb.dnsName}}
+            </a>
+            <copy-to-clipboard
+              class="copy-to-clipboard copy-to-clipboard-sm"
+              text="lb.dnsName"
+              tool-tip="'Copy DNS Name to clipboard'"
+            >
+            </copy-to-clipboard>
+          </div>
         </div>
       </div>
     </div>
-
   </div>
 
   <div class="step-section-details" ng-if="detailsSection === 'taskStatus'">

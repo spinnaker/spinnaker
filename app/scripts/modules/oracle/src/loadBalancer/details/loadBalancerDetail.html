@@ -1,9 +1,7 @@
 <div class="details-panel">
-
   <div ng-if="state.loading" class="header">
     <div class="close-button">
-      <a class="btn btn-link"
-         ui-sref="^">
+      <a class="btn btn-link" ui-sref="^">
         <span class="glyphicon glyphicon-remove"></span>
       </a>
     </div>
@@ -14,8 +12,7 @@
 
   <div ng-if="!state.loading" class="header">
     <div class="close-button">
-      <a class="btn btn-link"
-         ui-sref="^">
+      <a class="btn btn-link" ui-sref="^">
         <span class="glyphicon glyphicon-remove"></span>
       </a>
     </div>
@@ -33,8 +30,14 @@
           </button>
           <ul class="dropdown-menu" uib-dropdown-menu role="menu">
             <li><a href ng-click="ctrl.editLoadBalancer()">Edit Load Balancer</a></li>
-            <li ng-if="!loadBalancer.serverGroups.length"><a href ng-click="ctrl.deleteLoadBalancer()">Delete Load Balancer</a></li>
-            <li ng-if="loadBalancer.serverGroups.length" class="disabled" tooltip="You must detach all server groups before you can delete this load balancer.">
+            <li ng-if="!loadBalancer.serverGroups.length">
+              <a href ng-click="ctrl.deleteLoadBalancer()">Delete Load Balancer</a>
+            </li>
+            <li
+              ng-if="loadBalancer.serverGroups.length"
+              class="disabled"
+              tooltip="You must detach all server groups before you can delete this load balancer."
+            >
               <a href ng-click="return">Delete Load Balancer</a>
             </li>
           </ul>
@@ -48,7 +51,10 @@
         <dt>Created</dt>
         <dd>{{loadBalancer.timeCreated}}</dd>
         <dt>In</dt>
-        <dd><account-tag account="loadBalancer.account" pad="right" provider="loadBalancer.type"></account-tag> {{loadBalancer.region}}</dd>
+        <dd>
+          <account-tag account="loadBalancer.account" pad="right" provider="loadBalancer.type"></account-tag>
+          {{loadBalancer.region}}
+        </dd>
         <dt>Subnets</dt>
         <dd ng-repeat="subnet in loadBalancer.subnets">{{subnet.name}}</dd>
         <dt>Public IP</dt>
@@ -59,11 +65,13 @@
         <dd ng-if="loadBalancer.serverGroups">
           <ul class="collapse-margin-on-filter-collapse">
             <li ng-repeat="serverGroup in loadBalancer.serverGroups | orderBy: ['isDisabled', '-name']">
-              <a ui-sref="^.serverGroup({region: serverGroup.region,
+              <a
+                ui-sref="^.serverGroup({region: serverGroup.region,
                                           accountId: serverGroup.account,
                                           serverGroup: serverGroup.name,
-                                          provider: 'oracle'})">
-              {{serverGroup.name}}
+                                          provider: 'oracle'})"
+              >
+                {{serverGroup.name}}
               </a>
             </li>
           </ul>

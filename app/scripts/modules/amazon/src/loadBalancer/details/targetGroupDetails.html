@@ -1,9 +1,7 @@
 <div class="details-panel">
-
   <div ng-if="ctrl.state.loading" class="header">
     <div class="close-button">
-      <a class="btn btn-link"
-         ui-sref="^">
+      <a class="btn btn-link" ui-sref="^">
         <span class="glyphicon glyphicon-remove"></span>
       </a>
     </div>
@@ -14,8 +12,7 @@
 
   <div ng-if="!ctrl.state.loading" class="header">
     <div class="close-button">
-      <a class="btn btn-link"
-         ui-sref="^">
+      <a class="btn btn-link" ui-sref="^">
         <span class="glyphicon glyphicon-remove"></span>
       </a>
     </div>
@@ -28,13 +25,25 @@
     <div>
       <div class="actions">
         <div class="dropdown" uib-dropdown dropdown-append-to-body>
-          <button type="button" class="btn btn-sm btn-primary dropdown-toggle" style="visibility: hidden" disabled uib-dropdown-toggle>
+          <button
+            type="button"
+            class="btn btn-sm btn-primary dropdown-toggle"
+            style="visibility: hidden"
+            disabled
+            uib-dropdown-toggle
+          >
             Target Group Actions <span class="caret"></span>
           </button>
           <ul class="dropdown-menu" uib-dropdown-menu role="menu">
             <li><a href ng-click="ctrl.editLoadBalancer()">Edit Target Group</a></li>
-            <li ng-if="!ctrl.loadBalancer.instances.length"><a href ng-click="ctrl.deleteLoadBalancer()">Delete Target Group</a></li>
-            <li ng-if="ctrl.loadBalancer.instances.length" class="disabled" uib-tooltip="You must detach all instances before you can delete this load balancer.">
+            <li ng-if="!ctrl.loadBalancer.instances.length">
+              <a href ng-click="ctrl.deleteLoadBalancer()">Delete Target Group</a>
+            </li>
+            <li
+              ng-if="ctrl.loadBalancer.instances.length"
+              class="disabled"
+              uib-tooltip="You must detach all instances before you can delete this load balancer."
+            >
               <a href ng-click="ctrl.deleteLoadBalancer()">Delete Target Group</a>
             </li>
           </ul>
@@ -61,12 +70,14 @@
         <dd>
           <ul class="collapse-margin-on-filter-collapse">
             <li>
-              <a ui-sref="^.loadBalancerDetails({ name: ctrl.loadBalancer.name,
+              <a
+                ui-sref="^.loadBalancerDetails({ name: ctrl.loadBalancer.name,
                                                   region: ctrl.loadBalancer.region,
                                                   accountId: ctrl.loadBalancer.account,
                                                   vpcId: ctrl.loadBalancer.vpcId,
-                                                  provider: 'aws'})">
-              {{ctrl.loadBalancer.name}}
+                                                  provider: 'aws'})"
+              >
+                {{ctrl.loadBalancer.name}}
               </a>
             </li>
           </ul>
@@ -75,24 +86,32 @@
       <dl class="horizontal-when-filters-collapsed">
         <dt ng-if="ctrl.loadBalancer.dnsname">Load Balancer DNS Name</dt>
         <dd ng-if="ctrl.loadBalancer.dnsname">
-          <a target="_blank" href="{{ctrl.elbProtocol}}//{{ctrl.loadBalancer.dnsname}}">{{ctrl.loadBalancer.dnsname}}</a>
+          <a target="_blank" href="{{ctrl.elbProtocol}}//{{ctrl.loadBalancer.dnsname}}"
+            >{{ctrl.loadBalancer.dnsname}}</a
+          >
           <copy-to-clipboard
-              class="copy-to-clipboard copy-to-clipboard-sm"
-              text="ctrl.loadBalancer.dnsname"
-              tool-tip="'Copy DNS Name to clipboard'">
+            class="copy-to-clipboard copy-to-clipboard-sm"
+            text="ctrl.loadBalancer.dnsname"
+            tool-tip="'Copy DNS Name to clipboard'"
+          >
           </copy-to-clipboard>
         </dd>
       </dl>
-      <dl ng-if="ctrl.targetGroup.serverGroups && ctrl.targetGroup.serverGroups.length" class="horizontal-when-filters-collapsed">
+      <dl
+        ng-if="ctrl.targetGroup.serverGroups && ctrl.targetGroup.serverGroups.length"
+        class="horizontal-when-filters-collapsed"
+      >
         <dt>Server Groups</dt>
         <dd>
           <ul class="collapse-margin-on-filter-collapse">
             <li ng-repeat="serverGroup in ctrl.targetGroup.serverGroups | orderBy: ['isDisabled', '-name']">
-              <a ui-sref="^.serverGroup({region: serverGroup.region,
+              <a
+                ui-sref="^.serverGroup({region: serverGroup.region,
                                           accountId: serverGroup.account,
                                           serverGroup: serverGroup.name,
-                                          provider: serverGroup.cloudProvider})">
-              {{serverGroup.name}}
+                                          provider: serverGroup.cloudProvider})"
+              >
+                {{serverGroup.name}}
               </a>
             </li>
           </ul>
@@ -105,7 +124,10 @@
     <collapsible-section heading="Health Checks">
       <dl class="horizontal-when-filters-collapsed">
         <dt>Target</dt>
-        <dd>{{ctrl.targetGroup.healthCheckProtocol}}:{{ctrl.targetGroup.healthCheckPort}} {{ctrl.targetGroup.healthCheckPath}}</dd>
+        <dd>
+          {{ctrl.targetGroup.healthCheckProtocol}}:{{ctrl.targetGroup.healthCheckPort}}
+          {{ctrl.targetGroup.healthCheckPath}}
+        </dd>
         <dt>Timeout</dt>
         <dd>{{ctrl.targetGroup.healthCheckTimeoutSeconds}} seconds</dd>
         <dt>Interval</dt>
@@ -124,7 +146,9 @@
         <dd>{{ctrl.targetGroup.attributes['deregistration_delay.timeout_seconds']}} seconds</dd>
         <dt>Stickiness Enabled</dt>
         <dd>{{ctrl.targetGroup.attributes['stickiness.enabled']}}</dd>
-        <dt ng-if-start="ctrl.targetGroup.attributes['stickiness.enabled'] === 'true'">Stickiness Load Balancer Cookie Duration</dt>
+        <dt ng-if-start="ctrl.targetGroup.attributes['stickiness.enabled'] === 'true'">
+          Stickiness Load Balancer Cookie Duration
+        </dt>
         <dd>{{ctrl.targetGroup.attributes['stickiness.lb_cookie.duration_seconds']}} seconds</dd>
         <dt>Stickiness Type</dt>
         <dd ng-if-end>{{ctrl.targetGroup.attributes['stickiness.type']}}</dd>

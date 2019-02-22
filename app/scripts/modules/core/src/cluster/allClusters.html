@@ -2,9 +2,11 @@
   <div class="col-lg-9 col-md-10 col-sm-10">
     <div class="form-inline clearfix filters">
       <div class="form-group">
-        <button class="btn btn-xs btn-default"
-                ng-class="{active: sortFilter.multiselect}"
-                ng-click="ctrl.toggleMultiselect()">
+        <button
+          class="btn btn-xs btn-default"
+          ng-class="{active: sortFilter.multiselect}"
+          ng-click="ctrl.toggleMultiselect()"
+        >
           <span class="glyphicon glyphicon-list visible-lg-inline"></span>
           <span class="glyphicon glyphicon-list visible-md-inline visible-sm-inline" uib-tooltip="Edit multiple"></span>
           <span class="visible-lg-inline">Edit multiple</span>
@@ -14,17 +16,21 @@
         <label class="checkbox">Show </label>
         <div class="checkbox">
           <label>
-            <input type="checkbox"
-                   ng-model="sortFilter.showAllInstances"
-                   ng-change="ctrl.syncUrlAndUpdateClusterGroups()"/>
+            <input
+              type="checkbox"
+              ng-model="sortFilter.showAllInstances"
+              ng-change="ctrl.syncUrlAndUpdateClusterGroups()"
+            />
             Instances
           </label>
         </div>
         <div class="checkbox" is-visible="sortFilter.showAllInstances">
           <label>
-            <input type="checkbox"
-                   ng-model="sortFilter.listInstances"
-                   ng-change="ctrl.syncUrlAndUpdateClusterGroups()"/>
+            <input
+              type="checkbox"
+              ng-model="sortFilter.listInstances"
+              ng-change="ctrl.syncUrlAndUpdateClusterGroups()"
+            />
             with details
           </label>
         </div>
@@ -35,15 +41,20 @@
     <div class="application-actions">
       <button class="btn btn-sm btn-default" ng-click="ctrl.createServerGroup()">
         <span class="glyphicon glyphicon-plus-sign visible-lg-inline"></span>
-        <span class="glyphicon glyphicon-plus-sign visible-md-inline visible-sm-inline" uib-tooltip="Create Server Group"></span>
+        <span
+          class="glyphicon glyphicon-plus-sign visible-md-inline visible-sm-inline"
+          uib-tooltip="Create Server Group"
+        ></span>
         <span class="visible-lg-inline">{{ctrl.createLabel}}</span>
       </button>
     </div>
   </div>
-  <filter-tags ng-if="!ctrl.dataSource.fetchOnDemand"
-               tags="tags"
-               tag-cleared="ctrl.updateClusterGroups"
-               clear-filters="ctrl.clearFilters"></filter-tags>
+  <filter-tags
+    ng-if="!ctrl.dataSource.fetchOnDemand"
+    tags="tags"
+    tag-cleared="ctrl.updateClusterGroups"
+    clear-filters="ctrl.clearFilters"
+  ></filter-tags>
 </div>
 
 <div ng-if="ctrl.dataSource.fetchOnDemand">

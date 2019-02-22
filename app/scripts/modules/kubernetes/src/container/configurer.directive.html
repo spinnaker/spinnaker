@@ -1,4 +1,9 @@
-<form ng-controller="kubernetesContainerConfigurerController as containerController" class="container-fluid form-horizontal" name="containers" novalidate>
+<form
+  ng-controller="kubernetesContainerConfigurerController as containerController"
+  class="container-fluid form-horizontal"
+  name="containers"
+  novalidate
+>
   <div class="form-group">
     <div class="col-md-3 sm-label-right">
       Image
@@ -7,7 +12,10 @@
     <div class="col-md-9">
       <ui-select ng-model="container.imageDescription" class="form-control input-sm">
         <ui-select-match>{{container.imageDescription.imageId}}</ui-select-match>
-        <ui-select-choices repeat="container.imageDescription as container in command.backingData.filtered.containers | filter: { imageDescription: { imageId: $select.search } } | orderBy:'imageDescription.imageId'" group-by="command.groupByRegistry">
+        <ui-select-choices
+          repeat="container.imageDescription as container in command.backingData.filtered.containers | filter: { imageDescription: { imageId: $select.search } } | orderBy:'imageDescription.imageId'"
+          group-by="command.groupByRegistry"
+        >
           <span ng-bind-html="container.imageDescription.imageId | highlight: $select.search"></span>
         </ui-select-choices>
       </ui-select>
@@ -28,7 +36,7 @@
       <help-field key="kubernetes.containers.name"></help-field>
     </div>
     <div class="col-md-6">
-      <input type="text" class="form-control input-sm" name="details" ng-model="container.name"/>
+      <input type="text" class="form-control input-sm" name="details" ng-model="container.name" />
     </div>
   </div>
 
@@ -39,8 +47,12 @@
     </div>
     <div class="col-md-6">
       <select class="form-control input-sm" ng-model="container.imagePullPolicy">
-        <option ng-repeat="type in containerController.pullPolicies" value="{{type}}"
-                ng-selected="container.imagePullPolicy === type">{{type}}</option>
+        <option
+          ng-repeat="type in containerController.pullPolicies"
+          value="{{type}}"
+          ng-selected="container.imagePullPolicy === type"
+          >{{type}}</option
+        >
       </select>
     </div>
   </div>
@@ -54,20 +66,23 @@
       <div>
         <table class="table table-condensed packed tags">
           <tr ng-repeat="command in container.command track by $index">
-            <td><input class="form-control input-sm" type="text"
-              ng-model="container.command[$index]"></td>
-            <td><a class="btn btn-link sm-label"
-                   ng-click="containerController.removeCommand($index)"><span
-              class="glyphicon glyphicon-trash"></span></a></td>
-          </tr>
-          <tfoot>
-          <tr>
-            <td colspan="1">
-              <button class="add-new btn btn-block btn-sm" ng-click="containerController.addCommand()"><span
-                class="glyphicon glyphicon-plus-sign"></span> Add Command
-              </button>
+            <td><input class="form-control input-sm" type="text" ng-model="container.command[$index]" /></td>
+
+            <td>
+              <a class="btn btn-link sm-label" ng-click="containerController.removeCommand($index)"
+                ><span class="glyphicon glyphicon-trash"></span
+              ></a>
             </td>
           </tr>
+          <tfoot>
+            <tr>
+              <td colspan="1">
+                <button class="add-new btn btn-block btn-sm" ng-click="containerController.addCommand()">
+                  <span class="glyphicon glyphicon-plus-sign"></span> Add Command
+                </button>
+              </td>
+            </tr>
+          </tfoot>
         </table>
       </div>
     </div>
@@ -79,20 +94,23 @@
       <div>
         <table class="table table-condensed packed tags">
           <tr ng-repeat="arg in container.args track by $index">
-            <td><input class="form-control input-sm" type="text"
-              ng-model="container.args[$index]"></td>
-            <td><a class="btn btn-link sm-label"
-                   ng-click="containerController.removeArg($index)"><span
-              class="glyphicon glyphicon-trash"></span></a></td>
-          </tr>
-          <tfoot>
-          <tr>
-            <td colspan="1">
-              <button class="add-new btn btn-block btn-sm" ng-click="containerController.addArg()"><span
-                class="glyphicon glyphicon-plus-sign"></span> Add Arg
-              </button>
+            <td><input class="form-control input-sm" type="text" ng-model="container.args[$index]" /></td>
+
+            <td>
+              <a class="btn btn-link sm-label" ng-click="containerController.removeArg($index)"
+                ><span class="glyphicon glyphicon-trash"></span
+              ></a>
             </td>
           </tr>
+          <tfoot>
+            <tr>
+              <td colspan="1">
+                <button class="add-new btn btn-block btn-sm" ng-click="containerController.addArg()">
+                  <span class="glyphicon glyphicon-plus-sign"></span> Add Arg
+                </button>
+              </td>
+            </tr>
+          </tfoot>
         </table>
       </div>
     </div>
@@ -107,15 +125,13 @@
       <div class="sm-label-left">
         <b>Environment From</b>
       </div>
-      <kubernetes-container-environment-from env-from="container.envFrom">
-      </kubernetes-container-environment-from>
+      <kubernetes-container-environment-from env-from="container.envFrom"> </kubernetes-container-environment-from>
     </div>
   </collapsible-section>
 
   <collapsible-section heading="Resources" expanded="false" subsection="true">
     <div class="form-group">
-      <div class="col-md-3">
-      </div>
+      <div class="col-md-3"></div>
       <div class="col-md-4 sm-label-left">
         <b>
           Requests
@@ -136,10 +152,22 @@
         <help-field key="kubernetes.containers.cpu"></help-field>
       </div>
       <div class="col-md-4">
-        <input type="text" class="form-control input-sm" name="details" ng-model="container.requests.cpu" ng-pattern="containerController.cpuPattern"/>
+        <input
+          type="text"
+          class="form-control input-sm"
+          name="details"
+          ng-model="container.requests.cpu"
+          ng-pattern="containerController.cpuPattern"
+        />
       </div>
       <div class="col-md-4">
-        <input type="text" class="form-control input-sm" name="details" ng-model="container.limits.cpu" ng-pattern="containerController.cpuPattern"/>
+        <input
+          type="text"
+          class="form-control input-sm"
+          name="details"
+          ng-model="container.limits.cpu"
+          ng-pattern="containerController.cpuPattern"
+        />
       </div>
     </div>
 
@@ -149,24 +177,36 @@
         <help-field key="kubernetes.containers.memory"></help-field>
       </div>
       <div class="col-md-4">
-        <input type="text" class="form-control input-sm" name="details" ng-model="container.requests.memory" ng-pattern="containerController.memoryPattern"/>
+        <input
+          type="text"
+          class="form-control input-sm"
+          name="details"
+          ng-model="container.requests.memory"
+          ng-pattern="containerController.memoryPattern"
+        />
       </div>
       <div class="col-md-4">
-        <input type="text" class="form-control input-sm" name="details" ng-model="container.limits.memory" ng-pattern="containerController.memoryPattern"/>
+        <input
+          type="text"
+          class="form-control input-sm"
+          name="details"
+          ng-model="container.limits.memory"
+          ng-pattern="containerController.memoryPattern"
+        />
       </div>
     </div>
   </collapsible-section>
 
   <collapsible-section heading="Ports" expanded="false" subsection="true">
     <div ng-repeat="port in container.ports">
-      <hr ng-if="$index > 0">
+      <hr ng-if="$index > 0" />
       <div class="form-group">
         <div class="col-md-3 sm-label-right">
           Name
           <help-field key="kubernetes.containers.ports.name"></help-field>
         </div>
         <div class="col-md-4">
-          <input type="text" class="form-control input-sm" name="details" ng-model="port.name"/>
+          <input type="text" class="form-control input-sm" name="details" ng-model="port.name" />
         </div>
         <div class="col-md-2">
           <button class="btn btn-sm btn-default" ng-click="containerController.removePort($index)">
@@ -181,15 +221,21 @@
           <help-field key="kubernetes.containers.ports.containerPort"></help-field>
         </div>
         <div class="col-md-2">
-          <input type="number" class="form-control input-sm" name="details" ng-model="port.containerPort"
-                 min="1" max="{{containerController.maxPort}}"/>
+          <input
+            type="number"
+            class="form-control input-sm"
+            name="details"
+            ng-model="port.containerPort"
+            min="1"
+            max="{{containerController.maxPort}}"
+          />
         </div>
         <div class="col-md-2 sm-label-right">
           Host IP
           <help-field key="kubernetes.containers.ports.hostIp"></help-field>
         </div>
         <div class="col-md-3">
-          <input type="text" class="form-control input-sm" name="details" ng-model="port.hostIp"/>
+          <input type="text" class="form-control input-sm" name="details" ng-model="port.hostIp" />
         </div>
       </div>
       <div class="form-group">
@@ -198,8 +244,14 @@
           <help-field key="kubernetes.containers.ports.hostPort"></help-field>
         </div>
         <div class="col-md-2">
-          <input type="number" class="form-control input-sm" name="details" ng-model="port.hostPort"
-                 min="1" max="{{containerController.maxPort}}" />
+          <input
+            type="number"
+            class="form-control input-sm"
+            name="details"
+            ng-model="port.hostPort"
+            min="1"
+            max="{{containerController.maxPort}}"
+          />
         </div>
         <div class="col-md-2 sm-label-right">
           Protocol
@@ -207,14 +259,18 @@
         </div>
         <div class="col-md-3">
           <select class="form-control input-sm" ng-model="port.protocol">
-            <option ng-repeat="protocol in containerController.protocols" value="{{protocol}}"
-                    ng-selected="port.protocol === protocol">{{protocol}}</option>
+            <option
+              ng-repeat="protocol in containerController.protocols"
+              value="{{protocol}}"
+              ng-selected="port.protocol === protocol"
+              >{{protocol}}</option
+            >
           </select>
         </div>
       </div>
     </div>
-    <button class="add-new btn btn-block btn-sm" ng-click="containerController.addPort()"><span
-      class="glyphicon glyphicon-plus-sign"></span> Add New Port
+    <button class="add-new btn btn-block btn-sm" ng-click="containerController.addPort()">
+      <span class="glyphicon glyphicon-plus-sign"></span> Add New Port
     </button>
   </collapsible-section>
   <collapsible-section heading="Volume Mounts" expanded="false" subsection="true">
@@ -226,8 +282,12 @@
         </div>
         <div class="col-md-4">
           <select class="form-control input-sm" ng-model="mount.name">
-            <option ng-repeat="source in command.volumeSources" value="{{source.name}}"
-                    ng-selected="mount.name === source.name">{{source.name}}</option>
+            <option
+              ng-repeat="source in command.volumeSources"
+              value="{{source.name}}"
+              ng-selected="mount.name === source.name"
+              >{{source.name}}</option
+            >
           </select>
         </div>
         <div class="col-md-2">
@@ -243,7 +303,7 @@
           <help-field key="kubernetes.containers.volumemounts.mountPath"></help-field>
         </div>
         <div class="col-md-4">
-          <input type="text" class="form-control input-sm" name="details" ng-model="mount.mountPath"/>
+          <input type="text" class="form-control input-sm" name="details" ng-model="mount.mountPath" />
         </div>
       </div>
       <div class="form-group">
@@ -252,7 +312,7 @@
           <help-field key="kubernetes.containers.volumemounts.subPath"></help-field>
         </div>
         <div class="col-md-4">
-          <input type="text" class="form-control input-sm" name="details" ng-model="mount.subPath"/>
+          <input type="text" class="form-control input-sm" name="details" ng-model="mount.subPath" />
         </div>
       </div>
       <div class="form-group">
@@ -260,31 +320,44 @@
           Read Only
         </div>
         <div class="col-md-2">
-          <input type="checkbox" ng-model="mount.readOnly"/>
+          <input type="checkbox" ng-model="mount.readOnly" />
         </div>
       </div>
-      <hr ng-if="container.volumeMounts.length > 1">
+      <hr ng-if="container.volumeMounts.length > 1" />
     </div>
-    <button class="add-new btn btn-block btn-sm" ng-click="containerController.addMount()"><span
-      class="glyphicon glyphicon-plus-sign"></span> Add New Volume Mount
+    <button class="add-new btn btn-block btn-sm" ng-click="containerController.addMount()">
+      <span class="glyphicon glyphicon-plus-sign"></span> Add New Volume Mount
     </button>
   </collapsible-section>
   <collapsible-section heading="Probes" expanded="false" subsection="true" ng-if="!initContainer">
-    <kubernetes-container-probe container="container" command="command" probetype="'readinessProbe'" heading="'Readiness'"></kubernetes-container-probe>
-    <hr>
-    <kubernetes-container-probe container="container" command="command" probetype="'livenessProbe'" heading="'Liveness'"></kubernetes-container-probe>
+    <kubernetes-container-probe
+      container="container"
+      command="command"
+      probetype="'readinessProbe'"
+      heading="'Readiness'"
+    ></kubernetes-container-probe>
+    <hr />
+    <kubernetes-container-probe
+      container="container"
+      command="command"
+      probetype="'livenessProbe'"
+      heading="'Liveness'"
+    ></kubernetes-container-probe>
   </collapsible-section>
   <collapsible-section heading="Security Context" expanded="false" subsection="true">
-    <kubernetes-security-context-selector component="container">
-    </kubernetes-security-context-selector>
+    <kubernetes-security-context-selector component="container"> </kubernetes-security-context-selector>
   </collapsible-section>
   <collapsible-section heading="Lifecycle Hooks" expanded="false" subsection="true" ng-if="!initContainer">
-    <kubernetes-lifecycle-hook-configurer on-handler-change="containerController.setPostStartHandler(handler)"
-                                          handler="container.lifecycle.postStart">
+    <kubernetes-lifecycle-hook-configurer
+      on-handler-change="containerController.setPostStartHandler(handler)"
+      handler="container.lifecycle.postStart"
+    >
       PostStart <help-field key="kubernetes.containers.lifecycle.postStart"></help-field>
     </kubernetes-lifecycle-hook-configurer>
-    <kubernetes-lifecycle-hook-configurer on-handler-change="containerController.setPreStopHandler(handler)"
-                                          handler="container.lifecycle.preStop">
+    <kubernetes-lifecycle-hook-configurer
+      on-handler-change="containerController.setPreStopHandler(handler)"
+      handler="container.lifecycle.preStop"
+    >
       PreStop <help-field key="kubernetes.containers.lifecycle.preStop"></help-field>
     </kubernetes-lifecycle-hook-configurer>
   </collapsible-section>

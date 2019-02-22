@@ -1,8 +1,7 @@
 <div class="details-panel">
   <div ng-if="state.loading" class="header">
     <div class="close-button">
-      <a class="btn btn-link"
-         ui-sref="^">
+      <a class="btn btn-link" ui-sref="^">
         <span class="glyphicon glyphicon-remove"></span>
       </a>
     </div>
@@ -13,8 +12,7 @@
 
   <div ng-if="!state.loading" class="header">
     <div class="close-button">
-      <a class="btn btn-link"
-         ui-sref="^">
+      <a class="btn btn-link" ui-sref="^">
         <span class="glyphicon glyphicon-remove"></span>
       </a>
     </div>
@@ -32,8 +30,14 @@
           </button>
           <ul class="dropdown-menu" uib-dropdown-menu role="menu">
             <li><a href ng-click="ctrl.editLoadBalancer()">Edit Load Balancer</a></li>
-            <li ng-if="!loadBalancer.instances.length"><a href ng-click="ctrl.deleteLoadBalancer()">Delete Load Balancer</a></li>
-            <li ng-if="loadBalancer.instances.length" class="disabled" uib-tooltip="You must detach all instances before you can delete this load balancer.">
+            <li ng-if="!loadBalancer.instances.length">
+              <a href ng-click="ctrl.deleteLoadBalancer()">Delete Load Balancer</a>
+            </li>
+            <li
+              ng-if="loadBalancer.instances.length"
+              class="disabled"
+              uib-tooltip="You must detach all instances before you can delete this load balancer."
+            >
               <a href ng-click="ctrl.deleteLoadBalancer()">Delete Load Balancer</a>
             </li>
           </ul>
@@ -60,7 +64,8 @@
           <copy-to-clipboard
             class="copy-to-clipboard copy-to-clipboard-sm"
             text="lbLink"
-            tool-tip="'Copy Link to clipboard'">
+            tool-tip="'Copy Link to clipboard'"
+          >
           </copy-to-clipboard>
         </dd>
         <dt>Distribution</dt>
@@ -74,7 +79,9 @@
       <dl>
         <dt>Load Balancer &rarr; Instance</dt>
         <dd ng-repeat="listener in loadBalancer.listeners">
-          {{listener.externalProtocol}}:<span ng-if="listener.externalProtocol == 'TERMINATED_HTTPS'">{{listener.sslCertificateId}}:</span>{{listener.externalPort}}:{{listener.internalPort}}
+          {{listener.externalProtocol}}:<span ng-if="listener.externalProtocol == 'TERMINATED_HTTPS'"
+            >{{listener.sslCertificateId}}:</span
+          >{{listener.externalPort}}:{{listener.internalPort}}
         </dd>
       </dl>
     </collapsible-section>
@@ -89,14 +96,20 @@
         <dt>Retries</dt>
         <dd>{{loadBalancer.healthMonitor.maxRetries}}</dd>
       </dl>
-      <dl class="dl-horizontal dl-flex"
-          ng-if="loadBalancer.healthMonitor.type === 'HTTP' || loadBalancer.healthMonitor.type === 'HTTPS'">
+      <dl
+        class="dl-horizontal dl-flex"
+        ng-if="loadBalancer.healthMonitor.type === 'HTTP' || loadBalancer.healthMonitor.type === 'HTTPS'"
+      >
         <dt>Method</dt>
         <dd>{{loadBalancer.healthMonitor.httpMethod}}</dd>
         <dt>URL</dt>
         <dd>{{loadBalancer.healthMonitor.url}}</dd>
         <dt>Status Codes</dt>
-        <dd><div class="status-code" ng-repeat="statusCode in loadBalancer.healthMonitor.expectedCodes track by $index">{{statusCode}}</div></dd>
+        <dd>
+          <div class="status-code" ng-repeat="statusCode in loadBalancer.healthMonitor.expectedCodes track by $index">
+            {{statusCode}}
+          </div>
+        </dd>
       </dl>
     </collapsible-section>
   </div>

@@ -3,11 +3,13 @@
     <div class="form-group">
       <div class="col-md-4 sm-label-right">Session Affinity</div>
       <div class="col-md-4">
-        <select class="form-control input-sm"
-                ng-disabled="ctrl.loadBalancer.ipProtocol === 'UDP'"
-                ng-model="ctrl.viewState.sessionAffinity"
-                ng-change="ctrl.setSessionAffinity(ctrl.viewState)"
-                ng-options="view for (model, view) in ctrl.sessionAffinityModelToViewMap">
+        <select
+          class="form-control input-sm"
+          ng-disabled="ctrl.loadBalancer.ipProtocol === 'UDP'"
+          ng-model="ctrl.viewState.sessionAffinity"
+          ng-change="ctrl.setSessionAffinity(ctrl.viewState)"
+          ng-options="view for (model, view) in ctrl.sessionAffinityModelToViewMap"
+        >
         </select>
       </div>
     </div>
@@ -16,13 +18,15 @@
         <b>Affinity Cookie TTL Seconds</b>
       </div>
       <div class="col-md-4">
-        <input ng-model="ctrl.loadBalancer.backendService.affinityCookieTtlSec"
-               required
-               type="number"
-               name="cookieTtl"
-               min="0"
-               max="{{ctrl.maxCookieTtl}}"
-               class="form-control input-sm"/>
+        <input
+          ng-model="ctrl.loadBalancer.backendService.affinityCookieTtlSec"
+          required
+          type="number"
+          name="cookieTtl"
+          min="0"
+          max="{{ctrl.maxCookieTtl}}"
+          class="form-control input-sm"
+        />
       </div>
     </div>
   </div>

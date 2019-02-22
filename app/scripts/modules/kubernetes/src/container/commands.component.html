@@ -1,17 +1,20 @@
 <table class="table table-condensed packed tags" style="border-top: 2px solid white;">
   <tr ng-repeat="command in $ctrl.commands track by $index">
-    <td><input class="form-control input-sm" type="text"
-               ng-model="$ctrl.commands[$index]"></td>
-    <td><a class="btn btn-link sm-label"
-           ng-click="$ctrl.removeCommand($index)"><span
-      class="glyphicon glyphicon-trash"></span></a></td>
-  </tr>
-  <tfoot>
-  <tr>
-    <td colspan="1">
-      <button class="add-new btn btn-block btn-sm" ng-click="$ctrl.addCommand()"><span
-        class="glyphicon glyphicon-plus-sign"></span> Add Command
-      </button>
+    <td><input class="form-control input-sm" type="text" ng-model="$ctrl.commands[$index]" /></td>
+
+    <td>
+      <a class="btn btn-link sm-label" ng-click="$ctrl.removeCommand($index)"
+        ><span class="glyphicon glyphicon-trash"></span
+      ></a>
     </td>
   </tr>
+  <tfoot>
+    <tr>
+      <td colspan="1">
+        <button class="add-new btn btn-block btn-sm" ng-click="$ctrl.addCommand()">
+          <span class="glyphicon glyphicon-plus-sign"></span> Add Command
+        </button>
+      </td>
+    </tr>
+  </tfoot>
 </table>

@@ -15,41 +15,53 @@
         <tbody>
           <tr ng-repeat="backendSet in ctrl.backendSets">
             <td ng-if="backendSet.isNew">
-              <input class="form-control input-sm" ng-model="backendSet.name" required
-                     ng-focus="prevBackendSetNames[$index] = backendSet.name"
-                     ng-blur="ctrl.backendSetNameChanged($index)"/>
+              <input
+                class="form-control input-sm"
+                ng-model="backendSet.name"
+                required
+                ng-focus="prevBackendSetNames[$index] = backendSet.name"
+                ng-blur="ctrl.backendSetNameChanged($index)"
+              />
             </td>
-            <td ng-if="!backendSet.isNew">{{backendSet.name}}
+            <td ng-if="!backendSet.isNew">{{backendSet.name}}</td>
+            <td>
+              <select
+                class="form-control input-sm"
+                ng-model="backendSet.policy"
+                ng-options="policy for policy in ctrl.loadBalancingPolicies"
+              ></select>
             </td>
             <td>
-              <select class="form-control input-sm" ng-model="backendSet.policy" ng-options="policy for policy in ctrl.loadBalancingPolicies"></select>
+              <input class="form-control input-sm" ng-model="backendSet.healthChecker.protocol" required />
             </td>
             <td>
-              <input class="form-control input-sm" ng-model="backendSet.healthChecker.protocol" required/>
+              <input class="form-control input-sm" ng-model="backendSet.healthChecker.port" required />
             </td>
             <td>
-              <input class="form-control input-sm" ng-model="backendSet.healthChecker.port" required/>
+              <input class="form-control input-sm" ng-model="backendSet.healthChecker.urlPath" required />
             </td>
             <td>
-              <input class="form-control input-sm" ng-model="backendSet.healthChecker.urlPath" required/>
-            </td>
-            <td>
-              <a href class="sm-label" ng-if="ctrl.isBackendSetRemovable($index)"
-                 ng-click="ctrl.removeBackendSet($index)"><span class="glyphicon glyphicon-trash"></span></a>
+              <a
+                href
+                class="sm-label"
+                ng-if="ctrl.isBackendSetRemovable($index)"
+                ng-click="ctrl.removeBackendSet($index)"
+                ><span class="glyphicon glyphicon-trash"></span
+              ></a>
             </td>
           </tr>
         </tbody>
         <tfoot>
           <tr>
             <td colspan="5">
-              <button class="add-new col-md-12" ng-click="ctrl.addBackendSet()"><span class="glyphicon glyphicon-plus-sign"></span>
+              <button class="add-new col-md-12" ng-click="ctrl.addBackendSet()">
+                <span class="glyphicon glyphicon-plus-sign"></span>
                 Add Backend Set
               </button>
             </td>
           </tr>
         </tfoot>
       </table>
-
     </div>
   </div>
 </div>

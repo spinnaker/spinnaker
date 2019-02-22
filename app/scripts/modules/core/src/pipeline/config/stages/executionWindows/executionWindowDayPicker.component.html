@@ -1,9 +1,13 @@
 <div class="btn-group">
-  <button ng-repeat="day in ::$ctrl.DAYS_OF_WEEK"
-          type="button"
-          class="btn btn-default"
-          ng-click="$ctrl.updateModel(day)"
-          ng-class="{ active: $ctrl.daySelected(day.ordinal) }">{{ ::day.label }}</button>
+  <button
+    ng-repeat="day in ::$ctrl.DAYS_OF_WEEK"
+    type="button"
+    class="btn btn-default"
+    ng-click="$ctrl.updateModel(day)"
+    ng-class="{ active: $ctrl.daySelected(day.ordinal) }"
+  >
+    {{ ::day.label }}
+  </button>
 </div>
 <div class="button-controls">
   <span class="btn btn-link" ng-click="$ctrl.all()">All</span>

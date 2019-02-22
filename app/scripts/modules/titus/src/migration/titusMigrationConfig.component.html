@@ -1,22 +1,28 @@
 <div class="form-inline">
-  <p>When the Titus agent needs to upgrade its instances, it must terminate all running containers and restart them
-  on the new instances. Titus uses this configuration to determine how to migrate your application's containers to
-  the new instances.</p>
+  <p>
+    When the Titus agent needs to upgrade its instances, it must terminate all running containers and restart them on
+    the new instances. Titus uses this configuration to determine how to migrate your application's containers to the
+    new instances.
+  </p>
   <h5 class="first-header">
     Default Migration Strategy
     <help-field content="This is the default mechanism Titus will use to migrate your running containers."></help-field>
   </h5>
   <div class="row migration-strategy">
     <div class="col-md-8">
-      <titus-migration-configurer application="$ctrl.application"
-                                  config="$ctrl.config.defaultStrategy"
-                                  config-changed="$ctrl.configChanged()"></titus-migration-configurer>
+      <titus-migration-configurer
+        application="$ctrl.application"
+        config="$ctrl.config.defaultStrategy"
+        config-changed="$ctrl.configChanged()"
+      ></titus-migration-configurer>
     </div>
   </div>
 
   <h5>
     Overrides
-    <help-field content="Overrides the default strategy for certain clusters. You can use wildcards (*) to include all matching fields."></help-field>
+    <help-field
+      content="Overrides the default strategy for certain clusters. You can use wildcards (*) to include all matching fields."
+    ></help-field>
   </h5>
   <table class="table table-condensed" ng-if="$ctrl.config.overrides.length && $ctrl.viewState.accountsLoaded">
     <thead>
@@ -32,32 +38,46 @@
     <tbody>
       <tr ng-repeat="override in $ctrl.config.overrides">
         <td>
-          <select class="form-control input-sm"
-                  ng-model="override.account"
-                  ng-change="$ctrl.configChanged()"
-                  ng-options="account for account in $ctrl.accounts"></select>
+          <select
+            class="form-control input-sm"
+            ng-model="override.account"
+            ng-change="$ctrl.configChanged()"
+            ng-options="account for account in $ctrl.accounts"
+          ></select>
         </td>
         <td>
-          <select class="form-control input-sm"
-                  ng-model="override.region"
-                  ng-change="$ctrl.configChanged()"
-                  ng-options="region for region in $ctrl.regionsByAccount[override.account]"></select>
+          <select
+            class="form-control input-sm"
+            ng-model="override.region"
+            ng-change="$ctrl.configChanged()"
+            ng-options="region for region in $ctrl.regionsByAccount[override.account]"
+          ></select>
         </td>
         <td>
-          <input type="text" class="form-control input-sm"
-                 ng-model="override.stack" ng-change="$ctrl.configChanged()"/>
+          <input
+            type="text"
+            class="form-control input-sm"
+            ng-model="override.stack"
+            ng-change="$ctrl.configChanged()"
+          />
         </td>
         <td>
-          <input type="text" class="form-control input-sm"
-                 ng-model="override.detail" ng-change="$ctrl.configChanged()"/>
+          <input
+            type="text"
+            class="form-control input-sm"
+            ng-model="override.detail"
+            ng-change="$ctrl.configChanged()"
+          />
         </td>
         <td>
-          <titus-migration-configurer application="$ctrl.application"
-                                      config="override.strategy"
-                                      config-changed="$ctrl.configChanged()"></titus-migration-configurer>
+          <titus-migration-configurer
+            application="$ctrl.application"
+            config="override.strategy"
+            config-changed="$ctrl.configChanged()"
+          ></titus-migration-configurer>
         </td>
         <td>
-          <a href ng-click="$ctrl.removeOverride($index)"><span class="glyphicon glyphicon-trash">  </span></a>
+          <a href ng-click="$ctrl.removeOverride($index)"><span class="glyphicon glyphicon-trash"> </span></a>
         </td>
       </tr>
     </tbody>
@@ -67,8 +87,10 @@
     <span class="glyphicon glyphicon-plus-sign"></span> Add Override
   </button>
 
-  <config-section-footer application="$ctrl.application"
-                         config="$ctrl.config"
-                         view-state="$ctrl.viewState"
-                         config-field="titusTaskMigration"></config-section-footer>
+  <config-section-footer
+    application="$ctrl.application"
+    config="$ctrl.config"
+    view-state="$ctrl.viewState"
+    config-field="titusTaskMigration"
+  ></config-section-footer>
 </div>

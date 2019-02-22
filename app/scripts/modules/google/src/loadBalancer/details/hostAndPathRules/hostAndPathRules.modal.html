@@ -8,20 +8,18 @@
       <div class="well well-sm">
         <div class="row">
           <div class="col-md-12 content-fields">
-            <input placeholder="Filter"
-                   ng-model="searchText"
-                   class="form-control input-sm"/>
+            <input placeholder="Filter" ng-model="searchText" class="form-control input-sm" />
           </div>
         </div>
         <div class="row">
           <div class="col-md-12">
             <table class="table table-condensed">
               <thead>
-              <tr>
-                <th>Host</th>
-                <th>Path</th>
-                <th>Backend Service</th>
-              </tr>
+                <tr>
+                  <th>Host</th>
+                  <th>Path</th>
+                  <th>Backend Service</th>
+                </tr>
               </thead>
               <tbody>
                 <tr ng-repeat="row in ctrl.table | filter:searchText">

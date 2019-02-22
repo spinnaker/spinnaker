@@ -1,14 +1,17 @@
 <div class="container-fluid form-horizontal">
-  <hr ng-if="$ctrl.index > 0">
+  <hr ng-if="$ctrl.index > 0" />
   <ng-form name="backendService">
     <div class="form-group">
       <div class="col-md-12 well alert-danger" ng-if="backendService.serviceName.$error.validateUnique">
         <validation-error message="There is already a backend service with that name."></validation-error>
       </div>
-      <div class="col-md-12 well alert-danger"
-           ng-if="backendService.serviceName.$error.pattern || backendService.serviceName.$error.max">
+      <div
+        class="col-md-12 well alert-danger"
+        ng-if="backendService.serviceName.$error.pattern || backendService.serviceName.$error.max"
+      >
         <validation-error
-          message="Name must start with a lowercase letter followed by up to 62 lowercase letters, numbers, or hyphens, and cannot end with a hyphen.">
+          message="Name must start with a lowercase letter followed by up to 62 lowercase letters, numbers, or hyphens, and cannot end with a hyphen."
+        >
         </validation-error>
       </div>
     </div>
@@ -17,28 +20,34 @@
       <div class="col-md-4 sm-label-right">Name</div>
 
       <div class="col-md-4" ng-if="$ctrl.editExisting">
-        <ui-select ng-model="$ctrl.backendService"
-                   on-select="$ctrl.onBackendServiceSelect($item)"
-                   class="form-control input-sm">
+        <ui-select
+          ng-model="$ctrl.backendService"
+          on-select="$ctrl.onBackendServiceSelect($item)"
+          class="form-control input-sm"
+        >
           <ui-select-match placeholder="Select...">
-            {{$select.selected.name}}
+            {{ $select.selected.name }}
           </ui-select-match>
-          <ui-select-choices repeat="backendService in $ctrl.backingData.backendServices | filter: {name: $select.search, account: $ctrl.loadBalancer.credentials}">
+          <ui-select-choices
+            repeat="backendService in $ctrl.backingData.backendServices | filter: {name: $select.search, account: $ctrl.loadBalancer.credentials}"
+          >
             <div ng-bind-html="backendService.name | highlight: $select.search"></div>
           </ui-select-choices>
         </ui-select>
       </div>
 
       <div class="col-md-4" ng-if="!$ctrl.editExisting">
-        <input class="form-control input-sm"
-               required
-               type="text"
-               name="serviceName"
-               ng-pattern="/^[a-z]([-a-z0-9]*[a-z0-9])?$/"
-               max="63"
-               validate-unique="$ctrl.getAllServiceNames()"
-               ng-model-options="{ debounce: 250 }"
-               ng-model="$ctrl.backendService.name"/>
+        <input
+          class="form-control input-sm"
+          required
+          type="text"
+          name="serviceName"
+          ng-pattern="/^[a-z]([-a-z0-9]*[a-z0-9])?$/"
+          max="63"
+          validate-unique="$ctrl.getAllServiceNames()"
+          ng-model-options="{ debounce: 250 }"
+          ng-model="$ctrl.backendService.name"
+        />
       </div>
 
       <div class="col-md-2">
@@ -51,14 +60,10 @@
 
     <div class="form-group">
       <div class="col-md-6 col-md-offset-4">
-        <a href
-           class="small"
-           ng-if="!$ctrl.editExisting"
-           ng-click="$ctrl.toggleEditExisting()">Toggle for list of existing backend services</a>
-        <a href
-           class="small"
-           ng-if="$ctrl.editExisting"
-           ng-click="$ctrl.toggleEditExisting()">Toggle for text input</a>
+        <a href class="small" ng-if="!$ctrl.editExisting" ng-click="$ctrl.toggleEditExisting()"
+          >Toggle for list of existing backend services</a
+        >
+        <a href class="small" ng-if="$ctrl.editExisting" ng-click="$ctrl.toggleEditExisting()">Toggle for text input</a>
       </div>
     </div>
 
@@ -67,15 +72,16 @@
         <b>Health Check</b>
       </div>
       <div class="col-md-4">
-        <ui-select ng-model="$ctrl.backendService.healthCheck"
-                   required
-                   on-select="$ctrl.command.onHealthCheckSelected($item, $ctrl.command)"
-                   class="form-control input-sm">
+        <ui-select
+          ng-model="$ctrl.backendService.healthCheck"
+          required
+          on-select="$ctrl.command.onHealthCheckSelected($item, $ctrl.command)"
+          class="form-control input-sm"
+        >
           <ui-select-match placeholder="Select...">
-            {{$select.selected}}
+            {{ $select.selected }}
           </ui-select-match>
-          <ui-select-choices
-            repeat="healthCheck in $ctrl.getAllHealthChecks() | filter: $select.search">
+          <ui-select-choices repeat="healthCheck in $ctrl.getAllHealthChecks() | filter: $select.search">
             <div ng-bind-html="healthCheck | highlight: $select.search"></div>
           </ui-select-choices>
         </ui-select>
@@ -87,14 +93,13 @@
         <b>Session Affinity</b>
       </div>
       <div class="col-md-4">
-        <ui-select ng-model="$ctrl.backendService.sessionAffinity"
-                   required
-                   class="form-control input-sm">
+        <ui-select ng-model="$ctrl.backendService.sessionAffinity" required class="form-control input-sm">
           <ui-select-match placeholder="Select...">
-            {{$select.selected}}
+            {{ $select.selected }}
           </ui-select-match>
           <ui-select-choices
-            repeat="sessionAffinity in ['None', 'Client IP', 'Generated Cookie'] | filter: $select.search">
+            repeat="sessionAffinity in ['None', 'Client IP', 'Generated Cookie'] | filter: $select.search"
+          >
             <div ng-bind-html="sessionAffinity | highlight: $select.search"></div>
           </ui-select-choices>
         </ui-select>
@@ -107,10 +112,7 @@
         <help-field key="gce.loadBalancer.portName"></help-field>
       </div>
       <div class="col-md-4">
-        <input required
-               type="string"
-               class="form-control input-sm"
-               ng-model="$ctrl.backendService.portName"/>
+        <input required type="string" class="form-control input-sm" ng-model="$ctrl.backendService.portName" />
       </div>
     </div>
 
@@ -120,9 +122,11 @@
         <help-field key="gce.loadBalancer.connectionDraining"></help-field>
       </div>
       <div class="col-md-4">
-        <input type="number"
-               class="form-control input-sm"
-               ng-model="$ctrl.backendService.connectionDrainingTimeoutSec"/>
+        <input
+          type="number"
+          class="form-control input-sm"
+          ng-model="$ctrl.backendService.connectionDrainingTimeoutSec"
+        />
       </div>
     </div>
 
@@ -131,7 +135,7 @@
         <b>Enable CDN</b>
       </div>
       <div class="col-md-4">
-        <input type="checkbox" ng-model="$ctrl.backendService.enableCDN"/>
+        <input type="checkbox" ng-model="$ctrl.backendService.enableCDN" />
       </div>
     </div>
 
@@ -140,13 +144,15 @@
         <b>Affinity Cookie TTL Seconds</b>
       </div>
       <div class="col-md-4">
-        <input ng-model="$ctrl.backendService.affinityCookieTtlSec"
-               required
-               type="number"
-               name="cookieTtl"
-               min="0"
-               max="{{$ctrl.maxCookieTtl}}"
-               class="form-control input-sm"/>
+        <input
+          ng-model="$ctrl.backendService.affinityCookieTtlSec"
+          required
+          type="number"
+          name="cookieTtl"
+          min="0"
+          max="{{ $ctrl.maxCookieTtl }}"
+          class="form-control input-sm"
+        />
       </div>
     </div>
   </ng-form>

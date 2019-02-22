@@ -1,8 +1,7 @@
 <div class="details-panel">
   <div class="header" ng-if="ctrl.state.loading">
     <div class="close-button">
-      <a class="btn btn-link"
-         ui-sref="^">
+      <a class="btn btn-link" ui-sref="^">
         <span class="glyphicon glyphicon-remove"></span>
       </a>
     </div>
@@ -13,8 +12,7 @@
 
   <div class="header" ng-if="!ctrl.state.loading">
     <div class="close-button">
-      <a class="btn btn-link"
-         ui-sref="^">
+      <a class="btn btn-link" ui-sref="^">
         <span class="glyphicon glyphicon-remove"></span>
       </a>
     </div>
@@ -43,28 +41,35 @@
         <dt>Launched</dt>
         <dd ng-if="ctrl.instance.launchTime">{{ctrl.instance.launchTime | timestamp}}</dd>
         <dt>In</dt>
-        <dd>
-          <account-tag account="ctrl.instance.account" pad="right"></account-tag>{{}}
-        </dd>
+        <dd><account-tag account="ctrl.instance.account" pad="right"></account-tag>{{}}</dd>
         <dt ng-if="ctrl.instance.serverGroup">Server Group</dt>
         <dd ng-if="ctrl.instance.serverGroup">
-          <a ui-sref="^.serverGroup({region: ctrl.instance.region,
+          <a
+            ui-sref="^.serverGroup({region: ctrl.instance.region,
                                      accountId: ctrl.instance.account,
                                      serverGroup: ctrl.instance.serverGroup,
-                                     provider: 'appengine'})">{{ctrl.instance.serverGroup}}</a>
+                                     provider: 'appengine'})"
+            >{{ctrl.instance.serverGroup}}</a
+          >
         </dd>
         <dt>Region</dt>
         <dd>{{ctrl.instance.region}}</dd>
-        <appengine-conditional-dt-dd component="ctrl.instance" key="vmZoneName" label="Zone"></appengine-conditional-dt-dd>
+        <appengine-conditional-dt-dd
+          component="ctrl.instance"
+          key="vmZoneName"
+          label="Zone"
+        ></appengine-conditional-dt-dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Status" expanded="true">
       <dl>
         <dt>Load Balancer</dt>
         <dd>
-          <span class="pull-left"
-                uib-tooltip="{{ctrl.instance.healthState === 'Up' ? ctrl.upToolTip : ctrl.outOfServiceToolTip}}"
-                tooltip-placement="right">
+          <span
+            class="pull-left"
+            uib-tooltip="{{ctrl.instance.healthState === 'Up' ? ctrl.upToolTip : ctrl.outOfServiceToolTip}}"
+            tooltip-placement="right"
+          >
             <span class="glyphicon glyphicon-{{ctrl.instance.healthState}}-triangle"></span>
             {{ctrl.instance.loadBalancers[0]}}
           </span>
@@ -92,7 +97,11 @@
         <appengine-conditional-dt-dd component="ctrl.instance" key="vmStatus" label="VM Status">
           <key-label><help-field key="appengine.instance.vmStatus"></help-field></key-label>
         </appengine-conditional-dt-dd>
-        <appengine-conditional-dt-dd component="ctrl.instance" key="vmDebugEnabled" label="Debug Enabled"></appengine-conditional-dt-dd>
+        <appengine-conditional-dt-dd
+          component="ctrl.instance"
+          key="vmDebugEnabled"
+          label="Debug Enabled"
+        ></appengine-conditional-dt-dd>
       </dl>
     </collapsible-section>
   </div>

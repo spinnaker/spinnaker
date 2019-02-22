@@ -1,11 +1,6 @@
 <div ng-controller="gceTagImageStageCtrl as tagImageStageCtrl" class="form-horizontal">
   <stage-config-field label="Account">
-    <account-select-field
-      component="stage"
-      field="credentials"
-      accounts="accounts"
-      provider="'gce'"
-      required>
+    <account-select-field component="stage" field="credentials" accounts="accounts" provider="'gce'" required>
     </account-select-field>
   </stage-config-field>
   <stage-config-field label="Tags">

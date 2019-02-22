@@ -1,12 +1,16 @@
 <div ng-if="ctrl.initialized">
   <div ng-repeat="group in groups" class="rollup">
-    <security-group-pod ng-repeat="subgroup in group.subgroups"
-                        grouping="subgroup"
-                        application="application"
-                        parent-heading="group.heading"></security-group-pod>
+    <security-group-pod
+      ng-repeat="subgroup in group.subgroups"
+      grouping="subgroup"
+      application="application"
+      parent-heading="group.heading"
+    ></security-group-pod>
   </div>
   <div ng-if="groups.length === 0">
-    <h4 class="text-center">No <firewall-label label="firewalls"></firewall-label> match the filters you've selected.</h4>
+    <h4 class="text-center">
+      No <firewall-label label="firewalls"></firewall-label> match the filters you've selected.
+    </h4>
   </div>
 </div>
 <div ng-if="!ctrl.initialized" class="horizontal center spinner-container">

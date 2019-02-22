@@ -4,12 +4,14 @@
       <div class="form-group">
         <div class="form-control-static" ng-bind-html="vm.label"></div>
         <help-field key="user.verification"></help-field>
-        <input type="text"
-               class="form-control input-sm highlight-pristine"
-               ng-model="vm.userVerification"
-               ng-change="vm.verify()"
-               auto-focus="vm.autofocus"
-               ng-class="{'ng-invalid': !vm.verification.verified}" />
+        <input
+          type="text"
+          class="form-control input-sm highlight-pristine"
+          ng-model="vm.userVerification"
+          ng-change="vm.verify()"
+          auto-focus="vm.autofocus"
+          ng-class="{'ng-invalid': !vm.verification.verified}"
+        />
       </div>
     </div>
   </div>

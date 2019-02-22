@@ -16,22 +16,26 @@
         ng-options="snapshot.index as snapshot.formattedTimestamp for snapshot in ctrl.snapshots"
         ng-model="ctrl.version"
         ng-change="ctrl.updateDiff()"
-        class="form-control input-sm"></select>
+        class="form-control input-sm"
+      ></select>
       <label for="compare-account">Account</label>
       <select
         id="compare-account"
         ng-options="account for account in ctrl.availableAccounts"
         ng-model="ctrl.selectedAccount"
         ng-change="ctrl.getSnapshotHistoryForAccount(ctrl.selectedAccount)"
-        class="form-control input-sm"></select>
+        class="form-control input-sm"
+      ></select>
       <diff-summary summary="ctrl.diff.summary"></diff-summary>
       <div class="pull-right">
         <label for="compare-compare" class="middle">compare to </label>
-        <select class="form-control input-sm"
-                id="compare-compare"
-                ng-options="entry for entry in ctrl.compareOptions"
-                ng-change="ctrl.updateDiff()"
-                ng-model="ctrl.compareTo"></select>
+        <select
+          class="form-control input-sm"
+          id="compare-compare"
+          ng-options="entry for entry in ctrl.compareOptions"
+          ng-change="ctrl.updateDiff()"
+          ng-model="ctrl.compareTo"
+        ></select>
       </div>
     </div>
     <div ng-if="ctrl.state.error">
@@ -48,12 +52,10 @@
     <h4 class="text-center">Sorry, we couldn't find any snapshot history for this application.</h4>
   </div>
   <div class="modal-footer">
-    <button class="btn btn-primary"
-            ng-click="ctrl.restoreSnapshot()">
+    <button class="btn btn-primary" ng-click="ctrl.restoreSnapshot()">
       Restore Snapshot
     </button>
-    <button class="btn btn-primary"
-            ng-click="ctrl.close()">
+    <button class="btn btn-primary" ng-click="ctrl.close()">
       Close
     </button>
   </div>

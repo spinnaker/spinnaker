@@ -6,10 +6,12 @@
         <help-field key="gce.loadBalancer.portName"></help-field>
       </div>
       <div class="col-md-4">
-        <input type="text"
-               required
-               class="form-control input-sm"
-               ng-model="ctrl.loadBalancer.backendService.portName"/>
+        <input
+          type="text"
+          required
+          class="form-control input-sm"
+          ng-model="ctrl.loadBalancer.backendService.portName"
+        />
       </div>
     </div>
     <div class="form-group">
@@ -18,9 +20,11 @@
         <help-field key="gce.loadBalancer.connectionDraining"></help-field>
       </div>
       <div class="col-md-4">
-        <input type="number"
-               class="form-control input-sm"
-               ng-model="ctrl.loadBalancer.backendService.connectionDrainingTimeoutSec"/>
+        <input
+          type="number"
+          class="form-control input-sm"
+          ng-model="ctrl.loadBalancer.backendService.connectionDrainingTimeoutSec"
+        />
       </div>
     </div>
   </ng-form>

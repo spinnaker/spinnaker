@@ -5,8 +5,10 @@
     </div>
     <div class="col-md-7">
       <ui-select ng-model="$ctrl.command.logDriver" class="form-control input-sm">
-        <ui-select-match>{{$select.selected}}</ui-select-match>
-        <ui-select-choices repeat="item in ['None', 'awslogs', 'fluentd', 'gelf', 'journald', 'json-file', 'logentries', 'splunk', 'sumologic', 'syslog'] | filter: $select.search">
+        <ui-select-match>{{ $select.selected }}</ui-select-match>
+        <ui-select-choices
+          repeat="item in ['None', 'awslogs', 'fluentd', 'gelf', 'journald', 'json-file', 'logentries', 'splunk', 'sumologic', 'syslog'] | filter: $select.search"
+        >
           <span ng-bind-html="item"></span>
         </ui-select-choices>
       </ui-select>
@@ -24,5 +26,4 @@
   <div class="form-group" ng-if="!$ctrl.command.logDriver || $ctrl.command.logDriver == 'None'">
     Logging options are not available for your log driver selection.
   </div>
-
 </div>

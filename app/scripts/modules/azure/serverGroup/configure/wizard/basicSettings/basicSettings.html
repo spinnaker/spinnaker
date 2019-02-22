@@ -6,19 +6,39 @@
           Account
         </div>
         <div class="col-md-7">
-          <account-select-field required read-only="command.viewState.readOnlyFields.credentials" component="command" field="credentials" accounts="command.backingData.accounts"
-          provider="'azure'"></account-select-field>
+          <account-select-field
+            required
+            read-only="command.viewState.readOnlyFields.credentials"
+            component="command"
+            field="credentials"
+            accounts="command.backingData.accounts"
+            provider="'azure'"
+          ></account-select-field>
         </div>
       </div>
-      <region-select-field required read-only="command.viewState.readOnlyFields.region" label-columns="3" component="command" field="region"
-      account="command.credentials" provider="'azure'" regions="command.backingData.filtered.regions"></region-select-field>
+      <region-select-field
+        required
+        read-only="command.viewState.readOnlyFields.region"
+        label-columns="3"
+        component="command"
+        field="region"
+        account="command.credentials"
+        provider="'azure'"
+        regions="command.backingData.filtered.regions"
+      ></region-select-field>
       <div class="form-group">
         <div class="col-md-3 sm-label-right">
           Stack
           <help-field key="azure.serverGroup.stack"></help-field>
         </div>
         <div class="col-md-7">
-          <input required type="text" class="form-control input-sm" ng-pattern="basicSettingsCtrl.stackPattern" name="stack" ng-model="command.stack"
+          <input
+            required
+            type="text"
+            class="form-control input-sm"
+            ng-pattern="basicSettingsCtrl.stackPattern"
+            name="stack"
+            ng-model="command.stack"
           />
         </div>
       </div>
@@ -33,7 +53,13 @@
           <help-field key="azure.serverGroup.detail"></help-field>
         </div>
         <div class="col-md-7">
-          <input required type="text" class="form-control input-sm" ng-pattern="basicSettingsCtrl.detailPattern" name="details" ng-model="command.freeFormDetails"
+          <input
+            required
+            type="text"
+            class="form-control input-sm"
+            ng-pattern="basicSettingsCtrl.detailPattern"
+            name="details"
+            ng-model="command.freeFormDetails"
           />
         </div>
       </div>
@@ -48,7 +74,12 @@
           <help-field key="azure.serverGroup.imageName"></help-field>
         </div>
         <div class="col-md-9">
-          <ui-select class="form-control input-sm" required ng-model="command.selectedImage" on-select="basicSettingsCtrl.imageChanged($item)">
+          <ui-select
+            class="form-control input-sm"
+            required
+            ng-model="command.selectedImage"
+            on-select="basicSettingsCtrl.imageChanged($item)"
+          >
             <ui-select-match placeholder="Pick an image">{{$select.selected.imageName}}</ui-select-match>
             <ui-select-choices repeat="image in command.images | regional:command.region | filter:$select.search">
               <span ng-bind-html="image.imageName"></span>
@@ -56,11 +87,16 @@
           </ui-select>
         </div>
       </div>
-      <deployment-strategy-selector ng-if="!command.viewState.disableStrategySelection && command.selectedProvider"
-      command="command"></deployment-strategy-selector>
+      <deployment-strategy-selector
+        ng-if="!command.viewState.disableStrategySelection && command.selectedProvider"
+        command="command"
+      ></deployment-strategy-selector>
       <div class="form-group" ng-if="!command.viewState.hideClusterNamePreview">
         <div class="col-md-12">
-          <div class="well-compact" ng-class="basicSettingsCtrl.showPreviewAsWarning() ? 'alert alert-warning' : 'well'">
+          <div
+            class="well-compact"
+            ng-class="basicSettingsCtrl.showPreviewAsWarning() ? 'alert alert-warning' : 'well'"
+          >
             <h5 class="text-center">
               <p>Your server group will be in the cluster:</p>
               <p>
@@ -69,17 +105,20 @@
                   <span ng-if="basicSettingsCtrl.createsNewCluster()"> (new cluster)</span>
                 </strong>
               </p>
-              <div class="text-left" ng-if="!basicSettingsCtrl.createsNewCluster() && command.viewState.mode === 'create' && latestServerGroup">
+              <div
+                class="text-left"
+                ng-if="!basicSettingsCtrl.createsNewCluster() && command.viewState.mode === 'create' && latestServerGroup"
+              >
                 <p>
                   There is already a server group in this cluster. Do you want to clone it?
                 </p>
                 <p>
-                  Cloning copies the entire configuration from the selected server group, allowing you
-                  to modify whichever fields (e.g. image) you need to change in the new server group.
+                  Cloning copies the entire configuration from the selected server group, allowing you to modify
+                  whichever fields (e.g. image) you need to change in the new server group.
                 </p>
                 <p>
-                  To clone a server group, select "Clone" from the "Server Group Actions" menu in the details view of the
-                  server group.
+                  To clone a server group, select "Clone" from the "Server Group Actions" menu in the details view of
+                  the server group.
                 </p>
                 <p>
                   <a href ng-click="basicSettingsCtrl.navigateToLatestServerGroup()">

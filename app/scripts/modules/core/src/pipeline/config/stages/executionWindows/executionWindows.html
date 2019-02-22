@@ -2,18 +2,13 @@
   <div class="col-md-9 col-md-offset-1">
     <div class="checkbox" ng-if="!stage.restrictExecutionDuringTimeWindow.includes('${')">
       <label>
-        <input type="checkbox"
-               ng-false-value="undefined"
-               ng-model="stage.restrictExecutionDuringTimeWindow"/>
+        <input type="checkbox" ng-false-value="undefined" ng-model="stage.restrictExecutionDuringTimeWindow" />
         <strong> Restrict execution to specific time windows</strong>
       </label>
     </div>
     <div class="row" ng-if="stage.restrictExecutionDuringTimeWindow.includes('${')" style="margin-top: 20px">
       <strong> Restrict execution to specific time windows when this expression is true</strong>
-      <input type="text"
-             class="form-control input-sm"
-             ng-model="stage.restrictExecutionDuringTimeWindow"/>
-
+      <input type="text" class="form-control input-sm" ng-model="stage.restrictExecutionDuringTimeWindow" />
     </div>
   </div>
 </div>
@@ -25,7 +20,10 @@
         <small>(No days selected implies execution on any day if triggered)</small>
       </h5>
       <p class="execution-window-days-of-week">
-        <execution-window-day-picker window-config="stage.restrictedExecutionWindow" on-change="executionWindowsCtrl.windowsUpdated()"></execution-window-day-picker>
+        <execution-window-day-picker
+          window-config="stage.restrictedExecutionWindow"
+          on-change="executionWindowsCtrl.windowsUpdated()"
+        ></execution-window-day-picker>
       </p>
     </div>
   </div>
@@ -40,17 +38,16 @@
     <div class="col-md-10 col-md-offset-1">
       <div class="execution-window-graph">
         <div class="execution-day">
-          <div ng-repeat="window in timelineWindows"
-               class="execution-window"
-               ng-style="window.style"
-               uib-tooltip="{{window.start | date:'HH:mm'}} - {{window.end | date:'HH:mm'}}"
-            >
-          </div>
+          <div
+            ng-repeat="window in timelineWindows"
+            class="execution-window"
+            ng-style="window.style"
+            uib-tooltip="{{window.start | date:'HH:mm'}} - {{window.end | date:'HH:mm'}}"
+          ></div>
         </div>
         <div class="divider-label-fill"></div>
         <div class="dividers">
-          <div ng-repeat="divider in dividers"
-               class="divider" style="left: {{divider.left}}">
+          <div ng-repeat="divider in dividers" class="divider" style="left: {{divider.left}}">
             <div class="divider-filler"></div>
             <div class="divider-label">
               {{divider.label}}
@@ -66,42 +63,49 @@
     </p>
   </div>
   <div ng-repeat="window in stage.restrictedExecutionWindow.whitelist" class="window-entry">
-      <div class="form-group">
-        <div class="col-md-6 col-md-offset-1">
-          <span class="start-end-divider">
-            From
-          </span>
-          <select class="input input-sm"
-                  ng-model="window.startHour"
-                  ng-options="option.value as option.label for option in hours">
-          </select>
-          :
-          <select class="input input-sm"
-                  ng-model="window.startMin"
-                  ng-options="option.value as option.label for option in minutes">
-          </select>
-          <span class="start-end-divider">
-            to
-          </span>
+    <div class="form-group">
+      <div class="col-md-6 col-md-offset-1">
+        <span class="start-end-divider">
+          From
+        </span>
+        <select
+          class="input input-sm"
+          ng-model="window.startHour"
+          ng-options="option.value as option.label for option in hours"
+        >
+        </select>
+        :
+        <select
+          class="input input-sm"
+          ng-model="window.startMin"
+          ng-options="option.value as option.label for option in minutes"
+        >
+        </select>
+        <span class="start-end-divider">
+          to
+        </span>
 
-          <select class="input input-sm"
-                  ng-model="window.endHour"
-                  ng-options="option.value as option.label for option in hours">
-          </select>
-          :
-          <select class="input input-sm"
-                  ng-model="window.endMin"
-                  ng-options="option.value as option.label for option in minutes">
-          </select>
+        <select
+          class="input input-sm"
+          ng-model="window.endHour"
+          ng-options="option.value as option.label for option in hours"
+        >
+        </select>
+        :
+        <select
+          class="input input-sm"
+          ng-model="window.endMin"
+          ng-options="option.value as option.label for option in minutes"
+        >
+        </select>
 
-          <button class="btn-link btn-remove"
-                  ng-click="executionWindowsCtrl.removeWindow($index)">
-            <span class="glyphicon glyphicon-trash" uib-tooltip="Remove window"></span><span class="sr-only">Remove window</span>
-          </button>
-
-        </div>
+        <button class="btn-link btn-remove" ng-click="executionWindowsCtrl.removeWindow($index)">
+          <span class="glyphicon glyphicon-trash" uib-tooltip="Remove window"></span
+          ><span class="sr-only">Remove window</span>
+        </button>
       </div>
     </div>
+  </div>
   <div class="row">
     <div class="col-md-6 col-md-offset-1">
       <button class="btn btn-block btn-add-trigger add-new" ng-click="executionWindowsCtrl.addExecutionWindow()">
@@ -113,7 +117,7 @@
     <div class="col-md-9 col-md-offset-1">
       <div class="checkbox">
         <label>
-          <input type="checkbox" ng-false-value="undefined" ng-model="stage.restrictedExecutionWindow.jitter.enabled"/>
+          <input type="checkbox" ng-false-value="undefined" ng-model="stage.restrictedExecutionWindow.jitter.enabled" />
           <strong> Add random jitter to start of execution window</strong>
         </label>
       </div>
@@ -123,24 +127,28 @@
     <div class="form-group">
       <div class="col-md-10 col-md-offset-1 checkbox-padding">
         Randomly wait between
-        <input type="number"
-               min="0"
-               class="form-control input-sm inline-number with-space-before"
-               ng-change="executionWindowsCtrl.jitterUpdated()"
-               ng-model="stage.restrictedExecutionWindow.jitter.minDelay"/>
+        <input
+          type="number"
+          min="0"
+          class="form-control input-sm inline-number with-space-before"
+          ng-change="executionWindowsCtrl.jitterUpdated()"
+          ng-model="stage.restrictedExecutionWindow.jitter.minDelay"
+        />
         and
-        <input type="number"
-               max="{{60*60*72-1}}"
-               class="form-control input-sm inline-number with-space-before"
-               ng-change="executionWindowsCtrl.jitterUpdated()"
-               ng-model="stage.restrictedExecutionWindow.jitter.maxDelay"/>
+        <input
+          type="number"
+          max="{{60*60*72-1}}"
+          class="form-control input-sm inline-number with-space-before"
+          ng-change="executionWindowsCtrl.jitterUpdated()"
+          ng-model="stage.restrictedExecutionWindow.jitter.maxDelay"
+        />
         seconds when entering execution window.
       </div>
     </div>
     <div class="form-group">
       <div class="col-md-10 col-md-offset-1 checkbox-padding">
         <label>
-          <input type="checkbox" ng-false-value=false ng-model="stage.restrictedExecutionWindow.jitter.skipManual"/>
+          <input type="checkbox" ng-false-value="false" ng-model="stage.restrictedExecutionWindow.jitter.skipManual" />
           <strong> Skip jitter when manually triggering pipeline</strong>
         </label>
       </div>
@@ -150,21 +158,25 @@
     <div class="col-md-10 col-md-offset-1">
       <div class="checkbox">
         <label>
-          <input type="checkbox" ng-model="executionWindowsCtrl.enableCustomSkipWindowText"/>
+          <input type="checkbox" ng-model="executionWindowsCtrl.enableCustomSkipWindowText" />
           <strong> Show custom warning when users skip execution window</strong>
         </label>
       </div>
     </div>
     <div class="col-md-10 col-md-offset-1 checkbox-padding" ng-if="executionWindowsCtrl.enableCustomSkipWindowText">
-      <textarea class="form-control"
-                rows="4"
-                placeholder="Default text: '{{executionWindowsCtrl.defaultSkipWindowText}}' (HTML is okay)"
-                style="margin-top: 5px"
-                ng-model="stage.skipWindowText"></textarea>
+      <textarea
+        class="form-control"
+        rows="4"
+        placeholder="Default text: '{{executionWindowsCtrl.defaultSkipWindowText}}' (HTML is okay)"
+        style="margin-top: 5px"
+        ng-model="stage.skipWindowText"
+      ></textarea>
     </div>
   </div>
 
-  <execution-window-atlas-graph stage="stage"
-                                windows="timelineWindows"
-                                windows-updated="executionWindowsCtrl.windowsUpdatedStream"></execution-window-atlas-graph>
+  <execution-window-atlas-graph
+    stage="stage"
+    windows="timelineWindows"
+    windows-updated="executionWindowsCtrl.windowsUpdatedStream"
+  ></execution-window-atlas-graph>
 </div>

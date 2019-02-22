@@ -2,20 +2,24 @@
   <div ng-if="!ctrl.accounts" style="height: 200px" class="horizontal center middle">
     <loading-spinner size="'small'"></loading-spinner>
   </div>
-  <v2-modal-wizard heading="Create New Load Balancer"
-                   ng-if="ctrl.accounts"
-                   task-monitor="ctrl.taskMonitor"
-                   dismiss="$dismiss()">
+  <v2-modal-wizard
+    heading="Create New Load Balancer"
+    ng-if="ctrl.accounts"
+    task-monitor="ctrl.taskMonitor"
+    dismiss="$dismiss()"
+  >
     <v2-wizard-page key="location" label="Location" mark-complete-on-view="false">
       <ng-include src="ctrl.pages.location"></ng-include>
     </v2-wizard-page>
     <v2-wizard-page key="listener" label="Listener" mark-complete-on-view="false">
       <ng-include src="ctrl.pages.listener"></ng-include>
     </v2-wizard-page>
-    <v2-wizard-page key="backendService"
-                    label="Backend Service"
-                    ng-if="ctrl.hasBackendService"
-                    mark-complete-on-view="false">
+    <v2-wizard-page
+      key="backendService"
+      label="Backend Service"
+      ng-if="ctrl.hasBackendService"
+      mark-complete-on-view="false"
+    >
       <ng-include src="ctrl.pages.backendService"></ng-include>
     </v2-wizard-page>
     <v2-wizard-page key="healthCheck" label="Health Check" mark-complete-on-view="false">
@@ -26,11 +30,12 @@
     </v2-wizard-page>
   </v2-modal-wizard>
   <div class="modal-footer">
-    <button ng-disabled="ctrl.taskMonitor.submitting" class="btn btn-default"
-            ng-click="ctrl.cancel()">Cancel
-    </button>
-    <submit-button is-disabled="form.$invalid || ctrl.taskMonitor.submitting"
-                   submitting="ctrl.taskMonitor.submitting" on-click="ctrl.submit()"
-                   is-new="ctrl.isNew"></submit-button>
+    <button ng-disabled="ctrl.taskMonitor.submitting" class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
+    <submit-button
+      is-disabled="form.$invalid || ctrl.taskMonitor.submitting"
+      submitting="ctrl.taskMonitor.submitting"
+      on-click="ctrl.submit()"
+      is-new="ctrl.isNew"
+    ></submit-button>
   </div>
 </form>

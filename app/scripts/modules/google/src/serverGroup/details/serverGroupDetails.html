@@ -1,22 +1,18 @@
-<div class="details-panel"
-     ng-class="{ disabled: ctrl.serverGroup.isDisabled }">
+<div class="details-panel" ng-class="{ disabled: ctrl.serverGroup.isDisabled }">
   <div class="header" ng-if="ctrl.state.loading">
-      <div class="close-button">
-          <a class="btn btn-link"
-             ui-sref="^">
-              <span class="glyphicon glyphicon-remove"></span>
-          </a>
-      </div>
-      <div class="horizontal center middle">
-        <loading-spinner size="'small'"></loading-spinner>
-      </div>
+    <div class="close-button">
+      <a class="btn btn-link" ui-sref="^">
+        <span class="glyphicon glyphicon-remove"></span>
+      </a>
+    </div>
+    <div class="horizontal center middle">
+      <loading-spinner size="'small'"></loading-spinner>
+    </div>
   </div>
-
 
   <div class="header" ng-if="!ctrl.state.loading">
     <div class="close-button">
-      <a class="btn btn-link"
-          ui-sref="^">
+      <a class="btn btn-link" ui-sref="^">
         <span class="glyphicon glyphicon-remove"></span>
       </a>
     </div>
@@ -25,7 +21,6 @@
       <h3 class="horizontal middle space-between flex-1" select-on-dbl-click>
         {{ctrl.serverGroup.name}}
         <render-if-feature feature="entityTags">
-
           <entity-notifications
             entity="ctrl.serverGroup"
             application="ctrl.application"
@@ -35,7 +30,6 @@
             page-location="details"
             on-update="ctrl.application.serverGroups.refresh()"
           ></entity-notifications>
-
         </render-if-feature>
       </h3>
     </div>
@@ -50,15 +44,24 @@
             <li role="presentation" class="divider" ng-if="!ctrl.serverGroup.isDisabled"></li>
             <li><a href ng-click="ctrl.resizeServerGroup()">Resize</a></li>
             <li><a href ng-if="!ctrl.serverGroup.isDisabled" ng-click="ctrl.disableServerGroup()">Disable</a></li>
-            <li><a href ng-if="ctrl.serverGroup.isDisabled && (ctrl.serverGroup.loadBalancers.length || ctrl.serverGroup.discovery)" ng-click="ctrl.enableServerGroup()">Enable</a></li>
+            <li>
+              <a
+                href
+                ng-if="ctrl.serverGroup.isDisabled && (ctrl.serverGroup.loadBalancers.length || ctrl.serverGroup.discovery)"
+                ng-click="ctrl.enableServerGroup()"
+                >Enable</a
+              >
+            </li>
             <li><a href ng-click="ctrl.destroyServerGroup()">Destroy</a></li>
             <li><a href ng-click="ctrl.cloneServerGroup(ctrl.serverGroup)">Clone</a></li>
             <render-if-feature feature="entityTags">
-              <add-entity-tag-links component="ctrl.serverGroup"
-                                    application="ctrl.application"
-                                    entity-type="serverGroup"
-                                    owner-options="ctrl.entityTagTargets"
-                                    on-update="ctrl.application.serverGroups.refresh()"></add-entity-tag-links>
+              <add-entity-tag-links
+                component="ctrl.serverGroup"
+                application="ctrl.application"
+                entity-type="serverGroup"
+                owner-options="ctrl.entityTagTargets"
+                on-update="ctrl.application.serverGroups.refresh()"
+              ></add-entity-tag-links>
             </render-if-feature>
           </ul>
         </div>
@@ -67,7 +70,9 @@
             Insight <span class="caret"></span>
           </button>
           <ul class="dropdown-menu" uib-dropdown-menu role="menu">
-            <li ng-repeat="action in ctrl.serverGroup.insightActions"><a target=_blank href="{{action.url}}">{{action.label}}</a></li>
+            <li ng-repeat="action in ctrl.serverGroup.insightActions">
+              <a target="_blank" href="{{action.url}}">{{action.label}}</a>
+            </li>
           </ul>
         </div>
       </div>
@@ -75,7 +80,10 @@
   </div>
   <div class="content" ng-if="!ctrl.state.loading">
     <h4 class="text-center" ng-if="ctrl.serverGroup.isDisabled">[SERVER GROUP IS DISABLED]</h4>
-    <server-group-running-tasks-details server-group="ctrl.serverGroup" application="ctrl.application"></server-group-running-tasks-details>
+    <server-group-running-tasks-details
+      server-group="ctrl.serverGroup"
+      application="ctrl.application"
+    ></server-group-running-tasks-details>
     <collapsible-section heading="Server Group Information" expanded="true">
       <dl class="dl-horizontal dl-flex">
         <dt>Created</dt>
@@ -101,15 +109,13 @@
       </dl>
     </collapsible-section>
     <collapsible-section heading="Size" expanded="true">
-      <dl class="dl-horizontal dl-flex"
-          ng-if="ctrl.serverGroup.asg.minSize === ctrl.serverGroup.asg.maxSize">
+      <dl class="dl-horizontal dl-flex" ng-if="ctrl.serverGroup.asg.minSize === ctrl.serverGroup.asg.maxSize">
         <dt>Min/Max</dt>
         <dd>{{ctrl.serverGroup.asg.desiredCapacity}}</dd>
         <dt>Current</dt>
         <dd>{{ctrl.serverGroup.instances.length}}</dd>
       </dl>
-      <dl class="dl-horizontal dl-flex"
-          ng-if="ctrl.serverGroup.asg.minSize !== ctrl.serverGroup.asg.maxSize">
+      <dl class="dl-horizontal dl-flex" ng-if="ctrl.serverGroup.asg.minSize !== ctrl.serverGroup.asg.maxSize">
         <dt>Min</dt>
         <dd>{{ctrl.serverGroup.asg.minSize}}</dd>
         <dt>Desired</dt>
@@ -128,8 +134,7 @@
       </dl>
     </collapsible-section>
     <collapsible-section heading="Health" expanded="true">
-      <dl class="dl-horizontal dl-flex"
-          ng-if="ctrl.serverGroup">
+      <dl class="dl-horizontal dl-flex" ng-if="ctrl.serverGroup">
         <dt>Instances</dt>
         <dd>
           <health-counts container="ctrl.serverGroup.instanceCounts" class="pull-left"></health-counts>
@@ -146,8 +151,12 @@
         <dd>{{ctrl.serverGroup.launchConfig.instanceType | customInstanceFilter }}</dd>
         <dt>Minimum CPU Platform</dt>
         <dd>{{ctrl.serverGroup.launchConfig.minCpuPlatform || '(Automatic)'}}</dd>
-        <dt ng-repeat-start="diskDescription in ctrl.serverGroup.diskDescriptions">Disk{{diskDescription.countSuffix}}</dt>
-        <dd ng-repeat-end>{{diskDescription.finalLabel}}<help-field content="{{diskDescription.helpField}}"></help-field></dd>
+        <dt ng-repeat-start="diskDescription in ctrl.serverGroup.diskDescriptions">
+          Disk{{diskDescription.countSuffix}}
+        </dt>
+        <dd ng-repeat-end>
+          {{diskDescription.finalLabel}}<help-field content="{{diskDescription.helpField}}"></help-field>
+        </dd>
         <dt ng-if="ctrl.serverGroup.serviceAccountEmail">Service Account</dt>
         <dd ng-if="ctrl.serverGroup.serviceAccountEmail">{{ctrl.serverGroup.serviceAccountEmail}}</dd>
         <dt ng-if="ctrl.serverGroup.authScopes">Auth Scopes</dt>
@@ -164,41 +173,55 @@
         <dt>Can IP Forward</dt>
         <dd>{{ctrl.serverGroup.canIpForward}}</dd>
         <dt>Startup Script</dt>
-        <dd ng-if="ctrl.serverGroup.startupScript"><a href ng-click="ctrl.showStartupScript()">Show Startup Script</a></dd>
+        <dd ng-if="ctrl.serverGroup.startupScript">
+          <a href ng-click="ctrl.showStartupScript()">Show Startup Script</a>
+        </dd>
         <dd ng-if="!ctrl.serverGroup.startupScript">[none]</dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="{{ctrl.firewallsLabel}}">
       <ul>
         <li ng-repeat="securityGroup in ctrl.securityGroups | orderBy:'name'">
-          <a ui-sref="^.firewallDetails({name: securityGroup.name, accountId: securityGroup.accountName, region: 'global', provider: ctrl.serverGroup.type})">
+          <a
+            ui-sref="^.firewallDetails({name: securityGroup.name, accountId: securityGroup.accountName, region: 'global', provider: ctrl.serverGroup.type})"
+          >
             {{securityGroup.name}}
           </a>
         </li>
       </ul>
     </collapsible-section>
     <collapsible-section heading="Autoscaling">
-      <gce-add-autoscaling-policy-button ng-if="!ctrl.serverGroup.autoscalingPolicy"
-                                     server-group="ctrl.serverGroup"
-                                     application="ctrl.application">
+      <gce-add-autoscaling-policy-button
+        ng-if="!ctrl.serverGroup.autoscalingPolicy"
+        server-group="ctrl.serverGroup"
+        application="ctrl.application"
+      >
       </gce-add-autoscaling-policy-button>
-      <gce-autoscaling-policy ng-repeat="policy in [ctrl.serverGroup.autoscalingPolicy]"
-                          ng-if="ctrl.serverGroup.autoscalingPolicy"
-                          application="ctrl.application"
-                          server-group="ctrl.serverGroup"
-                          policy="policy">
+      <gce-autoscaling-policy
+        ng-repeat="policy in [ctrl.serverGroup.autoscalingPolicy]"
+        ng-if="ctrl.serverGroup.autoscalingPolicy"
+        application="ctrl.application"
+        server-group="ctrl.serverGroup"
+        policy="policy"
+      >
       </gce-autoscaling-policy>
     </collapsible-section>
     <collapsible-section heading="AutoHealing">
-      <gce-add-auto-healing-policy-button ng-if="!ctrl.serverGroup.autoHealingPolicyHealthCheck"
-                                          application="ctrl.application"
-                                          server-group="ctrl.serverGroup"></gce-add-auto-healing-policy-button>
-      <gce-auto-healing-policy-details ng-if="ctrl.serverGroup.autoHealingPolicyHealthCheck"
-                                       application="ctrl.application"
-                                       server-group="ctrl.serverGroup"></gce-auto-healing-policy-details>
+      <gce-add-auto-healing-policy-button
+        ng-if="!ctrl.serverGroup.autoHealingPolicyHealthCheck"
+        application="ctrl.application"
+        server-group="ctrl.serverGroup"
+      ></gce-add-auto-healing-policy-button>
+      <gce-auto-healing-policy-details
+        ng-if="ctrl.serverGroup.autoHealingPolicyHealthCheck"
+        application="ctrl.application"
+        server-group="ctrl.serverGroup"
+      ></gce-auto-healing-policy-details>
     </collapsible-section>
     <collapsible-section heading="Custom Metadata">
-      <div ng-if="!ctrl.serverGroup.launchConfig.instanceTemplate.properties.metadata.items.length">No custom metadata associated with this server group</div>
+      <div ng-if="!ctrl.serverGroup.launchConfig.instanceTemplate.properties.metadata.items.length">
+        No custom metadata associated with this server group
+      </div>
       <dl ng-if="ctrl.serverGroup.launchConfig.instanceTemplate.properties.metadata.items.length">
         <dt ng-repeat-start="metadata in ctrl.serverGroup.launchConfig.instanceTemplate.properties.metadata.items">
           {{metadata.key}}
@@ -208,11 +231,15 @@
       </dl>
     </collapsible-section>
     <collapsible-section heading="Tags">
-      <div ng-if="!ctrl.serverGroup.launchConfig.instanceTemplate.properties.tags.items.length">No tags associated with this server group</div>
+      <div ng-if="!ctrl.serverGroup.launchConfig.instanceTemplate.properties.tags.items.length">
+        No tags associated with this server group
+      </div>
       <dl ng-if="ctrl.serverGroup.launchConfig.instanceTemplate.properties.tags.items.length">
         <dd ng-repeat="tag in ctrl.serverGroup.launchConfig.instanceTemplate.properties.tags.items">
           {{tag}}
-          <help-field content="{{ctrl.serverGroup.launchConfig.instanceTemplate.properties.tags.helpMap[tag]}}"></help-field>
+          <help-field
+            content="{{ctrl.serverGroup.launchConfig.instanceTemplate.properties.tags.helpMap[tag]}}"
+          ></help-field>
         </dd>
       </dl>
     </collapsible-section>
@@ -229,7 +256,9 @@
       </dl>
     </collapsible-section>
     <collapsible-section heading="Availability Policies">
-      <div ng-if="!ctrl.serverGroup.availabilityPolicies">No availability policies associated with this server group</div>
+      <div ng-if="!ctrl.serverGroup.availabilityPolicies">
+        No availability policies associated with this server group
+      </div>
       <div ng-if="ctrl.serverGroup.availabilityPolicies">
         <dl class="horizontal-when-filters-collapsed">
           <dt>
@@ -263,7 +292,9 @@
         <dt>Version</dt>
         <dd>{{ctrl.serverGroup.buildInfo.version}}</dd>
         <dt ng-if="ctrl.serverGroup.buildInfo.jenkins">Build Link</dt>
-        <dd ng-if="ctrl.serverGroup.buildInfo.jenkins"><a target=_blank href="{{ctrl.buildJenkinsLink()}}">{{ctrl.buildJenkinsLink()}}</a></dd>
+        <dd ng-if="ctrl.serverGroup.buildInfo.jenkins">
+          <a target="_blank" href="{{ctrl.buildJenkinsLink()}}">{{ctrl.buildJenkinsLink()}}</a>
+        </dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Port Name Mapping" ng-if="ctrl.serverGroup.loadBalancingPolicy">
@@ -274,8 +305,7 @@
       </dl>
     </collapsible-section>
     <collapsible-section heading="Capacity Metrics" ng-if="ctrl.serverGroup.loadBalancingPolicy">
-      <dl class="horizontal-when-filters-collapsed"
-          ng-if="ctrl.serverGroup.loadBalancingPolicy.listeningPort">
+      <dl class="horizontal-when-filters-collapsed" ng-if="ctrl.serverGroup.loadBalancingPolicy.listeningPort">
         <dt>Balancing Mode</dt>
         <dd>{{ctrl.serverGroup.loadBalancingPolicy.balancingMode}}</dd>
         <dt ng-if="ctrl.serverGroup.loadBalancingPolicy.maxRatePerInstance">Max RPS per instance</dt>
@@ -301,9 +331,10 @@
         <li ng-if="ctrl.serverGroup.logsLink">
           <a href="{{ctrl.serverGroup.logsLink}}" target="_blank">Cloud Console Logs</a>
           <copy-to-clipboard
-              class="copy-to-clipboard copy-to-clipboard-sm"
-              text="ctrl.serverGroup.logsLink"
-              tool-tip="'Copy to clipboard'">
+            class="copy-to-clipboard copy-to-clipboard-sm"
+            text="ctrl.serverGroup.logsLink"
+            tool-tip="'Copy to clipboard'"
+          >
           </copy-to-clipboard>
         </li>
       </ul>

@@ -1,19 +1,15 @@
 <div ng-controller="dockerBakeStageCtrl as bakeStageCtrl">
   <stage-config-field label="Package" help-key="pipeline.config.bake.package">
-      <input type="text" class="form-control input-sm"
-             ng-model="stage.package"/>
+    <input type="text" class="form-control input-sm" ng-model="stage.package" />
   </stage-config-field>
   <stage-config-field label="Organization" help-key="pipeline.config.docker.bake.organization">
-    <input type="text" class="form-control input-sm"
-             ng-model="stage.organization"/>
+    <input type="text" class="form-control input-sm" ng-model="stage.organization" />
   </stage-config-field>
   <stage-config-field label="Image Name" help-key="pipeline.config.docker.bake.targetImage">
-    <input type="text" class="form-control input-sm"
-             ng-model="stage.ami_name"/>
+    <input type="text" class="form-control input-sm" ng-model="stage.ami_name" />
   </stage-config-field>
   <stage-config-field label="Image tag" help-key="pipeline.config.docker.bake.targetImageTag">
-    <input type="text" class="form-control input-sm"
-             ng-model="stage.extendedAttributes['docker_target_image_tag']"/>
+    <input type="text" class="form-control input-sm" ng-model="stage.extendedAttributes['docker_target_image_tag']" />
   </stage-config-field>
   <stage-config-field label="Base OS">
     <bake-stage-choose-os model="stage.baseOs" base-os-options="baseOsOptions"></bake-stage-choose-os>
@@ -21,19 +17,16 @@
 
   <stage-config-field label="Base Label">
     <label class="radio-inline" ng-repeat="baseLabel in baseLabelOptions">
-      <input type="radio"
-             ng-model="stage.baseLabel"
-             ng-value="baseLabel"/>
+      <input type="radio" ng-model="stage.baseLabel" ng-value="baseLabel" />
       {{baseLabel}}
     </label>
   </stage-config-field>
   <stage-config-field label="Rebake">
-      <div class="checkbox" style="margin-bottom: 0">
-        <label>
-          <input type="checkbox"
-                 ng-model="stage.rebake">
-          Rebake image without regard to the status of any existing bake
-        </label>
-      </div>
-    </stage-config-field>
+    <div class="checkbox" style="margin-bottom: 0">
+      <label>
+        <input type="checkbox" ng-model="stage.rebake" />
+        Rebake image without regard to the status of any existing bake
+      </label>
+    </div>
+  </stage-config-field>
 </div>

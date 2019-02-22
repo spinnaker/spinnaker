@@ -10,7 +10,7 @@
         <div class="col-sm-offset-2 col-sm-10">
           <div class="checkbox" ng-repeat="process in command">
             <label>
-              <input type="checkbox" ng-model="process.enabled">
+              <input type="checkbox" ng-model="process.enabled" />
               {{process.name}}
             </label>
             <help-field content="{{process.description}}" placement="right"></help-field>
@@ -19,10 +19,12 @@
       </div>
     </div>
     <task-reason command="command"></task-reason>
-    <aws-footer action="ctrl.submit()"
-                cancel="ctrl.cancel()"
-                is-valid="ctrl.isValid()"
-                account="serverGroup.account"
-                verification="verification"></aws-footer>
+    <aws-footer
+      action="ctrl.submit()"
+      cancel="ctrl.cancel()"
+      is-valid="ctrl.isValid()"
+      account="serverGroup.account"
+      verification="verification"
+    ></aws-footer>
   </form>
 </div>

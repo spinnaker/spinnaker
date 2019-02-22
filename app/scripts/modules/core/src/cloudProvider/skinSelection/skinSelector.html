@@ -6,12 +6,10 @@
     <div class="modal-body clearfix">
       <div class="col-md-3 sm-label-right">Version</div>
       <div class="col-md-5">
-        <select class="form-control input-sm"
-                ng-model="ctrl.command.skin"
-                required>
-          <option ng-repeat="skin in ctrl.skinOptions"
-                  value="{{skin}}"
-                  ng-selected="ctrl.command.skin === skin">{{skin}}</option>
+        <select class="form-control input-sm" ng-model="ctrl.command.skin" required>
+          <option ng-repeat="skin in ctrl.skinOptions" value="{{skin}}" ng-selected="ctrl.command.skin === skin"
+            >{{skin}}</option
+          >
         </select>
       </div>
     </div>
@@ -24,4 +22,3 @@
     </div>
   </form>
 </div>
-

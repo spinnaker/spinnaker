@@ -11,25 +11,29 @@
             </tr>
           </thead>
           <tbody>
-          <tr>
-            <td>
-              <select ng-disabled="!ctrl.isNew" class="form-control input-sm"
-                      ng-change="ctrl.protocolUpdated()"
-                      ng-model="ctrl.loadBalancer.ipProtocol"
-                      ng-options="protocol for protocol in ['TCP', 'UDP']"></select>
-            </td>
+            <tr>
+              <td>
+                <select
+                  ng-disabled="!ctrl.isNew"
+                  class="form-control input-sm"
+                  ng-change="ctrl.protocolUpdated()"
+                  ng-model="ctrl.loadBalancer.ipProtocol"
+                  ng-options="protocol for protocol in ['TCP', 'UDP']"
+                ></select>
+              </td>
 
-            <td>
-              <select class="form-control input-sm"
-                      ng-options="subnet for subnet in ctrl.subnetOptions"
-                      ng-disabled="!ctrl.isNew"
-                      ng-model="ctrl.loadBalancer.subnet">
-              </select>
-            </td>
+              <td>
+                <select
+                  class="form-control input-sm"
+                  ng-options="subnet for subnet in ctrl.subnetOptions"
+                  ng-disabled="!ctrl.isNew"
+                  ng-model="ctrl.loadBalancer.subnet"
+                >
+                </select>
+              </td>
 
-            <td><input class="form-control input-sm"
-                       required ng-model="ctrl.loadBalancer.ports"/></td>
-          </tr>
+              <td><input class="form-control input-sm" required ng-model="ctrl.loadBalancer.ports" /></td>
+            </tr>
           </tbody>
         </table>
       </div>

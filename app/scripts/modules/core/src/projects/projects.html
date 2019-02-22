@@ -3,18 +3,17 @@
     <div class="container">
       <h2 class="header-section">
         <span class="search-label">Projects</span>
-        <input type="search"
-               placeholder="Search projects"
-               class="form-control input-md"
-               focus
-               ng-model="viewState.projectFilter"
-               ng-change="ctrl.filterProjects()"/>
+        <input
+          type="search"
+          placeholder="Search projects"
+          class="form-control input-md"
+          focus
+          ng-model="viewState.projectFilter"
+          ng-change="ctrl.filterProjects()"
+        />
       </h2>
       <div class="header-actions">
-        <insight-menu data-purpose="projects-menu"
-                      actions="menuActions"
-                      right-align="true">
-        </insight-menu>
+        <insight-menu data-purpose="projects-menu" actions="menuActions" right-align="true"> </insight-menu>
       </div>
     </div>
   </div>
@@ -25,14 +24,46 @@
     <table ng-if="projectsLoaded" class="table table-hover">
       <thead>
         <tr>
-          <th width="20%" sort-toggle key="name" label="Name" sort-model="viewState.sortModel" on-change="ctrl.filterProjects()"></th>
-          <th width="20%" sort-toggle key="createTs" label="Created" sort-model="viewState.sortModel" on-change="ctrl.filterProjects()"></th>
-          <th width="20%" sort-toggle key="updateTs" label="Updated" sort-model="viewState.sortModel" on-change="ctrl.filterProjects()"></th>
-          <th width="25%" sort-toggle key="email" label="Owner" sort-model="viewState.sortModel" on-change="ctrl.filterProjects()"></th>
+          <th
+            width="20%"
+            sort-toggle
+            key="name"
+            label="Name"
+            sort-model="viewState.sortModel"
+            on-change="ctrl.filterProjects()"
+          ></th>
+          <th
+            width="20%"
+            sort-toggle
+            key="createTs"
+            label="Created"
+            sort-model="viewState.sortModel"
+            on-change="ctrl.filterProjects()"
+          ></th>
+          <th
+            width="20%"
+            sort-toggle
+            key="updateTs"
+            label="Updated"
+            sort-model="viewState.sortModel"
+            on-change="ctrl.filterProjects()"
+          ></th>
+          <th
+            width="25%"
+            sort-toggle
+            key="email"
+            label="Owner"
+            sort-model="viewState.sortModel"
+            on-change="ctrl.filterProjects()"
+          ></th>
         </tr>
       </thead>
       <tbody>
-        <tr class="clickable" ng-repeat="project in ctrl.resultPage()" ui-sref="home.project.dashboard({project: project.name.toLowerCase()})">
+        <tr
+          class="clickable"
+          ng-repeat="project in ctrl.resultPage()"
+          ui-sref="home.project.dashboard({project: project.name.toLowerCase()})"
+        >
           <td>
             <a href ui-sref="home.project.dashboard({project: project.name.toLowerCase()})">
               {{ project.name.toLowerCase() }}
@@ -50,11 +81,13 @@
         </tr>
       </tbody>
     </table>
-    <ul uib-pagination
-        ng-if="projectsLoaded"
-        items-per-page="pagination.itemsPerPage"
-        total-items="filteredProjects.length"
-        max-size="pagination.maxSize"
-        ng-model="pagination.currentPage"></ul>
+    <ul
+      uib-pagination
+      ng-if="projectsLoaded"
+      items-per-page="pagination.itemsPerPage"
+      total-items="filteredProjects.length"
+      max-size="pagination.maxSize"
+      ng-model="pagination.currentPage"
+    ></ul>
   </div>
 </div>

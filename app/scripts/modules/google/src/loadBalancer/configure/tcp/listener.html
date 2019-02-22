@@ -5,10 +5,12 @@
         Port
       </div>
       <div class="col-md-4">
-        <select class="form-control input-sm"
-                ng-options="port for port in ctrl.portOptions"
-                ng-disabled="!ctrl.isNew"
-                ng-model="ctrl.loadBalancer.portRange">
+        <select
+          class="form-control input-sm"
+          ng-options="port for port in ctrl.portOptions"
+          ng-disabled="!ctrl.isNew"
+          ng-model="ctrl.loadBalancer.portRange"
+        >
         </select>
       </div>
     </div>

@@ -1,7 +1,9 @@
-<ui-select ng-model="component[field]"
-           on-select="onChange()"
-           ng-if="initialized && showSelector && !readOnly"
-           class="form-control input-sm">
+<ui-select
+  ng-model="component[field]"
+  on-select="onChange()"
+  ng-if="initialized && showSelector && !readOnly"
+  class="form-control input-sm"
+>
   <ui-select-match placeholder="Select a provider">
     <cloud-provider-logo provider="$select.selected" height="'14px'" width="'14px'"></cloud-provider-logo>
     <cloud-provider-label provider="$select.selected"></cloud-provider-label>

@@ -1,90 +1,105 @@
 <div class="form-horizontal clearfix" xmlns="http://www.w3.org/1999/html">
   <div class="container-fluid form-horizontal">
     <h4>Template Renderer</h4>
-    <stage-config-field label="Render Engine"
-                        help-key="pipeline.config.bake.manifest.templateRenderer"
-                        field-columns="3">
-      <select class="form-control input-sm"
-              ng-model="ctrl.$scope.stage.templateRenderer">
-        <option ng-repeat="renderer in ctrl.templateRenderers"
-                value="{{renderer}}"
-                ng-selected="ctrl.$scope.stage.templateRenderer === renderer">{{renderer}}</option>
+    <stage-config-field
+      label="Render Engine"
+      help-key="pipeline.config.bake.manifest.templateRenderer"
+      field-columns="3"
+    >
+      <select class="form-control input-sm" ng-model="ctrl.$scope.stage.templateRenderer">
+        <option
+          ng-repeat="renderer in ctrl.templateRenderers"
+          value="{{renderer}}"
+          ng-selected="ctrl.$scope.stage.templateRenderer === renderer"
+          >{{renderer}}</option
+        >
       </select>
     </stage-config-field>
     <stage-config-field label="Name" field-columns="3">
-      <input type="text" class="form-control input-sm"
-             ng-model="ctrl.$scope.stage.outputName"
-             ng-change="ctrl.outputNameChange()"
-             ng-class="{'ng-invalid': !ctrl.$scope.stage.outputName}"
-             >
+      <input
+        type="text"
+        class="form-control input-sm"
+        ng-model="ctrl.$scope.stage.outputName"
+        ng-change="ctrl.outputNameChange()"
+        ng-class="{'ng-invalid': !ctrl.$scope.stage.outputName}"
+      />
     </stage-config-field>
     <stage-config-field label="Namespace" field-columns="3">
-      <input type="text" class="form-control input-sm"
-             ng-model="ctrl.$scope.stage.namespace">
+      <input type="text" class="form-control input-sm" ng-model="ctrl.$scope.stage.namespace" />
     </stage-config-field>
 
     <h4>Template Artifact</h4>
-    <stage-config-field label="Expected Artifact"
-                        help-key="pipeline.config.bake.manifest.expectedArtifact"
-                        field-columns="8"
-                        ng-if="ctrl.$scope.stage.source === ctrl.artifactSource">
+    <stage-config-field
+      label="Expected Artifact"
+      help-key="pipeline.config.bake.manifest.expectedArtifact"
+      field-columns="8"
+      ng-if="ctrl.$scope.stage.source === ctrl.artifactSource"
+    >
       <expected-artifact-selector-react
-                                  expected-artifacts="ctrl.templateArtifact().delegate.expectedArtifacts"
-                                  selected="ctrl.templateArtifact().delegate.getSelectedExpectedArtifact()"
-                                  on-change="ctrl.templateArtifact().controller.onArtifactChange"
-                                  on-request-create="ctrl.templateArtifact().controller.onRequestCreate"
-                                  requesting-new="ctrl.templateArtifact().delegate.requestingNew"
-                                  >
+        expected-artifacts="ctrl.templateArtifact().delegate.expectedArtifacts"
+        selected="ctrl.templateArtifact().delegate.getSelectedExpectedArtifact()"
+        on-change="ctrl.templateArtifact().controller.onArtifactChange"
+        on-request-create="ctrl.templateArtifact().controller.onRequestCreate"
+        requesting-new="ctrl.templateArtifact().delegate.requestingNew"
+      >
       </expected-artifact-selector-react>
     </stage-config-field>
-    <stage-config-field label="Artifact Account"
-                        field-columns="8"
-                        ng-if="ctrl.canShowAccountSelect(ctrl.templateArtifact())">
+    <stage-config-field
+      label="Artifact Account"
+      field-columns="8"
+      ng-if="ctrl.canShowAccountSelect(ctrl.templateArtifact())"
+    >
       <artifact-account-selector-react
         accounts="ctrl.templateArtifact().controller.accountsForArtifact"
         selected="ctrl.templateArtifact().delegate.getSelectedAccount()"
         on-change="ctrl.templateArtifact().controller.onAccountChange"
-        >
+      >
       </artifact-account-selector-react>
     </stage-config-field>
-    <expected-artifact-editor-react ng-if="ctrl.templateArtifact().delegate.requestingNew"
-                                    kinds="ctrl.templateArtifact().delegate.getSupportedArtifactKinds()"
-                                    sources="ctrl.templateArtifact().delegate.getExpectedArtifactSources()"
-                                    accounts="ctrl.templateArtifact().delegate.getExpectedArtifactAccounts()"
-                                    on-save="ctrl.templateArtifact().controller.onArtifactCreated"
+    <expected-artifact-editor-react
+      ng-if="ctrl.templateArtifact().delegate.requestingNew"
+      kinds="ctrl.templateArtifact().delegate.getSupportedArtifactKinds()"
+      sources="ctrl.templateArtifact().delegate.getExpectedArtifactSources()"
+      accounts="ctrl.templateArtifact().delegate.getExpectedArtifactAccounts()"
+      on-save="ctrl.templateArtifact().controller.onArtifactCreated"
     >
     </expected-artifact-editor-react>
 
     <h4>Overrides</h4>
-    <div class="row form-group" ng-if="ctrl.hasValueArtifacts()" ng-repeat="artifact in ctrl.$scope.stage.inputArtifacts.slice(1)">
+    <div
+      class="row form-group"
+      ng-if="ctrl.hasValueArtifacts()"
+      ng-repeat="artifact in ctrl.$scope.stage.inputArtifacts.slice(1)"
+    >
       <div class="col-md-offset-1 col-md-9">
-        <stage-config-field label="Expected Artifact"
-                            field-columns="8"
-                            ng-if="ctrl.$scope.stage.source === ctrl.artifactSource">
+        <stage-config-field
+          label="Expected Artifact"
+          field-columns="8"
+          ng-if="ctrl.$scope.stage.source === ctrl.artifactSource"
+        >
           <expected-artifact-selector-react
-                                      expected-artifacts="artifact.delegate.expectedArtifacts"
-                                      selected="artifact.delegate.getSelectedExpectedArtifact()"
-                                      on-change="artifact.controller.onArtifactChange"
-                                      on-request-create="artifact.controller.onRequestCreate"
-                                      requesting-new="artifact.delegate.requestingNew"
-                                      >
+            expected-artifacts="artifact.delegate.expectedArtifacts"
+            selected="artifact.delegate.getSelectedExpectedArtifact()"
+            on-change="artifact.controller.onArtifactChange"
+            on-request-create="artifact.controller.onRequestCreate"
+            requesting-new="artifact.delegate.requestingNew"
+          >
           </expected-artifact-selector-react>
         </stage-config-field>
-        <stage-config-field label="Artifact Account"
-                            field-columns="8"
-                            ng-if="ctrl.canShowAccountSelect(artifact)">
+        <stage-config-field label="Artifact Account" field-columns="8" ng-if="ctrl.canShowAccountSelect(artifact)">
           <artifact-account-selector-react
             accounts="artifact.controller.accountsForArtifact"
             selected="artifact.delegate.getSelectedAccount()"
             on-change="artifact.controller.onAccountChange"
-            >
+          >
           </artifact-account-selector-react>
         </stage-config-field>
-        <expected-artifact-editor-react ng-if="artifact.delegate.requestingNew"
-                                        kinds="artifact.delegate.getSupportedArtifactKinds()"
-                                        sources="artifact.delegate.getExpectedArtifactSources()"
-                                        accounts="artifact.delegate.getExpectedArtifactAccounts()"
-                                        on-save="artifact.controller.onArtifactCreated"
+        <expected-artifact-editor-react
+          ng-if="artifact.delegate.requestingNew"
+          kinds="artifact.delegate.getSupportedArtifactKinds()"
+          sources="artifact.delegate.getExpectedArtifactSources()"
+          accounts="artifact.delegate.getExpectedArtifactAccounts()"
+          on-save="artifact.controller.onArtifactCreated"
         >
         </expected-artifact-editor-react>
       </div>

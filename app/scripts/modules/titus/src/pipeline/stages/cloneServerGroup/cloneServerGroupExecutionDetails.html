@@ -13,7 +13,10 @@
           <dt>Server Group</dt>
           <dd>{{stage.context.source.serverGroupName}}</dd>
           <dt ng-if="!stage.context.useSourceCapacity && stage.context.capacity">Capacity</dt>
-          <dd ng-if="!stage.context.useSourceCapacity && stage.context.capacity">Min: {{stage.context.capacity.min}} / Desired: {{stage.context.capacity.desired}} / Max: {{stage.context.capacity.max}}</dd>
+          <dd ng-if="!stage.context.useSourceCapacity && stage.context.capacity">
+            Min: {{stage.context.capacity.min}} / Desired: {{stage.context.capacity.desired}} / Max:
+            {{stage.context.capacity.max}}
+          </dd>
         </dl>
       </div>
     </div>
@@ -23,9 +26,11 @@
       <div class="col-md-12">
         <div class="well alert alert-info">
           <strong>Deployed:</strong>
-          <a ng-repeat="serverGroup in deployed"
-             ng-click="$event.stopPropagation(); deployDetailsCtrl.overrideFiltersForUrl(serverGroup);"
-             ng-href="{{serverGroup.href}}">
+          <a
+            ng-repeat="serverGroup in deployed"
+            ng-click="$event.stopPropagation(); deployDetailsCtrl.overrideFiltersForUrl(serverGroup);"
+            ng-href="{{serverGroup.href}}"
+          >
             {{serverGroup.serverGroup}}
           </a>
         </div>

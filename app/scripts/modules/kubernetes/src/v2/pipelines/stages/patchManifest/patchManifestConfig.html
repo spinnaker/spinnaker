@@ -2,21 +2,24 @@
   <div class="container-fluid form-horizontal">
     <h4>Resource to Patch</h4>
     <div class="horizontal-rule"></div>
-    <kubernetes-manifest-selector on-change="ctrl.handleManifestSelectorChange" selector="ctrl.$scope.stage"></kubernetes-manifest-selector>
+    <kubernetes-manifest-selector
+      on-change="ctrl.handleManifestSelectorChange"
+      selector="ctrl.$scope.stage"
+    ></kubernetes-manifest-selector>
 
     <h4>Patch Content</h4>
-    <hr>
+    <hr />
     <ng-form name="patchContentSource">
       <stage-config-field label="Manifest Source" help-key="kubernetes.manifest.source">
         <div class="radio">
           <label class="sm-label-right">
-            <input type="radio" ng-model="ctrl.$scope.stage.source" value="{{ctrl.textSource}}">
+            <input type="radio" ng-model="ctrl.$scope.stage.source" value="{{ctrl.textSource}}" />
             {{ ctrl.textSource | robotToHuman }}
           </label>
         </div>
         <div class="radio">
           <label class="sm-label-right">
-            <input type="radio" ng-model="ctrl.$scope.stage.source" value="{{ctrl.artifactSource}}">
+            <input type="radio" ng-model="ctrl.$scope.stage.source" value="{{ctrl.artifactSource}}" />
             {{ ctrl.artifactSource | robotToHuman }}
           </label>
         </div>
@@ -25,22 +28,29 @@
     <yaml-editor
       ng-if="stage.source === ctrl.textSource && ctrl.getEditorMode() === 'yaml'"
       on-change="ctrl.handlePatchBodyChange"
-      value="ctrl.rawPatchBody">
+      value="ctrl.rawPatchBody"
+    >
     </yaml-editor>
     <json-editor
       ng-if="stage.source === ctrl.textSource && ctrl.getEditorMode() === 'json'"
       on-change="ctrl.handlePatchBodyChange"
-      value="ctrl.rawPatchBody">
+      value="ctrl.rawPatchBody"
+    >
     </json-editor>
-    <stage-config-field label="Expected Artifact" help-key="kubernetes.manifest.expectedArtifact" field-columns="8" ng-if="ctrl.$scope.stage.source === ctrl.artifactSource">
+    <stage-config-field
+      label="Expected Artifact"
+      help-key="kubernetes.manifest.expectedArtifact"
+      field-columns="8"
+      ng-if="ctrl.$scope.stage.source === ctrl.artifactSource"
+    >
       <expected-artifact-selector-react
-                                  expected-artifacts="ctrl.$scope.expectedArtifacts"
-                                  selected="ctrl.manifestArtifactDelegate.getSelectedExpectedArtifact()"
-                                  on-change="ctrl.manifestArtifactController.onArtifactChange"
-                                  on-request-create="ctrl.manifestArtifactController.onRequestCreate"
-                                  excluded-artifact-types="ctrl.manifestArtifactDelegate.getExcludedArtifactTypes()"
-                                  requesting-new="ctrl.$scope.showCreateArtifactForm"
-                                  >
+        expected-artifacts="ctrl.$scope.expectedArtifacts"
+        selected="ctrl.manifestArtifactDelegate.getSelectedExpectedArtifact()"
+        on-change="ctrl.manifestArtifactController.onArtifactChange"
+        on-request-create="ctrl.manifestArtifactController.onRequestCreate"
+        excluded-artifact-types="ctrl.manifestArtifactDelegate.getExcludedArtifactTypes()"
+        requesting-new="ctrl.$scope.showCreateArtifactForm"
+      >
       </expected-artifact-selector-react>
     </stage-config-field>
     <stage-config-field label="Artifact Account" field-columns="8" ng-if="ctrl.canShowAccountSelect()">
@@ -48,30 +58,34 @@
         accounts="ctrl.manifestArtifactController.accountsForArtifact"
         selected="ctrl.manifestArtifactDelegate.getSelectedAccount()"
         on-change="ctrl.manifestArtifactController.onAccountChange"
-        >
+      >
       </artifact-account-selector-react>
     </stage-config-field>
-    <expected-artifact-editor-react ng-if="ctrl.$scope.showCreateArtifactForm"
-                                    kinds="ctrl.manifestArtifactDelegate.getSupportedArtifactKinds()"
-                                    sources="ctrl.manifestArtifactDelegate.getExpectedArtifactSources()"
-                                    accounts="ctrl.manifestArtifactDelegate.getExpectedArtifactAccounts()"
-                                    on-save="ctrl.manifestArtifactController.onArtifactCreated"
+    <expected-artifact-editor-react
+      ng-if="ctrl.$scope.showCreateArtifactForm"
+      kinds="ctrl.manifestArtifactDelegate.getSupportedArtifactKinds()"
+      sources="ctrl.manifestArtifactDelegate.getExpectedArtifactSources()"
+      accounts="ctrl.manifestArtifactDelegate.getExpectedArtifactAccounts()"
+      on-save="ctrl.manifestArtifactController.onArtifactCreated"
     >
     </expected-artifact-editor-react>
-    <hr>
-    <expected-artifact-multi-selector command="ctrl.$scope.stage"
-                                      ids-field="requiredArtifactIds"
-                                      artifact-label="Req. Artifacts To Bind"
-                                      expected-artifacts="ctrl.expectedArtifacts"
-                                      help-field-key="kubernetes.manifest.requiredArtifactsToBind"
-                                      show-icons="true">
+    <hr />
+    <expected-artifact-multi-selector
+      command="ctrl.$scope.stage"
+      ids-field="requiredArtifactIds"
+      artifact-label="Req. Artifacts To Bind"
+      expected-artifacts="ctrl.expectedArtifacts"
+      help-field-key="kubernetes.manifest.requiredArtifactsToBind"
+      show-icons="true"
+    >
     </expected-artifact-multi-selector>
 
     <h4>Patch Options</h4>
     <div class="horizontal-rule"></div>
     <kubernetes-patch-manifest-options-form
       options="ctrl.$scope.stage.options"
-      on-change="ctrl.handleMergeStrategyChange">
+      on-change="ctrl.handleMergeStrategyChange"
+    >
     </kubernetes-patch-manifest-options-form>
   </div>
 </div>

@@ -13,22 +13,21 @@
         </div>
         <div class="form-group">
           <div class="col-md-6 col-md-offset-1">
-            <ui-select ng-model="$ctrl.selectedTemplate"
-                       class="form-control input-sm">
+            <ui-select ng-model="$ctrl.selectedTemplate" class="form-control input-sm">
               <ui-select-match placeholder="Select...">
-              <span ng-if="!$select.selected.label">
-                <account-tag account="$select.selected.account"></account-tag>
-                <span ng-if="$select.selected.serverGroup">{{$select.selected.serverGroupName}}</span>
-                ({{$select.selected.region}})
-              </span>
-                <span ng-if="$select.selected.label">{{$select.selected.label}}</span>
+                <span ng-if="!$select.selected.label">
+                  <account-tag account="$select.selected.account"></account-tag>
+                  <span ng-if="$select.selected.serverGroup">{{ $select.selected.serverGroupName }}</span>
+                  ({{ $select.selected.region }})
+                </span>
+                <span ng-if="$select.selected.label">{{ $select.selected.label }}</span>
               </ui-select-match>
               <ui-select-choices repeat="template in $ctrl.templates | filter: $select.search">
-                <h5 ng-if="!template.label"><account-tag account="template.account"></account-tag> {{template.cluster}} ({{template.region}})</h5>
-                <h5 ng-if="template.label">{{template.label}}</h5>
-                <div ng-if="template.serverGroup">
-                  <b>Most recent server group: </b> {{template.serverGroupName}}
-                </div>
+                <h5 ng-if="!template.label">
+                  <account-tag account="template.account"></account-tag> {{ template.cluster }} ({{ template.region }})
+                </h5>
+                <h5 ng-if="template.label">{{ template.label }}</h5>
+                <div ng-if="template.serverGroup"><b>Most recent server group: </b> {{ template.serverGroupName }}</div>
               </ui-select-choices>
             </ui-select>
           </div>
@@ -50,15 +49,20 @@
                 <li ng-repeat="text in $ctrl.templateSelectionText.notCopied" ng-bind="text"></li>
               </ul>
             </div>
-            <div ng-if="$ctrl.templateSelectionText.additionalCopyText" ng-bind="$ctrl.templateSelectionText.additionalCopyText"></div>
+            <div
+              ng-if="$ctrl.templateSelectionText.additionalCopyText"
+              ng-bind="$ctrl.templateSelectionText.additionalCopyText"
+            ></div>
           </div>
         </div>
       </form>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-primary"
-              ng-click="$ctrl.useTemplate()"
-              ng-if="$ctrl.selectedTemplate.serverGroup || !$ctrl.command.viewState.disableNoTemplateSelection">
+      <button
+        class="btn btn-primary"
+        ng-click="$ctrl.useTemplate()"
+        ng-if="$ctrl.selectedTemplate.serverGroup || !$ctrl.command.viewState.disableNoTemplateSelection"
+      >
         <span ng-if="$ctrl.selectedTemplate.serverGroup">Use this template</span>
         <span ng-if="!$ctrl.selectedTemplate.serverGroup">Continue without a template</span>
         <span class="glyphicon glyphicon-chevron-right"></span>

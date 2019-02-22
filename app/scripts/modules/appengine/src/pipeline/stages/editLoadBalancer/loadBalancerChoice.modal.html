@@ -10,14 +10,19 @@
     <div class="alert alert-warning" ng-if="ctrl.loadBalancers.length === 0">
       <p>This application has no App Engine load balancers.</p>
     </div>
-    <form role="form" name="form" class="form-horizontal" ng-submit="ctrl.submit()" ng-if="ctrl.loadBalancers.length > 0">
+    <form
+      role="form"
+      name="form"
+      class="form-horizontal"
+      ng-submit="ctrl.submit()"
+      ng-if="ctrl.loadBalancers.length > 0"
+    >
       <div class="form-group">
         <div class="col-md-3 sm-label-right">
           <b>Load Balancer</b>
         </div>
         <div class="col-md-7">
-          <ui-select class="form-control input-sm"
-                     ng-model="ctrl.selectedLoadBalancer">
+          <ui-select class="form-control input-sm" ng-model="ctrl.selectedLoadBalancer">
             <ui-select-match>
               <account-tag account="$select.selected.account"></account-tag>
               <span style="margin-left: 5px;">{{$select.selected.name}}</span>
@@ -33,9 +38,7 @@
   </div>
   <div class="modal-footer">
     <button class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
-    <button class="btn btn-primary"
-            ng-if="ctrl.loadBalancers.length > 0"
-            ng-click="ctrl.submit()">
+    <button class="btn btn-primary" ng-if="ctrl.loadBalancers.length > 0" ng-click="ctrl.submit()">
       <span class="far fa-check-circle"></span> Edit
     </button>
   </div>

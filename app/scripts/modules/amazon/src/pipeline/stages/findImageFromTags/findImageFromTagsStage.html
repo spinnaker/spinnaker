@@ -1,7 +1,6 @@
 <div ng-controller="awsFindImageFromTagsStageCtrl as findImageFromTagsCtrl" class="form-horizontal">
   <stage-config-field label="Package">
-    <input type="text" class="form-control input-sm"
-           ng-model="stage.packageName"/>
+    <input type="text" class="form-control input-sm" ng-model="stage.packageName" />
   </stage-config-field>
   <stage-config-field label="Regions">
     <checklist items="regions" model="stage.regions" inline="true" include-select-all-button="true"></checklist>

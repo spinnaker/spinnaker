@@ -2,13 +2,20 @@
   <h4 class="col-md-12">My application is:</h4>
 </div>
 <div class="archetype-columns archetype-columns-{{columns}}" ng-repeat="instanceProfile in instanceProfiles">
-  <button class="instance-profile"
-          ng-class="{active: command.viewState.instanceProfile === instanceProfile.type}"
-          ng-click="instanceArchetypeCtrl.selectInstanceType(instanceProfile.type)">
-        <span is-visible="command.viewState.instanceProfile === instanceProfile.type"
-              class="far fa-check-circle selected-indicator"></span>
+  <button
+    class="instance-profile"
+    ng-class="{active: command.viewState.instanceProfile === instanceProfile.type}"
+    ng-click="instanceArchetypeCtrl.selectInstanceType(instanceProfile.type)"
+  >
+    <span
+      is-visible="command.viewState.instanceProfile === instanceProfile.type"
+      class="far fa-check-circle selected-indicator"
+    ></span>
     <div class="panel-heading">
-      <h4><span class="glyphicon glyphicon-{{instanceProfile.icon}}"></span><div>{{instanceProfile.label}}</div></h4>
+      <h4>
+        <span class="glyphicon glyphicon-{{instanceProfile.icon}}"></span>
+        <div>{{instanceProfile.label}}</div>
+      </h4>
     </div>
   </button>
 </div>
@@ -32,11 +39,13 @@
 </div>
 <div class="row fade-in" ng-if="command.viewState.instanceProfile === 'custom'">
   <div class="col-md-12">
-    <select class="form-control input-sm"
-            ng-model="command.instanceType"
-            ng-options="customType for customType in command.backingData.filtered.instanceTypes"
-            ng-change="instanceArchetypeCtrl.updateInstanceTypeDetails()"
-            ng-required="command.viewState.instanceProfile === 'custom'">
+    <select
+      class="form-control input-sm"
+      ng-model="command.instanceType"
+      ng-options="customType for customType in command.backingData.filtered.instanceTypes"
+      ng-change="instanceArchetypeCtrl.updateInstanceTypeDetails()"
+      ng-required="command.viewState.instanceProfile === 'custom'"
+    >
       <option value="">Select an instance type...</option>
     </select>
   </div>
@@ -45,10 +54,13 @@
       <p>
         <span ng-if="instanceArchetypeCtrl.refreshing"><span class="fa fa-sync-alt fa-spin"></span></span>
         Instance types
-        <span ng-if="!instanceArchetypeCtrl.refreshing">last refreshed {{ instanceArchetypeCtrl.getInstanceTypeRefreshTime() | timestamp }}</span>
+        <span ng-if="!instanceArchetypeCtrl.refreshing"
+          >last refreshed {{ instanceArchetypeCtrl.getInstanceTypeRefreshTime() | timestamp }}</span
+        >
         <span ng-if="instanceArchetypeCtrl.refreshing"> refreshing...</span>
       </p>
-      <p>If you're not seeing an instance type you expect,
+      <p>
+        If you're not seeing an instance type you expect,
         <a href ng-click="instanceArchetypeCtrl.refreshInstanceTypes()">click here</a> to refresh the list.
       </p>
     </div>

@@ -1,9 +1,5 @@
 <div ng-controller="gceFindAmiStageCtrl as findAmiCtrl" class="form-horizontal">
-
-  <account-region-cluster-selector
-    application="application"
-    component="stage"
-    accounts="accounts">
+  <account-region-cluster-selector application="application" component="stage" accounts="accounts">
   </account-region-cluster-selector>
 
   <stage-config-field label="Server Group Selection">
@@ -17,8 +13,7 @@
   </stage-config-field>
   <stage-config-field label="Server Group Filters">
     <label class="checkbox-inline">
-      <input type="checkbox"
-             ng-model="stage.onlyEnabled"/>
+      <input type="checkbox" ng-model="stage.onlyEnabled" />
       Only consider enabled Server Groups
     </label>
   </stage-config-field>

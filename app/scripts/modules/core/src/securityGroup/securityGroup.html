@@ -1,6 +1,8 @@
-<div class="pod-subgroup clickable clickable-row clearfix"
-     ui-sref=".firewallDetails(srefParams)"
-     ui-sref-active="active">
+<div
+  class="pod-subgroup clickable clickable-row clearfix"
+  ui-sref=".firewallDetails(srefParams)"
+  ui-sref-active="active"
+>
   <h6 class="sticky-header-2 horizontal middle">
     <span class="glyphicon glyphicon-transfer"></span>&nbsp;
     <div className="flex-1">{{heading | uppercase}}</div>
@@ -13,19 +15,21 @@
       page-location="details"
       on-update="application.securityGroups.refresh()"
     ></entity-notifications>
-
   </h6>
   <div class="cluster-container">
     <div class="rollup-details-section col-md-6" ng-if="sortFilter.showServerGroups">
       <div ng-if="!securityGroup.usages.serverGroups.length" class="small">
         No server groups
       </div>
-      <div ng-repeat="serverGroup in securityGroup.usages.serverGroups | orderBy:'-name'"
-           class="rollup-row" ng-class="{disabled: serverGroup.isDisabled}">
+      <div
+        ng-repeat="serverGroup in securityGroup.usages.serverGroups | orderBy:'-name'"
+        class="rollup-row"
+        ng-class="{disabled: serverGroup.isDisabled}"
+      >
         <a
-            ui-sref=".serverGroup({region: serverGroup.region, accountId: serverGroup.account, serverGroup: serverGroup.name, provider: serverGroup.cloudProvider})"
-            ui-sref-active="active"
-            ng-click="$event.stopPropagation()"
+          ui-sref=".serverGroup({region: serverGroup.region, accountId: serverGroup.account, serverGroup: serverGroup.name, provider: serverGroup.cloudProvider})"
+          ui-sref-active="active"
+          ng-click="$event.stopPropagation()"
         >
           <span class="icon icon-server-group icon-{{securityGroup.provider}} small"></span> {{serverGroup.name}}
         </a>
@@ -35,12 +39,11 @@
       <div ng-if="!securityGroup.usages.loadBalancers.length" class="small">
         No load balancers
       </div>
-      <div ng-repeat="loadBalancer in securityGroup.usages.loadBalancers | orderBy:'-name'"
-           class="rollup-row">
+      <div ng-repeat="loadBalancer in securityGroup.usages.loadBalancers | orderBy:'-name'" class="rollup-row">
         <a
-            ui-sref=".loadBalancerDetails({region: securityGroup.region, accountId: securityGroup.account, name: loadBalancer.name, vpcId: securityGroup.vpcId, provider: securityGroup.provider})"
-            ui-sref-active="active"
-            ng-click="$event.stopPropagation()"
+          ui-sref=".loadBalancerDetails({region: securityGroup.region, accountId: securityGroup.account, name: loadBalancer.name, vpcId: securityGroup.vpcId, provider: securityGroup.provider})"
+          ui-sref-active="active"
+          ng-click="$event.stopPropagation()"
         >
           <i class="fa icon-sitemap"></i> {{loadBalancer.name}}
         </a>

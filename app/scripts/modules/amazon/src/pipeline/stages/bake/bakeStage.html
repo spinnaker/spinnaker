@@ -6,34 +6,30 @@
     <stage-config-field label="Regions">
       <checklist items="regions" model="stage.regions" inline="true" include-select-all-button="true"></checklist>
     </stage-config-field>
-    <stage-config-field label="{{stage.storeType === 'docker' ? 'Repo Path' : 'Package'}}" help-key="pipeline.config.bake.package">
-      <input type="text" class="form-control input-sm"
-             ng-model="stage.package"/>
+    <stage-config-field
+      label="{{stage.storeType === 'docker' ? 'Repo Path' : 'Package'}}"
+      help-key="pipeline.config.bake.package"
+    >
+      <input type="text" class="form-control input-sm" ng-model="stage.package" />
     </stage-config-field>
     <stage-config-field label="Base OS">
       <bake-stage-choose-os model="stage.baseOs" base-os-options="baseOsOptions"></bake-stage-choose-os>
     </stage-config-field>
     <stage-config-field label="VM Type">
       <label class="radio-inline" ng-repeat="vmType in vmTypes">
-        <input type="radio"
-               ng-model="stage.vmType"
-               ng-value="vmType"/>
+        <input type="radio" ng-model="stage.vmType" ng-value="vmType" />
         {{vmType | uppercase}}
       </label>
     </stage-config-field>
     <stage-config-field label="Store Type" ng-if="!viewState.roscoMode">
       <label class="radio-inline" ng-repeat="storeType in storeTypes">
-        <input type="radio"
-               ng-model="stage.storeType"
-               ng-value="storeType"/>
+        <input type="radio" ng-model="stage.storeType" ng-value="storeType" />
         {{storeType | uppercase}}
       </label>
     </stage-config-field>
     <stage-config-field label="Base Label" ng-if="!viewState.roscoMode">
       <label class="radio-inline" ng-repeat="baseLabel in baseLabelOptions">
-        <input type="radio"
-               ng-model="stage.baseLabel"
-               ng-value="baseLabel"/>
+        <input type="radio" ng-model="stage.baseLabel" ng-value="baseLabel" />
         {{baseLabel}}
       </label>
     </stage-config-field>
@@ -41,8 +37,7 @@
     <stage-config-field label="Rebake" ng-if="viewState.roscoMode || stage.rebake">
       <div class="checkbox" style="margin-bottom: 0">
         <label>
-          <input type="checkbox"
-                 ng-model="stage.rebake">
+          <input type="checkbox" ng-model="stage.rebake" />
           Rebake image without regard to the status of any existing bake
         </label>
       </div>
@@ -51,81 +46,96 @@
       <div class="col-md-9 col-md-offset-1">
         <div class="checkbox">
           <label>
-            <input type="checkbox" ng-model="showAdvancedOptions">
+            <input type="checkbox" ng-model="showAdvancedOptions" />
             <strong>Show Advanced Options</strong>
           </label>
         </div>
       </div>
     </div>
     <div ng-class="{collapse: showAdvancedOptions !== true, 'collapse.in': !showAdvancedOptions === true}">
-      <stage-config-field label="Template File Name" help-key="pipeline.config.bake.templateFileName"
-                          ng-if="bakeStageCtrl.showTemplateFileName()">
-        <input type="text" class="form-control input-sm"
-               ng-model="stage.templateFileName"/>
+      <stage-config-field
+        label="Template File Name"
+        help-key="pipeline.config.bake.templateFileName"
+        ng-if="bakeStageCtrl.showTemplateFileName()"
+      >
+        <input type="text" class="form-control input-sm" ng-model="stage.templateFileName" />
       </stage-config-field>
-      <stage-config-field label="Extended Attributes" help-key="pipeline.config.bake.extendedAttributes"
-                          ng-if="bakeStageCtrl.showExtendedAttributes()">
+      <stage-config-field
+        label="Extended Attributes"
+        help-key="pipeline.config.bake.extendedAttributes"
+        ng-if="bakeStageCtrl.showExtendedAttributes()"
+      >
         <table class="table table-condensed packed">
           <thead>
-          <tr>
-            <th style="width:40%">Key</th>
-            <th style="width:60%">Value</th>
-            <th class="text-right">Actions</th>
-          </tr>
+            <tr>
+              <th style="width:40%">Key</th>
+              <th style="width:60%">Value</th>
+              <th class="text-right">Actions</th>
+            </tr>
           </thead>
           <tbody>
-          <tr ng-repeat="(key,value) in stage.extendedAttributes">
-            <td>
-              <strong class="small">{{key}}</strong>
-            </td>
-            <td>
-              <input type="text" ng-model="stage.extendedAttributes[key]" value="{{value}}"
-                     class="form-control input-sm"/>
-            </td>
-            <td class="text-right">
-              <a class="small" href ng-click="bakeStageCtrl.removeExtendedAttribute(key)">Remove</a>
-            </td>
-          </tr>
+            <tr ng-repeat="(key,value) in stage.extendedAttributes">
+              <td>
+                <strong class="small">{{key}}</strong>
+              </td>
+              <td>
+                <input
+                  type="text"
+                  ng-model="stage.extendedAttributes[key]"
+                  value="{{value}}"
+                  class="form-control input-sm"
+                />
+              </td>
+              <td class="text-right">
+                <a class="small" href ng-click="bakeStageCtrl.removeExtendedAttribute(key)">Remove</a>
+              </td>
+            </tr>
           </tbody>
           <tfoot>
-          <tr>
-            <td colspan="7">
-              <button class="btn btn-block btn-sm add-new" ng-click="bakeStageCtrl.addExtendedAttribute()">
-                <span class="glyphicon glyphicon-plus-sign"></span> Add Extended Attribute
-              </button>
-            </td>
-          </tr>
+            <tr>
+              <td colspan="7">
+                <button class="btn btn-block btn-sm add-new" ng-click="bakeStageCtrl.addExtendedAttribute()">
+                  <span class="glyphicon glyphicon-plus-sign"></span> Add Extended Attribute
+                </button>
+              </td>
+            </tr>
           </tfoot>
         </table>
       </stage-config-field>
-      <stage-config-field label="Var File Name" help-key="pipeline.config.bake.varFileName"
-                          ng-if="bakeStageCtrl.showVarFileName()">
-        <input type="text" class="form-control input-sm"
-               ng-model="stage.varFileName"/>
+      <stage-config-field
+        label="Var File Name"
+        help-key="pipeline.config.bake.varFileName"
+        ng-if="bakeStageCtrl.showVarFileName()"
+      >
+        <input type="text" class="form-control input-sm" ng-model="stage.varFileName" />
       </stage-config-field>
-      <stage-config-field label="Root Volume Size"
-                          ng-if="viewState.minRootVolumeSize">
-        <input type="number"
-               class="form-control input-sm"
-               style="width: 80px; display: inline-block"
-               ng-min="viewState.minRootVolumeSize"
-               ng-model="stage.rootVolumeSize"/> GB <span class="small">(minimum: {{viewState.minRootVolumeSize}})</span>
+      <stage-config-field label="Root Volume Size" ng-if="viewState.minRootVolumeSize">
+        <input
+          type="number"
+          class="form-control input-sm"
+          style="width: 80px; display: inline-block"
+          ng-min="viewState.minRootVolumeSize"
+          ng-model="stage.rootVolumeSize"
+        />
+        GB <span class="small">(minimum: {{viewState.minRootVolumeSize}})</span>
       </stage-config-field>
       <stage-config-field label="Base Name" ng-if="stage.storeType !== 'docker'">
-        <input type="text" class="form-control input-sm"
-               ng-model="stage.baseName"/>
+        <input type="text" class="form-control input-sm" ng-model="stage.baseName" />
       </stage-config-field>
-      <stage-config-field label="Base AMI" help-key="pipeline.config.bake.baseAmi"  ng-if="stage.storeType !== 'docker'">
-        <input type="text" class="form-control input-sm"
-               ng-model="stage.baseAmi"/>
+      <stage-config-field label="Base AMI" help-key="pipeline.config.bake.baseAmi" ng-if="stage.storeType !== 'docker'">
+        <input type="text" class="form-control input-sm" ng-model="stage.baseAmi" />
       </stage-config-field>
-      <stage-config-field label="{{stage.storeType === 'docker' ? 'Docker Image Name' : 'AMI Name'}}" help-key="pipeline.config.bake.amiName">
-        <input type="text" class="form-control input-sm"
-               ng-model="stage.amiName"/>
+      <stage-config-field
+        label="{{stage.storeType === 'docker' ? 'Docker Image Name' : 'AMI Name'}}"
+        help-key="pipeline.config.bake.amiName"
+      >
+        <input type="text" class="form-control input-sm" ng-model="stage.amiName" />
       </stage-config-field>
-      <stage-config-field label="{{stage.storeType === 'docker' ? 'Docker Image Prefix' : 'AMI Suffix'}}" help-key="pipeline.config.bake.amiSuffix">
-        <input type="text" class="form-control input-sm"
-               ng-model="stage.amiSuffix"/>
+      <stage-config-field
+        label="{{stage.storeType === 'docker' ? 'Docker Image Prefix' : 'AMI Suffix'}}"
+        help-key="pipeline.config.bake.amiSuffix"
+      >
+        <input type="text" class="form-control input-sm" ng-model="stage.amiSuffix" />
       </stage-config-field>
     </div>
   </div>

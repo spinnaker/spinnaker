@@ -3,12 +3,10 @@
   <!-- TODO: Depending on the subnetType (AWS VPC), allow to choose security groups based on the subnetType's VPC -->
 
   <div class="form-group">
-    <div class="col-md-4 sm-label-right">
-      <b>Network mode</b> <help-field key="ecs.networkMode"></help-field>
-    </div>
+    <div class="col-md-4 sm-label-right"><b>Network mode</b> <help-field key="ecs.networkMode"></help-field></div>
     <div class="col-md-6">
       <ui-select ng-model="$ctrl.command.networkMode" class="form-control input-sm">
-        <ui-select-match>{{$select.selected}}</ui-select-match>
+        <ui-select-match>{{ $select.selected }}</ui-select-match>
         <ui-select-choices repeat="item in ['bridge', 'host', 'awsvpc', 'none', 'default']">
           <span ng-bind-html="item"></span>
         </ui-select-choices>
@@ -25,8 +23,13 @@
       </div>
 
       <div class="col-md-6" ng-if="$ctrl.command.backingData.filtered.subnetTypes.length">
-        <ui-select ng-model="$ctrl.command.subnetType" class="form-control input-sm" required on-select="$ctrl.fieldChanged()">
-          <ui-select-match>{{$select.selected}}</ui-select-match>
+        <ui-select
+          ng-model="$ctrl.command.subnetType"
+          class="form-control input-sm"
+          required
+          on-select="$ctrl.fieldChanged()"
+        >
+          <ui-select-match>{{ $select.selected }}</ui-select-match>
           <ui-select-choices repeat="subnetType in $ctrl.command.backingData.filtered.subnetTypes">
             <span ng-bind-html="subnetType"></span>
           </ui-select-choices>
@@ -38,18 +41,23 @@
   <div ng-if="$ctrl.command.networkMode == 'awsvpc'">
     <div class="form-group">
       <div class="col-md-4 sm-label-right">
-        <b>Security Groups</b> <help-field key="ecs.securityGroups"></help-field> <!-- TODO : add info for this field -->
+        <b>Security Groups</b> <help-field key="ecs.securityGroups"></help-field>
+        <!-- TODO : add info for this field -->
       </div>
       <div class="col-md-6">
         <div class="form-control-static" ng-if="!$ctrl.command.backingData.filtered.securityGroupNames.length">
           No security groups found in the selected account/region
         </div>
-        <ui-select multiple
-                   ng-if="$ctrl.command.backingData.filtered.securityGroupNames.length"
-                   ng-model="$ctrl.command.securityGroupNames"
-                   class="form-control input-sm">
-          <ui-select-match>{{$item}}</ui-select-match>
-          <ui-select-choices repeat="securityGroupName in $ctrl.command.backingData.filtered.securityGroupNames | filter: $select.search">
+        <ui-select
+          multiple
+          ng-if="$ctrl.command.backingData.filtered.securityGroupNames.length"
+          ng-model="$ctrl.command.securityGroupNames"
+          class="form-control input-sm"
+        >
+          <ui-select-match>{{ $item }}</ui-select-match>
+          <ui-select-choices
+            repeat="securityGroupName in $ctrl.command.backingData.filtered.securityGroupNames | filter: $select.search"
+          >
             <span ng-bind-html="securityGroupName"></span>
           </ui-select-choices>
         </ui-select>
@@ -64,13 +72,23 @@
       </div>
       <div class="col-md-1 radio">
         <label>
-          <input type="radio" ng-model="$ctrl.command.associatePublicIpAddress" ng-value="true" id="associatePublicIpAddressTrue"/>
+          <input
+            type="radio"
+            ng-model="$ctrl.command.associatePublicIpAddress"
+            ng-value="true"
+            id="associatePublicIpAddressTrue"
+          />
           Yes
         </label>
       </div>
       <div class="col-md-1 radio">
         <label>
-          <input type="radio" ng-model="$ctrl.command.associatePublicIpAddress" ng-value="false" id="associatePublicIpAddressFalse"/>
+          <input
+            type="radio"
+            ng-model="$ctrl.command.associatePublicIpAddress"
+            ng-value="false"
+            id="associatePublicIpAddressFalse"
+          />
           No
         </label>
       </div>
@@ -79,14 +97,20 @@
 
   <div class="col-md-12" ng-if="$ctrl.command.viewState.dirty.targetGroup">
     <div class="alert alert-warning">
-      <p><i class="fa fa-exclamation-triangle"></i>
+      <p>
+        <i class="fa fa-exclamation-triangle"></i>
         The following target groups could not be found in the selected account/region/VPC and were removed:
       </p>
       <ul>
-        <li ng-repeat="targetGroup in $ctrl.command.viewState.dirty.targetGroup">{{targetGroup}}</li>
+        <li ng-repeat="targetGroup in $ctrl.command.viewState.dirty.targetGroup">{{ targetGroup }}</li>
       </ul>
       <p class="text-right">
-        <a class="btn btn-sm btn-default dirty-flag-dismiss" href ng-click="$ctrl.command.viewState.dirty.targetGroup = null">Okay</a>
+        <a
+          class="btn btn-sm btn-default dirty-flag-dismiss"
+          href
+          ng-click="$ctrl.command.viewState.dirty.targetGroup = null"
+          >Okay</a
+        >
       </p>
     </div>
   </div>
@@ -99,11 +123,15 @@
       <div class="form-control-static" ng-if="!$ctrl.command.backingData.filtered.targetGroups.length">
         No target groups found in the selected account/region/VPC
       </div>
-      <ui-select ng-if="$ctrl.command.backingData.filtered.targetGroups.length"
-                 ng-model="$ctrl.command.targetGroup"
-                 class="form-control input-sm">
-        <ui-select-match>{{$select.selected}}</ui-select-match>
-        <ui-select-choices repeat="targetGroup in $ctrl.command.backingData.filtered.targetGroups | filter: $select.search">
+      <ui-select
+        ng-if="$ctrl.command.backingData.filtered.targetGroups.length"
+        ng-model="$ctrl.command.targetGroup"
+        class="form-control input-sm"
+      >
+        <ui-select-match>{{ $select.selected }}</ui-select-match>
+        <ui-select-choices
+          repeat="targetGroup in $ctrl.command.backingData.filtered.targetGroups | filter: $select.search"
+        >
           <span ng-bind-html="targetGroup | highlight: $select.search"></span>
         </ui-select-choices>
       </ui-select>
@@ -118,7 +146,8 @@
         <span ng-if="!$ctrl.refreshing">last refreshed {{ $ctrl.refreshTime | timestamp }}</span>
         <span ng-if="$ctrl.refreshing"> refreshing...</span>
       </p>
-      <p>If you're not finding a target group that was recently added,
+      <p>
+        If you're not finding a target group that was recently added,
         <a href ng-click="$ctrl.refreshLoadBalancers()">click here</a> to refresh the list.
       </p>
     </div>
@@ -128,10 +157,14 @@
     <div class="col-md-4 sm-label-right">
       Target container port <help-field key="ecs.loadbalancing.targetPort"></help-field>
     </div>
-    <div class="col-md-2"><input type="number"
-                                 class="form-control input-sm no-spel"
-                                 ng-pattern="basicSettingsCtrl.detailPattern"
-                                 name="targetContainerPort"
-                                 ng-model="$ctrl.command.containerPort"/></div>
+    <div class="col-md-2">
+      <input
+        type="number"
+        class="form-control input-sm no-spel"
+        ng-pattern="basicSettingsCtrl.detailPattern"
+        name="targetContainerPort"
+        ng-model="$ctrl.command.containerPort"
+      />
+    </div>
   </div>
 </div>

@@ -1,24 +1,27 @@
-<div class="{{$ctrl.containerClass}}">
-  <ui-select required
-             ng-if="$ctrl.nameList.length > 0"
-             name="$ctrl.name"
-             ng-model="$ctrl.model"
-             class="{{$ctrl.className}} visible-sm-inline-block visible-md-inline-block visible-lg-inline-block"
-             style="width:245px">
-    <ui-select-match>{{$select.selected}}</ui-select-match>
+<div class="{{ $ctrl.containerClass }}">
+  <ui-select
+    required
+    ng-if="$ctrl.nameList.length > 0"
+    name="$ctrl.name"
+    ng-model="$ctrl.model"
+    class="{{ $ctrl.className }} visible-sm-inline-block visible-md-inline-block visible-lg-inline-block"
+    style="width:245px"
+  >
+    <ui-select-match>{{ $select.selected }}</ui-select-match>
     <ui-select-choices repeat="name in $ctrl.nameList | filter: $select.search">
-      {{name}}
+      {{ name }}
     </ui-select-choices>
   </ui-select>
 
-  <input type="text"
-         required
-         ng-if="$ctrl.nameList.length === 0"
-         ng-model="$ctrl.model"
-         class="{{$ctrl.className}}"/>
+  <input
+    type="text"
+    required
+    ng-if="$ctrl.nameList.length === 0"
+    ng-model="$ctrl.model"
+    class="{{ $ctrl.className }}"
+  />
 
-  <a class="btn btn-link"
-     ng-if="$ctrl.queryListUrl"
-     href="{{$ctrl.queryListUrl}}"
-     target="_blank">ACA Configurations &nbsp;<i class="fa fa-external-link"></i></a>
+  <a class="btn btn-link" ng-if="$ctrl.queryListUrl" href="{{ $ctrl.queryListUrl }}" target="_blank"
+    >ACA Configurations &nbsp;<i class="fa fa-external-link"></i
+  ></a>
 </div>

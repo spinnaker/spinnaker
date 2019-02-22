@@ -1,8 +1,7 @@
 <div class="details-panel">
   <div class="header" ng-if="state.loading">
     <div class="close-button" ng-if="!state.standalone">
-      <a class="btn btn-link"
-         ui-sref="^">
+      <a class="btn btn-link" ui-sref="^">
         <span class="glyphicon glyphicon-remove"></span>
       </a>
     </div>
@@ -13,8 +12,7 @@
 
   <div class="header" ng-if="!state.loading">
     <div class="close-button" ng-if="!state.standalone">
-      <a class="btn btn-link"
-         ui-sref="^">
+      <a class="btn btn-link" ui-sref="^">
         <span class="glyphicon glyphicon-remove"></span>
       </a>
     </div>
@@ -27,12 +25,25 @@
     <div>
       <div class="actions" ng-class="{ insights: instance.insightActions.length > 0 }">
         <div class="dropdown" uib-dropdown dropdown-append-to-body>
-          <button type="button" class="btn btn-sm btn-primary dropdown-toggle" ng-disabled="disabled" uib-dropdown-toggle>
+          <button
+            type="button"
+            class="btn btn-sm btn-primary dropdown-toggle"
+            ng-disabled="disabled"
+            uib-dropdown-toggle
+          >
             Instance Actions <span class="caret"></span>
           </button>
           <ul class="dropdown-menu" uib-dropdown-menu role="menu">
-            <li><a href ng-click="ctrl.registerInstanceWithLoadBalancer()" ng-if="ctrl.canRegisterWithLoadBalancer()">Register with Load Balancer</a></li>
-            <li><a href ng-click="ctrl.deregisterInstanceFromLoadBalancer()" ng-if="ctrl.canDeregisterFromLoadBalancer()">Deregister from Load Balancer</a></li>
+            <li>
+              <a href ng-click="ctrl.registerInstanceWithLoadBalancer()" ng-if="ctrl.canRegisterWithLoadBalancer()"
+                >Register with Load Balancer</a
+              >
+            </li>
+            <li>
+              <a href ng-click="ctrl.deregisterInstanceFromLoadBalancer()" ng-if="ctrl.canDeregisterFromLoadBalancer()"
+                >Deregister from Load Balancer</a
+              >
+            </li>
             <li role="presentation" class="divider" ng-if="instance.health.length > 0"></li>
             <li><a href ng-click="ctrl.terminateInstance()">Terminate</a></li>
           </ul>
@@ -42,7 +53,9 @@
             Insight <span class="caret"></span>
           </button>
           <ul class="dropdown-menu" uib-dropdown-menu role="menu">
-            <li ng-repeat="action in instance.insightActions"><a target=_blank href="{{action.url}}">{{action.label}}</a></li>
+            <li ng-repeat="action in instance.insightActions">
+              <a target="_blank" href="{{action.url}}">{{action.label}}</a>
+            </li>
           </ul>
         </div>
       </div>
@@ -60,10 +73,13 @@
         </dd>
         <dt ng-if="instance.serverGroup">Server Group</dt>
         <dd ng-if="instance.serverGroup">
-          <a ui-sref="^.serverGroup({region: instance.region,
+          <a
+            ui-sref="^.serverGroup({region: instance.region,
               accountId: instance.account,
               serverGroup: instance.serverGroup,
-              provider: instance.provider})">{{instance.serverGroup}}</a>
+              provider: instance.provider})"
+            >{{instance.serverGroup}}</a
+          >
         </dd>
         <dt ng-if="instance.apiVersion">API Version</dt>
         <dd ng-if="instance.apiVersion">{{instance.apiVersion}}</dd>
@@ -72,14 +88,17 @@
         <dt>YAML</dt>
         <dd><a href ng-click="ctrl.showYaml()">Show YAML</a></dd>
         <dt>Kube UI</dt>
-        <dd><a href={{ctrl.uiLink()}} target="_blank">{{instance.name}}</a></dd>
+        <dd><a href="{{ctrl.uiLink()}}" target="_blank">{{instance.name}}</a></dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Status" expanded="true">
       <dl class="horizontal-when-filters-collapsed">
         <dt ng-repeat-start="metric in instance.health | orderBy: 'type'">{{metric.source | robotToHuman}}</dt>
         <dd ng-repeat-end>
-          <span uib-tooltip="{{metric.state.toLowerCase() === 'down' ? metric.description : ''}}" tooltip-placement="left">
+          <span
+            uib-tooltip="{{metric.state.toLowerCase() === 'down' ? metric.description : ''}}"
+            tooltip-placement="left"
+          >
             <span class="glyphicon glyphicon-{{metric.state}}-triangle"></span>
             {{metric.state | robotToHuman}}
           </span>
@@ -91,41 +110,45 @@
         <dt ng-if="instance.dnsPolicy">DNS Policy</dt>
         <dd ng-if="instance.dnsPolicy">
           {{instance.dnsPolicy}}
+        </dd>
+
         <dt ng-if="instance.hostIp">Host IP</dt>
         <dd ng-if="instance.hostIp">
           <a href="http://{{instance.hostIp}}" target="_blank">{{instance.hostIp}}</a>
           <copy-to-clipboard
-              class="copy-to-clipboard copy-to-clipboard-sm"
-              text="instance.hostIp"
-              tool-tip="'Copy to clipboard'">
+            class="copy-to-clipboard copy-to-clipboard-sm"
+            text="instance.hostIp"
+            tool-tip="'Copy to clipboard'"
+          >
           </copy-to-clipboard>
         </dd>
         <dt ng-if="instance.podIp">Pod IP</dt>
         <dd ng-if="instance.podIp">
           <a href="http://{{instance.podIp}}" target="_blank">{{instance.podIp}}</a>
           <copy-to-clipboard
-              class="copy-to-clipboard copy-to-clipboard-sm"
-              text="instance.podIp"
-              tool-tip="'Copy to clipboard'">
+            class="copy-to-clipboard copy-to-clipboard-sm"
+            text="instance.podIp"
+            tool-tip="'Copy to clipboard'"
+          >
           </copy-to-clipboard>
         </dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Labels">
       <dl class="dl-horizontal dl-flex">
-        <kubernetes-key-value-details map="instance.metadata.labels">
-        </kubernetes-key-value-details>
+        <kubernetes-key-value-details map="instance.metadata.labels"> </kubernetes-key-value-details>
       </dl>
     </collapsible-section>
     <collapsible-section ng-repeat="container in instance.containers" heading="Container {{container.name}}">
-      <kubernetes-instance-container-detail container="container"
-                                            container-status="instance.containerStatuses[$index]">
+      <kubernetes-instance-container-detail container="container" container-status="instance.containerStatuses[$index]">
       </kubernetes-instance-container-detail>
     </collapsible-section>
     <collapsible-section ng-repeat="container in instance.initContainers" heading="Container {{container.name}} (init)">
-      <kubernetes-instance-container-detail container="container"
-                                            container-status="instance.initContainerStatuses[$index]"
-                                            init-container="true">
+      <kubernetes-instance-container-detail
+        container="container"
+        container-status="instance.initContainerStatuses[$index]"
+        init-container="true"
+      >
       </kubernetes-instance-container-detail>
     </collapsible-section>
     <collapsible-section heading="Events">
@@ -141,7 +164,13 @@
         <console-output-link instance="instance" uses-multi-output="true"></console-output-link>
       </div>
     </collapsible-section>
-    <instance-links address="ctrl.baseIpAddress" application="ctrl.application" instance="instance" moniker="moniker" environment="environment"></instance-links>
+    <instance-links
+      address="ctrl.baseIpAddress"
+      application="ctrl.application"
+      instance="instance"
+      moniker="moniker"
+      environment="environment"
+    ></instance-links>
   </div>
   <div class="content" ng-if="!state.loading && !instance">
     <div class="content-section">

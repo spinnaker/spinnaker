@@ -1,6 +1,13 @@
-<form ng-controller="kubernetesContainerProbeController as probeController" class="container-fluid form-horizontal" name="containers" novalidate>
+<form
+  ng-controller="kubernetesContainerProbeController as probeController"
+  class="container-fluid form-horizontal"
+  name="containers"
+  novalidate
+>
   <div class="form-group">
-    <button class="add-new btn btn-block btn-sm" ng-click="probeController.addProbe()" ng-hide="probeController.probe"><span class="glyphicon glyphicon-plus-sign"></span> Enable {{probeController.heading}} Probe</button>
+    <button class="add-new btn btn-block btn-sm" ng-click="probeController.addProbe()" ng-hide="probeController.probe">
+      <span class="glyphicon glyphicon-plus-sign"></span> Enable {{probeController.heading}} Probe
+    </button>
   </div>
 
   <div ng-hide="!probeController.probe">
@@ -11,34 +18,49 @@
       </div>
       <div class="col-md-4">
         <select class="form-control input-sm" ng-model="probeController.probe.handler.type">
-          <option ng-repeat="type in probeController.handlers" value="{{type}}"
-                  ng-selected="probeController.probe.type === type">{{type}}</option>
+          <option
+            ng-repeat="type in probeController.handlers"
+            value="{{type}}"
+            ng-selected="probeController.probe.type === type"
+            >{{type}}</option
+          >
         </select>
       </div>
       <div class="col-md-1">
-          <button class="btn btn-sm btn-default" ng-click="probeController.deleteProbe()">
-            <span class="glyphicon glyphicon-trash visible-lg-inline"></span>
-            <span class="visible-lg-inline"> Delete Probe</span>
-          </button>
+        <button class="btn btn-sm btn-default" ng-click="probeController.deleteProbe()">
+          <span class="glyphicon glyphicon-trash visible-lg-inline"></span>
+          <span class="visible-lg-inline"> Delete Probe</span>
+        </button>
       </div>
     </div>
-    <hr>
+    <hr />
     <div class="form-group">
       <div class="col-md-3 sm-label-right">
         Initial Delay
         <help-field key="kubernetes.containers.probes.initialDelay"></help-field>
       </div>
       <div class="col-md-2">
-        <input type="number" class="form-control input-sm" name="details" ng-model="probeController.probe.initialDelaySeconds"
-               min="0"/>
+        <input
+          type="number"
+          class="form-control input-sm"
+          name="details"
+          ng-model="probeController.probe.initialDelaySeconds"
+          min="0"
+        />
       </div>
       <div class="col-md-4 sm-label-right">
         Success Threshold
         <help-field key="kubernetes.containers.probes.successThreshold"></help-field>
       </div>
       <div class="col-md-2">
-        <input type="number" class="form-control input-sm" name="details" ng-model="probeController.probe.successThreshold" ng-disabled="probeController.probetype === 'livenessProbe'"
-               min="1"/>
+        <input
+          type="number"
+          class="form-control input-sm"
+          name="details"
+          ng-model="probeController.probe.successThreshold"
+          ng-disabled="probeController.probetype === 'livenessProbe'"
+          min="1"
+        />
       </div>
     </div>
     <div class="form-group">
@@ -47,16 +69,26 @@
         <help-field key="kubernetes.containers.probes.period"></help-field>
       </div>
       <div class="col-md-2">
-        <input type="number" class="form-control input-sm" name="details" ng-model="probeController.probe.periodSeconds"
-               min="1"/>
+        <input
+          type="number"
+          class="form-control input-sm"
+          name="details"
+          ng-model="probeController.probe.periodSeconds"
+          min="1"
+        />
       </div>
       <div class="col-md-4 sm-label-right">
         Failure Threshold
         <help-field key="kubernetes.containers.probes.failureThreshold"></help-field>
       </div>
       <div class="col-md-2">
-        <input type="number" class="form-control input-sm" name="details" ng-model="probeController.probe.failureThreshold"
-               min="1"/>
+        <input
+          type="number"
+          class="form-control input-sm"
+          name="details"
+          ng-model="probeController.probe.failureThreshold"
+          min="1"
+        />
       </div>
     </div>
     <div class="form-group">
@@ -65,8 +97,13 @@
         <help-field key="kubernetes.containers.probes.timeout"></help-field>
       </div>
       <div class="col-md-2">
-        <input type="number" class="form-control input-sm" name="details" ng-model="probeController.probe.timeoutSeconds"
-               min="1"/>
+        <input
+          type="number"
+          class="form-control input-sm"
+          name="details"
+          ng-model="probeController.probe.timeoutSeconds"
+          min="1"
+        />
       </div>
     </div>
     <div ng-hide="probeController.probe.handler.type !== 'EXEC'">
@@ -75,20 +112,28 @@
           <table class="table table-condensed packed tags">
             <b>Commands</b>
             <tr ng-repeat="command in probeController.probe.handler.execAction.commands track by $index">
-              <td><input class="form-control input-sm" type="text"
-                ng-model="probeController.probe.handler.execAction.commands[$index]"></td>
-              <td><a class="btn btn-link sm-label"
-                     ng-click="probeController.removeCommand($index)"><span
-                class="glyphicon glyphicon-trash"></span></a></td>
-            </tr>
-            <tfoot>
-            <tr>
-              <td colspan="1">
-                <button class="add-new btn btn-block btn-sm" ng-click="probeController.addCommand()"><span
-                  class="glyphicon glyphicon-plus-sign"></span> Add Command
-                </button>
+              <td>
+                <input
+                  class="form-control input-sm"
+                  type="text"
+                  ng-model="probeController.probe.handler.execAction.commands[$index]"
+                />
+              </td>
+
+              <td>
+                <a class="btn btn-link sm-label" ng-click="probeController.removeCommand($index)"
+                  ><span class="glyphicon glyphicon-trash"></span
+                ></a>
               </td>
             </tr>
+            <tfoot>
+              <tr>
+                <td colspan="1">
+                  <button class="add-new btn btn-block btn-sm" ng-click="probeController.addCommand()">
+                    <span class="glyphicon glyphicon-plus-sign"></span> Add Command
+                  </button>
+                </td>
+              </tr>
             </tfoot>
           </table>
         </div>
@@ -100,8 +145,14 @@
           Port
         </div>
         <div class="col-md-2">
-          <input type="number" class="form-control input-sm" name="details" ng-model="probeController.probe.handler.tcpSocketAction.port"
-                 min="1" max="probeController.maxPort"/>
+          <input
+            type="number"
+            class="form-control input-sm"
+            name="details"
+            ng-model="probeController.probe.handler.tcpSocketAction.port"
+            min="1"
+            max="probeController.maxPort"
+          />
         </div>
       </div>
     </div>
@@ -111,14 +162,25 @@
           Port
         </div>
         <div class="col-md-2">
-          <input type="number" class="form-control input-sm" name="details" ng-model="probeController.probe.handler.httpGetAction.port"
-                 min="1" max="probeController.maxPort"/>
+          <input
+            type="number"
+            class="form-control input-sm"
+            name="details"
+            ng-model="probeController.probe.handler.httpGetAction.port"
+            min="1"
+            max="probeController.maxPort"
+          />
         </div>
         <div class="col-md-2 sm-label-right">
           Path
         </div>
         <div class="col-md-4">
-          <input type="text" class="form-control input-sm" name="details" ng-model="probeController.probe.handler.httpGetAction.path"/>
+          <input
+            type="text"
+            class="form-control input-sm"
+            name="details"
+            ng-model="probeController.probe.handler.httpGetAction.path"
+          />
         </div>
       </div>
       <div class="form-group">
@@ -127,37 +189,44 @@
         </div>
         <div class="col-md-2">
           <select class="form-control input-sm" ng-model="probeController.probe.handler.httpGetAction.uriScheme">
-            <option ng-repeat="scheme in probeController.uriSchemes" value="{{scheme}}"
-                    ng-selected="probeController.probe.handler.httpGetAction.uriScheme === scheme">{{scheme}}</option>
+            <option
+              ng-repeat="scheme in probeController.uriSchemes"
+              value="{{scheme}}"
+              ng-selected="probeController.probe.handler.httpGetAction.uriScheme === scheme"
+              >{{scheme}}</option
+            >
           </select>
         </div>
       </div>
-      <hr>
-      <div ng-repeat="header in probeController.probe.handler.httpGetAction.httpHeaders"
-        class="form-group">
+      <hr />
+      <div ng-repeat="header in probeController.probe.handler.httpGetAction.httpHeaders" class="form-group">
         <div class="form-group">
           <div class="col-md-3 sm-label-right">
             Name
           </div>
           <div class="col-md-3">
-            <input class="form-control input-sm" ng-model="header.name"/>
+            <input class="form-control input-sm" ng-model="header.name" />
           </div>
           <div class="col-md-1 sm-label-right">
             Value
           </div>
           <div class="col-md-3">
-            <input class="form-control input-sm" name="details" ng-model="header.value"/>
+            <input class="form-control input-sm" name="details" ng-model="header.value" />
           </div>
           <div class="col-md-1">
-            <button class="btn btn-sm btn-default"
-                    ng-click="probeController.deleteHttpHeader(probeController.probe.handler.httpGetAction, $index)">
+            <button
+              class="btn btn-sm btn-default"
+              ng-click="probeController.deleteHttpHeader(probeController.probe.handler.httpGetAction, $index)"
+            >
               <span class="glyphicon glyphicon-trash visible-lg-inline"></span>
             </button>
           </div>
         </div>
       </div>
-      <button class="add-new btn btn-block btn-sm"
-              ng-click="probeController.addHttpHeader(probeController.probe.handler.httpGetAction)">
+      <button
+        class="add-new btn btn-block btn-sm"
+        ng-click="probeController.addHttpHeader(probeController.probe.handler.httpGetAction)"
+      >
         <span class="glyphicon glyphicon-plus-sign"></span> Add HTTP Header
       </button>
     </div>

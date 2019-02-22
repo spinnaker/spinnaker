@@ -5,14 +5,18 @@
         <b>Default Service</b><help-field key="gce.httpLoadBalancer.defaultService"></help-field>
       </div>
       <div class="col-md-4">
-        <ui-select ng-model="ctrl.command.loadBalancer.defaultService"
-                   required
-                   on-select="ctrl.command.onBackendServiceSelected($item, ctrl.command)"
-                   class="form-control input-sm">
+        <ui-select
+          ng-model="ctrl.command.loadBalancer.defaultService"
+          required
+          on-select="ctrl.command.onBackendServiceSelected($item, ctrl.command)"
+          class="form-control input-sm"
+        >
           <ui-select-match placeholder="Select...">
             {{$select.selected}}
           </ui-select-match>
-          <ui-select-choices repeat="backendService in ctrl.command.getAllBackendServices(ctrl.command) | filter: $select.search">
+          <ui-select-choices
+            repeat="backendService in ctrl.command.getAllBackendServices(ctrl.command) | filter: $select.search"
+          >
             <div ng-bind-html="backendService | highlight: $select.search"></div>
           </ui-select-choices>
         </ui-select>

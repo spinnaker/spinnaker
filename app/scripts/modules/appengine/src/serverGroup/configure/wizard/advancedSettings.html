@@ -1,11 +1,9 @@
 <div class="form-horizontal container-fluid">
   <div class="form-group">
-    <div class="col-md-4 sm-label-right">
-      Promote <help-field key="appengine.serverGroup.promote"></help-field>
-    </div>
+    <div class="col-md-4 sm-label-right">Promote <help-field key="appengine.serverGroup.promote"></help-field></div>
     <div class="col-md-7">
-      <input type="checkbox"
-             ng-model="command.promote"/></div>
+      <input type="checkbox" ng-model="command.promote" />
+    </div>
   </div>
 
   <div class="form-group">
@@ -13,17 +11,15 @@
       Stop Previous Version <help-field key="appengine.serverGroup.stopPreviousVersion"></help-field>
     </div>
     <div class="col-md-7">
-      <input type="checkbox"
-             ng-model="command.stopPreviousVersion"/></div>
+      <input type="checkbox" ng-model="command.stopPreviousVersion" />
+    </div>
   </div>
   <div class="form-group" ng-if="showPlatformHealthOnlyOverride">
     <div class="col-md-4 sm-label-right">
       Task Completion
     </div>
     <div class="col-md-7">
-      <platform-health-override command="command"
-                                platform-health-type="platformHealth">
-      </platform-health-override>
+      <platform-health-override command="command" platform-health-type="platformHealth"> </platform-health-override>
     </div>
   </div>
 </div>

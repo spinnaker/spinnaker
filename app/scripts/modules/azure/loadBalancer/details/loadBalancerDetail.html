@@ -1,9 +1,7 @@
 <div class="details-panel">
-
   <div ng-if="state.loading" class="header">
     <div class="close-button">
-      <a class="btn btn-link"
-         ui-sref="^">
+      <a class="btn btn-link" ui-sref="^">
         <span class="glyphicon glyphicon-remove"></span>
       </a>
     </div>
@@ -14,8 +12,7 @@
 
   <div ng-if="!state.loading" class="header">
     <div class="close-button">
-      <a class="btn btn-link"
-         ui-sref="^">
+      <a class="btn btn-link" ui-sref="^">
         <span class="glyphicon glyphicon-remove"></span>
       </a>
     </div>
@@ -33,8 +30,14 @@
           </button>
           <ul class="dropdown-menu" uib-dropdown-menu role="menu">
             <li><a href ng-click="ctrl.editLoadBalancer()">Edit Load Balancer</a></li>
-            <li ng-if="!loadBalancer.serverGroups.length"><a href ng-click="ctrl.deleteLoadBalancer()">Delete Load Balancer</a></li>
-            <li ng-if="loadBalancer.serverGroups.length" class="disabled" tooltip="You must detach all server groups before you can delete this load balancer.">
+            <li ng-if="!loadBalancer.serverGroups.length">
+              <a href ng-click="ctrl.deleteLoadBalancer()">Delete Load Balancer</a>
+            </li>
+            <li
+              ng-if="loadBalancer.serverGroups.length"
+              class="disabled"
+              tooltip="You must detach all server groups before you can delete this load balancer."
+            >
               <a href ng-click="ctrl.deleteLoadBalancer()">Delete Load Balancer</a>
             </li>
           </ul>
@@ -48,7 +51,10 @@
         <dt>Created</dt>
         <dd>{{loadBalancer.elb.createdTime | timestamp}}</dd>
         <dt>In</dt>
-        <dd><account-tag account="loadBalancer.account" pad="right" provider="loadBalancer.type"></account-tag> {{loadBalancer.region}}</dd>
+        <dd>
+          <account-tag account="loadBalancer.account" pad="right" provider="loadBalancer.type"></account-tag>
+          {{loadBalancer.region}}
+        </dd>
         <dt>VNet</dt>
         <dd>{{loadBalancer.elb.vnet}}</dd>
         <dt>Subnet</dt>
@@ -59,11 +65,13 @@
         <dd ng-if="loadBalancer.serverGroups">
           <ul class="collapse-margin-on-filter-collapse">
             <li ng-repeat="serverGroup in loadBalancer.serverGroups | orderBy: ['isDisabled', '-name']">
-              <a ui-sref="^.serverGroup({region: serverGroup.region,
+              <a
+                ui-sref="^.serverGroup({region: serverGroup.region,
                                           accountId: serverGroup.account,
                                           serverGroup: serverGroup.name,
-                                          provider: 'azure'})">
-              {{serverGroup.name}}
+                                          provider: 'azure'})"
+              >
+                {{serverGroup.name}}
               </a>
             </li>
           </ul>
@@ -72,11 +80,12 @@
       <dl class="horizontal-when-filters-collapsed">
         <dt ng-if="loadBalancer.elb.dnsName">DNS Name:</dt>
         <dd>
-          <a target=_blank href="//{{loadBalancer.elb.dnsName}}">{{loadBalancer.elb.dnsName}}</a>
+          <a target="_blank" href="//{{loadBalancer.elb.dnsName}}">{{loadBalancer.elb.dnsName}}</a>
           <copy-to-clipboard
-              class="copy-to-clipboard copy-to-clipboard-sm"
-              text="loadBalancer.elb.dnsName"
-              tool-tip="'Copy DNS Name to clipboard'">
+            class="copy-to-clipboard copy-to-clipboard-sm"
+            text="loadBalancer.elb.dnsName"
+            tool-tip="'Copy DNS Name to clipboard'"
+          >
           </copy-to-clipboard>
         </dd>
       </dl>
@@ -95,7 +104,9 @@
     <collapsible-section heading="{{firewallsLabel}}">
       <ul>
         <li ng-repeat="securityGroup in securityGroups | orderBy:'name'">
-          <a ui-sref="^.firewallDetails({name:securityGroup.name, accountId: loadBalancer.account, region: loadBalancer.region, vpcId: loadBalancer.vpcId, provider: loadBalancer.provider})">
+          <a
+            ui-sref="^.firewallDetails({name:securityGroup.name, accountId: loadBalancer.account, region: loadBalancer.region, vpcId: loadBalancer.vpcId, provider: loadBalancer.provider})"
+          >
             {{securityGroup.name}} ({{securityGroup.id}})
           </a>
         </li>

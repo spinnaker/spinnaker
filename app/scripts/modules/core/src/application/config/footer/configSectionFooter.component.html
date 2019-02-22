@@ -1,21 +1,26 @@
 <div class="row footer">
   <div class="col-md-3">
-    <button class="btn btn-default" ng-click="$ctrl.revert()"
-            ng-if="$ctrl.viewState.isDirty"
-            style="visibility: visible;"><span class="glyphicon glyphicon-flash"></span> Revert
+    <button
+      class="btn btn-default"
+      ng-click="$ctrl.revert()"
+      ng-if="$ctrl.viewState.isDirty"
+      style="visibility: visible;"
+    >
+      <span class="glyphicon glyphicon-flash"></span> Revert
     </button>
   </div>
   <div class="col-md-9 text-right">
-    <button class="btn btn-primary" ng-if="$ctrl.viewState.isDirty"
-            ng-click="$ctrl.save()">
-              <span ng-if="!$ctrl.viewState.saving">
-                <span class="far fa-check-circle"></span> Save Changes
-              </span>
-              <span ng-if="$ctrl.viewState.saving" class="pulsing">
-                <span class="fa fa-cog fa-spin"></span> Saving&hellip;
-              </span>
+    <button class="btn btn-primary" ng-if="$ctrl.viewState.isDirty" ng-click="$ctrl.save()">
+      <span ng-if="!$ctrl.viewState.saving"> <span class="far fa-check-circle"></span> Save Changes </span>
+      <span ng-if="$ctrl.viewState.saving" class="pulsing">
+        <span class="fa fa-cog fa-spin"></span> Saving&hellip;
+      </span>
     </button>
-    <div class="error-message" ng-if="$ctrl.viewState.saveError">There was an error saving your changes. Please try again.</div>
-    <span ng-if="!$ctrl.viewState.isDirty" class="btn btn-link disabled"><span class="far fa-check-circle"></span> In sync with server</span>
+    <div class="error-message" ng-if="$ctrl.viewState.saveError">
+      There was an error saving your changes. Please try again.
+    </div>
+    <span ng-if="!$ctrl.viewState.isDirty" class="btn btn-link disabled"
+      ><span class="far fa-check-circle"></span> In sync with server</span
+    >
   </div>
 </div>

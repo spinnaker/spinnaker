@@ -2,14 +2,16 @@
   <div class="col-md-{{labelColumns}} sm-label-right">Region</div>
   <div class="col-md-{{fieldColumns || 7}}" ng-if="!account">(Select an account)</div>
   <div class="col-md-{{fieldColumns || 7}}">
-    <select class="form-control input-sm"
-            ng-if="account && !readOnly"
-            ng-model="component.region"
-            ng-change="onChange()"
-            required>
-      <option ng-repeat="region in regions"
-              value="{{region}}"
-              ng-selected="component[field] === region">{{region}}</option>
+    <select
+      class="form-control input-sm"
+      ng-if="account && !readOnly"
+      ng-model="component.region"
+      ng-change="onChange()"
+      required
+    >
+      <option ng-repeat="region in regions" value="{{region}}" ng-selected="component[field] === region"
+        >{{region}}</option
+      >
     </select>
     <p ng-if="readOnly" class="form-control-static">{{component[field]}}</p>
   </div>

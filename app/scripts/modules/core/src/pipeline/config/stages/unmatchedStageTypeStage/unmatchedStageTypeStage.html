@@ -1,13 +1,15 @@
 <div ng-controller="UnmatchedStageTypeStageCtrl as $ctrl">
   <form name="form" class="form-horizontal flex-fill">
     <div class="flex-fill">
-      <textarea class="code form-control flex-fill"
-                ng-model="$ctrl.stageJson"
-                spellcheck="false"
-                ng-blur="$ctrl.updateStage()"
-                ng-change="$ctrl.updateStage()"
-                ng-model-options="{'debounce': 500}"
-                rows="{{::$ctrl.textareaRows}}"></textarea>
+      <textarea
+        class="code form-control flex-fill"
+        ng-model="$ctrl.stageJson"
+        spellcheck="false"
+        ng-blur="$ctrl.updateStage()"
+        ng-change="$ctrl.updateStage()"
+        ng-model-options="{'debounce': 500}"
+        rows="{{::$ctrl.textareaRows}}"
+      ></textarea>
     </div>
   </form>
 
@@ -17,4 +19,3 @@
     </div>
   </div>
 </div>
-

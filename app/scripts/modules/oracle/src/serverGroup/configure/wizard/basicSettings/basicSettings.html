@@ -5,19 +5,38 @@
         Account
       </div>
       <div class="col-md-7">
-        <account-select-field required read-only="command.viewState.readOnlyFields.credentials" component="command" field="account" accounts="command.backingData.accounts" provider="'oracle'" on-change="command.backingData.accountOnChange()"></account-select-field>
+        <account-select-field
+          required
+          read-only="command.viewState.readOnlyFields.credentials"
+          component="command"
+          field="account"
+          accounts="command.backingData.accounts"
+          provider="'oracle'"
+          on-change="command.backingData.accountOnChange()"
+        ></account-select-field>
       </div>
     </div>
-    <region-select-field label-columns="3" component="command" field="region" account="command.account" provider="'oracle'" regions="command.backingData.filtered.regions" on-change="command.backingData.regionOnChange()"></region-select-field>
+    <region-select-field
+      label-columns="3"
+      component="command"
+      field="region"
+      account="command.account"
+      provider="'oracle'"
+      regions="command.backingData.filtered.regions"
+      on-change="command.backingData.regionOnChange()"
+    ></region-select-field>
     <!-- VCN Selection (which will then filter subnets) -->
     <div class="form-group">
       <div class="col-md-3 sm-label-right">
         VCN
       </div>
       <div class="col-md-9">
-        <ui-select class="form-control input-sm" required
-                   ng-model="command.vpcId"
-                   ng-change="command.backingData.vpcOnChange()">
+        <ui-select
+          class="form-control input-sm"
+          required
+          ng-model="command.vpcId"
+          ng-change="command.backingData.vpcOnChange()"
+        >
           <ui-select-match placeholder="Select VCN">{{$select.selected.name}}</ui-select-match>
           <ui-select-choices repeat="network.id as network in command.backingData.networks">
             <span ng-bind-html="network.name | highlight: $select.search"></span>
@@ -29,10 +48,16 @@
     <div class="form-group" ng-show="command.vpcId">
       <div class="col-md-3 sm-label-right">Availability Domain</div>
       <div class="col-md-7">
-        <ui-select class="form-control input-sm" required ng-model="command.availabilityDomain"
-          ng-change="command.backingData.availabilityDomainOnChange()">
+        <ui-select
+          class="form-control input-sm"
+          required
+          ng-model="command.availabilityDomain"
+          ng-change="command.backingData.availabilityDomainOnChange()"
+        >
           <ui-select-match placeholder="Select AD">{{$select.selected.name}}</ui-select-match>
-          <ui-select-choices repeat="availabilityDomain.name as availabilityDomain in command.backingData.filtered.availabilityDomains">
+          <ui-select-choices
+            repeat="availabilityDomain.name as availabilityDomain in command.backingData.filtered.availabilityDomains"
+          >
             <span ng-bind-html="availabilityDomain.name"></span>
           </ui-select-choices>
         </ui-select>
@@ -45,9 +70,12 @@
         Subnet
       </div>
       <div class="col-md-9">
-        <ui-select class="form-control input-sm" required
-                   ng-model="command.subnetId"
-                   ng-change="command.backingData.subnetOnChange()">
+        <ui-select
+          class="form-control input-sm"
+          required
+          ng-model="command.subnetId"
+          ng-change="command.backingData.subnetOnChange()"
+        >
           <ui-select-match placeholder="Select subnet">{{$select.selected.name}}</ui-select-match>
           <ui-select-choices repeat="subnet.id as subnet in command.backingData.filterSubnets()">
             <span ng-bind-html="subnet.name | highlight: $select.search"></span>
@@ -79,7 +107,12 @@
         <help-field key="oracle.serverGroup.stack"></help-field>
       </div>
       <div class="col-md-7">
-        <input type="text" class="form-control input-sm" ng-pattern="basicSettingsCtrl.stackPattern" name="stack" ng-model="command.stack"
+        <input
+          type="text"
+          class="form-control input-sm"
+          ng-pattern="basicSettingsCtrl.stackPattern"
+          name="stack"
+          ng-model="command.stack"
         />
       </div>
     </div>
@@ -94,9 +127,18 @@
         <help-field key="oracle.serverGroup.detail"></help-field>
       </div>
       <div class="col-md-7">
-        <input type="text" class="form-control input-sm" ng-pattern="basicSettingsCtrl.detailPattern" name="details" ng-model="command.freeFormDetails" />
+        <input
+          type="text"
+          class="form-control input-sm"
+          ng-pattern="basicSettingsCtrl.detailPattern"
+          name="details"
+          ng-model="command.freeFormDetails"
+        />
       </div>
     </div>
-    <deployment-strategy-selector ng-if="!command.viewState.disableStrategySelection && command.selectedProvider" command="command"></deployment-strategy-selector>
+    <deployment-strategy-selector
+      ng-if="!command.viewState.disableStrategySelection && command.selectedProvider"
+      command="command"
+    ></deployment-strategy-selector>
   </div>
 </div>

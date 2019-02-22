@@ -5,14 +5,16 @@
     </div>
     <div class="col-md-6 checkbox">
       <label>
-        <input type="checkbox" ng-model="command.enableAutoHealing" ng-change="ctrl.onEnableAutoHealingChange()"/>
+        <input type="checkbox" ng-model="command.enableAutoHealing" ng-change="ctrl.onEnableAutoHealingChange()" />
       </label>
     </div>
   </div>
-  <gce-auto-healing-policy-selector ng-if="command.enableAutoHealing"
-                                    on-health-check-refresh="ctrl.onHealthCheckRefresh()"
-                                    set-auto-healing-policy="ctrl.setAutoHealingPolicy(autoHealingPolicy)"
-                                    health-checks="command.backingData.filtered.healthChecks"
-                                    enabled="command.enableAutoHealing"
-                                    auto-healing-policy="command.autoHealingPolicy"></gce-auto-healing-policy-selector>
+  <gce-auto-healing-policy-selector
+    ng-if="command.enableAutoHealing"
+    on-health-check-refresh="ctrl.onHealthCheckRefresh()"
+    set-auto-healing-policy="ctrl.setAutoHealingPolicy(autoHealingPolicy)"
+    health-checks="command.backingData.filtered.healthChecks"
+    enabled="command.enableAutoHealing"
+    auto-healing-policy="command.autoHealingPolicy"
+  ></gce-auto-healing-policy-selector>
 </ng-form>

@@ -2,11 +2,12 @@
   <div class="form-group">
     <label class="col-md-2 col-md-offset-1 sm-label-right">Master</label>
     <div class="col-md-6">
-      <p class="form-control-static"
-         ng-if="$ctrl.viewState.masterIsParameterized">{{$ctrl.stage.master}}</p>
-      <ui-select class="form-control input-sm"
-                 ng-if="!$ctrl.viewState.masterIsParameterized"
-                 ng-model="$ctrl.stage.master">
+      <p class="form-control-static" ng-if="$ctrl.viewState.masterIsParameterized">{{$ctrl.stage.master}}</p>
+      <ui-select
+        class="form-control input-sm"
+        ng-if="!$ctrl.viewState.masterIsParameterized"
+        ng-model="$ctrl.stage.master"
+      >
         <ui-select-match placeholder="Select a Wercker Master...">{{$select.selected}}</ui-select-match>
         <ui-select-choices repeat="master in $ctrl.masters | filter: $select.search">
           <span ng-bind-html="master | highlight: $select.search"></span>
@@ -14,13 +15,13 @@
       </ui-select>
     </div>
     <div class="col-md-1 text-center" ng-if="!$ctrl.viewState.masterIsParameterized">
-      <a href
-         ng-click="$ctrl.refreshMasters()"
-         tooltip-placement="right"
-         uib-tooltip="{{$ctrl.viewState.mastersRefreshing ? 'Masters refreshing.' : 'Refresh masters list' }}"
-        >
-              <span ng-class="{'fa-spin':$ctrl.viewState.mastersRefreshing}"
-                    class="fa fa-sync-alt"></span>
+      <a
+        href
+        ng-click="$ctrl.refreshMasters()"
+        tooltip-placement="right"
+        uib-tooltip="{{$ctrl.viewState.mastersRefreshing ? 'Masters refreshing.' : 'Refresh masters list' }}"
+      >
+        <span ng-class="{'fa-spin':$ctrl.viewState.mastersRefreshing}" class="fa fa-sync-alt"></span>
       </a>
     </div>
   </div>
@@ -28,30 +29,40 @@
   <div class="form-group">
     <label class="col-md-2 col-md-offset-1 sm-label-right">Application</label>
     <div class="col-md-6">
-      <p class="form-control-static"
-         ng-if="!$ctrl.stage.master">(Select a master)</p>
-      <p class="form-control-static"
-         ng-if="$ctrl.viewState.masterIsParameterized || $ctrl.viewState.appIsParameterized">{{$ctrl.stage.app}}</p>
+      <p class="form-control-static" ng-if="!$ctrl.stage.master">(Select a master)</p>
+      <p
+        class="form-control-static"
+        ng-if="$ctrl.viewState.masterIsParameterized || $ctrl.viewState.appIsParameterized"
+      >
+        {{$ctrl.stage.app}}
+      </p>
       <div ng-if="$ctrl.stage.master && $ctrl.viewState.appsLoaded">
-        <ui-select class="form-control input-sm"
-                   ng-if="!$ctrl.viewState.masterIsParameterized && !$ctrl.viewState.appIsParameterized"
-                   ng-model="$ctrl.stage.app">
+        <ui-select
+          class="form-control input-sm"
+          ng-if="!$ctrl.viewState.masterIsParameterized && !$ctrl.viewState.appIsParameterized"
+          ng-model="$ctrl.stage.app"
+        >
           <ui-select-match placeholder="Select an Application...">{{$select.selected}}</ui-select-match>
-          <ui-select-choices repeat="app in $ctrl.apps | filter: $select.search"><span ng-bind-html="app | highlight: $select.search"></span></ui-select-choices>
+          <ui-select-choices repeat="app in $ctrl.apps | filter: $select.search"
+            ><span ng-bind-html="app | highlight: $select.search"></span
+          ></ui-select-choices>
         </ui-select>
       </div>
       <div class="horizontal center" ng-if="$ctrl.stage.master && !$ctrl.viewState.appsLoaded">
         <loading-spinner size="'small'"></loading-spinner>
       </div>
     </div>
-    <div class="col-md-1 text-center" ng-if="!$ctrl.viewState.masterIsParameterized && !$ctrl.viewState.appIsParameterized">
-      <a href
-         ng-click="$ctrl.refreshApps()"
-         tooltip-placement="right"
-         uib-tooltip="{{$ctrl.viewState.appsRefreshing ? 'Applications refreshing.' : 'Refresh application list' }}"
-        >
-              <span ng-class="{'fa-spin':$ctrl.viewState.appsRefreshing}"
-                    class="fa fa-sync-alt"></span>
+    <div
+      class="col-md-1 text-center"
+      ng-if="!$ctrl.viewState.masterIsParameterized && !$ctrl.viewState.appIsParameterized"
+    >
+      <a
+        href
+        ng-click="$ctrl.refreshApps()"
+        tooltip-placement="right"
+        uib-tooltip="{{$ctrl.viewState.appsRefreshing ? 'Applications refreshing.' : 'Refresh application list' }}"
+      >
+        <span ng-class="{'fa-spin':$ctrl.viewState.appsRefreshing}" class="fa fa-sync-alt"></span>
       </a>
     </div>
   </div>
@@ -59,38 +70,52 @@
   <div class="form-group">
     <label class="col-md-2 col-md-offset-1 sm-label-right">Pipeline</label>
     <div class="col-md-6">
-      <p class="form-control-static"
-         ng-if="!$ctrl.stage.master">(Select an Application)</p>
-      <p class="form-control-static"
-         ng-if="$ctrl.viewState.masterIsParameterized || $ctrl.viewState.jobIsParameterized">{{stage.job}}</p>
+      <p class="form-control-static" ng-if="!$ctrl.stage.master">(Select an Application)</p>
+      <p
+        class="form-control-static"
+        ng-if="$ctrl.viewState.masterIsParameterized || $ctrl.viewState.jobIsParameterized"
+      >
+        {{stage.job}}
+      </p>
       <div ng-if="$ctrl.stage.app && $ctrl.viewState.appsLoaded">
-        <ui-select class="form-control input-sm"
-                   ng-if="!$ctrl.viewState.masterIsParameterized && !$ctrl.viewState.jobIsParameterized"
-                   ng-model="$ctrl.stage.pipeline">
+        <ui-select
+          class="form-control input-sm"
+          ng-if="!$ctrl.viewState.masterIsParameterized && !$ctrl.viewState.jobIsParameterized"
+          ng-model="$ctrl.stage.pipeline"
+        >
           <ui-select-match placeholder="Select a pipeline...">{{$select.selected}}</ui-select-match>
-          <ui-select-choices repeat="pipeline in $ctrl.pipelines | filter: $select.search"><span ng-bind-html="pipeline | highlight: $select.search"></span></ui-select-choices>
+          <ui-select-choices repeat="pipeline in $ctrl.pipelines | filter: $select.search"
+            ><span ng-bind-html="pipeline | highlight: $select.search"></span
+          ></ui-select-choices>
         </ui-select>
       </div>
       <div class="horizontal center" ng-if="$ctrl.stage.app && !$ctrl.viewState.appsLoaded">
         <loading-spinner size="'small'"></loading-spinner>
       </div>
     </div>
-    <div class="col-md-1 text-center" ng-if="!$ctrl.viewState.masterIsParameterized && !$ctrl.viewState.jobIsParameterized">
-      <a href
-         ng-click="$ctrl.refreshJobs()"
-         tooltip-placement="right"
-         uib-tooltip="{{$ctrl.viewState.appsRefreshing ? 'Jobs refreshing.' : 'Refresh job list' }}"
-        >
-              <span ng-class="{'fa-spin':$ctrl.viewState.appsRefreshing}"
-                    class="fa fa-sync-alt"></span>
+    <div
+      class="col-md-1 text-center"
+      ng-if="!$ctrl.viewState.masterIsParameterized && !$ctrl.viewState.jobIsParameterized"
+    >
+      <a
+        href
+        ng-click="$ctrl.refreshJobs()"
+        tooltip-placement="right"
+        uib-tooltip="{{$ctrl.viewState.appsRefreshing ? 'Jobs refreshing.' : 'Refresh job list' }}"
+      >
+        <span ng-class="{'fa-spin':$ctrl.viewState.appsRefreshing}" class="fa fa-sync-alt"></span>
       </a>
     </div>
   </div>
 
   <stage-config-field label="Wait for results" help-key="wercker.waitForCompletion">
-    <input type="checkbox" class="input-sm" name="waitForCompletion"
-           ng-model="$ctrl.viewState.waitForCompletion"
-           ng-change="$ctrl.waitForCompletionChanged()"/>
+    <input
+      type="checkbox"
+      class="input-sm"
+      name="waitForCompletion"
+      ng-model="$ctrl.viewState.waitForCompletion"
+      ng-change="$ctrl.waitForCompletionChanged()"
+    />
   </stage-config-field>
 
   <div class="form-group">
@@ -98,24 +123,28 @@
     <div class="col-md-9">
       <div class="radio">
         <label>
-          <input type="radio"
-                 ng-model="$ctrl.viewState.markUnstableAsSuccessful"
-                 ng-change="$ctrl.markUnstableChanged()"
-                 ng-value="false"/> fail the stage
+          <input
+            type="radio"
+            ng-model="$ctrl.viewState.markUnstableAsSuccessful"
+            ng-change="$ctrl.markUnstableChanged()"
+            ng-value="false"
+          />
+          fail the stage
           <help-field key="pipeline.config.wercker.markUnstableAsSuccessful.false"></help-field>
         </label>
       </div>
       <div class="radio">
         <label>
-          <input type="radio"
-                 ng-model="$ctrl.viewState.markUnstableAsSuccessful"
-                 ng-change="$ctrl.markUnstableChanged()"
-                 ng-value="true"/> consider stage successful
+          <input
+            type="radio"
+            ng-model="$ctrl.viewState.markUnstableAsSuccessful"
+            ng-change="$ctrl.markUnstableChanged()"
+            ng-value="true"
+          />
+          consider stage successful
           <help-field key="pipeline.config.wercker.markUnstableAsSuccessful.true"></help-field>
         </label>
       </div>
-
     </div>
   </div>
-
 </div>

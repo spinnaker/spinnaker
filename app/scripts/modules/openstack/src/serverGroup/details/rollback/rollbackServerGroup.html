@@ -22,10 +22,12 @@
 
       <div class="row" ng-if="command.platformHealthOnlyShowOverride">
         <div class="col-sm-10 col-sm-offset-1">
-          <platform-health-override command="command"
-                                    platform-health-type="'Openstack'"
-                                    show-help-details="true"
-                                    field-columns="12">
+          <platform-health-override
+            command="command"
+            platform-health-type="'Openstack'"
+            show-help-details="true"
+            field-columns="12"
+          >
           </platform-health-override>
         </div>
       </div>
@@ -41,11 +43,11 @@
         <div class="col-sm-11 col-sm-offset-1">
           <ol>
             <li>Enable <em>{{ command.rollbackContext.restoreServerGroupName || 'previous server group' }}</em></li>
-            <li>Resize <em>{{ command.rollbackContext.restoreServerGroupName || 'previous server group' }}</em> to [
-              <strong>min</strong>: {{serverGroup.capacity.min}},
-              <strong>max</strong>: {{ serverGroup.capacity.max }},
-              <strong>desired</strong>: {{ serverGroup.capacity.desired }}
-            ]</li>
+            <li>
+              Resize <em>{{ command.rollbackContext.restoreServerGroupName || 'previous server group' }}</em> to [
+              <strong>min</strong>: {{serverGroup.capacity.min}}, <strong>max</strong>: {{ serverGroup.capacity.max }},
+              <strong>desired</strong>: {{ serverGroup.capacity.desired }} ]
+            </li>
             <li>Disable {{ serverGroup.name }}</li>
           </ol>
 
@@ -54,12 +56,13 @@
           </p>
         </div>
       </div>
-
     </div>
-    <openstack-footer action="ctrl.rollback()"
-                cancel="ctrl.cancel()"
-                is-valid="ctrl.isValid()"
-                account="serverGroup.account"
-                verification="verification"></openstack-footer>
+    <openstack-footer
+      action="ctrl.rollback()"
+      cancel="ctrl.cancel()"
+      is-valid="ctrl.isValid()"
+      account="serverGroup.account"
+      verification="verification"
+    ></openstack-footer>
   </form>
 </div>

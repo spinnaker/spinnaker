@@ -1,8 +1,7 @@
 <div class="details-panel">
   <div ng-if="state.loading" class="header">
     <div class="close-button">
-      <a class="btn btn-link"
-         ui-sref="^">
+      <a class="btn btn-link" ui-sref="^">
         <span class="glyphicon glyphicon-remove"></span>
       </a>
     </div>
@@ -13,8 +12,7 @@
 
   <div ng-if="!state.loading" class="header">
     <div class="close-button">
-      <a class="btn btn-link"
-         ui-sref="^">
+      <a class="btn btn-link" ui-sref="^">
         <span class="glyphicon glyphicon-remove"></span>
       </a>
     </div>
@@ -32,8 +30,14 @@
           </button>
           <ul class="dropdown-menu" uib-dropdown-menu role="menu">
             <li><a href ng-click="ctrl.editLoadBalancer()">Edit Load Balancer</a></li>
-            <li ng-if="!loadBalancer.instances.length"><a href ng-click="ctrl.deleteLoadBalancer()">Delete Load Balancer</a></li>
-            <li ng-if="loadBalancer.instances.length" class="disabled" uib-tooltip="You must detach all instances before you can delete this load balancer.">
+            <li ng-if="!loadBalancer.instances.length">
+              <a href ng-click="ctrl.deleteLoadBalancer()">Delete Load Balancer</a>
+            </li>
+            <li
+              ng-if="loadBalancer.instances.length"
+              class="disabled"
+              uib-tooltip="You must detach all instances before you can delete this load balancer."
+            >
               <a href ng-click="ctrl.deleteLoadBalancer()">Delete Load Balancer</a>
             </li>
           </ul>
@@ -55,7 +59,7 @@
         <dt>YAML</dt>
         <dd><a href ng-click="ctrl.showYaml()">Show YAML</a></dd>
         <dt>Kube UI</dt>
-        <dd><a href={{ctrl.uiLink()}} target="_blank">{{loadBalancer.name}}</a></dd>
+        <dd><a href="{{ctrl.uiLink()}}" target="_blank">{{loadBalancer.name}}</a></dd>
       </dl>
       <dl class="horizontal-when-filters-collapsed">
         <dt ng-if="loadBalancer.serverGroups">Server Groups</dt>
@@ -68,23 +72,24 @@
       <dl>
         <dt>Service Type</dt>
         <dd>
-        {{loadBalancer.service.spec.type}}
+          {{loadBalancer.service.spec.type}}
         </dd>
       </dl>
       <dl>
         <dt>Session Affinity</dt>
         <dd>
-        {{loadBalancer.service.spec.sessionAffinity}}
+          {{loadBalancer.service.spec.sessionAffinity}}
         </dd>
       </dl>
       <dl>
         <dt>Internal DNS Name</dt>
         <dd>
-        {{ctrl.internalDNSName}}
+          {{ctrl.internalDNSName}}
           <copy-to-clipboard
-              class="copy-to-clipboard copy-to-clipboard-sm"
-              text="ctrl.internalDNSName"
-              tool-tip="'Copy Internal DNS Name to clipboard'">
+            class="copy-to-clipboard copy-to-clipboard-sm"
+            text="ctrl.internalDNSName"
+            tool-tip="'Copy Internal DNS Name to clipboard'"
+          >
           </copy-to-clipboard>
         </dd>
       </dl>
@@ -95,9 +100,10 @@
             {{loadBalancer.service.spec.clusterIP}}
           </a>
           <copy-to-clipboard
-              class="copy-to-clipboard copy-to-clipboard-sm"
-              text="loadBalancer.service.spec.clusterIP"
-              tool-tip="'Copy Cluster IP to clipboard'">
+            class="copy-to-clipboard copy-to-clipboard-sm"
+            text="loadBalancer.service.spec.clusterIP"
+            tool-tip="'Copy Cluster IP to clipboard'"
+          >
           </copy-to-clipboard>
         </dd>
       </dl>
@@ -111,7 +117,8 @@
             ng-if="ingress.hostname"
             class="copy-to-clipboard copy-to-clipboard-sm"
             text="ingress.hostname"
-            tool-tip="'Copy Ingress hostname to clipboard'">
+            tool-tip="'Copy Ingress hostname to clipboard'"
+          >
           </copy-to-clipboard>
           <a ng-if="ingress.ip" target="_blank" href="//{{ingress.ip}}">
             {{ingress.ip}}
@@ -120,7 +127,8 @@
             ng-if="ingress.ip"
             class="copy-to-clipboard copy-to-clipboard-sm"
             text="ingress.ip"
-            tool-tip="'Copy Ingress IP to clipboard'">
+            tool-tip="'Copy Ingress IP to clipboard'"
+          >
           </copy-to-clipboard>
         </dd>
       </dl>
@@ -131,9 +139,10 @@
             {{loadBalancer.service.spec.loadBalancerIP}}
           </a>
           <copy-to-clipboard
-              class="copy-to-clipboard copy-to-clipboard-sm"
-              text="loadBalancer.service.spec.loadBalancerIP"
-              tool-tip="'Copy Load Balancer IP to clipboard'">
+            class="copy-to-clipboard copy-to-clipboard-sm"
+            text="loadBalancer.service.spec.loadBalancerIP"
+            tool-tip="'Copy Load Balancer IP to clipboard'"
+          >
           </copy-to-clipboard>
         </dd>
       </dl>
@@ -167,14 +176,12 @@
     </collapsible-section>
     <collapsible-section heading="Service Annotations" ng-if="loadBalancer.description.serviceAnnotations">
       <dl class="dl-horizontal dl-flex">
-        <kubernetes-key-value-details map="loadBalancer.description.serviceAnnotations">
-        </kubernetes-key-value-details>
+        <kubernetes-key-value-details map="loadBalancer.description.serviceAnnotations"> </kubernetes-key-value-details>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Service Labels" ng-if="loadBalancer.description.serviceLabels">
       <dl class="dl-horizontal dl-flex">
-        <kubernetes-key-value-details map="loadBalancer.service.metadata.labels">
-        </kubernetes-key-value-details>
+        <kubernetes-key-value-details map="loadBalancer.service.metadata.labels"> </kubernetes-key-value-details>
       </dl>
     </collapsible-section>
   </div>

@@ -1,28 +1,33 @@
 <div class="row">
-  <div class="col-md-offset-{{$ctrl.columnOffset || 0}} col-md-{{$ctrl.columns || 12}}">
+  <div class="col-md-offset-{{ $ctrl.columnOffset || 0 }} col-md-{{ $ctrl.columns || 12 }}">
     <div class="well">
-    	<p>
-    		<span ng-if="$ctrl.showCreateMessage">Spinnaker cannot create a load balancer for App Engine.</span>
-    		A Spinnaker load balancer maps to an App Engine service, which is specified in a version's <code>app.yaml</code>.
-    	</p>
-    	<p>
-    		For example, the following <code>app.yaml</code>
+      <p>
+        <span ng-if="$ctrl.showCreateMessage">Spinnaker cannot create a load balancer for App Engine.</span>
+        A Spinnaker load balancer maps to an App Engine service, which is specified in a version's
+        <code>app.yaml</code>.
       </p>
-  		<pre class="text-left" style="white-space: pre-line;">
+      <p>For example, the following <code>app.yaml</code></p>
+      <pre class="text-left" style="white-space: pre-line;">
   			runtime: python27
   			api_version: 1
         &hellip;
   			service: mobile
         &hellip;
-  		</pre>
+  		</pre
+      >
       <p>
-    		deploys to the <code>mobile</code> service. If you do not specify a service, your version will be deployed
-    		to the <code>default</code> service.
-    	</p>
-    	<p>
-    		If a service does not exist when a version is deployed, it will be created. It will then be editable as a load balancer within Spinnaker.
-    	</p>
-      <p><a href="https://cloud.google.com/appengine/docs/python/config/appref" target="_blank">App Engine Documentation</a></p>
+        deploys to the <code>mobile</code> service. If you do not specify a service, your version will be deployed to
+        the <code>default</code> service.
+      </p>
+      <p>
+        If a service does not exist when a version is deployed, it will be created. It will then be editable as a load
+        balancer within Spinnaker.
+      </p>
+      <p>
+        <a href="https://cloud.google.com/appengine/docs/python/config/appref" target="_blank"
+          >App Engine Documentation</a
+        >
+      </p>
     </div>
   </div>
 </div>

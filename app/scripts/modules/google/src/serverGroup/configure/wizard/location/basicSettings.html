@@ -5,31 +5,54 @@
         Account
       </div>
       <div class="col-md-7">
-        <account-select-field component="command" field="credentials" accounts="command.backingData.accounts" provider="'gce'"></account-select-field>
+        <account-select-field
+          component="command"
+          field="credentials"
+          accounts="command.backingData.accounts"
+          provider="'gce'"
+        ></account-select-field>
       </div>
     </div>
-    <gce-region-select-field label-columns="3" component="command" field="region" account="command.credentials" regions="command.backingData.filtered.regions"></gce-region-select-field>
-    <gce-network-select-field label-columns="3" component="command" field="network" account="command.credentials" networks="command.backingData.filtered.networks"></gce-network-select-field>
-    <gce-subnet-select-field label-columns="3"
-                             help-key="gce.serverGroup.subnet"
-                             component="command"
-                             field="subnet"
-                             account="command.credentials"
-                             region="command.region"
-                             subnets="command.backingData.filtered.subnets"
-                             subnet-placeholder="basicSettingsCtrl.getSubnetPlaceholder()"
-                             auto-create-subnets="command.viewState.autoCreateSubnets">
+    <gce-region-select-field
+      label-columns="3"
+      component="command"
+      field="region"
+      account="command.credentials"
+      regions="command.backingData.filtered.regions"
+    ></gce-region-select-field>
+    <gce-network-select-field
+      label-columns="3"
+      component="command"
+      field="network"
+      account="command.credentials"
+      networks="command.backingData.filtered.networks"
+    ></gce-network-select-field>
+    <gce-subnet-select-field
+      label-columns="3"
+      help-key="gce.serverGroup.subnet"
+      component="command"
+      field="subnet"
+      account="command.credentials"
+      region="command.region"
+      subnets="command.backingData.filtered.subnets"
+      subnet-placeholder="basicSettingsCtrl.getSubnetPlaceholder()"
+      auto-create-subnets="command.viewState.autoCreateSubnets"
+    >
     </gce-subnet-select-field>
     <div class="form-group">
       <div class="col-md-3 sm-label-right">
         Stack
         <help-field key="aws.serverGroup.stack"></help-field>
       </div>
-      <div class="col-md-7"><input type="text"
-                                   class="form-control input-sm"
-                                   ng-pattern="basicSettingsCtrl.stackPattern"
-                                   name="stack"
-                                   ng-model="command.stack"/></div>
+      <div class="col-md-7">
+        <input
+          type="text"
+          class="form-control input-sm"
+          ng-pattern="basicSettingsCtrl.stackPattern"
+          name="stack"
+          ng-model="command.stack"
+        />
+      </div>
     </div>
     <div class="form-group row slide-in" ng-if="basicSettings.stack.$error.pattern">
       <div class="col-sm-9 col-sm-offset-2 error-message">
@@ -41,11 +64,15 @@
         Detail
         <help-field key="aws.serverGroup.detail"></help-field>
       </div>
-      <div class="col-md-7"><input type="text"
-                                   class="form-control input-sm"
-                                   ng-pattern="basicSettingsCtrl.detailPattern"
-                                   name="details"
-                                   ng-model="command.freeFormDetails"/></div>
+      <div class="col-md-7">
+        <input
+          type="text"
+          class="form-control input-sm"
+          ng-pattern="basicSettingsCtrl.detailPattern"
+          name="details"
+          ng-model="command.freeFormDetails"
+        />
+      </div>
     </div>
     <div class="form-group row slide-in" ng-if="basicSettings.details.$error.pattern">
       <div class="col-sm-9 col-sm-offset-2 error-message">
@@ -53,28 +80,36 @@
       </div>
     </div>
     <div ng-if="command.viewState.showImageSourceSelector">
-      <image-source-selector command="command"
-                             id-field="imageSource"
-                             image-sources="basicSettingsCtrl.imageSources"
-                             image-source-text="command.viewState.imageSourceText"
-                             help-field-key="gce.image.source">
+      <image-source-selector
+        command="command"
+        id-field="imageSource"
+        image-sources="basicSettingsCtrl.imageSources"
+        image-source-text="command.viewState.imageSourceText"
+        help-field-key="gce.image.source"
+      >
       </image-source-selector>
-      <stage-config-field label="Expected Artifact" help-key="gce.image.artifact" field-columns="8" ng-if="command.imageSource === 'artifact'">
+      <stage-config-field
+        label="Expected Artifact"
+        help-key="gce.image.artifact"
+        field-columns="8"
+        ng-if="command.imageSource === 'artifact'"
+      >
         <expected-artifact-selector-react
-                                    expected-artifacts="command.viewState.expectedArtifacts"
-                                    selected="gceImageArtifact.delegate.getSelectedExpectedArtifact()"
-                                    on-change="gceImageArtifact.controller.onArtifactChange"
-                                    on-request-create="gceImageArtifact.controller.onRequestCreate"
-                                    offered-artifact-types="gceImageArtifact.delegate.getOfferedArtifactTypes()"
-                                    requesting-new="gceImageArtifact.showCreateArtifactForm"
-                                    >
+          expected-artifacts="command.viewState.expectedArtifacts"
+          selected="gceImageArtifact.delegate.getSelectedExpectedArtifact()"
+          on-change="gceImageArtifact.controller.onArtifactChange"
+          on-request-create="gceImageArtifact.controller.onRequestCreate"
+          offered-artifact-types="gceImageArtifact.delegate.getOfferedArtifactTypes()"
+          requesting-new="gceImageArtifact.showCreateArtifactForm"
+        >
         </expected-artifact-selector-react>
       </stage-config-field>
-      <expected-artifact-editor-react ng-if="gceImageArtifact.showCreateArtifactForm"
-                                      kinds="gceImageArtifact.delegate.getSupportedArtifactKinds()"
-                                      sources="gceImageArtifact.delegate.getExpectedArtifactSources()"
-                                      on-save="gceImageArtifact.controller.onArtifactCreated"
-                                      show-accounts="false"
+      <expected-artifact-editor-react
+        ng-if="gceImageArtifact.showCreateArtifactForm"
+        kinds="gceImageArtifact.delegate.getSupportedArtifactKinds()"
+        sources="gceImageArtifact.delegate.getExpectedArtifactSources()"
+        on-save="gceImageArtifact.controller.onArtifactCreated"
+        show-accounts="false"
       >
       </expected-artifact-editor-react>
     </div>
@@ -84,42 +119,47 @@
         <help-field key="gce.serverGroup.imageName"></help-field>
       </div>
       <div class="col-md-9" ng-if="command.viewState.useAllImageSelection">
-        <ui-select ng-model="command.image"
-                   class="form-control input-sm"
-                   required>
-          <ui-select-match placeholder="Search for an image...">{{$select.selected.imageName || 'Search for an image...'}}</ui-select-match>
-          <ui-select-choices repeat="result.imageName as result in command.backingData.filtered.images | filter: { account: command.credentials } | orderBy: 'imageName'"
-                             refresh="basicSettingsCtrl.searchImages($select.search)"
-                             ui-disable-choice="result.message"
-                             reset-search-input="false">
+        <ui-select ng-model="command.image" class="form-control input-sm" required>
+          <ui-select-match placeholder="Search for an image..."
+            >{{$select.selected.imageName || 'Search for an image...'}}</ui-select-match
+          >
+          <ui-select-choices
+            repeat="result.imageName as result in command.backingData.filtered.images | filter: { account: command.credentials } | orderBy: 'imageName'"
+            refresh="basicSettingsCtrl.searchImages($select.search)"
+            ui-disable-choice="result.message"
+            reset-search-input="false"
+          >
             <span ng-bind-html="result.message"></span>
             <span ng-bind-html="result.imageName | highlight: $select.search"></span>
           </ui-select-choices>
         </ui-select>
       </div>
       <div class="col-md-9" ng-if="!command.viewState.useAllImageSelection">
-        <ui-select class="form-control input-sm" required
-                   ng-model="command.image">
+        <ui-select class="form-control input-sm" required ng-model="command.image">
           <ui-select-match placeholder="Pick an image">{{$select.selected.imageName}}</ui-select-match>
-          <ui-select-choices repeat="image.imageName as image in command.backingData.filtered.images | filter: { imageName: $select.search } | orderBy: '-imageName'">
+          <ui-select-choices
+            repeat="image.imageName as image in command.backingData.filtered.images | filter: { imageName: $select.search } | orderBy: '-imageName'"
+          >
             <span ng-bind-html="image.imageName | highlight: $select.search"></span>
           </ui-select-choices>
         </ui-select>
-        <a href ng-click="basicSettingsCtrl.enableAllImageSearch()">Search All Images</a><help-field key="aws.serverGroup.allImages"></help-field>
+        <a href ng-click="basicSettingsCtrl.enableAllImageSearch()">Search All Images</a
+        ><help-field key="aws.serverGroup.allImages"></help-field>
       </div>
     </div>
     <div class="form-group">
-      <div class="col-md-3 sm-label-right">
-        Traffic <help-field key="gce.serverGroup.traffic"></help-field>
-      </div>
+      <div class="col-md-3 sm-label-right">Traffic <help-field key="gce.serverGroup.traffic"></help-field></div>
       <div class="col-md-9 checkbox">
         <label>
-          <input type="checkbox" ng-model="command.enableTraffic"/>
+          <input type="checkbox" ng-model="command.enableTraffic" />
           Send client requests to new instances
         </label>
       </div>
     </div>
-    <deployment-strategy-selector ng-if="!command.viewState.disableStrategySelection && command.selectedProvider" command="command"></deployment-strategy-selector>
+    <deployment-strategy-selector
+      ng-if="!command.viewState.disableStrategySelection && command.selectedProvider"
+      command="command"
+    ></deployment-strategy-selector>
     <div class="form-group" ng-if="!command.viewState.hideClusterNamePreview">
       <div class="col-md-12">
         <div class="well-compact" ng-class="basicSettingsCtrl.showPreviewAsWarning() ? 'alert alert-warning' : 'well'">
@@ -131,13 +171,16 @@
                 <span ng-if="basicSettingsCtrl.createsNewCluster()"> (new cluster)</span>
               </strong>
             </p>
-            <div class="text-left" ng-if="!basicSettingsCtrl.createsNewCluster() && command.viewState.mode === 'create' && latestServerGroup">
+            <div
+              class="text-left"
+              ng-if="!basicSettingsCtrl.createsNewCluster() && command.viewState.mode === 'create' && latestServerGroup"
+            >
               <p>
                 There is already a server group in this cluster. Do you want to clone it?
               </p>
               <p>
-                Cloning copies the entire configuration from the selected server group, allowing you
-                to modify whichever fields (e.g. image) you need to change in the new server group.
+                Cloning copies the entire configuration from the selected server group, allowing you to modify whichever
+                fields (e.g. image) you need to change in the new server group.
               </p>
               <p>
                 To clone a server group, select "Clone" from the "Server Group Actions" menu in the details view of the

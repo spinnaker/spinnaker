@@ -1,18 +1,19 @@
 <div class="form-group">
   <div ng-hide="hideLabel">
-    <div class="col-md-3 sm-label-right">Namespace
-    <help-field key="kubernetes.namespace"></help-field></div>
+    <div class="col-md-3 sm-label-right">Namespace <help-field key="kubernetes.namespace"></help-field></div>
   </div>
   <div class="col-md-{{ columns || 7 }}" ng-if="!account">(Select an account)</div>
   <div class="col-md-{{ columns || 7 }}">
-    <select class="form-control input-sm"
-            ng-if="account"
-            ng-model="component.namespace"
-            ng-change="onChange()"
-            required>
-      <option ng-repeat="namespace in namespaces"
-              value="{{namespace}}"
-              ng-selected="component[field] === namespace">{{namespace}}</option>
+    <select
+      class="form-control input-sm"
+      ng-if="account"
+      ng-model="component.namespace"
+      ng-change="onChange()"
+      required
+    >
+      <option ng-repeat="namespace in namespaces" value="{{namespace}}" ng-selected="component[field] === namespace"
+        >{{namespace}}</option
+      >
     </select>
     <p ng-if="readOnly" class="form-control-static">{{component[field]}}</p>
   </div>

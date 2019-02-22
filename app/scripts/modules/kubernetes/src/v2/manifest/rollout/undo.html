@@ -13,8 +13,12 @@
           </div>
           <div class="col-md-7">
             <select style="width: 100%;" class="form-control input-sm" ng-model="ctrl.command.revision">
-              <option ng-repeat="revision in ctrl.revisions" value="{{revision.revision}}"
-                      ng-selected="ctrl.command.revisions === revision.revision">{{revision.label}}</option>
+              <option
+                ng-repeat="revision in ctrl.revisions"
+                value="{{revision.revision}}"
+                ng-selected="ctrl.command.revisions === revision.revision"
+                >{{revision.label}}</option
+              >
             </select>
           </div>
         </div>
@@ -23,12 +27,15 @@
     </div>
     <div class="modal-footer">
       <user-verification account="ctrl.command.account" verification="ctrl.verification"></user-verification>
-      <button type="submit" ng-click="ctrl.undoRollout()" style="display:none"></button> <!-- Allows form submission via enter keypress-->
+      <button type="submit" ng-click="ctrl.undoRollout()" style="display:none"></button>
+      <!-- Allows form submission via enter keypress-->
       <button class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
-      <button type="submit"
-              class="btn btn-primary"
-              ng-click="ctrl.undoRollout()"
-              ng-disabled="!ctrl.isValid() || !undoRolloutForm.$valid">
+      <button
+        type="submit"
+        class="btn btn-primary"
+        ng-click="ctrl.undoRollout()"
+        ng-disabled="!ctrl.isValid() || !undoRolloutForm.$valid"
+      >
         Submit
       </button>
     </div>

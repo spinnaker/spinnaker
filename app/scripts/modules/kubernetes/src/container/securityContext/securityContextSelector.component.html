@@ -6,9 +6,11 @@
         <help-field key="{{::field.helpField}}"></help-field>
       </div>
       <div class="col-md-{{::field.columns || 8}}">
-        <input type="{{::field.type}}"
-               class="{{::field.inputClasses}}"
-               ng-model="$ctrl.component.securityContext[field.model]"/>
+        <input
+          type="{{::field.type}}"
+          class="{{::field.inputClasses}}"
+          ng-model="$ctrl.component.securityContext[field.model]"
+        />
       </div>
     </div>
   </div>

@@ -1,13 +1,14 @@
 <ng-form name="hostRules">
-  <gce-host-rule ng-repeat="hostRule in ctrl.command.loadBalancer.hostRules"
-                 host-rule="hostRule"
-                 index="$index"
-                 command="ctrl.command"
-                 delete-host-rule="ctrl.remove('hostRules', $index)"></gce-host-rule>
+  <gce-host-rule
+    ng-repeat="hostRule in ctrl.command.loadBalancer.hostRules"
+    host-rule="hostRule"
+    index="$index"
+    command="ctrl.command"
+    delete-host-rule="ctrl.remove('hostRules', $index)"
+  ></gce-host-rule>
   <div class="row">
     <div class="col-md-12">
-      <button class="add-new btn btn-block"
-              ng-click="ctrl.add('hostRules')">
+      <button class="add-new btn btn-block" ng-click="ctrl.add('hostRules')">
         <span class="glyphicon glyphicon-plus-sign"></span> Add host rule
       </button>
     </div>

@@ -8,10 +8,12 @@
     </v2-wizard-page>
   </v2-modal-wizard>
   <div class="modal-footer">
-    <button class="btn btn-default"
-            ng-click="ctrl.cancel()">Cancel
-    </button>
-    <submit-button is-disabled="form.$invalid || !wizard.isComplete() || state.submitting"
-                   submitting="state.submitting" on-click="ctrl.upsert()" is-new="state.isNew"></submit-button>
+    <button class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
+    <submit-button
+      is-disabled="form.$invalid || !wizard.isComplete() || state.submitting"
+      submitting="state.submitting"
+      on-click="ctrl.upsert()"
+      is-new="state.isNew"
+    ></submit-button>
   </div>
 </ng-form>

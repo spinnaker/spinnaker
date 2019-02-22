@@ -12,8 +12,7 @@
       </div>
       <div class="form-group">
         <div class="col-md-6 col-md-offset-1">
-          <ui-select ng-model="ctrl.choice"
-                     class="form-control input-sm">
+          <ui-select ng-model="ctrl.choice" class="form-control input-sm">
             <ui-select-match placeholder="Select...">
               <span>{{$select.selected}}</span>
             </ui-select-match>
@@ -26,8 +25,7 @@
     </form>
   </div>
   <div class="modal-footer">
-    <button class="btn btn-primary"
-            ng-click="ctrl.choose(ctrl.choice)">
+    <button class="btn btn-primary" ng-click="ctrl.choose(ctrl.choice)">
       <span>Create {{ ctrl.choice }} load balancer</span>
       <span class="glyphicon glyphicon-chevron-right"></span>
     </button>

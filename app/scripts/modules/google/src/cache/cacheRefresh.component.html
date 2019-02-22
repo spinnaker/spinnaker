@@ -1,17 +1,17 @@
 <div ng-if="!$ctrl.renderCompact">
   <p>
-    <span ng-if="$ctrl.refreshing"><span class="fa fa-sync-alt fa-spin" ></span></span>
+    <span ng-if="$ctrl.refreshing"><span class="fa fa-sync-alt fa-spin"></span></span>
     {{::$ctrl.capitalizedKey}}
     <span ng-if="!$ctrl.refreshing">last refreshed {{ $ctrl.getRefreshTime() | timestamp }}</span>
     <span ng-if="$ctrl.refreshing"> refreshing...</span>
   </p>
-  <p>If you're not finding a {{::$ctrl.depluralizedKey}} that was recently added,
+  <p>
+    If you're not finding a {{::$ctrl.depluralizedKey}} that was recently added,
     <a href ng-click="$ctrl.refresh()">click here</a> to refresh the list.
   </p>
 </div>
 <div ng-if="$ctrl.renderCompact">
   <a href uib-tooltip-template="$ctrl.tooltipTemplate">
-    <span class="fa fa-sync-alt" ng-click="$ctrl.refresh()"
-          ng-class="{'fa-spin': $ctrl.refreshing}"></span>
+    <span class="fa fa-sync-alt" ng-click="$ctrl.refresh()" ng-class="{'fa-spin': $ctrl.refreshing}"></span>
   </a>
 </div>

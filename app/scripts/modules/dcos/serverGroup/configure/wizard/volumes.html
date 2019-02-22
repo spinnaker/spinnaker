@@ -8,21 +8,37 @@
           </tr>
         </thead>
         <tbody>
-          <tr ng-repeat="volume in command.persistentVolumes" ng-show="volumeController.isVolumesValid(command.persistentVolumes)">
+          <tr
+            ng-repeat="volume in command.persistentVolumes"
+            ng-show="volumeController.isVolumesValid(command.persistentVolumes)"
+          >
             <td>
               <div class="form-group">
                 <div class="col-md-3 sm-label-right">
                   Size (MiB)
                 </div>
                 <div class="col-md-2">
-                  <input type="number" class="form-control input-sm" name="persistentSize" ng-model="volume.persistent.size" min="0" />
+                  <input
+                    type="number"
+                    class="form-control input-sm"
+                    name="persistentSize"
+                    ng-model="volume.persistent.size"
+                    min="0"
+                  />
                 </div>
               </div>
               <div class="form-group">
                 <div class="col-md-3 sm-label-right">
                   Container Path
                 </div>
-                <div class="col-md-7"><input type="text" class="form-control input-sm" name="containerPath" ng-model="volume.containerPath" /></div>
+                <div class="col-md-7">
+                  <input
+                    type="text"
+                    class="form-control input-sm"
+                    name="containerPath"
+                    ng-model="volume.containerPath"
+                  />
+                </div>
               </div>
 
               <div class="col-md-12 sm-label-right">
@@ -37,8 +53,8 @@
           <tr>
             <td colspan="1">
               <button class="add-new col-md-12" ng-click="volumeController.addPersistentVolume()">
-                        <span class="glyphicon glyphicon-plus-sign"></span> Add Persistent Volume
-                    </button>
+                <span class="glyphicon glyphicon-plus-sign"></span> Add Persistent Volume
+              </button>
             </td>
           </tr>
         </tfoot>
@@ -50,19 +66,31 @@
           </tr>
         </thead>
         <tbody>
-          <tr ng-repeat="volume in command.dockerVolumes" ng-show="volumeController.isVolumesValid(command.dockerVolumes)">
+          <tr
+            ng-repeat="volume in command.dockerVolumes"
+            ng-show="volumeController.isVolumesValid(command.dockerVolumes)"
+          >
             <td>
               <div class="form-group">
                 <div class="col-md-3 sm-label-right">
                   Container Path
                 </div>
-                <div class="col-md-7"><input type="text" class="form-control input-sm" name="containerPath" ng-model="volume.containerPath" /></div>
+                <div class="col-md-7">
+                  <input
+                    type="text"
+                    class="form-control input-sm"
+                    name="containerPath"
+                    ng-model="volume.containerPath"
+                  />
+                </div>
               </div>
               <div class="form-group">
                 <div class="col-md-3 sm-label-right">
                   Host Path
                 </div>
-                <div class="col-md-7"><input type="text" class="form-control input-sm" name="hostPath" ng-model="volume.hostPath" /></div>
+                <div class="col-md-7">
+                  <input type="text" class="form-control input-sm" name="hostPath" ng-model="volume.hostPath" />
+                </div>
               </div>
               <div class="form-group">
                 <div class="col-md-3 sm-label-right">
@@ -71,7 +99,9 @@
                 <div class="col-md-3">
                   <ui-select name="volumeModeSelect" ng-model="volume.mode" class="form-control input-sm">
                     <ui-select-match>{{$select.selected.description}}</ui-select-match>
-                    <ui-select-choices repeat="volumeMode.mode as volumeMode in volumeController.volumeModes | filter: $select.search">
+                    <ui-select-choices
+                      repeat="volumeMode.mode as volumeMode in volumeController.volumeModes | filter: $select.search"
+                    >
                       <div ng-bind-html="volumeMode.description | highlight: $select.search"></div>
                     </ui-select-choices>
                   </ui-select>
@@ -89,8 +119,8 @@
           <tr>
             <td colspan="1">
               <button class="add-new col-md-12" ng-click="volumeController.addDockerVolume()">
-                        <span class="glyphicon glyphicon-plus-sign"></span> Add Docker Volume
-                    </button>
+                <span class="glyphicon glyphicon-plus-sign"></span> Add Docker Volume
+              </button>
             </td>
           </tr>
         </tfoot>
@@ -102,19 +132,36 @@
           </tr>
         </thead>
         <tbody>
-          <tr ng-repeat="volume in command.externalVolumes" ng-show="volumeController.isVolumesValid(command.externalVolumes)">
+          <tr
+            ng-repeat="volume in command.externalVolumes"
+            ng-show="volumeController.isVolumesValid(command.externalVolumes)"
+          >
             <td>
               <div class="form-group">
                 <div class="col-md-3 sm-label-right">
                   Name
                 </div>
-                <div class="col-md-7"><input type="text" class="form-control input-sm" name="externalName" ng-model="volume.external.name" /></div>
+                <div class="col-md-7">
+                  <input
+                    type="text"
+                    class="form-control input-sm"
+                    name="externalName"
+                    ng-model="volume.external.name"
+                  />
+                </div>
               </div>
               <div class="form-group">
                 <div class="col-md-3 sm-label-right">
                   Container Path
                 </div>
-                <div class="col-md-7"><input type="text" class="form-control input-sm" name="containerPath" ng-model="volume.containerPath" /></div>
+                <div class="col-md-7">
+                  <input
+                    type="text"
+                    class="form-control input-sm"
+                    name="containerPath"
+                    ng-model="volume.containerPath"
+                  />
+                </div>
               </div>
               <div class="col-md-12 sm-label-right">
                 <a class="btn btn-link sm-label" ng-click="volumeController.removeExternalVolume($index)">
@@ -128,8 +175,8 @@
           <tr>
             <td colspan="1">
               <button class="add-new col-md-12" ng-click="volumeController.addExternalVolume()">
-                        <span class="glyphicon glyphicon-plus-sign"></span> Add External Volume
-                    </button>
+                <span class="glyphicon glyphicon-plus-sign"></span> Add External Volume
+              </button>
             </td>
           </tr>
         </tfoot>

@@ -2,14 +2,10 @@
   <div class="col-md-{{labelColumns}} sm-label-right">Network</div>
   <div class="col-md-{{fieldColumns || 7}}" ng-if="!account">(Select an account)</div>
   <div class="col-md-{{fieldColumns || 7}}">
-    <select class="form-control input-sm"
-            ng-if="account"
-            ng-model="component.network"
-            ng-change="onChange()"
-            required>
-      <option ng-repeat="network in networks"
-              value="{{network}}"
-              ng-selected="component[field] === network">{{network}}</option>
+    <select class="form-control input-sm" ng-if="account" ng-model="component.network" ng-change="onChange()" required>
+      <option ng-repeat="network in networks" value="{{network}}" ng-selected="component[field] === network"
+        >{{network}}</option
+      >
     </select>
     <p ng-if="readOnly" class="form-control-static">{{component[field]}}</p>
   </div>

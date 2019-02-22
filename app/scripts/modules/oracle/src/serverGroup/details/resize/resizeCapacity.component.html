@@ -10,11 +10,13 @@
         Current size
       </div>
       <div class="col-md-6">
-        <input type="number"
-               class="form-control input-sm"
-               ng-model="$ctrl.serverGroup.capacity.desired"
-               style="width: 60px"
-               readonly/>
+        <input
+          type="number"
+          class="form-control input-sm"
+          ng-model="$ctrl.serverGroup.capacity.desired"
+          style="width: 60px"
+          readonly
+        />
         instance<span ng-if="$ctrl.currentSize.desired > 1">s</span>
       </div>
     </div>
@@ -23,12 +25,14 @@
         Resize to
       </div>
       <div class="col-md-6">
-        <input type="number"
-               class="form-control input-sm highlight-pristine"
-               ng-model="$ctrl.command.newSize"
-               min="0"
-               required
-               style="width: 60px"/>
+        <input
+          type="number"
+          class="form-control input-sm highlight-pristine"
+          ng-model="$ctrl.command.newSize"
+          min="0"
+          required
+          style="width: 60px"
+        />
         instance<span ng-if="$ctrl.currentSize.desired > 1">s</span>
       </div>
     </div>

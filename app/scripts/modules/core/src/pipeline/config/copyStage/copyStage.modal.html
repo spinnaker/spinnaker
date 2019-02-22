@@ -13,9 +13,11 @@
           <b>From Application</b>
         </div>
         <div class="col-md-7">
-          <ui-select class="form-control input-sm"
-                     on-select="copyStageModalCtrl.onApplicationSelect($item)"
-                     ng-model="copyStageModalCtrl.application">
+          <ui-select
+            class="form-control input-sm"
+            on-select="copyStageModalCtrl.onApplicationSelect($item)"
+            ng-model="copyStageModalCtrl.application"
+          >
             <ui-select-match>
               <span>{{$select.selected.name}}</span>
             </ui-select-match>
@@ -30,8 +32,7 @@
           <b>Copy Stage</b>
         </div>
         <div class="col-md-7" ng-if="!copyStageModalCtrl.viewState.loading && copyStageModalCtrl.stages.length > 0">
-          <ui-select ng-model="copyStageModalCtrl.selectedStage"
-                     class="form-control input-sm bordered-choices">
+          <ui-select ng-model="copyStageModalCtrl.selectedStage" class="form-control input-sm bordered-choices">
             <ui-select-match>
               <span>{{$select.selected.stage.name}}</span>
             </ui-select-match>
@@ -51,15 +52,16 @@
     <div class="row">
       <div class="col-md-offset-3 col-md-7">
         <div class="well">
-          <p class="small">It is not possible to copy a deploy stage, and deploy stages will not be included in the list above.</p>
+          <p class="small">
+            It is not possible to copy a deploy stage, and deploy stages will not be included in the list above.
+          </p>
         </div>
       </div>
     </div>
   </div>
   <div class="modal-footer">
     <button class="btn btn-default" ng-click="copyStageModalCtrl.cancel()">Cancel</button>
-    <button class="btn btn-primary"
-            ng-click="copyStageModalCtrl.copyStage()">
+    <button class="btn btn-primary" ng-click="copyStageModalCtrl.copyStage()">
       <span class="far fa-check-circle"></span> Copy Stage
     </button>
   </div>

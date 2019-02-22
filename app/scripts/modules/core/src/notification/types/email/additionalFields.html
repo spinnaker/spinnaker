@@ -2,16 +2,17 @@
   <div class="form-group row">
     <div class="col-sm-3 sm-label-right">Email Address</div>
     <div class="col-sm-9">
-      <input type="text"
-             name="address"
-             class="form-control input-sm "
-             ng-model="vm.notification.address"
-             placeholder="enter an email address"
-             ng-required="!vm.notification.cc.length">
+      <input
+        type="text"
+        name="address"
+        class="form-control input-sm "
+        ng-model="vm.notification.address"
+        placeholder="enter an email address"
+        ng-required="!vm.notification.cc.length"
+      />
     </div>
   </div>
-  <div class="form-group row slide-in"
-       ng-if="emailForm.address.$dirty && emailForm.address.$invalid">
+  <div class="form-group row slide-in" ng-if="emailForm.address.$dirty && emailForm.address.$invalid">
     <div class="col-sm-9 col-sm-offset-3 error-message">
       <span>Please enter a valid email address</span>
     </div>
@@ -19,16 +20,17 @@
   <div class="form-group row">
     <div class="col-sm-3 sm-label-right">CC Address</div>
     <div class="col-sm-9">
-      <input type="text"
-             name="cc"
-             class="form-control input-sm "
-             ng-model="vm.notification.cc"
-             placeholder="enter an email address"
-             ng-required="!vm.notification.address.length">
+      <input
+        type="text"
+        name="cc"
+        class="form-control input-sm "
+        ng-model="vm.notification.cc"
+        placeholder="enter an email address"
+        ng-required="!vm.notification.address.length"
+      />
     </div>
   </div>
-  <div class="form-group row slide-in"
-       ng-if="emailForm.cc.$dirty && emailForm.cc.$invalid">
+  <div class="form-group row slide-in" ng-if="emailForm.cc.$dirty && emailForm.cc.$invalid">
     <div class="col-sm-9 col-sm-offset-3 error-message">
       <span>Please enter a valid email address</span>
     </div>

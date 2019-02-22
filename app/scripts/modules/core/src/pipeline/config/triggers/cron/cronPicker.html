@@ -1,10 +1,12 @@
 <div class="cron-gen-main form-inline no-spel" ng-init="validation={messages: {}}">
   <div class="row">
     <div class="col-md-12">
-      <select class="form-control input-sm"
-              ng-model="$ctrl.activeTab"
-              ng-change="$ctrl.regenerateCron()"
-              ng-options="tab for tab in ['minutes', 'hourly', 'daily', 'weekly', 'monthly', 'advanced']"></select>
+      <select
+        class="form-control input-sm"
+        ng-model="$ctrl.activeTab"
+        ng-change="$ctrl.regenerateCron()"
+        ng-options="tab for tab in ['minutes', 'hourly', 'daily', 'weekly', 'monthly', 'advanced']"
+      ></select>
     </div>
   </div>
   <div class="cron-gen-container">
@@ -12,8 +14,13 @@
       <div class="row" ng-init="$ctrl.regenerateCron()">
         <div class="col-md-12">
           Every
-          <select class="form-control input-sm" ng-change="$ctrl.regenerateCron()" ng-model="$ctrl.state.minutes.minutes"
-            ng-required="$ctrl.activeTab === 'minutes'" ng-options="i for i in [1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30]">
+          <select
+            class="form-control input-sm"
+            ng-change="$ctrl.regenerateCron()"
+            ng-model="$ctrl.state.minutes.minutes"
+            ng-required="$ctrl.activeTab === 'minutes'"
+            ng-options="i for i in [1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30]"
+          >
           </select>
           minute<span ng-if="$ctrl.state.minutes.minutes !== '1'">s</span>
         </div>
@@ -23,78 +30,92 @@
       <div class="row">
         <div class="col-md-12">
           Every
-          <input class="form-control input-sm"
-                 type="number"
-                 min="1"
-                 max="23"
-                 ng-change="$ctrl.regenerateCron()"
-                 ng-model="$ctrl.state.hourly.hours"
-                 ng-required="$ctrl.activeTab === 'hourly'">
+          <input
+            class="form-control input-sm"
+            type="number"
+            min="1"
+            max="23"
+            ng-change="$ctrl.regenerateCron()"
+            ng-model="$ctrl.state.hourly.hours"
+            ng-required="$ctrl.activeTab === 'hourly'"
+          />
           hour<span ng-if="$ctrl.state.hourly.hours > 1">s</span>
           on minute
-          <input class="form-control input-sm"
-                 type="number"
-                 min="0"
-                 max="59"
-                 ng-change="$ctrl.regenerateCron()"
-                 ng-model="$ctrl.state.hourly.minutes"
-                 ng-required="$ctrl.activeTab === 'hourly'">
+          <input
+            class="form-control input-sm"
+            type="number"
+            min="0"
+            max="59"
+            ng-change="$ctrl.regenerateCron()"
+            ng-model="$ctrl.state.hourly.minutes"
+            ng-required="$ctrl.activeTab === 'hourly'"
+          />
         </div>
       </div>
     </div>
     <div ng-if="$ctrl.activeTab === 'daily'">
       <div class="row">
         <div class="col-md-12">
-          <input type="radio"
-                 value="everyDays"
-                 name="daily-radio-{{$ctrl.name}}"
-                 ng-change="$ctrl.regenerateCron()"
-                 ng-model="$ctrl.state.daily.subTab"
-                 checked="checked">
+          <input
+            type="radio"
+            value="everyDays"
+            name="daily-radio-{{$ctrl.name}}"
+            ng-change="$ctrl.regenerateCron()"
+            ng-model="$ctrl.state.daily.subTab"
+            checked="checked"
+          />
           Every
-          <input class="form-control input-sm"
-                 type="number"
-                 min="1"
-                 max="31"
-                 ng-disabled="$ctrl.state.daily.subTab !== 'everyDays'"
-                 ng-change="$ctrl.regenerateCron()"
-                 ng-model="$ctrl.state.daily.everyDays.days"
-                 ng-required="$ctrl.activeTab === 'daily' && $ctrl.state.daily.subTab === 'everyDays'">
+          <input
+            class="form-control input-sm"
+            type="number"
+            min="1"
+            max="31"
+            ng-disabled="$ctrl.state.daily.subTab !== 'everyDays'"
+            ng-change="$ctrl.regenerateCron()"
+            ng-model="$ctrl.state.daily.everyDays.days"
+            ng-required="$ctrl.activeTab === 'daily' && $ctrl.state.daily.subTab === 'everyDays'"
+          />
           day<span ng-if="$ctrl.state.daily.everyDays.days > 1">s</span>
         </div>
       </div>
       <div class="row">
         <div class="col-md-12">
-          <input type="radio"
-                 value="everyWeekDay"
-                 ng-change="$ctrl.regenerateCron()"
-                 ng-model="$ctrl.state.daily.subTab"
-                 name="daily-radio-{{$ctrl.name}}">
+          <input
+            type="radio"
+            value="everyWeekDay"
+            ng-change="$ctrl.regenerateCron()"
+            ng-model="$ctrl.state.daily.subTab"
+            name="daily-radio-{{$ctrl.name}}"
+          />
           Every week day
         </div>
       </div>
       <div class="row">
         <div class="col-md-12">
           Start time
-          <cron-gen-time-select class="visible-xs-inline-block visible-sm-inline-block visible-md-inline-block visible-lg-inline-block"
-                                ng-if="$ctrl.state.daily.subTab === 'everyDays'"
-                                is-required="state.activeTab === 'daily'"
-                                select-class="$ctrl.parsedOptions.formSelectClass"
-                                is-disabled="$ctrl.activeTab !== 'daily'"
-                                on-change="$ctrl.regenerateCron()"
-                                model="$ctrl.state.daily.everyDays"
-                                use-24-hour-time="$ctrl.parsedOptions.use24HourTime"
-                                hide-seconds="$ctrl.parsedOptions.hideSeconds">
+          <cron-gen-time-select
+            class="visible-xs-inline-block visible-sm-inline-block visible-md-inline-block visible-lg-inline-block"
+            ng-if="$ctrl.state.daily.subTab === 'everyDays'"
+            is-required="state.activeTab === 'daily'"
+            select-class="$ctrl.parsedOptions.formSelectClass"
+            is-disabled="$ctrl.activeTab !== 'daily'"
+            on-change="$ctrl.regenerateCron()"
+            model="$ctrl.state.daily.everyDays"
+            use-24-hour-time="$ctrl.parsedOptions.use24HourTime"
+            hide-seconds="$ctrl.parsedOptions.hideSeconds"
+          >
           </cron-gen-time-select>
-          <cron-gen-time-select class="visible-xs-inline-block visible-sm-inline-block visible-md-inline-block visible-lg-inline-block"
-                                ng-if="$ctrl.state.daily.subTab === 'everyWeekDay'"
-                                is-required="state.activeTab === 'daily'"
-                                select-class="$ctrl.parsedOptions.formSelectClass"
-                                is-disabled="$ctrl.activeTab !== 'daily'"
-                                on-change="$ctrl.regenerateCron()"
-                                model="$ctrl.state.daily.everyWeekDay"
-                                use-24-hour-time="$ctrl.parsedOptions.use24HourTime"
-                                hide-seconds="$ctrl.parsedOptions.hideSeconds">
+          <cron-gen-time-select
+            class="visible-xs-inline-block visible-sm-inline-block visible-md-inline-block visible-lg-inline-block"
+            ng-if="$ctrl.state.daily.subTab === 'everyWeekDay'"
+            is-required="state.activeTab === 'daily'"
+            select-class="$ctrl.parsedOptions.formSelectClass"
+            is-disabled="$ctrl.activeTab !== 'daily'"
+            on-change="$ctrl.regenerateCron()"
+            model="$ctrl.state.daily.everyWeekDay"
+            use-24-hour-time="$ctrl.parsedOptions.use24HourTime"
+            hide-seconds="$ctrl.parsedOptions.hideSeconds"
+          >
           </cron-gen-time-select>
           <system-timezone></system-timezone>
         </div>
@@ -104,26 +125,31 @@
       <div class="row">
         <div class="col-md-12">
           <div class="btn-group">
-            <label ng-repeat="day in [{k: 'SUN', l: 'Sun'}, {k: 'MON', l: 'Mon'}, {k: 'TUE', l: 'Tue'}, {k: 'WED', l: 'Wed'}, {k: 'THU', l: 'Thu'}, {k: 'FRI', l: 'Fri'}, {k: 'SAT', l: 'Sat'}]"
-                   class="btn btn-default"
-                   uib-btn-checkbox
-                   ng-class="{active: $ctrl.state.weekly[day.k]}"
-                   ng-click="$ctrl.regenerateCron()"
-                   ng-model="$ctrl.state.weekly[day.k]">{{day.l}}</label>
+            <label
+              ng-repeat="day in [{k: 'SUN', l: 'Sun'}, {k: 'MON', l: 'Mon'}, {k: 'TUE', l: 'Tue'}, {k: 'WED', l: 'Wed'}, {k: 'THU', l: 'Thu'}, {k: 'FRI', l: 'Fri'}, {k: 'SAT', l: 'Sat'}]"
+              class="btn btn-default"
+              uib-btn-checkbox
+              ng-class="{active: $ctrl.state.weekly[day.k]}"
+              ng-click="$ctrl.regenerateCron()"
+              ng-model="$ctrl.state.weekly[day.k]"
+              >{{day.l}}</label
+            >
           </div>
         </div>
       </div>
       <div class="row">
         <div class="col-md-12">
           Start time
-          <cron-gen-time-select class="visible-xs-inline-block visible-sm-inline-block visible-md-inline-block visible-lg-inline-block"
-                                is-required="state.activeTab === 'weekly'"
-                                select-class="$ctrl.parsedOptions.formSelectClass"
-                                is-disabled="$ctrl.activeTab !== 'weekly'"
-                                on-change="$ctrl.regenerateCron();"
-                                model="$ctrl.state.weekly"
-                                use-24-hour-time="$ctrl.parsedOptions.use24HourTime"
-                                hide-seconds="$ctrl.parsedOptions.hideSeconds">
+          <cron-gen-time-select
+            class="visible-xs-inline-block visible-sm-inline-block visible-md-inline-block visible-lg-inline-block"
+            is-required="state.activeTab === 'weekly'"
+            select-class="$ctrl.parsedOptions.formSelectClass"
+            is-disabled="$ctrl.activeTab !== 'weekly'"
+            on-change="$ctrl.regenerateCron();"
+            model="$ctrl.state.weekly"
+            use-24-hour-time="$ctrl.parsedOptions.use24HourTime"
+            hide-seconds="$ctrl.parsedOptions.hideSeconds"
+          >
           </cron-gen-time-select>
           <system-timezone></system-timezone>
         </div>
@@ -132,88 +158,106 @@
     <div ng-if="$ctrl.activeTab === 'monthly'">
       <div class="row">
         <div class="col-md-12">
-          <input type="radio"
-                 value="specificDay"
-                 ng-change="$ctrl.regenerateCron()"
-                 ng-model="$ctrl.state.monthly.subTab"
-                 name="monthly-radio-{{$ctrl.name}}"
-                 checked="checked">
+          <input
+            type="radio"
+            value="specificDay"
+            ng-change="$ctrl.regenerateCron()"
+            ng-model="$ctrl.state.monthly.subTab"
+            name="monthly-radio-{{$ctrl.name}}"
+            checked="checked"
+          />
           On the
-          <select class="month-days"
-                  ng-disabled="$ctrl.state.monthly.subTab !== 'specificDay'"
-                  ng-change="$ctrl.regenerateCron()"
-                  ng-model="$ctrl.state.monthly.specificDay.day"
-                  ng-required="$ctrl.activeTab === 'monthly' && $ctrl.state.monthly.subTab === 'specificDay'"
-                  ng-options="monthDaysWithLast as $ctrl.monthDayDisplay(monthDaysWithLast) for monthDaysWithLast in $ctrl.selectOptions.monthDaysWithLasts"
-                  ng-class="$ctrl.parsedOptions.formSelectClass">
+          <select
+            class="month-days"
+            ng-disabled="$ctrl.state.monthly.subTab !== 'specificDay'"
+            ng-change="$ctrl.regenerateCron()"
+            ng-model="$ctrl.state.monthly.specificDay.day"
+            ng-required="$ctrl.activeTab === 'monthly' && $ctrl.state.monthly.subTab === 'specificDay'"
+            ng-options="monthDaysWithLast as $ctrl.monthDayDisplay(monthDaysWithLast) for monthDaysWithLast in $ctrl.selectOptions.monthDaysWithLasts"
+            ng-class="$ctrl.parsedOptions.formSelectClass"
+          >
           </select>
           of every
-          <input class="form-control input-sm"
-                 type="number"
-                 min="1"
-                 max="11"
-                 ng-change="$ctrl.regenerateCron()"
-                 ng-model="$ctrl.state.monthly.specificDay.months"
-                 ng-required="$ctrl.activeTab === 'monthly' && $ctrl.state.monthly.subTab === 'specificDay'"
-                 ng-disabled="$ctrl.state.monthly.subTab !== 'specificDay'">
+          <input
+            class="form-control input-sm"
+            type="number"
+            min="1"
+            max="11"
+            ng-change="$ctrl.regenerateCron()"
+            ng-model="$ctrl.state.monthly.specificDay.months"
+            ng-required="$ctrl.activeTab === 'monthly' && $ctrl.state.monthly.subTab === 'specificDay'"
+            ng-disabled="$ctrl.state.monthly.subTab !== 'specificDay'"
+          />
           month<span ng-if="$ctrl.state.monthly.specificDay.months > 1">s</span>
         </div>
       </div>
       <div class="row">
         <div class="col-md-12">
-          <input type="radio"
-                 value="specificWeekDay"
-                 ng-change="$ctrl.regenerateCron()"
-                 ng-model="$ctrl.state.monthly.subTab"
-                 name="monthly-radio-{{$ctrl.name}}">
-          <select class="form-control input-sm"
-                  ng-change="$ctrl.regenerateCron()"
-                  ng-model="$ctrl.state.monthly.specificWeekDay.monthWeek"
-                  ng-required="$ctrl.activeTab === 'monthly' && $ctrl.state.monthly.subTab === 'specificWeekDay'"
-                  ng-options="monthWeek as $ctrl.monthWeekDisplay(monthWeek) for monthWeek in $ctrl.selectOptions.monthWeeks"
-                  ng-disabled="$ctrl.state.monthly.subTab !== 'specificWeekDay'">
+          <input
+            type="radio"
+            value="specificWeekDay"
+            ng-change="$ctrl.regenerateCron()"
+            ng-model="$ctrl.state.monthly.subTab"
+            name="monthly-radio-{{$ctrl.name}}"
+          />
+          <select
+            class="form-control input-sm"
+            ng-change="$ctrl.regenerateCron()"
+            ng-model="$ctrl.state.monthly.specificWeekDay.monthWeek"
+            ng-required="$ctrl.activeTab === 'monthly' && $ctrl.state.monthly.subTab === 'specificWeekDay'"
+            ng-options="monthWeek as $ctrl.monthWeekDisplay(monthWeek) for monthWeek in $ctrl.selectOptions.monthWeeks"
+            ng-disabled="$ctrl.state.monthly.subTab !== 'specificWeekDay'"
+          >
           </select>
-          <select class="form-control input-sm"
-                  ng-change="$ctrl.regenerateCron()"
-                  ng-model="$ctrl.state.monthly.specificWeekDay.day"
-                  ng-required="$ctrl.activeTab === 'monthly' && $ctrl.state.monthly.subTab === 'specificWeekDay'"
-                  ng-options="day as $ctrl.dayDisplay(day) for day in $ctrl.selectOptions.days"
-                  ng-disabled="$ctrl.state.monthly.subTab !== 'specificWeekDay'">
+          <select
+            class="form-control input-sm"
+            ng-change="$ctrl.regenerateCron()"
+            ng-model="$ctrl.state.monthly.specificWeekDay.day"
+            ng-required="$ctrl.activeTab === 'monthly' && $ctrl.state.monthly.subTab === 'specificWeekDay'"
+            ng-options="day as $ctrl.dayDisplay(day) for day in $ctrl.selectOptions.days"
+            ng-disabled="$ctrl.state.monthly.subTab !== 'specificWeekDay'"
+          >
           </select>
           of every
-          <input class="form-control input-sm"
-                 type="number"
-                 min="1"
-                 max="11"
-                 ng-change="$ctrl.regenerateCron()"
-                 ng-model="$ctrl.state.monthly.specificWeekDay.months"
-                 ng-required="$ctrl.activeTab === 'monthly' && $ctrl.state.monthly.subTab === 'specificWeekDay'"
-                 ng-disabled="$ctrl.state.monthly.subTab !== 'specificWeekDay'">
+          <input
+            class="form-control input-sm"
+            type="number"
+            min="1"
+            max="11"
+            ng-change="$ctrl.regenerateCron()"
+            ng-model="$ctrl.state.monthly.specificWeekDay.months"
+            ng-required="$ctrl.activeTab === 'monthly' && $ctrl.state.monthly.subTab === 'specificWeekDay'"
+            ng-disabled="$ctrl.state.monthly.subTab !== 'specificWeekDay'"
+          />
           month<span ng-if="$ctrl.state.monthly.specificWeekDay.months > 1">s</span>
         </div>
       </div>
       <div class="row">
         <div class="col-md-12">
           Start time
-          <cron-gen-time-select class="visible-xs-inline-block visible-sm-inline-block visible-md-inline-block visible-lg-inline-block"
-                                ng-if="$ctrl.state.monthly.subTab === 'specificDay'"
-                                is-required="state.activeTab === 'monthly'"
-                                select-class="$ctrl.parsedOptions.formSelectClass"
-                                is-disabled="$ctrl.activeTab !== 'monthly'"
-                                on-change="$ctrl.regenerateCron();"
-                                model="$ctrl.state.monthly.specificDay"
-                                use-24-hour-time="$ctrl.parsedOptions.use24HourTime"
-                                hide-seconds="$ctrl.parsedOptions.hideSeconds">
+          <cron-gen-time-select
+            class="visible-xs-inline-block visible-sm-inline-block visible-md-inline-block visible-lg-inline-block"
+            ng-if="$ctrl.state.monthly.subTab === 'specificDay'"
+            is-required="state.activeTab === 'monthly'"
+            select-class="$ctrl.parsedOptions.formSelectClass"
+            is-disabled="$ctrl.activeTab !== 'monthly'"
+            on-change="$ctrl.regenerateCron();"
+            model="$ctrl.state.monthly.specificDay"
+            use-24-hour-time="$ctrl.parsedOptions.use24HourTime"
+            hide-seconds="$ctrl.parsedOptions.hideSeconds"
+          >
           </cron-gen-time-select>
-          <cron-gen-time-select class="visible-xs-inline-block visible-sm-inline-block visible-md-inline-block visible-lg-inline-block"
-                                ng-if="$ctrl.state.monthly.subTab === 'specificWeekDay'"
-                                is-required="state.activeTab === 'monthly'"
-                                select-class="$ctrl.parsedOptions.formSelectClass"
-                                is-disabled="$ctrl.activeTab !== 'monthly'"
-                                on-change="$ctrl.regenerateCron();"
-                                model="$ctrl.state.monthly.specificWeekDay"
-                                use-24-hour-time="$ctrl.parsedOptions.use24HourTime"
-                                hide-seconds="$ctrl.parsedOptions.hideSeconds">
+          <cron-gen-time-select
+            class="visible-xs-inline-block visible-sm-inline-block visible-md-inline-block visible-lg-inline-block"
+            ng-if="$ctrl.state.monthly.subTab === 'specificWeekDay'"
+            is-required="state.activeTab === 'monthly'"
+            select-class="$ctrl.parsedOptions.formSelectClass"
+            is-disabled="$ctrl.activeTab !== 'monthly'"
+            on-change="$ctrl.regenerateCron();"
+            model="$ctrl.state.monthly.specificWeekDay"
+            use-24-hour-time="$ctrl.parsedOptions.use24HourTime"
+            hide-seconds="$ctrl.parsedOptions.hideSeconds"
+          >
           </cron-gen-time-select>
           <system-timezone></system-timezone>
         </div>
@@ -224,19 +268,26 @@
         <div class="col-md-12">
           <strong>Expression</strong>
           <help-field key="pipeline.config.cron.expression"></help-field>
-          <input type="text"
-                 class="form-control input-sm"
-                 cron-validator
-                 cron-validation-messages="validation.messages"
-                 ng-change="$ctrl.regenerateCron()"
-                 ng-model="$ctrl.state.advanced.expression">
+          <input
+            type="text"
+            class="form-control input-sm"
+            cron-validator
+            cron-validation-messages="validation.messages"
+            ng-change="$ctrl.regenerateCron()"
+            ng-model="$ctrl.state.advanced.expression"
+          />
         </div>
       </div>
       <div class="row">
         <div class="col-md-12">
-          <p>More details about how to create these expressions can be found
-            <a href="http://www.quartz-scheduler.org/documentation/quartz-2.x/tutorials/crontrigger.html"
-               target="_blank">here</a>.</p>
+          <p>
+            More details about how to create these expressions can be found
+            <a
+              href="http://www.quartz-scheduler.org/documentation/quartz-2.x/tutorials/crontrigger.html"
+              target="_blank"
+              >here</a
+            >.
+          </p>
         </div>
       </div>
       <div class="row" ng-if="validation.messages.description && !validation.messages.error">

@@ -1,23 +1,18 @@
-<div class="details-panel"
-     ng-class="{ disabled: ctrl.serverGroup.isDisabled }">
-
+<div class="details-panel" ng-class="{ disabled: ctrl.serverGroup.isDisabled }">
   <div class="header" ng-if="ctrl.state.loading">
-      <div class="close-button">
-          <a class="btn btn-link"
-             ui-sref="^">
-              <span class="glyphicon glyphicon-remove"></span>
-          </a>
-      </div>
-      <h4 class="text-center">
-          <span us-spinner="{radius:20, width:6, length: 12}"></span>
-      </h4>
+    <div class="close-button">
+      <a class="btn btn-link" ui-sref="^">
+        <span class="glyphicon glyphicon-remove"></span>
+      </a>
+    </div>
+    <h4 class="text-center">
+      <span us-spinner="{radius:20, width:6, length: 12}"></span>
+    </h4>
   </div>
-
 
   <div class="header" ng-if="!ctrl.state.loading">
     <div class="close-button">
-      <a class="btn btn-link"
-          ui-sref="^">
+      <a class="btn btn-link" ui-sref="^">
         <span class="glyphicon glyphicon-remove"></span>
       </a>
     </div>
@@ -26,7 +21,6 @@
       <h3 class="horizontal middle space-between flex-1" select-on-dbl-click>
         {{ctrl.serverGroup.name}}
         <render-if-feature feature="entityTags">
-
           <entity-notifications
             entity="ctrl.serverGroup"
             application="ctrl.application"
@@ -36,7 +30,6 @@
             page-location="details"
             on-update="ctrl.application.serverGroups.refresh()"
           ></entity-notifications>
-
         </render-if-feature>
       </h3>
     </div>
@@ -51,10 +44,16 @@
             <li role="presentation" class="divider" ng-if=" !ctrl.serverGroup.isDisabled"></li>
             <li><a href ng-click="ctrl.resizeServerGroup()">Resize</a></li>
             <li><a href ng-if=" !ctrl.serverGroup.isDisabled" ng-click="ctrl.disableServerGroup()">Disable</a></li>
-            <li><a href ng-if="ctrl.serverGroup.isDisabled && !ctrl.isEnableLocked()" ng-click="ctrl.enableServerGroup()">Enable</a></li>
+            <li>
+              <a href ng-if="ctrl.serverGroup.isDisabled && !ctrl.isEnableLocked()" ng-click="ctrl.enableServerGroup()"
+                >Enable</a
+              >
+            </li>
             <li class="disabled" ng-if="ctrl.isEnableLocked()">
-              <a uib-tooltip="Cannot enable this server group until resize operation completes"
-                 tooltip-placement="left">
+              <a
+                uib-tooltip="Cannot enable this server group until resize operation completes"
+                tooltip-placement="left"
+              >
                 <span class="small glyphicon glyphicon-lock"></span>
                 Enable
               </a>
@@ -62,11 +61,13 @@
             <li><a href ng-click="ctrl.destroyServerGroup()">Destroy</a></li>
             <li><migrator application="ctrl.application" server-group="ctrl.serverGroup"></migrator></li>
             <render-if-feature feature="entityTags">
-              <add-entity-tag-links component="ctrl.serverGroup"
-                                    application="ctrl.application"
-                                    entity-type="serverGroup"
-                                    owner-options="ctrl.entityTagTargets"
-                                    on-update="ctrl.application.serverGroups.refresh()"></add-entity-tag-links>
+              <add-entity-tag-links
+                component="ctrl.serverGroup"
+                application="ctrl.application"
+                entity-type="serverGroup"
+                owner-options="ctrl.entityTagTargets"
+                on-update="ctrl.application.serverGroups.refresh()"
+              ></add-entity-tag-links>
             </render-if-feature>
           </ul>
         </div>
@@ -75,7 +76,9 @@
             Insight <span class="caret"></span>
           </button>
           <ul class="dropdown-menu" uib-dropdown-menu role="menu">
-            <li ng-repeat="action in ctrl.serverGroup.insightActions"><a target=_blank href="{{action.url}}">{{action.label}}</a></li>
+            <li ng-repeat="action in ctrl.serverGroup.insightActions">
+              <a target="_blank" href="{{action.url}}">{{action.label}}</a>
+            </li>
           </ul>
         </div>
       </div>
@@ -85,17 +88,22 @@
     Disabled {{ctrl.disabledDate | timestamp}}
   </div>
   <div class="content" ng-if="!ctrl.state.loading">
-    <server-group-running-tasks-details server-group="ctrl.serverGroup" application="ctrl.application"></server-group-running-tasks-details>
+    <server-group-running-tasks-details
+      server-group="ctrl.serverGroup"
+      application="ctrl.application"
+    ></server-group-running-tasks-details>
     <collapsible-section heading="General" expanded="true">
       <dl class="dl-horizontal dl-flex">
         <dt>Created</dt>
         <dd>{{ctrl.serverGroup.createdTime | timestamp}}</dd>
         <render-if-feature feature="entityTags">
           <entity-source metadata="ctrl.serverGroup.entityTags.creationMetadata"></entity-source>
-          <view-changes-link change-config="ctrl.changeConfig"
-                             jar-diffs="ctrl.jarDiffs"
-                             link-text="view changes"
-                             name-item="ctrl.serverGroup"></view-changes-link>
+          <view-changes-link
+            change-config="ctrl.changeConfig"
+            jar-diffs="ctrl.jarDiffs"
+            link-text="view changes"
+            name-item="ctrl.serverGroup"
+          ></view-changes-link>
         </render-if-feature>
         <dt>In</dt>
         <dd>
@@ -127,22 +135,25 @@
         <dd>{{ctrl.serverGroup.taskDefinition.cpuUnits}}</dd>
 
         <dt ng-if="ctrl.serverGroup.taskDefinition.memoryReservation">Container Reserved Memory</dt>
-        <dd ng-if="ctrl.serverGroup.taskDefinition.memoryReservation">{{ctrl.serverGroup.taskDefinition.memoryReservation}} mb</dd>
+        <dd ng-if="ctrl.serverGroup.taskDefinition.memoryReservation">
+          {{ctrl.serverGroup.taskDefinition.memoryReservation}} mb
+        </dd>
 
         <dt ng-if="ctrl.serverGroup.taskDefinition.memoryLimit">Container Memory Limit</dt>
         <dd ng-if="ctrl.serverGroup.taskDefinition.memoryLimit">{{ctrl.serverGroup.taskDefinition.memoryLimit}} mb</dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Environment Variables" expanded="false">
-      <div ng-if="!ctrl.serverGroup.taskDefinition.environmentVariables.length">This server group has no environment variables</div>
+      <div ng-if="!ctrl.serverGroup.taskDefinition.environmentVariables.length">
+        This server group has no environment variables
+      </div>
       <dl ng-if="ctrl.serverGroup.taskDefinition.environmentVariables.length">
         <dt ng-repeat-start="variable in ctrl.serverGroup.taskDefinition.environmentVariables">{{variable.name}}</dt>
         <dd ng-repeat-end>{{variable.value}}</dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Health" expanded="true" ng-if="ctrl.serverGroup.instanceCounts.total > 0">
-      <dl class="dl-horizontal dl-flex"
-          ng-if="ctrl.serverGroup">
+      <dl class="dl-horizontal dl-flex" ng-if="ctrl.serverGroup">
         <dt>Instances</dt>
         <dd>
           <health-counts container="ctrl.serverGroup.instanceCounts" class="pull-left"></health-counts>
@@ -173,7 +184,12 @@
     </collapsible-section>
     <collapsible-section heading="Scaling Policies" expanded="false">
       <dl class="horizontal-when-filters-collapsed">
-        <dd ng-if="ctrl.serverGroup.metricAlarms.length > 0" ng-repeat="metricAlarmName in ctrl.serverGroup.metricAlarms">{{metricAlarmName}}</dd>
+        <dd
+          ng-if="ctrl.serverGroup.metricAlarms.length > 0"
+          ng-repeat="metricAlarmName in ctrl.serverGroup.metricAlarms"
+        >
+          {{metricAlarmName}}
+        </dd>
         <dd ng-if="ctrl.serverGroup.metricAlarms.length <= 0"><i>There are no scaling policies assigned.</i></dd>
       </dl>
     </collapsible-section>
@@ -182,16 +198,20 @@
 
       <dl class="horizontal-when-filters-collapsed">
         <dt>Average CPU Utilization last 15 minutes</dt>
-        <dd>90%</dd> <!-- TODO - Make the values reflect the current state of the server group -->
+        <dd>90%</dd>
+        <!-- TODO - Make the values reflect the current state of the server group -->
 
         <dt>Average CPU Utilization last 24 hours</dt>
-        <dd>30%</dd> <!-- TODO - Make the values reflect the current state of the server group -->
+        <dd>30%</dd>
+        <!-- TODO - Make the values reflect the current state of the server group -->
 
         <dt>Average memory Utilization last 15 minutes</dt>
-        <dd>40%</dd> <!-- TODO - Make the values reflect the current state of the server group -->
+        <dd>40%</dd>
+        <!-- TODO - Make the values reflect the current state of the server group -->
 
         <dt>Average memory Utilization last 24 hours</dt>
-        <dd>45%</dd> <!-- TODO - Make the values reflect the current state of the server group -->
+        <dd>45%</dd>
+        <!-- TODO - Make the values reflect the current state of the server group -->
       </dl>
     </collapsible-section>
     <collapsible-section heading="Build data" ng-if="ctrl.serverGroup.buildInfo && ctrl.serverGroup.buildInfo.jenkins">
@@ -207,7 +227,7 @@
         <dt>Version</dt>
         <dd>{{ctrl.serverGroup.buildInfo.version}}</dd>
         <dt>Build Link</dt>
-        <dd><a target=_blank href="{{ctrl.buildJenkinsLink()}}">{{ctrl.buildJenkinsLink()}}</a></dd>
+        <dd><a target="_blank" href="{{ctrl.buildJenkinsLink()}}">{{ctrl.buildJenkinsLink()}}</a></dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Server Group Logs">

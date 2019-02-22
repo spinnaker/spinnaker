@@ -10,20 +10,24 @@
           <b>{{pipeline.strategy === true ? 'Strategy' : 'Pipeline'}} Name</b>
         </div>
         <div class="col-md-7">
-          <input type="text" class="form-control input-sm"
-                 ng-model="command.newName"
-                 name="name"
-                 required
-                 ng-pattern="/^[^\\\^/^?^%^#]*$/"
-                 validate-unique="existingNames"/>
+          <input
+            type="text"
+            class="form-control input-sm"
+            ng-model="command.newName"
+            name="name"
+            required
+            ng-pattern="/^[^\\\^/^?^%^#]*$/"
+            validate-unique="existingNames"
+          />
         </div>
       </div>
       <div class="form-group row slide-in" ng-if="form.name.$error.pattern">
         <div class="col-sm-9 col-sm-offset-3 error-message">
           <div>
-            {{pipeline.strategy === true ? 'Strategy' : 'Pipeline'}} name cannot contain any of the following characters:
+            {{pipeline.strategy === true ? 'Strategy' : 'Pipeline'}} name cannot contain any of the following
+            characters:
           </div>
-          <code>/  \  ?  %  #</code>
+          <code>/ \ ? % #</code>
         </div>
       </div>
       <div class="form-group row slide-in" ng-if="form.name.$error.validateUnique">
@@ -35,9 +39,11 @@
   </div>
   <div class="modal-footer">
     <button class="btn btn-default" ng-click="renamePipelineModalCtrl.cancel()">Cancel</button>
-    <button class="btn btn-primary"
-            ng-disabled="form.$invalid || pipeline.name === command.newName || viewState.saving"
-            ng-click="renamePipelineModalCtrl.renamePipeline()">
+    <button
+      class="btn btn-primary"
+      ng-disabled="form.$invalid || pipeline.name === command.newName || viewState.saving"
+      ng-click="renamePipelineModalCtrl.renamePipeline()"
+    >
       <span ng-if="!viewState.saving" class="far fa-check-circle"></span>
       <span ng-if="viewState.saving">
         <span class="fa fa-cog fa-spin"></span>

@@ -16,9 +16,11 @@
   </v2-wizard-page>
 </v2-modal-wizard>
 <div class="modal-footer">
-  <button ng-disabled="taskMonitor.submitting" class="btn btn-default"
-          ng-click="ctrl.cancel()">Cancel
-  </button>
-  <submit-button is-disabled="form.$invalid || taskMonitor.submitting"
-                 submitting="taskMonitor.submitting" on-click="ctrl.submit()" is-new="isNew"></submit-button>
+  <button ng-disabled="taskMonitor.submitting" class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
+  <submit-button
+    is-disabled="form.$invalid || taskMonitor.submitting"
+    submitting="taskMonitor.submitting"
+    on-click="ctrl.submit()"
+    is-new="isNew"
+  ></submit-button>
 </div>

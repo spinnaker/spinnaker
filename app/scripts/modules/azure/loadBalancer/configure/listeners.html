@@ -14,29 +14,36 @@
         <tbody>
           <tr ng-repeat="rule in loadBalancer.loadBalancingRules">
             <td>
-              <select class="form-control input-sm" ng-model="rule.protocol" ng-options="protocol for protocol in ['HTTP']"></select>
+              <select
+                class="form-control input-sm"
+                ng-model="rule.protocol"
+                ng-options="protocol for protocol in ['HTTP']"
+              ></select>
             </td>
             <td>
-              <input class="form-control input-sm" type="number" min="0" ng-model="rule.externalPort" required/>
+              <input class="form-control input-sm" type="number" min="0" ng-model="rule.externalPort" required />
             </td>
             <td class="small" style="padding-top: 10px;">&rarr;</td>
             <td>
-              <input class="form-control input-sm" type="number" min="0" ng-model="rule.backendPort" required/>
+              <input class="form-control input-sm" type="number" min="0" ng-model="rule.backendPort" required />
             </td>
-            <td><a href class="sm-label" ng-click="ctrl.removeListener($index)"><span
-              class="glyphicon glyphicon-trash"></span></a></td>
+            <td>
+              <a href class="sm-label" ng-click="ctrl.removeListener($index)"
+                ><span class="glyphicon glyphicon-trash"></span
+              ></a>
+            </td>
           </tr>
         </tbody>
         <tfoot>
           <tr>
             <td colspan="5">
-              <button class="add-new col-md-12" ng-click="ctrl.addListener()"><span class="glyphicon glyphicon-plus-sign"></span> Add new port mapping
+              <button class="add-new col-md-12" ng-click="ctrl.addListener()">
+                <span class="glyphicon glyphicon-plus-sign"></span> Add new port mapping
               </button>
             </td>
           </tr>
         </tfoot>
       </table>
-
     </div>
   </div>
 </div>

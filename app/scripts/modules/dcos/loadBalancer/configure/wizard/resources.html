@@ -1,4 +1,8 @@
-<form ng-controller="dcosLoadBalancerResourcesController as resourcesController" class="container-fluid form-horizontal" name="resources">
+<form
+  ng-controller="dcosLoadBalancerResourcesController as resourcesController"
+  class="container-fluid form-horizontal"
+  name="resources"
+>
   <div class="col-md-12">
     <div class="form-group">
       <div class="col-md-3 sm-label-right">
@@ -6,8 +10,13 @@
         <help-field key="dcos.loadBalancer.cpus"></help-field>
       </div>
       <div class="col-md-2">
-        <input type="number" class="form-control input-sm" name="cpus" ng-model="loadBalancer.cpus"
-                min="{{resourcesController.minCpus}}" />
+        <input
+          type="number"
+          class="form-control input-sm"
+          name="cpus"
+          ng-model="loadBalancer.cpus"
+          min="{{resourcesController.minCpus}}"
+        />
       </div>
     </div>
 
@@ -17,8 +26,7 @@
         <help-field key="dcos.loadBalancer.mem"></help-field>
       </div>
       <div class="col-md-2">
-        <input type="number" class="form-control input-sm" name="mem" ng-model="loadBalancer.mem"
-                min="0" />
+        <input type="number" class="form-control input-sm" name="mem" ng-model="loadBalancer.mem" min="0" />
       </div>
     </div>
 
@@ -28,8 +36,7 @@
         <help-field key="dcos.loadBalancer.instances"></help-field>
       </div>
       <div class="col-md-2">
-        <input type="number" class="form-control input-sm" name="instances" ng-model="loadBalancer.instances"
-                min="0" />
+        <input type="number" class="form-control input-sm" name="instances" ng-model="loadBalancer.instances" min="0" />
       </div>
     </div>
 
@@ -39,10 +46,7 @@
         <help-field key="dcos.loadBalancer.acceptedResourceRoles"></help-field>
       </div>
       <div class="col-md-7">
-        <input ng-list
-                class="form-control input-sm"
-                ng-model="loadBalancer.acceptedResourceRoles"
-                name="roles"/>
+        <input ng-list class="form-control input-sm" ng-model="loadBalancer.acceptedResourceRoles" name="roles" />
       </div>
     </div>
   </div>

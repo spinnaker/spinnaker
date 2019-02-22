@@ -3,7 +3,8 @@
     application="application"
     component="stage"
     accounts="accounts"
-    show-all-regions="true">
+    show-all-regions="true"
+  >
   </account-region-cluster-selector>
   <stage-config-field label="Server Group Selection">
     <ui-select ng-model="stage.selectionStrategy" class="form-control input-sm">
@@ -16,8 +17,7 @@
   </stage-config-field>
   <stage-config-field label="Server Group Filters">
     <label class="checkbox-inline">
-      <input type="checkbox"
-             ng-model="stage.onlyEnabled"/>
+      <input type="checkbox" ng-model="stage.onlyEnabled" />
       Only consider enabled Server Groups
     </label>
   </stage-config-field>

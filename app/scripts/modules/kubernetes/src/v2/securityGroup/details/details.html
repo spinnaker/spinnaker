@@ -1,8 +1,7 @@
-  <div class="details-panel">
+<div class="details-panel">
   <div ng-if="ctrl.state.loading" class="header">
     <div class="close-button">
-      <a class="btn btn-link"
-         ui-sref="^">
+      <a class="btn btn-link" ui-sref="^">
         <span class="glyphicon glyphicon-remove"></span>
       </a>
     </div>
@@ -11,59 +10,62 @@
     </h4>
   </div>
 
-    <div class="header" ng-if="!ctrl.state.loading">
-      <div class="close-button">
-        <a class="btn btn-link"
-           ui-sref="^">
-          <span class="glyphicon glyphicon-remove"></span>
-        </a>
-      </div>
-      <div class="header-text horizontal middle">
-        <cloud-provider-logo provider="ctrl.securityGroup.cloudProvider" height="'36px'"
-                             width="'36px'"></cloud-provider-logo>
-        <h3 class="horizontal middle space-between flex-1" select-on-dbl-click>
-          {{ctrl.securityGroup.displayName}}
+  <div class="header" ng-if="!ctrl.state.loading">
+    <div class="close-button">
+      <a class="btn btn-link" ui-sref="^">
+        <span class="glyphicon glyphicon-remove"></span>
+      </a>
+    </div>
+    <div class="header-text horizontal middle">
+      <cloud-provider-logo
+        provider="ctrl.securityGroup.cloudProvider"
+        height="'36px'"
+        width="'36px'"
+      ></cloud-provider-logo>
+      <h3 class="horizontal middle space-between flex-1" select-on-dbl-click>
+        {{ctrl.securityGroup.displayName}}
 
-            <render-if-feature feature="entityTags">
-
-              <entity-notifications
-                ng-if="!state.loading"
-                entity="ctrl.securityGroup"
-                application="ctrl.app"
-                placement="bottom"
-                h-offset-percent="90%"
-                entity-type="securityGroup"
-                page-location="details"
-                on-update="ctrl.app.securityGroups.refresh()"
-              ></entity-notifications>
-
-          </render-if-feature>
-        </h3>
-      </div>
-      <div class="actions">
-        <div class="dropdown" uib-dropdown dropdown-append-to-body>
-          <button type="button" class="btn btn-sm btn-primary dropdown-toggle" uib-dropdown-toggle>
-            <firewall-label label="{{ctrl.securityGroup.kind | robotToHuman}}"></firewall-label> Actions <span class="caret"></span>
-          </button>
-          <ul class="dropdown-menu" uib-dropdown-menu role="menu">
-            <li>
-              <a href ng-click="ctrl.deleteSecurityGroup()">Delete <firewall-label label="Firewall"></firewall-label></a>
-            </li>
-            <li>
-              <a href ng-click="ctrl.editSecurityGroup()">Edit <firewall-label label="Firewall"></firewall-label></a>
-            </li>
+        <render-if-feature feature="entityTags">
+          <entity-notifications
+            ng-if="!state.loading"
+            entity="ctrl.securityGroup"
+            application="ctrl.app"
+            placement="bottom"
+            h-offset-percent="90%"
+            entity-type="securityGroup"
+            page-location="details"
+            on-update="ctrl.app.securityGroups.refresh()"
+          ></entity-notifications>
+        </render-if-feature>
+      </h3>
+    </div>
+    <div class="actions">
+      <div class="dropdown" uib-dropdown dropdown-append-to-body>
+        <button type="button" class="btn btn-sm btn-primary dropdown-toggle" uib-dropdown-toggle>
+          <firewall-label label="{{ctrl.securityGroup.kind | robotToHuman}}"></firewall-label> Actions
+          <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu" uib-dropdown-menu role="menu">
+          <li>
+            <a href ng-click="ctrl.deleteSecurityGroup()">Delete <firewall-label label="Firewall"></firewall-label></a>
+          </li>
+          <li>
+            <a href ng-click="ctrl.editSecurityGroup()">Edit <firewall-label label="Firewall"></firewall-label></a>
+          </li>
           <render-if-feature feature="entityTags">
-            <add-entity-tag-links component="ctrl.securityGroup"
-                                  application="ctrl.app"
-                                  entity-type="securityGroup"
-                                  on-update="ctrl.app.securityGroups.refresh()"></add-entity-tag-links>
+            <add-entity-tag-links
+              component="ctrl.securityGroup"
+              application="ctrl.app"
+              entity-type="securityGroup"
+              on-update="ctrl.app.securityGroups.refresh()"
+            ></add-entity-tag-links>
           </render-if-feature>
-          </ul>
-        </div>
+        </ul>
       </div>
     </div>
+  </div>
 
-    <div ng-if="!ctrl.state.loading" class="content">
+  <div ng-if="!ctrl.state.loading" class="content">
     <collapsible-section heading="Information" expanded="true">
       <dl class="dl-horizontal dl-narrow">
         <dt>Created</dt>
@@ -77,11 +79,13 @@
       </dl>
     </collapsible-section>
 
-    <kubernetes-annotation-custom-sections manifest="ctrl.securityGroup.manifest" resource="ctrl.securityGroup"></kubernetes-annotation-custom-sections>
+    <kubernetes-annotation-custom-sections
+      manifest="ctrl.securityGroup.manifest"
+      resource="ctrl.securityGroup"
+    ></kubernetes-annotation-custom-sections>
 
     <collapsible-section heading="Labels" expanded="true">
       <kubernetes-manifest-labels manifest="ctrl.securityGroup.manifest"></kubernetes-manifest-labels>
     </collapsible-section>
-
   </div>
 </div>

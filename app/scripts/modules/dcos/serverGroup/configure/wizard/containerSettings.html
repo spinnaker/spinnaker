@@ -1,28 +1,37 @@
 <ng-form name="containerSettings" novalidate>
-  <div class="container-fluid form-horizontal" ng-controller="dcosServerGroupContainerSettingsController as containerSettingsController">
-
+  <div
+    class="container-fluid form-horizontal"
+    ng-controller="dcosServerGroupContainerSettingsController as containerSettingsController"
+  >
     <div class="col-md-12" ng-if="command.viewState.dirty.imageId">
       <div class="alert alert-warning">
-        <p><i class="fa fa-exclamation-triangle"></i>
-          The following image is not registered in the above account and was removed: {{command.viewState.dirty.imageId}}
+        <p>
+          <i class="fa fa-exclamation-triangle"></i>
+          The following image is not registered in the above account and was removed:
+          {{command.viewState.dirty.imageId}}
         </p>
         <p class="text-right">
-          <a class="btn btn-sm btn-default dirty-flag-dismiss" href ng-click="command.viewState.dirty.imageId = null">Okay</a>
+          <a class="btn btn-sm btn-default dirty-flag-dismiss" href ng-click="command.viewState.dirty.imageId = null"
+            >Okay</a
+          >
         </p>
       </div>
     </div>
 
     <div class="form-group">
-      <div class="col-md-3 sm-label-right"><b>Container Image</b>
+      <div class="col-md-3 sm-label-right">
+        <b>Container Image</b>
         <help-field key="dcos.serverGroup.docker.image"></help-field>
       </div>
       <div class="col-md-9">
         <ui-select name="imageSelect" ng-model="command.docker.image" class="form-control input-sm" required>
           <ui-select-match placeholder="Please type your search...">{{$select.selected.imageId}}</ui-select-match>
-          <ui-select-choices repeat="image in command.backingData.filtered.images"
-                             group-by="containerSettingsController.groupByRegistry"
-                             refresh-delay="0"
-                             refresh="containerSettingsController.searchImages($select.search)">
+          <ui-select-choices
+            repeat="image in command.backingData.filtered.images"
+            group-by="containerSettingsController.groupByRegistry"
+            refresh-delay="0"
+            refresh="containerSettingsController.searchImages($select.search)"
+          >
             <span ng-bind-html="image.imageId | highlight: $select.search"></span>
           </ui-select-choices>
         </ui-select>
@@ -50,7 +59,10 @@
         </tr>
       </thead>
       <tbody>
-        <tr ng-repeat="parameter in command.docker.parameters" ng-show="containerSettingsController.isParametersValid(command.docker.parameters)">
+        <tr
+          ng-repeat="parameter in command.docker.parameters"
+          ng-show="containerSettingsController.isParametersValid(command.docker.parameters)"
+        >
           <td>
             <div class="form-group">
               <div class="col-md-3 sm-label-right">

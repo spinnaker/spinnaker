@@ -7,32 +7,35 @@
     </div>
     <div class="modal-body confirmation-modal">
       <div class="form-horizontal">
-        <gce-resize-capacity ng-if="!serverGroup.autoscalingPolicy"
-                             server-group="serverGroup"
-                             form-methods="formMethods"
-                             application="application"
-                             command="command"></gce-resize-capacity>
-        <gce-resize-autoscaling-policy ng-if="serverGroup.autoscalingPolicy"
-                                       server-group="serverGroup"
-                                       form-methods="formMethods"
-                                       application="application"
-                                       command="command"></gce-resize-autoscaling-policy>
+        <gce-resize-capacity
+          ng-if="!serverGroup.autoscalingPolicy"
+          server-group="serverGroup"
+          form-methods="formMethods"
+          application="application"
+          command="command"
+        ></gce-resize-capacity>
+        <gce-resize-autoscaling-policy
+          ng-if="serverGroup.autoscalingPolicy"
+          server-group="serverGroup"
+          form-methods="formMethods"
+          application="application"
+          command="command"
+        ></gce-resize-autoscaling-policy>
       </div>
       <div class="row" ng-if="command.platformHealthOnlyShowOverride">
         <div class="col-sm-10 col-sm-offset-1">
-          <platform-health-override command="command"
-                                    platform-health-type="'Google'"
-                                    show-help-details="true">
+          <platform-health-override command="command" platform-health-type="'Google'" show-help-details="true">
           </platform-health-override>
         </div>
       </div>
       <task-reason command="command"></task-reason>
-
     </div>
-    <gce-footer action="ctrl.resize()"
-                cancel="ctrl.cancel()"
-                is-valid="ctrl.isValid()"
-                account="serverGroup.account"
-                verification="verification"></gce-footer>
+    <gce-footer
+      action="ctrl.resize()"
+      cancel="ctrl.cancel()"
+      is-valid="ctrl.isValid()"
+      account="serverGroup.account"
+      verification="verification"
+    ></gce-footer>
   </form>
 </div>

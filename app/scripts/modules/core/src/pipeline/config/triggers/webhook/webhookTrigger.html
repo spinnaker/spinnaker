@@ -9,7 +9,7 @@
       <help-field key="pipeline.config.trigger.webhook.source"></help-field>
     </div>
     <div class="col-md-6">
-      <input type="text" class="form-control input-sm" ng-model="ctrl.trigger.source"/>
+      <input type="text" class="form-control input-sm" ng-model="ctrl.trigger.source" />
     </div>
   </div>
 
@@ -23,9 +23,7 @@
     </div>
   </div>
   <div class="form-group" ng-if="ctrl.fiatEnabled">
-    <run-as-user-selector service-accounts="ctrl.serviceAccounts"
-                          component="ctrl.trigger"
-                          field="runAsUser">
+    <run-as-user-selector service-accounts="ctrl.serviceAccounts" component="ctrl.trigger" field="runAsUser">
     </run-as-user-selector>
   </div>
 </ng-form>

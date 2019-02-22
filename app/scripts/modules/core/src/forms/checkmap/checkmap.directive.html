@@ -4,7 +4,12 @@
       <li class="checkmap-header">{{key}}</li>
       <li ng-repeat="item in valList">
         <label>
-          <input type="checkbox" ng-checked="!!modelHolder[key][item]" ng-model="modelHolder[key][item]" ng-change="updateSelectedItems()">
+          <input
+            type="checkbox"
+            ng-checked="!!modelHolder[key][item]"
+            ng-model="modelHolder[key][item]"
+            ng-change="updateSelectedItems()"
+          />
           {{item}}
         </label>
       </li>

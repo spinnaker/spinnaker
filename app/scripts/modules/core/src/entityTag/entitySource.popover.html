@@ -15,9 +15,11 @@
   <div ng-if="$ctrl.metadata.value.previousServerGroup" style="margin-top: 10px">
     <dt>Replaced</dt>
     <dd>
-      {{$ctrl.metadata.value.previousServerGroup.name}}<br/>
+      {{$ctrl.metadata.value.previousServerGroup.name}}<br />
       {{$ctrl.metadata.value.previousServerGroup.imageName}}
-      <span ng-if="$ctrl.metadata.value.previousServerGroup.imageId !== $ctrl.metadata.value.previousServerGroup.imageName">
+      <span
+        ng-if="$ctrl.metadata.value.previousServerGroup.imageId !== $ctrl.metadata.value.previousServerGroup.imageName"
+      >
         ({{$ctrl.metadata.value.previousServerGroup.imageId}})
       </span>
     </dd>

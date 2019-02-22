@@ -5,8 +5,7 @@
 <div class="details-panel" ng-if="!state.notFound">
   <div class="header">
     <div class="close-button" ng-if="!state.standalone">
-      <a class="btn btn-link"
-         ui-sref="^">
+      <a class="btn btn-link" ui-sref="^">
         <span class="glyphicon glyphicon-remove"></span>
       </a>
     </div>
@@ -18,7 +17,6 @@
       <h3 class="horizontal middle space-between flex-1" select-on-dbl-click>
         {{securityGroup.name || '(not found)'}}
         <render-if-feature feature="entityTags">
-
           <entity-notifications
             entity="securityGroup"
             application="ctrl.application"
@@ -28,7 +26,6 @@
             page-location="details"
             on-update="ctrl.application.securityGroups.refresh()"
           ></entity-notifications>
-
         </render-if-feature>
       </h3>
     </div>
@@ -39,13 +36,19 @@
         </button>
         <ul class="dropdown-menu" uib-dropdown-menu role="menu">
           <li><a href ng-click="ctrl.editInboundRules()">Edit Inbound Rules</a></li>
-          <li><a href ng-click="ctrl.deleteSecurityGroup()">Delete <firewall-label label="Firewall"></firewall-label></a></li>
-          <li><a href ng-click="ctrl.cloneSecurityGroup()">Clone <firewall-label label="Firewall"></firewall-label></a></li>
+          <li>
+            <a href ng-click="ctrl.deleteSecurityGroup()">Delete <firewall-label label="Firewall"></firewall-label></a>
+          </li>
+          <li>
+            <a href ng-click="ctrl.cloneSecurityGroup()">Clone <firewall-label label="Firewall"></firewall-label></a>
+          </li>
           <render-if-feature feature="entityTags">
-            <add-entity-tag-links component="securityGroup"
-                                  application="ctrl.application"
-                                  entity-type="securityGroup"
-                                  on-update="ctrl.application.securityGroups.refresh()"></add-entity-tag-links>
+            <add-entity-tag-links
+              component="securityGroup"
+              application="ctrl.application"
+              entity-type="securityGroup"
+              on-update="ctrl.application.securityGroups.refresh()"
+            ></add-entity-tag-links>
           </render-if-feature>
         </ul>
       </div>
@@ -69,15 +72,19 @@
     <collapsible-section heading="IP Range Rules ({{ipRules.length}})" expanded="{{ipRules.length > 0}}">
       <div ng-if="!ipRules.length">None</div>
 
-      <dl ng-class="insightCtrl.vm.filtersExpanded ? '' : 'dl-horizontal dl-medium'"
-          ng-repeat="ipRangeRule in ipRules | orderBy: 'range.address'">
+      <dl
+        ng-class="insightCtrl.vm.filtersExpanded ? '' : 'dl-horizontal dl-medium'"
+        ng-repeat="ipRangeRule in ipRules | orderBy: 'range.address'"
+      >
         <dt>IP Range</dt>
         <dd>{{ipRangeRule.address}}</dd>
         <dt>Port Ranges</dt>
         <dd ng-repeat="rule in ipRangeRule.rules">
           <span ng-if="rule.protocol === '-1'">
             All ports and protocols
-            <div ng-if="ipRangeRule.rules.length > 1"><em>Additional port ranges are specified, but redundant:</em></div>
+            <div ng-if="ipRangeRule.rules.length > 1">
+              <em>Additional port ranges are specified, but redundant:</em>
+            </div>
           </span>
           <span ng-if="rule.protocol !== '-1'">
             {{rule.protocol}}: {{rule.startPort}} &rarr; {{rule.endPort}}
@@ -85,15 +92,25 @@
         </dd>
       </dl>
     </collapsible-section>
-    <collapsible-section heading="{{ctrl.firewallLabel}} Rules ({{securityGroupRules.length || 0}})" expanded="{{securityGroupRules.length > 0}}">
+    <collapsible-section
+      heading="{{ctrl.firewallLabel}} Rules ({{securityGroupRules.length || 0}})"
+      expanded="{{securityGroupRules.length > 0}}"
+    >
       <div ng-if="!securityGroupRules.length">None</div>
 
-      <dl ng-class="insightCtrl.vm.filtersExpanded ? '' : 'dl-horizontal dl-medium'"
-          ng-repeat="rule in securityGroupRules | orderBy: 'securityGroup.name' ">
+      <dl
+        ng-class="insightCtrl.vm.filtersExpanded ? '' : 'dl-horizontal dl-medium'"
+        ng-repeat="rule in securityGroupRules | orderBy: 'securityGroup.name' "
+      >
         <dt><firewall-label label="Firewall"></firewall-label></dt>
         <dd ng-if="rule.securityGroup.name">
-          <a ui-sref="^.firewallDetails({name: rule.securityGroup.name, accountId: rule.securityGroup.accountName, region: rule.securityGroup.region, vpcId: rule.securityGroup.vpcId, provider: 'aws'})">
-            <account-tag account="rule.securityGroup.accountName || rule.securityGroup.accountId" ng-if="rule.securityGroup.accountName !== securityGroup.accountName"></account-tag>
+          <a
+            ui-sref="^.firewallDetails({name: rule.securityGroup.name, accountId: rule.securityGroup.accountName, region: rule.securityGroup.region, vpcId: rule.securityGroup.vpcId, provider: 'aws'})"
+          >
+            <account-tag
+              account="rule.securityGroup.accountName || rule.securityGroup.accountId"
+              ng-if="rule.securityGroup.accountName !== securityGroup.accountName"
+            ></account-tag>
             {{rule.securityGroup.name}} ({{rule.securityGroup.id}})
           </a>
         </dd>
