@@ -95,4 +95,8 @@ public class CustomSizing implements Map<String, Map> {
   public Set<Entry<String, Map>> entrySet() {
     return componentSizings.entrySet();
   }
+
+  public boolean hasCustomSizing(String service) {
+    return get(service) != null;
+  }
 }
