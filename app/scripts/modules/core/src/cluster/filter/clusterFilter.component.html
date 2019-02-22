@@ -1,25 +1,32 @@
 <insight-filter>
   <div class="heading">
-    <span class="btn btn-default btn-xs"
-          is-visible="$ctrl.tags.length > 0"
-          ng-click="$ctrl.clearFilters()">Clear All</span>
+    <span class="btn btn-default btn-xs" is-visible="$ctrl.tags.length > 0" ng-click="$ctrl.clearFilters()"
+      >Clear All</span
+    >
     <filter-section heading="Search" expanded="true" help-key="cluster.search">
       <form class="form-horizontal" role="form">
         <div class="form-group nav-search">
-          <input type="search" class="form-control input-sm" ng-model="$ctrl.sortFilter.filter"
-                 ng-model-options="{ updateOn: 'default blur', debounce: { 'default': 300, 'blur': 0 } }"
-                 ng-change="$ctrl.updateClusterGroups()" style="width: 85%; display: inline-block">
+          <input
+            type="search"
+            class="form-control input-sm"
+            ng-model="$ctrl.sortFilter.filter"
+            ng-model-options="{ updateOn: 'default blur', debounce: { 'default': 300, 'blur': 0 } }"
+            ng-change="$ctrl.updateClusterGroups()"
+            style="width: 85%; display: inline-block"
+          />
         </div>
       </form>
     </filter-section>
   </div>
   <div class="content" ng-if="$ctrl.app.serverGroups.loaded">
-
     <filter-section heading="Provider" expanded="true" ng-if="$ctrl.providerTypeHeadings.length > 1">
       <div class="checkbox" ng-repeat="heading in $ctrl.providerTypeHeadings | orderBy: 'toString()'">
         <label>
-          <input type="checkbox" ng-model="$ctrl.sortFilter.providerType[heading]"
-                 ng-change="$ctrl.updateClusterGroups()"/>
+          <input
+            type="checkbox"
+            ng-model="$ctrl.sortFilter.providerType[heading]"
+            ng-change="$ctrl.updateClusterGroups()"
+          />
           <cloud-provider-logo provider="heading" height="'14px'" width="'14px'"></cloud-provider-logo>
           <cloud-provider-label provider="heading"></cloud-provider-label>
         </label>
@@ -29,8 +36,11 @@
     <filter-section heading="Account" expanded="true">
       <div class="checkbox" ng-repeat="heading in $ctrl.accountHeadings | orderBy:'toString()'  ">
         <label>
-          <input type="checkbox" ng-model="$ctrl.sortFilter.account[heading]"
-                 ng-change="$ctrl.updateClusterGroups()"/>{{heading}}
+          <input
+            type="checkbox"
+            ng-model="$ctrl.sortFilter.account[heading]"
+            ng-change="$ctrl.updateClusterGroups()"
+          />{{ heading }}
         </label>
       </div>
     </filter-section>
@@ -38,7 +48,11 @@
     <filter-section heading="Region" expanded="true">
       <div class="checkbox" ng-repeat="heading in $ctrl.regionHeadings | orderBy: 'toString()' ">
         <label>
-          <input type="checkbox" ng-model="$ctrl.sortFilter.region[heading]" ng-change="$ctrl.updateClusterGroups()"/>{{heading}}
+          <input
+            type="checkbox"
+            ng-model="$ctrl.sortFilter.region[heading]"
+            ng-change="$ctrl.updateClusterGroups()"
+          />{{ heading }}
         </label>
       </div>
     </filter-section>
@@ -46,7 +60,11 @@
     <filter-section heading="Category" expanded="true" ng-if="$ctrl.categoryHeadings.length > 1">
       <div class="checkbox" ng-repeat="heading in $ctrl.categoryHeadings | orderBy: 'toString()' ">
         <label>
-          <input type="checkbox" ng-model="$ctrl.sortFilter.category[heading]" ng-change="$ctrl.updateClusterGroups()"/>{{heading | robotToHuman}}
+          <input
+            type="checkbox"
+            ng-model="$ctrl.sortFilter.category[heading]"
+            ng-change="$ctrl.updateClusterGroups()"
+          />{{ heading | robotToHuman }}
         </label>
       </div>
     </filter-section>
@@ -54,7 +72,9 @@
     <filter-section heading="Stack" expanded="true">
       <div class="checkbox" ng-repeat="heading in $ctrl.stackHeadings | orderBy: 'toString()' ">
         <label>
-          <input type="checkbox" ng-model="$ctrl.sortFilter.stack[heading]" ng-change="$ctrl.updateClusterGroups()"/>{{heading}}
+          <input type="checkbox" ng-model="$ctrl.sortFilter.stack[heading]" ng-change="$ctrl.updateClusterGroups()" />{{
+            heading
+          }}
         </label>
       </div>
     </filter-section>
@@ -62,7 +82,11 @@
     <filter-section heading="Detail" expanded="true">
       <div class="checkbox" ng-repeat="heading in $ctrl.detailHeadings | orderBy: 'toString()' ">
         <label>
-          <input type="checkbox" ng-model="$ctrl.sortFilter.detail[heading]" ng-change="$ctrl.updateClusterGroups()"/>{{heading}}
+          <input
+            type="checkbox"
+            ng-model="$ctrl.sortFilter.detail[heading]"
+            ng-change="$ctrl.updateClusterGroups()"
+          />{{ heading }}
         </label>
       </div>
     </filter-section>
@@ -71,49 +95,49 @@
       <div class="form">
         <div class="checkbox">
           <label>
-            <input type="checkbox"
-                   ng-model="$ctrl.sortFilter.status.Up"
-                   ng-change="$ctrl.updateClusterGroups()"/>
+            <input type="checkbox" ng-model="$ctrl.sortFilter.status.Up" ng-change="$ctrl.updateClusterGroups()" />
             Healthy
           </label>
         </div>
         <div class="checkbox">
           <label>
-            <input type="checkbox"
-                   ng-model="$ctrl.sortFilter.status.Down"
-                   ng-change="$ctrl.updateClusterGroups()"/>
+            <input type="checkbox" ng-model="$ctrl.sortFilter.status.Down" ng-change="$ctrl.updateClusterGroups()" />
             Unhealthy
           </label>
         </div>
         <div class="checkbox">
           <label>
-            <input type="checkbox"
-                   ng-model="$ctrl.sortFilter.status.Disabled"
-                   ng-change="$ctrl.updateClusterGroups()"/>
+            <input
+              type="checkbox"
+              ng-model="$ctrl.sortFilter.status.Disabled"
+              ng-change="$ctrl.updateClusterGroups()"
+            />
             Disabled
           </label>
         </div>
         <div class="checkbox">
           <label>
-            <input type="checkbox"
-                   ng-model="$ctrl.sortFilter.status.Starting"
-                   ng-change="$ctrl.updateClusterGroups()"/>
+            <input
+              type="checkbox"
+              ng-model="$ctrl.sortFilter.status.Starting"
+              ng-change="$ctrl.updateClusterGroups()"
+            />
             Starting
           </label>
         </div>
         <div class="checkbox">
           <label>
-            <input type="checkbox"
-                   ng-model="$ctrl.sortFilter.status.OutOfService"
-                   ng-change="$ctrl.updateClusterGroups()"/>
+            <input
+              type="checkbox"
+              ng-model="$ctrl.sortFilter.status.OutOfService"
+              ng-change="$ctrl.updateClusterGroups()"
+            />
             Out of Service
           </label>
         </div>
         <div class="checkbox">
           <label>
-            <input type="checkbox"
-                   ng-model="$ctrl.sortFilter.status.Unknown"
-                   ng-change="$ctrl.updateClusterGroups()"/>
+            <input type="checkbox" ng-model="$ctrl.sortFilter.status.Unknown" ng-change="$ctrl.updateClusterGroups()" />
             Unknown
           </label>
         </div>
@@ -123,17 +147,24 @@
     <filter-section heading="Availability Zones" expanded="true">
       <div class="checkbox" ng-repeat="heading in $ctrl.availabilityZoneHeadings | orderBy: 'toString()' ">
         <label>
-          <input type="checkbox" ng-model="$ctrl.sortFilter.availabilityZone[heading]" ng-change="$ctrl.updateClusterGroups()"/>{{heading}}
+          <input
+            type="checkbox"
+            ng-model="$ctrl.sortFilter.availabilityZone[heading]"
+            ng-change="$ctrl.updateClusterGroups()"
+          />{{ heading }}
         </label>
       </div>
     </filter-section>
 
-
     <filter-section heading="Instance Types" expanded="true">
       <div class="checkbox" ng-repeat="heading in $ctrl.instanceTypeHeadings | orderBy: 'toString()' ">
         <label>
-          <input type="checkbox" ng-model="$ctrl.sortFilter.instanceType[heading]"
-                 ng-change="$ctrl.updateClusterGroups()"/> {{heading}}
+          <input
+            type="checkbox"
+            ng-model="$ctrl.sortFilter.instanceType[heading]"
+            ng-change="$ctrl.updateClusterGroups()"
+          />
+          {{ heading }}
         </label>
       </div>
     </filter-section>
@@ -142,29 +173,33 @@
       <div class="form-inline">
         <div class="form-group">
           Min:
-          <input type="number" class="form-control input-sm" ng-model="$ctrl.sortFilter.minInstances"
-                 ng-model-options="{ updateOn: 'default blur', debounce: { 'default': 300, 'blur': 0 } }"
-                 ng-change="$ctrl.updateClusterGroups()">
+          <input
+            type="number"
+            class="form-control input-sm"
+            ng-model="$ctrl.sortFilter.minInstances"
+            ng-model-options="{ updateOn: 'default blur', debounce: { 'default': 300, 'blur': 0 } }"
+            ng-change="$ctrl.updateClusterGroups()"
+          />
         </div>
         <div class="form-group">
           Max:
-          <input type="number" class="form-control input-sm" ng-model="$ctrl.sortFilter.maxInstances"
-                 ng-model-options="{ updateOn: 'default blur', debounce: { 'default': 300, 'blur': 0 } }"
-                 ng-change="$ctrl.updateClusterGroups()">
+          <input
+            type="number"
+            class="form-control input-sm"
+            ng-model="$ctrl.sortFilter.maxInstances"
+            ng-model-options="{ updateOn: 'default blur', debounce: { 'default': 300, 'blur': 0 } }"
+            ng-change="$ctrl.updateClusterGroups()"
+          />
         </div>
       </div>
     </filter-section>
 
-    <filter-section
-      expanded="true"
-      heading="Labels"
-      ng-if="$ctrl.showLabelFilter"
-    >
+    <filter-section expanded="true" heading="Labels" ng-if="$ctrl.showLabelFilter">
       <label-filter
         labels-map="$ctrl.labelsMap"
         label-filters="$ctrl.labelFilters"
-        update-label-filters="$ctrl.onLabelFiltersChange"></label-filter>
+        update-label-filters="$ctrl.onLabelFiltersChange"
+      ></label-filter>
     </filter-section>
-
   </div>
 </insight-filter>

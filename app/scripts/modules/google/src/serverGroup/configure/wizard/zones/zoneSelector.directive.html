@@ -2,10 +2,12 @@
   <div class="col-md-3 sm-label-right">Zone</div>
   <div class="col-md-7" ng-if="!vm.command.region">(Select a region)</div>
   <div class="col-md-7">
-    <select class="form-control input-sm"
+    <select
+      class="form-control input-sm"
       ng-model="vm.command.zone"
       ng-options="zone for zone in vm.command.backingData.filtered.zones"
-      ng-required="!vm.command.regional">
+      ng-required="!vm.command.regional"
+    >
     </select>
   </div>
 </div>
@@ -23,9 +25,7 @@
     </ul>
   </div>
   <div class="col-md-7" ng-if="vm.command.selectZones">
-    <ui-select multiple
-               ng-model="vm.command.distributionPolicy.zones"
-               class="form-control input-sm">
+    <ui-select multiple ng-model="vm.command.distributionPolicy.zones" class="form-control input-sm">
       <ui-select-match>{{ $item }}</ui-select-match>
       <ui-select-choices repeat="zone as zone in vm.command.backingData.filtered.zones">
         <span>{{ zone }}</span>

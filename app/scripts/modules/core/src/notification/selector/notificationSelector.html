@@ -1,10 +1,12 @@
 <div class="form-group row">
   <div class="col-sm-3 sm-label-right" id="type">Notify via</div>
   <div class="col-sm-9">
-    <select class="input-sm"
-            ng-options="t.key as t.label for t in vm.notificationTypes"
-            ng-model="vm.notification.type"
-            ng-change="vm.updateNotificationType()">
+    <select
+      class="input-sm"
+      ng-options="t.key as t.label for t in vm.notificationTypes"
+      ng-model="vm.notification.type"
+      ng-change="vm.updateNotificationType()"
+    >
     </select>
   </div>
 </div>

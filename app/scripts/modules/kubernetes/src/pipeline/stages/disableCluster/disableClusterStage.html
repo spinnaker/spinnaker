@@ -1,20 +1,20 @@
 <div ng-controller="kubernetesDisableClusterStageCtrl as disableClusterStageCtrl" class="form-horizontal">
   <div ng-if="!pipeline.strategy">
-
-    <account-namespace-cluster-selector
-      application="application"
-      component="stage"
-      accounts="accounts">
+    <account-namespace-cluster-selector application="application" component="stage" accounts="accounts">
     </account-namespace-cluster-selector>
-
   </div>
   <stage-config-field label="Disable Options">
     <div class="form-inline">
       Keep the
-      <input type="number" min="0" required ng-model="stage.remainingEnabledServerGroups"
-             class="form-control input-sm" style="width: 50px" />
-      <select class="form-control input-sm"
-              ng-model="stage.preferLargerOverNewer" style="width: 100px">
+      <input
+        type="number"
+        min="0"
+        required
+        ng-model="stage.remainingEnabledServerGroups"
+        class="form-control input-sm"
+        style="width: 50px"
+      />
+      <select class="form-control input-sm" ng-model="stage.preferLargerOverNewer" style="width: 100px">
         <option value="true">largest</option>
         <option value="false">newest</option>
       </select>

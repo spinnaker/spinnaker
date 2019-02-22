@@ -1,13 +1,19 @@
-<form ng-controller="kubernetesSecurityGroupBackendController as backendController" class="container-fluid form-horizontal" name="backend">
+<form
+  ng-controller="kubernetesSecurityGroupBackendController as backendController"
+  class="container-fluid form-horizontal"
+  name="backend"
+>
   <div class="form-group">
     <div class="col-md-3 sm-label-right">
       Load Balancer
       <help-field key="kubernetes.ingress.backend.service"></help-field>
     </div>
     <div class="col-md-6">
-      <ui-select ng-if="loadBalancers.length"
-                 ng-model="securityGroup.ingress.serviceName"
-                 class="form-control input-sm">
+      <ui-select
+        ng-if="loadBalancers.length"
+        ng-model="securityGroup.ingress.serviceName"
+        class="form-control input-sm"
+      >
         <ui-select-match>{{securityGroup.ingress.serviceName}}</ui-select-match>
         <ui-select-choices repeat="loadBalancer in loadBalancers | filter: $select.search">
           <span ng-bind-html="loadBalancer | highlight: $select.search"></span>
@@ -21,8 +27,14 @@
       <help-field key="kubernetes.ingress.backend.port"></help-field>
     </div>
     <div class="col-md-2">
-      <input type="number" class="form-control input-sm" name="details" ng-model="securityGroup.ingress.port"
-           min="1" max="{{backendController.maxPort}}" />
+      <input
+        type="number"
+        class="form-control input-sm"
+        name="details"
+        ng-model="securityGroup.ingress.port"
+        min="1"
+        max="{{backendController.maxPort}}"
+      />
     </div>
   </div>
 </form>

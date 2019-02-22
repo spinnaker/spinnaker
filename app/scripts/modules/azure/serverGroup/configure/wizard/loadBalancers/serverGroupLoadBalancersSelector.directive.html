@@ -1,9 +1,17 @@
 <h5 class="text-center" ng-if="!command.viewState.loadBalancersConfigured">Please select an account and region.</h5>
-<div ng-if="command.viewState.loadBalancersConfigured" ng-controller="azureServerGroupLoadBalancersCtrl as loadBalancerCtrl">
+<div
+  ng-if="command.viewState.loadBalancersConfigured"
+  ng-controller="azureServerGroupLoadBalancersCtrl as loadBalancerCtrl"
+>
   <div class="form-group">
     <div class="col-md-3 sm-label-right"><b>Load Balancers</b></div>
     <div class="col-md-7">
-      <ui-select required ng-model="command.loadBalancerName" class="form-control input-sm" ng-change="loadBalancerCtrl.loadBalancerChanged($select.selected)">
+      <ui-select
+        required
+        ng-model="command.loadBalancerName"
+        class="form-control input-sm"
+        ng-change="loadBalancerCtrl.loadBalancerChanged($select.selected)"
+      >
         <ui-select-match placeholder="select a loadBalancer">{{$select.selected}}</ui-select-match>
         <ui-select-choices repeat="loadBalancer in command.loadBalancers | filter: $select.search">
           <span ng-bind-html="loadBalancer | highlight: $select.search"></span>
@@ -19,7 +27,8 @@
         <span ng-if="!refreshing">last refreshed {{ getLoadBalancerRefreshTime() | timestamp }}</span>
         <span ng-if="refreshing"> refreshing...</span>
       </p>
-      <p>If you're not finding a load balancer that was recently added,
+      <p>
+        If you're not finding a load balancer that was recently added,
         <a href ng-click="refreshLoadBalancers()">click here</a> to refresh the list.
       </p>
     </div>

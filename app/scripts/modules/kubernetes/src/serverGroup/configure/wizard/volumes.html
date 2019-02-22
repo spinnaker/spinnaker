@@ -1,4 +1,7 @@
-<div class="form-group container-fluid form-horizontal" ng-controller="kubernetesServerGroupVolumesController as volumesController">
+<div
+  class="form-group container-fluid form-horizontal"
+  ng-controller="kubernetesServerGroupVolumesController as volumesController"
+>
   <div ng-repeat="source in command.volumeSources" ng-init="sourceIndex = $index">
     <div class="form-group">
       <div class="col-md-3 sm-label-right">
@@ -7,15 +10,16 @@
       </div>
       <div class="col-md-4">
         <select class="form-control input-sm" ng-model="source.type">
-          <option ng-repeat="type in volumesController.volumeTypes" value="{{type}}"
-                  ng-selected="source.type === type">{{type}}</option>
+          <option ng-repeat="type in volumesController.volumeTypes" value="{{type}}" ng-selected="source.type === type"
+            >{{type}}</option
+          >
         </select>
       </div>
       <div class="col-md-1">
-          <button class="btn btn-sm btn-default" ng-click="volumesController.removeVolume($index)">
-            <span class="glyphicon glyphicon-trash visible-lg-inline"></span>
-            <span class="visible-lg-inline"> Remove Volume Source</span>
-          </button>
+        <button class="btn btn-sm btn-default" ng-click="volumesController.removeVolume($index)">
+          <span class="glyphicon glyphicon-trash visible-lg-inline"></span>
+          <span class="visible-lg-inline"> Remove Volume Source</span>
+        </button>
       </div>
     </div>
     <div class="form-group">
@@ -23,7 +27,7 @@
         Name
       </div>
       <div class="col-md-4">
-        <input type="text" class="form-control input-sm" name="path" ng-model="source.name"/>
+        <input type="text" class="form-control input-sm" name="path" ng-model="source.name" />
       </div>
     </div>
     <div class="form-group" ng-if="source.type === 'CONFIGMAP'">
@@ -31,7 +35,7 @@
         Config Map Name
       </div>
       <div class="col-md-4">
-        <input type="text" class="form-control input-sm" name="path" ng-model="source.configMap.configMapName"/>
+        <input type="text" class="form-control input-sm" name="path" ng-model="source.configMap.configMapName" />
       </div>
     </div>
     <div class="form-group" ng-if="source.type === 'CONFIGMAP'">
@@ -49,19 +53,28 @@
             </tr>
           </thead>
           <tbody>
-          <tr ng-repeat="item in source.configMap.items track by $index" ng-init="itemIndex = $index">
-            <td>
-              <input class="form-control input-sm" type="text" ng-model="item.key">
-            </td>
-            <td>
-              <input class="form-control input-sm" type="text" ng-pattern="volumesController.relativePathPattern" ng-model="item.path">
-            </td>
-            <td class="table-remove-button">
-              <a class="btn btn-link sm-label" style="margin-top: 0;" ng-click="volumesController.removeItem(sourceIndex, itemIndex)">
-                <span class="glyphicon glyphicon-trash"></span>
-              </a>
-            </td>
-          </tr>
+            <tr ng-repeat="item in source.configMap.items track by $index" ng-init="itemIndex = $index">
+              <td>
+                <input class="form-control input-sm" type="text" ng-model="item.key" />
+              </td>
+              <td>
+                <input
+                  class="form-control input-sm"
+                  type="text"
+                  ng-pattern="volumesController.relativePathPattern"
+                  ng-model="item.path"
+                />
+              </td>
+              <td class="table-remove-button">
+                <a
+                  class="btn btn-link sm-label"
+                  style="margin-top: 0;"
+                  ng-click="volumesController.removeItem(sourceIndex, itemIndex)"
+                >
+                  <span class="glyphicon glyphicon-trash"></span>
+                </a>
+              </td>
+            </tr>
           </tbody>
         </table>
         <button class="add-new btn btn-block btn-sm" ng-click="volumesController.addItem(sourceIndex)">
@@ -76,8 +89,12 @@
       </div>
       <div class="col-md-4">
         <select class="form-control input-sm" ng-model="source.emptyDir.medium">
-          <option ng-repeat="type in volumesController.mediumTypes" value="{{type}}"
-                  ng-selected="source.emptyDir.medium === type">{{type}}</option>
+          <option
+            ng-repeat="type in volumesController.mediumTypes"
+            value="{{type}}"
+            ng-selected="source.emptyDir.medium === type"
+            >{{type}}</option
+          >
         </select>
       </div>
     </div>
@@ -87,7 +104,13 @@
         <help-field key="kubernetes.pod.volume.hostpath.path"></help-field>
       </div>
       <div class="col-md-4">
-        <input type="text" class="form-control input-sm" ng-pattern="volumesController.pathPattern" name="path" ng-model="source.hostPath.path"/>
+        <input
+          type="text"
+          class="form-control input-sm"
+          ng-pattern="volumesController.pathPattern"
+          name="path"
+          ng-model="source.hostPath.path"
+        />
       </div>
     </div>
     <div class="form-group" ng-if="source.type === 'PERSISTENTVOLUMECLAIM'">
@@ -96,7 +119,7 @@
         <help-field key="kubernetes.pod.volume.persistentvolumelclaim.claim"></help-field>
       </div>
       <div class="col-md-4">
-        <input type="text" class="form-control input-sm" ng-model="source.persistentVolumeClaim.claimName"/>
+        <input type="text" class="form-control input-sm" ng-model="source.persistentVolumeClaim.claimName" />
       </div>
     </div>
     <div class="form-group" ng-if="source.type === 'PERSISTENTVOLUMECLAIM'">
@@ -104,7 +127,7 @@
         Read Only
       </div>
       <div class="col-md-2">
-        <input type="checkbox" ng-model="source.persistentVolumeClaim.readOnly"/>
+        <input type="checkbox" ng-model="source.persistentVolumeClaim.readOnly" />
       </div>
     </div>
     <div class="form-group" ng-if="source.type === 'SECRET'">
@@ -113,7 +136,7 @@
         <help-field key="kubernetes.pod.volume.secret.secretname"></help-field>
       </div>
       <div class="col-md-4">
-        <input type="text" class="form-control input-sm" name="path" ng-model="source.secret.secretName"/>
+        <input type="text" class="form-control input-sm" name="path" ng-model="source.secret.secretName" />
       </div>
     </div>
     <div class="form-group" ng-if="source.type === 'AWSELASTICBLOCKSTORE'">
@@ -122,7 +145,12 @@
         <help-field key="kubernetes.pod.volume.awsElasticBlockStore.volumeId"></help-field>
       </div>
       <div class="col-md-4">
-        <input type="text" class="form-control input-sm" name="volumeId" ng-model="source.awsElasticBlockStore.volumeId"/>
+        <input
+          type="text"
+          class="form-control input-sm"
+          name="volumeId"
+          ng-model="source.awsElasticBlockStore.volumeId"
+        />
       </div>
     </div>
     <div class="form-group" ng-if="source.type === 'AWSELASTICBLOCKSTORE'">
@@ -131,7 +159,7 @@
         <help-field key="kubernetes.pod.volume.awsElasticBlockStore.fsType"></help-field>
       </div>
       <div class="col-md-4">
-        <input type="text" class="form-control input-sm" name="fsType" ng-model="source.awsElasticBlockStore.fsType"/>
+        <input type="text" class="form-control input-sm" name="fsType" ng-model="source.awsElasticBlockStore.fsType" />
       </div>
     </div>
     <div class="form-group" ng-if="source.type === 'AWSELASTICBLOCKSTORE'">
@@ -140,7 +168,12 @@
         <help-field key="kubernetes.pod.volume.awsElasticBlockStore.partition"></help-field>
       </div>
       <div class="col-md-4">
-        <input type="number" class="form-control input-sm" name="partition" ng-model="source.awsElasticBlockStore.partition"/>
+        <input
+          type="number"
+          class="form-control input-sm"
+          name="partition"
+          ng-model="source.awsElasticBlockStore.partition"
+        />
       </div>
     </div>
     <div class="form-group" ng-if="source.type === 'NFS'">
@@ -149,7 +182,7 @@
         <help-field key="kubernetes.pod.volume.nfs.server"></help-field>
       </div>
       <div class="col-md-4">
-        <input type="text" class="form-control input-sm" name="server" ng-model="source.nfs.server"/>
+        <input type="text" class="form-control input-sm" name="server" ng-model="source.nfs.server" />
       </div>
     </div>
     <div class="form-group" ng-if="source.type === 'NFS'">
@@ -158,7 +191,13 @@
         <help-field key="kubernetes.pod.volume.nfs.path"></help-field>
       </div>
       <div class="col-md-4">
-        <input type="text" class="form-control input-sm" ng-pattern="volumesController.pathPattern" name="path" ng-model="source.nfs.path"/>
+        <input
+          type="text"
+          class="form-control input-sm"
+          ng-pattern="volumesController.pathPattern"
+          name="path"
+          ng-model="source.nfs.path"
+        />
       </div>
     </div>
     <div class="form-group" ng-if="source.type === 'NFS'">
@@ -166,15 +205,15 @@
         Read Only
       </div>
       <div class="col-md-2">
-        <input type="checkbox" name="readOnly" ng-model="source.nfs.readOnly"/>
+        <input type="checkbox" name="readOnly" ng-model="source.nfs.readOnly" />
       </div>
     </div>
-    <hr ng-if="command.volumeSources.length > 1">
+    <hr ng-if="command.volumeSources.length > 1" />
   </div>
   <div>
     <td colspan="1">
-      <button class="add-new btn btn-block btn-sm" ng-click="volumesController.addVolume()"><span
-        class="glyphicon glyphicon-plus-sign"></span> Add Volume Source
+      <button class="add-new btn btn-block btn-sm" ng-click="volumesController.addVolume()">
+        <span class="glyphicon glyphicon-plus-sign"></span> Add Volume Source
       </button>
     </td>
   </div>

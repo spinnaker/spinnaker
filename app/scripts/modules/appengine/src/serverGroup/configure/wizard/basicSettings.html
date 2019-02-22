@@ -5,11 +5,14 @@
         Account
       </div>
       <div class="col-md-7">
-        <account-select-field read-only="command.viewState.readOnlyFields.credentials"
-                              component="command"
-                              field="credentials"
-                              on-change="basicSettingsCtrl.onAccountChange()"
-                              accounts="command.backingData.accounts" provider="'appengine'"></account-select-field>
+        <account-select-field
+          read-only="command.viewState.readOnlyFields.credentials"
+          component="command"
+          field="credentials"
+          on-change="basicSettingsCtrl.onAccountChange()"
+          accounts="command.backingData.accounts"
+          provider="'appengine'"
+        ></account-select-field>
       </div>
     </div>
 
@@ -18,11 +21,8 @@
         Region
       </div>
       <div class="col-md-7">
-        <input type="text"
-               readonly
-               class="form-control input-sm"
-               name="region"
-               ng-model="command.region"/></div>
+        <input type="text" readonly class="form-control input-sm" name="region" ng-model="command.region" />
+      </div>
     </div>
 
     <div class="form-group">
@@ -30,11 +30,15 @@
         Stack
         <help-field key="aws.serverGroup.stack"></help-field>
       </div>
-      <div class="col-md-7"><input type="text"
-                                   class="form-control input-sm no-spel"
-                                   ng-pattern="basicSettingsCtrl.stackPattern"
-                                   name="stack"
-                                   ng-model="command.stack"/></div>
+      <div class="col-md-7">
+        <input
+          type="text"
+          class="form-control input-sm no-spel"
+          ng-pattern="basicSettingsCtrl.stackPattern"
+          name="stack"
+          ng-model="command.stack"
+        />
+      </div>
     </div>
     <div class="form-group row slide-in" ng-if="basicSettings.stack.$error.pattern">
       <div class="col-sm-9 col-sm-offset-2 error-message">
@@ -46,11 +50,15 @@
         Detail
         <help-field key="aws.serverGroup.detail"></help-field>
       </div>
-      <div class="col-md-7"><input type="text"
-                                   class="form-control input-sm no-spel"
-                                   ng-pattern="basicSettingsCtrl.detailPattern"
-                                   name="details"
-                                   ng-model="command.freeFormDetails"/></div>
+      <div class="col-md-7">
+        <input
+          type="text"
+          class="form-control input-sm no-spel"
+          ng-pattern="basicSettingsCtrl.detailPattern"
+          name="details"
+          ng-model="command.freeFormDetails"
+        />
+      </div>
     </div>
 
     <div class="form-group row slide-in" ng-if="basicSettings.details.$error.pattern">
@@ -63,25 +71,13 @@
       <label class="col-md-3 sm-label-right">Source Type</label>
       <div class="col-md-7">
         <div class="radio radio-inline">
-          <label>
-            <input type="radio"
-                   ng-model="command.sourceType"
-                   value="git" /> Git
-          </label>
+          <label> <input type="radio" ng-model="command.sourceType" value="git" /> Git </label>
         </div>
         <div class="radio radio-inline">
-          <label>
-            <input type="radio"
-                   ng-model="command.sourceType"
-                   value="gcs" /> GCS
-          </label>
+          <label> <input type="radio" ng-model="command.sourceType" value="gcs" /> GCS </label>
         </div>
         <div class="radio radio-inline">
-          <label>
-            <input type="radio"
-                   ng-model="command.sourceType"
-                   value="containerImage" /> Container Image
-          </label>
+          <label> <input type="radio" ng-model="command.sourceType" value="containerImage" /> Container Image </label>
         </div>
       </div>
     </div>
@@ -91,17 +87,11 @@
         <label class="col-md-3 sm-label-right">Resolve URL</label>
         <div class="col-md-7">
           <div class="radio radio-inline">
-            <label>
-              <input type="radio"
-                     ng-model="command.fromArtifact"
-                     ng-value="false"> via text input
-            </label>
+            <label> <input type="radio" ng-model="command.fromArtifact" ng-value="false" /> via text input </label>
           </div>
           <div class="radio radio-inline">
             <label>
-              <input type="radio"
-                     ng-model="command.fromArtifact"
-                     ng-value="true"> via pipeline artifact
+              <input type="radio" ng-model="command.fromArtifact" ng-value="true" /> via pipeline artifact
             </label>
           </div>
         </div>
@@ -110,9 +100,11 @@
       <div class="form-group row" ng-if="command.fromArtifact">
         <label class="col-md-3 sm-label-right">Artifact Account</label>
         <div class="col-md-7">
-          <select class="form-control input-sm"
-                  ng-options="option for option in command.backingData.storageAccounts"
-                  ng-model="command.storageAccountName">
+          <select
+            class="form-control input-sm"
+            ng-options="option for option in command.backingData.storageAccounts"
+            ng-model="command.storageAccountName"
+          >
             <option value="">Select...</option>
           </select>
         </div>
@@ -120,22 +112,23 @@
 
       <stage-config-field label="Expected Artifact" field-columns="7" ng-if="command.fromArtifact">
         <expected-artifact-selector-react
-                                    expected-artifacts="command.backingData.expectedArtifacts"
-                                    selected="gcsArtifactDelegate.getSelectedExpectedArtifact()"
-                                    on-change="gcsArtifactController.onArtifactChange"
-                                    on-request-create="gcsArtifactController.onRequestCreate"
-                                    offered-artifact-types="gcsArtifactDelegate.getOfferedArtifactTypes()"
-                                    requesting-new="showCreateArtifactForm"
-                                    >
+          expected-artifacts="command.backingData.expectedArtifacts"
+          selected="gcsArtifactDelegate.getSelectedExpectedArtifact()"
+          on-change="gcsArtifactController.onArtifactChange"
+          on-request-create="gcsArtifactController.onRequestCreate"
+          offered-artifact-types="gcsArtifactDelegate.getOfferedArtifactTypes()"
+          requesting-new="showCreateArtifactForm"
+        >
         </expected-artifact-selector-react>
       </stage-config-field>
-      <expected-artifact-editor-react ng-if="showCreateArtifactForm"
-                                      kinds="gcsArtifactDelegate.getSupportedArtifactKinds()"
-                                      sources="gcsArtifactDelegate.getExpectedArtifactSources()"
-                                      on-save="gcsArtifactController.onArtifactCreated"
-                                      show-accounts="false"
-                                      single-column="true"
-                                      field-columns="7"
+      <expected-artifact-editor-react
+        ng-if="showCreateArtifactForm"
+        kinds="gcsArtifactDelegate.getSupportedArtifactKinds()"
+        sources="gcsArtifactDelegate.getExpectedArtifactSources()"
+        on-save="gcsArtifactController.onArtifactCreated"
+        show-accounts="false"
+        single-column="true"
+        field-columns="7"
       >
       </expected-artifact-editor-react>
 
@@ -145,56 +138,56 @@
           <help-field class="help-field-absolute" key="appengine.serverGroup.gcs.repositoryUrl"></help-field>
         </div>
         <div class="col-md-7">
-          <input type="text"
-                 required
-                 class="form-control input-sm"
-                 name="gcsUrl"
-                 ng-model="command.repositoryUrl"/></div>
+          <input type="text" required class="form-control input-sm" name="gcsUrl" ng-model="command.repositoryUrl" />
+        </div>
       </div>
     </div>
 
     <div ng-if="basicSettingsCtrl.isGitSource()">
       <div class="form-group">
         <div class="col-md-3 sm-label-right">
-          Git Repository URL <help-field class="help-field-absolute" key="appengine.serverGroup.git.repositoryUrl"></help-field>
+          Git Repository URL
+          <help-field class="help-field-absolute" key="appengine.serverGroup.git.repositoryUrl"></help-field>
         </div>
         <div class="col-md-7">
-          <input type="text"
-                 required
-                 class="form-control input-sm"
-                 name="gitRepo"
-                 ng-model="command.repositoryUrl"/></div>
+          <input type="text" required class="form-control input-sm" name="gitRepo" ng-model="command.repositoryUrl" />
+        </div>
       </div>
 
       <div class="form-group">
         <div class="col-md-3 sm-label-right">
-          Git Credential Type <help-field class="help-field-absolute" key="appengine.serverGroup.gitCredentialType"></help-field>
+          Git Credential Type
+          <help-field class="help-field-absolute" key="appengine.serverGroup.gitCredentialType"></help-field>
         </div>
         <div class="col-md-7">
-          <select class="form-control input-sm"
-                  ng-options="basicSettingsCtrl.humanReadableGitCredentialType(type) for type in basicSettingsCtrl.getSupportedGitCredentialTypes()"
-                  ng-model="command.gitCredentialType">
+          <select
+            class="form-control input-sm"
+            ng-options="basicSettingsCtrl.humanReadableGitCredentialType(type) for type in basicSettingsCtrl.getSupportedGitCredentialTypes()"
+            ng-model="command.gitCredentialType"
+          >
           </select>
         </div>
       </div>
 
       <div class="form-group">
-        <div class="col-md-3 sm-label-right">
-          Branch <help-field key="appengine.serverGroup.branch"></help-field>
-        </div>
+        <div class="col-md-3 sm-label-right">Branch <help-field key="appengine.serverGroup.branch"></help-field></div>
         <div class="col-md-7">
-          <input ng-if="!command.fromTrigger"
-                 type="text"
-                 required
-                 class="form-control input-sm"
-                 name="branch"
-                 ng-model="command.branch"/>
+          <input
+            ng-if="!command.fromTrigger"
+            type="text"
+            required
+            class="form-control input-sm"
+            name="branch"
+            ng-model="command.branch"
+          />
 
-          <ui-select ng-if="command.fromTrigger"
-                     ng-model="command.trigger"
-                     class="form-control input-sm"
-                     on-select="basicSettingsCtrl.onTriggerChange()"
-                     required>
+          <ui-select
+            ng-if="command.fromTrigger"
+            ng-model="command.trigger"
+            class="form-control input-sm"
+            on-select="basicSettingsCtrl.onTriggerChange()"
+            required
+          >
             <ui-select-match allow-clear>
               <appengine-dynamic-branch-label trigger="command.trigger"></appengine-dynamic-branch-label>
             </ui-select-match>
@@ -204,13 +197,16 @@
           </ui-select>
         </div>
 
-        <div class="col-md-7 col-md-offset-3" ng-if="command.viewState.mode === 'createPipeline' || command.viewState.mode === 'editPipeline'">
-        <span class="pull-right small" ng-if="!command.fromTrigger">
-          <a href ng-click="basicSettingsCtrl.toggleResolveViaTrigger()">Resolve via trigger</a>
-        </span>
-        <span class="pull-right small" ng-if="command.fromTrigger">
-          <a href ng-click="basicSettingsCtrl.toggleResolveViaTrigger()">Click for text input</a>
-        </span>
+        <div
+          class="col-md-7 col-md-offset-3"
+          ng-if="command.viewState.mode === 'createPipeline' || command.viewState.mode === 'editPipeline'"
+        >
+          <span class="pull-right small" ng-if="!command.fromTrigger">
+            <a href ng-click="basicSettingsCtrl.toggleResolveViaTrigger()">Resolve via trigger</a>
+          </span>
+          <span class="pull-right small" ng-if="command.fromTrigger">
+            <a href ng-click="basicSettingsCtrl.toggleResolveViaTrigger()">Click for text input</a>
+          </span>
         </div>
       </div>
     </div>
@@ -220,17 +216,11 @@
         <label class="col-md-3 sm-label-right">Resolve URL</label>
         <div class="col-md-7">
           <div class="radio radio-inline">
-            <label>
-              <input type="radio"
-                     ng-model="command.fromArtifact"
-                     ng-value="false"> via text input
-            </label>
+            <label> <input type="radio" ng-model="command.fromArtifact" ng-value="false" /> via text input </label>
           </div>
           <div class="radio radio-inline">
             <label>
-              <input type="radio"
-                     ng-model="command.fromArtifact"
-                     ng-value="true"> via pipeline artifact
+              <input type="radio" ng-model="command.fromArtifact" ng-value="true" /> via pipeline artifact
             </label>
           </div>
         </div>
@@ -238,22 +228,23 @@
 
       <stage-config-field label="Expected Artifact" field-columns="7" ng-if="command.fromArtifact">
         <expected-artifact-selector-react
-                                    expected-artifacts="command.backingData.expectedArtifacts"
-                                    selected="containerArtifactDelegate.getSelectedExpectedArtifact()"
-                                    on-change="containerArtifactController.onArtifactChange"
-                                    on-request-create="containerArtifactController.onRequestCreate"
-                                    offered-artifact-types="containerArtifactDelegate.getOfferedArtifactTypes()"
-                                    requesting-new="showCreateArtifactForm"
-                                    >
+          expected-artifacts="command.backingData.expectedArtifacts"
+          selected="containerArtifactDelegate.getSelectedExpectedArtifact()"
+          on-change="containerArtifactController.onArtifactChange"
+          on-request-create="containerArtifactController.onRequestCreate"
+          offered-artifact-types="containerArtifactDelegate.getOfferedArtifactTypes()"
+          requesting-new="showCreateArtifactForm"
+        >
         </expected-artifact-selector-react>
       </stage-config-field>
-      <expected-artifact-editor-react ng-if="showCreateArtifactForm"
-                                      kinds="containerArtifactDelegate.getSupportedArtifactKinds()"
-                                      sources="containerArtifactDelegate.getExpectedArtifactSources()"
-                                      on-save="containerArtifactController.onArtifactCreated"
-                                      show-accounts="false"
-                                      single-column="true"
-                                      field-columns="7"
+      <expected-artifact-editor-react
+        ng-if="showCreateArtifactForm"
+        kinds="containerArtifactDelegate.getSupportedArtifactKinds()"
+        sources="containerArtifactDelegate.getExpectedArtifactSources()"
+        on-save="containerArtifactController.onArtifactCreated"
+        show-accounts="false"
+        single-column="true"
+        field-columns="7"
       >
       </expected-artifact-editor-react>
 
@@ -263,11 +254,14 @@
           <help-field key="appengine.serverGroup.containerImageUrl"></help-field>
         </div>
         <div class="col-md-7">
-          <input type="text"
+          <input
+            type="text"
             required
             class="form-control input-sm"
             name="containerImageUrl"
-            ng-model="command.containerImageUrl"/></div>
+            ng-model="command.containerImageUrl"
+          />
+        </div>
       </div>
     </div>
 
@@ -276,14 +270,22 @@
         <div class="form-inline">
           <small>Match branch from trigger on regex</small>
           <help-field key="appengine.serverGroup.matchBranchOnRegex"></help-field>
-          <input type="text" style="width: 140px;" class="form-control input-sm pull-right" name="matchOnRegex" ng-model="command.trigger.matchBranchOnRegex"/>
+          <input
+            type="text"
+            style="width: 140px;"
+            class="form-control input-sm pull-right"
+            name="matchOnRegex"
+            ng-model="command.trigger.matchBranchOnRegex"
+          />
         </div>
       </div>
     </div>
 
-    <deployment-strategy-selector field-columns="7"
-                                  ng-if="!command.viewState.disableStrategySelection"
-                                  command="command"></deployment-strategy-selector>
+    <deployment-strategy-selector
+      field-columns="7"
+      ng-if="!command.viewState.disableStrategySelection"
+      command="command"
+    ></deployment-strategy-selector>
 
     <div class="form-group" ng-if="!command.viewState.hideClusterNamePreview">
       <div class="col-md-12">
@@ -296,14 +298,16 @@
                 <span ng-if="basicSettingsCtrl.createsNewCluster()"> (new cluster)</span>
               </strong>
             </p>
-            <div class="text-left"
-                 ng-if="!basicSettingsCtrl.createsNewCluster() && command.viewState.mode === 'create' && latestServerGroup">
+            <div
+              class="text-left"
+              ng-if="!basicSettingsCtrl.createsNewCluster() && command.viewState.mode === 'create' && latestServerGroup"
+            >
               <p>
                 There is already a server group in this cluster. Do you want to clone it?
               </p>
               <p>
-                Cloning copies the entire configuration from the selected server group, allowing you
-                to modify whichever fields (e.g. image) you need to change in the new server group.
+                Cloning copies the entire configuration from the selected server group, allowing you to modify whichever
+                fields (e.g. image) you need to change in the new server group.
               </p>
               <p>
                 To clone a server group, select "Clone" from the "Server Group Actions" menu in the details view of the

@@ -15,29 +15,34 @@
           <tr ng-repeat="cert in ctrl.certificates">
             <td ng-if="!cert.isNew">{{cert.certificateName}}</td>
             <td ng-if="cert.isNew">
-              <input class="form-control input-sm" ng-model="cert.certificateName" required
-                     ng-focus="prevCertNames[$index] = cert.name"
-                     ng-blur="ctrl.certNameChanged($index)"/>
+              <input
+                class="form-control input-sm"
+                ng-model="cert.certificateName"
+                required
+                ng-focus="prevCertNames[$index] = cert.name"
+                ng-blur="ctrl.certNameChanged($index)"
+              />
             </td>
             <td>
-              <textarea ng-if="cert.isNew" ng-model="cert.publicCertificate" required
-                        class="form-control input-sm"></textarea>
+              <textarea
+                ng-if="cert.isNew"
+                ng-model="cert.publicCertificate"
+                required
+                class="form-control input-sm"
+              ></textarea>
             </td>
             <td>
-              <textarea ng-if="cert.isNew" ng-model="cert.caCertificate"
-                        class="form-control input-sm"></textarea>
+              <textarea ng-if="cert.isNew" ng-model="cert.caCertificate" class="form-control input-sm"></textarea>
             </td>
             <td>
-              <textarea ng-if="cert.isNew" ng-model="cert.privateKey" required
-                        class="form-control input-sm"></textarea>
+              <textarea ng-if="cert.isNew" ng-model="cert.privateKey" required class="form-control input-sm"></textarea>
             </td>
             <td>
-              <textarea ng-if="cert.isNew" ng-model="cert.passphrase"
-                        class="form-control input-sm"></textarea>
+              <textarea ng-if="cert.isNew" ng-model="cert.passphrase" class="form-control input-sm"></textarea>
             </td>
             <td>
-              <a href class="sm-label" ng-if="ctrl.isCertRemovable($index)"
-                 ng-click="ctrl.removeCert($index)"><span class="glyphicon glyphicon-trash"></span>
+              <a href class="sm-label" ng-if="ctrl.isCertRemovable($index)" ng-click="ctrl.removeCert($index)"
+                ><span class="glyphicon glyphicon-trash"></span>
               </a>
             </td>
           </tr>
@@ -45,7 +50,8 @@
         <tfoot>
           <tr>
             <td colspan="5">
-              <button class="add-new col-md-12" ng-click="ctrl.addCert()"><span class="glyphicon glyphicon-plus-sign"></span>
+              <button class="add-new col-md-12" ng-click="ctrl.addCert()">
+                <span class="glyphicon glyphicon-plus-sign"></span>
                 Add Certificate
               </button>
             </td>

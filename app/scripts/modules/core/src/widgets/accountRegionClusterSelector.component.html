@@ -5,18 +5,21 @@
     accounts="vm.accounts"
     provider="'aws'"
     on-change="vm.accountUpdated()"
-    required>
+    required
+  >
   </account-select-field>
 </stage-config-field>
-<stage-config-field label="{{vm.singleRegion ? 'Region' : 'Regions'}}">
+<stage-config-field label="{{ vm.singleRegion ? 'Region' : 'Regions' }}">
   <p ng-if="!vm.component.credentials" class="form-control-static">(Select an Account)</p>
-  <select class="form-control input-sm"
-          ng-if="vm.component.credentials && vm.singleRegion"
-          ng-model="vm.component.region"
-          ng-change="vm.regionChanged()"
-          ng-disabled="vm.disableRegionSelect"
-          ng-options="region for region in vm.regions"
-          required>
+  <select
+    class="form-control input-sm"
+    ng-if="vm.component.credentials && vm.singleRegion"
+    ng-model="vm.component.region"
+    ng-change="vm.regionChanged()"
+    ng-disabled="vm.disableRegionSelect"
+    ng-options="region for region in vm.regions"
+    required
+  >
   </select>
   <checklist
     ng-if="vm.component.credentials && !vm.singleRegion"
@@ -24,7 +27,8 @@
     model="vm.component.regions"
     inline="true"
     on-change="vm.regionChanged()"
-    include-select-all-button="true">
+    include-select-all-button="true"
+  >
   </checklist>
 </stage-config-field>
 <div ng-if="vm.showClusterSelect">
@@ -33,7 +37,8 @@
       clusters="vm.clusterList"
       model="vm.component[vm.clusterField]"
       toggled="vm.clusterSelectInputToggled(isToggled)"
-      on-change="vm.clusterChanged(clusterName)">
+      on-change="vm.clusterChanged(clusterName)"
+    >
     </cluster-selector>
   </stage-config-field>
 </div>

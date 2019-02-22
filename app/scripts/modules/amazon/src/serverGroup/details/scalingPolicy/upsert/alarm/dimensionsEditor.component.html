@@ -5,23 +5,33 @@
 </div>
 <div ng-repeat="dimension in $ctrl.alarm.dimensions" class="row dimensions-row">
   <div class="col-md-4" style="padding-right: 0">
-    <input type="text" class="form-control input-sm no-spel" style="width: 100%"
-           required
-           uib-typeahead="option for option in $ctrl.dimensionOptions | filter: $viewValue"
-           typeahead-show-hint="true"
-           typeahead-min-length="0"
-           typeahead-editable="true"
-           typeahead-on-select="$ctrl.updateAvailableMetrics()"
-           ng-change="$ctrl.updateAvailableMetrics()"
-           ng-model-options="{ updateOn: 'default blur', debounce: { 'default': 300, 'blur': 0 } }"
-           ng-model="dimension.name" placeholder="name"/>
+    <input
+      type="text"
+      class="form-control input-sm no-spel"
+      style="width: 100%"
+      required
+      uib-typeahead="option for option in $ctrl.dimensionOptions | filter: $viewValue"
+      typeahead-show-hint="true"
+      typeahead-min-length="0"
+      typeahead-editable="true"
+      typeahead-on-select="$ctrl.updateAvailableMetrics()"
+      ng-change="$ctrl.updateAvailableMetrics()"
+      ng-model-options="{ updateOn: 'default blur', debounce: { 'default': 300, 'blur': 0 } }"
+      ng-model="dimension.name"
+      placeholder="name"
+    />
   </div>
   <div class="col-md-6" style="padding-left: 10px">
-    <input type="text" class="form-control input-sm no-spel" style="width: 100%"
-           required
-           ng-model-options="{ updateOn: 'default blur', debounce: { 'default': 300, 'blur': 0 } }"
-           ng-change="$ctrl.updateAvailableMetrics()"
-           ng-model="dimension.value" placeholder="value"/>
+    <input
+      type="text"
+      class="form-control input-sm no-spel"
+      style="width: 100%"
+      required
+      ng-model-options="{ updateOn: 'default blur', debounce: { 'default': 300, 'blur': 0 } }"
+      ng-change="$ctrl.updateAvailableMetrics()"
+      ng-model="dimension.value"
+      placeholder="value"
+    />
   </div>
   <div class="col-md-2">
     <a class="form-control-static" href ng-click="$ctrl.removeDimension($index)">
@@ -31,8 +41,7 @@
 </div>
 <div class="row">
   <div class="col-md-10">
-    <button class="btn btn-block btn-xs add-new"
-            ng-click="$ctrl.alarm.dimensions.push({})">
+    <button class="btn btn-block btn-xs add-new" ng-click="$ctrl.alarm.dimensions.push({})">
       <span class="glyphicon glyphicon-plus-sign"></span>
       Add dimension
     </button>

@@ -2,17 +2,22 @@
   <div class="row pipeline-stage-config-heading">
     <div class="col-md-3">
       <h4 ng-bind="stage.name || '[new stage]'"></h4>
-      <p class="small" ng-if="stage.type && label"><strong>Stage type:</strong> {{label}}<br/> {{description}}</p>
+      <p class="small" ng-if="stage.type && label">
+        <strong>Stage type:</strong> {{label}}<br />
+        {{description}}
+      </p>
       <p class="small" ng-if="extendedDescription" ng-bind-html="extendedDescription"></p>
       <p class="small" ng-if="!stage.type">No stage type selected</p>
     </div>
     <div class="col-md-7 form-horizontal">
       <stage-config-field label="Type" field-columns="9" ng-if="stage.isNew">
-        <ui-select ng-model="options.selectedStageType"
-                   style="width: 250px"
-                   class="form-control input-sm"
-                   autofocus
-                   on-select="stageConfigCtrl.selectStageType($item)">
+        <ui-select
+          ng-model="options.selectedStageType"
+          style="width: 250px"
+          class="form-control input-sm"
+          autofocus
+          on-select="stageConfigCtrl.selectStageType($item)"
+        >
           <ui-select-match>
             <strong>{{$select.selected.label}}</strong>
           </ui-select-match>
@@ -21,9 +26,13 @@
               <div class="stage-choice-heading">
                 <strong ng-bind-html="option.label | highlight: $select.search"></strong>
                 <span class="available-providers" ng-if="showProviders">
-                  <cloud-provider-logo ng-repeat="provider in option.cloudProviders"
-                                       provider="provider"
-                                       height="'12px'" width="'12px'" show-tooltip="true"></cloud-provider-logo>
+                  <cloud-provider-logo
+                    ng-repeat="provider in option.cloudProviders"
+                    provider="provider"
+                    height="'12px'"
+                    width="'12px'"
+                    show-tooltip="true"
+                  ></cloud-provider-logo>
                 </span>
               </div>
               <div ng-bind-html="option.description | highlight: $select.search"></div>
@@ -32,23 +41,37 @@
         </ui-select>
       </stage-config-field>
       <stage-config-field label="Stage Name">
-        <input type="text" class="form-control input-sm" required ng-model="stage.name"/>
+        <input type="text" class="form-control input-sm" required ng-model="stage.name" />
       </stage-config-field>
       <stage-config-field label="Depends On" help-key="pipeline.config.dependsOn" style="margin-bottom: 10px">
-        <ui-select ng-model="stage.requisiteStageRefIds" multiple class="form-control input-sm"
-                   on-select="updateAvailableDependencyStages()"
-                   on-remove="updateAvailableDependencyStages()">
+        <ui-select
+          ng-model="stage.requisiteStageRefIds"
+          multiple
+          class="form-control input-sm"
+          on-select="updateAvailableDependencyStages()"
+          on-remove="updateAvailableDependencyStages()"
+        >
           <ui-select-match>{{$item.name}}</ui-select-match>
-          <ui-select-choices repeat="option.refId as option in options.dependencies | anyFieldFilter: {name: $select.search}"
-                             ui-disable-choice="!option.available"
-                             group-by="groupDependencyOptions">
-            <span ng-if="!stage.requisiteStageRefIds.includes(option.refId)" ng-bind-html="option.name | highlight: $select.search"></span>
+          <ui-select-choices
+            repeat="option.refId as option in options.dependencies | anyFieldFilter: {name: $select.search}"
+            ui-disable-choice="!option.available"
+            group-by="groupDependencyOptions"
+          >
+            <span
+              ng-if="!stage.requisiteStageRefIds.includes(option.refId)"
+              ng-bind-html="option.name | highlight: $select.search"
+            ></span>
           </ui-select-choices>
         </ui-select>
       </stage-config-field>
     </div>
     <div class="col-md-2 text-right">
-      <button type="button" class="btn btn-sm btn-default" ng-click="pipelineConfigurerCtrl.removeStage(stage)" style="margin-bottom: 5px">
+      <button
+        type="button"
+        class="btn btn-sm btn-default"
+        ng-click="pipelineConfigurerCtrl.removeStage(stage)"
+        style="margin-bottom: 5px"
+      >
         <span class="glyphicon glyphicon-trash" uib-tooltip="Remove stage"></span> Remove stage
       </button>
       <button type="button" class="btn btn-sm btn-default" ng-click="stageConfigCtrl.editStageJson(stage)">
@@ -67,7 +90,12 @@
       <fail-on-failed-expressions stage="stage"></fail-on-failed-expressions>
       <optional-stage stage="stage"></optional-stage>
     </page-section>
-    <page-section key="notification" label="Notifications" visible="canConfigureNotifications" badge="stage.notifications.length">
+    <page-section
+      key="notification"
+      label="Notifications"
+      visible="canConfigureNotifications"
+      badge="stage.notifications.length"
+    >
       <notification-list level="stage" notifications="stage.notifications" parent="stage"></notification-list>
     </page-section>
     <render-if-feature feature="artifacts">
@@ -76,8 +104,12 @@
       </page-section>
     </render-if-feature>
     <page-section key="comments" label="Comments" no-wrapper="true">
-        <textarea class="form-control" ng-model="stage.comments" rows="3"
-                  placeholder="(Optional) anything that might be helpful to explain the purpose of this stage; HTML is okay"></textarea>
+      <textarea
+        class="form-control"
+        ng-model="stage.comments"
+        rows="3"
+        placeholder="(Optional) anything that might be helpful to explain the purpose of this stage; HTML is okay"
+      ></textarea>
     </page-section>
   </page-navigator>
 </div>

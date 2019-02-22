@@ -9,7 +9,10 @@
           <dt>Namespace</dt>
           <dd>{{stage.context.region}}</dd>
           <dt>Image</dt>
-          <dd>{{[stage.context.imageDescription.registry, stage.context.imageDescription.repository, stage.context.imageDescription.tag].join(':')}}</dd>
+          <dd>
+            {{[stage.context.imageDescription.registry, stage.context.imageDescription.repository,
+            stage.context.imageDescription.tag].join(':')}}
+          </dd>
         </dl>
       </div>
     </div>

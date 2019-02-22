@@ -5,9 +5,11 @@
     <div class="row">
       <div class="col-md-2 canary-summary">
         <div class="score score-large">
-          <canary-score health="canary.health.health"
-                        result="canary.canaryResult.overallResult"
-                        score="canary.canaryResult.overallScore"></canary-score>
+          <canary-score
+            health="canary.health.health"
+            result="canary.canaryResult.overallResult"
+            score="canary.canaryResult.overallScore"
+          ></canary-score>
         </div>
       </div>
     </div>
@@ -15,45 +17,50 @@
       <div class="col-md-12">
         <table class="table">
           <tbody>
-          <tr>
-            <td style="border-top: none !important;"><strong>Deployment</strong></td>
-            <td style="border-top: none !important;"><strong>Canary Result</strong></td>
-            <td style="border-top: none !important;"><strong>Duration</strong></td>
-            <td style="border-top: none !important;"><strong>Report</strong></td>
-            <td style="border-top: none !important;"><strong>Last Updated</strong></td>
-          </tr>
-          <tr ng-repeat="canaryDeployment in canaryDeployments">
-            <td>
-              <strong>{{ canaryDeployment.canaryCluster.region }}</strong>
-            </td>
-            <td>
-              <canary-score result="canaryDeployment.canaryResult.result"
-                            score="canaryDeployment.canaryResult.score"
-                            health="canaryDeployment.health.health"></canary-score>
-            </td>
-            <td>
-              <span ng-if="canaryDeployment.canaryResult.timeDuration.durationString">
-                {{ canaryDeployment.canaryResult.timeDuration.durationString }}
-              </span>
-              <span ng-if="!canaryDeployment.canaryResult.timeDuration.durationString">
-                -
-              </span>
-            </td>
-            <td>
-              <a ng-if="canaryDeployment.canaryAnalysisResult.canaryReportURL"
-                 target="_blank" ng-href="{{canaryDeployment.canaryAnalysisResult.canaryReportURL}}">
-                Canary Report
-              </a>
-            </td>
-            <td>
-              <span ng-if="canaryDeployment.canaryAnalysisResult.lastUpdated">
-                {{ canaryDeployment.canaryResult.lastUpdated | timestamp}}
-              </span>
-              <span ng-if="!canaryDeployment.canaryAnalysisResult.lastUpdated">
-                -
-              </span>
-            </td>
-          </tr>
+            <tr>
+              <td style="border-top: none !important;"><strong>Deployment</strong></td>
+              <td style="border-top: none !important;"><strong>Canary Result</strong></td>
+              <td style="border-top: none !important;"><strong>Duration</strong></td>
+              <td style="border-top: none !important;"><strong>Report</strong></td>
+              <td style="border-top: none !important;"><strong>Last Updated</strong></td>
+            </tr>
+            <tr ng-repeat="canaryDeployment in canaryDeployments">
+              <td>
+                <strong>{{ canaryDeployment.canaryCluster.region }}</strong>
+              </td>
+              <td>
+                <canary-score
+                  result="canaryDeployment.canaryResult.result"
+                  score="canaryDeployment.canaryResult.score"
+                  health="canaryDeployment.health.health"
+                ></canary-score>
+              </td>
+              <td>
+                <span ng-if="canaryDeployment.canaryResult.timeDuration.durationString">
+                  {{ canaryDeployment.canaryResult.timeDuration.durationString }}
+                </span>
+                <span ng-if="!canaryDeployment.canaryResult.timeDuration.durationString">
+                  -
+                </span>
+              </td>
+              <td>
+                <a
+                  ng-if="canaryDeployment.canaryAnalysisResult.canaryReportURL"
+                  target="_blank"
+                  ng-href="{{canaryDeployment.canaryAnalysisResult.canaryReportURL}}"
+                >
+                  Canary Report
+                </a>
+              </td>
+              <td>
+                <span ng-if="canaryDeployment.canaryAnalysisResult.lastUpdated">
+                  {{ canaryDeployment.canaryResult.lastUpdated | timestamp}}
+                </span>
+                <span ng-if="!canaryDeployment.canaryAnalysisResult.lastUpdated">
+                  -
+                </span>
+              </td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -98,24 +105,34 @@
               <strong>Result</strong>
             </div>
             <div class="col-md-6">
-              <div class="alert canary-summary-alert alert-danger"><strong>Canary result has been manually set</strong></div>
+              <div class="alert canary-summary-alert alert-danger">
+                <strong>Canary result has been manually set</strong>
+              </div>
             </div>
           </div>
-          <div class="row"
-               ng-if="!canary.canaryResult.manual
+          <div
+            class="row"
+            ng-if="!canary.canaryResult.manual
                       && canary.status.complete
                       && canary.canaryResult.overallResult === 'failure'
                       && canary.canaryResult.message"
-               style="margin-top: 6px;">
+            style="margin-top: 6px;"
+          >
             <div class="col-md-2">
               <strong>Result</strong>
             </div>
             <div class="col-md-10">
-              <div class="alert canary-summary-alert alert-danger"><strong>{{ canary.canaryResult.message }}</strong></div>
+              <div class="alert canary-summary-alert alert-danger">
+                <strong>{{ canary.canaryResult.message }}</strong>
+              </div>
             </div>
           </div>
         </div>
-        <stage-failure-message stage="stage" is-failed="stage.exceptions.length > 0" messages="stage.exceptions"></stage-failure-message>
+        <stage-failure-message
+          stage="stage"
+          is-failed="stage.exceptions.length > 0"
+          messages="stage.exceptions"
+        ></stage-failure-message>
       </div>
     </div>
   </div>
@@ -134,7 +151,9 @@
       <div class="col-md-12 canary-config-section">
         <div class="row">
           <div class="col-md-4 sm-label-right compact">Baseline</div>
-          <div class="col-md-6"><account-tag account="baseline.account" pad="right"></account-tag> {{baseline.cluster}}</div>
+          <div class="col-md-6">
+            <account-tag account="baseline.account" pad="right"></account-tag> {{baseline.cluster}}
+          </div>
         </div>
         <div class="row">
           <div class="col-md-4 sm-label-right compact">Duration</div>
@@ -155,7 +174,11 @@
         <div class="row">
           <div class="col-md-4 sm-label-right compact">Config Name</div>
           <div class="col-md-6">
-            <a ng-if="configUrl" href="{{configUrl}}/{{canaryDeployments[0].baselineCluster.accountName}}/{{canaryConfig.canaryAnalysisConfig.name}}" target="_blank">
+            <a
+              ng-if="configUrl"
+              href="{{configUrl}}/{{canaryDeployments[0].baselineCluster.accountName}}/{{canaryConfig.canaryAnalysisConfig.name}}"
+              target="_blank"
+            >
               {{canaryConfig.canaryAnalysisConfig.name}}
             </a>
             <span ng-if="!configUrl">
@@ -200,7 +223,7 @@
               <span ng-if="!(canaryAction.delayBeforeActionInMins <= 0)">
                 after {{ canaryAction.delayBeforeActionInMins }} minutes
               </span>
-              <br/>
+              <br />
             </span>
           </div>
         </div>

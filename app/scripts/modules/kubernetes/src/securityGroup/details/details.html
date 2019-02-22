@@ -1,8 +1,7 @@
 <div class="details-panel">
   <div class="header">
     <div class="close-button" ng-if="!state.standalone">
-      <a class="btn btn-link"
-         ui-sref="^">
+      <a class="btn btn-link" ui-sref="^">
         <span class="glyphicon glyphicon-remove"></span>
       </a>
     </div>
@@ -21,8 +20,12 @@
           <firewall-label label="Firewall"></firewall-label> Actions <span class="caret"></span>
         </button>
         <ul class="dropdown-menu" uib-dropdown-menu role="menu">
-          <li><a href ng-click="ctrl.deleteSecurityGroup()">Delete <firewall-label label="Firewall"></firewall-label></a></li>
-          <li><a href ng-click="ctrl.editSecurityGroup()">Edit <firewall-label label="Firewall"></firewall-label></a></li>
+          <li>
+            <a href ng-click="ctrl.deleteSecurityGroup()">Delete <firewall-label label="Firewall"></firewall-label></a>
+          </li>
+          <li>
+            <a href ng-click="ctrl.editSecurityGroup()">Edit <firewall-label label="Firewall"></firewall-label></a>
+          </li>
         </ul>
       </div>
     </div>
@@ -54,13 +57,17 @@
       </dl>
     </collapsible-section>
     <collapsible-section heading="Rules">
-      <dl ng-class="insightCtrl.vm.filtersExpanded ? '' : 'dl-horizontal dl-medium'"
-          ng-repeat="rule in securityGroup.ingress.spec.rules"
-          ng-if="securityGroup.ingress.spec.rules && securityGroup.ingress.spec.rules.length > 0">
+      <dl
+        ng-class="insightCtrl.vm.filtersExpanded ? '' : 'dl-horizontal dl-medium'"
+        ng-repeat="rule in securityGroup.ingress.spec.rules"
+        ng-if="securityGroup.ingress.spec.rules && securityGroup.ingress.spec.rules.length > 0"
+      >
         <dt ng-if="rule.host">Host</dt>
         <dd ng-if="rule.host">{{rule.host}}</dd>
-        <dl ng-class="insightCtrl.vm.filtersExpanded ? '' : 'dl-horizontal dl-medium'"
-            ng-repeat="path in rule.http.paths">
+        <dl
+          ng-class="insightCtrl.vm.filtersExpanded ? '' : 'dl-horizontal dl-medium'"
+          ng-repeat="path in rule.http.paths"
+        >
           <dt>Path</dt>
           <dd>{{path.path}}</dd>
           <dt>Service Name</dt>
@@ -74,9 +81,11 @@
       </dl>
     </collapsible-section>
     <collapsible-section heading="TLS">
-      <dl ng-class="insightCtrl.vm.filtersExpanded ? '' : 'dl-horizontal dl-medium'"
-          ng-repeat="tls in securityGroup.ingress.spec.tls"
-          ng-if="securityGroup.ingress.spec.tls.length">
+      <dl
+        ng-class="insightCtrl.vm.filtersExpanded ? '' : 'dl-horizontal dl-medium'"
+        ng-repeat="tls in securityGroup.ingress.spec.tls"
+        ng-if="securityGroup.ingress.spec.tls.length"
+      >
         <dt>Host</dt>
         <dd>{{tls.hosts[0]}}</dd>
       </dl>
@@ -85,22 +94,22 @@
       </dl>
     </collapsible-section>
     <collapsible-section heading="Status">
-      <dl ng-class="insightCtrl.vm.filtersExpanded ? '' : 'dl-horizontal dl-medium'"
-          ng-repeat="ingress in securityGroup.ingress.status.loadBalancer.ingress">
+      <dl
+        ng-class="insightCtrl.vm.filtersExpanded ? '' : 'dl-horizontal dl-medium'"
+        ng-repeat="ingress in securityGroup.ingress.status.loadBalancer.ingress"
+      >
         <dt>IP</dt>
         <dd>{{ingress.ip}}</dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Annotations" ng-if="securityGroup.ingress.metadata.annotations">
       <dl class="dl-horizontal dl-flex">
-        <kubernetes-key-value-details map="securityGroup.ingress.metadata.annotations">
-        </kubernetes-key-value-details>
+        <kubernetes-key-value-details map="securityGroup.ingress.metadata.annotations"> </kubernetes-key-value-details>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Labels" ng-if="securityGroup.ingress.metadata.labels">
       <dl class="dl-horizontal dl-flex">
-        <kubernetes-key-value-details map="securityGroup.ingress.metadata.labels">
-        </kubernetes-key-value-details>
+        <kubernetes-key-value-details map="securityGroup.ingress.metadata.labels"> </kubernetes-key-value-details>
       </dl>
     </collapsible-section>
   </div>

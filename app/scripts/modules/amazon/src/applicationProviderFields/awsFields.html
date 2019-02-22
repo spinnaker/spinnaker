@@ -2,9 +2,11 @@
   <div class="col-sm-3 sm-label-right">AWS Settings</div>
   <div class="col-sm-9 checkbox" style="margin-bottom: 0; margin-top: 5px">
     <label>
-      <input type="checkbox"
-             ng-init="$ctrl.initializeApplicationField('aws.useAmiBlockDeviceMappings')"
-             ng-model="$ctrl.application.providerSettings.aws.useAmiBlockDeviceMappings"/>
+      <input
+        type="checkbox"
+        ng-init="$ctrl.initializeApplicationField('aws.useAmiBlockDeviceMappings')"
+        ng-model="$ctrl.application.providerSettings.aws.useAmiBlockDeviceMappings"
+      />
       Prefer AMI Block Device Mappings
     </label>
   </div>

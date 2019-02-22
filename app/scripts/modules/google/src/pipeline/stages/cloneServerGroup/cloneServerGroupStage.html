@@ -9,7 +9,8 @@
         component="stage"
         accounts="accounts"
         single-region="true"
-        cluster-field="targetCluster">
+        cluster-field="targetCluster"
+      >
       </account-region-cluster-selector>
     </div>
   </div>
@@ -21,18 +22,20 @@
       <div class="col-md-3 sm-label-right">Capacity</div>
       <div class="col-md-9 radio">
         <label>
-          <input type="radio"
-                 ng-model="stage.useSourceCapacity"
-                 ng-value="true"
-                 ng-click="cloneServerGroupStageCtrl.removeCapacity()"
-                 id="useSourceCapacityTrue"/>
+          <input
+            type="radio"
+            ng-model="stage.useSourceCapacity"
+            ng-value="true"
+            ng-click="cloneServerGroupStageCtrl.removeCapacity()"
+            id="useSourceCapacityTrue"
+          />
           Copy the capacity from the current server group
           <help-field key="serverGroupCapacity.useSourceCapacityTrue"></help-field>
         </label>
       </div>
       <div class="col-md-9 col-md-offset-3 radio">
         <label>
-          <input type="radio" ng-model="stage.useSourceCapacity" ng-value="false" id="useSourceCapacityFalse"/>
+          <input type="radio" ng-model="stage.useSourceCapacity" ng-value="false" id="useSourceCapacityFalse" />
           Let me specify the capacity
           <help-field key="serverGroupCapacity.useSourceCapacityFalse"></help-field>
         </label>
@@ -44,41 +47,53 @@
       <div class="col-md-2">Desired</div>
     </div>
     <div class="form-group">
-      <div class="col-md-2 col-md-offset-3"><input type="number"
-                                                   ng-disabled="stage.useSourceCapacity"
-                                                   class="form-control input-sm"
-                                                   ng-model="stage.capacity.min"
-                                                   min="0"
-                                                   max="{{stage.capacity.max}}"
-                                                   required/></div>
-      <div class="col-md-2"><input type="number"
-                                   ng-disabled="stage.useSourceCapacity"
-                                   class="form-control input-sm"
-                                   ng-model="stage.capacity.max"
-                                   min="{{stage.capacity.min}}"
-                                   required/></div>
-      <div class="col-md-2"><input type="number"
-                                   ng-disabled="stage.useSourceCapacity"
-                                   class="form-control input-sm"
-                                   ng-model="stage.capacity.desired"
-                                   min="{{stage.capacity.min}}"
-                                   max="{{stage.capacity.max}}"
-                                   required/></div>
+      <div class="col-md-2 col-md-offset-3">
+        <input
+          type="number"
+          ng-disabled="stage.useSourceCapacity"
+          class="form-control input-sm"
+          ng-model="stage.capacity.min"
+          min="0"
+          max="{{stage.capacity.max}}"
+          required
+        />
+      </div>
+      <div class="col-md-2">
+        <input
+          type="number"
+          ng-disabled="stage.useSourceCapacity"
+          class="form-control input-sm"
+          ng-model="stage.capacity.max"
+          min="{{stage.capacity.min}}"
+          required
+        />
+      </div>
+      <div class="col-md-2">
+        <input
+          type="number"
+          ng-disabled="stage.useSourceCapacity"
+          class="form-control input-sm"
+          ng-model="stage.capacity.desired"
+          min="{{stage.capacity.min}}"
+          max="{{stage.capacity.max}}"
+          required
+        />
+      </div>
     </div>
   </div>
   <stage-config-field label="Traffic" help-key="gce.serverGroup.traffic">
     <div class="checkbox">
       <label>
-        <input type="checkbox"
-               ng-click="cloneServerGroupStageCtrl.toggleDisableTraffic()"
-               ng-checked="!stage.disableTraffic"/>
+        <input
+          type="checkbox"
+          ng-click="cloneServerGroupStageCtrl.toggleDisableTraffic()"
+          ng-checked="!stage.disableTraffic"
+        />
         Send client requests to new instances
       </label>
     </div>
   </stage-config-field>
-  <stage-platform-health-override application="application"
-                                  stage="stage"
-                                  platform-health-type="'Google'">
+  <stage-platform-health-override application="application" stage="stage" platform-health-type="'Google'">
   </stage-platform-health-override>
   <deployment-strategy-selector field-columns="6" command="stage"></deployment-strategy-selector>
 </div>

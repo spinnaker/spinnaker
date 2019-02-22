@@ -1,21 +1,34 @@
 <span class="form-control-static" ng-if="$ctrl.rule.existing">
-  <account-tag account="$ctrl.rule.accountName" ng-if="$ctrl.rule.accountName !== $ctrl.securityGroup.accountName"></account-tag>
-  {{$ctrl.rule.name || $ctrl.rule.id}}
+  <account-tag
+    account="$ctrl.rule.accountName"
+    ng-if="$ctrl.rule.accountName !== $ctrl.securityGroup.accountName"
+  ></account-tag>
+  {{ $ctrl.rule.name || $ctrl.rule.id }}
 </span>
 
 <div ng-if="$ctrl.rule.crossAccountEnabled && $ctrl.securityGroup.regions.length === 1" class="cross-account-select">
   <div class="row">
     <div class="col-md-3"><span class="small">Account</span></div>
     <div class="col-md-9">
-      <account-select-field component="$ctrl.rule" field="accountName" accounts="$ctrl.accounts" provider="'aws'" on-change="$ctrl.setAvailableSecurityGroups()"></account-select-field>
+      <account-select-field
+        component="$ctrl.rule"
+        field="accountName"
+        accounts="$ctrl.accounts"
+        provider="'aws'"
+        on-change="$ctrl.setAvailableSecurityGroups()"
+      ></account-select-field>
     </div>
   </div>
   <div class="row" ng-if="$ctrl.securityGroup.vpcId">
     <div class="col-md-3"><span class="small">VPC</span></div>
     <div class="col-md-9">
-      <select class="form-control input-sm" ng-model="$ctrl.rule.vpcId"
-             ng-change="$ctrl.setAvailableSecurityGroups()">
-        <option ng-repeat="vpc in $ctrl.regionalVpcs[$ctrl.rule.accountName]" value="{{vpc.id}}" ng-selected="$ctrl.rule.vpcId === vpc.id">{{vpc.label}}</option>
+      <select class="form-control input-sm" ng-model="$ctrl.rule.vpcId" ng-change="$ctrl.setAvailableSecurityGroups()">
+        <option
+          ng-repeat="vpc in $ctrl.regionalVpcs[$ctrl.rule.accountName]"
+          value="{{ vpc.id }}"
+          ng-selected="$ctrl.rule.vpcId === vpc.id"
+          >{{ vpc.label }}</option
+        >
       </select>
     </div>
   </div>
@@ -25,27 +38,33 @@
   <div class="col-md-3">
     <span class="small" ng-if="$ctrl.rule.crossAccountEnabled">Group</span>
   </div>
-  <div class="col-md-{{$ctrl.rule.crossAccountEnabled ? 9 : 12}}">
-    <ui-select ng-if="!$ctrl.rule.existing"
-               ng-model="$ctrl.rule.name"
-               uis-open-close="$ctrl.resetCurrentItems()"
-               class="form-control input-sm"
-               required
-               style="width: 100%">
-      <ui-select-match>{{$select.selected}}</ui-select-match>
-      <ui-select-choices repeat="securityGroup as securityGroup in $ctrl.availableSecurityGroups | filter: $select.search | limitTo: $ctrl.infiniteScroll.currentItems"
-                         infinite-scroll="$ctrl.addMoreItems()"
-                         infinite-scroll-distance="4">
+  <div class="col-md-{{ $ctrl.rule.crossAccountEnabled ? 9 : 12 }}">
+    <ui-select
+      ng-if="!$ctrl.rule.existing"
+      ng-model="$ctrl.rule.name"
+      uis-open-close="$ctrl.resetCurrentItems()"
+      class="form-control input-sm"
+      required
+      style="width: 100%"
+    >
+      <ui-select-match>{{ $select.selected }}</ui-select-match>
+      <ui-select-choices
+        repeat="securityGroup as securityGroup in $ctrl.availableSecurityGroups | filter: $select.search | limitTo: $ctrl.infiniteScroll.currentItems"
+        infinite-scroll="$ctrl.addMoreItems()"
+        infinite-scroll-distance="4"
+      >
         <span ng-bind-html="securityGroup | highlight: $select.search"></span>
       </ui-select-choices>
     </ui-select>
   </div>
 </div>
 
-<a href
-   class="small"
-   ng-if="!$ctrl.rule.existing && $ctrl.securityGroup.regions.length === 1 && !$ctrl.rule.crossAccountEnabled"
-   ng-click="$ctrl.enableCrossAccount($index)">
+<a
+  href
+  class="small"
+  ng-if="!$ctrl.rule.existing && $ctrl.securityGroup.regions.length === 1 && !$ctrl.rule.crossAccountEnabled"
+  ng-click="$ctrl.enableCrossAccount($index)"
+>
   Select from a different account <span ng-if="$ctrl.securityGroup.vpcId">or VPC</span>
 </a>
 

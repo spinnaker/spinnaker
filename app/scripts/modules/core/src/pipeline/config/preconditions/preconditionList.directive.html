@@ -2,41 +2,47 @@
   <stage-config-field label="Preconditions">
     <table class="table table-condensed">
       <thead>
-      <tr>
-        <th>Type</th>
-        <th class="precondition-details">Details</th>
-        <th>Actions</th>
-      </tr>
+        <tr>
+          <th>Type</th>
+          <th class="precondition-details">Details</th>
+          <th>Actions</th>
+        </tr>
       </thead>
       <tbody>
-      <tr ng-repeat="precondition in preconditions">
-        <td>
-          {{precondition.type|preconditionType}}
-        </td>
-        <td class="precondition-details">
-          <div ng-repeat="(key, val) in precondition.context">
-            <strong>{{key | robotToHuman}}: </strong> {{val}}
-          </div>
-          <strong>Fail Pipeline: </strong> {{precondition.failPipeline}}
-        </td>
-        <td>
-          <a class="btn btn-xs btn-link" href
-             ng-click="preconditionListCtrl.editPrecondition(precondition, strategy)">
-            <span class="glyphicon glyphicon-edit" uib-tooltip="Edit"></span></a>
-          <a class="btn btn-xs btn-link pad-left" href
-             ng-click="preconditionListCtrl.removePrecondition(precondition)">
-            <span class="glyphicon glyphicon-trash" uib-tooltip="Remove"></span></a>
-        </td>
-      </tr>
+        <tr ng-repeat="precondition in preconditions">
+          <td>
+            {{precondition.type|preconditionType}}
+          </td>
+          <td class="precondition-details">
+            <div ng-repeat="(key, val) in precondition.context"><strong>{{key | robotToHuman}}: </strong> {{val}}</div>
+            <strong>Fail Pipeline: </strong> {{precondition.failPipeline}}
+          </td>
+          <td>
+            <a
+              class="btn btn-xs btn-link"
+              href
+              ng-click="preconditionListCtrl.editPrecondition(precondition, strategy)"
+            >
+              <span class="glyphicon glyphicon-edit" uib-tooltip="Edit"></span
+            ></a>
+            <a
+              class="btn btn-xs btn-link pad-left"
+              href
+              ng-click="preconditionListCtrl.removePrecondition(precondition)"
+            >
+              <span class="glyphicon glyphicon-trash" uib-tooltip="Remove"></span
+            ></a>
+          </td>
+        </tr>
       </tbody>
       <tfoot>
-      <tr>
-        <td colspan="7">
-          <button class="btn btn-block add-new" ng-click="preconditionListCtrl.addPrecondition(strategy)">
-            <span class="glyphicon glyphicon-plus-sign"></span> Add Precondition
-          </button>
-        </td>
-      </tr>
+        <tr>
+          <td colspan="7">
+            <button class="btn btn-block add-new" ng-click="preconditionListCtrl.addPrecondition(strategy)">
+              <span class="glyphicon glyphicon-plus-sign"></span> Add Precondition
+            </button>
+          </td>
+        </tr>
       </tfoot>
     </table>
   </stage-config-field>

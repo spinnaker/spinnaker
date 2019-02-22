@@ -12,9 +12,9 @@
           <dt>Build</dt>
           <dd>
             <span ng-if="!stage.context.buildInfo">{{stage.context.buildNumber}}</span>
-            <a ng-if="stage.context.buildInfo.url"
-               href="{{stage.context.buildInfo.url}}"
-               target="_blank">#{{stage.context.buildInfo.number}}</a>
+            <a ng-if="stage.context.buildInfo.url" href="{{stage.context.buildInfo.url}}" target="_blank"
+              >#{{stage.context.buildInfo.number}}</a
+            >
           </dd>
         </dl>
       </div>
@@ -31,8 +31,7 @@
           <div class="col-md-6">
             <p class="test-results">
               <span class="test-result-section">
-                {{result.totalCount - result.failCount - result.skipCount}} <span
-                class="small fa fa-check"></span>
+                {{result.totalCount - result.failCount - result.skipCount}} <span class="small fa fa-check"></span>
               </span>
               <span class="test-result-section">
                 {{result.failCount}} <span class="small glyphicon glyphicon-remove informational"></span>
@@ -47,11 +46,11 @@
     </div>
     <div class="row" ng-if="stage.context.parameters">
       <div class="col-md-12">
-      <h5 style="margin-bottom: 0; padding-bottom: 5px;">Parameters</h5>
-      <dl>
-        <dt ng-repeat-start="(key, val) in stage.context.parameters">{{key}}</dt>
-        <dd ng-repeat-end>{{val}}</dd>
-      </dl>
+        <h5 style="margin-bottom: 0; padding-bottom: 5px;">Parameters</h5>
+        <dl>
+          <dt ng-repeat-start="(key, val) in stage.context.parameters">{{key}}</dt>
+          <dd ng-repeat-end>{{val}}</dd>
+        </dl>
       </div>
     </div>
 
@@ -65,7 +64,11 @@
       </div>
     </div>
 
-    <stage-failure-message stage="stage" ng-if="stage.isFailed" message="ctrl.getException(stage) || failureMessage"></stage-failure-message>
+    <stage-failure-message
+      stage="stage"
+      ng-if="stage.isFailed"
+      message="ctrl.getException(stage) || failureMessage"
+    ></stage-failure-message>
   </div>
 
   <div class="step-section-details" ng-if="detailsSection === 'taskStatus'">
@@ -73,5 +76,4 @@
       <execution-step-details item="stage"></execution-step-details>
     </div>
   </div>
-
 </div>

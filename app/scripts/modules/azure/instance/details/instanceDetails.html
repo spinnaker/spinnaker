@@ -1,8 +1,7 @@
 <div class="details-panel">
   <div class="header" ng-if="state.loading">
     <div class="close-button" ng-if="!state.standalone">
-      <a class="btn btn-link"
-         ui-sref="^">
+      <a class="btn btn-link" ui-sref="^">
         <span class="glyphicon glyphicon-remove"></span>
       </a>
     </div>
@@ -13,8 +12,7 @@
 
   <div class="header" ng-if="!state.loading">
     <div class="close-button" ng-if="!state.standalone">
-      <a class="btn btn-link"
-         ui-sref="^">
+      <a class="btn btn-link" ui-sref="^">
         <span class="glyphicon glyphicon-remove"></span>
       </a>
     </div>
@@ -40,10 +38,13 @@
         <dd>{{instance.instanceType || '(Unknown)'}}</dd>
         <dt ng-if="instance.serverGroup">Server Group</dt>
         <dd ng-if="instance.serverGroup">
-          <a ui-sref="^.serverGroup({region: instance.region,
+          <a
+            ui-sref="^.serverGroup({region: instance.region,
               accountId: instance.account,
               serverGroup: instance.serverGroup,
-              provider: instance.provider})">{{instance.serverGroup}}</a>
+              provider: instance.provider})"
+            >{{instance.serverGroup}}</a
+          >
         </dd>
       </dl>
     </collapsible-section>

@@ -1,14 +1,20 @@
 <div class="row">
   <div class="col-md-12" ng-if="vm.command.viewState.dirty.loadBalancers">
     <div class="alert alert-warning">
-      <p><i class="fa fa-exclamation-triangle"></i>
+      <p>
+        <i class="fa fa-exclamation-triangle"></i>
         The following load balancers could not be found in the selected account/region and were removed:
       </p>
       <ul>
         <li ng-repeat="loadBalancer in vm.command.viewState.dirty.loadBalancers">{{loadBalancer}}</li>
       </ul>
       <p class="text-right">
-        <a class="btn btn-sm btn-default dirty-flag-dismiss" href ng-click="vm.command.viewState.dirty.loadBalancers = null">Okay</a>
+        <a
+          class="btn btn-sm btn-default dirty-flag-dismiss"
+          href
+          ng-click="vm.command.viewState.dirty.loadBalancers = null"
+          >Okay</a
+        >
       </p>
     </div>
   </div>
@@ -16,17 +22,24 @@
   <div class="form-group">
     <div class="col-md-3 sm-label-right"><b>Load Balancers</b></div>
     <div class="col-md-9">
-      <ui-select ng-if="vm.command.backingData.filtered.loadBalancers.length"
-                 multiple
-                 ng-model="vm.command.loadBalancers"
-                 class="form-control input-sm">
+      <ui-select
+        ng-if="vm.command.backingData.filtered.loadBalancers.length"
+        multiple
+        ng-model="vm.command.loadBalancers"
+        class="form-control input-sm"
+      >
         <ui-select-match>
           {{$item}}
-          <gce-el-seven-options-generator ng-if="vm.isHttpLoadBalancer(vm.command.backingData.filtered.loadBalancerIndex[$item])"
-                                          command="vm.command" load-balancer-name="{{:: $item}}">
+          <gce-el-seven-options-generator
+            ng-if="vm.isHttpLoadBalancer(vm.command.backingData.filtered.loadBalancerIndex[$item])"
+            command="vm.command"
+            load-balancer-name="{{:: $item}}"
+          >
           </gce-el-seven-options-generator>
         </ui-select-match>
-        <ui-select-choices repeat="loadBalancer in vm.command.backingData.filtered.loadBalancers | filter: $select.search">
+        <ui-select-choices
+          repeat="loadBalancer in vm.command.backingData.filtered.loadBalancers | filter: $select.search"
+        >
           <span ng-bind-html="loadBalancer | highlight: $select.search"></span>
         </ui-select-choices>
       </ui-select>
@@ -41,11 +54,14 @@
         <span ng-if="!vm.refreshing">last refreshed {{ vm.getLoadBalancerRefreshTime() | timestamp }}</span>
         <span ng-if="vm.refreshing"> refreshing...</span>
       </p>
-      <p>If you're not finding a load balancer that was recently added,
+      <p>
+        If you're not finding a load balancer that was recently added,
         <a href ng-click="vm.refreshLoadBalancers()">click here</a> to refresh the list.
       </p>
     </div>
   </div>
-  <gce-load-balancing-policy-selector ng-if="vm.showLoadBalancingPolicy()"
-                                      command="vm.command"></gce-load-balancing-policy-selector>
+  <gce-load-balancing-policy-selector
+    ng-if="vm.showLoadBalancingPolicy()"
+    command="vm.command"
+  ></gce-load-balancing-policy-selector>
 </div>

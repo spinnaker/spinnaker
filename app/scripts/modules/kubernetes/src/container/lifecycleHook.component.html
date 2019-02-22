@@ -5,7 +5,12 @@
   <div class="row form-group">
     <div class="col-md-3 sm-label-right">Enabled</div>
     <div class="col-md-6">
-      <input type="checkbox" ng-model="$ctrl.handlerEnabled" ng-change="$ctrl.toggleHandlerEnabled()" style="margin-top: 8px;"/>
+      <input
+        type="checkbox"
+        ng-model="$ctrl.handlerEnabled"
+        ng-change="$ctrl.toggleHandlerEnabled()"
+        style="margin-top: 8px;"
+      />
     </div>
   </div>
   <div class="row form-group" ng-if="$ctrl.handlerEnabled">
@@ -13,58 +18,80 @@
       <div class="sm-label-right">Hook Type</div>
     </div>
     <div class="col-md-6">
-      <select class="form-control input-sm"
-              ng-options="$ctrl.handlerTypeModelToViewValue(type) for type in ['EXEC', 'HTTP']"
-              ng-change="$ctrl.onHandlerTypeChange()"
-              ng-model="$ctrl.handler.type"></select>
+      <select
+        class="form-control input-sm"
+        ng-options="$ctrl.handlerTypeModelToViewValue(type) for type in ['EXEC', 'HTTP']"
+        ng-change="$ctrl.onHandlerTypeChange()"
+        ng-model="$ctrl.handler.type"
+      ></select>
     </div>
   </div>
   <div ng-switch on="$ctrl.handler.type" ng-if="$ctrl.handlerEnabled">
     <div ng-switch-when="EXEC">
       <div class="form-group">
-        <div class="col-md-3 sm-label-right">Command<help-field key="kubernetes.containers.execAction.command"></help-field></div>
+        <div class="col-md-3 sm-label-right">
+          Command<help-field key="kubernetes.containers.execAction.command"></help-field>
+        </div>
         <div class="col-md-6">
-          <input type="text" class="form-control input-sm" ng-model="$ctrl.execActionCommandsViewValue" ng-change="$ctrl.onExecActionCommandsViewValueChange()" required/>
+          <input
+            type="text"
+            class="form-control input-sm"
+            ng-model="$ctrl.execActionCommandsViewValue"
+            ng-change="$ctrl.onExecActionCommandsViewValueChange()"
+            required
+          />
         </div>
       </div>
     </div>
     <div ng-switch-when="HTTP">
       <div class="row form-group">
-        <div class="col-md-3 sm-label-right">Path<help-field key="kubernetes.containers.httpGetAction.path"></help-field></div>
+        <div class="col-md-3 sm-label-right">
+          Path<help-field key="kubernetes.containers.httpGetAction.path"></help-field>
+        </div>
         <div class="col-md-6">
-          <input type="text" class="form-control input-sm" ng-model="$ctrl.handler.httpGetAction.path">
+          <input type="text" class="form-control input-sm" ng-model="$ctrl.handler.httpGetAction.path" />
         </div>
       </div>
       <div class="row form-group">
-        <div class="col-md-3 sm-label-right">Port<help-field key="kubernetes.containers.httpGetAction.port"></help-field></div>
+        <div class="col-md-3 sm-label-right">
+          Port<help-field key="kubernetes.containers.httpGetAction.port"></help-field>
+        </div>
         <div class="col-md-6">
-          <input type="text" class="form-control input-sm" ng-model="$ctrl.handler.httpGetAction.port" required>
+          <input type="text" class="form-control input-sm" ng-model="$ctrl.handler.httpGetAction.port" required />
         </div>
       </div>
       <div class="row form-group">
-        <div class="col-md-3 sm-label-right">Host<help-field key="kubernetes.containers.httpGetAction.host"></help-field></div>
+        <div class="col-md-3 sm-label-right">
+          Host<help-field key="kubernetes.containers.httpGetAction.host"></help-field>
+        </div>
         <div class="col-md-6">
-          <input type="text" class="form-control input-sm" ng-model="$ctrl.handler.httpGetAction.host">
+          <input type="text" class="form-control input-sm" ng-model="$ctrl.handler.httpGetAction.host" />
         </div>
       </div>
       <div class="row form-group">
-        <div class="col-md-3 sm-label-right">URI Scheme<help-field key="kubernetes.containers.httpGetAction.uriScheme"></help-field></div>
+        <div class="col-md-3 sm-label-right">
+          URI Scheme<help-field key="kubernetes.containers.httpGetAction.uriScheme"></help-field>
+        </div>
         <div class="col-md-6">
-          <input type="text" class="form-control input-sm" ng-model="$ctrl.handler.httpGetAction.uriScheme">
+          <input type="text" class="form-control input-sm" ng-model="$ctrl.handler.httpGetAction.uriScheme" />
         </div>
       </div>
       <div class="row form-group">
         <div class="sm-label-left col-md-10 col-md-offset-1" style="border-bottom: 1px solid #ddd; margin-bottom: 5px;">
           HTTP Headers<help-field key="kubernetes.containers.httpGetAction.httpHeaders"></help-field>
         </div>
-        <div class="col-md-11 col-md-offset-1" ng-repeat="header in $ctrl.handler.httpGetAction.httpHeaders" style="margin-bottom: 5px;">
+        <div
+          class="col-md-11 col-md-offset-1"
+          ng-repeat="header in $ctrl.handler.httpGetAction.httpHeaders"
+          style="margin-bottom: 5px;"
+        >
           <div class="col-md-1 sm-label-right">Name</div>
           <div class="col-md-4">
-            <input ng-model="header.name" type="text" class="input-sm form-control"/>
+            <input ng-model="header.name" type="text" class="input-sm form-control" />
           </div>
           <div class="col-md-1 sm-label-right">Value</div>
           <div class="col-md-4">
-            <input ng-model="header.value" type="text" class="input-sm form-control"/>
+            <input ng-model="header.value" type="text" class="input-sm form-control" />
           </div>
           <div class="col-md-2">
             <a class="btn btn-link sm-label" ng-click="$ctrl.deleteHttpHeader($index)" style="padding: 0;">

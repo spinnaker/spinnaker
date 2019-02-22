@@ -1,26 +1,25 @@
 <div class="form-horizontal clearfix">
   <h4>Pipeline Selector</h4>
   <stage-config-field label="Application">
-    <ui-select
-        class="form-control input-sm"
-        on-select="ctrl.onApplicationSelect()"
-        ng-model="ctrl.stage.application">
+    <ui-select class="form-control input-sm" on-select="ctrl.onApplicationSelect()" ng-model="ctrl.stage.application">
       <ui-select-match placeholder="Select an application...">{{$select.selected}}</ui-select-match>
       <ui-select-choices
-          repeat="application in ctrl.state.applications | filter: $select.search | limitTo: ctrl.state.infiniteScroll.currentItems"
-          infinite-scroll="ctrl.addMoreApplications()"
-          infinite-scroll-distance="2" >
+        repeat="application in ctrl.state.applications | filter: $select.search | limitTo: ctrl.state.infiniteScroll.currentItems"
+        infinite-scroll="ctrl.addMoreApplications()"
+        infinite-scroll-distance="2"
+      >
         <div ng-bind-html="application | highlight: $select.search"></div>
       </ui-select-choices>
     </ui-select>
   </stage-config-field>
   <stage-config-field label="Pipeline">
     <div>
-      <ui-select class="form-control input-sm"
-                 ng-model="ctrl.stage.pipeline">
+      <ui-select class="form-control input-sm" ng-model="ctrl.stage.pipeline">
         <ui-select-match placeholder="Select a pipeline...">{{$select.selected.name}}</ui-select-match>
-        <ui-select-choices repeat="pipeline.id as pipeline in ctrl.state.pipelines | filter: $select.search | orderBy: 'index'"><span
-            ng-bind-html="pipeline.name | highlight: $select.search"></span></ui-select-choices>
+        <ui-select-choices
+          repeat="pipeline.id as pipeline in ctrl.state.pipelines | filter: $select.search | orderBy: 'index'"
+          ><span ng-bind-html="pipeline.name | highlight: $select.search"></span
+        ></ui-select-choices>
       </ui-select>
     </div>
   </stage-config-field>
@@ -31,22 +30,15 @@
   </label>
   <div class="col-md-9">
     <div class="checkbox">
-      <label>
-        <input type="checkbox"
-               ng-model="ctrl.stage.executionOptions.successful"/> that are successful
-      </label>
+      <label> <input type="checkbox" ng-model="ctrl.stage.executionOptions.successful" /> that are successful </label>
     </div>
     <div class="checkbox">
       <label>
-        <input type="checkbox"
-               ng-model="ctrl.stage.executionOptions.terminal"/> that are terminal (have failed)
+        <input type="checkbox" ng-model="ctrl.stage.executionOptions.terminal" /> that are terminal (have failed)
       </label>
     </div>
     <div class="checkbox">
-      <label>
-        <input type="checkbox"
-               ng-model="ctrl.stage.executionOptions.running"/> that are still running
-      </label>
+      <label> <input type="checkbox" ng-model="ctrl.stage.executionOptions.running" /> that are still running </label>
     </div>
   </div>
   <h4>Match Artifact</h4>

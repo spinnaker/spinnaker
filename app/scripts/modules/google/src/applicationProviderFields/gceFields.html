@@ -2,9 +2,11 @@
   <div class="col-sm-3 sm-label-right">GCE Settings</div>
   <div class="col-sm-9 checkbox" style="margin-bottom: 0; margin-top: 5px">
     <label>
-      <input type="checkbox"
-             ng-init="$ctrl.initializeApplicationField('gce.associatePublicIpAddress')"
-             ng-model="$ctrl.application.providerSettings.gce.associatePublicIpAddress"/>
+      <input
+        type="checkbox"
+        ng-init="$ctrl.initializeApplicationField('gce.associatePublicIpAddress')"
+        ng-model="$ctrl.application.providerSettings.gce.associatePublicIpAddress"
+      />
       Associate Public IP Address <help-field key="gce.serverGroup.associatePublicIpAddress.providerField"></help-field>
     </label>
   </div>

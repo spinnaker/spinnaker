@@ -2,85 +2,93 @@
   <div class="col-md-12">
     <table class="table table-condensed table-deployStage">
       <thead>
-      <tr>
-        <th></th>
-        <th if-multiple-providers>Provider</th>
-        <th>Account</th>
-        <th>Cluster</th>
-        <th>Region</th>
-        <th ng-if="deployStageCtrl.hasSubnetDeployments()">Subnet</th>
-        <th>Strategy</th>
-        <th>Capacity</th>
-        <th ng-if="deployStageCtrl.hasInstanceTypeDeployments()">Instance Type</th>
-        <th style="width: 58px">Actions</th>
-      </tr>
+        <tr>
+          <th></th>
+          <th if-multiple-providers>Provider</th>
+          <th>Account</th>
+          <th>Cluster</th>
+          <th>Region</th>
+          <th ng-if="deployStageCtrl.hasSubnetDeployments()">Subnet</th>
+          <th>Strategy</th>
+          <th>Capacity</th>
+          <th ng-if="deployStageCtrl.hasInstanceTypeDeployments()">Instance Type</th>
+          <th style="width: 58px">Actions</th>
+        </tr>
       </thead>
       <tbody ui-sortable="deployStageCtrl.clusterSortOptions" ng-model="stage.clusters">
-      <tr ng-repeat="cluster in stage.clusters">
-        <td class="handle"><span class="glyphicon glyphicon-resize-vertical"></span></td>
-        <td if-multiple-providers>
-          <cloud-provider-logo provider="cluster.cloudProvider || cluster.provider || cluster.providerType || 'aws'"
-                               width="'20px'" height="'20px'" show-tooltip="true"></cloud-provider-logo>
-        </td>
-        <td>
-          <account-tag account="cluster.account"></account-tag>
-        </td>
-        <td>
-          {{ deployStageCtrl.getClusterName(cluster) }}
-        </td>
-        <td>
-          {{ deployStageCtrl.getRegion(cluster) }}
-        </td>
-        <td ng-if="deployStageCtrl.hasSubnetDeployments()">
-          {{deployStageCtrl.getSubnet(cluster)}}
-        </td>
-        <td>
-          {{cluster.strategy || '[none]'}}
-        </td>
-        <td>
-          <div ng-if="cluster.useSourceCapacity">Current Server Group</div>
-          <div ng-if="cluster.capacity">
-            <div ng-if="!cluster.useSourceCapacity && cluster.capacity.min === cluster.capacity.max">{{cluster.capacity.max}}</div>
-            <div ng-if="!cluster.useSourceCapacity && cluster.capacity.min !== cluster.capacity.max">
-              Min: {{cluster.capacity.min}},
-              Max: {{cluster.capacity.max}},
-              Desired: {{cluster.capacity.desired}}
+        <tr ng-repeat="cluster in stage.clusters">
+          <td class="handle"><span class="glyphicon glyphicon-resize-vertical"></span></td>
+          <td if-multiple-providers>
+            <cloud-provider-logo
+              provider="cluster.cloudProvider || cluster.provider || cluster.providerType || 'aws'"
+              width="'20px'"
+              height="'20px'"
+              show-tooltip="true"
+            ></cloud-provider-logo>
+          </td>
+          <td>
+            <account-tag account="cluster.account"></account-tag>
+          </td>
+          <td>
+            {{ deployStageCtrl.getClusterName(cluster) }}
+          </td>
+          <td>
+            {{ deployStageCtrl.getRegion(cluster) }}
+          </td>
+          <td ng-if="deployStageCtrl.hasSubnetDeployments()">
+            {{deployStageCtrl.getSubnet(cluster)}}
+          </td>
+          <td>
+            {{cluster.strategy || '[none]'}}
+          </td>
+          <td>
+            <div ng-if="cluster.useSourceCapacity">Current Server Group</div>
+            <div ng-if="cluster.capacity">
+              <div ng-if="!cluster.useSourceCapacity && cluster.capacity.min === cluster.capacity.max">
+                {{cluster.capacity.max}}
+              </div>
+              <div ng-if="!cluster.useSourceCapacity && cluster.capacity.min !== cluster.capacity.max">
+                Min: {{cluster.capacity.min}}, Max: {{cluster.capacity.max}}, Desired: {{cluster.capacity.desired}}
+              </div>
             </div>
-          </div>
-          <div ng-if="!cluster.capacity">
-            {{cluster.targetSize}}
-          </div>
-          <div ng-if="!(cluster.useSourceCapacity || cluster.capacity || cluster.targetSize)">
-            N/A
-          </div>
-        </td>
-        <td ng-if="deployStageCtrl.hasInstanceTypeDeployments()">
-           {{ cluster.instanceType  || '[none]' }}
-        </td>
-        <td class="condensed-actions">
-          <a class="btn btn-sm btn-link" href ng-click="deployStageCtrl.editCluster(cluster, $index)">
-            <span class="glyphicon glyphicon-edit" uib-tooltip="Edit"></span></a>
-          <a class="btn btn-sm btn-link pad-left" href
-             analytics-on="click"
-             analytics-category="Deploy Stage"
-             analytics-event="Duplicate Cluster"
-             ng-click="deployStageCtrl.copyCluster($index)">
-            <span class="glyphicon glyphicon-duplicate" uib-tooltip="Duplicate"></span>
-          </a>
-          <a class="btn btn-sm btn-link pad-left" href ng-click="deployStageCtrl.removeCluster($index)">
-            <span class="glyphicon glyphicon-trash" uib-tooltip="Remove"></span>
-          </a>
-        </td>
-      </tr>
+            <div ng-if="!cluster.capacity">
+              {{cluster.targetSize}}
+            </div>
+            <div ng-if="!(cluster.useSourceCapacity || cluster.capacity || cluster.targetSize)">
+              N/A
+            </div>
+          </td>
+          <td ng-if="deployStageCtrl.hasInstanceTypeDeployments()">
+            {{ cluster.instanceType || '[none]' }}
+          </td>
+          <td class="condensed-actions">
+            <a class="btn btn-sm btn-link" href ng-click="deployStageCtrl.editCluster(cluster, $index)">
+              <span class="glyphicon glyphicon-edit" uib-tooltip="Edit"></span
+            ></a>
+            <a
+              class="btn btn-sm btn-link pad-left"
+              href
+              analytics-on="click"
+              analytics-category="Deploy Stage"
+              analytics-event="Duplicate Cluster"
+              ng-click="deployStageCtrl.copyCluster($index)"
+            >
+              <span class="glyphicon glyphicon-duplicate" uib-tooltip="Duplicate"></span>
+            </a>
+            <a class="btn btn-sm btn-link pad-left" href ng-click="deployStageCtrl.removeCluster($index)">
+              <span class="glyphicon glyphicon-trash" uib-tooltip="Remove"></span>
+            </a>
+          </td>
+        </tr>
       </tbody>
       <tfoot>
-      <tr>
-        <td colspan="10">
-          <button class="btn btn-block btn-sm add-new" ng-click="deployStageCtrl.addCluster()">
-            <span class="glyphicon glyphicon-plus-sign"></span> Add server group
-          </button>
-        </td>
-      </tr>
+        <tr>
+          <td colspan="10">
+            <button class="btn btn-block btn-sm add-new" ng-click="deployStageCtrl.addCluster()">
+              <span class="glyphicon glyphicon-plus-sign"></span> Add server group
+            </button>
+          </td>
+        </tr>
       </tfoot>
     </table>
   </div>

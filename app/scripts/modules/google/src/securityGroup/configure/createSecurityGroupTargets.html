@@ -3,36 +3,41 @@
     <div class="form-group">
       <div class="col-md-2 sm-label-right">Targets</div>
       <div class="col-md-8">
-        <select class="form-control input-sm"
-           ng-model="state.target"
-           ng-change="ctrl.onTargetChange()"
-           ng-options="option as ctrl.getTargetLabel(option) for option in state.targetOptions">
+        <select
+          class="form-control input-sm"
+          ng-model="state.target"
+          ng-change="ctrl.onTargetChange()"
+          ng-options="option as ctrl.getTargetLabel(option) for option in state.targetOptions"
+        >
         </select>
       </div>
     </div>
   </div>
   <div class="row">
     <div class="col-md-12" ng-if="state.target === 'specifyTags'">
-      <div class="sm-label-left">
-        Target Tags <help-field key="gce.securityGroup.targetTags"></help-field>
-      </div>
+      <div class="sm-label-left">Target Tags <help-field key="gce.securityGroup.targetTags"></help-field></div>
       <table class="table table-condensed packed tags">
         <tbody>
-        <tr ng-repeat="tag in securityGroup.targetTags track by $index">
-          <td style="width: 80%;">
-            <input class="form-control input-sm fixed-width" type="text" ng-model="securityGroup.targetTags[$index]" required/>
-          </td>
-          <td>
-            <help-field content="{{ctrl.getTagHelpText(tag, 'target')}}"></help-field>
-            <a class="btn btn-link sm-label table-remove-button pull-right"
-               ng-click="ctrl.removeTargetTag($index)">
-              <span class="glyphicon glyphicon-trash"></span></a>
-          </td>
-        </tr>
+          <tr ng-repeat="tag in securityGroup.targetTags track by $index">
+            <td style="width: 80%;">
+              <input
+                class="form-control input-sm fixed-width"
+                type="text"
+                ng-model="securityGroup.targetTags[$index]"
+                required
+              />
+            </td>
+            <td>
+              <help-field content="{{ctrl.getTagHelpText(tag, 'target')}}"></help-field>
+              <a class="btn btn-link sm-label table-remove-button pull-right" ng-click="ctrl.removeTargetTag($index)">
+                <span class="glyphicon glyphicon-trash"></span
+              ></a>
+            </td>
+          </tr>
         </tbody>
       </table>
-      <button class="btn btn-block add-new" ng-click="ctrl.addTargetTag()"><span
-        class="glyphicon glyphicon-plus-sign"></span> Add New Target Tag
+      <button class="btn btn-block add-new" ng-click="ctrl.addTargetTag()">
+        <span class="glyphicon glyphicon-plus-sign"></span> Add New Target Tag
       </button>
     </div>
   </div>

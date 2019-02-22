@@ -1,18 +1,20 @@
 <table class="table table-condensed packed tags" style="border-top: 2px solid white;">
   <tr ng-repeat="arg in $ctrl.args track by $index">
-    <td><input class="form-control input-sm" type="text"
-               ng-model="$ctrl.args[$index]"></td>
-    <td><a class="btn btn-link sm-label"
-           ng-click="$ctrl.removeArg($index)"><span
-      class="glyphicon glyphicon-trash"></span></a></td>
-  </tr>
-  <tfoot>
-  <tr>
-    <td colspan="1">
-      <button class="add-new btn btn-block btn-sm" ng-click="$ctrl.addArg()"><span
-        class="glyphicon glyphicon-plus-sign"></span> Add Arg
-      </button>
+    <td><input class="form-control input-sm" type="text" ng-model="$ctrl.args[$index]" /></td>
+
+    <td>
+      <a class="btn btn-link sm-label" ng-click="$ctrl.removeArg($index)"
+        ><span class="glyphicon glyphicon-trash"></span
+      ></a>
     </td>
   </tr>
+  <tfoot>
+    <tr>
+      <td colspan="1">
+        <button class="add-new btn btn-block btn-sm" ng-click="$ctrl.addArg()">
+          <span class="glyphicon glyphicon-plus-sign"></span> Add Arg
+        </button>
+      </td>
+    </tr>
+  </tfoot>
 </table>
-

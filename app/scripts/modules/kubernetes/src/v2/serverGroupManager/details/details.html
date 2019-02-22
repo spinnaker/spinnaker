@@ -1,8 +1,7 @@
 <div class="details-panel">
   <div class="header" ng-if="ctrl.state.loading">
     <div class="close-button">
-      <a class="btn btn-link"
-         ui-sref="^">
+      <a class="btn btn-link" ui-sref="^">
         <span class="glyphicon glyphicon-remove"></span>
       </a>
     </div>
@@ -13,13 +12,16 @@
 
   <div class="header" ng-if="!ctrl.state.loading">
     <div class="close-button">
-      <a class="btn btn-link"
-         ui-sref="^">
+      <a class="btn btn-link" ui-sref="^">
         <span class="glyphicon glyphicon-remove"></span>
       </a>
     </div>
     <div class="header-text horizontal middle">
-      <cloud-provider-logo provider="ctrl.serverGroupManager.cloudProvider" height="'36px'" width="'36px'"></cloud-provider-logo>
+      <cloud-provider-logo
+        provider="ctrl.serverGroupManager.cloudProvider"
+        height="'36px'"
+        width="'36px'"
+      ></cloud-provider-logo>
       <h3 class="horizontal middle space-between flex-1" select-on-dbl-click>
         {{ctrl.serverGroupManager.displayName}}
         <render-if-feature feature="entityTags">
@@ -73,11 +75,13 @@
             </a>
           </li>
           <render-if-feature feature="entityTags">
-            <add-entity-tag-links component="ctrl.serverGroupManager"
-                                  application="ctrl.app"
-                                  entity-type="serverGroupManager"
-                                  owner-options="ctrl.entityTagTargets"
-                                  on-update="ctrl.app.serverGroupManagers.refresh()"></add-entity-tag-links>
+            <add-entity-tag-links
+              component="ctrl.serverGroupManager"
+              application="ctrl.app"
+              entity-type="serverGroupManager"
+              owner-options="ctrl.entityTagTargets"
+              on-update="ctrl.app.serverGroupManagers.refresh()"
+            ></add-entity-tag-links>
           </render-if-feature>
         </ul>
       </div>
@@ -98,10 +102,12 @@
         <dt ng-if="ctrl.serverGroupManager.serverGroups.length">Managing</dt>
         <dd>
           <ul ng-repeat="serverGroup in ctrl.serverGroupManager.serverGroups | orderBy: ['-name']">
-            <a ui-sref="^.serverGroup({region: serverGroup.region,
+            <a
+              ui-sref="^.serverGroup({region: serverGroup.region,
                                        accountId: serverGroup.account,
                                        serverGroup: serverGroup.name,
-                                       provider: 'kubernetes'})">
+                                       provider: 'kubernetes'})"
+            >
               {{serverGroup.name}}
             </a>
           </ul>
@@ -115,7 +121,10 @@
       </ul>
     </collapsible-section>
 
-    <kubernetes-annotation-custom-sections manifest="ctrl.serverGroupManager.manifest" resource="ctrl.serverGroupManager"></kubernetes-annotation-custom-sections>
+    <kubernetes-annotation-custom-sections
+      manifest="ctrl.serverGroupManager.manifest"
+      resource="ctrl.serverGroupManager"
+    ></kubernetes-annotation-custom-sections>
 
     <collapsible-section heading="Events" expanded="true">
       <kubernetes-manifest-events manifest="ctrl.manifest"></kubernetes-manifest-events>

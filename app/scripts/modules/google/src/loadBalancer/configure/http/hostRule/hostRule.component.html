@@ -1,18 +1,15 @@
-<hr class="host-rule" ng-if="$ctrl.index > 0">
+<hr class="host-rule" ng-if="$ctrl.index > 0" />
 <div class="container-fluid form-horizontal">
   <div class="form-group">
-    <div class="col-md-4 sm-label-right">Host Patterns
-      <help-field key="gce.httpLoadBalancer.hostRule.hostPattern">
-      </help-field>
+    <div class="col-md-4 sm-label-right">
+      Host Patterns
+      <help-field key="gce.httpLoadBalancer.hostRule.hostPattern"> </help-field>
     </div>
     <div class="col-md-4">
-      <ui-select multiple tagging
-                 tagging-label=""
-                 ng-model="$ctrl.hostRule.hostPatterns"
-                 class="form-control input-sm">
-        <ui-select-match>{{$item}}</ui-select-match>
+      <ui-select multiple tagging tagging-label="" ng-model="$ctrl.hostRule.hostPatterns" class="form-control input-sm">
+        <ui-select-match>{{ $item }}</ui-select-match>
         <ui-select-choices repeat="hostPattern in []">
-          {{hostPattern}}
+          {{ hostPattern }}
         </ui-select-choices>
       </ui-select>
     </div>
@@ -29,28 +26,33 @@
       <b>Default Service</b>
     </div>
     <div class="col-md-4">
-      <ui-select ng-model="$ctrl.hostRule.pathMatcher.defaultService"
-                 on-select="$ctrl.command.onBackendServiceSelected($item, $ctrl.command)"
-                 class="form-control input-sm">
+      <ui-select
+        ng-model="$ctrl.hostRule.pathMatcher.defaultService"
+        on-select="$ctrl.command.onBackendServiceSelected($item, $ctrl.command)"
+        class="form-control input-sm"
+      >
         <ui-select-match placeholder="Select...">
-          {{$select.selected}}
+          {{ $select.selected }}
         </ui-select-match>
-        <ui-select-choices repeat="backendService in $ctrl.command.getAllBackendServices($ctrl.command) | filter: $select.search">
+        <ui-select-choices
+          repeat="backendService in $ctrl.command.getAllBackendServices($ctrl.command) | filter: $select.search"
+        >
           <div ng-bind-html="backendService | highlight: $select.search"></div>
         </ui-select-choices>
       </ui-select>
     </div>
   </div>
-  <gce-path-rule path-rule="pathRule"
-                 index="$index"
-                 command="$ctrl.command"
-                 delete-path-rule="$ctrl.deletePathRule($index)"
-                 ng-repeat="pathRule in $ctrl.hostRule.pathMatcher.pathRules">
+  <gce-path-rule
+    path-rule="pathRule"
+    index="$index"
+    command="$ctrl.command"
+    delete-path-rule="$ctrl.deletePathRule($index)"
+    ng-repeat="pathRule in $ctrl.hostRule.pathMatcher.pathRules"
+  >
   </gce-path-rule>
   <div class="row">
     <div class="col-md-12">
-      <button class="add-new btn btn-block"
-              ng-click="$ctrl.addPathRule()">
+      <button class="add-new btn btn-block" ng-click="$ctrl.addPathRule()">
         <span class="glyphicon glyphicon-plus-sign"></span> Add path rule
       </button>
     </div>

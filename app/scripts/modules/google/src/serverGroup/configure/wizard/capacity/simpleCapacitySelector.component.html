@@ -1,9 +1,14 @@
 <div class="form-group">
   <div class="col-md-3 sm-label-right">Number of Instances</div>
   <help-field key="gce.serverGroup.capacity"></help-field>
-  <div class="col-md-2"><input type="number" ng-change="$ctrl.setMinMax($ctrl.command.capacity.desired)"
-                               class="form-control input-sm"
-                               ng-model="$ctrl.command.capacity.desired"
-                               min="0"
-                               required/></div>
+  <div class="col-md-2">
+    <input
+      type="number"
+      ng-change="$ctrl.setMinMax($ctrl.command.capacity.desired)"
+      class="form-control input-sm"
+      ng-model="$ctrl.command.capacity.desired"
+      min="0"
+      required
+    />
+  </div>
 </div>

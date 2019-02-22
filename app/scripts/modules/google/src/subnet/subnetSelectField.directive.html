@@ -5,14 +5,16 @@
   </div>
   <div class="col-md-{{fieldColumns || 7}}" ng-if="subnetPlaceholder">{{subnetPlaceholder}}</div>
   <div class="col-md-{{fieldColumns || 7}}" ng-if="!subnetPlaceholder">
-    <select class="form-control input-sm"
-            ng-if="account"
-            ng-model="component.subnet"
-            ng-change="onChange()"
-            ng-required="autoCreateSubnets === false">
-      <option ng-repeat="subnet in subnets"
-              value="{{subnet}}"
-              ng-selected="component[field] === subnet">{{subnet}}</option>
+    <select
+      class="form-control input-sm"
+      ng-if="account"
+      ng-model="component.subnet"
+      ng-change="onChange()"
+      ng-required="autoCreateSubnets === false"
+    >
+      <option ng-repeat="subnet in subnets" value="{{subnet}}" ng-selected="component[field] === subnet"
+        >{{subnet}}</option
+      >
     </select>
     <p ng-if="readOnly" class="form-control-static">{{component[field]}}</p>
   </div>

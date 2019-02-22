@@ -4,10 +4,12 @@
       Pub/Sub System Type
     </label>
     <div class="col-md-6">
-      <select class="form-control input-sm"
-              ng-options="pubsubSystem for pubsubSystem in vm.pubsubSystems"
-              ng-model="vm.trigger.pubsubSystem"
-              ng-change="vm.updateFilteredPubsubSubscriptions()">
+      <select
+        class="form-control input-sm"
+        ng-options="pubsubSystem for pubsubSystem in vm.pubsubSystems"
+        ng-model="vm.trigger.pubsubSystem"
+        ng-change="vm.updateFilteredPubsubSubscriptions()"
+      >
         <option value="">Select Pub/Sub System</option>
       </select>
     </div>
@@ -18,15 +20,17 @@
       Subscription Name
     </div>
     <div class="col-md-6">
-      <select class="form-control input-sm"
-              ng-options="subscription for subscription in vm.filteredPubsubSubscriptions"
-              ng-model="vm.trigger.subscriptionName">
+      <select
+        class="form-control input-sm"
+        ng-options="subscription for subscription in vm.filteredPubsubSubscriptions"
+        ng-model="vm.trigger.subscriptionName"
+      >
         <option value="">Select Pub/Sub Subscription</option>
       </select>
     </div>
   </div>
 
-  <hr>
+  <hr />
 
   <div class="form-group">
     <div class="col-md-3 sm-label-right">
@@ -50,10 +54,7 @@
 
   <render-if-feature feature="fiatEnabled">
     <div class="form-group">
-      <run-as-user-selector
-        service-accounts="vm.serviceAccounts"
-        component="vm.trigger"
-        field="runAsUser">
+      <run-as-user-selector service-accounts="vm.serviceAccounts" component="vm.trigger" field="runAsUser">
       </run-as-user-selector>
     </div>
   </render-if-feature>

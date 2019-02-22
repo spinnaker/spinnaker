@@ -1,9 +1,7 @@
 <div class="details-panel">
-
   <div ng-if="state.loading" class="header">
     <div class="close-button">
-      <a class="btn btn-link"
-         ui-sref="^">
+      <a class="btn btn-link" ui-sref="^">
         <span class="glyphicon glyphicon-remove"></span>
       </a>
     </div>
@@ -14,8 +12,7 @@
 
   <div ng-if="!state.loading" class="header">
     <div class="close-button">
-      <a class="btn btn-link"
-         ui-sref="^">
+      <a class="btn btn-link" ui-sref="^">
         <span class="glyphicon glyphicon-remove"></span>
       </a>
     </div>
@@ -24,7 +21,6 @@
       <h3 class="horizontal middle space-between flex-1" select-on-dbl-click>
         {{loadBalancer.name}}
         <render-if-feature feature="entityTags">
-
           <entity-notifications
             entity="loadBalancer"
             application="ctrl.application"
@@ -34,7 +30,6 @@
             page-location="details"
             on-update="ctrl.application.loadBalancers.refresh()"
           ></entity-notifications>
-
         </render-if-feature>
       </h3>
     </div>
@@ -46,15 +41,23 @@
           </button>
           <ul class="dropdown-menu" uib-dropdown-menu role="menu">
             <li><a href ng-click="ctrl.editLoadBalancer()">Edit Load Balancer</a></li>
-            <li ng-if="!loadBalancer.instances.length"><a href ng-click="ctrl.deleteLoadBalancer()">Delete Load Balancer</a></li>
-            <li ng-if="loadBalancer.instances.length" class="disabled" uib-tooltip="You must detach all instances before you can delete this load balancer.">
+            <li ng-if="!loadBalancer.instances.length">
+              <a href ng-click="ctrl.deleteLoadBalancer()">Delete Load Balancer</a>
+            </li>
+            <li
+              ng-if="loadBalancer.instances.length"
+              class="disabled"
+              uib-tooltip="You must detach all instances before you can delete this load balancer."
+            >
               <a href ng-click="ctrl.deleteLoadBalancer()">Delete Load Balancer</a>
             </li>
             <render-if-feature feature="entityTags">
-              <add-entity-tag-links component="loadBalancer"
-                                    application="ctrl.application"
-                                    entity-type="loadBalancer"
-                                    on-update="ctrl.application.loadBalancers.refresh()"></add-entity-tag-links>
+              <add-entity-tag-links
+                component="loadBalancer"
+                application="ctrl.application"
+                entity-type="loadBalancer"
+                on-update="ctrl.application.loadBalancers.refresh()"
+              ></add-entity-tag-links>
             </render-if-feature>
           </ul>
         </div>
@@ -82,11 +85,13 @@
         <dd ng-if="loadBalancer.serverGroups.length">
           <ul>
             <li ng-repeat="serverGroup in loadBalancer.serverGroups | orderBy: ['isDisabled', '-name']">
-              <a ui-sref="^.serverGroup({region: serverGroup.region,
+              <a
+                ui-sref="^.serverGroup({region: serverGroup.region,
                                           accountId: serverGroup.account,
                                           serverGroup: serverGroup.name,
-                                          provider: 'gce'})">
-              {{serverGroup.name}}
+                                          provider: 'gce'})"
+              >
+                {{serverGroup.name}}
               </a>
             </li>
           </ul>
@@ -94,11 +99,14 @@
         <div ng-if="!ctrl.isHttpLoadBalancer(loadBalancer) && loadBalancer.elb.dnsname">
           <dt>DNS Name</dt>
           <dd>
-            <a target=_blank href="{{loadBalancer.elb.dns.protocol}}//{{loadBalancer.elb.dns.dnsname}}">{{loadBalancer.elb.dns.dnsname}}</a>
+            <a target="_blank" href="{{loadBalancer.elb.dns.protocol}}//{{loadBalancer.elb.dns.dnsname}}"
+              >{{loadBalancer.elb.dns.dnsname}}</a
+            >
             <copy-to-clipboard
-                class="copy-to-clipboard copy-to-clipboard-sm"
-                text="loadBalancer.elb.dns.dnsname"
-                tool-tip="'Copy DNS Name to clipboard'">
+              class="copy-to-clipboard copy-to-clipboard-sm"
+              text="loadBalancer.elb.dns.dnsname"
+              tool-tip="'Copy DNS Name to clipboard'"
+            >
             </copy-to-clipboard>
           </dd>
         </div>
@@ -107,20 +115,23 @@
           <dd>
             <ul>
               <li ng-repeat="dns in loadBalancer.elb.dns">
-                <a target=_blank href="{{dns.protocol}}//{{dns.dnsname}}">{{dns.dnsname}}</a>
+                <a target="_blank" href="{{dns.protocol}}//{{dns.dnsname}}">{{dns.dnsname}}</a>
                 <copy-to-clipboard
                   class="copy-to-clipboard copy-to-clipboard-sm"
                   text="dns.dnsname"
-                  tool-tip="'Copy DNS Name to clipboard'">
+                  tool-tip="'Copy DNS Name to clipboard'"
+                >
                 </copy-to-clipboard>
               </li>
             </ul>
           </dd>
         </div>
         <div ng-if="ctrl.isHttpLoadBalancer(loadBalancer)">
-          <gce-host-and-path-rules-button default-service="loadBalancer.defaultService"
-                                          load-balancer-name="loadBalancer.name"
-                                          host-rules="loadBalancer.hostRules">
+          <gce-host-and-path-rules-button
+            default-service="loadBalancer.defaultService"
+            load-balancer-name="loadBalancer.name"
+            host-rules="loadBalancer.hostRules"
+          >
           </gce-host-and-path-rules-button>
         </div>
       </dl>
@@ -130,44 +141,48 @@
     </collapsible-section>
     <collapsible-section heading="Listeners">
       <dl>
-        <dt>Load Balancer &rarr; Instance
-          <help-field ng-if="ctrl.isHttpLoadBalancer(loadBalancer) || loadBalancer.loadBalancerType === 'SSL' || loadBalancer.loadBalancerType === 'TCP'"
-                      key="gce.httpLoadBalancer.namedPort"></help-field>
+        <dt>
+          Load Balancer &rarr; Instance
+          <help-field
+            ng-if="ctrl.isHttpLoadBalancer(loadBalancer) || loadBalancer.loadBalancerType === 'SSL' || loadBalancer.loadBalancerType === 'TCP'"
+            key="gce.httpLoadBalancer.namedPort"
+          ></help-field>
         </dt>
         <dd ng-repeat="listener in loadBalancer.elb.listenerDescriptions">
-          {{listener.listener.protocol}}:{{listener.listener.loadBalancerPort}}
-          &rarr;
+          {{listener.listener.protocol}}:{{listener.listener.loadBalancerPort}} &rarr;
           {{listener.listener.instanceProtocol}}:{{listener.listener.instancePort}}
         </dd>
       </dl>
     </collapsible-section>
-    <collapsible-section heading="Backend Services" ng-if="ctrl.isHttpLoadBalancer(loadBalancer) || loadBalancer.backendService">
-      <dl class="horizontal-when-filters-collapsed"
-          ng-switch on="loadBalancer.loadBalancerType">
+    <collapsible-section
+      heading="Backend Services"
+      ng-if="ctrl.isHttpLoadBalancer(loadBalancer) || loadBalancer.backendService"
+    >
+      <dl class="horizontal-when-filters-collapsed" ng-switch on="loadBalancer.loadBalancerType">
         <div ng-repeat="service in loadBalancer.elb.backendServices" ng-switch-when="HTTP">
-          <hr ng-if="$index > 0">
+          <hr ng-if="$index > 0" />
           <gce-backend-service-details backend-service="service"></gce-backend-service-details>
         </div>
 
-        <gce-backend-service-details backend-service="loadBalancer.backendService"
-                                     ng-switch-default></gce-backend-service-details>
+        <gce-backend-service-details
+          backend-service="loadBalancer.backendService"
+          ng-switch-default
+        ></gce-backend-service-details>
       </dl>
     </collapsible-section>
-    <collapsible-section ng-if="ctrl.isHttpLoadBalancer(loadBalancer) || loadBalancer.healthCheck || loadBalancer.backendService.healthCheck"
-                         heading="Health Checks">
-      <dl class="horizontal-when-filters-collapsed"
-          ng-switch on="loadBalancer.loadBalancerType">
-
+    <collapsible-section
+      ng-if="ctrl.isHttpLoadBalancer(loadBalancer) || loadBalancer.healthCheck || loadBalancer.backendService.healthCheck"
+      heading="Health Checks"
+    >
+      <dl class="horizontal-when-filters-collapsed" ng-switch on="loadBalancer.loadBalancerType">
         <gce-health-check ng-switch-when="NETWORK" health-check="loadBalancer.healthCheck"></gce-health-check>
 
         <div ng-switch-when="HTTP" ng-repeat="healthCheck in loadBalancer.elb.healthChecks">
-          <hr ng-if="$index > 0">
+          <hr ng-if="$index > 0" />
           <gce-health-check health-check="healthCheck"></gce-health-check>
         </div>
 
-        <gce-health-check ng-switch-default
-                          health-check="loadBalancer.backendService.healthCheck"></gce-health-check>
-
+        <gce-health-check ng-switch-default health-check="loadBalancer.backendService.healthCheck"></gce-health-check>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Logs">
@@ -175,9 +190,10 @@
         <li ng-if="loadBalancer.logsLink">
           <a href="{{loadBalancer.logsLink}}" target="_blank">Cloud Console Logs</a>
           <copy-to-clipboard
-              class="copy-to-clipboard copy-to-clipboard-sm"
-              text="loadBalancer.logsLink"
-              tool-tip="'Copy to clipboard'">
+            class="copy-to-clipboard copy-to-clipboard-sm"
+            text="loadBalancer.logsLink"
+            tool-tip="'Copy to clipboard'"
+          >
           </copy-to-clipboard>
         </li>
       </ul>

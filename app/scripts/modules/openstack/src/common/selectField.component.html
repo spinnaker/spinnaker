@@ -1,17 +1,33 @@
 <div class="form-group">
-  <div class="col-md-{{$ctrl.labelColumnSize}} sm-label-right">
-    {{$ctrl.label}}
-    <help-field ng-if="$ctrl.helpKey" key="{{$ctrl.helpKey}}"></help-field>
+  <div class="col-md-{{ $ctrl.labelColumnSize }} sm-label-right">
+    {{ $ctrl.label }}
+    <help-field ng-if="$ctrl.helpKey" key="{{ $ctrl.helpKey }}"></help-field>
   </div>
-  <div class="col-md-{{$ctrl.valueColumnSize}}" ng-if="!($ctrl.options && $ctrl.options.length)">{{noOptionsMessage}}</div>
-  <div class="col-md-{{$ctrl.valueColumnSize}}" ng-if="$ctrl.options && $ctrl.options.length">
-    <p ng-if="$ctrl.readOnly" class="form-control-static">{{selectedOption ? selectedOption.label : noSelectionMessage}}</p>
-    <select class="form-control input-sm" ng-model="$ctrl.value" ng-change="$ctrl.selectionUpdated()" ng-if="!$ctrl.readOnly">
+  <div class="col-md-{{ $ctrl.valueColumnSize }}" ng-if="!($ctrl.options && $ctrl.options.length)">
+    {{ noOptionsMessage }}
+  </div>
+  <div class="col-md-{{ $ctrl.valueColumnSize }}" ng-if="$ctrl.options && $ctrl.options.length">
+    <p ng-if="$ctrl.readOnly" class="form-control-static">
+      {{ selectedOption ? selectedOption.label : noSelectionMessage }}
+    </p>
+    <select
+      class="form-control input-sm"
+      ng-model="$ctrl.value"
+      ng-change="$ctrl.selectionUpdated()"
+      ng-if="!$ctrl.readOnly"
+    >
       <option ng-selected="$ctrl.value === undefined" ng-if="$ctrl.allowNoSelection">None</option>
-      <option ng-repeat="option in $ctrl.options" value="{{option.value}}" ng-selected="$ctrl.value === option.value">{{option.label}}</option>
+      <option
+        ng-repeat="option in $ctrl.options"
+        value="{{ option.value }}"
+        ng-selected="$ctrl.value === option.value"
+        >{{ option.label }}</option
+      >
     </select>
   </div>
   <div class="col-md-1 sm-label-left" ng-if="showRefresh">
-    <a href="" ng-click="$ctrl.refresh()" uib-tooltip-template="$ctrl.refreshTooltipTemplate"><span class="fa fa-sync-alt" ng-class="{'fa-spin':$ctrl.refreshing}"></span></a>
+    <a href="" ng-click="$ctrl.refresh()" uib-tooltip-template="$ctrl.refreshTooltipTemplate"
+      ><span class="fa fa-sync-alt" ng-class="{'fa-spin':$ctrl.refreshing}"></span
+    ></a>
   </div>
 </div>

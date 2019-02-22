@@ -4,8 +4,7 @@
     Image
   </div>
   <div class="col-md-9">
-    <ui-select class="form-control input-sm" required
-               ng-model="command.imageId">
+    <ui-select class="form-control input-sm" required ng-model="command.imageId">
       <ui-select-match placeholder="Select an image">{{$select.selected.name}}</ui-select-match>
       <ui-select-choices repeat="image.id as image in command.backingData.filtered.images">
         <span ng-bind-html="image.name | highlight: $select.search"></span>
@@ -20,12 +19,13 @@
     Shape
   </div>
   <div class="col-md-9">
-    <ui-select class="form-control input-sm" required
-               ng-model="command.shape">
+    <ui-select class="form-control input-sm" required ng-model="command.shape">
       <ui-select-match placeholder="Select compatible shape">{{$select.selected.name}}</ui-select-match>
-      <ui-select-choices repeat="shape.name as shape in (!command.viewState.disableImageSelection
+      <ui-select-choices
+        repeat="shape.name as shape in (!command.viewState.disableImageSelection
                                                          ? command.backingData.filtered.shapes[command.imageId]
-                                                         : command.backingData.filtered.allShapes)">
+                                                         : command.backingData.filtered.allShapes)"
+      >
         <span ng-bind-html="shape.name"></span>
       </ui-select-choices>
     </ui-select>

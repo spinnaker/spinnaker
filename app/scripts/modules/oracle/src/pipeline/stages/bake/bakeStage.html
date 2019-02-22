@@ -1,75 +1,71 @@
 <div ng-controller="oracleBakeStageCtrl as bakeStageCtrl">
-    <div ng-if="viewState.loading" class="horizontal center middle">
-        <loading-spinner size="'small'"></loading-spinner>
+  <div ng-if="viewState.loading" class="horizontal center middle">
+    <loading-spinner size="'small'"></loading-spinner>
+  </div>
+
+  <stage-config-field label="Oracle Account" help-key="oracle.pipeline.config.bake.account_name">
+    <account-select-field
+      component="stage"
+      field="accountName"
+      accounts="accounts"
+      on-change="bakeStageCtrl.accountUpdated()"
+      provider="'oracle'"
+    >
+    </account-select-field>
+  </stage-config-field>
+
+  <stage-config-field label="Region" help-key="oracle.pipeline.config.bake.regions">
+    <input type="text" class="form-control input-sm" ng-readonly="true" ng-model="stage.region" />
+  </stage-config-field>
+
+  <stage-config-field label="Base Image" , help-key="oracle.pipeline.config.bake.baseOsOption">
+    <div class="radio" ng-repeat="baseImage in baseOsOptions.baseImages">
+      <label>
+        <input type="radio" ng-model="stage.baseOs" ng-value="baseImage.id" />
+        {{bakeStageCtrl.getBaseOsDescription(baseImage)}}
+        <help-field content="{{baseImage.detailedDescription}}"></help-field>
+      </label>
     </div>
+  </stage-config-field>
 
-    <stage-config-field label="Oracle Account" help-key="oracle.pipeline.config.bake.account_name">
-        <account-select-field component="stage"
-                              field="accountName"
-                              accounts="accounts"
-                              on-change="bakeStageCtrl.accountUpdated()"
-                              provider="'oracle'">
-        </account-select-field>
-    </stage-config-field>
+  <stage-config-field label="Image Name" help-key="oracle.pipeline.config.bake.image_name">
+    <input type="text" class="form-control input-sm" ng-model="stage.amiName" />
+  </stage-config-field>
 
-    <stage-config-field label="Region" help-key="oracle.pipeline.config.bake.regions">
-        <input type="text" class="form-control input-sm" ng-readonly="true"
-               ng-model="stage.region"/>
-    </stage-config-field>
+  <stage-config-field label="Package" help-key="oracle.pipeline.config.bake.package">
+    <input type="text" class="form-control input-sm" ng-model="stage.package" />
+  </stage-config-field>
 
-    <stage-config-field label="Base Image" , help-key="oracle.pipeline.config.bake.baseOsOption">
-        <div class="radio" ng-repeat="baseImage in baseOsOptions.baseImages">
-            <label>
-                <input type="radio"
-                       ng-model="stage.baseOs"
-                       ng-value="baseImage.id"/>
-                {{bakeStageCtrl.getBaseOsDescription(baseImage)}}
-                <help-field content="{{baseImage.detailedDescription}}"></help-field>
-            </label>
-        </div>
-    </stage-config-field>
-
-    <stage-config-field label="Image Name" help-key="oracle.pipeline.config.bake.image_name">
-        <input type="text" class="form-control input-sm"
-               ng-model="stage.amiName"/>
-    </stage-config-field>
-
-    <stage-config-field label="Package" help-key="oracle.pipeline.config.bake.package">
-        <input type="text" class="form-control input-sm" ng-model="stage.package"/>
-    </stage-config-field>
-
-    <stage-config-field label="Rebake" help-key="execution.forceRebake">
-        <div class="checkbox" style="margin-bottom: 0">
-            <label>
-                <input type="checkbox" ng-model="stage.rebake"/>
-                Rebake image without regard to the status of any existing bake
-            </label>
-        </div>
-    </stage-config-field>
-    <div class="form-group">
-        <div class="col-md-9 col-md-offset-1">
-            <div class="checkbox">
-                <label>
-                    <input type="checkbox" ng-model="stage.showAdvancedOptions"/>
-                    <strong>Show Advanced Options</strong>
-                </label>
-            </div>
-        </div>
+  <stage-config-field label="Rebake" help-key="execution.forceRebake">
+    <div class="checkbox" style="margin-bottom: 0">
+      <label>
+        <input type="checkbox" ng-model="stage.rebake" />
+        Rebake image without regard to the status of any existing bake
+      </label>
     </div>
-    <div ng-class="{collapse: stage.showAdvancedOptions !== true, 'collapse.in': stage.showAdvancedOptions === true}">
-        <stage-config-field label="Template File Name" help-key="pipeline.config.bake.templateFileName">
-            <input type="text" class="form-control input-sm"
-                   ng-model="stage.templateFileName"/>
-        </stage-config-field>
-        <stage-config-field label="Var File Name" help-key="pipeline.config.bake.varFileName">
-            <input type="text" class="form-control input-sm"
-                   ng-model="stage.varFileName"/>
-        </stage-config-field>
-        <stage-config-field label="Upgrade" help-key="oracle.pipeline.config.bake.upgrade">
-            <label class="checkbox-inline">
-                <input type="checkbox" ng-model="stage.upgrade"/>
-                Perform a package manager upgrade before proceeding with the package installation
-            </label>
-        </stage-config-field>
+  </stage-config-field>
+  <div class="form-group">
+    <div class="col-md-9 col-md-offset-1">
+      <div class="checkbox">
+        <label>
+          <input type="checkbox" ng-model="stage.showAdvancedOptions" />
+          <strong>Show Advanced Options</strong>
+        </label>
+      </div>
     </div>
+  </div>
+  <div ng-class="{collapse: stage.showAdvancedOptions !== true, 'collapse.in': stage.showAdvancedOptions === true}">
+    <stage-config-field label="Template File Name" help-key="pipeline.config.bake.templateFileName">
+      <input type="text" class="form-control input-sm" ng-model="stage.templateFileName" />
+    </stage-config-field>
+    <stage-config-field label="Var File Name" help-key="pipeline.config.bake.varFileName">
+      <input type="text" class="form-control input-sm" ng-model="stage.varFileName" />
+    </stage-config-field>
+    <stage-config-field label="Upgrade" help-key="oracle.pipeline.config.bake.upgrade">
+      <label class="checkbox-inline">
+        <input type="checkbox" ng-model="stage.upgrade" />
+        Perform a package manager upgrade before proceeding with the package installation
+      </label>
+    </stage-config-field>
+  </div>
 </div>

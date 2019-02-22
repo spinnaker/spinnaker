@@ -1,64 +1,62 @@
-  <div class="form-group">
-    <label class="col-md-3 sm-label-right">Master</label>
-    <div class="col-md-8">
-      <ui-select class="form-control input-sm"
-                 ng-model="trigger.master">
-        <ui-select-match placeholder="Select a master...">{{$select.selected}}</ui-select-match>
-        <ui-select-choices repeat="master in masters | filter: $select.search">
-          <span ng-bind-html="master | highlight: $select.search"></span>
-        </ui-select-choices>
+<div class="form-group">
+  <label class="col-md-3 sm-label-right">Master</label>
+  <div class="col-md-8">
+    <ui-select class="form-control input-sm" ng-model="trigger.master">
+      <ui-select-match placeholder="Select a master...">{{$select.selected}}</ui-select-match>
+      <ui-select-choices repeat="master in masters | filter: $select.search">
+        <span ng-bind-html="master | highlight: $select.search"></span>
+      </ui-select-choices>
+    </ui-select>
+  </div>
+  <div class="col-md-1 text-center">
+    <a
+      href
+      ng-click="jenkinsTriggerCtrl.refreshMasters()"
+      tooltip-placement="right"
+      uib-tooltip="{{viewState.mastersRefreshing ? 'Masters refreshing.' : 'Refresh masters list' }}"
+    >
+      <span ng-class="{'fa-spin':viewState.mastersRefreshing}" class="fa fa-sync-alt"></span>
+    </a>
+  </div>
+</div>
+<div class="form-group">
+  <label class="col-md-3 sm-label-right">Job</label>
+  <div class="col-md-8">
+    <p class="form-control-static" ng-if="!trigger.master">(Select a master)</p>
+    <div ng-if="trigger.master && viewState.jobsLoaded">
+      <ui-select class="form-control input-sm" ng-model="trigger.job">
+        <ui-select-match placeholder="Select a job...">{{$select.selected}}</ui-select-match>
+        <ui-select-choices repeat="job in jobs | filter: $select.search"
+          ><span ng-bind-html="job | highlight: $select.search"></span
+        ></ui-select-choices>
       </ui-select>
     </div>
-    <div class="col-md-1 text-center">
-      <a href
-         ng-click="jenkinsTriggerCtrl.refreshMasters()"
-         tooltip-placement="right"
-         uib-tooltip="{{viewState.mastersRefreshing ? 'Masters refreshing.' : 'Refresh masters list' }}"
-        >
-              <span ng-class="{'fa-spin':viewState.mastersRefreshing}"
-                    class="fa fa-sync-alt"></span>
-      </a>
+    <div class="horizontal center" ng-if="trigger.master && !viewState.jobsLoaded">
+      <loading-spinner size="'small'"></loading-spinner>
     </div>
   </div>
-  <div class="form-group">
-    <label class="col-md-3 sm-label-right">Job</label>
-    <div class="col-md-8">
-      <p class="form-control-static" ng-if="!trigger.master">(Select a master)</p>
-      <div ng-if="trigger.master && viewState.jobsLoaded">
-        <ui-select class="form-control input-sm"
-                   ng-model="trigger.job">
-          <ui-select-match placeholder="Select a job...">{{$select.selected}}</ui-select-match>
-          <ui-select-choices repeat="job in jobs | filter: $select.search"><span ng-bind-html="job | highlight: $select.search"></span></ui-select-choices>
-        </ui-select>
-      </div>
-      <div class="horizontal center" ng-if="trigger.master && !viewState.jobsLoaded">
-        <loading-spinner size="'small'"></loading-spinner>
-      </div>
-    </div>
-    <div class="col-md-1 text-center">
-      <a href
-         ng-click="jenkinsTriggerCtrl.refreshJobs()"
-         tooltip-placement="right"
-         uib-tooltip="{{viewState.jobsRefreshing ? 'Jobs refreshing.' : 'Refresh job list' }}"
-        >
-              <span ng-class="{'fa-spin':viewState.jobsRefreshing}"
-                    class="fa fa-sync-alt"></span>
-      </a>
-    </div>
+  <div class="col-md-1 text-center">
+    <a
+      href
+      ng-click="jenkinsTriggerCtrl.refreshJobs()"
+      tooltip-placement="right"
+      uib-tooltip="{{viewState.jobsRefreshing ? 'Jobs refreshing.' : 'Refresh job list' }}"
+    >
+      <span ng-class="{'fa-spin':viewState.jobsRefreshing}" class="fa fa-sync-alt"></span>
+    </a>
   </div>
-  <div class="form-group">
-    <div class="col-md-3 sm-label-right">
-      <b>Property File</b>
-      <help-field key="pipeline.config.jenkins.trigger.propertyFile"></help-field>
-    </div>
-    <div class="col-md-6">
-      <input type="text" class="form-control input-sm" ng-model="trigger.propertyFile"/>
-    </div>
+</div>
+<div class="form-group">
+  <div class="col-md-3 sm-label-right">
+    <b>Property File</b>
+    <help-field key="pipeline.config.jenkins.trigger.propertyFile"></help-field>
   </div>
+  <div class="col-md-6">
+    <input type="text" class="form-control input-sm" ng-model="trigger.propertyFile" />
+  </div>
+</div>
 
-  <div class="form-group" ng-if="jenkinsTriggerCtrl.fiatEnabled">
-    <run-as-user-selector service-accounts="jenkinsTriggerCtrl.serviceAccounts"
-                          component="trigger"
-                          field="runAsUser">
-    </run-as-user-selector>
-  </div>
+<div class="form-group" ng-if="jenkinsTriggerCtrl.fiatEnabled">
+  <run-as-user-selector service-accounts="jenkinsTriggerCtrl.serviceAccounts" component="trigger" field="runAsUser">
+  </run-as-user-selector>
+</div>

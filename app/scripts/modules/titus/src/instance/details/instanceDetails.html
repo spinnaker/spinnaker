@@ -24,24 +24,38 @@
         ng-if="instance"
         class="copy-to-clipboard"
         text="sshLink"
-        tool-tip="'Copy titus-ssh command to clipboard'">
+        tool-tip="'Copy titus-ssh command to clipboard'"
+      >
       </copy-to-clipboard>
     </div>
     <div>
       <div class="actions" ng-class="{ insights: instance.insightActions.length > 0 }" ng-if="instance.placement">
         <div class="dropdown" uib-dropdown dropdown-append-to-body>
-          <button type="button" class="btn btn-sm btn-primary dropdown-toggle" ng-disabled="disabled"
-                  uib-dropdown-toggle>
+          <button
+            type="button"
+            class="btn btn-sm btn-primary dropdown-toggle"
+            ng-disabled="disabled"
+            uib-dropdown-toggle
+          >
             Titus Task Actions <span class="caret"></span>
           </button>
           <ul class="dropdown-menu" uib-dropdown-menu role="menu">
-            <li><a href ng-click="ctrl.enableInstanceInDiscovery()" ng-if="ctrl.canRegisterWithDiscovery()">Enable in
-              Discovery</a></li>
-            <li><a href ng-click="ctrl.disableInstanceInDiscovery()"
-                   ng-if="ctrl.hasHealthState('Discovery', 'Up') || ctrl.hasHealthState('Discovery', 'Down')">Disable in
-              Discovery</a></li>
+            <li>
+              <a href ng-click="ctrl.enableInstanceInDiscovery()" ng-if="ctrl.canRegisterWithDiscovery()"
+                >Enable in Discovery</a
+              >
+            </li>
+            <li>
+              <a
+                href
+                ng-click="ctrl.disableInstanceInDiscovery()"
+                ng-if="ctrl.hasHealthState('Discovery', 'Up') || ctrl.hasHealthState('Discovery', 'Down')"
+                >Disable in Discovery</a
+              >
+            </li>
             <li><a href ng-click="ctrl.terminateInstance()">Terminate</a></li>
-            <li><a href ng-click="ctrl.terminateInstanceAndShrinkServerGroup()">Terminate and Shrink Server Group</a>
+            <li>
+              <a href ng-click="ctrl.terminateInstanceAndShrinkServerGroup()">Terminate and Shrink Server Group</a>
             </li>
           </ul>
         </div>
@@ -50,12 +64,14 @@
             Insight <span class="caret"></span>
           </button>
           <ul class="dropdown-menu" uib-dropdown-menu role="menu">
-            <li ng-repeat="action in instance.insightActions"
-                analytics-on="click"
-                analytics-category="Insight Menu (Instance)"
-                analytics-event="{{action.label}} clicked"
-                analytics-label="{{instance.account}}/{{instance.region}}/{{instance.name}}/{{instance.serverGroup}}">
-              <a target=_blank href="{{action.url}}">{{action.label}}</a>
+            <li
+              ng-repeat="action in instance.insightActions"
+              analytics-on="click"
+              analytics-category="Insight Menu (Instance)"
+              analytics-event="{{action.label}} clicked"
+              analytics-label="{{instance.account}}/{{instance.region}}/{{instance.name}}/{{instance.serverGroup}}"
+            >
+              <a target="_blank" href="{{action.url}}">{{action.label}}</a>
             </li>
           </ul>
         </div>
@@ -76,19 +92,22 @@
         </dd>
         <dt ng-if="instance.serverGroup">Server Group</dt>
         <dd ng-if="instance.serverGroup">
-          <a ui-sref="^.serverGroup({region: instance.region,
+          <a
+            ui-sref="^.serverGroup({region: instance.region,
               accountId: instance.account,
               serverGroup: instance.serverGroup,
-              provider: instance.provider})">{{instance.serverGroup}}</a>
+              provider: instance.provider})"
+            >{{instance.serverGroup}}</a
+          >
         </dd>
         <dt>Job Id</dt>
         <dd><a href="{{ctrl.titusUiEndpoint}}jobs/{{instance.jobId}}" target="_blank">{{instance.jobId}}</a></dd>
         <dt>Instance Id</dt>
-        <dd><a href="{{ctrl.titusUiEndpoint}}jobs/{{instance.jobId}}/tasks/{{instance.id}}" target="_blank">{{instance.id}}</a>
-          <copy-to-clipboard
-            class="copy-to-clipboard"
-            text="instance.id"
-            tool-tip="'Copy instance Id to clipboard'">
+        <dd>
+          <a href="{{ctrl.titusUiEndpoint}}jobs/{{instance.jobId}}/tasks/{{instance.id}}" target="_blank"
+            >{{instance.id}}</a
+          >
+          <copy-to-clipboard class="copy-to-clipboard" text="instance.id" tool-tip="'Copy instance Id to clipboard'">
           </copy-to-clipboard>
         </dd>
       </dl>
@@ -104,8 +123,10 @@
         <dt ng-repeat-start="metric in healthMetrics | orderBy: 'type'">{{metric.type | robotToHuman}}</dt>
         <dd ng-repeat-end>
           <div ng-if="metric.type !== 'TargetGroup'">
-            <span uib-tooltip="{{metric.state.toLowerCase() === 'down' ? metric.description : ''}}"
-                  tooltip-placement="left">
+            <span
+              uib-tooltip="{{metric.state.toLowerCase() === 'down' ? metric.description : ''}}"
+              tooltip-placement="left"
+            >
               <span class="glyphicon glyphicon-{{metric.state}}-triangle"></span>
               {{metric.state | robotToHuman}}
             </span>
@@ -113,13 +134,16 @@
               <a ng-if="metric.healthCheckUrl" target="_blank" href="{{metric.healthCheckUrl}}">Health Check</a>
               <span ng-if="metric.healthCheckUrl && metric.statusPageUrl"> | </span>
               <a ng-if="metric.statusPageUrl" target="_blank" href="{{metric.statusPageUrl}}">Status</a>
-              <span ng-if="metric.type === 'Discovery'"> |
+              <span ng-if="metric.type === 'Discovery'">
+                |
                 <a target="_blank" href="{{ctrl.discoveryInfoLink}}">Discovery Info</a>
               </span>
             </span>
           </div>
-          <div ng-if="metric.type === 'TargetGroup' && metric.targetGroups.length"
-               ng-repeat="targetGroup in metric.targetGroups">
+          <div
+            ng-if="metric.type === 'TargetGroup' && metric.targetGroups.length"
+            ng-repeat="targetGroup in metric.targetGroups"
+          >
             <instance-load-balancer-health load-balancer="targetGroup"></instance-load-balancer-health>
           </div>
         </dd>
@@ -128,18 +152,25 @@
     <collapsible-section heading="DNS">
       <dl class="dl-horizontal dl-flex">
         <dt ng-if="instance.placement.containerIp">Container IP</dt>
-        <dd ng-if="instance.placement.containerIp">{{instance.placement.containerIp}}
+        <dd ng-if="instance.placement.containerIp">
+          {{instance.placement.containerIp}}
           <copy-to-clipboard
             class="copy-to-clipboard"
             text="instance.placement.containerIp"
-            tool-tip="'Copy container IP clipboard'">
+            tool-tip="'Copy container IP clipboard'"
+          >
           </copy-to-clipboard>
         </dd>
         <dt>Host IP</dt>
         <dd>{{instance.placement.host}}</dd>
       </dl>
     </collapsible-section>
-    <titus-security-groups app="application" server-group="serverGroup" class="collapsible-section" style="display: block"></titus-security-groups>
+    <titus-security-groups
+      app="application"
+      server-group="serverGroup"
+      class="collapsible-section"
+      style="display: block"
+    ></titus-security-groups>
     <!--<collapsible-section heading="Resources">
       <dl class="dl-horizontal dl-flex">
         <dt>CPU(s)</dt>
@@ -152,8 +183,8 @@
         <dd>{{instance.resources.networkMbps}} Mbps</dd>
         <dt>GPU(s)</dt>
         <dd>{{instance.resources.gpu}}</dd>
-      </dl>-->
-    </collapsible-section>
+      </dl>
+    </collapsible-section>-->
     <collapsible-section heading="Console Output">
       <ul>
         <li>
@@ -161,7 +192,13 @@
         </li>
       </ul>
     </collapsible-section>
-    <instance-links address="baseIpAddress" application="application" instance="instance" moniker="moniker" environment="environment"></instance-links>
+    <instance-links
+      address="baseIpAddress"
+      application="application"
+      instance="instance"
+      moniker="moniker"
+      environment="environment"
+    ></instance-links>
   </div>
   <div class="content" ng-if="!state.loading && !instance">
     <div class="content-section">

@@ -1,19 +1,23 @@
-<form ng-controller="kubernetesSecurityGroupTLSController as tlsController" class="container-fluid form-horizontal" name="rules">
+<form
+  ng-controller="kubernetesSecurityGroupTLSController as tlsController"
+  class="container-fluid form-horizontal"
+  name="rules"
+>
   <div class="col-md-12">
     <div ng-repeat="tls in securityGroup.tls">
-      <hr ng-if="$index > 0">
+      <hr ng-if="$index > 0" />
       <div class="form-group">
         <div class="col-md-3 sm-label-right">
           Host
           <help-field key="kubernetes.ingress.tls.host"></help-field>
         </div>
         <div class="col-md-6">
-          <input type="text" class="form-control input-sm" name="details" ng-model="tls.hosts"/>
+          <input type="text" class="form-control input-sm" name="details" ng-model="tls.hosts" />
         </div>
         <div class="col-md-1">
           <button class="btn btn-sm btn-default" ng-click="tlsController.removeTLSEntry($index)">
-             <span class="glyphicon glyphicon-trash visible-lg-inline"></span>
-             <span class="visible-lg-inline"> Remove Entry</span>
+            <span class="glyphicon glyphicon-trash visible-lg-inline"></span>
+            <span class="visible-lg-inline"> Remove Entry</span>
           </button>
         </div>
       </div>
@@ -23,12 +27,12 @@
           <help-field key="kubernetes.ingress.tls.secret"></help-field>
         </div>
         <div class="col-md-6">
-          <input type="text" class="form-control input-sm" name="details" ng-model="tls.secretName"/>
+          <input type="text" class="form-control input-sm" name="details" ng-model="tls.secretName" />
         </div>
       </div>
     </div>
-    <button class="add-new btn btn-block btn-sm" ng-click="tlsController.addTLSEntry()"><span
-      class="glyphicon glyphicon-plus-sign"></span> Add New TLS Entry
+    <button class="add-new btn btn-block btn-sm" ng-click="tlsController.addTLSEntry()">
+      <span class="glyphicon glyphicon-plus-sign"></span> Add New TLS Entry
     </button>
   </div>
 </form>

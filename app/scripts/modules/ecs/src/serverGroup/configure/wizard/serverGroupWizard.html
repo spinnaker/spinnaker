@@ -27,9 +27,17 @@
       </v2-wizard-page>
     </v2-modal-wizard>
     <div class="modal-footer" ng-if="state.loaded">
-      <button ng-disabled="taskMonitor.submitting" class="btn btn-default btn-cancel" ng-click="ctrl.cancel()">Cancel</button>
-      <submit-button ng-if="ctrl.showSubmitButton()" is-disabled="!ctrl.isValid() || taskMonitor.submitting" label="command.viewState.submitButtonLabel"
-      submitting="taskMonitor.submitting" on-click="ctrl.submit()" is-new="true"></submit-button>
+      <button ng-disabled="taskMonitor.submitting" class="btn btn-default btn-cancel" ng-click="ctrl.cancel()">
+        Cancel
+      </button>
+      <submit-button
+        ng-if="ctrl.showSubmitButton()"
+        is-disabled="!ctrl.isValid() || taskMonitor.submitting"
+        label="command.viewState.submitButtonLabel"
+        submitting="taskMonitor.submitting"
+        on-click="ctrl.submit()"
+        is-new="true"
+      ></submit-button>
     </div>
   </div>
 </form>

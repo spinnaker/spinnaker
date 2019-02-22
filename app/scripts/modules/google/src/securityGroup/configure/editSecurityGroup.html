@@ -1,7 +1,9 @@
 <ng-form name="form" novalidate class="gce-security-group-wizard">
-  <v2-modal-wizard heading="Edit {{securityGroup.name}}: {{securityGroup.accountName}}"
-                   task-monitor="taskMonitor"
-                   dismiss="$dismiss()">
+  <v2-modal-wizard
+    heading="Edit {{securityGroup.name}}: {{securityGroup.accountName}}"
+    task-monitor="taskMonitor"
+    dismiss="$dismiss()"
+  >
     <v2-wizard-page key="Targets" label="Targets" done="true">
       <ng-include src="pages.targets"></ng-include>
     </v2-wizard-page>
@@ -13,10 +15,12 @@
     </v2-wizard-page>
   </v2-modal-wizard>
   <div class="modal-footer">
-    <button class="btn btn-default"
-            ng-click="ctrl.cancel()">Cancel
-    </button>
-    <submit-button is-disabled="form.$invalid || !wizard.isComplete() || state.submitting || !ctrl.isValid()"
-                   submitting="state.submitting" on-click="ctrl.upsert()" is-new="isNew"></submit-button>
+    <button class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
+    <submit-button
+      is-disabled="form.$invalid || !wizard.isComplete() || state.submitting || !ctrl.isValid()"
+      submitting="state.submitting"
+      on-click="ctrl.upsert()"
+      is-new="isNew"
+    ></submit-button>
   </div>
 </ng-form>

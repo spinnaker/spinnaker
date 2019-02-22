@@ -1,5 +1,5 @@
 <div ng-repeat="port in $ctrl.ports">
-  <hr ng-if="$index > 0">
+  <hr ng-if="$index > 0" />
   <div class="form-group">
     <div class="col-md-3 sm-label-right">
       Name
@@ -21,7 +21,14 @@
       <help-field key="kubernetes.containers.ports.containerPort"></help-field>
     </div>
     <div class="col-md-2">
-      <input type="number" class="form-control input-sm" name="details" ng-model="port.containerPort" min="1" max="{{$ctrl.maxPort}}"/>
+      <input
+        type="number"
+        class="form-control input-sm"
+        name="details"
+        ng-model="port.containerPort"
+        min="1"
+        max="{{ $ctrl.maxPort }}"
+      />
     </div>
     <div class="col-md-2 sm-label-right">
       Host IP
@@ -37,7 +44,14 @@
       <help-field key="kubernetes.containers.ports.hostPort"></help-field>
     </div>
     <div class="col-md-2">
-      <input type="number" class="form-control input-sm" name="details" ng-model="port.hostPort" min="1" max="{{$ctrl.maxPort}}"/>
+      <input
+        type="number"
+        class="form-control input-sm"
+        name="details"
+        ng-model="port.hostPort"
+        min="1"
+        max="{{ $ctrl.maxPort }}"
+      />
     </div>
     <div class="col-md-2 sm-label-right">
       Protocol
@@ -45,7 +59,12 @@
     </div>
     <div class="col-md-3">
       <select class="form-control input-sm" ng-model="port.protocol">
-        <option ng-repeat="protocol in $ctrl.protocols" value="{{protocol}}" ng-selected="port.protocol === protocol">{{protocol}}</option>
+        <option
+          ng-repeat="protocol in $ctrl.protocols"
+          value="{{ protocol }}"
+          ng-selected="port.protocol === protocol"
+          >{{ protocol }}</option
+        >
       </select>
     </div>
   </div>
@@ -53,4 +72,3 @@
 <button class="add-new btn btn-block btn-sm" ng-click="$ctrl.addPort()">
   <span class="glyphicon glyphicon-plus-sign"></span> Add New Port
 </button>
-

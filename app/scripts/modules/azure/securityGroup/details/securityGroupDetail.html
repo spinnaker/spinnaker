@@ -1,8 +1,7 @@
 <div class="details-panel">
   <div class="header">
     <div class="close-button">
-      <a class="btn btn-link"
-         ui-sref="^">
+      <a class="btn btn-link" ui-sref="^">
         <span class="glyphicon glyphicon-remove"></span>
       </a>
     </div>
@@ -21,9 +20,13 @@
           <firewall-label label="Firewall"></firewall-label> Actions <span class="caret"></span>
         </button>
         <ul class="dropdown-menu" uib-dropdown-menu role="menu">
-          <li><a href ng-click="ctrl.deleteSecurityGroup()">Delete <firewall-label label="Firewall"></firewall-label></a></li>
+          <li>
+            <a href ng-click="ctrl.deleteSecurityGroup()">Delete <firewall-label label="Firewall"></firewall-label></a>
+          </li>
           <li><a href ng-click="ctrl.editInboundRules()">Edit Inbound Rules</a></li>
-          <li><a href ng-click="ctrl.cloneSecurityGroup()">Clone <firewall-label label="Firewall"></firewall-label></a></li>
+          <li>
+            <a href ng-click="ctrl.cloneSecurityGroup()">Clone <firewall-label label="Firewall"></firewall-label></a>
+          </li>
         </ul>
       </div>
     </div>
@@ -41,10 +44,15 @@
         <dd>{{securityGroup.description}}</dd>
       </dl>
     </collapsible-section>
-    <collapsible-section heading="Security Rules ({{securityGroup.securityRules.length || 0}})" expanded="{{!!(securityGroup.securityRules && securityGroup.securityRules.length)}}">
+    <collapsible-section
+      heading="Security Rules ({{securityGroup.securityRules.length || 0}})"
+      expanded="{{!!(securityGroup.securityRules && securityGroup.securityRules.length)}}"
+    >
       <div ng-if="!securityGroup.securityRules.length">None</div>
-      <dl ng-class="insightCtrl.vm.filtersExpanded ? '' : 'dl-horizontal dl-medium'"
-          ng-repeat="rule in securityGroup.securityRules | orderBy: 'rule.priority'">
+      <dl
+        ng-class="insightCtrl.vm.filtersExpanded ? '' : 'dl-horizontal dl-medium'"
+        ng-repeat="rule in securityGroup.securityRules | orderBy: 'rule.priority'"
+      >
         <dt>Name</dt>
         <dd>{{rule.name}}</dd>
         <dt>Priority</dt>
@@ -63,9 +71,8 @@
         <dd>{{rule.destinationAddressPrefix}}</dd>
         <dt>Dest Port Range</dt>
         <dd>{{rule.destinationPortRange}}</dd>
-        <hr/>
+        <hr />
       </dl>
-
     </collapsible-section>
   </div>
 </div>

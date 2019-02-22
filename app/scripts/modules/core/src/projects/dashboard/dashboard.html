@@ -1,17 +1,16 @@
 <div ng-if="!vm.project.notFound" class="project-dashboard container">
   <div class="row">
     <div class="col-md-7">
-      <h3>Application Status
-        <component-refresher state="vm.state.clusters"
-                             template-url="vm.clusterRefreshTooltipTemplate"
-                             refresh="vm.refreshClusters()"></component-refresher>
+      <h3>
+        Application Status
+        <component-refresher
+          state="vm.state.clusters"
+          template-url="vm.clusterRefreshTooltipTemplate"
+          refresh="vm.refreshClusters()"
+        ></component-refresher>
         <region-filter region-filter="regionFilter" regions="vm.allRegions"></region-filter>
       </h3>
-      <project-cluster
-          ng-repeat="cluster in vm.clusters"
-          project="vm.project"
-          cluster="cluster"
-          ></project-cluster>
+      <project-cluster ng-repeat="cluster in vm.clusters" project="vm.project" cluster="cluster"></project-cluster>
       <div class="horizontal center" ng-if="!vm.state.clusters.loaded">
         <loading-spinner size="'small'"></loading-spinner>
       </div>
@@ -19,17 +18,18 @@
       <h4 ng-if="vm.state.clusters.error">There was a problem loading the clusters for this project.</h4>
     </div>
     <div class="col-md-5">
-      <h3>Pipeline Status
-        <component-refresher state="vm.state.executions"
-                             template-url="vm.executionRefreshTooltipTemplate"
-                             refresh="vm.refreshExecutions()"></component-refresher>
+      <h3>
+        Pipeline Status
+        <component-refresher
+          state="vm.state.executions"
+          template-url="vm.executionRefreshTooltipTemplate"
+          refresh="vm.refreshExecutions()"
+        ></component-refresher>
       </h3>
       <div class="horizontal center" ng-if="!vm.state.executions.loaded">
         <loading-spinner size="'small'"></loading-spinner>
       </div>
-      <project-pipeline
-        ng-repeat="execution in vm.executions"
-        execution="execution"></project-pipeline>
+      <project-pipeline ng-repeat="execution in vm.executions" execution="execution"></project-pipeline>
       <h4 ng-if="!vm.project.config.pipelineConfigs.length">No pipelines configured</h4>
       <h4 ng-if="vm.state.executions.error">There was a problem loading the executions for this project.</h4>
     </div>

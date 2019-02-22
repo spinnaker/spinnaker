@@ -7,16 +7,14 @@
     <div class="modal-body container-fluid">
       <div class="form-group">
         <label>Set result to</label>
-        <select class="form-control input-sm"
-                ng-model="command.result">
+        <select class="form-control input-sm" ng-model="command.result">
           <option value="SUCCESS">SUCCESS</option>
           <option value="FAILURE">FAILURE</option>
         </select>
       </div>
       <div class="form-group">
         <label>Reason for ending canary</label>
-        <textarea class="form-control" rows="4"
-                  ng-model="command.reason"></textarea>
+        <textarea class="form-control" rows="4" ng-model="command.reason"></textarea>
       </div>
       <div class="form-group" ng-if="state === 'success'" style="margin-top: 30px">
         <uib-alert type="success">
@@ -37,11 +35,13 @@
         <span ng-if="state !== 'success'">Cancel</span>
         <span ng-if="state === 'success'">Close</span>
       </button>
-      <button type="submit"
-              class="btn btn-primary"
-              ng-if="state !== 'success'"
-              ng-click="ctrl.endCanary()"
-              ng-disabled="state === 'submitting' || !command.reason">
+      <button
+        type="submit"
+        class="btn btn-primary"
+        ng-if="state !== 'success'"
+        ng-click="ctrl.endCanary()"
+        ng-disabled="state === 'submitting' || !command.reason"
+      >
         <button-busy-indicator ng-if="state === 'submitting'"></button-busy-indicator>
         Submit
       </button>

@@ -5,9 +5,11 @@
     <div class="row">
       <div class="col-md-12 canary-summary">
         <div class="score score-large">
-          <canary-score health="stage.context.status.health"
-                        result="stage.context.status.result"
-                        score="stage.context.status.score"></canary-score>
+          <canary-score
+            health="stage.context.status.health"
+            result="stage.context.status.result"
+            score="stage.context.status.score"
+          ></canary-score>
         </div>
         <div class="canary-summary-section">
           <span ng-if="deployment.canaryResult.lastUpdated">
@@ -15,16 +17,18 @@
             {{ deployment.canaryResult.lastUpdated | timestamp}}
           </span>
           <span ng-if="!deployment.canaryResult.lastUpdated">No canary result available</span>
-          <br/>
+          <br />
           <span ng-if="deployment.canaryResult.lastUpdated">
             <strong>Score duration&nbsp;:&nbsp;&nbsp;</strong>
             {{ deployment.canaryResult.timeDuration.durationString }}
           </span>
         </div>
         <div class="canary-summary-section">
-          <a ng-if="deployment.status.reportUrl" target="_blank" ng-href="{{deployment.status.reportUrl}}">Canary Report</a>
+          <a ng-if="deployment.status.reportUrl" target="_blank" ng-href="{{deployment.status.reportUrl}}"
+            >Canary Report</a
+          >
           <!--<span ng-if="!deployment.status.reportUrl">No report available</span>-->
-          <br/>
+          <br />
           <span style="visibility: hidden;">Diff Report</span>
         </div>
       </div>
@@ -38,8 +42,12 @@
         <div class="row">
           <div class="col-md-3"><strong>Cluster</strong></div>
           <div class="col-md-9">
-            <a ng-click="$event.stopPropagation(); canaryDeploymentDetailsCtrl.overrideFiltersForUrl(baselineClusterUrl);"
-               ng-href="{{baselineClusterUrl.href}}">{{deployment.baselineCluster.name}}</a></div>
+            <a
+              ng-click="$event.stopPropagation(); canaryDeploymentDetailsCtrl.overrideFiltersForUrl(baselineClusterUrl);"
+              ng-href="{{baselineClusterUrl.href}}"
+              >{{deployment.baselineCluster.name}}</a
+            >
+          </div>
         </div>
         <div class="row">
           <div class="col-md-3"><strong>Image</strong></div>
@@ -49,9 +57,12 @@
           <div class="col-md-3"><strong>Build</strong></div>
           <div class="col-md-9">
             <span ng-if="!deployment.baselineCluster.build.url">n/a</span>
-            <a ng-if="deployment.baselineCluster.build.url"
-               ng-href="{{deployment.baselineCluster.build.url}}"
-               target="_blank">#{{deployment.baselineCluster.build.number}}</a>
+            <a
+              ng-if="deployment.baselineCluster.build.url"
+              ng-href="{{deployment.baselineCluster.build.url}}"
+              target="_blank"
+              >#{{deployment.baselineCluster.build.number}}</a
+            >
           </div>
         </div>
         <div class="row">
@@ -67,8 +78,11 @@
         <div class="row">
           <div class="col-md-3"><strong>Cluster</strong></div>
           <div class="col-md-9">
-            <a ng-click="$event.stopPropagation(); canaryDeploymentDetailsCtrl.overrideFiltersForUrl(canaryClusterUrl);"
-               ng-href="{{canaryClusterUrl.href}}">{{deployment.canaryCluster.name}}</a>
+            <a
+              ng-click="$event.stopPropagation(); canaryDeploymentDetailsCtrl.overrideFiltersForUrl(canaryClusterUrl);"
+              ng-href="{{canaryClusterUrl.href}}"
+              >{{deployment.canaryCluster.name}}</a
+            >
           </div>
         </div>
         <div class="row">
@@ -79,9 +93,12 @@
           <div class="col-md-3"><strong>Build</strong></div>
           <div class="col-md-9">
             <span ng-if="!deployment.canaryCluster.build.url">n/a</span>
-            <a ng-if="deployment.canaryCluster.build.url"
-               ng-href="{{deployment.canaryCluster.build.url}}"
-               target="_blank">#{{deployment.canaryCluster.build.number}}</a>
+            <a
+              ng-if="deployment.canaryCluster.build.url"
+              ng-href="{{deployment.canaryCluster.build.url}}"
+              target="_blank"
+              >#{{deployment.canaryCluster.build.number}}</a
+            >
           </div>
         </div>
         <div class="row">
@@ -98,24 +115,26 @@
       <div class="col-md-12">
         <p class="text-center" ng-if="viewState.loadingHistory">Loading...</p>
         <p class="text-center" ng-if="!viewState.loadingHistory && viewState.loadingHistoryError">
-          Canary analysis history could not be loaded. <br/>
+          Canary analysis history could not be loaded. <br />
           <a href ng-click="loadHistory()">Reload score history</a>
         </p>
         <table class="table" ng-if="!viewState.loadingHistory && !viewState.loadingHistoryError">
           <thead>
-          <tr>
-            <th>Score</th>
-            <th>Score Duration</th>
-            <th>Generated On</th>
-            <th>Report</th>
-          </tr>
+            <tr>
+              <th>Score</th>
+              <th>Score Duration</th>
+              <th>Generated On</th>
+              <th>Report</th>
+            </tr>
           </thead>
           <tbody>
             <tr ng-repeat="scoreReport in analysisHistory | orderBy: '-lastUpdated'">
               <td>
-                <canary-score result="scoreReport.result"
-                              score="scoreReport.score"
-                              health="scoreReport.health"></canary-score>
+                <canary-score
+                  result="scoreReport.result"
+                  score="scoreReport.score"
+                  health="scoreReport.health"
+                ></canary-score>
               </td>
               <td>{{ scoreReport.timeDuration.durationString }}</td>
               <td>{{ scoreReport.lastUpdated | timestamp }}</td>
@@ -123,14 +142,21 @@
             </tr>
           </tbody>
         </table>
-        <p class="text-center" ng-if="!viewState.loadingHistory && !analysisHistory.length">No canary analysis history available</p>
-
+        <p class="text-center" ng-if="!viewState.loadingHistory && !analysisHistory.length">
+          No canary analysis history available
+        </p>
       </div>
     </div>
   </div>
   <div class="step-section-details" ng-if="detailsSection === 'codeChanges' && commits">
     <table>
-      <tr><th>#</th><th>Date</th><th>Commit</th><th>Message</th><th>Author</th></tr>
+      <tr>
+        <th>#</th>
+        <th>Date</th>
+        <th>Commit</th>
+        <th>Message</th>
+        <th>Author</th>
+      </tr>
       <tr ng-repeat="commit in commits">
         <td><b>{{$index+1}}</b>&nbsp;&nbsp;</td>
         <td>{{commit.timestamp | date:'MM/dd'}}&nbsp;&nbsp;</td>

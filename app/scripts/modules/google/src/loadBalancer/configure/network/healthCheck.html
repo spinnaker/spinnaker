@@ -1,25 +1,36 @@
 <div class="container-fluid form-horizontal">
-  <div class="col-md-4 sm-label-right">Ping</div> <div class="col-md-8">
+  <div class="col-md-4 sm-label-right">Ping</div>
+  <div class="col-md-8">
     <table class="table table-condensed packed">
       <thead>
-      <tr>
-        <th width="30%">Port</th>
-        <th><span ng-if="ctrl.requiresHealthCheckPath()">Path</span></th>
-      </tr>
+        <tr>
+          <th width="30%">Port</th>
+          <th><span ng-if="ctrl.requiresHealthCheckPath()">Path</span></th>
+        </tr>
       </thead>
       <tbody>
-      <tr>
-        <td><input class="form-control input-sm" type="number" ng-model="loadBalancer.healthCheckPort"
-                   required min="0"/></td>
-        <td><input ng-if="ctrl.requiresHealthCheckPath()"
-                   class="form-control input-sm"
-                   type="text"
-                   ng-change="loadBalancer.healthCheckPath = ctrl.prependForwardSlash(loadBalancer.healthCheckPath)"
-                   ng-model="loadBalancer.healthCheckPath"
-                   required/></td>
-      </tr>
+        <tr>
+          <td>
+            <input
+              class="form-control input-sm"
+              type="number"
+              ng-model="loadBalancer.healthCheckPort"
+              required
+              min="0"
+            />
+          </td>
+          <td>
+            <input
+              ng-if="ctrl.requiresHealthCheckPath()"
+              class="form-control input-sm"
+              type="text"
+              ng-change="loadBalancer.healthCheckPath = ctrl.prependForwardSlash(loadBalancer.healthCheckPath)"
+              ng-model="loadBalancer.healthCheckPath"
+              required
+            />
+          </td>
+        </tr>
       </tbody>
-
     </table>
   </div>
 </div>

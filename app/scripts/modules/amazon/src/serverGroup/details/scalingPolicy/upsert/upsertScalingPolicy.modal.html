@@ -8,17 +8,18 @@
     <form name="form" novalidate>
       <h4 class="section-heading">Conditions</h4>
       <div class="section-body">
-        <aws-alarm-configurer command="ctrl.command"
-                              modal-view-state="ctrl.viewState"
-                              server-group="ctrl.serverGroup"
-                              bounds-changed="ctrl.boundsChanged()"></aws-alarm-configurer>
+        <aws-alarm-configurer
+          command="ctrl.command"
+          modal-view-state="ctrl.viewState"
+          server-group="ctrl.serverGroup"
+          bounds-changed="ctrl.boundsChanged()"
+        ></aws-alarm-configurer>
       </div>
       <h4 class="section-heading">Actions</h4>
       <div class="section-body" ng-if="!ctrl.command.alarm.metricName">
         <h4 class="text-center">Select a metric</h4>
       </div>
       <div class="section-body" ng-if="ctrl.command.alarm.metricName">
-
         <div ng-if="ctrl.command.simple">
           <div class="row">
             <div class="col-md-10 col-md-offset-1">
@@ -29,13 +30,14 @@
             </div>
           </div>
 
-          <aws-simple-policy-action command="ctrl.command"
-                                    view-state="ctrl.viewState"></aws-simple-policy-action>
+          <aws-simple-policy-action command="ctrl.command" view-state="ctrl.viewState"></aws-simple-policy-action>
         </div>
         <div ng-if="ctrl.command.step">
-          <aws-step-policy-action command="ctrl.command"
-                                  view-state="ctrl.viewState"
-                                  bounds-changed="ctrl.boundsChanged()"></aws-step-policy-action>
+          <aws-step-policy-action
+            command="ctrl.command"
+            view-state="ctrl.viewState"
+            bounds-changed="ctrl.boundsChanged()"
+          ></aws-step-policy-action>
         </div>
       </div>
       <h4 class="section-heading">Additional Settings</h4>
@@ -43,7 +45,11 @@
         <div class="row" ng-if="!ctrl.viewState.isNew">
           <div class="col-md-2 sm-label-right">Policy Name</div>
           <div class="col-md-10 content-fields">
-            <span class="form-control-static select-placeholder" ng-if="!ctrl.viewState.isNew" ng-bind="ctrl.command.name"></span>
+            <span
+              class="form-control-static select-placeholder"
+              ng-if="!ctrl.viewState.isNew"
+              ng-bind="ctrl.command.name"
+            ></span>
           </div>
         </div>
 
@@ -54,11 +60,13 @@
               <span ng-bind="ctrl.viewState.operator"></span>
               instances in increments of at least
             </span>
-            <input type="number"
-                   style="width: 60px"
-                   class="form-control input-sm"
-                   required
-                   ng-model="ctrl.command.minAdjustmentMagnitude"/>
+            <input
+              type="number"
+              style="width: 60px"
+              class="form-control input-sm"
+              required
+              ng-model="ctrl.command.minAdjustmentMagnitude"
+            />
             <span class="input-label">
               instance(s)
             </span>
@@ -70,11 +78,13 @@
             <span class="form-control-static select-placeholder">
               Wait at least
             </span>
-            <input type="number"
-                   style="width: 60px"
-                   class="form-control input-sm"
-                   required
-                   ng-model="ctrl.command.simple.cooldown"/>
+            <input
+              type="number"
+              style="width: 60px"
+              class="form-control input-sm"
+              required
+              ng-model="ctrl.command.simple.cooldown"
+            />
             <span class="input-label">
               seconds before another scaling event
             </span>
@@ -84,11 +94,13 @@
           <div class="col-md-2 sm-label-right">Warmup</div>
           <div class="col-md-10 content-fields">
             <span class="form-control-static select-placeholder">Instances need</span>
-            <input type="number"
-                   style="width: 60px"
-                   class="form-control input-sm"
-                   required
-                   ng-model="ctrl.command.step.estimatedInstanceWarmup"/>
+            <input
+              type="number"
+              style="width: 60px"
+              class="form-control input-sm"
+              required
+              ng-model="ctrl.command.step.estimatedInstanceWarmup"
+            />
             <span class="input-label">
               seconds to warm up after each step
             </span>
@@ -100,9 +112,11 @@
 
   <div class="modal-footer">
     <button class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
-    <submit-button is-disabled="!form.$valid"
-                   submitting="taskMonitor.submitting"
-                   on-click="ctrl.save()"
-                   is-new="ctrl.viewState.isNew"></submit-button>
+    <submit-button
+      is-disabled="!form.$valid"
+      submitting="taskMonitor.submitting"
+      on-click="ctrl.save()"
+      is-new="ctrl.viewState.isNew"
+    ></submit-button>
   </div>
 </div>

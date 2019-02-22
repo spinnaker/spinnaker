@@ -9,12 +9,15 @@
         <label>
           Generate a score for the past
         </label>
-        <input style="width: 60px" type="number" class="form-control input-sm"
-               min="0"
-               required
-               ng-model="command.duration"/>
-        <select style="width: 90px" class="form-control input-sm"
-                ng-model="command.durationUnit">
+        <input
+          style="width: 60px"
+          type="number"
+          class="form-control input-sm"
+          min="0"
+          required
+          ng-model="command.duration"
+        />
+        <select style="width: 90px" class="form-control input-sm" ng-model="command.durationUnit">
           <option value="h">hours</option>
           <option value="m">minutes</option>
         </select>
@@ -38,11 +41,13 @@
         <span ng-if="state !== 'success'">Cancel</span>
         <span ng-if="state === 'success'">Close</span>
       </button>
-      <button type="submit"
-              class="btn btn-primary"
-              ng-if="state !== 'success'"
-              ng-click="ctrl.generateCanaryScore()"
-              ng-disabled="state === 'submitting' || !command.duration || command.duration < 1">
+      <button
+        type="submit"
+        class="btn btn-primary"
+        ng-if="state !== 'success'"
+        ng-click="ctrl.generateCanaryScore()"
+        ng-disabled="state === 'submitting' || !command.duration || command.duration < 1"
+      >
         <button-busy-indicator ng-if="state === 'submitting'"></button-busy-indicator>
         Submit
       </button>

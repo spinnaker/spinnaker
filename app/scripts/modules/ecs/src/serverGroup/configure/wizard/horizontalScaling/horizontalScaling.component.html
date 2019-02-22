@@ -1,14 +1,12 @@
 <div class="container-fluid form-horizontal">
-
   <div class="form-group">
     <div class="col-md-5 sm-label-right">
       Launch Type
       <help-field key="ecs.launchtype"></help-field>
     </div>
     <div class="col-md-3">
-      <ui-select ng-model="$ctrl.command.launchType"
-                 class="form-control input-sm">
-        <ui-select-match placeholder="Select...">{{$select.selected}}</ui-select-match>
+      <ui-select ng-model="$ctrl.command.launchType" class="form-control input-sm">
+        <ui-select-match placeholder="Select...">{{ $select.selected }}</ui-select-match>
         <ui-select-choices repeat="launchType in $ctrl.command.backingData.launchTypes | filter: $select.search">
           <span ng-bind-html="launchType | highlight: $select.search"></span>
         </ui-select-choices>
@@ -21,10 +19,14 @@
       Desired capacity
       <help-field key="ecs.capacity.desired"></help-field>
     </div>
-    <div class="col-md-2"><input type="number"
-                                 class="form-control input-sm no-spel"
-                                 name="capacity"
-                                 ng-model="$ctrl.command.capacity.desired"/></div>
+    <div class="col-md-2">
+      <input
+        type="number"
+        class="form-control input-sm no-spel"
+        name="capacity"
+        ng-model="$ctrl.command.capacity.desired"
+      />
+    </div>
   </div>
 
   <div class="form-group">
@@ -32,10 +34,9 @@
       Minimum
       <help-field key="ecs.capacity.minimum"></help-field>
     </div>
-    <div class="col-md-2"><input type="number"
-                                 class="form-control input-sm no-spel"
-                                 name="min"
-                                 ng-model="$ctrl.command.capacity.min"/></div>
+    <div class="col-md-2">
+      <input type="number" class="form-control input-sm no-spel" name="min" ng-model="$ctrl.command.capacity.min" />
+    </div>
   </div>
 
   <div class="form-group">
@@ -43,16 +44,15 @@
       Maximum
       <help-field key="ecs.capacity.maximum"></help-field>
     </div>
-    <div class="col-md-2"><input type="number"
-                                 class="form-control input-sm no-spel"
-                                 name="max"
-                                 ng-model="$ctrl.command.capacity.max"/></div>
+    <div class="col-md-2">
+      <input type="number" class="form-control input-sm no-spel" name="max" ng-model="$ctrl.command.capacity.max" />
+    </div>
   </div>
 
   <div class="form-group">
     <div class="col-md-12 checkbox">
       <label>
-        <input type="checkbox" ng-model="$ctrl.command.useSourceCapacity"/>
+        <input type="checkbox" ng-model="$ctrl.command.useSourceCapacity" />
         <b>If available, use the previous server group's capacity</b>
       </label>
       <help-field key="ecs.capacity.overwrite"></help-field>
@@ -62,11 +62,10 @@
   <div class="form-group">
     <div class="col-md-12 checkbox">
       <label>
-        <input type="checkbox" ng-model="$ctrl.command.copySourceScalingPoliciesAndActions"/>
+        <input type="checkbox" ng-model="$ctrl.command.copySourceScalingPoliciesAndActions" />
         <b>If available, copy the previous server group's autoscaling policies</b>
       </label>
       <help-field key="ecs.capacity.copySourceScalingPoliciesAndActions"></help-field>
     </div>
   </div>
-
 </div>

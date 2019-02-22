@@ -6,16 +6,19 @@
   </div>
   <div class="modal-body">
     <form name="form" novalidate>
-
       <h4 class="section-heading">Conditions</h4>
       <div class="section-body">
-        <p><b>Note:</b> metrics must be sent to Amazon CloudWatch before they can be used in auto scaling. If you do not
+        <p>
+          <b>Note:</b> metrics must be sent to Amazon CloudWatch before they can be used in auto scaling. If you do not
           see a metric below, click "Configure available metrics" in the server group details to set up forwarding from
-          Atlas to CloudWatch.</p>
-        <aws-alarm-configurer command="ctrl.command"
-                              modal-view-state="ctrl.viewState"
-                              server-group="ctrl.alarmServerGroup"
-                              bounds-changed="ctrl.boundsChanged()"></aws-alarm-configurer>
+          Atlas to CloudWatch.
+        </p>
+        <aws-alarm-configurer
+          command="ctrl.command"
+          modal-view-state="ctrl.viewState"
+          server-group="ctrl.alarmServerGroup"
+          bounds-changed="ctrl.boundsChanged()"
+        ></aws-alarm-configurer>
       </div>
 
       <h4 class="section-heading">Actions</h4>
@@ -23,9 +26,11 @@
         <h4 class="text-center">Select a metric</h4>
       </div>
       <div class="section-body" ng-if="ctrl.command.alarm.metricName">
-        <aws-step-policy-action command="ctrl.command"
-                                view-state="ctrl.viewState"
-                                bounds-changed="ctrl.boundsChanged()"></aws-step-policy-action>
+        <aws-step-policy-action
+          command="ctrl.command"
+          view-state="ctrl.viewState"
+          bounds-changed="ctrl.boundsChanged()"
+        ></aws-step-policy-action>
       </div>
 
       <h4 class="section-heading">Additional Settings</h4>
@@ -37,11 +42,13 @@
               <span ng-bind="ctrl.viewState.operator"></span>
               instances in increments of at least
             </span>
-            <input type="number"
-                   style="width: 60px"
-                   class="form-control input-sm"
-                   required
-                   ng-model="ctrl.command.minAdjustmentMagnitude"/>
+            <input
+              type="number"
+              style="width: 60px"
+              class="form-control input-sm"
+              required
+              ng-model="ctrl.command.minAdjustmentMagnitude"
+            />
             <span class="input-label">
               instance(s)
             </span>
@@ -50,11 +57,13 @@
         <div class="row" ng-if="ctrl.viewState.operator !== 'Remove'">
           <div class="col-md-2 sm-label-right">Cooldown <help-field key="titus.autoscaling.cooldown"></help-field></div>
           <div class="col-md-10 content-fields">
-            <input type="number"
-                   style="width: 60px"
-                   class="form-control input-sm"
-                   required
-                   ng-model="ctrl.command.step.cooldown"/>
+            <input
+              type="number"
+              style="width: 60px"
+              class="form-control input-sm"
+              required
+              ng-model="ctrl.command.step.cooldown"
+            />
             <span class="input-label">
               seconds
             </span>
@@ -66,9 +75,11 @@
 
   <div class="modal-footer">
     <button class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
-    <submit-button is-disabled="!form.$valid"
-                   submitting="taskMonitor.submitting"
-                   on-click="ctrl.save()"
-                   is-new="ctrl.viewState.isNew"></submit-button>
+    <submit-button
+      is-disabled="!form.$valid"
+      submitting="taskMonitor.submitting"
+      on-click="ctrl.save()"
+      is-new="ctrl.viewState.isNew"
+    ></submit-button>
   </div>
 </div>

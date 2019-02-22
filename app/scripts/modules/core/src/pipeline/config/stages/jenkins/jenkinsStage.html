@@ -2,11 +2,8 @@
   <div class="form-group">
     <label class="col-md-2 col-md-offset-1 sm-label-right">Master</label>
     <div class="col-md-6">
-      <p class="form-control-static"
-         ng-if="viewState.masterIsParameterized">{{stage.master}}</p>
-      <ui-select class="form-control input-sm"
-                 ng-if="!viewState.masterIsParameterized"
-                 ng-model="stage.master">
+      <p class="form-control-static" ng-if="viewState.masterIsParameterized">{{stage.master}}</p>
+      <ui-select class="form-control input-sm" ng-if="!viewState.masterIsParameterized" ng-model="stage.master">
         <ui-select-match placeholder="Select a master...">{{$select.selected}}</ui-select-match>
         <ui-select-choices repeat="master in masters | filter: $select.search">
           <span ng-bind-html="master | highlight: $select.search"></span>
@@ -14,29 +11,33 @@
       </ui-select>
     </div>
     <div class="col-md-1 text-center" ng-if="!viewState.masterIsParameterized">
-      <a href
-         ng-click="jenkinsStageCtrl.refreshMasters()"
-         tooltip-placement="right"
-         uib-tooltip="{{viewState.mastersRefreshing ? 'Masters refreshing.' : 'Refresh masters list' }}"
-        >
-              <span ng-class="{'fa-spin':viewState.mastersRefreshing}"
-                    class="fa fa-sync-alt"></span>
+      <a
+        href
+        ng-click="jenkinsStageCtrl.refreshMasters()"
+        tooltip-placement="right"
+        uib-tooltip="{{viewState.mastersRefreshing ? 'Masters refreshing.' : 'Refresh masters list' }}"
+      >
+        <span ng-class="{'fa-spin':viewState.mastersRefreshing}" class="fa fa-sync-alt"></span>
       </a>
     </div>
   </div>
   <div class="form-group">
     <label class="col-md-2 col-md-offset-1 sm-label-right">Job</label>
     <div class="col-md-6">
-      <p class="form-control-static"
-         ng-if="!stage.master">(Select a master)</p>
-      <p class="form-control-static"
-         ng-if="viewState.masterIsParameterized || viewState.jobIsParameterized">{{stage.job}}</p>
+      <p class="form-control-static" ng-if="!stage.master">(Select a master)</p>
+      <p class="form-control-static" ng-if="viewState.masterIsParameterized || viewState.jobIsParameterized">
+        {{stage.job}}
+      </p>
       <div ng-if="stage.master && viewState.jobsLoaded">
-        <ui-select class="form-control input-sm"
-                   ng-if="!viewState.masterIsParameterized && !viewState.jobIsParameterized"
-                   ng-model="stage.job">
+        <ui-select
+          class="form-control input-sm"
+          ng-if="!viewState.masterIsParameterized && !viewState.jobIsParameterized"
+          ng-model="stage.job"
+        >
           <ui-select-match placeholder="Select a job...">{{$select.selected}}</ui-select-match>
-          <ui-select-choices repeat="job in jobs | filter: $select.search"><span ng-bind-html="job | highlight: $select.search"></span></ui-select-choices>
+          <ui-select-choices repeat="job in jobs | filter: $select.search"
+            ><span ng-bind-html="job | highlight: $select.search"></span
+          ></ui-select-choices>
         </ui-select>
       </div>
       <div class="horizontal center" ng-if="stage.master && !viewState.jobsLoaded">
@@ -44,22 +45,22 @@
       </div>
     </div>
     <div class="col-md-1 text-center" ng-if="!viewState.masterIsParameterized && !viewState.jobIsParameterized">
-      <a href
-         ng-click="jenkinsStageCtrl.refreshJobs()"
-         tooltip-placement="right"
-         uib-tooltip="{{viewState.jobsRefreshing ? 'Jobs refreshing.' : 'Refresh job list' }}"
-        >
-              <span ng-class="{'fa-spin':viewState.jobsRefreshing}"
-                    class="fa fa-sync-alt"></span>
+      <a
+        href
+        ng-click="jenkinsStageCtrl.refreshJobs()"
+        tooltip-placement="right"
+        uib-tooltip="{{viewState.jobsRefreshing ? 'Jobs refreshing.' : 'Refresh job list' }}"
+      >
+        <span ng-class="{'fa-spin':viewState.jobsRefreshing}" class="fa fa-sync-alt"></span>
       </a>
     </div>
   </div>
   <stage-config-field label="Property File" help-key="pipeline.config.jenkins.propertyFile">
-    <input type="text" class="form-control input-sm" ng-model="stage.propertyFile"/>
+    <input type="text" class="form-control input-sm" ng-model="stage.propertyFile" />
   </stage-config-field>
 
   <div class="well well-sm clearfix ng-scope col-md-offset-1 col-md-10" ng-if="jobParams">
-    <h4 class="text-left" >Job Parameters</h4>
+    <h4 class="text-left">Job Parameters</h4>
     <div class="form-group" ng-repeat="parameter in jobParams | orderBy:'name' ">
       <div class="col-md-3 sm-label-right">
         <b class="break-word">{{parameter.name}}</b>
@@ -68,19 +69,58 @@
       <div class="col-md-5" ng-switch on="parameter.type">
         <div ng-switch-when="PasswordParameterDefinition">
           <!-- Passwords do not expose their defaults, for obvious reasons, so we can skip this -->
-          <input ng-if="!useDefaultParameters[parameter.name]" type="password" class="form-control input-sm" ng-model="userSuppliedParameters[parameter.name]" ng-change="updateParam(parameter.name)"/>
+          <input
+            ng-if="!useDefaultParameters[parameter.name]"
+            type="password"
+            class="form-control input-sm"
+            ng-model="userSuppliedParameters[parameter.name]"
+            ng-change="updateParam(parameter.name)"
+          />
         </div>
         <div ng-switch-when="BooleanParameterDefinition">
-          <input disabled ng-if="useDefaultParameters[parameter.name] && parameter.defaultValue == 'true'" type="checkbox" class="input-sm" checked/>
-          <input disabled ng-if="useDefaultParameters[parameter.name] && parameter.defaultValue == 'false'" type="checkbox" class="input-sm"/>
-          <input ng-if="!useDefaultParameters[parameter.name]" type="checkbox" class="input-sm" ng-model="userSuppliedParameters[parameter.name]" ng-change="updateParam(parameter.name)"/>
+          <input
+            disabled
+            ng-if="useDefaultParameters[parameter.name] && parameter.defaultValue == 'true'"
+            type="checkbox"
+            class="input-sm"
+            checked
+          />
+          <input
+            disabled
+            ng-if="useDefaultParameters[parameter.name] && parameter.defaultValue == 'false'"
+            type="checkbox"
+            class="input-sm"
+          />
+          <input
+            ng-if="!useDefaultParameters[parameter.name]"
+            type="checkbox"
+            class="input-sm"
+            ng-model="userSuppliedParameters[parameter.name]"
+            ng-change="updateParam(parameter.name)"
+          />
         </div>
         <div ng-switch-when="TextParameterDefinition">
-          <textarea disabled ng-if="useDefaultParameters[parameter.name]" class="form-control input-sm" ng-model="parameter.defaultValue" style="max-width: 100%"></textarea>
-          <textarea ng-if="!useDefaultParameters[parameter.name]" class="form-control input-sm" ng-model="userSuppliedParameters[parameter.name]" ng-change="updateParam(parameter.name)" style="max-width: 100%"></textarea>
+          <textarea
+            disabled
+            ng-if="useDefaultParameters[parameter.name]"
+            class="form-control input-sm"
+            ng-model="parameter.defaultValue"
+            style="max-width: 100%"
+          ></textarea>
+          <textarea
+            ng-if="!useDefaultParameters[parameter.name]"
+            class="form-control input-sm"
+            ng-model="userSuppliedParameters[parameter.name]"
+            ng-change="updateParam(parameter.name)"
+            style="max-width: 100%"
+          ></textarea>
         </div>
         <div ng-switch-when="ChoiceParameterDefinition">
-          <ui-select class="form-control input-sm" ng-if="!useDefaultParameters[parameter.name]" ng-model="userSuppliedParameters[parameter.name]">
+          <ui-select
+            class="form-control input-sm"
+            ng-if="!useDefaultParameters[parameter.name]"
+            ng-model="userSuppliedParameters[parameter.name]"
+          >
             <ui-select-match placeholder="Select a choice...">{{$select.selected}}</ui-select-match>
             <ui-select-choices repeat="choice in parameter.choices | filter: $select.search track by $index">
               <div ng-class="{ 'break-word' : !choice.includes(' ')}">
@@ -88,7 +128,13 @@
               </div>
             </ui-select-choices>
           </ui-select>
-          <ui-select class="form-control input-sm" ng-disabled="useDefaultParameters[parameter.name]" search-enabled="false" ng-if="useDefaultParameters[parameter.name]" ng-model="parameter.defaultValue">
+          <ui-select
+            class="form-control input-sm"
+            ng-disabled="useDefaultParameters[parameter.name]"
+            search-enabled="false"
+            ng-if="useDefaultParameters[parameter.name]"
+            ng-model="parameter.defaultValue"
+          >
             <ui-select-match placeholder="Select a choice...">{{$select.selected}}</ui-select-match>
             <ui-select-choices repeat="choice in parameter.choices | filter: $select.search track by $index">
               <div ng-class="{ 'break-word' : !choice.includes(' ')}">
@@ -98,22 +144,42 @@
           </ui-select>
         </div>
         <div ng-switch-default>
-          <input disabled ng-if="useDefaultParameters[parameter.name]" type="text" class="form-control input-sm" value="{{parameter.defaultValue}}"/>
-          <input ng-if="!useDefaultParameters[parameter.name]" type="text" class="form-control input-sm" ng-model="userSuppliedParameters[parameter.name]" ng-change="updateParam(parameter.name)"/>
+          <input
+            disabled
+            ng-if="useDefaultParameters[parameter.name]"
+            type="text"
+            class="form-control input-sm"
+            value="{{parameter.defaultValue}}"
+          />
+          <input
+            ng-if="!useDefaultParameters[parameter.name]"
+            type="text"
+            class="form-control input-sm"
+            ng-model="userSuppliedParameters[parameter.name]"
+            ng-change="updateParam(parameter.name)"
+          />
         </div>
       </div>
       <div class="checkbox col-md-4" ng-if="parameter.defaultValue!==null">
         <label>
-          <input type="checkbox" ng-model="useDefaultParameters[parameter.name]" ng-change="jenkinsStageCtrl.updateParam(parameter.name)">Use default
+          <input
+            type="checkbox"
+            ng-model="useDefaultParameters[parameter.name]"
+            ng-change="jenkinsStageCtrl.updateParam(parameter.name)"
+          />Use default
         </label>
       </div>
     </div>
   </div>
 
   <stage-config-field label="Wait for results" help-key="jenkins.waitForCompletion">
-    <input type="checkbox" class="input-sm" name="waitForCompletion"
-           ng-model="viewState.waitForCompletion"
-           ng-change="jenkinsStageCtrl.waitForCompletionChanged()"/>
+    <input
+      type="checkbox"
+      class="input-sm"
+      name="waitForCompletion"
+      ng-model="viewState.waitForCompletion"
+      ng-change="jenkinsStageCtrl.waitForCompletionChanged()"
+    />
   </stage-config-field>
 
   <div class="form-group">
@@ -121,24 +187,28 @@
     <div class="col-md-9">
       <div class="radio">
         <label>
-          <input type="radio"
-                 ng-model="viewState.markUnstableAsSuccessful"
-                 ng-change="jenkinsStageCtrl.markUnstableChanged()"
-                 ng-value="false"/> fail the stage
+          <input
+            type="radio"
+            ng-model="viewState.markUnstableAsSuccessful"
+            ng-change="jenkinsStageCtrl.markUnstableChanged()"
+            ng-value="false"
+          />
+          fail the stage
           <help-field key="pipeline.config.jenkins.markUnstableAsSuccessful.false"></help-field>
         </label>
       </div>
       <div class="radio">
         <label>
-          <input type="radio"
-                 ng-model="viewState.markUnstableAsSuccessful"
-                 ng-change="jenkinsStageCtrl.markUnstableChanged()"
-                 ng-value="true"/> consider stage successful
+          <input
+            type="radio"
+            ng-model="viewState.markUnstableAsSuccessful"
+            ng-change="jenkinsStageCtrl.markUnstableChanged()"
+            ng-value="true"
+          />
+          consider stage successful
           <help-field key="pipeline.config.jenkins.markUnstableAsSuccessful.true"></help-field>
         </label>
       </div>
-
     </div>
   </div>
-
 </div>

@@ -4,32 +4,33 @@
       <div class="col-md-9 col-md-offset-2">
         <table class="table table-condensed packed" style="table-layout: fixed; width: 390px;">
           <thead>
-          <tr>
-            <th>Certificate</th>
-            <th>Port</th>
-          </tr>
+            <tr>
+              <th>Certificate</th>
+              <th>Port</th>
+            </tr>
           </thead>
           <tbody>
-          <tr>
-            <td>
-              <ui-select ng-model="ctrl.loadBalancer.certificate"
-                         required
-                         class="form-control input-sm">
-                <ui-select-match allow-clear placeholder="Select...">{{$select.selected.name}}</ui-select-match>
-                <ui-select-choices
-                  repeat="certificateWrapper.name as certificateWrapper in ctrl.certificateWrappers | filter: {name: $select.search, account: ctrl.loadBalancer.credentials }">
-                  <span ng-bind-html="certificateWrapper.name | highlight: $select.search"></span>
-                </ui-select-choices>
-              </ui-select>
-            </td>
-            <td>
-              <select class="form-control input-sm"
-                      ng-options="port for port in ctrl.portOptions"
-                      ng-disabled="!ctrl.isNew"
-                      ng-model="ctrl.loadBalancer.portRange">
-              </select>
-            </td>
-          </tr>
+            <tr>
+              <td>
+                <ui-select ng-model="ctrl.loadBalancer.certificate" required class="form-control input-sm">
+                  <ui-select-match allow-clear placeholder="Select...">{{$select.selected.name}}</ui-select-match>
+                  <ui-select-choices
+                    repeat="certificateWrapper.name as certificateWrapper in ctrl.certificateWrappers | filter: {name: $select.search, account: ctrl.loadBalancer.credentials }"
+                  >
+                    <span ng-bind-html="certificateWrapper.name | highlight: $select.search"></span>
+                  </ui-select-choices>
+                </ui-select>
+              </td>
+              <td>
+                <select
+                  class="form-control input-sm"
+                  ng-options="port for port in ctrl.portOptions"
+                  ng-disabled="!ctrl.isNew"
+                  ng-model="ctrl.loadBalancer.portRange"
+                >
+                </select>
+              </td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -37,8 +38,7 @@
   </ng-form>
   <div class="form-group small" style="margin-top: 20px;">
     <div class="col-md-offset-2 col-md-6">
-      <gce-cache-refresh cache-key="certificates"
-                         on-refresh="ctrl.onCertificateRefresh()"></gce-cache-refresh>
+      <gce-cache-refresh cache-key="certificates" on-refresh="ctrl.onCertificateRefresh()"></gce-cache-refresh>
     </div>
   </div>
 </div>

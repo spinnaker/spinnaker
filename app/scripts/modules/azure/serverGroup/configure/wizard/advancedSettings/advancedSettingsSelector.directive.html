@@ -2,7 +2,16 @@
   <div class="form-group">
     <div class="form-group">
       <div class="col-md-4 sm-label-right">Number of Instances</div>
-      <div class="col-md-2"><input type="number" class="form-control input-sm" ng-model="adv.command.sku.capacity" min="0" max="100" required/></div>
+      <div class="col-md-2">
+        <input
+          type="number"
+          class="form-control input-sm"
+          ng-model="adv.command.sku.capacity"
+          min="0"
+          max="100"
+          required
+        />
+      </div>
     </div>
     <div></div>
     <div class="form-group">
@@ -10,7 +19,9 @@
         <b>Custom Data</b>
         <help-field key="azure.serverGroup.customData"></help-field>
       </div>
-      <div class="col-md-7"><input type="text" class="form-control input-sm" ng-model="adv.command.osConfig.customData" /></div>
+      <div class="col-md-7">
+        <input type="text" class="form-control input-sm" ng-model="adv.command.osConfig.customData" />
+      </div>
     </div>
     <div class="form-group">
       <div class="col-md-4 sm-label-right">
@@ -27,7 +38,11 @@
         <help-field key="azure.serverGroup.commandToExecute"></help-field>
       </div>
       <div class="col-md-7">
-        <input type="text" class="form-control input-sm" ng-model="adv.command.customScriptsSettings.commandToExecute" />
+        <input
+          type="text"
+          class="form-control input-sm"
+          ng-model="adv.command.customScriptsSettings.commandToExecute"
+        />
       </div>
     </div>
   </div>

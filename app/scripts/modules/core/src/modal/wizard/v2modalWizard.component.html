@@ -2,30 +2,34 @@
   <task-monitor ng-if="$ctrl.taskMonitor" monitor="$ctrl.taskMonitor"></task-monitor>
   <modal-close dismiss="$ctrl.dismiss()"></modal-close>
   <div class="modal-header" ng-if="$ctrl.wizard.heading">
-    <h3>{{$ctrl.wizard.heading}}</h3>
+    <h3>{{ $ctrl.wizard.heading }}</h3>
   </div>
   <div ng-class="{'modal-body': !$ctrl.notReallyModal}">
     <div class="row">
       <div class="col-md-3 hidden-sm hidden-xs">
         <ul class="steps-indicator wizard-navigation">
-          <li ng-repeat="page in $ctrl.wizard.renderedPages"
-              ng-class="{
+          <li
+            ng-repeat="page in $ctrl.wizard.renderedPages"
+            ng-class="{
                   default: !page.state.done,
                   current: page.state.current,
                   done: page.state.done,
                   dirty: page.state.dirty
-            }">
-            <a href ng-click="$ctrl.wizard.setCurrentPage(page)">{{page.label}}</a>
+            }"
+          >
+            <a href ng-click="$ctrl.wizard.setCurrentPage(page)">{{ page.label }}</a>
           </li>
         </ul>
       </div>
       <div class="col-md-9 col-sm-12">
-        <div class="steps"
-             ng-transclude
-             sticky-headers
-             waypoint-container
-             waypoint-offset="120"
-             waypoint-container-key="#modal-wizard"></div>
+        <div
+          class="steps"
+          ng-transclude
+          sticky-headers
+          waypoint-container
+          waypoint-offset="120"
+          waypoint-container-key="#modal-wizard"
+        ></div>
       </div>
     </div>
   </div>

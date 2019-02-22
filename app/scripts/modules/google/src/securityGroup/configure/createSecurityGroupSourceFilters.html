@@ -1,22 +1,26 @@
 <div class="container-fluid form-horizontal">
   <div class="row">
     <div class="col-md-12">
-      <div class="sm-label-left">
-        Source Tags <help-field key="gce.securityGroup.sourceTags"></help-field>
-      </div>
+      <div class="sm-label-left">Source Tags <help-field key="gce.securityGroup.sourceTags"></help-field></div>
       <table class="table table-condensed packed tags">
         <tbody>
-        <tr ng-repeat="tag in securityGroup.sourceTags track by $index">
-          <td style="width: 80%;">
-            <input class="form-control input-sm" class="fixed-width" type="text" ng-model="securityGroup.sourceTags[$index]" required/>
-          </td>
-          <td>
-            <help-field content="{{ctrl.getTagHelpText(tag, 'source')}}"></help-field>
-            <a class="btn btn-link sm-label table-remove-button pull-right"
-               ng-click="ctrl.removeSourceTag($index)">
-              <span class="glyphicon glyphicon-trash"></span></a>
-          </td>
-        </tr>
+          <tr ng-repeat="tag in securityGroup.sourceTags track by $index">
+            <td style="width: 80%;">
+              <input
+                class="form-control input-sm"
+                class="fixed-width"
+                type="text"
+                ng-model="securityGroup.sourceTags[$index]"
+                required
+              />
+            </td>
+            <td>
+              <help-field content="{{ctrl.getTagHelpText(tag, 'source')}}"></help-field>
+              <a class="btn btn-link sm-label table-remove-button pull-right" ng-click="ctrl.removeSourceTag($index)">
+                <span class="glyphicon glyphicon-trash"></span
+              ></a>
+            </td>
+          </tr>
         </tbody>
       </table>
       <button class="btn btn-block add-new" ng-click="ctrl.addSourceTag()">
@@ -26,21 +30,22 @@
   </div>
   <div class="row">
     <div class="col-md-12">
-      <div class="sm-label-left">
-        Source CIDRs <help-field key="gce.securityGroup.sourceCIDRs"></help-field>
-      </div>
+      <div class="sm-label-left">Source CIDRs <help-field key="gce.securityGroup.sourceCIDRs"></help-field></div>
       <table class="table table-condensed packed">
         <tbody>
-        <tr ng-repeat="sourceRange in securityGroup.sourceRanges">
-          <td style="width: 80%">
-            <input class="form-control input-sm fixed-width" type="text" ng-model="sourceRange.value" required/>
-          </td>
-          <td>
-            <a class="btn btn-link sm-label table-remove-button pull-right"
-                 ng-click="ctrl.removeSourceCIDR(securityGroup.sourceRanges, $index)">
-              <span class="glyphicon glyphicon-trash"></span></a>
-          </td>
-        </tr>
+          <tr ng-repeat="sourceRange in securityGroup.sourceRanges">
+            <td style="width: 80%">
+              <input class="form-control input-sm fixed-width" type="text" ng-model="sourceRange.value" required />
+            </td>
+            <td>
+              <a
+                class="btn btn-link sm-label table-remove-button pull-right"
+                ng-click="ctrl.removeSourceCIDR(securityGroup.sourceRanges, $index)"
+              >
+                <span class="glyphicon glyphicon-trash"></span
+              ></a>
+            </td>
+          </tr>
         </tbody>
       </table>
       <button class="btn btn-block add-new" ng-click="ctrl.addSourceCIDR(securityGroup.sourceRanges)">

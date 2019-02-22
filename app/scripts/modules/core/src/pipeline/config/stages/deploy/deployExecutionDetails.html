@@ -10,7 +10,9 @@
           </dd>
           <dt>Region</dt>
           <div ng-if="stage.context.availabilityZones">
-            <dd ng-repeat="(region, zones) in stage.context.availabilityZones">{{region}}<br/>({{zones.join(', ')}})</dd>
+            <dd ng-repeat="(region, zones) in stage.context.availabilityZones">
+              {{region}}<br />({{zones.join(', ')}})
+            </dd>
           </div>
           <div ng-if="stage.context.namespace">
             <dd>{{stage.context.namespace}}</dd>
@@ -29,11 +31,12 @@
             {{stage.context.targetSize}}
           </dd>
           <dd ng-if="stage.context.useSourceCapacity">Current Server Group</dd>
-          <dd ng-if="!stage.context.useSourceCapacity && stage.context.capacity.min === stage.context.capacity.max">{{stage.context.capacity.max}}</dd>
+          <dd ng-if="!stage.context.useSourceCapacity && stage.context.capacity.min === stage.context.capacity.max">
+            {{stage.context.capacity.max}}
+          </dd>
           <dd ng-if="!stage.context.useSourceCapacity && stage.context.capacity.min !== stage.context.capacity.max">
-            Min: {{stage.context.capacity.min}},
-            Max: {{stage.context.capacity.max}},
-            Desired: {{stage.context.capacity.desired}}
+            Min: {{stage.context.capacity.min}}, Max: {{stage.context.capacity.max}}, Desired:
+            {{stage.context.capacity.desired}}
           </dd>
         </dl>
       </div>
@@ -43,14 +46,18 @@
     <div class="well alert-info" ng-if="showWaitingMessage">
       <p ng-if="waitingForUpInstances">
         <strong>
-          Waiting for {{stage.context.targetDesiredSize}} instance<span ng-if="stage.context.targetDesiredSize !== 1">s</span> to appear healthy.
+          Waiting for {{stage.context.targetDesiredSize}} instance<span ng-if="stage.context.targetDesiredSize !== 1"
+            >s</span
+          >
+          to appear healthy.
         </strong>
-        <br/>
+        <br />
         <span ng-if="stage.context.lastCapacityCheck.total === 0">
-            (no instances found yet)
+          (no instances found yet)
         </span>
         <span ng-if="stage.context.lastCapacityCheck.total !== 0">
-          ( current status: <health-counts container="stage.context.lastCapacityCheck" class="no-float"></health-counts>)
+          ( current status:
+          <health-counts container="stage.context.lastCapacityCheck" class="no-float"></health-counts>)
         </span>
       </p>
       <div ng-if="waitingForUpInstances && customStuckDeployGuide" ng-bind-html="customStuckDeployGuide"></div>
@@ -67,14 +74,14 @@
       </div>
       <div ng-if="showPlatformHealthOverrideMessage">
         <p>
-          By default, Spinnaker does not consider cloud provider health (i.e. whether your instances have launched and are running)
-          as a reliable indicator of instance health.
+          By default, Spinnaker does not consider cloud provider health (i.e. whether your instances have launched and
+          are running) as a reliable indicator of instance health.
         </p>
         <p>
-          If your instances do not provide a health indicator known to Spinnaker
-          (e.g. a discovery service or load balancers), you should configure your application to
-          consider only cloud provider health when executing tasks. This option is available under Application Attributes
-          in the <a ui-sref="home.applications.application.config({application: application.name})">Config tab</a>.
+          If your instances do not provide a health indicator known to Spinnaker (e.g. a discovery service or load
+          balancers), you should configure your application to consider only cloud provider health when executing tasks.
+          This option is available under Application Attributes in the
+          <a ui-sref="home.applications.application.config({application: application.name})">Config tab</a>.
         </p>
       </div>
     </div>
@@ -83,9 +90,11 @@
       <div class="col-md-12">
         <div class="well alert alert-info">
           <strong>Deployed:</strong>
-          <a ng-repeat="serverGroup in deployed"
-             ng-click="$event.stopPropagation(); deployDetailsCtrl.overrideFiltersForUrl(serverGroup);"
-             ng-href="{{serverGroup.href}}">
+          <a
+            ng-repeat="serverGroup in deployed"
+            ng-click="$event.stopPropagation(); deployDetailsCtrl.overrideFiltersForUrl(serverGroup);"
+            ng-href="{{serverGroup.href}}"
+          >
             {{serverGroup.serverGroup}}
           </a>
         </div>
@@ -99,9 +108,7 @@
     </div>
   </div>
   <div class="step-section-details" ng-if="detailsSection === 'changes'">
-    <view-changes-link view-type="linkOnly"
-                       change-config="changeConfig"
-                       name-item="stage"></view-changes-link>
+    <view-changes-link view-type="linkOnly" change-config="changeConfig" name-item="stage"></view-changes-link>
   </div>
 
   <div class="step-section-details" ng-if="detailsSection === 'artifactStatus'">

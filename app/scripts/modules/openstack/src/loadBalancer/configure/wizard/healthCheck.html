@@ -5,18 +5,24 @@
       <help-field key="openstack.loadBalancer.healthCheck.protocol"></help-field>
     </div>
     <div class="col-md-2">
-      <select class="form-control input-sm"
-              ng-model="loadBalancer.healthMonitor.type"
-              ng-options="protocol for protocol in ['HTTP', 'HTTPS', 'PING', 'TCP']"></select>
-      </select>
+      <select
+        class="form-control input-sm"
+        ng-model="loadBalancer.healthMonitor.type"
+        ng-options="protocol for protocol in ['HTTP', 'HTTPS', 'PING', 'TCP']"
+      ></select>
     </div>
     <div class="col-md-3 sm-label-right">
       Interval
       <help-field key="openstack.loadBalancer.healthCheck.delay"></help-field>
     </div>
     <div class="col-md-2">
-      <input type="number" class="form-control input-sm" name="delay" ng-model="loadBalancer.healthMonitor.delay"
-             min="{{loadBalancer.healthMonitor.timeout}}"/>
+      <input
+        type="number"
+        class="form-control input-sm"
+        name="delay"
+        ng-model="loadBalancer.healthMonitor.delay"
+        min="{{loadBalancer.healthMonitor.timeout}}"
+      />
     </div>
   </div>
   <div class="form-group">
@@ -25,60 +31,102 @@
       <help-field key="openstack.loadBalancer.healthCheck.timeout"></help-field>
     </div>
     <div class="col-md-2">
-      <input type="number" class="form-control input-sm" name="timeout" ng-model="loadBalancer.healthMonitor.timeout"
-             min="1" max="{{loadBalancer.healthMonitor.delay}}"/>
+      <input
+        type="number"
+        class="form-control input-sm"
+        name="timeout"
+        ng-model="loadBalancer.healthMonitor.timeout"
+        min="1"
+        max="{{loadBalancer.healthMonitor.delay}}"
+      />
     </div>
     <div class="col-md-3 sm-label-right">
       Retries
       <help-field key="openstack.loadBalancer.healthCheck.maxRetries"></help-field>
     </div>
     <div class="col-md-2">
-      <input type="number" class="form-control input-sm" name="maxRetries" ng-model="loadBalancer.healthMonitor.maxRetries"
-             min="0"/>
+      <input
+        type="number"
+        class="form-control input-sm"
+        name="maxRetries"
+        ng-model="loadBalancer.healthMonitor.maxRetries"
+        min="0"
+      />
     </div>
   </div>
-  <div class="form-group" ng-if="loadBalancer.healthMonitor.type === 'HTTP' || loadBalancer.healthMonitor.type === 'HTTPS'">
+  <div
+    class="form-group"
+    ng-if="loadBalancer.healthMonitor.type === 'HTTP' || loadBalancer.healthMonitor.type === 'HTTPS'"
+  >
     <div class="col-md-3 sm-label-right">
       Method
       <help-field key="openstack.loadBalancer.healthCheck.method"></help-field>
     </div>
     <div class="col-md-2">
-      <select class="form-control input-sm"
-              ng-model="loadBalancer.healthMonitor.httpMethod"
-              ng-options="method for method in ['GET', 'POST', 'HEAD']"></select>
-      </select>
+      <select
+        class="form-control input-sm"
+        ng-model="loadBalancer.healthMonitor.httpMethod"
+        ng-options="method for method in ['GET', 'POST', 'HEAD']"
+      ></select>
     </div>
   </div>
-  <div class="form-group" ng-if="loadBalancer.healthMonitor.type === 'HTTP' || loadBalancer.healthMonitor.type === 'HTTPS'">
+  <div
+    class="form-group"
+    ng-if="loadBalancer.healthMonitor.type === 'HTTP' || loadBalancer.healthMonitor.type === 'HTTPS'"
+  >
     <div class="col-md-3 sm-label-right">
       URL
       <help-field key="openstack.loadBalancer.healthCheck.url"></help-field>
     </div>
     <div class="col-md-8">
-      <input class="form-control input-sm" name="url" ng-model="loadBalancer.healthMonitor.url"
-             ng-change="loadBalancer.healthMonitor.url = ctrl.prependForwardSlash(loadBalancer.healthMonitor.url)"
-        />
+      <input
+        class="form-control input-sm"
+        name="url"
+        ng-model="loadBalancer.healthMonitor.url"
+        ng-change="loadBalancer.healthMonitor.url = ctrl.prependForwardSlash(loadBalancer.healthMonitor.url)"
+      />
     </div>
   </div>
-  <div class="form-group" ng-if="loadBalancer.healthMonitor.type === 'HTTP' || loadBalancer.healthMonitor.type === 'HTTPS'">
+  <div
+    class="form-group"
+    ng-if="loadBalancer.healthMonitor.type === 'HTTP' || loadBalancer.healthMonitor.type === 'HTTPS'"
+  >
     <div class="col-md-3 sm-label-right">
       Status Codes
       <help-field key="openstack.loadBalancer.healthCheck.statusCodes"></help-field>
     </div>
     <div class="col-md-8">
-      <div ng-repeat="statusCode in loadBalancer.healthMonitor.expectedCodes track by $index" class="status-code pull-left">
+      <div
+        ng-repeat="statusCode in loadBalancer.healthMonitor.expectedCodes track by $index"
+        class="status-code pull-left"
+      >
         {{statusCode}}
-        <span class="glyphicon glyphicon-remove-circle" aria-hidden="true" ng-click="ctrl.removeStatusCode(statusCode);"></span>
+        <span
+          class="glyphicon glyphicon-remove-circle"
+          aria-hidden="true"
+          ng-click="ctrl.removeStatusCode(statusCode);"
+        ></span>
       </div>
 
       <ng-form name="statusCodeForm" isolate-form>
         <div class="col-md-3 input-group">
-          <input type="number" class="form-control input-sm" name="statusCode" ng-model="ctrl.newStatusCode"
-                 min="100" max="699" required/>
+          <input
+            type="number"
+            class="form-control input-sm"
+            name="statusCode"
+            ng-model="ctrl.newStatusCode"
+            min="100"
+            max="699"
+            required
+          />
           <span class="input-group-btn">
-            <button type="button" class="btn btn-default btn-sm" aria-label="Add Status Code"
-                    ng-click="ctrl.addStatusCode()"
-                    ng-disabled="!statusCodeForm.$valid">
+            <button
+              type="button"
+              class="btn btn-default btn-sm"
+              aria-label="Add Status Code"
+              ng-click="ctrl.addStatusCode()"
+              ng-disabled="!statusCodeForm.$valid"
+            >
               <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
             </button>
           </span>

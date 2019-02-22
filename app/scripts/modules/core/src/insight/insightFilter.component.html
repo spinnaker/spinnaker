@@ -1,16 +1,20 @@
 <h3 class="filters-placeholder">
-  <a href
-     class="btn btn-xs btn-default pin"
-     ng-click="$ctrl.insightFilterStateModel.pinFilters(true)"
-     uib-tooltip="Show filters">
+  <a
+    href
+    class="btn btn-xs btn-default pin"
+    ng-click="$ctrl.insightFilterStateModel.pinFilters(true)"
+    uib-tooltip="Show filters"
+  >
     <i class="fa fa-forward"></i>
   </a>
 </h3>
 
-<a href
-   class="btn btn-xs btn-default pull-right unpin"
-   ng-click="$ctrl.insightFilterStateModel.pinFilters(false)"
-   ng-show="$ctrl.insightFilterStateModel.filtersExpanded">
+<a
+  href
+  class="btn btn-xs btn-default pull-right unpin"
+  ng-click="$ctrl.insightFilterStateModel.pinFilters(false)"
+  ng-show="$ctrl.insightFilterStateModel.filtersExpanded"
+>
   <i class="fa fa-backward" uib-tooltip="Hide filters"></i>
 </a>
 

@@ -3,13 +3,12 @@
   <div class="modal-header has-sticky-headers">
     <h3>Changes to {{$ctrl.nameItem.name}}</h3>
   </div>
-  <div class="modal-body" ng-if="(!$ctrl.previousBuildLink || !$ctrl.currentBuildLink) && $ctrl.buildInfo.ancestor && $ctrl.buildInfo.target">
-    <div class="col-md-6">
-      <strong>Previous: </strong>Build: #{{$ctrl.buildInfo.ancestor}}
-    </div>
-    <div class="col-md-6">
-      <strong>Current: </strong>Build: #{{$ctrl.buildInfo.target}}
-    </div>
+  <div
+    class="modal-body"
+    ng-if="(!$ctrl.previousBuildLink || !$ctrl.currentBuildLink) && $ctrl.buildInfo.ancestor && $ctrl.buildInfo.target"
+  >
+    <div class="col-md-6"><strong>Previous: </strong>Build: #{{$ctrl.buildInfo.ancestor}}</div>
+    <div class="col-md-6"><strong>Current: </strong>Build: #{{$ctrl.buildInfo.target}}</div>
   </div>
   <div class="modal-body" ng-if="$ctrl.previousBuildLink && $ctrl.currentBuildLink">
     <div class="col-md-6">

@@ -11,14 +11,18 @@
       <div class="form-group" ng-if="vm.pipelineOptions">
         <label class="col-md-4 sm-label-right">Pipeline</label>
         <div class="col-md-6">
-          <ui-select ng-model="vm.command.pipeline"
-                     style="width: 250px"
-                     class="form-control input-sm"
-                     on-select="vm.pipelineSelected()">
+          <ui-select
+            ng-model="vm.command.pipeline"
+            style="width: 250px"
+            class="form-control input-sm"
+            on-select="vm.pipelineSelected()"
+          >
             <ui-select-match>
               <strong>{{$select.selected.name}}</strong>
             </ui-select-match>
-            <ui-select-choices repeat="pipeline as pipeline in vm.pipelineOptions | anyFieldFilter: {name: $select.search }">
+            <ui-select-choices
+              repeat="pipeline as pipeline in vm.pipelineOptions | anyFieldFilter: {name: $select.search }"
+            >
               <div><strong>{{pipeline.name}}</strong></div>
             </ui-select-choices>
           </ui-select>
@@ -31,12 +35,13 @@
         </div>
       </div>
 
-      <div class="alert alert-warning"
-           ng-if="vm.currentlyRunningExecutions.length">
-        <p><strong>
-          <i class="fa fa-exclamation-triangle"></i>
-          This pipeline is currently executing!
-        </strong></p>
+      <div class="alert alert-warning" ng-if="vm.currentlyRunningExecutions.length">
+        <p>
+          <strong>
+            <i class="fa fa-exclamation-triangle"></i>
+            This pipeline is currently executing!
+          </strong>
+        </p>
         <div ng-repeat="execution in vm.currentlyRunningExecutions | limitTo: 1" class="pad-left">
           <strong>Execution started: </strong>{{execution.startTime | timestamp }}
           <div>
@@ -48,9 +53,10 @@
         </div>
         <div ng-if="vm.currentlyRunningExecutions.length > 1">
           <em>
-            &hellip;and
-            {{vm.currentlyRunningExecutions.length - 1}}
-            other execution<span ng-if="vm.currentlyRunningExecutions.length > 2">s</span>
+            &hellip;and {{vm.currentlyRunningExecutions.length - 1}} other execution<span
+              ng-if="vm.currentlyRunningExecutions.length > 2"
+              >s</span
+            >
           </em>
         </div>
       </div>
@@ -59,13 +65,14 @@
         <div class="form-group">
           <label class="col-md-4 sm-label-right">Trigger</label>
           <div class="col-md-6">
-            <p class="form-control-static"
-               ng-if="vm.triggers.length === 1">{{vm.triggers[0].description}}</p>
-            <select class="form-control input-sm"
-                    ng-if="vm.triggers.length > 1"
-                    ng-model="vm.command.trigger"
-                    ng-options="trigger as trigger.description for trigger in vm.triggers"
-                    ng-change="vm.triggerUpdated(trigger)">
+            <p class="form-control-static" ng-if="vm.triggers.length === 1">{{vm.triggers[0].description}}</p>
+            <select
+              class="form-control input-sm"
+              ng-if="vm.triggers.length > 1"
+              ng-model="vm.command.trigger"
+              ng-options="trigger as trigger.description for trigger in vm.triggers"
+              ng-change="vm.triggerUpdated(trigger)"
+            >
             </select>
           </div>
         </div>
@@ -73,8 +80,14 @@
       </div>
 
       <div ng-if="vm.command.pipeline.parameterConfig !== undefined && vm.command.pipeline.parameterConfig.length">
-        <p class="manual-execution-parameters-description">This pipeline is parameterized. Please enter values for the parameters below.</p>
-        <div class="form-group" ng-repeat="parameter in vm.command.pipeline.parameterConfig" ng-if="!vm.hiddenParameters.has(parameter.name)">
+        <p class="manual-execution-parameters-description">
+          This pipeline is parameterized. Please enter values for the parameters below.
+        </p>
+        <div
+          class="form-group"
+          ng-repeat="parameter in vm.command.pipeline.parameterConfig"
+          ng-if="!vm.hiddenParameters.has(parameter.name)"
+        >
           <div class="col-md-4 sm-label-right break-word">
             {{parameter.label || parameter.name}}
             <span ng-if="parameter.required">*</span>
@@ -82,7 +95,8 @@
           </div>
           <div class="col-md-6" ng-if="!parameter.hasOptions && parameter.constraint === 'date'">
             <p class="input-group">
-              <input type="text"
+              <input
+                type="text"
                 class="form-control input-sm"
                 uib-datepicker-popup
                 datepicker-append-to-body="true"
@@ -94,22 +108,33 @@
                 close-text="Close"
               />
               <span class="input-group-btn">
-                <button type="button" style="padding: 4px 8px;" class="btn btn-default" ng-click="vm.openDate(parameter.name)"><i class="glyphicon glyphicon-calendar"></i></button>
+                <button
+                  type="button"
+                  style="padding: 4px 8px;"
+                  class="btn btn-default"
+                  ng-click="vm.openDate(parameter.name)"
+                >
+                  <i class="glyphicon glyphicon-calendar"></i>
+                </button>
               </span>
             </p>
           </div>
           <div class="col-md-6" ng-if="!parameter.hasOptions && !parameter.constraint">
-            <input class="form-control input-sm"
-                   ng-model="vm.parameters[parameter.name]"
-                   ng-change="vm.updateParameters()"
-                   ng-required="parameter.required"/>
+            <input
+              class="form-control input-sm"
+              ng-model="vm.parameters[parameter.name]"
+              ng-change="vm.updateParameters()"
+              ng-required="parameter.required"
+            />
           </div>
           <div class="col-md-6" ng-if="parameter.hasOptions">
-            <ui-select ng-model="vm.parameters[parameter.name]"
-                       ng-required="parameter.required"
-                       on-select="vm.updateParameters()"
-                       style="width:100%"
-                       class="form-control input-sm">
+            <ui-select
+              ng-model="vm.parameters[parameter.name]"
+              ng-required="parameter.required"
+              on-select="vm.updateParameters()"
+              style="width:100%"
+              class="form-control input-sm"
+            >
               <ui-select-match>
                 <strong>{{$select.selected.value}}</strong>
               </ui-select-match>
@@ -126,21 +151,32 @@
         </div>
       </div>
 
-      <stage-manual-components ng-if="vm.stageComponents" command="vm.command" components="vm.stageComponents"></stage-manual-components>
+      <stage-manual-components
+        ng-if="vm.stageComponents"
+        command="vm.command"
+        components="vm.stageComponents"
+      ></stage-manual-components>
 
       <div class="form-group">
         <label class="col-md-4 sm-label-right">Notifications</label>
         <div class="col-md-8">
           <div class="checkbox checkbox-notify">
             <label>
-              <input type="checkbox" ng-model="vm.command.notificationEnabled"> Notify me when the pipeline completes
+              <input type="checkbox" ng-model="vm.command.notificationEnabled" /> Notify me when the pipeline completes
             </label>
           </div>
           <div ng-if="vm.notifications.length === 1" class="small">
-            There is <a uib-popover-template="vm.notificationTooltip" popover-placement="bottom">one notification</a> configured for this pipeline
+            There is
+            <a uib-popover-template="vm.notificationTooltip" popover-placement="bottom">one notification</a> configured
+            for this pipeline
           </div>
           <div ng-if="vm.notifications.length > 1" class="small">
-            There are <a uib-popover-template="vm.notificationTooltip" popover-placement="bottom" popover-trigger="'mouseenter'">{{vm.notifications.length}} notifications</a> configured for this pipeline</div>
+            There are
+            <a uib-popover-template="vm.notificationTooltip" popover-placement="bottom" popover-trigger="'mouseenter'"
+              >{{vm.notifications.length}} notifications</a
+            >
+            configured for this pipeline
+          </div>
         </div>
       </div>
       <div class="form-group" ng-if="vm.command.notificationEnabled">
@@ -153,9 +189,7 @@
         <label class="col-md-4 sm-label-right">Dry run</label>
         <div class="col-md-8">
           <div class="checkbox checkbox-dryrun">
-            <label>
-              <input type="checkbox" ng-model="vm.command.dryRun"> Run a test execution
-            </label>
+            <label> <input type="checkbox" ng-model="vm.command.dryRun" /> Run a test execution </label>
             <help-field key="execution.dryRun"></help-field>
           </div>
         </div>
@@ -164,10 +198,12 @@
 
     <div class="modal-footer">
       <button type="button" class="btn btn-default" ng-click="vm.cancel()">Cancel</button>
-      <button type="submit"
-              class="btn btn-primary"
-              ng-disabled="!vm.command.pipeline || !manualExecutionForm.$valid || vm.command.triggerInvalid"
-              ng-click="vm.execute()">
+      <button
+        type="submit"
+        class="btn btn-primary"
+        ng-disabled="!vm.command.pipeline || !manualExecutionForm.$valid || vm.command.triggerInvalid"
+        ng-click="vm.execute()"
+      >
         <span class="glyphicon glyphicon-play"></span> Run
       </button>
     </div>

@@ -5,7 +5,8 @@
     accounts="vm.accounts"
     provider="vm.provider"
     on-change="vm.accountUpdated()"
-    required>
+    required
+  >
   </account-select-field>
 </stage-config-field>
 <stage-config-field label="Namespaces">
@@ -16,13 +17,15 @@
     model="vm.component.namespaces"
     inline="true"
     on-change="vm.namespaceChanged()"
-    include-select-all-button="true">
+    include-select-all-button="true"
+  >
   </checklist>
 </stage-config-field>
 <stage-config-field label="Cluster" help-key="pipeline.config.findAmi.cluster">
   <cluster-selector
     clusters="vm.clusterList"
     model="vm.component[vm.clusterField]"
-    toggled="vm.clusterSelectInputToggled(isToggled)">
+    toggled="vm.clusterSelectInputToggled(isToggled)"
+  >
   </cluster-selector>
 </stage-config-field>

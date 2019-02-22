@@ -7,19 +7,26 @@
       <ui-select-choices
         repeat="application in applications | filter: $select.search | limitTo: viewState.infiniteScroll.currentItems"
         infinite-scroll="pipelineStageCtrl.addMoreItems()"
-        infinite-scroll-distance="2" >
+        infinite-scroll-distance="2"
+      >
         <div ng-bind-html="application | highlight: $select.search"></div>
       </ui-select-choices>
     </ui-select>
   </stage-config-field>
   <stage-config-field label="Pipeline">
-    <input ng-model="stage.pipeline" class="form-control input-sm" ng-if="stage.pipeline.includes('${') || stage.application.includes('${')" />
-    <div ng-if="stage.application && viewState.pipelinesLoaded && stage !== null && !stage.pipeline.includes('${') && !stage.application.includes('${')">
-      <ui-select class="form-control input-sm"
-                 ng-model="stage.pipeline">
+    <input
+      ng-model="stage.pipeline"
+      class="form-control input-sm"
+      ng-if="stage.pipeline.includes('${') || stage.application.includes('${')"
+    />
+    <div
+      ng-if="stage.application && viewState.pipelinesLoaded && stage !== null && !stage.pipeline.includes('${') && !stage.application.includes('${')"
+    >
+      <ui-select class="form-control input-sm" ng-model="stage.pipeline">
         <ui-select-match placeholder="Select a pipeline...">{{$select.selected.name}}</ui-select-match>
-        <ui-select-choices repeat="pipeline.id as pipeline in pipelines | filter: $select.search | orderBy: 'index'"><span
-          ng-bind-html="pipeline.name | highlight: $select.search"></span></ui-select-choices>
+        <ui-select-choices repeat="pipeline.id as pipeline in pipelines | filter: $select.search | orderBy: 'index'"
+          ><span ng-bind-html="pipeline.name | highlight: $select.search"></span
+        ></ui-select-choices>
       </ui-select>
     </div>
   </stage-config-field>
@@ -32,18 +39,31 @@
         <help-field content="{{parameter.description}}" ng-if="parameter.description"></help-field>
       </div>
       <div class="col-md-5">
-        <input disabled ng-if="useDefaultParameters[parameter.name]" type="text" class="form-control input-sm"
-               value="{{parameter.default}}"/>
-        <input ng-if="!useDefaultParameters[parameter.name] && !parameter.hasOptions" type="text"
-               class="form-control input-sm"
-               ng-model="userSuppliedParameters[parameter.name]" ng-change="updateParam(parameter.name)"/>
+        <input
+          disabled
+          ng-if="useDefaultParameters[parameter.name]"
+          type="text"
+          class="form-control input-sm"
+          value="{{parameter.default}}"
+        />
+        <input
+          ng-if="!useDefaultParameters[parameter.name] && !parameter.hasOptions"
+          type="text"
+          class="form-control input-sm"
+          ng-model="userSuppliedParameters[parameter.name]"
+          ng-change="updateParam(parameter.name)"
+        />
 
-        <spel-select ng-if="!useDefaultParameters[parameter.name] && parameter.hasOptions"
-                     model="userSuppliedParameters[parameter.name]">
-          <ui-select ng-model="userSuppliedParameters[parameter.name]"
-                     ng-change="updateParam(parameter.name)"
-                     style="width: 100%"
-                     class="form-control input-sm">
+        <spel-select
+          ng-if="!useDefaultParameters[parameter.name] && parameter.hasOptions"
+          model="userSuppliedParameters[parameter.name]"
+        >
+          <ui-select
+            ng-model="userSuppliedParameters[parameter.name]"
+            ng-change="updateParam(parameter.name)"
+            style="width: 100%"
+            class="form-control input-sm"
+          >
             <ui-select-match>
               <strong>{{$select.selected.value}}</strong>
             </ui-select-match>
@@ -55,14 +75,16 @@
       </div>
       <div class="checkbox col-md-4" ng-if="parameter.default!==null">
         <label>
-          <input type="checkbox" ng-model="useDefaultParameters[parameter.name]"
-                 ng-change="pipelineStageCtrl.updateParam(parameter.name)">Use default
+          <input
+            type="checkbox"
+            ng-model="useDefaultParameters[parameter.name]"
+            ng-change="pipelineStageCtrl.updateParam(parameter.name)"
+          />Use default
         </label>
       </div>
     </div>
   </div>
   <stage-config-field label="Wait for results" help-key="pipeline.waitForCompletion">
-    <input type="checkbox" class="input-sm" name="waitForCompletion"
-           ng-model="stage.waitForCompletion"/>
+    <input type="checkbox" class="input-sm" name="waitForCompletion" ng-model="stage.waitForCompletion" />
   </stage-config-field>
 </div>

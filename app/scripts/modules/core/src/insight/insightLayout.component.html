@@ -1,5 +1,8 @@
-<div class="insight" ng-if="!$ctrl.app.notFound"
-     ng-class="$ctrl.insightFilterStateModel.filtersExpanded ? 'filters-expanded' : 'filters-collapsed'">
+<div
+  class="insight"
+  ng-if="!$ctrl.app.notFound"
+  ng-class="$ctrl.insightFilterStateModel.filtersExpanded ? 'filters-expanded' : 'filters-collapsed'"
+>
   <div ui-view="nav" ng-if="!$ctrl.insightFilterStateModel.filtersHidden" class="nav"></div>
   <div ui-view="master" class="nav-content" data-scroll-id="nav-content"></div>
   <div ui-view="detail" class="detail-content" ng-if="$ctrl.ready"></div>

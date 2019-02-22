@@ -1,4 +1,7 @@
-<div class="container-fluid form-horizontal" ng-controller="openstackServerGroupAdvancedSettingsCtrl as advancedSettingsCtrl">
+<div
+  class="container-fluid form-horizontal"
+  ng-controller="openstackServerGroupAdvancedSettingsCtrl as advancedSettingsCtrl"
+>
   <div class="modal-body">
     <ng-form name="advancedSettings" novalidate>
       <div class="form-group">
@@ -21,22 +24,28 @@
       <div class="form-group">
         <div class="col-md-3 sm-label-right">User Data Value</div>
         <div class="col-md-9 no-spel">
-          <input type="text"
-                 class="form-control"
-                 ng-model="command.userData"
-                 placeholder="A url that points to a script"
-                 ng-if="command.userDataType == 'URL'">
-          <input type="text"
-                 class="form-control"
-                 ng-model="command.userData"
-                 placeholder="A swift object that contains a script, e.g. '<container>:<my/object>'"
-                 ng-if="command.userDataType == 'Swift'">
-          <textarea class="form-control nospel"
-                    ng-model="command.userData"
-                    ng-if="command.userDataType=='Text' || !command.userDataType"
-                    rows="3"
-                    placeholder="A raw plaintext script">
-      </textarea>
+          <input
+            type="text"
+            class="form-control"
+            ng-model="command.userData"
+            placeholder="A url that points to a script"
+            ng-if="command.userDataType == 'URL'"
+          />
+          <input
+            type="text"
+            class="form-control"
+            ng-model="command.userData"
+            placeholder="A swift object that contains a script, e.g. '<container>:<my/object>'"
+            ng-if="command.userDataType == 'Swift'"
+          />
+          <textarea
+            class="form-control nospel"
+            ng-model="command.userData"
+            ng-if="command.userDataType=='Text' || !command.userDataType"
+            rows="3"
+            placeholder="A raw plaintext script"
+          >
+          </textarea>
         </div>
       </div>
       <div class="form-group">
@@ -50,7 +59,8 @@
           refresh-cache="updateAvailabilityZones"
           required="false"
           model="selectedAZs"
-          on-change="selectedAZsChanged()">
+          on-change="selectedAZsChanged()"
+        >
         </os-cache-backed-multi-select-field>
       </div>
       <div class="form-group">

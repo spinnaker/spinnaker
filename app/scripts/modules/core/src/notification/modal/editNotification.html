@@ -18,16 +18,21 @@
                 name="when"
                 value="{{wo}}"
                 ng-model="selectedWhenOptions[wo]"
-                ng-checked="editNotification.notification.when.includes(wo)">
+                ng-checked="editNotification.notification.when.includes(wo)"
+              />
               {{wo|notificationWhen:level:editNotification.stageType()}}
             </label>
           </div>
-          <div class="form-group" ng-if="selectedWhenOptions[wo] && editNotification.supportsCustomMessage(editNotification.notification, wo)">
+          <div
+            class="form-group"
+            ng-if="selectedWhenOptions[wo] && editNotification.supportsCustomMessage(editNotification.notification, wo)"
+          >
             <textarea
               name="message"
               class="form-control input-sm"
               ng-model="editNotification.notification.message[wo].text"
-              placeholder="enter a custom notification message (optional)"></textarea>
+              placeholder="enter a custom notification message (optional)"
+            ></textarea>
           </div>
         </div>
       </div>
@@ -37,12 +42,13 @@
         <loading-spinner size="'small'"></loading-spinner>
       </div>
       <a href class="btn btn-default" ng-click="$dismiss()">Cancel</a>
-      <button type="submit"
-              class="btn btn-primary"
-              data-purpose="submit"
-              ng-click="editNotification.submit()"
-              ng-disabled="editNotificationForm.$invalid || !editNotification.hasSelectedWhen"
-        >
+      <button
+        type="submit"
+        class="btn btn-primary"
+        data-purpose="submit"
+        ng-click="editNotification.submit()"
+        ng-disabled="editNotificationForm.$invalid || !editNotification.hasSelectedWhen"
+      >
         <span class="far fa-check-circle"></span> Update
       </button>
     </div>

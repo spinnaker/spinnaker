@@ -1,52 +1,81 @@
-  <div class="container-fluid form-horizontal">
-    <div class="row">
-      <div class="col-md-12" ng-if="state.removedRules.length">
-        <div class="alert alert-warning">
-          <p><i class="fa fa-exclamation-triangle"></i>
-            The following <firewall-label label="firewalls"></firewall-label> could not be found in the selected account/region/VPC and were removed:
-          </p>
-          <ul>
-            <li ng-repeat="securityGroup in state.removedRules">{{securityGroup}}</li>
-          </ul>
-          <p class="text-right">
-            <a class="btn btn-sm btn-default dirty-flag-dismiss" href ng-click="ctrl.dismissRemovedRules()">Okay</a>
-          </p>
-        </div>
-      </div>
-    </div>
-    <div class="row">
-      <div class="col-md-12">
-        <p class="info">
-        <span class="glyphicon glyphicon-info-sign"></span> Connections via each protocol/port will be permitted if they match the rules defined by the target tags and source filters above.
+<div class="container-fluid form-horizontal">
+  <div class="row">
+    <div class="col-md-12" ng-if="state.removedRules.length">
+      <div class="alert alert-warning">
+        <p>
+          <i class="fa fa-exclamation-triangle"></i> The following
+          <firewall-label label="firewalls"></firewall-label> could not be found in the selected account/region/VPC and
+          were removed:
+        </p>
+        <ul>
+          <li ng-repeat="securityGroup in state.removedRules">{{securityGroup}}</li>
+        </ul>
+        <p class="text-right">
+          <a class="btn btn-sm btn-default dirty-flag-dismiss" href ng-click="ctrl.dismissRemovedRules()">Okay</a>
         </p>
       </div>
     </div>
-    <div class="form-group">
-      <div class="col-md-12">
-        <table class="table table-condensed packed">
-          <thead>
+  </div>
+  <div class="row">
+    <div class="col-md-12">
+      <p class="info">
+        <span class="glyphicon glyphicon-info-sign"></span> Connections via each protocol/port will be permitted if they
+        match the rules defined by the target tags and source filters above.
+      </p>
+    </div>
+  </div>
+  <div class="form-group">
+    <div class="col-md-12">
+      <table class="table table-condensed packed">
+        <thead>
           <tr>
             <th>Protocol</th>
             <th>Start Port</th>
             <th>End Port</th>
             <th></th>
           </tr>
-          </thead>
-          <tbody>
+        </thead>
+        <tbody>
           <tr ng-repeat="rule in securityGroup.ipIngress">
-            <td><select class="form-control input-sm" ng-model="rule.type"
-                        ng-options="protocol as protocol.toUpperCase() for protocol in ['tcp', 'udp', 'icmp', 'esp', 'ah', 'sctp']"></select></td>
-            <td><input class="form-control input-sm" type="number" min="0" ng-model="rule.startPort" ng-required="rule.type === 'tcp' || rule.type === 'udp' || rule.type === 'sctp'"/></td>
-            <td><input class="form-control input-sm" type="number" min="0" ng-model="rule.endPort" ng-required="rule.type === 'tcp' || rule.type === 'udp' || rule.type === 'sctp'"/></td>
-            <td><a class="btn btn-link sm-label table-remove-button"
-                   ng-click="ctrl.removeRule(securityGroup.ipIngress, $index)">
-              <span class="glyphicon glyphicon-trash"></span></a></td>
+            <td>
+              <select
+                class="form-control input-sm"
+                ng-model="rule.type"
+                ng-options="protocol as protocol.toUpperCase() for protocol in ['tcp', 'udp', 'icmp', 'esp', 'ah', 'sctp']"
+              ></select>
+            </td>
+            <td>
+              <input
+                class="form-control input-sm"
+                type="number"
+                min="0"
+                ng-model="rule.startPort"
+                ng-required="rule.type === 'tcp' || rule.type === 'udp' || rule.type === 'sctp'"
+              />
+            </td>
+            <td>
+              <input
+                class="form-control input-sm"
+                type="number"
+                min="0"
+                ng-model="rule.endPort"
+                ng-required="rule.type === 'tcp' || rule.type === 'udp' || rule.type === 'sctp'"
+              />
+            </td>
+            <td>
+              <a
+                class="btn btn-link sm-label table-remove-button"
+                ng-click="ctrl.removeRule(securityGroup.ipIngress, $index)"
+              >
+                <span class="glyphicon glyphicon-trash"></span
+              ></a>
+            </td>
           </tr>
-          </tbody>
-        </table>
-        <button class="add-new col-md-12" ng-click="ctrl.addRule(securityGroup.ipIngress)"><span
-          class="glyphicon glyphicon-plus-sign"></span> Add New Protocol and Port Range
-        </button>
-      </div>
+        </tbody>
+      </table>
+      <button class="add-new col-md-12" ng-click="ctrl.addRule(securityGroup.ipIngress)">
+        <span class="glyphicon glyphicon-plus-sign"></span> Add New Protocol and Port Range
+      </button>
     </div>
   </div>
+</div>

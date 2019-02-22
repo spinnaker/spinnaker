@@ -8,8 +8,9 @@
         </div>
         <div class="col-md-4">
           <select class="form-control input-sm" ng-model="source.type">
-            <option ng-repeat="type in $ctrl.volumeTypes" value="{{type}}"
-                    ng-selected="source.type === type">{{type}}</option>
+            <option ng-repeat="type in $ctrl.volumeTypes" value="{{ type }}" ng-selected="source.type === type">{{
+              type
+            }}</option>
           </select>
         </div>
         <div class="col-md-1">
@@ -24,7 +25,7 @@
           Config Map Name
         </div>
         <div class="col-md-4">
-          <input type="text" class="form-control input-sm" name="path" ng-model="source.configMap.configMapName"/>
+          <input type="text" class="form-control input-sm" name="path" ng-model="source.configMap.configMapName" />
         </div>
       </div>
       <div class="form-group" ng-show="source.type === 'CONFIGMAP'">
@@ -35,26 +36,35 @@
         <div class="col-md-8">
           <table class="table table-condensed packed tags" style="border-top: 2px solid white">
             <thead>
-            <tr>
-              <th>Key</th>
-              <th>Path</th>
-              <th></th>
-            </tr>
+              <tr>
+                <th>Key</th>
+                <th>Path</th>
+                <th></th>
+              </tr>
             </thead>
             <tbody>
-            <tr ng-repeat="item in source.configMap.items track by $index" ng-init="itemIndex = $index">
-              <td>
-                <input class="form-control input-sm" type="text" ng-model="item.key">
-              </td>
-              <td>
-                <input class="form-control input-sm" ng-pattern="$ctrl.relativePathPattern" type="text" ng-model="item.path">
-              </td>
-              <td class="table-remove-button">
-                <a class="btn btn-link sm-label" style="margin-top: 0;" ng-click="$ctrl.removeItem(sourceIndex, itemIndex)">
-                  <span class="glyphicon glyphicon-trash"></span>
-                </a>
-              </td>
-            </tr>
+              <tr ng-repeat="item in source.configMap.items track by $index" ng-init="itemIndex = $index">
+                <td>
+                  <input class="form-control input-sm" type="text" ng-model="item.key" />
+                </td>
+                <td>
+                  <input
+                    class="form-control input-sm"
+                    ng-pattern="$ctrl.relativePathPattern"
+                    type="text"
+                    ng-model="item.path"
+                  />
+                </td>
+                <td class="table-remove-button">
+                  <a
+                    class="btn btn-link sm-label"
+                    style="margin-top: 0;"
+                    ng-click="$ctrl.removeItem(sourceIndex, itemIndex)"
+                  >
+                    <span class="glyphicon glyphicon-trash"></span>
+                  </a>
+                </td>
+              </tr>
             </tbody>
           </table>
           <button class="add-new btn btn-block btn-sm" ng-click="$ctrl.addItem(sourceIndex)">
@@ -69,8 +79,12 @@
         </div>
         <div class="col-md-4">
           <select class="form-control input-sm" ng-model="source.emptyDir.medium">
-            <option ng-repeat="type in $ctrl.mediumTypes" value="{{type}}"
-                    ng-selected="source.emptyDir.medium === type">{{type}}</option>
+            <option
+              ng-repeat="type in $ctrl.mediumTypes"
+              value="{{ type }}"
+              ng-selected="source.emptyDir.medium === type"
+              >{{ type }}</option
+            >
           </select>
         </div>
       </div>
@@ -80,7 +94,13 @@
           <help-field key="kubernetes.pod.volume.hostpath.path"></help-field>
         </div>
         <div class="col-md-4">
-          <input type="text" class="form-control input-sm" ng-pattern="$ctrl.pathPattern" name="path" ng-model="source.hostPath.path"/>
+          <input
+            type="text"
+            class="form-control input-sm"
+            ng-pattern="$ctrl.pathPattern"
+            name="path"
+            ng-model="source.hostPath.path"
+          />
         </div>
       </div>
       <div class="form-group" ng-show="source.type === 'PERSISTENTVOLUMECLAIM'">
@@ -89,7 +109,7 @@
           <help-field key="kubernetes.pod.volume.persistentvolumelclaim.claim"></help-field>
         </div>
         <div class="col-md-4">
-          <input type="text" class="form-control input-sm" ng-model="source.persistentVolumeClaim.claimName"/>
+          <input type="text" class="form-control input-sm" ng-model="source.persistentVolumeClaim.claimName" />
         </div>
       </div>
       <div class="form-group" ng-show="source.type === 'PERSISTENTVOLUMECLAIM'">
@@ -97,7 +117,7 @@
           Read Only
         </div>
         <div class="col-md-2">
-          <input type="checkbox" ng-model="source.persistentVolumeClaim.readOnly"/>
+          <input type="checkbox" ng-model="source.persistentVolumeClaim.readOnly" />
         </div>
       </div>
       <div class="form-group" ng-show="source.type === 'SECRET'">
@@ -106,17 +126,22 @@
           <help-field key="kubernetes.pod.volume.secret.secretname"></help-field>
         </div>
         <div class="col-md-4">
-          <input type="text" class="form-control input-sm" name="path" ng-model="source.secret.secretName"/>
+          <input type="text" class="form-control input-sm" name="path" ng-model="source.secret.secretName" />
         </div>
       </div>
-      <hr>
+      <hr />
       <div class="form-group">
         <div class="col-md-4 sm-label-right">
           Mount Path
           <help-field key="kubernetes.containers.volumemounts.mountPath"></help-field>
         </div>
         <div class="col-md-4">
-          <input type="text" class="form-control input-sm" name="details" ng-model="$ctrl.volumeMounts[$index].mountPath"/>
+          <input
+            type="text"
+            class="form-control input-sm"
+            name="details"
+            ng-model="$ctrl.volumeMounts[$index].mountPath"
+          />
         </div>
       </div>
       <div class="form-group">
@@ -125,7 +150,12 @@
           <help-field key="kubernetes.containers.volumemounts.subPath"></help-field>
         </div>
         <div class="col-md-4">
-          <input type="text" class="form-control input-sm" name="details" ng-model="$ctrl.volumeMounts[$index].subPath"/>
+          <input
+            type="text"
+            class="form-control input-sm"
+            name="details"
+            ng-model="$ctrl.volumeMounts[$index].subPath"
+          />
         </div>
       </div>
       <div class="form-group">
@@ -133,16 +163,16 @@
           Read Only
         </div>
         <div class="col-md-2">
-          <input type="checkbox" ng-model="$ctrl.volumeMounts[$index].readOnly"/>
+          <input type="checkbox" ng-model="$ctrl.volumeMounts[$index].readOnly" />
         </div>
       </div>
-      <hr ng-show="$ctrl.volumeSources.length > 1">
+      <hr ng-show="$ctrl.volumeSources.length > 1" />
     </td>
   </tr>
   <tr>
     <td colspan="1">
-      <button class="btn btn-block btn-sm add-new" ng-click="$ctrl.addVolume()" style="margin-bottom: 0px;"><span
-        class="glyphicon glyphicon-plus-sign"></span> Add Volume
+      <button class="btn btn-block btn-sm add-new" ng-click="$ctrl.addVolume()" style="margin-bottom: 0px;">
+        <span class="glyphicon glyphicon-plus-sign"></span> Add Volume
       </button>
     </td>
   </tr>

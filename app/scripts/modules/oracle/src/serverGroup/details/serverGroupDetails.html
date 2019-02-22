@@ -1,9 +1,7 @@
-<div class="details-panel"
-     ng-class="{ disabled: ctrl.serverGroup.isDisabled }">
+<div class="details-panel" ng-class="{ disabled: ctrl.serverGroup.isDisabled }">
   <div class="header" ng-if="ctrl.state.loading">
     <div class="close-button">
-      <a class="btn btn-link"
-         ui-sref="^">
+      <a class="btn btn-link" ui-sref="^">
         <span class="glyphicon glyphicon-remove"></span>
       </a>
     </div>
@@ -13,8 +11,7 @@
   </div>
   <div class="header" ng-if="!ctrl.state.loading">
     <div class="close-button">
-      <a class="btn btn-link"
-         ui-sref="^">
+      <a class="btn btn-link" ui-sref="^">
         <span class="glyphicon glyphicon-remove"></span>
       </a>
     </div>
@@ -42,7 +39,9 @@
             Insight <span class="caret"></span>
           </button>
           <ul class="dropdown-menu" uib-dropdown-menu role="menu">
-            <li ng-repeat="action in ctrl.serverGroup.insightActions"><a target=_blank href="{{action.url}}">{{action.label}}</a></li>
+            <li ng-repeat="action in ctrl.serverGroup.insightActions">
+              <a target="_blank" href="{{action.url}}">{{action.label}}</a>
+            </li>
           </ul>
         </div>
         <div class="clearfix"></div>

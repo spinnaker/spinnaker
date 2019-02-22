@@ -6,20 +6,24 @@
   </div>
   <ng-form name="autoHealingPolicyUpsertModal">
     <div class="modal-body clearfix">
-      <gce-auto-healing-policy-selector on-health-check-refresh="ctrl.onHealthCheckRefresh()"
-                                        set-auto-healing-policy="ctrl.setAutoHealingPolicy(autoHealingPolicy)"
-                                        health-checks="ctrl.healthChecks"
-                                        enabled="true"
-                                        label-columns="4"
-                                        auto-healing-policy="ctrl.autoHealingPolicy"></gce-auto-healing-policy-selector>
+      <gce-auto-healing-policy-selector
+        on-health-check-refresh="ctrl.onHealthCheckRefresh()"
+        set-auto-healing-policy="ctrl.setAutoHealingPolicy(autoHealingPolicy)"
+        health-checks="ctrl.healthChecks"
+        enabled="true"
+        label-columns="4"
+        auto-healing-policy="ctrl.autoHealingPolicy"
+      ></gce-auto-healing-policy-selector>
     </div>
   </ng-form>
   <div class="modal-footer">
     <button class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
-    <submit-button is-disabled="!autoHealingPolicyUpsertModal.$valid"
-                   label="$ctrl.submitButtonLabel"
-                   submitting="ctrl.taskMonitor.submitting"
-                   on-click="ctrl.submit()"
-                   is-new="ctrl.isNew"></submit-button>
+    <submit-button
+      is-disabled="!autoHealingPolicyUpsertModal.$valid"
+      label="$ctrl.submitButtonLabel"
+      submitting="ctrl.taskMonitor.submitting"
+      on-click="ctrl.submit()"
+      is-new="ctrl.isNew"
+    ></submit-button>
   </div>
 </div>

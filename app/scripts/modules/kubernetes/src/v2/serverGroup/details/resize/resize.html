@@ -13,10 +13,12 @@
           </div>
           <div class="col-md-3">
             <div class="input-group">
-              <input type="number"
-                     class="form-control input-sm highlight-pristine"
-                     ng-model="ctrl.current.desired"
-                     readonly/>
+              <input
+                type="number"
+                class="form-control input-sm highlight-pristine"
+                ng-model="ctrl.current.desired"
+                readonly
+              />
               <span class="input-group-addon">pod<span ng-if="ctrl.current.desired !== 1">s</span></span>
             </div>
           </div>
@@ -27,11 +29,13 @@
           </div>
           <div class="col-md-3">
             <div class="input-group">
-              <input type="number"
-                     class="form-control input-sm highlight-pristine"
-                     ng-model="ctrl.command.capacity.desired"
-                     min="0"
-                     required/>
+              <input
+                type="number"
+                class="form-control input-sm highlight-pristine"
+                ng-model="ctrl.command.capacity.desired"
+                min="0"
+                required
+              />
               <span class="input-group-addon">pod<span ng-if="ctrl.command.capacity.desired !== 1">s</span></span>
             </div>
           </div>
@@ -41,12 +45,15 @@
     </div>
     <div class="modal-footer">
       <user-verification account="ctrl.serverGroup.account" verification="ctrl.verification"></user-verification>
-      <button type="submit" ng-click="ctrl.resize()" style="display:none"></button> <!-- Allows form submission via enter keypress-->
+      <button type="submit" ng-click="ctrl.resize()" style="display:none"></button>
+      <!-- Allows form submission via enter keypress-->
       <button class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
-      <button type="submit"
-              class="btn btn-primary"
-              ng-click="ctrl.resize()"
-              ng-disabled="!ctrl.isValid() || !resizeForm.$valid">
+      <button
+        type="submit"
+        class="btn btn-primary"
+        ng-click="ctrl.resize()"
+        ng-disabled="!ctrl.isValid() || !resizeForm.$valid"
+      >
         Submit
       </button>
     </div>

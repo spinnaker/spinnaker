@@ -1,11 +1,22 @@
 <h5 class="text-center" ng-if="!command.viewState.securityGroupsConfigured">Please select an account and region.</h5>
-<div ng-if="command.viewState.securityGroupsConfigured"  ng-controller="azureServerGroupSecurityGroupsCtrl as securityGroupCtrl">
+<div
+  ng-if="command.viewState.securityGroupsConfigured"
+  ng-controller="azureServerGroupSecurityGroupsCtrl as securityGroupCtrl"
+>
   <div class="form-group">
-    <div class="col-md-3 sm-label-right"><b><firewall-label label="Firewalls"></firewall-label></b></div>
+    <div class="col-md-3 sm-label-right">
+      <b><firewall-label label="Firewalls"></firewall-label></b>
+    </div>
     <div class="col-md-7">
-      <ui-select ng-model="command.selectedSecurityGroup" class="form-control input-sm" on-select="securityGroupCtrl.securityGroupChanged($item)">
+      <ui-select
+        ng-model="command.selectedSecurityGroup"
+        class="form-control input-sm"
+        on-select="securityGroupCtrl.securityGroupChanged($item)"
+      >
         <ui-select-match placeholder="select a {{firewallLabel}}">{{$select.selected.id}}</ui-select-match>
-        <ui-select-choices repeat="securityGroup in command.backingData.filtered.securityGroups | anyFieldFilter: {name: $select.search, id: $select.search}">
+        <ui-select-choices
+          repeat="securityGroup in command.backingData.filtered.securityGroups | anyFieldFilter: {name: $select.search, id: $select.search}"
+        >
           <span ng-bind-html="securityGroup.id | highlight: $select.search"></span>
         </ui-select-choices>
       </ui-select>
@@ -20,7 +31,8 @@
         <span ng-if="!refreshing">last refreshed {{ getSecurityGroupRefreshTime() | timestamp }}</span>
         <span ng-if="refreshing"> refreshing...</span>
       </p>
-      <p>If you're not finding a <firewall-label label="firewall"></firewall-label> that was recently added,
+      <p>
+        If you're not finding a <firewall-label label="firewall"></firewall-label> that was recently added,
         <a href ng-click="refreshSecurityGroups()">click here</a> to refresh the list.
       </p>
     </div>

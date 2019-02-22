@@ -5,7 +5,8 @@
       help-key="openstack.loadBalancer.network"
       read-only="!isNew"
       allow-no-selection="true"
-      filter="{ account: loadBalancer.account }">
+      filter="{ account: loadBalancer.account }"
+    >
     </network-select-field>
 
     <os-cache-backed-multi-select-field
@@ -13,7 +14,8 @@
       cache="allSecurityGroups"
       refresh-cache="updateSecurityGroups"
       required="false"
-      model="loadBalancer.securityGroups">
+      model="loadBalancer.securityGroups"
+    >
     </os-cache-backed-multi-select-field>
   </div>
 </ng-form>

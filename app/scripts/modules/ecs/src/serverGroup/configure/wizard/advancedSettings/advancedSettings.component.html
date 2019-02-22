@@ -1,18 +1,23 @@
 <div class="container-fluid form-horizontal">
-
   <div class="form-group">
     <div class="col-md-5 sm-label-right">
       Health Grace Period
       <help-field key="ecs.healthgraceperiod"></help-field>
     </div>
-    <div class="col-md-2"><input type="number"
-                                 class="form-control input-sm no-spel"
-                                 name="healthgraceperiodseconds"
-                                 ng-model="$ctrl.command.healthgraceperiodseconds"/></div>
+    <div class="col-md-2">
+      <input
+        type="number"
+        class="form-control input-sm no-spel"
+        name="healthgraceperiodseconds"
+        ng-model="$ctrl.command.healthgraceperiodseconds"
+      />
+    </div>
   </div>
 
   <div class="form-group">
-    <div class="col-md-5 sm-label-right"><b>ECS IAM Instance Profile</b> <help-field key="ecs.iamrole"></help-field></div>
+    <div class="col-md-5 sm-label-right">
+      <b>ECS IAM Instance Profile</b> <help-field key="ecs.iamrole"></help-field>
+    </div>
     <!-- TODO - Add a help box that explains that the container does not share profiles with the host -->
 
     <div class="col-md-7" ng-if="!$ctrl.command.backingData.filtered.iamRoles.length">
@@ -20,8 +25,13 @@
     </div>
 
     <div class="col-md-7" ng-if="$ctrl.command.backingData.filtered.iamRoles.length">
-      <ui-select ng-model="$ctrl.command.iamRole" class="form-control input-sm" required on-select="$ctrl.fieldChanged()">
-        <ui-select-match>{{$select.selected}}</ui-select-match>
+      <ui-select
+        ng-model="$ctrl.command.iamRole"
+        class="form-control input-sm"
+        required
+        on-select="$ctrl.fieldChanged()"
+      >
+        <ui-select-match>{{ $select.selected }}</ui-select-match>
         <ui-select-choices repeat="iamRole in $ctrl.command.backingData.filtered.iamRoles | filter: $select.search">
           <span ng-bind-html="iamRole"></span>
         </ui-select-choices>
@@ -30,14 +40,21 @@
   </div>
 
   <div class="form-group">
-    <div class="col-md-5 sm-label-right"><b>Docker Image Credentials</b> <help-field key="ecs.dockerimagecredentials"></help-field></div>
+    <div class="col-md-5 sm-label-right">
+      <b>Docker Image Credentials</b> <help-field key="ecs.dockerimagecredentials"></help-field>
+    </div>
     <div class="col-md-7" ng-if="!$ctrl.command.backingData.filtered.secrets.length">
       No account or region was selected, or no AWS Secrets Manager secrets are available in this account and region.
     </div>
 
     <div class="col-md-7" ng-if="$ctrl.command.backingData.filtered.secrets.length">
-      <ui-select ng-model="$ctrl.command.dockerImageCredentialsSecret" class="form-control input-sm" required on-select="$ctrl.fieldChanged()">
-        <ui-select-match>{{$select.selected}}</ui-select-match>
+      <ui-select
+        ng-model="$ctrl.command.dockerImageCredentialsSecret"
+        class="form-control input-sm"
+        required
+        on-select="$ctrl.fieldChanged()"
+      >
+        <ui-select-match>{{ $select.selected }}</ui-select-match>
         <ui-select-choices repeat="secret in $ctrl.command.backingData.filtered.secrets | filter: $select.search">
           <span ng-bind-html="secret"></span>
         </ui-select-choices>
@@ -51,8 +68,10 @@
     </div>
     <div class="col-md-7">
       <ui-select ng-model="$ctrl.command.placementStrategyName" class="form-control input-sm">
-        <ui-select-match>{{$select.selected}}</ui-select-match>
-        <ui-select-choices repeat="item in ['AZ Balanced Spread', 'AZ Balanced BinPack Memory', 'BinPack Memory', 'One Task Per Host', 'None'] | filter: $select.search">
+        <ui-select-match>{{ $select.selected }}</ui-select-match>
+        <ui-select-choices
+          repeat="item in ['AZ Balanced Spread', 'AZ Balanced BinPack Memory', 'BinPack Memory', 'One Task Per Host', 'None'] | filter: $select.search"
+        >
           <span ng-bind-html="item"></span>
         </ui-select-choices>
       </ui-select>

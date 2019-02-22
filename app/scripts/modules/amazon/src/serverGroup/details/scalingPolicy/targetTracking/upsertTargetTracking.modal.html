@@ -8,16 +8,20 @@
     <form name="form" novalidate>
       <h4 class="section-heading">Target Metric</h4>
       <div class="section-body">
-        <p>With target tracking policies, Amazon will automatically adjust the size of your ASG to keep the selected
-          metric as close as possible to the selected value.</p>
+        <p>
+          With target tracking policies, Amazon will automatically adjust the size of your ASG to keep the selected
+          metric as close as possible to the selected value.
+        </p>
         <div class="row" style="margin-bottom: 10px;">
           <div class="col-md-2 sm-label-right">Metric</div>
           <div class="col-md-10 content-fields">
             <div ng-if="$ctrl.state.metricType === 'predefined'">
-              <select class="input input-sm"
-                      ng-model="$ctrl.command.targetTrackingConfiguration.predefinedMetricSpecification.predefinedMetricType"
-                      ng-change="$ctrl.alarmUpdated.next()"
-                      ng-options="option for option in $ctrl.predefinedMetrics">
+              <select
+                class="input input-sm"
+                ng-model="$ctrl.command.targetTrackingConfiguration.predefinedMetricSpecification.predefinedMetricType"
+                ng-change="$ctrl.alarmUpdated.next()"
+                ng-options="option for option in $ctrl.predefinedMetrics"
+              >
               </select>
               <div>
                 <a href ng-click="$ctrl.toggleMetricType()">Select a custom metric</a>
@@ -25,14 +29,15 @@
             </div>
 
             <div ng-if="$ctrl.state.metricType === 'custom'">
-              <aws-metric-selector alarm-updated="$ctrl.alarmUpdated"
-                                   alarm="$ctrl.command.targetTrackingConfiguration.customizedMetricSpecification"
-                                   server-group="$ctrl.serverGroup"></aws-metric-selector>
+              <aws-metric-selector
+                alarm-updated="$ctrl.alarmUpdated"
+                alarm="$ctrl.command.targetTrackingConfiguration.customizedMetricSpecification"
+                server-group="$ctrl.serverGroup"
+              ></aws-metric-selector>
               <div>
                 <a href ng-click="$ctrl.toggleMetricType()">Use a predefined metric</a>
               </div>
             </div>
-
           </div>
         </div>
 
@@ -40,35 +45,42 @@
           <div class="col-md-2 sm-label-right">Target</div>
           <div class="col-md-10 content-fields">
             <div ng-if="$ctrl.state.metricType === 'custom'" style="display: inline-block">
-              <select class="form-control input-sm"
-                      required
-                      ng-model="$ctrl.command.targetTrackingConfiguration.customizedMetricSpecification.statistic"
-                      ng-change="$ctrl.alarmUpdated.next()"
-                      ng-options="stat for stat in $ctrl.statistics">
+              <select
+                class="form-control input-sm"
+                required
+                ng-model="$ctrl.command.targetTrackingConfiguration.customizedMetricSpecification.statistic"
+                ng-change="$ctrl.alarmUpdated.next()"
+                ng-options="stat for stat in $ctrl.statistics"
+              >
               </select>
               <span class="input-label" style="vertical-align: top; margin-top: 7px"> of </span>
             </div>
             <div style="display: inline-block">
-              <input type="number"
-                     class="form-control input-sm"
-                     style="width: 100px"
-                     ng-change="$ctrl.alarmUpdated.next()"
-                     ng-model="$ctrl.command.targetTrackingConfiguration.targetValue" />
+              <input
+                type="number"
+                class="form-control input-sm"
+                style="width: 100px"
+                ng-change="$ctrl.alarmUpdated.next()"
+                ng-model="$ctrl.command.targetTrackingConfiguration.targetValue"
+              />
               <span class="input-label" ng-bind="$ctrl.state.unit"></span>
             </div>
           </div>
-
         </div>
 
         <div class="row">
           <div class="col-md-10 col-md-offset-1">
             <div style="height: 220px">
-              <target-tracking-chart config="$ctrl.command.targetTrackingConfiguration"
-                                     alarm-updated="$ctrl.alarmUpdated"
-                                     state="$ctrl.state"
-                                     server-group="$ctrl.serverGroup"></target-tracking-chart>
-              <div class="small help-contents" style="margin-left: 45px"><b>Note:</b> to zoom in, hold down the alt key and use your
-                mouse to select an area. Double-click to zoom back out.</div>
+              <target-tracking-chart
+                config="$ctrl.command.targetTrackingConfiguration"
+                alarm-updated="$ctrl.alarmUpdated"
+                state="$ctrl.state"
+                server-group="$ctrl.serverGroup"
+              ></target-tracking-chart>
+              <div class="small help-contents" style="margin-left: 45px">
+                <b>Note:</b> to zoom in, hold down the alt key and use your mouse to select an area. Double-click to
+                zoom back out.
+              </div>
             </div>
           </div>
         </div>
@@ -86,11 +98,13 @@
           <div class="col-md-2 sm-label-right">Warmup</div>
           <div class="col-md-10 content-fields">
             <span class="form-control-static select-placeholder">Instances need</span>
-            <input type="number"
-                   style="width: 60px"
-                   class="form-control input-sm"
-                   required
-                   ng-model="$ctrl.command.estimatedInstanceWarmup"/>
+            <input
+              type="number"
+              style="width: 60px"
+              class="form-control input-sm"
+              required
+              ng-model="$ctrl.command.estimatedInstanceWarmup"
+            />
             <span class="input-label">
               seconds to warm up
             </span>
@@ -102,13 +116,17 @@
           <div class="col-md-9">
             <div class="checkbox" style="margin-top: 5px">
               <label>
-                <input type="checkbox" ng-model="$ctrl.command.targetTrackingConfiguration.disableScaleIn" ng-change="$ctrl.scaleInChanged()"/>
+                <input
+                  type="checkbox"
+                  ng-model="$ctrl.command.targetTrackingConfiguration.disableScaleIn"
+                  ng-change="$ctrl.scaleInChanged()"
+                />
                 Disable Scale-downs
               </label>
               <div class="small" style="margin-top: 5px">
                 <p>
-                  This option disables scale-downs for the target tracking policy, while keeping the scale-ups.
-                  This means that ASG will not scale down unless you explicitly set up a separate step policy to scale it
+                  This option disables scale-downs for the target tracking policy, while keeping the scale-ups. This
+                  means that ASG will not scale down unless you explicitly set up a separate step policy to scale it
                   down.
                 </p>
                 <p>
@@ -122,26 +140,26 @@
         <div class="row" ng-if="$ctrl.state.scaleInChanged">
           <div class="col-md-10 col-md-offset-1 well">
             <div ng-if="$ctrl.command.targetTrackingConfiguration.disableScaleIn">
-              This policy will not scale down. Make sure you have another policy (either TT or Step) that
-                will scale down this ASG.
+              This policy will not scale down. Make sure you have another policy (either TT or Step) that will scale
+              down this ASG.
             </div>
             <div ng-if="!$ctrl.command.targetTrackingConfiguration.disableScaleIn">
-              This policy will scale both up and down. Make sure you don't have other scaling policies, as they
-                will likely interfere with each other.
+              This policy will scale both up and down. Make sure you don't have other scaling policies, as they will
+              likely interfere with each other.
             </div>
-
           </div>
         </div>
-
       </div>
     </form>
   </div>
 
   <div class="modal-footer">
     <button class="btn btn-default" ng-click="$ctrl.cancel()">Cancel</button>
-    <submit-button is-disabled="!form.$valid || $ctrl.taskMonitor.submitting"
-                   submitting="$ctrl.taskMonitor.submitting"
-                   on-click="$ctrl.save()"
-                   is-new="!$ctrl.policy.policyName"></submit-button>
+    <submit-button
+      is-disabled="!form.$valid || $ctrl.taskMonitor.submitting"
+      submitting="$ctrl.taskMonitor.submitting"
+      on-click="$ctrl.save()"
+      is-new="!$ctrl.policy.policyName"
+    ></submit-button>
   </div>
 </div>

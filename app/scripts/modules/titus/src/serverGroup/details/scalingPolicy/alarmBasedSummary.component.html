@@ -1,18 +1,20 @@
-<span class="label label-default">{{$ctrl.policy.policyType | robotToHuman | uppercase }}</span>
-<span class="label small" ng-if="$ctrl.policy.status.state !== 'Applied'">({{$ctrl.policy.status.state}})</span>
+<span class="label label-default">{{ $ctrl.policy.policyType | robotToHuman | uppercase }}</span>
+<span class="label small" ng-if="$ctrl.policy.status.state !== 'Applied'">({{ $ctrl.policy.status.state }})</span>
 <div ng-repeat="alarm in $ctrl.policy.alarms track by $index">
-  <div uib-popover-template="$ctrl.popoverTemplate"
-       popover-placement="left"
-       popover-title="{{$ctrl.policy.policyName}}"
-       popover-trigger="'mouseenter'">
+  <div
+    uib-popover-template="$ctrl.popoverTemplate"
+    popover-placement="left"
+    popover-title="{{ $ctrl.policy.policyName }}"
+    popover-trigger="'mouseenter'"
+  >
     <div>
       <strong>Whenever</strong>
-      {{alarm.statistic}} of <span class="alarm-name">{{alarm.metricName}}</span>
-      is <span ng-bind-html="alarm.comparator"></span> {{alarm.threshold}}
+      {{ alarm.statistic }} of <span class="alarm-name">{{ alarm.metricName }}</span> is
+      <span ng-bind-html="alarm.comparator"></span> {{ alarm.threshold }}
     </div>
     <div>
       <strong>for at least</strong>
-      {{alarm.evaluationPeriods}} consecutive periods of {{alarm.period}} seconds
+      {{ alarm.evaluationPeriods }} consecutive periods of {{ alarm.period }} seconds
     </div>
   </div>
   <div class="actions text-right">

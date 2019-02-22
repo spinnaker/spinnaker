@@ -5,21 +5,30 @@
         <a class="btn btn-configure" ui-sref="^.executions" uib-tooltip="Back to Executions">
           <span class="glyphicon glyphicon glyphicon-circle-arrow-left"></span>
         </a>
-        <a href class="nav-popover"
-           ng-click="navMenuState.showMenu = !navMenuState.showMenu"
-           ng-blur="pipelineConfigurerCtrl.hideNavigationMenu()">
+        <a
+          href
+          class="nav-popover"
+          ng-click="navMenuState.showMenu = !navMenuState.showMenu"
+          ng-blur="pipelineConfigurerCtrl.hideNavigationMenu()"
+        >
           {{pipeline.name}}
           <span ng-if="pipeline.disabled">(disabled)</span>
         </a>
       </h3>
       <div class="config-heading-actions">
         <div class="permalink">
-          <a target="_blank"
-             analytics-on="click"
-             analytics-category="Pipeline Config"
-             analytics-event="Permalink clicked"
-             ng-href="{{pipelineConfigurerCtrl.getUrl()}}">Permalink</a>
-          <copy-to-clipboard text="pipelineConfigurerCtrl.getUrl()" tool-tip="'Copy permalink to clipboard'"></copy-to-clipboard>
+          <a
+            target="_blank"
+            analytics-on="click"
+            analytics-category="Pipeline Config"
+            analytics-event="Permalink clicked"
+            ng-href="{{pipelineConfigurerCtrl.getUrl()}}"
+            >Permalink</a
+          >
+          <copy-to-clipboard
+            text="pipelineConfigurerCtrl.getUrl()"
+            tool-tip="'Copy permalink to clipboard'"
+          ></copy-to-clipboard>
         </div>
         <div class="create-action">
           <create-pipeline application="application"></create-pipeline>
@@ -30,7 +39,8 @@
       </div>
     </div>
     <div class="band band-info" ng-if="pipeline.locked">
-      <span class="glyphicon glyphicon small glyphicon-lock"></span> {{ pipeline.locked.description || "This pipeline is locked and does not allow modification" }}
+      <span class="glyphicon glyphicon small glyphicon-lock"></span> {{ pipeline.locked.description || "This pipeline is
+      locked and does not allow modification" }}
     </div>
     <div class="band band-info" ng-if="isTemplatedPipeline && !pipeline.locked">
       <span class="glyphicon glyphicon small glyphicon-lock"></span> Manual edits are not allowed on templated pipelines
@@ -40,115 +50,141 @@
       configuration is currently rendered using
       <span ng-if="pipelineExecutions.length > 1" class="dropdown" uib-dropdown>
         &nbsp;&nbsp;<button type="button" class="btn btn-xs btn-default dropdown-toggle" uib-dropdown-toggle>
-          <execution-build-title execution="currentExecution" default-to-timestamp="true" ></execution-build-title> <span class="caret"></span>
+          <execution-build-title execution="currentExecution" default-to-timestamp="true"></execution-build-title>
+          <span class="caret"></span>
         </button>
         <ul class="dropdown-menu" role="menu" uib-dropdown-menu>
           <li ng-repeat="p in pipelineExecutions" ng-class="{disabled: p.id == currentExecution.id}">
-            <a title="{{p.startTime | timestamp}}" ui-sref="{ executionId: p.id }"><execution-build-title execution="p" default-to-timestamp="true" ></execution-build-title>
+            <a title="{{p.startTime | timestamp}}" ui-sref="{ executionId: p.id }"
+              ><execution-build-title execution="p" default-to-timestamp="true"></execution-build-title>
               <span class="text-muted small">({{p.startTime | relativeTime}})</span>
               <span class="glyphicon small glyphicon-ok" ng-if="p.id == currentExecution.id"></span>
             </a>
           </li>
         </ul>
       </span>
-      <span ng-if="pipelineExecutions.length === 1"><execution-build-title execution="currentExecution" default-to-timestamp="true" ></execution-build-title></span>
+      <span ng-if="pipelineExecutions.length === 1"
+        ><execution-build-title execution="currentExecution" default-to-timestamp="true"></execution-build-title
+      ></span>
     </div>
     <div class="band band-warning" ng-if="pipelineExecutions && !pipelineExecutions.length">
       <span class="glyphicon glyphicon small glyphicon-alert"></span> This template has a dynamic source. The
       configuration cannot be rendered before the pipeline has executed at least once.
     </div>
     <div class="band band-warning" ng-if="templateError && pipelineExecutions.length && isTemplatedPipeline">
-      <span class="glyphicon glyphicon small glyphicon-alert"></span> Could not render the pipeline configuration because
-        of an error: {{ templateError.data.message }} {{ templateError.data.error }}
+      <span class="glyphicon glyphicon small glyphicon-alert"></span> Could not render the pipeline configuration
+      because of an error: {{ templateError.data.message }} {{ templateError.data.error }}
     </div>
     <div class="config-heading-body">
       <div class="pipeline-graph-container pipeline-config-graph">
-        <pipeline-graph view-state="viewState"
-                        pipeline="renderablePipeline"
-                        should-validate="true"
-                        on-node-click="pipelineConfigurerCtrl.graphNodeClicked"></pipeline-graph>
+        <pipeline-graph
+          view-state="viewState"
+          pipeline="renderablePipeline"
+          should-validate="true"
+          on-node-click="pipelineConfigurerCtrl.graphNodeClicked"
+        ></pipeline-graph>
       </div>
       <div class="row">
         <div class="col-md-8">
-          <button class="btn btn-block btn-sm add-new"
-                  analytics-on="click"
-                  analytics-category="Pipeline Config"
-                  analytics-event="Add stage button clicked"
-                  ng-click="pipelineConfigurerCtrl.addStage()">
+          <button
+            class="btn btn-block btn-sm add-new"
+            analytics-on="click"
+            analytics-category="Pipeline Config"
+            analytics-event="Add stage button clicked"
+            ng-click="pipelineConfigurerCtrl.addStage()"
+          >
             <span class="glyphicon glyphicon-plus-sign"></span> Add stage
           </button>
         </div>
         <div class="col-md-4">
-          <button class="btn btn-block btn-sm add-new"
-                  analytics-on="click"
-                  analytics-category="Pipeline Config"
-                  analytics-event="Copy existing stage button clicked"
-                  ng-click="pipelineConfigurerCtrl.copyExistingStage()">
+          <button
+            class="btn btn-block btn-sm add-new"
+            analytics-on="click"
+            analytics-category="Pipeline Config"
+            analytics-event="Copy existing stage button clicked"
+            ng-click="pipelineConfigurerCtrl.copyExistingStage()"
+          >
             <span class="glyphicon glyphicon-duplicate"></span> Copy an existing stage
           </button>
         </div>
       </div>
     </div>
-
   </div>
   <div class="pipeline-contents">
-
-    <pipeline-config-view application="application"
-                          pipeline="renderablePipeline"
-                          pipeline-config="pipeline"
-                          stage-field-updated="pipelineConfigurerCtrl.stageFieldUpdated"
-                          view-state="viewState"></pipeline-config-view>
+    <pipeline-config-view
+      application="application"
+      pipeline="renderablePipeline"
+      pipeline-config="pipeline"
+      stage-field-updated="pipelineConfigurerCtrl.stageFieldUpdated"
+      view-state="viewState"
+    ></pipeline-config-view>
 
     <div class="row main-footer fixed-footer">
       <div class="col-md-3">
-        <button is-visible="!pipeline.locked && viewState.isDirty && !viewState.saving" class="btn btn-default"
-                analytics-on="click"
-                analytics-category="Pipeline Config"
-                analytics-event="Revert changes clicked"
-                ng-click="pipelineConfigurerCtrl.revertPipelineChanges()"><span class="glyphicon glyphicon-flash"></span> Revert</button>
+        <button
+          is-visible="!pipeline.locked && viewState.isDirty && !viewState.saving"
+          class="btn btn-default"
+          analytics-on="click"
+          analytics-category="Pipeline Config"
+          analytics-event="Revert changes clicked"
+          ng-click="pipelineConfigurerCtrl.revertPipelineChanges()"
+        >
+          <span class="glyphicon glyphicon-flash"></span> Revert
+        </button>
       </div>
       <div class="col-md-9 text-right">
-        <button class="btn btn-link"
-                ng-if="pipelineConfigurerCtrl.validations.hasWarnings"
-                uib-popover-template="pipelineConfigurerCtrl.warningsPopover"
-                popover-placement="left-bottom"
-                popover-trigger="'mouseenter'">
-        <i class="fa fa-exclamation-triangle" style="font-size: 125%;"></i>
+        <button
+          class="btn btn-link"
+          ng-if="pipelineConfigurerCtrl.validations.hasWarnings"
+          uib-popover-template="pipelineConfigurerCtrl.warningsPopover"
+          popover-placement="left-bottom"
+          popover-trigger="'mouseenter'"
+        >
+          <i class="fa fa-exclamation-triangle" style="font-size: 125%;"></i>
         </button>
         <span ng-if="viewState.saveError" class="alert alert-danger">
           {{viewState.saveErrorMessage}}
-          <a class="alert-dismiss" href
-             analytics-on="click"
-             analytics-category="Pipeline Config"
-             analytics-event="Error saving changes dismissed"
-             ng-click="viewState.saveError = false; viewState.saveErrorMessage = null">[dismiss]</a>
+          <a
+            class="alert-dismiss"
+            href
+            analytics-on="click"
+            analytics-category="Pipeline Config"
+            analytics-event="Error saving changes dismissed"
+            ng-click="viewState.saveError = false; viewState.saveErrorMessage = null"
+            >[dismiss]</a
+          >
         </span>
 
-        <button class="btn btn-default"
-                ng-if="isTemplatedPipeline"
-                ng-click="pipelineConfigurerCtrl.configureTemplate()">
+        <button
+          class="btn btn-default"
+          ng-if="isTemplatedPipeline"
+          ng-click="pipelineConfigurerCtrl.configureTemplate()"
+        >
           <span class="fa fa-wrench"></span> Configure Template
         </button>
-        <button ng-if="!pipeline.locked && viewState.isDirty" ng-disabled="!pipelineConfigurerCtrl.isValid()" class="btn btn-primary"
-                analytics-on="click"
-                analytics-category="Pipeline Config"
-                analytics-event="Save pipeline clicked"
-                ng-click="pipelineConfigurerCtrl.savePipeline()">
-          <span ng-if="!viewState.saving">
-            <span class="far fa-check-circle"></span> Save Changes
-          </span>
-          <span ng-if="viewState.saving" class="pulsing">
-            <span class="fa fa-cog fa-spin"></span> Saving&hellip;
-          </span>
+        <button
+          ng-if="!pipeline.locked && viewState.isDirty"
+          ng-disabled="!pipelineConfigurerCtrl.isValid()"
+          class="btn btn-primary"
+          analytics-on="click"
+          analytics-category="Pipeline Config"
+          analytics-event="Save pipeline clicked"
+          ng-click="pipelineConfigurerCtrl.savePipeline()"
+        >
+          <span ng-if="!viewState.saving"> <span class="far fa-check-circle"></span> Save Changes </span>
+          <span ng-if="viewState.saving" class="pulsing"> <span class="fa fa-cog fa-spin"></span> Saving&hellip; </span>
         </button>
-        <span ng-if="!pipeline.locked && !viewState.isDirty" class="btn btn-link disabled"><span class="far fa-check-circle"></span> In sync with server</span>
-        <span ng-if="pipeline.locked" class="btn btn-link disabled"
-              uib-tooltip="{{ pipeline.locked.description || 'This pipeline is locked and does not allow modification'}}">
+        <span ng-if="!pipeline.locked && !viewState.isDirty" class="btn btn-link disabled"
+          ><span class="far fa-check-circle"></span> In sync with server</span
+        >
+        <span
+          ng-if="pipeline.locked"
+          class="btn btn-link disabled"
+          uib-tooltip="{{ pipeline.locked.description || 'This pipeline is locked and does not allow modification'}}"
+        >
           <span class="glyphicon glyphicon-lock"></span> Pipeline is locked
         </span>
       </div>
-
     </div>
   </div>
 </div>
-

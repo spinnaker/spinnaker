@@ -1,40 +1,41 @@
 <div ng-controller="kubernetesRunJobStageCtrl as ctrl">
   <table class="table table-condensed">
     <thead>
-    <tr>
-      <th>Account</th>
-      <th>Namespace</th>
-      <th>Image</th>
-      <th style="width: 58px">Actions</th>
-    </tr>
+      <tr>
+        <th>Account</th>
+        <th>Namespace</th>
+        <th>Image</th>
+        <th style="width: 58px">Actions</th>
+      </tr>
     </thead>
     <tbody>
-    <tr ng-if="ctrl.stage.account">
-      <td>
-        <account-tag account="ctrl.stage.account"></account-tag>
-      </td>
-      <td>
-        {{ ctrl.stage.namespace }}
-      </td>
-      <td>
-        <div ng-repeat="container in ctrl.stage.containers">
-          {{ container.imageDescription | kubernetesImageId }}
-        </div>
-      </td>
-      <td class="condensed-actions text-center">
-        <a class="btn btn-sm btn-link" href ng-click="ctrl.configureJob()">
-          <span class="glyphicon glyphicon-edit" uib-tooltip="Edit"></span></a>
-      </td>
-    </tr>
+      <tr ng-if="ctrl.stage.account">
+        <td>
+          <account-tag account="ctrl.stage.account"></account-tag>
+        </td>
+        <td>
+          {{ ctrl.stage.namespace }}
+        </td>
+        <td>
+          <div ng-repeat="container in ctrl.stage.containers">
+            {{ container.imageDescription | kubernetesImageId }}
+          </div>
+        </td>
+        <td class="condensed-actions text-center">
+          <a class="btn btn-sm btn-link" href ng-click="ctrl.configureJob()">
+            <span class="glyphicon glyphicon-edit" uib-tooltip="Edit"></span
+          ></a>
+        </td>
+      </tr>
     </tbody>
     <tfoot ng-if="!ctrl.stage.account">
-    <tr>
-      <td colspan="10">
-        <button class="btn btn-block btn-sm add-new" ng-click="ctrl.configureJob()">
-          <span class="glyphicon glyphicon-plus-sign"></span> Configure Job
-        </button>
-      </td>
-    </tr>
+      <tr>
+        <td colspan="10">
+          <button class="btn btn-block btn-sm add-new" ng-click="ctrl.configureJob()">
+            <span class="glyphicon glyphicon-plus-sign"></span> Configure Job
+          </button>
+        </td>
+      </tr>
     </tfoot>
   </table>
 </div>

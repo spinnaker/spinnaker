@@ -1,8 +1,7 @@
-  <div class="details-panel">
+<div class="details-panel">
   <div ng-if="ctrl.state.loading" class="header">
     <div class="close-button">
-      <a class="btn btn-link"
-         ui-sref="^">
+      <a class="btn btn-link" ui-sref="^">
         <span class="glyphicon glyphicon-remove"></span>
       </a>
     </div>
@@ -13,8 +12,7 @@
 
   <div ng-if="!ctrl.state.loading" class="header">
     <div class="close-button">
-      <a class="btn btn-link"
-         ui-sref="^">
+      <a class="btn btn-link" ui-sref="^">
         <span class="glyphicon glyphicon-remove"></span>
       </a>
     </div>
@@ -35,9 +33,11 @@
             <li ng-if="ctrl.canDeleteLoadBalancer()">
               <a href ng-click="ctrl.deleteLoadBalancer()">Delete Load Balancer</a>
             </li>
-            <li ng-if="!ctrl.canDeleteLoadBalancer()"
-                uib-tooltip="You cannot delete a default service."
-                class="disabled">
+            <li
+              ng-if="!ctrl.canDeleteLoadBalancer()"
+              uib-tooltip="You cannot delete a default service."
+              class="disabled"
+            >
               <a href>Delete Load Balancer</a>
             </li>
           </ul>
@@ -57,10 +57,12 @@
         <dd ng-if="ctrl.loadBalancer.serverGroups.length">
           <ul>
             <li ng-repeat="serverGroup in ctrl.loadBalancer.serverGroups | orderBy: ['isDisabled', '-name']">
-              <a ui-sref="^.serverGroup({region: serverGroup.region,
+              <a
+                ui-sref="^.serverGroup({region: serverGroup.region,
                                          accountId: serverGroup.account,
                                          serverGroup: serverGroup.name,
-                                         provider: 'appengine'})">
+                                         provider: 'appengine'})"
+              >
                 {{serverGroup.name}}
               </a>
             </li>
@@ -74,10 +76,13 @@
     <collapsible-section heading="Traffic Split" expanded="true">
       <dl class="dl-horizontal dl-narrow">
         <dt ng-if="ctrl.loadBalancer.split.shardBy">Shard By</dt>
-        <dd ng-if="ctrl.loadBalancer.split.shardBy">{{ctrl.loadBalancer.split.shardBy}}
-          <help-field key="appengine.loadBalancer.shardBy.{{ctrl.loadBalancer.split.shardBy.toLowerCase()}}"></help-field>
+        <dd ng-if="ctrl.loadBalancer.split.shardBy">
+          {{ctrl.loadBalancer.split.shardBy}}
+          <help-field
+            key="appengine.loadBalancer.shardBy.{{ctrl.loadBalancer.split.shardBy.toLowerCase()}}"
+          ></help-field>
         </dd>
-        <hr ng-if="ctrl.loadBalancer.split.shardBy">
+        <hr ng-if="ctrl.loadBalancer.split.shardBy" />
         <ul>
           <li ng-repeat="(serverGroup, percent) in ctrl.loadBalancer.split.allocations">
             {{serverGroup}}:<span class="pull-right">{{percent | decimalToPercent}}</span>
@@ -92,7 +97,7 @@
     </collapsible-section>
     <collapsible-section heading="Dispatch Rules" expanded="true" ng-if="ctrl.dispatchRules.length > 0">
       <dl class="dl-horizontal dl-narrow">
-        <span ng-repeat-start="rule in ctrl.dispatchRules">{{rule}}</span><br ng-repeat-end>
+        <span ng-repeat-start="rule in ctrl.dispatchRules">{{rule}}</span><br ng-repeat-end />
       </dl>
     </collapsible-section>
   </div>

@@ -5,48 +5,38 @@
 </div>
 <div class="form-horizontal" ng-if="!viewState.loading">
   <stage-config-field label="Repository Url" help-key="pipeline.config.script.repoUrl">
-    <input type="text" class="form-control input-sm"
-           ng-model="stage.repoUrl"/>
+    <input type="text" class="form-control input-sm" ng-model="stage.repoUrl" />
   </stage-config-field>
   <stage-config-field label="Repository Branch" help-key="pipeline.config.script.repoBranch">
-    <input type="text" class="form-control input-sm"
-           ng-model="stage.repoBranch"/>
+    <input type="text" class="form-control input-sm" ng-model="stage.repoBranch" />
   </stage-config-field>
   <stage-config-field label="Script Path" help-key="pipeline.config.script.path">
-    <input type="text" class="form-control input-sm" ng-model="stage.scriptPath"/>
+    <input type="text" class="form-control input-sm" ng-model="stage.scriptPath" />
   </stage-config-field>
   <stage-config-field label="Command" help-key="pipeline.config.script.command">
-    <textarea class="form-control input-sm" required
-              ng-model="stage.command"></textarea>
+    <textarea class="form-control input-sm" required ng-model="stage.command"></textarea>
   </stage-config-field>
   <stage-config-field label="Output File" help-key="pipeline.config.script.propertyFile">
-    <input type="text" class="form-control input-sm"
-           ng-model="stage.propertyFile"/>
+    <input type="text" class="form-control input-sm" ng-model="stage.propertyFile" />
   </stage-config-field>
   <div ng-if="!pipeline.strategy">
     <stage-config-field label="Image" help-key="pipeline.config.script.image">
-      <input type="text" class="form-control input-sm"
-             ng-model="stage.image"/>
+      <input type="text" class="form-control input-sm" ng-model="stage.image" />
     </stage-config-field>
     <stage-config-field label="Account" help-key="pipeline.config.script.account">
-      <input type="text" class="form-control input-sm"
-             ng-model="stage.account"/>
+      <input type="text" class="form-control input-sm" ng-model="stage.account" />
     </stage-config-field>
     <stage-config-field label="Region" help-key="pipeline.config.script.region">
-      <input type="text" class="form-control input-sm"
-             ng-model="stage.region"/>
+      <input type="text" class="form-control input-sm" ng-model="stage.region" />
     </stage-config-field>
     <stage-config-field label="Cluster" help-key="pipeline.config.script.cluster">
-      <input type="text" class="form-control input-sm"
-             ng-model="stage.cluster"/>
+      <input type="text" class="form-control input-sm" ng-model="stage.cluster" />
     </stage-config-field>
   </div>
   <stage-config-field label="Cmc" help-key="pipeline.config.script.cmc">
-    <input type="text" class="form-control input-sm"
-           ng-model="stage.cmc"/>
+    <input type="text" class="form-control input-sm" ng-model="stage.cmc" />
   </stage-config-field>
   <stage-config-field label="Wait for results" help-key="script.waitForCompletion">
-    <input type="checkbox" class="input-sm" name="waitForCompletion"
-           ng-model="stage.waitForCompletion"/>
+    <input type="checkbox" class="input-sm" name="waitForCompletion" ng-model="stage.waitForCompletion" />
   </stage-config-field>
 </div>

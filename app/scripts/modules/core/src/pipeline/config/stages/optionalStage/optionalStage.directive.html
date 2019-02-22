@@ -3,15 +3,21 @@
     <div class="col-md-8 col-md-offset-1">
       <div class="checkbox pull-left">
         <label>
-          <input type="checkbox" ng-false-value="undefined"
-                 ng-checked="optionalStageCtrl.isOptional()"
-                 ng-click="optionalStageCtrl.toggleOptional()"/>
-          <strong> Conditional on <a href="http://spinnaker.github.io/guides/user/pipeline-expressions" target="_blank">Expression</a> </strong>
+          <input
+            type="checkbox"
+            ng-false-value="undefined"
+            ng-checked="optionalStageCtrl.isOptional()"
+            ng-click="optionalStageCtrl.toggleOptional()"
+          />
+          <strong>
+            Conditional on
+            <a href="http://spinnaker.github.io/guides/user/pipeline-expressions" target="_blank">Expression</a>
+          </strong>
           <help-field key="pipeline.config.optionalStage"></help-field>
         </label>
       </div>
       <div ng-if="optionalStageCtrl.isOptional()" class="col-md-12">
-        <input type="text" class="form-control input-sm" ng-model="stage.stageEnabled.expression">
+        <input type="text" class="form-control input-sm" ng-model="stage.stageEnabled.expression" />
       </div>
     </div>
   </div>

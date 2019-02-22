@@ -26,31 +26,36 @@
         </div>
         <div class="form-group">
           <div class="col-md-3 text-right"><b>New</b></div>
-          <div class="col-md-2"><input type="number"
-                                       class="form-control input-sm"
-                                       ng-model="command.min"
-                                       min="0"
-                                       required
-                                       max="{{command.max}}"/></div>
-          <div class="col-md-2"><input type="number"
-                                       class="form-control input-sm"
-                                       ng-model="command.max"
-                                       required
-                                       min="{{command.min}}"/></div>
-          <div class="col-md-2"><input type="number"
-                                       class="form-control input-sm"
-                                       ng-model="command.desired"
-                                       required
-                                       min="{{command.min}}"
-                                       max="{{command.max}}"/></div>
+          <div class="col-md-2">
+            <input
+              type="number"
+              class="form-control input-sm"
+              ng-model="command.min"
+              min="0"
+              required
+              max="{{command.max}}"
+            />
+          </div>
+          <div class="col-md-2">
+            <input type="number" class="form-control input-sm" ng-model="command.max" required min="{{command.min}}" />
+          </div>
+          <div class="col-md-2">
+            <input
+              type="number"
+              class="form-control input-sm"
+              ng-model="command.desired"
+              required
+              min="{{command.min}}"
+              max="{{command.max}}"
+            />
+          </div>
         </div>
-
       </div>
       <div ng-if="!command.advancedMode">
         <div class="form-group">
           <div class="col-md-12">
             <p>Sets min, max, and desired instance counts to the same value.</p>
-            <p> To allow true auto-scaling, use the <a href ng-click="command.advancedMode = true">Advanced Mode</a>.</p>
+            <p>To allow true auto-scaling, use the <a href ng-click="command.advancedMode = true">Advanced Mode</a>.</p>
           </div>
         </div>
         <div class="form-group">
@@ -61,11 +66,13 @@
         <div class="form-group form-inline">
           <div class="col-md-11 col-md-offset-1">
             <label>
-              <input type="number"
-                     class="form-control input-sm"
-                     ng-model="currentSize.desired"
-                     style="width: 60px"
-                     readonly/>
+              <input
+                type="number"
+                class="form-control input-sm"
+                ng-model="currentSize.desired"
+                style="width: 60px"
+                readonly
+              />
               instance<span ng-if="currentSize.desired > 1">s</span>
             </label>
           </div>
@@ -78,12 +85,14 @@
         <div class="form-group form-inline">
           <div class="col-md-11 col-md-offset-1">
             <label>
-              <input type="number"
-                     class="form-control input-sm highlight-pristine"
-                     ng-model="command.newSize"
-                     min="0"
-                     required
-                     style="width: 60px"/>
+              <input
+                type="number"
+                class="form-control input-sm highlight-pristine"
+                ng-model="command.newSize"
+                min="0"
+                required
+                style="width: 60px"
+              />
               instances
             </label>
           </div>
@@ -93,21 +102,17 @@
 
     <div class="row" ng-if="command.platformHealthOnlyShowOverride">
       <div class="col-sm-10 col-sm-offset-1">
-        <platform-health-override command="command"
-                                  platform-health-type="'Titus'"
-                                  show-help-details="true">
+        <platform-health-override command="command" platform-health-type="'Titus'" show-help-details="true">
         </platform-health-override>
       </div>
     </div>
 
     <div class="modal-footer">
       <user-verification account="serverGroup.account" verification="verification"></user-verification>
-      <button type="submit" ng-click="ctrl.resize()" style="display:none"></button> <!-- Allows form submission via enter keypress-->
+      <button type="submit" ng-click="ctrl.resize()" style="display:none"></button>
+      <!-- Allows form submission via enter keypress-->
       <button class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
-      <button type="submit"
-              class="btn btn-primary"
-              ng-click="ctrl.resize()"
-              ng-disabled="!ctrl.isValid()">
+      <button type="submit" class="btn btn-primary" ng-click="ctrl.resize()" ng-disabled="!ctrl.isValid()">
         Submit
       </button>
     </div>

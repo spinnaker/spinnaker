@@ -1,5 +1,10 @@
 <div class="form-horizontal">
   <h4>Manifest</h4>
   <div class="horizontal-rule"></div>
-  <kubernetes-manifest-selector modes="['static', 'dynamic']" application="ctrl.application" on-change="ctrl.handleManifestSelectorChange" selector="ctrl.$scope.stage"></kubernetes-manifest-selector>
+  <kubernetes-manifest-selector
+    modes="['static', 'dynamic']"
+    application="ctrl.application"
+    on-change="ctrl.handleManifestSelectorChange"
+    selector="ctrl.$scope.stage"
+  ></kubernetes-manifest-selector>
 </div>

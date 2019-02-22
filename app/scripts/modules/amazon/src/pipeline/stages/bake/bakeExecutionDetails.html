@@ -35,7 +35,11 @@
         </dl>
       </div>
     </div>
-    <stage-failure-message stage="stage" message="stage.failureMessage" ng-if="stage.failureMessage"></stage-failure-message>
+    <stage-failure-message
+      stage="stage"
+      message="stage.failureMessage"
+      ng-if="stage.failureMessage"
+    ></stage-failure-message>
 
     <div class="row" ng-if="stage.context.region && stage.context.status.resourceId">
       <div class="col-md-12">
@@ -52,7 +56,6 @@
         </div>
       </div>
     </div>
-
   </div>
   <div class="step-section-details" ng-if="detailsSection === 'taskStatus'">
     <div class="row">

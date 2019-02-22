@@ -1,80 +1,82 @@
 <table class="table table-condensed" style="border-top: 2px solid white; margin-bottom: 0px;">
   <tbody>
-  <tr ng-repeat="envFrom in $ctrl.envFrom">
-    <td>
-      <div class="form-group">
-        <div class="col-md-3 sm-label-right">
-          Prefix
-        </div>
-        <div class="col-md-3">
-          <input class="form-control input input-sm" type="text" ng-model="envFrom.prefix">
-        </div>
-        <div class="col-md-2 col-md-offset-1">
-          <button class="btn btn-sm btn-default" ng-click="$ctrl.removeEnvFrom($index)">
-            <span class="glyphicon glyphicon-trash visible-lg-inline"></span>
-            <span>Remove</span>
-          </button>
-        </div>
-      </div>
-      <div class="form-group">
-        <div class="col-md-3 sm-label-right">
-          Source
-        </div>
-        <div class="col-md-3">
-          <select class="form-control input-sm"
-                  ng-model="$ctrl.envFromSourceTypes[$index]"
-                  ng-change="$ctrl.updateEnvFrom($index)"
-                  ng-options="sourceType for sourceType in $ctrl.sourceTypes"></select>
-        </div>
-      </div>
-      <div ng-switch on="$ctrl.envFromSourceTypes[$index]">
-        <div class="form-group" ng-switch-when="Config Map">
+    <tr ng-repeat="envFrom in $ctrl.envFrom">
+      <td>
+        <div class="form-group">
           <div class="col-md-3 sm-label-right">
-            Map Name
+            Prefix
           </div>
           <div class="col-md-3">
-            <input class="form-control input input-sm"
-                   type="text"
-                   ng-model="envFrom.configMapRef.name">
+            <input class="form-control input input-sm" type="text" ng-model="envFrom.prefix" />
           </div>
-          <div class="col-md-1 sm-label-right">
-            Optional
-          </div>
-          <div class="col-md-3">
-            <input type="checkbox"
-                   style="margin-top: 10px; margin-left: 8px;"
-                   ng-model="envFrom.configMapRef.optional"
-                   ng-init="envFrom.configMapRef.optional = $ctrl.initOptional(envFrom.configMapRef)"/>
+          <div class="col-md-2 col-md-offset-1">
+            <button class="btn btn-sm btn-default" ng-click="$ctrl.removeEnvFrom($index)">
+              <span class="glyphicon glyphicon-trash visible-lg-inline"></span>
+              <span>Remove</span>
+            </button>
           </div>
         </div>
-        <div class="form-group" ng-switch-when="Secret">
+        <div class="form-group">
           <div class="col-md-3 sm-label-right">
-            Secret Name
+            Source
           </div>
           <div class="col-md-3">
-            <input class="form-control input input-sm"
-                   type="text"
-                   ng-model="envFrom.secretRef.name">
-          </div>
-          <div class="col-md-1 sm-label-right">
-            Optional
-          </div>
-          <div class="col-md-3">
-            <input type="checkbox"
-                   style="margin-top: 10px; margin-left: 8px;"
-                   ng-model="envFrom.secretRef.optional"
-                   ng-init="envFrom.secretRef.optional = $ctrl.initOptional(envFrom.secretRef)"/>
+            <select
+              class="form-control input-sm"
+              ng-model="$ctrl.envFromSourceTypes[$index]"
+              ng-change="$ctrl.updateEnvFrom($index)"
+              ng-options="sourceType for sourceType in $ctrl.sourceTypes"
+            ></select>
           </div>
         </div>
-      </div>
-    </td>
-  </tr>
-  <tr>
-    <td colspan="3">
-      <button class="add-new btn btn-block btn-sm" ng-click="$ctrl.addEnvFrom()" style="margin-bottom: 0px;"><span
-        class="glyphicon glyphicon-plus-sign"></span> Add Environment From
-      </button>
-    </td>
-  </tr>
+        <div ng-switch on="$ctrl.envFromSourceTypes[$index]">
+          <div class="form-group" ng-switch-when="Config Map">
+            <div class="col-md-3 sm-label-right">
+              Map Name
+            </div>
+            <div class="col-md-3">
+              <input class="form-control input input-sm" type="text" ng-model="envFrom.configMapRef.name" />
+            </div>
+            <div class="col-md-1 sm-label-right">
+              Optional
+            </div>
+            <div class="col-md-3">
+              <input
+                type="checkbox"
+                style="margin-top: 10px; margin-left: 8px;"
+                ng-model="envFrom.configMapRef.optional"
+                ng-init="envFrom.configMapRef.optional = $ctrl.initOptional(envFrom.configMapRef)"
+              />
+            </div>
+          </div>
+          <div class="form-group" ng-switch-when="Secret">
+            <div class="col-md-3 sm-label-right">
+              Secret Name
+            </div>
+            <div class="col-md-3">
+              <input class="form-control input input-sm" type="text" ng-model="envFrom.secretRef.name" />
+            </div>
+            <div class="col-md-1 sm-label-right">
+              Optional
+            </div>
+            <div class="col-md-3">
+              <input
+                type="checkbox"
+                style="margin-top: 10px; margin-left: 8px;"
+                ng-model="envFrom.secretRef.optional"
+                ng-init="envFrom.secretRef.optional = $ctrl.initOptional(envFrom.secretRef)"
+              />
+            </div>
+          </div>
+        </div>
+      </td>
+    </tr>
+    <tr>
+      <td colspan="3">
+        <button class="add-new btn btn-block btn-sm" ng-click="$ctrl.addEnvFrom()" style="margin-bottom: 0px;">
+          <span class="glyphicon glyphicon-plus-sign"></span> Add Environment From
+        </button>
+      </td>
+    </tr>
   </tbody>
 </table>

@@ -11,12 +11,15 @@
     </div>
     <div class="modal-footer">
       <user-verification account="ctrl.command.account" verification="ctrl.verification"></user-verification>
-      <button type="submit" ng-click="ctrl.scale()" style="display:none"></button> <!-- Allows form submission via enter keypress-->
+      <button type="submit" ng-click="ctrl.scale()" style="display:none"></button>
+      <!-- Allows form submission via enter keypress-->
       <button class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
-      <button type="submit"
-              class="btn btn-primary"
-              ng-click="ctrl.scale()"
-              ng-disabled="!ctrl.isValid() || !scaleForm.$valid">
+      <button
+        type="submit"
+        class="btn btn-primary"
+        ng-click="ctrl.scale()"
+        ng-disabled="!ctrl.isValid() || !scaleForm.$valid"
+      >
         Submit
       </button>
     </div>

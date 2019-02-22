@@ -1,23 +1,18 @@
-<div class="details-panel"
-     ng-class="{ disabled: serverGroup.isDisabled }">
-
+<div class="details-panel" ng-class="{ disabled: serverGroup.isDisabled }">
   <div class="header" ng-if="state.loading">
-      <div class="close-button">
-          <a class="btn btn-link"
-             ui-sref="^">
-              <span class="glyphicon glyphicon-remove"></span>
-          </a>
-      </div>
-      <div class="horizontal center middle">
-        <loading-spinner size="'small'"></loading-spinner>
-      </div>
+    <div class="close-button">
+      <a class="btn btn-link" ui-sref="^">
+        <span class="glyphicon glyphicon-remove"></span>
+      </a>
+    </div>
+    <div class="horizontal center middle">
+      <loading-spinner size="'small'"></loading-spinner>
+    </div>
   </div>
-
 
   <div class="header" ng-if="!state.loading">
     <div class="close-button">
-      <a class="btn btn-link"
-          ui-sref="^">
+      <a class="btn btn-link" ui-sref="^">
         <span class="glyphicon glyphicon-remove"></span>
       </a>
     </div>
@@ -46,8 +41,10 @@
         <button type="button" class="btn btn-sm btn-default dropdown-toggle" uib-dropdown-toggle>
           Insight <span class="caret"></span>
         </button>
-          <ul class="dropdown-menu" uib-dropdown-menu role="menu">
-          <li ng-repeat="action in serverGroup.insightActions"><a target=_blank href="{{action.url}}">{{action.label}}</a></li>
+        <ul class="dropdown-menu" uib-dropdown-menu role="menu">
+          <li ng-repeat="action in serverGroup.insightActions">
+            <a target="_blank" href="{{action.url}}">{{action.label}}</a>
+          </li>
         </ul>
       </div>
     </div>
@@ -55,7 +52,10 @@
   <div class="content" ng-if="!state.loading">
     <h4 class="text-center" ng-if="serverGroup.isDisabled">[SERVER GROUP IS DISABLED]</h4>
 
-    <server-group-running-tasks-details server-group="serverGroup" application="ctrl.application"></server-group-running-tasks-details>
+    <server-group-running-tasks-details
+      server-group="serverGroup"
+      application="ctrl.application"
+    ></server-group-running-tasks-details>
 
     <collapsible-section heading="Server Group Information" expanded="true">
       <dl class="dl-horizontal dl-flex">
@@ -95,6 +95,5 @@
         <dd>{{serverGroup.securityGroupName}}</dd>
       </dl>
     </collapsible-section>
-
   </div>
 </div>

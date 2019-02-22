@@ -1,10 +1,7 @@
-<div class="details-panel"
-     ng-class="{ disabled: ctrl.serverGroup.isDisabled || ctrl.serverGroup.disabled}">
-
+<div class="details-panel" ng-class="{ disabled: ctrl.serverGroup.isDisabled || ctrl.serverGroup.disabled}">
   <div class="header" ng-if="ctrl.state.loading">
     <div class="close-button">
-      <a class="btn btn-link"
-         ui-sref="^">
+      <a class="btn btn-link" ui-sref="^">
         <span class="glyphicon glyphicon-remove"></span>
       </a>
     </div>
@@ -15,8 +12,7 @@
 
   <div class="header" ng-if="!ctrl.state.loading">
     <div class="close-button">
-      <a class="btn btn-link"
-         ui-sref="^">
+      <a class="btn btn-link" ui-sref="^">
         <span class="glyphicon glyphicon-remove"></span>
       </a>
     </div>
@@ -47,15 +43,17 @@
               Enable
             </a>
           </li>
-          <li ng-if="!ctrl.serverGroup.disabled && ctrl.canDisableServerGroup()" >
+          <li ng-if="!ctrl.serverGroup.disabled && ctrl.canDisableServerGroup()">
             <a href ng-click="ctrl.disableServerGroup()">
               Disable
             </a>
           </li>
-          <li ng-if="!ctrl.serverGroup.disabled && !ctrl.canDisableServerGroup()"
-              uib-tooltip="You cannot disable a server group if it is the
+          <li
+            ng-if="!ctrl.serverGroup.disabled && !ctrl.canDisableServerGroup()"
+            uib-tooltip="You cannot disable a server group if it is the
                            only server group receiving traffic from a load balancer."
-              class="disabled">
+            class="disabled"
+          >
             <a href>
               Disable
             </a>
@@ -63,16 +61,20 @@
           <li ng-if="ctrl.canDestroyServerGroup()">
             <a href ng-click="ctrl.destroyServerGroup()">Destroy</a>
           </li>
-          <li ng-if="!ctrl.canDestroyServerGroup()"
-              uib-tooltip="You cannot destroy a server group if it is the only server group
+          <li
+            ng-if="!ctrl.canDestroyServerGroup()"
+            uib-tooltip="You cannot destroy a server group if it is the only server group
                            receiving traffic from a load balancer. You may be able to delete
                            this server group's load balancer."
-              class="disabled">
-              <a href>Destroy</a>
+            class="disabled"
+          >
+            <a href>Destroy</a>
           </li>
-          <li uib-tooltip="It is not possible to clone an App Engine server group's full
+          <li
+            uib-tooltip="It is not possible to clone an App Engine server group's full
                            launch configuration. However, clicking this button will allow
-                           you to deploy into this server group's cluster.">
+                           you to deploy into this server group's cluster."
+          >
             <a href ng-click="ctrl.cloneServerGroup()">Clone</a>
           </li>
         </ul>
@@ -82,7 +84,10 @@
 
   <div class="content" ng-if="!ctrl.state.loading">
     <div class="band band-info" ng-if="ctrl.serverGroup.isDisabled || ctrl.serverGroup.disabled">Disabled</div>
-    <server-group-running-tasks-details server-group="ctrl.serverGroup" application="ctrl.app"></server-group-running-tasks-details>
+    <server-group-running-tasks-details
+      server-group="ctrl.serverGroup"
+      application="ctrl.app"
+    ></server-group-running-tasks-details>
     <collapsible-section heading="Server Group Information" expanded="true">
       <dl class="dl-horizontal dl-flex">
         <dt>Created</dt>
@@ -91,20 +96,22 @@
         <dd><account-tag account="ctrl.serverGroup.account"></account-tag></dd>
         <dt>Region</dt>
         <dd>{{ctrl.serverGroup.region}}</dd>
-        <appengine-conditional-dt-dd component="ctrl.serverGroup" key="env" label="Environment"></appengine-conditional-dt-dd>
+        <appengine-conditional-dt-dd
+          component="ctrl.serverGroup"
+          key="env"
+          label="Environment"
+        ></appengine-conditional-dt-dd>
         <appengine-conditional-dt-dd component="ctrl.serverGroup" key="instanceClass"></appengine-conditional-dt-dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Size" expanded="true">
-      <dl class="dl-horizontal dl-flex"
-          ng-if="ctrl.serverGroup.capacity.min === ctrl.serverGroup.capacity.max">
+      <dl class="dl-horizontal dl-flex" ng-if="ctrl.serverGroup.capacity.min === ctrl.serverGroup.capacity.max">
         <dt>Min/Max</dt>
         <dd>{{ctrl.serverGroup.capacity.min}}</dd>
         <dt>Current</dt>
         <dd>{{ctrl.serverGroup.instances.length}}</dd>
       </dl>
-      <dl class="dl-horizontal dl-flex"
-          ng-if="ctrl.serverGroup.capacity.min !== ctrl.serverGroup.capacity.max">
+      <dl class="dl-horizontal dl-flex" ng-if="ctrl.serverGroup.capacity.min !== ctrl.serverGroup.capacity.max">
         <dt>Min</dt>
         <dd>{{ctrl.serverGroup.capacity.min}}</dd>
         <dt>Max</dt>
@@ -114,8 +121,7 @@
       </dl>
     </collapsible-section>
     <collapsible-section heading="Health" expanded="true">
-      <dl class="dl-horizontal dl-flex"
-          ng-if="ctrl.serverGroup">
+      <dl class="dl-horizontal dl-flex" ng-if="ctrl.serverGroup">
         <dt>Instances</dt>
         <dd>
           <health-counts container="ctrl.serverGroup.instanceCounts" class="pull-left"></health-counts>
@@ -129,33 +135,106 @@
     </collapsible-section>
     <collapsible-section heading="Scaling Policy" expanded="true" ng-if="ctrl.serverGroup.scalingPolicy">
       <dl>
-        <appengine-conditional-dt-dd component="ctrl.serverGroup.scalingPolicy" key="type"></appengine-conditional-dt-dd>
+        <appengine-conditional-dt-dd
+          component="ctrl.serverGroup.scalingPolicy"
+          key="type"
+        ></appengine-conditional-dt-dd>
         <!--MANUAL SCALING PROPERTIES-->
-        <appengine-conditional-dt-dd component="ctrl.serverGroup.scalingPolicy" key="instances"></appengine-conditional-dt-dd>
+        <appengine-conditional-dt-dd
+          component="ctrl.serverGroup.scalingPolicy"
+          key="instances"
+        ></appengine-conditional-dt-dd>
         <!--BASIC SCALING PROPERTIES-->
-        <appengine-conditional-dt-dd component="ctrl.serverGroup.scalingPolicy" key="idleTimeout"></appengine-conditional-dt-dd>
-        <appengine-conditional-dt-dd component="ctrl.serverGroup.scalingPolicy" key="maxInstances"></appengine-conditional-dt-dd>
+        <appengine-conditional-dt-dd
+          component="ctrl.serverGroup.scalingPolicy"
+          key="idleTimeout"
+        ></appengine-conditional-dt-dd>
+        <appengine-conditional-dt-dd
+          component="ctrl.serverGroup.scalingPolicy"
+          key="maxInstances"
+        ></appengine-conditional-dt-dd>
         <!--AUTOMATIC SCALING PROPERTIES-->
-        <appengine-conditional-dt-dd component="ctrl.serverGroup.scalingPolicy" key="coolDownPeriod"></appengine-conditional-dt-dd>
-        <appengine-conditional-dt-dd component="ctrl.serverGroup.scalingPolicy" key="maxConcurrentRequests"></appengine-conditional-dt-dd>
-        <appengine-conditional-dt-dd component="ctrl.serverGroup.scalingPolicy" key="maxTotalInstances"></appengine-conditional-dt-dd>
-        <appengine-conditional-dt-dd component="ctrl.serverGroup.scalingPolicy" key="minTotalInstances"></appengine-conditional-dt-dd>
-        <appengine-conditional-dt-dd component="ctrl.serverGroup.scalingPolicy" key="maxIdleInstances"></appengine-conditional-dt-dd>
-        <appengine-conditional-dt-dd component="ctrl.serverGroup.scalingPolicy" key="minIdleInstances"></appengine-conditional-dt-dd>
-        <appengine-conditional-dt-dd component="ctrl.serverGroup.scalingPolicy" key="maxPendingLatency"></appengine-conditional-dt-dd>
-        <appengine-conditional-dt-dd component="ctrl.serverGroup.scalingPolicy" key="minPendingLatency"></appengine-conditional-dt-dd>
-        <appengine-conditional-dt-dd component="ctrl.serverGroup.scalingPolicy.cpuUtilization" key="aggregationWindowLength"></appengine-conditional-dt-dd>
-        <appengine-conditional-dt-dd component="ctrl.serverGroup.scalingPolicy.cpuUtilization" key="targetUtilization" label="Target CPU Utilization"></appengine-conditional-dt-dd>
-        <appengine-conditional-dt-dd component="ctrl.serverGroup.scalingPolicy.diskUtilization" key="targetReadBytesPerSecond"></appengine-conditional-dt-dd>
-        <appengine-conditional-dt-dd component="ctrl.serverGroup.scalingPolicy.diskUtilization" key="targetReadOpsPerSecond"></appengine-conditional-dt-dd>
-        <appengine-conditional-dt-dd component="ctrl.serverGroup.scalingPolicy.diskUtilization" key="targetWriteBytesPerSecond"></appengine-conditional-dt-dd>
-        <appengine-conditional-dt-dd component="ctrl.serverGroup.scalingPolicy.diskUtilization" key="targetWriteOpsPerSecond"></appengine-conditional-dt-dd>
-        <appengine-conditional-dt-dd component="ctrl.serverGroup.scalingPolicy.networkUtilization" key="targetReceivedBytesPerSecond"></appengine-conditional-dt-dd>
-        <appengine-conditional-dt-dd component="ctrl.serverGroup.scalingPolicy.networkUtilization" key="targetReceivedPacketsPerSecond"></appengine-conditional-dt-dd>
-        <appengine-conditional-dt-dd component="ctrl.serverGroup.scalingPolicy.networkUtilization" key="targetSentBytesPerSecond"></appengine-conditional-dt-dd>
-        <appengine-conditional-dt-dd component="ctrl.serverGroup.scalingPolicy.networkUtilization" key="targetSentPacketsPerSecond"></appengine-conditional-dt-dd>
-        <appengine-conditional-dt-dd component="ctrl.serverGroup.scalingPolicy.requestUtilization" key="targetConcurrentRequests"></appengine-conditional-dt-dd>
-        <appengine-conditional-dt-dd component="ctrl.serverGroup.scalingPolicy.requestUtilization" key="targetRequestCountPerSecond"></appengine-conditional-dt-dd>
+        <appengine-conditional-dt-dd
+          component="ctrl.serverGroup.scalingPolicy"
+          key="coolDownPeriod"
+        ></appengine-conditional-dt-dd>
+        <appengine-conditional-dt-dd
+          component="ctrl.serverGroup.scalingPolicy"
+          key="maxConcurrentRequests"
+        ></appengine-conditional-dt-dd>
+        <appengine-conditional-dt-dd
+          component="ctrl.serverGroup.scalingPolicy"
+          key="maxTotalInstances"
+        ></appengine-conditional-dt-dd>
+        <appengine-conditional-dt-dd
+          component="ctrl.serverGroup.scalingPolicy"
+          key="minTotalInstances"
+        ></appengine-conditional-dt-dd>
+        <appengine-conditional-dt-dd
+          component="ctrl.serverGroup.scalingPolicy"
+          key="maxIdleInstances"
+        ></appengine-conditional-dt-dd>
+        <appengine-conditional-dt-dd
+          component="ctrl.serverGroup.scalingPolicy"
+          key="minIdleInstances"
+        ></appengine-conditional-dt-dd>
+        <appengine-conditional-dt-dd
+          component="ctrl.serverGroup.scalingPolicy"
+          key="maxPendingLatency"
+        ></appengine-conditional-dt-dd>
+        <appengine-conditional-dt-dd
+          component="ctrl.serverGroup.scalingPolicy"
+          key="minPendingLatency"
+        ></appengine-conditional-dt-dd>
+        <appengine-conditional-dt-dd
+          component="ctrl.serverGroup.scalingPolicy.cpuUtilization"
+          key="aggregationWindowLength"
+        ></appengine-conditional-dt-dd>
+        <appengine-conditional-dt-dd
+          component="ctrl.serverGroup.scalingPolicy.cpuUtilization"
+          key="targetUtilization"
+          label="Target CPU Utilization"
+        ></appengine-conditional-dt-dd>
+        <appengine-conditional-dt-dd
+          component="ctrl.serverGroup.scalingPolicy.diskUtilization"
+          key="targetReadBytesPerSecond"
+        ></appengine-conditional-dt-dd>
+        <appengine-conditional-dt-dd
+          component="ctrl.serverGroup.scalingPolicy.diskUtilization"
+          key="targetReadOpsPerSecond"
+        ></appengine-conditional-dt-dd>
+        <appengine-conditional-dt-dd
+          component="ctrl.serverGroup.scalingPolicy.diskUtilization"
+          key="targetWriteBytesPerSecond"
+        ></appengine-conditional-dt-dd>
+        <appengine-conditional-dt-dd
+          component="ctrl.serverGroup.scalingPolicy.diskUtilization"
+          key="targetWriteOpsPerSecond"
+        ></appengine-conditional-dt-dd>
+        <appengine-conditional-dt-dd
+          component="ctrl.serverGroup.scalingPolicy.networkUtilization"
+          key="targetReceivedBytesPerSecond"
+        ></appengine-conditional-dt-dd>
+        <appengine-conditional-dt-dd
+          component="ctrl.serverGroup.scalingPolicy.networkUtilization"
+          key="targetReceivedPacketsPerSecond"
+        ></appengine-conditional-dt-dd>
+        <appengine-conditional-dt-dd
+          component="ctrl.serverGroup.scalingPolicy.networkUtilization"
+          key="targetSentBytesPerSecond"
+        ></appengine-conditional-dt-dd>
+        <appengine-conditional-dt-dd
+          component="ctrl.serverGroup.scalingPolicy.networkUtilization"
+          key="targetSentPacketsPerSecond"
+        ></appengine-conditional-dt-dd>
+        <appengine-conditional-dt-dd
+          component="ctrl.serverGroup.scalingPolicy.requestUtilization"
+          key="targetConcurrentRequests"
+        ></appengine-conditional-dt-dd>
+        <appengine-conditional-dt-dd
+          component="ctrl.serverGroup.scalingPolicy.requestUtilization"
+          key="targetRequestCountPerSecond"
+        ></appengine-conditional-dt-dd>
       </dl>
     </collapsible-section>
   </div>

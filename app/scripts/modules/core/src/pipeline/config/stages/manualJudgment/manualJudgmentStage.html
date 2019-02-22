@@ -1,17 +1,20 @@
 <div class="form-horizontal">
   <stage-config-field label="Instructions" help-key="pipeline.config.manualJudgment.instructions">
-      <textarea
-        class="form-control input-sm"
-        ng-model="stage.instructions"
-        placeholder="Provide any instructional text that would assist making a manual judgment (can contain HTML)">
-      </textarea>
+    <textarea
+      class="form-control input-sm"
+      ng-model="stage.instructions"
+      placeholder="Provide any instructional text that would assist making a manual judgment (can contain HTML)"
+    >
+    </textarea>
   </stage-config-field>
   <div ng-if="authEnabled">
-    <stage-config-field label="Propagate Authentication"
-                        help-key="pipeline.config.manualJudgment.propagateAuthentication">
+    <stage-config-field
+      label="Propagate Authentication"
+      help-key="pipeline.config.manualJudgment.propagateAuthentication"
+    >
       <div class="checkbox">
         <label>
-          <input type="checkbox" ng-model="stage.propagateAuthenticationContext">
+          <input type="checkbox" ng-model="stage.propagateAuthenticationContext" />
         </label>
       </div>
     </stage-config-field>
@@ -19,40 +22,47 @@
   <stage-config-field label="Judgment Inputs" help-key="pipeline.config.manualJudgment.judgmentInputs">
     <table class="table table-condensed packed">
       <thead>
-      <tr>
-        <th style="width:30%">Option</th>
-        <th class="text-right">Actions</th>
-      </tr>
+        <tr>
+          <th style="width:30%">Option</th>
+          <th class="text-right">Actions</th>
+        </tr>
       </thead>
       <tbody>
-      <tr ng-repeat="judgmentInput in stage.judgmentInputs track by $index">
-        <td>
-          <input type="text" required ng-model="judgmentInput.value" value="{{judgmentInput.value}}"
-                 class="form-control input-sm"/>
-        </td>
-        <td class="text-right">
-          <a class="small" href ng-click="manualJudgmentStageCtrl.removeJudgmentInput($index)">Remove</a>
-        </td>
-      </tr>
+        <tr ng-repeat="judgmentInput in stage.judgmentInputs track by $index">
+          <td>
+            <input
+              type="text"
+              required
+              ng-model="judgmentInput.value"
+              value="{{judgmentInput.value}}"
+              class="form-control input-sm"
+            />
+          </td>
+          <td class="text-right">
+            <a class="small" href ng-click="manualJudgmentStageCtrl.removeJudgmentInput($index)">Remove</a>
+          </td>
+        </tr>
       </tbody>
       <tfoot>
-      <tr>
-        <td colspan="7">
-          <button class="btn btn-block btn-sm add-new" ng-click="manualJudgmentStageCtrl.addJudgmentInput()">
-            <span class="glyphicon glyphicon-plus-sign"></span> Add judgment input
-          </button>
-        </td>
-      </tr>
+        <tr>
+          <td colspan="7">
+            <button class="btn btn-block btn-sm add-new" ng-click="manualJudgmentStageCtrl.addJudgmentInput()">
+              <span class="glyphicon glyphicon-plus-sign"></span> Add judgment input
+            </button>
+          </td>
+        </tr>
       </tfoot>
     </table>
   </stage-config-field>
   <stage-config-field label="Send Notifications">
     <div class="checkbox">
       <label>
-        <input type="checkbox"
-               ng-false-value="undefined"
-               ng-change="manualJudgmentStageCtrl.manageStateOnToggle()"
-               ng-model="stage.sendNotifications"/>
+        <input
+          type="checkbox"
+          ng-false-value="undefined"
+          ng-change="manualJudgmentStageCtrl.manageStateOnToggle()"
+          ng-model="stage.sendNotifications"
+        />
       </label>
     </div>
   </stage-config-field>
@@ -60,39 +70,45 @@
     <stage-config-field>
       <table class="table table-condensed">
         <thead ng-if="stage.notifications.length">
-        <tr>
-          <th>Type</th>
-          <th>Details</th>
-          <th>Notify When</th>
-          <th>Actions</th>
-        </tr>
+          <tr>
+            <th>Type</th>
+            <th>Details</th>
+            <th>Notify When</th>
+            <th>Actions</th>
+          </tr>
         </thead>
         <tbody>
-        <tr ng-repeat="notification in stage.notifications">
-          <td>
-            {{notification.type|notificationType}}
-          </td>
-          <td>
-            {{notification|notificationDetails}}
-          </td>
-          <td>
-            <div ng-repeat="when in notification.when">{{when|notificationWhen:level:'manualJudgment'}}</div>
-          </td>
-          <td>
-            <a class="btn btn-xs btn-link" href ng-click="manualJudgmentStageCtrl.editNotification(notification)">Edit</a>
-            <a class="btn btn-xs btn-link pad-left" href
-               ng-click="manualJudgmentStageCtrl.removeNotification(notification)">Remove</a>
-          </td>
-        </tr>
+          <tr ng-repeat="notification in stage.notifications">
+            <td>
+              {{notification.type|notificationType}}
+            </td>
+            <td>
+              {{notification|notificationDetails}}
+            </td>
+            <td>
+              <div ng-repeat="when in notification.when">{{when|notificationWhen:level:'manualJudgment'}}</div>
+            </td>
+            <td>
+              <a class="btn btn-xs btn-link" href ng-click="manualJudgmentStageCtrl.editNotification(notification)"
+                >Edit</a
+              >
+              <a
+                class="btn btn-xs btn-link pad-left"
+                href
+                ng-click="manualJudgmentStageCtrl.removeNotification(notification)"
+                >Remove</a
+              >
+            </td>
+          </tr>
         </tbody>
         <tfoot>
-        <tr>
-          <td colspan="7">
-            <button class="btn btn-block btn-sm add-new" ng-click="manualJudgmentStageCtrl.addNotification()">
-              <span class="glyphicon glyphicon-plus-sign"></span> Add Notification Preference
-            </button>
-          </td>
-        </tr>
+          <tr>
+            <td colspan="7">
+              <button class="btn btn-block btn-sm add-new" ng-click="manualJudgmentStageCtrl.addNotification()">
+                <span class="glyphicon glyphicon-plus-sign"></span> Add Notification Preference
+              </button>
+            </td>
+          </tr>
         </tfoot>
       </table>
     </stage-config-field>

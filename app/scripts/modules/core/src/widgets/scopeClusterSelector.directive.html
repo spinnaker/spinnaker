@@ -1,33 +1,32 @@
 <div>
   <div>
     <select
-        name="stacks"
-        class="form-control input-sm"
-        ng-model="vm.model"
-        ng-change="vm.clusterChanged()"
-        ng-if="!vm.freeFormClusterField"
-        ng-required="vm.required">
-
-      <option
-          ng-repeat="cluster in vm.clusters"
-          value="{{cluster}}"
-          ng-selected="vm.model === cluster"
-          >
+      name="stacks"
+      class="form-control input-sm"
+      ng-model="vm.model"
+      ng-change="vm.clusterChanged()"
+      ng-if="!vm.freeFormClusterField"
+      ng-required="vm.required"
+    >
+      <option ng-repeat="cluster in vm.clusters" value="{{cluster}}" ng-selected="vm.model === cluster">
         {{cluster}}
       </option>
     </select>
 
     <input
-        type="text"
-        class="form-control input-sm"
-        ng-if="vm.freeFormClusterField"
-        ng-required="vm.required"
-        ng-model="vm.model"
-        ng-blur="vm.clusterChanged()"/>
+      type="text"
+      class="form-control input-sm"
+      ng-if="vm.freeFormClusterField"
+      ng-required="vm.required"
+      ng-model="vm.model"
+      ng-blur="vm.clusterChanged()"
+    />
   </div>
 
   <div class="pull-right">
     <a href ng-click="vm.toggleFreeFormClusterField($event)" ng-if="!vm.freeFormClusterField">Toggle for text input</a>
-    <a href ng-click="vm.toggleFreeFormClusterField($event)" ng-if="vm.freeFormClusterField">Toggle for list of existing clusters </a>
+    <a href ng-click="vm.toggleFreeFormClusterField($event)" ng-if="vm.freeFormClusterField"
+      >Toggle for list of existing clusters
+    </a>
   </div>
 </div>

@@ -4,9 +4,11 @@
     Load Balancer
   </div>
   <div class="col-md-9">
-    <ui-select class="form-control input-sm"
-               ng-model="command.loadBalancerId"
-               ng-change="command.backingData.loadBalancerOnChange()">
+    <ui-select
+      class="form-control input-sm"
+      ng-model="command.loadBalancerId"
+      ng-change="command.backingData.loadBalancerOnChange()"
+    >
       <ui-select-match allow-clear="true" placeholder="Select Load Balancer">{{$select.selected.name}}</ui-select-match>
       <ui-select-choices repeat="loadBalancer.id as loadBalancer in command.backingData.filtered.loadBalancers">
         <span ng-bind-html="loadBalancer.name | highlight: $select.search"></span>
@@ -21,9 +23,12 @@
     Backend Set
   </div>
   <div class="col-md-9">
-    <ui-select class="form-control input-sm" ng-required="command.loadBalancerId"
-               ng-model="command.backendSetName"
-               ng-change="command.backingData.backendSetOnChange()">
+    <ui-select
+      class="form-control input-sm"
+      ng-required="command.loadBalancerId"
+      ng-model="command.backendSetName"
+      ng-change="command.backingData.backendSetOnChange()"
+    >
       <ui-select-match placeholder="Select Backend Set">{{$select.selected.name}}</ui-select-match>
       <ui-select-choices repeat="backendSet.name as backendSet in command.backingData.filtered.backendSets">
         <span ng-bind-html="backendSet.name"></span>

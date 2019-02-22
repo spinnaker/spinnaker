@@ -1,9 +1,11 @@
 <div>
   <div class="row">
     <div class="col-md-12">
-      <p>Traffic Guards allow you to specify critical clusters that should always have active instances. If a user
-        or process tries to delete, disable, or resize the server group, Spinnaker will verify the operation will not
-        leave the cluster with no active instances, and fail the operation if it would.</p>
+      <p>
+        Traffic Guards allow you to specify critical clusters that should always have active instances. If a user or
+        process tries to delete, disable, or resize the server group, Spinnaker will verify the operation will not leave
+        the cluster with no active instances, and fail the operation if it would.
+      </p>
     </div>
   </div>
   <div class="row" ng-if="$ctrl.initializing">
@@ -26,43 +28,58 @@
           </tr>
         </thead>
         <tbody>
-        <tr ng-repeat="guard in $ctrl.config">
-          <td class="text-center">
-            <input type="checkbox" ng-model="guard.enabled" ng-change="$ctrl.configChanged()"/>
-          </td>
-          <td ng-style="{ opacity: guard.enabled ? 1 : 0.5 }">
-            <account-select-field
-              component="guard"
-              field="account"
-              provider="'aws'"
-              accounts="$ctrl.accounts"
-              on-change="$ctrl.configChanged()"></account-select-field>
-          </td>
-          <td ng-style="{ opacity: guard.enabled ? 1 : 0.5 }">
-            <span ng-if="!guard.account">(select account)</span>
-            <select class="form-control input-sm"
-                    ng-model="guard.location"
-                    ng-change="$ctrl.configChanged()"
-                    required
-                    ng-if="guard.account">
-              <option ng-repeat="location in $ctrl.locationsByAccount[guard.account]" value="{{location}}">{{location}}</option>
-            </select>
-          </td>
-          <td ng-style="{ opacity: guard.enabled ? 1 : 0.5 }">
-            <input type="text" class="form-control input-sm"
-                   ng-model="guard.stack"
-                   ng-change="$ctrl.configChanged()"/>
-          </td>
-          <td ng-style="{ opacity: guard.enabled ? 1 : 0.5 }">
-            <input type="text" class="form-control input-sm"
-                   ng-model="guard.detail"
-                   ng-change="$ctrl.configChanged()"/>
-          </td>
-          <td ng-style="{ opacity: guard.enabled ? 1 : 0.5 }">
-            <cluster-matches matches="$ctrl.clusterMatches[$index]"></cluster-matches>
-          </td>
-          <td><a href ng-click="$ctrl.removeGuard($index)"><span class="glyphicon glyphicon-trash" uib-tooltip="Remove guard"></span></a></td>
-        </tr>
+          <tr ng-repeat="guard in $ctrl.config">
+            <td class="text-center">
+              <input type="checkbox" ng-model="guard.enabled" ng-change="$ctrl.configChanged()" />
+            </td>
+            <td ng-style="{ opacity: guard.enabled ? 1 : 0.5 }">
+              <account-select-field
+                component="guard"
+                field="account"
+                provider="'aws'"
+                accounts="$ctrl.accounts"
+                on-change="$ctrl.configChanged()"
+              ></account-select-field>
+            </td>
+            <td ng-style="{ opacity: guard.enabled ? 1 : 0.5 }">
+              <span ng-if="!guard.account">(select account)</span>
+              <select
+                class="form-control input-sm"
+                ng-model="guard.location"
+                ng-change="$ctrl.configChanged()"
+                required
+                ng-if="guard.account"
+              >
+                <option ng-repeat="location in $ctrl.locationsByAccount[guard.account]" value="{{ location }}">{{
+                  location
+                }}</option>
+              </select>
+            </td>
+            <td ng-style="{ opacity: guard.enabled ? 1 : 0.5 }">
+              <input
+                type="text"
+                class="form-control input-sm"
+                ng-model="guard.stack"
+                ng-change="$ctrl.configChanged()"
+              />
+            </td>
+            <td ng-style="{ opacity: guard.enabled ? 1 : 0.5 }">
+              <input
+                type="text"
+                class="form-control input-sm"
+                ng-model="guard.detail"
+                ng-change="$ctrl.configChanged()"
+              />
+            </td>
+            <td ng-style="{ opacity: guard.enabled ? 1 : 0.5 }">
+              <cluster-matches matches="$ctrl.clusterMatches[$index]"></cluster-matches>
+            </td>
+            <td>
+              <a href ng-click="$ctrl.removeGuard($index)"
+                ><span class="glyphicon glyphicon-trash" uib-tooltip="Remove guard"></span
+              ></a>
+            </td>
+          </tr>
         </tbody>
       </table>
       <button class="btn btn-block btn-add-trigger add-new" ng-click="$ctrl.addGuard()">
@@ -71,9 +88,11 @@
     </div>
   </div>
   <div class="row">
-    <config-section-footer application="$ctrl.application"
-                           config="$ctrl.config"
-                           view-state="$ctrl.viewState"
-                           config-field="trafficGuards"></config-section-footer>
+    <config-section-footer
+      application="$ctrl.application"
+      config="$ctrl.config"
+      view-state="$ctrl.viewState"
+      config-field="trafficGuards"
+    ></config-section-footer>
   </div>
 </div>

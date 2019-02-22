@@ -4,11 +4,14 @@
       <div class="col-md-12 well alert-danger" ng-if="healthCheckForm.healthCheckName.$error.validateUnique">
         <validation-error message="There is already a health check with that name."></validation-error>
       </div>
-      <div class="col-md-12 well alert-danger"
-           ng-if="healthCheckForm.healthCheckName.$error.pattern || healthCheckForm.healthCheckName.$error.max">
+      <div
+        class="col-md-12 well alert-danger"
+        ng-if="healthCheckForm.healthCheckName.$error.pattern || healthCheckForm.healthCheckName.$error.max"
+      >
         <validation-error
           message="Name must start with a lowercase letter followed by up to 62 lowercase letters,
-                   numbers, or hyphens, and cannot end with a hyphen.">
+                   numbers, or hyphens, and cannot end with a hyphen."
+        >
         </validation-error>
       </div>
     </div>
@@ -16,10 +19,12 @@
     <div class="form-group">
       <div class="col-md-4 sm-label-right">Protocol</div>
       <div class="col-md-4">
-        <select class="form-control input-sm"
-                ng-change="$ctrl.onProtocolChange()"
-                ng-options="protocol as protocol for protocol in ['HTTP', 'HTTPS', 'TCP', 'SSL']"
-                ng-model="$ctrl.healthCheck.healthCheckType">
+        <select
+          class="form-control input-sm"
+          ng-change="$ctrl.onProtocolChange()"
+          ng-options="protocol as protocol for protocol in ['HTTP', 'HTTPS', 'TCP', 'SSL']"
+          ng-model="$ctrl.healthCheck.healthCheckType"
+        >
         </select>
       </div>
     </div>
@@ -31,62 +36,65 @@
         <ui-select
           ng-model="$ctrl.healthCheckPlaceholder"
           on-select="$ctrl.onHealthCheckSelect($item)"
-          class="form-control input-sm">
+          class="form-control input-sm"
+        >
           <ui-select-match placeholder="Select...">
-            {{$select.selected.name}}
+            {{ $select.selected.name }}
           </ui-select-match>
           <ui-select-choices
-            repeat="healthCheck in $ctrl.existingHealthChecksForProtocol | filter: {name: $select.search}">
+            repeat="healthCheck in $ctrl.existingHealthChecksForProtocol | filter: {name: $select.search}"
+          >
             <div ng-bind-html="healthCheck.name | highlight: $select.search"></div>
           </ui-select-choices>
         </ui-select>
       </div>
       <div class="col-md-4" ng-if="!$ctrl.editExisting">
-        <input class="form-control input-sm"
-               novalidate
-               type="text"
-               ng-pattern="/^[a-z]([-a-z0-9]*[a-z0-9])?$/"
-               name="healthCheckName"
-               max="63"
-               required
-               validate-unique="$ctrl.existingHealthCheckNames"
-               ng-model-options="{ debounce: 250 }"
-               ng-change="$ctrl.onHealthCheckNameChange($ctrl.healthCheckPlaceholder.name)"
-               ng-model="$ctrl.healthCheckPlaceholder.name"/>
+        <input
+          class="form-control input-sm"
+          novalidate
+          type="text"
+          ng-pattern="/^[a-z]([-a-z0-9]*[a-z0-9])?$/"
+          name="healthCheckName"
+          max="63"
+          required
+          validate-unique="$ctrl.existingHealthCheckNames"
+          ng-model-options="{ debounce: 250 }"
+          ng-change="$ctrl.onHealthCheckNameChange($ctrl.healthCheckPlaceholder.name)"
+          ng-model="$ctrl.healthCheckPlaceholder.name"
+        />
       </div>
-
     </div>
 
     <div class="form-group">
       <div class="col-md-6 col-md-offset-4">
-        <a href
-           class="small"
-           ng-if="!$ctrl.editExisting"
-           ng-click="$ctrl.toggleEditExisting()">Toggle for list of existing health checks</a>
-        <a href
-           class="small"
-           ng-if="$ctrl.editExisting"
-           ng-click="$ctrl.toggleEditExisting()">Toggle for text input</a>
+        <a href class="small" ng-if="!$ctrl.editExisting" ng-click="$ctrl.toggleEditExisting()"
+          >Toggle for list of existing health checks</a
+        >
+        <a href class="small" ng-if="$ctrl.editExisting" ng-click="$ctrl.toggleEditExisting()">Toggle for text input</a>
       </div>
     </div>
 
-    <div class="form-group"
-         ng-if="$ctrl.healthCheck.healthCheckType === 'HTTP' || $ctrl.healthCheck.healthCheckType === 'HTTPS'">
+    <div
+      class="form-group"
+      ng-if="$ctrl.healthCheck.healthCheckType === 'HTTP' || $ctrl.healthCheck.healthCheckType === 'HTTPS'"
+    >
       <div class="col-md-4 sm-label-right">Request Path</div>
       <div class="col-md-4">
-        <input class="form-control input-sm" required ng-model="$ctrl.healthCheck.requestPath"/>
+        <input class="form-control input-sm" required ng-model="$ctrl.healthCheck.requestPath" />
       </div>
     </div>
 
     <div class="form-group">
       <div class="col-md-4 sm-label-right">Port</div>
       <div class="col-md-4">
-        <input type="number"
-               class="form-control input-sm"
-               required
-               min="1"
-               max="65535"
-               ng-model="$ctrl.healthCheck.port"/>
+        <input
+          type="number"
+          class="form-control input-sm"
+          required
+          min="1"
+          max="65535"
+          ng-model="$ctrl.healthCheck.port"
+        />
       </div>
     </div>
 
@@ -95,12 +103,14 @@
         <b>Timeout</b><help-field key="loadBalancer.advancedSettings.healthTimeout"></help-field>
       </div>
       <div class="col-md-4">
-        <input class="form-control input-sm"
-               type="number"
-               min="0"
-               max="{{:: $ctrl.max}}"
-               required
-               ng-model="$ctrl.healthCheck.timeoutSec"/>
+        <input
+          class="form-control input-sm"
+          type="number"
+          min="0"
+          max="{{:: $ctrl.max}}"
+          required
+          ng-model="$ctrl.healthCheck.timeoutSec"
+        />
       </div>
     </div>
 
@@ -109,12 +119,14 @@
         <b>Interval</b><help-field key="gce.loadBalancer.advancedSettings.healthInterval"></help-field>
       </div>
       <div class="col-md-4">
-        <input class="form-control input-sm"
-               type="number"
-               min="0"
-               max="{{:: $ctrl.max}}"
-               required
-               ng-model="$ctrl.healthCheck.checkIntervalSec"/>
+        <input
+          class="form-control input-sm"
+          type="number"
+          min="0"
+          max="{{:: $ctrl.max}}"
+          required
+          ng-model="$ctrl.healthCheck.checkIntervalSec"
+        />
       </div>
     </div>
 
@@ -123,12 +135,14 @@
         <b>Healthy Threshold</b><help-field key="gce.loadBalancer.advancedSettings.healthyThreshold"></help-field>
       </div>
       <div class="col-md-4">
-        <input class="form-control input-sm"
-               type="number"
-               min="0"
-               max="{{:: $ctrl.max}}"
-               required
-               ng-model="$ctrl.healthCheck.healthyThreshold"/>
+        <input
+          class="form-control input-sm"
+          type="number"
+          min="0"
+          max="{{:: $ctrl.max}}"
+          required
+          ng-model="$ctrl.healthCheck.healthyThreshold"
+        />
       </div>
     </div>
 
@@ -137,12 +151,14 @@
         <b>Unhealthy Threshold</b><help-field key="gce.loadBalancer.advancedSettings.unhealthyThreshold"></help-field>
       </div>
       <div class="col-md-4">
-        <input class="form-control input-sm"
-               type="number"
-               min="0"
-               max="{{:: $ctrl.max}}"
-               required
-               ng-model="$ctrl.healthCheck.unhealthyThreshold"/>
+        <input
+          class="form-control input-sm"
+          type="number"
+          min="0"
+          max="{{:: $ctrl.max}}"
+          required
+          ng-model="$ctrl.healthCheck.unhealthyThreshold"
+        />
       </div>
     </div>
   </div>

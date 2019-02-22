@@ -1,21 +1,18 @@
 <div class="form-horizontal">
   <div ng-if="!pipeline.strategy">
-
-    <account-region-cluster-selector
-      application="application"
-      component="stage"
-      accounts="accounts" >
+    <account-region-cluster-selector application="application" component="stage" accounts="accounts">
     </account-region-cluster-selector>
-
   </div>
   <stage-config-field label="Target">
     <target-select model="stage" options="targets"></target-select>
   </stage-config-field>
   <stage-config-field label="Action">
-    <select class="form-control input-sm"
-            required
-            ng-model="stage.action"
-            ng-options="a.val as a.label for a in actions">
+    <select
+      class="form-control input-sm"
+      required
+      ng-model="stage.action"
+      ng-options="a.val as a.label for a in actions"
+    >
       <option>Select an action...</option>
     </select>
   </stage-config-field>

@@ -1,23 +1,18 @@
-<div class="details-panel"
-     ng-class="{ disabled: serverGroup.isDisabled }">
-
+<div class="details-panel" ng-class="{ disabled: serverGroup.isDisabled }">
   <div class="header" ng-if="state.loading">
-      <div class="close-button">
-          <a class="btn btn-link"
-             ui-sref="^">
-              <span class="glyphicon glyphicon-remove"></span>
-          </a>
-      </div>
-      <div class="horizontal center middle">
-        <loading-spinner size="'small'"></loading-spinner>
-      </div>
+    <div class="close-button">
+      <a class="btn btn-link" ui-sref="^">
+        <span class="glyphicon glyphicon-remove"></span>
+      </a>
+    </div>
+    <div class="horizontal center middle">
+      <loading-spinner size="'small'"></loading-spinner>
+    </div>
   </div>
-
 
   <div class="header" ng-if="!state.loading">
     <div class="close-button">
-      <a class="btn btn-link"
-          ui-sref="^">
+      <a class="btn btn-link" ui-sref="^">
         <span class="glyphicon glyphicon-remove"></span>
       </a>
     </div>
@@ -38,7 +33,14 @@
             <li role="presentation" class="divider" ng-if="!ctrl.serverGroup.isDisabled"></li>
             <li><a href ng-click="ctrl.resizeServerGroup()">Resize</a></li>
             <li><a href ng-if="!serverGroup.isDisabled" ng-click="ctrl.disableServerGroup()">Disable</a></li>
-            <li><a href ng-if="serverGroup.isDisabled && serverGroup.loadBalancers.length" ng-click="ctrl.enableServerGroup()">Enable</a></li>
+            <li>
+              <a
+                href
+                ng-if="serverGroup.isDisabled && serverGroup.loadBalancers.length"
+                ng-click="ctrl.enableServerGroup()"
+                >Enable</a
+              >
+            </li>
             <li><a href ng-click="ctrl.destroyServerGroup()">Destroy</a></li>
             <li><a href ng-click="ctrl.cloneServerGroup(serverGroup)">Clone</a></li>
           </ul>
@@ -48,7 +50,9 @@
             Insight <span class="caret"></span>
           </button>
           <ul class="dropdown-menu" uib-dropdown-menu role="menu">
-            <li ng-repeat="action in serverGroup.insightActions"><a target=_blank href="{{action.url}}">{{action.label}}</a></li>
+            <li ng-repeat="action in serverGroup.insightActions">
+              <a target="_blank" href="{{action.url}}">{{action.label}}</a>
+            </li>
           </ul>
         </div>
       </div>
@@ -56,14 +60,19 @@
   </div>
   <div class="content" ng-if="!state.loading">
     <h4 class="text-center" ng-if="serverGroup.isDisabled">[SERVER GROUP IS DISABLED]</h4>
-    <server-group-running-tasks-details server-group="serverGroup" application="ctrl.application"></server-group-running-tasks-details>
+    <server-group-running-tasks-details
+      server-group="serverGroup"
+      application="ctrl.application"
+    ></server-group-running-tasks-details>
     <collapsible-section heading="Server Group Information" expanded="true">
       <dl class="dl-horizontal dl-flex">
         <dt>Created</dt>
         <dd>{{serverGroup.createdTime | timestamp }}</dd>
         <dt>In</dt>
-        <dd><account-tag account="serverGroup.account" pad="right"></account-tag><dd>
-        <dt>Namespace<dt>
+        <dd><account-tag account="serverGroup.account" pad="right"></account-tag></dd>
+        <dd></dd>
+        <dt>Namespace</dt>
+        <dt></dt>
         <dd>{{serverGroup.region}}</dd>
         <dt>Kind</dt>
         <dd>{{serverGroup.kind}}</dd>
@@ -72,7 +81,7 @@
         <dt ng-show="serverGroup.revision">Revision</dt>
         <dd ng-show="serverGroup.revision">{{serverGroup.revision}}</dd>
         <dt>Kube UI</dt>
-        <dd><a href={{ctrl.uiLink()}} target="_blank">{{serverGroup.name}}</a></dd>
+        <dd><a href="{{ctrl.uiLink()}}" target="_blank">{{serverGroup.name}}</a></dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Health" expanded="true">
@@ -97,7 +106,7 @@
             <dt>Revision</dt>
             <dd>{{serverGroup.deploymentStatus.revision}}</dd>
           </div>
-          <br>
+          <br />
           <div>
             <dt>Available</dt>
             <dd>{{serverGroup.deploymentStatus.availableReplicas}}</dd>
@@ -138,24 +147,30 @@
           <dt>Target CPU</dt>
           <dd>{{serverGroup.deployDescription.scalingPolicy.cpuUtilization.target}}%</dd>
           <dt>Current CPU</dt>
-          <dd>{{serverGroup.autoscalerStatus.currentCpuUtilization !== null ? serverGroup.autoscalerStatus.currentCpuUtilization : '- '}}%</dd>
+          <dd>
+            {{serverGroup.autoscalerStatus.currentCpuUtilization !== null ?
+            serverGroup.autoscalerStatus.currentCpuUtilization : '- '}}%
+          </dd>
           <dt ng-if="serverGroup.autoscalerStatus.lastScaleTime">Latest Rescale</dt>
-          <dd ng-if="serverGroup.autoscalerStatus.lastScaleTime">{{serverGroup.autoscalerStatus.lastScaleTime | relativeTime}}</dd>
+          <dd ng-if="serverGroup.autoscalerStatus.lastScaleTime">
+            {{serverGroup.autoscalerStatus.lastScaleTime | relativeTime}}
+          </dd>
         </div>
       </dl>
     </collapsible-section>
     <collapsible-section ng-repeat="container in serverGroup.deployDescription.containers" heading="{{container.name}}">
-      <kubernetes-server-group-container-detail container="container">
-      </kubernetes-server-group-container-detail>
+      <kubernetes-server-group-container-detail container="container"> </kubernetes-server-group-container-detail>
     </collapsible-section>
-    <collapsible-section ng-repeat="container in serverGroup.deployDescription.initContainers" heading="{{container.name}} (init)">
+    <collapsible-section
+      ng-repeat="container in serverGroup.deployDescription.initContainers"
+      heading="{{container.name}} (init)"
+    >
       <kubernetes-server-group-container-detail container="container" init-container="true">
       </kubernetes-server-group-container-detail>
     </collapsible-section>
     <collapsible-section heading="Labels" ng-if="serverGroup.labels">
       <dl class="dl-horizontal dl-flex">
-        <kubernetes-key-value-details map="serverGroup.labels">
-        </kubernetes-key-value-details>
+        <kubernetes-key-value-details map="serverGroup.labels"> </kubernetes-key-value-details>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Replica Set Annotations" ng-if="serverGroup.deployDescription.replicaSetAnnotations">
@@ -172,12 +187,13 @@
     </collapsible-section>
     <collapsible-section heading="Node Selector" ng-if="serverGroup.deployDescription.nodeSelector">
       <dl class="dl-horizontal dl-flex">
-        <kubernetes-key-value-details map="serverGroup.deployDescription.nodeSelector">
-        </kubernetes-key-value-details>
+        <kubernetes-key-value-details map="serverGroup.deployDescription.nodeSelector"> </kubernetes-key-value-details>
       </dl>
     </collapsible-section>
-    <collapsible-section heading="Toleration - {{toleration.key}}"
-                         ng-repeat="toleration in serverGroup.deployDescription.tolerations">
+    <collapsible-section
+      heading="Toleration - {{toleration.key}}"
+      ng-repeat="toleration in serverGroup.deployDescription.tolerations"
+    >
       <dl class="dl-horizontal dl-flex">
         <dt>Value</dt>
         <dd>{{toleration.value}}</dd>

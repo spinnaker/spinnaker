@@ -19,11 +19,13 @@
       <div class="form-group form-inline">
         <div class="col-md-11 col-md-offset-1">
           <label>
-            <input type="number"
-                   class="form-control input-sm"
-                   ng-model="currentSize.oldSize"
-                   style="width: 60px"
-                   readonly/>
+            <input
+              type="number"
+              class="form-control input-sm"
+              ng-model="currentSize.oldSize"
+              style="width: 60px"
+              readonly
+            />
             instances<span ng-if="currentSize.oldSize > 0">s</span>
           </label>
         </div>
@@ -36,12 +38,14 @@
       <div class="form-group form-inline">
         <div class="col-md-11 col-md-offset-1">
           <label>
-            <input type="number"
-                   class="form-control input-sm highlight-pristine"
-                   ng-model="command.newSize"
-                   min="0"
-                   required
-                   style="width: 60px"/>
+            <input
+              type="number"
+              class="form-control input-sm highlight-pristine"
+              ng-model="command.newSize"
+              min="0"
+              required
+              style="width: 60px"
+            />
             instances
           </label>
         </div>
@@ -53,31 +57,29 @@
       </div>
       <div class="form-group form-inline">
         <div class="col-md-11 col-md-offset-1">
-          <input type="checkbox"
-                 class="form-control input-sm highlight-pristine"
-                 ng-model="command.forceDeployment"
-                 style="width: 60px"/>
+          <input
+            type="checkbox"
+            class="form-control input-sm highlight-pristine"
+            ng-model="command.forceDeployment"
+            style="width: 60px"
+          />
         </div>
       </div>
     </div>
 
     <div class="row" ng-if="command.platformHealthOnlyShowOverride">
       <div class="col-sm-10 col-sm-offset-1">
-        <platform-health-override command="command"
-                                  platform-health-type="'Dcos'"
-                                  show-help-details="true">
+        <platform-health-override command="command" platform-health-type="'Dcos'" show-help-details="true">
         </platform-health-override>
       </div>
     </div>
 
     <div class="modal-footer">
       <user-verification account="serverGroup.account" verification="verification"></user-verification>
-      <button type="submit" ng-click="ctrl.resize()" style="display:none"></button> <!-- Allows form submission via enter keypress-->
+      <button type="submit" ng-click="ctrl.resize()" style="display:none"></button>
+      <!-- Allows form submission via enter keypress-->
       <button class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
-      <button type="submit"
-              class="btn btn-primary"
-              ng-click="ctrl.resize()"
-              ng-disabled="!ctrl.isValid()">
+      <button type="submit" class="btn btn-primary" ng-click="ctrl.resize()" ng-disabled="!ctrl.isValid()">
         Submit
       </button>
     </div>

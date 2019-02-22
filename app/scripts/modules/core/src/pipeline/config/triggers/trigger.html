@@ -6,10 +6,12 @@
           <div class="row">
             <label class="col-md-3 sm-label-right">Type</label>
             <div class="col-md-9">
-              <select class="input-sm"
-                      ng-change="triggerCtrl.loadTrigger()"
-                      ng-options="option.key as option.label for option in options"
-                      ng-model="trigger.type">
+              <select
+                class="input-sm"
+                ng-change="triggerCtrl.loadTrigger()"
+                ng-options="option.key as option.label for option in options"
+                ng-model="trigger.type"
+              >
                 <option value="">Select...</option>
               </select>
               {{description}}
@@ -32,12 +34,16 @@
         <div class="form-group" ng-if="pipeline.expectedArtifacts.length">
           <div class="col-md-10">
             <div class="form-group">
-              <label class=" col-md-3 sm-label-right">Artifact Constraints<help-field key="pipeline.config.expectedArtifact"></help-field></label>
+              <label class=" col-md-3 sm-label-right"
+                >Artifact Constraints<help-field key="pipeline.config.expectedArtifact"></help-field
+              ></label>
               <div class="col-md-9">
-                <ui-select ng-if="pipeline.expectedArtifacts.length"
-                           multiple
-                           ng-model="trigger.expectedArtifactIds"
-                           class="form-control input-sm">
+                <ui-select
+                  ng-if="pipeline.expectedArtifacts.length"
+                  multiple
+                  ng-model="trigger.expectedArtifactIds"
+                  class="form-control input-sm"
+                >
                   <ui-select-match>{{ $item.displayName }}</ui-select-match>
                   <ui-select-choices repeat="expected.id as expected in pipeline.expectedArtifacts">
                     <span>{{ expected.displayName }}</span>
@@ -52,7 +58,7 @@
         <div class="col-md-10">
           <div class="row">
             <div class="col-md-9 col-md-offset-3 checkbox">
-              <label><input type="checkbox" ng-model="trigger.enabled" ng-value="true"/> Trigger Enabled</label>
+              <label><input type="checkbox" ng-model="trigger.enabled" ng-value="true" /> Trigger Enabled</label>
             </div>
           </div>
         </div>

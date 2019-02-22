@@ -1,23 +1,18 @@
-<div class="details-panel"
-     ng-class="{ disabled: ctrl.serverGroup.isDisabled }">
-
+<div class="details-panel" ng-class="{ disabled: ctrl.serverGroup.isDisabled }">
   <div class="header" ng-if="ctrl.state.loading">
-      <div class="close-button">
-          <a class="btn btn-link"
-             ui-sref="^">
-              <span class="glyphicon glyphicon-remove"></span>
-          </a>
-      </div>
-      <div class="horizontal center middle">
-        <loading-spinner size="'small'"></loading-spinner>
-      </div>
+    <div class="close-button">
+      <a class="btn btn-link" ui-sref="^">
+        <span class="glyphicon glyphicon-remove"></span>
+      </a>
+    </div>
+    <div class="horizontal center middle">
+      <loading-spinner size="'small'"></loading-spinner>
+    </div>
   </div>
-
 
   <div class="header" ng-if="!ctrl.state.loading">
     <div class="close-button">
-      <a class="btn btn-link"
-          ui-sref="^">
+      <a class="btn btn-link" ui-sref="^">
         <span class="glyphicon glyphicon-remove"></span>
       </a>
     </div>
@@ -38,10 +33,16 @@
             <li role="presentation" class="divider" ng-if=" !ctrl.serverGroup.isDisabled"></li>
             <li><a href ng-click="ctrl.resizeServerGroup()">Resize</a></li>
             <li><a href ng-if=" !ctrl.serverGroup.isDisabled" ng-click="ctrl.disableServerGroup()">Disable</a></li>
-            <li><a href ng-if="ctrl.serverGroup.isDisabled && !ctrl.isEnableLocked()" ng-click="ctrl.enableServerGroup()">Enable</a></li>
+            <li>
+              <a href ng-if="ctrl.serverGroup.isDisabled && !ctrl.isEnableLocked()" ng-click="ctrl.enableServerGroup()"
+                >Enable</a
+              >
+            </li>
             <li class="disabled" ng-if="ctrl.isEnableLocked()">
-              <a uib-tooltip="Cannot enable this server group until resize operation completes"
-                 tooltip-placement="left">
+              <a
+                uib-tooltip="Cannot enable this server group until resize operation completes"
+                tooltip-placement="left"
+              >
                 <span class="small glyphicon glyphicon-lock"></span>
                 Enable
               </a>
@@ -56,7 +57,9 @@
             Insight <span class="caret"></span>
           </button>
           <ul class="dropdown-menu" uib-dropdown-menu role="menu">
-            <li ng-repeat="action in ctrl.serverGroup.insightActions"><a target=_blank href="{{action.url}}">{{action.label}}</a></li>
+            <li ng-repeat="action in ctrl.serverGroup.insightActions">
+              <a target="_blank" href="{{action.url}}">{{action.label}}</a>
+            </li>
           </ul>
         </div>
       </div>
@@ -66,7 +69,10 @@
     Disabled {{ctrl.disabledDate | timestamp}}
   </div>
   <div class="content" ng-if="!ctrl.state.loading">
-    <server-group-running-tasks-details server-group="ctrl.serverGroup" application="ctrl.application"></server-group-running-tasks-details>
+    <server-group-running-tasks-details
+      server-group="ctrl.serverGroup"
+      application="ctrl.application"
+    ></server-group-running-tasks-details>
     <collapsible-section heading="Server Group Information" expanded="true">
       <dl class="dl-horizontal dl-flex">
         <dt>Created</dt>
@@ -78,7 +84,11 @@
           {{ctrl.serverGroup.region}}
         </dd>
         <dt>Subnet</dt>
-        <dd>{{ctrl.subnetName || ctrl.serverGroup.subnetId}}<span ng-if="ctrl.subnetName"> ({{ctrl.serverGroup.subnetId}})</span></dd>
+        <dd>
+          {{ctrl.subnetName || ctrl.serverGroup.subnetId}}<span ng-if="ctrl.subnetName">
+            ({{ctrl.serverGroup.subnetId}})</span
+          >
+        </dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Health" expanded="true">
@@ -94,17 +104,21 @@
         <dt>Current</dt>
         <dd>{{ctrl.serverGroup.instances.length}}</dd>
         <dt ng-if="ctrl.serverGroup.scalingConfig.minSize !== ctrl.serverGroup.scalingConfig.maxSize">Min</dt>
-        <dd ng-if="ctrl.serverGroup.scalingConfig.minSize !== ctrl.serverGroup.scalingConfig.maxSize">{{ctrl.serverGroup.scalingConfig.minSize}}</dd>
+        <dd ng-if="ctrl.serverGroup.scalingConfig.minSize !== ctrl.serverGroup.scalingConfig.maxSize">
+          {{ctrl.serverGroup.scalingConfig.minSize}}
+        </dd>
         <dt>Desired</dt>
         <dd>{{ctrl.serverGroup.scalingConfig.desiredSize}}</dd>
         <dt ng-if="ctrl.serverGroup.scalingConfig.minSize !== ctrl.serverGroup.scalingConfig.maxSize">Max</dt>
-        <dd ng-if="ctrl.serverGroup.scalingConfig.minSize !== ctrl.serverGroup.scalingConfig.maxSize">{{ctrl.serverGroup.scalingConfig.maxSize}}</dd>
+        <dd ng-if="ctrl.serverGroup.scalingConfig.minSize !== ctrl.serverGroup.scalingConfig.maxSize">
+          {{ctrl.serverGroup.scalingConfig.maxSize}}
+        </dd>
       </dl>
       <div>
         <a href ng-click="ctrl.resizeServerGroup()">Resize Server Group</a>
       </div>
       <!--<div>-->
-        <!--<a href ng-click="ctrl.showScalingActivities()">View Scaling Activities</a>-->
+      <!--<a href ng-click="ctrl.showScalingActivities()">View Scaling Activities</a>-->
       <!--</div>-->
     </collapsible-section>
     <collapsible-section heading="Launch Configuration">
@@ -122,7 +136,10 @@
         <dd ng-if="ctrl.serverGroup.image.properties.kernel_id">{{ctrl.serverGroup.image.properties.kernel_id}}</dd>
 
         <dt ng-if="ctrl.serverGroup.launchConfig.associatePublicIpAddress">Floating IP Network</dt>
-        <dd ng-if="ctrl.serverGroup.launchConfig.associatePublicIpAddress">{{ctrl.floatingNetworkName || ctrl.serverGroup.launchConfig.floatingNetworkId}} <span ng-if="ctrl.floatingNetworkName">({{ctrl.serverGroup.launchConfig.floatingNetworkId}})</span></dd>
+        <dd ng-if="ctrl.serverGroup.launchConfig.associatePublicIpAddress">
+          {{ctrl.floatingNetworkName || ctrl.serverGroup.launchConfig.floatingNetworkId}}
+          <span ng-if="ctrl.floatingNetworkName">({{ctrl.serverGroup.launchConfig.floatingNetworkId}})</span>
+        </dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Package" ng-if="ctrl.serverGroup.buildInfo && ctrl.serverGroup.buildInfo.jenkins">
@@ -138,13 +155,15 @@
         <dt>Version</dt>
         <dd>{{ctrl.serverGroup.buildInfo.version}}</dd>
         <dt>Build Link</dt>
-        <dd><a target=_blank href="{{ctrl.buildJenkinsLink()}}">{{ctrl.buildJenkinsLink()}}</a></dd>
+        <dd><a target="_blank" href="{{ctrl.buildJenkinsLink()}}">{{ctrl.buildJenkinsLink()}}</a></dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="{{ctrl.firewallsLabel}}">
       <ul>
         <li ng-repeat="securityGroup in securityGroups | orderBy:'name'">
-          <a ui-sref="^.firewallDetails({name: securityGroup.name, accountId: securityGroup.accountName, region: ctrl.serverGroup.region, vpcId: ctrl.serverGroup.vpcId, provider: ctrl.serverGroup.type})">
+          <a
+            ui-sref="^.firewallDetails({name: securityGroup.name, accountId: securityGroup.accountName, region: ctrl.serverGroup.region, vpcId: ctrl.serverGroup.vpcId, provider: ctrl.serverGroup.type})"
+          >
             {{securityGroup.name}} ({{securityGroup.id}})
           </a>
         </li>
@@ -153,7 +172,9 @@
     <collapsible-section heading="Load Balancers">
       <ul>
         <li ng-repeat="loadBalancer in loadBalancers | orderBy:'name'">
-          <a ui-sref="^.loadBalancerDetails({name: loadBalancer.name, accountId: loadBalancer.account, region: ctrl.serverGroup.region, provider: ctrl.serverGroup.type})">
+          <a
+            ui-sref="^.loadBalancerDetails({name: loadBalancer.name, accountId: loadBalancer.account, region: ctrl.serverGroup.region, provider: ctrl.serverGroup.type})"
+          >
             {{loadBalancer.name}} ({{loadBalancer.id}})
           </a>
         </li>
@@ -166,7 +187,6 @@
         <dd ng-repeat-end>{{value}}</dd>
       </dl>
     </collapsible-section>
-  </div>
     <collapsible-section heading="Logs">
       <ul>
         <li>TBD</li>

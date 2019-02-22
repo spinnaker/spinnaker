@@ -1,8 +1,7 @@
 <div class="details-panel">
   <div ng-if="state.loading" class="header">
     <div class="close-button">
-      <a class="btn btn-link"
-         ui-sref="^">
+      <a class="btn btn-link" ui-sref="^">
         <span class="glyphicon glyphicon-remove"></span>
       </a>
     </div>
@@ -13,8 +12,7 @@
 
   <div ng-if="!state.loading" class="header">
     <div class="close-button">
-      <a class="btn btn-link"
-         ui-sref="^">
+      <a class="btn btn-link" ui-sref="^">
         <span class="glyphicon glyphicon-remove"></span>
       </a>
     </div>
@@ -32,8 +30,14 @@
           </button>
           <ul class="dropdown-menu" uib-dropdown-menu role="menu">
             <li><a href ng-click="ctrl.editLoadBalancer()">Edit Load Balancer</a></li>
-            <li ng-if="!loadBalancer.instances.length"><a href ng-click="ctrl.deleteLoadBalancer()">Delete Load Balancer</a></li>
-            <li ng-if="loadBalancer.instances.length" class="disabled" uib-tooltip="You must detach all instances before you can delete this load balancer.">
+            <li ng-if="!loadBalancer.instances.length">
+              <a href ng-click="ctrl.deleteLoadBalancer()">Delete Load Balancer</a>
+            </li>
+            <li
+              ng-if="loadBalancer.instances.length"
+              class="disabled"
+              uib-tooltip="You must detach all instances before you can delete this load balancer."
+            >
               <a href ng-click="ctrl.deleteLoadBalancer()">Delete Load Balancer</a>
             </li>
           </ul>
@@ -48,12 +52,13 @@
         <dd>{{loadBalancer.createdTime | timestamp}}</dd>
         <dt>In</dt>
         <dd><account-tag account="loadBalancer.account" pad="right"></account-tag></dd>
-        <dt>Region<dt>
+        <dt>Region</dt>
+        <dt></dt>
         <dd>{{loadBalancer.region}}</dd>
         <dt>JSON</dt>
         <dd><a href ng-click="ctrl.showJson()">Show JSON</a></dd>
         <dt>DC/OS UI</dt>
-        <dd><a href={{ctrl.uiLink()}} target="_blank">{{loadBalancer.name}}</a></dd>
+        <dd><a href="{{ctrl.uiLink()}}" target="_blank">{{loadBalancer.name}}</a></dd>
       </dl>
       <dl class="horizontal-when-filters-collapsed">
         <dt ng-if="loadBalancer.serverGroups">Server Groups</dt>
@@ -63,5 +68,6 @@
           </ul>
         </dd>
       </dl>
+    </collapsible-section>
   </div>
 </div>

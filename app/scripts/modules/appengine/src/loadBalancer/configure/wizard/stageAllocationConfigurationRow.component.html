@@ -6,13 +6,15 @@
     </div>
     <div class="col-md-3">
       <div class="input-group input-group-sm">
-        <input type="number"
-               ng-model="$ctrl.allocationDescription.allocation"
-               required
-               class="form-control input-sm"
-               min="0"
-               ng-change="$ctrl.onAllocationChange()"
-               max="100"/>
+        <input
+          type="number"
+          ng-model="$ctrl.allocationDescription.allocation"
+          required
+          class="form-control input-sm"
+          min="0"
+          ng-change="$ctrl.onAllocationChange()"
+          max="100"
+        />
         <span class="input-group-addon">%</span>
       </div>
     </div>
@@ -34,17 +36,32 @@
           <form>
             <div class="form-group">
               <label class="small" style="font-weight: normal">
-                <input type="radio" ng-change="$ctrl.onLocatorTypeChange()" ng-model="$ctrl.allocationDescription.locatorType" value="fromExisting">
+                <input
+                  type="radio"
+                  ng-change="$ctrl.onLocatorTypeChange()"
+                  ng-model="$ctrl.allocationDescription.locatorType"
+                  value="fromExisting"
+                />
                 Existing server group
               </label>
-              <br>
+              <br />
               <label class="small" style="font-weight: normal">
-                <input type="radio" ng-change="$ctrl.onLocatorTypeChange()" ng-model="$ctrl.allocationDescription.locatorType" value="targetCoordinate">
+                <input
+                  type="radio"
+                  ng-change="$ctrl.onLocatorTypeChange()"
+                  ng-model="$ctrl.allocationDescription.locatorType"
+                  value="targetCoordinate"
+                />
                 Coordinates
               </label>
-              <br>
+              <br />
               <label class="small" style="font-weight: normal">
-                <input type="radio" ng-change="$ctrl.onLocatorTypeChange()" ng-model="$ctrl.allocationDescription.locatorType" value="text">
+                <input
+                  type="radio"
+                  ng-change="$ctrl.onLocatorTypeChange()"
+                  ng-model="$ctrl.allocationDescription.locatorType"
+                  value="text"
+                />
                 Text input
               </label>
             </div>
@@ -59,13 +76,17 @@
             Server group
           </div>
           <div class="col-md-7">
-            <ui-select ng-model="$ctrl.allocationDescription.serverGroupName"
-                       on-select="$ctrl.onAllocationChange()"
-                       class="form-control input-sm">
+            <ui-select
+              ng-model="$ctrl.allocationDescription.serverGroupName"
+              on-select="$ctrl.onAllocationChange()"
+              class="form-control input-sm"
+            >
               <ui-select-match placeholder="Select...">
-                {{$select.selected}}
+                {{ $select.selected }}
               </ui-select-match>
-              <ui-select-choices repeat="serverGroup as serverGroup in $ctrl.getServerGroupOptions() | filter: $select.search">
+              <ui-select-choices
+                repeat="serverGroup as serverGroup in $ctrl.getServerGroupOptions() | filter: $select.search"
+              >
                 <div ng-bind-html="serverGroup | highlight: $select.search"></div>
               </ui-select-choices>
             </ui-select>
@@ -76,7 +97,11 @@
             Cluster
           </div>
           <div class="col-md-7">
-            <cluster-selector class="small" clusters="$ctrl.clusterList" model=$ctrl.allocationDescription.cluster></cluster-selector>
+            <cluster-selector
+              class="small"
+              clusters="$ctrl.clusterList"
+              model="$ctrl.allocationDescription.cluster"
+            ></cluster-selector>
           </div>
           <div class="col-md-3 sm-label-right">
             Target
@@ -91,7 +116,7 @@
             <help-field key="appengine.loadBalancer.textLocator"></help-field>
           </div>
           <div class="col-md-7">
-            <input class="form-control input-sm" type="text" ng-model="$ctrl.allocationDescription.serverGroupName"/>
+            <input class="form-control input-sm" type="text" ng-model="$ctrl.allocationDescription.serverGroupName" />
           </div>
         </div>
       </div>

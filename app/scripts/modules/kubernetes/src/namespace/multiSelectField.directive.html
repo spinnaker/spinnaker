@@ -1,11 +1,13 @@
 <stage-config-field label="Namespaces">
   <p ng-if="!vm.component.credentials" class="form-control-static">(Select an Account)</p>
-  <select class="form-control input-sm"
-          ng-if="vm.component.credentials"
-          ng-model="vm.component.regions"
-          ng-change="vm.regionChanged()"
-          ng-options="namespace for namespace in vm.namespaces"
-          required>
+  <select
+    class="form-control input-sm"
+    ng-if="vm.component.credentials"
+    ng-model="vm.component.regions"
+    ng-change="vm.regionChanged()"
+    ng-options="namespace for namespace in vm.namespaces"
+    required
+  >
   </select>
   <checklist
     ng-if="vm.component.credentials && !vm.singleRegion"
@@ -13,6 +15,7 @@
     model="vm.component.regions"
     inline="true"
     on-change="vm.regionChanged()"
-    include-select-all-button="true">
+    include-select-all-button="true"
+  >
   </checklist>
 </stage-config-field>

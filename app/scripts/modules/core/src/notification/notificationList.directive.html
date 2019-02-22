@@ -1,69 +1,84 @@
-<div class="form-group" ng-if="level === 'stage' && parent.type !== 'manualJudgment'" >
-    <div class="col-md-9 col-md-offset-1">
-        <div class="checkbox">
-            <label>
-                <input type="checkbox"
-                       ng-false-value="undefined"
-                       ng-change="notificationListCtrl.manageStateOnToggle()"
-                       ng-model="parent.sendNotifications"/>
-                <strong>Send notifications for this stage</strong>
-            </label>
-        </div>
+<div class="form-group" ng-if="level === 'stage' && parent.type !== 'manualJudgment'">
+  <div class="col-md-9 col-md-offset-1">
+    <div class="checkbox">
+      <label>
+        <input
+          type="checkbox"
+          ng-false-value="undefined"
+          ng-change="notificationListCtrl.manageStateOnToggle()"
+          ng-model="parent.sendNotifications"
+        />
+        <strong>Send notifications for this stage</strong>
+      </label>
     </div>
+  </div>
 </div>
 <div class="row" ng-if="level !== 'stage' || parent.sendNotifications">
-    <div ng-class="level === 'stage' ? 'col-md-11 col-md-offset-1' : 'col-md-12'">
-        <table class="table table-condensed">
-            <thead ng-if="notifications.length">
-            <tr>
-                <th>Type</th>
-                <th>Details</th>
-                <th>Notify When</th>
-                <th>Actions</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr ng-repeat="notification in notifications">
-                <td>
-                    {{notification.type|notificationType}}
-                </td>
-                <td>
-                    {{notification|notificationDetails}}
-                </td>
-                <td>
-                    <div ng-repeat="when in notification.when">{{when|notificationWhen:level:parent.type}}</div>
-                </td>
-                <td>
-                    <a class="btn btn-xs btn-link" href ng-click="notificationListCtrl.editNotification(notification)">Edit</a>
-                    <a class="btn btn-xs btn-link pad-left" href
-                       ng-click="notificationListCtrl.removeNotification(notification)">Remove</a>
-                </td>
-            </tr>
-            </tbody>
-            <tfoot>
-            <tr>
-                <td colspan="7">
-                    <button class="btn btn-block add-new" ng-click="notificationListCtrl.addNotification()">
-                        <span class="glyphicon glyphicon-plus-sign"></span> Add Notification Preference
-                    </button>
-                </td>
-            </tr>
-            </tfoot>
-        </table>
-    </div>
+  <div ng-class="level === 'stage' ? 'col-md-11 col-md-offset-1' : 'col-md-12'">
+    <table class="table table-condensed">
+      <thead ng-if="notifications.length">
+        <tr>
+          <th>Type</th>
+          <th>Details</th>
+          <th>Notify When</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr ng-repeat="notification in notifications">
+          <td>
+            {{notification.type|notificationType}}
+          </td>
+          <td>
+            {{notification|notificationDetails}}
+          </td>
+          <td>
+            <div ng-repeat="when in notification.when">{{when|notificationWhen:level:parent.type}}</div>
+          </td>
+          <td>
+            <a class="btn btn-xs btn-link" href ng-click="notificationListCtrl.editNotification(notification)">Edit</a>
+            <a
+              class="btn btn-xs btn-link pad-left"
+              href
+              ng-click="notificationListCtrl.removeNotification(notification)"
+              >Remove</a
+            >
+          </td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="7">
+            <button class="btn btn-block add-new" ng-click="notificationListCtrl.addNotification()">
+              <span class="glyphicon glyphicon-plus-sign"></span> Add Notification Preference
+            </button>
+          </td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
 </div>
 <div class="row main-footer ng-scope" ng-if="level === 'application'">
-    <div class="col-md-3">
-        <button class="btn btn-default" ng-click="notificationListCtrl.revertNotificationChanges()"
-                ng-if="notificationListCtrl.isNotificationsDirty"
-                style="visibility: visible;"><span class="glyphicon glyphicon-flash"></span> Revert
-        </button>
-    </div>
-    <div class="col-md-9 text-right">
-        <button class="btn btn-primary ng-scope" ng-if="notificationListCtrl.isNotificationsDirty"
-                ng-click="notificationListCtrl.saveNotifications()">
-            <span class="far fa-check-circle"> Save Changes </span>
-        </button>
-        <span ng-if="notificationListCtrl.isNotificationsDirty === false" class="btn btn-link disabled ng-scope"><span class="far fa-check-circle"></span> In sync with server</span>
-    </div>
+  <div class="col-md-3">
+    <button
+      class="btn btn-default"
+      ng-click="notificationListCtrl.revertNotificationChanges()"
+      ng-if="notificationListCtrl.isNotificationsDirty"
+      style="visibility: visible;"
+    >
+      <span class="glyphicon glyphicon-flash"></span> Revert
+    </button>
+  </div>
+  <div class="col-md-9 text-right">
+    <button
+      class="btn btn-primary ng-scope"
+      ng-if="notificationListCtrl.isNotificationsDirty"
+      ng-click="notificationListCtrl.saveNotifications()"
+    >
+      <span class="far fa-check-circle"> Save Changes </span>
+    </button>
+    <span ng-if="notificationListCtrl.isNotificationsDirty === false" class="btn btn-link disabled ng-scope"
+      ><span class="far fa-check-circle"></span> In sync with server</span
+    >
+  </div>
 </div>

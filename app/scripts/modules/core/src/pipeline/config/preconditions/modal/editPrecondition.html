@@ -6,19 +6,24 @@
 
   <form role="form" class="container-fluid" novalidate name="editPreconditionForm">
     <div class="modal-body">
-      <precondition-selector precondition="editPrecondition.precondition" strategy="editPrecondition.strategy" application="editPrecondition.application"></precondition-selector>
+      <precondition-selector
+        precondition="editPrecondition.precondition"
+        strategy="editPrecondition.strategy"
+        application="editPrecondition.application"
+      ></precondition-selector>
     </div>
     <div class="modal-footer">
       <div ng-show="editApp.submitting">
         <loading-spinner size="'small'"></loading-spinner>
       </div>
       <a href class="btn btn-default" ng-click="$dismiss()">Cancel</a>
-      <button type="submit"
-              class="btn btn-primary"
-              data-purpose="submit"
-              ng-click="editPrecondition.submit()"
-              ng-disabled="editPreconditionForm.$invalid"
-        >
+      <button
+        type="submit"
+        class="btn btn-primary"
+        data-purpose="submit"
+        ng-click="editPrecondition.submit()"
+        ng-disabled="editPreconditionForm.$invalid"
+      >
         <span class="far fa-check-circle"></span> Update
       </button>
     </div>

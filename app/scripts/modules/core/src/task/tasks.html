@@ -33,35 +33,41 @@
         </div>
       </div>
       <div class="col-md-1 text-right" style="padding-right: 0">
-        <a class="btn btn-link" ng-click="tasks.clearNameFilter()" style="
-        padding-right: 5px" ng-if="viewState.nameFilter.length > 0">
+        <a
+          class="btn btn-link"
+          ng-click="tasks.clearNameFilter()"
+          style="
+        padding-right: 5px"
+          ng-if="viewState.nameFilter.length > 0"
+        >
           <span class="glyphicon glyphicon-remove" uib-tooltip="clear search filter"></span>
         </a>
       </div>
       <div class="col-md-3 text-right" style="padding-left: 0">
         <div class="form-group has-feedback">
           <label class="sr-only" for="task-filter">Filter tasks by name, user, or task ID</label>
-          <input type="search"
-                 id="task-filter"
-                 class="form-control input-sm"
-                 placeholder="Filter tasks by name, user, or task ID"
-                 ng-change="tasks.nameFilterUpdated()"
-                 ng-model="viewState.nameFilter">
+          <input
+            type="search"
+            id="task-filter"
+            class="form-control input-sm"
+            placeholder="Filter tasks by name, user, or task ID"
+            ng-change="tasks.nameFilterUpdated()"
+            ng-model="viewState.nameFilter"
+          />
           <span class="glyphicon glyphicon-search form-control-feedback"></span>
         </div>
       </div>
-
     </div>
     <div class="row tasks-content">
       <div class="col-md-10 col-md-offset-1 text-center" ng-if="!tasks.sortedTasks.length" style="margin-top: 30px">
-        <h4 ng-if="!viewState.nameFilter && !viewState.taskStateFilter">We couldn't find any tasks for {{tasks.application.name}}</h4>
+        <h4 ng-if="!viewState.nameFilter && !viewState.taskStateFilter">
+          We couldn't find any tasks for {{tasks.application.name}}
+        </h4>
         <div ng-if="viewState.nameFilter  || viewState.taskStateFilter">
           <h4>
             We couldn't find any tasks matching the filters you've specified.
           </h4>
-          <p style="margin-top: 20px">
-            <strong>Note</strong> that Spinnaker only tracks tasks for two weeks.
-          </p>
+          <p style="margin-top: 20px"><strong>Note</strong> that Spinnaker only tracks tasks for two weeks.</p>
         </div>
       </div>
       <div class="col-md-12" ng-if="tasks.sortedTasks.length">
@@ -83,20 +89,27 @@
             <tr class="clickable" ng-click="tasks.toggleDetails(task.id)" ng-repeat-start="task in tasks.resultPage()">
               <td>
                 <div class="task-name">
-                  <a href id="task-{{task.id}}"><span class="glyphicon glyphicon-chevron-{{tasks.isExpanded(task.id) ? 'down' : 'right'}}"></span></a>
+                  <a href id="task-{{task.id}}"
+                    ><span class="glyphicon glyphicon-chevron-{{tasks.isExpanded(task.id) ? 'down' : 'right'}}"></span
+                  ></a>
                   {{task.name}}
                 </div>
 
                 <div ng-if="tasks.getFirstDeployServerGroupName(task)" class="task-name">
                   <a href><span class="glyphicon glyphicon-none"></span></a>
                   <span ng-if="tasks.getProviderForServerGroupByTask(task)">
-                    Deployed <a ui-sref="^.insight.clusters.serverGroup({application: tasks.application.name, serverGroup: tasks.getFirstDeployServerGroupName(task), accountId: tasks.getAccountId(task), region: tasks.getRegion(task), provider: tasks.getProviderForServerGroupByTask(task)})" ng-click="$event.stopPropagation()"> {{tasks.getFirstDeployServerGroupName(task)}}</a>
+                    Deployed
+                    <a
+                      ui-sref="^.insight.clusters.serverGroup({application: tasks.application.name, serverGroup: tasks.getFirstDeployServerGroupName(task), accountId: tasks.getAccountId(task), region: tasks.getRegion(task), provider: tasks.getProviderForServerGroupByTask(task)})"
+                      ng-click="$event.stopPropagation()"
+                    >
+                      {{tasks.getFirstDeployServerGroupName(task)}}</a
+                    >
                   </span>
 
                   <span ng-if="!tasks.getProviderForServerGroupByTask(task)">
                     Deployed {{tasks.getFirstDeployServerGroupName(task)}}
                   </span>
-
                 </div>
               </td>
               <td>
@@ -104,7 +117,9 @@
               </td>
               <td>
                 <span ng-if="task.getValueFor('region')">{{task.getValueFor('region')}}</span>
-                <span ng-if="!task.getValueFor('region') && task.getValueFor('regions')">{{task.getValueFor('regions').join(', ')}}</span>
+                <span ng-if="!task.getValueFor('region') && task.getValueFor('regions')"
+                  >{{task.getValueFor('regions').join(', ')}}</span
+                >
               </td>
               <td>
                 <task-progress-bar task="task"></task-progress-bar>
@@ -127,14 +142,16 @@
                 {{ task.getValueFor('user') || task.execution.authentication.user || '-' }}
               </td>
               <td class="small text-center">
-                <a ng-if="task.isRunning || task.hasNotStarted" href ng-click="tasks.cancelTask(task.id); $event.stopPropagation();">
+                <a
+                  ng-if="task.isRunning || task.hasNotStarted"
+                  href
+                  ng-click="tasks.cancelTask(task.id); $event.stopPropagation();"
+                >
                   <span class="glyphicon glyphicon-remove" uib-tooltip="Cancel Task"></span>
                 </a>
               </td>
             </tr>
-            <tr ng-repeat="step in task.steps | displayableTasks"
-                ng-if="tasks.isExpanded(task.id)"
-                class="task-step">
+            <tr ng-repeat="step in task.steps | displayableTasks" ng-if="tasks.isExpanded(task.id)" class="task-step">
               <td colspan="4">
                 <status-glyph item="step"></status-glyph>
                 {{step.name | robotToHuman }}
@@ -155,41 +172,46 @@
               </td>
             </tr>
             <tr ng-if="tasks.isExpanded(task.id) && task.getValueFor('reason')" class="task-reason">
-              <td colspan="9">
-                <strong>Reason:</strong> <span ng-bind-html="task.getValueFor('reason')"></span>
-              </td>
+              <td colspan="9"><strong>Reason:</strong> <span ng-bind-html="task.getValueFor('reason')"></span></td>
             </tr>
             <tr ng-if="tasks.isExpanded(task.id)" ng-repeat-end>
               <td colspan="9" class="small text-right">
-                <a href="{{tasksUrl + task.id}}" target="_blank">Source</a> | <a target="_blank" ui-sref=".taskDetails({taskId: task.id})">Permalink</a>
-                <copy-to-clipboard text="$state.href(viewState.nameFilter ? '.' : '.taskDetails', {taskId: task.id}, {absolute:true} )" tool-tip="'Copy permalink to clipboard'"></copy-to-clipboard>
+                <a href="{{tasksUrl + task.id}}" target="_blank">Source</a> |
+                <a target="_blank" ui-sref=".taskDetails({taskId: task.id})">Permalink</a>
+                <copy-to-clipboard
+                  text="$state.href(viewState.nameFilter ? '.' : '.taskDetails', {taskId: task.id}, {absolute:true} )"
+                  tool-tip="'Copy permalink to clipboard'"
+                ></copy-to-clipboard>
               </td>
             </tr>
-
           </tbody>
         </table>
       </div>
     </div>
     <div class="row pagination-footer">
       <div class="col-md-9">
-        <ul uib-pagination
-            ng-if="!viewState.loading && tasks.sortedTasks.length > pagination.itemsPerPage"
-            items-per-page="pagination.itemsPerPage"
-            total-items="tasks.sortedTasks.length"
-            max-size="pagination.maxSize"
-            ng-model="pagination.currentPage"
-            class="pagination-sm"></ul>
+        <ul
+          uib-pagination
+          ng-if="!viewState.loading && tasks.sortedTasks.length > pagination.itemsPerPage"
+          items-per-page="pagination.itemsPerPage"
+          total-items="tasks.sortedTasks.length"
+          max-size="pagination.maxSize"
+          ng-model="pagination.currentPage"
+          class="pagination-sm"
+        ></ul>
       </div>
       <div class="col-md-3 text-right">
-          <div class="form-group">
-            Show
-            <select class="input input-sm"
-                    ng-model="viewState.itemsPerPage"
-                    ng-change="tasks.sortTasksAndResetPaginator()"
-                    ng-options="count for count in filterCountOptions"
-                    style="width: 50px">
-            </select>
-            per page
+        <div class="form-group">
+          Show
+          <select
+            class="input input-sm"
+            ng-model="viewState.itemsPerPage"
+            ng-change="tasks.sortTasksAndResetPaginator()"
+            ng-options="count for count in filterCountOptions"
+            style="width: 50px"
+          >
+          </select>
+          per page
         </div>
       </div>
     </div>

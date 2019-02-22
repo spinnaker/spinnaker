@@ -1,35 +1,37 @@
-<form ng-controller="kubernetesSecurityGroupRulesController as rulesController" class="container-fluid form-horizontal" name="rules">
+<form
+  ng-controller="kubernetesSecurityGroupRulesController as rulesController"
+  class="container-fluid form-horizontal"
+  name="rules"
+>
   <div class="col-md-12">
     <div ng-repeat="rule in securityGroup.rules">
-      <hr ng-if="$index > 0">
+      <hr ng-if="$index > 0" />
       <div class="form-group">
         <div class="col-md-3 sm-label-right">
           Host
           <help-field key="kubernetes.ingress.rules.host"></help-field>
         </div>
         <div class="col-md-6">
-          <input type="text" class="form-control input-sm" name="details" ng-model="rule.host"/>
+          <input type="text" class="form-control input-sm" name="details" ng-model="rule.host" />
         </div>
         <div class="col-md-1">
           <button class="btn btn-sm btn-default" ng-click="rulesController.removeRule($index)">
-             <span class="glyphicon glyphicon-trash visible-lg-inline"></span>
-             <span class="visible-lg-inline"> Remove Rule</span>
+            <span class="glyphicon glyphicon-trash visible-lg-inline"></span>
+            <span class="visible-lg-inline"> Remove Rule</span>
           </button>
         </div>
       </div>
-      <br/>
-			<div ng-repeat="path in rule.value.http.paths">
-				<hr ng-if="$index > 0">
-				<div class="form-group">
+      <br />
+      <div ng-repeat="path in rule.value.http.paths">
+        <hr ng-if="$index > 0" />
+        <div class="form-group">
           <div class="form-group">
             <div class="col-md-4 sm-label-right">
               Load Balancer
               <help-field key="kubernetes.ingress.rules.service"></help-field>
             </div>
             <div class="col-md-4">
-              <ui-select ng-if="loadBalancers.length"
-                         ng-model="path.ingress.serviceName"
-                         class="form-control input-sm">
+              <ui-select ng-if="loadBalancers.length" ng-model="path.ingress.serviceName" class="form-control input-sm">
                 <ui-select-match>{{path.ingress.serviceName}}</ui-select-match>
                 <ui-select-choices repeat="loadBalancer in loadBalancers | filter: $select.search">
                   <span ng-bind-html="loadBalancer | highlight: $select.search"></span>
@@ -38,8 +40,8 @@
             </div>
             <div class="col-md-1">
               <button class="btn btn-sm btn-default" ng-click="rulesController.removePath(rule, $index)">
-                 <span class="glyphicon glyphicon-trash visible-lg-inline"></span>
-                 <span class="visible-lg-inline"> Remove Path</span>
+                <span class="glyphicon glyphicon-trash visible-lg-inline"></span>
+                <span class="visible-lg-inline"> Remove Path</span>
               </button>
             </div>
           </div>
@@ -49,7 +51,7 @@
               <help-field key="kubernetes.ingress.rules.path"></help-field>
             </div>
             <div class="col-md-4">
-              <input type="text" class="form-control input-sm" name="details" ng-model="path.path"/>
+              <input type="text" class="form-control input-sm" name="details" ng-model="path.path" />
             </div>
           </div>
           <div class="form-group">
@@ -58,22 +60,27 @@
               <help-field key="kubernetes.ingress.rules.port"></help-field>
             </div>
             <div class="col-md-2">
-              <input type="number" class="form-control input-sm" name="details" ng-model="path.ingress.port"
-                   min="1" max="{{rulesController.maxPort}}" />
+              <input
+                type="number"
+                class="form-control input-sm"
+                name="details"
+                ng-model="path.ingress.port"
+                min="1"
+                max="{{rulesController.maxPort}}"
+              />
             </div>
           </div>
-				</div>
-			</div>
-      <div class="form-group">
-        <div class="col-md-2 sm-label-right">
         </div>
-        <button class="add-new col-md-8 btn btn-sm" ng-click="rulesController.addPath(rule)"><span
-          class="glyphicon glyphicon-plus-sign"></span> Add New Path
+      </div>
+      <div class="form-group">
+        <div class="col-md-2 sm-label-right"></div>
+        <button class="add-new col-md-8 btn btn-sm" ng-click="rulesController.addPath(rule)">
+          <span class="glyphicon glyphicon-plus-sign"></span> Add New Path
         </button>
       </div>
-		</div>
-    <button class="add-new btn btn-block btn-sm" ng-click="rulesController.addRule()"><span
-      class="glyphicon glyphicon-plus-sign"></span> Add New Rule
+    </div>
+    <button class="add-new btn btn-block btn-sm" ng-click="rulesController.addRule()">
+      <span class="glyphicon glyphicon-plus-sign"></span> Add New Rule
     </button>
   </div>
 </form>

@@ -1,12 +1,16 @@
-<gce-health-check-selector health-checks-by-account-and-type="ctrl.healthChecksByAccountAndType"
-                           existing-health-check-names="ctrl.existingHealthCheckNames"
-                           credentials="ctrl.loadBalancer.credentials"
-                           health-check="ctrl.loadBalancer.backendService.healthCheck"></gce-health-check-selector>
+<gce-health-check-selector
+  health-checks-by-account-and-type="ctrl.healthChecksByAccountAndType"
+  existing-health-check-names="ctrl.existingHealthCheckNames"
+  credentials="ctrl.loadBalancer.credentials"
+  health-check="ctrl.loadBalancer.backendService.healthCheck"
+></gce-health-check-selector>
 
 <div class="form-group small" style="margin-top: 20px">
   <div class="col-md-offset-2 col-md-6">
-    <gce-cache-refresh cache-key="healthChecks"
-                       cache-key-alias="health checks"
-                       on-refresh="ctrl.onHealthCheckRefresh()"></gce-cache-refresh>
+    <gce-cache-refresh
+      cache-key="healthChecks"
+      cache-key-alias="health checks"
+      on-refresh="ctrl.onHealthCheckRefresh()"
+    ></gce-cache-refresh>
   </div>
 </div>

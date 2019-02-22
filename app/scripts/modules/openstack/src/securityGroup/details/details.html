@@ -1,8 +1,7 @@
 <div class="details-panel">
   <div class="header">
     <div class="close-button" ng-if="!state.standalone">
-      <a class="btn btn-link"
-         ui-sref="^">
+      <a class="btn btn-link" ui-sref="^">
         <span class="glyphicon glyphicon-remove"></span>
       </a>
     </div>
@@ -21,8 +20,12 @@
           <firewall-label label="Firewall"></firewall-label> Actions <span class="caret"></span>
         </button>
         <ul class="dropdown-menu" uib-dropdown-menu role="menu">
-          <li><a href ng-click="ctrl.editSecurityGroup()">Edit <firewall-label label="Firewall"></firewall-label></a></li>
-          <li><a href ng-click="ctrl.deleteSecurityGroup()">Delete <firewall-label label="Firewall"></firewall-label></a></li>
+          <li>
+            <a href ng-click="ctrl.editSecurityGroup()">Edit <firewall-label label="Firewall"></firewall-label></a>
+          </li>
+          <li>
+            <a href ng-click="ctrl.deleteSecurityGroup()">Delete <firewall-label label="Firewall"></firewall-label></a>
+          </li>
         </ul>
       </div>
     </div>
@@ -42,11 +45,16 @@
         <dd>{{securityGroup.description}}</dd>
       </dl>
     </collapsible-section>
-    <collapsible-section heading="IP Range Rules ({{securityGroup.ipRangeRules.length || 0}})" expanded="{{!!(securityGroup.ipRangeRules && securityGroup.ipRangeRules.length)}}">
+    <collapsible-section
+      heading="IP Range Rules ({{securityGroup.ipRangeRules.length || 0}})"
+      expanded="{{!!(securityGroup.ipRangeRules && securityGroup.ipRangeRules.length)}}"
+    >
       <div ng-if="!securityGroup.ipRangeRules.length">None</div>
 
-      <dl ng-class="insightCtrl.vm.filtersExpanded ? '' : 'dl-horizontal dl-medium'"
-          ng-repeat="ipRangeRule in securityGroup.ipRangeRules | orderBy: 'range.ip'">
+      <dl
+        ng-class="insightCtrl.vm.filtersExpanded ? '' : 'dl-horizontal dl-medium'"
+        ng-repeat="ipRangeRule in securityGroup.ipRangeRules | orderBy: 'range.ip'"
+      >
         <dt>IP Range</dt>
         <dd>{{ipRangeRule.range.ip}}{{ipRangeRule.range.cidr}}</dd>
         <dt ng-if="ipRangeRule.portRanges && ipRangeRule.portRanges.length">Port Ranges</dt>
@@ -55,23 +63,33 @@
         </dd>
       </dl>
     </collapsible-section>
-    <collapsible-section heading="{{firewallLabel}} Rules ({{securityGroup.securityGroupRules.length || 0}})" expanded="{{!!securityGroup.securityGroupRules.length}}">
-          <div ng-if="!securityGroup.securityGroupRules.length">None</div>
+    <collapsible-section
+      heading="{{firewallLabel}} Rules ({{securityGroup.securityGroupRules.length || 0}})"
+      expanded="{{!!securityGroup.securityGroupRules.length}}"
+    >
+      <div ng-if="!securityGroup.securityGroupRules.length">None</div>
 
-          <dl ng-class="insightCtrl.vm.filtersExpanded ? '' : 'dl-horizontal dl-medium'"
-              ng-repeat="rule in securityGroup.securityGroupRules | orderBy: 'securityGroup.name' ">
-            <dt><firewall-label label="Firewall"></firewall-label></dt>
-            <dd ng-if="rule.securityGroup.name">
-                  <a ui-sref="^.firewallDetails({name: rule.securityGroup.name, accountId: rule.securityGroup.accountName, region: rule.securityGroup.region, vpcId: rule.securityGroup.vpcId, provider: 'openstack'})">
-                      <account-tag account="rule.securityGroup.accountName || rule.securityGroup.accountId" ng-if="rule.securityGroup.accountName !== securityGroup.accountName"></account-tag>
-                    {{rule.securityGroup.name}} ({{rule.securityGroup.id}})
-                </a>
-            </dd>
-            <dt ng-if="rule.portRanges && rule.portRanges.length !== null">Port Ranges</dt>
-            <dd ng-repeat="portRange in rule.portRanges">
-                  {{rule.protocol}}: {{portRange.startPort}} &rarr; {{portRange.endPort}}
-              </dd>
-        </dl>
+      <dl
+        ng-class="insightCtrl.vm.filtersExpanded ? '' : 'dl-horizontal dl-medium'"
+        ng-repeat="rule in securityGroup.securityGroupRules | orderBy: 'securityGroup.name' "
+      >
+        <dt><firewall-label label="Firewall"></firewall-label></dt>
+        <dd ng-if="rule.securityGroup.name">
+          <a
+            ui-sref="^.firewallDetails({name: rule.securityGroup.name, accountId: rule.securityGroup.accountName, region: rule.securityGroup.region, vpcId: rule.securityGroup.vpcId, provider: 'openstack'})"
+          >
+            <account-tag
+              account="rule.securityGroup.accountName || rule.securityGroup.accountId"
+              ng-if="rule.securityGroup.accountName !== securityGroup.accountName"
+            ></account-tag>
+            {{rule.securityGroup.name}} ({{rule.securityGroup.id}})
+          </a>
+        </dd>
+        <dt ng-if="rule.portRanges && rule.portRanges.length !== null">Port Ranges</dt>
+        <dd ng-repeat="portRange in rule.portRanges">
+          {{rule.protocol}}: {{portRange.startPort}} &rarr; {{portRange.endPort}}
+        </dd>
+      </dl>
     </collapsible-section>
   </div>
 </div>

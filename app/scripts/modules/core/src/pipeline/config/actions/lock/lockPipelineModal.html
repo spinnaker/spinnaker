@@ -24,7 +24,7 @@
         </div>
 
         <div class="col-md-6">
-          <input type="checkbox" class="input-sm" ng-model="ctrl.command.allowUnlockUi" style="margin: 0"/>
+          <input type="checkbox" class="input-sm" ng-model="ctrl.command.allowUnlockUi" style="margin: 0" />
         </div>
       </div>
       <div class="form-group form-inline">
@@ -33,16 +33,20 @@
           <help-field key="pipeline.config.lock.description"></help-field>
         </div>
         <div class="col-md-9">
-          <input type="text" class="form-control input-sm" style="width: 100%" ng-model="ctrl.command.description"
-                 placeholder="This pipeline is locked and does not allow modification">
+          <input
+            type="text"
+            class="form-control input-sm"
+            style="width: 100%"
+            ng-model="ctrl.command.description"
+            placeholder="This pipeline is locked and does not allow modification"
+          />
         </div>
       </div>
     </form>
   </div>
   <div class="modal-footer">
     <button class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
-    <button class="btn btn-primary"
-            ng-click="ctrl.lockPipeline()">
+    <button class="btn btn-primary" ng-click="ctrl.lockPipeline()">
       Lock pipeline
     </button>
   </div>

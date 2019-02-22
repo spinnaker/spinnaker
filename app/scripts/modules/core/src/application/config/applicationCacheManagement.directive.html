@@ -1,5 +1,4 @@
-<p>We use local storage to speed up performance throughout the application.
-</p>
+<p>We use local storage to speed up performance throughout the application.</p>
 
 <p>If you're not seeing one of those in a dropdown, it may be because our cached versions are too old.</p>
 
@@ -13,8 +12,7 @@
   <div class="col-md-3">{{vm.getCacheInfo('instanceTypes').ageMax | timestamp}}</div>
   <div class="col-md-1 text-center">
     <a href ng-click="vm.refreshCache('instanceTypes')">
-          <span ng-class="{'fa-spin':vm.clearingCache['instanceTypes']}"
-                class="fa fa-sync-alt"></span>
+      <span ng-class="{'fa-spin':vm.clearingCache['instanceTypes']}" class="fa fa-sync-alt"></span>
     </a>
   </div>
 </div>
@@ -23,8 +21,7 @@
   <div class="col-md-3">{{vm.getCacheInfo('loadBalancers').ageMax | timestamp}}</div>
   <div class="col-md-1 text-center">
     <a href ng-click="vm.refreshCache('loadBalancers')">
-          <span ng-class="{'fa-spin':vm.clearingCache['loadBalancers']}"
-                class="fa fa-sync-alt"></span>
+      <span ng-class="{'fa-spin':vm.clearingCache['loadBalancers']}" class="fa fa-sync-alt"></span>
     </a>
   </div>
 </div>
@@ -33,8 +30,7 @@
   <div class="col-md-3">{{vm.getCacheInfo('securityGroups').ageMax | timestamp}}</div>
   <div class="col-md-1 text-center">
     <a href ng-click="vm.refreshCache('securityGroups')">
-          <span ng-class="{'fa-spin':vm.clearingCache['securityGroups']}"
-                class="fa fa-sync-alt"></span>
+      <span ng-class="{'fa-spin':vm.clearingCache['securityGroups']}" class="fa fa-sync-alt"></span>
     </a>
   </div>
 </div>
@@ -43,8 +39,7 @@
   <div class="col-md-3">{{vm.getCacheInfo('subnets').ageMax | timestamp}}</div>
   <div class="col-md-1 text-center">
     <a href ng-click="vm.refreshCache('subnets')">
-          <span ng-class="{'fa-spin':vm.clearingCache['subnets']}"
-                class="fa fa-sync-alt"></span>
+      <span ng-class="{'fa-spin':vm.clearingCache['subnets']}" class="fa fa-sync-alt"></span>
     </a>
   </div>
 </div>
@@ -53,18 +48,18 @@
   <div class="col-md-3">{{vm.getCacheInfo('networks').ageMax | timestamp}}</div>
   <div class="col-md-1 text-center">
     <a href ng-click="vm.refreshCache('networks')">
-          <span ng-class="{'fa-spin':vm.clearingCache['networks']}"
-                class="fa fa-sync-alt"></span>
+      <span ng-class="{'fa-spin':vm.clearingCache['networks']}" class="fa fa-sync-alt"></span>
     </a>
   </div>
 </div>
 <div class="row" style="margin-top:20px">
   <div class="col-md-10">
-    <button class="btn btn-link" ng-if="!vm.clearingCaches" ng-click="vm.refreshCaches()"><span
-        class="fa fa-sync-alt"></span>
+    <button class="btn btn-link" ng-if="!vm.clearingCaches" ng-click="vm.refreshCaches()">
+      <span class="fa fa-sync-alt"></span>
       Refresh all caches
     </button>
-    <button disabled class="btn btn-link" ng-if="vm.clearingCaches"><span class="fa fa-sync-alt fa-spin"></span>
-      Refreshing caches...</button>
+    <button disabled class="btn btn-link" ng-if="vm.clearingCaches">
+      <span class="fa fa-sync-alt fa-spin"></span> Refreshing caches...
+    </button>
   </div>
 </div>

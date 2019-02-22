@@ -14,19 +14,21 @@
       <p>No scaling activities found for {{$ctrl.serverGroup.name}}.</p>
     </div>
     <div ng-repeat="activity in $ctrl.activities" ng-if="!$ctrl.viewState.loading">
-        <p class="clearfix">
-          <span class="label label-{{activity.isSuccessful ? 'success' : 'danger'}} pull-left">{{activity.statusCode}}</span>
-          <span class="label label-default pull-right">{{activity.startTime | timestamp}}</span>
-        </p>
-        <p>{{activity.cause}}</p>
-        <p>Summary of activities:</p>
-        <ul>
-          <li ng-repeat="event in activity.events | orderBy: ['availabilityZone', 'description']">
-            {{event.description}}
-            <span ng-if="event.availabilityZone"> ({{event.availabilityZone}})</span>
-          </li>
-        </ul>
-        <hr ng-if="!$last"/>
+      <p class="clearfix">
+        <span class="label label-{{activity.isSuccessful ? 'success' : 'danger'}} pull-left"
+          >{{activity.statusCode}}</span
+        >
+        <span class="label label-default pull-right">{{activity.startTime | timestamp}}</span>
+      </p>
+      <p>{{activity.cause}}</p>
+      <p>Summary of activities:</p>
+      <ul>
+        <li ng-repeat="event in activity.events | orderBy: ['availabilityZone', 'description']">
+          {{event.description}}
+          <span ng-if="event.availabilityZone"> ({{event.availabilityZone}})</span>
+        </li>
+      </ul>
+      <hr ng-if="!$last" />
     </div>
   </div>
   <div class="modal-footer">

@@ -7,36 +7,49 @@
     <loading-spinner size="'medium'"></loading-spinner>
   </div>
   <div ng-if="newAppModal.state.initializeFailed" style="...">
-    <div class="horizontal middle center heading-4" style="padding-left: 15px; padding-right: 15px; margin-bottom: 250px; height: 150px;">
+    <div
+      class="horizontal middle center heading-4"
+      style="padding-left: 15px; padding-right: 15px; margin-bottom: 250px; height: 150px;"
+    >
       <i class="fa fa-exclamation-triangle" style="padding-right: 8px;"></i>
       <span>
-        Error initializing dialog. Check that your gate endpoint is accessible. Further information on troubleshooting this
-        error is available <a href="https://www.spinnaker.io/setup/quickstart/faq/">here</a>.
+        Error initializing dialog. Check that your gate endpoint is accessible. Further information on troubleshooting
+        this error is available <a href="https://www.spinnaker.io/setup/quickstart/faq/">here</a>.
       </span>
     </div>
   </div>
-  <form role="form" class="container-fluid" novalidate name="newApplicationForm" ng-if="!(newAppModal.state.initializing || newAppModal.state.initializeFailed)">
+  <form
+    role="form"
+    class="container-fluid"
+    novalidate
+    name="newApplicationForm"
+    ng-if="!(newAppModal.state.initializing || newAppModal.state.initializeFailed)"
+  >
     <div class="modal-body">
       <div class="form-group row">
         <div class="col-sm-3 sm-label-right">Name *</div>
         <div class="col-sm-9">
-          <input type="text"
-                 autofocus
-                 name="name"
-                 class="form-control input-sm"
-                 data-purpose="application-name"
-                 ng-model="newAppModal.application.name"
-                 placeholder="Enter an application name"
-                 validate-unique="newAppModal.data.appNameList"
-                 ng-model-options="{allowInvalid: true}"
-                 validate-application-name
-                 cloud-providers="newAppModal.application.cloudProviders"
-                 required/>
+          <input
+            type="text"
+            autofocus
+            name="name"
+            class="form-control input-sm"
+            data-purpose="application-name"
+            ng-model="newAppModal.application.name"
+            placeholder="Enter an application name"
+            validate-unique="newAppModal.data.appNameList"
+            ng-model-options="{allowInvalid: true}"
+            validate-application-name
+            cloud-providers="newAppModal.application.cloudProviders"
+            required
+          />
         </div>
       </div>
 
-      <application-name-validation-messages name="newAppModal.application.name"
-                                            cloud-providers="newAppModal.application.cloudProviders"></application-name-validation-messages>
+      <application-name-validation-messages
+        name="newAppModal.application.name"
+        cloud-providers="newAppModal.application.cloudProviders"
+      ></application-name-validation-messages>
 
       <div class="form-group row slide-in" ng-if="newApplicationForm.name.$error.validateUnique">
         <div class="col-sm-9 col-sm-offset-3 error-message">
@@ -47,13 +60,15 @@
       <div class="form-group row">
         <div class="col-sm-3 sm-label-right">Owner Email *</div>
         <div class="col-sm-9">
-          <input type="email"
-                 name="email"
-                 class="form-control input-sm "
-                 data-purpose="application-email"
-                 ng-model="newAppModal.application.email"
-                 placeholder="Enter an email address"
-                 required/>
+          <input
+            type="email"
+            name="email"
+            class="form-control input-sm "
+            data-purpose="application-email"
+            ng-model="newAppModal.application.email"
+            placeholder="Enter an email address"
+            required
+          />
         </div>
       </div>
 
@@ -69,7 +84,8 @@
           <select
             class="form-control input-sm"
             ng-options="repoType for repoType in newAppModal.data.gitSources"
-            ng-model="newAppModal.application.repoType">
+            ng-model="newAppModal.application.repoType"
+          >
             <option value="">Select Repo Type</option>
           </select>
         </div>
@@ -77,21 +93,25 @@
       <div class="form-group row" ng-if="newAppModal.application.repoType">
         <div class="col-sm-3 sm-label-right">Repo Project</div>
         <div class="col-sm-9">
-          <input type="text"
-                 class="form-control input-sm"
-                 ng-model="newAppModal.application.repoProjectKey"
-                 placeholder="Enter your source repository project name"/>
+          <input
+            type="text"
+            class="form-control input-sm"
+            ng-model="newAppModal.application.repoProjectKey"
+            placeholder="Enter your source repository project name"
+          />
         </div>
       </div>
       <div class="form-group row" ng-if="newAppModal.application.repoType">
         <div class="col-sm-3 sm-label-right">Repo Name</div>
         <div class="col-sm-9">
-          <input type="text"
-                 class="form-control input-sm"
-                 ng-model="newAppModal.application.repoSlug"
-                 placeholder="Enter your source repository name (not the URL)"
-                 pattern="^((?!:\/\/).)*$"
-                 name="repoSlug"/>
+          <input
+            type="text"
+            class="form-control input-sm"
+            ng-model="newAppModal.application.repoSlug"
+            placeholder="Enter your source repository name (not the URL)"
+            pattern="^((?!:\/\/).)*$"
+            name="repoSlug"
+          />
         </div>
       </div>
 
@@ -101,7 +121,9 @@
         </div>
       </div>
 
-      <chaos-monkey-new-application-config application-config="newAppModal.application"></chaos-monkey-new-application-config>
+      <chaos-monkey-new-application-config
+        application-config="newAppModal.application"
+      ></chaos-monkey-new-application-config>
 
       <render-if-feature feature="pagerDuty">
         <pager-duty-select-field component="newAppModal.application"></pager-duty-select-field>
@@ -111,10 +133,11 @@
         <div class="col-sm-3 sm-label-right">Description</div>
         <div class="col-sm-9">
           <textarea
-                 class="form-control input-sm"
-                 ng-model="newAppModal.application.description"
-                 placeholder="Enter a description"
-                 data-purpose="application-description">
+            class="form-control input-sm"
+            ng-model="newAppModal.application.description"
+            placeholder="Enter a description"
+            data-purpose="application-description"
+          >
           </textarea>
         </div>
       </div>
@@ -135,15 +158,15 @@
 
       <application-provider-fields
         cloud-providers="newAppModal.data.cloudProviders"
-        application="newAppModal.application">
+        application="newAppModal.application"
+      >
       </application-provider-fields>
 
       <div class="form-group row">
         <div class="col-sm-3 sm-label-right">Instance Health</div>
         <div class="col-sm-9 sm-control-field checkbox">
           <label>
-            <input type="checkbox"
-                   ng-model="newAppModal.application.platformHealthOnly"/>
+            <input type="checkbox" ng-model="newAppModal.application.platformHealthOnly" />
             Consider only cloud provider health when executing tasks
             <help-field key="application.platformHealthOnly"></help-field>
           </label>
@@ -154,9 +177,11 @@
         <div class="col-sm-3 sm-label-right"></div>
         <div class="col-sm-9 sm-control-field checkbox">
           <label>
-            <input type="checkbox"
-                   ng-model="newAppModal.application.platformHealthOnlyShowOverride"
-                   ng-click="newAppModal.updateCloudProviderHealthWarning()"/>
+            <input
+              type="checkbox"
+              ng-model="newAppModal.application.platformHealthOnlyShowOverride"
+              ng-click="newAppModal.updateCloudProviderHealthWarning()"
+            />
             Show health override option for each operation
             <help-field key="application.showPlatformHealthOverride"></help-field>
           </label>
@@ -165,11 +190,17 @@
 
       <div class="col-md-12" ng-if="newAppModal.data.showOverrideWarning">
         <div class="alert alert-warning">
-          <p><i class="fa fa-exclamation-triangle"></i>
+          <p>
+            <i class="fa fa-exclamation-triangle"></i>
             {{newAppModal.data.showOverrideWarning}}
           </p>
           <p class="text-right">
-            <a class="btn btn-sm btn-default dirty-flag-dismiss" href ng-click="newAppModal.data.showOverrideWarning = null">Okay</a>
+            <a
+              class="btn btn-sm btn-default dirty-flag-dismiss"
+              href
+              ng-click="newAppModal.data.showOverrideWarning = null"
+              >Okay</a
+            >
           </p>
         </div>
       </div>
@@ -180,12 +211,14 @@
           <help-field key="application.instance.port"></help-field>
         </div>
         <div class="col-sm-2">
-          <input type="number"
-                 min="0"
-                 max="65536"
-                 class="form-control input-sm"
-                 ng-model="newAppModal.application.instancePort"
-                 name="instancePort"/>
+          <input
+            type="number"
+            min="0"
+            max="65536"
+            class="form-control input-sm"
+            ng-model="newAppModal.application.instancePort"
+            name="instancePort"
+          />
         </div>
       </div>
 
@@ -193,8 +226,7 @@
         <div class="col-sm-3 sm-label-right">Pipeline Behavior</div>
         <div class="col-sm-9 sm-control-field checkbox">
           <label>
-            <input type="checkbox"
-                   ng-model="editApp.applicationAttributes.enableRestartRunningExecutions">
+            <input type="checkbox" ng-model="editApp.applicationAttributes.enableRestartRunningExecutions" />
             Enable restarting running pipelines
           </label>
           <help-field key="application.enableRestartRunningExecutions"></help-field>
@@ -203,13 +235,13 @@
 
       <render-if-feature feature="fiatEnabled">
         <div class="form-group row">
-          <div class="col-sm-3 sm-label-right">
-            Permissions <help-field key="application.permissions"></help-field>
-          </div>
+          <div class="col-sm-3 sm-label-right">Permissions <help-field key="application.permissions"></help-field></div>
           <div class="col-sm-9">
-            <permissions-configurer permissions="newAppModal.application.permissions"
-                                    on-permissions-change="newAppModal.handlePermissionsChange"
-                                    required-group-membership="newAppModal.application.requiredGroupMembership">
+            <permissions-configurer
+              permissions="newAppModal.application.permissions"
+              on-permissions-change="newAppModal.handlePermissionsChange"
+              required-group-membership="newAppModal.application.requiredGroupMembership"
+            >
             </permissions-configurer>
           </div>
         </div>
@@ -234,10 +266,12 @@
 
     <div class="modal-footer">
       <a href class="btn btn-default" ng-click="$dismiss()">Cancel</a>
-      <submit-button is-new="true"
-                     is-disabled="newApplicationForm.$invalid || newAppModal.state.submitting || newAppModal.data.showOverrideWarning || newAppModal.state.permissionsInvalid"
-                     submitting="newAppModal.state.submitting"
-                     on-click="newAppModal.submit()"></submit-button>
+      <submit-button
+        is-new="true"
+        is-disabled="newApplicationForm.$invalid || newAppModal.state.submitting || newAppModal.data.showOverrideWarning || newAppModal.state.permissionsInvalid"
+        submitting="newAppModal.state.submitting"
+        on-click="newAppModal.submit()"
+      ></submit-button>
     </div>
   </form>
 </div>

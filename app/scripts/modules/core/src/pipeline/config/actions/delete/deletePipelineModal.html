@@ -12,21 +12,19 @@
     <form role="form" name="form" class="form-horizontal">
       <div class="form-group">
         <div class="col-md-12">
-          <p>Are you sure you want to delete the {{pipeline.strategy === true ? 'strategy' : 'pipeline'}}: {{pipeline.name}}?</p>
+          <p>
+            Are you sure you want to delete the {{pipeline.strategy === true ? 'strategy' : 'pipeline'}}:
+            {{pipeline.name}}?
+          </p>
         </div>
       </div>
     </form>
   </div>
   <div class="modal-footer">
     <button class="btn btn-default" ng-click="deletePipelineModalCtrl.cancel()">Cancel</button>
-    <button class="btn btn-primary"
-            ng-click="deletePipelineModalCtrl.deletePipeline()">
-      <span ng-if="!viewState.deleting">
-        <span class="far fa-check-circle"></span> Delete
-      </span>
-      <span ng-if="viewState.deleting" class="pulsing">
-        <span class="fa fa-cog fa-spin"></span> Deleting&hellip;
-      </span>
+    <button class="btn btn-primary" ng-click="deletePipelineModalCtrl.deletePipeline()">
+      <span ng-if="!viewState.deleting"> <span class="far fa-check-circle"></span> Delete </span>
+      <span ng-if="viewState.deleting" class="pulsing"> <span class="fa fa-cog fa-spin"></span> Deleting&hellip; </span>
     </button>
   </div>
 </div>

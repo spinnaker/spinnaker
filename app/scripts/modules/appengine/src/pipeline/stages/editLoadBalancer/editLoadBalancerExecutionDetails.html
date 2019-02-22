@@ -5,24 +5,24 @@
       <div class="col-md-12">
         <table class="table table-condensed">
           <thead>
-          <tr>
-            <th>Account</th>
-            <th>Name</th>
-            <th>Region</th>
-          </tr>
+            <tr>
+              <th>Account</th>
+              <th>Name</th>
+              <th>Region</th>
+            </tr>
           </thead>
           <tbody>
-          <tr ng-repeat="loadBalancer in stage.context.loadBalancers">
-            <td>
-              <account-tag account="loadBalancer.credentials"></account-tag>
-            </td>
-            <td>
-              {{ loadBalancer.name }}
-            </td>
-            <td>
-              {{ loadBalancer.region }}
-            </td>
-          </tr>
+            <tr ng-repeat="loadBalancer in stage.context.loadBalancers">
+              <td>
+                <account-tag account="loadBalancer.credentials"></account-tag>
+              </td>
+              <td>
+                {{ loadBalancer.name }}
+              </td>
+              <td>
+                {{ loadBalancer.region }}
+              </td>
+            </tr>
           </tbody>
         </table>
       </div>

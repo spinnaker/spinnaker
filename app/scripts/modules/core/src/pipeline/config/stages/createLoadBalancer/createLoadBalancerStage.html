@@ -8,43 +8,43 @@
     <div class="col-md-12">
       <table class="table table-condensed">
         <thead>
-        <tr>
-          <th>Account</th>
-          <th>Name</th>
-          <th>Region</th>
-          <th>Subnet</th>
-        </tr>
+          <tr>
+            <th>Account</th>
+            <th>Name</th>
+            <th>Region</th>
+            <th>Subnet</th>
+          </tr>
         </thead>
         <tbody>
-        <tr ng-repeat="loadBalancer in stage.loadBalancers">
-          <td>
-            <account-tag account="loadBalancer.credentials"></account-tag>
-          </td>
-          <td>
-            {{ loadBalancer.name }}
-          </td>
-          <td>
-            {{ loadBalancer.region }}
-          </td>
-          <td>
-            {{ loadBalancer.subnetType || '[none]' }}
-          </td>
+          <tr ng-repeat="loadBalancer in stage.loadBalancers">
+            <td>
+              <account-tag account="loadBalancer.credentials"></account-tag>
+            </td>
+            <td>
+              {{ loadBalancer.name }}
+            </td>
+            <td>
+              {{ loadBalancer.region }}
+            </td>
+            <td>
+              {{ loadBalancer.subnetType || '[none]' }}
+            </td>
 
-          <td>
-            <a class="btn btn-xs btn-link" href ng-click="ctrl.editLoadBalancer(loadBalancer, $index)">Edit</a>
-            <a class="btn btn-xs btn-link pad-left" href ng-click="ctrl.removeLoadBalancer($index)">Remove</a>
-            <a class="btn btn-xs btn-link pad-left" href ng-click="ctrl.copyLoadBalancer($index)">Duplicate</a>
-          </td>
-        </tr>
+            <td>
+              <a class="btn btn-xs btn-link" href ng-click="ctrl.editLoadBalancer(loadBalancer, $index)">Edit</a>
+              <a class="btn btn-xs btn-link pad-left" href ng-click="ctrl.removeLoadBalancer($index)">Remove</a>
+              <a class="btn btn-xs btn-link pad-left" href ng-click="ctrl.copyLoadBalancer($index)">Duplicate</a>
+            </td>
+          </tr>
         </tbody>
         <tfoot>
-        <tr>
-          <td colspan="8">
-            <button class="btn btn-block btn-sm add-new" ng-click="ctrl.addLoadBalancer()">
-              <span class="glyphicon glyphicon-plus-sign"></span> Add load balancer
-            </button>
-          </td>
-        </tr>
+          <tr>
+            <td colspan="8">
+              <button class="btn btn-block btn-sm add-new" ng-click="ctrl.addLoadBalancer()">
+                <span class="glyphicon glyphicon-plus-sign"></span> Add load balancer
+              </button>
+            </td>
+          </tr>
         </tfoot>
       </table>
     </div>

@@ -1,18 +1,31 @@
 <div class="row">
   <div class="col-md-12 divider">
     <h4 style="display: inline"><span class="glyphicon glyphicon-{{ icon }}"></span> {{ title }}</h4>
-    <div class="dropdown" style="float: right;" uib-dropdown dropdown-append-to-body auto-close="disabled" is-open="status.isOpen">
+    <div
+      class="dropdown"
+      style="float: right;"
+      uib-dropdown
+      dropdown-append-to-body
+      auto-close="disabled"
+      is-open="status.isOpen"
+    >
       <button type="button" class="btn btn-default dropdown-toggle" uib-dropdown-toggle>
         Actions <span class="caret"></span>
       </button>
       <ul uib-dropdown-menu class="uib-dropdown-menu" ng-class="{'dropdown-menu-right': rightAlign}" role="menu">
         <li ng-repeat="action in actions">
-          <a href ng-if="action.disableAutoClose"
-                  ng-click="action.action(status)"
-                  ng-bind-html="action.displayName"></a>
-          <a href ng-if="!action.disableAutoClose"
-             ng-click="action.action(); status.isOpen = false"
-             ng-bind-html="action.displayName"></a>
+          <a
+            href
+            ng-if="action.disableAutoClose"
+            ng-click="action.action(status)"
+            ng-bind-html="action.displayName"
+          ></a>
+          <a
+            href
+            ng-if="!action.disableAutoClose"
+            ng-click="action.action(); status.isOpen = false"
+            ng-bind-html="action.displayName"
+          ></a>
         </li>
       </ul>
     </div>

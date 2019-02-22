@@ -10,12 +10,15 @@
     </div>
     <div class="modal-footer">
       <user-verification account="ctrl.command.account" verification="ctrl.verification"></user-verification>
-      <button type="submit" ng-click="ctrl.resumeRollout()" style="display:none"></button> <!-- Allows form submission via enter keypress-->
+      <button type="submit" ng-click="ctrl.resumeRollout()" style="display:none"></button>
+      <!-- Allows form submission via enter keypress-->
       <button class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
-      <button type="submit"
-              class="btn btn-primary"
-              ng-click="ctrl.resumeRollout()"
-              ng-disabled="!ctrl.isValid() || !resumeRolloutForm.$valid">
+      <button
+        type="submit"
+        class="btn btn-primary"
+        ng-click="ctrl.resumeRollout()"
+        ng-disabled="!ctrl.isValid() || !resumeRolloutForm.$valid"
+      >
         Submit
       </button>
     </div>

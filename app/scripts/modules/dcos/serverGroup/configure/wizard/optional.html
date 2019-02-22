@@ -6,7 +6,9 @@
           Executor
           <help-field key="dcos.serverGroup.executor"></help-field>
         </div>
-        <div class="col-md-7"><input type="text" class="form-control input-sm" name="executor" ng-model="command.executor" /></div>
+        <div class="col-md-7">
+          <input type="text" class="form-control input-sm" name="executor" ng-model="command.executor" />
+        </div>
       </div>
 
       <div class="form-group">
@@ -14,7 +16,14 @@
           Fetch URIs
           <help-field key="dcos.serverGroup.uris"></help-field>
         </div>
-        <div class="col-md-7"><textarea class="form-control input-sm" name="fetch" ng-model="command.viewModel.fetch" ng-pattern='ctrl.fetchPattern'></textarea></div>
+        <div class="col-md-7">
+          <textarea
+            class="form-control input-sm"
+            name="fetch"
+            ng-model="command.viewModel.fetch"
+            ng-pattern="ctrl.fetchPattern"
+          ></textarea>
+        </div>
       </div>
       <div class="form-group row slide-in" ng-if="optional.fetch.$error.pattern">
         <div class="col-sm-9 col-sm-offset-2 error-message">
@@ -26,7 +35,9 @@
           Constraints
           <help-field key="dcos.serverGroup.constraints"></help-field>
         </div>
-        <div class="col-md-7"><input type="text" class="form-control input-sm" name="constraints" ng-model="command.constraints" /></div>
+        <div class="col-md-7">
+          <input type="text" class="form-control input-sm" name="constraints" ng-model="command.constraints" />
+        </div>
       </div>
 
       <div class="form-group">
@@ -34,15 +45,23 @@
           Accepted Resource Roles
           <help-field key="dcos.serverGroup.acceptedResourceRoles"></help-field>
         </div>
-        <div class="col-md-7"><input type="text" class="form-control input-sm" name="acceptedResourceRoles" ng-model="command.acceptedResourceRoles"
-          /></div>
+        <div class="col-md-7">
+          <input
+            type="text"
+            class="form-control input-sm"
+            name="acceptedResourceRoles"
+            ng-model="command.acceptedResourceRoles"
+          />
+        </div>
       </div>
 
       <div class="form-group">
         <div class="col-md-3 sm-label-right">
           User
         </div>
-        <div class="col-md-7"><input type="text" class="form-control input-sm" name="user" ng-model="command.dcosUser" /></div>
+        <div class="col-md-7">
+          <input type="text" class="form-control input-sm" name="user" ng-model="command.dcosUser" />
+        </div>
       </div>
     </div>
   </div>

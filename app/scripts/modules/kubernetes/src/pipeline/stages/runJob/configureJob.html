@@ -1,34 +1,39 @@
 <form name="form" class="container-fluid form-horizontal" style="padding: 0;">
-  <v2-modal-wizard heading="Configure Run Job"
-                   dismiss="ctrl.cancel">
+  <v2-modal-wizard heading="Configure Run Job" dismiss="ctrl.cancel">
     <v2-wizard-page key="basic" label="Basic Settings" mark-complete-on-view="false">
       <stage-config-field label="Account">
-        <account-select-field component="ctrl.stage"
-                              field="account"
-                              provider="'kubernetes'"
-                              accounts="ctrl.accounts">
+        <account-select-field component="ctrl.stage" field="account" provider="'kubernetes'" accounts="ctrl.accounts">
         </account-select-field>
       </stage-config-field>
 
       <stage-config-field label="Namespace" help-key="kubernetes.namespace">
-        <namespace-select-field component="ctrl.stage"
-                                field="namespace"
-                                hide-label="true"
-                                columns="12"
-                                account="ctrl.stage.account"
-                                namespaces="ctrl.namespaces">
+        <namespace-select-field
+          component="ctrl.stage"
+          field="namespace"
+          hide-label="true"
+          columns="12"
+          account="ctrl.stage.account"
+          namespaces="ctrl.namespaces"
+        >
         </namespace-select-field>
       </stage-config-field>
 
       <stage-config-field label="Image">
-        <ui-select multiple name="containerSelect" ng-model="ctrl.stage.containers" class="form-control input-sm" required>
+        <ui-select
+          multiple
+          name="containerSelect"
+          ng-model="ctrl.stage.containers"
+          class="form-control input-sm"
+          required
+        >
           <ui-select-match>{{ $item.imageDescription | kubernetesImageId }}</ui-select-match>
           <ui-select-choices
             repeat="container in ctrl.containers | orderBy: 'imageDescription.imageId'"
             group-by="ctrl.groupByRegistry"
             refresh-delay="0"
             ui-disable-choice="container.message"
-            refresh="ctrl.searchImages($select.search)">
+            refresh="ctrl.searchImages($select.search)"
+          >
             <span ng-bind-html="container.imageDescription | kubernetesImageId | highlight: $select.search"></span>
           </ui-select-choices>
         </ui-select>
@@ -37,38 +42,35 @@
 
     <v2-wizard-page key="advanced" label="Advanced Settings" done="true">
       <stage-config-field label="DNS Policy">
-        <select class="form-control input-sm"
-                ng-model="ctrl.stage.dnsPolicy"
-                ng-options="option for option in ctrl.policies">
+        <select
+          class="form-control input-sm"
+          ng-model="ctrl.stage.dnsPolicy"
+          ng-options="option for option in ctrl.policies"
+        >
         </select>
       </stage-config-field>
 
       <stage-config-field label="Service Account Name">
-        <input type="text" class="form-control input-sm" ng-model="ctrl.stage.serviceAccountName">
+        <input type="text" class="form-control input-sm" ng-model="ctrl.stage.serviceAccountName" />
       </stage-config-field>
 
       <div class="sm-label-left">
         <b>Pod Annotations</b>
       </div>
-      <map-editor model="ctrl.stage.annotations" add-button-label="Add Annotations" labels-left="true">
-      </map-editor>
+      <map-editor model="ctrl.stage.annotations" add-button-label="Add Annotations" labels-left="true"> </map-editor>
 
       <div class="sm-label-left">
         <b>Pod Labels</b>
       </div>
-      <map-editor model="ctrl.stage.labels" add-button-label="Add Labels" labels-left="true">
-      </map-editor>
-      
+      <map-editor model="ctrl.stage.labels" add-button-label="Add Labels" labels-left="true"> </map-editor>
+
       <div class="sm-label-left">
         <b>Node Selector</b>
       </div>
-      <map-editor model="ctrl.stage.nodeSelector" add-button-label="Add Node Selector" labels-left="true">
-      </map-editor>
-      
-      <kubernetes-tolerations tolerations="ctrl.stage.tolerations"
-                              on-toleration-change="ctrl.onTolerationChange">
-      </kubernetes-tolerations>
+      <map-editor model="ctrl.stage.nodeSelector" add-button-label="Add Node Selector" labels-left="true"> </map-editor>
 
+      <kubernetes-tolerations tolerations="ctrl.stage.tolerations" on-toleration-change="ctrl.onTolerationChange">
+      </kubernetes-tolerations>
     </v2-wizard-page>
 
     <div ng-repeat="container in ctrl.stage.containers">
@@ -76,7 +78,7 @@
         <div style="padding-bottom: 10px">
           <stage-config-field label="Name">
             <div>
-              <input type="text" class="form-control input-sm" ng-model="container.name">
+              <input type="text" class="form-control input-sm" ng-model="container.name" />
             </div>
           </stage-config-field>
 
@@ -86,8 +88,12 @@
 
           <stage-config-field label="Pull Policy" help-key="kubernetes.containers.pullpolicy">
             <select class="form-control input-sm" ng-model="container.imagePullPolicy">
-              <option ng-repeat="type in ctrl.pullPolicies" value="{{type}}"
-                      ng-selected="container.imagePullPolicy === type">{{type}}</option>
+              <option
+                ng-repeat="type in ctrl.pullPolicies"
+                value="{{type}}"
+                ng-selected="container.imagePullPolicy === type"
+                >{{type}}</option
+              >
             </select>
           </stage-config-field>
         </div>
@@ -96,15 +102,13 @@
             <b>Commands</b>
             <help-field key="kubernetes.containers.command"></help-field>
           </div>
-          <kubernetes-container-commands commands="container.command">
-          </kubernetes-container-commands>
+          <kubernetes-container-commands commands="container.command"> </kubernetes-container-commands>
 
           <div class="sm-label-left">
             <b>Args</b>
             <help-field key="kubernetes.containers.args"></help-field>
           </div>
-          <kubernetes-container-arguments args="container.args">
-          </kubernetes-container-arguments>
+          <kubernetes-container-arguments args="container.args"> </kubernetes-container-arguments>
 
           <div class="sm-label-left">
             <b>Environment Variables</b>
@@ -115,51 +119,63 @@
           <div class="sm-label-left">
             <b>Environment From</b>
           </div>
-          <kubernetes-container-environment-from env-from="container.envFrom">
-          </kubernetes-container-environment-from>
+          <kubernetes-container-environment-from env-from="container.envFrom"> </kubernetes-container-environment-from>
         </collapsible-section>
 
         <collapsible-section heading="Volumes" expanded="false" subsection="true">
-          <kubernetes-container-volumes volume-sources="ctrl.stage.volumeSources" volume-mounts="container.volumeMounts">
+          <kubernetes-container-volumes
+            volume-sources="ctrl.stage.volumeSources"
+            volume-mounts="container.volumeMounts"
+          >
           </kubernetes-container-volumes>
         </collapsible-section>
 
         <collapsible-section heading="Ports" expanded="false" subsection="true">
-          <kubernetes-container-ports ports="container.ports">
-          </kubernetes-container-ports>
+          <kubernetes-container-ports ports="container.ports"> </kubernetes-container-ports>
         </collapsible-section>
 
         <collapsible-section heading="Probes" expanded="false" subsection="true">
-          <kubernetes-container-probe container="container" command="ctrl" probetype="'readinessProbe'" heading="'Readiness'">
+          <kubernetes-container-probe
+            container="container"
+            command="ctrl"
+            probetype="'readinessProbe'"
+            heading="'Readiness'"
+          >
           </kubernetes-container-probe>
-          <hr>
-          <kubernetes-container-probe container="container" command="ctrl" probetype="'livenessProbe'" heading="'Liveness'">
+          <hr />
+          <kubernetes-container-probe
+            container="container"
+            command="ctrl"
+            probetype="'livenessProbe'"
+            heading="'Liveness'"
+          >
           </kubernetes-container-probe>
         </collapsible-section>
 
         <collapsible-section heading="Resources" expanded="false" subsection="true">
-          <kubernetes-container-resources container="container">
-          </kubernetes-container-resources>
+          <kubernetes-container-resources container="container"> </kubernetes-container-resources>
         </collapsible-section>
 
         <collapsible-section heading="Security Context" expanded="false" subsection="true">
-          <kubernetes-security-context-selector component="container">
-          </kubernetes-security-context-selector>
+          <kubernetes-security-context-selector component="container"> </kubernetes-security-context-selector>
         </collapsible-section>
 
         <collapsible-section heading="Lifecycle Hooks" expanded="false" subsection="true">
-          <kubernetes-lifecycle-hook-configurer on-handler-change="ctrl.setPostStartHandler($index, handler)"
-                                                handler="container.lifecycle.postStart">
-          PostStart <help-field key="kubernetes.containers.lifecycle.postStart"></help-field>
+          <kubernetes-lifecycle-hook-configurer
+            on-handler-change="ctrl.setPostStartHandler($index, handler)"
+            handler="container.lifecycle.postStart"
+          >
+            PostStart <help-field key="kubernetes.containers.lifecycle.postStart"></help-field>
           </kubernetes-lifecycle-hook-configurer>
-          <kubernetes-lifecycle-hook-configurer on-handler-change="ctrl.setPreStopHandler($index, handler)"
-                                                handler="container.lifecycle.preStop">
-          PreStop <help-field key="kubernetes.containers.lifecycle.preStop"></help-field>
+          <kubernetes-lifecycle-hook-configurer
+            on-handler-change="ctrl.setPreStopHandler($index, handler)"
+            handler="container.lifecycle.preStop"
+          >
+            PreStop <help-field key="kubernetes.containers.lifecycle.preStop"></help-field>
           </kubernetes-lifecycle-hook-configurer>
         </collapsible-section>
       </v2-wizard-page>
     </div>
-
   </v2-modal-wizard>
   <div class="modal-footer">
     <button class="btn btn-default btn-cancel" ng-click="ctrl.cancel()">Cancel</button>

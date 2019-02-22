@@ -6,13 +6,16 @@
     <div class="modal-body">
       <div class="provider-options providers-{{providerOptions.length}}">
         <div class="provider" ng-repeat="provider in providerOptions">
-          <button class="instance-profile provider-selection-logo"
-                  ng-class="{active: command.provider === provider}"
-                  ng-click="command.provider = provider">
-              <span is-visible="command.provider === provider"
-                    class="far fa-check-circle selected-indicator"></span>
+          <button
+            class="instance-profile provider-selection-logo"
+            ng-class="{active: command.provider === provider}"
+            ng-click="command.provider = provider"
+          >
+            <span is-visible="command.provider === provider" class="far fa-check-circle selected-indicator"></span>
             <div class="panel-heading">
-              <h4 ng-style="{'background-image': 'url('+getImage(provider)+')'}"><span class="sr-only" ng-bind="provider"></span></h4>
+              <h4 ng-style="{'background-image': 'url('+getImage(provider)+')'}">
+                <span class="sr-only" ng-bind="provider"></span>
+              </h4>
             </div>
           </button>
         </div>

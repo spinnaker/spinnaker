@@ -27,12 +27,15 @@
   </dt>
   <dd>{{$ctrl.policy.mode}}</dd>
   <dt ng-if="$ctrl.serverGroup.autoscalingMessages">Messages</dt>
-  <dd ng-if="$ctrl.serverGroup.autoscalingMessages"
-      ng-repeat="message in $ctrl.serverGroup.autoscalingMessages">{{message}}</dd>
-  <action-icons class="text-right"
-                edit="$ctrl.editPolicy()"
-                edit-info="Edit Policy"
-                destroy="$ctrl.deletePolicy()"
-                destroy-info="Delete Policy">
+  <dd ng-if="$ctrl.serverGroup.autoscalingMessages" ng-repeat="message in $ctrl.serverGroup.autoscalingMessages">
+    {{message}}
+  </dd>
+  <action-icons
+    class="text-right"
+    edit="$ctrl.editPolicy()"
+    edit-info="Edit Policy"
+    destroy="$ctrl.deletePolicy()"
+    destroy-info="Delete Policy"
+  >
   </action-icons>
 </dl>

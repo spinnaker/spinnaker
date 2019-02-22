@@ -9,21 +9,23 @@
       <div class="row">
         <div class="col-md-offset-2 col-md-8" style="padding-left: 2px;">
           <div class="checkbox">
-            <label>
-              <input ng-model="ctrl.params.deleteHealthChecks" type="checkbox" />Delete health checks?
-            </label>
-            <help-field expand="true"
-                        content="If the health checks associated with this load balancer
+            <label> <input ng-model="ctrl.params.deleteHealthChecks" type="checkbox" />Delete health checks? </label>
+            <help-field
+              expand="true"
+              content="If the health checks associated with this load balancer
                                  are being used by other resources, they will not be deleted,
-                                 whether this option is selected or not."></help-field>
+                                 whether this option is selected or not."
+            ></help-field>
           </div>
         </div>
       </div>
     </div>
-    <gce-footer action="ctrl.submit()"
-                cancel="ctrl.cancel()"
-                is-valid="ctrl.isValid()"
-                account="ctrl.loadBalancer.account"
-                verification="ctrl.verification"></gce-footer>
+    <gce-footer
+      action="ctrl.submit()"
+      cancel="ctrl.cancel()"
+      is-valid="ctrl.isValid()"
+      account="ctrl.loadBalancer.account"
+      verification="ctrl.verification"
+    ></gce-footer>
   </form>
 </div>

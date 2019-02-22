@@ -1,19 +1,21 @@
 <div ng-controller="kubernetesShrinkClusterStageCtrl as shrinkClusterStageCtrl" class="form-horizontal">
   <div ng-if="!pipeline.strategy">
-    <account-namespace-cluster-selector
-      application="application"
-      component="stage"
-      accounts="accounts">
+    <account-namespace-cluster-selector application="application" component="stage" accounts="accounts">
     </account-namespace-cluster-selector>
   </div>
   <stage-config-field label="Shrink Options">
     <div class="form-inline">
       Shrink to
-      <input type="number" min="0" required ng-model="stage.shrinkToSize"
-             class="form-control input-sm" style="width: 50px" />
+      <input
+        type="number"
+        min="0"
+        required
+        ng-model="stage.shrinkToSize"
+        class="form-control input-sm"
+        style="width: 50px"
+      />
       {{shrinkClusterStageCtrl.pluralize('server group', stage.shrinkToSize)}}, keeping the
-      <select class="form-control input-sm"
-              ng-model="stage.retainLargerOverNewer" style="width: 100px">
+      <select class="form-control input-sm" ng-model="stage.retainLargerOverNewer" style="width: 100px">
         <option value="true">largest</option>
         <option value="false">newest</option>
       </select>
@@ -22,7 +24,7 @@
   <div class="form-group">
     <div class="col-md-offset-3 col-md-6 checkbox">
       <label>
-        <input type="checkbox" ng-model="stage.allowDeleteActive"/>
+        <input type="checkbox" ng-model="stage.allowDeleteActive" />
         Allow deletion of active server groups
       </label>
     </div>

@@ -1,9 +1,7 @@
-<div class="details-panel"
-     ng-class="{disabled: ctrl.serverGroup.isDisabled || ctrl.serverGroup.disabled}">
+<div class="details-panel" ng-class="{disabled: ctrl.serverGroup.isDisabled || ctrl.serverGroup.disabled}">
   <div class="header" ng-if="ctrl.state.loading">
     <div class="close-button">
-      <a class="btn btn-link"
-         ui-sref="^">
+      <a class="btn btn-link" ui-sref="^">
         <span class="glyphicon glyphicon-remove"></span>
       </a>
     </div>
@@ -14,17 +12,19 @@
 
   <div class="header" ng-if="!ctrl.state.loading">
     <div class="close-button">
-      <a class="btn btn-link"
-         ui-sref="^">
+      <a class="btn btn-link" ui-sref="^">
         <span class="glyphicon glyphicon-remove"></span>
       </a>
     </div>
     <div class="header-text horizontal middle">
-      <cloud-provider-logo provider="ctrl.serverGroup.cloudProvider" height="'36px'" width="'36px'"></cloud-provider-logo>
+      <cloud-provider-logo
+        provider="ctrl.serverGroup.cloudProvider"
+        height="'36px'"
+        width="'36px'"
+      ></cloud-provider-logo>
       <h3 class="horizontal middle space-between flex-1" select-on-dbl-click>
         {{ctrl.serverGroup.displayName}}
         <render-if-feature feature="entityTags">
-
           <entity-notifications
             entity="ctrl.serverGroup"
             application="ctrl.app"
@@ -34,7 +34,6 @@
             page-location="details"
             on-update="ctrl.app.serverGroups.refresh()"
           ></entity-notifications>
-
         </render-if-feature>
       </h3>
     </div>
@@ -70,11 +69,13 @@
             </a>
           </li>
           <render-if-feature feature="entityTags">
-            <add-entity-tag-links component="ctrl.serverGroup"
-                                  application="ctrl.app"
-                                  entity-type="serverGroup"
-                                  owner-options="ctrl.entityTagTargets"
-                                  on-update="ctrl.app.serverGroups.refresh()"></add-entity-tag-links>
+            <add-entity-tag-links
+              component="ctrl.serverGroup"
+              application="ctrl.app"
+              entity-type="serverGroup"
+              owner-options="ctrl.entityTagTargets"
+              on-update="ctrl.app.serverGroups.refresh()"
+            ></add-entity-tag-links>
           </render-if-feature>
         </ul>
       </div>
@@ -83,7 +84,10 @@
   <div class="content" ng-if="!ctrl.state.loading">
     <kubernetes-manifest-status status="ctrl.manifest.status"></kubernetes-manifest-status>
     <div class="band band-info" ng-if="ctrl.serverGroup.isDisabled || ctrl.serverGroup.disabled">Disabled</div>
-    <server-group-running-tasks-details server-group="ctrl.serverGroup" application="ctrl.app"></server-group-running-tasks-details>
+    <server-group-running-tasks-details
+      server-group="ctrl.serverGroup"
+      application="ctrl.app"
+    ></server-group-running-tasks-details>
     <collapsible-section heading="Information" expanded="true">
       <dl class="dl-horizontal dl-flex">
         <dt>Created</dt>
@@ -96,18 +100,23 @@
         <dd>{{ctrl.serverGroup.kind}}</dd>
         <dt ng-if="ctrl.manifestController()">Controller</dt>
         <dd>
-          <a ui-sref="^.serverGroupManager({
+          <a
+            ui-sref="^.serverGroupManager({
                         accountId: ctrl.serverGroup.account,
                         region: ctrl.serverGroup.region,
                         serverGroupManager: ctrl.manifestController(),
-                        provider: 'kubernetes'})">
+                        provider: 'kubernetes'})"
+          >
             {{ctrl.manifestController() | robotToHuman }}
           </a>
         </dd>
       </dl>
     </collapsible-section>
 
-    <kubernetes-annotation-custom-sections manifest="ctrl.serverGroup.manifest" resource="ctrl.serverGroup"></kubernetes-annotation-custom-sections>
+    <kubernetes-annotation-custom-sections
+      manifest="ctrl.serverGroup.manifest"
+      resource="ctrl.serverGroup"
+    ></kubernetes-annotation-custom-sections>
 
     <collapsible-section heading="Images" expanded="true">
       <kubernetes-manifest-image-details manifest="ctrl.serverGroup.manifest"></kubernetes-manifest-image-details>
@@ -120,20 +129,20 @@
       <kubernetes-manifest-labels manifest="ctrl.serverGroup.manifest"></kubernetes-manifest-labels>
     </collapsible-section>
     <collapsible-section heading="Size" expanded="true">
-      <dl class="dl-horizontal dl-flex"
-          ng-if="ctrl.serverGroup.capacity.min == null">
+      <dl class="dl-horizontal dl-flex" ng-if="ctrl.serverGroup.capacity.min == null">
         <dt>Current</dt>
         <dd>{{ctrl.serverGroup.instances.length}}</dd>
       </dl>
-      <dl class="dl-horizontal dl-flex"
-          ng-if="ctrl.serverGroup.capacity.min != null && ctrl.serverGroup.capacity.min === ctrl.serverGroup.capacity.max">
+      <dl
+        class="dl-horizontal dl-flex"
+        ng-if="ctrl.serverGroup.capacity.min != null && ctrl.serverGroup.capacity.min === ctrl.serverGroup.capacity.max"
+      >
         <dt>Min/Max</dt>
         <dd>{{ctrl.serverGroup.capacity.min}}</dd>
         <dt>Current</dt>
         <dd>{{ctrl.serverGroup.instances.length}}</dd>
       </dl>
-      <dl class="dl-horizontal dl-flex"
-          ng-if="ctrl.serverGroup.capacity.min !== ctrl.serverGroup.capacity.max">
+      <dl class="dl-horizontal dl-flex" ng-if="ctrl.serverGroup.capacity.min !== ctrl.serverGroup.capacity.max">
         <dt>Min</dt>
         <dd>{{ctrl.serverGroup.capacity.min}}</dd>
         <dt>Max</dt>
@@ -143,8 +152,7 @@
       </dl>
     </collapsible-section>
     <collapsible-section heading="Health" expanded="true">
-      <dl class="dl-horizontal dl-flex"
-          ng-if="ctrl.serverGroup">
+      <dl class="dl-horizontal dl-flex" ng-if="ctrl.serverGroup">
         <dt>Instances</dt>
         <dd>
           <health-counts container="ctrl.serverGroup.instanceCounts" class="pull-left"></health-counts>

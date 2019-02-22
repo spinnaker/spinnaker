@@ -8,25 +8,26 @@
     <div class="modal-body confirmation-modal">
       <div class="form-horizontal">
         <oracle-resize-capacity
-                             server-group="serverGroup"
-                             form-methods="formMethods"
-                             application="application"
-                             command="command"></oracle-resize-capacity>
+          server-group="serverGroup"
+          form-methods="formMethods"
+          application="application"
+          command="command"
+        ></oracle-resize-capacity>
       </div>
       <div class="row" ng-if="command.platformHealthOnlyShowOverride">
         <div class="col-sm-10 col-sm-offset-1">
-          <platform-health-override command="command"
-                                    platform-health-type="'Oracle'"
-                                    show-help-details="true">
+          <platform-health-override command="command" platform-health-type="'Oracle'" show-help-details="true">
           </platform-health-override>
         </div>
       </div>
       <task-reason command="command"></task-reason>
     </div>
-    <oracle-footer action="ctrl.resize()"
-                        cancel="ctrl.cancel()"
-                        is-valid="ctrl.isValid()"
-                        account="serverGroup.account"
-                        verification="verification"></oracle-footer>
+    <oracle-footer
+      action="ctrl.resize()"
+      cancel="ctrl.cancel()"
+      is-valid="ctrl.isValid()"
+      account="serverGroup.account"
+      verification="verification"
+    ></oracle-footer>
   </form>
 </div>
