@@ -28,6 +28,7 @@ var (
 )
 
 func NewExecutionCmd(out io.Writer) *cobra.Command {
+	options := executionOptions{}
 	cmd := &cobra.Command{
 		Use:     "execution",
 		Aliases: []string{"executions", "ex"},
@@ -38,5 +39,6 @@ func NewExecutionCmd(out io.Writer) *cobra.Command {
 
 	// create subcommands
 	cmd.AddCommand(NewGetCmd())
+	cmd.AddCommand(NewListCmd(options))
 	return cmd
 }
