@@ -109,8 +109,10 @@ export class LoadBalancersTag extends React.Component<ILoadBalancersTagProps, IL
 
     const totalCount = loadBalancers.length;
 
-    if (!totalCount) {
-      return isLoading ? <Spinner size="nano" /> : null;
+    if (isLoading) {
+      return <Spinner size="nano" />;
+    } else if (!totalCount) {
+      return null;
     }
 
     const className = `load-balancers-tag ${totalCount > 1 ? 'overflowing' : ''}`;
@@ -130,7 +132,6 @@ export class LoadBalancersTag extends React.Component<ILoadBalancersTagProps, IL
 
     return (
       <span className={className}>
-        {!isLoading && <Spinner size="nano" />}
         {totalCount > 1 && (
           <HoverablePopover
             delayShow={100}
