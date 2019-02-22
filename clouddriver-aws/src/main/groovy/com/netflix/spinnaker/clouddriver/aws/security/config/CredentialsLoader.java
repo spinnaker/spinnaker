@@ -28,14 +28,7 @@ import com.netflix.spinnaker.clouddriver.aws.security.config.CredentialsConfig.R
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -219,6 +212,7 @@ public class CredentialsLoader<T extends AmazonCredentials> {
             account.setRegions(initRegions(defaultRegions, account.getRegions()));
             account.setDefaultSecurityGroups(account.getDefaultSecurityGroups() != null ? account.getDefaultSecurityGroups() : config.getDefaultSecurityGroups());
             account.setLifecycleHooks(account.getLifecycleHooks() != null ? account.getLifecycleHooks() : config.getDefaultLifecycleHooks());
+            account.setEnabled(Optional.ofNullable(account.getEnabled()).orElse(true));
 
             Map<String, String> templateContext = new HashMap<>(templateValues);
             templateContext.put("name", account.getName());
@@ -243,7 +237,7 @@ public class CredentialsLoader<T extends AmazonCredentials> {
 
             initializedAccounts.add(credentialTranslator.translate(credentialsProvider, account));
         }
-        return initializedAccounts;
+        return initializedAccounts.stream().filter(AmazonCredentials::isEnabled).collect(Collectors.toList());
     }
 
     private static class Lazy<T> {

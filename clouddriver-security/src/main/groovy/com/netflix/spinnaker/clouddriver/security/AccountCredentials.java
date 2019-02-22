@@ -139,4 +139,8 @@ public interface AccountCredentials<T> {
       }
       return perms.build();
     }
+
+    default boolean isEnabled() {
+      return true;
+    }
 }

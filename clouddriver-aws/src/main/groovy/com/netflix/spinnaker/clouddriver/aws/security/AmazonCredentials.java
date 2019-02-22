@@ -35,8 +35,6 @@ import static java.util.Objects.requireNonNull;
  * Basic set of Amazon credentials that will a provided {@link com.amazonaws.auth.AWSCredentialsProvider} to resolve account credentials.
  * If none provided, the {@link com.amazonaws.auth.DefaultAWSCredentialsProviderChain} will be used. The account's active
  * regions and availability zones can be specified as well.
- *
- *
  */
 public class AmazonCredentials implements AccountCredentials<AWSCredentials> {
     private static final String CLOUD_PROVIDER = "aws";
@@ -46,6 +44,7 @@ public class AmazonCredentials implements AccountCredentials<AWSCredentials> {
     private final String accountType;
     private final String accountId;
     private final String defaultKeyPair;
+    private final Boolean enabled;
     private final List<String> requiredGroupMembership;
     private final Permissions permissions;
     private final List<AWSRegion> regions;
@@ -83,6 +82,7 @@ public class AmazonCredentials implements AccountCredentials<AWSCredentials> {
                                    accountType,
                                    accountId,
                                    defaultKeyPair,
+                                   true,
                                    regions,
                                    null,
                                    null,
@@ -97,6 +97,7 @@ public class AmazonCredentials implements AccountCredentials<AWSCredentials> {
                              @JsonProperty("accountType") String accountType,
                              @JsonProperty("accountId") String accountId,
                              @JsonProperty("defaultKeyPair") String defaultKeyPair,
+                             @JsonProperty("enabled") Boolean enabled,
                              @JsonProperty("regions") List<AWSRegion> regions,
                              @JsonProperty("defaultSecurityGroups") List<String> defaultSecurityGroups,
                              @JsonProperty("requiredGroupMembership") List<String> requiredGroupMembership,
@@ -108,6 +109,7 @@ public class AmazonCredentials implements AccountCredentials<AWSCredentials> {
              accountType,
              accountId,
              defaultKeyPair,
+             enabled,
              regions,
              defaultSecurityGroups,
              requiredGroupMembership,
@@ -124,6 +126,7 @@ public class AmazonCredentials implements AccountCredentials<AWSCredentials> {
             source.getAccountType(),
             source.getAccountId(),
             source.getDefaultKeyPair(),
+            source.isEnabled(),
             source.getRegions(),
             source.getDefaultSecurityGroups(),
             source.getRequiredGroupMembership(),
@@ -139,6 +142,7 @@ public class AmazonCredentials implements AccountCredentials<AWSCredentials> {
                       String accountType,
                       String accountId,
                       String defaultKeyPair,
+                      Boolean enabled,
                       List<AWSRegion> regions,
                       List<String> defaultSecurityGroups,
                       List<String> requiredGroupMembership,
@@ -151,6 +155,7 @@ public class AmazonCredentials implements AccountCredentials<AWSCredentials> {
         this.accountType = requireNonNull(accountType, "accountType");
         this.accountId = requireNonNull(accountId, "accountId");
         this.defaultKeyPair = defaultKeyPair;
+        this.enabled = enabled != null ? enabled : true;
         this.regions = regions == null ? Collections.<AWSRegion>emptyList() : Collections.unmodifiableList(regions);
         this.defaultSecurityGroups = defaultSecurityGroups == null ? null : Collections.unmodifiableList(defaultSecurityGroups);
         this.requiredGroupMembership = requiredGroupMembership == null ? Collections.<String>emptyList() : Collections.unmodifiableList(requiredGroupMembership);
@@ -225,7 +230,12 @@ public class AmazonCredentials implements AccountCredentials<AWSCredentials> {
       return this.permissions;
     }
 
-    public static class AWSRegion {
+  @Override
+  public boolean isEnabled() {
+    return enabled;
+  }
+
+  public static class AWSRegion {
 
         private final String name;
         private final Boolean deprecated;
