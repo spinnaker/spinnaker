@@ -1,2 +1,5 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
   com.netflix.spinnaker.kork.PlatformComponents
+
+org.springframework.context.ApplicationContextInitializer=\
+  com.netflix.spinnaker.kork.secrets.SecretApplicationContextInitializer

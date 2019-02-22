@@ -9,9 +9,10 @@ dependencies {
     compile spinnaker.dependency('spectatorGc')
     compile spinnaker.dependency('spectatorJvm')
     compile spinnaker.dependency('spectatorWebSpring')
-
+    compile project(":kork-secrets-aws")
 
     testCompile spinnaker.dependency('groovy')
     spinnaker.group('spockBase')
     testRuntime spinnaker.dependency('slf4jSimple')
+    testCompile(group: 'org.mockito', name: 'mockito-core', version: '2.23.4')
 }
