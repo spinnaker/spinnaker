@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.front50.controllers
 
 import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties
+import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.fiat.shared.FiatService
 import com.netflix.spinnaker.front50.model.serviceaccount.ServiceAccount
 import com.netflix.spinnaker.front50.model.serviceaccount.ServiceAccountDAO
@@ -27,16 +28,17 @@ class ServiceAccountsControllerSpec extends Specification {
   def serviceAccountDAO = Mock(ServiceAccountDAO)
   def fiatService = Mock(FiatService)
   def fiatClientConfigurationProperties = Mock(FiatClientConfigurationProperties)
-
+  def fiatPermissionsEvaluator = Mock(FiatPermissionEvaluator)
 
   @Subject
   def controller = new ServiceAccountsController(
     serviceAccountDAO: serviceAccountDAO,
     fiatService: fiatService,
-    fiatClientConfigurationProperties: fiatClientConfigurationProperties
+    fiatClientConfigurationProperties: fiatClientConfigurationProperties,
+    fiatPermissionEvaluator: fiatPermissionsEvaluator
   )
 
-  def "should sync with fiat on creating a serviceAccount"() {
+  def "should invalidate local cache"() {
     given:
     def serviceAccount = new ServiceAccount(
       name: "test-svc-acct",
@@ -48,8 +50,9 @@ class ServiceAccountsControllerSpec extends Specification {
     serviceAccountDAO.create(serviceAccount.id, serviceAccount) >> serviceAccount
     fiatClientConfigurationProperties.isEnabled() >> true
     controller.createServiceAccount(serviceAccount)
+
     then:
-    1 * fiatService.loginWithRoles(serviceAccount.name, serviceAccount.memberOf)
+    1 * fiatPermissionsEvaluator.invalidatePermission(_)
     1 * fiatService.sync([])
   }
 
