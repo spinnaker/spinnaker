@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.security;
 
+import com.netflix.spinnaker.halyard.config.model.v1.node.Secret;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -27,6 +28,7 @@ public class GithubRoleProvider extends RoleProvider {
   private final String nodeName = "github";
 
   private String baseUrl;
+  @Secret
   private String accessToken;
   private String organization;
 }
