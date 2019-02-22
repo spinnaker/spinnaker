@@ -3,6 +3,7 @@ import * as React from 'react';
 import * as ReactGA from 'react-ga';
 import { get, isEmpty, orderBy, uniq } from 'lodash';
 import { Debounce } from 'lodash-decorators';
+import * as classnames from 'classnames';
 import { SortableContainer, SortableElement, SortableHandle, arrayMove, SortEnd } from 'react-sortable-hoc';
 import { Subscription } from 'rxjs';
 
@@ -290,7 +291,7 @@ const FilterCheckbox = (props: {
 
 const Pipeline = SortableElement(
   (props: { tag: IFilterTag; pipeline: string; dragEnabled: boolean; update: () => void }) => (
-    <div className="checkbox sortable">
+    <div className={classnames('checkbox sortable', { 'disable-user-select': props.dragEnabled })}>
       <div>
         <label>
           {props.dragEnabled && <DragHandle />}
