@@ -30,7 +30,7 @@
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.4.1",
     "@spinnaker/kayenta": "0.0.70",
-    "@spinnaker/styleguide": "^1.0.10",
+    "@spinnaker/styleguide": "^1.0.12",
     "@types/memoize-one": "^3.1.1",
     "@types/react-tether": "^0.5.3",
     "@uirouter/react-hybrid": "0.3.9",
@@ -46,7 +46,7 @@
     "angular-ui-sortable": "^0.17.0",
     "angular2react": "^3.0.2",
     "babel-preset-env": "^1.6.1",
-    "bootstrap": "3.4.0",
+    "bootstrap": "3.4.1",
     "cachefactory": "^3.0.0",
     "classname": "^0.0.0",
     "clipboard": "^1.5.12",
