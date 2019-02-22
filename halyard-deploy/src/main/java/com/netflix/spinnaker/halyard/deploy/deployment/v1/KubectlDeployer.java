@@ -35,6 +35,8 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kub
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.v2.KubernetesV2Utils;
 
 import java.util.concurrent.TimeUnit;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -42,6 +44,9 @@ import java.util.stream.Collectors;
 
 @Component
 public class KubectlDeployer implements Deployer<KubectlServiceProvider,AccountDeploymentDetails<KubernetesAccount>> {
+  @Autowired
+  KubernetesV2Utils kubernetesV2Utils;
+
   @Override
   public RemoteAction deploy(KubectlServiceProvider serviceProvider,
       AccountDeploymentDetails<KubernetesAccount> deploymentDetails,
@@ -72,7 +77,7 @@ public class KubectlDeployer implements Deployer<KubectlServiceProvider,AccountD
             DaemonTaskHandler.newStage("Deploying " + service.getServiceName() + " with kubectl");
 
             KubernetesAccount account = deploymentDetails.getAccount();
-            KubernetesV2Executor executor = new KubernetesV2Executor(DaemonTaskHandler.getJobExecutor(), account);
+            KubernetesV2Executor executor = new KubernetesV2Executor(DaemonTaskHandler.getJobExecutor(), account, kubernetesV2Utils);
             String namespaceDefinition = service.getNamespaceYaml(resolvedConfiguration);
             String serviceDefinition = service.getServiceYaml(resolvedConfiguration);
 
@@ -137,7 +142,7 @@ public class KubectlDeployer implements Deployer<KubectlServiceProvider,AccountD
 
     String connectCommands = String.join(" &\n", serviceTypes.stream()
         .map(t -> serviceProvider.getService(t)
-            .connectCommand(deploymentDetails, runtimeSettings))
+            .connectCommand(deploymentDetails, runtimeSettings, kubernetesV2Utils))
         .collect(Collectors.toList()));
     result.setScript("#!/bin/bash\n" + connectCommands);
     result.setScriptDescription(
@@ -178,7 +183,7 @@ public class KubectlDeployer implements Deployer<KubectlServiceProvider,AccountD
         return;
       }
       KubernetesAccount account = deploymentDetails.getAccount();
-      KubernetesV2Executor executor = new KubernetesV2Executor(DaemonTaskHandler.getJobExecutor(), account);
+      KubernetesV2Executor executor = new KubernetesV2Executor(DaemonTaskHandler.getJobExecutor(), account, kubernetesV2Utils);
 
       DaemonTaskHandler.newStage("Deleting disabled service " + service.getServiceName() + " with kubectl");
       DaemonTaskHandler.message("Running kubectl delete on the resource, service, and secret definitions...");

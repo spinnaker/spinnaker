@@ -18,32 +18,19 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.v2;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesAccount;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.job.v1.JobExecutor;
 import com.netflix.spinnaker.halyard.core.job.v1.JobRequest;
 import com.netflix.spinnaker.halyard.core.job.v1.JobStatus;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
-import com.netflix.spinnaker.halyard.core.resource.v1.JinjaJarResource;
-import com.netflix.spinnaker.halyard.core.resource.v1.TemplatedResource;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskInterrupted;
-import java.util.Arrays;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.constructor.SafeConstructor;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Base64;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,14 +39,20 @@ import java.util.Map;
 public class KubernetesV2Executor {
   private KubernetesAccount account;
   private JobExecutor executor;
+  private KubernetesV2Utils kubernetesV2Utils;
 
-  public KubernetesV2Executor(JobExecutor executor, KubernetesAccount account) {
+  public KubernetesV2Executor(JobExecutor executor, KubernetesAccount account, KubernetesV2Utils kubernetesV2Utils) {
     this.executor = executor;
     this.account = account;
+    this.kubernetesV2Utils = kubernetesV2Utils;
+  }
+
+  public KubernetesV2Utils getKubernetesV2Utils() {
+    return kubernetesV2Utils;
   }
 
   public boolean exists(String manifest) {
-    Map<String, Object> parsedManifest = KubernetesV2Utils.parseManifest(manifest);
+    Map<String, Object> parsedManifest = kubernetesV2Utils.parseManifest(manifest);
     String kind = (String) parsedManifest.get("kind");
     Map<String, Object> metadata = (Map<String, Object>) parsedManifest.getOrDefault("metadata", new HashMap<>());
     String name = (String) metadata.get("name");
@@ -70,7 +63,7 @@ public class KubernetesV2Executor {
 
   private boolean exists(String namespace, String kind, String name) {
     log.info("Checking for " + kind + "/" + name);
-    List<String> command = KubernetesV2Utils.kubectlPrefix(account);
+    List<String> command = kubernetesV2Utils.kubectlPrefix(account);
 
     if (StringUtils.isNotEmpty(namespace)) {
       command.add("-n");
@@ -113,7 +106,7 @@ public class KubernetesV2Executor {
 
   public boolean isReady(String namespace, String service) {
     log.info("Checking readiness for " + service);
-    List<String> command = KubernetesV2Utils.kubectlPrefix(account);
+    List<String> command = kubernetesV2Utils.kubectlPrefix(account);
 
     if (StringUtils.isNotEmpty(namespace)) {
       command.add("-n=" + namespace);
@@ -167,7 +160,7 @@ public class KubernetesV2Executor {
   }
 
   public void deleteSpinnaker(String namespace) {
-    List<String> command = KubernetesV2Utils.kubectlPrefix(account);
+    List<String> command = kubernetesV2Utils.kubectlPrefix(account);
     if (StringUtils.isNotEmpty(namespace)) {
       command.add("-n=" + namespace);
     }
@@ -203,7 +196,7 @@ public class KubernetesV2Executor {
   }
 
   public void delete(String namespace, String service) {
-    List<String> command = KubernetesV2Utils.kubectlPrefix(account);
+    List<String> command = kubernetesV2Utils.kubectlPrefix(account);
     if (StringUtils.isNotEmpty(namespace)) {
       command.add("-n=" + namespace);
     }
@@ -239,8 +232,8 @@ public class KubernetesV2Executor {
   }
 
   public void apply(String manifest) {
-    manifest = KubernetesV2Utils.prettify(manifest);
-    List<String> command = KubernetesV2Utils.kubectlPrefix(account);
+    manifest = kubernetesV2Utils.prettify(manifest);
+    List<String> command = kubernetesV2Utils.kubectlPrefix(account);
     command.add("apply");
     command.add("-f");
     command.add("-"); // read from stdin

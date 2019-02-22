@@ -95,12 +95,15 @@ public class KubectlServiceProvider extends SpinnakerServiceProvider<AccountDepl
   @Autowired
   KubernetesV2RoscoService roscoService;
 
+  @Autowired
+  KubernetesV2Utils kubernetesV2Utils;
+
   @Override
   public RemoteAction clean(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerRuntimeSettings runtimeSettings) {
     DaemonTaskHandler.newStage("Invoking kubectl");
     DaemonTaskHandler.message("Deleting all 'svc,deploy,secret' resources with label 'app=spin'...");
     KubernetesSharedServiceSettings kubernetesSharedServiceSettings = new KubernetesSharedServiceSettings(details.getDeploymentConfiguration());
-    new KubernetesV2Executor(DaemonTaskHandler.getJobExecutor(), details.getAccount()).deleteSpinnaker(kubernetesSharedServiceSettings.getDeployLocation());
+    new KubernetesV2Executor(DaemonTaskHandler.getJobExecutor(), details.getAccount(), kubernetesV2Utils).deleteSpinnaker(kubernetesSharedServiceSettings.getDeployLocation());
     return new RemoteAction();
   }
 

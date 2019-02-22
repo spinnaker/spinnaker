@@ -476,7 +476,7 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
               Entry::getValue
           ));
 
-      KubernetesV2Utils.SecretSpec spec = KubernetesV2Utils.createSecretSpec(namespace, getService().getCanonicalName(), secretNamePrefix, files);
+      KubernetesV2Utils.SecretSpec spec = executor.getKubernetesV2Utils().createSecretSpec(namespace, getService().getCanonicalName(), secretNamePrefix, files);
       executor.apply(spec.resource.toString());
       configSources.add(new ConfigSource()
           .setId(spec.name)
@@ -496,7 +496,7 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
               .map(k -> new SecretMountPair(k, requiredEncryptedFiles.get(k)))
               .forEach(s -> files.add(s));
 
-      KubernetesV2Utils.SecretSpec spec = KubernetesV2Utils.createSecretSpec(namespace, getService().getCanonicalName(), secretNamePrefix, files);
+      KubernetesV2Utils.SecretSpec spec = executor.getKubernetesV2Utils().createSecretSpec(namespace, getService().getCanonicalName(), secretNamePrefix, files);
       executor.apply(spec.resource.toString());
       configSources.add(new ConfigSource()
           .setId(spec.name)
@@ -626,18 +626,18 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
   }
 
   default String connectCommand(AccountDeploymentDetails<KubernetesAccount> details,
-      SpinnakerRuntimeSettings runtimeSettings) {
+      SpinnakerRuntimeSettings runtimeSettings, KubernetesV2Utils kubernetesV2Utils) {
     ServiceSettings settings = runtimeSettings.getServiceSettings(getService());
     KubernetesAccount account = details.getAccount();
     String namespace = settings.getLocation();
     String name = getServiceName();
     int port = settings.getPort();
 
-    String podNameCommand = String.join(" ", KubernetesV2Utils.kubectlPodServiceCommand(account,
+    String podNameCommand = String.join(" ", kubernetesV2Utils.kubectlPodServiceCommand(account,
         namespace,
         name));
 
-    return String.join(" ", KubernetesV2Utils.kubectlConnectPodCommand(account,
+    return String.join(" ", kubernetesV2Utils.kubectlConnectPodCommand(account,
         namespace,
         "$(" + podNameCommand + ")",
         port));

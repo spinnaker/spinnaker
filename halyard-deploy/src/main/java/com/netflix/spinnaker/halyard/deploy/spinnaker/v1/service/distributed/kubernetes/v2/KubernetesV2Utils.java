@@ -24,23 +24,18 @@ import com.netflix.spinnaker.config.secrets.EncryptedSecret;
 import com.netflix.spinnaker.halyard.config.config.v1.secrets.SecretSessionManager;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesAccount;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
-import com.netflix.spinnaker.halyard.core.job.v1.JobRequest;
-import com.netflix.spinnaker.halyard.core.job.v1.JobStatus;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.resource.v1.JinjaJarResource;
 import com.netflix.spinnaker.halyard.core.resource.v1.TemplatedResource;
-import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskInterrupted;
-import java.util.Arrays;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -51,13 +46,14 @@ import java.util.List;
 import java.util.Map;
 
 @Slf4j
+@Component
 public class KubernetesV2Utils {
-  static private ObjectMapper mapper = new ObjectMapper();
+  private ObjectMapper mapper = new ObjectMapper();
 
   @Autowired
-  private static SecretSessionManager secretSessionManager;
+  private SecretSessionManager secretSessionManager;
 
-  public static List<String> kubectlPrefix(KubernetesAccount account) {
+  public List<String> kubectlPrefix(KubernetesAccount account) {
     List<String> command = new ArrayList<>();
     command.add("kubectl");
 
@@ -85,7 +81,7 @@ public class KubernetesV2Utils {
     return command;
   }
 
-  static List<String> kubectlPodServiceCommand(KubernetesAccount account, String namespace, String service) {
+  List<String> kubectlPodServiceCommand(KubernetesAccount account, String namespace, String service) {
     List<String> command = kubectlPrefix(account);
 
     if (StringUtils.isNotEmpty(namespace)) {
@@ -101,7 +97,7 @@ public class KubernetesV2Utils {
     return command;
   }
 
-  static List<String> kubectlConnectPodCommand(KubernetesAccount account, String namespace, String name, int port) {
+  List<String> kubectlConnectPodCommand(KubernetesAccount account, String namespace, String name, int port) {
     List<String> command = kubectlPrefix(account);
 
     if (StringUtils.isNotEmpty(namespace)) {
@@ -115,7 +111,7 @@ public class KubernetesV2Utils {
     return command;
   }
 
-  public static SecretSpec createSecretSpec(String namespace, String clusterName, String name, List<SecretMountPair> files) {
+  public SecretSpec createSecretSpec(String namespace, String clusterName, String name, List<SecretMountPair> files) {
     Map<String, String> contentMap = new HashMap<>();
     for (SecretMountPair pair: files) {
       String contents;
@@ -148,12 +144,12 @@ public class KubernetesV2Utils {
     return spec;
   }
 
-  static public String prettify(String input) {
+  public String prettify(String input) {
     Yaml yaml = new Yaml(new SafeConstructor());
     return yaml.dump(yaml.load(input));
   }
 
-  static public Map<String, Object> parseManifest(String input) {
+  public Map<String, Object> parseManifest(String input) {
     Yaml yaml = new Yaml(new SafeConstructor());
     return mapper.convertValue(yaml.load(input), new TypeReference<Map<String, Object>>() {});
   }
