@@ -34,7 +34,7 @@ function process_args() {
 }
 
 function get_user() {
-  local user 
+  local user
 
   user=$(who -m | awk '{print $1;}')
   if [ -z "$YES" ]; then
@@ -122,7 +122,7 @@ rm -rf /var/log/spinnaker/halyard
 
 echo "Deleting halconfig and artifacts"
 rm -rf /opt/spinnaker/config/halyard*
-rm -rf $halconfig_dir 
+rm -rf $halconfig_dir
 EOL
 
   chmod +x $halconfig_dir/uninstall.sh
@@ -178,7 +178,7 @@ function install_halyard() {
   if [ -f /opt/update-halyard ]; then
     mv /opt/update-halyard /usr/local/bin
     chmod +x /usr/local/bin/update-halyard
-  else 
+  else
     echo "No update script supplied with installer..."
   fi
 
@@ -196,4 +196,4 @@ configure_defaults
 install_java
 install_halyard
 
-su $HAL_USER -l -c "hal -v" -s /bin/bash
+su $HAL_USER -l -c "/bin/bash hal -v"
