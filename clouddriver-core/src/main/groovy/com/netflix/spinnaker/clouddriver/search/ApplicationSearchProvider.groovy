@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.search
 
 import com.google.common.collect.ImmutableList
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service
+import com.netflix.spinnaker.clouddriver.model.ClusterProvider
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import groovy.transform.Canonical
 import org.springframework.beans.factory.annotation.Autowired
@@ -29,6 +30,9 @@ class ApplicationSearchProvider implements SearchProvider {
   private final String APPLICATIONS_TYPE = "applications"
 
   Front50Service front50Service
+
+  @Autowired
+  List<ClusterProvider> clusterProviders
 
   @Autowired(required = false)
   FiatPermissionEvaluator permissionEvaluator
@@ -72,10 +76,18 @@ class ApplicationSearchProvider implements SearchProvider {
       it.application = application
       it.type = APPLICATIONS_TYPE
       it.url = "/applications/${it.application}".toString()
+      it.accounts = getAccounts(application)
 
       return it
     }
     return new SearchResultSet(results.size(), pageNumber, pageSize, getPlatform(), query, results)
+  }
+
+  private List<String> getAccounts(String application) {
+    clusterProviders.findResults { it.getClusterSummaries(application) }
+      .findResults { it.keySet() }
+      .flatten()
+      .unique()
   }
 
   @Override
