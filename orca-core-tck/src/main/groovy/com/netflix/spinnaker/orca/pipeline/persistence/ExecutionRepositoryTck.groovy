@@ -157,6 +157,8 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
 
     when:
     repository.store(runningExecution)
+    // our ULID implementation isn't monotonic
+    sleep(1)
     repository.store(succeededExecution)
     def orchestrations = repository.retrieveOrchestrationsForApplication(
       runningExecution.application,
