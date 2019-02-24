@@ -17,33 +17,12 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer
 
 import com.amazonaws.AmazonServiceException
-import com.amazonaws.services.ec2.model.IpPermission
-import com.amazonaws.services.ec2.model.SecurityGroup
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing
-import com.amazonaws.services.elasticloadbalancing.model.ApplySecurityGroupsToLoadBalancerRequest
-import com.amazonaws.services.elasticloadbalancing.model.ConfigureHealthCheckRequest
-import com.amazonaws.services.elasticloadbalancing.model.ConnectionDraining
-import com.amazonaws.services.elasticloadbalancing.model.ConnectionSettings
-import com.amazonaws.services.elasticloadbalancing.model.CreateLoadBalancerListenersRequest
-import com.amazonaws.services.elasticloadbalancing.model.CreateLoadBalancerRequest
-import com.amazonaws.services.elasticloadbalancing.model.CreateLoadBalancerResult
-import com.amazonaws.services.elasticloadbalancing.model.CrossZoneLoadBalancing
-import com.amazonaws.services.elasticloadbalancing.model.DeleteLoadBalancerListenersRequest
-import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancerAttributesRequest
-import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancerAttributesResult
-import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersRequest
-import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersResult
-import com.amazonaws.services.elasticloadbalancing.model.HealthCheck
-import com.amazonaws.services.elasticloadbalancing.model.Listener
-import com.amazonaws.services.elasticloadbalancing.model.ListenerDescription
-import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerAttributes
-import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription
-import com.amazonaws.services.elasticloadbalancing.model.ModifyLoadBalancerAttributesRequest
+import com.amazonaws.services.elasticloadbalancing.model.*
 import com.amazonaws.services.shield.AWSShield
 import com.amazonaws.services.shield.model.CreateProtectionRequest
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonLoadBalancerClassicDescription
-import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.SecurityGroupLookupFactory
 import com.netflix.spinnaker.clouddriver.aws.model.SubnetAnalyzer
 import com.netflix.spinnaker.clouddriver.aws.model.SubnetTarget
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
@@ -56,9 +35,6 @@ import com.netflix.spinnaker.config.AwsConfiguration
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
-
-import static com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.SecurityGroupLookupFactory.SecurityGroupLookup
-import static com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.SecurityGroupLookupFactory.SecurityGroupUpdater
 
 class UpsertAmazonLoadBalancerClassicAtomicOperationSpec extends Specification {
 
@@ -99,23 +75,7 @@ class UpsertAmazonLoadBalancerClassicAtomicOperationSpec extends Specification {
     forRegion(_, "us-east-1") >> regionScopedProvider
   }
 
-  def securityGroupLookup = Mock(SecurityGroupLookup)
-  def securityGroupLookupFactory = Stub(SecurityGroupLookupFactory) {
-    getInstance("us-east-1") >> securityGroupLookup
-  }
-
-  def elbSecurityGroup = new SecurityGroup()
-    .withVpcId(description.vpcId)
-    .withGroupId("sg-1234")
-    .withGroupName("kato-elb")
-
-  def applicationSecurityGroup = new SecurityGroup()
-    .withVpcId(description.vpcId)
-    .withGroupId("sg-1111")
-    .withGroupName("kato")
-
-  def elbSecurityGroupUpdater = Mock(SecurityGroupUpdater)
-  def appSecurityGroupUpdater = Mock(SecurityGroupUpdater)
+  def ingressLoadBalancerBuilder = Mock(IngressLoadBalancerBuilder)
 
   @Subject operation = new UpsertAmazonLoadBalancerAtomicOperation(description)
 
@@ -123,7 +83,7 @@ class UpsertAmazonLoadBalancerClassicAtomicOperationSpec extends Specification {
     operation.deployDefaults = new AwsConfiguration.DeployDefaults(addAppGroupToServerGroup: true, createLoadBalancerIngressPermissions: true)
     operation.amazonClientProvider = mockAmazonClientProvider
     operation.regionScopedProviderFactory = regionScopedProviderFactory
-    operation.securityGroupLookupFactory = securityGroupLookupFactory
+    operation.ingressLoadBalancerBuilder = ingressLoadBalancerBuilder
   }
 
   void "should create load balancer"() {
@@ -136,18 +96,14 @@ class UpsertAmazonLoadBalancerClassicAtomicOperationSpec extends Specification {
     operation.operate([])
 
     then:
-    1 * securityGroupLookup.getSecurityGroupByName('bar', 'kato-elb', 'vpcId') >> Optional.of(elbSecurityGroupUpdater)
-    1 * securityGroupLookup.getSecurityGroupByName('bar', 'kato', 'vpcId') >> Optional.of(appSecurityGroupUpdater)
-    1 * elbSecurityGroupUpdater.getSecurityGroup() >> elbSecurityGroup
-    1 * appSecurityGroupUpdater.getSecurityGroup() >> applicationSecurityGroup
-    1 * appSecurityGroupUpdater.addIngress(_) >> {
-      def permissions = it[0] as List<IpPermission>
-      assert permissions.size() == 2
-      assert 7001 in permissions*.fromPort && 8501 in permissions*.fromPort
-      assert 7001 in permissions*.toPort && 8501 in permissions*.toPort
-      assert elbSecurityGroup.groupId in permissions[0].userIdGroupPairs*.groupId
-      assert elbSecurityGroup.groupId in permissions[1].userIdGroupPairs*.groupId
-    }
+    1 * ingressLoadBalancerBuilder.ingressApplicationLoadBalancerGroup(
+      'kato',
+      'us-east-1',
+      'bar',
+      description.credentials,
+      "vpcId",
+      { it.toList().sort() == [7001, 8501] },
+      _) >> new IngressLoadBalancerBuilder.IngressLoadBalancerGroupResult("sg-1234", "kato-elb")
 
     and:
     1 * mockSubnetAnalyzer.getSubnetIdsForZones(['us-east-1a'], 'internal', SubnetTarget.ELB, 1) >> ["subnet-1"]
@@ -202,10 +158,6 @@ class UpsertAmazonLoadBalancerClassicAtomicOperationSpec extends Specification {
     and: 'auto-creating groups fails'
     description.securityGroups = []
     description.vpcId = "vpcId"
-    securityGroupLookupFactory.getInstance("us-east-1") >> securityGroupLookup
-    _* securityGroupLookup.getSecurityGroupByName(_ as String, _ as String, _ as String) >> {
-      throw new Exception()
-    }
 
     when:
     operation.operate([])
@@ -249,10 +201,7 @@ class UpsertAmazonLoadBalancerClassicAtomicOperationSpec extends Specification {
     when:
     operation.operate([])
 
-    then: 'should not auto create elb sg on update'
-    0 * appSecurityGroupUpdater.addIngress(_)
-
-    and:
+    then:
     1 * loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest(loadBalancerNames: ["kato-main-frontend"])) >>
             new DescribeLoadBalancersResult(loadBalancerDescriptions: existingLoadBalancers)
     1 * loadBalancing.createLoadBalancerListeners(new CreateLoadBalancerListenersRequest(
@@ -457,11 +406,7 @@ class UpsertAmazonLoadBalancerClassicAtomicOperationSpec extends Specification {
     operation.operate([])
 
     then:
-    1 * securityGroupLookup.getSecurityGroupByName('bar', 'kato-elb', 'vpcId') >> Optional.of(elbSecurityGroupUpdater)
-    1 * securityGroupLookup.getSecurityGroupByName('bar', 'kato', 'vpcId') >> Optional.of(appSecurityGroupUpdater)
-    1 * elbSecurityGroupUpdater.getSecurityGroup() >> elbSecurityGroup
-    1 * appSecurityGroupUpdater.getSecurityGroup() >> applicationSecurityGroup
-    1 * appSecurityGroupUpdater.addIngress(_)
+    1 * ingressLoadBalancerBuilder.ingressApplicationLoadBalancerGroup(_, _, _, _, _, _, _) >> new IngressLoadBalancerBuilder.IngressLoadBalancerGroupResult("sg-1234", "kato-elb")
 
     and:
     1 * loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest(loadBalancerNames: ["kato-main-frontend"])) >> null
@@ -488,11 +433,7 @@ class UpsertAmazonLoadBalancerClassicAtomicOperationSpec extends Specification {
     operation.operate([])
 
     then:
-    1 * securityGroupLookup.getSecurityGroupByName('bar', 'kato-elb', 'vpcId') >> Optional.of(elbSecurityGroupUpdater)
-    1 * securityGroupLookup.getSecurityGroupByName('bar', 'kato', 'vpcId') >> Optional.of(appSecurityGroupUpdater)
-    1 * elbSecurityGroupUpdater.getSecurityGroup() >> elbSecurityGroup
-    1 * appSecurityGroupUpdater.getSecurityGroup() >> applicationSecurityGroup
-    1 * appSecurityGroupUpdater.addIngress(_)
+    1 * ingressLoadBalancerBuilder.ingressApplicationLoadBalancerGroup(_, _, _, _, _, _, _) >> new IngressLoadBalancerBuilder.IngressLoadBalancerGroupResult("sg-1234", "kato-elb")
 
     and:
     1 * loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest(loadBalancerNames: ["kato-main-frontend"])) >> null
@@ -519,11 +460,7 @@ class UpsertAmazonLoadBalancerClassicAtomicOperationSpec extends Specification {
     operation.operate([])
 
     then:
-    1 * securityGroupLookup.getSecurityGroupByName('bar', 'kato-elb', 'vpcId') >> Optional.of(elbSecurityGroupUpdater)
-    1 * securityGroupLookup.getSecurityGroupByName('bar', 'kato', 'vpcId') >> Optional.of(appSecurityGroupUpdater)
-    1 * elbSecurityGroupUpdater.getSecurityGroup() >> elbSecurityGroup
-    1 * appSecurityGroupUpdater.getSecurityGroup() >> applicationSecurityGroup
-    1 * appSecurityGroupUpdater.addIngress(_)
+    1 * ingressLoadBalancerBuilder.ingressApplicationLoadBalancerGroup(_, _, _, _, _, _, _) >> new IngressLoadBalancerBuilder.IngressLoadBalancerGroupResult("sg-1234", "kato-elb")
 
     and:
     1 * loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest(loadBalancerNames: ["kato-test-frontend"])) >>
@@ -572,100 +509,6 @@ class UpsertAmazonLoadBalancerClassicAtomicOperationSpec extends Specification {
     0 * loadBalancing.createLoadBalancerListeners(_)
   }
 
-  void "should permit ingress from application elb security group to application security group"() {
-    given: 'an application load balancer'
-    def applicationName = "foo"
-    description.name = applicationName
-    description.application = applicationName
-    description.securityGroups = []
-    description.vpcId = "vpcId"
-    description.listeners = [
-      new UpsertAmazonLoadBalancerClassicDescription.Listener(
-        externalPort: 80,
-        externalProtocol: "HTTP",
-        internalPort: 7001,
-        internalProtocol: "HTTP"
-      )
-    ]
-
-    elbSecurityGroupUpdater.getSecurityGroup() >> elbSecurityGroup
-    appSecurityGroupUpdater.getSecurityGroup() >> applicationSecurityGroup
-    securityGroupLookup.getSecurityGroupByName(
-      description.credentialAccount,
-      applicationName + "-elb",
-      description.vpcId
-    ) >> Optional.of(elbSecurityGroupUpdater)
-
-    securityGroupLookup.getSecurityGroupByName(
-      description.credentialAccount,
-      applicationName,
-      description.vpcId
-    ) >> Optional.of(appSecurityGroupUpdater)
-
-    when:
-    operation.operate([])
-
-    then:
-    1 * appSecurityGroupUpdater.addIngress(_) >> {
-      def permissions = it[0] as List<IpPermission>
-      assert permissions.size() == 1
-      assert permissions[0].fromPort == 7001 && permissions[0].toPort == 7001
-      assert elbSecurityGroup.groupId in permissions[0].userIdGroupPairs*.groupId
-    }
-
-    1 * loadBalancing.createLoadBalancer(_ as CreateLoadBalancerRequest) >> new CreateLoadBalancerResult(dNSName: 'dnsName1')
-  }
-
-  void "should auto-create application load balancer security group"() {
-    given: "an elb with a healthCheck port"
-    description.securityGroups = []
-    description.vpcId = "vpcId"
-
-    when:
-    operation.operate([])
-
-    then: "an application elb group should be created and ingressed properly"
-    1 * securityGroupLookup.getSecurityGroupByName('bar', 'kato-elb', 'vpcId') >> Optional.empty()
-    1 * securityGroupLookup.createSecurityGroup(_) >> elbSecurityGroupUpdater
-    1 * securityGroupLookup.getSecurityGroupByName('bar', 'kato', 'vpcId') >> Optional.of(appSecurityGroupUpdater)
-    1 * elbSecurityGroupUpdater.getSecurityGroup() >> elbSecurityGroup
-    1 * appSecurityGroupUpdater.getSecurityGroup() >> applicationSecurityGroup
-    1 * appSecurityGroupUpdater.addIngress(_) >> {
-      def permissions = it[0] as List<IpPermission>
-      assert permissions.size() == 2
-      assert permissions*.fromPort == [8501, 7001] && permissions*.toPort == [8501, 7001]
-      assert elbSecurityGroup.groupId in permissions[0].userIdGroupPairs*.groupId
-      assert elbSecurityGroup.groupId in permissions[1].userIdGroupPairs*.groupId
-    }
-
-    1 * loadBalancing.createLoadBalancer(_ as CreateLoadBalancerRequest) >> new CreateLoadBalancerResult(dNSName: 'dnsName1')
-  }
-
-  void "should auto-create application load balancer and application security groups"() {
-    given:
-    description.securityGroups = []
-    description.vpcId = "vpcId"
-
-    when:
-    operation.operate([])
-
-    then:
-    1 * securityGroupLookup.getSecurityGroupByName('bar', 'kato-elb', 'vpcId') >> Optional.empty()
-    1 * securityGroupLookup.getSecurityGroupByName('bar', 'kato', 'vpcId') >> Optional.empty()
-    1 * securityGroupLookup.createSecurityGroup( { it.name == 'kato-elb'}) >> elbSecurityGroupUpdater
-    1 * securityGroupLookup.createSecurityGroup( { it.name == 'kato'}) >> appSecurityGroupUpdater
-    1 * elbSecurityGroupUpdater.getSecurityGroup() >> elbSecurityGroup
-    1 * appSecurityGroupUpdater.getSecurityGroup() >> applicationSecurityGroup
-    1 * appSecurityGroupUpdater.addIngress(_) >> {
-      def permissions = it[0] as List<IpPermission>
-      assert permissions.size() == 2
-      assert permissions*.fromPort == [8501, 7001] && permissions*.toPort == [8501, 7001]
-      assert elbSecurityGroup.groupId in permissions[0].userIdGroupPairs*.groupId
-      assert elbSecurityGroup.groupId in permissions[1].userIdGroupPairs*.groupId
-    }
-
-    1 * loadBalancing.createLoadBalancer(_ as CreateLoadBalancerRequest) >> new CreateLoadBalancerResult(dNSName: 'dnsName1')
-  }
 
   @Unroll
   void "should enable AWS Shield protection if external ELB"() {
@@ -678,10 +521,7 @@ class UpsertAmazonLoadBalancerClassicAtomicOperationSpec extends Specification {
     operation.operate([])
 
     then:
-    1 * securityGroupLookup.getSecurityGroupByName('bar', 'kato-elb', 'vpcId') >> Optional.of(elbSecurityGroupUpdater)
-    1 * securityGroupLookup.getSecurityGroupByName('bar', 'kato', 'vpcId') >> Optional.of(appSecurityGroupUpdater)
-    1 * elbSecurityGroupUpdater.getSecurityGroup() >> elbSecurityGroup
-    1 * appSecurityGroupUpdater.getSecurityGroup() >> applicationSecurityGroup
+    1 * ingressLoadBalancerBuilder.ingressApplicationLoadBalancerGroup(_, _, _, _, _, _, _) >> new IngressLoadBalancerBuilder.IngressLoadBalancerGroupResult("sg-1234", "kato-elb")
 
     1 * loadBalancing.createLoadBalancer(_ as CreateLoadBalancerRequest) >> new CreateLoadBalancerResult(dNSName: 'dnsName1')
     (shouldProtect ? 1 : 0) * awsShield.createProtection(new CreateProtectionRequest(

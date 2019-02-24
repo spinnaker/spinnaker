@@ -23,16 +23,19 @@ import com.amazonaws.services.elasticloadbalancingv2.model.LoadBalancer
 import com.amazonaws.services.shield.AWSShield
 import com.amazonaws.services.shield.model.CreateProtectionRequest
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.config.AwsConfiguration.DeployDefaults
+import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonLoadBalancerV2Description
 import com.netflix.spinnaker.clouddriver.aws.deploy.handlers.LoadBalancerV2UpsertHandler
+import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.SecurityGroupLookupFactory
 import com.netflix.spinnaker.clouddriver.aws.model.SubnetTarget
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
+import com.netflix.spinnaker.config.AwsConfiguration.DeployDefaults
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 
 /**
@@ -40,6 +43,7 @@ import org.springframework.beans.factory.annotation.Autowired
  *
  *
  */
+@Slf4j
 class UpsertAmazonLoadBalancerV2AtomicOperation implements AtomicOperation<UpsertAmazonLoadBalancerV2Result> {
   private static final String BASE_PHASE = "CREATE_ELB_V2"
 
@@ -52,6 +56,12 @@ class UpsertAmazonLoadBalancerV2AtomicOperation implements AtomicOperation<Upser
 
   @Autowired
   RegionScopedProviderFactory regionScopedProviderFactory
+
+  @Autowired
+  SecurityGroupLookupFactory securityGroupLookupFactory
+
+  @Autowired
+  IngressLoadBalancerBuilder ingressLoadBalancerBuilder
 
   @Autowired
   DeployDefaults deployDefaults
@@ -83,7 +93,7 @@ class UpsertAmazonLoadBalancerV2AtomicOperation implements AtomicOperation<Upser
 
       // Set up security groups
       def securityGroups = regionScopedProvider.securityGroupService.
-              getSecurityGroupIds(description.securityGroups, description.vpcId).values()
+              getSecurityGroupIds(description.securityGroups, description.vpcId).collect { it.value }
 
       // Check if load balancer already exists
       LoadBalancer loadBalancer
@@ -102,6 +112,7 @@ class UpsertAmazonLoadBalancerV2AtomicOperation implements AtomicOperation<Upser
           subnetIds = regionScopedProvider.subnetAnalyzer.getSubnetIdsForZones(availabilityZones,
                   description.subnetType, SubnetTarget.ELB, 1)
         }
+        handleSecurityGroupIngress(region, securityGroups)
         loadBalancer = LoadBalancerV2UpsertHandler.createLoadBalancer(loadBalancing, loadBalancerName, isInternal, subnetIds, securityGroups, description.targetGroups, description.listeners, deployDefaults, description.loadBalancerType.toString(), description.idleTimeout, description.deletionProtection)
         dnsName = loadBalancer.DNSName
 
@@ -133,5 +144,41 @@ class UpsertAmazonLoadBalancerV2AtomicOperation implements AtomicOperation<Upser
     }
     task.updateStatus BASE_PHASE, "Done deploying load balancers."
     operationResult
+  }
+
+  private void handleSecurityGroupIngress(String region, Collection<String> securityGroups) {
+    // require that we have addAppGroupToServerGroup as well as createLoadBalancerIngressPermissions
+    // set since the load balancer ingress assumes that application group is the target of those
+    // permissions
+    if (deployDefaults.createLoadBalancerIngressPermissions && deployDefaults.addAppGroupToServerGroup) {
+      String application = null
+      try {
+        application = Names.parseName(description.name).getApp() ?: Names.parseName(description.clusterName).getApp()
+        Set<Integer> ports = []
+        description.targetGroups.each { tg ->
+          ports.add(tg.port)
+          if (tg.healthCheckPort && tg.healthCheckPort != "traffic-port") {
+            ports.add(Integer.parseInt(tg.healthCheckPort, 10))
+          }
+        }
+        IngressLoadBalancerBuilder.IngressLoadBalancerGroupResult ingressLoadBalancerResult = ingressLoadBalancerBuilder.ingressApplicationLoadBalancerGroup(
+          application,
+          region,
+          description.credentialAccount,
+          description.credentials,
+          description.vpcId,
+          ports,
+          securityGroupLookupFactory
+        )
+        if (!securityGroups.any { it == ingressLoadBalancerResult.groupId }) {
+          securityGroups.add(ingressLoadBalancerResult.groupId)
+        }
+
+        task.updateStatus BASE_PHASE, "Authorized app ELB Security Group ${ingressLoadBalancerResult}"
+      } catch (Exception e) {
+        log.error("Failed to authorize app LB security group {}-elb on application security group", application, e)
+        task.updateStatus BASE_PHASE, "Failed to authorize app ELB security group ${application}-elb on application security group"
+      }
+    }
   }
 }

@@ -17,9 +17,6 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer
 
 import com.amazonaws.AmazonServiceException
-import com.amazonaws.services.ec2.model.IpPermission
-import com.amazonaws.services.ec2.model.SecurityGroup
-import com.amazonaws.services.ec2.model.UserIdGroupPair
 import com.amazonaws.services.elasticloadbalancing.model.*
 import com.amazonaws.services.shield.AWSShield
 import com.amazonaws.services.shield.model.CreateProtectionRequest
@@ -27,25 +24,18 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonLoadBalancerClassicDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonLoadBalancerDescription
-import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertSecurityGroupDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.handlers.LoadBalancerUpsertHandler
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.UpsertAmazonLoadBalancerResult.LoadBalancer
-import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.SecurityGroupIngressConverter
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.SecurityGroupLookupFactory
 import com.netflix.spinnaker.clouddriver.aws.model.SubnetTarget
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
-import com.netflix.spinnaker.clouddriver.helpers.OperationPoller
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.config.AwsConfiguration.DeployDefaults
-import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
-
-import static com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.SecurityGroupLookupFactory.SecurityGroupLookup
-import static com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.SecurityGroupLookupFactory.SecurityGroupUpdater
 
 /**
  * An AtomicOperation for creating an Elastic Load Balancer from the description of {@link UpsertAmazonLoadBalancerClassicDescription}.
@@ -68,6 +58,9 @@ class UpsertAmazonLoadBalancerAtomicOperation implements AtomicOperation<UpsertA
 
   @Autowired
   SecurityGroupLookupFactory securityGroupLookupFactory
+
+  @Autowired
+  IngressLoadBalancerBuilder ingressLoadBalancerBuilder
 
   @Autowired
   DeployDefaults deployDefaults
@@ -100,7 +93,7 @@ class UpsertAmazonLoadBalancerAtomicOperation implements AtomicOperation<UpsertA
       LoadBalancerDescription loadBalancer = null
 
       task.updateStatus BASE_PHASE, "Setting up listeners for ${loadBalancerName} in ${region}..."
-      def listeners = []
+      List<Listener> listeners = []
       description.listeners
         .each { UpsertAmazonLoadBalancerClassicDescription.Listener listener ->
           def awsListener = new Listener()
@@ -127,8 +120,8 @@ class UpsertAmazonLoadBalancerAtomicOperation implements AtomicOperation<UpsertA
       } catch (AmazonServiceException ignore) {
       }
 
-      def securityGroupNamesToIds = regionScopedProvider.securityGroupService.getSecurityGroupIds(description.securityGroups, description.vpcId)
-      def securityGroups = securityGroupNamesToIds.values()
+      Set<String> securityGroups = regionScopedProvider.securityGroupService.getSecurityGroupIds(description.securityGroups, description.vpcId)
+        .collect { it.value }
       log.info("security groups on {} {}", description.name, securityGroups)
       String dnsName
       if (!loadBalancer) {
@@ -139,23 +132,29 @@ class UpsertAmazonLoadBalancerAtomicOperation implements AtomicOperation<UpsertA
                   description.subnetType, SubnetTarget.ELB, 1)
         }
 
-        //require that we have addAppGroupToServerGroup as well as createLoadBalancerIngressPermissions
+        // require that we have addAppGroupToServerGroup as well as createLoadBalancerIngressPermissions
         // set since the load balancer ingress assumes that application group is the target of those
         // permissions
         if (deployDefaults.createLoadBalancerIngressPermissions && deployDefaults.addAppGroupToServerGroup) {
           String application = null
           try {
             application = Names.parseName(description.name).getApp() ?: Names.parseName(description.clusterName).getApp()
-            IngressLoadBalancerGroupResult ingressLoadBalancerResult = ingressApplicationLoadBalancerGroup(
-              description,
+            Set<Integer> ports = listeners.collect { l -> l.getInstancePort() }
+            if (description.healthCheckPort) {
+              ports.add(description.healthCheckPort)
+            }
+            IngressLoadBalancerBuilder.IngressLoadBalancerGroupResult ingressLoadBalancerResult = ingressLoadBalancerBuilder.ingressApplicationLoadBalancerGroup(
               application,
               region,
-              listeners,
+              description.credentialAccount,
+              description.credentials,
+              description.vpcId,
+              ports,
               securityGroupLookupFactory
             )
 
-            securityGroupNamesToIds.put(ingressLoadBalancerResult.groupName, ingressLoadBalancerResult.groupId)
             task.updateStatus BASE_PHASE, "Authorized app ELB Security Group ${ingressLoadBalancerResult}"
+            securityGroups.add(ingressLoadBalancerResult.groupId)
           } catch (Exception e) {
             log.error("Failed to authorize app ELB security group {}-elb on application security group", application,  e)
             task.updateStatus BASE_PHASE, "Failed to authorize app ELB security group ${application}-elb on application security group"
@@ -259,157 +258,8 @@ class UpsertAmazonLoadBalancerAtomicOperation implements AtomicOperation<UpsertA
     operationResult
   }
 
-  private static IngressLoadBalancerGroupResult ingressApplicationLoadBalancerGroup(UpsertAmazonLoadBalancerClassicDescription description,
-                                                                                    String application,
-                                                                                    String region,
-                                                                                    List<Listener> loadBalancerListeners,
-                                                                                    SecurityGroupLookupFactory securityGroupLookupFactory) throws FailedSecurityGroupIngressException {
-    SecurityGroupLookup securityGroupLookup = securityGroupLookupFactory.getInstance(region)
-
-    // 1. get app load balancer security group & app security group. create if doesn't exist
-    SecurityGroupUpdater applicationLoadBalancerSecurityGroupUpdater = getOrCreateSecurityGroup(
-      application + "-elb",
-      region,
-      "Application ELB Security Group for $application",
-      description,
-      securityGroupLookup
-    )
-
-    SecurityGroupUpdater applicationSecurityGroupUpdater = getOrCreateSecurityGroup(
-      application,
-      region,
-      "Application Security Group for $application",
-      description,
-      securityGroupLookup
-    )
-
-    def source = applicationLoadBalancerSecurityGroupUpdater.securityGroup
-    def target = applicationSecurityGroupUpdater.securityGroup
-    List<IpPermission> currentPermissions = SecurityGroupIngressConverter.flattenPermissions(target)
-    List<IpPermission> targetPermissions = loadBalancerListeners.collect {
-      newIpPermissionWithSourceAndPort(source.groupId, it.getInstancePort())
-    }
-
-    if (!includesRulesWithHealthCheckPort(targetPermissions, description, source) && description.healthCheckPort) {
-      targetPermissions.add(
-        newIpPermissionWithSourceAndPort(source.groupId, description.healthCheckPort)
-      )
-    }
-
-    filterOutExistingPermissions(targetPermissions, currentPermissions)
-    if (targetPermissions) {
-      try {
-        applicationSecurityGroupUpdater.addIngress(targetPermissions)
-      } catch (Exception e) {
-        throw new FailedSecurityGroupIngressException(e)
-      }
-    }
-
-    return new IngressLoadBalancerGroupResult(source.groupId, source.groupName)
-  }
-
-  private static class IngressLoadBalancerGroupResult {
-    private final String groupId
-    private final String groupName
-
-    IngressLoadBalancerGroupResult(String groupId, String groupName) {
-      this.groupId = groupId
-      this.groupName = groupName
-    }
-
-    @Override
-    String toString() {
-      return "IngressLoadBalancerGroupResult{" +
-        "groupId='" + groupId + '\'' +
-        ", groupName='" + groupName + '\'' +
-        '}'
-    }
-  }
-
-  private static IpPermission newIpPermissionWithSourceAndPort(String sourceGroupId, int port) {
-    return new IpPermission(
-      ipProtocol: "tcp",
-      fromPort: port,
-      toPort: port,
-      userIdGroupPairs: [
-        new UserIdGroupPair().withGroupId(sourceGroupId)
-      ]
-    )
-  }
-
-  private static boolean includesRulesWithHealthCheckPort(List<IpPermission> targetPermissions,
-                                                          UpsertAmazonLoadBalancerClassicDescription description,
-                                                          SecurityGroup source) {
-    return targetPermissions.find {
-      description.healthCheckPort && it.fromPort == description.healthCheckPort &&
-        it.toPort == description.healthCheckPort && source.groupId in it.userIdGroupPairs*.groupId
-    } != null
-  }
-
-  private static SecurityGroupUpdater getOrCreateSecurityGroup(String groupName,
-                                                               String region,
-                                                               String descriptionText,
-                                                               UpsertAmazonLoadBalancerClassicDescription description,
-                                                               SecurityGroupLookup securityGroupLookup) {
-    SecurityGroupUpdater securityGroupUpdater = null
-    OperationPoller.retryWithBackoff({
-      securityGroupUpdater = securityGroupLookup.getSecurityGroupByName(
-        description.credentialAccount,
-        groupName,
-        description.vpcId
-      ).orElse(null)
-
-      if (!securityGroupUpdater) {
-        securityGroupUpdater = securityGroupLookup.createSecurityGroup(
-          new UpsertSecurityGroupDescription(
-            name: groupName,
-            description: descriptionText,
-            vpcId: description.vpcId,
-            region: region,
-            credentials: description.credentials
-          )
-        )
-      }
-    }, 500, 3)
-
-    return securityGroupUpdater
-  }
-
-  private static void filterOutExistingPermissions(List<IpPermission> permissionsToAdd,
-                                                   List<IpPermission> existingPermissions) {
-    permissionsToAdd.each { permission ->
-      permission.getUserIdGroupPairs().removeIf { pair ->
-        existingPermissions.find { p ->
-          p.getFromPort() == permission.getFromPort() &&
-            p.getToPort() == permission.getToPort() &&
-            pair.groupId && pair.groupId in p.userIdGroupPairs*.groupId
-        } != null
-      }
-
-      permission.getIpv4Ranges().removeIf { range ->
-        existingPermissions.find { p ->
-          p.getFromPort() == permission.getFromPort() &&
-            p.getToPort() == permission.getToPort() &&
-            range in p.ipv4Ranges
-        } != null
-      }
-
-      permission.getIpv6Ranges().removeIf { range ->
-        existingPermissions.find { p ->
-          p.getFromPort() == permission.getFromPort() &&
-            p.getToPort() == permission.getToPort() &&
-            range in p.ipv6Ranges
-        } != null
-      }
-    }
-
-    permissionsToAdd.removeIf { permission -> !permission.userIdGroupPairs }
-  }
-
   private static String loadBalancerArn(String accountId, String region, String name) {
     return "arn:aws:elasticloadbalancing:$accountId:$region:loadbalancer/$name"
   }
 
-  @InheritConstructors
-  static class FailedSecurityGroupIngressException extends Exception {}
 }
