@@ -60,6 +60,7 @@ class SqlProviderCacheSpec extends ProviderCacheSpec {
       "test",
       currentDatabase.context,
       mapper,
+      null,
       clock,
       sqlRetryProperties,
       "test",

@@ -6,18 +6,14 @@ import com.netflix.spinnaker.cats.cache.CacheFilter
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.cats.cache.WriteableCache
-import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.CERTIFICATES
-import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.CLUSTERS
-import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.NAMED_IMAGES
 import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.ON_DEMAND
-import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.RESERVATION_REPORTS
-import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.RESERVED_INSTANCES
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import de.huxhorn.sulky.ulid.ULID
 import io.github.resilience4j.retry.Retry
 import io.github.resilience4j.retry.RetryConfig
 import io.vavr.control.Try
+import kotlinx.coroutines.*
 import org.jooq.DSLContext
 import org.jooq.exception.DataAccessException
 import org.jooq.exception.SQLDialectNotSupportedException
@@ -34,11 +30,17 @@ import java.time.Duration
 import java.util.Arrays
 import java.util.concurrent.ConcurrentSkipListSet
 import java.util.concurrent.atomic.AtomicInteger
+import javax.annotation.PreDestroy
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.contract
+import kotlin.coroutines.CoroutineContext
 
+@ExperimentalContracts
 class SqlCache(
   private val name: String,
   private val jooq: DSLContext,
   private val mapper: ObjectMapper,
+  private val coroutineContext: CoroutineContext?,
   private val clock: Clock,
   private val sqlRetryProperties: SqlRetryProperties,
   private val tableNamespace: String?,
@@ -70,6 +72,7 @@ class SqlCache(
     if (ids.isEmpty()) {
       return
     }
+
     var deletedCount = 0
     var opCount = 0
     try {
@@ -287,19 +290,32 @@ class SqlCache(
    */
   override fun existingIdentifiers(type: String, identifiers: MutableCollection<String>): MutableCollection<String> {
     var selects = 0
+    var withAsync = false
     val existing = mutableListOf<String>()
+    val batchSize = dynamicConfigService.getConfig(Int::class.java, "sql.cache.readBatchSize", 500)
 
-    identifiers.chunked(dynamicConfigService.getConfig(Int::class.java, "sql.cache.readBatchSize", 500)) { chunk ->
-      existing.addAll(
-        withRetry(RetryCategory.READ) {
-          jooq.select(field("id"))
-            .from(table(resourceTableName(type)))
-            .where("id in (${chunk.joinToString(",") { "'$it'" }})")
-            .fetch()
-            .intoSet(field("id"), String::class.java)
+    if (coroutineContext.useAsync(identifiers.size, this::useAsync)) {
+      withAsync = true
+      val scope = CatsCoroutineScope(coroutineContext)
+
+      identifiers.chunked(batchSize).chunked(
+        dynamicConfigService.getConfig(Int::class.java, "sql.cache.maxQueryConcurrency", 4)
+      ) { batch ->
+        val deferred = batch.map { ids ->
+          scope.async {
+            selectIdentifiers(type, ids)
+          }
         }
-      )
-      selects += 1
+        runBlocking {
+          existing.addAll(deferred.awaitAll().flatten())
+        }
+        selects += deferred.size
+      }
+    } else {
+      identifiers.chunked(batchSize) { chunk ->
+        existing.addAll(selectIdentifiers(type, chunk))
+        selects += 1
+      }
     }
 
     cacheMetrics.get(
@@ -308,7 +324,8 @@ class SqlCache(
       itemCount = 0,
       requestedSize = 0,
       relationshipsRequested = 0,
-      selectOperations = selects
+      selectOperations = selects,
+      async = withAsync
     )
 
     return existing
@@ -853,7 +870,9 @@ class SqlCache(
   ): DataWithRelationshipPointersResult {
     val cacheData = mutableListOf<CacheData>()
     val relPointers = mutableSetOf<RelPointer>()
+    val batchSize = dynamicConfigService.getConfig(Int::class.java, "sql.cache.readBatchSize", 500)
     var selectQueries = 0
+    var withAsync = false
 
     try {
       if (ids.isEmpty()) {
@@ -870,19 +889,26 @@ class SqlCache(
         }
         selectQueries += 1
       } else {
-        ids.chunked(dynamicConfigService.getConfig(Int::class.java, "sql.cache.readBatchSize", 500)) { chunk ->
-          withRetry(RetryCategory.READ) {
-            cacheData.addAll(
-              jooq.select(field("body"))
-                .from(table(resourceTableName(type)))
-                .where("ID in (${chunk.joinToString(",") { "'$it'" }})")
-                .fetch()
-                .getValues(0)
-                .map { mapper.readValue(it as String, DefaultCacheData::class.java) }
-                .toList()
-            )
+        if (coroutineContext.useAsync(ids.size, this::useAsync)) {
+          withAsync = true
+          val scope = CatsCoroutineScope(coroutineContext)
+
+          ids.chunked(batchSize).chunked(
+            dynamicConfigService.getConfig(Int::class.java, "sql.cache.maxQueryConcurrency", 4)
+          ) { batch ->
+            val deferred = batch.map { ids ->
+              scope.async { selectBodies(type, ids) }
+            }
+            runBlocking {
+              cacheData.addAll(deferred.awaitAll().flatten())
+            }
+            selectQueries += deferred.size
           }
-          selectQueries += 1
+        } else {
+          ids.chunked(batchSize) { chunk ->
+            cacheData.addAll(selectBodies(type, chunk))
+            selectQueries += 1
+          }
         }
       }
 
@@ -897,7 +923,8 @@ class SqlCache(
         itemCount = 0,
         requestedSize = -1,
         relationshipsRequested = -1,
-        selectOperations = selectQueries
+        selectOperations = selectQueries,
+        async = withAsync
       )
 
       selectQueries = -1
@@ -921,6 +948,8 @@ class SqlCache(
     val cacheData = mutableListOf<CacheData>()
     val relPointers = mutableSetOf<RelPointer>()
     var selectQueries = 0
+    var withAsync = false
+    val batchSize = dynamicConfigService.getConfig(Int::class.java, "sql.cache.readBatchSize", 500)
 
     /*
         Approximating the following query pattern in jooq:
@@ -929,8 +958,6 @@ class SqlCache(
         ('aws:applications:spintest', 'aws:applications:spindemo')) UNION
         (select null as body, id as r_id, rel_id as rel, rel_type from `cats_v1_a_applications_rel` where id IN
         ('aws:applications:spintest', 'aws:applications:spindemo') and rel_type like 'load%');
-
-        TODO: Jooq adds an unnecessary "select * from (..)" sub-query, benchmark vs. the intended pattern
     */
 
     try {
@@ -960,42 +987,34 @@ class SqlCache(
         parseCacheRelResultSet(type, resultSet, cacheData, relPointers)
         selectQueries += 1
       } else {
-        ids.chunked(dynamicConfigService.getConfig(Int::class.java, "sql.cache.readBatchSize", 500)) { chunk ->
-          val where = "ID in (${chunk.joinToString(",") { "'$it'" }})"
+        if (coroutineContext.useAsync(ids.size, this::useAsync)) {
+          withAsync = true
 
-          val relWhere = if (relationshipPrefixes.isNotEmpty() && !relationshipPrefixes.contains("ALL")) {
-            where + "AND (rel_type LIKE " +
-              relationshipPrefixes.joinToString(" OR rel_type LIKE ") { "'$it%'" } + ")"
-          } else {
-            where
+          ids.chunked(batchSize).chunked(
+            dynamicConfigService.getConfig(Int::class.java, "sql.cache.maxQueryConcurrency", 4)
+          ) { batch ->
+            val deferred = batch.map { chunk ->
+              val scope = CatsCoroutineScope(coroutineContext!!)
+
+              scope.async {
+                selectBodiesWithRelationships(type, relationshipPrefixes, chunk)
+              }
+            }
+
+            runBlocking {
+              deferred.awaitAll()
+            }.forEach { resultSet ->
+              parseCacheRelResultSet(type, resultSet, cacheData, relPointers)
+              selectQueries += 1
+            }
           }
+        } else {
+          ids.chunked(batchSize) { chunk ->
+            val resultSet = selectBodiesWithRelationships(type, relationshipPrefixes, chunk)
 
-          val resultSet = withRetry(RetryCategory.READ) {
-            jooq
-              .select(
-                field("body").`as`("body"),
-                field(sql("null")).`as`("id"),
-                field(sql("null")).`as`("rel_id"),
-                field(sql("null")).`as`("rel_type")
-              )
-              .from(table(resourceTableName(type)))
-              .where(where)
-              .unionAll(
-                jooq.select(
-                  field(sql("null")).`as`("body"),
-                  field("id").`as`("id"),
-                  field("rel_id").`as`("rel_id"),
-                  field("rel_type").`as`("rel_type")
-                )
-                  .from(table(relTableName(type)))
-                  .where(relWhere)
-              )
-              .fetch()
-              .intoResultSet()
+            parseCacheRelResultSet(type, resultSet, cacheData, relPointers)
+            selectQueries += 1
           }
-
-          parseCacheRelResultSet(type, resultSet, cacheData, relPointers)
-          selectQueries += 1
         }
       }
       return DataWithRelationshipPointersResult(cacheData, relPointers, selectQueries)
@@ -1008,12 +1027,72 @@ class SqlCache(
         itemCount = 0,
         requestedSize = -1,
         relationshipsRequested = -1,
-        selectOperations = selectQueries
+        selectOperations = selectQueries,
+        async = withAsync
       )
 
       selectQueries = -1
 
       return DataWithRelationshipPointersResult(mutableListOf(), mutableSetOf(), selectQueries)
+    }
+  }
+
+  private fun selectBodies(type: String, ids: List<String>): Collection<CacheData> {
+    return withRetry(RetryCategory.READ) {
+      jooq.select(field("body"))
+        .from(table(resourceTableName(type)))
+        .where("ID in (${ids.joinToString(",") { "'$it'" }})")
+        .fetch()
+        .getValues(0)
+        .map { mapper.readValue(it as String, DefaultCacheData::class.java) }
+        .toList()
+    }
+  }
+
+  private fun selectBodiesWithRelationships(type: String,
+                                            relationshipPrefixes: List<String>,
+                                            ids: List<String>): ResultSet {
+    val where = "ID in (${ids.joinToString(",") { "'$it'" }})"
+
+    val relWhere = if (relationshipPrefixes.isNotEmpty() && !relationshipPrefixes.contains("ALL")) {
+      where + "AND (rel_type LIKE " +
+        relationshipPrefixes.joinToString(" OR rel_type LIKE ") { "'$it%'" } + ")"
+    } else {
+      where
+    }
+
+    return withRetry(RetryCategory.READ) {
+      jooq
+        .select(
+          field("body").`as`("body"),
+          field(sql("null")).`as`("id"),
+          field(sql("null")).`as`("rel_id"),
+          field(sql("null")).`as`("rel_type")
+        )
+        .from(table(resourceTableName(type)))
+        .where(where)
+        .unionAll(
+          jooq.select(
+            field(sql("null")).`as`("body"),
+            field("id").`as`("id"),
+            field("rel_id").`as`("rel_id"),
+            field("rel_type").`as`("rel_type")
+          )
+            .from(table(relTableName(type)))
+            .where(relWhere)
+        )
+        .fetch()
+        .intoResultSet()
+    }
+  }
+
+  private fun selectIdentifiers(type: String, ids: List<String>): MutableCollection<String> {
+    return withRetry(RetryCategory.READ) {
+      jooq.select(field("id"))
+        .from(table(resourceTableName(type)))
+        .where("id in (${ids.joinToString(",") { "'$it'" }})")
+        .fetch()
+        .intoSet(field("id"), String::class.java)
     }
   }
 
@@ -1147,8 +1226,8 @@ class SqlCache(
   }
 
   private fun <T> withRetry(category: RetryCategory, action: () -> T): T {
-    val retry = if (category == RetryCategory.WRITE) {
-      Retry.of(
+    return if (category == RetryCategory.WRITE) {
+      val retry = Retry.of(
         "sqlWrite",
         RetryConfig.custom<T>()
           .maxAttempts(sqlRetryProperties.transactions.maxRetries)
@@ -1167,6 +1246,12 @@ class SqlCache(
       )
     }
     return Try.ofSupplier(Retry.decorateSupplier(retry, action)).get()
+  }
+
+  @ExperimentalContracts
+  private fun useAsync(items: Int): Boolean {
+    return dynamicConfigService.getConfig(Int::class.java, "sql.cache.maxQueryConcurrency", 4) > 1 &&
+      items > dynamicConfigService.getConfig(Int::class.java, "sql.cache.readBatchSize", 500) * 2
   }
 
   /**
@@ -1234,4 +1319,21 @@ class SqlCache(
     val writeQueries = AtomicInteger(0)
     val deleteQueries = AtomicInteger(0)
   }
+}
+
+@ExperimentalContracts
+fun CoroutineContext?.useAsync(size: Int, useAsync: (size: Int) -> Boolean): Boolean {
+  contract {
+    returns(true) implies (this@useAsync is CoroutineContext)
+  }
+
+  return this != null && useAsync.invoke(size)
+}
+
+class CatsCoroutineScope(context: CoroutineContext) : CoroutineScope {
+  override val coroutineContext = context
+  private val jobs = Job()
+
+  @PreDestroy
+  fun killChildJobs() = jobs.cancel()
 }

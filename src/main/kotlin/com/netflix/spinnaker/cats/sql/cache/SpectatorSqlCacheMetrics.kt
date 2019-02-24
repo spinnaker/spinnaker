@@ -59,7 +59,8 @@ class SpectatorSqlCacheMetrics(
                    itemCount: Int,
                    requestedSize: Int,
                    relationshipsRequested: Int,
-                   selectOperations: Int) {
+                   selectOperations: Int,
+                   async: Boolean) {
     val tags = tags(prefix, type)
     registry.counter(id("cats.sqlCache.get", "itemCount", tags)).increment(itemCount.toLong())
     registry.counter(id("cats.sqlCache.get", "requestedSize", tags)).increment(requestedSize.toLong())
@@ -70,6 +71,6 @@ class SpectatorSqlCacheMetrics(
   private fun id(metricGroup: String, metric: String, tags: Iterable<Tag>) =
     registry.createId("$metricGroup.$metric", tags)
 
-  private fun tags(prefix: String, type: String) =
-    listOf(BasicTag("prefix", prefix), BasicTag("type", type))
+  private fun tags(prefix: String, type: String, async: Boolean = false) =
+    listOf(BasicTag("prefix", prefix), BasicTag("type", type), BasicTag("async", async.toString()))
 }

@@ -9,7 +9,9 @@ import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.cats.sql.cache.SqlCache
 import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.*
 import org.slf4j.LoggerFactory
+import kotlin.contracts.ExperimentalContracts
 
+@ExperimentalContracts
 class SqlProviderCache(private val backingStore: WriteableCache) : ProviderCache {
 
   companion object {

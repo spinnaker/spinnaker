@@ -21,6 +21,9 @@ import com.netflix.spinnaker.clouddriver.core.provider.CoreProvider
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.sql.config.DefaultSqlConfiguration
 import com.netflix.spinnaker.kork.sql.config.SqlProperties
+import kotlinx.coroutines.ObsoleteCoroutinesApi
+import kotlinx.coroutines.newFixedThreadPoolContext
+import kotlinx.coroutines.slf4j.MDCContext
 import org.jooq.DSLContext
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -31,7 +34,9 @@ import org.springframework.context.annotation.Import
 import java.time.Clock
 import java.time.Duration
 import java.util.Optional
+import kotlin.contracts.ExperimentalContracts
 
+@ExperimentalContracts
 @Configuration
 @ConditionalOnProperty("sql.cache.enabled")
 @Import(DefaultSqlConfiguration::class)
@@ -56,22 +61,49 @@ class SqlCacheConfiguration {
       .build(providers)
   }
 
+  /**
+   * sql.cache.async.poolSize: If set to a positive integer, a fixed thread pool of this size is created
+   * as part of a coroutineContext. If sql.cache.maxQueryConcurrency is also >1 (default value: 4),
+   * sql queries to fetch > 2 * sql.cache.readBatchSize cache keys will be made asynchronously in batches of
+   * maxQueryConcurrency size.
+   *
+   * sql.tableNamespace: Name spaces data tables, as well as the agent lock table if using the SqlAgentScheduler.
+   * Table namespacing allows flipping to new/empty data tables within the same master if necessary to rebuild
+   * the cache from scratch, such as after disabling caching agents for an account/region.
+   */
+  @ObsoleteCoroutinesApi
   @Bean
   fun cacheFactory(jooq: DSLContext,
                    clock: Clock,
                    sqlProperties: SqlProperties,
                    cacheMetrics: SqlCacheMetrics,
                    dynamicConfigService: DynamicConfigService,
-                   @Value("\${sql.tableNamespace:#{null}}") tableNamespace: String?): NamedCacheFactory =
-    SqlNamedCacheFactory(
+                   @Value("\${sql.cache.asyncPoolSize:0}") poolSize: Int,
+                   @Value("\${sql.tableNamespace:#{null}}") tableNamespace: String?): NamedCacheFactory {
+    /**
+     * newFixedThreadPoolContext was marked obsolete in Oct 2018, to be reimplemented as a new
+     * concurrency limiting threaded context factory with reduced context switch overhead. As of
+     * Feb 2019, the new implementation is unreleased. See: https://github.com/Kotlin/kotlinx.coroutines/issues/261
+     *
+     * TODO: switch to newFixedThreadPoolContext's replacement when ready
+     */
+    val dispatcher = if (poolSize < 1) {
+      null
+    } else {
+      newFixedThreadPoolContext(nThreads = poolSize, name = "catsSql") + MDCContext()
+    }
+
+    return SqlNamedCacheFactory(
       jooq,
       ObjectMapper(),
+      dispatcher,
       clock,
       sqlProperties.retries,
       tableNamespace,
       cacheMetrics,
       dynamicConfigService
     )
+  }
 
   @Bean
   fun coreProvider(): CoreProvider = CoreProvider(emptyList())

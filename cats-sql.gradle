@@ -27,6 +27,9 @@ dependencies {
   compile("com.netflix.spinnaker.clouddriver:cats-core:${clouddriverVersion}")
   compile("com.netflix.spinnaker.clouddriver:cats-redis:${clouddriverVersion}")
   compile project(":clouddriver-sql")
+  compile("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.1.1")
+  compile("org.jetbrains.kotlinx:kotlinx-coroutines-core-common:1.1.1")
+  compile("org.jetbrains.kotlinx:kotlinx-coroutines-slf4j:1.1.1")
 
   testCompile "com.h2database:h2:1.4.197"
 

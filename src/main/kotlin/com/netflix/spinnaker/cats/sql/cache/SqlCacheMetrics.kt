@@ -37,7 +37,8 @@ interface SqlCacheMetrics {
           itemCount: Int,
           requestedSize: Int,
           relationshipsRequested: Int,
-          selectOperations: Int) {}
+          selectOperations: Int,
+          async: Boolean = false) {}
 }
 
 class NoopCacheMetrics : SqlCacheMetrics

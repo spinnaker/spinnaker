@@ -83,6 +83,7 @@ class SqlCacheSpec extends WriteableCacheSpec {
       "test",
       currentDatabase.context,
       mapper,
+      null,
       clock,
       sqlRetryProperties,
       "test",
