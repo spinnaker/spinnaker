@@ -37,6 +37,7 @@ public class DeployCloudFoundryServerGroupDescription extends AbstractCloudFound
   private String stack;
   private String freeFormDetails;
   private CloudFoundrySpace space;
+  private boolean startApplication;
 
   @Nullable
   private Source source;

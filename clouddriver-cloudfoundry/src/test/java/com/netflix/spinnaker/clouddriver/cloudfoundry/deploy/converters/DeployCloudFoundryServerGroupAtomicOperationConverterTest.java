@@ -104,6 +104,7 @@ class DeployCloudFoundryServerGroupAtomicOperationConverterTest {
     final Map input = HashMap.of(
       "credentials", "destinationAccount",
       "region", "org > space",
+      "startApplication", "true",
       "source", HashMap.of(
         "account", "sourceAccount",
         "asgName", "serverGroupName1",
@@ -125,6 +126,7 @@ class DeployCloudFoundryServerGroupAtomicOperationConverterTest {
     assertThat(result.getSpace()).isEqualToComparingFieldByFieldRecursively(
       CloudFoundrySpace.builder().id("spaceID").name("space").organization(
         CloudFoundryOrganization.builder().id("orgID").name("org").build()).build());
+    assertThat(result.isStartApplication()).isTrue();
     assertThat(result.getApplicationAttributes()).isEqualToComparingFieldByFieldRecursively(
       new DeployCloudFoundryServerGroupDescription.ApplicationAttributes()
         .setInstances(42)

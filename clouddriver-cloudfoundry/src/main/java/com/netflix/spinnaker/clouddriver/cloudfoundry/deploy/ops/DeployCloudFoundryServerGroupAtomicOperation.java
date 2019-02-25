@@ -81,16 +81,20 @@ public class DeployCloudFoundryServerGroupAtomicOperation
       return deploymentResult();
     }
 
-    client.getApplications().startApplication(serverGroup.getId());
-    ProcessStats.State state = operationPoller.waitForOperation(
-      () -> client.getApplications().getProcessState(serverGroup.getId()),
-      inProgressState -> inProgressState == ProcessStats.State.RUNNING || inProgressState == ProcessStats.State.CRASHED,
-      null, getTask(), description.getServerGroupName(), PHASE);
+    if (description.isStartApplication()) {
+      client.getApplications().startApplication(serverGroup.getId());
+      ProcessStats.State state = operationPoller.waitForOperation(
+        () -> client.getApplications().getProcessState(serverGroup.getId()),
+        inProgressState -> inProgressState == ProcessStats.State.RUNNING || inProgressState == ProcessStats.State.CRASHED,
+        null, getTask(), description.getServerGroupName(), PHASE);
 
-    if (state != ProcessStats.State.RUNNING) {
-      getTask().updateStatus(PHASE, "Failed to start '" + description.getServerGroupName() + "' which instead " + describeProcessState(state));
-      getTask().fail();
-      return null;
+      if (state != ProcessStats.State.RUNNING) {
+        getTask().updateStatus(PHASE, "Failed to start '" + description.getServerGroupName() + "' which instead " + describeProcessState(state));
+        getTask().fail();
+        return null;
+      }
+    } else {
+      getTask().updateStatus(PHASE, "Stop state requested for '" + description.getServerGroupName());
     }
 
     getTask().updateStatus(PHASE, "Deployed '" + description.getApplication() + "'");
