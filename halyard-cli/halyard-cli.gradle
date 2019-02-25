@@ -1,3 +1,5 @@
+import org.gradle.api.tasks.Exec
+
 dependencies {
   compile spinnaker.dependency('lombok')
 
@@ -11,3 +13,28 @@ apply plugin: 'java'
 apply plugin: 'application'
 
 mainClassName = 'com.netflix.spinnaker.halyard.cli.Main'
+
+task generateDocs(type: Exec, dependsOn: installDist) {
+  workingDir "$projectDir"
+  commandLine './hal', '--docs'
+  standardOutput new ByteArrayOutputStream()
+  doLast {
+    ext.output = standardOutput.toString()
+  }
+}
+
+task checkDocs(dependsOn: generateDocs) << {
+  def newDocs = tasks.generateDocs.output
+  def currentDocs = new File("$projectDir/../docs/commands.md").text
+  if (newDocs != currentDocs) {
+    throw new GradleException('The docs for halyard-cli are out of date. Regenerate them by running the :halyard-cli:updateDocs gradle task.')
+  }
+}
+
+task updateDocs(dependsOn: generateDocs) << {
+  new File("$projectDir/../docs/commands.md").withWriter { writer ->
+    writer.write(tasks.generateDocs.output)
+  }  
+}
+
+tasks.check.dependsOn(checkDocs)
