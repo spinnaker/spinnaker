@@ -26,8 +26,27 @@ export interface ITitusRunJobStageConfigState {
   loaded: boolean;
 }
 
+interface IClusterDefaults {
+  application: string;
+  containerAttributes: object;
+  env: object;
+  labels: object;
+  resources: {
+    cpu: number;
+    disk: number;
+    gpu: number;
+    memory: number;
+    networkMbps: number;
+  };
+  retries: number;
+  runtimeLimitSecs: number;
+  securityGroups: string[];
+  iamProfile?: string;
+}
+
 export class TitusRunJobStageConfig extends React.Component<IStageConfigProps, ITitusRunJobStageConfigState> {
   private credentialsKeyedByAccount: IAggregatedAccounts = {};
+  private defaultIamProfile = '';
 
   public state: ITitusRunJobStageConfigState = {
     credentials: [],
@@ -57,14 +76,13 @@ export class TitusRunJobStageConfig extends React.Component<IStageConfigProps, I
       };
     }
 
-    let defaultIamProfile = TitusProviderSettings.defaults.iamProfile || '{{application}}InstanceProfile';
-    defaultIamProfile = defaultIamProfile.replace('{{application}}', application.name);
+    const defaultIamProfile = TitusProviderSettings.defaults.iamProfile || '{{application}}InstanceProfile';
+    this.defaultIamProfile = defaultIamProfile.replace('{{application}}', application.name);
 
-    const clusterDefaults = {
+    const clusterDefaults: IClusterDefaults = {
       application: application.name,
       containerAttributes: {},
       env: {},
-      iamProfile: defaultIamProfile,
       labels: {},
       resources: {
         cpu: 1,
@@ -77,6 +95,11 @@ export class TitusRunJobStageConfig extends React.Component<IStageConfigProps, I
       runtimeLimitSecs: 3600,
       securityGroups: [] as string[],
     };
+
+    if (stage.isNew) {
+      clusterDefaults.iamProfile = this.defaultIamProfile;
+    }
+
     defaultsDeep(stage.cluster, clusterDefaults);
 
     stage.cloudProvider = stage.cloudProvider || 'titus';
@@ -318,6 +341,7 @@ export class TitusRunJobStageConfig extends React.Component<IStageConfigProps, I
                 type="text"
                 className="form-control input-sm"
                 value={stage.cluster.iamProfile}
+                placeholder={this.defaultIamProfile}
                 required={true}
                 onChange={e => this.stageFieldChanged('cluster.iamProfile', e.target.value)}
               />
@@ -325,6 +349,17 @@ export class TitusRunJobStageConfig extends React.Component<IStageConfigProps, I
             <div className="col-md-1 small" style={{ whiteSpace: 'nowrap', paddingLeft: '0px', paddingTop: '7px' }}>
               in <AccountTag account={awsAccount} />
             </div>
+            {!stage.isNew && !stage.cluster.iamProfile && (
+              <div className="checkbox">
+                <label>
+                  <input
+                    type="checkbox"
+                    onChange={() => this.stageFieldChanged('cluster.iamProfile', this.defaultIamProfile)}
+                  />
+                  Use default
+                </label>
+              </div>
+            )}
           </div>
 
           <StageConfigField label="Capacity Group" fieldColumns={4} helpKey="titus.job.capacityGroup">
