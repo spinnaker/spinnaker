@@ -9,6 +9,7 @@ import { IKayentaStage, KayentaAnalysisType } from 'kayenta/domain';
 import { CANARY_SCORES_CONFIG_COMPONENT } from 'kayenta/components/canaryScores.component';
 import { KayentaStageTransformer, KAYENTA_STAGE_TRANSFORMER } from './kayentaStage.transformer';
 import { KayentaStageController } from './kayentaStage.controller';
+import { CanaryExecutionLabel } from './CanaryExecutionLabel';
 import { KAYENTA_STAGE_EXECUTION_DETAILS_CONTROLLER } from './kayentaStageExecutionDetails.controller';
 import { KAYENTA_STAGE_CONFIG_SECTION } from './kayentaStageConfigSection.component';
 import { KAYENTA_ANALYSIS_TYPE_COMPONENT } from './analysisType.component';
@@ -91,6 +92,7 @@ module(KAYENTA_CANARY_STAGE, [
       controller: 'KayentaCanaryStageCtrl',
       controllerAs: 'kayentaCanaryStageCtrl',
       executionDetailsUrl: require('./kayentaStageExecutionDetails.html'),
+      executionLabelComponent: CanaryExecutionLabel,
       validators: [
         { type: 'requiredField', fieldName: 'canaryConfig.canaryConfigId', fieldLabel: 'Config Name' },
         { type: 'requiredField', fieldName: 'canaryConfig.metricsAccountName', fieldLabel: 'Metrics Account' },
