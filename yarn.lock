@@ -109,10 +109,10 @@
     d3-collection "1"
     d3-interpolate "1"
 
-"@spinnaker/kayenta@0.0.70":
-  version "0.0.70"
-  resolved "https://registry.yarnpkg.com/@spinnaker/kayenta/-/kayenta-0.0.70.tgz#7646dcb3485566755d50a684564c5141908dbda8"
-  integrity sha512-UDjFFovVwswkbbJW5IfYqUMlI2gIClx+XrAVBlCWm0YggAaVBOipby1/g+zbDwnKDX5ecyaTXs6aY9PVXARuMw==
+"@spinnaker/kayenta@0.0.72":
+  version "0.0.72"
+  resolved "https://registry.yarnpkg.com/@spinnaker/kayenta/-/kayenta-0.0.72.tgz#dbd7bc3f2b509d5f5b15ee68e9c4a7567d5a1bd8"
+  integrity sha512-ftvxhWY09kaiZmMvJvfsfl+ff6HiIwk7SiZ0pQCTxfiqy/qbGi8cjtM3Oqw5m6wZc7AnHvBrV7C+9sdWH39TWw==
   dependencies:
     "@fortawesome/fontawesome-free" "5.5.0"
     "@types/plotly.js" "^1.28.12"
@@ -125,7 +125,7 @@
     angular-ui-sortable "^0.17.0"
     babel-plugin-transform-async-to-generator "^6.24.1"
     babel-polyfill "^6.26.0"
-    bootstrap "3.3.7"
+    bootstrap "3.4.1"
     cachefactory "^3.0.0"
     chart.js "^2.7.0"
     class-autobind-decorator "^2.2.1"
@@ -2443,11 +2443,6 @@ boom@2.x.x:
   integrity sha1-OciRjO/1eZ+D+UkqhI9iWt0Mdm8=
   dependencies:
     hoek "2.x.x"
-
-bootstrap@3.3.7:
-  version "3.3.7"
-  resolved "https://registry.yarnpkg.com/bootstrap/-/bootstrap-3.3.7.tgz#5a389394549f23330875a3b150656574f8a9eb71"
-  integrity sha1-WjiTlFSfIzMIdaOxUGVldPip63E=
 
 bootstrap@3.4.1:
   version "3.4.1"
