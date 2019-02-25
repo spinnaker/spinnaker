@@ -14,7 +14,7 @@ public class ListCommand extends AbstractConfigCommand {
     private String commandName = "list";
 
     @Getter(AccessLevel.PUBLIC)
-    private String description = "Lists all deployments";
+    private String shortDescription = "Lists all deployments";
 
     @Override
     protected void executeThis() {

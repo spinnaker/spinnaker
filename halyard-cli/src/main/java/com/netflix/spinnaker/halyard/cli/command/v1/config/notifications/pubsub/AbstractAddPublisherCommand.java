@@ -36,7 +36,7 @@ public abstract class AbstractAddPublisherCommand extends AbstractHasPublisherCo
   private String commandName = "add";
 
   @Override
-  public String getDescription() {
+  public String getShortDescription() {
     return "Add a publisher of type " + getPubsubName();
   }
 

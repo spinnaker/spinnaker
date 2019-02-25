@@ -37,8 +37,6 @@ public class CanaryDatadogCommand extends AbstractConfigCommand {
 
   String shortDescription = "Configure your canary analysis Datadog service integration settings for Spinnaker.";
 
-  String longDescription = shortDescription;
-
   public CanaryDatadogCommand() {
     registerSubcommand(new EnableDisableCanaryServiceIntegrationCommandBuilder().setName("Datadog").setEnable(true).build());
     registerSubcommand(new EnableDisableCanaryServiceIntegrationCommandBuilder().setName("Datadog").setEnable(false).build());

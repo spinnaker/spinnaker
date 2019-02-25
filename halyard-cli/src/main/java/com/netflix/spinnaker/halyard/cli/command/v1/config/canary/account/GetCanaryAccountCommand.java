@@ -44,11 +44,6 @@ public class GetCanaryAccountCommand extends AbstractHasCanaryAccountCommand {
   }
 
   @Override
-  public String getLongDescription() {
-    return getShortDescription();
-  }
-
-  @Override
   protected void executeThis() {
     AnsiUi.success(AnsiFormatUtils.format(getAccount(getAccountName())));
   }

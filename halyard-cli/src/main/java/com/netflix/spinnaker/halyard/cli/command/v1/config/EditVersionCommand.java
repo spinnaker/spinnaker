@@ -30,7 +30,7 @@ public class EditVersionCommand extends AbstractConfigCommand {
   private String commandName = "edit";
 
   @Getter(AccessLevel.PUBLIC)
-  private String description = "Set the desired Spinnaker version.";
+  private String shortDescription = "Set the desired Spinnaker version.";
 
   @Parameter(
       names = "--version",

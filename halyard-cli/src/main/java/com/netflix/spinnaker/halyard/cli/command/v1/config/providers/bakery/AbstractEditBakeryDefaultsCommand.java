@@ -40,7 +40,7 @@ public abstract class AbstractEditBakeryDefaultsCommand<T extends BakeryDefaults
 
   protected abstract BakeryDefaults editBakeryDefaults(T BakeryDefaults);
 
-  public String getDescription() {
+  public String getShortDescription() {
     return "Edit the " + getProviderName() + " provider's bakery default options.";
   }
 

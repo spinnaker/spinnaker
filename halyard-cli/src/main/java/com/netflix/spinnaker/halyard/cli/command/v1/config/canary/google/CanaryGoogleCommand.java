@@ -37,8 +37,6 @@ public class CanaryGoogleCommand extends AbstractConfigCommand {
 
   String shortDescription = "Configure your canary analysis Google service integration settings for Spinnaker.";
 
-  String longDescription = shortDescription;
-
   public CanaryGoogleCommand() {
     registerSubcommand(new EditCanaryGoogleCommand());
     registerSubcommand(new EnableDisableCanaryServiceIntegrationCommandBuilder().setName("Google").setEnable(true).build());

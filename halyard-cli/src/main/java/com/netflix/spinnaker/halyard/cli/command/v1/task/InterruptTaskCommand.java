@@ -33,7 +33,7 @@ public class InterruptTaskCommand extends NestableCommand {
   private String commandName = "interrupt";
 
   @Getter(AccessLevel.PUBLIC)
-  private String description = "Interrupt (attempt to kill) a given task.";
+  private String shortDescription = "Interrupt (attempt to kill) a given task.";
 
   @Override
   public String getMainParameter() {

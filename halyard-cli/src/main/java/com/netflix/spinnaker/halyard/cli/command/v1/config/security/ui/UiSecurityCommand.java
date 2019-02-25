@@ -34,8 +34,6 @@ public class UiSecurityCommand extends AbstractConfigCommand {
 
   private String shortDescription = "Configure and view the UI server's addressable URL.";
 
-  private String longDescription = shortDescription;
-
   public UiSecurityCommand() {
     registerSubcommand(new UiSecurityEditCommand());
     registerSubcommand(new ApacheSslCommand());

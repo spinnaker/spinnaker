@@ -34,7 +34,7 @@ public class EditDeploymentEnvironmentCommand extends AbstractConfigCommand {
   final private String commandName = "edit";
 
   @Getter(AccessLevel.PUBLIC)
-  final private String description = "Edit Spinnaker's deployment footprint and configuration.";
+  final private String shortDescription = "Edit Spinnaker's deployment footprint and configuration.";
 
   @Parameter(
       names = "--account-name",

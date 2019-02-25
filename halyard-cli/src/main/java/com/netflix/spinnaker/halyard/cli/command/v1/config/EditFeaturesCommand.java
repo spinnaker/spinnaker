@@ -31,7 +31,7 @@ public class EditFeaturesCommand extends AbstractConfigCommand {
   private String commandName = "edit";
 
   @Getter(AccessLevel.PUBLIC)
-  private String description = "Enable and disable Spinnaker feature flags.";
+  private String shortDescription = "Enable and disable Spinnaker feature flags.";
 
   @Parameter(
       names = "--chaos",

@@ -26,7 +26,7 @@ import lombok.Getter;
 
 public abstract class AbstractGetPublisherCommand extends AbstractHasPublisherCommand {
 
-  public String getDescription() {
+  public String getShortDescription() {
     return "Get the specified publisher details for the " + getPubsubName() + " pubsub.";
   }
 

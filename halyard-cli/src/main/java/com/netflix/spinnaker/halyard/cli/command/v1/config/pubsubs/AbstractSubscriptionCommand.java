@@ -32,7 +32,7 @@ public abstract class AbstractSubscriptionCommand extends AbstractHasSubscriptio
   }
 
   @Override
-  public String getDescription() {
+  public String getShortDescription() {
     return "Manage and view Spinnaker configuration for the " + getPubsubName() + " pubsub's subscription";
   }
 

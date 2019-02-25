@@ -44,7 +44,7 @@ public class ArtifactProviderCommand extends NestableCommand {
   private String commandName = "artifact";
 
   @Getter(AccessLevel.PUBLIC)
-  private String description = "Configure, validate, and view the specified artifact provider.";
+  private String shortDescription = "Configure, validate, and view the specified artifact provider.";
 
   public ArtifactProviderCommand() {
     registerSubcommand(new BitbucketArtifactProviderCommand());

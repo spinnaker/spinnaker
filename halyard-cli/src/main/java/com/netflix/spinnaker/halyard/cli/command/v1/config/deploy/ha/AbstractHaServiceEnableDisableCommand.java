@@ -48,7 +48,7 @@ public abstract class AbstractHaServiceEnableDisableCommand extends AbstractHaSe
   private Map<String, NestableCommand> subcommands = new HashMap<>();
 
   @Override
-  public String getDescription() {
+  public String getShortDescription() {
     return "Set the " + getServiceName() + " high availability service as " + subjunctivePerfectAction();
   }
 

@@ -18,7 +18,7 @@ public abstract class AbstractClusterCommand extends AbstractProviderCommand {
   }
 
   @Override
-  public String getDescription() {
+  public String getShortDescription() {
     return "Manage and view Spinnaker configuration for the " + getProviderName() + " provider's cluster";
   }
 

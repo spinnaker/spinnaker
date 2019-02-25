@@ -47,7 +47,7 @@ public abstract class AbstractArtifactProviderEnableDisableCommand extends Abstr
   private Map<String, NestableCommand> subcommands = new HashMap<>();
 
   @Override
-  public String getDescription() {
+  public String getShortDescription() {
     return "Set the " + getArtifactProviderName() + " artifact provider as " + subjunctivePerfectAction();
   }
 

@@ -32,7 +32,7 @@ public abstract class AbstractArtifactAccountCommand extends AbstractHasArtifact
   }
 
   @Override
-  public String getDescription() {
+  public String getShortDescription() {
     return "Manage and view Spinnaker configuration for the " + getArtifactProviderName() + " artifact provider's account";
   }
 

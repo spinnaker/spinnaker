@@ -48,7 +48,7 @@ public abstract class AbstractAuthnMethodEnableDisableCommand extends AbstractAu
   private Map<String, NestableCommand> subcommands = new HashMap<>();
 
   @Override
-  public String getDescription() {
+  public String getShortDescription() {
     String methodName = getMethod().id;
     return "Set the " + methodName + " method as " + subjunctivePerfectAction();
   }

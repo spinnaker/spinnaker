@@ -32,7 +32,7 @@ import lombok.EqualsAndHashCode;
 @Parameters(separators = "=")
 public class AuthzEditCommand extends AbstractConfigCommand {
   private String commandName = "edit";
-  private String description = "Edit your roles provider settings.";
+  private String shortDescription = "Edit your roles provider settings.";
 
   @Parameter(
       names = "--type",

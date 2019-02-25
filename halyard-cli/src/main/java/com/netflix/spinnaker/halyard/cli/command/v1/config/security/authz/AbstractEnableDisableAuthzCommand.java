@@ -49,7 +49,7 @@ public abstract class AbstractEnableDisableAuthzCommand extends AbstractConfigCo
   private Map<String, NestableCommand> subcommands = new HashMap<>();
 
   @Override
-  public String getDescription() {
+  public String getShortDescription() {
     return "Set Spinnaker's role-based authorization to " + subjunctivePerfectAction();
   }
 

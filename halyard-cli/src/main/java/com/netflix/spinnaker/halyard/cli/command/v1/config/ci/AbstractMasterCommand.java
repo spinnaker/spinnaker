@@ -31,7 +31,7 @@ public abstract class AbstractMasterCommand extends AbstractHasMasterCommand {
   }
 
   @Override
-  public String getDescription() {
+  public String getShortDescription() {
     return "Manage and view Spinnaker configuration for the " + getCiName() + " Continuous Integration services's master";
   }
 

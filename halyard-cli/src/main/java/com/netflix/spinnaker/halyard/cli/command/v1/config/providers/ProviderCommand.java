@@ -43,7 +43,7 @@ public class ProviderCommand extends NestableCommand {
   private String commandName = "provider";
 
   @Getter(AccessLevel.PUBLIC)
-  private String description = "Configure, validate, and view the specified provider.";
+  private String shortDescription = "Configure, validate, and view the specified provider.";
 
   public ProviderCommand() {
     registerSubcommand(new AppengineCommand());

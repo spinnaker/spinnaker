@@ -35,7 +35,7 @@ public class PublishLatestHalyardCommand extends NestableCommand {
   private String commandName = "latest-halyard";
 
   @Getter(AccessLevel.PUBLIC)
-  private String description = "Publish the latest version of Halyard to the global versions.yml tracking file.";
+  private String shortDescription = "Publish the latest version of Halyard to the global versions.yml tracking file.";
 
   @Override
   public String getMainParameter() {

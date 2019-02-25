@@ -39,7 +39,7 @@ public abstract class AbstractDeleteMasterCommand extends AbstractHasMasterComma
   @Getter(AccessLevel.PUBLIC)
   private String commandName = "delete";
 
-  public String getDescription() {
+  public String getShortDescription() {
     return "Delete a specific " + getCiName() + " master by name.";
   }
 

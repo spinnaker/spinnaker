@@ -55,11 +55,6 @@ public abstract class AbstractEnableDisableWebhookTrustCommand extends AbstractC
   }
 
   @Override
-  public String getLongDescription() {
-    return getShortDescription();
-  }
-
-  @Override
   protected void executeThis() {
     String currentDeployment = getCurrentDeployment();
     boolean enable = isEnable();

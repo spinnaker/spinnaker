@@ -53,11 +53,6 @@ public abstract class AbstractEnableDisableCanaryCommand extends AbstractConfigC
   }
 
   @Override
-  public String getLongDescription() {
-    return getShortDescription();
-  }
-
-  @Override
   protected void executeThis() {
     String currentDeployment = getCurrentDeployment();
     boolean enable = isEnable();

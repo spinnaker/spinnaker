@@ -38,7 +38,7 @@ public abstract class AbstractDeleteBaseImageCommand extends AbstractHasBaseImag
   @Getter(AccessLevel.PUBLIC)
   private String commandName = "delete";
 
-  public String getDescription() {
+  public String getShortDescription() {
     return "Delete a specific " + getProviderName() + " base image by name.";
   }
 

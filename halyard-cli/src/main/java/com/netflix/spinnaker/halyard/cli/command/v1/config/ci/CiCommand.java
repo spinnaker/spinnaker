@@ -37,7 +37,7 @@ public class CiCommand extends NestableCommand {
   private String commandName = "ci";
 
   @Getter(AccessLevel.PUBLIC)
-  private String description = "Configure, validate, and view the specified Continuous Integration service.";
+  private String shortDescription = "Configure, validate, and view the specified Continuous Integration service.";
 
   public CiCommand() {
     registerSubcommand(new JenkinsCommand());

@@ -30,7 +30,7 @@ public abstract class AbstractNamedPersistentStoreCommand extends AbstractPersis
   private String commandName = getPersistentStoreType();
 
   @Getter(AccessLevel.PUBLIC)
-  private String description = "Manage and view Spinnaker configuration for the \"" + getPersistentStoreType() + "\" persistent store.";
+  private String shortDescription = "Manage and view Spinnaker configuration for the \"" + getPersistentStoreType() + "\" persistent store.";
 
   @Override
   protected void executeThis() {

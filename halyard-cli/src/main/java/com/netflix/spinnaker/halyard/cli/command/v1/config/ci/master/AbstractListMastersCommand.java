@@ -30,7 +30,7 @@ import java.util.List;
 
 @Parameters(separators = "=")
 abstract class AbstractListMastersCommand extends AbstractCiCommand {
-  public String getDescription() {
+  public String getShortDescription() {
     return "List the master names for " + getCiName() + ".";
   }
 

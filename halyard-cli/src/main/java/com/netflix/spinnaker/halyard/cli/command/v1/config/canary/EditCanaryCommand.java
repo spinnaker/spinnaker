@@ -32,7 +32,7 @@ public class EditCanaryCommand extends AbstractConfigCommand {
   private String commandName = "edit";
 
   @Getter(AccessLevel.PUBLIC)
-  private String description = "Edit Spinnaker's canary analysis settings.";
+  private String shortDescription = "Edit Spinnaker's canary analysis settings.";
 
   @Parameter(
       names = "--redux-logger-enabled",

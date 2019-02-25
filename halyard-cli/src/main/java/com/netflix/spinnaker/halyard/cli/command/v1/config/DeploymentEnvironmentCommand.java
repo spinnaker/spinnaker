@@ -33,7 +33,7 @@ public class DeploymentEnvironmentCommand extends AbstractConfigCommand {
   private String commandName = "deploy";
 
   @Getter(AccessLevel.PUBLIC)
-  private String description = "Display the configured Spinnaker deployment.";
+  private String shortDescription = "Display the configured Spinnaker deployment.";
 
   public DeploymentEnvironmentCommand() {
     registerSubcommand(new EditDeploymentEnvironmentCommand());

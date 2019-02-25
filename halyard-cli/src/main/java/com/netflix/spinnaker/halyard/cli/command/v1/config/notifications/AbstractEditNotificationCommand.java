@@ -40,7 +40,7 @@ public abstract class AbstractEditNotificationCommand<N extends Notification> ex
 
   protected abstract Notification editNotification(N notification);
 
-  public String getDescription() {
+  public String getShortDescription() {
     return "Edit the " + getNotificationName() + " notification type";
   }
 

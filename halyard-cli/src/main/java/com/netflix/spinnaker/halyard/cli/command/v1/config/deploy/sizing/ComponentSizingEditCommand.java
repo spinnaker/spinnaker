@@ -77,7 +77,7 @@ public class ComponentSizingEditCommand extends AbstractComponentSizingUpdateCom
     }
 
     @Override
-    protected String getDescription() {
+    protected String getShortDescription() {
         return "Edit the component sizing for service " + spinnakerService.getCanonicalName() +
                 ", such as the number of replicas and the resources limits.";
     }

@@ -44,11 +44,6 @@ public class ListCanaryAccountsCommand extends AbstractCanaryServiceIntegrationC
   }
 
   @Override
-  public String getLongDescription() {
-    return getShortDescription();
-  }
-
-  @Override
   protected void executeThis() {
     AbstractCanaryServiceIntegration serviceIntegration = CanaryUtils.getServiceIntegrationByName(null, getCurrentDeployment(), getServiceIntegration(), noValidate);
     List<AbstractCanaryAccount> accounts = serviceIntegration.getAccounts();

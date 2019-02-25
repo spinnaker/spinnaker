@@ -41,7 +41,7 @@ public abstract class AbstractAddArtifactAccountCommand extends AbstractHasArtif
 
   protected abstract ArtifactAccount emptyArtifactAccount();
 
-  public String getDescription() {
+  public String getShortDescription() {
     return "Add an artifact account to the " + getArtifactProviderName() + " artifact provider.";
   }
 

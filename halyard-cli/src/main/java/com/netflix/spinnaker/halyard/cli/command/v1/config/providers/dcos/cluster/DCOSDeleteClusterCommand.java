@@ -20,7 +20,7 @@ public class DCOSDeleteClusterCommand extends AbstractClusterCommand {
   @Getter(AccessLevel.PUBLIC)
   private String commandName = "delete";
 
-  public String getDescription() {
+  public String getShortDescription() {
     return "Delete a specific " + getProviderName() + " cluster by name.";
   }
 

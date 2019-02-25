@@ -29,7 +29,7 @@ public class AddArtifactTemplateCommand extends AbstractHasArtifactTemplateComma
   @Getter(AccessLevel.PUBLIC)
   private String commandName = "add";
   @Getter(AccessLevel.PUBLIC)
-  private String description = "Add an artifact template";
+  private String shortDescription = "Add an artifact template";
 
   @Parameter(
       names = "--template-path",

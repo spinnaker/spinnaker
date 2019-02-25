@@ -27,7 +27,7 @@ import lombok.Getter;
 
 @Parameters(separators = "=")
 abstract class AbstractGetAccountCommand extends AbstractHasAccountCommand {
-  public String getDescription() {
+  public String getShortDescription() {
     return "Get the specified account details for the " + getProviderName() + " provider.";
   }
 

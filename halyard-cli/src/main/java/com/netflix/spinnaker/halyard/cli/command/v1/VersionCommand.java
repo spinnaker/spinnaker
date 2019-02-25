@@ -31,9 +31,6 @@ public class VersionCommand extends NestableCommand {
   @Getter(AccessLevel.PUBLIC)
   private String shortDescription = "Get information about the available Spinnaker versions.";
 
-  @Getter(AccessLevel.PUBLIC)
-  private String longDescription = shortDescription;
-
   public VersionCommand() {
     registerSubcommand(new LatestVersionCommand());
     registerSubcommand(new BomVersionCommand());

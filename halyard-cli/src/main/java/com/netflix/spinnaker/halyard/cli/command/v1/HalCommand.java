@@ -72,7 +72,7 @@ public class HalCommand extends NestableCommand {
   }
 
   @Override
-  public String getDescription() {
+  public String getShortDescription() {
     return "A tool for configuring, installing, and updating Spinnaker.\n\n"
         + "If this is your first time using Halyard to install Spinnaker we recommend that you skim "
         + "the documentation on www.spinnaker.io/docs for some familiarity with the product. If at any "

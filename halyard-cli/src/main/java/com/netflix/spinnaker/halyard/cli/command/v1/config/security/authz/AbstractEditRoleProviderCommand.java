@@ -38,7 +38,7 @@ public abstract class AbstractEditRoleProviderCommand<T extends RoleProvider> ex
 
   protected abstract RoleProvider editRoleProvider(T roleProvider);
 
-  public String getDescription() {
+  public String getShortDescription() {
     return "Edit the " + getRoleProviderType() + " role provider.";
   }
 

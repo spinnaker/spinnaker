@@ -27,7 +27,7 @@ public class SpinCommand extends NestableCommand {
   private String commandName = "spin";
 
   @Getter(AccessLevel.PUBLIC)
-  private String description = "Manage the lifecycle of spin CLI.";
+  private String shortDescription = "Manage the lifecycle of spin CLI.";
 
   public SpinCommand() {
     registerSubcommand(new InstallSpinCommand());

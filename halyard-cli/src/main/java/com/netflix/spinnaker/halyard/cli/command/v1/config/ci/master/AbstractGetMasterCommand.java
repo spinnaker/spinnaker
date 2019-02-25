@@ -26,7 +26,7 @@ import lombok.Getter;
 
 @Parameters(separators = "=")
 abstract class AbstractGetMasterCommand extends AbstractHasMasterCommand {
-  public String getDescription() {
+  public String getShortDescription() {
     return "Get the specified master details for " + getCiName() + ".";
   }
 

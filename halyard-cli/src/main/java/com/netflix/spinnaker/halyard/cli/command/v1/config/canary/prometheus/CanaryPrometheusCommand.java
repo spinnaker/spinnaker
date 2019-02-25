@@ -38,8 +38,6 @@ public class CanaryPrometheusCommand extends AbstractConfigCommand {
 
   String shortDescription = "Configure your canary analysis Prometheus service integration settings for Spinnaker.";
 
-  String longDescription = shortDescription;
-
   public CanaryPrometheusCommand() {
     registerSubcommand(new EditCanaryPrometheusCommand());
     registerSubcommand(new EnableDisableCanaryServiceIntegrationCommandBuilder().setName("Prometheus").setEnable(true).build());

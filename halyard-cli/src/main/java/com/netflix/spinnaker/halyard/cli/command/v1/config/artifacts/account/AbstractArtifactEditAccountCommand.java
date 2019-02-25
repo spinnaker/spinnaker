@@ -40,7 +40,7 @@ public abstract class AbstractArtifactEditAccountCommand<T extends ArtifactAccou
 
   protected abstract ArtifactAccount editArtifactAccount(T account);
 
-  public String getDescription() {
+  public String getShortDescription() {
     return "Edit an artifact account in the " + getArtifactProviderName() + " artifact provider.";
   }
 

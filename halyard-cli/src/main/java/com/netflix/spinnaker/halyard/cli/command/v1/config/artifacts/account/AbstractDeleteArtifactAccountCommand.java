@@ -39,7 +39,7 @@ public abstract class AbstractDeleteArtifactAccountCommand extends AbstractHasAr
   @Getter(AccessLevel.PUBLIC)
   private String commandName = "delete";
 
-  public String getDescription() {
+  public String getShortDescription() {
     return "Delete a specific " + getArtifactProviderName() + " artifact account by name.";
   }
 

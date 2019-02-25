@@ -31,7 +31,7 @@ import java.util.List;
 
 @Parameters(separators = "=")
 abstract class AbstractListSubscriptionsCommand extends AbstractPubsubCommand {
-  public String getDescription() {
+  public String getShortDescription() {
     return "List the subscription names for the " + getPubsubName() + " pubsub.";
   }
 

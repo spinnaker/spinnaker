@@ -39,8 +39,6 @@ public class CanaryCommand extends AbstractConfigCommand {
 
   String shortDescription = "Configure your canary analysis settings for Spinnaker.";
 
-  String longDescription = shortDescription;
-
   public CanaryCommand() {
     registerSubcommand(new EnableDisableCanaryCommandBuilder().setEnable(true).build());
     registerSubcommand(new EnableDisableCanaryCommandBuilder().setEnable(false).build());

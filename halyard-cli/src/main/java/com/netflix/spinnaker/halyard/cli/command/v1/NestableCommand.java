@@ -239,8 +239,7 @@ public abstract class NestableCommand {
     story.addNewline();
 
     paragraph = story.addParagraph().setIndentWidth(indentWidth);
-    String longDescription = getLongDescription() != null ? getLongDescription() : getDescription();
-    paragraph.addSnippet(longDescription);
+    paragraph.addSnippet(getLongDescription());
     story.addNewline();
 
     String usage = fullCommandName;
@@ -328,8 +327,7 @@ public abstract class NestableCommand {
         }
 
         paragraph = story.addParagraph().setIndentWidth(indentWidth * 2);
-        String shortDescription = subcommand.getShortDescription() != null ? subcommand.getShortDescription() : subcommand.getDescription();
-        paragraph.addSnippet(shortDescription);
+        paragraph.addSnippet(subcommand.getShortDescription());
         story.addNewline();
       }
     }
@@ -404,11 +402,10 @@ public abstract class NestableCommand {
       }
     }
 
-    String longDescription = getLongDescription() != null ? getLongDescription() : getDescription();
     result.append("## ")
         .append(fullCommandName)
         .append("\n\n")
-        .append(longDescription)
+        .append(getLongDescription())
         .append("\n\n")
         .append("#### Usage")
         .append("\n```\n")
@@ -481,7 +478,6 @@ public abstract class NestableCommand {
         if (subcommand instanceof DeprecatedCommand) {
           modifiers += " _(Deprecated)_ ";
         }
-        String shortDescription = subcommand.getShortDescription() != null ? subcommand.getShortDescription() : subcommand.getDescription();
 
         result.append(" * ")
             .append("`")
@@ -489,7 +485,7 @@ public abstract class NestableCommand {
             .append("`")
             .append(modifiers)
             .append(": ")
-            .append(shortDescription)
+            .append(subcommand.getShortDescription())
             .append("\n");
       }
     }
@@ -561,19 +557,9 @@ public abstract class NestableCommand {
   abstract public String getCommandName();
   abstract protected void executeThis();
 
-  @Deprecated
-  protected String getDescription() {
-    throw new UnsupportedOperationException("Each command must implement a description. Preferably `get[Long/Short]Description()`. Missing class: " + getClass().getCanonicalName());
-  }
-
-  // TODO(lwander) make abstract once `getDescription` is removed.
-  protected String getShortDescription() {
-    return null;
-  }
-
-  // TODO(lwander) make abstract once `getDescription` is removed.
+  protected abstract String getShortDescription();
   protected String getLongDescription() {
-    return null;
+    return getShortDescription();
   }
 
   @Getter(AccessLevel.PROTECTED)

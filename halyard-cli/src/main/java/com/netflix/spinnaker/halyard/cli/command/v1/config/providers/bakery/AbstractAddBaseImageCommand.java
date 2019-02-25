@@ -63,7 +63,7 @@ public abstract class AbstractAddBaseImageCommand extends AbstractHasBaseImageCo
   )
   private String templateFile;
 
-  public String getDescription() {
+  public String getShortDescription() {
     return "Add a base image for the " + getProviderName() + " provider's bakery.";
   }
 

@@ -60,11 +60,6 @@ public abstract class AbstractEnableDisableCanaryServiceIntegrationCommand exten
   }
 
   @Override
-  public String getLongDescription() {
-    return getShortDescription();
-  }
-
-  @Override
   protected void executeThis() {
     String currentDeployment = getCurrentDeployment();
 

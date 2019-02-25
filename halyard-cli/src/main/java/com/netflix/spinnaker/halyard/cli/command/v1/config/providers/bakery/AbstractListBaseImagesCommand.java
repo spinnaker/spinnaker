@@ -30,7 +30,7 @@ import java.util.List;
 
 @Parameters(separators = "=")
 abstract class AbstractListBaseImagesCommand extends AbstractProviderCommand {
-  public String getDescription() {
+  public String getShortDescription() {
     return "List the base image names for the " + getProviderName() + " provider.";
   }
 

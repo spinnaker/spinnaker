@@ -44,9 +44,6 @@ public abstract class AbstractAddCanaryAccountCommand extends AbstractHasCanaryA
   @Getter(AccessLevel.PUBLIC)
   String shortDescription = "Add a canary account to the " + getServiceIntegration() + " service integration.";
 
-  @Getter(AccessLevel.PUBLIC)
-  String longDescription = shortDescription;
-
   @Override
   protected void executeThis() {
     String currentDeployment = getCurrentDeployment();

@@ -39,7 +39,7 @@ public abstract class AbstractDeletePublisherCommand extends AbstractHasPublishe
   @Getter(AccessLevel.PUBLIC)
   private String commandName = "delete";
 
-  public String getDescription() {
+  public String getShortDescription() {
     return "Delete a specific " + getPubsubName() + " publisher by name.";
   }
 

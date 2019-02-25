@@ -29,7 +29,7 @@ import lombok.Getter;
 
 public abstract class AbstractListPublishersCommand extends AbstractPubsubCommand {
 
-  public String getDescription() {
+  public String getShortDescription() {
     return "List the publisher names for the " + getPubsubName() + " pubsub.";
   }
 

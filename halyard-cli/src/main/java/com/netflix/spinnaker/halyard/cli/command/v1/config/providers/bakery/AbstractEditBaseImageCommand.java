@@ -70,7 +70,7 @@ public abstract class AbstractEditBaseImageCommand<T extends BaseImage> extends 
   )
   private String templateFile;
 
-  public String getDescription() {
+  public String getShortDescription() {
     return "Edit a base image for the " + getProviderName() + " provider's bakery.";
   }
 

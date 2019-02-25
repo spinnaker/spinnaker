@@ -32,7 +32,7 @@ public class PublishBomCommand extends NestableCommand {
   private String commandName = "bom";
 
   @Getter(AccessLevel.PUBLIC)
-  private String description = "Publish a Bill of Materials (BOM).";
+  private String shortDescription = "Publish a Bill of Materials (BOM).";
 
   @Parameter(
       names = "--bom-path",

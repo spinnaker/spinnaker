@@ -28,5 +28,5 @@ public abstract class AbstractEditCanaryServiceIntegrationCommand extends Abstra
   private String commandName = "edit";
 
   @Getter(AccessLevel.PUBLIC)
-  private String description = "Edit Spinnaker's canary analysis " + getServiceIntegration() + " service integration settings.";
+  private String shortDescription = "Edit Spinnaker's canary analysis " + getServiceIntegration() + " service integration settings.";
 }

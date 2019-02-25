@@ -33,7 +33,7 @@ public class EditMetricStoresCommand extends AbstractConfigCommand {
   private String commandName = "edit";
 
   @Getter(AccessLevel.PUBLIC)
-  private String description = "Configure global metric stores properties.";
+  private String shortDescription = "Configure global metric stores properties.";
 
   @Parameter(
       names = "--period",

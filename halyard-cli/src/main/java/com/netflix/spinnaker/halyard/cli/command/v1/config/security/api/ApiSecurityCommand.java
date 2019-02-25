@@ -34,8 +34,6 @@ public class ApiSecurityCommand extends AbstractConfigCommand {
 
   private String shortDescription = "Configure and view the API server's addressable URL and CORS policies.";
 
-  private String longDescription = shortDescription;
-
   public ApiSecurityCommand() {
     registerSubcommand(new ApiSecurityEditCommand());
     registerSubcommand(new SpringSslCommand());

@@ -54,7 +54,7 @@ public class NamedComponentSizingCommand extends AbstractConfigCommand {
   }
 
   @Override
-  protected String getDescription() {
+  protected String getShortDescription() {
     return "Manage and view Spinnaker component sizing configuration for " + spinnakerService.getCanonicalName();
   }
 

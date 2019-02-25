@@ -35,7 +35,7 @@ public class PersistentStorageCommand extends AbstractConfigCommand {
   private String commandName = "storage";
 
   @Getter(AccessLevel.PUBLIC)
-  private String description = "Show Spinnaker's persistent storage configuration.";
+  private String shortDescription = "Show Spinnaker's persistent storage configuration.";
 
   public PersistentStorageCommand() {
     registerSubcommand(new GcsCommand());

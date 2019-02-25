@@ -41,7 +41,7 @@ public abstract class AbstractEditPublisherCommand<T extends Publisher> extends
 
   protected abstract Publisher editPublisher(T publisher);
 
-  public String getDescription() {
+  public String getShortDescription() {
     return "Edit an publisher in the " + getPubsubName() + " pubsub.";
   }
 

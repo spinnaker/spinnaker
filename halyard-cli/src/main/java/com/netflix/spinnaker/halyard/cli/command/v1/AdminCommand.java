@@ -31,7 +31,7 @@ public class AdminCommand extends NestableCommand {
   private String commandName = "admin";
 
   @Getter(AccessLevel.PUBLIC)
-  private String description = "This is meant for users building and publishing their own Spinnaker images and config.";
+  private String shortDescription = "This is meant for users building and publishing their own Spinnaker images and config.";
 
   public AdminCommand() {
     registerSubcommand(new DeprecateCommand());

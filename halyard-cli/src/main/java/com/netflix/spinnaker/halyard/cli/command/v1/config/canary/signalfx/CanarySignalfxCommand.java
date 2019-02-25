@@ -37,8 +37,6 @@ public class CanarySignalfxCommand extends AbstractConfigCommand {
 
   String shortDescription = "Configure your canary analysis SignalFx service integration settings for Spinnaker.";
 
-  String longDescription = shortDescription;
-
   public CanarySignalfxCommand() {
     registerSubcommand(new EnableDisableCanaryServiceIntegrationCommandBuilder().setName("Signalfx").setEnable(true).build());
     registerSubcommand(new EnableDisableCanaryServiceIntegrationCommandBuilder().setName("Signalfx").setEnable(false).build());

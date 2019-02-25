@@ -31,7 +31,7 @@ public class WebhookCommand extends AbstractConfigCommand {
     private String commandName = "webhook";
 
     @Getter(AccessLevel.PUBLIC)
-    private String description = "Show Spinnaker's webhook configuration.";
+    private String shortDescription = "Show Spinnaker's webhook configuration.";
 
     public WebhookCommand() {
         registerSubcommand(new WebhookTrustCommand());

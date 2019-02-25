@@ -35,7 +35,7 @@ public class ComponentSizingCommand extends NestableCommand {
   private String commandName = "component-sizing";
 
   @Getter(AccessLevel.PUBLIC)
-  private String description = "Configure, validate, and view the component sizings for the Spinnaker services.";
+  private String shortDescription = "Configure, validate, and view the component sizings for the Spinnaker services.";
 
   public ComponentSizingCommand() {
     for (SpinnakerService.Type spinnakerService : SpinnakerService.Type.values()) {

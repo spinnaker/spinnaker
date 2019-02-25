@@ -33,7 +33,7 @@ abstract public class MetricStoreCommand extends AbstractConfigCommand {
 
   abstract public MetricStores.MetricStoreType getMetricStoreType();
 
-  public String getDescription() {
+  public String getShortDescription() {
     return "Configure your " + getMetricStoreType().getId() + " metric store.";
   }
 

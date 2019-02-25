@@ -29,7 +29,7 @@ public class GenerateCommand extends AbstractConfigCommand {
   private String commandName = "generate";
 
   @Getter(AccessLevel.PUBLIC)
-  private String description = "Generate the full Spinnaker config for your current deployment. "
+  private String shortDescription = "Generate the full Spinnaker config for your current deployment. "
     + "This does _not_ apply that configuration to your running Spinnaker installation. "
     + "That either needs to be done manually, or with `hal deploy apply`.";
 

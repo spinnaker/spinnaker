@@ -42,7 +42,7 @@ public abstract class AbstractAddSubscriptionCommand extends AbstractHasSubscrip
 
   protected abstract Subscription emptySubscription();
 
-  public String getDescription() {
+  public String getShortDescription() {
     return "Add an subscription to the " + getPubsubName() + " pubsub.";
   }
 

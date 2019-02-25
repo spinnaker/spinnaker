@@ -80,7 +80,7 @@ public abstract class AbstractAddAccountCommand extends AbstractHasAccountComman
 
   protected abstract Account emptyAccount();
 
-  public String getDescription() {
+  public String getShortDescription() {
     return "Add an account to the " + getProviderName() + " provider.";
   }
 

@@ -30,7 +30,7 @@ import java.util.List;
 
 @Parameters(separators = "=")
 abstract class AbstractListAccountsCommand extends AbstractProviderCommand {
-  public String getDescription() {
+  public String getShortDescription() {
     return "List the account names for the " + getProviderName() + " provider.";
   }
 

@@ -29,7 +29,7 @@ public class EditArtifactTemplateCommand extends AbstractHasArtifactTemplateComm
   @Getter(AccessLevel.PUBLIC)
   private String commandName = "edit";
   @Getter(AccessLevel.PUBLIC)
-  private String description = "Edit an artifact template";
+  private String shortDescription = "Edit an artifact template";
   @Parameter(
       names = "--template-path",
       description = "The path to the Jinja template to use for artifact extraction"

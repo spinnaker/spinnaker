@@ -47,7 +47,7 @@ public abstract class AbstractProviderEnableDisableCommand extends AbstractProvi
   private Map<String, NestableCommand> subcommands = new HashMap<>();
 
   @Override
-  public String getDescription() {
+  public String getShortDescription() {
     return "Set the " + getProviderName() + " provider as " + subjunctivePerfectAction();
   }
 

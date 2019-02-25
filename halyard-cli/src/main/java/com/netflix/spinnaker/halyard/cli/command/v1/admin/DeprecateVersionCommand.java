@@ -33,7 +33,7 @@ public class DeprecateVersionCommand extends NestableCommand {
   private String commandName = "version";
 
   @Getter(AccessLevel.PUBLIC)
-  private String description = "Deprecate a version of Spinnaker, removing it from the global versions.yml tracking file.";
+  private String shortDescription = "Deprecate a version of Spinnaker, removing it from the global versions.yml tracking file.";
 
   @Parameter(
       names = "--version",

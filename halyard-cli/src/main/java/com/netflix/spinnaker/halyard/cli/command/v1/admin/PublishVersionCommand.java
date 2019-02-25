@@ -34,7 +34,7 @@ public class PublishVersionCommand extends NestableCommand {
   private String commandName = "version";
 
   @Getter(AccessLevel.PUBLIC)
-  private String description = "Publish a version of Spinnaker to the global versions.yml tracking file.";
+  private String shortDescription = "Publish a version of Spinnaker to the global versions.yml tracking file.";
 
   @Parameter(
       names = "--version",

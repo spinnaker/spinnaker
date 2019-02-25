@@ -33,9 +33,6 @@ public class ListTaskCommand extends NestableCommand {
   @Getter(AccessLevel.PUBLIC)
   private String shortDescription = "List the currently running Tasks.";
 
-  @Getter(AccessLevel.PUBLIC)
-  private String longDescription = shortDescription;
-
   @Override
   protected void executeThis() {
     AnsiPrinter.out.println(AnsiFormatUtils.format(AnsiFormatUtils.Format.YAML, Daemon.getTasks()));

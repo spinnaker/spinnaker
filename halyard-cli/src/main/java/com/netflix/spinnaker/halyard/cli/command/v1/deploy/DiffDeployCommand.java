@@ -33,7 +33,7 @@ public class DiffDeployCommand extends AbstractConfigCommand {
   private String commandName = "diff";
 
   @Getter(AccessLevel.PUBLIC)
-  private String description = "This shows what changes you have made since Spinnaker was last deployed.";
+  private String shortDescription = "This shows what changes you have made since Spinnaker was last deployed.";
 
   @Override
   protected void executeThis() {

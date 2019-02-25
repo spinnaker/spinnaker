@@ -48,7 +48,7 @@ public abstract class AbstractCiEnableDisableCommand extends AbstractCiCommand {
   private Map<String, NestableCommand> subcommands = new HashMap<>();
 
   @Override
-  public String getDescription() {
+  public String getShortDescription() {
     return "Set the " + getCiName() + " ci as " + subjunctivePerfectAction();
   }
 

@@ -37,8 +37,6 @@ public class CanaryAwsCommand extends AbstractConfigCommand {
 
   String shortDescription = "Configure your canary analysis AWS service integration settings for Spinnaker.";
 
-  String longDescription = shortDescription;
-
   public CanaryAwsCommand() {
     registerSubcommand(new EditCanaryAwsCommand());
     registerSubcommand(new EnableDisableCanaryServiceIntegrationCommandBuilder().setName("AWS").setEnable(true).build());

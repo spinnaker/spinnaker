@@ -31,7 +31,7 @@ public abstract class AbstractNamedCiCommand extends AbstractCiCommand {
   }
 
   @Override
-  public String getDescription() {
+  public String getShortDescription() {
     return "Manage and view Spinnaker configuration for the " + getCiName() + " ci";
   }
 

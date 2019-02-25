@@ -29,7 +29,7 @@ import lombok.Getter;
 
 @Parameters(separators = "=")
 abstract class AbstractGetSubscriptionCommand extends AbstractHasSubscriptionCommand {
-  public String getDescription() {
+  public String getShortDescription() {
     return "Get the specified subscription details for the " + getPubsubName() + " pubsub.";
   }
 

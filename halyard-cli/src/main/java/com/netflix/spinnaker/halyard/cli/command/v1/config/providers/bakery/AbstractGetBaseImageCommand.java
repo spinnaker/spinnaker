@@ -26,7 +26,7 @@ import lombok.Getter;
 
 @Parameters(separators = "=")
 abstract class AbstractGetBaseImageCommand extends AbstractHasBaseImageCommand {
-  public String getDescription() {
+  public String getShortDescription() {
     return "Get the specified base image details for the " + getProviderName() + " provider.";
   }
 

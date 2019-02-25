@@ -40,7 +40,7 @@ public abstract class AbstractEditSubscriptionCommand<T extends Subscription> ex
 
   protected abstract Subscription editSubscription(T subscription);
 
-  public String getDescription() {
+  public String getShortDescription() {
     return "Edit an subscription in the " + getPubsubName() + " pubsub.";
   }
 

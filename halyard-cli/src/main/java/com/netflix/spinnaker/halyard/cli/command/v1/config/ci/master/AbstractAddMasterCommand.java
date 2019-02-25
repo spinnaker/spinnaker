@@ -38,7 +38,7 @@ public abstract class AbstractAddMasterCommand extends AbstractHasMasterCommand 
 
   protected abstract Master buildMaster(String masterName);
 
-  public String getDescription() {
+  public String getShortDescription() {
     return "Add a master for the " + getCiName() + " Continuous Integration service.";
   }
 

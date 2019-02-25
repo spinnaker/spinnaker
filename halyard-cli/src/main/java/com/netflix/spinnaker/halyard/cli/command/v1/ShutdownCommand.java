@@ -34,7 +34,7 @@ public class ShutdownCommand extends NestableCommand {
   private String commandName = "shutdown";
 
   @Getter(AccessLevel.PUBLIC)
-  private String description = "Shutdown the halyard daemon.";
+  private String shortDescription = "Shutdown the halyard daemon.";
 
   @Override
   protected void executeThis() {

@@ -33,7 +33,7 @@ public class WebhookTrustEditCommand extends AbstractConfigCommand {
     private String commandName = "edit";
 
     @Getter(AccessLevel.PUBLIC)
-    private String description = "Edit Spinnaker's webhook trust configuration.";
+    private String shortDescription = "Edit Spinnaker's webhook trust configuration.";
 
     @Parameter(
             names = "--trustStore",

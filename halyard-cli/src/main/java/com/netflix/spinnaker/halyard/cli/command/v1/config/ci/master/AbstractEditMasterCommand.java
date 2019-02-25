@@ -39,7 +39,7 @@ public abstract class AbstractEditMasterCommand<T extends Master> extends Abstra
 
   protected abstract Master editMaster(T master);
 
-  public String getDescription() {
+  public String getShortDescription() {
     return "Edit a master for the " + getCiName() + " Continuous Integration service.";
   }
 

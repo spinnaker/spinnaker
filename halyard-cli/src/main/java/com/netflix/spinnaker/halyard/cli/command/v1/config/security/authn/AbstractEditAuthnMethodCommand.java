@@ -38,7 +38,7 @@ public abstract class AbstractEditAuthnMethodCommand<T extends AuthnMethod> exte
 
   protected abstract AuthnMethod editAuthnMethod(T authnMethod);
 
-  public String getDescription() {
+  public String getShortDescription() {
     return "Edit the " + getMethod().id + " authentication method.";
   }
 

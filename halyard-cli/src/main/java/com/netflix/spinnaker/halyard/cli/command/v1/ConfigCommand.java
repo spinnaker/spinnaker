@@ -43,7 +43,7 @@ public class ConfigCommand extends AbstractConfigCommand {
   private String commandName = "config";
 
   @Getter(AccessLevel.PUBLIC)
-  private String description = "Configure, validate, and view your halconfig.";
+  private String shortDescription = "Configure, validate, and view your halconfig.";
 
   @Parameter(
       names = "--set-current-deployment",

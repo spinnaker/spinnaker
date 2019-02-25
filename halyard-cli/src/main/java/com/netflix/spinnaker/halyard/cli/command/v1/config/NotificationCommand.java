@@ -35,7 +35,7 @@ public class NotificationCommand extends AbstractConfigCommand {
   private String commandName = "notification";
 
   @Getter(AccessLevel.PUBLIC)
-  private String description = "Display the state of Spinnaker's notification settings.";
+  private String shortDescription = "Display the state of Spinnaker's notification settings.";
 
   public NotificationCommand() {
     registerSubcommand(new PubsubCommand());

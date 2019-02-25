@@ -27,7 +27,7 @@ public class DeployCommand extends NestableCommand {
   private String commandName = "deploy";
 
   @Getter(AccessLevel.PUBLIC)
-  private String description = "Manage the deployment of Spinnaker. This includes where it's deployed,"
+  private String shortDescription = "Manage the deployment of Spinnaker. This includes where it's deployed,"
       + " what the infrastructure footprint looks like, what the currently running deployment looks like, etc...";
 
   public DeployCommand() {

@@ -33,12 +33,7 @@ public abstract class AbstractNamedPubsubCommand extends AbstractPubsubCommand {
   }
 
   @Override
-  protected String getShortDescription() {
-    return "Manage and view Spinnaker configuration for the " + getPubsubName() + " pubsub";
-  }
-
-  @Override
-  public String getDescription() {
+  public String getShortDescription() {
     return "Manage and view Spinnaker configuration for the " + getPubsubName() + " pubsub";
   }
 

@@ -32,7 +32,7 @@ public class ListArtifactTemplatesCommand extends AbstractConfigCommand {
   @Getter(AccessLevel.PUBLIC)
   private String commandName = "list";
   @Getter(AccessLevel.PUBLIC)
-  private String description = "List an artifact templates";
+  private String shortDescription = "List an artifact templates";
 
   private List<ArtifactTemplate> getArtifactTemplates() {
     String currentDeployment = getCurrentDeployment();

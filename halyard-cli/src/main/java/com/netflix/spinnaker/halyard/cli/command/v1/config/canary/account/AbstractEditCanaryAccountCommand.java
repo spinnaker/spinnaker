@@ -42,9 +42,6 @@ public abstract class AbstractEditCanaryAccountCommand<T extends AbstractCanaryA
   @Getter(AccessLevel.PUBLIC)
   String shortDescription = "Edit a canary account in the " + getServiceIntegration() + " service integration.";
 
-  @Getter(AccessLevel.PUBLIC)
-  String longDescription = shortDescription;
-
   @Override
   protected void executeThis() {
     String accountName = getAccountName();

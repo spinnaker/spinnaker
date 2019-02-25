@@ -37,11 +37,6 @@ public abstract class AbstractNamedArtifactProviderCommand extends AbstractArtif
     return "Manage and view Spinnaker configuration for the " + getArtifactProviderName() + " provider";
   }
 
-  @Override
-  public String getDescription() {
-    return "Manage and view Spinnaker configuration for the " + getArtifactProviderName() + " provider";
-  }
-
   protected AbstractNamedArtifactProviderCommand() {
     registerSubcommand(new ArtifactProviderEnableDisableCommandBuilder()
         .setArtifactProviderName(getArtifactProviderName())

@@ -50,7 +50,7 @@ public abstract class AbstractPubsubEnableDisableCommand extends AbstractPubsubC
   private Map<String, NestableCommand> subcommands = new HashMap<>();
 
   @Override
-  public String getDescription() {
+  public String getShortDescription() {
     return "Set the " + getPubsubName() + " pubsub as " + subjunctivePerfectAction();
   }
 

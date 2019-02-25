@@ -30,7 +30,7 @@ abstract public class AbstractRoleProviderCommand extends AbstractConfigCommand 
   abstract public GroupMembership.RoleProviderType getRoleProviderType();
 
   @Override
-  public String getDescription() {
+  public String getShortDescription() {
     return "Configure the " + getRoleProviderType() + " role provider.";
   }
 

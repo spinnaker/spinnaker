@@ -28,7 +28,7 @@ public class PublishCommand extends NestableCommand {
   private String commandName = "publish";
 
   @Getter(AccessLevel.PUBLIC)
-  private String description = "Publish config artifacts to your configured halconfig bucket.";
+  private String shortDescription = "Publish config artifacts to your configured halconfig bucket.";
 
   public PublishCommand() {
     super();

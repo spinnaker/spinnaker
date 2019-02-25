@@ -38,11 +38,6 @@ abstract public class AbstractEnableDisableSslCommand extends AbstractEnableDisa
   }
 
   @Override
-  public String getLongDescription() {
-    return getShortDescription();
-  }
-
-  @Override
   protected Supplier<Void> getOperationSupplier() {
     String deploymentName = getCurrentDeployment();
     return Daemon.setSpringSslEnabled(deploymentName, !noValidate, isEnable());

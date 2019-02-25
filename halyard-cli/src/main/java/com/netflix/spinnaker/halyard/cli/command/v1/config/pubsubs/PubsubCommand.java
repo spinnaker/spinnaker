@@ -35,7 +35,7 @@ public class PubsubCommand extends NestableCommand {
   private String commandName = "pubsub";
 
   @Getter(AccessLevel.PUBLIC)
-  private String description = "Configure, validate, and view the specified pubsub.";
+  private String shortDescription = "Configure, validate, and view the specified pubsub.";
 
   public PubsubCommand() {
     registerSubcommand(new GooglePubsubCommand());

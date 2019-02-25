@@ -34,7 +34,7 @@ public class EditPersistentStorageCommand extends AbstractConfigCommand {
   private String commandName = "edit";
 
   @Getter(AccessLevel.PUBLIC)
-  private String description = "Edit Spinnaker's persistent storage.";
+  private String shortDescription = "Edit Spinnaker's persistent storage.";
 
   @Parameter(
       names = "--type",

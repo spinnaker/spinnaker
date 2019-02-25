@@ -30,7 +30,7 @@ public class FeaturesCommand extends AbstractConfigCommand {
   private String commandName = "features";
 
   @Getter(AccessLevel.PUBLIC)
-  private String description = "Display the state of Spinnaker's feature flags.";
+  private String shortDescription = "Display the state of Spinnaker's feature flags.";
 
   public FeaturesCommand() {
     registerSubcommand(new EditFeaturesCommand());

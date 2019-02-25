@@ -35,7 +35,7 @@ public class PublishLatestCommand extends NestableCommand implements DeprecatedC
   private String commandName = "latest";
 
   @Getter(AccessLevel.PUBLIC)
-  private String description = "Publish the latest version of Spinnaker to the global versions.yml tracking file.";
+  private String shortDescription = "Publish the latest version of Spinnaker to the global versions.yml tracking file.";
 
   @Getter(AccessLevel.PUBLIC)
   private String deprecatedWarning = "Please use `hal admin publish latest-spinnaker` instead.";

@@ -27,7 +27,7 @@ import lombok.Getter;
 
 @Parameters(separators = "=")
 abstract class AbstractGetArtifactAccountCommand extends AbstractHasArtifactAccountCommand {
-  public String getDescription() {
+  public String getShortDescription() {
     return "Get the specified account details for the " + getArtifactProviderName() + " provider.";
   }
 

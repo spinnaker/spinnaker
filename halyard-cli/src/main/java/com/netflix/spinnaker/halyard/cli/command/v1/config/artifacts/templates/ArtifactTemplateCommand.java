@@ -33,7 +33,7 @@ public class ArtifactTemplateCommand extends AbstractConfigCommand {
   private String commandName = "templates";
 
   @Getter(AccessLevel.PUBLIC)
-  private String description = "Show Spinnaker's configured artifact templates.";
+  private String shortDescription = "Show Spinnaker's configured artifact templates.";
 
   public ArtifactTemplateCommand() {
     registerSubcommand(new AddArtifactTemplateCommand());

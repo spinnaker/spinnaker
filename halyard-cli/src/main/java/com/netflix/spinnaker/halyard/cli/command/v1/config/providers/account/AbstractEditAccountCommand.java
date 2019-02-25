@@ -118,7 +118,7 @@ public abstract class AbstractEditAccountCommand<T extends Account> extends Abst
 
   protected abstract Account editAccount(T account);
 
-  public String getDescription() {
+  public String getShortDescription() {
     return "Edit an account in the " + getProviderName() + " provider.";
   }
 

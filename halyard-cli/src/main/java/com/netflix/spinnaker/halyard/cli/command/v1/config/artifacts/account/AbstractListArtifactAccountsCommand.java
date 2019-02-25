@@ -31,7 +31,7 @@ import java.util.List;
 
 @Parameters(separators = "=")
 abstract class AbstractListArtifactAccountsCommand extends AbstractArtifactProviderCommand {
-  public String getDescription() {
+  public String getShortDescription() {
     return "List the artifact account names for the " + getArtifactProviderName() + " artifact provider.";
   }
 

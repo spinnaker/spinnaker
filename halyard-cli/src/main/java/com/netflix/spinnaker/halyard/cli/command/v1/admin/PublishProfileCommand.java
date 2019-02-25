@@ -35,7 +35,7 @@ public class PublishProfileCommand extends NestableCommand {
   private String commandName = "profile";
 
   @Getter(AccessLevel.PUBLIC)
-  private String description = "Publish a base halconfig profile for a specific Spinnaker artifact.";
+  private String shortDescription = "Publish a base halconfig profile for a specific Spinnaker artifact.";
 
   @Parameter(
       names = "--bom-path",

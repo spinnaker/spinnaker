@@ -17,7 +17,7 @@ import java.util.List;
  */
 @Parameters(separators = "=")
 public class DCOSListClusterCommand extends AbstractClusterCommand {
-  public String getDescription() {
+  public String getShortDescription() {
     return "List the cluster names for the " + getProviderName() + " provider.";
   }
 

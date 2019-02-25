@@ -39,7 +39,7 @@ public abstract class AbstractHaServiceEditCommand<T extends HaService> extends 
 
   protected abstract HaService editHaService(T haService);
 
-  public String getDescription() {
+  public String getShortDescription() {
     return "Edit the " + getServiceName() + " high availability service";
   }
 

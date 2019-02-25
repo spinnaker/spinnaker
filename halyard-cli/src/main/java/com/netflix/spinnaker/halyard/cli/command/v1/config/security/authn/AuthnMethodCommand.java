@@ -32,7 +32,7 @@ abstract public class AuthnMethodCommand extends AbstractConfigCommand {
 
   abstract public AuthnMethod.Method getMethod();
 
-  public String getDescription() {
+  public String getShortDescription() {
     return "Configure the " + getMethod().id + " method for authenticating.";
   }
 

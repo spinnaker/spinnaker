@@ -49,11 +49,6 @@ public class DeleteCanaryAccountCommand extends AbstractHasCanaryAccountCommand 
   }
 
   @Override
-  public String getLongDescription() {
-    return getShortDescription();
-  }
-
-  @Override
   protected void executeThis() {
     deleteAccount(getAccountName());
   }

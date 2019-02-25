@@ -13,7 +13,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.providers.dcos.DCOSCluster;
 
 @Parameters(separators = "=")
 public class DCOSGetClusterCommand extends AbstractClusterCommand {
-  public String getDescription() {
+  public String getShortDescription() {
     return "Get the specified cluster details for the " + getProviderName() + " provider.";
   }
 

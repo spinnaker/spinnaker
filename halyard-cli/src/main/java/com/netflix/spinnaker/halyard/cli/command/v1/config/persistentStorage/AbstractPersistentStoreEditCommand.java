@@ -30,7 +30,7 @@ public abstract class AbstractPersistentStoreEditCommand<T extends PersistentSto
   private String commandName = "edit";
 
   @Getter(AccessLevel.PUBLIC)
-  private String description = "Edit configuration for the \"" + getPersistentStoreType() + "\" persistent store.";
+  private String shortDescription = "Edit configuration for the \"" + getPersistentStoreType() + "\" persistent store.";
 
   protected abstract PersistentStore editPersistentStore(T persistentStore);
 

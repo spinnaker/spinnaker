@@ -29,7 +29,7 @@ public class DeprecateCommand extends NestableCommand {
   private String commandName = "deprecate";
 
   @Getter(AccessLevel.PUBLIC)
-  private String description = "Deprecate config artifacts in your configured halconfig bucket.";
+  private String shortDescription = "Deprecate config artifacts in your configured halconfig bucket.";
 
   public DeprecateCommand() {
     super();

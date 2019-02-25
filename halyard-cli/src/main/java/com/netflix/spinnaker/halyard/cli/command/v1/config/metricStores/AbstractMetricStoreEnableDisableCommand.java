@@ -48,7 +48,7 @@ public abstract class AbstractMetricStoreEnableDisableCommand extends AbstractMe
   private Map<String, NestableCommand> subcommands = new HashMap<>();
 
   @Override
-  public String getDescription() {
+  public String getShortDescription() {
     String metricStoreType = getMetricStoreType().getId();
     return "Set the " + metricStoreType + " method as " + subjunctivePerfectAction();
   }

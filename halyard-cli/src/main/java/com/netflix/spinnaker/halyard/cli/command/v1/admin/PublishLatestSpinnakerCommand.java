@@ -35,7 +35,7 @@ public class PublishLatestSpinnakerCommand extends NestableCommand {
   private String commandName = "latest-spinnaker";
 
   @Getter(AccessLevel.PUBLIC)
-  private String description = "Publish the latest version of Spinnaker to the global versions.yml tracking file.";
+  private String shortDescription = "Publish the latest version of Spinnaker to the global versions.yml tracking file.";
 
   @Override
   public String getMainParameter() {
