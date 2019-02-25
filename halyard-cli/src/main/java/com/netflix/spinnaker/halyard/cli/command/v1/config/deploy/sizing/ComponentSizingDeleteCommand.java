@@ -42,7 +42,7 @@ public class ComponentSizingDeleteCommand extends AbstractComponentSizingUpdateC
     }
 
     @Override
-    protected String getShortDescription() {
+    protected String getDescription() {
         return "Delete the custom component sizings for service " + spinnakerService.getCanonicalName();
     }
 
