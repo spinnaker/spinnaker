@@ -42,7 +42,7 @@ jq '(.stages[] | select(.refId == "9") | .pipeline) |= env.PIPELINE_ID | (.stage
 
 ### Create the "Automated Canary Deploy" pipeline
 
-#### Spinnaker 1.10
+#### Spinnaker 1.10+
 
 This command assumes that Kayenta is enabled and configured as instructed in the
 tutorial.
