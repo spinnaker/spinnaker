@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.clouddriver.cloudfoundry.model;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.servicebroker.Service;
+import com.netflix.spinnaker.clouddriver.model.Service;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Value;

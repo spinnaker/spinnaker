@@ -21,7 +21,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
-import com.google.common.annotations.VisibleForTesting;
 import com.netflix.spinnaker.clouddriver.artifacts.ArtifactCredentialsRepository;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.CloudFoundryOperation;
@@ -114,7 +113,7 @@ public class DeployCloudFoundryServerGroupAtomicOperationConverter extends Abstr
     return converted;
   }
 
-  @VisibleForTesting
+  // visible for testing
   DeployCloudFoundryServerGroupDescription.ApplicationAttributes convertManifest(Map manifestMap) {
     List<CloudFoundryManifest> manifestApps = new ObjectMapper()
       .setPropertyNamingStrategy(PropertyNamingStrategy.KEBAB_CASE)

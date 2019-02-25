@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.client;
 
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.ServiceInstanceService;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.ErrorDescription;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.ServiceInstanceResponse;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.*;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryOrganization;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryServerGroup;
@@ -26,7 +27,6 @@ import org.junit.jupiter.api.Test;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
 
-import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -34,11 +34,12 @@ import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.ErrorD
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation.State.*;
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation.Type.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.*;
 
-class ServiceInstancesTest {
+class ServiceServiceInstancesTest {
   private CloudFoundryOrganization cloudFoundryOrganization = CloudFoundryOrganization.builder()
     .id("some-org-guid")
     .build();
@@ -50,7 +51,7 @@ class ServiceInstancesTest {
   private ServiceInstanceService serviceInstanceService = mock(ServiceInstanceService.class);
   private Organizations orgs = mock(Organizations.class);
   private Spaces spaces = mock(Spaces.class);
-  private ServiceInstances serviceInstances = new ServiceInstances(serviceInstanceService, orgs, spaces, Duration.ofMillis(10), Duration.ofMillis(10));
+  private ServiceInstances serviceInstances = new ServiceInstances(serviceInstanceService, orgs, spaces);
 
   {
     when(serviceInstanceService.findService(any(), anyListOf(String.class)))
@@ -81,11 +82,11 @@ class ServiceInstancesTest {
     when(serviceInstanceService.all(eq(null), any(), any())).thenReturn(serviceMappingPageOne);
     when(serviceInstanceService.all(eq(1), any(), any())).thenReturn(serviceMappingPageOne);
 
-    Page<UserProvidedServiceInstance> userProvidedserviceMappingPageOne = new Page<>();
-    userProvidedserviceMappingPageOne.setTotalResults(0);
-    userProvidedserviceMappingPageOne.setTotalPages(0);
-    when(serviceInstanceService.allUserProvided(eq(null), any())).thenReturn(userProvidedserviceMappingPageOne);
-    when(serviceInstanceService.allUserProvided(eq(1), any())).thenReturn(userProvidedserviceMappingPageOne);
+    Page<UserProvidedServiceInstance> userProvidedServiceMappingPageOne = new Page<>();
+    userProvidedServiceMappingPageOne.setTotalResults(0);
+    userProvidedServiceMappingPageOne.setTotalPages(0);
+    when(serviceInstanceService.allUserProvided(eq(null), any())).thenReturn(userProvidedServiceMappingPageOne);
+    when(serviceInstanceService.allUserProvided(eq(1), any())).thenReturn(userProvidedServiceMappingPageOne);
 
     serviceInstances.createServiceBindingsByName(cloudFoundryServerGroup, Collections.singletonList("service-instance"));
 
@@ -106,11 +107,11 @@ class ServiceInstancesTest {
     when(serviceInstanceService.all(eq(null), any(), any())).thenReturn(serviceMappingPageOne);
     when(serviceInstanceService.all(eq(1), any(), any())).thenReturn(serviceMappingPageOne);
 
-    Page<UserProvidedServiceInstance> userProvidedserviceMappingPageOne = Page.singleton(null, "service-instance-guid");
-    userProvidedserviceMappingPageOne.setTotalResults(0);
-    userProvidedserviceMappingPageOne.setTotalPages(0);
-    when(serviceInstanceService.allUserProvided(eq(null), any())).thenReturn(userProvidedserviceMappingPageOne);
-    when(serviceInstanceService.allUserProvided(eq(1), any())).thenReturn(userProvidedserviceMappingPageOne);
+    Page<UserProvidedServiceInstance> userProvidedServiceMappingPageOne = Page.singleton(null, "service-instance-guid");
+    userProvidedServiceMappingPageOne.setTotalResults(0);
+    userProvidedServiceMappingPageOne.setTotalPages(0);
+    when(serviceInstanceService.allUserProvided(eq(null), any())).thenReturn(userProvidedServiceMappingPageOne);
+    when(serviceInstanceService.allUserProvided(eq(1), any())).thenReturn(userProvidedServiceMappingPageOne);
 
     serviceInstances.createServiceBindingsByName(cloudFoundryServerGroup, Collections.singletonList("service-instance"));
 
@@ -131,11 +132,11 @@ class ServiceInstancesTest {
     serviceMappingPageOne.setResources(Collections.emptyList());
     when(serviceInstanceService.all(any(), any(), any())).thenReturn(serviceMappingPageOne);
 
-    Page<UserProvidedServiceInstance> userProvidedserviceMappingPageOne = new Page<>();
-    userProvidedserviceMappingPageOne.setTotalResults(0);
-    userProvidedserviceMappingPageOne.setTotalPages(0);
-    when(serviceInstanceService.allUserProvided(eq(null), any())).thenReturn(userProvidedserviceMappingPageOne);
-    when(serviceInstanceService.allUserProvided(eq(1), any())).thenReturn(userProvidedserviceMappingPageOne);
+    Page<UserProvidedServiceInstance> userProvidedServiceMappingPageOne = new Page<>();
+    userProvidedServiceMappingPageOne.setTotalResults(0);
+    userProvidedServiceMappingPageOne.setTotalPages(0);
+    when(serviceInstanceService.allUserProvided(eq(null), any())).thenReturn(userProvidedServiceMappingPageOne);
+    when(serviceInstanceService.allUserProvided(eq(1), any())).thenReturn(userProvidedServiceMappingPageOne);
 
     assertThrows(CloudFoundryApiException.class, () ->
       serviceInstances.createServiceBindingsByName(cloudFoundryServerGroup, Collections.singletonList("service-instance"))
@@ -148,19 +149,20 @@ class ServiceInstancesTest {
     succeededServiceInstanceResource.getEntity().setLastOperation(new LastOperation().setType(CREATE).setState(SUCCEEDED));
 
     when(serviceInstanceService.createServiceInstance(any())).thenReturn(createServiceInstanceResource());
-    when(serviceInstanceService.getServiceInstanceById(any())).thenReturn(succeededServiceInstanceResource);
 
-    serviceInstances.createServiceInstance("new-service-instance-name",
-      "serviceInstanceName",
+    ServiceInstanceResponse response = serviceInstances.createServiceInstance("new-service-instance-name",
+      "serviceName",
       "ServicePlan1",
       Collections.emptySet(),
       null,
-      cloudFoundrySpace,
-      Duration.ofSeconds(4));
+      cloudFoundrySpace);
 
+    assertEquals("service-instance-guid", response.getServiceInstanceId());
+    assertEquals("new-service-instance-name", response.getServiceInstanceName());
+    assertEquals("CREATE", response.getType().toString());
+    assertEquals("IN_PROGRESS", response.getState().toString());
     verify(serviceInstanceService, times(1)).createServiceInstance(any());
     verify(serviceInstanceService, never()).updateServiceInstance(any(), any());
-    verify(serviceInstanceService, times(1)).getServiceInstanceById("service-instance-guid");
   }
 
   @Test
@@ -173,16 +175,14 @@ class ServiceInstancesTest {
 
     assertThrows(CloudFoundryApiException.class, () ->
       serviceInstances.createServiceInstance("newServiceInstanceName",
-        "serviceInstanceName",
+        "serviceName",
         "ServicePlan1",
         Collections.emptySet(),
         null,
-        cloudFoundrySpace,
-        Duration.ofMillis(40))
+        cloudFoundrySpace)
     );
 
     verify(serviceInstanceService, times(1)).createServiceInstance(any());
-    verify(serviceInstanceService, never()).getServiceInstanceById("service-instance-guid");
     verify(serviceInstanceService, never()).updateServiceInstance(any(), any());
   }
 
@@ -196,39 +196,36 @@ class ServiceInstancesTest {
 
     assertThrows(ResourceNotFoundException.class, () ->
       serviceInstances.createServiceInstance("newServiceInstanceName",
-        "serviceInstanceName",
+        "serviceName",
         "servicePlanName",
         Collections.emptySet(),
         null,
-        cloudFoundrySpace,
-        Duration.ofMillis(40))
+        cloudFoundrySpace)
     );
   }
 
   @Test
   void shouldUpdateTheServiceIfAlreadyExists() {
-    Resource<ServiceInstance> polledServiceInstanceResource = createServiceInstanceResource();
-    polledServiceInstanceResource.getEntity().setLastOperation(new LastOperation().setType(UPDATE).setState(SUCCEEDED));
-
     RetrofitError retrofitError = mock(RetrofitError.class);
     when(retrofitError.getBodyAs(any())).thenReturn(new ErrorDescription().setCode(SERVICE_ALREADY_EXISTS));
 
     when(serviceInstanceService.createServiceInstance(any())).thenThrow(retrofitError);
     when(serviceInstanceService.all(any(), any(), anyListOf(String.class))).thenReturn(createServiceInstancePage());
     when(serviceInstanceService.updateServiceInstance(any(), any())).thenReturn(createServiceInstanceResource());
-    when(serviceInstanceService.getServiceInstanceById(any())).thenReturn(polledServiceInstanceResource);
 
-    serviceInstances.createServiceInstance("newServiceInstanceName",
-      "serviceInstanceName",
+    ServiceInstanceResponse response = serviceInstances.createServiceInstance("newServiceInstanceName",
+      "serviceName",
       "ServicePlan1",
       Collections.emptySet(),
       null,
-      cloudFoundrySpace,
-      Duration.ofMillis(40));
+      cloudFoundrySpace);
 
+    assertEquals("service-instance-guid", response.getServiceInstanceId());
+    assertEquals("UPDATE", response.getType().toString());
+    assertEquals("newServiceInstanceName", response.getServiceInstanceName());
+    assertEquals("IN_PROGRESS", response.getState().toString());
     verify(serviceInstanceService, times(1)).createServiceInstance(any());
     verify(serviceInstanceService, times(1)).updateServiceInstance(any(), any());
-    verify(serviceInstanceService, atLeastOnce()).getServiceInstanceById("service-instance-guid");
   }
 
   @Test
@@ -246,12 +243,11 @@ class ServiceInstancesTest {
 
     assertThrows(CloudFoundryApiException.class, () ->
       serviceInstances.createServiceInstance("newServiceInstanceName",
-        "serviceInstanceName",
+        "serviceName",
         "ServicePlan1",
         Collections.emptySet(),
         null,
-        cloudFoundrySpace,
-        Duration.ofMillis(40))
+        cloudFoundrySpace)
     );
 
     verify(serviceInstanceService, times(1)).createServiceInstance(any());
@@ -282,12 +278,11 @@ class ServiceInstancesTest {
 
     assertThrows(CloudFoundryApiException.class, () ->
       serviceInstances.createServiceInstance("newServiceInstanceName",
-        "serviceInstanceName",
+        "serviceName",
         "ServicePlan1",
         Collections.emptySet(),
         null,
-        cloudFoundrySpace,
-        Duration.ofMillis(40))
+        cloudFoundrySpace)
     );
   }
 
@@ -295,7 +290,7 @@ class ServiceInstancesTest {
   void shouldSuccessfullyCreateUserProvidedService() {
     when(serviceInstanceService.createUserProvidedServiceInstance(any())).thenReturn(createUserProvidedServiceInstanceResource());
 
-    serviceInstances.createUserProvidedServiceInstance(
+    ServiceInstanceResponse response = serviceInstances.createUserProvidedServiceInstance(
       "new-up-service-instance-name",
       "syslogDrainUrl",
       Collections.emptySet(),
@@ -304,12 +299,16 @@ class ServiceInstancesTest {
       cloudFoundrySpace
     );
 
+    assertEquals("up-service-instance-guid", response.getServiceInstanceId());
+    assertEquals("CREATE", response.getType().toString());
+    assertEquals("new-up-service-instance-name", response.getServiceInstanceName());
+    assertEquals("SUCCEEDED", response.getState().toString());
     verify(serviceInstanceService, times(1)).createUserProvidedServiceInstance(any());
     verify(serviceInstanceService, never()).updateUserProvidedServiceInstance(any(), any());
   }
 
   @Test
-  void shouldUpdateTheUpdateServiceInstanceIfAlreadyExists() {
+  void shouldUpdateTheUpdateUserProvidedServiceInstanceIfAlreadyExists() {
     RetrofitError retrofitError = mock(RetrofitError.class);
     when(retrofitError.getBodyAs(any())).thenReturn(new ErrorDescription().setCode(SERVICE_ALREADY_EXISTS));
 
@@ -317,7 +316,7 @@ class ServiceInstancesTest {
     when(serviceInstanceService.allUserProvided(any(), anyListOf(String.class))).thenReturn(createUserProvidedServiceInstancePage());
     when(serviceInstanceService.updateUserProvidedServiceInstance(any(), any())).thenReturn(createUserProvidedServiceInstanceResource());
 
-    serviceInstances.createUserProvidedServiceInstance(
+    ServiceInstanceResponse response = serviceInstances.createUserProvidedServiceInstance(
       "new-up-service-instance-name",
       "syslogDrainUrl",
       Collections.emptySet(),
@@ -326,6 +325,10 @@ class ServiceInstancesTest {
       cloudFoundrySpace
     );
 
+    assertEquals("up-service-instance-guid", response.getServiceInstanceId());
+    assertEquals("UPDATE", response.getType().toString());
+    assertEquals("new-up-service-instance-name", response.getServiceInstanceName());
+    assertEquals("SUCCEEDED", response.getState().toString());
     verify(serviceInstanceService, times(1)).createUserProvidedServiceInstance(any());
     verify(serviceInstanceService, times(1)).updateUserProvidedServiceInstance(any(), any());
   }
@@ -386,9 +389,6 @@ class ServiceInstancesTest {
 
   @Test
   void destroyServiceInstanceShouldSucceedWhenNoServiceBindingsExist() {
-    Resource<ServiceInstance> pollingServiceInstanceResource = createServiceInstanceResource();
-    pollingServiceInstanceResource.getEntity().setLastOperation(new LastOperation().setType(DELETE).setState(IN_PROGRESS));
-
     RetrofitError retrofitErrorNotFound = mock(RetrofitError.class);
     Response notFoundResponse = new Response("someUri", 404, "whynot", Collections.emptyList(), null);
     when(retrofitErrorNotFound.getResponse()).thenReturn(notFoundResponse);
@@ -396,13 +396,17 @@ class ServiceInstancesTest {
     when(serviceInstanceService.all(any(), any(), anyListOf(String.class))).thenReturn(createServiceInstancePage());
     when(serviceInstanceService.getBindingsForServiceInstance("service-instance-guid", null, null)).thenReturn(new Page<>());
     when(serviceInstanceService.destroyServiceInstance(any())).thenReturn(new Response("url", 202, "reason", Collections.emptyList(), null));
-    when(serviceInstanceService.getServiceInstanceById(any())).thenReturn(pollingServiceInstanceResource).thenThrow(retrofitErrorNotFound);
 
-    serviceInstances.destroyServiceInstance(cloudFoundrySpace, "newServiceInstanceName", Duration.ofMillis(40));
+    ServiceInstanceResponse response = serviceInstances
+      .destroyServiceInstance(cloudFoundrySpace, "newServiceInstanceName");
+
+    assertEquals("service-instance-guid", response.getServiceInstanceId());
+    assertEquals("DELETE", response.getType().toString());
+    assertEquals("newServiceInstanceName", response.getServiceInstanceName());
+    assertEquals("IN_PROGRESS", response.getState().toString());
 
     verify(serviceInstanceService, times(1)).all(any(), any(), anyListOf(String.class));
     verify(serviceInstanceService, times(1)).destroyServiceInstance(any());
-    verify(serviceInstanceService, times(2)).getServiceInstanceById("service-instance-guid");
     verify(serviceInstanceService, never()).allUserProvided(any(), any());
   }
 
@@ -423,17 +427,11 @@ class ServiceInstancesTest {
     when(serviceInstanceService.getBindingsForServiceInstance(anyString(), anyInt(), any())).thenReturn(serviceBindingPage);
     when(serviceInstanceService.destroyServiceInstance(any())).thenThrow(destroyFailed);
 
-    try {
-      serviceInstances.destroyServiceInstance(cloudFoundrySpace, "serviceInstanceName", Duration.ofMillis(40));
-      fail("Expected CloudFoundryApiException");
-    } catch (CloudFoundryApiException cfe) {
-      // expected behavior
-    } catch (Throwable t) {
-      fail("Expected CloudFoundryApiException; got " + t);
-    }
+    assertThrows(CloudFoundryApiException.class, () ->
+      serviceInstances.destroyServiceInstance(cloudFoundrySpace, "serviceInstanceName")
+    );
 
     verify(serviceInstanceService, times(1)).destroyServiceInstance(any());
-    verify(serviceInstanceService, never()).getServiceInstanceById(any());
     verify(serviceInstanceService, never()).allUserProvided(any(), any());
   }
 
@@ -443,25 +441,16 @@ class ServiceInstancesTest {
     when(serviceInstanceService.getBindingsForServiceInstance("service-instance-guid", null, null))
       .thenReturn(Page.singleton(new ServiceBinding(), "service-binding-guid"));
 
-    try {
-      serviceInstances.destroyServiceInstance(cloudFoundrySpace, "serviceInstanceName", Duration.ofMillis(40));
-      fail("Expected CloudFoundryApiException");
-    } catch (CloudFoundryApiException cfe) {
-      // expected behavior
-    } catch (Throwable t) {
-      fail("Expected CloudFoundryApiException; got " + t);
-    }
+    assertThrows(CloudFoundryApiException.class, () ->
+      serviceInstances.destroyServiceInstance(cloudFoundrySpace, "serviceInstanceName")
+    );
 
     verify(serviceInstanceService, never()).destroyServiceInstance(any());
-    verify(serviceInstanceService, never()).getServiceInstanceById(any());
     verify(serviceInstanceService, never()).allUserProvided(any(), any());
   }
 
   @Test
   void destroyUserProvidedServiceInstanceShouldSucceedWhenNoServiceBindingsExist() {
-    Resource<ServiceInstance> pollingServiceInstanceResource = createServiceInstanceResource();
-    pollingServiceInstanceResource.getEntity().setLastOperation(new LastOperation().setType(DELETE).setState(IN_PROGRESS));
-
     RetrofitError retrofitErrorNotFound = mock(RetrofitError.class);
     Response notFoundResponse = new Response("someUri", 404, "whynot", Collections.emptyList(), null);
     when(retrofitErrorNotFound.getResponse()).thenReturn(notFoundResponse);
@@ -471,7 +460,13 @@ class ServiceInstancesTest {
     when(serviceInstanceService.getBindingsForUserProvidedServiceInstance("up-service-instance-guid", null, null)).thenReturn(new Page<>());
     when(serviceInstanceService.destroyUserProvidedServiceInstance(any())).thenReturn(new Response("url", 204, "reason", Collections.emptyList(), null));
 
-    serviceInstances.destroyServiceInstance(cloudFoundrySpace, "newServiceInstanceName", Duration.ofMillis(40));
+    ServiceInstanceResponse response = serviceInstances
+      .destroyServiceInstance(cloudFoundrySpace, "newServiceInstanceName");
+
+    assertEquals("up-service-instance-guid", response.getServiceInstanceId());
+    assertEquals("DELETE", response.getType().toString());
+    assertEquals("newServiceInstanceName", response.getServiceInstanceName());
+    assertEquals("NOT_FOUND", response.getState().toString());
 
     verify(serviceInstanceService, times(1)).all(any(), any(), anyListOf(String.class));
     verify(serviceInstanceService, times(1)).allUserProvided(any(), any());
@@ -498,14 +493,9 @@ class ServiceInstancesTest {
     when(serviceInstanceService.getBindingsForUserProvidedServiceInstance(anyString(), anyInt(), any())).thenReturn(serviceBindingPage);
     when(serviceInstanceService.destroyUserProvidedServiceInstance(any())).thenThrow(destroyFailed);
 
-    try {
-      serviceInstances.destroyServiceInstance(cloudFoundrySpace, "serviceInstanceName", Duration.ofMillis(40));
-      fail("Expected CloudFoundryApiException");
-    } catch (CloudFoundryApiException cfe) {
-      // expected behavior
-    } catch (Throwable t) {
-      fail("Expected CloudFoundryApiException; got " + t);
-    }
+    assertThrows(CloudFoundryApiException.class, () ->
+      serviceInstances.destroyServiceInstance(cloudFoundrySpace, "serviceInstanceName")
+    );
 
     verify(serviceInstanceService, times(1)).all(any(), any(), anyListOf(String.class));
     verify(serviceInstanceService, times(1)).allUserProvided(any(), any());
@@ -521,77 +511,14 @@ class ServiceInstancesTest {
     when(serviceInstanceService.getBindingsForUserProvidedServiceInstance("up-service-instance-guid", null, null))
       .thenReturn(Page.singleton(new ServiceBinding(), "up-service-instance-guid"));
 
-    try {
-      serviceInstances.destroyServiceInstance(cloudFoundrySpace, "serviceInstanceName", Duration.ofMillis(40));
-      fail("Expected CloudFoundryApiException");
-    } catch (CloudFoundryApiException cfe) {
-      // expected behavior
-    } catch (Throwable t) {
-      fail("Expected CloudFoundryApiException; got " + t);
-    }
+    assertThrows(CloudFoundryApiException.class, () ->
+      serviceInstances.destroyServiceInstance(cloudFoundrySpace, "serviceInstanceName")
+    );
 
     verify(serviceInstanceService, times(1)).all(any(), any(), anyListOf(String.class));
     verify(serviceInstanceService, times(1)).allUserProvided(any(), any());
     verify(serviceInstanceService, never()).destroyUserProvidedServiceInstance(any());
     verify(serviceInstanceService, never()).destroyServiceInstance(any());
-  }
-
-  @Test
-  void pollServiceInstanceStatusShouldSucceedWhenTheOperationFinishesBeforeTimeoutIsExceeded() {
-    Resource<ServiceInstance> polledServiceInstanceResource = createServiceInstanceResource();
-    polledServiceInstanceResource.getEntity().setLastOperation(new LastOperation().setType(CREATE).setState(IN_PROGRESS));
-    Resource<ServiceInstance> succeededServiceInstanceResource = createServiceInstanceResource();
-    succeededServiceInstanceResource.getEntity()
-      .setLastOperation(new LastOperation().setType(LastOperation.Type.CREATE).setState(SUCCEEDED));
-
-    when(serviceInstanceService.getServiceInstanceById(any()))
-      .thenReturn(polledServiceInstanceResource, polledServiceInstanceResource, succeededServiceInstanceResource);
-
-    serviceInstances.pollServiceInstanceStatus("new-service-instance-name", "service-instance-guid", DELETE, Duration.ofMillis(40));
-
-    verify(serviceInstanceService, times(3)).getServiceInstanceById("service-instance-guid");
-  }
-
-  @Test
-  void pollServiceInstanceStatusShouldThrowExceptionWhenTimeoutIsExceeded() {
-    Resource<ServiceInstance> polledServiceInstanceResource = createServiceInstanceResource();
-    polledServiceInstanceResource.getEntity().setLastOperation(new LastOperation().setType(DELETE).setState(IN_PROGRESS));
-
-    when(serviceInstanceService.createServiceInstance(any())).thenReturn(createServiceInstanceResource());
-    when(serviceInstanceService.getServiceInstanceById(any())).thenReturn(polledServiceInstanceResource);
-
-    try {
-      serviceInstances.pollServiceInstanceStatus("service-instance-name", "service-instance-guid", DELETE, Duration.ofMillis(40));
-      fail("Expected CloudFoundryApiException");
-    } catch (CloudFoundryApiException cfe) {
-      assertThat(cfe.getMessage()).contains("Service instance 'service-instance-name' DELETE did not complete");
-    } catch (Throwable t) {
-      fail("Expected CloudFoundryApiException; got " + t);
-    }
-
-    verify(serviceInstanceService, times(4)).getServiceInstanceById("service-instance-guid");
-  }
-
-  @Test
-  void pollServiceInstanceStatusShouldThrowExceptionWhenOperationFails() {
-    Resource<ServiceInstance> polledServiceInstanceResource = createServiceInstanceResource();
-    polledServiceInstanceResource.getEntity().setLastOperation(new LastOperation().setType(UPDATE).setState(IN_PROGRESS));
-    Resource<ServiceInstance> failedServiceInstanceResource = createServiceInstanceResource();
-    failedServiceInstanceResource.getEntity().setLastOperation(new LastOperation().setType(UPDATE).setState(FAILED));
-
-    when(serviceInstanceService.createServiceInstance(any())).thenReturn(createServiceInstanceResource());
-    when(serviceInstanceService.getServiceInstanceById(any())).thenReturn(polledServiceInstanceResource, polledServiceInstanceResource, failedServiceInstanceResource);
-
-    try {
-      serviceInstances.pollServiceInstanceStatus("service-instance-name", "service-instance-guid", UPDATE, Duration.ofMillis(40));
-      fail("Expected CloudFoundryApiException");
-    } catch (CloudFoundryApiException cfe) {
-      assertThat(cfe.getMessage()).contains("Service instance 'service-instance-name' UPDATE failed");
-    } catch (Throwable t) {
-      fail("Expected CloudFoundryApiException; got " + t);
-    }
-
-    verify(serviceInstanceService, times(3)).getServiceInstanceById("service-instance-guid");
   }
 
   private Resource<ServiceInstance> createServiceInstanceResource() {

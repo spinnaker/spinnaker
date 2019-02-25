@@ -19,8 +19,8 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.converters;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.CloudFoundryOperation;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.DestroyCloudFoundryServiceDescription;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops.DestroyCloudFoundryServiceAtomicOperation;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.servicebroker.AtomicOperations;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;

@@ -20,13 +20,12 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
-import com.google.common.annotations.VisibleForTesting;
 import com.netflix.spinnaker.clouddriver.artifacts.ArtifactCredentialsRepository;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.CloudFoundryOperation;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.DeployCloudFoundryServiceDescription;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops.DeployCloudFoundryServiceAtomicOperation;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.servicebroker.AtomicOperations;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
@@ -85,7 +84,7 @@ public class DeployCloudFoundryServiceAtomicOperationConverter extends AbstractC
     return converted;
   }
 
-  @VisibleForTesting
+  // visible for testing
   DeployCloudFoundryServiceDescription.ServiceAttributes convertManifest(Map manifestMap) {
     ServiceManifest manifest = new ObjectMapper()
       .setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE)
@@ -108,7 +107,7 @@ public class DeployCloudFoundryServiceAtomicOperationConverter extends AbstractC
     return attrs;
   }
 
-  @VisibleForTesting
+  // visible for testing
   DeployCloudFoundryServiceDescription.UserProvidedServiceAttributes convertUserProvidedServiceManifest(Map manifestMap) {
     UserProvidedServiceManifest manifest = new ObjectMapper()
       .setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE)

@@ -24,6 +24,9 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import org.assertj.core.api.Condition;
 
+import java.util.Collections;
+import java.util.Optional;
+
 import static java.util.Collections.emptyList;
 
 class AbstractCloudFoundryAtomicOperationTest {
@@ -36,7 +39,9 @@ class AbstractCloudFoundryAtomicOperationTest {
   Task runOperation(AtomicOperation<?> op) {
     Task task = new DefaultTask("test");
     TaskRepository.threadLocalTask.set(task);
-    op.operate(emptyList());
+    Optional
+      .ofNullable(op.operate(emptyList()))
+      .ifPresent(o -> task.addResultObjects(Collections.singletonList(o)));
     return task;
   }
 

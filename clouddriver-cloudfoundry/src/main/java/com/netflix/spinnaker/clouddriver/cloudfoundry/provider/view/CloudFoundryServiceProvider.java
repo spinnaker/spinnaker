@@ -18,7 +18,8 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.provider.view;
 
 import com.netflix.spinnaker.clouddriver.cloudfoundry.CloudFoundryCloudProvider;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryService;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.servicebroker.ServiceProvider;
+import com.netflix.spinnaker.clouddriver.model.ServiceInstance;
+import com.netflix.spinnaker.clouddriver.model.ServiceProvider;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.security.CloudFoundryCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +43,15 @@ public class CloudFoundryServiceProvider implements ServiceProvider {
       .getCredentials()
       .getServiceInstances()
       .findAllServicesByRegion(region);
+  }
+
+  @Override
+  public ServiceInstance getServiceInstance(String account, String region, String serviceInstanceName) {
+    CloudFoundryCredentials credentials = (CloudFoundryCredentials) accountCredentialsProvider.getCredentials(account);
+    return credentials
+      .getCredentials()
+      .getServiceInstances()
+      .getServiceInstance(region, serviceInstanceName);
   }
 
   @Override

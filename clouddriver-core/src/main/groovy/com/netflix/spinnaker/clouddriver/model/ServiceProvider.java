@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Pivotal, Inc.
+ * Copyright 2019 Pivotal, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,13 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.cloudfoundry.servicebroker;
+package com.netflix.spinnaker.clouddriver.model;
 
-public interface ServicePlan {
-  String getName();
+import java.util.Collection;
+
+public interface ServiceProvider {
+  String getCloudProvider();
+
+  Collection<? extends Service> getServices(String account, String region);
+  ServiceInstance getServiceInstance(String account, String region, String serviceInstanceName);
 }

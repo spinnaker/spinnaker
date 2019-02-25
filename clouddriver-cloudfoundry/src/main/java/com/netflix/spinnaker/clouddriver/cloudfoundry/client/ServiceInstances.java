@@ -16,39 +16,33 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client;
 
-import com.google.common.annotations.VisibleForTesting;
+import com.google.api.client.repackaged.com.google.common.annotations.VisibleForTesting;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.ServiceInstanceService;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.ServiceInstanceResponse;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.*;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.*;
-import io.github.resilience4j.retry.Retry;
-import io.github.resilience4j.retry.RetryConfig;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 
 import javax.annotation.Nullable;
-import java.time.Duration;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.*;
 
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClientUtils.collectPageResources;
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClientUtils.safelyCall;
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.ErrorDescription.Code.SERVICE_ALREADY_EXISTS;
-import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation.State.FAILED;
-import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation.State.SUCCEEDED;
-import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation.Type.*;
+import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation.State.*;
+import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation.Type.CREATE;
+import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation.Type.DELETE;
+import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation.Type.UPDATE;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
-@AllArgsConstructor
 @RequiredArgsConstructor
 public class ServiceInstances {
   private final ServiceInstanceService api;
   private final Organizations orgs;
   private final Spaces spaces;
-  private Duration pollingInterval = Duration.ofSeconds(10);
-  private Duration defaultPollingTimeout = Duration.ofSeconds(450);
 
   public void createServiceBindingsByName(CloudFoundryServerGroup cloudFoundryServerGroup, @Nullable List<String> serviceNames) throws CloudFoundryApiException {
     if (serviceNames != null && !serviceNames.isEmpty()) {
@@ -119,22 +113,45 @@ public class ServiceInstances {
     return org.map(cfOrg -> spaces.findByName(cfOrg.getId(), space.getName())).orElse(null);
   }
 
-  @VisibleForTesting
   @Nullable
+  public CloudFoundryServiceInstance getServiceInstance(String region, @Nullable String serviceInstanceName) throws CloudFoundryApiException {
+    CloudFoundrySpace space = getSpaceByRegionName(region);
+    Supplier<CloudFoundryServiceInstance> si = () -> Optional.ofNullable(getServiceInstance(space, serviceInstanceName))
+      .map(Resource::getEntity)
+      .map(e -> CloudFoundryServiceInstance.builder()
+        .serviceInstanceName(serviceInstanceName)
+        .status(e.getLastOperation().getState().toString())
+        .build()
+      )
+      .orElse(null);
+
+    Supplier<CloudFoundryServiceInstance> up = () -> Optional.ofNullable(getUserProvidedServiceInstance(space, serviceInstanceName))
+      .map(Resource::getEntity)
+      .map(e -> CloudFoundryServiceInstance.builder()
+        .serviceInstanceName(serviceInstanceName)
+        .status(SUCCEEDED.toString())
+        .build()
+      )
+      .orElse(null);
+
+    return Optional.ofNullable(si.get()).orElseGet(up);
+  }
+
+  @Nullable
+  @VisibleForTesting
   Resource<ServiceInstance> getServiceInstance(CloudFoundrySpace space, @Nullable String serviceInstanceName) throws CloudFoundryApiException {
     if (isBlank(serviceInstanceName)) {
       throw new CloudFoundryApiException("Please specify a name for the service being sought");
     }
     List<String> queryParams = singletonList("name IN " + serviceInstanceName);
-    List<Resource<ServiceInstance>> services = collectPageResources("service instances by space and name",
+    List<Resource<ServiceInstance>> serviceInstances = collectPageResources("service instances by space and name",
       pg -> api.all(pg, space.getId(), queryParams));
 
-    return getValidServiceInstance(space, serviceInstanceName, services);
+    return getValidServiceInstance(space, serviceInstanceName, serviceInstances);
   }
 
-  @VisibleForTesting
   @Nullable
-  Resource<UserProvidedServiceInstance> getUserProvidedServiceInstance(CloudFoundrySpace space, @Nullable String serviceInstanceName) throws CloudFoundryApiException {
+  private Resource<UserProvidedServiceInstance> getUserProvidedServiceInstance(CloudFoundrySpace space, @Nullable String serviceInstanceName) throws CloudFoundryApiException {
     if (isBlank(serviceInstanceName)) {
       throw new CloudFoundryApiException("Please specify a name for the service being sought");
     }
@@ -148,36 +165,45 @@ public class ServiceInstances {
     return getValidServiceInstance(space, serviceInstanceName, services);
   }
 
-  private <T> Resource<T> getValidServiceInstance(CloudFoundrySpace space, @Nullable String serviceInstanceName, List<Resource<T>> services) {
-    if (services.isEmpty()) {
+  private <T> Resource<T> getValidServiceInstance(CloudFoundrySpace space, @Nullable String serviceInstanceName, List<Resource<T>> serviceInstances) {
+    if (serviceInstances.isEmpty()) {
       return null;
     }
 
-    if (services.size() > 1) {
-      throw new CloudFoundryApiException(services.size() + " service instances found with name '" +
+    if (serviceInstances.size() > 1) {
+      throw new CloudFoundryApiException(serviceInstances.size() + " service instances found with name '" +
         serviceInstanceName + "' in space " + space.getName() + ", but expected only 1");
     }
 
-    return services.get(0);
+    return serviceInstances.get(0);
   }
 
-  public void destroyServiceInstance(CloudFoundrySpace space, String serviceInstanceName, Duration timeout) throws CloudFoundryApiException {
+  public ServiceInstanceResponse destroyServiceInstance(CloudFoundrySpace space, String serviceInstanceName) throws CloudFoundryApiException {
     Resource<ServiceInstance> serviceInstance = getServiceInstance(space, serviceInstanceName);
     if (serviceInstance != null) {
       String serviceInstanceId = serviceInstance.getMetadata().getGuid();
       destroyServiceInstance(
         pg -> api.getBindingsForServiceInstance(serviceInstanceId, pg, null),
         () -> api.destroyServiceInstance(serviceInstanceId));
-      pollServiceInstanceStatus(serviceInstanceName, serviceInstanceId, DELETE, timeout);
+      return new ServiceInstanceResponse()
+        .setServiceInstanceId(serviceInstanceId)
+        .setServiceInstanceName(serviceInstanceName)
+        .setType(DELETE)
+        .setState(IN_PROGRESS);
     } else {
-      Resource<UserProvidedServiceInstance> userProvidedService = getUserProvidedServiceInstance(space, serviceInstanceName);
-      if (userProvidedService == null) {
+      Resource<UserProvidedServiceInstance> userProvidedServiceInstance = getUserProvidedServiceInstance(space, serviceInstanceName);
+      if (userProvidedServiceInstance == null) {
         throw new CloudFoundryApiException("No service instances with name '" + serviceInstanceName + "' found in space " + space.getName());
       }
-      String userProvidedServiceInstanceId = userProvidedService.getMetadata().getGuid();
+      String userProvidedServiceInstanceId = userProvidedServiceInstance.getMetadata().getGuid();
       destroyServiceInstance(
         pg -> api.getBindingsForUserProvidedServiceInstance(userProvidedServiceInstanceId, pg, null),
         () -> api.destroyUserProvidedServiceInstance(userProvidedServiceInstanceId));
+      return new ServiceInstanceResponse()
+        .setServiceInstanceId(userProvidedServiceInstanceId)
+        .setServiceInstanceName(serviceInstanceName)
+        .setType(DELETE)
+        .setState(NOT_FOUND);
     }
   }
 
@@ -189,11 +215,14 @@ public class ServiceInstances {
     safelyCall(delete::run);
   }
 
-  public void createServiceInstance(String newServiceInstanceName, String serviceName, String servicePlanName,
-                                    Set<String> tags, Map<String, Object> parameters, CloudFoundrySpace space,
-                                    Duration timeout)
+  public ServiceInstanceResponse createServiceInstance(
+    String newServiceInstanceName,
+    String serviceName,
+    String servicePlanName,
+    Set<String> tags,
+    Map<String, Object> parameters,
+    CloudFoundrySpace space)
     throws CloudFoundryApiException, ResourceNotFoundException {
-
     List<CloudFoundryServicePlan> cloudFoundryServicePlans = findAllServicePlansByServiceName(serviceName);
     if (cloudFoundryServicePlans.isEmpty()) {
       throw new ResourceNotFoundException("No plans available for service name '" + serviceName + "'");
@@ -212,7 +241,7 @@ public class ServiceInstances {
     command.setTags(tags);
     command.setParameters(parameters);
 
-    createsServiceInstance(
+    ServiceInstanceResponse response = createServiceInstance(
       command,
       api::createServiceInstance,
       api::updateServiceInstance,
@@ -222,14 +251,20 @@ public class ServiceInstances {
           throw new CloudFoundryApiException("A service with name '" + c.getName() + "' exists but has a different plan");
         }
       },
-      (g, t) -> pollServiceInstanceStatus(newServiceInstanceName, g, t, timeout),
       space
     );
+
+    response.setState(IN_PROGRESS);
+    return response;
   }
 
-  public void createUserProvidedServiceInstance(String newUserProvidedServiceInstanceName, String syslogDrainUrl, Set<String> tags,
-                                                Map<String, Object> credentials, String routeServiceUrl,
-                                                CloudFoundrySpace space) throws CloudFoundryApiException, ResourceNotFoundException {
+  public ServiceInstanceResponse createUserProvidedServiceInstance(
+    String newUserProvidedServiceInstanceName,
+    String syslogDrainUrl,
+    Set<String> tags,
+    Map<String, Object> credentials,
+    String routeServiceUrl,
+    CloudFoundrySpace space) throws CloudFoundryApiException, ResourceNotFoundException {
     CreateUserProvidedServiceInstance command = new CreateUserProvidedServiceInstance();
     command.setName(newUserProvidedServiceInstanceName);
     command.setSyslogDrainUrl(syslogDrainUrl);
@@ -238,31 +273,34 @@ public class ServiceInstances {
     command.setRouteServiceUrl(routeServiceUrl);
     command.setSpaceGuid(space.getId());
 
-    createsServiceInstance(
+    ServiceInstanceResponse response = createServiceInstance(
       command,
       api::createUserProvidedServiceInstance,
       api::updateUserProvidedServiceInstance,
       c -> getUserProvidedServiceInstance(space, c.getName()),
       (c, r) -> {
       },
-      (g, t) -> {
-      },
       space
     );
+
+    response.setState(SUCCEEDED);
+    return response;
   }
 
-  private <T extends AbstractCreateServiceInstance, S extends AbstractServiceInstance> void createsServiceInstance(T command,
-                                                                                                                   Function<T, Resource<S>> create,
-                                                                                                                   BiFunction<String, T, Resource<S>> update,
-                                                                                                                   Function<T, Resource<S>> getServiceInstance,
-                                                                                                                   BiConsumer<T, Resource<S>> updateValidation,
-                                                                                                                   BiConsumer<String, LastOperation.Type> servicePolling,
-                                                                                                                   CloudFoundrySpace space) {
-    String guid;
-    LastOperation.Type type = CREATE;
+  private <T extends AbstractCreateServiceInstance,
+           S extends AbstractServiceInstance> ServiceInstanceResponse
+  createServiceInstance(T command,
+                        Function<T, Resource<S>> create,
+                        BiFunction<String, T, Resource<S>> update,
+                        Function<T, Resource<S>> getServiceInstance,
+                        BiConsumer<T, Resource<S>> updateValidation,
+                        CloudFoundrySpace space) {
+    String serviceInstanceId;
+    LastOperation.Type operationType;
     try {
-      guid = safelyCall(() -> create.apply(command)).map(res -> res.getMetadata().getGuid())
+      serviceInstanceId = safelyCall(() -> create.apply(command)).map(res -> res.getMetadata().getGuid())
         .orElseThrow(() -> new CloudFoundryApiException("service instance '" + command.getName() + "' not found"));
+      operationType = CREATE;
     } catch (CloudFoundryApiException cfe) {
       if (cfe.getErrorCode() == SERVICE_ALREADY_EXISTS) {
         Resource<S> serviceInstance = getServiceInstance.apply(command);
@@ -271,52 +309,18 @@ public class ServiceInstances {
           throw new CloudFoundryApiException("No service instances with name '" + command.getName() + "' found in space " + space.getName());
         }
         updateValidation.accept(command, serviceInstance);
-        guid = safelyCall(() -> update.apply(serviceInstance.getMetadata().getGuid(), command))
+        serviceInstanceId = safelyCall(() -> update.apply(serviceInstance.getMetadata().getGuid(), command))
           .map(res -> res.getMetadata().getGuid())
           .orElseThrow(() -> new CloudFoundryApiException("Service instance '" + command.getName() + "' not found"));
-        type = UPDATE;
+        operationType = UPDATE;
       } else {
         throw cfe;
       }
     }
-    servicePolling.accept(guid, type);
-  }
 
-  // package-level for testing visibility
-  void pollServiceInstanceStatus(String serviceInstanceName, String guid, LastOperation.Type type, Duration timeout) {
-    RetryConfig retryConfig = RetryConfig.custom()
-      .waitDuration(pollingInterval)
-      .maxAttempts((int) (Math.max(timeout.toMillis(), defaultPollingTimeout.toMillis()) / pollingInterval.toMillis()))
-      .retryExceptions(OperationInProgressException.class)
-      .build();
-
-    AtomicReference<LastOperation> lastOperation = new AtomicReference<>();
-    try {
-      Retry.of("async-service-operation", retryConfig).executeCallable(() -> {
-        LastOperation operation = safelyCall(() -> api.getServiceInstanceById(guid))
-          .map(res -> res.getEntity().getLastOperation())
-          .orElse(type == DELETE ? new LastOperation().setType(DELETE).setState(SUCCEEDED) : new LastOperation().setType(type).setState(FAILED));
-        lastOperation.set(operation);
-
-        switch (operation.getState()) {
-          case FAILED:
-            throw new CloudFoundryApiException("Service instance '" + serviceInstanceName + "' " + type + " failed");
-          case IN_PROGRESS:
-            throw new OperationInProgressException();
-          case SUCCEEDED:
-            break;
-        }
-        return operation;
-      });
-    } catch (CloudFoundryApiException e) {
-      throw e;
-    } catch (OperationInProgressException ignored) {
-      throw new CloudFoundryApiException("Service instance '" + serviceInstanceName + "' " + type + " did not complete");
-    } catch (Exception unknown) {
-      throw new CloudFoundryApiException(unknown);
-    }
-  }
-
-  private static class OperationInProgressException extends RuntimeException {
+    return new ServiceInstanceResponse()
+      .setServiceInstanceId(serviceInstanceId)
+      .setServiceInstanceName(command.getName())
+      .setType(operationType);
   }
 }
