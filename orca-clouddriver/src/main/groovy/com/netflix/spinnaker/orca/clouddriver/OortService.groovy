@@ -139,4 +139,10 @@ interface OortService {
 
   @GET("/aws/cloudFormation/stacks/{stackId}")
   Map getCloudFormationStack(@Path(value = "stackId", encode = false) String stackId)
+
+  @GET("/servicebroker/{account}/serviceInstance")
+  Map<String, Object> getServiceInstance(@Path("account") String account,
+                                         @Query("cloudProvider") String cloudProvider,
+                                         @Query("region") String region,
+                                         @Query("serviceInstanceName") String serviceInstanceName)
 }

@@ -134,4 +134,9 @@ public class DelegatingOortService
   public Map getCloudFormationStack(String stackId) {
     return getService().getCloudFormationStack(stackId);
   }
+
+  @Override
+  public Map getServiceInstance(String account, String cloudProvider, String region, String serviceInstanceName) {
+    return getService().getServiceInstance(account, cloudProvider, region, serviceInstanceName);
+  }
 }
