@@ -3,7 +3,7 @@ import { react2angular } from 'react2angular';
 
 import { CloudfoundryDeployServiceStageConfig } from './CloudfoundryDeployServiceStageConfig';
 import { ExecutionDetailsTasks, IStage, Registry } from '@spinnaker/core';
-import { CloudfoundryDeployServiceExecutionDetails } from './CloudfoundryDeployServiceExecutionDetails';
+import { CloudfoundryServiceExecutionDetails } from 'cloudfoundry/presentation';
 import { IServiceFieldValidatorConfig } from 'cloudfoundry/pipeline/config/validation/ServiceFieldValidatorConfig';
 
 class CloudFoundryDeployServiceStageCtrl implements IController {
@@ -78,7 +78,7 @@ module(CLOUD_FOUNDRY_DEPLOY_SERVICE_STAGE, [])
       cloudProvider: 'cloudfoundry',
       templateUrl: require('./cloudfoundryDeployServiceStage.html'),
       controller: 'cfDeployServiceStageCtrl',
-      executionDetailsSections: [CloudfoundryDeployServiceExecutionDetails, ExecutionDetailsTasks],
+      executionDetailsSections: [CloudfoundryServiceExecutionDetails, ExecutionDetailsTasks],
       defaultTimeoutMs: 30 * 60 * 1000,
       validators: [
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account' },
