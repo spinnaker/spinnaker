@@ -44,7 +44,15 @@ data class ReferenceSecurityGroupRule(
   val account: String? = null,
   val vpcName: String? = null,
   override val portRange: PortRange
-) : SecurityGroupRule()
+) : SecurityGroupRule() {
+  constructor(protocol: Protocol, reference: SecurityGroup, portRange: PortRange) : this(
+    protocol = protocol,
+    name = reference.name,
+    account = reference.accountName,
+    vpcName = reference.vpcName,
+    portRange = portRange
+  )
+}
 
 data class CidrSecurityGroupRule(
   override val protocol: Protocol,
