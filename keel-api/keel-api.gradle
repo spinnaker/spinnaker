@@ -20,6 +20,7 @@ dependencies {
   implementation "com.fasterxml.jackson.datatype:jackson-datatype-joda"
   implementation "org.springframework.boot:spring-boot-starter-actuator"
   implementation "org.springframework.boot:spring-boot-starter-web"
+  implementation spinnaker.dependency("korkArtifacts")
 
   testImplementation "io.strikt:strikt-core:$striktVersion"
   testImplementation project(":keel-spring-test-support")
