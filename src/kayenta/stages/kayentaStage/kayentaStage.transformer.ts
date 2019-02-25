@@ -9,6 +9,10 @@ const stageTypesToAlwaysShow = [KAYENTA_CANARY, CREATE_SERVER_GROUP];
 export class KayentaStageTransformer implements ITransformer {
   public transform(_application: Application, execution: IExecution): void {
     const kayentaStage = execution.stages.find(({ type }) => type === KAYENTA_CANARY);
+    if (!kayentaStage) {
+      return;
+    }
+
     let stagesToRenderAsTasks: IExecutionStage[] = [];
 
     execution.stages.forEach(stage => {
