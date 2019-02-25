@@ -37,7 +37,7 @@
     "angular-ui-sortable": "^0.17.0",
     "babel-plugin-transform-async-to-generator": "^6.24.1",
     "babel-polyfill": "^6.26.0",
-    "bootstrap": "3.3.7",
+    "bootstrap": "3.4.1",
     "cachefactory": "^3.0.0",
     "chart.js": "^2.7.0",
     "class-autobind-decorator": "^2.2.1",

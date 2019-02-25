@@ -57,7 +57,7 @@ const columns: Array<ITableColumn<ICanaryExecutionStatusResult>> = [
   {
     label: 'Summary',
     getContent: execution => (
-      <>
+      <div>
         <ReportLink
           configName={execution.config ? execution.config.name : execution.result.config.name}
           executionId={execution.pipelineId}
@@ -67,13 +67,10 @@ const columns: Array<ITableColumn<ICanaryExecutionStatusResult>> = [
           {'  '}
           <FormattedDate dateIso={execution.startTimeIso} />
         </ReportLink>
-        {'  '}
         {execution.startTimeIso && (
-          <span className="color-text-caption body-small" style={{ marginLeft: '10px' }}>
-            {moment(execution.startTimeIso).fromNow()}
-          </span>
+          <div className="color-text-caption body-small">{moment(execution.startTimeIso).fromNow()}</div>
         )}
-      </>
+      </div>
     ),
   },
   {
@@ -114,9 +111,10 @@ const columns: Array<ITableColumn<ICanaryExecutionStatusResult>> = [
 
       const areScopesIdentical = isEqual(baselineScopeNames, canaryScopeNames);
 
+      const styles: React.CSSProperties = { maxWidth: '350px', wordBreak: 'break-all' };
       if (areScopesIdentical) {
         return (
-          <div className="vertical">
+          <div className="vertical" style={styles}>
             {[...canaryScopeNames].map(scope => (
               <span key={scope}>{scope}</span>
             ))}
@@ -124,7 +122,7 @@ const columns: Array<ITableColumn<ICanaryExecutionStatusResult>> = [
         );
       } else {
         return (
-          <div className="vertical">
+          <div className="vertical" style={styles}>
             <span className="heading-6 uppercase color-text-caption">Baseline</span>
             {[...baselineScopeNames].map(scope => (
               <span key={scope}>{scope}</span>
