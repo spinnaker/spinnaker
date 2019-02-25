@@ -2,7 +2,7 @@ import { IScope, module } from 'angular';
 import { StateParams } from '@uirouter/angularjs';
 
 import { ExecutionDetailsSectionService, IExecutionStage } from '@spinnaker/core';
-import { DEPLOY_CANARY_SERVER_GROUPS, RUN_CANARY } from './stageTypes';
+import { RUN_CANARY, KAYENTA_CANARY } from './stageTypes';
 import { CANARY_RUN_SUMMARIES_COMPONENT } from './canaryRunSummaries.component';
 import { ICanaryConfigSummary, KayentaAnalysisType } from 'kayenta/domain';
 
@@ -25,7 +25,22 @@ class KayentaStageExecutionDetailsController {
     'ngInject';
     this.$scope.configSections = ['canarySummary', 'canaryConfig', 'taskStatus'];
     this.$scope.$on('$stateChangeSuccess', () => this.initialize());
+  }
+
+  public $onInit(): void {
+    this.initialize();
+  }
+
+  private initialize(): void {
+    this.executionDetailsSectionService.synchronizeSection(this.$scope.configSections, () => this.initialized());
+  }
+
+  private initialized(): void {
+    this.$scope.detailsSection = this.$stateParams.details;
     this.$scope.application.ready().then(() => {
+      if (this.$scope.stage.type !== KAYENTA_CANARY) {
+        return;
+      }
       const canaryConfigSummary = this.$scope.application
         .getDataSource('canaryConfigs')
         .data.find(
@@ -35,14 +50,6 @@ class KayentaStageExecutionDetailsController {
         this.canaryConfigName = canaryConfigSummary.name;
       }
     });
-  }
-
-  public $onInit(): void {
-    this.initialize();
-  }
-
-  private initialize(): void {
-    this.executionDetailsSectionService.synchronizeSection(this.$scope.configSections, () => this.initialized());
     this.setCanaryRuns();
     this.resolveFirstScopeName();
     this.resolveControlAndExperimentNames();
@@ -61,15 +68,8 @@ class KayentaStageExecutionDetailsController {
 
   private resolveControlAndExperimentNames(): void {
     if (this.$scope.stage.context.analysisType === KayentaAnalysisType.RealTimeAutomatic) {
-      const deploy = this.$scope.execution.stages.find(
-        (stage: IExecutionStage) =>
-          stage.type === DEPLOY_CANARY_SERVER_GROUPS && stage.parentStageId === this.$scope.stage.id,
-      );
-      if ((deploy.outputs.deployedServerGroups || []).length) {
-        const [deployedServerGroups] = deploy.outputs.deployedServerGroups;
-        this.resolvedControl = deployedServerGroups.controlScope;
-        this.resolvedExperiment = deployedServerGroups.experimentScope;
-      }
+      this.resolvedControl = this.$scope.stage.outputs.controlScope;
+      this.resolvedExperiment = this.$scope.stage.outputs.experimentScope;
     } else {
       this.resolvedControl = this.canaryRuns.length
         ? this.canaryRuns[0].context.scopes[this.firstScopeName].controlScope.scope
@@ -78,10 +78,6 @@ class KayentaStageExecutionDetailsController {
         ? this.canaryRuns[0].context.scopes[this.firstScopeName].experimentScope.scope
         : this.$scope.stage.context.canaryConfig.scopes[0].experimentScope;
     }
-  }
-
-  private initialized(): void {
-    this.$scope.detailsSection = this.$stateParams.details;
   }
 }
 

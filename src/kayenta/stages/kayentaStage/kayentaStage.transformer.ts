@@ -2,11 +2,15 @@ import { module } from 'angular';
 import { last, round } from 'lodash';
 
 import { Application, IExecution, IExecutionStage, ITransformer, OrchestratedItemTransformer } from '@spinnaker/core';
-import { KAYENTA_CANARY, RUN_CANARY, WAIT } from './stageTypes';
+import { KAYENTA_CANARY, RUN_CANARY, WAIT, CREATE_SERVER_GROUP, DEPLOY_CANARY_SERVER_GROUPS } from './stageTypes';
+
+const stageTypesToAlwaysShow = [KAYENTA_CANARY, CREATE_SERVER_GROUP];
 
 export class KayentaStageTransformer implements ITransformer {
   public transform(_application: Application, execution: IExecution): void {
+    const kayentaStage = execution.stages.find(({ type }) => type === KAYENTA_CANARY);
     let stagesToRenderAsTasks: IExecutionStage[] = [];
+
     execution.stages.forEach(stage => {
       if (stage.type === KAYENTA_CANARY) {
         OrchestratedItemTransformer.defineProperties(stage);
@@ -26,10 +30,44 @@ export class KayentaStageTransformer implements ITransformer {
 
         // For now, a 'kayentaCanary' stage should only have an 'aggregateCanaryResults' task, which should definitely go last.
         stage.tasks = [...syntheticCanaryStages, ...stage.tasks];
+      } else if (stage.type === CREATE_SERVER_GROUP) {
+        OrchestratedItemTransformer.defineProperties(stage);
+        const locations = stage.context['deploy.server.groups'] && Object.keys(stage.context['deploy.server.groups']);
+        stage.name = `Deploy ${stage.context.freeFormDetails}${locations ? ' in ' + locations.join(', ') : ''}`;
+        stage.parentStageId = kayentaStage.id;
       }
     });
 
-    execution.stages = execution.stages.filter(stage => !stagesToRenderAsTasks.includes(stage));
+    const deployCanaryServerGroupsStage = execution.stages.find(
+      ({ parentStageId, type }) => parentStageId === kayentaStage.id && type === DEPLOY_CANARY_SERVER_GROUPS,
+    );
+
+    if (deployCanaryServerGroupsStage && (deployCanaryServerGroupsStage.outputs.deployedServerGroups || []).length) {
+      const [{ controlScope, experimentScope }] = deployCanaryServerGroupsStage.outputs.deployedServerGroups;
+      kayentaStage.outputs = { ...kayentaStage.outputs, controlScope, experimentScope };
+    }
+
+    execution.stages = execution.stages.filter(
+      stage =>
+        !stagesToRenderAsTasks.includes(stage) &&
+        (!this.isDescendantOf(stage, kayentaStage, execution) ||
+          stageTypesToAlwaysShow.includes(stage.type) ||
+          stage.status !== 'SUCCEEDED'),
+    );
+  }
+
+  private isDescendantOf(child: IExecutionStage, ancestor: IExecutionStage, execution: IExecution) {
+    let node = child;
+    while (node && node.parentStageId) {
+      const parentNode = execution.stages.find(({ id }) => node.parentStageId === id);
+      if (parentNode && parentNode.id === ancestor.id) {
+        return true;
+      } else {
+        node = parentNode;
+      }
+    }
+
+    return false;
   }
 
   // Massages each runCanary stage into what the `canaryScore` component expects.
