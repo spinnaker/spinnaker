@@ -1,9 +1,9 @@
 'use strict';
 
 const angular = require('angular');
-import * as momentTimezone from 'moment-timezone';
 
 import { InfrastructureCaches, SETTINGS, TIME_FORMATTERS } from '@spinnaker/core';
+import { DateTime } from 'luxon';
 
 require('./loadBalancerSelector.directive.html');
 
@@ -28,8 +28,9 @@ describe('Directive: GCE Load Balancers Selector', function() {
       InfrastructureCaches.get('loadBalancers').getStats = function() {
         return { ageMax: lastRefreshed };
       };
-      const m = momentTimezone.tz(lastRefreshed, SETTINGS.defaultTimeZone);
-      expectedTime = m.format('YYYY-MM-DD HH:mm:ss z');
+      expectedTime = DateTime.fromMillis(lastRefreshed, { zone: SETTINGS.defaultTimeZone }).toFormat(
+        'yyyy-MM-dd HH:mm:ss ZZZZ',
+      );
 
       selector = angular.element('<gce-server-group-load-balancer-selector command="command" />');
     }),

@@ -1,8 +1,8 @@
 import { chain, compact, find, flattenDeep, forOwn, get, groupBy, includes, uniq } from 'lodash';
 import { Debounce } from 'lodash-decorators';
 import { Subject } from 'rxjs';
-import * as moment from 'moment';
 import { $log } from 'ngimport';
+import { DateTime, Duration } from 'luxon';
 
 import { Application } from 'core/application/application.model';
 import { IExecution, IExecutionGroup, IPipeline } from 'core/domain';
@@ -11,25 +11,51 @@ import { FilterModelService, ISortFilter } from 'core/filterModel';
 import { Registry } from 'core/registry';
 
 const boundaries = [
-  { name: 'Today', after: () => moment().startOf('day') },
+  {
+    name: 'Today',
+    after: () =>
+      DateTime.local()
+        .startOf('day')
+        .toMillis(),
+  },
   {
     name: 'Yesterday',
     after: () =>
-      moment()
+      DateTime.local()
         .startOf('day')
-        .subtract(1, 'days'),
+        .minus(Duration.fromObject({ days: 1 }))
+        .toMillis(),
   },
-  { name: 'This Week', after: () => moment().startOf('week') },
+  {
+    name: 'This Week',
+    after: () =>
+      DateTime.local()
+        .startOf('week')
+        .toMillis(),
+  },
   {
     name: 'Last Week',
     after: () =>
-      moment()
+      DateTime.local()
         .startOf('week')
-        .subtract(1, 'weeks'),
+        .minus(Duration.fromObject({ weeks: 1 }))
+        .toMillis(),
   },
-  { name: 'Last Month', after: () => moment().startOf('month') },
-  { name: 'This Year', after: () => moment().startOf('year') },
-  { name: 'Prior Years', after: () => moment(0) },
+  {
+    name: 'Last Month',
+    after: () =>
+      DateTime.local()
+        .startOf('month')
+        .toMillis(),
+  },
+  {
+    name: 'This Year',
+    after: () =>
+      DateTime.local()
+        .startOf('year')
+        .toMillis(),
+  },
+  { name: 'Prior Years', after: () => 0 },
 ];
 
 export class ExecutionFilterService {
@@ -43,9 +69,10 @@ export class ExecutionFilterService {
     return groupBy(
       executions,
       execution =>
-        boundaries.find(boundary =>
-          // executions that were cancelled before ever starting will not have a startTime, just a buildTime
-          moment(execution.startTime || execution.buildTime).isAfter(boundary.after()),
+        boundaries.find(
+          boundary =>
+            // executions that were cancelled before ever starting will not have a startTime, just a buildTime
+            (execution.startTime || execution.buildTime) > boundary.after(),
         ).name,
     );
   }

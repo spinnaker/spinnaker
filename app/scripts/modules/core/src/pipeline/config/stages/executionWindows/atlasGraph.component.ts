@@ -1,9 +1,9 @@
 import { IController, module } from 'angular';
-import * as momentTimezone from 'moment-timezone';
 import { has } from 'lodash';
 import { Subject } from 'rxjs';
 
 import { SETTINGS } from 'core/config/settings';
+import { DateTime, Duration } from 'luxon';
 
 interface IExecutionWindow {
   displayStart: Date;
@@ -258,27 +258,29 @@ class ExecutionWindowAtlasGraphController implements IController {
   }
 
   private createWindow(window: IExecutionWindow, dayOffset: number): IWindowData {
-    const today = new Date();
     const zone: string = SETTINGS.defaultTimeZone;
+    const { displayEnd, displayStart } = window;
 
-    const start = momentTimezone
-        .tz(today, zone)
-        .hour(window.displayStart.getHours())
-        .minute(window.displayStart.getMinutes())
-        .seconds(window.displayStart.getSeconds())
-        .milliseconds(window.displayStart.getMilliseconds())
-        .subtract(dayOffset, 'days')
-        .toDate()
-        .getTime(),
-      end = momentTimezone
-        .tz(today, zone)
-        .hour(window.displayEnd.getHours())
-        .minute(window.displayEnd.getMinutes())
-        .seconds(window.displayEnd.getSeconds())
-        .milliseconds(window.displayEnd.getMilliseconds())
-        .subtract(dayOffset, 'days')
-        .toDate()
-        .getTime();
+    const start = DateTime.local()
+        .setZone(zone)
+        .set({
+          hour: displayStart.getHours(),
+          minute: displayStart.getMinutes(),
+          second: displayStart.getSeconds(),
+          millisecond: displayStart.getMilliseconds(),
+        })
+        .minus(Duration.fromObject({ days: dayOffset }))
+        .toMillis(),
+      end = DateTime.local()
+        .setZone(zone)
+        .set({
+          hour: displayEnd.getHours(),
+          minute: displayEnd.getMinutes(),
+          second: displayEnd.getSeconds(),
+          millisecond: displayEnd.getMilliseconds(),
+        })
+        .minus(Duration.fromObject({ days: dayOffset }))
+        .toMillis();
 
     return { start, end };
   }

@@ -1,11 +1,11 @@
 import * as React from 'react';
-import * as moment from 'moment';
+import { DateTime } from 'luxon';
 
 import { IPipeline, ICronTrigger } from 'core/domain';
 import { Popover } from 'core/presentation/Popover';
 import { SETTINGS } from 'core/config/settings';
 import { later } from 'core/utils/later/later';
-import { timestamp } from 'core/utils/timeFormatters';
+import { timestamp, relativeTime } from 'core/utils/timeFormatters';
 
 export interface INextRunTagProps {
   pipeline: IPipeline;
@@ -30,13 +30,13 @@ export class NextRunTag extends React.Component<INextRunTagProps, INextRunTagSta
       ) as ICronTrigger[];
       const nextTimes: number[] = [];
       crons.forEach(cron => {
-        const timezoneOffsetInMs = moment.tz.zone(SETTINGS.defaultTimeZone).offset(Date.now()) * 60 * 1000;
+        const timezoneOffsetInMs = DateTime.local().setZone(SETTINGS.defaultTimeZone).offset * 60 * 1000;
         const nextRun = later
           .schedule(later.parse.cron(cron.cronExpression, true))
-          .next(1, new Date(Date.now() - timezoneOffsetInMs));
+          .next(1, new Date(Date.now() + timezoneOffsetInMs));
 
         if (nextRun) {
-          nextTimes.push(nextRun.getTime() + timezoneOffsetInMs);
+          nextTimes.push(nextRun.getTime() - timezoneOffsetInMs);
         }
       });
       if (nextTimes.length) {
@@ -57,7 +57,7 @@ export class NextRunTag extends React.Component<INextRunTagProps, INextRunTagSta
   };
 
   public render(): React.ReactElement<NextRunTag> {
-    const nextDuration = moment(this.state.nextScheduled).fromNow();
+    const nextDuration = relativeTime(this.state.nextScheduled);
     const visible = !this.props.pipeline.disabled && this.state.hasNextScheduled;
     return (
       <span style={{ visibility: visible ? 'visible' : 'hidden' }} className="next-run-tag">

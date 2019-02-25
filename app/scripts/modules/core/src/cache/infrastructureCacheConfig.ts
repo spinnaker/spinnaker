@@ -1,4 +1,4 @@
-import * as moment from 'moment';
+import { Duration } from 'luxon';
 
 export interface IMaxAgeConfig {
   maxAge: number;
@@ -36,16 +36,16 @@ export const INFRASTRUCTURE_CACHE_CONFIG: IInfrastructureCacheConfig = {
     version: 2,
   },
   applications: {
-    maxAge: moment.duration(30, 'days').asMilliseconds(), // it gets refreshed every time the user goes to the application list, anyway
+    maxAge: Duration.fromObject({ days: 30 }).as('milliseconds'), // it gets refreshed every time the user goes to the application list, anyway
   },
   loadBalancers: {
-    maxAge: moment.duration(1, 'hour').asMilliseconds(),
+    maxAge: Duration.fromObject({ hours: 1 }).as('milliseconds'),
   },
   securityGroups: {
     version: 2, // increment to force refresh of cache on next page load - can be added to any cache
   },
   instanceTypes: {
-    maxAge: moment.duration(7, 'days').asMilliseconds(),
+    maxAge: Duration.fromObject({ days: 7 }).as('milliseconds'),
     version: 2,
   },
   healthChecks: {

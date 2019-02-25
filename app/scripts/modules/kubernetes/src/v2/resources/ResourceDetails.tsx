@@ -1,7 +1,8 @@
 import * as React from 'react';
-import * as moment from 'moment';
+
 import { get } from 'lodash';
 import { UISref } from '@uirouter/react';
+import { DateTime } from 'luxon';
 import { IManifest, Spinner, CloudProviderLogo, CollapsibleSection, AccountTag, timestamp } from '@spinnaker/core';
 import { KubernetesManifestService } from '../manifest/manifest.service';
 import { ManifestEvents } from 'kubernetes/v2/pipelines/stages/deployManifest/react/ManifestEvents';
@@ -56,7 +57,8 @@ export class KubernetesResourceDetails extends React.Component<
   public render() {
     const { manifest } = this.state;
     const metadata = get(manifest, ['manifest', 'metadata'], null);
-    const creationUnixMs = get(metadata, 'creationTimestamp') && moment(metadata.creationTimestamp).valueOf();
+    const creationUnixMs =
+      get(metadata, 'creationTimestamp') && DateTime.fromISO(metadata.creationTimestamp).toMillis();
     return (
       <div className="details-panel">
         <div className="header">

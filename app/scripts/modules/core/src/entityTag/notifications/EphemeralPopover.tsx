@@ -2,8 +2,7 @@ import * as React from 'react';
 
 import { HoverablePopover } from 'core/presentation';
 import { IEntityTags } from 'core/domain';
-
-import * as moment from 'moment';
+import { relativeTime } from 'core/utils/timeFormatters';
 
 export interface IEphemeralPopoverProps {
   entity?: any;
@@ -36,7 +35,7 @@ export class EphemeralPopover extends React.Component<IEphemeralPopoverProps, IE
   private PopoverContent = () => {
     const { ttl } = this.state;
     const isInPast = !!ttl && Date.now() > ttl;
-    const ttlPhrase = moment(ttl).fromNow();
+    const ttlPhrase = relativeTime(ttl);
 
     return (
       <div>

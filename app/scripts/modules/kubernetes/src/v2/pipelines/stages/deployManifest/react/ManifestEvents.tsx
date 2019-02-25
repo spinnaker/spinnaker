@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { get } from 'lodash';
-import * as moment from 'moment';
+import { DateTime } from 'luxon';
 import { IManifest, IManifestEvent, relativeTime } from '@spinnaker/core';
 import { JobManifestPodLogs } from './JobManifestPodLogs';
 
@@ -33,10 +33,10 @@ export class ManifestEvents extends React.Component<IManifestEventsProps> {
       let firstEpochMilliseconds = 0;
       let lastEpochMilliseconds = 0;
       if (firstTimestamp) {
-        firstEpochMilliseconds = moment(firstTimestamp).valueOf();
+        firstEpochMilliseconds = DateTime.fromISO(firstTimestamp).toMillis();
       }
       if (lastTimestamp) {
-        lastEpochMilliseconds = moment(lastTimestamp).valueOf();
+        lastEpochMilliseconds = DateTime.fromISO(lastTimestamp).toMillis();
       }
       return (
         <div key={get(e, ['metadata', 'uid'], String(i))} className="info">

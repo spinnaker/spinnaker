@@ -1,5 +1,5 @@
 import { Cache, CacheFactory, CacheOptions, ItemInfo } from 'cachefactory';
-import * as moment from 'moment';
+import { Duration } from 'luxon';
 
 import { SETTINGS } from 'core/config/settings';
 
@@ -154,7 +154,7 @@ export class DeckCacheFactory {
 
   private static getStats(cache: Cache): IStats {
     const keys = cache.keys();
-    let ageMin = moment.now(),
+    let ageMin = Date.now(),
       ageMax = 0;
 
     keys.forEach((key: string) => {
@@ -178,8 +178,8 @@ export class DeckCacheFactory {
     DeckCacheFactory.clearPreviousVersions(namespace, cacheId, currentVersion, cacheFactory);
     cacheFactory.createCache(key, {
       deleteOnExpire: 'aggressive',
-      maxAge: cacheConfig.maxAge || moment.duration(2, 'days').asMilliseconds(),
-      recycleFreq: moment.duration(5, 'seconds').asMilliseconds(),
+      maxAge: cacheConfig.maxAge || Duration.fromObject({ days: 2 }).as('milliseconds'),
+      recycleFreq: Duration.fromObject({ seconds: 5 }).as('milliseconds'),
       storageImpl: new SelfClearingLocalStorage(this.cacheProxy),
       storageMode: 'localStorage',
       storagePrefix: DeckCacheFactory.getStoragePrefix(key, currentVersion),

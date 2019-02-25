@@ -1,11 +1,10 @@
 import * as React from 'react';
-import * as moment from 'moment';
+import { DateTime } from 'luxon';
 
 import { SETTINGS } from 'core/config/settings';
 
-export class SystemTimezone extends React.Component<any> {
-  public render() {
-    const zone = SETTINGS.defaultTimeZone;
-    return <span>{moment.tz(Date.now(), zone).zoneAbbr()}</span>;
-  }
-}
+export const SystemTimezone = () => {
+  const zone = SETTINGS.defaultTimeZone;
+  const time = DateTime.local().setZone(zone);
+  return <span>{time.offsetNameShort}</span>;
+};

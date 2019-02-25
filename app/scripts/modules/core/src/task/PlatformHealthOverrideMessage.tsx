@@ -1,10 +1,10 @@
 import * as React from 'react';
 import { get } from 'lodash';
-import * as moment from 'moment';
 
 import { Application } from 'core/application/application.model';
 import { IInstanceCounts, IStage, ITask, ITaskStep, ITimedItem } from 'core/domain';
 import { Tooltip } from 'core/presentation';
+import { Duration } from 'luxon';
 
 export interface IPlatformHealthOverrideMessageProps {
   application: Application;
@@ -61,7 +61,7 @@ export class PlatformHealthOverrideMessage extends React.Component<
       showMessage =
         isRelevantTask &&
         props.step.name === 'waitForUpInstances' &&
-        props.step.runningTimeInMs > moment.duration(5, 'minutes').asMilliseconds() &&
+        props.step.runningTimeInMs > Duration.fromObject({ minutes: 5 }).as('milliseconds') &&
         lastCapacity.unknown > 0 &&
         lastCapacity.unknown === lastCapacityTotal &&
         !get(props.application, 'attributes.platformHealthOnly');

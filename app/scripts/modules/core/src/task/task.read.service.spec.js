@@ -169,7 +169,7 @@ describe('Service: taskReader', function() {
 
       execute();
 
-      expect(task.runningTime).toBe('a few seconds');
+      expect(task.runningTime).toBe('less than 5 seconds');
     });
 
     it('uses start time to calculate running time if endTime is not present', function() {
@@ -181,7 +181,7 @@ describe('Service: taskReader', function() {
 
       execute();
 
-      expect(task.runningTime).toBe('a few seconds');
+      expect(task.runningTime).toBe('less than 5 seconds');
     });
 
     it('calculates running time based on start and end times', function() {

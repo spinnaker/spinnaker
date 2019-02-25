@@ -1,6 +1,6 @@
-import * as moment from 'moment';
 import { cloneDeep, uniq } from 'lodash';
 import { module, noop } from 'angular';
+import { Duration } from 'luxon';
 
 import { ApplicationReader } from 'core/application/service/ApplicationReader';
 import { AccountService } from 'core/account/AccountService';
@@ -31,7 +31,7 @@ export class CacheInitializerService {
 
   private setConfigDefaults(key: string, config: ICacheConfig) {
     config.version = config.version || 1;
-    config.maxAge = config.maxAge || moment.duration(2, 'days').asMilliseconds();
+    config.maxAge = config.maxAge || Duration.fromObject({ days: 2 }).as('milliseconds');
     config.initializers = config.initializers || this.initializers[key] || ([] as any[]);
     config.onReset = config.onReset || [noop];
   }

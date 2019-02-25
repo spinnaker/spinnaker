@@ -1,6 +1,6 @@
 'use strict';
 
-import moment from 'moment';
+import { Duration } from 'luxon';
 import _ from 'lodash';
 
 import { CloudProviderRegistry } from 'core/cloudProvider';
@@ -129,7 +129,8 @@ module.exports = angular
           $scope.showWaitingMessage = true;
           $scope.waitingForUpInstances = activeWaitTask.status === 'RUNNING';
           const lastCapacity = stage.context.lastCapacityCheck;
-          const waitDurationExceeded = activeWaitTask.runningTimeInMs > moment.duration(5, 'minutes').asMilliseconds();
+          const waitDurationExceeded =
+            activeWaitTask.runningTimeInMs > Duration.fromObject({ minutes: 5 }).as('milliseconds');
           lastCapacity.total =
             lastCapacity.up +
             lastCapacity.down +

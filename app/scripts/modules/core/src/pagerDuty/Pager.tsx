@@ -4,7 +4,7 @@ import { UISref } from '@uirouter/react';
 import SearchApi from 'js-worker-search';
 import { groupBy } from 'lodash';
 import { Debounce } from 'lodash-decorators';
-import * as moment from 'moment';
+import { DateTime } from 'luxon';
 import { Observable } from 'rxjs';
 import {
   AutoSizer,
@@ -20,6 +20,7 @@ import {
 } from 'react-virtualized';
 
 import { ApplicationReader, IApplicationSummary } from 'core/application';
+import { relativeTime } from 'core/utils/timeFormatters';
 import { IOnCall, IPagerDutyService, PagerDutyReader } from './pagerDuty.read.service';
 import { ReactInjector } from 'core/reactShims';
 import { SETTINGS } from 'core/config';
@@ -40,7 +41,7 @@ export interface IUserList {
 export interface IOnCallsByService {
   users?: IUserList;
   applications: IApplicationSummary[];
-  last: moment.Moment;
+  last: DateTime;
   service: IPagerDutyService;
   searchString: string;
 }
@@ -125,13 +126,13 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
       return a.service.name.localeCompare(b.service.name);
     }
     if (sortBy === 'last') {
-      if (!a.last.isValid()) {
+      if (!a.last.isValid) {
         return 1;
       }
-      if (!b.last.isValid()) {
+      if (!b.last.isValid) {
         return -1;
       }
-      return a.last.isBefore(b.last) ? 1 : a.last.isAfter(b.last) ? -1 : 0;
+      return a.last.toMillis() < b.last.toMillis() ? 1 : a.last.toMillis() > b.last.toMillis() ? -1 : 0;
     }
     return 0;
   }
@@ -256,7 +257,7 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
           users,
           applications: associatedApplications,
           service,
-          last: moment((service as any).lastIncidentTimestamp),
+          last: DateTime.fromISO((service as any).lastIncidentTimestamp),
           searchString: searchTokens.join(' '),
         };
         if (onCallsByService.service.integration_key) {
@@ -300,8 +301,8 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
   };
 
   private lastIncidentRenderer = (data: TableCellProps): React.ReactNode => {
-    const time: moment.Moment = data.cellData;
-    return <div style={paddingStyle}>{time.isValid() ? time.fromNow() : 'Never'}</div>;
+    const time: DateTime = data.cellData;
+    return <div style={paddingStyle}>{time.isValid ? relativeTime(time.toMillis()) : 'Never'}</div>;
   };
 
   private applicationRenderer = (data: TableCellProps): React.ReactNode => {
