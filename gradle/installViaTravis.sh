@@ -15,7 +15,7 @@ if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
 
   source ~/.nvm/nvm.sh
   nvm install $NODE_JS_VERSION
-  yarn
+  yarn --frozen-lockfile
 
 elif [ "$TRAVIS_PULL_REQUEST" == "false" ] && [ "$TRAVIS_TAG" == "" ]; then
   echo -e 'Assemble Branch with Snapshot => Branch ['$TRAVIS_BRANCH']'
