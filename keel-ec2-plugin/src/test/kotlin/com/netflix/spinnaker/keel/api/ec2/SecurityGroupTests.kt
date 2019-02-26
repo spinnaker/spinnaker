@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.keel.api.ec2
 
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupRule.Protocol.TCP
+import dev.minutest.experimental.SKIP
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import org.javers.core.JaversBuilder
@@ -147,7 +148,7 @@ internal object SecurityGroupTests : JUnit5Minutests {
       }
     }
 
-    derivedContext<Diff>("desired state has a new inbound rule with only a different port range") {
+    SKIP - derivedContext<Diff>("desired state has a new inbound rule with only a different port range") {
       deriveFixture {
         javers.compare(
           this,

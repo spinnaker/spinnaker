@@ -197,6 +197,14 @@ internal object SecurityGroupHandlerTests : JUnit5Minutests {
   fun upsertTests() = rootContext<UpsertFixture> {
     fixture { UpsertFixture() }
 
+    before {
+      setupVpc()
+    }
+
+    after {
+      resetVpc()
+    }
+
     context("a security group with no ingress rules") {
       before {
         whenever(orcaService.orchestrate(any())) doAnswer {
@@ -234,7 +242,7 @@ internal object SecurityGroupHandlerTests : JUnit5Minutests {
                 protocol = TCP,
                 account = "test",
                 name = "otherapp",
-                vpcName = "vpc0",
+                vpcName = "vpc1",
                 portRange = PortRange(
                   startPort = 443,
                   endPort = 443
@@ -267,7 +275,7 @@ internal object SecurityGroupHandlerTests : JUnit5Minutests {
               .hasSize(1).first().isA<Map<String, *>>()
               .and {
                 securityGroup.inboundRules.first().also { rule ->
-                  get("type").isEqualTo(rule.protocol.name)
+                  get("type").isEqualTo(rule.protocol.name.toLowerCase())
                   get("startPort").isEqualTo(rule.portRange.startPort)
                   get("endPort").isEqualTo(rule.portRange.endPort)
                   get("name").isEqualTo((rule as ReferenceSecurityGroupRule).name)

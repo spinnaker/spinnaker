@@ -71,12 +71,11 @@ class SecurityGroupHandler(
                 "cloudProvider" to CLOUD_PROVIDER,
                 "name" to spec.name,
                 "regions" to listOf(spec.region),
-                "vpcId" to spec.vpcName,
+                "vpcId" to cloudDriverCache.networkBy(spec.vpcName, spec.accountName, spec.region).id,
                 "description" to spec.description,
-                "ingressAppendOnly" to true,
                 // TODO: would be nice if these two things were more homeomorphic
-                "securityGroupIngress" to portRangeRuleToJob(spec),
-                "ipIngress" to spec.inboundRules.flatMap { convertCidrRuleToJob(it) },
+                "securityGroupIngress" to referenceRuleToJob(spec),
+                "ipIngress" to spec.inboundRules.flatMap { cidrRuleToJob(it) },
                 "accountName" to spec.accountName
               )
             )),
@@ -173,7 +172,7 @@ class SecurityGroupHandler(
       }
     }
 
-  private fun portRangeRuleToJob(spec: SecurityGroup): JobRules {
+  private fun referenceRuleToJob(spec: SecurityGroup): JobRules {
     return spec
       .inboundRules
       .mapNotNull { rule ->
@@ -184,7 +183,7 @@ class SecurityGroupHandler(
       }
       .map { (rule, ports) ->
         mutableMapOf<String, Any?>(
-          "type" to rule.protocol.name,
+          "type" to rule.protocol.name.toLowerCase(),
           "startPort" to ports.startPort,
           "endPort" to ports.endPort,
           "name" to (rule.name ?: spec.name)
@@ -197,7 +196,7 @@ class SecurityGroupHandler(
                 rule.vpcName,
                 spec.accountName,
                 spec.region
-              )
+              ).id
             }
             m
           }
@@ -209,7 +208,7 @@ class SecurityGroupHandler(
 
 private typealias JobRules = List<MutableMap<String, Any?>>
 
-private fun convertCidrRuleToJob(rule: SecurityGroupRule): JobRules =
+private fun cidrRuleToJob(rule: SecurityGroupRule): JobRules =
   when (rule) {
     is CidrSecurityGroupRule -> rule.portRange.let { ports ->
       listOf(mutableMapOf<String, Any?>(
