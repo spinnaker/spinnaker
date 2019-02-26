@@ -39,7 +39,12 @@ export class InsightMenu extends React.Component<IInsightMenuProps, IInsightMenu
     this.cacheInitializer = ReactInjector.cacheInitializer;
   }
 
-  private createProject = () => ConfigureProjectModal.show().catch(() => {});
+  private createProject = () =>
+    ConfigureProjectModal.show()
+      .then(result => {
+        this.$state.go('home.project.dashboard', { project: result.name });
+      })
+      .catch(() => {});
 
   private createApplication = () => {
     this.$uibModal

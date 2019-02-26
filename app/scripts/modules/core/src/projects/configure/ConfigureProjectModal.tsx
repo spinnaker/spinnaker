@@ -8,7 +8,6 @@ import { PipelineConfigService } from 'core/pipeline';
 import { IModalComponentProps, ReactModal } from 'core/presentation';
 import { TaskMonitor } from 'core/task';
 import { noop } from 'core/utils';
-import { ReactInjector } from 'core/reactShims';
 
 import { ProjectReader } from '../service/ProjectReader';
 import { ProjectWriter } from '../service/ProjectWriter';
@@ -87,10 +86,10 @@ export class ConfigureProjectModal extends React.Component<IConfigureProjectModa
   }
 
   private submit = (project: IProject) => {
+    const { name } = project;
     const taskMonitor = new TaskMonitor({
       title: 'Updating Project',
-      onTaskComplete: () => ReactInjector.$state.go('home.project', { project: project.name }),
-      modalInstance: TaskMonitor.modalInstanceEmulation(() => this.props.dismissModal()),
+      modalInstance: TaskMonitor.modalInstanceEmulation(() => this.props.closeModal({ name, action: 'upsert' })),
     });
 
     this.setState({ taskMonitor });
@@ -128,11 +127,11 @@ export class ConfigureProjectModal extends React.Component<IConfigureProjectModa
 
   private onDelete = () => {
     const { projectConfiguration } = this.props;
+    const { name } = projectConfiguration;
     if (projectConfiguration) {
       const taskMonitor = new TaskMonitor({
         title: 'Deleting Project',
-        onTaskComplete: () => ReactInjector.$state.go('home.search'),
-        modalInstance: TaskMonitor.modalInstanceEmulation(() => this.props.dismissModal()),
+        modalInstance: TaskMonitor.modalInstanceEmulation(() => this.props.closeModal({ name, action: 'delete' })),
       });
 
       this.setState({ taskMonitor });
