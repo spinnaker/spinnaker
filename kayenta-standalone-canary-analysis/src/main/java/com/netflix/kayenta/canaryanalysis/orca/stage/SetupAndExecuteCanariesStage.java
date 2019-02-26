@@ -209,9 +209,10 @@ public class SetupAndExecuteCanariesStage implements StageDefinitionBuilder {
           scope.getExtendedScopeParams()
       );
 
-      CanaryScopePair canaryScopePair = new CanaryScopePair()
-          .setControlScope(controlScope)
-          .setExperimentScope(experimentScope);
+      CanaryScopePair canaryScopePair = CanaryScopePair.builder()
+          .controlScope(controlScope)
+          .experimentScope(experimentScope)
+          .build();
 
       scopes.put(scope.getScopeName(), canaryScopePair);
     });

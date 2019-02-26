@@ -115,9 +115,10 @@ public class E2EIntegrationTest {
             .setStart(metricsReportingStartTime)
             .setEnd(end);
 
-        CanaryScopePair canaryScopePair = new CanaryScopePair();
-        canaryScopePair.setControlScope(control);
-        canaryScopePair.setExperimentScope(experiment);
+        CanaryScopePair canaryScopePair = CanaryScopePair.builder()
+          .controlScope(control)
+          .experimentScope(experiment)
+          .build();
         executionRequest.setScopes(ImmutableMap.of("default", canaryScopePair));
         request.setExecutionRequest(executionRequest);
 

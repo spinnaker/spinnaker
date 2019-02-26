@@ -164,6 +164,7 @@ public class AtlasMetricsService implements MetricsService {
 
     for (AtlasResults atlasResults : idToAtlasResultsMap.values()) {
       Instant responseStartTimeInstant = Instant.ofEpochMilli(atlasResults.getStart());
+      Instant responseEndTimeInstant = Instant.ofEpochMilli(atlasResults.getEnd());
       List<Double> timeSeriesList = atlasResults.getData().getValues();
 
       if (timeSeriesList == null) {
@@ -175,6 +176,8 @@ public class AtlasMetricsService implements MetricsService {
           .name(canaryMetricConfig.getName())
           .startTimeMillis(atlasResults.getStart())
           .startTimeIso(responseStartTimeInstant.toString())
+          .endTimeMillis(atlasResults.getEnd())
+          .endTimeIso(responseEndTimeInstant.toString())
           .stepMillis(atlasResults.getStep())
           .values(timeSeriesList);
 

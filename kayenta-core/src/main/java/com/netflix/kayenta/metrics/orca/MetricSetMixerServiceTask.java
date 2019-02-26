@@ -16,6 +16,8 @@
 
 package com.netflix.kayenta.metrics.orca;
 
+import com.netflix.kayenta.canary.CanaryConfig;
+import com.netflix.kayenta.canary.ExecutionMapper;
 import com.netflix.kayenta.metrics.MetricSet;
 import com.netflix.kayenta.metrics.MetricSetMixerService;
 import com.netflix.kayenta.metrics.MetricSetPair;
@@ -45,14 +47,17 @@ public class MetricSetMixerServiceTask implements RetryableTask {
   private final AccountCredentialsRepository accountCredentialsRepository;
   private final StorageServiceRepository storageServiceRepository;
   private final MetricSetMixerService metricSetMixerService;
+  private final ExecutionMapper executionMapper;
 
   @Autowired
   public MetricSetMixerServiceTask(AccountCredentialsRepository accountCredentialsRepository,
                                    StorageServiceRepository storageServiceRepository,
-                                   MetricSetMixerService metricSetMixerService) {
+                                   MetricSetMixerService metricSetMixerService,
+                                   ExecutionMapper executionMapper) {
     this.accountCredentialsRepository = accountCredentialsRepository;
     this.storageServiceRepository = storageServiceRepository;
     this.metricSetMixerService = metricSetMixerService;
+    this.executionMapper = executionMapper;
   }
 
   @Override
@@ -82,6 +87,8 @@ public class MetricSetMixerServiceTask implements RetryableTask {
         .getOne(resolvedAccountName)
         .orElseThrow(() -> new IllegalArgumentException("No storage service was configured; unable to load metric set lists."));
 
+    CanaryConfig canaryConfig = executionMapper.getCanaryConfig(stage.getExecution());
+
     int controlMetricSetListIdsSize = controlMetricSetListIds.size();
     int experimentMetricSetListIdsSize = experimentMetricSetListIds.size();
 
@@ -90,18 +97,19 @@ public class MetricSetMixerServiceTask implements RetryableTask {
                                          "match size of experimentMetricSetListIds (" + experimentMetricSetListIdsSize + ").");
     }
 
-    List<MetricSetPair> aggregatedMetricSetPairList = new ArrayList<>();
+    List<MetricSet> controlMetricSetList = controlMetricSetListIds.stream()
+      .map((id) -> (List<MetricSet>)storageService.loadObject(resolvedAccountName, ObjectType.METRIC_SET_LIST, id))
+      .flatMap(Collection::stream)
+      .collect(Collectors.toList());
 
-    for (int i = 0; i < controlMetricSetListIdsSize; i++) {
-      List<MetricSet> controlMetricSetList =
-        storageService.loadObject(resolvedAccountName, ObjectType.METRIC_SET_LIST, controlMetricSetListIds.get(i));
-      List<MetricSet> experimentMetricSetList =
-        storageService.loadObject(resolvedAccountName, ObjectType.METRIC_SET_LIST, experimentMetricSetListIds.get(i));
-      List<MetricSetPair> metricSetPairList =
-        metricSetMixerService.mixAll(controlMetricSetList, experimentMetricSetList);
+    List<MetricSet> experimentMetricSetList = experimentMetricSetListIds.stream()
+      .map((id) -> (List<MetricSet>)storageService.loadObject(resolvedAccountName, ObjectType.METRIC_SET_LIST, id))
+      .flatMap(Collection::stream)
+      .collect(Collectors.toList());
 
-      aggregatedMetricSetPairList.addAll(metricSetPairList);
-    }
+    List<MetricSetPair> aggregatedMetricSetPairList = metricSetMixerService.mixAll(canaryConfig.getMetrics(),
+                                                                                   controlMetricSetList,
+                                                                                   experimentMetricSetList);
 
     String aggregatedMetricSetPairListId = UUID.randomUUID() + "";
 

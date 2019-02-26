@@ -16,14 +16,16 @@
 
 package com.netflix.kayenta.metrics;
 
+import com.netflix.kayenta.canary.CanaryMetricConfig;
 import org.springframework.util.StringUtils;
 
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.DoubleStream;
 
 public class MetricSetMixerService {
-  public MetricSetPair mixOne(MetricSet controlMetricSet, MetricSet experimentMetricSet) {
+  protected MetricSetPair mixOne(MetricSet controlMetricSet,
+                                 MetricSet experimentMetricSet) {
     String controlName = controlMetricSet.getName();
     String experimentName = experimentMetricSet.getName();
     Map<String, String> controlTags = controlMetricSet.getTags();
@@ -90,66 +92,111 @@ public class MetricSetMixerService {
     return metricSetPairBuilder.build();
   }
 
-  public List<MetricSetPair> mixAll(List<MetricSet> controlMetricSetList, List<MetricSet> experimentMetricSetList) {
-    if (controlMetricSetList == null) {
-      controlMetricSetList = new ArrayList<>();
-    }
-
-    if (experimentMetricSetList == null) {
-      experimentMetricSetList = new ArrayList<>();
-    }
-
-    // Build 'metric set key' -> 'metric set' maps of control and experiment so we can efficiently identify missing metric sets.
-    Map<String, MetricSet> controlMetricSetMap = buildMetricSetMap(controlMetricSetList);
-    Map<String, MetricSet> experimentMetricSetMap = buildMetricSetMap(experimentMetricSetList);
-
-    // Identify metric sets missing from each map.
-    List<MetricSet> missingFromExperiment = findMissingMetricSets(controlMetricSetList, experimentMetricSetMap);
-    List<MetricSet> missingFromControl = findMissingMetricSets(experimentMetricSetList, controlMetricSetMap);
-
-    // Add placeholder metric sets for each one that is missing.
-    addMissingMetricSets(controlMetricSetList, missingFromControl);
-    addMissingMetricSets(experimentMetricSetList, missingFromExperiment);
-
-    // Sort each metric set list so that we can pair them.
-    controlMetricSetList.sort(Comparator.comparing(metricSet -> metricSet.getMetricSetKey()));
-    experimentMetricSetList.sort(Comparator.comparing(metricSet -> metricSet.getMetricSetKey()));
-
-    // Produce the list of metric set pairs from the pair of metric set lists.
+  // This looks through the in-memory MetricSets many times.
+  protected List<MetricSetPair> mixOneMetric(List<MetricSet> controlMetricSetList,
+                                             List<MetricSet> experimentMetricSetList) {
     List<MetricSetPair> ret = new ArrayList<>();
 
-    for (int i = 0; i < controlMetricSetList.size(); i++) {
-      ret.add(mixOne(controlMetricSetList.get(i), experimentMetricSetList.get(i)));
+    // Collect the set of tags on both sides.  Depending on what these contain, we will do different
+    // things below.
+    Set<Map<String, String>> controlTags = controlMetricSetList.stream()
+      .map(MetricSet::getTags)
+      .collect(Collectors.toSet());
+    Set<Map<String, String>> experimentTags = experimentMetricSetList.stream()
+      .map(MetricSet::getTags)
+      .collect(Collectors.toSet());
+
+    boolean controlHasEmptyTags = controlTags.contains(Collections.emptyMap());
+    boolean experimentHasEmptyTags = experimentTags.contains(Collections.emptyMap());
+
+    MetricSet controlTemplate = controlMetricSetList.get(0);
+    MetricSet experimentTemplate = experimentMetricSetList.get(0);
+
+    // If the control has empty tags but the experiment does not, we will use the control
+    // as a template to create pairs for the experiment data.  The empty tag group for
+    // the control will be ignored.  The same for the reverse case.
+    if (controlHasEmptyTags && !experimentHasEmptyTags) {
+      for (MetricSet ms: experimentMetricSetList) {
+        MetricSet template = makeTemplate(controlTemplate, ms.getTags());
+        ret.add(mixOne(template, ms));
+      }
+    } else if (!controlHasEmptyTags && experimentHasEmptyTags) {
+      for (MetricSet ms: controlMetricSetList) {
+        MetricSet template = makeTemplate(experimentTemplate, ms.getTags());
+        ret.add(mixOne(ms, template));
+      }
+    } else {
+      // If both have empty tags, or both have no empty tags, we will just mix them by
+      // comparing tag-for-tag in each, and making templates as needed.
+      Set<Map<String, String>> allTags = new HashSet<>();
+      allTags.addAll(controlTags);
+      allTags.addAll(experimentTags);
+      for (Map<String, String> tags: allTags) {
+        MetricSet controlMetricSet = controlMetricSetList.stream()
+          .filter((ms) -> ms.getTags().equals(tags))
+          .findFirst()
+          .orElse(makeTemplate(controlTemplate, tags));
+        MetricSet experimentMetricSet = experimentMetricSetList.stream()
+          .filter((ms) -> ms.getTags().equals(tags))
+          .findFirst()
+          .orElse(makeTemplate(experimentTemplate, tags));
+        ret.add(mixOne(controlMetricSet, experimentMetricSet));
+      }
     }
 
     return ret;
   }
 
-  private static Map<String, MetricSet> buildMetricSetMap(List<MetricSet> metricSetList) {
-    return metricSetList
-      .stream()
-      .collect(Collectors.toMap(MetricSet::getMetricSetKey, Function.identity()));
-  }
-
-  private static List<MetricSet> findMissingMetricSets(List<MetricSet> requiredMetricSetList,
-                                                       Map<String, MetricSet> knownMetricSetMap) {
-    return requiredMetricSetList
-      .stream()
-      .filter(requiredMetricSet -> !knownMetricSetMap.containsKey(requiredMetricSet.getMetricSetKey()))
+  protected MetricSet makeTemplate(MetricSet template, Map<String, String> tags) {
+    List<Double> values = DoubleStream
+      .generate(() -> Double.NaN)
+      .limit(template.expectedDataPoints())
+      .boxed()
       .collect(Collectors.toList());
+
+    return MetricSet.builder()
+      .attributes(template.getAttributes())
+      .name(template.getName())
+      .startTimeIso(template.getStartTimeIso())
+      .startTimeMillis(template.getStartTimeMillis())
+      .stepMillis(template.getStepMillis())
+      .endTimeIso(template.getEndTimeIso())
+      .endTimeMillis(template.getEndTimeMillis())
+      .values(values)
+      .tags(tags)
+      .build();
   }
 
-  private static void addMissingMetricSets(List<MetricSet> knownMetricSetList,
-                                           List<MetricSet> missingMetricSetList) {
-    knownMetricSetList.addAll(
-      missingMetricSetList
-        .stream()
-        .map(metricSet ->
-               MetricSet
-                 .builder()
-                 .name(metricSet.getName())
-                 .tags(metricSet.getTags())
-                 .build())
-        .collect(Collectors.toList()));
+  public List<MetricSetPair> mixAll(List<CanaryMetricConfig> canaryMetricConfig,
+                                    List<MetricSet> controlMetricSetList,
+                                    List<MetricSet> experimentMetricSetList) {
+
+    List<MetricSetPair> ret = new ArrayList<>();
+
+    for (CanaryMetricConfig metric: canaryMetricConfig) {
+      List<MetricSet> controlMetrics = controlMetricSetList.stream()
+        .filter((ms) -> ms.getName().equals(metric.getName()))
+        .collect(Collectors.toList());
+      List<MetricSet> experimentMetrics = experimentMetricSetList.stream()
+        .filter((ms) -> ms.getName().equals(metric.getName()))
+        .collect(Collectors.toList());
+      if (controlMetrics.size() == 0) {
+        throw new IllegalArgumentException("No control metrics found for " + metric.getName() + " and the metric service did not create a placeholder.");
+      }
+      if (experimentMetrics.size() == 0) {
+        throw new IllegalArgumentException("No experiment metrics found for " + metric.getName() + " and the metric service did not create a placeholder.");
+      }
+
+      Set<String> controlTagKeys = controlMetrics.stream().map((t) -> t.getTags().keySet()).flatMap(Collection::stream).collect(Collectors.toSet());
+      Set<String> experimentTagKeys = experimentMetrics.stream().map((t) -> t.getTags().keySet()).flatMap(Collection::stream).collect(Collectors.toSet());
+      if (controlTagKeys.size() > 0 && experimentTagKeys.size() > 0 && !controlTagKeys.equals(experimentTagKeys)) {
+        throw new IllegalArgumentException("Control metrics have different tag keys than the experiment tag set ("
+                                             + controlTagKeys + " != " + experimentTagKeys + ").");
+      }
+
+      ret.addAll(mixOneMetric(controlMetrics, experimentMetrics));
+    }
+
+    return ret;
   }
 }
