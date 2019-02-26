@@ -65,6 +65,35 @@ class SaveServiceAccountTaskSpec extends Specification {
     result.status == ExecutionStatus.SUCCEEDED
   }
 
+  def "should do nothing if roles are present and didn't change compared to the service user"() {
+    given:
+    def serviceAccount = 'pipeline-id@managed-service-account'
+    def pipeline = [
+      application   : 'orca',
+      name          : 'my pipeline',
+      id            : 'pipeline-id',
+      serviceAccount: serviceAccount,
+      stages        : [],
+      roles         : ['foo', 'bar']
+    ]
+    def stage = stage {
+      context = [
+        pipeline: Base64.encoder.encodeToString(objectMapper.writeValueAsString(pipeline).bytes)
+      ]
+    }
+
+    when:
+    def result = task.execute(stage)
+
+    then:
+    1 * fiatPermissionEvaluator.getPermission(serviceAccount) >> {
+      new UserPermission().addResources([new Role('foo'), new Role('bar')]).view
+    }
+    0 * front50Service.saveServiceAccount(_)
+    result.status == ExecutionStatus.SUCCEEDED
+    result.context == ImmutableMap.of('pipeline.serviceAccount', serviceAccount)
+  }
+
   def "should create a serviceAccount with correct roles"() {
     given:
     def pipeline = [
