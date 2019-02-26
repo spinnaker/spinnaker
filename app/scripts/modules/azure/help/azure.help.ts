@@ -20,9 +20,10 @@ const helpContents: { [key: string]: string } = {
     '(Required) <b>Stack</b> is one of the core naming components of a cluster, used to create vertical stacks of dependent services for integration testing.',
   'azure.serverGroup.detail':
     '(Required) <b>Detail</b> is a naming component to help distinguish specifics of the server group.',
-  'azure.serverGroup.scriptLocation': 'The location of single custom script to be downloaded on to each instance.',
+  'azure.serverGroup.scriptLocation':
+    'The location of custom scripts separated by comma or semicolon to be downloaded on to each instance. A single script should be like: fileUri. Multiple scripts should be like fileUri1,fileUri2 or fileUri1;fileUri2',
   'azure.serverGroup.commandToExecute':
-    'Command(s) to execute custom script provided during provisioning of an instance.',
+    'Command(s) to execute custom scripts provided during provisioning of an instance.',
   'azure.serverGroup.customData': 'Script or metadata to be injected into each instances.',
 };
 

@@ -60,8 +60,6 @@ module.exports = angular
         },
         viewState: command.viewState,
         osConfig: {
-          adminUserName: 'spinnakeruser',
-          adminPassword: '!Qnti**234',
           customData: command.osConfig ? command.osConfig.customData : null,
         },
         customScriptsSettings: {
@@ -79,10 +77,22 @@ module.exports = angular
 
       if (typeof command.customScriptsSettings !== 'undefined') {
         configuration.customScriptsSettings.commandToExecute = command.customScriptsSettings.commandToExecute;
-        if (Array.isArray(command.customScriptsSettings.fileUris)) {
-          configuration.customScriptsSettings.fileUris = command.customScriptsSettings.fileUris;
-        } else {
-          configuration.customScriptsSettings.fileUris = [command.customScriptsSettings.fileUris];
+        if (
+          typeof command.customScriptsSettings.fileUris !== 'undefined' &&
+          command.customScriptsSettings.fileUris != ''
+        ) {
+          var fileUrisTemp = command.customScriptsSettings.fileUris;
+          if (fileUrisTemp.includes(',')) {
+            configuration.customScriptsSettings.fileUris = fileUrisTemp.split(',');
+          } else if (fileUrisTemp.includes(';')) {
+            configuration.customScriptsSettings.fileUris = fileUrisTemp.split(';');
+          } else {
+            configuration.customScriptsSettings.fileUris = [fileUrisTemp];
+          }
+
+          configuration.customScriptsSettings.fileUris.forEach(function(v, index) {
+            configuration.customScriptsSettings.fileUris[index] = v.trim();
+          });
         }
       }
 
