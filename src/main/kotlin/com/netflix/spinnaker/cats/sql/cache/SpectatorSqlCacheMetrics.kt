@@ -61,7 +61,7 @@ class SpectatorSqlCacheMetrics(
                    relationshipsRequested: Int,
                    selectOperations: Int,
                    async: Boolean) {
-    val tags = tags(prefix, type)
+    val tags = tags(prefix, type, async)
     registry.counter(id("cats.sqlCache.get", "itemCount", tags)).increment(itemCount.toLong())
     registry.counter(id("cats.sqlCache.get", "requestedSize", tags)).increment(requestedSize.toLong())
     registry.counter(id("cats.sqlCache.get", "relationshipsRequested", tags)).increment(relationshipsRequested.toLong())
