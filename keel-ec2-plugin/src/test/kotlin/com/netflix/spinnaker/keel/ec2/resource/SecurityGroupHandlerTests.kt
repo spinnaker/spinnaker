@@ -254,6 +254,11 @@ internal object SecurityGroupHandlerTests : JUnit5Minutests {
       }
 
       before {
+        Network(CLOUD_PROVIDER, randomUUID().toString(), "vpc1", "test", securityGroup.region).also {
+          whenever(cloudDriverCache.networkBy(it.id)) doReturn it
+          whenever(cloudDriverCache.networkBy(it.name, it.account, it.region)) doReturn it
+        }
+
         whenever(orcaService.orchestrate(any())) doAnswer {
           CompletableDeferred(TaskRefResponse("/tasks/${randomUUID()}"))
         }

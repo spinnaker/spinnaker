@@ -73,9 +73,12 @@ class SecurityGroupHandler(
                 "regions" to listOf(spec.region),
                 "vpcId" to cloudDriverCache.networkBy(spec.vpcName, spec.accountName, spec.region).id,
                 "description" to spec.description,
-                // TODO: would be nice if these two things were more homeomorphic
-                "securityGroupIngress" to referenceRuleToJob(spec),
-                "ipIngress" to spec.inboundRules.flatMap { cidrRuleToJob(it) },
+                "securityGroupIngress" to spec.inboundRules.mapNotNull {
+                  it.referenceRuleToJob(spec)
+                },
+                "ipIngress" to spec.inboundRules.mapNotNull {
+                  it.cidrRuleToJob()
+                },
                 "accountName" to spec.accountName
               )
             )),
@@ -141,9 +144,9 @@ class SecurityGroupHandler(
                   ingressGroup != null -> rule.portRanges?.map { portRange ->
                     ReferenceSecurityGroupRule(
                       Protocol.valueOf(rule.protocol!!.toUpperCase()),
-                      ingressGroup.name,
-                      ingressGroup.accountName,
-                      cloudDriverCache.networkBy(ingressGroup.vpcId!!).name,
+                      if (ingressGroup.name != response.name || ingressGroup.accountName != response.accountName) ingressGroup.name else null,
+                      if (ingressGroup.accountName != response.accountName) ingressGroup.accountName else null,
+                      if (ingressGroup.vpcId != response.vpcId) cloudDriverCache.networkBy(ingressGroup.vpcId!!).name else null,
                       portRange.let {
                         PortRange(it.startPort!!, it.endPort!!)
                       }
@@ -172,51 +175,44 @@ class SecurityGroupHandler(
       }
     }
 
-  private fun referenceRuleToJob(spec: SecurityGroup): JobRules {
-    return spec
-      .inboundRules
-      .mapNotNull { rule ->
-        when (rule) {
-          is ReferenceSecurityGroupRule -> rule to rule.portRange
-          else -> null
-        }
-      }
-      .map { (rule, ports) ->
-        mutableMapOf<String, Any?>(
-          "type" to rule.protocol.name.toLowerCase(),
-          "startPort" to ports.startPort,
-          "endPort" to ports.endPort,
-          "name" to (rule.name ?: spec.name)
-        )
-          .let { m ->
-            if (rule.account != null && rule.vpcName != null) {
-              m["accountName"] = rule.account
-              m["crossAccountEnabled"] = true
-              m["vpcId"] = cloudDriverCache.networkBy(
-                rule.vpcName,
-                spec.accountName,
+  private fun SecurityGroupRule.referenceRuleToJob(spec: SecurityGroup): Map<String, Any?>? =
+    when (this) {
+      is ReferenceSecurityGroupRule -> mapOf(
+        "type" to protocol.name.toLowerCase(),
+        "startPort" to portRange.startPort,
+        "endPort" to portRange.endPort,
+        "name" to (name ?: spec.name)
+      )
+        .let {
+          if (account != null && vpcName != null) {
+            it + mapOf(
+              "accountName" to account,
+              "crossAccountEnabled" to true,
+              "vpcId" to cloudDriverCache.networkBy(
+                vpcName,
+                account,
                 spec.region
               ).id
-            }
-            m
+            )
+          } else {
+            it
           }
+        }
+      else -> null
+    }
+
+  private fun SecurityGroupRule.cidrRuleToJob(): Map<String, Any?>? =
+    when (this) {
+      is CidrSecurityGroupRule -> portRange.let { ports ->
+        mapOf<String, Any?>(
+          "type" to protocol.name,
+          "startPort" to ports.startPort,
+          "endPort" to ports.endPort,
+          "cidr" to blockRange
+        )
       }
-  }
+      else -> null
+    }
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 }
-
-private typealias JobRules = List<MutableMap<String, Any?>>
-
-private fun cidrRuleToJob(rule: SecurityGroupRule): JobRules =
-  when (rule) {
-    is CidrSecurityGroupRule -> rule.portRange.let { ports ->
-      listOf(mutableMapOf<String, Any?>(
-        "type" to rule.protocol.name,
-        "startPort" to ports.startPort,
-        "endPort" to ports.endPort,
-        "cidr" to rule.blockRange
-      ))
-    }
-    else -> emptyList()
-  }

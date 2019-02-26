@@ -34,8 +34,15 @@ class ResourceStateMonitor(
           else -> {
             val diff = differ.compare(current, resource.spec)
             if (diff.hasChanges()) {
+              val builder = StringBuilder()
+              diff.visit { node, _ ->
+                builder
+                  .append("".padStart(node.depth * 2))
+                  .append(node.toString())
+                  .append("\n")
+              }
               log.warn("Resource {} \"{}\" is invalid", resource.kind, resource.metadata.name)
-              log.info("Resource {} \"{}\" delta: {}", resource.kind, resource.metadata.name, diff)
+              log.info("Resource {} \"{}\" delta: {}", resource.kind, resource.metadata.name, builder.toString())
               plugin.update(resource, diff)
             } else {
               log.info("Resource {} \"{}\" is valid", resource.kind, resource.metadata.name)
@@ -52,6 +59,13 @@ class ResourceStateMonitor(
       }
     }
   }
+
+  private val DiffNode.depth: Int
+    get() = if (isRootNode) {
+      0
+    } else {
+      parentNode.depth + 1
+    }
 
   private fun pluginFor(apiVersion: ApiVersion, singular: String): ResourceHandler<*>? =
     handlers.find { it.apiVersion == apiVersion && it.supportedKind.first.singular == singular }
