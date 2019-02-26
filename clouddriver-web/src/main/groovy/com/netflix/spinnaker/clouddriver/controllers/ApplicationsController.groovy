@@ -38,11 +38,11 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("/applications")
 class ApplicationsController {
 
-  @Autowired
-  List<ApplicationProvider> applicationProviders
+  @Autowired(required = false)
+  List<ApplicationProvider> applicationProviders = []
 
-  @Autowired
-  List<ClusterProvider> clusterProviders
+  @Autowired(required = false)
+  List<ClusterProvider> clusterProviders = []
 
   @Autowired
   MessageSource messageSource
