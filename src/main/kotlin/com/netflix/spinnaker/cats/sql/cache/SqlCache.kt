@@ -178,7 +178,8 @@ class SqlCache(
         itemCount = result.data.size,
         requestedSize = result.data.size,
         relationshipsRequested = result.relPointers.size,
-        selectOperations = result.selectQueries
+        selectOperations = result.selectQueries,
+        async = result.withAsync
       )
     }
 
@@ -226,7 +227,8 @@ class SqlCache(
         itemCount = result.data.size,
         requestedSize = ids.size,
         relationshipsRequested = result.relPointers.size,
-        selectOperations = result.selectQueries
+        selectOperations = result.selectQueries,
+        async = result.withAsync
       )
     }
 
@@ -912,7 +914,7 @@ class SqlCache(
         }
       }
 
-      return DataWithRelationshipPointersResult(cacheData, relPointers, selectQueries)
+      return DataWithRelationshipPointersResult(cacheData, relPointers, selectQueries, withAsync)
 
     } catch (e: Exception) {
       suppressedLog("Failed selecting ids for type $type", e)
@@ -929,7 +931,7 @@ class SqlCache(
 
       selectQueries = -1
 
-      return DataWithRelationshipPointersResult(mutableListOf(), mutableSetOf(), selectQueries)
+      return DataWithRelationshipPointersResult(mutableListOf(), mutableSetOf(), selectQueries, withAsync)
     }
   }
 
@@ -1017,7 +1019,7 @@ class SqlCache(
           }
         }
       }
-      return DataWithRelationshipPointersResult(cacheData, relPointers, selectQueries)
+      return DataWithRelationshipPointersResult(cacheData, relPointers, selectQueries, withAsync)
     } catch (e: Exception) {
       suppressedLog("Failed selecting ids for type $type", e)
 
@@ -1033,7 +1035,7 @@ class SqlCache(
 
       selectQueries = -1
 
-      return DataWithRelationshipPointersResult(mutableListOf(), mutableSetOf(), selectQueries)
+      return DataWithRelationshipPointersResult(mutableListOf(), mutableSetOf(), selectQueries, withAsync)
     }
   }
 
@@ -1307,7 +1309,8 @@ class SqlCache(
   private data class DataWithRelationshipPointersResult(
     val data: MutableList<CacheData>,
     val relPointers: MutableSet<RelPointer>,
-    val selectQueries: Int
+    val selectQueries: Int,
+    val withAsync: Boolean = false
   )
 
   private inner class StoreResult {
