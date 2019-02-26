@@ -5,7 +5,8 @@ require('jquery-textcomplete');
 
 import './spel.less';
 
-let decorateFn = function($delegate, spelAutocomplete) {
+decorateFn.$inject = ['$delegate', 'spelAutocomplete'];
+function decorateFn($delegate, spelAutocomplete) {
   let directive = $delegate[0];
 
   let link = directive.link.pre;
@@ -57,8 +58,7 @@ let decorateFn = function($delegate, spelAutocomplete) {
   };
 
   return $delegate;
-};
-decorateFn.$inject = ['$delegate', 'spelAutocomplete'];
+}
 
 module.exports = angular.module('spinnaker.core.widget.spelText', [require('./spelAutocomplete.service').name]).config([
   '$provide',

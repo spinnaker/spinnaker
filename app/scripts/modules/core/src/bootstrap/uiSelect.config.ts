@@ -1,6 +1,7 @@
 import { IScope } from 'angular';
 import { bootstrapModule } from './bootstrap.module';
 
+uiSelectDecorator.$inject = ['$provide'];
 function uiSelectDecorator($provide: ng.auto.IProvideService) {
   $provide.decorator('uiSelectMultipleDirective', [
     '$delegate',
@@ -68,7 +69,6 @@ function uiSelectDecorator($provide: ng.auto.IProvideService) {
     },
   ]);
 }
-uiSelectDecorator.$inject = ['$provide'];
 
 bootstrapModule.config(uiSelectDecorator);
 
