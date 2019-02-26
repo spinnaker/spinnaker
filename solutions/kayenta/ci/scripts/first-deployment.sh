@@ -19,7 +19,7 @@ kubectl -n spinnaker port-forward $DECK_POD 8080:9000 \
     >/dev/null &
 sleep 5
 
-spin application save --application-name sampleapp --owner-email example@example.com --cloud-providers "kubernetes" --gate-endpoint http://localhost:8080/gate/
+spin application save --application-name sampleapp --owner-email example@example.com --cloud-providers "kubernetes" --gate-endpoint http://localhost:8080/gate
 
 sleep 5
 
