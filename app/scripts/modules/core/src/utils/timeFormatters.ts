@@ -1,6 +1,5 @@
 import { module } from 'angular';
 import { DateTime, Duration } from 'luxon';
-import { memoize, MemoizedFunction } from 'lodash';
 import * as distanceInWordsToNow from 'date-fns/distance_in_words_to_now';
 import { react2angular } from 'react2angular';
 
@@ -51,26 +50,6 @@ export function relativeTime(input: any) {
   return thisMoment.isValid ? `${inFuture ? 'in ' : ''}${baseText}${inFuture ? '' : ' ago'}` : '-';
 }
 
-export const fastPropertyTime: ((input: any) => string) & MemoizedFunction = memoize((input: any) => {
-  if (input) {
-    input = input.replace('[UTC]', '');
-    const thisMoment = DateTime.fromMillis(input);
-    return thisMoment.isValid ? thisMoment.toFormat('yyyy-MM-dd HH:mm:ss ZZZZ') : '-';
-  } else {
-    return '--';
-  }
-});
-
-export const fastPropertyTtl = (input: any, seconds: number) => {
-  if (input) {
-    input = input.replace('[UTC]', '');
-    const thisMoment = DateTime.fromMillis(input + seconds * 1000);
-    return thisMoment.isValid ? thisMoment.toFormat('yyyy-MM-dd HH:mm:ss ZZZZ') : '-';
-  } else {
-    return '--';
-  }
-};
-
 export function timePickerTime(input: any) {
   if (input && !isNaN(input.hours) && !isNaN(input.minutes)) {
     const hours = parseInt(input.hours, 10),
@@ -95,6 +74,5 @@ module(TIME_FORMATTERS, [])
   .filter('timestamp', () => timestamp)
   .filter('relativeTime', () => relativeTime)
   .filter('duration', () => duration)
-  .filter('fastPropertyTime', () => fastPropertyTime)
   .filter('timePickerTime', () => timePickerTime)
   .component('systemTimezone', react2angular(SystemTimezone));
