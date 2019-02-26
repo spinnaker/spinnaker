@@ -11,12 +11,23 @@ interface IArgOptions {
 
 interface IState {
   isFetchingData: boolean;
-  commands: any[];
-  targets: any[];
+  commands?: any[];
+  targets?: any[];
+  apiError?: any;
+}
+
+interface IAPIResponse {
+  status: number;
 }
 
 export class GremlinStageConfig extends React.Component<IStageConfigProps> {
-  public state: IState = { isFetchingData: false, commands: [], targets: [] };
+  public state: IState = { isFetchingData: false, apiError: '', commands: [], targets: [] };
+
+  public apiErrorMessages = {
+    notFound: 'API key does not exist.',
+    notEnabled:
+      'Gremlin not enabled. Please set integrations.gremlin.enabled to true in your Orca and Gate configuration.',
+  };
 
   public componentDidMount() {
     this.checkInitialLoad();
@@ -36,7 +47,15 @@ export class GremlinStageConfig extends React.Component<IStageConfigProps> {
         .post({
           apiKey,
         })
-        .catch(() => [] as any[]),
+        .catch((response: IAPIResponse) => {
+          this.props.updateStageField({ gremlinCommandTemplateId: null });
+
+          if (response.status === 401) {
+            return this.apiErrorMessages.notFound;
+          }
+
+          return this.apiErrorMessages.notEnabled;
+        }),
     );
   };
 
@@ -46,7 +65,15 @@ export class GremlinStageConfig extends React.Component<IStageConfigProps> {
         .post({
           apiKey,
         })
-        .catch(() => [] as any[]),
+        .catch((response: IAPIResponse) => {
+          this.props.updateStageField({ gremlinTargetTemplateId: null });
+
+          if (response.status === 401) {
+            return this.apiErrorMessages.notFound;
+          }
+
+          return this.apiErrorMessages.notEnabled;
+        }),
     );
   };
 
@@ -57,15 +84,25 @@ export class GremlinStageConfig extends React.Component<IStageConfigProps> {
 
     this.setState({
       isFetchingData: true,
+      apiError: '',
     });
 
     // Get the data from all the necessary sources before rendering
     Observable.forkJoin(this.fetchCommands(gremlinApiKey), this.fetchTargets(gremlinApiKey)).subscribe(results => {
-      this.setState({
-        commands: results[0],
-        targets: results[1],
+      const newState: IState = {
         isFetchingData: false,
-      });
+      };
+
+      if (Array.isArray(results[0]) && Array.isArray(results[1])) {
+        newState.commands = results[0];
+        newState.targets = results[1];
+      } else {
+        newState.apiError = results[0];
+        newState.commands = [];
+        newState.targets = [];
+      }
+
+      this.setState(newState);
     });
   };
 
@@ -83,15 +120,17 @@ export class GremlinStageConfig extends React.Component<IStageConfigProps> {
 
   public render() {
     const { stage } = this.props;
-    const { isFetchingData, commands, targets } = this.state;
+    const { isFetchingData, apiError, commands, targets } = this.state;
 
     // Provides access to meta information for summary box
-    const selectedCommandTemplateMeta = stage.gremlinCommandTemplateId
-      ? commands.find(command => command.guid === stage.gremlinCommandTemplateId)
-      : {};
-    const selectedTargetTemplateMeta = stage.gremlinTargetTemplateId
-      ? targets.find(target => target.guid === stage.gremlinTargetTemplateId)
-      : {};
+    const selectedCommandTemplateMeta =
+      commands.length && stage.gremlinCommandTemplateId
+        ? commands.find(command => command.guid === stage.gremlinCommandTemplateId)
+        : {};
+    const selectedTargetTemplateMeta =
+      targets.length && stage.gremlinTargetTemplateId
+        ? targets.find(target => target.guid === stage.gremlinTargetTemplateId)
+        : {};
 
     return (
       <>
@@ -104,36 +143,29 @@ export class GremlinStageConfig extends React.Component<IStageConfigProps> {
               value={stage.gremlinApiKey || ''}
               onChange={e => this.onChange(e.target.name, e.target.value)}
             />
-            <div className="form-control-static">
-              <button
-                disabled={isFetchingData || !stage.gremlinApiKey}
-                onClick={this.fetchAPIData}
-                type="button"
-                className="btn btn-sm btn-default"
-              >
-                {isFetchingData ? 'Loading...' : 'Fetch'}
-              </button>
+            <div className="form-control-static" style={{ paddingBottom: 0 }}>
+              <div className="flex-container-h middle margin-between-md">
+                <button
+                  disabled={isFetchingData || !stage.gremlinApiKey}
+                  onClick={this.fetchAPIData}
+                  type="button"
+                  className="btn btn-sm btn-default"
+                >
+                  {isFetchingData ? 'Loading...' : 'Fetch'}
+                </button>
+                {apiError && <span className="text-danger text-small">{apiError}</span>}
+              </div>
             </div>
-          </StageConfigField>
-          <StageConfigField label="Attack Template">
-            {!commands.length ? (
-              isFetchingData ? (
-                <p className="form-control-static">Loading...</p>
-              ) : (
-                <p className="form-control-static">No commands found.</p>
-              )
-            ) : (
-              <Select
-                name="gremlinCommandTemplateId"
-                options={commands.map(command => ({
-                  label: command.name,
-                  value: command.guid,
-                }))}
-                clearable={false}
-                value={stage.gremlinCommandTemplateId || null}
-                onChange={this.handleGremlinCommandTemplateIdChange}
-              />
-            )}
+            <div className="form-control-static">
+              <a
+                className="text-small"
+                target="_blank"
+                rel="noopener noreferrer"
+                href="https://app.gremlin.com/api-keys"
+              >
+                Create a Gremlin API key
+              </a>
+            </div>
           </StageConfigField>
           <StageConfigField label="Target Template">
             {!targets.length ? (
@@ -155,15 +187,35 @@ export class GremlinStageConfig extends React.Component<IStageConfigProps> {
               />
             )}
           </StageConfigField>
-          <StageConfigField label="&nbsp;">
-            <a
-              className="text-small"
-              target="_blank"
-              rel="noopener noreferrer"
-              href="https://docs.gremlin.com/attacks/#how-to-create-attack-templates-with-gremlin"
-            >
-              How to create attack templates with Gremlin
-            </a>
+          <StageConfigField label="Attack Template">
+            {!commands.length ? (
+              isFetchingData ? (
+                <p className="form-control-static">Loading...</p>
+              ) : (
+                <p className="form-control-static">No commands found.</p>
+              )
+            ) : (
+              <Select
+                name="gremlinCommandTemplateId"
+                options={commands.map(command => ({
+                  label: command.name,
+                  value: command.guid,
+                }))}
+                clearable={false}
+                value={stage.gremlinCommandTemplateId || null}
+                onChange={this.handleGremlinCommandTemplateIdChange}
+              />
+            )}
+            <div className="form-control-static">
+              <a
+                className="text-small"
+                target="_blank"
+                rel="noopener noreferrer"
+                href="https://docs.gremlin.com/attacks/#how-to-create-attack-templates-with-gremlin"
+              >
+                How to create Gremlin templates
+              </a>
+            </div>
           </StageConfigField>
         </div>
         {(stage.gremlinCommandTemplateId || stage.gremlinTargetTemplateId) && (
@@ -171,16 +223,16 @@ export class GremlinStageConfig extends React.Component<IStageConfigProps> {
             <hr />
             <h3>Summary</h3>
             <div className="list-group">
-              {stage.gremlinCommandTemplateId && (
-                <div className="list-group-item">
-                  <h4 className="list-group-item-heading">Attack Template ({selectedCommandTemplateMeta.name})</h4>
-                  <p className="list-group-item-text">{selectedCommandTemplateMeta.synthetic_description}</p>
-                </div>
-              )}
               {stage.gremlinTargetTemplateId && (
                 <div className="list-group-item">
                   <h4 className="list-group-item-heading">Target Template ({selectedTargetTemplateMeta.name})</h4>
                   <p className="list-group-item-text">{selectedTargetTemplateMeta.synthetic_description}</p>
+                </div>
+              )}
+              {stage.gremlinCommandTemplateId && (
+                <div className="list-group-item">
+                  <h4 className="list-group-item-heading">Attack Template ({selectedCommandTemplateMeta.name})</h4>
+                  <p className="list-group-item-text">{selectedCommandTemplateMeta.synthetic_description}</p>
                 </div>
               )}
             </div>
