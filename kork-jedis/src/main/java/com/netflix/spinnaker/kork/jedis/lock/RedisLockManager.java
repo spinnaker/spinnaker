@@ -138,28 +138,24 @@ public class RedisLockManager implements RefreshableLockManager {
 
   @Override
   public boolean releaseLock(@Nonnull final Lock lock, boolean wasWorkSuccessful) {
-    try {
-      // we are aware that the cardinality can get high. To revisit if concerns arise.
-      Id lockRelease = releaseId.withTag("lockName", lock.getName());
-      String status = tryReleaseLock(lock, wasWorkSuccessful);
-      registry.counter(lockRelease.withTag("status", status)).increment();
+    // we are aware that the cardinality can get high. To revisit if concerns arise.
+    Id lockRelease = releaseId.withTag("lockName", lock.getName());
+    String status = tryReleaseLock(lock, wasWorkSuccessful);
+    registry.counter(lockRelease.withTag("status", status)).increment();
 
-      switch (status) {
-        case SUCCESS:
-        case SUCCESS_GONE:
-          log.info("Released lock (wasWorkSuccessful: {}, {})", wasWorkSuccessful, lock);
-          return true;
+    switch (status) {
+      case SUCCESS:
+      case SUCCESS_GONE:
+        log.info("Released lock (wasWorkSuccessful: {}, {})", wasWorkSuccessful, lock);
+        return true;
 
-        case FAILED_NOT_OWNER:
-          log.warn("Failed releasing lock, not owner (wasWorkSuccessful: {}, {})", wasWorkSuccessful, lock);
-          return false;
+      case FAILED_NOT_OWNER:
+        log.warn("Failed releasing lock, not owner (wasWorkSuccessful: {}, {})", wasWorkSuccessful, lock);
+        return false;
 
-        default:
-          log.error("Unknown release response code {} (wasWorkSuccessful: {}, {})", status, wasWorkSuccessful, lock);
-          return false;
-      }
-    } finally {
-      heartbeatQueue.removeIf(r -> r.getLock().equals(lock));
+      default:
+        log.error("Unknown release response code {} (wasWorkSuccessful: {}, {})", status, wasWorkSuccessful, lock);
+        return false;
     }
   }
 
@@ -232,14 +228,22 @@ public class RedisLockManager implements RefreshableLockManager {
           throw new LockCallbackException(e);
         } finally {
           acquireDurationTimer.stop(timer);
-          // Use refreshed lock if it received heartbeats
-          lock = heartbeatLockRequest.getLock();
         }
       }
 
-      return new AcquireLockResponse<>(lock, workResult, status, null, tryLockReleaseQuietly(lock, true));
+      heartbeatQueue.remove(heartbeatLockRequest);
+      lock = findAuthoritativeLockOrNull(lock);
+      return new AcquireLockResponse<>(
+        lock,
+        workResult,
+        status,
+        null,
+        tryLockReleaseQuietly(lock, true)
+      );
     } catch (Exception e) {
       log.error(e.getMessage());
+      heartbeatQueue.remove(heartbeatLockRequest);
+      lock = findAuthoritativeLockOrNull(lock);
       boolean lockWasReleased = tryLockReleaseQuietly(lock, false);
 
       if (e instanceof LockCallbackException) {
@@ -249,7 +253,6 @@ public class RedisLockManager implements RefreshableLockManager {
       status = LockStatus.ERROR;
       return new AcquireLockResponse<>(lock, workResult, status, e, lockWasReleased);
     } finally {
-      Optional.ofNullable(heartbeatLockRequest).ifPresent(r -> heartbeatQueue.remove(r));
       registry.counter(
         acquireId
           .withTag("lockName", lockOptions.getLockName())
@@ -353,15 +356,38 @@ public class RedisLockManager implements RefreshableLockManager {
         return releaseLock(lock, wasWorkSuccessful);
       } catch (Exception e) {
         log.warn("Attempt to release lock {} failed", lock, e);
+        return false;
       }
     }
 
-    return false;
+    return true;
   }
 
   private boolean matchesLock(LockOptions lockOptions, Lock lock) {
     return ownerName.equals(lock.getOwnerName()) &&
       lockOptions.getVersion() == lock.getVersion();
+  }
+
+
+  private Lock findAuthoritativeLockOrNull(Lock lock) {
+    Object payload = redisClientDelegate.withScriptingClient(c -> {
+      return c.eval(
+        FIND_SCRIPT,
+        Arrays.asList(lockKey(lock.getName())),
+        Arrays.asList(ownerName)
+      );
+    });
+
+    if (payload == null) {
+      return null;
+    }
+
+    try {
+      return objectMapper.readValue(payload.toString(), Lock.class);
+    } catch (IOException e) {
+      log.error("Failed to get lock info for {}", lock, e);
+      return null;
+    }
   }
 
   private Lock tryCreateLock(final LockOptions lockOptions) {
@@ -485,6 +511,15 @@ public class RedisLockManager implements RefreshableLockManager {
       "  return payload " +
       "end " +
       "return redis.call('GET', KEYS[1])";
+
+    String FIND_SCRIPT = "" +
+      "local payload = redis.call('GET', KEYS[1]) " +
+      "if payload then" +
+      "  local lock = cjson.decode(payload)" +
+      "  if lock['ownerName'] == ARGV[1] then" +
+      "    return redis.call('GET', KEYS[1])" +
+      "  end " +
+      "end";
 
     /**
      * Returns 1 if heartbeat was successful, -1 if the lock no longer exists,

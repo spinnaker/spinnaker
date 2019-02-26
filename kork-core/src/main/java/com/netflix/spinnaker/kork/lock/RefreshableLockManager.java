@@ -31,6 +31,7 @@ public interface RefreshableLockManager extends LockManager {
   void queueHeartbeat(final HeartbeatLockRequest heartbeatLockRequest);
 
   class HeartbeatLockRequest {
+    private final String requestId;
     private AtomicReference<Lock> lock;
     private final AtomicInteger retriesOnFailure;
     private final Duration heartbeatDuration;
@@ -49,6 +50,7 @@ public interface RefreshableLockManager extends LockManager {
       this.startedAt = clock.instant();
       this.heartbeatDuration = heartbeatDuration;
       this.reuseLockVersion = reuseLockVersion;
+      this.requestId = lock.getName() + lock.getOwnerName() + clock.millis();
     }
 
     public Lock getLock() {
@@ -82,7 +84,8 @@ public interface RefreshableLockManager extends LockManager {
     @Override
     public String toString() {
       return "HeartbeatLockRequest{" +
-        "lock=" + lock +
+        "requestId='" + requestId + '\'' +
+        ", lock=" + lock +
         ", retriesOnFailure=" + retriesOnFailure +
         ", heartbeatDuration=" + heartbeatDuration +
         ", startedAt=" + startedAt +
@@ -96,16 +99,12 @@ public interface RefreshableLockManager extends LockManager {
       if (this == o) return true;
       if (o == null || getClass() != o.getClass()) return false;
       HeartbeatLockRequest that = (HeartbeatLockRequest) o;
-      return Objects.equals(lock, that.lock) &&
-        Objects.equals(retriesOnFailure, that.retriesOnFailure) &&
-        Objects.equals(heartbeatDuration, that.heartbeatDuration) &&
-        Objects.equals(startedAt, that.startedAt) &&
-        Objects.equals(clock, that.clock);
+      return Objects.equals(requestId, that.requestId);
     }
 
     @Override
     public int hashCode() {
-      return Objects.hash(lock, retriesOnFailure, heartbeatDuration, startedAt, clock);
+      return Objects.hash(requestId);
     }
 
     public boolean reuseVersion() {
