@@ -25,6 +25,7 @@ import kotlinx.coroutines.ObsoleteCoroutinesApi
 import kotlinx.coroutines.newFixedThreadPoolContext
 import kotlinx.coroutines.slf4j.MDCContext
 import org.jooq.DSLContext
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -43,7 +44,11 @@ import kotlin.contracts.ExperimentalContracts
 @EnableConfigurationProperties(SqlAgentProperties::class)
 class SqlCacheConfiguration {
 
-  @Bean
+  companion object {
+    private val log = LoggerFactory.getLogger(SqlCacheConfiguration::class.java)
+  }
+
+    @Bean
   fun sqlCacheMetrics(registry: Registry): SqlCacheMetrics {
     return SpectatorSqlCacheMetrics(registry)
   }
@@ -91,6 +96,10 @@ class SqlCacheConfiguration {
       null
     } else {
       newFixedThreadPoolContext(nThreads = poolSize, name = "catsSql") + MDCContext()
+    }
+
+    if (dispatcher != null) {
+      log.info("Configured coroutine context with newFixedThreadPoolContext of $poolSize threads")
     }
 
     return SqlNamedCacheFactory(
