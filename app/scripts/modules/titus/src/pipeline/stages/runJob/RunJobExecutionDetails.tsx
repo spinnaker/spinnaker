@@ -102,12 +102,19 @@ export class RunJobExecutionDetails extends React.Component<
             <div className="col-md-12">
               <h5 style={{ marginBottom: 0, paddingBottom: '5px' }}>Property File</h5>
               <dl>
-                {Object.keys(context.propertyFileContents).map(key => (
-                  <React.Fragment key={key}>
-                    <dt>{key}</dt>
-                    <dd>{context.propertyFileContents[key]}</dd>
-                  </React.Fragment>
-                ))}
+                {Object.keys(context.propertyFileContents)
+                  .sort((a: string, b: string) =>
+                    context.propertyFileContents[a].toString().length >
+                    context.propertyFileContents[b].toString().length
+                      ? 1
+                      : -1,
+                  )
+                  .map(key => (
+                    <React.Fragment key={key}>
+                      <dt>{key}</dt>
+                      <dd>{context.propertyFileContents[key]}</dd>
+                    </React.Fragment>
+                  ))}
               </dl>
             </div>
           </div>
