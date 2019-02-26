@@ -1,27 +1,19 @@
 package com.netflix.spinnaker.keel.api.ec2
 
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupRule.Protocol.TCP
-import dev.minutest.experimental.SKIP
+import de.danielbechler.diff.ObjectDifferBuilder
+import de.danielbechler.diff.node.DiffNode
+import de.danielbechler.diff.node.DiffNode.State.CHANGED
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
-import org.javers.core.JaversBuilder
-import org.javers.core.diff.Diff
-import org.javers.core.diff.changetype.container.SetChange
-import org.javers.core.diff.changetype.container.ValueAdded
 import strikt.api.expectThat
-import strikt.assertions.all
-import strikt.assertions.first
-import strikt.assertions.hasSize
-import strikt.assertions.isA
+import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
-import strikt.assertions.isPresent
 import strikt.assertions.isTrue
 
 internal object SecurityGroupTests : JUnit5Minutests {
 
-  val javers = JaversBuilder
-    .javers()
-    .build()
+  val differ = ObjectDifferBuilder.buildDefault()
 
   fun diffTests() = rootContext<SecurityGroup> {
     fixture {
@@ -39,9 +31,9 @@ internal object SecurityGroupTests : JUnit5Minutests {
       )
     }
 
-    derivedContext<Diff>("identical security groups") {
+    derivedContext<DiffNode>("identical security groups") {
       deriveFixture {
-        javers.compare(this, copy())
+        differ.compare(this, copy())
       }
 
       test("diff contains no changes") {
@@ -51,9 +43,9 @@ internal object SecurityGroupTests : JUnit5Minutests {
       }
     }
 
-    derivedContext<Diff>("security groups that differ in basic fields") {
+    derivedContext<DiffNode>("security groups that differ in basic fields") {
       deriveFixture {
-        javers.compare(this, copy(region = "us-south-1"))
+        differ.compare(this, copy(region = "us-south-1"))
       }
 
 
@@ -63,17 +55,14 @@ internal object SecurityGroupTests : JUnit5Minutests {
 
       test("diff is in the root object") {
         expectThat(this)
-          .get { changes.map { it.affectedObject } }
-          .all {
-            isPresent()
-              .isA<SecurityGroup>()
-          }
+          .get { getChild("region").state }
+          .isEqualTo(CHANGED)
       }
     }
 
-    derivedContext<Diff>("desired state has differing inbound rules") {
+    derivedContext<DiffNode>("desired state has differing inbound rules") {
       deriveFixture {
-        javers.compare(
+        differ.compare(
           this,
           copy(inboundRules = inboundRules.map {
             when (it) {
@@ -94,14 +83,14 @@ internal object SecurityGroupTests : JUnit5Minutests {
 
       test("there is just one change on the inbound rules") {
         expectThat(this)
-          .get { getPropertyChanges("inboundRules") }
-          .hasSize(1)
+          .get { getChild("inboundRules").childCount() }
+          .isEqualTo(2)
       }
     }
 
-    derivedContext<Diff>("desired state has fewer inbound rules") {
+    derivedContext<DiffNode>("desired state has fewer inbound rules") {
       deriveFixture {
-        javers.compare(this, copy(inboundRules = inboundRules.take(1).toSet()))
+        differ.compare(this, copy(inboundRules = inboundRules.take(1).toSet()))
       }
 
       test("diff contains changes") {
@@ -112,14 +101,14 @@ internal object SecurityGroupTests : JUnit5Minutests {
 
       test("there is just one change on the inbound rules") {
         expectThat(this)
-          .get { getPropertyChanges("inboundRules") }
-          .hasSize(1)
+          .get { getChild("inboundRules").childCount() }
+          .isEqualTo(1)
       }
     }
 
-    derivedContext<Diff>("desired state has a new inbound rule") {
+    derivedContext<DiffNode>("desired state has a new inbound rule") {
       deriveFixture {
-        javers.compare(
+        differ.compare(
           this,
           copy(
             inboundRules = inboundRules
@@ -137,20 +126,14 @@ internal object SecurityGroupTests : JUnit5Minutests {
 
       test("there is just one change on the inbound rules") {
         expectThat(this)
-          .get { getPropertyChanges("inboundRules") }
-          .hasSize(1)
-          .first()
-          .isA<SetChange>()
-          .get { changes }
-          .hasSize(1)
-          .first()
-          .isA<ValueAdded>()
+          .get { getChild("inboundRules").childCount() }
+          .isEqualTo(1)
       }
     }
 
-    SKIP - derivedContext<Diff>("desired state has a new inbound rule with only a different port range") {
+    derivedContext<DiffNode>("desired state has a new inbound rule with only a different port range") {
       deriveFixture {
-        javers.compare(
+        differ.compare(
           this,
           copy(
             inboundRules = inboundRules
@@ -168,14 +151,8 @@ internal object SecurityGroupTests : JUnit5Minutests {
 
       test("there is just one change on the inbound rules") {
         expectThat(this)
-          .get { getPropertyChanges("inboundRules") }
-          .hasSize(1)
-          .first()
-          .isA<SetChange>()
-          .get { changes }
-          .hasSize(1)
-          .first()
-          .isA<ValueAdded>()
+          .get { getChild("inboundRules").childCount() }
+          .isEqualTo(1)
       }
     }
   }

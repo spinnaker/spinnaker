@@ -18,8 +18,7 @@ package com.netflix.spinnaker.keel.plugin
 import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind
-import org.javers.core.diff.Diff
-import org.javers.core.diff.DiffBuilder
+import de.danielbechler.diff.node.DiffNode
 
 interface ResourceHandler<T : Any> : KeelPlugin {
 
@@ -58,7 +57,7 @@ interface ResourceHandler<T : Any> : KeelPlugin {
    * Implement this method and [create] if you need to handle create and update in different ways.
    * Otherwise just implement [upsert].
    */
-  fun update(resource: Resource<T>, diff: Diff = DiffBuilder.empty()) {
+  fun update(resource: Resource<T>, diff: DiffNode = DiffNode.newRootNode()) {
     upsert(resource, diff)
   }
 
@@ -68,7 +67,7 @@ interface ResourceHandler<T : Any> : KeelPlugin {
    * You don't need to implement this method if you are implementing [create] and [update]
    * individually.
    */
-  fun upsert(resource: Resource<T>, diff: Diff? = null) {
+  fun upsert(resource: Resource<T>, diff: DiffNode? = null) {
     TODO("Not implemented")
   }
 

@@ -5,8 +5,8 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.plugin.ResourceConflict
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
-import org.javers.core.JaversBuilder
-import org.javers.core.diff.Diff
+import de.danielbechler.diff.ObjectDifferBuilder
+import de.danielbechler.diff.node.DiffNode
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
@@ -16,6 +16,8 @@ class ResourceStateMonitor(
   private val resourceRepository: ResourceRepository,
   private val handlers: List<ResourceHandler<*>>
 ) {
+
+  private val differ = ObjectDifferBuilder.buildDefault()
 
   @Scheduled(fixedDelayString = "\${keel.resource.monitoring.frequency.ms:60000}")
   fun validateManagedResources() {
@@ -30,7 +32,7 @@ class ResourceStateMonitor(
             plugin.create(resource)
           }
           else -> {
-            val diff = resource.diff(current)
+            val diff = differ.compare(current, resource.spec)
             if (diff.hasChanges()) {
               log.warn("Resource {} \"{}\" is invalid", resource.kind, resource.metadata.name)
               log.info("Resource {} \"{}\" delta: {}", resource.kind, resource.metadata.name, diff)
@@ -51,11 +53,6 @@ class ResourceStateMonitor(
     }
   }
 
-  private val javers = JaversBuilder.javers().build()
-
-  private fun Resource<*>.diff(current: Any): Diff =
-    javers.compare(current, spec)
-
   private fun pluginFor(apiVersion: ApiVersion, singular: String): ResourceHandler<*>? =
     handlers.find { it.apiVersion == apiVersion && it.supportedKind.first.singular == singular }
 
@@ -71,7 +68,7 @@ class ResourceStateMonitor(
   }
 
   @Suppress("UNCHECKED_CAST")
-  private fun <T : Any> ResourceHandler<T>.update(resource: Resource<*>, diff: Diff) {
+  private fun <T : Any> ResourceHandler<T>.update(resource: Resource<*>, diff: DiffNode) {
     update(resource as Resource<T>, diff)
   }
   // end type coercing extensions

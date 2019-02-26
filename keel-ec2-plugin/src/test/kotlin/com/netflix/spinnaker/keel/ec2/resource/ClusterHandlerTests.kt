@@ -36,10 +36,10 @@ import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.whenever
+import de.danielbechler.diff.ObjectDifferBuilder
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import kotlinx.coroutines.CompletableDeferred
-import org.javers.core.JaversBuilder
 import strikt.api.expectThat
 import strikt.assertions.get
 import strikt.assertions.isEqualTo
@@ -127,7 +127,7 @@ internal object ClusterHandlerTests : JUnit5Minutests {
   val cloudDriverCache = mock<CloudDriverCache>()
   val orcaService = mock<OrcaService>()
 
-  val javers = JaversBuilder.javers().build()
+  val differ = ObjectDifferBuilder.buildDefault()
 
   fun tests() = rootContext<ClusterHandler> {
     fixture {
@@ -196,7 +196,7 @@ internal object ClusterHandlerTests : JUnit5Minutests {
 
       context("the diff is only in capacity") {
 
-        val diff = javers.compare(resource.spec.withDoubleCapacity(), resource.spec)
+        val diff = differ.compare(resource.spec.withDoubleCapacity(), resource.spec)
 
         test("annealing resizes the current server group") {
           upsert(resource, diff)
@@ -221,7 +221,7 @@ internal object ClusterHandlerTests : JUnit5Minutests {
 
       context("the diff is something other than just capacity") {
 
-        val diff = javers.compare(resource.spec.withDoubleCapacity().withDifferentInstanceType(), resource.spec)
+        val diff = differ.compare(resource.spec.withDoubleCapacity().withDifferentInstanceType(), resource.spec)
 
         test("annealing clones the current server group") {
           upsert(resource, diff)

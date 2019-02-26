@@ -27,10 +27,10 @@ import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.plugin.ResourceConflict
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.netflix.spinnaker.keel.retrofit.isNotFound
+import de.danielbechler.diff.node.DiffNode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import org.javers.core.diff.Diff
 import org.slf4j.LoggerFactory
 import retrofit2.HttpException
 import java.time.Clock
@@ -58,7 +58,7 @@ class ClusterHandler(
       cloudDriverService.getCluster(resource.spec)
     }
 
-  override fun upsert(resource: Resource<Cluster>, diff: Diff?) {
+  override fun upsert(resource: Resource<Cluster>, diff: DiffNode?) {
     val taskRef = runBlocking {
       val spec = resource.spec
       val job = when {
@@ -84,14 +84,18 @@ class ClusterHandler(
   /**
    * @return `true` if the only changes in the diff are to capacity.
    */
-  private fun Diff?.isCapacityOnly(): Boolean =
-    this != null && affectedObjects.all { it is Capacity }
+  private fun DiffNode?.isCapacityOnly(): Boolean =
+    this != null && affectedRootPropertyTypes.all { it == Capacity::class.java }
 
-  private val Diff.affectedObjects: List<Any>
-    get() = changes
-      .map { it.affectedObject }
-      // TODO: what kind of change has no affected object?
-      .mapNotNull { it.orElse(null) }
+  private val DiffNode.affectedRootPropertyTypes: List<Class<*>>
+    get() {
+      val types = mutableListOf<Class<*>>()
+      visitChildren { node, visit ->
+        visit.dontGoDeeper()
+        types += node.valueType
+      }
+      return types
+    }
 
   private suspend fun Cluster.createServerGroupJob(): Map<String, Any?> =
     mutableMapOf(

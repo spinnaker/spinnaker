@@ -33,8 +33,8 @@ import com.netflix.spinnaker.keel.model.OrchestrationTrigger
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.netflix.spinnaker.keel.retrofit.isNotFound
+import de.danielbechler.diff.node.DiffNode
 import kotlinx.coroutines.runBlocking
-import org.javers.core.diff.Diff
 import org.slf4j.LoggerFactory
 import retrofit2.HttpException
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup as RiverSecurityGroup
@@ -55,7 +55,7 @@ class SecurityGroupHandler(
   override fun current(resource: Resource<SecurityGroup>): SecurityGroup? =
     cloudDriverService.getSecurityGroup(resource.spec)
 
-  override fun upsert(resource: Resource<SecurityGroup>, diff: Diff?) {
+  override fun upsert(resource: Resource<SecurityGroup>, diff: DiffNode?) {
     val taskRef = runBlocking {
       resource.spec.let { spec ->
         orcaService

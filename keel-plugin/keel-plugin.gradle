@@ -4,8 +4,8 @@ apply from: "$rootDir/gradle/junit5.gradle"
 
 dependencies {
   api project(":keel-core")
-  api "org.javers:javers-core:$javersVersion"
-
+  api "de.danielbechler:java-object-diff:0.95"
+  
   implementation "com.netflix.spinnaker.kork:kork-core:${spinnaker.version('kork')}"
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
   implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
