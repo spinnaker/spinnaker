@@ -19,20 +19,28 @@ package com.netflix.spinnaker.clouddriver.controllers;
 import com.netflix.spinnaker.clouddriver.model.Service;
 import com.netflix.spinnaker.clouddriver.model.ServiceInstance;
 import com.netflix.spinnaker.clouddriver.model.ServiceProvider;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collection;
+import java.util.Collections;
 
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toList;
 
-@RequiredArgsConstructor
 @RestController
 @RequestMapping("/servicebroker")
 public class ServiceBrokerController {
   private final Collection<ServiceProvider> serviceProviders;
+
+  public ServiceBrokerController(@Autowired(required = false) Collection<ServiceProvider> serviceProviders) {
+    if (serviceProviders != null) {
+      this.serviceProviders = serviceProviders;
+    } else {
+      this.serviceProviders = Collections.emptyList();
+    }
+  }
 
   @PreAuthorize("hasPermission(#account, 'ACCOUNT', 'READ')")
   @GetMapping("/{account}/services")
