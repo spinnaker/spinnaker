@@ -277,7 +277,7 @@ class AzureResourceManagerClient extends AzureBaseClient {
    * @return - an initialized instance of the Azure ResourceManagementClient object
    */
   private ResourceManagementClient initializeClient(ApplicationTokenCredentials credentials) {
-    ResourceManagementClient resourceManagementClient = new ResourceManagementClientImpl(credentials)
+    ResourceManagementClient resourceManagementClient = new ResourceManagementClientImpl(buildBaseUrl(credentials), credentials)
     resourceManagementClient.setSubscriptionId(this.subscriptionId)
     resourceManagementClient.setLogLevel(HttpLoggingInterceptor.Level.NONE)
 

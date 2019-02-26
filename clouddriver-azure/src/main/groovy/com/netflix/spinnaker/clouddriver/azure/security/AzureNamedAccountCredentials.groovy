@@ -83,7 +83,7 @@ public class AzureNamedAccountCredentials implements AccountCredentials<AzureCre
   }
 
   private AzureCredentials buildCredentials() {
-    new AzureCredentials(this.tenantId, this.clientId, this.appKey, this.subscriptionId, this.defaultKeyVault, this.defaultResourceGroup, this.applicationName)
+    new AzureCredentials(this.tenantId, this.clientId, this.appKey, this.subscriptionId, this.defaultKeyVault, this.defaultResourceGroup, this.applicationName, this.environment)
   }
 
   private static List<AzureVMImage> buildPreferredVMImageList(List<AzureVMImage> vmImages) {

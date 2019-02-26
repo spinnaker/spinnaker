@@ -50,7 +50,7 @@ class AzureStorageClient extends AzureBaseClient {
    * @return an instance of the Azure StorageManagementClient
    */
   private StorageManagementClient initialize(ApplicationTokenCredentials tokenCredentials) {
-    StorageManagementClient storageClient = new StorageManagementClientImpl(tokenCredentials)
+    StorageManagementClient storageClient = new StorageManagementClientImpl(buildBaseUrl(tokenCredentials), tokenCredentials)
     storageClient.setSubscriptionId(this.subscriptionId)
     storageClient.setLogLevel(HttpLoggingInterceptor.Level.NONE)
     storageClient

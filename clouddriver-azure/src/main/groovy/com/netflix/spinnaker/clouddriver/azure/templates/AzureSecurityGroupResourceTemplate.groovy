@@ -31,6 +31,7 @@ class AzureSecurityGroupResourceTemplate {
   }
 
   static class SecurityGroupTemplate{
+    //TODO: Make this configurable for AZURE_US_GOVERNMENT
     String $schema = "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#"
     String contentVersion = "1.0.0.0"
 

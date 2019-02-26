@@ -778,7 +778,7 @@ class AzureNetworkClient extends AzureBaseClient {
   }
 
   private NetworkManagementClient initializeClient(ApplicationTokenCredentials tokenCredentials) {
-    NetworkManagementClient networkManagementClient = new NetworkManagementClientImpl(tokenCredentials)
+    NetworkManagementClient networkManagementClient = new NetworkManagementClientImpl(buildBaseUrl(tokenCredentials), tokenCredentials)
     networkManagementClient.setSubscriptionId(this.subscriptionId)
     networkManagementClient.setLogLevel(HttpLoggingInterceptor.Level.NONE)
 

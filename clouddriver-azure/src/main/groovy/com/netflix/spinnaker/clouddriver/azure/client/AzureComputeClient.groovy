@@ -62,7 +62,7 @@ public class AzureComputeClient extends AzureBaseClient {
    * @return an instance of the Azure ComputeManagementClient
    */
   private ComputeManagementClient initialize(ApplicationTokenCredentials tokenCredentials) {
-    ComputeManagementClient computeClient = new ComputeManagementClientImpl(tokenCredentials)
+    ComputeManagementClient computeClient = new ComputeManagementClientImpl(buildBaseUrl(tokenCredentials), tokenCredentials)
     computeClient.setSubscriptionId(this.subscriptionId)
     computeClient.setLogLevel(HttpLoggingInterceptor.Level.NONE)
 

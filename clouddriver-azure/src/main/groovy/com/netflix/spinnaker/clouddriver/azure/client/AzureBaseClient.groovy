@@ -54,10 +54,20 @@ public abstract class AzureBaseClient {
    * @param clientId
    * @param tenantId
    * @param secret
+   * @param configuredAzureEnvironment
    * @return
    */
-  static ApplicationTokenCredentials getTokenCredentials(String clientId, String tenantId, String secret) {
-    new ApplicationTokenCredentials(clientId, tenantId, secret, AzureEnvironment.AZURE)
+
+  static ApplicationTokenCredentials getTokenCredentials(String clientId, String tenantId, String secret, String configuredAzureEnvironment) {
+    if ( configuredAzureEnvironment == "AZURE_US_GOVERNMENT") {
+      return new ApplicationTokenCredentials(clientId, tenantId, secret, new AzureEnvironment(
+        "https://login.microsoftonline.us/",
+        "https://management.core.usgovcloudapi.net/",
+        true));
+    }
+    else {
+      return new ApplicationTokenCredentials(clientId, tenantId, secret, AzureEnvironment.AZURE)
+    }
   }
 
   /**
@@ -211,6 +221,21 @@ public abstract class AzureBaseClient {
         return chain.proceed(builder.build())
       }
     })
+  }
+  /**
+   * Return a baseUrl based on the configured Environment
+   * @param credentials containing environment to build a url from
+   * @return baseUrl based on the configured environment
+   */
+  protected String buildBaseUrl(ApplicationTokenCredentials token) {
+    String baseUrl
+    if (token.getEnvironment() != null && token.getEnvironment().getTokenAudience().contains("gov")) {
+      baseUrl = "https://management.usgovcloudapi.net/"
+    }
+    else {
+      baseUrl = "https://management.azure.com"
+    }
+    return baseUrl
   }
 
 }
