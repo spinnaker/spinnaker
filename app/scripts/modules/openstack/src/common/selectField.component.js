@@ -6,26 +6,7 @@ const angular = require('angular');
 
 import { InfrastructureCaches } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.openstack.common.selectField', []).component('selectField', {
-  templateUrl: require('./selectField.component.html'),
-  controller: SelectFieldController,
-  bindings: {
-    label: '@',
-    options: '<',
-    value: '<?',
-    onChange: '&',
-    labelColumnSize: '@?',
-    valueColumnSize: '@?',
-    helpKey: '@?',
-    readOnly: '<?',
-    allowNoSelection: '<?',
-    noOptionsMessage: '@?',
-    noSelectionMessage: '@?',
-    backingCache: '@?',
-    optionUpdate: '<?',
-  },
-});
-
+SelectFieldController.$inject = ['$scope', '$element', '$attrs', '$timeout', '$q', '$rootScope', 'cacheInitializer'];
 function SelectFieldController($scope, $element, $attrs, $timeout, $q, $rootScope, cacheInitializer) {
   var ctrl = this;
   var coveredThreshold = 0;
@@ -140,4 +121,23 @@ function SelectFieldController($scope, $element, $attrs, $timeout, $q, $rootScop
 
   $scope.$on('updateOptions', updateOptions);
 }
-SelectFieldController.$inject = ['$scope', '$element', '$attrs', '$timeout', '$q', '$rootScope', 'cacheInitializer'];
+
+module.exports = angular.module('spinnaker.openstack.common.selectField', []).component('selectField', {
+  templateUrl: require('./selectField.component.html'),
+  controller: SelectFieldController,
+  bindings: {
+    label: '@',
+    options: '<',
+    value: '<?',
+    onChange: '&',
+    labelColumnSize: '@?',
+    valueColumnSize: '@?',
+    helpKey: '@?',
+    readOnly: '<?',
+    allowNoSelection: '<?',
+    noOptionsMessage: '@?',
+    noSelectionMessage: '@?',
+    backingCache: '@?',
+    optionUpdate: '<?',
+  },
+});

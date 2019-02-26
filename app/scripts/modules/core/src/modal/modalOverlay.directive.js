@@ -2,9 +2,9 @@
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.core.modal.modalOverlay.directive', [])
-  .directive('modalOverlay', function($timeout) {
+module.exports = angular.module('spinnaker.core.modal.modalOverlay.directive', []).directive('modalOverlay', [
+  '$timeout',
+  function($timeout) {
     return {
       restrict: 'A',
       link: function(scope, elem) {
@@ -34,4 +34,5 @@ module.exports = angular
         });
       },
     };
-  });
+  },
+]);

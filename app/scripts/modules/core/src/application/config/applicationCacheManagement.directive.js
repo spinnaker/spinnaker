@@ -10,21 +10,24 @@ module.exports = angular
     CACHE_INITIALIZER_SERVICE,
     OVERRIDE_REGISTRY,
   ])
-  .directive('applicationCacheManagement', function(overrideRegistry) {
-    return {
-      restrict: 'E',
-      templateUrl: overrideRegistry.getTemplate(
-        'applicationCacheManagementDirective',
-        require('./applicationCacheManagement.directive.html'),
-      ),
-      scope: {},
-      bindToController: {
-        application: '=',
-      },
-      controller: 'ApplicationCacheManagementCtrl',
-      controllerAs: 'vm',
-    };
-  })
+  .directive('applicationCacheManagement', [
+    'overrideRegistry',
+    function(overrideRegistry) {
+      return {
+        restrict: 'E',
+        templateUrl: overrideRegistry.getTemplate(
+          'applicationCacheManagementDirective',
+          require('./applicationCacheManagement.directive.html'),
+        ),
+        scope: {},
+        bindToController: {
+          application: '=',
+        },
+        controller: 'ApplicationCacheManagementCtrl',
+        controllerAs: 'vm',
+      };
+    },
+  ])
   .controller('ApplicationCacheManagementCtrl', [
     '$log',
     'cacheInitializer',

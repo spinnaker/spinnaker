@@ -12,21 +12,24 @@ module.exports = angular
     CONFIRMATION_MODAL_SERVICE,
     OVERRIDE_REGISTRY,
   ])
-  .directive('deleteApplicationSection', function(overrideRegistry) {
-    return {
-      restrict: 'E',
-      templateUrl: overrideRegistry.getTemplate(
-        'deleteApplicationSectionDirective',
-        require('./deleteApplicationSection.directive.html'),
-      ),
-      scope: {},
-      bindToController: {
-        application: '=',
-      },
-      controllerAs: 'vm',
-      controller: 'DeleteApplicationSectionCtrl',
-    };
-  })
+  .directive('deleteApplicationSection', [
+    'overrideRegistry',
+    function(overrideRegistry) {
+      return {
+        restrict: 'E',
+        templateUrl: overrideRegistry.getTemplate(
+          'deleteApplicationSectionDirective',
+          require('./deleteApplicationSection.directive.html'),
+        ),
+        scope: {},
+        bindToController: {
+          application: '=',
+        },
+        controllerAs: 'vm',
+        controller: 'DeleteApplicationSectionCtrl',
+      };
+    },
+  ])
   .controller('DeleteApplicationSectionCtrl', [
     '$state',
     'confirmationModalService',

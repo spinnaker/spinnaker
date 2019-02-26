@@ -22,20 +22,23 @@ module.exports = angular
         usesMultiOutput: '=?',
       },
       controllerAs: 'vm',
-      controller: function($uibModal) {
-        this.text = this.text || 'Console Output (Raw)';
-        this.usesMultiOutput = this.usesMultiOutput || false;
-        this.showConsoleOutput = function() {
-          $uibModal.open({
-            templateUrl: InstanceTemplates.consoleOutputModal,
-            controller: 'ConsoleOutputCtrl as ctrl',
-            size: 'lg modal-fullscreen',
-            resolve: {
-              instance: () => this.instance,
-              usesMultiOutput: () => this.usesMultiOutput,
-            },
-          });
-        };
-      },
+      controller: [
+        '$uibModal',
+        function($uibModal) {
+          this.text = this.text || 'Console Output (Raw)';
+          this.usesMultiOutput = this.usesMultiOutput || false;
+          this.showConsoleOutput = function() {
+            $uibModal.open({
+              templateUrl: InstanceTemplates.consoleOutputModal,
+              controller: 'ConsoleOutputCtrl as ctrl',
+              size: 'lg modal-fullscreen',
+              resolve: {
+                instance: () => this.instance,
+                usesMultiOutput: () => this.usesMultiOutput,
+              },
+            });
+          };
+        },
+      ],
     };
   });

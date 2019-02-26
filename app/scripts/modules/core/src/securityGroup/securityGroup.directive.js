@@ -4,9 +4,9 @@ const angular = require('angular');
 
 import { SecurityGroupState } from 'core/state';
 
-module.exports = angular
-  .module('spinnaker.core.securityGroup.directive', [])
-  .directive('securityGroup', function($rootScope) {
+module.exports = angular.module('spinnaker.core.securityGroup.directive', []).directive('securityGroup', [
+  '$rootScope',
+  function($rootScope) {
     return {
       restrict: 'E',
       replace: true,
@@ -32,4 +32,5 @@ module.exports = angular
         };
       },
     };
-  });
+  },
+]);

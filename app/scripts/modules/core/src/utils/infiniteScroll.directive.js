@@ -10,9 +10,11 @@
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.core.utils.infiniteScroll.directive', [])
-  .directive('infiniteScroll', function($rootScope, $window, $timeout) {
+module.exports = angular.module('spinnaker.core.utils.infiniteScroll.directive', []).directive('infiniteScroll', [
+  '$rootScope',
+  '$window',
+  '$timeout',
+  function($rootScope, $window, $timeout) {
     return {
       link: function(scope, elem, attrs) {
         var checkWhenEnabled, handler, scrollDistance, scrollEnabled;
@@ -72,4 +74,5 @@ module.exports = angular
         }, 0);
       },
     };
-  });
+  },
+]);

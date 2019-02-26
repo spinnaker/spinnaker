@@ -11,21 +11,24 @@ module.exports = angular
     require('../modal/editApplication.controller.modal').name,
     OVERRIDE_REGISTRY,
   ])
-  .directive('applicationAttributes', function(overrideRegistry) {
-    return {
-      restrict: 'E',
-      templateUrl: overrideRegistry.getTemplate(
-        'applicationAttributesDirective',
-        require('./applicationAttributes.directive.html'),
-      ),
-      scope: {},
-      bindToController: {
-        application: '=',
-      },
-      controller: 'ApplicationAttributesCtrl',
-      controllerAs: 'vm',
-    };
-  })
+  .directive('applicationAttributes', [
+    'overrideRegistry',
+    function(overrideRegistry) {
+      return {
+        restrict: 'E',
+        templateUrl: overrideRegistry.getTemplate(
+          'applicationAttributesDirective',
+          require('./applicationAttributes.directive.html'),
+        ),
+        scope: {},
+        bindToController: {
+          application: '=',
+        },
+        controller: 'ApplicationAttributesCtrl',
+        controllerAs: 'vm',
+      };
+    },
+  ])
   .controller('ApplicationAttributesCtrl', [
     '$uibModal',
     'overrideRegistry',

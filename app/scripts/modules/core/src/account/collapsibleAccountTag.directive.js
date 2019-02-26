@@ -15,16 +15,19 @@ module.exports = angular
         state: '=',
       },
       controllerAs: 'vm',
-      controller: function($scope) {
-        this.getIcon = () => (this.state.expanded ? 'down' : 'right');
+      controller: [
+        '$scope',
+        function($scope) {
+          this.getIcon = () => (this.state.expanded ? 'down' : 'right');
 
-        let getAccountType = () => {
-          AccountService.challengeDestructiveActions(this.account).then(challenge => {
-            this.accountType = challenge ? 'prod' : $scope.account;
-          });
-        };
+          let getAccountType = () => {
+            AccountService.challengeDestructiveActions(this.account).then(challenge => {
+              this.accountType = challenge ? 'prod' : $scope.account;
+            });
+          };
 
-        $scope.$watch(() => this.account, getAccountType);
-      },
+          $scope.$watch(() => this.account, getAccountType);
+        },
+      ],
     };
   });

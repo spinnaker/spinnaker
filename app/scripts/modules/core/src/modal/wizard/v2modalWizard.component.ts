@@ -10,6 +10,7 @@ export class V2ModalWizard implements IController {
   public taskMonitor: any;
   public dismiss: () => any;
 
+  public static $inject = ['$scope'];
   public constructor(private $scope: ng.IScope) {
     this.wizard = ModalWizard;
   }

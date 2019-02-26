@@ -22,6 +22,7 @@ class KubernetesAnnotationCustomSections implements IController {
   public manifest: any;
   public customSections: ICustomSectionMap;
 
+  public static $inject = ['$sce', '$interpolate'];
   constructor(private $sce: ISCEService, private $interpolate: IInterpolateService) {}
 
   public $onInit() {
