@@ -41,7 +41,7 @@ export class NgGenericArtifactDelegate
   };
 
   public getSelectedExpectedArtifact = (): IExpectedArtifact => {
-    const id = this.$scope.stage[`${this.tag}ArtifacId`];
+    const id = this.$scope.stage[`${this.tag}ArtifactId`];
     if (id == null) {
       return null;
     }
