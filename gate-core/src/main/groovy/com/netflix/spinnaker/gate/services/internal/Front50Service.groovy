@@ -143,4 +143,13 @@ interface Front50Service {
 
   @GET('/serviceAccounts')
   List<ServiceAccount> getServiceAccounts()
+
+  //
+  // Delivery-related
+  //
+  @GET('/deliveries')
+  List<Map> getDeliveries()
+
+  @GET('/deliveries/{id}')
+  Map getDelivery(@Path('id') String id)
 }
