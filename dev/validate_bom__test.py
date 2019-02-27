@@ -91,9 +91,9 @@ import traceback
 import yaml
 
 try:
-  from urllib2 import urlopen, HTTPError, URLError
+  from urllib2 import urlopen, Request, HTTPError, URLError
 except ImportError:
-  from urllib.request import urlopen
+  from urllib.request import urlopen, Request
   from urllib.error import HTTPError, URLError
 
 
@@ -110,6 +110,8 @@ from buildtool import (
 
 from validate_bom__deploy import replace_ha_services
 
+from iap_generate_auth_token import iap_generate_auth_token
+
 
 ForwardedPort = collections.namedtuple('ForwardedPort', ['child', 'port'])
 
@@ -122,6 +124,13 @@ def _unused_port():
   addr, port = sock.getsockname()
   sock.close()
   return port
+
+def _make_get_request_with_bearer_auth_token(url, bearer_auth_token):
+  """Use a bearer auth token to make a GET call to a IAP-protected endpoint.
+  """
+  request = Request(url=url)
+  request.add_header('Authorization', 'Bearer {}'.format(bearer_auth_token))
+  urlopen(request)
 
 
 class QuotaTracker(object):
@@ -351,7 +360,7 @@ class ValidateBomTestController(object):
         for info in region_info['quotas']
     }
     return project_quota, region_quota
-    
+
   def __init__(self, deployer):
     options = deployer.options
     quota_spec = {}
@@ -419,6 +428,34 @@ class ValidateBomTestController(object):
         'echo-scheduler': 8089,
         'echo-worker': 8089
     }
+
+    # Map of services with provided endpoints and credentials.
+    self.__service_endpoints = {
+      'gate': self.options.test_gate_service_endpoint
+    }
+
+    # Map of services with credentials for their endpoints, if provided.
+    self.__service_endpoint_credentials = {
+      'gate': self.__gate_service_endpoint_credentials_or_none()
+    }
+
+  def __gate_service_endpoint_credentials_or_none(self):
+    iap_credentials_file = self.options.test_gate_iap_credentials
+    iap_client_id = self.options.test_gate_iap_client_id
+
+    if iap_credentials_file and not iap_client_id:
+      raise_and_log_error(
+          ConfigError('Cannot set --test_gate_iap_credentials field without setting --test_gate_iap_client_id'))
+    if not iap_credentials_file and iap_client_id:
+      raise_and_log_error(
+          ConfigError('Cannot set --test_gate_iap_client_id field without setting --test_gate_iap_credentials'))
+    if iap_credentials_file and iap_client_id:
+      auth_token = iap_generate_auth_token(iap_credentials_file, iap_client_id)
+
+      return {
+        'bearer_auth_token': auth_token
+      }
+    return None
 
   def __replace_ha_api_service(self, service, options):
     transform_map = {}
@@ -593,6 +630,52 @@ class ValidateBomTestController(object):
         ResponseError('It appears that {0} failed'.format(service_name),
                       server='tunnel'))
 
+  def __wait_on_service_using_endpoint(self, service_name, timeout=None):
+    endpoint = self.__service_endpoints[service_name]
+
+    timeout = timeout or self.options.test_service_startup_timeout
+    end_time = time.time() + timeout
+    logging.info('Waiting on "%s..."', service_name)
+
+    threadid = hex(threading.current_thread().ident)
+    logging.info('WaitOn polling %s from thread %s', service_name, threadid)
+    try:
+      if service_name in self.__service_endpoint_credentials:
+        credentials = self.__service_endpoint_credentials[service_name]
+        bearer_auth_token = credentials.get('bearer_auth_token', None)
+
+        if bearer_auth_token:
+          _make_get_request_with_bearer_auth_token('{endpoint}/health'
+                                              .format(endpoint=endpoint),
+                                              bearer_auth_token)
+        # Add more authentication cases here.
+        else:
+          raise_and_log_error(
+              ConfigError('No credentials found for service {0}'.format(service_name)))
+
+      else:
+        urlopen('{endpoint}/health'
+                .format(endpoint=endpoint))
+      logging.info('"%s" is ready on service endpoint %s | %s',
+                   service_name, endpoint, threadid)
+      return
+    except HTTPError as error:
+      logging.error('%s service endpoint got %s.',
+                    service_name, error)
+      raise_and_log_error(
+          ResponseError('{0} service endpoint got {1}'.format(service_name, error),
+                        server=endpoint))
+    except Exception as error:
+      raise_and_log_error(
+          ResponseError('{0} service endpoint got {1}'.format(service_name, error),
+                        server=endpoint))
+    except URLError as error:
+      if time.time() >= end_time:
+        logging.error(
+            'Timing out waiting for %s | %s', service_name, threadid)
+        raise_and_log_error(TimeoutError(service_name, cause=service_name))
+      time.sleep(2.0)
+
   def run_tests(self):
     """The actual controller that coordinates and runs the tests.
 
@@ -735,6 +818,13 @@ class ValidateBomTestController(object):
       raise_and_log_error(
           UnexpectedError('Test "{name}" is missing an "api" spec.'.format(
               name=test_name)))
+
+    if spec['api'] in self.__service_endpoints:
+      # No need to wait on service if we are using the service endpoint.
+      service_name = spec['api']
+      self.__wait_on_service_using_endpoint(service_name)
+      return True
+
     requires = spec.pop('requires', {})
     configuration = requires.pop('configuration', {})
     our_config = vars(self.options)
@@ -754,6 +844,7 @@ class ValidateBomTestController(object):
 
     services = set(replace_ha_services(
         requires.pop('services', []), self.options))
+
     services.add(self.__replace_ha_api_service(
         spec.pop('api'), self.options))
 
@@ -861,9 +952,24 @@ class ValidateBomTestController(object):
         'python', test_path,
         '--log_dir', citest_log_dir,
         '--log_filebase', test_name,
-        '--native_host', 'localhost',
-        '--native_port', str(self.__forwarded_ports[microservice_api].port)
     ]
+    if microservice_api in self.__service_endpoints:
+      command.extend([
+          '--host_platform', 'outbound',
+          '--outbound_host', self.__service_endpoints[microservice_api],
+      ])
+      if microservice_api in self.__service_endpoint_credentials:
+        credentials = self.__service_endpoint_credentials[microservice_api]
+        if 'bearer_auth_token' in credentials:
+          command.extend([
+              '--outbound_bearer_auth_token', credentials['bearer_auth_token']
+          ])
+    else:
+      command.extend([
+          '--native_host', 'localhost',
+          '--native_port', str(self.__forwarded_ports[microservice_api].port)
+      ])
+
     if options.test_stack:
       command.extend(['--test_stack', str(options.test_stack)])
 
@@ -1027,6 +1133,22 @@ def init_argument_parser(parser, defaults):
   add_parser_argument(
       parser, 'test_jenkins_job_name', defaults, 'TriggerBake',
       help='The Jenkins job name to use in tests.')
+
+  add_parser_argument(
+      parser, 'test_gate_service_endpoint', defaults, None,
+      help='Gate endpoint to use rather than port-forwarding.')
+
+  add_parser_argument(
+      parser, 'test_gate_iap_credentials', defaults, None,
+      help='Path to google credentials file to authenticate requests'
+           ' to an IAP-protected Spinnaker. This must be used with the'
+           ' test_gate_iap_client_id flag.')
+
+  add_parser_argument(
+      parser, 'test_gate_iap_client_id', defaults, None,
+      help='IAP client ID used to authenticate requests to an'
+           ' IAP-protected Spinnaker. This must be used with the'
+           ' test_gate_iap_credentials flag.')
 
 
 def validate_options(options):

@@ -136,7 +136,7 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
     # It probably isnt useful anymore.
     builder.add_argument(
         '--host_platform', default=defaults.get('HOST_PLATFORM', None),
-        help='Platform running spinnaker (gce, native).'
+        help='Platform running spinnaker (gce, native, outbound).'
              ' If this is not explicitly set, then try to'
              ' guess based on other parameters set.')
 
@@ -165,6 +165,14 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
     builder.add_argument(
         '--test_app', default=defaults.get('TEST_APP', cls.__name__.lower()),
         help='Default Spinnaker application name to use with test.')
+
+    builder.add_argument(
+        '--outbound_hostname', default=defaults.get('OUTBOUND_HOSTNAME', None),
+        help='') # TODO(joonlim)
+
+    builder.add_argument(
+        '--outbound_bearer_auth_token', default=defaults.get('OUTBOUND_BEARER_AUTH_TOKEN', None),
+        help='') # TODO(joonlim)
 
   @classmethod
   def init_bindings_builder(cls, builder, defaults=None):

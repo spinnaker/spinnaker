@@ -81,7 +81,7 @@ def infer(json):
   return expr_dict
 
 
-def scrape_spring_config(url, timeout=60, empty_if_404=True):
+def scrape_spring_config(url, timeout=60, empty_if_404=True, bearer_auth_token=None):
   """Construct a config binding dictionary from a running instance's baseUrl.
 
   Args:
@@ -93,6 +93,10 @@ def scrape_spring_config(url, timeout=60, empty_if_404=True):
     urlib2.URLError if url is bad.
   """
   request = Request(url=url)
+
+  if bearer_auth_token:
+    request.add_header('Authorization', 'Bearer {}'.format(bearer_auth_token))
+
   final_time = time.time() + timeout
   while True:
     # Sometimes this is not yet ready, so allow retries

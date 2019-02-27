@@ -370,7 +370,41 @@ class SpinnakerAgent(service_testing.HttpAgent):
       return cls.new_gce_instance_from_bindings(
           name, status_factory, bindings, port)
 
+    if host_platform == 'outbound':
+      return cls.new_outbound_instance_from_bindings(
+          name, status_factory, bindings)
+
     raise ValueError('Unknown host_platform={0}'.format(host_platform))
+
+  @classmethod
+  def new_outbound_instance_from_bindings(
+      cls, name, status_factory, bindings):
+    """Create a new Spinnaker HttpAgent talking to an outbound endpoint.
+
+    """
+    base_url = bindings['OUTBOUND_HOSTNAME']
+    bearer_auth_token = bindings.get('OUTBOUND_BEARER_AUTH_TOKEN', None)
+
+    logger = logging.getLogger(__name__)
+    logger.info('Locating %s...', name)
+    if not base_url:
+      logger.error('Could not locate %s.', name)
+      return None
+
+    logger.info('%s is available at %s', name, base_url)
+
+    env_url = '/'.join([base_url.rstrip('/'), 'resolvedEnv'])
+    deployed_config = scrape_spring_config(env_url, bearer_auth_token=bearer_auth_token)
+    JournalLogger.journal_or_log_detail(
+        '{0} configuration'.format(name), deployed_config)
+
+    spinnaker_agent = cls(base_url, status_factory)
+    spinnaker_agent.__deployed_config = deployed_config
+
+    if bearer_auth_token:
+      spinnaker_agent.add_header('Authorization', 'Bearer {}'.format(bearer_auth_token))
+
+    return spinnaker_agent
 
   @classmethod
   def new_gce_instance_from_bindings(
