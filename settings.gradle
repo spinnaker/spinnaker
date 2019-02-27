@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-include 'echo-core',
+include 'echo-artifacts',
+        'echo-core',
         'echo-model',
         'echo-web',
         'echo-notifications',

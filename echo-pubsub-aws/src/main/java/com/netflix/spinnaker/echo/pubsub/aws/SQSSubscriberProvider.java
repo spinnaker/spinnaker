@@ -33,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -57,6 +58,7 @@ public class SQSSubscriberProvider implements DiscoveryActivated {
   private final PubsubMessageHandler pubsubMessageHandler;
   private final Registry registry;
   private final JinjavaFactory jinjavaFactory;
+  private final ApplicationEventPublisher applicationEventPublisher;
 
   @Autowired
   SQSSubscriberProvider(ObjectMapper objectMapper,
@@ -65,7 +67,8 @@ public class SQSSubscriberProvider implements DiscoveryActivated {
                         PubsubSubscribers pubsubSubscribers,
                         PubsubMessageHandler pubsubMessageHandler,
                         Registry registry,
-                        JinjavaFactory jinjavaFactory) {
+                        JinjavaFactory jinjavaFactory,
+                        ApplicationEventPublisher applicationEventPublisher) {
     this.objectMapper = objectMapper;
     this.awsCredentialsProvider = awsCredentialsProvider;
     this.properties = properties;
@@ -73,6 +76,7 @@ public class SQSSubscriberProvider implements DiscoveryActivated {
     this.pubsubMessageHandler = pubsubMessageHandler;
     this.registry = registry;
     this.jinjavaFactory = jinjavaFactory;
+    this.applicationEventPublisher = applicationEventPublisher;
   }
 
   @PostConstruct
@@ -111,9 +115,10 @@ public class SQSSubscriberProvider implements DiscoveryActivated {
           .withClientConfiguration(new ClientConfiguration())
           .withRegion(queueArn.getRegion())
           .build(),
-        () -> enabled.get(),
+        enabled::get,
         registry,
-        jinjavaFactory
+        jinjavaFactory,
+        applicationEventPublisher
       );
 
       try {

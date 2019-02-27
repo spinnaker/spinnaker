@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.echo.pubsub.utils
 
 import com.netflix.spinnaker.echo.artifacts.MessageArtifactTranslator
+import org.springframework.context.ApplicationEventPublisher
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -26,7 +27,7 @@ class MessageArtifactTranslatorSpec extends Specification {
   MessageArtifactTranslator messageArtifactTranslator
 
   def setup() {
-    messageArtifactTranslator = new MessageArtifactTranslator()
+    messageArtifactTranslator = new MessageArtifactTranslator(Mock(ApplicationEventPublisher))
   }
 
   def "defaults to empty list with null or empty message payload"() {

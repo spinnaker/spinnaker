@@ -27,6 +27,7 @@ import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -45,11 +46,17 @@ import java.util.stream.Collectors;
 public class ArtifactPostProcessor implements PipelinePostProcessor {
   private final ObjectMapper objectMapper;
   private final JinjaTemplateService jinjaTemplateService;
+  private final ApplicationEventPublisher applicationEventPublisher;
 
   @Autowired
-  public ArtifactPostProcessor(ObjectMapper objectMapper, JinjaTemplateService jinjaTemplateService) {
+  public ArtifactPostProcessor(
+    ObjectMapper objectMapper,
+    JinjaTemplateService jinjaTemplateService,
+    ApplicationEventPublisher applicationEventPublisher
+  ) {
     this.objectMapper = objectMapper;
     this.jinjaTemplateService = jinjaTemplateService;
+    this.applicationEventPublisher = applicationEventPublisher;
   }
 
   public Pipeline processPipeline(Pipeline inputPipeline) {
@@ -82,7 +89,10 @@ public class ArtifactPostProcessor implements PipelinePostProcessor {
   }
 
   private List<Artifact> processTemplate(JinjaTemplate template, String messageString) {
-    MessageArtifactTranslator messageArtifactTranslator = new MessageArtifactTranslator(template.getAsStream());
+    MessageArtifactTranslator messageArtifactTranslator = new MessageArtifactTranslator(
+      template.getAsStream(),
+      applicationEventPublisher
+    );
     return messageArtifactTranslator.parseArtifacts(messageString);
   }
 

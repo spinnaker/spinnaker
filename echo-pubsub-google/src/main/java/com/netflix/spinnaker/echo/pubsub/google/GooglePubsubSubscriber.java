@@ -20,8 +20,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.core.ApiService;
 import com.google.api.gax.core.FixedCredentialsProvider;
 import com.google.auth.Credentials;
-import com.google.auth.oauth2.GoogleCredentials;
-import com.google.auth.oauth2.ServiceAccountCredentials;
 import com.google.cloud.pubsub.v1.AckReplyConsumer;
 import com.google.cloud.pubsub.v1.MessageReceiver;
 import com.google.cloud.pubsub.v1.Subscriber;
@@ -39,14 +37,13 @@ import com.netflix.spinnaker.echo.pubsub.utils.NodeIdentity;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -96,15 +93,19 @@ public class GooglePubsubSubscriber implements PubsubSubscriber {
   }
 
   public static GooglePubsubSubscriber buildSubscriber(GooglePubsubSubscription subscription,
-                                                       PubsubMessageHandler pubsubMessageHandler) {
+                                                       PubsubMessageHandler pubsubMessageHandler,
+                                                       ApplicationEventPublisher applicationEventPublisher) {
     String subscriptionName = subscription.getSubscriptionName();
     String project = subscription.getProject();
     String jsonPath = subscription.getJsonPath();
 
-    GooglePubsubMessageReceiver messageReceiver = new GooglePubsubMessageReceiver(subscription.getAckDeadlineSeconds(),
-        subscription.getName(),
-        pubsubMessageHandler,
-        subscription.readTemplatePath());
+    GooglePubsubMessageReceiver messageReceiver = new GooglePubsubMessageReceiver(
+      subscription.getAckDeadlineSeconds(),
+      subscription.getName(),
+      pubsubMessageHandler,
+      subscription.readTemplatePath(),
+      applicationEventPublisher
+    );
 
     Credentials credentials = null;
     try {
@@ -169,11 +170,12 @@ public class GooglePubsubSubscriber implements PubsubSubscriber {
     public GooglePubsubMessageReceiver(Integer ackDeadlineSeconds,
                                        String subscriptionName,
                                        PubsubMessageHandler pubsubMessageHandler,
-                                       InputStream templateStream) {
+                                       InputStream templateStream,
+                                       ApplicationEventPublisher applicationEventPublisher) {
       this.ackDeadlineSeconds = ackDeadlineSeconds;
       this.subscriptionName = subscriptionName;
       this.pubsubMessageHandler = pubsubMessageHandler;
-      this.messageArtifactTranslator = new MessageArtifactTranslator(templateStream);
+      this.messageArtifactTranslator = new MessageArtifactTranslator(templateStream, applicationEventPublisher);
     }
 
     @Override

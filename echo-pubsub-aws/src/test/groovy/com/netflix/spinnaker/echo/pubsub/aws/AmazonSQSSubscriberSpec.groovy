@@ -24,6 +24,7 @@ import com.netflix.spinnaker.echo.artifacts.DefaultJinjavaFactory
 import com.netflix.spinnaker.echo.config.AmazonPubsubProperties
 import com.netflix.spinnaker.echo.pubsub.PubsubMessageHandler
 import com.netflix.spinnaker.kork.aws.ARN
+import org.springframework.context.ApplicationEventPublisher
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -52,7 +53,8 @@ class AmazonSQSSubscriberSpec extends Specification {
     amazonSQS,
     {true},
     registry,
-    new DefaultJinjavaFactory()
+    new DefaultJinjavaFactory(),
+    Mock(ApplicationEventPublisher)
   )
 
   def 'should unmarshal an sns notification message'() {

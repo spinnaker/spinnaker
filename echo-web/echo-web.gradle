@@ -24,6 +24,7 @@ apply plugin: 'spinnaker.application'
 mainClassName = 'com.netflix.spinnaker.echo.Application'
 
 dependencies {
+    compile project(':echo-artifacts')
     compile project(':echo-core')
     compile project(':echo-model')
     compile project(':echo-notifications')

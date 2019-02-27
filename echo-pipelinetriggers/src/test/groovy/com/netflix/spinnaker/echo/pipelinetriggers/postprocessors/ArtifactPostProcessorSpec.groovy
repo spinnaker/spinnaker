@@ -17,10 +17,10 @@
 package com.netflix.spinnaker.echo.pipelinetriggers.postprocessors
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.echo.model.Trigger
 import com.netflix.spinnaker.echo.pipelinetriggers.artifacts.JinjaTemplateService
 import com.netflix.spinnaker.echo.test.RetrofitStubs
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
+import org.springframework.context.ApplicationEventPublisher
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -29,9 +29,10 @@ class ArtifactPostProcessorSpec extends Specification implements RetrofitStubs {
   def jinjaTemplateService = GroovyMock(JinjaTemplateService)
   def existingArtifact = Artifact.builder()
     .type("testType").name("testName").reference("testReference").build()
+  def applicationEventPublisher = Mock(ApplicationEventPublisher)
 
   @Subject
-  def artifactPostProcessor = new ArtifactPostProcessor(objectMapper, jinjaTemplateService)
+  def artifactPostProcessor = new ArtifactPostProcessor(objectMapper, jinjaTemplateService, applicationEventPublisher)
 
   def "does not modify a pipeline without a template in the property file"() {
     given:

@@ -19,11 +19,13 @@ package com.netflix.spinnaker.echo.artifacts;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hubspot.jinjava.Jinjava;
+import com.netflix.spinnaker.echo.model.ArtifactEvent;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -45,15 +47,22 @@ public class MessageArtifactTranslator {
   private static final TypeReference<List<Artifact>> artifactListReference = new TypeReference<List<Artifact>>() {};
   private static final TypeReference<Map<String,?>> stringMapReference = new TypeReference<Map<String,?>>() {};
 
-  public MessageArtifactTranslator() {
+  private ApplicationEventPublisher applicationEventPublisher;
+
+  public MessageArtifactTranslator(ApplicationEventPublisher applicationEventPublisher) {
     this.jinjavaFactory = new DefaultJinjavaFactory();
+    this.applicationEventPublisher = applicationEventPublisher;
   }
 
-  public MessageArtifactTranslator(InputStream templateStream) {
-    this(templateStream, new DefaultJinjavaFactory());
+  public MessageArtifactTranslator(InputStream templateStream, ApplicationEventPublisher applicationEventPublisher) {
+    this(templateStream, new DefaultJinjavaFactory(), applicationEventPublisher);
   }
 
-  public MessageArtifactTranslator(InputStream templateStream, JinjavaFactory jinjavaFactory) {
+  public MessageArtifactTranslator(
+    InputStream templateStream,
+    JinjavaFactory jinjavaFactory,
+    ApplicationEventPublisher applicationEventPublisher
+  ) {
     if (templateStream == null) {
       this.jinjaTemplate = "";
     } else {
@@ -64,6 +73,7 @@ public class MessageArtifactTranslator {
       }
     }
     this.jinjavaFactory = jinjavaFactory;
+    this.applicationEventPublisher = applicationEventPublisher;
   }
 
   public List<Artifact> parseArtifacts(String messagePayload) {
@@ -72,7 +82,11 @@ public class MessageArtifactTranslator {
     }
 
     ObjectMapper mapper = new ObjectMapper();
-    return readArtifactList(mapper, jinjaTransform(mapper, messagePayload));
+    List<Artifact> artifacts = readArtifactList(mapper, jinjaTransform(mapper, messagePayload));
+    if (!artifacts.isEmpty()) {
+      applicationEventPublisher.publishEvent(new ArtifactEvent(null, artifacts));
+    }
+    return artifacts;
   }
 
   private String jinjaTransform(ObjectMapper mapper, String messagePayload) {

@@ -39,6 +39,7 @@ import com.netflix.spinnaker.kork.aws.ARN;
 import com.netflix.spinnaker.kork.aws.pubsub.PubSubUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.io.IOException;
 import java.util.*;
@@ -77,6 +78,8 @@ public class SQSSubscriber implements Runnable, PubsubSubscriber {
 
   private final Supplier<Boolean> isEnabled;
 
+  private final ApplicationEventPublisher applicationEventPublisher;
+
   public SQSSubscriber(ObjectMapper objectMapper,
                        AmazonPubsubProperties.AmazonPubsubSubscription subscription,
                        PubsubMessageHandler pubsubMessageHandler,
@@ -84,7 +87,8 @@ public class SQSSubscriber implements Runnable, PubsubSubscriber {
                        AmazonSQS amazonSQS,
                        Supplier<Boolean> isEnabled,
                        Registry registry,
-                       JinjavaFactory jinjavaFactory) {
+                       JinjavaFactory jinjavaFactory,
+                       ApplicationEventPublisher applicationEventPublisher) {
     this.objectMapper = objectMapper;
     this.subscription = subscription;
     this.pubsubMessageHandler = pubsubMessageHandler;
@@ -92,8 +96,13 @@ public class SQSSubscriber implements Runnable, PubsubSubscriber {
     this.amazonSQS = amazonSQS;
     this.isEnabled = isEnabled;
     this.registry = registry;
+    this.applicationEventPublisher = applicationEventPublisher;
 
-    this.messageArtifactTranslator = new MessageArtifactTranslator(subscription.readTemplatePath(), jinjavaFactory);
+    this.messageArtifactTranslator = new MessageArtifactTranslator(
+      subscription.readTemplatePath(),
+      jinjavaFactory,
+      applicationEventPublisher
+    );
     this.queueARN = new ARN(subscription.getQueueARN());
     this.topicARN = new ARN(subscription.getTopicARN());
   }

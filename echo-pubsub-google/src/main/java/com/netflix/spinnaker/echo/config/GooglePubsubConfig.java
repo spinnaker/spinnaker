@@ -35,6 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
@@ -59,6 +60,9 @@ public class GooglePubsubConfig {
   @Autowired
   ObjectMapper mapper;
 
+  @Autowired
+  private ApplicationEventPublisher applicationEventPublisher;
+
   @PostConstruct
   void googlePubsubSubscribers() {
     log.info("Creating Google Pubsub Subscribers");
@@ -68,7 +72,7 @@ public class GooglePubsubConfig {
           subscription.getSubscriptionName(),
           subscription.getProject());
       GooglePubsubSubscriber subscriber = GooglePubsubSubscriber
-        .buildSubscriber(subscription, pubsubMessageHandler);
+        .buildSubscriber(subscription, pubsubMessageHandler, applicationEventPublisher);
 
       newSubscribers.add(subscriber);
     });
