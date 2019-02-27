@@ -154,14 +154,14 @@ class SqlProviderCache(private val backingStore: WriteableCache) : ProviderCache
     val cachedTypes = mutableSetOf<String>()
     // Update resource table from Authoritative sources only
     when {
-      // OnDemand agents should only be treated as authoritative
+      // OnDemand agents should only be treated as authoritative and don't use standard eviction logic
       source.contains(ON_DEMAND.ns, ignoreCase = true) -> cacheResult.cacheResults
         // And OnDemand agents shouldn't update other resource type tables
         .filter {
           it.key.contains(ON_DEMAND.ns, ignoreCase = true)
         }
         .forEach {
-          cacheDataType(it.key, source, it.value, true)
+          cacheDataType(it.key, source, it.value, authoritative = true, cleanup = false)
         }
       authoritativeTypes.isNotEmpty() -> cacheResult.cacheResults
         .filter {
@@ -174,7 +174,7 @@ class SqlProviderCache(private val backingStore: WriteableCache) : ProviderCache
       else -> // If there are no authoritative types in cacheResult, override all as authoritative without cleanup
         cacheResult.cacheResults
           .forEach {
-            cacheDataType(it.key, source, it.value, true, false)
+            cacheDataType(it.key, source, it.value, authoritative = true, cleanup = false)
             cachedTypes.add(it.key)
           }
     }
