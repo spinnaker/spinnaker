@@ -37,6 +37,7 @@ class V1TemplateLoaderHandler(
 
   override fun handle(chain: HandlerChain, context: PipelineTemplateContext) {
     val config = objectMapper.convertValue(context.getRequest().config, TemplateConfiguration::class.java)
+    config.configuration.notifications.addAll(context.getRequest().notifications)
 
     // Allow template inlining to perform plans without publishing the template
     if (context.getRequest().plan && context.getRequest().template != null) {
