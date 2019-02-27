@@ -19,9 +19,9 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceMetadata
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
-import com.netflix.spinnaker.keel.api.ec2.CidrSecurityGroupRule
+import com.netflix.spinnaker.keel.api.ec2.CidrRule
+import com.netflix.spinnaker.keel.api.ec2.CrossAccountReferenceRule
 import com.netflix.spinnaker.keel.api.ec2.PortRange
-import com.netflix.spinnaker.keel.api.ec2.ReferenceSecurityGroupRule
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroup
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupRule.Protocol.TCP
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
@@ -238,7 +238,7 @@ internal object SecurityGroupHandlerTests : JUnit5Minutests {
         copy(
           securityGroup = securityGroup.copy(
             inboundRules = setOf(
-              ReferenceSecurityGroupRule(
+              CrossAccountReferenceRule(
                 protocol = TCP,
                 account = "test",
                 name = "otherapp",
@@ -283,7 +283,7 @@ internal object SecurityGroupHandlerTests : JUnit5Minutests {
                   get("type").isEqualTo(rule.protocol.name.toLowerCase())
                   get("startPort").isEqualTo(rule.portRange.startPort)
                   get("endPort").isEqualTo(rule.portRange.endPort)
-                  get("name").isEqualTo((rule as ReferenceSecurityGroupRule).name)
+                  get("name").isEqualTo((rule as CrossAccountReferenceRule).name)
                 }
               }
           }
@@ -296,7 +296,7 @@ internal object SecurityGroupHandlerTests : JUnit5Minutests {
         copy(
           securityGroup = securityGroup.copy(
             inboundRules = setOf(
-              CidrSecurityGroupRule(
+              CidrRule(
                 protocol = TCP,
                 blockRange = "10.0.0.0/16",
                 portRange = PortRange(
@@ -332,7 +332,7 @@ internal object SecurityGroupHandlerTests : JUnit5Minutests {
               .and {
                 securityGroup.inboundRules.first().also { rule ->
                   get("type").isEqualTo(rule.protocol.name)
-                  get("cidr").isEqualTo((rule as CidrSecurityGroupRule).blockRange)
+                  get("cidr").isEqualTo((rule as CidrRule).blockRange)
                   get("startPort").isEqualTo(rule.portRange.startPort)
                   get("endPort").isEqualTo(rule.portRange.endPort)
                 }

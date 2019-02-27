@@ -18,12 +18,14 @@ package com.netflix.spinnaker.keel.ec2.resource
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
-import com.netflix.spinnaker.keel.api.ec2.CidrSecurityGroupRule
+import com.netflix.spinnaker.keel.api.ec2.CidrRule
+import com.netflix.spinnaker.keel.api.ec2.CrossAccountReferenceRule
 import com.netflix.spinnaker.keel.api.ec2.PortRange
-import com.netflix.spinnaker.keel.api.ec2.ReferenceSecurityGroupRule
+import com.netflix.spinnaker.keel.api.ec2.ReferenceRule
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroup
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupRule
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupRule.Protocol
+import com.netflix.spinnaker.keel.api.ec2.SelfReferenceRule
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
@@ -140,24 +142,36 @@ class SecurityGroupHandler(
               response.inboundRules.flatMap { rule ->
                 val ingressGroup = rule.securityGroup
                 val ingressRange = rule.range
+                val protocol = Protocol.valueOf(rule.protocol!!.toUpperCase())
                 when {
-                  ingressGroup != null -> rule.portRanges?.map { portRange ->
-                    ReferenceSecurityGroupRule(
-                      Protocol.valueOf(rule.protocol!!.toUpperCase()),
-                      if (ingressGroup.name != response.name || ingressGroup.accountName != response.accountName) ingressGroup.name else null,
-                      if (ingressGroup.accountName != response.accountName) ingressGroup.accountName else null,
-                      if (ingressGroup.vpcId != response.vpcId) cloudDriverCache.networkBy(ingressGroup.vpcId!!).name else null,
-                      portRange.let {
-                        PortRange(it.startPort!!, it.endPort!!)
-                      }
-                    )
+                  ingressGroup != null -> rule.portRanges
+                    ?.map { PortRange(it.startPort!!, it.endPort!!) }
+                    ?.map { portRange ->
+                    when {
+                      ingressGroup.accountName != response.accountName || ingressGroup.vpcId != response.vpcId -> CrossAccountReferenceRule(
+                        protocol,
+                        ingressGroup.name,
+                        ingressGroup.accountName!!,
+                        cloudDriverCache.networkBy(ingressGroup.vpcId!!).name!!,
+                        portRange
+                      )
+                      ingressGroup.name != response.name -> ReferenceRule(
+                        protocol,
+                        ingressGroup.name,
+                        portRange
+                      )
+                      else -> SelfReferenceRule(
+                        protocol,
+                        portRange
+                      )
+                    }
                   } ?: emptyList()
-                  ingressRange != null -> rule.portRanges?.map { portRange ->
-                    CidrSecurityGroupRule(
-                      Protocol.valueOf(rule.protocol!!.toUpperCase()),
-                      portRange.let {
-                        PortRange(it.startPort!!, it.endPort!!)
-                      },
+                  ingressRange != null -> rule.portRanges
+                    ?.map { PortRange(it.startPort!!, it.endPort!!) }
+                    ?.map { portRange ->
+                    CidrRule(
+                      protocol,
+                      portRange,
                       ingressRange.ip + ingressRange.cidr
                     )
                   } ?: emptyList()
@@ -177,33 +191,37 @@ class SecurityGroupHandler(
 
   private fun SecurityGroupRule.referenceRuleToJob(spec: SecurityGroup): Map<String, Any?>? =
     when (this) {
-      is ReferenceSecurityGroupRule -> mapOf(
+      is ReferenceRule -> mapOf(
         "type" to protocol.name.toLowerCase(),
         "startPort" to portRange.startPort,
         "endPort" to portRange.endPort,
-        "name" to (name ?: spec.name)
+        "name" to name
       )
-        .let {
-          if (account != null && vpcName != null) {
-            it + mapOf(
-              "accountName" to account,
-              "crossAccountEnabled" to true,
-              "vpcId" to cloudDriverCache.networkBy(
-                vpcName,
-                account,
-                spec.region
-              ).id
-            )
-          } else {
-            it
-          }
-        }
+      is SelfReferenceRule -> mapOf(
+        "type" to protocol.name.toLowerCase(),
+        "startPort" to portRange.startPort,
+        "endPort" to portRange.endPort,
+        "name" to spec.name
+      )
+      is CrossAccountReferenceRule -> mapOf(
+        "type" to protocol.name.toLowerCase(),
+        "startPort" to portRange.startPort,
+        "endPort" to portRange.endPort,
+        "name" to name,
+        "accountName" to account,
+        "crossAccountEnabled" to true,
+        "vpcId" to cloudDriverCache.networkBy(
+          vpcName,
+          account,
+          spec.region
+        ).id
+      )
       else -> null
     }
 
   private fun SecurityGroupRule.cidrRuleToJob(): Map<String, Any?>? =
     when (this) {
-      is CidrSecurityGroupRule -> portRange.let { ports ->
+      is CidrRule -> portRange.let { ports ->
         mapOf<String, Any?>(
           "type" to protocol.name,
           "startPort" to ports.startPort,

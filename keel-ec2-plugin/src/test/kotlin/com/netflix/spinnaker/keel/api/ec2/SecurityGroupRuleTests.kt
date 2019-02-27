@@ -25,13 +25,13 @@ internal object SecurityGroupRuleTests : JUnit5Minutests {
       fixture {
         Fixture(
           yaml = """
-            |--- !<Reference>
+            |--- !<self-ref>
             |protocol: "TCP"
             |portRange:
             |  startPort: 8080
             |  endPort: 8080
             |""".trimMargin(),
-          model = ReferenceSecurityGroupRule(
+          model = SelfReferenceRule(
             protocol = TCP,
             portRange = PortRange(8080, 8080)
           )
@@ -46,14 +46,14 @@ internal object SecurityGroupRuleTests : JUnit5Minutests {
       fixture {
         Fixture(
           yaml = """
-            |--- !<Reference>
+            |--- !<ref>
             |protocol: "TCP"
             |name: "fnord"
             |portRange:
             |  startPort: 8080
             |  endPort: 8080
             |""".trimMargin(),
-          model = ReferenceSecurityGroupRule(
+          model = ReferenceRule(
             protocol = TCP,
             name = "fnord",
             portRange = PortRange(8080, 8080)
@@ -69,7 +69,7 @@ internal object SecurityGroupRuleTests : JUnit5Minutests {
       fixture {
         Fixture(
           yaml = """
-            |--- !<Reference>
+            |--- !<x-account-ref>
             |protocol: "TCP"
             |name: "fnord"
             |account: "prod"
@@ -78,7 +78,7 @@ internal object SecurityGroupRuleTests : JUnit5Minutests {
             |  startPort: 8080
             |  endPort: 8080
             |""".trimMargin(),
-          model = ReferenceSecurityGroupRule(
+          model = CrossAccountReferenceRule(
             protocol = TCP,
             account = "prod",
             vpcName = "vpc0",
@@ -96,14 +96,14 @@ internal object SecurityGroupRuleTests : JUnit5Minutests {
       fixture {
         Fixture(
           yaml = """
-            |--- !<Cidr>
+            |--- !<CIDR>
             |protocol: "TCP"
             |portRange:
             |  startPort: 8080
             |  endPort: 8080
             |blockRange: "172.16.0.0/24"
             |""".trimMargin(),
-          model = CidrSecurityGroupRule(
+          model = CidrRule(
             protocol = TCP,
             blockRange = "172.16.0.0/24",
             portRange = PortRange(8080, 8080)

@@ -25,8 +25,8 @@ internal object SecurityGroupTests : JUnit5Minutests {
         vpcName = "vpc0",
         description = "I can see the fnords",
         inboundRules = setOf(
-          ReferenceSecurityGroupRule(TCP, "fnord-ext", "prod", "vpc0", PortRange(7001, 7002)),
-          CidrSecurityGroupRule(TCP, PortRange(443, 443), "127.0.0.1/16")
+          SelfReferenceRule(TCP, PortRange(7001, 7002)),
+          CidrRule(TCP, PortRange(443, 443), "127.0.0.1/16")
         )
       )
     }
@@ -66,7 +66,7 @@ internal object SecurityGroupTests : JUnit5Minutests {
           this,
           copy(inboundRules = inboundRules.map {
             when (it) {
-              is ReferenceSecurityGroupRule -> it.copy(name = "fnord-int")
+              is SelfReferenceRule -> it.copy(portRange = PortRange(8080, 8083))
               else -> it
             }
           }
@@ -112,7 +112,7 @@ internal object SecurityGroupTests : JUnit5Minutests {
           this,
           copy(
             inboundRules = inboundRules
-              .plus(ReferenceSecurityGroupRule(TCP, "fnord-int", "prod", "vpc0", PortRange(7001, 7002)))
+              .plus(ReferenceRule(TCP, "fnord-int", PortRange(7001, 7002)))
               .toSet()
           )
         )
@@ -137,7 +137,7 @@ internal object SecurityGroupTests : JUnit5Minutests {
           this,
           copy(
             inboundRules = inboundRules
-              .plus(ReferenceSecurityGroupRule(TCP, this, PortRange(80, 80)))
+              .plus(ReferenceRule(TCP, this, PortRange(80, 80)))
               .toSet()
           )
         )

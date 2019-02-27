@@ -25,8 +25,10 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo.Id
 
 @JsonTypeInfo(use = Id.NAME, include = As.PROPERTY, property = "type")
 @JsonSubTypes(
-  Type(value = ReferenceSecurityGroupRule::class, name = "Reference"),
-  Type(value = CidrSecurityGroupRule::class, name = "Cidr")
+  Type(value = SelfReferenceRule::class, name = "self-ref"),
+  Type(value = ReferenceRule::class, name = "ref"),
+  Type(value = CrossAccountReferenceRule::class, name = "x-account-ref"),
+  Type(value = CidrRule::class, name = "CIDR")
 )
 @JsonInclude(NON_NULL)
 sealed class SecurityGroupRule {
@@ -38,23 +40,40 @@ sealed class SecurityGroupRule {
   }
 }
 
-data class ReferenceSecurityGroupRule(
+data class SelfReferenceRule(
   override val protocol: Protocol,
-  val name: String? = null,
-  val account: String? = null,
-  val vpcName: String? = null,
+  override val portRange: PortRange
+) : SecurityGroupRule()
+
+data class ReferenceRule(
+  override val protocol: Protocol,
+  val name: String,
+  override val portRange: PortRange
+) : SecurityGroupRule() {
+  constructor(protocol: Protocol, reference: SecurityGroup, portRange: PortRange) : this(
+    protocol = protocol,
+    name = reference.name,
+    portRange = portRange
+  )
+}
+
+data class CrossAccountReferenceRule(
+  override val protocol: Protocol,
+  val name: String,
+  val account: String,
+  val vpcName: String,
   override val portRange: PortRange
 ) : SecurityGroupRule() {
   constructor(protocol: Protocol, reference: SecurityGroup, portRange: PortRange) : this(
     protocol = protocol,
     name = reference.name,
     account = reference.accountName,
-    vpcName = reference.vpcName,
+    vpcName = reference.vpcName!!,
     portRange = portRange
   )
 }
 
-data class CidrSecurityGroupRule(
+data class CidrRule(
   override val protocol: Protocol,
   override val portRange: PortRange,
   val blockRange: String
