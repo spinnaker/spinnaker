@@ -55,8 +55,8 @@ public interface DeployStagePreProcessor {
   }
 
   class StageDefinition {
-    String name;
-    StageDefinitionBuilder stageDefinitionBuilder;
-    Map context;
+    public String name;
+    public StageDefinitionBuilder stageDefinitionBuilder;
+    public Map context;
   }
 }
