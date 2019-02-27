@@ -5,6 +5,7 @@ import com.netflix.spinnaker.echo.services.KeelService;
 import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import retrofit.Endpoint;
@@ -14,6 +15,7 @@ import retrofit.RestAdapter.LogLevel;
 
 @Configuration
 @Slf4j
+@ConditionalOnExpression("${keel.enabled:false}")
 public class KeelConfig {
   @Bean
   public LogLevel retrofitLogLevel(@Value("${retrofit.logLevel:BASIC}") String retrofitLogLevel) {
