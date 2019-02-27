@@ -149,23 +149,23 @@ class PipelineController {
     }
   }
 
-  @ApiOperation(value = "Cancel a pipeline execution", response = HashMap.class)
+  @ApiOperation(value = "Cancel a pipeline execution")
   @RequestMapping(value = "{id}/cancel", method = RequestMethod.PUT)
-  Map cancelPipeline(@PathVariable("id") String id,
+  void cancelPipeline(@PathVariable("id") String id,
                      @RequestParam(required = false) String reason,
                      @RequestParam(defaultValue = "false") boolean force) {
     pipelineService.cancelPipeline(id, reason, force)
   }
 
-  @ApiOperation(value = "Pause a pipeline execution", response = HashMap.class)
+  @ApiOperation(value = "Pause a pipeline execution")
   @RequestMapping(value = "{id}/pause", method = RequestMethod.PUT)
-  Map pausePipeline(@PathVariable("id") String id) {
+  void pausePipeline(@PathVariable("id") String id) {
     pipelineService.pausePipeline(id)
   }
 
   @ApiOperation(value = "Resume a pipeline execution", response = HashMap.class)
   @RequestMapping(value = "{id}/resume", method = RequestMethod.PUT)
-  Map resumePipeline(@PathVariable("id") String id) {
+  void resumePipeline(@PathVariable("id") String id) {
     pipelineService.resumePipeline(id)
   }
 

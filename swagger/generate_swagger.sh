@@ -15,11 +15,10 @@
 
 ## NOTE: This script is expected to be run from the root 'gate' directory
 
-# Turn on conditional guards so we document optional features disabled by default
-ENABLE_FEATURES="--args='--services.kayenta.enabled=true'"
-
 rm -f swagger/swagger.json
-./gradlew clean && ./gradlew gate-web:test --tests *GenerateSwagger* $ENABLE_FEATURES
+# Runs GenerateSwagger.groovy Spock Spec to generate the swagger spec.
+# This Spec enables optional but standard features to document the full API.
+./gradlew clean && ./gradlew gate-web:test --tests *GenerateSwagger*
 touch swagger/swagger.json
 cat gate-web/swagger.json | json_pp > swagger/swagger.json
 rm gate-web/swagger.json

@@ -7,6 +7,7 @@ import groovy.util.logging.Slf4j
 import org.apache.commons.io.FileUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.ContextConfiguration
+import org.springframework.test.context.TestPropertySource
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
@@ -22,6 +23,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
   classes = [Main],
   initializers = YamlFileApplicationContextInitializer
 )
+@TestPropertySource(properties = "services.kayenta.enabled=true") // Enable Controllers we want to document in the spec here.
 class GenerateSwagger extends Specification {
 
   @Autowired
