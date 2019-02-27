@@ -38,6 +38,7 @@ export * from './IManifest';
 export * from './IOrchestratedItem';
 
 export * from './IPipeline';
+export * from './IPipelineTemplateV2';
 export * from './IProject';
 export * from './IPubsubSubscription';
 

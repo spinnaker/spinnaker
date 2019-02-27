@@ -13,7 +13,8 @@ import { PipelineConfigValidator } from './validation/PipelineConfigValidator';
 import { EXECUTION_BUILD_TITLE } from '../executionBuild/ExecutionBuildTitle';
 import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
 import { ExecutionsTransformer } from 'core/pipeline/service/ExecutionsTransformer';
-import { EditPipelineJsonModal } from 'core/pipeline/config/actions/json/EditPipelineJsonModal';
+import { EditPipelineJsonModal } from 'core/pipeline/config/actions/pipelineJson/EditPipelineJsonModal';
+import { ShowPipelineTemplateJsonModal } from 'core/pipeline/config/actions/templateJson/ShowPipelineTemplateJsonModal';
 
 module.exports = angular
   .module('spinnaker.core.pipeline.config.pipelineConfigurer', [OVERRIDE_REGISTRY, EXECUTION_BUILD_TITLE])
@@ -209,6 +210,15 @@ module.exports = angular
           })
           .result.then(() => disableToggled(false))
           .catch(() => {});
+      };
+
+      this.exportPipelineTemplate = () => {
+        const modalProps = { dialogClassName: 'modal-lg modal-fullscreen' };
+        ReactModal.show(
+          ShowPipelineTemplateJsonModal,
+          { ownerEmail: _.get($scope, 'application.attributes.email', ''), pipeline: $scope.pipeline },
+          modalProps,
+        );
       };
 
       // Disabling a pipeline also just toggles the disabled flag - it does not save any pending changes

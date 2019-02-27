@@ -1,11 +1,11 @@
 import * as React from 'react';
-import { cloneDeepWith } from 'lodash';
 
 import 'brace/mode/json';
 
 import { IPipeline, IStage } from 'core/domain';
 import { JsonUtils, noop } from 'core/utils';
 import { IModalComponentProps, JsonEditor } from 'core/presentation';
+import { PipelineJSONService } from 'core/pipeline/config/services/pipelineJSON.service';
 
 export interface IEditPipelineJsonModalProps extends IModalComponentProps {
   pipeline: IPipeline;
@@ -29,16 +29,13 @@ export class EditPipelineJsonModal extends React.Component<IEditPipelineJsonModa
     dismissModal: noop,
   };
 
-  // these fields are not user-editable, so we hide them
-  private immutableFields = ['name', 'application', 'index', 'id', '$$hashKey'];
-
   constructor(props: IEditPipelineJsonModalProps) {
     super(props);
 
-    const copy = this.clone(props.pipeline);
+    const copy = PipelineJSONService.clone(props.pipeline);
     let copyPlan: IPipeline;
     if (props.plan) {
-      copyPlan = this.clone(props.plan);
+      copyPlan = PipelineJSONService.clone(props.plan);
     }
 
     this.state = {
@@ -52,7 +49,7 @@ export class EditPipelineJsonModal extends React.Component<IEditPipelineJsonModa
 
   private removeImmutableFields(pipeline: IPipeline): void {
     // no index signature on pipeline
-    this.immutableFields.forEach(k => delete (pipeline as any)[k]);
+    PipelineJSONService.immutableFields.forEach(k => delete (pipeline as any)[k]);
   }
 
   private validatePipeline(pipeline: IPipeline): void {
@@ -85,7 +82,7 @@ export class EditPipelineJsonModal extends React.Component<IEditPipelineJsonModa
       this.validatePipeline(parsed);
 
       Object.keys(pipeline)
-        .filter(k => !this.immutableFields.includes(k) && !parsed.hasOwnProperty(k))
+        .filter(k => !PipelineJSONService.immutableFields.has(k) && !parsed.hasOwnProperty(k))
         .forEach(k => delete (pipeline as any)[k]);
       this.removeImmutableFields(parsed);
       Object.assign(pipeline, parsed);
@@ -95,17 +92,6 @@ export class EditPipelineJsonModal extends React.Component<IEditPipelineJsonModa
       this.setState({ errorMessage: e.message });
     }
   };
-
-  private clone(pipeline: IPipeline): IPipeline {
-    const copy = cloneDeepWith<IPipeline>(pipeline, (value: any) => {
-      if (value && value.$$hashKey) {
-        delete value.$$hashKey;
-      }
-      return undefined; // required for clone operation and typescript happiness
-    });
-    this.removeImmutableFields(copy);
-    return copy;
-  }
 
   private setActiveTab(activeTab: mode) {
     this.setState({ activeTab });

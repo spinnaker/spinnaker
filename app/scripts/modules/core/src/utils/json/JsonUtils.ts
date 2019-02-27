@@ -37,7 +37,7 @@ export class JsonUtils {
     return diffs;
   }
 
-  private static sortObject(o: any): any {
+  public static sortObject(o: any): any {
     if (!o || isNumber(o) || isString(o)) {
       return o;
     }
@@ -64,8 +64,8 @@ export class JsonUtils {
     return this.makeStringFromObject(this.sortObject(obj));
   }
 
-  public static makeStringFromObject(obj: any): string {
-    return JSON.stringify(obj, null, 2);
+  public static makeStringFromObject(obj: any, space = 2): string {
+    return JSON.stringify(obj, null, space);
   }
 
   public static makeSortedStringFromAngularObject(obj: any, omit: string[] = []): string {

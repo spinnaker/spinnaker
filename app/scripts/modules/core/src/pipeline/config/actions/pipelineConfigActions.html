@@ -25,5 +25,8 @@
       <a href ng-click="pipelineConfigurerCtrl.showHistory()">Show Revision History</a>
     </li>
     <li ng-if="!viewState.loadingHistory && !viewState.hasHistory"><a class="disabled">No version history found</a></li>
+    <render-if-feature feature="managedPipelineTemplatesV2UI">
+      <li><a href ng-click="pipelineConfigurerCtrl.exportPipelineTemplate()">Export as Pipeline Template</a></li>
+    </render-if-feature>
   </ul>
 </div>
