@@ -259,19 +259,18 @@ class CatsSearchProvider implements SearchProvider, Runnable {
             return true
           }
 
-          if (keyParsers) {
-            KeyParser parser = keyParsers.find { it.cloudProvider == filters.cloudProvider && it.canParseType(cache) }
-            if (parser) {
-              Map<String, String> parsed = parser.parseKey(key)
-              return filters.entrySet().every { filter ->
-                String[] vals = filter.value.split(',')
-                filter.key == 'cloudProvider' || parsed &&
-                  ((parsed.containsKey(filter.key) && vals.contains(parsed[filter.key])) ||
+          KeyParser parser = keyParsers?.find { it.cloudProvider == filters.cloudProvider && it.canParseType(cache) }
+          if (parser) {
+            Map<String, String> parsed = parser.parseKey(key)
+            return filters.entrySet().every { filter ->
+              String[] vals = filter.value.split(',')
+              filter.key == 'cloudProvider' || parsed &&
+                ((parsed.containsKey(filter.key) && vals.contains(parsed[filter.key])) ||
                   (parsed.containsKey(parser.getNameMapping(cache)) && vals.contains(parsed[parser.getNameMapping(cache)])))
-              }
-            } else {
-              log.warn("No parser found for $cache:$key")
             }
+          } else {
+            log.debug("No parser found for $cache:$key")
+            return true
           }
         } catch (Exception e) {
           log.warn("Failed on $cache:$key", e)
