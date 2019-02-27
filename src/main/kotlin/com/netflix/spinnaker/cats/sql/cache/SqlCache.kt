@@ -73,6 +73,8 @@ class SqlCache(
       return
     }
 
+    log.info("evicting ${ids.size} $type records")
+
     var deletedCount = 0
     var opCount = 0
     try {

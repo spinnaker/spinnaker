@@ -262,11 +262,12 @@ class SqlProviderCache(private val backingStore: WriteableCache) : ProviderCache
     }
 
     // OnDemand agents are always updated incrementally and should not trigger auto-cleanup at the WriteableCache layer
-    val cleanupOverride = if (agent.contains(ON_DEMAND.ns, ignoreCase = true)) {
-      false
-    } else {
-      cleanup
-    }
+    val cleanupOverride =
+      if (agent.contains(ON_DEMAND.ns, ignoreCase = true) || type.contains(ON_DEMAND.ns, ignoreCase = true)) {
+        false
+      } else {
+        cleanup
+      }
 
     (backingStore as SqlCache).mergeAll(type, agent, toStore, authoritative, cleanupOverride)
   }
