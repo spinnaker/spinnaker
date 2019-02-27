@@ -90,7 +90,7 @@ export class SubnetSelectInput extends React.Component<ISubnetSelectInputProps, 
   public applyDefaultSubnet() {
     const { value, onChange, subnets } = this.props;
     const defaultSubnetType = get(SETTINGS, 'providers.aws.defaults.subnetType');
-    const defaultSubnet = subnets.find(subnet => defaultSubnetType === subnet.purpose);
+    const defaultSubnet = subnets.find(subnet => defaultSubnetType === subnet.purpose) || subnets[0];
     if (!value && defaultSubnet) {
       onChange(createFakeReactSyntheticEvent({ name, value: defaultSubnet.purpose }));
     }

@@ -380,7 +380,9 @@ export class LoadBalancerLocation extends React.Component<ILoadBalancerLocationP
                     <Field
                       name="isInternal"
                       onChange={this.internalFlagChanged}
-                      render={({ field }: FieldProps) => <input type="checkbox" checked={!!field.value} />}
+                      render={({ field: { value, ...field } }: FieldProps) => (
+                        <input type="checkbox" {...field} checked={!!value} />
+                      )}
                     />
                     Create an internal load balancer
                   </label>
