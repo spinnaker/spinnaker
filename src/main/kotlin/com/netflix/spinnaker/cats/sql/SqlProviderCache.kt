@@ -9,6 +9,7 @@ import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.cats.sql.cache.SqlCache
 import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.*
 import org.slf4j.LoggerFactory
+import org.slf4j.MDC
 import kotlin.contracts.ExperimentalContracts
 
 @ExperimentalContracts
@@ -104,6 +105,8 @@ class SqlProviderCache(private val backingStore: WriteableCache) : ProviderCache
   }
 
   override fun evictDeletedItems(type: String, ids: Collection<String>) {
+    MDC.put("agentClass", "evictDeletedItems")
+
     backingStore.evictAll(type, ids)
   }
 
@@ -121,6 +124,8 @@ class SqlProviderCache(private val backingStore: WriteableCache) : ProviderCache
   override fun putCacheResult(source: String,
                               authoritativeTypes: MutableCollection<String>,
                               cacheResult: CacheResult) {
+    MDC.put("agentClass", "$source putCacheResult")
+
     // TODO every source type should have an authoritative agent and every agent should be authoritative for something
     // TODO terrible hack because no AWS agent is authoritative for clusters, fix in ClusterCachingAgent
     // TODO same with namedImages - fix in AWS ImageCachingAgent
@@ -168,7 +173,7 @@ class SqlProviderCache(private val backingStore: WriteableCache) : ProviderCache
           authoritativeTypes.contains(it.key)
         }
         .forEach {
-          cacheDataType(it.key, source, it.value, true)
+          cacheDataType(it.key, source, it.value, authoritative = true)
           cachedTypes.add(it.key)
         }
       else -> // If there are no authoritative types in cacheResult, override all as authoritative without cleanup
@@ -186,7 +191,7 @@ class SqlProviderCache(private val backingStore: WriteableCache) : ProviderCache
           !cachedTypes.contains(it.key)
         }
         .forEach {
-          cacheDataType(it.key, source, it.value, false)
+          cacheDataType(it.key, source, it.value, authoritative = false)
         }
     }
 
@@ -200,6 +205,8 @@ class SqlProviderCache(private val backingStore: WriteableCache) : ProviderCache
   override fun addCacheResult(source: String,
                               authoritativeTypes: MutableCollection<String>,
                               cacheResult: CacheResult): Unit {
+    MDC.put("agentClass", "$source putCacheResult")
+
     val cachedTypes = mutableSetOf<String>()
 
     if (authoritativeTypes.isNotEmpty()) {
@@ -221,6 +228,7 @@ class SqlProviderCache(private val backingStore: WriteableCache) : ProviderCache
   }
 
   override fun putCacheData(type: String, cacheData: CacheData) {
+    MDC.put("agentClass", "putCacheData")
     backingStore.merge(type, cacheData)
   }
 
@@ -240,7 +248,7 @@ class SqlProviderCache(private val backingStore: WriteableCache) : ProviderCache
   }
 
   private fun cacheDataType(type: String, agent: String, items: Collection<CacheData>, authoritative: Boolean) {
-    cacheDataType(type, agent, items, authoritative, true)
+    cacheDataType(type, agent, items, authoritative, cleanup = true)
   }
 
   private fun cacheDataType(type: String,
