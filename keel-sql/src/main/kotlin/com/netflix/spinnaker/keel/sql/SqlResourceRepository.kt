@@ -70,7 +70,7 @@ class SqlResourceRepository(
 
   override fun store(resource: Resource<*>) {
     jooq.inTransaction {
-      val uid = resource.metadata.uid.toString()
+      val uid = resource.metadata.uid?.toString()
       val updatePairs = mapOf(
         field("api_version") to resource.apiVersion.toString(),
         field("kind") to resource.kind,
