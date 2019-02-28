@@ -1,0 +1,8 @@
+spinnaker:
+  baseUrl: 'http://localhost:9000'
+
+front50:
+  baseUrl: 'http://localhost:8080'
+
+orca:
+  baseUrl: 'http://localhost:8083'
