@@ -29,6 +29,8 @@ import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.times
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyZeroInteractions
+import de.huxhorn.sulky.ulid.ULID
+import dev.minutest.RootContextBuilder
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import strikt.api.expectThat
@@ -46,6 +48,8 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
 
   abstract fun factory(clock: Clock): T
 
+  private val ulid = ULID()
+
   open fun flush() {}
 
   data class Fixture<T : ResourceRepository>(
@@ -53,7 +57,7 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
     val callback: (Triple<ResourceName, ApiVersion, String>) -> Unit
   )
 
-  fun tests() = rootContext<Fixture<T>> {
+  fun tests(): RootContextBuilder<Fixture<T>> = rootContext {
 
     fixture {
       val clock = Clock.systemDefaultZone()
@@ -80,7 +84,7 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
         metadata = ResourceMetadata(
           name = ResourceName("SecurityGroup:ec2:test:us-west-2:fnord"),
           resourceVersion = 1234L,
-          uid = randomUUID()
+          uid = ulid.nextValue()
         ),
         kind = "ec2:SecurityGroup",
         spec = randomData()
@@ -117,7 +121,7 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
           metadata = ResourceMetadata(
             name = ResourceName("SecurityGroup:ec2:test:us-east-1:fnord"),
             resourceVersion = 1234L,
-            uid = randomUUID()
+            uid = ulid.nextValue()
           ),
           apiVersion = SPINNAKER_API_V1,
           kind = "ec2:SecurityGroup",

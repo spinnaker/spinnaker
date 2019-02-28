@@ -1,9 +1,8 @@
 package com.netflix.spinnaker.keel.api.ec2
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
+import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import strikt.api.expectThat
@@ -12,7 +11,7 @@ import java.time.Duration
 
 internal object ClusterTests : JUnit5Minutests {
   data class Fixture(
-    val mapper: ObjectMapper = YAMLMapper().registerKotlinModule(),
+    val mapper: ObjectMapper = configuredYamlMapper(),
     val yaml: String
   )
 

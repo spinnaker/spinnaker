@@ -1,8 +1,7 @@
 package com.netflix.spinnaker.keel.redis
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.netflix.spinnaker.keel.persistence.ResourceRepositoryTests
+import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
 import org.junit.jupiter.api.AfterAll
@@ -13,7 +12,7 @@ internal object RedisResourceRepositoryTests : ResourceRepositoryTests<RedisReso
 
   override fun factory(clock: Clock) = RedisResourceRepository(
     redisClient,
-    ObjectMapper().registerKotlinModule(),
+    configuredObjectMapper(),
     clock
   )
 

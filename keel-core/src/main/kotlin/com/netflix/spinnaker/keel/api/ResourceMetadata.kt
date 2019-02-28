@@ -18,12 +18,12 @@ package com.netflix.spinnaker.keel.api
 import com.fasterxml.jackson.annotation.JsonAnyGetter
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
-import java.util.*
+import de.huxhorn.sulky.ulid.ULID
 
 data class ResourceMetadata(
   val name: ResourceName,
   @JsonProperty(defaultValue = "0") val resourceVersion: Long? = null,
-  val uid: UUID? = null,
+  val uid: ULID.Value? = null,
   @get:JsonAnyGetter val data: Map<String, Any?> = emptyMap()
 ) {
   // Workaround for the inline class ResourceName. Jackson can't deserialize it
@@ -32,7 +32,7 @@ data class ResourceMetadata(
   constructor(data: Map<String, Any?>) : this(
     ResourceName(data.getValue("name").toString()),
     data["resourceVersion"]?.toString()?.toLong(),
-    data["uid"]?.toString()?.let(UUID::fromString),
+    data["uid"]?.toString()?.let(ULID::parseULID),
     data - "name" - "resourceVersion" - "uid"
   )
 

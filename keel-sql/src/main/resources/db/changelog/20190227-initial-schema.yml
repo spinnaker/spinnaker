@@ -8,7 +8,7 @@ databaseChangeLog:
             columns:
               - column:
                   name: uid
-                  type: char(36)
+                  type: char(26)
                   constraints:
                     primaryKey: true
                     nullable: false

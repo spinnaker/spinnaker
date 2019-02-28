@@ -15,20 +15,14 @@
  */
 package com.netflix.spinnaker.keel
 
-import com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS
-import com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_WITH_ZONE_ID
-import com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATE_KEYS_AS_TIMESTAMPS
-import com.fasterxml.jackson.datatype.joda.JodaModule
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.ResourceVersionTracker
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceVersionTracker
 import com.netflix.spinnaker.keel.plugin.KeelPlugin
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
+import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.kork.PlatformComponents
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -37,9 +31,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
-import java.text.SimpleDateFormat
 import java.time.Clock
-import java.util.*
 import javax.annotation.PostConstruct
 
 private val DEFAULT_PROPS = mapOf(
@@ -68,20 +60,7 @@ class KeelApplication {
   fun clock(): Clock = Clock.systemDefaultZone()
 
   @Bean
-//  @ConditionalOnMissingBean
-  fun objectMapper(): ObjectMapper =
-    jacksonObjectMapper()
-      .registerModule(JavaTimeModule())
-      .registerModule(JodaModule())
-      .enable(WRITE_DATES_AS_TIMESTAMPS)
-      .enable(WRITE_DATES_WITH_ZONE_ID)
-      .enable(WRITE_DATE_KEYS_AS_TIMESTAMPS)
-      .disable(FAIL_ON_UNKNOWN_PROPERTIES)
-      .apply {
-        dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZZ").apply {
-          timeZone = TimeZone.getDefault()
-        }
-      }
+  fun objectMapper(): ObjectMapper = configuredObjectMapper()
 
   @Bean
   @ConditionalOnMissingBean

@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.keel.persistence.memory
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceName
@@ -23,6 +22,7 @@ import com.netflix.spinnaker.keel.persistence.NoSuchResourceException
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.ResourceState
 import com.netflix.spinnaker.keel.persistence.ResourceState.Unknown
+import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import java.time.Clock
 import java.time.Instant
 
@@ -38,7 +38,7 @@ class InMemoryResourceRepository(
     }
   }
 
-  private val mapper by lazy { jacksonObjectMapper() }
+  private val mapper = configuredObjectMapper()
 
   @Suppress("UNCHECKED_CAST")
   override fun <T : Any> get(name: ResourceName, specType: Class<T>): Resource<T> =

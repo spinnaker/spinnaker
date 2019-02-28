@@ -40,6 +40,7 @@ import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
+import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.argumentCaptor
 import com.nhaarman.mockito_kotlin.doAnswer
@@ -49,6 +50,7 @@ import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.whenever
+import de.huxhorn.sulky.ulid.ULID
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import kotlinx.coroutines.CompletableDeferred
@@ -68,7 +70,8 @@ internal object SecurityGroupHandlerTests : JUnit5Minutests {
   val cloudDriverService: CloudDriverService = mock()
   val cloudDriverCache: CloudDriverCache = mock()
   val orcaService: OrcaService = mock()
-  val objectMapper = ObjectMapper().registerKotlinModule()
+  val objectMapper = configuredObjectMapper()
+  val idGenerator = ULID()
 
   interface Fixture {
     val vpc: Network
@@ -416,7 +419,7 @@ internal object SecurityGroupHandlerTests : JUnit5Minutests {
         name = with(securityGroup) {
           ResourceName("ec2.SecurityGroup:$application:$accountName:$region:$name")
         },
-        uid = randomUUID(),
+        uid = idGenerator.nextValue(),
         resourceVersion = 1234L
       ),
       kind = "ec2.SecurityGroup",

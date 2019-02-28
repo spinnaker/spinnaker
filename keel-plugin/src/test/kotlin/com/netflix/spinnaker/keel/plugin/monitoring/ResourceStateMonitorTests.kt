@@ -15,15 +15,16 @@ import com.nhaarman.mockito_kotlin.never
 import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.whenever
+import de.huxhorn.sulky.ulid.ULID
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
-import java.util.*
 
 internal object ResourceStateMonitorTests : JUnit5Minutests {
 
   val resourceRepository = InMemoryResourceRepository()
   val plugin1 = mock<ResourceHandler<DummyResource>>()
   val plugin2 = mock<ResourceHandler<DummyResource>>()
+  val idGenerator = ULID()
 
   fun tests() = rootContext<ResourceStateMonitor> {
 
@@ -50,7 +51,7 @@ internal object ResourceStateMonitorTests : JUnit5Minutests {
         metadata = ResourceMetadata(
           name = ResourceName("resource1"),
           resourceVersion = 1234L,
-          uid = UUID.randomUUID()
+          uid = idGenerator.nextValue()
         ),
         spec = DummyResource("whatever")
       )

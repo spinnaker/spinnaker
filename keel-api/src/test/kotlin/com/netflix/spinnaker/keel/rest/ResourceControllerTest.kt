@@ -17,6 +17,7 @@ import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.whenever
+import de.huxhorn.sulky.ulid.ULID
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -36,7 +37,6 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import strikt.api.expectThat
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
-import java.util.*
 
 @RunWith(SpringRunner::class)
 @SpringBootTest(
@@ -55,9 +55,10 @@ internal class ResourceControllerTest {
   @Autowired
   lateinit var resourceRepository: ResourceRepository
 
-  @Autowired
   @MockBean
   lateinit var resourcePersister: ResourcePersister
+
+  val idGenerator = ULID()
 
   var mockResource = Resource(
     apiVersion = ApiVersion("ec2.spinnaker.netflix.com/v1"),
@@ -141,7 +142,7 @@ internal class ResourceControllerTest {
       kind = "whatever",
       metadata = ResourceMetadata(
         name = ResourceName("my-resource"),
-        uid = UUID.randomUUID(),
+        uid = idGenerator.nextValue(),
         resourceVersion = 1234L
       ),
       spec = "some spec content"
@@ -170,7 +171,7 @@ internal class ResourceControllerTest {
       kind = "securityGroup",
       metadata = ResourceMetadata(
         name = ResourceName("my-resource"),
-        uid = UUID.randomUUID(),
+        uid = idGenerator.nextValue(),
         resourceVersion = 1234L
       ),
       spec = "some spec content"

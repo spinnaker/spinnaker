@@ -10,6 +10,7 @@ import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.ResourceState
 import com.netflix.spinnaker.keel.persistence.ResourceState.Unknown
 import com.netflix.spinnaker.keel.persistence.ResourceState.valueOf
+import de.huxhorn.sulky.ulid.ULID
 import org.jooq.DSLContext
 import org.jooq.exception.SQLDialectNotSupportedException
 import org.jooq.impl.DSL
@@ -20,7 +21,6 @@ import java.sql.ResultSet
 import java.sql.Timestamp
 import java.time.Clock
 import java.time.Instant
-import java.util.*
 
 class SqlResourceRepository(
   private val jooq: DSLContext,
@@ -184,8 +184,8 @@ class SqlResourceRepository(
     get() = getString("api_version").let(::ApiVersion)
   private val ResultSet.kind: String
     get() = getString("kind")
-  private val ResultSet.uid: UUID
-    get() = getString("uid").let(UUID::fromString)
+  private val ResultSet.uid: ULID.Value
+    get() = getString("uid").let(ULID::parseULID)
 
   private fun <T : Any> ResultSet.spec(type: Class<T>): T =
     objectMapper.readValue(getString("spec"), type)

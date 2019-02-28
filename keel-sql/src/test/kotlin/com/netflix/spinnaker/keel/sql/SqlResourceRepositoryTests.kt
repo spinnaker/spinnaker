@@ -1,8 +1,7 @@
 package com.netflix.spinnaker.keel.sql
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.netflix.spinnaker.keel.persistence.ResourceRepositoryTests
+import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import liquibase.Liquibase
@@ -27,7 +26,7 @@ internal object SqlResourceRepositoryTests : ResourceRepositoryTests<SqlResource
   override fun factory(clock: Clock): SqlResourceRepository {
     return SqlResourceRepository(
       context,
-      ObjectMapper().registerKotlinModule(),
+      configuredObjectMapper(),
       clock
     )
   }

@@ -39,6 +39,7 @@ import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.whenever
 import de.danielbechler.diff.ObjectDifferBuilder
+import de.huxhorn.sulky.ulid.ULID
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import kotlinx.coroutines.CompletableDeferred
@@ -81,12 +82,13 @@ internal object ClusterHandlerTests : JUnit5Minutests {
       securityGroupNames = setOf(sg1.name, sg2.name)
     )
   )
+  val ulid = ULID()
   val resource = Resource(
     SPINNAKER_API_V1,
     "cluster",
     ResourceMetadata(
       name = ResourceName("my-cluster"),
-      uid = UUID.randomUUID(),
+      uid = ulid.nextValue(),
       resourceVersion = 1234L
     ),
     spec

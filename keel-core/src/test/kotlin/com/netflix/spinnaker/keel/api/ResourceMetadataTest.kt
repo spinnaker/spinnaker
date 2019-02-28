@@ -1,19 +1,17 @@
 package com.netflix.spinnaker.keel.api
 
-import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
+import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
+import de.huxhorn.sulky.ulid.ULID
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import strikt.api.expectThat
 import strikt.assertions.hasEntry
 import strikt.assertions.isEqualTo
-import java.util.*
 
 internal object ResourceMetadataTest : JUnit5Minutests {
 
-  val mapper = YAMLMapper()
-    .registerKotlinModule()
+  val mapper = configuredYamlMapper()
 
   fun tests() = rootContext<Unit> {
     derivedContext<ResourceMetadata>("serialization") {
@@ -21,7 +19,7 @@ internal object ResourceMetadataTest : JUnit5Minutests {
         ResourceMetadata(
           ResourceName("my-new-cron-object"),
           285,
-          UUID.fromString("9423255b-4600-11e7-af6a-28d2447dc82b"),
+          ULID.parseULID("1423255B460011E7AF6A28D244"),
           mapOf(
             "clusterName" to "",
             "creationTimestamp" to "2017-05-31T12:56:35Z",
@@ -38,7 +36,7 @@ internal object ResourceMetadataTest : JUnit5Minutests {
           """---
           |name: "my-new-cron-object"
           |resourceVersion: 285
-          |uid: "9423255b-4600-11e7-af6a-28d2447dc82b"
+          |uid: "1423255B460011E7AF6A28D244"
           |clusterName: ""
           |creationTimestamp: "2017-05-31T12:56:35Z"
           |deletionGracePeriodSeconds: null
@@ -60,14 +58,14 @@ internal object ResourceMetadataTest : JUnit5Minutests {
         |namespace: default
         |resourceVersion: "285"
         |selfLink: /apis/stable.example.com/v1/namespaces/default/crontabs/my-new-cron-object
-        |uid: 9423255b-4600-11e7-af6a-28d2447dc82b
+        |uid: 1423255b460011e7af6a28d244
       """.trimMargin()
       }
 
       test("deserializes properties") {
         expectThat(mapper.readValue<ResourceMetadata>(this)) {
           get { name }.isEqualTo(ResourceName("my-new-cron-object"))
-          get { uid }.isEqualTo(UUID.fromString("9423255b-4600-11e7-af6a-28d2447dc82b"))
+          get { uid }.isEqualTo(ULID.parseULID("1423255B460011E7AF6A28D244"))
           get { resourceVersion }.isEqualTo(285L)
         }
       }
