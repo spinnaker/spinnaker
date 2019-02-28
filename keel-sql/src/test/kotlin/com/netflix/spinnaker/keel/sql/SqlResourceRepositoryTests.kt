@@ -64,7 +64,7 @@ internal object SqlResourceRepositoryTests : ResourceRepositoryTests<SqlResource
 
     try {
       Liquibase(
-        "db/changelog.yml",
+        "db/changelog-master.yml",
         ClassLoaderResourceAccessor(),
         DatabaseFactory
           .getInstance()

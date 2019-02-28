@@ -67,6 +67,17 @@ databaseChangeLog:
                   type: timestamp
                   constraints:
                     nullable: false
+        - modifySql:
+            dbms: mysql
+            append:
+              value: " engine innodb"
+      rollback:
+        - dropTable:
+            tableName: resource_state
+  - changeSet:
+      id: create-resource-state-indexes
+      author: fletch
+      changes:
         - createIndex:
             indexName: resource_state_name_timestamp_idx
             tableName: resource_state
@@ -75,13 +86,7 @@ databaseChangeLog:
                   name: name
               - column:
                   name: timestamp
-        - modifySql:
-            dbms: mysql
-            append:
-              value: " engine innodb"
       rollback:
-        - dropTable:
-            tableName: resource_state
         - dropIndex:
             indexName: resource_state_name_timestamp_idx
             tableName: resource_state
