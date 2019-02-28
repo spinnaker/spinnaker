@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { mount } from 'enzyme';
-import { Creatable, Option } from 'react-select';
+import Select, { Creatable, Option } from 'react-select';
 import { $q } from 'ngimport';
 import Spy = jasmine.Spy;
 
@@ -15,6 +15,8 @@ import {
 import { ManifestKindSearchService } from 'kubernetes/v2/manifest/ManifestKindSearch';
 import { ManifestSelector, IManifestSelectorState } from 'kubernetes/v2/manifest/selector/ManifestSelector';
 import { SelectorMode } from 'kubernetes/v2/manifest/selector/IManifestSelector';
+import LabelEditor from 'kubernetes/v2/manifest/selector/labelEditor/LabelEditor';
+import { IManifestLabelSelector } from 'kubernetes/v2/manifest/selector/IManifestLabelSelector';
 
 describe('<ManifestSelector />', () => {
   let searchService: Spy;
@@ -65,6 +67,43 @@ describe('<ManifestSelector />', () => {
         .find(Creatable)
         .first();
       expect((name.props().value as Option).value).toEqual('my-config-map');
+    });
+
+    it('renders kinds from input props', () => {
+      const wrapper = component({
+        account: 'my-account',
+        kinds: ['configMap', 'deployment'],
+        location: 'default',
+        mode: SelectorMode.Label,
+      });
+
+      const kinds = wrapper
+        .find({ label: 'Kinds' })
+        .find(Select)
+        .first();
+      expect(kinds.props().value).toEqual(['configMap', 'deployment']);
+    });
+
+    it('renders labels from input props', () => {
+      const labelSelectors: IManifestLabelSelector[] = [
+        {
+          key: 'label-key',
+          kind: 'EQUALS',
+          values: ['label-value'],
+        },
+      ];
+      const wrapper = component({
+        account: 'my-account',
+        kinds: ['configMap', 'deployment'],
+        labelSelectors: {
+          selectors: labelSelectors,
+        },
+        location: 'default',
+        mode: SelectorMode.Label,
+      });
+
+      const labelEditor = wrapper.find(LabelEditor);
+      expect(labelEditor.prop('labelSelectors')).toEqual(labelSelectors);
     });
 
     describe('cluster dropdown', () => {
@@ -319,6 +358,26 @@ describe('<ManifestSelector />', () => {
       expect(wrapper.state().selector.kind).toEqual('configMap');
     });
 
+    it('handles kind during static -> label mode transition', () => {
+      const wrapper = component(
+        {
+          manifestName: 'configMap my-config-map',
+          account: 'my-account',
+          location: 'default',
+        },
+        { modes: [SelectorMode.Dynamic, SelectorMode.Static, SelectorMode.Label] },
+      );
+
+      wrapper
+        .find({ id: 'label' })
+        .first()
+        .props()
+        .onChange();
+      expect(wrapper.state().selector.kind).toBeNull();
+      expect(wrapper.state().selector.kinds).toEqual([]);
+      expect(wrapper.state().selector.manifestName).toBeNull();
+    });
+
     it('handles kind during dynamic -> static mode transition', () => {
       const wrapper = component(
         {
@@ -337,6 +396,73 @@ describe('<ManifestSelector />', () => {
         .onChange();
       // `manifestName` is composed of `${kind} ${resourceName}`
       expect(wrapper.state().selector.manifestName).toEqual('configMap');
+    });
+
+    it('handles kind during dynamic -> label mode transition', () => {
+      const wrapper = component(
+        {
+          account: 'my-account',
+          location: 'default',
+          kind: 'configMap',
+          mode: SelectorMode.Dynamic,
+        },
+        { modes: [SelectorMode.Dynamic, SelectorMode.Static, SelectorMode.Label] },
+      );
+
+      wrapper
+        .find({ id: 'label' })
+        .first()
+        .props()
+        .onChange();
+      expect(wrapper.state().selector.kind).toBeNull();
+      expect(wrapper.state().selector.kinds).toEqual([]);
+      expect(wrapper.state().selector.manifestName).toBeNull();
+    });
+
+    it('handles kind during label -> static mode transition', () => {
+      const wrapper = component(
+        {
+          account: 'my-account',
+          location: 'default',
+          kinds: ['configMap'],
+          labelSelectors: {
+            selectors: [],
+          },
+          mode: SelectorMode.Label,
+        },
+        { modes: [SelectorMode.Dynamic, SelectorMode.Static, SelectorMode.Label] },
+      );
+
+      wrapper
+        .find({ id: 'static' })
+        .first()
+        .props()
+        .onChange();
+      expect(wrapper.state().selector.kind).toBeNull();
+      expect(wrapper.state().selector.kinds).toBeNull();
+    });
+
+    it('handles kind during label -> dynamic mode transition', () => {
+      const wrapper = component(
+        {
+          account: 'my-account',
+          location: 'default',
+          kinds: ['configMap'],
+          labelSelectors: {
+            selectors: [],
+          },
+          mode: SelectorMode.Label,
+        },
+        { modes: [SelectorMode.Dynamic, SelectorMode.Static, SelectorMode.Label] },
+      );
+
+      wrapper
+        .find({ id: 'dynamic' })
+        .first()
+        .props()
+        .onChange();
+      expect(wrapper.state().selector.kind).toBeNull();
+      expect(wrapper.state().selector.kinds).toBeNull();
     });
   });
 });

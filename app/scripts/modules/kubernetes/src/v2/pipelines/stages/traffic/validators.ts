@@ -10,14 +10,10 @@ export const trafficValidators = (stageName: string): IValidatorConfig[] => {
     {
       type: 'custom',
       validate: (_pipeline: IPipeline, stage: IManifestSelector & IStage) => {
-        const [kind] = (stage.manifestName || '').split(' ');
-        return !kind && !stage.kind ? required('Kind') : null;
-      },
-    } as ICustomValidator,
-    {
-      type: 'custom',
-      validate: (_pipeline: IPipeline, stage: IManifestSelector & IStage) => {
         if (stage.mode === SelectorMode.Dynamic) {
+          if (!stage.kind) {
+            return required('Kind');
+          }
           if (!stage.cluster) {
             return required('Cluster');
           }
@@ -25,9 +21,17 @@ export const trafficValidators = (stageName: string): IValidatorConfig[] => {
             return required('Target');
           }
         } else if (stage.mode === SelectorMode.Static) {
+          const [kind] = (stage.manifestName || '').split(' ');
+          if (!kind) {
+            return required('Kind');
+          }
           const [, name] = (stage.manifestName || '').split(' ');
           if (!name) {
             return required('Name');
+          }
+        } else if (stage.mode === SelectorMode.Label) {
+          if (!stage.kinds) {
+            return required('Kinds');
           }
         }
         return null;
