@@ -19,6 +19,8 @@ package com.netflix.spinnaker.orca.q.handler
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.orca.ExecutionStatus.*
 import com.netflix.spinnaker.orca.events.StageComplete
+import com.netflix.spinnaker.orca.exceptions.DefaultExceptionHandler
+import com.netflix.spinnaker.orca.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.fixture.pipeline
 import com.netflix.spinnaker.orca.fixture.stage
 import com.netflix.spinnaker.orca.fixture.task
@@ -46,14 +48,14 @@ import org.jetbrains.spek.api.dsl.*
 import org.jetbrains.spek.api.lifecycle.CachingMode.GROUP
 import org.jetbrains.spek.subject.SubjectSpek
 import org.springframework.context.ApplicationEventPublisher
-import java.time.Duration
-import java.time.Duration.*
+import java.time.Duration.ZERO
 
 object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
 
   val queue: Queue = mock()
   val repository: ExecutionRepository = mock()
   val publisher: ApplicationEventPublisher = mock()
+  val exceptionHandler: ExceptionHandler = DefaultExceptionHandler()
   val clock = fixedClock()
   val registry = NoopRegistry()
   val contextParameterProcessor: ContextParameterProcessor = mock()
@@ -105,6 +107,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
       repository,
       publisher,
       clock,
+      listOf(exceptionHandler),
       contextParameterProcessor,
       registry,
       DefaultStageDefinitionBuilderFactory(
@@ -429,6 +432,12 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
 
           it("makes the stage TERMINAL") {
             assertThat(pipeline.stageById(message.stageId).status).isEqualTo(TERMINAL)
+          }
+
+          it("correctly records exception") {
+            assertThat(pipeline.stageById(message.stageId).context).containsKey("exception")
+            val exceptionContext = pipeline.stageById(message.stageId).context["exception"] as ExceptionHandler.Response
+            assertThat(exceptionContext.exceptionType).isEqualTo(RuntimeException().javaClass.simpleName)
           }
 
           it("runs cancellation") {
