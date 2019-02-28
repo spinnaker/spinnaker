@@ -39,12 +39,17 @@ import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.first
 import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
-import strikt.assertions.isNotNull
 import strikt.assertions.map
 import java.time.Clock
+import java.time.Duration
+import java.time.Instant
+import java.time.ZoneId
+import java.time.temporal.TemporalAmount
 import java.util.UUID.randomUUID
 
 abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests {
+
+  private val clock = MutableClock()
 
   abstract fun factory(clock: Clock): T
 
@@ -60,7 +65,6 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
   fun tests(): RootContextBuilder<Fixture<T>> = rootContext {
 
     fixture {
-      val clock = Clock.systemDefaultZone()
       Fixture(
         subject = factory(clock),
         callback = mock()
@@ -111,7 +115,6 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
 
       test("its state is unknown") {
         expectThat(subject.lastKnownState(resource.metadata.name))
-          .isNotNull()
           .first
           .isEqualTo(Unknown)
       }
@@ -164,24 +167,24 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
 
       context("updating the state of the resource") {
         before {
+          clock.incrementBy(Duration.ofSeconds(10))
           subject.updateState(resource.metadata.name, Ok)
         }
 
         test("it reports the new state") {
           expectThat(subject.lastKnownState(resource.metadata.name))
-            .isNotNull()
             .first
             .isEqualTo(Ok)
         }
 
         context("updating the state again") {
           before {
+            clock.incrementBy(Duration.ofSeconds(10))
             subject.updateState(resource.metadata.name, Diff)
           }
 
           test("it reports the newest state") {
             expectThat(subject.lastKnownState(resource.metadata.name))
-              .isNotNull()
               .first
               .isEqualTo(Diff)
           }
@@ -223,3 +226,29 @@ fun randomString(length: Int = 8) =
     .map { it.toInt().toString(16) }
     .joinToString("")
     .substring(0 until length)
+
+internal class MutableClock(
+  private var instant: Instant = Instant.now(),
+  private val zone: ZoneId = ZoneId.systemDefault()
+) : Clock() {
+
+  override fun withZone(zone: ZoneId): MutableClock {
+    return MutableClock(instant, zone)
+  }
+
+  override fun getZone(): ZoneId {
+    return zone
+  }
+
+  override fun instant(): Instant {
+    return instant
+  }
+
+  fun incrementBy(amount: TemporalAmount) {
+    instant = instant.plus(amount)
+  }
+
+  fun instant(newInstant: Instant) {
+    instant = newInstant
+  }
+}

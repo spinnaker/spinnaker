@@ -110,7 +110,7 @@ class SqlResourceRepository(
     }
   }
 
-  override fun lastKnownState(name: ResourceName): Pair<ResourceState, Instant>? =
+  override fun lastKnownState(name: ResourceName): Pair<ResourceState, Instant> =
     jooq
       .select(
         field("state"),

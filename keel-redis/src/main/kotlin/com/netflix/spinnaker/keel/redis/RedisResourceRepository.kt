@@ -25,6 +25,7 @@ import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceException
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.ResourceState
+import com.netflix.spinnaker.keel.persistence.ResourceState.Unknown
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
 import org.slf4j.LoggerFactory
 import redis.clients.jedis.JedisCommands
@@ -58,30 +59,30 @@ class RedisResourceRepository(
     }
 
   override fun store(resource: Resource<*>) {
-    redisClient.withCommandsClient<Long?> { redis: JedisCommands ->
+    redisClient.withCommandsClient<Long> { redis: JedisCommands ->
       redis.hmset(resource.metadata.name.key, resource.toHash())
       redis.sadd(INDEX_SET, resource.metadata.name.value)
-      redis.zadd(resource.metadata.name.stateKey, timestamp(), ResourceState.Unknown.name)
+      redis.zadd(resource.metadata.name.stateKey, timestamp(), Unknown.name)
     }
   }
 
   override fun delete(name: ResourceName) {
-    redisClient.withCommandsClient<Long?> { redis: JedisCommands ->
+    redisClient.withCommandsClient<Long> { redis: JedisCommands ->
       redis.del(name.key)
       redis.srem(INDEX_SET, name.value)
     }
   }
 
-  override fun lastKnownState(name: ResourceName): Pair<ResourceState, Instant>? =
-    redisClient.withCommandsClient<Pair<ResourceState, Instant>?> { redis: JedisCommands ->
-      redis.zrangeByScoreWithScores(name.stateKey, Double.MIN_VALUE, Double.MAX_VALUE, 0, 1)
+  override fun lastKnownState(name: ResourceName): Pair<ResourceState, Instant> =
+    redisClient.withCommandsClient<Pair<ResourceState, Instant>> { redis: JedisCommands ->
+      redis.zrevrangeByScoreWithScores(name.stateKey, Double.MAX_VALUE, 0.0, 0, 1)
         .asSequence()
         .map { ResourceState.valueOf(it.element) to Instant.ofEpochMilli(it.score.toLong()) }
-        .firstOrNull()
+        .first()
     }
 
   override fun updateState(name: ResourceName, state: ResourceState) {
-    redisClient.withCommandsClient<Long?> { redis: JedisCommands ->
+    redisClient.withCommandsClient<Long> { redis: JedisCommands ->
       redis.zadd(name.stateKey, timestamp(), state.name)
     }
   }
@@ -119,7 +120,7 @@ class RedisResourceRepository(
 
   private fun onInvalidIndex(name: ResourceName) {
     log.error("Invalid index entry {}", name)
-    redisClient.withCommandsClient<Long?> { redis: JedisCommands ->
+    redisClient.withCommandsClient<Long> { redis: JedisCommands ->
       redis.srem(INDEX_SET, name.value)
     }
   }

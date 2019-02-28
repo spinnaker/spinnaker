@@ -44,10 +44,10 @@ interface ResourceRepository {
   /**
    * Retrieves the last known state of a resource.
    *
-   * @return The last known state of the resource represented by [name] or `null` if
-   * [name] is unknown.
+   * @return The last known state of the resource represented by [name]. If the state has never been
+   * recorded the method should return a tuple of [ResourceState.Unknown] and the current timestamp.
    */
-  fun lastKnownState(name: ResourceName): Pair<ResourceState, Instant>?
+  fun lastKnownState(name: ResourceName): Pair<ResourceState, Instant>
 
   /**
    * Updates the last known state of the resource represented by [name].

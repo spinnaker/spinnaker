@@ -61,8 +61,8 @@ class InMemoryResourceRepository(
     states.remove(name)
   }
 
-  override fun lastKnownState(name: ResourceName): Pair<ResourceState, Instant>? =
-    states[name]
+  override fun lastKnownState(name: ResourceName): Pair<ResourceState, Instant> =
+    states[name] ?: (Unknown to clock.instant())
 
   override fun updateState(name: ResourceName, state: ResourceState) {
     states[name] = state to clock.instant()
