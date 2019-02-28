@@ -15,6 +15,7 @@
 package pipeline_template
 
 import (
+	"errors"
 	"fmt"
 	"github.com/spf13/cobra"
 	"github.com/spinnaker/spin/cmd/gateclient"
@@ -24,12 +25,12 @@ import (
 
 type GetOptions struct {
 	*pipelineTemplateOptions
-	id        string
+	id string
 }
 
 var (
-	getPipelineTemplateShort   = "Get the pipeline template with the provided id"
-	getPipelineTemplateLong    = "Get the specified pipeline template"
+	getPipelineTemplateShort = "Get the pipeline template with the provided id"
+	getPipelineTemplateLong  = "Get the specified pipeline template"
 )
 
 func NewGetCmd(pipelineTemplateOptions pipelineTemplateOptions) *cobra.Command {
@@ -37,11 +38,11 @@ func NewGetCmd(pipelineTemplateOptions pipelineTemplateOptions) *cobra.Command {
 		pipelineTemplateOptions: &pipelineTemplateOptions,
 	}
 	cmd := &cobra.Command{
-		Use:     "get",
-		Short:   getPipelineTemplateShort,
-		Long:    getPipelineTemplateLong,
+		Use:   "get",
+		Short: getPipelineTemplateShort,
+		Long:  getPipelineTemplateLong,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return getPipelineTemplate(cmd, options)
+			return getPipelineTemplate(cmd, options, args)
 		},
 	}
 
@@ -50,10 +51,21 @@ func NewGetCmd(pipelineTemplateOptions pipelineTemplateOptions) *cobra.Command {
 	return cmd
 }
 
-func getPipelineTemplate(cmd *cobra.Command, options GetOptions) error {
+func getPipelineTemplate(cmd *cobra.Command, options GetOptions, args []string) error {
 	gateClient, err := gateclient.NewGateClient(cmd.InheritedFlags())
 	if err != nil {
 		return err
+	}
+
+	id := options.id
+	if id == "" {
+		id, err = util.ReadArgsOrStdin(args)
+		if err != nil {
+			return err
+		}
+		if id == "" {
+			return errors.New("no pipeline template id supplied, exiting")
+		}
 	}
 
 	successPayload, resp, err := gateClient.V2PipelineTemplatesControllerApi.GetUsingGET2(gateClient.Context,

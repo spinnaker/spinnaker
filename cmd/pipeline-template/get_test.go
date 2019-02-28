@@ -55,6 +55,24 @@ func TestPipelineGet_basic(t *testing.T) {
 	}
 }
 
+func TestPipelineGet_args(t *testing.T) {
+	ts := testGatePipelineTemplateGetSuccess()
+	defer ts.Close()
+	currentCmd := NewGetCmd(pipelineTemplateOptions{})
+	rootCmd := getRootCmdForTest()
+	pipelineTemplateCmd := NewPipelineTemplateCmd(os.Stdout)
+	pipelineTemplateCmd.AddCommand(currentCmd)
+	rootCmd.AddCommand(pipelineTemplateCmd)
+
+	args := []string{"pipeline-template", "get", "newSpelTemplate", "--gate-endpoint", ts.URL}
+	rootCmd.SetArgs(args)
+
+	err := rootCmd.Execute()
+	if err != nil {
+		t.Fatalf("Command failed with: %s", err)
+	}
+}
+
 func TestPipelineGet_flags(t *testing.T) {
 	ts := testGatePipelineTemplateGetSuccess()
 	defer ts.Close()
@@ -65,11 +83,11 @@ func TestPipelineGet_flags(t *testing.T) {
 	pipelineTemplateCmd.AddCommand(currentCmd)
 	rootCmd.AddCommand(pipelineTemplateCmd)
 
-	args := []string{"pipeline-template", "get", "--gate-endpoint", ts.URL} // missing id flag
+	args := []string{"pipeline-template", "get", "--gate-endpoint", ts.URL} // missing id flag and no args
 	rootCmd.SetArgs(args)
 
 	err := rootCmd.Execute()
-	if err != nil {
+	if err == nil {
 		t.Fatalf("Command failed with: %s", err)
 	}
 }
