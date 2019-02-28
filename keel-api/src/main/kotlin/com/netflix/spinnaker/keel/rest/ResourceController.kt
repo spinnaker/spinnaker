@@ -16,7 +16,9 @@
 package com.netflix.spinnaker.keel.rest
 
 import com.netflix.spinnaker.keel.api.Resource
+import com.netflix.spinnaker.keel.api.ResourceMetadata
 import com.netflix.spinnaker.keel.api.ResourceName
+import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.events.ResourceEvent
 import com.netflix.spinnaker.keel.events.ResourceEventType.CREATE
 import com.netflix.spinnaker.keel.events.ResourceEventType.DELETE
@@ -26,7 +28,6 @@ import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.get
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
 import org.slf4j.LoggerFactory
-import org.springframework.context.ApplicationEventPublisher
 import org.springframework.http.HttpStatus.NOT_FOUND
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -43,8 +44,8 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping(path = ["/resources"])
 class ResourceController(
-  private val publisher: ApplicationEventPublisher,
-  private val resourceRepository: ResourceRepository
+  private val resourceRepository: ResourceRepository,
+  private val resourcePersister: ResourcePersister
 ) {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
@@ -53,11 +54,17 @@ class ResourceController(
     consumes = [APPLICATION_YAML_VALUE, APPLICATION_JSON_VALUE],
     produces = [APPLICATION_YAML_VALUE, APPLICATION_JSON_VALUE]
   )
-  fun create(@RequestBody resource: Resource<*>): Resource<*> {
+  fun create(@RequestBody submittedResource: SubmittedResource<*>): Resource<*> {
     // TODO: we need to take the resource type as well so we can actually parse and validate here
-    log.info("Creating: $resource")
-    publisher.publishEvent(ResourceEvent(CREATE, resource))
-    return resource
+    // if you're creating a resource you don't need to pass the name
+    log.info("Creating: $submittedResource")
+    val resource = Resource(
+      metadata = ResourceMetadata(name = ResourceName("undefined")),
+      kind = submittedResource.kind,
+      apiVersion = submittedResource.apiVersion,
+      spec = submittedResource.spec
+    )
+    return resourcePersister.handle(ResourceEvent(CREATE, resource))
   }
 
   @GetMapping(
@@ -75,8 +82,7 @@ class ResourceController(
   )
   fun update(@PathVariable("name") name: ResourceName, @RequestBody resource: Resource<*>): Resource<*> {
     log.info("Updating: $resource")
-    publisher.publishEvent(ResourceEvent(UPDATE, resource))
-    return resource
+     return resourcePersister.handle(ResourceEvent(UPDATE, resource))
   }
 
   @DeleteMapping(
@@ -86,8 +92,7 @@ class ResourceController(
   fun delete(@PathVariable("name") name: ResourceName): Resource<*> {
     log.info("Deleting: $name")
     val resource = resourceRepository.get<Any>(name)
-    publisher.publishEvent(ResourceEvent(DELETE, resource))
-    return resource
+    return resourcePersister.handle(ResourceEvent(DELETE, resource))
   }
 
   @ExceptionHandler(NoSuchResourceException::class)

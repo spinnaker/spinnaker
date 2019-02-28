@@ -30,6 +30,11 @@ interface ResourceHandler<T : Any> : KeelPlugin {
   val supportedKind: Pair<ResourceKind, Class<T>>
 
   /**
+   * Validates the resource, and constructs a name based on conventions
+   */
+  fun validateAndName(resource: Resource<*>): Resource<T>
+
+  /**
    * Return the current _actual_ representation of what [resource] looks like in the cloud.
    * The entire desired state is passed so that implementations can use whatever identifying
    * information they need to look up the resource. Implementations of this method should not

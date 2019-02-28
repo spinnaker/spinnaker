@@ -1,20 +1,10 @@
 package com.netflix.spinnaker.keel.ec2.resource
 
-import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceKind
-import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
-import com.netflix.spinnaker.keel.api.ec2.Capacity
-import com.netflix.spinnaker.keel.api.ec2.Cluster
-import com.netflix.spinnaker.keel.api.ec2.Cluster.Dependencies
-import com.netflix.spinnaker.keel.api.ec2.Cluster.Health
-import com.netflix.spinnaker.keel.api.ec2.Cluster.LaunchConfiguration
-import com.netflix.spinnaker.keel.api.ec2.Cluster.Location
-import com.netflix.spinnaker.keel.api.ec2.Cluster.Moniker
-import com.netflix.spinnaker.keel.api.ec2.Cluster.Scaling
-import com.netflix.spinnaker.keel.api.ec2.HealthCheckType
-import com.netflix.spinnaker.keel.api.ec2.Metric
-import com.netflix.spinnaker.keel.api.ec2.ScalingProcess
-import com.netflix.spinnaker.keel.api.ec2.TerminationPolicy
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.convertValue
+import com.netflix.spinnaker.keel.api.*
+import com.netflix.spinnaker.keel.api.ec2.*
+import com.netflix.spinnaker.keel.api.ec2.Cluster.*
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.ClusterActiveServerGroup
@@ -43,7 +33,8 @@ class ClusterHandler(
   private val cloudDriverService: CloudDriverService,
   private val cloudDriverCache: CloudDriverCache,
   private val orcaService: OrcaService,
-  private val clock: Clock
+  private val clock: Clock,
+  private val objectMapper: ObjectMapper
 ) : ResourceHandler<Cluster> {
 
   override val apiVersion = SPINNAKER_API_V1.subApi("ec2")
@@ -52,6 +43,18 @@ class ClusterHandler(
     "cluster",
     "clusters"
   ) to Cluster::class.java
+
+  override fun validateAndName(resource: Resource<*>): Resource<Cluster> {
+    val cluster = objectMapper.convertValue<Cluster>(resource.spec)
+    val name = "ec2:cluster:${cluster.location.accountName}:${cluster.location.region}:${cluster.moniker.cluster}"
+    val metadata = resource.metadata.copy(name = ResourceName(name))
+    return Resource(
+      apiVersion = resource.apiVersion,
+      kind = resource.kind,
+      metadata = metadata,
+      spec = cluster
+    )
+  }
 
   override fun current(resource: Resource<Cluster>) =
     runBlocking {

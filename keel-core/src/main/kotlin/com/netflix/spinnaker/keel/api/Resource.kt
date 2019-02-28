@@ -24,3 +24,13 @@ data class Resource<T : Any>(
   val metadata: ResourceMetadata,
   val spec: T
 )
+
+/**
+ * External representation of a resource that would be submitted to the API
+ * It doesn't need to contain metadata
+ */
+data class SubmittedResource<T : Any>(
+  val apiVersion: ApiVersion,
+  val kind: String,
+  val spec: T
+)

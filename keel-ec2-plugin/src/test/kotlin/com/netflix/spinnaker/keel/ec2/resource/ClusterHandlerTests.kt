@@ -1,5 +1,7 @@
 package com.netflix.spinnaker.keel.ec2.resource
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceMetadata
 import com.netflix.spinnaker.keel.api.ResourceName
@@ -126,12 +128,13 @@ internal object ClusterHandlerTests : JUnit5Minutests {
   val cloudDriverService = mock<CloudDriverService>()
   val cloudDriverCache = mock<CloudDriverCache>()
   val orcaService = mock<OrcaService>()
+  val objectMapper = ObjectMapper().registerKotlinModule()
 
   val differ = ObjectDifferBuilder.buildDefault()
 
   fun tests() = rootContext<ClusterHandler> {
     fixture {
-      ClusterHandler(cloudDriverService, cloudDriverCache, orcaService, Clock.systemDefaultZone())
+      ClusterHandler(cloudDriverService, cloudDriverCache, orcaService, Clock.systemDefaultZone(), objectMapper)
     }
 
     before {

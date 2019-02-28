@@ -15,17 +15,14 @@
  */
 package com.netflix.spinnaker.keel.ec2.resource
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.convertValue
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind
+import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
-import com.netflix.spinnaker.keel.api.ec2.CidrRule
-import com.netflix.spinnaker.keel.api.ec2.CrossAccountReferenceRule
-import com.netflix.spinnaker.keel.api.ec2.PortRange
-import com.netflix.spinnaker.keel.api.ec2.ReferenceRule
-import com.netflix.spinnaker.keel.api.ec2.SecurityGroup
-import com.netflix.spinnaker.keel.api.ec2.SecurityGroupRule
+import com.netflix.spinnaker.keel.api.ec2.*
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupRule.Protocol
-import com.netflix.spinnaker.keel.api.ec2.SelfReferenceRule
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
@@ -44,7 +41,8 @@ import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup as RiverSecuri
 class SecurityGroupHandler(
   private val cloudDriverService: CloudDriverService,
   private val cloudDriverCache: CloudDriverCache,
-  private val orcaService: OrcaService
+  private val orcaService: OrcaService,
+  private val objectMapper: ObjectMapper
 ) : ResourceHandler<SecurityGroup> {
 
   override val apiVersion = SPINNAKER_API_V1.subApi("ec2")
@@ -53,6 +51,18 @@ class SecurityGroupHandler(
     "security-group",
     "security-groups"
   ) to SecurityGroup::class.java
+
+  override fun validateAndName(resource: Resource<*>): Resource<SecurityGroup> {
+    val securityGroup = objectMapper.convertValue<SecurityGroup>(resource.spec)
+    val name = "ec2:securityGroup:${securityGroup.accountName}:${securityGroup.region}:${securityGroup.name}"
+    val metadata = resource.metadata.copy(name = ResourceName(name))
+    return Resource(
+      apiVersion = resource.apiVersion,
+      kind = resource.kind,
+      metadata = metadata,
+      spec = securityGroup
+    )
+  }
 
   override fun current(resource: Resource<SecurityGroup>): SecurityGroup? =
     cloudDriverService.getSecurityGroup(resource.spec)

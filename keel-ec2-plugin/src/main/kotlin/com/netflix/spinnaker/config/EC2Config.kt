@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.config
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.ec2.resource.ClusterHandler
@@ -34,15 +35,17 @@ class EC2Config {
     cloudDriverService: CloudDriverService,
     cloudDriverCache: CloudDriverCache,
     orcaService: OrcaService,
-    clock: Clock
+    clock: Clock,
+    objectMapper: ObjectMapper
   ): ClusterHandler =
-    ClusterHandler(cloudDriverService, cloudDriverCache, orcaService, clock)
+    ClusterHandler(cloudDriverService, cloudDriverCache, orcaService, clock, objectMapper)
 
   @Bean
   fun securityGroupHandler(
     cloudDriverService: CloudDriverService,
     cloudDriverCache: CloudDriverCache,
-    orcaService: OrcaService
+    orcaService: OrcaService,
+    objectMapper: ObjectMapper
   ): SecurityGroupHandler =
-    SecurityGroupHandler(cloudDriverService, cloudDriverCache, orcaService)
+    SecurityGroupHandler(cloudDriverService, cloudDriverCache, orcaService, objectMapper)
 }
