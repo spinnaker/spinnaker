@@ -40,8 +40,6 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isNotNull
 import strikt.assertions.map
 import java.time.Clock
-import java.time.Instant
-import java.time.ZoneId
 import java.util.UUID.randomUUID
 
 abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests {
@@ -58,7 +56,7 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
   fun tests() = rootContext<Fixture<T>> {
 
     fixture {
-      val clock = Clock.fixed(Instant.now(), ZoneId.systemDefault())
+      val clock = Clock.systemDefaultZone()
       Fixture(
         subject = factory(clock),
         callback = mock()

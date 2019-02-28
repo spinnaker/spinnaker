@@ -8,10 +8,6 @@ dependencies {
   
   implementation "com.netflix.spinnaker.kork:kork-core:${spinnaker.version('kork')}"
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
-  implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
-  implementation "com.fasterxml.jackson.module:jackson-module-kotlin"
-  implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
-  implementation "com.fasterxml.jackson.datatype:jackson-datatype-joda"
 
   testImplementation "org.springframework.boot:spring-boot-starter-web"
   testImplementation "org.springframework.boot:spring-boot-starter-test"

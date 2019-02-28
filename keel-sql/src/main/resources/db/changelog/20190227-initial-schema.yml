@@ -1,0 +1,74 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-resource-table
+      author: fletch
+      changes:
+        - createTable:
+            tableName: resource
+            columns:
+              - column:
+                  name: uid
+                  type: char(36)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: api_version
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: kind
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: name
+                  type: varchar(255)
+                  constraints:
+                    #                    unique: true
+                    nullable: false
+              - column:
+                  name: resource_version
+                  type: bigint
+              - column:
+                  name: spec
+                  type: longtext
+                  constraints:
+                    nullable: false
+        - modifySql:
+            dbms: mysql
+            append:
+              value: " engine innodb"
+      rollback:
+        - dropTable:
+            tableName: resources
+  - changeSet:
+      id: create-resource-state-table
+      author: fletch
+      changes:
+        - createTable:
+            tableName: resource_state
+            columns:
+              - column:
+                  name: name
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: state
+                  type: varchar(32)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: timestamp
+                  type: timestamp
+                  constraints:
+                    nullable: false
+        - modifySql:
+            dbms: mysql
+            append:
+              value: " engine innodb"
+      rollback:
+        - dropTable:
+            tableName: resource_state

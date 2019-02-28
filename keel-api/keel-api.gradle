@@ -14,10 +14,6 @@ dependencies {
 
   implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion"
   implementation "com.netflix.spinnaker.kork:kork-core:${spinnaker.version('kork')}"
-  implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
-  implementation "com.fasterxml.jackson.module:jackson-module-kotlin"
-  implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
-  implementation "com.fasterxml.jackson.datatype:jackson-datatype-joda"
   implementation "org.springframework.boot:spring-boot-starter-actuator"
   implementation "org.springframework.boot:spring-boot-starter-web"
   implementation spinnaker.dependency("korkArtifacts")

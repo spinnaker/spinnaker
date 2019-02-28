@@ -23,7 +23,6 @@ dependencies {
   implementation("com.netflix.spinnaker.kork:kork-dynomite:${spinnaker.version('kork')}") {
     exclude module: "junit"
   }
-  implementation "com.fasterxml.jackson.module:jackson-module-kotlin"
 
   testImplementation "io.strikt:strikt-core:$striktVersion"
   testImplementation project(":keel-spring-test-support")
