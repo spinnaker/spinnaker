@@ -9,6 +9,7 @@ import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.events.ResourceEvent
 import com.netflix.spinnaker.keel.events.ResourceEventType.DELETE
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
+import com.netflix.spinnaker.keel.persistence.get
 import com.netflix.spinnaker.keel.redis.spring.EmbeddedRedisConfiguration
 import com.netflix.spinnaker.keel.redis.spring.MockEurekaConfig
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML
@@ -40,7 +41,7 @@ import strikt.assertions.isEqualTo
 
 @RunWith(SpringRunner::class)
 @SpringBootTest(
-  classes = [KeelApplication::class, MockEurekaConfig::class, EmbeddedRedisConfiguration::class],
+  classes = [KeelApplication::class, MockEurekaConfig::class],
   properties = [
     "clouddriver.baseUrl=https://localhost:8081",
     "orca.baseUrl=https://localhost:8082"
