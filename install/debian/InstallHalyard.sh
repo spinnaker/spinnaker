@@ -264,13 +264,13 @@ function install_java() {
     # This causes the /etc/ssl/certs/java/cacerts file to never be generated, causing a startup
     # failure in Clouddriver.
     dpkg --purge --force-depends ca-certificates-java
-    apt-get install ca-certificates-java
+    apt-get install -y ca-certificates-java
   elif [ "$ID" = "debian" ] && [ "$VERSION_ID" = "8" ]; then
     echo "Running debian 8 (jessie)"
-    apt install -t jessie-backports openjdk-8-jre-headless ca-certificates-java
+    apt install -yt jessie-backports openjdk-8-jre-headless ca-certificates-java
   elif [ "$ID" = "debian" ] && [ "$VERSION_ID" = "9" ]; then
     echo "Running debian 9 (stretch)"
-    apt install -t stretch-backports openjdk-8-jre-headless ca-certificates-java
+    apt install -yt stretch-backports openjdk-8-jre-headless ca-certificates-java
   else
     >&2 echo "Distribution $PRETTY_NAME is not supported yet - please file an issue"
     >&2 echo "  https://github.com/spinnaker/halyard/issues"
