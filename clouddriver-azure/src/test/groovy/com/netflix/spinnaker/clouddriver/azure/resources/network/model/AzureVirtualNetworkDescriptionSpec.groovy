@@ -16,9 +16,11 @@
 
 package com.netflix.spinnaker.clouddriver.azure.resources.network.model
 
+import com.fasterxml.jackson.core.util.DefaultIndenter
+import com.fasterxml.jackson.core.util.DefaultPrettyPrinter
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
-import com.microsoft.azure.management.network.models.VirtualNetwork
+import com.microsoft.azure.management.network.implementation.VirtualNetworkInner
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -27,7 +29,7 @@ class AzureVirtualNetworkDescriptionSpec extends Specification {
   @Shared
   ObjectMapper mapper = new ObjectMapper()
 
-  VirtualNetwork vnet
+  VirtualNetworkInner vnet
 
   void "Create a simple AzureVirtualNetworkDescription from a given input"() {
     setup:
@@ -39,14 +41,14 @@ class AzureVirtualNetworkDescriptionSpec extends Specification {
       location: "westus",
       id: "vnet-test-westus-id",
     ]
-    def vnet = mapper.convertValue(input, VirtualNetwork) as VirtualNetwork
+    def vnet = mapper.convertValue(input, VirtualNetworkInner) as VirtualNetworkInner
 
     when:
     def vnetDescription = AzureVirtualNetworkDescription.getDescriptionForVirtualNetwork(vnet)
 
     then:
     vnetDescription instanceof AzureVirtualNetworkDescription
-    mapper.writeValueAsString(vnetDescription) == expectedSimpleDescription
+    mapper.writeValueAsString(vnetDescription).replace('\r', '') == expectedSimpleDescription
   }
 
   void "Create a full AzureVirtualNetworkDescription from a given input and calculate next subnet address prefix"() {
@@ -76,7 +78,7 @@ class AzureVirtualNetworkDescriptionSpec extends Specification {
         ]
       ],
     ]
-    def vnet = mapper.convertValue(input, VirtualNetwork) as VirtualNetwork
+    def vnet = mapper.convertValue(input, VirtualNetworkInner) as VirtualNetworkInner
 
     when:
     def vnetDescription = AzureVirtualNetworkDescription.getDescriptionForVirtualNetwork(vnet)
@@ -86,7 +88,7 @@ class AzureVirtualNetworkDescriptionSpec extends Specification {
 
     then:
     vnetDescription instanceof AzureVirtualNetworkDescription
-    mapper.writeValueAsString(vnetDescription) == expectedFullDescription
+    mapper.writeValueAsString(vnetDescription).replace('\r', '') == expectedFullDescription
     nextSubnetAddressPrefix1 == "10.0.3.0/24"
     nextSubnetAddressPrefix2 == "10.0.31.0/24"
     nextSubnetAddressPrefix3 == "10.0.10.0/24"

@@ -104,9 +104,6 @@ subprojects { project ->
           if (it.requested.group == 'cglib' || it.requested.name == 'cglib') {
             it.useTarget group: 'cglib', name: 'cglib', version: '3.2.0'
           }
-          if (it.requested.group == 'com.google.guava') {
-            it.useTarget group: 'com.google.guava', name: 'guava', version: '18.0'
-          }
           if (it.requested.group == 'antlr') {
             it.useTarget group: 'org.antlr', name: it.requested.name, version: '3.5.2'
           }

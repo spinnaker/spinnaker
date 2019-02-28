@@ -16,15 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.azure.resources.subnet.model
 
-import com.microsoft.azure.management.network.models.ApplicationGateway
-import com.microsoft.azure.management.network.models.Subnet
-import com.microsoft.azure.management.network.models.VirtualNetwork
+import com.microsoft.azure.management.network.implementation.SubnetInner
+import com.microsoft.azure.management.network.implementation.VirtualNetworkInner
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.azure.resources.common.AzureResourceOpsDescription
-import com.netflix.spinnaker.clouddriver.azure.resources.network.model.AzureVirtualNetworkDescription
+import groovy.transform.CompileStatic
 
-import java.util.regex.Pattern
-
+@CompileStatic
 class AzureSubnetDescription extends AzureResourceOpsDescription {
   String id = "unknown"
   String addressPrefix = "unknown"
@@ -37,60 +35,38 @@ class AzureSubnetDescription extends AzureResourceOpsDescription {
   int ipv4
   int addressPrefixLength
 
-  static AzureSubnetDescription getDescriptionForAzureSubnet(VirtualNetwork vnet, Subnet subnet) {
-    AzureSubnetDescription description = new AzureSubnetDescription(name: subnet.name)
-    description.name = subnet.name
-    description.region = vnet.location
+  static AzureSubnetDescription getDescriptionForAzureSubnet(VirtualNetworkInner vnet, SubnetInner subnet) {
+    AzureSubnetDescription description = new AzureSubnetDescription(name: subnet.name())
+    description.name = subnet.name()
+    description.region = vnet.location()
     description.cloudProvider = "azure"
-    description.vnet = vnet.name
-    description.resourceId = subnet.id
-    description.id = subnet.name
-    description.addressPrefix = subnet.addressPrefix
-    description.ipv4 = AzureUtilities.convertIpv4PrefixToInt(subnet.addressPrefix)
+    description.vnet = vnet.name()
+    description.resourceId = subnet.id()
+    description.id = subnet.name()
+    description.addressPrefix = subnet.addressPrefix()
+    description.ipv4 = AzureUtilities.convertIpv4PrefixToInt(subnet.addressPrefix())
 
-    description.addressPrefixLength = AzureUtilities.getAddressPrefixLength(subnet.addressPrefix)
-    subnet.ipConfigurations?.each {resourceId ->
-      description.ipConfigurations += resourceId.id
+    description.addressPrefixLength = AzureUtilities.getAddressPrefixLength(subnet.addressPrefix())
+    subnet.ipConfigurations()?.each {resourceId ->
+      description.ipConfigurations += resourceId.id()
       description.connectedDevices += new SubnetConnectedDevices(
-        name: AzureUtilities.getResourceNameFromId(resourceId.id),
-        resourceId: resourceId.id,
-        type: AzureUtilities.getResourceTypeFromId(resourceId.id)
+        name: AzureUtilities.getResourceNameFromId(resourceId.id()),
+        resourceId: resourceId.id(),
+        type: AzureUtilities.getResourceTypeFromId(resourceId.id())
       )
       // TODO: iterate through applicationGatewayIPConfigurations which contains the ApplicationGateway related associations
       // This property is not yet exposed in the current Azure Java SDK
     }
-    description.networkSecurityGroup = subnet.networkSecurityGroup?.id
+    description.networkSecurityGroup = subnet.networkSecurityGroup()?.id()
 
     description
   }
 
-  static Collection<AzureSubnetDescription> getSubnetsForVirtualNetwork(VirtualNetwork vnet) {
+  static Collection<AzureSubnetDescription> getSubnetsForVirtualNetwork(VirtualNetworkInner vnet) {
     // sort the list of subnet based on their ivp4 vals in order to speed the search when computing the next subnet
-    vnet.subnets?.collect {
+    vnet.subnets()?.collect {
       getDescriptionForAzureSubnet(vnet, it)
     }?.sort { a,b -> a.ipv4 <=> b.ipv4}
-  }
-
-  // This is a temporary workaround for a missing API in Azure Java SDK which should retrieve any Azure ApplicationGateway
-  //   associations with the subnet via applicationGatewayIPConfigurations is captured in the Azure Subnet. It should be
-  //   later replaced by a simple iteration through applicationGatewayIPConfigurations once that property becomes available
-  //   in the Azure JSDK
-  static void getAppGatewaysConnectedResources(AzureVirtualNetworkDescription vnet, List<ApplicationGateway> appGateways) {
-    if (vnet.subnets && appGateways) {
-      appGateways.each { appGateway ->
-        // Iterate through the gatewayIPConfigurations and extract the subnet id which will be compared with the subnets within the vnet
-        appGateway?.gatewayIPConfigurations?.each { gatewayConfig ->
-          def subnetDescription = vnet.subnets.find { it.resourceId == gatewayConfig?.subnet?.id }
-          if (subnetDescription) {
-            subnetDescription.connectedDevices += new SubnetConnectedDevices(
-              name: appGateway.name,
-              resourceId: gatewayConfig?.id,
-              type: "applicationGateways",
-            )
-          }
-        }
-      }
-    }
   }
 
   static class SubnetConnectedDevices {

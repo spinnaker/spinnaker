@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.azure.resources.securitygroup.ops
 
-import com.microsoft.azure.management.resources.models.DeploymentExtended
+import com.microsoft.azure.management.resources.Deployment
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.azure.resources.common.model.AzureDeploymentOperation
 import com.netflix.spinnaker.clouddriver.azure.resources.securitygroup.model.UpsertAzureSecurityGroupDescription
@@ -59,17 +59,17 @@ class UpsertAzureSecurityGroupAtomicOperation implements AtomicOperation<Map> {
       String resourceGroupName = AzureUtilities.getResourceGroupName(description.appName, description.region)
 
       // Create corresponding ResourceGroup if it's not created already
-      description.credentials.resourceManagerClient.initializeResourceGroupAndVNet(description.credentials, resourceGroupName, null, description.region)
+      description.credentials.resourceManagerClient.initializeResourceGroupAndVNet(resourceGroupName, null, description.region)
 
-      DeploymentExtended deployment = description.credentials.resourceManagerClient.createResourceFromTemplate(
+      Deployment deployment = description.credentials.resourceManagerClient.createResourceFromTemplate(
         AzureSecurityGroupResourceTemplate.getTemplate(description),
         resourceGroupName,
         description.region,
         description.securityGroupName,
         "securityGroup")
 
-      errList = AzureDeploymentOperation.checkDeploymentOperationStatus(task,BASE_PHASE, description.credentials, resourceGroupName, deployment.name)
-    } catch (Exception e) {
+      errList = AzureDeploymentOperation.checkDeploymentOperationStatus(task,BASE_PHASE, description.credentials, resourceGroupName, deployment.name())
+    } catch (Throwable e) {
       task.updateStatus(BASE_PHASE, "Deployment of security group $description.securityGroupName failed: ${e.message}")
       errList.add(e.message)
     }

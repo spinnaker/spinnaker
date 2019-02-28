@@ -29,7 +29,7 @@ class AzureLoadBalancerResourceTemplateSpec extends Specification {
   def 'should generate correct LoadBalancer create template'(){
     String template = AzureLoadBalancerResourceTemplate.getTemplate(description)
 
-    expect: template.replaceAll('"createdTime" : "\\d+"', '"createdTime" : "1234567890"') == expectedFullTemplate
+    expect: template.replaceAll('"createdTime" : "\\d+"', '"createdTime" : "1234567890"').replace('\r', '') == expectedFullTemplate
   }
 
   AzureLoadBalancerDescription createDescription(){

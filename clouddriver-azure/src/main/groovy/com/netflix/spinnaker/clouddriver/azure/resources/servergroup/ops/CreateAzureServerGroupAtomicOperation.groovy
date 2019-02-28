@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.azure.resources.servergroup.ops
 
-import com.microsoft.azure.management.resources.models.DeploymentExtended
+import com.microsoft.azure.management.resources.Deployment
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.azure.resources.common.model.AzureDeploymentOperation
 import com.netflix.spinnaker.clouddriver.azure.resources.network.model.AzureVirtualNetworkDescription
@@ -193,7 +193,7 @@ class CreateAzureServerGroupAtomicOperation implements AtomicOperation<Map> {
       if (errList.isEmpty()) {
         description.subnetId = subnetId
         task.updateStatus(BASE_PHASE, "Deploying server group")
-        DeploymentExtended deployment = description.credentials.resourceManagerClient.createResourceFromTemplate(
+        Deployment deployment = description.credentials.resourceManagerClient.createResourceFromTemplate(
           AzureServerGroupResourceTemplate.getTemplate(description),
           resourceGroupName,
           description.region,
@@ -201,7 +201,7 @@ class CreateAzureServerGroupAtomicOperation implements AtomicOperation<Map> {
           "serverGroup",
           templateParameters)
 
-        errList.addAll(AzureDeploymentOperation.checkDeploymentOperationStatus(task, BASE_PHASE, description.credentials, resourceGroupName, deployment.name))
+        errList.addAll(AzureDeploymentOperation.checkDeploymentOperationStatus(task, BASE_PHASE, description.credentials, resourceGroupName, deployment.name()))
         serverGroupName = errList.isEmpty() ? description.name : null
       }
     } catch (Exception e) {

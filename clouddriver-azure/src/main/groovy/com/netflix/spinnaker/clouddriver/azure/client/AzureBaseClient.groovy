@@ -19,16 +19,14 @@ package com.netflix.spinnaker.clouddriver.azure.client
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
-import com.microsoft.azure.AzureServiceClient
+import com.microsoft.azure.AzureEnvironment
 import com.microsoft.azure.CloudException
 import com.microsoft.azure.credentials.ApplicationTokenCredentials
-import com.microsoft.azure.credentials.AzureEnvironment
+import com.microsoft.azure.management.Azure
+import com.microsoft.rest.LogLevel
 import com.microsoft.rest.ServiceResponse
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
-import okhttp3.Interceptor
-import okhttp3.Request
-import okhttp3.Response
 
 @Slf4j
 @CompileStatic
@@ -37,16 +35,26 @@ public abstract class AzureBaseClient {
   final static long AZURE_ATOMICOPERATION_RETRY = 5
   static ObjectMapper mapper
   final String userAgentApplicationName
+  final Azure azure
 
   /**
    * Constructor
    * @param subscriptionId - the Azure subscription to use
    */
-  protected AzureBaseClient(String subscriptionId, String userAgentAppName) {
+  protected AzureBaseClient(String subscriptionId, String userAgentAppName, ApplicationTokenCredentials credentials) {
     this.subscriptionId = subscriptionId
     mapper = new ObjectMapper().configure(SerializationFeature.INDENT_OUTPUT, true)
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
     this.userAgentApplicationName = userAgentAppName
+    this.azure = initialize(credentials, subscriptionId)
+    // TODO: set user agent
+  }
+
+  private Azure initialize(ApplicationTokenCredentials credentials, String subscriptionId) {
+    Azure.configure()
+      .withLogLevel(LogLevel.NONE)
+      .authenticate(credentials)
+      .withSubscription(subscriptionId)
   }
 
   /**
@@ -60,10 +68,13 @@ public abstract class AzureBaseClient {
 
   static ApplicationTokenCredentials getTokenCredentials(String clientId, String tenantId, String secret, String configuredAzureEnvironment) {
     if ( configuredAzureEnvironment == "AZURE_US_GOVERNMENT") {
-      return new ApplicationTokenCredentials(clientId, tenantId, secret, new AzureEnvironment(
-        "https://login.microsoftonline.us/",
-        "https://management.core.usgovcloudapi.net/",
-        true));
+      return new ApplicationTokenCredentials(clientId, tenantId, secret, AzureEnvironment.AZURE_US_GOVERNMENT);
+    }
+    else if ( configuredAzureEnvironment == "AZURE_CHINA") {
+      return new ApplicationTokenCredentials(clientId, tenantId, secret, AzureEnvironment.AZURE_CHINA)
+    }
+    else if ( configuredAzureEnvironment == "AZURE_GERMANY") {
+      return new ApplicationTokenCredentials(clientId, tenantId, secret, AzureEnvironment.AZURE_GERMANY)
     }
     else {
       return new ApplicationTokenCredentials(clientId, tenantId, secret, AzureEnvironment.AZURE)
@@ -76,7 +87,7 @@ public abstract class AzureBaseClient {
    * @param count - number of retry attempts
    * @return ServiceRespone returned from operation. If response results in 404 then return null
    */
-  static <T> ServiceResponse<T> executeOp(Closure<ServiceResponse<T>> operation, long count = AZURE_ATOMICOPERATION_RETRY) {
+  static <T> T executeOp(Closure<T> operation, long count = AZURE_ATOMICOPERATION_RETRY) {
 
     // Ensure that the operation will always at least try once
     long retryCount = count <= 0 ? count - 1 : 0
@@ -117,7 +128,7 @@ public abstract class AzureBaseClient {
   private static boolean canRetry(Exception e) {
     boolean retry = false
     if (e.class == CloudException) {
-      def code = (e as CloudException).response.code()
+      def code = (e as CloudException).response().code()
       retry = (code == HttpURLConnection.HTTP_CLIENT_TIMEOUT
         || (code >= HttpURLConnection.HTTP_INTERNAL_ERROR && code <= HttpURLConnection.HTTP_GATEWAY_TIMEOUT))
     } else if (e.class == SocketTimeoutException) {
@@ -135,8 +146,8 @@ public abstract class AzureBaseClient {
    */
   private static boolean handleTooManyRequestsResponse(Exception e) {
     if (e.class == CloudException.class) {
-      if ((e as CloudException).response.code() == 429) {
-        int retryAfterIntervalSec = (e as CloudException).response.headers().get("Retry-After").toInteger()
+      if ((e as CloudException).response().code() == 429) {
+        int retryAfterIntervalSec = (e as CloudException).response().headers().get("Retry-After").toInteger()
         if (retryAfterIntervalSec) {
           log.warn("Received 'Too Many Requests' (429) response from Azure. Retrying in $retryAfterIntervalSec seconds")
           sleep(retryAfterIntervalSec * 1000) // convert to milliseconds
@@ -187,7 +198,7 @@ public abstract class AzureBaseClient {
   }
 
   static Boolean resourceNotFound(Exception e) {
-    e.class == CloudException ? (e as CloudException).response.code() == HttpURLConnection.HTTP_NOT_FOUND : false
+    e.class == CloudException ? (e as CloudException).response().code() == HttpURLConnection.HTTP_NOT_FOUND : false
   }
 
   /***
@@ -205,37 +216,4 @@ public abstract class AzureBaseClient {
    * @return namespace of the resource provider
    */
   protected abstract String getProviderNamespace()
-
-  protected static void setUserAgent(AzureServiceClient client, String userAgentString, boolean useUniqueID = false) {
-    client.getClientInterceptors().add(new Interceptor() {
-      @Override
-      Response intercept(Interceptor.Chain chain) throws IOException {
-        Request.Builder builder = chain.request().newBuilder()
-        def oldHeaderValue = chain.request().header("User-Agent")
-        def userAgentValue = oldHeaderValue ? "${userAgentString} ${oldHeaderValue}" : "${userAgentString}"
-        builder.header("User-Agent", userAgentValue)
-        // TODO: work around for SDK issue; not all the API's will accept the same client-request-id
-        if (useUniqueID) {
-          builder.header("x-ms-client-request-id", UUID.randomUUID().toString())
-        }
-        return chain.proceed(builder.build())
-      }
-    })
-  }
-  /**
-   * Return a baseUrl based on the configured Environment
-   * @param credentials containing environment to build a url from
-   * @return baseUrl based on the configured environment
-   */
-  protected String buildBaseUrl(ApplicationTokenCredentials token) {
-    String baseUrl
-    if (token.getEnvironment() != null && token.getEnvironment().getTokenAudience().contains("gov")) {
-      baseUrl = "https://management.usgovcloudapi.net/"
-    }
-    else {
-      baseUrl = "https://management.azure.com"
-    }
-    return baseUrl
-  }
-
 }

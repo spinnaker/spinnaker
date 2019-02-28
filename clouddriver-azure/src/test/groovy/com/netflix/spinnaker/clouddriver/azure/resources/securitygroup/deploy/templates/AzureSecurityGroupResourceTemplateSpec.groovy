@@ -32,7 +32,7 @@ class AzureSecurityGroupResourceTemplateSpec extends Specification {
   def 'should generate a correct Azure Security Group create template'(){
     String template = AzureSecurityGroupResourceTemplate.getTemplate(description)
 
-    expect: template.replaceAll('"createdTime" : "\\d+"', '"createdTime" : "1234567890"') == expectedFullTemplate
+    expect: template.replaceAll('"createdTime" : "\\d+"', '"createdTime" : "1234567890"').replace('\r', '') == expectedFullTemplate
   }
 
   UpsertAzureSecurityGroupDescription createNoRulesDescription(){

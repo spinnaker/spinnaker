@@ -18,13 +18,15 @@ package com.netflix.spinnaker.clouddriver.azure.resources.common.model
 
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.microsoft.azure.management.resources.models.DeploymentOperation
-import com.netflix.spinnaker.clouddriver.azure.client.AzureResourceManagerClient
+import com.microsoft.azure.management.resources.DeploymentOperation
+import com.microsoft.azure.management.resources.implementation.DeploymentOperationInner
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.azure.security.AzureCredentials
 import com.netflix.spinnaker.clouddriver.data.task.Task
+import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 
+@CompileStatic
 @Slf4j
 class AzureDeploymentOperation {
 
@@ -49,7 +51,7 @@ class AzureDeploymentOperation {
     Integer checkDeployment = 0
 
     while (checkDeployment < AZURE_DEPLOYMENT_OPERATION_STATUS_RETRIES_MAX) {
-      deploymentState = creds.resourceManagerClient.getDeployment(resourceGroupName, deploymentName).properties.provisioningState
+      deploymentState = creds.resourceManagerClient.getDeployment(resourceGroupName, deploymentName).inner().properties().provisioningState()
 
       creds.resourceManagerClient.getDeploymentOperations(resourceGroupName, deploymentName).each { DeploymentOperation d ->
 
@@ -58,25 +60,26 @@ class AzureDeploymentOperation {
         // acting on. The operations for all the resources created in the deployment do get returned and we can
         // identify which operation is for what resource. So for now, until we get clarity from the SDK, we will
         // ignore those operations that have a null target resource.
-        if (d.properties.targetResource) {
-          if (!resourceCompletedState.containsKey(d.id)) {
-            resourceCompletedState[d.id] = false
+        DeploymentOperationInner inner = d.inner()
+        if (inner.properties().targetResource()) {
+          if (!resourceCompletedState.containsKey(inner.id())) {
+            resourceCompletedState[inner.id()] = false
           }
 
-          if (d.properties.provisioningState == AzureUtilities.ProvisioningState.SUCCEEDED) {
+          if (inner.properties().provisioningState() == AzureUtilities.ProvisioningState.SUCCEEDED) {
 
-            if (!resourceCompletedState[d.id]) {
-              task.updateStatus opsName, String.format("Resource %s created", d.properties.targetResource.resourceName)
-              resourceCompletedState[d.id] = true
+            if (!resourceCompletedState[inner.id()]) {
+              task.updateStatus opsName, String.format("Resource %s created", inner.properties().targetResource().resourceName())
+              resourceCompletedState[inner.id()] = true
             }
-          } else if (d.properties.provisioningState == AzureUtilities.ProvisioningState.FAILED) {
-            if (!resourceCompletedState[d.id]) {
+          } else if (inner.properties().provisioningState() == AzureUtilities.ProvisioningState.FAILED) {
+            if (!resourceCompletedState[inner.id()]) {
 
               //String statusMessage = updatedDeploymentOperation?.value?.first()?.properties?.statusMessage?.error?.message
-              String err = "Failed to create resource ${d.properties.targetResource.resourceName}: "
-              err += d.properties.statusMessage ? d.properties.statusMessage : "See Azure Portal for more information."
+              String err = "Failed to create resource ${inner.properties().targetResource().resourceName()}: "
+              err += inner.properties().statusMessage() ? inner.properties().statusMessage() : "See Azure Portal for more information."
               task.updateStatus opsName, err
-              resourceCompletedState[d.id] = true
+              resourceCompletedState[inner.id()] = true
               errList.add(err)
             }
           }

@@ -84,7 +84,7 @@ class UpsertAzureAppGatewayAtomicOperationConverterSpec extends  Specification{
 
     then:
     description instanceof AzureAppGatewayDescription
-    mapper.writeValueAsString(description) == expectedFullDescription
+    mapper.writeValueAsString(description).replace('\r', '') == expectedFullDescription
   }
 
   private static String expectedFullDescription = '''{

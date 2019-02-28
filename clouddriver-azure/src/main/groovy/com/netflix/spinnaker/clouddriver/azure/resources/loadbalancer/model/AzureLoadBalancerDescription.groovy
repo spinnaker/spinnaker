@@ -16,11 +16,15 @@
 
 package com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model
 
-import com.microsoft.azure.management.network.models.LoadBalancer
+import com.microsoft.azure.management.network.LoadBalancer
+import com.microsoft.azure.management.network.TransportProtocol
+import com.microsoft.azure.management.network.implementation.LoadBalancerInner
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.azure.resources.common.AzureResourceOpsDescription
+import groovy.transform.CompileStatic
 
+@CompileStatic
 class AzureLoadBalancerDescription extends AzureResourceOpsDescription {
   String loadBalancerName
   String vnet
@@ -75,9 +79,9 @@ class AzureLoadBalancerDescription extends AzureResourceOpsDescription {
     Integer port
   }
 
-  static AzureLoadBalancerDescription build(LoadBalancer azureLoadBalancer) {
-    AzureLoadBalancerDescription description = new AzureLoadBalancerDescription(loadBalancerName: azureLoadBalancer.name)
-    def parsedName = Names.parseName(azureLoadBalancer.name)
+  static AzureLoadBalancerDescription build(LoadBalancerInner azureLoadBalancer) {
+    AzureLoadBalancerDescription description = new AzureLoadBalancerDescription(loadBalancerName: azureLoadBalancer.name())
+    def parsedName = Names.parseName(azureLoadBalancer.name())
     description.stack = azureLoadBalancer.tags?.stack ?: parsedName.stack
     description.detail = azureLoadBalancer.tags?.detail ?: parsedName.detail
     description.appName = azureLoadBalancer.tags?.appName ?: parsedName.app
@@ -86,17 +90,17 @@ class AzureLoadBalancerDescription extends AzureResourceOpsDescription {
     description.vnet = azureLoadBalancer.tags?.vnet
     description.createdTime = azureLoadBalancer.tags?.createdTime?.toLong()
     description.tags = azureLoadBalancer.tags
-    description.region = azureLoadBalancer.location
+    description.region = azureLoadBalancer.location()
 
-    for (def rule : azureLoadBalancer.loadBalancingRules) {
-      def r = new AzureLoadBalancingRule(ruleName: rule.name)
-      r.externalPort = rule.frontendPort
-      r.backendPort = rule.backendPort
-      r.probeName = AzureUtilities.getNameFromResourceId(rule?.probe?.id) ?: "not-assigned"
-      r.persistence = rule.loadDistribution;
-      r.idleTimeout = rule.idleTimeoutInMinutes;
+    for (def rule : azureLoadBalancer.loadBalancingRules()) {
+      def r = new AzureLoadBalancingRule(ruleName: rule.name())
+      r.externalPort = rule.frontendPort()
+      r.backendPort = rule.backendPort()
+      r.probeName = AzureUtilities.getNameFromResourceId(rule?.probe()?.id()) ?: "not-assigned"
+      r.persistence = rule.loadDistribution()
+      r.idleTimeout = rule.idleTimeoutInMinutes()
 
-      if (rule.protocol.toLowerCase() == "udp") {
+      if (rule.protocol() == TransportProtocol.UDP) {
         r.protocol = AzureLoadBalancingRule.AzureLoadBalancingRulesType.UDP
       } else {
         r.protocol = AzureLoadBalancingRule.AzureLoadBalancingRulesType.TCP
@@ -105,14 +109,14 @@ class AzureLoadBalancerDescription extends AzureResourceOpsDescription {
     }
 
     // Add the probes
-    for (def probe : azureLoadBalancer.probes) {
+    for (def probe : azureLoadBalancer.probes()) {
       def p = new AzureLoadBalancerProbe()
-      p.probeName = probe.name
-      p.probeInterval = probe.intervalInSeconds
-      p.probePath = probe.requestPath
-      p.probePort = probe.port
-      p.unhealthyThreshold = probe.numberOfProbes
-      if (probe.protocol.toLowerCase() == "tcp") {
+      p.probeName = probe.name()
+      p.probeInterval = probe.intervalInSeconds()
+      p.probePath = probe.requestPath()
+      p.probePort = probe.port()
+      p.unhealthyThreshold = probe.numberOfProbes()
+      if (probe.protocol() == TransportProtocol.TCP) {
         p.probeProtocol = AzureLoadBalancerProbe.AzureLoadBalancerProbesType.TCP
       } else {
         p.probeProtocol = AzureLoadBalancerProbe.AzureLoadBalancerProbesType.HTTP
@@ -120,8 +124,8 @@ class AzureLoadBalancerDescription extends AzureResourceOpsDescription {
       description.probes.add(p)
     }
 
-    for (def natRule : azureLoadBalancer.inboundNatRules) {
-      def n = new AzureLoadBalancerInboundNATRule(ruleName: natRule.name)
+    for (def natRule : azureLoadBalancer.inboundNatRules()) {
+      def n = new AzureLoadBalancerInboundNATRule(ruleName: natRule.name())
       description.inboundNATRules.add(n)
     }
 

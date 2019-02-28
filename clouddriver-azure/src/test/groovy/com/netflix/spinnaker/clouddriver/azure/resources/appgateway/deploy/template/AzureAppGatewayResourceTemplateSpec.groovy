@@ -32,7 +32,7 @@ class AzureAppGatewayResourceTemplateSpec extends Specification {
   def 'generate an Azure Application Gateway resource template using a description object'() {
     String template = AzureAppGatewayResourceTemplate.getTemplate(description)
 
-    expect: template.replaceAll('"createdTime" : "\\d+"', '"createdTime" : "1234567890"') == expectedFullTemplate
+    expect: template.replaceAll('"createdTime" : "\\d+"', '"createdTime" : "1234567890"').replace('\r', '') == expectedFullTemplate
   }
 
   def 'generate an Azure Application Gateway resource template using a minimal description object'() {
@@ -43,7 +43,7 @@ class AzureAppGatewayResourceTemplateSpec extends Specification {
 
     String template = AzureAppGatewayResourceTemplate.getTemplate(description)
 
-    expect: template.replaceAll('"createdTime" : "\\d+"', '"createdTime" : "1234567890"') == expectedMinimalTemplate
+    expect: template.replaceAll('"createdTime" : "\\d+"', '"createdTime" : "1234567890"').replace('\r', '') == expectedMinimalTemplate
   }
 
   def 'should fail to generate an Azure Application Gateway resource template using a description object with no name'() {

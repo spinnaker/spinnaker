@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.azure.common
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.azure.resources.common.AzureResourceOpsDescription
 
 import java.util.regex.Matcher
@@ -287,6 +288,33 @@ class AzureUtilities {
       throw new ArithmeticException("Overflow occurred getting next valid subnet after $subnetAddrPrefix within vnet $vnetAddrPrefix")
     }
     return resultPrefix
+  }
+
+  static String convertParametersToTemplateJSON(ObjectMapper mapper, Map<String, Object> sourceParameters) {
+    Map<String, Object> map = new HashMap<>()
+    if (sourceParameters.size() == 0) return mapper.writeValueAsString(sourceParameters)
+    for(Map.Entry<String, Object> entry: sourceParameters.entrySet()) {
+      if(entry.value.class == String) {
+        map.put(entry.key, new ValueParameter(entry.value))
+      }else {
+        map.put(entry.key, new ReferenceParameter(entry.value))
+      }
+    }
+    mapper.writeValueAsString(map)
+  }
+
+  static class ValueParameter extends Object {
+    Object value
+    ValueParameter(Object value) {
+      this.value = value
+    }
+  }
+
+  static class ReferenceParameter extends Object {
+    Object reference
+    ReferenceParameter(Object reference) {
+      this.reference = reference
+    }
   }
 
   static class ProvisioningState {

@@ -19,8 +19,6 @@ package com.netflix.spinnaker.clouddriver.azure.resources.servergroups.deploy.te
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
-import com.netflix.spinnaker.clouddriver.azure.client.AzureResourceManagerClient
-import com.netflix.spinnaker.clouddriver.azure.resources.common.model.KeyVaultSecret
 import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.AzureServerGroupDescription
 import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.model.AzureNamedImage
 import com.netflix.spinnaker.clouddriver.azure.templates.AzureServerGroupResourceTemplate
@@ -40,7 +38,7 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
     String template = AzureServerGroupResourceTemplate.getTemplate(description)
 
     expect:
-    template.replaceAll('"createdTime" : "\\d+"', '"createdTime" : "1234567890"') == expectedFullTemplate
+    template.replaceAll('"createdTime" : "\\d+"', '"createdTime" : "1234567890"').replace('\r', '') == expectedFullTemplate
   }
 
   def 'should generate correct ServerGroup resource template with custom image'() {
@@ -48,7 +46,7 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
     String template = AzureServerGroupResourceTemplate.getTemplate(description)
 
     expect:
-    template.replaceAll('"createdTime" : "\\d+"', '"createdTime" : "1234567890"') == expectedFullTemplateWithCustomImage
+    template.replaceAll('"createdTime" : "\\d+"', '"createdTime" : "1234567890"').replace('\r', '') == expectedFullTemplateWithCustomImage
   }
 
   def 'generate server group template with extensions profile for linux'() {
@@ -56,7 +54,7 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
     String template = AzureServerGroupResourceTemplate.getTemplate(description)
 
     expect:
-    template.replaceAll('"createdTime" : "\\d+"', '"createdTime" : "1234567890"') == expectedCustomScriptTemplateLinux
+    template.replaceAll('"createdTime" : "\\d+"', '"createdTime" : "1234567890"').replace('\r', '') == expectedCustomScriptTemplateLinux
   }
 
   def 'generate server group template with extension profile for windows'() {
@@ -64,7 +62,7 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
     String template = AzureServerGroupResourceTemplate.getTemplate(description)
 
     expect:
-    template.replaceAll('"createdTime" : "\\d+"', '"createdTime" : "1234567890"') == expectedCustomScriptTemplateWindows
+    template.replaceAll('"createdTime" : "\\d+"', '"createdTime" : "1234567890"').replace('\r', '') == expectedCustomScriptTemplateWindows
   }
 
   def 'generate server group template with custom data'() {
@@ -75,17 +73,7 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
     String template = AzureServerGroupResourceTemplate.getTemplate(description)
 
     expect:
-    template.replaceAll('"createdTime" : "\\d+"', '"createdTime" : "1234567890"') == expectedCustomDataTemplate
-  }
-
-  def 'verify parameters JSON'() {
-
-    def parameters = [:]
-    parameters[AzureServerGroupResourceTemplate.subnetParameterName] = subnetId
-    parameters[AzureServerGroupResourceTemplate.vmPasswordParameterName] = new KeyVaultSecret(secretName, subscriptionId, defaultResourceGroup, defaultVaultName)
-    String parametersJSON = AzureResourceManagerClient.convertParametersToTemplateJSON(objectMapper, parameters)
-
-    expect: parametersJSON == expectedParameters
+    template.replaceAll('"createdTime" : "\\d+"', '"createdTime" : "1234567890"').replace('\r', '') == expectedCustomDataTemplate
   }
 
   private static AzureServerGroupDescription createDescription(boolean withCustomImage = false) {
@@ -845,25 +833,5 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
     }
   } ]
 }'''
-
-  private static String expectedParameters = """{
-  "subnetId" : {
-    "value" : "$subnetId"
-  },
-  "vmPassword" : {
-    "reference" : {
-      "keyVault" : {
-        "id" : "/subscriptions/$subscriptionId/resourceGroups/$defaultResourceGroup/providers/Microsoft.KeyVault/vaults/$defaultVaultName"
-      },
-      "secretName" : "$secretName"
-    }
-  }
-}"""
-
-  private static final String subscriptionId = "testSubscriptionID"
-  private static final String subnetId = "SubNetTestID"
-  private static final String defaultResourceGroup = "defaultResourceGroup"
-  private static final String defaultVaultName = "defaultKeyVault"
-  private static final String secretName = "VMPassword"
 
 }

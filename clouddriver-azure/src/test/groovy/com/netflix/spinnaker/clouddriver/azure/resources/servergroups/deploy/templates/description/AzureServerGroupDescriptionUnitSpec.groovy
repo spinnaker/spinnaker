@@ -16,22 +16,21 @@
 
 package com.netflix.spinnaker.clouddriver.azure.resources.servergroups.deploy.templates.description
 
-import com.microsoft.azure.management.compute.models.ImageReference
-import com.microsoft.azure.management.compute.models.Sku
-import com.microsoft.azure.management.compute.models.UpgradePolicy
-import com.microsoft.azure.management.compute.models.VirtualMachineScaleSet
-import com.microsoft.azure.management.compute.models.VirtualMachineScaleSetOSProfile
-import com.microsoft.azure.management.compute.models.VirtualMachineScaleSetSku
-import com.microsoft.azure.management.compute.models.VirtualMachineScaleSetStorageProfile
-import com.microsoft.azure.management.compute.models.VirtualMachineScaleSetVMProfile
+import com.microsoft.azure.management.compute.ImageReference
+import com.microsoft.azure.management.compute.Sku
+import com.microsoft.azure.management.compute.UpgradeMode
+import com.microsoft.azure.management.compute.UpgradePolicy
+import com.microsoft.azure.management.compute.VirtualMachineScaleSetOSProfile
+import com.microsoft.azure.management.compute.VirtualMachineScaleSetStorageProfile
+import com.microsoft.azure.management.compute.VirtualMachineScaleSetVMProfile
+import com.microsoft.azure.management.compute.implementation.VirtualMachineScaleSetInner
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.AzureServerGroupDescription
 import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.model.AzureNamedImage
 import spock.lang.Specification
 
-
 class AzureServerGroupDescriptionUnitSpec extends Specification {
-  VirtualMachineScaleSet scaleSet
+  VirtualMachineScaleSetInner scaleSet
 
   void setup() {
     scaleSet = createScaleSet()
@@ -43,65 +42,63 @@ class AzureServerGroupDescriptionUnitSpec extends Specification {
   }
 
 
-  private static VirtualMachineScaleSet createScaleSet() {
+  private static VirtualMachineScaleSetInner createScaleSet() {
     Map<String, String> tags = [ "stack": "testStack",
                                  "detail": "testDetail",
                                  "appName" : "testScaleSet",
                                  "cluster" : "testScaleSet-testStack-testDetail"]
 
-    VirtualMachineScaleSet scaleSet = new VirtualMachineScaleSet()
+    VirtualMachineScaleSetInner scaleSet = new VirtualMachineScaleSetInner()
     //name is read only
     //scaleSet.name = 'testScaleSet-testStack-testDetail'
-    scaleSet.location = 'testLocation'
-    scaleSet.tags = tags
+    scaleSet.withLocation 'testLocation'
+    scaleSet.withTags tags
 
     def upgradePolicy = new UpgradePolicy()
-    upgradePolicy.mode = "Automatic"
-    scaleSet.upgradePolicy = upgradePolicy
+    upgradePolicy.withMode UpgradeMode.AUTOMATIC
+    scaleSet.withUpgradePolicy upgradePolicy
 
     VirtualMachineScaleSetVMProfile vmProfile = new VirtualMachineScaleSetVMProfile()
     VirtualMachineScaleSetOSProfile osProfile = new VirtualMachineScaleSetOSProfile()
-    osProfile.adminUsername = "testtest"
-    osProfile.adminPassword = "t3stt3st"
-    osProfile.computerNamePrefix = "nflx"
-    vmProfile.osProfile = osProfile
+    osProfile.withAdminUsername "testtest"
+    osProfile.withAdminPassword "t3stt3st"
+    osProfile.withComputerNamePrefix "nflx"
+    vmProfile.withOsProfile osProfile
 
     VirtualMachineScaleSetStorageProfile storageProfile = new VirtualMachineScaleSetStorageProfile()
     ImageReference image = new ImageReference()
-    image.offer = "testOffer"
-    image.publisher = "testPublisher"
-    image.sku = "testSku"
-    image.version = "testVersion"
-    storageProfile.imageReference = image
-    vmProfile.storageProfile = storageProfile
+    image.withOffer "testOffer"
+    image.withPublisher "testPublisher"
+    image.withSku "testSku"
+    image.withVersion "testVersion"
+    storageProfile.withImageReference image
+    vmProfile.withStorageProfile storageProfile
 
-    scaleSet.virtualMachineProfile = vmProfile
+    scaleSet.withVirtualMachineProfile vmProfile
 
     Sku sku = new Sku()
-    sku.name = "testSku"
-    sku.capacity = 100
-    sku.tier = "tier1"
-    scaleSet.sku = sku
-
-    scaleSet.provisioningState = "Succeeded"
+    sku.withName "testSku"
+    sku.withCapacity 100
+    sku.withTier "tier1"
+    scaleSet.withSku sku
 
     scaleSet
   }
 
-  private static Boolean descriptionIsValid(AzureServerGroupDescription description, VirtualMachineScaleSet scaleSet) {
-    (description.name == scaleSet.name
+  private static Boolean descriptionIsValid(AzureServerGroupDescription description, VirtualMachineScaleSetInner scaleSet) {
+    (description.name == scaleSet.name()
       && description.appName == scaleSet.tags.appName
       && description.tags == scaleSet.tags
       && description.stack == scaleSet.tags.stack
       && description.detail == scaleSet.tags.detail
       && description.application == scaleSet.tags.appName
       && description.clusterName == scaleSet.tags.cluster
-      && description.region == scaleSet.location
-      && description.upgradePolicy == getPolicy(scaleSet.upgradePolicy.mode)
+      && description.region == scaleSet.location()
+      && description.upgradePolicy.name().toLowerCase() == scaleSet.upgradePolicy().mode().name().toLowerCase()
       && isValidImage(description.image, scaleSet)
       && isValidOsConfig(description.osConfig, scaleSet)
       && isValidSku(description.sku, scaleSet)
-      && description.provisioningState == AzureUtilities.ProvisioningState.SUCCEEDED)
+      && description.provisioningState == null)
   }
 
   private static AzureServerGroupDescription.UpgradePolicy getPolicy(String scaleSetPolicyMode)
@@ -109,23 +106,23 @@ class AzureServerGroupDescriptionUnitSpec extends Specification {
     AzureServerGroupDescription.getPolicyFromMode(scaleSetPolicyMode)
   }
 
-  private static Boolean isValidImage(AzureNamedImage image, VirtualMachineScaleSet scaleSet) {
-    (image.offer == scaleSet.virtualMachineProfile.storageProfile.imageReference.offer
-      && image.sku == scaleSet.virtualMachineProfile.storageProfile.imageReference.sku
-      && image.publisher == scaleSet.virtualMachineProfile.storageProfile.imageReference.publisher
-      && image.version == scaleSet.virtualMachineProfile.storageProfile.imageReference.version)
+  private static Boolean isValidImage(AzureNamedImage image, VirtualMachineScaleSetInner scaleSet) {
+    (image.offer == scaleSet.virtualMachineProfile().storageProfile().imageReference().offer()
+      && image.sku == scaleSet.virtualMachineProfile().storageProfile().imageReference().sku()
+      && image.publisher == scaleSet.virtualMachineProfile().storageProfile().imageReference().publisher()
+      && image.version == scaleSet.virtualMachineProfile().storageProfile().imageReference().version())
   }
 
-  private static Boolean isValidOsConfig (AzureServerGroupDescription.AzureOperatingSystemConfig osConfig, VirtualMachineScaleSet scaleSet) {
-    (osConfig.adminPassword == scaleSet.virtualMachineProfile.osProfile.adminPassword
-      && osConfig.adminUserName == scaleSet.virtualMachineProfile.osProfile.adminUsername
-      && osConfig.computerNamePrefix == scaleSet.virtualMachineProfile.osProfile.computerNamePrefix)
+  private static Boolean isValidOsConfig (AzureServerGroupDescription.AzureOperatingSystemConfig osConfig, VirtualMachineScaleSetInner scaleSet) {
+    (osConfig.adminPassword == scaleSet.virtualMachineProfile().osProfile().adminPassword()
+      && osConfig.adminUserName == scaleSet.virtualMachineProfile().osProfile().adminUsername()
+      && osConfig.computerNamePrefix == scaleSet.virtualMachineProfile().osProfile().computerNamePrefix())
   }
 
-  private static Boolean isValidSku (AzureServerGroupDescription.AzureScaleSetSku sku, VirtualMachineScaleSet scaleSet) {
-    (sku.name == scaleSet.sku.name
-      && sku.tier == scaleSet.sku.tier
-      && sku.capacity == scaleSet.sku.capacity)
+  private static Boolean isValidSku (AzureServerGroupDescription.AzureScaleSetSku sku, VirtualMachineScaleSetInner scaleSet) {
+    (sku.name == scaleSet.sku().name()
+      && sku.tier == scaleSet.sku().tier()
+      && sku.capacity == scaleSet.sku().capacity())
   }
 
 }

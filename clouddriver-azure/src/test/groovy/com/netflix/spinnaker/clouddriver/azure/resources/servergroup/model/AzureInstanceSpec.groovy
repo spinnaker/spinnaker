@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model
 
-import com.microsoft.azure.management.compute.models.InstanceViewStatus
-import com.microsoft.azure.management.compute.models.Sku
-import com.microsoft.azure.management.compute.models.VirtualMachineInstanceView
-import com.microsoft.azure.management.compute.models.VirtualMachineScaleSetVM
+import com.microsoft.azure.management.compute.InstanceViewStatus
+import com.microsoft.azure.management.compute.Sku
+import com.microsoft.azure.management.compute.VirtualMachineInstanceView
+import com.microsoft.azure.management.compute.VirtualMachineScaleSetVM
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.model.HealthState
 import spock.lang.Specification
@@ -38,11 +38,12 @@ class AzureInstanceSpec extends Specification {
 
     List<InstanceViewStatus> statuses = [provisioningStatus, powerStatus]
 
-    vm.instanceView >> instanceView
-    instanceView.statuses >> statuses
 
-    vm.sku >> sku
-    sku.name >> "test"
+    vm.instanceView() >> instanceView
+    vm.instanceView().statuses() >> statuses
+
+    vm.sku() >> sku
+    sku.name() >> "test"
 
     def instance = AzureInstance.build(vm)
 

@@ -16,33 +16,21 @@
 
 package com.netflix.spinnaker.clouddriver.azure.client
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.microsoft.azure.CloudException
 import com.microsoft.azure.credentials.ApplicationTokenCredentials
-import com.microsoft.azure.management.network.models.VirtualNetwork
-import com.microsoft.azure.management.resources.DeploymentOperationsOperations
-import com.microsoft.azure.management.resources.DeploymentsOperations
-import com.microsoft.azure.management.resources.ProvidersOperations
-import com.microsoft.azure.management.resources.ResourceGroupsOperations
-import com.microsoft.azure.management.resources.ResourceManagementClientImpl
-import com.microsoft.azure.management.resources.ResourcesOperations
-import com.microsoft.azure.management.resources.models.Deployment
-import com.microsoft.azure.management.resources.models.DeploymentExtended
-import com.microsoft.azure.management.resources.models.DeploymentMode
-import com.microsoft.azure.management.resources.models.DeploymentOperation
-import com.microsoft.azure.management.resources.models.DeploymentProperties
-import com.microsoft.azure.management.resources.models.ResourceGroup
-import com.microsoft.azure.management.resources.ResourceManagementClient
+import com.microsoft.azure.management.network.Network
+import com.microsoft.azure.management.resources.Deployment
+import com.microsoft.azure.management.resources.DeploymentMode
+import com.microsoft.azure.management.resources.DeploymentOperation
+import com.microsoft.azure.management.resources.Provider
+import com.microsoft.azure.management.resources.ResourceGroup
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
-import com.netflix.spinnaker.clouddriver.azure.security.AzureCredentials
-import groovy.transform.Canonical
+import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
-import okhttp3.logging.HttpLoggingInterceptor
 
+@CompileStatic
 @Slf4j
 class AzureResourceManagerClient extends AzureBaseClient {
-
-  private final ResourceManagementClient client
 
   /**
    * Client for communication with Azure Resource Management
@@ -50,24 +38,9 @@ class AzureResourceManagerClient extends AzureBaseClient {
    * @param credentials - Token Credentials to use for communication with Auzre
    */
   AzureResourceManagerClient(String subscriptionId, ApplicationTokenCredentials credentials, String userAgentApplicationName = "") {
-    super(subscriptionId, userAgentApplicationName)
-    this.client = initializeClient(credentials)
+    super(subscriptionId, userAgentApplicationName, credentials)
   }
 
-  @Lazy
-  ResourceGroupsOperations resourceGroupOperations = { client.getResourceGroupsOperations() }()
-
-  @Lazy
-  DeploymentOperationsOperations deploymentOperationOperations = { client.getDeploymentOperationsOperations() }()
-
-  @Lazy
-  DeploymentsOperations deploymentOperations = {client.getDeploymentsOperations()}()
-
-  @Lazy
-  ResourcesOperations resourceOperations = {client.getResourcesOperations()}()
-
-  @Lazy
-  ProvidersOperations providerOperations = {client.getProvidersOperations()}()
 
   /**
    * Create a given set of resources in Azure based on template provided
@@ -80,26 +53,23 @@ class AzureResourceManagerClient extends AzureBaseClient {
    * @param templateParams - key/value list of parameters to pass to the template
    * @return
    */
-  DeploymentExtended createResourceFromTemplate(String template,
-                                                String resourceGroupName,
-                                                String region,
-                                                String resourceName,
-                                                String resourceType,
-                                                Map<String, Object> templateParams = [:]) {
+  Deployment createResourceFromTemplate(String template,
+                                        String resourceGroupName,
+                                        String region,
+                                        String resourceName,
+                                        String resourceType,
+                                        Map<String, Object> templateParams = [:]) {
 
     String deploymentName = [resourceName, resourceType, "deployment"].join(AzureUtilities.NAME_SEPARATOR)
     if (!templateParams['location']) {
       templateParams['location'] = region
     }
 
-    DeploymentExtended deployment = createTemplateDeployment(client,
-      resourceGroupName,
+    createTemplateDeployment(resourceGroupName,
       DeploymentMode.INCREMENTAL,
       deploymentName,
       template,
       templateParams)
-
-    deployment
   }
 
   /**
@@ -112,10 +82,10 @@ class AzureResourceManagerClient extends AzureBaseClient {
     try {
       //Create an instance of the resource group to be passed as the "parameters" for the createOrUpdate method
       //Set appropriate attributes of instance to define resource group
-      ResourceGroup resourceGroup = new ResourceGroup()
-      resourceGroup.setLocation(region)
-
-      resourceGroupOperations.createOrUpdate(resourceGroupName,resourceGroup)?.body
+      azure.resourceGroups()
+        .define(resourceGroupName)
+        .withRegion(region)
+        .create()
 
     } catch (e) {
       throw new RuntimeException("Unable to create Resource Group ${resourceGroupName} in region ${region}", e)
@@ -130,18 +100,16 @@ class AzureResourceManagerClient extends AzureBaseClient {
    * @param region - Azure region
    * @return - instance of the Azure SDK ResourceGroup class
    */
-  ResourceGroup initializeResourceGroupAndVNet(AzureCredentials creds, String resourceGroupName, String virtualNetworkName, String region) {
-    ResourceGroup resourceGroupParameters = new ResourceGroup()
-    resourceGroupParameters.setLocation(region)
+  ResourceGroup initializeResourceGroupAndVNet(String resourceGroupName, String virtualNetworkName, String region) {
     ResourceGroup resourceGroup
     if (!resourceGroupExists(resourceGroupName)) {
       resourceGroup = createResourceGroup(resourceGroupName, region)
     } else {
-      resourceGroup = resourceGroupOperations.get(resourceGroupName)?.body
+      resourceGroup = getResourceGroup(resourceGroupName)
     }
 
     if (virtualNetworkName) {
-      initializeResourceGroupVNet(creds, resourceGroupName, virtualNetworkName, region)
+      initializeResourceGroupVNet(resourceGroupName, virtualNetworkName, region)
     }
 
     resourceGroup
@@ -153,7 +121,11 @@ class AzureResourceManagerClient extends AzureBaseClient {
    * @return True if it already exists
    */
   boolean resourceGroupExists(String resourceGroupName) {
-    resourceGroupOperations.checkExistence(resourceGroupName)?.body
+    azure.resourceGroups().contain(resourceGroupName)
+  }
+
+  private ResourceGroup getResourceGroup(String resourceGroupName) {
+    azure.resourceGroups().getByName(resourceGroupName)
   }
 
   /**
@@ -164,9 +136,15 @@ class AzureResourceManagerClient extends AzureBaseClient {
    * @return List of Azure SDK DeploymentOperations objects
    */
   List<DeploymentOperation> getDeploymentOperations(String resourceGroupName,
-                                                    String deploymentName,
-                                                    Integer operationCount = 10) {
-    executeOp({deploymentOperationOperations.list(resourceGroupName, deploymentName, operationCount)})?.body
+                                                    String deploymentName) {
+    executeOp({
+      def list = azure.deployments()
+        .getByResourceGroup(resourceGroupName, deploymentName)
+        .deploymentOperations()
+        .list()
+      list.loadAll()
+      list
+    })
   }
 
   /**
@@ -175,8 +153,10 @@ class AzureResourceManagerClient extends AzureBaseClient {
    * @param deploymentName - name of the deployment
    * @return Azure SDK DeploymentExtended object
    */
-  DeploymentExtended getDeployment(String resourceGroupName, String deploymentName) {
-    executeOp({deploymentOperations.get(resourceGroupName, deploymentName)})?.body
+  Deployment getDeployment(String resourceGroupName, String deploymentName) {
+    executeOp({
+      azure.deployments().getByResourceGroup(resourceGroupName, deploymentName)
+    })
   }
 
   /**
@@ -184,7 +164,7 @@ class AzureResourceManagerClient extends AzureBaseClient {
    */
   void healthCheck() {
     try {
-      resourceOperations.list(null, 1)
+      azure.genericResources().list()
     }
     catch (Exception e) {
       throw new Exception("Unable to ping Azure", e)
@@ -198,16 +178,22 @@ class AzureResourceManagerClient extends AzureBaseClient {
    * @param virtualNetworkName - name of the virtual network to lookup/create
    * @param region - Azure region to lookup/create virtual network resource in
    */
-  private static void initializeResourceGroupVNet(AzureCredentials creds, String resourceGroupName, String virtualNetworkName, String region) {
-    VirtualNetwork vNet = null
+  private void initializeResourceGroupVNet(String resourceGroupName, String virtualNetworkName, String region) {
+    Network vNet = null
 
     try {
-      vNet = creds.networkClient.getVirtualNetwork(resourceGroupName, virtualNetworkName)
+      vNet = azure.networks().getByResourceGroup(resourceGroupName, virtualNetworkName)
     } catch (CloudException ignore) {
       // Assumes that a cloud exception means that the rest call failed to locate the vNet
       log.warn("Failed to locate Azure Virtual Network ${virtualNetworkName}")
     }
-    if (!vNet) vNet = creds.networkClient.createVirtualNetwork(resourceGroupName, virtualNetworkName, region)
+    if (!vNet) {
+      azure.networks()
+        .define(virtualNetworkName)
+        .withRegion(region)
+        .withExistingResourceGroup(resourceGroupName)
+        .create()
+    }
   }
 
   /**
@@ -220,41 +206,22 @@ class AzureResourceManagerClient extends AzureBaseClient {
    * @param templateParameters - key/value list of parameters that will be passed to the template
    * @return Azure Deployment object
    */
-  private static DeploymentExtended createTemplateDeployment(
-    ResourceManagementClient resourceManagementClient,
+  private Deployment createTemplateDeployment(
     String resourceGroupName,
     DeploymentMode deploymentMode,
     String deploymentName,
     String template,
     Map<String, Object> templateParameters) {
-
-    DeploymentProperties deploymentProperties = new DeploymentProperties()
-    deploymentProperties.setMode(deploymentMode)
-
-    // set the link to template JSON.
-    // Deserialize to pass it as an instance of a JSON Node object
-    deploymentProperties.setTemplate(mapper.readTree(template))
-
-    // initialize the parameters for this template. If the parameter is not a String,
-    // then treat it as a Reference Parameter
-    if (templateParameters) {
-      deploymentProperties.setParameters(mapper.readTree(convertParametersToTemplateJSON(mapper, templateParameters)))
-    }
-
-    // kick off the deployment
-    Deployment deployment = new Deployment()
-    deployment.setProperties(deploymentProperties)
-
     try {
-      return resourceManagementClient?.
-        getDeploymentsOperations()?.
-        createOrUpdate(resourceGroupName, deploymentName, deployment)?.
-        body
-    } catch (CloudException ce) {  //TODO: (masm) move this error handling logic into the operation classes as part of refactoring how we monitor/report deployment operations/errors
-      def errorDetails = ce.body.details*.message.join('\n')
-      log.error("Azure Deployment Error: ${ce.body.message}. Error Details: {}", errorDetails)
-      throw ce
-    } catch (Exception e) {
+      String parameters = AzureUtilities.convertParametersToTemplateJSON(mapper, templateParameters)
+      return azure.deployments().define(deploymentName)
+        .withExistingResourceGroup(resourceGroupName)
+        .withTemplate(template)
+        .withParameters(parameters)
+        .withMode(deploymentMode)
+        .create()
+
+    } catch (Throwable e) {
       log.error("Exception occured during deployment ${e.message}")
       throw e
     } finally {
@@ -266,36 +233,16 @@ class AzureResourceManagerClient extends AzureBaseClient {
     log.info("Template for deployment {}: {}\nTemplate Parameters: {}", deploymentName, template, parameters.toMapString())
   }
 
-  static String convertParametersToTemplateJSON(ObjectMapper mapper, Map<String, Object> sourceParameters) {
-    def parameters = sourceParameters.collectEntries{[it.key, (it.value.class == String ? new ValueParameter(it.value) : new ReferenceParameter(it.value))]}
-    mapper.writeValueAsString(parameters)
-  }
-
-  /**
-   * initialize the Azure client that will be used for interactions(s) with this provider in Azure
-   * @param credentials - Credentials that will be used for authentication with Azure
-   * @return - an initialized instance of the Azure ResourceManagementClient object
-   */
-  private ResourceManagementClient initializeClient(ApplicationTokenCredentials credentials) {
-    ResourceManagementClient resourceManagementClient = new ResourceManagementClientImpl(buildBaseUrl(credentials), credentials)
-    resourceManagementClient.setSubscriptionId(this.subscriptionId)
-    resourceManagementClient.setLogLevel(HttpLoggingInterceptor.Level.NONE)
-
-    // Add Azure Spinnaker telemetry capturing
-    setUserAgent(resourceManagementClient, userAgentApplicationName)
-
-    resourceManagementClient
-  }
-
   /**
    * Register the Resource Provider in Azure
    * @param namespace - the namespace for the Resource Provider to register
    */
   void registerProvider(String namespace) {
     try {
-      if (providerOperations.get(namespace)?.body?.registrationState != "Registered") {
+      Provider provider = azure.providers().getByName(namespace)
+      if (provider.registrationState() != "Registered") {
         log.info("Registering Azure provider: ${namespace}")
-        providerOperations.register(namespace)
+        azure.providers().register(namespace)
         log.info("Azure provider ${namespace} registered")
       }
     } catch (Exception e) {
@@ -313,14 +260,6 @@ class AzureResourceManagerClient extends AzureBaseClient {
     "Microsoft.Resources"
   }
 
-  @Canonical
-  private static class ValueParameter {
-    Object value
-  }
 
-  @Canonical
-  private static class ReferenceParameter {
-    Object reference
-  }
 
 }

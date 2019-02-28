@@ -52,7 +52,7 @@ class UpsertAzureAppGatewayAtomicOperationSpec extends Specification{
 
     then:
     operation
-    mapper.writeValueAsString(description) == expectedFullDescription
+    mapper.writeValueAsString(description).replace('\r', '') == expectedFullDescription
   }
 
   private static String expectedFullDescription = '''{

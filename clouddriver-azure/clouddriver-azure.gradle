@@ -7,19 +7,6 @@ dependencies {
   compile spinnaker.dependency('frigga')
   compile spinnaker.dependency('bootActuator')
   compile spinnaker.dependency('bootWeb')
-  compile 'com.microsoft.azure:adal4j:1.1.2'
-  compile 'com.microsoft.azure:azure:1.0.0-beta1'
-  compile 'com.microsoft.azure:azure-mgmt-compute:1.0.0-beta1'
-  compile 'com.microsoft.azure:azure-mgmt-network:1.0.0-beta1'
-  compile 'com.microsoft.azure:azure-mgmt-storage:1.0.0-beta1'
-  compile 'com.microsoft.azure:azure-mgmt-resources:1.0.0-beta1'
-  compile 'com.microsoft.azure:azure-client-authentication:1.0.0-beta1'
-  compile 'com.microsoft.azure:azure-storage:3.1.0'
-  compile 'com.microsoft.rest:client-runtime:1.0.0-20160309.002843-19'
+  compile 'com.microsoft.azure:adal4j:1.6.3'
+  compile 'com.microsoft.azure:azure:1.19.0'
 }
-
-configurations.all {
-  resolutionStrategy.force 'com.microsoft.rest:client-runtime:1.0.0-20160309.002843-19'
-}
-
-

@@ -16,11 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.azure.resources.network.model
 
-import com.microsoft.azure.management.network.models.VirtualNetwork
+import com.microsoft.azure.management.network.implementation.VirtualNetworkInner
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.azure.resources.common.AzureResourceOpsDescription
 import com.netflix.spinnaker.clouddriver.azure.resources.subnet.model.AzureSubnetDescription
+import groovy.transform.CompileStatic
 
+@CompileStatic
 class AzureVirtualNetworkDescription extends AzureResourceOpsDescription {
   String id
   String type
@@ -32,21 +34,21 @@ class AzureVirtualNetworkDescription extends AzureResourceOpsDescription {
   int maxSubnets
   int subnetAddressPrefixLength
 
-  static AzureVirtualNetworkDescription getDescriptionForVirtualNetwork(VirtualNetwork vnet) {
+  static AzureVirtualNetworkDescription getDescriptionForVirtualNetwork(VirtualNetworkInner vnet) {
     if (!vnet) {
       return null
     }
 
     AzureVirtualNetworkDescription description = new AzureVirtualNetworkDescription()
-    description.name = vnet.name
-    description.region = vnet.location
+    description.name = vnet.name()
+    description.region = vnet.location()
     // TODO We assume that the vnet first address space matters; we'll revise this later if we need to support more then one
-    description.addressSpace = vnet.addressSpace?.addressPrefixes
-    description.subnets = AzureSubnetDescription.getSubnetsForVirtualNetwork(vnet)
-    description.resourceId = vnet.id
-    description.resourceGroup = AzureUtilities.getResourceGroupNameFromResourceId(vnet.id)
-    description.id = vnet.name
-    description.tags = vnet.tags
+    description.addressSpace = vnet.addressSpace()?.addressPrefixes()
+    description.subnets = AzureSubnetDescription.getSubnetsForVirtualNetwork(vnet)?.toList()
+    description.resourceId = vnet.id()
+    description.resourceGroup = AzureUtilities.getResourceGroupNameFromResourceId(vnet.id())
+    description.id = vnet.name()
+    description.tags = vnet.getTags()
     description.subnetAddressPrefixLength = description.subnets?.min {it.addressPrefixLength}?.addressPrefixLength ?: AzureUtilities.SUBNET_DEFAULT_ADDRESS_PREFIX_LENGTH
     description.maxSubnets = AzureUtilities.getSubnetRangeMax(
       description.addressSpace?.first(),

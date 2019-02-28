@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.clouddriver.azure.resources.appgateway.ops
 
 import com.microsoft.azure.CloudException
-import com.microsoft.azure.management.resources.models.DeploymentExtended
+import com.microsoft.azure.management.resources.Deployment
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.azure.resources.common.model.AzureDeploymentOperation
 import com.netflix.spinnaker.clouddriver.azure.resources.appgateway.model.AzureAppGatewayDescription
@@ -86,21 +86,21 @@ class UpsertAzureAppGatewayAtomicOperation implements AtomicOperation<Map> {
         description.serverGroups = appGatewayDescription.serverGroups
         description.trafficEnabledSG = appGatewayDescription.trafficEnabledSG
 
-        DeploymentExtended deployment = description.credentials.resourceManagerClient.createResourceFromTemplate(
+        Deployment deployment = description.credentials.resourceManagerClient.createResourceFromTemplate(
           AzureAppGatewayResourceTemplate.getTemplate(description),
           resourceGroupName,
           description.region,
           description.loadBalancerName,
           "appGateway")
 
-        errList = AzureDeploymentOperation.checkDeploymentOperationStatus(task, BASE_PHASE, description.credentials, resourceGroupName, deployment.name)
+        errList = AzureDeploymentOperation.checkDeploymentOperationStatus(task, BASE_PHASE, description.credentials, resourceGroupName, deployment.name())
       } else {
         // We are attempting to create a new application gateway
         if (!description.useDefaultVnet) {
           task.updateStatus(BASE_PHASE, "Create ApplicationGateway using virtual network $description.vnet and subnet $description.subnet for server group $description.name")
 
           // Create corresponding ResourceGroup if it's not created already
-          description.credentials.resourceManagerClient.initializeResourceGroupAndVNet(description.credentials, resourceGroupName, null, description.region)
+          description.credentials.resourceManagerClient.initializeResourceGroupAndVNet(resourceGroupName, null, description.region)
 
           // We will try to associate the server group with the selected virtual network and subnet
           description.hasNewSubnet = false
@@ -122,7 +122,7 @@ class UpsertAzureAppGatewayAtomicOperation implements AtomicOperation<Map> {
           }
         } else {
           // Create ResourceGroup and default VirtualNetwork if they are not created already
-          description.credentials.resourceManagerClient.initializeResourceGroupAndVNet(description.credentials, resourceGroupName, virtualNetworkName, description.region)
+          description.credentials.resourceManagerClient.initializeResourceGroupAndVNet(resourceGroupName, virtualNetworkName, description.region)
 
           task.updateStatus(BASE_PHASE, "Creating subnet for application gateway")
 
@@ -163,20 +163,20 @@ class UpsertAzureAppGatewayAtomicOperation implements AtomicOperation<Map> {
         }
 
         task.updateStatus(BASE_PHASE, "Create new application gateway ${description.loadBalancerName} in ${description.region}...")
-        DeploymentExtended deployment = description.credentials.resourceManagerClient.createResourceFromTemplate(
+        Deployment deployment = description.credentials.resourceManagerClient.createResourceFromTemplate(
           AzureAppGatewayResourceTemplate.getTemplate(description),
           resourceGroupName,
           description.region,
           description.loadBalancerName,
           "appGateway")
 
-        errList = AzureDeploymentOperation.checkDeploymentOperationStatus(task, BASE_PHASE, description.credentials, resourceGroupName, deployment.name)
+        errList = AzureDeploymentOperation.checkDeploymentOperationStatus(task, BASE_PHASE, description.credentials, resourceGroupName, deployment.name())
         loadBalancerName = description.name
       }
     } catch (CloudException ce) {
       task.updateStatus(BASE_PHASE, "One or more deployment operations have failed. Please see Azure portal for more information. Resource Group: ${resourceGroupName} Application Gateway: ${description.loadBalancerName}")
       errList.add(ce.message)
-    } catch (Exception e) {
+    } catch (Throwable e) {
       task.updateStatus(BASE_PHASE, "Deployment of application gateway ${description.loadBalancerName} failed: ${e.message}")
       errList.add(e.message)
     }

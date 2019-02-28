@@ -16,9 +16,21 @@
 
 package com.netflix.spinnaker.clouddriver.azure.common
 
+import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.SerializationFeature
+import com.netflix.spinnaker.clouddriver.azure.resources.common.model.KeyVaultSecret
+import com.netflix.spinnaker.clouddriver.azure.templates.AzureServerGroupResourceTemplate
 import spock.lang.Specification
 
 class AzureUtilitiesSpec extends Specification {
+  ObjectMapper objectMapper
+
+  void setup() {
+    objectMapper = new ObjectMapper().configure(SerializationFeature.INDENT_OUTPUT, true)
+    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+  }
+
   def "CompareIpv4AddrPrefixes == 0"() {
     expect:
     AzureUtilities.compareIpv4AddrPrefixes(left, right) == 0
@@ -194,4 +206,33 @@ class AzureUtilitiesSpec extends Specification {
     '/subscriptions/***-***-***/resourceGroups/***/providers/Microsoft.Compute/virtualMachineScaleSets/vmss000/virtualMachines/0/networkInterfaces/nic1/ipConfigurations/ipc1' | 'virtualMachineScaleSets'
   }
 
+  def 'verify parameters JSON'() {
+
+    def parameters = [:]
+    parameters[AzureServerGroupResourceTemplate.subnetParameterName] = subnetId
+    parameters[AzureServerGroupResourceTemplate.vmPasswordParameterName] = new KeyVaultSecret(secretName, subscriptionId, defaultResourceGroup, defaultVaultName)
+    String parametersJSON = AzureUtilities.convertParametersToTemplateJSON(objectMapper, parameters)
+
+    expect: parametersJSON.replace('\r', '') == expectedParameters
+  }
+
+  private static String expectedParameters = """{
+  "subnetId" : {
+    "value" : "$subnetId"
+  },
+  "vmPassword" : {
+    "reference" : {
+      "keyVault" : {
+        "id" : "/subscriptions/$subscriptionId/resourceGroups/$defaultResourceGroup/providers/Microsoft.KeyVault/vaults/$defaultVaultName"
+      },
+      "secretName" : "$secretName"
+    }
+  }
+}"""
+
+  private static final String subscriptionId = "testSubscriptionID"
+  private static final String subnetId = "SubNetTestID"
+  private static final String defaultResourceGroup = "defaultResourceGroup"
+  private static final String defaultVaultName = "defaultKeyVault"
+  private static final String secretName = "VMPassword"
 }
