@@ -30,8 +30,10 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
+import java.lang.IllegalArgumentException
 import java.time.Clock
 import java.time.Duration
 import java.util.Optional
@@ -42,6 +44,7 @@ import kotlin.contracts.ExperimentalContracts
 @ConditionalOnProperty("sql.cache.enabled")
 @Import(DefaultSqlConfiguration::class)
 @EnableConfigurationProperties(SqlAgentProperties::class)
+@ComponentScan("com.netflix.spinnaker.cats.sql.controllers")
 class SqlCacheConfiguration {
 
   companion object {
@@ -85,6 +88,10 @@ class SqlCacheConfiguration {
                    dynamicConfigService: DynamicConfigService,
                    @Value("\${sql.cache.asyncPoolSize:0}") poolSize: Int,
                    @Value("\${sql.tableNamespace:#{null}}") tableNamespace: String?): NamedCacheFactory {
+    if (tableNamespace != null && !tableNamespace.matches("""^\w+$""".toRegex())) {
+      throw IllegalArgumentException("tableNamespace can only contain characters [a-z, A-Z, 0-9, _]")
+    }
+
     /**
      * newFixedThreadPoolContext was marked obsolete in Oct 2018, to be reimplemented as a new
      * concurrency limiting threaded context factory with reduced context switch overhead. As of

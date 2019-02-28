@@ -49,9 +49,9 @@ class SqlCache(
 ) : WriteableCache {
 
   companion object {
-    private const val schemaVersion = 1 // TODO: move somewhere sane
     private const val onDemandType = "onDemand"
 
+    private val schemaVersion = SqlSchemaVersion.current()
     private val useRegexp = """.*[\?\[].*""".toRegex()
     private val cleanRegexp = """\.+\*""".toRegex()
     private val typeSanitization = """[:/\-]""".toRegex()
@@ -390,7 +390,7 @@ class SqlCache(
     val result = getAll(type, Arrays.asList<String>(id), cacheFilter)
     return if (result.isEmpty()) {
       null
-    } else result.iterator().next() // TODO why?
+    } else result.iterator().next()
   }
 
   override fun evict(type: String, id: String) {
