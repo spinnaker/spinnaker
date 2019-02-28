@@ -12,6 +12,7 @@ import liquibase.exception.DatabaseException
 import liquibase.exception.LiquibaseException
 import liquibase.resource.ClassLoaderResourceAccessor
 import org.jooq.SQLDialect.H2
+import org.jooq.Schema
 import org.jooq.conf.RenderNameStyle.AS_IS
 import org.jooq.impl.DataSourceConnectionProvider
 import org.jooq.impl.DefaultConfiguration
@@ -35,8 +36,8 @@ internal object SqlResourceRepositoryTests : ResourceRepositoryTests<SqlResource
     context
       .meta()
       .schemas
-      .find { it.name == "PUBLIC" }!!
-      .tables
+      .filter { it.name == "PUBLIC" }
+      .flatMap(Schema::getTables)
       .forEach {
         context.truncate(it).execute()
       }
