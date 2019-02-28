@@ -38,6 +38,7 @@ func NewExecutionCmd(out io.Writer) *cobra.Command {
 	}
 
 	// create subcommands
+	cmd.AddCommand(NewCancelCmd())
 	cmd.AddCommand(NewGetCmd())
 	cmd.AddCommand(NewListCmd(options))
 	return cmd

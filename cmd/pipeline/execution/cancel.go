@@ -15,58 +15,55 @@
 package execution
 
 import (
+	"errors"
 	"fmt"
-	"net/http"
-
 	"github.com/spf13/cobra"
 	"github.com/spinnaker/spin/cmd/gateclient"
 	"github.com/spinnaker/spin/util"
+	"net/http"
 )
 
 var (
-	getExecutionShort = "Get the specified execution"
-	getExecutionLong  = "Get the execution with the provided id "
+	cancelExecutionShort = "Cancel the executions for the provided execution id"
+	cancelExecutionLong  = "Cancel the executions for the provided execution id"
 )
 
-func NewGetCmd() *cobra.Command {
+func NewCancelCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "get",
-		Short: getExecutionShort,
-		Long:  getExecutionLong,
-		RunE:  getExecution,
+		Use:   "cancel",
+		Short: cancelExecutionShort,
+		Long:  cancelExecutionLong,
+		RunE:  cancelExecution,
 	}
+
 	return cmd
 }
 
-func getExecution(cmd *cobra.Command, args []string) error {
+func cancelExecution(cmd *cobra.Command, args []string) error {
 	gateClient, err := gateclient.NewGateClient(cmd.InheritedFlags())
 	if err != nil {
 		return err
 	}
 
-	id, err := util.ReadArgsOrStdin(args)
-	if err != nil {
-		return err
+	executionId, err := util.ReadArgsOrStdin(args)
+	if executionId == "" {
+		return errors.New("no execution id supplied, exiting")
 	}
 
-	query := map[string]interface{}{
-		"executionIds": id, // Status filtering is ignored when executionId is supplied
-		"limit":        int32(1),
-	}
-
-	successPayload, resp, err := gateClient.ExecutionsControllerApi.GetLatestExecutionsByConfigIdsUsingGET(
-		gateClient.Context, query)
+	resp, err := gateClient.PipelineControllerApi.CancelPipelineUsingPUT1(gateClient.Context,
+		executionId,
+		map[string]interface{}{})
 
 	if err != nil {
 		return err
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Encountered an error getting execution %s, status code: %d\n",
-			id,
+		return fmt.Errorf("encountered an error canceling execution with id %s, status code: %d\n",
+			executionId,
 			resp.StatusCode)
 	}
 
-	util.UI.JsonOutput(successPayload, util.UI.OutputFormat)
+	util.UI.Info(util.Colorize().Color(fmt.Sprintf("[reset][bold][green]Execution %s successfully canceled", executionId)))
 	return nil
 }
