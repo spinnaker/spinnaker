@@ -4,11 +4,11 @@ All URIs are relative to *https://localhost*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
-[**AllUsingGET3**](PubsubSubscriptionControllerApi.md#AllUsingGET3) | **Get** /pubsub/subscriptions | Retrieve the list of pub/sub subscriptions configured in Echo.
+[**AllUsingGET4**](PubsubSubscriptionControllerApi.md#AllUsingGET4) | **Get** /pubsub/subscriptions | Retrieve the list of pub/sub subscriptions configured in Echo.
 
 
-# **AllUsingGET3**
-> []Mapstringstring AllUsingGET3(ctx, )
+# **AllUsingGET4**
+> []Mapstringstring AllUsingGET4(ctx, )
 Retrieve the list of pub/sub subscriptions configured in Echo.
 
 ### Required Parameters

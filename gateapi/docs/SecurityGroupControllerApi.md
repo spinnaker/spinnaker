@@ -5,7 +5,7 @@ All URIs are relative to *https://localhost*
 Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**AllByAccountUsingGET1**](SecurityGroupControllerApi.md#AllByAccountUsingGET1) | **Get** /securityGroups/{account} | Retrieve a list of security groups for a given account, grouped by region
-[**AllUsingGET4**](SecurityGroupControllerApi.md#AllUsingGET4) | **Get** /securityGroups | Retrieve a list of security groups, grouped by account, cloud provider, and region
+[**AllUsingGET5**](SecurityGroupControllerApi.md#AllUsingGET5) | **Get** /securityGroups | Retrieve a list of security groups, grouped by account, cloud provider, and region
 [**GetSecurityGroupUsingGET1**](SecurityGroupControllerApi.md#GetSecurityGroupUsingGET1) | **Get** /securityGroups/{account}/{region}/{name} | Retrieve a security group&#39;s details
 
 
@@ -46,8 +46,8 @@ No authorization required
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **AllUsingGET4**
-> interface{} AllUsingGET4(ctx, optional)
+# **AllUsingGET5**
+> interface{} AllUsingGET5(ctx, optional)
 Retrieve a list of security groups, grouped by account, cloud provider, and region
 
 ### Required Parameters

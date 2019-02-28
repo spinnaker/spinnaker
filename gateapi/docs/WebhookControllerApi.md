@@ -31,7 +31,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **WebhooksUsingPOST**
-> interface{} WebhooksUsingPOST(ctx, type_, source, event, optional)
+> interface{} WebhooksUsingPOST(ctx, type_, source, optional)
 Endpoint for posting webhooks to Spinnaker's webhook service
 
 ### Required Parameters
@@ -41,7 +41,6 @@ Name | Type | Description  | Notes
  **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
   **type_** | **string**| type | 
   **source** | **string**| source | 
-  **event** | [**interface{}**](interface{}.md)| event | 
  **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
 
 ### Optional Parameters

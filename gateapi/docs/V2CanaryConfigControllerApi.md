@@ -1,28 +1,70 @@
-# \V2PipelineTemplatesControllerApi
+# \V2CanaryConfigControllerApi
 
 All URIs are relative to *https://localhost*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
-[**CreateUsingPOST1**](V2PipelineTemplatesControllerApi.md#CreateUsingPOST1) | **Post** /v2/pipelineTemplates | Create a pipeline template.
-[**DeleteUsingDELETE1**](V2PipelineTemplatesControllerApi.md#DeleteUsingDELETE1) | **Delete** /v2/pipelineTemplates/{id} | Delete a pipeline template.
-[**GetUsingGET2**](V2PipelineTemplatesControllerApi.md#GetUsingGET2) | **Get** /v2/pipelineTemplates/{id} | Get a pipeline template.
-[**ListPipelineTemplateDependentsUsingGET1**](V2PipelineTemplatesControllerApi.md#ListPipelineTemplateDependentsUsingGET1) | **Get** /v2/pipelineTemplates/{id}/dependents | List all pipelines that implement a pipeline template
-[**ListUsingGET1**](V2PipelineTemplatesControllerApi.md#ListUsingGET1) | **Get** /v2/pipelineTemplates | List pipeline templates.
-[**PlanUsingPOST**](V2PipelineTemplatesControllerApi.md#PlanUsingPOST) | **Post** /v2/pipelineTemplates/plan | Plan a pipeline template configuration.
-[**UpdateUsingPOST1**](V2PipelineTemplatesControllerApi.md#UpdateUsingPOST1) | **Post** /v2/pipelineTemplates/{id} | Update a pipeline template.
+[**CreateCanaryConfigUsingPOST**](V2CanaryConfigControllerApi.md#CreateCanaryConfigUsingPOST) | **Post** /v2/canaryConfig | Create a canary configuration
+[**DeleteCanaryConfigUsingDELETE**](V2CanaryConfigControllerApi.md#DeleteCanaryConfigUsingDELETE) | **Delete** /v2/canaryConfig/{id} | Delete a canary configuration
+[**GetCanaryConfigUsingGET**](V2CanaryConfigControllerApi.md#GetCanaryConfigUsingGET) | **Get** /v2/canaryConfig/{id} | Retrieve a canary configuration by id
+[**GetCanaryConfigsUsingGET**](V2CanaryConfigControllerApi.md#GetCanaryConfigsUsingGET) | **Get** /v2/canaryConfig | Retrieve a list of canary configurations
+[**UpdateCanaryConfigUsingPUT**](V2CanaryConfigControllerApi.md#UpdateCanaryConfigUsingPUT) | **Put** /v2/canaryConfig/{id} | Update a canary configuration
 
 
-# **CreateUsingPOST1**
-> CreateUsingPOST1(ctx, pipelineTemplate)
-Create a pipeline template.
+# **CreateCanaryConfigUsingPOST**
+> interface{} CreateCanaryConfigUsingPOST(ctx, config, optional)
+Create a canary configuration
 
 ### Required Parameters
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
-  **pipelineTemplate** | [**interface{}**](interface{}.md)| pipelineTemplate | 
+  **config** | [**interface{}**](interface{}.md)| config | 
+ **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
+
+### Optional Parameters
+Optional parameters are passed through a map[string]interface{}.
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **config** | [**interface{}**](interface{}.md)| config | 
+ **configurationAccountName** | **string**| configurationAccountName | 
+
+### Return type
+
+[**interface{}**](interface{}.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: */*
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **DeleteCanaryConfigUsingDELETE**
+> DeleteCanaryConfigUsingDELETE(ctx, id, optional)
+Delete a canary configuration
+
+### Required Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+  **id** | **string**| id | 
+ **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
+
+### Optional Parameters
+Optional parameters are passed through a map[string]interface{}.
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **id** | **string**| id | 
+ **configurationAccountName** | **string**| configurationAccountName | 
 
 ### Return type
 
@@ -39,9 +81,9 @@ No authorization required
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **DeleteUsingDELETE1**
-> map[string]interface{} DeleteUsingDELETE1(ctx, id, optional)
-Delete a pipeline template.
+# **GetCanaryConfigUsingGET**
+> interface{} GetCanaryConfigUsingGET(ctx, id, optional)
+Retrieve a canary configuration by id
 
 ### Required Parameters
 
@@ -57,59 +99,41 @@ Optional parameters are passed through a map[string]interface{}.
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **id** | **string**| id | 
+ **configurationAccountName** | **string**| configurationAccountName | 
+
+### Return type
+
+[**interface{}**](interface{}.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: */*
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **GetCanaryConfigsUsingGET**
+> []interface{} GetCanaryConfigsUsingGET(ctx, optional)
+Retrieve a list of canary configurations
+
+### Required Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+ **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
+
+### Optional Parameters
+Optional parameters are passed through a map[string]interface{}.
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
  **application** | **string**| application | 
-
-### Return type
-
-[**map[string]interface{}**](interface{}.md)
-
-### Authorization
-
-No authorization required
-
-### HTTP request headers
-
- - **Content-Type**: application/json
- - **Accept**: */*
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **GetUsingGET2**
-> map[string]interface{} GetUsingGET2(ctx, id)
-Get a pipeline template.
-
-### Required Parameters
-
-Name | Type | Description  | Notes
-------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
-  **id** | **string**| id | 
-
-### Return type
-
-[**map[string]interface{}**](interface{}.md)
-
-### Authorization
-
-No authorization required
-
-### HTTP request headers
-
- - **Content-Type**: application/json
- - **Accept**: */*
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **ListPipelineTemplateDependentsUsingGET1**
-> []interface{} ListPipelineTemplateDependentsUsingGET1(ctx, id)
-List all pipelines that implement a pipeline template
-
-### Required Parameters
-
-Name | Type | Description  | Notes
-------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
-  **id** | **string**| id | 
+ **configurationAccountName** | **string**| configurationAccountName | 
 
 ### Return type
 
@@ -126,68 +150,9 @@ No authorization required
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **ListUsingGET1**
-> []interface{} ListUsingGET1(ctx, optional)
-List pipeline templates.
-
-### Required Parameters
-
-Name | Type | Description  | Notes
-------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
- **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
-
-### Optional Parameters
-Optional parameters are passed through a map[string]interface{}.
-
-Name | Type | Description  | Notes
-------------- | ------------- | ------------- | -------------
- **scopes** | [**[]string**](string.md)| scopes | 
-
-### Return type
-
-[**[]interface{}**](interface{}.md)
-
-### Authorization
-
-No authorization required
-
-### HTTP request headers
-
- - **Content-Type**: application/json
- - **Accept**: */*
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **PlanUsingPOST**
-> map[string]interface{} PlanUsingPOST(ctx, pipeline)
-Plan a pipeline template configuration.
-
-### Required Parameters
-
-Name | Type | Description  | Notes
-------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
-  **pipeline** | [**interface{}**](interface{}.md)| pipeline | 
-
-### Return type
-
-[**map[string]interface{}**](interface{}.md)
-
-### Authorization
-
-No authorization required
-
-### HTTP request headers
-
- - **Content-Type**: application/json
- - **Accept**: */*
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **UpdateUsingPOST1**
-> UpdateUsingPOST1(ctx, id, pipelineTemplate, optional)
-Update a pipeline template.
+# **UpdateCanaryConfigUsingPUT**
+> interface{} UpdateCanaryConfigUsingPUT(ctx, id, config, optional)
+Update a canary configuration
 
 ### Required Parameters
 
@@ -195,7 +160,7 @@ Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
   **id** | **string**| id | 
-  **pipelineTemplate** | [**interface{}**](interface{}.md)| pipelineTemplate | 
+  **config** | [**interface{}**](interface{}.md)| config | 
  **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
 
 ### Optional Parameters
@@ -204,12 +169,12 @@ Optional parameters are passed through a map[string]interface{}.
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **id** | **string**| id | 
- **pipelineTemplate** | [**interface{}**](interface{}.md)| pipelineTemplate | 
- **skipPlanDependents** | **bool**| skipPlanDependents | [default to false]
+ **config** | [**interface{}**](interface{}.md)| config | 
+ **configurationAccountName** | **string**| configurationAccountName | 
 
 ### Return type
 
- (empty response body)
+[**interface{}**](interface{}.md)
 
 ### Authorization
 

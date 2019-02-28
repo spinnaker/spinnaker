@@ -24,45 +24,110 @@ var (
 	_ context.Context
 )
 
-type ProjectControllerApiService service
+type V2CanaryConfigControllerApiService service
 
 
-/* ProjectControllerApiService Get all pipelines for project
+/* V2CanaryConfigControllerApiService Create a canary configuration
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param config config
+ @param optional (nil or map[string]interface{}) with one or more of:
+     @param "configurationAccountName" (string) configurationAccountName
+ @return interface{}*/
+func (a *V2CanaryConfigControllerApiService) CreateCanaryConfigUsingPOST(ctx context.Context, config interface{}, localVarOptionals map[string]interface{}) (interface{},  *http.Response, error) {
+	var (
+		localVarHttpMethod = strings.ToUpper("Post")
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  interface{}
+	)
+
+	// create path and map variables
+	localVarPath := a.client.cfg.BasePath + "/v2/canaryConfig"
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	if err := typeCheckParameter(localVarOptionals["configurationAccountName"], "string", "configurationAccountName"); err != nil {
+		return successPayload, nil, err
+	}
+
+	if localVarTempParam, localVarOk := localVarOptionals["configurationAccountName"].(string); localVarOk {
+		localVarQueryParams.Add("configurationAccountName", parameterToString(localVarTempParam, ""))
+	}
+	// to determine the Content-Type header
+	localVarHttpContentTypes := []string{ "application/json",  }
+
+	// set Content-Type header
+	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
+	if localVarHttpContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHttpContentType
+	}
+
+	// to determine the Accept header
+	localVarHttpHeaderAccepts := []string{
+		"*/*",
+		}
+
+	// set Accept header
+	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
+	if localVarHttpHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHttpHeaderAccept
+	}
+	// body params
+	localVarPostBody = &config
+	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFileName, localVarFileBytes)
+	if err != nil {
+		return successPayload, nil, err
+	}
+
+	localVarHttpResponse, err := a.client.callAPI(r)
+	if err != nil || localVarHttpResponse == nil {
+		return successPayload, localVarHttpResponse, err
+	}
+	defer localVarHttpResponse.Body.Close()
+	if localVarHttpResponse.StatusCode >= 300 {
+		bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
+		return successPayload, localVarHttpResponse, reportError("Status: %v, Body: %s", localVarHttpResponse.Status, bodyBytes)
+	}
+
+	if err = json.NewDecoder(localVarHttpResponse.Body).Decode(&successPayload); err != nil {
+		return successPayload, localVarHttpResponse, err
+	}
+
+
+	return successPayload, localVarHttpResponse, err
+}
+
+/* V2CanaryConfigControllerApiService Delete a canary configuration
  * @param ctx context.Context for authentication, logging, tracing, etc.
  @param id id
  @param optional (nil or map[string]interface{}) with one or more of:
-     @param "limit" (int32) limit
-     @param "statuses" (string) statuses
- @return []interface{}*/
-func (a *ProjectControllerApiService) AllPipelinesForProjectUsingGET(ctx context.Context, id string, localVarOptionals map[string]interface{}) ([]interface{},  *http.Response, error) {
+     @param "configurationAccountName" (string) configurationAccountName
+ @return */
+func (a *V2CanaryConfigControllerApiService) DeleteCanaryConfigUsingDELETE(ctx context.Context, id string, localVarOptionals map[string]interface{}) ( *http.Response, error) {
 	var (
-		localVarHttpMethod = strings.ToUpper("Get")
+		localVarHttpMethod = strings.ToUpper("Delete")
 		localVarPostBody interface{}
 		localVarFileName string
 		localVarFileBytes []byte
-	 	successPayload  []interface{}
 	)
 
 	// create path and map variables
-	localVarPath := a.client.cfg.BasePath + "/projects/{id}/pipelines"
+	localVarPath := a.client.cfg.BasePath + "/v2/canaryConfig/{id}"
 	localVarPath = strings.Replace(localVarPath, "{"+"id"+"}", fmt.Sprintf("%v", id), -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-	if err := typeCheckParameter(localVarOptionals["limit"], "int32", "limit"); err != nil {
-		return successPayload, nil, err
-	}
-	if err := typeCheckParameter(localVarOptionals["statuses"], "string", "statuses"); err != nil {
-		return successPayload, nil, err
+	if err := typeCheckParameter(localVarOptionals["configurationAccountName"], "string", "configurationAccountName"); err != nil {
+		return nil, err
 	}
 
-	if localVarTempParam, localVarOk := localVarOptionals["limit"].(int32); localVarOk {
-		localVarQueryParams.Add("limit", parameterToString(localVarTempParam, ""))
-	}
-	if localVarTempParam, localVarOk := localVarOptionals["statuses"].(string); localVarOk {
-		localVarQueryParams.Add("statuses", parameterToString(localVarTempParam, ""))
+	if localVarTempParam, localVarOk := localVarOptionals["configurationAccountName"].(string); localVarOk {
+		localVarQueryParams.Add("configurationAccountName", parameterToString(localVarTempParam, ""))
 	}
 	// to determine the Content-Type header
 	localVarHttpContentTypes := []string{ "application/json",  }
@@ -85,116 +150,52 @@ func (a *ProjectControllerApiService) AllPipelinesForProjectUsingGET(ctx context
 	}
 	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFileName, localVarFileBytes)
 	if err != nil {
-		return successPayload, nil, err
+		return nil, err
 	}
 
 	localVarHttpResponse, err := a.client.callAPI(r)
 	if err != nil || localVarHttpResponse == nil {
-		return successPayload, localVarHttpResponse, err
+		return localVarHttpResponse, err
 	}
 	defer localVarHttpResponse.Body.Close()
 	if localVarHttpResponse.StatusCode >= 300 {
 		bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
-		return successPayload, localVarHttpResponse, reportError("Status: %v, Body: %s", localVarHttpResponse.Status, bodyBytes)
+		return localVarHttpResponse, reportError("Status: %v, Body: %s", localVarHttpResponse.Status, bodyBytes)
 	}
 
-	if err = json.NewDecoder(localVarHttpResponse.Body).Decode(&successPayload); err != nil {
-		return successPayload, localVarHttpResponse, err
-	}
-
-
-	return successPayload, localVarHttpResponse, err
+	return localVarHttpResponse, err
 }
 
-/* ProjectControllerApiService Get all projects
- * @param ctx context.Context for authentication, logging, tracing, etc.
- @return []interface{}*/
-func (a *ProjectControllerApiService) AllUsingGET3(ctx context.Context) ([]interface{},  *http.Response, error) {
-	var (
-		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody interface{}
-		localVarFileName string
-		localVarFileBytes []byte
-	 	successPayload  []interface{}
-	)
-
-	// create path and map variables
-	localVarPath := a.client.cfg.BasePath + "/projects"
-
-	localVarHeaderParams := make(map[string]string)
-	localVarQueryParams := url.Values{}
-	localVarFormParams := url.Values{}
-
-
-	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
-
-	// set Content-Type header
-	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
-	if localVarHttpContentType != "" {
-		localVarHeaderParams["Content-Type"] = localVarHttpContentType
-	}
-
-	// to determine the Accept header
-	localVarHttpHeaderAccepts := []string{
-		"*/*",
-		}
-
-	// set Accept header
-	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
-	if localVarHttpHeaderAccept != "" {
-		localVarHeaderParams["Accept"] = localVarHttpHeaderAccept
-	}
-	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFileName, localVarFileBytes)
-	if err != nil {
-		return successPayload, nil, err
-	}
-
-	localVarHttpResponse, err := a.client.callAPI(r)
-	if err != nil || localVarHttpResponse == nil {
-		return successPayload, localVarHttpResponse, err
-	}
-	defer localVarHttpResponse.Body.Close()
-	if localVarHttpResponse.StatusCode >= 300 {
-		bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
-		return successPayload, localVarHttpResponse, reportError("Status: %v, Body: %s", localVarHttpResponse.Status, bodyBytes)
-	}
-
-	if err = json.NewDecoder(localVarHttpResponse.Body).Decode(&successPayload); err != nil {
-		return successPayload, localVarHttpResponse, err
-	}
-
-
-	return successPayload, localVarHttpResponse, err
-}
-
-/* ProjectControllerApiService Get a project&#39;s clusters
+/* V2CanaryConfigControllerApiService Retrieve a canary configuration by id
  * @param ctx context.Context for authentication, logging, tracing, etc.
  @param id id
  @param optional (nil or map[string]interface{}) with one or more of:
-     @param "xRateLimitApp" (string) X-RateLimit-App
- @return []interface{}*/
-func (a *ProjectControllerApiService) GetClustersUsingGET3(ctx context.Context, id string, localVarOptionals map[string]interface{}) ([]interface{},  *http.Response, error) {
+     @param "configurationAccountName" (string) configurationAccountName
+ @return interface{}*/
+func (a *V2CanaryConfigControllerApiService) GetCanaryConfigUsingGET(ctx context.Context, id string, localVarOptionals map[string]interface{}) (interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
 		localVarPostBody interface{}
 		localVarFileName string
 		localVarFileBytes []byte
-	 	successPayload  []interface{}
+	 	successPayload  interface{}
 	)
 
 	// create path and map variables
-	localVarPath := a.client.cfg.BasePath + "/projects/{id}/clusters"
+	localVarPath := a.client.cfg.BasePath + "/v2/canaryConfig/{id}"
 	localVarPath = strings.Replace(localVarPath, "{"+"id"+"}", fmt.Sprintf("%v", id), -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-	if err := typeCheckParameter(localVarOptionals["xRateLimitApp"], "string", "xRateLimitApp"); err != nil {
+	if err := typeCheckParameter(localVarOptionals["configurationAccountName"], "string", "configurationAccountName"); err != nil {
 		return successPayload, nil, err
 	}
 
+	if localVarTempParam, localVarOk := localVarOptionals["configurationAccountName"].(string); localVarOk {
+		localVarQueryParams.Add("configurationAccountName", parameterToString(localVarTempParam, ""))
+	}
 	// to determine the Content-Type header
 	localVarHttpContentTypes := []string{ "application/json",  }
 
@@ -213,9 +214,6 @@ func (a *ProjectControllerApiService) GetClustersUsingGET3(ctx context.Context, 
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
 	if localVarHttpHeaderAccept != "" {
 		localVarHeaderParams["Accept"] = localVarHttpHeaderAccept
-	}
-	if localVarTempParam, localVarOk := localVarOptionals["xRateLimitApp"].(string); localVarOk {
-		localVarHeaderParams["X-RateLimit-App"] = parameterToString(localVarTempParam, "")
 	}
 	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFileName, localVarFileBytes)
 	if err != nil {
@@ -240,28 +238,41 @@ func (a *ProjectControllerApiService) GetClustersUsingGET3(ctx context.Context, 
 	return successPayload, localVarHttpResponse, err
 }
 
-/* ProjectControllerApiService Get a project
+/* V2CanaryConfigControllerApiService Retrieve a list of canary configurations
  * @param ctx context.Context for authentication, logging, tracing, etc.
- @param id id
- @return map[string]interface{}*/
-func (a *ProjectControllerApiService) GetUsingGET1(ctx context.Context, id string) (map[string]interface{},  *http.Response, error) {
+ @param optional (nil or map[string]interface{}) with one or more of:
+     @param "application" (string) application
+     @param "configurationAccountName" (string) configurationAccountName
+ @return []interface{}*/
+func (a *V2CanaryConfigControllerApiService) GetCanaryConfigsUsingGET(ctx context.Context, localVarOptionals map[string]interface{}) ([]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
 		localVarPostBody interface{}
 		localVarFileName string
 		localVarFileBytes []byte
-	 	successPayload  map[string]interface{}
+	 	successPayload  []interface{}
 	)
 
 	// create path and map variables
-	localVarPath := a.client.cfg.BasePath + "/projects/{id}"
-	localVarPath = strings.Replace(localVarPath, "{"+"id"+"}", fmt.Sprintf("%v", id), -1)
+	localVarPath := a.client.cfg.BasePath + "/v2/canaryConfig"
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+	if err := typeCheckParameter(localVarOptionals["application"], "string", "application"); err != nil {
+		return successPayload, nil, err
+	}
+	if err := typeCheckParameter(localVarOptionals["configurationAccountName"], "string", "configurationAccountName"); err != nil {
+		return successPayload, nil, err
+	}
 
+	if localVarTempParam, localVarOk := localVarOptionals["application"].(string); localVarOk {
+		localVarQueryParams.Add("application", parameterToString(localVarTempParam, ""))
+	}
+	if localVarTempParam, localVarOk := localVarOptionals["configurationAccountName"].(string); localVarOk {
+		localVarQueryParams.Add("configurationAccountName", parameterToString(localVarTempParam, ""))
+	}
 	// to determine the Content-Type header
 	localVarHttpContentTypes := []string{ "application/json",  }
 
@@ -281,6 +292,81 @@ func (a *ProjectControllerApiService) GetUsingGET1(ctx context.Context, id strin
 	if localVarHttpHeaderAccept != "" {
 		localVarHeaderParams["Accept"] = localVarHttpHeaderAccept
 	}
+	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFileName, localVarFileBytes)
+	if err != nil {
+		return successPayload, nil, err
+	}
+
+	localVarHttpResponse, err := a.client.callAPI(r)
+	if err != nil || localVarHttpResponse == nil {
+		return successPayload, localVarHttpResponse, err
+	}
+	defer localVarHttpResponse.Body.Close()
+	if localVarHttpResponse.StatusCode >= 300 {
+		bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
+		return successPayload, localVarHttpResponse, reportError("Status: %v, Body: %s", localVarHttpResponse.Status, bodyBytes)
+	}
+
+	if err = json.NewDecoder(localVarHttpResponse.Body).Decode(&successPayload); err != nil {
+		return successPayload, localVarHttpResponse, err
+	}
+
+
+	return successPayload, localVarHttpResponse, err
+}
+
+/* V2CanaryConfigControllerApiService Update a canary configuration
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param id id
+ @param config config
+ @param optional (nil or map[string]interface{}) with one or more of:
+     @param "configurationAccountName" (string) configurationAccountName
+ @return interface{}*/
+func (a *V2CanaryConfigControllerApiService) UpdateCanaryConfigUsingPUT(ctx context.Context, id string, config interface{}, localVarOptionals map[string]interface{}) (interface{},  *http.Response, error) {
+	var (
+		localVarHttpMethod = strings.ToUpper("Put")
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  interface{}
+	)
+
+	// create path and map variables
+	localVarPath := a.client.cfg.BasePath + "/v2/canaryConfig/{id}"
+	localVarPath = strings.Replace(localVarPath, "{"+"id"+"}", fmt.Sprintf("%v", id), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	if err := typeCheckParameter(localVarOptionals["configurationAccountName"], "string", "configurationAccountName"); err != nil {
+		return successPayload, nil, err
+	}
+
+	if localVarTempParam, localVarOk := localVarOptionals["configurationAccountName"].(string); localVarOk {
+		localVarQueryParams.Add("configurationAccountName", parameterToString(localVarTempParam, ""))
+	}
+	// to determine the Content-Type header
+	localVarHttpContentTypes := []string{ "application/json",  }
+
+	// set Content-Type header
+	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
+	if localVarHttpContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHttpContentType
+	}
+
+	// to determine the Accept header
+	localVarHttpHeaderAccepts := []string{
+		"*/*",
+		}
+
+	// set Accept header
+	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
+	if localVarHttpHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHttpHeaderAccept
+	}
+	// body params
+	localVarPostBody = &config
 	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFileName, localVarFileBytes)
 	if err != nil {
 		return successPayload, nil, err

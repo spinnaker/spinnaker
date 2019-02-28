@@ -9,11 +9,9 @@
 
 package swagger
 
-type ResponseEntity struct {
+type ReorderPipelinesCommand struct {
 
-	Body *interface{} `json:"body,omitempty"`
+	IdsToIndices map[string]int32 `json:"idsToIndices,omitempty"`
 
-	StatusCodeValue int32 `json:"statusCodeValue,omitempty"`
-
-	StatusCode string `json:"statusCode,omitempty"`
+	Application string `json:"application,omitempty"`
 }

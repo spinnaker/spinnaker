@@ -93,12 +93,12 @@ func (a *WebhookControllerApiService) PreconfiguredWebhooksUsingGET(ctx context.
  * @param ctx context.Context for authentication, logging, tracing, etc.
  @param type_ type
  @param source source
- @param event event
  @param optional (nil or map[string]interface{}) with one or more of:
+     @param "event" (interface{}) event
      @param "xHubSignature" (string) X-Hub-Signature
      @param "xEventKey" (string) X-Event-Key
  @return interface{}*/
-func (a *WebhookControllerApiService) WebhooksUsingPOST(ctx context.Context, type_ string, source string, event interface{}, localVarOptionals map[string]interface{}) (interface{},  *http.Response, error) {
+func (a *WebhookControllerApiService) WebhooksUsingPOST(ctx context.Context, type_ string, source string, localVarOptionals map[string]interface{}) (interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Post")
 		localVarPostBody interface{}
@@ -149,7 +149,9 @@ func (a *WebhookControllerApiService) WebhooksUsingPOST(ctx context.Context, typ
 		localVarHeaderParams["X-Event-Key"] = parameterToString(localVarTempParam, "")
 	}
 	// body params
-	localVarPostBody = &event
+	if localVarTempParam, localVarOk := localVarOptionals["event"].(interface{}); localVarOk {
+		localVarPostBody = &localVarTempParam
+	}
 	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFileName, localVarFileBytes)
 	if err != nil {
 		return successPayload, nil, err

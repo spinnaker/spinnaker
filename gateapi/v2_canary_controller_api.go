@@ -24,29 +24,41 @@ var (
 	_ context.Context
 )
 
-type V2PipelineTemplatesControllerApiService service
+type V2CanaryControllerApiService service
 
 
-/* V2PipelineTemplatesControllerApiService Create a pipeline template.
+/* V2CanaryControllerApiService Retrieve a canary result
  * @param ctx context.Context for authentication, logging, tracing, etc.
- @param pipelineTemplate pipelineTemplate
- @return */
-func (a *V2PipelineTemplatesControllerApiService) CreateUsingPOST1(ctx context.Context, pipelineTemplate interface{}) ( *http.Response, error) {
+ @param canaryConfigId canaryConfigId
+ @param canaryExecutionId canaryExecutionId
+ @param optional (nil or map[string]interface{}) with one or more of:
+     @param "storageAccountName" (string) storageAccountName
+ @return interface{}*/
+func (a *V2CanaryControllerApiService) GetCanaryResultUsingGET(ctx context.Context, canaryConfigId string, canaryExecutionId string, localVarOptionals map[string]interface{}) (interface{},  *http.Response, error) {
 	var (
-		localVarHttpMethod = strings.ToUpper("Post")
+		localVarHttpMethod = strings.ToUpper("Get")
 		localVarPostBody interface{}
 		localVarFileName string
 		localVarFileBytes []byte
+	 	successPayload  interface{}
 	)
 
 	// create path and map variables
-	localVarPath := a.client.cfg.BasePath + "/v2/pipelineTemplates"
+	localVarPath := a.client.cfg.BasePath + "/v2/canaries/canary/{canaryConfigId}/{canaryExecutionId}"
+	localVarPath = strings.Replace(localVarPath, "{"+"canaryConfigId"+"}", fmt.Sprintf("%v", canaryConfigId), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"canaryExecutionId"+"}", fmt.Sprintf("%v", canaryExecutionId), -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+	if err := typeCheckParameter(localVarOptionals["storageAccountName"], "string", "storageAccountName"); err != nil {
+		return successPayload, nil, err
+	}
 
+	if localVarTempParam, localVarOk := localVarOptionals["storageAccountName"].(string); localVarOk {
+		localVarQueryParams.Add("storageAccountName", parameterToString(localVarTempParam, ""))
+	}
 	// to determine the Content-Type header
 	localVarHttpContentTypes := []string{ "application/json",  }
 
@@ -66,44 +78,205 @@ func (a *V2PipelineTemplatesControllerApiService) CreateUsingPOST1(ctx context.C
 	if localVarHttpHeaderAccept != "" {
 		localVarHeaderParams["Accept"] = localVarHttpHeaderAccept
 	}
-	// body params
-	localVarPostBody = &pipelineTemplate
 	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFileName, localVarFileBytes)
 	if err != nil {
-		return nil, err
+		return successPayload, nil, err
 	}
 
 	localVarHttpResponse, err := a.client.callAPI(r)
 	if err != nil || localVarHttpResponse == nil {
-		return localVarHttpResponse, err
+		return successPayload, localVarHttpResponse, err
 	}
 	defer localVarHttpResponse.Body.Close()
 	if localVarHttpResponse.StatusCode >= 300 {
 		bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
-		return localVarHttpResponse, reportError("Status: %v, Body: %s", localVarHttpResponse.Status, bodyBytes)
+		return successPayload, localVarHttpResponse, reportError("Status: %v, Body: %s", localVarHttpResponse.Status, bodyBytes)
 	}
 
-	return localVarHttpResponse, err
+	if err = json.NewDecoder(localVarHttpResponse.Body).Decode(&successPayload); err != nil {
+		return successPayload, localVarHttpResponse, err
+	}
+
+
+	return successPayload, localVarHttpResponse, err
 }
 
-/* V2PipelineTemplatesControllerApiService Delete a pipeline template.
+/* V2CanaryControllerApiService Retrieve a list of an application&#39;s canary results
  * @param ctx context.Context for authentication, logging, tracing, etc.
- @param id id
+ @param application application
+ @param limit limit
  @param optional (nil or map[string]interface{}) with one or more of:
-     @param "application" (string) application
- @return map[string]interface{}*/
-func (a *V2PipelineTemplatesControllerApiService) DeleteUsingDELETE1(ctx context.Context, id string, localVarOptionals map[string]interface{}) (map[string]interface{},  *http.Response, error) {
+     @param "statuses" (string) Comma-separated list of statuses, e.g.: RUNNING, SUCCEEDED, TERMINAL
+     @param "storageAccountName" (string) storageAccountName
+ @return []interface{}*/
+func (a *V2CanaryControllerApiService) GetCanaryResultsByApplicationUsingGET(ctx context.Context, application string, limit int32, localVarOptionals map[string]interface{}) ([]interface{},  *http.Response, error) {
 	var (
-		localVarHttpMethod = strings.ToUpper("Delete")
+		localVarHttpMethod = strings.ToUpper("Get")
 		localVarPostBody interface{}
 		localVarFileName string
 		localVarFileBytes []byte
-	 	successPayload  map[string]interface{}
+	 	successPayload  []interface{}
 	)
 
 	// create path and map variables
-	localVarPath := a.client.cfg.BasePath + "/v2/pipelineTemplates/{id}"
-	localVarPath = strings.Replace(localVarPath, "{"+"id"+"}", fmt.Sprintf("%v", id), -1)
+	localVarPath := a.client.cfg.BasePath + "/v2/canaries/{application}/executions"
+	localVarPath = strings.Replace(localVarPath, "{"+"application"+"}", fmt.Sprintf("%v", application), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	if err := typeCheckParameter(localVarOptionals["statuses"], "string", "statuses"); err != nil {
+		return successPayload, nil, err
+	}
+	if err := typeCheckParameter(localVarOptionals["storageAccountName"], "string", "storageAccountName"); err != nil {
+		return successPayload, nil, err
+	}
+
+	localVarQueryParams.Add("limit", parameterToString(limit, ""))
+	if localVarTempParam, localVarOk := localVarOptionals["statuses"].(string); localVarOk {
+		localVarQueryParams.Add("statuses", parameterToString(localVarTempParam, ""))
+	}
+	if localVarTempParam, localVarOk := localVarOptionals["storageAccountName"].(string); localVarOk {
+		localVarQueryParams.Add("storageAccountName", parameterToString(localVarTempParam, ""))
+	}
+	// to determine the Content-Type header
+	localVarHttpContentTypes := []string{ "application/json",  }
+
+	// set Content-Type header
+	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
+	if localVarHttpContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHttpContentType
+	}
+
+	// to determine the Accept header
+	localVarHttpHeaderAccepts := []string{
+		"*/*",
+		}
+
+	// set Accept header
+	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
+	if localVarHttpHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHttpHeaderAccept
+	}
+	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFileName, localVarFileBytes)
+	if err != nil {
+		return successPayload, nil, err
+	}
+
+	localVarHttpResponse, err := a.client.callAPI(r)
+	if err != nil || localVarHttpResponse == nil {
+		return successPayload, localVarHttpResponse, err
+	}
+	defer localVarHttpResponse.Body.Close()
+	if localVarHttpResponse.StatusCode >= 300 {
+		bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
+		return successPayload, localVarHttpResponse, reportError("Status: %v, Body: %s", localVarHttpResponse.Status, bodyBytes)
+	}
+
+	if err = json.NewDecoder(localVarHttpResponse.Body).Decode(&successPayload); err != nil {
+		return successPayload, localVarHttpResponse, err
+	}
+
+
+	return successPayload, localVarHttpResponse, err
+}
+
+/* V2CanaryControllerApiService Retrieve a metric set pair list
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param metricSetPairListId metricSetPairListId
+ @param optional (nil or map[string]interface{}) with one or more of:
+     @param "storageAccountName" (string) storageAccountName
+ @return []interface{}*/
+func (a *V2CanaryControllerApiService) GetMetricSetPairListUsingGET(ctx context.Context, metricSetPairListId string, localVarOptionals map[string]interface{}) ([]interface{},  *http.Response, error) {
+	var (
+		localVarHttpMethod = strings.ToUpper("Get")
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  []interface{}
+	)
+
+	// create path and map variables
+	localVarPath := a.client.cfg.BasePath + "/v2/canaries/metricSetPairList/{metricSetPairListId}"
+	localVarPath = strings.Replace(localVarPath, "{"+"metricSetPairListId"+"}", fmt.Sprintf("%v", metricSetPairListId), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	if err := typeCheckParameter(localVarOptionals["storageAccountName"], "string", "storageAccountName"); err != nil {
+		return successPayload, nil, err
+	}
+
+	if localVarTempParam, localVarOk := localVarOptionals["storageAccountName"].(string); localVarOk {
+		localVarQueryParams.Add("storageAccountName", parameterToString(localVarTempParam, ""))
+	}
+	// to determine the Content-Type header
+	localVarHttpContentTypes := []string{ "application/json",  }
+
+	// set Content-Type header
+	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
+	if localVarHttpContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHttpContentType
+	}
+
+	// to determine the Accept header
+	localVarHttpHeaderAccepts := []string{
+		"*/*",
+		}
+
+	// set Accept header
+	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
+	if localVarHttpHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHttpHeaderAccept
+	}
+	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFileName, localVarFileBytes)
+	if err != nil {
+		return successPayload, nil, err
+	}
+
+	localVarHttpResponse, err := a.client.callAPI(r)
+	if err != nil || localVarHttpResponse == nil {
+		return successPayload, localVarHttpResponse, err
+	}
+	defer localVarHttpResponse.Body.Close()
+	if localVarHttpResponse.StatusCode >= 300 {
+		bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
+		return successPayload, localVarHttpResponse, reportError("Status: %v, Body: %s", localVarHttpResponse.Status, bodyBytes)
+	}
+
+	if err = json.NewDecoder(localVarHttpResponse.Body).Decode(&successPayload); err != nil {
+		return successPayload, localVarHttpResponse, err
+	}
+
+
+	return successPayload, localVarHttpResponse, err
+}
+
+/* V2CanaryControllerApiService Start a canary execution
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param canaryConfigId canaryConfigId
+ @param executionRequest executionRequest
+ @param optional (nil or map[string]interface{}) with one or more of:
+     @param "application" (string) application
+     @param "parentPipelineExecutionId" (string) parentPipelineExecutionId
+     @param "metricsAccountName" (string) metricsAccountName
+     @param "storageAccountName" (string) storageAccountName
+     @param "configurationAccountName" (string) configurationAccountName
+ @return interface{}*/
+func (a *V2CanaryControllerApiService) InitiateCanaryUsingPOST(ctx context.Context, canaryConfigId string, executionRequest interface{}, localVarOptionals map[string]interface{}) (interface{},  *http.Response, error) {
+	var (
+		localVarHttpMethod = strings.ToUpper("Post")
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  interface{}
+	)
+
+	// create path and map variables
+	localVarPath := a.client.cfg.BasePath + "/v2/canaries/canary/{canaryConfigId}"
+	localVarPath = strings.Replace(localVarPath, "{"+"canaryConfigId"+"}", fmt.Sprintf("%v", canaryConfigId), -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
@@ -112,341 +285,33 @@ func (a *V2PipelineTemplatesControllerApiService) DeleteUsingDELETE1(ctx context
 	if err := typeCheckParameter(localVarOptionals["application"], "string", "application"); err != nil {
 		return successPayload, nil, err
 	}
+	if err := typeCheckParameter(localVarOptionals["parentPipelineExecutionId"], "string", "parentPipelineExecutionId"); err != nil {
+		return successPayload, nil, err
+	}
+	if err := typeCheckParameter(localVarOptionals["metricsAccountName"], "string", "metricsAccountName"); err != nil {
+		return successPayload, nil, err
+	}
+	if err := typeCheckParameter(localVarOptionals["storageAccountName"], "string", "storageAccountName"); err != nil {
+		return successPayload, nil, err
+	}
+	if err := typeCheckParameter(localVarOptionals["configurationAccountName"], "string", "configurationAccountName"); err != nil {
+		return successPayload, nil, err
+	}
 
 	if localVarTempParam, localVarOk := localVarOptionals["application"].(string); localVarOk {
 		localVarQueryParams.Add("application", parameterToString(localVarTempParam, ""))
 	}
-	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
-
-	// set Content-Type header
-	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
-	if localVarHttpContentType != "" {
-		localVarHeaderParams["Content-Type"] = localVarHttpContentType
+	if localVarTempParam, localVarOk := localVarOptionals["parentPipelineExecutionId"].(string); localVarOk {
+		localVarQueryParams.Add("parentPipelineExecutionId", parameterToString(localVarTempParam, ""))
 	}
-
-	// to determine the Accept header
-	localVarHttpHeaderAccepts := []string{
-		"*/*",
-		}
-
-	// set Accept header
-	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
-	if localVarHttpHeaderAccept != "" {
-		localVarHeaderParams["Accept"] = localVarHttpHeaderAccept
+	if localVarTempParam, localVarOk := localVarOptionals["metricsAccountName"].(string); localVarOk {
+		localVarQueryParams.Add("metricsAccountName", parameterToString(localVarTempParam, ""))
 	}
-	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFileName, localVarFileBytes)
-	if err != nil {
-		return successPayload, nil, err
+	if localVarTempParam, localVarOk := localVarOptionals["storageAccountName"].(string); localVarOk {
+		localVarQueryParams.Add("storageAccountName", parameterToString(localVarTempParam, ""))
 	}
-
-	localVarHttpResponse, err := a.client.callAPI(r)
-	if err != nil || localVarHttpResponse == nil {
-		return successPayload, localVarHttpResponse, err
-	}
-	defer localVarHttpResponse.Body.Close()
-	if localVarHttpResponse.StatusCode >= 300 {
-		bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
-		return successPayload, localVarHttpResponse, reportError("Status: %v, Body: %s", localVarHttpResponse.Status, bodyBytes)
-	}
-
-	if err = json.NewDecoder(localVarHttpResponse.Body).Decode(&successPayload); err != nil {
-		return successPayload, localVarHttpResponse, err
-	}
-
-
-	return successPayload, localVarHttpResponse, err
-}
-
-/* V2PipelineTemplatesControllerApiService Get a pipeline template.
- * @param ctx context.Context for authentication, logging, tracing, etc.
- @param id id
- @return map[string]interface{}*/
-func (a *V2PipelineTemplatesControllerApiService) GetUsingGET2(ctx context.Context, id string) (map[string]interface{},  *http.Response, error) {
-	var (
-		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody interface{}
-		localVarFileName string
-		localVarFileBytes []byte
-	 	successPayload  map[string]interface{}
-	)
-
-	// create path and map variables
-	localVarPath := a.client.cfg.BasePath + "/v2/pipelineTemplates/{id}"
-	localVarPath = strings.Replace(localVarPath, "{"+"id"+"}", fmt.Sprintf("%v", id), -1)
-
-	localVarHeaderParams := make(map[string]string)
-	localVarQueryParams := url.Values{}
-	localVarFormParams := url.Values{}
-
-
-	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
-
-	// set Content-Type header
-	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
-	if localVarHttpContentType != "" {
-		localVarHeaderParams["Content-Type"] = localVarHttpContentType
-	}
-
-	// to determine the Accept header
-	localVarHttpHeaderAccepts := []string{
-		"*/*",
-		}
-
-	// set Accept header
-	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
-	if localVarHttpHeaderAccept != "" {
-		localVarHeaderParams["Accept"] = localVarHttpHeaderAccept
-	}
-	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFileName, localVarFileBytes)
-	if err != nil {
-		return successPayload, nil, err
-	}
-
-	localVarHttpResponse, err := a.client.callAPI(r)
-	if err != nil || localVarHttpResponse == nil {
-		return successPayload, localVarHttpResponse, err
-	}
-	defer localVarHttpResponse.Body.Close()
-	if localVarHttpResponse.StatusCode >= 300 {
-		bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
-		return successPayload, localVarHttpResponse, reportError("Status: %v, Body: %s", localVarHttpResponse.Status, bodyBytes)
-	}
-
-	if err = json.NewDecoder(localVarHttpResponse.Body).Decode(&successPayload); err != nil {
-		return successPayload, localVarHttpResponse, err
-	}
-
-
-	return successPayload, localVarHttpResponse, err
-}
-
-/* V2PipelineTemplatesControllerApiService List all pipelines that implement a pipeline template
- * @param ctx context.Context for authentication, logging, tracing, etc.
- @param id id
- @return []interface{}*/
-func (a *V2PipelineTemplatesControllerApiService) ListPipelineTemplateDependentsUsingGET1(ctx context.Context, id string) ([]interface{},  *http.Response, error) {
-	var (
-		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody interface{}
-		localVarFileName string
-		localVarFileBytes []byte
-	 	successPayload  []interface{}
-	)
-
-	// create path and map variables
-	localVarPath := a.client.cfg.BasePath + "/v2/pipelineTemplates/{id}/dependents"
-	localVarPath = strings.Replace(localVarPath, "{"+"id"+"}", fmt.Sprintf("%v", id), -1)
-
-	localVarHeaderParams := make(map[string]string)
-	localVarQueryParams := url.Values{}
-	localVarFormParams := url.Values{}
-
-
-	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
-
-	// set Content-Type header
-	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
-	if localVarHttpContentType != "" {
-		localVarHeaderParams["Content-Type"] = localVarHttpContentType
-	}
-
-	// to determine the Accept header
-	localVarHttpHeaderAccepts := []string{
-		"*/*",
-		}
-
-	// set Accept header
-	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
-	if localVarHttpHeaderAccept != "" {
-		localVarHeaderParams["Accept"] = localVarHttpHeaderAccept
-	}
-	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFileName, localVarFileBytes)
-	if err != nil {
-		return successPayload, nil, err
-	}
-
-	localVarHttpResponse, err := a.client.callAPI(r)
-	if err != nil || localVarHttpResponse == nil {
-		return successPayload, localVarHttpResponse, err
-	}
-	defer localVarHttpResponse.Body.Close()
-	if localVarHttpResponse.StatusCode >= 300 {
-		bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
-		return successPayload, localVarHttpResponse, reportError("Status: %v, Body: %s", localVarHttpResponse.Status, bodyBytes)
-	}
-
-	if err = json.NewDecoder(localVarHttpResponse.Body).Decode(&successPayload); err != nil {
-		return successPayload, localVarHttpResponse, err
-	}
-
-
-	return successPayload, localVarHttpResponse, err
-}
-
-/* V2PipelineTemplatesControllerApiService List pipeline templates.
- * @param ctx context.Context for authentication, logging, tracing, etc.
- @param optional (nil or map[string]interface{}) with one or more of:
-     @param "scopes" ([]string) scopes
- @return []interface{}*/
-func (a *V2PipelineTemplatesControllerApiService) ListUsingGET1(ctx context.Context, localVarOptionals map[string]interface{}) ([]interface{},  *http.Response, error) {
-	var (
-		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody interface{}
-		localVarFileName string
-		localVarFileBytes []byte
-	 	successPayload  []interface{}
-	)
-
-	// create path and map variables
-	localVarPath := a.client.cfg.BasePath + "/v2/pipelineTemplates"
-
-	localVarHeaderParams := make(map[string]string)
-	localVarQueryParams := url.Values{}
-	localVarFormParams := url.Values{}
-
-
-	if localVarTempParam, localVarOk := localVarOptionals["scopes"].([]string); localVarOk {
-		localVarQueryParams.Add("scopes", parameterToString(localVarTempParam, "multi"))
-	}
-	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
-
-	// set Content-Type header
-	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
-	if localVarHttpContentType != "" {
-		localVarHeaderParams["Content-Type"] = localVarHttpContentType
-	}
-
-	// to determine the Accept header
-	localVarHttpHeaderAccepts := []string{
-		"*/*",
-		}
-
-	// set Accept header
-	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
-	if localVarHttpHeaderAccept != "" {
-		localVarHeaderParams["Accept"] = localVarHttpHeaderAccept
-	}
-	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFileName, localVarFileBytes)
-	if err != nil {
-		return successPayload, nil, err
-	}
-
-	localVarHttpResponse, err := a.client.callAPI(r)
-	if err != nil || localVarHttpResponse == nil {
-		return successPayload, localVarHttpResponse, err
-	}
-	defer localVarHttpResponse.Body.Close()
-	if localVarHttpResponse.StatusCode >= 300 {
-		bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
-		return successPayload, localVarHttpResponse, reportError("Status: %v, Body: %s", localVarHttpResponse.Status, bodyBytes)
-	}
-
-	if err = json.NewDecoder(localVarHttpResponse.Body).Decode(&successPayload); err != nil {
-		return successPayload, localVarHttpResponse, err
-	}
-
-
-	return successPayload, localVarHttpResponse, err
-}
-
-/* V2PipelineTemplatesControllerApiService Plan a pipeline template configuration.
- * @param ctx context.Context for authentication, logging, tracing, etc.
- @param pipeline pipeline
- @return map[string]interface{}*/
-func (a *V2PipelineTemplatesControllerApiService) PlanUsingPOST(ctx context.Context, pipeline interface{}) (map[string]interface{},  *http.Response, error) {
-	var (
-		localVarHttpMethod = strings.ToUpper("Post")
-		localVarPostBody interface{}
-		localVarFileName string
-		localVarFileBytes []byte
-	 	successPayload  map[string]interface{}
-	)
-
-	// create path and map variables
-	localVarPath := a.client.cfg.BasePath + "/v2/pipelineTemplates/plan"
-
-	localVarHeaderParams := make(map[string]string)
-	localVarQueryParams := url.Values{}
-	localVarFormParams := url.Values{}
-
-
-	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
-
-	// set Content-Type header
-	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
-	if localVarHttpContentType != "" {
-		localVarHeaderParams["Content-Type"] = localVarHttpContentType
-	}
-
-	// to determine the Accept header
-	localVarHttpHeaderAccepts := []string{
-		"*/*",
-		}
-
-	// set Accept header
-	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
-	if localVarHttpHeaderAccept != "" {
-		localVarHeaderParams["Accept"] = localVarHttpHeaderAccept
-	}
-	// body params
-	localVarPostBody = &pipeline
-	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFileName, localVarFileBytes)
-	if err != nil {
-		return successPayload, nil, err
-	}
-
-	localVarHttpResponse, err := a.client.callAPI(r)
-	if err != nil || localVarHttpResponse == nil {
-		return successPayload, localVarHttpResponse, err
-	}
-	defer localVarHttpResponse.Body.Close()
-	if localVarHttpResponse.StatusCode >= 300 {
-		bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
-		return successPayload, localVarHttpResponse, reportError("Status: %v, Body: %s", localVarHttpResponse.Status, bodyBytes)
-	}
-
-	if err = json.NewDecoder(localVarHttpResponse.Body).Decode(&successPayload); err != nil {
-		return successPayload, localVarHttpResponse, err
-	}
-
-
-	return successPayload, localVarHttpResponse, err
-}
-
-/* V2PipelineTemplatesControllerApiService Update a pipeline template.
- * @param ctx context.Context for authentication, logging, tracing, etc.
- @param id id
- @param pipelineTemplate pipelineTemplate
- @param optional (nil or map[string]interface{}) with one or more of:
-     @param "skipPlanDependents" (bool) skipPlanDependents
- @return */
-func (a *V2PipelineTemplatesControllerApiService) UpdateUsingPOST1(ctx context.Context, id string, pipelineTemplate interface{}, localVarOptionals map[string]interface{}) ( *http.Response, error) {
-	var (
-		localVarHttpMethod = strings.ToUpper("Post")
-		localVarPostBody interface{}
-		localVarFileName string
-		localVarFileBytes []byte
-	)
-
-	// create path and map variables
-	localVarPath := a.client.cfg.BasePath + "/v2/pipelineTemplates/{id}"
-	localVarPath = strings.Replace(localVarPath, "{"+"id"+"}", fmt.Sprintf("%v", id), -1)
-
-	localVarHeaderParams := make(map[string]string)
-	localVarQueryParams := url.Values{}
-	localVarFormParams := url.Values{}
-
-	if err := typeCheckParameter(localVarOptionals["skipPlanDependents"], "bool", "skipPlanDependents"); err != nil {
-		return nil, err
-	}
-
-	if localVarTempParam, localVarOk := localVarOptionals["skipPlanDependents"].(bool); localVarOk {
-		localVarQueryParams.Add("skipPlanDependents", parameterToString(localVarTempParam, ""))
+	if localVarTempParam, localVarOk := localVarOptionals["configurationAccountName"].(string); localVarOk {
+		localVarQueryParams.Add("configurationAccountName", parameterToString(localVarTempParam, ""))
 	}
 	// to determine the Content-Type header
 	localVarHttpContentTypes := []string{ "application/json",  }
@@ -468,22 +333,228 @@ func (a *V2PipelineTemplatesControllerApiService) UpdateUsingPOST1(ctx context.C
 		localVarHeaderParams["Accept"] = localVarHttpHeaderAccept
 	}
 	// body params
-	localVarPostBody = &pipelineTemplate
+	localVarPostBody = &executionRequest
 	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFileName, localVarFileBytes)
 	if err != nil {
-		return nil, err
+		return successPayload, nil, err
 	}
 
 	localVarHttpResponse, err := a.client.callAPI(r)
 	if err != nil || localVarHttpResponse == nil {
-		return localVarHttpResponse, err
+		return successPayload, localVarHttpResponse, err
 	}
 	defer localVarHttpResponse.Body.Close()
 	if localVarHttpResponse.StatusCode >= 300 {
 		bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
-		return localVarHttpResponse, reportError("Status: %v, Body: %s", localVarHttpResponse.Status, bodyBytes)
+		return successPayload, localVarHttpResponse, reportError("Status: %v, Body: %s", localVarHttpResponse.Status, bodyBytes)
 	}
 
-	return localVarHttpResponse, err
+	if err = json.NewDecoder(localVarHttpResponse.Body).Decode(&successPayload); err != nil {
+		return successPayload, localVarHttpResponse, err
+	}
+
+
+	return successPayload, localVarHttpResponse, err
+}
+
+/* V2CanaryControllerApiService Retrieve a list of configured Kayenta accounts
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @return []interface{}*/
+func (a *V2CanaryControllerApiService) ListCredentialsUsingGET(ctx context.Context) ([]interface{},  *http.Response, error) {
+	var (
+		localVarHttpMethod = strings.ToUpper("Get")
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  []interface{}
+	)
+
+	// create path and map variables
+	localVarPath := a.client.cfg.BasePath + "/v2/canaries/credentials"
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+
+	// to determine the Content-Type header
+	localVarHttpContentTypes := []string{ "application/json",  }
+
+	// set Content-Type header
+	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
+	if localVarHttpContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHttpContentType
+	}
+
+	// to determine the Accept header
+	localVarHttpHeaderAccepts := []string{
+		"*/*",
+		}
+
+	// set Accept header
+	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
+	if localVarHttpHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHttpHeaderAccept
+	}
+	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFileName, localVarFileBytes)
+	if err != nil {
+		return successPayload, nil, err
+	}
+
+	localVarHttpResponse, err := a.client.callAPI(r)
+	if err != nil || localVarHttpResponse == nil {
+		return successPayload, localVarHttpResponse, err
+	}
+	defer localVarHttpResponse.Body.Close()
+	if localVarHttpResponse.StatusCode >= 300 {
+		bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
+		return successPayload, localVarHttpResponse, reportError("Status: %v, Body: %s", localVarHttpResponse.Status, bodyBytes)
+	}
+
+	if err = json.NewDecoder(localVarHttpResponse.Body).Decode(&successPayload); err != nil {
+		return successPayload, localVarHttpResponse, err
+	}
+
+
+	return successPayload, localVarHttpResponse, err
+}
+
+/* V2CanaryControllerApiService Retrieve a list of all configured canary judges
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @return []interface{}*/
+func (a *V2CanaryControllerApiService) ListJudgesUsingGET(ctx context.Context) ([]interface{},  *http.Response, error) {
+	var (
+		localVarHttpMethod = strings.ToUpper("Get")
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  []interface{}
+	)
+
+	// create path and map variables
+	localVarPath := a.client.cfg.BasePath + "/v2/canaries/judges"
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+
+	// to determine the Content-Type header
+	localVarHttpContentTypes := []string{ "application/json",  }
+
+	// set Content-Type header
+	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
+	if localVarHttpContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHttpContentType
+	}
+
+	// to determine the Accept header
+	localVarHttpHeaderAccepts := []string{
+		"*/*",
+		}
+
+	// set Accept header
+	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
+	if localVarHttpHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHttpHeaderAccept
+	}
+	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFileName, localVarFileBytes)
+	if err != nil {
+		return successPayload, nil, err
+	}
+
+	localVarHttpResponse, err := a.client.callAPI(r)
+	if err != nil || localVarHttpResponse == nil {
+		return successPayload, localVarHttpResponse, err
+	}
+	defer localVarHttpResponse.Body.Close()
+	if localVarHttpResponse.StatusCode >= 300 {
+		bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
+		return successPayload, localVarHttpResponse, reportError("Status: %v, Body: %s", localVarHttpResponse.Status, bodyBytes)
+	}
+
+	if err = json.NewDecoder(localVarHttpResponse.Body).Decode(&successPayload); err != nil {
+		return successPayload, localVarHttpResponse, err
+	}
+
+
+	return successPayload, localVarHttpResponse, err
+}
+
+/* V2CanaryControllerApiService Retrieve a list of descriptors for use in populating the canary config ui
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param optional (nil or map[string]interface{}) with one or more of:
+     @param "filter" (string) filter
+     @param "metricsAccountName" (string) metricsAccountName
+ @return []interface{}*/
+func (a *V2CanaryControllerApiService) ListMetricsServiceMetadataUsingGET(ctx context.Context, localVarOptionals map[string]interface{}) ([]interface{},  *http.Response, error) {
+	var (
+		localVarHttpMethod = strings.ToUpper("Get")
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  []interface{}
+	)
+
+	// create path and map variables
+	localVarPath := a.client.cfg.BasePath + "/v2/canaries/metadata/metricsService"
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	if err := typeCheckParameter(localVarOptionals["filter"], "string", "filter"); err != nil {
+		return successPayload, nil, err
+	}
+	if err := typeCheckParameter(localVarOptionals["metricsAccountName"], "string", "metricsAccountName"); err != nil {
+		return successPayload, nil, err
+	}
+
+	if localVarTempParam, localVarOk := localVarOptionals["filter"].(string); localVarOk {
+		localVarQueryParams.Add("filter", parameterToString(localVarTempParam, ""))
+	}
+	if localVarTempParam, localVarOk := localVarOptionals["metricsAccountName"].(string); localVarOk {
+		localVarQueryParams.Add("metricsAccountName", parameterToString(localVarTempParam, ""))
+	}
+	// to determine the Content-Type header
+	localVarHttpContentTypes := []string{ "application/json",  }
+
+	// set Content-Type header
+	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
+	if localVarHttpContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHttpContentType
+	}
+
+	// to determine the Accept header
+	localVarHttpHeaderAccepts := []string{
+		"*/*",
+		}
+
+	// set Accept header
+	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
+	if localVarHttpHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHttpHeaderAccept
+	}
+	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFileName, localVarFileBytes)
+	if err != nil {
+		return successPayload, nil, err
+	}
+
+	localVarHttpResponse, err := a.client.callAPI(r)
+	if err != nil || localVarHttpResponse == nil {
+		return successPayload, localVarHttpResponse, err
+	}
+	defer localVarHttpResponse.Body.Close()
+	if localVarHttpResponse.StatusCode >= 300 {
+		bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
+		return successPayload, localVarHttpResponse, reportError("Status: %v, Body: %s", localVarHttpResponse.Status, bodyBytes)
+	}
+
+	if err = json.NewDecoder(localVarHttpResponse.Body).Decode(&successPayload); err != nil {
+		return successPayload, localVarHttpResponse, err
+	}
+
+
+	return successPayload, localVarHttpResponse, err
 }
 

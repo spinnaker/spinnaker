@@ -12,8 +12,8 @@ Method | HTTP request | Description
 [**EvaluateExpressionForExecutionUsingHEAD**](PipelineControllerApi.md#EvaluateExpressionForExecutionUsingHEAD) | **Head** /pipelines/{id}/evaluateExpression | Evaluate a pipeline expression using the provided execution as context
 [**EvaluateExpressionForExecutionUsingOPTIONS**](PipelineControllerApi.md#EvaluateExpressionForExecutionUsingOPTIONS) | **Options** /pipelines/{id}/evaluateExpression | Evaluate a pipeline expression using the provided execution as context
 [**EvaluateExpressionForExecutionUsingPATCH**](PipelineControllerApi.md#EvaluateExpressionForExecutionUsingPATCH) | **Patch** /pipelines/{id}/evaluateExpression | Evaluate a pipeline expression using the provided execution as context
+[**EvaluateExpressionForExecutionUsingPOST**](PipelineControllerApi.md#EvaluateExpressionForExecutionUsingPOST) | **Post** /pipelines/{id}/evaluateExpression | Evaluate a pipeline expression using the provided execution as context
 [**EvaluateExpressionForExecutionUsingPUT**](PipelineControllerApi.md#EvaluateExpressionForExecutionUsingPUT) | **Put** /pipelines/{id}/evaluateExpression | Evaluate a pipeline expression using the provided execution as context
-[**EvaluateExpressionForExecutionViaPOSTUsingPOST1**](PipelineControllerApi.md#EvaluateExpressionForExecutionViaPOSTUsingPOST1) | **Post** /pipelines/{id}/evaluateExpression | Evaluate a pipeline expression using the provided execution as context
 [**GetPipelineLogsUsingGET**](PipelineControllerApi.md#GetPipelineLogsUsingGET) | **Get** /pipelines/{id}/logs | Retrieve pipeline execution logs
 [**GetPipelineUsingGET**](PipelineControllerApi.md#GetPipelineUsingGET) | **Get** /pipelines/{id} | Retrieve a pipeline execution
 [**InvokePipelineConfigUsingPOST1**](PipelineControllerApi.md#InvokePipelineConfigUsingPOST1) | **Post** /pipelines/{application}/{pipelineNameOrId} | Trigger a pipeline execution
@@ -29,7 +29,7 @@ Method | HTTP request | Description
 
 
 # **CancelPipelineUsingPUT1**
-> map[string]interface{} CancelPipelineUsingPUT1(ctx, id, optional)
+> CancelPipelineUsingPUT1(ctx, id, optional)
 Cancel a pipeline execution
 
 ### Required Parameters
@@ -51,7 +51,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**map[string]interface{}**](interface{}.md)
+ (empty response body)
 
 ### Authorization
 
@@ -252,8 +252,8 @@ No authorization required
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **EvaluateExpressionForExecutionUsingPUT**
-> map[string]interface{} EvaluateExpressionForExecutionUsingPUT(ctx, id, expression)
+# **EvaluateExpressionForExecutionUsingPOST**
+> map[string]interface{} EvaluateExpressionForExecutionUsingPOST(ctx, id, expression)
 Evaluate a pipeline expression using the provided execution as context
 
 ### Required Parameters
@@ -279,8 +279,8 @@ No authorization required
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **EvaluateExpressionForExecutionViaPOSTUsingPOST1**
-> map[string]interface{} EvaluateExpressionForExecutionViaPOSTUsingPOST1(ctx, id, pipelineExpression)
+# **EvaluateExpressionForExecutionUsingPUT**
+> map[string]interface{} EvaluateExpressionForExecutionUsingPUT(ctx, id, expression)
 Evaluate a pipeline expression using the provided execution as context
 
 ### Required Parameters
@@ -289,7 +289,7 @@ Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
   **id** | **string**| id | 
-  **pipelineExpression** | [**interface{}**](interface{}.md)| pipelineExpression | 
+  **expression** | **string**| expression | 
 
 ### Return type
 
@@ -433,7 +433,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **PausePipelineUsingPUT**
-> map[string]interface{} PausePipelineUsingPUT(ctx, id)
+> PausePipelineUsingPUT(ctx, id)
 Pause a pipeline execution
 
 ### Required Parameters
@@ -445,7 +445,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**map[string]interface{}**](interface{}.md)
+ (empty response body)
 
 ### Authorization
 

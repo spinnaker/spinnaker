@@ -78,7 +78,7 @@ func savePipelineTemplate(cmd *cobra.Command, options SaveOptions) error {
 
 	templateId := templateJson["id"].(string)
 
-	_, resp, queryErr := gateClient.V2PipelineTemplatesControllerApi.GetUsingGET1(gateClient.Context, templateId)
+	_, resp, queryErr := gateClient.V2PipelineTemplatesControllerApi.GetUsingGET2(gateClient.Context, templateId)
 
 	var saveResp *http.Response
 	var saveErr error

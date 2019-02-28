@@ -119,7 +119,7 @@ func (a *SecurityGroupControllerApiService) AllByAccountUsingGET1(ctx context.Co
      @param "id" (string) id
      @param "xRateLimitApp" (string) X-RateLimit-App
  @return interface{}*/
-func (a *SecurityGroupControllerApiService) AllUsingGET4(ctx context.Context, localVarOptionals map[string]interface{}) (interface{},  *http.Response, error) {
+func (a *SecurityGroupControllerApiService) AllUsingGET5(ctx context.Context, localVarOptionals map[string]interface{}) (interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
 		localVarPostBody interface{}

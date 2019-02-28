@@ -23,23 +23,24 @@ var (
 	_ context.Context
 )
 
-type PubsubSubscriptionControllerApiService service
+type ReorderPipelinesControllerApiService service
 
 
-/* PubsubSubscriptionControllerApiService Retrieve the list of pub/sub subscriptions configured in Echo.
+/* ReorderPipelinesControllerApiService Re-order pipelines
  * @param ctx context.Context for authentication, logging, tracing, etc.
- @return []Mapstringstring*/
-func (a *PubsubSubscriptionControllerApiService) AllUsingGET4(ctx context.Context) ([]Mapstringstring,  *http.Response, error) {
+ @param reorderPipelinesCommand reorderPipelinesCommand
+ @return interface{}*/
+func (a *ReorderPipelinesControllerApiService) ReorderPipelinesUsingPOST(ctx context.Context, reorderPipelinesCommand ReorderPipelinesCommand) (interface{},  *http.Response, error) {
 	var (
-		localVarHttpMethod = strings.ToUpper("Get")
+		localVarHttpMethod = strings.ToUpper("Post")
 		localVarPostBody interface{}
 		localVarFileName string
 		localVarFileBytes []byte
-	 	successPayload  []Mapstringstring
+	 	successPayload  interface{}
 	)
 
 	// create path and map variables
-	localVarPath := a.client.cfg.BasePath + "/pubsub/subscriptions"
+	localVarPath := a.client.cfg.BasePath + "/actions/pipelines/reorder"
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
@@ -65,6 +66,8 @@ func (a *PubsubSubscriptionControllerApiService) AllUsingGET4(ctx context.Contex
 	if localVarHttpHeaderAccept != "" {
 		localVarHeaderParams["Accept"] = localVarHttpHeaderAccept
 	}
+	// body params
+	localVarPostBody = &reorderPipelinesCommand
 	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFileName, localVarFileBytes)
 	if err != nil {
 		return successPayload, nil, err

@@ -13,7 +13,7 @@ type PipelineTemplateDependent struct {
 
 	PipelineName string `json:"pipelineName,omitempty"`
 
-	Application string `json:"application,omitempty"`
-
 	PipelineConfigId string `json:"pipelineConfigId,omitempty"`
+
+	Application string `json:"application,omitempty"`
 }

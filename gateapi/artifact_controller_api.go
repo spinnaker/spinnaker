@@ -16,6 +16,7 @@ import (
 	"strings"
 	"golang.org/x/net/context"
 	"encoding/json"
+	"fmt"
 )
 
 // Linger please
@@ -51,6 +52,82 @@ func (a *ArtifactControllerApiService) AllUsingGET(ctx context.Context, localVar
 		return successPayload, nil, err
 	}
 
+	// to determine the Content-Type header
+	localVarHttpContentTypes := []string{ "application/json",  }
+
+	// set Content-Type header
+	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
+	if localVarHttpContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHttpContentType
+	}
+
+	// to determine the Accept header
+	localVarHttpHeaderAccepts := []string{
+		"*/*",
+		}
+
+	// set Accept header
+	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
+	if localVarHttpHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHttpHeaderAccept
+	}
+	if localVarTempParam, localVarOk := localVarOptionals["xRateLimitApp"].(string); localVarOk {
+		localVarHeaderParams["X-RateLimit-App"] = parameterToString(localVarTempParam, "")
+	}
+	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFileName, localVarFileBytes)
+	if err != nil {
+		return successPayload, nil, err
+	}
+
+	localVarHttpResponse, err := a.client.callAPI(r)
+	if err != nil || localVarHttpResponse == nil {
+		return successPayload, localVarHttpResponse, err
+	}
+	defer localVarHttpResponse.Body.Close()
+	if localVarHttpResponse.StatusCode >= 300 {
+		bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
+		return successPayload, localVarHttpResponse, reportError("Status: %v, Body: %s", localVarHttpResponse.Status, bodyBytes)
+	}
+
+	if err = json.NewDecoder(localVarHttpResponse.Body).Decode(&successPayload); err != nil {
+		return successPayload, localVarHttpResponse, err
+	}
+
+
+	return successPayload, localVarHttpResponse, err
+}
+
+/* ArtifactControllerApiService Retrieve the list of artifact versions by account and artifact names
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param accountName accountName
+ @param type_ type
+ @param artifactName artifactName
+ @param optional (nil or map[string]interface{}) with one or more of:
+     @param "xRateLimitApp" (string) X-RateLimit-App
+ @return []string*/
+func (a *ArtifactControllerApiService) ArtifactVersionsUsingGET(ctx context.Context, accountName string, type_ string, artifactName string, localVarOptionals map[string]interface{}) ([]string,  *http.Response, error) {
+	var (
+		localVarHttpMethod = strings.ToUpper("Get")
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  []string
+	)
+
+	// create path and map variables
+	localVarPath := a.client.cfg.BasePath + "/artifacts/account/{accountName}/versions"
+	localVarPath = strings.Replace(localVarPath, "{"+"accountName"+"}", fmt.Sprintf("%v", accountName), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	if err := typeCheckParameter(localVarOptionals["xRateLimitApp"], "string", "xRateLimitApp"); err != nil {
+		return successPayload, nil, err
+	}
+
+	localVarQueryParams.Add("type", parameterToString(type_, ""))
+	localVarQueryParams.Add("artifactName", parameterToString(artifactName, ""))
 	// to determine the Content-Type header
 	localVarHttpContentTypes := []string{ "application/json",  }
 
