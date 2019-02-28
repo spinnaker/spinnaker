@@ -83,7 +83,7 @@ internal data class ServerGroupSpec(
  */
 internal val ServerGroupSpec.cluster: String
   get() = when {
-    moniker != null -> moniker.cluster
+    moniker != null && moniker.cluster != null -> moniker.cluster
     application != null -> {
       val builder = AutoScalingGroupNameBuilder()
       builder.appName = application
