@@ -106,13 +106,13 @@ module.exports = angular
             persistentDiskTypes: $q.when(angular.copy(persistentDiskTypes)),
             authScopes: $q.when(angular.copy(authScopes)),
             healthChecks: gceHealthCheckReader.listHealthChecks(),
+            accounts: AccountService.listAccounts('gce'),
           })
           .then(function(backingData) {
             let loadBalancerReloader = $q.when(null);
             let securityGroupReloader = $q.when(null);
             let networkReloader = $q.when(null);
             let healthCheckReloader = $q.when(null);
-            backingData.accounts = _.keys(backingData.credentialsKeyedByAccount);
             backingData.filtered = {};
             command.backingData = backingData;
             configureImages(command);
