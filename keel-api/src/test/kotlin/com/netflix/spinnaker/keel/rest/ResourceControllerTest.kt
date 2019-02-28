@@ -85,7 +85,7 @@ internal class ResourceControllerTest {
       )
     mvc
       .perform(request)
-      .andExpect(status().isOk)
+      .andExpect(status().isCreated)
   }
 
   @Test
@@ -109,7 +109,7 @@ internal class ResourceControllerTest {
       )
     mvc
       .perform(request)
-      .andExpect(status().isOk)
+      .andExpect(status().isCreated)
   }
 
   @Test

@@ -29,6 +29,7 @@ import com.netflix.spinnaker.keel.persistence.get
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus.BAD_REQUEST
+import org.springframework.http.HttpStatus.CREATED
 import org.springframework.http.HttpStatus.NOT_FOUND
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import org.springframework.http.converter.HttpMessageNotReadableException
@@ -56,6 +57,7 @@ class ResourceController(
     consumes = [APPLICATION_YAML_VALUE, APPLICATION_JSON_VALUE],
     produces = [APPLICATION_YAML_VALUE, APPLICATION_JSON_VALUE]
   )
+  @ResponseStatus(CREATED)
   fun create(@RequestBody submittedResource: SubmittedResource<*>): Resource<*> {
     // TODO: we need to take the resource type as well so we can actually parse and validate here
     // if you're creating a resource you don't need to pass the name
