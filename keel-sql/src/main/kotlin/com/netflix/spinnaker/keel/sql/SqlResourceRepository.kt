@@ -107,6 +107,19 @@ class SqlResourceRepository(
             .execute()
         }
       }
+
+      insertInto(RESOURCE_STATE)
+        .columns(
+          field("name"),
+          field("state"),
+          field("timestamp")
+        )
+        .values(
+          resource.metadata.name.value,
+          Unknown.name,
+          clock.instant().let(Timestamp::from)
+        )
+        .execute()
     }
   }
 
@@ -126,7 +139,7 @@ class SqlResourceRepository(
         if (next()) {
           state to timestamp
         } else {
-          Unknown to clock.instant()
+          throw IllegalStateException("No state found for resource $name")
         }
       }
 

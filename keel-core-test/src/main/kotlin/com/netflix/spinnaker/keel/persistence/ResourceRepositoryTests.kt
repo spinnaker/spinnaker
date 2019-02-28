@@ -167,7 +167,7 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
 
       context("updating the state of the resource") {
         before {
-          clock.incrementBy(Duration.ofSeconds(10))
+          clock.incrementBy(Duration.ofSeconds(1))
           subject.updateState(resource.metadata.name, Ok)
         }
 
@@ -179,7 +179,7 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
 
         context("updating the state again") {
           before {
-            clock.incrementBy(Duration.ofSeconds(10))
+            clock.incrementBy(Duration.ofSeconds(1))
             subject.updateState(resource.metadata.name, Diff)
           }
 
@@ -187,6 +187,21 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
             expectThat(subject.lastKnownState(resource.metadata.name))
               .first
               .isEqualTo(Diff)
+          }
+        }
+
+        context("after updating the resource") {
+          before {
+            clock.incrementBy(Duration.ofSeconds(1))
+            subject.store(resource.copy(
+              spec = randomData()
+            ))
+          }
+
+          test("its state becomes unknown again") {
+            expectThat(subject.lastKnownState(resource.metadata.name))
+              .first
+              .isEqualTo(Unknown)
           }
         }
       }
