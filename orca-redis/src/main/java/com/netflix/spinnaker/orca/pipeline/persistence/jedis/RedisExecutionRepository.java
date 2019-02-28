@@ -1009,6 +1009,7 @@ public class RedisExecutionRepository implements ExecutionRepository {
         // do nothing
       } finally {
         c.del(key);
+        c.del(key + ":stageIndex");
         c.srem(alljobsKey(type), id);
       }
     });

@@ -135,6 +135,34 @@ class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<RedisExecution
     jedis.zrange(RedisExecutionRepository.executionsByPipelineKey(pipeline.pipelineConfigId), 0, 1).isEmpty()
   }
 
+  def "deleting pipelines remove the :stageIndex key"() {
+    given:
+    def pipeline = pipeline {
+      stage {
+        type = "one"
+      }
+      application = "someApp"
+    }
+
+    when:
+    repository.store(pipeline)
+
+    then:
+    jedis.type("pipeline:${pipeline.id}") == "hash"
+    jedis.type("pipeline:${pipeline.id}:stageIndex") == "list"
+
+    when:
+    repository.delete(pipeline.type, pipeline.id)
+    repository.retrieve(pipeline.type, pipeline.id)
+
+    then:
+    thrown ExecutionNotFoundException
+
+    and:
+    jedis.type("pipeline:${pipeline.id}") == "none"
+    jedis.type("pipeline:${pipeline.id}:stageIndex") == "none"
+  }
+
   @Unroll
   def "retrieving orchestrations limits the number of returned results"() {
     given:
