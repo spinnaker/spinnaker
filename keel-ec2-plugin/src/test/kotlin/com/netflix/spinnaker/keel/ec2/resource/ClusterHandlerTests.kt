@@ -82,13 +82,13 @@ internal object ClusterHandlerTests : JUnit5Minutests {
       securityGroupNames = setOf(sg1.name, sg2.name)
     )
   )
-  val ulid = ULID()
+  val idGenerator = ULID()
   val resource = Resource(
     SPINNAKER_API_V1,
     "cluster",
     ResourceMetadata(
       name = ResourceName("my-cluster"),
-      uid = ulid.nextValue(),
+      uid = idGenerator.nextValue(),
       resourceVersion = 1234L
     ),
     spec

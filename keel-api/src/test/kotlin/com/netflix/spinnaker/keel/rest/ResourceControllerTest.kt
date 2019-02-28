@@ -56,10 +56,10 @@ internal class ResourceControllerTest {
   @Autowired
   lateinit var resourceRepository: ResourceRepository
 
+  private val idGenerator = ULID()
+
   @MockBean
   lateinit var resourcePersister: ResourcePersister
-
-  val idGenerator = ULID()
 
   var mockResource = Resource(
     apiVersion = ApiVersion("ec2.spinnaker.netflix.com/v1"),

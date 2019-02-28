@@ -53,7 +53,7 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
 
   abstract fun factory(clock: Clock): T
 
-  private val ulid = ULID()
+  private val idGenerator = ULID()
 
   open fun flush() {}
 
@@ -88,7 +88,7 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
         metadata = ResourceMetadata(
           name = ResourceName("SecurityGroup:ec2:test:us-west-2:fnord"),
           resourceVersion = 1234L,
-          uid = ulid.nextValue()
+          uid = idGenerator.nextValue()
         ),
         kind = "ec2:SecurityGroup",
         spec = randomData()
@@ -124,7 +124,7 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
           metadata = ResourceMetadata(
             name = ResourceName("SecurityGroup:ec2:test:us-east-1:fnord"),
             resourceVersion = 1234L,
-            uid = ulid.nextValue()
+            uid = idGenerator.nextValue()
           ),
           apiVersion = SPINNAKER_API_V1,
           kind = "ec2:SecurityGroup",
