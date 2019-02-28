@@ -24,6 +24,7 @@ import com.netflix.spinnaker.keel.plugin.KeelPlugin
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.kork.PlatformComponents
+import de.huxhorn.sulky.ulid.ULID
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.SpringBootApplication
@@ -58,6 +59,9 @@ class KeelApplication {
   @Bean
   @ConditionalOnMissingBean
   fun clock(): Clock = Clock.systemDefaultZone()
+
+  @Bean
+  fun idGenerator(): ULID = ULID()
 
   @Bean
   fun objectMapper(): ObjectMapper = configuredObjectMapper()
