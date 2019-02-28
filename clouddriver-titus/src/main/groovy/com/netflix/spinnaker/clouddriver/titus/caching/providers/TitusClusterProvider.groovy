@@ -332,8 +332,12 @@ class TitusClusterProvider implements ClusterProvider<TitusCluster>, ServerGroup
     Collection<CacheData> healths = cacheView.getAll(HEALTH.ns, healthKeysToInstance.keySet(), RelationshipCacheFilter.none())
     healths.each { healthEntry ->
       def instanceId = healthKeysToInstance.get(healthEntry.id)
-      healthEntry.attributes.remove('lastUpdatedTimestamp')
-      instances[instanceId].health << healthEntry.attributes
+
+      // instances[:] may be a subset of instanceData from which healthKeysToInstance is built
+      if (instances.containsKey(instanceId) && instances[instanceId] != null) {
+        healthEntry.attributes.remove('lastUpdatedTimestamp')
+        instances[instanceId].health << healthEntry.attributes
+      }
     }
     return instances
   }
