@@ -334,6 +334,8 @@ class SpinnakerAgent(service_testing.HttpAgent):
         host_platform = 'gce'
       elif bindings['NATIVE_HOSTNAME']:
         host_platform = 'native'
+      elif bindings['OUTBOUND_HOSTNAME']:
+        host_platform = 'outbound'
       else:
         bindings['NATIVE_HOSTNAME'] = 'localhost'
         logging.getLogger(__name__).info('Assuming --native_hostname=localhost')

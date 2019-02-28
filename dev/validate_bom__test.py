@@ -110,7 +110,7 @@ from buildtool import (
 
 from validate_bom__deploy import replace_ha_services
 
-from iap_generate_auth_token import iap_generate_auth_token
+from iap_generate_google_auth_token import generate_auth_token
 
 
 ForwardedPort = collections.namedtuple('ForwardedPort', ['child', 'port'])
@@ -430,16 +430,19 @@ class ValidateBomTestController(object):
     }
 
     # Map of services with provided endpoints and credentials.
-    self.__service_endpoints = {
-      'gate': self.options.test_gate_service_endpoint
-    }
+    outbound_service_configs = {}
+    if self.options.test_gate_service_endpoint:
+      gate_service_config = {
+        'endpoint': self.options.test_gate_service_endpoint,
+      }
+      bearer_auth_token = self.__gate_service_bearer_auth_token_or_none()
+      if bearer_auth_token:
+        gate_service_config['bearer_auth_token'] = bearer_auth_token
+      outbound_service_configs['gate'] = gate_service_config
 
-    # Map of services with credentials for their endpoints, if provided.
-    self.__service_endpoint_credentials = {
-      'gate': self.__gate_service_endpoint_credentials_or_none()
-    }
+    self.__outbound_service_configs = outbound_service_configs
 
-  def __gate_service_endpoint_credentials_or_none(self):
+  def __gate_service_bearer_auth_token_or_none(self):
     iap_credentials_file = self.options.test_gate_iap_credentials
     iap_client_id = self.options.test_gate_iap_client_id
 
@@ -450,11 +453,7 @@ class ValidateBomTestController(object):
       raise_and_log_error(
           ConfigError('Cannot set --test_gate_iap_client_id field without setting --test_gate_iap_credentials'))
     if iap_credentials_file and iap_client_id:
-      auth_token = iap_generate_auth_token(iap_credentials_file, iap_client_id)
-
-      return {
-        'bearer_auth_token': auth_token
-      }
+      return generate_auth_token(iap_credentials_file, iap_client_id)
     return None
 
   def __replace_ha_api_service(self, service, options):
@@ -631,28 +630,21 @@ class ValidateBomTestController(object):
                       server='tunnel'))
 
   def __wait_on_service_using_endpoint(self, service_name, timeout=None):
-    endpoint = self.__service_endpoints[service_name]
+    service_config = self.__outbound_service_configs[service_name]
+    endpoint = service_config['endpoint']
 
     timeout = timeout or self.options.test_service_startup_timeout
     end_time = time.time() + timeout
     logging.info('Waiting on "%s..."', service_name)
 
-    threadid = hex(threading.current_thread().ident)
-    logging.info('WaitOn polling %s from thread %s', service_name, threadid)
+    threadid = threading.current_thread().ident
+    logging.info('WaitOn polling %s from thread %x', service_name, threadid)
     try:
-      if service_name in self.__service_endpoint_credentials:
-        credentials = self.__service_endpoint_credentials[service_name]
-        bearer_auth_token = credentials.get('bearer_auth_token', None)
-
-        if bearer_auth_token:
-          _make_get_request_with_bearer_auth_token('{endpoint}/health'
-                                              .format(endpoint=endpoint),
-                                              bearer_auth_token)
-        # Add more authentication cases here.
-        else:
-          raise_and_log_error(
-              ConfigError('No credentials found for service {0}'.format(service_name)))
-
+      if 'bearer_auth_token' in service_config:
+        _make_get_request_with_bearer_auth_token('{endpoint}/health'
+                                            .format(endpoint=endpoint),
+                                            service_config['bearer_auth_token'])
+      # Add more authentication cases here.
       else:
         urlopen('{endpoint}/health'
                 .format(endpoint=endpoint))
@@ -674,7 +666,6 @@ class ValidateBomTestController(object):
         logging.error(
             'Timing out waiting for %s | %s', service_name, threadid)
         raise_and_log_error(TimeoutError(service_name, cause=service_name))
-      time.sleep(2.0)
 
   def run_tests(self):
     """The actual controller that coordinates and runs the tests.
@@ -812,18 +803,12 @@ class ValidateBomTestController(object):
             This argument will be pruned as values are consumed from it.
 
     Returns:
-      True if requirements are satisifed, False if not.
+      True if requirements are satisfied, False if not.
     """
     if not 'api' in spec:
       raise_and_log_error(
           UnexpectedError('Test "{name}" is missing an "api" spec.'.format(
               name=test_name)))
-
-    if spec['api'] in self.__service_endpoints:
-      # No need to wait on service if we are using the service endpoint.
-      service_name = spec['api']
-      self.__wait_on_service_using_endpoint(service_name)
-      return True
 
     requires = spec.pop('requires', {})
     configuration = requires.pop('configuration', {})
@@ -841,6 +826,12 @@ class ValidateBomTestController(object):
           self.__record_skip_test(test_name, reason,
                                   'IncompatableConfig', metric_labels)
         return False
+
+    if spec['api'] in self.__outbound_service_configs:
+      # No need to wait on service if we are using the outbound service endpoint.
+      service_name = spec['api']
+      self.__wait_on_service_using_endpoint(service_name)
+      return True
 
     services = set(replace_ha_services(
         requires.pop('services', []), self.options))
@@ -953,17 +944,17 @@ class ValidateBomTestController(object):
         '--log_dir', citest_log_dir,
         '--log_filebase', test_name,
     ]
-    if microservice_api in self.__service_endpoints:
+    if microservice_api in self.__outbound_service_configs:
+      service_config = self.__outbound_service_configs[microservice_api]
+
       command.extend([
           '--host_platform', 'outbound',
-          '--outbound_host', self.__service_endpoints[microservice_api],
+          '--outbound_host', service_config['endpoint'],
       ])
-      if microservice_api in self.__service_endpoint_credentials:
-        credentials = self.__service_endpoint_credentials[microservice_api]
-        if 'bearer_auth_token' in credentials:
-          command.extend([
-              '--outbound_bearer_auth_token', credentials['bearer_auth_token']
-          ])
+      if 'bearer_auth_token' in service_config:
+        command.extend([
+            '--outbound_bearer_auth_token', service_config['bearer_auth_token']
+        ])
     else:
       command.extend([
           '--native_host', 'localhost',

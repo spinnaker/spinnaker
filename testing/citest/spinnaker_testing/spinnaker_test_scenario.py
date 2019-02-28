@@ -142,7 +142,7 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
 
     builder.add_argument(
         '--native_hostname', default=defaults.get('NATIVE_HOSTNAME', None),
-        help='Host name that {system} is running on.'
+        help='Native host name that {system} is running on.'
              ' This parameter is only used if the spinnaker host platform'
              ' is "native".'.format(system=cls.ENDPOINT_SUBSYSTEM))
 
@@ -168,11 +168,16 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
 
     builder.add_argument(
         '--outbound_hostname', default=defaults.get('OUTBOUND_HOSTNAME', None),
-        help='') # TODO(joonlim)
+        help='Outbound host name that {system} is running on.'
+             ' This parameter is only used if the spinnaker host platform'
+             ' is "outbound".'.format(system=cls.ENDPOINT_SUBSYSTEM))
 
     builder.add_argument(
         '--outbound_bearer_auth_token', default=defaults.get('OUTBOUND_BEARER_AUTH_TOKEN', None),
-        help='') # TODO(joonlim)
+        help='Bearer token used to authenticate outbound requests to {system}.'
+            ' This parameter is only used if the spinnaker host platform'
+            ' is "outbound". It is not needed if the system is not using'
+            ' authentication.'.format(system=cls.ENDPOINT_SUBSYSTEM))
 
   @classmethod
   def init_bindings_builder(cls, builder, defaults=None):

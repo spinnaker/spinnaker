@@ -1,4 +1,4 @@
-# Copyright 2015 Google Inc. All Rights Reserved.
+# Copyright 2019 Google Inc. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,6 +14,9 @@
 
 
 """Generate an auth token to make requests to an IAP-protected endpoint.
+
+This file was derived from
+https://github.com/GoogleCloudPlatform/python-docs-samples/blob/master/iap/make_iap_request.py
 """
 
 import google.auth
@@ -31,7 +34,7 @@ from google.auth.transport.requests import Request
 OAUTH_TOKEN_URI = 'https://www.googleapis.com/oauth2/v4/token'
 
 
-def iap_generate_auth_token(service_account_file, client_id):
+def generate_auth_token(service_account_file, client_id):
   """Generates an auth token to make requests to an IAP-protected endpoint.
 
   Args:
