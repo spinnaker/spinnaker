@@ -15,9 +15,11 @@ import com.netflix.spinnaker.cats.sql.SqlProviderRegistry
 import com.netflix.spinnaker.cats.sql.cache.SpectatorSqlCacheMetrics
 import com.netflix.spinnaker.cats.sql.cache.SqlCacheMetrics
 import com.netflix.spinnaker.cats.sql.cache.SqlNamedCacheFactory
+import com.netflix.spinnaker.cats.sql.cache.SqlTableMetricsAgent
 import com.netflix.spinnaker.clouddriver.cache.CustomSchedulableAgentIntervalProvider
 import com.netflix.spinnaker.clouddriver.cache.EurekaStatusNodeStatusProvider
 import com.netflix.spinnaker.clouddriver.core.provider.CoreProvider
+import com.netflix.spinnaker.clouddriver.sql.SqlProvider
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.sql.config.DefaultSqlConfiguration
 import com.netflix.spinnaker.kork.sql.config.SqlProperties
@@ -27,6 +29,7 @@ import kotlinx.coroutines.slf4j.MDCContext
 import org.jooq.DSLContext
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
@@ -132,6 +135,19 @@ class SqlCacheConfiguration {
       Duration.ofSeconds(sqlAgentProperties.poll.timeoutSeconds).toMillis()
     )
   }
+
+  @Bean
+  @ConditionalOnExpression("\${sql.readOnly:false} == false")
+  fun sqlTableMetricsAgent(jooq: DSLContext,
+                           registry: Registry,
+                           clock: Clock,
+                           @Value("\${sql.tableNamespace:#{null}}") namespace: String?): SqlTableMetricsAgent =
+    SqlTableMetricsAgent(jooq, registry, clock, namespace)
+
+  @Bean
+  @ConditionalOnExpression("\${sql.readOnly:false} == false")
+  fun sqlAgentProvider(sqlTableMetricsAgent: SqlTableMetricsAgent): SqlProvider =
+    SqlProvider(mutableListOf(sqlTableMetricsAgent))
 
   @Bean
   fun nodeStatusProvider(eurekaClient: Optional<EurekaClient>): NodeStatusProvider {
