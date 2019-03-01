@@ -45,6 +45,10 @@ export class KubernetesV2PatchManifestConfigCtrl implements IController {
       this.$scope.stage.options = defaultOptions;
     }
 
+    if (!this.$scope.stage.app) {
+      this.$scope.stage.app = this.$scope.application.name;
+    }
+
     this.setRawPatchBody(this.getMergeStrategy());
 
     this.manifestArtifactDelegate = new NgGenericArtifactDelegate($scope, 'manifest');

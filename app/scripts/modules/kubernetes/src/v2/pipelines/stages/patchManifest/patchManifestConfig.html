@@ -3,6 +3,8 @@
     <h4>Resource to Patch</h4>
     <div class="horizontal-rule"></div>
     <kubernetes-manifest-selector
+      application="ctrl.$scope.application"
+      modes='["static", "dynamic"]'
       on-change="ctrl.handleManifestSelectorChange"
       selector="ctrl.$scope.stage"
     ></kubernetes-manifest-selector>
