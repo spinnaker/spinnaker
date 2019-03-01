@@ -10,7 +10,12 @@
     </button>
   </div>
   <div class="col-md-9 text-right">
-    <button class="btn btn-primary" ng-if="$ctrl.viewState.isDirty" ng-click="$ctrl.save()">
+    <button
+      class="btn btn-primary"
+      ng-if="$ctrl.viewState.isDirty"
+      ng-click="$ctrl.save()"
+      ng-disabled="$ctrl.saveDisabled"
+    >
       <span ng-if="!$ctrl.viewState.saving"> <span class="far fa-check-circle"></span> Save Changes </span>
       <span ng-if="$ctrl.viewState.saving" class="pulsing">
         <span class="fa fa-cog fa-spin"></span> Saving&hellip;

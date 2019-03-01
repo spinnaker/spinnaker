@@ -19,6 +19,7 @@ export class ConfigSectionFooterController implements IController {
   public application: Application;
   public config: any;
   public configField: string;
+  public saveDisabled: boolean;
 
   public revert(): void {
     copy(this.viewState.originalConfig, this.config);
@@ -60,6 +61,7 @@ const configSectionFooterComponent: IComponentOptions = {
     configField: '@',
     revert: '&?',
     afterSave: '&?',
+    saveDisabled: '<',
   },
   controller: ConfigSectionFooterController,
   templateUrl: require('./configSectionFooter.component.html'),

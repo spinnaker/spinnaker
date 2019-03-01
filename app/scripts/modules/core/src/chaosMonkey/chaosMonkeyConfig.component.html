@@ -1,4 +1,4 @@
-<div class="form-inline" ng-if="$ctrl.chaosEnabled">
+<form name="form" class="form-inline" ng-if="$ctrl.chaosEnabled">
   <div class="chaos-enabled">
     <label class="checkbox-inline">
       <input type="checkbox" ng-model="$ctrl.config.enabled" ng-change="$ctrl.configChanged()" />
@@ -71,5 +71,6 @@
     config="$ctrl.config"
     view-state="$ctrl.viewState"
     config-field="chaosMonkey"
+    save-disabled="form.$invalid"
   ></config-section-footer>
-</div>
+</form>
