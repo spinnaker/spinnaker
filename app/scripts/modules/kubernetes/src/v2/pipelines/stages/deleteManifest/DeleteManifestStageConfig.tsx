@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { defaultsDeep } from 'lodash';
+import { defaults } from 'lodash';
 
 import { Application, IStage, IStageConfigProps } from '@spinnaker/core';
 
@@ -16,18 +16,16 @@ export interface IKubernetesManifestStageConfigProps extends IStageConfigProps {
 
 export class DeleteManifestStageConfig extends React.Component<IKubernetesManifestStageConfigProps> {
   public componentDidMount = (): void => {
-    defaultsDeep(this.props.stage, {
+    defaults(this.props.stage, {
       app: this.props.application.name,
       cloudProvider: 'kubernetes',
-      kinds: [],
-      labelSelectors: {
-        selectors: [],
-      },
-      options: {
+    });
+    if (this.props.stage.isNew) {
+      this.props.stage.options = {
         gracePeriodSeconds: null,
         cascading: true,
-      },
-    });
+      };
+    }
     this.props.stageFieldUpdated();
   };
 
