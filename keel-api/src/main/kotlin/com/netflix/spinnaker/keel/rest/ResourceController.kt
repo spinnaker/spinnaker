@@ -28,8 +28,10 @@ import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.get
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
 import org.slf4j.LoggerFactory
+import org.springframework.http.HttpStatus.BAD_REQUEST
 import org.springframework.http.HttpStatus.NOT_FOUND
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
+import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.GetMapping
@@ -99,5 +101,12 @@ class ResourceController(
   @ResponseStatus(NOT_FOUND)
   fun onNotFound(e: NoSuchResourceException) {
     log.error(e.message)
+  }
+
+  @ExceptionHandler(HttpMessageNotReadableException::class)
+  @ResponseStatus(BAD_REQUEST)
+  fun onParseFailure(e: HttpMessageNotReadableException): Map<String, Any?> {
+    log.error(e.message)
+    return mapOf("message" to (e.cause?.message ?: e.message))
   }
 }

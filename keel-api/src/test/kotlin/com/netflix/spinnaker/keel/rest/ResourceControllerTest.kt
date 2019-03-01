@@ -1,7 +1,11 @@
 package com.netflix.spinnaker.keel.rest
 
 import com.netflix.spinnaker.keel.KeelApplication
-import com.netflix.spinnaker.keel.api.*
+import com.netflix.spinnaker.keel.api.ApiVersion
+import com.netflix.spinnaker.keel.api.Resource
+import com.netflix.spinnaker.keel.api.ResourceMetadata
+import com.netflix.spinnaker.keel.api.ResourceName
+import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.events.ResourceEvent
 import com.netflix.spinnaker.keel.events.ResourceEventType.DELETE
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
@@ -25,7 +29,9 @@ import org.springframework.http.MediaType
 import org.springframework.http.MediaType.APPLICATION_JSON
 import org.springframework.test.context.junit4.SpringRunner
 import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import strikt.api.expectThat
 import strikt.assertions.isA
@@ -104,6 +110,28 @@ internal class ResourceControllerTest {
     mvc
       .perform(request)
       .andExpect(status().isOk)
+  }
+
+  @Test
+  fun `an invalid request body results in an HTTP 400`() {
+    val request = post("/resources")
+      .accept(APPLICATION_YAML)
+      .contentType(APPLICATION_YAML)
+      .content(
+        """---
+          |apiVersion: ec2.spinnaker.netflix.com/v1
+          |kind: securityGroup
+          |metadata:
+          |  name: i-should-not-be-naming-my-resources-that-is-keels-job
+          |spec:
+          |  account: test
+          |  region: us-west-2
+          |  name: keel"""
+          .trimMargin()
+      )
+    mvc
+      .perform(request)
+      .andExpect(status().isBadRequest)
   }
 
   @Test
