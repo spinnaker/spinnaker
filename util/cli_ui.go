@@ -43,6 +43,7 @@ var UI ColorizeUi
 var hasColor bool
 
 func InitUI(quiet, color bool, outputFormat string) {
+	hasColor = color
 	UI = ColorizeUi{
 		Colorize:   Colorize(),
 		ErrorColor: "[red]",
@@ -52,7 +53,6 @@ func InitUI(quiet, color bool, outputFormat string) {
 		Quiet:      quiet,
 	}
 	var err error
-	hasColor = color
 	UI.OutputFormat, err = output.ParseOutputFormat(outputFormat)
 	if err != nil {
 		panic(err)
