@@ -81,21 +81,22 @@ def infer(json):
   return expr_dict
 
 
-def scrape_spring_config(url, timeout=60, empty_if_404=True, bearer_auth_token=None):
+def scrape_spring_config(url, timeout=60, empty_if_404=True, headers={}):
   """Construct a config binding dictionary from a running instance's baseUrl.
 
   Args:
     url: The url to construct from.
     empty_if_404: With spring boot 1.5.4 resolvedEnv is not visible by default.
                   If True then tolerate this treating a 404 as being empty.
+    headers: Key value pair of headers to add to the request.
 
   Raises:
     urlib2.URLError if url is bad.
   """
   request = Request(url=url)
 
-  if bearer_auth_token:
-    request.add_header('Authorization', 'Bearer {}'.format(bearer_auth_token))
+  for key, val in headers.items():
+    request.add_header(key, val)
 
   final_time = time.time() + timeout
   while True:

@@ -430,33 +430,30 @@ class ValidateBomTestController(object):
         'echo-worker': 8089
     }
 
-    # Map of services with provided hosts and credentials.
-    outbound_service_configs = {}
-    if self.options.test_gate_service_host:
-      gate_service_config = {
-        'host': self.options.test_gate_service_host,
-      }
-      bearer_auth_token = self.__gate_service_bearer_auth_token_or_none()
-      if bearer_auth_token:
-        gate_service_config['bearer_auth_token'] = bearer_auth_token
-      if self.options.test_gate_iap_credentials:
-        gate_service_config['service_account_email'] = get_service_account_email(self.options.test_gate_iap_credentials)
-      outbound_service_configs['gate'] = gate_service_config
+    # Map of services with provided endpoints and credentials.
+    self.__outbound_service_configs = {}
+    self.__add_gate_service_config(self.__outbound_service_configs)
 
-    self.__outbound_service_configs = outbound_service_configs
+  def __add_gate_service_config(self, configs):
+    if not self.options.test_gate_service_endpoint:
+      return
+    gate_service_config = {
+      'endpoint': self.options.test_gate_service_endpoint,
+    }
+    gate_credentials_path = self.options.test_gate_iap_credentials
+    if gate_credentials_path:
+      gate_service_config['service_account_email'] = get_service_account_email(gate_credentials_path)
+      client_id = self.options.test_gate_iap_client_id
+      auth_token = self.__bearer_auth_token_or_none('gate', gate_credentials_path, client_id)
+      if auth_token:
+        gate_service_config['bearer_auth_token'] = auth_token
+    configs['gate'] = gate_service_config
 
-  def __gate_service_bearer_auth_token_or_none(self):
-    iap_credentials_file = self.options.test_gate_iap_credentials
-    iap_client_id = self.options.test_gate_iap_client_id
-
-    if iap_credentials_file and not iap_client_id:
-      raise_and_log_error(
-          ConfigError('Cannot set --test_gate_iap_credentials field without setting --test_gate_iap_client_id'))
-    if not iap_credentials_file and iap_client_id:
-      raise_and_log_error(
-          ConfigError('Cannot set --test_gate_iap_client_id field without setting --test_gate_iap_credentials'))
-    if iap_credentials_file and iap_client_id:
-      return generate_auth_token(iap_credentials_file, iap_client_id)
+  def __bearer_auth_token_or_none(self, service_name, credentials_path, client_id):
+    if (credentials_path is None) != (client_id is None):
+       raise_and_log_error(ConfigError('Either both --test_{service}_iap_credentials and --test_{service}_iap_client_id must be set or neither.'.format(service=service_name)))
+    if credentials_path:
+      return generate_auth_token(credentials_path, client_id)
     return None
 
   def __replace_ha_api_service(self, service, options):
@@ -578,6 +575,13 @@ class ValidateBomTestController(object):
     Returns:
       The ForwardedPort entry for this service.
     """
+    if len(self.__outbound_service_configs) > 0 and service_name not in self.__outbound_service_configs:
+      return True
+    if service_name in self.__outbound_service_configs:
+      # No need to wait on service if we are using the outbound service endpoint.
+      self.__wait_on_service_using_endpoint(service_name)
+      return True
+
     try:
       with self.__lock:
         forwarding = self.__forwarded_ports.get(service_name)
@@ -632,9 +636,9 @@ class ValidateBomTestController(object):
         ResponseError('It appears that {0} failed'.format(service_name),
                       server='tunnel'))
 
-  def __wait_on_service_using_host(self, service_name, timeout=None):
+  def __wait_on_service_using_endpoint(self, service_name, timeout=None):
     service_config = self.__outbound_service_configs[service_name]
-    host = service_config['host']
+    endpoint = service_config['endpoint']
 
     timeout = timeout or self.options.test_service_startup_timeout
     end_time = time.time() + timeout
@@ -644,31 +648,32 @@ class ValidateBomTestController(object):
     logging.info('WaitOn polling %s from thread %x', service_name, threadid)
     try:
       if 'bearer_auth_token' in service_config:
-        _make_get_request_with_bearer_auth_token('{host}/health'
-                                            .format(host=host),
+        _make_get_request_with_bearer_auth_token('{endpoint}/health'
+                                            .format(endpoint=endpoint),
                                             service_config['bearer_auth_token'])
       # Add more authentication cases here.
       else:
-        urlopen('{host}/health'
-                .format(host=host))
-      logging.info('"%s" is ready on service host %s | %s',
-                   service_name, host, threadid)
+        urlopen('{endpoint}/health'
+                .format(endpoint=endpoint))
+      logging.info('"%s" is ready on service endpoint %s | %x',
+                   service_name, endpoint, threadid)
       return
     except HTTPError as error:
-      logging.error('%s service host got %s.',
+      logging.error('%s service endpoint got %s.',
                     service_name, error)
       raise_and_log_error(
-          ResponseError('{0} service host got {1}'.format(service_name, error),
-                        server=host))
+          ResponseError('{0} service endpoint got {1}'.format(service_name, error),
+                        server=endpoint))
     except Exception as error:
       raise_and_log_error(
-          ResponseError('{0} service host got {1}'.format(service_name, error),
-                        server=host))
+          ResponseError('{0} service endpoint got {1}'.format(service_name, error),
+                        server=endpoint))
     except URLError as error:
       if time.time() >= end_time:
         logging.error(
-            'Timing out waiting for %s | %s', service_name, threadid)
+            'Timing out waiting for %s | %x', service_name, threadid)
         raise_and_log_error(TimeoutError(service_name, cause=service_name))
+      raise
 
   def run_tests(self):
     """The actual controller that coordinates and runs the tests.
@@ -830,12 +835,6 @@ class ValidateBomTestController(object):
                                   'IncompatableConfig', metric_labels)
         return False
 
-    if spec['api'] in self.__outbound_service_configs:
-      # No need to wait on service if we are using the outbound service host.
-      service_name = spec['api']
-      self.__wait_on_service_using_host(service_name)
-      return True
-
     services = set(replace_ha_services(
         requires.pop('services', []), self.options))
 
@@ -949,18 +948,10 @@ class ValidateBomTestController(object):
     ]
     if microservice_api in self.__outbound_service_configs:
       service_config = self.__outbound_service_configs[microservice_api]
-      host = service_config['host']
       command.extend([
-          '--native_host', host
+          '--native_base_url', service_config['endpoint']
       ])
-      if host.startswith('http://'):
-        command.extend([
-            '--native_port', '80'
-        ])
-      elif host.startswith('https://'):
-        command.extend([
-            '--native_port', '443'
-        ])
+      # TODO(joonlim): Set via env variable?
       if 'bearer_auth_token' in service_config:
         command.extend([
             '--bearer_auth_token', service_config['bearer_auth_token']
@@ -1140,8 +1131,9 @@ def init_argument_parser(parser, defaults):
       help='The Jenkins job name to use in tests.')
 
   add_parser_argument(
-      parser, 'test_gate_service_host', defaults, None,
-      help='Gate host to use rather than port-forwarding.')
+      parser, 'test_gate_service_endpoint', defaults, None,
+      help='Gate endpoint (including protocol, host, and port) to use'
+           ' rather than port-forwarding.')
 
   add_parser_argument(
       parser, 'test_gate_iap_credentials', defaults, None,

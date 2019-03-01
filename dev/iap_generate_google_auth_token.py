@@ -34,14 +34,7 @@ from google.auth.transport.requests import Request
 OAUTH_TOKEN_URI = 'https://www.googleapis.com/oauth2/v4/token'
 
 
-def generate_auth_token(service_account_file, client_id):
-  """Generates an auth token to make requests to an IAP-protected endpoint.
-
-  Args:
-    service_account_file: [string] The path to a credentials file for a service
-       account that can be used to generate the token.
-    client_id: The client ID used by IAP to generate the token.
-  """
+def _make_service_account_credentials(service_account_file, client_id):
   bootstrap_credentials = google.oauth2.service_account.Credentials.from_service_account_file(service_account_file)
   if isinstance(bootstrap_credentials,
                 google.oauth2.credentials.Credentials):
@@ -59,11 +52,12 @@ def generate_auth_token(service_account_file, client_id):
   else:
     signer = bootstrap_credentials.signer
 
-  service_account_credentials = google.oauth2.service_account.Credentials(
+  return google.oauth2.service_account.Credentials(
       signer, signer_email, token_uri=OAUTH_TOKEN_URI, additional_claims={
           'target_audience': client_id
       })
 
+def _get_token_from_credentials(service_account_credentials):
   service_account_jwt = (
       service_account_credentials._make_authorization_grant_assertion())
   request = google.auth.transport.requests.Request()
@@ -74,6 +68,18 @@ def generate_auth_token(service_account_file, client_id):
   token_response = google.oauth2._client._token_endpoint_request(
       request, OAUTH_TOKEN_URI, body)
   return token_response['id_token']
+
+
+def generate_auth_token(service_account_file, client_id):
+  """Generates an auth token to make requests to an IAP-protected endpoint.
+
+  Args:
+    service_account_file: [string] The path to a credentials file for a service
+       account that can be used to generate the token.
+    client_id: The client ID used by IAP to generate the token.
+  """
+  service_account_credentials =_make_service_account_credentials(service_account_file, client_id)
+  return _get_token_from_credentials(service_account_credentials)
 
 def get_service_account_email(service_account_file):
   """Parse a service account email from a service_account_file.

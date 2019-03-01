@@ -88,14 +88,6 @@ def name_value_to_dict(content):
     result[match.group(1)] = match.group(2).strip()
   return result
 
-def construct_base_url(host, port, protocol=None):
-  """Constructs a base_url from host, port, and an optional protocol.
-  """
-  return '{protocol}{host}:{port}'.format(
-      protocol=protocol if protocol else '',
-      host=host,
-      port=port)
-
 
 class SpinnakerStatus(service_testing.HttpOperationStatus):
   """Provides access to Spinnaker's asynchronous task status.
@@ -367,10 +359,13 @@ class SpinnakerAgent(service_testing.HttpAgent):
     host_platform = cls.__determine_host_platform(bindings)
     if host_platform == 'native':
       base_url = None
-      if bindings['NATIVE_HOSTNAME']:
-        host = bindings['NATIVE_HOSTNAME']
-        protocol = None if host.startswith('http://') or host.startswith('https://') else 'http://'
-        base_url = construct_base_url(host, bindings['NATIVE_PORT'] or port, protocol)
+      if bindings['NATIVE_BASE_URL']:
+        base_url = bindings['NATIVE_BASE_URL']
+      elif bindings['NATIVE_HOSTNAME']:
+        base_url = 'http://{host}:{port}'.format(
+                   host=bindings['NATIVE_HOSTNAME'],
+                   port=bindings['NATIVE_PORT'] or port)
+
       return cls.new_native_instance(
           name, status_factory=status_factory, base_url=base_url, bindings=bindings)
 
@@ -466,7 +461,9 @@ class SpinnakerAgent(service_testing.HttpAgent):
 
     logger.info('%s is available at %s', name, base_url)
     env_url = os.path.join(base_url, 'resolvedEnv')
-    deployed_config = scrape_spring_config(env_url, bearer_auth_token=bearer_auth_token)
+    deployed_config = scrape_spring_config(env_url, headers={
+      'Authorization': 'Bearer {}'.format(bearer_auth_token)
+    })
     JournalLogger.journal_or_log_detail(
         '{0} configuration'.format(name), deployed_config)
 
