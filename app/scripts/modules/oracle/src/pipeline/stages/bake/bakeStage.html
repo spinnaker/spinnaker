@@ -61,6 +61,44 @@
     <stage-config-field label="Var File Name" help-key="pipeline.config.bake.varFileName">
       <input type="text" class="form-control input-sm" ng-model="stage.varFileName" />
     </stage-config-field>
+    <stage-config-field label="Extended Attributes" help-key="pipeline.config.bake.extendedAttributes">
+      <table class="table table-condensed packed">
+        <thead>
+          <tr>
+            <th style="width:40%">Key</th>
+            <th style="width:60%">Value</th>
+            <th class="text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr ng-repeat="(key,value) in stage.extendedAttributes">
+            <td>
+              <strong class="small">{{key}}</strong>
+            </td>
+            <td>
+              <input
+                type="text"
+                ng-model="stage.extendedAttributes[key]"
+                value="{{value}}"
+                class="form-control input-sm"
+              />
+            </td>
+            <td class="text-right">
+              <a class="small" href ng-click="bakeStageCtrl.removeExtendedAttribute(key)">Remove</a>
+            </td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="7">
+              <button class="btn btn-block btn-sm add-new" ng-click="bakeStageCtrl.addExtendedAttribute()">
+                <span class="glyphicon glyphicon-plus-sign"></span> Add Extended Attribute
+              </button>
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+    </stage-config-field>
     <stage-config-field label="Upgrade" help-key="oracle.pipeline.config.bake.upgrade">
       <label class="checkbox-inline">
         <input type="checkbox" ng-model="stage.upgrade" />
