@@ -9,8 +9,6 @@ import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.events.ResourceEvent
 import com.netflix.spinnaker.keel.events.ResourceEventType.DELETE
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
-import com.netflix.spinnaker.keel.persistence.get
-import com.netflix.spinnaker.keel.redis.spring.EmbeddedRedisConfiguration
 import com.netflix.spinnaker.keel.redis.spring.MockEurekaConfig
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
@@ -56,10 +54,10 @@ internal class ResourceControllerTest {
   @Autowired
   lateinit var resourceRepository: ResourceRepository
 
-  private val idGenerator = ULID()
-
   @MockBean
   lateinit var resourcePersister: ResourcePersister
+
+  private val idGenerator = ULID()
 
   var mockResource = Resource(
     apiVersion = ApiVersion("ec2.spinnaker.netflix.com/v1"),

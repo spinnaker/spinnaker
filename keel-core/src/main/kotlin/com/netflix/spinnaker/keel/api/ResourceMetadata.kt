@@ -22,7 +22,7 @@ import de.huxhorn.sulky.ulid.ULID
 
 data class ResourceMetadata(
   val name: ResourceName,
-  @JsonProperty(defaultValue = "0") val resourceVersion: Long,
+  @JsonProperty(defaultValue = "0") val resourceVersion: Long = 0,
   val uid: ULID.Value? = null,
   @get:JsonAnyGetter val data: Map<String, Any?> = emptyMap()
 ) {
