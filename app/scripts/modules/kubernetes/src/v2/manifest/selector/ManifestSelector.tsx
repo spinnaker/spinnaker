@@ -157,7 +157,7 @@ export class ManifestSelector extends React.Component<IManifestSelectorProps, IM
       .switchMap(({ kind, namespace, account }) => Observable.fromPromise(this.search(kind, namespace, account)))
       .takeUntil(this.destroy$)
       .subscribe(resources => {
-        if (this.state.selector.manifestName == null) {
+        if (this.state.selector.manifestName == null && this.getSelectedMode() === SelectorMode.Static) {
           this.handleNameChange('');
         }
         this.setStateAndUpdateStage({ loading: false, resources: resources, selector: this.state.selector });
@@ -282,14 +282,15 @@ export class ManifestSelector extends React.Component<IManifestSelectorProps, IM
     this.setStateAndUpdateStage({ selector: this.state.selector });
   };
 
-  private modeDelegate = (): ISelectorHandler =>
-    this.handlers.find(handler => handler.handles(this.state.selector.mode || SelectorMode.Static));
+  private modeDelegate = (): ISelectorHandler => this.handlers.find(handler => handler.handles(this.getSelectedMode()));
 
   private promptTextCreator = (text: string) => `Use custom expression: ${text}`;
 
+  private getSelectedMode = (): SelectorMode => this.state.selector.mode || SelectorMode.Static;
+
   public render() {
     const { TargetSelect } = NgReact;
-    const selectedMode = this.state.selector.mode || SelectorMode.Static;
+    const selectedMode = this.getSelectedMode();
     const modes = this.props.modes || [selectedMode];
     const { selector, accounts, kinds, namespaces, resources, loading } = this.state;
     const kind = this.modeDelegate().getKind();
