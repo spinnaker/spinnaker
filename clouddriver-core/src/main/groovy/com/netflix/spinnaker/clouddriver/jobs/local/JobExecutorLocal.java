@@ -63,7 +63,7 @@ public class JobExecutorLocal implements JobExecutor {
         success = true;
       }
     } catch (IOException e) {
-      throw new RuntimeException("Failed to execute job");
+      throw new RuntimeException("Failed to execute job", e);
     }
 
     return JobStatus.builder()
