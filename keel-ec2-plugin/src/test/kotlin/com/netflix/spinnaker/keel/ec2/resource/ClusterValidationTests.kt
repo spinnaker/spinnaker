@@ -16,6 +16,7 @@ import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import strikt.api.expectThat
 import strikt.assertions.contains
+import strikt.assertions.doesNotContain
 import java.time.Clock
 
 internal object ClusterValidationTests : JUnit5Minutests {
@@ -79,8 +80,9 @@ internal object ClusterValidationTests : JUnit5Minutests {
         val validatedResource = handler.validate(resource)
 
         expectThat(validatedResource.spec.dependencies.securityGroupNames)
-          .contains(cluster.moniker.application, "nf-infrastructure", "nf-datacenter")
+          .contains("nf-infrastructure", "nf-datacenter")
           .contains(cluster.dependencies.securityGroupNames)
+          .doesNotContain(cluster.moniker.application)
       }
     }
   }

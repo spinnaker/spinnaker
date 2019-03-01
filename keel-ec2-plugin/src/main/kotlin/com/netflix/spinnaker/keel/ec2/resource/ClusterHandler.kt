@@ -80,7 +80,13 @@ class ClusterHandler(
     )
 
   private fun Cluster.defaultSecurityGroups() =
-    setOf("nf-infrastructure", "nf-datacenter", moniker.application)
+    setOf("nf-infrastructure", "nf-datacenter").let {
+      if (dependencies.securityGroupNames.filter { it !in setOf("nf-infrastructure", "nf-datacenter") }.isEmpty()) {
+        it + moniker.application
+      } else {
+        it
+      }
+    }
 
   override fun current(resource: Resource<Cluster>) =
     runBlocking {
@@ -301,9 +307,14 @@ class ClusterHandler(
   }
 
   private val Cluster.securityGroupIds: Collection<String>
-    get() = dependencies.securityGroupNames.map {
-      cloudDriverCache.securityGroupByName(location.accountName, location.region, it).id
-    }
+    get() = dependencies
+      .securityGroupNames
+      // no need to specify these as Orca will auto-assign them, also the application security group
+      // gets auto-created so may not exist yet
+      .filter { it !in setOf("nf-infrastructure", "nf-datacenter", moniker.application) }
+      .map {
+        cloudDriverCache.securityGroupByName(location.accountName, location.region, it).id
+      }
 
   private val ClusterActiveServerGroup.subnet: String
     get() = asg.vpczoneIdentifier.substringBefore(",").let { subnetId ->
