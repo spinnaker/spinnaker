@@ -136,13 +136,13 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
     # It probably isnt useful anymore.
     builder.add_argument(
         '--host_platform', default=defaults.get('HOST_PLATFORM', None),
-        help='Platform running spinnaker (gce, native, outbound).'
+        help='Platform running spinnaker (gce, native).'
              ' If this is not explicitly set, then try to'
              ' guess based on other parameters set.')
 
     builder.add_argument(
         '--native_hostname', default=defaults.get('NATIVE_HOSTNAME', None),
-        help='Native host name that {system} is running on.'
+        help='Host name that {system} is running on.'
              ' This parameter is only used if the spinnaker host platform'
              ' is "native".'.format(system=cls.ENDPOINT_SUBSYSTEM))
 
