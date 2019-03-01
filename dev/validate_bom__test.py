@@ -110,8 +110,9 @@ from buildtool import (
 
 from validate_bom__deploy import replace_ha_services
 
-from iap_generate_google_auth_token import generate_auth_token
-
+from iap_generate_google_auth_token import (
+    generate_auth_token,
+    get_service_account_email)
 
 ForwardedPort = collections.namedtuple('ForwardedPort', ['child', 'port'])
 
@@ -438,6 +439,8 @@ class ValidateBomTestController(object):
       bearer_auth_token = self.__gate_service_bearer_auth_token_or_none()
       if bearer_auth_token:
         gate_service_config['bearer_auth_token'] = bearer_auth_token
+      if self.options.test_gate_iap_credentials:
+        gate_service_config['service_account_email'] = get_service_account_email(self.options.test_gate_iap_credentials)
       outbound_service_configs['gate'] = gate_service_config
 
     self.__outbound_service_configs = outbound_service_configs
@@ -962,6 +965,10 @@ class ValidateBomTestController(object):
         command.extend([
             '--bearer_auth_token', service_config['bearer_auth_token']
         ])
+      if 'service_account_email' in service_config:
+        command.extend([
+            '--test_user', service_config['service_account_email']
+        ])
     else:
       command.extend([
           '--native_host', 'localhost',
@@ -980,7 +987,7 @@ class ValidateBomTestController(object):
     def run_and_log_test_script(command):
       logfile = os.path.join(self.options.output_dir, 'citest_logs',
                              '%s-%s.console.log' % (test_name, os.getpid()))
-      logging.info('Logging test "%s" to %s...', test_name, logfile)
+      logging.info('Logging test "%s" to %s', test_name, logfile)
       try:
         check_subprocesses_to_logfile('running test', logfile, [command])
         retcode = 0

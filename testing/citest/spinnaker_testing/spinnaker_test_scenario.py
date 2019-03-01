@@ -167,6 +167,10 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
         help='Default Spinnaker application name to use with test.')
 
     builder.add_argument(
+        '--test_user', default=defaults.get('TEST_USER', 'anonymous'),
+        help='User used to make API calls to a Spinnaker application.')
+
+    builder.add_argument(
         '--bearer_auth_token', default=defaults.get('BEARER_AUTH_TOKEN', None),
         help='Bearer token used to authenticate outbound requests to {system}.'
             ' This parameter is only used if the spinnaker host platform'

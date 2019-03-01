@@ -74,3 +74,14 @@ def generate_auth_token(service_account_file, client_id):
   token_response = google.oauth2._client._token_endpoint_request(
       request, OAUTH_TOKEN_URI, body)
   return token_response['id_token']
+
+def get_service_account_email(service_account_file):
+  """Parse a service account email from a service_account_file.
+
+  Args:
+    service_account_file: [string] The path to a credentials file for a service
+       account.
+  """
+
+  credentials = google.oauth2.service_account.Credentials.from_service_account_file(service_account_file)
+  return credentials.service_account_email

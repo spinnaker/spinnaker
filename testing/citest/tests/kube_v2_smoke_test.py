@@ -74,6 +74,7 @@ class KubeV2SmokeTestScenario(sk.SpinnakerTestScenario):
     # because it scopes the context of our activities.
     # pylint: disable=invalid-name
     self.TEST_APP = bindings['TEST_APP']
+    self.TEST_USER = bindings['TEST_USER']
 
     # Take just the first if there are multiple
     # because some uses below assume just one.
@@ -269,7 +270,9 @@ class KubeV2SmokeTestScenario(sk.SpinnakerTestScenario):
         'manifests': [self.mf.deployment(name, image)],
     }
 
-    return self.ps.submit_pipeline_contract('deploy-manifest-pipeline', [stage])
+    return self.ps.submit_pipeline_contract('deploy-manifest-pipeline',
+            [stage],
+            user=self.TEST_USER)
 
   def execute_deploy_manifest_pipeline(self, image):
     name = self.TEST_APP + '-deployment'

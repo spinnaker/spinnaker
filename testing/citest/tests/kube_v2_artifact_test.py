@@ -76,6 +76,7 @@ class KubeV2ArtifactTestScenario(sk.SpinnakerTestScenario):
     # because it scopes the context of our activities.
     # pylint: disable=invalid-name
     self.TEST_APP = bindings['TEST_APP']
+    self.TEST_USER = bindings['TEST_USER']
 
     # Take just the first if there are multiple
     # because some uses below assume just one.
@@ -269,7 +270,9 @@ class KubeV2ArtifactTestScenario(sk.SpinnakerTestScenario):
         'manifests': [deployment],
     }
 
-    return self.ps.submit_pipeline_contract(pipeline_name, [configmap_stage, deployment_stage])
+    return self.ps.submit_pipeline_contract(pipeline_name,
+            [configmap_stage, deployment_stage],
+            user=self.TEST_USER)
 
   def execute_deploy_manifest_pipeline(self, pipeline_name):
     deployment_name = self.TEST_APP + '-deployment'
