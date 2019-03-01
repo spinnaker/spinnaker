@@ -429,11 +429,11 @@ class ValidateBomTestController(object):
         'echo-worker': 8089
     }
 
-    # Map of services with provided endpoints and credentials.
+    # Map of services with provided hosts and credentials.
     outbound_service_configs = {}
-    if self.options.test_gate_service_endpoint:
+    if self.options.test_gate_service_host:
       gate_service_config = {
-        'endpoint': self.options.test_gate_service_endpoint,
+        'host': self.options.test_gate_service_host,
       }
       bearer_auth_token = self.__gate_service_bearer_auth_token_or_none()
       if bearer_auth_token:
@@ -629,9 +629,9 @@ class ValidateBomTestController(object):
         ResponseError('It appears that {0} failed'.format(service_name),
                       server='tunnel'))
 
-  def __wait_on_service_using_endpoint(self, service_name, timeout=None):
+  def __wait_on_service_using_host(self, service_name, timeout=None):
     service_config = self.__outbound_service_configs[service_name]
-    endpoint = service_config['endpoint']
+    host = service_config['host']
 
     timeout = timeout or self.options.test_service_startup_timeout
     end_time = time.time() + timeout
@@ -641,26 +641,26 @@ class ValidateBomTestController(object):
     logging.info('WaitOn polling %s from thread %x', service_name, threadid)
     try:
       if 'bearer_auth_token' in service_config:
-        _make_get_request_with_bearer_auth_token('{endpoint}/health'
-                                            .format(endpoint=endpoint),
+        _make_get_request_with_bearer_auth_token('{host}/health'
+                                            .format(host=host),
                                             service_config['bearer_auth_token'])
       # Add more authentication cases here.
       else:
-        urlopen('{endpoint}/health'
-                .format(endpoint=endpoint))
-      logging.info('"%s" is ready on service endpoint %s | %s',
-                   service_name, endpoint, threadid)
+        urlopen('{host}/health'
+                .format(host=host))
+      logging.info('"%s" is ready on service host %s | %s',
+                   service_name, host, threadid)
       return
     except HTTPError as error:
-      logging.error('%s service endpoint got %s.',
+      logging.error('%s service host got %s.',
                     service_name, error)
       raise_and_log_error(
-          ResponseError('{0} service endpoint got {1}'.format(service_name, error),
-                        server=endpoint))
+          ResponseError('{0} service host got {1}'.format(service_name, error),
+                        server=host))
     except Exception as error:
       raise_and_log_error(
-          ResponseError('{0} service endpoint got {1}'.format(service_name, error),
-                        server=endpoint))
+          ResponseError('{0} service host got {1}'.format(service_name, error),
+                        server=host))
     except URLError as error:
       if time.time() >= end_time:
         logging.error(
@@ -828,9 +828,9 @@ class ValidateBomTestController(object):
         return False
 
     if spec['api'] in self.__outbound_service_configs:
-      # No need to wait on service if we are using the outbound service endpoint.
+      # No need to wait on service if we are using the outbound service host.
       service_name = spec['api']
-      self.__wait_on_service_using_endpoint(service_name)
+      self.__wait_on_service_using_host(service_name)
       return True
 
     services = set(replace_ha_services(
@@ -946,14 +946,21 @@ class ValidateBomTestController(object):
     ]
     if microservice_api in self.__outbound_service_configs:
       service_config = self.__outbound_service_configs[microservice_api]
-
+      host = service_config['host']
       command.extend([
-          '--host_platform', 'outbound',
-          '--outbound_host', service_config['endpoint'],
+          '--native_host', host
       ])
+      if host.startswith('http://'):
+        command.extend([
+            '--native_port', '80'
+        ])
+      elif host.startswith('https://'):
+        command.extend([
+            '--native_port', '443'
+        ])
       if 'bearer_auth_token' in service_config:
         command.extend([
-            '--outbound_bearer_auth_token', service_config['bearer_auth_token']
+            '--bearer_auth_token', service_config['bearer_auth_token']
         ])
     else:
       command.extend([
@@ -1126,8 +1133,8 @@ def init_argument_parser(parser, defaults):
       help='The Jenkins job name to use in tests.')
 
   add_parser_argument(
-      parser, 'test_gate_service_endpoint', defaults, None,
-      help='Gate endpoint to use rather than port-forwarding.')
+      parser, 'test_gate_service_host', defaults, None,
+      help='Gate host to use rather than port-forwarding.')
 
   add_parser_argument(
       parser, 'test_gate_iap_credentials', defaults, None,

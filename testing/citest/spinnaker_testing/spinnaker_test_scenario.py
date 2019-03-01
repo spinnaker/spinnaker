@@ -167,16 +167,10 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
         help='Default Spinnaker application name to use with test.')
 
     builder.add_argument(
-        '--outbound_hostname', default=defaults.get('OUTBOUND_HOSTNAME', None),
-        help='Outbound host name that {system} is running on.'
-             ' This parameter is only used if the spinnaker host platform'
-             ' is "outbound".'.format(system=cls.ENDPOINT_SUBSYSTEM))
-
-    builder.add_argument(
-        '--outbound_bearer_auth_token', default=defaults.get('OUTBOUND_BEARER_AUTH_TOKEN', None),
+        '--bearer_auth_token', default=defaults.get('BEARER_AUTH_TOKEN', None),
         help='Bearer token used to authenticate outbound requests to {system}.'
             ' This parameter is only used if the spinnaker host platform'
-            ' is "outbound". It is not needed if the system is not using'
+            ' is "native". It is not needed if the system is not using'
             ' authentication.'.format(system=cls.ENDPOINT_SUBSYSTEM))
 
   @classmethod

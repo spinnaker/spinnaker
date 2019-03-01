@@ -30,7 +30,7 @@ class PipelineSupport(object):
         'keepWaitingPipelines': 'false',
         'application': s.TEST_APP,
         'name': name,
-        'lastModifiedBy': 'anonymous',
+        'lastModifiedBy': 'anonymous', # TODO(joonlim): call func()
         'limitConcurrent': 'true',
         'parallel': 'true',
         'stages': stages,
