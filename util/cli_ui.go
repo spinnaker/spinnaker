@@ -39,12 +39,12 @@ type ColorizeUi struct {
 	OutputFormat *output.OutputFormat
 }
 
-var UI ColorizeUi
+var UI *ColorizeUi
 var hasColor bool
 
 func InitUI(quiet, color bool, outputFormat string) {
 	hasColor = color
-	UI = ColorizeUi{
+	UI = &ColorizeUi{
 		Colorize:   Colorize(),
 		ErrorColor: "[red]",
 		WarnColor:  "[yellow]",

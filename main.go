@@ -15,6 +15,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/spinnaker/spin/cmd"
@@ -23,7 +24,11 @@ import (
 
 func main() {
 	if err := cmd.Execute(os.Stdout); err != nil {
-		util.UI.Error(err.Error())
+		if util.UI != nil {
+			util.UI.Error(err.Error())
+		} else {
+			fmt.Fprintf(os.Stderr, "\n%v\n", err)
+		}
 		os.Exit(1)
 	}
 }
