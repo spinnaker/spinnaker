@@ -15,15 +15,15 @@
 package main
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/spinnaker/spin/cmd"
+	"github.com/spinnaker/spin/util"
 )
 
 func main() {
 	if err := cmd.Execute(os.Stdout); err != nil {
-		fmt.Fprintf(os.Stderr, "\n%v\n", err)
+		util.UI.Error(err.Error())
 		os.Exit(1)
 	}
 }
