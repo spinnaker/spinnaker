@@ -75,9 +75,10 @@ interface ResourceHandler<T : Any> : KeelPlugin {
    * set default values.
    */
   @Suppress("UNCHECKED_CAST")
-  fun validate(resource: Resource<Any>): Resource<T> = resource.copy(
-    spec = objectMapper.convertValue(resource.spec, supportedKind.second)
-  ) as Resource<T>
+  fun validate(resource: Resource<Any>): Resource<T> =
+    resource.copy(
+      spec = objectMapper.convertValue(resource.spec, supportedKind.second)
+    ) as Resource<T>
 
 
   /**

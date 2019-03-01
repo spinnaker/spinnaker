@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.keel.ec2.resource
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.convertValue
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.ResourceName
@@ -61,6 +62,25 @@ class ClusterHandler(
   override fun generateName(spec: Cluster) = ResourceName(
     "ec2:cluster:${spec.location.accountName}:${spec.location.region}:${spec.moniker.cluster}"
   )
+
+  override fun validate(resource: Resource<Any>): Resource<Cluster> =
+    objectMapper
+      .convertValue<Cluster>(resource.spec)
+      .withDefaultSecurityGroups()
+      .let {
+        @Suppress("UNCHECKED_CAST")
+        resource.copy(spec = it) as Resource<Cluster>
+      }
+
+  private fun Cluster.withDefaultSecurityGroups(): Cluster =
+    copy(
+      dependencies = dependencies.copy(
+        securityGroupNames = dependencies.securityGroupNames + defaultSecurityGroups()
+      )
+    )
+
+  private fun Cluster.defaultSecurityGroups() =
+    setOf("nf-infrastructure", "nf-datacenter", moniker.application)
 
   override fun current(resource: Resource<Cluster>) =
     runBlocking {
