@@ -44,10 +44,13 @@ class ClusterHandler(
     "clusters"
   ) to Cluster::class.java
 
-  override fun validateAndName(resource: Resource<*>): Resource<Cluster> {
+  override fun validate(resource: Resource<*>, generateName: Boolean): Resource<Cluster> {
     val cluster = objectMapper.convertValue<Cluster>(resource.spec)
-    val name = "ec2:cluster:${cluster.location.accountName}:${cluster.location.region}:${cluster.moniker.cluster}"
-    val metadata = resource.metadata.copy(name = ResourceName(name))
+    var metadata = resource.metadata
+    if (generateName) {
+      val name = "ec2:cluster:${cluster.location.accountName}:${cluster.location.region}:${cluster.moniker.cluster}"
+      metadata = resource.metadata.copy(name = ResourceName(name))
+    }
     return Resource(
       apiVersion = resource.apiVersion,
       kind = resource.kind,

@@ -19,10 +19,17 @@ class ResourcePersister(
   fun handle(event: ResourceEvent): Resource<*> {
     log.info("Received event {}", event)
     when (event.type) {
-      CREATE,
+      CREATE -> {
+        val handler = pluginFor(event.resource.apiVersion, event.resource.kind)
+          ?: throw UnsupportedKind(event.resource.apiVersion, event.resource.kind)
+        val validatedResource = handler.validate(event.resource, true)
+        resourceRepository.store(validatedResource)
+        return validatedResource
+      }
       UPDATE -> {
-        val handler = pluginFor(event.resource.apiVersion, event.resource.kind) ?: throw UnsupportedKind(event.resource.apiVersion, event.resource.kind)
-        val validatedResource = handler.validateAndName(event.resource)
+        val handler = pluginFor(event.resource.apiVersion, event.resource.kind)
+          ?: throw UnsupportedKind(event.resource.apiVersion, event.resource.kind)
+        val validatedResource = handler.validate(event.resource, false)
         resourceRepository.store(validatedResource)
         return validatedResource
       }

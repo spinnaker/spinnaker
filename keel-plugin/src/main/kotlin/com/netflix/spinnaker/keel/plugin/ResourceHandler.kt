@@ -32,7 +32,7 @@ interface ResourceHandler<T : Any> : KeelPlugin {
   /**
    * Validates the resource, and constructs a name based on conventions
    */
-  fun validateAndName(resource: Resource<*>): Resource<T>
+  fun validate(resource: Resource<*>, generateName: Boolean): Resource<T>
 
   /**
    * Return the current _actual_ representation of what [resource] looks like in the cloud.

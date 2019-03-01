@@ -9,16 +9,17 @@ import com.netflix.spinnaker.keel.redis.spring.EmbeddedRedisConfiguration
 import com.netflix.spinnaker.keel.redis.spring.MockEurekaConfig
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
-import com.nhaarman.mockito_kotlin.*
+import com.nhaarman.mockito_kotlin.any
+import com.nhaarman.mockito_kotlin.doReturn
+import com.nhaarman.mockito_kotlin.verify
+import com.nhaarman.mockito_kotlin.whenever
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Primary
+import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.HttpHeaders.CONTENT_TYPE
 import org.springframework.http.MediaType
 import org.springframework.http.MediaType.APPLICATION_JSON
@@ -33,7 +34,7 @@ import java.util.*
 
 @RunWith(SpringRunner::class)
 @SpringBootTest(
-  classes = [MockConfiguration::class, KeelApplication::class, MockEurekaConfig::class, EmbeddedRedisConfiguration::class],
+  classes = [KeelApplication::class, MockEurekaConfig::class, EmbeddedRedisConfiguration::class],
   properties = [
     "clouddriver.baseUrl=https://localhost:8081",
     "orca.baseUrl=https://localhost:8082"
@@ -49,6 +50,7 @@ internal class ResourceControllerTest {
   lateinit var resourceRepository: ResourceRepository
 
   @Autowired
+  @MockBean
   lateinit var resourcePersister: ResourcePersister
 
   var mockResource = Resource(
@@ -167,10 +169,4 @@ internal class ResourceControllerTest {
       .perform(request)
       .andExpect(status().isNotFound)
   }
-}
-
-@Configuration
-class MockConfiguration {
-  @Primary
-  @Bean fun resourcePersister() = mock<ResourcePersister>()
 }

@@ -52,10 +52,13 @@ class SecurityGroupHandler(
     "security-groups"
   ) to SecurityGroup::class.java
 
-  override fun validateAndName(resource: Resource<*>): Resource<SecurityGroup> {
+  override fun validate(resource: Resource<*>, generateName: Boolean): Resource<SecurityGroup> {
     val securityGroup = objectMapper.convertValue<SecurityGroup>(resource.spec)
-    val name = "ec2:securityGroup:${securityGroup.accountName}:${securityGroup.region}:${securityGroup.name}"
-    val metadata = resource.metadata.copy(name = ResourceName(name))
+    var metadata = resource.metadata
+    if (generateName) {
+      val name = "ec2:securityGroup:${securityGroup.accountName}:${securityGroup.region}:${securityGroup.name}"
+      metadata = resource.metadata.copy(name = ResourceName(name))
+    }
     return Resource(
       apiVersion = resource.apiVersion,
       kind = resource.kind,
