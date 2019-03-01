@@ -27,11 +27,13 @@ import com.netflix.spinnaker.kork.PlatformComponents
 import de.huxhorn.sulky.ulid.ULID
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_PROTOTYPE
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
+import org.springframework.context.annotation.Scope
 import org.springframework.scheduling.annotation.EnableAsync
 import java.time.Clock
 import javax.annotation.PostConstruct
@@ -66,6 +68,8 @@ class KeelApplication {
   fun idGenerator(): ULID = ULID()
 
   @Bean
+  // prototype as we want to customize config for some uses
+  @Scope(SCOPE_PROTOTYPE)
   fun objectMapper(): ObjectMapper = configuredObjectMapper()
 
   @Bean

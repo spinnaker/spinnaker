@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.api.ec2
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL
 import com.netflix.spinnaker.keel.api.ec2.HealthCheckType.EC2
@@ -22,6 +23,7 @@ data class Cluster(
     val stack: String? = null,
     val detail: String? = null
   ) {
+    @get:JsonIgnore
     val cluster: String
       get() = when {
         stack == null && detail == null -> application

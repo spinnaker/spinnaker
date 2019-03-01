@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.config
 
+import com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.jakewharton.retrofit2.adapter.kotlin.coroutines.CoroutineCallAdapterFactory
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
@@ -56,7 +57,7 @@ class ClouddriverConfiguration {
     retrofitClient: OkHttpClient)
     : CloudDriverService =
     Retrofit.Builder()
-      .addConverterFactory(JacksonConverterFactory.create(objectMapper))
+      .addConverterFactory(JacksonConverterFactory.create(objectMapper.disable(FAIL_ON_UNKNOWN_PROPERTIES)))
       .addCallAdapterFactory(CoroutineCallAdapterFactory())
       .baseUrl(clouddriverEndpoint)
       .client(retrofitClient)
