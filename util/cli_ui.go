@@ -49,8 +49,11 @@ func InitUI(quiet, color bool, outputFormat string) {
 		ErrorColor: "[red]",
 		WarnColor:  "[yellow]",
 		InfoColor:  "[blue]",
-		Ui:         &cli.BasicUi{Writer: os.Stdout},
-		Quiet:      quiet,
+		Ui: &cli.BasicUi{
+			Writer:      os.Stdout,
+			ErrorWriter: os.Stderr,
+		},
+		Quiet: quiet,
 	}
 	var err error
 	UI.OutputFormat, err = output.ParseOutputFormat(outputFormat)
