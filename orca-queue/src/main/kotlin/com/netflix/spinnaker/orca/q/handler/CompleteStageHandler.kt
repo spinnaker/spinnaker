@@ -226,7 +226,7 @@ class CompleteStageHandler(
     val afterStageStatuses = afterStages().map(Stage::getStatus)
     return when {
       allStatuses.isEmpty()                    -> NOT_STARTED
-      allStatuses.contains(TERMINAL)           -> TERMINAL
+      allStatuses.contains(TERMINAL)           -> failureStatus() // handle configured 'if stage fails' options correctly
       allStatuses.contains(STOPPED)            -> STOPPED
       allStatuses.contains(CANCELED)           -> CANCELED
       allStatuses.contains(FAILED_CONTINUE)    -> FAILED_CONTINUE

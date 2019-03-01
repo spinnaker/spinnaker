@@ -1045,6 +1045,43 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
         }
       }
     }
+
+    given("a synthetic stage's task ends with $TERMINAL status and parent stage should continue on failure") {
+      val pipeline = pipeline {
+        stage {
+          refId = "1"
+          context = mapOf("continuePipeline" to true) // should continue on failure
+          type = stageWithSyntheticBefore.type
+          stageWithSyntheticBefore.buildBeforeStages(this)
+          stageWithSyntheticBefore.plan(this)
+        }
+      }
+      val message = CompleteStage(pipeline.stageByRef("1<1"))
+
+      beforeGroup {
+        pipeline.stageById(message.stageId).apply {
+          status = RUNNING
+          singleTaskStage.plan(this)
+          tasks.first().status = TERMINAL
+        }
+
+        whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+      }
+
+      on("receiving the message") {
+        subject.handle(message)
+      }
+
+      afterGroup(::resetMocks)
+
+      it("rolls up to the parent stage") {
+        verify(queue).push(message.copy(stageId = pipeline.stageByRef("1").id))
+      }
+
+      it("runs the parent stage's complete routine") {
+        verify(queue).push(CompleteStage(message.copy(stageId = pipeline.stageByRef("1").id)))
+      }
+    }
   }
 
   describe("branching stages") {
