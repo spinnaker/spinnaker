@@ -10,7 +10,7 @@ const kubernetesScaleManifestSettingsFormComponent: IComponentOptions = {
           Replicas
         </div>
         <div class="col-md-4">
-          <input type="number"
+          <input type="text"
                  class="form-control input-sm highlight-pristine"
                  ng-model="ctrl.settings.replicas"
                  min="0"/>
