@@ -17,20 +17,22 @@ package com.netflix.spinnaker.keel.persistence.memory
 
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceName
-import com.netflix.spinnaker.keel.persistence.NoSuchResourceException
+import com.netflix.spinnaker.keel.persistence.NoSuchResourceName
+import com.netflix.spinnaker.keel.persistence.NoSuchResourceUID
 import com.netflix.spinnaker.keel.persistence.ResourceHeader
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.ResourceState
 import com.netflix.spinnaker.keel.persistence.ResourceState.Unknown
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
+import de.huxhorn.sulky.ulid.ULID
 import java.time.Clock
 import java.time.Instant
 
 class InMemoryResourceRepository(
   private val clock: Clock = Clock.systemDefaultZone()
 ) : ResourceRepository {
-  private val resources = mutableMapOf<ResourceName, Resource<*>>()
-  private val states = mutableMapOf<ResourceName, Pair<ResourceState, Instant>>()
+  private val resources = mutableMapOf<ULID.Value, Resource<*>>()
+  private val states = mutableMapOf<ULID.Value, Pair<ResourceState, Instant>>()
 
   override fun allResources(callback: (ResourceHeader) -> Unit) {
     resources.values.forEach {
@@ -42,30 +44,36 @@ class InMemoryResourceRepository(
 
   @Suppress("UNCHECKED_CAST")
   override fun <T : Any> get(name: ResourceName, specType: Class<T>): Resource<T> =
-    resources[name]?.let {
+    resources.values.find { it.metadata.name == name }?.let {
+      get(it.metadata.uid!!, specType)
+    } ?: throw NoSuchResourceName(name)
+
+  @Suppress("UNCHECKED_CAST")
+  override fun <T : Any> get(uid: ULID.Value, specType: Class<T>): Resource<T> =
+    resources[uid]?.let {
       if (specType.isAssignableFrom(it.spec.javaClass)) {
         it as Resource<T>
       } else {
         val convertedSpec = mapper.convertValue(it.spec, specType)
         (it as Resource<Any>).copy(spec = convertedSpec) as Resource<T>
       }
-    } ?: throw NoSuchResourceException(name)
+    } ?: throw NoSuchResourceUID(uid)
 
   override fun store(resource: Resource<*>) {
-    resources[resource.metadata.name] = resource
-    states[resource.metadata.name] = Unknown to clock.instant()
+    resources[resource.metadata.uid!!] = resource
+    states[resource.metadata.uid] = Unknown to clock.instant()
   }
 
-  override fun delete(name: ResourceName) {
-    resources.remove(name)
-    states.remove(name)
+  override fun delete(uid: ULID.Value) {
+    resources.remove(uid)
+    states.remove(uid)
   }
 
-  override fun lastKnownState(name: ResourceName): Pair<ResourceState, Instant> =
-    states[name] ?: (Unknown to clock.instant())
+  override fun lastKnownState(uid: ULID.Value): Pair<ResourceState, Instant> =
+    states[uid] ?: (Unknown to clock.instant())
 
-  override fun updateState(name: ResourceName, state: ResourceState) {
-    states[name] = state to clock.instant()
+  override fun updateState(uid: ULID.Value, state: ResourceState) {
+    states[uid] = state to clock.instant()
   }
 
   fun dropAll() {

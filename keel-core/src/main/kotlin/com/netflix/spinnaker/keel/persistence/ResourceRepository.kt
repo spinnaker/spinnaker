@@ -36,12 +36,20 @@ interface ResourceRepository {
   fun allResources(callback: (ResourceHeader) -> Unit)
 
   /**
-   * Retrieves a single resource by its unique [com.netflix.spinnaker.keel.api.ResourceMetadata.uid].
+   * Retrieves a single resource by its unique [name].
+   *
+   * @return The resource represented by [name] or `null` if [name] is unknown.
+   * @throws NoSuchResourceException if [name] does not map to a resource in the repository.
+   */
+  fun <T : Any> get(name: ResourceName, specType: Class<T>): Resource<T>
+
+  /**
+   * Retrieves a single resource by its unique [uid].
    *
    * @return The resource represented by [uid] or `null` if [uid] is unknown.
    * @throws NoSuchResourceException if [uid] does not map to a resource in the repository.
    */
-  fun <T : Any> get(name: ResourceName, specType: Class<T>): Resource<T>
+  fun <T : Any> get(uid: ULID.Value, specType: Class<T>): Resource<T>
 
   /**
    * Persists a resource.
@@ -51,24 +59,27 @@ interface ResourceRepository {
   fun store(resource: Resource<*>)
 
   /**
+   * Deletes the resource represented by [uid].
+   */
+  fun delete(uid: ULID.Value)
+
+  /**
    * Retrieves the last known state of a resource.
    *
-   * @return The last known state of the resource represented by [name]. If the state has never been
-   * recorded the method should return a tuple of [ResourceState.Unknown] and the current timestamp.
+   * @return The last known state of the resource represented by [uid].
    */
-  fun lastKnownState(name: ResourceName): Pair<ResourceState, Instant>
+  fun lastKnownState(uid: ULID.Value): Pair<ResourceState, Instant>
 
   /**
-   * Updates the last known state of the resource represented by [name].
+   * Updates the last known state of the resource represented by [uid].
    */
-  fun updateState(name: ResourceName, state: ResourceState)
-
-  /**
-   * Deletes the resource represented by [name].
-   */
-  fun delete(name: ResourceName)
+  fun updateState(uid: ULID.Value, state: ResourceState)
 }
 
 inline fun <reified T : Any> ResourceRepository.get(name: ResourceName): Resource<T> = get(name, T::class.java)
+inline fun <reified T : Any> ResourceRepository.get(uid: ULID.Value): Resource<T> = get(uid, T::class.java)
 
-class NoSuchResourceException(val name: ResourceName) : RuntimeException("No resource named $name exists in the repository")
+sealed class NoSuchResourceException(override val message: String?) : RuntimeException(message)
+
+class NoSuchResourceName(name: ResourceName) : NoSuchResourceException("No resource named $name exists in the repository")
+class NoSuchResourceUID(uid: ULID.Value) : NoSuchResourceException("No resource with uid $uid exists in the repository")

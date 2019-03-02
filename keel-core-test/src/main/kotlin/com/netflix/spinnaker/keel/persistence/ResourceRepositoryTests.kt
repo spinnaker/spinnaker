@@ -29,7 +29,6 @@ import com.nhaarman.mockito_kotlin.times
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyZeroInteractions
 import de.huxhorn.sulky.ulid.ULID
-import dev.minutest.RootContextBuilder
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import strikt.api.expectThat
@@ -61,8 +60,7 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
     val callback: (ResourceHeader) -> Unit
   )
 
-  fun tests(): RootContextBuilder<Fixture<T>> = rootContext {
-
+  fun tests() = rootContext<Fixture<T>> {
     fixture {
       Fixture(
         subject = factory(clock),
@@ -103,22 +101,23 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
         verify(callback).invoke(ResourceHeader(resource.metadata.uid!!, resource.metadata.name, resource.metadata.resourceVersion, resource.apiVersion, resource.kind))
       }
 
-      test("it can be retrieved by id") {
+      test("it can be retrieved by name") {
         val retrieved = subject.get<Map<String, Any>>(resource.metadata.name)
         expectThat(retrieved).isEqualTo(resource)
       }
 
-      test("its id can be retrieved by name") {
-
+      test("it can be retrieved by uid") {
+        val retrieved = subject.get<Map<String, Any>>(resource.metadata.uid!!)
+        expectThat(retrieved).isEqualTo(resource)
       }
 
       test("its state is unknown") {
-        expectThat(subject.lastKnownState(resource.metadata.name))
+        expectThat(subject.lastKnownState(resource.metadata.uid!!))
           .first
           .isEqualTo(Unknown)
       }
 
-      context("storing another resource with a different id") {
+      context("storing another resource with a different name") {
         val anotherResource = Resource(
           metadata = ResourceMetadata(
             name = ResourceName("SecurityGroup:ec2:test:us-east-1:fnord"),
@@ -154,6 +153,7 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
         )
 
         before {
+          clock.incrementBy(ONE_SECOND)
           subject.store(updatedResource)
         }
 
@@ -166,24 +166,24 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
 
       context("updating the state of the resource") {
         before {
-          clock.incrementBy(Duration.ofSeconds(1))
-          subject.updateState(resource.metadata.name, Ok)
+          clock.incrementBy(ONE_SECOND)
+          subject.updateState(resource.metadata.uid!!, Ok)
         }
 
         test("it reports the new state") {
-          expectThat(subject.lastKnownState(resource.metadata.name))
+          expectThat(subject.lastKnownState(resource.metadata.uid!!))
             .first
             .isEqualTo(Ok)
         }
 
         context("updating the state again") {
           before {
-            clock.incrementBy(Duration.ofSeconds(1))
-            subject.updateState(resource.metadata.name, Diff)
+            clock.incrementBy(ONE_SECOND)
+            subject.updateState(resource.metadata.uid!!, Diff)
           }
 
           test("it reports the newest state") {
-            expectThat(subject.lastKnownState(resource.metadata.name))
+            expectThat(subject.lastKnownState(resource.metadata.uid!!))
               .first
               .isEqualTo(Diff)
           }
@@ -191,14 +191,14 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
 
         context("after updating the resource") {
           before {
-            clock.incrementBy(Duration.ofSeconds(1))
+            clock.incrementBy(ONE_SECOND)
             subject.store(resource.copy(
               spec = randomData()
             ))
           }
 
           test("its state becomes unknown again") {
-            expectThat(subject.lastKnownState(resource.metadata.name))
+            expectThat(subject.lastKnownState(resource.metadata.uid!!))
               .first
               .isEqualTo(Unknown)
           }
@@ -207,7 +207,7 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
 
       context("deleting the resource") {
         before {
-          subject.delete(resource.metadata.name)
+          subject.delete(resource.metadata.uid!!)
         }
 
         test("the resource is no longer returned when listing all resources") {
@@ -223,6 +223,10 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
         }
       }
     }
+  }
+
+  companion object {
+    val ONE_SECOND: Duration = Duration.ofSeconds(1)
   }
 }
 

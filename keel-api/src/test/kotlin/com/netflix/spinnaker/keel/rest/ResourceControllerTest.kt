@@ -187,7 +187,7 @@ internal class ResourceControllerTest {
     verify(resourcePersister).handle(ResourceEvent(DELETE, resource))
 
     //clean up after the test
-    resourceRepository.delete(resource.metadata.name)
+    resourceRepository.delete(resource.metadata.uid!!)
   }
 
   @Test

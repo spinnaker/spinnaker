@@ -5,7 +5,8 @@ import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceMetadata
 import com.netflix.spinnaker.keel.api.ResourceName
-import com.netflix.spinnaker.keel.persistence.NoSuchResourceException
+import com.netflix.spinnaker.keel.persistence.NoSuchResourceName
+import com.netflix.spinnaker.keel.persistence.NoSuchResourceUID
 import com.netflix.spinnaker.keel.persistence.ResourceHeader
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.ResourceState
@@ -56,6 +57,29 @@ class SqlResourceRepository(
       }
   }
 
+  override fun <T : Any> get(uid: ULID.Value, specType: Class<T>): Resource<T> {
+    return jooq
+      .select(
+        field("uid"),
+        field("api_version"),
+        field("kind"),
+        field("name"),
+        field("resource_version"),
+        field("spec")
+      )
+      .from(RESOURCE)
+      .where(field("uid").eq(uid.toString()))
+      .fetch()
+      .intoResultSet()
+      .run {
+        if (next()) {
+          toResource(specType)
+        } else {
+          throw NoSuchResourceUID(uid)
+        }
+      }
+  }
+
   override fun <T : Any> get(name: ResourceName, specType: Class<T>): Resource<T> {
     return jooq
       .select(
@@ -74,7 +98,7 @@ class SqlResourceRepository(
         if (next()) {
           toResource(specType)
         } else {
-          throw NoSuchResourceException(name)
+          throw NoSuchResourceName(name)
         }
       }
   }
@@ -121,12 +145,12 @@ class SqlResourceRepository(
 
       insertInto(RESOURCE_STATE)
         .columns(
-          field("name"),
+          field("uid"),
           field("state"),
           field("timestamp")
         )
         .values(
-          resource.metadata.name.value,
+          resource.metadata.uid.toString(),
           Unknown.name,
           clock.instant().let(Timestamp::from)
         )
@@ -134,14 +158,14 @@ class SqlResourceRepository(
     }
   }
 
-  override fun lastKnownState(name: ResourceName): Pair<ResourceState, Instant> =
+  override fun lastKnownState(uid: ULID.Value): Pair<ResourceState, Instant> =
     jooq
       .select(
         field("state"),
         field("timestamp")
       )
       .from(RESOURCE_STATE)
-      .where(field("name").eq(name.value))
+      .where(field("uid").eq(uid.toString()))
       .orderBy(field("timestamp").desc())
       .limit(1)
       .fetch()
@@ -150,20 +174,20 @@ class SqlResourceRepository(
         if (next()) {
           state to timestamp
         } else {
-          throw IllegalStateException("No state found for resource $name")
+          throw IllegalStateException("No state found for resource $uid")
         }
       }
 
-  override fun updateState(name: ResourceName, state: ResourceState) {
+  override fun updateState(uid: ULID.Value, state: ResourceState) {
     jooq.inTransaction {
       insertInto(RESOURCE_STATE)
         .columns(
-          field("name"),
+          field("uid"),
           field("state"),
           field("timestamp")
         )
         .values(
-          name.value,
+          uid.toString(),
           state.name,
           clock.instant().let(Timestamp::from)
         )
@@ -171,10 +195,10 @@ class SqlResourceRepository(
     }
   }
 
-  override fun delete(name: ResourceName) {
+  override fun delete(uid: ULID.Value) {
     jooq.inTransaction {
       deleteFrom(RESOURCE)
-        .where(field("name").eq(name.value))
+        .where(field("uid").eq(uid.toString()))
         .execute()
     }
   }

@@ -53,8 +53,8 @@ databaseChangeLog:
             tableName: resource_state
             columns:
               - column:
-                  name: name
-                  type: varchar(255)
+                  name: uid
+                  type: char(26)
                   constraints:
                     nullable: false
               - column:
@@ -79,14 +79,21 @@ databaseChangeLog:
       author: fletch
       changes:
         - createIndex:
-            indexName: resource_state_name_timestamp_idx
+            indexName: resource_state_uid_idx
             tableName: resource_state
             columns:
               - column:
-                  name: name
+                  name: uid
+        - createIndex:
+            indexName: resource_state_timestamp_idx
+            tableName: resource_state
+            columns:
               - column:
                   name: timestamp
       rollback:
         - dropIndex:
-            indexName: resource_state_name_timestamp_idx
+            indexName: resource_state_uid_idx
+            tableName: resource_state
+        - dropIndex:
+            indexName: resource_state_timestamp_idx
             tableName: resource_state
