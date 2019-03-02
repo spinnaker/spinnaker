@@ -36,7 +36,7 @@ class InMemoryResourceRepository(
 
   override fun allResources(callback: (ResourceHeader) -> Unit) {
     resources.values.forEach {
-      callback(ResourceHeader(it.metadata.uid!!, it.metadata.name, it.metadata.resourceVersion, it.apiVersion, it.kind))
+      callback(ResourceHeader(it))
     }
   }
 
@@ -45,7 +45,7 @@ class InMemoryResourceRepository(
   @Suppress("UNCHECKED_CAST")
   override fun <T : Any> get(name: ResourceName, specType: Class<T>): Resource<T> =
     resources.values.find { it.metadata.name == name }?.let {
-      get(it.metadata.uid!!, specType)
+      get(it.metadata.uid, specType)
     } ?: throw NoSuchResourceName(name)
 
   @Suppress("UNCHECKED_CAST")
@@ -60,7 +60,7 @@ class InMemoryResourceRepository(
     } ?: throw NoSuchResourceUID(uid)
 
   override fun store(resource: Resource<*>) {
-    resources[resource.metadata.uid!!] = resource
+    resources[resource.metadata.uid] = resource
     states[resource.metadata.uid] = Unknown to clock.instant()
   }
 

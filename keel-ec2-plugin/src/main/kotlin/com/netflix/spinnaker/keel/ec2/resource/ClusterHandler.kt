@@ -1,10 +1,22 @@
 package com.netflix.spinnaker.keel.ec2.resource
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.convertValue
-import com.netflix.spinnaker.keel.api.*
-import com.netflix.spinnaker.keel.api.ec2.*
-import com.netflix.spinnaker.keel.api.ec2.Cluster.*
+import com.netflix.spinnaker.keel.api.Resource
+import com.netflix.spinnaker.keel.api.ResourceKind
+import com.netflix.spinnaker.keel.api.ResourceName
+import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
+import com.netflix.spinnaker.keel.api.ec2.Capacity
+import com.netflix.spinnaker.keel.api.ec2.Cluster
+import com.netflix.spinnaker.keel.api.ec2.Cluster.Dependencies
+import com.netflix.spinnaker.keel.api.ec2.Cluster.Health
+import com.netflix.spinnaker.keel.api.ec2.Cluster.LaunchConfiguration
+import com.netflix.spinnaker.keel.api.ec2.Cluster.Location
+import com.netflix.spinnaker.keel.api.ec2.Cluster.Moniker
+import com.netflix.spinnaker.keel.api.ec2.Cluster.Scaling
+import com.netflix.spinnaker.keel.api.ec2.HealthCheckType
+import com.netflix.spinnaker.keel.api.ec2.Metric
+import com.netflix.spinnaker.keel.api.ec2.ScalingProcess
+import com.netflix.spinnaker.keel.api.ec2.TerminationPolicy
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.ClusterActiveServerGroup
@@ -18,6 +30,7 @@ import com.netflix.spinnaker.keel.plugin.ResourceConflict
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.netflix.spinnaker.keel.retrofit.isNotFound
 import de.danielbechler.diff.node.DiffNode
+import de.huxhorn.sulky.ulid.ULID
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -34,7 +47,8 @@ class ClusterHandler(
   private val cloudDriverCache: CloudDriverCache,
   private val orcaService: OrcaService,
   private val clock: Clock,
-  private val objectMapper: ObjectMapper
+  override val objectMapper: ObjectMapper,
+  override val idGenerator: ULID
 ) : ResourceHandler<Cluster> {
 
   override val apiVersion = SPINNAKER_API_V1.subApi("ec2")
@@ -44,20 +58,9 @@ class ClusterHandler(
     "clusters"
   ) to Cluster::class.java
 
-  override fun validate(resource: Resource<*>, generateName: Boolean): Resource<Cluster> {
-    val cluster = objectMapper.convertValue<Cluster>(resource.spec)
-    var metadata = resource.metadata
-    if (generateName) {
-      val name = "ec2:cluster:${cluster.location.accountName}:${cluster.location.region}:${cluster.moniker.cluster}"
-      metadata = resource.metadata.copy(name = ResourceName(name))
-    }
-    return Resource(
-      apiVersion = resource.apiVersion,
-      kind = resource.kind,
-      metadata = metadata,
-      spec = cluster
-    )
-  }
+  override fun generateName(spec: Cluster) = ResourceName(
+    "ec2:cluster:${spec.location.accountName}:${spec.location.region}:${spec.moniker.cluster}"
+  )
 
   override fun current(resource: Resource<Cluster>) =
     runBlocking {

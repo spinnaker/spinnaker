@@ -15,7 +15,9 @@
  */
 package com.netflix.spinnaker.config
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.file.FileHandler
+import de.huxhorn.sulky.ulid.ULID
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
@@ -27,6 +29,10 @@ import java.io.File
 class FilePluginConfig {
 
   @Bean
-  fun filePlugin(@Value("\${keel.file.directory:#{systemEnvironment['HOME']}/keel}") directory: File) =
-    FileHandler(directory)
+  fun filePlugin(
+    @Value("\${keel.file.directory:#{systemEnvironment['HOME']}/keel}") directory: File,
+    objectMapper: ObjectMapper,
+    idGenerator: ULID
+  ) =
+    FileHandler(directory, objectMapper, idGenerator)
 }

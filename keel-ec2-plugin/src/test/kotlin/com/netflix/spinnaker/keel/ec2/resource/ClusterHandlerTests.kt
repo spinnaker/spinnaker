@@ -136,7 +136,7 @@ internal object ClusterHandlerTests : JUnit5Minutests {
 
   fun tests() = rootContext<ClusterHandler> {
     fixture {
-      ClusterHandler(cloudDriverService, cloudDriverCache, orcaService, Clock.systemDefaultZone(), objectMapper)
+      ClusterHandler(cloudDriverService, cloudDriverCache, orcaService, Clock.systemDefaultZone(), objectMapper, idGenerator)
     }
 
     before {

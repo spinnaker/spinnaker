@@ -15,19 +15,27 @@
  */
 package com.netflix.spinnaker.keel.file
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind
+import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.file.Message
 import com.netflix.spinnaker.keel.plugin.ResourceConflict
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import de.danielbechler.diff.node.DiffNode
+import de.huxhorn.sulky.ulid.ULID
 import org.slf4j.LoggerFactory
 import java.io.File
+import java.util.UUID.randomUUID
 import javax.annotation.PostConstruct
 
-class FileHandler(private val directory: File) : ResourceHandler<Message> {
+class FileHandler(
+  private val directory: File,
+  override val objectMapper: ObjectMapper,
+  override val idGenerator: ULID
+) : ResourceHandler<Message> {
 
   @PostConstruct
   fun ensureDirectoryExists() {
@@ -49,15 +57,9 @@ class FileHandler(private val directory: File) : ResourceHandler<Message> {
   override val supportedKind =
     ResourceKind(apiVersion.group, "message", "messages") to Message::class.java
 
-  override fun validate(resource: Resource<*>, generateName: Boolean): Resource<Message> {
-    val message = resource.spec as Message
-    return Resource(
-      apiVersion = resource.apiVersion,
-      kind = resource.kind,
-      metadata = resource.metadata,
-      spec = message
-    )
-  }
+  override fun generateName(spec: Message) = ResourceName(
+    "file:${randomUUID()}"
+  )
 
   override fun current(resource: Resource<Message>): Message? {
     val file = File(directory, resource.metadata.name.value)

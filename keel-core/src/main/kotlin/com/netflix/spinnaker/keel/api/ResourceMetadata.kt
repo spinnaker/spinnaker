@@ -23,17 +23,17 @@ import de.huxhorn.sulky.ulid.ULID
 data class ResourceMetadata(
   val name: ResourceName,
   @JsonProperty(defaultValue = "0") val resourceVersion: Long = 0,
-  val uid: ULID.Value? = null,
+  val uid: ULID.Value,
   @get:JsonAnyGetter val data: Map<String, Any?> = emptyMap()
 ) {
   // Workaround for the inline class ResourceName. Jackson can't deserialize it
   // since it's an erased type.
   @JsonCreator
   constructor(data: Map<String, Any?>) : this(
-    ResourceName(data.getValue("name").toString()),
-    data["resourceVersion"]?.toString()?.toLong() ?: 0,
-    data["uid"]?.toString()?.let(ULID::parseULID),
-    data - "name" - "resourceVersion" - "uid"
+    name = data.getValue("name").toString().let(::ResourceName),
+    resourceVersion = data["resourceVersion"]?.toString()?.toLong() ?: 0,
+    uid = data.getValue("uid").toString().let(ULID::parseULID),
+    data = data - "name" - "resourceVersion" - "uid"
   )
 
   override fun toString(): String =

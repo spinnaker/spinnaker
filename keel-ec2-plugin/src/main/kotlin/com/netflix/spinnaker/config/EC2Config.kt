@@ -21,6 +21,7 @@ import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.ec2.resource.ClusterHandler
 import com.netflix.spinnaker.keel.ec2.resource.SecurityGroupHandler
 import com.netflix.spinnaker.keel.orca.OrcaService
+import de.huxhorn.sulky.ulid.ULID
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -36,16 +37,18 @@ class EC2Config {
     cloudDriverCache: CloudDriverCache,
     orcaService: OrcaService,
     clock: Clock,
-    objectMapper: ObjectMapper
+    objectMapper: ObjectMapper,
+    idGenerator: ULID
   ): ClusterHandler =
-    ClusterHandler(cloudDriverService, cloudDriverCache, orcaService, clock, objectMapper)
+    ClusterHandler(cloudDriverService, cloudDriverCache, orcaService, clock, objectMapper, idGenerator)
 
   @Bean
   fun securityGroupHandler(
     cloudDriverService: CloudDriverService,
     cloudDriverCache: CloudDriverCache,
     orcaService: OrcaService,
-    objectMapper: ObjectMapper
+    objectMapper: ObjectMapper,
+    idGenerator: ULID
   ): SecurityGroupHandler =
-    SecurityGroupHandler(cloudDriverService, cloudDriverCache, orcaService, objectMapper)
+    SecurityGroupHandler(cloudDriverService, cloudDriverCache, orcaService, objectMapper, idGenerator)
 }

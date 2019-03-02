@@ -75,10 +75,10 @@ class RedisResourceRepository(
 
   override fun store(resource: Resource<*>) {
     redisClient.withCommandsClient<Unit> { redis: JedisCommands ->
-      redis.hmset(resource.metadata.uid!!.key, resource.toHash())
-      redis.sadd(INDEX_SET, resource.metadata.uid!!.toString())
-      redis.hset(NAME_TO_UID_HASH, resource.metadata.name.value, resource.metadata.uid!!.toString())
-      redis.zadd(resource.metadata.uid!!.stateKey, timestamp(), Unknown.name)
+      redis.hmset(resource.metadata.uid.key, resource.toHash())
+      redis.sadd(INDEX_SET, resource.metadata.uid.toString())
+      redis.hset(NAME_TO_UID_HASH, resource.metadata.name.value, resource.metadata.uid.toString())
+      redis.zadd(resource.metadata.uid.stateKey, timestamp(), Unknown.name)
     }
   }
 

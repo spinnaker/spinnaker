@@ -17,13 +17,11 @@ package com.netflix.spinnaker.keel.rest
 
 import com.netflix.spinnaker.keel.annealing.ResourcePersister
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceMetadata
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SubmittedResource
-import com.netflix.spinnaker.keel.events.ResourceEvent
-import com.netflix.spinnaker.keel.events.ResourceEventType.CREATE
-import com.netflix.spinnaker.keel.events.ResourceEventType.DELETE
-import com.netflix.spinnaker.keel.events.ResourceEventType.UPDATE
+import com.netflix.spinnaker.keel.events.ResourceCreated
+import com.netflix.spinnaker.keel.events.ResourceDeleted
+import com.netflix.spinnaker.keel.events.ResourceUpdated
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceException
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.get
@@ -63,13 +61,7 @@ class ResourceController(
     // TODO: we need to take the resource type as well so we can actually parse and validate here
     // if you're creating a resource you don't need to pass the name
     log.info("Creating: $submittedResource")
-    val resource = Resource(
-      metadata = ResourceMetadata(name = ResourceName("undefined")),
-      kind = submittedResource.kind,
-      apiVersion = submittedResource.apiVersion,
-      spec = submittedResource.spec
-    )
-    return resourcePersister.handle(ResourceEvent(CREATE, resource))
+    return resourcePersister.handle(ResourceCreated(submittedResource))
   }
 
   @GetMapping(
@@ -85,9 +77,9 @@ class ResourceController(
     path = ["/{name}"],
     produces = [APPLICATION_YAML_VALUE, APPLICATION_JSON_VALUE]
   )
-  fun update(@PathVariable("name") name: ResourceName, @RequestBody resource: Resource<*>): Resource<*> {
+  fun update(@PathVariable("name") name: ResourceName, @RequestBody resource: Resource<Any>): Resource<out Any> {
     log.info("Updating: $resource")
-     return resourcePersister.handle(ResourceEvent(UPDATE, resource))
+    return resourcePersister.handle(ResourceUpdated(resource))
   }
 
   @DeleteMapping(
@@ -96,8 +88,9 @@ class ResourceController(
   )
   fun delete(@PathVariable("name") name: ResourceName): Resource<*> {
     log.info("Deleting: $name")
+    // TODO: this is pretty crappy that we have to look up the resource to get its uid but I don't want to change the endpoint signature as all others (rightly) use name.
     val resource = resourceRepository.get<Any>(name)
-    return resourcePersister.handle(ResourceEvent(DELETE, resource))
+    return resourcePersister.handle(ResourceDeleted(resource.metadata.uid))
   }
 
   @ExceptionHandler(NoSuchResourceException::class)

@@ -7,8 +7,7 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceMetadata
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
-import com.netflix.spinnaker.keel.events.ResourceEvent
-import com.netflix.spinnaker.keel.events.ResourceEventType.DELETE
+import com.netflix.spinnaker.keel.events.ResourceDeleted
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.redis.spring.MockEurekaConfig
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML
@@ -63,7 +62,10 @@ internal class ResourceControllerTest {
   var mockResource = Resource(
     apiVersion = ApiVersion("ec2.spinnaker.netflix.com/v1"),
     kind = "securityGroup",
-    metadata = ResourceMetadata(ResourceName("ec2:securityGroup:test:us-west-2:keel")),
+    metadata = ResourceMetadata(
+      name = ResourceName("ec2:securityGroup:test:us-west-2:keel"),
+      uid = idGenerator.nextValue()
+    ),
     spec = "mockingThis"
   )
 
@@ -184,10 +186,10 @@ internal class ResourceControllerTest {
       .perform(request)
       .andExpect(status().isOk)
 
-    verify(resourcePersister).handle(ResourceEvent(DELETE, resource))
+    verify(resourcePersister).handle(ResourceDeleted(resource.metadata.uid))
 
     //clean up after the test
-    resourceRepository.delete(resource.metadata.uid!!)
+    resourceRepository.delete(resource.metadata.uid)
   }
 
   @Test

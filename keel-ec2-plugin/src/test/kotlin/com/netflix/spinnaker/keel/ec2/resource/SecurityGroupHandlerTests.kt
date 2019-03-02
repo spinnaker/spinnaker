@@ -15,8 +15,6 @@
  */
 package com.netflix.spinnaker.keel.ec2.resource
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceMetadata
 import com.netflix.spinnaker.keel.api.ResourceName
@@ -83,7 +81,7 @@ internal object SecurityGroupHandlerTests : JUnit5Minutests {
     override val vpc: Network =
       Network(CLOUD_PROVIDER, randomUUID().toString(), "vpc1", "prod", "us-west-3"),
     override val handler: SecurityGroupHandler =
-      SecurityGroupHandler(cloudDriverService, cloudDriverCache, orcaService, objectMapper),
+      SecurityGroupHandler(cloudDriverService, cloudDriverCache, orcaService, objectMapper, idGenerator),
     override val securityGroup: SecurityGroup =
       SecurityGroup(
         application = "keel",
@@ -112,7 +110,7 @@ internal object SecurityGroupHandlerTests : JUnit5Minutests {
     override val vpc: Network =
       Network(CLOUD_PROVIDER, randomUUID().toString(), "vpc1", "prod", "us-west-3"),
     override val handler: SecurityGroupHandler =
-      SecurityGroupHandler(cloudDriverService, cloudDriverCache, orcaService, objectMapper),
+      SecurityGroupHandler(cloudDriverService, cloudDriverCache, orcaService, objectMapper, idGenerator),
     override val securityGroup: SecurityGroup =
       SecurityGroup(
         application = "keel",

@@ -98,7 +98,7 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
       test("it is returned by allResources") {
         subject.allResources(callback)
 
-        verify(callback).invoke(ResourceHeader(resource.metadata.uid!!, resource.metadata.name, resource.metadata.resourceVersion, resource.apiVersion, resource.kind))
+        verify(callback).invoke(ResourceHeader(resource.metadata.uid, resource.metadata.name, resource.metadata.resourceVersion, resource.apiVersion, resource.kind))
       }
 
       test("it can be retrieved by name") {
@@ -107,12 +107,12 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
       }
 
       test("it can be retrieved by uid") {
-        val retrieved = subject.get<Map<String, Any>>(resource.metadata.uid!!)
+        val retrieved = subject.get<Map<String, Any>>(resource.metadata.uid)
         expectThat(retrieved).isEqualTo(resource)
       }
 
       test("its state is unknown") {
-        expectThat(subject.lastKnownState(resource.metadata.uid!!))
+        expectThat(subject.lastKnownState(resource.metadata.uid))
           .first
           .isEqualTo(Unknown)
       }
@@ -167,11 +167,11 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
       context("updating the state of the resource") {
         before {
           clock.incrementBy(ONE_SECOND)
-          subject.updateState(resource.metadata.uid!!, Ok)
+          subject.updateState(resource.metadata.uid, Ok)
         }
 
         test("it reports the new state") {
-          expectThat(subject.lastKnownState(resource.metadata.uid!!))
+          expectThat(subject.lastKnownState(resource.metadata.uid))
             .first
             .isEqualTo(Ok)
         }
@@ -179,11 +179,11 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
         context("updating the state again") {
           before {
             clock.incrementBy(ONE_SECOND)
-            subject.updateState(resource.metadata.uid!!, Diff)
+            subject.updateState(resource.metadata.uid, Diff)
           }
 
           test("it reports the newest state") {
-            expectThat(subject.lastKnownState(resource.metadata.uid!!))
+            expectThat(subject.lastKnownState(resource.metadata.uid))
               .first
               .isEqualTo(Diff)
           }
@@ -198,7 +198,7 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
           }
 
           test("its state becomes unknown again") {
-            expectThat(subject.lastKnownState(resource.metadata.uid!!))
+            expectThat(subject.lastKnownState(resource.metadata.uid))
               .first
               .isEqualTo(Unknown)
           }
@@ -207,7 +207,7 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
 
       context("deleting the resource") {
         before {
-          subject.delete(resource.metadata.uid!!)
+          subject.delete(resource.metadata.uid)
         }
 
         test("the resource is no longer returned when listing all resources") {

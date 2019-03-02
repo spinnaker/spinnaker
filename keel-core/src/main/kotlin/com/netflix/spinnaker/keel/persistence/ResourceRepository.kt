@@ -27,7 +27,15 @@ data class ResourceHeader(
   val resourceVersion: Long,
   val apiVersion: ApiVersion,
   val kind: String
-)
+) {
+  constructor(resource: Resource<*>) : this(
+    resource.metadata.uid,
+    resource.metadata.name,
+    resource.metadata.resourceVersion,
+    resource.apiVersion,
+    resource.kind
+  )
+}
 
 interface ResourceRepository {
   /**
