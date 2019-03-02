@@ -232,6 +232,10 @@ class SqlProviderCache(private val backingStore: WriteableCache) : ProviderCache
     backingStore.merge(type, cacheData)
   }
 
+  fun cleanOnDemand(maxAgeMs: Long): Int {
+    return (backingStore as SqlCache).cleanOnDemand(maxAgeMs)
+  }
+
   private fun validateTypes(type: String) {
     validateTypes(listOf(type))
   }

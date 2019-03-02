@@ -397,6 +397,20 @@ class SqlCache(
     evictAll(type, listOf(id))
   }
 
+  fun cleanOnDemand(maxAgeMs: Long): Int {
+    val toClean = withRetry(RetryCategory.READ) {
+      jooq.select(field("id"))
+        .from(table(resourceTableName(onDemandType)))
+        .where(field("last_updated").lt(clock.millis() - maxAgeMs))
+        .fetch()
+        .into(String::class.java)
+    }
+
+    evictAll(onDemandType, toClean)
+
+    return toClean.size
+  }
+
   private fun storeAuthoritative(type: String,
                                  agentHint: String?,
                                  items: MutableCollection<CacheData>,

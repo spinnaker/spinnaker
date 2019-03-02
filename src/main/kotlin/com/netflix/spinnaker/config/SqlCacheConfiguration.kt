@@ -12,10 +12,7 @@ import com.netflix.spinnaker.cats.cluster.NodeStatusProvider
 import com.netflix.spinnaker.cats.module.CatsModule
 import com.netflix.spinnaker.cats.provider.Provider
 import com.netflix.spinnaker.cats.sql.SqlProviderRegistry
-import com.netflix.spinnaker.cats.sql.cache.SpectatorSqlCacheMetrics
-import com.netflix.spinnaker.cats.sql.cache.SqlCacheMetrics
-import com.netflix.spinnaker.cats.sql.cache.SqlNamedCacheFactory
-import com.netflix.spinnaker.cats.sql.cache.SqlTableMetricsAgent
+import com.netflix.spinnaker.cats.sql.cache.*
 import com.netflix.spinnaker.clouddriver.cache.CustomSchedulableAgentIntervalProvider
 import com.netflix.spinnaker.clouddriver.cache.EurekaStatusNodeStatusProvider
 import com.netflix.spinnaker.clouddriver.core.provider.CoreProvider
@@ -32,6 +29,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
@@ -54,7 +52,7 @@ class SqlCacheConfiguration {
     private val log = LoggerFactory.getLogger(SqlCacheConfiguration::class.java)
   }
 
-    @Bean
+  @Bean
   fun sqlCacheMetrics(registry: Registry): SqlCacheMetrics {
     return SpectatorSqlCacheMetrics(registry)
   }
@@ -146,8 +144,16 @@ class SqlCacheConfiguration {
 
   @Bean
   @ConditionalOnExpression("\${sql.readOnly:false} == false")
-  fun sqlAgentProvider(sqlTableMetricsAgent: SqlTableMetricsAgent): SqlProvider =
-    SqlProvider(mutableListOf(sqlTableMetricsAgent))
+  fun sqlCleanupStaleOnDemandCachesAgent(applicationContext: ApplicationContext,
+                                         registry: Registry,
+                                         clock: Clock): SqlCleanupStaleOnDemandCachesAgent =
+    SqlCleanupStaleOnDemandCachesAgent(applicationContext, registry, clock)
+
+  @Bean
+  @ConditionalOnExpression("\${sql.readOnly:false} == false")
+  fun sqlAgentProvider(sqlTableMetricsAgent: SqlTableMetricsAgent,
+                       sqlCleanupStaleOnDemandCachesAgent: SqlCleanupStaleOnDemandCachesAgent): SqlProvider =
+    SqlProvider(mutableListOf(sqlTableMetricsAgent, sqlCleanupStaleOnDemandCachesAgent))
 
   @Bean
   fun nodeStatusProvider(eurekaClient: Optional<EurekaClient>): NodeStatusProvider {
