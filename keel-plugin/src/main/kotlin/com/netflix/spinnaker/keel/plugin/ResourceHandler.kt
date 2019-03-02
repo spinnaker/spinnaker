@@ -81,3 +81,19 @@ interface ResourceHandler<T : Any> : KeelPlugin {
    */
   fun delete(resource: Resource<T>)
 }
+
+/**
+ * Searches a list of `ResourceHandler`s and returns the first that supports [apiVersion] and
+ * [kind].
+ *
+ * @throws UnsupportedKind if no appropriate handlers are found in the list.
+ */
+internal fun List<ResourceHandler<*>>.supporting(
+  apiVersion: ApiVersion,
+  kind: String
+): ResourceHandler<*> =
+  find { it.apiVersion == apiVersion && it.supportedKind.first.singular == kind }
+    ?: throw UnsupportedKind(apiVersion, kind)
+
+internal class UnsupportedKind(apiVersion: ApiVersion, kind: String) :
+  IllegalStateException("No resource handler supporting \"$kind\" in \"$apiVersion\" is available")

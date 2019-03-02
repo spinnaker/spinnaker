@@ -1,10 +1,10 @@
 package com.netflix.spinnaker.keel.annealing
 
-import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.plugin.ResourceConflict
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
+import com.netflix.spinnaker.keel.plugin.supporting
 import de.danielbechler.diff.ObjectDifferBuilder
 import de.danielbechler.diff.node.DiffNode
 import org.slf4j.LoggerFactory
@@ -62,10 +62,6 @@ class ResourceActuator(
 
   private val DiffNode.depth: Int
     get() = if (isRootNode) 0 else parentNode.depth + 1
-
-  private fun List<ResourceHandler<*>>.supporting(apiVersion: ApiVersion, kind: String): ResourceHandler<*> =
-    find { it.apiVersion == apiVersion && it.supportedKind.first.singular == kind }
-      ?: throw UnsupportedKind(apiVersion, kind)
 
   // These extensions get round the fact tht we don't know the spec type of the resource from
   // the repository. I don't want the `ResourceHandler` interface to be untyped though.
