@@ -15,10 +15,10 @@
  */
 package com.netflix.spinnaker.keel.persistence.memory
 
-import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceException
+import com.netflix.spinnaker.keel.persistence.ResourceHeader
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.ResourceState
 import com.netflix.spinnaker.keel.persistence.ResourceState.Unknown
@@ -32,9 +32,9 @@ class InMemoryResourceRepository(
   private val resources = mutableMapOf<ResourceName, Resource<*>>()
   private val states = mutableMapOf<ResourceName, Pair<ResourceState, Instant>>()
 
-  override fun allResources(callback: (Triple<ResourceName, ApiVersion, String>) -> Unit) {
+  override fun allResources(callback: (ResourceHeader) -> Unit) {
     resources.values.forEach {
-      callback(Triple(it.metadata.name, it.apiVersion, it.kind))
+      callback(ResourceHeader(it.metadata.uid!!, it.metadata.name, it.metadata.resourceVersion, it.apiVersion, it.kind))
     }
   }
 

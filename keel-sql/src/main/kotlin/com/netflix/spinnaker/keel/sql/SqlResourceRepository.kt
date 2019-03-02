@@ -6,6 +6,7 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceMetadata
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceException
+import com.netflix.spinnaker.keel.persistence.ResourceHeader
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.ResourceState
 import com.netflix.spinnaker.keel.persistence.ResourceState.Unknown
@@ -28,19 +29,29 @@ class SqlResourceRepository(
   private val clock: Clock
 ) : ResourceRepository {
 
-  override fun allResources(callback: (Triple<ResourceName, ApiVersion, String>) -> Unit) {
+  override fun allResources(callback: (ResourceHeader) -> Unit) {
     jooq
       .select(
+        field("uid"),
         field("api_version"),
         field("kind"),
-        field("name")
+        field("name"),
+        field("resource_version")
       )
       .from(RESOURCE)
       .fetch()
       .intoResultSet()
       .apply {
         while (next()) {
-          callback(Triple(resourceName, apiVersion, kind))
+          callback(
+            ResourceHeader(
+              uid = uid,
+              name = resourceName,
+              resourceVersion = resourceVersion,
+              apiVersion = apiVersion,
+              kind = kind
+            )
+          )
         }
       }
   }

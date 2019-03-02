@@ -18,13 +18,22 @@ package com.netflix.spinnaker.keel.persistence
 import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceName
+import de.huxhorn.sulky.ulid.ULID
 import java.time.Instant
+
+data class ResourceHeader(
+  val uid: ULID.Value,
+  val name: ResourceName,
+  val resourceVersion: Long,
+  val apiVersion: ApiVersion,
+  val kind: String
+)
 
 interface ResourceRepository {
   /**
    * Invokes [callback] once with each registered resource.
    */
-  fun allResources(callback: (Triple<ResourceName, ApiVersion, String>) -> Unit)
+  fun allResources(callback: (ResourceHeader) -> Unit)
 
   /**
    * Retrieves a single resource by its unique [com.netflix.spinnaker.keel.api.ResourceMetadata.uid].

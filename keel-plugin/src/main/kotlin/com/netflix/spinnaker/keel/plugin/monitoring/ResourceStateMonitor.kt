@@ -21,7 +21,7 @@ class ResourceStateMonitor(
 
   @Scheduled(fixedDelayString = "\${keel.resource.monitoring.frequency.ms:60000}")
   fun validateManagedResources() {
-    resourceRepository.allResources { (name, apiVersion, singular) ->
+    resourceRepository.allResources { (_, name, _, apiVersion, singular) ->
       val plugin = pluginFor(apiVersion, singular) ?: throw UnsupportedKind(apiVersion, singular)
       val type = plugin.supportedKind.second
       val resource = resourceRepository.get(name, type)

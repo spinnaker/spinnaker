@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.keel.persistence
 
-import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceMetadata
 import com.netflix.spinnaker.keel.api.ResourceName
@@ -59,7 +58,7 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
 
   data class Fixture<T : ResourceRepository>(
     val subject: T,
-    val callback: (Triple<ResourceName, ApiVersion, String>) -> Unit
+    val callback: (ResourceHeader) -> Unit
   )
 
   fun tests(): RootContextBuilder<Fixture<T>> = rootContext {
@@ -101,7 +100,7 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
       test("it is returned by allResources") {
         subject.allResources(callback)
 
-        verify(callback).invoke(Triple(resource.metadata.name, resource.apiVersion, resource.kind))
+        verify(callback).invoke(ResourceHeader(resource.metadata.uid!!, resource.metadata.name, resource.metadata.resourceVersion, resource.apiVersion, resource.kind))
       }
 
       test("it can be retrieved by id") {
@@ -138,12 +137,12 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
         test("it does not overwrite the first resource") {
           subject.allResources(callback)
 
-          argumentCaptor<Triple<ResourceName, ApiVersion, String>>().apply {
+          argumentCaptor<ResourceHeader>().apply {
             verify(callback, times(2)).invoke(capture())
             expectThat(allValues)
               .hasSize(2)
-              .map { it.first }
-              .containsExactlyInAnyOrder(resource.metadata.name, anotherResource.metadata.name)
+              .map { it.uid }
+              .containsExactlyInAnyOrder(resource.metadata.uid, anotherResource.metadata.uid)
           }
         }
       }

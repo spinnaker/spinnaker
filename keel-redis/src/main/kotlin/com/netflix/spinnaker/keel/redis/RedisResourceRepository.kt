@@ -23,6 +23,7 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceMetadata
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceException
+import com.netflix.spinnaker.keel.persistence.ResourceHeader
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.ResourceState
 import com.netflix.spinnaker.keel.persistence.ResourceState.Unknown
@@ -41,14 +42,18 @@ class RedisResourceRepository(
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
-  override fun allResources(callback: (Triple<ResourceName, ApiVersion, String>) -> Unit) {
+  override fun allResources(callback: (ResourceHeader) -> Unit) {
     redisClient.withCommandsClient<Unit> { redis: JedisCommands ->
       redis.smembers(INDEX_SET)
         .map(::ResourceName)
         .forEach { name ->
           // TODO: this is inefficient as fuck, store apiVersion and kind in indices
           readResource(redis, name, Any::class.java)
-            .also { callback(Triple(name, it.apiVersion, it.kind)) }
+            .also {
+              callback(
+                ResourceHeader(it.metadata.uid!!, it.metadata.name, it.metadata.resourceVersion, it.apiVersion, it.kind)
+              )
+            }
         }
     }
   }
