@@ -1,0 +1,9 @@
+apply from: "$rootDir/gradle/kotlin.gradle"
+
+dependencies {
+  compile project(":orca-core")
+  compile project(":orca-kotlin")
+  compile project(":orca-retrofit")
+
+  testCompile project(":orca-core-tck")
+}
