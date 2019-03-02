@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.keel.rest
 
+import com.netflix.spinnaker.keel.annealing.ResourcePersister
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceMetadata
 import com.netflix.spinnaker.keel.api.ResourceName

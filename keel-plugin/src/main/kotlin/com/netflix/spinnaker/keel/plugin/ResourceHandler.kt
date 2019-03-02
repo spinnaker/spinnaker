@@ -81,8 +81,3 @@ interface ResourceHandler<T : Any> : KeelPlugin {
    */
   fun delete(resource: Resource<T>)
 }
-
-/**
- * Represents some kind of conflict that prevents the plugin from interacting with the resource.
- */
-class ResourceConflict(message: String) : RuntimeException(message)

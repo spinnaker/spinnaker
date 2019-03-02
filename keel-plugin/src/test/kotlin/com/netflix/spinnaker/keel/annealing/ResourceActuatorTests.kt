@@ -1,4 +1,4 @@
-package com.netflix.spinnaker.keel.plugin.monitoring
+package com.netflix.spinnaker.keel.annealing
 
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind
@@ -19,17 +19,17 @@ import de.huxhorn.sulky.ulid.ULID
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 
-internal object ResourceStateMonitorTests : JUnit5Minutests {
+internal object ResourceActuatorTests : JUnit5Minutests {
 
   val resourceRepository = InMemoryResourceRepository()
   val plugin1 = mock<ResourceHandler<DummyResource>>()
   val plugin2 = mock<ResourceHandler<DummyResource>>()
   val idGenerator = ULID()
 
-  fun tests() = rootContext<ResourceStateMonitor> {
+  fun tests() = rootContext<ResourceActuator> {
 
     fixture {
-      ResourceStateMonitor(resourceRepository, listOf(plugin1, plugin2))
+      ResourceActuator(resourceRepository, listOf(plugin1, plugin2))
     }
 
     before {
@@ -64,7 +64,7 @@ internal object ResourceStateMonitorTests : JUnit5Minutests {
         before {
           whenever(plugin1.current(resource)) doReturn resource.spec
 
-          validateManagedResources()
+          validateResource(ResourceCheckEvent(resource))
         }
 
         test("the resource is not updated") {
@@ -82,7 +82,7 @@ internal object ResourceStateMonitorTests : JUnit5Minutests {
         before {
           whenever(plugin1.current(resource)) doReturn null as DummyResource?
 
-          validateManagedResources()
+          validateResource(ResourceCheckEvent(resource))
         }
 
         test("the resource is created") {
@@ -94,7 +94,7 @@ internal object ResourceStateMonitorTests : JUnit5Minutests {
         before {
           whenever(plugin1.current(resource)) doReturn DummyResource("some other state that does not match")
 
-          validateManagedResources()
+          validateResource(ResourceCheckEvent(resource))
         }
 
         test("the resource is updated") {

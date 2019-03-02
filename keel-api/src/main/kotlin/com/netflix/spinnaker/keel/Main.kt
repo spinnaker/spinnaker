@@ -32,6 +32,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
+import org.springframework.scheduling.annotation.EnableAsync
 import java.time.Clock
 import javax.annotation.PostConstruct
 
@@ -52,6 +53,7 @@ private val DEFAULT_PROPS = mapOf(
   ]
 )
 @Import(PlatformComponents::class)
+@EnableAsync
 class KeelApplication {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
