@@ -1,18 +1,18 @@
 package com.netflix.spinnaker.keel.serialization
 
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.node.NullNode
+import com.fasterxml.jackson.databind.node.JsonNodeType.NULL
 import com.fasterxml.jackson.databind.node.ObjectNode
-import com.fasterxml.jackson.databind.node.ValueNode
 import com.fasterxml.jackson.module.kotlin.readValue
 import de.huxhorn.sulky.ulid.ULID
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
-import strikt.api.Assertion
 import strikt.api.expectThat
-import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNull
+import strikt.jackson.hasNodeType
+import strikt.jackson.isTextual
+import strikt.jackson.path
+import strikt.jackson.textValue
 
 internal object ULIDSerializationTests : JUnit5Minutests {
 
@@ -40,10 +40,9 @@ internal object ULIDSerializationTests : JUnit5Minutests {
         val tree = objectMapper
           .valueToTree<ObjectNode>(person)
         expectThat(tree)
-          .has("id")
-          .get { get("id") }
-          .isA<ValueNode>()
-          .get { textValue() }
+          .path("id")
+          .isTextual()
+          .textValue()
           .isEqualTo(person.id.toString())
       }
 
@@ -51,9 +50,8 @@ internal object ULIDSerializationTests : JUnit5Minutests {
         val tree = objectMapper
           .valueToTree<ObjectNode>(person.copy(id = null))
         expectThat(tree)
-          .has("id")
-          .get { get("id") }
-          .isA<NullNode>()
+          .path("id")
+          .hasNodeType(NULL)
       }
     }
 
@@ -90,15 +88,3 @@ internal object ULIDSerializationTests : JUnit5Minutests {
     }
   }
 }
-
-fun <T : JsonNode> Assertion.Builder<T>.has(fieldName: String): Assertion.Builder<T> =
-  assert("has a field named '$fieldName'") { subject ->
-    if (subject.has(fieldName)) {
-      pass()
-    } else {
-      fail(subject.fields().asSequence().map { it.key }.toList())
-    }
-  }
-
-fun <T : JsonNode> Assertion.Builder<T>.get(fieldName: String): Assertion.Builder<JsonNode> =
-  get { get(fieldName) }

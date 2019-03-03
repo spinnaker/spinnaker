@@ -27,6 +27,6 @@ dependencies {
   implementation "com.google.guava:guava:${spinnaker.version("guava")}"
 
   testImplementation project(":keel-core-test")
-  testImplementation "io.strikt:strikt-core:$striktVersion"
+  testImplementation "io.strikt:strikt-jackson:$striktVersion"
   testImplementation "dev.minutest:minutest:$minutestVersion"
 }
