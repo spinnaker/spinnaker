@@ -65,7 +65,7 @@ internal object ResourceActuatorTests : JUnit5Minutests {
           whenever(plugin1.current(resource)) doReturn resource.spec
 
           with(resource) {
-            validateResource(metadata.name, apiVersion, kind)
+            checkResource(metadata.name, apiVersion, kind)
           }
         }
 
@@ -85,7 +85,7 @@ internal object ResourceActuatorTests : JUnit5Minutests {
           whenever(plugin1.current(resource)) doReturn null as DummyResource?
 
           with(resource) {
-            validateResource(metadata.name, apiVersion, kind)
+            checkResource(metadata.name, apiVersion, kind)
           }
         }
 
@@ -99,7 +99,7 @@ internal object ResourceActuatorTests : JUnit5Minutests {
           whenever(plugin1.current(resource)) doReturn DummyResource("some other state that does not match")
 
           with(resource) {
-            validateResource(metadata.name, apiVersion, kind)
+            checkResource(metadata.name, apiVersion, kind)
           }
         }
 

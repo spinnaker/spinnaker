@@ -15,11 +15,11 @@ class AnnealingConfiguration {
 
   @Bean
   @ConditionalOnMissingBean(ResourceCheckQueue::class)
-  fun commandQueue(publisher: ApplicationEventPublisher) =
+  fun resourceCheckQueue(publisher: ApplicationEventPublisher) =
     ApplicationEventResourceCheckQueue(publisher)
 
   @Bean
   @ConditionalOnBean(ApplicationEventResourceCheckQueue::class)
-  fun commandListener(resourceActuator: ResourceActuator) =
+  fun resourceCheckListener(resourceActuator: ResourceActuator) =
     ApplicationEventResourceCheckListener(resourceActuator)
 }

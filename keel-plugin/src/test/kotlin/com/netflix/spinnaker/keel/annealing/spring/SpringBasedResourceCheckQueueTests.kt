@@ -32,7 +32,7 @@ class SpringBasedResourceCheckQueueTests {
     parameters.let { (name, apiVersion, kind) ->
       resourceCheckQueue.scheduleCheck(name, apiVersion, kind)
 
-      verify(resourceActuator).validateResource(name, apiVersion, kind)
+      verify(resourceActuator).checkResource(name, apiVersion, kind)
     }
   }
 

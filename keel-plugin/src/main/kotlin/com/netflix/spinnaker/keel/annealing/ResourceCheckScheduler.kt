@@ -6,13 +6,13 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 
 @Component
-class ResourceActuationScheduler(
+class ResourceCheckScheduler(
   private val resourceRepository: ResourceRepository,
   private val resourceCheckQueue: ResourceCheckQueue
 ) {
 
   @Scheduled(fixedDelayString = "\${keel.resource.monitoring.frequency.ms:60000}")
-  fun validateManagedResources() {
+  fun checkManagedResources() {
     log.debug("Starting scheduled validation…")
     resourceRepository.allResources { (name, apiVersion, kind) ->
       resourceCheckQueue.scheduleCheck(name, apiVersion, kind)

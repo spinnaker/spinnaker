@@ -13,7 +13,7 @@ open class ApplicationEventResourceCheckListener(
   open fun onResourceCheck(event: ResourceCheckEvent) {
     with(event) {
       log.debug("Received request to check {}", name)
-      resourceActuator.validateResource(name, apiVersion, kind)
+      resourceActuator.checkResource(name, apiVersion, kind)
     }
   }
 
