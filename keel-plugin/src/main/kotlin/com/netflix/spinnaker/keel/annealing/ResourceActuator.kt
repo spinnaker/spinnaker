@@ -1,6 +1,8 @@
 package com.netflix.spinnaker.keel.annealing
 
+import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Resource
+import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.plugin.ResourceConflict
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
@@ -8,8 +10,6 @@ import com.netflix.spinnaker.keel.plugin.supporting
 import de.danielbechler.diff.ObjectDifferBuilder
 import de.danielbechler.diff.node.DiffNode
 import org.slf4j.LoggerFactory
-import org.springframework.context.event.EventListener
-import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Component
 
 @Component
@@ -20,13 +20,14 @@ class ResourceActuator(
 
   private val differ = ObjectDifferBuilder.buildDefault()
 
-  @Async
-  @EventListener(ResourceCheckEvent::class)
-  fun validateResource(event: ResourceCheckEvent) {
-    log.debug("Checking resource {}", event.name)
-    val plugin = handlers.supporting(event.apiVersion, event.kind)
+  fun validateResource(
+    name: ResourceName,
+    apiVersion: ApiVersion,
+    kind: String) {
+    log.debug("Checking resource {}", name)
+    val plugin = handlers.supporting(apiVersion, kind)
     val type = plugin.supportedKind.second
-    val resource = resourceRepository.get(event.name, type)
+    val resource = resourceRepository.get(name, type)
     try {
       when (val current = plugin.current(resource)) {
         null -> {

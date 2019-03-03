@@ -1,7 +1,6 @@
-package com.netflix.spinnaker.keel.annealing
+package com.netflix.spinnaker.keel.annealing.spring
 
 import com.netflix.spinnaker.keel.api.ApiVersion
-import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceName
 
 /**
@@ -12,10 +11,4 @@ data class ResourceCheckEvent(
   val name: ResourceName,
   val apiVersion: ApiVersion,
   val kind: String
-) {
-  constructor(resource: Resource<*>) : this(
-    resource.metadata.name,
-    resource.apiVersion,
-    resource.kind
-  )
-}
+)

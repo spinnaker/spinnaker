@@ -9,14 +9,13 @@ import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.netflix.spinnaker.keel.plugin.supporting
 import org.slf4j.LoggerFactory
-import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 
 @Component
 class ResourcePersister(
   private val resourceRepository: ResourceRepository,
   private val handlers: List<ResourceHandler<*>>,
-  private val publisher: ApplicationEventPublisher
+  private val queue: ResourceCheckQueue
 ) {
   fun handle(event: ResourceEvent): Resource<*> {
     log.info("Received event {}", event)
@@ -25,16 +24,16 @@ class ResourcePersister(
         handlers.supporting(event.resource.apiVersion, event.resource.kind)
           .validate(event.resource, true)
           .also(resourceRepository::store)
-          .also { publisher.publishEvent(ResourceCheckEvent(it)) }
+          .also { queue.scheduleCheck(it) }
       UPDATE ->
         handlers.supporting(event.resource.apiVersion, event.resource.kind)
           .validate(event.resource, false)
           .also(resourceRepository::store)
-          .also { publisher.publishEvent(ResourceCheckEvent(it)) }
+          .also { queue.scheduleCheck(it) }
       DELETE ->
         event.resource.also {
           resourceRepository.delete(it.metadata.name)
-          publisher.publishEvent(ResourceCheckEvent(it))
+          queue.scheduleCheck(it)
         }
     }
   }
