@@ -36,6 +36,8 @@ export interface IExecutionProps {
   dataSourceKey?: string;
   showAccountLabels?: boolean;
   onRerun?: (execution: IExecution, config: IPipeline) => void;
+  cancelHelpText?: string;
+  cancelConfirmationText?: string;
 }
 
 export interface IExecutionState {
@@ -50,6 +52,7 @@ export interface IExecutionState {
 export class Execution extends React.Component<IExecutionProps, IExecutionState> {
   public static defaultProps: Partial<IExecutionProps> = {
     dataSourceKey: 'executions',
+    cancelHelpText: 'Cancel execution',
   };
 
   private stateChangeSuccessSubscription: Subscription;
@@ -145,18 +148,18 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
   }
 
   public cancelExecution(): void {
+    const { application, execution, cancelConfirmationText } = this.props;
     const { executionService } = ReactInjector;
     const hasDeployStage =
-      this.props.execution.stages &&
-      this.props.execution.stages.some(stage => stage.type === 'deploy' || stage.type === 'cloneServerGroup');
+      execution.stages && execution.stages.some(stage => stage.type === 'deploy' || stage.type === 'cloneServerGroup');
     CancelModal.confirm({
-      header: `Really stop execution of ${this.props.execution.name}?`,
-      buttonText: `Stop running ${this.props.execution.name}`,
-      body: hasDeployStage
-        ? '<b>Note:</b> Any deployments that have begun will continue and need to be cleaned up manually.'
-        : null,
-      submitMethod: (reason, force) =>
-        executionService.cancelExecution(this.props.application, this.props.execution.id, force, reason),
+      header: `Really stop execution of ${execution.name}?`,
+      buttonText: `Stop running ${execution.name}`,
+      body:
+        hasDeployStage && !cancelConfirmationText
+          ? '<b>Note:</b> Any deployments that have begun will continue and need to be cleaned up manually.'
+          : cancelConfirmationText,
+      submitMethod: (reason, force) => executionService.cancelExecution(application, execution.id, force, reason),
     });
   }
 
@@ -248,7 +251,7 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
   };
 
   public render() {
-    const { application, execution, showAccountLabels, showDurations, standalone, title } = this.props;
+    const { application, execution, showAccountLabels, showDurations, standalone, title, cancelHelpText } = this.props;
     const { pipelinesUrl, restartDetails, showingDetails, sortFilter, viewState } = this.state;
 
     const accountLabels = this.props.execution.deploymentTargets.map(account => (
@@ -369,7 +372,7 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
               </span>
             )}
             {execution.isActive && (
-              <Tooltip value="Cancel execution">
+              <Tooltip value={cancelHelpText}>
                 <button className="link" onClick={this.handleCancelClick}>
                   <i className="far fa-times-circle" />
                 </button>
