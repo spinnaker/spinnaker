@@ -14,7 +14,7 @@ class ResourceCheckScheduler(
   @Scheduled(fixedDelayString = "\${keel.resource.monitoring.frequency.ms:60000}")
   fun checkManagedResources() {
     log.debug("Starting scheduled validation…")
-    resourceRepository.allResources { (name, apiVersion, kind) ->
+    resourceRepository.allResources { (_, name, _, apiVersion, kind) ->
       resourceCheckQueue.scheduleCheck(name, apiVersion, kind)
     }
     log.debug("Scheduled validation complete")
