@@ -37,7 +37,6 @@ class AzureAtomicOperationConverterHelper {
 
     // Save these to re-assign after ObjectMapper does its work.
     def credentials = input.remove("credentials")
-
     def converted = credentialsSupport.objectMapper
       .copy()
       .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)

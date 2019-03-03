@@ -31,6 +31,8 @@ class AzureSecurityGroupDescription extends AzureResourceOpsDescription {
   List<String> networkInterfaces = []
   List<String> subnets = []
   String subnet
+  String vnet
+  String vnetResourceGroup
 
   static class AzureSGRule {
     String id

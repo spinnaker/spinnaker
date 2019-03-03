@@ -259,7 +259,4 @@ class AzureResourceManagerClient extends AzureBaseClient {
   String getProviderNamespace() {
     "Microsoft.Resources"
   }
-
-
-
 }

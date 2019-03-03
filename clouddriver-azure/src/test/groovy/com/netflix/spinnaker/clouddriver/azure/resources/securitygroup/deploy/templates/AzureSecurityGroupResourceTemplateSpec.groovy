@@ -88,13 +88,46 @@ class AzureSecurityGroupResourceTemplateSpec extends Specification {
       "metadata" : {
         "description" : "Location to deploy"
       }
+    },
+    "networkSecurityGroupName" : {
+      "type" : "string",
+      "metadata" : {
+        "description" : "The NSG name"
+      }
+    },
+    "networkSecurityGroupResourceGroupName" : {
+      "type" : "string",
+      "metadata" : {
+        "description" : "The resource group name of NSG"
+      }
+    },
+    "virtualNetworkName" : {
+      "type" : "string",
+      "defaultValue" : "",
+      "metadata" : {
+        "description" : "The Virtual Network name"
+      }
+    },
+    "virtualNetworkResourceGroupName" : {
+      "type" : "string",
+      "defaultValue" : "",
+      "metadata" : {
+        "description" : "The resource group name of Virtual Network"
+      }
+    },
+    "subnetName" : {
+      "type" : "string",
+      "defaultValue" : "",
+      "metadata" : {
+        "description" : "The subnet name"
+      }
     }
   },
   "variables" : {
     "securityGroupName" : "azuremasm-sg1-d11"
   },
   "resources" : [ {
-    "apiVersion" : "2015-05-01-preview",
+    "apiVersion" : "2018-11-01",
     "name" : "[variables('securityGroupName')]",
     "type" : "Microsoft.Network/networkSecurityGroups",
     "location" : "[parameters('location')]",

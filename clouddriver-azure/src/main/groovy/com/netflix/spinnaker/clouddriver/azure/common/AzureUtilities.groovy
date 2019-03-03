@@ -294,10 +294,13 @@ class AzureUtilities {
     Map<String, Object> map = new HashMap<>()
     if (sourceParameters.size() == 0) return mapper.writeValueAsString(sourceParameters)
     for(Map.Entry<String, Object> entry: sourceParameters.entrySet()) {
-      if(entry.value.class == String) {
-        map.put(entry.key, new ValueParameter(entry.value))
-      }else {
-        map.put(entry.key, new ReferenceParameter(entry.value))
+      // Avoid null reference by skipping null values. It still works for those mapping destination fields whose source values are skipped here since they will be assigned as null by default.
+      if(entry.value) {
+        if (entry.value.class == String) {
+          map.put(entry.key, new ValueParameter(entry.value))
+        } else {
+          map.put(entry.key, new ReferenceParameter(entry.value))
+        }
       }
     }
     mapper.writeValueAsString(map)

@@ -61,12 +61,22 @@ class UpsertAzureSecurityGroupAtomicOperation implements AtomicOperation<Map> {
       // Create corresponding ResourceGroup if it's not created already
       description.credentials.resourceManagerClient.initializeResourceGroupAndVNet(resourceGroupName, null, description.region)
 
+      def templateParamMap = [
+        location : description.region,
+        networkSecurityGroupName : description.securityGroupName,
+        networkSecurityGroupResourceGroupName : resourceGroupName,
+        virtualNetworkName : description.vnet,
+        virtualNetworkResourceGroupName : description.vnetResourceGroup,
+        subnetName : description.subnet
+      ]
+
       Deployment deployment = description.credentials.resourceManagerClient.createResourceFromTemplate(
         AzureSecurityGroupResourceTemplate.getTemplate(description),
         resourceGroupName,
         description.region,
         description.securityGroupName,
-        "securityGroup")
+        "securityGroup",
+        templateParamMap)
 
       errList = AzureDeploymentOperation.checkDeploymentOperationStatus(task,BASE_PHASE, description.credentials, resourceGroupName, deployment.name())
     } catch (Throwable e) {
