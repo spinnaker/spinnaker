@@ -1,11 +1,12 @@
 package com.netflix.spinnaker.keel.annealing
 
 import com.netflix.spinnaker.keel.api.Resource
+import com.netflix.spinnaker.keel.events.ResourceCreated
+import com.netflix.spinnaker.keel.events.ResourceDeleted
 import com.netflix.spinnaker.keel.events.ResourceEvent
-import com.netflix.spinnaker.keel.events.ResourceEventType.CREATE
-import com.netflix.spinnaker.keel.events.ResourceEventType.DELETE
-import com.netflix.spinnaker.keel.events.ResourceEventType.UPDATE
+import com.netflix.spinnaker.keel.events.ResourceUpdated
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
+import com.netflix.spinnaker.keel.persistence.get
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.netflix.spinnaker.keel.plugin.supporting
 import org.slf4j.LoggerFactory
@@ -19,22 +20,24 @@ class ResourcePersister(
 ) {
   fun handle(event: ResourceEvent): Resource<*> {
     log.info("Received event {}", event)
-    return when (event.type) {
-      CREATE ->
+    return when (event) {
+      is ResourceCreated ->
         handlers.supporting(event.resource.apiVersion, event.resource.kind)
-          .validate(event.resource, true)
+          .validate(event.resource)
           .also(resourceRepository::store)
           .also { queue.scheduleCheck(it) }
-      UPDATE ->
+      is ResourceUpdated ->
         handlers.supporting(event.resource.apiVersion, event.resource.kind)
-          .validate(event.resource, false)
+          .validate(event.resource)
           .also(resourceRepository::store)
           .also { queue.scheduleCheck(it) }
-      DELETE ->
-        event.resource.also {
-          resourceRepository.delete(it.metadata.name)
+      is ResourceDeleted -> {
+        // TODO: could avoid this read if we could schedule check by uid
+        resourceRepository.get<Any>(event.uid).also {
+          resourceRepository.delete(event.uid)
           queue.scheduleCheck(it)
         }
+      }
     }
   }
 
