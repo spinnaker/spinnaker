@@ -342,6 +342,32 @@ class SpinnakerAgent(service_testing.HttpAgent):
     return host_platform
 
   @classmethod
+  def __determine_native_base_url(cls, bindings, default_port):
+    """Helper function to determine a native host platform's base URL.
+
+    The returned base URL may be None if bindings['NATIVE_BASE_URL'] and
+    bindings['NATIVE_HOSTNAME'] are both missing.
+
+    Args:
+      bindings: [dict] List of bindings to configure the endpoint
+          NATIVE_BASE_URL: The base URL to use, if given.
+          NATIVE_HOSTNAME: The host of the base URL to use, if NATIVE_BASE_URL
+              is not given.
+          NATIVE_PORT: The port of the base URL to use, if NATIVE_BASE_URL
+              is not given.
+      default_port: The port to use if bindings['NATIVE_BASE_URL'] is not given
+          and bindings['NATIVE_PORT'] is not given.
+    """
+    base_url = None
+    if bindings['NATIVE_BASE_URL']:
+      base_url = bindings['NATIVE_BASE_URL']
+    elif bindings['NATIVE_HOSTNAME']:
+      base_url = 'http://{host}:{port}'.format(
+                 host=bindings['NATIVE_HOSTNAME'],
+                 port=bindings['NATIVE_PORT'] or default_port)
+    return base_url
+
+  @classmethod
   def new_instance_from_bindings(cls, name, status_factory, bindings, port):
     """Create a new Spinnaker HttpAgent talking to the specified server port.
     Args:
@@ -358,14 +384,7 @@ class SpinnakerAgent(service_testing.HttpAgent):
     """
     host_platform = cls.__determine_host_platform(bindings)
     if host_platform == 'native':
-      base_url = None
-      if bindings['NATIVE_BASE_URL']:
-        base_url = bindings['NATIVE_BASE_URL']
-      elif bindings['NATIVE_HOSTNAME']:
-        base_url = 'http://{host}:{port}'.format(
-                   host=bindings['NATIVE_HOSTNAME'],
-                   port=bindings['NATIVE_PORT'] or port)
-
+      base_url = cls.__determine_native_base_url(bindings, port)
       return cls.new_native_instance(
           name, status_factory=status_factory, base_url=base_url, bindings=bindings)
 

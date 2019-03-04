@@ -431,23 +431,23 @@ class ValidateBomTestController(object):
     }
 
     # Map of services with provided endpoints and credentials.
-    self.__outbound_service_configs = {}
-    self.__add_gate_service_config(self.__outbound_service_configs)
+    self.__public_service_configs = {}
+    self.__add_gate_service_config(self.__public_service_configs)
 
   def __add_gate_service_config(self, configs):
-    if not self.options.test_gate_service_endpoint:
+    if not self.options.test_gate_service_base_url:
       return
-    gate_service_config = {
-      'endpoint': self.options.test_gate_service_endpoint,
+    service_config = {
+      'base_url': self.options.test_gate_service_base_url,
     }
-    gate_credentials_path = self.options.test_gate_iap_credentials
-    if gate_credentials_path:
-      gate_service_config['service_account_email'] = get_service_account_email(gate_credentials_path)
+    credentials_path = self.options.test_gate_iap_credentials
+    if credentials_path:
+      service_config['service_account_email'] = get_service_account_email(credentials_path)
       client_id = self.options.test_gate_iap_client_id
-      auth_token = self.__bearer_auth_token_or_none('gate', gate_credentials_path, client_id)
+      auth_token = self.__bearer_auth_token_or_none('gate', credentials_path, client_id)
       if auth_token:
-        gate_service_config['bearer_auth_token'] = auth_token
-    configs['gate'] = gate_service_config
+        service_config['bearer_auth_token'] = auth_token
+    configs['gate'] = service_config
 
   def __bearer_auth_token_or_none(self, service_name, credentials_path, client_id):
     if (credentials_path is None) != (client_id is None):
@@ -575,13 +575,6 @@ class ValidateBomTestController(object):
     Returns:
       The ForwardedPort entry for this service.
     """
-    if len(self.__outbound_service_configs) > 0 and service_name not in self.__outbound_service_configs:
-      return True
-    if service_name in self.__outbound_service_configs:
-      # No need to wait on service if we are using the outbound service endpoint.
-      self.__wait_on_service_using_endpoint(service_name)
-      return True
-
     try:
       with self.__lock:
         forwarding = self.__forwarded_ports.get(service_name)
@@ -636,42 +629,40 @@ class ValidateBomTestController(object):
         ResponseError('It appears that {0} failed'.format(service_name),
                       server='tunnel'))
 
-  def __wait_on_service_using_endpoint(self, service_name, timeout=None):
-    service_config = self.__outbound_service_configs[service_name]
-    endpoint = service_config['endpoint']
+  def __validate_service_base_url(self, service_name, timeout=None):
+    service_config = self.__public_service_configs[service_name]
+    base_url = service_config['base_url']
 
     timeout = timeout or self.options.test_service_startup_timeout
     end_time = time.time() + timeout
-    logging.info('Waiting on "%s..."', service_name)
+    logging.info('Validating base URL of "%s..."', service_name)
 
-    threadid = threading.current_thread().ident
-    logging.info('WaitOn polling %s from thread %x', service_name, threadid)
     try:
       if 'bearer_auth_token' in service_config:
-        _make_get_request_with_bearer_auth_token('{endpoint}/health'
-                                            .format(endpoint=endpoint),
+        _make_get_request_with_bearer_auth_token('{base_url}/health'
+                                            .format(base_url=base_url),
                                             service_config['bearer_auth_token'])
       # Add more authentication cases here.
       else:
-        urlopen('{endpoint}/health'
-                .format(endpoint=endpoint))
-      logging.info('"%s" is ready on service endpoint %s | %x',
-                   service_name, endpoint, threadid)
+        urlopen('{base_url}/health'
+                .format(base_url=base_url))
+      logging.info('"%s" is ready on service endpoint %s',
+                   service_name, base_url)
       return
     except HTTPError as error:
       logging.error('%s service endpoint got %s.',
                     service_name, error)
       raise_and_log_error(
           ResponseError('{0} service endpoint got {1}'.format(service_name, error),
-                        server=endpoint))
+                        server=base_url))
     except Exception as error:
       raise_and_log_error(
           ResponseError('{0} service endpoint got {1}'.format(service_name, error),
-                        server=endpoint))
+                        server=base_url))
     except URLError as error:
       if time.time() >= end_time:
         logging.error(
-            'Timing out waiting for %s | %x', service_name, threadid)
+            'Timing out waiting for %s', service_name)
         raise_and_log_error(TimeoutError(service_name, cause=service_name))
       raise
 
@@ -850,15 +841,21 @@ class ValidateBomTestController(object):
           ConfigError('Unexpected fields in {name} specification: {remaining}'
                       .format(name=test_name, remaining=spec)))
 
-    def wait_on_services(services):
-      thread_pool = ThreadPool(len(services))
-      thread_pool.map(self.wait_on_service, services)
-      thread_pool.terminate()
+    for service in self.__public_service_configs:
+      self.__validate_service_base_url(service)
 
-    self.__deployer.metrics.track_and_time_call(
-        'WaitingOnServiceAvailability',
-        metric_labels, self.__deployer.metrics.default_determine_outcome_labels,
-        wait_on_services, services)
+    if self.options.test_wait_on_services:
+      def wait_on_services(services):
+        thread_pool = ThreadPool(len(services))
+        thread_pool.map(self.wait_on_service, services)
+        thread_pool.terminate()
+
+      self.__deployer.metrics.track_and_time_call(
+          'WaitingOnServiceAvailability',
+          metric_labels, self.__deployer.metrics.default_determine_outcome_labels,
+          wait_on_services, services)
+    else:
+      logging.warning('Skipping waiting for services')
 
     return True
 
@@ -946,12 +943,11 @@ class ValidateBomTestController(object):
         '--log_dir', citest_log_dir,
         '--log_filebase', test_name,
     ]
-    if microservice_api in self.__outbound_service_configs:
-      service_config = self.__outbound_service_configs[microservice_api]
+    if microservice_api in self.__public_service_configs:
+      service_config = self.__public_service_configs[microservice_api]
       command.extend([
-          '--native_base_url', service_config['endpoint']
+          '--native_base_url', service_config['base_url']
       ])
-      # TODO(joonlim): Set via env variable?
       if 'bearer_auth_token' in service_config:
         command.extend([
             '--bearer_auth_token', service_config['bearer_auth_token']
@@ -1104,12 +1100,17 @@ def init_argument_parser(parser, defaults):
 
   add_parser_argument(
       parser, 'testing_enabled', defaults, True, type=bool,
-      help='If false then dont run the testing phase.')
+      help='If false then don\'t run the testing phase.')
 
   add_parser_argument(
       parser, 'test_disable', defaults, False, action='store_true',
       dest='testing_enabled',
       help='DEPRECATED: Use --testing_enabled=false.')
+
+  add_parser_argument(
+      parser, 'test_wait_on_services', defaults, True, type=bool,
+      help='If false then don\'t wait on services to be ready during'
+           ' testing phase.')
 
   add_parser_argument(
       parser, 'test_include', defaults, '.*',
@@ -1131,8 +1132,8 @@ def init_argument_parser(parser, defaults):
       help='The Jenkins job name to use in tests.')
 
   add_parser_argument(
-      parser, 'test_gate_service_endpoint', defaults, None,
-      help='Gate endpoint (including protocol, host, and port) to use'
+      parser, 'test_gate_service_base_url', defaults, None,
+      help='Gate base URL (including protocol, host, and port) to use'
            ' rather than port-forwarding.')
 
   add_parser_argument(

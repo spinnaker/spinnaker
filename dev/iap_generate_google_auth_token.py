@@ -34,7 +34,7 @@ from google.auth.transport.requests import Request
 OAUTH_TOKEN_URI = 'https://www.googleapis.com/oauth2/v4/token'
 
 
-def _make_service_account_credentials(service_account_file, client_id):
+def __make_service_account_credentials(service_account_file, client_id):
   bootstrap_credentials = google.oauth2.service_account.Credentials.from_service_account_file(service_account_file)
   if isinstance(bootstrap_credentials,
                 google.oauth2.credentials.Credentials):
@@ -57,7 +57,7 @@ def _make_service_account_credentials(service_account_file, client_id):
           'target_audience': client_id
       })
 
-def _get_token_from_credentials(service_account_credentials):
+def __get_token_from_credentials(service_account_credentials):
   service_account_jwt = (
       service_account_credentials._make_authorization_grant_assertion())
   request = google.auth.transport.requests.Request()
@@ -78,8 +78,8 @@ def generate_auth_token(service_account_file, client_id):
        account that can be used to generate the token.
     client_id: The client ID used by IAP to generate the token.
   """
-  service_account_credentials =_make_service_account_credentials(service_account_file, client_id)
-  return _get_token_from_credentials(service_account_credentials)
+  service_account_credentials =__make_service_account_credentials(service_account_file, client_id)
+  return __get_token_from_credentials(service_account_credentials)
 
 def get_service_account_email(service_account_file):
   """Parse a service account email from a service_account_file.
