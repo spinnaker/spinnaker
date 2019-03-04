@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.google.deploy.ops
 
 import com.google.api.services.compute.model.*
+import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.description.snapshot.SaveSnapshotDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleResourceIllegalStateException
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.snapshot.SaveSnapshotAtomicOperation
@@ -135,7 +136,7 @@ class SerializeApplicationAtomicOperationUnitSpec extends Specification {
                                                                                                                             utilizationTargetType: AUTOSCALING_METRIC_TYPE)])
       def serverGroup = new GoogleServerGroup(name: SERVER_GROUP_NAME,
                                               zone: SERVER_GROUP_ZONE,
-                                              asg: [(GoogleServerGroup.View.REGIONAL_LOAD_BALANCER_NAMES): SERVER_GROUP_LOAD_BALANCERS],
+                                              asg: [(GCEUtil.REGIONAL_LOAD_BALANCER_NAMES): SERVER_GROUP_LOAD_BALANCERS],
                                               launchConfig: ["instanceTemplate": instanceTemplate],
                                               autoscalingPolicy: autoscalingPolicy)
 
@@ -294,7 +295,7 @@ class SerializeApplicationAtomicOperationUnitSpec extends Specification {
       // Create a server group with no instance template
       def serverGroup = new GoogleServerGroup(name: SERVER_GROUP_NAME,
         zone: SERVER_GROUP_ZONE,
-        asg: [(GoogleServerGroup.View.REGIONAL_LOAD_BALANCER_NAMES): SERVER_GROUP_LOAD_BALANCERS],
+        asg: [(GCEUtil.REGIONAL_LOAD_BALANCER_NAMES): SERVER_GROUP_LOAD_BALANCERS],
         launchConfig: ["instanceTemplate": null])
       @Subject def operation = new SaveSnapshotAtomicOperation(new SaveSnapshotDescription())
 

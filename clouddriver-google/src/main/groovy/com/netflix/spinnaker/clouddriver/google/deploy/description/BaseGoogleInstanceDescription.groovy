@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.google.deploy.description
 
 import com.netflix.spinnaker.clouddriver.google.model.GoogleDisk
+import com.netflix.spinnaker.clouddriver.google.model.GoogleLabeledResource
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import groovy.transform.AutoClone
 import groovy.transform.Canonical
@@ -25,7 +26,7 @@ import groovy.transform.ToString
 @AutoClone
 @Canonical
 @ToString(includeNames = true)
-class BaseGoogleInstanceDescription extends AbstractGoogleCredentialsDescription {
+class BaseGoogleInstanceDescription extends AbstractGoogleCredentialsDescription implements GoogleLabeledResource {
   String instanceType
   String minCpuPlatform
   List<GoogleDisk> disks

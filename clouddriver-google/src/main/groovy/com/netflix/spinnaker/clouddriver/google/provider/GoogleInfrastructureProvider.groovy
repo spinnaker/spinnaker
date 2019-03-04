@@ -55,12 +55,14 @@ class GoogleInfrastructureProvider extends AgentSchedulerAware implements Search
       (SECURITY_GROUPS.ns): '/securityGroups/$account/$provider/$name?region=$region'
   ]
 
-  final Map<SearchableResource, SearchableProvider.SearchResultHydrator> searchResultHydrators = [
+  final Map<SearchableResource, SearchResultHydrator> searchResultHydrators = [
     (new GoogleSearchableResource(ADDRESSES.ns)): new AddressResultHydrator(),
     (new GoogleSearchableResource(BACKEND_SERVICES.ns)): new BackendServiceResultHydrator(),
     (new GoogleSearchableResource(HEALTH_CHECKS.ns)): new HealthCheckResultHydrator(),
     (new GoogleSearchableResource(HTTP_HEALTH_CHECKS.ns)): new HttpHealthCheckResultHydrator(),
-    (new GoogleSearchableResource(INSTANCES.ns)): new InstanceSearchResultHydrator()
+    (new GoogleSearchableResource(INSTANCES.ns)): new InstanceSearchResultHydrator(),
+    (new GoogleSearchableResource(SERVER_GROUPS.ns)): new ServerGroupSearchResultHydrator(),
+    (new GoogleSearchableResource(CLUSTERS.ns)): new ClustersSearchResultHydrator(),
   ]
 
   @Override
@@ -68,22 +70,22 @@ class GoogleInfrastructureProvider extends AgentSchedulerAware implements Search
     return Keys.parse(key)
   }
 
-  private static class AddressResultHydrator implements SearchableProvider.SearchResultHydrator {
+  private static class AddressResultHydrator implements SearchResultHydrator {
 
     @Override
     Map<String, String> hydrateResult(Cache cacheView, Map<String, String> result, String id) {
-      CacheData addressCacheData  = cacheView.get(ADDRESSES.ns, id)
+      CacheData addressCacheData = cacheView.get(ADDRESSES.ns, id)
       return result + [
           address: JsonOutput.toJson(addressCacheData.attributes.address)
       ]
     }
   }
 
-  private static class BackendServiceResultHydrator implements SearchableProvider.SearchResultHydrator {
+  private static class BackendServiceResultHydrator implements SearchResultHydrator {
 
     @Override
     Map<String, String> hydrateResult(Cache cacheView, Map<String, String> result, String id) {
-      CacheData backendService  = cacheView.get(BACKEND_SERVICES.ns, id)
+      CacheData backendService = cacheView.get(BACKEND_SERVICES.ns, id)
       return result + [
           healthCheckLink: backendService.attributes.healthCheckLink as String,
           sessionAffinity: backendService.attributes.sessionAffinity as String,
@@ -96,7 +98,7 @@ class GoogleInfrastructureProvider extends AgentSchedulerAware implements Search
     }
   }
 
-  private static class HealthCheckResultHydrator implements SearchableProvider.SearchResultHydrator {
+  private static class HealthCheckResultHydrator implements SearchResultHydrator {
 
     @Override
     Map<String, String> hydrateResult(Cache cacheView, Map<String, String> result, String id) {
@@ -107,25 +109,58 @@ class GoogleInfrastructureProvider extends AgentSchedulerAware implements Search
     }
   }
 
-  private static class InstanceSearchResultHydrator implements SearchableProvider.SearchResultHydrator {
+  private static class InstanceSearchResultHydrator implements SearchResultHydrator {
 
     @Override
     Map<String, String> hydrateResult(Cache cacheView, Map<String, String> result, String id) {
       def item = cacheView.get(INSTANCES.ns, id)
-      if (!item?.relationships["serverGroups"]) {
+      if (!item?.relationships[CLUSTERS.ns]) {
         return result
       }
 
-      def serverGroup = Keys.parse(item.relationships[SERVER_GROUPS.ns].first())
+      def cluster = Keys.parse(item.relationships[CLUSTERS.ns].first())
       return result + [
-          application: serverGroup.application as String,
-          cluster: serverGroup.cluster as String,
-          serverGroup: serverGroup.serverGroup as String
+          application: cluster.application as String,
+          cluster: cluster.cluster as String
       ]
     }
   }
 
-  private static class HttpHealthCheckResultHydrator implements SearchableProvider.SearchResultHydrator {
+  private static class ServerGroupSearchResultHydrator implements SearchResultHydrator {
+
+    @Override
+    Map<String, String> hydrateResult(Cache cacheView, Map<String, String> result, String id) {
+      def item = cacheView.get(SERVER_GROUPS.ns, id)
+      if (!item?.relationships[CLUSTERS.ns]) {
+        return result
+      }
+
+      def cluster = Keys.parse(item.relationships[CLUSTERS.ns].first())
+      return result + [
+          application: cluster.application as String,
+          cluster: cluster.cluster as String
+      ]
+    }
+  }
+
+  private static class ClustersSearchResultHydrator implements SearchResultHydrator {
+
+    @Override
+    Map<String, String> hydrateResult(Cache cacheView, Map<String, String> result, String id) {
+      def item = cacheView.get(CLUSTERS.ns, id)
+      if (!item?.relationships[CLUSTERS.ns]) {
+        return result
+      }
+
+      def cluster = Keys.parse(item.relationships[CLUSTERS.ns].first())
+      return result + [
+        application: cluster.application as String,
+        cluster: cluster.cluster as String
+      ]
+    }
+  }
+
+  private static class HttpHealthCheckResultHydrator implements SearchResultHydrator {
 
     @Override
     Map<String, String> hydrateResult(Cache cacheView, Map<String, String> result, String id) {

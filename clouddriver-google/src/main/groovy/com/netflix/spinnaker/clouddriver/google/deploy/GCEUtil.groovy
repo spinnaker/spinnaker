@@ -66,6 +66,12 @@ class GCEUtil {
   private static final List<Integer> RETRY_ERROR_CODES = [400, 403, 412]
 
   public static final String TARGET_POOL_NAME_PREFIX = "tp"
+  public static final String REGIONAL_LOAD_BALANCER_NAMES = "load-balancer-names"
+  public static final String GLOBAL_LOAD_BALANCER_NAMES = "global-load-balancer-names"
+  public static final String BACKEND_SERVICE_NAMES = "backend-service-names"
+  public static final String LOAD_BALANCING_POLICY = "load-balancing-policy"
+  public static final String SELECT_ZONES = 'select-zones'
+  public static final String AUTOSCALING_POLICY = 'autoscaling-policy'
 
   static String queryMachineType(String instanceType, String location, GoogleNamedAccountCredentials credentials, Task task, String phase) {
     task.updateStatus phase, "Looking up machine type $instanceType..."
@@ -555,6 +561,23 @@ class GCEUtil {
     }
   }
 
+  static InstanceTemplate queryInstanceTemplate(String instanceTemplateName,
+                                                GoogleNamedAccountCredentials credentials,
+                                                GoogleExecutorTraits executor) {
+    return executor.timeExecute(
+      credentials.compute.instanceTemplates().get(credentials.project, instanceTemplateName),
+      "compute.instanceTemplates.get",
+      executor.TAG_SCOPE, executor.SCOPE_GLOBAL)
+  }
+
+  static List<InstanceTemplate> queryAllInstanceTemplates(GoogleNamedAccountCredentials credentials,
+                                                          GoogleExecutorTraits executor) {
+    return executor.timeExecute(
+      credentials.compute.instanceTemplates().list(credentials.project),
+      "compute.instanceTemplates.list",
+      executor.TAG_SCOPE, executor.SCOPE_GLOBAL).getItems()
+  }
+
   static BaseGoogleInstanceDescription buildInstanceDescriptionFromTemplate(String project, InstanceTemplate instanceTemplate) {
     def instanceTemplateProperties = instanceTemplate?.properties
 
@@ -811,8 +834,8 @@ class GCEUtil {
   }
 
   static Map<String, String> buildMapFromMetadata(Metadata metadata) {
-    def map = metadata?.items?.collectEntries { def metadataItems ->
-      [(metadataItems.key): metadataItems.value]
+    Map<String, String> map = metadata?.getItems()?.collectEntries { def metadataItems ->
+      [(metadataItems.getKey()): metadataItems.getValue()]
     }
 
     return map ?: [:]
@@ -950,7 +973,7 @@ class GCEUtil {
     String region = serverGroup.region
     Metadata instanceMetadata = serverGroup?.launchConfig?.instanceTemplate?.properties?.metadata
     Map metadataMap = buildMapFromMetadata(instanceMetadata)
-    def regionalLoadBalancersInMetadata = metadataMap?.(GoogleServerGroup.View.REGIONAL_LOAD_BALANCER_NAMES)?.tokenize(",") ?: []
+    def regionalLoadBalancersInMetadata = metadataMap?.get(REGIONAL_LOAD_BALANCER_NAMES)?.tokenize(",") ?: []
     def internalLoadBalancersToAddTo = queryAllLoadBalancers(googleLoadBalancerProvider, regionalLoadBalancersInMetadata, task, phase)
       .findAll { it.loadBalancerType == GoogleLoadBalancerType.INTERNAL }
     if (!internalLoadBalancersToAddTo) {
@@ -1003,9 +1026,9 @@ class GCEUtil {
                                           GoogleExecutorTraits executor) {
     String serverGroupName = serverGroup.name
     Metadata instanceMetadata = serverGroup?.launchConfig?.instanceTemplate?.properties?.metadata
-    Map metadataMap = buildMapFromMetadata(instanceMetadata)
-    def httpLoadBalancersInMetadata = metadataMap?.(GoogleServerGroup.View.GLOBAL_LOAD_BALANCER_NAMES)?.tokenize(",") ?: []
-    def networkLoadBalancersInMetadata = metadataMap?.(GoogleServerGroup.View.REGIONAL_LOAD_BALANCER_NAMES)?.tokenize(",") ?: []
+    Map<String, String> metadataMap = buildMapFromMetadata(instanceMetadata)
+    def httpLoadBalancersInMetadata = metadataMap?.get(GLOBAL_LOAD_BALANCER_NAMES)?.tokenize(",") ?: []
+    def networkLoadBalancersInMetadata = metadataMap?.get(REGIONAL_LOAD_BALANCER_NAMES)?.tokenize(",") ?: []
 
     def allFoundLoadBalancers = (httpLoadBalancersInMetadata + networkLoadBalancersInMetadata) as List<String>
     def httpLoadBalancersToAddTo = queryAllLoadBalancers(googleLoadBalancerProvider, allFoundLoadBalancers, task, phase)
@@ -1024,13 +1047,13 @@ class GCEUtil {
     }
 
     if (httpLoadBalancersToAddTo) {
-      String policyJson = metadataMap?.(GoogleServerGroup.View.LOAD_BALANCING_POLICY)
+      String policyJson = metadataMap?.get(LOAD_BALANCING_POLICY)
       if (!policyJson) {
         updateStatusAndThrowNotFoundException("Load Balancing Policy not found for server group ${serverGroupName}", task, phase)
       }
       GoogleHttpLoadBalancingPolicy policy = objectMapper.readValue(policyJson, GoogleHttpLoadBalancingPolicy)
 
-      List<String> backendServiceNames = metadataMap?.(GoogleServerGroup.View.BACKEND_SERVICE_NAMES)?.split(",") ?: []
+      List<String> backendServiceNames = metadataMap?.get(BACKEND_SERVICE_NAMES)?.split(",") ?: []
       if (backendServiceNames) {
         backendServiceNames.each { String backendServiceName ->
           BackendService backendService = executor.timeExecute(
@@ -1068,8 +1091,8 @@ class GCEUtil {
     String serverGroupName = serverGroup.name
     Metadata instanceMetadata = serverGroup?.launchConfig?.instanceTemplate?.properties?.metadata
     Map metadataMap = buildMapFromMetadata(instanceMetadata)
-    def globalLoadBalancersInMetadata = metadataMap?.(GoogleServerGroup.View.GLOBAL_LOAD_BALANCER_NAMES)?.tokenize(",") ?: []
-    def regionalLoadBalancersInMetadata = metadataMap?.(GoogleServerGroup.View.REGIONAL_LOAD_BALANCER_NAMES)?.tokenize(",") ?: []
+    def globalLoadBalancersInMetadata = metadataMap?.get(GLOBAL_LOAD_BALANCER_NAMES)?.tokenize(",") ?: []
+    def regionalLoadBalancersInMetadata = metadataMap?.get(REGIONAL_LOAD_BALANCER_NAMES)?.tokenize(",") ?: []
 
     def allFoundLoadBalancers = (globalLoadBalancersInMetadata + regionalLoadBalancersInMetadata) as List<String>
     def sslLoadBalancersToAddTo = queryAllLoadBalancers(googleLoadBalancerProvider, allFoundLoadBalancers, task, phase)
@@ -1088,7 +1111,7 @@ class GCEUtil {
     }
 
     if (sslLoadBalancersToAddTo) {
-      String policyJson = metadataMap?.(GoogleServerGroup.View.LOAD_BALANCING_POLICY)
+      String policyJson = metadataMap?.get(LOAD_BALANCING_POLICY)
       if (!policyJson) {
         updateStatusAndThrowNotFoundException("Load Balancing Policy not found for server group ${serverGroupName}", task, phase)
       }
@@ -1131,8 +1154,8 @@ class GCEUtil {
     String serverGroupName = serverGroup.name
     Metadata instanceMetadata = serverGroup?.launchConfig?.instanceTemplate?.properties?.metadata
     Map metadataMap = buildMapFromMetadata(instanceMetadata)
-    def globalLoadBalancersInMetadata = metadataMap?.(GoogleServerGroup.View.GLOBAL_LOAD_BALANCER_NAMES)?.tokenize(",") ?: []
-    def regionalLoadBalancersInMetadata = metadataMap?.(GoogleServerGroup.View.REGIONAL_LOAD_BALANCER_NAMES)?.tokenize(",") ?: []
+    def globalLoadBalancersInMetadata = metadataMap?.get(GLOBAL_LOAD_BALANCER_NAMES)?.tokenize(",") ?: []
+    def regionalLoadBalancersInMetadata = metadataMap?.get(REGIONAL_LOAD_BALANCER_NAMES)?.tokenize(",") ?: []
 
     def allFoundLoadBalancers = (globalLoadBalancersInMetadata + regionalLoadBalancersInMetadata) as List<String>
     def tcpLoadBalancersToAddTo = queryAllLoadBalancers(googleLoadBalancerProvider, allFoundLoadBalancers, task, phase)
@@ -1151,7 +1174,7 @@ class GCEUtil {
     }
 
     if (tcpLoadBalancersToAddTo) {
-      String policyJson = metadataMap?.(GoogleServerGroup.View.LOAD_BALANCING_POLICY)
+      String policyJson = metadataMap?.get(LOAD_BALANCING_POLICY)
       if (!policyJson) {
         updateStatusAndThrowNotFoundException("Load Balancing Policy not found for server group ${serverGroupName}", task, phase)
       }
@@ -1209,7 +1232,7 @@ class GCEUtil {
       policy.setNamedPorts([new NamedPort(name: GoogleHttpLoadBalancingPolicy.HTTP_DEFAULT_PORT_NAME, port: policy.listeningPort)])
       policy.listeningPort = null // Deprecated.
     }
-    instanceMetadata[(GoogleServerGroup.View.LOAD_BALANCING_POLICY)] = objectMapper.writeValueAsString(policy)
+    instanceMetadata[(LOAD_BALANCING_POLICY)] = objectMapper.writeValueAsString(policy)
   }
 
   // Note: namedPorts are not set in this method.
@@ -1396,7 +1419,7 @@ class GCEUtil {
                                               String phase,
                                               GoogleExecutorTraits executor) {
     def serverGroupName = serverGroup.name
-    def httpLoadBalancersInMetadata = serverGroup?.asg?.get(GoogleServerGroup.View.GLOBAL_LOAD_BALANCER_NAMES) ?: []
+    def httpLoadBalancersInMetadata = serverGroup?.asg?.get(GLOBAL_LOAD_BALANCER_NAMES) ?: []
     log.debug("Attempting to delete backends for ${serverGroup.name} from the following Http load balancers: ${httpLoadBalancersInMetadata}")
 
     log.debug("Looking up the following Http load balancers in the cache: ${httpLoadBalancersInMetadata}")
@@ -1424,7 +1447,7 @@ class GCEUtil {
     if (foundHttpLoadBalancers) {
       Metadata instanceMetadata = serverGroup?.launchConfig?.instanceTemplate?.properties?.metadata
       Map metadataMap = buildMapFromMetadata(instanceMetadata)
-      List<String> backendServiceNames = metadataMap?.(GoogleServerGroup.View.BACKEND_SERVICE_NAMES)?.split(",")
+      List<String> backendServiceNames = metadataMap?.get(BACKEND_SERVICE_NAMES)?.split(",")
       if (backendServiceNames) {
         backendServiceNames.each { String backendServiceName ->
           BackendService backendService = executor.timeExecute(
@@ -1953,6 +1976,7 @@ class GCEUtil {
         String instanceName = Utils.getLocalName(instance.name)
         def googleInstance = new GoogleInstance(
           name: instanceName,
+          account: credentials.project,
           gceId: instance.id,
           instanceType: Utils.getLocalName(instance.machineType),
           cpuPlatform: instance.cpuPlatform,

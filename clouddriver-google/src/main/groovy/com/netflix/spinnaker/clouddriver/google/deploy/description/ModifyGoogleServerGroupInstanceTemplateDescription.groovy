@@ -28,4 +28,9 @@ class ModifyGoogleServerGroupInstanceTemplateDescription extends BaseGoogleInsta
 
   @Deprecated
   String zone
+
+  @Override
+  String getName() {
+    return serverGroupName
+  }
 }

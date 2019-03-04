@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.ops
 
+import com.google.api.services.compute.Compute
+import com.google.api.services.compute.model.InstanceGroupManager
 import com.google.api.services.compute.model.InstanceGroupManagersSetInstanceTemplateRequest
 import com.google.api.services.compute.model.InstanceGroupsListInstancesRequest
 import com.google.api.services.compute.model.RegionInstanceGroupManagersSetTemplateRequest
@@ -77,7 +79,8 @@ class UpsertGoogleServerGroupTagsAtomicOperation extends GoogleAtomicOperation<V
     def zone = serverGroup.zone
     def tagsDescription = description.tags ? "tags $description.tags" : "empty set of tags"
 
-    def instanceGroupManagers = isRegional ? compute.regionInstanceGroupManagers() : compute.instanceGroupManagers()
+    def regionalInstanceGroupManagers = compute.regionInstanceGroupManagers()
+    def instanceGroupManagers = compute.instanceGroupManagers()
     def instanceTemplates = compute.instanceTemplates()
     def instances = compute.instances()
 
@@ -85,24 +88,17 @@ class UpsertGoogleServerGroupTagsAtomicOperation extends GoogleAtomicOperation<V
     def managedInstanceGroup =
       isRegional
       ? timeExecute(
-            instanceGroupManagers.get(project, region, serverGroupName),
+            regionalInstanceGroupManagers.get(project, region, serverGroupName),
             "compute.regionInstanceGroupManagers.get",
             TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region)
       : timeExecute(
             instanceGroupManagers.get(project, zone, serverGroupName),
             "compute.instanceGroupManagers.get",
             TAG_SCOPE, SCOPE_ZONAL, TAG_ZONE, zone)
-    def origInstanceTemplateName = GCEUtil.getLocalName(managedInstanceGroup.instanceTemplate)
 
-    if (!origInstanceTemplateName) {
-      throw new GoogleResourceNotFoundException("Unable to determine instance template for server group $serverGroupName.")
-    }
+    def origInstanceTemplateName = GCEUtil.getLocalName(managedInstanceGroup.getInstanceTemplate())
 
-    // Retrieve the managed instance group's current instance template.
-    def instanceTemplate = timeExecute(
-            instanceTemplates.get(project, origInstanceTemplateName),
-            "compute.instanceTemplates.get",
-            TAG_SCOPE, SCOPE_GLOBAL)
+    def instanceTemplate = GCEUtil.queryInstanceTemplate(origInstanceTemplateName, credentials, this)
 
     // Override the instance template's name.
     instanceTemplate.setName("$serverGroupName-${System.currentTimeMillis()}")
@@ -133,7 +129,7 @@ class UpsertGoogleServerGroupTagsAtomicOperation extends GoogleAtomicOperation<V
       def regionInstanceGroupManagersSetTemplateRequest =
         new RegionInstanceGroupManagersSetTemplateRequest(instanceTemplate: instanceTemplateUrl)
       def setInstanceTemplateOperation = timeExecute(
-              instanceGroupManagers.setInstanceTemplate(
+              regionalInstanceGroupManagers.setInstanceTemplate(
               project, region, serverGroupName, regionInstanceGroupManagersSetTemplateRequest),
               "compute.regionInstanceGroupManagers.setInstanceTemplate",
               TAG_SCOPE, SCOPE_REGIONAL. TAG_REGION, region)

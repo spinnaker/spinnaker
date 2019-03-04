@@ -34,6 +34,7 @@ class GoogleConfigurationProperties {
     // defaultRegions if left unspecified. An empty list will index no regions.
     List<String> regions
     boolean required
+    String namingStrategy = "gceAnnotations"
   }
 
   List<ManagedAccount> accounts = []

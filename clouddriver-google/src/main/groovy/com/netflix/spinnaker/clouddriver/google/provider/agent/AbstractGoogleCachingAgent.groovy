@@ -23,10 +23,15 @@ import com.google.common.annotations.VisibleForTesting
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.AccountAware
 import com.netflix.spinnaker.cats.agent.CachingAgent
+import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.GoogleExecutorTraits
+import com.netflix.spinnaker.clouddriver.google.model.GoogleLabeledResource
+import com.netflix.spinnaker.clouddriver.google.names.GoogleLabeledResourceNamer
 import com.netflix.spinnaker.clouddriver.google.provider.GoogleInfrastructureProvider
 import com.netflix.spinnaker.clouddriver.google.batch.GoogleBatchRequest
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
+import com.netflix.spinnaker.clouddriver.names.NamerRegistry
+import com.netflix.spinnaker.moniker.Namer
 
 abstract class AbstractGoogleCachingAgent implements CachingAgent, AccountAware, GoogleExecutorTraits {
 
@@ -34,13 +39,17 @@ abstract class AbstractGoogleCachingAgent implements CachingAgent, AccountAware,
 
   final String providerName = GoogleInfrastructureProvider.name
 
+  final Namer<GoogleLabeledResource> naming
+
   String clouddriverUserAgentApplicationName // "Spinnaker/${version}" HTTP header string
   GoogleNamedAccountCredentials credentials
   ObjectMapper objectMapper
   Registry registry
 
   @VisibleForTesting
-  AbstractGoogleCachingAgent() {}
+  AbstractGoogleCachingAgent() {
+    this.naming = new GoogleLabeledResourceNamer()
+  }
 
   AbstractGoogleCachingAgent(String clouddriverUserAgentApplicationName,
                              GoogleNamedAccountCredentials credentials,
@@ -50,6 +59,10 @@ abstract class AbstractGoogleCachingAgent implements CachingAgent, AccountAware,
     this.credentials = credentials
     this.objectMapper = objectMapper
     this.registry = registry
+    this.naming = NamerRegistry.lookup()
+      .withProvider(GoogleCloudProvider.ID)
+      .withAccount(credentials.name)
+      .withResource(GoogleLabeledResource)
   }
 
   String getProject() {

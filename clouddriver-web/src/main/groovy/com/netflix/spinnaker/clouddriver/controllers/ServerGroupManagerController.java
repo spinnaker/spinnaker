@@ -22,7 +22,6 @@ import com.netflix.spinnaker.clouddriver.model.ServerGroupManagerProvider;
 import com.netflix.spinnaker.clouddriver.requestqueue.RequestQueue;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;

@@ -20,14 +20,26 @@ import com.google.api.services.compute.model.Metadata
 import com.google.api.services.compute.model.PathMatcher
 import com.google.api.services.compute.model.PathRule
 import com.google.api.services.compute.model.UrlMap
-import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
-import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.*
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHostRule
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancer
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleInternalLoadBalancer
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancedBackend
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GooglePathMatcher
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GooglePathRule
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleSslLoadBalancer
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleTargetProxyType
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleTcpLoadBalancer
 import groovy.util.logging.Slf4j
 import org.springframework.util.ClassUtils
 
 import java.text.SimpleDateFormat
+
+import static com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil.BACKEND_SERVICE_NAMES
+import static com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil.GLOBAL_LOAD_BALANCER_NAMES
+import static com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil.REGIONAL_LOAD_BALANCER_NAMES
 
 @Slf4j
 class Utils {
@@ -267,8 +279,8 @@ class Utils {
 
   static boolean determineHttpLoadBalancerDisabledState(GoogleHttpLoadBalancer loadBalancer,
                                                         GoogleServerGroup serverGroup) {
-    def httpLoadBalancersFromMetadata = serverGroup.asg.get(GoogleServerGroup.View.GLOBAL_LOAD_BALANCER_NAMES)
-    def backendServicesFromMetadata = serverGroup.asg.get(GoogleServerGroup.View.BACKEND_SERVICE_NAMES)
+    def httpLoadBalancersFromMetadata = serverGroup.asg.get(GLOBAL_LOAD_BALANCER_NAMES)
+    def backendServicesFromMetadata = serverGroup.asg.get(BACKEND_SERVICE_NAMES)
     List<List<GoogleLoadBalancedBackend>> serviceBackends = getBackendServicesFromHttpLoadBalancerView(loadBalancer.view)
         .findAll { it && it.name in backendServicesFromMetadata }
         .collect { it.backends }
@@ -295,7 +307,7 @@ class Utils {
 
   static boolean determineInternalLoadBalancerDisabledState(GoogleInternalLoadBalancer loadBalancer,
                                                             GoogleServerGroup serverGroup) {
-    def regionalLoadBalancersFromMetadata = serverGroup.asg.get(GoogleServerGroup.View.REGIONAL_LOAD_BALANCER_NAMES)
+    def regionalLoadBalancersFromMetadata = serverGroup.asg.get(REGIONAL_LOAD_BALANCER_NAMES)
 
     if (loadBalancer.backendService == null) {
       log.warn("Malformed internal load balancer encountered: ${loadBalancer}")
@@ -309,7 +321,7 @@ class Utils {
 
   static boolean determineSslLoadBalancerDisabledState(GoogleSslLoadBalancer loadBalancer,
                                                        GoogleServerGroup serverGroup) {
-    def globalLoadBalancersFromMetadata = serverGroup.asg.get(GoogleServerGroup.View.GLOBAL_LOAD_BALANCER_NAMES)
+    def globalLoadBalancersFromMetadata = serverGroup.asg.get(GLOBAL_LOAD_BALANCER_NAMES)
 
     if (loadBalancer.backendService == null) {
       log.warn("Malformed ssl load balancer encountered: ${loadBalancer}")
@@ -323,7 +335,7 @@ class Utils {
 
   static boolean determineTcpLoadBalancerDisabledState(GoogleTcpLoadBalancer loadBalancer,
                                                        GoogleServerGroup serverGroup) {
-    def globalLoadBalancersFromMetadata = serverGroup.asg.get(GoogleServerGroup.View.GLOBAL_LOAD_BALANCER_NAMES)
+    def globalLoadBalancersFromMetadata = serverGroup.asg.get(GLOBAL_LOAD_BALANCER_NAMES)
 
     if (loadBalancer.backendService == null) {
       log.warn("Malformed tcp load balancer encountered: ${loadBalancer}")

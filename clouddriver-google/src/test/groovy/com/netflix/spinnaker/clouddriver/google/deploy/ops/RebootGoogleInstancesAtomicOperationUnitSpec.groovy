@@ -21,6 +21,7 @@ import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.description.RebootGoogleInstancesDescription
+import com.netflix.spinnaker.clouddriver.google.names.GoogleLabeledResourceNamer
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import spock.lang.Specification
 import spock.lang.Subject
@@ -36,17 +37,27 @@ class RebootGoogleInstancesAtomicOperationUnitSpec extends Specification {
   private static final ALL_INSTANCE_IDS = ["${ID_GOOD_PREFIX}1", "${ID_BAD_PREFIX}1",
                                            "${ID_GOOD_PREFIX}2", "${ID_BAD_PREFIX}2"]
   def registry = new DefaultRegistry()
+  Compute computeMock
+  GoogleNamedAccountCredentials credentials
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
   }
 
+  def setup() {
+    computeMock = Mock(Compute)
+    credentials = new GoogleNamedAccountCredentials.Builder()
+      .project(PROJECT_NAME)
+      .compute(computeMock)
+      .name("gce")
+      .namer(new GoogleLabeledResourceNamer())
+      .build()
+  }
+
   void "should reset all instances"() {
     setup:
-      def computeMock = Mock(Compute)
       def instancesMock = Mock(Compute.Instances)
       def resetMock = Mock(Compute.Instances.Reset)
-      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
       def description = new RebootGoogleInstancesDescription(zone: ZONE,
                                                             instanceIds: GOOD_INSTANCE_IDS,
                                                             accountName: ACCOUNT_NAME,
@@ -68,10 +79,8 @@ class RebootGoogleInstancesAtomicOperationUnitSpec extends Specification {
 
   void "should reset all known instances and fail on all unknown instances"() {
     setup:
-      def computeMock = Mock(Compute)
       def instancesMock = Mock(Compute.Instances)
       def resetMock = Mock(Compute.Instances.Reset)
-      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
       def description = new RebootGoogleInstancesDescription(zone: ZONE,
                                                             instanceIds: ALL_INSTANCE_IDS,
                                                             accountName: ACCOUNT_NAME,

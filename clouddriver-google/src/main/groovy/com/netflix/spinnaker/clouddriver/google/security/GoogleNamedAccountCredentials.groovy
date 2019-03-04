@@ -25,8 +25,13 @@ import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceTypeDisk
 import com.netflix.spinnaker.clouddriver.google.GoogleExecutor
+import com.netflix.spinnaker.clouddriver.google.model.GoogleLabeledResource
+import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
+import com.netflix.spinnaker.clouddriver.google.names.GoogleLabeledResourceNamer
+import com.netflix.spinnaker.clouddriver.names.NamerRegistry
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 import com.netflix.spinnaker.fiat.model.resources.Permissions
+import com.netflix.spinnaker.moniker.Namer
 import groovy.transform.TupleConstructor
 import groovy.util.logging.Slf4j
 
@@ -70,6 +75,7 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
     String name
     String environment
     String accountType
+    Namer namer
     List<String> requiredGroupMembership = []
     Permissions permissions = Permissions.EMPTY
     String project
@@ -108,6 +114,11 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
 
     Builder accountType(String accountType) {
       this.accountType = accountType
+      return this
+    }
+
+    Builder namer(Namer namer) {
+      this.namer = namer
       return this
     }
 
@@ -258,6 +269,13 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
         locationToInstanceTypesMap = queryInstanceTypes(compute, project, regionToZonesMap)
         zoneToAcceleratorTypesMap = queryAcceleratorTypes(compute, project)
         locationToCpuPlatformsMap = queryCpuPlatforms(compute, project, regionToZonesMap)
+      }
+
+      if (namer && name) {
+        NamerRegistry.lookup()
+          .withProvider(GoogleCloudProvider.getID())
+          .withAccount(name)
+          .setNamer(GoogleLabeledResource.class, namer)
       }
 
       new GoogleNamedAccountCredentials(name,

@@ -28,13 +28,16 @@ import com.netflix.spinnaker.clouddriver.google.model.health.GoogleInstanceHealt
 import com.netflix.spinnaker.clouddriver.google.model.health.GoogleLoadBalancerHealth
 import com.netflix.spinnaker.clouddriver.model.HealthState
 import com.netflix.spinnaker.clouddriver.model.Instance
+import com.netflix.spinnaker.clouddriver.names.NamerRegistry
+import com.netflix.spinnaker.moniker.Moniker
 import groovy.transform.Canonical
 import groovy.transform.EqualsAndHashCode
 
 @EqualsAndHashCode(includes = "name")
-class GoogleInstance {
+class GoogleInstance implements GoogleLabeledResource {
 
   String name
+  String account
   String gceId
   String instanceType
   String cpuPlatform
@@ -132,6 +135,14 @@ class GoogleInstance {
               anyDown(allHealths) ? HealthState.Down :
                   anyOutOfService(allHealths) ? HealthState.OutOfService :
                       HealthState.Unknown
+    }
+
+    Moniker getMoniker() {
+      return NamerRegistry.lookup()
+        .withProvider(GoogleCloudProvider.ID)
+        .withAccount(account)
+        .withResource(GoogleLabeledResource)
+        .deriveMoniker(GoogleInstance.this)
     }
 
     private static boolean anyDown(List<GoogleHealth> healthsList) {

@@ -22,7 +22,13 @@ import com.google.api.client.googleapis.batch.json.JsonBatchCallback
 import com.google.api.client.googleapis.json.GoogleJsonError
 import com.google.api.client.http.HttpHeaders
 import com.google.api.services.compute.ComputeRequest
-import com.google.api.services.compute.model.*
+import com.google.api.services.compute.model.Autoscaler
+import com.google.api.services.compute.model.AutoscalerStatusDetails
+import com.google.api.services.compute.model.AutoscalersScopedList
+import com.google.api.services.compute.model.DistributionPolicy
+import com.google.api.services.compute.model.InstanceGroupManager
+import com.google.api.services.compute.model.InstanceTemplate
+import com.google.api.services.compute.model.RegionInstanceGroupManagerList
 import com.netflix.frigga.Names
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.AgentDataType
@@ -44,6 +50,7 @@ import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.provider.agent.util.PaginatedRequest
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.google.batch.GoogleBatchRequest
+import com.netflix.spinnaker.moniker.Moniker
 import groovy.transform.Canonical
 import groovy.util.logging.Slf4j
 
@@ -51,7 +58,12 @@ import java.util.concurrent.TimeUnit
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
-import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.*
+import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.APPLICATIONS
+import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.CLUSTERS
+import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.INSTANCES
+import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.LOAD_BALANCERS
+import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.ON_DEMAND
+import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.SERVER_GROUPS
 
 @Slf4j
 class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent implements OnDemandAgent, GoogleExecutorTraits {
@@ -193,7 +205,7 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
       buildCacheResult(cacheResultBuilder, serverGroup ? [serverGroup] : [])
     }
 
-    def serverGroupKey = Keys.getServerGroupKey(data.serverGroupName as String, accountName, region)
+    def serverGroupKey = Keys.getServerGroupKey(data.serverGroupName as String, serverGroup?.view?.moniker?.cluster, accountName, region)
 
     if (result.cacheResults.values().flatten().empty) {
       // Avoid writing an empty onDemand cache record (instead delete any that may have previously existed).
@@ -246,7 +258,7 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
 
       return [
           details       : details,
-          moniker       : convertOnDemandDetails(details),
+          moniker       : cacheData.attributes.moniker,
           cacheTime     : cacheData.attributes.cacheTime,
           processedCount: cacheData.attributes.processedCount,
           processedTime : cacheData.attributes.processedTime
@@ -259,10 +271,9 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
     log.info "Describing items in $agentType"
 
     serverGroups.each { GoogleServerGroup serverGroup ->
-      def names = Names.parseName(serverGroup.name)
-      def applicationName = names.app
-      def clusterName = names.cluster
-
+      Moniker moniker = naming.deriveMoniker(serverGroup)
+      def applicationName = moniker.app
+      def clusterName = moniker.cluster
       def serverGroupKey = getServerGroupKey(serverGroup)
       def clusterKey = Keys.getClusterKey(accountName, applicationName, clusterName)
       def appKey = Keys.getApplicationKey(applicationName)
@@ -279,6 +290,7 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
       cacheResultBuilder.namespace(CLUSTERS.ns).keep(clusterKey).with {
         attributes.name = clusterName
         attributes.accountName = accountName
+        attributes.moniker = moniker
         relationships[APPLICATIONS.ns].add(appKey)
         relationships[SERVER_GROUPS.ns].add(serverGroupKey)
         relationships[INSTANCES.ns].addAll(instanceKeys)
@@ -337,7 +349,8 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
   }
 
   String getServerGroupKey(GoogleServerGroup googleServerGroup) {
-    return Keys.getServerGroupKey(googleServerGroup.name, accountName, region)
+    def moniker = googleServerGroup.view.moniker
+    return Keys.getServerGroupKey(googleServerGroup.name, moniker.cluster, accountName, region)
   }
 
   // TODO(lwander) this was taken from the netflix cluster caching, and should probably be shared between all providers.
@@ -428,6 +441,7 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
       instanceGroupManager.namedPorts.each { namedPorts[(it.name)] = it.port }
       return new GoogleServerGroup(
           name: instanceGroupManager.name,
+          account: accountName,
           instances: groupInstances,
           regional: true,
           region: region,
@@ -456,7 +470,7 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
       def instanceMetadata = template?.properties?.metadata
       if (instanceMetadata) {
         def metadataMap = Utils.buildMapFromMetadata(instanceMetadata)
-        serverGroup.selectZones = metadataMap?.get(GoogleServerGroup.View.SELECT_ZONES) ?: false
+        serverGroup.selectZones = metadataMap?.get(GCEUtil.SELECT_ZONES) ?: false
       }
     }
   }

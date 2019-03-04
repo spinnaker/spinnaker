@@ -21,11 +21,19 @@ import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.google.api.client.http.HttpHeaders
 import com.google.api.client.http.HttpResponseException
 import com.google.api.services.compute.Compute
-import com.google.api.services.compute.model.*
+import com.google.api.services.compute.model.Backend
+import com.google.api.services.compute.model.BackendService
+import com.google.api.services.compute.model.ForwardingRuleList
+import com.google.api.services.compute.model.InstanceTemplate
+import com.google.api.services.compute.model.Metadata
+import com.google.api.services.compute.model.Operation
+import com.google.api.services.compute.model.TargetSslProxyList
+import com.google.api.services.compute.model.TargetTcpProxyList
 import com.netflix.frigga.Names
 import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.google.GoogleApiTestUtils
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
@@ -38,8 +46,6 @@ import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleIntern
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
-import com.netflix.spinnaker.clouddriver.google.GoogleApiTestUtils
-
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -310,18 +316,18 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
               regional: isRegional,
               zone: ZONE,
               asg: [
-                  (GoogleServerGroup.View.GLOBAL_LOAD_BALANCER_NAMES): loadBalancerNameList,
+                  (GCEUtil.GLOBAL_LOAD_BALANCER_NAMES): loadBalancerNameList,
               ],
               launchConfig: [
                   instanceTemplate: new InstanceTemplate(name: INSTANCE_TEMPLATE_NAME,
                       properties: [
                           'metadata': new Metadata(items: [
                               new Metadata.Items(
-                                  key: (GoogleServerGroup.View.GLOBAL_LOAD_BALANCER_NAMES),
+                                  key: (GCEUtil.GLOBAL_LOAD_BALANCER_NAMES),
                                   value: 'spinnaker-http-load-balancer'
                               ),
                               new Metadata.Items(
-                                  key: (GoogleServerGroup.View.BACKEND_SERVICE_NAMES),
+                                  key: (GCEUtil.BACKEND_SERVICE_NAMES),
                                   value: 'backend-service'
                               )
                           ])
@@ -405,14 +411,14 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
           regional: isRegional,
           zone: ZONE,
           asg: [
-            (GoogleServerGroup.View.REGIONAL_LOAD_BALANCER_NAMES): loadBalancerNameList,
+            (GCEUtil.REGIONAL_LOAD_BALANCER_NAMES): loadBalancerNameList,
           ],
           launchConfig: [
             instanceTemplate: new InstanceTemplate(name: INSTANCE_TEMPLATE_NAME,
               properties: [
                 'metadata': new Metadata(items: [
                   new Metadata.Items(
-                    key: (GoogleServerGroup.View.REGIONAL_LOAD_BALANCER_NAMES),
+                    key: (GCEUtil.REGIONAL_LOAD_BALANCER_NAMES),
                     value: 'spinnaker-int-load-balancer'
                   )
                 ])
@@ -501,18 +507,18 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
               regional: isRegional,
               zone: ZONE,
               asg: [
-                  (GoogleServerGroup.View.GLOBAL_LOAD_BALANCER_NAMES): lbNames,
+                  (GCEUtil.GLOBAL_LOAD_BALANCER_NAMES): lbNames,
               ],
               launchConfig: [
                   instanceTemplate: new InstanceTemplate(name: INSTANCE_TEMPLATE_NAME,
                       properties: [
                           'metadata': new Metadata(items: [
                               new Metadata.Items(
-                                  key: (GoogleServerGroup.View.GLOBAL_LOAD_BALANCER_NAMES),
+                                  key: (GCEUtil.GLOBAL_LOAD_BALANCER_NAMES),
                                   value: 'spinnaker-http-load-balancer'
                               ),
                               new Metadata.Items(
-                                  key: (GoogleServerGroup.View.BACKEND_SERVICE_NAMES),
+                                  key: (GCEUtil.BACKEND_SERVICE_NAMES),
                                   value: 'backend-service'
                               )
                           ])

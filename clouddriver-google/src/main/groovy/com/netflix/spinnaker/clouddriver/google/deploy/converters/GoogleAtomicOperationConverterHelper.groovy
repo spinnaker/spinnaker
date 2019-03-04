@@ -17,13 +17,14 @@
 package com.netflix.spinnaker.clouddriver.google.deploy.converters
 
 import com.fasterxml.jackson.databind.DeserializationFeature
+import com.netflix.spinnaker.clouddriver.google.deploy.description.AbstractGoogleCredentialsDescription
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
 
 class GoogleAtomicOperationConverterHelper {
-  static Object convertDescription(Map input,
-                                   AbstractAtomicOperationsCredentialsSupport credentialsSupport,
-                                   Class targetDescriptionType) {
+  static <T extends AbstractGoogleCredentialsDescription> T convertDescription(Map input,
+                                                                               AbstractAtomicOperationsCredentialsSupport credentialsSupport,
+                                                                               Class<T> targetDescriptionType) {
     if (!input.accountName) {
       input.accountName = input.credentials
     }

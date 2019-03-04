@@ -24,7 +24,16 @@ import com.google.api.client.http.HttpRequestFactory
 import com.google.api.client.http.HttpResponse
 import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.compute.Compute
-import com.google.api.services.compute.model.*
+import com.google.api.services.compute.model.BackendService
+import com.google.api.services.compute.model.ForwardingRuleList
+import com.google.api.services.compute.model.Image
+import com.google.api.services.compute.model.ImageList
+import com.google.api.services.compute.model.Instance
+import com.google.api.services.compute.model.InstanceAggregatedList
+import com.google.api.services.compute.model.InstanceTemplate
+import com.google.api.services.compute.model.InstancesScopedList
+import com.google.api.services.compute.model.Metadata
+import com.google.api.services.compute.model.ServiceAccount
 import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.data.task.Task
@@ -522,18 +531,18 @@ class GCEUtilSpec extends Specification {
           regional: isRegional,
           zone: ZONE,
           asg: [
-            (GoogleServerGroup.View.GLOBAL_LOAD_BALANCER_NAMES): loadBalancerNameList,
+            (GCEUtil.GLOBAL_LOAD_BALANCER_NAMES): loadBalancerNameList,
           ],
           launchConfig: [
             instanceTemplate: new InstanceTemplate(name: "irrelevant-instance-template-name",
               properties: [
                 'metadata': new Metadata(items: [
                   new Metadata.Items(
-                    key: (GoogleServerGroup.View.LOAD_BALANCING_POLICY),
+                    key: (GCEUtil.LOAD_BALANCING_POLICY),
                     value: "{\"balancingMode\": \"UTILIZATION\",\"maxUtilization\": 0.80, \"namedPorts\": [{\"name\": \"http\", \"port\": 8080}], \"capacityScaler\": 0.77}"
                   ),
                   new Metadata.Items(
-                    key: (GoogleServerGroup.View.BACKEND_SERVICE_NAMES),
+                    key: (GCEUtil.BACKEND_SERVICE_NAMES),
                     value: backendServiceNames
                   )
                 ])
@@ -556,7 +565,7 @@ class GCEUtilSpec extends Specification {
       if (lbNames) {
         serverGroup.launchConfig.instanceTemplate.properties.metadata.items.add(
           new Metadata.Items(
-            key: (GoogleServerGroup.View.GLOBAL_LOAD_BALANCER_NAMES),
+            key: (GCEUtil.GLOBAL_LOAD_BALANCER_NAMES),
             value: lbNames.join(",").trim()
           )
         )

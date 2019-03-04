@@ -25,7 +25,6 @@ import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
 import com.netflix.spinnaker.clouddriver.google.deploy.description.EnableDisableGoogleServerGroupDescription
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy
-import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancerProvider
 import org.springframework.beans.factory.annotation.Autowired
@@ -215,7 +214,7 @@ abstract class AbstractEnableDisableAtomicOperation extends GoogleAtomicOperatio
       task.updateStatus phaseName, "Re-enabling autoscaling for server group enable..."
 
       Map metadataMap = GCEUtil.buildMapFromMetadata(instanceTemplate?.properties?.metadata)
-      String autoscalerJson = metadataMap?.(GoogleServerGroup.View.AUTOSCALING_POLICY)
+      String autoscalerJson = metadataMap?.(GCEUtil.AUTOSCALING_POLICY)
       if (autoscalerJson) {
         def autoscaler = objectMapper.readValue(autoscalerJson, Map)
         def enabledMode = GoogleAutoscalingPolicy.AutoscalingMode.valueOf(autoscaler?.autoscalingPolicy?.mode ?: "ON")

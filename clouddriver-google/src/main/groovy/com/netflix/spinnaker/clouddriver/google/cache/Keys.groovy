@@ -16,12 +16,19 @@
 
 package com.netflix.spinnaker.clouddriver.google.cache
 
+import com.google.common.base.CaseFormat
+import com.google.common.collect.ImmutableSet
 import com.netflix.frigga.Names
+import com.netflix.spinnaker.clouddriver.cache.KeyParser
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
+import com.netflix.spinnaker.moniker.Moniker
 import groovy.util.logging.Slf4j
+import org.springframework.stereotype.Component
 
 @Slf4j
-class Keys {
+@Component("GoogleKeys")
+class Keys implements KeyParser {
+
   static enum Namespace {
     ADDRESSES,
     APPLICATIONS,
@@ -37,20 +44,38 @@ class Keys {
     SERVER_GROUPS,
     SSL_CERTIFICATES,
     SUBNETS,
-
     ON_DEMAND,
 
     final String ns
 
     private Namespace() {
-      def parts = name().split('_')
-
-      ns = parts.tail().inject(new StringBuilder(parts.head().toLowerCase())) { val, next -> val.append(next.charAt(0)).append(next.substring(1).toLowerCase()) }
+      ns = CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, name())
     }
 
     String toString() {
       ns
     }
+  }
+
+  @Override
+  String getCloudProvider() {
+    // This is intentionally 'aws'. Refer to todos in SearchController#search for why.
+    return "aws"
+  }
+
+  @Override
+  Map<String, String> parseKey(String key) {
+    return parse(key)
+  }
+
+  @Override
+  Boolean canParseType(String type) {
+    return Namespace.values().any { it.ns == type }
+  }
+
+  @Override
+  Boolean canParseField(String field) {
+    return false
   }
 
   static Map<String, String> parse(String key) {
@@ -252,17 +277,21 @@ class Keys {
   }
 
   static String getServerGroupKey(String managedInstanceGroupName,
+                                  String cluster,
                                   String account,
                                   String region) {
-    getServerGroupKey(managedInstanceGroupName, account, region, null)
+    getServerGroupKey(managedInstanceGroupName, cluster, account, region, null)
   }
 
   static String getServerGroupKey(String managedInstanceGroupName,
+                                  String cluster,
                                   String account,
                                   String region,
                                   String zone) {
-    Names names = Names.parseName(managedInstanceGroupName)
-    "$GoogleCloudProvider.ID:${Namespace.SERVER_GROUPS}:${names.cluster}:${account}:${region}:${names.group}${zone ? ":$zone" : ""}"
+    if (cluster == null) {
+      cluster = Names.parseName(managedInstanceGroupName).cluster
+    }
+    "$GoogleCloudProvider.ID:${Namespace.SERVER_GROUPS}:${cluster}:${account}:${region}:${managedInstanceGroupName}${zone ? ":$zone" : ""}"
   }
 
   static String getSslCertificateKey(String account,

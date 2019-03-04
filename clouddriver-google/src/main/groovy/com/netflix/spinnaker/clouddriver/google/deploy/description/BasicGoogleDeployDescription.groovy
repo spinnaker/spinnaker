@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.google.deploy.description
 
 import com.google.api.services.compute.model.AcceleratorConfig
+import com.netflix.frigga.NameBuilder
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoHealingPolicy
@@ -61,6 +62,17 @@ class BasicGoogleDeployDescription extends BaseGoogleInstanceDescription impleme
   Source source = new Source()
   String userData
   List<AcceleratorConfig> acceleratorConfigs
+
+  @Override
+  String getName() {
+    def nameBuilder = new NameBuilder() {
+      @Override
+      protected String combineAppStackDetail(String appName, String stack, String detail) {
+        return super.combineAppStackDetail(appName, stack, detail)
+      }
+    }
+    nameBuilder.combineAppStackDetail(application, stack, freeFormDetails)
+  }
 
   @Canonical
   @ToString(includeNames = true)

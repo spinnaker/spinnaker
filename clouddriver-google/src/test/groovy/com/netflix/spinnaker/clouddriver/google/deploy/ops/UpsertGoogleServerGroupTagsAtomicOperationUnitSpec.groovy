@@ -150,7 +150,7 @@ class UpsertGoogleServerGroupTagsAtomicOperationUnitSpec extends Specification {
       1 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
       1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, SERVER_GROUP_NAME) >> instanceGroupManagersGetMock
       1 * instanceGroupManagersGetMock.execute() >> instanceGroupManagerReal
-      1 * computeMock.instanceTemplates() >> instanceTemplatesMock
+      2 * computeMock.instanceTemplates() >> instanceTemplatesMock
       1 * instanceTemplatesMock.get(PROJECT_NAME, ORIG_INSTANCE_TEMPLATE_NAME) >> instanceTemplatesGetMock
       1 * instanceTemplatesGetMock.execute() >> instanceTemplateReal
 
@@ -264,7 +264,7 @@ class UpsertGoogleServerGroupTagsAtomicOperationUnitSpec extends Specification {
       1 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
       1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, SERVER_GROUP_NAME) >> instanceGroupManagersGetMock
       1 * instanceGroupManagersGetMock.execute() >> instanceGroupManagerReal
-      1 * computeMock.instanceTemplates() >> instanceTemplatesMock
+      2 * computeMock.instanceTemplates() >> instanceTemplatesMock
       1 * instanceTemplatesMock.get(PROJECT_NAME, ORIG_INSTANCE_TEMPLATE_NAME) >> instanceTemplatesGetMock
       1 * instanceTemplatesGetMock.execute() >> instanceTemplateReal
 

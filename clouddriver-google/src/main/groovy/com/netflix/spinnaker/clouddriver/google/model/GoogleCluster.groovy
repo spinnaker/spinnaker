@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerView
 import com.netflix.spinnaker.clouddriver.model.Cluster
+import com.netflix.spinnaker.moniker.Moniker
 import groovy.transform.Canonical
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
@@ -37,6 +38,8 @@ class GoogleCluster {
 
   @Canonical
   class View implements Cluster {
+
+    View() {}
 
     final String type = GoogleCloudProvider.ID
 

@@ -43,8 +43,6 @@ class GoogleSecurityGroup implements SecurityGroup {
   final Set<Rule> inboundRules
   final Set<Rule> outboundRules
 
-  void setMoniker(Moniker _ignored) {}
-
   @Override
   SecurityGroupSummary getSummary() {
     new GoogleSecurityGroupSummary(name: name, id: id, network: network, selfLink: selfLink, sourceTags: sourceTags, targetTags: targetTags)
