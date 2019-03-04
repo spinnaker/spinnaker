@@ -32,13 +32,17 @@ from google.auth.transport.requests import Request
 
 
 OAUTH_TOKEN_URI = 'https://www.googleapis.com/oauth2/v4/token'
+IAM_SCOPE = 'https://www.googleapis.com/auth/iam'
 
 
-def __make_service_account_credentials(service_account_file, client_id):
-  bootstrap_credentials = google.oauth2.service_account.Credentials.from_service_account_file(service_account_file)
+def __make_service_account_credentials(client_id, service_account_file=None):
+  if service_account_file:
+    bootstrap_credentials = google.oauth2.service_account.Credentials.from_service_account_file(service_account_file)
+  else:
+    bootstrap_credentials, _ = goog.auth.default(scopes=[IAM_SCOPE])
   if isinstance(bootstrap_credentials,
                 google.oauth2.credentials.Credentials):
-    raise Exception('iap_generate_auth_token is only supported for service '
+    raise Exception('generate_auth_token is only supported for service '
                     'accounts.')
   elif isinstance(bootstrap_credentials,
                   google.auth.app_engine.Credentials):
@@ -70,24 +74,29 @@ def __get_token_from_credentials(service_account_credentials):
   return token_response['id_token']
 
 
-def generate_auth_token(service_account_file, client_id):
+def generate_auth_token(client_id, service_account_file=None):
   """Generates an auth token to make requests to an IAP-protected endpoint.
 
   Args:
-    service_account_file: [string] The path to a credentials file for a service
-       account that can be used to generate the token.
     client_id: The client ID used by IAP to generate the token.
+    service_account_file: [string] The path to a credentials file for a service
+       account that can be used to generate the token. If service_account_file
+       is None, the service account used will be based on the Application
+       Default Credentials.
   """
-  service_account_credentials =__make_service_account_credentials(service_account_file, client_id)
+  service_account_credentials =__make_service_account_credentials(client_id, service_account_file)
   return __get_token_from_credentials(service_account_credentials)
 
-def get_service_account_email(service_account_file):
-  """Parse a service account email from a service_account_file.
+def get_service_account_email(service_account_file=None):
+  """Parse a service account email from a service_account_file or ADC.
 
   Args:
     service_account_file: [string] The path to a credentials file for a service
-       account.
+       account. If service_account_file is None, the service account used will
+       be based on the Application Default Credentials.
   """
-
-  credentials = google.oauth2.service_account.Credentials.from_service_account_file(service_account_file)
+  if service_account_file:
+    credentials = google.oauth2.service_account.Credentials.from_service_account_file(service_account_file)
+  else:
+    credentials, _ = goog.auth.default(scopes=[IAM_SCOPE])
   return credentials.service_account_email

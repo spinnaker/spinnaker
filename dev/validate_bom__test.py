@@ -440,21 +440,15 @@ class ValidateBomTestController(object):
     service_config = {
       'base_url': self.options.test_gate_service_base_url,
     }
-    credentials_path = self.options.test_gate_iap_credentials
-    if credentials_path:
+    credentials_path = self.options.test_gate_iap_credentials  # This can be None, which would mean we use the Application Default Credentials
+    client_id = self.options.test_gate_iap_client_id
+    if client_id:
       service_config['service_account_email'] = get_service_account_email(credentials_path)
-      client_id = self.options.test_gate_iap_client_id
-      auth_token = self.__bearer_auth_token_or_none('gate', credentials_path, client_id)
-      if auth_token:
-        service_config['bearer_auth_token'] = auth_token
+      service_config['bearer_auth_token'] = generate_auth_token(client_id, credentials_path)
     configs['gate'] = service_config
 
-  def __bearer_auth_token_or_none(self, service_name, credentials_path, client_id):
-    if (credentials_path is None) != (client_id is None):
-       raise_and_log_error(ConfigError('Either both --test_{service}_iap_credentials and --test_{service}_iap_client_id must be set or neither.'.format(service=service_name)))
-    if credentials_path:
-      return generate_auth_token(credentials_path, client_id)
-    return None
+  def __bearer_auth_token_or_none(self, service_name, client_id, credentials_path=None):
+    return generate_auth_token(client_id, credentials_path)
 
   def __replace_ha_api_service(self, service, options):
     transform_map = {}
@@ -1137,16 +1131,17 @@ def init_argument_parser(parser, defaults):
            ' rather than port-forwarding.')
 
   add_parser_argument(
+      parser, 'test_gate_iap_client_id', defaults, None,
+      help='IAP client ID used to authenticate requests to an'
+           ' IAP-protected Spinnaker. The inclusion of this flag'
+           ' indicates that the Gate service is IAP-protected.')
+
+  add_parser_argument(
       parser, 'test_gate_iap_credentials', defaults, None,
       help='Path to google credentials file to authenticate requests'
            ' to an IAP-protected Spinnaker. This must be used with the'
-           ' test_gate_iap_client_id flag.')
-
-  add_parser_argument(
-      parser, 'test_gate_iap_client_id', defaults, None,
-      help='IAP client ID used to authenticate requests to an'
-           ' IAP-protected Spinnaker. This must be used with the'
-           ' test_gate_iap_credentials flag.')
+           ' test_gate_iap_client_id flag.'
+           ' If left empty then use application default credentials.')
 
 
 def validate_options(options):
