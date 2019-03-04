@@ -72,6 +72,7 @@ class ClusterHandler(
         resource.copy(spec = it) as Resource<Cluster>
       }
 
+  // TODO: Netflix-specific, migrate to keel-nflx. See https://github.com/spinnaker/keel/issues/225
   private fun Cluster.withDefaultSecurityGroups(): Cluster =
     copy(
       dependencies = dependencies.copy(
