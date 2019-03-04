@@ -101,6 +101,7 @@ class KubeV2HelmTestScenario(sk.SpinnakerTestScenario):
     # because it scopes the context of our activities.
     # pylint: disable=invalid-name
     self.TEST_APP = bindings['TEST_APP']
+    self.TEST_USER = bindings['TEST_USER']
 
     # Take just the first if there are multiple
     # because some uses below assume just one.
@@ -226,7 +227,8 @@ class KubeV2HelmTestScenario(sk.SpinnakerTestScenario):
 
     return self.ps.submit_pipeline_contract('bake-deploy-pipeline',
             [bake_stage, deploy_stage],
-            expectedArtifacts=[chart_expected_artifact, values_expected_artifact])
+            expectedArtifacts=[chart_expected_artifact, values_expected_artifact],
+            user=self.TEST_USER)
 
   def execute_bake_deploy_manifest_pipeline(self, image):
     name = self.TEST_APP + '-deployment'

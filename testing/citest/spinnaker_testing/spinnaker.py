@@ -342,6 +342,34 @@ class SpinnakerAgent(service_testing.HttpAgent):
     return host_platform
 
   @classmethod
+  def __determine_native_base_url(cls, bindings, default_port):
+    """Helper function to determine a native host platform's base URL.
+
+    The returned base URL may be None if bindings['NATIVE_BASE_URL'] and
+    bindings['NATIVE_HOSTNAME'] are both missing.
+
+    Args:
+      bindings: [dict] List of bindings to configure the endpoint
+          NATIVE_BASE_URL: The base URL to use, if given. If NATIVE_BASE_URL
+              is not provided, the URL will be constructed using NATIVE_HOSTNAME
+              and NATIVE_PORT using http.
+          NATIVE_HOSTNAME: The host of the base URL to use, if NATIVE_BASE_URL
+              is not given.
+          NATIVE_PORT: The port of the base URL to use, if NATIVE_BASE_URL
+              is not given.
+      default_port: The port to use if bindings['NATIVE_BASE_URL'] is not given
+          and bindings['NATIVE_PORT'] is not given.
+    """
+    base_url = None
+    if bindings['NATIVE_BASE_URL']:
+      base_url = bindings['NATIVE_BASE_URL']
+    elif bindings['NATIVE_HOSTNAME']:
+      base_url = 'http://{host}:{port}'.format(
+                 host=bindings['NATIVE_HOSTNAME'],
+                 port=bindings['NATIVE_PORT'] or default_port)
+    return base_url
+
+  @classmethod
   def new_instance_from_bindings(cls, name, status_factory, bindings, port):
     """Create a new Spinnaker HttpAgent talking to the specified server port.
     Args:
@@ -358,13 +386,9 @@ class SpinnakerAgent(service_testing.HttpAgent):
     """
     host_platform = cls.__determine_host_platform(bindings)
     if host_platform == 'native':
-      base_url = (None if not bindings['NATIVE_HOSTNAME']
-                  else 'http://{host}:{port}'.format(
-                      host=bindings['NATIVE_HOSTNAME'],
-                      port=bindings['NATIVE_PORT'] or port))
-
+      base_url = cls.__determine_native_base_url(bindings, port)
       return cls.new_native_instance(
-          name, status_factory=status_factory, base_url=base_url)
+          name, status_factory=status_factory, base_url=base_url, bindings=bindings)
 
     if host_platform == 'gce':
       return cls.new_gce_instance_from_bindings(
@@ -434,7 +458,7 @@ class SpinnakerAgent(service_testing.HttpAgent):
     return spinnaker_agent
 
   @classmethod
-  def new_native_instance(cls, name, status_factory, base_url):
+  def new_native_instance(cls, name, status_factory, base_url, bindings):
     """Create a new Spinnaker HttpAgent talking to the specified server port.
 
     Args:
@@ -442,10 +466,14 @@ class SpinnakerAgent(service_testing.HttpAgent):
       status_factory: [SpinnakerStatus (SpinnakerAgent, HttpResponseType)]
          Factory method for creating specialized SpinnakerStatus instances.
       base_url: [string] The service base URL to send messages to.
-
+      bindings: [dict] List of bindings to configure the endpoint
+          BEARER_AUTH_TOKEN: The token used to authenticate request to a
+              protected host.
     Returns:
       A SpinnakerAgent connected to the specified instance port.
     """
+    bearer_auth_token = bindings.get('BEARER_AUTH_TOKEN', None)
+
     logger = logging.getLogger(__name__)
     logger.info('Locating %s...', name)
     if not base_url:
@@ -454,12 +482,17 @@ class SpinnakerAgent(service_testing.HttpAgent):
 
     logger.info('%s is available at %s', name, base_url)
     env_url = os.path.join(base_url, 'resolvedEnv')
-    deployed_config = scrape_spring_config(env_url)
+    deployed_config = scrape_spring_config(env_url, headers={
+      'Authorization': 'Bearer {}'.format(bearer_auth_token)
+    })
     JournalLogger.journal_or_log_detail(
         '{0} configuration'.format(name), deployed_config)
 
     spinnaker_agent = cls(base_url, status_factory)
     spinnaker_agent.__deployed_config = deployed_config
+
+    if bearer_auth_token:
+      spinnaker_agent.add_header('Authorization', 'Bearer {}'.format(bearer_auth_token))
 
     return spinnaker_agent
 

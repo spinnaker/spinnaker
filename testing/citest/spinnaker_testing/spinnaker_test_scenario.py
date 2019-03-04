@@ -159,12 +159,30 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
              ' standard port.'.format(system=cls.ENDPOINT_SUBSYSTEM))
 
     builder.add_argument(
+        '--native_base_url', default=defaults.get('NATIVE_BASE_URL', None),
+        help='Base URL that {system} is running on. If provided, this field'
+             ' will override --native_hostname and --native_port.'
+             ' This parameter is only used if the spinnaker host platform'
+             ' is "native".'.format(system=cls.ENDPOINT_SUBSYSTEM))
+
+    builder.add_argument(
         '--test_stack', default=defaults.get('TEST_STACK', 'test'),
         help='Default Spinnaker stack decorator.')
 
     builder.add_argument(
         '--test_app', default=defaults.get('TEST_APP', cls.__name__.lower()),
         help='Default Spinnaker application name to use with test.')
+
+    builder.add_argument(
+        '--test_user', default=defaults.get('TEST_USER', 'anonymous'),
+        help='User used to make API calls to a Spinnaker application.')
+
+    builder.add_argument(
+        '--bearer_auth_token', default=defaults.get('BEARER_AUTH_TOKEN', None),
+        help='Bearer token used to authenticate outbound requests to {system}.'
+            ' This parameter is only used if the spinnaker host platform'
+            ' is "native". It is not needed if the system is not using'
+            ' authentication.'.format(system=cls.ENDPOINT_SUBSYSTEM))
 
   @classmethod
   def init_bindings_builder(cls, builder, defaults=None):
