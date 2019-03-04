@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops;
 
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryApiException;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.RouteId;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.UpsertCloudFoundryLoadBalancerDescription;
@@ -47,8 +48,7 @@ public class UpsertCloudFoundryLoadBalancerAtomicOperation implements AtomicOper
     if (loadBalancer != null) {
       getTask().updateStatus(PHASE, "Done creating load balancer");
     } else {
-      getTask().updateStatus(PHASE, "Load balancer already exists in another organization and space");
-      getTask().fail();
+      throw new CloudFoundryApiException("Load balancer already exists in another organization and space");
     }
 
     return loadBalancer;
