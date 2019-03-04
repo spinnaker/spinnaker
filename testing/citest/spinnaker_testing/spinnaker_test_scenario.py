@@ -159,6 +159,13 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
              ' standard port.'.format(system=cls.ENDPOINT_SUBSYSTEM))
 
     builder.add_argument(
+        '--native_base_url', default=defaults.get('NATIVE_BASE_URL', None),
+        help='Base URL that {system} is running on. If provided, this field'
+             ' will override --native_hostname and --native_port.'
+             ' This parameter is only used if the spinnaker host platform'
+             ' is "native".'.format(system=cls.ENDPOINT_SUBSYSTEM))
+
+    builder.add_argument(
         '--test_stack', default=defaults.get('TEST_STACK', 'test'),
         help='Default Spinnaker stack decorator.')
 
