@@ -64,9 +64,16 @@ class InMemoryResourceRepository(
     states[resource.metadata.uid] = Unknown to clock.instant()
   }
 
-  override fun delete(uid: ULID.Value) {
-    resources.remove(uid)
-    states.remove(uid)
+  override fun delete(name: ResourceName) {
+    resources
+      .values
+      .filter { it.metadata.name == name }
+      .map { it.metadata.uid }
+      .singleOrNull()
+      ?.also {
+        resources.remove(it)
+        states.remove(it)
+      }
   }
 
   override fun lastKnownState(uid: ULID.Value): Pair<ResourceState, Instant> =

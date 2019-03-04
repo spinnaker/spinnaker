@@ -82,17 +82,12 @@ class RedisResourceRepository(
     }
   }
 
-  override fun delete(uid: ULID.Value) {
+  override fun delete(name: ResourceName) {
     redisClient.withCommandsClient<Unit> { redis: JedisCommands ->
+      val uid = redis.hget(NAME_TO_UID_HASH, name.value).let(ULID::parseULID)
       redis.del(uid.key)
       redis.srem(INDEX_SET, uid.toString())
-      redis.hgetAll(NAME_TO_UID_HASH)
-        .filter { it.value == uid.toString() }
-        .keys
-        .forEach {
-          redis.hdel(NAME_TO_UID_HASH, it)
-        }
-
+      redis.hdel(NAME_TO_UID_HASH, name.value)
     }
   }
 

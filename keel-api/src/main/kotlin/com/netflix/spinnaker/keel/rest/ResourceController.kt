@@ -88,9 +88,7 @@ class ResourceController(
   )
   fun delete(@PathVariable("name") name: ResourceName): Resource<*> {
     log.info("Deleting: $name")
-    // TODO: this is pretty crappy that we have to look up the resource to get its uid but I don't want to change the endpoint signature as all others (rightly) use name.
-    val resource = resourceRepository.get<Any>(name)
-    return resourcePersister.handle(ResourceDeleted(resource.metadata.uid))
+    return resourcePersister.handle(ResourceDeleted(name))
   }
 
   @ExceptionHandler(NoSuchResourceException::class)

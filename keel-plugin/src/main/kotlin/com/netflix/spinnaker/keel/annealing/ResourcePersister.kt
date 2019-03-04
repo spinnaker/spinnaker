@@ -32,9 +32,8 @@ class ResourcePersister(
           .also(resourceRepository::store)
           .also { queue.scheduleCheck(it) }
       is ResourceDeleted -> {
-        // TODO: could avoid this read if we could schedule check by uid
-        resourceRepository.get<Any>(event.uid).also {
-          resourceRepository.delete(event.uid)
+        resourceRepository.delete(event.name)
+        resourceRepository.get<Any>(event.name).also {
           queue.scheduleCheck(it)
         }
       }

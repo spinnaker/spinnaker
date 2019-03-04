@@ -16,8 +16,8 @@
 package com.netflix.spinnaker.keel.events
 
 import com.netflix.spinnaker.keel.api.Resource
+import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SubmittedResource
-import de.huxhorn.sulky.ulid.ULID
 
 sealed class ResourceEvent
 
@@ -25,4 +25,4 @@ data class ResourceCreated(val resource: SubmittedResource<*>) : ResourceEvent()
 
 data class ResourceUpdated(val resource: Resource<Any>) : ResourceEvent()
 
-data class ResourceDeleted(val uid: ULID.Value) : ResourceEvent()
+data class ResourceDeleted(val name: ResourceName) : ResourceEvent()

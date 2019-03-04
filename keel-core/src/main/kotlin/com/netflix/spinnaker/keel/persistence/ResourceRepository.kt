@@ -67,9 +67,9 @@ interface ResourceRepository {
   fun store(resource: Resource<*>)
 
   /**
-   * Deletes the resource represented by [uid].
+   * Deletes the resource represented by [name].
    */
-  fun delete(uid: ULID.Value)
+  fun delete(name: ResourceName)
 
   /**
    * Retrieves the last known state of a resource.

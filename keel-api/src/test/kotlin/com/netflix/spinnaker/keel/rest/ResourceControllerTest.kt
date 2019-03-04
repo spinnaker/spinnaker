@@ -186,10 +186,10 @@ internal class ResourceControllerTest {
       .perform(request)
       .andExpect(status().isOk)
 
-    verify(resourcePersister).handle(ResourceDeleted(resource.metadata.uid))
+    verify(resourcePersister).handle(ResourceDeleted(resource.metadata.name))
 
     //clean up after the test
-    resourceRepository.delete(resource.metadata.uid)
+    resourceRepository.delete(resource.metadata.name)
   }
 
   @Test

@@ -207,7 +207,7 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
 
       context("deleting the resource") {
         before {
-          subject.delete(resource.metadata.uid)
+          subject.delete(resource.metadata.name)
         }
 
         test("the resource is no longer returned when listing all resources") {
