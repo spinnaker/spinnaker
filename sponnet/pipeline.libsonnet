@@ -14,6 +14,12 @@
     withNotifications(notifications):: self + if std.type(notifications) == 'array' then { notifications: notifications } else { notifications: [notifications] },
     withStages(stages):: self + if std.type(stages) == 'array' then { stages: stages } else { stages: [stages] },
     withTriggers(triggers):: self + if std.type(triggers) == 'array' then { triggers: triggers } else { triggers: [triggers] },
+
+    // v2 MPT fields
+    withTemplate(templateArtifact):: self + { template: templateArtifact },
+    withSchema(schema):: self + { schema: schema },
+    withInherit(inheritedFields):: self + if std.type(inheritedFields) == 'array' then { inherit: inheritedFields } else { inherit: [inheritedFields] },
+    withVariableValues(variables):: self + { variables: variables }, // variables are key-value pairs of <variable name> -> <variable value>
   },
 
   moniker(app, cluster):: {
@@ -46,6 +52,7 @@
     httpFile():: artifact('http/file', 'http'),
     // kubernetesObject to be tested. Where kind is Deployment/Configmap/Service/etc
     kubernetesObject(kind):: artifact('kubernetes/' + kind, 'custom'),
+    front50PipelineTemplate():: artifact('front50/pipelineTemplate', '').withArtifactAccount('front50ArtifactCredentials') // credentials are static
   },
 
   // expected artifacts
