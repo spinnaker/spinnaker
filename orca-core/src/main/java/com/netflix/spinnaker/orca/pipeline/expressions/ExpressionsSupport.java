@@ -24,6 +24,8 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jayway.jsonpath.JsonPath;
+import com.jayway.jsonpath.PathNotFoundException;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.pipeline.expressions.whitelisting.FilteredMethodResolver;
 import com.netflix.spinnaker.orca.pipeline.expressions.whitelisting.FilteredPropertyAccessor;
@@ -101,6 +103,7 @@ public class ExpressionsSupport {
         registerFunction(evaluationContext, "judgment", Object.class, String.class);
         registerFunction(evaluationContext, "judgement", Object.class, String.class);
         registerFunction(evaluationContext, "deployedServerGroups", Object.class, String[].class);
+        registerFunction(evaluationContext, "manifestLabelValue", Object.class, String.class, String.class, String.class);
       }
     } catch (NoSuchMethodException e) {
       // Indicates a function was not properly registered. This should not happen. Please fix the faulty function
@@ -365,6 +368,64 @@ public class ExpressionsSupport {
     }
 
     throw new IllegalArgumentException("An execution is required for this function");
+  }
+
+  /**
+   * Gets value of given label key in manifest of given kind deployed by stage of given name
+   * @param obj #root.execution
+   * @param stageName the name of a `deployManifest` stage to find
+   * @param kind the kind of manifest to find
+   * @param labelKey the key of the label to find
+   * @return the label value
+   */
+  static String manifestLabelValue(Object obj, String stageName, String kind, String labelKey) {
+    if (!(obj instanceof Execution)) {
+      throw new IllegalArgumentException("An execution is required for this function");
+    }
+
+    List<String> validKinds = Arrays.asList("Deployment", "ReplicaSet");
+    if (!validKinds.contains(kind)) {
+      throw new IllegalArgumentException("Only Deployments and ReplicaSets are valid kinds for this function");
+    }
+
+    if (labelKey == null) {
+      throw new IllegalArgumentException("A labelKey is required for this function");
+    }
+
+    Optional<Stage> stage = ((Execution) obj).getStages()
+      .stream()
+      .filter(s -> s.getName().equals(stageName) && s.getType().equals("deployManifest") && s.getStatus() == ExecutionStatus.SUCCEEDED)
+      .findFirst();
+
+    if (!stage.isPresent()) {
+      throw new SpelHelperFunctionException("A valid Deploy Manifest stage name is required for this function");
+    }
+
+    List<Map> manifests = (List<Map>) stage.get().getContext().get("manifests");
+
+    if (manifests == null || manifests.size() == 0) {
+      throw new SpelHelperFunctionException("No manifest could be found in the context of the specified stage");
+    }
+
+    Optional<Map> manifestOpt = manifests.stream()
+      .filter(m -> m.get("kind").equals(kind))
+      .findFirst();
+
+    if (!manifestOpt.isPresent()) {
+      throw new SpelHelperFunctionException(String.format("No manifest of kind %s could be found on the context of the specified stage", kind));
+    }
+
+    Map manifest = manifestOpt.get();
+    String labelPath = String.format("$.spec.template.metadata.labels.%s", labelKey);
+    String labelValue;
+
+    try {
+      labelValue = JsonPath.read(manifest, labelPath);
+    } catch (PathNotFoundException e) {
+      throw new SpelHelperFunctionException("No label of specified key found on matching manifest spec.template.metadata.labels");
+    }
+
+    return labelValue;
   }
 
   /**

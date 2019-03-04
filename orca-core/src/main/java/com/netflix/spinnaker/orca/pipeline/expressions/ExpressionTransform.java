@@ -37,7 +37,7 @@ import static java.util.stream.Collectors.toSet;
 public class ExpressionTransform {
   private final Logger log = LoggerFactory.getLogger(getClass());
 
-  private static final List<String> EXECUTION_AWARE_FUNCTIONS = Arrays.asList("judgment", "judgement", "stage", "stageExists", "deployedServerGroups");
+  private static final List<String> EXECUTION_AWARE_FUNCTIONS = Arrays.asList("judgment", "judgement", "stage", "stageExists", "deployedServerGroups", "manifestLabelValue");
   private static final List<String> EXECUTION_AWARE_ALIASES = Collections.singletonList("deployedServerGroups");
   private static final List<Class> STRINGIFYABLE_TYPES = Collections.singletonList(ExecutionStatus.class);
   private final ParserContext parserContext;

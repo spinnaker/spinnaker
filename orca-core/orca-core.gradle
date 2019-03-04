@@ -42,6 +42,7 @@ dependencies {
   compile "org.apache.commons:commons-lang3:3.7"
   compile "de.huxhorn.sulky:de.huxhorn.sulky.ulid:8.1.1"
   compile "javax.servlet:javax.servlet-api:4.0.1"
+  compile('com.jayway.jsonpath:json-path:2.2.0')
 
   compileOnly spinnaker.dependency("lombok")
 

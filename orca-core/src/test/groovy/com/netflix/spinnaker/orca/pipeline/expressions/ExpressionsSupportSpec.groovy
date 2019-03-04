@@ -22,7 +22,7 @@ import spock.lang.Unroll
 
 import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
-import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage;
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class ExpressionsSupportSpec extends Specification {
   @Shared
@@ -100,6 +100,33 @@ class ExpressionsSupportSpec extends Specification {
     }
   }
 
+  @Shared
+  def deployManifestPipeline = pipeline {
+    stage {
+      id = "1"
+      name = "Deploy ReplicaSet"
+      context.putAll(
+        "manifests": [
+          [
+            "kind": "ReplicaSet",
+            "spec": [
+              "template": [
+                "metadata": [
+                  "labels": [
+                    "my-label-key": "my-label-value",
+                    "my-other-label-key": "my-other-label-value"
+                  ]
+                ]
+              ]
+            ]
+          ]
+        ]
+      )
+      status = SUCCEEDED
+      type = "deployManifest"
+    }
+  }
+
   @Unroll
   def "stage() should match on #matchedAttribute"() {
     expect:
@@ -150,5 +177,36 @@ class ExpressionsSupportSpec extends Specification {
 
     then: "(deploy|createServerGroup|cloneServerGroup|rollingPush)"
     map.serverGroup == ["app-test-v001"]
+  }
+
+  @Unroll
+  def "manifestLabelValue should resolve label value for manifest of given kind deployed by stage of given name"() {
+    expect:
+    ExpressionsSupport.manifestLabelValue(deployManifestPipeline, "Deploy ReplicaSet", "ReplicaSet", labelKey) == expectedLabelValue
+
+    where:
+    labelKey             || expectedLabelValue
+    "my-label-key"       || "my-label-value"
+    "my-other-label-key" || "my-other-label-value"
+  }
+
+  def "manifestLabelValue should raise exception if stage, manifest, or label not found"() {
+    when:
+    ExpressionsSupport.manifestLabelValue(deployManifestPipeline, "Non-existent Stage", "ReplicaSet", "my-label-key")
+
+    then:
+    thrown(SpelHelperFunctionException)
+
+    when:
+    ExpressionsSupport.manifestLabelValue(deployManifestPipeline, "Deploy ReplicaSet", "Deployment", "my-label-key")
+
+    then:
+    thrown(SpelHelperFunctionException)
+
+    when:
+    ExpressionsSupport.manifestLabelValue(deployManifestPipeline, "Deploy ReplicaSet", "ReplicaSet", "non-existent-label")
+
+    then:
+    thrown(SpelHelperFunctionException)
   }
 }
