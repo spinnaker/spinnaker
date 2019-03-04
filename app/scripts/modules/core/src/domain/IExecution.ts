@@ -2,10 +2,12 @@ import { IEntityTags } from './IEntityTags';
 import { IOrchestratedItem } from './IOrchestratedItem';
 import { IExecutionTrigger } from './IExecutionTrigger';
 import { IExecutionStage, IExecutionStageSummary } from './IExecutionStage';
+import { IAuthentication } from './IAuthentication';
 
 export interface IExecution extends IOrchestratedItem {
   appConfig?: any;
   application: string;
+  authentication: IAuthentication;
   buildInfo?: any;
   buildTime?: number;
   canceledBy?: string;

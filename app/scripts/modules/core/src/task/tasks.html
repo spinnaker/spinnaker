@@ -139,7 +139,8 @@
                 </span>
               </td>
               <td>
-                {{ task.getValueFor('user') || task.execution.authentication.user || '-' }}
+                {{ task.execution.authentication.user === task.getValueFor('user') ? task.execution.authentication.user
+                : (task.getValueFor('user') + ' (' + (task.execution.authentication.user || 'unknown user') + ')') }}
               </td>
               <td class="small text-center">
                 <a
