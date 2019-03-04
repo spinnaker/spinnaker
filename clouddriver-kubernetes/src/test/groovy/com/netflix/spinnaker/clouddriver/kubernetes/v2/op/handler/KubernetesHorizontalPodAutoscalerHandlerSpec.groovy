@@ -18,7 +18,7 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactTypes
+import com.netflix.spinnaker.clouddriver.artifacts.kubernetes.KubernetesArtifactType
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import org.yaml.snakeyaml.Yaml
@@ -56,7 +56,7 @@ spec:
   void "check that the #kind #name is replaced by the artifact replacer"() {
     expect:
     def artifact = Artifact.builder()
-        .type(type.toString())
+        .type(type.type)
         .name(name)
         .reference(reference)
         .location(namespace)
@@ -70,10 +70,10 @@ spec:
 
     where:
     kind         | name  | reference  | type
-    "deployment" | "abc" | "abc-v000" | ArtifactTypes.KUBERNETES_DEPLOYMENT
-    "Deployment" | "abc" | "abc-v000" | ArtifactTypes.KUBERNETES_DEPLOYMENT
-    "replicaSet" | "xyz" | "xyz-v000" | ArtifactTypes.KUBERNETES_REPLICA_SET
-    "ReplicaSet" | "xyz" | "xyz-v000" | ArtifactTypes.KUBERNETES_REPLICA_SET
+    "deployment" | "abc" | "abc-v000" | KubernetesArtifactType.Deployment
+    "Deployment" | "abc" | "abc-v000" | KubernetesArtifactType.Deployment
+    "replicaSet" | "xyz" | "xyz-v000" | KubernetesArtifactType.ReplicaSet
+    "ReplicaSet" | "xyz" | "xyz-v000" | KubernetesArtifactType.ReplicaSet
   }
 
   @Unroll
@@ -92,7 +92,7 @@ spec:
 
     where:
     kind         | name  | location      | type
-    "deployment" | "abc" | namespace     | ArtifactTypes.KUBERNETES_REPLICA_SET
-    "Deployment" | "abc" | "$namespace-" | ArtifactTypes.KUBERNETES_DEPLOYMENT
+    "deployment" | "abc" | namespace     | KubernetesArtifactType.ReplicaSet
+    "Deployment" | "abc" | "$namespace-" | KubernetesArtifactType.Deployment
   }
 }

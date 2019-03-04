@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact;
 
+import com.netflix.spinnaker.clouddriver.artifacts.kubernetes.KubernetesArtifactType;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactReplacer.Replacer;
 
 import java.util.regex.Pattern;
@@ -62,7 +63,7 @@ public class ArtifactReplacerFactory {
           // https://github.com/docker/distribution/blob/95daa793b83a21656fe6c13e6d5cf1c3999108c7/reference/regexp.go#L34
           return ref.substring(0, lastColonIndex);
         })
-        .type(ArtifactTypes.DOCKER_IMAGE)
+        .type(KubernetesArtifactType.DockerImage)
         .build();
   }
   
@@ -70,7 +71,7 @@ public class ArtifactReplacerFactory {
     return Replacer.builder()
         .replacePath("$..spec.template.spec.volumes.[?( @.configMap.name == \"{%name%}\" )].configMap.name")
         .findPath("$..spec.template.spec.volumes.*.configMap.name")
-        .type(ArtifactTypes.KUBERNETES_CONFIG_MAP)
+        .type(KubernetesArtifactType.ConfigMap)
         .build();
   }
 
@@ -78,7 +79,7 @@ public class ArtifactReplacerFactory {
     return Replacer.builder()
         .replacePath("$..spec.template.spec.volumes.[?( @.secret.secretName == \"{%name%}\" )].secret.secretName")
         .findPath("$..spec.template.spec.volumes.*.secret.secretName")
-        .type(ArtifactTypes.KUBERNETES_SECRET)
+        .type(KubernetesArtifactType.Secret)
         .build();
   }
 
@@ -86,7 +87,7 @@ public class ArtifactReplacerFactory {
     return Replacer.builder()
         .replacePath("$..spec.template.spec['containers', 'initContainers'].*.env.[?( @.valueFrom.configMapKeyRef.name == \"{%name%}\" )].valueFrom.configMapKeyRef.name")
         .findPath("$..spec.template.spec['containers', 'initContainers'].*.env.*.valueFrom.configMapKeyRef.name")
-        .type(ArtifactTypes.KUBERNETES_CONFIG_MAP)
+        .type(KubernetesArtifactType.ConfigMap)
         .build();
   }
 
@@ -94,7 +95,7 @@ public class ArtifactReplacerFactory {
     return Replacer.builder()
         .replacePath("$..spec.template.spec['containers', 'initContainers'].*.env.[?( @.valueFrom.secretKeyRef.name == \"{%name%}\" )].valueFrom.secretKeyRef.name")
         .findPath("$..spec.template.spec['containers', 'initContainers'].*.env.*.valueFrom.secretKeyRef.name")
-        .type(ArtifactTypes.KUBERNETES_SECRET)
+        .type(KubernetesArtifactType.Secret)
         .build();
   }
 
@@ -102,7 +103,7 @@ public class ArtifactReplacerFactory {
     return Replacer.builder()
         .replacePath("$..spec.template.spec['containers', 'initContainers'].*.envFrom.[?( @.configMapRef.name == \"{%name%}\" )].configMapRef.name")
         .findPath("$..spec.template.spec['containers', 'initContainers'].*.envFrom.*.configMapRef.name")
-        .type(ArtifactTypes.KUBERNETES_CONFIG_MAP)
+        .type(KubernetesArtifactType.ConfigMap)
         .build();
   }
 
@@ -110,7 +111,7 @@ public class ArtifactReplacerFactory {
     return Replacer.builder()
         .replacePath("$..spec.template.spec['containers', 'initContainers'].*.envFrom.[?( @.secretRef.name == \"{%name%}\" )].secretRef.name")
         .findPath("$..spec.template.spec['containers', 'initContainers'].*.envFrom.*.secretRef.name")
-        .type(ArtifactTypes.KUBERNETES_SECRET)
+        .type(KubernetesArtifactType.Secret)
         .build();
   }
 
@@ -118,7 +119,7 @@ public class ArtifactReplacerFactory {
     return Replacer.builder()
         .replacePath("$[?( (@.spec.scaleTargetRef.kind == \"Deployment\" || @.spec.scaleTargetRef.kind == \"deployment\") && @.spec.scaleTargetRef.name == \"{%name%}\" )].spec.scaleTargetRef.name")
         .findPath("$[?( @.spec.scaleTargetRef.kind == \"Deployment\" || @.spec.scaleTargetRef.kind == \"deployment\" )].spec.scaleTargetRef.name")
-        .type(ArtifactTypes.KUBERNETES_DEPLOYMENT)
+        .type(KubernetesArtifactType.Deployment)
         .build();
   }
 
@@ -126,7 +127,7 @@ public class ArtifactReplacerFactory {
     return Replacer.builder()
         .replacePath("$[?( (@.spec.scaleTargetRef.kind == \"ReplicaSet\" || @.spec.scaleTargetRef.kind == \"replicaSet\") && @.spec.scaleTargetRef.name == \"{%name%}\" )].spec.scaleTargetRef.name")
         .findPath("$[?( @.spec.scaleTargetRef.kind == \"ReplicaSet\" || @.spec.scaleTargetRef.kind == \"replicaSet\" )].spec.scaleTargetRef.name")
-        .type(ArtifactTypes.KUBERNETES_REPLICA_SET)
+        .type(KubernetesArtifactType.ReplicaSet)
         .build();
   }
 }

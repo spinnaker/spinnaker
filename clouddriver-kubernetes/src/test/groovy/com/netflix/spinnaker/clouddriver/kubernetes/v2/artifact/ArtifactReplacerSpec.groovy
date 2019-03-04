@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.clouddriver.artifacts.kubernetes.KubernetesArtifactType
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import org.yaml.snakeyaml.Yaml
@@ -40,7 +41,7 @@ spec:
     then:
     artifacts.size() == 1
     Artifact artifact = artifacts.toList().get(0)
-    artifact.getType() == ArtifactTypes.KUBERNETES_DEPLOYMENT.toString()
+    artifact.getType() == KubernetesArtifactType.Deployment.type
     artifact.getName() == name
   }
 
@@ -101,7 +102,7 @@ spec:
 
     artifacts.size() == 1
     Artifact artifact = artifacts.toList().get(0)
-    artifact.getType() == ArtifactTypes.DOCKER_IMAGE.toString()
+    artifact.getType() == KubernetesArtifactType.DockerImage.type
     artifact.getName() == name
     artifact.getReference() == image
 
@@ -154,7 +155,7 @@ spec:
 
     artifacts.size() == 1
     Artifact artifact = artifacts.toList().get(0)
-    artifact.getType() == ArtifactTypes.DOCKER_IMAGE.toString()
+    artifact.getType() == KubernetesArtifactType.DockerImage.type
     artifact.getName() == name
     artifact.getReference() == image
 

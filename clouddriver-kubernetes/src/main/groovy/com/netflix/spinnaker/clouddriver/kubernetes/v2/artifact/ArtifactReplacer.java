@@ -27,6 +27,7 @@ import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
 import com.jayway.jsonpath.spi.json.JacksonJsonNodeJsonProvider;
 import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
+import com.netflix.spinnaker.clouddriver.artifacts.kubernetes.KubernetesArtifactType;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import lombok.AllArgsConstructor;
@@ -145,7 +146,7 @@ public class ArtifactReplacer {
                           String name = nameFromReference == null ? s : nameFromReference;
                           if (r.namePattern == null || nameFromReference != null) {
                             return Artifact.builder()
-                              .type(r.getType().toString())
+                              .type(r.getType().getType())
                               .reference(s)
                               .name(name)
                               .build();
@@ -174,7 +175,7 @@ public class ArtifactReplacer {
     private final Function<String, String> nameFromReference;
 
     @Getter
-    private final ArtifactTypes type;
+    private final KubernetesArtifactType type;
 
     private static String substituteField(String result, String fieldName, String field) {
       field = field == null ? "" : field;
@@ -213,7 +214,7 @@ public class ArtifactReplacer {
         throw new IllegalArgumentException("Artifact and artifact type must be set.");
       }
 
-      if (!artifact.getType().equals(type.toString())) {
+      if (!artifact.getType().equals(type.getType())) {
         return false;
       }
 

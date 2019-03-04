@@ -18,7 +18,7 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactReplacer;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactTypes;
+import com.netflix.spinnaker.clouddriver.artifacts.kubernetes.KubernetesArtifactType;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCacheDataConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCoreCachingAgent;
@@ -43,7 +43,7 @@ public class KubernetesPodHandler extends KubernetesHandler {
         ArtifactReplacer.Replacer.builder()
             .replacePath("$.spec.containers.[?( @.image == \"{%name%}\" )].image")
             .findPath("$.spec.containers.*.image")
-            .type(ArtifactTypes.DOCKER_IMAGE)
+            .type(KubernetesArtifactType.DockerImage)
             .build()
     );
   }
