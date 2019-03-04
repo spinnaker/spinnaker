@@ -1100,7 +1100,7 @@ def init_argument_parser(parser, defaults):
 
   add_parser_argument(
       parser, 'testing_enabled', defaults, True, type=bool,
-      help='If false then don\'t run the testing phase.')
+      help='If false then do not run the testing phase.')
 
   add_parser_argument(
       parser, 'test_disable', defaults, False, action='store_true',
@@ -1109,7 +1109,7 @@ def init_argument_parser(parser, defaults):
 
   add_parser_argument(
       parser, 'test_wait_on_services', defaults, True, type=bool,
-      help='If false then don\'t wait on services to be ready during'
+      help='If false then do not wait on services to be ready during'
            ' testing phase.')
 
   add_parser_argument(

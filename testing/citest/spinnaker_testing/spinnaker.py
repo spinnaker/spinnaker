@@ -350,7 +350,9 @@ class SpinnakerAgent(service_testing.HttpAgent):
 
     Args:
       bindings: [dict] List of bindings to configure the endpoint
-          NATIVE_BASE_URL: The base URL to use, if given.
+          NATIVE_BASE_URL: The base URL to use, if given. If NATIVE_BASE_URL
+              is not provided, the URL will be constructed using NATIVE_HOSTNAME
+              and NATIVE_PORT using http.
           NATIVE_HOSTNAME: The host of the base URL to use, if NATIVE_BASE_URL
               is not given.
           NATIVE_PORT: The port of the base URL to use, if NATIVE_BASE_URL
