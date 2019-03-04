@@ -22,7 +22,10 @@ import com.netflix.spinnaker.igor.config.JenkinsProperties
 import com.netflix.spinnaker.igor.config.TravisProperties
 import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
 import com.netflix.spinnaker.igor.model.BuildServiceProvider
-import com.netflix.spinnaker.igor.service.BuildMasters
+import com.netflix.spinnaker.igor.service.BuildService
+import com.netflix.spinnaker.igor.service.BuildServices
+import com.netflix.spinnaker.igor.travis.service.TravisService
+import com.netflix.spinnaker.igor.wercker.WerckerService
 import com.squareup.okhttp.mockwebserver.MockResponse
 import com.squareup.okhttp.mockwebserver.MockWebServer
 import groovy.json.JsonSlurper
@@ -47,7 +50,7 @@ class InfoControllerSpec extends Specification {
 
     MockMvc mockMvc
     BuildCache cache
-    BuildMasters buildMasters
+    BuildServices buildServices
     JenkinsProperties jenkinsProperties
     TravisProperties travisProperties
     GitlabCiProperties gitlabCiProperties
@@ -63,32 +66,41 @@ class InfoControllerSpec extends Specification {
     }
 
     void setup() {
+        server = new MockWebServer()
+    }
+
+    void createMocks(Map<String, BuildService> buildServices) {
         cache = Mock(BuildCache)
-        buildMasters = Mock(BuildMasters)
+        this.buildServices = new BuildServices()
+        this.buildServices.addServices(buildServices)
         jenkinsProperties = Mock(JenkinsProperties)
         travisProperties = Mock(TravisProperties)
         gitlabCiProperties = Mock(GitlabCiProperties)
         mockMvc = MockMvcBuilders.standaloneSetup(
             new InfoController(buildCache: cache,
-                buildMasters: buildMasters,
+                buildServices: this.buildServices,
                 jenkinsProperties: jenkinsProperties,
                 travisProperties: travisProperties,
                 gitlabCiProperties: gitlabCiProperties))
             .build()
-        server = new MockWebServer()
     }
 
     void 'is able to get a list of jenkins buildMasters'() {
+        given:
+        createMocks(['master2': null, 'build.buildServices.blah': null, 'master1': null])
+
         when:
         MockHttpServletResponse response = mockMvc.perform(get('/masters/')
             .accept(MediaType.APPLICATION_JSON)).andReturn().response
 
         then:
-        1 * buildMasters.map >> ['master2': [], 'build.buildMasters.blah': [], 'master1': []]
-        response.contentAsString == '["build.buildMasters.blah","master1","master2"]'
+        response.contentAsString == '["build.buildServices.blah","master1","master2"]'
     }
 
     void 'is able to get a list of buildMasters with urls'() {
+        given:
+        createMocks([:])
+
         when:
         MockHttpServletResponse response = mockMvc.perform(get('/masters')
             .param("showUrl", "true")
@@ -106,60 +118,73 @@ class InfoControllerSpec extends Specification {
     }
 
     void 'is able to get jobs for a jenkins master'() {
+        given:
+        JenkinsService jenkinsService = Stub(JenkinsService)
+        createMocks(['master1': jenkinsService])
+
         when:
         MockHttpServletResponse response = mockMvc.perform(get('/jobs/master1/')
             .accept(MediaType.APPLICATION_JSON)).andReturn().response
 
         then:
-        1 * buildMasters.map >> [ 'master1' : [ 'jobs' : [ 'list': [
+        jenkinsService.getJobs() >> ['list': [
             ['name': 'job1'],
             ['name': 'job2'],
             ['name': 'job3']
-        ] ] ] ]
-        1 * buildMasters.filteredMap(BuildServiceProvider.JENKINS) >> buildMasters.map
+        ]]
         response.contentAsString == '["job1","job2","job3"]'
     }
 
     void 'is able to get jobs for a jenkins master with the folders plugin'() {
+        given:
+        JenkinsService jenkinsService = Stub(JenkinsService)
+        createMocks(['master1': jenkinsService])
+
         when:
         MockHttpServletResponse response = mockMvc.perform(get('/jobs/master1/')
             .accept(MediaType.APPLICATION_JSON)).andReturn().response
 
         then:
-        1 * buildMasters.map >> [ 'master1' : [ 'jobs' : [ 'list': [
+        jenkinsService.buildServiceProvider() >> BuildServiceProvider.JENKINS
+        jenkinsService.getJobs() >> ['list': [
             ['name': 'folder', 'list': [
                 ['name': 'job1'],
                 ['name': 'job2']
             ] ],
             ['name': 'job3']
-        ] ] ] ]
-        1 * buildMasters.filteredMap(BuildServiceProvider.JENKINS) >> buildMasters.map
+        ]]
         response.contentAsString == '["folder/job/job1","folder/job/job2","job3"]'
     }
 
     void 'is able to get jobs for a travis master'() {
+        given:
+        TravisService travisService = Stub(TravisService)
+        createMocks(['travis-master1': travisService])
+
         when:
         MockHttpServletResponse response = mockMvc.perform(get('/jobs/travis-master1')
             .accept(MediaType.APPLICATION_JSON)).andReturn().response
 
         then:
-        1 * buildMasters.filteredMap(BuildServiceProvider.JENKINS) >> ["travis-master1": []]
-        1 * buildMasters.map >> ["travis-master1": []]
+        travisService.buildServiceProvider() >> BuildServiceProvider.TRAVIS
         1 * cache.getJobNames('travis-master1') >> ["some-job"]
         response.contentAsString == '["some-job"]'
 
     }
 
     void 'is able to get jobs for a wercker master'() {
+        given:
         def werckerJob = 'myOrg/myApp/myTarget'
+        WerckerService werckerService = Stub(WerckerService)
+        createMocks(['wercker-master': werckerService])
+
         when:
         MockHttpServletResponse response = mockMvc.perform(get('/jobs/wercker-master')
             .accept(MediaType.APPLICATION_JSON)).andReturn().response
 
         then:
-        1 * buildMasters.filteredMap(BuildServiceProvider.WERCKER) >> ['wercker-master': []]
-        1 * buildMasters.map >> ['wercker-master': []]
-        1 * cache.getJobNames('wercker-master') >> [werckerJob]
+        werckerService.buildServiceProvider() >> BuildServiceProvider.WERCKER
+        werckerService.getJobs() >> [werckerJob]
         response.contentAsString == '["' + werckerJob + '"]'
 
     }
@@ -182,13 +207,13 @@ class InfoControllerSpec extends Specification {
     void 'is able to get a job config at url #url'() {
         given:
         setResponse(getJobConfig())
+        createMocks(['master1': service])
 
         when:
         MockHttpServletResponse response = mockMvc.perform(get('/jobs/master1/MY-JOB')
             .accept(MediaType.APPLICATION_JSON)).andReturn().response
 
         then:
-        1 * buildMasters.map >> ['master2': [], 'build.buildMasters.blah': [], 'master1': service]
         def output = new JsonSlurper().parseText(response.contentAsString)
         output.name == 'My-Build'
         output.description == null
@@ -203,13 +228,13 @@ class InfoControllerSpec extends Specification {
     void 'is able to get a job config where a parameter includes choices'() {
         given:
         setResponse(getJobConfigWithChoices())
+        createMocks(['master1': service])
 
         when:
         MockHttpServletResponse response = mockMvc.perform(get('/jobs/master1/MY-JOB')
             .accept(MediaType.APPLICATION_JSON)).andReturn().response
 
         then:
-        1 * buildMasters.map >> ['master2': [], 'build.buildMasters.blah': [], 'master1': service]
         def output = new JsonSlurper().parseText(response.contentAsString)
         output.name == 'My-Build'
         output.parameterDefinitionList[0].defaultParameterValue == [name: 'someParam', value: 'first']

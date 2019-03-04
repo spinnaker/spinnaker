@@ -23,6 +23,7 @@ import com.netflix.spinnaker.igor.build.model.GenericGitRevision;
 import com.netflix.spinnaker.igor.build.model.GenericJobConfiguration;
 import com.netflix.spinnaker.igor.model.BuildServiceProvider;
 import com.netflix.spinnaker.igor.service.ArtifactDecorator;
+import com.netflix.spinnaker.igor.service.BuildProperties;
 import com.netflix.spinnaker.igor.service.BuildService;
 import com.netflix.spinnaker.igor.travis.TravisCache;
 import com.netflix.spinnaker.igor.travis.client.TravisClient;
@@ -70,7 +71,9 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public class TravisService implements BuildService {
+import static net.logstash.logback.argument.StructuredArguments.kv;
+
+public class TravisService implements BuildService, BuildProperties {
 
     private static final int TRAVIS_BUILD_RESULT_LIMIT = 25;
 
@@ -159,7 +162,7 @@ public class TravisService implements BuildService {
     }
 
     public Builds getBuilds(String repoSlug, int buildNumber) {
-        return new SimpleJava8HystrixCommand<>(groupKey, buildCommandKey("getBuilds"), () ->
+        return new SimpleJava8HystrixCommand<>(groupKey, buildCommandKey("getBuildList"), () ->
             travisClient.builds(getAccessToken(), repoSlug, buildNumber)).execute();
     }
 
@@ -168,11 +171,16 @@ public class TravisService implements BuildService {
         return !builds.getBuilds().isEmpty() ? builds.getBuilds().get(0) : null;
     }
 
-    public Map<String, Object> getBuildProperties(String inputRepoSlug, int buildNumber) throws IOException {
-        String repoSlug = cleanRepoSlug(inputRepoSlug);
-
-        Build build = getBuild(repoSlug, buildNumber);
-        return PropertyParser.extractPropertiesFromLog(getLog(build));
+    @Override
+    public Map<String, Object> getBuildProperties(String inputRepoSlug, int buildNumber, String fileName) {
+        try {
+            String repoSlug = cleanRepoSlug(inputRepoSlug);
+            Build build = getBuild(repoSlug, buildNumber);
+            return PropertyParser.extractPropertiesFromLog(getLog(build));
+        } catch (Exception e) {
+            log.error("Unable to get igorProperties '{}'", kv("job", inputRepoSlug), e);
+            return Collections.emptyMap();
+        }
     }
 
     public List<Build> getBuilds(Repo repo) {
@@ -197,6 +205,7 @@ public class TravisService implements BuildService {
             .collect(Collectors.toList());
     }
 
+    @Override
     public List<GenericBuild> getBuilds(String inputRepoSlug) {
         String repoSlug = cleanRepoSlug(inputRepoSlug);
         String branch = branchFromRepoSlug(inputRepoSlug);

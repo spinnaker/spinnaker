@@ -20,7 +20,7 @@ import com.netflix.spinnaker.igor.IgorConfigurationProperties
 import com.netflix.spinnaker.igor.build.BuildCache
 import com.netflix.spinnaker.igor.config.TravisProperties
 import com.netflix.spinnaker.igor.history.EchoService
-import com.netflix.spinnaker.igor.service.BuildMasters
+import com.netflix.spinnaker.igor.service.BuildServices
 import com.netflix.spinnaker.igor.travis.client.model.Repo
 import com.netflix.spinnaker.igor.travis.client.model.v3.TravisBuildState
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Build
@@ -44,12 +44,14 @@ class TravisBuildMonitorSpec extends Specification {
 
     void setup() {
         def travisProperties = new TravisProperties(cachedJobTTLDays: CACHED_JOB_TTL_DAYS)
+        def buildServices = new BuildServices()
+        buildServices.addServices([MASTER: travisService])
         travisBuildMonitor = new TravisBuildMonitor(
             new IgorConfigurationProperties(),
             new NoopRegistry(),
             Optional.empty(),
             buildCache,
-            new BuildMasters(map: [MASTER : travisService]),
+            buildServices,
             travisProperties,
             Optional.of(echoService),
             Optional.empty()

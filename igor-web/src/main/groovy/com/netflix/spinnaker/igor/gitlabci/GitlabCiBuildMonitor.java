@@ -31,7 +31,7 @@ import com.netflix.spinnaker.igor.history.model.GenericBuildContent;
 import com.netflix.spinnaker.igor.history.model.GenericBuildEvent;
 import com.netflix.spinnaker.igor.model.BuildServiceProvider;
 import com.netflix.spinnaker.igor.polling.*;
-import com.netflix.spinnaker.igor.service.BuildMasters;
+import com.netflix.spinnaker.igor.service.BuildServices;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
@@ -52,7 +52,7 @@ public class GitlabCiBuildMonitor extends CommonPollingMonitor<GitlabCiBuildMoni
     private static final int MAX_NUMBER_OF_PIPELINES = 5;
 
     private final BuildCache buildCache;
-    private final BuildMasters buildMasters;
+    private final BuildServices buildServices;
     private final GitlabCiProperties gitlabCiProperties;
     private final Optional<EchoService> echoService;
 
@@ -62,12 +62,12 @@ public class GitlabCiBuildMonitor extends CommonPollingMonitor<GitlabCiBuildMoni
                                 Optional<DiscoveryClient> discoveryClient,
                                 Optional<LockService> lockService,
                                 BuildCache buildCache,
-                                BuildMasters buildMasters,
+                                BuildServices buildServices,
                                 GitlabCiProperties gitlabCiProperties,
                                 Optional<EchoService> echoService) {
         super(properties, registry, discoveryClient, lockService);
         this.buildCache = buildCache;
-        this.buildMasters = buildMasters;
+        this.buildServices = buildServices;
         this.gitlabCiProperties = gitlabCiProperties;
         this.echoService = echoService;
     }
@@ -78,7 +78,7 @@ public class GitlabCiBuildMonitor extends CommonPollingMonitor<GitlabCiBuildMoni
 
     @Override
     public void poll(boolean sendEvents) {
-        buildMasters.filteredMap(BuildServiceProvider.GITLAB_CI).keySet().stream()
+        buildServices.getServiceNames(BuildServiceProvider.GITLAB_CI).stream()
             .map(it -> new PollContext(it, !sendEvents))
             .forEach(this::pollSingle);
     }
@@ -89,7 +89,7 @@ public class GitlabCiBuildMonitor extends CommonPollingMonitor<GitlabCiBuildMoni
 
         log.info("Checking for new builds for {}", kv("master", master));
         final AtomicInteger updatedBuilds = new AtomicInteger();
-        final GitlabCiService gitlabCiService = (GitlabCiService) buildMasters.getMap().get(master);
+        final GitlabCiService gitlabCiService = (GitlabCiService) buildServices.getService(master);
         long startTime = System.currentTimeMillis();
 
         final List<Project> projects = gitlabCiService.getProjects();
@@ -121,7 +121,7 @@ public class GitlabCiBuildMonitor extends CommonPollingMonitor<GitlabCiBuildMoni
     @Override
     protected void commitDelta(BuildPollingDelta delta, boolean sendEvents) {
         int ttl = buildCacheJobTTLSeconds();
-        final GitlabCiService gitlabCiService = (GitlabCiService) buildMasters.getMap().get(delta.master);
+        final GitlabCiService gitlabCiService = (GitlabCiService) buildServices.getService(delta.master);
 
         delta.items.parallelStream().forEach(item -> {
             log.info("Build update [{}:{}:{}] [status:{}] [running:{}]", kv("master", delta.master), item.branchedRepoSlug, item.pipeline.getId(), item.pipeline.getStatus(), item.pipelineRunning);

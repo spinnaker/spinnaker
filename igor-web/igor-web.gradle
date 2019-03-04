@@ -24,6 +24,7 @@ dependencies {
     compile spinnaker.dependency("korkTelemetry")
     compile spinnaker.dependency("jacksonJsr310")
     compile spinnaker.dependency("groovy")
+    compile spinnaker.dependency("lombok")
     compile spinnaker.dependency("rxJava")
     compile spinnaker.dependency("retrofit")
     compile spinnaker.dependency("eurekaClient")

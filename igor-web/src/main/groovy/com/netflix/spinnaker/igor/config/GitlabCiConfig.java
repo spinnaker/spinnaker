@@ -19,7 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.igor.IgorConfigurationProperties;
 import com.netflix.spinnaker.igor.gitlabci.client.GitlabCiClient;
 import com.netflix.spinnaker.igor.gitlabci.service.GitlabCiService;
-import com.netflix.spinnaker.igor.service.BuildMasters;
+import com.netflix.spinnaker.igor.service.BuildServices;
 import com.squareup.okhttp.OkHttpClient;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -45,7 +45,7 @@ public class GitlabCiConfig {
     private static final Logger log = LoggerFactory.getLogger(GitlabCiConfig.class);
 
     @Bean
-    public Map<String, GitlabCiService> gitlabCiMasters(BuildMasters buildMasters,
+    public Map<String, GitlabCiService> gitlabCiMasters(BuildServices buildServices,
                                                         final IgorConfigurationProperties igorConfigurationProperties,
                                                         GitlabCiProperties gitlabCiProperties,
                                                         ObjectMapper objectMapper) {
@@ -55,7 +55,7 @@ public class GitlabCiConfig {
                 gitlabCiHost -> "gitlab-ci-" + gitlabCiHost.getName(),
                 gitlabCiHost -> gitlabCiService(igorConfigurationProperties, gitlabCiHost, objectMapper)
             ));
-        buildMasters.getMap().putAll(gitlabCiMasters);
+        buildServices.addServices(gitlabCiMasters);
         return gitlabCiMasters;
     }
 

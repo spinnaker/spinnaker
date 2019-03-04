@@ -10,7 +10,7 @@ package com.netflix.spinnaker.igor.config
 
 import com.netflix.spinnaker.igor.IgorConfigurationProperties
 import com.netflix.spinnaker.igor.config.WerckerProperties.WerckerHost
-import com.netflix.spinnaker.igor.service.BuildMasters
+import com.netflix.spinnaker.igor.service.BuildServices
 import com.netflix.spinnaker.igor.wercker.WerckerCache
 import com.netflix.spinnaker.igor.wercker.WerckerClient
 import com.netflix.spinnaker.igor.wercker.WerckerService
@@ -41,17 +41,17 @@ import retrofit.client.OkClient
 public class WerckerConfig {
     @Bean
     Map<String, WerckerService> werckerMasters(
-            BuildMasters buildMasters,
-            WerckerCache cache,
-            IgorConfigurationProperties igorConfigurationProperties,
-            @Valid WerckerProperties werckerProperties) {
+        BuildServices buildServices,
+        WerckerCache cache,
+        IgorConfigurationProperties igorConfigurationProperties,
+        @Valid WerckerProperties werckerProperties) {
         log.debug "creating werckerMasters"
         Map<String, WerckerService> werckerMasters = ( werckerProperties?.masters?.collectEntries { WerckerProperties.WerckerHost host ->
             log.debug "bootstrapping Wercker ${host.address} as ${host.name}"
             [(host.name): new WerckerService(host, cache, werckerClient(host, igorConfigurationProperties.getClient().timeout))]
         })
 
-        buildMasters.map.putAll werckerMasters
+        buildServices.addServices(werckerMasters)
         werckerMasters
     }
 

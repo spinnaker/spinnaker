@@ -20,7 +20,7 @@ package com.netflix.spinnaker.igor.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.igor.IgorConfigurationProperties;
 import com.netflix.spinnaker.igor.service.ArtifactDecorator;
-import com.netflix.spinnaker.igor.service.BuildMasters;
+import com.netflix.spinnaker.igor.service.BuildServices;
 import com.netflix.spinnaker.igor.travis.TravisCache;
 import com.netflix.spinnaker.igor.travis.client.TravisClient;
 import com.netflix.spinnaker.igor.travis.service.TravisService;
@@ -56,7 +56,7 @@ public class TravisConfig {
     private Logger log = LoggerFactory.getLogger(getClass());
 
     @Bean
-    public Map<String, TravisService> travisMasters(BuildMasters buildMasters, TravisCache travisCache, IgorConfigurationProperties igorConfigurationProperties, @Valid TravisProperties travisProperties, ObjectMapper objectMapper, Optional<ArtifactDecorator> artifactDecorator) {
+    public Map<String, TravisService> travisMasters(BuildServices buildServices, TravisCache travisCache, IgorConfigurationProperties igorConfigurationProperties, @Valid TravisProperties travisProperties, ObjectMapper objectMapper, Optional<ArtifactDecorator> artifactDecorator) {
         log.info("creating travisMasters");
 
         Map<String, TravisService> travisMasters = (travisProperties == null ? new ArrayList<TravisProperties.TravisHost>() : travisProperties.getMasters()).stream()
@@ -69,7 +69,7 @@ public class TravisConfig {
             })
             .collect(Collectors.toMap(TravisService::getGroupKey, Function.identity()));
 
-        buildMasters.getMap().putAll(travisMasters);
+        buildServices.addServices(travisMasters);
         return travisMasters;
     }
 

@@ -11,9 +11,8 @@ package com.netflix.spinnaker.igor.wercker
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.igor.IgorConfigurationProperties
 import com.netflix.spinnaker.igor.config.WerckerProperties
-import com.netflix.spinnaker.igor.history.EchoService
 import com.netflix.spinnaker.igor.model.BuildServiceProvider
-import com.netflix.spinnaker.igor.service.BuildMasters
+import com.netflix.spinnaker.igor.service.BuildServices
 import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent
 
 import java.util.concurrent.TimeUnit
@@ -36,8 +35,8 @@ class WerckerBuildMonitorSchedulingSpec extends Specification {
     void 'scheduler polls periodically'() {
         given:
         cache.getJobNames(MASTER) >> []
-        BuildMasters buildMasters = Mock(BuildMasters)
-        buildMasters.map >> [MASTER: werckerService]
+        BuildServices buildServices = new BuildServices()
+        buildServices.addServices([MASTER: werckerService])
         werckerService.getRunsSince(_) >> [:]
         def cfg = new IgorConfigurationProperties()
         cfg.spinnaker.build.pollInterval = 1
@@ -47,42 +46,37 @@ class WerckerBuildMonitorSchedulingSpec extends Specification {
                 Optional.empty(),
                 Optional.empty(),
                 cache,
-                buildMasters,
+                buildServices,
                 true,
                 Optional.empty(),
                 new WerckerProperties()
                 )
         monitor.worker = scheduler.createWorker()
+        werckerService.buildServiceProvider() >> BuildServiceProvider.WERCKER
+
         when:
         monitor.onApplicationEvent(Mock(RemoteStatusChangedEvent))
         scheduler.advanceTimeBy(1L, TimeUnit.SECONDS.MILLISECONDS)
 
         then: 'initial poll'
-        1 * buildMasters.filteredMap(BuildServiceProvider.WERCKER) >> [MASTER: werckerService]
-        1 * buildMasters.map >> [MASTER: werckerService]
         1 * werckerService.getRunsSince(_) >> [:]
 
         when:
         scheduler.advanceTimeBy(998L, TimeUnit.SECONDS.MILLISECONDS)
 
         then:
-        0 * buildMasters.map >> [MASTER: werckerService]
         0 * werckerService.getRunsSince(_) >> [:]
 
         when: 'poll at 1 second'
         scheduler.advanceTimeBy(2L, TimeUnit.SECONDS.MILLISECONDS)
 
         then:
-        1 * buildMasters.filteredMap(BuildServiceProvider.WERCKER) >> [MASTER: werckerService]
-        1 * buildMasters.map >> [MASTER: werckerService]
         1 * werckerService.getRunsSince(_) >> [:]
 
         when: 'poll at 5 second'
         scheduler.advanceTimeBy(4000L, TimeUnit.SECONDS.MILLISECONDS)
 
         then:
-        4 * buildMasters.filteredMap(BuildServiceProvider.WERCKER) >> [MASTER: werckerService]
-        4 * buildMasters.map >> [MASTER: werckerService]
         4 * werckerService.getRunsSince(_) >> [:]
 
         cleanup:
@@ -92,7 +86,7 @@ class WerckerBuildMonitorSchedulingSpec extends Specification {
     void 'scheduler can be turned off'() {
         given:
         cache.getJobNames(MASTER) >> []
-        BuildMasters buildMasters = Mock(BuildMasters)
+        BuildServices buildServices = Mock(BuildServices)
         def cfg = new IgorConfigurationProperties()
         cfg.spinnaker.build.pollInterval = 1
         monitor = new WerckerBuildMonitor(
@@ -101,7 +95,7 @@ class WerckerBuildMonitorSchedulingSpec extends Specification {
                 Optional.empty(),
                 Optional.empty(),
                 cache,
-                buildMasters,
+                buildServices,
                 false,
                 Optional.empty(),
                 new WerckerProperties()
@@ -113,19 +107,19 @@ class WerckerBuildMonitorSchedulingSpec extends Specification {
         scheduler.advanceTimeBy(1L, TimeUnit.SECONDS.MILLISECONDS)
 
         then: 'initial poll'
-        0 * buildMasters.filteredMap
+        0 * buildServices.filteredMap
 
         when:
         scheduler.advanceTimeBy(998L, TimeUnit.SECONDS.MILLISECONDS)
 
         then:
-        0 * buildMasters.filteredMap
+        0 * buildServices.filteredMap
 
         when: 'no poll at 1 second'
         scheduler.advanceTimeBy(2L, TimeUnit.SECONDS.MILLISECONDS)
 
         then:
-        0 * buildMasters.filteredMap
+        0 * buildServices.filteredMap
 
         cleanup:
         monitor.stop()

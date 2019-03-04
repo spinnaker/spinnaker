@@ -17,110 +17,86 @@
 
 package com.netflix.spinnaker.igor.build
 
-import java.util.concurrent.ExecutorService
-import javax.servlet.http.HttpServletRequest
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.igor.build.model.GenericBuild
+import com.netflix.spinnaker.igor.exceptions.BuildJobError
+import com.netflix.spinnaker.igor.exceptions.QueuedJobDeterminationError
 import com.netflix.spinnaker.igor.jenkins.client.model.JobConfig
 import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
-import com.netflix.spinnaker.igor.model.BuildServiceProvider
 import com.netflix.spinnaker.igor.service.ArtifactDecorator
-import com.netflix.spinnaker.igor.service.BuildMasters
-import com.netflix.spinnaker.kork.core.RetrySupport
+import com.netflix.spinnaker.igor.service.BuildProperties
+import com.netflix.spinnaker.igor.service.BuildService
+import com.netflix.spinnaker.igor.service.BuildServices
+import com.netflix.spinnaker.igor.travis.service.TravisService
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.servlet.HandlerMapping
-import org.yaml.snakeyaml.Yaml
-import org.yaml.snakeyaml.constructor.SafeConstructor
 import retrofit.RetrofitError
+
+import javax.servlet.http.HttpServletRequest
+
 import static net.logstash.logback.argument.StructuredArguments.kv
 import static org.springframework.http.HttpStatus.NOT_FOUND
 
 @Slf4j
 @RestController
 class BuildController {
+    private BuildServices buildServices
+    private BuildArtifactFilter buildArtifactFilter
+    private ArtifactDecorator artifactDecorator
 
-    @Autowired
-    ExecutorService executor
-
-    @Autowired
-    BuildMasters buildMasters
-
-    @Autowired
-    ObjectMapper objectMapper
-
-    @Autowired
-    RetrySupport retrySupport
-
-    @Autowired(required = false)
-    BuildArtifactFilter buildArtifactFilter
-
-    @Autowired(required = false)
-    ArtifactDecorator artifactDecorator
+    BuildController(BuildServices buildServices, Optional<BuildArtifactFilter> buildArtifactFilter, Optional<ArtifactDecorator> artifactDecorator) {
+        this.buildServices = buildServices
+        this.buildArtifactFilter = buildArtifactFilter.orElse(null)
+        this.artifactDecorator = artifactDecorator.orElse(null)
+    }
 
     @RequestMapping(value = '/builds/status/{buildNumber}/{master:.+}/**')
     GenericBuild getJobStatus(@PathVariable String master, @PathVariable
         Integer buildNumber, HttpServletRequest request) {
         def job = (String) request.getAttribute(
             HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE).split('/').drop(5).join('/')
-        if (buildMasters.map.containsKey(master)) {
-            GenericBuild build = buildMasters.map[master].getGenericBuild(job, buildNumber)
-            try {
-                build.genericGitRevisions = buildMasters.map[master].getGenericGitRevisions(job, buildNumber)
-            } catch (Exception e) {
-                log.error("could not get scm results for {} / {} / {}", kv("master", master), kv("job", job), kv("buildNumber", buildNumber))
-            }
-
-            if (artifactDecorator) {
-                artifactDecorator.decorate(build)
-            }
-
-            if (buildArtifactFilter) {
-                build.artifacts = buildArtifactFilter.filterArtifacts(build.artifacts)
-            }
-
-            return build
-        } else {
-            throw new NotFoundException("Master '${master}' not found")
+        def buildService = getBuildService(master)
+        GenericBuild build = buildService.getGenericBuild(job, buildNumber)
+        try {
+            build.genericGitRevisions = buildService.getGenericGitRevisions(job, buildNumber)
+        } catch (Exception e) {
+            log.error("could not get scm results for {} / {} / {}", kv("master", master), kv("job", job), kv("buildNumber", buildNumber))
         }
+
+        if (artifactDecorator) {
+            artifactDecorator.decorate(build)
+        }
+
+        if (buildArtifactFilter) {
+            build.artifacts = buildArtifactFilter.filterArtifacts(build.artifacts)
+        }
+
+        return build
     }
 
     @RequestMapping(value = '/builds/queue/{master}/{item}')
     Object getQueueLocation(@PathVariable String master, @PathVariable int item) {
-        if (buildMasters.filteredMap(BuildServiceProvider.JENKINS).containsKey(master)) {
-
-            try {
-                return buildMasters.map[master].getQueuedItem(item)
-            } catch (RetrofitError e) {
-                if (e.response?.status == NOT_FOUND.value()) {
-                    throw new NotFoundException("Queued job '${item}' not found for master '${master}'.")
-                }
-                throw e
-            }
-        } else if (buildMasters.filteredMap(BuildServiceProvider.TRAVIS).containsKey(master)) {
-            return buildMasters.map[master].queuedBuild(item)
-        } else {
-            throw new NotFoundException("Master '${master}' not found, item: ${item}")
+        def buildService = getBuildService(master)
+        if (buildService instanceof JenkinsService) {
+            JenkinsService jenkinsService = (JenkinsService) buildService
+            return jenkinsService.queuedBuild(item);
+        } else if (buildService instanceof TravisService) {
+            TravisService travisService = (TravisService) buildService
+            return travisService.queuedBuild(item)
         }
-
+        throw new UnsupportedOperationException(String.format("Queued builds are not supported for build service %s", master))
     }
 
     @RequestMapping(value = '/builds/all/{master:.+}/**')
     List<Object> getBuilds(@PathVariable String master, HttpServletRequest request) {
         def job = (String) request.getAttribute(
             HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE).split('/').drop(4).join('/')
-        if (buildMasters.filteredMap(BuildServiceProvider.JENKINS).containsKey(master)) {
-            buildMasters.map[master].getBuilds(job).list
-        } else if (buildMasters.map.containsKey(master)) {
-            buildMasters.map[master].getBuilds(job)
-        } else {
-            throw new NotFoundException("Master '${master}' not found")
-        }
+        def buildService = getBuildService(master)
+        return buildService.getBuilds(job)
     }
 
     @RequestMapping(value = "/masters/{name}/jobs/{jobName}/stop/{queuedBuild}/{buildNumber}", method = RequestMethod.PUT)
@@ -130,29 +106,26 @@ class BuildController {
         @PathVariable String queuedBuild,
         @PathVariable Integer buildNumber) {
 
-        if (!buildMasters.map.containsKey(master)) {
-            throw new NotFoundException("Master '${master}' not found")
-        }
-
-        def buildService = buildMasters.map[master]
-
-        // Jobs that haven't been started yet won't have a buildNumber
-        // (They're still in the queue). We use 0 to denote that case
-        if (buildNumber != 0 &&
-            buildService.metaClass.respondsTo(buildService, 'stopRunningBuild')) {
-            buildService.stopRunningBuild(jobName, buildNumber)
-        }
-
-        // The jenkins api for removing a job from the queue (http://<Jenkins_URL>/queue/cancelItem?id=<queuedBuild>)
-        // always returns a 404. This try catch block insures that the exception is eaten instead
-        // of being handled by the handleOtherException handler and returning a 500 to orca
-        try {
-            if (buildService.metaClass.respondsTo(buildService, 'stopQueuedBuild')) {
-                buildService.stopQueuedBuild(queuedBuild)
+        def buildService = getBuildService(master)
+        if (buildService instanceof JenkinsService) {
+            // Jobs that haven't been started yet won't have a buildNumber
+            // (They're still in the queue). We use 0 to denote that case
+            if (buildNumber != 0 &&
+                buildService.metaClass.respondsTo(buildService, 'stopRunningBuild')) {
+                buildService.stopRunningBuild(jobName, buildNumber)
             }
-        } catch (RetrofitError e) {
-            if (e.response?.status != NOT_FOUND.value()) {
-                throw e
+
+            // The jenkins api for removing a job from the queue (http://<Jenkins_URL>/queue/cancelItem?id=<queuedBuild>)
+            // always returns a 404. This try catch block insures that the exception is eaten instead
+            // of being handled by the handleOtherException handler and returning a 500 to orca
+            try {
+                if (buildService.metaClass.respondsTo(buildService, 'stopQueuedBuild')) {
+                    buildService.stopQueuedBuild(queuedBuild)
+                }
+            } catch (RetrofitError e) {
+                if (e.response?.status != NOT_FOUND.value()) {
+                    throw e
+                }
             }
         }
 
@@ -165,9 +138,10 @@ class BuildController {
         @RequestParam Map<String, String> requestParams, HttpServletRequest request) {
         def job = (String) request.getAttribute(
             HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE).split('/').drop(4).join('/')
-        if (buildMasters.filteredMap(BuildServiceProvider.JENKINS).containsKey(master)) {
+        def buildService = getBuildService(master)
+        if (buildService instanceof JenkinsService) {
             def response
-            JenkinsService jenkinsService = (JenkinsService) buildMasters.map[master]
+            JenkinsService jenkinsService = (JenkinsService) buildService
             JobConfig jobConfig = jenkinsService.getJobConfig(job)
             if (!jobConfig.buildable) {
                 throw new BuildJobError("Job '${job}' is not buildable. It may be disabled.")
@@ -200,10 +174,8 @@ class BuildController {
             def queuedLocation = locationHeader.value
 
             queuedLocation.split('/')[-1]
-        } else if (buildMasters.map.containsKey(master)) {
-            return buildMasters.map[master].triggerBuildWithParameters(job, requestParams)
         } else {
-            throw new NotFoundException("Master '${master}' not found")
+            return buildService.triggerBuildWithParameters(job, requestParams)
         }
     }
 
@@ -224,71 +196,21 @@ class BuildController {
             String fileName, HttpServletRequest request) {
         def job = (String) request.getAttribute(
             HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE).split('/').drop(6).join('/')
-        if (buildMasters.filteredMap(BuildServiceProvider.JENKINS).containsKey(master)) {
-            Map<String, Object> map = [:]
-            try {
-                def jenkinsService = buildMasters.map[master]
-                String path = getArtifactPathFromBuild(jenkinsService, master, job, buildNumber, fileName)
-
-                def propertyStream = jenkinsService.getPropertyFile(job, buildNumber, path).body.in()
-                try {
-                    if (fileName.endsWith('.yml') || fileName.endsWith('.yaml')) {
-                        Yaml yml = new Yaml(new SafeConstructor())
-                        map = yml.load(propertyStream)
-                    } else if (fileName.endsWith('.json')) {
-                        map = objectMapper.readValue(propertyStream, Map)
-                    } else {
-                        Properties properties = new Properties()
-                        properties.load(propertyStream)
-                        map = map << properties
-                    }
-                } finally {
-                    propertyStream.close()
-                }
-            } catch (NotFoundException e) {
-                throw e
-            } catch (e) {
-                log.error("Unable to get igorProperties '{}'", kv("job", job), e)
-            }
-            map
-        } else if (buildMasters.filteredMap(BuildServiceProvider.TRAVIS).containsKey(master)) {
-            try {
-                buildMasters.map[master].getBuildProperties(job, buildNumber)
-            } catch (e) {
-                log.error("Unable to get igorProperties '{}'", kv("job", job), e)
-            }
-        } else {
-            throw new NotFoundException("Could not find master '${master}' to get igorProperties")
+        def buildService = getBuildService(master)
+        if (buildService instanceof BuildProperties) {
+            BuildProperties buildProperties = (BuildProperties) buildService;
+            return buildProperties.getBuildProperties(job, buildNumber, fileName);
         }
+        return Collections.emptyMap();
     }
 
-    private String getArtifactPathFromBuild(jenkinsService, master, job, buildNumber, String fileName) {
-        return retrySupport.retry({ ->
-            def artifact = jenkinsService.getBuild(job, buildNumber).artifacts.find {
-                it.fileName == fileName
-            }
-            if (artifact) {
-                return artifact.relativePath
-            } else {
-                log.error("Unable to get igorProperties: Could not find build artifact matching requested filename '{}' on '{}' build '{}",
-                    kv("fileName", fileName), kv("master", master), kv("buildNumber", buildNumber))
-                throw new ArtifactNotFoundException(master, job, buildNumber, fileName)
-            }
-        }, 5, 2000, false)
-    }
-
-    @ResponseStatus(NOT_FOUND)
-    private static class ArtifactNotFoundException extends NotFoundException {
-        ArtifactNotFoundException(String master, String job, Integer buildNumber, String fileName) {
-            super("Could not find build artifact matching requested filename '$fileName' on '$master/$job' build $buildNumber")
+    private BuildService getBuildService(String master) {
+        def buildService = buildServices.getService(master)
+        if (buildService == null) {
+            throw new NotFoundException("Master '${master}' not found}")
         }
+        return buildService
     }
-
-    @InheritConstructors
-    static class BuildJobError extends InvalidRequestException {}
-
-    @ResponseStatus(code = HttpStatus.SERVICE_UNAVAILABLE)
-    static class QueuedJobDeterminationError extends RuntimeException {}
 
     @InheritConstructors
     static class InvalidJobParameterException extends InvalidRequestException {}

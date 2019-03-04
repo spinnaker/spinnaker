@@ -27,7 +27,7 @@ import com.netflix.spinnaker.igor.jenkins.client.model.Project
 import com.netflix.spinnaker.igor.jenkins.client.model.ProjectsList
 import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
 import com.netflix.spinnaker.igor.polling.PollContext
-import com.netflix.spinnaker.igor.service.BuildMasters
+import com.netflix.spinnaker.igor.service.BuildServices
 import org.slf4j.Logger
 import retrofit.RetrofitError
 import rx.schedulers.Schedulers
@@ -47,13 +47,15 @@ class JenkinsBuildMonitorSpec extends Specification {
     final MASTER = 'MASTER'
 
     void setup() {
+        def buildServices = new BuildServices()
+        buildServices.addServices([MASTER: jenkinsService])
         monitor = new JenkinsBuildMonitor(
             igorConfigurationProperties,
             new NoopRegistry(),
             Optional.empty(),
             Optional.empty(),
             cache,
-            new BuildMasters(map: [MASTER: jenkinsService]),
+            buildServices,
             true,
             Optional.of(echoService),
             new JenkinsProperties()
@@ -94,7 +96,7 @@ class JenkinsBuildMonitorSpec extends Specification {
         cache.getLastPollCycleTimestamp(MASTER, 'job') >> previousCursor
         jenkinsService.getProjects() >> new ProjectsList(list: [ new Project(name: 'job', lastBuild: lastBuild) ])
         cache.getEventPosted(_,_,_,_) >> false
-        jenkinsService.getBuilds('job') >> new BuildsList(list: [ lastBuild ])
+        jenkinsService.getBuilds('job') >> [lastBuild ]
 
         when:
         monitor.pollSingle(new PollContext(MASTER))
@@ -112,7 +114,7 @@ class JenkinsBuildMonitorSpec extends Specification {
         cache.getLastPollCycleTimestamp(MASTER, 'job') >> previousCursor
         jenkinsService.getProjects() >> new ProjectsList(list: [ new Project(name: 'job', lastBuild: lastBuild) ])
         cache.getEventPosted(_,_,_,_) >> false
-        jenkinsService.getBuilds('job') >> new BuildsList(list: [ lastBuild ])
+        jenkinsService.getBuilds('job') >> [lastBuild ]
 
         when:
         monitor.pollSingle(new PollContext(MASTER).fastForward())
@@ -139,15 +141,13 @@ class JenkinsBuildMonitorSpec extends Specification {
         cache.getLastPollCycleTimestamp(MASTER, 'job') >> (previousCursor as Long)
         jenkinsService.getProjects() >> new ProjectsList(list: [ new Project(name: 'job', lastBuild: lastBuild) ])
         cache.getEventPosted(_,_,_,_) >> false
-        jenkinsService.getBuilds('job') >> new BuildsList(
-            list: [
-                new Build(number: 1, timestamp: stamp1, building: false, result: 'SUCCESS'),
-                new Build(number: 2, timestamp: stamp1, building: true, result: null),
-                new Build(number: 3, timestamp: stamp2, building: false, result: 'SUCCESS'),
-                new Build(number: 4, timestamp: stamp4, building: false, result: 'SUCCESS'),
-                new Build(number: 5, building: false, result: 'SUCCESS')
-            ]
-        )
+        jenkinsService.getBuilds('job') >> [
+            new Build(number: 1, timestamp: stamp1, building: false, result: 'SUCCESS'),
+            new Build(number: 2, timestamp: stamp1, building: true, result: null),
+            new Build(number: 3, timestamp: stamp2, building: false, result: 'SUCCESS'),
+            new Build(number: 4, timestamp: stamp4, building: false, result: 'SUCCESS'),
+            new Build(number: 5, building: false, result: 'SUCCESS')
+        ]
 
         when:
         monitor.pollSingle(new PollContext(MASTER))
@@ -175,14 +175,12 @@ class JenkinsBuildMonitorSpec extends Specification {
         cache.getLastPollCycleTimestamp(MASTER, 'job') >> (previousCursor as Long)
         jenkinsService.getProjects() >> new ProjectsList(list: [ new Project(name: 'job', lastBuild: lastBuild) ])
         cache.getEventPosted(_,_,_,_) >> false
-        jenkinsService.getBuilds('job') >> new BuildsList(
-            list: [
-                new Build(number: 1, timestamp: stamp1, building: false, result: 'SUCCESS'),
-                new Build(number: 2, timestamp: stamp1, building: false, result: 'FAILURE'),
-                new Build(number: 3, timestamp: stamp2, building: false, result: 'SUCCESS'),
-                new Build(number: 4, timestamp: stamp4, building: false, result: 'SUCCESS')
-            ]
-        )
+        jenkinsService.getBuilds('job') >> [
+            new Build(number: 1, timestamp: stamp1, building: false, result: 'SUCCESS'),
+            new Build(number: 2, timestamp: stamp1, building: false, result: 'FAILURE'),
+            new Build(number: 3, timestamp: stamp2, building: false, result: 'SUCCESS'),
+            new Build(number: 4, timestamp: stamp4, building: false, result: 'SUCCESS')
+        ]
 
         when:
         monitor.pollSingle(new PollContext(MASTER))
@@ -216,21 +214,17 @@ class JenkinsBuildMonitorSpec extends Specification {
         jenkinsService.getProjects() >> new ProjectsList(list: [ new Project(name: 'job2', lastBuild: new Build(number: 3, timestamp: now)) ])
         jenkinsService.getProjects() >> new ProjectsList(list: [ new Project(name: 'job3', lastBuild: new Build(number: 3, timestamp: now)) ])
 
-        jenkinsService.getBuilds('job1') >> new BuildsList(
-            list: [
-                new Build(number: 1, timestamp: nowMinus30min, building: false, result: 'SUCCESS', duration: durationOf1min),
-                new Build(number: 2, timestamp: nowMinus10min, building: false, result: 'FAILURE', duration: durationOf1min),
-                new Build(number: 3, timestamp: nowMinus5min, building: false, result: 'SUCCESS', duration: durationOf1min)
-            ]
-        )
+        jenkinsService.getBuilds('job1') >> [
+            new Build(number: 1, timestamp: nowMinus30min, building: false, result: 'SUCCESS', duration: durationOf1min),
+            new Build(number: 2, timestamp: nowMinus10min, building: false, result: 'FAILURE', duration: durationOf1min),
+            new Build(number: 3, timestamp: nowMinus5min, building: false, result: 'SUCCESS', duration: durationOf1min)
+        ]
 
-        jenkinsService.getBuilds('job3') >> new BuildsList(
-            list: [
-                new Build(number: 1, timestamp: nowMinus30min, building: false, result: 'SUCCESS', duration: durationOf1min),
-                new Build(number: 2, timestamp: nowMinus10min, building: false, result: 'FAILURE', duration: durationOf1min),
-                new Build(number: 3, timestamp: nowMinus5min, building: false, result: 'SUCCESS', duration: durationOf1min)
-            ]
-        )
+        jenkinsService.getBuilds('job3') >> [
+            new Build(number: 1, timestamp: nowMinus30min, building: false, result: 'SUCCESS', duration: durationOf1min),
+            new Build(number: 2, timestamp: nowMinus10min, building: false, result: 'FAILURE', duration: durationOf1min),
+            new Build(number: 3, timestamp: nowMinus5min, building: false, result: 'SUCCESS', duration: durationOf1min)
+        ]
 
         when:
         monitor.pollSingle(new PollContext(MASTER))
@@ -257,16 +251,16 @@ class JenkinsBuildMonitorSpec extends Specification {
         ])
 
         and: 'one failed getBuilds() and two successful'
-        jenkinsService.getBuilds('job1') >> new BuildsList(
-            list: [ new Build(number: 1, timestamp: nowMinus30min, building: false, result: 'SUCCESS', duration: durationOf1min), ]
-        )
+        jenkinsService.getBuilds('job1') >> [
+            new Build(number: 1, timestamp: nowMinus30min, building: false, result: 'SUCCESS', duration: durationOf1min)
+        ]
 
         def retrofitEx = RetrofitError.unexpectedError("http://retro.fit/mock/error", new Exception('mock root cause'));
         jenkinsService.getBuilds('job2') >> { throw new RuntimeException ("Mocked failure while fetching 'job2'", retrofitEx) }
 
-        jenkinsService.getBuilds('job3') >> new BuildsList(
-            list: [ new Build(number: 3, timestamp: nowMinus30min, building: false, result: 'SUCCESS', duration: durationOf1min), ]
-        )
+        jenkinsService.getBuilds('job3') >> [
+            new Build(number: 3, timestamp: nowMinus30min, building: false, result: 'SUCCESS', duration: durationOf1min)
+        ]
 
         and:
         monitor.log = Mock(Logger);

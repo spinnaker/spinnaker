@@ -29,7 +29,7 @@ import com.netflix.spinnaker.igor.config.client.JenkinsOkHttpClientProvider
 import com.netflix.spinnaker.igor.config.client.JenkinsRetrofitRequestInterceptorProvider
 import com.netflix.spinnaker.igor.jenkins.client.JenkinsClient
 import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
-import com.netflix.spinnaker.igor.service.BuildMasters
+import com.netflix.spinnaker.igor.service.BuildServices
 import com.netflix.spinnaker.kork.telemetry.InstrumentedProxy
 import com.squareup.okhttp.OkHttpClient
 import groovy.transform.CompileStatic
@@ -79,7 +79,7 @@ class JenkinsConfig {
     }
 
     @Bean
-    Map<String, JenkinsService> jenkinsMasters(BuildMasters buildMasters,
+    Map<String, JenkinsService> jenkinsMasters(BuildServices buildServices,
                                                IgorConfigurationProperties igorConfigurationProperties,
                                                @Valid JenkinsProperties jenkinsProperties,
                                                JenkinsOkHttpClientProvider jenkinsOkHttpClientProvider,
@@ -109,7 +109,7 @@ class JenkinsConfig {
             )]
         })
 
-        buildMasters.map.putAll jenkinsMasters
+        buildServices.addServices(jenkinsMasters)
         jenkinsMasters
     }
 

@@ -16,14 +16,13 @@
 
 package com.netflix.spinnaker.igor.build
 
-import java.util.concurrent.Executors
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import com.netflix.spinnaker.igor.build.model.GenericBuild
 import com.netflix.spinnaker.igor.config.JenkinsConfig
 import com.netflix.spinnaker.igor.jenkins.client.model.*
 import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
 import com.netflix.spinnaker.igor.model.BuildServiceProvider
-import com.netflix.spinnaker.igor.service.BuildMasters
+import com.netflix.spinnaker.igor.service.BuildServices
 import com.netflix.spinnaker.igor.service.BuildService
 import com.netflix.spinnaker.igor.travis.service.TravisService
 import com.netflix.spinnaker.kork.core.RetrySupport
@@ -49,11 +48,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class BuildControllerSpec extends Specification {
 
     MockMvc mockMvc
-    BuildMasters buildMasters
+    BuildServices buildServices
     BuildCache cache
     JenkinsService jenkinsService
     BuildService service
     TravisService travisService
+    Map<String, BuildService> serviceList
     def retrySupport = Spy(RetrySupport) {
         _ * sleep(_) >> { /* do nothing */ }
     }
@@ -61,7 +61,9 @@ class BuildControllerSpec extends Specification {
     @Shared
     MockWebServer server
 
-    final MASTER = 'MASTER'
+    final SERVICE = 'SERVICE'
+    final JENKINS_SERVICE = 'JENKINS_SERVICE'
+    final TRAVIS_SERVICE = 'TRAVIS_SERVICE'
     final HTTP_201 = 201
     final BUILD_NUMBER = 123
     final QUEUED_JOB_NUMBER = 123456
@@ -74,20 +76,22 @@ class BuildControllerSpec extends Specification {
     }
 
     void setup() {
-        jenkinsService = Mock(JenkinsService)
         service = Mock(BuildService)
+        jenkinsService = Mock(JenkinsService)
+        jenkinsService.buildServiceProvider() >> BuildServiceProvider.JENKINS
         travisService = Mock(TravisService)
+        travisService.buildServiceProvider() >> BuildServiceProvider.TRAVIS
+        buildServices = new BuildServices()
+        buildServices.addServices([
+            (SERVICE) : service,
+            (JENKINS_SERVICE): jenkinsService,
+            (TRAVIS_SERVICE): travisService,
+        ])
         cache = Mock(BuildCache)
-        buildMasters = Mock(BuildMasters)
         server = new MockWebServer()
 
         mockMvc = MockMvcBuilders
-            .standaloneSetup(new BuildController(
-                executor: Executors.newSingleThreadExecutor(),
-                buildMasters: buildMasters,
-                objectMapper: new ObjectMapper(),
-                retrySupport: retrySupport
-            ))
+            .standaloneSetup(new BuildController(buildServices, Optional.empty(), Optional.empty()))
             .setControllerAdvice(new GenericExceptionHandlers())
             .build()
     }
@@ -97,25 +101,22 @@ class BuildControllerSpec extends Specification {
         1 * service.getGenericBuild(JOB_NAME, BUILD_NUMBER) >> new GenericBuild(building: false, number: BUILD_NUMBER)
 
         when:
-        MockHttpServletResponse response = mockMvc.perform(get("/builds/status/${BUILD_NUMBER}/${MASTER}/${JOB_NAME}")
+        MockHttpServletResponse response = mockMvc.perform(get("/builds/status/${BUILD_NUMBER}/${SERVICE}/${JOB_NAME}")
             .accept(MediaType.APPLICATION_JSON)).andReturn().response
 
         then:
-        3 * buildMasters.map >> [(MASTER): service]
         response.contentAsString == "{\"building\":false,\"number\":${BUILD_NUMBER}}"
     }
 
     void 'get an item from the queue'() {
         given:
-        1 * jenkinsService.getQueuedItem(QUEUED_JOB_NUMBER) >> new QueuedJob(executable: [number: QUEUED_JOB_NUMBER])
+        1 * jenkinsService.queuedBuild(QUEUED_JOB_NUMBER) >> new QueuedJob(executable: [number: QUEUED_JOB_NUMBER])
 
         when:
-        MockHttpServletResponse response = mockMvc.perform(get("/builds/queue/${MASTER}/${QUEUED_JOB_NUMBER}")
+        MockHttpServletResponse response = mockMvc.perform(get("/builds/queue/${JENKINS_SERVICE}/${QUEUED_JOB_NUMBER}")
             .accept(MediaType.APPLICATION_JSON)).andReturn().response
 
         then:
-        1 * buildMasters.filteredMap(BuildServiceProvider.JENKINS) >> [(MASTER): jenkinsService]
-        1 * buildMasters.map >> [(MASTER): jenkinsService]
         response.contentAsString == "{\"executable\":{\"number\":${QUEUED_JOB_NUMBER}},\"number\":${QUEUED_JOB_NUMBER}}"
     }
 
@@ -163,15 +164,13 @@ class BuildControllerSpec extends Specification {
 
     void 'get a list of builds for a job'() {
         given:
-        1 * jenkinsService.getBuilds(JOB_NAME) >> new BuildsList(list: [new Build(number: 111), new Build(number: 222)])
+        1 * jenkinsService.getBuilds(JOB_NAME) >> [new Build(number: 111), new Build(number: 222)]
 
         when:
-        MockHttpServletResponse response = mockMvc.perform(get("/builds/all/${MASTER}/${JOB_NAME}")
+        MockHttpServletResponse response = mockMvc.perform(get("/builds/all/${JENKINS_SERVICE}/${JOB_NAME}")
             .accept(MediaType.APPLICATION_JSON)).andReturn().response
 
         then:
-        1 * buildMasters.filteredMap(BuildServiceProvider.JENKINS) >> [(MASTER): jenkinsService]
-        1 * buildMasters.map >> [(MASTER): jenkinsService]
         response.contentAsString == "[{\"building\":false,\"number\":111},{\"building\":false,\"number\":222}]"
     }
 
@@ -179,9 +178,6 @@ class BuildControllerSpec extends Specification {
         given:
         jenkinsService.getBuild(JOB_NAME, BUILD_NUMBER) >> new Build(
             number: BUILD_NUMBER, artifacts: [new BuildArtifact(fileName: "badFile.yml", relativePath: FILE_NAME)])
-        buildMasters.filteredMap(BuildServiceProvider.JENKINS) >> [(MASTER): jenkinsService]
-        buildMasters.filteredMap(BuildServiceProvider.TRAVIS) >> [:]
-        buildMasters.map >> [(MASTER): jenkinsService]
 
         expect:
         mockMvc.perform(
@@ -193,14 +189,13 @@ class BuildControllerSpec extends Specification {
 
     void 'get properties of a build with a bad filename'() {
         given:
-        jenkinsService.getBuild(JOB_NAME, BUILD_NUMBER) >> new Build(
-            number: BUILD_NUMBER, artifacts: [new BuildArtifact(fileName: "badFile.yml", relativePath: FILE_NAME)])
-        buildMasters.filteredMap(BuildServiceProvider.JENKINS) >> [(MASTER): jenkinsService]
-        buildMasters.map >> [(MASTER): jenkinsService]
+        jenkinsService.getBuildProperties(JOB_NAME, BUILD_NUMBER, FILE_NAME) >> {
+            throw new NotFoundException()
+        }
 
         expect:
         mockMvc.perform(
-            get("/builds/properties/${BUILD_NUMBER}/${FILE_NAME}/${MASTER}/${JOB_NAME}")
+            get("/builds/properties/${BUILD_NUMBER}/${FILE_NAME}/${JENKINS_SERVICE}/${JOB_NAME}")
                 .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isNotFound())
             .andReturn().response
@@ -208,17 +203,14 @@ class BuildControllerSpec extends Specification {
 
     void 'get properties of a travis build'() {
         given:
-        1 * travisService.getBuildProperties(JOB_NAME, BUILD_NUMBER) >> ['foo': 'bar']
+        1 * travisService.getBuildProperties(JOB_NAME, BUILD_NUMBER, _) >> ['foo': 'bar']
 
         when:
         MockHttpServletResponse response = mockMvc.perform(
-            get("/builds/properties/${BUILD_NUMBER}/${FILE_NAME}/${MASTER}/${JOB_NAME}")
+            get("/builds/properties/${BUILD_NUMBER}/${FILE_NAME}/${TRAVIS_SERVICE}/${JOB_NAME}")
                 .accept(MediaType.APPLICATION_JSON)).andReturn().response
 
         then:
-        1 * buildMasters.filteredMap(BuildServiceProvider.JENKINS) >> new HashMap<String, BuildService>()
-        1 * buildMasters.filteredMap(BuildServiceProvider.TRAVIS) >> [(MASTER): travisService]
-        1 * buildMasters.map >> [(MASTER): travisService]
         response.contentAsString == "{\"foo\":\"bar\"}"
     }
 
@@ -228,12 +220,10 @@ class BuildControllerSpec extends Specification {
         1 * jenkinsService.build(JOB_NAME) >> new Response("http://test.com", HTTP_201, "", [new Header("Location", "foo/${BUILD_NUMBER}")], null)
 
         when:
-        MockHttpServletResponse response = mockMvc.perform(put("/masters/${MASTER}/jobs/${JOB_NAME}")
+        MockHttpServletResponse response = mockMvc.perform(put("/masters/${JENKINS_SERVICE}/jobs/${JOB_NAME}")
             .accept(MediaType.APPLICATION_JSON)).andReturn().response
 
         then:
-        1 * buildMasters.filteredMap(BuildServiceProvider.JENKINS) >> [(MASTER): jenkinsService]
-        1 * buildMasters.map >> [(MASTER): jenkinsService]
         response.contentAsString == BUILD_NUMBER.toString()
 
     }
@@ -244,12 +234,10 @@ class BuildControllerSpec extends Specification {
         1 * jenkinsService.buildWithParameters(JOB_NAME, [name: "myName"]) >> new Response("http://test.com", HTTP_201, "", [new Header("Location", "foo/${BUILD_NUMBER}")], null)
 
         when:
-        MockHttpServletResponse response = mockMvc.perform(put("/masters/${MASTER}/jobs/${JOB_NAME}")
+        MockHttpServletResponse response = mockMvc.perform(put("/masters/${JENKINS_SERVICE}/jobs/${JOB_NAME}")
             .contentType(MediaType.APPLICATION_JSON).param("name", "myName")).andReturn().response
 
         then:
-        1 * buildMasters.filteredMap(BuildServiceProvider.JENKINS) >> [(MASTER): jenkinsService]
-        1 * buildMasters.map >> [(MASTER): jenkinsService]
         response.contentAsString == BUILD_NUMBER.toString()
     }
 
@@ -259,12 +247,10 @@ class BuildControllerSpec extends Specification {
         1 * jenkinsService.buildWithParameters(JOB_NAME, ['startedBy': "igor"]) >> new Response("http://test.com", HTTP_201, "", [new Header("Location", "foo/${BUILD_NUMBER}")], null)
 
         when:
-        MockHttpServletResponse response = mockMvc.perform(put("/masters/${MASTER}/jobs/${JOB_NAME}", "")
+        MockHttpServletResponse response = mockMvc.perform(put("/masters/${JENKINS_SERVICE}/jobs/${JOB_NAME}", "")
             .accept(MediaType.APPLICATION_JSON)).andReturn().response
 
         then:
-        1 * buildMasters.filteredMap(BuildServiceProvider.JENKINS) >> [(MASTER): jenkinsService]
-        1 * buildMasters.map >> [(MASTER): jenkinsService]
         response.contentAsString == BUILD_NUMBER.toString()
     }
 
@@ -273,12 +259,10 @@ class BuildControllerSpec extends Specification {
         1 * jenkinsService.getJobConfig(JOB_NAME) >> new JobConfig(buildable: true)
 
         when:
-        MockHttpServletResponse response = mockMvc.perform(put("/masters/${MASTER}/jobs/${JOB_NAME}")
+        MockHttpServletResponse response = mockMvc.perform(put("/masters/${JENKINS_SERVICE}/jobs/${JOB_NAME}")
             .contentType(MediaType.APPLICATION_JSON).param("foo", "bar")).andReturn().response
 
         then:
-        1 * buildMasters.filteredMap(BuildServiceProvider.JENKINS) >> [(MASTER): jenkinsService]
-        1 * buildMasters.map >> [(MASTER): jenkinsService]
         response.status == HttpStatus.INTERNAL_SERVER_ERROR.value()
     }
 
@@ -291,13 +275,11 @@ class BuildControllerSpec extends Specification {
         1 * jenkinsService.getJobConfig(JOB_NAME) >> config
 
         when:
-        MockHttpServletResponse response = mockMvc.perform(put("/masters/${MASTER}/jobs/${JOB_NAME}")
+        MockHttpServletResponse response = mockMvc.perform(put("/masters/${JENKINS_SERVICE}/jobs/${JOB_NAME}")
             .contentType(MediaType.APPLICATION_JSON).param("foo", "bat")).andReturn().response
 
         then:
 
-        1 * buildMasters.filteredMap(BuildServiceProvider.JENKINS) >> [(MASTER): jenkinsService]
-        1 * buildMasters.map >> [(MASTER): jenkinsService]
         response.status == HttpStatus.BAD_REQUEST.value()
         response.errorMessage == "`bat` is not a valid choice for `foo`. Valid choices are: bar, baz"
     }
@@ -308,12 +290,10 @@ class BuildControllerSpec extends Specification {
         1 * jenkinsService.getJobConfig(JOB_NAME) >> config
 
         when:
-        MockHttpServletResponse response = mockMvc.perform(put("/masters/${MASTER}/jobs/${JOB_NAME}")
+        MockHttpServletResponse response = mockMvc.perform(put("/masters/${JENKINS_SERVICE}/jobs/${JOB_NAME}")
             .contentType(MediaType.APPLICATION_JSON).param("foo", "bat")).andReturn().response
 
         then:
-        1 * buildMasters.filteredMap(BuildServiceProvider.JENKINS) >> [(MASTER): jenkinsService]
-        1 * buildMasters.map >> [(MASTER): jenkinsService]
         response.status == HttpStatus.BAD_REQUEST.value()
         response.errorMessage == "Job '${JOB_NAME}' is not buildable. It may be disabled."
     }

@@ -150,7 +150,7 @@ public class BuildCache {
     }
 
     private static Map<String, String> getTrackedBuild(String key) {
-        Map<String, String> build = new HashMap();
+        Map<String, String> build = new HashMap<>();
         build.put("job", extractJobName(key));
         build.put("buildId", extractBuildIdFromTrackingKey(key));
         return build;

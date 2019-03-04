@@ -58,6 +58,11 @@ public class GitlabCiService implements BuildService {
     }
 
     @Override
+    public List<GenericBuild> getBuilds(String job) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public int triggerBuildWithParameters(String job, Map<String, String> queryParameters) {
         throw new UnsupportedOperationException();
     }

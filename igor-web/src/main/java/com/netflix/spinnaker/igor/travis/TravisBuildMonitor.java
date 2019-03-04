@@ -29,7 +29,7 @@ import com.netflix.spinnaker.igor.history.model.GenericBuildContent;
 import com.netflix.spinnaker.igor.history.model.GenericBuildEvent;
 import com.netflix.spinnaker.igor.model.BuildServiceProvider;
 import com.netflix.spinnaker.igor.polling.*;
-import com.netflix.spinnaker.igor.service.BuildMasters;
+import com.netflix.spinnaker.igor.service.BuildServices;
 import com.netflix.spinnaker.igor.travis.client.model.Repo;
 import com.netflix.spinnaker.igor.travis.client.model.v3.TravisBuildState;
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Build;
@@ -61,7 +61,7 @@ public class TravisBuildMonitor extends CommonPollingMonitor<TravisBuildMonitor.
     private static final long BUILD_STARTED_AT_THRESHOLD = TimeUnit.SECONDS.toMillis(30);
 
     private final BuildCache buildCache;
-    private final BuildMasters buildMasters;
+    private final BuildServices buildServices;
     private final TravisProperties travisProperties;
     private final Optional<EchoService> echoService;
 
@@ -70,13 +70,13 @@ public class TravisBuildMonitor extends CommonPollingMonitor<TravisBuildMonitor.
                               Registry registry,
                               Optional<DiscoveryClient> discoveryClient,
                               BuildCache buildCache,
-                              BuildMasters buildMasters,
+                              BuildServices buildServices,
                               TravisProperties travisProperties,
                               Optional<EchoService> echoService,
                               Optional<LockService> lockService) {
         super(properties, registry, discoveryClient, lockService);
         this.buildCache = buildCache;
-        this.buildMasters = buildMasters;
+        this.buildServices = buildServices;
         this.travisProperties = travisProperties;
         this.echoService = echoService;
     }
@@ -88,14 +88,14 @@ public class TravisBuildMonitor extends CommonPollingMonitor<TravisBuildMonitor.
 
     @Override
     public void poll(boolean sendEvents) {
-        buildMasters.filteredMap(BuildServiceProvider.TRAVIS).keySet()
+        buildServices.getServiceNames(BuildServiceProvider.TRAVIS)
             .forEach(master -> pollSingle(new PollContext(master, !sendEvents)));
     }
 
     @Override
     protected BuildPollingDelta generateDelta(PollContext ctx) {
         final String master = ctx.partitionName;
-        final TravisService travisService = (TravisService) buildMasters.getMap().get(master);
+        final TravisService travisService = (TravisService) buildServices.getService(master);
 
         List<BuildDelta> builds = new ArrayList<>();
         builds.addAll(trackedBuilds(master, travisService));
@@ -110,7 +110,7 @@ public class TravisBuildMonitor extends CommonPollingMonitor<TravisBuildMonitor.
     @Override
     protected void commitDelta(BuildPollingDelta delta, boolean sendEvents) {
         final String master = delta.getMaster();
-        final TravisService travisService = (TravisService) buildMasters.getMap().get(master);
+        final TravisService travisService = (TravisService) buildServices.getService(master);
 
         delta.getItems().parallelStream().forEach(item -> {
             V3Build build = item.getBuild();
@@ -232,7 +232,7 @@ public class TravisBuildMonitor extends CommonPollingMonitor<TravisBuildMonitor.
     }
 
     private void migrateToNewBuildCache() {
-        buildMasters.filteredMap(BuildServiceProvider.TRAVIS).keySet().forEach(master ->
+        buildServices.getServiceNames(BuildServiceProvider.TRAVIS).forEach(master ->
             buildCache.getDeprecatedJobNames(master).forEach(job -> {
                 Map<String, Object> oldBuild = buildCache.getDeprecatedLastBuild(master, job);
                 if (!oldBuild.isEmpty()) {
