@@ -69,12 +69,19 @@ interface ExpressionAware {
     // context. Otherwise, it's very confusing in the UI because the value is clearly correctly evaluated but
     // the error is still shown
     if (hasFailedExpressions()) {
-      val failedExpressions = this.context[PipelineExpressionEvaluator.SUMMARY] as MutableMap<String, *>
+      try {
+        val failedExpressions = this.context[PipelineExpressionEvaluator.SUMMARY] as MutableMap<String, *>
 
-      failedExpressions.keys.forEach { expressionKey ->
-        if (evalSummary.wasAttempted(expressionKey) && !evalSummary.hasFailed(expressionKey)) {
+        val keysToRemove: List<String> = failedExpressions.keys.filter { expressionKey ->
+          (evalSummary.wasAttempted(expressionKey) && !evalSummary.hasFailed(expressionKey))
+        }.toList()
+
+        keysToRemove.forEach { expressionKey ->
           failedExpressions.remove(expressionKey)
         }
+      } catch (e: Exception) {
+        // Best effort clean up, if if fails just log the error and leave the context be
+        log.error("Failed to remove stale expression errors", e)
       }
     }
 
