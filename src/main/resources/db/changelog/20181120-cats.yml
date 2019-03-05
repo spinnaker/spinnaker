@@ -180,3 +180,33 @@ databaseChangeLog:
         columns:
         - column:
             name: last_updated
+
+- changeSet:
+    id: longer-id-columns
+    author: afeldman
+    changes:
+    - modifyDataType:
+        tableName: cats_v1_resource_template
+        columnName: id
+        newDataType: varchar(352)
+    - modifyDataType:
+        tableName: cats_v1_rel_template
+        columnName: id
+        newDataType: varchar(352)
+    - modifyDataType:
+        tableName: cats_v1_rel_template
+        columnName: rel_id
+        newDataType: varchar(352)
+    rollback:
+    - modifyDataType:
+        tableName: cats_v1_resource_template
+        columnName: id
+        newDataType: varchar(255)
+    - modifyDataType:
+        tableName: cats_v1_rel_template
+        columnName: id
+        newDataType: varchar(255)
+    - modifyDataType:
+        tableName: cats_v1_rel_template
+        columnName: rel_id
+        newDataType: varchar(255)
