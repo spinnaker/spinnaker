@@ -6,7 +6,7 @@ import org.redline_rpm.header.Flags
 buildscript {
   repositories {
     jcenter()
-    maven { url "http://dl.bintray.com/spinnaker/gradle" }
+    maven { url "https://dl.bintray.com/spinnaker/gradle" }
     maven { url "https://plugins.gradle.org/m2/" }
   }
   dependencies {
