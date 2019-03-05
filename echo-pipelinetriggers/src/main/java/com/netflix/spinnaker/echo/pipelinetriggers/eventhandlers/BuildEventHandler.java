@@ -17,22 +17,24 @@
 
 package com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers;
 
-import static com.netflix.spinnaker.echo.pipelinetriggers.artifacts.ArtifactMatcher.anyArtifactsMatchExpected;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.echo.build.BuildInfoService;
 import com.netflix.spinnaker.echo.model.Pipeline;
 import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.model.trigger.BuildEvent;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+
+import static com.netflix.spinnaker.echo.pipelinetriggers.artifacts.ArtifactMatcher.anyArtifactsMatchExpected;
 
 /**
  * Implementation of TriggerEventHandler for events of type {@link BuildEvent}, which occur when
@@ -41,10 +43,12 @@ import org.springframework.stereotype.Component;
 @Component
 public class BuildEventHandler extends BaseTriggerEventHandler<BuildEvent> {
   private static final String[] BUILD_TRIGGER_TYPES = {"jenkins", "travis", "wercker"};
+  private final Optional<BuildInfoService> buildInfoService;
 
   @Autowired
-  public BuildEventHandler(Registry registry, ObjectMapper objectMapper) {
+  public BuildEventHandler(Registry registry, ObjectMapper objectMapper, Optional<BuildInfoService> buildInfoService) {
     super(registry, objectMapper);
+    this.buildInfoService = buildInfoService;
   }
 
   @Override
@@ -64,11 +68,19 @@ public class BuildEventHandler extends BaseTriggerEventHandler<BuildEvent> {
   }
 
   @Override
-  protected Function<Trigger, Pipeline> buildTrigger(Pipeline pipeline, BuildEvent buildEvent) {
-    return trigger -> pipeline.withTrigger(trigger.atBuildNumber(buildEvent.getBuildNumber())
-                                                  .withEventId(buildEvent.getEventId())
-                                                  .withLink(buildEvent.getContent().getProject().getLastBuild().getUrl()))
-                              .withReceivedArtifacts(getArtifacts(buildEvent));
+  public Function<Trigger, Pipeline> buildTrigger(Pipeline pipeline, BuildEvent buildEvent) {
+    return inputTrigger -> {
+      Trigger trigger = inputTrigger.atBuildNumber(buildEvent.getBuildNumber())
+        .withEventId(buildEvent.getEventId())
+        .withLink(buildEvent.getContent().getProject().getLastBuild().getUrl());
+      if (buildInfoService.isPresent()) {
+        trigger = trigger.withBuildInfo(buildInfoService.get().getBuildInfo(buildEvent))
+          .withProperties(buildInfoService.get().getProperties(buildEvent, inputTrigger.getPropertyFile()));
+      }
+      return pipeline
+        .withTrigger(trigger)
+        .withReceivedArtifacts(getArtifacts(buildEvent));
+    };
   }
 
   @Override

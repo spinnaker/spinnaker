@@ -34,7 +34,10 @@ import org.springframework.context.annotation.Import;
  * Configuration for Event Propagator
  */
 @Configuration
-@ComponentScan("com.netflix.spinnaker.echo.events")
+@ComponentScan({
+  "com.netflix.spinnaker.echo.build",
+  "com.netflix.spinnaker.echo.events"
+})
 @Import(DiscoveryPollingConfiguration.class)
 public class EchoCoreConfig {
   private ApplicationContext context;

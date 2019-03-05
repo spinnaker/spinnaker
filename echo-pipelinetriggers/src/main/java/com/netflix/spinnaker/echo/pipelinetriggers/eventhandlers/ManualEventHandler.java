@@ -17,18 +17,21 @@
 package com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.echo.build.BuildInfoService;
 import com.netflix.spinnaker.echo.model.Event;
 import com.netflix.spinnaker.echo.model.Pipeline;
 import com.netflix.spinnaker.echo.model.Trigger;
+import com.netflix.spinnaker.echo.model.trigger.BuildEvent;
 import com.netflix.spinnaker.echo.model.trigger.ManualEvent;
 import com.netflix.spinnaker.echo.model.trigger.ManualEvent.Content;
+import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Component;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 /**
  * Implementation of TriggerEventHandler for events of type {@link ManualEvent}, which occur when a
@@ -38,15 +41,12 @@ import org.springframework.stereotype.Component;
  * looks for the pipeline whose application and id/name match the manual execution request.
  */
 @Component
+@RequiredArgsConstructor
 public class ManualEventHandler implements TriggerEventHandler<ManualEvent> {
   private static final String MANUAL_TRIGGER_TYPE = "manual";
 
   private final ObjectMapper objectMapper;
-
-  @Autowired
-  public ManualEventHandler(ObjectMapper objectMapper) {
-    this.objectMapper = objectMapper;
-  }
+  private final Optional<BuildInfoService> buildInfoService;
 
   @Override
   public boolean handleEventType(String eventType) {
@@ -78,8 +78,17 @@ public class ManualEventHandler implements TriggerEventHandler<ManualEvent> {
 
   private Pipeline buildTrigger(Pipeline pipeline, Trigger manualTrigger) {
     List<Map<String, Object>> notifications = buildNotifications(pipeline.getNotifications(), manualTrigger.getNotifications());
+    Trigger trigger = manualTrigger.atPropagateAuth(true);
+    if (buildInfoService.isPresent()) {
+      Optional<BuildEvent> buildEvent = extractBuildInformation(manualTrigger);
+      if (buildEvent.isPresent()) {
+        trigger = trigger
+          .withBuildInfo(buildInfoService.get().getBuildInfo(buildEvent.get()))
+          .withProperties(buildInfoService.get().getProperties(buildEvent.get(), manualTrigger.getPropertyFile()));
+      }
+    }
     return pipeline
-      .withTrigger(manualTrigger.atPropagateAuth(true))
+      .withTrigger(trigger)
       .withNotifications(notifications);
   }
 
@@ -93,4 +102,23 @@ public class ManualEventHandler implements TriggerEventHandler<ManualEvent> {
     }
     return notifications;
   }
+
+  // Manual triggers try to replicate actual events (and in some cases build events) but rather than pass the event to
+  // echo, they add the information to the trigger. It may make sense to refactor manual triggering to pass a trigger and
+  // an event as with other triggers, but for now we'll see whether we can extract a build event from the trigger.
+  private Optional<BuildEvent> extractBuildInformation(Trigger manualTrigger) {
+    String master = manualTrigger.getMaster();
+    String job = manualTrigger.getJob();
+    if (StringUtils.isNoneEmpty(master, job)) {
+      BuildEvent.Build build = new BuildEvent.Build();
+      build.setNumber(manualTrigger.getBuildNumber());
+      BuildEvent.Project project = new BuildEvent.Project(job, build);
+      BuildEvent.Content content = new BuildEvent.Content(project, master);
+      BuildEvent buildEvent = new BuildEvent();
+      buildEvent.setContent(content);
+      return Optional.of(buildEvent);
+    }
+    return Optional.empty();
+  }
+
 }

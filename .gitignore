@@ -1,5 +1,6 @@
 /.gradle/
-build
+/build
+*/build/
 .DS_Store
 *.iml
 *.ipr
