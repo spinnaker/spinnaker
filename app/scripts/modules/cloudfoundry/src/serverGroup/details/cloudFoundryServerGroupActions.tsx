@@ -352,14 +352,14 @@ export class CloudFoundryServerGroupActions extends React.Component<ICloudFoundr
           {!serverGroup.isDisabled && (
             <li>
               <a className="clickable" onClick={this.mapServerGroupToLoadBalancers}>
-                Map Load Balancers
+                Map Load Balancer
               </a>
             </li>
           )}
           {!serverGroup.isDisabled && loadBalancers && !!loadBalancers.length && (
             <li>
               <a className="clickable" onClick={this.unmapServerGroupFromLoadBalancers}>
-                Unmap Load Balancers
+                Unmap Load Balancer
               </a>
             </li>
           )}
