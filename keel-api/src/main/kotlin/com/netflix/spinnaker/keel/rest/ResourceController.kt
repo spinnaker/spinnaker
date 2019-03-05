@@ -53,8 +53,8 @@ class ResourceController(
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   @PostMapping(
-    consumes = [APPLICATION_YAML_VALUE, APPLICATION_JSON_VALUE],
-    produces = [APPLICATION_YAML_VALUE, APPLICATION_JSON_VALUE]
+    consumes = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE],
+    produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
   @ResponseStatus(CREATED)
   fun create(@RequestBody submittedResource: SubmittedResource<*>): Resource<*> {
@@ -66,7 +66,7 @@ class ResourceController(
 
   @GetMapping(
     path = ["/{name}"],
-    produces = [APPLICATION_YAML_VALUE, APPLICATION_JSON_VALUE]
+    produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
   fun get(@PathVariable("name") name: ResourceName): Resource<Any> {
     log.info("Getting: $name")
@@ -75,7 +75,8 @@ class ResourceController(
 
   @PutMapping(
     path = ["/{name}"],
-    produces = [APPLICATION_YAML_VALUE, APPLICATION_JSON_VALUE]
+    consumes = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE],
+    produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
   fun update(@PathVariable("name") name: ResourceName, @RequestBody resource: Resource<Any>): Resource<out Any> {
     log.info("Updating: $resource")
@@ -84,7 +85,7 @@ class ResourceController(
 
   @DeleteMapping(
     path = ["/{name}"],
-    produces = [APPLICATION_YAML_VALUE, APPLICATION_JSON_VALUE]
+    produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
   fun delete(@PathVariable("name") name: ResourceName): Resource<*> {
     log.info("Deleting: $name")

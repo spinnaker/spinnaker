@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping(path = ["/kinds"])
 class KindController(val plugins: List<ResourceHandler<*>>) {
-  @GetMapping(produces = [APPLICATION_YAML_VALUE, APPLICATION_JSON_VALUE])
+  @GetMapping(produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE])
   fun get(): List<Map<String, Any>> =
     plugins
       .groupBy { it.apiVersion }
