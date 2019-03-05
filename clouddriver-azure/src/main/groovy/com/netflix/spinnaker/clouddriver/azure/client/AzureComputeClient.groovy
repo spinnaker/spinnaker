@@ -22,11 +22,14 @@ import com.microsoft.azure.management.compute.VirtualMachineImage
 import com.microsoft.azure.management.compute.VirtualMachineOffer
 import com.microsoft.azure.management.compute.VirtualMachinePublisher
 import com.microsoft.azure.management.compute.VirtualMachineScaleSetVM
+import com.microsoft.azure.management.compute.VirtualMachineSizes
 import com.microsoft.azure.management.compute.VirtualMachineSku
 import com.microsoft.rest.ServiceResponse
 import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.AzureInstance
 import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.AzureServerGroupDescription
 import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.model.AzureVMImage
+import com.netflix.spinnaker.clouddriver.azure.security.AzureNamedAccountCredentials
+import groovy.transform.Canonical
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 
@@ -192,6 +195,22 @@ public class AzureComputeClient extends AzureBaseClient {
     instances
   }
 
+  Map<String, List<VirtualMachineSize>> getVirtualMachineSizesByRegions(List<AzureNamedAccountCredentials.AzureRegion> regions) {
+    HashMap<String, List<VirtualMachineSize>> result = new HashMap<>()
+    executeOp({
+      VirtualMachineSizes sizes = azure.virtualMachines().sizes()
+      for (AzureNamedAccountCredentials.AzureRegion region : regions) {
+        List<VirtualMachineSize> regionSizes = sizes.listByRegion(region.name).toList().collect { new VirtualMachineSize(name: it.name())}
+        result.put(region.name, regionSizes)
+      }
+    })
+    result
+  }
+
+  @Canonical
+  static class VirtualMachineSize {
+    String name
+  }
 
   /***
    * The namespace for the Azure Resource Provider
