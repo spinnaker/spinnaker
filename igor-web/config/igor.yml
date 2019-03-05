@@ -17,7 +17,7 @@ endpoints.health.sensitive: false
 
 spring.jackson.serialization.write_dates_as_timestamps: false
 
-
+server.port: 8088
 
 #artifact:
 #  This is a feature toggle for decoration of artifacts.

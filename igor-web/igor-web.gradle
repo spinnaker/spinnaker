@@ -10,6 +10,10 @@ run {
 
 mainClassName = 'com.netflix.spinnaker.igor.Main'
 
+test {
+  useJUnitPlatform()
+}
+
 dependencies {
     spinnaker.group "test"
     spinnaker.group "bootWeb"
@@ -31,14 +35,21 @@ dependencies {
     compile spinnaker.dependency("korkHystrix")
     compile spinnaker.dependency("okHttp")
     compile spinnaker.dependency('logstashEncoder')
+    compile spinnaker.dependency("lombok")
+    compile spinnaker.dependency('korkArtifacts')
 
     compile 'org.yaml:snakeyaml:1.15'
     compile 'com.squareup.retrofit:converter-simplexml:1.9.0'
     compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.9.6'
     compile 'com.google.code.gson:gson:2.8.2'
-    testCompile 'com.squareup.okhttp:mockwebserver:2.7.0'
+    compile 'org.jfrog.artifactory.client:artifactory-java-client-services:2.8.1'
 
+    testCompile 'com.squareup.okhttp:mockwebserver:2.7.0'
     testCompile spinnaker.dependency("korkJedisTest")
+    testCompile spinnaker.dependency("junitJupiterApi")
+    testCompile spinnaker.dependency("assertj")
+
+    testRuntime spinnaker.dependency("junitJupiterEngine")
 }
 
 configurations.all {
