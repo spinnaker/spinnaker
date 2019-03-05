@@ -136,6 +136,12 @@ public class AppengineAddAccountCommand extends AbstractAddAccountCommand {
   )
   private List<String> omitVersions;
 
+  @Parameter(
+      names = "--caching-interval-seconds",
+      description = AppengineCommandProperties.CACHING_INTERVAL_SECONDS
+  )
+  private Long cachingIntervalSeconds;
+
   @Override
   protected Account buildAccount(String accountName) {
     AppengineAccount account = (AppengineAccount) new AppengineAccount().setName(accountName);
@@ -149,7 +155,8 @@ public class AppengineAddAccountCommand extends AbstractAddAccountCommand {
             .setServices(services)
             .setVersions(versions)
             .setOmitServices(omitServices)
-            .setOmitVersions(omitVersions);
+            .setOmitVersions(omitVersions)
+            .setCachingIntervalSeconds(cachingIntervalSeconds);
 
     return account;
   }

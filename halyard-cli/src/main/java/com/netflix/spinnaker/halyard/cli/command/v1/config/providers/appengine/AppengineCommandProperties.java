@@ -45,4 +45,6 @@ public class AppengineCommandProperties {
             "will be ignored by Spinnaker.";
     static final String OMIT_VERSIONS = "A list of regular expressions. Any version matching one of these regexes " +
             "will be ignored by Spinnaker.";
+    static final String CACHING_INTERVAL_SECONDS = "The interval in seconds at which Spinnaker will poll for updates " +
+            "in your AppEngine clusters.";
 }

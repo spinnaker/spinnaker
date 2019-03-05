@@ -5962,6 +5962,7 @@ hal config provider appengine account add ACCOUNT [parameters]
 
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
+ * `--caching-interval-seconds`: The interval in seconds at which Spinnaker will poll for updates in your AppEngine clusters.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--environment`: The environment name for the account. Many accounts can share the same environment (e.g. dev, test, prod)
  * `--gcloud-release-track`: The gcloud release track (ALPHA, BETA, or STABLE) that Spinnaker will use when deploying to App Engine.
@@ -6017,6 +6018,7 @@ hal config provider appengine account edit ACCOUNT [parameters]
  * `--add-read-permission`: Add this permission to the list of read permissions.
  * `--add-required-group-membership`: Add this group to the list of required group memberships.
  * `--add-write-permission`: Add this permission to the list of write permissions.
+ * `--caching-interval-seconds`: The interval in seconds at which Spinnaker will poll for updates in your AppEngine clusters.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--environment`: The environment name for the account. Many accounts can share the same environment (e.g. dev, test, prod)
  * `--gcloud-release-track`: The gcloud release track (ALPHA, BETA, or STABLE) that Spinnaker will use when deploying to App Engine.

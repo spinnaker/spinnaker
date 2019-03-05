@@ -70,6 +70,11 @@ public class AppengineAccount extends CommonGoogleAccount {
           tooLowMessage = "The set of versions that Spinnaker will ignore is not configurable prior to this release."
   )
   private List<String> omitVersions;
+  @ValidForSpinnakerVersion(
+          lowerBound = "1.13.0",
+          tooLowMessage = "The AppEngine provider's caching interval is not configurable prior to this release."
+  )
+  private Long cachingIntervalSeconds;
 
   public enum GcloudReleaseTrack {
     ALPHA,

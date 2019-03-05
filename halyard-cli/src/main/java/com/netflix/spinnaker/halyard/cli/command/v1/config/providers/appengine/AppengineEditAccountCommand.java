@@ -136,6 +136,12 @@ public class AppengineEditAccountCommand extends AbstractEditAccountCommand<Appe
   )
   private List<String> omitVersions;
 
+  @Parameter(
+          names = "--caching-interval-seconds",
+          description = AppengineCommandProperties.CACHING_INTERVAL_SECONDS
+  )
+  private Long cachingIntervalSeconds;
+
   @Override
   protected Account editAccount(AppengineAccount account) {
     account.setJsonPath(isSet(jsonPath) ? jsonPath : account.getJsonPath());
@@ -153,6 +159,7 @@ public class AppengineEditAccountCommand extends AbstractEditAccountCommand<Appe
     account.setVersions(versions != null ? versions : account.getVersions());
     account.setOmitServices(omitServices != null ? omitServices : account.getOmitServices());
     account.setOmitVersions(omitVersions != null ? omitVersions : account.getOmitVersions());
+    account.setCachingIntervalSeconds(cachingIntervalSeconds != null ? cachingIntervalSeconds : account.getCachingIntervalSeconds());
     
     return account;
   }
