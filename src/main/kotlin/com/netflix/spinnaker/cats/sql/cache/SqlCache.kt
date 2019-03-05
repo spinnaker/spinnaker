@@ -49,6 +49,8 @@ class SqlCache(
 ) : WriteableCache {
 
   companion object {
+    // 352 * 2 + 64 (max rel_type length) == 768; 768 * 4 (utf8mb4) == 3072 == Aurora's max index length
+    private const val MAX_ID_LENGTH = 352
     private const val onDemandType = "onDemand"
 
     private val schemaVersion = SqlSchemaVersion.current()
@@ -442,8 +444,13 @@ class SqlCache(
     val bodies = mutableMapOf<String, String>() // id to body
     val hashes = mutableMapOf<String, String>() // id to sha256(body)
 
+    items.filter { it.id.length > MAX_ID_LENGTH }
+      .forEach {
+        log.error("Dropping ${it.id} - character length exceeds MAX_ID_LENGTH ($MAX_ID_LENGTH)")
+      }
+
     items
-      .filter { it.id != "_ALL_" }
+      .filter { it.id != "_ALL_" && it.id.length <= MAX_ID_LENGTH }
       .forEach {
         currentIds.add(it.id)
         val keys = it.attributes
@@ -579,6 +586,7 @@ class SqlCache(
         getRelationshipKeys(type, it)
       }
       .flatten()
+
     val existingRevRelTypes = mutableSetOf<String>()
     items
       .filter { it.id != "_ALL_" }
@@ -622,11 +630,12 @@ class SqlCache(
     val newRevRelIds = mutableSetOf<String>()
 
     items
-      .filter { it.id != "_ALL_" }
+      .filter { it.id != "_ALL_" && it.id.length <= MAX_ID_LENGTH }
       .forEach { cacheData ->
         cacheData.relationships.entries.forEach { rels ->
           val relType = rels.key.substringBefore(delimiter = ":", missingDelimiterValue = "")
-          rels.value.forEach { r ->
+          rels.value.filter { it.length <= MAX_ID_LENGTH }
+            .forEach { r ->
             val fwdKey = "${cacheData.id}|$r"
             val revKey = "$r|${cacheData.id}"
             currentIds.add(fwdKey)
