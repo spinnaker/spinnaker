@@ -89,6 +89,7 @@ class AppengineCredentialsInitializer implements CredentialsInitializerSynchroni
           .versions(managedAccount.versions)
           .omitServices(managedAccount.omitServices)
           .omitVersions(managedAccount.omitVersions)
+          .cachingIntervalSeconds(managedAccount.cachingIntervalSeconds)
           .build()
 
         accountCredentialsRepository.save(managedAccount.name, appengineAccount)

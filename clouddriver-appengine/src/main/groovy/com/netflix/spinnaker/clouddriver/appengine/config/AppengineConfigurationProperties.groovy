@@ -47,6 +47,7 @@ class AppengineConfigurationProperties {
     List<String> versions
     List<String> omitServices
     List<String> omitVersions
+    Long cachingIntervalSeconds
 
     void initialize(AppengineJobExecutor jobExecutor) {
       if (this.jsonPath) {

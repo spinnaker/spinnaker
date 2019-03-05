@@ -59,6 +59,8 @@ class AppengineNamedAccountCredentials implements AccountCredentials<AppengineCr
   final List<String> omitServices
   final List<String> omitVersions
 
+  final Long cachingIntervalSeconds
+
   static class Builder {
     String name
     String environment
@@ -88,6 +90,7 @@ class AppengineNamedAccountCredentials implements AccountCredentials<AppengineCr
     List<String> versions
     List<String> omitServices
     List<String> omitVersions
+    Long cachingIntervalSeconds
 
     /*
     * If true, the builder will overwrite region with a value from the platform.
@@ -233,6 +236,11 @@ class AppengineNamedAccountCredentials implements AccountCredentials<AppengineCr
       return this
     }
 
+    Builder cachingIntervalSeconds(Long interval) {
+      this.cachingIntervalSeconds = interval
+      return this
+    }
+
     AppengineNamedAccountCredentials build() {
       credentials = credentials ?:
         jsonKey ?
@@ -276,7 +284,8 @@ class AppengineNamedAccountCredentials implements AccountCredentials<AppengineCr
                                                   services,
                                                   versions,
                                                   omitServices,
-                                                  omitVersions)
+                                                  omitVersions,
+                                                  cachingIntervalSeconds)
     }
   }
 }

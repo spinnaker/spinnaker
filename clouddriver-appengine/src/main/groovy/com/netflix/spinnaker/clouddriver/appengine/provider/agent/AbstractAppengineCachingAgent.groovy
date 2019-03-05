@@ -19,13 +19,16 @@ package com.netflix.spinnaker.clouddriver.appengine.provider.agent
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.client.googleapis.batch.BatchRequest
 import com.netflix.spinnaker.cats.agent.AccountAware
+import com.netflix.spinnaker.cats.agent.AgentIntervalAware
 import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.clouddriver.appengine.AppengineCloudProvider
 import com.netflix.spinnaker.clouddriver.appengine.provider.AppengineProvider
 import com.netflix.spinnaker.clouddriver.appengine.security.AppengineNamedAccountCredentials
 
-abstract class AbstractAppengineCachingAgent implements CachingAgent, AccountAware {
+import java.util.concurrent.TimeUnit
+
+abstract class AbstractAppengineCachingAgent implements CachingAgent, AccountAware, AgentIntervalAware {
   final String accountName
   final String providerName = AppengineProvider.PROVIDER_NAME
   final AppengineCloudProvider appengineCloudProvider = new AppengineCloudProvider()
@@ -84,6 +87,13 @@ abstract class AbstractAppengineCachingAgent implements CachingAgent, AccountAwa
     if (batch.size()) {
       batch.execute()
     }
+  }
+
+  Long getAgentInterval() {
+    if (this.credentials.cachingIntervalSeconds == null) {
+      return TimeUnit.SECONDS.toMillis(60)
+    }
+    return TimeUnit.SECONDS.toMillis(this.credentials.cachingIntervalSeconds)
   }
 
   abstract String getSimpleName()
