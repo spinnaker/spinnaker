@@ -70,11 +70,11 @@ public class ArtifactResolver {
   public @Nonnull
   List<Artifact> getArtifacts(@Nonnull Stage stage) {
     if (stage.getContext() instanceof StageContext) {
-      return (List<Artifact>) Optional.ofNullable((List) ((StageContext) stage.getContext()).getAll("artifacts"))
+      return Optional.ofNullable((List<?>) ((StageContext) stage.getContext()).getAll("artifacts"))
         .map(list -> list.stream()
           .filter(Objects::nonNull)
-          .flatMap(it -> ((List) it).stream())
-          .map(a -> a instanceof Map ? objectMapper.convertValue(a, Artifact.class) : a)
+          .flatMap(it -> ((List<?>) it).stream())
+          .map(a -> a instanceof Map ? objectMapper.convertValue(a, Artifact.class) : (Artifact) a)
           .collect(Collectors.toList()))
         .orElse(emptyList());
     } else {
@@ -91,9 +91,9 @@ public class ArtifactResolver {
     List<Artifact> emittedArtifacts = Stage.topologicalSort(execution.getStages())
       .filter(s -> s.getOutputs().containsKey("artifacts"))
       .flatMap(
-        s -> (Stream<Artifact>) ((List) s.getOutputs().get("artifacts"))
+        s -> ((List<?>) s.getOutputs().get("artifacts"))
             .stream()
-            .map(a -> a instanceof Map ? objectMapper.convertValue(a, Artifact.class) : a)
+            .map(a -> a instanceof Map ? objectMapper.convertValue(a, Artifact.class) : (Artifact) a)
       ).collect(Collectors.toList());
     Collections.reverse(emittedArtifacts);
 
@@ -115,11 +115,11 @@ public class ArtifactResolver {
 
     List<ExpectedArtifact> expectedArtifacts;
     if (stage.getContext() instanceof StageContext) {
-      expectedArtifacts = (List<ExpectedArtifact>) Optional.ofNullable((List) ((StageContext) stage.getContext()).getAll("resolvedExpectedArtifacts"))
+      expectedArtifacts = Optional.ofNullable((List<?>) ((StageContext) stage.getContext()).getAll("resolvedExpectedArtifacts"))
         .map(list -> list.stream()
           .filter(Objects::nonNull)
-          .flatMap(it -> ((List) it).stream())
-          .map(a -> a instanceof Map ? objectMapper.convertValue(a, ExpectedArtifact.class) : a)
+          .flatMap(it -> ((List<?>) it).stream())
+          .map(a -> a instanceof Map ? objectMapper.convertValue(a, ExpectedArtifact.class) : (ExpectedArtifact) a)
           .collect(Collectors.toList()))
         .orElse(emptyList());
     } else {
@@ -155,13 +155,13 @@ public class ArtifactResolver {
 
   public void resolveArtifacts(@Nonnull Map pipeline) {
     Map<String, Object> trigger = (Map<String, Object>) pipeline.get("trigger");
-    List<ExpectedArtifact> expectedArtifacts = (List<ExpectedArtifact>) Optional.ofNullable((List) pipeline.get("expectedArtifacts"))
+    List<ExpectedArtifact> expectedArtifacts = Optional.ofNullable((List<?>) pipeline.get("expectedArtifacts"))
       .map(list -> list.stream().map(it -> objectMapper.convertValue(it, ExpectedArtifact.class)).collect(toList()))
       .orElse(emptyList());
-    List<Artifact> receivedArtifactsFromPipeline = (List<Artifact>) Optional.ofNullable((List) pipeline.get("receivedArtifacts"))
+    List<Artifact> receivedArtifactsFromPipeline = Optional.ofNullable((List<?>) pipeline.get("receivedArtifacts"))
       .map(list -> list.stream().map(it -> objectMapper.convertValue(it, Artifact.class)).collect(toList()))
       .orElse(emptyList());
-    List<Artifact> artifactsFromTrigger = (List<Artifact>) Optional.ofNullable((List) trigger.get("artifacts"))
+    List<Artifact> artifactsFromTrigger = Optional.ofNullable((List<?>) trigger.get("artifacts"))
       .map(list -> list.stream().map(it -> objectMapper.convertValue(it, Artifact.class)).collect(toList()))
       .orElse(emptyList());
     List<Artifact> receivedArtifacts = Stream.concat(receivedArtifactsFromPipeline.stream(), artifactsFromTrigger.stream()).collect(toList());
@@ -252,10 +252,6 @@ public class ArtifactResolver {
   }
 
   private static class ArtifactResolutionException extends RuntimeException {
-    ArtifactResolutionException(String message) {
-      super(message);
-    }
-
     ArtifactResolutionException(String message, Throwable cause) {
       super(message, cause);
     }
