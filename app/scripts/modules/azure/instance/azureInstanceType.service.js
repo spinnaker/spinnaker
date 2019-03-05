@@ -3,164 +3,727 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { API, InfrastructureCaches } from '@spinnaker/core';
+import { InfrastructureCaches } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.azure.instanceType.service', []).factory('azureInstanceTypeService', [
-  '$http',
-  '$q',
-  function($http, $q) {
-    var m3 = {
-      type: 'M3',
+module.exports = angular
+  .module('spinnaker.azure.instanceType.service', [])
+  .factory('azureInstanceTypeService', function($http, $q) {
+    var B = {
+      type: 'B-series',
       description:
-        'This family includes the M3 instance types and provides a balance of compute, memory, and network resources, and it is a good choice for many applications.',
+        'The B-series burstable VMs are ideal for workloads that do not need the full performance of the CPU continuously, like web servers, small databases and development and test environments.',
       instanceTypes: [
         {
-          name: 'm3.medium',
-          label: 'Medium',
-          cpu: 1,
-          memory: 3.75,
-          storage: {
-            type: 'SSD',
-            size: 4,
-            count: 1,
-          },
-          costFactor: 1,
-        },
-        {
-          name: 'm3.large',
-          label: 'Large',
-          cpu: 2,
-          memory: 7.5,
-          storage: {
-            type: 'SSD',
-            size: 32,
-            count: 1,
-          },
-          costFactor: 2,
-        },
-        {
-          name: 'm3.xlarge',
-          label: 'XLarge',
-          cpu: 4,
-          memory: 15,
-          storage: {
-            type: 'SSD',
-            size: 40,
-            count: 2,
-          },
-          costFactor: 2,
-        },
-        {
-          name: 'm3.2xlarge',
-          label: '2XLarge',
-          cpu: 8,
-          memory: 30,
-          storage: {
-            type: 'SSD',
-            size: 80,
-            count: 2,
-          },
-          costFactor: 3,
-        },
-      ],
-    };
-
-    var t2 = {
-      type: 'T2',
-      description:
-        'T2 instances are a good choice for workloads that don’t use the full CPU often or consistently, but occasionally need to burst (e.g. web servers, developer environments and small databases).',
-      instanceTypes: [
-        {
-          name: 't2.small',
-          label: 'Small',
+          name: 'Standard_B1ms',
+          label: 'Standard_B1ms',
           cpu: 1,
           memory: 2,
-          storage: { type: 'EBS' },
-          costFactor: 1,
+          storage: {
+            type: 'SSD',
+            count: 2,
+            size: 4,
+          },
         },
         {
-          name: 't2.medium',
-          label: 'Medium',
+          name: 'Standard_B1s',
+          label: 'Standard_B1s',
+          cpu: 1,
+          memory: 1,
+          storage: {
+            type: 'SSD',
+            count: 2,
+            size: 2,
+          },
+        },
+        {
+          name: 'Standard_B2ms',
+          label: 'Standard_B2ms',
+          cpu: 2,
+          memory: 8,
+          storage: {
+            type: 'SSD',
+            count: 4,
+            size: 16,
+          },
+        },
+        {
+          name: 'Standard_B2s',
+          label: 'Standard_B2s',
           cpu: 2,
           memory: 4,
-          storage: { type: 'EBS' },
-          costFactor: 2,
-        },
-      ],
-    };
-
-    var m3micro = {
-      type: 'M3',
-      description:
-        'This family includes the M3 instance types and provides a balance of compute, memory, and network resources, and it is a good choice for many applications.',
-      instanceTypes: [
-        {
-          name: 'm3.medium',
-          label: 'Medium',
-          cpu: 1,
-          memory: 3.75,
           storage: {
             type: 'SSD',
-            size: 4,
-            count: 1,
+            count: 4,
+            size: 8,
           },
-          costFactor: 1,
-        },
-      ],
-    };
-
-    var r3 = {
-      type: 'R3',
-      description:
-        'R3 instances are optimized for memory-intensive applications and have the lowest cost per GiB of RAM among Amazon EC2 instance types.',
-      instanceTypes: [
-        {
-          name: 'r3.large',
-          label: 'Large',
-          cpu: 2,
-          memory: 15.25,
-          storage: {
-            type: 'SSD',
-            size: 32,
-            count: 1,
-          },
-          costFactor: 1,
         },
         {
-          name: 'r3.xlarge',
-          label: 'XLarge',
+          name: 'Standard_B4ms',
+          label: 'Standard_B4ms',
           cpu: 4,
-          memory: 30.5,
+          memory: 16,
           storage: {
             type: 'SSD',
-            size: 80,
-            count: 1,
+            count: 8,
+            size: 32,
           },
-          costFactor: 2,
         },
         {
-          name: 'r3.2xlarge',
-          label: '2XLarge',
+          name: 'Standard_B8ms',
+          label: 'Standard_B8ms',
           cpu: 8,
-          memory: 61,
+          memory: 32,
           storage: {
             type: 'SSD',
-            size: 160,
-            count: 1,
+            count: 16,
+            size: 64,
           },
-          costFactor: 3,
         },
         {
-          name: 'r3.4xlarge',
-          label: '4XLarge',
-          cpu: 16,
-          memory: 122,
+          name: 'Standard_B1ls',
+          label: 'Standard_B1ls',
+          cpu: 1,
+          memory: 0.5,
           storage: {
             type: 'SSD',
-            size: 320,
-            count: 1,
+            count: 2,
+            size: 1,
           },
-          costFactor: 4,
+        },
+      ],
+    };
+
+    var DSV3 = {
+      type: 'Dsv3-series',
+      description:
+        'The Dsv3-series sizes offer a combination of vCPU, memory, and temporary storage for most production workloads.',
+      instanceTypes: [
+        {
+          name: 'Standard_D2s_v3',
+          label: 'Standard_D2s_v3',
+          cpu: 2,
+          memory: 8,
+          storage: {
+            type: 'SSD',
+            count: 4,
+            size: 16,
+          },
+        },
+        {
+          name: 'Standard_D4s_v3',
+          label: 'Standard_D4s_v3',
+          cpu: 4,
+          memory: 16,
+          storage: {
+            type: 'SSD',
+            count: 8,
+            size: 32,
+          },
+        },
+        {
+          name: 'Standard_D8s_v3',
+          label: 'Standard_D8s_v3',
+          cpu: 8,
+          memory: 32,
+          storage: {
+            type: 'SSD',
+            count: 16,
+            size: 64,
+          },
+        },
+        {
+          name: 'Standard_D16s_v3',
+          label: 'Standard_D16s_v3',
+          cpu: 16,
+          memory: 64,
+          storage: {
+            type: 'SSD',
+            count: 32,
+            size: 128,
+          },
+        },
+        {
+          name: 'Standard_D32s_v3',
+          label: 'Standard_D32s_v3',
+          cpu: 32,
+          memory: 128,
+          storage: {
+            type: 'SSD',
+            count: 32,
+            size: 256,
+          },
+        },
+        {
+          name: 'Standard_D64s_v3',
+          label: 'Standard_D64s_v3',
+          cpu: 64,
+          memory: 256,
+          storage: {
+            type: 'SSD',
+            count: 32,
+            size: 512,
+          },
+        },
+      ],
+    };
+
+    var DV3 = {
+      type: 'Dv3-series',
+      description:
+        'The Dv3-series sizes offer a combination of vCPU, memory, and temporary storage for most production workloads.',
+      instanceTypes: [
+        {
+          name: 'Standard_D2_v3',
+          label: 'Standard_D2_v3',
+          cpu: 2,
+          memory: 8,
+          storage: {
+            type: 'SSD',
+            count: 4,
+            size: 50,
+          },
+        },
+        {
+          name: 'Standard_D4_v3',
+          label: 'Standard_D4_v3',
+          cpu: 4,
+          memory: 16,
+          storage: {
+            type: 'SSD',
+            count: 8,
+            size: 100,
+          },
+        },
+        {
+          name: 'Standard_D8_v3',
+          label: 'Standard_D8_v3',
+          cpu: 8,
+          memory: 32,
+          storage: {
+            type: 'SSD',
+            count: 16,
+            size: 200,
+          },
+        },
+        {
+          name: 'Standard_D16_v3',
+          label: 'Standard_D16_v3',
+          cpu: 16,
+          memory: 64,
+          storage: {
+            type: 'SSD',
+            count: 32,
+            size: 400,
+          },
+        },
+        {
+          name: 'Standard_D32_v3',
+          label: 'Standard_D32_v3',
+          cpu: 32,
+          memory: 128,
+          storage: {
+            type: 'SSD',
+            count: 32,
+            size: 800,
+          },
+        },
+        {
+          name: 'Standard_D64_v3',
+          label: 'Standard_D64_v3',
+          cpu: 64,
+          memory: 256,
+          storage: {
+            type: 'SSD',
+            count: 32,
+            size: 1600,
+          },
+        },
+      ],
+    };
+
+    var DSV2 = {
+      type: 'DSv2-series',
+      description: '',
+      instanceTypes: [
+        {
+          name: 'Standard_DS1_v2',
+          label: 'Standard_DS1_v2',
+          cpu: 1,
+          memory: 3.5,
+          storage: {
+            type: 'SSD',
+            count: 4,
+            size: 7,
+          },
+        },
+        {
+          name: 'Standard_DS2_v2',
+          label: 'Standard_DS2_v2',
+          cpu: 2,
+          memory: 7,
+          storage: {
+            type: 'SSD',
+            count: 8,
+            size: 14,
+          },
+        },
+        {
+          name: 'Standard_DS3_v2',
+          label: 'Standard_DS3_v2',
+          cpu: 4,
+          memory: 14,
+          storage: {
+            type: 'SSD',
+            count: 16,
+            size: 28,
+          },
+        },
+        {
+          name: 'Standard_DS4_v2',
+          label: 'Standard_DS4_v2',
+          cpu: 8,
+          memory: 28,
+          storage: {
+            type: 'SSD',
+            count: 32,
+            size: 56,
+          },
+        },
+        {
+          name: 'Standard_DS5_v2',
+          label: 'Standard_DS5_v2',
+          cpu: 16,
+          memory: 56,
+          storage: {
+            type: 'SSD',
+            count: 64,
+            size: 112,
+          },
+        },
+        {
+          name: 'Standard_DS11_v2',
+          label: 'Standard_DS11_v2',
+          cpu: 2,
+          memory: 14,
+          storage: {
+            type: 'SSD',
+            count: 8,
+            size: 28,
+          },
+        },
+        {
+          name: 'Standard_DS12_v2',
+          label: 'Standard_DS12_v2',
+          cpu: 4,
+          memory: 28,
+          storage: {
+            type: 'SSD',
+            count: 16,
+            size: 56,
+          },
+        },
+        {
+          name: 'Standard_DS13_v2',
+          label: 'Standard_DS13_v2',
+          cpu: 8,
+          memory: 56,
+          storage: {
+            type: 'SSD',
+            count: 32,
+            size: 112,
+          },
+        },
+        {
+          name: 'Standard_DS14_v2',
+          label: 'Standard_DS14_v2',
+          cpu: 16,
+          memory: 112,
+          storage: {
+            type: 'SSD',
+            count: 64,
+            size: 224,
+          },
+        },
+        {
+          name: 'Standard_DS15_v2',
+          label: 'Standard_DS15_v2',
+          cpu: 20,
+          memory: 140,
+          storage: {
+            type: 'SSD',
+            count: 64,
+            size: 280,
+          },
+        },
+      ],
+    };
+
+    var DV2 = {
+      type: 'Dv2-series',
+      description: '',
+      instanceTypes: [
+        {
+          name: 'Standard_D1_v2',
+          label: 'Standard_D1_v2',
+          cpu: 1,
+          memory: 3.5,
+          storage: {
+            type: 'SSD',
+            count: 4,
+            size: 50,
+          },
+        },
+        {
+          name: 'Standard_D2_v2',
+          label: 'Standard_D2_v2',
+          cpu: 2,
+          memory: 7,
+          storage: {
+            type: 'SSD',
+            count: 8,
+            size: 100,
+          },
+        },
+        {
+          name: 'Standard_D3_v2',
+          label: 'Standard_D3_v2',
+          cpu: 4,
+          memory: 14,
+          storage: {
+            type: 'SSD',
+            count: 16,
+            size: 200,
+          },
+        },
+        {
+          name: 'Standard_D4_v2',
+          label: 'Standard_D4_v2',
+          cpu: 8,
+          memory: 28,
+          storage: {
+            type: 'SSD',
+            count: 32,
+            size: 400,
+          },
+        },
+        {
+          name: 'Standard_D5_v2',
+          label: 'Standard_D5_v2',
+          cpu: 16,
+          memory: 56,
+          storage: {
+            type: 'SSD',
+            count: 64,
+            size: 800,
+          },
+        },
+        {
+          name: 'Standard_D11_v2',
+          label: 'Standard_D11_v2',
+          cpu: 2,
+          memory: 14,
+          storage: {
+            type: 'SSD',
+            count: 8,
+            size: 100,
+          },
+        },
+        {
+          name: 'Standard_D12_v2',
+          label: 'Standard_D12_v2',
+          cpu: 4,
+          memory: 28,
+          storage: {
+            type: 'SSD',
+            count: 16,
+            size: 200,
+          },
+        },
+        {
+          name: 'Standard_D13_v2',
+          label: 'Standard_D13_v2',
+          cpu: 8,
+          memory: 56,
+          storage: {
+            type: 'SSD',
+            count: 32,
+            size: 400,
+          },
+        },
+        {
+          name: 'Standard_D14_v2',
+          label: 'Standard_D14_v2',
+          cpu: 16,
+          memory: 112,
+          storage: {
+            type: 'SSD',
+            count: 64,
+            size: 800,
+          },
+        },
+        {
+          name: 'Standard_D15_v2',
+          label: 'Standard_D15_v2',
+          cpu: 20,
+          memory: 140,
+          storage: {
+            type: 'SSD',
+            count: 64,
+            size: 280,
+          },
+        },
+      ],
+    };
+
+    var AV2 = {
+      type: 'Av2-series',
+      description: '',
+      instanceTypes: [
+        {
+          name: 'Standard_A1_v2',
+          label: 'Standard_A1_v2',
+          cpu: 1,
+          memory: 2,
+          storage: {
+            type: 'SSD',
+            count: 2,
+            size: 10,
+          },
+        },
+        {
+          name: 'Standard_A2m_v2',
+          label: 'Standard_A2m_v2',
+          cpu: 2,
+          memory: 16,
+          storage: {
+            type: 'SSD',
+            count: 4,
+            size: 20,
+          },
+        },
+        {
+          name: 'Standard_A2_v2',
+          label: 'Standard_A2_v2',
+          cpu: 2,
+          memory: 4,
+          storage: {
+            type: 'SSD',
+            count: 4,
+            size: 20,
+          },
+        },
+        {
+          name: 'Standard_A4m_v2',
+          label: 'Standard_A4m_v2',
+          cpu: 4,
+          memory: 32,
+          storage: {
+            type: 'SSD',
+            count: 8,
+            size: 40,
+          },
+        },
+        {
+          name: 'Standard_A4_v2',
+          label: 'Standard_A4_v2',
+          cpu: 4,
+          memory: 8,
+          storage: {
+            type: 'SSD',
+            count: 8,
+            size: 40,
+          },
+        },
+        {
+          name: 'Standard_A8m_v2',
+          label: 'Standard_A8m_v2',
+          cpu: 8,
+          memory: 64,
+          storage: {
+            type: 'SSD',
+            count: 16,
+            size: 80,
+          },
+        },
+        {
+          name: 'Standard_A8_v2',
+          label: 'Standard_A8_v2',
+          cpu: 8,
+          memory: 16,
+          storage: {
+            type: 'SSD',
+            count: 16,
+            size: 80,
+          },
+        },
+      ],
+    };
+
+    var DC = {
+      type: 'DC-series',
+      description: '',
+      instanceTypes: [
+        {
+          name: 'Standard_DC2s',
+          label: 'Standard_DC2s',
+          cpu: 2,
+          memory: 8,
+          storage: {
+            type: 'SSD',
+            count: 2,
+            size: 100,
+          },
+        },
+        {
+          name: 'Standard_DC4s',
+          label: 'Standard_DC4s',
+          cpu: 4,
+          memory: 16,
+          storage: {
+            type: 'SSD',
+            count: 4,
+            size: 200,
+          },
+        },
+      ],
+    };
+
+    var FSV2 = {
+      type: 'Fsv2-series',
+      description: '',
+      instanceTypes: [
+        {
+          name: 'Standard_F2s_v2',
+          label: 'Standard_F2s_v2',
+          cpu: 2,
+          memory: 4,
+          storage: { type: 'SSD', count: 4, size: 16 },
+        },
+        {
+          name: 'Standard_F4s_v2',
+          label: 'Standard_F4s_v2',
+          cpu: 4,
+          memory: 8,
+          storage: { type: 'SSD', count: 8, size: 32 },
+        },
+        {
+          name: 'Standard_F8s_v2',
+          label: 'Standard_F8s_v2',
+          cpu: 8,
+          memory: 16,
+          storage: { type: 'SSD', count: 16, size: 64 },
+        },
+        {
+          name: 'Standard_F16s_v2',
+          label: 'Standard_F16s_v2',
+          cpu: 16,
+          memory: 32,
+          storage: { type: 'SSD', count: 32, size: 128 },
+        },
+        {
+          name: 'Standard_F32s_v2',
+          label: 'Standard_F32s_v2',
+          cpu: 32,
+          memory: 64,
+          storage: { type: 'SSD', count: 32, size: 256 },
+        },
+        {
+          name: 'Standard_F64s_v2',
+          label: 'Standard_F64s_v2',
+          cpu: 64,
+          memory: 128,
+          storage: { type: 'SSD', count: 32, size: 512 },
+        },
+        {
+          name: 'Standard_F72s_v2',
+          label: 'Standard_F72s_v2',
+          cpu: 72,
+          memory: 144,
+          storage: { type: 'SSD', count: 32, size: 576 },
+        },
+      ],
+    };
+
+    var FS = {
+      type: 'Fs-series',
+      description: '',
+      instanceTypes: [
+        {
+          name: 'Standard_F1s',
+          label: 'Standard_F1s',
+          cpu: 1,
+          memory: 2,
+          storage: { type: 'SSD', count: 4, size: 4 },
+        },
+        {
+          name: 'Standard_F2s',
+          label: 'Standard_F2s',
+          cpu: 2,
+          memory: 4,
+          storage: { type: 'SSD', count: 8, size: 8 },
+        },
+        {
+          name: 'Standard_F4s',
+          label: 'Standard_F4s',
+          cpu: 4,
+          memory: 8,
+          storage: { type: 'SSD', count: 16, size: 16 },
+        },
+        {
+          name: 'Standard_F8s',
+          label: 'Standard_F8s',
+          cpu: 8,
+          memory: 16,
+          storage: { type: 'SSD', count: 32, size: 32 },
+        },
+        {
+          name: 'Standard_F16s',
+          label: 'Standard_F16s',
+          cpu: 16,
+          memory: 32,
+          storage: { type: 'SSD', count: 64, size: 64 },
+        },
+      ],
+    };
+
+    var F = {
+      type: 'F-series',
+      description: '',
+      instanceTypes: [
+        {
+          name: 'Standard_F1',
+          label: 'Standard_F1',
+          cpu: 1,
+          memory: 2,
+          storage: { type: 'SSD', count: 4, size: 16 },
+        },
+        {
+          name: 'Standard_F2',
+          label: 'Standard_F2',
+          cpu: 2,
+          memory: 4,
+          storage: { type: 'SSD', count: 8, size: 32 },
+        },
+        {
+          name: 'Standard_F4',
+          label: 'Standard_F4',
+          cpu: 4,
+          memory: 8,
+          storage: { type: 'SSD', count: 16, size: 64 },
+        },
+        {
+          name: 'Standard_F8',
+          label: 'Standard_F8',
+          cpu: 8,
+          memory: 16,
+          storage: { type: 'SSD', count: 32, size: 128 },
+        },
+        {
+          name: 'Standard_F16',
+          label: 'Standard_F16',
+          cpu: 16,
+          memory: 32,
+          storage: { type: 'SSD', count: 64, size: 256 },
         },
       ],
     };
@@ -169,22 +732,17 @@ module.exports = angular.module('spinnaker.azure.instanceType.service', []).fact
       {
         type: 'general',
         label: 'General Purpose',
-        description: 'Instances that provide a balance of compute, memory, and network resources',
-        families: [m3],
+        description:
+          'Balanced CPU-to-memory ratio. Ideal for testing and development, small to medium databases, and low to medium traffic web servers.',
+        families: [B, DSV3, DV3, DSV2, DV2, AV2, DC],
         icon: 'hdd',
       },
       {
-        type: 'memory',
-        label: 'High Memory',
-        description: 'Instances that are optimized for memory-intensive applications',
-        families: [r3],
-        icon: 'hdd',
-      },
-      {
-        type: 'micro',
-        label: 'Micro Utility',
-        description: 'Instances that provide relatively small amounts of memory and CPU power',
-        families: [t2, m3micro],
+        type: 'compute',
+        label: 'Compute Optimized',
+        description:
+          'High CPU-to-memory ratio. Good for medium traffic web servers, network appliances, batch processes, and application servers.',
+        families: [FSV2, FS, F],
         icon: 'hdd',
       },
       {
@@ -217,10 +775,6 @@ module.exports = angular.module('spinnaker.azure.instanceType.service', []).fact
           min: Number.MAX_VALUE,
           max: -Number.MAX_VALUE,
         },
-        costFactor: {
-          min: Number.MAX_VALUE,
-          max: -Number.MAX_VALUE,
-        },
         families: [],
       };
 
@@ -232,9 +786,7 @@ module.exports = angular.module('spinnaker.azure.instanceType.service', []).fact
             memoryMin = _.minBy(family.instanceTypes, 'memory').memory || Number.MAX_VALUE,
             memoryMax = _.maxBy(family.instanceTypes, 'memory').memory || -Number.MAX_VALUE,
             storageMin = calculateStorage(_.minBy(family.instanceTypes, calculateStorage)) || Number.MAX_VALUE,
-            storageMax = calculateStorage(_.maxBy(family.instanceTypes, calculateStorage)) || -Number.MAX_VALUE,
-            costFactorMin = _.minBy(family.instanceTypes, 'costFactor').costFactor || Number.MAX_VALUE,
-            costFactorMax = _.maxBy(family.instanceTypes, 'costFactor').costFactor || -Number.MAX_VALUE;
+            storageMax = calculateStorage(_.maxBy(family.instanceTypes, calculateStorage)) || -Number.MAX_VALUE;
 
           stats.cpu.min = Math.min(stats.cpu.min, cpuMin);
           stats.cpu.max = Math.max(stats.cpu.max, cpuMax);
@@ -242,8 +794,6 @@ module.exports = angular.module('spinnaker.azure.instanceType.service', []).fact
           stats.memory.max = Math.max(stats.memory.max, memoryMax);
           stats.storage.min = Math.min(stats.storage.min, storageMin);
           stats.storage.max = Math.max(stats.storage.max, storageMax);
-          stats.costFactor.min = Math.min(stats.costFactor.min, costFactorMin);
-          stats.costFactor.max = Math.max(stats.costFactor.max, costFactorMax);
         });
       }
 
@@ -252,6 +802,11 @@ module.exports = angular.module('spinnaker.azure.instanceType.service', []).fact
 
     function getCategories() {
       categories.map(function(category) {
+        for (let family of category.families) {
+          for (let inst of family.instanceTypes) {
+            if (inst.costFactor == undefined) inst.costFactor = 0;
+          }
+        }
         category.stats = buildStats(category);
       });
       return $q.when(categories);
@@ -262,43 +817,13 @@ module.exports = angular.module('spinnaker.azure.instanceType.service', []).fact
       if (cached) {
         return $q.when(cached);
       }
-      return API.one('instanceTypes')
-        .get()
-        .then(function(types) {
-          var result = _.chain(types)
-            .map(function(type) {
-              return {
-                region: type.region,
-                account: type.account,
-                name: type.name,
-                key: [type.region, type.account, type.name].join(':'),
-              };
-            })
-            .uniqBy('key')
-            .groupBy('region')
-            .value();
-          InfrastructureCaches.get('instanceTypes').put('azure', result);
-          return result;
-        });
+      return getCategories();
     };
 
-    function getAvailableTypesForRegions(availableRegions, selectedRegions) {
-      selectedRegions = selectedRegions || [];
-      var availableTypes = [];
-
-      // prime the list of available types
-      if (selectedRegions && selectedRegions.length) {
-        availableTypes = _.map(availableRegions[selectedRegions[0]], 'name');
-      }
-
-      // this will perform an unnecessary intersection with the first region, which is fine
-      selectedRegions.forEach(function(selectedRegion) {
-        if (availableRegions[selectedRegion]) {
-          availableTypes = _.intersection(availableTypes, _.map(availableRegions[selectedRegion], 'name'));
-        }
-      });
-
-      return availableTypes.sort();
+    function getAvailableTypesForRegions(locationToInstanceTypesMap, selectedLocations) {
+      // This function is only ever called with one location.
+      const [location] = selectedLocations;
+      return locationToInstanceTypesMap[location];
     }
 
     return {
@@ -306,5 +831,4 @@ module.exports = angular.module('spinnaker.azure.instanceType.service', []).fact
       getAvailableTypesForRegions: getAvailableTypesForRegions,
       getAllTypesByRegion: getAllTypesByRegion,
     };
-  },
-]);
+  });

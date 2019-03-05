@@ -124,6 +124,8 @@ module.exports = angular
             useSimpleCapacity: true,
             mode: 'editPipeline',
             submitButtonLabel: 'Done',
+            instanceProfile: originalCluster.viewState.instanceProfile,
+            instanceTypeDetails: originalCluster.viewState.instanceTypeDetails,
           };
 
           var viewOverrides = {
@@ -131,6 +133,9 @@ module.exports = angular
             credentials: pipelineCluster.account,
             viewState: viewState,
           };
+          if (originalCluster.viewState.instanceTypeDetails) {
+            viewOverrides.instanceType = originalCluster.viewState.instanceTypeDetails.name;
+          }
 
           pipelineCluster.strategy = pipelineCluster.strategy || '';
 
