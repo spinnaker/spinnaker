@@ -25,40 +25,34 @@ import lombok.RequiredArgsConstructor;
 
 import javax.annotation.Nullable;
 import java.util.*;
-import java.util.function.*;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClientUtils.collectPageResources;
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClientUtils.safelyCall;
-import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.ErrorDescription.Code.SERVICE_ALREADY_EXISTS;
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation.State.*;
-import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation.Type.CREATE;
-import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation.Type.DELETE;
-import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation.Type.UPDATE;
+import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation.Type.*;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 @RequiredArgsConstructor
 public class ServiceInstances {
+  private static final String SPINNAKER_VERSION_V_D_3 = "spinnakerVersion-v\\d{3}";
   private final ServiceInstanceService api;
   private final Organizations orgs;
   private final Spaces spaces;
 
-  public void createServiceBindingsByName(CloudFoundryServerGroup cloudFoundryServerGroup, @Nullable List<String> serviceNames) throws CloudFoundryApiException {
-    if (serviceNames != null && !serviceNames.isEmpty()) {
-      String spaceGuid = cloudFoundryServerGroup.getSpace().getId();
-      List<String> serviceInstanceQuery = new ArrayList<>();
-      serviceInstanceQuery.add("name IN " + String.join(",", serviceNames));
-      List<String> userProvidedServiceInstanceQuery = new ArrayList<>();
-      userProvidedServiceInstanceQuery.add("name IN " + String.join(",", serviceNames));
-      userProvidedServiceInstanceQuery.add("organization_guid:" + cloudFoundryServerGroup.getSpace().getOrganization().getId());
-      userProvidedServiceInstanceQuery.add("space_guid:" + spaceGuid);
-
+  public Void createServiceBindingsByName(CloudFoundryServerGroup cloudFoundryServerGroup, @Nullable List<String> serviceInstanceNames) throws CloudFoundryApiException {
+    if (serviceInstanceNames != null && !serviceInstanceNames.isEmpty()) {
+      List<String> serviceInstanceQuery = getServiceQueryParams(serviceInstanceNames, cloudFoundryServerGroup.getSpace());
       List<Resource<? extends AbstractServiceInstance>> serviceInstances = new ArrayList<>();
-      serviceInstances.addAll(collectPageResources("service instances", pg -> api.all(pg, spaceGuid, serviceInstanceQuery)));
-      serviceInstances.addAll(collectPageResources("service instances", pg -> api.allUserProvided(pg, userProvidedServiceInstanceQuery)));
+      serviceInstances.addAll(collectPageResources("service instances", pg -> api.all(pg, serviceInstanceQuery)));
+      serviceInstances.addAll(collectPageResources("service instances", pg -> api.allUserProvided(pg, serviceInstanceQuery)));
 
-      if (serviceInstances.size() != serviceNames.size()) {
+      if (serviceInstances.size() != serviceInstanceNames.size()) {
         throw new CloudFoundryApiException("Number of service instances does not match the number of service names");
       }
 
@@ -69,6 +63,7 @@ public class ServiceInstances {
         ));
       }
     }
+    return null;
   }
 
   private Resource<Service> findServiceByServiceName(String serviceName) {
@@ -143,9 +138,8 @@ public class ServiceInstances {
     if (isBlank(serviceInstanceName)) {
       throw new CloudFoundryApiException("Please specify a name for the service being sought");
     }
-    List<String> queryParams = singletonList("name IN " + serviceInstanceName);
     List<Resource<ServiceInstance>> serviceInstances = collectPageResources("service instances by space and name",
-      pg -> api.all(pg, space.getId(), queryParams));
+      pg -> api.all(pg, getServiceQueryParams(Collections.singletonList(serviceInstanceName), space)));
 
     return getValidServiceInstance(space, serviceInstanceName, serviceInstances);
   }
@@ -155,12 +149,8 @@ public class ServiceInstances {
     if (isBlank(serviceInstanceName)) {
       throw new CloudFoundryApiException("Please specify a name for the service being sought");
     }
-    List<String> queryParams = new ArrayList<>();
-    queryParams.add("name IN " + serviceInstanceName);
-    queryParams.add("space_guid:" + space.getId());
-    queryParams.add("organization_guid:" + space.getOrganization().getId());
     List<Resource<UserProvidedServiceInstance>> services = collectPageResources("service instances by space and name",
-      pg -> api.allUserProvided(pg, queryParams));
+      pg -> api.allUserProvided(pg, getServiceQueryParams(Collections.singletonList(serviceInstanceName), space)));
 
     return getValidServiceInstance(space, serviceInstanceName, services);
   }
@@ -288,7 +278,7 @@ public class ServiceInstances {
   }
 
   private <T extends AbstractCreateServiceInstance,
-           S extends AbstractServiceInstance> ServiceInstanceResponse
+    S extends AbstractServiceInstance> ServiceInstanceResponse
   createServiceInstance(T command,
                         Function<T, Resource<S>> create,
                         BiFunction<String, T, Resource<S>> update,
@@ -297,24 +287,41 @@ public class ServiceInstances {
                         CloudFoundrySpace space) {
     String serviceInstanceId;
     LastOperation.Type operationType;
-    try {
-      serviceInstanceId = safelyCall(() -> create.apply(command)).map(res -> res.getMetadata().getGuid())
-        .orElseThrow(() -> new CloudFoundryApiException("service instance '" + command.getName() + "' not found"));
-      operationType = CREATE;
-    } catch (CloudFoundryApiException cfe) {
-      if (cfe.getErrorCode() == SERVICE_ALREADY_EXISTS) {
-        Resource<S> serviceInstance = getServiceInstance.apply(command);
+    List<String> serviceInstanceQuery = getServiceQueryParams(Collections.singletonList(command.getName()), space);
+    List<Resource<? extends AbstractServiceInstance>> serviceInstances = new ArrayList<>();
+    serviceInstances.addAll(collectPageResources("service instances", pg -> api.all(pg, serviceInstanceQuery)));
+    serviceInstances.addAll(collectPageResources("service instances", pg -> api.allUserProvided(pg, serviceInstanceQuery)));
 
+    if (serviceInstances.size() == 0) {
+      operationType = CREATE;
+      serviceInstanceId = safelyCall(() -> create.apply(command)).map(res -> res.getMetadata().getGuid())
+        .orElseThrow(() -> new CloudFoundryApiException("service instance '" + command.getName() + "' could not be created"));
+    } else {
+      operationType = UPDATE;
+      serviceInstanceId = serviceInstances.stream()
+        .findFirst()
+        .map(r -> r.getMetadata().getGuid())
+        .orElseThrow(() -> new CloudFoundryApiException("Service instance '" + command.getName() + "' not found"));
+      String existingServiceInstanceVersionTag = serviceInstances.stream()
+        .findFirst().map(s -> s.getEntity().getTags())
+        .orElse(new HashSet<>())
+        .stream()
+        .filter(t -> t.matches(SPINNAKER_VERSION_V_D_3))
+        .min(Comparator.reverseOrder())
+        .orElse("");
+      String newServiceInstanceVersionTag = Optional.ofNullable(command.getTags())
+        .orElse(Collections.emptySet())
+        .stream()
+        .filter(t -> t.matches(SPINNAKER_VERSION_V_D_3))
+        .min(Comparator.reverseOrder())
+        .orElse("");
+      if (newServiceInstanceVersionTag.isEmpty() || !existingServiceInstanceVersionTag.equals(newServiceInstanceVersionTag)) {
+        Resource<S> serviceInstance = getServiceInstance.apply(command);
         if (serviceInstance == null) {
           throw new CloudFoundryApiException("No service instances with name '" + command.getName() + "' found in space " + space.getName());
         }
         updateValidation.accept(command, serviceInstance);
-        serviceInstanceId = safelyCall(() -> update.apply(serviceInstance.getMetadata().getGuid(), command))
-          .map(res -> res.getMetadata().getGuid())
-          .orElseThrow(() -> new CloudFoundryApiException("Service instance '" + command.getName() + "' not found"));
-        operationType = UPDATE;
-      } else {
-        throw cfe;
+        safelyCall(() -> update.apply(serviceInstance.getMetadata().getGuid(), command));
       }
     }
 
@@ -322,5 +329,13 @@ public class ServiceInstances {
       .setServiceInstanceId(serviceInstanceId)
       .setServiceInstanceName(command.getName())
       .setType(operationType);
+  }
+
+  private static List<String> getServiceQueryParams(List<String> serviceNames, CloudFoundrySpace space) {
+    return Arrays.asList(
+      serviceNames.size() == 1 ? "name:" + serviceNames.get(0) : "name IN " + String.join(",", serviceNames),
+      "organization_guid:" + space.getOrganization().getId(),
+      "space_guid:" + space.getId()
+    );
   }
 }

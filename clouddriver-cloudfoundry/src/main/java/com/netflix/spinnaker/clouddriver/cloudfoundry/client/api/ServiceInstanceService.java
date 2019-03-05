@@ -23,8 +23,8 @@ import retrofit.http.*;
 import java.util.List;
 
 public interface ServiceInstanceService {
-  @GET("/v2/spaces/{guid}/service_instances")
-  Page<ServiceInstance> all(@Query("page") Integer page, @Path("guid") String spaceGuid, @Query("q") List<String> queryParams);
+  @GET("/v2/service_instances")
+  Page<ServiceInstance> all(@Query("page") Integer page, @Query("q") List<String> queryParams);
 
   @GET("/v2/user_provided_service_instances")
   Page<UserProvidedServiceInstance> allUserProvided(@Query("page") Integer page, @Query("q") List<String> queryParam);
