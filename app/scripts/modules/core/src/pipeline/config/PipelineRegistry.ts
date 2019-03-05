@@ -1,4 +1,4 @@
-import { uniq, isNil, cloneDeep, intersection, memoize } from 'lodash';
+import { uniq, isNil, cloneDeep, intersection, memoize, defaults } from 'lodash';
 
 import { Application } from 'core/application/application.model';
 import {
@@ -8,12 +8,15 @@ import {
   IStageTypeConfig,
   IArtifactKindConfig,
   IStageOrTriggerTypeConfig,
+  IArtifactEditorProps,
 } from 'core/domain';
 import { CloudProviderRegistry, ICloudProviderConfig } from 'core/cloudProvider';
 import { SETTINGS } from 'core/config/settings';
 import { IAccountDetails } from 'core/account/AccountService';
 
 import { ITriggerTemplateComponentProps } from '../manualExecution/TriggerTemplate';
+import { ComponentType, SFC } from 'react';
+import { artifactKindConfigs } from './triggers/artifacts';
 
 export interface ITransformer {
   transform: (application: Application, execution: IExecution) => void;
@@ -23,7 +26,7 @@ export class PipelineRegistry {
   private triggerTypes: ITriggerTypeConfig[] = [];
   private stageTypes: IStageTypeConfig[] = [];
   private transformers: ITransformer[] = [];
-  private artifactKinds: IArtifactKindConfig[] = [];
+  private artifactKinds: IArtifactKindConfig[] = artifactKindConfigs;
   private customArtifactKind: IArtifactKindConfig;
 
   constructor() {
@@ -80,8 +83,20 @@ export class PipelineRegistry {
     this.normalizeStageTypes();
   }
 
-  public registerArtifactKind(artifactKindConfig: IArtifactKindConfig): void {
+  public registerArtifactKind(
+    artifactKindConfig: IArtifactKindConfig,
+  ): ComponentType<IArtifactEditorProps> | SFC<IArtifactEditorProps> {
     this.artifactKinds.push(artifactKindConfig);
+    return artifactKindConfig.editCmp;
+  }
+
+  public mergeArtifactKind(artifactKindConfig: IArtifactKindConfig): void {
+    const index = this.artifactKinds.findIndex(ak => ak.key === artifactKindConfig.key);
+    if (index === -1) {
+      throw new Error(`could not find existing artifact kind config for key ${artifactKindConfig.key}`);
+    }
+    const originalArtifactKind = this.artifactKinds[index];
+    defaults(originalArtifactKind, artifactKindConfig);
   }
 
   public registerCustomArtifactKind(artifactKindConfig: IArtifactKindConfig): void {

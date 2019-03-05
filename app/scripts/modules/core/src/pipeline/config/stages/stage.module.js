@@ -15,9 +15,11 @@ import { Registry } from 'core/registry';
 import { StageConfigWrapper } from './StageConfigWrapper';
 import { EditStageJsonModal } from './common/EditStageJsonModal';
 import { ReactModal } from 'core/presentation';
+import { PRODUCES_ARTIFACTS_REACT } from './producesArtifacts/ProducesArtifacts';
 
 module.exports = angular
   .module('spinnaker.core.pipeline.config.stage', [
+    PRODUCES_ARTIFACTS_REACT,
     BASE_EXECUTION_DETAILS_CTRL,
     STAGE_NAME,
     require('./overrideTimeout/overrideTimeout.directive').name,
@@ -94,6 +96,12 @@ module.exports = angular
         } else {
           return !!stageConfig.producesArtifacts;
         }
+      };
+
+      $scope.producesArtifactsChanged = function(artifacts) {
+        $scope.$applyAsync(() => {
+          $scope.stage.expectedArtifacts = artifacts;
+        });
       };
 
       $scope.updateAvailableDependencyStages = function() {

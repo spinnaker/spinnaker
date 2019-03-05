@@ -34,7 +34,7 @@
         <div class="form-group" ng-if="pipeline.expectedArtifacts.length">
           <div class="col-md-10">
             <div class="form-group">
-              <label class=" col-md-3 sm-label-right"
+              <label class="col-md-3 sm-label-right"
                 >Artifact Constraints<help-field key="pipeline.config.expectedArtifact"></help-field
               ></label>
               <div class="col-md-9">
@@ -49,6 +49,26 @@
                     <span>{{ expected.displayName }}</span>
                   </ui-select-choices>
                 </ui-select>
+              </div>
+            </div>
+          </div>
+        </div>
+      </render-if-feature>
+      <render-if-feature feature="artifactsRewrite">
+        <div class="form-group">
+          <div class="col-md-10">
+            <div class="form-group">
+              <label class="col-md-3 sm-label-right"
+                >Artifact Constraints<help-field key="pipeline.config.expectedArtifact"></help-field
+              ></label>
+              <div class="col-md-9 row">
+                <trigger-artifact-constraint-selector-react
+                  pipeline="pipeline"
+                  artifact-referer="trigger"
+                  selected="trigger.expectedArtifactIds"
+                  on-define-expected-artifact="triggerCtrl.defineExpectedArtifact"
+                  on-change-selected="triggerCtrl.changeExpectedArtifacts"
+                ></trigger-artifact-constraint-selector-react>
               </div>
             </div>
           </div>

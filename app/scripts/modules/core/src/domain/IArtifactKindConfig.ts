@@ -1,17 +1,18 @@
 import { ComponentType, SFC } from 'react';
-import { IArtifactEditorProps } from 'core/domain';
+import { IArtifactEditorProps, IArtifact } from 'core/domain';
 
 export interface IArtifactKindConfig {
   label: string;
-  type?: string;
+  typePattern: RegExp;
   description: string;
-  key: string;
   isDefault: boolean;
-  isMatch: boolean;
-  customKind?: boolean;
-  isPubliclyAccessible?: boolean;
   editCmp?: ComponentType<IArtifactEditorProps> | SFC<IArtifactEditorProps>;
-  template: string;
-  controller: Function;
+  // Legacy artifacts properties
+  type?: string;
+  key: string;
+  isMatch: boolean;
+  controller?: (artifact: IArtifact) => void;
   controllerAs?: string;
+  template?: string;
+  customKind?: boolean;
 }

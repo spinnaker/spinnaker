@@ -8,3 +8,4 @@ export * from './spinners/Spinner';
 export * from './ScopeClusterSelector';
 export * from './tags';
 export * from './spelText/SpelNumberInput';
+export * from './spelText/SpelText';

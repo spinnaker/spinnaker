@@ -1,12 +1,22 @@
 import { IController, IScope } from 'angular';
 import { get, defaults } from 'lodash';
-import { ExpectedArtifactSelectorViewController, NgGenericArtifactDelegate, IManifest } from '@spinnaker/core';
+import {
+  ExpectedArtifactSelectorViewController,
+  NgGenericArtifactDelegate,
+  IManifest,
+  IArtifact,
+  IExpectedArtifact,
+  ArtifactTypePatterns,
+  SETTINGS,
+} from '@spinnaker/core';
 
 import {
   IKubernetesManifestCommandMetadata,
   IKubernetesManifestCommandData,
   KubernetesManifestCommandBuilder,
 } from 'kubernetes/v2/manifest/manifestCommandBuilder.service';
+
+import { IManifestBindArtifact } from './ManifestBindArtifactsSelector';
 
 export class KubernetesV2DeployManifestConfigCtrl implements IController {
   public state = {
@@ -16,20 +26,34 @@ export class KubernetesV2DeployManifestConfigCtrl implements IController {
   public metadata: IKubernetesManifestCommandMetadata;
   public textSource = 'text';
   public artifactSource = 'artifact';
-  public sources = [this.textSource, this.artifactSource];
-
   public manifestArtifactDelegate: NgGenericArtifactDelegate;
   public manifestArtifactController: ExpectedArtifactSelectorViewController;
+  public sources = [this.textSource, this.artifactSource];
 
   public static $inject = ['$scope'];
+
   constructor(private $scope: IScope) {
+    this.manifestArtifactDelegate = new NgGenericArtifactDelegate($scope, 'manifest');
+    this.manifestArtifactController = new ExpectedArtifactSelectorViewController(this.manifestArtifactDelegate);
+
+    const stage = this.$scope.stage;
+    this.$scope.bindings = (stage.requiredArtifactIds || [])
+      .map((id: string) => ({ expectedArtifactId: id }))
+      .concat((stage.requiredArtifacts || []).map((artifact: IArtifact) => ({ artifact: artifact })));
+
+    this.$scope.excludedManifestArtifactTypes = [
+      ArtifactTypePatterns.DOCKER_IMAGE,
+      ArtifactTypePatterns.KUBERNETES,
+      ArtifactTypePatterns.FRONT50_PIPELINE_TEMPLATE,
+    ];
+
     KubernetesManifestCommandBuilder.buildNewManifestCommand(
       this.$scope.application,
-      this.$scope.stage.manifests || this.$scope.stage.manifest,
-      this.$scope.stage.moniker,
+      stage.manifests || stage.manifest,
+      stage.moniker,
     ).then((builtCommand: IKubernetesManifestCommandData) => {
-      if (this.$scope.stage.isNew) {
-        defaults(this.$scope.stage, builtCommand.command, {
+      if (stage.isNew) {
+        defaults(stage, builtCommand.command, {
           manifestArtifactAccount: '',
           source: this.textSource,
         });
@@ -39,10 +63,27 @@ export class KubernetesV2DeployManifestConfigCtrl implements IController {
       this.manifestArtifactDelegate.setAccounts(get(this, ['metadata', 'backingData', 'artifactAccounts'], []));
       this.manifestArtifactController.updateAccounts(this.manifestArtifactDelegate.getSelectedExpectedArtifact());
     });
-
-    this.manifestArtifactDelegate = new NgGenericArtifactDelegate($scope, 'manifest');
-    this.manifestArtifactController = new ExpectedArtifactSelectorViewController(this.manifestArtifactDelegate);
   }
+
+  public onManifestExpectedArtifactSelected = (expectedArtifact: IExpectedArtifact) => {
+    this.$scope.$applyAsync(() => {
+      this.$scope.stage.manifestArtifactId = expectedArtifact.id;
+    });
+  };
+
+  public onManifestArtifactEdited = (artifact: IArtifact) => {
+    this.$scope.$applyAsync(() => {
+      this.$scope.stage.manifestArtifact = artifact;
+    });
+  };
+
+  public onRequiredArtifactsChanged = (bindings: IManifestBindArtifact[]) => {
+    this.$scope.$applyAsync(() => {
+      this.$scope.bindings = bindings;
+      this.$scope.stage.requiredArtifactIds = bindings.filter((b: IManifestBindArtifact) => b.expectedArtifactId);
+      this.$scope.stage.requiredArtifacts = bindings.filter((b: IManifestBindArtifact) => b.artifact);
+    });
+  };
 
   public canShowAccountSelect() {
     return (
@@ -58,4 +99,8 @@ export class KubernetesV2DeployManifestConfigCtrl implements IController {
     // This method is called from a React component.
     this.$scope.$applyAsync();
   };
+
+  public checkFeatureFlag(flag: string): boolean {
+    return !!SETTINGS.feature[flag];
+  }
 }

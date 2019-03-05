@@ -1,8 +1,8 @@
 import { IController, module } from 'angular';
 
+import { ArtifactTypePatterns } from 'core/artifact';
 import { IArtifact } from 'core/domain/IArtifact';
 import { Registry } from 'core/registry';
-import { HttpArtifactEditor } from './HttpArtifactEditor';
 
 class HttpArtifactController implements IController {
   public static $inject = ['artifact'];
@@ -12,8 +12,9 @@ class HttpArtifactController implements IController {
 export const HTTP_ARTIFACT = 'spinnaker.core.pipeline.trigger.http.artifact';
 module(HTTP_ARTIFACT, [])
   .config(() => {
-    Registry.pipeline.registerArtifactKind({
+    Registry.pipeline.mergeArtifactKind({
       label: 'HTTP',
+      typePattern: ArtifactTypePatterns.HTTP_FILE,
       type: 'http/file',
       description: 'An HTTP artifact.',
       key: 'http',
@@ -24,7 +25,6 @@ module(HTTP_ARTIFACT, [])
         this.artifact.type = 'http/file';
       },
       controllerAs: 'ctrl',
-      editCmp: HttpArtifactEditor,
       template: `
 <div class="col-md-12">
   <div class="form-group row">

@@ -1,6 +1,7 @@
 import { module } from 'angular';
 import { isNil } from 'lodash';
 
+import { ArtifactTypePatterns } from 'core/artifact';
 import { IArtifact } from 'core/domain/IArtifact';
 import { Registry } from 'core/registry';
 
@@ -27,12 +28,12 @@ export const setNameAndVersionFromReference = (artifact: IArtifact) => {
 
 export const DEFAULT_DOCKER_ARTIFACT = 'spinnaker.core.pipeline.trigger.artifact.defaultDocker';
 module(DEFAULT_DOCKER_ARTIFACT, []).config(() => {
-  Registry.pipeline.registerArtifactKind({
+  Registry.pipeline.mergeArtifactKind({
     label: 'Docker',
+    typePattern: ArtifactTypePatterns.DOCKER_IMAGE,
     type: 'docker/image',
     isDefault: true,
     isMatch: false,
-    isPubliclyAccessible: true,
     description: 'A Docker image to be deployed.',
     key: 'default.docker',
     controller: function(artifact: IArtifact) {

@@ -1,15 +1,16 @@
 import { module } from 'angular';
 
+import { ArtifactTypePatterns } from 'core/artifact';
 import { IArtifact } from 'core/domain/IArtifact';
 import { Registry } from 'core/registry';
-import { GithubArtifactEditor } from './GithubArtifactEditor';
 
 export const GITHUB_ARTIFACT = 'spinnaker.core.pipeline.trigger.github.artifact';
 module(GITHUB_ARTIFACT, []).config(() => {
-  Registry.pipeline.registerArtifactKind({
+  Registry.pipeline.mergeArtifactKind({
     label: 'GitHub',
     description: 'A file stored in git, hosted by GitHub.',
     key: 'github',
+    typePattern: ArtifactTypePatterns.GITHUB_FILE,
     type: 'github/file',
     isDefault: false,
     isMatch: true,
@@ -18,7 +19,6 @@ module(GITHUB_ARTIFACT, []).config(() => {
       this.artifact.type = 'github/file';
     },
     controllerAs: 'ctrl',
-    editCmp: GithubArtifactEditor,
     template: `
 <div class="col-md-12">
   <div class="form-group row">

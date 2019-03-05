@@ -12,11 +12,12 @@ import {
 } from '@spinnaker/core';
 
 import { KubernetesV2DeployManifestConfigCtrl } from './deployManifestConfig.controller';
+import { MANIFEST_BIND_ARTIFACTS_SELECTOR_REACT } from './ManifestBindArtifactsSelector';
 import { DeployStatus } from './react/DeployStatus';
 
 export const KUBERNETES_DEPLOY_MANIFEST_STAGE = 'spinnaker.kubernetes.v2.pipeline.stage.deployManifestStage';
 
-module(KUBERNETES_DEPLOY_MANIFEST_STAGE, [EXECUTION_ARTIFACT_TAB])
+module(KUBERNETES_DEPLOY_MANIFEST_STAGE, [EXECUTION_ARTIFACT_TAB, MANIFEST_BIND_ARTIFACTS_SELECTOR_REACT])
   .config(() => {
     // Todo: replace feature flag with proper versioned provider mechanism once available.
     if (SETTINGS.feature.versionedProviders) {

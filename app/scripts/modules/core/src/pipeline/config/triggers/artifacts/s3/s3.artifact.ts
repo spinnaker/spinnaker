@@ -1,13 +1,14 @@
 import { module } from 'angular';
 
+import { ArtifactTypePatterns } from 'core/artifact';
 import { IArtifact } from 'core/domain/IArtifact';
 import { Registry } from 'core/registry';
-import { S3ArtifactEditor } from './S3ArtifactEditor';
 
 export const S3_ARTIFACT = 'spinnaker.core.pipeline.trigger.s3.artifact';
 module(S3_ARTIFACT, []).config(() => {
-  Registry.pipeline.registerArtifactKind({
+  Registry.pipeline.mergeArtifactKind({
     label: 'S3',
+    typePattern: ArtifactTypePatterns.S3_OBJECT,
     type: 's3/object',
     description: 'An S3 object.',
     key: 's3',
@@ -18,7 +19,6 @@ module(S3_ARTIFACT, []).config(() => {
       this.artifact.type = 's3/object';
     },
     controllerAs: 'ctrl',
-    editCmp: S3ArtifactEditor,
     template: `
 <div class="col-md-12">
   <div class="form-group row">

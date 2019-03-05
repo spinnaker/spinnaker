@@ -1,12 +1,14 @@
 import { module } from 'angular';
 
+import { ArtifactTypePatterns } from 'core/artifact';
 import { IArtifact } from 'core/domain/IArtifact';
 import { Registry } from 'core/registry';
 
 export const DEFAULT_GITHUB_ARTIFACT = 'spinnaker.core.pipeline.trigger.artifact.defaultGithub';
 module(DEFAULT_GITHUB_ARTIFACT, []).config(() => {
-  Registry.pipeline.registerArtifactKind({
+  Registry.pipeline.mergeArtifactKind({
     label: 'GitHub',
+    typePattern: ArtifactTypePatterns.GITLAB_FILE,
     type: 'github/file',
     description: 'A file stored in git, hosted by GitHub.',
     key: 'default.github',

@@ -32,6 +32,10 @@ function decorateFn($delegate, spelAutocomplete) {
       });
 
       function listener(evt) {
+        if ($(evt.target).hasClass('no-doc-link')) {
+          return;
+        }
+
         let hasSpelPrefix = evt.target.value.includes('$');
         let parent = el.parent();
         let hasLink = parent && parent.nextAll && parent.nextAll('.spelLink');

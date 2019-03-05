@@ -5,16 +5,13 @@ import { react2angular } from 'react2angular';
 import { IArtifactAccount } from 'core/account';
 import { TetheredSelect } from 'core/presentation';
 
+import { ArtifactIcon } from './ArtifactIcon';
+
 export interface IArtifactAccountSelectorProps {
   accounts: IArtifactAccount[];
   selected: IArtifactAccount;
-  onChange: (_: IArtifactAccount) => void;
+  onChange: (account: IArtifactAccount) => void;
   className?: string;
-}
-
-export interface IArtifactAccountSelectorOption {
-  value: string;
-  label: string;
 }
 
 export class ArtifactAccountSelector extends React.Component<IArtifactAccountSelectorProps> {
@@ -22,20 +19,24 @@ export class ArtifactAccountSelector extends React.Component<IArtifactAccountSel
     super(props);
   }
 
-  private onChange = (option: IArtifactAccountSelectorOption) => {
-    const account = this.props.accounts.find(a => a.name === option.value);
-    this.props.onChange(account);
+  private renderOption = (account: IArtifactAccount) => {
+    return (
+      <span>
+        <ArtifactIcon type={account.types[0]} width="16" height="16" />
+        {account.name}
+      </span>
+    );
   };
 
   public render() {
-    const options = this.props.accounts.map(a => ({ value: a.name, label: a.name }));
-    const value = this.props.selected ? { value: this.props.selected.name, label: this.props.selected.name } : null;
     return (
       <TetheredSelect
         className={this.props.className || ''}
-        options={options}
-        value={value}
-        onChange={this.onChange}
+        options={this.props.accounts}
+        value={this.props.selected}
+        onChange={this.props.onChange}
+        optionRenderer={this.renderOption}
+        valueRenderer={this.renderOption}
         clearable={false}
       />
     );

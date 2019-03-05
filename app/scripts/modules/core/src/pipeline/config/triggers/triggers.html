@@ -23,7 +23,7 @@
     label="Expected Artifacts"
     badge="pipeline.expectedArtifacts.length"
     no-wrapper="true"
-    visible="triggersCtrl.checkFeatureFlag('artifacts')"
+    visible="!triggersCtrl.checkFeatureFlag('artifactsRewrite') && triggersCtrl.checkFeatureFlag('artifacts')"
   >
     <div class="row">
       <p class="col-md-12">

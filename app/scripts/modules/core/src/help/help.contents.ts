@@ -112,6 +112,8 @@ const helpContents: { [key: string]: string } = {
         </ol>
       </p>
       <p>See the <a href="https://www.spinnaker.io/reference/artifacts/in-pipelines">reference</a> for more information.</p>`,
+  'pipeline.config.expectedArtifact.usePriorExecution': `
+      <p>Attempt to match against an artifact in the prior pipeline execution's context. This ensures that you will always be using the most recently supplied artifact to this pipeline, and is generally a safe choice.</p>`,
   'pipeline.config.expectedArtifact.defaultArtifact': `
       <p>If your artifact either wasn't supplied from a trigger, or it wasn't found in a prior execution, the artifact specified below will end up in your pipeline's execution context.</p>
       <p>See the <a href="https://www.spinnaker.io/reference/artifacts/in-pipelines">reference</a> for more information.</p>`,

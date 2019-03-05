@@ -1,13 +1,15 @@
 import { module } from 'angular';
 import { isNil } from 'lodash';
 
+import { ArtifactTypePatterns } from 'core/artifact';
 import { IArtifact } from 'core/domain/IArtifact';
 import { Registry } from 'core/registry';
 
 export const DEFAULT_GCS_ARTIFACT = 'spinnaker.core.pipeline.trigger.artifact.defaultGcs';
 module(DEFAULT_GCS_ARTIFACT, []).config(() => {
-  Registry.pipeline.registerArtifactKind({
+  Registry.pipeline.mergeArtifactKind({
     label: 'GCS',
+    typePattern: ArtifactTypePatterns.GCS_OBJECT,
     type: 'gcs/object',
     description: 'A GCS object.',
     key: 'default.gcs',

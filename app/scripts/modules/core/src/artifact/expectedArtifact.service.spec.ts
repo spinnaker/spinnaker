@@ -6,6 +6,7 @@ import { Registry } from 'core/registry';
 describe('ExpectedArtifactService', () => {
   describe('getKindConfig()', () => {
     const baseKindConfig = {
+      typePattern: /base-type/,
       label: '',
       description: '',
       isDefault: false,
@@ -15,21 +16,25 @@ describe('ExpectedArtifactService', () => {
     };
     const kindConfigs: IArtifactKindConfig[] = [
       {
+        typePattern: /foo-type/,
         type: 'foo-type',
         key: 'foo',
         isMatch: true,
       },
       {
+        typePattern: /foo-type/,
         type: 'foo-type',
         key: 'foo-default',
         isDefault: true,
       },
       {
+        typePattern: /bar-type/,
         type: 'bar-type',
         key: 'bar',
         isMatch: true,
       },
       {
+        typePattern: /bar-type/,
         type: 'bar-type',
         key: 'bar-default',
         isDefault: true,
@@ -45,24 +50,6 @@ describe('ExpectedArtifactService', () => {
     beforeAll(() => {
       kindConfigs.forEach(kindConfig => Registry.pipeline.registerArtifactKind(kindConfig));
       Registry.pipeline.registerCustomArtifactKind(customKindConfig);
-    });
-
-    it('returns the custom kind when set as the artifact kind', () => {
-      const artifact: IArtifact = {
-        kind: 'custom',
-        id: 'artifact-id',
-      };
-      const kindConfig = ExpectedArtifactService.getKindConfig(artifact, false);
-      expect(kindConfig).toEqual(customKindConfig);
-    });
-
-    it('returns the custom kind when set as the artifact kind and isDefault is true', () => {
-      const artifact: IArtifact = {
-        kind: 'custom',
-        id: 'artifact-id',
-      };
-      const kindConfig = ExpectedArtifactService.getKindConfig(artifact, true);
-      expect(kindConfig).toEqual(customKindConfig);
     });
 
     it('infers kind from type', () => {

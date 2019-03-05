@@ -1,8 +1,6 @@
 export interface IArtifact {
-  kind?: string; // json model only
   id: string;
   type?: string;
-  customKind?: boolean;
   name?: string;
   version?: string;
   location?: string;
@@ -10,4 +8,7 @@ export interface IArtifact {
   metadata?: any;
   artifactAccount?: string;
   provenance?: string;
+  // Legacy artifacts properties
+  kind?: string; // TODO delete
+  customKind?: boolean; // TODO delete
 }

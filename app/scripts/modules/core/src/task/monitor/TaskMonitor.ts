@@ -56,7 +56,9 @@ export class TaskMonitor {
     this.monitorInterval = config.monitorInterval || 1000;
     this.submitMethod = config.submitMethod;
 
-    this.modalInstance.result.then(() => this.onModalClose(), () => this.onModalClose());
+    if (this.modalInstance) {
+      this.modalInstance.result.then(() => this.onModalClose(), () => this.onModalClose());
+    }
   }
 
   public onModalClose(): void {

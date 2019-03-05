@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 import { IStageConfigProps } from 'core/pipeline';
-import { SpelNumberInput } from 'core/widgets/spelText/SpelNumberInput';
+import { SpelNumberInput } from 'core/widgets';
 import { IStage } from 'core/domain';
 import { StageConfigField } from '../common/stageConfigField/StageConfigField';
 

@@ -4,33 +4,32 @@ import { ArtifactTypePatterns } from 'core/artifact';
 import { IArtifact } from 'core/domain/IArtifact';
 import { Registry } from 'core/registry';
 
-export const DOCKER_ARTIFACT = 'spinnaker.core.pipeline.trigger.artifact.docker';
-module(DOCKER_ARTIFACT, []).config(() => {
+export const DEFAULT_HTTP_ARTIFACT = 'spinnaker.core.pipeline.trigger.defaultHttp.artifact';
+module(DEFAULT_HTTP_ARTIFACT, []).config(() => {
   Registry.pipeline.mergeArtifactKind({
-    label: 'Docker',
-    typePattern: ArtifactTypePatterns.DOCKER_IMAGE,
-    type: 'docker/image',
-    isDefault: false,
-    isMatch: true,
-    description: 'A Docker image to be deployed.',
-    key: 'docker',
+    label: 'HTTP',
+    typePattern: ArtifactTypePatterns.HTTP_FILE,
+    type: 'http/file',
+    description: 'An HTTP artifact.',
+    key: 'default.http',
+    isDefault: true,
+    isMatch: false,
     controller: function(artifact: IArtifact) {
       this.artifact = artifact;
-      this.artifact.type = 'docker/image';
+      this.artifact.type = 'http/file';
     },
     controllerAs: 'ctrl',
     template: `
 <div class="col-md-12">
   <div class="form-group row">
     <label class="col-md-2 sm-label-right">
-      Docker image
-      <help-field key="pipeline.config.expectedArtifact.docker.name"></help-field>
+      URL
     </label>
     <div class="col-md-8">
       <input type="text"
-             placeholder="gcr.io/project/image"
+             placeholder="http://host/path/file.ext"
              class="form-control input-sm"
-             ng-model="ctrl.artifact.name"/>
+             ng-model="ctrl.artifact.name" />
     </div>
   </div>
 </div>

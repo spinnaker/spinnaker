@@ -1,15 +1,13 @@
-///<reference path="./human-readable-ids.d.ts" />
-
 import { PipelineConfigService } from 'core/pipeline';
 import { Registry } from 'core/registry';
 import {
+  IArtifact,
+  IArtifactKindConfig,
+  IArtifactSource,
+  IExecutionContext,
+  IExpectedArtifact,
   IPipeline,
   IStage,
-  IExpectedArtifact,
-  IExecutionContext,
-  IArtifact,
-  IArtifactSource,
-  IArtifactKindConfig,
 } from 'core/domain';
 import { UUIDGenerator } from 'core/utils';
 import { hri as HumanReadableIds } from 'human-readable-ids';

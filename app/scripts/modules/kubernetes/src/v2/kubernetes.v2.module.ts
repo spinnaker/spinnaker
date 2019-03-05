@@ -1,6 +1,6 @@
 import { module } from 'angular';
 
-import { CloudProviderRegistry } from '@spinnaker/core';
+import { CloudProviderRegistry, STAGE_ARTIFACT_SELECTOR_COMPONENT_REACT } from '@spinnaker/core';
 
 import '../logo/kubernetes.logo.less';
 import { KUBERNETES_MANIFEST_BASIC_SETTINGS } from './manifest/wizard/basicSettings.component';
@@ -95,6 +95,7 @@ module(KUBERNETES_V2_MODULE, [
   JSON_EDITOR_COMPONENT,
   KUBERNETES_ENABLE_MANIFEST_STAGE,
   KUBERNETES_DISABLE_MANIFEST_STAGE,
+  STAGE_ARTIFACT_SELECTOR_COMPONENT_REACT,
 ]).config(() => {
   CloudProviderRegistry.registerProvider('kubernetes', {
     name: 'Kubernetes',

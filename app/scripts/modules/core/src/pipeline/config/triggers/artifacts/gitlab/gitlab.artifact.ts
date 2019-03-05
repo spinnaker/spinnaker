@@ -1,13 +1,14 @@
 import { module } from 'angular';
 
+import { ArtifactTypePatterns } from 'core/artifact';
 import { IArtifact } from 'core/domain/IArtifact';
 import { Registry } from 'core/registry';
-import { GitlabArtifactEditor } from './GitlabArtifactEditor';
 
 export const GITLAB_ARTIFACT = 'spinnaker.core.pipeline.trigger.gitlab.artifact';
 module(GITLAB_ARTIFACT, []).config(() => {
-  Registry.pipeline.registerArtifactKind({
+  Registry.pipeline.mergeArtifactKind({
     label: 'Gitlab',
+    typePattern: ArtifactTypePatterns.GITLAB_FILE,
     type: 'gitlab/file',
     description: 'A file stored in git, hosted by Gitlab.',
     key: 'gitlab',
@@ -18,7 +19,6 @@ module(GITLAB_ARTIFACT, []).config(() => {
       this.artifact.type = 'gitlab/file';
     },
     controllerAs: 'ctrl',
-    editCmp: GitlabArtifactEditor,
     template: `
 <div class="col-md-12">
   <div class="form-group row">

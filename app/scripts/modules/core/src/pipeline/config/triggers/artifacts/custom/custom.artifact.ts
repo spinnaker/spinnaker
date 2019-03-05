@@ -2,7 +2,6 @@ import { IController, module } from 'angular';
 
 import { IArtifact } from 'core/domain/IArtifact';
 import { Registry } from 'core/registry';
-import { CustomArtifactEditor } from './CustomArtifactEditor';
 
 class CustomArtifactController implements IController {
   public static $inject = ['artifact'];
@@ -23,7 +22,7 @@ module(CUSTOM_ARTIFACT, [])
         this.artifact = artifact;
       },
       controllerAs: 'ctrl',
-      editCmp: CustomArtifactEditor,
+      typePattern: /UNMATCHABLE/,
       template: `
 <div class="col-md-12">
   <div class="form-group row">

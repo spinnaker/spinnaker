@@ -33,6 +33,8 @@ export interface INotificationSettings {
 
 export interface IFeatures {
   [key: string]: any;
+  artifacts?: boolean;
+  artifactsRewrite?: boolean;
   canary?: boolean;
   chaosMonkey?: boolean;
   displayTimestampsInUserLocalTime?: boolean;

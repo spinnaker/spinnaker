@@ -1,15 +1,16 @@
 import { module } from 'angular';
 
+import { ArtifactTypePatterns } from 'core/artifact';
 import { IArtifact } from 'core/domain/IArtifact';
 import { Registry } from 'core/registry';
-import { Base64ArtifactEditor } from './Base64ArtifactEditor';
 
 import './base64.artifact.less';
 
 export const BASE64_ARTIFACT = 'spinnaker.core.pipeline.trigger.artifact.base64';
 module(BASE64_ARTIFACT, []).config(() => {
-  Registry.pipeline.registerArtifactKind({
+  Registry.pipeline.mergeArtifactKind({
     label: 'Base64',
+    typePattern: ArtifactTypePatterns.EMBEDDED_BASE64,
     type: 'embedded/base64',
     description: 'An artifact that includes its referenced resource as part of its payload.',
     key: 'base64',
@@ -20,7 +21,6 @@ module(BASE64_ARTIFACT, []).config(() => {
       this.artifact.type = 'embedded/base64';
     },
     controllerAs: 'ctrl',
-    editCmp: Base64ArtifactEditor,
     template: `
 <div class="col-md-12">
   <div class="form-group row">

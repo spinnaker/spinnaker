@@ -12,4 +12,5 @@ export const ArtifactTypePatterns = {
   IVY_FILE: /ivy\/file/,
   MAVEN_FILE: /maven\/file/,
   HTTP_FILE: /http\/file/,
+  FRONT50_PIPELINE_TEMPLATE: /front50\/pipelineTemplate/,
 };

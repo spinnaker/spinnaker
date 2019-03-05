@@ -9,6 +9,7 @@ export interface ICopyToClipboardProps {
   displayText?: boolean;
   text: string;
   toolTip: string;
+  className?: string;
 }
 
 interface ICopyToClipboardState {

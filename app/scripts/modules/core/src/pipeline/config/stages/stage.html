@@ -100,7 +100,12 @@
     </page-section>
     <render-if-feature feature="artifacts">
       <page-section key="producesArtifacts" label="Produces Artifacts" visible="stageProducesArtifacts()">
-        <produces-artifacts stage="stage" pipeline="pipeline"></produces-artifacts>
+        <render-if-feature feature="artifacts">
+          <produces-artifacts stage="stage" pipeline="pipeline"></produces-artifacts>
+        </render-if-feature>
+        <render-if-feature feature="artifactsRewrite">
+          <produces-artifacts-react stage="stage" pipeline="pipeline" on-produces-changed="producesArtifactsChanged" />
+        </render-if-feature>
       </page-section>
     </render-if-feature>
     <page-section key="comments" label="Comments" no-wrapper="true">

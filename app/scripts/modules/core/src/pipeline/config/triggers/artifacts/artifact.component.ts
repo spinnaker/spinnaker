@@ -70,9 +70,8 @@ class ArtifactCtrl implements IController {
     if (this.artifactAccounts) {
       options = options.filter(o => {
         const isCustomArtifact = o.customKind;
-        const isPublic = !!o.isPubliclyAccessible;
         const hasCredential = this.artifactAccounts.find(a => a.types.includes(o.type));
-        return isCustomArtifact || isPublic || hasCredential;
+        return isCustomArtifact || hasCredential;
       });
     }
     return options.sort((a, b) => a.label.localeCompare(b.label));
@@ -94,7 +93,7 @@ class ArtifactCtrl implements IController {
   }
 
   public artifactIconPath(kindConfig: IArtifactKindConfig) {
-    return ArtifactIconService.getPath(kindConfig.type);
+    return kindConfig && ArtifactIconService.getPath(kindConfig.type);
   }
 }
 

@@ -2,6 +2,7 @@ import { module } from 'angular';
 
 import { has } from 'lodash';
 
+import { ArtifactTypePatterns } from 'core/artifact';
 import { IArtifact } from 'core/domain/IArtifact';
 import { Registry } from 'core/registry';
 
@@ -14,8 +15,9 @@ const DOMBase64Errors: { [key: string]: string } = {
 };
 
 module(DEFAULT_BASE64_ARTIFACT, []).config(() => {
-  Registry.pipeline.registerArtifactKind({
+  Registry.pipeline.mergeArtifactKind({
     label: 'Base64',
+    typePattern: ArtifactTypePatterns.EMBEDDED_BASE64,
     type: 'embedded/base64',
     description: 'An artifact that includes its referenced resource as part of its payload.',
     key: 'default.base64',

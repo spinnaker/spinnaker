@@ -9,3 +9,4 @@ export * from './scrollTo/scrollTo.service';
 export * from './timeFormatters';
 export * from './uuid.service';
 export * from './workerPool';
+export * from './renderIfFeature.component';

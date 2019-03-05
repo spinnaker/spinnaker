@@ -1,6 +1,7 @@
 import { module } from 'angular';
 import { isNil } from 'lodash';
 
+import { ArtifactTypePatterns } from 'core/artifact';
 import { IArtifact } from 'core/domain/IArtifact';
 import { Registry } from 'core/registry';
 
@@ -8,6 +9,7 @@ export const DEFAULT_S3_ARTIFACT = 'spinnaker.core.pipeline.trigger.artifact.def
 module(DEFAULT_S3_ARTIFACT, []).config(() => {
   Registry.pipeline.registerArtifactKind({
     label: 'S3',
+    typePattern: ArtifactTypePatterns.S3_OBJECT,
     type: 's3/object',
     description: 'A S3 object.',
     key: 'default.s3',
