@@ -21,7 +21,7 @@ buildscript {
   }
   repositories {
     jcenter()
-    maven { url "http://spinnaker.bintray.com/gradle" }
+    maven { url "https://spinnaker.bintray.com/gradle" }
     maven { url "https://plugins.gradle.org/m2/" }
   }
 

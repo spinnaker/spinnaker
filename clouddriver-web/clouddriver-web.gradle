@@ -20,7 +20,7 @@ configurations.all {
 }
 
 repositories {
-  maven { url "http://adxsnapshots.azurewebsites.net" }
+  maven { url "https://adxsnapshots.azurewebsites.net" }
 }
 
 dependencies {

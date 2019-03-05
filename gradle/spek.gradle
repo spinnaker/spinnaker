@@ -18,7 +18,7 @@ apply plugin: "org.junit.platform.gradle.plugin"
 
 repositories {
   jcenter()
-  maven { url "http://dl.bintray.com/jetbrains/spek" }
+  maven { url "https://dl.bintray.com/jetbrains/spek" }
 }
 
 dependencies {
