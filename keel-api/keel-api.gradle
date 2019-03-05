@@ -9,7 +9,6 @@ dependencies {
   api project(":keel-plugin")
 
   implementation project(":keel-ec2-plugin")
-  implementation project(":keel-file-plugin")
 
   implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion"
   implementation "com.netflix.spinnaker.kork:kork-core:${spinnaker.version('kork')}"
