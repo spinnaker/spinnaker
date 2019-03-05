@@ -17,7 +17,7 @@ buildscript {
   repositories {
     jcenter()
     gradlePluginPortal()
-    maven { url "http://spinnaker.bintray.com/gradle" }
+    maven { url "https://spinnaker.bintray.com/gradle" }
   }
   dependencies {
     classpath "com.netflix.spinnaker.gradle:spinnaker-dev-plugin:5.2.2"
