@@ -3,6 +3,8 @@ apply plugin: "kotlin-spring"
 
 dependencies {
   api "org.springframework.boot:spring-boot-starter-test"
+  api "org.springframework.security:spring-security-test"
+  api "org.springframework.security:spring-security-config"
   api "com.netflix.spinnaker.kork:kork-jedis:${spinnaker.version('kork')}"
   api "com.netflix.spinnaker.kork:kork-jedis-test:${spinnaker.version('kork')}"
 }

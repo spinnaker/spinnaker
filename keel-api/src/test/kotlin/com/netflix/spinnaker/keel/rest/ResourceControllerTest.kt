@@ -10,7 +10,8 @@ import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.events.ResourceDeleted
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
-import com.netflix.spinnaker.keel.redis.spring.MockEurekaConfig
+import com.netflix.spinnaker.keel.redis.spring.MockEurekaConfiguration
+import com.netflix.spinnaker.keel.redis.spring.SecurityDisabledConfiguration
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
 import com.nhaarman.mockito_kotlin.any
@@ -27,6 +28,7 @@ import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.HttpHeaders.CONTENT_TYPE
 import org.springframework.http.MediaType
 import org.springframework.http.MediaType.APPLICATION_JSON
+import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
@@ -39,7 +41,7 @@ import strikt.assertions.isEqualTo
 
 @ExtendWith(SpringExtension::class)
 @SpringBootTest(
-  classes = [KeelApplication::class, MockEurekaConfig::class],
+  classes = [KeelApplication::class, MockEurekaConfiguration::class, SecurityDisabledConfiguration::class],
   properties = [
     "clouddriver.baseUrl=https://localhost:8081",
     "orca.baseUrl=https://localhost:8082"
@@ -68,6 +70,7 @@ internal class ResourceControllerTest {
   )
 
   @Test
+//  @WithMockUser(authorities = ["READ", "WRITE"])
   fun `can create a resource as YAML`() {
     whenever(resourcePersister.handle(any())) doReturn mockResource
 
@@ -114,6 +117,7 @@ internal class ResourceControllerTest {
   }
 
   @Test
+  @WithMockUser
   fun `an invalid request body results in an HTTP 400`() {
     val request = post("/resources")
       .accept(APPLICATION_YAML)

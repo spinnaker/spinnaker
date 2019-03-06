@@ -22,7 +22,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
 @Configuration
-class MockEurekaConfig {
+class MockEurekaConfiguration {
   @MockBean
   lateinit var eurekaClient: EurekaClient
 
