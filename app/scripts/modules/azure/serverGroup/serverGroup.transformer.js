@@ -33,6 +33,7 @@ module.exports = angular
         cloudProvider: command.selectedProvider,
         application: command.application,
         stack: command.stack,
+        strategy: command.strategy,
         detail: command.freeFormDetails,
         freeFormDetails: command.freeFormDetails,
         account: command.credentials,
