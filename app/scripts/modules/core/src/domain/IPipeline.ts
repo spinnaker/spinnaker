@@ -16,6 +16,7 @@ export interface IPipeline {
   limitConcurrent: boolean;
   name: string;
   respectQuietPeriod?: boolean;
+  schema?: string;
   stages: IStage[];
   strategy: boolean;
   triggers: ITrigger[];

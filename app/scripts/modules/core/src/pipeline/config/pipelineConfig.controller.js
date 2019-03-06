@@ -4,6 +4,7 @@ import _ from 'lodash';
 import { hri as HumanReadableIds } from 'human-readable-ids';
 
 import { PipelineTemplateReader } from './templates/PipelineTemplateReader';
+import { PipelineTemplateV2Service } from 'core/pipeline';
 
 const angular = require('angular');
 
@@ -11,9 +12,10 @@ module.exports = angular
   .module('spinnaker.core.pipeline.config.controller', [require('@uirouter/angularjs').default])
   .controller('PipelineConfigCtrl', [
     '$scope',
+    '$state',
     '$stateParams',
     'app',
-    function($scope, $stateParams, app) {
+    function($scope, $state, $stateParams, app) {
       this.application = app;
       this.state = {
         pipelinesLoaded: false,
@@ -23,6 +25,10 @@ module.exports = angular
 
       this.initialize = () => {
         this.pipelineConfig = _.find(app.pipelineConfigs.data, { id: $stateParams.pipelineId });
+
+        if (this.pipelineConfig && PipelineTemplateV2Service.isV2PipelineConfig(this.pipelineConfig)) {
+          return $state.go('home.applications.application.pipelines.executions', null, { location: 'replace' });
+        }
 
         if (this.pipelineConfig && this.pipelineConfig.expectedArtifacts) {
           for (const artifact of this.pipelineConfig.expectedArtifacts) {

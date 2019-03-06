@@ -3,7 +3,7 @@ import * as React from 'react';
 import { IModalComponentProps, JsonEditor } from 'core/presentation';
 import { IPipeline, IPipelineTemplateV2 } from 'core/domain';
 import { CopyToClipboard, noop, JsonUtils } from 'core/utils';
-import { PipelineTemplateV2Service } from 'core/pipeline/config/templates/v2/pipelineTemplateV2.service';
+import { PipelineTemplateV2Service } from 'core/pipeline';
 
 import './ShowPipelineTemplateJsonModal.less';
 

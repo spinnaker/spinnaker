@@ -17,6 +17,7 @@ import { IRetryablePromise } from 'core/utils/retryablePromise';
 import { TriggersTag } from 'core/pipeline/triggers/TriggersTag';
 import { AccountTag } from 'core/account';
 import { ModalInjector, ReactInjector } from 'core/reactShims';
+import { PipelineTemplateV2Service } from 'core/pipeline';
 import { Spinner } from 'core/widgets/spinners/Spinner';
 
 import './executionGroup.less';
@@ -55,6 +56,8 @@ export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecu
     const pipelineConfig = find(this.props.application.pipelineConfigs.data, {
       name: this.props.group.heading,
     }) as IPipeline;
+
+    const hasNonMPTV2PipelineConfig = pipelineConfig && !PipelineTemplateV2Service.isV2PipelineConfig(pipelineConfig);
     const sectionCacheKey = this.getSectionCacheKey();
 
     this.state = {
@@ -66,7 +69,7 @@ export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecu
         CollapsibleSectionStateCache.isExpanded(sectionCacheKey),
       poll: null,
       canTriggerPipelineManually: !!pipelineConfig,
-      canConfigure: !!(pipelineConfig || strategyConfig),
+      canConfigure: !!(hasNonMPTV2PipelineConfig || strategyConfig),
       showAccounts: ExecutionState.filterModel.asFilterModel.sortFilter.groupBy === 'name',
       pipelineConfig,
       showOverflowAccountTags: false,

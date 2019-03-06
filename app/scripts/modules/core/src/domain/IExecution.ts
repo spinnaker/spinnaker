@@ -3,6 +3,7 @@ import { IOrchestratedItem } from './IOrchestratedItem';
 import { IExecutionTrigger } from './IExecutionTrigger';
 import { IExecutionStage, IExecutionStageSummary } from './IExecutionStage';
 import { IAuthentication } from './IAuthentication';
+import { IPipeline } from './IPipeline';
 
 export interface IExecution extends IOrchestratedItem {
   appConfig?: any;
@@ -23,6 +24,7 @@ export interface IExecution extends IOrchestratedItem {
   isStrategy?: boolean;
   name?: string;
   pipelineConfigId?: string;
+  pipelineConfig?: IPipeline;
   searchField?: string;
   stageSummaries?: IExecutionStageSummary[]; // added by transformer
   stageWidth?: string; // added by transformer

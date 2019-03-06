@@ -4,6 +4,8 @@ import { get } from 'lodash';
 import { Dropdown } from 'react-bootstrap';
 
 import { Application } from 'core/application';
+import { IPipeline } from 'core/domain';
+import { PipelineTemplateV2Service } from 'core/pipeline';
 import { ReactInjector } from 'core/reactShims';
 import { Tooltip } from 'core/presentation/Tooltip';
 
@@ -20,7 +22,12 @@ export class CreatePipeline extends React.Component<ICreatePipelineProps> {
 
   public render() {
     const { application } = this.props;
-    const hasPipelineConfigs = get(application, 'pipelineConfigs.data', []).length > 0;
+
+    const pipelineConfigs = get(application, 'pipelineConfigs.data', []).filter(
+      (pipelineConfig: IPipeline) => !PipelineTemplateV2Service.isV2PipelineConfig(pipelineConfig),
+    );
+    const hasPipelineConfigs = pipelineConfigs.length > 0;
+
     const hasStrategyConfigs = get(application, 'strategyConfigs.data', []).length > 0;
     const header = !(hasPipelineConfigs || hasStrategyConfigs) ? (
       <li className="dropdown-header" style={{ marginTop: 0 }}>
@@ -56,10 +63,9 @@ export class CreatePipeline extends React.Component<ICreatePipelineProps> {
         </Dropdown.Toggle>
         <Dropdown.Menu className="dropdown-menu">
           {header}
-          {hasPipelineConfigs &&
-            application.pipelineConfigs.data.map((pipeline: any) => (
-              <Pipeline key={pipeline.id} pipeline={pipeline} type="pipeline" />
-            ))}
+          {pipelineConfigs.map((pipeline: IPipeline) => (
+            <Pipeline key={pipeline.id} pipeline={pipeline} type="pipeline" />
+          ))}
           {hasStrategyConfigs &&
             application.strategyConfigs.data.map((pipeline: any) => (
               <Pipeline key={pipeline.id} pipeline={pipeline} type="strategy" />
