@@ -24,12 +24,38 @@ import com.netflix.spinnaker.orca.pipeline.model.DefaultTrigger
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import spock.lang.Specification
 import spock.lang.Unroll
+
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class ArtifactResolverSpec extends Specification {
   def makeArtifactResolver() {
-    return new ArtifactResolver(new ObjectMapper(), Mock(ExecutionRepository))
+    return new ArtifactResolver(new ObjectMapper(), Mock(ExecutionRepository),
+      new ContextParameterProcessor())
+  }
+
+  def "should resolve expressions in stage-inlined artifacts"() {
+    setup:
+    def execution = pipeline {
+      stage {
+        name = "upstream stage"
+        type = "stage1"
+        refId = "1"
+      }
+    }
+
+    execution.trigger = new DefaultTrigger('manual')
+    execution.trigger.other['buildNumber'] = 100
+    execution.trigger.artifacts.add(Artifact.builder().type('http/file').name('build/libs/my-jar-100.jar').build())
+
+    when:
+    def artifact = makeArtifactResolver().getBoundArtifactForStage(execution.stages[0], null, Artifact.builder()
+      .type('http/file')
+      .name('build/libs/my-jar-${trigger[\'buildNumber\']}.jar')
+      .build())
+
+    then:
+    artifact.name == 'build/libs/my-jar-100.jar'
   }
 
   def "should find upstream artifacts in small pipeline"() {
@@ -45,28 +71,28 @@ class ArtifactResolverSpec extends Specification {
     artifacts.find { it.type == "extra" } != null
 
     where:
-      execution = pipeline {
-        stage {
-          name = "upstream stage"
-          type = "stage1"
-          refId = "1"
-          outputs.artifacts = [new Artifact(type: "1")]
-        }
-        stage {
-          name = "upstream stage"
-          type = "stage2"
-          refId = "2"
-          requisiteStageRefIds = ["1"]
-          outputs.artifacts = [new Artifact(type: "2"), new Artifact(type: "extra")]
-        }
-        stage {
-          name = "desired"
-          requisiteStageRefIds = ["2"]
-        }
+    execution = pipeline {
+      stage {
+        name = "upstream stage"
+        type = "stage1"
+        refId = "1"
+        outputs.artifacts = [new Artifact(type: "1")]
       }
+      stage {
+        name = "upstream stage"
+        type = "stage2"
+        refId = "2"
+        requisiteStageRefIds = ["1"]
+        outputs.artifacts = [new Artifact(type: "2"), new Artifact(type: "extra")]
+      }
+      stage {
+        name = "desired"
+        requisiteStageRefIds = ["2"]
+      }
+    }
   }
 
-  def "should find upstream artifacts only" () {
+  def "should find upstream artifacts only"() {
     when:
     def desired = execution.getStages().find { it.name == "desired" }
     def artifactResolver = makeArtifactResolver()
@@ -98,7 +124,7 @@ class ArtifactResolverSpec extends Specification {
     }
   }
 
-  def "should find artifacts from trigger and upstream stages" () {
+  def "should find artifacts from trigger and upstream stages"() {
     when:
     def execution = pipeline {
       stage {
@@ -124,7 +150,7 @@ class ArtifactResolverSpec extends Specification {
     artifacts.find { it.type == "trigger" } != null
   }
 
-  def "should find no artifacts" () {
+  def "should find no artifacts"() {
     when:
     def execution = pipeline {
       stage {
@@ -146,7 +172,7 @@ class ArtifactResolverSpec extends Specification {
     artifacts.size == 0
   }
 
-  def "should find a bound artifact from upstream stages" () {
+  def "should find a bound artifact from upstream stages"() {
     when:
     def execution = pipeline {
       stage {
@@ -154,8 +180,8 @@ class ArtifactResolverSpec extends Specification {
         type = "stage1"
         refId = "1"
         outputs.resolvedExpectedArtifacts = [
-            new ExpectedArtifact(id: "1", boundArtifact: new Artifact(type: "correct")),
-            new ExpectedArtifact(id: "2", boundArtifact: new Artifact(type: "incorrect"))
+          new ExpectedArtifact(id: "1", boundArtifact: new Artifact(type: "correct")),
+          new ExpectedArtifact(id: "2", boundArtifact: new Artifact(type: "incorrect"))
         ]
       }
       stage {
@@ -175,7 +201,7 @@ class ArtifactResolverSpec extends Specification {
     artifact.type == "correct"
   }
 
-  def "should find a bound artifact from a trigger" () {
+  def "should find a bound artifact from a trigger"() {
     when:
     def execution = pipeline {
       stage {
@@ -183,7 +209,7 @@ class ArtifactResolverSpec extends Specification {
         type = "stage1"
         refId = "1"
         outputs.resolvedExpectedArtifacts = [
-            new ExpectedArtifact(id: "2", boundArtifact: new Artifact(type: "incorrect"))
+          new ExpectedArtifact(id: "2", boundArtifact: new Artifact(type: "incorrect"))
         ]
       }
       stage {
@@ -237,7 +263,7 @@ class ArtifactResolverSpec extends Specification {
     new ExpectedArtifact(matchArtifact: new Artifact(type: "docker/.*", name: "none")) | [new Artifact(type: "docker/image", name: "bad"), new Artifact(type: "docker/image", name: "image")]
   }
 
-  def "should find all artifacts from an execution, in reverse order" () {
+  def "should find all artifacts from an execution, in reverse order"() {
     when:
     def execution = pipeline {
       stage {

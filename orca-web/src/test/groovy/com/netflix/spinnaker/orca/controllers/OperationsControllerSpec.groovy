@@ -481,7 +481,7 @@ class OperationsControllerSpec extends Specification {
       startedPipeline
     }
     executionRepository.retrievePipelinesForPipelineConfigId(*_) >> Observable.empty()
-    ArtifactResolver realArtifactResolver = new ArtifactResolver(mapper, executionRepository)
+    ArtifactResolver realArtifactResolver = new ArtifactResolver(mapper, executionRepository, new ContextParameterProcessor())
 
     // can't use @subject, since we need to test the behavior of otherwise mocked-out 'artifactResolver'
     def tempController = new OperationsController(

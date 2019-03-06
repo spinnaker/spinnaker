@@ -26,6 +26,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.tasks.artifacts.BindProducedArtifactsTask
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver
+import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import retrofit.RetrofitError
 import retrofit.client.Response
 import spock.lang.Shared
@@ -35,7 +36,7 @@ import spock.lang.Unroll
 
 class MonitorJenkinsJobTaskSpec extends Specification {
   def executionRepository = Mock(ExecutionRepository)
-  def artifactResolver = new ArtifactResolver(new ObjectMapper(), executionRepository)
+  def artifactResolver = new ArtifactResolver(new ObjectMapper(), executionRepository, new ContextParameterProcessor())
 
   @Subject
   MonitorJenkinsJobTask task = new MonitorJenkinsJobTask()

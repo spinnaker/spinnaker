@@ -37,14 +37,7 @@ import rx.schedulers.Schedulers;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -60,11 +53,14 @@ public class ArtifactResolver {
 
   private final ObjectMapper objectMapper;
   private final ExecutionRepository executionRepository;
+  private final ContextParameterProcessor contextParameterProcessor;
 
   @Autowired
-  public ArtifactResolver(ObjectMapper objectMapper, ExecutionRepository executionRepository) {
+  public ArtifactResolver(ObjectMapper objectMapper, ExecutionRepository executionRepository,
+                          ContextParameterProcessor contextParameterProcessor) {
     this.objectMapper = objectMapper;
     this.executionRepository = executionRepository;
+    this.contextParameterProcessor = contextParameterProcessor;
   }
 
   public @Nonnull
@@ -104,6 +100,26 @@ public class ArtifactResolver {
     emittedArtifacts.addAll(triggerArtifacts);
 
     return emittedArtifacts;
+  }
+
+  /**
+   * Used to fully resolve a bound artifact on a stage that can either select
+   * an expected artifact ID for an expected artifact defined in a prior stage
+   * or as a trigger constraint OR define an inline expression-evaluable default artifact.
+   * @param stage The stage containing context to evaluate expressions on the bound artifact.
+   * @param id An expected artifact id. Either id or artifact must be specified.
+   * @param artifact An inline default artifact. Either id or artifact must be specified.
+   * @return A bound artifact with expressions evaluated.
+   */
+  public @Nullable Artifact getBoundArtifactForStage(Stage stage, @Nullable String id, @Nullable Artifact artifact) {
+    Artifact boundArtifact = id != null ? getBoundArtifactForId(stage, id) : artifact;
+    Map<String, Object> boundArtifactMap = objectMapper.convertValue(boundArtifact, new TypeReference<Map<String, Object>>() {
+    });
+
+    Map<String, Object> evaluatedBoundArtifactMap = contextParameterProcessor.process(boundArtifactMap,
+      contextParameterProcessor.buildExecutionContext(stage, true), true);
+
+    return objectMapper.convertValue(evaluatedBoundArtifactMap, Artifact.class);
   }
 
   public @Nullable

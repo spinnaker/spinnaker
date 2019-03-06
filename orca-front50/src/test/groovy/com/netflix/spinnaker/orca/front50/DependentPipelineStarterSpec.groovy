@@ -43,7 +43,7 @@ class DependentPipelineStarterSpec extends Specification {
 
   ObjectMapper mapper = OrcaObjectMapper.newInstance()
   ExecutionRepository executionRepository = Mock(ExecutionRepository)
-  ArtifactResolver artifactResolver = Spy(ArtifactResolver, constructorArgs: [mapper, executionRepository])
+  ArtifactResolver artifactResolver = Spy(ArtifactResolver, constructorArgs: [mapper, executionRepository, new ContextParameterProcessor()])
 
   def "should only propagate credentials when explicitly provided"() {
     setup:
