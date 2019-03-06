@@ -3,6 +3,7 @@ package com.netflix.spinnaker.keel.serialization
 import com.fasterxml.jackson.databind.node.JsonNodeType.NULL
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.netflix.spinnaker.keel.api.randomUID
 import de.huxhorn.sulky.ulid.ULID
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -15,8 +16,6 @@ import strikt.jackson.path
 import strikt.jackson.textValue
 
 internal object ULIDSerializationTests : JUnit5Minutests {
-
-  val idGenerator = ULID()
 
   data class Person(
     val id: ULID.Value?,
@@ -32,7 +31,7 @@ internal object ULIDSerializationTests : JUnit5Minutests {
 
   fun tests() = rootContext<Fixture> {
     fixture {
-      Fixture(Person(id = idGenerator.nextValue(), name = "F Zlem"))
+      Fixture(Person(id = randomUID(), name = "F Zlem"))
     }
 
     context("serialization") {

@@ -31,7 +31,6 @@ import com.netflix.spinnaker.keel.plugin.ResourceConflict
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.netflix.spinnaker.keel.retrofit.isNotFound
 import de.danielbechler.diff.node.DiffNode
-import de.huxhorn.sulky.ulid.ULID
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -48,8 +47,7 @@ class ClusterHandler(
   private val cloudDriverCache: CloudDriverCache,
   private val orcaService: OrcaService,
   private val clock: Clock,
-  override val objectMapper: ObjectMapper,
-  override val idGenerator: ULID
+  override val objectMapper: ObjectMapper
 ) : ResourceHandler<Cluster> {
 
   override val apiVersion = SPINNAKER_API_V1.subApi("ec2")

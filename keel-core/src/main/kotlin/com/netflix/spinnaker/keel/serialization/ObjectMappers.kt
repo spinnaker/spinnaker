@@ -9,7 +9,7 @@ import com.fasterxml.jackson.databind.ser.std.ToStringSerializer
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
-import de.huxhorn.sulky.ulid.ULID
+import com.netflix.spinnaker.keel.api.UID
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -33,8 +33,8 @@ private fun ObjectMapper.configureMe() =
 
 fun ObjectMapper.registerULIDModule() =
   registerModule(SimpleModule().apply {
-    addSerializer(ULID.Value::class.java, ToStringSerializer())
-    addDeserializer(ULID.Value::class.java, ULIDDeserializer())
+    addSerializer(UID::class.java, ToStringSerializer())
+    addDeserializer(UID::class.java, ULIDDeserializer())
   })
 
 fun ObjectMapper.configureSaneDateTimeRepresentation() =

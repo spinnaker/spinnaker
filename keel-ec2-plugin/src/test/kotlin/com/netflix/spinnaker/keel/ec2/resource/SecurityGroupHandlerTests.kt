@@ -24,6 +24,7 @@ import com.netflix.spinnaker.keel.api.ec2.CrossAccountReferenceRule
 import com.netflix.spinnaker.keel.api.ec2.PortRange
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroup
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupRule.Protocol.TCP
+import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.Moniker
@@ -48,7 +49,6 @@ import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.whenever
-import de.huxhorn.sulky.ulid.ULID
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import kotlinx.coroutines.CompletableDeferred
@@ -69,7 +69,6 @@ internal object SecurityGroupHandlerTests : JUnit5Minutests {
   val cloudDriverCache: CloudDriverCache = mock()
   val orcaService: OrcaService = mock()
   val objectMapper = configuredObjectMapper()
-  val idGenerator = ULID()
 
   interface Fixture {
     val vpc: Network
@@ -81,7 +80,7 @@ internal object SecurityGroupHandlerTests : JUnit5Minutests {
     override val vpc: Network =
       Network(CLOUD_PROVIDER, randomUUID().toString(), "vpc1", "prod", "us-west-3"),
     override val handler: SecurityGroupHandler =
-      SecurityGroupHandler(cloudDriverService, cloudDriverCache, orcaService, objectMapper, idGenerator),
+      SecurityGroupHandler(cloudDriverService, cloudDriverCache, orcaService, objectMapper),
     override val securityGroup: SecurityGroup =
       SecurityGroup(
         application = "keel",
@@ -110,7 +109,7 @@ internal object SecurityGroupHandlerTests : JUnit5Minutests {
     override val vpc: Network =
       Network(CLOUD_PROVIDER, randomUUID().toString(), "vpc1", "prod", "us-west-3"),
     override val handler: SecurityGroupHandler =
-      SecurityGroupHandler(cloudDriverService, cloudDriverCache, orcaService, objectMapper, idGenerator),
+      SecurityGroupHandler(cloudDriverService, cloudDriverCache, orcaService, objectMapper),
     override val securityGroup: SecurityGroup =
       SecurityGroup(
         application = "keel",
@@ -417,7 +416,7 @@ internal object SecurityGroupHandlerTests : JUnit5Minutests {
         name = with(securityGroup) {
           ResourceName("ec2.SecurityGroup:$application:$accountName:$region:$name")
         },
-        uid = idGenerator.nextValue(),
+        uid = randomUID(),
         resourceVersion = 1234L
       ),
       kind = "ec2.SecurityGroup",

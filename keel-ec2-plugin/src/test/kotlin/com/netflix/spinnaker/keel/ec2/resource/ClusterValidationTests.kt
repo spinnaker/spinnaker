@@ -9,9 +9,9 @@ import com.netflix.spinnaker.keel.api.ec2.Cluster
 import com.netflix.spinnaker.keel.api.ec2.Cluster.LaunchConfiguration
 import com.netflix.spinnaker.keel.api.ec2.Cluster.Location
 import com.netflix.spinnaker.keel.api.ec2.Cluster.Moniker
+import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.nhaarman.mockito_kotlin.mock
-import de.huxhorn.sulky.ulid.ULID
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import strikt.api.expectThat
@@ -22,7 +22,6 @@ import java.time.Clock
 internal object ClusterValidationTests : JUnit5Minutests {
 
   val objectMapper = configuredObjectMapper()
-  val idGenerator = ULID()
 
   data class Fixture(
     val cluster: Cluster = Cluster(
@@ -50,12 +49,12 @@ internal object ClusterValidationTests : JUnit5Minutests {
       kind = "cluster",
       metadata = ResourceMetadata(
         name = ResourceName("undefined"),
-        uid = idGenerator.nextValue()
+        uid = randomUID()
       ),
       spec = objectMapper.convertValue<Map<String, Any?>>(cluster)
     )
     val handler: ClusterHandler = ClusterHandler(
-      mock(), mock(), mock(), Clock.systemDefaultZone(), objectMapper, idGenerator
+      mock(), mock(), mock(), Clock.systemDefaultZone(), objectMapper
     )
   }
 

@@ -19,6 +19,7 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceMetadata
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
+import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.persistence.ResourceState.Diff
 import com.netflix.spinnaker.keel.persistence.ResourceState.Ok
 import com.netflix.spinnaker.keel.persistence.ResourceState.Unknown
@@ -30,7 +31,6 @@ import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.times
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyZeroInteractions
-import de.huxhorn.sulky.ulid.ULID
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import strikt.api.expectThat
@@ -52,8 +52,6 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
   private val clock = MutableClock()
 
   abstract fun factory(clock: Clock): T
-
-  private val idGenerator = ULID()
 
   open fun flush() {}
 
@@ -87,7 +85,7 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
         metadata = ResourceMetadata(
           name = ResourceName("SecurityGroup:ec2:test:us-west-2:fnord"),
           resourceVersion = 1234L,
-          uid = idGenerator.nextValue()
+          uid = randomUID()
         ),
         kind = "ec2:SecurityGroup",
         spec = randomData()
@@ -124,7 +122,7 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
           metadata = ResourceMetadata(
             name = ResourceName("SecurityGroup:ec2:test:us-east-1:fnord"),
             resourceVersion = 1234L,
-            uid = idGenerator.nextValue()
+            uid = randomUID()
           ),
           apiVersion = SPINNAKER_API_V1,
           kind = "ec2:SecurityGroup",

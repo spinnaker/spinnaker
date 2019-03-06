@@ -5,6 +5,7 @@ import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.ResourceMetadata
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
+import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.nhaarman.mockito_kotlin.any
@@ -15,7 +16,6 @@ import com.nhaarman.mockito_kotlin.never
 import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.whenever
-import de.huxhorn.sulky.ulid.ULID
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 
@@ -24,7 +24,6 @@ internal object ResourceActuatorTests : JUnit5Minutests {
   val resourceRepository = InMemoryResourceRepository()
   val plugin1 = mock<ResourceHandler<DummyResource>>()
   val plugin2 = mock<ResourceHandler<DummyResource>>()
-  val idGenerator = ULID()
 
   fun tests() = rootContext<ResourceActuator> {
 
@@ -51,7 +50,7 @@ internal object ResourceActuatorTests : JUnit5Minutests {
         metadata = ResourceMetadata(
           name = ResourceName("resource1"),
           resourceVersion = 1234L,
-          uid = idGenerator.nextValue()
+          uid = randomUID()
         ),
         spec = DummyResource("whatever")
       )

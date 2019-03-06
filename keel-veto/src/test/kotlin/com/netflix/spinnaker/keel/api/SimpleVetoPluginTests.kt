@@ -8,7 +8,6 @@ import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.whenever
-import de.huxhorn.sulky.ulid.ULID
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import strikt.api.expectThat
@@ -25,8 +24,6 @@ internal object SimpleVetoPluginTests : JUnit5Minutests {
     val subject: VetoPlugin = SimpleVetoPlugin(dynamicConfigService)
   }
 
-  val idGenerator = ULID()
-
   fun tests() = rootContext<Fixture> {
     fixture {
       Fixture(
@@ -36,7 +33,7 @@ internal object SimpleVetoPluginTests : JUnit5Minutests {
           kind = "ec2.SecurityGroup",
           metadata = ResourceMetadata(
             name = ResourceName("ec2.SecurityGroup:keel:prod:us-east-1:keel"),
-            uid = idGenerator.nextValue(),
+            uid = randomUID(),
             resourceVersion = 1234L
           ),
           spec = randomData()

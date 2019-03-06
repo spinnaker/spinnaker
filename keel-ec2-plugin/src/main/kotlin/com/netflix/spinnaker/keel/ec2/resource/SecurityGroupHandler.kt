@@ -32,7 +32,6 @@ import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.netflix.spinnaker.keel.retrofit.isNotFound
 import de.danielbechler.diff.node.DiffNode
-import de.huxhorn.sulky.ulid.ULID
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import retrofit2.HttpException
@@ -42,8 +41,7 @@ class SecurityGroupHandler(
   private val cloudDriverService: CloudDriverService,
   private val cloudDriverCache: CloudDriverCache,
   private val orcaService: OrcaService,
-  override val objectMapper: ObjectMapper,
-  override val idGenerator: ULID
+  override val objectMapper: ObjectMapper
 ) : ResourceHandler<SecurityGroup> {
 
   override val apiVersion = SPINNAKER_API_V1.subApi("ec2")

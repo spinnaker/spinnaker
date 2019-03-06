@@ -7,6 +7,7 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceMetadata
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
+import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.events.ResourceDeleted
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.redis.spring.MockEurekaConfig
@@ -16,7 +17,6 @@ import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.whenever
-import de.huxhorn.sulky.ulid.ULID
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -57,14 +57,12 @@ internal class ResourceControllerTest {
   @MockBean
   lateinit var resourcePersister: ResourcePersister
 
-  private val idGenerator = ULID()
-
   var mockResource = Resource(
     apiVersion = ApiVersion("ec2.spinnaker.netflix.com/v1"),
     kind = "securityGroup",
     metadata = ResourceMetadata(
       name = ResourceName("ec2:securityGroup:test:us-west-2:keel"),
-      uid = idGenerator.nextValue()
+      uid = randomUID()
     ),
     spec = "mockingThis"
   )
@@ -144,7 +142,7 @@ internal class ResourceControllerTest {
       kind = "whatever",
       metadata = ResourceMetadata(
         name = ResourceName("my-resource"),
-        uid = idGenerator.nextValue(),
+        uid = randomUID(),
         resourceVersion = 1234L
       ),
       spec = "some spec content"
@@ -173,7 +171,7 @@ internal class ResourceControllerTest {
       kind = "securityGroup",
       metadata = ResourceMetadata(
         name = ResourceName("my-resource"),
-        uid = idGenerator.nextValue(),
+        uid = randomUID(),
         resourceVersion = 1234L
       ),
       spec = "some spec content"

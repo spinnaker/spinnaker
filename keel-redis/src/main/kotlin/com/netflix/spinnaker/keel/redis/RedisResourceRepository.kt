@@ -22,6 +22,7 @@ import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceMetadata
 import com.netflix.spinnaker.keel.api.ResourceName
+import com.netflix.spinnaker.keel.api.UID
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceName
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceUID
 import com.netflix.spinnaker.keel.persistence.ResourceHeader
@@ -60,7 +61,7 @@ class RedisResourceRepository(
     }
   }
 
-  override fun <T : Any> get(uid: ULID.Value, specType: Class<T>): Resource<T> =
+  override fun <T : Any> get(uid: UID, specType: Class<T>): Resource<T> =
     redisClient.withCommandsClient<Resource<T>> { redis: JedisCommands ->
       readResource(redis, uid, specType)
     }
@@ -91,7 +92,7 @@ class RedisResourceRepository(
     }
   }
 
-  override fun lastKnownState(uid: ULID.Value): Pair<ResourceState, Instant> =
+  override fun lastKnownState(uid: UID): Pair<ResourceState, Instant> =
     redisClient.withCommandsClient<Pair<ResourceState, Instant>> { redis: JedisCommands ->
       redis.zrevrangeByScoreWithScores(uid.stateKey, Double.MAX_VALUE, 0.0, 0, 1)
         .asSequence()
@@ -99,7 +100,7 @@ class RedisResourceRepository(
         .first()
     }
 
-  override fun updateState(uid: ULID.Value, state: ResourceState) {
+  override fun updateState(uid: UID, state: ResourceState) {
     redisClient.withCommandsClient<Long> { redis: JedisCommands ->
       redis.zadd(uid.stateKey, timestamp(), state.name)
     }
@@ -123,7 +124,7 @@ class RedisResourceRepository(
     private const val STATE_SORTED_SET = "$RESOURCE_HASH.state"
   }
 
-  private fun <T : Any> readResource(redis: JedisCommands, uid: ULID.Value, specType: Class<T>): Resource<T> =
+  private fun <T : Any> readResource(redis: JedisCommands, uid: UID, specType: Class<T>): Resource<T> =
     if (redis.sismember(INDEX_SET, uid.toString())) {
       redis.hgetAll(uid.key).let {
         Resource<T>(
@@ -137,17 +138,17 @@ class RedisResourceRepository(
       throw NoSuchResourceUID(uid)
     }
 
-  private fun onInvalidIndex(uid: ULID.Value) {
+  private fun onInvalidIndex(uid: UID) {
     log.error("Invalid index entry {}", uid)
     redisClient.withCommandsClient<Long> { redis: JedisCommands ->
       redis.srem(INDEX_SET, uid.toString())
     }
   }
 
-  private val ULID.Value.key: String
+  private val UID.key: String
     get() = RESOURCE_HASH.format(this)
 
-  private val ULID.Value.stateKey: String
+  private val UID.stateKey: String
     get() = STATE_SORTED_SET.format(this)
 
   private fun Resource<*>.toHash(): Map<String, String> = mapOf(

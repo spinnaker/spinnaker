@@ -23,7 +23,7 @@ import de.huxhorn.sulky.ulid.ULID
 data class ResourceMetadata(
   val name: ResourceName,
   @JsonProperty(defaultValue = "0") val resourceVersion: Long = 0,
-  val uid: ULID.Value,
+  val uid: UID,
   @get:JsonAnyGetter val data: Map<String, Any?> = emptyMap()
 ) {
   // Workaround for the inline class ResourceName. Jackson can't deserialize it

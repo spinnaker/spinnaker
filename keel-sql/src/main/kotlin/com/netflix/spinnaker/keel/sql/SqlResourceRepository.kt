@@ -5,6 +5,7 @@ import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceMetadata
 import com.netflix.spinnaker.keel.api.ResourceName
+import com.netflix.spinnaker.keel.api.UID
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceName
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceUID
 import com.netflix.spinnaker.keel.persistence.ResourceHeader
@@ -56,7 +57,7 @@ class SqlResourceRepository(
       }
   }
 
-  override fun <T : Any> get(uid: ULID.Value, specType: Class<T>): Resource<T> {
+  override fun <T : Any> get(uid: UID, specType: Class<T>): Resource<T> {
     return jooq
       .select(
         field("uid"),
@@ -137,7 +138,7 @@ class SqlResourceRepository(
     }
   }
 
-  override fun lastKnownState(uid: ULID.Value): Pair<ResourceState, Instant> =
+  override fun lastKnownState(uid: UID): Pair<ResourceState, Instant> =
     jooq
       .select(
         field("state"),
@@ -157,7 +158,7 @@ class SqlResourceRepository(
         }
       }
 
-  override fun updateState(uid: ULID.Value, state: ResourceState) {
+  override fun updateState(uid: UID, state: ResourceState) {
     jooq.inTransaction {
       insertInto(RESOURCE_STATE)
         .columns(
@@ -211,7 +212,7 @@ class SqlResourceRepository(
     get() = getString("api_version").let(::ApiVersion)
   private val ResultSet.kind: String
     get() = getString("kind")
-  private val ResultSet.uid: ULID.Value
+  private val ResultSet.uid: UID
     get() = getString("uid").let(ULID::parseULID)
 
   private fun <T : Any> ResultSet.spec(type: Class<T>): T =

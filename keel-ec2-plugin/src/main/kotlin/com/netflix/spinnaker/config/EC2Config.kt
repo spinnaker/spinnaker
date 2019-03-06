@@ -40,7 +40,7 @@ class EC2Config {
     objectMapper: ObjectMapper,
     idGenerator: ULID
   ): ClusterHandler =
-    ClusterHandler(cloudDriverService, cloudDriverCache, orcaService, clock, objectMapper, idGenerator)
+    ClusterHandler(cloudDriverService, cloudDriverCache, orcaService, clock, objectMapper)
 
   @Bean
   fun securityGroupHandler(
@@ -50,5 +50,5 @@ class EC2Config {
     objectMapper: ObjectMapper,
     idGenerator: ULID
   ): SecurityGroupHandler =
-    SecurityGroupHandler(cloudDriverService, cloudDriverCache, orcaService, objectMapper, idGenerator)
+    SecurityGroupHandler(cloudDriverService, cloudDriverCache, orcaService, objectMapper)
 }

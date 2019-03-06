@@ -22,8 +22,8 @@ import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.ResourceMetadata
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SubmittedResource
+import com.netflix.spinnaker.keel.api.randomUID
 import de.danielbechler.diff.node.DiffNode
-import de.huxhorn.sulky.ulid.ULID
 
 interface ResourceHandler<T : Any> : KeelPlugin {
 
@@ -35,7 +35,6 @@ interface ResourceHandler<T : Any> : KeelPlugin {
   val supportedKind: Pair<ResourceKind, Class<T>>
 
   val objectMapper: ObjectMapper
-  val idGenerator: ULID
 
   /**
    * Validates the resource spec, and generates a metadata header, and applies any defaults /
@@ -51,7 +50,7 @@ interface ResourceHandler<T : Any> : KeelPlugin {
     val metadata = ResourceMetadata(
       name = generateName(spec),
       resourceVersion = 0L,
-      uid = idGenerator.nextValue()
+      uid = randomUID()
     )
     val hydratedResource = Resource(
       apiVersion = resource.apiVersion,

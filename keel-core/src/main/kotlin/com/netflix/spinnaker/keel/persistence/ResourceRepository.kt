@@ -18,11 +18,11 @@ package com.netflix.spinnaker.keel.persistence
 import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceName
-import de.huxhorn.sulky.ulid.ULID
+import com.netflix.spinnaker.keel.api.UID
 import java.time.Instant
 
 data class ResourceHeader(
-  val uid: ULID.Value,
+  val uid: UID,
   val name: ResourceName,
   val resourceVersion: Long,
   val apiVersion: ApiVersion,
@@ -57,7 +57,7 @@ interface ResourceRepository {
    * @return The resource represented by [uid] or `null` if [uid] is unknown.
    * @throws NoSuchResourceException if [uid] does not map to a resource in the repository.
    */
-  fun <T : Any> get(uid: ULID.Value, specType: Class<T>): Resource<T>
+  fun <T : Any> get(uid: UID, specType: Class<T>): Resource<T>
 
   /**
    * Persists a resource.
@@ -76,18 +76,18 @@ interface ResourceRepository {
    *
    * @return The last known state of the resource represented by [uid].
    */
-  fun lastKnownState(uid: ULID.Value): Pair<ResourceState, Instant>
+  fun lastKnownState(uid: UID): Pair<ResourceState, Instant>
 
   /**
    * Updates the last known state of the resource represented by [uid].
    */
-  fun updateState(uid: ULID.Value, state: ResourceState)
+  fun updateState(uid: UID, state: ResourceState)
 }
 
 inline fun <reified T : Any> ResourceRepository.get(name: ResourceName): Resource<T> = get(name, T::class.java)
-inline fun <reified T : Any> ResourceRepository.get(uid: ULID.Value): Resource<T> = get(uid, T::class.java)
+inline fun <reified T : Any> ResourceRepository.get(uid: UID): Resource<T> = get(uid, T::class.java)
 
 sealed class NoSuchResourceException(override val message: String?) : RuntimeException(message)
 
 class NoSuchResourceName(name: ResourceName) : NoSuchResourceException("No resource named $name exists in the repository")
-class NoSuchResourceUID(uid: ULID.Value) : NoSuchResourceException("No resource with uid $uid exists in the repository")
+class NoSuchResourceUID(uid: UID) : NoSuchResourceException("No resource with uid $uid exists in the repository")
