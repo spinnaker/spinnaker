@@ -134,6 +134,13 @@ public class KubernetesAddAccountCommand extends AbstractAddAccountCommand {
   )
   public Boolean checkPermissionsOnStartup;
 
+  @Parameter(
+      names = "--live-manifest-calls",
+      arity = 1,
+      description = KubernetesCommandProperties.LIVE_MANIFEST_CALLS
+  )
+  public Boolean liveManifestCalls;
+
   @Override
   protected Account buildAccount(String accountName) {
     KubernetesAccount account = (KubernetesAccount) new KubernetesAccount().setName(accountName);
@@ -152,6 +159,7 @@ public class KubernetesAddAccountCommand extends AbstractAddAccountCommand {
     account.setSkin(skin);
     account.setOnlySpinnakerManaged(onlySpinnakerManaged);
     account.setCheckPermissionsOnStartup(checkPermissionsOnStartup);
+    account.setLiveManifestCalls(liveManifestCalls);
     return account;
   }
 

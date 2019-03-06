@@ -227,6 +227,13 @@ public class KubernetesEditAccountCommand extends AbstractEditAccountCommand<Kub
   )
   public Boolean checkPermissionsOnStartup;
 
+  @Parameter(
+      names = "--live-manifest-calls",
+      arity = 1,
+      description = KubernetesCommandProperties.LIVE_MANIFEST_CALLS
+  )
+  public Boolean liveManifestCalls;
+
   @Override
   protected Account editAccount(KubernetesAccount account) {
     boolean contextSet = context != null && !context.isEmpty();
@@ -295,7 +302,8 @@ public class KubernetesEditAccountCommand extends AbstractEditAccountCommand<Kub
     account.setNamingStrategy(isSet(namingStrategy) ? namingStrategy : account.getNamingStrategy());
     account.setSkin(isSet(skin) ? skin : account.getSkin());
     account.setOnlySpinnakerManaged(isSet(onlySpinnakerManaged) ? onlySpinnakerManaged : account.getOnlySpinnakerManaged());
-    account.setCheckPermissionsOnStartup(isSet(checkPermissionsOnStartup) ? checkPermissionsOnStartup : Boolean.TRUE);
+    account.setCheckPermissionsOnStartup(isSet(checkPermissionsOnStartup) ? checkPermissionsOnStartup : account.getCheckPermissionsOnStartup());
+    account.setLiveManifestCalls(isSet(liveManifestCalls) ? liveManifestCalls : account.getLiveManifestCalls());
     return account;
   }
 

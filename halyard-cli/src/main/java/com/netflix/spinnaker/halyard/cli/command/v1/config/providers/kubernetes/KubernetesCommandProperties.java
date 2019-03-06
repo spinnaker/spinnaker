@@ -50,4 +50,7 @@ public class KubernetesCommandProperties {
 
   static final String CHECK_PERMISSIONS_ON_STARTUP = "When false, clouddriver will skip the permission checks for all kubernetes kinds at startup. This can save a great deal of time\n"
       + "during clouddriver startup when you have many kubernetes accounts configured. This disables the log messages at startup about missing permissions.";
+
+  static final String LIVE_MANIFEST_CALLS = "When true, clouddriver will query manifest status during pipeline executions using live data rather than the cache.\n"
+      + "This eliminates all time spent in the \"force cache refresh\" task in pipelines, greatly reducing execution time.";
 }
