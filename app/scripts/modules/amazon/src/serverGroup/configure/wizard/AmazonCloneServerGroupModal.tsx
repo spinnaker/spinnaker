@@ -141,6 +141,17 @@ export class AmazonCloneServerGroupModal extends React.Component<
     });
   };
 
+  private normalizeCommand = ({ tags }: IAmazonServerGroupCommand) => {
+    if (!tags) {
+      return;
+    }
+    Object.keys(tags).forEach(key => {
+      if (!key.length && !tags[key].length) {
+        delete tags[key];
+      }
+    });
+  };
+
   public componentWillUnmount(): void {
     this._isUnmounted = true;
     if (this.refreshUnsubscribe) {
@@ -149,6 +160,7 @@ export class AmazonCloneServerGroupModal extends React.Component<
   }
 
   private submit = (command: IAmazonServerGroupCommand): void => {
+    this.normalizeCommand(command);
     const forPipelineConfig = command.viewState.mode === 'editPipeline' || command.viewState.mode === 'createPipeline';
     if (forPipelineConfig) {
       this.props.closeModal && this.props.closeModal(command);
