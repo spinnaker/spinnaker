@@ -2,6 +2,7 @@ package com.netflix.spinnaker.echo.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.echo.pipelinetriggers.artifacts.JinjaArtifactExtractor;
 import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService;
 import com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers.PubsubEventHandler;
 import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties;
@@ -60,8 +61,8 @@ public class PipelineTriggerConfiguration {
 
   @Bean
   @ConditionalOnMissingBean(PubsubEventHandler.class)
-  PubsubEventHandler pubsubEventHandler(Registry registry, ObjectMapper objectMapper) {
-    return new PubsubEventHandler(registry, objectMapper);
+  PubsubEventHandler pubsubEventHandler(Registry registry, ObjectMapper objectMapper, JinjaArtifactExtractor jinjaArtifactExtractor) {
+    return new PubsubEventHandler(registry, objectMapper, jinjaArtifactExtractor);
   }
 
   @Bean

@@ -5,6 +5,7 @@ import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.echo.build.BuildInfoService
 import com.netflix.spinnaker.echo.model.Pipeline
 import com.netflix.spinnaker.echo.model.trigger.BuildEvent
+import com.netflix.spinnaker.echo.pipelinetriggers.artifacts.JinjaArtifactExtractor
 import com.netflix.spinnaker.echo.services.IgorService
 import com.netflix.spinnaker.echo.test.RetrofitStubs
 import com.netflix.spinnaker.kork.core.RetrySupport
@@ -19,6 +20,9 @@ class BuildEventHandlerSpec extends Specification implements RetrofitStubs {
   def objectMapper = new ObjectMapper()
   def igorService = Mock(IgorService)
   def buildInformation = new BuildInfoService(igorService, new RetrySupport())
+  def artifactExtractor = Stub(JinjaArtifactExtractor) {
+    extractArtifacts(_) >> Collections.emptyList()
+  }
 
   String MASTER_NAME = "jenkins-server"
   String JOB_NAME = "my-job"
@@ -32,7 +36,7 @@ class BuildEventHandlerSpec extends Specification implements RetrofitStubs {
   ]
 
   @Subject
-  def eventHandler = new BuildEventHandler(registry, objectMapper, Optional.of(buildInformation))
+  def eventHandler = new BuildEventHandler(registry, objectMapper, Optional.of(buildInformation), artifactExtractor)
 
   @Unroll
   def "triggers pipelines for successful builds for #triggerType"() {
@@ -179,11 +183,11 @@ class BuildEventHandlerSpec extends Specification implements RetrofitStubs {
     def event = getBuildEvent()
 
     when:
-    def outputPipeline = eventHandler.buildTrigger(inputPipeline, event).apply(trigger)
+    def outputTrigger = eventHandler.buildTrigger(event).apply(trigger)
 
     then:
     1 * igorService.getBuild(BUILD_NUMBER, MASTER_NAME, JOB_NAME) >> BUILD_INFO
-    outputPipeline.trigger.buildInfo.equals(BUILD_INFO)
+    outputTrigger.buildInfo.equals(BUILD_INFO)
   }
 
   def "fetches property file if defined"() {
@@ -198,13 +202,13 @@ class BuildEventHandlerSpec extends Specification implements RetrofitStubs {
     def event = getBuildEvent()
 
     when:
-    def outputPipeline = eventHandler.buildTrigger(inputPipeline, event).apply(trigger)
+    def outputTrigger = eventHandler.buildTrigger(event).apply(trigger)
 
     then:
     1 * igorService.getBuild(BUILD_NUMBER, MASTER_NAME, JOB_NAME) >> BUILD_INFO
     1 * igorService.getPropertyFile(BUILD_NUMBER, PROPERTY_FILE, MASTER_NAME, JOB_NAME) >> PROPERTIES
-    outputPipeline.trigger.buildInfo.equals(BUILD_INFO)
-    outputPipeline.trigger.properties.equals(PROPERTIES)
+    outputTrigger.buildInfo.equals(BUILD_INFO)
+    outputTrigger.properties.equals(PROPERTIES)
   }
 
   def "retries on failure to communicate with igor"() {
@@ -219,13 +223,13 @@ class BuildEventHandlerSpec extends Specification implements RetrofitStubs {
     def event = getBuildEvent()
 
     when:
-    def outputPipeline = eventHandler.buildTrigger(inputPipeline, event).apply(trigger)
+    def outputTrigger = eventHandler.buildTrigger(event).apply(trigger)
 
     then:
     2 * igorService.getBuild(BUILD_NUMBER, MASTER_NAME, JOB_NAME) >> { throw new RuntimeException() } >> BUILD_INFO
     1 * igorService.getPropertyFile(BUILD_NUMBER, PROPERTY_FILE, MASTER_NAME, JOB_NAME) >> PROPERTIES
-    outputPipeline.trigger.buildInfo.equals(BUILD_INFO)
-    outputPipeline.trigger.properties.equals(PROPERTIES)
+    outputTrigger.buildInfo.equals(BUILD_INFO)
+    outputTrigger.properties.equals(PROPERTIES)
   }
 
   def getBuildEvent() {

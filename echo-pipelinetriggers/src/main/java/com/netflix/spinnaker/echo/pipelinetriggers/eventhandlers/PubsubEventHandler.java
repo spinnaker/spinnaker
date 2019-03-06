@@ -16,22 +16,24 @@
 
 package com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers;
 
-import static com.netflix.spinnaker.echo.pipelinetriggers.artifacts.ArtifactMatcher.anyArtifactsMatchExpected;
-import static com.netflix.spinnaker.echo.pipelinetriggers.artifacts.ArtifactMatcher.isConstraintInPayload;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.model.Pipeline;
 import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.model.pubsub.MessageDescription;
 import com.netflix.spinnaker.echo.model.trigger.PubsubEvent;
+import com.netflix.spinnaker.echo.pipelinetriggers.artifacts.JinjaArtifactExtractor;
+import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+
+import static com.netflix.spinnaker.echo.pipelinetriggers.artifacts.ArtifactMatcher.isConstraintInPayload;
 
 /**
  * Implementation of TriggerEventHandler for events of type {@link PubsubEvent}, which occur when
@@ -41,8 +43,8 @@ public class PubsubEventHandler extends BaseTriggerEventHandler<PubsubEvent> {
   public static final String PUBSUB_TRIGGER_TYPE = "pubsub";
 
   @Autowired
-  public PubsubEventHandler(Registry registry, ObjectMapper objectMapper) {
-    super(registry, objectMapper);
+  public PubsubEventHandler(Registry registry, ObjectMapper objectMapper, JinjaArtifactExtractor jinjaArtifactExtractor) {
+    super(registry, objectMapper, jinjaArtifactExtractor);
   }
 
   @Override
@@ -61,17 +63,15 @@ public class PubsubEventHandler extends BaseTriggerEventHandler<PubsubEvent> {
   }
 
   @Override
-  protected Function<Trigger, Pipeline> buildTrigger(Pipeline pipeline, PubsubEvent pubsubEvent) {
+  protected Function<Trigger, Trigger> buildTrigger(PubsubEvent pubsubEvent) {
     Map payload = pubsubEvent.getPayload();
     Map parameters = payload.containsKey("parameters") ? (Map) payload.get("parameters") : new HashMap();
     MessageDescription description = pubsubEvent.getContent().getMessageDescription();
-    return trigger -> pipeline
-        .withReceivedArtifacts(description.getArtifacts())
-        .withTrigger(trigger
+    return trigger -> trigger
           .atMessageDescription(description.getSubscriptionName(), description.getPubsubSystem().toString())
           .atParameters(parameters)
           .atPayload(payload)
-          .atEventId(pubsubEvent.getEventId()));
+          .atEventId(pubsubEvent.getEventId());
   }
 
   @Override
@@ -81,15 +81,14 @@ public class PubsubEventHandler extends BaseTriggerEventHandler<PubsubEvent> {
   }
 
   @Override
-  protected Predicate<Trigger> matchTriggerFor(PubsubEvent pubsubEvent, Pipeline pipeline) {
+  protected Predicate<Trigger> matchTriggerFor(PubsubEvent pubsubEvent) {
     MessageDescription description = pubsubEvent.getContent().getMessageDescription();
 
     return trigger -> trigger.getType().equalsIgnoreCase(PUBSUB_TRIGGER_TYPE)
         && trigger.getPubsubSystem().equalsIgnoreCase(description.getPubsubSystem().toString())
         && trigger.getSubscriptionName().equalsIgnoreCase(description.getSubscriptionName())
         && (trigger.getPayloadConstraints() == null || isConstraintInPayload(trigger.getPayloadConstraints(), pubsubEvent.getPayload()))
-        && (trigger.getAttributeConstraints() == null || isConstraintInPayload(trigger.getAttributeConstraints(), description.getMessageAttributes()))
-        && anyArtifactsMatchExpected(description.getArtifacts(), trigger, pipeline);
+        && (trigger.getAttributeConstraints() == null || isConstraintInPayload(trigger.getAttributeConstraints(), description.getMessageAttributes()));
   }
 
   @Override
@@ -104,5 +103,10 @@ public class PubsubEventHandler extends BaseTriggerEventHandler<PubsubEvent> {
     return PUBSUB_TRIGGER_TYPE.equals(trigger.getType())
         && !StringUtils.isEmpty(trigger.getSubscriptionName())
         && !StringUtils.isEmpty(trigger.getPubsubSystem());
+  }
+
+  @Override
+  protected List<Artifact> getArtifactsFromEvent(PubsubEvent pubsubEvent) {
+    return pubsubEvent.getContent().getMessageDescription().getArtifacts();
   }
 }

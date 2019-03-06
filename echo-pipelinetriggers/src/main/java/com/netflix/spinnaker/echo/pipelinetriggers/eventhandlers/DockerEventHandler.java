@@ -16,22 +16,21 @@
 
 package com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers;
 
-import static com.netflix.spinnaker.echo.pipelinetriggers.artifacts.ArtifactMatcher.anyArtifactsMatchExpected;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
-import com.netflix.spinnaker.echo.model.Pipeline;
 import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.model.trigger.DockerEvent;
+import com.netflix.spinnaker.echo.pipelinetriggers.artifacts.JinjaArtifactExtractor;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.PatternSyntaxException;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 /**
  * Implementation of TriggerEventHandler for events of type {@link DockerEvent}, which occur when
@@ -42,8 +41,8 @@ public class DockerEventHandler extends BaseTriggerEventHandler<DockerEvent> {
   private static final String TRIGGER_TYPE = "docker";
 
   @Autowired
-  public DockerEventHandler(Registry registry, ObjectMapper objectMapper) {
-    super(registry, objectMapper);
+  public DockerEventHandler(Registry registry, ObjectMapper objectMapper, JinjaArtifactExtractor jinjaArtifactExtractor) {
+    super(registry, objectMapper, jinjaArtifactExtractor);
   }
 
   @Override
@@ -63,7 +62,7 @@ public class DockerEventHandler extends BaseTriggerEventHandler<DockerEvent> {
     return tag != null && !tag.isEmpty();
   }
 
-  private static List<Artifact> getArtifacts(DockerEvent dockerEvent) {
+  protected List<Artifact> getArtifactsFromEvent(DockerEvent dockerEvent) {
     DockerEvent.Content content = dockerEvent.getContent();
 
     String name = content.getRegistry() + "/" + content.getRepository();
@@ -77,9 +76,8 @@ public class DockerEventHandler extends BaseTriggerEventHandler<DockerEvent> {
   }
 
   @Override
-  protected Function<Trigger, Pipeline> buildTrigger(Pipeline pipeline, DockerEvent dockerEvent) {
-    return trigger -> pipeline.withTrigger(trigger.atTag(dockerEvent.getContent().getTag()).withEventId(dockerEvent.getEventId()))
-      .withReceivedArtifacts(getArtifacts(dockerEvent));
+  protected Function<Trigger, Trigger> buildTrigger(DockerEvent dockerEvent) {
+    return trigger -> trigger.atTag(dockerEvent.getContent().getTag()).withEventId(dockerEvent.getEventId());
   }
 
   @Override
@@ -102,11 +100,11 @@ public class DockerEventHandler extends BaseTriggerEventHandler<DockerEvent> {
   }
 
   @Override
-  protected Predicate<Trigger> matchTriggerFor(DockerEvent dockerEvent, Pipeline pipeline) {
-    return trigger -> isMatchingTrigger(dockerEvent, trigger, pipeline);
+  protected Predicate<Trigger> matchTriggerFor(DockerEvent dockerEvent) {
+    return trigger -> isMatchingTrigger(dockerEvent, trigger);
   }
 
-  private boolean isMatchingTrigger(DockerEvent dockerEvent, Trigger trigger, Pipeline pipeline) {
+  private boolean isMatchingTrigger(DockerEvent dockerEvent, Trigger trigger) {
     String account = dockerEvent.getContent().getAccount();
     String repository = dockerEvent.getContent().getRepository();
     String eventTag = dockerEvent.getContent().getTag();
@@ -118,8 +116,7 @@ public class DockerEventHandler extends BaseTriggerEventHandler<DockerEvent> {
             trigger.getRepository().equals(repository) &&
             trigger.getAccount().equals(account) &&
             ((triggerTagPattern == null && !eventTag.equals("latest"))
-              || triggerTagPattern != null && matchTags(triggerTagPattern, eventTag)) &&
-            anyArtifactsMatchExpected(getArtifacts(dockerEvent), trigger, pipeline);
+              || triggerTagPattern != null && matchTags(triggerTagPattern, eventTag));
   }
 }
 

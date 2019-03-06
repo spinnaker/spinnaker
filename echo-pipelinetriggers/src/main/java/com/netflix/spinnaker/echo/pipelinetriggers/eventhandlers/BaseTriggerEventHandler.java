@@ -22,10 +22,17 @@ import com.netflix.spinnaker.echo.model.Event;
 import com.netflix.spinnaker.echo.model.Pipeline;
 import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.model.trigger.TriggerEvent;
+import com.netflix.spinnaker.echo.pipelinetriggers.artifacts.ArtifactMatcher;
+import com.netflix.spinnaker.echo.pipelinetriggers.artifacts.JinjaArtifactExtractor;
+import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import lombok.Value;
+import lombok.extern.slf4j.Slf4j;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Base implementation of {@link TriggerEventHandler} for events that require looking for matching
@@ -36,10 +43,12 @@ import lombok.extern.slf4j.Slf4j;
 public abstract class BaseTriggerEventHandler<T extends TriggerEvent> implements TriggerEventHandler<T> {
   private final Registry registry;
   protected final ObjectMapper objectMapper;
+  private final JinjaArtifactExtractor jinjaArtifactExtractor;
 
-  BaseTriggerEventHandler(Registry registry, ObjectMapper objectMapper) {
+  BaseTriggerEventHandler(Registry registry, ObjectMapper objectMapper, JinjaArtifactExtractor jinjaArtifactExtractor) {
     this.registry = registry;
     this.objectMapper = objectMapper;
+    this.jinjaArtifactExtractor = jinjaArtifactExtractor;
   }
 
   public Optional<Pipeline> withMatchingTrigger(T event, Pipeline pipeline) {
@@ -50,9 +59,12 @@ public abstract class BaseTriggerEventHandler<T extends TriggerEvent> implements
         return pipeline.getTriggers()
           .stream()
           .filter(this::isValidTrigger)
-          .filter(matchTriggerFor(event, pipeline))
+          .filter(matchTriggerFor(event))
+          .map(buildTrigger(event))
+          .map(t -> new TriggerWithArtifacts(t, getArtifacts(event, t)))
+          .filter(ta -> ArtifactMatcher.anyArtifactsMatchExpected(ta.artifacts, ta.trigger, pipeline.getExpectedArtifacts()))
           .findFirst()
-          .map(buildTrigger(pipeline, event));
+          .map(ta -> pipeline.withTrigger(ta.trigger).withReceivedArtifacts(ta.artifacts));
       } catch (Exception e) {
         onSubscriberError(e);
         return Optional.empty();
@@ -70,11 +82,30 @@ public abstract class BaseTriggerEventHandler<T extends TriggerEvent> implements
     return  objectMapper.convertValue(event, getEventType());
   }
 
-  protected abstract Predicate<Trigger> matchTriggerFor(T event, Pipeline pipeline);
+  private List<Artifact> getArtifacts(T event, Trigger trigger) {
+    List<Artifact> results = new ArrayList<>();
+    Optional.ofNullable(getArtifactsFromEvent(event)).ifPresent(results::addAll);
+    Optional.ofNullable(extractArtifacts(trigger)).ifPresent(results::addAll);
+    return results;
+  }
 
-  protected abstract Function<Trigger, Pipeline> buildTrigger(Pipeline pipeline, T event);
+  private List<Artifact> extractArtifacts(Trigger trigger) {
+    return jinjaArtifactExtractor.extractArtifacts(trigger);
+  }
+
+  protected abstract Predicate<Trigger> matchTriggerFor(T event);
+
+  protected abstract Function<Trigger, Trigger> buildTrigger(T event);
 
   protected abstract boolean isValidTrigger(Trigger trigger);
 
   protected abstract Class<T> getEventType();
+
+  protected abstract List<Artifact> getArtifactsFromEvent(T event);
+
+  @Value
+  private class TriggerWithArtifacts {
+    Trigger trigger;
+    List<Artifact> artifacts;
+  }
 }

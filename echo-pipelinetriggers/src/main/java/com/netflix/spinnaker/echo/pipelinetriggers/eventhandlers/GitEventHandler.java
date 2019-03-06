@@ -16,25 +16,24 @@
 
 package com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers;
 
-import static com.netflix.spinnaker.echo.pipelinetriggers.artifacts.ArtifactMatcher.anyArtifactsMatchExpected;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
-import com.netflix.spinnaker.echo.model.Pipeline;
 import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.model.trigger.GitEvent;
+import com.netflix.spinnaker.echo.pipelinetriggers.artifacts.JinjaArtifactExtractor;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.digest.HmacUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.codec.digest.HmacUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 /**
  * Implementation of TriggerEventHandler for events of type {@link GitEvent}, which occur when
@@ -47,8 +46,8 @@ public class GitEventHandler extends BaseTriggerEventHandler<GitEvent> {
   private static final String GITHUB_SECURE_SIGNATURE_HEADER = "X-Hub-Signature";
 
   @Autowired
-  public GitEventHandler(Registry registry, ObjectMapper objectMapper) {
-    super(registry, objectMapper);
+  public GitEventHandler(Registry registry, ObjectMapper objectMapper, JinjaArtifactExtractor jinjaArtifactExtractor) {
+    super(registry, objectMapper, jinjaArtifactExtractor);
   }
 
   @Override
@@ -78,30 +77,31 @@ public class GitEventHandler extends BaseTriggerEventHandler<GitEvent> {
   }
 
   @Override
-  protected Predicate<Trigger> matchTriggerFor(GitEvent gitEvent, Pipeline pipeline) {
+  protected Predicate<Trigger> matchTriggerFor(GitEvent gitEvent) {
     String source = gitEvent.getDetails().getSource();
     String project = gitEvent.getContent().getRepoProject();
     String slug = gitEvent.getContent().getSlug();
     String branch = gitEvent.getContent().getBranch();
-    List<Artifact> artifacts = gitEvent.getContent() != null && gitEvent.getContent().getArtifacts() != null ?
-      gitEvent.getContent().getArtifacts() : new ArrayList<>();
 
     return trigger -> trigger.getType().equals(GIT_TRIGGER_TYPE)
         && trigger.getSource().equalsIgnoreCase(source)
         && trigger.getProject().equalsIgnoreCase(project)
         && trigger.getSlug().equalsIgnoreCase(slug)
         && (trigger.getBranch() == null || trigger.getBranch().equals("") || matchesPattern(branch, trigger.getBranch()))
-        && passesGithubAuthenticationCheck(gitEvent, trigger)
-        && anyArtifactsMatchExpected(artifacts, trigger, pipeline);
+        && passesGithubAuthenticationCheck(gitEvent, trigger);
   }
 
   @Override
-  protected Function<Trigger, Pipeline> buildTrigger(Pipeline pipeline, GitEvent gitEvent) {
-    return trigger -> pipeline
-      .withReceivedArtifacts(gitEvent.getContent().getArtifacts())
-      .withTrigger(trigger.atHash(gitEvent.getHash())
+  protected List<Artifact> getArtifactsFromEvent(GitEvent gitEvent) {
+    return gitEvent.getContent() != null && gitEvent.getContent().getArtifacts() != null ?
+      gitEvent.getContent().getArtifacts() : new ArrayList<>();
+  }
+
+  @Override
+  protected Function<Trigger, Trigger> buildTrigger(GitEvent gitEvent) {
+    return trigger -> trigger.atHash(gitEvent.getHash())
         .atBranch(gitEvent.getBranch())
-        .atEventId(gitEvent.getEventId()));
+        .atEventId(gitEvent.getEventId());
   }
 
   private boolean matchesPattern(String s, String pattern) {

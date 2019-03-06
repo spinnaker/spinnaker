@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 public class ArtifactMatcher {
-  public static Boolean anyArtifactsMatchExpected(List<Artifact> messageArtifacts, Trigger trigger, Pipeline pipeline) {
+  public static boolean anyArtifactsMatchExpected(List<Artifact> messageArtifacts, Trigger trigger, List<ExpectedArtifact> pipelineExpectedArtifacts) {
     messageArtifacts = messageArtifacts == null ? new ArrayList<>() : messageArtifacts;
     List<String> expectedArtifactIds = trigger.getExpectedArtifactIds();
 
@@ -37,7 +37,6 @@ public class ArtifactMatcher {
       return true;
     }
 
-    List<ExpectedArtifact> pipelineExpectedArtifacts = pipeline.getExpectedArtifacts();
     List<ExpectedArtifact> expectedArtifacts = pipelineExpectedArtifacts == null ? new ArrayList<>() : pipelineExpectedArtifacts
         .stream()
         .filter(e -> expectedArtifactIds.contains(e.getId()))
@@ -50,7 +49,12 @@ public class ArtifactMatcher {
     Predicate<Artifact> expectedArtifactMatch = a -> expectedArtifacts
         .stream()
         .anyMatch(e -> e.matches(a));
-    return messageArtifacts.stream().anyMatch(expectedArtifactMatch);
+
+    boolean result = messageArtifacts.stream().anyMatch(expectedArtifactMatch);
+    if (!result) {
+      log.info("Skipping trigger {} as artifact constraints were not satisfied", trigger);
+    }
+    return result;
   }
 
   /**
