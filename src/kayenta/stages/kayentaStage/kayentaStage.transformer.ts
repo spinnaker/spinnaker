@@ -1,5 +1,5 @@
 import { module } from 'angular';
-import { last, round } from 'lodash';
+import { get, last, round } from 'lodash';
 
 import { Application, IExecution, IExecutionStage, ITransformer, OrchestratedItemTransformer } from '@spinnaker/core';
 import { KAYENTA_CANARY, RUN_CANARY, WAIT, CREATE_SERVER_GROUP, DEPLOY_CANARY_SERVER_GROUPS } from './stageTypes';
@@ -25,12 +25,13 @@ export class KayentaStageTransformer implements ITransformer {
         );
         stagesToRenderAsTasks = stagesToRenderAsTasks.concat(syntheticCanaryStages);
 
-        stage.exceptions = [];
-        this.addExceptions([stage, ...syntheticCanaryStages], stage.exceptions);
-
         const runCanaryStages = syntheticCanaryStages.filter(s => s.type === RUN_CANARY);
+        syntheticCanaryStages.forEach(stage => OrchestratedItemTransformer.defineProperties(stage));
         this.calculateRunCanaryResults(runCanaryStages);
         this.calculateKayentaCanaryResults(stage, syntheticCanaryStages);
+
+        stage.exceptions = [];
+        this.addExceptions([stage, ...syntheticCanaryStages], stage.exceptions);
 
         // For now, a 'kayentaCanary' stage should only have an 'aggregateCanaryResults' task, which should definitely go last.
         stage.tasks = [...syntheticCanaryStages, ...stage.tasks];
@@ -104,8 +105,16 @@ export class KayentaStageTransformer implements ITransformer {
       }
       kayentaStage.context.overallScore = round(kayentaStage.context.overallScore, 2);
 
+      // Sometimes when the very first runCanary stage fails due to a low score
+      // it never adds its canaryScoreMessage to the kayenta stage.
+      if (!kayentaStage.context.canaryScoreMessage) {
+        kayentaStage.context.canaryScoreMessage = this.getLastCanaryScoreMessage(runCanaryStages);
+      }
+
       if (!kayentaStage.isCanceled) {
-        if (kayentaStage.status === 'SUCCEEDED') {
+        const overallScore = get(kayentaStage, 'context.overallScore', null);
+        const scoreThreshold = get(kayentaStage, 'context.canaryConfig.scoreThresholds.marginal', null);
+        if (kayentaStage.status === 'SUCCEEDED' || (overallScore && overallScore > scoreThreshold)) {
           kayentaStage.context.overallResult = 'success';
         } else {
           kayentaStage.context.overallHealth = 'unhealthy';
@@ -121,14 +130,23 @@ export class KayentaStageTransformer implements ITransformer {
     return last(canaryRunScores);
   }
 
+  private getLastCanaryScoreMessage(runCanaryStages: IExecutionStage[] = []): number {
+    const canaryRunMessages = runCanaryStages
+      .filter(s => s.getValueFor('canaryScoreMessage'))
+      .map(s => s.getValueFor('canaryScoreMessage'));
+    return last(canaryRunMessages);
+  }
+
   private addExceptions(stages: IExecutionStage[], exceptions: string[]): void {
     stages.forEach(stage => {
-      OrchestratedItemTransformer.defineProperties(stage);
       if (this.getException(stage)) {
         exceptions.push(this.getException(stage));
       }
-      if (stage.isFailed && stage.context && stage.context.canaryScoreMessage) {
-        exceptions.push(stage.context.canaryScoreMessage);
+      const overallScore = get(stage, 'context.overallScore', null);
+      const scoreThreshold = get(stage, 'context.canaryConfig.scoreThresholds.marginal', null);
+      const message = get(stage, 'context.canaryScoreMessage', null);
+      if (overallScore && message && overallScore <= scoreThreshold) {
+        exceptions.push(message);
       }
     });
   }
