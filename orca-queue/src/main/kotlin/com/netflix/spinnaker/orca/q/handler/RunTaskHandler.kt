@@ -222,7 +222,7 @@ class RunTaskHandler(
           val durationString = formatTimeout(elapsedTime.toMillis())
           val msg = StringBuilder("${javaClass.simpleName} of stage ${stage.name} timed out after $durationString. ")
           msg.append("pausedDuration: ${formatTimeout(pausedDuration.toMillis())}, ")
-          msg.append("elapsedTime: ${formatTimeout(elapsedTime.toMillis())},")
+          msg.append("elapsedTime: ${formatTimeout(elapsedTime.toMillis())}, ")
           msg.append("timeoutValue: ${formatTimeout(actualTimeout.toMillis())}")
 
           log.warn(msg.toString())
