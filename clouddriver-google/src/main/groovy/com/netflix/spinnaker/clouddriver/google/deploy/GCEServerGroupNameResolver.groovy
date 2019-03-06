@@ -71,11 +71,6 @@ class GCEServerGroupNameResolver extends AbstractServerGroupNameResolver {
   @Override
   List<AbstractServerGroupNameResolver.TakenSlot> getTakenSlots(String clusterName) {
     def managedInstanceGroups = GCEUtil.queryAllManagedInstanceGroups(project, region, credentials, task, phase, safeRetry, executor)
-    def clusters = googleClusterProvider.getClusters(clusterName.split("-")[0], project)
-    clusterName = clusters.find { cluster ->
-      cluster.name == clusterName
-    }?.moniker?.cluster ?: clusterName
-
     return findMatchingManagedInstanceGroups(managedInstanceGroups, clusterName)
   }
 
@@ -90,7 +85,7 @@ class GCEServerGroupNameResolver extends AbstractServerGroupNameResolver {
     return managedInstanceGroups.findResults { managedInstanceGroup ->
       def instanceTemplateName = GCEUtil.getLocalName(managedInstanceGroup.getInstanceTemplate())
       def instanceTemplate = instanceTemplates.find { it.getName() == instanceTemplateName }
-      def labeledInstanceTemplate = new GoogleInstanceTemplate(instanceTemplate.getProperties().getLabels())
+      def labeledInstanceTemplate = new GoogleLabeledManagedInstanceGroup(managedInstanceGroup.getName(), instanceTemplate.getProperties().getLabels())
       def moniker = naming.deriveMoniker(labeledInstanceTemplate)
 
       if (moniker.cluster == clusterName) {
@@ -105,10 +100,12 @@ class GCEServerGroupNameResolver extends AbstractServerGroupNameResolver {
     }
   }
 
-  private class GoogleInstanceTemplate implements GoogleLabeledResource {
+  private class GoogleLabeledManagedInstanceGroup implements GoogleLabeledResource {
+    String name
     Map<String, String> labels
 
-    GoogleInstanceTemplate(Map<String, String> labels) {
+    GoogleLabeledManagedInstanceGroup (String name, Map<String, String> labels) {
+      this.name = name
       this.labels = labels
     }
   }

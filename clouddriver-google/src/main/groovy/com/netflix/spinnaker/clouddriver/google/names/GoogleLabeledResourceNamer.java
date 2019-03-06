@@ -57,12 +57,12 @@ public class GoogleLabeledResourceNamer implements NamingStrategy<GoogleLabeledR
     Names parsed = Names.parseName(name);
 
     Moniker moniker = Moniker.builder()
-        .app(parsed.getApp())
-        .cluster(parsed.getCluster())
-        .detail(parsed.getDetail())
-        .stack(parsed.getStack())
-        .sequence(parsed.getSequence())
-        .build();
+      .app(parsed.getApp())
+      .cluster(parsed.getCluster())
+      .detail(parsed.getDetail())
+      .stack(parsed.getStack())
+      .sequence(parsed.getSequence())
+      .build();
 
     Map<String, String> labels = labeledResource.getLabels();
     if (moniker.getApp() != null && labels != null) {
@@ -99,9 +99,6 @@ public class GoogleLabeledResourceNamer implements NamingStrategy<GoogleLabeledR
 
   private static <T> void setIfPresent(Consumer<T> setter, T value) {
     if (value != null) {
-      if (value.equals("")) {
-        value = null;
-      }
       setter.accept(value);
     }
   }
