@@ -17,23 +17,36 @@
 package com.netflix.spinnaker.orca.pipeline.util;
 
 import com.netflix.spinnaker.orca.config.UserConfiguredUrlRestrictions;
+import com.netflix.spinnaker.orca.pipeline.expressions.ExpressionFunctionProvider;
+
+import java.util.List;
+
 import static com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator.ExpressionEvaluationVersion.V2;
 
 public class ContextFunctionConfiguration {
   private final UserConfiguredUrlRestrictions urlRestrictions;
+  private final List<ExpressionFunctionProvider> expressionFunctionProviders;
   private final String spelEvaluator;
 
-  public ContextFunctionConfiguration(UserConfiguredUrlRestrictions urlRestrictions, String spelEvaluator) {
+  public ContextFunctionConfiguration(UserConfiguredUrlRestrictions urlRestrictions,
+                                      List<ExpressionFunctionProvider> expressionFunctionProviders,
+                                      String spelEvaluator) {
     this.urlRestrictions = urlRestrictions;
+    this.expressionFunctionProviders = expressionFunctionProviders;
     this.spelEvaluator = spelEvaluator;
   }
 
-  public ContextFunctionConfiguration(UserConfiguredUrlRestrictions urlRestrictions) {
-    this(urlRestrictions, V2);
+  public ContextFunctionConfiguration(UserConfiguredUrlRestrictions urlRestrictions,
+                                      List<ExpressionFunctionProvider> expressionFunctionProviders) {
+    this(urlRestrictions, expressionFunctionProviders, V2);
   }
 
   public UserConfiguredUrlRestrictions getUrlRestrictions() {
     return urlRestrictions;
+  }
+
+  public List<ExpressionFunctionProvider> getExpressionFunctionProviders() {
+    return expressionFunctionProviders;
   }
 
   public String getSpelEvaluator() {

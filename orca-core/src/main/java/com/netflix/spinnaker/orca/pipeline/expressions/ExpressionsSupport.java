@@ -16,17 +16,7 @@
 
 package com.netflix.spinnaker.orca.pipeline.expressions;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URL;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Predicate;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jayway.jsonpath.JsonPath;
-import com.jayway.jsonpath.PathNotFoundException;
-import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.pipeline.expressions.whitelisting.FilteredMethodResolver;
 import com.netflix.spinnaker.orca.pipeline.expressions.whitelisting.FilteredPropertyAccessor;
 import com.netflix.spinnaker.orca.pipeline.expressions.whitelisting.MapPropertyAccessor;
@@ -41,6 +31,16 @@ import org.springframework.expression.ParserContext;
 import org.springframework.expression.common.TemplateParserContext;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URL;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Predicate;
+
+import static java.lang.String.format;
+
 /**
  * Provides utility support for SPEL integration
  * Supports registering SPEL functions, ACLs to classes (via whitelisting)
@@ -51,8 +51,6 @@ public class ExpressionsSupport {
   private static final ObjectMapper mapper = new ObjectMapper();
   private static AtomicReference<ContextFunctionConfiguration> helperFunctionConfigurationAtomicReference = new AtomicReference<>();
   private static Map<String, List<Class<?>>> registeredHelperFunctions = new HashMap<>();
-
-  private static List<String> DEPLOY_STAGE_NAMES = Arrays.asList("deploy", "createServerGroup", "cloneServerGroup", "rollingPush");
 
   ExpressionsSupport(ContextFunctionConfiguration contextFunctionConfiguration) {
     helperFunctionConfigurationAtomicReference.set(contextFunctionConfiguration);
@@ -102,8 +100,25 @@ public class ExpressionsSupport {
         registerFunction(evaluationContext, "stageExists", Object.class, String.class);
         registerFunction(evaluationContext, "judgment", Object.class, String.class);
         registerFunction(evaluationContext, "judgement", Object.class, String.class);
-        registerFunction(evaluationContext, "deployedServerGroups", Object.class, String[].class);
-        registerFunction(evaluationContext, "manifestLabelValue", Object.class, String.class, String.class, String.class);
+
+        ContextFunctionConfiguration contextFunctionConfiguration = helperFunctionConfigurationAtomicReference.get();
+        for (ExpressionFunctionProvider p : contextFunctionConfiguration.getExpressionFunctionProviders()) {
+          for (ExpressionFunctionProvider.FunctionDefinition function : p.getFunctions()) {
+            String namespacedFunctionName = function.getName();
+            if (p.getNamespace() != null) {
+              namespacedFunctionName = format("%s_%s", p.getNamespace(), namespacedFunctionName);
+            }
+            Class[] functionTypes = function.getParameters()
+              .stream()
+              .map(ExpressionFunctionProvider.FunctionParameter::getType)
+              .toArray(Class[]::new);
+            LOGGER.info("Registering Expression Function: {}({})", namespacedFunctionName, functionTypes);
+
+            evaluationContext.registerFunction(
+              namespacedFunctionName, p.getClass().getDeclaredMethod(function.getName(), functionTypes)
+            );
+          }
+        }
       }
     } catch (NoSuchMethodException e) {
       // Indicates a function was not properly registered. This should not happen. Please fix the faulty function
@@ -185,7 +200,7 @@ public class ExpressionsSupport {
 
       return converted;
     } catch (Exception e) {
-      throw new SpelHelperFunctionException(String.format("#toJson(%s) failed", o.toString()), e);
+      throw new SpelHelperFunctionException(format("#toJson(%s) failed", o.toString()), e);
     }
   }
 
@@ -199,7 +214,7 @@ public class ExpressionsSupport {
       URL u = helperFunctionConfigurationAtomicReference.get().getUrlRestrictions().validateURI(url).toURL();
       return HttpClientUtils.httpGetAsString(u.toString());
     } catch (Exception e) {
-      throw new SpelHelperFunctionException(String.format("#from(%s) failed", url), e);
+      throw new SpelHelperFunctionException(format("#from(%s) failed", url), e);
     }
   }
 
@@ -216,7 +231,7 @@ public class ExpressionsSupport {
 
       return mapper.readValue(text, Map.class);
     } catch (Exception e) {
-      throw new SpelHelperFunctionException(String.format("#readJson(%s) failed", text), e);
+      throw new SpelHelperFunctionException(format("#readJson(%s) failed", text), e);
     }
   }
 
@@ -238,7 +253,7 @@ public class ExpressionsSupport {
     try {
       return readProperties(fromUrl(url));
     } catch (Exception e) {
-      throw new SpelHelperFunctionException(String.format("#propertiesFromUrl(%s) failed", url), e);
+      throw new SpelHelperFunctionException(format("#propertiesFromUrl(%s) failed", url), e);
     }
   }
 
@@ -271,12 +286,12 @@ public class ExpressionsSupport {
         .findFirst()
         .orElseThrow(
           () -> new SpelHelperFunctionException(
-            String.format("Unable to locate [%s] using #stage(%s) in execution %s", id, id, execution.getId())
+            format("Unable to locate [%s] using #stage(%s) in execution %s", id, id, execution.getId())
           )
         );
     }
 
-    throw new SpelHelperFunctionException(String.format("Invalid first param to #stage(%s). must be an execution", id));
+    throw new SpelHelperFunctionException(format("Invalid first param to #stage(%s). must be an execution", id));
   }
 
   /**
@@ -293,7 +308,7 @@ public class ExpressionsSupport {
         .anyMatch(i -> id != null && (id.equals(i.getName()) || id.equals(i.getId())));
     }
 
-    throw new SpelHelperFunctionException(String.format("Invalid first param to #stage(%s). must be an execution", id));
+    throw new SpelHelperFunctionException(format("Invalid first param to #stage(%s). must be an execution", id));
   }
 
   /**
@@ -311,7 +326,7 @@ public class ExpressionsSupport {
         .findFirst()
         .orElseThrow(
           () -> new SpelHelperFunctionException(
-            String.format("Unable to locate manual Judgment stage [%s] using #judgment(%s) in execution %s. " +
+            format("Unable to locate manual Judgment stage [%s] using #judgment(%s) in execution %s. " +
               "Stage doesn't exist or doesn't contain judgmentInput in its context ",
               id, id, execution.getId()
             )
@@ -322,110 +337,8 @@ public class ExpressionsSupport {
     }
 
     throw new SpelHelperFunctionException(
-      String.format("Invalid first param to #judgment(%s). must be an execution", id)
+      format("Invalid first param to #judgment(%s). must be an execution", id)
     );
-  }
-
-  static List<Map<String, Object>> deployedServerGroups(Object obj, String...id) {
-    if (obj instanceof Execution) {
-      List<Map<String, Object>> deployedServerGroups = new ArrayList<>();
-      ((Execution) obj).getStages()
-        .stream()
-        .filter(matchesDeployedStage(id))
-        .forEach(stage -> {
-          String region = (String) stage.getContext().get("region");
-          if (region == null) {
-            Map<String, Object> availabilityZones = (Map<String, Object>) stage.getContext().get("availabilityZones");
-            if (availabilityZones != null) {
-              region = availabilityZones.keySet().iterator().next();
-            }
-          }
-
-          if (region != null) {
-            Map<String, Object> deployDetails = new HashMap<>();
-            deployDetails.put("account", stage.getContext().get("account"));
-            deployDetails.put("capacity", stage.getContext().get("capacity"));
-            deployDetails.put("parentStage", stage.getContext().get("parentStage"));
-            deployDetails.put("region", region);
-            List<Map> existingDetails = (List<Map>) stage.getContext().get("deploymentDetails");
-            if (existingDetails != null) {
-              existingDetails
-                .stream()
-                .filter(d -> deployDetails.get("region").equals(d.get("region")))
-                .forEach(deployDetails::putAll);
-            }
-
-            List<Map> serverGroups = (List<Map>) ((Map) stage.getContext().get("deploy.server.groups")).get(region);
-            if (serverGroups != null) {
-              deployDetails.put("serverGroup", serverGroups.get(0));
-            }
-
-            deployedServerGroups.add(deployDetails);
-          }
-        });
-
-      return deployedServerGroups;
-    }
-
-    throw new IllegalArgumentException("An execution is required for this function");
-  }
-
-  /**
-   * Gets value of given label key in manifest of given kind deployed by stage of given name
-   * @param obj #root.execution
-   * @param stageName the name of a `deployManifest` stage to find
-   * @param kind the kind of manifest to find
-   * @param labelKey the key of the label to find
-   * @return the label value
-   */
-  static String manifestLabelValue(Object obj, String stageName, String kind, String labelKey) {
-    if (!(obj instanceof Execution)) {
-      throw new IllegalArgumentException("An execution is required for this function");
-    }
-
-    List<String> validKinds = Arrays.asList("Deployment", "ReplicaSet");
-    if (!validKinds.contains(kind)) {
-      throw new IllegalArgumentException("Only Deployments and ReplicaSets are valid kinds for this function");
-    }
-
-    if (labelKey == null) {
-      throw new IllegalArgumentException("A labelKey is required for this function");
-    }
-
-    Optional<Stage> stage = ((Execution) obj).getStages()
-      .stream()
-      .filter(s -> s.getName().equals(stageName) && s.getType().equals("deployManifest") && s.getStatus() == ExecutionStatus.SUCCEEDED)
-      .findFirst();
-
-    if (!stage.isPresent()) {
-      throw new SpelHelperFunctionException("A valid Deploy Manifest stage name is required for this function");
-    }
-
-    List<Map> manifests = (List<Map>) stage.get().getContext().get("manifests");
-
-    if (manifests == null || manifests.size() == 0) {
-      throw new SpelHelperFunctionException("No manifest could be found in the context of the specified stage");
-    }
-
-    Optional<Map> manifestOpt = manifests.stream()
-      .filter(m -> m.get("kind").equals(kind))
-      .findFirst();
-
-    if (!manifestOpt.isPresent()) {
-      throw new SpelHelperFunctionException(String.format("No manifest of kind %s could be found on the context of the specified stage", kind));
-    }
-
-    Map manifest = manifestOpt.get();
-    String labelPath = String.format("$.spec.template.metadata.labels.%s", labelKey);
-    String labelValue;
-
-    try {
-      labelValue = JsonPath.read(manifest, labelPath);
-    } catch (PathNotFoundException e) {
-      throw new SpelHelperFunctionException("No label of specified key found on matching manifest spec.template.metadata.labels");
-    }
-
-    return labelValue;
   }
 
   /**
@@ -437,18 +350,5 @@ public class ExpressionsSupport {
 
   private static Predicate<Stage> isManualStageWithManualInput(String id) {
     return i -> (id != null && id.equals(i.getName())) && (i.getContext() != null && i.getType().equals("manualJudgment") && i.getContext().get("judgmentInput") != null);
-  }
-
-  private static Predicate<Stage> matchesDeployedStage(String ...id) {
-    List<String> idsOrNames = Arrays.asList(id);
-    if (!idsOrNames.isEmpty()){
-      return stage -> DEPLOY_STAGE_NAMES.contains(stage.getType()) &&
-        stage.getContext().containsKey("deploy.server.groups") &&
-        stage.getStatus() == ExecutionStatus.SUCCEEDED &&
-        (idsOrNames.contains(stage.getName()) || idsOrNames.contains(stage.getId()));
-    } else {
-      return stage -> DEPLOY_STAGE_NAMES.contains(stage.getType()) &&
-        stage.getContext().containsKey("deploy.server.groups") && stage.getStatus() == ExecutionStatus.SUCCEEDED;
-    }
   }
 }

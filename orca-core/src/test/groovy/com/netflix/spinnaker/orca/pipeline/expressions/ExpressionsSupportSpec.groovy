@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.orca.pipeline.expressions
 
+import com.netflix.spinnaker.orca.config.UserConfiguredUrlRestrictions
+import com.netflix.spinnaker.orca.pipeline.util.ContextFunctionConfiguration
+import org.springframework.expression.EvaluationContext
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -100,33 +103,6 @@ class ExpressionsSupportSpec extends Specification {
     }
   }
 
-  @Shared
-  def deployManifestPipeline = pipeline {
-    stage {
-      id = "1"
-      name = "Deploy ReplicaSet"
-      context.putAll(
-        "manifests": [
-          [
-            "kind": "ReplicaSet",
-            "spec": [
-              "template": [
-                "metadata": [
-                  "labels": [
-                    "my-label-key": "my-label-value",
-                    "my-other-label-key": "my-other-label-value"
-                  ]
-                ]
-              ]
-            ]
-          ]
-        ]
-      )
-      status = SUCCEEDED
-      type = "deployManifest"
-    }
-  }
-
   @Unroll
   def "stage() should match on #matchedAttribute"() {
     expect:
@@ -171,42 +147,40 @@ class ExpressionsSupportSpec extends Specification {
     "42"                 | false
   }
 
-  def "deployedServerGroup should resolve for valid stage type"() {
-    when:
-    def map = ExpressionsSupport.deployedServerGroups(pipeline)
+  def "support registering custom expression functions"() {
+    given:
+    ContextFunctionConfiguration configuration = new ContextFunctionConfiguration(
+      new UserConfiguredUrlRestrictions.Builder().build(),
+      [new HelloExpressionFunctionProvider()]
+    )
 
-    then: "(deploy|createServerGroup|cloneServerGroup|rollingPush)"
-    map.serverGroup == ["app-test-v001"]
+    ExpressionsSupport.helperFunctionConfigurationAtomicReference.set(configuration)
+
+    when:
+    EvaluationContext context = ExpressionsSupport.newEvaluationContext(pipeline, true)
+
+    then:
+    context.variables.containsKey("test_hello")
+  }
+}
+
+class HelloExpressionFunctionProvider implements ExpressionFunctionProvider {
+
+  @Override
+  String getNamespace() {
+    return "test"
   }
 
-  @Unroll
-  def "manifestLabelValue should resolve label value for manifest of given kind deployed by stage of given name"() {
-    expect:
-    ExpressionsSupport.manifestLabelValue(deployManifestPipeline, "Deploy ReplicaSet", "ReplicaSet", labelKey) == expectedLabelValue
-
-    where:
-    labelKey             || expectedLabelValue
-    "my-label-key"       || "my-label-value"
-    "my-other-label-key" || "my-other-label-value"
+  @Override
+  Collection<FunctionDefinition> getFunctions() {
+    return [
+      new FunctionDefinition("hello", [
+        new FunctionParameter(String.class, "name", "Person's name to say hello to")
+      ])
+    ]
   }
 
-  def "manifestLabelValue should raise exception if stage, manifest, or label not found"() {
-    when:
-    ExpressionsSupport.manifestLabelValue(deployManifestPipeline, "Non-existent Stage", "ReplicaSet", "my-label-key")
-
-    then:
-    thrown(SpelHelperFunctionException)
-
-    when:
-    ExpressionsSupport.manifestLabelValue(deployManifestPipeline, "Deploy ReplicaSet", "Deployment", "my-label-key")
-
-    then:
-    thrown(SpelHelperFunctionException)
-
-    when:
-    ExpressionsSupport.manifestLabelValue(deployManifestPipeline, "Deploy ReplicaSet", "ReplicaSet", "non-existent-label")
-
-    then:
-    thrown(SpelHelperFunctionException)
+  static String hello(String name) {
+    return "Hello, $name"
   }
 }

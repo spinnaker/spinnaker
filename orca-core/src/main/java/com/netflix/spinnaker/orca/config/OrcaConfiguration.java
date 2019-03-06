@@ -29,10 +29,10 @@ import com.netflix.spinnaker.orca.listeners.*;
 import com.netflix.spinnaker.orca.pipeline.DefaultStageDefinitionBuilderFactory;
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilderFactory;
+import com.netflix.spinnaker.orca.pipeline.expressions.ExpressionFunctionProvider;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import com.netflix.spinnaker.orca.pipeline.util.ContextFunctionConfiguration;
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
-import java.util.Arrays;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -51,13 +51,15 @@ import org.springframework.core.annotation.Order;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
-import rx.Notification;
 import rx.Scheduler;
 import rx.schedulers.Schedulers;
 
 import java.time.Clock;
 import java.time.Duration;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 import static java.time.temporal.ChronoUnit.MINUTES;
 import static org.springframework.context.annotation.AnnotationConfigUtils.EVENT_LISTENER_FACTORY_BEAN_NAME;
@@ -122,9 +124,13 @@ public class OrcaConfiguration {
 
   @Bean
   public ContextFunctionConfiguration contextFunctionConfiguration(UserConfiguredUrlRestrictions userConfiguredUrlRestrictions,
-                                                                   @Value("${spelEvaluator:v2}")
-                                                                     String spelEvaluator) {
-    return new ContextFunctionConfiguration(userConfiguredUrlRestrictions, spelEvaluator);
+                                                                   Optional<List<ExpressionFunctionProvider>> expressionFunctionProviders,
+                                                                   @Value("${spelEvaluator:v2}") String spelEvaluator) {
+    return new ContextFunctionConfiguration(
+      userConfiguredUrlRestrictions,
+      expressionFunctionProviders.orElse(Collections.emptyList()),
+      spelEvaluator
+    );
   }
 
   @Bean
