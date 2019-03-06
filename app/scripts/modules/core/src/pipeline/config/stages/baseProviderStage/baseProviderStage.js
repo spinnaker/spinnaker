@@ -2,9 +2,13 @@
 
 const angular = require('angular');
 
+import * as React from 'react';
+import * as ReactDOM from 'react-dom';
+
 import { AccountService } from 'core/account/AccountService';
 import { Registry } from 'core/registry';
 import { SETTINGS } from 'core/config/settings';
+import { StageConfigWrapper } from 'core/pipeline/config/stages/StageConfigWrapper';
 
 module.exports = angular
   .module('spinnaker.core.pipeline.stage.baseProviderStage', [])
@@ -52,13 +56,25 @@ module.exports = angular
           }
         });
 
+      let reactMounted = false;
       function loadProvider() {
         const stageProvider = (stageProviders || []).find(
           s => s.cloudProvider === stage.cloudProviderType || (s.providesFor || []).includes(stage.cloudProviderType),
         );
         if (stageProvider) {
           $scope.stage.type = stageProvider.key || $scope.stage.type;
-          $scope.providerStageDetailsUrl = stageProvider.templateUrl;
+          const el = document.querySelector('.react-stage-details');
+          if (reactMounted) {
+            ReactDOM.unmountComponentAtNode(el);
+          }
+          if (stageProvider.component) {
+            const props = $scope.reactPropsForBaseProviderStage;
+            props.component = stageProvider.component;
+            ReactDOM.render(React.createElement(StageConfigWrapper, props), el);
+          } else {
+            $scope.providerStageDetailsUrl = stageProvider.templateUrl;
+          }
+          reactMounted = !!stageProvider.component;
         }
       }
 

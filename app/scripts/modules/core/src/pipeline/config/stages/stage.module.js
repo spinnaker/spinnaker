@@ -200,24 +200,28 @@ module.exports = angular
               defaultsDeep($scope.stage, config.defaults);
             }
             if (config.useBaseProvider || config.provides) {
+              config.component = null;
               config.templateUrl = require('./baseProviderStage/baseProviderStage.html');
               config.controller = 'BaseProviderStageCtrl as baseProviderStageCtrl';
             }
             updateStageName(config, oldVal);
             applyConfigController(config, stageScope);
 
+            const props = {
+              application: $scope.application,
+              stageFieldUpdated: $scope.stageFieldUpdated,
+              updateStageField: changes => {
+                extend($scope.stage, changes);
+                $scope.stageFieldUpdated();
+              },
+              stage: $scope.stage,
+              component: config.component,
+              configuration: config.configuration,
+            };
+            if (config.useBaseProvider || config.provides) {
+              stageScope.reactPropsForBaseProviderStage = props;
+            }
             if (config.component) {
-              const props = {
-                application: $scope.application,
-                stageFieldUpdated: $scope.stageFieldUpdated,
-                updateStageField: changes => {
-                  extend($scope.stage, changes);
-                  $scope.stageFieldUpdated();
-                },
-                stage: $scope.stage,
-                component: config.component,
-                configuration: config.configuration,
-              };
               ReactDOM.render(React.createElement(StageConfigWrapper, props), stageDetailsNode);
             } else {
               const template = $templateCache.get(config.templateUrl);
