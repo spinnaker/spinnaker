@@ -1,0 +1,22 @@
+apply plugin: "java-library"
+apply plugin: "kotlin-spring"
+
+repositories {
+  maven {
+    url "https://dl.bintray.com/findify/maven/"
+  }
+}
+
+dependencies {
+  implementation project(":keel-plugin")
+  implementation("com.amazonaws:aws-java-sdk-sqs:${spinnaker.version("aws")}")
+  implementation("com.netflix.spinnaker.kork:kork-aws:${spinnaker.version("kork")}")
+  implementation("org.springframework.boot:spring-boot:${spinnaker.version("springBoot")}")
+  implementation("org.springframework.boot:spring-boot-autoconfigure:${spinnaker.version("springBoot")}")
+  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
+
+  testImplementation("org.springframework.boot:spring-boot-starter-test")
+  testImplementation("org.testcontainers:localstack:$localstackVersion")
+  testImplementation("dev.minutest:minutest:$minutestVersion")
+  testImplementation("io.strikt:strikt-core:$striktVersion")
+}

@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.keel
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.keel.annealing.ResourceCheckQueue
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.ResourceVersionTracker
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
@@ -105,6 +106,9 @@ class KeelApplication {
   @Autowired
   lateinit var resourceVersionTracker: ResourceVersionTracker
 
+  @Autowired
+  lateinit var resourceCheckQueue: ResourceCheckQueue
+
   @Autowired(required = false)
   var plugins: List<KeelPlugin> = emptyList()
 
@@ -112,6 +116,7 @@ class KeelApplication {
   fun initialStatus() {
     log.info("Using {} resource repository implementation", resourceRepository.javaClass.simpleName)
     log.info("Using {} resource version tracker implementation", resourceVersionTracker.javaClass.simpleName)
+    log.info("Using {} resource check queue implementation", resourceCheckQueue.javaClass.simpleName)
     log.info("Using plugins: {}", plugins.joinToString { it.name })
   }
 }

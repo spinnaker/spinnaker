@@ -27,13 +27,12 @@ class SpringBasedResourceCheckQueueTests {
 
   @Test
   fun `can enqueue a resource check via Spring`() {
-    val parameters = Triple(ResourceName("ec2:cluster:prod:ap-south-1:keel"), SPINNAKER_API_V1, "cluster")
+    Triple(ResourceName("ec2:cluster:prod:ap-south-1:keel"), SPINNAKER_API_V1, "cluster")
+      .let { (name, apiVersion, kind) ->
+        resourceCheckQueue.scheduleCheck(name, apiVersion, kind)
 
-    parameters.let { (name, apiVersion, kind) ->
-      resourceCheckQueue.scheduleCheck(name, apiVersion, kind)
-
-      verify(resourceActuator).checkResource(name, apiVersion, kind)
-    }
+        verify(resourceActuator).checkResource(name, apiVersion, kind)
+      }
   }
 
 }
