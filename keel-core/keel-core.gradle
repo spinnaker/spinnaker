@@ -24,8 +24,6 @@ dependencies {
   api "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
   api "de.huxhorn.sulky:de.huxhorn.sulky.ulid:${spinnaker.version("ulid")}"
 
-  implementation "com.google.guava:guava:${spinnaker.version("guava")}"
-
   testImplementation project(":keel-core-test")
   testImplementation "io.strikt:strikt-jackson:$striktVersion"
   testImplementation "dev.minutest:minutest:$minutestVersion"

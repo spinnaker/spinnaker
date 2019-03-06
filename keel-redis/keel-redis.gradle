@@ -15,7 +15,7 @@
  */
 apply plugin: "java-library"
 apply plugin: "kotlin-spring"
-apply from: "$rootDir/gradle/junit4.gradle"
+apply from: "$rootDir/gradle/junit5.gradle"
 
 dependencies {
   implementation project(":keel-core")
@@ -29,10 +29,4 @@ dependencies {
   testImplementation project(":keel-core-test")
   testImplementation project(":keel-api")
   testImplementation "org.springframework.boot:spring-boot-starter-web"
-}
-
-test {
-  useJUnitPlatform {
-    includeEngines "junit-jupiter", "junit-vintage"
-  }
 }

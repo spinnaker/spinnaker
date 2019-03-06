@@ -33,7 +33,7 @@ allprojects {
   group = "com.netflix.spinnaker.keel"
 
   ext {
-    spinnakerDependenciesVersion = "1.30.0"
+    spinnakerDependenciesVersion = "2.0.0-rc.5-springBoot2"
     if (project.hasProperty("spinnakerDependenciesVersion")) {
       spinnakerDependenciesVersion = project.property("spinnakerDependenciesVersion")
     }

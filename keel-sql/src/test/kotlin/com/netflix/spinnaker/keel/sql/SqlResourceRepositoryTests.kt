@@ -21,7 +21,7 @@ import java.sql.SQLException
 import java.time.Clock
 
 internal object SqlResourceRepositoryTests : ResourceRepositoryTests<SqlResourceRepository>() {
-  private val context = initDatabase("jdbc:h2:mem:keel")
+  private val context = initDatabase("jdbc:h2:mem:keel;MODE=MYSQL")
 
   override fun factory(clock: Clock): SqlResourceRepository {
     return SqlResourceRepository(

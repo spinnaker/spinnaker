@@ -14,7 +14,6 @@ import com.netflix.spinnaker.keel.persistence.ResourceState.Unknown
 import com.netflix.spinnaker.keel.persistence.ResourceState.valueOf
 import de.huxhorn.sulky.ulid.ULID
 import org.jooq.DSLContext
-import org.jooq.exception.SQLDialectNotSupportedException
 import org.jooq.impl.DSL
 import org.jooq.impl.DSL.field
 import org.jooq.impl.DSL.using
@@ -114,34 +113,14 @@ class SqlResourceRepository(
         field("spec") to objectMapper.writeValueAsString(resource.spec)
       )
       val insertPairs = updatePairs + (field("uid") to uid)
-      try {
-        insertInto(
-          RESOURCE,
-          *insertPairs.keys.toTypedArray()
-        )
-          .values(insertPairs.values)
-          .onDuplicateKeyUpdate()
-          .set(updatePairs)
-          .execute()
-      } catch (e: SQLDialectNotSupportedException) {
-        log.warn("Falling back to primitive upsert logic: ${e.message}")
-        val exists = fetchExists(
-          select()
-            .from(RESOURCE)
-            .where(field("uid").eq(uid))
-        )
-        if (exists) {
-          update(RESOURCE)
-            .set(updatePairs)
-            .where(field("uid").eq(uid))
-            .execute()
-        } else {
-          insertInto(RESOURCE)
-            .columns(insertPairs.keys)
-            .values(insertPairs.values)
-            .execute()
-        }
-      }
+      insertInto(
+        RESOURCE,
+        *insertPairs.keys.toTypedArray()
+      )
+        .values(insertPairs.values)
+        .onDuplicateKeyUpdate()
+        .set(updatePairs)
+        .execute()
 
       insertInto(RESOURCE_STATE)
         .columns(

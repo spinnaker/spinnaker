@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.keel.api
 
+@Suppress("EXPERIMENTAL_FEATURE_WARNING")
 inline class ResourceName(val value: String) {
   override fun toString(): String = value
 }

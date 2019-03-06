@@ -23,7 +23,9 @@ import com.netflix.spinnaker.keel.persistence.ResourceState.Diff
 import com.netflix.spinnaker.keel.persistence.ResourceState.Ok
 import com.netflix.spinnaker.keel.persistence.ResourceState.Unknown
 import com.nhaarman.mockito_kotlin.argumentCaptor
+import com.nhaarman.mockito_kotlin.eq
 import com.nhaarman.mockito_kotlin.mock
+import com.nhaarman.mockito_kotlin.never
 import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.times
 import com.nhaarman.mockito_kotlin.verify
@@ -213,10 +215,10 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
         test("the resource is no longer returned when listing all resources") {
           subject.allResources(callback)
 
-          verifyZeroInteractions(callback)
+          verify(callback, never()).invoke(eq(ResourceHeader(resource)))
         }
 
-        test("the resource can no longer be retrieved by id") {
+        test("the resource can no longer be retrieved by name") {
           expectThrows<NoSuchResourceException> {
             subject.get<Map<String, Any>>(resource.metadata.name)
           }

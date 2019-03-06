@@ -31,13 +31,13 @@ private fun ObjectMapper.configureMe() =
     .registerModule(JavaTimeModule())
     .configureSaneDateTimeRepresentation()
 
-private fun ObjectMapper.registerULIDModule() =
+fun ObjectMapper.registerULIDModule() =
   registerModule(SimpleModule().apply {
     addSerializer(ULID.Value::class.java, ToStringSerializer())
     addDeserializer(ULID.Value::class.java, ULIDDeserializer())
   })
 
-private fun ObjectMapper.configureSaneDateTimeRepresentation() =
+fun ObjectMapper.configureSaneDateTimeRepresentation() =
   enable(WRITE_DATES_AS_TIMESTAMPS)
     .enable(WRITE_DATES_WITH_ZONE_ID)
     .enable(WRITE_DATE_KEYS_AS_TIMESTAMPS)

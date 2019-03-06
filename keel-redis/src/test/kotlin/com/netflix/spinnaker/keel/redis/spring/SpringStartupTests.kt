@@ -5,19 +5,19 @@ import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.ResourceVersionTracker
 import com.netflix.spinnaker.keel.redis.RedisResourceRepository
 import com.netflix.spinnaker.keel.redis.RedisResourceVersionTracker
-import org.junit.Test
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE
-import org.springframework.test.context.junit4.SpringRunner
+import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK
+import org.springframework.test.context.junit.jupiter.SpringExtension
 import strikt.api.expectThat
 import strikt.assertions.isA
 
-@RunWith(SpringRunner::class)
+@ExtendWith(SpringExtension::class)
 @SpringBootTest(
   classes = [KeelApplication::class],
-  webEnvironment = NONE,
+  webEnvironment = MOCK,
   properties = [
     "redis.enabled=true",
     "redis.connection=redis://localhost:\${redisServer.port:6379}"

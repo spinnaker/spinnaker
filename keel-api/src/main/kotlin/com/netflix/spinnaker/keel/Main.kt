@@ -45,7 +45,9 @@ private val DEFAULT_PROPS = mapOf(
   "spring.config.location" to "\${user.home}/.spinnaker/",
   "spring.application.name" to "keel",
   "spring.config.name" to "spinnaker,\${spring.application.name}",
-  "spring.profiles.active" to "\${netflix.environment},local"
+  "spring.profiles.active" to "\${netflix.environment},local",
+  // TODO: not sure why we need this when it should get loaded from application.properties
+  "spring.main.allow-bean-definition-overriding" to "true"
 )
 
 @SpringBootApplication(

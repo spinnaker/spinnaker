@@ -1,6 +1,5 @@
 apply plugin: "java-library"
 apply plugin: "kotlin-spring"
-apply from: "$rootDir/gradle/junit4.gradle" // for Spring tests
 apply from: "$rootDir/gradle/junit5.gradle"
 apply plugin: "application"
 
@@ -12,18 +11,12 @@ dependencies {
 
   implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion"
   implementation "com.netflix.spinnaker.kork:kork-core:${spinnaker.version('kork')}"
+  implementation "com.netflix.spinnaker.kork:kork-artifacts:${spinnaker.version('kork')}"
   implementation "org.springframework.boot:spring-boot-starter-actuator"
   implementation "org.springframework.boot:spring-boot-starter-web"
-  implementation spinnaker.dependency("korkArtifacts")
 
   testImplementation "io.strikt:strikt-core:$striktVersion"
   testImplementation project(":keel-spring-test-support")
-}
-
-test {
-  useJUnitPlatform {
-    includeEngines "junit-jupiter", "junit-vintage"
-  }
 }
 
 mainClassName = "com.netflix.spinnaker.keel.MainKt"
