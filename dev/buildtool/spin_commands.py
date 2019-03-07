@@ -123,7 +123,17 @@ class BuildSpinCommand(RepositoryCommandProcessor):
     for dist_arch in DIST_ARCH_LIST:
       env.update({'GOOS': dist_arch.dist,
                   'GOARCH': dist_arch.arch})
-      check_subprocess('go get -v -u {}'.format(spin_package_path), cwd=gopath, env=env)
+      context = '%s-%s' % (dist_arch.dist, dist_arch.arch)
+      logfile = self.get_logfile_path(
+          repository.name + '-go-get-' + context)
+      labels = {'repository': repository.name,
+                'dist': dist_arch.dist,
+                'arch': dist_arch.arch}
+      cmd = 'go get -v -u {}'.format(spin_package_path)
+      self.metrics.time_call(
+          'GoGet', labels, self.metrics.default_determine_outcome_labels,
+          check_subprocesses_to_logfile, 'Fetching Go packages ' + context,
+          logfile, [cmd], cwd=gopath, env=env)
 
     for dist_arch in DIST_ARCH_LIST:
       # GCS sub-directory the binaries are stored in are specified by
