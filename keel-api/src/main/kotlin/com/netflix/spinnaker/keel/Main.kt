@@ -35,6 +35,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
 import org.springframework.context.annotation.Scope
 import org.springframework.scheduling.annotation.EnableAsync
+import org.springframework.scheduling.annotation.EnableScheduling
 import java.time.Clock
 import javax.annotation.PostConstruct
 
@@ -58,6 +59,7 @@ private val DEFAULT_PROPS = mapOf(
 )
 @Import(PlatformComponents::class)
 @EnableAsync
+@EnableScheduling
 class KeelApplication {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
