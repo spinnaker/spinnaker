@@ -16,31 +16,42 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.scalingpolicy
 
+import java.util.concurrent.TimeUnit
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import groovy.util.logging.Slf4j
 
 @Component
-class UpsertScalingPolicyTask extends AbstractCloudProviderAwareTask implements Task {
+@Slf4j
+class UpsertScalingPolicyTask extends AbstractCloudProviderAwareTask implements RetryableTask {
 
   @Autowired
   KatoService kato
 
+  long backoffPeriod = TimeUnit.SECONDS.toMillis(5)
+  long timeout = TimeUnit.SECONDS.toMillis(100)
+
   @Override
   TaskResult execute(Stage stage) {
-    def taskId = kato.requestOperations(getCloudProvider(stage), [[upsertScalingPolicy: stage.context]])
+    try {
+      def taskId = kato.requestOperations(getCloudProvider(stage), [[upsertScalingPolicy: stage.context]])
         .toBlocking()
         .first()
-
-    new TaskResult(ExecutionStatus.SUCCEEDED, [
+      return new TaskResult(ExecutionStatus.SUCCEEDED, [
         "deploy.account.name" : stage.context.credentials,
         "kato.last.task.id"   : taskId,
         "deploy.server.groups": [(stage.context.region): [stage.context.serverGroupName]]
-    ])
+      ])
+    }
+    catch (Exception e) {
+      log.error("Failed upsertScalingPolicy task (stageId: ${stage.id}, executionId: ${stage.execution.id})", e)
+      return new TaskResult(ExecutionStatus.RUNNING)
+    }
   }
 }
