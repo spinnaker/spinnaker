@@ -35,6 +35,9 @@ subprojects {
 
     repositories {
       jcenter()
+      if (property("korkVersion").toString().endsWith("-SNAPSHOT")) {
+        mavenLocal()
+      }
     }
 
     dependencies {

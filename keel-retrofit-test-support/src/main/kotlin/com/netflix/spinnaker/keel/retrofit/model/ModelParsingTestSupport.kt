@@ -6,8 +6,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
-import com.jakewharton.retrofit2.adapter.kotlin.coroutines.CoroutineCallAdapterFactory
-import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.runBlocking
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -35,12 +33,11 @@ abstract class ModelParsingTestSupport<in S, out E>(serviceType: Class<S>) {
   private val service = Retrofit.Builder()
     .baseUrl(server.url("/"))
     .addConverterFactory(JacksonConverterFactory.create(mapper))
-    .addCallAdapterFactory(CoroutineCallAdapterFactory())
     .build()
     .create(serviceType)
 
   abstract val json: URL
-  abstract val call: S.() -> Deferred<E?>
+  abstract suspend fun S.call(): E?
   abstract val expected: E
 
   @Before
@@ -54,7 +51,7 @@ abstract class ModelParsingTestSupport<in S, out E>(serviceType: Class<S>) {
     server.enqueue(MockResponse().setResponseCode(200).setBody(json.readText(Charset.forName("UTF-8"))))
 
     val response = runBlocking {
-      service.call().await()
+      service.call()
     }
 
     expectThat(response)

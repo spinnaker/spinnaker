@@ -21,7 +21,6 @@ import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImageComparator
 import io.mockk.coEvery
 import io.mockk.mockk
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
@@ -108,7 +107,7 @@ object ImageServiceTest {
   fun `get latest image returns actual latest image`() {
     coEvery {
       cloudDriver.namedImages("my-package-0.0.1_rc.98-h99", "test")
-    } returns CompletableDeferred(listOf(image2, image3, image1))
+    } returns listOf(image2, image3, image1)
 
     runBlocking {
       val image = subject.getLatestImage("my-package", "my-package-0.0.1_rc.98-h99", "test")
@@ -121,7 +120,7 @@ object ImageServiceTest {
   fun `get latest named image returns actual latest image`() {
     coEvery {
       cloudDriver.namedImages("my-package", "test")
-    } returns CompletableDeferred(listOf(image2, image3, image1))
+    } returns listOf(image2, image3, image1)
 
     runBlocking {
       val image = subject.getLatestNamedImage("my-package", "test")
@@ -134,7 +133,7 @@ object ImageServiceTest {
   fun `no image provided if image not found for latest from artifact`() {
     coEvery {
       cloudDriver.namedImages("my-package", "test")
-    } returns CompletableDeferred(emptyList())
+    } returns emptyList()
 
     runBlocking {
       val image = subject.getLatestNamedImage("my-package", "test")
@@ -146,7 +145,7 @@ object ImageServiceTest {
   fun `get named image from jenkins info works`() {
     coEvery {
       cloudDriver.namedImages("my-package", "test")
-    } returns CompletableDeferred(listOf(image2, image3, image1))
+    } returns listOf(image2, image3, image1)
 
     runBlocking {
       val image = subject.getNamedImageFromJenkinsInfo(

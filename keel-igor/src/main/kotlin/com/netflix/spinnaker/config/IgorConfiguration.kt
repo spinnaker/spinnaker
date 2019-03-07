@@ -1,7 +1,6 @@
 package com.netflix.spinnaker.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.jakewharton.retrofit2.adapter.kotlin.coroutines.CoroutineCallAdapterFactory
 import com.netflix.spinnaker.igor.ArtifactService
 import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
@@ -29,7 +28,6 @@ class IgorConfiguration {
   ): ArtifactService =
     Retrofit.Builder()
       .addConverterFactory(JacksonConverterFactory.create(objectMapper))
-      .addCallAdapterFactory(CoroutineCallAdapterFactory())
       .baseUrl(igorEndpoint)
       .client(retrofitClient)
       .build()

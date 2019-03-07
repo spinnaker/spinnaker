@@ -23,7 +23,6 @@ import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.clouddriver.model.Subnet
-import kotlinx.coroutines.Deferred
 import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
@@ -31,63 +30,63 @@ import retrofit2.http.Query
 interface CloudDriverService {
 
   @GET("/securityGroups/{account}/{type}/{region}/{securityGroupName}")
-  fun getSecurityGroup(
+  suspend fun getSecurityGroup(
     @Path("account") account: String,
     @Path("type") type: String,
     @Path("securityGroupName") securityGroupName: String,
     @Path("region") region: String,
     @Query("vpcId") vpcId: String? = null
-  ): Deferred<SecurityGroup>
+  ): SecurityGroup
 
   @GET("/securityGroups/{account}/{provider}")
-  fun getSecurityGroupSummaries(
+  suspend fun getSecurityGroupSummaries(
     @Path("account") account: String,
     @Path("provider") provider: String,
     @Query("region") region: String
-  ): Deferred<Collection<SecurityGroupSummary>>
+  ): Collection<SecurityGroupSummary>
 
   @GET("/networks")
-  fun listNetworks(): Deferred<Map<String, Set<Network>>>
+  suspend fun listNetworks(): Map<String, Set<Network>>
 
   @GET("/networks/{cloudProvider}")
-  fun listNetworksByCloudProvider(@Path("cloudProvider") cloudProvider: String): Deferred<Set<Network>>
+  suspend fun listNetworksByCloudProvider(@Path("cloudProvider") cloudProvider: String): Set<Network>
 
   @GET("/subnets/{cloudProvider}")
-  fun listSubnets(@Path("cloudProvider") cloudProvider: String): Deferred<Set<Subnet>>
+  suspend fun listSubnets(@Path("cloudProvider") cloudProvider: String): Set<Subnet>
 
   @GET("/credentials")
-  fun listCredentials(): Deferred<Set<Credential>>
+  suspend fun listCredentials(): Set<Credential>
 
   @GET("/credentials/{account}")
-  fun getCredential(@Path("account") account: String): Deferred<Credential>
+  suspend fun getCredential(@Path("account") account: String): Credential
 
   @GET("/{provider}/loadBalancers/{account}/{region}/{name}")
-  fun getClassicLoadBalancer(
+  suspend fun getClassicLoadBalancer(
     @Path("provider") provider: String,
     @Path("account") account: String,
     @Path("region") region: String,
     @Path("name") name: String
-  ): Deferred<List<ClassicLoadBalancerModel>>
+  ): List<ClassicLoadBalancerModel>
 
   @GET("/applications/{app}/clusters/{account}/{cluster}/{cloudProvider}/{region}/serverGroups/target/current_asg_dynamic?onlyEnabled=true")
-  fun activeServerGroup(
+  suspend fun activeServerGroup(
     @Path("app") app: String,
     @Path("account") account: String,
     @Path("cluster") cluster: String,
     @Path("region") region: String,
     @Path("cloudProvider") cloudProvider: String
-  ): Deferred<ClusterActiveServerGroup>
+  ): ClusterActiveServerGroup
 
   @GET("/aws/images/find")
-  fun namedImages(
+  suspend fun namedImages(
     @Query("q") imageName: String,
     @Query("account") account: String?,
     @Query("region") region: String? = null
-  ): Deferred<List<NamedImage>>
+  ): List<NamedImage>
 
   @GET("/images/find")
-  fun images(
+  suspend fun images(
     @Query("provider") provider: String,
     @Query("q") name: String
-  ): Deferred<List<NamedImage>>
+  ): List<NamedImage>
 }

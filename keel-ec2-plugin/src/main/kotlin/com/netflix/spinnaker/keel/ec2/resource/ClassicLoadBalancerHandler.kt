@@ -74,7 +74,6 @@ class ClassicLoadBalancerHandler(
               OrchestrationTrigger(resource.metadata.name.toString())
             )
           )
-          .await()
       }
 
     log.info("Started task ${taskRef.ref} to create classicLoadBalancer ${resource.spec.moniker.name} in " +
@@ -95,7 +94,6 @@ class ClassicLoadBalancerHandler(
               OrchestrationTrigger(resource.metadata.name.toString())
             )
           )
-          .await()
       }
 
     log.info("Started task ${taskRef.ref} to delete classicLoadBalancer ${resource.spec.moniker.name} in " +
@@ -103,7 +101,7 @@ class ClassicLoadBalancerHandler(
   }
 
   override suspend fun actuationInProgress(name: ResourceName) =
-    orcaService.getCorrelatedExecutions(name.value).await().isNotEmpty()
+    orcaService.getCorrelatedExecutions(name.value).isNotEmpty()
 
   private fun CloudDriverService.getClassicLoadBalancer(spec: ClassicLoadBalancer): ClassicLoadBalancer? =
     runBlocking {
@@ -114,7 +112,6 @@ class ClassicLoadBalancerHandler(
           spec.location.region,
           spec.moniker.name
         )
-          .await()
           .firstOrNull()
           ?.let { lb ->
             val securityGroupNames = lb.securityGroups.map {

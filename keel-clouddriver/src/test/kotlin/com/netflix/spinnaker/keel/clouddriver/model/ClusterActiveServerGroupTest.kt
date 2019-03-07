@@ -3,15 +3,13 @@ package com.netflix.spinnaker.keel.clouddriver.model
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.model.Moniker
 import com.netflix.spinnaker.keel.retrofit.model.ModelParsingTestSupport
-import kotlinx.coroutines.Deferred
 
 object ClusterActiveServerGroupTest : ModelParsingTestSupport<CloudDriverService, ClusterActiveServerGroup>(CloudDriverService::class.java) {
 
   override val json = javaClass.getResource("/cluster.json")
 
-  override val call: CloudDriverService.() -> Deferred<ClusterActiveServerGroup?> = {
-    activeServerGroup("keel", "mgmttest", "keel-test", "eu-west-1", "aws")
-  }
+  override suspend fun CloudDriverService.call(): ClusterActiveServerGroup? =
+    this.activeServerGroup("keel", "mgmttest", "keel-test", "eu-west-1", "aws")
 
   override val expected = ClusterActiveServerGroup(
     name = "fletch_test-v000",

@@ -47,7 +47,7 @@ internal class AuthPropagationTests : JUnit5Minutests {
 
     fun listNetworks() {
       _listNetworksResults = runBlocking {
-        cloudDriverService.listNetworks().await()
+        cloudDriverService.listNetworks()
       }
     }
   }

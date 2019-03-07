@@ -81,7 +81,6 @@ class SecurityGroupHandler(
           listOf(spec.toCreateJob()),
           OrchestrationTrigger(resource.metadata.name.toString())
         ))
-        .await()
     }
     log.info("Started task {} to create security group", taskRef.ref)
     return listOf(TaskRef(taskRef.ref))
@@ -100,7 +99,6 @@ class SecurityGroupHandler(
           listOf(spec.toUpdateJob()),
           OrchestrationTrigger(resource.metadata.name.toString())
         ))
-        .await()
     }
     log.info("Started task {} to update security group", taskRef.ref)
     return listOf(TaskRef(taskRef.ref))
@@ -116,7 +114,6 @@ class SecurityGroupHandler(
           listOf(spec.toDeleteJob()),
           OrchestrationTrigger(resource.metadata.name.toString())
         ))
-        .await()
     }
     log.info("Started task {} to upsert security group", taskRef.ref)
   }
@@ -124,7 +121,6 @@ class SecurityGroupHandler(
   override suspend fun actuationInProgress(name: ResourceName) =
     orcaService
       .getCorrelatedExecutions(name.value)
-      .await()
       .isNotEmpty()
 
   private suspend fun CloudDriverService.getSecurityGroup(spec: SecurityGroup): SecurityGroup? =
@@ -136,7 +132,6 @@ class SecurityGroupHandler(
         spec.region,
         spec.vpcName?.let { cloudDriverCache.networkBy(it, spec.accountName, spec.region).id }
       )
-        .await()
         .let { response ->
           SecurityGroup(
             Moniker(app = response.moniker.app, stack = response.moniker.stack, detail = response.moniker.detail),

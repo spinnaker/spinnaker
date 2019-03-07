@@ -21,10 +21,9 @@ plugins {
 dependencies {
   api("com.squareup.retrofit2:retrofit")
   api("com.squareup.retrofit2:converter-jackson")
-  api("com.jakewharton.retrofit:retrofit2-kotlin-coroutines-adapter:0.9.2")
+  api("org.jetbrains.kotlinx:kotlinx-coroutines-core")
 
   implementation("com.netflix.spinnaker.kork:kork-web")
   implementation("com.netflix.spinnaker.kork:kork-security")
-  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
   implementation("com.squareup.okhttp3:logging-interceptor")
 }

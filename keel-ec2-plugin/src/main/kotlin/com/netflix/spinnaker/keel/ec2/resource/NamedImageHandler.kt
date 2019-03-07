@@ -44,7 +44,7 @@ class NamedImageHandler(
     )
 
   private suspend fun NamedImage.currentState(): ImageResult? =
-    cloudDriverService.namedImages(name, account).await().sortedByDescending {
+    cloudDriverService.namedImages(name, account).sortedByDescending {
       it.attributes["creationDate"]?.toString() ?: "0000-00-00T00:00:00.000Z"
     }.firstOrNull()?.let {
       objectMapper.convertValue<ImageResult>(it)

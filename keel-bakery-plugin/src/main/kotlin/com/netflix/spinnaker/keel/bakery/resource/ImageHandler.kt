@@ -111,7 +111,6 @@ class ImageHandler(
         )
       )
     )
-      .await()
     return listOf(TaskRef(taskRef.ref)) // TODO: wow, this is ugly
   }
 
@@ -122,12 +121,10 @@ class ImageHandler(
   override suspend fun actuationInProgress(name: ResourceName) =
     orcaService
       .getCorrelatedExecutions(name.value)
-      .await()
       .isNotEmpty()
 
   private suspend fun findBaseAmi(baseImage: String): String {
     return cloudDriver.namedImages(baseImage, "test")
-      .await()
       .lastOrNull()
       ?.let { namedImage ->
         val tags = namedImage

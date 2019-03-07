@@ -1,7 +1,6 @@
 package com.netflix.spinnaker.keel.front50
 
 import com.netflix.spinnaker.keel.front50.model.Delivery
-import kotlinx.coroutines.Deferred
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
@@ -12,14 +11,14 @@ import retrofit2.http.Path
 interface Front50Service {
 
   @GET("/deliveries/{id}")
-  fun deliveryById(@Path("id") id: String): Deferred<Delivery>
+  suspend fun deliveryById(@Path("id") id: String): Delivery
 
   @POST("/deliveries")
-  fun createDelivery(@Body delivery: Delivery): Deferred<Delivery>
+  suspend fun createDelivery(@Body delivery: Delivery): Delivery
 
   @PUT("/deliveries/{id}")
-  fun upsertDelivery(@Path("id") id: String, @Body delivery: Delivery): Deferred<Delivery>
+  suspend fun upsertDelivery(@Path("id") id: String, @Body delivery: Delivery): Delivery
 
   @DELETE("/applications/{application}/deliveries/{id}")
-  fun deleteDelivery(@Path("application") application: String, @Path("id") id: String): Deferred<Unit>
+  suspend fun deleteDelivery(@Path("application") application: String, @Path("id") id: String)
 }

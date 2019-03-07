@@ -46,12 +46,12 @@ import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.confirmVerified
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
-import io.mockk.verify
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
 import strikt.api.Assertion
 import strikt.api.expectThat
@@ -227,8 +227,8 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
       .forEach { (methodName, handlerMethod) ->
         context("$methodName a security group with no ingress rules") {
           before {
-            every { orcaService.orchestrate(any()) } answers {
-              CompletableDeferred(TaskRefResponse("/tasks/${randomUUID()}"))
+            coEvery { orcaService.orchestrate(any()) } answers {
+              TaskRefResponse("/tasks/${randomUUID()}")
             }
 
             runBlocking {
@@ -242,7 +242,7 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
 
           test("it upserts the security group via Orca") {
             val slot = slot<OrchestrationRequest>()
-            verify { orcaService.orchestrate(capture(slot)) }
+            coVerify { orcaService.orchestrate(capture(slot)) }
             expectThat(slot.captured) {
               application.isEqualTo(securityGroup.moniker.app)
               job
@@ -277,8 +277,8 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
               every { cloudDriverCache.networkBy(it.name, it.account, it.region) } returns it
             }
 
-            every { orcaService.orchestrate(any()) } answers {
-              CompletableDeferred(TaskRefResponse("/tasks/${randomUUID()}"))
+            coEvery { orcaService.orchestrate(any()) } answers {
+              TaskRefResponse("/tasks/${randomUUID()}")
             }
 
             runBlocking {
@@ -292,7 +292,7 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
 
           test("it upserts the security group via Orca") {
             val slot = slot<OrchestrationRequest>()
-            verify { orcaService.orchestrate(capture(slot)) }
+            coVerify { orcaService.orchestrate(capture(slot)) }
             expectThat(slot.captured) {
               application.isEqualTo(securityGroup.moniker.app)
               job.hasSize(1)
@@ -327,8 +327,8 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
           }
 
           before {
-            every { orcaService.orchestrate(any()) } answers {
-              CompletableDeferred(TaskRefResponse("/tasks/${randomUUID()}"))
+            coEvery { orcaService.orchestrate(any()) } answers {
+              TaskRefResponse("/tasks/${randomUUID()}")
             }
 
             runBlocking {
@@ -342,7 +342,7 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
 
           test("it upserts the security group via Orca") {
             val slot = slot<OrchestrationRequest>()
-            verify { orcaService.orchestrate(capture(slot)) }
+            coVerify { orcaService.orchestrate(capture(slot)) }
             expectThat(slot.captured) {
               application.isEqualTo(securityGroup.moniker.app)
               job.hasSize(1)
@@ -377,8 +377,8 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
       }
 
       before {
-        every { orcaService.orchestrate(any()) } answers {
-          CompletableDeferred(TaskRefResponse("/tasks/${randomUUID()}"))
+        coEvery { orcaService.orchestrate(any()) } answers {
+          TaskRefResponse("/tasks/${randomUUID()}")
         }
 
         runBlocking {
@@ -392,7 +392,7 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
 
       test("it does not try to create the self-referencing rule") {
         val slot = slot<OrchestrationRequest>()
-        verify { orcaService.orchestrate(capture(slot)) }
+        coVerify { orcaService.orchestrate(capture(slot)) }
         expectThat(slot.captured) {
           application.isEqualTo(securityGroup.moniker.app)
           job.hasSize(1)
@@ -417,8 +417,8 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
       }
 
       before {
-        every { orcaService.orchestrate(any()) } answers {
-          CompletableDeferred(TaskRefResponse("/tasks/${randomUUID()}"))
+        coEvery { orcaService.orchestrate(any()) } answers {
+          TaskRefResponse("/tasks/${randomUUID()}")
         }
 
         runBlocking {
@@ -432,7 +432,7 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
 
       test("it includes self-referencing rule in the Orca task") {
         val slot = slot<OrchestrationRequest>()
-        verify { orcaService.orchestrate(capture(slot)) }
+        coVerify { orcaService.orchestrate(capture(slot)) }
         expectThat(slot.captured) {
           application.isEqualTo(securityGroup.moniker.app)
           job.hasSize(1)
@@ -448,8 +448,8 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
 
     context("deleting a security group") {
       before {
-        every { orcaService.orchestrate(any()) } answers {
-          CompletableDeferred(TaskRefResponse("/tasks/${randomUUID()}"))
+        coEvery { orcaService.orchestrate(any()) } answers {
+          TaskRefResponse("/tasks/${randomUUID()}")
         }
 
         runBlocking {
@@ -463,7 +463,7 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
 
       test("it deletes the security group via Orca") {
         val slot = slot<OrchestrationRequest>()
-        verify { orcaService.orchestrate(capture(slot)) }
+        coVerify { orcaService.orchestrate(capture(slot)) }
         expectThat(slot.captured) {
           application.isEqualTo(securityGroup.moniker.app)
           job
@@ -478,15 +478,15 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
 
   private fun CurrentFixture.cloudDriverSecurityGroupReturns() {
     with(cloudDriverResponse) {
-      every {
+      coEvery {
         cloudDriverService.getSecurityGroup(accountName, CLOUD_PROVIDER, name, region, vpcId)
-      } returns CompletableDeferred(this)
+      } returns this
     }
   }
 
   private fun CurrentFixture.cloudDriverSecurityGroupNotFound() {
     with(cloudDriverResponse) {
-      every {
+      coEvery {
         cloudDriverService.getSecurityGroup(accountName, CLOUD_PROVIDER, name, region, vpcId)
       } throws RETROFIT_NOT_FOUND
     }

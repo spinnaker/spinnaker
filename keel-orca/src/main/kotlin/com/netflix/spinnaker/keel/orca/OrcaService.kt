@@ -16,7 +16,6 @@
 package com.netflix.spinnaker.keel.orca
 
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
-import kotlinx.coroutines.Deferred
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Headers
@@ -30,13 +29,13 @@ interface OrcaService {
 
   @POST("/ops")
   @Headers("Content-Type: application/context+json")
-  fun orchestrate(@Body request: OrchestrationRequest): Deferred<TaskRefResponse>
+  suspend fun orchestrate(@Body request: OrchestrationRequest): TaskRefResponse
 
   @GET("/tasks/{id}")
-  fun getTask(@Path("id") id: String): Deferred<TaskDetailResponse>
+  suspend fun getTask(@Path("id") id: String): TaskDetailResponse
 
   @GET("/executions/correlated/{correlationId}")
-  fun getCorrelatedExecutions(@Path("correlationId") correlationId: String): Deferred<List<String>>
+  suspend fun getCorrelatedExecutions(@Path("correlationId") correlationId: String): List<String>
 }
 
 data class TaskRefResponse(

@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.keel.integration
 
-import com.jakewharton.retrofit2.adapter.kotlin.coroutines.CoroutineCallAdapterFactory
 import com.netflix.spinnaker.keel.KeelApplication
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.GlobalScope
@@ -82,7 +81,6 @@ private class TestConfiguration {
       .Builder()
       .baseUrl(server.url("/"))
       .client(retrofitClient)
-      .addCallAdapterFactory(CoroutineCallAdapterFactory())
       .build()
       .create(DummyRetrofitService::class.java)
 }

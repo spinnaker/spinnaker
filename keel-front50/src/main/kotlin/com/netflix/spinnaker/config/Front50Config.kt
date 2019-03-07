@@ -2,7 +2,6 @@ package com.netflix.spinnaker.config
 
 import com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.jakewharton.retrofit2.adapter.kotlin.coroutines.CoroutineCallAdapterFactory
 import com.netflix.spinnaker.keel.front50.Front50Service
 import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
@@ -30,7 +29,6 @@ class Front50Config {
   ): Front50Service =
     Retrofit.Builder()
       .addConverterFactory(JacksonConverterFactory.create(objectMapper.disable(FAIL_ON_UNKNOWN_PROPERTIES)))
-      .addCallAdapterFactory(CoroutineCallAdapterFactory())
       .baseUrl(front50Endpoint)
       .client(retrofitClient)
       .build()

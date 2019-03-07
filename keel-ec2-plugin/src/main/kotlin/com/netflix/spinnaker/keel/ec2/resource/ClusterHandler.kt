@@ -151,7 +151,6 @@ class ClusterHandler(
         listOf(Job(job["type"].toString(), job)),
         OrchestrationTrigger(resource.metadata.name.toString())
       ))
-      .await()
       .also { log.info("Started task {} to upsert cluster", it.ref) }
       // TODO: ugleee
       .let { listOf(TaskRef(it.ref)) }
@@ -160,7 +159,6 @@ class ClusterHandler(
   override suspend fun actuationInProgress(name: ResourceName) =
     orcaService
       .getCorrelatedExecutions(name.value)
-      .await()
       .isNotEmpty()
 
   /**
@@ -285,7 +283,6 @@ class ClusterHandler(
         spec.location.region,
         CLOUD_PROVIDER
       )
-        .await()
     } catch (e: HttpException) {
       if (e.isNotFound) {
         null
@@ -303,7 +300,6 @@ class ClusterHandler(
         spec.location.region,
         CLOUD_PROVIDER
       )
-        .await()
         .run {
           Cluster(
             moniker = Moniker(app = moniker.app, stack = moniker.stack, detail = moniker.detail),

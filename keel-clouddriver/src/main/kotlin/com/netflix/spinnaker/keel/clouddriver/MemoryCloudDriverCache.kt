@@ -58,7 +58,7 @@ class MemoryCloudDriverCache(
   private fun credentialBy(name: String): Credential =
     credentials.getOrNotFound(name, "Credentials with name $name not found") {
       cloudDriver
-        .getCredential(name).await()
+        .getCredential(name)
     }
 
   override fun securityGroupById(account: String, region: String, id: String): SecurityGroupSummary =
@@ -71,7 +71,6 @@ class MemoryCloudDriverCache(
       // TODO-AJ should be able to swap this out for a call to `/search`
       cloudDriver
         .getSecurityGroupSummaries(account, credential.type, region)
-        .await()
         .firstOrNull { it.id == id }
     }
 
@@ -85,15 +84,13 @@ class MemoryCloudDriverCache(
       // TODO-AJ should be able to swap this out for a call to `/search`
       cloudDriver
         .getSecurityGroupSummaries(account, credential.type, region)
-        .await()
         .firstOrNull { it.name == name }
     }
 
   override fun networkBy(id: String): Network =
     networks.getOrNotFound(id, "VPC network with id $id not found") {
       cloudDriver
-        .listNetworks()
-        .await()["aws"]
+        .listNetworks()["aws"]
         ?.firstOrNull { it.id == id }
     }
 
@@ -102,8 +99,7 @@ class MemoryCloudDriverCache(
   override fun networkBy(name: String?, account: String, region: String): Network =
     networks.getOrNotFound("$name:$account:$region", "VPC network named $name not found in $region") {
       cloudDriver
-        .listNetworks()
-        .await()["aws"]
+        .listNetworks()["aws"]
         ?.firstOrNull { it.name == name && it.account == account && it.region == region }
     }
 
@@ -112,7 +108,6 @@ class MemoryCloudDriverCache(
       runBlocking {
         cloudDriver
           .listSubnets("aws")
-          .await()
           .filter { it.account == account && it.vpcId == vpcId && it.region == region }
           .map { it.availabilityZone }
           .toSet()
@@ -123,7 +118,6 @@ class MemoryCloudDriverCache(
     subnets.getOrNotFound(subnetId, "Subnet with id $subnetId not found") {
       cloudDriver
         .listSubnets("aws")
-        .await()
         .find { it.id == subnetId }
     }
 

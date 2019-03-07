@@ -95,7 +95,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
             baseImageCache.getBaseImage(resource.spec.baseOs, resource.spec.baseLabel)
           } returns "xenialbase-x86_64-201904291721-ebs"
 
-          every { theCloudDriver.namedImages("xenialbase-x86_64-201904291721-ebs", "test") } returns CompletableDeferred(
+          coEvery { theCloudDriver.namedImages("xenialbase-x86_64-201904291721-ebs", "test") } returns
             listOf(
               NamedImage(
                 imageName = "xenialbase-x86_64-201904291721-ebs",
@@ -142,9 +142,8 @@ internal class ImageHandlerTests : JUnit5Minutests {
                 )
               )
             )
-          )
 
-          every { theCloudDriver.namedImages(image.appVersion, "test") } returns CompletableDeferred(
+          coEvery { theCloudDriver.namedImages(image.appVersion, "test") } returns
             listOf(
               NamedImage(
                 imageName = "keel-0.161.0-h63.24d0843-x86_64-20190422190426-xenial-hvm-sriov-ebs",
@@ -175,7 +174,6 @@ internal class ImageHandlerTests : JUnit5Minutests {
                 )
               )
             )
-          )
 
           coEvery { imageService.getLatestImage("keel", "keel-0.161.0-h63.24d0843", "test") } returns image
         }
@@ -225,9 +223,9 @@ internal class ImageHandlerTests : JUnit5Minutests {
             baseImageCache.getBaseImage(resource.spec.baseOs, resource.spec.baseLabel)
           } returns "xenialbase-x86_64-201904291721-ebs"
 
-          every {
+          coEvery {
             theCloudDriver.namedImages("xenialbase-x86_64-201904291721-ebs", "test")
-          } returns CompletableDeferred(emptyList())
+          } returns emptyList()
         }
 
         test("an exception is thrown") {
@@ -263,7 +261,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
 
       test("artifact is attached to the trigger") {
         val request = slot<OrchestrationRequest>()
-        every { orcaService.orchestrate(capture(request)) } returns randomTaskRef()
+        coEvery { orcaService.orchestrate(capture(request)) } returns randomTaskRef()
 
         runBlocking {
           handler.upsert(resource, ResourceDiff(null, image))
@@ -275,5 +273,5 @@ internal class ImageHandlerTests : JUnit5Minutests {
     }
   }
 
-  private fun randomTaskRef() = CompletableDeferred(TaskRefResponse(randomUUID().toString()))
+  private fun randomTaskRef() = TaskRefResponse(randomUUID().toString())
 }

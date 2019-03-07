@@ -42,12 +42,12 @@ import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import de.danielbechler.diff.ObjectDifferBuilder
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.confirmVerified
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
-import io.mockk.verify
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
 import strikt.api.expectThat
 import strikt.assertions.get
@@ -176,7 +176,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
         every { securityGroupByName(spec.location.accountName, spec.location.region, sg2.name) } returns sg2
       }
 
-      every { orcaService.orchestrate(any()) } returns CompletableDeferred(TaskRefResponse("/tasks/${UUID.randomUUID()}"))
+      coEvery { orcaService.orchestrate(any()) } returns TaskRefResponse("/tasks/${UUID.randomUUID()}")
     }
 
     after {
@@ -185,7 +185,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
 
     context("the cluster does not exist or has no active server groups") {
       before {
-        every { cloudDriverService.activeServerGroup() } throws RETROFIT_NOT_FOUND
+        coEvery { cloudDriverService.activeServerGroup() } throws RETROFIT_NOT_FOUND
       }
 
       test("the current model is null") {
@@ -201,7 +201,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
         }
 
         val slot = slot<OrchestrationRequest>()
-        verify { orcaService.orchestrate(capture(slot)) }
+        coVerify { orcaService.orchestrate(capture(slot)) }
 
         expectThat(slot.captured.job.first()) {
           get("type").isEqualTo("createServerGroup")
@@ -211,7 +211,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
 
     context("the cluster has active server groups") {
       before {
-        every { cloudDriverService.activeServerGroup() } returns CompletableDeferred(activeServerGroupResponse)
+        coEvery { cloudDriverService.activeServerGroup() } returns activeServerGroupResponse
       }
 
       derivedContext<Cluster?>("fetching the current cluster state") {
@@ -242,7 +242,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
           }
 
           val slot = slot<OrchestrationRequest>()
-          verify { orcaService.orchestrate(capture(slot)) }
+          coVerify { orcaService.orchestrate(capture(slot)) }
 
           expectThat(slot.captured.job.first()) {
             get("type").isEqualTo("resizeServerGroup")
@@ -269,7 +269,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
           }
 
           val slot = slot<OrchestrationRequest>()
-          verify { orcaService.orchestrate(capture(slot)) }
+          coVerify { orcaService.orchestrate(capture(slot)) }
 
           expectThat(slot.captured.job.first()) {
             get("type").isEqualTo("createServerGroup")
@@ -286,7 +286,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
     }
   }
 
-  private fun CloudDriverService.activeServerGroup() = activeServerGroup(
+  private suspend fun CloudDriverService.activeServerGroup() = activeServerGroup(
     spec.moniker.app,
     spec.location.accountName,
     spec.moniker.name,

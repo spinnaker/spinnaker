@@ -33,7 +33,6 @@ class ImageService(
    */
   suspend fun getLatestImage(artifactName: String, version: String, account: String): Image? {
     return cloudDriverService.namedImages(version, account)
-      .await()
       .sortedWith(NamedImageComparator)
       .lastOrNull()
       ?.let { namedImage ->
@@ -61,14 +60,12 @@ class ImageService(
    */
   suspend fun getLatestNamedImage(packageName: String, account: String): NamedImage? {
     return cloudDriverService.namedImages(packageName, account)
-      .await()
       .sortedWith(NamedImageComparator)
       .lastOrNull()
   }
 
   suspend fun getNamedImageFromJenkinsInfo(packageName: String, account: String, buildHost: String, buildName: String, buildNumber: String): NamedImage? {
     return cloudDriverService.namedImages(packageName, account)
-      .await()
       .sortedWith(NamedImageComparator)
       .lastOrNull { namedImage ->
         val allTags = getAllTags(namedImage)
