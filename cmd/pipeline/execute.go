@@ -31,11 +31,12 @@ type ExecuteOptions struct {
 	application   string
 	name          string
 	parameterFile string
+	artifactsFile string
 }
 
 var (
-	executePipelineShort   = "Execute the provided pipeline"
-	executePipelineLong    = "Execute the provided pipeline"
+	executePipelineShort = "Execute the provided pipeline"
+	executePipelineLong  = "Execute the provided pipeline"
 )
 
 func NewExecuteCmd(pipelineOptions pipelineOptions) *cobra.Command {
@@ -55,6 +56,7 @@ func NewExecuteCmd(pipelineOptions pipelineOptions) *cobra.Command {
 	cmd.PersistentFlags().StringVarP(&options.application, "application", "a", "", "Spinnaker application the pipeline lives in")
 	cmd.PersistentFlags().StringVarP(&options.name, "name", "n", "", "name of the pipeline to execute")
 	cmd.PersistentFlags().StringVarP(&options.parameterFile, "parameter-file", "f", "", "file to load pipeline parameter values from")
+	cmd.PersistentFlags().StringVarP(&options.artifactsFile, "artifacts-file", "t", "", "file to load pipeline artifacts from")
 
 	return cmd
 }
@@ -68,14 +70,29 @@ func executePipeline(cmd *cobra.Command, options ExecuteOptions) error {
 	if options.application == "" || options.name == "" {
 		return errors.New("one of required parameters 'application' or 'name' not set")
 	}
+
 	parameters := map[string]interface{}{}
-	parameters, err = util.ParseJsonFromFileOrStdin(options.parameterFile, true)
+	parameters, err = util.ParseJsonFromFile(options.parameterFile, true)
 	if err != nil {
 		return fmt.Errorf("Could not parse supplied pipeline parameters: %v.\n", err)
 	}
+
+	artifactsFile := map[string]interface{}{}
+	artifactsFile, err = util.ParseJsonFromFile(options.artifactsFile, true)
+	if err != nil {
+		return fmt.Errorf("Could not parse supplied artifacts: %v.\n", err)
+	}
+
 	trigger := map[string]interface{}{"type": "manual"}
 	if len(parameters) > 0 {
 		trigger["parameters"] = parameters
+	}
+
+	if _, ok := artifactsFile["artifacts"]; ok {
+		artifacts := artifactsFile["artifacts"].([]interface{})
+		if len(artifacts) > 0 {
+			trigger["artifacts"] = artifacts
+		}
 	}
 
 	_, resp, err := gateClient.PipelineControllerApi.InvokePipelineConfigUsingPOST1(gateClient.Context,

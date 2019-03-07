@@ -43,7 +43,45 @@ func ParseJsonFromFileOrStdin(filePath string, tolerateEmptyStdin bool) (map[str
 	if fi.Size() <= 0 && !pipedStdin {
 		err = nil
 		if !tolerateEmptyStdin {
-      err = errors.New("No json input to parse.")
+			err = errors.New("No json input to parse")
+		}
+		return nil, err
+	}
+
+	err = json.NewDecoder(fromFile).Decode(&jsonContent)
+	if err != nil {
+		return nil, err
+	}
+	return jsonContent, nil
+}
+
+func ParseJsonFromFile(filePath string, tolerateEmptyInput bool) (map[string]interface{}, error) {
+	var fromFile *os.File
+	var err error
+	var jsonContent map[string]interface{}
+
+	if filePath == "" {
+		err = nil
+		if !tolerateEmptyInput {
+			err = errors.New("No file path given")
+		}
+		return nil, err
+	}
+
+	fromFile, err = os.Open(filePath)
+	if err != nil {
+		return nil, err
+	}
+
+	fi, err := fromFile.Stat()
+	if err != nil {
+		return nil, err
+	}
+
+	if fi.Size() <= 0 {
+		err = nil
+		if !tolerateEmptyInput {
+			err = errors.New("No json input to parse")
 		}
 		return nil, err
 	}
