@@ -353,7 +353,8 @@ class ValidateBomTestController(object):
 
     region_info_json = check_subprocess('gcloud compute regions describe'
                                         ' --format yaml'
-                                        ' %s' % region)
+                                        ' --project %s'
+                                        ' %s' % (project, region))
     region_info = yaml.safe_load(region_info_json)
     region_quota = {
         'gce_region_%s' % info.get('metric', 'UNKNOWN'): int(max(
@@ -442,9 +443,12 @@ class ValidateBomTestController(object):
     }
     credentials_path = self.options.test_gate_iap_credentials  # This can be None, which would mean we use the Application Default Credentials
     client_id = self.options.test_gate_iap_client_id
+    impersonated_service_account = self.options.test_gate_iap_impersonated_service_account
     if client_id:
-      service_config['service_account_email'] = get_service_account_email(credentials_path)
-      service_config['bearer_auth_token'] = generate_auth_token(client_id, credentials_path)
+      service_config['service_account_email'] = impersonated_service_account or get_service_account_email(credentials_path)
+      service_config['bearer_auth_token'] = generate_auth_token(client_id,
+          service_account_file=credentials_path,
+          impersonate_service_account_email=impersonated_service_account)
     configs['gate'] = service_config
 
   def __bearer_auth_token_or_none(self, service_name, client_id, credentials_path=None):
@@ -582,7 +586,7 @@ class ValidateBomTestController(object):
 
     timeout = timeout or self.options.test_service_startup_timeout
     end_time = time.time() + timeout
-    logging.info('Waiting on "%s..."', service_name)
+    logging.info('Waiting on "%s"...', service_name)
     if port is None:
       port = self.__service_port_map[service_name]
 
@@ -629,7 +633,7 @@ class ValidateBomTestController(object):
 
     timeout = timeout or self.options.test_service_startup_timeout
     end_time = time.time() + timeout
-    logging.info('Validating base URL of "%s..."', service_name)
+    logging.info('Validating base URL of "%s"...', service_name)
 
     try:
       if 'bearer_auth_token' in service_config:
@@ -1141,7 +1145,19 @@ def init_argument_parser(parser, defaults):
       help='Path to google credentials file to authenticate requests'
            ' to an IAP-protected Spinnaker. This must be used with the'
            ' test_gate_iap_client_id flag.'
-           ' If left empty then use application default credentials.')
+           ' If left empty then use Application Default Credentials.')
+
+  add_parser_argument(
+      parser, 'test_gate_iap_impersonated_service_account', defaults, None,
+      help='Service account to impersonate to receive the credentials'
+           ' to make authenticated requests to an IAP-protected Spinnaker.'
+           ' If test_gate_iap_credentials is provided, the service account'
+           ' specified by test_gate_iap_credentials will impersonate this'
+           ' service account. If test_gate_iap_credentials is not provided,'
+           ' the Application Default Credentials will be used to impersonate'
+           ' this service account. This must be used with the'
+           ' test_gate_iap_client_id flag.'
+           ' If left empty then no service account will be impersonated.')
 
 
 def validate_options(options):

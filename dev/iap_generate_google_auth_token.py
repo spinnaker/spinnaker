@@ -23,6 +23,7 @@ import google.auth
 import google.auth.app_engine
 import google.auth.compute_engine.credentials
 import google.auth.iam
+import google.auth.impersonated_credentials
 import google.oauth2.credentials
 import google.oauth2.service_account
 import requests
@@ -35,11 +36,19 @@ OAUTH_TOKEN_URI = 'https://www.googleapis.com/oauth2/v4/token'
 IAM_SCOPE = 'https://www.googleapis.com/auth/iam'
 
 
-def __make_service_account_credentials(client_id, service_account_file=None):
+def __make_service_account_credentials(client_id, service_account_file=None, impersonate_service_account_email=None):
   if service_account_file:
     bootstrap_credentials = google.oauth2.service_account.Credentials.from_service_account_file(service_account_file)
   else:
-    bootstrap_credentials, _ = goog.auth.default(scopes=[IAM_SCOPE])
+    bootstrap_credentials, _ = google.auth.default(scopes=[IAM_SCOPE])
+
+  if impersonate_service_account_email:
+    bootstrap_credentials = google.auth.impersonated_credentials.Credentials(
+        source_credentials=bootstrap_credentials,
+        target_principal=impersonate_service_account_email,
+        target_scopes=[IAM_SCOPE],
+        lifetime=60)
+
   if isinstance(bootstrap_credentials,
                 google.oauth2.credentials.Credentials):
     raise Exception('generate_auth_token is only supported for service '
@@ -48,9 +57,13 @@ def __make_service_account_credentials(client_id, service_account_file=None):
                   google.auth.app_engine.Credentials):
     requests_toolbelt.adapters.appengine.monkeypatch()
 
-  signer_email = bootstrap_credentials.service_account_email
-  if isinstance(bootstrap_credentials,
-                google.auth.compute_engine.credentials.Credentials):
+  if impersonate_service_account_email:
+    signer_email = impersonate_service_account_email
+  else:
+    signer_email = bootstrap_credentials.service_account_email
+
+  if impersonate_service_account_email or isinstance(bootstrap_credentials,
+      google.auth.compute_engine.credentials.Credentials):
     signer = google.auth.iam.Signer(
         Request(), bootstrap_credentials, signer_email)
   else:
@@ -74,7 +87,7 @@ def __get_token_from_credentials(service_account_credentials):
   return token_response['id_token']
 
 
-def generate_auth_token(client_id, service_account_file=None):
+def generate_auth_token(client_id, service_account_file=None, impersonate_service_account_email=None):
   """Generates an auth token to make requests to an IAP-protected endpoint.
 
   Args:
@@ -83,8 +96,12 @@ def generate_auth_token(client_id, service_account_file=None):
        account that can be used to generate the token. If service_account_file
        is None, the service account used will be based on the Application
        Default Credentials.
+    impersonate_service_account_email: [string] The service account name (email)
+       to impersonate to request the bearer token. If
+       impersonate_service_account_email is None, no service account will be
+       impersonated.
   """
-  service_account_credentials =__make_service_account_credentials(client_id, service_account_file)
+  service_account_credentials =__make_service_account_credentials(client_id, service_account_file, impersonate_service_account_email)
   return __get_token_from_credentials(service_account_credentials)
 
 def get_service_account_email(service_account_file=None):
@@ -98,5 +115,5 @@ def get_service_account_email(service_account_file=None):
   if service_account_file:
     credentials = google.oauth2.service_account.Credentials.from_service_account_file(service_account_file)
   else:
-    credentials, _ = goog.auth.default(scopes=[IAM_SCOPE])
+    credentials, _ = google.auth.default(scopes=[IAM_SCOPE])
   return credentials.service_account_email
