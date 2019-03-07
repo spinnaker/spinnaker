@@ -46,7 +46,7 @@ class ClouddriverConfiguration {
     AccountProvidingNetworkInterceptor(applicationContext)
 
   @Bean
-  fun clouddriverEndpoint(@Value("\${clouddriver.baseUrl}") clouddriverBaseUrl: String): HttpUrl =
+  fun clouddriverEndpoint(@Value("\${clouddriver.base-url}") clouddriverBaseUrl: String): HttpUrl =
     HttpUrl.parse(clouddriverBaseUrl)
       ?: throw BeanCreationException("Invalid URL: $clouddriverBaseUrl")
 

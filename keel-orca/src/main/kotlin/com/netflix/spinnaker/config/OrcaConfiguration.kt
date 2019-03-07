@@ -38,7 +38,7 @@ import retrofit2.converter.jackson.JacksonConverterFactory
 class OrcaConfiguration {
 
   @Bean
-  fun orcaEndpoint(@Value("\${orca.baseUrl}") orcaBaseUrl: String) =
+  fun orcaEndpoint(@Value("\${orca.base-url}") orcaBaseUrl: String) =
     HttpUrl.parse(orcaBaseUrl)
 
   @Bean

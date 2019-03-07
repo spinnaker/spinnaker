@@ -39,16 +39,16 @@ class KeelRetrofitConfiguration {
 
   private val log = LoggerFactory.getLogger(javaClass)
 
-  @Value("\${okHttpClient.connectionPool.maxIdleConnections:5}")
+  @Value("\${ok-http-client.connection-pool.max-idle-connections:5}")
   var maxIdleConnections = 5
 
-  @Value("\${okHttpClient.connectionPool.keepAliveDurationMs:300000}")
+  @Value("\${ok-http-client.connection-pool.keep-alive-duration-ms:300000}")
   var keepAliveDurationMs = 300000L
 
-  @Value("\${okHttpClient.retryOnConnectionFailure:true}")
+  @Value("\${ok-http-client.retry-on-connection-failure:true}")
   var retryOnConnectionFailure = true
 
-  @Value("\${okHttpClient.spinnakerUser:keel@spinnaker.io}")
+  @Value("\${ok-http-client.spinnaker-user:keel@spinnaker.io}")
   var spinnakerUser = "keel@spinnaker.io"
 
   @Bean(name = ["retrofitClient", "okClient"])
@@ -78,7 +78,7 @@ class KeelRetrofitConfiguration {
   }
 
   @Bean
-  fun retrofitLoggingInterceptor(@Value("\${retrofit2.logLevel:BASIC}") retrofitLogLevel: String) =
+  fun retrofitLoggingInterceptor(@Value("\${retrofit2.log-level:BASIC}") retrofitLogLevel: String) =
     HttpLoggingInterceptor().apply {
       level = HttpLoggingInterceptor.Level.valueOf(retrofitLogLevel)
     }
