@@ -143,10 +143,20 @@ public class ArtifactResolver {
       expectedArtifacts = new ArrayList<>();
     }
 
-    return expectedArtifacts
+    final Optional<ExpectedArtifact> expectedArtifactOptional = expectedArtifacts
       .stream()
       .filter(e -> e.getId().equals(id))
-      .findFirst()
+      .findFirst();
+
+    expectedArtifactOptional.ifPresent(expectedArtifact -> {
+      final Artifact boundArtifact = expectedArtifact.getBoundArtifact();
+      final Artifact matchArtifact = expectedArtifact.getMatchArtifact();
+      if (boundArtifact != null && matchArtifact != null && boundArtifact.getArtifactAccount() == null) {
+        boundArtifact.setArtifactAccount(matchArtifact.getArtifactAccount());
+      }
+    });
+
+    return expectedArtifactOptional
       .map(ExpectedArtifact::getBoundArtifact)
       .orElse(null);
   }
