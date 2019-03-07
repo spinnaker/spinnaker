@@ -73,6 +73,10 @@ abstract public class ClouddriverService extends SpringService<ClouddriverServic
     return Clouddriver.class;
   }
 
+  protected String getClouddriverConfigPath() {
+    return "/opt/clouddriver/config";
+  }
+
   @Override
   public List<Profile> getProfiles(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     List<Profile> profiles = super.getProfiles(deploymentConfiguration, endpoints);
@@ -84,6 +88,18 @@ abstract public class ClouddriverService extends SpringService<ClouddriverServic
     profiles.add(profile);
     return profiles;
   }
+
+  protected Optional<String> customProfileOutputPath(String profileName) {
+    Optional<String> result = super.customProfileOutputPath(profileName);
+    if (!result.isPresent()) {
+      if (profileName.startsWith("clouddriver/")) {
+        return Optional.of(getClouddriverConfigPath() + profileName.substring("clouddriver".length()));
+      }
+    }
+
+    return result;
+  }
+
 
   protected Optional<Profile> generateAwsProfile(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints, String spinnakerHome) {
     String name = "aws/clouddriver-credentials" + spinnakerHome.replace("/", "_");
