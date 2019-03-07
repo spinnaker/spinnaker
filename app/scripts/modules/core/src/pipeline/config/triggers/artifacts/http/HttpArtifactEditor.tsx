@@ -11,7 +11,7 @@ export const HttpMatch: IArtifactKindConfig = {
   key: 'http',
   isDefault: false,
   isMatch: true,
-  editCmp: singleFieldArtifactEditor('name', 'http/file', 'URL', 'path/file.ext', ''),
+  editCmp: singleFieldArtifactEditor('reference', 'http/file', 'URL', 'path/file.ext', ''),
 };
 
 export const HttpDefault: IArtifactKindConfig = {
@@ -22,5 +22,5 @@ export const HttpDefault: IArtifactKindConfig = {
   key: 'default.http',
   isDefault: true,
   isMatch: false,
-  editCmp: singleFieldArtifactEditor('name', 'http/file', 'URL', 'http://host/path/file.ext', ''),
+  editCmp: singleFieldArtifactEditor('reference', 'http/file', 'URL', 'http://host/path/file.ext', ''),
 };
