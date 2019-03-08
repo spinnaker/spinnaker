@@ -20,11 +20,15 @@ import com.netflix.hystrix.exception.HystrixRuntimeException
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.igor.service.ArtifactDecorator
 import com.netflix.spinnaker.igor.service.BuildServices
+import com.netflix.spinnaker.kork.artifacts.parsing.DefaultJinjavaFactory
+import com.netflix.spinnaker.kork.artifacts.parsing.JinjaArtifactExtractor
+import com.netflix.spinnaker.kork.artifacts.parsing.JinjavaFactory
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpStatus
@@ -78,6 +82,17 @@ class IgorConfig extends WebMvcConfigurerAdapter {
     @Bean
     RetrySupport retrySupport() {
         return new RetrySupport()
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    JinjavaFactory jinjavaFactory() {
+        return new DefaultJinjavaFactory();
+    }
+
+    @Bean
+    JinjaArtifactExtractor.Factory jinjaArtifactExtractorFactory(JinjavaFactory jinjavaFactory) {
+        return new JinjaArtifactExtractor.Factory(jinjavaFactory);
     }
 
     @ControllerAdvice

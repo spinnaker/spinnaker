@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.igor.build
 
+import com.netflix.spinnaker.igor.artifacts.ArtifactExtractor
 import com.netflix.spinnaker.igor.build.model.GenericBuild
 import com.netflix.spinnaker.igor.exceptions.BuildJobError
 import com.netflix.spinnaker.igor.exceptions.QueuedJobDeterminationError
@@ -27,14 +28,15 @@ import com.netflix.spinnaker.igor.service.BuildProperties
 import com.netflix.spinnaker.igor.service.BuildService
 import com.netflix.spinnaker.igor.service.BuildServices
 import com.netflix.spinnaker.igor.travis.service.TravisService
+import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.servlet.HandlerMapping
 import retrofit.RetrofitError
+import retrofit.http.Query
 
 import javax.servlet.http.HttpServletRequest
 
@@ -47,19 +49,19 @@ class BuildController {
     private BuildServices buildServices
     private BuildArtifactFilter buildArtifactFilter
     private ArtifactDecorator artifactDecorator
+    private ArtifactExtractor artifactExtractor
 
-    BuildController(BuildServices buildServices, Optional<BuildArtifactFilter> buildArtifactFilter, Optional<ArtifactDecorator> artifactDecorator) {
+    BuildController(BuildServices buildServices,
+                    Optional<BuildArtifactFilter> buildArtifactFilter,
+                    Optional<ArtifactDecorator> artifactDecorator,
+                    Optional<ArtifactExtractor> artifactExtractor) {
         this.buildServices = buildServices
         this.buildArtifactFilter = buildArtifactFilter.orElse(null)
         this.artifactDecorator = artifactDecorator.orElse(null)
+        this.artifactExtractor = artifactExtractor.orElse(null)
     }
 
-    @RequestMapping(value = '/builds/status/{buildNumber}/{master:.+}/**')
-    GenericBuild getJobStatus(@PathVariable String master, @PathVariable
-        Integer buildNumber, HttpServletRequest request) {
-        def job = (String) request.getAttribute(
-            HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE).split('/').drop(5).join('/')
-        def buildService = getBuildService(master)
+    private GenericBuild jobStatus(BuildService buildService, String master, String job, Integer buildNumber) {
         GenericBuild build = buildService.getGenericBuild(job, buildNumber)
         try {
             build.genericGitRevisions = buildService.getGenericGitRevisions(job, buildNumber)
@@ -74,8 +76,30 @@ class BuildController {
         if (buildArtifactFilter) {
             build.artifacts = buildArtifactFilter.filterArtifacts(build.artifacts)
         }
+        return build;
+    }
 
-        return build
+    @RequestMapping(value = '/builds/status/{buildNumber}/{master:.+}/**')
+    GenericBuild getJobStatus(@PathVariable String master, @PathVariable
+        Integer buildNumber, HttpServletRequest request) {
+        def job = (String) request.getAttribute(
+            HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE).split('/').drop(5).join('/')
+        def buildService = getBuildService(master)
+        return jobStatus(buildService, master, job, buildNumber)
+    }
+
+    @RequestMapping(value = '/builds/artifacts/{buildNumber}/{master:.+}/**')
+    List<Artifact> getBuildResults(@PathVariable String master, @PathVariable
+        Integer buildNumber, @Query("propertyFile") String propertyFile, HttpServletRequest request) {
+        def job = (String) request.getAttribute(
+            HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE).split('/').drop(5).join('/')
+        def buildService = getBuildService(master)
+        GenericBuild build = jobStatus(buildService, master, job, buildNumber)
+        if (buildService instanceof BuildProperties && artifactExtractor != null) {
+            build.properties = buildService.getBuildProperties(job, buildNumber, propertyFile)
+            return artifactExtractor.extractArtifacts(build)
+        }
+        return Collections.emptyList()
     }
 
     @RequestMapping(value = '/builds/queue/{master}/{item}')

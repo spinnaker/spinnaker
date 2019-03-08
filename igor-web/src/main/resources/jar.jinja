@@ -1,0 +1,10 @@
+[
+  {
+    {% set repotype = properties.repotype | default('maven') -%}
+    {% set reference = [properties.group, properties.artifact, properties.version, properties.classifier] | select('defined') | join(':') -%}
+    "reference": "{{ reference }}",
+    "name": "{{ properties.artifact }}-{{ properties.version }}",
+    "version": "{{ properties.version }}",
+    "type": "{{ repotype }}/file"
+  }
+]
