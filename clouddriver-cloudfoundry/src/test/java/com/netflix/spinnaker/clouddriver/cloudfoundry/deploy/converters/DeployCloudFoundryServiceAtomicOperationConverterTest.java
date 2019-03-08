@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.converters;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.artifacts.ArtifactCredentialsRepository;
+import com.netflix.spinnaker.clouddriver.artifacts.ArtifactDownloader;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.artifacts.ArtifactCredentialsFromString;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.MockCloudFoundryClient;
@@ -75,7 +76,7 @@ class DeployCloudFoundryServiceAtomicOperationConverterTest {
     Collections.singletonList(
       Collections.singletonList(new ArtifactCredentialsFromString(
         "test",
-        List.of("a").asJava(),
+        List.of("test").asJava(),
         "service_instance_name: my-service-instance-name\n" +
           "service: my-service\n" +
           "service_plan: my-service-plan\n" +
@@ -96,7 +97,7 @@ class DeployCloudFoundryServiceAtomicOperationConverterTest {
   private final AccountCredentialsProvider accountCredentialsProvider =
     new DefaultAccountCredentialsProvider(accountCredentialsRepository);
   private final DeployCloudFoundryServiceAtomicOperationConverter converter =
-    new DeployCloudFoundryServiceAtomicOperationConverter(artifactCredentialsRepository);
+    new DeployCloudFoundryServiceAtomicOperationConverter(new ArtifactDownloader(artifactCredentialsRepository));
 
   @BeforeEach
   void initializeClassUnderTest() {
@@ -188,7 +189,7 @@ class DeployCloudFoundryServiceAtomicOperationConverterTest {
         .setSyslogDrainUrl("test-syslog-drain-url")
         .setRouteServiceUrl("test-route-service-url")
         .setTags(Collections.singleton("my-tag"))
-        .setCredentialsMap(HashMap.<String, Object>of(
+        .setCredentials(HashMap.<String, Object>of(
           "foo", "bar"
         ).toJavaMap())
     );
@@ -246,9 +247,11 @@ class DeployCloudFoundryServiceAtomicOperationConverterTest {
       "credentials", "test",
       "region", "org > space",
       "manifest", HashMap.of(
-        "type", "artifact",
-        "account", "test",
-        "reference", "ref1"
+        "artifact", HashMap.of(
+          "artifactAccount", "test",
+          "reference", "ref1",
+          "type", "test"
+        ).toJavaMap()
       ).toJavaMap()
     ).toJavaMap();
 
@@ -274,15 +277,15 @@ class DeployCloudFoundryServiceAtomicOperationConverterTest {
     final Map input = HashMap.of(
       "credentials", "test",
       "region", "org > space",
+      "userProvided", true,
       "manifest", HashMap.of(
-        "type", "userProvided",
-        "serviceInstanceName", "userProvidedServiceName",
-        "tags", List.of(
-          "my-tag"
-        ).asJava(),
-        "syslogDrainUrl", "http://syslogDrainUrl.io",
-        "credentials", "{\"foo\": \"bar\"}",
-        "routeServiceUrl", "http://routeServiceUrl.io"
+        "direct", HashMap.of(
+          "serviceInstanceName", "userProvidedServiceName",
+          "tags", List.of("my-tag").asJava(),
+          "syslogDrainUrl", "http://syslogDrainUrl.io",
+          "credentials", "{\"foo\": \"bar\"}",
+          "routeServiceUrl", "http://routeServiceUrl.io"
+        ).toJavaMap()
       ).toJavaMap()
     ).toJavaMap();
 
@@ -294,7 +297,7 @@ class DeployCloudFoundryServiceAtomicOperationConverterTest {
         .setSyslogDrainUrl("http://syslogDrainUrl.io")
         .setRouteServiceUrl("http://routeServiceUrl.io")
         .setTags(Collections.singleton("my-tag"))
-        .setCredentialsMap(HashMap.<String, Object>of(
+        .setCredentials(HashMap.<String, Object>of(
           "foo", "bar"
         ).toJavaMap())
     );
@@ -305,14 +308,14 @@ class DeployCloudFoundryServiceAtomicOperationConverterTest {
     final Map input = HashMap.of(
       "credentials", "test",
       "region", "org > space",
+      "userProvided", true,
       "manifest", HashMap.of(
-        "type", "userProvided",
-        "serviceInstanceName", "userProvidedServiceName",
-        "tags", List.of(
-          "my-tag"
-        ).asJava(),
-        "syslogDrainUrl", "http://syslogDrainUrl.io",
-        "routeServiceUrl", "http://routeServiceUrl.io"
+        "direct", HashMap.of(
+          "serviceInstanceName", "userProvidedServiceName",
+          "tags", List.of("my-tag").asJava(),
+          "syslogDrainUrl", "http://syslogDrainUrl.io",
+          "routeServiceUrl", "http://routeServiceUrl.io"
+        ).toJavaMap()
       ).toJavaMap()
     ).toJavaMap();
 

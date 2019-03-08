@@ -29,7 +29,7 @@ import java.util.Set;
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class DeployCloudFoundryServiceDescription extends AbstractCloudFoundryServiceDescription {
-  private String serviceType = "service";
+  private boolean userProvided = false;
 
   @JsonIgnore
   private Artifact artifact;
@@ -67,7 +67,7 @@ public class DeployCloudFoundryServiceDescription extends AbstractCloudFoundrySe
     String syslogDrainUrl;
 
     @Nullable
-    Map<String, Object> credentialsMap;
+    Map<String, Object> credentials;
 
     @Nullable
     String routeServiceUrl;

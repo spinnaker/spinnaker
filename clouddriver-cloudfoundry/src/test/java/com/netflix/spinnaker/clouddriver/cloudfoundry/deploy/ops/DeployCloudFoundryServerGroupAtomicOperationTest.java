@@ -167,7 +167,7 @@ class DeployCloudFoundryServerGroupAtomicOperationTest extends AbstractCloudFoun
         ""
       ))
       .setSpace(CloudFoundrySpace.builder().id("space1Id").name("space1").build())
-      .setArtifact(Artifact.builder().reference("ref1").build())
+      .setApplicationArtifact(Artifact.builder().reference("ref1").build())
       .setApplicationAttributes(new DeployCloudFoundryServerGroupDescription.ApplicationAttributes()
         .setInstances(7)
         .setMemory("1G")

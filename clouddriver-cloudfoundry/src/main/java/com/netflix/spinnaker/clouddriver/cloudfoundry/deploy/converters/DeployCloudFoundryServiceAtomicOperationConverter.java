@@ -16,16 +16,17 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.converters;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
-import com.netflix.spinnaker.clouddriver.artifacts.ArtifactCredentialsRepository;
+import com.netflix.spinnaker.clouddriver.artifacts.ArtifactDownloader;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.CloudFoundryOperation;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.DeployCloudFoundryServiceDescription;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops.DeployCloudFoundryServiceAtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
+import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
@@ -38,10 +39,12 @@ import java.util.Set;
 @CloudFoundryOperation(AtomicOperations.DEPLOY_SERVICE)
 @Component
 public class DeployCloudFoundryServiceAtomicOperationConverter extends AbstractCloudFoundryAtomicOperationConverter {
-  private final ArtifactCredentialsRepository credentialsRepository;
+  private static final ObjectMapper objectMapper = new ObjectMapper()
+    .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+  private final ArtifactDownloader artifactDownloader;
 
-  public DeployCloudFoundryServiceAtomicOperationConverter(ArtifactCredentialsRepository credentialsRepository) {
-    this.credentialsRepository = credentialsRepository;
+  public DeployCloudFoundryServiceAtomicOperationConverter(ArtifactDownloader artifactDownloader) {
+    this.artifactDownloader = artifactDownloader;
   }
 
   @Override
@@ -55,47 +58,36 @@ public class DeployCloudFoundryServiceAtomicOperationConverter extends AbstractC
     converted.setClient(getClient(input));
     converted.setSpace(findSpace(converted.getRegion(), converted.getClient())
       .orElseThrow(() -> new IllegalArgumentException("Unable to find space '" + converted.getRegion() + "'.")));
+
     Map manifest = (Map) input.get("manifest");
-    String type = manifest.get("type").toString();
-    switch (type) {
-      case "direct":
-        DeployCloudFoundryServiceDescription.ServiceAttributes attrs = getObjectMapper().convertValue(manifest, DeployCloudFoundryServiceDescription.ServiceAttributes.class);
-        if (manifest.get("parameters") != null) {
-          attrs.setParameterMap(parseParameters(manifest.get("parameters").toString()));
+    if (manifest.get("artifact") != null) {
+      Artifact manifestArtifact = objectMapper.convertValue(manifest.get("artifact"), Artifact.class);
+      downloadAndProcessManifest(artifactDownloader, manifestArtifact, myMap -> {
+        if (converted.isUserProvided()) {
+          converted.setUserProvidedServiceAttributes(convertUserProvidedServiceManifest(myMap));
+        } else {
+          converted.setServiceAttributes(convertManifest(myMap));
         }
-        converted.setServiceAttributes(attrs);
-        break;
-      case "artifact":
-        downloadAndProcessManifest(manifest, credentialsRepository, myMap -> converted.setServiceAttributes(convertManifest(myMap)));
-        break;
-      case "userProvided":
-        converted.setServiceType("userProvided");
-        DeployCloudFoundryServiceDescription.UserProvidedServiceAttributes userProvidedAttrs = getObjectMapper().convertValue(manifest, DeployCloudFoundryServiceDescription.UserProvidedServiceAttributes.class);
-        if (manifest.get("credentials") != null) {
-          userProvidedAttrs.setCredentialsMap(parseParameters(manifest.get("credentials").toString()));
-        }
-        converted.setUserProvidedServiceAttributes(userProvidedAttrs);
-        break;
-      case "userProvidedArtifact":
-        converted.setServiceType("userProvided");
-        downloadAndProcessManifest(manifest, credentialsRepository, myMap -> converted.setUserProvidedServiceAttributes(convertUserProvidedServiceManifest(myMap)));
-        break;
+      });
+    } else if (manifest.get("direct") != null) {
+      if (converted.isUserProvided()) {
+        converted.setUserProvidedServiceAttributes(convertUserProvidedServiceManifest(manifest.get("direct")));
+      } else {
+        converted.setServiceAttributes(convertManifest(manifest.get("direct")));
+      }
     }
     return converted;
   }
 
   // visible for testing
-  DeployCloudFoundryServiceDescription.ServiceAttributes convertManifest(Map manifestMap) {
-    ServiceManifest manifest = new ObjectMapper()
-      .setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE)
-      .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-      .convertValue(manifestMap, new TypeReference<ServiceManifest>() {
-      });
+  DeployCloudFoundryServiceDescription.ServiceAttributes convertManifest(Object manifestMap) {
+    ServiceManifest manifest = objectMapper.convertValue(manifestMap, new TypeReference<ServiceManifest>() {
+    });
     if (manifest.getService() == null) {
       throw new IllegalArgumentException("Manifest is missing the service");
     } else if (manifest.getServiceInstanceName() == null) {
       throw new IllegalArgumentException("Manifest is missing the service instance name");
-    } else if(manifest.getServicePlan() == null) {
+    } else if (manifest.getServicePlan() == null) {
       throw new IllegalArgumentException("Manifest is missing the service plan");
     }
     DeployCloudFoundryServiceDescription.ServiceAttributes attrs = new DeployCloudFoundryServiceDescription.ServiceAttributes();
@@ -108,12 +100,9 @@ public class DeployCloudFoundryServiceAtomicOperationConverter extends AbstractC
   }
 
   // visible for testing
-  DeployCloudFoundryServiceDescription.UserProvidedServiceAttributes convertUserProvidedServiceManifest(Map manifestMap) {
-    UserProvidedServiceManifest manifest = new ObjectMapper()
-      .setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE)
-      .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-      .convertValue(manifestMap, new TypeReference<UserProvidedServiceManifest>() {
-      });
+  DeployCloudFoundryServiceDescription.UserProvidedServiceAttributes convertUserProvidedServiceManifest(Object manifestMap) {
+    UserProvidedServiceManifest manifest = objectMapper.convertValue(manifestMap, new TypeReference<UserProvidedServiceManifest>() {
+    });
     if (manifest.getServiceInstanceName() == null) {
       throw new IllegalArgumentException("Manifest is missing the service name");
     }
@@ -122,7 +111,7 @@ public class DeployCloudFoundryServiceAtomicOperationConverter extends AbstractC
     attrs.setSyslogDrainUrl(manifest.getSyslogDrainUrl());
     attrs.setRouteServiceUrl(manifest.getRouteServiceUrl());
     attrs.setTags(manifest.getTags());
-    attrs.setCredentialsMap(parseParameters(manifest.getCredentialsMap()));
+    attrs.setCredentials(parseParameters(manifest.getCredentials()));
     return attrs;
   }
 
@@ -143,8 +132,10 @@ public class DeployCloudFoundryServiceAtomicOperationConverter extends AbstractC
   private static class ServiceManifest {
     private String service;
 
+    @JsonAlias("service_instance_name")
     private String serviceInstanceName;
 
+    @JsonAlias("service_plan")
     private String servicePlan;
 
     @Nullable
@@ -156,18 +147,22 @@ public class DeployCloudFoundryServiceAtomicOperationConverter extends AbstractC
 
   @Data
   private static class UserProvidedServiceManifest {
+    @JsonAlias("service_instance_name")
     private String serviceInstanceName;
 
     @Nullable
+    @JsonAlias("syslog_drain_url")
     private String syslogDrainUrl;
 
     @Nullable
+    @JsonAlias("route_service_url")
     private String routeServiceUrl;
 
     @Nullable
     private Set<String> tags;
 
     @Nullable
-    private String credentialsMap;
+    @JsonAlias("credentials_map")
+    private String credentials;
   }
 }

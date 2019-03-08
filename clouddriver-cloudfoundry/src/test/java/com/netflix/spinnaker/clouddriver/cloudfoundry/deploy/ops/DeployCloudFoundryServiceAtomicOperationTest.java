@@ -37,7 +37,6 @@ class DeployCloudFoundryServiceAtomicOperationTest extends AbstractCloudFoundryA
 
   @Test
   void deployService() {
-    desc.setServiceType("service");
     desc.setClient(client);
     desc.setServiceAttributes(new DeployCloudFoundryServiceDescription.ServiceAttributes()
       .setServiceInstanceName("some-service-name")
@@ -68,7 +67,7 @@ class DeployCloudFoundryServiceAtomicOperationTest extends AbstractCloudFoundryA
 
   @Test
   void deployUserProvidedService() {
-    desc.setServiceType("userProvided");
+    desc.setUserProvided(true);
     desc.setClient(client);
     desc.setUserProvidedServiceAttributes(new DeployCloudFoundryServiceDescription.UserProvidedServiceAttributes()
       .setServiceInstanceName("some-up-service-name")

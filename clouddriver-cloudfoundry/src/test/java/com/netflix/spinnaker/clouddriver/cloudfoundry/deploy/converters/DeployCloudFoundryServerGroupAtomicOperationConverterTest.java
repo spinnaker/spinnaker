@@ -18,9 +18,11 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.converters;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.artifacts.ArtifactCredentialsRepository;
+import com.netflix.spinnaker.clouddriver.artifacts.ArtifactDownloader;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.artifacts.ArtifactCredentialsFromString;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.artifacts.PackageArtifactCredentials;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.*;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.MockCloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.DeployCloudFoundryServerGroupDescription;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryOrganization;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
@@ -75,7 +77,7 @@ class DeployCloudFoundryServerGroupAtomicOperationConverterTest {
     Collections.singletonList(
       accounts.map(account -> new ArtifactCredentialsFromString(
         account,
-        List.of("a").asJava(),
+        List.of("test").asJava(),
         "applications: [{instances: 42}]"
       )).asJava()
     )
@@ -91,7 +93,8 @@ class DeployCloudFoundryServerGroupAtomicOperationConverterTest {
     new DefaultAccountCredentialsProvider(accountCredentialsRepository);
 
   private final DeployCloudFoundryServerGroupAtomicOperationConverter converter =
-    new DeployCloudFoundryServerGroupAtomicOperationConverter(null, artifactCredentialsRepository, null);
+    new DeployCloudFoundryServerGroupAtomicOperationConverter(null, artifactCredentialsRepository, null,
+      new ArtifactDownloader(artifactCredentialsRepository));
 
   @BeforeEach
   void initializeClassUnderTest() {
@@ -100,7 +103,7 @@ class DeployCloudFoundryServerGroupAtomicOperationConverterTest {
   }
 
   @Test
-  void convertDescriptionWitSourceSet() {
+  void convertDescriptionWithSourceSet() {
     final Map input = HashMap.of(
       "credentials", "destinationAccount",
       "region", "org > space",
@@ -111,8 +114,8 @@ class DeployCloudFoundryServerGroupAtomicOperationConverterTest {
         "region", "org > space"
       ).toJavaMap(),
       "manifest", HashMap.of(
-        "type", "artifact",
-        "account", "test",
+        "type", "test",
+        "artifactAccount", "test",
         "reference", "ref1"
       ).toJavaMap()
     ).toJavaMap();
@@ -151,9 +154,9 @@ class DeployCloudFoundryServerGroupAtomicOperationConverterTest {
         "region", "org > space"
       ).toJavaMap(),
       "manifest", HashMap.of(
-        "type", "artifact",
-        "account", "test",
-        "reference", "ref1"
+        "artifactAccount", "test",
+        "reference", "ref1",
+        "type", "test"
       ).toJavaMap()
     ).toJavaMap();
 

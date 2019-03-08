@@ -38,15 +38,14 @@ public class DeployCloudFoundryServerGroupDescription extends AbstractCloudFound
   private String freeFormDetails;
   private CloudFoundrySpace space;
   private boolean startApplication;
+  private Artifact applicationArtifact;
+  private Artifact manifest;
 
   @Nullable
   private Source source;
 
   @Nullable
   private Destination destination;
-
-  @JsonIgnore
-  private Artifact artifact;
 
   @JsonIgnore
   private ArtifactCredentials artifactCredentials;

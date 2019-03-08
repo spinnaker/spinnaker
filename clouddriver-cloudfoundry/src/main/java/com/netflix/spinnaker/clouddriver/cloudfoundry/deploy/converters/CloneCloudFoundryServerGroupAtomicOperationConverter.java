@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.converters;
 
 import com.netflix.spinnaker.clouddriver.artifacts.ArtifactCredentialsRepository;
+import com.netflix.spinnaker.clouddriver.artifacts.ArtifactDownloader;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.CloudFoundryOperation;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.provider.view.CloudFoundryClusterProvider;
 import com.netflix.spinnaker.clouddriver.helpers.OperationPoller;
@@ -28,8 +29,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class CloneCloudFoundryServerGroupAtomicOperationConverter extends DeployCloudFoundryServerGroupAtomicOperationConverter {
   public CloneCloudFoundryServerGroupAtomicOperationConverter(@Qualifier("cloudFoundryOperationPoller") OperationPoller operationPoller,
-                                                               ArtifactCredentialsRepository credentialsRepository,
-                                                               CloudFoundryClusterProvider clusterProvider) {
-    super(operationPoller, credentialsRepository, clusterProvider);
+                                                              ArtifactCredentialsRepository credentialsRepository,
+                                                              CloudFoundryClusterProvider clusterProvider,
+                                                              ArtifactDownloader artifactDownloader) {
+    super(operationPoller, credentialsRepository, clusterProvider, artifactDownloader);
   }
 }

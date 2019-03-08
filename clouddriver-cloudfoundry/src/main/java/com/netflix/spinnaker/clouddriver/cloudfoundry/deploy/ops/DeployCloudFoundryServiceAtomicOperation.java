@@ -16,17 +16,14 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops;
 
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryApiException;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.ServiceInstanceResponse;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.DeployCloudFoundryServiceDescription;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
-import io.vavr.collection.HashMap;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
-import java.util.Map;
 
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation.Type.UPDATE;
 
@@ -44,46 +41,41 @@ public class DeployCloudFoundryServiceAtomicOperation implements AtomicOperation
     Task task = getTask();
     final ServiceInstanceResponse serviceInstanceResponse;
     final String serviceInstanceName;
-    switch (description.getServiceType()) {
-      case "service":
-        DeployCloudFoundryServiceDescription.ServiceAttributes serviceAttributes = description.getServiceAttributes();
-        serviceInstanceName = serviceAttributes.getServiceInstanceName();
-        serviceInstanceResponse = description
-          .getClient()
-          .getServiceInstances()
-          .createServiceInstance(
-            serviceInstanceName,
-            serviceAttributes.getService(),
-            serviceAttributes.getServicePlan(),
-            serviceAttributes.getTags(),
-            serviceAttributes.getParameterMap(),
-            description.getSpace());
-        String gerund = serviceInstanceResponse.getType() == UPDATE
-          ? "Updating"
-          : "Creating";
-        task.updateStatus(PHASE, gerund + " service instance '" + serviceInstanceName + "' from service " + serviceAttributes.getService() + " and service plan " + serviceAttributes.getServicePlan());
-        break;
-      case "userProvided":
-        DeployCloudFoundryServiceDescription.UserProvidedServiceAttributes userProvidedServiceAttributes = description.getUserProvidedServiceAttributes();
-        serviceInstanceName = userProvidedServiceAttributes.getServiceInstanceName();
-        task.updateStatus(PHASE, "Creating user-provided service instance '" + serviceInstanceName + "'");
-        serviceInstanceResponse = description
-          .getClient()
-          .getServiceInstances()
-          .createUserProvidedServiceInstance(
-            serviceInstanceName,
-            userProvidedServiceAttributes.getSyslogDrainUrl(),
-            userProvidedServiceAttributes.getTags(),
-            userProvidedServiceAttributes.getCredentialsMap(),
-            userProvidedServiceAttributes.getRouteServiceUrl(),
-            description.getSpace());
-        String verb = serviceInstanceResponse.getType() == UPDATE
-          ? "Updated"
-          : "Created";
-        task.updateStatus(PHASE, verb + " user-provided service instance '" + serviceInstanceName + "'");
-        break;
-      default:
-        throw new CloudFoundryApiException("Service type must be either 'service' or 'userProvided'");
+    if (!description.isUserProvided()) {
+      DeployCloudFoundryServiceDescription.ServiceAttributes serviceAttributes = description.getServiceAttributes();
+      serviceInstanceName = serviceAttributes.getServiceInstanceName();
+      serviceInstanceResponse = description
+        .getClient()
+        .getServiceInstances()
+        .createServiceInstance(
+          serviceInstanceName,
+          serviceAttributes.getService(),
+          serviceAttributes.getServicePlan(),
+          serviceAttributes.getTags(),
+          serviceAttributes.getParameterMap(),
+          description.getSpace());
+      String gerund = serviceInstanceResponse.getType() == UPDATE
+        ? "Updating"
+        : "Creating";
+      task.updateStatus(PHASE, gerund + " service instance '" + serviceInstanceName + "' from service " + serviceAttributes.getService() + " and service plan " + serviceAttributes.getServicePlan());
+    } else {
+      DeployCloudFoundryServiceDescription.UserProvidedServiceAttributes userProvidedServiceAttributes = description.getUserProvidedServiceAttributes();
+      serviceInstanceName = userProvidedServiceAttributes.getServiceInstanceName();
+      task.updateStatus(PHASE, "Creating user-provided service instance '" + serviceInstanceName + "'");
+      serviceInstanceResponse = description
+        .getClient()
+        .getServiceInstances()
+        .createUserProvidedServiceInstance(
+          serviceInstanceName,
+          userProvidedServiceAttributes.getSyslogDrainUrl(),
+          userProvidedServiceAttributes.getTags(),
+          userProvidedServiceAttributes.getCredentials(),
+          userProvidedServiceAttributes.getRouteServiceUrl(),
+          description.getSpace());
+      String verb = serviceInstanceResponse.getType() == UPDATE
+        ? "Updated"
+        : "Created";
+      task.updateStatus(PHASE, verb + " user-provided service instance '" + serviceInstanceName + "'");
     }
 
     return serviceInstanceResponse;

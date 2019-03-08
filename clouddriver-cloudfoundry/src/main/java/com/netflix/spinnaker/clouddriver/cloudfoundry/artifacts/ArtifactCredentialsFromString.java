@@ -34,7 +34,7 @@ public class ArtifactCredentialsFromString implements ArtifactCredentials {
   private final String downloadContent;
 
   @Override
-  public InputStream download(Artifact artifact) throws IOException {
+  public InputStream download(Artifact artifact) {
     return new ByteArrayInputStream(downloadContent.getBytes(StandardCharsets.UTF_8));
   }
 
