@@ -45,7 +45,6 @@ public class V2SchemaExecutionGenerator implements V2ExecutionGenerator {
 
     addNotifications(pipeline, template, configuration);
     addParameters(pipeline, template, configuration);
-    addExpectedArtifacts(pipeline, template, configuration);
     addTriggers(pipeline, template, configuration);
     pipeline.put("templateVariables", configuration.getVariables());
 
@@ -86,23 +85,6 @@ public class V2SchemaExecutionGenerator implements V2ExecutionGenerator {
       pipeline.put(
         "parameterConfig",
         Optional.ofNullable(configuration.getParameters()).orElse(Collections.emptyList())
-      );
-    }
-  }
-
-  private void addExpectedArtifacts(Map<String, Object> pipeline, V2PipelineTemplate template, V2TemplateConfiguration configuration) {
-    if (configuration.getInherit().contains("expectedArtifacts")) {
-      pipeline.put(
-        "expectedArtifacts",
-        TemplateMerge.mergeDistinct(
-          (List<HashMap<String, Object>>) template.getPipeline().get("expectedArtifacts"),
-          configuration.getExpectedArtifacts()
-        )
-      );
-    } else {
-      pipeline.put(
-        "expectedArtifacts",
-        Optional.ofNullable(configuration.getExpectedArtifacts()).orElse(Collections.emptyList())
       );
     }
   }
