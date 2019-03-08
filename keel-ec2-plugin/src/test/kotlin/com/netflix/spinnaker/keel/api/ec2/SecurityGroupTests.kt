@@ -9,6 +9,7 @@ import dev.minutest.rootContext
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
+import strikt.assertions.isNull
 import strikt.assertions.isTrue
 
 internal object SecurityGroupTests : JUnit5Minutests {
@@ -45,18 +46,52 @@ internal object SecurityGroupTests : JUnit5Minutests {
 
     derivedContext<DiffNode>("security groups that differ in basic fields") {
       deriveFixture {
-        differ.compare(this, copy(region = "us-south-1"))
+        differ.compare(this, copy(region = "ap-south-1"))
       }
-
 
       test("diff contains changes") {
         expectThat(this).get { hasChanges() }.isTrue()
       }
 
-      test("diff is in the root object") {
+      test("diff is detected on the changed property") {
         expectThat(this)
           .get { getChild("region").state }
           .isEqualTo(CHANGED)
+      }
+    }
+
+    derivedContext<DiffNode>("security groups that differ in ignored fields") {
+      deriveFixture {
+        differ.compare(this, copy(description = "We can't actually make changes to this so it should be ignored by the diff"))
+      }
+
+      test("diff does not contain changes") {
+        expectThat(this).get { hasChanges() }.isFalse()
+      }
+    }
+
+    derivedContext<DiffNode>("security groups that differ in ignored and non-ignored fields") {
+      deriveFixture {
+        differ.compare(this, copy(
+          region = "ap-south-1",
+          description = "We can't actually make changes to this so it should be ignored by the diff"
+        ))
+      }
+
+      test("diff contains changes") {
+        expectThat(this).get { hasChanges() }.isTrue()
+      }
+
+      test("diff is detected on the changed property") {
+        expectThat(this)
+          .get { getChild("region").state }
+          .isEqualTo(CHANGED)
+      }
+
+      test("no diff is detected on the ignored property") {
+        expectThat(this)
+          .get { getChild("description") }
+          .isNull()
       }
     }
 

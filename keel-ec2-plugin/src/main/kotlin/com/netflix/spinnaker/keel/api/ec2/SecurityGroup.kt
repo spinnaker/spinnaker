@@ -17,6 +17,8 @@ package com.netflix.spinnaker.keel.api.ec2
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL
+import de.danielbechler.diff.inclusion.Inclusion.EXCLUDED
+import de.danielbechler.diff.introspection.ObjectDiffProperty
 
 @JsonInclude(NON_NULL)
 data class SecurityGroup(
@@ -25,6 +27,7 @@ data class SecurityGroup(
   val accountName: String,
   val region: String,
   val vpcName: String?,
+  @get:ObjectDiffProperty(inclusion = EXCLUDED)
   val description: String?,
   val inboundRules: Set<SecurityGroupRule> = emptySet()
 )
