@@ -16,26 +16,23 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.providers.cf
 
-import com.netflix.spinnaker.orca.clouddriver.tasks.providers.cf.CloudFoundryDeployServiceTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.providers.cf.CloudFoundryDestroyServiceTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.providers.cf.CloudFoundryMonitorKatoServicesTask
-import com.netflix.spinnaker.orca.clouddriver.tasks.providers.cf.CloudFoundryWaitForDeployServiceTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.providers.cf.CloudFoundryWaitForDestroyServiceTask
 import com.netflix.spinnaker.orca.pipeline.TaskNode
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 import spock.lang.Subject
 
-class CloudFoundryDeployServiceStagePreprocessorTest extends Specification {
-  @Subject preprocessor = new CloudFoundryDeployServiceStagePreprocessor()
+class CloudFoundryDestroyServiceStagePreprocessorSpec extends Specification {
+  @Subject preprocessor = new CloudFoundryDestroyServiceStagePreprocessor()
 
-  def "ensure that the correct tasks are added for deploying a Cloud Foundry service"() {
+  def "ensure that the correct tasks are added for destroying a Cloud Foundry service"() {
     given:
     TaskNode.Builder builder = new TaskNode.Builder(TaskNode.GraphType.FULL)
-    Stage stage = new Stage(Execution.newPipeline("orca"), "deployService", [
-      "cloudProvider": "my-cloud",
-      "manifest": [
-        "type": "direct"
-      ]
+    Stage stage = new Stage(Execution.newPipeline("orca"), "destroyService", [
+      "cloudProvider": "my-cloud"
     ])
 
     when:
@@ -43,11 +40,11 @@ class CloudFoundryDeployServiceStagePreprocessorTest extends Specification {
 
     then:
     builder.graph.size() == 3
-    (builder.graph.get(0) as TaskNode.TaskDefinition).name == "deployService"
-    (builder.graph.get(0) as TaskNode.TaskDefinition).implementingClass == CloudFoundryDeployServiceTask
-    (builder.graph.get(1) as TaskNode.TaskDefinition).name == "monitorDeployService"
+    (builder.graph.get(0) as TaskNode.TaskDefinition).name == "destroyService"
+    (builder.graph.get(0) as TaskNode.TaskDefinition).implementingClass == CloudFoundryDestroyServiceTask
+    (builder.graph.get(1) as TaskNode.TaskDefinition).name == "monitorDestroyService"
     (builder.graph.get(1) as TaskNode.TaskDefinition).implementingClass == CloudFoundryMonitorKatoServicesTask
-    (builder.graph.get(2) as TaskNode.TaskDefinition).name == "waitForDeployService"
-    (builder.graph.get(2) as TaskNode.TaskDefinition).implementingClass == CloudFoundryWaitForDeployServiceTask
+    (builder.graph.get(2) as TaskNode.TaskDefinition).name == "waitForDestroyService"
+    (builder.graph.get(2) as TaskNode.TaskDefinition).implementingClass == CloudFoundryWaitForDestroyServiceTask
   }
 }
