@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.pipeline.expressions;
 
 import com.netflix.spinnaker.orca.ExecutionStatus;
+import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.expression.EvaluationContext;
@@ -40,10 +41,15 @@ public class ExpressionTransform {
   private static final List<String> EXECUTION_AWARE_FUNCTIONS = Arrays.asList("judgment", "judgement", "stage", "stageExists", "deployedServerGroups", "manifestLabelValue");
   private static final List<String> EXECUTION_AWARE_ALIASES = Collections.singletonList("deployedServerGroups");
   private static final List<Class> STRINGIFYABLE_TYPES = Collections.singletonList(ExecutionStatus.class);
+
+  private final Collection<ExpressionFunctionProvider> expressionFunctionProviders;
   private final ParserContext parserContext;
   private final ExpressionParser parser;
 
-  public ExpressionTransform(ParserContext parserContext, ExpressionParser parser) {
+  public ExpressionTransform(Collection<ExpressionFunctionProvider> expressionFunctionProviders,
+                             ParserContext parserContext,
+                             ExpressionParser parser) {
+    this.expressionFunctionProviders = expressionFunctionProviders;
     this.parserContext = parserContext;
     this.parser = parser;
   }
@@ -266,7 +272,18 @@ public class ExpressionTransform {
    */
   private String includeExecutionParameter(String e) {
     String expression = e;
-    for (String fn : EXECUTION_AWARE_FUNCTIONS) {
+
+    // An expression aware function is any that takes an Execution as its first parameter
+    Set<String> expressionAwareFunctions = new HashSet<>(EXECUTION_AWARE_FUNCTIONS);
+    expressionFunctionProviders.forEach(p -> {
+      p.getFunctions().forEach(f -> {
+        if (!f.getParameters().isEmpty() && f.getParameters().get(0).getType() == Execution.class) {
+          expressionAwareFunctions.add(f.getName());
+        }
+      });
+    });
+
+    for (String fn : expressionAwareFunctions) {
       if (expression.contains("#" + fn) && !expression.contains("#" + fn + "( #root.execution, ")) {
         expression = expression.replaceAll("#" + fn + "\\(", "#" + fn + "( #root.execution, ");
       }

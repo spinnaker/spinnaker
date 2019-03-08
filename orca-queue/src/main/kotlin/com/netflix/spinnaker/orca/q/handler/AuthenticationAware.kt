@@ -44,6 +44,7 @@ interface AuthenticationAware {
         currentUser.username,
         execution.type.name.toLowerCase(),
         execution.id,
+        this.id,
         execution.origin
       ))
       AuthenticatedRequest.propagate(block, false, currentUser).call()
