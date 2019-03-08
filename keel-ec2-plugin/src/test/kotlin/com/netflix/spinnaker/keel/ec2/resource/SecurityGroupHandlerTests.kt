@@ -40,15 +40,15 @@ import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
-import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.argumentCaptor
-import com.nhaarman.mockito_kotlin.doAnswer
-import com.nhaarman.mockito_kotlin.doReturn
-import com.nhaarman.mockito_kotlin.doThrow
-import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.reset
-import com.nhaarman.mockito_kotlin.verify
-import com.nhaarman.mockito_kotlin.whenever
+import com.nhaarman.mockitokotlin2.any
+import com.nhaarman.mockitokotlin2.argumentCaptor
+import com.nhaarman.mockitokotlin2.doAnswer
+import com.nhaarman.mockitokotlin2.doReturn
+import com.nhaarman.mockitokotlin2.doThrow
+import com.nhaarman.mockitokotlin2.mock
+import com.nhaarman.mockitokotlin2.reset
+import com.nhaarman.mockitokotlin2.stub
+import com.nhaarman.mockitokotlin2.verify
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import kotlinx.coroutines.CompletableDeferred
@@ -174,9 +174,11 @@ internal object SecurityGroupHandlerTests : JUnit5Minutests {
       }
 
       before {
-        with(vpc2) {
-          whenever(cloudDriverCache.networkBy(name, account, region)) doReturn this
-          whenever(cloudDriverCache.networkBy(id)) doReturn this
+        cloudDriverCache.stub {
+          with(vpc2) {
+            on { networkBy(name, account, region) } doReturn this
+            on { networkBy(id) } doReturn this
+          }
         }
 
         cloudDriverSecurityGroupReturns()
@@ -210,8 +212,12 @@ internal object SecurityGroupHandlerTests : JUnit5Minutests {
 
     context("a security group with no ingress rules") {
       before {
-        whenever(orcaService.orchestrate(any())) doAnswer {
-          CompletableDeferred(TaskRefResponse("/tasks/${randomUUID()}"))
+        orcaService.stub {
+          on {
+            orchestrate(any())
+          } doAnswer {
+            CompletableDeferred(TaskRefResponse("/tasks/${randomUUID()}"))
+          }
         }
 
         handler.upsert(resource)
@@ -257,13 +263,17 @@ internal object SecurityGroupHandlerTests : JUnit5Minutests {
       }
 
       before {
-        Network(CLOUD_PROVIDER, randomUUID().toString(), "vpc1", "test", securityGroup.region).also {
-          whenever(cloudDriverCache.networkBy(it.id)) doReturn it
-          whenever(cloudDriverCache.networkBy(it.name, it.account, it.region)) doReturn it
+        cloudDriverCache.stub {
+          Network(CLOUD_PROVIDER, randomUUID().toString(), "vpc1", "test", securityGroup.region).also {
+            on { networkBy(it.id) } doReturn it
+            on { networkBy(it.name, it.account, it.region) } doReturn it
+          }
         }
 
-        whenever(orcaService.orchestrate(any())) doAnswer {
-          CompletableDeferred(TaskRefResponse("/tasks/${randomUUID()}"))
+        orcaService.stub {
+          on { orchestrate(any()) } doAnswer {
+            CompletableDeferred(TaskRefResponse("/tasks/${randomUUID()}"))
+          }
         }
 
         handler.upsert(resource)
@@ -313,8 +323,10 @@ internal object SecurityGroupHandlerTests : JUnit5Minutests {
       }
 
       before {
-        whenever(orcaService.orchestrate(any())) doAnswer {
-          CompletableDeferred(TaskRefResponse("/tasks/${randomUUID()}"))
+        orcaService.stub {
+          on { orchestrate(any()) } doAnswer {
+            CompletableDeferred(TaskRefResponse("/tasks/${randomUUID()}"))
+          }
         }
 
         handler.upsert(resource)
@@ -350,8 +362,10 @@ internal object SecurityGroupHandlerTests : JUnit5Minutests {
 
       context("deleting a security group") {
         before {
-          whenever(orcaService.orchestrate(any())) doAnswer {
-            CompletableDeferred(TaskRefResponse("/tasks/${randomUUID()}"))
+          orcaService.stub {
+            on { orchestrate(any()) } doAnswer {
+              CompletableDeferred(TaskRefResponse("/tasks/${randomUUID()}"))
+            }
           }
 
           handler.delete(resource)
@@ -387,26 +401,31 @@ internal object SecurityGroupHandlerTests : JUnit5Minutests {
   }
 
   private fun CurrentFixture.cloudDriverSecurityGroupReturns() {
-    with(cloudDriverResponse) {
-      whenever(
-        cloudDriverService
-          .getSecurityGroup(accountName, CLOUD_PROVIDER, name, region, vpcId)
-      ) doReturn CompletableDeferred(this)
+    cloudDriverService.stub {
+      with(cloudDriverResponse) {
+        on {
+          getSecurityGroup(accountName, CLOUD_PROVIDER, name, region, vpcId)
+        } doReturn CompletableDeferred(this)
+      }
     }
   }
 
   private fun CurrentFixture.cloudDriverSecurityGroupNotFound() {
-    with(cloudDriverResponse) {
-      whenever(
-        cloudDriverService
-          .getSecurityGroup(accountName, CLOUD_PROVIDER, name, region, vpcId)
-      ) doThrow RETROFIT_NOT_FOUND
+    cloudDriverService.stub {
+      with(cloudDriverResponse) {
+        on {
+          cloudDriverService
+            .getSecurityGroup(accountName, CLOUD_PROVIDER, name, region, vpcId)
+        } doThrow RETROFIT_NOT_FOUND
+      }
     }
   }
 
   private fun <F : Fixture> F.setupVpc() {
-    whenever(cloudDriverCache.networkBy(vpc.name, vpc.account, vpc.region)) doReturn vpc
-    whenever(cloudDriverCache.networkBy(vpc.id)) doReturn vpc
+    cloudDriverCache.stub {
+      on { networkBy(vpc.name, vpc.account, vpc.region) } doReturn vpc
+      on { networkBy(vpc.id) } doReturn vpc
+    }
   }
 
   val Fixture.resource: Resource<SecurityGroup>

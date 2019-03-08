@@ -14,10 +14,10 @@ import com.netflix.spinnaker.keel.redis.spring.MockEurekaConfiguration
 import com.netflix.spinnaker.keel.redis.spring.SecurityDisabledConfiguration
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
-import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.doReturn
-import com.nhaarman.mockito_kotlin.verify
-import com.nhaarman.mockito_kotlin.whenever
+import com.nhaarman.mockitokotlin2.any
+import com.nhaarman.mockitokotlin2.doReturn
+import com.nhaarman.mockitokotlin2.stub
+import com.nhaarman.mockitokotlin2.verify
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -72,7 +72,9 @@ internal class ResourceControllerTest {
   @Test
 //  @WithMockUser(authorities = ["READ", "WRITE"])
   fun `can create a resource as YAML`() {
-    whenever(resourcePersister.handle(any())) doReturn mockResource
+    resourcePersister.stub {
+      on { handle(any()) } doReturn mockResource
+    }
 
     val request = post("/resources")
       .accept(APPLICATION_YAML)
@@ -94,7 +96,9 @@ internal class ResourceControllerTest {
 
   @Test
   fun `can create a resource as JSON`() {
-    whenever(resourcePersister.handle(any())) doReturn mockResource
+    resourcePersister.stub {
+      on { handle(any()) } doReturn mockResource
+    }
 
     val request = post("/resources")
       .accept(APPLICATION_JSON)
@@ -168,7 +172,11 @@ internal class ResourceControllerTest {
 
   @Test
   fun `can delete a resource`() {
-    whenever(resourcePersister.handle(any())) doReturn mockResource
+    resourcePersister.stub {
+      on {
+        handle(any())
+      } doReturn mockResource
+    }
 
     val resource = Resource(
       apiVersion = SPINNAKER_API_V1,

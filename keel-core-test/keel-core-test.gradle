@@ -5,6 +5,6 @@ dependencies {
   implementation platform("org.junit:junit-bom:${spinnaker.version('jupiter')}")
   implementation "org.junit.jupiter:junit-jupiter-api"
   implementation "io.strikt:strikt-core:$striktVersion"
-  implementation "com.nhaarman:mockito-kotlin:${spinnaker.version('mockitoKotlin')}"
+  implementation "com.nhaarman.mockitokotlin2:mockito-kotlin:2.1.0"
   api "dev.minutest:minutest:$minutestVersion"
 }

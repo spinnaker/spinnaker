@@ -5,7 +5,7 @@ import com.netflix.spinnaker.keel.annealing.ResourceActuator
 import com.netflix.spinnaker.keel.annealing.ResourceCheckQueue
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
-import com.nhaarman.mockito_kotlin.verify
+import com.nhaarman.mockitokotlin2.verify
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired

@@ -4,9 +4,9 @@ import com.netflix.spinnaker.keel.clouddriver.model.Credential
 import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.clouddriver.model.Subnet
-import com.nhaarman.mockito_kotlin.doReturn
-import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.whenever
+import com.nhaarman.mockitokotlin2.doReturn
+import com.nhaarman.mockitokotlin2.mock
+import com.nhaarman.mockitokotlin2.stub
 import kotlinx.coroutines.CompletableDeferred
 import org.junit.jupiter.api.Test
 import strikt.api.catching
@@ -50,8 +50,10 @@ object MemoryCloudDriverCacheTest {
 
   @Test
   fun `security groups are looked up from CloudDriver when accessed by id`() {
-    whenever(cloudDriver.getSecurityGroupSummaries("prod", "aws", "us-east-1")) doReturn CompletableDeferred(securityGroupSummaries)
-    whenever(cloudDriver.getCredential("prod")) doReturn CompletableDeferred(Credential("prod", "aws"))
+    cloudDriver.stub {
+      on { getSecurityGroupSummaries("prod", "aws", "us-east-1") } doReturn CompletableDeferred(securityGroupSummaries)
+      on { getCredential("prod") } doReturn CompletableDeferred(Credential("prod", "aws"))
+    }
 
     subject.securityGroupById("prod", "us-east-1", "sg-2").let { securityGroupSummary ->
       expectThat(securityGroupSummary) {
@@ -63,8 +65,10 @@ object MemoryCloudDriverCacheTest {
 
   @Test
   fun `security groups are looked up from CloudDriver when accessed by name`() {
-    whenever(cloudDriver.getSecurityGroupSummaries("prod", "aws", "us-east-1")) doReturn CompletableDeferred(securityGroupSummaries)
-    whenever(cloudDriver.getCredential("prod")) doReturn CompletableDeferred(Credential("prod", "aws"))
+    cloudDriver.stub {
+      on { getSecurityGroupSummaries("prod", "aws", "us-east-1") } doReturn CompletableDeferred(securityGroupSummaries)
+      on { getCredential("prod") } doReturn CompletableDeferred(Credential("prod", "aws"))
+    }
 
     subject.securityGroupByName("prod", "us-east-1", "bar").let { securityGroupSummary ->
       expectThat(securityGroupSummary) {
@@ -76,7 +80,9 @@ object MemoryCloudDriverCacheTest {
 
   @Test
   fun `an invalid security group id throws an exception`() {
-    whenever(cloudDriver.getSecurityGroupSummaries("prod", "aws", "us-east-1")) doReturn CompletableDeferred(securityGroupSummaries)
+    cloudDriver.stub {
+      on { getSecurityGroupSummaries("prod", "aws", "us-east-1") } doReturn CompletableDeferred(securityGroupSummaries)
+    }
 
     expectThat(catching {
       subject.securityGroupById("prod", "us-east-1", "sg-4")
@@ -86,7 +92,9 @@ object MemoryCloudDriverCacheTest {
 
   @Test
   fun `VPC networks are looked up by id from CloudDriver`() {
-    whenever(cloudDriver.listNetworks()) doReturn CompletableDeferred(mapOf("aws" to vpcs))
+    cloudDriver.stub {
+      on { listNetworks() } doReturn CompletableDeferred(mapOf("aws" to vpcs))
+    }
 
     subject.networkBy("vpc-2").let { vpc ->
       expectThat(vpc) {
@@ -99,7 +107,9 @@ object MemoryCloudDriverCacheTest {
 
   @Test
   fun `an invalid VPC id throws an exception`() {
-    whenever(cloudDriver.listNetworks()) doReturn CompletableDeferred(mapOf("aws" to vpcs))
+    cloudDriver.stub {
+      on { listNetworks() } doReturn CompletableDeferred(mapOf("aws" to vpcs))
+    }
 
     expectThat(catching { subject.networkBy("vpc-5") })
       .throws<ResourceNotFound>()
@@ -107,7 +117,9 @@ object MemoryCloudDriverCacheTest {
 
   @Test
   fun `VPC networks are looked up by name and region from CloudDriver`() {
-    whenever(cloudDriver.listNetworks()) doReturn CompletableDeferred(mapOf("aws" to vpcs))
+    cloudDriver.stub {
+      on { listNetworks() } doReturn CompletableDeferred(mapOf("aws" to vpcs))
+    }
 
     subject.networkBy("vpcName", "test", "us-west-2").let { vpc ->
       expectThat(vpc.id).isEqualTo("vpc-2")
@@ -116,7 +128,9 @@ object MemoryCloudDriverCacheTest {
 
   @Test
   fun `an invalid VPC name and region throws an exception`() {
-    whenever(cloudDriver.listNetworks()) doReturn CompletableDeferred(mapOf("aws" to vpcs))
+    cloudDriver.stub {
+      on { listNetworks() } doReturn CompletableDeferred(mapOf("aws" to vpcs))
+    }
 
     expectThat(catching {
       subject.networkBy("invalid", "prod", "us-west-2")
@@ -126,7 +140,9 @@ object MemoryCloudDriverCacheTest {
 
   @Test
   fun `availability zones are looked up by account, VPC id and region from CloudDriver`() {
-    whenever(cloudDriver.listSubnets("aws")) doReturn CompletableDeferred(subnets)
+    cloudDriver.stub {
+      on { listSubnets("aws") } doReturn CompletableDeferred(subnets)
+    }
 
     subject.availabilityZonesBy("test", "vpc-2", "us-west-2").let { zones ->
       expectThat(zones)
@@ -136,7 +152,9 @@ object MemoryCloudDriverCacheTest {
 
   @Test
   fun `an invalid account, VPC id and region returns an empty set`() {
-    whenever(cloudDriver.listNetworks()) doReturn CompletableDeferred(mapOf("aws" to vpcs))
+    cloudDriver.stub {
+      on { listNetworks() } doReturn CompletableDeferred(mapOf("aws" to vpcs))
+    }
 
     expectThat(
       subject.availabilityZonesBy("test", "vpc-2", "ew-west-1")

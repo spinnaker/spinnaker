@@ -4,10 +4,10 @@ import com.netflix.spinnaker.keel.plugin.Halt
 import com.netflix.spinnaker.keel.plugin.Proceed
 import com.netflix.spinnaker.keel.plugin.VetoPlugin
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
-import com.nhaarman.mockito_kotlin.doReturn
-import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.reset
-import com.nhaarman.mockito_kotlin.whenever
+import com.nhaarman.mockitokotlin2.doReturn
+import com.nhaarman.mockitokotlin2.mock
+import com.nhaarman.mockitokotlin2.reset
+import com.nhaarman.mockitokotlin2.stub
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import strikt.api.expectThat
@@ -43,7 +43,9 @@ internal object SimpleVetoPluginTests : JUnit5Minutests {
 
     context("convergence is enabled") {
       before {
-        whenever(dynamicConfigService.isEnabled("keel.converge.enabled", false)) doReturn true
+        dynamicConfigService.stub {
+          on { isEnabled("keel.converge.enabled", false) } doReturn true
+        }
       }
 
       after {
@@ -57,7 +59,9 @@ internal object SimpleVetoPluginTests : JUnit5Minutests {
 
     context("convergence is disabled") {
       before {
-        whenever(dynamicConfigService.isEnabled("keel.converge.enabled", false)) doReturn false
+        dynamicConfigService.stub {
+          on { isEnabled("keel.converge.enabled", false) } doReturn false
+        }
       }
 
       after {

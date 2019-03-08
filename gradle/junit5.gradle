@@ -20,7 +20,7 @@ repositories {
 
 dependencies {
   testCompile "org.junit.platform:junit-platform-runner"
-  testCompile "com.nhaarman:mockito-kotlin:${spinnaker.version('mockitoKotlin')}"
+  testCompile "com.nhaarman.mockitokotlin2:mockito-kotlin:2.1.0"
   testCompile "org.junit.jupiter:junit-jupiter-api"
 
   testRuntime "org.junit.platform:junit-platform-launcher"

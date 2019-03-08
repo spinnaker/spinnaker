@@ -31,14 +31,14 @@ import com.netflix.spinnaker.keel.ec2.RETROFIT_NOT_FOUND
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
-import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.argumentCaptor
-import com.nhaarman.mockito_kotlin.doReturn
-import com.nhaarman.mockito_kotlin.doThrow
-import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.reset
-import com.nhaarman.mockito_kotlin.verify
-import com.nhaarman.mockito_kotlin.whenever
+import com.nhaarman.mockitokotlin2.any
+import com.nhaarman.mockitokotlin2.argumentCaptor
+import com.nhaarman.mockitokotlin2.doReturn
+import com.nhaarman.mockitokotlin2.doThrow
+import com.nhaarman.mockitokotlin2.mock
+import com.nhaarman.mockitokotlin2.reset
+import com.nhaarman.mockitokotlin2.stub
+import com.nhaarman.mockitokotlin2.verify
 import de.danielbechler.diff.ObjectDifferBuilder
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -139,17 +139,19 @@ internal object ClusterHandlerTests : JUnit5Minutests {
     }
 
     before {
-      cloudDriverCache.apply {
-        whenever(networkBy(vpc.id)) doReturn vpc
-        whenever(subnetBy(subnet1.id)) doReturn subnet1
-        whenever(subnetBy(subnet2.id)) doReturn subnet2
-        whenever(subnetBy(subnet3.id)) doReturn subnet3
-        whenever(securityGroupById(spec.location.accountName, spec.location.region, sg1.id)) doReturn sg1
-        whenever(securityGroupById(spec.location.accountName, spec.location.region, sg2.id)) doReturn sg2
-        whenever(securityGroupByName(spec.location.accountName, spec.location.region, sg1.name)) doReturn sg1
-        whenever(securityGroupByName(spec.location.accountName, spec.location.region, sg2.name)) doReturn sg2
+      cloudDriverCache.stub {
+        on { networkBy(vpc.id) } doReturn vpc
+        on { subnetBy(subnet1.id) } doReturn subnet1
+        on { subnetBy(subnet2.id) } doReturn subnet2
+        on { subnetBy(subnet3.id) } doReturn subnet3
+        on { securityGroupById(spec.location.accountName, spec.location.region, sg1.id) } doReturn sg1
+        on { securityGroupById(spec.location.accountName, spec.location.region, sg2.id) } doReturn sg2
+        on { securityGroupByName(spec.location.accountName, spec.location.region, sg1.name) } doReturn sg1
+        on { securityGroupByName(spec.location.accountName, spec.location.region, sg2.name) } doReturn sg2
 
-        whenever(orcaService.orchestrate(any())) doReturn CompletableDeferred(TaskRefResponse("/tasks/${UUID.randomUUID()}"))
+        orcaService.stub {
+          on { orchestrate(any()) } doReturn CompletableDeferred(TaskRefResponse("/tasks/${UUID.randomUUID()}"))
+        }
       }
     }
 
@@ -159,7 +161,9 @@ internal object ClusterHandlerTests : JUnit5Minutests {
 
     context("the cluster does not exist or has no active server groups") {
       before {
-        whenever(cloudDriverService.activeServerGroup()) doThrow RETROFIT_NOT_FOUND
+        cloudDriverService.stub {
+          on { activeServerGroup() } doThrow RETROFIT_NOT_FOUND
+        }
       }
 
       test("the current model is null") {
@@ -181,7 +185,9 @@ internal object ClusterHandlerTests : JUnit5Minutests {
 
     context("the cluster has active server groups") {
       before {
-        whenever(cloudDriverService.activeServerGroup()) doReturn CompletableDeferred(activeServerGroupResponse)
+        cloudDriverService.stub {
+          on { activeServerGroup() } doReturn CompletableDeferred(activeServerGroupResponse)
+        }
       }
 
       derivedContext<Cluster?>("fetching the current cluster state") {

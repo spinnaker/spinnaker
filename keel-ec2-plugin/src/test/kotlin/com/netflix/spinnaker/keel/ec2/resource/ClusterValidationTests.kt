@@ -11,7 +11,7 @@ import com.netflix.spinnaker.keel.api.ec2.Cluster.Location
 import com.netflix.spinnaker.keel.api.ec2.Cluster.Moniker
 import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
-import com.nhaarman.mockito_kotlin.mock
+import com.nhaarman.mockitokotlin2.mock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import strikt.api.expectThat

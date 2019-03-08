@@ -6,7 +6,7 @@ import dev.minutest.rootContext
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
-internal class ClusterMonikerTest : JUnit5Minutests {
+internal class ClusterMonikerTests : JUnit5Minutests {
   fun tests() = rootContext<Moniker> {
     context("a cluster with no stack or detail") {
       fixture { Moniker("fnord") }

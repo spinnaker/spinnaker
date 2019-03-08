@@ -8,14 +8,14 @@ import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
-import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.doReturn
-import com.nhaarman.mockito_kotlin.eq
-import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.never
-import com.nhaarman.mockito_kotlin.reset
-import com.nhaarman.mockito_kotlin.verify
-import com.nhaarman.mockito_kotlin.whenever
+import com.nhaarman.mockitokotlin2.any
+import com.nhaarman.mockitokotlin2.doReturn
+import com.nhaarman.mockitokotlin2.eq
+import com.nhaarman.mockitokotlin2.mock
+import com.nhaarman.mockitokotlin2.never
+import com.nhaarman.mockitokotlin2.reset
+import com.nhaarman.mockitokotlin2.stub
+import com.nhaarman.mockitokotlin2.verify
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 
@@ -32,10 +32,14 @@ internal object ResourceActuatorTests : JUnit5Minutests {
     }
 
     before {
-      whenever(plugin1.apiVersion) doReturn SPINNAKER_API_V1.subApi("plugin1")
-      whenever(plugin1.supportedKind) doReturn (ResourceKind(SPINNAKER_API_V1.subApi("plugin1").group, "foo", "foos") to DummyResource::class.java)
-      whenever(plugin2.apiVersion) doReturn SPINNAKER_API_V1.subApi("plugin2")
-      whenever(plugin2.supportedKind) doReturn (ResourceKind(SPINNAKER_API_V1.subApi("plugin2").group, "bar", "bars") to DummyResource::class.java)
+      plugin1.stub {
+        on { apiVersion } doReturn SPINNAKER_API_V1.subApi("plugin1")
+        on { supportedKind } doReturn (ResourceKind(SPINNAKER_API_V1.subApi("plugin1").group, "foo", "foos") to DummyResource::class.java)
+      }
+      plugin2.stub {
+        on { apiVersion } doReturn SPINNAKER_API_V1.subApi("plugin2")
+        on { supportedKind } doReturn (ResourceKind(SPINNAKER_API_V1.subApi("plugin2").group, "bar", "bars") to DummyResource::class.java)
+      }
     }
 
     after {
@@ -61,7 +65,9 @@ internal object ResourceActuatorTests : JUnit5Minutests {
 
       context("the current state matches the desired state") {
         before {
-          whenever(plugin1.current(resource)) doReturn resource.spec
+          plugin1.stub {
+            on { current(resource) } doReturn resource.spec
+          }
 
           with(resource) {
             checkResource(metadata.name, apiVersion, kind)
@@ -81,7 +87,9 @@ internal object ResourceActuatorTests : JUnit5Minutests {
 
       context("the current state is missing") {
         before {
-          whenever(plugin1.current(resource)) doReturn null as DummyResource?
+          plugin1.stub {
+            on { current(resource) } doReturn null as DummyResource?
+          }
 
           with(resource) {
             checkResource(metadata.name, apiVersion, kind)
@@ -95,7 +103,9 @@ internal object ResourceActuatorTests : JUnit5Minutests {
 
       context("the current state is wrong") {
         before {
-          whenever(plugin1.current(resource)) doReturn DummyResource("some other state that does not match")
+          plugin1.stub {
+            on { current(resource) } doReturn DummyResource("some other state that does not match")
+          }
 
           with(resource) {
             checkResource(metadata.name, apiVersion, kind)
