@@ -9,6 +9,13 @@ are installed on your machine. The minimum versions for each are listed in `pack
 
 To develop this module, run it as a [Deck](https://github.com/spinnaker/deck) dependency using either `yalc` (recommended) or `npm link`.
 
+### yarn
+
+In the root of this repository and the main Deck repository, run
+```bash
+yarn
+```
+
 ### yalc
 
 Globally install [yalc](https://github.com/whitecolor/yalc).
