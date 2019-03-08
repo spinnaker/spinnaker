@@ -378,7 +378,8 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
       .sequence(sequence)
       .build()
 
-    namer.applyMoniker(description, moniker)
+    // Apply moniker to labels which are subsequently recorded in the instance template.
+    namer.applyMoniker(new GoogleInstanceTemplate(labels: labels), moniker)
 
     // Accelerators are supported for zonal server groups only.
     List<AcceleratorConfig> acceleratorConfigs = description.regional ? [] : description.acceleratorConfigs
@@ -662,5 +663,9 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
       description, credentials, customUserData)
     task.updateStatus BASE_PHASE, "Resolved user data."
     return userData
+  }
+
+  static class GoogleInstanceTemplate implements GoogleLabeledResource {
+    Map<String, String> labels
   }
 }

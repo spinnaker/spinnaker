@@ -835,7 +835,8 @@ class GCEUtil {
 
   static Map<String, String> buildMapFromMetadata(Metadata metadata) {
     Map<String, String> map = metadata?.getItems()?.collectEntries { def metadataItems ->
-      [(metadataItems.getKey()): metadataItems.getValue()]
+      // Abuse Groovy's lack of respect for boundaries to query the properties directly.
+      [(metadataItems.key): metadataItems.value]
     }
 
     return map ?: [:]
