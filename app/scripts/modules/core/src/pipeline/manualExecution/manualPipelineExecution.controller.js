@@ -9,6 +9,7 @@ import { SETTINGS } from 'core/config/settings';
 import { UrlParser } from 'core/navigation';
 import { AppNotificationsService } from 'core/notification/AppNotificationsService';
 import { PipelineTemplateReader } from 'core/pipeline/config/templates/PipelineTemplateReader';
+import { PipelineTemplateV2Service } from 'core/pipeline';
 
 import { STAGE_MANUAL_COMPONENTS } from './stageManualComponents.component';
 import { TRIGGER_TEMPLATE } from './triggerTemplate.component';
@@ -294,7 +295,9 @@ module.exports = angular
       }
 
       if (!pipeline) {
-        this.pipelineOptions = application.pipelineConfigs.data.filter(c => !c.disabled);
+        this.pipelineOptions = application.pipelineConfigs.data.filter(
+          c => !c.disabled && !PipelineTemplateV2Service.isV2PipelineConfig(c),
+        );
       }
     },
   ]);

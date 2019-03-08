@@ -68,7 +68,7 @@ export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecu
         !CollapsibleSectionStateCache.isSet(sectionCacheKey) ||
         CollapsibleSectionStateCache.isExpanded(sectionCacheKey),
       poll: null,
-      canTriggerPipelineManually: !!pipelineConfig,
+      canTriggerPipelineManually: hasNonMPTV2PipelineConfig,
       canConfigure: !!(hasNonMPTV2PipelineConfig || strategyConfig),
       showAccounts: ExecutionState.filterModel.asFilterModel.sortFilter.groupBy === 'name',
       pipelineConfig,
@@ -203,7 +203,7 @@ export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecu
 
   public render(): React.ReactElement<ExecutionGroup> {
     const { group } = this.props;
-    const { pipelineConfig } = this.state;
+    const { canTriggerPipelineManually, pipelineConfig } = this.state;
     const pipelineDisabled = pipelineConfig && pipelineConfig.disabled;
     const pipelineDescription = pipelineConfig && pipelineConfig.description;
     const hasRunningExecutions = group.runningExecutions && group.runningExecutions.length > 0;
@@ -242,7 +242,7 @@ export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecu
         key={execution.id}
         execution={execution}
         application={this.props.application}
-        onRerun={this.rerunExecutionClicked}
+        onRerun={canTriggerPipelineManually ? this.rerunExecutionClicked : undefined}
       />
     ));
 
