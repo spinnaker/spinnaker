@@ -14,6 +14,7 @@ dependencies {
   implementation "com.netflix.spinnaker.kork:kork-artifacts:${spinnaker.version('kork')}"
   implementation "org.springframework.boot:spring-boot-starter-actuator"
   implementation "org.springframework.boot:spring-boot-starter-web"
+  implementation "org.springframework.security:spring-security-config"
 
   testImplementation "io.strikt:strikt-core:$striktVersion"
   testImplementation project(":keel-spring-test-support")

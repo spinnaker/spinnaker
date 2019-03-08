@@ -34,8 +34,12 @@ import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
 import org.springframework.context.annotation.Scope
+import org.springframework.core.Ordered
+import org.springframework.core.annotation.Order
 import org.springframework.scheduling.annotation.EnableAsync
 import org.springframework.scheduling.annotation.EnableScheduling
+import org.springframework.security.config.annotation.web.builders.HttpSecurity
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
 import java.time.Clock
 import javax.annotation.PostConstruct
 
@@ -87,6 +91,13 @@ class KeelApplication {
   @Bean
   @ConditionalOnMissingBean(ResourceHandler::class)
   fun noResourcePlugins(): List<ResourceHandler<*>> = emptyList()
+
+  @Bean
+  fun csrfDisable() = @Order(Ordered.HIGHEST_PRECEDENCE) object: WebSecurityConfigurerAdapter() {
+    override fun configure(http: HttpSecurity) {
+      http.csrf().disable()
+    }
+  }
 
   @Autowired
   lateinit var resourceRepository: ResourceRepository
