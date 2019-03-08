@@ -1,11 +1,13 @@
 dependencies {
   compile project(":kork-core")
 
-  compile spinnaker.dependency('groovy')
+  compile 'commons-io:commons-io:2.5'
 
+  compile spinnaker.dependency('jinjava')
   compileOnly spinnaker.dependency("lombok")
 
   spinnaker.group('spockBase')
+  testCompile spinnaker.dependency('groovy')
 }
 
 apply plugin: 'groovy'
