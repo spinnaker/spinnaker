@@ -58,39 +58,38 @@ class SecurityGroupHandler(
   override fun current(resource: Resource<SecurityGroup>): SecurityGroup? =
     cloudDriverService.getSecurityGroup(resource.spec)
 
-  override fun upsert(resource: Resource<SecurityGroup>, diff: DiffNode?) {
+  override fun create(resource: Resource<SecurityGroup>) {
     val taskRef = runBlocking {
       resource.spec.let { spec ->
         orcaService
           .orchestrate(OrchestrationRequest(
-            "Upsert security group ${spec.name} in ${spec.accountName}/${spec.region}",
+            "Create security group ${spec.name} in ${spec.accountName}/${spec.region}",
             spec.application,
-            "Upsert security group ${spec.name} in ${spec.accountName}/${spec.region}",
-            listOf(Job(
-              "upsertSecurityGroup",
-              mapOf(
-                "application" to spec.application,
-                "credentials" to spec.accountName,
-                "cloudProvider" to CLOUD_PROVIDER,
-                "name" to spec.name,
-                "regions" to listOf(spec.region),
-                "vpcId" to cloudDriverCache.networkBy(spec.vpcName, spec.accountName, spec.region).id,
-                "description" to spec.description,
-                "securityGroupIngress" to spec.inboundRules.mapNotNull {
-                  it.referenceRuleToJob(spec)
-                },
-                "ipIngress" to spec.inboundRules.mapNotNull {
-                  it.cidrRuleToJob()
-                },
-                "accountName" to spec.accountName
-              )
-            )),
+            "Create security group ${spec.name} in ${spec.accountName}/${spec.region}",
+            listOf(spec.toCreateJob()),
             OrchestrationTrigger(resource.metadata.name.toString())
           ))
           .await()
       }
     }
-    log.info("Started task {} to upsert security group", taskRef.ref)
+    log.info("Started task {} to create security group", taskRef.ref)
+  }
+
+  override fun update(resource: Resource<SecurityGroup>, diff: DiffNode) {
+    val taskRef = runBlocking {
+      resource.spec.let { spec ->
+        orcaService
+          .orchestrate(OrchestrationRequest(
+            "Update security group ${spec.name} in ${spec.accountName}/${spec.region}",
+            spec.application,
+            "Update security group ${spec.name} in ${spec.accountName}/${spec.region}",
+            listOf(spec.toUpdateJob()),
+            OrchestrationTrigger(resource.metadata.name.toString())
+          ))
+          .await()
+      }
+    }
+    log.info("Started task {} to update security group", taskRef.ref)
   }
 
   override fun delete(resource: Resource<SecurityGroup>) {
@@ -101,18 +100,7 @@ class SecurityGroupHandler(
             "Delete security group ${spec.name} in ${spec.accountName}/${spec.region}",
             spec.application,
             "Delete security group ${spec.name} in ${spec.accountName}/${spec.region}",
-            listOf(Job(
-              "deleteSecurityGroup",
-              mapOf(
-                "application" to spec.application,
-                "credentials" to spec.accountName,
-                "cloudProvider" to CLOUD_PROVIDER,
-                "securityGroupName" to spec.name,
-                "regions" to listOf(spec.region),
-                "vpcId" to spec.vpcName,
-                "accountName" to spec.accountName
-              )
-            )),
+            listOf(spec.toDeleteJob()),
             OrchestrationTrigger(resource.metadata.name.toString())
           ))
           .await()
@@ -148,34 +136,34 @@ class SecurityGroupHandler(
                   ingressGroup != null -> rule.portRanges
                     ?.map { PortRange(it.startPort!!, it.endPort!!) }
                     ?.map { portRange ->
-                    when {
-                      ingressGroup.accountName != response.accountName || ingressGroup.vpcId != response.vpcId -> CrossAccountReferenceRule(
-                        protocol,
-                        ingressGroup.name,
-                        ingressGroup.accountName!!,
-                        cloudDriverCache.networkBy(ingressGroup.vpcId!!).name!!,
-                        portRange
-                      )
-                      ingressGroup.name != response.name -> ReferenceRule(
-                        protocol,
-                        ingressGroup.name,
-                        portRange
-                      )
-                      else -> SelfReferenceRule(
-                        protocol,
-                        portRange
-                      )
-                    }
-                  } ?: emptyList()
+                      when {
+                        ingressGroup.accountName != response.accountName || ingressGroup.vpcId != response.vpcId -> CrossAccountReferenceRule(
+                          protocol,
+                          ingressGroup.name,
+                          ingressGroup.accountName!!,
+                          cloudDriverCache.networkBy(ingressGroup.vpcId!!).name!!,
+                          portRange
+                        )
+                        ingressGroup.name != response.name -> ReferenceRule(
+                          protocol,
+                          ingressGroup.name,
+                          portRange
+                        )
+                        else -> SelfReferenceRule(
+                          protocol,
+                          portRange
+                        )
+                      }
+                    } ?: emptyList()
                   ingressRange != null -> rule.portRanges
                     ?.map { PortRange(it.startPort!!, it.endPort!!) }
                     ?.map { portRange ->
-                    CidrRule(
-                      protocol,
-                      portRange,
-                      ingressRange.ip + ingressRange.cidr
-                    )
-                  } ?: emptyList()
+                      CidrRule(
+                        protocol,
+                        portRange,
+                        ingressRange.ip + ingressRange.cidr
+                      )
+                    } ?: emptyList()
                   else -> emptyList()
                 }
               }.toSet()
@@ -189,6 +177,68 @@ class SecurityGroupHandler(
         }
       }
     }
+
+  private fun SecurityGroup.toCreateJob(): Job =
+    Job(
+      "upsertSecurityGroup",
+      mapOf(
+        "application" to application,
+        "credentials" to accountName,
+        "cloudProvider" to CLOUD_PROVIDER,
+        "name" to name,
+        "regions" to listOf(region),
+        "vpcId" to cloudDriverCache.networkBy(vpcName, accountName, region).id,
+        "description" to description,
+        "securityGroupIngress" to inboundRules
+          // we have to do a 2-phase create for self-referencing ingress rules as the referenced
+          // security group must exist prior to the rule being applied. We filter then out here and
+          // the subsequent diff will apply the additional group(s).
+          .filterNot { it is SelfReferenceRule }
+          .mapNotNull {
+            it.referenceRuleToJob(this)
+          },
+        "ipIngress" to inboundRules.mapNotNull {
+          it.cidrRuleToJob()
+        },
+        "accountName" to accountName
+      )
+    )
+
+  private fun SecurityGroup.toUpdateJob(): Job =
+    Job(
+      "upsertSecurityGroup",
+      mapOf(
+        "application" to application,
+        "credentials" to accountName,
+        "cloudProvider" to CLOUD_PROVIDER,
+        "name" to name,
+        "regions" to listOf(region),
+        "vpcId" to cloudDriverCache.networkBy(vpcName, accountName, region).id,
+        "description" to description,
+        "securityGroupIngress" to inboundRules.mapNotNull {
+          it.referenceRuleToJob(this)
+        },
+        "ipIngress" to inboundRules.mapNotNull {
+          it.cidrRuleToJob()
+        },
+        "accountName" to accountName
+      )
+    )
+
+  private fun SecurityGroup.toDeleteJob(): Job {
+    return Job(
+      "deleteSecurityGroup",
+      mapOf(
+        "application" to application,
+        "credentials" to accountName,
+        "cloudProvider" to CLOUD_PROVIDER,
+        "securityGroupName" to name,
+        "regions" to listOf(region),
+        "vpcId" to vpcName,
+        "accountName" to accountName
+      )
+    )
+  }
 
   private fun SecurityGroupRule.referenceRuleToJob(spec: SecurityGroup): Map<String, Any?>? =
     when (this) {
