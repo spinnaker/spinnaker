@@ -830,10 +830,7 @@ class GoogleConfigurator(Configurator):
   def validate_options(self, options):
     """Implements interface."""
     options.google_account_enabled = (
-        options.google_account_credentials is not None)
-    if options.google_account_credentials:
-      if not options.google_account_project:
-        raise ValueError('--google_account_project was not specified.')
+        options.google_account_project is not None)
 
   def add_config(self, options, script):
     """Implements interface."""
