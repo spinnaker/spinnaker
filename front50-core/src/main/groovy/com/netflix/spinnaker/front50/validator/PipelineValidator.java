@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2019 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,18 @@
  * limitations under the License.
  */
 
-dependencies {
-  spinnaker.group "bootWeb"
-  spinnaker.group "fiat"
+package com.netflix.spinnaker.front50.validator;
 
-  compile spinnaker.dependency('kork')
-  compile spinnaker.dependency('korkExceptions')
-  compile spinnaker.dependency('korkHystrix')
-  compile spinnaker.dependency('korkSecurity')
-  compile spinnaker.dependency('korkArtifacts')
-  compile spinnaker.dependency('lombok')
+import com.netflix.spinnaker.front50.model.pipeline.Pipeline;
+import org.springframework.validation.Errors;
+
+/**
+ * An extension point wherein custom validation can be applied pre-save/update operations.
+ */
+public interface PipelineValidator {
+  /**
+   * @param pipeline the pipeline being modified
+   * @param errors specific validation errors for {@param pipeline}
+   */
+  void validate(Pipeline pipeline, Errors errors);
 }

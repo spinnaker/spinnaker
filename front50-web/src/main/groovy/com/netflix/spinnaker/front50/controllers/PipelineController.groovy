@@ -23,6 +23,9 @@ import com.netflix.spinnaker.front50.exceptions.DuplicateEntityException
 import com.netflix.spinnaker.front50.exceptions.InvalidEntityException
 import com.netflix.spinnaker.front50.exceptions.InvalidRequestException
 import com.netflix.spinnaker.front50.model.pipeline.*
+import com.netflix.spinnaker.front50.validator.GenericValidationErrors
+import com.netflix.spinnaker.front50.validator.PipelineValidator
+import com.netflix.spinnaker.kork.web.exceptions.ValidationException
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -45,13 +48,18 @@ class PipelineController {
   @Autowired(required = false)
   PipelineTemplateDAO pipelineTemplateDAO = null;
 
-  PipelineDAO pipelineDAO
-  ObjectMapper objectMapper;
+  private final PipelineDAO pipelineDAO
+  private final ObjectMapper objectMapper
+
+  private final List<PipelineValidator> pipelineValidators
 
   @Autowired
-  public PipelineController(PipelineDAO pipelineDAO, ObjectMapper objectMapper) {
+  public PipelineController(PipelineDAO pipelineDAO,
+                            ObjectMapper objectMapper,
+                            Optional<List<PipelineValidator>> pipelineValidators) {
     this.pipelineDAO = pipelineDAO
     this.objectMapper = objectMapper
+    this.pipelineValidators = pipelineValidators.orElse([])
   }
 
   @PreAuthorize("#restricted ? @fiatPermissionEvaluator.storeWholePermission() : true")
@@ -195,6 +203,17 @@ class PipelineController {
     }
 
     checkForDuplicatePipeline(pipeline.getApplication(), pipeline.getName().trim(), pipeline.getId())
+
+    def errors = new GenericValidationErrors(pipeline)
+    pipelineValidators.each {
+      it.validate(pipeline, errors)
+    }
+
+    if (errors.hasErrors()) {
+      throw new ValidationException(
+          errors.allErrors*.defaultMessage.flatten()
+      )
+    }
   }
 
   private PipelineTemplateDAO getTemplateDAO() {
