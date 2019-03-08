@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Netflix, Inc.
+ * Copyright 2018 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.netflix.spinnaker.echo.cron
 
+import spock.lang.Specification
+import spock.lang.Unroll
 
-package com.netflix.spinnaker.echo.config
+class CronExpressionFuzzerSpec extends Specification {
 
-import com.netflix.scheduledactions.web.config.SpringWebConfiguration
-import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Import
+  @Unroll
+  def "should fuzz expressions"() {
+    when:
+    def result = CronExpressionFuzzer.fuzz(triggerId, expression)
 
-@Configuration
-@Import(SpringWebConfiguration)
-class SchedulerWebConfiguration {
+    then:
+    result == expected
+
+    where:
+    triggerId | expression      || expected
+    "abcd"    | "H * * * * *"   || "34 * * * * *"
+    "abcde"   | "* * H * * *"   || "* * 3 * * *"
+    "abcd"    | "H/5 * * * * *" || "34/5 * * * * *"
+  }
 }
+

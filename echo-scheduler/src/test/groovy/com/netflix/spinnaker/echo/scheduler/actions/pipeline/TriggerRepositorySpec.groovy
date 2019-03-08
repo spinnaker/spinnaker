@@ -3,28 +3,28 @@ package com.netflix.spinnaker.echo.scheduler.actions.pipeline
 import com.netflix.spinnaker.echo.model.Pipeline
 import com.netflix.spinnaker.echo.model.Trigger
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache
-import com.netflix.spinnaker.echo.scheduler.actions.pipeline.impl.TriggerRepository
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class TriggerRepositorySpec extends Specification {
   private static final String TRIGGER_ID = '74f13df7-e642-4f8b-a5f2-0d5319aa0bd1'
-  private static final String ACTION_INSTANCE_ID = "2d05822d-0275-454b-9616-361bf3b557ca:com.netflix.scheduledactions.ActionInstance:${TRIGGER_ID}"
 
-  @Shared Trigger triggerA, triggerB, triggerC
-  @Shared Trigger triggerD = Trigger.builder().id('123-789').build() // not assigned to any pipeline
+  @Shared Trigger triggerA, triggerB, triggerC, triggerD
   @Shared Pipeline pipelineA, pipelineB, pipelineC
   @Shared TriggerRepository repo
   @Shared List<Pipeline> pipelines
 
   def setupSpec() {
-    Trigger triggerA = Trigger.builder().id('123-456').build()
-    Trigger triggerB = Trigger.builder().id('456-789').build()
-    Trigger triggerC = Trigger.builder().id(null).build() // to test the fallback mechanism
+    Trigger triggerA = Trigger.builder().id('123-456').enabled(true).type('cron').build()
+    Trigger triggerB = Trigger.builder().id('456-789').enabled(true).type('cron').build()
+    Trigger triggerC = Trigger.builder().id(null).enabled(true).type('cron').build() // to test the fallback mechanism
+    // These should not be ingested:
+    Trigger triggerD = Trigger.builder().id('123-789').enabled(false).type('cron').build()
+    Trigger triggerE = Trigger.builder().id('123-789').enabled(true).type('jenkins').build()
 
-    Pipeline pipelineA = Pipeline.builder().application('app').name('pipeA').id('idPipeA').triggers([triggerA]).build()
-    Pipeline pipelineB = Pipeline.builder().application('app').name('pipeB').id('idPipeB').triggers([triggerB, triggerC]).build()
+    Pipeline pipelineA = Pipeline.builder().application('app').name('pipeA').id('idPipeA').triggers([triggerA, triggerE]).build()
+    Pipeline pipelineB = Pipeline.builder().application('app').name('pipeB').id('idPipeB').triggers([triggerB, triggerC, triggerD]).build()
     Pipeline pipelineC = Pipeline.builder().application('app').name('pipeC').build()
 
     pipelines = PipelineCache.decorateTriggers([pipelineA, pipelineB, pipelineC])
@@ -36,6 +36,7 @@ class TriggerRepositorySpec extends Specification {
     this.triggerA = this.pipelineA.triggers[0]
     this.triggerB = this.pipelineB.triggers[0]
     this.triggerC = this.pipelineB.triggers[1]
+    this.triggerD = triggerD
   }
 
   def setup() {
@@ -48,6 +49,7 @@ class TriggerRepositorySpec extends Specification {
     Trigger result = repo.getTrigger(id)
 
     then:
+    repo.triggers().size() == 3
     result == trigger
     result?.parent == pipeline
 
@@ -74,7 +76,7 @@ class TriggerRepositorySpec extends Specification {
     !repo.triggers().contains(triggerA)
 
     when: 'we remove using a compound id'
-    removed = repo.remove("${pipelineB.id}:com.netflix.scheduledactions.ActionInstance:${triggerB.id}")
+    removed = repo.remove(triggerB.id)
 
     then: 'it is also effectively removed'
     removed == triggerB
@@ -88,24 +90,6 @@ class TriggerRepositorySpec extends Specification {
     removed == null
     repo.triggers().size() == 1
   }
-
-
-  @Unroll
-  def 'we can extract a trigger id from an action instance id'() {
-    when:
-    String result = TriggerRepository.extractTriggerId(inputId)
-
-    then:
-    result == triggerId
-
-    where:
-    inputId             || triggerId
-    ACTION_INSTANCE_ID  || '74f13df7-e642-4f8b-a5f2-0d5319aa0bd1'
-    TRIGGER_ID          || TRIGGER_ID // no-op if we pass something else
-    ":${TRIGGER_ID}"    || TRIGGER_ID // fishing for off-by-one errors
-    "${TRIGGER_ID}:"    || '' // we should not freak out if we get something plain unexpected
-  }
-
 
   def 'we generate fallback ids based on cron expressions and parent pipelines'() {
     when: 'they have an explicit id'

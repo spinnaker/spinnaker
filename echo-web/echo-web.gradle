@@ -42,6 +42,7 @@ dependencies {
     compile spinnaker.dependency('bootWeb')
     compile spinnaker.dependency('jacksonDatabind')
     compile spinnaker.dependency('spectatorApi')
+    compile 'net.redhogs.cronparser:cron-parser-core:2.8'
     compile "org.springframework.data:spring-data-rest-webmvc:2.6.10.RELEASE"
     testCompile spinnaker.dependency('bootTest')
     testCompile spinnaker.dependency('spockSpring')

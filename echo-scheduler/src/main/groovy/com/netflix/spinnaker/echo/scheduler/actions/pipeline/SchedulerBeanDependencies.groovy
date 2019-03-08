@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.echo.scheduler.actions
+package com.netflix.spinnaker.echo.scheduler.actions.pipeline
 
 import org.springframework.beans.BeansException
 import org.springframework.beans.factory.BeanFactory
@@ -31,7 +31,7 @@ import org.springframework.stereotype.Component
   */
 @Component
 @ConditionalOnExpression('${scheduler.enabled:false}')
-class ActionDependencies implements BeanFactoryAware {
+class SchedulerBeanDependencies implements BeanFactoryAware {
 
     private static BeanFactory springBeanFactory
 

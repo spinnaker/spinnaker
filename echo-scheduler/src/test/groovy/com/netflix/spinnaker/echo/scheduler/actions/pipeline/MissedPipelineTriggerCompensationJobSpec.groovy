@@ -24,7 +24,6 @@ import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache
 import com.netflix.spinnaker.echo.pipelinetriggers.QuietPeriodIndicator
 import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService
 import com.netflix.spinnaker.echo.pipelinetriggers.orca.PipelineInitiator
-import com.netflix.spinnaker.echo.scheduler.actions.pipeline.impl.MissedPipelineTriggerCompensationJob
 import org.quartz.CronExpression
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -197,7 +196,7 @@ class MissedPipelineTriggerCompensationJobSpec extends Specification {
         new Trigger.TriggerBuilder().id('1').type(Trigger.Type.CRON.toString()).enabled(true).build(),
         new Trigger.TriggerBuilder().id('2').type(Trigger.Type.CRON.toString()).enabled(false).build()
       ]).respectQuietPeriod(true)
-      .build(),
+        .build(),
       pipelineBuilder('2').build(),
       pipelineBuilder('3').triggers([
         new Trigger.TriggerBuilder().id('3').enabled(true).build(),

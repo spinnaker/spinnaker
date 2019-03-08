@@ -16,22 +16,18 @@
 
 package com.netflix.spinnaker.echo.scheduler.actions.pipeline
 
-import com.netflix.scheduledactions.ActionInstance
-import com.netflix.scheduledactions.Context
-import com.netflix.scheduledactions.triggers.CronTrigger
 import com.netflix.spinnaker.echo.model.Pipeline
 import com.netflix.spinnaker.echo.model.Trigger
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache
-import com.netflix.spinnaker.echo.scheduler.actions.pipeline.impl.PipelineTriggerConverter
-import rx.Observable
-import rx.functions.Action1
+import org.quartz.CronScheduleBuilder
+import org.quartz.CronTrigger
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static com.netflix.spinnaker.echo.scheduler.actions.pipeline.impl.PipelineTriggerConverter.isInSync
+import static TriggerConverter.isInSync
 
-class PipelineTriggerActionConverterSpec extends Specification {
+class TriggerConverterSpec extends Specification {
     @Shared
     def pipeline = Pipeline
       .builder()
@@ -45,15 +41,16 @@ class PipelineTriggerActionConverterSpec extends Specification {
     void 'toParameters() should return an equivalent map of parameters with triggerId=#triggerId'() {
         setup:
         Trigger trigger = Trigger.builder()
-            .enabled(true)
             .id(triggerId)
             .type('cron')
             .cronExpression('* 0/30 * * * ? *')
             .rebake(triggerRebake)
+            .runAsUser("mr.captain")
+            .parent(pipeline)
             .build()
 
         when:
-        Map parameters = PipelineTriggerConverter.toParameters(pipeline, trigger, 'America/New_York')
+        Map parameters = TriggerConverter.toParamMap(trigger, 'America/New_York')
 
         then:
         parameters.id == pipeline.id
@@ -61,8 +58,8 @@ class PipelineTriggerActionConverterSpec extends Specification {
         parameters.triggerType == trigger.type
         parameters.triggerCronExpression == trigger.cronExpression
         parameters.triggerTimeZoneId == 'America/New_York'
-        parameters.triggerEnabled == Boolean.toString(trigger.enabled)
         parameters.triggerRebake == Boolean.toString(trigger.rebake)
+        parameters.runAsUser == 'mr.captain'
 
         where:
         triggerId << ['123-456', null]
@@ -81,12 +78,12 @@ class PipelineTriggerActionConverterSpec extends Specification {
             triggerId: '123-456',
             triggerType: 'cron',
             triggerCronExpression: '* 0/30 * * * ? *',
-            triggerEnabled: 'true',
+            triggerEnabled: "true",
             triggerRebake: triggerRebake
         ]
 
         when:
-        Pipeline pipelineWithTrigger = PipelineTriggerConverter.fromParameters(pipelineCache, parameters)
+        Pipeline pipelineWithTrigger = TriggerConverter.toPipeline(pipelineCache, parameters)
 
         then:
         pipelineWithTrigger.id == pipeline.id
@@ -103,80 +100,61 @@ class PipelineTriggerActionConverterSpec extends Specification {
     }
 
     @Unroll
-    void 'toScheduledAction() should return an equivalent valid ActionInstance with triggerId=#triggerId'() {
+    void 'toQuartzTrigger() should return an equivalent valid ActionInstance with triggerId=#triggerId'() {
         setup:
         Trigger trigger = Trigger.builder()
-            .enabled(true)
             .id(triggerId)
             .type('cron')
             .cronExpression('* 0/30 * * * ? *')
+            .parent(pipeline)
             .build()
 
         when:
-        ActionInstance actionInstance = PipelineTriggerConverter.toScheduledAction(pipeline, trigger, 'America/Los_Angeles')
+        org.quartz.Trigger triggerInstance = TriggerConverter.toQuartzTrigger(
+          trigger,
+          TimeZone.getTimeZone('America/Los_Angeles'))
 
         then:
-        actionInstance.id == trigger.id
-        actionInstance.name == 'Pipeline Trigger'
-        actionInstance.group == pipeline.id
-        actionInstance.action == PipelineTriggerAction.class
-        actionInstance.trigger != null
-        actionInstance.trigger instanceof CronTrigger
-        ((CronTrigger) actionInstance.trigger).cronExpression == trigger.cronExpression
-        actionInstance.parameters != null
-        actionInstance.parameters.id == pipeline.id
-        actionInstance.parameters.triggerId == trigger.id
-        actionInstance.parameters.triggerType == trigger.type
-        actionInstance.parameters.triggerCronExpression == trigger.cronExpression
-        actionInstance.parameters.triggerTimeZoneId == 'America/Los_Angeles'
-        actionInstance.parameters.triggerEnabled == Boolean.toString(trigger.enabled)
+        triggerInstance.key.name == trigger.id
+        triggerInstance.key.group == PipelineConfigsPollingJob.PIPELINE_TRIGGER_GROUP_PREFIX + trigger.parent.id
+        triggerInstance.jobKey.name == TriggerConverter.JOB_ID
+        triggerInstance instanceof CronTrigger
+        ((CronTrigger) triggerInstance).cronExpression == trigger.cronExpression
+        triggerInstance.jobDataMap.getString("id") == pipeline.id
+        triggerInstance.jobDataMap.getString("triggerId") == trigger.id
+        triggerInstance.jobDataMap.getString("triggerType") == trigger.type
+        triggerInstance.jobDataMap.getString("triggerCronExpression") == trigger.cronExpression
+        triggerInstance.jobDataMap.getString("triggerTimeZoneId") == 'America/Los_Angeles'
 
         where:
-        triggerId << ['123-456', null]
+        triggerId << ['123-456']
     }
 
     @Unroll
     void 'isInSync() should return true if cronExpression, timezone of the trigger, and runAsUser match the ActionInstance'() {
         setup:
-        Trigger trigger = Trigger.builder()
+        Trigger pipelineTrigger = Trigger.builder()
+                                 .id("id1")
+                                 .parent(pipeline)
                                  .type(Trigger.Type.CRON.toString())
                                  .cronExpression('* 0/30 * * * ? *')
                                  .runAsUser("batman")
                                  .build()
-        ActionInstance actionInstance = ActionInstance.newActionInstance()
-            .withTrigger(new CronTrigger(trigger.cronExpression))
-            .withParameters([triggerTimeZoneId: actionInstanceTimeZoneId, runAsUser: runAsUser])
-            .build()
+        org.quartz.Trigger scheduleTrigger = org.quartz.TriggerBuilder.newTrigger()
+          .withIdentity("ignored", null)
+          .withSchedule(CronScheduleBuilder.cronSchedule(pipelineTrigger.cronExpression)
+            .inTimeZone(TimeZone.getTimeZone(actionInstanceTimeZoneId)))
+          .usingJobData("runAsUser", runAsUser)
+          .build()
 
         expect:
-        isInSync(actionInstance, trigger, currentTimeZoneId) == expectedInSync
+        isInSync(scheduleTrigger, pipelineTrigger, TimeZone.getTimeZone(currentTimeZoneId)) == expectedInSync
 
         where:
         actionInstanceTimeZoneId | currentTimeZoneId  | runAsUser | expectedInSync
         'America/New_York'       | 'America/New_York' | 'batman'  | true
         'America/Los_Angeles'    | 'America/New_York' | 'batman'  | false
-        null                     | 'America/New_York' | 'batman'  | false
         ''                       | 'America/New_York' | 'batman'  | false
         'America/New_York'       | 'America/New_York' | 'robin'   | false
-    }
-
-    void 'isInSync() should return true if trigger is not a cron trigger'() {
-        setup:
-        Trigger trigger = Trigger.builder().cronExpression('* 0/30 * * * ? *').build()
-        ActionInstance actionInstance = ActionInstance.newActionInstance()
-            .withTrigger(new com.netflix.scheduledactions.triggers.Trigger() {
-                @Override
-                void validate() throws IllegalArgumentException {}
-
-                @Override
-                com.netflix.fenzo.triggers.Trigger<Context> createFenzoTrigger(Context context,
-                                                                               Class<? extends Action1<Context>> action) {
-                    return null
-                }
-            })
-            .build()
-
-        expect:
-        isInSync(actionInstance, trigger, null)
     }
 }

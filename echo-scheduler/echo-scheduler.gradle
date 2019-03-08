@@ -24,8 +24,11 @@ dependencies {
   compile spinnaker.dependency('eurekaClient')
   compile spinnaker.dependency('logstashEncoder')
   compile spinnaker.dependency('spectatorApi')
+  compile spinnaker.dependency('korkSql')
+  // NOTE: Quartz 2.3.0 had a breaking change that doesn't recognize certain CRON expression (which pipelines use today)
+  // If you upgrade it to 2.3.0 you will probably have to write a Front50 migrator
+  compile ('org.quartz-scheduler:quartz:2.2.1')
+  compile ("org.springframework:spring-context-support:${spinnaker.version('spring')}")
 
   testRuntime spinnaker.dependency('slf4jSimple')
-  compile spinnaker.dependency('scheduledActionsCore')
-  compile spinnaker.dependency('scheduledActionsWeb')
 }

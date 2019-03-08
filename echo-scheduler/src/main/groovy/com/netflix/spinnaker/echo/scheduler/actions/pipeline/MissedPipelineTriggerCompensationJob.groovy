@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.echo.scheduler.actions.pipeline.impl
+package com.netflix.spinnaker.echo.scheduler.actions.pipeline
 
 import com.google.common.collect.Lists
-import com.netflix.scheduledactions.triggers.CronExpressionFuzzer
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.echo.cron.CronExpressionFuzzer
 import com.netflix.spinnaker.echo.model.Pipeline
 import com.netflix.spinnaker.echo.model.Trigger
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache
@@ -41,7 +41,6 @@ import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
-import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
@@ -131,11 +130,11 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
     Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(
       new Runnable() {
         @Override
-        public void run() {
-          triggerMissedExecutions();
+        void run() {
+          triggerMissedExecutions()
         }
       },
-      0, recurringPollInterval.getSeconds(), TimeUnit.SECONDS);
+      0, recurringPollInterval.getSeconds(), TimeUnit.SECONDS)
 
     running = true
   }
@@ -267,7 +266,7 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
    *   there is no execution E in lastExecutions such that E is in [D..triggerWindowCeiling]
    */
   boolean missedExecution(CronExpression expr, Date lastExecution, Date windowFloor, Date windowCeiling,
-                                 Pipeline pipeline = null) {
+                          Pipeline pipeline = null) {
     def validTriggerDate = getLastValidTimeInWindow(expr, windowFloor, windowCeiling)
 
     // there is no date in [windowFloor..triggerWindowCeiling] that satisfies the cron expression, so no trigger
