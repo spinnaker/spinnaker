@@ -11,7 +11,7 @@ export const MavenMatch: IArtifactKindConfig = {
   key: 'maven',
   isDefault: false,
   isMatch: true,
-  editCmp: singleFieldArtifactEditor('name', 'maven/file', 'Maven Coordinate', 'group:artifact:version', ''),
+  editCmp: singleFieldArtifactEditor('reference', 'maven/file', 'Maven Coordinate', 'group:artifact:version', ''),
 };
 
 export const MavenDefault: IArtifactKindConfig = {
@@ -22,5 +22,5 @@ export const MavenDefault: IArtifactKindConfig = {
   key: 'maven',
   isDefault: true,
   isMatch: false,
-  editCmp: singleFieldArtifactEditor('name', 'maven/file', 'Maven Coordinate', 'group:artifact:version', ''),
+  editCmp: singleFieldArtifactEditor('reference', 'maven/file', 'Maven Coordinate', 'group:artifact:version', ''),
 };

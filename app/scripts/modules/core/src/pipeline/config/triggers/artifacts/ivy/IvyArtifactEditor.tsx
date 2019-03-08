@@ -11,7 +11,7 @@ export const IvyMatch: IArtifactKindConfig = {
   key: 'ivy',
   isDefault: false,
   isMatch: true,
-  editCmp: singleFieldArtifactEditor('name', 'ivy/file', 'Ivy Coordinate', 'group:artifact:version', ''),
+  editCmp: singleFieldArtifactEditor('reference', 'ivy/file', 'Ivy Coordinate', 'group:artifact:version', ''),
 };
 
 export const IvyDefault: IArtifactKindConfig = {
@@ -22,5 +22,5 @@ export const IvyDefault: IArtifactKindConfig = {
   key: 'ivy',
   isDefault: true,
   isMatch: false,
-  editCmp: singleFieldArtifactEditor('name', 'ivy/file', 'Ivy Coordinate', 'group:artifact:version', ''),
+  editCmp: singleFieldArtifactEditor('reference', 'ivy/file', 'Ivy Coordinate', 'group:artifact:version', ''),
 };

@@ -34,6 +34,10 @@ class DefaultBase64ArtifactEditor extends React.Component<IArtifactEditorProps, 
   }
 
   private convert = (fn: (s: string) => string, str: string): [string, string] => {
+    if (!str || str.length === 0) {
+      return [str, ''];
+    }
+
     try {
       const converted = fn(str);
       return [converted, ''];
