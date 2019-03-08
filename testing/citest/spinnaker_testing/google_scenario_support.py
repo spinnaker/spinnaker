@@ -161,7 +161,7 @@ class GoogleScenarioSupport(BaseScenarioPlatformSupport):
       raise ValueError('There is no "google_primary_managed_project_id"')
 
     return gcp.GcpComputeAgent.make_agent(
-        scopes=(gcp.COMPUTE_READ_WRITE_SCOPE),
+        scopes=gcp.COMPUTE_READ_WRITE_SCOPE,
         credentials_path=bindings['GCE_CREDENTIALS_PATH'],
         default_variables={
             'project': bindings['GOOGLE_PRIMARY_MANAGED_PROJECT_ID'],
