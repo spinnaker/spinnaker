@@ -1,19 +1,20 @@
 import * as React from 'react';
 
-import { Option } from 'react-select';
+import { FormikProps } from 'formik';
 
 import {
-  FormikFormField,
-  HelpField,
-  IArtifactAccount,
+  IArtifact,
+  IExpectedArtifact,
   IWizardPageComponent,
-  ReactSelectInput,
-  TextInput,
+  IPipeline,
+  IStage,
+  StageArtifactSelector,
+  ArtifactTypePatterns,
 } from '@spinnaker/core';
 
 import {
   ICloudFoundryCreateServerGroupCommand,
-  ICloudFoundryManifestDirectSource,
+  ICloudFoundryManifest,
 } from 'cloudfoundry/serverGroup/configure/serverGroupConfigurationModel.cf';
 
 import { CloudFoundryRadioButtonInput } from 'cloudfoundry/presentation/forms/inputs/CloudFoundryRadioButtonInput';
@@ -26,55 +27,46 @@ import {
   Routes,
   Services,
 } from 'cloudfoundry/presentation';
-import { FormikProps } from 'formik';
 
 export interface ICloudFoundryServerGroupConfigurationSettingsProps {
-  artifactAccounts: IArtifactAccount[];
   formik: FormikProps<ICloudFoundryCreateServerGroupCommand>;
-  manifest?: any;
+  stage: IStage;
+  pipeline: IPipeline;
 }
 
 export class CloudFoundryServerGroupConfigurationSettings
   extends React.Component<ICloudFoundryServerGroupConfigurationSettingsProps>
-  implements IWizardPageComponent<ICloudFoundryCreateServerGroupCommand> {
-  private manifestTypeUpdated = (type: string): void => {
-    switch (type) {
-      case 'artifact': {
-        const emptyManifestArtifact = {
-          account: '',
-          reference: '',
-          type: 'artifact',
-        };
-        this.props.formik.setFieldValue('manifest', emptyManifestArtifact);
+  implements IWizardPageComponent<ICloudFoundryServerGroupConfigurationSettingsProps> {
+  public static LABEL = 'Configuration';
+
+  private defaultDirectManifest: ICloudFoundryManifest = {
+    direct: {
+      memory: '1024M',
+      diskQuota: '1024M',
+      instances: 1,
+      buildpacks: [],
+      healthCheckType: 'port',
+      routes: [],
+      environment: [],
+      services: [],
+    },
+  };
+
+  private excludedArtifactTypePatterns = [
+    ArtifactTypePatterns.KUBERNETES,
+    ArtifactTypePatterns.DOCKER_IMAGE,
+    ArtifactTypePatterns.FRONT50_PIPELINE_TEMPLATE,
+  ];
+
+  private manifestSourceUpdated = (source: string): void => {
+    switch (source) {
+      case 'artifact':
+        this.props.formik.setFieldValue('manifest', {});
         this.capacityUpdated('1');
         break;
-      }
-      case 'trigger': {
-        const emptyManifestTrigger = {
-          account: '',
-          pattern: '',
-          type: 'trigger',
-        };
-        this.props.formik.setFieldValue('manifest', emptyManifestTrigger);
-        this.capacityUpdated('1');
+      case 'direct':
+        this.props.formik.setFieldValue('manifest', this.defaultDirectManifest);
         break;
-      }
-      case 'direct': {
-        const emptyManifestDirect = {
-          memory: '1024M',
-          diskQuota: '1024M',
-          instances: 1,
-          buildpacks: [] as string[],
-          healthCheckType: 'port',
-          healthCheckHttpEndpoint: undefined as string,
-          routes: [] as string[],
-          environment: [] as string[],
-          services: [] as string[],
-          type: 'direct',
-        };
-        this.props.formik.setFieldValue('manifest', emptyManifestDirect);
-        break;
-      }
     }
   };
 
@@ -85,151 +77,108 @@ export class CloudFoundryServerGroupConfigurationSettings
   };
 
   private getArtifactInput = (): JSX.Element => {
-    const { artifactAccounts } = this.props;
+    const { formik, stage, pipeline } = this.props;
+    const manifest = formik.values.manifest;
     return (
       <div className="form-group">
-        <div className="col-md-9">
-          <div className="sp-margin-m-bottom">
-            <FormikFormField
-              name="manifest.account"
-              label="Artifact Account"
-              fastField={false}
-              input={props => (
-                <ReactSelectInput
-                  {...props}
-                  inputClassName="cloudfoundry-react-select"
-                  stringOptions={artifactAccounts && artifactAccounts.map((acc: IArtifactAccount) => acc.name)}
-                  clearable={false}
-                />
-              )}
-              required={true}
-            />
-          </div>
-          <div className="sp-margin-m-bottom">
-            <FormikFormField
-              name="manifest.reference"
-              label="Reference"
-              input={props => <TextInput {...props} />}
-              required={true}
-            />
+        <div className="col-md-11">
+          <div className="StandardFieldLayout flex-container-h margin-between-lg">
+            <div className="sm-label-right">Artifact</div>
+            <div className="flex-grow">
+              <StageArtifactSelector
+                pipeline={pipeline}
+                stage={stage}
+                expectedArtifactId={manifest && manifest.artifactId}
+                artifact={manifest && manifest.artifact}
+                onExpectedArtifactSelected={this.onExpectedArtifactSelected}
+                onArtifactEdited={this.onArtifactChanged}
+                excludedArtifactTypePatterns={this.excludedArtifactTypePatterns}
+              />
+            </div>
           </div>
         </div>
       </div>
     );
   };
 
-  private getTriggerInput = (): JSX.Element => {
-    const { artifactAccounts } = this.props;
+  private onExpectedArtifactSelected = (expectedArtifact: IExpectedArtifact): void => {
+    this.props.formik.setFieldValue('manifest', { artifactId: expectedArtifact.id });
+  };
 
-    return (
-      <div className="col-md-9">
-        <div className="sp-margin-m-bottom">
-          <FormikFormField
-            name="manifest.pattern"
-            label="Artifact Pattern"
-            input={props => <TextInput {...props} />}
-            required={true}
-          />
-        </div>
-        <div className="sp-margin-m-bottom">
-          <FormikFormField
-            name="manifest.account"
-            label="Artifact Account"
-            fastField={false}
-            input={props => (
-              <ReactSelectInput
-                {...props}
-                stringOptions={artifactAccounts && artifactAccounts.map((acc: IArtifactAccount) => acc.name)}
-                clearable={false}
-              />
-            )}
-            help={<HelpField id="cf.manifest.trigger.account" />}
-            required={true}
-          />
-        </div>
-      </div>
-    );
+  private onArtifactChanged = (artifact: IArtifact): void => {
+    this.props.formik.setFieldValue('manifest', { artifact: artifact });
   };
 
   private getDirectInput = (): JSX.Element => {
-    const m = this.props.formik.values.manifest as { type: string } & ICloudFoundryManifestDirectSource;
+    const m = this.props.formik.values.manifest.direct;
     return (
       <div>
         {
           <InstanceParameters
-            diskQuotaFieldName={'manifest.diskQuota'}
-            instancesFieldName={'manifest.instances'}
-            memoryFieldName={'manifest.memory'}
+            diskQuotaFieldName={'manifest.direct.diskQuota'}
+            instancesFieldName={'manifest.direct.instances'}
+            memoryFieldName={'manifest.direct.memory'}
           />
         }
-        {<Buildpacks fieldName="manifest.buildpacks" />}
+        {<Buildpacks fieldName="manifest.direct.buildpacks" />}
         {
           <HealthCheck
-            healthCheckHttpEndpointFieldName={'manifest.healthCheckHttpEndpoint'}
+            healthCheckHttpEndpointFieldName={'manifest.direct.healthCheckHttpEndpoint'}
             healthCheckType={m.healthCheckType}
-            healthCheckTypeFieldName={'manifest.healthCheckType'}
+            healthCheckTypeFieldName={'manifest.direct.healthCheckType'}
           />
         }
-        {<Routes fieldName="manifest.routes" />}
-        {<EnvironmentVariables fieldName="manifest.environment" />}
-        {<Services />}
+        {<Routes fieldName="manifest.direct.routes" />}
+        {<EnvironmentVariables fieldName="manifest.direct.environment" />}
+        {<Services fieldName="manifest.direct.services" />}
       </div>
     );
   };
 
-  private getManifestTypeOptions(): Array<Option<string>> {
-    if (this.props.formik.values.viewState.mode === 'pipeline') {
-      return [
-        { label: 'Artifact', value: 'artifact' },
-        { label: 'Trigger', value: 'trigger' },
-        { label: 'Form', value: 'direct' },
-      ];
-    } else {
-      return [{ label: 'Artifact', value: 'artifact' }, { label: 'Form', value: 'direct' }];
-    }
-  }
-
-  private getManifestContentInput(): JSX.Element {
-    switch (this.props.formik.values.manifest.type) {
-      case 'direct':
-        return this.getDirectInput();
-      case 'trigger':
-        return this.getTriggerInput();
-      default:
-        return this.getArtifactInput();
-    }
-  }
-
   public render(): JSX.Element {
+    const manifest = this.props.formik.values.manifest;
+    const direct = manifest && !!manifest.direct;
     return (
-      <div>
-        <div className="sp-margin-m-bottom">
-          <FormikFormField
-            name="manifest.type"
-            label="Source Type"
-            input={props => <CloudFoundryRadioButtonInput {...props} options={this.getManifestTypeOptions()} />}
-            onChange={this.manifestTypeUpdated}
-          />
+      <>
+        <div className="form-group">
+          <div className="col-md-11">
+            <div className="StandardFieldLayout flex-container-h margin-between-lg">
+              <div className="sm-label-right">Source Type</div>
+              <div className="flex-grow">
+                <CloudFoundryRadioButtonInput
+                  value={direct ? 'direct' : 'artifact'}
+                  options={[{ label: 'Artifact', value: 'artifact' }, { label: 'Form', value: 'direct' }]}
+                  onChange={e => this.manifestSourceUpdated(e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
         </div>
-        {this.getManifestContentInput()}
-      </div>
+        {direct ? this.getDirectInput() : this.getArtifactInput()}
+      </>
     );
   }
 
-  public validate(values: ICloudFoundryCreateServerGroupCommand) {
+  public validate(props: ICloudFoundryServerGroupConfigurationSettingsProps) {
     const errors = {} as any;
     const isStorageSize = (value: string) => /\d+[MG]/.test(value);
-    if (values.manifest.type === 'direct') {
-      if (!isStorageSize(values.manifest.memory)) {
+
+    if (!props.formik) {
+      return errors;
+    }
+
+    const direct = this.props.formik.values.manifest.direct;
+    if (direct) {
+      if (!isStorageSize(direct.memory)) {
         errors.manifest = errors.manifest || {};
         errors.manifest.memory = `Provide a size (e.g.: 256M, 1G)`;
       }
-      if (!isStorageSize(values.manifest.diskQuota)) {
+      if (!isStorageSize(direct.diskQuota)) {
         errors.manifest = errors.manifest || {};
         errors.manifest.diskQuota = `Provide a size (e.g.: 256M, 1G)`;
       }
-      if (values.manifest.routes) {
-        const routeErrors = values.manifest.routes.map((route: string) => {
+      if (direct.routes) {
+        const routeErrors = direct.routes.map((route: string) => {
           const regex = /^([-\w]+)\.([-.\w]+)(:\d+)?([-/\w]+)?$/gm;
           if (route && regex.exec(route) === null) {
             return `A route did not match the expected format "host.some.domain[:9999][/some/path]"`;
@@ -241,9 +190,9 @@ export class CloudFoundryServerGroupConfigurationSettings
           errors.manifest.routes = routeErrors;
         }
       }
-      if (values.manifest.environment) {
+      if (direct.environment) {
         const existingKeys: string[] = [];
-        const envErrors = values.manifest.environment.map((e: ICloudFoundryEnvVar) => {
+        const envErrors = direct.environment.map((e: ICloudFoundryEnvVar) => {
           let myErrors: any;
           if (e.key) {
             const validKeyRegex = /^\w+$/g;

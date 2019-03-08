@@ -78,7 +78,7 @@ export class CloudFoundryServerGroupBasicSettings
     const regionField = isPipelineClone ? 'destination.region' : 'region';
     return (
       <div className="form-group">
-        <div className="col-md-9">
+        <div className="col-md-11">
           <div className="sp-margin-m-bottom">
             <FormikFormField
               name={accountField}

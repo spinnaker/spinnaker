@@ -29,7 +29,17 @@ export const CloudFoundryRadioButtonInput = (props: ICloudFoundryRadioButtonInpu
       {opts.map(option => (
         <div key={option.label} className={className}>
           <label className="cloud-foundry-radio-button">
-            <input type="radio" {...otherProps} value={option.value} checked={option.value === value} />
+            <input
+              type="radio"
+              {...otherProps}
+              value={option.value}
+              checked={option.value === value}
+              onChange={e => {
+                if (props.onChange) {
+                  props.onChange(e);
+                }
+              }}
+            />
             <span className="marked">
               <Markdown message={option.label} />
             </span>

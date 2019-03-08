@@ -54,16 +54,6 @@ export class CloudFoundryServerGroupCommandBuilder {
         mode: defaults.mode || 'create',
         submitButtonLabel: CloudFoundryServerGroupCommandBuilder.getSubmitButtonLabel(defaults.mode || 'create'),
       },
-      artifact: {
-        type: 'artifact',
-        reference: '',
-        account: '',
-      },
-      manifest: {
-        type: 'artifact',
-        reference: '',
-        account: '',
-      },
       selectedProvider: 'cloudfoundry',
       startApplication: true,
     } as ICloudFoundryCreateServerGroupCommand);
@@ -76,25 +66,20 @@ export class CloudFoundryServerGroupCommandBuilder {
   ): IPromise<ICloudFoundryCreateServerGroupCommand> {
     return this.buildNewServerGroupCommand(app, { mode }).then(command => {
       command.credentials = serverGroup.account;
-      command.artifact = {
-        type: 'artifact',
-        reference: '',
-        account: '',
-      };
       command.manifest = {
-        type: 'direct',
-        memory: serverGroup.memory ? serverGroup.memory + 'M' : '1024M',
-        diskQuota: serverGroup.diskQuota ? serverGroup.diskQuota + 'M' : '1024M',
-        buildpacks:
-          serverGroup.droplet && serverGroup.droplet.buildpacks
-            ? serverGroup.droplet.buildpacks.map(item => item.name)
-            : [],
-        instances: serverGroup.instances ? serverGroup.instances.length : 1,
-        routes: serverGroup.loadBalancers,
-        environment: CloudFoundryServerGroupCommandBuilder.envVarsFromObject(serverGroup.env),
-        services: (serverGroup.serviceInstances || []).map(serviceInstance => serviceInstance.name),
-        healthCheckHttpEndpoint: undefined,
-        healthCheckType: 'port',
+        direct: {
+          memory: serverGroup.memory ? serverGroup.memory + 'M' : '1024M',
+          diskQuota: serverGroup.diskQuota ? serverGroup.diskQuota + 'M' : '1024M',
+          buildpacks:
+            serverGroup.droplet && serverGroup.droplet.buildpacks
+              ? serverGroup.droplet.buildpacks.map(item => item.name)
+              : [],
+          instances: serverGroup.instances ? serverGroup.instances.length : 1,
+          routes: serverGroup.loadBalancers,
+          environment: CloudFoundryServerGroupCommandBuilder.envVarsFromObject(serverGroup.env),
+          services: (serverGroup.serviceInstances || []).map(serviceInstance => serviceInstance.name),
+          healthCheckType: 'port',
+        },
       };
       command.region = serverGroup.region;
       command.stack = serverGroup.stack;
@@ -104,13 +89,18 @@ export class CloudFoundryServerGroupCommandBuilder {
   }
 
   public buildNewServerGroupCommandForPipeline(
-    _stage: IStage,
+    stage: IStage,
     pipeline: IPipeline,
   ): IPromise<ICloudFoundryCreateServerGroupCommand> {
     return this.buildNewServerGroupCommand({ name: pipeline.application } as ICloudFoundryApplication, {
       mode: 'editPipeline',
     }).then(command => {
-      command.viewState.requiresTemplateSelection = true;
+      command.viewState = {
+        ...command.viewState,
+        pipeline,
+        requiresTemplateSelection: true,
+        stage,
+      };
       return command;
     });
   }
@@ -118,10 +108,12 @@ export class CloudFoundryServerGroupCommandBuilder {
   public buildServerGroupCommandFromPipeline(
     application: ICloudFoundryApplication,
     originalCluster: ICloudFoundryDeployConfiguration,
+    stage: IStage,
+    pipeline: IPipeline,
   ) {
     return this.buildNewServerGroupCommand(application, { mode: 'editPipeline' }).then(command => {
       command.credentials = originalCluster.account;
-      command.artifact = originalCluster.artifact;
+      command.applicationArtifact = originalCluster.applicationArtifact;
       command.delayBeforeDisableSec = originalCluster.delayBeforeDisableSec;
       command.manifest = originalCluster.manifest;
       command.maxRemainingAsgs = originalCluster.maxRemainingAsgs;
@@ -136,6 +128,12 @@ export class CloudFoundryServerGroupCommandBuilder {
       if (originalCluster.freeFormDetails) {
         command.freeFormDetails = originalCluster.freeFormDetails;
       }
+
+      command.viewState = {
+        ...command.viewState,
+        pipeline,
+        stage,
+      };
 
       return command;
     });

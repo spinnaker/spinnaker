@@ -5,7 +5,6 @@ import * as React from 'react';
 import { ILoadBalancerModalProps, WizardModal, WizardPage, ReactModal, noop } from '@spinnaker/core';
 import { ICloudFoundryLoadBalancerUpsertCommand } from 'cloudfoundry/domain/ICloudFoundryLoadBalancer';
 import { NoLoadBalancerDetails } from 'cloudfoundry/loadBalancer/configure/noLoadBalancer';
-import { CfDisclaimerPage } from 'cloudfoundry/common/wizard/sections/cfDisclaimer.cf';
 import { IModalServiceInstance } from 'angular-ui-bootstrap';
 import { $q } from 'ngimport';
 
@@ -76,13 +75,6 @@ export class CloudFoundryNoLoadBalancerModal extends React.Component<
               wizard={wizard}
               order={nextIdx()}
               render={({ innerRef }) => <NoLoadBalancerDetails ref={innerRef} />}
-            />
-
-            <WizardPage
-              label="Disclaimer"
-              wizard={wizard}
-              order={nextIdx()}
-              render={({ innerRef }) => <CfDisclaimerPage ref={innerRef} />}
             />
           </>
         )}

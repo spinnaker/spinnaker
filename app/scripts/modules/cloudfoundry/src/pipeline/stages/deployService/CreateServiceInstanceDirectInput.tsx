@@ -2,23 +2,28 @@ import * as React from 'react';
 
 import { Option } from 'react-select';
 
-import { IService, IServicePlan, ReactSelectInput, StageConfigField, TextAreaInput, TextInput } from '@spinnaker/core';
+import {
+  IService,
+  IServicePlan,
+  ServicesReader,
+  ReactSelectInput,
+  StageConfigField,
+  TextAreaInput,
+  TextInput,
+} from '@spinnaker/core';
 
+import { ICloudfoundryServiceManifestDirectSource } from './ICloudFoundryServiceManifestSource';
 import { ServiceTagsInput } from './ServiceTagsInput';
-import { ICloudfoundryServiceManifestDirectSource, ICloudFoundryServiceManifestSource } from './interfaces';
 
 interface ICreateServiceInstanceDirectInputProps {
-  onChange: (serviceInput: ICloudFoundryServiceManifestSource) => void;
-  serviceInput: ICloudfoundryServiceManifestDirectSource;
-  serviceNamesAndPlans: IService[];
+  credentials: string;
+  region: string;
+  service: ICloudfoundryServiceManifestDirectSource;
+  onServiceChanged: (_: ICloudfoundryServiceManifestDirectSource) => void;
 }
 
 interface ICreateServiceInstanceDirectInputState {
-  parameters?: string;
-  service: string;
-  serviceInstanceName: string;
-  servicePlan: string;
-  tags?: string[];
+  serviceNamesAndPlans: IService[];
 }
 
 export class CreateServiceInstanceDirectInput extends React.Component<
@@ -27,70 +32,59 @@ export class CreateServiceInstanceDirectInput extends React.Component<
 > {
   constructor(props: ICreateServiceInstanceDirectInputProps) {
     super(props);
-    const { serviceInput } = props;
-    this.state = {
-      ...serviceInput,
-    };
+    this.state = { serviceNamesAndPlans: [] };
+  }
+
+  public componentDidUpdate(prevProps: Readonly<ICreateServiceInstanceDirectInputProps>): void {
+    const { credentials, region } = this.props;
+    if ((credentials && credentials !== prevProps.credentials) || region !== prevProps.region) {
+      if (credentials && region) {
+        ServicesReader.getServices(credentials, region).then(serviceNamesAndPlans => {
+          this.setState({ serviceNamesAndPlans });
+        });
+      }
+    }
   }
 
   private serviceInstanceNameUpdated = (event: React.ChangeEvent<HTMLInputElement>): void => {
-    const serviceInstanceName = event.target.value;
-    const { onChange, serviceInput } = this.props;
-    this.setState({ serviceInstanceName });
-    onChange({
-      ...serviceInput,
-      serviceInstanceName,
-    } as ICloudFoundryServiceManifestSource);
+    this.props.onServiceChanged({
+      ...this.props.service,
+      serviceInstanceName: event.target.value,
+    });
   };
 
   private serviceUpdated = (option: Option<string>): void => {
-    const service = option.target.value;
-    const { onChange, serviceInput } = this.props;
-    this.setState({
-      service,
-      servicePlan: '',
+    this.props.onServiceChanged({
+      ...this.props.service,
+      service: option.target.value,
     });
-    onChange({
-      ...serviceInput,
-      service,
-      servicePlan: '',
-    } as ICloudFoundryServiceManifestSource);
   };
 
   private servicePlanUpdated = (option: Option<string>): void => {
-    const servicePlan = option.target.value;
-    const { onChange, serviceInput } = this.props;
-    this.setState({ servicePlan });
-    onChange({
-      ...serviceInput,
-      servicePlan,
-    } as ICloudFoundryServiceManifestSource);
+    this.props.onServiceChanged({
+      ...this.props.service,
+      servicePlan: option.target.value,
+    });
   };
 
   private parametersUpdated = (event: React.ChangeEvent<HTMLTextAreaElement>): void => {
-    const parameters = event.target.value;
-    const { onChange, serviceInput } = this.props;
-    this.setState({ parameters });
-    onChange({
-      ...serviceInput,
-      parameters,
-    } as ICloudFoundryServiceManifestSource);
+    this.props.onServiceChanged({
+      ...this.props.service,
+      parameters: event.target.value,
+    });
   };
 
   private tagsUpdated = (tags: string[]) => {
-    const { onChange, serviceInput } = this.props;
-    this.setState({ tags });
-    onChange({
-      ...serviceInput,
-      tags,
-    } as ICloudFoundryServiceManifestSource);
+    this.props.onServiceChanged({
+      ...this.props.service,
+      tags: tags,
+    });
   };
 
   public render() {
-    const { serviceInput, serviceNamesAndPlans } = this.props;
-    const { parameters, service, serviceInstanceName, servicePlan, tags } = serviceInput;
-    const services = serviceNamesAndPlans.map(item => item.name);
-    const serviceWithPlans = serviceNamesAndPlans.find(it => it.name === serviceInput.service);
+    const { service } = this.props;
+    const services = this.state.serviceNamesAndPlans.map(item => item.name);
+    const serviceWithPlans = this.state.serviceNamesAndPlans.find(it => it.name === service.service);
     const servicePlans = serviceWithPlans ? serviceWithPlans.servicePlans.map((it: IServicePlan) => it.name) : [];
     return (
       <div>
@@ -99,25 +93,30 @@ export class CreateServiceInstanceDirectInput extends React.Component<
             type="text"
             className="form-control"
             onChange={this.serviceInstanceNameUpdated}
-            value={serviceInstanceName}
+            value={service.serviceInstanceName}
           />
         </StageConfigField>
         <StageConfigField label="Service">
-          <ReactSelectInput clearable={false} onChange={this.serviceUpdated} value={service} stringOptions={services} />
+          <ReactSelectInput
+            clearable={false}
+            onChange={this.serviceUpdated}
+            value={service.service}
+            stringOptions={services}
+          />
         </StageConfigField>
         <StageConfigField label="Service Plan">
           <ReactSelectInput
             clearable={false}
             onChange={this.servicePlanUpdated}
-            value={servicePlan}
+            value={service.servicePlan}
             stringOptions={servicePlans}
           />
         </StageConfigField>
         <StageConfigField label="Tags">
-          <ServiceTagsInput tags={tags} onChange={this.tagsUpdated} />
+          <ServiceTagsInput tags={service.tags || []} onChange={this.tagsUpdated} />
         </StageConfigField>
         <StageConfigField label="Parameters">
-          <TextAreaInput className="form-control" onChange={this.parametersUpdated} value={parameters} />
+          <TextAreaInput className="form-control" onChange={this.parametersUpdated} value={service.parameters || ''} />
         </StageConfigField>
       </div>
     );

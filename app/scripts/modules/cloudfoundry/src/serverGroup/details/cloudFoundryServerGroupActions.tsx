@@ -281,7 +281,6 @@ export class CloudFoundryServerGroupActions extends React.Component<ICloudFoundr
       .buildServerGroupCommandFromExisting(app, serverGroup)
       .then((command: ICloudFoundryCreateServerGroupCommand) => {
         const title = `Clone ${serverGroup.name}`;
-        command.artifact.type = 'package';
         CloudFoundryCreateServerGroupModal.show({
           application: app,
           command,

@@ -3,27 +3,26 @@ import * as React from 'react';
 import { get } from 'lodash';
 
 import {
-  AccountService,
   Application,
-  IArtifactAccount,
   IModalComponentProps,
-  ReactInjector,
+  IPipeline,
+  IStage,
+  noop,
   ReactModal,
+  ReactInjector,
   TaskMonitor,
   WizardModal,
   WizardPage,
-  noop,
 } from '@spinnaker/core';
 
 import { ICloudFoundryCreateServerGroupCommand } from '../serverGroupConfigurationModel.cf';
 import { CloudFoundryServerGroupBasicSettings } from './sections/basicSettings/BasicSettings.cf';
 import { CloudFoundryServerGroupArtifactSettings } from './sections/artifactSettings/ArtifactSettings.cf';
-import { CloudFoundryServerGroupCloneSettings } from './sections/cloneSettings/CloneSettings.cf';
-import { CloudFoundryServerGroupConstantArtifactSettings } from './sections/artifactSettings/ConstantArtifactSettings.cf';
 import { CloudFoundryServerGroupConfigurationSettings } from './sections/configurationSettings/ConfigurationSettings.cf';
-import { CfDisclaimerPage } from 'cloudfoundry/common/wizard/sections/cfDisclaimer.cf';
-import { ServerGroupTemplateSelection } from 'cloudfoundry/serverGroup/configure/wizard/ServerGroupTemplateSelection';
 import { ICloudFoundryServerGroup } from 'cloudfoundry/domain';
+import { ServerGroupTemplateSelection } from 'cloudfoundry/serverGroup/configure/wizard/ServerGroupTemplateSelection';
+import { CloudFoundryServerGroupConstantArtifactSettings } from './sections/artifactSettings/ConstantArtifactSettings.cf';
+import { CloudFoundryServerGroupCloneSettings } from './sections/cloneSettings/CloneSettings.cf';
 
 import './serverGroup.less';
 
@@ -36,10 +35,11 @@ export interface ICloudFoundryCreateServerGroupProps extends IModalComponentProp
 }
 
 export interface ICloudFoundryCreateServerGroupState {
-  artifactAccounts: IArtifactAccount[];
+  pipeline: IPipeline;
   isClone: boolean;
   loading: boolean;
   requiresTemplateSelection: boolean;
+  stage?: IStage;
   taskMonitor: TaskMonitor;
 }
 
@@ -59,12 +59,15 @@ export class CloudFoundryCreateServerGroupModal extends React.Component<
 
   constructor(props: ICloudFoundryCreateServerGroupProps) {
     super(props);
+    const pipeline = get(props, 'command.viewState.pipeline', undefined);
+    const stage = get(props, 'command.viewState.stage', undefined);
     const mode = get(props, 'command.viewState.mode', undefined);
     this.state = {
-      artifactAccounts: [],
-      isClone: props.isSourceConstant || mode === 'editClonePipeline',
+      pipeline: pipeline,
+      isClone: !!props.isSourceConstant || mode === 'editClonePipeline',
       loading: false,
       requiresTemplateSelection: get(props, 'command.viewState.requiresTemplateSelection', false),
+      stage,
       taskMonitor: new TaskMonitor({
         application: props.application,
         title: 'Creating your server group',
@@ -72,12 +75,6 @@ export class CloudFoundryCreateServerGroupModal extends React.Component<
         onTaskComplete: this.onTaskComplete,
       }),
     };
-  }
-
-  public componentDidMount(): void {
-    AccountService.getArtifactAccounts().then(artifactAccounts => {
-      this.setState({ artifactAccounts: artifactAccounts });
-    });
   }
 
   private templateSelected = () => {
@@ -116,8 +113,8 @@ export class CloudFoundryCreateServerGroupModal extends React.Component<
   };
 
   public render(): React.ReactElement<CloudFoundryCreateServerGroupModal> {
-    const { artifactAccounts, isClone, loading, requiresTemplateSelection, taskMonitor } = this.state;
-    const { application, command, dismissModal, isSourceConstant, serverGroup, title } = this.props;
+    const { loading, pipeline, isClone, requiresTemplateSelection, stage, taskMonitor } = this.state;
+    const { application, command, dismissModal, title, isSourceConstant, serverGroup } = this.props;
 
     if (requiresTemplateSelection) {
       return (
@@ -146,17 +143,13 @@ export class CloudFoundryCreateServerGroupModal extends React.Component<
               wizard={wizard}
               order={nextIdx()}
               render={({ innerRef }) => (
-                <CloudFoundryServerGroupBasicSettings
-                  ref={innerRef}
-                  formik={formik}
-                  isPipelineClone={isClone && !isSourceConstant}
-                />
+                <CloudFoundryServerGroupBasicSettings ref={innerRef} formik={formik} isPipelineClone={isClone} />
               )}
             />
 
             {isClone && isSourceConstant && (
               <WizardPage
-                label="Artifact"
+                label="Application"
                 wizard={wizard}
                 order={nextIdx()}
                 render={({ innerRef }) => (
@@ -182,37 +175,32 @@ export class CloudFoundryCreateServerGroupModal extends React.Component<
 
             {!isClone && (
               <WizardPage
-                label="Artifact"
+                label="Application"
                 wizard={wizard}
                 order={nextIdx()}
                 render={({ innerRef }) => (
                   <CloudFoundryServerGroupArtifactSettings
                     ref={innerRef}
                     formik={formik}
-                    artifactAccounts={artifactAccounts}
+                    pipeline={pipeline}
+                    stage={stage}
                   />
                 )}
               />
             )}
 
             <WizardPage
-              label="Configuration"
+              label="Manifest"
               wizard={wizard}
               order={nextIdx()}
               render={({ innerRef }) => (
                 <CloudFoundryServerGroupConfigurationSettings
                   ref={innerRef}
                   formik={formik}
-                  artifactAccounts={artifactAccounts}
+                  pipeline={pipeline}
+                  stage={stage}
                 />
               )}
-            />
-
-            <WizardPage
-              label="Disclaimer"
-              wizard={wizard}
-              order={nextIdx()}
-              render={({ innerRef }) => <CfDisclaimerPage ref={innerRef} />}
             />
           </>
         )}

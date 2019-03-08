@@ -3,7 +3,10 @@ import * as React from 'react';
 import { StageConfigField, TextAreaInput, TextInput } from '@spinnaker/core';
 
 import { ServiceTagsInput } from './ServiceTagsInput';
-import { ICloudFoundryServiceManifestSource, ICloudFoundryServiceUserProvidedSource } from './interfaces';
+import {
+  ICloudFoundryServiceManifestSource,
+  ICloudFoundryServiceUserProvidedSource,
+} from './ICloudFoundryServiceManifestSource';
 
 interface ICreateServiceInstanceUserProvidedInputProps {
   onChange: (serviceInput: ICloudFoundryServiceManifestSource) => void;
