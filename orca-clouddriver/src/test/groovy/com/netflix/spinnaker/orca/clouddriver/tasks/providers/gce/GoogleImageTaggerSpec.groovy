@@ -53,7 +53,16 @@ class GoogleImageTaggerSpec extends ImageTaggerSpec {
     pipeline.stages << stage1 << stage2
 
     and:
-    oortService.findImage("gce", "my-gce-image", null, null, null) >> { [] }
+    if (foundById) {
+      1 * oortService.findImage("gce", "gce-image-id", null, null, null) >> {
+        [["imageName": "my-gce-image"]]
+      }
+      1 * oortService.findImage("gce", "my-gce-image", null, null, null) >> { [] }
+    } else if (imageId != null) {
+      1 * oortService.findImage("gce", imageId, null, null, null) >> { [] }
+    } else {
+      1 * oortService.findImage("gce", imageName, null, null, null) >> { [] }
+    }
 
     when:
     imageTagger.getOperationContext(stage2)
@@ -63,9 +72,10 @@ class GoogleImageTaggerSpec extends ImageTaggerSpec {
     e.shouldRetry == shouldRetry
 
     where:
-    imageId        | imageName       || shouldRetry
-    "my-gce-image" | null            || true
-    null           | "my-gce-image"  || false       // do not retry if an explicitly provided image does not exist (user error)
+    imageId        | imageName      || foundById || shouldRetry
+    "my-gce-image" | null           || false     || true
+    "gce-image-id" | null           || true      || true
+    null           | "my-gce-image" || false     || false       // do not retry if an explicitly provided image does not exist (user error)
   }
 
   def "should build upsertImageTags operation"() {

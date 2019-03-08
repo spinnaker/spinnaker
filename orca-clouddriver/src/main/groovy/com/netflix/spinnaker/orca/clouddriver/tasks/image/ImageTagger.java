@@ -63,11 +63,13 @@ public abstract class ImageTagger {
   }
 
   protected Collection findImages(Collection<String> imageNames, Collection<String> consideredStageRefIds, Stage stage, Class matchedImageType) {
+    List<String> upstreamImageIds = new ArrayList<>();
+
     if (imageNames == null || imageNames.isEmpty()) {
       imageNames = new HashSet<>();
 
       // attempt to find upstream images in the event that one was not explicitly provided
-      Collection<String> upstreamImageIds = upstreamImageIds(stage, consideredStageRefIds, getCloudProvider());
+      upstreamImageIds.addAll(upstreamImageIds(stage, consideredStageRefIds, getCloudProvider()));
       if (upstreamImageIds.isEmpty()) {
         throw new IllegalStateException("Unable to determine source image(s)");
       }
@@ -93,7 +95,9 @@ public abstract class ImageTagger {
       Map matchedImage = allMatchedImages.stream()
         .filter(image -> image.get("imageName").equals(targetImageName))
         .findFirst()
-        .orElseThrow(() -> new ImageNotFound(format("No image found (imageName: %s)", targetImageName), false));
+        .orElseThrow(() ->
+          new ImageNotFound(format("No image found (imageName: %s)", targetImageName), !upstreamImageIds.isEmpty())
+        );
 
       foundImages.add(objectMapper.convertValue(matchedImage, matchedImageType));
     }

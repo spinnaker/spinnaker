@@ -54,7 +54,16 @@ class AmazonImageTaggerSpec extends ImageTaggerSpec<AmazonImageTagger> {
     pipeline.stages << stage1 << stage2
 
     and:
-    oortService.findImage("aws", "my-ami", null, null, null) >> { [] }
+    if (foundById) {
+      1 * oortService.findImage("aws", "ami-id", null, null, null) >> {
+        [["imageName": "ami-name"]]
+      }
+      1 * oortService.findImage("aws", "ami-name", null, null, null) >> { [] }
+    } else if (imageId != null) {
+      1 * oortService.findImage("aws", imageId, null, null, null) >> { [] }
+    } else {
+      1 * oortService.findImage("aws", imageName, null, null, null) >> { [] }
+    }
 
     when:
     imageTagger.getOperationContext(stage2)
@@ -64,9 +73,10 @@ class AmazonImageTaggerSpec extends ImageTaggerSpec<AmazonImageTagger> {
     e.shouldRetry == shouldRetry
 
     where:
-    imageId  | imageName || shouldRetry
-    "my-ami" | null      || true
-    null     | "my-ami"  || false       // do not retry if an explicitly provided image does not exist (user error)
+    imageId  | imageName  || foundById || shouldRetry
+    "ami-id" | null       || false     || true
+    "ami-id" | null       || true      || true
+    null     | "ami-name" || false     || false  // do not retry if an explicitly provided image does not exist (user error)
   }
 
   def "should build upsertMachineImageTags and allowLaunchDescription operations"() {
@@ -114,7 +124,7 @@ class AmazonImageTaggerSpec extends ImageTaggerSpec<AmazonImageTagger> {
     def stage = new Stage(Execution.newOrchestration("orca"), "", [
       imageNames: ["my-ami-1", "my-ami-2"],
       tags      : [
-        "tag1"      : "value1"
+        "tag1": "value1"
       ]
     ])
 
