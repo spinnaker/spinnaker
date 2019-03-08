@@ -58,7 +58,7 @@ class ModuleTagSpec extends Specification {
     context.variables.put("m", [myKey: 'myValue'])
 
     when:
-    def result = renderer.render("{% module myModule myOtherVar=world, subject=testerName, job=trigger.job, concat=m['my' + 'Key'], filtered=trigger.nonExist|default('hello', True) %}", context)
+    def result = renderer.render("{% module myModule myOtherVar=world, subject=testerName, job=trigger.job, concat=m['my' + 'Key'], filtered=trigger.nonExist|default('hello', true) %}", context)
 
     then:
     result == 'hello world, Mr. Tester Testington. You triggered myJob myValue hello'

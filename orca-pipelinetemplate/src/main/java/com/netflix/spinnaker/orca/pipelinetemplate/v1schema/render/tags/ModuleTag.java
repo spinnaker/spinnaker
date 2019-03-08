@@ -18,11 +18,7 @@ package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.tags;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Splitter;
-import com.hubspot.jinjava.interpret.Context;
-import com.hubspot.jinjava.interpret.InterpretException;
-import com.hubspot.jinjava.interpret.JinjavaInterpreter;
-import com.hubspot.jinjava.interpret.TemplateStateException;
-import com.hubspot.jinjava.interpret.TemplateSyntaxException;
+import com.hubspot.jinjava.interpret.*;
 import com.hubspot.jinjava.lib.tag.Tag;
 import com.hubspot.jinjava.tree.TagNode;
 import com.hubspot.jinjava.util.HelperStringTokenizer;
@@ -37,11 +33,7 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors.Error;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -103,12 +95,12 @@ public class ModuleTag implements Tag {
     List<String> missing = new ArrayList<>();
     for (NamedHashMap var : module.getVariables()) {
       // First try to assign the variable from the context directly
-      Object val = interpreter.resolveELExpression(var.getName(), tagNode.getLineNumber());
+      Object val = tryResolveExpression(interpreter, var.getName(), tagNode.getLineNumber());
       if (val == null) {
         // Try to assign from a parameter (using the param value as a context key first, then as a literal)
         if (paramPairs.containsKey(var.getName())) {
           val = Optional.ofNullable(
-            interpreter.resolveELExpression(paramPairs.get(var.getName()), tagNode.getLineNumber())
+            tryResolveExpression(interpreter, paramPairs.get(var.getName()), tagNode.getLineNumber())
           ).orElse(paramPairs.get(var.getName()));
         }
 
@@ -215,5 +207,12 @@ public class ModuleTag implements Tag {
       return token.substring(0, token.length()-1);
     }
     return token;
+  }
+
+  private Object tryResolveExpression(JinjavaInterpreter interpreter, String expression, int lineNumber) {
+    try {
+      return interpreter.resolveELExpression(expression, lineNumber);
+    } catch (UnknownTokenException ignored) { }
+    return null;
   }
 }
