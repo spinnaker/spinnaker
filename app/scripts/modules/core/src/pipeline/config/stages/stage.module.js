@@ -214,6 +214,7 @@ module.exports = angular
                 extend($scope.stage, changes);
                 $scope.stageFieldUpdated();
               },
+              pipeline: $scope.pipeline,
               stage: $scope.stage,
               component: config.component,
               configuration: config.configuration,
