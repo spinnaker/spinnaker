@@ -1020,9 +1020,9 @@ class SqlCache(
           ids.chunked(batchSize).chunked(
             dynamicConfigService.getConfig(Int::class.java, "sql.cache.maxQueryConcurrency", 4)
           ) { batch ->
-            val deferred = batch.map { chunk ->
-              val scope = CatsCoroutineScope(coroutineContext!!)
+            val scope = CatsCoroutineScope(coroutineContext)
 
+            val deferred = batch.map { chunk ->
               scope.async {
                 selectBodiesWithRelationships(type, relationshipPrefixes, chunk)
               }
