@@ -105,9 +105,13 @@ class SqlProviderCache(private val backingStore: WriteableCache) : ProviderCache
   }
 
   override fun evictDeletedItems(type: String, ids: Collection<String>) {
-    MDC.put("agentClass", "evictDeletedItems")
+    try {
+      MDC.put("agentClass", "evictDeletedItems")
 
-    backingStore.evictAll(type, ids)
+      backingStore.evictAll(type, ids)
+    } finally {
+      MDC.remove("agentClass")
+    }
   }
 
   /**
@@ -124,112 +128,124 @@ class SqlProviderCache(private val backingStore: WriteableCache) : ProviderCache
   override fun putCacheResult(source: String,
                               authoritativeTypes: MutableCollection<String>,
                               cacheResult: CacheResult) {
-    MDC.put("agentClass", "$source putCacheResult")
+    try {
+      MDC.put("agentClass", "$source putCacheResult")
 
-    // TODO every source type should have an authoritative agent and every agent should be authoritative for something
-    // TODO terrible hack because no AWS agent is authoritative for clusters, fix in ClusterCachingAgent
-    // TODO same with namedImages - fix in AWS ImageCachingAgent
-    if (
-      source.contains("clustercaching", ignoreCase = true) &&
-      !authoritativeTypes.contains(CLUSTERS.ns) &&
-      cacheResult.cacheResults
-        .any {
-          it.key.startsWith(CLUSTERS.ns)
-        }
-    ) {
-      authoritativeTypes.add(CLUSTERS.ns)
-    } else if (
-      source.contains("imagecaching", ignoreCase = true) &&
-      cacheResult.cacheResults
-        .any {
-          it.key.startsWith(NAMED_IMAGES.ns)
-        }
-    ) {
-      authoritativeTypes.add(NAMED_IMAGES.ns)
-    }
-
-    cacheResult.cacheResults
-      .filter {
-        it.key.contains(ON_DEMAND.ns, ignoreCase = true)
-      }
-      .forEach {
-        authoritativeTypes.add(it.key)
+      // TODO every source type should have an authoritative agent and every agent should be authoritative for something
+      // TODO terrible hack because no AWS agent is authoritative for clusters, fix in ClusterCachingAgent
+      // TODO same with namedImages - fix in AWS ImageCachingAgent
+      if (
+        source.contains("clustercaching", ignoreCase = true) &&
+        !authoritativeTypes.contains(CLUSTERS.ns) &&
+        cacheResult.cacheResults
+          .any {
+            it.key.startsWith(CLUSTERS.ns)
+          }
+      ) {
+        authoritativeTypes.add(CLUSTERS.ns)
+      } else if (
+        source.contains("imagecaching", ignoreCase = true) &&
+        cacheResult.cacheResults
+          .any {
+            it.key.startsWith(NAMED_IMAGES.ns)
+          }
+      ) {
+        authoritativeTypes.add(NAMED_IMAGES.ns)
       }
 
-    val cachedTypes = mutableSetOf<String>()
-    // Update resource table from Authoritative sources only
-    when {
-      // OnDemand agents should only be treated as authoritative and don't use standard eviction logic
-      source.contains(ON_DEMAND.ns, ignoreCase = true) -> cacheResult.cacheResults
-        // And OnDemand agents shouldn't update other resource type tables
+      cacheResult.cacheResults
         .filter {
           it.key.contains(ON_DEMAND.ns, ignoreCase = true)
         }
         .forEach {
-          cacheDataType(it.key, source, it.value, authoritative = true, cleanup = false)
+          authoritativeTypes.add(it.key)
         }
-      authoritativeTypes.isNotEmpty() -> cacheResult.cacheResults
-        .filter {
-          authoritativeTypes.contains(it.key)
-        }
-        .forEach {
-          cacheDataType(it.key, source, it.value, authoritative = true)
-          cachedTypes.add(it.key)
-        }
-      else -> // If there are no authoritative types in cacheResult, override all as authoritative without cleanup
-        cacheResult.cacheResults
+
+      val cachedTypes = mutableSetOf<String>()
+      // Update resource table from Authoritative sources only
+      when {
+        // OnDemand agents should only be treated as authoritative and don't use standard eviction logic
+        source.contains(ON_DEMAND.ns, ignoreCase = true) -> cacheResult.cacheResults
+          // And OnDemand agents shouldn't update other resource type tables
+          .filter {
+            it.key.contains(ON_DEMAND.ns, ignoreCase = true)
+          }
           .forEach {
             cacheDataType(it.key, source, it.value, authoritative = true, cleanup = false)
+          }
+        authoritativeTypes.isNotEmpty() -> cacheResult.cacheResults
+          .filter {
+            authoritativeTypes.contains(it.key)
+          }
+          .forEach {
+            cacheDataType(it.key, source, it.value, authoritative = true)
             cachedTypes.add(it.key)
           }
-    }
-
-    // Update relationships for non-authoritative types
-    if (!source.contains(ON_DEMAND.ns, ignoreCase = true)) {
-      cacheResult.cacheResults
-        .filter {
-          !cachedTypes.contains(it.key)
-        }
-        .forEach {
-          cacheDataType(it.key, source, it.value, authoritative = false)
-        }
-    }
-
-    if (cacheResult.evictions.isNotEmpty()) {
-      cacheResult.evictions.forEach {
-        evictDeletedItems(it.key, it.value)
+        else -> // If there are no authoritative types in cacheResult, override all as authoritative without cleanup
+          cacheResult.cacheResults
+            .forEach {
+              cacheDataType(it.key, source, it.value, authoritative = true, cleanup = false)
+              cachedTypes.add(it.key)
+            }
       }
+
+      // Update relationships for non-authoritative types
+      if (!source.contains(ON_DEMAND.ns, ignoreCase = true)) {
+        cacheResult.cacheResults
+          .filter {
+            !cachedTypes.contains(it.key)
+          }
+          .forEach {
+            cacheDataType(it.key, source, it.value, authoritative = false)
+          }
+      }
+
+      if (cacheResult.evictions.isNotEmpty()) {
+        cacheResult.evictions.forEach {
+          evictDeletedItems(it.key, it.value)
+        }
+      }
+    } finally {
+        MDC.remove("agentClass")
     }
   }
 
   override fun addCacheResult(source: String,
                               authoritativeTypes: MutableCollection<String>,
                               cacheResult: CacheResult): Unit {
-    MDC.put("agentClass", "$source putCacheResult")
+    try {
+      MDC.put("agentClass", "$source putCacheResult")
 
-    val cachedTypes = mutableSetOf<String>()
+      val cachedTypes = mutableSetOf<String>()
 
-    if (authoritativeTypes.isNotEmpty()) {
-      cacheResult.cacheResults
-        .filter {
-          authoritativeTypes.contains(it.key)
-        }
-        .forEach {
-          cacheDataType(it.key, source, it.value, authoritative = true, cleanup = false)
-          cachedTypes.add(it.key)
-        }
-    }
-
-    cacheResult.cacheResults
-      .filter { !cachedTypes.contains(it.key) }
-      .forEach {
-        cacheDataType(it.key, source, it.value, authoritative = false, cleanup = false)
+      if (authoritativeTypes.isNotEmpty()) {
+        cacheResult.cacheResults
+          .filter {
+            authoritativeTypes.contains(it.key)
+          }
+          .forEach {
+            cacheDataType(it.key, source, it.value, authoritative = true, cleanup = false)
+            cachedTypes.add(it.key)
+          }
       }
+
+      cacheResult.cacheResults
+        .filter { !cachedTypes.contains(it.key) }
+        .forEach {
+          cacheDataType(it.key, source, it.value, authoritative = false, cleanup = false)
+        }
+    } finally {
+        MDC.remove("agentClass")
+    }
   }
 
   override fun putCacheData(type: String, cacheData: CacheData) {
-    MDC.put("agentClass", "putCacheData")
-    backingStore.merge(type, cacheData)
+    try {
+      MDC.put("agentClass", "putCacheData")
+      backingStore.merge(type, cacheData)
+    } finally {
+        MDC.remove("agentClass")
+    }
   }
 
   fun cleanOnDemand(maxAgeMs: Long): Int {
