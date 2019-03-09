@@ -15,13 +15,11 @@
  */
 package com.netflix.spinnaker.keel.yaml
 
+import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.http.converter.HttpMessageConverter
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 
 @Configuration
-class YamlConfiguration : WebMvcConfigurer {
-  override fun extendMessageConverters(converters: MutableList<HttpMessageConverter<*>>) {
-    converters.add(YamlHttpMessageConverter())
-  }
+class YamlConfiguration {
+  @Bean
+  fun yamlHttpMessageConverter() = YamlHttpMessageConverter()
 }

@@ -58,8 +58,6 @@ class ResourceController(
   )
   @ResponseStatus(CREATED)
   fun create(@RequestBody submittedResource: SubmittedResource<*>): Resource<*> {
-    // TODO: we need to take the resource type as well so we can actually parse and validate here
-    // if you're creating a resource you don't need to pass the name
     log.info("Creating: $submittedResource")
     return resourcePersister.handle(ResourceCreated(submittedResource))
   }
