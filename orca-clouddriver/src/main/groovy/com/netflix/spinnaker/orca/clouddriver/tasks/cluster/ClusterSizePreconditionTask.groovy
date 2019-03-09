@@ -54,6 +54,7 @@ class ClusterSizePreconditionTask extends AbstractCloudProviderAwareTask impleme
     int expected = 1
     String credentials
     Set<String> regions
+    Boolean onlyEnabledServerGroups = false
 
     public String getApplication() {
       moniker?.app ?: Names.parseName(cluster)?.app
@@ -117,15 +118,20 @@ class ClusterSizePreconditionTask extends AbstractCloudProviderAwareTask impleme
     def failures = []
     for (String region : config.regions) {
       def serverGroups = serverGroupsByRegion[region] ?: []
+
+      if (config.onlyEnabledServerGroups) {
+        serverGroups = serverGroups.findAll { it.disabled == false }
+      }
+
       int actual = serverGroups.size()
       boolean acceptable = config.getOp().evaluate(actual, config.expected)
       if (!acceptable) {
-        failures << "$region - expected $config.expected server groups but found $actual : ${serverGroups*.name}"
+        failures << "expected $config.comparison $config.expected ${config.onlyEnabledServerGroups ? 'enabled ' : ''}server groups in $region but found $actual: ${serverGroups*.name}"
       }
     }
 
     if (failures) {
-      throw new IllegalStateException("Precondition failed: ${failures.join(',')}")
+      throw new IllegalStateException("Precondition check failed: ${failures.join(', ')}")
     }
 
     return TaskResult.SUCCEEDED

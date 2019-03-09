@@ -38,6 +38,7 @@ class StageData {
   boolean scaleDown
   Map<String, List<String>> availabilityZones
   int maxRemainingAsgs
+  int maxInitialAsgs = 1
   Boolean useSourceCapacity
   Boolean preferSourceCapacity
   Source source
