@@ -11,7 +11,6 @@ import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.events.ResourceDeleted
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.redis.spring.MockEurekaConfiguration
-import com.netflix.spinnaker.keel.redis.spring.SecurityDisabledConfiguration
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
 import com.nhaarman.mockitokotlin2.any
@@ -41,7 +40,7 @@ import strikt.assertions.isEqualTo
 
 @ExtendWith(SpringExtension::class)
 @SpringBootTest(
-  classes = [KeelApplication::class, MockEurekaConfiguration::class, SecurityDisabledConfiguration::class],
+  classes = [KeelApplication::class, MockEurekaConfiguration::class],
   properties = [
     "clouddriver.baseUrl=https://localhost:8081",
     "orca.baseUrl=https://localhost:8082"
@@ -49,7 +48,7 @@ import strikt.assertions.isEqualTo
   webEnvironment = RANDOM_PORT
 )
 @AutoConfigureMockMvc
-internal class ResourceControllerTest {
+internal class ResourceControllerTests {
   @Autowired
   lateinit var mvc: MockMvc
 
