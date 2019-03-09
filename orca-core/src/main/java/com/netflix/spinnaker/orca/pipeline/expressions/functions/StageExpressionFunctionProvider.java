@@ -25,8 +25,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+
+import static java.lang.String.format;
 
 @Component
 public class StageExpressionFunctionProvider implements ExpressionFunctionProvider {
@@ -39,10 +42,18 @@ public class StageExpressionFunctionProvider implements ExpressionFunctionProvid
   @NotNull
   @Override
   public Collection<FunctionDefinition> getFunctions() {
-    return Collections.singletonList(
+    return Arrays.asList(
         new FunctionDefinition("currentStage", Collections.singletonList(
             new FunctionParameter(
                 Execution.class, "execution", "The execution containing the currently executing stage"
+            )
+        )),
+        new FunctionDefinition("stageByRefId", Arrays.asList(
+            new FunctionParameter(
+                Execution.class, "execution", "The execution containing the currently executing stage"
+            ),
+            new FunctionParameter(
+                String.class, "refId", "A valid stage reference identifier"
             )
         ))
     );
@@ -65,5 +76,28 @@ public class StageExpressionFunctionProvider implements ExpressionFunctionProvid
         .filter(s -> s.getId().equalsIgnoreCase(currentStageId))
         .findFirst()
         .orElseThrow(() -> new SpelHelperFunctionException("No stage found with id '" + currentStageId + "'"));
+  }
+
+  /**
+   * Finds a Stage by refId. This function should only be used by programmatic pipeline generators, as refIds are
+   * fragile and may change from execution-to-execution.
+   *
+   * @param execution the current execution
+   * @param refId     the stage reference ID
+   * @return a stage specified by refId
+   */
+  static Object stageByRefId(Execution execution, String refId) {
+    if (refId == null) {
+      throw new SpelHelperFunctionException(format(
+          "Stage refId must not be null in #stageByRefId in execution %s", execution.getId()
+      ));
+    }
+    return execution.getStages()
+        .stream()
+        .filter(s -> refId.equals(s.getRefId()))
+        .findFirst()
+        .orElseThrow(() -> new SpelHelperFunctionException(format(
+            "Unable to locate [%1$s] using #stageByRefId(%1$s) in execution %2$s", refId, execution.getId()
+        )));
   }
 }

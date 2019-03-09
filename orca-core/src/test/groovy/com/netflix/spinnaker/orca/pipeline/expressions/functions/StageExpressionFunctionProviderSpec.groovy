@@ -17,12 +17,13 @@
 package com.netflix.spinnaker.orca.pipeline.expressions.functions
 
 import com.netflix.spinnaker.orca.ExecutionContext
+import com.netflix.spinnaker.orca.pipeline.expressions.ExpressionsSupport
 import com.netflix.spinnaker.orca.pipeline.expressions.SpelHelperFunctionException
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static com.netflix.spinnaker.orca.pipeline.expressions.functions.StageExpressionFunctionProvider.currentStage
+import static com.netflix.spinnaker.orca.pipeline.expressions.functions.StageExpressionFunctionProvider.*
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage;
 
@@ -31,11 +32,13 @@ class StageExpressionFunctionProviderSpec extends Specification {
   def pipeline = pipeline {
     stage {
       id = "1"
+      refId = "1.0"
       name = "My First Stage"
     }
 
     stage {
       id = "2"
+      refId = "2.0"
       name = "My Second Stage"
     }
   }
@@ -81,5 +84,23 @@ class StageExpressionFunctionProviderSpec extends Specification {
         ),
         null
     ]
+  }
+
+  def "stageByRefId() should match on #matchedAttribute"() {
+    expect:
+    stageByRefId(pipeline, stageCriteria).name == expectedStageName
+
+    where:
+    stageCriteria || matchedAttribute || expectedStageName
+    "1.0"         || "refId"          || "My First Stage"
+    "2.0"         || "refId"          || "My Second Stage"
+  }
+
+  def "stageByRefId() should raise exception if stage not found"() {
+    when:
+    stageByRefId(pipeline, "does_not_exist")
+
+    then:
+    thrown(SpelHelperFunctionException)
   }
 }

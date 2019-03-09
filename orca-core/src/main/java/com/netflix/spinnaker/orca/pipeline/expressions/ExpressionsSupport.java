@@ -97,7 +97,6 @@ public class ExpressionsSupport {
         registerFunction(evaluationContext, "jsonFromUrl", String.class);
         registerFunction(evaluationContext, "propertiesFromUrl", String.class);
         registerFunction(evaluationContext, "stage", Object.class, String.class);
-        registerFunction(evaluationContext, "stageByRefId", Object.class, String.class);
         registerFunction(evaluationContext, "stageExists", Object.class, String.class);
         registerFunction(evaluationContext, "judgment", Object.class, String.class);
         registerFunction(evaluationContext, "judgement", Object.class, String.class);
@@ -295,35 +294,6 @@ public class ExpressionsSupport {
     throw new SpelHelperFunctionException(format("Invalid first param to #stage(%s). must be an execution", id));
   }
   
-  /**
-   * Finds a Stage by refId. This function should only be used by programmatic pipeline generators, as refIds are
-   * fragile and may change from execution-to-execution.
-   * @param obj #root.execution
-   * @param refId the stage reference ID
-   * @return a stage specified by refId
-   */
-  static Object stageByRefId(Object obj, String refId) {
-    if (obj instanceof Execution) {
-      Execution execution = (Execution) obj;
-      if (refId == null) {
-        throw new SpelHelperFunctionException(format(
-          "Stage refId must not be null in #stageByRefId in execution %s", execution.getId()
-        ));
-      }
-      return execution.getStages()
-        .stream()
-        .filter(s -> refId.equals(s.getRefId()))
-        .findFirst()
-        .orElseThrow(() -> new SpelHelperFunctionException(format(
-          "Unable to locate [%1$s] using #stageByRefId(%1$s) in execution %2$s", refId, execution.getId()
-        )));
-    }
-
-    throw new SpelHelperFunctionException(format(
-      "Invalid first param to #stageRefById(%s). Must be an execution", refId
-    ));
-  }
-
   /**
    * Checks existence of a Stage by id
    * @param obj #root.execution
