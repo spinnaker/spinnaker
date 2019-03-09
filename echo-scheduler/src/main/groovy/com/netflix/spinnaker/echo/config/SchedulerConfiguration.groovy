@@ -50,7 +50,7 @@ class SchedulerConfiguration {
     Optional<DataSource> dataSourceOptional,
     TriggerListener triggerListener,
     JobDetail pipelineJobBean,
-    Trigger syncJobTrigger
+    Optional<Trigger> syncJobTrigger
   ) {
     SchedulerFactoryBean factoryBean = new SchedulerFactoryBean()
     if (dataSourceOptional.isPresent()) {
@@ -59,7 +59,10 @@ class SchedulerConfiguration {
 
     factoryBean.setGlobalTriggerListeners(triggerListener)
     factoryBean.setJobDetails(pipelineJobBean)
-    factoryBean.setTriggers(syncJobTrigger)
+
+    if (syncJobTrigger.isPresent()) {
+      factoryBean.setTriggers(syncJobTrigger.get())
+    }
 
     return factoryBean
   }
