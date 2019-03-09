@@ -51,6 +51,44 @@
         "Integration Test Group"
       ],
       "scopeName": "default"
+    },
+    {
+      "name": "an error count metric, that doesn't exist",
+      "query": {
+        "metricName": "kayenta.integration-test.errors.count",
+        "aggregationMethod": "sum",
+        "serviceType": "signalfx",
+        "type": "signalfx"
+      },
+      "analysisConfigurations": {
+        "canary": {
+          "direction": "increase",
+          "nanStrategy": "replace",
+          "critical" : true
+        }
+      },
+      "groups": [
+        "Integration Test Group"
+      ],
+      "scopeName": "default"
+    },
+    {
+      "name": "another error count metric, that doesn't exist",
+      "query": {
+        "metricName": "kayenta.integration-test.errors2.count",
+        "aggregationMethod": "sum",
+        "serviceType": "signalfx",
+        "type": "signalfx"
+      },
+      "analysisConfigurations": {
+        "canary": {
+          "direction": "increase"
+        }
+      },
+      "groups": [
+        "Integration Test Group"
+      ],
+      "scopeName": "default"
     }
   ],
   "classifier": {
