@@ -332,6 +332,8 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
       )
     }
 
+    task.updateStatus(BASE_PHASE, "Created the following deployments: ${deploymentResult.deployments}")
+
     return deploymentResult
   }
 
