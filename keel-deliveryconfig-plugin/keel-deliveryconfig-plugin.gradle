@@ -1,0 +1,12 @@
+apply plugin: "java-library"
+apply plugin: "kotlin-spring"
+apply from: "$rootDir/gradle/junit5.gradle"
+
+dependencies {
+  implementation project(":keel-retrofit")
+  implementation project(":keel-plugin")
+  implementation project(":keel-front50")
+
+  testImplementation "io.strikt:strikt-core:$striktVersion"
+  testImplementation "dev.minutest:minutest:$minutestVersion"
+}

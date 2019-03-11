@@ -1,0 +1,19 @@
+{
+  "id": "foo",
+  "application": "bar",
+  "updateTs": 12345,
+  "createTs": 12345,
+  "lastModifiedBy": "anonymous",
+  "deliveryArtifacts": [
+    {
+      "id": "artifact1"
+    }
+  ],
+  "deliveryEnvironments": [
+    {
+      "id": "environment1"
+    }
+  ],
+  "otherAttribute1": "bloop",
+  "otherAttribute2": "blerp"
+}

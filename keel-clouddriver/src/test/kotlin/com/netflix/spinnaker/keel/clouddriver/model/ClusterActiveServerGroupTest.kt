@@ -1,16 +1,10 @@
-package com.netflix.spinnaker.keel.clouddriver
+package com.netflix.spinnaker.keel.clouddriver.model
 
-import com.netflix.spinnaker.keel.clouddriver.model.AutoScalingGroup
-import com.netflix.spinnaker.keel.clouddriver.model.BaseModelParsingTest
-import com.netflix.spinnaker.keel.clouddriver.model.ClusterActiveServerGroup
-import com.netflix.spinnaker.keel.clouddriver.model.InstanceMonitoring
-import com.netflix.spinnaker.keel.clouddriver.model.LaunchConfig
-import com.netflix.spinnaker.keel.clouddriver.model.Moniker
-import com.netflix.spinnaker.keel.clouddriver.model.ServerGroupCapacity
-import com.netflix.spinnaker.keel.clouddriver.model.Tag
+import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
+import com.netflix.spinnaker.keel.retrofit.model.ModelParsingTestSupport
 import kotlinx.coroutines.Deferred
 
-object ClusterActiveServerGroupTest : BaseModelParsingTest<ClusterActiveServerGroup>() {
+object ClusterActiveServerGroupTest : ModelParsingTestSupport<CloudDriverService, ClusterActiveServerGroup>(CloudDriverService::class.java) {
 
   override val json = javaClass.getResource("/cluster.json")
 

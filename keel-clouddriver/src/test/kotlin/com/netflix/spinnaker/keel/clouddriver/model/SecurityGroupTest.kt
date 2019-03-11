@@ -1,9 +1,10 @@
 package com.netflix.spinnaker.keel.clouddriver.model
 
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
+import com.netflix.spinnaker.keel.retrofit.model.ModelParsingTestSupport
 import kotlinx.coroutines.Deferred
 
-object SecurityGroupTest : BaseModelParsingTest<SecurityGroup>() {
+object SecurityGroupTest : ModelParsingTestSupport<CloudDriverService, SecurityGroup>(CloudDriverService::class.java) {
   override val json = javaClass.getResource("/vpc-sg.json")
 
   override val call: CloudDriverService.() -> Deferred<SecurityGroup?> = {

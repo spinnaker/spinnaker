@@ -1,9 +1,9 @@
 apply plugin: "java-library"
 apply plugin: "kotlin-spring"
+apply from: "$rootDir/gradle/junit5.gradle"
 
 dependencies {
   implementation project(":keel-retrofit")
-  implementation "com.netflix.spinnaker.moniker:moniker:${spinnaker.version('moniker')}"
   implementation "com.fasterxml.jackson.core:jackson-databind"
   implementation "com.fasterxml.jackson.core:jackson-annotations"
   implementation "com.fasterxml.jackson.module:jackson-module-kotlin"
@@ -13,8 +13,6 @@ dependencies {
   testImplementation project(":keel-retrofit-test-support")
   testImplementation "com.squareup.retrofit2:retrofit-mock:${spinnaker.version('retrofit2')}"
   testImplementation "com.squareup.okhttp3:mockwebserver:${spinnaker.version('okHttp3')}"
-  testImplementation "dev.minutest:minutest:$minutestVersion"
   testImplementation "io.strikt:strikt-core:$striktVersion"
-
-  runtime "org.jetbrains.kotlin:kotlin-reflect"
+  testImplementation "dev.minutest:minutest:$minutestVersion"
 }

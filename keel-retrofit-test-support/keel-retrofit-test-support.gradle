@@ -1,0 +1,20 @@
+apply plugin: "java-library"
+apply plugin: "kotlin-spring"
+
+dependencies {
+  api project(":keel-retrofit")
+  api "com.fasterxml.jackson.core:jackson-databind"
+  api "com.fasterxml.jackson.core:jackson-annotations"
+  api "com.fasterxml.jackson.module:jackson-module-kotlin"
+  api "com.github.jonpeterson:jackson-module-model-versioning:1.2.2"
+  api "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
+  api project(":keel-core-test")
+  implementation platform("org.junit:junit-bom:${spinnaker.version('jupiter')}")
+  implementation "org.junit.jupiter:junit-jupiter-api"
+  implementation "com.squareup.retrofit2:retrofit-mock:${spinnaker.version('retrofit2')}"
+  implementation "com.squareup.okhttp3:mockwebserver:${spinnaker.version('okHttp3')}"
+  implementation "dev.minutest:minutest:$minutestVersion"
+  implementation "io.strikt:strikt-core:$striktVersion"
+
+  runtime "org.jetbrains.kotlin:kotlin-reflect"
+}

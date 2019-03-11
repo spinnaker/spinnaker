@@ -1,4 +1,4 @@
-package com.netflix.spinnaker.keel.clouddriver.model
+package com.netflix.spinnaker.keel.retrofit.model
 
 import com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 import com.fasterxml.jackson.databind.DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS
@@ -8,7 +8,6 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.github.jonpeterson.jackson.module.versioning.VersioningModule
 import com.jakewharton.retrofit2.adapter.kotlin.coroutines.CoroutineCallAdapterFactory
-import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.runBlocking
 import okhttp3.mockwebserver.MockResponse
@@ -16,10 +15,6 @@ import okhttp3.mockwebserver.MockWebServer
 import org.junit.After
 import org.junit.Before
 import org.junit.jupiter.api.Test
-import retrofit.client.Header
-import retrofit.client.Request
-import retrofit.client.Response
-import retrofit.mime.TypedByteArray
 import retrofit2.Retrofit
 import retrofit2.converter.jackson.JacksonConverterFactory
 import strikt.api.expectThat
@@ -28,7 +23,7 @@ import strikt.assertions.isNotNull
 import java.net.URL
 import java.nio.charset.Charset
 
-abstract class BaseModelParsingTest<out T> {
+abstract class ModelParsingTestSupport<in S, out E>(serviceType: Class<S>) {
 
   private val mapper = ObjectMapper()
     .registerModule(KotlinModule())
@@ -39,16 +34,16 @@ abstract class BaseModelParsingTest<out T> {
     .disable(READ_DATE_TIMESTAMPS_AS_NANOSECONDS)
 
   private val server = MockWebServer()
-  private val cloudDriver = Retrofit.Builder()
+  private val service = Retrofit.Builder()
     .baseUrl(server.url("/"))
     .addConverterFactory(JacksonConverterFactory.create(mapper))
     .addCallAdapterFactory(CoroutineCallAdapterFactory())
     .build()
-    .create(CloudDriverService::class.java)
+    .create(serviceType)
 
   abstract val json: URL
-  abstract val call: CloudDriverService.() -> Deferred<T?>
-  abstract val expected: T
+  abstract val call: S.() -> Deferred<E?>
+  abstract val expected: E
 
   @Before
   fun startServer() = server.start()
@@ -57,11 +52,11 @@ abstract class BaseModelParsingTest<out T> {
   fun stopServer() = server.shutdown()
 
   @Test
-  fun `can parse a CloudDriver response into the expected model`() {
+  fun `can parse a response into the expected model`() {
     server.enqueue(MockResponse().setResponseCode(200).setBody(json.readText(Charset.forName("UTF-8"))))
 
     val response = runBlocking {
-      cloudDriver.call().await()
+      service.call().await()
     }
 
     expectThat(response)
@@ -70,16 +65,3 @@ abstract class BaseModelParsingTest<out T> {
   }
 }
 
-fun Request.jsonResponse(
-  status: Int = 200,
-  reason: String = "OK",
-  headers: List<Header> = emptyList(),
-  body: URL
-) =
-  Response(
-    url,
-    status,
-    reason,
-    headers,
-    TypedByteArray("application/json", body.readBytes())
-  )

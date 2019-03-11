@@ -43,7 +43,8 @@ import strikt.assertions.isEqualTo
   classes = [KeelApplication::class, MockEurekaConfiguration::class],
   properties = [
     "clouddriver.baseUrl=https://localhost:8081",
-    "orca.baseUrl=https://localhost:8082"
+    "orca.baseUrl=https://localhost:8082",
+    "front50.baseUrl=https://localhost:8083"
   ],
   webEnvironment = RANDOM_PORT
 )
