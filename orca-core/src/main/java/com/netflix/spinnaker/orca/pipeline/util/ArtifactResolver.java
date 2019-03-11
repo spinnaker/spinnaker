@@ -179,18 +179,23 @@ public class ArtifactResolver {
     return execution == null ? Collections.emptyList() : getAllArtifacts(execution);
   }
 
-  public void resolveArtifacts(@Nonnull Map pipeline) {
+  public void resolveArtifacts(@Nonnull Map<String, Object> pipeline) {
     Map<String, Object> trigger = (Map<String, Object>) pipeline.get("trigger");
     List<ExpectedArtifact> expectedArtifacts = Optional.ofNullable((List<?>) pipeline.get("expectedArtifacts"))
       .map(list -> list.stream().map(it -> objectMapper.convertValue(it, ExpectedArtifact.class)).collect(toList()))
       .orElse(emptyList());
+
     List<Artifact> receivedArtifactsFromPipeline = Optional.ofNullable((List<?>) pipeline.get("receivedArtifacts"))
       .map(list -> list.stream().map(it -> objectMapper.convertValue(it, Artifact.class)).collect(toList()))
       .orElse(emptyList());
     List<Artifact> artifactsFromTrigger = Optional.ofNullable((List<?>) trigger.get("artifacts"))
       .map(list -> list.stream().map(it -> objectMapper.convertValue(it, Artifact.class)).collect(toList()))
       .orElse(emptyList());
-    List<Artifact> receivedArtifacts = Stream.concat(receivedArtifactsFromPipeline.stream(), artifactsFromTrigger.stream()).collect(toList());
+
+    List<Artifact> receivedArtifacts = Stream.concat(
+      receivedArtifactsFromPipeline.stream(),
+      artifactsFromTrigger.stream()
+    ).distinct().collect(toList());
 
     if (expectedArtifacts.isEmpty()) {
       try {
@@ -202,13 +207,13 @@ public class ArtifactResolver {
     }
 
     List<Artifact> priorArtifacts = getArtifactsForPipelineId((String) pipeline.get("id"), new ExecutionCriteria());
-    Set<Artifact> resolvedArtifacts = resolveExpectedArtifacts(expectedArtifacts, receivedArtifacts, priorArtifacts, true);
-    Set<Artifact> allArtifacts = new HashSet<>(receivedArtifacts);
-
+    LinkedHashSet<Artifact> resolvedArtifacts = resolveExpectedArtifacts(expectedArtifacts, receivedArtifacts, priorArtifacts, true);
+    LinkedHashSet<Artifact> allArtifacts = new LinkedHashSet<>(receivedArtifacts);
     allArtifacts.addAll(resolvedArtifacts);
 
     try {
       trigger.put("artifacts", objectMapper.readValue(objectMapper.writeValueAsString(allArtifacts), List.class));
+      trigger.put("expectedArtifacts", objectMapper.readValue(objectMapper.writeValueAsString(expectedArtifacts), List.class));
       trigger.put("resolvedExpectedArtifacts", objectMapper.readValue(objectMapper.writeValueAsString(expectedArtifacts), List.class)); // Add the actual expectedArtifacts we included in the ids.
     } catch (IOException e) {
       throw new ArtifactResolutionException("Failed to store artifacts in trigger: " + e.getMessage(), e);
@@ -216,6 +221,9 @@ public class ArtifactResolver {
   }
 
   public Artifact resolveSingleArtifact(ExpectedArtifact expectedArtifact, List<Artifact> possibleMatches, boolean requireUniqueMatches) {
+    if (expectedArtifact.getBoundArtifact() != null) {
+      return expectedArtifact.getBoundArtifact();
+    }
     List<Artifact> matches = possibleMatches
         .stream()
         .filter(expectedArtifact::matches)
@@ -242,9 +250,9 @@ public class ArtifactResolver {
     return resolveExpectedArtifacts(expectedArtifacts, receivedArtifacts, null, requireUniqueMatches);
   }
 
-  public Set<Artifact> resolveExpectedArtifacts(List<ExpectedArtifact> expectedArtifacts, List<Artifact> receivedArtifacts, List<Artifact> priorArtifacts, boolean requireUniqueMatches) {
-    Set<Artifact> resolvedArtifacts = new HashSet<>();
-    Set<ExpectedArtifact> unresolvedExpectedArtifacts = new HashSet<>();
+  public LinkedHashSet<Artifact> resolveExpectedArtifacts(List<ExpectedArtifact> expectedArtifacts, List<Artifact> receivedArtifacts, List<Artifact> priorArtifacts, boolean requireUniqueMatches) {
+    LinkedHashSet<Artifact> resolvedArtifacts = new LinkedHashSet<>();
+    LinkedHashSet<ExpectedArtifact> unresolvedExpectedArtifacts = new LinkedHashSet<>();
 
     for (ExpectedArtifact expectedArtifact : expectedArtifacts) {
       Artifact resolved = resolveSingleArtifact(expectedArtifact, receivedArtifacts, requireUniqueMatches);
