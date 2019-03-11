@@ -146,10 +146,12 @@ class AzureSecurityGroupResourceTemplateSpec extends Specification {
           "access" : "Allow",
           "destinationAddressPrefix" : "*",
           "destinationPortRange" : "433",
+          "destinationPortRanges" : null,
           "direction" : "Inbound",
           "priority" : 100,
           "protocol" : "TCP",
           "sourceAddressPrefix" : "10.0.0.0/24",
+          "sourceAddressPrefixes" : null,
           "sourcePortRange" : "*"
         }
       }, {
@@ -159,10 +161,12 @@ class AzureSecurityGroupResourceTemplateSpec extends Specification {
           "access" : "Deny",
           "destinationAddressPrefix" : "*",
           "destinationPortRange" : "3389",
+          "destinationPortRanges" : null,
           "direction" : "Inbound",
           "priority" : 101,
           "protocol" : "TCP",
           "sourceAddressPrefix" : "Internet",
+          "sourceAddressPrefixes" : null,
           "sourcePortRange" : "*"
         }
       } ]

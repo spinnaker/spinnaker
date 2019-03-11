@@ -41,12 +41,16 @@ class AzureSecurityGroupDescription extends AzureResourceOpsDescription {
     String resourceId /*Azure resource ID */
     String description /* restricted to 140 chars */
     String access /* gets or sets network traffic is allowed or denied; possible values are “Allow” and “Deny” */
-    String destinationAddressPrefix /* CIDR or destination IP range; asterix “*” can also be used to match all source IPs; default tags such as ‘VirtualNetwork’, ‘AzureLoadBalancer’ and ‘Internet’ can also be used */
-    String destinationPortRange /* Integer or range between 0 and 65535; asterix “*” can also be used to match all ports */
+    String destinationAddressPrefix /* CIDR or destination IP range; asterisk “*” can also be used to match all source IPs; default tags such as ‘VirtualNetwork’, ‘AzureLoadBalancer’ and ‘Internet’ can also be used */
+    String destinationPortRange /* Integer or range between 0 and 65535; asterisk “*” can also be used to match all ports */
+    List<String> destinationPortRanges /* List of integer or range between 0 and 65535 */
+    String destinationPortRangeModel /* The model destination port that is transparent whether it is from destinationPortRange or destinationPortRanges */
     String direction /* InBound or Outbound */
     Integer priority /* value can be between 100 and 4096 */
     String protocol /* Tcp, Udp or All(*) */
-    String sourceAddressPrefix /* CIDR or source IP range; asterix “*” can also be used to match all source IPs; default tags such as ‘VirtualNetwork’, ‘AzureLoadBalancer’ and ‘Internet’ can also be used */
-    String sourcePortRange /* Integer or range between 0 and 65535; asterix “*” can also be used to match all ports */
+    String sourceAddressPrefix /* CIDR or source IP range; asterisk “*” can also be used to match all source IPs; default tags such as ‘VirtualNetwork’, ‘AzureLoadBalancer’ and ‘Internet’ can also be used */
+    List<String> sourceAddressPrefixes /* List of CIDR or source IP range*/
+    String sourceAddressPrefixModel /* The model source IP/CIDR address that it transparent whether it is from sourceAddressPrefix or sourceAddressPrefixes */
+    String sourcePortRange /* Integer or range between 0 and 65535; asterisk “*” can also be used to match all ports */
   }
 }

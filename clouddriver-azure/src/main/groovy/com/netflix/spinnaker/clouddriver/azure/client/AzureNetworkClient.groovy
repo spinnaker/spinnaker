@@ -621,7 +621,6 @@ class AzureNetworkClient extends AzureBaseClient {
 
   private static AzureSecurityGroupDescription getAzureSecurityGroupDescription(NetworkSecurityGroupInner item) {
     def sgItem = new AzureSecurityGroupDescription()
-
     sgItem.name = item.name()
     sgItem.id = item.name()
     sgItem.location = item.location()
@@ -649,9 +648,14 @@ class AzureNetworkClient extends AzureBaseClient {
         direction: rule.direction().toString(),
         destinationAddressPrefix: rule.destinationAddressPrefix(),
         destinationPortRange: rule.destinationPortRange(),
+        destinationPortRanges: rule.destinationPortRanges(),
+        destinationPortRangeModel: rule.destinationPortRange() ? rule.destinationPortRange() : rule.destinationPortRanges()?.toString()?.replaceAll("[^(0-9),-]", ""),
         sourceAddressPrefix: rule.sourceAddressPrefix(),
+        sourceAddressPrefixes: rule.sourceAddressPrefixes(),
+        sourceAddressPrefixModel: rule.sourceAddressPrefix() ? rule.sourceAddressPrefix() : rule.sourceAddressPrefixes()?.toString()?.replaceAll("[^(0-9a-zA-Z)./,:]", ""),
         sourcePortRange: rule.sourcePortRange())
     }
+
     sgItem.subnets = new ArrayList<String>()
     item.subnets()?.each { sgItem.subnets += AzureUtilities.getNameFromResourceId(it.id()) }
     sgItem.networkInterfaces = new ArrayList<String>()

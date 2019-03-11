@@ -146,10 +146,12 @@ class AzureSecurityGroupResourceTemplate {
     String access /* gets or sets network traffic is allowed or denied; possible values are “Allow” and “Deny” */
     String destinationAddressPrefix /* CIDR or destination IP range; asterix “*” can also be used to match all source IPs; default tags such as ‘VirtualNetwork’, ‘AzureLoadBalancer’ and ‘Internet’ can also be used */
     String destinationPortRange /* Integer or range between 0 and 65535; asterix “*” can also be used to match all ports */
+    List<String> destinationPortRanges /* List of integer or range between 0 and 65535 */
     String direction /* InBound or Outbound */
     Integer priority /* value can be between 100 and 4096 */
     String protocol /* Tcp, Udp or All(*) */
     String sourceAddressPrefix /* CIDR or source IP range; asterix “*” can also be used to match all source IPs; default tags such as ‘VirtualNetwork’, ‘AzureLoadBalancer’ and ‘Internet’ can also be used */
+    List<String> sourceAddressPrefixes /* List of CIDR or source IP range */
     String sourcePortRange /* Integer or range between 0 and 65535; asterix “*” can also be used to match all ports */
 
     AzureNSGRuleProperties(AzureSGRule rule) {
@@ -157,10 +159,12 @@ class AzureSecurityGroupResourceTemplate {
       access = rule.access
       destinationAddressPrefix = rule.destinationAddressPrefix
       destinationPortRange = rule.destinationPortRange
+      destinationPortRanges = rule.destinationPortRanges
       direction = rule.direction
       priority = rule.priority
       protocol = rule.protocol
       sourceAddressPrefix = rule.sourceAddressPrefix
+      sourceAddressPrefixes = rule.sourceAddressPrefixes
       sourcePortRange = rule.sourcePortRange
     }
   }
