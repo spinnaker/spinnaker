@@ -39,6 +39,7 @@ import { STAGE_FAILURE_MESSAGE_COMPONENT } from './details/stageFailureMessage.c
 import { STEP_EXECUTION_DETAILS_COMPONENT } from './details/stepExecutionDetails.component';
 import { STAGE_SUMMARY_COMPONENT } from './details/stageSummary.component';
 import { PRODUCES_ARTIFACTS } from './config/stages/producesArtifacts/producesArtifacts.component';
+import { ARTIFACT_LIST } from './status/artifactList.component';
 
 import './pipeline.less';
 import 'angular-ui-sortable';
@@ -58,6 +59,7 @@ module(PIPELINE_MODULE, [
   STAGE_SUMMARY_COMPONENT,
 
   require('./pipeline.dataSource').name,
+  ARTIFACT_LIST,
   PIPELINE_STATES,
   require('./config/pipelineConfig.module').name,
   COPY_STAGE_MODAL_CONTROLLER,

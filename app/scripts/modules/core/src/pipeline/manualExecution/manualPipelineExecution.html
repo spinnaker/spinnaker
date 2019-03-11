@@ -157,6 +157,13 @@
         components="vm.stageComponents"
       ></stage-manual-components>
 
+      <div class="form-group" ng-if="vm.command.trigger.artifacts.length > 0">
+        <label class="col-md-4 sm-label-right">Artifacts</label>
+        <div class="col-md-8">
+          <artifact-list artifacts="vm.command.trigger.artifacts" />
+        </div>
+      </div>
+
       <div class="form-group">
         <label class="col-md-4 sm-label-right">Notifications</label>
         <div class="col-md-8">

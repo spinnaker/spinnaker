@@ -15,7 +15,7 @@ import { SETTINGS } from 'core/config/settings';
 import { buildDisplayName } from '../executionBuild/buildDisplayName.filter';
 import { ExecutionBuildLink } from '../executionBuild/ExecutionBuildLink';
 import { ExecutionUserStatus } from './ExecutionUserStatus';
-import { ArtifactList } from './ArtifactList';
+import { ResolvedArtifactList } from './ResolvedArtifactList';
 
 import './executionStatus.less';
 
@@ -136,7 +136,7 @@ export class ExecutionStatus extends React.Component<IExecutionStatusProps, IExe
           ))}
         </ul>
         {SETTINGS.feature.artifacts && (
-          <ArtifactList artifacts={artifacts} resolvedExpectedArtifacts={resolvedExpectedArtifacts} />
+          <ResolvedArtifactList artifacts={artifacts} resolvedExpectedArtifacts={resolvedExpectedArtifacts} />
         )}
         {!standalone && (
           <a className="clickable" onClick={this.toggleDetails}>
