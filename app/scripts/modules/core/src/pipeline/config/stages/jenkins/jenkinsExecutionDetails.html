@@ -76,4 +76,7 @@
       <execution-step-details item="stage"></execution-step-details>
     </div>
   </div>
+  <div class="step-section-details" ng-if="detailsSection === 'artifactStatus'">
+    <execution-artifact-tab stage="stage" execution="execution"></execution-artifact-tab>
+  </div>
 </div>

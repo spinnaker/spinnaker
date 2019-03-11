@@ -9,7 +9,7 @@ module.exports = angular
     '$stateParams',
     'executionDetailsSectionService',
     function($scope, $stateParams, executionDetailsSectionService) {
-      $scope.configSections = ['jenkinsConfig', 'taskStatus'];
+      $scope.configSections = ['jenkinsConfig', 'taskStatus', 'artifactStatus'];
 
       let initialized = () => {
         $scope.detailsSection = $stateParams.details;
