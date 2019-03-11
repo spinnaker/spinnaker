@@ -4,7 +4,7 @@ import { Field, FieldProps, Form, Formik } from 'formik';
 import { IPromise } from 'angular';
 
 import { SubmitButton, ModalClose } from 'core/modal';
-import { ReactModal } from 'core/presentation';
+import { ReactModal, Markdown } from 'core/presentation';
 
 export interface ICancelModalProps {
   body?: string;
@@ -72,7 +72,7 @@ export class CancelModal extends React.Component<ICancelModalProps, ICancelModal
         initialValues={{}}
         onSubmit={this.submitConfirmation}
         render={() => {
-          const wrappedBody = body ? <div>{body}</div> : null;
+          const wrappedBody = body ? <Markdown message={body} /> : null;
 
           return (
             <Form className="form-horizontal">

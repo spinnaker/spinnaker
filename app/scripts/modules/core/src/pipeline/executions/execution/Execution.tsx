@@ -157,7 +157,7 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
       buttonText: `Stop running ${execution.name}`,
       body:
         hasDeployStage && !cancelConfirmationText
-          ? '<b>Note:</b> Any deployments that have begun will continue and need to be cleaned up manually.'
+          ? '*Note:* Any deployments that have begun will continue and need to be cleaned up manually.'
           : cancelConfirmationText,
       submitMethod: (reason, force) => executionService.cancelExecution(application, execution.id, force, reason),
     });
