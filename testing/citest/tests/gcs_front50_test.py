@@ -85,8 +85,7 @@ class GcsFront50TestScenario(sk.SpinnakerTestScenario):
     self.TEST_PIPELINE_ID = '{app}-pipeline-id'.format(app=self.TEST_APP)
     self.gcs_observer = gcp.GcpStorageAgent.make_agent(
         credentials_path=self.bindings['GCS_JSON_PATH'],
-        scopes=(gcp.gcp_storage_agent.STORAGE_FULL_SCOPE
-                if self.bindings['GCS_JSON_PATH'] else None)
+        scopes=gcp.gcp_storage_agent.STORAGE_FULL_SCOPE
         )
 
     metadata = self.gcs_observer.inspect_bucket(context, self.BUCKET)
