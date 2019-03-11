@@ -120,6 +120,13 @@ public class SecretManager {
     secretFileCache.remove(encryptedFilePath);
   }
 
+  public void clearCachedSecrets() {
+    secretCache.clear();
+    for (SecretEngine se : secretEngineRegistry.getSecretEngineList()) {
+      se.clearCache();
+    }
+  }
+
   public String getCachedSecret(String encryptedSecret) {
     return secretCache.get(encryptedSecret);
   }

@@ -41,4 +41,6 @@ public interface SecretEngine {
   default EncryptedSecret encrypt(String secretToEncrypt) {
     throw new UnsupportedOperationException("This operation is not supported");
   }
+
+  void clearCache();
 }

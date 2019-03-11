@@ -17,22 +17,14 @@
 package com.netflix.spinnaker.config.secrets.engines;
 
 import com.amazonaws.AmazonClientException;
-import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.S3Object;
 import com.netflix.spinnaker.config.secrets.EncryptedSecret;
-import com.netflix.spinnaker.config.secrets.InvalidSecretFormatException;
-import com.netflix.spinnaker.config.secrets.SecretEngine;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashSet;
-import java.util.Set;
 
 @Component
 public class S3SecretEngine extends AbstractStorageSecretEngine {

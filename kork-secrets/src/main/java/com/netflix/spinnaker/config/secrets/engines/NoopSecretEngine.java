@@ -41,4 +41,7 @@ public class NoopSecretEngine implements SecretEngine {
 
   @Override
   public void validate(EncryptedSecret encryptedSecret) {}
+
+  @Override
+  public void clearCache() {}
 }

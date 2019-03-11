@@ -132,4 +132,8 @@ public abstract class AbstractStorageSecretEngine implements SecretEngine {
     }
     throw new SecretDecryptionException("Invalid secret key specified: " + yamlPath);
   }
+
+  public void clearCache() {
+    cache.clear();
+  }
 }
