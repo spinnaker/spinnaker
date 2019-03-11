@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.titus.deploy.description
 import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
 import com.netflix.spinnaker.clouddriver.orchestration.events.OperationEvent
 import com.netflix.spinnaker.clouddriver.security.resources.ApplicationNameable
+import com.netflix.spinnaker.clouddriver.titus.client.model.DisruptionBudget
 import com.netflix.spinnaker.clouddriver.titus.client.model.Efs
 import com.netflix.spinnaker.clouddriver.titus.client.model.MigrationPolicy
 import groovy.transform.Canonical
@@ -53,6 +54,7 @@ class TitusDeployDescription extends AbstractTitusCredentialsDescription impleme
   MigrationPolicy migrationPolicy
   Boolean copySourceScalingPoliciesAndActions = true
   Integer sequence
+  DisruptionBudget disruptionBudget
 
   /**
    * If false, the newly created server group will not pick up scaling policies and actions from an ancestor group

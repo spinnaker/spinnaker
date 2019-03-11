@@ -248,6 +248,7 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
         .withMigrationPolicy(description.migrationPolicy)
         .withCredentials(description.credentials.name)
         .withContainerAttributes(description.containerAttributes.collectEntries { [(it.key): it.value?.toString()] })
+        .withDisruptionBudget(description.disruptionBudget)
 
       if (dockerImage.imageDigest != null) {
         submitJobRequest = submitJobRequest.withDockerDigest(dockerImage.imageDigest)

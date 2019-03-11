@@ -86,6 +86,11 @@ public class SubmitJobRequest {
   private Map<String, String> containerAttributes = new HashMap<String, String>();
   private List<String> securityGroups = null;
   private MigrationPolicy migrationPolicy = null;
+  private DisruptionBudget disruptionBudget = null;
+
+  public DisruptionBudget getDisruptionBudget() {
+    return disruptionBudget;
+  }
 
   public SubmitJobRequest withJobType(String jobType) {
     this.jobType = jobType;
@@ -254,6 +259,11 @@ public class SubmitJobRequest {
 
   public SubmitJobRequest withCredentials(String credentials) {
     this.credentials = credentials;
+    return this;
+  }
+
+  public SubmitJobRequest withDisruptionBudget(DisruptionBudget disruptionBudget) {
+    this.disruptionBudget = disruptionBudget;
     return this;
   }
 

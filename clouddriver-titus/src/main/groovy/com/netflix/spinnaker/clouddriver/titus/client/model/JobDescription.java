@@ -64,6 +64,8 @@ public class JobDescription {
   private MigrationPolicy migrationPolicy;
   private Map<String, String> securityAttributes;
 
+  private DisruptionBudget disruptionBudget;
+
   //Soft/Hard constraints
 
   JobDescription() {
@@ -110,6 +112,8 @@ public class JobDescription {
     retries = request.getRetries();
     runtimeLimitSecs = request.getRuntimeLimitSecs();
     securityAttributes = new HashMap<String, String>();
+
+    disruptionBudget = request.getDisruptionBudget();
   }
 
   public String getName() {
@@ -383,6 +387,14 @@ public class JobDescription {
 
   public String getDigest() { return digest; }
 
+  public DisruptionBudget getDisruptionBudget() {
+    return disruptionBudget;
+  }
+
+  public void setDisruptionBudget(DisruptionBudget disruptionBudget) {
+    this.disruptionBudget = disruptionBudget;
+  }
+
   @JsonIgnore
   public Map<String, String> getSecurityAttributes() {
     return securityAttributes;
@@ -511,9 +523,13 @@ public class JobDescription {
       com.netflix.titus.grpc.protogen.MigrationPolicy serviceMigrationPolicy;
 
       if (migrationPolicy != null && migrationPolicy.getType().equals("selfManaged")) {
-        serviceMigrationPolicy = com.netflix.titus.grpc.protogen.MigrationPolicy.newBuilder().setSelfManaged(com.netflix.titus.grpc.protogen.MigrationPolicy.SelfManaged.newBuilder().build()).build();
+        serviceMigrationPolicy = com.netflix.titus.grpc.protogen.MigrationPolicy.newBuilder().setSelfManaged(
+            com.netflix.titus.grpc.protogen.MigrationPolicy.SelfManaged.newBuilder().build()
+        ).build();
       } else {
-        serviceMigrationPolicy = com.netflix.titus.grpc.protogen.MigrationPolicy.newBuilder().setSystemDefault(com.netflix.titus.grpc.protogen.MigrationPolicy.SystemDefault.newBuilder().build()).build();
+        serviceMigrationPolicy = com.netflix.titus.grpc.protogen.MigrationPolicy.newBuilder().setSystemDefault(
+            com.netflix.titus.grpc.protogen.MigrationPolicy.SystemDefault.newBuilder().build()
+        ).build();
       }
 
       jobDescriptorBuilder.setService(
@@ -539,7 +555,102 @@ public class JobDescription {
       jobDescriptorBuilder.setCapacityGroup(capacityGroup);
     }
 
+    if (disruptionBudget != null) {
+      JobDisruptionBudget budget = convertJobDisruptionBudget(disruptionBudget);
+      if (budget != null) {
+        jobDescriptorBuilder.setDisruptionBudget(budget);
+      }
+    }
+
     return jobDescriptorBuilder.build();
+  }
+
+  private JobDisruptionBudget convertJobDisruptionBudget(DisruptionBudget budget) {
+    JobDisruptionBudget.Builder builder = JobDisruptionBudget.newBuilder();
+    if (budget.getAvailabilityPercentageLimit() != null) {
+      builder.setAvailabilityPercentageLimit(
+          JobDisruptionBudget.AvailabilityPercentageLimit.newBuilder().setPercentageOfHealthyContainers(
+              budget.availabilityPercentageLimit.getPercentageOfHealthyContainers()
+          ).build()
+      );
+    }
+    if (budget.getContainerHealthProviders() != null && !budget.getContainerHealthProviders().isEmpty()) {
+      budget.getContainerHealthProviders().forEach(chp ->
+          builder.addContainerHealthProviders(ContainerHealthProvider.newBuilder().setName(chp.getName()).build()));
+    }
+
+    if (budget.getSelfManaged() != null) {
+      builder.setSelfManaged(
+          JobDisruptionBudget.SelfManaged.newBuilder().setRelocationTimeMs(
+              budget.getSelfManaged().getRelocationTimeMs()
+          ).build()
+      );
+    }
+
+    if (budget.getRatePercentagePerHour() != null) {
+      builder.setRatePercentagePerHour(
+          JobDisruptionBudget.RatePercentagePerHour.newBuilder().setMaxPercentageOfContainersRelocatedInHour(
+              budget.getRatePercentagePerHour().getMaxPercentageOfContainersRelocatedInHour()
+          ).build()
+      );
+    }
+
+    if (budget.getRelocationLimit() != null) {
+      builder.setRelocationLimit(
+          JobDisruptionBudget.RelocationLimit.newBuilder().setLimit(budget.getRelocationLimit().getLimit())
+      );
+    }
+
+    if (budget.getSelfManaged() != null) {
+      builder.setSelfManaged(
+          JobDisruptionBudget.SelfManaged.newBuilder().setRelocationTimeMs(budget.getRelocationLimit().getLimit())
+      );
+    }
+
+    if (budget.getTimeWindows() != null && !budget.getTimeWindows().isEmpty()) {
+      budget.getTimeWindows().forEach(tw -> {
+        TimeWindow.Builder timeWindowBuilder = TimeWindow.newBuilder();
+        tw.getDays().forEach(day -> timeWindowBuilder.addDays(convertDay(day)));
+        tw.getHourlyTimeWindows().forEach(htw -> {
+          timeWindowBuilder.addHourlyTimeWindows(
+              TimeWindow.HourlyTimeWindow.newBuilder().setEndHour(
+                  htw.getEndHour()).setStartHour(htw.getStartHour()
+              ).build()
+          );
+        });
+        timeWindowBuilder.setTimeZone(tw.getTimeZone());
+        builder.addTimeWindows(timeWindowBuilder.build());
+      });
+    }
+
+    if (budget.getUnhealthyTasksLimit() != null) {
+      builder.setUnhealthyTasksLimit(
+          JobDisruptionBudget.UnhealthyTasksLimit.newBuilder().setLimitOfUnhealthyContainers(
+              budget.getUnhealthyTasksLimit().getLimitOfUnhealthyContainers()
+          ).build()
+      );
+    }
+
+    return builder.build();
+  }
+
+  private Day convertDay(String day) {
+    switch (day) {
+      case "Monday":
+        return Day.Monday;
+      case "Tuesday":
+        return Day.Tuesday;
+      case "Wednesday":
+        return Day.Wednesday;
+      case "Thursday":
+        return Day.Thursday;
+      case "Friday":
+        return Day.Friday;
+      case "Saturday":
+        return Day.Saturday;
+      default:
+        return Day.Sunday;
+    }
   }
 
   private MountPerm convertMountPerm(String mountPerm) {
@@ -552,6 +663,8 @@ public class JobDescription {
         return MountPerm.RW;
     }
   }
+
+
 
   private Constraints.Builder constraintTransformer(List<String> constraints) {
     Constraints.Builder constraintsBuilder = Constraints.newBuilder();
