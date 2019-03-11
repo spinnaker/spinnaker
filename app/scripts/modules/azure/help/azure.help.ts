@@ -15,6 +15,10 @@ const helpContents: { [key: string]: string } = {
   'azure.securityGroup.ingress.direction': 'Specifies whether the rule is for inbound or outbound traffic.',
   'azure.securityGroup.ingress.actions':
     'To adjust the priority of a rule, move it up or down in the list of rules.  Rules at the top of the list have the highest priority.',
+  'azure.securityGroup.ingress.destPortRanges':
+    'Provide a single port, such as 80; a port range, such as 1024-65535; or a comma-separated list of single ports and/or port ranges, such as 80,1024-65535. Provide an asterisk (*) to allow traffic on any port.',
+  'azure.securityGroup.ingress.sourceIPCIDRRanges':
+    'Provide an address range using CIDR notation, such as 192.168.99.0/24; an IP address, such as 192.168.99.0; or a comma-separated list of address ranges or IP addresses, such as 10.0.0.0/24,44.66.0.0/24',
   'azure.serverGroup.imageName': '(Required) <b>Image</b> is the deployable Azure Machine Image.',
   'azure.serverGroup.stack':
     '(Required) <b>Stack</b> is one of the core naming components of a cluster, used to create vertical stacks of dependent services for integration testing.',

@@ -1,12 +1,5 @@
 <div class="modal-body">
-  <div class="row">
-    <div class="col-md-12">
-      <p class="info">
-        <span class="glyphicon glyphicon-info-sign"></span> Source/Destination address prefixes can only be edited
-        through the Azure Portal.
-      </p>
-    </div>
-  </div>
+  <div class="row"></div>
   <div class="form-group">
     <div class="form-group">
       <div class="col-md-12">
@@ -15,16 +8,18 @@
             <tr>
               <th style="width: 21%">Protocol</th>
               <th style="width: 32%">
-                Start Port<help-field key="azure.securityGroup.ingress.startPort"></help-field>
+                Source IP/CIDR ranges<help-field key="azure.securityGroup.ingress.sourceIPCIDRRanges"></help-field>
               </th>
-              <th style="width: 32%">End Port<help-field key="azure.securityGroup.ingress.endPort"></help-field></th>
+              <th style="width: 32%">
+                Destination port ranges<help-field key="azure.securityGroup.ingress.destPortRanges"></help-field>
+              </th>
               <th style width="15%">Actions<help-field key="azure.securityGroup.ingress.actions"></help-field></th>
             </tr>
           </thead>
           <tbody>
             <tr ng-repeat="rule in securityGroup.securityRules">
               <td>
-                <select class="form-control input-sm" ng-model="rule.protocol">
+                <select class="form-control input-sm" ng-model="rule.protocolUI">
                   <option value="tcp">TCP</option>
                   <option value="udp">UDP</option>
                   <option value="*">ANY</option>
@@ -33,21 +28,21 @@
               <td>
                 <input
                   class="form-control input-sm"
-                  type="number"
-                  min="0"
-                  max="65535"
-                  ng-model="rule.startPort"
-                  ng-change="ctrl.portUpdated(securityGroup.securityRules, $index)"
+                  type="text"
+                  value="*"
+                  pattern="^\*$|^((25[0-5]|2[0-4]\d|[01]?\d\d?)[.]){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)(\/([1-9]|[1-2]\d|3[0-2]))?(,((25[0-5]|2[0-4]\d|[01]?\d\d?)[.]){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)(\/([1-9]|[1-2]\d|3[0-2]))?)*$"
+                  ng-model="rule.sourceIPCIDRRanges"
+                  ng-change="ctrl.sourceIPCIDRUpdated(securityGroup.securityRules, $index)"
                   required
                 />
               </td>
               <td>
                 <input
                   class="form-control input-sm"
-                  type="number"
-                  min="0"
-                  max="65535"
-                  ng-model="rule.endPort"
+                  type="text"
+                  value="80"
+                  pattern="^\*$|^((\d|[1-9]\d{1,3}|[1-5]\d{4}|6[0-4]\d{3}|65[0-4]\d{2}|655[0-2]\d|6553[0-5])|(\d|[1-9]\d{1,3}|[1-5]\d{4}|6[0-4]\d{3}|65[0-4]\d{2}|655[0-2]\d|6553[0-5])-(\d|[1-9]\d{1,3}|[1-5]\d{4}|6[0-4]\d{3}|65[0-4]\d{2}|655[0-2]\d|6553[0-5]))(,((\d|[1-9]\d{1,3}|[1-5]\d{4}|6[0-4]\d{3}|65[0-4]\d{2}|655[0-2]\d|6553[0-5])|(\d|[1-9]\d{1,3}|[1-5]\d{4}|6[0-4]\d{3}|65[0-4]\d{2}|655[0-2]\d|6553[0-5])-(\d|[1-9]\d{1,3}|[1-5]\d{4}|6[0-4]\d{3}|65[0-4]\d{2}|655[0-2]\d|6553[0-5])))*$"
+                  ng-model="rule.destPortRanges"
                   ng-change="ctrl.portUpdated(securityGroup.securityRules, $index)"
                   required
                 />

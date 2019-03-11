@@ -1,5 +1,6 @@
 'use strict';
 
+const _ = require('lodash');
 const angular = require('angular');
 
 import {
@@ -43,9 +44,13 @@ module.exports = angular
       };
 
       securityGroup.securityRules = _.map(securityGroup.securityRules, function(rule) {
-        var temp = rule.destinationPortRange.split('-');
-        rule.startPort = Number(temp[0]);
-        rule.endPort = Number(temp[1]);
+        if (!_.isEmpty(rule.protocol)) {
+          rule.protocolUI = rule.protocol.toLowerCase();
+        }
+
+        rule.destPortRanges = rule.destinationPortRangeModel;
+        rule.sourceIPCIDRRanges = rule.sourceAddressPrefixModel;
+
         return rule;
       });
 
@@ -90,15 +95,17 @@ module.exports = angular
         ruleset.push({
           name: $scope.securityGroup.name + '-Rule' + ruleset.length,
           priority: ruleset.length === 0 ? 100 : 100 * (ruleset.length + 1),
-          protocol: 'tcp',
+          protocolUI: 'tcp',
           access: 'Allow',
           direction: 'InBound',
           sourceAddressPrefix: '*',
+          sourceAddressPrefixes: [],
           sourcePortRange: '*',
           destinationAddressPrefix: '*',
-          destinationPortRange: '7001-7001',
-          startPort: 7001,
-          endPort: 7001,
+          destinationPortRange: '*',
+          destinationPortRanges: [],
+          destPortRanges: '*',
+          sourceIPCIDRRanges: '*',
         });
       };
 
@@ -127,7 +134,39 @@ module.exports = angular
       }
 
       this.portUpdated = function(ruleset, index) {
-        ruleset[index].destinationPortRange = ruleset[index].startPort + '-' + ruleset[index].endPort;
+        if (!_.isEmpty(ruleset[index].sourceIPCIDRRanges)) {
+          var ruleRanges = ruleset[index].destPortRanges.split(',');
+          if (ruleRanges.length > 1) {
+            ruleset[index].destinationPortRanges = [];
+            ruleRanges.forEach(v => ruleset[index].destinationPortRanges.push(v));
+
+            // If there are multiple port ranges then set null to the single port parameter otherwise ARM template will fail in validation.
+            ruleset[index].destinationPortRange = null;
+          } else {
+            ruleset[index].destinationPortRange = ruleset[index].destPortRanges;
+
+            // If there is a single port range then set null to the port array otherwise ARM template will fail in validation.
+            ruleset[index].destinationPortRanges = [];
+          }
+        }
+      };
+
+      this.sourceIPCIDRUpdated = function(ruleset, index) {
+        if (!_.isEmpty(ruleset[index].sourceIPCIDRRanges)) {
+          var ruleRanges = ruleset[index].sourceIPCIDRRanges.split(',');
+          if (ruleRanges.length > 1) {
+            ruleset[index].sourceAddressPrefixes = [];
+            ruleRanges.forEach(v => ruleset[index].sourceAddressPrefixes.push(v));
+
+            // If there are multiple IP/CIDR ranges then set null to the single sourceAddressPrefix parameter otherwise ARM template will fail in validation
+            ruleset[index].sourceAddressPrefix = null;
+          } else {
+            ruleset[index].sourceAddressPrefix = ruleset[index].sourceIPCIDRRanges;
+
+            // If there is a single IP/CIDR then set null to the IP/CIDR array otherwise ARM template will fail in validation.
+            ruleset[index].sourceAddressPrefixes = [];
+          }
+        }
       };
 
       this.removeRule = function(ruleset, index) {
@@ -164,7 +203,7 @@ module.exports = angular
             cloudProvider: 'azure',
             appName: application.name,
             region: $scope.securityGroup.region,
-            subnet: 'none',
+            subnet: null,
             vpcId: 'null',
           };
           $scope.securityGroup.type = 'upsertSecurityGroup';

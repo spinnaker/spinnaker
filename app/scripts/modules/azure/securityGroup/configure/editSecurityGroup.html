@@ -1,5 +1,19 @@
-<v2-modal-wizard heading="Edit {{securityGroup.name}}: {{securityGroup.region}}: {{securityGroup.credentials}}">
-  <v2-wizard-page key="Ingress" label="Ingress" done="true">
-    <ng-include src="pages.ingress"></ng-include>
-  </v2-wizard-page>
-</v2-modal-wizard>
+<form name="form" novalidate validate-on-submit>
+  <v2-modal-wizard
+    heading="Edit {{securityGroup.name}}: {{securityGroup.region}}: {{securityGroup.credentials}}"
+    task-monitor="taskMonitor"
+    dismiss="$dismiss()"
+  >
+    <v2-wizard-page key="Ingress" label="Ingress" done="true">
+      <ng-include src="pages.ingress"></ng-include>
+    </v2-wizard-page>
+  </v2-modal-wizard>
+  <div class="modal-footer">
+    <button ng-disabled="taskMonitor.submitting" class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
+    <submit-button
+      is-disabled="taskMonitor.submitting"
+      submitting="taskMonitor.submitting"
+      on-click="form.$valid && ctrl.upsert()"
+    ></submit-button>
+  </div>
+</form>

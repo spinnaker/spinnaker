@@ -82,19 +82,27 @@ module.exports = angular
           typeof command.customScriptsSettings.fileUris !== 'undefined' &&
           command.customScriptsSettings.fileUris != ''
         ) {
-          var fileUrisTemp = command.customScriptsSettings.fileUris;
-          if (typeof fileUrisTemp !== 'string') fileUrisTemp = fileUrisTemp[0];
-          if (fileUrisTemp.includes(',')) {
-            configuration.customScriptsSettings.fileUris = fileUrisTemp.split(',');
-          } else if (fileUrisTemp.includes(';')) {
-            configuration.customScriptsSettings.fileUris = fileUrisTemp.split(';');
+          /*
+              At the first time this wizard pops up, the type of command.customScriptsSettings.fileUris is String. As for the following 
+              occurrences of its pop up with this field unchanged, its type becomes an array. So here differentiate the two scenarios
+              to assign the correct value to model.
+            */
+          if (Array.isArray(command.customScriptsSettings.fileUris)) {
+            configuration.customScriptsSettings.fileUris = command.customScriptsSettings.fileUris;
           } else {
-            configuration.customScriptsSettings.fileUris = [fileUrisTemp];
-          }
+            var fileUrisTemp = command.customScriptsSettings.fileUris;
+            if (fileUrisTemp.includes(',')) {
+              configuration.customScriptsSettings.fileUris = fileUrisTemp.split(',');
+            } else if (fileUrisTemp.includes(';')) {
+              configuration.customScriptsSettings.fileUris = fileUrisTemp.split(';');
+            } else {
+              configuration.customScriptsSettings.fileUris = [fileUrisTemp];
+            }
 
-          configuration.customScriptsSettings.fileUris.forEach(function(v, index) {
-            configuration.customScriptsSettings.fileUris[index] = v.trim();
-          });
+            configuration.customScriptsSettings.fileUris.forEach(function(v, index) {
+              configuration.customScriptsSettings.fileUris[index] = v.trim();
+            });
+          }
         }
       }
 

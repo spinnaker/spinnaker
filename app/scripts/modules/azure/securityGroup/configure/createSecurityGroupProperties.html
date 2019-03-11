@@ -53,4 +53,36 @@
       ></region-select-field>
     </div>
   </div>
+
+  <div class="form-group">
+    <div class="col-md-4 sm-label-right">Virtual Network</div>
+    <div class="col-md-7">
+      <ui-select
+        class="form-control input-sm"
+        ng-model="securityGroup.selectedVnet"
+        on-select="ctrl.selectedVnetChanged($item)"
+      >
+        <ui-select-match placeholder="Select from existing virtual networks">{{$select.selected.name}}</ui-select-match>
+        <ui-select-choices repeat="selectVnet in ctrl.selectedVnets | filter: $select.search">
+          <span ng-bind-html="selectVnet.name | highlight: $select.search"></span>
+        </ui-select-choices>
+      </ui-select>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <div class="col-md-4 sm-label-right">Subnet</div>
+    <div class="col-md-7">
+      <ui-select
+        class="form-control input-sm"
+        ng-model="securityGroup.selectedSubnet"
+        on-select="ctrl.selectedSubnetChanged($item)"
+      >
+        <ui-select-match placeholder="Select from existing subnets">{{$select.selected.name}}</ui-select-match>
+        <ui-select-choices repeat="selectSubnet in ctrl.selectedSubnets | filter: $select.search">
+          <span ng-bind-html="selectSubnet.name | highlight: $select.search"></span>
+        </ui-select-choices>
+      </ui-select>
+    </div>
+  </div>
 </div>

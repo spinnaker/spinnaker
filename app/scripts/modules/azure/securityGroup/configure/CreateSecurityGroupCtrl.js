@@ -1,8 +1,9 @@
 'use strict';
 
 const angular = require('angular');
+const _ = require('lodash');
 
-import { AccountService, TaskMonitor, FirewallLabels } from '@spinnaker/core';
+import { AccountService, FirewallLabels, InfrastructureCaches, NetworkReader, TaskMonitor } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.azure.securityGroup.create.controller', [
@@ -83,7 +84,55 @@ module.exports = angular
           $scope.regions = regions;
           $scope.securityGroup.regions = regions;
           ctrl.updateName();
+          ctrl.regionUpdated();
         });
+      };
+
+      this.regionUpdated = function() {
+        ctrl.vnetUpdated();
+      };
+
+      this.vnetUpdated = function() {
+        var account = $scope.securityGroup.credentials;
+        var region = $scope.securityGroup.region;
+        $scope.securityGroup.selectedVnet = null;
+        $scope.securityGroup.vnet = null;
+        $scope.securityGroup.vnetResourceGroup = null;
+
+        ctrl.selectedVnets = [];
+
+        InfrastructureCaches.clearCache('networks');
+
+        NetworkReader.listNetworks().then(function(vnets) {
+          if (vnets.azure) {
+            vnets.azure.forEach(vnet => {
+              if (vnet.account === account && vnet.region === region) {
+                ctrl.selectedVnets.push(vnet);
+              }
+            });
+          }
+        });
+
+        ctrl.subnetUpdated();
+      };
+
+      this.subnetUpdated = function() {
+        $scope.securityGroup.selectedSubnet = null;
+        $scope.securityGroup.subnet = null;
+        ctrl.selectedSubnets = [];
+      };
+
+      this.selectedVnetChanged = function(item) {
+        $scope.securityGroup.vnet = item.name;
+        $scope.securityGroup.vnetResourceGroup = item.resourceGroup;
+        $scope.securityGroup.selectedSubnet = null;
+        $scope.securityGroup.subnet = null;
+        ctrl.selectedSubnets = [];
+        if (item.subnets) {
+          item.subnets.map(function(subnet) {
+            ctrl.selectedSubnets.push(subnet);
+          });
+        }
       };
 
       ctrl.cancel = function() {
@@ -106,9 +155,18 @@ module.exports = angular
             cloudProvider: 'azure',
             appName: application.name,
             region: $scope.securityGroup.region,
-            subnet: 'none',
             vpcId: 'null',
           };
+
+          if ($scope.securityGroup.selectedVnet) {
+            $scope.securityGroup.vnet = $scope.securityGroup.selectedVnet.name;
+            $scope.securityGroup.vnetResourceGroup = $scope.securityGroup.selectedVnet.resourceGroup;
+          }
+
+          if ($scope.securityGroup.selectedSubnet) {
+            $scope.securityGroup.subnet = $scope.securityGroup.selectedSubnet.name;
+          }
+
           $scope.securityGroup.type = 'upsertSecurityGroup';
 
           return azureSecurityGroupWriter.upsertSecurityGroup($scope.securityGroup, application, 'Create', params);
@@ -119,20 +177,60 @@ module.exports = angular
         ruleset.push({
           name: $scope.securityGroup.name + '-Rule' + ruleset.length,
           priority: ruleset.length == 0 ? 100 : 100 * (ruleset.length + 1),
+          protocolUI: 'tcp',
           protocol: 'tcp',
           access: 'Allow',
           direction: 'InBound',
           sourceAddressPrefix: '*',
+          sourceAddressPrefixes: [],
           sourcePortRange: '*',
           destinationAddressPrefix: '*',
-          destinationPortRange: '80-80',
-          startPort: 80,
-          endPort: 80,
+          destinationPortRange: '*',
+          destinationPortRanges: [],
+          destPortRanges: '*',
+          sourceIPCIDRRanges: '*',
         });
       };
 
       ctrl.portUpdated = function(ruleset, index) {
-        ruleset[index].destinationPortRange = ruleset[index].startPort + '-' + ruleset[index].endPort;
+        if (!_.isEmpty(ruleset[index].destPortRanges)) {
+          var ruleRanges = ruleset[index].destPortRanges.split(',');
+
+          if (ruleRanges.length > 1) {
+            ruleset[index].destinationPortRanges = [];
+            ruleRanges.forEach(v => ruleset[index].destinationPortRanges.push(v));
+
+            // If there are multiple port ranges then set null to the single port parameter otherwise ARM template will fail in validation.
+            ruleset[index].destinationPortRange = null;
+          } else {
+            ruleset[index].destinationPortRange = ruleset[index].destPortRanges;
+
+            // If there is a single port range then set null to the port array otherwise ARM template will fail in validation.
+            ruleset[index].destinationPortRanges = [];
+          }
+        }
+      };
+
+      ctrl.sourceIPCIDRUpdated = function(ruleset, index) {
+        if (!_.isEmpty(ruleset[index].destPortRanges)) {
+          var ruleRanges = ruleset[index].sourceIPCIDRRanges.split(',');
+          if (ruleRanges.length > 1) {
+            ruleset[index].sourceAddressPrefixes = [];
+            ruleRanges.forEach(v => ruleset[index].sourceAddressPrefixes.push(v));
+
+            // If there are multiple IP/CIDR ranges then set null to the single sourceAddressPrefix parameter otherwise ARM template will fail in validation
+            ruleset[index].sourceAddressPrefix = null;
+          } else {
+            ruleset[index].sourceAddressPrefix = ruleset[index].sourceIPCIDRRanges;
+
+            // If there is a single IP/CIDR then set null to the IP/CIDR array otherwise ARM template will fail in validation.
+            ruleset[index].sourceAddressPrefixes = [];
+          }
+        }
+      };
+
+      ctrl.protocolUpdated = function(ruleset, index) {
+        ruleset[index].protocol = ruleset[index].protocolUI;
       };
 
       ctrl.removeRule = function(ruleset, index) {
