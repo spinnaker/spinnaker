@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.handler.v2
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.pipelinetemplate.handler.Handler
 import com.netflix.spinnaker.orca.pipelinetemplate.handler.HandlerChain
@@ -34,7 +35,8 @@ class V2SchemaHandlerGroup
 @Autowired constructor(
   private val templateLoader: V2TemplateLoader,
   private val objectMapper: ObjectMapper,
-  private val contextParameterProcessor: ContextParameterProcessor
+  private val contextParameterProcessor: ContextParameterProcessor,
+  private val artifactResolver: ArtifactResolver
 ): HandlerGroup {
 
   override fun getHandlers(): List<Handler>
@@ -43,7 +45,7 @@ class V2SchemaHandlerGroup
     V2ConfigurationValidationHandler(),
     V2TemplateValidationHandler(),
     V2GraphMutatorHandler(),
-    V2PipelineGenerator()
+    V2PipelineGenerator(artifactResolver)
   )
 }
 
@@ -55,10 +57,17 @@ class V2GraphMutatorHandler : Handler {
   }
 }
 
-class V2PipelineGenerator : Handler {
+class V2PipelineGenerator (
+  private val artifactResolver: ArtifactResolver
+) : Handler {
   override fun handle(chain: HandlerChain, context: PipelineTemplateContext) {
     val ctx = context.getSchemaContext<V2PipelineTemplateContext>()
     val generator = V2SchemaExecutionGenerator()
-    context.getProcessedOutput().putAll(generator.generate(ctx.template, ctx.configuration, context.getRequest()))
+
+    // Explicitly resolve artifacts after preprocessing to support artifacts in templated pipelines.
+    // TODO(jacobkiefer): Refactor /orchestrate so we don't have to special case v2 artifact resolution.
+    val generatedPipeline = generator.generate(ctx.template, ctx.configuration, context.getRequest())
+    artifactResolver.resolveArtifacts(generatedPipeline)
+    context.getProcessedOutput().putAll(generatedPipeline)
   }
 }
