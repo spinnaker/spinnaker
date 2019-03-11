@@ -208,6 +208,8 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
 
       result.serverGroupNames.addAll(thisResult.serverGroupNames)
       result.deployedNames.addAll(thisResult.deployedNames)
+      result.deployments.addAll(thisResult.deployments)
+      result.createdArtifacts.addAll(thisResult.createdArtifacts)
       result.messages.addAll(thisResult.messages)
       thisResult.serverGroupNameByRegion.entrySet().each { result.serverGroupNameByRegion[it.key] = it.value }
       thisResult.deployedNamesByLocation.entrySet().each { result.deployedNamesByLocation[it.key] = it.value }
