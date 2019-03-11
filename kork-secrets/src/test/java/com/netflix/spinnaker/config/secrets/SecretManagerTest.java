@@ -112,7 +112,7 @@ public class SecretManagerTest {
   @Test
   public void decryptFileNoDiskSpaceMock() throws SecretDecryptionException {
     SecretManager spy = spy(new SecretManager(secretEngineRegistry));
-    doThrow(SecretDecryptionException.class).when(spy).decryptedFilePath(any(), any());
+    doThrow(SecretDecryptionException.class).when(spy).createTempFile(any(), any());
     doReturn("contents").when(spy).decrypt(any());
     doCallRealMethod().when(spy).decryptAsFile(any());
     exceptionRule.expect(SecretDecryptionException.class);

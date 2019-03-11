@@ -26,7 +26,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class NoopSecretEngine implements SecretEngine {
-  private final static String IDENTIFIER = "nop";
+  private final static String IDENTIFIER = "noop";
   private final static String PARAM_VALUE = "v";
 
   @Override
