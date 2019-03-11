@@ -33,13 +33,13 @@ import com.netflix.spinnaker.kork.artifacts.model.Artifact
 
 import com.netflix.spectator.api.Registry
 import groovy.util.logging.Slf4j
+
 import java.nio.file.Path
 import java.nio.file.Paths
 
 import org.springframework.beans.factory.annotation.Autowired
 import static com.netflix.spinnaker.clouddriver.appengine.config.AppengineConfigurationProperties.ManagedAccount.GcloudReleaseTrack
 import java.util.concurrent.TimeUnit
-
 
 class DeployAppengineAtomicOperation implements AtomicOperation<DeploymentResult> {
   private static final String BASE_PHASE = "DEPLOY"
@@ -247,9 +247,9 @@ class DeployAppengineAtomicOperation implements AtomicOperation<DeploymentResult
     def gcloudReleaseTrack = description.credentials.gcloudReleaseTrack
     def serverGroupNameResolver = new AppengineServerGroupNameResolver(project, region, description.credentials)
     def versionName = serverGroupNameResolver.resolveNextServerGroupName(description.application,
-                                                                         description.stack,
-                                                                         description.freeFormDetails,
-                                                                         false)
+      description.stack,
+      description.freeFormDetails,
+      description.suppressVersionString)
     def imageUrl = description.containerImageUrl
     def configFiles = description.configFiles
     def writtenFullConfigFilePaths = writeConfigFiles(configFiles, repositoryPath, applicationDirectoryRoot)
