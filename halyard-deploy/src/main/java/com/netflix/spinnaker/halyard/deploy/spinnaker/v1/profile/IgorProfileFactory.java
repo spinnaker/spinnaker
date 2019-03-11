@@ -16,11 +16,13 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
+import com.netflix.spinnaker.halyard.config.model.v1.node.Artifacts;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Cis;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Providers;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Cis;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
+import lombok.Data;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -42,8 +44,24 @@ public class IgorProfileFactory extends SpringProfileFactory {
 
     Cis cis = deploymentConfiguration.getCi();
     List<String> files = backupRequiredFiles(cis, deploymentConfiguration.getName());
+
+    Artifacts artifacts = deploymentConfiguration.getArtifacts();
+    if (artifacts != null) {
+      files.addAll(backupRequiredFiles(artifacts, deploymentConfiguration.getName()));
+      profile.appendContents(yamlToString(deploymentConfiguration.getName(), profile, new ArtifactWrapper(artifacts)));
+    }
+
     profile.appendContents(yamlToString(deploymentConfiguration.getName(), profile, cis))
         .appendContents(profile.getBaseContents())
         .setRequiredFiles(files);
+  }
+
+  @Data
+  private static class ArtifactWrapper {
+    private Artifacts artifacts;
+
+    ArtifactWrapper(Artifacts artifacts) {
+      this.artifacts = artifacts;
+    }
   }
 }
