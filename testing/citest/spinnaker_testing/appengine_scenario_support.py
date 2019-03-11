@@ -79,9 +79,7 @@ class AppEngineScenarioSupport(BaseScenarioPlatformSupport):
       raise ValueError('There is no "appengine_primary_managed_project_id"')
 
     return gcp.GcpAppengineAgent.make_agent(
-        scopes=(gcp.APPENGINE_FULL_SCOPE
-                if bindings['APPENGINE_CREDENTIALS_PATH']
-                else None),
+        scopes=gcp.APPENGINE_FULL_SCOPE,
         credentials_path=bindings['APPENGINE_CREDENTIALS_PATH'],
         default_variables={
             'project': bindings['APPENGINE_PRIMARY_MANAGED_PROJECT_ID']})
