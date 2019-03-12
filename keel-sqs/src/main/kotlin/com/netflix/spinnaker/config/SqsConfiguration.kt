@@ -53,5 +53,7 @@ class SqsConfiguration {
     objectMapper: ObjectMapper,
     actuator: ResourceActuator
   ): Any =
-    SqsResourceCheckListener(sqsClient, queueARN, objectMapper, actuator)
+    sqsClient.createQueue(queueARN.name).run {
+      SqsResourceCheckListener(sqsClient, queueUrl, objectMapper, actuator)
+    }
 }

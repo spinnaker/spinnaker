@@ -1,13 +1,10 @@
 package com.netflix.spinnaker.keel.sqs
 
-import com.amazonaws.services.sqs.AmazonSQS
-import com.amazonaws.services.sqs.AmazonSQSClient
 import com.netflix.spinnaker.config.SqsConfiguration
 import com.netflix.spinnaker.keel.annealing.ResourceActuator
 import com.netflix.spinnaker.keel.annealing.ResourceCheckQueue
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
-import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.nhaarman.mockitokotlin2.doAnswer
 import com.nhaarman.mockitokotlin2.stub
 import com.nhaarman.mockitokotlin2.verify
@@ -16,10 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE
 import org.springframework.boot.test.mock.mockito.MockBean
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
-import org.testcontainers.containers.localstack.LocalStackContainer
-import org.testcontainers.containers.localstack.LocalStackContainer.Service.SQS
 import strikt.api.Assertion
 import strikt.api.expectThat
 import java.util.concurrent.CountDownLatch
@@ -35,7 +28,7 @@ import java.util.concurrent.TimeUnit.SECONDS
   ],
   webEnvironment = NONE
 )
-internal class SqsResourceCheckQueueTests {
+internal class SqsIntegrationTests {
 
   @MockBean
   lateinit var resourceActuator: ResourceActuator
@@ -65,24 +58,3 @@ fun Assertion.Builder<CountDownLatch>.countsDownWithin(timeout: Long, unit: Time
   assert("counts down to zero within $timeout ${unit.name.toLowerCase()}") {
     if (it.await(timeout, unit)) pass() else fail()
   }
-
-@Configuration
-class LocalStackSqsConfiguration {
-
-  @Bean
-  fun objectMapper() = configuredObjectMapper()
-
-  @Bean(destroyMethod = "stop")
-  fun localStack(): LocalStackContainer =
-    LocalStackContainer()
-      .withServices(SQS)
-      .also(LocalStackContainer::start)
-
-  @Bean
-  fun localStackSqs(localStack: LocalStackContainer): AmazonSQS {
-    return AmazonSQSClient.builder()
-      .withEndpointConfiguration(localStack.getEndpointConfiguration(SQS))
-      .withCredentials(localStack.defaultCredentialsProvider)
-      .build()
-  }
-}

@@ -2,64 +2,72 @@ package com.netflix.spinnaker.keel.sqs
 
 import com.amazonaws.services.sqs.AmazonSQS
 import com.amazonaws.services.sqs.model.Message
+import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.annealing.ResourceActuator
 import com.netflix.spinnaker.keel.api.ResourceName
-import com.netflix.spinnaker.kork.aws.ARN
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Dispatchers.Default
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import org.slf4j.LoggerFactory
 import javax.annotation.PostConstruct
 import javax.annotation.PreDestroy
 
 internal class SqsResourceCheckListener(
   private val sqsClient: AmazonSQS,
-  private val queueARN: ARN,
+  private val queueUrl: String,
   private val objectMapper: ObjectMapper,
   private val actuator: ResourceActuator
 ) {
-  private lateinit var queueUrl: String
   private lateinit var listenerJob: Job
 
   private val scope: CoroutineScope
-    get() = CoroutineScope(Dispatchers.Default)
-
-  private var active: Boolean = false
+    get() = CoroutineScope(Default)
 
   @PostConstruct
   fun startListening() {
-    queueUrl = sqsClient.createQueue(queueARN.name).queueUrl
-    active = true
     listenerJob = scope.launch {
-      while (active) {
-        handleMessages {
-          with(objectMapper.readValue<ResourceCheckMessage>(it.body)) {
-            actuator.checkResource(name.let(::ResourceName), apiVersion, kind)
-          }
-        }
+      while (isActive) {
+        handleMessages()
       }
     }
   }
 
-  private fun handleMessages(handler: (Message) -> Unit) {
+  internal fun handleMessages() {
     with(sqsClient) {
       receiveMessage(queueUrl)
+        .also {
+          log.info("Got {} messages", it.messages.size)
+        }
         .messages
         .forEach {
-          handler(it)
-          deleteMessage(queueUrl, it.receiptHandle)
+          try {
+            with(it.parse()) {
+              actuator.checkResource(name.let(::ResourceName), apiVersion, kind)
+            }
+            deleteMessage(queueUrl, it.receiptHandle)
+          } catch (e: JsonProcessingException) {
+            log.error("Could not parse message payload: {}", it.body)
+          } catch (e: Throwable) {
+            log.error("Resource Actuator threw {}: {}", e.javaClass.simpleName, e.message)
+          }
         }
     }
   }
 
   @PreDestroy
   fun stopListening() {
+    listenerJob.cancel()
     runBlocking {
-      active = false
       listenerJob.join()
     }
   }
+
+  private fun Message.parse(): ResourceCheckMessage = objectMapper.readValue(body)
+
+  private val log by lazy { LoggerFactory.getLogger(javaClass) }
 }
