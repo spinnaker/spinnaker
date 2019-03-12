@@ -177,10 +177,10 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
    * This method aims to generically detect these scenarios and use the target capacity of the
    * server group rather than 0/0/0.
    */
-  private Map<String, Integer> getServerGroupCapacity(Stage stage, Map serverGroup) {
+  private static Map<String, Integer> getServerGroupCapacity(Stage stage, Map serverGroup) {
     def serverGroupCapacity = serverGroup.capacity as Map<String, Integer>
 
-    def cloudProvider = getCloudProvider(stage)
+    def cloudProvider = stage.context.cloudProvider
 
     def initialTargetCapacity = getInitialTargetCapacity(stage, serverGroup)
     if (!initialTargetCapacity) {
