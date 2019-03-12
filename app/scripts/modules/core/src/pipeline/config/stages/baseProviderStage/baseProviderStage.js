@@ -15,7 +15,8 @@ module.exports = angular
   .controller('BaseProviderStageCtrl', [
     '$scope',
     'stage',
-    function($scope, stage) {
+    '$timeout',
+    function($scope, stage, $timeout) {
       // Docker Bake is wedged in here because it doesn't really fit our existing cloud provider paradigm
       let dockerBakeEnabled = SETTINGS.feature.dockerBake && stage.type === 'bake';
 
@@ -70,7 +71,12 @@ module.exports = angular
           if (stageProvider.component) {
             const props = $scope.reactPropsForBaseProviderStage;
             props.component = stageProvider.component;
-            ReactDOM.render(React.createElement(StageConfigWrapper, props), el);
+            $timeout(() => {
+              ReactDOM.render(
+                React.createElement(StageConfigWrapper, props),
+                el || document.querySelector('.react-stage-details'),
+              );
+            }, 0);
           } else {
             $scope.providerStageDetailsUrl = stageProvider.templateUrl;
           }
