@@ -19,6 +19,7 @@ package com.netflix.spinnaker.kork.web.interceptors;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spectator.api.histogram.PercentileDistributionSummary;
+import com.netflix.spectator.api.histogram.PercentileTimer;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
@@ -120,9 +121,8 @@ public class MetricsInterceptor extends HandlerInterceptorAdapter {
         id = id.withTag("success", "true");
       }
 
-      registry.timer(id).record(
-        getNanoTime() - ((Long) request.getAttribute(TIMER_ATTRIBUTE)), TimeUnit.NANOSECONDS
-      );
+      PercentileTimer.get(registry, id)
+        .record(getNanoTime() - ((Long) request.getAttribute(TIMER_ATTRIBUTE)), TimeUnit.NANOSECONDS);
 
       PercentileDistributionSummary.get(
         registry,
