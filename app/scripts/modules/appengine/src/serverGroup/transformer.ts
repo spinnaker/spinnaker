@@ -35,6 +35,7 @@ export class AppengineDeployDescription {
   public sourceType: string;
   public storageAccountName?: string;
   public containerImageUrl?: string;
+  public suppressVersionString?: boolean;
 
   constructor(command: IAppengineServerGroupCommand) {
     this.credentials = command.credentials;
@@ -64,6 +65,7 @@ export class AppengineDeployDescription {
     this.sourceType = command.sourceType;
     this.storageAccountName = command.storageAccountName;
     this.containerImageUrl = command.containerImageUrl;
+    this.suppressVersionString = command.suppressVersionString;
   }
 }
 

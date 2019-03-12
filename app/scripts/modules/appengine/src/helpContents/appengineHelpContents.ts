@@ -70,6 +70,15 @@ const helpContents = [
               for example <b>gcr.io/my-project/image:tag</b>`,
   },
   {
+    key: 'appengine.serverGroup.suppress-version-string',
+    value: `Spinnaker automatically versions your server groups. This means deployments through Spinnaker receive a
+              short version string at the end of their name, like "v001". In most cases you will want to keep this
+              version as part of the name. Preventing this string from being added to your server group will stop
+              it from being considered when rolling back, promoting new versions or executing deployment strategies.
+              If you are certain that you do not want the version string applied to this server group then check
+              this box.`,
+  },
+  {
     key: 'appengine.loadBalancer.shardBy.cookie',
     value:
       'Diversion based on a specially named cookie, "GOOGAPPUID." The cookie must be set by the application itself or no diversion will occur.',

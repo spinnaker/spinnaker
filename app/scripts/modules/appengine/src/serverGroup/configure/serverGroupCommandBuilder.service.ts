@@ -38,6 +38,7 @@ export interface IAppengineServerGroupCommand {
   selectedProvider: string;
   promote?: boolean;
   stopPreviousVersion?: boolean;
+  suppressVersionString?: boolean;
   type?: string;
   backingData: any;
   viewState: IViewState;
