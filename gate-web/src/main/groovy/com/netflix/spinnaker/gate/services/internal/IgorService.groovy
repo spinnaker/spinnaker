@@ -51,4 +51,7 @@ interface IgorService {
 
   @GET('/builds/status/{number}/{buildMaster}/{job}')
   Map getBuild(@Path("buildMaster") String buildMaster, @EncodedPath("job") String job, @Path("number") String number)
+
+  @GET('/artifactory/names')
+  List<String> getArtifactoryNames()
 }

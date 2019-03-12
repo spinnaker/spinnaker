@@ -22,8 +22,10 @@ import com.netflix.spinnaker.gate.security.GateSystemTest
 import com.netflix.spinnaker.gate.security.YamlFileApplicationContextInitializer
 import com.netflix.spinnaker.gate.services.AccountLookupService
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService
+import com.netflix.spinnaker.gate.services.internal.IgorService
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Primary
 import org.springframework.http.HttpHeaders
@@ -50,6 +52,9 @@ abstract class AbstractAuthSpec extends Specification {
 
   @Autowired
   WebApplicationContext wac
+
+  @MockBean
+  private IgorService igorService
 
   MockMvc mockMvc
 

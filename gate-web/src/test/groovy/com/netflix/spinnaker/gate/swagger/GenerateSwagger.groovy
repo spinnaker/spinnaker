@@ -3,9 +3,11 @@ package com.netflix.spinnaker.gate.swagger
 import com.netflix.spinnaker.gate.Main
 import com.netflix.spinnaker.gate.security.GateSystemTest
 import com.netflix.spinnaker.gate.security.YamlFileApplicationContextInitializer
+import com.netflix.spinnaker.gate.services.internal.IgorService
 import groovy.util.logging.Slf4j
 import org.apache.commons.io.FileUtils
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.web.servlet.MockMvc
@@ -28,6 +30,9 @@ class GenerateSwagger extends Specification {
 
   @Autowired
   WebApplicationContext wac
+
+  @MockBean
+  private IgorService igorService
 
   MockMvc mockMvc
 
