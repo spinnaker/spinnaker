@@ -33,49 +33,11 @@ module.exports = angular
         if (this.pipelineConfig && this.pipelineConfig.expectedArtifacts) {
           for (const artifact of this.pipelineConfig.expectedArtifacts) {
             if (!artifact.displayName || artifact.displayName.length === 0) {
-              // default display names are created for the sake of readability for pipelines that existed
-              // before display names were introduced to expected artifacts
-              const { kind, name } = artifact.matchArtifact;
-
-              const dockerDisplayName = () => {
-                const [, project = 'no-project', image = 'no-image'] = name.split('/');
-                return `DOCKER-IMAGE-${project}/${image}`;
-              };
-
-              const bucketDisplayName = () => {
-                const [, bucket = 'no-bucket', ...path] = name.split(/\/+/);
-                return `${kind.toUpperCase()}-${bucket}/${path.join('/') || 'no-file'}`;
-              };
-
-              const httpDisplayName = () => {
-                const [, host = 'no-host', ...file] = name.split(/\/+/);
-                return `HTTP-${host}/${file.join('/') || 'no-file'}`;
-              };
-
-              switch (kind) {
-                case 'docker':
-                  artifact.displayName = dockerDisplayName();
-                  break;
-                case 'gcs':
-                case 's3':
-                  artifact.displayName = bucketDisplayName();
-                  break;
-                case 'http':
-                  artifact.displayName = httpDisplayName();
-                  break;
-                case 'bitbucket':
-                case 'github':
-                  artifact.displayName = `${kind.toUpperCase()}-${name}`;
-                  break;
-                case 'helm':
-                  artifact.displayName = `HELM-${name}:${artifact.matchArtifact.version}`;
-                  break;
-                case 'maven':
-                case 'ivy':
-                  artifact.displayName = `${kind.toUpperCase()}-${name}`;
-                  break;
-                default:
-                  artifact.displayName = HumanReadableIds.random();
+              const { name } = artifact.matchArtifact;
+              if (name) {
+                artifact.displayName = name;
+              } else {
+                artifact.displayName = HumanReadableIds.random();
               }
             }
           }
