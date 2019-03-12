@@ -109,7 +109,6 @@ module.exports = angular
             accounts: AccountService.listAccounts('gce'),
           })
           .then(function(backingData) {
-            let loadBalancerReloader = $q.when(null);
             let securityGroupReloader = $q.when(null);
             let networkReloader = $q.when(null);
             let healthCheckReloader = $q.when(null);
@@ -117,13 +116,6 @@ module.exports = angular
             command.backingData = backingData;
             configureImages(command);
 
-            if (command.loadBalancers && command.loadBalancers.length) {
-              // Verify all load balancers are accounted for; otherwise, try refreshing load balancers cache.
-              const loadBalancerNames = _.map(getLoadBalancers(command), 'name');
-              if (_.intersection(loadBalancerNames, command.loadBalancers).length < command.loadBalancers.length) {
-                loadBalancerReloader = refreshLoadBalancers(command, true);
-              }
-            }
             if (command.securityGroups && command.securityGroups.length) {
               // Verify all firewalls are accounted for; otherwise, try refreshing firewalls cache.
               const securityGroupIds = _.map(getSecurityGroups(command), 'id');
@@ -154,12 +146,10 @@ module.exports = angular
               }
             }
 
-            return $q
-              .all([loadBalancerReloader, securityGroupReloader, networkReloader, healthCheckReloader])
-              .then(() => {
-                gceTagManager.register(command);
-                attachEventHandlers(command);
-              });
+            return $q.all([securityGroupReloader, networkReloader, healthCheckReloader]).then(() => {
+              gceTagManager.register(command);
+              attachEventHandlers(command);
+            });
           });
       }
 
@@ -503,13 +493,11 @@ module.exports = angular
       }
 
       function refreshLoadBalancers(command, skipCommandReconfiguration) {
-        return cacheInitializer.refreshCache('loadBalancers').then(function() {
-          return loadBalancerReader.listLoadBalancers('gce').then(function(loadBalancers) {
-            command.backingData.loadBalancers = loadBalancers;
-            if (!skipCommandReconfiguration) {
-              configureLoadBalancerOptions(command);
-            }
-          });
+        return loadBalancerReader.listLoadBalancers('gce').then(function(loadBalancers) {
+          command.backingData.loadBalancers = loadBalancers;
+          if (!skipCommandReconfiguration) {
+            configureLoadBalancerOptions(command);
+          }
         });
       }
 
@@ -781,16 +769,16 @@ module.exports = angular
       }
 
       return {
-        configureCommand: configureCommand,
-        configureInstanceTypes: configureInstanceTypes,
-        configureImages: configureImages,
-        configureZones: configureZones,
-        configureSubnets: configureSubnets,
-        configureLoadBalancerOptions: configureLoadBalancerOptions,
-        refreshLoadBalancers: refreshLoadBalancers,
-        refreshSecurityGroups: refreshSecurityGroups,
-        refreshInstanceTypes: refreshInstanceTypes,
-        refreshHealthChecks: refreshHealthChecks,
+        configureCommand,
+        configureInstanceTypes,
+        configureImages,
+        configureZones,
+        configureSubnets,
+        configureLoadBalancerOptions,
+        refreshLoadBalancers,
+        refreshSecurityGroups,
+        refreshInstanceTypes,
+        refreshHealthChecks,
       };
     },
   ]);

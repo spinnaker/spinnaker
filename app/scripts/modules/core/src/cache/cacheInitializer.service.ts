@@ -1,32 +1,24 @@
 import { cloneDeep, uniq } from 'lodash';
-import { module, noop } from 'angular';
+import { IPromise, IQService, module, noop } from 'angular';
 import { Duration } from 'luxon';
 
-import { ApplicationReader } from 'core/application/service/ApplicationReader';
 import { AccountService } from 'core/account/AccountService';
 import { CloudProviderRegistry } from 'core/cloudProvider';
 import { INFRASTRUCTURE_CACHE_CONFIG, IInfrastructureCacheConfig } from './infrastructureCacheConfig';
 import { InfrastructureCaches } from './infrastructureCaches';
 import { ICacheConfig } from './deckCacheFactory';
 import { SECURITY_GROUP_READER, SecurityGroupReader } from 'core/securityGroup/securityGroupReader.service';
-import { IgorService } from 'core/ci/igor.service';
 
 interface IInitializers {
   [key: string]: any[];
-  credentials: any[];
   securityGroups: any[];
-  applications: any[];
-  buildMasters: any[];
 }
 
 export class CacheInitializerService {
   private cacheConfig: IInfrastructureCacheConfig = cloneDeep<IInfrastructureCacheConfig>(INFRASTRUCTURE_CACHE_CONFIG);
 
   private initializers: IInitializers = {
-    credentials: [() => AccountService.listAccounts()],
     securityGroups: [() => this.securityGroupReader.getAllSecurityGroups()],
-    applications: [() => ApplicationReader.listApplications()],
-    buildMasters: [() => IgorService.listMasters()],
   };
 
   private setConfigDefaults(key: string, config: ICacheConfig) {
@@ -36,7 +28,7 @@ export class CacheInitializerService {
     config.onReset = config.onReset || [noop];
   }
 
-  private extendConfig(): ng.IPromise<void> {
+  private extendConfig(): IPromise<void> {
     Object.keys(this.cacheConfig).forEach((key: string) => {
       this.setConfigDefaults(key, this.cacheConfig[key]);
     });
@@ -66,11 +58,11 @@ export class CacheInitializerService {
     });
   }
 
-  private initializeCache(key: string): ng.IPromise<any[]> {
+  private initializeCache(key: string): IPromise<any[]> {
     InfrastructureCaches.createCache(key, this.cacheConfig[key]);
     if (this.cacheConfig[key].initializers) {
       const initializer: any = this.cacheConfig[key].initializers;
-      const all: Array<ng.IPromise<any>> = [];
+      const all: Array<IPromise<any>> = [];
       initializer.forEach((method: Function) => {
         all.push(method());
       });
@@ -83,12 +75,12 @@ export class CacheInitializerService {
 
   public static $inject = ['$q', 'securityGroupReader', 'providerServiceDelegate'];
   constructor(
-    private $q: ng.IQService,
+    private $q: IQService,
     private securityGroupReader: SecurityGroupReader,
     private providerServiceDelegate: any,
   ) {}
 
-  public initialize(): ng.IPromise<any[]> {
+  public initialize(): IPromise<any[]> {
     return this.extendConfig().then(() => {
       const all: any[] = [];
       Object.keys(this.cacheConfig).forEach((key: string) => {
@@ -99,13 +91,13 @@ export class CacheInitializerService {
     });
   }
 
-  public refreshCache(key: string): ng.IPromise<any[]> {
+  public refreshCache(key: string): IPromise<any[]> {
     InfrastructureCaches.clearCache(key);
     return this.initializeCache(key);
   }
 
-  public refreshCaches(): ng.IPromise<any[]> {
-    const all: Array<ng.IPromise<any[]>> = [];
+  public refreshCaches(): IPromise<any[]> {
+    const all: Array<IPromise<any[]>> = [];
     Object.keys(this.cacheConfig).forEach((key: string) => {
       all.push(this.refreshCache(key));
     });

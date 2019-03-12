@@ -13,7 +13,6 @@ module.exports = angular
     require('@uirouter/angularjs').default,
     require('./applicationAttributes.directive').name,
     require('./applicationNotifications.directive').name,
-    require('./applicationCacheManagement.directive').name,
     require('./deleteApplicationSection.directive').name,
     require('./applicationSnapshotSection.component').name,
     APPLICATION_DATA_SOURCE_EDITOR,

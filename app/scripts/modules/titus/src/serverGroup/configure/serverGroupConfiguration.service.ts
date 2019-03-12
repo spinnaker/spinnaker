@@ -271,11 +271,9 @@ export class TitusServerGroupConfigurationService {
   }
 
   public refreshLoadBalancers(command: ITitusServerGroupCommand) {
-    return this.cacheInitializer.refreshCache('loadBalancers').then(() => {
-      return this.loadBalancerReader.listLoadBalancers('aws').then(loadBalancers => {
-        command.backingData.loadBalancers = loadBalancers;
-        this.configureLoadBalancerOptions(command);
-      });
+    return this.loadBalancerReader.listLoadBalancers('aws').then(loadBalancers => {
+      command.backingData.loadBalancers = loadBalancers;
+      this.configureLoadBalancerOptions(command);
     });
   }
 }

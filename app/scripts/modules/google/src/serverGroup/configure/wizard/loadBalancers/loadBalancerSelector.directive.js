@@ -3,7 +3,6 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { InfrastructureCaches } from '@spinnaker/core';
 import { GCE_HTTP_LOAD_BALANCER_UTILS } from 'google/loadBalancer/httpLoadBalancerUtils.service';
 
 module.exports = angular
@@ -26,19 +25,7 @@ module.exports = angular
   })
   .controller('gceServerGroupLoadBalancerSelectorCtrl', [
     'gceHttpLoadBalancerUtils',
-    'gceServerGroupConfigurationService',
-    function(gceHttpLoadBalancerUtils, gceServerGroupConfigurationService) {
-      this.getLoadBalancerRefreshTime = () => {
-        return InfrastructureCaches.get('loadBalancers').getStats().ageMax;
-      };
-
-      this.refreshLoadBalancers = () => {
-        this.refreshing = true;
-        gceServerGroupConfigurationService.refreshLoadBalancers(this.command).then(() => {
-          this.refreshing = false;
-        });
-      };
-
+    function(gceHttpLoadBalancerUtils) {
       this.showLoadBalancingPolicy = () => {
         if (_.has(this, 'command.backingData.filtered.loadBalancerIndex')) {
           const index = this.command.backingData.filtered.loadBalancerIndex;

@@ -20,7 +20,6 @@ templates.keys().forEach(function(key) {
 export const KUBERNETES_V1_MODULE = 'spinnaker.kubernetes.v1';
 module(KUBERNETES_V1_MODULE, [
   require('../autoscaler/autoscaler.write.service').name,
-  require('../cache/configurer.service').name,
   require('../cluster/cluster.kubernetes.module').name,
   require('../container/configurer.directive').name,
   require('../container/probe.directive').name,
@@ -61,9 +60,6 @@ module(KUBERNETES_V1_MODULE, [
     name: 'Kubernetes',
     skin: 'v1',
     defaultSkin: true,
-    cache: {
-      configurer: 'kubernetesCacheConfigurer',
-    },
     search: {
       resultFormatter: 'kubernetesSearchResultFormatter',
     },

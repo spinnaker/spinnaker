@@ -3,7 +3,7 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { API, InfrastructureCaches } from '@spinnaker/core';
+import { API } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.openstack.instanceType.service', [])
@@ -25,10 +25,6 @@ module.exports = angular
       }
 
       var getAllTypesByRegion = function getAllTypesByRegion() {
-        var cached = InfrastructureCaches.get('instanceTypes').get('openstack');
-        if (cached) {
-          return $q.when(cached);
-        }
         return API.one('instanceTypes')
           .get()
           .then(function(types) {
@@ -44,7 +40,6 @@ module.exports = angular
               .uniqBy('key')
               .groupBy('region')
               .value();
-            InfrastructureCaches.get('instanceTypes').put('openstack', result);
             return result;
           });
       };

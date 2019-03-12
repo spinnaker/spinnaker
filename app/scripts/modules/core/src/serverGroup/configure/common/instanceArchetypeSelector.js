@@ -2,8 +2,6 @@
 
 const angular = require('angular');
 
-import { InfrastructureCaches } from 'core/cache';
-
 module.exports = angular
   .module('spinnaker.core.serverGroup.configure.common.instanceArchetypeSelector', [
     require('./costFactor').name,
@@ -24,8 +22,7 @@ module.exports = angular
   .controller('InstanceArchetypeSelectorCtrl', [
     '$scope',
     'instanceTypeService',
-    'serverGroupConfigurationService',
-    function($scope, instanceTypeService, serverGroupConfigurationService) {
+    function($scope, instanceTypeService) {
       var controller = this;
       instanceTypeService.getCategories($scope.command.selectedProvider).then(function(categories) {
         $scope.instanceProfiles = categories;
@@ -65,45 +62,5 @@ module.exports = angular
       if ($scope.command.region && $scope.command.instanceType && !$scope.command.viewState.instanceProfile) {
         this.selectInstanceType('custom');
       }
-
-      this.getInstanceTypeRefreshTime = function() {
-        return InfrastructureCaches.get('instanceTypes').getStats().ageMax;
-      };
-
-      this.refreshInstanceTypes = function() {
-        controller.refreshing = true;
-        serverGroupConfigurationService
-          .refreshInstanceTypes($scope.command.selectedProvider, $scope.command)
-          .then(function() {
-            controller.refreshing = false;
-          });
-      };
-
-      // if there are no instance types in the cache, try to reload them
-      instanceTypeService.getAllTypesByRegion($scope.command.selectedProvider).then(function(results) {
-        if (!results || !Object.keys(results).length) {
-          controller.refreshInstanceTypes();
-        }
-      });
-
-      this.getInstanceTypeRefreshTime = function() {
-        return InfrastructureCaches.get('instanceTypes').getStats().ageMax;
-      };
-
-      this.refreshInstanceTypes = function() {
-        controller.refreshing = true;
-        serverGroupConfigurationService
-          .refreshInstanceTypes($scope.command.selectedProvider, $scope.command)
-          .then(function() {
-            controller.refreshing = false;
-          });
-      };
-
-      // if there are no instance types in the cache, try to reload them
-      instanceTypeService.getAllTypesByRegion($scope.command.selectedProvider).then(function(results) {
-        if (!results || !Object.keys(results).length) {
-          controller.refreshInstanceTypes();
-        }
-      });
     },
   ]);

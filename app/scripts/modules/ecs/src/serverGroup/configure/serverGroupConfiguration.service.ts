@@ -4,7 +4,6 @@ import { chain, clone, extend, find, flatten, has, intersection, keys, some, xor
 import {
   AccountService,
   CACHE_INITIALIZER_SERVICE,
-  CacheInitializerService,
   IAccountDetails,
   IDeploymentStrategy,
   IRegion,
@@ -99,7 +98,6 @@ export class EcsServerGroupConfigurationService {
   ];
   constructor(
     private $q: IQService,
-    private cacheInitializer: CacheInitializerService,
     private loadBalancerReader: LoadBalancerReader,
     private serverGroupCommandRegistry: ServerGroupCommandRegistry,
     private iamRoleReader: IamRoleReader,
@@ -160,7 +158,6 @@ export class EcsServerGroupConfigurationService {
         secrets: this.secretReader.listSecrets(),
       })
       .then((backingData: Partial<IEcsServerGroupCommandBackingData>) => {
-        let loadBalancerReloader = this.$q.when();
         backingData.accounts = keys(backingData.credentialsKeyedByAccount);
         backingData.filtered = {} as IEcsServerGroupCommandBackingDataFiltered;
         cmd.backingData = backingData as IEcsServerGroupCommandBackingData;
@@ -170,19 +167,8 @@ export class EcsServerGroupConfigurationService {
         this.configureAvailableSecurityGroups(cmd);
         this.configureAvailableEcsClusters(cmd);
         this.configureAvailableSecrets(cmd);
-
-        if (cmd.loadBalancers && cmd.loadBalancers.length) {
-          // verify all load balancers are accounted for; otherwise, try refreshing load balancers cache
-          const loadBalancerNames = this.getLoadBalancerNames(cmd);
-          if (intersection(loadBalancerNames, cmd.loadBalancers).length < cmd.loadBalancers.length) {
-            loadBalancerReloader = this.refreshLoadBalancers(cmd, true);
-          }
-        }
-
-        return this.$q.all([loadBalancerReloader]).then(() => {
-          this.applyOverrides('afterConfiguration', cmd);
-          this.attachEventHandlers(cmd);
-        });
+        this.applyOverrides('afterConfiguration', cmd);
+        this.attachEventHandlers(cmd);
       });
   }
 
@@ -334,7 +320,6 @@ export class EcsServerGroupConfigurationService {
   public configureLoadBalancerOptions(command: IEcsServerGroupCommand): IServerGroupCommandResult {
     const result: IEcsServerGroupCommandResult = { dirty: {} };
     const currentLoadBalancers = (command.loadBalancers || []).concat(command.vpcLoadBalancers || []);
-    // const currentTargetGroups = command.targetGroup || [];
     const newLoadBalancers = this.getLoadBalancerNames(command);
     const vpcLoadBalancers = this.getVpcLoadBalancerNames(command);
     const allTargetGroups = this.getTargetGroupNames(command);
@@ -354,15 +339,6 @@ export class EcsServerGroupConfigurationService {
       }
     }
 
-    // if (currentTargetGroups && command.targetGroup) {
-    //   const matched = intersection(allTargetGroups, currentTargetGroups);
-    //   const removedTargetGroups = xor(matched, currentTargetGroups);
-    //   command.targetGroup = intersection(allTargetGroups, matched);
-    //   if (removedTargetGroups.length) {
-    //     result.dirty.targetGroup = removedTargetGroups;
-    //   }
-    // }
-
     command.backingData.filtered.loadBalancers = newLoadBalancers;
     command.backingData.filtered.vpcLoadBalancers = vpcLoadBalancers;
     command.backingData.filtered.targetGroups = allTargetGroups;
@@ -370,13 +346,11 @@ export class EcsServerGroupConfigurationService {
   }
 
   public refreshLoadBalancers(command: IEcsServerGroupCommand, skipCommandReconfiguration?: boolean) {
-    return this.cacheInitializer.refreshCache('loadBalancers').then(() => {
-      return this.loadBalancerReader.listLoadBalancers('ecs').then(loadBalancers => {
-        command.backingData.loadBalancers = loadBalancers;
-        if (!skipCommandReconfiguration) {
-          this.configureLoadBalancerOptions(command);
-        }
-      });
+    return this.loadBalancerReader.listLoadBalancers('ecs').then(loadBalancers => {
+      command.backingData.loadBalancers = loadBalancers;
+      if (!skipCommandReconfiguration) {
+        this.configureLoadBalancerOptions(command);
+      }
     });
   }
 

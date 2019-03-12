@@ -213,9 +213,7 @@ export class AwsServerGroupConfigurationService {
         terminationPolicies: $q.when(clone(this.terminationPolicies)),
       })
       .then((backingData: Partial<IAmazonServerGroupCommandBackingData>) => {
-        let loadBalancerReloader = $q.when();
         let securityGroupReloader = $q.when();
-        let instanceTypeReloader = $q.when();
         backingData.accounts = keys(backingData.credentialsKeyedByAccount);
         backingData.filtered = {} as IAmazonServerGroupCommandBackingDataFiltered;
         backingData.scalingProcesses = AutoScalingProcessService.listProcesses();
@@ -227,33 +225,14 @@ export class AwsServerGroupConfigurationService {
           this.configureInstanceTypes(cmd);
         }
 
-        if (cmd.loadBalancers && cmd.loadBalancers.length) {
-          // verify all load balancers are accounted for; otherwise, try refreshing load balancers cache
-          const loadBalancerNames = this.getLoadBalancerNames(cmd);
-          if (intersection(loadBalancerNames, cmd.loadBalancers).length < cmd.loadBalancers.length) {
-            loadBalancerReloader = this.refreshLoadBalancers(cmd, true);
-          }
-        }
-
-        if (cmd.targetGroups && cmd.targetGroups.length) {
-          // verify all target groups are accounted for; otherwise, try refreshing load balancers cache
-          const targetGroupNames = this.getTargetGroupNames(cmd);
-          if (intersection(targetGroupNames, cmd.targetGroups).length < cmd.targetGroups.length) {
-            loadBalancerReloader = this.refreshLoadBalancers(cmd, true);
-          }
-        }
-
         if (cmd.securityGroups && cmd.securityGroups.length) {
           const regionalSecurityGroupIds = map(this.getRegionalSecurityGroups(cmd), 'id');
           if (intersection(cmd.securityGroups, regionalSecurityGroupIds).length < cmd.securityGroups.length) {
             securityGroupReloader = this.refreshSecurityGroups(cmd, true);
           }
         }
-        if (cmd.instanceType) {
-          instanceTypeReloader = this.refreshInstanceTypes(cmd, true);
-        }
 
-        return $q.all([loadBalancerReloader, securityGroupReloader, instanceTypeReloader]).then(() => {
+        return securityGroupReloader.then(() => {
           this.applyOverrides('afterConfiguration', cmd);
           this.attachEventHandlers(cmd);
         });
@@ -438,20 +417,6 @@ export class AwsServerGroupConfigurationService {
     });
   }
 
-  public refreshInstanceTypes(
-    command: IAmazonServerGroupCommand,
-    skipCommandReconfiguration?: boolean,
-  ): IPromise<void> {
-    return this.cacheInitializer.refreshCache('instanceTypes').then(() => {
-      return this.awsInstanceTypeService.getAllTypesByRegion().then((instanceTypes: string[]) => {
-        command.backingData.instanceTypes = instanceTypes;
-        if (!skipCommandReconfiguration) {
-          this.configureInstanceTypes(command);
-        }
-      });
-    });
-  }
-
   private getLoadBalancerMap(command: IAmazonServerGroupCommand): IAmazonLoadBalancerSourceData[] {
     if (command.backingData.loadBalancers) {
       return chain(command.backingData.loadBalancers)
@@ -540,13 +505,11 @@ export class AwsServerGroupConfigurationService {
   }
 
   public refreshLoadBalancers(command: IAmazonServerGroupCommand, skipCommandReconfiguration?: boolean) {
-    return this.cacheInitializer.refreshCache('loadBalancers').then(() => {
-      return this.loadBalancerReader.listLoadBalancers('aws').then(loadBalancers => {
-        command.backingData.loadBalancers = loadBalancers;
-        if (!skipCommandReconfiguration) {
-          this.configureLoadBalancerOptions(command);
-        }
-      });
+    return this.loadBalancerReader.listLoadBalancers('aws').then(loadBalancers => {
+      command.backingData.loadBalancers = loadBalancers;
+      if (!skipCommandReconfiguration) {
+        this.configureLoadBalancerOptions(command);
+      }
     });
   }
 

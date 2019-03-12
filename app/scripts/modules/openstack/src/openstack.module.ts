@@ -26,7 +26,6 @@ module(OPENSTACK_MODULE, [
   require('./securityGroup/details/details.controller').name,
   require('./securityGroup/transformer').name,
   require('./validation/applicationName.validator').name,
-  require('./cache/cacheConfigurer.service').name,
   require('./loadBalancer/configure/configure.openstack.module').name,
   require('./loadBalancer/details/details.openstack.module').name,
   require('./loadBalancer/transformer').name,
@@ -49,9 +48,6 @@ module(OPENSTACK_MODULE, [
     name: 'openstack',
     logo: {
       path: require('./logo/openstack.logo.png'),
-    },
-    cache: {
-      configurer: 'openstackCacheConfigurer',
     },
     search: {
       resultFormatter: 'openstackSearchResultFormatter',

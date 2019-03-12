@@ -6,7 +6,6 @@ const angular = require('angular');
 
 import { FirewallLabels } from 'core/securityGroup/label';
 import { SEARCH_RANK_FILTER } from '../searchRank.filter';
-import { CACHE_INITIALIZER_SERVICE } from 'core/cache/cacheInitializer.service';
 import { OVERRIDE_REGISTRY } from 'core/overrideRegistry/override.registry';
 import { PAGE_TITLE_SERVICE } from 'core/pageTitle/pageTitle.service';
 import { INFRASTRUCTURE_SEARCH_SERVICE } from 'core/search/infrastructure/infrastructureSearch.service';
@@ -26,7 +25,6 @@ module.exports = angular
     PAGE_TITLE_SERVICE,
     PROJECT_SUMMARY_POD_COMPONENT,
     SEARCH_RANK_FILTER,
-    CACHE_INITIALIZER_SERVICE,
     OVERRIDE_REGISTRY,
     RECENTLY_VIEWED_ITEMS_COMPONENT,
     SPINNER_COMPONENT,
@@ -36,7 +34,6 @@ module.exports = angular
     'infrastructureSearchService',
     '$stateParams',
     '$location',
-    'cacheInitializer',
     'overrideRegistry',
     'pageTitleService',
     '$uibModal',
@@ -46,7 +43,6 @@ module.exports = angular
       infrastructureSearchService,
       $stateParams,
       $location,
-      cacheInitializer,
       overrideRegistry,
       pageTitleService,
       $uibModal,
@@ -142,20 +138,6 @@ module.exports = angular
         });
       }
 
-      let refreshMenuItem = {
-        displayName: 'Refresh all caches',
-        disableAutoClose: true,
-      };
-
-      refreshMenuItem.action = status => {
-        let originalDisplayName = refreshMenuItem.displayName;
-        refreshMenuItem.displayName = '<span class="fa fa-sync-alt fa-spin"></span> Refreshing...';
-        cacheInitializer.refreshCaches().then(() => {
-          refreshMenuItem.displayName = originalDisplayName;
-          status.isOpen = false;
-        });
-      };
-
       this.menuActions = [
         {
           displayName: 'Create Application',
@@ -165,7 +147,6 @@ module.exports = angular
           displayName: 'Create Project',
           action: this.createProject,
         },
-        refreshMenuItem,
       ];
 
       this.hasResults = () => {

@@ -1,4 +1,3 @@
-import { InfrastructureCaches } from 'core/cache';
 import { API } from 'core/api/ApiService';
 
 export interface INetwork {
@@ -12,15 +11,12 @@ export interface INetwork {
 
 export class NetworkReader {
   public static listNetworks(): INetwork[] {
-    return API.one('networks')
-      .useCache(InfrastructureCaches.get('networks'))
-      .getList();
+    return API.one('networks').getList();
   }
 
   public static listNetworksByProvider(cloudProvider: string) {
     return API.one('networks')
       .one(cloudProvider)
-      .useCache(InfrastructureCaches.get('networks'))
       .getList();
   }
 }

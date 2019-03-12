@@ -1,14 +1,10 @@
 import { IPromise } from 'angular';
-import { InfrastructureCaches } from 'core/cache/infrastructureCaches';
 import { API } from 'core/api/ApiService';
 import { ISubnet } from 'core/domain';
 
 export class SubnetReader {
-  private static NAMESPACE = 'subnets';
-
   public static listSubnets(): IPromise<ISubnet[]> {
     return API.one('subnets')
-      .useCache(InfrastructureCaches.get(this.NAMESPACE))
       .getList()
       .then((subnets: ISubnet[]) => {
         subnets.forEach((subnet: ISubnet) => {
@@ -23,9 +19,7 @@ export class SubnetReader {
   }
 
   public static listSubnetsByProvider(cloudProvider: string): ng.IPromise<ISubnet[]> {
-    return API.one('subnets', cloudProvider)
-      .useCache(InfrastructureCaches.get(this.NAMESPACE))
-      .getList();
+    return API.one('subnets', cloudProvider).getList();
   }
 
   public static getSubnetByIdAndProvider(subnetId: string, cloudProvider = 'aws'): ng.IPromise<ISubnet> {

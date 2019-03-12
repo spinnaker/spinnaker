@@ -57,22 +57,10 @@ module.exports = angular
             loadBalancers: loadBalancerReader.loadLoadBalancers(application.name),
           })
           .then(function(backingData) {
-            var loadBalancerReloader = $q.when(null);
             backingData.accounts = _.keys(backingData.credentialsKeyedByAccount);
             backingData.filtered = {};
             command.backingData = backingData;
-
-            if (command.loadBalancers && command.loadBalancers.length) {
-              // verify all load balancers are accounted for; otherwise, try refreshing load balancers cache
-              var loadBalancerNames = getLoadBalancerNames(command.backingData.loadBalancers);
-              if (_.intersection(loadBalancerNames, command.loadBalancers).length < command.loadBalancers.length) {
-                loadBalancerReloader = refreshLoadBalancers(command, true);
-              }
-            }
-
-            return $q.all([loadBalancerReloader]).then(function() {
-              attachEventHandlers(command);
-            });
+            attachEventHandlers(command);
           });
       }
 
@@ -232,13 +220,11 @@ module.exports = angular
       }
 
       function refreshLoadBalancers(command, skipCommandReconfiguration) {
-        return cacheInitializer.refreshCache('loadBalancers').then(function() {
-          return loadBalancerReader.listLoadBalancers('azure').then(function(loadBalancers) {
-            command.backingData.loadBalancers = loadBalancers;
-            if (!skipCommandReconfiguration) {
-              configureLoadBalancerOptions(command);
-            }
-          });
+        return loadBalancerReader.listLoadBalancers('azure').then(function(loadBalancers) {
+          command.backingData.loadBalancers = loadBalancers;
+          if (!skipCommandReconfiguration) {
+            configureLoadBalancerOptions(command);
+          }
         });
       }
 

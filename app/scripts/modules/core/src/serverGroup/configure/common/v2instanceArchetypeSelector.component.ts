@@ -1,27 +1,19 @@
 import { module, IComponentController, IScope, IComponentOptions } from 'angular';
 import { includes } from 'lodash';
 
-import { InfrastructureCaches } from 'core/cache';
 import { CloudProviderRegistry } from 'core/cloudProvider';
 import { ModalWizard } from 'core/modal/wizard/ModalWizard';
 import { InstanceTypeService, IInstanceTypeCategory } from 'core/instance';
-import { ServerGroupConfigurationService } from './serverGroupConfiguration.service';
 import { IServerGroupCommand } from './serverGroupCommandBuilder.service';
 
 class V2InstanceArchetypeSelectorController implements IComponentController {
   private command: IServerGroupCommand;
-  public refreshing = false;
-  public refreshTime = 0;
   public getInstanceBuilderTemplate: any;
   public onProfileChanged: any;
   public onTypeChanged: any;
 
-  public static $inject = ['$scope', 'instanceTypeService', 'serverGroupConfigurationService'];
-  public constructor(
-    public $scope: IScope,
-    private instanceTypeService: InstanceTypeService,
-    private serverGroupConfigurationService: ServerGroupConfigurationService,
-  ) {}
+  public static $inject = ['$scope', 'instanceTypeService'];
+  public constructor(public $scope: IScope, private instanceTypeService: InstanceTypeService) {}
 
   public $onInit(): void {
     const { $scope } = this;
@@ -42,14 +34,6 @@ class V2InstanceArchetypeSelectorController implements IComponentController {
     if (this.command.region && this.command.instanceType && !this.command.viewState.instanceProfile) {
       this.selectInstanceType('custom');
     }
-    // if there are no instance types in the cache, try to reload them
-    this.instanceTypeService.getAllTypesByRegion(this.command.selectedProvider).then(results => {
-      if (!results || !Object.keys(results).length) {
-        this.refreshInstanceTypes();
-      }
-    });
-
-    this.setInstanceTypeRefreshTime();
 
     this.getInstanceBuilderTemplate = CloudProviderRegistry.getValue.bind(
       CloudProviderRegistry,
@@ -102,18 +86,6 @@ class V2InstanceArchetypeSelectorController implements IComponentController {
       });
 
     this.onTypeChanged && this.onTypeChanged(this.command.instanceType);
-  };
-
-  private setInstanceTypeRefreshTime = () => {
-    this.refreshTime = InfrastructureCaches.get('instanceTypes').getStats().ageMax;
-  };
-
-  public refreshInstanceTypes = () => {
-    this.refreshing = true;
-    this.serverGroupConfigurationService.refreshInstanceTypes(this.command.selectedProvider, this.command).then(() => {
-      this.setInstanceTypeRefreshTime();
-      this.refreshing = false;
-    });
   };
 }
 

@@ -16,7 +16,7 @@ module.exports = angular
     'kubernetesImageReader',
     'loadBalancerReader',
     'cacheInitializer',
-    function($q, kubernetesImageReader, loadBalancerReader, cacheInitializer) {
+    function($q, kubernetesImageReader, loadBalancerReader) {
       function configureCommand(application, command, query = '') {
         // this ensures we get the images we need when cloning or copying a server group template.
         const containers = command.containers.concat(command.initContainers || []);
@@ -224,17 +224,6 @@ module.exports = angular
         return result;
       }
 
-      function refreshLoadBalancers(command, skipCommandReconfiguration) {
-        return cacheInitializer.refreshCache('loadBalancers').then(function() {
-          return loadBalancerReader.listLoadBalancers('kubernetes').then(function(loadBalancers) {
-            command.backingData.loadBalancers = loadBalancers;
-            if (!skipCommandReconfiguration) {
-              configureLoadBalancers(command);
-            }
-          });
-        });
-      }
-
       function configureNamespaces(command) {
         var result = { dirty: {} };
         command.backingData.filtered.namespaces = command.backingData.account.namespaces;
@@ -304,13 +293,12 @@ module.exports = angular
       }
 
       return {
-        configureCommand: configureCommand,
-        configureLoadBalancers: configureLoadBalancers,
-        configureSecurityGroups: configureSecurityGroups,
-        configureNamespaces: configureNamespaces,
-        configureDockerRegistries: configureDockerRegistries,
-        configureAccount: configureAccount,
-        refreshLoadBalancers: refreshLoadBalancers,
+        configureCommand,
+        configureLoadBalancers,
+        configureSecurityGroups,
+        configureNamespaces,
+        configureDockerRegistries,
+        configureAccount,
       };
     },
   ]);

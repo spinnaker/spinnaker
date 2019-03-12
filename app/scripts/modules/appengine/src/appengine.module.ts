@@ -2,7 +2,6 @@ import { module } from 'angular';
 
 import { CloudProviderRegistry, DeploymentStrategyRegistry } from '@spinnaker/core';
 
-import { APPENGINE_CACHE_CONFIGURER } from './cache/cacheConfigurer.service';
 import { APPENGINE_COMPONENT_URL_DETAILS } from './common/componentUrlDetails.component';
 import { APPENGINE_CONDITIONAL_DESCRIPTION_LIST_ITEM } from './common/conditionalDescriptionListItem.component';
 import { APPENGINE_LOAD_BALANCER_CREATE_MESSAGE } from './common/loadBalancerMessage.component';
@@ -28,7 +27,6 @@ templates.keys().forEach(function(key) {
 export const APPENGINE_MODULE = 'spinnaker.appengine';
 
 module(APPENGINE_MODULE, [
-  APPENGINE_CACHE_CONFIGURER,
   APPENGINE_CLONE_SERVER_GROUP_CTRL,
   APPENGINE_COMPONENT_URL_DETAILS,
   APPENGINE_CONDITIONAL_DESCRIPTION_LIST_ITEM,
@@ -44,9 +42,6 @@ module(APPENGINE_MODULE, [
 ]).config(() => {
   CloudProviderRegistry.registerProvider('appengine', {
     name: 'App Engine',
-    cache: {
-      configurer: 'appengineCacheConfigurer',
-    },
     instance: {
       detailsTemplateUrl: require('./instance/details/details.html'),
       detailsController: 'appengineInstanceDetailsCtrl',

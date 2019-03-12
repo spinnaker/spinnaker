@@ -33,7 +33,6 @@ module.exports = angular
     require('./securityGroup/securityGroup.transformer').name,
     require('./securityGroup/securityGroup.reader').name,
     require('./image/image.reader').name,
-    require('./cache/cacheConfigurer.service').name,
     require('./validation/applicationName.validator').name,
   ])
   .config(function() {
@@ -41,9 +40,6 @@ module.exports = angular
       name: 'Azure',
       logo: {
         path: require('./logo_azure.png'),
-      },
-      cache: {
-        configurer: 'azureCacheConfigurer',
       },
       image: {
         reader: 'azureImageReader',

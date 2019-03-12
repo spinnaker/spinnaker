@@ -2,12 +2,13 @@ import { IPromise, IRequestConfig } from 'angular';
 import { $q, $http } from 'ngimport';
 import { AuthenticationInitializer } from '../authentication/AuthenticationInitializer';
 import { SETTINGS } from 'core/config/settings';
+import { ICache } from 'core/cache';
 
 export interface IRequestBuilder {
   config?: IRequestConfig;
   one?: (...urls: string[]) => IRequestBuilder;
   all?: (...urls: string[]) => IRequestBuilder;
-  useCache?: (useCache: boolean) => IRequestBuilder;
+  useCache?: (useCache: boolean | ICache) => IRequestBuilder;
   withParams?: (data: any) => IRequestBuilder;
   data?: (data: any) => IRequestBuilder;
   get?: (data?: any) => IPromise<any>;
@@ -64,7 +65,7 @@ export class API {
     };
   }
 
-  private static useCacheFn(config: IRequestConfig): (useCache: boolean) => IRequestBuilder {
+  private static useCacheFn(config: IRequestConfig): (useCache: boolean | ICache) => IRequestBuilder {
     return (useCache = true) => {
       config.cache = useCache;
       return this.baseReturn(config);

@@ -1,7 +1,5 @@
 'use strict';
 
-import { API, InfrastructureCaches } from '@spinnaker/core';
-
 describe('Service: InstanceType', function() {
   beforeEach(function() {
     window.module(require('./azureInstanceType.service').name);

@@ -51,23 +51,11 @@ module.exports = angular
             userDataTypes: $q.when(angular.copy(userDataTypes)),
           })
           .then(function(backingData) {
-            var loadBalancerReloader = $q.when(null);
             backingData.accounts = _.keys(backingData.credentialsKeyedByAccount);
             backingData.filtered = {};
             command.backingData = backingData;
             backingData.filtered.securityGroups = getRegionalSecurityGroups(command);
-
-            if (_.get(command, 'loadBalancers').length) {
-              // verify all load balancers are accounted for; otherwise, try refreshing load balancers cache
-              var loadBalancerNames = getLoadBalancerNames(command.backingData.loadBalancers);
-              if (_.intersection(loadBalancerNames, command.loadBalancers).length < command.loadBalancers.length) {
-                loadBalancerReloader = refreshLoadBalancers(command, true);
-              }
-            }
-
-            return $q.all([loadBalancerReloader]).then(function() {
-              attachEventHandlers(command);
-            });
+            attachEventHandlers(command);
           });
       }
 
@@ -174,16 +162,12 @@ module.exports = angular
       }
 
       function refreshLoadBalancers(command, skipCommandReconfiguration) {
-        return $q
-          .when()
-          .then(cacheInitializer.refreshCache('loadBalancers'))
-          .then(loadBalancerReader.listLoadBalancers('openstack'))
-          .then(function(loadBalancers) {
-            command.backingData.loadBalancers = loadBalancers;
-            if (!skipCommandReconfiguration) {
-              configureLoadBalancerOptions(command);
-            }
-          });
+        return $q.then(loadBalancerReader.listLoadBalancers('openstack')).then(function(loadBalancers) {
+          command.backingData.loadBalancers = loadBalancers;
+          if (!skipCommandReconfiguration) {
+            configureLoadBalancerOptions(command);
+          }
+        });
       }
 
       function configureLoadBalancers(command) {
@@ -240,14 +224,14 @@ module.exports = angular
       }
 
       return {
-        configureUpdateCommand: configureUpdateCommand,
-        configureCommand: configureCommand,
-        configureImages: configureImages,
-        configureSecurityGroupOptions: configureSecurityGroupOptions,
-        configureLoadBalancerOptions: configureLoadBalancerOptions,
-        refreshLoadBalancers: refreshLoadBalancers,
-        refreshSecurityGroups: refreshSecurityGroups,
-        getRegionalSecurityGroups: getRegionalSecurityGroups,
+        configureUpdateCommand,
+        configureCommand,
+        configureImages,
+        configureSecurityGroupOptions,
+        configureLoadBalancerOptions,
+        refreshLoadBalancers,
+        refreshSecurityGroups,
+        getRegionalSecurityGroups,
       };
     },
   ]);

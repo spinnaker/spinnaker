@@ -49,20 +49,4 @@
       <option value="">Select an instance type...</option>
     </select>
   </div>
-  <div class="form-group small" style="margin-top: 20px">
-    <div class="col-md-9 col-md-offset-1">
-      <p>
-        <span ng-if="instanceArchetypeCtrl.refreshing"><span class="fa fa-sync-alt fa-spin"></span></span>
-        Instance types
-        <span ng-if="!instanceArchetypeCtrl.refreshing"
-          >last refreshed {{ instanceArchetypeCtrl.getInstanceTypeRefreshTime() | timestamp }}</span
-        >
-        <span ng-if="instanceArchetypeCtrl.refreshing"> refreshing...</span>
-      </p>
-      <p>
-        If you're not seeing an instance type you expect,
-        <a href ng-click="instanceArchetypeCtrl.refreshInstanceTypes()">click here</a> to refresh the list.
-      </p>
-    </div>
-  </div>
 </div>

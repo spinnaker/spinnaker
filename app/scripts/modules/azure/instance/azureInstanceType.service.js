@@ -3,8 +3,6 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { InfrastructureCaches } from '@spinnaker/core';
-
 module.exports = angular.module('spinnaker.azure.instanceType.service', []).factory('azureInstanceTypeService', [
   '$http',
   '$q',
@@ -814,10 +812,6 @@ module.exports = angular.module('spinnaker.azure.instanceType.service', []).fact
     }
 
     var getAllTypesByRegion = function getAllTypesByRegion() {
-      var cached = InfrastructureCaches.get('instanceTypes').get('azure');
-      if (cached) {
-        return $q.when(cached);
-      }
       return getCategories();
     };
 

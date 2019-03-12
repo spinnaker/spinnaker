@@ -1,36 +1,12 @@
-import { IController, IComponentOptions, module } from 'angular';
+import { IComponentOptions, module, noop } from 'angular';
 
-import { InfrastructureCaches } from '@spinnaker/core';
-import {
-  TITUS_SERVER_GROUP_CONFIGURATION_SERVICE,
-  TitusServerGroupConfigurationService,
-} from '../serverGroup/configure/serverGroupConfiguration.service';
-
-class LoadBalancerSelectorController implements IController {
-  public command: any;
-
-  public refreshTime: number;
-  public refreshing = false;
-
-  public static $inject = ['titusServerGroupConfigurationService'];
-  public constructor(private titusServerGroupConfigurationService: TitusServerGroupConfigurationService) {}
-
-  public $onInit(): void {
-    this.refreshing = true;
-    this.titusServerGroupConfigurationService.refreshLoadBalancers(this.command).then(() => (this.refreshing = false));
-    this.setLoadBalancerRefreshTime();
-  }
-
-  public setLoadBalancerRefreshTime(): void {
-    this.refreshTime = InfrastructureCaches.get('loadBalancers').getStats().ageMax;
-  }
-}
+import { TITUS_SERVER_GROUP_CONFIGURATION_SERVICE } from '../serverGroup/configure/serverGroupConfiguration.service';
 
 export const loadBalancerSelectorComponent: IComponentOptions = {
   bindings: {
     command: '=',
   },
-  controller: LoadBalancerSelectorController,
+  controller: noop,
   templateUrl: require('./loadBalancerSelector.component.html'),
 };
 

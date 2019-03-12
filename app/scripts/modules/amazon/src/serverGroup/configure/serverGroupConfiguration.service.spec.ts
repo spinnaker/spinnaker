@@ -86,41 +86,6 @@ describe('Service: awsServerGroupConfiguration', function() {
   );
 
   describe('configureCommand', function() {
-    it('attempts to reload load balancers if some are not found on initialization, but does not set dirty flag', function() {
-      spyOn(AccountService, 'getCredentialsKeyedByAccount').and.returnValue($q.when([]));
-      spyOn(securityGroupReader, 'getAllSecurityGroups').and.returnValue($q.when([]));
-      const listLoadBalancersSpy = spyOn(loadBalancerReader, 'listLoadBalancers').and.returnValue(
-        $q.when(this.allLoadBalancers),
-      );
-      spyOn(SubnetReader, 'listSubnets').and.returnValue($q.when([]));
-      spyOn(AccountService, 'getPreferredZonesByAccount').and.returnValue($q.when([]));
-      spyOn(KeyPairsReader, 'listKeyPairs').and.returnValue($q.when([]));
-      spyOn(awsInstanceTypeService, 'getAllTypesByRegion').and.returnValue($q.when([]));
-      const refreshCacheSpy = spyOn(cacheInitializer, 'refreshCache').and.returnValue($q.when(null));
-
-      const command = {
-        credentials: 'test',
-        region: 'us-east-1',
-        loadBalancers: ['elb-1', 'elb-3'],
-        vpcId: null,
-        viewState: {
-          disableImageSelection: true,
-          dirty: {},
-        },
-      } as any;
-
-      service.configureCommand(
-        applicationModelBuilder.createApplicationForTests('name', { key: 'loadBalancers', lazy: true }),
-        command,
-      );
-      $scope.$digest();
-
-      expect(cacheInitializer.refreshCache).toHaveBeenCalledWith('loadBalancers');
-      expect(refreshCacheSpy.calls.count()).toBe(1);
-      expect(listLoadBalancersSpy.calls.count()).toBe(1);
-      expect(command.dirty).toBeUndefined();
-    });
-
     it('attempts to reload firewalls if some are not found on initialization, but does not set dirty flag', function() {
       spyOn(AccountService, 'getCredentialsKeyedByAccount').and.returnValue($q.when([]));
       const getAllSecurityGroupsSpy = spyOn(securityGroupReader, 'getAllSecurityGroups').and.returnValue($q.when([]));
@@ -152,44 +117,6 @@ describe('Service: awsServerGroupConfiguration', function() {
       expect(cacheInitializer.refreshCache).toHaveBeenCalledWith('securityGroups');
       expect(refreshCacheSpy.calls.count()).toBe(1);
       expect(getAllSecurityGroupsSpy.calls.count()).toBe(2);
-      expect(command.dirty).toBeUndefined();
-    });
-
-    it('attempts to reload instance types if already selected on initialization, but does not set dirty flag', function() {
-      spyOn(AccountService, 'getCredentialsKeyedByAccount').and.returnValue($q.when([]));
-      spyOn(securityGroupReader, 'getAllSecurityGroups').and.returnValue($q.when([]));
-      spyOn(loadBalancerReader, 'listLoadBalancers').and.returnValue($q.when([]));
-      spyOn(SubnetReader, 'listSubnets').and.returnValue($q.when([]));
-      spyOn(AccountService, 'getPreferredZonesByAccount').and.returnValue($q.when([]));
-      spyOn(KeyPairsReader, 'listKeyPairs').and.returnValue($q.when([]));
-      const getAllTypesByRegionSpy = spyOn(awsInstanceTypeService, 'getAllTypesByRegion').and.returnValue(
-        $q.when({
-          'us-east-1': [{ name: 'm4.tiny' }],
-        }),
-      );
-      const refreshCacheSpy = spyOn(cacheInitializer, 'refreshCache').and.returnValue($q.when(null));
-
-      const command = {
-        credentials: 'test',
-        region: 'us-east-1',
-        securityGroups: [],
-        instanceType: 'm4.tiny',
-        vpcId: null,
-        viewState: {
-          disableImageSelection: true,
-          dirty: {},
-        },
-      } as any;
-
-      service.configureCommand(
-        applicationModelBuilder.createApplicationForTests('name', { key: 'loadBalancers', lazy: true }),
-        command,
-      );
-      $scope.$digest();
-
-      expect(cacheInitializer.refreshCache).toHaveBeenCalledWith('instanceTypes');
-      expect(refreshCacheSpy.calls.count()).toBe(1);
-      expect(getAllTypesByRegionSpy.calls.count()).toBe(2);
       expect(command.dirty).toBeUndefined();
     });
   });

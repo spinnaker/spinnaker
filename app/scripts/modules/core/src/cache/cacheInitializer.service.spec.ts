@@ -3,21 +3,12 @@ import { flatten } from 'lodash';
 import { mock, IQService, IRootScopeService } from 'angular';
 import { CACHE_INITIALIZER_SERVICE, CacheInitializerService } from './cacheInitializer.service';
 import { AccountService } from 'core/account/AccountService';
-import { ApplicationReader } from 'core/application/service/ApplicationReader';
 import { InfrastructureCaches } from 'core/cache';
 import { SECURITY_GROUP_READER, SecurityGroupReader } from 'core/securityGroup/securityGroupReader.service';
-import { IgorService } from 'core/ci/igor.service';
 
 interface IKeys {
   [key: string]: string[];
-  account: string[];
   sg: string[];
-  app: string[];
-  bm: string[];
-}
-
-interface IFoundKeys {
-  [key: string]: boolean;
 }
 
 describe('Service: cacheInitializer', function() {
@@ -29,8 +20,8 @@ describe('Service: cacheInitializer', function() {
   beforeEach(mock.module(CACHE_INITIALIZER_SERVICE, SECURITY_GROUP_READER));
   beforeEach(
     mock.inject(function(
-      _$q_: ng.IQService,
-      _$rootScope_: ng.IRootScopeService,
+      _$q_: IQService,
+      _$rootScope_: IRootScopeService,
       _cacheInitializer_: CacheInitializerService,
       _securityGroupReader_: SecurityGroupReader,
     ) {
@@ -53,50 +44,22 @@ describe('Service: cacheInitializer', function() {
 
   describe('spinnaker.core.cache.initializer', () => {
     const keys: IKeys = {
-      account: ['account1', 'account2', 'account3'],
       sg: ['sg1', 'sg2', 'sg3'],
-      app: ['app1', 'app2', 'app3'],
-      bm: ['bm1', 'bm2', 'bm3'],
     };
     let initialized: boolean;
 
     beforeEach(() => {
       initialized = false;
-      spyOn(AccountService, 'listAllAccounts').and.returnValue($q.when(keys.account));
       spyOn(securityGroupReader, 'getAllSecurityGroups').and.returnValue($q.when(keys.sg));
-      spyOn(ApplicationReader, 'listApplications').and.returnValue($q.when(keys.app));
-      spyOn(IgorService, 'listMasters').and.returnValue($q.when(keys.bm));
       spyOn(AccountService, 'listProviders').and.returnValue($q.when([]));
     });
 
     it('should initialize the cache initializer with the initialization values', () => {
       cacheInitializer.initialize().then((result: any[]) => {
-        expect(result.length).toBe(13); // from infrastructure cache config
+        expect(result.length).toBe(5); // from infrastructure cache config
         const flattened: string[][] = flatten(result); // only the arrays that actually contain data
-        expect(flattened.length).toBe(4); // the four initialized string[] above used for the spyOns.
-
-        const prefixes: string[] = ['account', 'sg', 'app', 'bm'];
-        const foundKeys: IFoundKeys = {
-          account: false,
-          sg: false,
-          app: false,
-          bm: false,
-        };
-
-        // verify the contents of each array; that they match the values used for initialization
-        for (let i = 0; i < 4; i++) {
-          const item: string[] = flattened[i];
-          for (let j = 0; j < 4; j++) {
-            const prefix: string = prefixes[j];
-            if (item[0].startsWith(prefix)) {
-              expect(item).toEqual(keys[prefix]);
-              foundKeys[prefix] = true;
-            }
-          }
-        }
-
-        // finally check the boolean object to confirm each key was found
-        Object.keys(foundKeys).forEach((key: string) => expect(foundKeys[key]).toBeTruthy());
+        expect(flattened.length).toBe(1); // the four initialized string[] above used for the spyOns.
+        expect(flattened[0]).toEqual(keys.sg);
         initialized = true;
       });
       $root.$digest();
@@ -105,7 +68,7 @@ describe('Service: cacheInitializer', function() {
 
     it('should remove all items from all caches', () => {
       cacheInitializer.refreshCaches().then((result: any[]) => {
-        expect(result.length).toBe(13);
+        expect(result.length).toBe(5);
         result.forEach((item: any) => expect(item).toBeUndefined());
         initialized = true;
       });
@@ -114,11 +77,11 @@ describe('Service: cacheInitializer', function() {
     });
 
     it('should remove all items from the specified cache', () => {
-      let cache = InfrastructureCaches.get('credentials');
+      let cache = InfrastructureCaches.get('securityGroups');
       expect(cache).toBeUndefined();
 
       cacheInitializer.initialize().then(() => {
-        cache = InfrastructureCaches.get('credentials');
+        cache = InfrastructureCaches.get('securityGroups');
         expect(cache).toBeDefined();
         expect(cache.keys().length).toBe(0);
 
@@ -129,9 +92,9 @@ describe('Service: cacheInitializer', function() {
         expect(cache.keys().length).toBe(1);
         expect(cache.get(key)).toBe(value);
 
-        cacheInitializer.refreshCache('credentials').then((result: any[]) => {
-          expect(flatten(result)).toEqual(keys.account);
-          cache = InfrastructureCaches.get('credentials');
+        cacheInitializer.refreshCache('securityGroups').then((result: any[]) => {
+          expect(flatten(result)).toEqual(keys.sg);
+          cache = InfrastructureCaches.get('securityGroups');
           expect(cache.keys().length).toBe(0);
         });
         initialized = true;

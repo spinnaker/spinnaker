@@ -14,8 +14,6 @@ templates.keys().forEach(function(key) {
 
 export const ORACLE_MODULE = 'spinnaker.oracle';
 module(ORACLE_MODULE, [
-  // Cache
-  require('./cache/cacheConfigurer.service').name,
   // Pipeline
   require('./pipeline/stages/bake/ociBakeStage').name,
   require('./pipeline/stages/destroyAsg/destroyAsgStage').name,
@@ -48,9 +46,6 @@ module(ORACLE_MODULE, [
 ]).config(function() {
   CloudProviderRegistry.registerProvider('oracle', {
     name: 'Oracle',
-    cache: {
-      configurer: 'oracleCacheConfigurer',
-    },
     image: {
       reader: 'oracleImageReader',
     },

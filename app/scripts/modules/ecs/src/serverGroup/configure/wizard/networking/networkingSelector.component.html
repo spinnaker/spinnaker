@@ -138,21 +138,6 @@
     </div>
   </div>
 
-  <div class="form-group small" style="margin-top: 20px">
-    <div class="col-md-8 col-md-offset-4">
-      <p>
-        <span ng-if="$ctrl.refreshing"><span class="fa fa-sync-alt fa-spin"></span></span>
-        Target groups
-        <span ng-if="!$ctrl.refreshing">last refreshed {{ $ctrl.refreshTime | timestamp }}</span>
-        <span ng-if="$ctrl.refreshing"> refreshing...</span>
-      </p>
-      <p>
-        If you're not finding a target group that was recently added,
-        <a href ng-click="$ctrl.refreshLoadBalancers()">click here</a> to refresh the list.
-      </p>
-    </div>
-  </div>
-
   <div class="form-group">
     <div class="col-md-4 sm-label-right">
       Target container port <help-field key="ecs.loadbalancing.targetPort"></help-field>
