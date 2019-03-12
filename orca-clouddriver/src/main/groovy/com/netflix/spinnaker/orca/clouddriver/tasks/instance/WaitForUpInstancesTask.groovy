@@ -177,14 +177,16 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
    * This method aims to generically detect these scenarios and use the target capacity of the
    * server group rather than 0/0/0.
    */
-  private static Map<String, Integer> getServerGroupCapacity(Stage stage, Map serverGroup) {
+  private Map<String, Integer> getServerGroupCapacity(Stage stage, Map serverGroup) {
     def serverGroupCapacity = serverGroup.capacity as Map<String, Integer>
+
+    def cloudProvider = getCloudProvider(stage)
 
     def initialTargetCapacity = getInitialTargetCapacity(stage, serverGroup)
     if (!initialTargetCapacity) {
       log.debug(
           "Unable to determine initial target capacity (serverGroup: {}, executionId: {})",
-          "${serverGroup.region}:${serverGroup.name}",
+          "${cloudProvider}:${serverGroup.region}:${serverGroup.name}",
           stage.execution.id
       )
       return serverGroupCapacity
@@ -193,7 +195,7 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
     if (serverGroup.capacity.max == 0 && initialTargetCapacity.max != 0) {
       log.info(
           "Overriding server group capacity (serverGroup: {}, initialTargetCapacity: {}, executionId: {})",
-          "${serverGroup.region}:${serverGroup.name}",
+          "${cloudProvider}:${serverGroup.region}:${serverGroup.name}",
           initialTargetCapacity,
           stage.execution.id
       )
@@ -202,7 +204,7 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
 
     log.debug(
         "Determined server group capacity (serverGroup: {}, serverGroupCapacity: {}, initialTargetCapacity: {}, executionId: {}",
-        "${serverGroup.region}:${serverGroup.name}",
+        "${cloudProvider}:${serverGroup.region}:${serverGroup.name}",
         serverGroupCapacity,
         initialTargetCapacity,
         stage.execution.id
