@@ -178,7 +178,7 @@ class AppengineSmokeTestScenario(sk.SpinnakerTestScenario):
   def __has_default_version(self):
     command = 'gcloud app services list --project={project}'.format(project=self.__gcp_project)
     out, err = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate()
-    logging.debug('Checking if project has default app version: {command} returned: {out}'.format(out))
+    logging.debug('Checking if project has default app version: {command} returned: {out}'.format(command=command, out=out))
     # Expect an output similar to:
     # SERVICE        NUM_VERSIONS
     # default        1
