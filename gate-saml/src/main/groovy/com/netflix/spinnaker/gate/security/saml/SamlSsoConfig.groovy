@@ -206,7 +206,7 @@ class SamlSsoConfig extends WebSecurityConfigurerAdapter {
         def userAttributeMapping = samlSecurityConfigProperties.userAttributeMapping
 
         def email = assertion.getSubject().nameID.value
-        String username = attributes[userAttributeMapping.username] ?: email
+        String username = attributes[userAttributeMapping.username]?.get(0) ?: email
         def roles = extractRoles(email, attributes, userAttributeMapping)
 
         if (samlSecurityConfigProperties.requiredRoles) {
