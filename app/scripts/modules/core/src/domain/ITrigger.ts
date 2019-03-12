@@ -9,6 +9,12 @@ export interface ITrigger {
   runAsUser?: string;
 }
 
+export interface IArtifactoryTrigger extends ITrigger {
+  artifactorySearchName: string;
+  artifactoryRepository: string;
+  type: 'artifactory';
+}
+
 export interface IGitTrigger extends ITrigger {
   source: string;
   project: string;

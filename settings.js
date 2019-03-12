@@ -227,7 +227,7 @@ window.spinnakerSettings = {
   },
   pubsubProviders: ['google'], // TODO(joonlim): Add amazon once it is confirmed that amazon pub/sub works.
   searchVersion: 1,
-  triggerTypes: ['cron', 'docker', 'git', 'jenkins', 'pipeline', 'pubsub', 'travis', 'wercker'],
+  triggerTypes: ['artifactory', 'cron', 'docker', 'git', 'jenkins', 'pipeline', 'pubsub', 'travis', 'wercker'],
   useClassicFirewallLabels: useClassicFirewallLabels,
   whatsNew: {
     fileName: 'news.md',
