@@ -79,7 +79,7 @@ public class ArtifactoryBuildMonitor extends CommonPollingMonitor<ArtifactoryBui
   @Override
   public void poll(boolean sendEvents) {
     for (ArtifactorySearch search : artifactoryProperties.getSearches()) {
-      pollSingle(new PollContext(search.getPartitionName(), sendEvents));
+      pollSingle(new PollContext(search.getPartitionName(), !sendEvents));
     }
   }
 
@@ -103,19 +103,22 @@ public class ArtifactoryBuildMonitor extends CommonPollingMonitor<ArtifactoryBui
 
         Long cursor = cache.getLastPollCycleTimestamp(search);
         if (cursor == null) {
-          cache.setLastPollCycleTimestamp(search, System.currentTimeMillis());
           if (!igorProperties.getSpinnaker().getBuild().isHandleFirstBuilds()) {
             return ArtifactPollingDelta.EMPTY;
           }
         } else if (cursor > lookbackFromCurrent || igorProperties.getSpinnaker().getBuild().isProcessBuildsOlderThanLookBackWindow()) {
           modified = "\"modified\":{\"$gt\":\"" + Instant.ofEpochMilli(cursor) + "\"}";
         }
+        cache.setLastPollCycleTimestamp(search, System.currentTimeMillis());
 
         String aqlQuery = "items.find({" +
-          "\"repo\":\"libs-demo-local\"," +
-          modified + "," +
-          "\"name\":{\"$match\":\"" +
+          "\"repo\":\"" + search.getRepo() + "\"," +
+          modified +
+            "," +
+          "\"path\":{\"$match\":\"" +
             (search.getGroupId() == null ? "" : search.getGroupId().replace('.', '/') + "/") +
+            "*\"}," +
+            "\"name\": {\"$match\":\"" +
             "*.pom\"}" +
           "}).include(\"path\",\"repo\",\"name\")";
 
@@ -130,7 +133,7 @@ public class ArtifactoryBuildMonitor extends CommonPollingMonitor<ArtifactoryBui
           ArtifactoryResponse aqlResponse = client.restCall(aqlRequest);
           if (aqlResponse.isSuccessResponse()) {
             List<ArtifactoryArtifact> results = aqlResponse.parseBody(ArtifactoryQueryResults.class).getResults();
-            return new ArtifactPollingDelta(search.getPartitionName(), Collections.singletonList(
+            return new ArtifactPollingDelta(search.getName(), search.getPartitionName(), Collections.singletonList(
               new ArtifactDelta(System.currentTimeMillis(), search.getRepoType(), results)));
           }
 
@@ -149,28 +152,30 @@ public class ArtifactoryBuildMonitor extends CommonPollingMonitor<ArtifactoryBui
     for (ArtifactDelta artifactDelta : delta.items) {
       if (sendEvents) {
         for (ArtifactoryArtifact artifact : artifactDelta.getArtifacts()) {
-          postEvent(artifactDelta.getType(), artifact);
+          postEvent(artifactDelta.getType(), artifact, delta.getName());
           log.debug("{} event posted", artifact);
         }
       }
     }
   }
 
-  private void postEvent(ArtifactoryRepositoryType repoType, ArtifactoryArtifact artifact) {
+  private void postEvent(ArtifactoryRepositoryType repoType, ArtifactoryArtifact artifact, String name) {
     if (!echoService.isPresent()) {
       log.warn("Cannot send build notification: Echo is not configured");
       registry.counter(missedNotificationId.withTag("monitor", ArtifactoryBuildMonitor.class.getSimpleName())).increment();
     } else {
       Artifact matchableArtifact = artifact.toMatchableArtifact(repoType);
       if(matchableArtifact != null) {
-        echoService.get().postEvent(new ArtifactoryEvent(matchableArtifact));
+        echoService.get().postEvent(new ArtifactoryEvent(new ArtifactoryEvent.Content(name, matchableArtifact)));
       }
     }
   }
 
   @Data
   static class ArtifactPollingDelta implements PollingDelta<ArtifactDelta> {
-    public static ArtifactPollingDelta EMPTY = new ArtifactPollingDelta(null, emptyList());
+    public static ArtifactPollingDelta EMPTY = new ArtifactPollingDelta(null, null, emptyList());
+
+    private final String name;
 
     @Nullable
     private final String repo;

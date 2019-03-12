@@ -18,6 +18,7 @@ package com.netflix.spinnaker.igor.history.model;
 
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
@@ -28,10 +29,16 @@ import java.util.Map;
 @RequiredArgsConstructor
 @Data
 public class ArtifactoryEvent extends Event {
+  private final Content content;
   private final Map<String, String> details = ImmutableMap.<String, String>builder()
     .put("type", "artifactory")
     .put("source", "igor")
     .build();
 
-  private final Artifact artifact;
+    @Data
+    @AllArgsConstructor
+    public static class Content {
+        String name;
+        Artifact artifact;
+    }
 }

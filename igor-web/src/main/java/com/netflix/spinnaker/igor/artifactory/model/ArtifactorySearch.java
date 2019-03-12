@@ -25,9 +25,10 @@ import java.util.stream.Collectors;
 
 @Data
 public class ArtifactorySearch {
+  private String name;
   private ArtifactoryRepositoryType repoType = ArtifactoryRepositoryType.Maven;
   private String baseUrl;
-  private List<String> repos = Arrays.asList("libs-releases-local", "libs-snapshot-local");
+  private String repo;
 
   /**
    * One of username/password or an access token is required.
@@ -53,7 +54,6 @@ public class ArtifactorySearch {
   private String groupId;
 
   public String getPartitionName() {
-    return baseUrl + "/" + repos.stream()
-      .collect(Collectors.joining(",", "[", "]"));
+    return baseUrl + "/" + repo;
   }
 }

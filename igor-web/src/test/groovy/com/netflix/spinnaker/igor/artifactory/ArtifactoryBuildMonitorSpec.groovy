@@ -45,7 +45,7 @@ class ArtifactoryBuildMonitorSpec extends Specification {
       new ArtifactoryProperties(searches: [
         new ArtifactorySearch(
           baseUrl: mockArtifactory.url('/'),
-          repos: ['libs-releases-local'],
+          repo: 'libs-releases-local',
         )
       ])
     )
