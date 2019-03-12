@@ -7,6 +7,10 @@ dependencies {
   compile project(":orca-front50")
   compile project(":orca-clouddriver")
 
+  compile('com.hubspot.jinjava:jinjava:2.2.3') {
+    force = true
+  }
+
   compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${spinnaker.version('jackson')}"
   compile "com.fasterxml.jackson.module:jackson-module-kotlin:${spinnaker.version("jackson")}"
   compile('com.jayway.jsonpath:json-path:2.2.0')
@@ -15,7 +19,6 @@ dependencies {
   compile spinnaker.dependency("bootAutoConfigure")
   compile spinnaker.dependency("springContext")
   compile spinnaker.dependency("jacksonDatabind")
-  compile spinnaker.dependency("jinjava")
   compile spinnaker.dependency("spectatorApi")
   compile spinnaker.dependency("frigga")
   compile spinnaker.dependency('korkExceptions')
