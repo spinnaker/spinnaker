@@ -271,6 +271,11 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent {
       }
 
       if (FINISHED_JOB_STATES.contains(job.getStatus().getState())) {
+        if (state.snapshotComplete && state.tasks.containsKey(jobId)) {
+          state.tasks.get(jobId).forEach(t ->
+            state.completedInstanceIds.add(Keys.getInstanceV2Key(t.getId(), account.getName(), region.getName()))
+          );
+        }
         state.tasks.remove(jobId);
         if (state.jobs.containsKey(jobId)) {
           state.jobs.remove(jobId);
@@ -293,10 +298,16 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent {
         state.tasks.computeIfAbsent(jobId, t -> new HashSet<>()).remove(task);
         state.tasks.get(jobId).add(task);
       } else if (FINISHED_TASK_STATES.contains(task.getStatus().getState())) {
+        if (state.snapshotComplete) {
+          state.completedInstanceIds.add(
+            Keys.getInstanceV2Key(task.getId(), account.getName(), region.getName())
+          );
+        }
+
         if (state.tasks.containsKey(jobId)) {
           state.tasks.get(jobId).remove(task);
         } else if (state.snapshotComplete) {
-          log.debug("{} updateTask: task: {} jobId: {} has finished, but not present in current snapshot set",
+          log.debug("{} updateTask: task: {} jobId: {} has finished, but task not present in current snapshot set",
             getAgentType(),
             task.getId(),
             jobId
@@ -395,10 +406,18 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent {
       Map<String, Job> jobs;
 
       if (state.savedSnapshot) {
+        List<String> missingJobMappings = state.updatedJobs.stream()
+        .filter(j -> !state.jobIdToApp.containsKey(j))
+          .collect(Collectors.toList());
+
+        log.error("{} updatedJobs missing from jobIdToApp cache: {}", getAgentType(), missingJobMappings);
+
         Set<String> changedApplications = state.updatedJobs.stream()
           .map(j -> state.jobIdToApp.get(j))
           .collect(Collectors.toSet());
         changedApplications.remove(null);
+
+        currentApps.addAll(changedApplications);
 
         Set<String> jobsNeeded = state.jobIdToApp.entrySet().stream()
           .filter(entry -> changedApplications.contains(entry.getValue()))
@@ -493,6 +512,12 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent {
             state.appsToServerGroups.getOrDefault(state.sgKeyToApp.get(sg), emptySet()).remove(sg);
             state.sgKeyToApp.remove(sg);
           });
+        }
+
+        if (!state.completedInstanceIds.isEmpty()) {
+          log.info("Evicting {} instances in {}", state.completedInstanceIds.size(), getAgentType());
+          cache.evictDeletedItems(INSTANCES.ns, state.completedInstanceIds);
+          state.completedInstanceIds = new HashSet<>();
         }
       }
 
@@ -601,6 +626,7 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent {
       Map<String, String> clusterKeyToApp = new HashMap<>();
       Map<String, String> sgKeyToApp = new HashMap<>();
 
+      Set<String> completedInstanceIds = new HashSet<>();
       Set<String> updatedJobs = new HashSet<>();
 
       Boolean snapshotComplete = false;
