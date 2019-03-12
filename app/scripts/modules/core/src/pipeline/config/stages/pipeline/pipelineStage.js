@@ -87,6 +87,14 @@ module.exports = angular
             }
             $scope.pipelineParameters = config.parameterConfig;
             $scope.userSuppliedParameters = $scope.stage.pipelineParameters;
+
+            if ($scope.pipelineParameters) {
+              const acceptedPipelineParams = $scope.pipelineParameters.map(param => param.name);
+              $scope.invalidParameters = Object.keys($scope.userSuppliedParameters).filter(
+                paramName => !acceptedPipelineParams.includes(paramName),
+              );
+            }
+
             $scope.useDefaultParameters = {};
             _.each($scope.pipelineParameters, function(property) {
               if (!(property.name in $scope.stage.pipelineParameters) && property.default !== null) {
@@ -117,6 +125,15 @@ module.exports = angular
         } else if ($scope.userSuppliedParameters[parameter]) {
           $scope.stage.pipelineParameters[parameter] = $scope.userSuppliedParameters[parameter];
         }
+      };
+
+      this.removeInvalidParameters = function() {
+        $scope.invalidParameters.forEach(param => {
+          if ($scope.stage.pipelineParameters[param] !== 'undefined') {
+            delete $scope.stage.pipelineParameters[param];
+          }
+        });
+        $scope.invalidParameters = [];
       };
 
       $scope.$watch('stage.application', initializeMasters);

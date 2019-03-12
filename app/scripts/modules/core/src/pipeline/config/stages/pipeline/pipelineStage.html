@@ -83,6 +83,20 @@
         </label>
       </div>
     </div>
+    <div ng-if="invalidParameters.length" class="horizontal center sp-margin-l-top" style="width: 100%">
+      <div class="alert alert-danger vertical">
+        <p>
+          <i class="fa fa-exclamation-triangle"></i>
+          The following parameters are not accepted by the pipeline but are still set in the stage configuration:
+        </p>
+        <ul>
+          <li ng-repeat="paramName in invalidParameters">
+            {{paramName}}
+          </li>
+        </ul>
+        <button class="self-right passive" ng-click="pipelineStageCtrl.removeInvalidParameters()">Remove all</button>
+      </div>
+    </div>
   </div>
   <stage-config-field label="Wait for results" help-key="pipeline.waitForCompletion">
     <input type="checkbox" class="input-sm" name="waitForCompletion" ng-model="stage.waitForCompletion" />
