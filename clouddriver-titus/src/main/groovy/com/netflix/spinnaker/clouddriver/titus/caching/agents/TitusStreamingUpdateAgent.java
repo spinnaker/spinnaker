@@ -44,6 +44,7 @@ import com.netflix.spinnaker.clouddriver.titus.client.TitusLoadBalancerClient;
 import com.netflix.spinnaker.clouddriver.titus.client.TitusRegion;
 import com.netflix.spinnaker.clouddriver.titus.client.model.TaskState;
 import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentials;
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.titus.grpc.protogen.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -80,10 +81,7 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent {
   private final Registry registry;
   private final Id metricId;
   private final Provider<AwsLookupUtil> awsLookupUtil;
-
-  // TODO: these thresholds should be dynamic properties
-  private final long TIME_UPDATE_THRESHOLD_MS = TimeUnit.SECONDS.toMillis(10);
-  private final long ITEMS_CHANGED_THRESHOLD = 5000;
+  private final DynamicConfigService dynamicConfigService;
 
   private final Logger log = LoggerFactory.getLogger(TitusStreamingUpdateAgent.class);
 
@@ -138,8 +136,8 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent {
                                    TitusRegion region,
                                    ObjectMapper objectMapper,
                                    Registry registry,
-                                   Provider<AwsLookupUtil> awsLookupUtil
-  ) {
+                                   Provider<AwsLookupUtil> awsLookupUtil,
+                                   DynamicConfigService dynamicConfigService) {
     this.account = account;
     this.region = region;
     this.objectMapper = objectMapper;
@@ -148,6 +146,7 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent {
     this.titusLoadBalancerClient = titusClientProvider.getTitusLoadBalancerClient(account, region.getName());
     this.registry = registry;
     this.awsLookupUtil = awsLookupUtil;
+    this.dynamicConfigService = dynamicConfigService;
     this.metricId = registry.createId("titus.cache.streaming")
       .withTag("account", account.getName())
       .withTag("region", region.getName());
@@ -182,10 +181,10 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent {
      * received, the agent builds cacheResults for the full snapshot, equivalent to the standard
      * index-the-world caching agent. In the process, we cache mappings between jobIds to
      * applications, clusters, and server groups within a StreamingCacheState object.
-     *
+     * <p>
      * After the initial snapshot persist, the agent continues to consume observeJobs events, updating
      * StreamingCacheState, including a list of jobIds we've received events for. Once either
-     * ITEMS_CHANGED_THRESHOLD events have been consumed, or TIME_UPDATE_THRESHOLD_MS time has passed,
+     * titus.streaming.changeThreshold events have been consumed, or titus.streaming.timeThresholdMs ms has passed,
      * cacheResults are built for the full resource graph of applications that have had job/task updates.
      * This is more work than only directly updating i.e. server groups based on job updates or instance
      * based on task updates, but avoids pitfalls in properly maintaining relationships to or deleting
@@ -316,8 +315,11 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent {
       long startTime = System.currentTimeMillis();
 
       if (!state.savedSnapshot ||
-        state.changes.get() >= ITEMS_CHANGED_THRESHOLD ||
-        (startTime - state.lastUpdate.get() > TIME_UPDATE_THRESHOLD_MS && state.changes.get() > 0)
+        state.changes.get() >=
+          dynamicConfigService.getConfig(Integer.class, "titus.streaming.changeThreshold", 1000) ||
+        (startTime - state.lastUpdate.get() >
+          dynamicConfigService.getConfig(Integer.class, "titus.streaming.timeThresholdMs", 5000) &&
+          state.changes.get() > 0)
       ) {
         if (!state.savedSnapshot) {
           log.info("Storing snapshot with {} job and tasks in {}", state.changes.get(), getAgentType());
@@ -389,7 +391,7 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent {
       Set<String> currentApps = new HashSet<>();
       Set<String> currentClusters = new HashSet<>();
       Set<String> currentServerGroups = new HashSet<>();
-      
+
       Map<String, Job> jobs;
 
       if (state.savedSnapshot) {
@@ -483,7 +485,7 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent {
             state.clusterKeyToApp.remove(cluster);
           });
         }
-        
+
         if (!missingServerGroups.isEmpty()) {
           log.info("Evicting {} server groups in {}", missingServerGroups.size(), getAgentType());
           cache.evictDeletedItems(SERVER_GROUPS.ns, missingServerGroups);
@@ -503,7 +505,7 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent {
       cacheResults.put(INSTANCES.ns, instancesCache.values());
 
       String action = state.savedSnapshot ? "Incrementally updating" : "Snapshot caching";
-      
+
       log.info("{} {} applications in {}", action, applicationCache.size(), getAgentType());
       log.info("{} {} server groups in {}", action, serverGroupCache.size(), getAgentType());
       log.info("{} {} clusters in {}", action, clusterCache.size(), getAgentType());
