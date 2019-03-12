@@ -105,6 +105,7 @@ module.exports = angular
       function updateJobConfig() {
         let stage = $scope.stage,
           view = $scope.viewState;
+
         if (stage && stage.master && stage.job && !view.masterIsParameterized && !view.jobIsParameterized) {
           IgorService.getJobConfig($scope.stage.master, $scope.stage.job).then(config => {
             config = config || {};
@@ -114,6 +115,14 @@ module.exports = angular
             $scope.jobParams = config.parameterDefinitionList;
             $scope.userSuppliedParameters = $scope.stage.parameters;
             $scope.useDefaultParameters = {};
+
+            if ($scope.jobParams) {
+              const acceptedJobParameters = $scope.jobParams.map(param => param.name);
+              $scope.invalidParameters = Object.keys($scope.userSuppliedParameters).filter(
+                paramName => !acceptedJobParameters.includes(paramName),
+              );
+            }
+
             let params = $scope.jobParams || [];
             params.forEach(property => {
               if (!(property.name in $scope.stage.parameters) && property.defaultValue !== null) {
@@ -134,6 +143,15 @@ module.exports = angular
         } else if ($scope.userSuppliedParameters[parameter]) {
           $scope.stage.parameters[parameter] = $scope.userSuppliedParameters[parameter];
         }
+      };
+
+      this.removeInvalidParameters = function() {
+        $scope.invalidParameters.forEach(param => {
+          if ($scope.stage.parameters[param] !== 'undefined') {
+            delete $scope.stage.parameters[param];
+          }
+        });
+        $scope.invalidParameters = [];
       };
 
       initializeMasters();
