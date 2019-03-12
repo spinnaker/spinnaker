@@ -178,7 +178,7 @@ class OperationsControllerSpec extends Specification {
       trigger    : [
         type            : "manual",
         parentPipelineId: "12345",
-        parentExecution : [name: "abc"]
+        parentExecution : [name: "abc", type: PIPELINE, id: "1", application: "application"]
       ]
     ]
   }

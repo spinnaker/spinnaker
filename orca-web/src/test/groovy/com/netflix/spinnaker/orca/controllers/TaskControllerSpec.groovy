@@ -111,7 +111,8 @@ class TaskControllerSpec extends Specification {
       application = "covfefe"
       stage {
         type = "test"
-        tasks = [new Task(name: 'jobOne'), new Task(name: 'jobTwo')]
+        tasks = [new Task(id:'1', name: 'jobOne', startTime: 1L, endTime: 2L, implementingClass: 'Class' ),
+                 new Task(id:'2', name: 'jobTwo', startTime: 1L, endTime: 2L, implementingClass: 'Class' )]
       }
     }])
 
@@ -308,6 +309,9 @@ class TaskControllerSpec extends Specification {
       ],
       [pipelineConfigId: "1", id: "test-3", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).minus(2, HOURS).toEpochMilli(),
        trigger: new JenkinsTrigger("master", "job", 1, "test-property-file")
+      ],
+      [pipelineConfigId: "1", id: "test-4", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).minus(2, HOURS).toEpochMilli(),
+       trigger: new ArtifactoryTrigger("libs-demo-local")
       ]
     ]
 
@@ -335,7 +339,7 @@ class TaskControllerSpec extends Specification {
     List results = new ObjectMapper().readValue(response.contentAsString, List)
 
     then:
-    results.id == ['test-1', 'test-2', 'test-3']
+    results.id == ['test-1', 'test-2', 'test-3', 'test-4']
   }
 
   void '/applications/{application}/pipelines/search should only return pipelines of given types'() {
@@ -353,6 +357,9 @@ class TaskControllerSpec extends Specification {
       ],
       [pipelineConfigId: "1", id: "test-4", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).minus(2, HOURS).toEpochMilli(),
         trigger: new JenkinsTrigger("master", "job", 1, "test-property-file")
+      ],
+      [pipelineConfigId: "1", id: "test-5", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).minus(2, HOURS).toEpochMilli(),
+       trigger: new ArtifactoryTrigger("libs-demo-local")
       ]
     ]
 
@@ -399,6 +406,9 @@ class TaskControllerSpec extends Specification {
       ],
       [pipelineConfigId: "1", id: "test-4", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).minus(2, HOURS).toEpochMilli(),
        trigger: new JenkinsTrigger("master", "job", 1, "test-property-file"), eventId: eventId
+      ],
+      [pipelineConfigId: "1", id: "test-5", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).minus(2, HOURS).toEpochMilli(),
+       trigger: new ArtifactoryTrigger("libs-demo-local"), eventId: wrongEventId
       ]
     ]
 

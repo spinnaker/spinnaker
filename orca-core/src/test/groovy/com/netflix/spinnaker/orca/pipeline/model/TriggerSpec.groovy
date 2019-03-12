@@ -469,6 +469,31 @@ class TriggerSpec extends Specification {
 '''
   }
 
+  def "can parse an artifactory trigger"() {
+    given:
+    def trigger = mapper.readValue(triggerJson, Trigger)
+
+    expect:
+    trigger instanceof ArtifactoryTrigger
+    with(trigger) {
+      artifactorySearchName == "search-name"
+    }
+
+    where:
+    triggerJson = '''
+{
+  "account": "theaccount",
+  "enabled": true,
+  "job": "the-job",
+  "master": "master",
+  "organization": "org",
+  "artifactorySearchName": "search-name",
+  "artifactoryRepository": "libs-demo-local",
+  "type": "artifactory"
+}
+'''
+  }
+
   def pubSubTrigger = '''
 {
   "attributeConstraints": {

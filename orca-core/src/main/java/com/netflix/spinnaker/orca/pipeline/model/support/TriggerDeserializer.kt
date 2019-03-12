@@ -77,6 +77,18 @@ internal class TriggerDeserializer
           get("parentExecution").parseValue<Execution>(parser),
           get("parentPipelineStageId")?.textValue()
         )
+        looksLikeArtifactory() -> ArtifactoryTrigger(
+          get("type").textValue(),
+          get("correlationId")?.textValue(),
+          get("user")?.textValue() ?: "[anonymous]",
+          get("parameters")?.mapValue(parser) ?: mutableMapOf(),
+          get("artifacts")?.listValue(parser) ?: mutableListOf(),
+          get("notifications")?.listValue(parser) ?: mutableListOf(),
+          get("rebake")?.booleanValue() == true,
+          get("dryRun")?.booleanValue() == true,
+          get("strategy")?.booleanValue() == true,
+          get("artifactorySearchName").textValue()
+        )
         looksLikeGit() -> GitTrigger(
           get("type").textValue(),
           get("correlationId")?.textValue(),
@@ -126,6 +138,9 @@ internal class TriggerDeserializer
 
   private fun JsonNode.looksLikePipeline() =
     hasNonNull("parentExecution")
+
+  private fun JsonNode.looksLikeArtifactory() =
+    hasNonNull("artifactorySearchName")
 
   private fun JsonNode.looksLikeCustom() =
     customTriggerSuppliers.any { it.predicate.invoke(this) }
