@@ -100,6 +100,9 @@ public class Trigger {
   List<String> status;
   String user;
 
+  // Configuration for artifactory triggers
+  String artifactorySearchName;
+
   // Artifact constraints
   List<String> expectedArtifactIds;
 
@@ -229,6 +232,12 @@ public class Trigger {
   public Trigger atPropagateAuth(final boolean propagateAuth) {
     return this.toBuilder()
       .propagateAuth(propagateAuth)
+      .build();
+  }
+
+  public Trigger atArtifactorySearchName(final String artifactorySearchName) {
+    return this.toBuilder()
+      .artifactorySearchName(artifactorySearchName)
       .build();
   }
 
