@@ -182,6 +182,11 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
 
     def initialTargetCapacity = getInitialTargetCapacity(stage, serverGroup)
     if (!initialTargetCapacity) {
+      log.debug(
+          "Unable to determine initial target capacity (serverGroup: {}, executionId: {})",
+          serverGroup,
+          stage.execution.id
+      )
       return serverGroupCapacity
     }
 
@@ -195,6 +200,13 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
       serverGroupCapacity = initialTargetCapacity
     }
 
+    log.debug(
+        "Determined server group capacity (serverGroup: {}, serverGroupCapacity: {}, initialTargetCapacity: {}, executionId: {}",
+        serverGroup,
+        serverGroupCapacity,
+        initialTargetCapacity,
+        stage.execution.id
+    )
     return serverGroupCapacity
   }
 
