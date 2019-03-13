@@ -23,8 +23,10 @@ dependencies {
   implementation "com.fasterxml.jackson.core:jackson-databind"
   implementation "com.fasterxml.jackson.core:jackson-annotations"
   implementation "org.jetbrains.kotlin:kotlin-reflect"
+  implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion"
+  implementation "org.springframework:spring-context"
+  implementation "org.springframework.boot:spring-boot-autoconfigure"
 
   api "com.fasterxml.jackson.module:jackson-module-kotlin"
-  api "com.github.jonpeterson:jackson-module-model-versioning:1.2.2"
   api "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
 }

@@ -62,6 +62,7 @@ subprojects {
   dependencies {
     implementation platform("org.springframework.boot:spring-boot-dependencies:$bootVersion")
     testImplementation platform("org.junit:junit-bom:${spinnaker.version('jupiter')}")
+    implementation "org.slf4j:slf4j-api"
   }
 
   configurations.all {

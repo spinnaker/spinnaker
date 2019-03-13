@@ -19,9 +19,9 @@ apply plugin: "kotlin-spring"
 dependencies {
   api "com.squareup.retrofit2:retrofit:${spinnaker.version('retrofit2')}"
   api "com.squareup.retrofit2:converter-jackson:${spinnaker.version('retrofit2')}"
-  api("com.netflix.spinnaker.kork:kork-web:${spinnaker.version('kork')}")
   api "com.jakewharton.retrofit:retrofit2-kotlin-coroutines-adapter:0.9.2"
-  api "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion"
 
+  implementation "com.netflix.spinnaker.kork:kork-web:${spinnaker.version('kork')}"
+  implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion"
   implementation "com.squareup.okhttp3:logging-interceptor:${spinnaker.version('okHttp3')}"
 }

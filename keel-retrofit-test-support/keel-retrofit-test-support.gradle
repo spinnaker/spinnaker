@@ -6,7 +6,6 @@ dependencies {
   api "com.fasterxml.jackson.core:jackson-databind"
   api "com.fasterxml.jackson.core:jackson-annotations"
   api "com.fasterxml.jackson.module:jackson-module-kotlin"
-  api "com.github.jonpeterson:jackson-module-model-versioning:1.2.2"
   api "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
   api project(":keel-core-test")
   implementation platform("org.junit:junit-bom:${spinnaker.version('jupiter')}")

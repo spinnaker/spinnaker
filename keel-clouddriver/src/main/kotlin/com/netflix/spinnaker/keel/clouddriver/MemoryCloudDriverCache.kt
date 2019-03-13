@@ -15,8 +15,8 @@
  */
 package com.netflix.spinnaker.keel.clouddriver
 
-import com.google.common.cache.Cache
-import com.google.common.cache.CacheBuilder
+import com.github.benmanes.caffeine.cache.Cache
+import com.github.benmanes.caffeine.cache.Caffeine
 import com.netflix.spinnaker.keel.clouddriver.model.Credential
 import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
@@ -30,27 +30,27 @@ class MemoryCloudDriverCache(
   private val cloudDriver: CloudDriverService
 ) : CloudDriverCache {
 
-  private val securityGroupSummariesById = CacheBuilder.newBuilder()
+  private val securityGroupSummariesById = Caffeine.newBuilder()
     .maximumSize(1000)
     .expireAfterWrite(30, SECONDS)
     .build<String, SecurityGroupSummary>()
 
-  private val networks = CacheBuilder.newBuilder()
+  private val networks = Caffeine.newBuilder()
     .maximumSize(1000)
     .expireAfterWrite(30, SECONDS)
     .build<String, Network>()
 
-  private val availabilityZones = CacheBuilder.newBuilder()
+  private val availabilityZones = Caffeine.newBuilder()
     .maximumSize(1000)
     .expireAfterWrite(30, SECONDS)
     .build<String, Set<String>>()
 
-  private val credentials = CacheBuilder.newBuilder()
+  private val credentials = Caffeine.newBuilder()
     .maximumSize(100)
     .expireAfterWrite(1, HOURS)
     .build<String, Credential>()
 
-  private val subnets = CacheBuilder.newBuilder()
+  private val subnets = Caffeine.newBuilder()
     .maximumSize(1000)
     .expireAfterWrite(30, SECONDS)
     .build<String, Subnet>()
@@ -117,7 +117,7 @@ class MemoryCloudDriverCache(
           .map { it.availabilityZone }
           .toSet()
       }
-    }
+    }!!
 
   override fun subnetBy(subnetId: String): Subnet =
     subnets.getOrNotFound(subnetId, "Subnet with id $subnetId not found") {
@@ -131,15 +131,7 @@ class MemoryCloudDriverCache(
     key: String,
     notFoundMessage: String,
     loader: suspend CoroutineScope.() -> T?
-  ): T {
-    var v = getIfPresent(key)
-    if (v == null) {
-      v = runBlocking(block = loader)
-      if (v == null) {
-        throw ResourceNotFound(notFoundMessage)
-      }
-      put(key, v)
-    }
-    return v
-  }
+  ): T = get(key) {
+    runBlocking(block = loader)
+  } ?: throw ResourceNotFound(notFoundMessage)
 }

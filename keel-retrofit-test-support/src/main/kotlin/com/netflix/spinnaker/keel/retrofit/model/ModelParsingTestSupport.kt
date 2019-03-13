@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
-import com.github.jonpeterson.jackson.module.versioning.VersioningModule
 import com.jakewharton.retrofit2.adapter.kotlin.coroutines.CoroutineCallAdapterFactory
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.runBlocking
@@ -27,7 +26,6 @@ abstract class ModelParsingTestSupport<in S, out E>(serviceType: Class<S>) {
 
   private val mapper = ObjectMapper()
     .registerModule(KotlinModule())
-    .registerModule(VersioningModule())
     .registerModule(JavaTimeModule())
     .enable(INDENT_OUTPUT)
     .disable(FAIL_ON_UNKNOWN_PROPERTIES)
