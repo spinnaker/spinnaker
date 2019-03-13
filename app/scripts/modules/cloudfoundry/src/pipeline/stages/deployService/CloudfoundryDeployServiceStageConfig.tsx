@@ -43,6 +43,7 @@ export class CloudfoundryDeployServiceStageConfig extends React.Component<
 
   constructor(props: IStageConfigProps) {
     super(props);
+    this.props.stage.cloudProvider = 'cloudfoundry';
     this.state = {
       accounts: [],
       regions: [],

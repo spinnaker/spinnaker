@@ -39,7 +39,8 @@ PipelineConfigValidator.registerValidator(
       if (sourceType(serviceInput, get(stage, 'userProvided')) !== validationConfig.manifestSource) {
         return null;
       }
-      const content: any = get(serviceInput, validationConfig.fieldName);
+      const manifestSource: any = get(serviceInput, validationConfig.manifestSource);
+      const content: any = get(manifestSource, validationConfig.fieldName);
       const fieldLabel = validationConfig.fieldLabel || upperFirst(validationConfig.fieldName);
       return content ? null : `<strong>${fieldLabel}</strong> is a required field for the Deploy Service stage.`;
     }
