@@ -17,8 +17,6 @@
 package com.netflix.spinnaker.orca.igor.tasks
 
 import com.netflix.spinnaker.kork.core.RetrySupport
-
-import java.util.concurrent.TimeUnit
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.OverridableTimeoutRetryableTask
 import com.netflix.spinnaker.orca.TaskResult
@@ -28,6 +26,8 @@ import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
+
+import java.util.concurrent.TimeUnit
 
 @Slf4j
 @Component
@@ -72,26 +72,6 @@ class MonitorJenkinsJobTask implements OverridableTimeoutRetryableTask {
 
       if (statusMap.containsKey(result)) {
         ExecutionStatus status = statusMap[result]
-
-        if (stage.context.propertyFile) {
-          Map<String, Object> properties = [:]
-          try {
-            retrySupport.retry({
-              properties = buildService.getPropertyFile(buildNumber, stage.context.propertyFile, master, job)
-              if (properties.size() == 0 && result == 'SUCCESS') {
-                throw new IllegalStateException("Expected properties file ${stage.context.propertyFile} but it was either missing, empty or contained invalid syntax")
-              }
-            }, 6, 5000, false)
-          } catch (RetrofitError e) {
-            if (e.response?.status == 404) {
-              throw new IllegalStateException("Expected properties file " + stage.context.propertyFile + " but it was missing")
-            } else {
-              throw e
-            }
-          }
-          outputs << properties
-          outputs.propertyFileContents = properties
-        }
         if (result == 'UNSTABLE' && stage.context.markUnstableAsSuccessful) {
           status = ExecutionStatus.SUCCEEDED
         }

@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.igor
 
-import spock.lang.Shared
 import spock.lang.Specification
 
 class BuildServiceSpec extends Specification {
@@ -33,7 +32,7 @@ class BuildServiceSpec extends Specification {
 
   void setup() {
     igorService = Mock(IgorService)
-    buildService = new BuildService(igorService: igorService)
+    buildService = new BuildService(igorService)
   }
 
   void 'build method encodes the job name'() {

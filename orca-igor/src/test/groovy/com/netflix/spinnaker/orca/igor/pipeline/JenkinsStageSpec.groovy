@@ -33,7 +33,6 @@ class JenkinsStageSpec extends Specification {
     def tasks = jenkinsStage.buildTaskGraph(stage)
 
     then:
-    tasks.iterator().size() == 4
     tasks.findAll {
       it.implementingClass == BindProducedArtifactsTask
     }.size() == 1
@@ -57,7 +56,6 @@ class JenkinsStageSpec extends Specification {
     def tasks = jenkinsStage.buildTaskGraph(stage)
 
     then:
-    tasks.iterator().size() == 3
     tasks.findAll {
       it.implementingClass == BindProducedArtifactsTask
     }.size() == 0
