@@ -155,7 +155,7 @@ class AwsProviderConfig {
           newlyAddedAgents << new AmazonCertificateCachingAgent(amazonClientProvider, credentials, region.name, objectMapper, registry)
 
           if (dynamicConfigService.isEnabled("aws.features.cloudFormation", false)) {
-            newlyAddedAgents << new AmazonCloudFormationCachingAgent(amazonClientProvider, credentials, region.name)
+            newlyAddedAgents << new AmazonCloudFormationCachingAgent(amazonClientProvider, credentials, region.name, registry)
           }
 
           if (credentials.eddaEnabled && !eddaTimeoutConfig.disabledRegions.contains(region.name)) {

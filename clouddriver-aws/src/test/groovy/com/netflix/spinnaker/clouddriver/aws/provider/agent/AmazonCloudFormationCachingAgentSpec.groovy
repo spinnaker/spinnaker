@@ -22,13 +22,17 @@ import com.amazonaws.services.cloudformation.model.DescribeStacksResult
 import com.amazonaws.services.cloudformation.model.Stack
 import com.amazonaws.services.cloudformation.model.StackEvent
 import com.amazonaws.services.ec2.AmazonEC2
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.provider.ProviderCache
+import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.cache.Keys
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
+import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
 class AmazonCloudFormationCachingAgentSpec extends Specification {
   static String region = 'region'
@@ -46,13 +50,17 @@ class AmazonCloudFormationCachingAgentSpec extends Specification {
   @Shared
   AmazonClientProvider acp
 
+  @Shared
+  Registry registry
+
   def setup() {
     ec2 = Mock(AmazonEC2)
     def creds = Stub(NetflixAmazonCredentials) {
       getName() >> accountName
     }
     acp = Mock(AmazonClientProvider)
-    agent = new AmazonCloudFormationCachingAgent(acp, creds, region)
+    registry = Mock(Registry)
+    agent = new AmazonCloudFormationCachingAgent(acp, creds, region, registry)
   }
 
   void "should add cloud formations on initial run"() {
@@ -127,5 +135,41 @@ class AmazonCloudFormationCachingAgentSpec extends Specification {
     1 * stackEventResults.getStackEvents() >> [ stackEvent ]
 
     results.find { it.id == Keys.getCloudFormationKey("stack1", "region", "accountName") }.attributes.'stackStatusReason' == 'who knows'
+  }
+
+  @Unroll
+  void "OnDemand request should be handled for type '#onDemandType' and provider '#provider': '#expected'"() {
+    when:
+    def result = agent.handles(onDemandType, provider)
+
+    then:
+    result == expected
+
+    where:
+    onDemandType                              | provider               || expected
+    OnDemandAgent.OnDemandType.CloudFormation | AmazonCloudProvider.ID || true
+    OnDemandAgent.OnDemandType.CloudFormation | "other"                || false
+    OnDemandAgent.OnDemandType.Job            | AmazonCloudProvider.ID || false
+  }
+
+  void "OnDemand handle method should get the same cache data as when reloading the cache"() {
+    given:
+    def amazonCloudFormation = Mock(AmazonCloudFormation)
+    def stackResults = Mock(DescribeStacksResult)
+    def stack1 = new Stack().withStackId("stack1").withStackStatus("CREATE_SUCCESS")
+    def stack2 = new Stack().withStackId("stack2").withStackStatus("CREATE_SUCCESS")
+
+    when:
+    def cache = agent.loadData(providerCache)
+    def results = agent.handle(providerCache, Collections.emptyMap())
+
+    then:
+    2 * acp.getAmazonCloudFormation(_, _) >> amazonCloudFormation
+    2 * amazonCloudFormation.describeStacks() >> stackResults
+    2 * stackResults.stacks >> [ stack1, stack2 ]
+
+    def expected = cache.cacheResults.get(Keys.Namespace.STACKS.ns).collect { it.attributes } as Set
+    def onDemand = results.cacheResult.cacheResults.get(Keys.Namespace.STACKS.ns).collect { it.attributes } as Set
+    expected == onDemand
   }
 }

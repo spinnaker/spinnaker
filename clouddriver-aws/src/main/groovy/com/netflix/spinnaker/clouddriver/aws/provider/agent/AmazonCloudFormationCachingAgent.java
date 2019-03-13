@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.aws.provider.agent;
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.model.*;
 import com.amazonaws.services.cloudformation.model.Stack;
+import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.AccountAware;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.cats.agent.CacheResult;
@@ -26,10 +27,13 @@ import com.netflix.spinnaker.cats.agent.DefaultCacheResult;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
+import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider;
 import com.netflix.spinnaker.clouddriver.aws.cache.Keys;
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsInfrastructureProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
+import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent;
+import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
@@ -39,10 +43,11 @@ import static com.netflix.spinnaker.clouddriver.aws.cache.Keys.Namespace.STACKS;
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
 
 @Slf4j
-public class AmazonCloudFormationCachingAgent implements CachingAgent, AccountAware {
+public class AmazonCloudFormationCachingAgent implements CachingAgent, OnDemandAgent, AccountAware {
   private final AmazonClientProvider amazonClientProvider;
   private final NetflixAmazonCredentials account;
   private final String region;
+  private final OnDemandMetricsSupport metricsSupport;
 
   static final Set<AgentDataType> types = new HashSet<>(
     Collections.singletonList(AUTHORITATIVE.forType(STACKS.getNs()))
@@ -50,15 +55,43 @@ public class AmazonCloudFormationCachingAgent implements CachingAgent, AccountAw
 
   public AmazonCloudFormationCachingAgent(AmazonClientProvider amazonClientProvider,
                                           NetflixAmazonCredentials account,
-                                          String region) {
+                                          String region,
+                                          Registry registry) {
     this.amazonClientProvider = amazonClientProvider;
     this.account = account;
     this.region = region;
+    this.metricsSupport = new OnDemandMetricsSupport(registry, this,
+      String.format("%s:%s", AmazonCloudProvider.ID, OnDemandType.CloudFormation));
   }
 
   @Override
   public String getProviderName() {
     return AwsInfrastructureProvider.PROVIDER_NAME;
+  }
+
+  @Override
+  public String getOnDemandAgentType() {
+    return getAgentType();
+  }
+
+  @Override
+  public OnDemandMetricsSupport getMetricsSupport() {
+    return this.metricsSupport;
+  }
+
+  @Override
+  public boolean handles(OnDemandType type, String cloudProvider) {
+    return OnDemandType.CloudFormation.equals(type) && cloudProvider.equals(AmazonCloudProvider.ID);
+  }
+
+  @Override
+  public OnDemandResult handle(ProviderCache providerCache, Map<String, ?> data) {
+    return new OnDemandResult(getOnDemandAgentType(), loadData(providerCache), Collections.emptyMap());
+  }
+
+  @Override
+  public Collection<Map> pendingOnDemandRequests(ProviderCache providerCache) {
+    return Collections.emptyList();
   }
 
   @Override
