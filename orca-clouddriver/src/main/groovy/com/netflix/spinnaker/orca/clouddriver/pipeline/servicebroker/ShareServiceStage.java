@@ -29,10 +29,10 @@ import java.util.List;
 
 @AllArgsConstructor
 @Component
-class DeployServiceStage implements StageDefinitionBuilder, CloudProviderAware {
-  public static final String PIPELINE_CONFIG_TYPE = "deployService";
+class ShareServiceStage implements StageDefinitionBuilder, CloudProviderAware {
+  public static final String PIPELINE_CONFIG_TYPE = "shareService";
 
-  List<DeployServiceStagePreprocessor> deployServiceStagePreprocessors = new ArrayList<>();
+  List<ShareServiceStagePreprocessor> shareServiceStagePreprocessors = new ArrayList<>();
 
   @Nonnull
   @Override
@@ -42,7 +42,7 @@ class DeployServiceStage implements StageDefinitionBuilder, CloudProviderAware {
 
   @Override
   public void taskGraph(@Nonnull Stage stage, @Nonnull TaskNode.Builder builder) {
-    deployServiceStagePreprocessors
+    shareServiceStagePreprocessors
       .stream()
       .filter(it -> it.supports(stage))
       .forEach(it -> it.addSteps(builder, stage));

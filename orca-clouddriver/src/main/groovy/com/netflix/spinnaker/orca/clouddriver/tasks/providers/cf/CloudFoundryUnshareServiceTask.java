@@ -20,13 +20,13 @@ import com.netflix.spinnaker.orca.clouddriver.KatoService;
 import org.springframework.stereotype.Component;
 
 @Component
-public class CloudFoundryDestroyServiceTask extends AbstractCloudFoundryServiceTask {
-  public CloudFoundryDestroyServiceTask(KatoService kato) {
+public class CloudFoundryUnshareServiceTask extends AbstractCloudFoundryServiceTask {
+  public CloudFoundryUnshareServiceTask(KatoService kato) {
     super(kato);
   }
 
   @Override
   String getStageName() {
-    return "destroyService";
+    return "unshareService";
   }
 }

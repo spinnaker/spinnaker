@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.servicebroker;
 
 import com.netflix.spinnaker.orca.ExecutionStatus;
+import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
@@ -25,11 +26,21 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import javax.annotation.Nonnull;
 import java.util.Map;
 
-public abstract class AbstractWaitForServiceTask extends AbstractCloudProviderAwareTask {
+public abstract class AbstractWaitForServiceTask extends AbstractCloudProviderAwareTask implements RetryableTask {
   protected OortService oortService;
 
   public AbstractWaitForServiceTask(OortService oortService) {
     this.oortService = oortService;
+  }
+
+  @Override
+  public long getBackoffPeriod() {
+    return 10 * 1000L;
+  }
+
+  @Override
+  public long getTimeout() {
+    return 30 * 60 * 1000L;
   }
 
   @Nonnull
@@ -40,8 +51,7 @@ public abstract class AbstractWaitForServiceTask extends AbstractCloudProviderAw
     String region = stage.mapTo("/service.region", String.class);
     String serviceInstanceName = stage.mapTo("/service.instance.name", String.class);
 
-    Map<String, Object> m = oortService.getServiceInstance(account, cloudProvider, region, serviceInstanceName);
-    return new TaskResult(oortStatusToTaskStatus(m));
+    return new TaskResult(oortStatusToTaskStatus(oortService.getServiceInstance(account, cloudProvider, region, serviceInstanceName)));
   }
 
   abstract protected ExecutionStatus oortStatusToTaskStatus(Map m);

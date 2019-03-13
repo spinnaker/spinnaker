@@ -16,17 +16,16 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.providers.cf;
 
-import com.netflix.spinnaker.orca.clouddriver.pipeline.servicebroker.DestroyServiceStagePreprocessor;
-import com.netflix.spinnaker.orca.clouddriver.tasks.providers.cf.CloudFoundryDestroyServiceTask;
+import com.netflix.spinnaker.orca.clouddriver.pipeline.servicebroker.ShareServiceStagePreprocessor;
 import com.netflix.spinnaker.orca.clouddriver.tasks.providers.cf.CloudFoundryMonitorKatoServicesTask;
-import com.netflix.spinnaker.orca.clouddriver.tasks.providers.cf.CloudFoundryWaitForDestroyServiceTask;
+import com.netflix.spinnaker.orca.clouddriver.tasks.providers.cf.CloudFoundryShareServiceTask;
 import com.netflix.spinnaker.orca.kato.pipeline.support.StageData;
 import com.netflix.spinnaker.orca.pipeline.TaskNode;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import org.springframework.stereotype.Component;
 
 @Component
-public class CloudFoundryDestroyServiceStagePreprocessor implements DestroyServiceStagePreprocessor {
+public class CloudFoundryShareServiceStagePreprocessor implements ShareServiceStagePreprocessor {
   @Override
   public boolean supports(Stage stage) {
     return "cloudfoundry".equals(stage.mapTo(StageData.class).getCloudProvider());
@@ -35,8 +34,7 @@ public class CloudFoundryDestroyServiceStagePreprocessor implements DestroyServi
   @Override
   public void addSteps(TaskNode.Builder builder, Stage stage) {
     builder
-      .withTask("destroyService", CloudFoundryDestroyServiceTask.class)
-      .withTask("monitorDestroyService", CloudFoundryMonitorKatoServicesTask.class)
-      .withTask("waitForDestroyService", CloudFoundryWaitForDestroyServiceTask.class);
+      .withTask("shareService", CloudFoundryShareServiceTask.class)
+      .withTask("monitorShareService", CloudFoundryMonitorKatoServicesTask.class);
   }
 }

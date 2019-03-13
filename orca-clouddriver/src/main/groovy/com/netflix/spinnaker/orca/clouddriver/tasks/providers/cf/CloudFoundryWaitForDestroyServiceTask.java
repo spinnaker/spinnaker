@@ -27,20 +27,10 @@ import java.util.Map;
 import java.util.Optional;
 
 @Component
-public class CloudFoundryWaitForDestroyServiceTask extends AbstractWaitForServiceTask implements RetryableTask {
+public class CloudFoundryWaitForDestroyServiceTask extends AbstractWaitForServiceTask {
   @Autowired
   public CloudFoundryWaitForDestroyServiceTask(OortService oortService) {
     super(oortService);
-  }
-
-  @Override
-  public long getBackoffPeriod() {
-    return 10 * 1000L;
-  }
-
-  @Override
-  public long getTimeout() {
-    return 30 * 60 * 1000L;
   }
 
   protected ExecutionStatus oortStatusToTaskStatus(Map m) {

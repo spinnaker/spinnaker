@@ -16,27 +16,28 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servicebroker;
 
-import com.netflix.spinnaker.orca.clouddriver.pipeline.AbstractCloudProviderAwareStage;
-import com.netflix.spinnaker.orca.clouddriver.pipeline.servicebroker.DestroyServiceStagePreprocessor;
+import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
+import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.pipeline.TaskNode;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import groovy.transform.CompileStatic;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 
+@AllArgsConstructor
 @Component
-class DestroyServiceStage  extends AbstractCloudProviderAwareStage {
+class DestroyServiceStage implements StageDefinitionBuilder, CloudProviderAware {
   public static final String PIPELINE_CONFIG_TYPE = "destroyService";
 
-  @Autowired(required = false)
   List<DestroyServiceStagePreprocessor> destroyServiceStagePreprocessors = new ArrayList<>();
 
-  public DestroyServiceStage() {
-    super(PIPELINE_CONFIG_TYPE);
+  @Nonnull
+  @Override
+  public String getType() {
+    return PIPELINE_CONFIG_TYPE;
   }
 
   @Override

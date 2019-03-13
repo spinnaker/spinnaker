@@ -14,19 +14,19 @@
  *  limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.clouddriver.tasks.providers.cf;
+package com.netflix.spinnaker.orca.clouddriver.pipeline.servicebroker;
 
-import com.netflix.spinnaker.orca.clouddriver.KatoService;
-import org.springframework.stereotype.Component;
+import com.netflix.spinnaker.orca.pipeline.TaskNode;
+import com.netflix.spinnaker.orca.pipeline.model.Stage;
 
-@Component
-public class CloudFoundryDestroyServiceTask extends AbstractCloudFoundryServiceTask {
-  public CloudFoundryDestroyServiceTask(KatoService kato) {
-    super(kato);
-  }
+/**
+ * Supports generic modification of a Share Service stage.
+ *
+ * Common use-cases:
+ * - injecting cloud-aware steps
+ */
+public interface ShareServiceStagePreprocessor {
+  boolean supports(Stage stage);
 
-  @Override
-  String getStageName() {
-    return "destroyService";
-  }
+  void addSteps(TaskNode.Builder builder, Stage stage);
 }
