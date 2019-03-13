@@ -172,7 +172,6 @@ window.spinnakerSettings = {
     roscoMode: true,
     snapshots: false,
     travis: travisEnabled,
-    triggerViaEcho: true,
     versionedProviders: true,
     wercker: werckerEnabled,
   },

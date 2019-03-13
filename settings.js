@@ -27,7 +27,6 @@ var managedServiceAccountsEnabled = process.env.MANAGED_SERVICE_ACCOUNTS_ENABLED
 var onDemandClusterThreshold = process.env.ON_DEMAND_CLUSTER_THRESHOLD || '350';
 var reduxLoggerEnabled = process.env.REDUX_LOGGER === 'true';
 var templatesEnabled = process.env.TEMPLATES_ENABLED === 'true';
-var triggerViaEcho = process.env.TRIGGER_VIA_ECHO !== 'false';
 var useClassicFirewallLabels = process.env.USE_CLASSIC_FIREWALL_LABELS === 'true';
 
 window.spinnakerSettings = {
@@ -88,7 +87,6 @@ window.spinnakerSettings = {
     roscoMode: false,
     snapshots: false,
     travis: false,
-    triggerViaEcho: triggerViaEcho,
     versionedProviders: true,
     wercker: false,
   },

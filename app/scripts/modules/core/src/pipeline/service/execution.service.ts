@@ -239,29 +239,14 @@ export class ExecutionService {
 
   public startAndMonitorPipeline(app: Application, pipeline: string, trigger: any): IPromise<IRetryablePromise<void>> {
     const { executionService } = ReactInjector;
-    let triggerFunction: (app: string, pipeline: string, trigger: any) => IPromise<string>;
-    let monitorFunction: (id: string) => IRetryablePromise<any>;
-    if (SETTINGS.feature.triggerViaEcho) {
-      triggerFunction = PipelineConfigService.triggerPipelineViaEcho.bind(PipelineConfigService);
-      monitorFunction = eventId => executionService.waitUntilPipelineAppearsForEventId(app, eventId);
-    } else {
-      triggerFunction = PipelineConfigService.triggerPipeline.bind(PipelineConfigService);
-      monitorFunction = newPipelineId => executionService.waitUntilNewTriggeredPipelineAppears(app, newPipelineId);
-    }
-    return triggerFunction(app.name, pipeline, trigger).then(triggerResult => monitorFunction(triggerResult));
+    return PipelineConfigService.triggerPipeline(app.name, pipeline, trigger).then(triggerResult =>
+      executionService.waitUntilTriggeredPipelineAppears(app, triggerResult),
+    );
   }
 
-  public waitUntilPipelineAppearsForEventId(application: Application, eventId: string): IRetryablePromise<any> {
+  public waitUntilTriggeredPipelineAppears(application: Application, eventId: string): IRetryablePromise<any> {
     const closure = () =>
       this.getExecutionByEventId(application.name, eventId).then(() => application.executions.refresh());
-    return retryablePromise(closure);
-  }
-
-  public waitUntilNewTriggeredPipelineAppears(
-    application: Application,
-    triggeredPipelineId: string,
-  ): IRetryablePromise<any> {
-    const closure = () => this.getExecution(triggeredPipelineId).then(() => application.executions.refresh());
     return retryablePromise(closure);
   }
 

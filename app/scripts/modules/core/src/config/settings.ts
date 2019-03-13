@@ -55,7 +55,6 @@ export interface IFeatures {
   roscoMode?: boolean;
   snapshots?: boolean;
   travis?: boolean;
-  triggerViaEcho?: boolean;
   versionedProviders?: boolean;
   wercker?: boolean;
 }
