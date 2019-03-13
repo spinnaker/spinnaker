@@ -450,10 +450,10 @@ class KubeV2ArtifactTest(st.AgentTestCase):
     self.run_test_case(self.scenario.delete_kind('configmap', version='v000'), max_retries=2)
 
   def test_z_delete_app(self):
-    # Give a total of a minute because it might also need
+    # Give a total of 2 minutes because it might also need
     # an internal cache update
     self.run_test_case(self.scenario.delete_app(),
-                       retry_interval_secs=8, max_retries=8)
+                       retry_interval_secs=8, max_retries=15)
 
 
 def main():
