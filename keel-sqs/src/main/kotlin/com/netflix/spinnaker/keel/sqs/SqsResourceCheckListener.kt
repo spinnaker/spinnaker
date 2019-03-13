@@ -1,10 +1,13 @@
 package com.netflix.spinnaker.keel.sqs
 
 import com.amazonaws.services.sqs.AmazonSQS
+import com.amazonaws.services.sqs.model.DeleteMessageRequest
 import com.amazonaws.services.sqs.model.Message
+import com.amazonaws.services.sqs.model.ReceiveMessageRequest
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.netflix.spinnaker.config.SqsProperties
 import com.netflix.spinnaker.keel.annealing.ResourceActuator
 import com.netflix.spinnaker.keel.api.ResourceName
 import kotlinx.coroutines.CoroutineScope
@@ -20,6 +23,7 @@ import javax.annotation.PreDestroy
 internal class SqsResourceCheckListener(
   private val sqsClient: AmazonSQS,
   private val queueUrl: String,
+  private val sqsProperties: SqsProperties,
   private val objectMapper: ObjectMapper,
   private val actuator: ResourceActuator
 ) {
@@ -39,17 +43,16 @@ internal class SqsResourceCheckListener(
 
   internal fun handleMessages() {
     with(sqsClient) {
-      receiveMessage(queueUrl)
+      receiveMessages()
         .also {
-          log.debug("Got {} messages", it.messages.size)
+          if (it.isNotEmpty()) log.debug("Got {} messages: {}", it.size, it.map(Message::getMessageId))
         }
-        .messages
         .forEach {
           try {
             with(it.parse()) {
               actuator.checkResource(name.let(::ResourceName), apiVersion, kind)
             }
-            deleteMessage(queueUrl, it.receiptHandle)
+            deleteMessage(it)
           } catch (e: JsonProcessingException) {
             log.error("Could not parse message payload: {}", it.body)
           } catch (e: Throwable) {
@@ -58,6 +61,23 @@ internal class SqsResourceCheckListener(
         }
     }
   }
+
+  private fun AmazonSQS.deleteMessage(it: Message) {
+    deleteMessage(
+      DeleteMessageRequest()
+        .withQueueUrl(queueUrl)
+        .withReceiptHandle(it.receiptHandle)
+    )
+  }
+
+  private fun AmazonSQS.receiveMessages(): List<Message> =
+    receiveMessage(
+      ReceiveMessageRequest()
+        .withQueueUrl(queueUrl)
+        .withVisibilityTimeout(sqsProperties.visibilityTimeoutSeconds)
+        .withWaitTimeSeconds(sqsProperties.waitTimeSeconds)
+    )
+      .messages
 
   @PreDestroy
   fun stopListening() {

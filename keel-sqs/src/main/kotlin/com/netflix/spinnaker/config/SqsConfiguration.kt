@@ -50,10 +50,11 @@ class SqsConfiguration {
   fun resourceCheckListener(
     sqsClient: AmazonSQS,
     queueARN: ARN,
+    sqsProperties: SqsProperties,
     objectMapper: ObjectMapper,
     actuator: ResourceActuator
   ): Any =
     sqsClient.createQueue(queueARN.name).run {
-      SqsResourceCheckListener(sqsClient, queueUrl, objectMapper, actuator)
+      SqsResourceCheckListener(sqsClient, queueUrl, sqsProperties, objectMapper, actuator)
     }
 }

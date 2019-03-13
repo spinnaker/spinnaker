@@ -3,11 +3,15 @@ package com.netflix.spinnaker.keel.sqs
 import com.amazonaws.services.sqs.AmazonSQS
 import com.amazonaws.services.sqs.model.DeleteMessageResult
 import com.amazonaws.services.sqs.model.Message
+import com.amazonaws.services.sqs.model.ReceiveMessageRequest
 import com.amazonaws.services.sqs.model.ReceiveMessageResult
+import com.netflix.spinnaker.config.SqsProperties
 import com.netflix.spinnaker.keel.annealing.ResourceActuator
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
+import com.nhaarman.mockitokotlin2.argWhere
+import com.nhaarman.mockitokotlin2.check
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.doThrow
 import com.nhaarman.mockitokotlin2.mock
@@ -17,6 +21,9 @@ import com.nhaarman.mockitokotlin2.stub
 import com.nhaarman.mockitokotlin2.verify
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import strikt.api.expect
+import strikt.api.expectThat
+import strikt.assertions.isEqualTo
 
 internal class SqsResourceCheckListenerTests : JUnit5Minutests {
 
@@ -32,6 +39,7 @@ internal class SqsResourceCheckListenerTests : JUnit5Minutests {
       SqsResourceCheckListener(
         sqsClient,
         "queueURL",
+        SqsProperties(),
         objectMapper,
         actuator
       )
@@ -39,7 +47,11 @@ internal class SqsResourceCheckListenerTests : JUnit5Minutests {
 
     before {
       sqsClient.stub {
-        on { deleteMessage("queueURL", "receiptHandle") } doReturn DeleteMessageResult()
+        on {
+          deleteMessage(argWhere {
+            it.queueUrl == "queueURL" && it.receiptHandle == "receiptHandle"
+          })
+        } doReturn DeleteMessageResult()
       }
     }
 
@@ -50,7 +62,9 @@ internal class SqsResourceCheckListenerTests : JUnit5Minutests {
     context("actuator succeeds") {
       before {
         sqsClient.stub {
-          on { receiveMessage("queueURL") } doReturn enqueuedMessages(message)
+          on {
+            receiveMessage(argWhere<ReceiveMessageRequest> { it.queueUrl == "queueURL" })
+          } doReturn enqueuedMessages(message)
         }
 
         handleMessages()
@@ -62,7 +76,12 @@ internal class SqsResourceCheckListenerTests : JUnit5Minutests {
       }
 
       test("deletes the message from the queue") {
-        verify(sqsClient).deleteMessage("queueURL", "receiptHandle-0")
+        verify(sqsClient).deleteMessage(check {
+          expect {
+            that(it.queueUrl).isEqualTo("queueURL")
+            that(it.receiptHandle).isEqualTo("receiptHandle-0")
+          }
+        })
       }
     }
 
@@ -70,7 +89,7 @@ internal class SqsResourceCheckListenerTests : JUnit5Minutests {
       before {
         sqsClient.stub {
           on {
-            receiveMessage("queueURL")
+            receiveMessage(argWhere<ReceiveMessageRequest> { it.queueUrl == "queueURL" })
           } doReturn enqueuedMessages("SOME RANDOM JUNK", message)
         }
 
@@ -83,8 +102,12 @@ internal class SqsResourceCheckListenerTests : JUnit5Minutests {
       }
 
       test("deletes the valid message but not the bad one") {
-        verify(sqsClient, never()).deleteMessage("queueURL", "receiptHandle-0")
-        verify(sqsClient).deleteMessage("queueURL", "receiptHandle-1")
+        verify(sqsClient, never()).deleteMessage(argWhere {
+          it.receiptHandle == "receiptHandle-0"
+        })
+        verify(sqsClient).deleteMessage(check {
+          expectThat(it.receiptHandle).isEqualTo("receiptHandle-1")
+        })
       }
     }
 
@@ -92,7 +115,7 @@ internal class SqsResourceCheckListenerTests : JUnit5Minutests {
       before {
         sqsClient.stub {
           on {
-            receiveMessage("queueURL")
+            receiveMessage(argWhere<ReceiveMessageRequest> { it.queueUrl == "queueURL" })
           } doReturn enqueuedMessages(message, message.copy(name = "ec2:security-group:prod:ap-south-1:keel", kind = "security-group"))
         }
         actuator.stub {
@@ -108,8 +131,12 @@ internal class SqsResourceCheckListenerTests : JUnit5Minutests {
       }
 
       test("deletes the successfully handled message but not the failed one") {
-        verify(sqsClient, never()).deleteMessage("queueURL", "receiptHandle-0")
-        verify(sqsClient).deleteMessage("queueURL", "receiptHandle-1")
+        verify(sqsClient, never()).deleteMessage(argWhere {
+          it.receiptHandle == "receiptHandle-0"
+        })
+        verify(sqsClient).deleteMessage(check {
+          expectThat(it.receiptHandle).isEqualTo("receiptHandle-1")
+        })
       }
     }
   }
