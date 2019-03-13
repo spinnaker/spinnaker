@@ -31,14 +31,8 @@ import com.netflix.spinnaker.keel.ec2.RETROFIT_NOT_FOUND
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
-import com.nhaarman.mockitokotlin2.any
-import com.nhaarman.mockitokotlin2.argumentCaptor
-import com.nhaarman.mockitokotlin2.doReturn
-import com.nhaarman.mockitokotlin2.doThrow
-import com.nhaarman.mockitokotlin2.mock
-import com.nhaarman.mockitokotlin2.reset
-import com.nhaarman.mockitokotlin2.stub
-import com.nhaarman.mockitokotlin2.verify
+import com.netflix.spinnaker.keel.plugin.ResourceValidator
+import com.nhaarman.mockitokotlin2.*
 import de.danielbechler.diff.ObjectDifferBuilder
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -133,9 +127,18 @@ internal object ClusterHandlerTests : JUnit5Minutests {
 
   val differ = ObjectDifferBuilder.buildDefault()
 
+  val validators = emptyList<ResourceValidator<Cluster>>()
+
   fun tests() = rootContext<ClusterHandler> {
     fixture {
-      ClusterHandler(cloudDriverService, cloudDriverCache, orcaService, Clock.systemDefaultZone(), objectMapper)
+      ClusterHandler(
+          cloudDriverService,
+          cloudDriverCache,
+          orcaService,
+          Clock.systemDefaultZone(),
+          objectMapper,
+          validators
+      )
     }
 
     before {

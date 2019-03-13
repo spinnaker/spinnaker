@@ -4,7 +4,7 @@ apply from: "$rootDir/gradle/junit5.gradle"
 
 dependencies {
   implementation project(":keel-retrofit")
-  implementation project(":keel-plugin")
+  api project(":keel-plugin")
   implementation project(":keel-clouddriver")
   implementation project(":keel-orca")
   implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion"

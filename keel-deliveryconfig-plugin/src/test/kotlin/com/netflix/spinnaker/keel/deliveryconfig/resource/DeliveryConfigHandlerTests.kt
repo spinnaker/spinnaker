@@ -9,6 +9,7 @@ import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.deliveryconfig.DeliveryConfig
 import com.netflix.spinnaker.keel.front50.Front50Service
 import com.netflix.spinnaker.keel.front50.model.Delivery
+import com.netflix.spinnaker.keel.plugin.ResourceValidator
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.doThrow
 import com.nhaarman.mockitokotlin2.mock
@@ -46,10 +47,11 @@ internal class DeliveryConfigHandlerTests : JUnit5Minutests {
     error<Any>(404, ResponseBody.create(MediaType.parse("application/json"), ""))
   )
 
+  val validators = emptyList<ResourceValidator<DeliveryConfig>>()
 
   fun tests() = rootContext<DeliveryConfigHandler> {
     fixture {
-      DeliveryConfigHandler(front50Service, objectMapper)
+      DeliveryConfigHandler(front50Service, objectMapper, validators)
     }
 
     after {
@@ -73,4 +75,3 @@ internal class DeliveryConfigHandlerTests : JUnit5Minutests {
     }
   }
 }
-

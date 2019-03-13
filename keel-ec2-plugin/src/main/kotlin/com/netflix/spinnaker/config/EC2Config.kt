@@ -13,15 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.netflix.spinnaker.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.keel.api.ec2.Cluster
+import com.netflix.spinnaker.keel.api.ec2.SecurityGroup
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.ec2.resource.ClusterHandler
 import com.netflix.spinnaker.keel.ec2.resource.SecurityGroupHandler
 import com.netflix.spinnaker.keel.orca.OrcaService
-import de.huxhorn.sulky.ulid.ULID
+import com.netflix.spinnaker.keel.plugin.ResourceValidator
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -38,9 +41,16 @@ class EC2Config {
     orcaService: OrcaService,
     clock: Clock,
     objectMapper: ObjectMapper,
-    idGenerator: ULID
+    validators: List<ResourceValidator<*>>
   ): ClusterHandler =
-    ClusterHandler(cloudDriverService, cloudDriverCache, orcaService, clock, objectMapper)
+    ClusterHandler(
+      cloudDriverService,
+      cloudDriverCache,
+      orcaService,
+      clock,
+      objectMapper,
+      validators.filter { it.handles(Cluster::class) }.map { it as ResourceValidator<Cluster> }
+    )
 
   @Bean
   fun securityGroupHandler(
@@ -48,7 +58,13 @@ class EC2Config {
     cloudDriverCache: CloudDriverCache,
     orcaService: OrcaService,
     objectMapper: ObjectMapper,
-    idGenerator: ULID
+    validators: List<ResourceValidator<*>>
   ): SecurityGroupHandler =
-    SecurityGroupHandler(cloudDriverService, cloudDriverCache, orcaService, objectMapper)
+    SecurityGroupHandler(
+      cloudDriverService,
+      cloudDriverCache,
+      orcaService,
+      objectMapper,
+      validators.filter { it.handles(SecurityGroup::class) }.map { it as ResourceValidator<SecurityGroup> }
+    )
 }

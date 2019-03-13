@@ -24,8 +24,12 @@ import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.api.randomUID
 import de.danielbechler.diff.node.DiffNode
+import jdk.nashorn.internal.runtime.regexp.joni.Config.log
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 interface ResourceHandler<T : Any> : KeelPlugin {
+  val log: Logger
 
   val apiVersion: ApiVersion
 
@@ -35,6 +39,8 @@ interface ResourceHandler<T : Any> : KeelPlugin {
   val supportedKind: Pair<ResourceKind, Class<T>>
 
   val objectMapper: ObjectMapper
+
+  val validators: List<ResourceValidator<T>>
 
   /**
    * Validates the resource spec, and generates a metadata header, and applies any defaults /
@@ -74,11 +80,16 @@ interface ResourceHandler<T : Any> : KeelPlugin {
    * set default values.
    */
   @Suppress("UNCHECKED_CAST")
-  fun validate(resource: Resource<Any>): Resource<T> =
-    resource.copy(
+  fun validate(resource: Resource<Any>): Resource<T> {
+    var validatedResource = resource.copy(
       spec = objectMapper.convertValue(resource.spec, supportedKind.second)
     ) as Resource<T>
-
+    for (validator in validators) {
+      log.debug("Validating ${resource.metadata.name} with ${validator.javaClass}")
+      validatedResource = validator.validate(validatedResource)
+    }
+    return validatedResource
+  }
 
   /**
    * Return the current _actual_ representation of what [resource] looks like in the cloud.

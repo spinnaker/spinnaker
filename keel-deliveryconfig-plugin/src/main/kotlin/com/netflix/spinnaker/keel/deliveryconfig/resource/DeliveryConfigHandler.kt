@@ -9,17 +9,22 @@ import com.netflix.spinnaker.keel.api.deliveryconfig.DeliveryConfig
 import com.netflix.spinnaker.keel.front50.Front50Service
 import com.netflix.spinnaker.keel.front50.model.Delivery
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
+import com.netflix.spinnaker.keel.plugin.ResourceValidator
 import com.netflix.spinnaker.keel.retrofit.isNotFound
 import de.danielbechler.diff.node.DiffNode
 import de.huxhorn.sulky.ulid.ULID
 import kotlinx.coroutines.runBlocking
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import retrofit2.HttpException
 
 class DeliveryConfigHandler(
   private val front50Service: Front50Service,
-  override val objectMapper: ObjectMapper
+  override val objectMapper: ObjectMapper,
+  override val validators: List<ResourceValidator<DeliveryConfig>>
 ) : ResourceHandler<DeliveryConfig> {
+  override val log: Logger by lazy { LoggerFactory.getLogger(javaClass) }
+
   override val apiVersion = SPINNAKER_API_V1.subApi("delivery-config")
   override val supportedKind = ResourceKind(
     apiVersion.group,
@@ -66,5 +71,4 @@ class DeliveryConfigHandler(
     }
   }
 
-  private val log by lazy { LoggerFactory.getLogger(javaClass) }
 }

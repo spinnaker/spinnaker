@@ -1,23 +1,12 @@
 package com.netflix.spinnaker.keel.ec2.resource
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.convertValue
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
-import com.netflix.spinnaker.keel.api.ec2.Capacity
-import com.netflix.spinnaker.keel.api.ec2.Cluster
-import com.netflix.spinnaker.keel.api.ec2.Cluster.Dependencies
-import com.netflix.spinnaker.keel.api.ec2.Cluster.Health
-import com.netflix.spinnaker.keel.api.ec2.Cluster.LaunchConfiguration
-import com.netflix.spinnaker.keel.api.ec2.Cluster.Location
-import com.netflix.spinnaker.keel.api.ec2.Cluster.Moniker
-import com.netflix.spinnaker.keel.api.ec2.Cluster.Scaling
-import com.netflix.spinnaker.keel.api.ec2.HealthCheckType
-import com.netflix.spinnaker.keel.api.ec2.Metric
-import com.netflix.spinnaker.keel.api.ec2.ScalingProcess
-import com.netflix.spinnaker.keel.api.ec2.TerminationPolicy
+import com.netflix.spinnaker.keel.api.ec2.*
+import com.netflix.spinnaker.keel.api.ec2.Cluster.*
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.ClusterActiveServerGroup
@@ -29,11 +18,13 @@ import com.netflix.spinnaker.keel.model.OrchestrationTrigger
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.plugin.ResourceConflict
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
+import com.netflix.spinnaker.keel.plugin.ResourceValidator
 import com.netflix.spinnaker.keel.retrofit.isNotFound
 import de.danielbechler.diff.node.DiffNode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import retrofit2.HttpException
 import java.time.Clock
@@ -47,8 +38,15 @@ class ClusterHandler(
   private val cloudDriverCache: CloudDriverCache,
   private val orcaService: OrcaService,
   private val clock: Clock,
-  override val objectMapper: ObjectMapper
+  override val objectMapper: ObjectMapper,
+  override val validators: List<ResourceValidator<Cluster>>
 ) : ResourceHandler<Cluster> {
+
+  override val log: Logger by lazy { LoggerFactory.getLogger(javaClass) }
+
+  init {
+    log.info("Found ${validators.size} validators for ${javaClass.simpleName}")
+  }
 
   override val apiVersion = SPINNAKER_API_V1.subApi("ec2")
   override val supportedKind = ResourceKind(
@@ -60,32 +58,6 @@ class ClusterHandler(
   override fun generateName(spec: Cluster) = ResourceName(
     "ec2:cluster:${spec.location.accountName}:${spec.location.region}:${spec.moniker.cluster}"
   )
-
-  override fun validate(resource: Resource<Any>): Resource<Cluster> =
-    objectMapper
-      .convertValue<Cluster>(resource.spec)
-      .withDefaultSecurityGroups()
-      .let {
-        @Suppress("UNCHECKED_CAST")
-        resource.copy(spec = it) as Resource<Cluster>
-      }
-
-  // TODO: Netflix-specific, migrate to keel-nflx. See https://github.com/spinnaker/keel/issues/225
-  private fun Cluster.withDefaultSecurityGroups(): Cluster =
-    copy(
-      dependencies = dependencies.copy(
-        securityGroupNames = dependencies.securityGroupNames + defaultSecurityGroups()
-      )
-    )
-
-  private fun Cluster.defaultSecurityGroups() =
-    setOf("nf-infrastructure", "nf-datacenter").let {
-      if (dependencies.securityGroupNames.filter { it !in setOf("nf-infrastructure", "nf-datacenter") }.isEmpty()) {
-        it + moniker.application
-      } else {
-        it
-      }
-    }
 
   override fun current(resource: Resource<Cluster>) =
     runBlocking {
@@ -330,8 +302,6 @@ class ClusterHandler(
 
   private fun Instant.iso() =
     atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ISO_DATE_TIME)
-
-  private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   companion object {
     // these tags are auto-applied by CloudDriver so we should not consider them in a diff as they
