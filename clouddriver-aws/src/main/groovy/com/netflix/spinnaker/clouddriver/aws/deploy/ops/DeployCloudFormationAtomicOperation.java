@@ -68,33 +68,35 @@ public class DeployCloudFormationAtomicOperation implements AtomicOperation<Map>
         .withParameterValue(entry.getValue()))
       .collect(Collectors.toList());
     try {
-      String stackId = createStack(amazonCloudFormation, template, parameters);
+      String stackId = createStack(amazonCloudFormation, template, parameters, description.getCapabilities());
       return Collections.singletonMap("stackId", stackId);
     } catch (AlreadyExistsException e) {
-      String stackId = updateStack(amazonCloudFormation, template, parameters);
+      String stackId = updateStack(amazonCloudFormation, template, parameters, description.getCapabilities());
       return Collections.singletonMap("stackId", stackId);
     }
   }
 
-  private String createStack(AmazonCloudFormation amazonCloudFormation, String template, List<Parameter> parameters) {
+  private String createStack(AmazonCloudFormation amazonCloudFormation, String template, List<Parameter> parameters, List<String> capabilities) {
     Task task = TaskRepository.threadLocalTask.get();
     task.updateStatus(BASE_PHASE, "Preparing CloudFormation Stack");
     CreateStackRequest createStackRequest = new CreateStackRequest()
       .withStackName(description.getStackName())
       .withParameters(parameters)
-      .withTemplateBody(template);
+      .withTemplateBody(template)
+      .withCapabilities(capabilities);
     task.updateStatus(BASE_PHASE, "Uploading CloudFormation Stack");
     CreateStackResult createStackResult = amazonCloudFormation.createStack(createStackRequest);
     return createStackResult.getStackId();
   }
 
-  private String updateStack(AmazonCloudFormation amazonCloudFormation, String template, List<Parameter> parameters) {
+  private String updateStack(AmazonCloudFormation amazonCloudFormation, String template, List<Parameter> parameters, List<String> capabilities) {
     Task task = TaskRepository.threadLocalTask.get();
     task.updateStatus(BASE_PHASE, "CloudFormation Stack exists. Updating it");
     UpdateStackRequest updateStackRequest = new UpdateStackRequest()
       .withStackName(description.getStackName())
       .withParameters(parameters)
-      .withTemplateBody(template);
+      .withTemplateBody(template)
+      .withCapabilities(capabilities);
     task.updateStatus(BASE_PHASE, "Uploading CloudFormation Stack");
     try {
       UpdateStackResult updateStackResult = amazonCloudFormation.updateStack(updateStackRequest);

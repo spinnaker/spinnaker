@@ -18,7 +18,9 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.description;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @EqualsAndHashCode(callSuper = false)
@@ -29,4 +31,5 @@ public class DeployCloudFormationDescription extends AbstractAmazonCredentialsDe
   private Map<String, Object> templateBody = new HashMap<>();
   private Map<String, String> parameters = new HashMap<>();
   private String region;
+  private List<String> capabilities = new ArrayList<>();
 }

@@ -49,6 +49,7 @@ class DeployCloudFormationAtomicOperationSpec extends Specification {
           region: "eu-west-1",
           templateBody: [ key: "value" ],
           parameters: [ key: "value"],
+          capabilities: ["cap1", "cap2"],
           credentials: TestCredential.named("test")
         ]
       )
@@ -65,6 +66,7 @@ class DeployCloudFormationAtomicOperationSpec extends Specification {
       assert request.getStackName() == "stackTest"
       assert request.getTemplateBody() == '{"key":"value"}'
       assert request.getParameters() == [ new Parameter().withParameterKey("key").withParameterValue("value") ]
+      assert request.getCapabilities() == ["cap1", "cap2"]
       createStackResult
     }
     1 * createStackResult.getStackId() >> stackId
@@ -83,6 +85,7 @@ class DeployCloudFormationAtomicOperationSpec extends Specification {
           region: "eu-west-1",
           templateBody: [ key: "value" ],
           parameters: [ key: "value"],
+          capabilities: ["cap1", "cap2"],
           credentials: TestCredential.named("test")
         ]
       )
@@ -100,6 +103,7 @@ class DeployCloudFormationAtomicOperationSpec extends Specification {
       assert request.getStackName() == "stackTest"
       assert request.getTemplateBody() == '{"key":"value"}'
       assert request.getParameters() == [ new Parameter().withParameterKey("key").withParameterValue("value") ]
+      assert request.getCapabilities() == ["cap1", "cap2"]
       updateStackRequest
     }
     1 * updateStackRequest.getStackId() >> stackId

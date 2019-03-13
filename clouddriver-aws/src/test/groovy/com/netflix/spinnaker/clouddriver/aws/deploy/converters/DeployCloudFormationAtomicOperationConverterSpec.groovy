@@ -48,6 +48,7 @@ class DeployCloudFormationAtomicOperationConverterSpec extends Specification {
     def input = [stackName      : "asgard",
                  templateBody   : [ field1: "field1" ],
                  parameters     : [ param1: "param1" ],
+                 capabilities   : ["cap1", "cap2"],
                  region         : "eu-west_1",
                  credentials    : "credentials"]
 
