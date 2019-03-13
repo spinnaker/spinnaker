@@ -21,7 +21,7 @@ import retrofit2.HttpException
 class DeliveryConfigHandler(
   private val front50Service: Front50Service,
   override val objectMapper: ObjectMapper,
-  override val validators: List<ResourceValidator<DeliveryConfig>>
+  override val validators: List<ResourceValidator<*>>
 ) : ResourceHandler<DeliveryConfig> {
   override val log: Logger by lazy { LoggerFactory.getLogger(javaClass) }
 

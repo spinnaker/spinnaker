@@ -22,6 +22,8 @@ import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.events.ResourceDeleted
 import com.netflix.spinnaker.keel.events.ResourceUpdated
+import com.netflix.spinnaker.keel.exceptions.FailedValidationException
+import com.netflix.spinnaker.keel.exceptions.InvalidResourceStructureException
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceException
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.get
@@ -101,5 +103,22 @@ class ResourceController(
   fun onParseFailure(e: HttpMessageNotReadableException): Map<String, Any?> {
     log.error(e.message)
     return mapOf("message" to (e.cause?.message ?: e.message))
+  }
+
+  @ExceptionHandler(FailedValidationException::class)
+  @ResponseStatus(BAD_REQUEST)
+  fun onParseFailure(e: FailedValidationException): Map<String, Any?> {
+    log.error(e.message)
+    return mapOf("message" to (e.cause?.message ?: e.message))
+  }
+
+  @ExceptionHandler(InvalidResourceStructureException::class)
+  @ResponseStatus(BAD_REQUEST)
+  fun onParseFailure(e: InvalidResourceStructureException): Map<String, Any?> {
+    log.error(e.message)
+    return mapOf(
+        "message" to e.message,
+        "cause" to e.cause.message
+    )
   }
 }

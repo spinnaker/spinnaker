@@ -44,7 +44,7 @@ class SecurityGroupHandler(
   private val cloudDriverCache: CloudDriverCache,
   private val orcaService: OrcaService,
   override val objectMapper: ObjectMapper,
-  override val validators: List<ResourceValidator<SecurityGroup>>
+  override val validators: List<ResourceValidator<*>>
 ) : ResourceHandler<SecurityGroup> {
   override val log: Logger by lazy { LoggerFactory.getLogger(javaClass) }
 

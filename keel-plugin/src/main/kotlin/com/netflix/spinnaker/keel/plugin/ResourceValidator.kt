@@ -18,6 +18,7 @@
 
 package com.netflix.spinnaker.keel.plugin
 
+import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Resource
 import kotlin.reflect.KClass
 
@@ -26,7 +27,14 @@ import kotlin.reflect.KClass
  */
 interface ResourceValidator<T : Any> {
 
+  val apiVersion: ApiVersion
+  val supportedKind: String
+
   fun validate(resource: Resource<*>): Resource<T>
 
-  fun handles(clazz: KClass<*>): Boolean
 }
+
+internal fun ResourceValidator<*>.handles(
+    apiVersion: ApiVersion,
+    kind: String
+): Boolean = this.apiVersion == apiVersion && this.supportedKind == kind

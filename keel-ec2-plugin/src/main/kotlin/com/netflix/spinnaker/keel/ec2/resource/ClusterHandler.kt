@@ -39,14 +39,10 @@ class ClusterHandler(
   private val orcaService: OrcaService,
   private val clock: Clock,
   override val objectMapper: ObjectMapper,
-  override val validators: List<ResourceValidator<Cluster>>
+  override val validators: List<ResourceValidator<*>>
 ) : ResourceHandler<Cluster> {
 
   override val log: Logger by lazy { LoggerFactory.getLogger(javaClass) }
-
-  init {
-    log.info("Found ${validators.size} validators for ${javaClass.simpleName}")
-  }
 
   override val apiVersion = SPINNAKER_API_V1.subApi("ec2")
   override val supportedKind = ResourceKind(

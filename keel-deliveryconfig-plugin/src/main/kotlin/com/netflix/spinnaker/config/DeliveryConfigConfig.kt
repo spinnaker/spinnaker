@@ -22,6 +22,6 @@ class DeliveryConfigConfig {
   ) = DeliveryConfigHandler(
       front50Service,
       objectMapper,
-      validators.filter { it.handles(DeliveryConfig::class) }.map { it as ResourceValidator<DeliveryConfig> }
+      validators
   )
 }

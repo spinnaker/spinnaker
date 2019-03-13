@@ -19,9 +19,23 @@ package com.netflix.spinnaker.keel.exceptions
 
 import com.netflix.spinnaker.keel.api.Resource
 
+sealed class InvalidResourceException(
+    override val message: String?,
+    override val cause: Throwable
+) : RuntimeException(message, cause)
 
-sealed class InvalidResourceException(override val message: String?) : RuntimeException(message)
+class FailedValidationException(
+    validationError: String,
+    resource: Resource<*>,
+    cause: Throwable
+) : InvalidResourceException(
+  "Resource ${resource.metadata.name} failed validation with error: $validationError. Resource: $resource", cause
+)
 
-class FailedValidationException(validationError: String, resource: Resource<*>) : InvalidResourceException(
-  "Resource ${resource.metadata.name} failed validation with error: $validationError. Resource: $resource"
+class InvalidResourceStructureException(
+    validationError: String,
+    resource: String,
+    cause: Throwable
+) : InvalidResourceException(
+    "Resource failed validation with error: $validationError. Resource: $resource", cause
 )

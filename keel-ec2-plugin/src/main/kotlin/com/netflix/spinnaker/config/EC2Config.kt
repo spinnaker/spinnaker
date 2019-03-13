@@ -49,7 +49,7 @@ class EC2Config {
       orcaService,
       clock,
       objectMapper,
-      validators.filter { it.handles(Cluster::class) }.map { it as ResourceValidator<Cluster> }
+      validators
     )
 
   @Bean
@@ -65,6 +65,6 @@ class EC2Config {
       cloudDriverCache,
       orcaService,
       objectMapper,
-      validators.filter { it.handles(SecurityGroup::class) }.map { it as ResourceValidator<SecurityGroup> }
+      validators
     )
 }
