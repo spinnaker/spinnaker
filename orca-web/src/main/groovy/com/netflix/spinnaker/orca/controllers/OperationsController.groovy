@@ -265,8 +265,14 @@ class OperationsController {
     }
   }
 
+  @Deprecated
   private void decorateBuildInfo(Map trigger) {
-    if (trigger.master && trigger.job && trigger.buildNumber) {
+    // Echo now adds build information to the trigger before sending it to Orca, and manual triggers now default to
+    // going through echo (and thus receive build information). We still need this logic to populate build info for
+    // manual triggers when the 'triggerViaEcho' deck feature flag is off, or to handle users still hitting the old
+    // API endpoint manually, but we should short-circuit if we already have build info.
+    if (trigger.master && trigger.job && trigger.buildNumber && !trigger.buildInfo) {
+      log.info("Populating build information in Orca for trigger {}.", trigger)
       def buildInfo
       try {
         buildInfo = buildService.getBuild(trigger.buildNumber, trigger.master, trigger.job)
@@ -299,10 +305,6 @@ class OperationsController {
           }
         }
       }
-    } else if (trigger?.registry && trigger?.repository && trigger?.tag) {
-      trigger.buildInfo = [
-        taggedImages: [[registry: trigger.registry, repository: trigger.repository, tag: trigger.tag]]
-      ]
     }
   }
 
