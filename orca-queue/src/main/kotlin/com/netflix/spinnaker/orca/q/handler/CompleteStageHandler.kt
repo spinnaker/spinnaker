@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.q.handler
 
 import com.netflix.spectator.api.Registry
-import com.netflix.spectator.api.histogram.BucketCounter
+import com.netflix.spectator.api.histogram.PercentileTimer
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.ExecutionStatus.*
 import com.netflix.spinnaker.orca.events.StageComplete
@@ -139,19 +139,10 @@ class CompleteStageHandler(
         } ?: id
       }
 
-    BucketCounter
-      .get(registry, id, { v -> bucketDuration(v) })
-      .record((stage.endTime ?: clock.millis()) - (stage.startTime ?: 0))
+    PercentileTimer
+      .get(registry, id)
+      .record((stage.endTime ?: clock.millis()) - (stage.startTime ?: 0), TimeUnit.MILLISECONDS)
   }
-
-  private fun bucketDuration(duration: Long) =
-    when {
-      duration > TimeUnit.MINUTES.toMillis(60) -> "gt60m"
-      duration > TimeUnit.MINUTES.toMillis(30) -> "gt30m"
-      duration > TimeUnit.MINUTES.toMillis(15) -> "gt15m"
-      duration > TimeUnit.MINUTES.toMillis(5)  -> "gt5m"
-      else                                     -> "lt5m"
-    }
 
   override val messageType = CompleteStage::class.java
 
