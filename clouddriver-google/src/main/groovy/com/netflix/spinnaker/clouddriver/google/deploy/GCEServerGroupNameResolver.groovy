@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.google.deploy
 
 import com.google.api.services.compute.model.InstanceGroupManager
+import com.google.api.services.compute.model.InstanceProperties
 import com.google.api.services.compute.model.InstanceTemplate
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.GoogleExecutorTraits
@@ -82,7 +83,8 @@ class GCEServerGroupNameResolver extends AbstractServerGroupNameResolver {
     return managedInstanceGroups.findResults { managedInstanceGroup ->
       String instanceTemplateName = GCEUtil.getLocalName(managedInstanceGroup.getInstanceTemplate())
       InstanceTemplate instanceTemplate = instanceTemplates.find { it.getName() == instanceTemplateName }
-      GoogleLabeledManagedInstanceGroup labeledInstanceTemplate = new GoogleLabeledManagedInstanceGroup(managedInstanceGroup.getName(), instanceTemplate.getProperties().getLabels())
+      InstanceProperties instanceProperties = instanceTemplate.getProperties()
+      GoogleLabeledManagedInstanceGroup labeledInstanceTemplate = new GoogleLabeledManagedInstanceGroup(managedInstanceGroup.getName(), instanceProperties.getLabels())
       Moniker moniker = naming.deriveMoniker(labeledInstanceTemplate)
 
       if (moniker.cluster == clusterName) {
