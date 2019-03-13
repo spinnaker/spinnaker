@@ -29,6 +29,7 @@ import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import retrofit.Endpoint
+import retrofit.RequestInterceptor
 import retrofit.RestAdapter
 import retrofit.client.Client
 import retrofit.converter.JacksonConverter
@@ -52,11 +53,12 @@ class IgorConfiguration {
   }
 
   @Bean
-  IgorService igorService(Endpoint igorEndpoint, ObjectMapper mapper) {
+  IgorService igorService(Endpoint igorEndpoint, ObjectMapper mapper, RequestInterceptor spinnakerRequestInterceptor) {
     new RestAdapter.Builder()
       .setEndpoint(igorEndpoint)
       .setClient(retrofitClient)
       .setLogLevel(retrofitLogLevel)
+      .setRequestInterceptor(spinnakerRequestInterceptor)
       .setLog(new RetrofitSlf4jLog(IgorService))
       .setConverter(new JacksonConverter(mapper))
       .build()
