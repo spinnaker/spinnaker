@@ -32,7 +32,7 @@ class DeleteSecurityGroupStage implements StageDefinitionBuilder {
   void taskGraph(Stage stage, TaskNode.Builder builder) {
     builder
       .withTask("deleteSecurityGroup", DeleteSecurityGroupTask)
-      .withTask("forceCacheRefresh", DeleteSecurityGroupForceRefreshTask)
       .withTask("monitorDelete", MonitorKatoTask)
+      .withTask("forceCacheRefresh", DeleteSecurityGroupForceRefreshTask)
   }
 }
