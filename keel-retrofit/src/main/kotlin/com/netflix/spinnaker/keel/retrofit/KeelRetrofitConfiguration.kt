@@ -35,21 +35,21 @@ import java.util.concurrent.TimeUnit.MILLISECONDS
 @Configuration
 @Import(OkHttp3ClientConfiguration::class)
 @EnableConfigurationProperties
-class KeelRetrofitConfiguration {
-
-  private val log = LoggerFactory.getLogger(javaClass)
-
+class KeelRetrofitConfiguration(
   @Value("\${ok-http-client.connection-pool.max-idle-connections:5}")
-  var maxIdleConnections = 5
+  val maxIdleConnections: Int = 5,
 
   @Value("\${ok-http-client.connection-pool.keep-alive-duration-ms:300000}")
-  var keepAliveDurationMs = 300000L
+  val keepAliveDurationMs: Long = 300000L,
 
   @Value("\${ok-http-client.retry-on-connection-failure:true}")
-  var retryOnConnectionFailure = true
+  val retryOnConnectionFailure: Boolean = true,
 
   @Value("\${ok-http-client.spinnaker-user:keel@spinnaker.io}")
-  var spinnakerUser = "keel@spinnaker.io"
+  val spinnakerUser: String = "keel@spinnaker.io"
+) {
+
+  private val log = LoggerFactory.getLogger(javaClass)
 
   @Bean(name = ["retrofitClient", "okClient"])
   @Scope(SCOPE_PROTOTYPE)
