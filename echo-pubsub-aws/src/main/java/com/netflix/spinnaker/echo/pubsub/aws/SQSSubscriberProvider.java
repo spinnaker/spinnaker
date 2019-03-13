@@ -22,7 +22,7 @@ import com.amazonaws.services.sns.AmazonSNSClientBuilder;
 import com.amazonaws.services.sqs.AmazonSQSClientBuilder;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
-import com.netflix.spinnaker.echo.artifacts.JinjavaFactory;
+import com.netflix.spinnaker.echo.artifacts.MessageArtifactTranslator;
 import com.netflix.spinnaker.echo.config.AmazonPubsubProperties;
 import com.netflix.spinnaker.echo.discovery.DiscoveryActivated;
 import com.netflix.spinnaker.echo.pubsub.PubsubMessageHandler;
@@ -33,7 +33,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -57,8 +56,7 @@ public class SQSSubscriberProvider implements DiscoveryActivated {
   private final PubsubSubscribers pubsubSubscribers;
   private final PubsubMessageHandler pubsubMessageHandler;
   private final Registry registry;
-  private final JinjavaFactory jinjavaFactory;
-  private final ApplicationEventPublisher applicationEventPublisher;
+  private final MessageArtifactTranslator.Factory messageArtifactTranslatorFactory;
 
   @Autowired
   SQSSubscriberProvider(ObjectMapper objectMapper,
@@ -67,16 +65,14 @@ public class SQSSubscriberProvider implements DiscoveryActivated {
                         PubsubSubscribers pubsubSubscribers,
                         PubsubMessageHandler pubsubMessageHandler,
                         Registry registry,
-                        JinjavaFactory jinjavaFactory,
-                        ApplicationEventPublisher applicationEventPublisher) {
+                        MessageArtifactTranslator.Factory messageArtifactTranslatorFactory) {
     this.objectMapper = objectMapper;
     this.awsCredentialsProvider = awsCredentialsProvider;
     this.properties = properties;
     this.pubsubSubscribers = pubsubSubscribers;
     this.pubsubMessageHandler = pubsubMessageHandler;
     this.registry = registry;
-    this.jinjavaFactory = jinjavaFactory;
-    this.applicationEventPublisher = applicationEventPublisher;
+    this.messageArtifactTranslatorFactory = messageArtifactTranslatorFactory;
   }
 
   @PostConstruct
@@ -117,8 +113,7 @@ public class SQSSubscriberProvider implements DiscoveryActivated {
           .build(),
         enabled::get,
         registry,
-        jinjavaFactory,
-        applicationEventPublisher
+        messageArtifactTranslatorFactory
       );
 
       try {

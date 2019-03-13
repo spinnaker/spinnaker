@@ -21,7 +21,6 @@ import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.echo.model.Pipeline;
 import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.model.trigger.ArtifactoryEvent;
-import com.netflix.spinnaker.echo.pipelinetriggers.artifacts.JinjaArtifactExtractor;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact;
 import org.junit.jupiter.api.Test;
@@ -31,19 +30,10 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 class ArtifactoryEventHandlerTest extends AbstractEventHandlerTest {
 
-  private ArtifactoryEventHandler eventHandler;
-
-  {
-    JinjaArtifactExtractor artifactExtractor = mock(JinjaArtifactExtractor.class);
-    when(artifactExtractor.extractArtifacts(any())).thenReturn(Collections.emptyList());
-    eventHandler = new ArtifactoryEventHandler(new NoopRegistry(), new ObjectMapper(), artifactExtractor);
-  }
+  private ArtifactoryEventHandler eventHandler = new ArtifactoryEventHandler(new NoopRegistry(), new ObjectMapper());
 
   @Test
   void getMatchingPipelinesTriggersEnabledArtifactoryPipeline() {

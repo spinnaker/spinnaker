@@ -16,9 +16,12 @@
 
 package com.netflix.spinnaker.echo.services;
 
+import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import retrofit.http.GET;
 import retrofit.http.Path;
+import retrofit.http.Query;
 
+import java.util.List;
 import java.util.Map;
 
 public interface IgorService {
@@ -30,6 +33,12 @@ public interface IgorService {
   @GET("/builds/properties/{buildNumber}/{fileName}/{master}/{job}")
   Map<String, Object> getPropertyFile(@Path("buildNumber") Integer buildNumber,
     @Path("fileName") String fileName,
+    @Path("master") String master,
+    @Path(value = "job", encode = false) String job);
+
+  @GET("/builds/artifacts/{buildNumber}/{master}/{job}")
+  List<Artifact> getArtifacts(@Path("buildNumber") Integer buildNumber,
+    @Query("propertyFile") String propertyFile,
     @Path("master") String master,
     @Path(value = "job", encode = false) String job);
 }

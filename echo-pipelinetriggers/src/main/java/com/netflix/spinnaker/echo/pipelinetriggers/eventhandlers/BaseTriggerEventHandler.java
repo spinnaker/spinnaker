@@ -23,7 +23,6 @@ import com.netflix.spinnaker.echo.model.Pipeline;
 import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.model.trigger.TriggerEvent;
 import com.netflix.spinnaker.echo.pipelinetriggers.artifacts.ArtifactMatcher;
-import com.netflix.spinnaker.echo.pipelinetriggers.artifacts.JinjaArtifactExtractor;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
@@ -43,12 +42,10 @@ import java.util.function.Predicate;
 public abstract class BaseTriggerEventHandler<T extends TriggerEvent> implements TriggerEventHandler<T> {
   private final Registry registry;
   protected final ObjectMapper objectMapper;
-  private final JinjaArtifactExtractor jinjaArtifactExtractor;
 
-  BaseTriggerEventHandler(Registry registry, ObjectMapper objectMapper, JinjaArtifactExtractor jinjaArtifactExtractor) {
+  BaseTriggerEventHandler(Registry registry, ObjectMapper objectMapper) {
     this.registry = registry;
     this.objectMapper = objectMapper;
-    this.jinjaArtifactExtractor = jinjaArtifactExtractor;
   }
 
   public Optional<Pipeline> withMatchingTrigger(T event, Pipeline pipeline) {
@@ -84,13 +81,8 @@ public abstract class BaseTriggerEventHandler<T extends TriggerEvent> implements
 
   private List<Artifact> getArtifacts(T event, Trigger trigger) {
     List<Artifact> results = new ArrayList<>();
-    Optional.ofNullable(getArtifactsFromEvent(event)).ifPresent(results::addAll);
-    Optional.ofNullable(extractArtifacts(trigger)).ifPresent(results::addAll);
+    Optional.ofNullable(getArtifactsFromEvent(event, trigger)).ifPresent(results::addAll);
     return results;
-  }
-
-  private List<Artifact> extractArtifacts(Trigger trigger) {
-    return jinjaArtifactExtractor.extractArtifacts(trigger);
   }
 
   protected abstract Predicate<Trigger> matchTriggerFor(T event);
@@ -101,7 +93,7 @@ public abstract class BaseTriggerEventHandler<T extends TriggerEvent> implements
 
   protected abstract Class<T> getEventType();
 
-  protected abstract List<Artifact> getArtifactsFromEvent(T event);
+  protected abstract List<Artifact> getArtifactsFromEvent(T event, Trigger trigger);
 
   @Value
   private class TriggerWithArtifacts {

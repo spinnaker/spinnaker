@@ -2,9 +2,8 @@ package com.netflix.spinnaker.echo.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
-import com.netflix.spinnaker.echo.pipelinetriggers.artifacts.JinjaArtifactExtractor;
-import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService;
 import com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers.PubsubEventHandler;
+import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService;
 import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties;
 import com.netflix.spinnaker.fiat.shared.FiatStatus;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
@@ -16,7 +15,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
 import retrofit.RequestInterceptor;
 import retrofit.RestAdapter;
 import retrofit.RestAdapter.LogLevel;
@@ -61,8 +62,8 @@ public class PipelineTriggerConfiguration {
 
   @Bean
   @ConditionalOnMissingBean(PubsubEventHandler.class)
-  PubsubEventHandler pubsubEventHandler(Registry registry, ObjectMapper objectMapper, JinjaArtifactExtractor jinjaArtifactExtractor) {
-    return new PubsubEventHandler(registry, objectMapper, jinjaArtifactExtractor);
+  PubsubEventHandler pubsubEventHandler(Registry registry, ObjectMapper objectMapper) {
+    return new PubsubEventHandler(registry, objectMapper);
   }
 
   @Bean

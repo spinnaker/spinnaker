@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.model.trigger.DockerEvent;
-import com.netflix.spinnaker.echo.pipelinetriggers.artifacts.JinjaArtifactExtractor;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,8 +40,8 @@ public class DockerEventHandler extends BaseTriggerEventHandler<DockerEvent> {
   private static final String TRIGGER_TYPE = "docker";
 
   @Autowired
-  public DockerEventHandler(Registry registry, ObjectMapper objectMapper, JinjaArtifactExtractor jinjaArtifactExtractor) {
-    super(registry, objectMapper, jinjaArtifactExtractor);
+  public DockerEventHandler(Registry registry, ObjectMapper objectMapper) {
+    super(registry, objectMapper);
   }
 
   @Override
@@ -62,7 +61,7 @@ public class DockerEventHandler extends BaseTriggerEventHandler<DockerEvent> {
     return tag != null && !tag.isEmpty();
   }
 
-  protected List<Artifact> getArtifactsFromEvent(DockerEvent dockerEvent) {
+  protected List<Artifact> getArtifactsFromEvent(DockerEvent dockerEvent, Trigger trigger) {
     DockerEvent.Content content = dockerEvent.getContent();
 
     String name = content.getRegistry() + "/" + content.getRepository();

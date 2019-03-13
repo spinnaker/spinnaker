@@ -22,7 +22,6 @@ import com.netflix.spinnaker.echo.model.Metadata
 import com.netflix.spinnaker.echo.model.pubsub.MessageDescription
 import com.netflix.spinnaker.echo.model.pubsub.PubsubSystem
 import com.netflix.spinnaker.echo.model.trigger.PubsubEvent
-import com.netflix.spinnaker.echo.pipelinetriggers.artifacts.JinjaArtifactExtractor
 import com.netflix.spinnaker.echo.test.RetrofitStubs
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact
@@ -35,9 +34,6 @@ import spock.lang.Unroll
 class PubsubEventHandlerSpec extends Specification implements RetrofitStubs {
   def registry = new NoopRegistry()
   def objectMapper = new ObjectMapper()
-  def artifactExtractor = Stub(JinjaArtifactExtractor) {
-    extractArtifacts(_) >> Collections.emptyList()
-  }
 
   @Shared
   def goodArtifacts = [new Artifact(name: 'myArtifact', type: 'artifactType')]
@@ -75,7 +71,7 @@ class PubsubEventHandlerSpec extends Specification implements RetrofitStubs {
   ]
 
   @Subject
-  def eventHandler = new PubsubEventHandler(registry, objectMapper, artifactExtractor)
+  def eventHandler = new PubsubEventHandler(registry, objectMapper)
 
   @Unroll
   def "triggers pipelines for successful builds for Google pubsub"() {

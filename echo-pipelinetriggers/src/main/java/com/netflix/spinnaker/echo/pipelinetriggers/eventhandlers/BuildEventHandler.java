@@ -22,15 +22,11 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.build.BuildInfoService;
 import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.model.trigger.BuildEvent;
-import com.netflix.spinnaker.echo.pipelinetriggers.artifacts.JinjaArtifactExtractor;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -44,8 +40,8 @@ public class BuildEventHandler extends BaseTriggerEventHandler<BuildEvent> {
   private final Optional<BuildInfoService> buildInfoService;
 
   @Autowired
-  public BuildEventHandler(Registry registry, ObjectMapper objectMapper, Optional<BuildInfoService> buildInfoService, JinjaArtifactExtractor jinjaArtifactExtractor) {
-    super(registry, objectMapper, jinjaArtifactExtractor);
+  public BuildEventHandler(Registry registry, ObjectMapper objectMapper, Optional<BuildInfoService> buildInfoService) {
+    super(registry, objectMapper);
     this.buildInfoService = buildInfoService;
   }
 
@@ -102,11 +98,20 @@ public class BuildEventHandler extends BaseTriggerEventHandler<BuildEvent> {
     return Arrays.stream(BUILD_TRIGGER_TYPES).anyMatch(triggerType -> triggerType.equals(trigger.getType()));
   }
 
-  protected List<Artifact> getArtifactsFromEvent(BuildEvent event) {
-    return Optional.ofNullable(event.getContent())
+  protected List<Artifact> getArtifactsFromEvent(BuildEvent event, Trigger trigger) {
+    List<Artifact> buildArtifacts = Optional.ofNullable(event.getContent())
       .map(BuildEvent.Content::getProject)
       .map(BuildEvent.Project::getLastBuild)
       .map(BuildEvent.Build::getArtifacts)
       .orElse(Collections.emptyList());
+
+    List<Artifact> extractedArtifacts = buildInfoService
+      .map(b -> b.getArtifacts(event, trigger.getPropertyFile()))
+      .orElse(Collections.emptyList());
+
+    List <Artifact> result = new ArrayList<>();
+    result.addAll(buildArtifacts);
+    result.addAll(extractedArtifacts);
+    return result;
   }
 }

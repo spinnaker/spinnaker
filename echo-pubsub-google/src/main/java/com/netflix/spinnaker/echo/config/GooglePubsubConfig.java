@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.echo.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.echo.artifacts.MessageArtifactTranslator;
 import com.netflix.spinnaker.echo.config.GooglePubsubProperties.GooglePubsubSubscription;
 import com.netflix.spinnaker.echo.pubsub.PubsubMessageHandler;
 import com.netflix.spinnaker.echo.pubsub.PubsubPublishers;
@@ -25,43 +26,32 @@ import com.netflix.spinnaker.echo.pubsub.google.GooglePubsubPublisher;
 import com.netflix.spinnaker.echo.pubsub.google.GooglePubsubSubscriber;
 import com.netflix.spinnaker.echo.pubsub.model.PubsubPublisher;
 import com.netflix.spinnaker.echo.pubsub.model.PubsubSubscriber;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
+
+import javax.annotation.PostConstruct;
+import javax.validation.Valid;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.annotation.PostConstruct;
-import javax.validation.Valid;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @Slf4j
 @ConditionalOnExpression("${pubsub.enabled:false} && ${pubsub.google.enabled:false}")
 @EnableConfigurationProperties(GooglePubsubProperties.class)
+@RequiredArgsConstructor
 public class GooglePubsubConfig {
-
-  @Autowired
-  private PubsubSubscribers pubsubSubscribers;
-
-  @Autowired
-  private PubsubPublishers pubsubPublishers;
-
-  @Autowired
-  private PubsubMessageHandler pubsubMessageHandler;
-
+  private final PubsubSubscribers pubsubSubscribers;
+  private final PubsubPublishers pubsubPublishers;
+  private final PubsubMessageHandler pubsubMessageHandler;
   @Valid
-  @Autowired
-  private GooglePubsubProperties googlePubsubProperties;
-
-  @Autowired
-  ObjectMapper mapper;
-
-  @Autowired
-  private ApplicationEventPublisher applicationEventPublisher;
+  private final GooglePubsubProperties googlePubsubProperties;
+  private final ObjectMapper mapper;
+  private final MessageArtifactTranslator.Factory messageArtifactTranslatorFactory;
 
   @PostConstruct
   void googlePubsubSubscribers() {
@@ -72,7 +62,7 @@ public class GooglePubsubConfig {
           subscription.getSubscriptionName(),
           subscription.getProject());
       GooglePubsubSubscriber subscriber = GooglePubsubSubscriber
-        .buildSubscriber(subscription, pubsubMessageHandler, applicationEventPublisher);
+        .buildSubscriber(subscription, pubsubMessageHandler, messageArtifactTranslatorFactory);
 
       newSubscribers.add(subscriber);
     });

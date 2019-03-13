@@ -26,7 +26,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hubspot.jinjava.interpret.FatalTemplateErrorsException;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
-import com.netflix.spinnaker.echo.artifacts.JinjavaFactory;
 import com.netflix.spinnaker.echo.artifacts.MessageArtifactTranslator;
 import com.netflix.spinnaker.echo.config.AmazonPubsubProperties;
 import com.netflix.spinnaker.echo.model.pubsub.MessageDescription;
@@ -39,10 +38,11 @@ import com.netflix.spinnaker.kork.aws.ARN;
 import com.netflix.spinnaker.kork.aws.pubsub.PubSubUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationEventPublisher;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -78,8 +78,6 @@ public class SQSSubscriber implements Runnable, PubsubSubscriber {
 
   private final Supplier<Boolean> isEnabled;
 
-  private final ApplicationEventPublisher applicationEventPublisher;
-
   public SQSSubscriber(ObjectMapper objectMapper,
                        AmazonPubsubProperties.AmazonPubsubSubscription subscription,
                        PubsubMessageHandler pubsubMessageHandler,
@@ -87,8 +85,7 @@ public class SQSSubscriber implements Runnable, PubsubSubscriber {
                        AmazonSQS amazonSQS,
                        Supplier<Boolean> isEnabled,
                        Registry registry,
-                       JinjavaFactory jinjavaFactory,
-                       ApplicationEventPublisher applicationEventPublisher) {
+                       MessageArtifactTranslator.Factory messageArtifactTranslatorFactory) {
     this.objectMapper = objectMapper;
     this.subscription = subscription;
     this.pubsubMessageHandler = pubsubMessageHandler;
@@ -96,13 +93,8 @@ public class SQSSubscriber implements Runnable, PubsubSubscriber {
     this.amazonSQS = amazonSQS;
     this.isEnabled = isEnabled;
     this.registry = registry;
-    this.applicationEventPublisher = applicationEventPublisher;
 
-    this.messageArtifactTranslator = new MessageArtifactTranslator(
-      subscription.readTemplatePath(),
-      jinjavaFactory,
-      applicationEventPublisher
-    );
+    this.messageArtifactTranslator = messageArtifactTranslatorFactory.createJinja(subscription.readTemplatePath());
     this.queueARN = new ARN(subscription.getQueueARN());
     this.topicARN = new ARN(subscription.getTopicARN());
   }

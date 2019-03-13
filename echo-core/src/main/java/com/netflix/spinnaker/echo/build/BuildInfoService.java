@@ -19,6 +19,7 @@ package com.netflix.spinnaker.echo.build;
 import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.model.trigger.BuildEvent;
 import com.netflix.spinnaker.echo.services.IgorService;
+import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -26,6 +27,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -60,6 +62,16 @@ public class BuildInfoService {
       return retry(() -> igorService.getPropertyFile(buildNumber, propertyFile, master, job));
     }
     return Collections.emptyMap();
+  }
+
+  public List<Artifact> getArtifacts(BuildEvent event, String propertyFile) {
+    String master = event.getContent().getMaster();
+    String job = event.getContent().getProject().getName();
+    int buildNumber = event.getBuildNumber();
+    if (StringUtils.isNoneEmpty(master, job, propertyFile)) {
+      return retry(() -> igorService.getArtifacts(buildNumber, propertyFile, master, job));
+    }
+    return Collections.emptyList();
   }
 
   private <T> T retry(Supplier<T> supplier) {

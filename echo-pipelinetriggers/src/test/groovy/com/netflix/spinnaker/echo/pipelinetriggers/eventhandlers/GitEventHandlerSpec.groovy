@@ -19,7 +19,6 @@ package com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.echo.model.Pipeline
-import com.netflix.spinnaker.echo.pipelinetriggers.artifacts.JinjaArtifactExtractor
 import com.netflix.spinnaker.echo.test.RetrofitStubs
 import spock.lang.Specification
 import spock.lang.Subject
@@ -28,12 +27,9 @@ import spock.lang.Unroll
 class GitEventHandlerSpec extends Specification implements RetrofitStubs {
   def registry = new NoopRegistry()
   def objectMapper = new ObjectMapper()
-  def artifactExtractor = Stub(JinjaArtifactExtractor) {
-    extractArtifacts(*_) >> Collections.emptyList()
-  }
 
   @Subject
-  def eventHandler = new GitEventHandler(registry, objectMapper, artifactExtractor)
+  def eventHandler = new GitEventHandler(registry, objectMapper)
 
   @Unroll
   def "triggers pipelines for successful builds for #triggerType"() {

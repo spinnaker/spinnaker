@@ -16,7 +16,6 @@ package com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
-import com.netflix.spinnaker.echo.pipelinetriggers.artifacts.JinjaArtifactExtractor
 import com.netflix.spinnaker.echo.test.RetrofitStubs
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact
@@ -28,9 +27,6 @@ import spock.lang.Unroll
 class WebhookEventHandlerSpec extends Specification implements RetrofitStubs {
   def registry = new NoopRegistry()
   def objectMapper = new ObjectMapper()
-  def artifactExtractor = Stub(JinjaArtifactExtractor) {
-    extractArtifacts(_) >> Collections.emptyList()
-  }
 
   @Shared
   def goodExpectedArtifacts = [
@@ -44,7 +40,7 @@ class WebhookEventHandlerSpec extends Specification implements RetrofitStubs {
   ]
 
   @Subject
-  def eventHandler = new WebhookEventHandler(registry, objectMapper, artifactExtractor)
+  def eventHandler = new WebhookEventHandler(registry, objectMapper)
 
   def 'triggers pipelines for successful builds for webhook'() {
     given:

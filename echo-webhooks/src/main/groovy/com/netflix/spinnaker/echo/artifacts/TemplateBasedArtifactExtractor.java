@@ -22,7 +22,6 @@ import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
 import java.io.FileInputStream;
@@ -37,17 +36,17 @@ import java.util.Optional;
 public class TemplateBasedArtifactExtractor implements WebhookArtifactExtractor {
   final private WebhookProperties webhookProperties;
   final private ObjectMapper objectMapper;
-  final private ApplicationEventPublisher applicationEventPublisher;
+  final private MessageArtifactTranslator.Factory messageArtifactTranslatorFactory;
 
   @Autowired
   public TemplateBasedArtifactExtractor(
     Optional<WebhookProperties> webhookProperties,
     ObjectMapper objectMapper,
-    ApplicationEventPublisher applicationEventPublisher
+    MessageArtifactTranslator.Factory messageArtifactTranslatorFactory
   ) {
     this.webhookProperties = webhookProperties.orElse(null);
     this.objectMapper = objectMapper;
-    this.applicationEventPublisher = applicationEventPublisher;
+    this.messageArtifactTranslatorFactory = messageArtifactTranslatorFactory;
   }
 
   @Override
@@ -62,7 +61,7 @@ public class TemplateBasedArtifactExtractor implements WebhookArtifactExtractor 
     } else {
       MessageArtifactTranslator translator;
       try {
-        translator = new MessageArtifactTranslator(new FileInputStream(templatePath), applicationEventPublisher);
+        translator = messageArtifactTranslatorFactory.createJinja(new FileInputStream(templatePath));
       } catch (FileNotFoundException e) {
         throw new RuntimeException("Failed to read template path " + templatePath + ": " + e.getMessage(), e);
       }

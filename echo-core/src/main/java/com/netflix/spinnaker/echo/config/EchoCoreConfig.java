@@ -16,11 +16,12 @@
 
 package com.netflix.spinnaker.echo.config;
 
-import com.netflix.spinnaker.echo.artifacts.DefaultJinjavaFactory;
-import com.netflix.spinnaker.echo.artifacts.JinjavaFactory;
 import com.netflix.spinnaker.echo.discovery.DiscoveryPollingConfiguration;
 import com.netflix.spinnaker.echo.events.EchoEventListener;
 import com.netflix.spinnaker.echo.events.EventPropagator;
+import com.netflix.spinnaker.kork.artifacts.parsing.DefaultJinjavaFactory;
+import com.netflix.spinnaker.kork.artifacts.parsing.JinjaArtifactExtractor;
+import com.netflix.spinnaker.kork.artifacts.parsing.JinjavaFactory;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -36,7 +37,7 @@ import org.springframework.context.annotation.Import;
 @Configuration
 @ComponentScan({
   "com.netflix.spinnaker.echo.build",
-  "com.netflix.spinnaker.echo.events"
+  "com.netflix.spinnaker.echo.events",
 })
 @Import(DiscoveryPollingConfiguration.class)
 public class EchoCoreConfig {
@@ -60,6 +61,12 @@ public class EchoCoreConfig {
   @ConditionalOnMissingBean
   public JinjavaFactory jinjavaFactory() {
     return new DefaultJinjavaFactory();
+  }
+
+  @Bean
+  @ConditionalOnMissingBean
+  public JinjaArtifactExtractor.Factory jinjaArtifactExtractorFactory(JinjavaFactory jinjavaFactory) {
+    return new JinjaArtifactExtractor.Factory(jinjavaFactory);
   }
 
   @Bean

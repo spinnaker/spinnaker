@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.echo.pubsub.utils
+package com.netflix.spinnaker.echo.artifacts
 
-import com.netflix.spinnaker.echo.artifacts.MessageArtifactTranslator
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.kork.artifacts.parsing.DefaultJinjavaFactory
+import com.netflix.spinnaker.kork.artifacts.parsing.JinjaArtifactExtractor
 import org.springframework.context.ApplicationEventPublisher
 import spock.lang.Specification
 import spock.lang.Subject
@@ -24,10 +26,11 @@ import spock.lang.Subject
 class MessageArtifactTranslatorSpec extends Specification {
 
   @Subject
-  MessageArtifactTranslator messageArtifactTranslator
+  MessageArtifactTranslator.Factory messageArtifactTranslatorFactory
 
   def setup() {
-    messageArtifactTranslator = new MessageArtifactTranslator(Mock(ApplicationEventPublisher))
+    JinjaArtifactExtractor.Factory jinjaArtifactExtractorFactory = new JinjaArtifactExtractor.Factory(new DefaultJinjavaFactory())
+    messageArtifactTranslatorFactory = new MessageArtifactTranslator.Factory(Mock(ApplicationEventPublisher), jinjaArtifactExtractorFactory)
   }
 
   def "defaults to empty list with null or empty message payload"() {
@@ -35,6 +38,7 @@ class MessageArtifactTranslatorSpec extends Specification {
     String payload = ""
 
     when:
+    def messageArtifactTranslator = messageArtifactTranslatorFactory.createJinja("")
     def artifacts = messageArtifactTranslator.parseArtifacts(null)
 
     then:
@@ -64,7 +68,7 @@ class MessageArtifactTranslatorSpec extends Specification {
         "id": "gs://this/is/my/id"
     }
     '''
-    messageArtifactTranslator.jinjaTemplate = template
+    def messageArtifactTranslator = messageArtifactTranslatorFactory.createJinja(template)
 
     when:
     def artifacts = messageArtifactTranslator.parseArtifacts(payload)
@@ -94,7 +98,7 @@ class MessageArtifactTranslatorSpec extends Specification {
         ]
     }
     '''
-    messageArtifactTranslator.jinjaTemplate = template
+    def messageArtifactTranslator = messageArtifactTranslatorFactory.createJinja(template)
 
     when:
     def artifacts = messageArtifactTranslator.parseArtifacts(payload)

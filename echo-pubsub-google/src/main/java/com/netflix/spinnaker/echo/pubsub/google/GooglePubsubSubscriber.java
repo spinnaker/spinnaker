@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.echo.pubsub.google;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.core.ApiService;
 import com.google.api.gax.core.FixedCredentialsProvider;
 import com.google.auth.Credentials;
@@ -37,7 +36,6 @@ import com.netflix.spinnaker.echo.pubsub.utils.NodeIdentity;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -94,7 +92,7 @@ public class GooglePubsubSubscriber implements PubsubSubscriber {
 
   public static GooglePubsubSubscriber buildSubscriber(GooglePubsubSubscription subscription,
                                                        PubsubMessageHandler pubsubMessageHandler,
-                                                       ApplicationEventPublisher applicationEventPublisher) {
+                                                       MessageArtifactTranslator.Factory messageArtifactTranslatorFactory) {
     String subscriptionName = subscription.getSubscriptionName();
     String project = subscription.getProject();
     String jsonPath = subscription.getJsonPath();
@@ -104,7 +102,7 @@ public class GooglePubsubSubscriber implements PubsubSubscriber {
       subscription.getName(),
       pubsubMessageHandler,
       subscription.readTemplatePath(),
-      applicationEventPublisher
+      messageArtifactTranslatorFactory
     );
 
     Credentials credentials = null;
@@ -165,17 +163,15 @@ public class GooglePubsubSubscriber implements PubsubSubscriber {
 
     private MessageArtifactTranslator messageArtifactTranslator;
 
-    private ObjectMapper objectMapper = new ObjectMapper();
-
     public GooglePubsubMessageReceiver(Integer ackDeadlineSeconds,
                                        String subscriptionName,
                                        PubsubMessageHandler pubsubMessageHandler,
                                        InputStream templateStream,
-                                       ApplicationEventPublisher applicationEventPublisher) {
+                                       MessageArtifactTranslator.Factory messageArtifactTranslatorFactory) {
       this.ackDeadlineSeconds = ackDeadlineSeconds;
       this.subscriptionName = subscriptionName;
       this.pubsubMessageHandler = pubsubMessageHandler;
-      this.messageArtifactTranslator = new MessageArtifactTranslator(templateStream, applicationEventPublisher);
+      this.messageArtifactTranslator = messageArtifactTranslatorFactory.createJinja(templateStream);
     }
 
     @Override

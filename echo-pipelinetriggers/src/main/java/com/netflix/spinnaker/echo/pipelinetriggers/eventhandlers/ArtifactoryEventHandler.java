@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.model.trigger.ArtifactoryEvent;
-import com.netflix.spinnaker.echo.pipelinetriggers.artifacts.JinjaArtifactExtractor;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import org.springframework.stereotype.Component;
 
@@ -38,8 +37,8 @@ import java.util.function.Predicate;
 public class ArtifactoryEventHandler extends BaseTriggerEventHandler<ArtifactoryEvent> {
   private static final String ARTIFACTORY_TRIGGER_TYPE = "artifactory";
 
-  public ArtifactoryEventHandler(Registry registry, ObjectMapper objectMapper, JinjaArtifactExtractor jinjaArtifactExtractor) {
-    super(registry, objectMapper, jinjaArtifactExtractor);
+  public ArtifactoryEventHandler(Registry registry, ObjectMapper objectMapper) {
+    super(registry, objectMapper);
   }
 
   @Override
@@ -72,7 +71,7 @@ public class ArtifactoryEventHandler extends BaseTriggerEventHandler<Artifactory
   }
 
   @Override
-  protected List<Artifact> getArtifactsFromEvent(ArtifactoryEvent artifactoryEvent) {
+  protected List<Artifact> getArtifactsFromEvent(ArtifactoryEvent artifactoryEvent, Trigger trigger) {
     return artifactoryEvent.getContent() != null && artifactoryEvent.getContent().getArtifact() != null ?
       Collections.singletonList(artifactoryEvent.getContent().getArtifact())
       : new ArrayList<>();
