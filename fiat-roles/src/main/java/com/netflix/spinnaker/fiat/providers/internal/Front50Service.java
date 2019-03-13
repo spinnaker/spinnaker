@@ -25,14 +25,13 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Slf4j
 public class Front50Service implements HealthTrackable, InitializingBean {
-
-  private static final String GROUP_KEY = "front50Service";
 
   private final Front50Api front50Api;
 
@@ -51,53 +50,40 @@ public class Front50Service implements HealthTrackable, InitializingBean {
   public void afterPropertiesSet() throws Exception {
     try {
       // Initialize caches (also indicates service is healthy)
-      getAllApplicationPermissions();
-      getAllServiceAccounts();
+      refreshApplications();
+      refreshServiceAccounts();
     } catch (Exception e) {
       log.warn("Cache prime failed: ", e);
     }
   }
 
   public List<Application> getAllApplicationPermissions() {
-    return new SimpleJava8HystrixCommand<>(
-        GROUP_KEY,
-        "getAllApplicationPermissions",
-        () -> {
-          applicationCache.set(front50Api.getAllApplicationPermissions());
-          healthTracker.success();
-          return applicationCache.get();
-        },
-        (Throwable cause) -> {
-          logFallback("application", cause);
-          List<Application> applications = applicationCache.get();
-          if (applications == null) {
-            throw new HystrixBadRequestException("Front50 is unavailable", cause);
-          }
-          return applications;
-        }).execute();
+    return applicationCache.get();
   }
 
   public List<ServiceAccount> getAllServiceAccounts() {
-    return new SimpleJava8HystrixCommand<>(
-        GROUP_KEY,
-        "getAccounts",
-        () -> {
-          serviceAccountCache.set(front50Api.getAllServiceAccounts());
-          healthTracker.success();
-          return serviceAccountCache.get();
-        },
-        (Throwable cause) -> {
-          logFallback("service account", cause);
-          List<ServiceAccount> serviceAccounts = serviceAccountCache.get();
-          if (serviceAccounts == null) {
-            throw new HystrixBadRequestException("Front50 is unavailable", cause);
-          }
-          return serviceAccounts;
-        }).execute();
+    return serviceAccountCache.get();
   }
 
   private static void logFallback(String resource, Throwable cause) {
     String message = cause != null ? "Cause: " + cause.getMessage() : "";
     log.info("Falling back to {} cache. {}", resource, message);
+  }
+
+
+  @Scheduled(fixedDelayString = "${fiat.front50RefreshMs:30000}")
+  public void refreshApplications() {
+    applicationCache.set(
+            front50Api.getAllApplicationPermissions()
+    );
+    healthTracker.success();
+  }
+
+  @Scheduled(fixedDelayString = "${fiat.front50RefreshMs:30000}")
+  public void refreshServiceAccounts() {
+    serviceAccountCache.set(
+            front50Api.getAllServiceAccounts()
+    );
+    healthTracker.success();
   }
 }
