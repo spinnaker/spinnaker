@@ -131,7 +131,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
   }
 
   public boolean isValidKind(KubernetesKind kind) {
-    return getInvalidKindReason(kind) != null;
+    return getInvalidKindReason(kind) == null;
   }
 
   public InvalidKindReason getInvalidKindReason(KubernetesKind kind) {
