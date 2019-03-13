@@ -37,7 +37,13 @@ class DryRunStageDefinitionBuilderFactory(
     }
 
   private val Stage.shouldExecuteNormallyInDryRun: Boolean
-    get() = isManualJudgment || isPipeline || isExpressionPrecondition || isFindImage || isDetermineTargetServerGroup || isRollbackCluster
+    get() = isManualJudgment ||
+      isPipeline ||
+      isExpressionPrecondition ||
+      isFindImage ||
+      isDetermineTargetServerGroup ||
+      isRollbackCluster ||
+      isEvalVariables
 
   private val Stage.isManualJudgment: Boolean
     get() = type == "manualJudgment"
@@ -68,4 +74,7 @@ class DryRunStageDefinitionBuilderFactory(
 
   private val Stage.isRollbackCluster: Boolean
     get() = type == "rollbackCluster"
+
+  private val Stage.isEvalVariables: Boolean
+    get() = type == "evaluateVariables"
 }
