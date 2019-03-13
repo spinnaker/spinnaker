@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Pivotal, Inc.
+ * Copyright 2019 Pivotal, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,16 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2;
+package com.netflix.spinnaker.clouddriver.cloudfoundry.client.api;
 
-import lombok.Data;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.*;
+import retrofit.client.Response;
+import retrofit.http.*;
 
-@Data
-public class ServicePlan {
-  private String id;
-  private String name;
-  private String serviceGuid;
+import java.util.List;
+import java.util.Set;
+
+public interface ConfigService {
+  @GET("/v2/config/feature_flags")
+  Set<ConfigFeatureFlag> getConfigFeatureFlags();
 }

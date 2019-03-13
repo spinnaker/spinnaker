@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.client.api;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Page;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Resource;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Space;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.SpaceSummary;
 import retrofit.http.GET;
 import retrofit.http.Path;
 import retrofit.http.Query;
@@ -31,4 +32,7 @@ public interface SpaceService {
 
   @GET("/v2/spaces/{guid}")
   Resource<Space> findById(@Path("guid") String guid);
+
+  @GET("/v2/spaces/{guid}/summary")
+  SpaceSummary getSpaceSummaryById(@Path("guid") String guid);
 }

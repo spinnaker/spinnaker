@@ -21,7 +21,6 @@ import lombok.Data;
 
 @Data
 public class ServiceInstanceResponse {
-  private String serviceInstanceId;
   private String serviceInstanceName;
   private LastOperation.Type type;
   private LastOperation.State state;

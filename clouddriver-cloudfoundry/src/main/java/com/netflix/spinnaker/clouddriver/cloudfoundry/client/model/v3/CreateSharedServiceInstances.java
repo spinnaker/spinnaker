@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Pivotal, Inc.
+ * Copyright 2019 Pivotal, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2;
+package com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3;
 
 import lombok.Data;
 
+import java.util.Map;
+import java.util.Set;
+
 @Data
-public class ServicePlan {
-  private String id;
-  private String name;
-  private String serviceGuid;
+public class CreateSharedServiceInstances {
+  private Set<Map<String, String>> data;
 }

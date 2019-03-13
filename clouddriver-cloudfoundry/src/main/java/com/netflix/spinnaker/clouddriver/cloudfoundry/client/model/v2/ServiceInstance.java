@@ -16,11 +16,34 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import lombok.Data;
 
+import javax.annotation.Nullable;
+
+import static java.util.Arrays.stream;
+
 @Data
-public class ServiceInstance extends AbstractServiceInstance{
+public class ServiceInstance extends AbstractServiceInstance {
   private String plan;
   private String servicePlanGuid;
   private LastOperation lastOperation;
+  private Type type;
+
+  public enum Type {
+    MANAGED_SERVICE_INSTANCE("managed_service_instance"),
+    USER_PROVIDED_SERVICE_INSTANCE("user_provided_service_instance");
+
+    private final String type;
+
+    Type(String type) {
+      this.type = type;
+    }
+
+    @Nullable
+    @JsonCreator
+    public static Type fromType(String type) {
+      return stream(Type.values()).filter(st -> st.type.equalsIgnoreCase(type)).findFirst().orElse(null);
+    }
+  }
 }

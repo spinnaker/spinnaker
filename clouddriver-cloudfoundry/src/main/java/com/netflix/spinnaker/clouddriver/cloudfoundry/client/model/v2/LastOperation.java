@@ -31,6 +31,8 @@ public class LastOperation {
   public enum Type {
     CREATE("create"),
     DELETE("delete"),
+    SHARE("share"),
+    UNSHARE("unshare"),
     UPDATE("update");
 
     private final String type;

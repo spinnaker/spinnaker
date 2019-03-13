@@ -43,7 +43,6 @@ class DestroyCloudFoundryServiceAtomicOperationTest extends AbstractCloudFoundry
 
     ServiceInstanceResponse serviceInstanceResponse = new ServiceInstanceResponse()
       .setServiceInstanceName("service-instance-name")
-      .setServiceInstanceId("service-instance-guid")
       .setType(DELETE)
       .setState(IN_PROGRESS);
 
@@ -71,7 +70,6 @@ class DestroyCloudFoundryServiceAtomicOperationTest extends AbstractCloudFoundry
 
     ServiceInstanceResponse serviceInstanceResponse = new ServiceInstanceResponse()
       .setServiceInstanceName("up-service-instance-name")
-      .setServiceInstanceId("up-service-instance-guid")
       .setType(DELETE)
       .setState(NOT_FOUND);
 

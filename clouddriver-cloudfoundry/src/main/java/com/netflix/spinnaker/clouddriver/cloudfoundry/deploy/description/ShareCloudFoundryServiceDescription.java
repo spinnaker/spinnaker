@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Pivotal, Inc.
+ * Copyright 2019 Pivotal, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,16 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2;
+package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+import java.util.Set;
 
 @Data
-public class ServicePlan {
-  private String id;
-  private String name;
-  private String serviceGuid;
+@EqualsAndHashCode(callSuper = true)
+public class ShareCloudFoundryServiceDescription extends AbstractCloudFoundryServiceDescription {
+  private String serviceInstanceName;
+  private Set<String> shareToRegions;
 }

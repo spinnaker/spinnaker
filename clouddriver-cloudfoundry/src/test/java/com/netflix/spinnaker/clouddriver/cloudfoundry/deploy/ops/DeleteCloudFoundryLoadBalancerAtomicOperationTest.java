@@ -20,7 +20,11 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryApiExce
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.DeleteCloudFoundryLoadBalancerDescription;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryDomain;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryLoadBalancer;
+import com.netflix.spinnaker.clouddriver.data.task.Task;
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.data.Index.atIndex;
@@ -60,13 +64,13 @@ class DeleteCloudFoundryLoadBalancerAtomicOperationTest extends AbstractCloudFou
 
     DeleteCloudFoundryLoadBalancerAtomicOperation op = new DeleteCloudFoundryLoadBalancerAtomicOperation(desc);
 
-    Exception exception = null;
-    try {
-      runOperation(op);
-    } catch (CloudFoundryApiException cloudFoundryApiException) {
-      exception = cloudFoundryApiException;
-    }
-    assertThat(exception).isNotNull();
-    assertThat(exception.getMessage()).isEqualTo("Cloud Foundry API returned with error(s): Load balancer does not exist");
+    Task task = runOperation(op);
+    List<Object> resultObjects = task.getResultObjects();
+    assertThat(resultObjects.size()).isEqualTo(1);
+    Object o = resultObjects.get(0);
+    assertThat(o).isInstanceOf(Map.class);
+    Object ex = ((Map) o).get("EXCEPTION");
+    assertThat(ex).isInstanceOf(CloudFoundryApiException.class);
+    assertThat(((CloudFoundryApiException) ex).getMessage()).isEqualTo("Cloud Foundry API returned with error(s): Load balancer does not exist");
   }
 }

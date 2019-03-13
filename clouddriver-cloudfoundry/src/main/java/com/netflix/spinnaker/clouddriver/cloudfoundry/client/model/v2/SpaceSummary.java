@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Pivotal, Inc.
+ * Copyright 2019 Pivotal, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,15 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2;
 
 import lombok.Data;
 
+import java.util.Set;
+
 @Data
-public class ServicePlan {
-  private String id;
-  private String name;
-  private String serviceGuid;
+public class SpaceSummary {
+  private Set<SummaryServiceInstance> services;
+
+  @Data
+  public static class SummaryServiceInstance {
+    String name;
+    String guid;
+  }
 }

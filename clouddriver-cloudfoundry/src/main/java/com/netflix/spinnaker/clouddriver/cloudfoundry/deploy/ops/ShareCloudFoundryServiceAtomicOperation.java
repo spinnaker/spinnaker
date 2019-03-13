@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Pivotal, Inc.
+ * Copyright 2019 Pivotal, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,21 +17,21 @@
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops;
 
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.ServiceInstanceResponse;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.DestroyCloudFoundryServiceDescription;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.ShareCloudFoundryServiceDescription;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
+import java.util.Set;
 
-import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation.State.NOT_FOUND;
+import static java.util.stream.Collectors.toSet;
 
 @RequiredArgsConstructor
-public class DestroyCloudFoundryServiceAtomicOperation implements AtomicOperation<ServiceInstanceResponse> {
-  private static final String PHASE = "DELETE_SERVICE";
-  private final DestroyCloudFoundryServiceDescription description;
+public class ShareCloudFoundryServiceAtomicOperation implements AtomicOperation<ServiceInstanceResponse> {
+  private static final String PHASE = "SHARE_SERVICE";
+  private final ShareCloudFoundryServiceDescription description;
 
   private static Task getTask() {
     return TaskRepository.threadLocalTask.get();
@@ -40,15 +40,18 @@ public class DestroyCloudFoundryServiceAtomicOperation implements AtomicOperatio
   @Override
   public ServiceInstanceResponse operate(List priorOutputs) {
     Task task = getTask();
-    ServiceInstanceResponse response = description
-      .getClient()
-      .getServiceInstances()
-      .destroyServiceInstance(description.getSpace(), description.getServiceInstanceName());
-    task.updateStatus(PHASE, "Started removing service instance '" + description.getServiceInstanceName() + "' from space " + description.getSpace().getName());
-    LastOperation.State state = response.getState();
-    if(state == NOT_FOUND) {
-      task.updateStatus(PHASE, "Finished removing service instance '" + description.getServiceInstanceName() + "'");
-    }
-    return response;
+
+    String serviceInstanceName = description.getServiceInstanceName();
+    String region = description.getRegion();
+    Set<String> shareToRegions = description.getShareToRegions();
+    task.updateStatus(PHASE, "Sharing service instance '" + serviceInstanceName +
+      "' from '" + region + "' into " +
+      String.join(", ", shareToRegions.stream().map(s -> "'" + s + "'").collect(toSet())));
+
+    ServiceInstanceResponse results = description.getClient().getServiceInstances().shareServiceInstance(region, serviceInstanceName, shareToRegions);
+
+    task.updateStatus(PHASE, "Finished sharing service instance '" + serviceInstanceName + "'");
+
+    return results;
   }
 }

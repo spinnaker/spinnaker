@@ -167,7 +167,7 @@ public class HttpCloudFoundryClient implements CloudFoundryClient {
     this.spaces = new Spaces(createService(SpaceService.class), organizations);
     this.applications = new Applications(account, appsManagerUri, metricsUri, createService(ApplicationService.class), spaces);
     this.domains = new Domains(createService(DomainService.class), organizations);
-    this.serviceInstances = new ServiceInstances(createService(ServiceInstanceService.class), organizations, spaces);
+    this.serviceInstances = new ServiceInstances(createService(ServiceInstanceService.class), createService(ConfigService.class), organizations, spaces);
     this.routes = new Routes(account, createService(RouteService.class), applications, domains, spaces);
   }
 

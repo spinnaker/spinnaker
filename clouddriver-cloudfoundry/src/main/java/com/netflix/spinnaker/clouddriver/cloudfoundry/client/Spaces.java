@@ -22,6 +22,7 @@ import com.google.common.cache.LoadingCache;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.SpaceService;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Resource;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Space;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.SpaceSummary;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
 import lombok.RequiredArgsConstructor;
 
@@ -66,6 +67,12 @@ public class Spaces {
   public List<CloudFoundrySpace> all() throws CloudFoundryApiException {
     return collectPageResources("spaces", pg -> api.all(pg, null))
       .stream().map(this::map).collect(toList());
+  }
+
+  @Nullable
+  public SpaceSummary getSpaceSummaryById(String spaceId) {
+    return safelyCall(() -> api.getSpaceSummaryById(spaceId))
+      .orElse(null);
   }
 
   @Nullable

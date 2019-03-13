@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Pivotal, Inc.
+ * Copyright 2019 Pivotal, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,31 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import lombok.Data;
 
+import javax.annotation.Nullable;
+
+import static java.util.Arrays.stream;
+
 @Data
-public class ServicePlan {
-  private String id;
-  private String name;
-  private String serviceGuid;
+public class ConfigFeatureFlag {
+  ConfigFlag name;
+  boolean enabled;
+
+  public enum ConfigFlag {
+    SERVICE_INSTANCE_SHARING("service_instance_sharing");
+
+    private final String type;
+
+    ConfigFlag(String type) {
+      this.type = type;
+    }
+
+    @Nullable
+    @JsonCreator
+    public static ConfigFlag fromType(String type) {
+      return stream(ConfigFlag.values()).filter(st -> st.type.equalsIgnoreCase(type)).findFirst().orElse(null);
+    }
+  }
 }

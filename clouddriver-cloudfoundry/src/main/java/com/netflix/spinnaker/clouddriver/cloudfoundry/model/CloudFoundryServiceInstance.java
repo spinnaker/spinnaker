@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.model;
 
 import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.ServiceInstance.Type;
 import com.netflix.spinnaker.clouddriver.model.ServiceInstance;
 import lombok.Builder;
 import lombok.Value;
@@ -38,11 +39,20 @@ public class CloudFoundryServiceInstance implements ServiceInstance {
   String name;
 
   @JsonView(Views.Cache.class)
+  String id;
+
+  @JsonView(Views.Cache.class)
   String plan;
+
+  @JsonView(Views.Cache.class)
+  String planId;
 
   @JsonView(Views.Cache.class)
   String status;
 
   @JsonView(Views.Cache.class)
   Set<String> tags;
+
+  @JsonView(Views.Cache.class)
+  String type;
 }

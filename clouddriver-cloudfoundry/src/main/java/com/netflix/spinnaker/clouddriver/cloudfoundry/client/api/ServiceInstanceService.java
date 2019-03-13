@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client.api;
 
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.*;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.CreateSharedServiceInstances;
 import retrofit.client.Response;
 import retrofit.http.*;
 
@@ -34,6 +35,12 @@ public interface ServiceInstanceService {
 
   @GET("/v2/services")
   Page<Service> findService(@Query("page") Integer page, @Query("q") List<String> queryParams);
+
+  @GET("/v2/service_plans/{guid}")
+  Resource<ServicePlan> findServicePlanByServicePlanId(@Path("guid") String servicePlanGuid);
+
+  @GET("/v2/services/{guid}")
+  Resource<Service> findServiceByServiceId(@Path("guid") String serviceGuid);
 
   @GET("/v2/spaces/{guid}/services")
   Page<Service> findServiceBySpaceId(@Path("guid") String spaceGuid, @Query("page") Integer page, @Query("q") List<String> queryParams);
@@ -65,7 +72,12 @@ public interface ServiceInstanceService {
   @DELETE("/v2/user_provided_service_instances/{guid}")
   Response destroyUserProvidedServiceInstance(@Path("guid") String serviceInstanceGuid);
 
-  @GET("/v2/service_instances/{guid}")
-  Resource<ServiceInstance> getServiceInstanceById(@Path("guid") String serviceInstanceGuid);
+  @POST("/v3/service_instances/{guid}/relationships/shared_spaces")
+  Response shareServiceInstanceToSpaceIds(@Path("guid") String serviceInstanceGuid, @Body CreateSharedServiceInstances body);
 
+  @GET("/v3/service_instances/{guid}/relationships/shared_spaces")
+  SharedTo getShareServiceInstanceSpaceIdsByServiceInstanceId(@Path("guid") String serviceInstanceGuid);
+
+  @DELETE("/v3/service_instances/{guid}/relationships/shared_spaces/{space_guid}")
+  Response unshareServiceInstanceFromSpaceId(@Path("guid") String serviceInstanceGuid, @Path("space_guid") String spaceGuid);
 }
