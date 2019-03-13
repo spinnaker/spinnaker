@@ -86,7 +86,6 @@ export class EcsServerGroupConfigurationService {
 
   public static $inject = [
     '$q',
-    'cacheInitializer',
     'loadBalancerReader',
     'serverGroupCommandRegistry',
     'iamRoleReader',
