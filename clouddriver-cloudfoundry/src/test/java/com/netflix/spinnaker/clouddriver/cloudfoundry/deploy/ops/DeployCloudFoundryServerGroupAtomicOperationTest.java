@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops;
 
 import com.netflix.spinnaker.clouddriver.cloudfoundry.artifacts.ArtifactCredentialsFromString;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.Applications;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryApiException;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.MockCloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.ProcessStats;
@@ -95,13 +96,17 @@ class DeployCloudFoundryServerGroupAtomicOperationTest extends AbstractCloudFoun
       new DeployCloudFoundryServerGroupAtomicOperation(new PassThroughOperationPoller(), description, clusterProvider);
     final Applications apps = getApplications(clusterProvider, ProcessStats.State.CRASHED);
 
+    Exception exception = null;
     // When
-    final DeploymentResult result = operation.operate(Lists.emptyList());
+    try {
+      operation.operate(Lists.emptyList());
+    } catch (CloudFoundryApiException cloudFoundryApiException) {
+      exception = cloudFoundryApiException;
+    }
 
-    // Then
-    verifyInOrder(apps, () -> atLeastOnce());
-
-    assertThat(testTask.getStatus().isFailed()).isTrue();
+    //Then
+    assertThat(exception).isNotNull();
+    assertThat(exception.getMessage()).isEqualTo("Cloud Foundry API returned with error(s): Failed to start 'app1-stack1-detail1-v000' which instead crashed");
   }
 
   @Test

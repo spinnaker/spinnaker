@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops;
 
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryApiException;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.MockCloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.RouteId;
@@ -91,7 +92,7 @@ class AbstractCloudFoundryLoadBalancerMappingOperationTest {
   }
 
   @Test
-  void mapRoutesShouldReturnFalseWhenInvalidRoutesAreFound() {
+  void mapRoutesShouldThrowAnExceptionWhenInvalidRoutesAreFound() {
     AbstractCloudFoundryServerGroupDescription description = new AbstractCloudFoundryServerGroupDescription() {};
     description.setClient(client);
     description.setServerGroupName("sg-name");
@@ -100,12 +101,18 @@ class AbstractCloudFoundryLoadBalancerMappingOperationTest {
 
     List<String> routeList = Collections.singletonList("road.to.nowhere");
 
-    assertThat(operation.mapRoutes(description, routeList, null, null)).isFalse();
-    assertThat(testTask.getHistory()).has(status("Invalid format or domain for load balancer 'road.to.nowhere'"), atIndex(2));
+    Exception exception = null;
+    try {
+      operation.mapRoutes(description, routeList, null, null);
+    } catch (IllegalArgumentException illegalArgumentException) {
+      exception = illegalArgumentException;
+    }
+    assertThat(exception).isNotNull();
+    assertThat(exception.getMessage()).isEqualTo("road.to.nowhereis an invalid route");
   }
 
   @Test
-  void mapRoutesShouldReturnFalseWhenRoutesExistInOtherOrgSpace() {
+  void mapRoutesShouldThrowAnExceptionWhenRoutesExistInOtherOrgSpace() {
     AbstractCloudFoundryServerGroupDescription description = new AbstractCloudFoundryServerGroupDescription() {};
     description.setClient(client);
     description.setServerGroupName("sg-name");
@@ -119,8 +126,14 @@ class AbstractCloudFoundryLoadBalancerMappingOperationTest {
 
     List<String> routeList = Collections.singletonList("road.to.nowhere");
 
-    assertThat(operation.mapRoutes(description, routeList, space, null)).isFalse();
-    assertThat(testTask.getHistory()).has(status("Load balancer already exists in another organization and space"), atIndex(2));
+    Exception exception = null;
+    try {
+      operation.mapRoutes(description, routeList, space, null);
+    } catch (CloudFoundryApiException cloudFoundryApiException) {
+      exception = cloudFoundryApiException;
+    }
+    assertThat(exception).isNotNull();
+    assertThat(exception.getMessage()).isEqualTo("Cloud Foundry API returned with error(s): Load balancer already exists in another organization and space");
   }
 
   private static class AbstractCloudFoundryAtomicOperationTestClass extends AbstractCloudFoundryLoadBalancerMappingOperation {

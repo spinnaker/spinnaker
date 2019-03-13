@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops;
 
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryApiException;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.ProcessStats;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.ScaleCloudFoundryServerGroupDescription;
@@ -67,8 +68,7 @@ public class ScaleCloudFoundryServerGroupAtomicOperation implements AtomicOperat
       (state == ProcessStats.State.DOWN && description.getCapacity().getDesired() == 0)) {
       getTask().updateStatus(PHASE, "Resized '" + description.getServerGroupName() + "'");
     } else {
-      getTask().updateStatus(PHASE, "Failed to start '" + description.getServerGroupName() + "' which instead " + describeProcessState(state));
-      getTask().fail();
+      throw new CloudFoundryApiException("Failed to start '" + description.getServerGroupName() + "' which instead " + describeProcessState(state));
     }
 
     return null;

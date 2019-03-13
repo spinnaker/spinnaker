@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops;
 
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryApiException;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.RouteId;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.AbstractCloudFoundryServerGroupDescription;
@@ -47,35 +48,22 @@ public abstract class AbstractCloudFoundryLoadBalancerMappingOperation {
 
     getTask().updateStatus(getPhase(), "Creating or updating load balancers");
 
-    List<String> invalidRoutes = new ArrayList<>();
-
     CloudFoundryClient client = description.getClient();
     List<RouteId> routeIds = routes.stream()
       .map(routePath -> {
         RouteId routeId = client.getRoutes().toRouteId(routePath);
         if (routeId == null) {
-          invalidRoutes.add(routePath);
+          throw new IllegalArgumentException(routePath + "is an invalid route");
         }
         return routeId;
       })
       .filter(Objects::nonNull)
       .collect(toList());
 
-    for (String routePath : invalidRoutes) {
-      getTask().updateStatus(getPhase(), "Invalid format or domain for load balancer '" + routePath + "'");
-    }
-
-    if (!invalidRoutes.isEmpty()) {
-      getTask().fail();
-      return false;
-    }
-
     for (RouteId routeId : routeIds) {
       CloudFoundryLoadBalancer loadBalancer = client.getRoutes().createRoute(routeId, space.getId());
       if (loadBalancer == null) {
-        getTask().updateStatus(getPhase(), "Load balancer already exists in another organization and space");
-        getTask().fail();
-        return false;
+        throw new CloudFoundryApiException("Load balancer already exists in another organization and space");
       }
       getTask().updateStatus(getPhase(), "Mapping load balancer '" + loadBalancer.getName() + "' to " + description.getServerGroupName());
       client.getApplications().mapRoute(serverGroupId, loadBalancer.getId());

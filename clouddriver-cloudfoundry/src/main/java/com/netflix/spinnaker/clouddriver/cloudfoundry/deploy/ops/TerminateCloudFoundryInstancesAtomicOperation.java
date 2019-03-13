@@ -43,7 +43,6 @@ public class TerminateCloudFoundryInstancesAtomicOperation implements AtomicOper
     getTask().updateStatus(PHASE, "Terminating " + instanceDescription());
     final CloudFoundryClient client = description.getClient();
 
-    boolean oneOrMoreFailed = false;
     for (String instance : description.getInstanceIds()) {
       try {
         String serverGroupId = instance.substring(0, instance.lastIndexOf("-"));
@@ -51,13 +50,8 @@ public class TerminateCloudFoundryInstancesAtomicOperation implements AtomicOper
         client.getApplications().deleteAppInstance(serverGroupId, instanceIndex);
         getTask().updateStatus(PHASE, "Terminated " + instanceDescription());
       } catch (CloudFoundryApiException e) {
-        getTask().updateStatus(PHASE, "Failed to terminate '" + instance + "': " + e.getMessage());
-        oneOrMoreFailed = true;
+        throw new CloudFoundryApiException("Failed to terminate '" + instance + "': " + e.getMessage());
       }
-    }
-
-    if (oneOrMoreFailed) {
-      getTask().fail();
     }
 
     return null;

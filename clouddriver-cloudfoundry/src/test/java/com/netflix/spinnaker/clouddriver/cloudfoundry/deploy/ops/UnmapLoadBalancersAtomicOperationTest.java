@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops;
 
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryApiException;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.Routes;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.RouteId;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.LoadBalancersDescription;
@@ -51,16 +52,30 @@ class UnmapLoadBalancersAtomicOperationTest extends AbstractCloudFoundryAtomicOp
   @Test
   void operateWithNullRoutes() {
     UnmapLoadBalancersAtomicOperation op = new UnmapLoadBalancersAtomicOperation(desc);
-    assertThat(runOperation(op).getHistory())
-      .has(status("No load balancer specified"), atIndex(2));
+
+    Exception exception = null;
+    try {
+      runOperation(op);
+    } catch (CloudFoundryApiException cloudFoundryApiException) {
+      exception = cloudFoundryApiException;
+    }
+    assertThat(exception).isNotNull();
+    assertThat(exception.getMessage()).isEqualTo("Cloud Foundry API returned with error(s): No load balancer specified");
   }
 
   @Test
   void operateWithEmptyRoutes() {
     desc.setRoutes(Collections.emptyList());
     UnmapLoadBalancersAtomicOperation op = new UnmapLoadBalancersAtomicOperation(desc);
-    assertThat(runOperation(op).getHistory())
-      .has(status("No load balancer specified"), atIndex(2));
+
+    Exception exception = null;
+    try {
+      runOperation(op);
+    } catch (CloudFoundryApiException cloudFoundryApiException) {
+      exception = cloudFoundryApiException;
+    }
+    assertThat(exception).isNotNull();
+    assertThat(exception.getMessage()).isEqualTo("Cloud Foundry API returned with error(s): No load balancer specified");
   }
 
   @Test
@@ -70,9 +85,14 @@ class UnmapLoadBalancersAtomicOperationTest extends AbstractCloudFoundryAtomicOp
       "bad.route 2.example.com"
     ).asJava());
     UnmapLoadBalancersAtomicOperation op = new UnmapLoadBalancersAtomicOperation(desc);
-    assertThat(runOperation(op).getHistory())
-      .has(status("Load balancer 'bad.route-1.example.com' does not exist"), atIndex(2))
-      .has(status("Invalid format for load balancer 'bad.route 2.example.com'"), atIndex(3));
+    Exception exception = null;
+    try {
+      runOperation(op);
+    } catch (CloudFoundryApiException cloudFoundryApiException) {
+      exception = cloudFoundryApiException;
+    }
+    assertThat(exception).isNotNull();
+    assertThat(exception.getMessage()).isEqualTo("Cloud Foundry API returned with error(s): Load balancer 'bad.route-1.example.com' does not exist");
   }
 
   @Test

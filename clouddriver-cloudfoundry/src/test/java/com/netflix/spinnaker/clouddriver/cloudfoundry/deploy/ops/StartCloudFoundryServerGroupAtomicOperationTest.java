@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops;
 
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryApiException;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.ProcessStats;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.StartCloudFoundryServerGroupDescription;
 import com.netflix.spinnaker.clouddriver.helpers.OperationPoller;
@@ -67,8 +68,13 @@ class StartCloudFoundryServerGroupAtomicOperationTest extends AbstractCloudFound
 
     StartCloudFoundryServerGroupAtomicOperation op = new StartCloudFoundryServerGroupAtomicOperation(poller, desc);
 
-    assertThat(runOperation(op).getHistory())
-      .has(status("Starting 'myapp'"), atIndex(1))
-      .has(status("Failed to start 'myapp' which instead crashed"), atIndex(2));
+    Exception exception = null;
+    try {
+      runOperation(op);
+    } catch (CloudFoundryApiException cloudFoundryApiException) {
+      exception = cloudFoundryApiException;
+    }
+    assertThat(exception).isNotNull();
+    assertThat(exception.getMessage()).isEqualTo("Cloud Foundry API returned with error(s): Failed to start 'myapp' which instead crashed");
   }
 }

@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops;
 
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryApiException;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.ProcessStats;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.StopCloudFoundryServerGroupDescription;
 import com.netflix.spinnaker.clouddriver.helpers.OperationPoller;
@@ -67,8 +68,13 @@ class StopCloudFoundryServerGroupAtomicOperationTest extends AbstractCloudFoundr
 
     StopCloudFoundryServerGroupAtomicOperation op = new StopCloudFoundryServerGroupAtomicOperation(poller, desc);
 
-    assertThat(runOperation(op).getHistory())
-      .has(status("Stopping 'myapp'"), atIndex(1))
-      .has(status("Failed to stop 'myapp' which instead is running"), atIndex(2));
+    Exception exception = null;
+    try {
+      runOperation(op);
+    } catch (CloudFoundryApiException cloudFoundryApiException) {
+      exception = cloudFoundryApiException;
+    }
+    assertThat(exception).isNotNull();
+    assertThat(exception.getMessage()).isEqualTo("Cloud Foundry API returned with error(s): Failed to stop 'myapp' which instead is running");
   }
 }

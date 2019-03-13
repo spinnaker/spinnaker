@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops;
 
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryApiException;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.DeleteCloudFoundryLoadBalancerDescription;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
@@ -39,8 +40,7 @@ public class DeleteCloudFoundryLoadBalancerAtomicOperation implements AtomicOper
     CloudFoundryClient client = description.getClient();
 
     if (description.getLoadBalancer() == null) {
-      getTask().updateStatus(PHASE, "Load balancer does not exist");
-      getTask().fail();
+      throw new CloudFoundryApiException("Load balancer does not exist");
     } else {
       getTask().updateStatus(PHASE, "Deleting load balancer " + description.getLoadBalancer().getName());
       client.getRoutes().deleteRoute(description.getLoadBalancer().getId());

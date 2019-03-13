@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops;
 
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryApiException;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.ProcessStats;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.CloudFoundryServerGroupNameResolver;
@@ -98,9 +99,7 @@ public class DeployCloudFoundryServerGroupAtomicOperation
         null, getTask(), description.getServerGroupName(), PHASE);
 
       if (state != ProcessStats.State.RUNNING) {
-        getTask().updateStatus(PHASE, "Failed to start '" + description.getServerGroupName() + "' which instead " + describeProcessState(state));
-        getTask().fail();
-        return null;
+        throw new CloudFoundryApiException("Failed to start '" + description.getServerGroupName() + "' which instead " + describeProcessState(state));
       }
     } else {
       getTask().updateStatus(PHASE, "Stop state requested for '" + description.getServerGroupName());

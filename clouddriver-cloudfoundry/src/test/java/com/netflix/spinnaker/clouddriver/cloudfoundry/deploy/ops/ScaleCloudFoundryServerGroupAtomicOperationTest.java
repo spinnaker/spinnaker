@@ -16,10 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops;
 
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryApiException;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.ProcessStats;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.ScaleCloudFoundryServerGroupDescription;
 import com.netflix.spinnaker.clouddriver.helpers.OperationPoller;
 import com.netflix.spinnaker.clouddriver.model.ServerGroup;
+import org.assertj.core.util.Lists;
 import org.junit.jupiter.api.Test;
 
 import java.util.function.Supplier;
@@ -64,9 +66,14 @@ class ScaleCloudFoundryServerGroupAtomicOperationTest extends AbstractCloudFound
 
     ScaleCloudFoundryServerGroupAtomicOperation op = new ScaleCloudFoundryServerGroupAtomicOperation(poller, desc);
 
-    assertThat(runOperation(op).getHistory())
-      .has(status("Resizing 'myapp'"), atIndex(1))
-      .has(status("Failed to start 'myapp' which instead crashed"), atIndex(2));
+    Exception exception = null;
+    try {
+      runOperation(op);
+    } catch (CloudFoundryApiException cloudFoundryApiException) {
+      exception = cloudFoundryApiException;
+    }
+    assertThat(exception).isNotNull();
+    assertThat(exception.getMessage()).isEqualTo("Cloud Foundry API returned with error(s): Failed to start 'myapp' which instead crashed");
   }
 
   @Test

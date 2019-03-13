@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops;
 
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryApiException;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.Routes;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.LoadBalancersDescription;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryLoadBalancer;
@@ -47,32 +48,25 @@ public class UnmapLoadBalancersAtomicOperation
 
     List<String> routeList = description.getRoutes();
     if (routeList == null || routeList.size() == 0) {
-      getTask().updateStatus(PHASE, "No load balancer specified");
-      getTask().fail();
+      throw new CloudFoundryApiException("No load balancer specified");
     } else {
       Routes routes = description.getClient().getRoutes();
       Map<String, Optional<CloudFoundryLoadBalancer>> lbMap = routeList.stream()
         .collect(Collectors.toMap(uri -> uri, uri -> Optional.ofNullable(routes.find(routes.toRouteId(uri), description.getSpace().getId()))));
-      AtomicReference<Boolean> failedUnmap = new AtomicReference<>(Boolean.FALSE);
       routeList.forEach(uri -> {
         if (!Routes.isValidRouteFormat(uri)) {
-          getTask().updateStatus(PHASE, "Invalid format for load balancer '" + uri + "'");
-          failedUnmap.set(Boolean.TRUE);
+          throw new CloudFoundryApiException("Invalid format for load balancer '" + uri + "'");
         } else if (!lbMap.get(uri).isPresent()) {
-          getTask().updateStatus(PHASE, "Load balancer '" + uri + "' does not exist");
-          failedUnmap.set(Boolean.TRUE);
+          throw new CloudFoundryApiException("Load balancer '" + uri + "' does not exist");
         }
       });
 
-      if (failedUnmap.get()) {
-        getTask().fail();
-      } else {
-        lbMap.forEach((uri, o) -> {
-          getTask().updateStatus(PHASE, "Unmapping load balancer '" + uri + "'");
-          o.ifPresent(lb -> routes.deleteRoute(lb.getId()));
-          getTask().updateStatus(PHASE, "Unmapped load balancer '" + uri + "'");
-        });
-      }
+
+      lbMap.forEach((uri, o) -> {
+        getTask().updateStatus(PHASE, "Unmapping load balancer '" + uri + "'");
+        o.ifPresent(lb -> routes.deleteRoute(lb.getId()));
+        getTask().updateStatus(PHASE, "Unmapped load balancer '" + uri + "'");
+      });
     }
 
     return null;
