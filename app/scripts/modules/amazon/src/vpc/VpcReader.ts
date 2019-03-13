@@ -1,18 +1,16 @@
 import { IPromise } from 'angular';
 
-import { $q } from 'ngimport';
-
 import { IVpc, NetworkReader } from '@spinnaker/core';
 
 export class VpcReader {
-  private static cachedVpcs: IVpc[];
+  private static cache: IPromise<IVpc[]>;
 
   public static listVpcs(): IPromise<IVpc[]> {
-    if (this.cachedVpcs) {
-      return $q.when(this.cachedVpcs);
+    if (this.cache) {
+      return this.cache;
     }
-    return NetworkReader.listNetworksByProvider('aws').then((vpcs: IVpc[]) => {
-      const results = vpcs.map(vpc => {
+    this.cache = NetworkReader.listNetworksByProvider('aws').then((vpcs: IVpc[]) => {
+      return vpcs.map(vpc => {
         vpc.label = vpc.name;
         vpc.deprecated = !!vpc.deprecated;
         if (vpc.deprecated) {
@@ -20,13 +18,12 @@ export class VpcReader {
         }
         return vpc;
       });
-      this.cachedVpcs = results;
-      return results;
     });
+    return this.cache;
   }
 
   public static resetCache() {
-    this.cachedVpcs = null;
+    this.cache = null;
   }
 
   public static getVpcName(id: string) {
