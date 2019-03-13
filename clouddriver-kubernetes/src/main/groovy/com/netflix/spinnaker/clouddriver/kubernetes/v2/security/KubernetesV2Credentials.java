@@ -43,7 +43,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -59,7 +58,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
   @Getter
   private final List<String> omitNamespaces;
   private final List<KubernetesKind> kinds;
-  private final List<KubernetesKind> omitKinds;
+  private final Map<KubernetesKind, InvalidKindReason> omitKinds;
   @Getter
   private final boolean serviceAccount;
   @Getter
@@ -115,15 +114,33 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
 
   private final Path serviceAccountNamespacePath = Paths.get("/var/run/secrets/kubernetes.io/serviceaccount/namespace");
 
+  public enum InvalidKindReason {
+    KIND_NONE("Kind [%s] is invalid"),
+    EXPLICITLY_OMITTED_BY_CONFIGURATION("Kind [%s] included in 'omitKinds' of kubernetes account configuration"),
+    MISSING_FROM_ALLOWED_KINDS("Kind [%s] missing in 'kinds' of kubernetes account configuration"),
+    READ_ERROR("Error reading kind [%s]. Please check connectivity and access permissions to the cluster");
+
+    private String errorMessage;
+    InvalidKindReason(String errorMessage) {
+      this.errorMessage = errorMessage;
+    }
+
+    public String getErrorMessage(KubernetesKind kind) {
+      return String.format(this.errorMessage, kind);
+    }
+  }
+
   public boolean isValidKind(KubernetesKind kind) {
+    return getInvalidKindReason(kind) != null;
+  }
+
+  public InvalidKindReason getInvalidKindReason(KubernetesKind kind) {
     if (kind == KubernetesKind.NONE) {
-      return false;
+      return InvalidKindReason.KIND_NONE;
     } else if (!this.kinds.isEmpty()) {
-      return kinds.contains(kind);
-    } else if (!this.omitKinds.isEmpty()) {
-      return !omitKinds.contains(kind);
+      return !kinds.contains(kind) ? InvalidKindReason.MISSING_FROM_ALLOWED_KINDS : null;
     } else {
-      return true;
+      return this.omitKinds.getOrDefault(kind, null);
     }
   }
 
@@ -376,7 +393,8 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     this.cachingPolicies = cachingPolicies;
     this.kinds = kinds;
     this.metrics = metrics;
-    this.omitKinds = omitKinds;
+    this.omitKinds = omitKinds.stream()
+      .collect(Collectors.toMap(k -> k, k -> InvalidKindReason.EXPLICITLY_OMITTED_BY_CONFIGURATION));
     this.onlySpinnakerManaged = onlySpinnakerManaged;
     this.liveManifestCalls = liveManifestCalls;
 
@@ -455,12 +473,12 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     List<KubernetesKind> allKinds = KubernetesKind.getValues();
 
     log.info("Checking permissions on configured kinds for account {}... {}", accountName, allKinds);
-    Set<KubernetesKind> unreadableKinds = allKinds.parallelStream()
+    Map<KubernetesKind, InvalidKindReason> unreadableKinds = allKinds.parallelStream()
       .filter(k -> k != KubernetesKind.NONE)
-      .filter(k -> !omitKinds.contains(k))
+      .filter(k -> !omitKinds.keySet().contains(k))
       .filter(k -> !canReadKind(k, checkNamespace))
-      .collect(Collectors.toCollection(ConcurrentHashMap::newKeySet));
-    omitKinds.addAll(unreadableKinds);
+      .collect(Collectors.toConcurrentMap(k -> k, k -> InvalidKindReason.READ_ERROR));
+    omitKinds.putAll(unreadableKinds);
 
     if (metrics) {
       try {
