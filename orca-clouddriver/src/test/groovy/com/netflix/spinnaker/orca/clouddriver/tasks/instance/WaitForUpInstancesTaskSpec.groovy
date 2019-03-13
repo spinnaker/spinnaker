@@ -21,11 +21,14 @@ import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import org.slf4j.MDC
 import retrofit.client.Response
 import retrofit.mime.TypedString
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+
+import java.util.concurrent.TimeUnit
 
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
@@ -39,6 +42,10 @@ class WaitForUpInstancesTaskSpec extends Specification {
   }
 
   def mapper = OrcaObjectMapper.newInstance()
+
+  void cleanup() {
+    MDC.clear()
+  }
 
   void "should check cluster to get server groups"() {
     given:
@@ -504,19 +511,28 @@ class WaitForUpInstancesTaskSpec extends Specification {
 
     def serverGroup = [name: "app-v001", region: "us-west-2", capacity: serverGroupCapacity]
 
+    and:
+    MDC.put("taskStartTime", taskStartTime.toString())
+
     expect:
     WaitForUpInstancesTask.getServerGroupCapacity(stage, serverGroup) == expectedServerGroupCapacity
 
     where:
-    katoTasks                                                                          | serverGroupCapacity          || expectedServerGroupCapacity
-    null                                                                               | [min: 0, max: 0, desired: 0] || [min: 0, max: 0, desired: 0]
-    [[resultObjects: [[deployments: [deployment("app-v001", "us-west-2", 0, 1, 1)]]]]] | [min: 0, max: 0, desired: 0] || [min: 0, max: 1, desired: 1]   // should take initial capacity b/c max = 0
-    [[resultObjects: [[deployments: [deployment("app-v001", "us-west-2", 0, 1, 1)]]]]] | [min: 0, max: 2, desired: 2] || [min: 0, max: 2, desired: 2]   // should take current capacity b/c max > 0
+    katoTasks                                                                          | taskStartTime | serverGroupCapacity            || expectedServerGroupCapacity
+    null                                                                               | startTime(0)  | [min: 0, max: 0, desired: 0]   || [min: 0, max: 0, desired: 0]
+    [[resultObjects: [[deployments: [deployment("app-v001", "us-west-2", 0, 1, 1)]]]]] | startTime(9)  | [min: 0, max: 0, desired: 0]   || [min: 0, max: 1, desired: 1]   // should take initial capacity b/c max = 0
+    [[resultObjects: [[deployments: [deployment("app-v001", "us-west-2", 0, 1, 1)]]]]] | startTime(9)  | [min: 0, max: 400, desired: 0] || [min: 0, max: 1, desired: 1]   // should take initial capacity b/c desired = 0
+    [[resultObjects: [[deployments: [deployment("app-v001", "us-west-2", 0, 1, 1)]]]]] | startTime(9)  | [min: 0, max: 2, desired: 2]   || [min: 0, max: 2, desired: 2]   // should take current capacity b/c max > 0
+    [[resultObjects: [[deployments: [deployment("app-v001", "us-west-2", 0, 1, 1)]]]]] | startTime(11) | [min: 0, max: 0, desired: 0]   || [min: 0, max: 0, desired: 0]   // should take current capacity b/c timeout
   }
 
   static Map deployment(String serverGroupName, String location, int min, int max, int desired) {
     return [
         serverGroupName: serverGroupName, location: location, capacity: [min: min, max: max, desired: desired]
     ]
+  }
+
+  static Long startTime(int minutesOld) {
+    return System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(minutesOld)
   }
 }
