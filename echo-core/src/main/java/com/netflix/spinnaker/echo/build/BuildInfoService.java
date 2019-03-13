@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.echo.build;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.model.trigger.BuildEvent;
 import com.netflix.spinnaker.echo.services.IgorService;
@@ -26,10 +27,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Supplier;
 
 @Component
@@ -41,6 +39,20 @@ import java.util.function.Supplier;
 public class BuildInfoService {
   private final IgorService igorService;
   private final RetrySupport retrySupport;
+  private final ObjectMapper objectMapper = new ObjectMapper();
+
+  // Manual triggers try to replicate actual events (and in some cases build events) but rather than pass the event to
+  // echo, they add the information to the trigger. It may make sense to refactor manual triggering to pass a trigger and
+  // an event as with other triggers, but for now we'll see whether we can extract a build event from the trigger.
+  public BuildEvent getBuildEvent(String master, String job, int buildNumber) {
+    Map<String, Object> rawBuild = retry(() -> igorService.getBuild(buildNumber, master, job));
+    BuildEvent.Build build = objectMapper.convertValue(rawBuild, BuildEvent.Build.class);
+    BuildEvent.Project project = new BuildEvent.Project(job, build);
+    BuildEvent.Content content = new BuildEvent.Content(project, master);
+    BuildEvent buildEvent = new BuildEvent();
+    buildEvent.setContent(content);
+    return buildEvent;
+  }
 
   public Map<String, Object> getBuildInfo(BuildEvent event) {
     String master = event.getContent().getMaster();
@@ -72,6 +84,20 @@ public class BuildInfoService {
       return retry(() -> igorService.getArtifacts(buildNumber, propertyFile, master, job));
     }
     return Collections.emptyList();
+  }
+
+  public List<Artifact> getArtifactsFromBuildEvent(BuildEvent event, Trigger trigger) {
+    List<Artifact> buildArtifacts = Optional.ofNullable(event.getContent())
+      .map(BuildEvent.Content::getProject)
+      .map(BuildEvent.Project::getLastBuild)
+      .map(BuildEvent.Build::getArtifacts)
+      .orElse(Collections.emptyList());
+    List<Artifact> extractedArtifacts = this.getArtifacts(event, trigger.getPropertyFile());
+
+    List <Artifact> result = new ArrayList<>();
+    result.addAll(buildArtifacts);
+    result.addAll(extractedArtifacts);
+    return result;
   }
 
   private <T> T retry(Supplier<T> supplier) {

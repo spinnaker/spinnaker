@@ -78,14 +78,14 @@ public class ManualEventHandler implements TriggerEventHandler<ManualEvent> {
     List<Map<String, Object>> notifications = buildNotifications(pipeline.getNotifications(), manualTrigger.getNotifications());
     Trigger trigger = manualTrigger.atPropagateAuth(true);
     List<Artifact> artifacts = Collections.emptyList();
-    if (buildInfoService.isPresent()) {
-      Optional<BuildEvent> buildEvent = extractBuildInformation(manualTrigger);
-      if (buildEvent.isPresent()) {
-        trigger = trigger
-          .withBuildInfo(buildInfoService.get().getBuildInfo(buildEvent.get()))
-          .withProperties(buildInfoService.get().getProperties(buildEvent.get(), manualTrigger.getPropertyFile()));
-        artifacts = buildInfoService.get().getArtifacts(buildEvent.get(), manualTrigger.getPropertyFile());
-      }
+    String master = manualTrigger.getMaster();
+    String job = manualTrigger.getJob();
+    if (buildInfoService.isPresent() && StringUtils.isNoneEmpty(master, job)) {
+      BuildEvent buildEvent = buildInfoService.get().getBuildEvent(master, job, manualTrigger.getBuildNumber());
+      trigger = trigger
+        .withBuildInfo(buildInfoService.get().getBuildInfo(buildEvent))
+        .withProperties(buildInfoService.get().getProperties(buildEvent, manualTrigger.getPropertyFile()));
+      artifacts = buildInfoService.get().getArtifactsFromBuildEvent(buildEvent, manualTrigger);
     }
     return pipeline
       .withTrigger(trigger)
@@ -102,23 +102,5 @@ public class ManualEventHandler implements TriggerEventHandler<ManualEvent> {
       notifications.addAll(triggerNotifications);
     }
     return notifications;
-  }
-
-  // Manual triggers try to replicate actual events (and in some cases build events) but rather than pass the event to
-  // echo, they add the information to the trigger. It may make sense to refactor manual triggering to pass a trigger and
-  // an event as with other triggers, but for now we'll see whether we can extract a build event from the trigger.
-  private Optional<BuildEvent> extractBuildInformation(Trigger manualTrigger) {
-    String master = manualTrigger.getMaster();
-    String job = manualTrigger.getJob();
-    if (StringUtils.isNoneEmpty(master, job)) {
-      BuildEvent.Build build = new BuildEvent.Build();
-      build.setNumber(manualTrigger.getBuildNumber());
-      BuildEvent.Project project = new BuildEvent.Project(job, build);
-      BuildEvent.Content content = new BuildEvent.Content(project, master);
-      BuildEvent buildEvent = new BuildEvent();
-      buildEvent.setContent(content);
-      return Optional.of(buildEvent);
-    }
-    return Optional.empty();
   }
 }

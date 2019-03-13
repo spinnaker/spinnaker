@@ -26,7 +26,10 @@ import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -99,19 +102,9 @@ public class BuildEventHandler extends BaseTriggerEventHandler<BuildEvent> {
   }
 
   protected List<Artifact> getArtifactsFromEvent(BuildEvent event, Trigger trigger) {
-    List<Artifact> buildArtifacts = Optional.ofNullable(event.getContent())
-      .map(BuildEvent.Content::getProject)
-      .map(BuildEvent.Project::getLastBuild)
-      .map(BuildEvent.Build::getArtifacts)
-      .orElse(Collections.emptyList());
-
-    List<Artifact> extractedArtifacts = buildInfoService
-      .map(b -> b.getArtifacts(event, trigger.getPropertyFile()))
-      .orElse(Collections.emptyList());
-
-    List <Artifact> result = new ArrayList<>();
-    result.addAll(buildArtifacts);
-    result.addAll(extractedArtifacts);
-    return result;
+    if (buildInfoService.isPresent()) {
+      return buildInfoService.get().getArtifactsFromBuildEvent(event, trigger);
+    }
+    return Collections.emptyList();
   }
 }
