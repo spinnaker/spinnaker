@@ -41,7 +41,7 @@ internal class SqsResourceCheckListener(
     with(sqsClient) {
       receiveMessage(queueUrl)
         .also {
-          log.info("Got {} messages", it.messages.size)
+          log.debug("Got {} messages", it.messages.size)
         }
         .messages
         .forEach {
