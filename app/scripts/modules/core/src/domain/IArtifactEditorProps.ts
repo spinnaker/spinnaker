@@ -7,3 +7,7 @@ export interface IArtifactEditorProps {
   onChange: (a: IArtifact) => void;
   pipeline?: IPipeline;
 }
+
+export interface IArtifactEditorState {
+  [k: string]: any;
+}

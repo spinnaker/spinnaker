@@ -9,6 +9,7 @@ import { GitlabMatch, GitlabDefault } from './gitlab/GitlabArtifactEditor';
 import { HelmMatch, HelmDefault } from './helm/HelmArtifactEditor';
 import { HttpMatch, HttpDefault } from './http/HttpArtifactEditor';
 import { IvyMatch, IvyDefault } from './ivy/IvyArtifactEditor';
+import { JenkinsMatch, JenkinsDefault } from './jenkins/JenkinsArtifactEditor';
 import { KubernetesMatch, KubernetesDefault } from './kubernetes/KubernetesArtifactEditor';
 import { MavenMatch, MavenDefault } from './maven/MavenArtifactEditor';
 import { S3Match, S3Default } from './s3/S3ArtifactEditor';
@@ -32,6 +33,8 @@ export const artifactKindConfigs: IArtifactKindConfig[] = [
   HttpDefault,
   IvyMatch,
   IvyDefault,
+  JenkinsMatch,
+  JenkinsDefault,
   MavenMatch,
   MavenDefault,
   S3Match,

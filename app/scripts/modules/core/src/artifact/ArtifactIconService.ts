@@ -36,5 +36,6 @@ ArtifactIconService.registerType(ArtifactTypePatterns.BITBUCKET_FILE, require('.
 ArtifactIconService.registerType(ArtifactTypePatterns.S3_OBJECT, require('./icons/s3-object-artifact.svg'));
 ArtifactIconService.registerType(ArtifactTypePatterns.HELM_CHART, require('./icons/helm-chart-artifact.svg'));
 ArtifactIconService.registerType(ArtifactTypePatterns.IVY_FILE, require('./icons/ivy-artifact.svg'));
+ArtifactIconService.registerType(ArtifactTypePatterns.JENKINS_FILE, require('./icons/jenkins-file-artifact.svg'));
 ArtifactIconService.registerType(ArtifactTypePatterns.MAVEN_FILE, require('./icons/maven-artifact.svg'));
 ArtifactIconService.registerType(ArtifactTypePatterns.HTTP_FILE, require('./icons/http-artifact.svg'));
