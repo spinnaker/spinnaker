@@ -17,6 +17,8 @@ package com.netflix.spinnaker.keel
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.annealing.ResourceCheckQueue
+import com.netflix.spinnaker.keel.info.InstanceIdSupplier
+import com.netflix.spinnaker.keel.info.LocalInstanceIdSupplier
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.ResourceVersionTracker
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
@@ -90,11 +92,15 @@ class KeelApplication {
   fun resourceVersionTracker(): ResourceVersionTracker = InMemoryResourceVersionTracker()
 
   @Bean
+  @ConditionalOnMissingBean(InstanceIdSupplier::class)
+  fun instanceIdSupplier(): InstanceIdSupplier = LocalInstanceIdSupplier
+
+  @Bean
   @ConditionalOnMissingBean(ResourceHandler::class)
   fun noResourcePlugins(): List<ResourceHandler<*>> = emptyList()
 
   @Bean
-  fun csrfDisable() = @Order(Ordered.HIGHEST_PRECEDENCE) object: WebSecurityConfigurerAdapter() {
+  fun csrfDisable() = @Order(Ordered.HIGHEST_PRECEDENCE) object : WebSecurityConfigurerAdapter() {
     override fun configure(http: HttpSecurity) {
       http.csrf().disable()
     }
@@ -109,14 +115,24 @@ class KeelApplication {
   @Autowired
   lateinit var resourceCheckQueue: ResourceCheckQueue
 
+  @Autowired
+  lateinit var instanceIdSupplier: InstanceIdSupplier
+
   @Autowired(required = false)
   var plugins: List<KeelPlugin> = emptyList()
 
   @PostConstruct
   fun initialStatus() {
-    log.info("Using {} resource repository implementation", resourceRepository.javaClass.simpleName)
-    log.info("Using {} resource version tracker implementation", resourceVersionTracker.javaClass.simpleName)
-    log.info("Using {} resource check queue implementation", resourceCheckQueue.javaClass.simpleName)
+    sequenceOf(
+      ResourceRepository::class to resourceRepository.javaClass,
+      ResourceVersionTracker::class to resourceVersionTracker.javaClass,
+      ResourceCheckQueue::class to resourceCheckQueue.javaClass,
+      InstanceIdSupplier::class to instanceIdSupplier.javaClass
+    )
+      .forEach { (type, implementation) ->
+        log.info("{} implementation: {}", type.simpleName, implementation.simpleName)
+      }
+
     log.info("Using plugins: {}", plugins.joinToString { it.name })
   }
 }

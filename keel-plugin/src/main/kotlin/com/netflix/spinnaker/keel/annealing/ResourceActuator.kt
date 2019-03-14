@@ -4,6 +4,9 @@ import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
+import com.netflix.spinnaker.keel.persistence.ResourceState.Diff
+import com.netflix.spinnaker.keel.persistence.ResourceState.Missing
+import com.netflix.spinnaker.keel.persistence.ResourceState.Ok
 import com.netflix.spinnaker.keel.plugin.ResourceConflict
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.netflix.spinnaker.keel.plugin.supporting
@@ -29,6 +32,7 @@ class ResourceActuator(
       when (val current = plugin.current(resource)) {
         null -> {
           log.warn("Resource {} is missing", resource.metadata.name)
+          resourceRepository.updateState(resource.metadata.uid, Missing)
           plugin.create(resource)
         }
         else -> {
@@ -43,9 +47,11 @@ class ResourceActuator(
             }
             log.warn("Resource {} is invalid", resource.metadata.name)
             log.info("Resource {} delta: {}", resource.metadata.name, builder.toString())
+            resourceRepository.updateState(resource.metadata.uid, Diff)
             plugin.update(resource, diff)
           } else {
             log.info("Resource {} is valid", resource.metadata.name)
+            resourceRepository.updateState(resource.metadata.uid, Ok)
           }
         }
       }

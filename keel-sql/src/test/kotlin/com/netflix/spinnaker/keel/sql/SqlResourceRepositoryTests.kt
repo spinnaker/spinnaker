@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.sql
 
+import com.netflix.spinnaker.keel.info.InstanceIdSupplier
 import com.netflix.spinnaker.keel.persistence.ResourceRepositoryTests
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.zaxxer.hikari.HikariConfig
@@ -27,7 +28,10 @@ internal object SqlResourceRepositoryTests : ResourceRepositoryTests<SqlResource
     return SqlResourceRepository(
       context,
       configuredObjectMapper(),
-      clock
+      clock,
+      object : InstanceIdSupplier {
+        override fun get() = "localhost"
+      }
     )
   }
 

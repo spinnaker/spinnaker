@@ -6,6 +6,10 @@ import com.netflix.spinnaker.keel.api.ResourceMetadata
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.randomUID
+import com.netflix.spinnaker.keel.persistence.ResourceState.Diff
+import com.netflix.spinnaker.keel.persistence.ResourceState.Missing
+import com.netflix.spinnaker.keel.persistence.ResourceState.Ok
+import com.netflix.spinnaker.keel.persistence.ResourceState.Unknown
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.nhaarman.mockitokotlin2.any
@@ -18,6 +22,9 @@ import com.nhaarman.mockitokotlin2.stub
 import com.nhaarman.mockitokotlin2.verify
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import strikt.api.expectThat
+import strikt.assertions.first
+import strikt.assertions.isEqualTo
 
 internal object ResourceActuatorTests : JUnit5Minutests {
 
@@ -63,6 +70,10 @@ internal object ResourceActuatorTests : JUnit5Minutests {
         resourceRepository.store(resource)
       }
 
+      test("before the actuator checks the resource its status is unknown") {
+        expectThat(resourceRepository.lastKnownState(resource.metadata.uid)).first.isEqualTo(Unknown)
+      }
+
       context("the current state matches the desired state") {
         before {
           plugin1.stub {
@@ -83,6 +94,10 @@ internal object ResourceActuatorTests : JUnit5Minutests {
         test("only the relevant plugin is queried") {
           verify(plugin2, never()).current(any())
         }
+
+        test("the resource state is recorded") {
+          expectThat(resourceRepository.lastKnownState(resource.metadata.uid)).first.isEqualTo(Ok)
+        }
       }
 
       context("the current state is missing") {
@@ -99,6 +114,10 @@ internal object ResourceActuatorTests : JUnit5Minutests {
         test("the resource is created") {
           verify(plugin1).create(resource)
         }
+
+        test("the resource state is recorded") {
+          expectThat(resourceRepository.lastKnownState(resource.metadata.uid)).first.isEqualTo(Missing)
+        }
       }
 
       context("the current state is wrong") {
@@ -114,6 +133,10 @@ internal object ResourceActuatorTests : JUnit5Minutests {
 
         test("the resource is updated") {
           verify(plugin1).update(eq(resource), any())
+        }
+
+        test("the resource state is recorded") {
+          expectThat(resourceRepository.lastKnownState(resource.metadata.uid)).first.isEqualTo(Diff)
         }
       }
     }

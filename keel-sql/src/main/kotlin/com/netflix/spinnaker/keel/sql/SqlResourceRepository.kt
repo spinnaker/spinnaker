@@ -6,6 +6,7 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceMetadata
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.UID
+import com.netflix.spinnaker.keel.info.InstanceIdSupplier
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceName
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceUID
 import com.netflix.spinnaker.keel.persistence.ResourceHeader
@@ -27,7 +28,8 @@ import java.time.Instant
 class SqlResourceRepository(
   private val jooq: DSLContext,
   private val objectMapper: ObjectMapper,
-  private val clock: Clock
+  private val clock: Clock,
+  private val instanceIdSupplier: InstanceIdSupplier
 ) : ResourceRepository {
 
   override fun allResources(callback: (ResourceHeader) -> Unit) {
@@ -164,12 +166,14 @@ class SqlResourceRepository(
         .columns(
           field("uid"),
           field("state"),
-          field("timestamp")
+          field("timestamp"),
+          field("instance_id")
         )
         .values(
           uid.toString(),
           state.name,
-          clock.instant().let(Timestamp::from)
+          clock.instant().let(Timestamp::from),
+          instanceIdSupplier.get()
         )
         .execute()
     }
