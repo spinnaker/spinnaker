@@ -90,7 +90,7 @@ interface ResourceHandler<T : Any> : KeelPlugin {
     for (normalizer in normalizers) {
       if (normalizer.handles(resource.apiVersion, resource.kind)) {
         log.debug("Normalizing ${resource.metadata.name} with ${normalizer.javaClass}")
-        normalizedResource = normalizer.validate(normalizedResource) as Resource<T>
+        normalizedResource = normalizer.normalize(normalizedResource) as Resource<T>
       }
     }
     return normalizedResource

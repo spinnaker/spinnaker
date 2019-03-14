@@ -29,7 +29,7 @@ interface ResourceNormalizer<T : Any> {
   val apiVersion: ApiVersion
   val supportedKind: String
 
-  fun validate(resource: Resource<*>): Resource<T>
+  fun normalize(resource: Resource<*>): Resource<T>
 
 }
 
