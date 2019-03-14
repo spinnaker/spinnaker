@@ -201,7 +201,6 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription implements
       osConfig.adminUserName = osProfile.adminUsername()
       osConfig.computerNamePrefix = osProfile.computerNamePrefix()
       osConfig.customData = osProfile.customData()
-
     }
     azureSG.osConfig = osConfig
 

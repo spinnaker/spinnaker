@@ -36,6 +36,7 @@ class AzureConfigurationProperties {
     List<AzureCustomImageStorage> customImages
     String defaultResourceGroup
     String defaultKeyVault
+    Boolean useSshPublicKey
   }
 
   List<ManagedAccount> accounts = []

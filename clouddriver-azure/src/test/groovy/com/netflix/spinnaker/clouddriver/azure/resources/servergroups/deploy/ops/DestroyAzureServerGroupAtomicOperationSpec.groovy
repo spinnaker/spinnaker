@@ -55,7 +55,7 @@ class DestroyAzureServerGroupAtomicOperationSpec extends Specification {
 
   def setupSpec() {
     converter = new DestroyAzureServerGroupAtomicOperationConverter(objectMapper: mapper)
-    azureCredentials = new AzureCredentials(ACCOUNT_CLIENTID, ACCOUNT_TENANTID, ACCOUNT_APPKEY, SUBSCRIPTION_ID, DEFAULT_KEY_VAULT, DEFAULT_RESOURCE_GROUP, "", "")
+    azureCredentials = new AzureCredentials(ACCOUNT_CLIENTID, ACCOUNT_TENANTID, ACCOUNT_APPKEY, SUBSCRIPTION_ID, DEFAULT_KEY_VAULT, DEFAULT_RESOURCE_GROUP, "", "", false)
 
     def credentialsRepo = new MapBackedAccountCredentialsRepository()
     credentials = Mock(AzureNamedAccountCredentials)

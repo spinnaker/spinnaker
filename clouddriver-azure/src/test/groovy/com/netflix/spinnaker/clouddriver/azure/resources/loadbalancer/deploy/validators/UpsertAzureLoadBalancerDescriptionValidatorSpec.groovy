@@ -81,7 +81,7 @@ class UpsertAzureLoadBalancerDescriptionValidatorSpec extends Specification {
   UpsertAzureLoadBalancerDescriptionValidator validator
 
   void setupSpec() {
-    azureCredentials = new AzureCredentials(ACCOUNT_CLIENTID, ACCOUNT_TENANTID, ACCOUNT_APPKEY, SUBSCRIPTION_ID, DEFAULT_KEY_VAULT, DEFAULT_RESOURCE_GROUP, "", "")
+    azureCredentials = new AzureCredentials(ACCOUNT_CLIENTID, ACCOUNT_TENANTID, ACCOUNT_APPKEY, SUBSCRIPTION_ID, DEFAULT_KEY_VAULT, DEFAULT_RESOURCE_GROUP, "", "", false)
 
     def credentialsRepo = new MapBackedAccountCredentialsRepository()
     def credentials = Mock(AzureNamedAccountCredentials)

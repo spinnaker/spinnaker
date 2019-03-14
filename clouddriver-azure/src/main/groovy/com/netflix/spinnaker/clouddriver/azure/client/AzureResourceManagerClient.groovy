@@ -220,7 +220,6 @@ class AzureResourceManagerClient extends AzureBaseClient {
         .withParameters(parameters)
         .withMode(deploymentMode)
         .create()
-
     } catch (Throwable e) {
       log.error("Exception occured during deployment ${e.message}")
       throw e

@@ -49,6 +49,7 @@ class AzureCredentialsInitializer {
           managedAccount.customImages,
           managedAccount.defaultResourceGroup,
           managedAccount.defaultKeyVault,
+          managedAccount.useSshPublicKey,
           clouddriverUserAgentApplicationName
         )
 

@@ -107,9 +107,15 @@ class StringParameterWithDefault extends StringParameter {
 }
 
 class SecureStringParameter extends StringParameter{
+  String defaultValue
   SecureStringParameter(Map<String, String> metadata) {
     super(metadata)
     type = "securestring"
+  }
+
+  SecureStringParameter(Map<String, String> metadata, String defaultValue) {
+    this(metadata)
+    this.defaultValue = defaultValue
   }
 }
 
