@@ -28,11 +28,7 @@ import com.netflix.spinnaker.igor.jenkins.client.model.Build
 import com.netflix.spinnaker.igor.jenkins.client.model.Project
 import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
 import com.netflix.spinnaker.igor.model.BuildServiceProvider
-import com.netflix.spinnaker.igor.polling.CommonPollingMonitor
-import com.netflix.spinnaker.igor.polling.DeltaItem
-import com.netflix.spinnaker.igor.polling.LockService
-import com.netflix.spinnaker.igor.polling.PollContext
-import com.netflix.spinnaker.igor.polling.PollingDelta
+import com.netflix.spinnaker.igor.polling.*
 import com.netflix.spinnaker.igor.service.BuildServices
 import groovy.time.TimeCategory
 import org.springframework.beans.factory.annotation.Autowired
@@ -40,9 +36,11 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
 import retrofit.RetrofitError
+
 import java.util.stream.Collectors
 
 import static net.logstash.logback.argument.StructuredArguments.kv
+
 /**
  * Monitors new jenkins builds
  */
@@ -108,8 +106,8 @@ class JenkinsBuildMonitor extends CommonPollingMonitor<JobDelta, JobPollingDelta
         final List<JobDelta> delta = []
         registry.timer("pollingMonitor.jenkins.retrieveProjects", [new BasicTag("partition", master)]).record {
             JenkinsService jenkinsService = buildServices.getService(master) as JenkinsService
-            List<Project> jobs = jenkinsService.getProjects()?.getList() ?:[]
-            jobs.forEach( { job -> processBuildsOfProject(jenkinsService, master, job, delta)})
+            List<Project> jobs = jenkinsService.getProjects()?.getList() ?: []
+            jobs.forEach({ job -> processBuildsOfProject(jenkinsService, master, job, delta) })
         }
         return new JobPollingDelta(master: master, items: delta)
     }
@@ -227,7 +225,13 @@ class JenkinsBuildMonitor extends CommonPollingMonitor<JobDelta, JobPollingDelta
             registry.counter(missedNotificationId.withTag("monitor", getClass().simpleName)).increment()
             return
         }
-        echoService.get().postEvent(new BuildEvent(content: new BuildContent(project: project, master: master)))
+        BuildEvent buildEvent = new BuildEvent(content: new BuildContent(project: project, master: master))
+        buildEvent.content.project.lastBuild?.artifacts?.each {
+            it.setReference(it.getRelativePath())
+            it.setName(project.getName())
+            it.setVersion(project.lastBuild.getNumber())
+        }
+        echoService.get().postEvent(buildEvent)
     }
 
     private static class JobPollingDelta implements PollingDelta<JobDelta> {

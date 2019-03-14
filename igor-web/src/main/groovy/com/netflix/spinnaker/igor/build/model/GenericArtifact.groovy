@@ -30,7 +30,7 @@ class GenericArtifact {
     String type
     String version
 
-    Map<String, String> metadata;
+    Map<String, String> metadata
 
     GenericArtifact(String fileName, String displayPath, String relativePath) {
         this.fileName = fileName
