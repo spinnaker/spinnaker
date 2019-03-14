@@ -133,11 +133,11 @@ public class AmazonCloudFormationCachingAgent implements CachingAgent, OnDemandA
         stackAttributes.put("stackStatus", stack.getStackStatus());
         stackAttributes.put("creationTime", stack.getCreationTime());
 
-        if (stack.getStackStatus().equals("ROLLBACK_COMPLETE")) {
+        if (stack.getStackStatus().endsWith("ROLLBACK_COMPLETE")) {
           DescribeStackEventsRequest request = new DescribeStackEventsRequest().withStackName(stack.getStackName());
           cloudformation.describeStackEvents(request).getStackEvents()
             .stream()
-            .filter(e -> e.getResourceStatus().equals("CREATE_FAILED"))
+            .filter(e -> e.getResourceStatus().endsWith("FAILED"))
             .findFirst()
             .map(StackEvent::getResourceStatusReason)
             .map(statusReason -> stackAttributes.put("stackStatusReason", statusReason));
