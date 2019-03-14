@@ -31,11 +31,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import retrofit.client.Response;
 
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @Component
@@ -117,10 +113,19 @@ public class SavePipelineTask implements RetryableTask {
       }
     }
 
-    return new TaskResult(
-      (response.getStatus() == HttpStatus.OK.value()) ? ExecutionStatus.SUCCEEDED : ExecutionStatus.TERMINAL,
-      outputs
-    );
+    final ExecutionStatus status;
+    if (response.getStatus() == HttpStatus.OK.value()) {
+      status = ExecutionStatus.SUCCEEDED;
+    } else {
+      final Boolean isSavingMultiplePipelines = (Boolean) Optional
+        .ofNullable(stage.getContext().get("isSavingMultiplePipelines")).orElse(false);
+      if (isSavingMultiplePipelines) {
+        status = ExecutionStatus.FAILED_CONTINUE;
+      } else {
+        status = ExecutionStatus.TERMINAL;
+      }
+    }
+    return new TaskResult(status, outputs);
   }
 
   @Override

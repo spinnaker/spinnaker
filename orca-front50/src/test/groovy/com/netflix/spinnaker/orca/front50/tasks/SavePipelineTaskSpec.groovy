@@ -222,4 +222,49 @@ class SavePipelineTaskSpec extends Specification {
     then:
     runAsUser == null
   }
+
+  def "should fail task when front 50 save call fails"() {
+    given:
+    def pipeline = [
+      application: 'orca',
+      name: 'my pipeline',
+      stages: []
+    ]
+    def stage = new Stage(Execution.newPipeline("orca"), "whatever", [
+      pipeline: Base64.encoder.encodeToString(objectMapper.writeValueAsString(pipeline).bytes)
+    ])
+
+    when:
+    front50Service.getPipelines(_) >> []
+    front50Service.savePipeline(_) >> { Map<String, Object> newPipeline ->
+      new Response('http://front50', 500, 'OK', [], null)
+    }
+    def result = task.execute(stage)
+
+    then:
+    result.status == ExecutionStatus.TERMINAL
+  }
+
+  def "should fail and continue task when front 50 save call fails and stage is iterating over pipelines"() {
+    given:
+    def pipeline = [
+      application: 'orca',
+      name: 'my pipeline',
+      stages: []
+    ]
+    def stage = new Stage(Execution.newPipeline("orca"), "whatever", [
+      pipeline: Base64.encoder.encodeToString(objectMapper.writeValueAsString(pipeline).bytes),
+      isSavingMultiplePipelines: true
+    ])
+
+    when:
+    front50Service.getPipelines(_) >> []
+    front50Service.savePipeline(_) >> { Map<String, Object> newPipeline ->
+      new Response('http://front50', 500, 'OK', [], null)
+    }
+    def result = task.execute(stage)
+
+    then:
+    result.status == ExecutionStatus.FAILED_CONTINUE
+  }
 }

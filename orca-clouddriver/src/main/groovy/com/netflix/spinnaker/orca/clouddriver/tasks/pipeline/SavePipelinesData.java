@@ -28,4 +28,5 @@ import java.util.Map;
 public class SavePipelinesData {
   private String pipeline;
   private List<Map> pipelinesToSave;
+  private final Boolean isSavingMultiplePipelines = true;
 }

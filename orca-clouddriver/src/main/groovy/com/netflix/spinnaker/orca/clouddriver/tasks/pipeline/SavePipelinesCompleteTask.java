@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.orca.clouddriver.tasks.pipeline;
 
+import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.Task;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
@@ -35,7 +36,10 @@ public class SavePipelinesCompleteTask implements Task {
     logResults(savePipelineResults.getPipelinesFailedToSave(), "Failed to save pipelines: ");
     logResults(savePipelineResults.getPipelinesCreated(), "Created pipelines: ");
     logResults(savePipelineResults.getPipelinesUpdated(), "Updated pipelines: ");
-    return TaskResult.SUCCEEDED;
+    if (savePipelineResults.getPipelinesFailedToSave().isEmpty()) {
+      return TaskResult.SUCCEEDED;
+    }
+    return new TaskResult(ExecutionStatus.TERMINAL);
   }
 
   private void logResults(List<PipelineReferenceData> savePipelineSuccesses, String s) {
