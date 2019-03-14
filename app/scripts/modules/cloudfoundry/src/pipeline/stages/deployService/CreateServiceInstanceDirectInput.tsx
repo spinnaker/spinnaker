@@ -35,39 +35,48 @@ export class CreateServiceInstanceDirectInput extends React.Component<
     this.state = { serviceNamesAndPlans: [] };
   }
 
-  public componentDidUpdate(prevProps: Readonly<ICreateServiceInstanceDirectInputProps>): void {
+  public componentDidUpdate(prevProps: Readonly<ICreateServiceInstanceDirectInputProps>) {
     const { credentials, region } = this.props;
     if ((credentials && credentials !== prevProps.credentials) || region !== prevProps.region) {
-      if (credentials && region) {
-        ServicesReader.getServices(credentials, region).then(serviceNamesAndPlans => {
-          this.setState({ serviceNamesAndPlans });
-        });
-      }
+      this.loadServices(credentials, region);
     }
   }
 
-  private serviceInstanceNameUpdated = (event: React.ChangeEvent<HTMLInputElement>): void => {
+  public componentDidMount = () => {
+    this.loadServices(this.props.credentials, this.props.region);
+  };
+
+  private loadServices(credentials: string, region: string) {
+    if (credentials && region) {
+      ServicesReader.getServices(credentials, region).then(serviceNamesAndPlans => {
+        this.setState({ serviceNamesAndPlans });
+      });
+    }
+  }
+
+  private serviceInstanceNameUpdated = (event: React.ChangeEvent<HTMLInputElement>) => {
     this.props.onServiceChanged({
       ...this.props.service,
       serviceInstanceName: event.target.value,
     });
   };
 
-  private serviceUpdated = (option: Option<string>): void => {
+  private serviceUpdated = (option: Option<string>) => {
     this.props.onServiceChanged({
       ...this.props.service,
       service: option.target.value,
+      servicePlan: '',
     });
   };
 
-  private servicePlanUpdated = (option: Option<string>): void => {
+  private servicePlanUpdated = (option: Option<string>) => {
     this.props.onServiceChanged({
       ...this.props.service,
       servicePlan: option.target.value,
     });
   };
 
-  private parametersUpdated = (event: React.ChangeEvent<HTMLTextAreaElement>): void => {
+  private parametersUpdated = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     this.props.onServiceChanged({
       ...this.props.service,
       parameters: event.target.value,
