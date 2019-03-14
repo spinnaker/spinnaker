@@ -3,7 +3,7 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { AccountService, ExpectedArtifactService, INSTANCE_TYPE_SERVICE, NameUtils } from '@spinnaker/core';
+import { AccountService, ExpectedArtifactService, INSTANCE_TYPE_SERVICE } from '@spinnaker/core';
 import { GCEProviderSettings } from 'google/gce.settings';
 
 module.exports = angular
@@ -244,6 +244,10 @@ module.exports = angular
             angular.extend(command.instanceMetadata, _.omit(metadataItems, gceServerGroupHiddenMetadataKeys));
           }
         }
+
+        if (command.labels['spinnaker-moniker-sequence']) {
+          delete command.labels['spinnaker-moniker-sequence'];
+        }
       }
 
       function getCustomUserDataKeys(customUserData) {
@@ -273,6 +277,11 @@ module.exports = angular
 
           if (command.labels['spinnaker-server-group']) {
             delete command.labels['spinnaker-server-group'];
+          }
+
+          // Need to delete the sequence, otherwise it won't increment
+          if (command.labels['spinnaker-moniker-sequence']) {
+            delete command.labels['spinnaker-moniker-sequence'];
           }
         }
       }
@@ -379,14 +388,14 @@ module.exports = angular
 
       function buildServerGroupCommandFromExisting(application, serverGroup, mode) {
         mode = mode || 'clone';
-        const serverGroupName = NameUtils.parseServerGroupName(serverGroup.name);
+        const moniker = serverGroup.moniker;
 
         const command = {
           application: application.name,
           autoscalingPolicy: _.cloneDeep(serverGroup.autoscalingPolicy),
           strategy: '',
-          stack: serverGroupName.stack,
-          freeFormDetails: serverGroupName.freeFormDetails,
+          stack: moniker.stack,
+          freeFormDetails: moniker.detail,
           credentials: serverGroup.account,
           loadBalancers: extractLoadBalancers(serverGroup.asg),
           loadBalancingPolicy: _.cloneDeep(serverGroup.loadBalancingPolicy),
