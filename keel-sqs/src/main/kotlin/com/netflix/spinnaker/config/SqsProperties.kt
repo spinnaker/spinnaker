@@ -7,4 +7,5 @@ class SqsProperties {
   var queueARN: String = ""
   var visibilityTimeoutSeconds: Int = 60
   var waitTimeSeconds: Int = 10
+  var listenerFibers: Int = 10
 }

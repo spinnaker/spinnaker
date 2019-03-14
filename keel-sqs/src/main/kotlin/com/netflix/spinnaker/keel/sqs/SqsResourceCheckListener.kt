@@ -43,7 +43,7 @@ internal class SqsResourceCheckListener(
     rootJob = scope.launch {
       val channel = Channel<Message>()
       launchMessageReceiver(channel)
-      repeat(10) {
+      repeat(sqsProperties.listenerFibers) {
         launchWorker(channel)
       }
     }
