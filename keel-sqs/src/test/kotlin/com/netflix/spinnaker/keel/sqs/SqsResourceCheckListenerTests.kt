@@ -10,6 +10,7 @@ import com.netflix.spinnaker.keel.annealing.ResourceActuator
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
+import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.argWhere
 import com.nhaarman.mockitokotlin2.check
 import com.nhaarman.mockitokotlin2.doReturn
@@ -18,6 +19,7 @@ import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.never
 import com.nhaarman.mockitokotlin2.reset
 import com.nhaarman.mockitokotlin2.stub
+import com.nhaarman.mockitokotlin2.timeout
 import com.nhaarman.mockitokotlin2.verify
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -29,7 +31,6 @@ internal class SqsResourceCheckListenerTests : JUnit5Minutests {
 
   val message = ResourceCheckMessage("ec2:cluster:prod:ap-south-1:keel", SPINNAKER_API_V1, "cluster")
   val objectMapper = configuredObjectMapper()
-
   val sqsClient: AmazonSQS = mock()
   val actuator: ResourceActuator = mock()
 
@@ -47,15 +48,12 @@ internal class SqsResourceCheckListenerTests : JUnit5Minutests {
 
     before {
       sqsClient.stub {
-        on {
-          deleteMessage(argWhere {
-            it.queueUrl == "queueURL" && it.receiptHandle == "receiptHandle"
-          })
-        } doReturn DeleteMessageResult()
+        on { deleteMessage(any()) } doReturn DeleteMessageResult()
       }
     }
 
     after {
+      stopListening()
       reset(sqsClient, actuator)
     }
 
@@ -64,19 +62,20 @@ internal class SqsResourceCheckListenerTests : JUnit5Minutests {
         sqsClient.stub {
           on {
             receiveMessage(argWhere<ReceiveMessageRequest> { it.queueUrl == "queueURL" })
-          } doReturn enqueuedMessages(message)
+          } doReturn enqueuedMessages(message) doReturn enqueuedMessages()
         }
 
-        handleMessages()
+        startListening()
       }
 
       test("invokes the actuator") {
-        verify(actuator)
+        verifyEventually(actuator)
           .checkResource(message.name.let(::ResourceName), message.apiVersion, message.kind)
       }
 
       test("deletes the message from the queue") {
-        verify(sqsClient).deleteMessage(check {
+        verifyEventually(sqsClient)
+          .deleteMessage(check {
           expect {
             that(it.queueUrl).isEqualTo("queueURL")
             that(it.receiptHandle).isEqualTo("receiptHandle-0")
@@ -90,23 +89,23 @@ internal class SqsResourceCheckListenerTests : JUnit5Minutests {
         sqsClient.stub {
           on {
             receiveMessage(argWhere<ReceiveMessageRequest> { it.queueUrl == "queueURL" })
-          } doReturn enqueuedMessages("SOME RANDOM JUNK", message)
+          } doReturn enqueuedMessages("SOME RANDOM JUNK", message) doReturn enqueuedMessages()
         }
 
-        handleMessages()
+        startListening()
       }
 
       test("goes on to process the valid message") {
-        verify(actuator)
+        verifyEventually(actuator)
           .checkResource(message.name.let(::ResourceName), message.apiVersion, message.kind)
       }
 
       test("deletes the valid message but not the bad one") {
+        verifyEventually(sqsClient).deleteMessage(check {
+          expectThat(it.receiptHandle).isEqualTo("receiptHandle-1")
+        })
         verify(sqsClient, never()).deleteMessage(argWhere {
           it.receiptHandle == "receiptHandle-0"
-        })
-        verify(sqsClient).deleteMessage(check {
-          expectThat(it.receiptHandle).isEqualTo("receiptHandle-1")
         })
       }
     }
@@ -116,26 +115,26 @@ internal class SqsResourceCheckListenerTests : JUnit5Minutests {
         sqsClient.stub {
           on {
             receiveMessage(argWhere<ReceiveMessageRequest> { it.queueUrl == "queueURL" })
-          } doReturn enqueuedMessages(message, message.copy(name = "ec2:security-group:prod:ap-south-1:keel", kind = "security-group"))
+          } doReturn enqueuedMessages(message, message.copy(name = "ec2:security-group:prod:ap-south-1:keel", kind = "security-group")) doReturn enqueuedMessages()
         }
         actuator.stub {
           on { checkResource(message.name.let(::ResourceName), message.apiVersion, message.kind) } doThrow IllegalStateException("o noes")
         }
 
-        handleMessages()
+        startListening()
       }
 
       test("goes on to process the next message") {
-        verify(actuator)
+        verifyEventually(actuator)
           .checkResource(message.name.let(::ResourceName), message.apiVersion, message.kind)
       }
 
       test("deletes the successfully handled message but not the failed one") {
+        verifyEventually(sqsClient).deleteMessage(check {
+          expectThat(it.receiptHandle).isEqualTo("receiptHandle-1")
+        })
         verify(sqsClient, never()).deleteMessage(argWhere {
           it.receiptHandle == "receiptHandle-0"
-        })
-        verify(sqsClient).deleteMessage(check {
-          expectThat(it.receiptHandle).isEqualTo("receiptHandle-1")
         })
       }
     }
@@ -151,4 +150,6 @@ internal class SqsResourceCheckListenerTests : JUnit5Minutests {
         }
       )
   }
+
+  private fun <T> verifyEventually(mock: T) = verify(mock, timeout(1000))
 }
