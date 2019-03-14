@@ -3,7 +3,7 @@
   {
     {% set split = image.name.split(":") %}
     "reference": "{{ split[0] }}@{{ image.digest }}",
-    "name": "{{ image.name }}",
+    "name": "{{ split[0] }}",
     "version": "{{ image.digest }}",
     "type": "docker/image"
   } {% if (not loop.last) or ((artifacts.objects.paths | length) > 0) %} , {% endif %} {% endfor %}
