@@ -210,3 +210,21 @@ databaseChangeLog:
         tableName: cats_v1_rel_template
         columnName: rel_id
         newDataType: varchar(255)
+
+- changeSet:
+    id: application-index
+    author: afeldman
+    changes:
+    - addColumn:
+        tableName: cats_v1_resource_template
+        columns:
+        - column:
+            name: application
+            type: varchar(255)
+            afterColumn: agent
+    - createIndex:
+        indexName: application_idx
+        tableName: cats_v1_resource_template
+        columns:
+        - column:
+            name: application
