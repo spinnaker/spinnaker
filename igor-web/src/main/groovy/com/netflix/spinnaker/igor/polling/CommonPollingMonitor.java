@@ -41,7 +41,7 @@ public abstract class CommonPollingMonitor<I extends DeltaItem, T extends Pollin
     protected Logger log = LoggerFactory.getLogger(getClass());
 
     private final Optional<DiscoveryClient> discoveryClient;
-    protected Scheduler.Worker worker;
+    private Scheduler.Worker worker;
 
     protected final IgorConfigurationProperties igorProperties;
     protected final Registry registry;
@@ -202,5 +202,9 @@ public abstract class CommonPollingMonitor<I extends DeltaItem, T extends Pollin
 
     protected @Nullable Integer getPartitionUpperThreshold(String partition) {
         return null;
+    }
+
+    public void setWorker(Scheduler.Worker worker) {
+        this.worker = worker;
     }
 }

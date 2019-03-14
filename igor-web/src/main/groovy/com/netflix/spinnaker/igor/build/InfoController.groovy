@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.igor.build
 
+import com.netflix.spinnaker.igor.config.ConcourseProperties
 import com.netflix.spinnaker.igor.config.GitlabCiProperties
 import com.netflix.spinnaker.igor.config.JenkinsProperties
 import com.netflix.spinnaker.igor.config.TravisProperties
@@ -27,6 +28,7 @@ import com.netflix.spinnaker.igor.service.BuildServices
 import com.netflix.spinnaker.igor.wercker.WerckerService
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import groovy.util.logging.Slf4j
+import org.springframework.beans.factory.annotation.Autowire
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.servlet.HandlerMapping
@@ -58,6 +60,9 @@ class InfoController {
     @Autowired(required = false)
     WerckerProperties werckerProperties
 
+    @Autowired
+    ConcourseProperties concourseProperties
+
     @RequestMapping(value = '/masters', method = RequestMethod.GET)
     List<Object> listMasters(
         @RequestParam(value = "showUrl", defaultValue = "false") String showUrl,
@@ -72,6 +77,7 @@ class InfoController {
             addMaster(masterList, providerType, travisProperties,   BuildServiceProvider.TRAVIS)
             addMaster(masterList, providerType, gitlabCiProperties, BuildServiceProvider.GITLAB_CI)
             addMaster(masterList, providerType, werckerProperties,  BuildServiceProvider.WERCKER)
+            addMaster(masterList, providerType, concourseProperties, BuildServiceProvider.CONCOURSE)
             return masterList
         } else {
             //Filter by provider type if it is specified

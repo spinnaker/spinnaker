@@ -1,6 +1,5 @@
 /*
- * Copyright 2016 Schibsted ASA.
- * Copyright (c) 2017, 2018, Oracle Corporation and/or its affiliates. All rights reserved.
+ * Copyright 2019 Pivotal, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +14,14 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.igor.model
+package com.netflix.spinnaker.igor.concourse.client;
 
-enum BuildServiceProvider {
-  JENKINS,
-  TRAVIS,
-  CONCOURSE,
-  GITLAB_CI,
-  WERCKER
+import com.netflix.spinnaker.igor.concourse.client.model.Job;
+import retrofit.http.GET;
+
+import java.util.Collection;
+
+public interface JobService {
+  @GET("/api/v1/jobs")
+  Collection<Job> jobs();
 }

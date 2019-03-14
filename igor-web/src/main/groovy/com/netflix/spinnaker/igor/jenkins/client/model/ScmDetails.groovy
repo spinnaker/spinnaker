@@ -72,7 +72,12 @@ class ScmDetails {
             Revision revision = action?.lastBuiltRevision ?: action?.build?.revision
             if (revision?.branch?.name) {
                 genericGitRevisions.addAll(revision.branch.collect() { Branch branch ->
-                    new GenericGitRevision(branch.name, branch.name.split('/').last(), branch.sha1, action.remoteUrl)
+                  GenericGitRevision.builder()
+                    .name(branch.getName())
+                    .branch(branch.name.split('/').last())
+                    .sha1(branch.sha1)
+                    .remoteUrl(action.remoteUrl)
+                    .build()
                 })
             }
         }

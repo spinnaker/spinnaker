@@ -68,7 +68,11 @@ public class V3Build {
     }
 
     public GenericGitRevision genericGitRevision() {
-        return new GenericGitRevision(branch.getName(), branch.getName(), commit.getSha());
+        return GenericGitRevision.builder()
+          .name(branch.getName())
+          .branch(branch.getName())
+          .sha1(commit.getSha())
+          .build();
     }
 
     public boolean spinnakerTriggered() {

@@ -71,7 +71,7 @@ public class ArtifactExtractor {
     }
 
     private JinjaTemplate getTemplateFromProperty(GenericBuild build) {
-        Map<String, Object> properties = build.getProperties();
+        Map<String, ?> properties = build.getProperties();
         if (properties == null) {
             return null;
         }

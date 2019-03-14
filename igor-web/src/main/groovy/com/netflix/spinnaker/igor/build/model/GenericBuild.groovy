@@ -36,5 +36,5 @@ class GenericBuild {
     String id
     @JsonProperty("scm")
     List<GenericGitRevision> genericGitRevisions
-    Map<String, Object> properties
+    Map<String, ?> properties
 }

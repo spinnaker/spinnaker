@@ -42,7 +42,15 @@ public class Commit {
     private Instant timestamp;
 
     public GenericGitRevision getGenericGitRevision() {
-        return new GenericGitRevision(branch, branch, sha, authorName, compareUrl, message, timestamp);
+        return GenericGitRevision.builder()
+          .name(branch)
+          .branch(branch)
+          .sha1(sha)
+          .committer(authorName)
+          .compareUrl(compareUrl)
+          .message(message)
+          .timestamp(timestamp)
+          .build();
     }
 
     public boolean isTag() {

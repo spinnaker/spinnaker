@@ -19,5 +19,5 @@ package com.netflix.spinnaker.igor.service;
 import java.util.Map;
 
 public interface BuildProperties {
-    Map<String, Object> getBuildProperties(String job, int buildNumber, String fileName);
+    Map<String, ?> getBuildProperties(String job, int buildNumber, String fileName);
 }
