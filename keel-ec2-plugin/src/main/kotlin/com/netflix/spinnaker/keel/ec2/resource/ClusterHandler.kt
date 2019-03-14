@@ -18,7 +18,7 @@ import com.netflix.spinnaker.keel.model.OrchestrationTrigger
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.plugin.ResourceConflict
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
-import com.netflix.spinnaker.keel.plugin.ResourceValidator
+import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
 import com.netflix.spinnaker.keel.retrofit.isNotFound
 import de.danielbechler.diff.node.DiffNode
 import kotlinx.coroutines.Dispatchers
@@ -39,7 +39,7 @@ class ClusterHandler(
   private val orcaService: OrcaService,
   private val clock: Clock,
   override val objectMapper: ObjectMapper,
-  override val validators: List<ResourceValidator<*>>
+  override val normalizers: List<ResourceNormalizer<*>>
 ) : ResourceHandler<Cluster> {
 
   override val log: Logger by lazy { LoggerFactory.getLogger(javaClass) }

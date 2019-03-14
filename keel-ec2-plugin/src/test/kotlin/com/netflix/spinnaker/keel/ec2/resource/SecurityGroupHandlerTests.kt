@@ -40,7 +40,7 @@ import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
-import com.netflix.spinnaker.keel.plugin.ResourceValidator
+import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.argumentCaptor
@@ -73,7 +73,7 @@ internal object SecurityGroupHandlerTests : JUnit5Minutests {
   val cloudDriverCache: CloudDriverCache = mock()
   val orcaService: OrcaService = mock()
   val objectMapper = configuredObjectMapper()
-  val validators = emptyList<ResourceValidator<SecurityGroup>>()
+  val normalizers = emptyList<ResourceNormalizer<SecurityGroup>>()
 
   interface Fixture {
     val vpc: Network
@@ -85,7 +85,7 @@ internal object SecurityGroupHandlerTests : JUnit5Minutests {
     override val vpc: Network =
       Network(CLOUD_PROVIDER, randomUUID().toString(), "vpc1", "prod", "us-west-3"),
     override val handler: SecurityGroupHandler =
-      SecurityGroupHandler(cloudDriverService, cloudDriverCache, orcaService, objectMapper, validators),
+      SecurityGroupHandler(cloudDriverService, cloudDriverCache, orcaService, objectMapper, normalizers),
     override val securityGroup: SecurityGroup =
       SecurityGroup(
         application = "keel",
@@ -114,7 +114,7 @@ internal object SecurityGroupHandlerTests : JUnit5Minutests {
     override val vpc: Network =
       Network(CLOUD_PROVIDER, randomUUID().toString(), "vpc1", "prod", "us-west-3"),
     override val handler: SecurityGroupHandler =
-      SecurityGroupHandler(cloudDriverService, cloudDriverCache, orcaService, objectMapper, validators),
+      SecurityGroupHandler(cloudDriverService, cloudDriverCache, orcaService, objectMapper, normalizers),
     override val securityGroup: SecurityGroup =
       SecurityGroup(
         application = "keel",

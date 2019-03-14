@@ -15,27 +15,28 @@
  * limitations under the License.
  *
  */
+
 package com.netflix.spinnaker.keel.exceptions
 
 import com.netflix.spinnaker.keel.api.Resource
 
 sealed class InvalidResourceException(
-    override val message: String?,
-    override val cause: Throwable
+  override val message: String?,
+  override val cause: Throwable
 ) : RuntimeException(message, cause)
 
-class FailedValidationException(
-    validationError: String,
-    resource: Resource<*>,
-    cause: Throwable
+class FailedNormalizationException(
+  errorMessage: String,
+  resource: Resource<*>,
+  cause: Throwable
 ) : InvalidResourceException(
-  "Resource ${resource.metadata.name} failed validation with error: $validationError. Resource: $resource", cause
+  "Resource ${resource.metadata.name} failed normalization with error: $errorMessage. Resource: $resource", cause
 )
 
 class InvalidResourceStructureException(
-    validationError: String,
-    resource: String,
-    cause: Throwable
+  errorMessage: String,
+  resource: String,
+  cause: Throwable
 ) : InvalidResourceException(
-    "Resource failed validation with error: $validationError. Resource: $resource", cause
+  "Resource failed normalization with error: $errorMessage. Resource: $resource", cause
 )

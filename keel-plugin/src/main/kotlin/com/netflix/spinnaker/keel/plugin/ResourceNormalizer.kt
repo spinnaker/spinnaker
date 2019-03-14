@@ -20,12 +20,11 @@ package com.netflix.spinnaker.keel.plugin
 
 import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Resource
-import kotlin.reflect.KClass
 
 /**
- * A resource validator throws a [FailedValidationException] when a resource is invalid
+ * A resource normalizer throws a [FailedValidationException] when a resource is invalid
  */
-interface ResourceValidator<T : Any> {
+interface ResourceNormalizer<T : Any> {
 
   val apiVersion: ApiVersion
   val supportedKind: String
@@ -34,7 +33,7 @@ interface ResourceValidator<T : Any> {
 
 }
 
-internal fun ResourceValidator<*>.handles(
+internal fun ResourceNormalizer<*>.handles(
     apiVersion: ApiVersion,
     kind: String
 ): Boolean = this.apiVersion == apiVersion && this.supportedKind == kind

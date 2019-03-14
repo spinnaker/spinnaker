@@ -31,7 +31,7 @@ import com.netflix.spinnaker.keel.ec2.RETROFIT_NOT_FOUND
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
-import com.netflix.spinnaker.keel.plugin.ResourceValidator
+import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
 import com.nhaarman.mockitokotlin2.*
 import de.danielbechler.diff.ObjectDifferBuilder
 import dev.minutest.junit.JUnit5Minutests
@@ -127,7 +127,7 @@ internal object ClusterHandlerTests : JUnit5Minutests {
 
   val differ = ObjectDifferBuilder.buildDefault()
 
-  val validators = emptyList<ResourceValidator<Cluster>>()
+  val normalizers = emptyList<ResourceNormalizer<Cluster>>()
 
   fun tests() = rootContext<ClusterHandler> {
     fixture {
@@ -137,7 +137,7 @@ internal object ClusterHandlerTests : JUnit5Minutests {
           orcaService,
           Clock.systemDefaultZone(),
           objectMapper,
-          validators
+          normalizers
       )
     }
 

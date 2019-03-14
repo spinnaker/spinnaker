@@ -23,12 +23,12 @@ class ResourcePersister(
     return when (event) {
       is ResourceCreated ->
         handlers.supporting(event.resource.apiVersion, event.resource.kind)
-          .validate(event.resource)
+          .normalize(event.resource)
           .also(resourceRepository::store)
           .also { queue.scheduleCheck(it) }
       is ResourceUpdated ->
         handlers.supporting(event.resource.apiVersion, event.resource.kind)
-          .validate(event.resource)
+          .normalize(event.resource)
           .also(resourceRepository::store)
           .also { queue.scheduleCheck(it) }
       is ResourceDeleted -> {

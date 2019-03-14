@@ -1,10 +1,9 @@
 package com.netflix.spinnaker.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.keel.api.deliveryconfig.DeliveryConfig
 import com.netflix.spinnaker.keel.deliveryconfig.resource.DeliveryConfigHandler
 import com.netflix.spinnaker.keel.front50.Front50Service
-import com.netflix.spinnaker.keel.plugin.ResourceValidator
+import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -18,10 +17,10 @@ class DeliveryConfigConfig {
   fun deliveryConfigHandler(
     front50Service: Front50Service,
     objectMapper: ObjectMapper,
-    validators: List<ResourceValidator<*>>
+    normalizers: List<ResourceNormalizer<*>>
   ) = DeliveryConfigHandler(
       front50Service,
       objectMapper,
-      validators
+      normalizers
   )
 }

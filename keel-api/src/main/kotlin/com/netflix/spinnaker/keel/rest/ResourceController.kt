@@ -22,16 +22,14 @@ import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.events.ResourceDeleted
 import com.netflix.spinnaker.keel.events.ResourceUpdated
-import com.netflix.spinnaker.keel.exceptions.FailedValidationException
+import com.netflix.spinnaker.keel.exceptions.FailedNormalizationException
 import com.netflix.spinnaker.keel.exceptions.InvalidResourceStructureException
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceException
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.get
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
 import org.slf4j.LoggerFactory
-import org.springframework.http.HttpStatus.BAD_REQUEST
-import org.springframework.http.HttpStatus.CREATED
-import org.springframework.http.HttpStatus.NOT_FOUND
+import org.springframework.http.HttpStatus.*
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -105,11 +103,11 @@ class ResourceController(
     return mapOf("message" to (e.cause?.message ?: e.message))
   }
 
-  @ExceptionHandler(FailedValidationException::class)
-  @ResponseStatus(BAD_REQUEST)
-  fun onParseFailure(e: FailedValidationException): Map<String, Any?> {
+  @ExceptionHandler(FailedNormalizationException::class)
+  @ResponseStatus(UNPROCESSABLE_ENTITY)
+  fun onParseFailure(e: FailedNormalizationException): Map<String, Any?> {
     log.error(e.message)
-    return mapOf("message" to (e.cause?.message ?: e.message))
+    return mapOf("message" to (e.cause.message ?: e.message))
   }
 
   @ExceptionHandler(InvalidResourceStructureException::class)
