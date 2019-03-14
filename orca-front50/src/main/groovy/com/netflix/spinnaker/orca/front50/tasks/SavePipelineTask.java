@@ -39,7 +39,6 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @Component
-@ConditionalOnProperty("front50.enabled")
 public class SavePipelineTask implements RetryableTask {
 
   private Logger log = LoggerFactory.getLogger(getClass());
