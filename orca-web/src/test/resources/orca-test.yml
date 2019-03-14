@@ -1,5 +1,5 @@
 front50:
-  baseUrl: http://localhost:8080
+  enabled: false
 
 igor:
   enabled: false
