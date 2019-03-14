@@ -30,6 +30,7 @@
  */
 package com.netflix.spinnaker.clouddriver.azure.templates
 
+import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
@@ -282,6 +283,9 @@ class AzureServerGroupResourceTemplate {
     ScaleSetSkuProperty sku
     VirtualMachineScaleSetProperty properties
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    List<String> zones
+
     VirtualMachineScaleSet(AzureServerGroupDescription description) {
       apiVersion = "[variables('apiVersion')]"
       name = description.name
@@ -316,6 +320,10 @@ class AzureServerGroupResourceTemplate {
           String uniqueName = getUniqueStorageName(description.name, idx)
           tags.storageAccountNames = tags.storageAccountNames ? "${tags.storageAccountNames},${uniqueName}" : uniqueName
         }
+      }
+
+      if(description.zones != null && description.zones.size() != 0) {
+        zones = description.zones.asList()
       }
 
       properties = new VirtualMachineScaleSetProperty(description)

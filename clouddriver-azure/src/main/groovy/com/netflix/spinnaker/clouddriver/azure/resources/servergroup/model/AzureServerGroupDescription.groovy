@@ -228,6 +228,8 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription implements
       sku.tier = skuData.tier()
     }
     azureSG.sku = sku
+    def zones = scaleSet.zones()
+    azureSG.zones = zones == null ? new HashSet<>() : zones.toSet()
 
     azureSG.provisioningState = scaleSet.provisioningState()
 

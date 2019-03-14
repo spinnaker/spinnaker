@@ -43,6 +43,8 @@ public class AzureNamedAccountCredentials implements AccountCredentials<AzureCre
   final String defaultKeyVault
   final String defaultResourceGroup
   final Map<String, List<AzureComputeClient.VirtualMachineSize>> locationToInstanceTypesMap
+  final List<String> regionsSupportZones
+  final List<String> availabilityZones
 
   AzureNamedAccountCredentials(String accountName,
                                String environment,
@@ -74,6 +76,8 @@ public class AzureNamedAccountCredentials implements AccountCredentials<AzureCre
     this.requiredGroupMembership = requiredGroupMembership ?: [] as List<String>
     this.credentials = appKey.isEmpty() ? null : buildCredentials()
     this.locationToInstanceTypesMap = this.credentials.computeClient.getVirtualMachineSizesByRegions(this.regions)
+    this.regionsSupportZones = Arrays.asList("centralus", "eastus", "eastus2", "francecentral", "northeurope", "southeastasia", "westeurope", "westus2")
+    this.availabilityZones = Arrays.asList("1", "2", "3")
   }
 
   @Override
