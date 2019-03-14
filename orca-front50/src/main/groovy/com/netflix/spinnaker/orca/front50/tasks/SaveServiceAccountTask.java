@@ -27,17 +27,19 @@ import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.front50.Front50Service;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import retrofit.client.Response;
 
+import javax.annotation.Nonnull;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -109,6 +111,14 @@ public class SaveServiceAccountTask implements RetryableTask {
     List<String> roles = (List<String>) pipeline.get("roles");
     String user = stage.getExecution().getTrigger().getUser();
 
+    Map<String, Object> outputs = new HashMap<>();
+
+    pipeline.computeIfAbsent("id", k -> {
+      String uuid = UUID.randomUUID().toString();
+      outputs.put("pipeline.id", uuid);
+      return uuid;
+    });
+
     // Check if pipeline roles did not change, and skip updating a service account if so.
     String serviceAccountName = generateSvcAcctName(pipeline);
     if (!pipelineRolesChanged(serviceAccountName, roles)) {
@@ -135,8 +145,9 @@ public class SaveServiceAccountTask implements RetryableTask {
       return new TaskResult(ExecutionStatus.TERMINAL);
     }
 
-    return new TaskResult(
-      ExecutionStatus.SUCCEEDED, ImmutableMap.of("pipeline.serviceAccount", svcAcct.getName()));
+    outputs.put("pipeline.serviceAccount", svcAcct.getName());
+
+    return new TaskResult(ExecutionStatus.SUCCEEDED, outputs);
   }
 
   private String generateSvcAcctName(Map<String, Object> pipeline) {
