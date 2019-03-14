@@ -41,6 +41,9 @@ import {
   TagsDetailsSection,
 } from './serverGroup/details/sections';
 
+import { DEPLOY_CLOUDFORMATION_STACK_STAGE } from './pipeline/stages/deployCloudFormation/deployCloudFormationStackStage';
+import { CLOUDFORMATION_TEMPLATE_ENTRY } from './pipeline/stages/deployCloudFormation/cloudFormationTemplateEntry.component';
+
 // load all templates into the $templateCache
 const templates = require.context('./', true, /\.html$/);
 templates.keys().forEach(function(key) {
@@ -74,6 +77,8 @@ module(AMAZON_MODULE, [
   SUBNET_RENDERER,
   VPC_MODULE,
   require('./search/searchResultFormatter').name,
+  DEPLOY_CLOUDFORMATION_STACK_STAGE,
+  CLOUDFORMATION_TEMPLATE_ENTRY,
 ]).config(() => {
   CloudProviderRegistry.registerProvider('aws', {
     name: 'Amazon',

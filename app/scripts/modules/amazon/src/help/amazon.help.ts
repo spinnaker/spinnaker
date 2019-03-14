@@ -131,6 +131,16 @@ const helpContents: { [key: string]: string } = {
             <li>#{query}
         </ul>
         <p>For example, you can change the path to "/new/#{path}", the hostname to "example.#{host}", or the query to "#{query}&value=xyz".`,
+  'aws.cloudformation.source': `
+      <p>Where the template file content is read from.</p>
+      <p>
+        <b>text:</b> The template is supplied statically to the pipeline from the below text-box.
+      </p>
+      <p>
+        <b>artifact:</b> The template is read from an artifact supplied/created upstream. The expected artifact must be referenced here, and will be bound at runtime.
+      </p>
+  `,
+  'aws.cloudformation.expectedArtifact': `The artifact that is to be applied to this stage. The artifact should represent a valid cloudformation template.`,
 };
 
 Object.keys(helpContents).forEach(key => HelpContentsRegistry.register(key, helpContents[key]));
