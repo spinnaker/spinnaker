@@ -34,20 +34,8 @@ import java.util.concurrent.TimeUnit.MILLISECONDS
 
 @Configuration
 @Import(OkHttp3ClientConfiguration::class)
-@EnableConfigurationProperties
-class KeelRetrofitConfiguration(
-  @Value("\${ok-http-client.connection-pool.max-idle-connections:5}")
-  val maxIdleConnections: Int = 5,
-
-  @Value("\${ok-http-client.connection-pool.keep-alive-duration-ms:300000}")
-  val keepAliveDurationMs: Long = 300000L,
-
-  @Value("\${ok-http-client.retry-on-connection-failure:true}")
-  val retryOnConnectionFailure: Boolean = true,
-
-  @Value("\${ok-http-client.spinnaker-user:keel@spinnaker.io}")
-  val spinnakerUser: String = "keel@spinnaker.io"
-) {
+@EnableConfigurationProperties(OkHttpClientConfigurationProperties::class, KeelRetrofitProperties::class)
+class KeelRetrofitConfiguration {
 
   private val log = LoggerFactory.getLogger(javaClass)
 
@@ -55,6 +43,8 @@ class KeelRetrofitConfiguration(
   @Scope(SCOPE_PROTOTYPE)
   fun retrofitClient(
     okHttpClientConfig: OkHttp3ClientConfiguration,
+    okHttpClientProperties: OkHttpClientConfigurationProperties,
+    retrofitProperties: KeelRetrofitProperties,
     interceptors: Set<Interceptor>?
   ): OkHttpClient {
     val userAgent = "Spinnaker-${System.getProperty("spring.application.name", "unknown")}/${javaClass.`package`.implementationVersion
@@ -63,7 +53,7 @@ class KeelRetrofitConfiguration(
       networkInterceptors().add(Interceptor { chain ->
         chain.proceed(chain.request().newBuilder()
           .header("User-Agent", userAgent)
-          .header("X-SPINNAKER-USER", spinnakerUser)
+          .header("X-SPINNAKER-USER", retrofitProperties.spinnakerUser)
           .build())
       })
       interceptors?.forEach {
@@ -71,8 +61,12 @@ class KeelRetrofitConfiguration(
         addNetworkInterceptor(it)
       }
 
-      connectionPool(ConnectionPool(maxIdleConnections, keepAliveDurationMs, MILLISECONDS))
-      retryOnConnectionFailure(retryOnConnectionFailure)
+      connectionPool(ConnectionPool(
+        okHttpClientProperties.connectionPool.maxIdleConnections,
+        okHttpClientProperties.connectionPool.keepAliveDurationMs.toLong(),
+        MILLISECONDS
+      ))
+      retryOnConnectionFailure(okHttpClientProperties.isRetryOnConnectionFailure)
     }
     return cfg.build()
   }
