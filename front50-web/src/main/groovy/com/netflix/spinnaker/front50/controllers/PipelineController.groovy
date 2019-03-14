@@ -108,11 +108,14 @@ class PipelineController {
     pipeline.name = pipeline.getName().trim()
     pipeline = ensureCronTriggersHaveIdentifier(pipeline)
 
-    if (!pipeline.id) {
+    if (!pipeline.id || pipeline.regenerateCronTriggerIds) {
       // ensure that cron triggers are assigned a unique identifier for new pipelines
       def triggers = (pipeline.triggers ?: []) as List<Map>
       triggers.findAll { it.type == "cron" }.each { Map trigger ->
         trigger.id = UUID.randomUUID().toString()
+      }
+      if (pipeline.regenerateCronTriggerIds) {
+        pipeline.remove("regenerateCronTriggerIds")
       }
     }
 
