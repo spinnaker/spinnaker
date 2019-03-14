@@ -54,4 +54,13 @@ interface IgorService {
 
   @GET('/artifactory/names')
   List<String> getArtifactoryNames()
+
+  @GET('/concourse/{buildMaster}/teams')
+  List<String> getConcourseTeams(@Path("buildMaster") String buildMaster)
+
+  @GET('/concourse/{buildMaster}/teams/{team}/pipelines')
+  List<String> getConcoursePipelines(@Path("buildMaster") String buildMaster, @Path("team") String team);
+
+  @GET('/concourse/{buildMaster}/teams/{team}/pipelines/{pipeline}/jobs')
+  List<String> getConcourseJobs(@Path("buildMaster") String buildMaster, @Path("team") String team, @Path("pipeline") String pipeline);
 }
