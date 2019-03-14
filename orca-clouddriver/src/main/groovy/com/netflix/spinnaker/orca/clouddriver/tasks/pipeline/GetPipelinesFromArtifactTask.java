@@ -33,6 +33,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import retrofit.client.Response;
 
@@ -41,6 +42,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
+@ConditionalOnProperty("front50.enabled")
 public class GetPipelinesFromArtifactTask implements Task {
 
   private Logger log = LoggerFactory.getLogger(getClass());

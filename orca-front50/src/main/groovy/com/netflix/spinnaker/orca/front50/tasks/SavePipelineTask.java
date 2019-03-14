@@ -26,6 +26,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import retrofit.client.Response;
@@ -38,6 +39,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @Component
+@ConditionalOnProperty("front50.enabled")
 public class SavePipelineTask implements RetryableTask {
 
   private Logger log = LoggerFactory.getLogger(getClass());
