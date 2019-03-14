@@ -65,6 +65,10 @@ public class Trigger {
   String type;
   boolean enabled;
 
+  // Configuration for pipeline triggers
+  String parentPipelineId;
+  String parentPipelineApplication;
+
   // Configuration for git triggers
   String project;
   String slug;
