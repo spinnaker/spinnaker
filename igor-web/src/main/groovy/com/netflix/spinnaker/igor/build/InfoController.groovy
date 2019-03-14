@@ -60,7 +60,7 @@ class InfoController {
     @Autowired(required = false)
     WerckerProperties werckerProperties
 
-    @Autowired
+    @Autowired(required = false)
     ConcourseProperties concourseProperties
 
     @RequestMapping(value = '/masters', method = RequestMethod.GET)
