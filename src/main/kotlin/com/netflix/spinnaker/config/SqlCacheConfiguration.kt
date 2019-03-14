@@ -40,6 +40,8 @@ import java.time.Duration
 import java.util.Optional
 import kotlin.contracts.ExperimentalContracts
 
+const val coroutineThreadPrefix = "catsSql"
+
 @ExperimentalContracts
 @Configuration
 @ConditionalOnProperty("sql.cache.enabled")
@@ -103,7 +105,7 @@ class SqlCacheConfiguration {
     val dispatcher = if (poolSize < 1) {
       null
     } else {
-      newFixedThreadPoolContext(nThreads = poolSize, name = "catsSql") + MDCContext()
+      newFixedThreadPoolContext(nThreads = poolSize, name = coroutineThreadPrefix) + MDCContext()
     }
 
     if (dispatcher != null) {

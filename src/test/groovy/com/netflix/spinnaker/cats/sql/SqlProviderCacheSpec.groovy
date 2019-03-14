@@ -107,6 +107,62 @@ class SqlProviderCacheSpec extends ProviderCacheSpec {
     RelationshipCacheFilter.none()                               || []
   }
 
+  def 'can index and retrieve by application'() {
+    setup:
+    def sgIdsForAppFoo = 'fooSg1'..'fooSg9'
+    def sgIdsForAppBar = 'barSg1'..'barSg9'
+
+    sgIdsForAppFoo.each {
+      populateOne('serverGroup', it, createData(it, [application: "foo"], [:]))
+    }
+
+    sgIdsForAppBar.each {
+      populateOne('serverGroup', it, createData(it, [application: "bar"], [:]))
+    }
+
+    when:
+    def fooData = cache.getAllByApplication("serverGroup", "foo", RelationshipCacheFilter.none())
+    def barData = cache.getAllByApplication("serverGroup", "bar", RelationshipCacheFilter.none())
+
+    then:
+    fooData["serverGroup"].findAll { it.attributes.application != "foo" } == []
+    barData["serverGroup"].findAll { it.attributes.application != "bar" } == []
+    fooData["serverGroup"].collect { it.id }.sort() == sgIdsForAppFoo
+    barData["serverGroup"].collect { it.id }.sort() == sgIdsForAppBar
+  }
+
+  def 'can retrieve multiple types by application'() {
+    setup:
+    def sgIdsForAppFoo = 'fooSg1'..'fooSg3'
+    def sgIdsForAppBar = 'barSg1'..'barSg3'
+    def instanceIdsForAppFoo = 'fooInst1'..'fooInst3'
+    def instanceIdsForAppBar = 'barInst1'..'barInst3'
+    def filters = [serverGroup: RelationshipCacheFilter.none(), instances: RelationshipCacheFilter.none()]
+
+    sgIdsForAppFoo.each {
+      populateOne('serverGroup', it, createData(it, [application: "foo"], [:]))
+    }
+
+    sgIdsForAppBar.each {
+      populateOne('serverGroup', it, createData(it, [application: "bar"], [:]))
+    }
+
+    instanceIdsForAppFoo.each {
+      populateOne('instances', it, createData(it, [application: "foo"], [:]))
+    }
+
+    instanceIdsForAppBar.each {
+      populateOne('instances', it, createData(it, [application: "bar"], [:]))
+    }
+
+    when:
+    def fooData = cache.getAllByApplication(["instances", "serverGroup"], "foo", filters)
+
+    then:
+    fooData["instances"].collect { it.id }.sort() == instanceIdsForAppFoo
+    fooData["serverGroup"].collect { it.id }.sort() == sgIdsForAppFoo
+  }
+
   void addInformative(String type, String id, CacheData cacheData = createData(id)) {
     defaultProviderCache.putCacheResult('testAgent', ['informative'], new DefaultCacheResult((type): [cacheData]))
   }

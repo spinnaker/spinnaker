@@ -1,12 +1,11 @@
 package com.netflix.spinnaker.cats.sql.cache
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.cats.cache.CacheData
-import com.netflix.spinnaker.cats.cache.CacheFilter
-import com.netflix.spinnaker.cats.cache.DefaultCacheData
-import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
-import com.netflix.spinnaker.cats.cache.WriteableCache
+import com.netflix.spinnaker.cats.cache.*
+import com.netflix.spinnaker.cats.cache.Cache.StoreType
+import com.netflix.spinnaker.cats.cache.Cache.StoreType.SQL
 import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.ON_DEMAND
+import com.netflix.spinnaker.config.coroutineThreadPrefix
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import de.huxhorn.sulky.ulid.ULID
@@ -66,6 +65,8 @@ class SqlCache(
   init {
     log.info("Using ${javaClass.simpleName}")
   }
+
+  override fun storeType(): StoreType = SQL
 
   /**
    * Only evicts cache records but not relationship rows
@@ -250,6 +251,58 @@ class SqlCache(
     val ids = mutableListOf<String>()
     identifiers.forEach { ids.add(it!!) }
     return getAll(type, ids)
+  }
+
+  override fun getAllByApplication(type: String,
+                                   application: String,
+                                   cacheFilter: CacheFilter?): Map<String, MutableCollection<CacheData>> {
+    val relationshipPrefixes = getRelationshipFilterPrefixes(cacheFilter)
+
+    val result = if (relationshipPrefixes.isEmpty()) {
+      getDataWithoutRelationshipsByApp(type, application)
+    } else {
+      getDataWithRelationshipsByApp(type, application, relationshipPrefixes)
+    }
+
+    if (result.selectQueries > -1) {
+      cacheMetrics.get(
+        prefix = name,
+        type = type,
+        itemCount = result.data.size,
+        requestedSize = result.data.size,
+        relationshipsRequested = result.relPointers.size,
+        selectOperations = result.selectQueries,
+        async = wasAsync()
+      )
+    }
+
+    return mapOf(type to mergeDataAndRelationships(result.data, result.relPointers, relationshipPrefixes))
+  }
+
+  override fun getAllByApplication(types: Collection<String>,
+                                   application: String,
+                                   cacheFilters: Map<String, CacheFilter?>): Map<String, MutableCollection<CacheData>> {
+    val result = mutableMapOf<String, MutableCollection<CacheData>>()
+
+    if (coroutineContext.useAsync(this::asyncEnabled)) {
+      val scope = CatsCoroutineScope(coroutineContext)
+
+      types.chunked(dynamicConfigService.getConfig(Int::class.java, "sql.cache.maxQueryConcurrency", 4)) { batch ->
+        val deferred = batch.map { type ->
+          scope.async { getAllByApplication(type, application, cacheFilters[type]) }
+        }
+
+        runBlocking {
+          deferred.awaitAll().forEach { result.putAll(it) }
+        }
+      }
+    } else {
+      types.forEach { type ->
+        result.putAll(getAllByApplication(type, application, cacheFilters[type]))
+      }
+    }
+
+    return result
   }
 
   override fun merge(type: String, cacheData: CacheData) {
@@ -443,6 +496,7 @@ class SqlCache(
     val toStore = mutableListOf<String>() // ids that are new or changed
     val bodies = mutableMapOf<String, String>() // id to body
     val hashes = mutableMapOf<String, String>() // id to sha256(body)
+    val apps = mutableMapOf<String, String>()
 
     items.filter { it.id.length > MAX_ID_LENGTH }
       .forEach {
@@ -453,10 +507,14 @@ class SqlCache(
       .filter { it.id != "_ALL_" && it.id.length <= MAX_ID_LENGTH }
       .forEach {
         currentIds.add(it.id)
-        val keys = it.attributes
+        val nullKeys = it.attributes
           .filter { e -> e.value == null }
           .keys
-        keys.forEach { na -> it.attributes.remove(na) }
+        nullKeys.forEach { na -> it.attributes.remove(na) }
+
+        if (it.attributes.containsKey("application")) {
+          apps[it.id] = it.attributes["application"] as String
+        }
 
         val keysToNormalize = it.relationships.keys.filter { k -> k.contains(':') }
         if (keysToNormalize.isNotEmpty()) {
@@ -483,6 +541,7 @@ class SqlCache(
           table(resourceTableName(type)),
           field("id"),
           field("agent"),
+          field("application"),
           field("body_hash"),
           field("body"),
           field("last_updated")
@@ -490,10 +549,11 @@ class SqlCache(
 
         insert.apply {
           chunk.forEach {
-            values(it, agent, hashes[it], bodies[it], now)
+            values(it, agent, apps[it], hashes[it], bodies[it], now)
           }
 
           onDuplicateKeyUpdate()
+            .set(field("application"), MySQLDSL.values(field("application")) as Any)
             .set(field("body_hash"), MySQLDSL.values(field("body_hash")) as Any)
             .set(field("body"), MySQLDSL.values(field("body")) as Any)
             .set(field("last_updated"), MySQLDSL.values(field("last_updated")) as Any)
@@ -520,6 +580,7 @@ class SqlCache(
           if (exists) {
             withRetry(RetryCategory.WRITE) {
               jooq.update(table(resourceTableName(type)))
+                .set(field("application"), apps[it])
                 .set(field("body_hash"), hashes[it])
                 .set(field("body"), bodies[it])
                 .set(field("last_updated"), clock.millis())
@@ -535,12 +596,14 @@ class SqlCache(
                 table(resourceTableName(type)),
                 field("id"),
                 field("agent"),
+                field("application"),
                 field("body_hash"),
                 field("body"),
                 field("last_updated")
               ).values(
                 it,
                 agent,
+                apps[it],
                 hashes[it],
                 bodies[it],
                 clock.millis()
@@ -636,22 +699,22 @@ class SqlCache(
           val relType = rels.key.substringBefore(delimiter = ":", missingDelimiterValue = "")
           rels.value.filter { it.length <= MAX_ID_LENGTH }
             .forEach { r ->
-            val fwdKey = "${cacheData.id}|$r"
-            val revKey = "$r|${cacheData.id}"
-            currentIds.add(fwdKey)
-            currentIds.add(revKey)
+              val fwdKey = "${cacheData.id}|$r"
+              val revKey = "$r|${cacheData.id}"
+              currentIds.add(fwdKey)
+              currentIds.add(revKey)
 
-            result.relationshipCount.incrementAndGet()
+              result.relationshipCount.incrementAndGet()
 
-            if (!oldFwdIds.contains(fwdKey)) {
-              newFwdRelPointers.getOrPut(relType) { mutableListOf() }
-                .add(RelPointer(cacheData.id, r, rels.key))
+              if (!oldFwdIds.contains(fwdKey)) {
+                newFwdRelPointers.getOrPut(relType) { mutableListOf() }
+                  .add(RelPointer(cacheData.id, r, rels.key))
+              }
+
+              if (!oldRevIds.containsKey(revKey)) {
+                newRevRelIds.add(revKey)
+              }
             }
-
-            if (!oldRevIds.containsKey(revKey)) {
-              newRevRelIds.add(revKey)
-            }
-          }
         }
       }
 
@@ -960,6 +1023,118 @@ class SqlCache(
     }
   }
 
+  private fun getDataWithoutRelationshipsByApp(type: String, application: String): DataWithRelationshipPointersResult {
+    val cacheData = mutableListOf<CacheData>()
+    val relPointers = mutableSetOf<RelPointer>()
+    var selectQueries = 0
+
+    try {
+      withRetry(RetryCategory.READ) {
+        cacheData.addAll(
+          jooq.select(field("body"))
+            .from(table(resourceTableName(type)))
+            .where(field("application").eq(application))
+            .fetch()
+            .getValues(0)
+            .asSequence()
+            .map { mapper.readValue(it as String, DefaultCacheData::class.java) }
+            .toList()
+        )
+      }
+      selectQueries += 1
+      return DataWithRelationshipPointersResult(cacheData, relPointers, selectQueries, false)
+
+    } catch (e: Exception) {
+      suppressedLog("Failed selecting resources of type $type for application $application", e)
+
+      cacheMetrics.get(
+        prefix = name,
+        type = type,
+        itemCount = 0,
+        requestedSize = -1,
+        relationshipsRequested = -1,
+        selectOperations = selectQueries,
+        async = wasAsync()
+      )
+
+      selectQueries = -1
+
+      return DataWithRelationshipPointersResult(mutableListOf(), mutableSetOf(), selectQueries, false)
+    }
+  }
+
+  private fun getDataWithRelationshipsByApp(type: String,
+                                            application: String,
+                                            relationshipPrefixes: List<String>): DataWithRelationshipPointersResult {
+
+    /*
+      select body, null as id, null as rel_id, null as rel_type from cats_v1_b_instances
+        where application = 'titusagent'
+          UNION ALL
+      select null as body, rel.id, rel.rel_id, rel.rel_type from cats_v1_b_instances as r
+        left join cats_v1_b_instances_rel as rel on rel.id=r.id where r.application = "titusagent"
+        group by rel.rel_id, rel.id, rel.rel_type;
+     */
+    val cacheData = mutableListOf<CacheData>()
+    val relPointers = mutableSetOf<RelPointer>()
+    var selectQueries = 0
+
+    val relWhere = getRelWhere(relationshipPrefixes, "r.application = \"$application\"")
+
+    try {
+      val resultSet = withRetry(RetryCategory.READ) {
+        jooq
+          .select(
+            field("body").`as`("body"),
+            field(sql("null")).`as`("id"),
+            field(sql("null")).`as`("rel_id"),
+            field(sql("null")).`as`("rel_type")
+          )
+          .from(table(resourceTableName(type)))
+          .where(field("application").eq(application))
+          .unionAll(
+            jooq.select(
+              field(sql("null")).`as`("body"),
+              field("rel.id").`as`("id"),
+              field("rel.rel_id").`as`("rel_id"),
+              field("rel.rel_type").`as`("rel_type")
+            )
+              .from(table(resourceTableName(type)).`as`("r"))
+              .innerJoin(table(relTableName(type)).`as`("rel"))
+              .on(sql("rel.id=r.id"))
+              .where(relWhere)
+              .groupBy(
+                field("rel_id"),
+                field("id"),
+                field("rel_type")
+              )
+          )
+          .fetch()
+          .intoResultSet()
+      }
+      parseCacheRelResultSet(type, resultSet, cacheData, relPointers)
+      selectQueries += 1
+      return DataWithRelationshipPointersResult(cacheData, relPointers, selectQueries, false)
+
+    } catch (e: Exception) {
+      suppressedLog("Failed selecting resources of type $type for application $application", e)
+
+      cacheMetrics.get(
+        prefix = name,
+        type = type,
+        itemCount = 0,
+        requestedSize = -1,
+        relationshipsRequested = -1,
+        selectOperations = selectQueries,
+        async = wasAsync()
+      )
+
+      selectQueries = -1
+
+      return DataWithRelationshipPointersResult(mutableListOf(), mutableSetOf(), selectQueries, false)
+    }
+  }
+
   private fun getDataWithRelationships(type: String,
                                        relationshipPrefixes: List<String>):
     DataWithRelationshipPointersResult {
@@ -989,6 +1164,9 @@ class SqlCache(
 
     try {
       if (ids.isEmpty()) {
+
+        val relWhere = getRelWhere(relationshipPrefixes)
+
         val resultSet = withRetry(RetryCategory.READ) {
           jooq
             .select(
@@ -1006,6 +1184,7 @@ class SqlCache(
                 field("rel_type").`as`("rel_type")
               )
                 .from(table(relTableName(type)))
+                .where(relWhere)
             )
             .fetch()
             .intoResultSet()
@@ -1081,12 +1260,7 @@ class SqlCache(
                                             ids: List<String>): ResultSet {
     val where = "ID in (${ids.joinToString(",") { "'$it'" }})"
 
-    val relWhere = if (relationshipPrefixes.isNotEmpty() && !relationshipPrefixes.contains("ALL")) {
-      where + "AND (rel_type LIKE " +
-        relationshipPrefixes.joinToString(" OR rel_type LIKE ") { "'$it%'" } + ")"
-    } else {
-      where
-    }
+    val relWhere = getRelWhere(relationshipPrefixes, where)
 
     return withRetry(RetryCategory.READ) {
       jooq
@@ -1248,6 +1422,26 @@ class SqlCache(
     return relationships
   }
 
+  private fun getRelWhere(relationshipPrefixes: List<String>, prefix: String? = null): String {
+    val relWhere: String = if (relationshipPrefixes.isNotEmpty() && !relationshipPrefixes.contains("ALL")) {
+      "(rel_type LIKE " +
+        relationshipPrefixes.joinToString(" OR rel_type LIKE ") { "'$it%'" } + ")"
+    } else if (prefix.isNullOrBlank()) {
+      "1=1"
+    } else {
+      ""
+    }
+
+    return if (prefix.isNullOrBlank()) {
+      relWhere
+    } else {
+      when(relWhere) {
+        "" -> prefix
+        else -> "$prefix AND $relWhere"
+      }
+    }
+  }
+
   private enum class RetryCategory {
     WRITE, READ
   }
@@ -1281,6 +1475,11 @@ class SqlCache(
       items > dynamicConfigService.getConfig(Int::class.java, "sql.cache.readBatchSize", 500) * 2
   }
 
+  @ExperimentalContracts
+  private fun asyncEnabled(): Boolean {
+    return dynamicConfigService.getConfig(Int::class.java, "sql.cache.maxQueryConcurrency", 4) > 1
+  }
+
   /**
    * Provides best-effort suppression of "table doesn't exist" exceptions which come up in large volume during initial
    * setup of a new SQL database. This isn't really an error we care to report, as the tables are created on-demand by
@@ -1301,6 +1500,10 @@ class SqlCache(
     if (suppressTableNotExistsException(e) != null) {
       log.error(message, e)
     }
+  }
+
+  private fun wasAsync(): Boolean {
+    return Thread.currentThread().name.startsWith(coroutineThreadPrefix)
   }
 
   // Assists with unit testing
@@ -1357,6 +1560,16 @@ fun CoroutineContext?.useAsync(size: Int, useAsync: (size: Int) -> Boolean): Boo
 
   return this != null && useAsync.invoke(size)
 }
+
+@ExperimentalContracts
+fun CoroutineContext?.useAsync(useAsync: () -> Boolean): Boolean {
+  contract {
+    returns(true) implies (this@useAsync is CoroutineContext)
+  }
+
+  return this != null && useAsync.invoke()
+}
+
 
 class CatsCoroutineScope(context: CoroutineContext) : CoroutineScope {
   override val coroutineContext = context

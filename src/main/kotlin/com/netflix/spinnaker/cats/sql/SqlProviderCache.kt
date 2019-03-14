@@ -1,10 +1,9 @@
 package com.netflix.spinnaker.cats.sql
 
 import com.netflix.spinnaker.cats.agent.CacheResult
-import com.netflix.spinnaker.cats.cache.CacheData
-import com.netflix.spinnaker.cats.cache.CacheFilter
-import com.netflix.spinnaker.cats.cache.DefaultCacheData
-import com.netflix.spinnaker.cats.cache.WriteableCache
+import com.netflix.spinnaker.cats.cache.*
+import com.netflix.spinnaker.cats.cache.Cache.StoreType
+import com.netflix.spinnaker.cats.cache.Cache.StoreType.SQL
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.cats.sql.cache.SqlCache
 import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.*
@@ -25,6 +24,8 @@ class SqlProviderCache(private val backingStore: WriteableCache) : ProviderCache
       throw IllegalStateException("SqlProviderCache must be wired with a SqlCache backingStore")
     }
   }
+
+  override fun storeType(): StoreType = SQL
 
   /**
    * Filters the supplied list of identifiers to only those that exist in the cache.
@@ -67,9 +68,29 @@ class SqlProviderCache(private val backingStore: WriteableCache) : ProviderCache
     return backingStore.getAll(type, cacheFilter)
   }
 
-  override fun getAll(type: String, identifiers: MutableCollection<String>?, cacheFilter: CacheFilter?): MutableCollection<CacheData> {
+  override fun getAll(type: String,
+                      identifiers: MutableCollection<String>?,
+                      cacheFilter: CacheFilter?): MutableCollection<CacheData> {
     validateTypes(type)
     return backingStore.getAll(type, identifiers, cacheFilter)
+  }
+
+  override fun getAllByApplication(type: String, application: String): Map<String, MutableCollection<CacheData>> {
+    return getAllByApplication(type, application, null)
+  }
+
+  override fun getAllByApplication(type: String,
+                                   application: String,
+                                   cacheFilter: CacheFilter?): Map<String, MutableCollection<CacheData>> {
+    validateTypes(type)
+    return backingStore.getAllByApplication(type, application, cacheFilter)
+  }
+
+  override fun getAllByApplication(types: Collection<String>,
+                                   application: String,
+                                   filters: Map<String, CacheFilter?>): Map<String, MutableCollection<CacheData>> {
+    validateTypes(types)
+    return backingStore.getAllByApplication(types, application, filters)
   }
 
   /**
@@ -256,7 +277,7 @@ class SqlProviderCache(private val backingStore: WriteableCache) : ProviderCache
     validateTypes(listOf(type))
   }
 
-  private fun validateTypes(types: List<String>) {
+  private fun validateTypes(types: Collection<String>) {
     val invalid = types
       .asSequence()
       .filter { it.contains(":") }

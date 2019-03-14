@@ -2,6 +2,7 @@ package com.netflix.spinnaker.cats.sql
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
+import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.cats.cache.WriteableCacheSpec
 import com.netflix.spinnaker.cats.sql.cache.SqlCache
 import com.netflix.spinnaker.cats.sql.cache.SqlCacheMetrics
@@ -9,6 +10,7 @@ import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import spock.lang.AutoCleanup
 import spock.lang.Shared
+import spock.lang.Unroll
 
 import java.time.Clock
 import java.time.Instant
@@ -66,6 +68,24 @@ class SqlCacheSpec extends WriteableCacheSpec {
     then:
     retrieved.size() == 10
     retrieved.findAll { it.id == "fnord-5" }.size() == 1
+  }
+
+  @Unroll
+  def 'generates where clause based on cacheFilters'() {
+    when:
+    def relPrefixes = ((SqlCache) cache).getRelationshipFilterPrefixes(filter)
+    def where = ((SqlCache) cache).getRelWhere(relPrefixes, queryPrefix)
+
+    then:
+    where == expected
+
+    where:
+    filter                                                 || queryPrefix      || expected
+    RelationshipCacheFilter.none()                         || "meowdy=partner" || "meowdy=partner"
+    null                                                   || "meowdy=partner" || "meowdy=partner"
+    RelationshipCacheFilter.include("instances", "images") || null             || "(rel_type LIKE 'instances%' OR rel_type LIKE 'images%')"
+    RelationshipCacheFilter.include("images")              || "meowdy=partner" || "meowdy=partner AND (rel_type LIKE 'images%')"
+    null                                                   || null             || "1=1"
   }
 
   @Override
