@@ -121,7 +121,7 @@ describe('<AccountSelectInput/>', () => {
 
   it('unselects nonexistent account', function() {
     let updatedVal: string = null;
-    const onChange = (evt: React.ChangeEvent<HTMLInputElement>) => (updatedVal = evt.target.value);
+    const onChange = (evt: React.ChangeEvent<any>) => (updatedVal = evt.target.value);
     component = shallow(
       <AccountSelectInput accounts={['prod', 'test']} provider={null} value="nonexistent" onChange={onChange} />,
     );
@@ -131,7 +131,7 @@ describe('<AccountSelectInput/>', () => {
   //
   it('does not unselect account if account is an expression', () => {
     let updatedVal: string = null;
-    const onChange = (evt: React.ChangeEvent<HTMLInputElement>) => (updatedVal = evt.target.value);
+    const onChange = (evt: React.ChangeEvent<any>) => (updatedVal = evt.target.value);
     component = shallow(
       <AccountSelectInput
         accounts={['prod', 'test']}

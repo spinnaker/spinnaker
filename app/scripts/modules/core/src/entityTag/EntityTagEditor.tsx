@@ -186,7 +186,7 @@ export class EntityTagEditor extends React.Component<IEntityTagEditorProps, IEnt
                     label="Applies To"
                     required={true}
                     value={values.ownerOption.label}
-                    onChange={evt => {
+                    onChange={(evt: any) => {
                       const option = ownerOptions.find(opt => opt.label === evt.target.value);
                       setFieldValue('ownerOption', option);
                     }}

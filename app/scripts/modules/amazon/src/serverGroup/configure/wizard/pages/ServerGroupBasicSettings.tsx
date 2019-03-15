@@ -211,7 +211,7 @@ export class ServerGroupBasicSettings
           <div className="col-md-7">
             <AccountSelectInput
               value={values.credentials}
-              onChange={evt => this.accountUpdated(evt.target.value)}
+              onChange={(evt: any) => this.accountUpdated(evt.target.value)}
               readOnly={readOnlyFields.credentials}
               accounts={accounts}
               provider="aws"

@@ -300,7 +300,7 @@ export class LoadBalancerLocation extends React.Component<ILoadBalancerLocationP
               <div className="col-md-7">
                 <AccountSelectInput
                   value={values.credentials}
-                  onChange={evt => this.accountUpdated(evt.target.value)}
+                  onChange={(evt: any) => this.accountUpdated(evt.target.value)}
                   accounts={accounts}
                   provider="aws"
                 />

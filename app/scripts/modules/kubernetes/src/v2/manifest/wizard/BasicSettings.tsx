@@ -31,7 +31,7 @@ export class ManifestBasicSettings extends React.Component<IManifestBasicSetting
           <div className="col-md-7">
             <AccountSelectInput
               value={formik.values.command.account}
-              onChange={evt => this.accountUpdated(evt.target.value)}
+              onChange={(evt: any) => this.accountUpdated(evt.target.value)}
               readOnly={false}
               accounts={accounts}
               provider="kubernetes"

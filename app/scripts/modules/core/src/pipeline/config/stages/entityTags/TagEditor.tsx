@@ -89,7 +89,7 @@ export class TagEditor extends React.Component<ITagEditorProps, ITagEditorState>
             <FormField
               input={TextInput}
               value={tag.namespace || ''}
-              onChange={event => this.tagValueChanged('namespace', event.target.value)}
+              onChange={(event: any) => this.tagValueChanged('namespace', event.target.value)}
             />
           </div>
         </div>
@@ -103,7 +103,7 @@ export class TagEditor extends React.Component<ITagEditorProps, ITagEditorState>
             <FormField
               input={TextInput}
               value={tag.name || ''}
-              onChange={event => this.tagValueChanged('name', event.target.value)}
+              onChange={(event: any) => this.tagValueChanged('name', event.target.value)}
             />
           </div>
         </div>
@@ -119,7 +119,7 @@ export class TagEditor extends React.Component<ITagEditorProps, ITagEditorState>
             <FormField
               input={TextInput}
               value={value || ''}
-              onChange={event => this.tagValueChanged('value', event.target.value)}
+              onChange={(event: any) => this.tagValueChanged('value', event.target.value)}
             />
           </div>
         </div>
@@ -130,7 +130,7 @@ export class TagEditor extends React.Component<ITagEditorProps, ITagEditorState>
             <FormField
               input={TextInput}
               value={tag.value.message || ''}
-              onChange={event => this.tagValueChanged('value.message', event.target.value)}
+              onChange={(event: any) => this.tagValueChanged('value.message', event.target.value)}
             />
           </div>
         </div>
@@ -146,7 +146,7 @@ export class TagEditor extends React.Component<ITagEditorProps, ITagEditorState>
                 <ReactSelectInput {...inputProps} options={typeOptions} clearable={false} className="full-width" />
               )}
               required={true}
-              onChange={e => this.handleTypeChanged(e.target.value)}
+              onChange={(e: any) => this.handleTypeChanged(e.target.value)}
               value={type}
             />
           </div>

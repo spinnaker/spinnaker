@@ -70,7 +70,7 @@ export class ProjectAttributes extends React.Component<IProjectAttributesProps, 
         <FormField
           input={inputProps => <TextInput {...inputProps} id="projectNameForDeletion" placeholder="Project Name" />}
           value={projectNameForDeletion || ''}
-          onChange={evt => this.setState({ projectNameForDeletion: evt.target.value })}
+          onChange={(evt: any) => this.setState({ projectNameForDeletion: evt.target.value })}
           validate={() => matchError && 'Project name does not match'}
           touched={projectNameForDeletion != null}
           required={true}
