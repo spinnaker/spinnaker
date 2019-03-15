@@ -21,6 +21,8 @@ export interface IStageArtifactSelectorProps {
 
   excludedArtifactIds?: string[];
   excludedArtifactTypePatterns?: RegExp[];
+
+  renderLabel?: (reactNode: React.ReactNode) => React.ReactNode;
 }
 
 export interface IStageArtifactSelectorState {
@@ -87,7 +89,7 @@ export class StageArtifactSelector extends React.Component<IStageArtifactSelecto
   };
 
   public render() {
-    const { pipeline, stage, expectedArtifactId, artifact, excludedArtifactIds } = this.props;
+    const { pipeline, stage, expectedArtifactId, artifact, excludedArtifactIds, renderLabel } = this.props;
     const expectedArtifacts = ExpectedArtifactService.getExpectedArtifactsAvailableToStage(stage, pipeline);
     const expectedArtifact = expectedArtifactId
       ? expectedArtifacts.find(a => a.id === expectedArtifactId)
@@ -106,19 +108,21 @@ export class StageArtifactSelector extends React.Component<IStageArtifactSelecto
       ),
     ];
 
+    const select = (
+      <Select
+        clearable={false}
+        options={options}
+        value={expectedArtifact}
+        optionRenderer={this.renderArtifact}
+        valueRenderer={this.renderArtifact}
+        onChange={this.onExpectedArtifactSelected}
+        placeholder="Select an artifact..."
+      />
+    );
+
     return (
       <>
-        <div className="sp-margin-m-bottom">
-          <Select
-            clearable={false}
-            options={options}
-            value={expectedArtifact}
-            optionRenderer={this.renderArtifact}
-            valueRenderer={this.renderArtifact}
-            onChange={this.onExpectedArtifactSelected}
-            placeholder="Select an artifact..."
-          />
-        </div>
+        <div className="sp-margin-m-bottom">{renderLabel ? renderLabel(select) : select}</div>
         {artifact && (
           <ArtifactEditor
             pipeline={pipeline}
