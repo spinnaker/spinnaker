@@ -135,6 +135,10 @@ public class AmazonImageTagger extends ImageTagger implements CloudProviderAware
    */
   @Override
   public boolean areImagesTagged(Collection<Image> targetImages, Collection<String> consideredStageRefIds, Stage stage) {
+    if (targetImages.stream().anyMatch(image -> image.imageName == null)) {
+      return false;
+    }
+
     Collection<MatchedImage> matchedImages = findImages(
       targetImages.stream().map(targetImage -> targetImage.imageName).collect(Collectors.toSet()),
       consideredStageRefIds,
