@@ -75,6 +75,18 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
 
         verifyZeroInteractions(callback)
       }
+
+      test("getting latest state throws an exception") {
+        expectThrows<NoSuchResourceUID> {
+          subject.lastKnownState(randomUID())
+        }
+      }
+
+      test("getting state history throws an exception") {
+        expectThrows<NoSuchResourceUID> {
+          subject.lastKnownState(randomUID())
+        }
+      }
     }
 
     context("a resource exists") {

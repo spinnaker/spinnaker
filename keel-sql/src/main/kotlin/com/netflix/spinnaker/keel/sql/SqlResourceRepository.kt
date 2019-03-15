@@ -157,7 +157,7 @@ class SqlResourceRepository(
         if (next()) {
           ResourceStateHistoryEntry(state, timestamp)
         } else {
-          throw IllegalStateException("No state found for resource $uid")
+          throw NoSuchResourceUID(uid)
         }
       }
 
@@ -178,6 +178,9 @@ class SqlResourceRepository(
           results.add(ResourceStateHistoryEntry(state, timestamp))
         }
         results
+      }
+      .apply {
+        if (isEmpty()) throw NoSuchResourceUID(uid)
       }
 
   override fun updateState(uid: UID, state: ResourceState) {

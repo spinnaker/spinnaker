@@ -95,12 +95,14 @@ class RedisResourceRepository(
   override fun lastKnownState(uid: UID): ResourceStateHistoryEntry =
     redisClient.withCommandsClient<ResourceStateHistoryEntry> { redis: JedisCommands ->
       redis.lindex(uid.stateKey, 0)
-        .let { objectMapper.readValue(it) }
+        ?.let { objectMapper.readValue<ResourceStateHistoryEntry>(it) }
+        ?: throw NoSuchResourceUID(uid)
     }
 
   override fun stateHistory(uid: UID): List<ResourceStateHistoryEntry> =
     redisClient.withCommandsClient<List<ResourceStateHistoryEntry>> { redis: JedisCommands ->
       redis.lrange(uid.stateKey, 0, -1)
+        .also { if (it.isEmpty()) throw NoSuchResourceUID(uid) }
         .map { objectMapper.readValue<ResourceStateHistoryEntry>(it) }
     }
 

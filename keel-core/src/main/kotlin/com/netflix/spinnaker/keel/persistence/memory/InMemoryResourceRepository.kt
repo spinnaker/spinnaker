@@ -77,10 +77,10 @@ class InMemoryResourceRepository(
   }
 
   override fun lastKnownState(uid: UID): ResourceStateHistoryEntry =
-    states.getValue(uid).first()
+    states[uid]?.first() ?: throw NoSuchResourceUID(uid)
 
   override fun stateHistory(uid: UID): List<ResourceStateHistoryEntry> =
-    states.getOrDefault(uid, emptyList<ResourceStateHistoryEntry>()) as List<ResourceStateHistoryEntry>
+    states[uid] ?: throw NoSuchResourceUID(uid)
 
   override fun updateState(uid: UID, state: ResourceState) {
     states.computeIfAbsent(uid) {
