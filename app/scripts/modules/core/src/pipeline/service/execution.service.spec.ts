@@ -451,9 +451,12 @@ describe('Service: executionService', () => {
 
   describe('waitUntilTriggeredPipelineAppears', () => {
     const applicationName = 'deck';
+    const pipelineName = 'pipeline';
     const application: Application = { name: applicationName, executions: { refresh: () => $q.when(null) } } as any;
     const eventId = 'abc';
-    const url = [SETTINGS.gateUrl, 'applications', 'deck', 'executions', 'search'].join('/') + '?eventId=abc';
+    const url =
+      [SETTINGS.gateUrl, 'applications', 'deck', 'executions', 'search'].join('/') +
+      '?eventId=abc&pipelineName=pipeline';
     const execution: any = {}; // Stub execution
 
     it('resolves when the pipeline exists', () => {
@@ -461,7 +464,9 @@ describe('Service: executionService', () => {
 
       $httpBackend.expectGET(url).respond(200, [execution]);
 
-      executionService.waitUntilTriggeredPipelineAppears(application, eventId).promise.then(() => (succeeded = true));
+      executionService
+        .waitUntilTriggeredPipelineAppears(application, pipelineName, eventId)
+        .promise.then(() => (succeeded = true));
 
       expect(succeeded).toBe(false);
 
@@ -474,7 +479,9 @@ describe('Service: executionService', () => {
 
       $httpBackend.expectGET(url).respond(200, []);
 
-      executionService.waitUntilTriggeredPipelineAppears(application, eventId).promise.then(() => (succeeded = true));
+      executionService
+        .waitUntilTriggeredPipelineAppears(application, pipelineName, eventId)
+        .promise.then(() => (succeeded = true));
 
       expect(succeeded).toBe(false);
 
@@ -487,7 +494,9 @@ describe('Service: executionService', () => {
 
       $httpBackend.expectGET(url).respond(200, []);
 
-      executionService.waitUntilTriggeredPipelineAppears(application, eventId).promise.then(() => (succeeded = true));
+      executionService
+        .waitUntilTriggeredPipelineAppears(application, pipelineName, eventId)
+        .promise.then(() => (succeeded = true));
 
       expect(succeeded).toBe(false);
 

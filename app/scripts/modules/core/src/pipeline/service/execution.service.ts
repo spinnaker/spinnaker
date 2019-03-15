@@ -120,9 +120,9 @@ export class ExecutionService {
       });
   }
 
-  public getExecutionByEventId(application: string, eventId: string): IPromise<IExecution> {
+  public getExecutionByEventId(application: string, pipelineName: string, eventId: string): IPromise<IExecution> {
     return API.all('applications', application, 'executions', 'search')
-      .get({ eventId })
+      .get({ pipelineName, eventId })
       .then((data: IExecution[]) => {
         if (data.length > 0) {
           const execution = data[0];
@@ -240,13 +240,17 @@ export class ExecutionService {
   public startAndMonitorPipeline(app: Application, pipeline: string, trigger: any): IPromise<IRetryablePromise<void>> {
     const { executionService } = ReactInjector;
     return PipelineConfigService.triggerPipeline(app.name, pipeline, trigger).then(triggerResult =>
-      executionService.waitUntilTriggeredPipelineAppears(app, triggerResult),
+      executionService.waitUntilTriggeredPipelineAppears(app, pipeline, triggerResult),
     );
   }
 
-  public waitUntilTriggeredPipelineAppears(application: Application, eventId: string): IRetryablePromise<any> {
+  public waitUntilTriggeredPipelineAppears(
+    application: Application,
+    pipelineName: string,
+    eventId: string,
+  ): IRetryablePromise<any> {
     const closure = () =>
-      this.getExecutionByEventId(application.name, eventId).then(() => application.executions.refresh());
+      this.getExecutionByEventId(application.name, pipelineName, eventId).then(() => application.executions.refresh());
     return retryablePromise(closure);
   }
 
