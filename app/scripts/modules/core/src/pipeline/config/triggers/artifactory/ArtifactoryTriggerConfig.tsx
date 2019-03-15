@@ -1,9 +1,9 @@
 import * as React from 'react';
 import Select, { Option } from 'react-select';
 
-import { ITriggerConfigProps } from '@spinnaker/core';
 import { IArtifactoryTrigger } from 'core/domain/ITrigger';
 import { ArtifactoryReaderService } from './artifactoryReader.service';
+import { ITriggerConfigProps } from '../ITriggerConfigProps';
 
 export interface IArtifactoryTriggerConfigProps extends ITriggerConfigProps {
   trigger: IArtifactoryTrigger;
@@ -32,17 +32,14 @@ export class ArtifactoryTriggerConfig extends React.Component<
     });
   }
 
-  private artifactorySearchNameChanged = (option: Option<string>) => {
-    const searchName = option.value;
-    Object.assign(this.props.trigger, { artifactorySearchName: searchName });
+  private onArtifactorySearchNameChanged = (option: Option<string>) => {
+    Object.assign(this.props.trigger, { artifactorySearchName: option.value });
     this.props.fieldUpdated();
-    this.setState({});
   };
 
   public render() {
-    const { trigger } = this.props;
     const { artifactorySearchNames } = this.state;
-    const { artifactorySearchName } = trigger;
+    const { artifactorySearchName } = this.props.trigger;
     return (
       <div className="sp-formItem">
         <div className="sp-formItem__left">
@@ -53,8 +50,8 @@ export class ArtifactoryTriggerConfig extends React.Component<
             <span className="field">
               <Select
                 value={artifactorySearchName}
-                placeholder="Select Artifactory name"
-                onChange={this.artifactorySearchNameChanged}
+                placeholder="Select Artifactory search name..."
+                onChange={this.onArtifactorySearchNameChanged}
                 options={artifactorySearchNames.map((name: string) => ({ label: name, value: name }))}
                 clearable={false}
               />

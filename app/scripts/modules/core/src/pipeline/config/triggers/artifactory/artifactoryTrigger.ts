@@ -1,5 +1,5 @@
+import { Registry } from 'core/registry';
 import { ArtifactoryTriggerConfig } from './ArtifactoryTriggerConfig';
-import { Registry } from '@spinnaker/core';
 
 Registry.pipeline.registerTrigger({
   label: 'Artifactory',
