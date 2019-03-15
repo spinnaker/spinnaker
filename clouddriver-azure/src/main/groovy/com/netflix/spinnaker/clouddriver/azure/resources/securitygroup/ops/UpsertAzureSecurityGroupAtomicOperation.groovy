@@ -74,7 +74,6 @@ class UpsertAzureSecurityGroupAtomicOperation implements AtomicOperation<Map> {
         AzureSecurityGroupResourceTemplate.getTemplate(description),
         resourceGroupName,
         description.region,
-        description.securityGroupName,
         "securityGroup",
         templateParamMap)
 

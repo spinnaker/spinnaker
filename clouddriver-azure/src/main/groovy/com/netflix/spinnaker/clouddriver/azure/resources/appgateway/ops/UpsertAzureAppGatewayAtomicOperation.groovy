@@ -91,7 +91,6 @@ class UpsertAzureAppGatewayAtomicOperation implements AtomicOperation<Map> {
           AzureAppGatewayResourceTemplate.getTemplate(description),
           resourceGroupName,
           description.region,
-          description.loadBalancerName,
           "appGateway")
 
         errList = AzureDeploymentOperation.checkDeploymentOperationStatus(task, BASE_PHASE, description.credentials, resourceGroupName, deployment.name())
@@ -168,7 +167,6 @@ class UpsertAzureAppGatewayAtomicOperation implements AtomicOperation<Map> {
           AzureAppGatewayResourceTemplate.getTemplate(description),
           resourceGroupName,
           description.region,
-          description.loadBalancerName,
           "appGateway")
 
         errList = AzureDeploymentOperation.checkDeploymentOperationStatus(task, BASE_PHASE, description.credentials, resourceGroupName, deployment.name())

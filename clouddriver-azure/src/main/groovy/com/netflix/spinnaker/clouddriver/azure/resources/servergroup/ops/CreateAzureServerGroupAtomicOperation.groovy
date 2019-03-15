@@ -211,7 +211,6 @@ class CreateAzureServerGroupAtomicOperation implements AtomicOperation<Map> {
           AzureServerGroupResourceTemplate.getTemplate(description),
           resourceGroupName,
           description.region,
-          description.name,
           "serverGroup",
           templateParameters)
 

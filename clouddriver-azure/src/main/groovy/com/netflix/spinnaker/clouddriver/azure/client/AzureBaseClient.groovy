@@ -46,13 +46,13 @@ public abstract class AzureBaseClient {
     mapper = new ObjectMapper().configure(SerializationFeature.INDENT_OUTPUT, true)
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
     this.userAgentApplicationName = userAgentAppName
-    this.azure = initialize(credentials, subscriptionId)
-    // TODO: set user agent
+    this.azure = initialize(credentials, subscriptionId, userAgentAppName)
   }
 
-  private Azure initialize(ApplicationTokenCredentials credentials, String subscriptionId) {
+  private Azure initialize(ApplicationTokenCredentials credentials, String subscriptionId, String userAgentAppName) {
     Azure.configure()
       .withLogLevel(LogLevel.NONE)
+      .withUserAgent(userAgentAppName)
       .authenticate(credentials)
       .withSubscription(subscriptionId)
   }
