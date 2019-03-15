@@ -90,6 +90,13 @@ export class CreateServiceInstanceDirectInput extends React.Component<
     });
   };
 
+  private updatableUpdated = (event: React.ChangeEvent<HTMLInputElement>) => {
+    this.props.onServiceChanged({
+      ...this.props.service,
+      updatable: event.target.checked,
+    });
+  };
+
   public render() {
     const { service } = this.props;
     const services = this.state.serviceNamesAndPlans.map(item => item.name);
@@ -126,6 +133,15 @@ export class CreateServiceInstanceDirectInput extends React.Component<
         </StageConfigField>
         <StageConfigField label="Parameters">
           <TextAreaInput className="form-control" onChange={this.parametersUpdated} value={service.parameters || ''} />
+        </StageConfigField>
+        <StageConfigField label="Updatable">
+          <input type="checkbox" checked={!!service.updatable} onChange={this.updatableUpdated} />
+          {!service.updatable && (
+            <div>
+              If a service instance with the name '{service.serviceInstanceName}' is already present then it will not be
+              updated, and the operation will succeed.
+            </div>
+          )}
         </StageConfigField>
       </div>
     );

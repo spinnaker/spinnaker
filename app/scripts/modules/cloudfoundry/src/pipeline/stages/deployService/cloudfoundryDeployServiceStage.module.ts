@@ -27,6 +27,10 @@ const sourceType = (manifest: ICloudFoundryServiceManifestSource, userProvided: 
   }
 };
 
+const sourceStruct = (manifest: ICloudFoundryServiceManifestSource) => {
+  return manifest.direct ? 'direct' : 'artifact';
+};
+
 PipelineConfigValidator.registerValidator(
   'requiredDeployServiceField',
   new class implements IStageOrTriggerValidator {
@@ -39,7 +43,7 @@ PipelineConfigValidator.registerValidator(
       if (sourceType(serviceInput, get(stage, 'userProvided')) !== validationConfig.manifestSource) {
         return null;
       }
-      const manifestSource: any = get(serviceInput, validationConfig.manifestSource);
+      const manifestSource: any = get(serviceInput, sourceStruct(serviceInput));
       const content: any = get(manifestSource, validationConfig.fieldName);
       const fieldLabel = validationConfig.fieldLabel || upperFirst(validationConfig.fieldName);
       return content ? null : `<strong>${fieldLabel}</strong> is a required field for the Deploy Service stage.`;
@@ -63,7 +67,8 @@ PipelineConfigValidator.registerValidator(
 
     private fieldIsValid(stage: IStage | ITrigger, config: IServiceFieldValidatorConfig): boolean {
       const serviceInput = get(stage, 'manifest');
-      const content: any = get(serviceInput, config.fieldName);
+      const manifestSource: any = get(serviceInput, sourceStruct(serviceInput));
+      const content: any = get(manifestSource, config.fieldName);
 
       if (!content) {
         return true;
@@ -129,7 +134,7 @@ Registry.pipeline.registerStage({
     {
       type: 'requiredDeployServiceField',
       manifestSource: 'artifact',
-      fieldName: 'account',
+      fieldName: 'artifactAccount',
       preventSave: true,
     } as IServiceFieldValidatorConfig,
     {

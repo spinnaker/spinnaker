@@ -10,78 +10,59 @@ import {
 
 interface ICreateServiceInstanceUserProvidedInputProps {
   onChange: (serviceInput: ICloudFoundryServiceManifestSource) => void;
-  serviceInput: ICloudFoundryServiceUserProvidedSource;
+  service: ICloudFoundryServiceUserProvidedSource;
+  onServiceChanged: (_: ICloudFoundryServiceUserProvidedSource) => void;
 }
 
-interface ICreateServiceInstanceUserProvidedInputState {
-  serviceInstanceName: string;
-  tags?: string[];
-  syslogDrainUrl?: string;
-  credentials?: string;
-  routeServiceUrl: string;
-}
-
-export class CreateUserProvidedInput extends React.Component<
-  ICreateServiceInstanceUserProvidedInputProps,
-  ICreateServiceInstanceUserProvidedInputState
-> {
+export class CreateUserProvidedInput extends React.Component<ICreateServiceInstanceUserProvidedInputProps> {
   constructor(props: ICreateServiceInstanceUserProvidedInputProps) {
     super(props);
-    const { serviceInput } = props;
-    this.state = { ...serviceInput };
   }
 
-  private serviceInstanceNameUpdated = (event: React.ChangeEvent<HTMLInputElement>): void => {
-    const serviceInstanceName = event.target.value;
-    const { onChange, serviceInput } = this.props;
-    this.setState({ serviceInstanceName });
-    onChange({
-      ...serviceInput,
-      serviceInstanceName,
-    } as ICloudFoundryServiceManifestSource);
+  private serviceInstanceNameUpdated = (event: React.ChangeEvent<HTMLInputElement>) => {
+    this.props.onServiceChanged({
+      ...this.props.service,
+      serviceInstanceName: event.target.value,
+    });
   };
 
   private syslogDrainUrlUpdated = (event: React.ChangeEvent<HTMLInputElement>): void => {
-    const syslogDrainUrl = event.target.value;
-    const { onChange, serviceInput } = this.props;
-    this.setState({ syslogDrainUrl });
-    onChange({
-      ...serviceInput,
-      syslogDrainUrl,
-    } as ICloudFoundryServiceManifestSource);
+    this.props.onServiceChanged({
+      ...this.props.service,
+      syslogDrainUrl: event.target.value,
+    });
   };
 
   private routeServiceUrlUpdated = (event: React.ChangeEvent<HTMLInputElement>): void => {
-    const routeServiceUrl = event.target.value;
-    const { onChange, serviceInput } = this.props;
-    this.setState({ routeServiceUrl });
-    onChange({
-      ...serviceInput,
-      routeServiceUrl,
-    } as ICloudFoundryServiceManifestSource);
+    this.props.onServiceChanged({
+      ...this.props.service,
+      routeServiceUrl: event.target.value,
+    });
   };
 
   private credentialsUpdated = (event: React.ChangeEvent<HTMLTextAreaElement>): void => {
-    const credentials = event.target.value;
-    const { onChange, serviceInput } = this.props;
-    this.setState({ credentials });
-    onChange({
-      ...serviceInput,
-      credentials,
-    } as ICloudFoundryServiceManifestSource);
+    this.props.onServiceChanged({
+      ...this.props.service,
+      credentials: event.target.value,
+    });
   };
 
   private tagsUpdated = (tags: string[]) => {
-    const { onChange, serviceInput } = this.props;
-    this.setState({ tags });
-    onChange({
-      ...serviceInput,
-      tags,
-    } as ICloudFoundryServiceManifestSource);
+    this.props.onServiceChanged({
+      ...this.props.service,
+      tags: tags,
+    });
+  };
+
+  private updatableUpdated = (event: React.ChangeEvent<HTMLInputElement>) => {
+    this.props.onServiceChanged({
+      ...this.props.service,
+      updatable: event.target.checked,
+    });
   };
 
   public render() {
-    const { serviceInstanceName, tags, syslogDrainUrl, credentials, routeServiceUrl } = this.state;
+    const { service } = this.props;
     return (
       <>
         <StageConfigField label="Service Instance Name">
@@ -89,20 +70,29 @@ export class CreateUserProvidedInput extends React.Component<
             type="text"
             className="form-control"
             onChange={this.serviceInstanceNameUpdated}
-            value={serviceInstanceName}
+            value={service.serviceInstanceName}
           />
         </StageConfigField>
         <StageConfigField label="Syslog Drain URL">
-          <TextInput onChange={this.syslogDrainUrlUpdated} value={syslogDrainUrl} />
+          <TextInput onChange={this.syslogDrainUrlUpdated} value={service.syslogDrainUrl} />
         </StageConfigField>
         <StageConfigField label="Resource Service URL">
-          <TextInput onChange={this.routeServiceUrlUpdated} value={routeServiceUrl} />
+          <TextInput onChange={this.routeServiceUrlUpdated} value={service.routeServiceUrl} />
         </StageConfigField>
         <StageConfigField label="Credentials">
-          <TextAreaInput onChange={this.credentialsUpdated} value={credentials} />
+          <TextAreaInput onChange={this.credentialsUpdated} value={service.credentials} />
         </StageConfigField>
         <StageConfigField label="Tags">
-          <ServiceTagsInput tags={tags} onChange={this.tagsUpdated} />
+          <ServiceTagsInput tags={service.tags || []} onChange={this.tagsUpdated} />
+        </StageConfigField>
+        <StageConfigField label="Updatable">
+          <input type="checkbox" checked={!!service.updatable} onChange={this.updatableUpdated} />
+          {!service.updatable && (
+            <div>
+              If a service instance with the name '{service.serviceInstanceName}' is already present then it will not be
+              updated, and the operation will succeed.
+            </div>
+          )}
         </StageConfigField>
       </>
     );

@@ -6,6 +6,7 @@ export interface ICloudfoundryServiceManifestDirectSource {
   serviceInstanceName: string;
   servicePlan: string;
   tags?: string[];
+  updatable: boolean;
 }
 
 export interface ICloudFoundryServiceUserProvidedSource {
@@ -14,6 +15,7 @@ export interface ICloudFoundryServiceUserProvidedSource {
   serviceInstanceName: string;
   syslogDrainUrl?: string;
   tags?: string[];
+  updatable: boolean;
 }
 
 export interface ICloudFoundryServiceManifestSource {
