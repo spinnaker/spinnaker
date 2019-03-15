@@ -67,6 +67,8 @@ module.exports = angular
           fileUris: null,
           commandToExecute: '',
         },
+        zonesEnabled: command.zonesEnabled,
+        zones: command.zonesEnabled ? command.zones : [],
       };
 
       if (typeof command.stack !== 'undefined') {

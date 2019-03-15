@@ -1,0 +1,21 @@
+<div class="form-group" ng-if="vm.command.region">
+  <div class="col-md-10">
+    <label ng-if="vm.command.backingData.filtered.zones && vm.command.backingData.filtered.zones.length !== 0">
+      <input type="checkbox" ng-model="vm.command.zonesEnabled" />
+      Set availability zones
+    </label>
+    <ui-select multiple ng-if="vm.command.zonesEnabled" ng-model="vm.command.zones" class="form-control input-sm">
+      <ui-select-match>{{ $item }}</ui-select-match>
+      <ui-select-choices repeat="zone as zone in vm.command.backingData.filtered.zones">
+        <span>{{ zone }}</span>
+      </ui-select-choices>
+    </ui-select>
+  </div>
+</div>
+<h5 class="text-center" ng-if="!vm.command.region">Please select a region.</h5>
+<h5
+  class="text-center"
+  ng-if="vm.command.region && !(vm.command.backingData.filtered.zones && vm.command.backingData.filtered.zones.length !== 0)"
+>
+  Current region does not support availability zones
+</h5>

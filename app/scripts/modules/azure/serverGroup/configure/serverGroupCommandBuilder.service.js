@@ -34,6 +34,8 @@ module.exports = angular
               sku: {
                 capacity: 1,
               },
+              zonesEnabled: false,
+              zones: [],
               selectedProvider: 'azure',
               viewState: {
                 instanceProfile: 'custom',

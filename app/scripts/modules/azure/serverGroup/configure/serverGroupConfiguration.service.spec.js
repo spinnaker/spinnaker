@@ -164,5 +164,46 @@ describe('Service: azureServerGroupConfiguration', function() {
       expect(this.command.backingData.filtered.securityGroups).toEqual([]);
       expect(this.command.viewState.securityGroupConfigured).toBeFalse;
     });
+
+    it('returns empty zone list if region is not supported', function() {
+      this.command.region = 'eastasia';
+      this.command.backingData.credentialsKeyedByAccount = {};
+      this.command.backingData.credentialsKeyedByAccount[this.command.credentials] = {
+        regionsSupportZones: [],
+        availabilityZones: ['1', '2', '3'],
+      };
+
+      service.configureZones(this.command);
+
+      expect(this.command.backingData.filtered.zones).toEqual([]);
+    });
+
+    it('returns actual zone list if region is supported', function() {
+      this.command.region = 'eastasia';
+      this.command.backingData.credentialsKeyedByAccount = {};
+      this.command.backingData.credentialsKeyedByAccount[this.command.credentials] = {
+        regionsSupportZones: ['eastasia'],
+        availabilityZones: ['1', '2', '3'],
+      };
+
+      service.configureZones(this.command);
+
+      expect(this.command.backingData.filtered.zones).toEqual(
+        this.command.backingData.credentialsKeyedByAccount[this.command.credentials].availabilityZones,
+      );
+    });
+
+    it('does not return zone list if region is not specified', function() {
+      this.command.region = null;
+      this.command.backingData.credentialsKeyedByAccount = {};
+      this.command.backingData.credentialsKeyedByAccount[this.command.credentials] = {
+        regionsSupportZones: ['eastasia'],
+        availabilityZones: ['1', '2', '3'],
+      };
+
+      service.configureZones(this.command);
+
+      expect(this.command.backingData.filtered.zones).toBeUndefined();
+    });
   });
 });

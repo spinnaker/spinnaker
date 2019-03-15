@@ -143,6 +143,22 @@ module.exports = angular
         return result;
       }
 
+      function configureZones(command) {
+        const result = { dirty: {} };
+        const filteredData = command.backingData.filtered;
+        if (!command.region) {
+          return result;
+        }
+        let { regionsSupportZones, availabilityZones } = command.backingData.credentialsKeyedByAccount[
+          command.credentials
+        ];
+        regionsSupportZones = regionsSupportZones || [];
+        availabilityZones = availabilityZones || [];
+        filteredData.zones = regionsSupportZones.includes(command.region) ? availabilityZones : [];
+
+        return result;
+      }
+
       function getRegionalSecurityGroups(command) {
         var newSecurityGroups = command.backingData.securityGroups[command.credentials] || {
           azure: {},
@@ -252,6 +268,7 @@ module.exports = angular
             angular.extend(result.dirty, configureLoadBalancers(command).dirty);
             angular.extend(result.dirty, configureSecurityGroupOptions(command).dirty);
             angular.extend(result.dirty, configureInstanceTypes(command).dirty);
+            angular.extend(result.dirty, configureZones(command).dirty);
           }
           // reset previous set values
           if (!isInit) {
@@ -265,6 +282,8 @@ module.exports = angular
             command.viewState.networkSettingsConfigured = false;
             command.selectedSecurityGroup = null;
             command.securityGroupName = null;
+            command.zonesEnabled = false;
+            command.zones = [];
           }
 
           return result;
@@ -323,6 +342,7 @@ module.exports = angular
         refreshSecurityGroups: refreshSecurityGroups,
         getRegionalSecurityGroups: getRegionalSecurityGroups,
         refreshInstanceTypes: refreshInstanceTypes,
+        configureZones: configureZones,
       };
     },
   ]);
