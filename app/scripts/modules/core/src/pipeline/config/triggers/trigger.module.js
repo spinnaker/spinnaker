@@ -4,6 +4,7 @@ const angular = require('angular');
 
 import { RUN_AS_USER_SELECTOR_COMPONENT } from './runAsUserSelector.component';
 import './artifactory/artifactoryTrigger';
+import './concourse/concourseTrigger';
 import { TRAVIS_TRIGGER } from './travis/travisTrigger.module';
 import { WERCKER_TRIGGER } from './wercker/werckerTrigger.module';
 import { GIT_TRIGGER } from './git/git.trigger';

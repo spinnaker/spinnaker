@@ -226,6 +226,6 @@ window.spinnakerSettings = {
     },
   },
   pubsubProviders: ['google'], // TODO(joonlim): Add amazon once it is confirmed that amazon pub/sub works.
-  triggerTypes: ['cron', 'docker', 'git', 'jenkins', 'pipeline', 'pubsub', 'travis', 'webhook', 'wercker'],
+  triggerTypes: ['concourse', 'cron', 'docker', 'git', 'jenkins', 'pipeline', 'pubsub', 'travis', 'webhook', 'wercker'],
   version: version,
 };
