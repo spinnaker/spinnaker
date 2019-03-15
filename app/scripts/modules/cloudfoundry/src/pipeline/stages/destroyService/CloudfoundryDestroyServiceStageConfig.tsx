@@ -6,11 +6,7 @@ import { AccountService, IAccount, IRegion, IStageConfigProps, StageConfigField 
 
 export interface ICloudfoundryDestroyServiceStageConfigState {
   accounts: IAccount[];
-  cloudProvider: string;
-  credentials: string;
-  region: string;
   regions: IRegion[];
-  serviceInstanceName: string;
 }
 
 export class CloudfoundryDestroyServiceStageConfig extends React.Component<
@@ -22,52 +18,43 @@ export class CloudfoundryDestroyServiceStageConfig extends React.Component<
     props.stage.cloudProvider = 'cloudfoundry';
     this.state = {
       accounts: [],
-      cloudProvider: 'cloudfoundry',
-      credentials: props.stage.credentials,
-      region: props.stage.region,
       regions: [],
-      serviceInstanceName: props.stage.serviceInstanceName,
     };
   }
 
-  public componentDidMount = (): void => {
-    AccountService.listAccounts('cloudfoundry').then(accounts => {
-      this.setState({ accounts: accounts });
-      const { credentials } = this.props.stage;
-      if (credentials) {
+  public componentDidMount = () => {
+    AccountService.listAccounts('cloudfoundry').then((accounts: IAccount[]) => {
+      this.setState({ accounts });
+      if (this.props.stage.credentials) {
         this.clearAndReloadRegions();
       }
     });
-    this.props.stageFieldUpdated();
   };
 
-  private clearAndReloadRegions = (): void => {
+  private clearAndReloadRegions = () => {
     this.setState({ regions: [] });
-    AccountService.getRegionsForAccount(this.props.stage.credentials).then(regions => this.setState({ regions }));
+    AccountService.getRegionsForAccount(this.props.stage.credentials).then((regions: IRegion[]) =>
+      this.setState({ regions }),
+    );
   };
 
-  private accountUpdated = (option: Option<string>): void => {
+  private accountUpdated = (option: Option<string>) => {
     const credentials = option.value;
-    this.props.stage.credentials = credentials;
-    this.props.stage.region = '';
-    this.props.stageFieldUpdated();
+    this.props.updateStageField({
+      credentials,
+      region: '',
+    });
     if (credentials) {
       this.clearAndReloadRegions();
     }
   };
 
-  private regionUpdated = (option: Option<string>): void => {
-    const region = option.value;
-    this.setState({ region });
-    this.props.stage.region = region;
-    this.props.stageFieldUpdated();
+  private regionUpdated = (option: Option<string>) => {
+    this.props.updateStageField({ region: option.value });
   };
 
-  private serviceInstanceNameUpdated = (event: React.ChangeEvent<HTMLInputElement>): void => {
-    const serviceInstanceName = event.target.value;
-    this.setState({ serviceInstanceName });
-    this.props.stage.serviceInstanceName = serviceInstanceName;
-    this.props.stageFieldUpdated();
+  private serviceInstanceNameUpdated = (event: React.ChangeEvent<HTMLInputElement>) => {
+    this.props.updateStageField({ serviceInstanceName: event.target.value });
   };
 
   public render() {
