@@ -54,6 +54,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.google.common.collect.Maps.filterValues;
 import static com.netflix.spinnaker.orca.ExecutionStatus.BUFFERED;
@@ -80,23 +81,6 @@ public class RedisExecutionRepository implements ExecutionRepository {
   private static final TypeReference<List<SystemNotification>> LIST_OF_SYSTEM_NOTIFICATIONS =
     new TypeReference<List<SystemNotification>>() {
     };
-
-  private static String GET_EXECUTIONS_FOR_PIPELINE_CONFIG_IDS_SCRIPT = String.join("\n",
-    "local executions = {}",
-      "for k,pipelineConfigId in pairs(KEYS) do",
-      " local pipelineConfigToExecutionsKey = 'pipeline:executions:' .. pipelineConfigId",
-      " local ids = redis.call('ZRANGEBYSCORE', pipelineConfigToExecutionsKey, ARGV[1], ARGV[2])",
-      " for k,id in pairs(ids) do",
-      "  table.insert(executions, id)",
-      "  local executionKey = 'pipeline:' .. id",
-      "  local execution = redis.call('HGETALL', executionKey)",
-      "  table.insert(executions, execution)",
-      "  local stageIdsKey = executionKey .. ':stageIndex'",
-      "  local stageIds = redis.call('LRANGE', stageIdsKey, 0, -1)",
-      "  table.insert(executions, stageIds)",
-      " end",
-      "end",
-      "return executions");
 
   private final RedisClientDelegate redisClientDelegate;
   private final Optional<RedisClientDelegate> previousRedisClientDelegate;
@@ -1015,47 +999,61 @@ public class RedisExecutionRepository implements ExecutionRepository {
     });
   }
 
-  private List<Execution> getPipelinesForPipelineConfigIdsBetweenBuildTimeBoundaryFromRedis(RedisClientDelegate redisClientDelegate, List<String> pipelineConfigIds, long buildTimeStartBoundary, long buildTimeEndBoundary) {
-    List<Execution> executions = new ArrayList<>();
-
-    redisClientDelegate.withScriptingClient(c -> {
-      Object response = c.eval(GET_EXECUTIONS_FOR_PIPELINE_CONFIG_IDS_SCRIPT, pipelineConfigIds, Arrays.asList(Long.toString(buildTimeStartBoundary), Long.toString(buildTimeEndBoundary)));
-      /*
-       *
-       * Response of eval script is in this format:
-       *
-       * For N executions,
-       *
-       *                          Type
-       * [
-       *   for(i = 0; i < N; i++)
-       *     execution ID         String
-       *     execution hash       List<String>
-       *     stage IDs            List<String>
-       * ]
-       */
-      List lists = (List) response;
-
-      int i = 0;
-      while (i < lists.size()) {
-        String id = (String) lists.get(i);
-        i++;
-
-        final Map<String, String> map = buildExecutionMapFromRedisResponse((List<String>) lists.get(i));
-        i++;
-
-        final List<String> stageIds = (List<String>) lists.get(i);
-        i++;
-
-        if (stageIds.isEmpty()) {
-          stageIds.addAll(extractStages(map));
-        }
-
-        Execution execution = new Execution(PIPELINE, id, map.get("application"));
-        executions.add(buildExecution(execution, map, stageIds));
-      }
+  /**
+   *
+   * Unpacks the following redis script into several roundtrips:
+   *
+   * local pipelineConfigToExecutionsKey = 'pipeline:executions:' .. pipelineConfigId
+   * local ids = redis.call('ZRANGEBYSCORE', pipelineConfigToExecutionsKey, ARGV[1], ARGV[2])
+   * for k,id in pairs(ids) do
+   *   table.insert(executions, id)
+   *   local executionKey = 'pipeline:' .. id
+   *   local execution = redis.call('HGETALL', executionKey)
+   *   table.insert(executions, execution)
+   *   local stageIdsKey = executionKey .. ':stageIndex'
+   *   local stageIds = redis.call('LRANGE', stageIdsKey, 0, -1)
+   *   table.insert(executions, stageIds)
+   * end
+   *
+   * The script is intended to build a list of executions for a pipeline config id in a given time boundary.
+   *
+   * @param delegate Redis delegate
+   * @param pipelineConfigId Pipeline config Id we are looking up executions for
+   * @param buildTimeStartBoundary
+   * @param buildTimeEndBoundary
+   * @return Stream of executions for pipelineConfigId between the time boundaries.
+   */
+  private Stream<Execution> getExecutionForPipelineConfigId(RedisClientDelegate delegate,
+                                                            String pipelineConfigId,
+                                                            Long buildTimeStartBoundary,
+                                                            Long buildTimeEndBoundary) {
+    String executionsKey = executionsByPipelineKey(pipelineConfigId);
+    Set<String> executionIds = delegate.withCommandsClient(c -> {
+      return c.zrangeByScore(executionsKey, buildTimeStartBoundary, buildTimeEndBoundary);
     });
-    return executions;
+
+    return executionIds.stream()
+        .map(executionId -> {
+          String executionKey = pipelineKey(executionId);
+          Map<String, String> executionMap = delegate.withCommandsClient(c -> {
+            return c.hgetAll(executionKey);
+          });
+          String stageIdsKey = String.format("%s:stageIndex", executionKey);
+          List<String> stageIds = delegate.withCommandsClient(c -> {
+            return c.lrange(stageIdsKey, 0, -1);
+          });
+          Execution execution = new Execution(PIPELINE, executionId, executionMap.get("application"));
+          return buildExecution(execution, executionMap, stageIds);
+        });
+  }
+
+  private List<Execution> getPipelinesForPipelineConfigIdsBetweenBuildTimeBoundaryFromRedis(RedisClientDelegate redisClientDelegate,
+                                                                                            List<String> pipelineConfigIds,
+                                                                                            long buildTimeStartBoundary,
+                                                                                            long buildTimeEndBoundary) {
+    return pipelineConfigIds.stream()
+        .flatMap(pipelineConfigId -> getExecutionForPipelineConfigId(redisClientDelegate, pipelineConfigId, buildTimeStartBoundary, buildTimeEndBoundary))
+        .collect(Collectors.toList());
   }
 
   protected Observable<Execution> all(ExecutionType type, RedisClientDelegate redisClientDelegate) {
