@@ -101,6 +101,6 @@ public class BuildInfoService {
   }
 
   private <T> T retry(Supplier<T> supplier) {
-    return retrySupport.retry(supplier, 5, 1000, true);
+    return retrySupport.retry(supplier, 5, 2000, false);
   }
 }
