@@ -73,6 +73,7 @@ public final class AtomicOperations {
   // Snapshot operations
   public static final String SAVE_SNAPSHOT = "saveSnapshot";
   public static final String RESTORE_SNAPSHOT = "restoreSnapshot";
+  public static final String DELETE_SNAPSHOT = "deleteSnapshot";
 
   // Manifest operations
   public static final String DEPLOY_MANIFEST = "deployManifest";
