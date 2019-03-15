@@ -79,7 +79,7 @@ class RedisResourceRepository(
       redis.hmset(resource.metadata.uid.key, resource.toHash())
       redis.sadd(INDEX_SET, resource.metadata.uid.toString())
       redis.hset(NAME_TO_UID_HASH, resource.metadata.name.value, resource.metadata.uid.toString())
-      redis.zadd(resource.metadata.uid.stateKey, timestamp(), Unknown.name)
+      redis.lpush(resource.metadata.uid.stateKey, objectMapper.writeValueAsString(Unknown to timestamp()))
     }
   }
 
@@ -94,15 +94,27 @@ class RedisResourceRepository(
 
   override fun lastKnownState(uid: UID): Pair<ResourceState, Instant> =
     redisClient.withCommandsClient<Pair<ResourceState, Instant>> { redis: JedisCommands ->
-      redis.zrevrangeByScoreWithScores(uid.stateKey, Double.MAX_VALUE, 0.0, 0, 1)
-        .asSequence()
-        .map { ResourceState.valueOf(it.element) to Instant.ofEpochMilli(it.score.toLong()) }
-        .first()
+      redis.lindex(uid.stateKey, 0)
+        .let { objectMapper.readValue(it) }
+    }
+
+  override fun stateHistory(uid: UID): List<Pair<ResourceState, Instant>> =
+    redisClient.withCommandsClient<List<Pair<ResourceState, Instant>>> { redis: JedisCommands ->
+      redis.lrange(uid.stateKey, 0, -1)
+        .map { objectMapper.readValue<Pair<ResourceState, Instant>>(it) }
     }
 
   override fun updateState(uid: UID, state: ResourceState) {
-    redisClient.withCommandsClient<Long> { redis: JedisCommands ->
-      redis.zadd(uid.stateKey, timestamp(), state.name)
+    redisClient.withCommandsClient<Unit> { redis: JedisCommands ->
+      // TODO: probably not super thread safe
+      redis.lindex(uid.stateKey, 0)
+        .let { objectMapper.readValue<Pair<ResourceState, Instant>>(it) }
+        .first
+        .also {
+          if (it != state) {
+            redis.lpush(uid.stateKey, objectMapper.writeValueAsString(state.name to timestamp()))
+          }
+        }
     }
   }
 

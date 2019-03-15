@@ -35,6 +35,7 @@ import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import strikt.api.expectThat
 import strikt.api.expectThrows
+import strikt.assertions.containsExactly
 import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.first
 import strikt.assertions.hasSize
@@ -176,6 +177,13 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
             .isEqualTo(Ok)
         }
 
+        test("the new state is included in the history") {
+          expectThat(subject.stateHistory(resource.metadata.uid))
+            .hasSize(2)
+            .map { it.first }
+            .containsExactly(Ok, Unknown)
+        }
+
         context("updating the state again") {
           before {
             clock.incrementBy(ONE_SECOND)
@@ -186,6 +194,27 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
             expectThat(subject.lastKnownState(resource.metadata.uid))
               .first
               .isEqualTo(Diff)
+          }
+
+          test("the new state is included in the history") {
+            expectThat(subject.stateHistory(resource.metadata.uid))
+              .hasSize(3)
+              .map { it.first }
+              .containsExactly(Diff, Ok, Unknown)
+          }
+        }
+
+        context("updating the state with the same value") {
+          before {
+            clock.incrementBy(ONE_SECOND)
+            subject.updateState(resource.metadata.uid, Ok)
+          }
+
+          test("the new state is not added to the history") {
+            expectThat(subject.stateHistory(resource.metadata.uid))
+              .hasSize(2)
+              .map { it.first }
+              .containsExactly(Ok, Unknown)
           }
         }
 
@@ -201,6 +230,13 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
             expectThat(subject.lastKnownState(resource.metadata.uid))
               .first
               .isEqualTo(Unknown)
+          }
+
+          test("the history shows the reversion to unknown state") {
+            expectThat(subject.stateHistory(resource.metadata.uid))
+              .hasSize(3)
+              .map { it.first }
+              .containsExactly(Unknown, Ok, Unknown)
           }
         }
       }

@@ -78,6 +78,8 @@ interface ResourceRepository {
    */
   fun lastKnownState(uid: UID): Pair<ResourceState, Instant>
 
+  fun stateHistory(uid: UID): List<Pair<ResourceState, Instant>> // TODO: proper type
+
   /**
    * Updates the last known state of the resource represented by [uid].
    */

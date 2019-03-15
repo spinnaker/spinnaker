@@ -32,7 +32,7 @@ class InMemoryResourceRepository(
   private val clock: Clock = Clock.systemDefaultZone()
 ) : ResourceRepository {
   private val resources = mutableMapOf<UID, Resource<*>>()
-  private val states = mutableMapOf<UID, Pair<ResourceState, Instant>>()
+  private val states = mutableMapOf<UID, MutableList<Pair<ResourceState, Instant>>>()
 
   override fun allResources(callback: (ResourceHeader) -> Unit) {
     resources.values.forEach {
@@ -61,7 +61,7 @@ class InMemoryResourceRepository(
 
   override fun store(resource: Resource<*>) {
     resources[resource.metadata.uid] = resource
-    states[resource.metadata.uid] = Unknown to clock.instant()
+    updateState(resource.metadata.uid, Unknown)
   }
 
   override fun delete(name: ResourceName) {
@@ -77,14 +77,23 @@ class InMemoryResourceRepository(
   }
 
   override fun lastKnownState(uid: UID): Pair<ResourceState, Instant> =
-    states[uid] ?: (Unknown to clock.instant())
+    states.getValue(uid).first()
+
+  override fun stateHistory(uid: UID): List<Pair<ResourceState, Instant>> =
+    states.getOrDefault(uid, emptyList())
 
   override fun updateState(uid: UID, state: ResourceState) {
-    states[uid] = state to clock.instant()
+    states.computeIfAbsent(uid) {
+      mutableListOf()
+    }
+      .let {
+        if (it.firstOrNull()?.first != state) {
+          it.add(0, state to clock.instant())
+        }
+      }
   }
 
   fun dropAll() {
     resources.clear()
   }
 }
-

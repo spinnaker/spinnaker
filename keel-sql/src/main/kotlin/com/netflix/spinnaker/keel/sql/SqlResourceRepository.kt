@@ -160,22 +160,58 @@ class SqlResourceRepository(
         }
       }
 
+  override fun stateHistory(uid: UID): List<Pair<ResourceState, Instant>> =
+    jooq
+      .select(
+        field("state"),
+        field("timestamp")
+      )
+      .from(RESOURCE_STATE)
+      .where(field("uid").eq(uid.toString()))
+      .orderBy(field("timestamp").desc())
+      .fetch()
+      .intoResultSet()
+      .run {
+        val results = mutableListOf<Pair<ResourceState, Instant>>()
+        while (next()) {
+          results.add(state to timestamp)
+        }
+        results
+      }
+
   override fun updateState(uid: UID, state: ResourceState) {
+    // TODO: long term it may make more sense to use 2 tables
+    // one storing the "latest" state and one storing the full
+    // history. Can then do a single tx.
     jooq.inTransaction {
-      insertInto(RESOURCE_STATE)
-        .columns(
-          field("uid"),
-          field("state"),
-          field("timestamp"),
-          field("instance_id")
+      select(
+        field("state")
+      )
+        .from(RESOURCE_STATE)
+        .where(
+          field("uid").eq(uid.toString())
         )
-        .values(
-          uid.toString(),
-          state.name,
-          clock.instant().let(Timestamp::from),
-          instanceIdSupplier.get()
-        )
-        .execute()
+        .orderBy(field("timestamp").desc())
+        .limit(1)
+        .forUpdate()
+        .fetch()
+        .intoResultSet()
+        .apply {
+          if (!next() || getString("state") != state.name) {
+            insertInto(RESOURCE_STATE)
+              .columns(
+                field("uid"),
+                field("state"),
+                field("timestamp")
+              )
+              .values(
+                uid.toString(),
+                state.name,
+                clock.instant().let(Timestamp::from)
+              )
+              .execute()
+          }
+        }
     }
   }
 
