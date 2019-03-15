@@ -95,6 +95,7 @@ public class DeployCloudFoundryServiceAtomicOperationConverter extends AbstractC
     attrs.setServiceInstanceName(manifest.getServiceInstanceName());
     attrs.setServicePlan(manifest.getServicePlan());
     attrs.setTags(manifest.getTags());
+    attrs.setUpdatable(manifest.isUpdatable());
     attrs.setParameterMap(parseParameters(manifest.getParameters()));
     return attrs;
   }
@@ -111,6 +112,7 @@ public class DeployCloudFoundryServiceAtomicOperationConverter extends AbstractC
     attrs.setSyslogDrainUrl(manifest.getSyslogDrainUrl());
     attrs.setRouteServiceUrl(manifest.getRouteServiceUrl());
     attrs.setTags(manifest.getTags());
+    attrs.setUpdatable(manifest.isUpdatable());
     attrs.setCredentials(parseParameters(manifest.getCredentials()));
     return attrs;
   }
@@ -131,6 +133,7 @@ public class DeployCloudFoundryServiceAtomicOperationConverter extends AbstractC
   @Data
   private static class ServiceManifest {
     private String service;
+    private boolean updatable = true;
 
     @JsonAlias("service_instance_name")
     private String serviceInstanceName;
@@ -147,6 +150,8 @@ public class DeployCloudFoundryServiceAtomicOperationConverter extends AbstractC
 
   @Data
   private static class UserProvidedServiceManifest {
+    private boolean updatable = true;
+
     @JsonAlias("service_instance_name")
     private String serviceInstanceName;
 

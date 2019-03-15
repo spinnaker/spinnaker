@@ -30,6 +30,7 @@ import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Las
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.atIndex;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Mockito.when;
 
 class DeployCloudFoundryServiceAtomicOperationTest extends AbstractCloudFoundryAtomicOperationTest {
@@ -48,7 +49,7 @@ class DeployCloudFoundryServiceAtomicOperationTest extends AbstractCloudFoundryA
       .setServiceInstanceName("some-service-name")
       .setType(UPDATE)
       .setState(IN_PROGRESS);
-    when(client.getServiceInstances().createServiceInstance(any(), any(), any(), any(), any(), any()))
+    when(client.getServiceInstances().createServiceInstance(any(), any(), any(), any(), any(), anyBoolean(), any()))
       .thenReturn(serviceInstanceResponse);
 
     DeployCloudFoundryServiceAtomicOperation op = new DeployCloudFoundryServiceAtomicOperation(desc);
@@ -76,7 +77,7 @@ class DeployCloudFoundryServiceAtomicOperationTest extends AbstractCloudFoundryA
       .setServiceInstanceName("some-up-service-name")
       .setType(CREATE)
       .setState(SUCCEEDED);
-    when(client.getServiceInstances().createUserProvidedServiceInstance(any(), any(), any(), any(), any(), any()))
+    when(client.getServiceInstances().createUserProvidedServiceInstance(any(), any(), any(), any(), any(), anyBoolean(), any()))
       .thenReturn(serviceInstanceResponse);
 
     DeployCloudFoundryServiceAtomicOperation op = new DeployCloudFoundryServiceAtomicOperation(desc);

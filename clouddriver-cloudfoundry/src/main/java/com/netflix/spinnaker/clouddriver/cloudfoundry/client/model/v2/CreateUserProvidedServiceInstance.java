@@ -27,8 +27,6 @@ import java.util.Map;
 @EqualsAndHashCode(callSuper = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class CreateUserProvidedServiceInstance extends AbstractCreateServiceInstance {
-  private String spaceGuid;
-
   @Nullable
   private String syslogDrainUrl;
 

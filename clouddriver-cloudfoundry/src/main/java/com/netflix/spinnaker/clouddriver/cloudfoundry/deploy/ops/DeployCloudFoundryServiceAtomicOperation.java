@@ -53,6 +53,7 @@ public class DeployCloudFoundryServiceAtomicOperation implements AtomicOperation
           serviceAttributes.getServicePlan(),
           serviceAttributes.getTags(),
           serviceAttributes.getParameterMap(),
+          serviceAttributes.isUpdatable(),
           description.getSpace());
       String gerund = serviceInstanceResponse.getType() == UPDATE
         ? "Updating"
@@ -71,6 +72,7 @@ public class DeployCloudFoundryServiceAtomicOperation implements AtomicOperation
           userProvidedServiceAttributes.getTags(),
           userProvidedServiceAttributes.getCredentials(),
           userProvidedServiceAttributes.getRouteServiceUrl(),
+          userProvidedServiceAttributes.isUpdatable(),
           description.getSpace());
       String verb = serviceInstanceResponse.getType() == UPDATE
         ? "Updated"

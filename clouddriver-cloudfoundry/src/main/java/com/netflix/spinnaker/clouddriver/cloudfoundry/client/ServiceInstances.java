@@ -49,7 +49,6 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 
 @RequiredArgsConstructor
 public class ServiceInstances {
-  private static final String SPINNAKER_VERSION_V_D_3 = "spinnakerVersion-v\\d{3}";
   private final ServiceInstanceService api;
   private final ConfigService configApi;
   private final Organizations orgs;
@@ -355,6 +354,7 @@ public class ServiceInstances {
     String servicePlanName,
     Set<String> tags,
     Map<String, Object> parameters,
+    boolean updatable,
     CloudFoundrySpace space) {
     List<CloudFoundryServicePlan> cloudFoundryServicePlans = findAllServicePlansByServiceName(serviceName);
     if (cloudFoundryServicePlans.isEmpty()) {
@@ -378,16 +378,18 @@ public class ServiceInstances {
       command,
       api::createServiceInstance,
       api::updateServiceInstance,
+      api::all,
       c -> getOsbServiceInstance(space, c.getName()),
       (c, r) -> {
         if (!r.getPlanId().equals(c.getServicePlanGuid())) {
           throw new CloudFoundryApiException("A service with name '" + c.getName() + "' exists but has a different plan");
         }
       },
+      updatable,
       space
     );
 
-    response.setState(IN_PROGRESS);
+    response.setState(updatable ? IN_PROGRESS : SUCCEEDED);
     return response;
   }
 
@@ -397,6 +399,7 @@ public class ServiceInstances {
     Set<String> tags,
     Map<String, Object> credentials,
     String routeServiceUrl,
+    boolean updatable,
     CloudFoundrySpace space) {
     CreateUserProvidedServiceInstance command = new CreateUserProvidedServiceInstance();
     command.setName(newUserProvidedServiceInstanceName);
@@ -410,9 +413,11 @@ public class ServiceInstances {
       command,
       api::createUserProvidedServiceInstance,
       api::updateUserProvidedServiceInstance,
+      api::allUserProvided,
       c -> getUserProvidedServiceInstance(space, c.getName()),
       (c, r) -> {
       },
+      updatable,
       space
     );
 
@@ -425,46 +430,32 @@ public class ServiceInstances {
   createServiceInstance(T command,
                         Function<T, Resource<S>> create,
                         BiFunction<String, T, Resource<S>> update,
+                        BiFunction<Integer, List<String>, Page<S>> getAllServices,
                         Function<T, CloudFoundryServiceInstance> getServiceInstance,
                         BiConsumer<T, CloudFoundryServiceInstance> updateValidation,
+                        boolean updatable,
                         CloudFoundrySpace space) {
     LastOperation.Type operationType;
     List<String> serviceInstanceQuery = getServiceQueryParams(Collections.singletonList(command.getName()), space);
     List<Resource<? extends AbstractServiceInstance>> serviceInstances = new ArrayList<>();
-    serviceInstances.addAll(collectPageResources("service instances", pg -> api.all(pg, serviceInstanceQuery)));
-    serviceInstances.addAll(collectPageResources("service instances", pg -> api.allUserProvided(pg, serviceInstanceQuery)));
+    serviceInstances.addAll(collectPageResources("service instances", pg -> getAllServices.apply(pg, serviceInstanceQuery)));
 
+    operationType = CREATE;
     if (serviceInstances.size() == 0) {
-      operationType = CREATE;
       safelyCall(() -> create.apply(command)).map(res -> res.getMetadata().getGuid())
         .orElseThrow(() -> new CloudFoundryApiException("service instance '" + command.getName() + "' could not be created"));
-    } else {
+    } else if (updatable) {
       operationType = UPDATE;
       serviceInstances.stream()
         .findFirst()
         .map(r -> r.getMetadata().getGuid())
         .orElseThrow(() -> new CloudFoundryApiException("Service instance '" + command.getName() + "' not found"));
-      String existingServiceInstanceVersionTag = serviceInstances.stream()
-        .findFirst().map(s -> s.getEntity().getTags())
-        .orElse(new HashSet<>())
-        .stream()
-        .filter(t -> t.matches(SPINNAKER_VERSION_V_D_3))
-        .min(Comparator.reverseOrder())
-        .orElse("");
-      String newServiceInstanceVersionTag = Optional.ofNullable(command.getTags())
-        .orElse(Collections.emptySet())
-        .stream()
-        .filter(t -> t.matches(SPINNAKER_VERSION_V_D_3))
-        .min(Comparator.reverseOrder())
-        .orElse("");
-      if (newServiceInstanceVersionTag.isEmpty() || !existingServiceInstanceVersionTag.equals(newServiceInstanceVersionTag)) {
-        CloudFoundryServiceInstance serviceInstance = getServiceInstance.apply(command);
-        if (serviceInstance == null) {
-          throw new CloudFoundryApiException("No service instances with name '" + command.getName() + "' found in space " + space.getName());
-        }
-        updateValidation.accept(command, serviceInstance);
-        safelyCall(() -> update.apply(serviceInstance.getId(), command));
+      CloudFoundryServiceInstance serviceInstance = getServiceInstance.apply(command);
+      if (serviceInstance == null) {
+        throw new CloudFoundryApiException("No service instances with name '" + command.getName() + "' found in space " + space.getName());
       }
+      updateValidation.accept(command, serviceInstance);
+      safelyCall(() -> update.apply(serviceInstance.getId(), command));
     }
 
     return new ServiceInstanceResponse()

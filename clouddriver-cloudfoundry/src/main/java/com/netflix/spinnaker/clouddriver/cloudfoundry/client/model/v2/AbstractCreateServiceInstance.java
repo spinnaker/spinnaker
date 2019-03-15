@@ -24,6 +24,8 @@ import java.util.Set;
 @Data
 public abstract class AbstractCreateServiceInstance {
   private String name;
+  private String spaceGuid;
+  private boolean updatable = true;
 
   @Nullable
   private Set<String> tags;

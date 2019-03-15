@@ -77,11 +77,12 @@ class DeployCloudFoundryServiceAtomicOperationConverterTest {
       Collections.singletonList(new ArtifactCredentialsFromString(
         "test",
         List.of("test").asJava(),
-        "service_instance_name: my-service-instance-name\n" +
+          "service_instance_name: my-service-instance-name\n" +
           "service: my-service\n" +
           "service_plan: my-service-plan\n" +
           "tags:\n" +
           "- tag1\n" +
+          "updatable: false\n" +
           "parameters: |\n" +
           "  { \"foo\": \"bar\" }\n"
       ))
@@ -123,6 +124,7 @@ class DeployCloudFoundryServiceAtomicOperationConverterTest {
         .setServiceInstanceName("my-service-instance-name")
         .setServicePlan("my-service-plan")
         .setTags(Collections.singleton("my-tag"))
+        .setUpdatable(true)
         .setParameterMap(HashMap.<String, Object>of(
           "foo", "bar"
         ).toJavaMap())
@@ -176,6 +178,7 @@ class DeployCloudFoundryServiceAtomicOperationConverterTest {
     final Map input = HashMap.of(
       "service_instance_name", "my-service-instance-name",
       "syslog_drain_url", "test-syslog-drain-url",
+      "updatable", false,
       "route_service_url", "test-route-service-url",
       "tags", List.of(
         "my-tag"
@@ -189,6 +192,7 @@ class DeployCloudFoundryServiceAtomicOperationConverterTest {
         .setSyslogDrainUrl("test-syslog-drain-url")
         .setRouteServiceUrl("test-route-service-url")
         .setTags(Collections.singleton("my-tag"))
+        .setUpdatable(false)
         .setCredentials(HashMap.<String, Object>of(
           "foo", "bar"
         ).toJavaMap())
@@ -218,6 +222,7 @@ class DeployCloudFoundryServiceAtomicOperationConverterTest {
       "tags", List.of(
         "my-tag"
       ).asJava(),
+      "updatable", true,
       "parameters", ""
     ).toJavaMap();
 
@@ -227,6 +232,7 @@ class DeployCloudFoundryServiceAtomicOperationConverterTest {
         .setServiceInstanceName("my-service-instance-name")
         .setServicePlan("my-service-plan")
         .setTags(Collections.singleton("my-tag"))
+        .setUpdatable(true)
     );
   }
 
@@ -266,6 +272,7 @@ class DeployCloudFoundryServiceAtomicOperationConverterTest {
         .setServiceInstanceName("my-service-instance-name")
         .setServicePlan("my-service-plan")
         .setTags(Collections.singleton("tag1"))
+        .setUpdatable(false)
         .setParameterMap(HashMap.<String, Object>of(
           "foo", "bar"
         ).toJavaMap())
@@ -297,6 +304,7 @@ class DeployCloudFoundryServiceAtomicOperationConverterTest {
         .setSyslogDrainUrl("http://syslogDrainUrl.io")
         .setRouteServiceUrl("http://routeServiceUrl.io")
         .setTags(Collections.singleton("my-tag"))
+        .setUpdatable(true)
         .setCredentials(HashMap.<String, Object>of(
           "foo", "bar"
         ).toJavaMap())
@@ -313,6 +321,7 @@ class DeployCloudFoundryServiceAtomicOperationConverterTest {
         "direct", HashMap.of(
           "serviceInstanceName", "userProvidedServiceName",
           "tags", List.of("my-tag").asJava(),
+          "updatable", false,
           "syslogDrainUrl", "http://syslogDrainUrl.io",
           "routeServiceUrl", "http://routeServiceUrl.io"
         ).toJavaMap()
@@ -327,6 +336,7 @@ class DeployCloudFoundryServiceAtomicOperationConverterTest {
         .setSyslogDrainUrl("http://syslogDrainUrl.io")
         .setRouteServiceUrl("http://routeServiceUrl.io")
         .setTags(Collections.singleton("my-tag"))
+        .setUpdatable(false)
     );
   }
 }

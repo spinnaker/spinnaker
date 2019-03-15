@@ -155,6 +155,7 @@ class ServiceInstancesTest {
       "ServicePlan1",
       Collections.emptySet(),
       null,
+      true,
       cloudFoundrySpace);
 
     assertThat(response).isEqualTo(new ServiceInstanceResponse()
@@ -182,6 +183,7 @@ class ServiceInstancesTest {
         "ServicePlan1",
         Collections.emptySet(),
         null,
+        false,
         cloudFoundrySpace),
       CloudFoundryApiException.class, "Cloud Foundry API returned with error(s): service instance 'new-service-instance-name' could not be created");
     verify(serviceInstanceService, times(1)).createServiceInstance(any());
@@ -202,6 +204,7 @@ class ServiceInstancesTest {
         "servicePlanName",
         Collections.emptySet(),
         null,
+        true,
         cloudFoundrySpace),
       ResourceNotFoundException.class, "No plans available for service name 'serviceName'");
   }
@@ -217,6 +220,7 @@ class ServiceInstancesTest {
       "ServicePlan1",
       Collections.emptySet(),
       null,
+      true,
       cloudFoundrySpace);
 
     assertThat(response).isEqualTo(new ServiceInstanceResponse()
@@ -229,26 +233,26 @@ class ServiceInstancesTest {
   }
 
   @Test
-  void shouldUpdateTheServiceIfAlreadyExistsAndVersionTagsDiffer() {
+  void shouldNotUpdateTheServiceIfAlreadyExists() {
     when(serviceInstanceService.all(any(), anyListOf(String.class))).thenReturn(createOsbServiceInstancePage());
     when(serviceInstanceService.allUserProvided(any(), anyListOf(String.class))).thenReturn(createEmptyUserProvidedServiceInstancePage());
     when(serviceInstanceService.updateServiceInstance(any(), any())).thenReturn(createServiceInstanceResource());
 
-    ServiceInstanceResponse response = serviceInstances.createServiceInstance(
-      "new-service-instance-name",
+    ServiceInstanceResponse response = serviceInstances.createServiceInstance("new-service-instance-name",
       "serviceName",
       "ServicePlan1",
-      Collections.singleton("spinnakerVersion-v002"),
+      Collections.emptySet(),
       null,
+      false,
       cloudFoundrySpace);
 
     assertThat(response).isEqualTo(new ServiceInstanceResponse()
       .setServiceInstanceName("new-service-instance-name")
-      .setType(UPDATE)
-      .setState(IN_PROGRESS)
+      .setType(CREATE)
+      .setState(SUCCEEDED)
     );
     verify(serviceInstanceService, times(0)).createServiceInstance(any());
-    verify(serviceInstanceService, times(1)).updateServiceInstance(any(), any());
+    verify(serviceInstanceService, times(0)).updateServiceInstance(any(), any());
   }
 
   @Test
@@ -267,6 +271,7 @@ class ServiceInstancesTest {
         "ServicePlan1",
         Collections.emptySet(),
         null,
+        true,
         cloudFoundrySpace),
       CloudFoundryApiException.class, "Cloud Foundry API returned with error(s): ");
 
@@ -296,6 +301,7 @@ class ServiceInstancesTest {
         "ServicePlan1",
         Collections.emptySet(),
         null,
+        true,
         cloudFoundrySpace),
       CloudFoundryApiException.class, "Cloud Foundry API returned with error(s): 2 service instances found with name 'new-service-instance-name' in space 'space', but expected only 1");
   }
@@ -312,6 +318,7 @@ class ServiceInstancesTest {
       Collections.emptySet(),
       Collections.emptyMap(),
       "routeServiceUrl",
+      true,
       cloudFoundrySpace
     );
 
@@ -336,6 +343,7 @@ class ServiceInstancesTest {
       Collections.emptySet(),
       Collections.emptyMap(),
       "routeServiceUrl",
+      true,
       cloudFoundrySpace
     );
 
@@ -349,7 +357,7 @@ class ServiceInstancesTest {
   }
 
   @Test
-  void shouldUpdateUserProvidedServiceInstanceIfVersionTagsDiffer() {
+  void shouldNotUpdateUserProvidedServiceInstanceIfAlreadyExists() {
     when(serviceInstanceService.all(any(), any())).thenReturn(createEmptyOsbServiceInstancePage());
     when(serviceInstanceService.allUserProvided(any(), anyListOf(String.class))).thenReturn(createUserProvidedServiceInstancePage());
     when(serviceInstanceService.updateUserProvidedServiceInstance(any(), any())).thenReturn(createUserProvidedServiceInstanceResource());
@@ -357,19 +365,20 @@ class ServiceInstancesTest {
     ServiceInstanceResponse response = serviceInstances.createUserProvidedServiceInstance(
       "new-up-service-instance-name",
       "syslogDrainUrl",
-      Collections.singleton("spinnakerVersion-v001"),
+      Collections.emptySet(),
       Collections.emptyMap(),
       "routeServiceUrl",
+      false,
       cloudFoundrySpace
     );
 
     assertThat(response).isEqualTo(new ServiceInstanceResponse()
       .setServiceInstanceName("new-up-service-instance-name")
-      .setType(UPDATE)
+      .setType(CREATE)
       .setState(SUCCEEDED)
     );
     verify(serviceInstanceService, times(0)).createUserProvidedServiceInstance(any());
-    verify(serviceInstanceService, times(1)).updateUserProvidedServiceInstance(any(), any());
+    verify(serviceInstanceService, times(0)).updateUserProvidedServiceInstance(any(), any());
   }
 
   @Test
