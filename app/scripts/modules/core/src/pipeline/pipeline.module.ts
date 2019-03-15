@@ -20,6 +20,7 @@ import './config/stages/gremlin/gremlinStage';
 import { GROUP_STAGE_MODULE } from './config/stages/group/groupStage.module';
 import { MANUAL_JUDGMENT_STAGE_MODULE } from './config/stages/manualJudgment/manualJudgmentStage.module';
 import { RESIZE_ASG_STAGE } from './config/stages/resizeAsg/resizeAsgStage';
+import './config/stages/savePipelines/savePipelinesStage';
 import { SCALE_DOWN_CLUSTER_STAGE } from './config/stages/scaleDownCluster/scaleDownClusterStage';
 import { SCRIPT_STAGE } from './config/stages/script/scriptStage';
 import { SHRINK_CLUSTER_STAGE } from './config/stages/shrinkCluster/shrinkClusterStage';

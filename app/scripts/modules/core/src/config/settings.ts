@@ -57,6 +57,7 @@ export interface IFeatures {
   travis?: boolean;
   versionedProviders?: boolean;
   wercker?: boolean;
+  savePipelinesStageEnabled?: boolean;
 }
 
 export interface IDockerInsightSettings {

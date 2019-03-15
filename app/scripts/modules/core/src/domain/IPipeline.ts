@@ -62,3 +62,9 @@ export interface IPipelineCommand {
   };
   pipelineName: string;
 }
+
+export interface IPipelineRef {
+  application: String;
+  name: String;
+  id?: String;
+}
