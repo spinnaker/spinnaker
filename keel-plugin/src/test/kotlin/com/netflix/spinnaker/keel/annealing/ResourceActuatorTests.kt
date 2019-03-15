@@ -23,7 +23,6 @@ import com.nhaarman.mockitokotlin2.verify
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import strikt.api.expectThat
-import strikt.assertions.first
 import strikt.assertions.isEqualTo
 
 internal object ResourceActuatorTests : JUnit5Minutests {
@@ -71,7 +70,9 @@ internal object ResourceActuatorTests : JUnit5Minutests {
       }
 
       test("before the actuator checks the resource its status is unknown") {
-        expectThat(resourceRepository.lastKnownState(resource.metadata.uid)).first.isEqualTo(Unknown)
+        expectThat(resourceRepository.lastKnownState(resource.metadata.uid))
+          .get { state }
+          .isEqualTo(Unknown)
       }
 
       context("the current state matches the desired state") {
@@ -96,7 +97,9 @@ internal object ResourceActuatorTests : JUnit5Minutests {
         }
 
         test("the resource state is recorded") {
-          expectThat(resourceRepository.lastKnownState(resource.metadata.uid)).first.isEqualTo(Ok)
+          expectThat(resourceRepository.lastKnownState(resource.metadata.uid))
+            .get { state }
+            .isEqualTo(Ok)
         }
       }
 
@@ -116,7 +119,9 @@ internal object ResourceActuatorTests : JUnit5Minutests {
         }
 
         test("the resource state is recorded") {
-          expectThat(resourceRepository.lastKnownState(resource.metadata.uid)).first.isEqualTo(Missing)
+          expectThat(resourceRepository.lastKnownState(resource.metadata.uid))
+            .get { state }
+            .isEqualTo(Missing)
         }
       }
 
@@ -136,7 +141,9 @@ internal object ResourceActuatorTests : JUnit5Minutests {
         }
 
         test("the resource state is recorded") {
-          expectThat(resourceRepository.lastKnownState(resource.metadata.uid)).first.isEqualTo(Diff)
+          expectThat(resourceRepository.lastKnownState(resource.metadata.uid))
+            .get { state }
+            .isEqualTo(Diff)
         }
       }
     }

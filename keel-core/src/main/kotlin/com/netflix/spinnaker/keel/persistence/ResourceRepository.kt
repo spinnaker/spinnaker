@@ -19,7 +19,6 @@ import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.UID
-import java.time.Instant
 
 data class ResourceHeader(
   val uid: UID,
@@ -76,9 +75,9 @@ interface ResourceRepository {
    *
    * @return The last known state of the resource represented by [uid].
    */
-  fun lastKnownState(uid: UID): Pair<ResourceState, Instant>
+  fun lastKnownState(uid: UID): ResourceStateHistoryEntry
 
-  fun stateHistory(uid: UID): List<Pair<ResourceState, Instant>> // TODO: proper type
+  fun stateHistory(uid: UID): List<ResourceStateHistoryEntry>
 
   /**
    * Updates the last known state of the resource represented by [uid].

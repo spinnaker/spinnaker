@@ -18,7 +18,8 @@ dependencies {
   implementation "org.springframework.boot:spring-boot-starter-web"
   implementation "org.springframework.security:spring-security-config"
 
-  testImplementation "io.strikt:strikt-core:$striktVersion"
+  testImplementation "io.strikt:strikt-jackson:$striktVersion"
+  testImplementation project(":keel-core-test")
   testImplementation project(":keel-spring-test-support")
 }
 

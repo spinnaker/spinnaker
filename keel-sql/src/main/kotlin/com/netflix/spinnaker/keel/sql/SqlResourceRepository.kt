@@ -14,6 +14,7 @@ import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.ResourceState
 import com.netflix.spinnaker.keel.persistence.ResourceState.Unknown
 import com.netflix.spinnaker.keel.persistence.ResourceState.valueOf
+import com.netflix.spinnaker.keel.persistence.ResourceStateHistoryEntry
 import de.huxhorn.sulky.ulid.ULID
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
@@ -140,7 +141,7 @@ class SqlResourceRepository(
     }
   }
 
-  override fun lastKnownState(uid: UID): Pair<ResourceState, Instant> =
+  override fun lastKnownState(uid: UID): ResourceStateHistoryEntry =
     jooq
       .select(
         field("state"),
@@ -154,13 +155,13 @@ class SqlResourceRepository(
       .intoResultSet()
       .run {
         if (next()) {
-          state to timestamp
+          ResourceStateHistoryEntry(state, timestamp)
         } else {
           throw IllegalStateException("No state found for resource $uid")
         }
       }
 
-  override fun stateHistory(uid: UID): List<Pair<ResourceState, Instant>> =
+  override fun stateHistory(uid: UID): List<ResourceStateHistoryEntry> =
     jooq
       .select(
         field("state"),
@@ -172,9 +173,9 @@ class SqlResourceRepository(
       .fetch()
       .intoResultSet()
       .run {
-        val results = mutableListOf<Pair<ResourceState, Instant>>()
+        val results = mutableListOf<ResourceStateHistoryEntry>()
         while (next()) {
-          results.add(state to timestamp)
+          results.add(ResourceStateHistoryEntry(state, timestamp))
         }
         results
       }
@@ -202,12 +203,14 @@ class SqlResourceRepository(
               .columns(
                 field("uid"),
                 field("state"),
-                field("timestamp")
+                field("timestamp"),
+                field("instance_id")
               )
               .values(
                 uid.toString(),
                 state.name,
-                clock.instant().let(Timestamp::from)
+                clock.instant().let(Timestamp::from),
+                instanceIdSupplier.get()
               )
               .execute()
           }

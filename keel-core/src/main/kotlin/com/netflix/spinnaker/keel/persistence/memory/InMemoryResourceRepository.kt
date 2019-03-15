@@ -24,15 +24,15 @@ import com.netflix.spinnaker.keel.persistence.ResourceHeader
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.ResourceState
 import com.netflix.spinnaker.keel.persistence.ResourceState.Unknown
+import com.netflix.spinnaker.keel.persistence.ResourceStateHistoryEntry
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import java.time.Clock
-import java.time.Instant
 
 class InMemoryResourceRepository(
   private val clock: Clock = Clock.systemDefaultZone()
 ) : ResourceRepository {
   private val resources = mutableMapOf<UID, Resource<*>>()
-  private val states = mutableMapOf<UID, MutableList<Pair<ResourceState, Instant>>>()
+  private val states = mutableMapOf<UID, MutableList<ResourceStateHistoryEntry>>()
 
   override fun allResources(callback: (ResourceHeader) -> Unit) {
     resources.values.forEach {
@@ -76,19 +76,19 @@ class InMemoryResourceRepository(
       }
   }
 
-  override fun lastKnownState(uid: UID): Pair<ResourceState, Instant> =
+  override fun lastKnownState(uid: UID): ResourceStateHistoryEntry =
     states.getValue(uid).first()
 
-  override fun stateHistory(uid: UID): List<Pair<ResourceState, Instant>> =
-    states.getOrDefault(uid, emptyList())
+  override fun stateHistory(uid: UID): List<ResourceStateHistoryEntry> =
+    states.getOrDefault(uid, emptyList<ResourceStateHistoryEntry>()) as List<ResourceStateHistoryEntry>
 
   override fun updateState(uid: UID, state: ResourceState) {
     states.computeIfAbsent(uid) {
       mutableListOf()
     }
       .let {
-        if (it.firstOrNull()?.first != state) {
-          it.add(0, state to clock.instant())
+        if (it.firstOrNull()?.state != state) {
+          it.add(0, ResourceStateHistoryEntry(state, clock.instant()))
         }
       }
   }

@@ -26,10 +26,14 @@ import com.netflix.spinnaker.keel.exceptions.FailedNormalizationException
 import com.netflix.spinnaker.keel.exceptions.InvalidResourceStructureException
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceException
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
+import com.netflix.spinnaker.keel.persistence.ResourceStateHistoryEntry
 import com.netflix.spinnaker.keel.persistence.get
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
 import org.slf4j.LoggerFactory
-import org.springframework.http.HttpStatus.*
+import org.springframework.http.HttpStatus.BAD_REQUEST
+import org.springframework.http.HttpStatus.CREATED
+import org.springframework.http.HttpStatus.NOT_FOUND
+import org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -58,7 +62,7 @@ class ResourceController(
   )
   @ResponseStatus(CREATED)
   fun create(@RequestBody submittedResource: SubmittedResource<*>): Resource<*> {
-    log.info("Creating: $submittedResource")
+    log.debug("Creating: $submittedResource")
     return resourcePersister.handle(ResourceCreated(submittedResource))
   }
 
@@ -67,7 +71,7 @@ class ResourceController(
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
   fun get(@PathVariable("name") name: ResourceName): Resource<Any> {
-    log.info("Getting: $name")
+    log.debug("Getting: $name")
     return resourceRepository.get(name)
   }
 
@@ -77,7 +81,7 @@ class ResourceController(
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
   fun update(@PathVariable("name") name: ResourceName, @RequestBody resource: Resource<Any>): Resource<out Any> {
-    log.info("Updating: $resource")
+    log.debug("Updating: $resource")
     return resourcePersister.handle(ResourceUpdated(resource))
   }
 
@@ -86,8 +90,19 @@ class ResourceController(
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
   fun delete(@PathVariable("name") name: ResourceName): Resource<*> {
-    log.info("Deleting: $name")
+    log.debug("Deleting: $name")
     return resourcePersister.handle(ResourceDeleted(name))
+  }
+
+  @GetMapping(
+    path = ["/{name}/history"],
+    produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
+  )
+  fun history(@PathVariable("name") name: ResourceName): List<ResourceStateHistoryEntry> {
+    log.debug("Getting state history for: $name")
+    return resourceRepository.get(name, Any::class.java).let {
+      resourceRepository.stateHistory(it.metadata.uid)
+    }
   }
 
   @ExceptionHandler(NoSuchResourceException::class)

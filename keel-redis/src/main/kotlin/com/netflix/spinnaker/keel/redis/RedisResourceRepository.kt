@@ -29,12 +29,12 @@ import com.netflix.spinnaker.keel.persistence.ResourceHeader
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.ResourceState
 import com.netflix.spinnaker.keel.persistence.ResourceState.Unknown
+import com.netflix.spinnaker.keel.persistence.ResourceStateHistoryEntry
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
 import de.huxhorn.sulky.ulid.ULID
 import org.slf4j.LoggerFactory
 import redis.clients.jedis.JedisCommands
 import java.time.Clock
-import java.time.Instant
 import javax.annotation.PostConstruct
 
 class RedisResourceRepository(
@@ -79,7 +79,7 @@ class RedisResourceRepository(
       redis.hmset(resource.metadata.uid.key, resource.toHash())
       redis.sadd(INDEX_SET, resource.metadata.uid.toString())
       redis.hset(NAME_TO_UID_HASH, resource.metadata.name.value, resource.metadata.uid.toString())
-      redis.lpush(resource.metadata.uid.stateKey, objectMapper.writeValueAsString(Unknown to timestamp()))
+      redis.lpush(resource.metadata.uid.stateKey, objectMapper.writeValueAsString(ResourceStateHistoryEntry(Unknown, clock.instant())))
     }
   }
 
@@ -92,27 +92,27 @@ class RedisResourceRepository(
     }
   }
 
-  override fun lastKnownState(uid: UID): Pair<ResourceState, Instant> =
-    redisClient.withCommandsClient<Pair<ResourceState, Instant>> { redis: JedisCommands ->
+  override fun lastKnownState(uid: UID): ResourceStateHistoryEntry =
+    redisClient.withCommandsClient<ResourceStateHistoryEntry> { redis: JedisCommands ->
       redis.lindex(uid.stateKey, 0)
         .let { objectMapper.readValue(it) }
     }
 
-  override fun stateHistory(uid: UID): List<Pair<ResourceState, Instant>> =
-    redisClient.withCommandsClient<List<Pair<ResourceState, Instant>>> { redis: JedisCommands ->
+  override fun stateHistory(uid: UID): List<ResourceStateHistoryEntry> =
+    redisClient.withCommandsClient<List<ResourceStateHistoryEntry>> { redis: JedisCommands ->
       redis.lrange(uid.stateKey, 0, -1)
-        .map { objectMapper.readValue<Pair<ResourceState, Instant>>(it) }
+        .map { objectMapper.readValue<ResourceStateHistoryEntry>(it) }
     }
 
   override fun updateState(uid: UID, state: ResourceState) {
     redisClient.withCommandsClient<Unit> { redis: JedisCommands ->
       // TODO: probably not super thread safe
       redis.lindex(uid.stateKey, 0)
-        .let { objectMapper.readValue<Pair<ResourceState, Instant>>(it) }
-        .first
+        ?.let { objectMapper.readValue<ResourceStateHistoryEntry>(it) }
+        ?.state
         .also {
           if (it != state) {
-            redis.lpush(uid.stateKey, objectMapper.writeValueAsString(state.name to timestamp()))
+            redis.lpush(uid.stateKey, objectMapper.writeValueAsString(ResourceStateHistoryEntry(state, clock.instant())))
           }
         }
     }
@@ -170,7 +170,5 @@ class RedisResourceRepository(
     "kind" to kind,
     "spec" to objectMapper.writeValueAsString(spec)
   )
-
-  private fun timestamp() = clock.millis().toDouble()
 }
 

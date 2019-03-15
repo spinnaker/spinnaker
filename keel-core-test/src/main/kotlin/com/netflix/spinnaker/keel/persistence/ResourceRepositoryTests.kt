@@ -23,6 +23,7 @@ import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.persistence.ResourceState.Diff
 import com.netflix.spinnaker.keel.persistence.ResourceState.Ok
 import com.netflix.spinnaker.keel.persistence.ResourceState.Unknown
+import com.netflix.spinnaker.time.MutableClock
 import com.nhaarman.mockitokotlin2.argumentCaptor
 import com.nhaarman.mockitokotlin2.eq
 import com.nhaarman.mockitokotlin2.mock
@@ -37,15 +38,11 @@ import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.containsExactly
 import strikt.assertions.containsExactlyInAnyOrder
-import strikt.assertions.first
 import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
 import strikt.assertions.map
 import java.time.Clock
 import java.time.Duration
-import java.time.Instant
-import java.time.ZoneId
-import java.time.temporal.TemporalAmount
 import java.util.UUID.randomUUID
 
 abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests {
@@ -114,7 +111,7 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
 
       test("its state is unknown") {
         expectThat(subject.lastKnownState(resource.metadata.uid))
-          .first
+          .get { state }
           .isEqualTo(Unknown)
       }
 
@@ -173,14 +170,14 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
 
         test("it reports the new state") {
           expectThat(subject.lastKnownState(resource.metadata.uid))
-            .first
+            .get { state }
             .isEqualTo(Ok)
         }
 
         test("the new state is included in the history") {
           expectThat(subject.stateHistory(resource.metadata.uid))
             .hasSize(2)
-            .map { it.first }
+            .map { it.state }
             .containsExactly(Ok, Unknown)
         }
 
@@ -192,14 +189,14 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
 
           test("it reports the newest state") {
             expectThat(subject.lastKnownState(resource.metadata.uid))
-              .first
+              .get { state }
               .isEqualTo(Diff)
           }
 
           test("the new state is included in the history") {
             expectThat(subject.stateHistory(resource.metadata.uid))
               .hasSize(3)
-              .map { it.first }
+              .map { it.state }
               .containsExactly(Diff, Ok, Unknown)
           }
         }
@@ -213,7 +210,7 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
           test("the new state is not added to the history") {
             expectThat(subject.stateHistory(resource.metadata.uid))
               .hasSize(2)
-              .map { it.first }
+              .map { it.state }
               .containsExactly(Ok, Unknown)
           }
         }
@@ -228,14 +225,14 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
 
           test("its state becomes unknown again") {
             expectThat(subject.lastKnownState(resource.metadata.uid))
-              .first
+              .get { state }
               .isEqualTo(Unknown)
           }
 
           test("the history shows the reversion to unknown state") {
             expectThat(subject.stateHistory(resource.metadata.uid))
               .hasSize(3)
-              .map { it.first }
+              .map { it.state }
               .containsExactly(Unknown, Ok, Unknown)
           }
         }
@@ -281,28 +278,3 @@ fun randomString(length: Int = 8) =
     .joinToString("")
     .substring(0 until length)
 
-internal class MutableClock(
-  private var instant: Instant = Instant.now(),
-  private val zone: ZoneId = ZoneId.systemDefault()
-) : Clock() {
-
-  override fun withZone(zone: ZoneId): MutableClock {
-    return MutableClock(instant, zone)
-  }
-
-  override fun getZone(): ZoneId {
-    return zone
-  }
-
-  override fun instant(): Instant {
-    return instant
-  }
-
-  fun incrementBy(amount: TemporalAmount) {
-    instant = instant.plus(amount)
-  }
-
-  fun instant(newInstant: Instant) {
-    instant = newInstant
-  }
-}

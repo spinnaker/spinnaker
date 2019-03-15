@@ -1,22 +1,27 @@
 package com.netflix.spinnaker.keel.rest
 
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.node.ArrayNode
 import com.netflix.spinnaker.keel.KeelApplication
 import com.netflix.spinnaker.keel.annealing.ResourcePersister
 import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceMetadata
 import com.netflix.spinnaker.keel.api.ResourceName
-import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.events.ResourceDeleted
-import com.netflix.spinnaker.keel.persistence.ResourceRepository
+import com.netflix.spinnaker.keel.persistence.ResourceState.Diff
+import com.netflix.spinnaker.keel.persistence.ResourceState.Ok
+import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
 import com.netflix.spinnaker.keel.redis.spring.MockEurekaConfiguration
+import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML
-import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
+import com.netflix.spinnaker.time.MutableClock
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.stub
 import com.nhaarman.mockitokotlin2.verify
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -24,23 +29,31 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
 import org.springframework.boot.test.mock.mockito.MockBean
-import org.springframework.http.HttpHeaders.CONTENT_TYPE
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Primary
 import org.springframework.http.MediaType
 import org.springframework.http.MediaType.APPLICATION_JSON
-import org.springframework.security.test.context.support.WithMockUser
+import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import strikt.api.Assertion
+import strikt.api.DescribeableBuilder
 import strikt.api.expectThat
-import strikt.assertions.isA
-import strikt.assertions.isEqualTo
+import strikt.assertions.all
+import strikt.assertions.isNotNull
+import strikt.jackson.has
+import strikt.jackson.isArray
+import strikt.jackson.isObject
+import java.time.Duration
 
 @ExtendWith(SpringExtension::class)
 @SpringBootTest(
-  classes = [KeelApplication::class, MockEurekaConfiguration::class],
+  classes = [KeelApplication::class, MockEurekaConfiguration::class, MockTimeConfiguration::class],
   properties = [
     "clouddriver.baseUrl=https://localhost:8081",
     "orca.baseUrl=https://localhost:8082",
@@ -54,12 +67,15 @@ internal class ResourceControllerTests {
   lateinit var mvc: MockMvc
 
   @Autowired
-  lateinit var resourceRepository: ResourceRepository
+  lateinit var resourceRepository: InMemoryResourceRepository
 
   @MockBean
   lateinit var resourcePersister: ResourcePersister
 
-  var mockResource = Resource(
+  @Autowired
+  lateinit var clock: MutableClock
+
+  var resource = Resource(
     apiVersion = ApiVersion("ec2.spinnaker.netflix.com/v1"),
     kind = "securityGroup",
     metadata = ResourceMetadata(
@@ -69,11 +85,15 @@ internal class ResourceControllerTests {
     spec = "mockingThis"
   )
 
+  @AfterEach
+  fun clearRepository() {
+    resourceRepository.dropAll()
+  }
+
   @Test
-//  @WithMockUser(authorities = ["READ", "WRITE"])
   fun `can create a resource as YAML`() {
     resourcePersister.stub {
-      on { handle(any()) } doReturn mockResource
+      on { handle(any()) } doReturn resource
     }
 
     val request = post("/resources")
@@ -97,7 +117,7 @@ internal class ResourceControllerTests {
   @Test
   fun `can create a resource as JSON`() {
     resourcePersister.stub {
-      on { handle(any()) } doReturn mockResource
+      on { handle(any()) } doReturn resource
     }
 
     val request = post("/resources")
@@ -121,7 +141,6 @@ internal class ResourceControllerTests {
   }
 
   @Test
-  @WithMockUser
   fun `an invalid request body results in an HTTP 400`() {
     val request = post("/resources")
       .accept(APPLICATION_YAML)
@@ -145,16 +164,6 @@ internal class ResourceControllerTests {
 
   @Test
   fun `can get a resource as YAML`() {
-    val resource = Resource(
-      apiVersion = SPINNAKER_API_V1,
-      kind = "whatever",
-      metadata = ResourceMetadata(
-        name = ResourceName("my-resource"),
-        uid = randomUID(),
-        resourceVersion = 1234L
-      ),
-      spec = "some spec content"
-    )
     resourceRepository.store(resource)
 
     val request = get("/resources/${resource.metadata.name}")
@@ -163,11 +172,10 @@ internal class ResourceControllerTests {
       .perform(request)
       .andExpect(status().isOk)
       .andReturn()
-    expectThat(result.response.getHeaderValue(CONTENT_TYPE))
-      .isA<String>()
-      .get { MediaType.parseMediaType(this) }
-      .get { "$type/$subtype" }
-      .isEqualTo(APPLICATION_YAML_VALUE)
+    expectThat(result.response)
+      .contentType
+      .isNotNull()
+      .isCompatibleWith(APPLICATION_YAML)
   }
 
   @Test
@@ -175,19 +183,9 @@ internal class ResourceControllerTests {
     resourcePersister.stub {
       on {
         handle(any())
-      } doReturn mockResource
+      } doReturn resource
     }
 
-    val resource = Resource(
-      apiVersion = SPINNAKER_API_V1,
-      kind = "securityGroup",
-      metadata = ResourceMetadata(
-        name = ResourceName("my-resource"),
-        uid = randomUID(),
-        resourceVersion = 1234L
-      ),
-      spec = "some spec content"
-    )
     resourceRepository.store(resource)
 
     val request = delete("/resources/${resource.metadata.name}")
@@ -210,4 +208,55 @@ internal class ResourceControllerTests {
       .perform(request)
       .andExpect(status().isNotFound)
   }
+
+  @Test
+  fun `can get state history for a resource`() {
+    with(resourceRepository) {
+      store(resource)
+      sequenceOf(Ok, Diff, Ok).forEach {
+        clock.incrementBy(Duration.ofMinutes(10))
+        updateState(resource.metadata.uid, it)
+      }
+    }
+
+    val request = get("/resources/${resource.metadata.name}/history")
+      .accept(APPLICATION_YAML)
+    val result = mvc
+      .perform(request)
+      .andExpect(status().isOk)
+      .andReturn()
+    expectThat(result.response.contentAsTree)
+      .isArray()
+      .hasSize(4)
+      .all {
+        isObject()
+          .has("state")
+          .has("timestamp")
+      }
+  }
+}
+
+private val Assertion.Builder<MockHttpServletResponse>.contentType: DescribeableBuilder<MediaType?>
+  get() = get { contentType?.let(MediaType::parseMediaType) }
+
+@Suppress("UNCHECKED_CAST")
+private fun <T : MediaType?> Assertion.Builder<T>.isCompatibleWith(expected: MediaType): Assertion.Builder<MediaType> =
+  assertThat("is compatible with $expected") {
+    it?.isCompatibleWith(expected) ?: false
+  } as Assertion.Builder<MediaType>
+
+private fun Assertion.Builder<ArrayNode>.hasSize(expected: Int): Assertion.Builder<ArrayNode> =
+  assert("has $expected elements") { subject ->
+    if (subject.size() == expected) pass()
+    else fail(subject.size())
+  }
+
+private val MockHttpServletResponse.contentAsTree: JsonNode
+  get() = configuredYamlMapper().readTree(contentAsString)
+
+@Configuration
+class MockTimeConfiguration {
+  @Bean
+  @Primary
+  fun clock() = MutableClock()
 }
