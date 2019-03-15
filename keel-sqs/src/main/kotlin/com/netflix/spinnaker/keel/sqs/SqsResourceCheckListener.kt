@@ -12,8 +12,9 @@ import com.netflix.spinnaker.keel.annealing.ResourceActuator
 import com.netflix.spinnaker.keel.api.ResourceName
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
@@ -26,6 +27,7 @@ import org.slf4j.LoggerFactory
 import java.lang.Thread.currentThread
 import javax.annotation.PostConstruct
 import javax.annotation.PreDestroy
+import kotlin.coroutines.CoroutineContext
 
 internal class SqsResourceCheckListener(
   private val sqsClient: AmazonSQS,
@@ -33,14 +35,15 @@ internal class SqsResourceCheckListener(
   private val sqsProperties: SqsProperties,
   private val objectMapper: ObjectMapper,
   private val actuator: ResourceActuator
-) {
-  private lateinit var rootJob: Job
+) : CoroutineScope {
+  private val supervisorJob: Job = SupervisorJob()
 
-  private val scope: CoroutineScope = CoroutineScope(IO)
+  override val coroutineContext: CoroutineContext
+    get() = Dispatchers.IO + supervisorJob
 
   @PostConstruct
   fun startListening() {
-    rootJob = scope.launch {
+    launch {
       val channel = Channel<Message>()
       launchMessageReceiver(channel)
       repeat(sqsProperties.listenerFibers) {
@@ -99,8 +102,8 @@ internal class SqsResourceCheckListener(
   @PreDestroy
   fun stopListening() {
     runBlocking {
-      log.info("Stopping job with {} children", rootJob.children.toList().size)
-      rootJob.cancelAndJoin()
+      log.info("Stopping job with {} children", supervisorJob.children.toList().size)
+      supervisorJob.cancelAndJoin()
     }
   }
 
@@ -115,6 +118,7 @@ internal class SqsResourceCheckListener(
         log.error("{} failed with {} \"{}\". Retrying...", currentThread().name, ex.javaClass.simpleName, ex.message)
       }
     }
+    log.debug("coroutine on {} exiting", currentThread().name)
   }
 
   private fun Message.parse(): ResourceCheckMessage = objectMapper.readValue(body)
