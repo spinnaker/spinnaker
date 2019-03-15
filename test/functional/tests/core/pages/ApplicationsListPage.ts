@@ -40,11 +40,12 @@ export class ApplicationsListPage extends Page {
   }
 
   public applicationsLinks(): Client<RawResult<Element>>[] & RawResult<Element>[] {
+    this.awaitLocator(ApplicationsListPage.locators.applicationLinks);
     return browser.$$(ApplicationsListPage.locators.applicationLinks);
   }
 
   public applicationLinkWithLabel(label: string): Client<RawResult<Element>> {
-    const links = browser.$$(ApplicationsListPage.locators.applicationLinks);
+    const links = this.applicationsLinks();
     const labelLink = links.find(link => link.getText().includes(label));
     return labelLink;
   }
