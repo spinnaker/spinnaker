@@ -147,22 +147,25 @@ export class CloudFoundryResizeServerGroupModal extends React.Component<
   private renderQuota(
     formik: FormikProps<ICloudFoundryResizeServerGroupValues>,
     field: string,
+    fieldLabel: string,
     initialValue: number,
   ): JSX.Element {
     return (
       <div>
         <div className="form-group">
           <div className="col-md-3 sm-label-right">Current size</div>
-          <div className="col-md-4">
+          <div className="col-md-5">
             <div className="horizontal middle">
-              <input type="number" className="NumberInput form-control" value={initialValue} disabled={true} />
-              <div className="sp-padding-xs-xaxis">MB</div>
+              <div className="StandardFieldLayout flex-container-h baseline margin-between-lg">
+                <input type="number" className="NumberInput form-control" value={initialValue} disabled={true} />
+              </div>
+              <div className="sp-padding-xs-xaxis">{fieldLabel}</div>
             </div>
           </div>
         </div>
         <div className="form-group">
           <div className="col-md-3 sm-label-right">Resize to</div>
-          <div className="col-md-4">
+          <div className="col-md-5">
             <div className="horizontal middle">
               <FormikFormField
                 name={field}
@@ -174,7 +177,7 @@ export class CloudFoundryResizeServerGroupModal extends React.Component<
                   formik.setFieldValue('max', value);
                 }}
               />
-              <div className="sp-padding-xs-xaxis">MB</div>
+              <div className="sp-padding-xs-xaxis">{fieldLabel}</div>
             </div>
           </div>
         </div>
@@ -204,8 +207,8 @@ export class CloudFoundryResizeServerGroupModal extends React.Component<
                 <Modal.Body>
                   <Form className="form-horizontal">
                     {this.renderDesired(formik)}
-                    {this.renderQuota(formik, 'diskQuota', diskQuota)}
-                    {this.renderQuota(formik, 'memory', memory)}
+                    {this.renderQuota(formik, 'diskQuota', 'Disk (MB)', diskQuota)}
+                    {this.renderQuota(formik, 'memory', 'Mem (MB)', memory)}
                     <TaskReason reason={formik.values.reason} onChange={val => formik.setFieldValue('reason', val)} />
                   </Form>
                 </Modal.Body>

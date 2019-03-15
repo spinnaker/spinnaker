@@ -161,8 +161,8 @@ export class CloudfoundryResizeAsgStageConfig extends React.Component<
           <span className="col-md-3 sm-label-right" />
           <div className="col-md-9">
             <div className="col-md-3 sm-label-left">Instances</div>
-            <div className="col-md-3 sm-label-left">Mem Mb</div>
-            <div className="col-md-3 sm-label-left">Disk Mb</div>
+            <div className="col-md-3 sm-label-left">Mem (MB)</div>
+            <div className="col-md-3 sm-label-left">Disk (MB)</div>
           </div>
           <StageConfigField label={resizeLabel}>
             <div className="col-md-3">
