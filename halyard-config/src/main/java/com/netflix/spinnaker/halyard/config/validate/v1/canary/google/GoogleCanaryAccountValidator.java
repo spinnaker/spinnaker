@@ -20,7 +20,7 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials;
 import com.netflix.spinnaker.front50.model.GcsStorageService;
 import com.netflix.spinnaker.front50.model.StorageService;
-import com.netflix.spinnaker.halyard.config.config.v1.secrets.SecretSessionManager;
+import com.netflix.spinnaker.halyard.core.secrets.v1.SecretSessionManager;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.google.GoogleCanaryAccount;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;

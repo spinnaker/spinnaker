@@ -18,7 +18,9 @@ package com.netflix.spinnaker.halyard.config.model.v1.canary.google;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials;
-import com.netflix.spinnaker.halyard.config.config.v1.secrets.SecretSessionManager;
+import com.netflix.spinnaker.config.secrets.EncryptedSecret;
+import com.netflix.spinnaker.halyard.config.validate.v1.util.ValidatingFileReader;
+import com.netflix.spinnaker.halyard.core.secrets.v1.SecretSessionManager;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryServiceIntegration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.LocalFile;
@@ -50,7 +52,11 @@ public class GoogleCanaryAccount extends AbstractCanaryAccount implements Clonea
   public GoogleNamedAccountCredentials getNamedAccountCredentials(String version, SecretSessionManager secretSessionManager, ConfigProblemSetBuilder p) {
     String jsonKey = null;
     if (!StringUtils.isEmpty(getJsonPath())) {
-      jsonKey = secretSessionManager.validatingFileDecrypt(p, getJsonPath());
+      if (EncryptedSecret.isEncryptedSecret(getJsonPath())) {
+        jsonKey = secretSessionManager.decrypt(getJsonPath());
+      } else {
+        jsonKey = ValidatingFileReader.contents(p, getJsonPath());
+      }
 
       if (jsonKey == null) {
         return null;

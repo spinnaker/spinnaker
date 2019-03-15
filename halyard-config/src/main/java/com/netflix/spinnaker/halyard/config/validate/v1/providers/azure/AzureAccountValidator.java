@@ -20,7 +20,7 @@ import com.microsoft.azure.CloudException;
 import com.microsoft.azure.management.resources.ResourcesOperations;
 import com.netflix.spinnaker.clouddriver.azure.client.AzureResourceManagerClient;
 import com.netflix.spinnaker.clouddriver.azure.security.AzureCredentials;
-import com.netflix.spinnaker.halyard.config.config.v1.secrets.SecretSessionManager;
+import com.netflix.spinnaker.halyard.core.secrets.v1.SecretSessionManager;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.azure.AzureAccount;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;

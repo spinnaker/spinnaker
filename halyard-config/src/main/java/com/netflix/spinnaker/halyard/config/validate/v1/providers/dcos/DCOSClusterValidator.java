@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.halyard.config.validate.v1.providers.dcos;
 
 import com.google.common.base.Strings;
-import com.netflix.spinnaker.halyard.config.config.v1.secrets.SecretSessionManager;
+import com.netflix.spinnaker.halyard.core.secrets.v1.SecretSessionManager;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.dcos.DCOSCluster;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
@@ -27,7 +27,7 @@ public class DCOSClusterValidator extends Validator<DCOSCluster> {
     }
 
     if (!Strings.isNullOrEmpty(cluster.getCaCertFile())) {
-      String resolvedServiceKey = secretSessionManager.validatingFileDecrypt(problems, cluster.getCaCertFile());
+      String resolvedServiceKey = validatingFileDecrypt(problems, cluster.getCaCertFile());
       if (Strings.isNullOrEmpty(resolvedServiceKey)) {
         problems.addProblem(ERROR, "The supplied CA certificate file does not exist or is empty.")
                 .setRemediation("Supply a valid CA certificate file.");

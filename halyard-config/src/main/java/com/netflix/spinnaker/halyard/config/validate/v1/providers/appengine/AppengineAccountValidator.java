@@ -21,7 +21,7 @@ import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.KeyPair;
 import com.netflix.spinnaker.clouddriver.appengine.security.AppengineNamedAccountCredentials;
-import com.netflix.spinnaker.halyard.config.config.v1.secrets.SecretSessionManager;
+import com.netflix.spinnaker.halyard.core.secrets.v1.SecretSessionManager;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.appengine.AppengineAccount;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
@@ -64,7 +64,7 @@ public class AppengineAccountValidator extends Validator<AppengineAccount> {
         p.addProblem(Severity.ERROR, "SSH private key filepath supplied without SSH private key passphrase.");
       }
     } else if (hasSshPrivateKeyPassphrase && hasSshPrivateKeyFilePath) {
-      String sshPrivateKey = secretSessionManager.validatingFileDecrypt(p, account.getSshPrivateKeyFilePath());
+      String sshPrivateKey = validatingFileDecrypt(p, account.getSshPrivateKeyFilePath());
       if (sshPrivateKey == null) {
         return;
       } else if (sshPrivateKey.isEmpty()) {
@@ -84,7 +84,7 @@ public class AppengineAccountValidator extends Validator<AppengineAccount> {
     }
     
     if (knownHostsPath != null && !knownHostsPath.isEmpty()) {
-      String knownHosts = secretSessionManager.validatingFileDecrypt(p, knownHostsPath);
+      String knownHosts = validatingFileDecrypt(p, knownHostsPath);
       if (knownHosts == null) {
         return;
       }
@@ -94,7 +94,7 @@ public class AppengineAccountValidator extends Validator<AppengineAccount> {
     }
 
     if (jsonPath != null && !jsonPath.isEmpty()) {
-      jsonKey = secretSessionManager.validatingFileDecrypt(p, jsonPath);
+      jsonKey = validatingFileDecrypt(p, jsonPath);
       if (jsonKey == null) {
         return;
       } 

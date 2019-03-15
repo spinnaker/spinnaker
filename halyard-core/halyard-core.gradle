@@ -4,6 +4,8 @@ dependencies {
   compile spinnaker.dependency('lombok')
   compile spinnaker.dependency('clouddriverAws')
   compile spinnaker.dependency('googleStorage')
+  compile spinnaker.dependency('korkSecrets')
+  compile spinnaker.dependency('korkSecretsAws')
 
   compile 'com.beust:jcommander:1.48'
   compile 'com.hubspot.jinjava:jinjava:2.2.3'

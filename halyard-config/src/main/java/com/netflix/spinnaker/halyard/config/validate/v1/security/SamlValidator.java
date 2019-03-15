@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.halyard.config.validate.v1.security;
 
 import com.netflix.spinnaker.config.secrets.EncryptedSecret;
-import com.netflix.spinnaker.halyard.config.config.v1.secrets.SecretSessionManager;
+import com.netflix.spinnaker.halyard.core.secrets.v1.SecretSessionManager;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.model.v1.security.Saml;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;

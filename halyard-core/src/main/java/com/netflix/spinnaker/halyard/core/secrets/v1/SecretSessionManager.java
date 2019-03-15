@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.config.config.v1.secrets;
+package com.netflix.spinnaker.halyard.core.secrets.v1;
 
 import com.netflix.spinnaker.config.secrets.EncryptedSecret;
 import com.netflix.spinnaker.config.secrets.SecretManager;
-import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
-import com.netflix.spinnaker.halyard.config.validate.v1.util.ValidatingFileReader;
+import com.netflix.spinnaker.config.secrets.SecretSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -35,10 +34,10 @@ public class SecretSessionManager {
   @Autowired
   private SecretManager secretManager;
 
-  public void clearSession() {
+  public static void clearSession() {
     SecretSession session = secretSessions.get();
     if (session != null) {
-      session.clearTempFiles();
+      session.clearCachedSecrets();
       secretSessions.remove();
     }
   }
@@ -46,7 +45,7 @@ public class SecretSessionManager {
   public SecretSession getSession() {
     SecretSession session = secretSessions.get();
     if (session == null) {
-      session = new SecretSession();
+      session = new SecretSession(secretManager);
       secretSessions.set(session);
     }
     return session;
@@ -69,15 +68,8 @@ public class SecretSessionManager {
    * @return decrypted value of the secret field or file
    */
   public String decrypt(String filePathOrEncryptedString) {
-    return secretManager.decrypt(filePathOrEncryptedString);
-  }
-
-  public String validatingFileDecrypt(ConfigProblemSetBuilder ps, String filePath) {
-    String contents = secretManager.decrypt(filePath);
-    if (contents.equals(filePath)) {
-      contents = ValidatingFileReader.contents(ps, filePath);
-    }
-    return contents;
+    SecretSession session = getSession();
+    return session.decrypt(filePathOrEncryptedString);
   }
 
   /**
@@ -102,11 +94,10 @@ public class SecretSessionManager {
       return filePath;
     }
 
-    Path decryptedFilePath = secretManager.decryptAsFile(filePath);
+    SecretSession session = getSession();
+    Path decryptedFilePath = session.decryptAsFile(filePath);
 
     if (decryptedFilePath != null) {
-      SecretSession session = getSession();
-      session.addFile(filePath, decryptedFilePath);
       return decryptedFilePath.toString();
     } else {
       return null;

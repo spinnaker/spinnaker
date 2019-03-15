@@ -8,8 +8,6 @@ dependencies {
   compile spinnaker.dependency('clouddriverCloudfoundry')
   compile spinnaker.dependency('front50Gcs')
   compile spinnaker.dependency('front50S3')
-  compile spinnaker.dependency('korkSecrets')
-  compile spinnaker.dependency('korkSecretsAws')
 
 //  TODO: add clouddriverDCOS once that's merged
   compile project(':halyard-core')

@@ -19,7 +19,7 @@ package com.netflix.spinnaker.halyard.config.validate.v1.providers.dockerRegistr
 import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client.DefaultDockerOkClientProvider;
 import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client.DockerRegistryCatalog;
 import com.netflix.spinnaker.clouddriver.docker.registry.security.DockerRegistryNamedAccountCredentials;
-import com.netflix.spinnaker.halyard.config.config.v1.secrets.SecretSessionManager;
+import com.netflix.spinnaker.halyard.core.secrets.v1.SecretSessionManager;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.dockerRegistry.DockerRegistryAccount;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
@@ -58,7 +58,7 @@ public class DockerRegistryAccountValidator extends Validator<DockerRegistryAcco
     if (passwordProvided) {
       resolvedPassword = secretSessionManager.decrypt(password);
     } else if (passwordFileProvided) {
-      resolvedPassword = secretSessionManager.validatingFileDecrypt(p, passwordFile);
+      resolvedPassword = validatingFileDecrypt(p, passwordFile);
       if (resolvedPassword == null) {
         return;
       }

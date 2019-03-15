@@ -9,6 +9,7 @@ import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
+import com.netflix.spinnaker.halyard.core.secrets.v1.SecretSessionManager;
 import lombok.Data;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -112,7 +113,7 @@ public class DaemonTask<C, T> {
   void cleanupResources() {
     log.info(this + " killing all jobs created by this task " + String.join(", ", runningJobs));
     DaemonTaskHandler.getJobExecutor().cancelJobs(new ArrayList<>(runningJobs));
-
+      SecretSessionManager.clearSession();
     for (DaemonTask child : children) {
       if (child != null) {
         log.info(this + " interrupting child " + child);

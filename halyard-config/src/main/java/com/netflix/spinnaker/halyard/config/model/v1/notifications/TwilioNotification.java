@@ -20,6 +20,7 @@ package com.netflix.spinnaker.halyard.config.model.v1.notifications;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Notification;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Secret;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -29,6 +30,7 @@ public class TwilioNotification extends Notification {
   String account;
   String baseUrl = "https://api.twilio.com/";
   String from;
+  @Secret
   String token;
 
   @Override

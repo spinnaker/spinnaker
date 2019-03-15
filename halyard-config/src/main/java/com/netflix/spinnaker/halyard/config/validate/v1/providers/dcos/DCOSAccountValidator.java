@@ -2,7 +2,7 @@ package com.netflix.spinnaker.halyard.config.validate.v1.providers.dcos;
 
 import com.beust.jcommander.Strings;
 import com.beust.jcommander.internal.Lists;
-import com.netflix.spinnaker.halyard.config.config.v1.secrets.SecretSessionManager;
+import com.netflix.spinnaker.halyard.core.secrets.v1.SecretSessionManager;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIterator;
@@ -115,7 +115,7 @@ public class DCOSAccountValidator extends Validator<DCOSAccount> {
       }
 
       if (!Strings.isStringEmpty(c.getServiceKeyFile())) {
-        String resolvedServiceKey = secretSessionManager.validatingFileDecrypt(problems, c.getServiceKeyFile());
+        String resolvedServiceKey = validatingFileDecrypt(problems, c.getServiceKeyFile());
 
         if (Strings.isStringEmpty(resolvedServiceKey)) {
           problems.addProblem(ERROR, "The supplied service key file does not exist or is empty.")
