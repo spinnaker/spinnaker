@@ -8,6 +8,7 @@ import { defaultsDeep, extend } from 'lodash';
 import { AccountService } from 'core/account/AccountService';
 import { API } from 'core/api';
 import { BASE_EXECUTION_DETAILS_CTRL } from './common/baseExecutionDetails.controller';
+import { SETTINGS } from 'core/config';
 import { CONFIRMATION_MODAL_SERVICE } from 'core/confirmationModal/confirmationModal.service';
 import { STAGE_NAME } from './StageName';
 import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
@@ -126,6 +127,8 @@ module.exports = angular
           }
         });
       };
+
+      this.checkFeatureFlag = flag => !!SETTINGS.feature[flag];
 
       this.editStageJson = () => {
         const modalProps = { dialogClassName: 'modal-lg modal-fullscreen' };

@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 import { IExpectedArtifact, IStage, IPipeline } from 'core/domain';
-import { ExpectedArtifactModal } from 'core/artifact';
+import { ExpectedArtifactModal, ArtifactTypePatterns } from 'core/artifact';
 import { module } from 'angular';
 import { react2angular } from 'react2angular';
 
@@ -12,6 +12,7 @@ export interface IProducesArtifactsProps {
 }
 
 export const ProducesArtifacts: React.SFC<IProducesArtifactsProps> = props => {
+  const excludedArtifactTypePatterns = [ArtifactTypePatterns.FRONT50_PIPELINE_TEMPLATE];
   const { pipeline, stage, onProducesChanged } = props;
   const produces: IExpectedArtifact[] = stage.expectedArtifacts || [];
 
@@ -25,6 +26,7 @@ export const ProducesArtifacts: React.SFC<IProducesArtifactsProps> = props => {
     ExpectedArtifactModal.show({
       expectedArtifact: artifact,
       pipeline: pipeline,
+      excludedArtifactTypePatterns: excludedArtifactTypePatterns,
     }).then((editedArtifact: IExpectedArtifact) => {
       const editIndex = produces.findIndex(a => a.id === editedArtifact.id);
       const producesAfterEdit = produces.slice(0);
@@ -34,7 +36,10 @@ export const ProducesArtifacts: React.SFC<IProducesArtifactsProps> = props => {
   };
 
   const defineNewExpectedArtifact = () => {
-    ExpectedArtifactModal.show({ pipeline: pipeline }).then((artifact: IExpectedArtifact) => {
+    ExpectedArtifactModal.show({
+      pipeline: pipeline,
+      excludedArtifactTypePatterns: excludedArtifactTypePatterns,
+    }).then((artifact: IExpectedArtifact) => {
       const producesAfterNew = produces.slice(0);
       producesAfterNew.push(artifact);
       onProducesChanged(producesAfterNew, stage);

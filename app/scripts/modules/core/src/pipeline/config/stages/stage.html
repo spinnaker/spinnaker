@@ -98,11 +98,13 @@
     >
       <notification-list level="stage" notifications="stage.notifications" parent="stage"></notification-list>
     </page-section>
-    <render-if-feature feature="artifacts">
-      <page-section key="producesArtifacts" label="Produces Artifacts" visible="stageProducesArtifacts()">
-        <produces-artifacts stage="stage" pipeline="pipeline"></produces-artifacts>
-      </page-section>
-    </render-if-feature>
+    <page-section
+      key="producesArtifacts"
+      label="Produces Artifacts"
+      visible="stageProducesArtifacts() && !stageConfigCtrl.checkFeatureFlag('artifactsRewrite') && stageConfigCtrl.checkFeatureFlag('artifacts')"
+    >
+      <produces-artifacts stage="stage" pipeline="pipeline"></produces-artifacts>
+    </page-section>
     <render-if-feature feature="artifactsRewrite">
       <page-section key="producesArtifacts" label="Produces Artifacts" visible="stageProducesArtifacts()">
         <produces-artifacts-react stage="stage" pipeline="pipeline" on-produces-changed="producesArtifactsChanged" />
