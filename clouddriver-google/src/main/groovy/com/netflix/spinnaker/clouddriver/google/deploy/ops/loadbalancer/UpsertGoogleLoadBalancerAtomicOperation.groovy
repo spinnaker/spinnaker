@@ -35,6 +35,7 @@ import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationException
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.GoogleAtomicOperation
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleSessionAffinity
 import org.springframework.beans.factory.annotation.Autowired
 
 class UpsertGoogleLoadBalancerAtomicOperation extends GoogleAtomicOperation<Map> {
@@ -105,10 +106,12 @@ class UpsertGoogleLoadBalancerAtomicOperation extends GoogleAtomicOperation<Map>
     boolean needToUpdateForwardingRule = false
     boolean needToUpdateTargetPool = false
     boolean needToUpdateHttpHealthCheck = false
+    boolean needToUpdateSessionAffinity = false
     boolean needToDeleteHttpHealthCheck = false
     boolean needToCreateNewForwardingRule = false
     boolean needToCreateNewTargetPool = false
     boolean needToCreateNewHttpHealthCheck = false
+
 
     // Check if there already exists a forwarding rule with the requested name.
     existingForwardingRule =
@@ -138,6 +141,8 @@ class UpsertGoogleLoadBalancerAtomicOperation extends GoogleAtomicOperation<Map>
           (description.instances != null
              || description.healthCheck && !existingTargetPool.healthChecks
              || !description.healthCheck && existingTargetPool.healthChecks)
+
+        needToUpdateSessionAffinity = description.sessionAffinity != GoogleSessionAffinity.valueOf(existingTargetPool.getSessionAffinity());
 
         if (existingTargetPool.healthChecks) {
           existingHttpHealthCheck = GCEUtil.queryHttpHealthCheck(
@@ -371,7 +376,8 @@ class UpsertGoogleLoadBalancerAtomicOperation extends GoogleAtomicOperation<Map>
     def targetPool = new TargetPool(
       name: targetPoolName,
       healthChecks: httpHealthChecksResourceLinks,
-      instances: description.instances
+      instances: description.instances,
+      sessionAffinity: description.sessionAffinity
     )
 
     targetPoolResourceOperation = timeExecute(

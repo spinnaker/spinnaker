@@ -22,6 +22,7 @@ import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHostRule
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerType
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleSessionAffinity
 import com.netflix.spinnaker.clouddriver.security.resources.ApplicationNameable
 
 class UpsertGoogleLoadBalancerDescription extends AbstractGoogleCredentialsDescription implements ApplicationNameable {
@@ -50,6 +51,9 @@ class UpsertGoogleLoadBalancerDescription extends AbstractGoogleCredentialsDescr
    * this L7.
    */
   List<GoogleBackendService> backendServiceDiff
+
+  // NLB attribues.
+  GoogleSessionAffinity sessionAffinity
 
   // ILB attributes.
   String network
