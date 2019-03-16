@@ -53,7 +53,7 @@ internal class SqsResourceCheckListenerTests : JUnit5Minutests {
     }
 
     after {
-      stopListening()
+      onApplicationDown()
       reset(sqsClient, actuator)
     }
 
@@ -65,7 +65,7 @@ internal class SqsResourceCheckListenerTests : JUnit5Minutests {
           } doReturn enqueuedMessages(message) doReturn enqueuedMessages()
         }
 
-        startListening()
+        onApplicationUp()
       }
 
       test("invokes the actuator") {
@@ -92,7 +92,7 @@ internal class SqsResourceCheckListenerTests : JUnit5Minutests {
           } doReturn enqueuedMessages("SOME RANDOM JUNK", message) doReturn enqueuedMessages()
         }
 
-        startListening()
+        onApplicationUp()
       }
 
       test("goes on to process the valid message") {
@@ -121,7 +121,7 @@ internal class SqsResourceCheckListenerTests : JUnit5Minutests {
           on { checkResource(message.name.let(::ResourceName), message.apiVersion, message.kind) } doThrow IllegalStateException("o noes")
         }
 
-        startListening()
+        onApplicationUp()
       }
 
       test("goes on to process the next message") {

@@ -18,7 +18,6 @@ package com.netflix.spinnaker.keel
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.annealing.ResourceCheckQueue
 import com.netflix.spinnaker.keel.info.InstanceIdSupplier
-import com.netflix.spinnaker.keel.info.LocalInstanceIdSupplier
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.ResourceVersionTracker
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
@@ -55,7 +54,8 @@ private val DEFAULT_PROPS = mapOf(
   "spring.config.name" to "spinnaker,\${spring.application.name}",
   "spring.profiles.active" to "\${netflix.environment},local",
   // TODO: not sure why we need this when it should get loaded from application.properties
-  "spring.main.allow-bean-definition-overriding" to "true"
+  "spring.main.allow-bean-definition-overriding" to "true",
+  "spring.groovy.template.check-template-location" to "false"
 )
 
 @SpringBootApplication(
@@ -90,10 +90,6 @@ class KeelApplication {
   @Bean
   @ConditionalOnMissingBean(ResourceVersionTracker::class)
   fun resourceVersionTracker(): ResourceVersionTracker = InMemoryResourceVersionTracker()
-
-  @Bean
-  @ConditionalOnMissingBean(InstanceIdSupplier::class)
-  fun instanceIdSupplier(): InstanceIdSupplier = LocalInstanceIdSupplier
 
   @Bean
   @ConditionalOnMissingBean(ResourceHandler::class)

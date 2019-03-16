@@ -8,6 +8,8 @@ import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.config.SqsProperties
+import com.netflix.spinnaker.keel.activation.ApplicationDown
+import com.netflix.spinnaker.keel.activation.ApplicationUp
 import com.netflix.spinnaker.keel.annealing.ResourceActuator
 import com.netflix.spinnaker.keel.api.ResourceName
 import kotlinx.coroutines.CancellationException
@@ -24,9 +26,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.yield
 import org.slf4j.LoggerFactory
+import org.springframework.context.event.EventListener
 import java.lang.Thread.currentThread
-import javax.annotation.PostConstruct
-import javax.annotation.PreDestroy
 import kotlin.coroutines.CoroutineContext
 
 internal class SqsResourceCheckListener(
@@ -41,14 +42,28 @@ internal class SqsResourceCheckListener(
   override val coroutineContext: CoroutineContext
     get() = Dispatchers.IO + supervisorJob
 
-  @PostConstruct
-  fun startListening() {
+  @EventListener(ApplicationUp::class)
+  fun onApplicationUp() {
+    log.info("Application up: starting SQS queue monitor")
     launch {
       val channel = Channel<Message>()
       launchMessageReceiver(channel)
       repeat(sqsProperties.listenerFibers) {
         launchWorker(channel)
       }
+    }
+  }
+
+  @EventListener(ApplicationDown::class)
+  fun onApplicationDown() {
+    log.info("Application down: stopping SQS queue monitor")
+    runBlocking {
+      log.info(
+        "Stopping supervisor job with {} children and {} grandchildren",
+        supervisorJob.children.toList().size,
+        supervisorJob.children.flatMap { it.children }.toList().size
+      )
+      supervisorJob.cancelAndJoin()
     }
   }
 
@@ -98,14 +113,6 @@ internal class SqsResourceCheckListener(
         .withWaitTimeSeconds(sqsProperties.waitTimeSeconds)
     )
       .messages
-
-  @PreDestroy
-  fun stopListening() {
-    runBlocking {
-      log.info("Stopping job with {} children", supervisorJob.children.toList().size)
-      supervisorJob.cancelAndJoin()
-    }
-  }
 
   private suspend fun CoroutineScope.runUntilCancelled(block: suspend () -> Unit) {
     while (isActive) {

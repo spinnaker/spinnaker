@@ -6,6 +6,7 @@ apply plugin: "application"
 dependencies {
   api project(":keel-core")
   api project(":keel-plugin")
+  api project(":keel-eureka")
 
   implementation project(":keel-eureka")
   implementation project(":keel-ec2-plugin")
