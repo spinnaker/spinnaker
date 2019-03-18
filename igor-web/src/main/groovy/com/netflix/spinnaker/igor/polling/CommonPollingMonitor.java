@@ -41,7 +41,7 @@ public abstract class CommonPollingMonitor<I extends DeltaItem, T extends Pollin
     protected Logger log = LoggerFactory.getLogger(getClass());
 
     private final Optional<DiscoveryClient> discoveryClient;
-    private Scheduler.Worker worker;
+    protected Scheduler.Worker worker;
 
     protected final IgorConfigurationProperties igorProperties;
     protected final Registry registry;
