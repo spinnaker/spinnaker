@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.echo.build;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.model.trigger.BuildEvent;
@@ -76,12 +77,23 @@ public class BuildInfoService {
     return Collections.emptyMap();
   }
 
-  public List<Artifact> getArtifacts(BuildEvent event, String propertyFile) {
+  private List<Artifact> getArtifactsFromPropertyFile(BuildEvent event, String propertyFile) {
     String master = event.getContent().getMaster();
     String job = event.getContent().getProject().getName();
     int buildNumber = event.getBuildNumber();
     if (StringUtils.isNoneEmpty(master, job, propertyFile)) {
       return retry(() -> igorService.getArtifacts(buildNumber, propertyFile, master, job));
+    }
+    return Collections.emptyList();
+  }
+
+  private List<Artifact> getArtifactsFromBuildInfo(Trigger trigger) {
+    Map<String, Object> buildInfo = trigger.getBuildInfo();
+    if(buildInfo != null) {
+      Object artifacts = buildInfo.get("artifacts");
+      if (artifacts != null) {
+        return objectMapper.convertValue(artifacts, new TypeReference<List<Artifact>>() {});
+      }
     }
     return Collections.emptyList();
   }
@@ -92,11 +104,11 @@ public class BuildInfoService {
       .map(BuildEvent.Project::getLastBuild)
       .map(BuildEvent.Build::getArtifacts)
       .orElse(Collections.emptyList());
-    List<Artifact> extractedArtifacts = this.getArtifacts(event, trigger.getPropertyFile());
 
     List <Artifact> result = new ArrayList<>();
     result.addAll(buildArtifacts);
-    result.addAll(extractedArtifacts);
+    result.addAll(getArtifactsFromPropertyFile(event, trigger.getPropertyFile()));
+    result.addAll(getArtifactsFromBuildInfo(trigger));
     return result;
   }
 
