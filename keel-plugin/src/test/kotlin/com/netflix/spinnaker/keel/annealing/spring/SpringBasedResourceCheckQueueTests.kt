@@ -5,12 +5,12 @@ import com.netflix.spinnaker.keel.annealing.ResourceActuator
 import com.netflix.spinnaker.keel.annealing.ResourceCheckQueue
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
-import com.nhaarman.mockitokotlin2.verify
+import com.ninjasquad.springmockk.MockkBean
+import io.mockk.verify
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.test.context.junit4.SpringRunner
 
 @RunWith(SpringRunner::class)
@@ -22,7 +22,7 @@ class SpringBasedResourceCheckQueueTests {
   @Autowired
   lateinit var resourceCheckQueue: ResourceCheckQueue
 
-  @MockBean
+  @MockkBean
   lateinit var resourceActuator: ResourceActuator
 
   @Test
@@ -31,7 +31,7 @@ class SpringBasedResourceCheckQueueTests {
       .let { (name, apiVersion, kind) ->
         resourceCheckQueue.scheduleCheck(name, apiVersion, kind)
 
-        verify(resourceActuator).checkResource(name, apiVersion, kind)
+        verify { resourceActuator.checkResource(name, apiVersion, kind) }
       }
   }
 

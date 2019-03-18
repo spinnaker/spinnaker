@@ -10,15 +10,12 @@ import com.netflix.spinnaker.keel.api.deliveryconfig.DeliveryConfig
 import com.netflix.spinnaker.keel.front50.Front50Service
 import com.netflix.spinnaker.keel.front50.model.Delivery
 import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
-import com.nhaarman.mockitokotlin2.any
-import com.nhaarman.mockitokotlin2.doThrow
-import com.nhaarman.mockitokotlin2.mock
-import com.nhaarman.mockitokotlin2.reset
-import com.nhaarman.mockitokotlin2.verify
-import com.nhaarman.mockitokotlin2.whenever
 import de.huxhorn.sulky.ulid.ULID
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.CompletableDeferred
 import okhttp3.MediaType
 import okhttp3.ResponseBody
@@ -41,7 +38,7 @@ internal class DeliveryConfigHandlerTests : JUnit5Minutests {
     ),
     spec
   )
-  private val front50Service = mock<Front50Service>()
+  private val front50Service = mockk<Front50Service>()
   private val objectMapper = ObjectMapper().registerKotlinModule()
   private val RETROFIT_NOT_FOUND = HttpException(
     error<Any>(404, ResponseBody.create(MediaType.parse("application/json"), ""))
@@ -54,14 +51,10 @@ internal class DeliveryConfigHandlerTests : JUnit5Minutests {
       DeliveryConfigHandler(front50Service, objectMapper, normalizers)
     }
 
-    after {
-      reset(front50Service)
-    }
-
     context("the deliveryconfig does not exist") {
       before {
-        whenever(front50Service.deliveryById(any())) doThrow RETROFIT_NOT_FOUND
-        whenever(front50Service.upsertDelivery("foo", Delivery(spec.name, spec.application))).thenReturn(CompletableDeferred(Delivery(spec.name, spec.application)))
+        every { front50Service.deliveryById(any()) } throws RETROFIT_NOT_FOUND
+        every { front50Service.upsertDelivery("foo", Delivery(spec.name, spec.application)) } returns CompletableDeferred(Delivery(spec.name, spec.application))
       }
 
       test("the current model is null") {
@@ -70,7 +63,7 @@ internal class DeliveryConfigHandlerTests : JUnit5Minutests {
 
       test("upserting a deliveryconfig persists to front50") {
         upsert(resource)
-        verify(front50Service).upsertDelivery(spec.name, Delivery(spec.name, spec.application))
+        verify { front50Service.upsertDelivery(spec.name, Delivery(spec.name, spec.application)) }
       }
     }
   }

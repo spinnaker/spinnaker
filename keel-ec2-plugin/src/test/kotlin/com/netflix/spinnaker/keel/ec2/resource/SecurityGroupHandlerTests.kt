@@ -42,18 +42,14 @@ import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
 import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
-import com.nhaarman.mockitokotlin2.any
-import com.nhaarman.mockitokotlin2.argumentCaptor
-import com.nhaarman.mockitokotlin2.doAnswer
-import com.nhaarman.mockitokotlin2.doReturn
-import com.nhaarman.mockitokotlin2.doThrow
-import com.nhaarman.mockitokotlin2.mock
-import com.nhaarman.mockitokotlin2.reset
-import com.nhaarman.mockitokotlin2.stub
-import com.nhaarman.mockitokotlin2.verify
 import de.danielbechler.diff.node.DiffNode
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import io.mockk.confirmVerified
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.slot
+import io.mockk.verify
 import kotlinx.coroutines.CompletableDeferred
 import org.funktionale.partials.partially3
 import strikt.api.Assertion
@@ -69,9 +65,9 @@ import java.util.UUID.randomUUID
 
 internal object SecurityGroupHandlerTests : JUnit5Minutests {
 
-  val cloudDriverService: CloudDriverService = mock()
-  val cloudDriverCache: CloudDriverCache = mock()
-  val orcaService: OrcaService = mock()
+  val cloudDriverService: CloudDriverService = mockk()
+  val cloudDriverCache: CloudDriverCache = mockk()
+  val orcaService: OrcaService = mockk()
   val objectMapper = configuredObjectMapper()
   val normalizers = emptyList<ResourceNormalizer<SecurityGroup>>()
 
@@ -135,13 +131,8 @@ internal object SecurityGroupHandlerTests : JUnit5Minutests {
       setupVpc()
     }
 
-    after {
-      resetVpc()
-    }
-
     context("no matching security group exists") {
       before { cloudDriverSecurityGroupNotFound() }
-      after { resetServices() }
 
       test("current returns null") {
         val response = handler.current(resource)
@@ -152,7 +143,6 @@ internal object SecurityGroupHandlerTests : JUnit5Minutests {
 
     context("a matching security group exists") {
       before { cloudDriverSecurityGroupReturns() }
-      after { resetServices() }
 
       test("current returns the security group") {
         val response = handler.current(resource)
@@ -179,19 +169,12 @@ internal object SecurityGroupHandlerTests : JUnit5Minutests {
       }
 
       before {
-        cloudDriverCache.stub {
-          with(vpc2) {
-            on { networkBy(name, account, region) } doReturn this
-            on { networkBy(id) } doReturn this
-          }
+        with(vpc2) {
+          every { cloudDriverCache.networkBy(name, account, region) } returns this
+          every { cloudDriverCache.networkBy(id) } returns this
         }
 
         cloudDriverSecurityGroupReturns()
-      }
-
-
-      after {
-        resetServices()
       }
 
       test("rules are attached to the current security group") {
@@ -211,10 +194,6 @@ internal object SecurityGroupHandlerTests : JUnit5Minutests {
       setupVpc()
     }
 
-    after {
-      resetVpc()
-    }
-
     sequenceOf(
       "create" to SecurityGroupHandler::create,
       "update" to SecurityGroupHandler::update.partially3(DiffNode.newRootNode())
@@ -222,30 +201,27 @@ internal object SecurityGroupHandlerTests : JUnit5Minutests {
       .forEach { (methodName, handlerMethod) ->
         context("$methodName a security group with no ingress rules") {
           before {
-            orcaService.stub {
-              on { orchestrate(any()) } doAnswer {
-                CompletableDeferred(TaskRefResponse("/tasks/${randomUUID()}"))
-              }
+            every { orcaService.orchestrate(any()) } answers {
+              CompletableDeferred(TaskRefResponse("/tasks/${randomUUID()}"))
             }
 
             handlerMethod.invoke(handler, resource)
           }
 
           after {
-            reset(cloudDriverService, orcaService)
+            confirmVerified(orcaService)
           }
 
           test("it upserts the security group via Orca") {
-            argumentCaptor<OrchestrationRequest>().apply {
-              verify(orcaService).orchestrate(capture())
-              expectThat(firstValue) {
-                application.isEqualTo(securityGroup.application)
-                job
-                  .hasSize(1)
-                  .first()
-                  .type
-                  .isEqualTo("upsertSecurityGroup")
-              }
+            val slot = slot<OrchestrationRequest>()
+            verify { orcaService.orchestrate(capture(slot)) }
+            expectThat(slot.captured) {
+              application.isEqualTo(securityGroup.application)
+              job
+                .hasSize(1)
+                .first()
+                .type
+                .isEqualTo("upsertSecurityGroup")
             }
           }
         }
@@ -268,44 +244,39 @@ internal object SecurityGroupHandlerTests : JUnit5Minutests {
           }
 
           before {
-            cloudDriverCache.stub {
-              Network(CLOUD_PROVIDER, randomUUID().toString(), "vpc1", "test", securityGroup.region).also {
-                on { networkBy(it.id) } doReturn it
-                on { networkBy(it.name, it.account, it.region) } doReturn it
-              }
+            Network(CLOUD_PROVIDER, randomUUID().toString(), "vpc1", "test", securityGroup.region).also {
+              every { cloudDriverCache.networkBy(it.id) } returns it
+              every { cloudDriverCache.networkBy(it.name, it.account, it.region) } returns it
             }
 
-            orcaService.stub {
-              on { orchestrate(any()) } doAnswer {
-                CompletableDeferred(TaskRefResponse("/tasks/${randomUUID()}"))
-              }
+            every { orcaService.orchestrate(any()) } answers {
+              CompletableDeferred(TaskRefResponse("/tasks/${randomUUID()}"))
             }
 
             handlerMethod.invoke(handler, resource)
           }
 
           after {
-            reset(cloudDriverService, orcaService)
+            confirmVerified(orcaService)
           }
 
           test("it upserts the security group via Orca") {
-            argumentCaptor<OrchestrationRequest>().apply {
-              verify(orcaService).orchestrate(capture())
-              expectThat(firstValue) {
-                application.isEqualTo(securityGroup.application)
-                job.hasSize(1)
-                job[0].securityGroupIngress
-                  .hasSize(1)
-                  .first()
-                  .and {
-                    securityGroup.inboundRules.first().also { rule ->
-                      get("type").isEqualTo(rule.protocol.name.toLowerCase())
-                      get("startPort").isEqualTo(rule.portRange.startPort)
-                      get("endPort").isEqualTo(rule.portRange.endPort)
-                      get("name").isEqualTo((rule as CrossAccountReferenceRule).name)
-                    }
+            val slot = slot<OrchestrationRequest>()
+            verify { orcaService.orchestrate(capture(slot)) }
+            expectThat(slot.captured) {
+              application.isEqualTo(securityGroup.application)
+              job.hasSize(1)
+              job[0].securityGroupIngress
+                .hasSize(1)
+                .first()
+                .and {
+                  securityGroup.inboundRules.first().also { rule ->
+                    get("type").isEqualTo(rule.protocol.name.toLowerCase())
+                    get("startPort").isEqualTo(rule.portRange.startPort)
+                    get("endPort").isEqualTo(rule.portRange.endPort)
+                    get("name").isEqualTo((rule as CrossAccountReferenceRule).name)
                   }
-              }
+                }
             }
           }
         }
@@ -326,37 +297,34 @@ internal object SecurityGroupHandlerTests : JUnit5Minutests {
           }
 
           before {
-            orcaService.stub {
-              on { orchestrate(any()) } doAnswer {
-                CompletableDeferred(TaskRefResponse("/tasks/${randomUUID()}"))
-              }
+            every { orcaService.orchestrate(any()) } answers {
+              CompletableDeferred(TaskRefResponse("/tasks/${randomUUID()}"))
             }
 
             handlerMethod.invoke(handler, resource)
           }
 
           after {
-            reset(cloudDriverService, orcaService)
+            confirmVerified(orcaService)
           }
 
           test("it upserts the security group via Orca") {
-            argumentCaptor<OrchestrationRequest>().apply {
-              verify(orcaService).orchestrate(capture())
-              expectThat(firstValue) {
-                application.isEqualTo(securityGroup.application)
-                job.hasSize(1)
-                job[0].ipIngress
-                  .hasSize(1)
-                  .first()
-                  .and {
-                    securityGroup.inboundRules.first().also { rule ->
-                      get("type").isEqualTo(rule.protocol.name)
-                      get("cidr").isEqualTo((rule as CidrRule).blockRange)
-                      get("startPort").isEqualTo(rule.portRange.startPort)
-                      get("endPort").isEqualTo(rule.portRange.endPort)
-                    }
+            val slot = slot<OrchestrationRequest>()
+            verify { orcaService.orchestrate(capture(slot)) }
+            expectThat(slot.captured) {
+              application.isEqualTo(securityGroup.application)
+              job.hasSize(1)
+              job[0].ipIngress
+                .hasSize(1)
+                .first()
+                .and {
+                  securityGroup.inboundRules.first().also { rule ->
+                    get("type").isEqualTo(rule.protocol.name)
+                    get("cidr").isEqualTo((rule as CidrRule).blockRange)
+                    get("startPort").isEqualTo(rule.portRange.startPort)
+                    get("endPort").isEqualTo(rule.portRange.endPort)
                   }
-              }
+                }
             }
           }
         }
@@ -377,29 +345,25 @@ internal object SecurityGroupHandlerTests : JUnit5Minutests {
       }
 
       before {
-        orcaService.stub {
-          on { orchestrate(any()) } doAnswer {
-            CompletableDeferred(TaskRefResponse("/tasks/${randomUUID()}"))
-          }
+        every { orcaService.orchestrate(any()) } answers {
+          CompletableDeferred(TaskRefResponse("/tasks/${randomUUID()}"))
         }
 
         handler.create(resource)
       }
 
       after {
-        reset(cloudDriverService, orcaService)
+        confirmVerified(orcaService)
       }
 
       test("it does not try to create the self-referencing rule") {
-        argumentCaptor<OrchestrationRequest>().apply {
-          verify(orcaService).orchestrate(capture())
-          expectThat(firstValue) {
-            application.isEqualTo(securityGroup.application)
-            job.hasSize(1)
-            job.first().type.isEqualTo("upsertSecurityGroup")
-            job.first().securityGroupIngress.hasSize(0)
-
-          }
+        val slot = slot<OrchestrationRequest>()
+        verify { orcaService.orchestrate(capture(slot)) }
+        expectThat(slot.captured) {
+          application.isEqualTo(securityGroup.application)
+          job.hasSize(1)
+          job.first().type.isEqualTo("upsertSecurityGroup")
+          job.first().securityGroupIngress.hasSize(0)
         }
       }
     }
@@ -419,29 +383,25 @@ internal object SecurityGroupHandlerTests : JUnit5Minutests {
       }
 
       before {
-        orcaService.stub {
-          on { orchestrate(any()) } doAnswer {
-            CompletableDeferred(TaskRefResponse("/tasks/${randomUUID()}"))
-          }
+        every { orcaService.orchestrate(any()) } answers {
+          CompletableDeferred(TaskRefResponse("/tasks/${randomUUID()}"))
         }
 
         handler.update(resource)
       }
 
       after {
-        reset(cloudDriverService, orcaService)
+        confirmVerified(orcaService)
       }
 
       test("it includes self-referencing rule in the Orca task") {
-        argumentCaptor<OrchestrationRequest>().apply {
-          verify(orcaService).orchestrate(capture())
-          expectThat(firstValue) {
-            application.isEqualTo(securityGroup.application)
-            job.hasSize(1)
-            job.first().type.isEqualTo("upsertSecurityGroup")
-            job.first().securityGroupIngress.hasSize(1)
-
-          }
+        val slot = slot<OrchestrationRequest>()
+        verify { orcaService.orchestrate(capture(slot)) }
+        expectThat(slot.captured) {
+          application.isEqualTo(securityGroup.application)
+          job.hasSize(1)
+          job.first().type.isEqualTo("upsertSecurityGroup")
+          job.first().securityGroupIngress.hasSize(1)
         }
       }
     }
@@ -452,69 +412,52 @@ internal object SecurityGroupHandlerTests : JUnit5Minutests {
 
     context("deleting a security group") {
       before {
-        orcaService.stub {
-          on { orchestrate(any()) } doAnswer {
-            CompletableDeferred(TaskRefResponse("/tasks/${randomUUID()}"))
-          }
+        every { orcaService.orchestrate(any()) } answers {
+          CompletableDeferred(TaskRefResponse("/tasks/${randomUUID()}"))
         }
 
         handler.delete(resource)
       }
 
       after {
-        reset(cloudDriverService, orcaService)
+        confirmVerified(orcaService)
       }
 
       test("it deletes the security group via Orca") {
-        argumentCaptor<OrchestrationRequest>().apply {
-          verify(orcaService).orchestrate(capture())
-          expectThat(firstValue) {
-            application.isEqualTo(securityGroup.application)
-            job
-              .hasSize(1)
-              .first()
-              .type
-              .isEqualTo("deleteSecurityGroup")
-          }
+        val slot = slot<OrchestrationRequest>()
+        verify { orcaService.orchestrate(capture(slot)) }
+        expectThat(slot.captured) {
+          application.isEqualTo(securityGroup.application)
+          job
+            .hasSize(1)
+            .first()
+            .type
+            .isEqualTo("deleteSecurityGroup")
         }
       }
     }
   }
 
-  private fun <F : Fixture> F.resetServices() {
-    reset(cloudDriverService, orcaService)
-  }
-
-  private fun <F : Fixture> F.resetVpc() {
-    reset(cloudDriverCache)
-  }
-
   private fun CurrentFixture.cloudDriverSecurityGroupReturns() {
-    cloudDriverService.stub {
-      with(cloudDriverResponse) {
-        on {
-          getSecurityGroup(accountName, CLOUD_PROVIDER, name, region, vpcId)
-        } doReturn CompletableDeferred(this)
-      }
+    with(cloudDriverResponse) {
+      every {
+        cloudDriverService.getSecurityGroup(accountName, CLOUD_PROVIDER, name, region, vpcId)
+      } returns CompletableDeferred(this)
     }
   }
 
   private fun CurrentFixture.cloudDriverSecurityGroupNotFound() {
-    cloudDriverService.stub {
-      with(cloudDriverResponse) {
-        on {
-          getSecurityGroup(accountName, CLOUD_PROVIDER, name, region, vpcId)
-        } doThrow RETROFIT_NOT_FOUND
-      }
+    with(cloudDriverResponse) {
+      every {
+        cloudDriverService.getSecurityGroup(accountName, CLOUD_PROVIDER, name, region, vpcId)
+      } throws RETROFIT_NOT_FOUND
     }
   }
 
   private fun <F : Fixture> F.setupVpc() {
-    cloudDriverCache.stub {
-      with(vpc) {
-        on { networkBy(name, account, region) } doReturn this
-        on { networkBy(id) } doReturn this
-      }
+    with(vpc) {
+      every { cloudDriverCache.networkBy(name, account, region) } returns this
+      every { cloudDriverCache.networkBy(id) } returns this
     }
   }
 

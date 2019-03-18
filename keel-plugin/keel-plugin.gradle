@@ -10,8 +10,8 @@ dependencies {
   implementation "org.springframework.boot:spring-boot-autoconfigure"
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
 
+  testImplementation project(":keel-spring-test-support")
   testImplementation "org.springframework.boot:spring-boot-starter-web"
-  testImplementation "org.springframework.boot:spring-boot-starter-test"
   testImplementation "dev.minutest:minutest:$minutestVersion"
   testImplementation "io.strikt:strikt-core:$striktVersion"
 }

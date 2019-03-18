@@ -17,10 +17,9 @@ import com.netflix.spinnaker.keel.redis.spring.MockEurekaConfiguration
 import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML
 import com.netflix.spinnaker.time.MutableClock
-import com.nhaarman.mockitokotlin2.any
-import com.nhaarman.mockitokotlin2.doReturn
-import com.nhaarman.mockitokotlin2.stub
-import com.nhaarman.mockitokotlin2.verify
+import com.ninjasquad.springmockk.MockkBean
+import io.mockk.every
+import io.mockk.verify
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -28,7 +27,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Primary
@@ -69,7 +67,7 @@ internal class ResourceControllerTests {
   @Autowired
   lateinit var resourceRepository: InMemoryResourceRepository
 
-  @MockBean
+  @MockkBean
   lateinit var resourcePersister: ResourcePersister
 
   @Autowired
@@ -92,9 +90,7 @@ internal class ResourceControllerTests {
 
   @Test
   fun `can create a resource as YAML`() {
-    resourcePersister.stub {
-      on { handle(any()) } doReturn resource
-    }
+    every { resourcePersister.handle(any()) } returns resource
 
     val request = post("/resources")
       .accept(APPLICATION_YAML)
@@ -116,9 +112,7 @@ internal class ResourceControllerTests {
 
   @Test
   fun `can create a resource as JSON`() {
-    resourcePersister.stub {
-      on { handle(any()) } doReturn resource
-    }
+    every { resourcePersister.handle(any()) } returns resource
 
     val request = post("/resources")
       .accept(APPLICATION_JSON)
@@ -180,11 +174,7 @@ internal class ResourceControllerTests {
 
   @Test
   fun `can delete a resource`() {
-    resourcePersister.stub {
-      on {
-        handle(any())
-      } doReturn resource
-    }
+    every { resourcePersister.handle(any()) } returns resource
 
     resourceRepository.store(resource)
 
@@ -194,7 +184,7 @@ internal class ResourceControllerTests {
       .perform(request)
       .andExpect(status().isOk)
 
-    verify(resourcePersister).handle(ResourceDeleted(resource.metadata.name))
+    verify { resourcePersister.handle(ResourceDeleted(resource.metadata.name)) }
 
     //clean up after the test
     resourceRepository.delete(resource.metadata.name)

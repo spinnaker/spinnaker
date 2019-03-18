@@ -17,13 +17,13 @@ package com.netflix.spinnaker.keel.redis.spring
 
 import com.netflix.appinfo.InstanceInfo
 import com.netflix.discovery.EurekaClient
-import org.springframework.boot.test.mock.mockito.MockBean
+import com.ninjasquad.springmockk.MockkBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
 @Configuration
 class MockEurekaConfiguration {
-  @MockBean
+  @MockkBean
   lateinit var eurekaClient: EurekaClient
 
   @Bean

@@ -4,12 +4,10 @@ import com.netflix.spinnaker.keel.plugin.Halt
 import com.netflix.spinnaker.keel.plugin.Proceed
 import com.netflix.spinnaker.keel.plugin.VetoPlugin
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
-import com.nhaarman.mockitokotlin2.doReturn
-import com.nhaarman.mockitokotlin2.mock
-import com.nhaarman.mockitokotlin2.reset
-import com.nhaarman.mockitokotlin2.stub
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import io.mockk.every
+import io.mockk.mockk
 import strikt.api.expectThat
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
@@ -27,7 +25,7 @@ internal object SimpleVetoPluginTests : JUnit5Minutests {
   fun tests() = rootContext<Fixture> {
     fixture {
       Fixture(
-        dynamicConfigService = mock(),
+        dynamicConfigService = mockk(),
         request = Resource(
           apiVersion = SPINNAKER_API_V1,
           kind = "ec2.SecurityGroup",
@@ -43,13 +41,7 @@ internal object SimpleVetoPluginTests : JUnit5Minutests {
 
     context("convergence is enabled") {
       before {
-        dynamicConfigService.stub {
-          on { isEnabled("keel.converge.enabled", false) } doReturn true
-        }
-      }
-
-      after {
-        reset(dynamicConfigService)
+        every { dynamicConfigService.isEnabled("keel.converge.enabled", false) } returns true
       }
 
       test("it approves resource convergence") {
@@ -59,13 +51,7 @@ internal object SimpleVetoPluginTests : JUnit5Minutests {
 
     context("convergence is disabled") {
       before {
-        dynamicConfigService.stub {
-          on { isEnabled("keel.converge.enabled", false) } doReturn false
-        }
-      }
-
-      after {
-        reset(dynamicConfigService)
+        every { dynamicConfigService.isEnabled("keel.converge.enabled", false) } returns false
       }
 
       test("it denies resource convergence") {

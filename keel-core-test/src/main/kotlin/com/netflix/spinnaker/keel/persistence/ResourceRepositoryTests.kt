@@ -24,20 +24,16 @@ import com.netflix.spinnaker.keel.persistence.ResourceState.Diff
 import com.netflix.spinnaker.keel.persistence.ResourceState.Ok
 import com.netflix.spinnaker.keel.persistence.ResourceState.Unknown
 import com.netflix.spinnaker.time.MutableClock
-import com.nhaarman.mockitokotlin2.argumentCaptor
-import com.nhaarman.mockitokotlin2.eq
-import com.nhaarman.mockitokotlin2.mock
-import com.nhaarman.mockitokotlin2.never
-import com.nhaarman.mockitokotlin2.reset
-import com.nhaarman.mockitokotlin2.times
-import com.nhaarman.mockitokotlin2.verify
-import com.nhaarman.mockitokotlin2.verifyZeroInteractions
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import io.mockk.Called
+import io.mockk.confirmVerified
+import io.mockk.mockk
+import io.mockk.verify
+import io.mockk.verifyAll
 import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.containsExactly
-import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
 import strikt.assertions.map
@@ -62,18 +58,18 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
     fixture {
       Fixture(
         subject = factory(clock),
-        callback = mock()
+        callback = mockk(relaxed = true) // has to be relaxed due to https://github.com/mockk/mockk/issues/272
       )
     }
 
-    after { reset(callback) }
+    after { confirmVerified(callback) }
     after { flush() }
 
     context("no resources exist") {
       test("allResources is a no-op") {
         subject.allResources(callback)
 
-        verifyZeroInteractions(callback)
+        verify { callback wasNot Called }
       }
 
       test("getting latest state throws an exception") {
@@ -108,7 +104,9 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
       test("it is returned by allResources") {
         subject.allResources(callback)
 
-        verify(callback).invoke(ResourceHeader(resource.metadata.uid, resource.metadata.name, resource.metadata.resourceVersion, resource.apiVersion, resource.kind))
+        verify {
+          callback.invoke(ResourceHeader(resource))
+        }
       }
 
       test("it can be retrieved by name") {
@@ -146,12 +144,9 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
         test("it does not overwrite the first resource") {
           subject.allResources(callback)
 
-          argumentCaptor<ResourceHeader>().apply {
-            verify(callback, times(2)).invoke(capture())
-            expectThat(allValues)
-              .hasSize(2)
-              .map { it.uid }
-              .containsExactlyInAnyOrder(resource.metadata.uid, anotherResource.metadata.uid)
+          verifyAll {
+            callback(match { it.uid == resource.metadata.uid })
+            callback(match { it.uid == anotherResource.metadata.uid })
           }
         }
       }
@@ -258,7 +253,7 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
         test("the resource is no longer returned when listing all resources") {
           subject.allResources(callback)
 
-          verify(callback, never()).invoke(eq(ResourceHeader(resource)))
+          verify(exactly = 0) { callback(ResourceHeader(resource)) }
         }
 
         test("the resource can no longer be retrieved by name") {

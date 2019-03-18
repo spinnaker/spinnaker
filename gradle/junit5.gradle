@@ -19,12 +19,12 @@ repositories {
 }
 
 dependencies {
-  testCompile "org.junit.platform:junit-platform-runner"
-  testCompile "com.nhaarman.mockitokotlin2:mockito-kotlin:2.1.0"
-  testCompile "org.junit.jupiter:junit-jupiter-api"
+  testImplementation "org.junit.platform:junit-platform-runner"
+  testImplementation "org.junit.jupiter:junit-jupiter-api"
+  testImplementation "io.mockk:mockk:1.9.2"
 
-  testRuntime "org.junit.platform:junit-platform-launcher"
-  testRuntime "org.junit.jupiter:junit-jupiter-engine"
+  testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+  testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
 }
 
 test {

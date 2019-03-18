@@ -32,10 +32,14 @@ import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
 import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
-import com.nhaarman.mockitokotlin2.*
 import de.danielbechler.diff.ObjectDifferBuilder
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import io.mockk.confirmVerified
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.slot
+import io.mockk.verify
 import kotlinx.coroutines.CompletableDeferred
 import strikt.api.expectThat
 import strikt.assertions.get
@@ -120,9 +124,9 @@ internal object ClusterHandlerTests : JUnit5Minutests {
     spec.moniker.run { CloudDriverMoniker(application, cluster, detail, stack, "69") }
   )
 
-  val cloudDriverService = mock<CloudDriverService>()
-  val cloudDriverCache = mock<CloudDriverCache>()
-  val orcaService = mock<OrcaService>()
+  val cloudDriverService = mockk<CloudDriverService>()
+  val cloudDriverCache = mockk<CloudDriverCache>()
+  val orcaService = mockk<OrcaService>()
   val objectMapper = ObjectMapper().registerKotlinModule()
 
   val differ = ObjectDifferBuilder.buildDefault()
@@ -132,41 +136,37 @@ internal object ClusterHandlerTests : JUnit5Minutests {
   fun tests() = rootContext<ClusterHandler> {
     fixture {
       ClusterHandler(
-          cloudDriverService,
-          cloudDriverCache,
-          orcaService,
-          Clock.systemDefaultZone(),
-          objectMapper,
-          normalizers
+        cloudDriverService,
+        cloudDriverCache,
+        orcaService,
+        Clock.systemDefaultZone(),
+        objectMapper,
+        normalizers
       )
     }
 
     before {
-      cloudDriverCache.stub {
-        on { networkBy(vpc.id) } doReturn vpc
-        on { subnetBy(subnet1.id) } doReturn subnet1
-        on { subnetBy(subnet2.id) } doReturn subnet2
-        on { subnetBy(subnet3.id) } doReturn subnet3
-        on { securityGroupById(spec.location.accountName, spec.location.region, sg1.id) } doReturn sg1
-        on { securityGroupById(spec.location.accountName, spec.location.region, sg2.id) } doReturn sg2
-        on { securityGroupByName(spec.location.accountName, spec.location.region, sg1.name) } doReturn sg1
-        on { securityGroupByName(spec.location.accountName, spec.location.region, sg2.name) } doReturn sg2
-
-        orcaService.stub {
-          on { orchestrate(any()) } doReturn CompletableDeferred(TaskRefResponse("/tasks/${UUID.randomUUID()}"))
-        }
+      with(cloudDriverCache) {
+        every { networkBy(vpc.id) } returns vpc
+        every { subnetBy(subnet1.id) } returns subnet1
+        every { subnetBy(subnet2.id) } returns subnet2
+        every { subnetBy(subnet3.id) } returns subnet3
+        every { securityGroupById(spec.location.accountName, spec.location.region, sg1.id) } returns sg1
+        every { securityGroupById(spec.location.accountName, spec.location.region, sg2.id) } returns sg2
+        every { securityGroupByName(spec.location.accountName, spec.location.region, sg1.name) } returns sg1
+        every { securityGroupByName(spec.location.accountName, spec.location.region, sg2.name) } returns sg2
       }
+
+      every { orcaService.orchestrate(any()) } returns CompletableDeferred(TaskRefResponse("/tasks/${UUID.randomUUID()}"))
     }
 
     after {
-      reset(cloudDriverService, cloudDriverCache, orcaService)
+      confirmVerified(orcaService)
     }
 
     context("the cluster does not exist or has no active server groups") {
       before {
-        cloudDriverService.stub {
-          on { activeServerGroup() } doThrow RETROFIT_NOT_FOUND
-        }
+        every { cloudDriverService.activeServerGroup() } throws RETROFIT_NOT_FOUND
       }
 
       test("the current model is null") {
@@ -176,21 +176,18 @@ internal object ClusterHandlerTests : JUnit5Minutests {
       test("annealing a diff creates a new server group") {
         upsert(resource)
 
-        argumentCaptor<OrchestrationRequest>().apply {
-          verify(orcaService).orchestrate(capture())
+        val slot = slot<OrchestrationRequest>()
+        verify { orcaService.orchestrate(capture(slot)) }
 
-          expectThat(firstValue.job.first()) {
-            get("type").isEqualTo("createServerGroup")
-          }
+        expectThat(slot.captured.job.first()) {
+          get("type").isEqualTo("createServerGroup")
         }
       }
     }
 
     context("the cluster has active server groups") {
       before {
-        cloudDriverService.stub {
-          on { activeServerGroup() } doReturn CompletableDeferred(activeServerGroupResponse)
-        }
+        every { cloudDriverService.activeServerGroup() } returns CompletableDeferred(activeServerGroupResponse)
       }
 
       derivedContext<Cluster?>("fetching the current cluster state") {
@@ -214,20 +211,19 @@ internal object ClusterHandlerTests : JUnit5Minutests {
         test("annealing resizes the current server group") {
           upsert(resource, diff)
 
-          argumentCaptor<OrchestrationRequest>().apply {
-            verify(orcaService).orchestrate(capture())
+          val slot = slot<OrchestrationRequest>()
+          verify { orcaService.orchestrate(capture(slot)) }
 
-            expectThat(firstValue.job.first()) {
-              get("type").isEqualTo("resizeServerGroup")
-              get("capacity").isEqualTo(
-                mapOf(
-                  "min" to spec.capacity.min,
-                  "max" to spec.capacity.max,
-                  "desired" to spec.capacity.desired
-                )
+          expectThat(slot.captured.job.first()) {
+            get("type").isEqualTo("resizeServerGroup")
+            get("capacity").isEqualTo(
+              mapOf(
+                "min" to spec.capacity.min,
+                "max" to spec.capacity.max,
+                "desired" to spec.capacity.desired
               )
-              get("serverGroupName").isEqualTo(activeServerGroupResponse.asg.autoScalingGroupName)
-            }
+            )
+            get("serverGroupName").isEqualTo(activeServerGroupResponse.asg.autoScalingGroupName)
           }
         }
       }
@@ -239,19 +235,18 @@ internal object ClusterHandlerTests : JUnit5Minutests {
         test("annealing clones the current server group") {
           upsert(resource, diff)
 
-          argumentCaptor<OrchestrationRequest>().apply {
-            verify(orcaService).orchestrate(capture())
+          val slot = slot<OrchestrationRequest>()
+          verify { orcaService.orchestrate(capture(slot)) }
 
-            expectThat(firstValue.job.first()) {
-              get("type").isEqualTo("createServerGroup")
-              get("source").isEqualTo(
-                mapOf(
-                  "account" to activeServerGroupResponse.accountName,
-                  "region" to activeServerGroupResponse.region,
-                  "asgName" to activeServerGroupResponse.asg.autoScalingGroupName
-                )
+          expectThat(slot.captured.job.first()) {
+            get("type").isEqualTo("createServerGroup")
+            get("source").isEqualTo(
+              mapOf(
+                "account" to activeServerGroupResponse.accountName,
+                "region" to activeServerGroupResponse.region,
+                "asgName" to activeServerGroupResponse.asg.autoScalingGroupName
               )
-            }
+            )
           }
         }
       }

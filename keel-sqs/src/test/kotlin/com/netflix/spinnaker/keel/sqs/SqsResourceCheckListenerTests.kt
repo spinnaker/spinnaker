@@ -9,147 +9,173 @@ import com.netflix.spinnaker.config.SqsProperties
 import com.netflix.spinnaker.keel.annealing.ResourceActuator
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
+import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
-import com.nhaarman.mockitokotlin2.any
-import com.nhaarman.mockitokotlin2.argWhere
-import com.nhaarman.mockitokotlin2.check
-import com.nhaarman.mockitokotlin2.doReturn
-import com.nhaarman.mockitokotlin2.doThrow
-import com.nhaarman.mockitokotlin2.mock
-import com.nhaarman.mockitokotlin2.never
-import com.nhaarman.mockitokotlin2.reset
-import com.nhaarman.mockitokotlin2.stub
-import com.nhaarman.mockitokotlin2.timeout
-import com.nhaarman.mockitokotlin2.verify
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import io.mockk.clearMocks
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.mockk
 import strikt.api.expect
-import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
 internal class SqsResourceCheckListenerTests : JUnit5Minutests {
 
-  val message = ResourceCheckMessage("ec2:cluster:prod:ap-south-1:keel", SPINNAKER_API_V1, "cluster")
+  val messageBody = ResourceCheckMessage("ec2:cluster:prod:ap-south-1:keel", SPINNAKER_API_V1, "cluster")
   val objectMapper = configuredObjectMapper()
-  val sqsClient: AmazonSQS = mock()
-  val actuator: ResourceActuator = mock()
+  val sqsClient: AmazonSQS = mockk(relaxUnitFun = true)
+  val actuator: ResourceActuator = mockk(relaxUnitFun = true)
 
-  fun tests() = rootContext<SqsResourceCheckListener> {
+  data class Fixture(
+    val listener: SqsResourceCheckListener,
+    val messages: List<Message> = emptyList()
+  ) {
+    val receiveMessageResults: List<ReceiveMessageResult>
+      get() = messages.map {
+        ReceiveMessageResult().withMessages(it)
+      } + ReceiveMessageResult()
+  }
+
+  fun tests() = rootContext<Fixture> {
 
     fixture {
-      SqsResourceCheckListener(
-        sqsClient,
-        "queueURL",
-        SqsProperties(),
-        objectMapper,
-        actuator
+      Fixture(
+        listener = SqsResourceCheckListener(
+          sqsClient,
+          "queueURL",
+          SqsProperties().apply { listenerFibers = 2 },
+          objectMapper,
+          actuator
+        )
       )
     }
 
     before {
-      sqsClient.stub {
-        on { deleteMessage(any()) } doReturn DeleteMessageResult()
-      }
+      coEvery { sqsClient.deleteMessage(any()) } returns DeleteMessageResult()
     }
 
     after {
-      onApplicationDown()
-      reset(sqsClient, actuator)
+      listener.onApplicationDown()
+      clearMocks(sqsClient, actuator)
     }
 
     context("actuator succeeds") {
-      before {
-        sqsClient.stub {
-          on {
-            receiveMessage(argWhere<ReceiveMessageRequest> { it.queueUrl == "queueURL" })
-          } doReturn enqueuedMessages(message) doReturn enqueuedMessages()
-        }
+      deriveFixture {
+        copy(
+          messages = listOf(wrap(messageBody))
+        )
+      }
 
-        onApplicationUp()
+      before {
+        coEvery {
+          sqsClient.receiveMessage(any<ReceiveMessageRequest>())
+        } returnsMany receiveMessageResults
+
+        listener.onApplicationUp()
       }
 
       test("invokes the actuator") {
-        verifyEventually(actuator)
-          .checkResource(message.name.let(::ResourceName), message.apiVersion, message.kind)
+        coVerify(timeout = 250) {
+          actuator
+            .checkResource(messageBody.name.let(::ResourceName), messageBody.apiVersion, messageBody.kind)
+        }
       }
 
       test("deletes the message from the queue") {
-        verifyEventually(sqsClient)
-          .deleteMessage(check {
-          expect {
-            that(it.queueUrl).isEqualTo("queueURL")
-            that(it.receiptHandle).isEqualTo("receiptHandle-0")
-          }
-        })
+        coVerify(timeout = 250) {
+          sqsClient
+            .deleteMessage(withArg {
+              expect {
+                that(it.queueUrl).isEqualTo("queueURL")
+                that(it.receiptHandle).isEqualTo(messages[0].receiptHandle)
+              }
+            })
+        }
       }
     }
 
     context("can't parse the message") {
-      before {
-        sqsClient.stub {
-          on {
-            receiveMessage(argWhere<ReceiveMessageRequest> { it.queueUrl == "queueURL" })
-          } doReturn enqueuedMessages("SOME RANDOM JUNK", message) doReturn enqueuedMessages()
-        }
+      deriveFixture {
+        copy(
+          messages = listOf(wrap("SOME RANDOM JUNK"), wrap(messageBody))
+        )
+      }
 
-        onApplicationUp()
+      before {
+        coEvery {
+          sqsClient.receiveMessage(any<ReceiveMessageRequest>())
+        } returnsMany receiveMessageResults
+
+        listener.onApplicationUp()
       }
 
       test("goes on to process the valid message") {
-        verifyEventually(actuator)
-          .checkResource(message.name.let(::ResourceName), message.apiVersion, message.kind)
+        coVerify(timeout = 250) {
+          actuator
+            .checkResource(messageBody.name.let(::ResourceName), messageBody.apiVersion, messageBody.kind)
+        }
       }
 
       test("deletes the valid message but not the bad one") {
-        verifyEventually(sqsClient).deleteMessage(check {
-          expectThat(it.receiptHandle).isEqualTo("receiptHandle-1")
-        })
-        verify(sqsClient, never()).deleteMessage(argWhere {
-          it.receiptHandle == "receiptHandle-0"
-        })
+        coVerify(timeout = 250) {
+          sqsClient.deleteMessage(match {
+            it.receiptHandle == messages[1].receiptHandle
+          })
+        }
+        coVerify(exactly = 0) {
+          sqsClient.deleteMessage(match {
+            it.receiptHandle == messages[0].receiptHandle
+          })
+        }
       }
     }
 
     context("actuator fails") {
-      before {
-        sqsClient.stub {
-          on {
-            receiveMessage(argWhere<ReceiveMessageRequest> { it.queueUrl == "queueURL" })
-          } doReturn enqueuedMessages(message, message.copy(name = "ec2:security-group:prod:ap-south-1:keel", kind = "security-group")) doReturn enqueuedMessages()
-        }
-        actuator.stub {
-          on { checkResource(message.name.let(::ResourceName), message.apiVersion, message.kind) } doThrow IllegalStateException("o noes")
-        }
+      deriveFixture {
+        copy(
+          messages = listOf(
+            wrap(messageBody),
+            wrap(messageBody.copy(name = "ec2:security-group:prod:ap-south-1:keel", kind = "security-group"))
+          )
+        )
+      }
 
-        onApplicationUp()
+      before {
+        coEvery {
+          sqsClient.receiveMessage(any<ReceiveMessageRequest>())
+        } returnsMany receiveMessageResults
+        coEvery {
+          actuator.checkResource(messageBody.name.let(::ResourceName), messageBody.apiVersion, messageBody.kind)
+        } throws IllegalStateException("o noes")
+
+        listener.onApplicationUp()
       }
 
       test("goes on to process the next message") {
-        verifyEventually(actuator)
-          .checkResource(message.name.let(::ResourceName), message.apiVersion, message.kind)
+        coVerify(timeout = 250) {
+          actuator
+            .checkResource(messageBody.name.let(::ResourceName), messageBody.apiVersion, messageBody.kind)
+        }
       }
 
       test("deletes the successfully handled message but not the failed one") {
-        verifyEventually(sqsClient).deleteMessage(check {
-          expectThat(it.receiptHandle).isEqualTo("receiptHandle-1")
-        })
-        verify(sqsClient, never()).deleteMessage(argWhere {
-          it.receiptHandle == "receiptHandle-0"
-        })
+        coVerify(timeout = 250) {
+          sqsClient.deleteMessage(match {
+            it.receiptHandle == messages[1].receiptHandle
+          })
+        }
+        coVerify(exactly = 0) {
+          sqsClient.deleteMessage(match {
+            it.receiptHandle == messages[0].receiptHandle
+          })
+        }
       }
     }
   }
 
-  private fun enqueuedMessages(vararg bodies: Any): ReceiveMessageResult {
-    return ReceiveMessageResult()
-      .withMessages(
-        bodies.mapIndexed { index, body ->
-          Message()
-            .withBody(objectMapper.writeValueAsString(body))
-            .withReceiptHandle("receiptHandle-$index")
-        }
-      )
-  }
-
-  private fun <T> verifyEventually(mock: T) = verify(mock, timeout(1000))
+  private fun wrap(body: Any): Message =
+    Message()
+      .withBody(objectMapper.writeValueAsString(body))
+      .withReceiptHandle(randomUID().toString())
 }
