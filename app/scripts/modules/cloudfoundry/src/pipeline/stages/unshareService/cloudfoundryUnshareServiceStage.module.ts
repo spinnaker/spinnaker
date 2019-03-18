@@ -1,6 +1,6 @@
 import { CloudfoundryUnshareServiceStageConfig } from './CloudfoundryUnshareServiceStageConfig';
 import { ExecutionDetailsTasks, IStage, Registry } from '@spinnaker/core';
-import { CloudfoundryServiceExecutionDetails } from 'cloudfoundry/presentation';
+import { CloudfoundryUnshareServiceExecutionDetails } from 'cloudfoundry/presentation';
 
 Registry.pipeline.registerStage({
   accountExtractor: (stage: IStage) => stage.context.credentials,
@@ -11,7 +11,7 @@ Registry.pipeline.registerStage({
   component: CloudfoundryUnshareServiceStageConfig,
   templateUrl: require('./cloudfoundryUnshareServiceStage.html'),
   controller: 'cfUnshareServiceStageCtrl',
-  executionDetailsSections: [CloudfoundryServiceExecutionDetails, ExecutionDetailsTasks],
+  executionDetailsSections: [CloudfoundryUnshareServiceExecutionDetails, ExecutionDetailsTasks],
   defaultTimeoutMs: 30 * 60 * 1000,
   validators: [
     { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account' },

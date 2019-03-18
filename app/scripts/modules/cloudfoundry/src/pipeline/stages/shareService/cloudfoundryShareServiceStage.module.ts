@@ -1,6 +1,6 @@
 import { CloudfoundryShareServiceStageConfig } from './CloudfoundryShareServiceStageConfig';
 import { ExecutionDetailsTasks, IStage, Registry } from '@spinnaker/core';
-import { CloudfoundryServiceExecutionDetails } from 'cloudfoundry/presentation';
+import { CloudfoundryShareServiceExecutionDetails } from 'cloudfoundry/presentation';
 
 Registry.pipeline.registerStage({
   accountExtractor: (stage: IStage) => stage.context.credentials,
@@ -9,7 +9,7 @@ Registry.pipeline.registerStage({
   key: 'shareService',
   cloudProvider: 'cloudfoundry',
   component: CloudfoundryShareServiceStageConfig,
-  executionDetailsSections: [CloudfoundryServiceExecutionDetails, ExecutionDetailsTasks],
+  executionDetailsSections: [CloudfoundryShareServiceExecutionDetails, ExecutionDetailsTasks],
   defaultTimeoutMs: 30 * 60 * 1000,
   validators: [
     { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account' },
