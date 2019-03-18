@@ -15,7 +15,9 @@
  */
 
 test {
-  useJUnitPlatform()
+  useJUnitPlatform {
+    includeEngines "junit-vintage", "junit-jupiter"
+  }
 }
 
 dependencies {
@@ -46,5 +48,6 @@ dependencies {
   testCompile spinnaker.dependency('junitJupiterApi')
   testCompile spinnaker.dependency('assertj')
 
-  testRuntime spinnaker.dependency('junitJupiterEngine')
+  testRuntimeOnly spinnaker.dependency("junitJupiterEngine")
+  testRuntimeOnly "org.junit.vintage:junit-vintage-engine:${spinnaker.version('jupiter')}"
 }
