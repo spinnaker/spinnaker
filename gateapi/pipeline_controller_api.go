@@ -559,9 +559,9 @@ func (a *PipelineControllerApiService) EvaluateExpressionForExecutionUsingPATCH(
  @param id id
  @param expression expression
  @return map[string]interface{}*/
-func (a *PipelineControllerApiService) EvaluateExpressionForExecutionUsingPOST(ctx context.Context, id string, expression string) (map[string]interface{},  *http.Response, error) {
+func (a *PipelineControllerApiService) EvaluateExpressionForExecutionUsingPUT(ctx context.Context, id string, expression string) (map[string]interface{},  *http.Response, error) {
 	var (
-		localVarHttpMethod = strings.ToUpper("Post")
+		localVarHttpMethod = strings.ToUpper("Put")
 		localVarPostBody interface{}
 		localVarFileName string
 		localVarFileBytes []byte
@@ -623,11 +623,11 @@ func (a *PipelineControllerApiService) EvaluateExpressionForExecutionUsingPOST(c
 /* PipelineControllerApiService Evaluate a pipeline expression using the provided execution as context
  * @param ctx context.Context for authentication, logging, tracing, etc.
  @param id id
- @param expression expression
+ @param pipelineExpression pipelineExpression
  @return map[string]interface{}*/
-func (a *PipelineControllerApiService) EvaluateExpressionForExecutionUsingPUT(ctx context.Context, id string, expression string) (map[string]interface{},  *http.Response, error) {
+func (a *PipelineControllerApiService) EvaluateExpressionForExecutionViaPOSTUsingPOST(ctx context.Context, id string, pipelineExpression string) (map[string]interface{},  *http.Response, error) {
 	var (
-		localVarHttpMethod = strings.ToUpper("Put")
+		localVarHttpMethod = strings.ToUpper("Post")
 		localVarPostBody interface{}
 		localVarFileName string
 		localVarFileBytes []byte
@@ -643,9 +643,8 @@ func (a *PipelineControllerApiService) EvaluateExpressionForExecutionUsingPUT(ct
 	localVarFormParams := url.Values{}
 
 
-	localVarQueryParams.Add("expression", parameterToString(expression, ""))
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{ "text/plain",  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -663,6 +662,8 @@ func (a *PipelineControllerApiService) EvaluateExpressionForExecutionUsingPUT(ct
 	if localVarHttpHeaderAccept != "" {
 		localVarHeaderParams["Accept"] = localVarHttpHeaderAccept
 	}
+	// body params
+	localVarPostBody = &pipelineExpression
 	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFileName, localVarFileBytes)
 	if err != nil {
 		return successPayload, nil, err

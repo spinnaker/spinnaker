@@ -13,7 +13,7 @@ type ResponseEntity struct {
 
 	Body *interface{} `json:"body,omitempty"`
 
-	StatusCodeValue int32 `json:"statusCodeValue,omitempty"`
-
 	StatusCode string `json:"statusCode,omitempty"`
+
+	StatusCodeValue int32 `json:"statusCodeValue,omitempty"`
 }

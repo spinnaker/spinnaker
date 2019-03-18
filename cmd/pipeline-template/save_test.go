@@ -206,27 +206,35 @@ func tempPipelineTemplateFile(pipelineContent string) *os.File {
 // and Accepts POST calls.
 func gateServerUpdateSuccess() *httptest.Server {
 	mux := http.NewServeMux()
-	mux.Handle("/v2/pipelineTemplates", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("/v2/pipelineTemplates/update/testSpelTemplate", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodPost {
 			w.WriteHeader(http.StatusAccepted)
 		} else {
 			w.WriteHeader(http.StatusOK)
 		}
 	}))
+	// Return that we found an MPT to signal that we should update.
+	mux.Handle("/v2/pipelineTemplates/testSpelTemplate", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
 	return httptest.NewServer(mux)
 }
 
-// gateServerUpdateSuccess spins up a local http server that we will configure the GateClient
+// gateServerCreateSuccess spins up a local http server that we will configure the GateClient
 // to direct requests to. Responds with 404 NotFound to indicate a pipeline template doesn't exist,
 // and Accepts POST calls.
 func gateServerCreateSuccess() *httptest.Server {
 	mux := http.NewServeMux()
-	mux.Handle("/v2/pipelineTemplates", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("/v2/pipelineTemplates/create", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodPost {
 			w.WriteHeader(http.StatusAccepted)
 		} else {
 			w.WriteHeader(http.StatusNotFound)
 		}
+	}))
+	// Return that there are no existing MPTs.
+	mux.Handle("/v2/pipelineTemplates/testSpelTemplate", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNotFound)
 	}))
 	return httptest.NewServer(mux)
 }

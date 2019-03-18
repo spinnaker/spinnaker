@@ -78,14 +78,14 @@ func savePipelineTemplate(cmd *cobra.Command, options SaveOptions) error {
 
 	templateId := templateJson["id"].(string)
 
-	_, resp, queryErr := gateClient.V2PipelineTemplatesControllerApi.GetUsingGET2(gateClient.Context, templateId)
+	_, resp, queryErr := gateClient.V2PipelineTemplatesControllerApi.GetUsingGET2(gateClient.Context, templateId, map[string]interface{}{})
 
 	var saveResp *http.Response
 	var saveErr error
 	if resp.StatusCode == http.StatusOK {
 		saveResp, saveErr = gateClient.V2PipelineTemplatesControllerApi.UpdateUsingPOST1(gateClient.Context, templateId, templateJson, nil)
 	} else if resp.StatusCode == http.StatusNotFound {
-		saveResp, saveErr = gateClient.V2PipelineTemplatesControllerApi.CreateUsingPOST1(gateClient.Context, templateJson)
+		saveResp, saveErr = gateClient.V2PipelineTemplatesControllerApi.CreateUsingPOST1(gateClient.Context, templateJson, map[string]interface{}{})
 	} else {
 		if queryErr != nil {
       return queryErr
