@@ -58,6 +58,7 @@ export class BakeManifestConfigCtrl implements IController {
           },
         ],
         inputArtifacts: [this.defaultInputArtifact()],
+        evaluateOverrideExpressions: false,
       };
 
       Object.assign(stage, defaultSelection);

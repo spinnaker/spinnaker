@@ -206,6 +206,8 @@ const helpContents: { [key: string]: string } = {
     'The artifact that is to be applied to the Kubernetes account for this stage.  The artifact should represent a valid Kubernetes manifest.',
   'kubernetes.manifest.requiredArtifactsToBind':
     'These artifacts must be present in the context for this stage to successfully complete. Artifacts specified will be <a href="https://www.spinnaker.io/reference/artifacts/in-kubernetes-v2/#binding-artifacts-in-manifests" target="_blank">bound to the deployed manifest.</a>',
+  'kubernetes.manifest.skipExpressionEvaluation':
+    '<p>Skip SpEL expression evaluation of the manifest artifact in this stage. Can be paired with the "Evaluate SpEL expressions in overrides at bake time" option in the Bake Manifest stage when baking a third-party manifest artifact with expressions not meant for Spinnaker to evaluate as SpEL.</p>',
   'kubernetes.manifest.undoRollout.revisionsBack': `
       <p>How many revisions to rollback from the current active revision. This is not a hard-coded revision to rollout.</p>
       <p>For example: If you specify "1", and this stage executes, the prior revision will be active upon success.</p>

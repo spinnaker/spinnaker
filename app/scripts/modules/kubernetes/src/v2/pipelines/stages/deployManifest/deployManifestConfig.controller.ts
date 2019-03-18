@@ -56,6 +56,7 @@ export class KubernetesV2DeployManifestConfigCtrl implements IController {
         defaults(stage, builtCommand.command, {
           manifestArtifactAccount: '',
           source: this.textSource,
+          skipExpressionEvaluation: false,
         });
       }
       this.metadata = builtCommand.metadata;

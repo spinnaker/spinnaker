@@ -41,6 +41,18 @@
         >
         </stage-artifact-selector-react>
       </stage-config-field>
+      <stage-config-field
+        help-key="kubernetes.manifest.skipExpressionEvaluation"
+        label="Expression Evaluation"
+        ng-if="ctrl.$scope.stage.source === ctrl.artifactSource"
+      >
+        <div class="checkbox">
+          <label>
+            <input type="checkbox" ng-model="ctrl.$scope.stage.skipExpressionEvaluation" />
+            Skip SpEL expression evaluation
+          </label>
+        </div>
+      </stage-config-field>
       <hr />
       <stage-config-field
         label="Req. Artifacts to Bind"
@@ -89,6 +101,18 @@
         on-save="ctrl.manifestArtifactController.onArtifactCreated"
       >
       </expected-artifact-editor-react>
+      <stage-config-field
+        help-key="kubernetes.manifest.skipExpressionEvaluation"
+        label="Expression Evaluation"
+        ng-if="ctrl.$scope.stage.source === ctrl.artifactSource"
+      >
+        <div class="checkbox">
+          <label>
+            <input type="checkbox" ng-model="ctrl.$scope.stage.skipExpressionEvaluation" />
+            Skip SpEL expression evaluation
+          </label>
+        </div>
+      </stage-config-field>
       <hr />
       <expected-artifact-multi-selector
         command="ctrl.$scope.stage"

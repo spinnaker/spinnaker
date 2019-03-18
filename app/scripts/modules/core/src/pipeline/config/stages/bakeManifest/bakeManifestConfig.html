@@ -123,5 +123,17 @@
     <stage-config-field label="Overrides" field-columns="6">
       <map-editor model="ctrl.$scope.stage.overrides" add-button-label="Add override"></map-editor>
     </stage-config-field>
+
+    <stage-config-field
+      help-key="pipeline.config.bake.manifest.overrideExpressionEvaluation"
+      label="Expression Evaluation"
+    >
+      <div class="checkbox">
+        <label>
+          <input type="checkbox" ng-model="ctrl.$scope.stage.evaluateOverrideExpressions" />
+          Evaluate SpEL expressions in overrides at bake time
+        </label>
+      </div>
+    </stage-config-field>
   </div>
 </div>
