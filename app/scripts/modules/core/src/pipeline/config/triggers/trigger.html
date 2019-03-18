@@ -32,8 +32,7 @@
       </div>
       <div
         class="form-group"
-        ng-if="pipeline.expectedArtifacts.length"
-        visible="!triggersCtrl.checkFeatureFlag('artifactsRewrite') && triggersCtrl.checkFeatureFlag('artifacts')"
+        ng-if="!triggerCtrl.checkFeatureFlag('artifactsRewrite') && triggerCtrl.checkFeatureFlag('artifacts') && pipeline.expectedArtifacts.length > 0"
       >
         <div class="col-md-10">
           <div class="form-group">
