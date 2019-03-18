@@ -17,7 +17,9 @@
 apply from: "$rootDir/gradle/groovy.gradle"
 
 test {
-  useJUnitPlatform()
+  useJUnitPlatform {
+    includeEngines "junit-vintage", "junit-jupiter"
+  }
 }
 
 dependencies {
@@ -39,4 +41,5 @@ dependencies {
   testCompile "org.mockito:mockito-core:2.25.0"
 
   testRuntime spinnaker.dependency("junitJupiterEngine")
+  testRuntime "org.junit.vintage:junit-vintage-engine:${spinnaker.version('jupiter')}"
 }
