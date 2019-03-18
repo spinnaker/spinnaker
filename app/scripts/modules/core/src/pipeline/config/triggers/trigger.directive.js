@@ -114,9 +114,18 @@ module.exports = angular
             if (config.component) {
               // react
               const TriggerConfig = config.component;
-              const props = { fieldUpdated: $scope.fieldUpdated, trigger: $scope.trigger };
+              const renderTrigger = props =>
+                ReactDOM.render(React.createElement(TriggerConfig, props), triggerBodyNode);
 
-              ReactDOM.render(React.createElement(TriggerConfig, props), triggerBodyNode);
+              const props = {
+                fieldUpdated: () => {
+                  $scope.fieldUpdated();
+                  renderTrigger(props);
+                },
+                trigger: $scope.trigger,
+              };
+
+              renderTrigger(props);
             } else if (config.templateUrl) {
               // angular
               const template = $templateCache.get(config.templateUrl);
