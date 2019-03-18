@@ -39,7 +39,7 @@ import java.util.function.Predicate;
  */
 @Component
 public class BuildEventHandler extends BaseTriggerEventHandler<BuildEvent> {
-  private static final String[] BUILD_TRIGGER_TYPES = {"jenkins", "travis", "wercker"};
+  private static final String[] BUILD_TRIGGER_TYPES = {"jenkins", "travis", "wercker", "concourse"};
   private final Optional<BuildInfoService> buildInfoService;
 
   @Autowired

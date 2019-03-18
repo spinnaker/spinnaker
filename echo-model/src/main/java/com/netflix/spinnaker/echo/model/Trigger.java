@@ -41,6 +41,7 @@ public class Trigger {
   public enum Type {
     CRON("cron"),
     GIT("git"),
+    CONCOURSE("concourse"),
     JENKINS("jenkins"),
     DOCKER("docker"),
     WEBHOOK("webhook"),
@@ -75,7 +76,7 @@ public class Trigger {
   String source;
   String branch;
 
-  // Configuration for Jenkins triggers
+  // Configuration for Jenkins, Travis, Concourse triggers
   String master;
   String job;
   String propertyFile;

@@ -71,10 +71,11 @@ class BuildEventHandlerSpec extends Specification implements RetrofitStubs {
     result[0].trigger.buildNumber == event.content.project.lastBuild.number
 
     where:
-    event                         | pipeline                                                     | triggerType | expectedTrigger
-    createBuildEventWith(SUCCESS) | createPipelineWith(enabledJenkinsTrigger, nonJenkinsTrigger) | 'jenkins'   | enabledJenkinsTrigger
-    createBuildEventWith(SUCCESS) | createPipelineWith(enabledTravisTrigger, nonJenkinsTrigger)  | 'travis'    | enabledTravisTrigger
-    createBuildEventWith(SUCCESS) | createPipelineWith(enabledWerckerTrigger, nonJenkinsTrigger) | 'wercker'   | enabledWerckerTrigger
+    event                         | pipeline                                                       | triggerType | expectedTrigger
+    createBuildEventWith(SUCCESS) | createPipelineWith(enabledJenkinsTrigger, nonJenkinsTrigger)   | 'jenkins'   | enabledJenkinsTrigger
+    createBuildEventWith(SUCCESS) | createPipelineWith(enabledTravisTrigger, nonJenkinsTrigger)    | 'travis'    | enabledTravisTrigger
+    createBuildEventWith(SUCCESS) | createPipelineWith(enabledWerckerTrigger, nonJenkinsTrigger)   | 'wercker'   | enabledWerckerTrigger
+    createBuildEventWith(SUCCESS) | createPipelineWith(enabledConcourseTrigger, nonJenkinsTrigger) | 'concourse' | enabledConcourseTrigger
   }
 
   def "an event can trigger multiple pipelines"() {
@@ -132,6 +133,7 @@ class BuildEventHandlerSpec extends Specification implements RetrofitStubs {
     disabledJenkinsTrigger                  | "disabled jenkins"
     disabledTravisTrigger                   | "disabled travis"
     disabledWerckerTrigger                  | "disabled wercker"
+    disabledConcourseTrigger                | "disabled concourse"
     nonJenkinsTrigger                       | "non-Jenkins"
     enabledStashTrigger                     | "stash"
     enabledBitBucketTrigger                 | "bitbucket"
