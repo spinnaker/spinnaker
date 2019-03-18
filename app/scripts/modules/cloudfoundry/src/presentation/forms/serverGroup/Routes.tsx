@@ -8,11 +8,12 @@ import { ICloudFoundryCreateServerGroupCommand } from 'cloudfoundry/serverGroup/
 export interface IRoutesProps {
   fieldName: string;
   onChange?: (value: string[]) => void;
+  singleRouteOnly?: boolean;
 }
 
 export class Routes extends React.Component<IRoutesProps> {
   public render() {
-    const { fieldName, onChange } = this.props;
+    const { fieldName, onChange, singleRouteOnly } = this.props;
     return (
       <div>
         <div className="form-group">
@@ -43,7 +44,7 @@ export class Routes extends React.Component<IRoutesProps> {
                               />
                             </div>
                           </td>
-                          <td>
+                          <td hidden={singleRouteOnly}>
                             <a className="btn btn-link sm-label" onClick={() => arrayHelpers.remove(index)}>
                               <span className="glyphicon glyphicon-trash" />
                             </a>
@@ -52,7 +53,7 @@ export class Routes extends React.Component<IRoutesProps> {
                       ))}
                     </tbody>
                     <tfoot>
-                      <tr>
+                      <tr hidden={singleRouteOnly}>
                         <td colSpan={2}>
                           <button type="button" className="add-new col-md-12" onClick={() => arrayHelpers.push('')}>
                             <span className="glyphicon glyphicon-plus-sign" /> Add New Route

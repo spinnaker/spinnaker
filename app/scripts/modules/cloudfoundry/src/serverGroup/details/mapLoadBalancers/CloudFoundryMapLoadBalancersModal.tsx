@@ -57,7 +57,7 @@ export class CloudFoundryMapLoadBalancersModal extends React.Component<
 
     this.state = {
       initialValues: {
-        routes: [],
+        routes: [''],
       },
       taskMonitor: new TaskMonitor({
         application: props.application,
@@ -114,7 +114,7 @@ export class CloudFoundryMapLoadBalancersModal extends React.Component<
                 <ModalClose dismiss={this.close} />
                 <Modal.Body>
                   <Form className="form-horizontal">
-                    <Routes fieldName="routes" />
+                    <Routes fieldName="routes" singleRouteOnly={true} />
                   </Form>
                 </Modal.Body>
                 <ModalFooter>
