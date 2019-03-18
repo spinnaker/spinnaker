@@ -15,10 +15,9 @@
  */
 package com.netflix.spinnaker.orca.pipeline.util
 
-import com.netflix.spinnaker.kork.artifacts.model.Artifact
-
-import java.util.regex.Pattern
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.kork.artifacts.model.Artifact
+import com.netflix.spinnaker.orca.pipeline.model.BuildInfo
 import com.netflix.spinnaker.orca.pipeline.model.JenkinsTrigger
 import com.netflix.spinnaker.orca.pipeline.model.PipelineTrigger
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -26,7 +25,9 @@ import com.netflix.spinnaker.orca.test.model.ExecutionBuilder
 import org.springframework.beans.factory.annotation.Autowired
 import spock.lang.Specification
 import spock.lang.Unroll
-import static com.netflix.spinnaker.orca.pipeline.model.JenkinsTrigger.BuildInfo
+
+import java.util.regex.Pattern
+
 import static com.netflix.spinnaker.orca.pipeline.model.JenkinsTrigger.JenkinsArtifact
 import static com.netflix.spinnaker.orca.pipeline.util.PackageType.DEB
 import static com.netflix.spinnaker.orca.pipeline.util.PackageType.RPM
@@ -65,7 +66,7 @@ class PackageInfoSpec extends Specification {
     given:
     def execution = pipeline {
       trigger = new JenkinsTrigger("master", "job", 1, null)
-      trigger.buildInfo = new BuildInfo("name", 1, "http://jenkins", [new JenkinsArtifact("testFileName", ".")], [], false, "SUCCESS")
+      trigger.buildInfo = new BuildInfo("name", 1, "http://jenkins", [new JenkinsArtifact("testFileName", ".")], [], false, "SUCCESS", 'name#1')
       stage {
         context = [buildInfo: [name: "someName"], package: "testPackageName"]
       }
@@ -395,7 +396,7 @@ class PackageInfoSpec extends Specification {
     given:
     def pipeline = pipeline {
       trigger = new JenkinsTrigger("master", "job", 1, null)
-      trigger.buildInfo = new BuildInfo("name", 1, "http://jenkins", [new JenkinsArtifact("api_1.1.1-h01.sha123_all.deb", ".")], [], false, "SUCCESS")
+      trigger.buildInfo = new BuildInfo("name", 1, "http://jenkins", [new JenkinsArtifact("api_1.1.1-h01.sha123_all.deb", ".")], [], false, "SUCCESS", 'name#1')
       stage {
         refId = "1"
         context["package"] = "another_package"
@@ -431,7 +432,7 @@ class PackageInfoSpec extends Specification {
     given:
     def pipeline = pipeline {
       trigger = new JenkinsTrigger("master", "job", 1, null)
-      trigger.buildInfo = new BuildInfo("name", 1, "http://jenkins", [new JenkinsArtifact("api_2.2.2-h02.sha321_all.deb", ".")], [], false, "SUCCESS")
+      trigger.buildInfo = new BuildInfo("name", 1, "http://jenkins", [new JenkinsArtifact("api_2.2.2-h02.sha321_all.deb", ".")], [], false, "SUCCESS", 'name#1')
       stage {
         context = [package: 'api']
       }
@@ -518,10 +519,10 @@ class PackageInfoSpec extends Specification {
     pipelineTrigger << [
       new PipelineTrigger(ExecutionBuilder.pipeline {
         trigger = new JenkinsTrigger("master", "job", 1, null)
-        trigger.buildInfo = new BuildInfo("name", 1, "http://jenkins", [new JenkinsArtifact("api_1.1.1-h01.sha123_all.deb", ".")], [], false, "SUCCESS")
+        trigger.buildInfo = new BuildInfo("name", 1, "http://jenkins", [new JenkinsArtifact("api_1.1.1-h01.sha123_all.deb", ".")], [], false, "SUCCESS", 'name#1')
       }),
       new JenkinsTrigger("master", "job", 1, null).with {
-        it.buildInfo = new BuildInfo("name", 1, "http://jenkins", [new JenkinsArtifact("api_1.1.1-h01.sha123_all.deb", ".")], [], false, "SUCCESS")
+        it.buildInfo = new BuildInfo("name", 1, "http://jenkins", [new JenkinsArtifact("api_1.1.1-h01.sha123_all.deb", ".")], [], false, "SUCCESS", 'name#1')
         it
       }
     ]
@@ -530,7 +531,7 @@ class PackageInfoSpec extends Specification {
   def "should fetch artifacts from upstream stage when not specified on pipeline trigger"() {
     given:
     def jenkinsTrigger = new JenkinsTrigger("master", "job", 1, "propertyFile")
-    jenkinsTrigger.buildInfo = new BuildInfo("name", 0, "url", [], [], false, "result")
+    jenkinsTrigger.buildInfo = new BuildInfo("name", 0, "url", [], [], false, "result", 'name#1')
 
     def pipeline = pipeline {
       trigger = jenkinsTrigger    // has no artifacts!

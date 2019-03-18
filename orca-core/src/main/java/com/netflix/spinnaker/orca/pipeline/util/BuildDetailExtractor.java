@@ -18,8 +18,8 @@ package com.netflix.spinnaker.orca.pipeline.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
-import com.netflix.spinnaker.orca.pipeline.model.JenkinsTrigger.BuildInfo;
-import com.netflix.spinnaker.orca.pipeline.model.JenkinsTrigger.SourceControl;
+import com.netflix.spinnaker.orca.pipeline.model.BuildInfo;
+import com.netflix.spinnaker.orca.pipeline.model.SourceControl;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
@@ -59,7 +59,7 @@ public class BuildDetailExtractor {
   private static class LegacyJenkinsUrlDetailExtractor implements DetailExtractor {
 
     @Override
-    public boolean tryToExtractBuildDetails(BuildInfo buildInfo, Map<String, Object> request) {
+    public boolean tryToExtractBuildDetails(BuildInfo<?> buildInfo, Map<String, Object> request) {
       if (buildInfo == null || request == null) {
         return false;
       }
@@ -104,7 +104,7 @@ public class BuildDetailExtractor {
   private static class DefaultDetailExtractor implements DetailExtractor {
 
     @Override
-    public boolean tryToExtractBuildDetails(BuildInfo buildInfo, Map<String, Object> request) {
+    public boolean tryToExtractBuildDetails(BuildInfo<?> buildInfo, Map<String, Object> request) {
 
       if (buildInfo == null || request == null) {
         return false;
@@ -133,9 +133,9 @@ public class BuildDetailExtractor {
   //Common trait for DetailExtractor
   private interface DetailExtractor {
 
-    boolean tryToExtractBuildDetails(BuildInfo buildInfo, Map<String, Object> request);
+    boolean tryToExtractBuildDetails(BuildInfo<?> buildInfo, Map<String, Object> request);
 
-    default void extractCommitHash(BuildInfo buildInfo, Map<String, Object> request) {
+    default void extractCommitHash(BuildInfo<?> buildInfo, Map<String, Object> request) {
       // buildInfo.scm contains a list of maps. Each map contains these keys: name, sha1, branch.
       // If the list contains more than one entry, prefer the first one that is not master and is not develop.
       String commitHash = null;

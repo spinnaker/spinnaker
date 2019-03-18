@@ -25,11 +25,7 @@ import com.netflix.spinnaker.orca.pipeline.expressions.ExpressionEvaluator;
 import com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator;
 import com.netflix.spinnaker.orca.pipeline.expressions.functions.DeployedServerGroupsExpressionFunctionProvider;
 import com.netflix.spinnaker.orca.pipeline.expressions.functions.ManifestLabelValueExpressionFunctionProvider;
-import com.netflix.spinnaker.orca.pipeline.model.JenkinsTrigger;
-import com.netflix.spinnaker.orca.pipeline.model.JenkinsTrigger.BuildInfo;
-import com.netflix.spinnaker.orca.pipeline.model.JenkinsTrigger.SourceControl;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import com.netflix.spinnaker.orca.pipeline.model.Trigger;
+import com.netflix.spinnaker.orca.pipeline.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -144,6 +140,9 @@ public class ContextParameterProcessor {
 
     if (context.get("scmInfo") == null && trigger instanceof JenkinsTrigger) {
       context.put("scmInfo", Optional.ofNullable(((JenkinsTrigger) trigger).getBuildInfo()).map(BuildInfo::getScm).orElse(emptyList()));
+    }
+    if (context.get("scmInfo") == null && trigger instanceof ConcourseTrigger) {
+      context.put("scmInfo", Optional.ofNullable(((ConcourseTrigger) trigger).getBuildInfo()).map(BuildInfo::getScm).orElse(emptyList()));
     }
     if (context.get("scmInfo") != null && ((List) context.get("scmInfo")).size() >= 2) {
       List<SourceControl> scmInfos = (List<SourceControl>) context.get("scmInfo");

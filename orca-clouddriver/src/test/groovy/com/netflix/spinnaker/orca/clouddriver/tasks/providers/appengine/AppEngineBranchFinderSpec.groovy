@@ -16,11 +16,11 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.appengine
 
+import com.netflix.spinnaker.orca.pipeline.model.BuildInfo
 import com.netflix.spinnaker.orca.pipeline.model.GitTrigger
 import com.netflix.spinnaker.orca.pipeline.model.JenkinsTrigger
 import spock.lang.Specification
 import spock.lang.Unroll
-import static com.netflix.spinnaker.orca.pipeline.model.JenkinsTrigger.BuildInfo
 
 class AppEngineBranchFinderSpec extends Specification {
   @Unroll
@@ -74,7 +74,7 @@ class AppEngineBranchFinderSpec extends Specification {
   def "(jenkins trigger) should resolve branch, using regex (if provided) to narrow down options"() {
     given:
     def trigger = new JenkinsTrigger("Jenkins", "poll_git_repo", 1, null)
-    trigger.buildInfo = new BuildInfo("poll_git_repo", 1, "http://jenkins", [], scm, false, "SUCCESS")
+    trigger.buildInfo = new BuildInfo("poll_git_repo", 1, "http://jenkins", [], scm, false, "SUCCESS", "poll_git_repo#1")
 
     def operation = [
       trigger: [
@@ -97,7 +97,7 @@ class AppEngineBranchFinderSpec extends Specification {
   def "(jenkins trigger) should throw appropriate error if method cannot resolve exactly one branch"() {
     given:
     def trigger = new JenkinsTrigger("Jenkins", "poll_git_repo", 1, null)
-    trigger.buildInfo = new BuildInfo("poll_git_repo", 1, "http://jenkins", [], scm, false, "SUCCESS")
+    trigger.buildInfo = new BuildInfo("poll_git_repo", 1, "http://jenkins", [], scm, false, "SUCCESS", "poll_git_repo#1")
 
     def operation = [
       trigger      : [
