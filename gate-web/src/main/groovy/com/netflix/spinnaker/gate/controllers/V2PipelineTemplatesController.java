@@ -67,19 +67,19 @@ public class V2PipelineTemplatesController {
     this.objectMapper = objectMapper;
   }
 
-  @ApiOperation(value = "List pipeline templates.", response = List.class)
+  @ApiOperation(value = "(ALPHA) List pipeline templates.", response = List.class)
   @RequestMapping(method = RequestMethod.GET)
   public Collection<Map> list(@RequestParam(required = false) List<String> scopes) {
     return v2PipelineTemplateService.findByScope(scopes);
   }
 
-  @ApiOperation(value = "Plan a pipeline template configuration.", response = HashMap.class)
+  @ApiOperation(value = "(ALPHA) Plan a pipeline template configuration.", response = HashMap.class)
   @RequestMapping(value = "/plan", method = RequestMethod.POST)
   public Map<String, Object> plan(@RequestBody Map<String, Object> pipeline) {
     return v2PipelineTemplateService.plan(pipeline);
   }
 
-  @ApiOperation(value = "Create a pipeline template.", response = HashMap.class)
+  @ApiOperation(value = "(ALPHA) Create a pipeline template.", response = HashMap.class)
   @RequestMapping(value = "/create", method = RequestMethod.POST)
   @ResponseStatus(value = HttpStatus.ACCEPTED)
   public Map create(@RequestParam(value = "version", required = false) String version, @RequestBody Map<String, Object> pipelineTemplate) {
@@ -122,7 +122,7 @@ public class V2PipelineTemplatesController {
     }
   }
 
-  @ApiOperation(value = "Update a pipeline template.", response = HashMap.class)
+  @ApiOperation(value = "(ALPHA) Update a pipeline template.", response = HashMap.class)
   @RequestMapping(value = "/update/{id}", method = RequestMethod.POST)
   @ResponseStatus(value = HttpStatus.ACCEPTED)
   public Map update(@PathVariable String id,
@@ -161,7 +161,7 @@ public class V2PipelineTemplatesController {
     return operation;
   }
 
-  @ApiOperation(value = "Get a pipeline template.", response = HashMap.class)
+  @ApiOperation(value = "(ALPHA) Get a pipeline template.", response = HashMap.class)
   @RequestMapping(value = "/{id}", method = RequestMethod.GET)
   public Map get(@PathVariable String id,
     @RequestParam(value = "version", required = false) String version,
@@ -193,7 +193,7 @@ public class V2PipelineTemplatesController {
     return taskService.createAndWaitForCompletion(operation);
   }
 
-  @ApiOperation(value = "List all pipelines that implement a pipeline template", response = List.class)
+  @ApiOperation(value = "(ALPHA) List all pipelines that implement a pipeline template", response = List.class)
   @RequestMapping(value = "/{id}/dependents", method = RequestMethod.GET)
   public List<PipelineTemplateDependent> listPipelineTemplateDependents(@PathVariable String id) {
     return v2PipelineTemplateService.getTemplateDependents(id);
