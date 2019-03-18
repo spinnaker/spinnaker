@@ -413,7 +413,10 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
               Map<String, String> names = (Map) spec.getOrDefault("names", new HashMap<>());
               String name = names.get("kind");
 
-              return KubernetesKind.fromString(name, false, scope.equalsIgnoreCase("namespaced"));
+              String group = (String) spec.getOrDefault("group", "");
+              String scopedName = (!group.isEmpty()) ? name + "." + group : name;
+
+              return KubernetesKind.fromString(scopedName, false, scope.equalsIgnoreCase("namespaced"));
             })
             .collect(Collectors.toList());
       } catch (KubectlException e) {

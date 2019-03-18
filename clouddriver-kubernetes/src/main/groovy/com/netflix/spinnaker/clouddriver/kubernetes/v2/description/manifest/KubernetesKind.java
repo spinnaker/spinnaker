@@ -19,13 +19,16 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
+
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -132,7 +135,12 @@ public class KubernetesKind {
     return fromString(name, true, true);
   }
 
-  public static KubernetesKind fromString(String name, boolean registered, boolean namespaced) {
+  public static KubernetesKind fromString(String name, KubernetesApiGroup apiGroup) {
+    return fromString(name, true, true, apiGroup);
+  }
+
+  private static KubernetesKind fromString(final String name, final boolean registered, final boolean namespaced,
+      KubernetesApiGroup apiGroup) {
     if (StringUtils.isEmpty(name)) {
       return null;
     }
@@ -141,26 +149,56 @@ public class KubernetesKind {
       throw new IllegalArgumentException("The 'NONE' kind cannot be read.");
     }
 
+    String localName = name;
+    boolean localRegistered = registered;
+
+    if (Objects.isNull(apiGroup)) {
+      apiGroup = getApiGroup(name);
+    }
+
+    if (apiGroup.isCustomResourceGroup()) {
+      localRegistered = false;
+      if (!name.endsWith(apiGroup.toString())) {
+        localName = name + "." + apiGroup;
+      }
+    }
+
+    final String finalName = localName;
+    final boolean finalRegistered = localRegistered;
+
     synchronized (values) {
       Optional<KubernetesKind> kindOptional = values.stream()
-          .filter(v -> v.name.equalsIgnoreCase(name) || (v.alias != null && v.alias.equalsIgnoreCase(name)))
-          .findAny();
+        .filter(v -> v.name.equalsIgnoreCase(finalName) || (v.alias != null && v.alias.equalsIgnoreCase(finalName)))
+        .findAny();
 
       // separate from the above chain to avoid concurrent modification of the values list
       return kindOptional.orElseGet(() -> {
-        log.info("Dynamically registering {}, (namespaced: {}, registered: {})", name, namespaced, registered);
-        KubernetesKind result = new KubernetesKind(name);
+        log.info("Dynamically registering {}, (namespaced: {}, registered: {})", finalName, namespaced, finalRegistered);
+        KubernetesKind result = new KubernetesKind(finalName);
         result.isDynamic = true;
-        result.isRegistered = registered;
+        result.isRegistered = finalRegistered;
         result.isNamespaced = namespaced;
         return result;
       });
     }
   }
 
+  public static KubernetesKind fromString(String name, boolean registered, boolean namespaced) {
+    return KubernetesKind.fromString(name, registered, namespaced, null);
+  }
+
   public static List<KubernetesKind> registeredStringList(List<String> names) {
     return names.stream()
         .map(KubernetesKind::fromString)
         .collect(Collectors.toList());
+  }
+
+  private static KubernetesApiGroup getApiGroup(String name) {
+    final String[] parts = name.split("\\.");
+    if (parts.length < 2) {
+      return KubernetesApiGroup.NONE;
+    }
+
+    return KubernetesApiGroup.fromString(StringUtils.joinWith(".", Arrays.stream(parts).skip(1).toArray()));
   }
 }

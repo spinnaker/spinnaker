@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
+
 import lombok.EqualsAndHashCode;
 import org.apache.commons.lang3.StringUtils;
 
@@ -53,6 +54,14 @@ public class KubernetesApiVersion {
   @JsonValue
   public String toString() {
     return name;
+  }
+
+  public KubernetesApiGroup getApiGroup() {
+    final String[] split = name.split("/");
+    if (split.length > 1) {
+      return KubernetesApiGroup.fromString(split[0]);
+    }
+    return KubernetesApiGroup.NONE;
   }
 
   @JsonCreator

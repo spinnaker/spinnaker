@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.description
 
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifestAnnotater
 import com.netflix.spinnaker.moniker.Moniker
@@ -30,6 +31,7 @@ class KubernetesManifestAnnotatorSpec extends Specification {
   private KubernetesManifest freshManifest() {
     def result = new KubernetesManifest()
     result.put("kind", "replicaSet")
+    result.put("apiVersion", KubernetesApiVersion.V1.toString())
     result.put("metadata", ["annotations": [:]])
     return result
   }
