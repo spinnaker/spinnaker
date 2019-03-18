@@ -325,14 +325,10 @@ public class ServiceInstances {
         .setType(DELETE)
         .setState(IN_PROGRESS);
     } else {
-      CloudFoundryServiceInstance userProvidedServiceInstance = getUserProvidedServiceInstance(space, serviceInstanceName);
-      if (userProvidedServiceInstance == null) {
-        throw new CloudFoundryApiException("No service instances with name '" + serviceInstanceName + "' found in space " + space.getName());
-      }
-      String userProvidedServiceInstanceId = userProvidedServiceInstance.getId();
-      destroyServiceInstance(
-        pg -> api.getBindingsForUserProvidedServiceInstance(userProvidedServiceInstanceId, pg, null),
-        () -> api.destroyUserProvidedServiceInstance(userProvidedServiceInstanceId));
+      Optional.ofNullable(getUserProvidedServiceInstance(space, serviceInstanceName))
+        .ifPresent(inst -> destroyServiceInstance(
+          pg -> api.getBindingsForUserProvidedServiceInstance(inst.getId(), pg, null),
+          () -> api.destroyUserProvidedServiceInstance(inst.getId())));
       return new ServiceInstanceResponse()
         .setServiceInstanceName(serviceInstanceName)
         .setType(DELETE)

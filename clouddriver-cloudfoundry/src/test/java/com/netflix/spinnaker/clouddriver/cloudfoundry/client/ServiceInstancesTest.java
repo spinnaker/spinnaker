@@ -931,6 +931,21 @@ class ServiceInstancesTest {
   }
 
   @Test
+  void destroyServiceInstanceShouldReturnSuccessWhenServiceInstanceDoesNotExist() {
+    when(serviceInstanceService.all(any(), anyListOf(String.class))).thenReturn(createEmptyOsbServiceInstancePage());
+    when(serviceInstanceService.allUserProvided(any(), anyListOf(String.class))).thenReturn(createEmptyUserProvidedServiceInstancePage());
+
+    ServiceInstanceResponse response = serviceInstances.destroyServiceInstance(cloudFoundrySpace, "service-instance-name");
+
+    assertThat(response).isEqualTo(new ServiceInstanceResponse()
+      .setServiceInstanceName("service-instance-name")
+      .setType(DELETE)
+      .setState(LastOperation.State.NOT_FOUND)
+    );
+    verify(serviceInstanceService, never()).destroyServiceInstance(any());
+  }
+
+  @Test
   void destroyServiceInstanceShouldFailIfServiceBindingsExists() {
     when(serviceInstanceService.all(any(), anyListOf(String.class))).thenReturn(createOsbServiceInstancePage());
     when(serviceInstanceService.getBindingsForServiceInstance("service-instance-guid", null, null))
@@ -1001,7 +1016,7 @@ class ServiceInstancesTest {
 
   @Test
   void destroyUserProvidedServiceInstanceShouldFailIfServiceBindingsExists() {
-    when(serviceInstanceService.all(any(), anyListOf(String.class))).thenReturn(new Page<>());
+    when(serviceInstanceService.all(any(), anyListOf(String.class))).thenReturn(createEmptyOsbServiceInstancePage());
     when(serviceInstanceService.allUserProvided(any(), anyListOf(String.class))).thenReturn(createUserProvidedServiceInstancePage());
     when(serviceInstanceService.getBindingsForUserProvidedServiceInstance("up-service-instance-guid", null, null))
       .thenReturn(Page.singleton(new ServiceBinding(), "up-service-instance-guid"));
