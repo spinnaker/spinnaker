@@ -86,8 +86,7 @@ public class V2PipelineTemplateController {
       templateId = String.format("%s:%s", pipelineTemplate.undecoratedId(), version);
       pipelineTemplate.setVersion(version);
     } else {
-      templateId = String.format("%s:latest", pipelineTemplate.undecoratedId());
-      pipelineTemplate.setVersion("latest");
+      templateId = pipelineTemplate.undecoratedId();
     }
 
     try {
@@ -261,7 +260,7 @@ public class V2PipelineTemplateController {
     } else if (StringUtils.isNotEmpty(version)) {
       return String.format("%s:%s", id, version);
     } else {
-      return String.format("%s:latest", id);
+      return id;
     }
   }
 }
