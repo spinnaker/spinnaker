@@ -44,6 +44,7 @@ import org.springframework.util.backoff.BackOffExecution;
 import org.springframework.util.backoff.FixedBackOff;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -117,10 +118,10 @@ public class UserRolesSyncer implements ApplicationListener<RemoteStatusChangedE
         .withSuccessInterval(Duration.ofMillis(syncDelayMs))
         .withFailureInterval(Duration.ofMillis(syncFailureDelayMs));
 
-    lockManager.acquireLock(lockOptions, this::syncAndReturn);
+    lockManager.acquireLock(lockOptions, () -> this.syncAndReturn(new ArrayList<>()));
   }
 
-  public long syncAndReturn() {
+  public long syncAndReturn(List<String> roles) {
     FixedBackOff backoff = new FixedBackOff();
     backoff.setInterval(retryIntervalMs);
     backoff.setMaxAttempts(Math.floorDiv(syncDelayTimeoutMs, retryIntervalMs) + 1);
@@ -140,10 +141,10 @@ public class UserRolesSyncer implements ApplicationListener<RemoteStatusChangedE
         //force a refresh of the unrestricted user in case the backing repository is empty:
         combo.put(UnrestrictedResourceConfig.UNRESTRICTED_USERNAME, new UserPermission());
         Map<String, UserPermission> temp;
-        if (!(temp = getUserPermissions()).isEmpty()) {
+        if (!(temp = getUserPermissions(roles)).isEmpty()) {
           combo.putAll(temp);
         }
-        if (!(temp = getServiceAccountsAsMap()).isEmpty()) {
+        if (!(temp = getServiceAccountsAsMap(roles)).isEmpty()) {
           combo.putAll(temp);
         }
 
@@ -183,16 +184,33 @@ public class UserRolesSyncer implements ApplicationListener<RemoteStatusChangedE
     return healthIndicator.health().getStatus() == Status.UP;
   }
 
-  private Map<String, UserPermission> getServiceAccountsAsMap() {
-    return serviceAccountProvider
+  private Map<String, UserPermission> getServiceAccountsAsMap(List<String> roles) {
+    List<UserPermission> allServiceAccounts = serviceAccountProvider
         .getAll()
         .stream()
         .map(ServiceAccount::toUserPermission)
-        .collect(Collectors.toMap(UserPermission::getId, Function.identity()));
+        .collect(Collectors.toList());
+    if (roles == null || roles.isEmpty()) {
+      return allServiceAccounts
+              .stream()
+              .collect(Collectors.toMap(UserPermission::getId, Function.identity()));
+    } else {
+      return allServiceAccounts
+              .stream()
+              .filter(p -> p.getRoles()
+                      .stream()
+                      .map(Role::getName)
+                      .anyMatch(roles::contains))
+              .collect(Collectors.toMap(UserPermission::getId, Function.identity()));
+    }
   }
 
-  private Map<String, UserPermission> getUserPermissions() {
-    return permissionsRepository.getAllById();
+  private Map<String, UserPermission> getUserPermissions(List<String> roles) {
+    if (roles == null || roles.isEmpty()) {
+      return permissionsRepository.getAllById();
+    } else {
+      return permissionsRepository.getAllByRoles(roles);
+    }
   }
 
   public long updateUserPermissions(Map<String, UserPermission> permissionsById) {

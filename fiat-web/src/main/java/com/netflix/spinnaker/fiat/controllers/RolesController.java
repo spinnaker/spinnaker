@@ -108,22 +108,13 @@ public class RolesController {
   @RequestMapping(value = "/sync", method = RequestMethod.POST)
   public long sync(HttpServletResponse response,
                    @RequestBody(required = false) List<String> specificRoles) throws IOException {
-    if (specificRoles == null || specificRoles.isEmpty()) {
-      log.info("Full role sync invoked by web request.");
-      long count = syncer.syncAndReturn();
-      if (count == 0) {
-        response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE,
-                           "Error occurred syncing permissions. See Fiat Logs.");
-      }
-      return count;
-    }
-
-    log.info("Web request role sync of roles: " + String.join(",", specificRoles));
-    Map<String, UserPermission> affectedUsers = permissionsRepository.getAllByRoles(specificRoles);
-    if (affectedUsers.size() == 0) {
+    log.info("Role sync invoked by web request for roles: {}", specificRoles);
+    long count = syncer.syncAndReturn(specificRoles);
+    if (count == 0) {
       log.info("No users found with specified roles");
-      return 0;
+      response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE,
+        "Error occurred syncing permissions. See Fiat Logs.");
     }
-    return syncer.updateUserPermissions(affectedUsers);
+    return count;
   }
 }

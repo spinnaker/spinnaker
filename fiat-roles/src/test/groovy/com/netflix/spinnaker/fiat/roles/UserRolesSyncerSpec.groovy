@@ -41,7 +41,6 @@ import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
-import javax.annotation.Nonnull
 import java.util.concurrent.Callable
 
 class UserRolesSyncerSpec extends Specification {
@@ -79,33 +78,47 @@ class UserRolesSyncerSpec extends Specification {
     jedis.flushDB()
   }
 
+  @Unroll
   def "should update user roles & add service accounts"() {
     setup:
-    def extRole = new Role("extRole").setSource(Role.Source.EXTERNAL)
+    def extRoleA = new Role("extRoleA").setSource(Role.Source.EXTERNAL)
+    def extRoleB = new Role("extRoleB").setSource(Role.Source.EXTERNAL)
+    def extRoleC = new Role("extRoleC").setSource(Role.Source.EXTERNAL)
     def user1 = new UserPermission()
         .setId("user1")
         .setAccounts([new Account().setName("account1")] as Set)
-        .setRoles([extRole] as Set)
+        .setRoles([extRoleA] as Set)
     def user2 = new UserPermission()
         .setId("user2")
         .setAccounts([new Account().setName("account2")] as Set)
+        .setRoles([extRoleB] as Set)
+    def user3 = new UserPermission()
+        .setId("user3")
+        .setAccounts([new Account().setName("account3")] as Set)
+        .setRoles([extRoleC] as Set)
     def unrestrictedUser = new UserPermission()
         .setId(UnrestrictedResourceConfig.UNRESTRICTED_USERNAME)
         .setAccounts([new Account().setName("unrestrictedAccount")] as Set)
 
-    def abcServiceAcct = new UserPermission().setId("abc")
+    def abcServiceAcct = new UserPermission().setId("abc").setRoles([extRoleC] as Set)
     def xyzServiceAcct = new UserPermission().setId("xyz@domain.com")
 
     repo.put(user1)
     repo.put(user2)
+    repo.put(user3)
     repo.put(unrestrictedUser)
 
     def newUser2 = new UserPermission()
         .setId("user2")
-        .setAccounts([new Account().setName("account3")] as Set)
+        .setAccounts([new Account().setName("accountX")] as Set)
+        .setRoles([extRoleB] as Set)
+    def newUser3 = new UserPermission()
+        .setId("user3")
+        .setAccounts([new Account().setName("accountX")] as Set)
+        .setRoles([extRoleC] as Set)
 
     def serviceAccountProvider = Mock(ResourceProvider) {
-      getAll() >> [new ServiceAccount().setName("abc"),
+      getAll() >> [new ServiceAccount().setName("abc").setMemberOf(["extRoleC"]),
                    new ServiceAccount().setName("xyz@domain.com")]
     }
 
@@ -135,27 +148,55 @@ class UserRolesSyncerSpec extends Specification {
     repo.getAllById() == [
         "user1"       : user1.merge(unrestrictedUser),
         "user2"       : user2.merge(unrestrictedUser),
+        "user3"       : user3.merge(unrestrictedUser),
         (UNRESTRICTED): unrestrictedUser
     ]
 
     when:
-    syncer.syncAndReturn()
+    syncer.syncAndReturn(syncRoles)
 
     then:
-    permissionsResolver.resolve(_ as List) >> ["user1"         : user1,
-                                               "user2"         : newUser2,
-                                               "abc"           : abcServiceAcct,
-                                               "xyz@domain.com": xyzServiceAcct]
+    permissionsResolver.resolve(_ as List) >> {
+      if (fullsync) {
+        ["user1"         : user1,
+         "user2"         : newUser2,
+         "user3"         : newUser3,
+         "abc"           : abcServiceAcct,
+         "xyz@domain.com": xyzServiceAcct]
+      } else {
+        ["user3"         : newUser3,
+         "abc"           : abcServiceAcct]
+      }
+    }
     permissionsResolver.resolveUnrestrictedUser() >> unrestrictedUser
 
     expect:
-    repo.getAllById() == [
-        "user1"         : user1.merge(unrestrictedUser),
-        "user2"         : newUser2.merge(unrestrictedUser),
-        "abc"           : abcServiceAcct.merge(unrestrictedUser),
-        "xyz@domain.com": xyzServiceAcct.merge(unrestrictedUser),
-        (UNRESTRICTED)  : unrestrictedUser
-    ]
+    def expectedResult
+    if (fullsync) {
+      expectedResult = [
+              "user1"         : user1.merge(unrestrictedUser),
+              "user2"         : newUser2.merge(unrestrictedUser),
+              "user3"         : newUser3.merge(unrestrictedUser),
+              "abc"           : abcServiceAcct.merge(unrestrictedUser),
+              "xyz@domain.com": xyzServiceAcct.merge(unrestrictedUser),
+              (UNRESTRICTED)  : unrestrictedUser
+      ]
+    } else {
+      expectedResult = [
+              "user1"         : user1.merge(unrestrictedUser),
+              "user2"         : user2.merge(unrestrictedUser),
+              "user3"         : newUser3.merge(unrestrictedUser),
+              "abc"           : abcServiceAcct.merge(unrestrictedUser),
+              (UNRESTRICTED)  : unrestrictedUser
+      ]
+    }
+    repo.getAllById() == expectedResult
+
+    where:
+    syncRoles    | fullsync
+    null         | true
+    []           | true
+    ["extrolec"] | false
   }
 
   @Unroll
