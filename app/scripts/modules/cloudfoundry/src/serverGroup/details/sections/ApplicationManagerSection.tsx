@@ -10,12 +10,16 @@ export class ApplicationManagerSection extends React.Component<ICloudFoundryServ
 
   public render(): JSX.Element {
     const { serverGroup } = this.props;
+    const { appsManagerUri } = serverGroup;
     return (
       <>
-        {serverGroup.appsManagerUri && (
+        {appsManagerUri && (
           <CollapsibleSection heading="Apps Manager" defaultExpanded={true}>
             <div>
-              <a href={serverGroup.appsManagerUri} target="_blank">
+              <a
+                href={appsManagerUri.startsWith('https://') ? appsManagerUri : 'https://' + appsManagerUri}
+                target="_blank"
+              >
                 Apps Manager
               </a>
             </div>
