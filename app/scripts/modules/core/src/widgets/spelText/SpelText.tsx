@@ -44,20 +44,20 @@ export class SpelText extends React.Component<ISpelTextProps, ISpelTextState> {
     this.renderSuggestions();
   }
 
-  public componentDidUpdate() {
-    this.renderSuggestions();
+  public componentDidUpdate(_: Readonly<ISpelTextProps>, prevState: Readonly<ISpelTextState>): void {
+    if (prevState.textcompleteConfig !== this.state.textcompleteConfig) {
+      this.renderSuggestions();
+    }
   }
 
   private renderSuggestions() {
     const input = $(this.spelInputRef.current);
-    if (!input.attr('contenteditable')) {
-      input.attr('contenteditable', 'true');
-      input.textcomplete(this.state.textcompleteConfig, {
-        maxCount: 1000,
-        zIndex: 9000,
-        dropdownClassName: 'dropdown-menu textcomplete-dropdown spel-dropdown',
-      });
-    }
+    input.attr('contenteditable', 'true');
+    input.textcomplete(this.state.textcompleteConfig, {
+      maxCount: 1000,
+      zIndex: 9000,
+      dropdownClassName: 'dropdown-menu textcomplete-dropdown spel-dropdown',
+    });
   }
 
   public render() {
