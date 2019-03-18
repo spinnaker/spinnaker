@@ -18,6 +18,7 @@ package com.netflix.spinnaker.igor.jenkins.client.model
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper
+import com.netflix.spinnaker.igor.build.model.GenericArtifact
 import com.netflix.spinnaker.igor.build.model.GenericBuild
 import com.netflix.spinnaker.igor.build.model.Result
 import groovy.transform.CompileStatic
@@ -64,7 +65,12 @@ class Build {
     GenericBuild genericBuild(String jobName) {
         GenericBuild genericBuild = new GenericBuild(building: building, number: number.intValue(), duration: duration.intValue(), result: result as Result, name: jobName, url: url, timestamp: timestamp, fullDisplayName: fullDisplayName)
         if (artifacts) {
-            genericBuild.artifacts = artifacts*.getGenericArtifact()
+            genericBuild.artifacts = artifacts.collect { buildArtifact ->
+                GenericArtifact artifact = buildArtifact.getGenericArtifact()
+                artifact.name = jobName
+                artifact.version = number
+                artifact
+            }
         }
         if (testResults) {
             genericBuild.testResults = testResults
@@ -72,6 +78,3 @@ class Build {
         return genericBuild
     }
 }
-
-
-

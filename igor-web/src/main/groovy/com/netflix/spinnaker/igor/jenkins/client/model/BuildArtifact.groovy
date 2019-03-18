@@ -41,6 +41,9 @@ class BuildArtifact {
     String relativePath
 
     GenericArtifact getGenericArtifact() {
-        return new GenericArtifact(fileName, displayPath, relativePath)
+        GenericArtifact artifact = new GenericArtifact(fileName, displayPath, relativePath)
+        artifact.type = 'jenkins/file'
+        artifact.reference = relativePath
+        return artifact
     }
 }
