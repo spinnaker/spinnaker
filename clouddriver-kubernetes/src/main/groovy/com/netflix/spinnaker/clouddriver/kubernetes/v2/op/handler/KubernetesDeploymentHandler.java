@@ -120,7 +120,8 @@ public class KubernetesDeploymentHandler extends KubernetesHandler implements
     }
 
     if (available != null && available.getStatus().equalsIgnoreCase("false")) {
-      result.unavailable(available.getMessage());
+      result.unstable(available.getMessage())
+        .unavailable(available.getMessage());
     }
 
     V1beta2DeploymentCondition condition = status.getConditions()
