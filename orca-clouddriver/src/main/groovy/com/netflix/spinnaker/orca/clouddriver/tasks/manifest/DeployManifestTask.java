@@ -80,26 +80,29 @@ public class DeployManifestTask extends AbstractCloudProviderAwareTask implement
     String cloudProvider = getCloudProvider(stage);
 
     List<Artifact> artifacts = artifactResolver.getArtifacts(stage);
-    Map task = new HashMap(stage.getContext());
-    String artifactSource = (String) task.get("source");
+    DeployManifestContext context = stage.mapTo(DeployManifestContext.class);
+    Map<String, Object> task = new HashMap<>(context);
+    String artifactSource = context.getSource();
     if (StringUtils.isNotEmpty(artifactSource) && artifactSource.equals("artifact")) {
-      if (task.get("manifestArtifactId") == null) {
+      String manifestArtifactId = context.getManifestArtifactId();
+      if (manifestArtifactId == null) {
         throw new IllegalArgumentException("No manifest artifact was specified.");
       }
 
-      if (task.get("manifestArtifactAccount") == null) {
+      String manifestArtifactAccount = context.getManifestArtifactAccount();
+      if (manifestArtifactAccount == null) {
         throw new IllegalArgumentException("No manifest artifact account was specified.");
       }
 
-      Artifact manifestArtifact = artifactResolver.getBoundArtifactForId(stage, task.get("manifestArtifactId").toString());
+      Artifact manifestArtifact = artifactResolver.getBoundArtifactForId(stage, manifestArtifactId);
 
       if (manifestArtifact == null) {
-        throw new IllegalArgumentException("No artifact could be bound to '" + task.get("manifestArtifactId") + "'");
+        throw new IllegalArgumentException("No artifact could be bound to '" + manifestArtifactId + "'");
       }
 
       log.info("Using {} as the manifest to be deployed", manifestArtifact);
 
-      manifestArtifact.setArtifactAccount((String) task.get("manifestArtifactAccount"));
+      manifestArtifact.setArtifactAccount(manifestArtifactAccount);
       Object parsedManifests = retrySupport.retry(() -> {
         try {
           Response manifestText = oort.fetchArtifact(manifestArtifact);
@@ -119,14 +122,17 @@ public class DeployManifestTask extends AbstractCloudProviderAwareTask implement
           Map<String, Object> manifestWrapper = new HashMap<>();
           manifestWrapper.put("manifests", manifests);
 
-          manifestWrapper = contextParameterProcessor.process(
+          Boolean skipExpressionEvaluation = context.getSkipExpressionEvaluation();
+          if (skipExpressionEvaluation == null || !skipExpressionEvaluation) {
+            manifestWrapper = contextParameterProcessor.process(
               manifestWrapper,
               contextParameterProcessor.buildExecutionContext(stage, true),
               true
-          );
+            );
 
-          if (manifestWrapper.containsKey("expressionEvaluationSummary")) {
-            throw new IllegalStateException("Failure evaluating manifest expressions: " + manifestWrapper.get("expressionEvaluationSummary"));
+            if (manifestWrapper.containsKey("expressionEvaluationSummary")) {
+              throw new IllegalStateException("Failure evaluating manifest expressions: " + manifestWrapper.get("expressionEvaluationSummary"));
+            }
           }
 
           return manifestWrapper.get("manifests");
@@ -140,7 +146,7 @@ public class DeployManifestTask extends AbstractCloudProviderAwareTask implement
       task.put("source", "text");
     }
 
-    List<String> requiredArtifactIds = (List<String>) task.get("requiredArtifactIds");
+    List<String> requiredArtifactIds = context.getRequiredArtifactIds();
     List<Artifact> requiredArtifacts = new ArrayList<>();
     requiredArtifactIds = requiredArtifactIds == null ? new ArrayList<>() : requiredArtifactIds;
     for (String id : requiredArtifactIds) {

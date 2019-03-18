@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.orca.bakery.tasks.manifests;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact;
@@ -28,6 +27,7 @@ import com.netflix.spinnaker.orca.bakery.api.BakeryService;
 import com.netflix.spinnaker.orca.bakery.api.manifests.helm.HelmBakeManifestRequest;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver;
+import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,12 +62,15 @@ public class CreateBakeManifestTask implements RetryableTask {
   @Autowired
   ObjectMapper objectMapper;
 
+  @Autowired
+  ContextParameterProcessor contextParameterProcessor;
+
   @Nonnull
   @Override
   public TaskResult execute(@Nonnull Stage stage) {
-    Map<String, Object> context = stage.getContext();
+    BakeManifestContext context = stage.mapTo(BakeManifestContext.class);
 
-    List<InputArtifactPair> inputArtifactsObj = objectMapper.convertValue(context.get("inputArtifacts"), new TypeReference<List<InputArtifactPair>>() {});
+    List<InputArtifactPair> inputArtifactsObj = context.getInputArtifacts();
     List<Artifact> inputArtifacts;
 
     if (inputArtifactsObj == null || inputArtifactsObj.isEmpty()) {
@@ -84,7 +87,7 @@ public class CreateBakeManifestTask implements RetryableTask {
           return a;
         }).collect(Collectors.toList());
 
-    List<ExpectedArtifact> expectedArtifacts = objectMapper.convertValue(context.get("expectedArtifacts"), new TypeReference<List<ExpectedArtifact>>() {});
+    List<ExpectedArtifact> expectedArtifacts = context.getExpectedArtifacts();
 
     if (expectedArtifacts == null || expectedArtifacts.isEmpty()) {
       throw new IllegalArgumentException("At least one expected artifact to baked manifest must be supplied");
@@ -96,12 +99,22 @@ public class CreateBakeManifestTask implements RetryableTask {
 
     String outputArtifactName = expectedArtifacts.get(0).getMatchArtifact().getName();
 
+    Map<String, Object> overrides = context.getOverrides();
+    Boolean evaluateOverrideExpressions = context.getEvaluateOverrideExpressions();
+    if (evaluateOverrideExpressions != null && evaluateOverrideExpressions) {
+      overrides = contextParameterProcessor.process(
+        overrides,
+        contextParameterProcessor.buildExecutionContext(stage, true),
+        true
+      );
+    }
+
     HelmBakeManifestRequest request = new HelmBakeManifestRequest();
     request.setInputArtifacts(inputArtifacts);
-    request.setTemplateRenderer((String) context.get("templateRenderer"));
-    request.setOutputName((String) context.get("outputName"));
-    request.setOverrides(objectMapper.convertValue(context.get("overrides"), new TypeReference<Map<String, Object>>() { }));
-    request.setNamespace((String) context.get("namespace"));
+    request.setTemplateRenderer(context.getTemplateRenderer());
+    request.setOutputName(context.getOutputName());
+    request.setOverrides(overrides);
+    request.setNamespace(context.getNamespace());
     request.setOutputArtifactName(outputArtifactName);
 
     log.info("Requesting {}", request);
@@ -114,7 +127,7 @@ public class CreateBakeManifestTask implements RetryableTask {
   }
 
   @Data
-  private static class InputArtifactPair {
+  protected static class InputArtifactPair {
     String id;
     String account;
   }
