@@ -10,8 +10,6 @@ import com.netflix.spinnaker.front50.model.pipeline.Trigger;
 import com.netflix.spinnaker.front50.model.serviceaccount.ServiceAccount;
 import com.netflix.spinnaker.front50.model.serviceaccount.ServiceAccountDAO;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
@@ -65,13 +63,13 @@ public class RunAsUserToPermissionsMigration implements Migration {
         .collect(Collectors.toMap(ServiceAccount::getName, Function.identity()));
 
     pipelineDAO.all().parallelStream()
-        .filter(p -> p.get(ROLES) == null || ((List) p.get(ROLES)).isEmpty())
         .filter(p -> p.getTriggers().stream().anyMatch(this::hasManualServiceUser))
         .forEach(pipeline -> migrate(pipeline, serviceAccounts));
 
     log.info("Finished runAsUser to automatic service user migration");
   }
 
+  @SuppressWarnings("unchecked")
   private void migrate(Pipeline pipeline, Map<String, ServiceAccount> serviceAccounts) {
     log.info("Starting migration of pipeline '{}' (application: '{}', pipelineId: '{}')",
         value("pipelineName", pipeline.getName()),
@@ -80,6 +78,12 @@ public class RunAsUserToPermissionsMigration implements Migration {
     );
 
     Set<String> newRoles = new HashSet<>();
+    List<String> existingRoles = (List) pipeline.get(ROLES);
+    if (existingRoles != null) {
+      existingRoles.stream()
+        .map(String::toLowerCase)
+        .forEach(newRoles::add);
+    }
 
     String serviceAccountName = generateSvcAcctName(pipeline);
 
@@ -93,10 +97,9 @@ public class RunAsUserToPermissionsMigration implements Migration {
       if (runAsUser != null && !runAsUser.endsWith(SERVICE_ACCOUNT_SUFFIX)) {
         ServiceAccount manualServiceAccount = serviceAccounts.get(runAsUser);
         if (manualServiceAccount != null && !manualServiceAccount.getMemberOf().isEmpty()) {
-          List<String> oldRoles = manualServiceAccount.getMemberOf().stream()
+          manualServiceAccount.getMemberOf().stream()
               .map(String::toLowerCase) // Because roles in Spinnaker are always lowercase
-              .collect(Collectors.toList());
-          newRoles.addAll(oldRoles);
+              .forEach(newRoles::add);
         }
       }
       log.info("Replacing '{}' with automatic service user '{}' (application: '{}', pipelineName: '{}', "

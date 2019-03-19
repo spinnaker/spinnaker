@@ -23,6 +23,10 @@ class RunAsUserToPermissionsMigrationSpec extends Specification {
   @Subject
   def migration = new RunAsUserToPermissionsMigration(pipelineDAO, serviceAccountDAO)
 
+  def setup() {
+    migration.setClock(Clock.fixed(Instant.parse("2019-04-01T10:15:30.00Z"), ZoneId.of("Z")))
+  }
+
   @Unroll
   def "should #shouldRun migration if time is #date"() {
     given:
@@ -44,14 +48,14 @@ class RunAsUserToPermissionsMigrationSpec extends Specification {
 
   }
 
-  def "should not migrate a pipeline with roles set"() {
+  def "should migrate pipeline if one trigger is missing automatic service user"() {
     given:
     def pipeline = new Pipeline([
       application: "test",
       id: "1337",
       name: "My Pipeline",
       roles: [
-        "my-role"
+        "My-Role"
       ],
       triggers: [
         [
@@ -60,18 +64,32 @@ class RunAsUserToPermissionsMigrationSpec extends Specification {
           master: "travis",
           runAsUser: "my-existing-service-user@org.com",
           type: "travis"
+        ], [
+          enabled: true,
+          job: "org/repo2/master",
+          master: "jenkins",
+          runAsUser: "1337@managed-service-account",
+          type: "jenkins"
         ]
       ]
     ])
+
+    def serviceAccount = new ServiceAccount(
+      name: "my-existing-service-user@org.com",
+      memberOf: ["Another-Role"]
+    )
 
     when:
     migration.run()
 
     then:
-    1 * serviceAccountDAO.all() >> []
+    1 * serviceAccountDAO.all() >> [serviceAccount]
     1 * pipelineDAO.all() >> { return [pipeline] }
-    0 * pipelineDAO.update(_, _)
-    0 * serviceAccountDAO.create(_, _)
+    1 * pipelineDAO.update("1337", pipeline)
+    1 * serviceAccountDAO.create("1337@managed-service-account", _)
+
+    pipeline.roles == ["my-role", "another-role"]
+    pipeline.getTriggers()*.get("runAsUser") == ["1337@managed-service-account", "1337@managed-service-account"]
   }
 
   def "should not migrate a pipeline with an automatic service user already set"() {
@@ -80,8 +98,6 @@ class RunAsUserToPermissionsMigrationSpec extends Specification {
       application: "test",
       id: "1337",
       name: "My Pipeline",
-      roles: [
-      ],
       triggers: [
         [
           enabled: true,
