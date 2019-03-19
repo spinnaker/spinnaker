@@ -43,6 +43,17 @@
     },
   {% endif %}
 
+  {% if securityContext != null %}
+  "securityContext": {
+    {% if securityContext.runAsUser != null %}
+    "runAsUser": {{ securityContext.runAsUser }} {% if securityContext.fsGroup != null %} , {% endif %}
+    {% endif %}
+    {% if securityContext.fsGroup != null %}
+    "fsGroup": {{ securityContext.fsGroup }}
+    {% endif %}
+  },
+  {% endif %}
+
   "volumes": [
     {% for volume in volumes %}
     {{ volume }} {% if not loop.last %} , {% endif %}

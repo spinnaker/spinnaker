@@ -228,6 +228,7 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
               .addBinding("terminationGracePeriodSeconds", terminationGracePeriodSeconds())
               .addBinding("nodeSelector", settings.getKubernetes().getNodeSelector())
               .addBinding("volumes", combineVolumes(configSources, settings.getKubernetes(), sidecarConfigs))
+              .addBinding("securityContext", settings.getKubernetes().getSecurityContext())
               .toString();
   }
 
