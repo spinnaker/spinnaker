@@ -53,7 +53,7 @@ class ServiceAccountsControllerSpec extends Specification {
 
     then:
     1 * fiatPermissionsEvaluator.invalidatePermission(_)
-    1 * fiatService.sync([])
+    1 * fiatService.sync(["test-role"])
   }
 
 }
