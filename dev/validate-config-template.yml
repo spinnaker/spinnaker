@@ -64,7 +64,7 @@
 
 
 #########################
-# Halyard and Deployment 
+# Halyard and Deployment
 #########################
 # halyard_install_script: https://raw.githubusercontent.com/spinnaker/halyard/master/install/nightly/InstallHalyard.sh
 # halyard_version:          # only set to override
@@ -240,4 +240,4 @@
 # test_include: .*
 # test_exclude:
 # test_stack:
-
+# test_ignore_ssl_cert_verification: false
