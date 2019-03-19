@@ -22,8 +22,12 @@
         </label>
       </stage-config-field>
     </ng-form>
-    <kubernetes-manifest-entry ng-if="stage.source === ctrl.textSource" manifests="stage.manifests" command="stage">
-    </kubernetes-manifest-entry>
+    <yaml-editor
+      ng-if="stage.source === ctrl.textSource"
+      value="ctrl.rawManifest"
+      on-change="ctrl.handleRawManifestChange"
+    >
+    </yaml-editor>
     <div ng-if="ctrl.checkFeatureFlag('artifactsRewrite')">
       <stage-config-field
         label="Manifest Artifact"

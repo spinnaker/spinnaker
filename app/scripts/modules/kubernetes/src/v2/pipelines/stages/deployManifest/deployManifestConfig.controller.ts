@@ -17,6 +17,7 @@ import {
 } from 'kubernetes/v2/manifest/manifestCommandBuilder.service';
 
 import { IManifestBindArtifact } from './ManifestBindArtifactsSelector';
+import { yamlDocumentsToString } from '../../../manifest/editor/yaml/yamlEditorUtils';
 
 export class KubernetesV2DeployManifestConfigCtrl implements IController {
   public state = {
@@ -29,6 +30,7 @@ export class KubernetesV2DeployManifestConfigCtrl implements IController {
   public manifestArtifactDelegate: NgGenericArtifactDelegate;
   public manifestArtifactController: ExpectedArtifactSelectorViewController;
   public sources = [this.textSource, this.artifactSource];
+  public rawManifest: string;
 
   public static $inject = ['$scope'];
 
@@ -63,6 +65,9 @@ export class KubernetesV2DeployManifestConfigCtrl implements IController {
       this.state.loaded = true;
       this.manifestArtifactDelegate.setAccounts(get(this, ['metadata', 'backingData', 'artifactAccounts'], []));
       this.manifestArtifactController.updateAccounts(this.manifestArtifactDelegate.getSelectedExpectedArtifact());
+      if (stage.source === this.textSource) {
+        this.initRawManifest();
+      }
     });
   }
 
@@ -97,6 +102,7 @@ export class KubernetesV2DeployManifestConfigCtrl implements IController {
 
   public handleCopy = (manifest: IManifest) => {
     this.$scope.stage.manifests = [manifest];
+    this.initRawManifest();
     // This method is called from a React component.
     this.$scope.$applyAsync();
   };
@@ -104,4 +110,18 @@ export class KubernetesV2DeployManifestConfigCtrl implements IController {
   public checkFeatureFlag(flag: string): boolean {
     return !!SETTINGS.feature[flag];
   }
+
+  // If we have more than one manifest, render as a
+  // list of manifests. Otherwise, hide the fact
+  // that the underlying model is a list.
+  public initRawManifest = (): void => {
+    this.rawManifest = yamlDocumentsToString(this.$scope.stage.manifests);
+  };
+
+  public handleRawManifestChange = (rawManifest: string, manifests: any): void => {
+    this.rawManifest = rawManifest;
+    this.$scope.stage.manifests = manifests;
+    // This method is called from a React component.
+    this.$scope.$applyAsync();
+  };
 }
