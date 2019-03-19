@@ -184,6 +184,12 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
             ' is "native". It is not needed if the system is not using'
             ' authentication.'.format(system=cls.ENDPOINT_SUBSYSTEM))
 
+    builder.add_argument(
+        '--ignore_ssl_cert_verification', default=defaults.get('IGNORE_SSL_CERT_VERIFICATION', False),
+        type=bool,
+        help='Ignores SSL certification verification when making requests to'
+             ' Spinnaker.')
+
   @classmethod
   def init_bindings_builder(cls, builder, defaults=None):
     """Initialize command line bindings.
