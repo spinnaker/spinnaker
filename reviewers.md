@@ -6,5 +6,4 @@
 * Jammy-Louie
 * jmelchio
 * kevinawoo
-* marchello2000
 * stuart-pollock
