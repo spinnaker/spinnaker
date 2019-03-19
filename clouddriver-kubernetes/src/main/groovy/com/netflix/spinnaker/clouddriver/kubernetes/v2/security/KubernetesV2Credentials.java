@@ -27,6 +27,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentia
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.JsonPatch;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesPatchOptions;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesPodMetric;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiGroup;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor;
@@ -414,9 +415,10 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
               String name = names.get("kind");
 
               String group = (String) spec.getOrDefault("group", "");
-              String scopedName = (!group.isEmpty()) ? name + "." + group : name;
+              KubernetesApiGroup kubernetesApiGroup = KubernetesApiGroup.fromString(group);
+              boolean isNamespaced = scope.equalsIgnoreCase("namespaced");
 
-              return KubernetesKind.fromString(scopedName, false, scope.equalsIgnoreCase("namespaced"));
+              return KubernetesKind.getOrRegisterKind(name, false, isNamespaced, kubernetesApiGroup);
             })
             .collect(Collectors.toList());
       } catch (KubectlException e) {

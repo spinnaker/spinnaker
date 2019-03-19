@@ -58,8 +58,8 @@ public class KubernetesApiGroup {
     return name;
   }
 
-  public boolean isCustomResourceGroup() {
-    return !NATIVE_GROUPS.contains(this);
+  public boolean isNativeGroup() {
+    return NATIVE_GROUPS.contains(this);
   }
 
   @JsonCreator

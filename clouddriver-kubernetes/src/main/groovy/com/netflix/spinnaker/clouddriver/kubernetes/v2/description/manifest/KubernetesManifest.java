@@ -52,7 +52,14 @@ public class KubernetesManifest extends HashMap<String, Object> {
   public KubernetesKind getKind() {
     //using ApiVersion here allows a translation from a kind of NetworkPolicy in the manifest to something
     //like  NetworkPolicy.crd.projectcalico.org for custom resources
-    return KubernetesKind.fromString(getRequiredField(this, "kind"), getApiVersion().getApiGroup());
+    String kindName = getRequiredField(this, "kind");
+    KubernetesApiGroup kubernetesApiGroup;
+    if (this.containsKey("apiVersion")) {
+      kubernetesApiGroup = getApiVersion().getApiGroup();
+    } else {
+      kubernetesApiGroup = null;
+    }
+    return KubernetesKind.getOrRegisterKind(kindName, true, true, kubernetesApiGroup);
   }
 
   @JsonIgnore
