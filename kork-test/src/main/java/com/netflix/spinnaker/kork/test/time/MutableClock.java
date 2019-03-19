@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package main.java.com.netflix.spinnaker.kork.test.time;
+package com.netflix.spinnaker.kork.test.time;
 
 import java.time.Clock;
 import java.time.Instant;
