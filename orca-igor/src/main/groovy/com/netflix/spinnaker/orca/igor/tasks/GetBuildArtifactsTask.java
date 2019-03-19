@@ -20,6 +20,7 @@ import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.igor.BuildService;
+import com.netflix.spinnaker.orca.igor.model.CIStageDefinition;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -37,12 +38,12 @@ public class GetBuildArtifactsTask extends RetryableIgorTask {
   private final BuildService buildService;
 
   @Override
-  protected @Nonnull TaskResult tryExecute(@Nonnull CIJobRequest jobRequest) {
-    if (StringUtils.isEmpty(jobRequest.getPropertyFile())) {
+  protected @Nonnull TaskResult tryExecute(@Nonnull CIStageDefinition stageDefinition) {
+    if (StringUtils.isEmpty(stageDefinition.getPropertyFile())) {
       return TaskResult.SUCCEEDED;
     }
     List<Artifact> artifacts = buildService.getArtifacts(
-      jobRequest.getBuildNumber(), jobRequest.getPropertyFile(), jobRequest.getMaster(), jobRequest.getJob()
+      stageDefinition.getBuildNumber(), stageDefinition.getPropertyFile(), stageDefinition.getMaster(), stageDefinition.getJob()
     );
     Map<String, List<Artifact>> outputs = Collections.singletonMap("artifacts", artifacts);
     return new TaskResult(ExecutionStatus.SUCCEEDED, Collections.emptyMap(), outputs);

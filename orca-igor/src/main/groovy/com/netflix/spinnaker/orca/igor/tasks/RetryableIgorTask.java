@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
+import com.netflix.spinnaker.orca.igor.model.CIStageDefinition;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -47,14 +48,14 @@ public abstract class RetryableIgorTask implements RetryableTask {
 
   @Override
   public @Nonnull TaskResult execute(@Nonnull Stage stage) {
-    CIJobRequest jobRequest = stage.mapTo(CIJobRequest.class);
-    int errors = jobRequest.getConsecutiveErrors();
+    CIStageDefinition stageDefinition = stage.mapTo(CIStageDefinition.class);
+    int errors = stageDefinition.getConsecutiveErrors();
     try {
-      TaskResult result = tryExecute(jobRequest);
+      TaskResult result = tryExecute(stageDefinition);
       return resetErrorCount(result);
     } catch (RetrofitError e) {
       int status = e.getResponse().getStatus();
-      if (jobRequest.getConsecutiveErrors() < getMaxConsecutiveErrors() && isRetryable(status)) {
+      if (stageDefinition.getConsecutiveErrors() < getMaxConsecutiveErrors() && isRetryable(status)) {
         log.warn(String.format("Received HTTP %s response from igor, retrying...", status));
         return new TaskResult(ExecutionStatus.RUNNING, errorContext(errors + 1));
       }
@@ -62,7 +63,7 @@ public abstract class RetryableIgorTask implements RetryableTask {
     }
   }
 
-  abstract protected @Nonnull TaskResult tryExecute(@Nonnull CIJobRequest ciJobRequest);
+  abstract protected @Nonnull TaskResult tryExecute(@Nonnull CIStageDefinition stageDefinition);
 
   private TaskResult resetErrorCount(TaskResult result) {
     Map<String, Object> newContext = ImmutableMap.<String, Object>builder()

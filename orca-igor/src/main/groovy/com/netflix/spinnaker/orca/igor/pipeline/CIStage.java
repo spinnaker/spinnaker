@@ -17,6 +17,7 @@ package com.netflix.spinnaker.orca.igor.pipeline;
 
 import com.netflix.spinnaker.orca.CancellableStage;
 import com.netflix.spinnaker.orca.Task;
+import com.netflix.spinnaker.orca.igor.model.CIStageDefinition;
 import com.netflix.spinnaker.orca.igor.tasks.*;
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.pipeline.TaskNode;
@@ -37,31 +38,20 @@ public abstract class CIStage implements StageDefinitionBuilder, CancellableStag
 
   @Override
   public void taskGraph(@Nonnull Stage stage, @Nonnull TaskNode.Builder builder) {
+    CIStageDefinition stageDefinition = stage.mapTo(CIStageDefinition.class);
     String jobType = StringUtils.capitalize(getType());
     builder
       .withTask(String.format("start%sJob", jobType), StartJenkinsJobTask.class)
       .withTask(String.format("waitFor%sJobStart", jobType), waitForJobStartTaskClass());
 
-    if (waitForCompletion(stage)) {
+    if (stageDefinition.isWaitForCompletion()) {
       builder.withTask(String.format("monitor%sJob", jobType), MonitorJenkinsJobTask.class);
       builder.withTask("getBuildProperties", GetBuildPropertiesTask.class);
       builder.withTask("getBuildArtifacts", GetBuildArtifactsTask.class);
     }
-    if (stage.getContext().containsKey("expectedArtifacts")) {
+    if (stageDefinition.getExpectedArtifacts().size() > 0) {
       builder.withTask(BindProducedArtifactsTask.TASK_NAME, BindProducedArtifactsTask.class);
     }
-  }
-
-  private boolean waitForCompletion(Stage stage) {
-    Object contextValue = stage.getContext().get("waitForCompletion");
-    Boolean waitForCompletion = true;
-    if (contextValue instanceof String) {
-      String contextValueString = (String) contextValue;
-      waitForCompletion = !contextValueString.equalsIgnoreCase("false");
-    } else if (contextValue instanceof Boolean) {
-      waitForCompletion = (Boolean) contextValue;
-    }
-    return waitForCompletion;
   }
 
   protected Class<? extends Task> waitForJobStartTaskClass() {
