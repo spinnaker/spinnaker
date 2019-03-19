@@ -63,4 +63,144 @@ class ModuleTagSpec extends Specification {
     then:
     result == 'hello world, Mr. Tester Testington. You triggered myJob myValue hello'
   }
+
+  def 'should correctly fall back to defaults defined in variable'() {
+    given:
+    PipelineTemplate pipelineTemplate = new PipelineTemplate(
+      modules: [
+        new TemplateModule(
+          id: 'myModule',
+          variables: [
+            [name: 'myVar'] as NamedHashMap,
+          ],
+          definition: "{{ myVar }}")
+      ]
+    )
+    RenderContext context = new DefaultRenderContext('myApp', pipelineTemplate, [job: 'myJob', buildNumber: 1234])
+    context.variables.put("trigger", [myKey: 'triggerValue', otherKey: 'Key'])
+    context.variables.put("overrides", [myKey: 'overrideValue'])
+
+    when:
+    def result = renderer.render("{% module myModule myVar=trigger.myKey|default(overrides['my'+'Key'])|default('1') %}", context)
+
+    then:
+    result == 'triggerValue'
+
+    when:
+    result = renderer.render("{% module myModule myVar=trigger.nonExistentKey|default(overrides['my'+'Key'])|default('1') %}", context)
+
+    then:
+    result == 'overrideValue'
+
+    when:
+    result = renderer.render("{% module myModule myVar=trigger.nonExistentKey|default(overrides['my'+'NonExistentKey'])|default('1') %}", context)
+
+    then:
+    result == '1'
+
+    when:
+    result = renderer.render("{% module myModule myVar=trigger.nonExistentKey|default(overrides['my'+trigger.otherKey])|default('1') %}", context)
+
+    then:
+    result == 'overrideValue'
+
+    when:
+    result = renderer.render("{% module myModule myVar=trigger.nonExistentKey|default(overrides['my'+trigger.missingKey])|default('1') %}", context)
+
+    then:
+    result == '1'
+  }
+
+  def 'should correctly fall back to defaults defined in template'() {
+    given:
+    PipelineTemplate pipelineTemplate = new PipelineTemplate(
+      modules: [
+        new TemplateModule(
+          id: 'myModule',
+          variables: [
+            [name: 'myVar'] as NamedHashMap,
+            [name: 'overrides'] as NamedHashMap,
+          ],
+          definition: "{{ trigger.noKey|default(trigger.stillNoKey)|default(overrides['myKey']) }}")
+      ]
+    )
+    RenderContext context = new DefaultRenderContext('myApp', pipelineTemplate, [job: 'myJob', buildNumber: 1234])
+    context.variables.put("trigger", [myKey: 'triggerValue', otherKey: 'Key'])
+    context.variables.put("overrides", [myKey: 'overrideValue'])
+
+    when:
+    def result = renderer.render("{% module myModule myVar='' %}", context)
+
+    then:
+    result == 'overrideValue'
+  }
+
+  def 'can access one template variable in the key of another'() {
+    given:
+    PipelineTemplate pipelineTemplate = new PipelineTemplate(
+      modules: [
+        new TemplateModule(
+          id: 'myModule',
+          variables: [
+            [name: 'myVar'] as NamedHashMap,
+            [name: 'overrides'] as NamedHashMap,
+          ],
+          definition: "{{ trigger.noKey|default(trigger.stillNoKey)|default(overrides['my' + trigger.otherKey]) }}")
+      ]
+    )
+    RenderContext context = new DefaultRenderContext('myApp', pipelineTemplate, [job: 'myJob', buildNumber: 1234])
+    context.variables.put("trigger", [myKey: 'triggerValue', otherKey: 'Key'])
+    context.variables.put("overrides", [myKey: 'overrideValue'])
+
+    when:
+    def result = renderer.render("{% module myModule myVar='' %}", context)
+
+    then:
+    result == 'overrideValue'
+  }
+
+  def 'can handle a null context variable in the template'() {
+    given:
+    PipelineTemplate pipelineTemplate = new PipelineTemplate(
+      modules: [
+        new TemplateModule(
+          id: 'myModule',
+          variables: [
+            [name: 'overrides'] as NamedHashMap,
+          ],
+          definition: "{{ trigger.noKey.noOtherKey|default(overrides['abc'+trigger.none.nope])|default('1') }}")
+      ]
+    )
+    RenderContext context = new DefaultRenderContext('myApp', pipelineTemplate, [job: 'myJob', buildNumber: 1234])
+    context.variables.put("overrides", [myKey: 'overrideValue'])
+
+    when:
+    def result = renderer.render("{% module myModule %}", context)
+
+    then:
+    result == '1'
+  }
+
+  def 'can handle a null context variable in another variable'() {
+    given:
+    PipelineTemplate pipelineTemplate = new PipelineTemplate(
+      modules: [
+        new TemplateModule(
+          id: 'myModule',
+          variables: [
+            [name: 'myVar'] as NamedHashMap,
+            [name: 'overrides'] as NamedHashMap,
+          ],
+          definition: "{{ myVar }}")
+      ]
+    )
+    RenderContext context = new DefaultRenderContext('myApp', pipelineTemplate, [job: 'myJob', buildNumber: 1234])
+    context.variables.put("overrides", [myKey: 'overrideValue'])
+
+    when:
+    def result = renderer.render("{% module myModule myVar=trigger.noKey.noOtherKey|default(overrides['abc'+trigger.none.nope])|default('1') %}", context)
+
+    then:
+    result == '1'
+  }
 }
