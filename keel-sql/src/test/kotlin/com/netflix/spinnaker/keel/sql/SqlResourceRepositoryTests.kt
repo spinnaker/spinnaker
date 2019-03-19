@@ -11,6 +11,8 @@ import liquibase.database.jvm.JdbcConnection
 import liquibase.exception.DatabaseException
 import liquibase.exception.LiquibaseException
 import liquibase.resource.ClassLoaderResourceAccessor
+import org.h2.engine.Mode
+import org.h2.engine.Mode.ModeEnum.MySQL
 import org.jooq.SQLDialect.H2
 import org.jooq.Schema
 import org.jooq.conf.RenderNameStyle.AS_IS
@@ -53,6 +55,10 @@ internal object SqlResourceRepositoryTests : ResourceRepositoryTests<SqlResource
   }
 
   private fun initDatabase(jdbcUrl: String): DefaultDSLContext {
+    // Initialize the MySQL compatibility mode in H2 to _not_ insert default values to not null
+    // columns. This is what MySQL does on multi-row inserts but not single row inserts.
+    Mode.getInstance(MySQL.name).convertInsertNullToZero = false
+
     val dataSource = HikariDataSource(
       HikariConfig().also {
         it.jdbcUrl = jdbcUrl

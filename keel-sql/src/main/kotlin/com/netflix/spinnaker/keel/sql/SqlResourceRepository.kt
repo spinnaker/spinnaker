@@ -130,12 +130,14 @@ class SqlResourceRepository(
         .columns(
           field("uid"),
           field("state"),
-          field("timestamp")
+          field("timestamp"),
+          field("instance_id")
         )
         .values(
           resource.metadata.uid.toString(),
           Unknown.name,
-          clock.instant().let(Timestamp::from)
+          clock.instant().let(Timestamp::from),
+          instanceIdSupplier.get()
         )
         .execute()
     }
