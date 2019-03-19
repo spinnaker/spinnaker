@@ -150,7 +150,7 @@ export class ConcourseTriggerConfig extends React.Component<
 
   private onPipelineChanged = (option: Option<string>) => {
     const trigger = this.props.trigger;
-    if (trigger.project.split('/').pop() === option.value) {
+    if (trigger.project && trigger.project.split('/').pop() === option.value) {
       return;
     }
     delete trigger.job;
