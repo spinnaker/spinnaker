@@ -31,7 +31,7 @@ type DeleteOptions struct {
 var (
 	deleteApplicationShort   = "Delete the specified application"
 	deleteApplicationLong    = "Delete the provided application --application-name: Name of the Spinnaker application to delete"
-	deleteApplicationExample = "usage: spin application get [options] applicationName"
+	deleteApplicationExample = "usage: spin application delete [options] applicationName"
 )
 
 func NewDeleteCmd(appOptions applicationOptions) *cobra.Command {
