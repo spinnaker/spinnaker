@@ -630,8 +630,7 @@ class ValidateBomTestController(object):
     logging.info('Validating base URL of "%s"...', service_name)
 
     try:
-      url = '{base_url}/health'
-            .format(base_url=base_url)
+      url = '{base_url}/health'.format(base_url=base_url)
       request = Request(url=url)
       if 'bearer_auth_token' in service_config:
         request.add_header('Authorization', 'Bearer {}'.format(service_config['bearer_auth_token']))
