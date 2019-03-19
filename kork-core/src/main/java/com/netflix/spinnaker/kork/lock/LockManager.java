@@ -16,17 +16,17 @@
 
 package com.netflix.spinnaker.kork.lock;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import org.apache.http.util.Asserts;
-
-import javax.annotation.Nonnull;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.Callable;
+import javax.annotation.Nonnull;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.annotations.VisibleForTesting;
+import org.apache.http.util.Asserts;
 
 public interface LockManager {
   <R> AcquireLockResponse<R> acquireLock(@Nonnull final LockOptions lockOptions,
@@ -44,6 +44,9 @@ public interface LockManager {
                                         @Nonnull final Runnable onLockAcquiredCallback);
 
   boolean releaseLock(@Nonnull final Lock lock, boolean wasWorkSuccessful);
+
+  @VisibleForTesting
+  Lock tryCreateLock(final LockOptions lockOptions);
 
   String NAME_FALLBACK = UUID.randomUUID().toString();
 

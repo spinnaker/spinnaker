@@ -16,6 +16,17 @@
 
 package com.netflix.spinnaker.kork.jedis.lock;
 
+import java.io.IOException;
+import java.time.Clock;
+import java.time.Duration;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import javax.annotation.Nonnull;
+import javax.annotation.PreDestroy;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
@@ -24,19 +35,6 @@ import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import com.netflix.spinnaker.kork.lock.RefreshableLockManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.annotation.Nonnull;
-import javax.annotation.PreDestroy;
-import java.io.IOException;
-import java.time.Clock;
-import java.time.Duration;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Optional;
-import java.util.List;
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import static com.netflix.spinnaker.kork.jedis.lock.RedisLockManager.LockScripts.*;
 import static com.netflix.spinnaker.kork.lock.LockManager.LockReleaseStatus.*;
 
@@ -390,7 +388,8 @@ public class RedisLockManager implements RefreshableLockManager {
     }
   }
 
-  private Lock tryCreateLock(final LockOptions lockOptions) {
+  @Override
+  public Lock tryCreateLock(final LockOptions lockOptions) {
     try {
       List<String> attributes = Optional.ofNullable(lockOptions.getAttributes()).orElse(Collections.emptyList());
       Object payload = redisClientDelegate.withScriptingClient(c -> {

@@ -1,0 +1,9 @@
+apply plugin: "java-library"
+apply plugin: "groovy"
+
+dependencies {
+  api(project(":kork-core"))
+
+  api(spinnaker.dependency("groovy"))
+  api(spinnaker.dependency("spock"))
+}
