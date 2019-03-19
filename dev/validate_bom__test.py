@@ -940,6 +940,7 @@ class ValidateBomTestController(object):
         'python', test_path,
         '--log_dir', citest_log_dir,
         '--log_filebase', test_name,
+        '--ignore_ssl_cert_verification', str(options.test_ignore_ssl_cert_verification)
     ]
     if microservice_api in self.__public_service_configs:
       service_config = self.__public_service_configs[microservice_api]
@@ -1159,6 +1160,10 @@ def init_argument_parser(parser, defaults):
            ' test_gate_iap_client_id flag.'
            ' If left empty then no service account will be impersonated.')
 
+  add_parser_argument(
+      parser, 'test_ignore_ssl_cert_verification', defaults, False, type=bool,
+      help='Whether or not to ignore SSL certificate verification when making'
+           ' requests to Spinnaker. This is False by default.')
 
 def validate_options(options):
   """Validate testing related command-line parameters."""

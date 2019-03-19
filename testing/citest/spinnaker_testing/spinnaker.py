@@ -413,6 +413,8 @@ class SpinnakerAgent(service_testing.HttpAgent):
               for tunneling if needed to connect through a GCE firewall.
           GCE_SERVICE_ACCOUNT: If not empty, the GCE service account to use
               when interacting with the GCE instance.
+          IGNORE_SSL_CERT_VERIFICATION: If True, ignores SSL certificate
+              verification when scraping spring config.
       port: [int] The port of the endpoint we want to connect to.
     Returns:
       A SpinnakerAgent connected to the specified instance port.
@@ -422,6 +424,7 @@ class SpinnakerAgent(service_testing.HttpAgent):
     instance = bindings['GCE_INSTANCE']
     ssh_passphrase_file = bindings.get('GCE_SSH_PASSPHRASE_FILE', None)
     service_account = bindings.get('GCE_SERVICE_ACCOUNT', None)
+    ignore_ssl_cert_verification = bindings['IGNORE_SSL_CERT_VERIFICATION']
 
     logger = logging.getLogger(__name__)
     JournalLogger.begin_context('Locating {0}...'.format(name))
@@ -443,7 +446,8 @@ class SpinnakerAgent(service_testing.HttpAgent):
                                                 netloc=netloc)
       logger.info('%s is available at %s. Using %s', name, netloc, base_url)
       deployed_config = scrape_spring_config(
-          os.path.join(base_url, 'resolvedEnv'))
+          os.path.join(base_url, 'resolvedEnv'),
+          ignore_ssl_cert_verification=ignore_ssl_cert_verification)
       JournalLogger.journal_or_log_detail(
           '{0} configuration'.format(name), deployed_config)
       spinnaker_agent = cls(base_url, status_factory)
@@ -469,10 +473,13 @@ class SpinnakerAgent(service_testing.HttpAgent):
       bindings: [dict] List of bindings to configure the endpoint
           BEARER_AUTH_TOKEN: The token used to authenticate request to a
               protected host.
+          IGNORE_SSL_CERT_VERIFICATION: If True, ignores SSL certificate
+              verification when making requests.
     Returns:
       A SpinnakerAgent connected to the specified instance port.
     """
     bearer_auth_token = bindings.get('BEARER_AUTH_TOKEN', None)
+    ignore_ssl_cert_verification = bindings['IGNORE_SSL_CERT_VERIFICATION']
 
     logger = logging.getLogger(__name__)
     logger.info('Locating %s...', name)
@@ -484,11 +491,12 @@ class SpinnakerAgent(service_testing.HttpAgent):
     env_url = os.path.join(base_url, 'resolvedEnv')
     deployed_config = scrape_spring_config(env_url, headers={
       'Authorization': 'Bearer {}'.format(bearer_auth_token)
-    })
+    }, ignore_ssl_cert_verification=ignore_ssl_cert_verification)
     JournalLogger.journal_or_log_detail(
         '{0} configuration'.format(name), deployed_config)
 
     spinnaker_agent = cls(base_url, status_factory)
+    spinnaker_agent.ignore_ssl_cert_verification = ignore_ssl_cert_verification
     spinnaker_agent.__deployed_config = deployed_config
 
     if bearer_auth_token:
