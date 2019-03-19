@@ -410,7 +410,9 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent {
         .filter(j -> !state.jobIdToApp.containsKey(j))
           .collect(Collectors.toList());
 
-        log.error("{} updatedJobs missing from jobIdToApp cache: {}", getAgentType(), missingJobMappings);
+        if (!missingJobMappings.isEmpty()) {
+          log.error("{} updatedJobs missing from jobIdToApp cache: {}", getAgentType(), missingJobMappings);
+        }
 
         Set<String> changedApplications = state.updatedJobs.stream()
           .map(j -> state.jobIdToApp.get(j))
