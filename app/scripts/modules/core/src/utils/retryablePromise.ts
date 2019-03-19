@@ -6,16 +6,24 @@ export interface IRetryablePromise<T> {
   promise: IPromise<T>;
 }
 
-export const retryablePromise: <T>(closure: () => IPromise<T>, interval?: number) => IRetryablePromise<T> = <T>(
+export const retryablePromise: <T>(
   closure: () => IPromise<T>,
-  interval = 1000,
-) => {
+  interval?: number,
+  maxTries?: number,
+) => IRetryablePromise<T> = <T>(closure: () => IPromise<T>, interval = 1000, maxTries = 0) => {
   let currentTimeout: IPromise<T>;
-  const retryPromise: () => IPromise<T> = () =>
-    closure().catch(() => {
-      currentTimeout = $timeout(retryPromise, interval);
-      return currentTimeout;
-    });
+  let currentTries = 0;
+  const retryPromise: () => IPromise<T> = () => {
+    currentTries++;
+    if (maxTries === 0 || currentTries <= maxTries) {
+      return closure().catch(() => {
+        currentTimeout = $timeout(retryPromise, interval);
+        return currentTimeout;
+      });
+    } else {
+      return closure();
+    }
+  };
 
   const promise = retryPromise();
   const cancel = () => {

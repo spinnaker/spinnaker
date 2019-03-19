@@ -117,15 +117,15 @@ export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecu
   private startPipeline(command: IPipelineCommand): IPromise<void> {
     const { executionService } = ReactInjector;
     this.setState({ triggeringExecution: true });
-    return executionService.startAndMonitorPipeline(this.props.application, command.pipelineName, command.trigger).then(
-      monitor => {
+    return executionService
+      .startAndMonitorPipeline(this.props.application, command.pipelineName, command.trigger)
+      .then(monitor => {
         this.setState({ poll: monitor });
-        monitor.promise.then(() => this.setState({ triggeringExecution: false }));
-      },
-      () => {
-        this.props.application.executions.refresh().then(() => this.setState({ triggeringExecution: false }));
-      },
-    );
+        return monitor.promise;
+      })
+      .finally(() => {
+        this.setState({ triggeringExecution: false });
+      });
   }
 
   public triggerPipeline(trigger: IExecutionTrigger = null, config = this.state.pipelineConfig): void {

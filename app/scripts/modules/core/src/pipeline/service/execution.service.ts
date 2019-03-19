@@ -251,7 +251,7 @@ export class ExecutionService {
   ): IRetryablePromise<any> {
     const closure = () =>
       this.getExecutionByEventId(application.name, pipelineName, eventId).then(() => application.executions.refresh());
-    return retryablePromise(closure);
+    return retryablePromise(closure, 1000, 10);
   }
 
   private waitUntilPipelineIsCancelled(application: Application, executionId: string): IPromise<any> {

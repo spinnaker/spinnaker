@@ -125,15 +125,15 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
   private startPipeline(command: IPipelineCommand): IPromise<void> {
     const { executionService } = ReactInjector;
     this.setState({ triggeringExecution: true });
-    return executionService.startAndMonitorPipeline(this.props.app, command.pipelineName, command.trigger).then(
-      monitor => {
+    return executionService
+      .startAndMonitorPipeline(this.props.app, command.pipelineName, command.trigger)
+      .then(monitor => {
         this.setState({ poll: monitor });
-        monitor.promise.then(() => this.setState({ triggeringExecution: false }));
-      },
-      () => {
+        return monitor.promise;
+      })
+      .finally(() => {
         this.setState({ triggeringExecution: false });
-      },
-    );
+      });
   }
 
   private startManualExecutionClicked = (): void => {
