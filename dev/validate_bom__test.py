@@ -83,6 +83,7 @@ import logging
 import math
 import os
 import re
+import ssl
 import subprocess
 import socket
 import threading
@@ -125,13 +126,6 @@ def _unused_port():
   addr, port = sock.getsockname()
   sock.close()
   return port
-
-def _make_get_request_with_bearer_auth_token(url, bearer_auth_token):
-  """Use a bearer auth token to make a GET call to a IAP-protected endpoint.
-  """
-  request = Request(url=url)
-  request.add_header('Authorization', 'Bearer {}'.format(bearer_auth_token))
-  urlopen(request)
 
 
 class QuotaTracker(object):
@@ -636,14 +630,15 @@ class ValidateBomTestController(object):
     logging.info('Validating base URL of "%s"...', service_name)
 
     try:
+      url = '{base_url}/health'
+            .format(base_url=base_url)
+      request = Request(url=url)
       if 'bearer_auth_token' in service_config:
-        _make_get_request_with_bearer_auth_token('{base_url}/health'
-                                            .format(base_url=base_url),
-                                            service_config['bearer_auth_token'])
-      # Add more authentication cases here.
-      else:
-        urlopen('{base_url}/health'
-                .format(base_url=base_url))
+        request.add_header('Authorization', 'Bearer {}'.format(service_config['bearer_auth_token']))
+      context = None
+      if self.options.test_ignore_ssl_cert_verification:
+        context = ssl._create_unverified_context()
+      urlopen(request, context=context)
       logging.info('"%s" is ready on service endpoint %s',
                    service_name, base_url)
       return
