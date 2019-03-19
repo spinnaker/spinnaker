@@ -110,6 +110,10 @@ class TitusInstanceProvider implements InstanceProvider<TitusInstance, String> {
       job = objectMapper.convertValue(instanceEntry.attributes.job, Job)
     }
 
+    if (job == null) {
+      return null
+    }
+
     TitusInstance instance = new TitusInstance(job, task)
     instance.accountId = awsAccount
 
@@ -145,6 +149,9 @@ class TitusInstanceProvider implements InstanceProvider<TitusInstance, String> {
 
   private Job loadJob(CacheData instanceEntry) {
     Collection<CacheData> data = resolveRelationshipData(instanceEntry, SERVER_GROUPS.ns)
+    if (data == null || data.isEmpty()) {
+      return null
+    }
     return objectMapper.convertValue(data?.first()?.attributes.job, Job)
   }
 
