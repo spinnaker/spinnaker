@@ -27,8 +27,8 @@ import java.util.List;
 public class CreateLambdaFunctionDescription extends AbstractLambdaFunctionDescription {
   String functionName;
   String description;
-  String s3Bucket;
-  String s3Key;
+  String s3bucket;
+  String s3key;
   String handler;
   String role;
   String runtime;
