@@ -24,20 +24,30 @@ import org.quartz.JobExecutionContext
 import org.quartz.JobExecutionException
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Component
 
 /**
  * Job run by the Quartz scheduler to actually trigger a pipeline
  */
+@Component
 class PipelineTriggerJob implements Job {
   static final Logger LOGGER = LoggerFactory.getLogger(PipelineTriggerJob)
+
+  PipelineInitiator pipelineInitiator
+  PipelineCache pipelineCache
+
+  @Autowired
+  PipelineTriggerJob(PipelineInitiator pipelineInitiator, PipelineCache pipelineCache) {
+    this.pipelineInitiator = pipelineInitiator
+    this.pipelineCache = pipelineCache
+  }
 
   @Override
   void execute(JobExecutionContext context) throws JobExecutionException {
     Pipeline pipeline = null
 
     try {
-      def pipelineInitiator = (PipelineInitiator) SchedulerBeanDependencies.getBean(PipelineInitiator)
-      def pipelineCache = (PipelineCache) SchedulerBeanDependencies.getBean(PipelineCache)
       pipeline = TriggerConverter.toPipeline(pipelineCache, context.getMergedJobDataMap().getWrappedMap())
       def eventId = pipeline.trigger.eventId ? pipeline.trigger.eventId : "not set"
 

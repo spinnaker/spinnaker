@@ -27,6 +27,8 @@ import org.quartz.JobExecutionContext
 import org.quartz.Scheduler
 import org.quartz.TriggerKey
 import org.quartz.impl.matchers.GroupMatcher
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Component
 
 import java.util.concurrent.TimeUnit
 
@@ -34,6 +36,7 @@ import java.util.concurrent.TimeUnit
  * Syncs triggers from pipelines with the triggers in the scheduler
  */
 @Slf4j
+@Component
 @DisallowConcurrentExecution
 class PipelineConfigsPollingJob implements Job {
   public static final String PIPELINE_TRIGGER_GROUP_PREFIX = "trigger_"
@@ -43,12 +46,7 @@ class PipelineConfigsPollingJob implements Job {
   private Registry registry
   private PipelineCache pipelineCache
 
-  @SuppressWarnings("unused")
-  PipelineConfigsPollingJob() {
-    pipelineCache = (PipelineCache) SchedulerBeanDependencies.getBean(PipelineCache)
-    registry = (Registry) SchedulerBeanDependencies.getBean(Registry)
-  }
-
+  @Autowired
   PipelineConfigsPollingJob(Registry registry, PipelineCache pipelineCache) {
     this.pipelineCache = pipelineCache
     this.registry = registry

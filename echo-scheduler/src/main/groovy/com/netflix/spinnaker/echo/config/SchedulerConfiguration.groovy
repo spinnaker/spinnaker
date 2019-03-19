@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.echo.config
 
+import com.netflix.spinnaker.echo.scheduler.actions.pipeline.AutowiringSpringBeanJobFactory
 import com.netflix.spinnaker.echo.scheduler.actions.pipeline.PipelineConfigsPollingJob
 import com.netflix.spinnaker.echo.scheduler.actions.pipeline.PipelineTriggerJob
 import com.netflix.spinnaker.echo.scheduler.actions.pipeline.TriggerListener
@@ -24,8 +25,10 @@ import com.netflix.spinnaker.kork.sql.config.DefaultSqlConfiguration
 import com.squareup.okhttp.OkHttpClient
 import org.quartz.JobDetail
 import org.quartz.Trigger
+import org.quartz.spi.JobFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
+import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
@@ -34,7 +37,6 @@ import org.springframework.scheduling.quartz.SchedulerFactoryBean
 import org.springframework.scheduling.quartz.SimpleTriggerFactoryBean
 import retrofit.client.Client
 import retrofit.client.OkClient
-
 import javax.sql.DataSource
 import java.util.concurrent.TimeUnit
 
@@ -42,14 +44,12 @@ import java.util.concurrent.TimeUnit
 @ConditionalOnExpression('${scheduler.enabled:false}')
 @Import(DefaultSqlConfiguration)
 class SchedulerConfiguration {
-  @Value('${scheduler.pipelineConfigsPoller.pollingIntervalMs:30000}')
-  long syncInterval
-
   @Bean
   SchedulerFactoryBean schedulerFactoryBean(
     Optional<DataSource> dataSourceOptional,
     TriggerListener triggerListener,
     JobDetail pipelineJobBean,
+    JobFactory jobFactory,
     Optional<Trigger> syncJobTrigger
   ) {
     SchedulerFactoryBean factoryBean = new SchedulerFactoryBean()
@@ -59,12 +59,24 @@ class SchedulerConfiguration {
 
     factoryBean.setGlobalTriggerListeners(triggerListener)
     factoryBean.setJobDetails(pipelineJobBean)
+    factoryBean.setJobFactory(jobFactory)
 
     if (syncJobTrigger.isPresent()) {
       factoryBean.setTriggers(syncJobTrigger.get())
     }
 
     return factoryBean
+  }
+
+  /**
+   * Job factory used to create jobs as beans on behalf of Quartz
+   */
+  @Bean
+  JobFactory jobFactory(ApplicationContext applicationContext) {
+    AutowiringSpringBeanJobFactory jobFactory = new AutowiringSpringBeanJobFactory()
+    jobFactory.setApplicationContext(applicationContext)
+
+    return jobFactory
   }
 
   /**
