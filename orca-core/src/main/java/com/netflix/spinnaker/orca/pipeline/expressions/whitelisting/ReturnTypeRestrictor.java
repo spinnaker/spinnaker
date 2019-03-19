@@ -58,7 +58,7 @@ public interface ReturnTypeRestrictor extends InstantiationTypeRestrictor {
         Stage.class,
         Trigger.class,
         BuildInfo.class,
-        JenkinsTrigger.JenkinsArtifact.class,
+        JenkinsArtifact.class,
         SourceControl.class,
         ExecutionStatus.class,
         Execution.AuthenticationDetails.class,

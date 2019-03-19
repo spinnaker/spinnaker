@@ -302,7 +302,7 @@ class ContextParameterProcessorSpec extends Specification {
   @Unroll
   def "correctly compute scmInfo attribute"() {
     given:
-    context.trigger.buildInfo = new BuildInfo("name", 1, "http://jenkins", [], scm, false, "SUCCESS", 'name#1')
+    context.trigger.buildInfo = new JenkinsBuildInfo("name", 1, "http://jenkins", "SUCCESS", [], scm)
 
     def source = ['branch': '${scmInfo.branch}']
 

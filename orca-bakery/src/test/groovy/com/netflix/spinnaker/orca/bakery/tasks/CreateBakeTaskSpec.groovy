@@ -21,12 +21,7 @@ import com.netflix.spinnaker.orca.bakery.api.BakeRequest
 import com.netflix.spinnaker.orca.bakery.api.BakeStatus
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
-import com.netflix.spinnaker.orca.pipeline.model.BuildInfo
-import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.JenkinsTrigger
-import com.netflix.spinnaker.orca.pipeline.model.SourceControl
-import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.pipeline.model.Trigger
+import com.netflix.spinnaker.orca.pipeline.model.*
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver
 import retrofit.RetrofitError
 import retrofit.client.Response
@@ -36,9 +31,9 @@ import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+
 import static com.netflix.spinnaker.orca.bakery.api.BakeStatus.State.COMPLETED
 import static com.netflix.spinnaker.orca.bakery.api.BakeStatus.State.RUNNING
-import static com.netflix.spinnaker.orca.pipeline.model.JenkinsTrigger.JenkinsArtifact
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 import static java.net.HttpURLConnection.HTTP_NOT_FOUND
@@ -118,79 +113,82 @@ class CreateBakeTaskSpec extends Specification {
   ]
 
   @Shared
-  def buildInfo = new BuildInfo(
-    "name", 0, "http://jenkins", [
-    new JenkinsArtifact("hodor_1.1_all.deb", "."),
-    new JenkinsArtifact("hodor-1.1.noarch.rpm", "."),
-    new JenkinsArtifact("hodor.1.1.nupkg", ".")
-  ], [], false, "SUCCESS", 'name#0'
-  )
-
-  @Shared
-  def buildInfoWithUrl = new BuildInfo(
-    "name", 0, "http://spinnaker.builds.test.netflix.net/job/SPINNAKER-package-echo/69/",
+  def buildInfo = new JenkinsBuildInfo(
+    "name", 0, "http://jenkins", "SUCCESS",
     [
       new JenkinsArtifact("hodor_1.1_all.deb", "."),
       new JenkinsArtifact("hodor-1.1.noarch.rpm", "."),
       new JenkinsArtifact("hodor.1.1.nupkg", ".")
-    ], [], false, "SUCCESS", 'name#0'
+    ]
   )
 
   @Shared
-  def buildInfoWithFoldersUrl = new BuildInfo(
-    "name", 0, "http://spinnaker.builds.test.netflix.net/job/folder/job/SPINNAKER-package-echo/69/",
+  def buildInfoWithUrl = new JenkinsBuildInfo(
+    "name", 0, "http://spinnaker.builds.test.netflix.net/job/SPINNAKER-package-echo/69/", "SUCCESS",
     [
       new JenkinsArtifact("hodor_1.1_all.deb", "."),
       new JenkinsArtifact("hodor-1.1.noarch.rpm", "."),
       new JenkinsArtifact("hodor.1.1.nupkg", ".")
-    ], [], false, "SUCCESS", 'name#0'
+    ]
   )
 
   @Shared
-  def buildInfoWithUrlAndSCM = new BuildInfo(
-    "name", 0, "http://spinnaker.builds.test.netflix.net/job/SPINNAKER-package-echo/69/",
+  def buildInfoWithFoldersUrl = new JenkinsBuildInfo(
+    "name", 0, "http://spinnaker.builds.test.netflix.net/job/folder/job/SPINNAKER-package-echo/69/", "SUCCESS",
     [
       new JenkinsArtifact("hodor_1.1_all.deb", "."),
       new JenkinsArtifact("hodor-1.1.noarch.rpm", "."),
       new JenkinsArtifact("hodor.1.1.nupkg", ".")
-    ], [
-    new SourceControl("refs/remotes/origin/master", "master", "f83a447f8d02a40fa84ec9d4d0dccd263d51782d")
-  ], false, "SUCCESS", 'name#0'
+    ]
   )
 
   @Shared
-  def buildInfoWithUrlAndTwoSCMs = new BuildInfo(
-    "name", 0, "http://spinnaker.builds.test.netflix.net/job/SPINNAKER-package-echo/69/",
+  def buildInfoWithUrlAndSCM = new JenkinsBuildInfo(
+    "name", 0, "http://spinnaker.builds.test.netflix.net/job/SPINNAKER-package-echo/69/", "SUCCESS",
     [
       new JenkinsArtifact("hodor_1.1_all.deb", "."),
       new JenkinsArtifact("hodor-1.1.noarch.rpm", "."),
       new JenkinsArtifact("hodor.1.1.nupkg", ".")
-    ], [
-    new SourceControl("refs/remotes/origin/master", "master", "f83a447f8d02a40fa84ec9d4d0dccd263d51782d"),
-    new SourceControl("refs/remotes/origin/some-feature", "some-feature", "1234567f8d02a40fa84ec9d4d0dccd263d51782d")
-  ], false, "SUCCESS", 'name#0'
+    ],
+    [new SourceControl("refs/remotes/origin/master", "master", "f83a447f8d02a40fa84ec9d4d0dccd263d51782d")]
   )
 
   @Shared
-  def buildInfoWithUrlAndMasterAndDevelopSCMs = new BuildInfo(
-    "name", 0, "http://spinnaker.builds.test.netflix.net/job/SPINNAKER-package-echo/69/",
+  def buildInfoWithUrlAndTwoSCMs = new JenkinsBuildInfo(
+    "name", 0, "http://spinnaker.builds.test.netflix.net/job/SPINNAKER-package-echo/69/", "SUCCESS",
     [
       new JenkinsArtifact("hodor_1.1_all.deb", "."),
       new JenkinsArtifact("hodor-1.1.noarch.rpm", "."),
       new JenkinsArtifact("hodor.1.1.nupkg", ".")
-    ], [
-    new SourceControl("refs/remotes/origin/master", "master", "f83a447f8d02a40fa84ec9d4d0dccd263d51782d"),
-    new SourceControl("refs/remotes/origin/develop", "develop", "1234567f8d02a40fa84ec9d4d0dccd263d51782d")
-  ], false, "SUCCESS", 'name#0'
+    ],
+    [
+      new SourceControl("refs/remotes/origin/master", "master", "f83a447f8d02a40fa84ec9d4d0dccd263d51782d"),
+      new SourceControl("refs/remotes/origin/some-feature", "some-feature", "1234567f8d02a40fa84ec9d4d0dccd263d51782d")
+    ]
   )
 
   @Shared
-  def buildInfoNoMatch = new BuildInfo(
-    "name", 0, "http://jenkins", [
-    new JenkinsArtifact("hodornodor_1.1_all.deb", "."),
-    new JenkinsArtifact("hodor-1.1.noarch.rpm", "."),
-    new JenkinsArtifact("hodor.1.1.nupkg", ".")
-  ], [], false, "SUCCESS", 'name#0'
+  def buildInfoWithUrlAndMasterAndDevelopSCMs = new JenkinsBuildInfo(
+    "name", 0, "http://spinnaker.builds.test.netflix.net/job/SPINNAKER-package-echo/69/", "SUCCESS",
+    [
+      new JenkinsArtifact("hodor_1.1_all.deb", "."),
+      new JenkinsArtifact("hodor-1.1.noarch.rpm", "."),
+      new JenkinsArtifact("hodor.1.1.nupkg", ".")
+    ],
+    [
+      new SourceControl("refs/remotes/origin/master", "master", "f83a447f8d02a40fa84ec9d4d0dccd263d51782d"),
+      new SourceControl("refs/remotes/origin/develop", "develop", "1234567f8d02a40fa84ec9d4d0dccd263d51782d")
+    ]
+  )
+
+  @Shared
+  def buildInfoNoMatch = new JenkinsBuildInfo(
+    "name", 0, "http://jenkins", "SUCCESS",
+    [
+      new JenkinsArtifact("hodornodor_1.1_all.deb", "."),
+      new JenkinsArtifact("hodor-1.1.noarch.rpm", "."),
+      new JenkinsArtifact("hodor.1.1.nupkg", ".")
+    ]
   )
 
   @Shared

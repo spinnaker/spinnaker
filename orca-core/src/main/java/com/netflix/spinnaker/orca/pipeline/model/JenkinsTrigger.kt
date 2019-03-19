@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.orca.pipeline.model
 
 import com.fasterxml.jackson.annotation.JsonCreator
-import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact
@@ -41,12 +40,31 @@ data class JenkinsTrigger
 
   override var other: Map<String, Any> = mutableMapOf()
   override var resolvedExpectedArtifacts: List<ExpectedArtifact> = mutableListOf()
-  var buildInfo: BuildInfo<JenkinsArtifact>? = null
+  var buildInfo: JenkinsBuildInfo? = null
   var properties: Map<String, Any> = mutableMapOf()
+}
 
-  data class JenkinsArtifact
-  @JsonCreator constructor(
-    @param:JsonProperty("fileName") val fileName: String,
-    @param:JsonProperty("relativePath") val relativePath: String
-  )
+class JenkinsArtifact
+@JsonCreator
+constructor(@param:JsonProperty("fileName") val fileName: String,
+            @param:JsonProperty("relativePath") val relativePath: String)
+
+class JenkinsBuildInfo
+@JsonCreator
+constructor(@param:JsonProperty("name") override val name: String?,
+            @param:JsonProperty("number") override val number: Int,
+            @param:JsonProperty("url") override val url: String?,
+            @param:JsonProperty("result") override val result: String?,
+            @param:JsonProperty("artifacts") override val artifacts: List<JenkinsArtifact>?,
+            @param:JsonProperty("scm") override val scm: List<SourceControl>?,
+            @param:JsonProperty("building") override var building: Boolean = false)
+    : BuildInfo<JenkinsArtifact>(name, number, url, result, artifacts, scm, building) {
+
+    @JvmOverloads
+    constructor(name: String,
+                number: Int,
+                url: String,
+                result: String,
+                artifacts: List<JenkinsArtifact> = emptyList(),
+                scm: List<SourceControl> = emptyList()): this(name, number, url, result, artifacts, scm, false)
 }
