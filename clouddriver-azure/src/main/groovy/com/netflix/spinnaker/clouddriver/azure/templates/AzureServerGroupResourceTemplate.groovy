@@ -303,34 +303,15 @@ class AzureServerGroupResourceTemplate {
       location = "[parameters('${locationParameterName}')]"
       def currentTime = System.currentTimeMillis()
       tags = [:]
-      tags.appName = description.application
-      tags.stack = description.stack
-      tags.detail = description.detail
-      tags.cluster = description.clusterName
       tags.createdTime = currentTime.toString()
-      tags.hasNewSubnet = description.hasNewSubnet.toString()
+      if (description.instanceTags != null) {
+        tags << description.instanceTags
+      }
 
       // debug only; can be removed as part of the tags cleanup
       if (description.appGatewayName) tags.appGatewayName = description.appGatewayName
-      if (description.appGatewayBapId) tags.appGatewayBapId = description.appGatewayBapId
-
-      if (description.securityGroupName) tags.securityGroupName = description.securityGroupName
-      if (description.subnetId) tags.subnetId = description.subnetId
-      tags.imageIsCustom = description.image.isCustom.toString()
       // will need this when cloning a server group
       if (description.image.imageName) tags.imageName = description.image.imageName
-
-      if (!description.image.isCustom) {
-        description.getStorageAccountCount().times { idx ->
-          this.dependsOn.add(
-            String.format("[concat('Microsoft.Storage/storageAccounts/', variables('%s')[%s])]",
-              ExtendedServerGroupTemplateVariables.uniqueStorageNamesArrayVar,
-              idx)
-          )
-          String uniqueName = getUniqueStorageName(description.name, idx)
-          tags.storageAccountNames = tags.storageAccountNames ? "${tags.storageAccountNames},${uniqueName}" : uniqueName
-        }
-      }
 
       if(description.zones != null && description.zones.size() != 0) {
         zones = description.zones.asList()

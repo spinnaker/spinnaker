@@ -38,6 +38,7 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription implements
   Set<String> loadBalancers
   Set<String> securityGroups
   Set<String> zones
+  Map<String, String> instanceTags /* custom tags specified by user */
   final String type = AzureCloudProvider.ID
   final String cloudProvider = AzureCloudProvider.ID
   Map<String, Object> launchConfig
