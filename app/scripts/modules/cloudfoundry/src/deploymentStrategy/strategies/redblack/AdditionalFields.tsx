@@ -47,7 +47,7 @@ export class AdditionalFields extends React.Component<IRedBlackStrategyAdditiona
         <div className="col-md-12 form-inline">
           <label>
             Wait Before Disable &nbsp;
-            <HelpField content="Time to wait before disabling old server group" />
+            <HelpField content="Time to wait before disabling all old server groups in this cluster" />
           </label>
           <div>
             <input

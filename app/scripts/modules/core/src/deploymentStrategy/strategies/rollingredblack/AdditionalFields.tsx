@@ -74,7 +74,7 @@ export class AdditionalFields extends React.Component<IRollingRedBlackStrategyAd
           <div className="col-md-12 form-inline" style={{ marginTop: '5px' }}>
             <label>
               <span style={{ marginRight: '2px' }}>Wait Before Scale Down</span>
-              <HelpField content="Time to wait before scaling down old server groups" />
+              <HelpField content="Time to wait before scaling down all old server groups" />
             </label>
             <input
               className="form-control input-sm"
@@ -103,7 +103,7 @@ export class AdditionalFields extends React.Component<IRollingRedBlackStrategyAd
         <div className="col-md-12 form-inline">
           <label>
             Wait
-            <HelpField content="Time to wait before disabling instances in old server group" />
+            <HelpField content="Time to wait before disabling all old server groups in this cluster" />
           </label>
           <input
             className="form-control input-sm"
@@ -119,7 +119,7 @@ export class AdditionalFields extends React.Component<IRollingRedBlackStrategyAd
         <div className="col-md-12" style={{ marginTop: '5px' }}>
           <label>
             Run a Pipeline
-            <HelpField content="Pipeline to run before disabling instances in old server group" />
+            <HelpField content="Pipeline to run before disabling all old server groups in this cluster" />
           </label>
           <PipelineSelector command={command.pipelineBeforeCleanup} type="pipelines" />
         </div>
