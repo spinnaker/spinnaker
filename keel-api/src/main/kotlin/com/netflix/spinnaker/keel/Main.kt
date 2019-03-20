@@ -25,6 +25,8 @@ import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceVersionTrac
 import com.netflix.spinnaker.keel.plugin.KeelPlugin
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
+import com.netflix.spinnaker.keel.sync.Lock
+import com.netflix.spinnaker.keel.sync.NoOpLock
 import com.netflix.spinnaker.kork.PlatformComponents
 import de.huxhorn.sulky.ulid.ULID
 import org.slf4j.LoggerFactory
@@ -92,6 +94,10 @@ class KeelApplication {
   fun resourceVersionTracker(): ResourceVersionTracker = InMemoryResourceVersionTracker()
 
   @Bean
+  @ConditionalOnMissingBean(Lock::class)
+  fun lock(): Lock = NoOpLock
+
+  @Bean
   @ConditionalOnMissingBean(ResourceHandler::class)
   fun noResourcePlugins(): List<ResourceHandler<*>> = emptyList()
 
@@ -114,6 +120,9 @@ class KeelApplication {
   @Autowired
   lateinit var instanceIdSupplier: InstanceIdSupplier
 
+  @Autowired
+  lateinit var lock: Lock
+
   @Autowired(required = false)
   var plugins: List<KeelPlugin> = emptyList()
 
@@ -123,7 +132,8 @@ class KeelApplication {
       ResourceRepository::class to resourceRepository.javaClass,
       ResourceVersionTracker::class to resourceVersionTracker.javaClass,
       ResourceCheckQueue::class to resourceCheckQueue.javaClass,
-      InstanceIdSupplier::class to instanceIdSupplier.javaClass
+      InstanceIdSupplier::class to instanceIdSupplier.javaClass,
+      Lock::class to lock.javaClass
     )
       .forEach { (type, implementation) ->
         log.info("{} implementation: {}", type.simpleName, implementation.simpleName)

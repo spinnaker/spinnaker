@@ -1,0 +1,22 @@
+databaseChangeLog:
+  - changeSet:
+      id: add-instance-column-to-resource-state-table
+      author: fletch
+      changes:
+        - createTable:
+            tableName: lock
+            columns:
+              - column:
+                  name: name
+                  type: varchar(255)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: expires
+                  type: timestamp
+                  constraints:
+                    nullable: false
+      rollback:
+        - dropTable:
+            tableName: lock

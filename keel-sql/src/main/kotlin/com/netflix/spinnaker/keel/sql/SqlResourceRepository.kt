@@ -19,7 +19,6 @@ import de.huxhorn.sulky.ulid.ULID
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
 import org.jooq.impl.DSL.field
-import org.jooq.impl.DSL.using
 import org.slf4j.LoggerFactory
 import java.sql.ResultSet
 import java.sql.Timestamp
@@ -234,12 +233,6 @@ class SqlResourceRepository(
   companion object {
     private val RESOURCE = DSL.table("resource")
     private val RESOURCE_STATE = DSL.table("resource_state")
-  }
-
-  private fun DSLContext.inTransaction(fn: DSLContext.() -> Unit) {
-    transaction { tx ->
-      using(tx).apply(fn)
-    }
   }
 
   private fun <T : Any> ResultSet.toResource(specType: Class<T>): Resource<T> =

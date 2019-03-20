@@ -5,3 +5,6 @@ databaseChangeLog:
   - include:
       file: changelog/20190313-add-instance-to-resource-status.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20190320-create-lock-table.yml
+      relativeToChangelogFile: true
