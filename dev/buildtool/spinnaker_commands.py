@@ -244,6 +244,7 @@ class PublishSpinnakerCommand(CommandProcessor):
             '"{tag}" already exists in "{repo}" at commit {have}, not {want}'
             .format(tag=tag, repo=git_dir,
                     have=existing_commit, want=want_commit)))
+    return False  # not reached
 
   def __branch_and_tag_repository(self, repository, branch, version):
     """Create a branch and/or version tag in the repository, if needed."""
