@@ -43,7 +43,7 @@ public class ManifestLabelValueExpressionFunctionProvider implements ExpressionF
   public Collection<FunctionDefinition> getFunctions() {
     return Collections.singletonList(
       new FunctionDefinition("manifestLabelValue", Arrays.asList(
-        new FunctionParameter(Object.class, "execution", "The execution to search for stages within"),
+        new FunctionParameter(Execution.class, "execution", "The execution to search for stages within"),
         new FunctionParameter(String.class, "stageName", "Name of a deployManifest stage to find"),
         new FunctionParameter(String.class, "kind", "The kind of manifest to find"),
         new FunctionParameter(String.class, "labelKey", "The key of the label to find")
@@ -53,17 +53,13 @@ public class ManifestLabelValueExpressionFunctionProvider implements ExpressionF
 
   /**
    * Gets value of given label key in manifest of given kind deployed by stage of given name
-   * @param obj #root.execution
+   * @param execution #root.execution
    * @param stageName the name of a `deployManifest` stage to find
    * @param kind the kind of manifest to find
    * @param labelKey the key of the label to find
    * @return the label value
    */
-  public static String manifestLabelValue(Object obj, String stageName, String kind, String labelKey) {
-    if (!(obj instanceof Execution)) {
-      throw new IllegalArgumentException("An execution is required for this function");
-    }
-
+  public static String manifestLabelValue(Execution execution, String stageName, String kind, String labelKey) {
     List<String> validKinds = Arrays.asList("Deployment", "ReplicaSet");
     if (!validKinds.contains(kind)) {
       throw new IllegalArgumentException("Only Deployments and ReplicaSets are valid kinds for this function");
@@ -73,7 +69,7 @@ public class ManifestLabelValueExpressionFunctionProvider implements ExpressionF
       throw new IllegalArgumentException("A labelKey is required for this function");
     }
 
-    Optional<Stage> stage = ((Execution) obj).getStages()
+    Optional<Stage> stage = execution.getStages()
       .stream()
       .filter(s -> s.getName().equals(stageName) && s.getType().equals("deployManifest") && s.getStatus() == ExecutionStatus.SUCCEEDED)
       .findFirst();

@@ -44,54 +44,50 @@ public class DeployedServerGroupsExpressionFunctionProvider implements Expressio
   public Collection<FunctionDefinition> getFunctions() {
     return Collections.singletonList(
       new FunctionDefinition("deployedServerGroups", Arrays.asList(
-        new FunctionParameter(Object.class, "execution", "The execution to search for stages within"),
+        new FunctionParameter(Execution.class, "execution", "The execution to search for stages within"),
         new FunctionParameter(String[].class, "ids", "A list of stage name or stage IDs to search")
       ))
     );
   }
 
-  public static List<Map<String, Object>> deployedServerGroups(Object obj, String... id) {
-    if (obj instanceof Execution) {
-      List<Map<String, Object>> deployedServerGroups = new ArrayList<>();
-      ((Execution) obj).getStages()
-        .stream()
-        .filter(matchesDeployedStage(id))
-        .forEach(stage -> {
-          String region = (String) stage.getContext().get("region");
-          if (region == null) {
-            Map<String, Object> availabilityZones = (Map<String, Object>) stage.getContext().get("availabilityZones");
-            if (availabilityZones != null) {
-              region = availabilityZones.keySet().iterator().next();
-            }
+  public static List<Map<String, Object>> deployedServerGroups(Execution execution, String... id) {
+    List<Map<String, Object>> deployedServerGroups = new ArrayList<>();
+    execution.getStages()
+      .stream()
+      .filter(matchesDeployedStage(id))
+      .forEach(stage -> {
+        String region = (String) stage.getContext().get("region");
+        if (region == null) {
+          Map<String, Object> availabilityZones = (Map<String, Object>) stage.getContext().get("availabilityZones");
+          if (availabilityZones != null) {
+            region = availabilityZones.keySet().iterator().next();
+          }
+        }
+
+        if (region != null) {
+          Map<String, Object> deployDetails = new HashMap<>();
+          deployDetails.put("account", stage.getContext().get("account"));
+          deployDetails.put("capacity", stage.getContext().get("capacity"));
+          deployDetails.put("parentStage", stage.getContext().get("parentStage"));
+          deployDetails.put("region", region);
+          List<Map> existingDetails = (List<Map>) stage.getContext().get("deploymentDetails");
+          if (existingDetails != null) {
+            existingDetails
+              .stream()
+              .filter(d -> deployDetails.get("region").equals(d.get("region")))
+              .forEach(deployDetails::putAll);
           }
 
-          if (region != null) {
-            Map<String, Object> deployDetails = new HashMap<>();
-            deployDetails.put("account", stage.getContext().get("account"));
-            deployDetails.put("capacity", stage.getContext().get("capacity"));
-            deployDetails.put("parentStage", stage.getContext().get("parentStage"));
-            deployDetails.put("region", region);
-            List<Map> existingDetails = (List<Map>) stage.getContext().get("deploymentDetails");
-            if (existingDetails != null) {
-              existingDetails
-                .stream()
-                .filter(d -> deployDetails.get("region").equals(d.get("region")))
-                .forEach(deployDetails::putAll);
-            }
-
-            List<Map> serverGroups = (List<Map>) ((Map) stage.getContext().get("deploy.server.groups")).get(region);
-            if (serverGroups != null) {
-              deployDetails.put("serverGroup", serverGroups.get(0));
-            }
-
-            deployedServerGroups.add(deployDetails);
+          List<Map> serverGroups = (List<Map>) ((Map) stage.getContext().get("deploy.server.groups")).get(region);
+          if (serverGroups != null) {
+            deployDetails.put("serverGroup", serverGroups.get(0));
           }
-        });
 
-      return deployedServerGroups;
-    }
+          deployedServerGroups.add(deployDetails);
+        }
+      });
 
-    throw new IllegalArgumentException("An execution is required for this function");
+    return deployedServerGroups;
   }
 
   private static Predicate<Stage> matchesDeployedStage(String... id) {
