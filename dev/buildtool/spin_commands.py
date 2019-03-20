@@ -33,7 +33,6 @@ from buildtool import (
     GitRunner,
     RepositoryCommandFactory,
     RepositoryCommandProcessor,
-    check_subprocess,
     check_subprocesses_to_logfile,
     check_options_set,
     raise_and_log_error,

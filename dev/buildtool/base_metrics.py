@@ -351,7 +351,7 @@ class BaseMetricsRegistry(object):
       try:
         outcome_labels = label_func(None, labels)
       except Exception as ex:
-        logging.exception('label_func failed with %s', ex.message)
+        logging.exception('label_func failed with %s', str(ex))
         raise ex
       raise
     finally:
