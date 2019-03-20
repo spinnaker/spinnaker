@@ -56,10 +56,11 @@ class AzureResourceManagerClient extends AzureBaseClient {
   Deployment createResourceFromTemplate(String template,
                                         String resourceGroupName,
                                         String region,
+                                        String resourceName,
                                         String resourceType,
                                         Map<String, Object> templateParams = [:]) {
 
-    String deploymentName = [resourceType, "deployment"].join(AzureUtilities.NAME_SEPARATOR)
+    String deploymentName = [resourceName, resourceType, "deployment"].join(AzureUtilities.NAME_SEPARATOR)
     if (!templateParams['location']) {
       templateParams['location'] = region
     }
