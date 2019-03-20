@@ -19,22 +19,17 @@ package com.netflix.spinnaker.igor.concourse;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.igor.IgorConfigurationProperties;
-import com.netflix.spinnaker.igor.concourse.client.OkHttpClientBuilder;
 import com.netflix.spinnaker.igor.concourse.service.ConcourseService;
 import com.netflix.spinnaker.igor.config.ConcourseProperties;
 import com.netflix.spinnaker.igor.history.EchoService;
 import com.netflix.spinnaker.igor.service.BuildServices;
 import com.squareup.okhttp.mockwebserver.MockResponse;
 import com.squareup.okhttp.mockwebserver.MockWebServer;
-import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import retrofit.http.GET;
-import retrofit.http.Path;
 import rx.schedulers.Schedulers;
 
 import java.util.Collections;
-import java.util.Map;
 import java.util.Optional;
 
 import static org.mockito.Mockito.mock;

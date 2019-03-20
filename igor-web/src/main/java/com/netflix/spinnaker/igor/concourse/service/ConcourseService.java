@@ -70,18 +70,21 @@ public class ConcourseService implements BuildService, BuildProperties {
   }
 
   public Collection<Team> teams() {
+    refreshTokenIfNecessary();
     return client.getTeamService().teams().stream()
       .filter(team -> host.getTeams() == null || host.getTeams().contains(team.getName()))
       .collect(toList());
   }
 
   public Collection<Pipeline> pipelines() {
+    refreshTokenIfNecessary();
     return client.getPipelineService().pipelines().stream()
       .filter(pipeline -> host.getTeams() == null || host.getTeams().contains(pipeline.getTeamName()))
       .collect(toList());
   }
 
   public Collection<Job> getJobs() {
+    refreshTokenIfNecessary();
     return client.getJobService().jobs().stream()
       .filter(job -> host.getTeams() == null || host.getTeams().contains(job.getTeamName()))
       .collect(toList());
@@ -253,5 +256,13 @@ public class ConcourseService implements BuildService, BuildProperties {
     job.setName(jobParts[2]);
 
     return job;
+  }
+
+  /**
+   * This is necessary until this is resolved: https://github.com/concourse/concourse/issues/3558
+   */
+  private void refreshTokenIfNecessary() {
+    // returns a 401 on expired/invalid token, which because of retry logic causes the token to be refreshed.
+    client.getSkyService().userInfo();
   }
 }
