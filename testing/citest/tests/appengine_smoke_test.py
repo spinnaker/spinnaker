@@ -131,11 +131,14 @@ class AppengineSmokeTestScenario(sk.SpinnakerTestScenario):
 
     try:
       repo_path = self.__clone_app_repo()
-      self.__prepare_app_default_version(repo_path)
+      appengine_dir = self.bindings['APP_DIRECTORY_ROOT']
+      repo_appengine_path = os.path.join(repo_path, appengine_dir)
+
+      self.__prepare_app_default_version(repo_appengine_path)
 
       test_bucket = bindings['TEST_GCS_BUCKET']
       if test_bucket:
-        self.__prepare_bucket(test_bucket, repo_path)
+        self.__prepare_bucket(test_bucket, repo_appengine_path)
         self.__test_repository_url = 'gs://' + test_bucket
       else:
         self.__test_repository_url = bindings['GIT_REPO_URL']
@@ -143,33 +146,31 @@ class AppengineSmokeTestScenario(sk.SpinnakerTestScenario):
       shutil.rmtree(repo_path)
 
   def __clone_app_repo(self):
-    root = self.bindings['APP_DIRECTORY_ROOT']
     temp = tempfile.mkdtemp()
-    local_path = os.path.join(temp, root)
 
     git_repo = self.bindings['GIT_REPO_URL']
     branch = self.bindings['BRANCH']
 
     command = 'git clone {repo} -b {branch} {dir}'.format(
-        repo=git_repo, branch=branch, dir=local_path)
+        repo=git_repo, branch=branch, dir=temp)
     logging.info('Fetching %s', git_repo)
     subprocess.Popen(command, stderr=sys.stderr, shell=True).wait()
 
-    return local_path
+    return temp
 
-  def __prepare_bucket(self, bucket, repo_path):
+  def __prepare_bucket(self, bucket, repo_appengine_path):
     root = self.bindings['APP_DIRECTORY_ROOT']
     gcs_path = 'gs://{bucket}/{root}'.format(
         bucket=self.bindings['TEST_GCS_BUCKET'], root=root)
 
     command = 'gsutil -m rsync {local} {gcs}'.format(
-        local=repo_path, gcs=gcs_path)
+        local=repo_appengine_path, gcs=gcs_path)
     logging.info('Preparing %s', gcs_path)
     subprocess.Popen(command, stderr=sys.stderr, shell=True).wait()
 
-  def __prepare_app_default_version(self, repo_path):
+  def __prepare_app_default_version(self, repo_appengine_path):
     if not self.__has_default_version():
-      deployable_path = os.path.join(repo_path, 'app.yaml')
+      deployable_path = os.path.join(repo_appengine_path, 'app.yaml')
       command = 'gcloud app deploy {deployable} --project={project} --quiet'.format(
           project=self.__gcp_project, deployable=deployable_path)
       logging.info('Deploying AppEngine app with default version')
