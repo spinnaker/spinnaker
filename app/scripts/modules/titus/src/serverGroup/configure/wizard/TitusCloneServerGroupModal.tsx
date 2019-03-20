@@ -79,12 +79,12 @@ export class TitusCloneServerGroupModal extends React.Component<
     this.configureCommand();
   };
 
-  private onTaskComplete() {
+  private onTaskComplete = () => {
     this.props.application.serverGroups.refresh();
     this.props.application.serverGroups.onNextRefresh(null, this.onApplicationRefresh);
-  }
+  };
 
-  protected onApplicationRefresh(): void {
+  protected onApplicationRefresh = (): void => {
     if (this._isUnmounted) {
       return;
     }
@@ -117,7 +117,7 @@ export class TitusCloneServerGroupModal extends React.Component<
         ReactInjector.$state.go(transitionTo, newStateParams);
       }
     }
-  }
+  };
 
   private configureCommand = () => {
     const { command } = this.props;
