@@ -112,7 +112,6 @@ public class ExpressionsSupport {
               .stream()
               .map(ExpressionFunctionProvider.FunctionParameter::getType)
               .toArray(Class[]::new);
-            LOGGER.info("Registering Expression Function: {}({})", namespacedFunctionName, functionTypes);
 
             evaluationContext.registerFunction(
               namespacedFunctionName, p.getClass().getDeclaredMethod(function.getName(), functionTypes)
@@ -293,7 +292,7 @@ public class ExpressionsSupport {
 
     throw new SpelHelperFunctionException(format("Invalid first param to #stage(%s). must be an execution", id));
   }
-  
+
   /**
    * Checks existence of a Stage by id
    * @param obj #root.execution
