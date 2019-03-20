@@ -24,7 +24,9 @@ import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.cache.CacheData
+import com.netflix.spinnaker.cats.cache.CacheFilter
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
+import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.edda.EddaApi
@@ -88,6 +90,15 @@ class EddaLoadBalancerCachingAgent implements CachingAgent, HealthProvidingCachi
       String healthId = Keys.getInstanceHealthKey(ilb.instanceId, account.name, region, healthId)
       Map<String, Object> attributes = objectMapper.convertValue(ilb, ATTRIBUTES)
       Map<String, Collection<String>> relationships = [(INSTANCES.ns): [instanceId]]
+
+      CacheData instance = providerCache.get(INSTANCES.ns, instanceId, RelationshipCacheFilter.none())
+      if (instance != null) {
+        String application = instance.attributes.get("application")
+        if (application != null) {
+          attributes.put("application", application)
+        }
+      }
+
       lbHealths.add(new DefaultCacheData(healthId, attributes, relationships))
       instances.add(new DefaultCacheData(instanceId, [:], [(HEALTH.ns): [healthId]]))
     }

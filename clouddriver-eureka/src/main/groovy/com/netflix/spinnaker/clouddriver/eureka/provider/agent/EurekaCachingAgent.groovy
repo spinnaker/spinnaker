@@ -109,6 +109,8 @@ class EurekaCachingAgent implements CachingAgent, HealthProvidingCachingAgent, C
           Map<String, Object> attributes = convertedInstancesById[instance.instanceId]
           attributes.eurekaAccountName = eurekaAccountName
           attributes.allowMultipleEurekaPerAccount = allowMultipleEurekaPerAccount
+          attributes.application = application.name.toLowerCase()
+
           eurekaAwareProviderList.each { provider ->
             if (provider.isProviderForEurekaRecord(attributes)) {
               String instanceKey = provider.getInstanceKey(attributes, region)

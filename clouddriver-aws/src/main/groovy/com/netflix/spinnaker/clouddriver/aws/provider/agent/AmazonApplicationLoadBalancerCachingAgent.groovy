@@ -26,6 +26,7 @@ import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
+import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.data.ArnUtils
@@ -148,13 +149,13 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
     if (cacheResult.cacheResults.values().flatten().isEmpty()) {
       // avoid writing an empty onDemand cache record (instead delete any that may have previously existed)
       providerCache.evictDeletedItems(ON_DEMAND.ns, [
-          Keys.getLoadBalancerKey(
-            data.loadBalancerName as String,
-            account.name,
-            region,
-            data.vpcId as String,
-            data.loadBalancerType as String
-          )
+        Keys.getLoadBalancerKey(
+          data.loadBalancerName as String,
+          account.name,
+          region,
+          data.vpcId as String,
+          data.loadBalancerType as String
+        )
       ])
     } else {
       metricsSupport.onDemandStore {
@@ -167,7 +168,7 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
           ),
           10 * 60,
           [
-            cacheTime   : new Date(),
+            cacheTime: new Date(),
             cacheResults: objectMapper.writeValueAsString(cacheResult.cacheResults)
           ],
           [:]
@@ -201,7 +202,7 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
       List<TargetGroupAttributes> targetGroupAttributesList = eddaApi.targetGroupAttributes()
       List<TargetGroupHealth> targetGroupHealthList = eddaApi.targetGroupHealth()
       targetGroupArnToAttributes = targetGroupAttributesList.collectEntries { [(it.targetGroupArn): it.attributes] }
-      targetGroupArnToHealths = targetGroupHealthList.collectEntries { [(it.targetGroupArn): it.health]}
+      targetGroupArnToHealths = targetGroupHealthList.collectEntries { [(it.targetGroupArn): it.health] }
     } else {
       targetGroupArnToHealths = new HashMap<String, List<TargetHealthDescription>>()
       targetGroupArnToAttributes = new HashMap<String, List<TargetGroupAttribute>>()
@@ -219,7 +220,7 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
 
     return [
       targetGroupArnToAttributes: targetGroupArnToAttributes,
-      targetGroupArnToHealths: targetGroupArnToHealths
+      targetGroupArnToHealths   : targetGroupArnToHealths
     ]
   }
 
@@ -245,7 +246,7 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
                                                  List<LoadBalancer> allLoadBalancers,
                                                  boolean useEdda) {
     Map<String, List<Listener>> loadBalancerArnToListeners = allLoadBalancers.collectEntries {
-      [(it.loadBalancerArn) : []]
+      [(it.loadBalancerArn): []]
     }
     Map<Listener, List<Rule>> listenerToRules = [:].withDefault { [] }
 
@@ -367,7 +368,8 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
       }
     }
 
-    return buildCacheResult(allLoadBalancers,
+    return buildCacheResult(providerCache,
+      allLoadBalancers,
       loadBalancerAttributes,
       allTargetGroups,
       targetGroupAssociations,
@@ -378,7 +380,8 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
     )
   }
 
-  private CacheResult buildCacheResult(Collection<LoadBalancer> allLoadBalancers,
+  private CacheResult buildCacheResult(ProviderCache providerCache,
+                                       Collection<LoadBalancer> allLoadBalancers,
                                        Map<String, List> loadBalancerAttributes,
                                        Collection<TargetGroup> allTargetGroups,
                                        TargetGroupAssociations targetGroupAssociations,
@@ -400,7 +403,8 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
       if (onDemandCacheData) {
         log.info("Using onDemand cache value (${onDemandCacheData.id})")
 
-        Map<String, List<CacheData>> cacheResults = objectMapper.readValue(onDemandCacheData.attributes.cacheResults as String, new TypeReference<Map<String, List<MutableCacheData>>>() {})
+        Map<String, List<CacheData>> cacheResults = objectMapper.readValue(onDemandCacheData.attributes.cacheResults as String, new TypeReference<Map<String, List<MutableCacheData>>>() {
+        })
         CacheHelpers.cache(cacheResults["loadBalancers"], loadBalancers)
         CacheHelpers.cache(cacheResults["targetGroups"], targetGroups)
       } else {
@@ -413,7 +417,7 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
         // Translate availabilityZones to the format we expect
         List<String> availabilityZones = new ArrayList<String>()
         List<String> subnets = new ArrayList<String>()
-        ((List<Map<String, String>>)lbAttributes.availabilityZones).each { az ->
+        ((List<Map<String, String>>) lbAttributes.availabilityZones).each { az ->
           availabilityZones.push(az.zoneName)
           subnets.push(az.subnetId)
         }
@@ -428,9 +432,9 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
         for (Listener listener : listenerData) {
 
           Map<String, Object> listenerAttributes = objectMapper.convertValue(listener, ATTRIBUTES)
-          listenerAttributes.loadBalancerName = ArnUtils.extractLoadBalancerName((String)listenerAttributes.loadBalancerArn).get()
+          listenerAttributes.loadBalancerName = ArnUtils.extractLoadBalancerName((String) listenerAttributes.loadBalancerArn).get()
           listenerAttributes.remove('loadBalancerArn')
-          for (Map<String, Object> action : (List<Map<String, String>>)listenerAttributes.defaultActions) {
+          for (Map<String, Object> action : (List<Map<String, String>>) listenerAttributes.defaultActions) {
             if (!action.targetGroupArn) {
               continue
             }
@@ -447,7 +451,7 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
           List<Object> rules = new ArrayList<>()
           for (Rule rule : listenerAssociations.listenerToRules.get(listener)) {
             Map<String, Object> ruleAttributes = objectMapper.convertValue(rule, ATTRIBUTES)
-            for (Map<String, String> action : (List<Map<String, String>>)ruleAttributes.actions) {
+            for (Map<String, String> action : (List<Map<String, String>>) ruleAttributes.actions) {
               if (!action.targetGroupArn) {
                 continue
               }
@@ -471,11 +475,15 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
 
         if (loadBalancerAttributes.containsKey(lb.loadBalancerArn)) {
           lbAttributes.attributes = loadBalancerAttributes.get(lb.loadBalancerArn)
-          LoadBalancerAttribute deletionProtectionAttribute = lbAttributes.attributes?.find { it.key == 'deletion_protection.enabled' }
+          LoadBalancerAttribute deletionProtectionAttribute = lbAttributes.attributes?.find {
+            it.key == 'deletion_protection.enabled'
+          }
           if (deletionProtectionAttribute != null) {
             lbAttributes.deletionProtection = Boolean.parseBoolean(deletionProtectionAttribute.getValue())
           }
-          LoadBalancerAttribute idleTimeoutAttribute = lbAttributes.attributes?.find { it.key == 'idle_timeout.timeout_seconds' }
+          LoadBalancerAttribute idleTimeoutAttribute = lbAttributes.attributes?.find {
+            it.key == 'idle_timeout.timeout_seconds'
+          }
           if (idleTimeoutAttribute != null) {
             lbAttributes.idleTimeout = Integer.parseInt(idleTimeoutAttribute.getValue())
           }
@@ -548,6 +556,14 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
       String healthId = Keys.getInstanceHealthKey(itg.instanceId, account.name, region, healthId)
       Map<String, Object> attributes = objectMapper.convertValue(itg, ATTRIBUTES)
       Map<String, Collection<String>> relationships = [(INSTANCES.ns): [instanceId]]
+
+      // An ALB can potentially have target groups spanning logical applications,
+      // so we cannot derive instance -> application mappings from load balancer data
+      CacheData instance = providerCache.get(INSTANCES.ns, instanceId, RelationshipCacheFilter.none())
+      if (instance != null && instance.attributes.containsKey("application")) {
+        attributes.put("application", instance.attributes.get("application").toString())
+      }
+
       tgHealths.add(new DefaultCacheData(healthId, attributes, relationships))
       instances.add(new DefaultCacheData(instanceId, [:], [(HEALTH.ns): [healthId]]))
     }
@@ -555,14 +571,14 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
 
     log.info("Caching ${loadBalancers.size()} load balancers in ${agentType}")
     if (evictableOnDemandCacheDatas) {
-      log.info("Evicting onDemand cache keys (${evictableOnDemandCacheDatas.collect { "${it.id}/${start - (long)it.attributes.cacheTime}ms"}.join(", ")})")
+      log.info("Evicting onDemand cache keys (${evictableOnDemandCacheDatas.collect { "${it.id}/${start - (long) it.attributes.cacheTime}ms" }.join(", ")})")
     }
     new DefaultCacheResult([
-      (LOAD_BALANCERS.ns):  loadBalancers.values(),
-      (TARGET_GROUPS.ns): targetGroups.values(),
-      (HEALTH.ns): tgHealths,
-      (INSTANCES.ns): instances
-    ],[
+      (LOAD_BALANCERS.ns): loadBalancers.values(),
+      (TARGET_GROUPS.ns) : targetGroups.values(),
+      (HEALTH.ns)        : tgHealths,
+      (INSTANCES.ns)     : instances
+    ], [
       (ON_DEMAND.ns): evictableOnDemandCacheDatas*.id])
   }
 

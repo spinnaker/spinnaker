@@ -548,10 +548,28 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
         cacheDataById[it.id] = it
       } else {
         existingCacheData.attributes.putAll(it.attributes)
+        def application = getApplicationForKey(it)
+        if (application) {
+          existingCacheData.attributes.put("application", application)
+        }
         it.relationships.each { String relationshipName, Collection<String> relationships ->
           existingCacheData.relationships[relationshipName].addAll(relationships)
         }
       }
+    }
+  }
+
+  private String getApplicationForKey(CacheData item) {
+    String application
+    try {
+      application = Keys.parse(item.id).get("application")
+      if (application == null && item.relationships.containsKey("serverGroups")) {
+        application = Keys.parse(item.relationships.serverGroups[0]).get("application")
+      }
+      return application
+    } catch(Exception e) {
+      log.error("Failed determining application for {}", item.id, e)
+      return null
     }
   }
 
@@ -568,6 +586,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
   private void cacheCluster(AsgData data, Map<String, CacheData> clusters) {
     clusters[data.cluster].with {
       attributes.name = data.name.cluster
+      attributes.application = data.name.app
       relationships[APPLICATIONS.ns].add(data.appName)
       relationships[SERVER_GROUPS.ns].add(data.serverGroup)
       relationships[LOAD_BALANCERS.ns].addAll(data.loadBalancerNames)
@@ -577,6 +596,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
 
   private void cacheServerGroup(AsgData data, Map<String, CacheData> serverGroups) {
     serverGroups[data.serverGroup].with {
+      attributes.application = data.name.app
       attributes.asg = objectMapper.convertValue(data.asg, ATTRIBUTES)
       attributes.region = region
       attributes.name = data.asg.autoScalingGroupName
@@ -599,6 +619,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
 
   private void cacheLaunchConfig(AsgData data, Map<String, CacheData> launchConfigs) {
     launchConfigs[data.launchConfig].with {
+      attributes.application = data.name.app
       relationships[SERVER_GROUPS.ns].add(data.serverGroup)
     }
   }
@@ -606,6 +627,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
   private void cacheInstances(AsgData data, Map<String, CacheData> instances) {
     for (Instance instance : data.asg.instances) {
       instances[Keys.getInstanceKey(instance.instanceId, account.name, region)].with {
+        attributes.application = data.name.app
         relationships[SERVER_GROUPS.ns].add(data.serverGroup)
       }
     }
@@ -614,6 +636,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
   private void cacheLoadBalancers(AsgData data, Map<String, CacheData> loadBalancers) {
     for (String loadBalancerName : data.loadBalancerNames) {
       loadBalancers[loadBalancerName].with {
+        attributes.application = data.name.app
         relationships[APPLICATIONS.ns].add(data.appName)
         relationships[SERVER_GROUPS.ns].add(data.serverGroup)
       }
@@ -623,6 +646,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
   private void cacheTargetGroups(AsgData data, Map<String, CacheData> targetGroups) {
     for (String targetGroupKey : data.targetGroupKeys) {
       targetGroups[targetGroupKey].with {
+        attributes.application = data.name.app
         relationships[APPLICATIONS.ns].add(data.appName)
         relationships[SERVER_GROUPS.ns].add(data.serverGroup)
       }

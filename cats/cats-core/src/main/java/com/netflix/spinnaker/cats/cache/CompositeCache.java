@@ -16,12 +16,8 @@
 
 package com.netflix.spinnaker.cats.cache;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * A cache that provides a unified view of multiples, merging items from each
@@ -33,6 +29,12 @@ public class CompositeCache implements Cache {
 
     public CompositeCache(Collection<? extends Cache> caches) {
         this.caches = caches;
+    }
+
+    public Set<StoreType> getStoreTypes() {
+        return caches.stream()
+          .map(c -> ((Cache) c).storeType())
+          .collect(Collectors.toSet());
     }
 
     @Override
@@ -123,6 +125,37 @@ public class CompositeCache implements Cache {
     @Override
     public Collection<CacheData> getAll(String type, String... identifiers) {
         return getAll(type, Arrays.asList(identifiers));
+    }
+
+    @Override
+    public Map<String, Collection<CacheData>> getAllByApplication(String type, String application) {
+        Map<String, Collection<CacheData>> allItems = new HashMap<>();
+        for (Cache cache : caches) {
+            allItems.putAll(cache.getAllByApplication(type, application));
+        }
+        return allItems;
+    }
+
+    @Override
+    public Map<String, Collection<CacheData>> getAllByApplication(String type,
+                                                                  String application,
+                                                                  CacheFilter filter) {
+        Map<String, Collection<CacheData>> allItems = new HashMap<>();
+        for (Cache cache : caches) {
+            allItems.putAll(cache.getAllByApplication(type, application, filter));
+        }
+        return allItems;
+    }
+
+    @Override
+    public Map<String, Collection<CacheData>> getAllByApplication(Collection<String> types,
+                                                                  String application,
+                                                                  Map<String, CacheFilter> cacheFilters) {
+        Map<String, Collection<CacheData>> allItems = new HashMap<>();
+        for (Cache cache : caches) {
+            allItems.putAll(cache.getAllByApplication(types, application, cacheFilters));
+        }
+        return allItems;
     }
 
     Map<String, CacheData> merge(Map<String, CacheData> existingItems, Collection<CacheData> results) {

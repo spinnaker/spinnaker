@@ -21,6 +21,7 @@ import com.netflix.frigga.ami.AppVersion
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.CacheFilter
+import com.netflix.spinnaker.cats.cache.CompositeCache
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.data.Keys
@@ -33,6 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 
+import static com.netflix.spinnaker.cats.cache.Cache.StoreType.SQL
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.*
 
 @Component
@@ -47,6 +49,9 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster>, ServerGro
 
   @Value('${default.build.host:http://builds.netflix.com/}')
   String defaultBuildHost
+
+  @Value('${sql.cache.hasApplicationIndex:false}')
+  Boolean sqlApplicationIndexEnabled
 
   @Autowired
   AmazonClusterProvider(AmazonCloudProvider amazonCloudProvider, Cache cacheView, AwsProvider awsProvider) {
@@ -82,7 +87,7 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster>, ServerGro
 
     def asg = serverGroupData.attributes["asg"]
 
-    String launchConfigKey = Keys.getLaunchConfigKey(serverGroupData?.attributes['launchConfigName'] as String, account, region )
+    String launchConfigKey = Keys.getLaunchConfigKey(serverGroupData?.attributes['launchConfigName'] as String, account, region)
     CacheData launchConfigs = cacheView.get(LAUNCH_CONFIGS.ns, launchConfigKey)
 
     String imageId = launchConfigs?.attributes?.get('imageId')
@@ -136,15 +141,67 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster>, ServerGro
   private static Map<String, AmazonLoadBalancer> translateLoadBalancers(Collection<CacheData> loadBalancerData) {
     loadBalancerData.collectEntries { loadBalancerEntry ->
       Map<String, String> lbKey = Keys.parse(loadBalancerEntry.id)
-      [(loadBalancerEntry.id) : new AmazonLoadBalancer(name: lbKey.loadBalancer, account: lbKey.account, region: lbKey.region)]
+      [(loadBalancerEntry.id): new AmazonLoadBalancer(name: lbKey.loadBalancer, account: lbKey.account, region: lbKey.region)]
     }
   }
 
   private static Map<String, AmazonTargetGroup> translateTargetGroups(Collection<CacheData> targetGroupData) {
     targetGroupData.collectEntries { targetGroupEntry ->
       Map<String, String> tgKey = Keys.parse(targetGroupEntry.id)
-      [(targetGroupEntry.id) : new AmazonTargetGroup(name: tgKey.loadBalancer, account: tgKey.account, region: tgKey.region)]
+      [(targetGroupEntry.id): new AmazonTargetGroup(name: tgKey.loadBalancer, account: tgKey.account, region: tgKey.region)]
     }
+  }
+
+  private Collection<AmazonCluster> allClustersByApplication(String application) {
+    // TODO: only supports the equiv of includeDetails=true, consider adding support for the inverse
+
+    List<String> toFetch = [CLUSTERS.ns, SERVER_GROUPS.ns, LAUNCH_CONFIGS.ns, INSTANCES.ns, HEALTH.ns]
+    Map<String, CacheFilter> filters = [:]
+    filters[SERVER_GROUPS.ns] = RelationshipCacheFilter.include(INSTANCES.ns, LAUNCH_CONFIGS.ns)
+    filters[LAUNCH_CONFIGS.ns] = RelationshipCacheFilter.include(IMAGES.ns, SERVER_GROUPS.ns)
+    filters[INSTANCES.ns] = RelationshipCacheFilter.include(SERVER_GROUPS.ns, HEALTH.ns)
+
+    def cacheResults = cacheView.getAllByApplication(toFetch, application, filters)
+
+    // lbs and images can span applications and can't currently be indexed by app
+    Collection<CacheData> allLoadBalancers = resolveRelationshipDataForCollection(
+      cacheResults[CLUSTERS.ns],
+      LOAD_BALANCERS.ns
+    )
+    Collection<CacheData> allTargetGroups = resolveRelationshipDataForCollection(
+      cacheResults[CLUSTERS.ns],
+      TARGET_GROUPS.ns
+    )
+    Collection<CacheData> allImages = resolveRelationshipDataForCollection(
+      cacheResults[LAUNCH_CONFIGS.ns],
+      IMAGES.ns
+    )
+
+    Map<String, AmazonLoadBalancer> loadBalancers = translateLoadBalancers(allLoadBalancers)
+    Map<String, AmazonTargetGroup> targetGroups = translateTargetGroups(allTargetGroups)
+    Map<String, AmazonServerGroup> serverGroups = translateServerGroups(
+      cacheResults[SERVER_GROUPS.ns],
+      cacheResults[INSTANCES.ns],
+      cacheResults[HEALTH.ns],
+      cacheResults[LAUNCH_CONFIGS.ns],
+      allImages
+    )
+
+    Collection<AmazonCluster> clusters = cacheResults[CLUSTERS.ns].collect { clusterData ->
+      Map<String, String> clusterKey = Keys.parse(clusterData.id)
+
+      AmazonCluster cluster = new AmazonCluster()
+      cluster.accountName = clusterKey.account
+      cluster.name = clusterKey.cluster
+
+      cluster.serverGroups = clusterData.relationships[SERVER_GROUPS.ns]?.findResults { serverGroups.get(it) }
+      cluster.loadBalancers = clusterData.relationships[LOAD_BALANCERS.ns]?.findResults { loadBalancers.get(it) }
+      cluster.targetGroups = clusterData.relationships[TARGET_GROUPS.ns]?.findResults { targetGroups.get(it) }
+
+      cluster
+    }
+
+    return clusters
   }
 
   private Collection<AmazonCluster> translateClusters(Collection<CacheData> clusterData, boolean includeDetails) {
@@ -160,7 +217,8 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster>, ServerGro
 
       loadBalancers = translateLoadBalancers(allLoadBalancers)
       targetGroups = translateTargetGroups(allTargetGroups)
-      serverGroups = translateServerGroups(allServerGroups, false) // instance relationships were expanded so no need to consider partial instances
+      serverGroups = translateServerGroups(allServerGroups, false)
+      // instance relationships were expanded so no need to consider partial instances
     } else {
       Collection<CacheData> allServerGroups = resolveRelationshipDataForCollection(clusterData, SERVER_GROUPS.ns, RelationshipCacheFilter.none())
       serverGroups = translateServerGroups(allServerGroups, true)
@@ -198,8 +256,77 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster>, ServerGro
     if (application == null) {
       return null
     }
-    Collection<AmazonCluster> clusters = translateClusters(resolveRelationshipData(application, CLUSTERS.ns), includeDetails)
+
+    Collection<AmazonCluster> clusters
+
+    // TODO: remove special casing for sql vs. redis; possibly via dropping redis support in the future
+    if (sqlApplicationIndexEnabled &&
+      ((cacheView instanceof CompositeCache &&
+      (cacheView as CompositeCache).getStoreTypes().every { (it == SQL) }) ||
+      (cacheView.storeType() == SQL))
+    ) {
+      clusters = allClustersByApplication(applicationName)
+    } else {
+      clusters = translateClusters(resolveRelationshipData(application, CLUSTERS.ns), includeDetails)
+    }
     mapResponse(clusters)
+  }
+
+  private Map<String, AmazonServerGroup> translateServerGroups(
+    Collection<CacheData> serverGroupData,
+    Collection<CacheData> instanceData,
+    Collection<CacheData> healthData,
+    Collection<CacheData> launchConfigData,
+    Collection<CacheData> imageData
+  ) {
+    Map<String, AmazonInstance> instances = instanceData?.collectEntries { instanceEntry ->
+      AmazonInstance instance = new AmazonInstance(instanceEntry.attributes)
+      instance.name = instanceEntry.attributes.instanceId.toString()
+      [(instanceEntry.id): instance]
+    } ?: new HashMap<>()
+
+    healthData?.forEach {
+      def instanceId = it.relationships?.find {
+        r -> r.key == INSTANCES.ns && !r.value.empty
+      }?.value?.first()
+
+      if (instanceId != null && instances.containsKey(instanceId)) {
+        instances[instanceId].health << it.attributes
+      }
+    }
+
+    Map<String, AmazonServerGroup> serverGroups = serverGroupData?.collectEntries { sg ->
+      AmazonServerGroup serverGroup = new AmazonServerGroup(sg.attributes)
+      if (sg.relationships.containsKey(INSTANCES.ns) && !sg.relationships.instances.empty) {
+        serverGroup.instances = new HashSet<>()
+        sg.relationships.instances.each { i ->
+          if (instances.containsKey(i)) {
+            serverGroup.instances.add(instances[i])
+          }
+        }
+      }
+
+      [(sg.id): serverGroup]
+    }
+
+    Map<String, CacheData> images = imageData?.collectEntries { image ->
+      [(image.id): image]
+    }
+
+    launchConfigData.each { lc ->
+      if (lc.relationships.containsKey(SERVER_GROUPS.ns)) {
+        def sgKey = lc.relationships.serverGroups.first()
+        serverGroups[sgKey]?.launchConfig = lc.attributes
+
+        def imageId = lc.relationships[IMAGES.ns]?.first()
+        if (imageId && images.containsKey(imageId)) {
+          serverGroups[sgKey]?.image = images[imageId].attributes
+          serverGroups[sgKey]?.buildInfo = getBuildInfoFromImage(images[imageId])
+        }
+      }
+    }
+
+    serverGroups
   }
 
   private Map<String, AmazonServerGroup> translateServerGroups(Collection<CacheData> serverGroupData,
@@ -237,11 +364,13 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster>, ServerGro
         }
       }
 
-      [(serverGroupEntry.id) : serverGroup]
+      [(serverGroupEntry.id): serverGroup]
     }
 
-    Map<String, String> launchConfigurations = serverGroupData.findAll { it.relationships[LAUNCH_CONFIGS.ns] }.collectEntries {
-      [(it.relationships[LAUNCH_CONFIGS.ns].first()) : it.id]
+    Map<String, String> launchConfigurations = serverGroupData.findAll {
+      it.relationships[LAUNCH_CONFIGS.ns]
+    }.collectEntries {
+      [(it.relationships[LAUNCH_CONFIGS.ns].first()): it.id]
     }
     Collection<CacheData> launchConfigs = cacheView.getAll(LAUNCH_CONFIGS.ns, launchConfigurations.keySet())
     Map<String, Collection<String>> allImages = [:]
@@ -304,12 +433,14 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster>, ServerGro
     }
 
     instances.values().each { instance ->
-      instance.isHealthy = instance.health.any { it.state == 'Up' } && instance.health.every { it.state == 'Up' || it.state == 'Unknown' }
+      instance.isHealthy = instance.health.any { it.state == 'Up' } && instance.health.every {
+        it.state == 'Up' || it.state == 'Unknown'
+      }
     }
   }
 
   private Collection<CacheData> resolveRelationshipDataForCollection(Collection<CacheData> sources, String relationship, CacheFilter cacheFilter = null) {
-    Collection<String> relationships = sources?.findResults { it.relationships[relationship]?: [] }?.flatten() ?: []
+    Collection<String> relationships = sources?.findResults { it.relationships[relationship] ?: [] }?.flatten() ?: []
     relationships ? cacheView.getAll(relationship, relationships, cacheFilter) : []
   }
 
@@ -353,7 +484,9 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster>, ServerGro
     if (application == null) {
       return [] as Set
     }
-    Collection<String> clusterKeys = application.relationships[CLUSTERS.ns].findAll { Keys.parse(it).account == account }
+    Collection<String> clusterKeys = application.relationships[CLUSTERS.ns].findAll {
+      Keys.parse(it).account == account
+    }
     Collection<CacheData> clusters = cacheView.getAll(CLUSTERS.ns, clusterKeys)
     translateClusters(clusters, true) as Set<AmazonCluster>
   }

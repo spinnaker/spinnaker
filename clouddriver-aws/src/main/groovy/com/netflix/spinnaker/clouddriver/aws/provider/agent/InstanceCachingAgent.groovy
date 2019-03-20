@@ -196,6 +196,11 @@ class InstanceCachingAgent implements CachingAgent, AccountAware, DriftMetric {
       relationships[IMAGES.ns].add(data.imageId)
       if (data.serverGroup) {
         relationships[SERVER_GROUPS.ns].add(data.serverGroup)
+
+        def application = Keys.parse(data.serverGroup).get("application")
+        if (application != null) {
+          attributes.put("application", application)
+        }
       } else {
         relationships[SERVER_GROUPS.ns].clear()
       }
