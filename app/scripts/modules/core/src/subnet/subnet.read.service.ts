@@ -3,8 +3,13 @@ import { API } from 'core/api/ApiService';
 import { ISubnet } from 'core/domain';
 
 export class SubnetReader {
+  private static cache: IPromise<ISubnet[]>;
+
   public static listSubnets(): IPromise<ISubnet[]> {
-    return API.one('subnets')
+    if (this.cache) {
+      return this.cache;
+    }
+    this.cache = API.one('subnets')
       .getList()
       .then((subnets: ISubnet[]) => {
         subnets.forEach((subnet: ISubnet) => {
@@ -16,6 +21,7 @@ export class SubnetReader {
         });
         return subnets.filter(s => s.label);
       });
+    return this.cache;
   }
 
   public static listSubnetsByProvider(cloudProvider: string): ng.IPromise<ISubnet[]> {
