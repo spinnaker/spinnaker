@@ -126,7 +126,7 @@ public abstract class AbstractStorageSecretEngine implements SecretEngine {
         parsed = (Map<String, Object>) o;
       } else if (o instanceof List) {
         parsed = ((List<Map<String, Object>>) o).get(Integer.valueOf(pathElt));
-      } else {
+      } else if (o != null){
         return (String) o;
       }
     }

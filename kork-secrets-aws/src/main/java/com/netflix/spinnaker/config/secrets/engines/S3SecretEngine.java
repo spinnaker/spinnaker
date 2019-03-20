@@ -19,8 +19,10 @@ package com.netflix.spinnaker.config.secrets.engines;
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.S3Object;
 import com.netflix.spinnaker.config.secrets.EncryptedSecret;
+import com.netflix.spinnaker.config.secrets.SecretException;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -45,15 +47,31 @@ public class S3SecretEngine extends AbstractStorageSecretEngine {
     AmazonS3 s3Client = s3ClientBuilder.build();
 
     try {
-      S3Object s3Object = s3Client.getObject(bucket, objName);
-      return s3Object.getObjectContent();
+      if (!s3Client.doesBucketExistV2(bucket)) {
+        throw new SecretException(String.format("S3 Bucket does not exist. Bucket: %s, Region: %s", bucket, region));
+      }
 
+      S3Object s3Object = s3Client.getObject(bucket, objName);
+
+      return s3Object.getObjectContent();
+    } catch (AmazonS3Exception ex) {
+      StringBuilder sb = new StringBuilder("Error reading contents of S3 -- ");
+      if (403 == ex.getStatusCode()) {
+        sb.append(String.format(
+          "Unauthorized access. Check connectivity and permissions to the bucket. -- Bucket: %s, Object: %s, Region: %s.\n" +
+            "Error: %s ", bucket, objName, region, ex.toString()));
+      } else if (404 == ex.getStatusCode()) {
+        sb.append(String.format(
+          "Not found. Does secret file exist? -- Bucket: %s, Object: %s, Region: %s.\nError: %s",
+          bucket, objName, region, ex.toString()));
+      } else {
+        sb.append(String.format("Error: %s", ex.toString()));
+      }
+      throw new SecretException(sb.toString());
     } catch (AmazonClientException ex) {
-      String msg = String.format(
-        "Error reading contents of S3. Region: %s, Bucket: %s, Object: %s. " +
-          "Check connectivity and permissions to that bucket: %s ",
-        region, bucket, objName, ex.toString());
-      throw new IOException(msg);
+      throw new SecretException(String.format(
+        "Error reading contents of S3. Bucket: %s, Object: %s, Region: %s.\nError: %s",
+        bucket, objName, region, ex.toString()));
     }
   }
 }
