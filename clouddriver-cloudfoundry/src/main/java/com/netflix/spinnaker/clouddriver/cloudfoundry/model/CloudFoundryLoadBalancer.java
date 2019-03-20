@@ -74,7 +74,7 @@ public class CloudFoundryLoadBalancer extends CloudFoundryModel implements LoadB
 
   @JsonProperty
   public String getName() {
-    return host + "." + domain.getName() + (port == null ? "" : "-" + port) + (isEmpty(path) ? "" : "/" + path);
+    return host + "." + domain.getName() + (port == null ? "" : "-" + port) + (isEmpty(path) ? "" : path);
   }
 
   @Override

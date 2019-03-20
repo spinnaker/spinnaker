@@ -43,4 +43,48 @@ class CloudFoundryLoadBalancerTest {
     ObjectMapper mapper = new ObjectMapper();
     assertThat(mapper.writeValueAsString(loadBalancer)).doesNotContain("mappedApps");
   }
+
+  @Test
+  void getNameWithoutPortWithoutPath() {
+    CloudFoundryLoadBalancer testLoadBalancer = CloudFoundryLoadBalancer.builder()
+      .host("hostname")
+      .domain(CloudFoundryDomain.builder().name("example.com").build())
+      .build();
+
+    assertThat(testLoadBalancer.getName()).isEqualToIgnoringCase("hostname.example.com");
+  }
+
+  @Test
+  void getNameWithoutPortWithPath() {
+    CloudFoundryLoadBalancer testLoadBalancer = CloudFoundryLoadBalancer.builder()
+      .host("hostname")
+      .path("/my-path")
+      .domain(CloudFoundryDomain.builder().name("example.com").build())
+      .build();
+
+    assertThat(testLoadBalancer.getName()).isEqualToIgnoringCase("hostname.example.com/my-path");
+  }
+
+  @Test
+  void getNameWithPortWithoutPath() {
+    CloudFoundryLoadBalancer testLoadBalancer = CloudFoundryLoadBalancer.builder()
+      .host("hostname")
+      .port(9999)
+      .domain(CloudFoundryDomain.builder().name("example.com").build())
+      .build();
+
+    assertThat(testLoadBalancer.getName()).isEqualToIgnoringCase("hostname.example.com-9999");
+  }
+
+  @Test
+  void getNameWithPortWithPath() {
+    CloudFoundryLoadBalancer testLoadBalancer = CloudFoundryLoadBalancer.builder()
+      .host("hostname")
+      .path("/my-path")
+      .port(9999)
+      .domain(CloudFoundryDomain.builder().name("example.com").build())
+      .build();
+
+    assertThat(testLoadBalancer.getName()).isEqualToIgnoringCase("hostname.example.com-9999/my-path");
+  }
 }
