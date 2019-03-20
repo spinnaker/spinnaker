@@ -19,6 +19,7 @@ Spinnaker Kubernetes V2 integration.
 
 # Standard python modules.
 import sys
+import subprocess
 
 # citest modules.
 import citest.kube_testing as kube
@@ -79,6 +80,10 @@ class KubeV2SmokeTestScenario(sk.SpinnakerTestScenario):
     # Take just the first if there are multiple
     # because some uses below assume just one.
     self.TEST_NAMESPACE = bindings['TEST_NAMESPACE'].split(',')[0]
+    command = 'kubectl create namespace {namespace}'.format(
+        namespace=self.TEST_NAMESPACE)
+    subprocess.Popen(command, stderr=sys.stderr, shell=True).wait()
+
     self.pipeline_id = None
 
     self.mf = sk.KubernetesManifestFactory(self)

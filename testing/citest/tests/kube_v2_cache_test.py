@@ -22,6 +22,7 @@ import sys
 import random
 import string
 import json
+import subprocess
 
 # citest modules.
 from citest.service_testing import HttpContractBuilder
@@ -83,6 +84,9 @@ class KubeV2CacheTestScenario(sk.SpinnakerTestScenario):
     # Take just the first if there are multiple
     # because some uses below assume just one.
     self.TEST_NAMESPACE = bindings['TEST_NAMESPACE'].split(',')[0]
+    command = 'kubectl create namespace {namespace}'.format(
+        namespace=self.TEST_NAMESPACE)
+    subprocess.Popen(command, stderr=sys.stderr, shell=True).wait()
 
     self.mf = sk.KubernetesManifestFactory(self)
     self.mp = sk.KubernetesManifestPredicateFactory()
