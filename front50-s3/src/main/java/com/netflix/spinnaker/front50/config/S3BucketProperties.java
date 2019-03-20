@@ -27,6 +27,7 @@ public class S3BucketProperties {
   private String proxyPort;
   private String proxyProtocol;
   private Boolean versioning = true; // enabled by default
+  private Boolean pathStyleAccess = true; // enable by default
 
   public String getBucket() {
     return bucket;
@@ -87,4 +88,12 @@ public class S3BucketProperties {
   public Boolean getVersioning() { return versioning; }
 
   public void setVersioning(Boolean versioning) { this.versioning = versioning; }
+
+  public Boolean getPathStyleAccess() {
+    return pathStyleAccess;
+  }
+
+  public void setPathStyleAccess(Boolean pathStyleAccess) {
+    this.pathStyleAccess = pathStyleAccess;
+  }
 }
