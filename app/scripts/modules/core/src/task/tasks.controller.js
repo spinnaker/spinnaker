@@ -147,7 +147,7 @@ module.exports = angular
           return task.id === taskId;
         })[0];
         var submitMethod = function() {
-          return TaskWriter.cancelTask(application.name, taskId).then(() => application.tasks.refresh());
+          return TaskWriter.cancelTask(taskId).then(() => application.tasks.refresh());
         };
 
         confirmationModalService.confirm({

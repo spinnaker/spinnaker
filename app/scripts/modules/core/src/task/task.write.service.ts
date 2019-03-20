@@ -11,14 +11,11 @@ export interface ITaskCreateResult {
 
 export class TaskWriter {
   public static postTaskCommand(taskCommand: ITaskCommand): IPromise<ITaskCreateResult> {
-    return API.one('applications', taskCommand.application || taskCommand.project)
-      .all('tasks')
-      .post(taskCommand);
+    return API.all('tasks').post(taskCommand);
   }
 
-  public static cancelTask(applicationName: string, taskId: string): IPromise<void> {
-    return API.one('applications', applicationName)
-      .all('tasks')
+  public static cancelTask(taskId: string): IPromise<void> {
+    return API.all('tasks')
       .one(taskId, 'cancel')
       .put()
       .then(() =>

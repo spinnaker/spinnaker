@@ -58,7 +58,7 @@ describe('serverGroupWriter', function() {
     function postTask(serverGroupCommand: IServerGroupCommand): ITaskCommand {
       let submitted: ITaskCommand = {};
       $httpBackend
-        .expectPOST(`${API.baseUrl}/applications/app/tasks`, (body: string) => {
+        .expectPOST(`${API.baseUrl}/tasks`, (body: string) => {
           submitted = JSON.parse(body) as ITaskCommand;
           return true;
         })
