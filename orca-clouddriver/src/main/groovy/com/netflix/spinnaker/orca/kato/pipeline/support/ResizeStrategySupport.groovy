@@ -139,7 +139,9 @@ public class ResizeStrategySupport {
     if (stageData.unpinMinimumCapacity) {
       Integer originalMin = null
       def originalSourceCapacity = stage.context.get("originalCapacity.${stageData.source?.serverGroupName}".toString()) as Capacity
-      originalMin = originalSourceCapacity?.min ?: stage.context.savedCapacity?.min
+      originalMin = originalSourceCapacity?.min != null
+        ? originalSourceCapacity?.min
+        : stage.context.savedCapacity?.min
 
       if (originalMin != null) {
         newCapacity = unpinMin(newCapacity, originalMin as Integer)
