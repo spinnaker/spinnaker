@@ -163,6 +163,7 @@ class UpsertTitusScalingPolicyDescription extends AbstractTitusCredentialsDescri
       StepScalingPolicy stepPolicy = stepDescriptor.scalingPolicy
       Step step = new Step()
       description.step = step
+      description.adjustmentType = stepPolicy.adjustmentType
       step.cooldown = stepPolicy.cooldownSec.value
       step.metricAggregationType = stepPolicy.metricAggregationType
       step.stepAdjustments = []
