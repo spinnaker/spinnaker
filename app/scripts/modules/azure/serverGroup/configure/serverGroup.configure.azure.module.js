@@ -17,4 +17,5 @@ module.exports = angular.module('spinnaker.azure.serverGroup.configure', [
   require('./wizard/networkSettings/ServerGroupNetworkSettings.controller').name,
   require('./wizard/networkSettings/ServerGroupNetworkSettingsSelector.directive').name,
   require('./wizard/zones/zoneSelector.directive').name,
+  require('./wizard/tags/tagsSelector.directive').name,
 ]);

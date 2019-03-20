@@ -1,4 +1,5 @@
 import { HelpContentsRegistry } from '@spinnaker/core';
+import Utility from '../utility';
 
 const helpContents: { [key: string]: string } = {
   'azure.securityGroup.ingress.description': 'Friendly description of the rule you want to enable (limit 80 chars.)',
@@ -29,6 +30,9 @@ const helpContents: { [key: string]: string } = {
   'azure.serverGroup.commandToExecute':
     'Command(s) to execute custom scripts provided during provisioning of an instance.',
   'azure.serverGroup.customData': 'Script or metadata to be injected into each instances.',
+  'azure.serverGroup.customTags': `Custom tags on Virtual Machine Scale Set. Allow ${
+    Utility.TAG_LIMITATION
+  } tags at most.`,
 };
 
 Object.keys(helpContents).forEach(key => HelpContentsRegistry.register(key, helpContents[key]));

@@ -59,6 +59,7 @@ module.exports = angular
           tier: 'Standard',
           capacity: command.sku.capacity,
         },
+        instanceTags: command.instanceTags,
         viewState: command.viewState,
         osConfig: {
           customData: command.osConfig ? command.osConfig.customData : null,

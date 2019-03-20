@@ -1,0 +1,16 @@
+<div class="form-group">
+  <div class="col-md-12" style="color:red" ng-if="!tagsSelectorCtrl.getTagResult().isValid">
+    {{ tagsSelectorCtrl.getTagResult().errorMessage }}
+  </div>
+  <div class="col-md-4 sm-label-left">
+    <b>Custom Tags</b>
+    <help-field key="azure.serverGroup.customTags"></help-field>
+  </div>
+  <div class="col-md-12">
+    <map-editor
+      model="tagsSelectorCtrl.command.instanceTags"
+      add-button-label="Add New Tags"
+      allow-empty="true"
+    ></map-editor>
+  </div>
+</div>

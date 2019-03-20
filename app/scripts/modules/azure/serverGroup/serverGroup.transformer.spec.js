@@ -219,5 +219,29 @@ describe('azureServerGroupTransformer', function() {
       expect(transformed.zonesEnabled).toEqual(false);
       expect(transformed.zones).toEqual([]);
     });
+
+    it('sets instance tags correctly when provided', function() {
+      let imap = new Map();
+      var base = {
+        application: 'myApp',
+        sku: {
+          capacity: 1,
+        },
+        selectedImage: {
+          publisher: 'Microsoft',
+          offer: 'Windows',
+          sku: 'Server2016',
+          version: '12.0.0.1',
+        },
+        viewState: {
+          mode: 'create',
+        },
+        instanceTags: imap,
+      };
+
+      var transformed = transformer.convertServerGroupCommandToDeployConfiguration(base);
+
+      expect(transformed.instanceTags).toBe(imap);
+    });
   });
 });
