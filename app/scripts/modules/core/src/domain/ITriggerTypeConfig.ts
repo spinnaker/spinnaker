@@ -11,4 +11,5 @@ export interface IExecutionTriggerStatusComponentProps {
 export interface ITriggerTypeConfig extends IStageOrTriggerTypeConfig {
   executionStatusComponent?: React.ComponentType<IExecutionTriggerStatusComponentProps>;
   executionTriggerLabel?: (trigger: ITrigger) => string;
+  excludedArtifactTypePatterns?: RegExp[];
 }

@@ -1,6 +1,7 @@
 import { IController, IScope, module } from 'angular';
 import { has, trim } from 'lodash';
 
+import { ArtifactTypePatterns, excludeAllTypesExcept } from 'core/artifact';
 import { SETTINGS } from 'core/config/settings';
 import { IGitTrigger } from 'core/domain/ITrigger';
 import { Registry } from 'core/registry';
@@ -76,6 +77,11 @@ module(GIT_TRIGGER, [])
       controllerAs: 'vm',
       templateUrl: require('./gitTrigger.html'),
       executionStatusComponent: GitTriggerExecutionStatus,
+      excludedArtifactTypePatterns: excludeAllTypesExcept(
+        ArtifactTypePatterns.GITHUB_FILE,
+        ArtifactTypePatterns.GITLAB_FILE,
+        ArtifactTypePatterns.BITBUCKET_FILE,
+      ),
       validators: [
         {
           type: 'serviceAccountAccess',

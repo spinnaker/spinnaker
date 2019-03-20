@@ -6,44 +6,63 @@ import Select from 'react-select';
 import { react2angular } from 'react2angular';
 
 import { ArtifactTypePatterns, ExpectedArtifactModal, ExpectedArtifactService } from 'core/artifact';
-import { IExpectedArtifact, IPipeline } from 'core/domain';
+import { IExpectedArtifact, IPipeline, ITrigger } from 'core/domain';
+import { Registry } from 'core/registry';
 
 export interface ITriggerArtifactConstraintSelectorProps {
   pipeline: IPipeline;
-  artifactReferer: any; // the object referring to a set of expected artifacts
+  trigger: ITrigger;
   selected?: string[]; // expected artifact ids
   onDefineExpectedArtifact: (artifact: IExpectedArtifact) => void;
   onChangeSelected: (selected: string[], referer: any) => void;
 }
 
 export class TriggerArtifactConstraintSelector extends React.Component<ITriggerArtifactConstraintSelectorProps> {
+  private defaultExcludedArtifactTypePatterns = [
+    ArtifactTypePatterns.KUBERNETES,
+    ArtifactTypePatterns.FRONT50_PIPELINE_TEMPLATE,
+  ];
+
+  private excludedArtifactTypes = () => {
+    const triggerConfig = Registry.pipeline
+      .getTriggerTypes()
+      .filter(config => config.key === this.props.trigger.type)
+      .pop();
+    return this.defaultExcludedArtifactTypePatterns.concat(
+      (triggerConfig && triggerConfig.excludedArtifactTypePatterns) || [],
+    );
+  };
+
   private handleChange = (index: number, selectedArtifact: IExpectedArtifact) => {
     if (selectedArtifact.id === '__create.new.artifact') {
       ExpectedArtifactModal.show({
         pipeline: this.props.pipeline,
-        excludedArtifactTypePatterns: [ArtifactTypePatterns.KUBERNETES, ArtifactTypePatterns.FRONT50_PIPELINE_TEMPLATE],
+        excludedArtifactTypePatterns: this.excludedArtifactTypes(),
+        excludedDefaultArtifactTypePatterns: this.defaultExcludedArtifactTypePatterns,
       }).then(this.props.onDefineExpectedArtifact);
       return;
     }
 
     const selected = (this.props.selected || []).slice(0);
     selected[index] = selectedArtifact.id;
-    this.props.onChangeSelected(selected, this.props.artifactReferer);
+    this.props.onChangeSelected(selected, this.props.trigger);
   };
 
   private removeExpectedArtifact = (artifact: IExpectedArtifact) => {
     const selected = (this.props.selected || []).slice(0);
     selected.splice(selected.findIndex(artifactId => artifact.id === artifactId), 1);
-    this.props.onChangeSelected(selected, this.props.artifactReferer);
+    this.props.onChangeSelected(selected, this.props.trigger);
   };
 
   private editExpectedArtifact = (artifact: IExpectedArtifact) => {
     ExpectedArtifactModal.show({
       expectedArtifact: artifact,
       pipeline: this.props.pipeline,
+      excludedArtifactTypePatterns: this.excludedArtifactTypes(),
+      excludedDefaultArtifactTypePatterns: this.defaultExcludedArtifactTypePatterns,
     }).then((editedArtifact: IExpectedArtifact) => {
       this.props.onDefineExpectedArtifact(editedArtifact);
-      this.props.onChangeSelected(this.props.selected, this.props.artifactReferer);
+      this.props.onChangeSelected(this.props.selected, this.props.trigger);
     });
   };
 
@@ -102,7 +121,7 @@ module(TRIGGER_ARTIFACT_CONSTRAINT_SELECTOR_REACT, []).component(
   'triggerArtifactConstraintSelectorReact',
   react2angular(TriggerArtifactConstraintSelector, [
     'pipeline',
-    'artifactReferer',
+    'trigger',
     'selected',
     'onDefineExpectedArtifact',
     'onChangeSelected',

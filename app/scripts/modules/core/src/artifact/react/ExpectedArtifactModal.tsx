@@ -17,11 +17,13 @@ export interface IExpectedArtifactModalProps extends IModalComponentProps {
   expectedArtifact?: IExpectedArtifact;
   pipeline: IPipeline;
   excludedArtifactTypePatterns?: RegExp[];
+  excludedDefaultArtifactTypePatterns?: RegExp[];
 }
 
 export interface IExpectedArtifactModalState {
   taskMonitor: TaskMonitor;
-  artifactAccounts: IArtifactAccount[];
+  matchArtifactAccounts: IArtifactAccount[];
+  defaultArtifactAccounts: IArtifactAccount[];
 }
 
 export class ExpectedArtifactModal extends React.Component<IExpectedArtifactModalProps, IExpectedArtifactModalState> {
@@ -29,7 +31,8 @@ export class ExpectedArtifactModal extends React.Component<IExpectedArtifactModa
     super(props);
 
     this.state = {
-      artifactAccounts: [],
+      matchArtifactAccounts: [],
+      defaultArtifactAccounts: [],
       taskMonitor: new TaskMonitor({ title: "I'm never used" }),
     };
   }
@@ -40,12 +43,21 @@ export class ExpectedArtifactModal extends React.Component<IExpectedArtifactModa
   };
 
   public componentDidMount(): void {
-    const excludedPatterns = this.props.excludedArtifactTypePatterns;
+    const { excludedArtifactTypePatterns, excludedDefaultArtifactTypePatterns } = this.props;
     AccountService.getArtifactAccounts().then(artifactAccounts => {
       this.setState({
-        artifactAccounts: excludedPatterns
+        matchArtifactAccounts: excludedArtifactTypePatterns
           ? artifactAccounts.filter(
-              account => !account.types.some(typ => excludedPatterns.some(typPattern => typPattern.test(typ))),
+              account =>
+                !account.types.some(typ => excludedArtifactTypePatterns.some(typPattern => typPattern.test(typ))),
+            )
+          : artifactAccounts,
+        defaultArtifactAccounts: excludedDefaultArtifactTypePatterns
+          ? artifactAccounts.filter(
+              account =>
+                !account.types.some(typ =>
+                  excludedDefaultArtifactTypePatterns.some(typPattern => typPattern.test(typ)),
+                ),
             )
           : artifactAccounts,
       });
@@ -63,7 +75,7 @@ export class ExpectedArtifactModal extends React.Component<IExpectedArtifactModa
   };
 
   public render(): React.ReactNode {
-    const { artifactAccounts } = this.state;
+    const { matchArtifactAccounts, defaultArtifactAccounts } = this.state;
     return (
       <WizardModal<IExpectedArtifact>
         heading="Expected Artifact"
@@ -95,7 +107,7 @@ export class ExpectedArtifactModal extends React.Component<IExpectedArtifactModa
                 <ArtifactEditor
                   pipeline={this.props.pipeline}
                   artifact={formik.values.matchArtifact}
-                  artifactAccounts={artifactAccounts}
+                  artifactAccounts={matchArtifactAccounts}
                   onArtifactEdit={(artifact: IArtifact) => this.editArtifact(formik, 'matchArtifact', artifact)}
                   isDefault={false}
                 />
@@ -126,7 +138,7 @@ export class ExpectedArtifactModal extends React.Component<IExpectedArtifactModa
                     <ArtifactEditor
                       pipeline={this.props.pipeline}
                       artifact={formik.values.defaultArtifact}
-                      artifactAccounts={artifactAccounts}
+                      artifactAccounts={defaultArtifactAccounts}
                       onArtifactEdit={(artifact: IArtifact) => this.editArtifact(formik, 'defaultArtifact', artifact)}
                       isDefault={true}
                     />

@@ -1,5 +1,6 @@
 import { IController, module } from 'angular';
 
+import { ArtifactTypePatterns } from 'core/artifact';
 import { IPubsubSubscription, IPubsubTrigger } from 'core/domain';
 import { PubsubSubscriptionReader } from 'core/pubsub';
 import { Registry } from 'core/registry';
@@ -50,6 +51,7 @@ module(PUBSUB_TRIGGER, [])
       controller: 'PubsubTriggerCtrl',
       controllerAs: 'vm',
       templateUrl: require('./pubsubTrigger.html'),
+      excludedArtifactTypePatterns: [ArtifactTypePatterns.JENKINS_FILE],
       validators: [],
     });
   })

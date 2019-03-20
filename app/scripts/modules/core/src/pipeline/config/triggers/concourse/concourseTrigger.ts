@@ -1,11 +1,13 @@
 import { Registry } from 'core/registry';
 import { ConcourseTriggerConfig } from './ConcourseTriggerConfig';
+import { ArtifactTypePatterns } from 'core/artifact';
 
 Registry.pipeline.registerTrigger({
   label: 'Concourse',
   description: 'Listens to a Concourse job',
   key: 'concourse',
   component: ConcourseTriggerConfig,
+  excludedArtifactTypePatterns: [ArtifactTypePatterns.JENKINS_FILE],
   validators: [
     {
       type: 'requiredField',

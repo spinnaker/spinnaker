@@ -2,6 +2,7 @@
 
 const angular = require('angular');
 
+import { ArtifactTypePatterns } from 'core/artifact';
 import { UUIDGenerator } from 'core/utils/uuid.service';
 import { Registry } from 'core/registry';
 import { ServiceAccountReader } from 'core/serviceAccount/ServiceAccountReader';
@@ -24,6 +25,7 @@ module.exports = angular
       controllerAs: 'vm',
       templateUrl: require('./cronTrigger.html'),
       executionTriggerLabel: trigger => trigger.cronExpression,
+      excludedArtifactTypePatterns: [ArtifactTypePatterns.JENKINS_FILE],
       validators: [
         {
           type: 'serviceAccountAccess',

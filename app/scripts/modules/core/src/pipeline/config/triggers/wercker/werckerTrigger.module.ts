@@ -1,11 +1,12 @@
 import { IController, IScope, module } from 'angular';
 
+import { ArtifactTypePatterns } from 'core/artifact';
 import { IgorService, BuildServiceType } from 'core/ci/igor.service';
 import { Registry } from 'core/registry';
 import { ServiceAccountReader } from 'core/serviceAccount/ServiceAccountReader';
 import { IWerckerTrigger } from 'core/domain/ITrigger';
-import { SETTINGS } from 'core/config/settings';
 
+import { SETTINGS } from 'core/config/settings';
 import { WerckerTriggerTemplate } from './WerckerTriggerTemplate';
 
 export interface IWerckerTriggerViewState {
@@ -140,6 +141,7 @@ module(WERCKER_TRIGGER, [require('../trigger.directive').name])
       controllerAs: '$ctrl',
       templateUrl: require('./werckerTrigger.html'),
       manualExecutionComponent: WerckerTriggerTemplate,
+      excludedArtifactTypePatterns: [ArtifactTypePatterns.JENKINS_FILE],
       validators: [
         {
           type: 'requiredField',

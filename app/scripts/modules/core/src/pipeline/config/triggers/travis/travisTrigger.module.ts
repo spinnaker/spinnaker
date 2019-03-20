@@ -1,11 +1,12 @@
 import { IController, IScope, module } from 'angular';
 
+import { ArtifactTypePatterns } from 'core/artifact';
 import { IgorService, BuildServiceType } from 'core/ci/igor.service';
 import { Registry } from 'core/registry';
 import { ServiceAccountReader } from 'core/serviceAccount/ServiceAccountReader';
 import { IBuildTrigger } from 'core/domain/ITrigger';
-import { SETTINGS } from 'core/config/settings';
 
+import { SETTINGS } from 'core/config/settings';
 import { TravisTriggerTemplate } from './TravisTriggerTemplate';
 
 export interface ITravisTriggerViewState {
@@ -90,6 +91,7 @@ module(TRAVIS_TRIGGER, [require('../trigger.directive').name])
       templateUrl: require('./travisTrigger.html'),
       manualExecutionComponent: TravisTriggerTemplate,
       providesVersionForBake: true,
+      excludedArtifactTypePatterns: [ArtifactTypePatterns.JENKINS_FILE],
       validators: [
         {
           type: 'requiredField',

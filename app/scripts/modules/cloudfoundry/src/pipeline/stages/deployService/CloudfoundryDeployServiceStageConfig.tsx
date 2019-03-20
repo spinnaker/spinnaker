@@ -11,6 +11,7 @@ import {
   StageConfigField,
   StageArtifactSelector,
   IArtifact,
+  ArtifactTypePatterns,
 } from '@spinnaker/core';
 
 import { CreateServiceInstanceDirectInput } from './CreateServiceInstanceDirectInput';
@@ -148,6 +149,11 @@ export class CloudfoundryDeployServiceStageConfig extends React.Component<
             pipeline={pipeline}
             stage={stage}
             expectedArtifactId={manifest.artifactId}
+            excludedArtifactTypePatterns={[
+              ArtifactTypePatterns.KUBERNETES,
+              ArtifactTypePatterns.FRONT50_PIPELINE_TEMPLATE,
+              ArtifactTypePatterns.DOCKER_IMAGE,
+            ]}
             artifact={manifest.artifact}
             onExpectedArtifactSelected={this.onExpectedArtifactSelected}
             onArtifactEdited={this.onArtifactChanged}

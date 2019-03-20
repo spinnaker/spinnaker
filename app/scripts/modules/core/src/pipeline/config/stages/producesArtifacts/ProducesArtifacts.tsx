@@ -27,6 +27,7 @@ export const ProducesArtifacts: React.SFC<IProducesArtifactsProps> = props => {
       expectedArtifact: artifact,
       pipeline: pipeline,
       excludedArtifactTypePatterns: excludedArtifactTypePatterns,
+      excludedDefaultArtifactTypePatterns: excludedArtifactTypePatterns,
     }).then((editedArtifact: IExpectedArtifact) => {
       const editIndex = produces.findIndex(a => a.id === editedArtifact.id);
       const producesAfterEdit = produces.slice(0);
@@ -39,6 +40,7 @@ export const ProducesArtifacts: React.SFC<IProducesArtifactsProps> = props => {
     ExpectedArtifactModal.show({
       pipeline: pipeline,
       excludedArtifactTypePatterns: excludedArtifactTypePatterns,
+      excludedDefaultArtifactTypePatterns: excludedArtifactTypePatterns,
     }).then((artifact: IExpectedArtifact) => {
       const producesAfterNew = produces.slice(0);
       producesAfterNew.push(artifact);

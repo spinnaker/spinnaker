@@ -1,5 +1,6 @@
 import { Registry } from 'core/registry';
 import { ArtifactoryTriggerConfig } from './ArtifactoryTriggerConfig';
+import { ArtifactTypePatterns, excludeAllTypesExcept } from 'core/artifact';
 
 Registry.pipeline.registerTrigger({
   label: 'Artifactory',
@@ -7,4 +8,5 @@ Registry.pipeline.registerTrigger({
   key: 'artifactory',
   component: ArtifactoryTriggerConfig,
   validators: [],
+  excludedArtifactTypePatterns: excludeAllTypesExcept(ArtifactTypePatterns.MAVEN_FILE),
 });

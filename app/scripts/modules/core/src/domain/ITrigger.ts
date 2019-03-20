@@ -7,6 +7,7 @@ export interface ITrigger {
   type: string;
   expectedArtifactIds?: string[]; // uuid references to ExpectedArtifacts defined in the Pipeline.
   runAsUser?: string;
+  excludedArtifactTypePatterns?: RegExp[];
 }
 
 export interface IArtifactoryTrigger extends ITrigger {

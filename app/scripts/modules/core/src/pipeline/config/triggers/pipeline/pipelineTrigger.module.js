@@ -3,6 +3,7 @@
 import _ from 'lodash';
 const angular = require('angular');
 
+import { ArtifactTypePatterns } from 'core/artifact';
 import { ServiceAccountReader } from 'core/serviceAccount/ServiceAccountReader';
 import { ApplicationReader } from 'core/application/service/ApplicationReader';
 import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
@@ -23,6 +24,7 @@ module.exports = angular
       templateUrl: require('./pipelineTrigger.html'),
       manualExecutionComponent: PipelineTriggerTemplate,
       executionStatusComponent: ExecutionUserStatus,
+      excludedArtifactTypePatterns: [ArtifactTypePatterns.JENKINS_FILE],
       executionTriggerLabel: () => 'Pipeline',
     });
   })
