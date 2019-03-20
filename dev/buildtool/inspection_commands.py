@@ -483,7 +483,7 @@ class CollectArtifactVersions(CommandProcessor):
       response = urlopen(request)
       headers = response.info()
       payload = response.read()
-      content = json.JSONDecoder(encoding='utf-8').decode(payload)
+      content = json.JSONDecoder().decode(payload)
     except HTTPError as ex:
       raise_and_log_error(
           ResponseError('Bintray failure: {}'.format(ex),
@@ -595,7 +595,7 @@ class CollectArtifactVersions(CommandProcessor):
       command_parts.extend(['--account', options.gcb_service_account])
     response = check_subprocess(' '.join(command_parts))
     result = []
-    for version in json.JSONDecoder(encoding='utf-8').decode(response):
+    for version in json.JSONDecoder().decode(response):
       result.extend(version['tags'])
     return (image[image.rfind('/') + 1:], result)
 
@@ -612,7 +612,7 @@ class CollectArtifactVersions(CommandProcessor):
 
     response = check_subprocess(' '.join(command_parts))
     images = [entry['name']
-              for entry in json.JSONDecoder(encoding='utf-8').decode(response)]
+              for entry in json.JSONDecoder().decode(response)]
     image_versions = pool.map(self.query_gcr_image_versions, images)
 
     image_map = {}
@@ -641,7 +641,7 @@ class CollectArtifactVersions(CommandProcessor):
 
     response = check_subprocess(' '.join(command_parts))
     images = [entry['name']
-              for entry in json.JSONDecoder(encoding='utf-8').decode(response)]
+              for entry in json.JSONDecoder().decode(response)]
     image_map = {}
     for name in images:
       parts = name.split('-', 2)

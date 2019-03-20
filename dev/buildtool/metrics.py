@@ -49,10 +49,10 @@ class MetricsManager(object):
         choices=['file', 'influxdb'],
         help='Where to store metrics.')
     add_parser_argument(
-      parser, 'monitoring_context_labels', defaults, None,
-      help='A comma-separated list of additional name=value'
-           ' labels to add to each event to associate them together.'
-           ' (e.g. version=release-1.2.x)')
+        parser, 'monitoring_context_labels', defaults, None,
+        help='A comma-separated list of additional name=value'
+             ' labels to add to each event to associate them together.'
+             ' (e.g. version=release-1.2.x)')
 
   @staticmethod
   def startup_metrics(options):

@@ -78,7 +78,7 @@ def timedelta_string(delta):
 
   if delta_hours or day_str:
     return day_str + '%02d:%02d:%02d' % (delta_hours, delta_mins, delta_secs)
-  elif delta_mins:
+  if delta_mins:
     return '%02d:%02d' % (delta_mins, delta_secs)
   return '%d.%03d secs' % (delta_secs, delta.microseconds // 1000)
 
