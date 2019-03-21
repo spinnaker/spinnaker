@@ -153,7 +153,7 @@ export class CloudFoundryServerGroupCommandBuilder {
       command.freeFormDetails = stage.freeFormDetails || command.freeFormDetails;
       command.maxRemainingAsgs = stage.maxRemainingAsgs;
       command.region = stage.region;
-      command.startApplication = stage.startApplication;
+      command.startApplication = stage.startApplication === undefined || stage.startApplication;
       command.stack = stage.stack || command.stack;
       command.strategy = stage.strategy;
       command.target = stage.target;
