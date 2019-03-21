@@ -49,22 +49,22 @@ describe('Directives: overrideTimeout', function() {
       ).not.toBe(-1);
     });
 
-    it('shows the contents when overrideTimeout is set', function() {
+    it('shows the contents when stageTimeoutMs is set', function() {
       spyOn(Registry.pipeline, 'getStageConfig').and.returnValue(stageConfig);
-      this.scope.stage.overrideTimeout = true;
+      this.scope.stage.stageTimeoutMs = 30000;
       var domNode = this.compile('<override-timeout stage="stage"></override-timeout>')(this.scope);
       this.scope.$digest();
       expect(domNode.find('input[type="number"]').length).toBe(2);
     });
 
-    it('unsets timeout, removes contents when overrideTimeout is set to false', function() {
+    it('unsets timeout, removes contents when we click to uncheck', function() {
       spyOn(Registry.pipeline, 'getStageConfig').and.returnValue(stageConfig);
       this.scope.stage.stageTimeoutMs = 30000;
-      this.scope.stage.overrideTimeout = true;
       var domNode = this.compile('<override-timeout stage="stage"></override-timeout>')(this.scope);
       this.scope.$digest();
       expect(domNode.find('input[type="number"]').length).toBe(2);
-      this.scope.stage.overrideTimeout = false;
+
+      domNode.find('input[type="checkbox"]').click();
       this.scope.$digest();
       expect(domNode.find('input[type="number"]').length).toBe(0);
       expect(this.scope.stage.stageTimeoutMs).toBeUndefined();
@@ -73,7 +73,6 @@ describe('Directives: overrideTimeout', function() {
 
   describe('time conversion', function() {
     it('rounds down', function() {
-      this.scope.stage.overrideTimeout = true;
       this.scope.stage.stageTimeoutMs = 30 * 60 * 1000 + 499;
       this.$controller('OverrideTimeoutCtrl', {
         $scope: this.scope,
@@ -83,7 +82,6 @@ describe('Directives: overrideTimeout', function() {
     });
 
     it('rolls minutes over to hours', function() {
-      this.scope.stage.overrideTimeout = true;
       this.scope.stage.stageTimeoutMs = 95 * 60 * 1000;
       var ctrl = this.$controller('OverrideTimeoutCtrl', {
         $scope: this.scope,

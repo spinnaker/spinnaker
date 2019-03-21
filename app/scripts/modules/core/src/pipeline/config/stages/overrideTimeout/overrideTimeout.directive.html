@@ -3,12 +3,7 @@
     <div class="col-md-9 col-md-offset-1">
       <div class="checkbox">
         <label>
-          <input
-            type="checkbox"
-            ng-model="stage.overrideTimeout"
-            ng-false-value="undefined"
-            ng-change="overrideTimeoutCtrl.setOverrideValues()"
-          />
+          <input type="checkbox" ng-model="vm.overrideTimeout" ng-change="overrideTimeoutCtrl.setOverrideValues()" />
           <strong> Override default timeout</strong>
           (
           <span class="default-timeout">
@@ -25,7 +20,7 @@
       </div>
     </div>
   </div>
-  <div ng-if="stage.overrideTimeout">
+  <div ng-if="vm.overrideTimeout">
     <div class="form-group form-inline">
       <div class="col-md-9 col-md-offset-1 checkbox-padding">
         Fail this stage if it takes longer than
