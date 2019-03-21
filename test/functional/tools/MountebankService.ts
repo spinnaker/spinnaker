@@ -91,7 +91,6 @@ export class MountebankService {
               {
                 proxy: {
                   to: `http://localhost:${this.options.imposterPort}`,
-                  mode: 'proxyTransparent',
                   predicateGenerators: [
                     {
                       matches: { method: true, path: true, query: true },
