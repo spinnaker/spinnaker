@@ -1,7 +1,8 @@
 import * as React from 'react';
 import { mount } from 'enzyme';
 
-import { IPipeline } from 'core/domain';
+import { IPipeline, IPipelineTemplateV2 } from 'core/domain';
+import { PipelineTemplateV2Service } from 'core/pipeline/config/templates/v2/pipelineTemplateV2.service';
 import { ShowPipelineTemplateJsonModal } from './ShowPipelineTemplateJsonModal';
 
 describe('<ShowPipelineTemplateJsonModal />', () => {
@@ -12,27 +13,21 @@ describe('<ShowPipelineTemplateJsonModal />', () => {
     stages: [{ name: 'Find Image from Cluster', refId: '1', requisiteStageRefIds: [], type: 'findImage' }],
   };
 
-  it('renders a pipeline object in a template json string', () => {
-    const wrapper = mount(<ShowPipelineTemplateJsonModal pipeline={mockPipeline as IPipeline} />);
-    const templateStr = wrapper.find('JsonEditor').prop('value');
-    const template = JSON.parse(templateStr as string);
-    expect(template.pipeline).toEqual(mockPipeline);
-  });
+  const mockTemplate: IPipelineTemplateV2 = PipelineTemplateV2Service.createPipelineTemplate(
+    mockPipeline as IPipeline,
+    'example@example.com',
+  );
 
   it('dismisses modal with close button', () => {
     const dismissModal = jasmine.createSpy('dismissModal');
-    const wrapper = mount(
-      <ShowPipelineTemplateJsonModal pipeline={mockPipeline as IPipeline} dismissModal={dismissModal} />,
-    );
+    const wrapper = mount(<ShowPipelineTemplateJsonModal template={mockTemplate} dismissModal={dismissModal} />);
     const button = wrapper.find('button').filterWhere(n => n.text() === 'Close');
     button.simulate('click');
     expect(dismissModal).toHaveBeenCalled();
   });
 
   it('updates template json with user input', () => {
-    const wrapper = mount(
-      <ShowPipelineTemplateJsonModal pipeline={mockPipeline as IPipeline} ownerEmail="example@example.com" />,
-    );
+    const wrapper = mount(<ShowPipelineTemplateJsonModal template={mockTemplate} />);
     const simulateInputChange = (id: string, value: string) =>
       wrapper.find(id).simulate('change', { target: { value } });
 

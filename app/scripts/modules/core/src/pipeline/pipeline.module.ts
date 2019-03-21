@@ -43,6 +43,7 @@ import { STEP_EXECUTION_DETAILS_COMPONENT } from './details/stepExecutionDetails
 import { STAGE_SUMMARY_COMPONENT } from './details/stageSummary.component';
 import { PRODUCES_ARTIFACTS } from './config/stages/producesArtifacts/producesArtifacts.component';
 import { ARTIFACT_LIST } from './status/artifactList.component';
+import { PIPELINE_TEMPLATES_V2_STATES_CONFIG } from './config/templates/v2/pipelineTemplateV2.states';
 
 import './pipeline.less';
 import 'angular-ui-sortable';
@@ -103,4 +104,5 @@ module(PIPELINE_MODULE, [
   require('./config/preconditions/preconditions.module').name,
   require('./config/preconditions/types/clusterSize/clusterSize.precondition.type.module').name,
   require('./config/preconditions/types/expression/expression.precondition.type.module').name,
+  PIPELINE_TEMPLATES_V2_STATES_CONFIG,
 ]);

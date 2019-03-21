@@ -1,15 +1,16 @@
 import * as React from 'react';
 
 import { IModalComponentProps, JsonEditor } from 'core/presentation';
-import { IPipeline, IPipelineTemplateV2 } from 'core/domain';
+import { IPipelineTemplateV2 } from 'core/domain';
 import { CopyToClipboard, noop, JsonUtils } from 'core/utils';
-import { PipelineTemplateV2Service } from 'core/pipeline';
 
 import './ShowPipelineTemplateJsonModal.less';
 
 export interface IShowPipelineTemplateJsonModalProps extends IModalComponentProps {
-  ownerEmail: string;
-  pipeline: IPipeline;
+  template: IPipelineTemplateV2;
+  editable?: boolean;
+  modalHeading?: string;
+  descriptionText?: string;
 }
 
 export interface IShowPipelineTemplateJsonModalState {
@@ -22,16 +23,21 @@ export class ShowPipelineTemplateJsonModal extends React.Component<
 > {
   public static defaultProps: Partial<IShowPipelineTemplateJsonModalProps> = {
     dismissModal: noop,
+    editable: true,
+    modalHeading: 'Export as Pipeline Template',
+    descriptionText:
+      'The JSON below is the templated version of your pipeline. Save it by copy/pasting to the Spin CLI tool.',
   };
 
   constructor(props: IShowPipelineTemplateJsonModalProps) {
     super(props);
-
-    const template = PipelineTemplateV2Service.createPipelineTemplate(props.pipeline, props.ownerEmail);
-    this.state = { template };
+    this.state = { template: props.template };
   }
 
-  private onChange = (e: React.ChangeEvent<HTMLInputElement>, property: string) =>
+  private onChange = (e: React.ChangeEvent<HTMLInputElement>, property: string) => {
+    if (!this.props.editable) {
+      return;
+    }
     this.setState({
       template: {
         ...this.state.template,
@@ -41,9 +47,10 @@ export class ShowPipelineTemplateJsonModal extends React.Component<
         },
       },
     });
+  };
 
   public render() {
-    const { dismissModal } = this.props;
+    const { dismissModal, editable, modalHeading, descriptionText } = this.props;
     const { template } = this.state;
     const sortedTemplate = JsonUtils.sortObject(template);
     const templateStr = JsonUtils.makeStringFromObject(sortedTemplate, 0);
@@ -52,10 +59,10 @@ export class ShowPipelineTemplateJsonModal extends React.Component<
     return (
       <div className="flex-fill">
         <div className="modal-header">
-          <h3>Export as Pipeline Template</h3>
+          <h3>{modalHeading}</h3>
         </div>
         <div className="modal-body flex-fill">
-          <p>The JSON below is the templated version of your pipeline. Save it by copy/pasting to the Spin CLI tool.</p>
+          <p>{descriptionText}</p>
           <form className="form-horizontal">
             <div className="form-group">
               <label htmlFor="template-name" className="col-md-3 sm-label-right">
@@ -68,6 +75,7 @@ export class ShowPipelineTemplateJsonModal extends React.Component<
                   type="text"
                   value={template.metadata.name}
                   onChange={e => this.onChange(e, 'name')}
+                  disabled={!editable}
                 />
               </div>
             </div>
@@ -83,6 +91,7 @@ export class ShowPipelineTemplateJsonModal extends React.Component<
                   value={template.metadata.description}
                   onChange={e => this.onChange(e, 'description')}
                   placeholder="Template Description"
+                  disabled={!editable}
                 />
               </div>
             </div>
@@ -97,15 +106,18 @@ export class ShowPipelineTemplateJsonModal extends React.Component<
                   type="text"
                   value={template.metadata.owner}
                   onChange={e => this.onChange(e, 'owner')}
+                  disabled={!editable}
                 />
               </div>
             </div>
-            <div className="show-pipeline-template-json-modal__copy text-right">
-              <CopyToClipboard
-                buttonInnerNode={<a>Copy the spin command for saving this template</a>}
-                text={`echo '${templateStr}' | spin pipeline-templates save`}
-              />
-            </div>
+            {editable && (
+              <div className="show-pipeline-template-json-modal__copy text-right">
+                <CopyToClipboard
+                  buttonInnerNode={<a>Copy the spin command for saving this template</a>}
+                  text={`echo '${templateStr}' | spin pipeline-templates save`}
+                />
+              </div>
+            )}
           </form>
           <JsonEditor value={templateStrWithSpacing} readOnly={true} />
         </div>

@@ -15,6 +15,7 @@ import { PipelineConfigService } from 'core/pipeline/config/services/PipelineCon
 import { ExecutionsTransformer } from 'core/pipeline/service/ExecutionsTransformer';
 import { EditPipelineJsonModal } from 'core/pipeline/config/actions/pipelineJson/EditPipelineJsonModal';
 import { ShowPipelineTemplateJsonModal } from 'core/pipeline/config/actions/templateJson/ShowPipelineTemplateJsonModal';
+import { PipelineTemplateV2Service } from 'core/pipeline';
 
 module.exports = angular
   .module('spinnaker.core.pipeline.config.pipelineConfigurer', [OVERRIDE_REGISTRY, EXECUTION_BUILD_TITLE])
@@ -214,11 +215,10 @@ module.exports = angular
 
       this.exportPipelineTemplate = () => {
         const modalProps = { dialogClassName: 'modal-lg modal-fullscreen' };
-        ReactModal.show(
-          ShowPipelineTemplateJsonModal,
-          { ownerEmail: _.get($scope, 'application.attributes.email', ''), pipeline: $scope.pipeline },
-          modalProps,
-        );
+        const pipeline = $scope.pipeline;
+        const ownerEmail = _.get($scope, 'application.attributes.email', '');
+        const template = PipelineTemplateV2Service.createPipelineTemplate(pipeline, ownerEmail);
+        ReactModal.show(ShowPipelineTemplateJsonModal, { template }, modalProps);
       };
 
       // Disabling a pipeline also just toggles the disabled flag - it does not save any pending changes

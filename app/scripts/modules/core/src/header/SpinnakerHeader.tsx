@@ -5,6 +5,7 @@ import { UIRouterContext } from '@uirouter/react-hybrid';
 import { NgReact } from 'core/reactShims';
 import { GlobalSearch } from 'core/search/global/GlobalSearch';
 import { HelpMenu } from 'core/help/HelpMenu';
+import { SETTINGS } from 'core/config';
 
 import './SpinnakerHeader.css';
 
@@ -35,6 +36,16 @@ export class SpinnakerHeader extends React.Component<{}, ISpinnakerHeaderState> 
 
   public render(): React.ReactElement<SpinnakerHeader> {
     const { UserMenu, WhatsNew } = NgReact;
+
+    const mptv2Button = (
+      <li key="navPipelineTemplates">
+        <UISrefActive class="active">
+          <UISref to="home.pipeline-templates">
+            <a>Pipeline Templates</a>
+          </UISref>
+        </UISrefActive>
+      </li>
+    );
 
     return (
       <nav className="container spinnaker-header" role="navigation" aria-label="Main Menu">
@@ -72,8 +83,8 @@ export class SpinnakerHeader extends React.Component<{}, ISpinnakerHeaderState> 
                   </UISref>
                 </UISrefActive>
               </li>
+              {SETTINGS.feature.managedPipelineTemplatesV2UI ? mptv2Button : null}
             </ul>
-
             <ul className="nav nav-items">
               <UserMenu />
               <GlobalSearch />

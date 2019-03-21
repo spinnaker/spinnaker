@@ -8,6 +8,9 @@ export interface IPipelineTemplateV2 {
   protect: boolean;
   schema: string;
   variables: IVariableMetadataV2[];
+  version?: string;
+  updateTs?: string;
+  digest?: string;
 }
 
 interface IPipelineTemplateMetadataV2 {
