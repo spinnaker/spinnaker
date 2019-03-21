@@ -10,8 +10,24 @@ import java.time.Clock
 import java.time.Duration
 
 abstract class LockTests<T : Lock> : JUnit5Minutests {
+
+  /**
+   * Create and return an instance of the lock implementation.
+   */
   protected abstract fun subject(clock: Clock): T
+
+  /**
+   * Override if you need to do something to flush data from the backing store used by the lock
+   * implementation.
+   */
   protected open fun flush() {}
+
+  /**
+   * Override if you need to do something to simulate time passing. Not all implementations will
+   * need this.
+   */
+  protected open fun simulateTimePassing(name: String, duration: Duration) {}
+
   private val clock = MutableClock()
   private val duration = Duration.ofSeconds(30)
 
@@ -31,7 +47,10 @@ abstract class LockTests<T : Lock> : JUnit5Minutests {
     context("a pre-existing lock that has expired") {
       before {
         tryAcquire("lock1", duration)
-        clock.incrementBy(duration * 2)
+        with(duration * 2) {
+          clock.incrementBy(this)
+          simulateTimePassing("lock1", this)
+        }
       }
 
       test("can acquire the lock") {
@@ -42,7 +61,10 @@ abstract class LockTests<T : Lock> : JUnit5Minutests {
     context("a pre-existing lock that has not expired") {
       before {
         tryAcquire("lock1", duration)
-        clock.incrementBy(duration / 2)
+        with(duration / 2) {
+          clock.incrementBy(this)
+          simulateTimePassing("lock1", this)
+        }
       }
 
       test("cannot acquire the lock") {

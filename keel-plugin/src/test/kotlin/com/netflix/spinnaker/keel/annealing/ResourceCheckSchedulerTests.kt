@@ -43,7 +43,7 @@ internal object ResourceCheckSchedulerTests : JUnit5Minutests {
 
   fun tests() = rootContext<ResourceCheckScheduler> {
     fixture {
-      ResourceCheckScheduler(resourceRepository, resourceCheckQueue, lock)
+      ResourceCheckScheduler(resourceRepository, resourceCheckQueue, lock, 60_000)
     }
 
     before {

@@ -5,6 +5,7 @@ import com.netflix.spinnaker.keel.activation.ApplicationUp
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.sync.Lock
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.event.EventListener
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
@@ -14,7 +15,9 @@ import java.time.Duration
 class ResourceCheckScheduler(
   private val resourceRepository: ResourceRepository,
   private val resourceCheckQueue: ResourceCheckQueue,
-  private val lock: Lock
+  private val lock: Lock,
+  @Value("\${keel.resource.monitoring.frequency.ms:60000}")
+  private val frequencyMs: Long
 ) {
 
   private var enabled = false
@@ -36,7 +39,7 @@ class ResourceCheckScheduler(
     when {
       !enabled ->
         log.debug("Scheduled validation disabled")
-      !lock.tryAcquire(LOCK_NAME, LOCK_DURATION) ->
+      !lock.tryAcquire(LOCK_NAME, Duration.ofMillis(frequencyMs)) ->
         log.debug("Failed to acquire lock - another instance is checking resources")
       else -> {
         log.debug("Starting scheduled validation…")
@@ -52,6 +55,5 @@ class ResourceCheckScheduler(
 
   companion object {
     const val LOCK_NAME = "resource-check"
-    val LOCK_DURATION: Duration = Duration.ofSeconds(60)
   }
 }

@@ -3,8 +3,10 @@ package com.netflix.spinnaker.keel.redis.spring
 import com.netflix.spinnaker.keel.KeelApplication
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.ResourceVersionTracker
+import com.netflix.spinnaker.keel.redis.RedisLock
 import com.netflix.spinnaker.keel.redis.RedisResourceRepository
 import com.netflix.spinnaker.keel.redis.RedisResourceVersionTracker
+import com.netflix.spinnaker.keel.sync.Lock
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -31,6 +33,9 @@ internal class SpringStartupTests {
   @Autowired
   lateinit var resourceVersionTracker: ResourceVersionTracker
 
+  @Autowired
+  lateinit var lock: Lock
+
   @Test
   fun `uses RedisResourceRepository`() {
     expectThat(resourceRepository).isA<RedisResourceRepository>()
@@ -39,5 +44,10 @@ internal class SpringStartupTests {
   @Test
   fun `uses RedisResourceVersionTracker`() {
     expectThat(resourceVersionTracker).isA<RedisResourceVersionTracker>()
+  }
+
+  @Test
+  fun `uses RedisLock`() {
+    expectThat(lock).isA<RedisLock>()
   }
 }
