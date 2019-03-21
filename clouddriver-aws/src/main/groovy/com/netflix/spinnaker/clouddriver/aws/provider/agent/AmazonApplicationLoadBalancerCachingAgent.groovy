@@ -549,7 +549,14 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
     // Have to do this separately because an instance can be in multiple target groups
     List<InstanceTargetGroups> itgs = InstanceTargetGroups.fromInstanceTargetGroupStates(instanceTargetGroupStates)
     Collection<CacheData> tgHealths = []
-    Collection<CacheData> instances = []
+    Collection<CacheData> instanceRels = []
+
+    Collection<String> instanceIds = itgs.collect {
+      Keys.getInstanceKey(it.instanceId, account.name, region)
+    }
+    Map<String, CacheData> instances = providerCache
+      .getAll(INSTANCES.ns, instanceIds, RelationshipCacheFilter.none())
+      .collectEntries { [(it.id): it] }
 
     for (InstanceTargetGroups itg in itgs) {
       String instanceId = Keys.getInstanceKey(itg.instanceId, account.name, region)
@@ -559,13 +566,15 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
 
       // An ALB can potentially have target groups spanning logical applications,
       // so we cannot derive instance -> application mappings from load balancer data
-      CacheData instance = providerCache.get(INSTANCES.ns, instanceId, RelationshipCacheFilter.none())
-      if (instance != null && instance.attributes.containsKey("application")) {
-        attributes.put("application", instance.attributes.get("application").toString())
+      if (instances[instanceId] != null) {
+        String application = instances[instanceId].attributes.get("application")
+        if (application != null) {
+          attributes.put("application", application)
+        }
       }
 
       tgHealths.add(new DefaultCacheData(healthId, attributes, relationships))
-      instances.add(new DefaultCacheData(instanceId, [:], [(HEALTH.ns): [healthId]]))
+      instanceRels.add(new DefaultCacheData(instanceId, [:], [(HEALTH.ns): [healthId]]))
     }
 
 
@@ -577,7 +586,7 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
       (LOAD_BALANCERS.ns): loadBalancers.values(),
       (TARGET_GROUPS.ns) : targetGroups.values(),
       (HEALTH.ns)        : tgHealths,
-      (INSTANCES.ns)     : instances
+      (INSTANCES.ns)     : instanceRels
     ], [
       (ON_DEMAND.ns): evictableOnDemandCacheDatas*.id])
   }
