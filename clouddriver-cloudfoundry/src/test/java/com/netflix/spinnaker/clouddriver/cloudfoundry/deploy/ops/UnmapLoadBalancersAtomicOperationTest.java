@@ -34,8 +34,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.atIndex;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Matchers.matches;
+import static org.mockito.Matchers.same;
+import static org.mockito.Mockito.*;
 
 class UnmapLoadBalancersAtomicOperationTest extends AbstractCloudFoundryAtomicOperationTest{
   private final LoadBalancersDescription desc;
@@ -45,6 +46,7 @@ class UnmapLoadBalancersAtomicOperationTest extends AbstractCloudFoundryAtomicOp
     desc = new LoadBalancersDescription();
     desc.setClient(client);
     desc.setServerGroupName("myapp");
+    desc.setServerGroupId("myapp-id");
     space = CloudFoundrySpace.fromRegion("org>space");
     Routes routes = client.getRoutes();
     desc.setSpace(space);
@@ -125,12 +127,19 @@ class UnmapLoadBalancersAtomicOperationTest extends AbstractCloudFoundryAtomicOp
       .thenReturn(lb1)
       .thenReturn(lb2);
     UnmapLoadBalancersAtomicOperation op = new UnmapLoadBalancersAtomicOperation(desc);
-    assertThat(runOperation(op).getHistory())
+
+    Task task = runOperation(op);
+
+    assertThat(task.getHistory())
       .has(status("Unmapping 'myapp' from load balancer(s)."), atIndex(1))
       .has(status("Unmapping load balancer 'good.route-1.example.com'") , atIndex(2))
       .has(status("Unmapped load balancer 'good.route-1.example.com'"), atIndex(3))
       .has(status("Unmapping load balancer 'good.route-2.example.com'"), atIndex(4))
       .has(status("Unmapped load balancer 'good.route-2.example.com'"), atIndex(5));
+    verify(client.getApplications(), times(1))
+      .unmapRoute(matches("myapp-id"), matches("lb1-id"));
+    verify(client.getApplications(), times(1))
+      .unmapRoute(matches("myapp-id"), matches("lb2-id"));
   }
 
 }

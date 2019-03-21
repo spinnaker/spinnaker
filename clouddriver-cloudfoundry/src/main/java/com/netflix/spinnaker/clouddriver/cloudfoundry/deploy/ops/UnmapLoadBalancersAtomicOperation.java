@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops;
 
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryApiException;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.Routes;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.LoadBalancersDescription;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryLoadBalancer;
@@ -61,10 +62,10 @@ public class UnmapLoadBalancersAtomicOperation
         }
       });
 
-
+      CloudFoundryClient client = description.getClient();
       lbMap.forEach((uri, o) -> {
         getTask().updateStatus(PHASE, "Unmapping load balancer '" + uri + "'");
-        o.ifPresent(lb -> routes.deleteRoute(lb.getId()));
+        o.ifPresent(lb -> client.getApplications().unmapRoute(description.getServerGroupId(), lb.getId()));
         getTask().updateStatus(PHASE, "Unmapped load balancer '" + uri + "'");
       });
     }
