@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.keel.sql
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceMetadata
@@ -67,6 +68,7 @@ class SqlResourceRepository(
         field("kind"),
         field("name"),
         field("resource_version"),
+        field("metadata"),
         field("spec")
       )
       .from(RESOURCE)
@@ -90,6 +92,7 @@ class SqlResourceRepository(
         field("kind"),
         field("name"),
         field("resource_version"),
+        field("metadata"),
         field("spec")
       )
       .from(RESOURCE)
@@ -113,6 +116,7 @@ class SqlResourceRepository(
         field("kind") to resource.kind,
         field("name") to resource.metadata.name.value,
         field("resource_version") to resource.metadata.resourceVersion,
+        field("metadata") to objectMapper.writeValueAsString(resource.metadata.data),
         field("spec") to objectMapper.writeValueAsString(resource.spec)
       )
       val insertPairs = updatePairs + (field("uid") to uid)
@@ -244,7 +248,13 @@ class SqlResourceRepository(
     )
 
   private val ResultSet.metadata: ResourceMetadata
-    get() = ResourceMetadata(name = resourceName, uid = uid, resourceVersion = resourceVersion)
+    get() = ResourceMetadata(
+      name = resourceName,
+      uid = uid,
+      resourceVersion = resourceVersion,
+      data = metadataAttributes)
+  private val ResultSet.metadataAttributes : Map<String, Any?>
+    get() = objectMapper.readValue(getString("metadata"))
   private val ResultSet.resourceName: ResourceName
     get() = getString("name").let(::ResourceName)
   private val ResultSet.resourceVersion: Long

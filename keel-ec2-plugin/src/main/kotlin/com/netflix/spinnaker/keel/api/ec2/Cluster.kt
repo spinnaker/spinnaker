@@ -40,7 +40,7 @@ data class Cluster(
   )
 
   data class LaunchConfiguration(
-    val imageId: String,
+    val imageId: String?,
     val instanceType: String,
     val ebsOptimized: Boolean,
     val iamRole: String,

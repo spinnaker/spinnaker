@@ -18,6 +18,7 @@ package com.netflix.spinnaker.keel.clouddriver
 import com.netflix.spinnaker.keel.clouddriver.model.ClusterActiveServerGroup
 import com.netflix.spinnaker.keel.clouddriver.model.Credential
 import com.netflix.spinnaker.keel.clouddriver.model.LoadBalancer
+import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
 import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
@@ -77,4 +78,10 @@ interface CloudDriverService {
     @Path("region") region: String,
     @Path("cloudProvider") cloudProvider: String
   ): Deferred<ClusterActiveServerGroup>
+
+  @GET("/aws/images/find")
+  fun namedImages(
+    @Query("q") imageName: String,
+    @Query("account") account: String?,
+    @Query("region") region: String? = null): Deferred<List<NamedImage>>
 }

@@ -30,9 +30,9 @@ import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.model.OrchestrationTrigger
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
+import com.netflix.spinnaker.keel.plugin.ResourceHandler.ResourceDiff
 import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
 import com.netflix.spinnaker.keel.retrofit.isNotFound
-import de.danielbechler.diff.node.DiffNode
 import kotlinx.coroutines.runBlocking
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -79,7 +79,7 @@ class SecurityGroupHandler(
     log.info("Started task {} to create security group", taskRef.ref)
   }
 
-  override fun update(resource: Resource<SecurityGroup>, diff: DiffNode) {
+  override fun update(resource: Resource<SecurityGroup>, resourceDiff: ResourceDiff<SecurityGroup>) {
     val taskRef = runBlocking {
       resource.spec.let { spec ->
         orcaService

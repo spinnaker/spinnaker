@@ -4,11 +4,12 @@ import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
-import com.netflix.spinnaker.keel.persistence.ResourceState.Diff
+import com.netflix.spinnaker.keel.persistence.ResourceState.Diff as Different
 import com.netflix.spinnaker.keel.persistence.ResourceState.Missing
 import com.netflix.spinnaker.keel.persistence.ResourceState.Ok
 import com.netflix.spinnaker.keel.plugin.ResourceConflict
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
+import com.netflix.spinnaker.keel.plugin.ResourceHandler.ResourceDiff
 import com.netflix.spinnaker.keel.plugin.supporting
 import de.danielbechler.diff.ObjectDifferBuilder
 import de.danielbechler.diff.node.DiffNode
@@ -47,8 +48,8 @@ class ResourceActuator(
             }
             log.warn("Resource {} is invalid", resource.metadata.name)
             log.info("Resource {} delta: {}", resource.metadata.name, builder.toString())
-            resourceRepository.updateState(resource.metadata.uid, Diff)
-            plugin.update(resource, diff)
+            resourceRepository.updateState(resource.metadata.uid, Different)
+            plugin.update(resource, ResourceDiff(current, diff))
           } else {
             log.info("Resource {} is valid", resource.metadata.name)
             resourceRepository.updateState(resource.metadata.uid, Ok)
@@ -79,8 +80,8 @@ class ResourceActuator(
   }
 
   @Suppress("UNCHECKED_CAST")
-  private fun <T : Any> ResourceHandler<T>.update(resource: Resource<*>, diff: DiffNode) {
-    update(resource as Resource<T>, diff)
+  private fun <T : Any> ResourceHandler<T>.update(resource: Resource<*>, resourceDiff: ResourceHandler.ResourceDiff<*>) {
+    update(resource as Resource<T>, resourceDiff as ResourceDiff<T>)
   }
   // end type coercing extensions
 

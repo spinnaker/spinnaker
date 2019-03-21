@@ -6,5 +6,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL
 @JsonInclude(NON_NULL)
 data class DeliveryConfig(
   val name: String,
-  val application: String
+  val application: String,
+  val deliveryArtifacts: List<Map<String, Any>> = emptyList(),
+  val deliveryEnvironments: List<DeliveryEnvironment> = emptyList()
 )

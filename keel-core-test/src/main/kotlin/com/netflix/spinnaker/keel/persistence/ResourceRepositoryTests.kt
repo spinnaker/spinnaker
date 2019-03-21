@@ -91,7 +91,8 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
         metadata = ResourceMetadata(
           name = ResourceName("SecurityGroup:ec2:test:us-west-2:fnord"),
           resourceVersion = 1234L,
-          uid = randomUID()
+          uid = randomUID(),
+          data = randomData()
         ),
         kind = "ec2:SecurityGroup",
         spec = randomData()
@@ -130,7 +131,8 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
           metadata = ResourceMetadata(
             name = ResourceName("SecurityGroup:ec2:test:us-east-1:fnord"),
             resourceVersion = 1234L,
-            uid = randomUID()
+            uid = randomUID(),
+            data = randomData()
           ),
           apiVersion = SPINNAKER_API_V1,
           kind = "ec2:SecurityGroup",

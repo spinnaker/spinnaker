@@ -31,6 +31,7 @@ import com.netflix.spinnaker.keel.ec2.RETROFIT_NOT_FOUND
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
+import com.netflix.spinnaker.keel.plugin.ResourceHandler.ResourceDiff
 import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
 import de.danielbechler.diff.ObjectDifferBuilder
 import dev.minutest.junit.JUnit5Minutests
@@ -206,7 +207,8 @@ internal object ClusterHandlerTests : JUnit5Minutests {
 
       context("the diff is only in capacity") {
 
-        val diff = differ.compare(resource.spec.withDoubleCapacity(), resource.spec)
+        val modified = resource.spec.withDoubleCapacity()
+        val diff = ResourceDiff(modified, differ.compare(modified, resource.spec))
 
         test("annealing resizes the current server group") {
           upsert(resource, diff)
@@ -230,7 +232,8 @@ internal object ClusterHandlerTests : JUnit5Minutests {
 
       context("the diff is something other than just capacity") {
 
-        val diff = differ.compare(resource.spec.withDoubleCapacity().withDifferentInstanceType(), resource.spec)
+        val modified = resource.spec.withDoubleCapacity().withDifferentInstanceType()
+        val diff = ResourceDiff(modified, differ.compare(modified, resource.spec))
 
         test("annealing clones the current server group") {
           upsert(resource, diff)

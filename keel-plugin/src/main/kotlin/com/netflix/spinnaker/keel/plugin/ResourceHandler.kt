@@ -22,6 +22,14 @@ import de.danielbechler.diff.node.DiffNode
 import org.slf4j.Logger
 
 interface ResourceHandler<T : Any> : KeelPlugin {
+  data class ResourceDiff<T : Any>(
+    val source: T,
+    val diff: DiffNode
+  ) {
+    constructor(source : T) : this(source, DiffNode.newRootNode())
+  }
+
+
   val log: Logger
 
   val apiVersion: ApiVersion
@@ -124,8 +132,8 @@ interface ResourceHandler<T : Any> : KeelPlugin {
    * Implement this method and [create] if you need to handle create and update in different ways.
    * Otherwise just implement [upsert].
    */
-  fun update(resource: Resource<T>, diff: DiffNode = DiffNode.newRootNode()) {
-    upsert(resource, diff)
+  fun update(resource: Resource<T>, resourceDiff: ResourceDiff<T> = ResourceDiff(resource.spec)) {
+    upsert(resource, resourceDiff)
   }
 
   /**
@@ -134,7 +142,7 @@ interface ResourceHandler<T : Any> : KeelPlugin {
    * You don't need to implement this method if you are implementing [create] and [update]
    * individually.
    */
-  fun upsert(resource: Resource<T>, diff: DiffNode? = null) {
+  fun upsert(resource: Resource<T>, resourceDiff: ResourceDiff<T>? = null) {
     TODO("Not implemented")
   }
 

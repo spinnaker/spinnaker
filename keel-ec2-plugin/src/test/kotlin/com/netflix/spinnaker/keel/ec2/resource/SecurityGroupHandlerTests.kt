@@ -40,6 +40,7 @@ import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
+import com.netflix.spinnaker.keel.plugin.ResourceHandler.ResourceDiff
 import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import de.danielbechler.diff.node.DiffNode
@@ -196,7 +197,7 @@ internal object SecurityGroupHandlerTests : JUnit5Minutests {
 
     sequenceOf(
       "create" to SecurityGroupHandler::create,
-      "update" to SecurityGroupHandler::update.partially3(DiffNode.newRootNode())
+      "update" to SecurityGroupHandler::update.partially3(ResourceDiff(UpsertFixture().resource.spec))
     )
       .forEach { (methodName, handlerMethod) ->
         context("$methodName a security group with no ingress rules") {
@@ -387,7 +388,7 @@ internal object SecurityGroupHandlerTests : JUnit5Minutests {
           CompletableDeferred(TaskRefResponse("/tasks/${randomUUID()}"))
         }
 
-        handler.update(resource)
+        handler.update(resource, ResourceDiff(resource.spec))
       }
 
       after {

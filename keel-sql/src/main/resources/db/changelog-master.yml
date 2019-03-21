@@ -8,3 +8,6 @@ databaseChangeLog:
   - include:
       file: changelog/20190320-create-lock-table.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20190321-persist-metadata.yml
+      relativeToChangelogFile: true
