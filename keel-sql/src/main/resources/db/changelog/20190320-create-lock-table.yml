@@ -4,7 +4,7 @@ databaseChangeLog:
       author: fletch
       changes:
         - createTable:
-            tableName: lock
+            tableName: cluster_lock
             columns:
               - column:
                   name: name
@@ -17,6 +17,10 @@ databaseChangeLog:
                   type: timestamp
                   constraints:
                     nullable: false
+        - modifySql:
+            dbms: mysql
+            append:
+              value: " engine innodb"
       rollback:
         - dropTable:
             tableName: lock

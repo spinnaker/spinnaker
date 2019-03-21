@@ -22,19 +22,19 @@ class SqlLock(
       val limit = now.let(Timestamp::from)
       val expires = now.plus(duration).let(Timestamp::from)
       selectOne()
-        .from(LOCK)
+        .from(CLUSTER_LOCK)
         .where(NAME.eq(name))
         .forUpdate()
         .fetch()
         .intoResultSet()
         .let {
           if (it.next()) {
-            update(LOCK)
+            update(CLUSTER_LOCK)
               .set(EXPIRES, expires)
               .where(NAME.eq(name), EXPIRES.lt(limit))
               .execute() > 0
           } else {
-            insertInto(LOCK, NAME, EXPIRES)
+            insertInto(CLUSTER_LOCK, NAME, EXPIRES)
               .values(name, expires)
               .execute() > 0
           }
@@ -42,7 +42,7 @@ class SqlLock(
     }
 
   companion object {
-    val LOCK: Table<Record> = table("lock")
+    val CLUSTER_LOCK: Table<Record> = table("cluster_lock")
     val NAME: Field<Any> = field("name")
     val EXPIRES: Field<Any> = field("expires")
   }

@@ -20,8 +20,9 @@ import strikt.assertions.isA
   webEnvironment = MOCK,
   properties = [
     "sql.enabled=true",
-    "sql.connection-pools.default.jdbc-url=jdbc:h2:mem:keel;MODE=MYSQL",
-    "sql.migration.jdbc-url=jdbc:h2:mem:keel;MODE=MYSQL"
+    "sql.connection-pools.default.jdbc-url=jdbc:tc:mysql:5.7.22://somehostname:someport/databasename",
+    "sql.migration.jdbc-url=jdbc:tc:mysql:5.7.22://somehostname:someport/databasename",
+    "spring.datasource.driver-class-name=org.testcontainers.jdbc.ContainerDatabaseDriver"
   ]
 )
 internal class SpringStartupTests {

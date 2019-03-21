@@ -3,29 +3,26 @@ package com.netflix.spinnaker.keel.sql
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import liquibase.Liquibase
+import liquibase.configuration.ConfigurationContainer
+import liquibase.configuration.GlobalConfiguration
+import liquibase.configuration.LiquibaseConfiguration
 import liquibase.database.DatabaseFactory
 import liquibase.database.jvm.JdbcConnection
 import liquibase.exception.DatabaseException
 import liquibase.exception.LiquibaseException
 import liquibase.resource.ClassLoaderResourceAccessor
-import org.h2.engine.Mode
-import org.h2.engine.Mode.ModeEnum.MySQL
 import org.jooq.DSLContext
-import org.jooq.SQLDialect.H2
+import org.jooq.SQLDialect
 import org.jooq.Schema
 import org.jooq.conf.RenderNameStyle.AS_IS
+import org.jooq.impl.DSL.currentSchema
 import org.jooq.impl.DataSourceConnectionProvider
 import org.jooq.impl.DefaultConfiguration
 import org.jooq.impl.DefaultDSLContext
 import org.slf4j.LoggerFactory
-import java.sql.DriverManager
 import java.sql.SQLException
 
-internal fun initDatabase(jdbcUrl: String): DSLContext {
-  // Initialize the MySQL compatibility mode in H2 to _not_ insert default values to not null
-  // columns. This is what MySQL does on multi-row inserts but not single row inserts.
-  Mode.getInstance(MySQL.name).convertInsertNullToZero = false
-
+internal fun initDatabase(jdbcUrl: String, sqlDialect: SQLDialect): DSLContext {
   val dataSource = HikariDataSource(
     HikariConfig().also {
       it.jdbcUrl = jdbcUrl
@@ -35,7 +32,7 @@ internal fun initDatabase(jdbcUrl: String): DSLContext {
 
   val config = DefaultConfiguration().also {
     it.set(DataSourceConnectionProvider(dataSource))
-    it.setSQLDialect(H2)
+    it.setSQLDialect(sqlDialect)
     it.settings().withRenderNameStyle(AS_IS)
   }
 
@@ -64,23 +61,28 @@ internal fun initDatabase(jdbcUrl: String): DSLContext {
 
 internal class DatabaseInitializationFailed(cause: Throwable) : RuntimeException(cause)
 
-internal fun DSLContext.flushAll(schema: String = "PUBLIC") =
-  meta()
-    .schemas
-    .filter { it.name == schema }
-    .flatMap(Schema::getTables)
-    .forEach {
-      truncate(it).execute()
-    }
-
-/**
- * Force in-memory database to shutdown so if further tests re-initialize it Liquibase won't shit
- * the bed.
- */
-internal fun shutdown(jdbcUrl: String) {
-  DriverManager.getConnection(jdbcUrl).use {
-    it.createStatement().execute("SHUTDOWN")
+internal fun DSLContext.flushAll() {
+  val schema = select(currentSchema())
+    .fetch()
+    .getValue(0, 0)
+  with(LiquibaseConfiguration.getInstance().getConfiguration<GlobalConfiguration>()) {
+    meta()
+      .schemas
+      .filter { it.name == schema }
+      .flatMap(Schema::getTables)
+      .filterNot {
+        it.name in setOf(
+          databaseChangeLogTableName,
+          databaseChangeLogLockTableName
+        )
+      }
+      .forEach {
+        truncate(it).execute()
+      }
   }
 }
+
+private inline fun <reified T : ConfigurationContainer> LiquibaseConfiguration.getConfiguration(): T =
+  getConfiguration(T::class.java)
 
 private val log by lazy { LoggerFactory.getLogger(::initDatabase.javaClass) }

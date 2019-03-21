@@ -10,11 +10,11 @@ dependencies {
   implementation "com.zaxxer:HikariCP:$hikariVersion"
   implementation "org.liquibase:liquibase-core:$liquibaseVersion"
 
-  runtimeOnly "mysql:mysql-connector-java:+"
+  runtimeOnly "mysql:mysql-connector-java:8.0.15"
 
   testImplementation "io.strikt:strikt-core:$striktVersion"
   testImplementation project(":keel-spring-test-support")
   testImplementation project(":keel-core-test")
   testImplementation project(":keel-api")
-  testImplementation "com.h2database:h2:+"
+  testImplementation "org.testcontainers:mysql:1.10.7"
 }
