@@ -115,7 +115,7 @@ class Keys implements KeyParser {
           result << [application: names.app.toLowerCase(), cluster: parts[2], account: parts[3], region: parts[4], serverGroup: parts[5], stack: names.stack, detail: names.detail, sequence: names.sequence?.toString()]
           break
         case Namespace.INSTANCES.ns:
-            result << [id: parts[2], region: parts[3], instanceId: parts[5]]
+          result << [id: parts[2], region: parts[3], instanceId: parts[5]]
           break
         case Namespace.CLUSTERS.ns:
           def names = Names.parseName(parts[4])

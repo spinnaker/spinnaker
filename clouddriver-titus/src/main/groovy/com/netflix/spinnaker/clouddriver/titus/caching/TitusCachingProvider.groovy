@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.titus.caching
 
 import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.agent.CachingAgent
+import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.cache.KeyParser
 import com.netflix.spinnaker.clouddriver.cache.SearchableProvider
@@ -83,10 +84,9 @@ class TitusCachingProvider implements SearchableProvider, EurekaAwareProvider {
     (Keys.Namespace.CLUSTERS.ns)      : '/applications/${application.toLowerCase()}/clusters/$account/$cluster'
   ].asImmutable()
 
-  @Override
-  Map<SearchableResource, SearchResultHydrator> getSearchResultHydrators() {
-    return Collections.emptyMap()
-  }
+  final Map<SearchableResource, SearchableProvider.SearchResultHydrator> searchResultHydrators = [
+    (new TitusSearchableResource(Keys.Namespace.INSTANCES.ns)): new InstanceSearchResultHydrator(),
+  ]
 
   @Override
   Map<String, String> parseKey(String key) {
@@ -105,5 +105,32 @@ class TitusCachingProvider implements SearchableProvider, EurekaAwareProvider {
     return (
       filters?.cloudProvider == null || searchableProviders.contains(filters.cloudProvider)
     ) && hasAgentForType(type, getAgents())
+  }
+
+  private static class InstanceSearchResultHydrator implements SearchableProvider.SearchResultHydrator {
+    @Override
+    Map<String, String> hydrateResult(Cache cacheView, Map<String, String> result, String id) {
+      def item = cacheView.get(Keys.Namespace.INSTANCES.ns, id)
+      if (!item) {
+        return null
+      }
+      if (!item?.relationships["serverGroups"]) {
+        return result
+      }
+
+      def serverGroup = Keys.parse(item.relationships["serverGroups"][0])
+      return result + [
+        application: serverGroup.application as String,
+        cluster    : serverGroup.cluster as String,
+        serverGroup: serverGroup.serverGroup as String
+      ]
+    }
+  }
+
+  private static class TitusSearchableResource extends SearchableResource {
+    TitusSearchableResource (String resourceType) {
+      this.resourceType = resourceType.toLowerCase()
+      this.platform = 'titus'
+    }
   }
 }
