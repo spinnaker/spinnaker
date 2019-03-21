@@ -6,7 +6,7 @@ import { noop } from 'core/utils';
 
 import { createFieldValidator } from './FormikFormField';
 import { renderContent } from './fields/renderContent';
-import { StandardFieldLayout } from './layouts/index';
+import { LayoutConsumer } from './layouts/index';
 import { IValidator } from './validation';
 import { WatchValue } from '../WatchValue';
 import {
@@ -40,7 +40,6 @@ const ifString = (val: any): string => (isString(val) ? val : undefined);
 
 export class FormField extends React.Component<IFormFieldProps, IFormFieldState> implements IFormFieldApi {
   public static defaultProps: Partial<IFormFieldProps> = {
-    layout: StandardFieldLayout,
     validate: noop,
     onBlur: noop,
     onChange: noop,
@@ -120,7 +119,15 @@ export class FormField extends React.Component<IFormFieldProps, IFormFieldState>
 
     return (
       <WatchValue onChange={x => this.value$.next(x)} value={value}>
-        {renderContent(layout, { ...fieldLayoutPropsWithoutInput, ...validationProps, input: inputElement })}
+        <LayoutConsumer>
+          {contextLayout =>
+            renderContent(layout || contextLayout, {
+              ...fieldLayoutPropsWithoutInput,
+              ...validationProps,
+              input: inputElement,
+            })
+          }
+        </LayoutConsumer>
       </WatchValue>
     );
   }

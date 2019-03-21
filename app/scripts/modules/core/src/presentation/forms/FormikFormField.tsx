@@ -10,7 +10,7 @@ import {
   IValidationProps,
 } from './interface';
 import { WatchValue } from '../WatchValue';
-import { StandardFieldLayout } from './layouts/index';
+import { LayoutConsumer } from './layouts/index';
 import { composeValidators, IValidator, Validators } from './validation';
 import { renderContent } from './fields/renderContent';
 
@@ -47,7 +47,6 @@ export class FormikFormFieldImpl<T = any>
   extends React.Component<IFormikFormFieldImplProps<T>, IFormikFormFieldImplState>
   implements IFormFieldApi {
   public static defaultProps: Partial<IFormikFormFieldProps<any>> = {
-    layout: StandardFieldLayout,
     fastField: true,
   };
 
@@ -110,7 +109,15 @@ export class FormikFormFieldImpl<T = any>
 
       return (
         <WatchValue onChange={onChange} value={field.value}>
-          {renderContent(layout, { ...fieldLayoutPropsWithoutInput, ...validationProps, input: inputElement })}
+          <LayoutConsumer>
+            {contextLayout =>
+              renderContent(layout || contextLayout, {
+                ...fieldLayoutPropsWithoutInput,
+                ...validationProps,
+                input: inputElement,
+              })
+            }
+          </LayoutConsumer>
         </WatchValue>
       );
     };
