@@ -6,9 +6,10 @@ import './CopyToClipboard.less';
 
 export interface ICopyToClipboardProps {
   analyticsLabel?: string;
+  buttonInnerNode?: React.ReactNode;
   displayText?: boolean;
   text: string;
-  toolTip: string;
+  toolTip?: string;
   className?: string;
 }
 
@@ -83,11 +84,7 @@ export class CopyToClipboard extends React.Component<ICopyToClipboardProps, ICop
     }
   };
 
-  public resetToolTip = () => {
-    this.mounted && this.setState({ tooltipCopy: false, shouldUpdatePosition: true });
-  };
-
-  public render() {
+  private renderTooltip(children: React.ReactNode): React.ReactNode {
     const { toolTip, text = '' } = this.props;
     const { tooltipCopy, shouldUpdatePosition } = this.state;
 
@@ -102,6 +99,37 @@ export class CopyToClipboard extends React.Component<ICopyToClipboardProps, ICop
     };
 
     return (
+      <OverlayTrigger
+        defaultOverlayShown={persistOverlay}
+        placement="top"
+        overlay={tooltipComponent}
+        delayHide={250}
+        {...otherProps}
+      >
+        {children}
+      </OverlayTrigger>
+    );
+  }
+
+  public resetToolTip = () => {
+    this.mounted && this.setState({ tooltipCopy: false, shouldUpdatePosition: true });
+  };
+
+  public render() {
+    const { buttonInnerNode, toolTip, text = '' } = this.props;
+
+    const copyButton = (
+      <button
+        onClick={this.handleClick}
+        className="btn btn-xs btn-default clipboard-btn"
+        uib-tooltip={toolTip}
+        aria-label="Copy to clipboard"
+      >
+        {buttonInnerNode ? buttonInnerNode : <span className="glyphicon glyphicon-copy" />}
+      </button>
+    );
+
+    return (
       <>
         <input
           onChange={e => e} // no-op to prevent warnings
@@ -110,22 +138,7 @@ export class CopyToClipboard extends React.Component<ICopyToClipboardProps, ICop
           type="text"
           style={{ zIndex: -1, position: 'fixed', opacity: 0 }}
         />
-        <OverlayTrigger
-          defaultOverlayShown={persistOverlay}
-          placement="top"
-          overlay={tooltipComponent}
-          delayHide={250}
-          {...otherProps}
-        >
-          <button
-            onClick={this.handleClick}
-            className="btn btn-xs btn-default clipboard-btn"
-            uib-tooltip={toolTip}
-            aria-label="Copy to clipboard"
-          >
-            <span className="glyphicon glyphicon-copy" />
-          </button>
-        </OverlayTrigger>
+        {toolTip ? this.renderTooltip(copyButton) : copyButton}
       </>
     );
   }

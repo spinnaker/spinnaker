@@ -102,8 +102,8 @@ export class ShowPipelineTemplateJsonModal extends React.Component<
             </div>
             <div className="show-pipeline-template-json-modal__copy text-right">
               <CopyToClipboard
+                buttonInnerNode={<a>Copy the spin command for saving this template</a>}
                 text={`echo '${templateStr}' | spin pipeline-templates save`}
-                toolTip={`Copy "spin pipeline-templates save" command to clipboard`}
               />
             </div>
           </form>
