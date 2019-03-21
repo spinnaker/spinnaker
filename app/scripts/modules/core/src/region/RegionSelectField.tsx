@@ -26,6 +26,7 @@ export class RegionSelectField extends React.Component<IRegionSelectFieldProps> 
 
   public render() {
     const { labelColumns, fieldColumns, account, regions, readOnly, component, field } = this.props;
+
     return (
       <div className="form-group">
         <div className={`col-md-${labelColumns} sm-label-right`}>Region</div>

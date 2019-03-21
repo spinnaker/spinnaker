@@ -66,9 +66,9 @@ module.exports = angular
           'ecs.serverGroup.basicSettings',
           require('./location/basicSettings.html'),
         ),
-        verticalScaling: overrideRegistry.getTemplate(
-          'ecs.serverGroup.verticalScaling',
-          require('./verticalScaling/verticalScaling.html'),
+        container: overrideRegistry.getTemplate(
+          'ecs.serverGroup.container',
+          require('./container/container.html'),
         ),
         horizontalScaling: overrideRegistry.getTemplate(
           'ecs.serverGroup.horizontalScaling',

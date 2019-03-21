@@ -36,7 +36,7 @@ angular
     ECS_SERVER_GROUP_TRANSFORMER,
     // require('./pipeline/stages/cloneServerGroup/ecsCloneServerGroupStage').name,  // TODO(Bruno Carrier): We should enable this on Clouddriver before revealing this stage
     require('./serverGroup/configure/wizard/advancedSettings/advancedSettings.component').name,
-    require('./serverGroup/configure/wizard/verticalScaling/verticalScaling.component').name,
+    require('./serverGroup/configure/wizard/container/container.component').name,
     require('./serverGroup/configure/wizard/horizontalScaling/horizontalScaling.component').name,
     ECS_SERVER_GROUP_LOGGING,
     ECS_NETWORKING_SECTION,

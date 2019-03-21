@@ -24,6 +24,7 @@ const helpContents: { [key: string]: string } = {
   'ecs.loadbalancing.targetPort': '<p>The port on which your application is listening for incoming traffic</p>',
   'ecs.iamrole':
     '<p>The IAM role that your container (task, in AWS wording) will inherit.  </p><p>Define a role only if your application needs to access AWS APIs</p>',
+  'ecs.dockerimage': 'Docker image for your container, such as nginx:latest',
   'ecs.dockerimagecredentials':
     '<p>The AWS Secrets Manager secret that contains private registry credentials.</p><p>Define credentials only for private registries other than Amazon ECR.</p>',
   'ecs.placementStrategy':

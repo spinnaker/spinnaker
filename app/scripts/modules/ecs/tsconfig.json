@@ -32,6 +32,7 @@
       "@spinnaker/core": ["../../core/lib"],
       "core/*": ["../../core/lib/*"],
       "@spinnaker/amazon": ["../../amazon/lib"],
+      "@spinnaker/docker": ["../../docker/lib"],
       "ecs/*": ["*"],
       "ecs": ["."]
     }

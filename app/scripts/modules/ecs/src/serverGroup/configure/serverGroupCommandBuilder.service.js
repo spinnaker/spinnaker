@@ -19,6 +19,81 @@ module.exports = angular
     function($q, instanceTypeService, ecsServerGroupConfigurationService) {
       const CLOUD_PROVIDER = 'ecs';
 
+      function reconcileUpstreamImages(image, upstreamImages) {
+        if (image.fromContext) {
+          let matchingImage = upstreamImages.find(otherImage => image.stageId === otherImage.stageId);
+
+          if (matchingImage) {
+            image.cluster = matchingImage.cluster;
+            image.pattern = matchingImage.pattern;
+            image.repository = matchingImage.repository;
+            return image;
+          } else {
+            return null;
+          }
+        } else if (image.fromTrigger) {
+          let matchingImage = upstreamImages.find(otherImage => {
+            return (
+              image.registry === otherImage.registry &&
+              image.repository === otherImage.repository &&
+              image.tag === otherImage.tag
+            );
+          });
+
+          if (matchingImage) {
+            return image;
+          } else {
+            return null;
+          }
+        } else {
+          return image;
+        }
+      }
+
+      function findUpstreamImages(current, all, visited = {}) {
+        // This actually indicates a loop in the stage dependencies.
+        if (visited[current.refId]) {
+          return [];
+        } else {
+          visited[current.refId] = true;
+        }
+        let result = [];
+        if (current.type === 'findImageFromTags') {
+          result.push({
+            fromContext: true,
+            imageLabelOrSha: current.imageLabelOrSha,
+            stageId: current.refId,
+          });
+        }
+        current.requisiteStageRefIds.forEach(function(id) {
+          let next = all.find(stage => stage.refId === id);
+          if (next) {
+            result = result.concat(findUpstreamImages(next, all, visited));
+          }
+        });
+
+        return result;
+      }
+
+      function findTriggerImages(triggers) {
+        let result = triggers
+          .filter(trigger => {
+            return trigger.type === 'docker';
+          })
+          .map(trigger => {
+            return {
+              fromTrigger: true,
+              repository: trigger.repository,
+              account: trigger.account,
+              organization: trigger.organization,
+              registry: trigger.registry,
+              tag: trigger.tag,
+            };
+          });
+
+        return result;
+      }
+
       function buildNewServerGroupCommand(application, defaults) {
         defaults = defaults || {};
         var credentialsLoader = AccountService.getCredentialsKeyedByAccount('ecs');
@@ -92,7 +167,7 @@ module.exports = angular
           });
       }
 
-      function buildServerGroupCommandFromPipeline(application, originalCluster) {
+      function buildServerGroupCommandFromPipeline(application, originalCluster, current, pipeline) {
         var pipelineCluster = _.cloneDeep(originalCluster);
         var region = Object.keys(pipelineCluster.availabilityZones)[0];
         // var instanceTypeCategoryLoader = instanceTypeService.getCategoryForInstanceType('ecs', pipelineCluster.instanceType);
@@ -103,6 +178,13 @@ module.exports = angular
           var command = asyncData.command;
           var zones = pipelineCluster.availabilityZones[region];
           var usePreferredZones = zones.join(',') === command.availabilityZones.join(',');
+
+          let contextImages = findUpstreamImages(current, pipeline.stages) || [];
+          contextImages = contextImages.concat(findTriggerImages(pipeline.triggers));
+
+          if (command.docker && command.docker.image) {
+            command.docker.image = reconcileUpstreamImages(command.docker.image, contextImages);
+          }
 
           var viewState = {
             instanceProfile: asyncData.instanceProfile,
@@ -116,6 +198,7 @@ module.exports = angular
             templatingEnabled: true,
             existingPipelineCluster: true,
             dirty: {},
+            contextImages: contextImages,
           };
 
           var viewOverrides = {
@@ -132,9 +215,13 @@ module.exports = angular
       }
 
       // Only used to prepare view requiring template selecting
-      function buildNewServerGroupCommandForPipeline() {
+      function buildNewServerGroupCommandForPipeline(current, pipeline) {
+        let contextImages = findUpstreamImages(current, pipeline.stages) || [];
+        contextImages = contextImages.concat(findTriggerImages(pipeline.triggers));
+
         return $q.when({
           viewState: {
+            contextImages: contextImages,
             requiresTemplateSelection: true,
           },
         });

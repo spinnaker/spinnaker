@@ -12,9 +12,11 @@ import {
   IServerGroupCommandBackingDataFiltered,
   IServerGroupCommandDirty,
   IServerGroupCommandResult,
+  IServerGroupCommandViewState,
   ISubnet,
   LOAD_BALANCER_READ_SERVICE,
   LoadBalancerReader,
+  NameUtils,
   SERVER_GROUP_COMMAND_REGISTRY_PROVIDER,
   ServerGroupCommandRegistry,
   SubnetReader,
@@ -24,6 +26,7 @@ import {
 } from '@spinnaker/core';
 
 import { IAmazonLoadBalancer } from '@spinnaker/amazon';
+import { DockerImageReader, IDockerImage } from '@spinnaker/docker';
 import { IamRoleReader } from '../../iamRoles/iamRole.read.service';
 import { EscClusterReader } from '../../ecsCluster/ecsCluster.read.service';
 import { MetricAlarmReader } from '../../metricAlarm/metricAlarm.read.service';
@@ -43,6 +46,19 @@ export interface IEcsServerGroupCommandResult extends IServerGroupCommandResult 
   dirty: IEcsServerGroupCommandDirty;
 }
 
+export interface IEcsDockerImage extends IDockerImage {
+  imageId: string;
+  message: string;
+  fromTrigger: boolean;
+  fromContext: boolean;
+  stageId: string;
+  imageLabelOrSha: string;
+}
+
+export interface IEcsServerGroupCommandViewState extends IServerGroupCommandViewState {
+  contextImages: IEcsDockerImage[];
+}
+
 export interface IEcsServerGroupCommandBackingDataFiltered extends IServerGroupCommandBackingDataFiltered {
   targetGroups: string[];
   iamRoles: string[];
@@ -51,6 +67,7 @@ export interface IEcsServerGroupCommandBackingDataFiltered extends IServerGroupC
   subnetTypes: string[];
   securityGroupNames: string[];
   secrets: string[];
+  images: IEcsDockerImage[];
 }
 
 export interface IEcsServerGroupCommandBackingData extends IServerGroupCommandBackingData {
@@ -63,6 +80,7 @@ export interface IEcsServerGroupCommandBackingData extends IServerGroupCommandBa
   // subnetTypes: string;
   // securityGroups: string[]
   secrets: ISecretDescriptor[];
+  images: IEcsDockerImage[];
 }
 
 export interface IEcsServerGroupCommand extends IServerGroupCommand {
@@ -71,11 +89,15 @@ export interface IEcsServerGroupCommand extends IServerGroupCommand {
   targetGroup: string;
   placementStrategyName: string;
   placementStrategySequence: IPlacementStrategy[];
+  imageDescription: IEcsDockerImage;
+  viewState: IEcsServerGroupCommandViewState;
 
   subnetTypeChanged: (command: IEcsServerGroupCommand) => IServerGroupCommandResult;
   placementStrategyNameChanged: (command: IEcsServerGroupCommand) => IServerGroupCommandResult;
   // subnetTypeChanged: (command: IEcsServerGroupCommand) => IServerGroupCommandResult;
   regionIsDeprecated: (command: IEcsServerGroupCommand) => boolean;
+
+  clusterChanged: (command: IServerGroupCommand) => void;
 }
 
 export class EcsServerGroupConfigurationService {
@@ -115,7 +137,7 @@ export class EcsServerGroupConfigurationService {
   }
 
   // TODO (Bruno Carrier): Why do we need to inject an Application into this constructor so that the app works?  This is strange, and needs investigating
-  public configureCommand(cmd: IEcsServerGroupCommand): IPromise<void> {
+  public configureCommand(cmd: IEcsServerGroupCommand, imageQuery = ''): IPromise<void> {
     this.applyOverrides('beforeConfiguration', cmd);
     cmd.toggleSuspendedProcess = (command: IEcsServerGroupCommand, process: string): void => {
       command.suspendedProcesses = command.suspendedProcesses || [];
@@ -144,6 +166,29 @@ export class EcsServerGroupConfigurationService {
       );
     };
 
+    const imageQueries = cmd.imageDescription ? [this.grabImageAndTag(cmd.imageDescription.imageId)] : [];
+
+    if (imageQuery) {
+      imageQueries.push(imageQuery);
+    }
+
+    let imagesPromise;
+    if (imageQueries.length) {
+      imagesPromise = this.$q
+        .all(
+          imageQueries.map(q =>
+            DockerImageReader.findImages({
+              provider: 'dockerRegistry',
+              count: 50,
+              q: q,
+            }),
+          ),
+        )
+        .then(promises => flatten(promises));
+    } else {
+      imagesPromise = this.$q.when([]);
+    }
+
     return this.$q
       .all({
         credentialsKeyedByAccount: AccountService.getCredentialsKeyedByAccount('ecs'),
@@ -155,10 +200,14 @@ export class EcsServerGroupConfigurationService {
         securityGroups: this.securityGroupReader.getAllSecurityGroups(),
         launchTypes: this.$q.when(clone(this.launchTypes)),
         secrets: this.secretReader.listSecrets(),
+        images: imagesPromise,
       })
       .then((backingData: Partial<IEcsServerGroupCommandBackingData>) => {
         backingData.accounts = keys(backingData.credentialsKeyedByAccount);
         backingData.filtered = {} as IEcsServerGroupCommandBackingDataFiltered;
+        if (cmd.viewState.contextImages) {
+          backingData.images = backingData.images.concat(cmd.viewState.contextImages);
+        }
         cmd.backingData = backingData as IEcsServerGroupCommandBackingData;
         this.configureVpcId(cmd);
         this.configureAvailableIamRoles(cmd);
@@ -166,6 +215,8 @@ export class EcsServerGroupConfigurationService {
         this.configureAvailableSecurityGroups(cmd);
         this.configureAvailableEcsClusters(cmd);
         this.configureAvailableSecrets(cmd);
+        this.configureAvailableImages(cmd);
+        this.configureAvailableRegions(cmd);
         this.applyOverrides('afterConfiguration', cmd);
         this.attachEventHandlers(cmd);
       });
@@ -177,6 +228,44 @@ export class EcsServerGroupConfigurationService {
         override[phase](command);
       }
     });
+  }
+
+  public grabImageAndTag(imageId: string): string {
+    return imageId.split('/').pop();
+  }
+
+  public buildImageId(image: IEcsDockerImage): string {
+    if (image.fromContext) {
+      return `${image.imageLabelOrSha}`;
+    } else if (image.fromTrigger && !image.tag) {
+      return `${image.registry}/${image.repository} (Tag resolved at runtime)`;
+    } else {
+      return `${image.registry}/${image.repository}:${image.tag}`;
+    }
+  }
+
+  public mapImage(image: IEcsDockerImage): IEcsDockerImage {
+    if (image.message !== undefined) {
+      return image;
+    }
+
+    return {
+      repository: image.repository,
+      tag: image.tag,
+      imageId: this.buildImageId(image),
+      registry: image.registry,
+      fromContext: image.fromContext,
+      fromTrigger: image.fromTrigger,
+      account: image.account,
+      imageLabelOrSha: image.imageLabelOrSha,
+      stageId: image.stageId,
+      message: image.message,
+    };
+  }
+
+  public configureAvailableImages(command: IEcsServerGroupCommand): void {
+    // No filtering required, but need to decorate with the displayable image ID
+    command.backingData.filtered.images = command.backingData.images.map(image => this.mapImage(image));
   }
 
   public configureAvailabilityZones(command: IEcsServerGroupCommand): void {
@@ -247,6 +336,12 @@ export class EcsServerGroupConfigurationService {
       })
       .map('name')
       .value();
+  }
+
+  public configureAvailableRegions(command: IEcsServerGroupCommand): void {
+    const regionsForAccount: IAccountDetails =
+    command.backingData.credentialsKeyedByAccount[command.credentials] || ({ regions: [] } as IAccountDetails);
+    command.backingData.filtered.regions = regionsForAccount.regions;
   }
 
   public configureAvailableIamRoles(command: IEcsServerGroupCommand): void {
@@ -399,6 +494,10 @@ export class EcsServerGroupConfigurationService {
       return result;
     };
 
+    cmd.clusterChanged = (command: IEcsServerGroupCommand): void => {
+      command.moniker = NameUtils.getMoniker(command.application, command.stack, command.freeFormDetails);
+    };
+
     cmd.credentialsChanged = (command: IEcsServerGroupCommand): IServerGroupCommandResult => {
       const result: IEcsServerGroupCommandResult = { dirty: {} };
       const backingData = command.backingData;
@@ -408,10 +507,8 @@ export class EcsServerGroupConfigurationService {
         this.configureAvailableSubnetTypes(command);
         this.configureAvailableSecurityGroups(command);
         this.configureAvailableSecrets(command);
+        this.configureAvailableRegions(command);
 
-        const regionsForAccount: IAccountDetails =
-          backingData.credentialsKeyedByAccount[command.credentials] || ({ regions: [] } as IAccountDetails);
-        backingData.filtered.regions = regionsForAccount.regions;
         if (!some(backingData.filtered.regions, { name: command.region })) {
           command.region = null;
           result.dirty.region = true;
