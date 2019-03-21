@@ -24,11 +24,19 @@ class SqlHealthIndicator(
   private val sqlDialect: SQLDialect
 ) : AbstractHealthIndicator() {
 
+  private var hasBeenUp: Boolean = false
+
   override fun doHealthCheck(builder: Health.Builder) {
     if (healthProvider.enabled) {
+      hasBeenUp = true
       builder.up().withDetail("database", sqlDialect.name)
     } else {
-      builder.down().withDetail("database", sqlDialect.name).let {
+      val downBuilder = if (hasBeenUp) {
+        builder.up().withDetail("underlyingState", "DOWN")
+      } else {
+        builder.down()
+      }
+      downBuilder.withDetail("database", sqlDialect.name).let {
         healthProvider.healthException?.let { exception ->
           it.withException(exception)
         }
