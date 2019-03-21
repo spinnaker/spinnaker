@@ -126,7 +126,7 @@ export class TargetGroups extends React.Component<ITargetGroupsProps, ITargetGro
       .takeUntil(this.destroy$)
       .subscribe(() => {
         app.getDataSource('loadBalancers').data.forEach((lb: IAmazonApplicationLoadBalancer) => {
-          if (lb.loadBalancerType === 'network') {
+          if (lb.loadBalancerType !== 'classic') {
             if (!loadBalancer || lb.name !== loadBalancer.name) {
               lb.targetGroups.forEach(targetGroup => {
                 targetGroupsByAccountAndRegion[lb.account] = targetGroupsByAccountAndRegion[lb.account] || {};
