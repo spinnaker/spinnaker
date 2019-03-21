@@ -93,6 +93,7 @@ class ResourceBuilder {
         .withVolumeMounts(volumeMounts)
         .withEnv(envVars)
         .withReadinessProbe(probeBuilder.build())
+        .withLivenessProbe(probeBuilder.build())
         .withResources(buildResourceRequirements(name, deploymentEnvironment));
 
     return containerBuilder.build();

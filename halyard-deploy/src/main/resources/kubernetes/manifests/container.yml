@@ -21,7 +21,9 @@
   ],
   {% endif %}
 
-  "readinessProbe": {{ probe }},
+  "readinessProbe": {{ readinessProbe }},
+
+  "livenessProbe": {{ livenessProbe }},
 
   "securityContext": {{ securityContext }},
 
