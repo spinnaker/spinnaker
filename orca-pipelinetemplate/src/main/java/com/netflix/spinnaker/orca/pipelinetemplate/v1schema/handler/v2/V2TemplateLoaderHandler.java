@@ -53,15 +53,9 @@ public class V2TemplateLoaderHandler implements Handler {
   public void handle(@NotNull HandlerChain chain, @NotNull PipelineTemplateContext context) {
     V2TemplateConfiguration config = objectMapper.convertValue(context.getRequest().getConfig(), V2TemplateConfiguration.class);
 
-    // Allow template inlining to perform plans without publishing the template
-    if (context.getRequest().getPlan() && context.getRequest().getTemplate() != null) {
-      V2PipelineTemplate template = objectMapper.convertValue(context.getRequest().getTemplate(), V2PipelineTemplate.class);
-      context.setSchemaContext(new V2PipelineTemplateContext(config, template));
-      return;
-    }
-
     Map<String, Object> trigger = context.getRequest().getTrigger();
     // Allow the config's source to be dynamically resolved from trigger payload.
+    // TODO(jacobkiefer): Reevaluate whether we should enable dynamically resolved templates.
     renderPipelineTemplateSource(config, trigger);
 
     // If a template source isn't provided by the configuration, we're assuming that the configuration is fully-formed.

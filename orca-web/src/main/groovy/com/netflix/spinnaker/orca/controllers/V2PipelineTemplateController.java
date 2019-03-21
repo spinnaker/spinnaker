@@ -16,10 +16,9 @@
 
 package com.netflix.spinnaker.orca.controllers;
 
+import com.netflix.spinnaker.orca.extensionpoint.pipeline.PipelinePreprocessor;
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -29,6 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -38,14 +38,18 @@ import java.util.Map;
 public class V2PipelineTemplateController {
 
   @Autowired
-  private OperationsController operationsController;
+  private ContextParameterProcessor contextParameterProcessor;
 
   @Autowired
-  ContextParameterProcessor contextParameterProcessor;
+  private List<PipelinePreprocessor> pipelinePreprocessors;
 
   @RequestMapping(value = "/plan", method = RequestMethod.POST)
   Map<String, Object> orchestrate(@RequestBody Map<String, Object> pipeline) {
-    pipeline = operationsController.parseAndValidatePipeline(pipeline);
+    // TODO(jacobkiefer): Excise the logic in OperationsController that requires plan to avoid resolving artifacts.
+    pipeline.put("plan", true); // avoid resolving artifacts
+    for (PipelinePreprocessor pp : pipelinePreprocessors) {
+      pipeline = pp.process(pipeline);
+    }
 
     Map<String, Object> augmentedContext = new HashMap<>();
     augmentedContext.put("trigger", pipeline.get("trigger"));

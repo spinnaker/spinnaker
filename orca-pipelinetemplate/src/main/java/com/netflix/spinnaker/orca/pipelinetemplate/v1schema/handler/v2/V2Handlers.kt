@@ -67,7 +67,9 @@ class V2PipelineGenerator (
     // Explicitly resolve artifacts after preprocessing to support artifacts in templated pipelines.
     // TODO(jacobkiefer): Refactor /orchestrate so we don't have to special case v2 artifact resolution.
     val generatedPipeline = generator.generate(ctx.template, ctx.configuration, context.getRequest())
-    artifactResolver.resolveArtifacts(generatedPipeline)
+    if (!context.getRequest().plan) {
+      artifactResolver.resolveArtifacts(generatedPipeline)
+    }
     context.getProcessedOutput().putAll(generatedPipeline)
   }
 }
