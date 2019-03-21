@@ -12,6 +12,7 @@ class ResizeStrategySupportSpec extends Specification {
 
   @Unroll
   def "test min logic in performScalingAndPinning() with unpinMin=#unpinMin originalMin=#originalMin savedMin=#savedMin"() {
+    given:
     resizeStrategySupport = new ResizeStrategySupport()
     Stage stage = ExecutionBuilder.stage {}
     stage.context = [
@@ -42,15 +43,7 @@ class ResizeStrategySupportSpec extends Specification {
     [min: 1, max: 3, desired: 2] | true     | 2           | null     || [min: 1, max: 3, desired: 2] // won't unpin to a higher min 2
     [min: 1, max: 3, desired: 2] | true     | 0           | null     || [min: 0, max: 3, desired: 2]
     [min: 1, max: 3, desired: 2] | true     | null        | 2        || [min: 1, max: 3, desired: 2]
-    [min: 1, max: 3, desired: 2] | true     | 0           | 2        || [min: 0, max: 3, desired: 2]
-    [min: 1, max: 3, desired: 2] | true     | null        | 0        || [min: 0, max: 3, desired: 2]
-  }
-
-  private Map toMap(ResizeStrategy.Capacity capacity) {
-    return [min: capacity.min, max: capacity.max, desired: capacity.desired]
-  }
-
-  private capacity(Map map) {
-    return new ResizeStrategy.Capacity(min: map.min, max: map.max, desired: map.desired)
+    [min: 1, max: 3, desired: 2] | true     | 0           | 2        || [min: 0, max: 3, desired: 2] // verify that 0 is a valid originalMin
+    [min: 1, max: 3, desired: 2] | true     | null        | 0        || [min: 0, max: 3, desired: 2] // picks the savedMin value
   }
 }
