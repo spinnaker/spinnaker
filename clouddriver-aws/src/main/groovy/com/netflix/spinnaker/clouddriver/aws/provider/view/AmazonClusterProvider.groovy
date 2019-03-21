@@ -260,7 +260,7 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster>, ServerGro
     Collection<AmazonCluster> clusters
 
     // TODO: remove special casing for sql vs. redis; possibly via dropping redis support in the future
-    if (sqlApplicationIndexEnabled &&
+    if ((includeDetails && sqlApplicationIndexEnabled) &&
       ((cacheView instanceof CompositeCache &&
       (cacheView as CompositeCache).getStoreTypes().every { (it == SQL) }) ||
       (cacheView.storeType() == SQL))
