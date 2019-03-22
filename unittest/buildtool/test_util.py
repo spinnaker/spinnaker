@@ -144,11 +144,34 @@ def make_all_standard_git_repos(base_dir):
   return result
 
 
-class BaseGitRepoTestFixture(unittest.TestCase):
+class BaseTestFixture(unittest.TestCase):
   @classmethod
   def setUpClass(cls):
     logging.debug('BEGIN setUpClass %s', cls.__name__)
-    cls.base_temp_dir = tempfile.mkdtemp(prefix='bom_scm_test')
+    cls.base_temp_dir = tempfile.mkdtemp(prefix=cls.__name__)
+
+  @classmethod
+  def tearDownClass(cls):
+    shutil.rmtree(cls.base_temp_dir)
+
+  def make_test_options(self):
+    class Options(object):
+      pass
+    options = Options()
+    options.command = self._testMethodName
+    options.input_dir = os.path.join(self.test_root, 'input_dir')
+    options.output_dir = os.path.join(self.test_root, 'output_dir')
+    return options
+
+  def setUp(self):
+    self.test_root = os.path.join(self.base_temp_dir, self._testMethodName)
+    self.options = self.make_test_options()
+
+
+class BaseGitRepoTestFixture(BaseTestFixture):
+  @classmethod
+  def setUpClass(cls):
+    super(BaseGitRepoTestFixture, cls).setUpClass()
     cls.repo_commit_map = make_all_standard_git_repos(cls.base_temp_dir)
     source_path = os.path.join(os.path.dirname(__file__),
                                'standard_test_bom.yml')
@@ -175,10 +198,6 @@ class BaseGitRepoTestFixture(unittest.TestCase):
     logging.debug('FINISH setUpClass %s', cls.__name__)
 
   @classmethod
-  def tearDownClass(cls):
-    shutil.rmtree(cls.base_temp_dir)
-
-  @classmethod
   def to_origin(cls, repo_name):
     return cls.repo_commit_map[repo_name]['ORIGIN']
 
@@ -194,16 +213,6 @@ class BaseGitRepoTestFixture(unittest.TestCase):
     self.addCleanup(patcher.stop)
     return hook
 
-  def make_test_options(self):
-    class Options(object):
-      pass
-    options = Options()
-    options.command = self._testMethodName
-    options.input_dir = os.path.join(self.test_root, 'input_dir')
-    options.output_dir = os.path.join(self.test_root, 'output_dir')
-    return options
-
   def setUp(self):
-    self.test_root = os.path.join(self.base_temp_dir, self._testMethodName)
-    self.options = self.make_test_options()
+    super(BaseGitRepoTestFixture, self).setUp()
     self.options.github_repository_root = self.base_temp_dir

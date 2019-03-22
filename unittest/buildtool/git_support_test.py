@@ -419,6 +419,31 @@ class TestSemanticVersion(unittest.TestCase):
       if expect_index is not None and expect_index > SemanticVersion.TAG_INDEX:
         self.assertEqual(next_semver, semver.next(expect_index))
 
+  def test_semver_sort(self):
+    versions = [
+        SemanticVersion.make('version-1.9.7'),
+        SemanticVersion.make('version-9.8.7'),
+        SemanticVersion.make('version-11.0.0'),
+        SemanticVersion.make('version-3.10.2'),
+        SemanticVersion.make('version-3.0.4'),
+        SemanticVersion.make('version-3.2.2'),
+        SemanticVersion.make('version-3.2.0'),
+        SemanticVersion.make('version-3.2.1'),
+    ]
+
+    got = sorted(versions)
+    expect = [
+        SemanticVersion.make('version-1.9.7'),
+        SemanticVersion.make('version-3.0.4'),
+        SemanticVersion.make('version-3.2.0'),
+        SemanticVersion.make('version-3.2.1'),
+        SemanticVersion.make('version-3.2.2'),
+        SemanticVersion.make('version-3.10.2'),
+        SemanticVersion.make('version-9.8.7'),
+        SemanticVersion.make('version-11.0.0'),
+    ]
+    self.assertEquals(expect, got)
+    
 
 class TestCommitMessage(unittest.TestCase):
   PATCH_BRANCH = 'patch_branch'
