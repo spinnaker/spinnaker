@@ -12,11 +12,13 @@ import com.netflix.spinnaker.keel.persistence.ResourceState.Ok
 import com.netflix.spinnaker.keel.persistence.ResourceState.Unknown
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
+import com.netflix.spinnaker.keel.telemetry.ResourceChecked
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import org.springframework.context.ApplicationEventPublisher
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
@@ -25,11 +27,12 @@ internal object ResourceActuatorTests : JUnit5Minutests {
   val resourceRepository = InMemoryResourceRepository()
   val plugin1 = mockk<ResourceHandler<DummyResource>>(relaxUnitFun = true)
   val plugin2 = mockk<ResourceHandler<DummyResource>>(relaxUnitFun = true)
+  val publisher = mockk<ApplicationEventPublisher>(relaxUnitFun = true)
 
   fun tests() = rootContext<ResourceActuator> {
 
     fixture {
-      ResourceActuator(resourceRepository, listOf(plugin1, plugin2))
+      ResourceActuator(resourceRepository, listOf(plugin1, plugin2), publisher)
     }
 
     before {
@@ -89,6 +92,10 @@ internal object ResourceActuatorTests : JUnit5Minutests {
             .get { state }
             .isEqualTo(Ok)
         }
+
+        test("a telemetry event is published") {
+          verify { publisher.publishEvent(ResourceChecked(resource.metadata.name, Ok)) }
+        }
       }
 
       context("the current state is missing") {
@@ -109,6 +116,10 @@ internal object ResourceActuatorTests : JUnit5Minutests {
             .get { state }
             .isEqualTo(Missing)
         }
+
+        test("a telemetry event is published") {
+          verify { publisher.publishEvent(ResourceChecked(resource.metadata.name, Missing)) }
+        }
       }
 
       context("the current state is wrong") {
@@ -128,6 +139,10 @@ internal object ResourceActuatorTests : JUnit5Minutests {
           expectThat(resourceRepository.lastKnownState(resource.metadata.uid))
             .get { state }
             .isEqualTo(Diff)
+        }
+
+        test("a telemetry event is published") {
+          verify { publisher.publishEvent(ResourceChecked(resource.metadata.name, Diff)) }
         }
       }
     }

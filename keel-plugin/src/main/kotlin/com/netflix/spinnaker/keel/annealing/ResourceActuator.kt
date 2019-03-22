@@ -4,28 +4,32 @@ import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
-import com.netflix.spinnaker.keel.persistence.ResourceState.Diff as Different
+import com.netflix.spinnaker.keel.persistence.ResourceState.Diff
 import com.netflix.spinnaker.keel.persistence.ResourceState.Missing
 import com.netflix.spinnaker.keel.persistence.ResourceState.Ok
 import com.netflix.spinnaker.keel.plugin.ResourceConflict
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.netflix.spinnaker.keel.plugin.ResourceHandler.ResourceDiff
 import com.netflix.spinnaker.keel.plugin.supporting
+import com.netflix.spinnaker.keel.telemetry.ResourceChecked
 import de.danielbechler.diff.ObjectDifferBuilder
 import de.danielbechler.diff.node.DiffNode
 import org.slf4j.LoggerFactory
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 
 @Component
 class ResourceActuator(
   private val resourceRepository: ResourceRepository,
-  private val handlers: List<ResourceHandler<*>>
+  private val handlers: List<ResourceHandler<*>>,
+  private val publisher: ApplicationEventPublisher
 ) {
 
   private val differ = ObjectDifferBuilder.buildDefault()
 
   fun checkResource(name: ResourceName, apiVersion: ApiVersion, kind: String) {
     log.debug("Checking resource {}", name)
+
     val plugin = handlers.supporting(apiVersion, kind)
     val type = plugin.supportedKind.second
     val resource = resourceRepository.get(name, type)
@@ -33,6 +37,8 @@ class ResourceActuator(
       when (val current = plugin.current(resource)) {
         null -> {
           log.warn("Resource {} is missing", resource.metadata.name)
+          publisher.publishEvent(ResourceChecked(resource.metadata.name, Missing))
+
           resourceRepository.updateState(resource.metadata.uid, Missing)
           plugin.create(resource)
         }
@@ -48,10 +54,14 @@ class ResourceActuator(
             }
             log.warn("Resource {} is invalid", resource.metadata.name)
             log.info("Resource {} delta: {}", resource.metadata.name, builder.toString())
-            resourceRepository.updateState(resource.metadata.uid, Different)
+            publisher.publishEvent(ResourceChecked(resource.metadata.name, Diff))
+
+            resourceRepository.updateState(resource.metadata.uid, Diff)
             plugin.update(resource, ResourceDiff(current, diff))
           } else {
             log.info("Resource {} is valid", resource.metadata.name)
+            publisher.publishEvent(ResourceChecked(resource.metadata.name, Ok))
+
             resourceRepository.updateState(resource.metadata.uid, Ok)
           }
         }

@@ -9,6 +9,7 @@ dependencies {
   implementation "org.springframework:spring-context"
   implementation "org.springframework.boot:spring-boot-autoconfigure"
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
+  implementation "com.netflix.spinnaker.kork:kork-core:${spinnaker.version("kork")}"
 
   testImplementation project(":keel-spring-test-support")
   testImplementation "org.springframework.boot:spring-boot-starter-web"
