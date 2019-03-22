@@ -8,6 +8,7 @@ import { Application } from 'core/application/application.model';
 import { CollapsibleSectionStateCache } from 'core/cache';
 import { EntityNotifications } from 'core/entityTag/notifications/EntityNotifications';
 import { Execution } from '../execution/Execution';
+import { ExecutionAction } from '../executionAction/ExecutionAction';
 import { IExecution, IExecutionGroup, IExecutionTrigger, IPipeline, IPipelineCommand } from 'core/domain';
 import { NextRunTag } from 'core/pipeline/triggers/NextRunTag';
 import { Popover } from 'core/presentation/Popover';
@@ -35,8 +36,7 @@ export interface IExecutionGroupState {
   triggeringExecution: boolean;
   open: boolean;
   poll: IRetryablePromise<any>;
-  canTriggerPipelineManually: boolean;
-  canConfigure: boolean;
+  displayExecutionActions: boolean;
   showAccounts: boolean;
   showOverflowAccountTags: boolean;
 }
@@ -57,7 +57,6 @@ export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecu
       name: this.props.group.heading,
     }) as IPipeline;
 
-    const hasNonMPTV2PipelineConfig = pipelineConfig && !PipelineTemplateV2Service.isV2PipelineConfig(pipelineConfig);
     const sectionCacheKey = this.getSectionCacheKey();
 
     this.state = {
@@ -68,8 +67,7 @@ export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecu
         !CollapsibleSectionStateCache.isSet(sectionCacheKey) ||
         CollapsibleSectionStateCache.isExpanded(sectionCacheKey),
       poll: null,
-      canTriggerPipelineManually: hasNonMPTV2PipelineConfig,
-      canConfigure: !!(hasNonMPTV2PipelineConfig || strategyConfig),
+      displayExecutionActions: !!(pipelineConfig || strategyConfig),
       showAccounts: ExecutionState.filterModel.asFilterModel.sortFilter.groupBy === 'name',
       pipelineConfig,
       showOverflowAccountTags: false,
@@ -203,10 +201,11 @@ export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecu
 
   public render(): React.ReactElement<ExecutionGroup> {
     const { group } = this.props;
-    const { canTriggerPipelineManually, pipelineConfig } = this.state;
+    const { displayExecutionActions, pipelineConfig, triggeringExecution } = this.state;
     const pipelineDisabled = pipelineConfig && pipelineConfig.disabled;
     const pipelineDescription = pipelineConfig && pipelineConfig.description;
     const hasRunningExecutions = group.runningExecutions && group.runningExecutions.length > 0;
+    const hasMPTv2PipelineConfig = !!(pipelineConfig && PipelineTemplateV2Service.isV2PipelineConfig(pipelineConfig));
 
     const deploymentAccountLabels = without(this.state.deploymentAccounts || [], ...(group.targetAccounts || [])).map(
       (account: string) => <AccountTag key={account} account={account} />,
@@ -242,7 +241,7 @@ export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecu
         key={execution.id}
         execution={execution}
         application={this.props.application}
-        onRerun={canTriggerPipelineManually ? this.rerunExecutionClicked : undefined}
+        onRerun={pipelineConfig && !hasMPTv2PipelineConfig ? this.rerunExecutionClicked : undefined}
       />
     ));
 
@@ -289,31 +288,40 @@ export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecu
                     onUpdate={() => this.props.application.refresh()}
                   />
                 )}
-                {this.state.canConfigure && (
+                {displayExecutionActions && (
                   <div className="text-right execution-group-actions">
                     {pipelineConfig && <TriggersTag pipeline={pipelineConfig} />}
                     {pipelineConfig && <NextRunTag pipeline={pipelineConfig} />}
-                    <h4>
-                      <a className="btn btn-xs btn-link" onClick={this.handleConfigureClicked}>
-                        <span className="glyphicon glyphicon-cog" />
-                        {' Configure'}
-                      </a>
-                    </h4>
-                    {this.state.canTriggerPipelineManually && (
-                      <h4 style={{ visibility: pipelineDisabled ? 'hidden' : 'visible' }}>
-                        <a className="btn btn-xs btn-link" onClick={this.handleTriggerClicked}>
-                          {this.state.triggeringExecution ? (
-                            <div className="horizontal middle inline-spinner">
-                              <Spinner size="nano" />
-                              <span> Starting Manual Execution</span>
-                            </div>
-                          ) : (
-                            <span>
-                              <span className="glyphicon glyphicon-play" /> Start Manual Execution
-                            </span>
-                          )}
-                        </a>
-                      </h4>
+                    <ExecutionAction
+                      handleClick={this.handleConfigureClicked}
+                      disabled={hasMPTv2PipelineConfig}
+                      tooltipText={
+                        hasMPTv2PipelineConfig ? PipelineTemplateV2Service.getUnsupportedCopy('Configuration') : ''
+                      }
+                    >
+                      <span className="glyphicon glyphicon-cog" />
+                      {' Configure'}
+                    </ExecutionAction>
+                    {pipelineConfig && (
+                      <ExecutionAction
+                        disabled={hasMPTv2PipelineConfig}
+                        handleClick={this.handleTriggerClicked}
+                        style={{ visibility: pipelineDisabled ? 'hidden' : 'visible' }}
+                        tooltipText={
+                          hasMPTv2PipelineConfig ? PipelineTemplateV2Service.getUnsupportedCopy('Manual Execution') : ''
+                        }
+                      >
+                        {triggeringExecution ? (
+                          <div className="horizontal middle inline-spinner">
+                            <Spinner size="nano" />
+                            <span> Starting Manual Execution</span>
+                          </div>
+                        ) : (
+                          <span>
+                            <span className="glyphicon glyphicon-play" /> Start Manual Execution
+                          </span>
+                        )}
+                      </ExecutionAction>
                     )}
                   </div>
                 )}

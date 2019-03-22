@@ -26,4 +26,8 @@ export class PipelineTemplateV2Service {
   public static isV2PipelineConfig(pipelineConfig: IPipeline): boolean {
     return pipelineConfig.schema === 'v2';
   }
+
+  public static getUnsupportedCopy(task: string): string {
+    return `${task} of templated v2 pipelines through the UI is unsupported. Use Spin CLI instead.`;
+  }
 }
