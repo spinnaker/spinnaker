@@ -73,13 +73,18 @@ public class FindArtifactFromExecutionTask implements Task {
 
   @Data
   private static class ExecutionOptions {
+    // Accept either 'succeeded' or 'successful' in the stage config. The front-end sets 'successful', but due to a bug
+    // this class was only looking for 'succeeded'. Fix this by accepting 'successful' but to avoid breaking anyone who
+    // discovered this bug and manually edited their stage to set 'succeeded', continue to accept 'succeeded'.
     boolean succeeded;
+    boolean successful;
+
     boolean terminal;
     boolean running;
 
     ExecutionCriteria toCriteria() {
       List<String> statuses = new ArrayList<>();
-      if (succeeded) {
+      if (succeeded || successful) {
         statuses.add("SUCCEEDED");
       }
 
