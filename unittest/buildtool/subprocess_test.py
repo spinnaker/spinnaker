@@ -14,6 +14,7 @@
 
 # pylint: disable=missing-docstring
 
+import io
 import logging
 import os
 import shutil
@@ -22,6 +23,7 @@ import unittest
 
 from buildtool import (
     check_subprocess,
+    check_subprocesses_to_logfile,
     run_subprocess,
     ExecutionError)
 
@@ -37,7 +39,7 @@ class TestRunner(unittest.TestCase):
   def tearDownClass(cls):
     shutil.rmtree(cls.base_temp_dir)
 
-  def do_run_subprocess_ok(self, check):
+  def do_run_subprocess_ok(self, check, logfile=None):
     if os.path.exists('/bin/true'):
       true_path = '/bin/true'
     elif os.path.exists('/usr/bin/true'):
@@ -52,13 +54,25 @@ class TestRunner(unittest.TestCase):
              ('/bin/echo "Hello\nWorld"', 'Hello\nWorld'),
              ('/bin/echo \'"Hello World"\'', '"Hello World"')]
     for cmd, expect in tests:
-      if check:
+      if logfile:
+        output = check_subprocesses_to_logfile('Test Logfile', logfile, [cmd])
+      elif check:
         output = check_subprocess(cmd)
       else:
         code, output = run_subprocess(cmd)
         self.assertEqual(0, code)
 
-      self.assertEqual(expect, output)
+      if logfile:
+        self.assertTrue(os.path.exists(logfile))
+        self.assertIsNone(output)
+        with io.open(logfile, 'r', encoding='utf-8') as stream:
+          lines = stream.read().split('\n')
+        self.assertTrue('Spawning' in lines[0])
+        self.assertTrue('process completed with' in lines[-2])
+        body = '\n'.join(lines[3:-3]).strip()
+        self.assertEqual(expect, body)
+      else:
+        self.assertEqual(expect, output)
 
   def test_run_subprocess_ok(self):
     self.do_run_subprocess_ok(False)
@@ -94,6 +108,23 @@ class TestRunner(unittest.TestCase):
       with self.assertRaises(ExecutionError) as ex:
         check_subprocess(test)
       self.assertTrue(hasattr(ex.exception, 'loggedit'))
+
+  def test_check_to_file_subprocess_ok(self):
+    path = os.path.join(self.base_temp_dir, 'check_ok.log')
+    self.do_run_subprocess_ok(False, logfile=path)
+
+  def test_check_to_file_subprocess_failed(self):
+    cmd = '/bin/ls /abc/def'
+    path = os.path.join(self.base_temp_dir, 'check_failed.log')
+    with self.assertRaises(ExecutionError) as ex:
+      check_subprocesses_to_logfile('Test Logfile', path, [cmd])
+    self.assertTrue(hasattr(ex.exception, 'loggedit'))
+    self.assertTrue(os.path.exists(path))
+    with open(path, 'r') as stream:
+      lines = stream.read().split('\n')
+    body = '\n'.join(lines[3:-3]).strip()
+    expect = "/bin/ls: cannot access '/abc/def': No such file or directory"
+    self.assertEqual(expect, body)
 
   def test_run_subprocess_get_pid(self):
     # See if we can run a job by looking up our job

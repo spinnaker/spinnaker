@@ -51,7 +51,7 @@ def start_subprocess(cmd, stream=None, stdout=None, echo=False, **kwargs):
 
   start_date = datetime.datetime.now()
   if stream:
-    stream.write('{time} Spawning {cmd!r}{extra}\n----\n\n'.format(
+    stream.write(u'{time} Spawning {cmd!r}{extra}\n----\n\n'.format(
         time=log_timestring(now=start_date), cmd=cmd, extra=extra_log_info))
     stream.flush()
 
@@ -86,7 +86,7 @@ def wait_subprocess(process, stream=None, echo=False, postprocess_hook=None):
       decoded_line = raw_line.decode(encoding='utf-8')
       text_lines.append(decoded_line)
       if stream:
-        stream.write(raw_line)
+        stream.write(decoded_line)
         stream.flush()
    
   process.wait()
@@ -106,8 +106,8 @@ def wait_subprocess(process, stream=None, echo=False, postprocess_hook=None):
 
   if stream:
     stream.write(
-        '\n\n----\n{time} Spawned process completed'
-        ' with returncode {returncode} in {delta_time}.\n'
+        u'\n\n----\n{time} Spawned process completed'
+        u' with returncode {returncode} in {delta_time}.\n'
         .format(time=log_timestring(now=end_date), returncode=returncode,
                 delta_time=delta_time_str))
     stream.flush()
@@ -145,7 +145,7 @@ def check_subprocess(cmd, stream=None, **kwargs):
     logging.error('Command failed. See embedded output above.')
   else:
     lines = stdout.split('\n')
-    if lines > 30:
+    if len(lines) > 30:
       lines = lines[-30:]
     log_embedded_output(logging.ERROR,
                         'Command failed with last %d lines' % len(lines),
@@ -213,8 +213,8 @@ def check_subprocesses_to_logfile(what, logfile, cmds, append=False, **kwargs):
       logging.info('Copying error log file to %s', error_path)
       with io.open(error_path, 'w', encoding='utf-8') as f:
         f.write(output);
-        f.write('\n--------\n')
-        f.write('Exeception caught in parent process:\n%s' % ex)
+        f.write(u'\n--------\n')
+        f.write(u'Exeception caught in parent process:\n%s' % ex)
 
       raise
 
