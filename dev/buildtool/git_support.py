@@ -196,6 +196,10 @@ class SemanticVersion(
       return semver.minor - other.minor
     return semver.patch - other.patch
 
+  def __lt__(self, other):
+    """Implements __lt__ for sorted operator comparison."""
+    return self.compare(self, other) < 0
+
   def most_significant_diff_index(self, arg):
     """Returns the *_INDEX for the most sigificant component differnce."""
     if arg.series_name != self.series_name:
