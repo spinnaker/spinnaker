@@ -19,6 +19,7 @@ package com.netflix.spinnaker.fiat.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.fiat.model.resources.Account;
 import com.netflix.spinnaker.fiat.model.resources.Application;
+import com.netflix.spinnaker.fiat.model.resources.BuildService;
 import com.netflix.spinnaker.fiat.model.resources.Resource;
 import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.fiat.model.resources.ServiceAccount;
@@ -43,6 +44,7 @@ public class UserPermission {
   private Set<Application> applications = new LinkedHashSet<>();
   private Set<ServiceAccount> serviceAccounts = new LinkedHashSet<>();
   private Set<Role> roles = new LinkedHashSet<>();
+  private Set<BuildService> buildServices = new LinkedHashSet<>();
   private boolean admin = false;
 
   public void addResource(Resource resource) {
@@ -63,6 +65,8 @@ public class UserPermission {
         serviceAccounts.add((ServiceAccount) resource);
       } else if (resource instanceof Role) {
         roles.add((Role) resource);
+      } else if (resource instanceof BuildService) {
+        buildServices.add((BuildService) resource);
       } else {
         throw new IllegalArgumentException("Cannot add unknown resource " + resource);
       }
@@ -78,6 +82,7 @@ public class UserPermission {
     retVal.addAll(applications);
     retVal.addAll(serviceAccounts);
     retVal.addAll(roles);
+    retVal.addAll(buildServices);
     return retVal;
   }
 
@@ -105,6 +110,7 @@ public class UserPermission {
     Set<Application.View> applications;
     Set<ServiceAccount.View> serviceAccounts;
     Set<Role.View> roles;
+    Set<BuildService.View> buildServices;
     boolean admin;
     boolean legacyFallback = false;
     boolean allowAccessToUnknownApplications = false;
@@ -120,7 +126,8 @@ public class UserPermission {
       this.accounts = (Set<Account.View>) toViews.apply(permission.getAccounts());
       this.applications = (Set<Application.View>) toViews.apply(permission.getApplications());
       this.serviceAccounts = (Set<ServiceAccount.View>) toViews.apply(permission.getServiceAccounts());
-      this.roles = (Set<Role.View>) toViews.apply((permission.getRoles()));
+      this.roles = (Set<Role.View>) toViews.apply(permission.getRoles());
+      this.buildServices = (Set<BuildService.View>) toViews.apply(permission.getBuildServices());
       this.admin = permission.isAdmin();
     }
   }

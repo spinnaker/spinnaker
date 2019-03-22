@@ -328,6 +328,8 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
         return permission.getServiceAccounts()
             .stream()
             .anyMatch(view -> view.getName().equalsIgnoreCase(resourceName));
+      case BUILD_SERVICE:
+        return containsAuth.apply(permission.getBuildServices());
       default:
         return false;
     }

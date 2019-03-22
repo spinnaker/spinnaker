@@ -23,6 +23,7 @@ import com.netflix.spinnaker.fiat.model.UserPermission
 import com.netflix.spinnaker.fiat.permissions.PermissionsRepository
 import com.netflix.spinnaker.fiat.providers.internal.ClouddriverService
 import com.netflix.spinnaker.fiat.providers.internal.Front50Service
+import com.netflix.spinnaker.fiat.providers.internal.IgorService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
@@ -46,6 +47,9 @@ class RolesControllerSpec extends Specification {
   ClouddriverService stubClouddriverService
 
   @Autowired
+  IgorService stubIgorService
+
+  @Autowired
   PermissionsRepository permissionsRepository
 
   @Autowired
@@ -54,10 +58,10 @@ class RolesControllerSpec extends Specification {
   @Delegate
   FiatSystemTestSupport fiatIntegrationTestSupport = new FiatSystemTestSupport()
 
-  MockMvc mockMvc;
+  MockMvc mockMvc
 
   def setup() {
-    HystrixPlugins.reset();
+    HystrixPlugins.reset()
     this.mockMvc = MockMvcBuilders
         .webAppContextSetup(this.wac)
         .defaultRequest(get("/").content().contentType("application/json"))
@@ -69,6 +73,7 @@ class RolesControllerSpec extends Specification {
     stubFront50Service.getAllServiceAccounts() >> []
     stubFront50Service.getAllApplicationPermissions() >> [unrestrictedApp, restrictedApp]
     stubClouddriverService.getAccounts() >> [unrestrictedAccount, restrictedAccount]
+    stubIgorService.allBuildServices >> []
 
     userRoleProvider.userToRoles = [
         "noRolesUser@group.com"   : [],

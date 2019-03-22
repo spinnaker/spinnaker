@@ -18,6 +18,7 @@ package com.netflix.spinnaker.config
 
 import com.netflix.spinnaker.fiat.providers.internal.ClouddriverService
 import com.netflix.spinnaker.fiat.providers.internal.Front50Service
+import com.netflix.spinnaker.fiat.providers.internal.IgorService
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import spock.lang.Specification
@@ -33,5 +34,10 @@ class ResourceConfig extends Specification {
   @Bean
   ClouddriverService clouddriverService() {
     return Stub(ClouddriverService)
+  }
+
+  @Bean
+  IgorService igorService() {
+    return Stub(IgorService)
   }
 }

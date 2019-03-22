@@ -23,7 +23,8 @@ public enum ResourceType {
   ACCOUNT(Account.class),
   APPLICATION(Application.class),
   SERVICE_ACCOUNT(ServiceAccount.class), // Fiat service account.
-  ROLE(Role.class);
+  ROLE(Role.class),
+  BUILD_SERVICE(BuildService.class);
 
   public Class<? extends Resource> modelClass;
 
