@@ -15,6 +15,7 @@
 """Common helper functions across buildtool modules."""
 
 import datetime
+import io
 import logging
 import os
 import socket
@@ -108,5 +109,5 @@ def write_to_path(content, path):
   This will create the parent directory if needed.
   """
   ensure_dir_exists(os.path.dirname(os.path.abspath(path)))
-  with open(path, 'wb') as f:
-    f.write(content.encode('utf-8'))
+  with io.open(path, 'w', encoding='utf-8') as f:
+    f.write(content)

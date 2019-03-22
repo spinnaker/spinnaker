@@ -469,9 +469,9 @@ class CollectArtifactVersions(CommandProcessor):
     user = os.environ.get('BINTRAY_USER')
     password = os.environ.get('BINTRAY_KEY')
     if user and password:
-      encoded_auth = base64.encodestring('{user}:{password}'.format(
-          user=user, password=password))[:-1]  # strip eoln
-      self.__basic_auth = 'Basic ' + encoded_auth
+      user_password = '{user}:{password}'.format(user=user, password=password)
+      encoded_auth = base64.encodestring(user_password.encode())[:-1] # no eoln
+      self.__basic_auth = 'Basic %s' % encoded_auth.decode()
     else:
       self.__basic_auth = None
 
@@ -483,7 +483,7 @@ class CollectArtifactVersions(CommandProcessor):
       response = urlopen(request)
       headers = response.info()
       payload = response.read()
-      content = json.JSONDecoder().decode(payload)
+      content = json.JSONDecoder().decode(payload.decode())
     except HTTPError as ex:
       raise_and_log_error(
           ResponseError('Bintray failure: {}'.format(ex),
@@ -997,11 +997,11 @@ class AuditArtifactVersions(CommandProcessor):
         bad_list.append(text)
         self.__invalid_versions[name] = bad_list
         logging.error('Ignoring invalid %s version "%s": %s', name, text, ex)
-    return sorted(sem_vers, cmp=SemanticVersion.compare)[-1].to_version()
+    return sorted(sem_vers)[-1].to_version()
 
   def test_buildnum(self, buildver):
     dash = buildver.rfind('-')
-    if dash < 0:
+    if dash < 0 or not self.options.prune_min_buildnum_prefix:
       return True
     buildnum = buildver[dash + 1:]
     return buildnum < self.options.prune_min_buildnum_prefix
@@ -1055,7 +1055,7 @@ class AuditArtifactVersions(CommandProcessor):
             unused_list = unused_map.get('spinnaker-monitoring', [])
             if unused_list:
               name = 'spinnaker-monitoring'
-
+            
         newest_version = self.most_recent_version(name, unused_list)
         candidates = filter_from_candidates(newest_version, unused_list)
 
