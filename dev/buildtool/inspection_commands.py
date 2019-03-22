@@ -1050,6 +1050,11 @@ class AuditArtifactVersions(CommandProcessor):
         unused_list = unused_map.get(name, None)
         if unused_list is None:
           unused_list = unused_map.get('spinnaker-' + name, [])
+          if not unused_list and name == 'monitoring-daemon':
+            # Some repos have 'spinnaker-monitoring', not individual components
+            unused_list = unused_map.get('spinnaker-monitoring', [])
+            if unused_list:
+              name = 'spinnaker-monitoring'
 
         newest_version = self.most_recent_version(name, unused_list)
         candidates = filter_from_candidates(newest_version, unused_list)
