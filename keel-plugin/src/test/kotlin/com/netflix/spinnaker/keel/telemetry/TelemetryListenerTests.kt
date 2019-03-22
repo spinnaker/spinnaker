@@ -5,8 +5,7 @@ import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.Registry
 import com.netflix.spectator.api.Tag
 import com.netflix.spinnaker.keel.api.ResourceName
-import com.netflix.spinnaker.keel.info.InstanceIdSupplier
-import com.netflix.spinnaker.keel.persistence.ResourceState
+import com.netflix.spinnaker.keel.persistence.ResourceState.Diff
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.every
@@ -19,33 +18,26 @@ import strikt.api.expectThat
 import strikt.assertions.any
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
-import java.util.UUID.randomUUID
 
 internal object TelemetryListenerTests : JUnit5Minutests {
 
   private val registry = mockk<Registry>()
   private val counter = mockk<Counter>(relaxUnitFun = true)
-  private val instanceId = "i-${randomUUID()}"
   private val event = ResourceChecked(
     ResourceName("ec2:cluster:prod:ap-south-1:keel-main"),
-    ResourceState.Diff
+    Diff
   )
 
   fun tests() = rootContext<TelemetryListener> {
     fixture {
-      TelemetryListener(
-        registry,
-        object : InstanceIdSupplier {
-          override fun get() = instanceId
-        }
-      )
+      TelemetryListener(registry)
     }
 
     before {
       every { registry.counter(any<Id>()) } returns counter
     }
 
-    context("succesful metric submission") {
+    context("successful metric submission") {
       before {
         onResourceChecked(event)
       }
@@ -65,16 +57,12 @@ internal object TelemetryListenerTests : JUnit5Minutests {
           name().isEqualTo("keel.resource.checked")
           tags()
             .any {
-              key().isEqualTo("resource_name")
+              key().isEqualTo("resourceName")
               value().isEqualTo(event.name.value)
             }
             .any {
-              key().isEqualTo("resource_state")
+              key().isEqualTo("resourceState")
               value().isEqualTo(event.state.name)
-            }
-            .any {
-              key().isEqualTo("instance_id")
-              value().isEqualTo(instanceId)
             }
         }
       }
