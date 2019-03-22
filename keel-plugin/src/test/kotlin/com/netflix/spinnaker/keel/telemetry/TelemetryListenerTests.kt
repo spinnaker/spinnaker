@@ -43,14 +43,14 @@ internal object TelemetryListenerTests : JUnit5Minutests {
       }
 
       test("increments an Atlas counter") {
-        verify(timeout = 100) {
+        verify {
           counter.increment()
         }
       }
 
       test("tags the counter") {
         val id = slot<Id>()
-        verify(timeout = 100) {
+        verify {
           registry.counter(capture(id))
         }
         expectThat(id.captured) {
