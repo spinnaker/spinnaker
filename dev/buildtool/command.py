@@ -21,6 +21,7 @@ import logging
 from buildtool.metrics import MetricsManager
 from buildtool import (
     add_parser_argument,
+    ensure_dir_exists,
     maybe_log_exception,
     raise_and_log_error,
     UnexpectedError)
@@ -163,7 +164,7 @@ class CommandProcessor(object):
     # This should be created before the command is run.
     if not os.path.isdir(output_command_path):
       logging.debug('making dir %s', output_command_path)
-      os.makedirs(output_command_path)
+      ensure_dir_exists(output_command_path)
     return output_command_path
 
   def get_input_dir(self, command=None):

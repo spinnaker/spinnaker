@@ -46,9 +46,16 @@ class TestRunner(unittest.TestCase):
     ensure_dir_exists(want)
     self.assertTrue(os.path.exists(want))
 
-  def test_write_to_path(self):
+  def test_write_to_path_string(self):
     path = os.path.join(self.base_temp_dir, 'test_write', 'file')
     content = 'First Line\nSecond Line'
+    write_to_path(content, path)
+    with open(path, 'r') as f:
+      self.assertEqual(content, f.read())
+
+  def test_write_to_path_unicode(self):
+    path = os.path.join(self.base_temp_dir, 'test_write', 'file')
+    content = u'First Line\nSecond Line'
     write_to_path(content, path)
     with open(path, 'r') as f:
       self.assertEqual(content, f.read())
