@@ -14,6 +14,7 @@
 
 """Support for running subprocess commands."""
 
+import io
 import datetime
 import logging
 import os
@@ -85,9 +86,9 @@ def wait_subprocess(process, stream=None, echo=False, postprocess_hook=None):
       decoded_line = raw_line.decode(encoding='utf-8')
       text_lines.append(decoded_line)
       if stream:
-        stream.write(decoded_line)
+        stream.write(raw_line)
         stream.flush()
-
+   
   process.wait()
   if stream is None and process.stdout is not None:
     # Close stdout pipe if we didnt give a stream.
@@ -144,8 +145,8 @@ def check_subprocess(cmd, stream=None, **kwargs):
     logging.error('Command failed. See embedded output above.')
   else:
     lines = stdout.split('\n')
-    if len(lines) > 40:
-      lines = lines[-40:]
+    if lines > 30:
+      lines = lines[-30:]
     log_embedded_output(logging.ERROR,
                         'Command failed with last %d lines' % len(lines),
                         '\n'.join(lines))
@@ -192,7 +193,7 @@ def check_subprocesses_to_logfile(what, logfile, cmds, append=False, **kwargs):
   how = 'Appending' if append else 'Logging'
   logging.info('%s %s to %s', how, what, logfile)
   ensure_dir_exists(os.path.dirname(logfile))
-  with open(logfile, mode) as stream:
+  with io.open(logfile, mode, encoding='utf-8') as stream:
     try:
       check_subprocess_sequence(
           cmds, stream=stream, embed_errors=False, **kwargs)
@@ -201,18 +202,17 @@ def check_subprocesses_to_logfile(what, logfile, cmds, append=False, **kwargs):
       import traceback
       traceback.print_exc()
 
-      with open(logfile, 'rb') as readagain:
-        output = bytes.decode(readagain.read(), encoding='utf-8')
+      with io.open(logfile, 'r', encoding='utf-8') as readagain:
+        output = readagain.read()
         log_embedded_output(logging.ERROR, logfile, output)
-      logging.error('Caught exception %s\n'
-                    '%s failed. See embedded logfile above',
+      logging.error('Caught exception %s\n%s failed. See embedded logfile above',
                     ex, what)
 
       ensure_dir_exists(ERROR_LOGFILE_DIR)
       error_path = os.path.join('errors', os.path.basename(logfile))
       logging.info('Copying error log file to %s', error_path)
-      with open(error_path, 'w') as f:
-        f.write(output)
+      with io.open(error_path, 'w', encoding='utf-8') as f:
+        f.write(output);
         f.write('\n--------\n')
         f.write('Exeception caught in parent process:\n%s' % ex)
 

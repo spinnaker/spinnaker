@@ -177,14 +177,21 @@ class AppengineSmokeTestScenario(sk.SpinnakerTestScenario):
       subprocess.Popen(command, stderr=sys.stderr, shell=True).wait()
 
   def __has_default_version(self):
-    command = 'gcloud app services list --project={project}'.format(project=self.__gcp_project)
-    out, err = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate()
-    logging.debug('Checking if project has default app version: {command} returned: {out}'.format(command=command, out=out))
+    command = 'gcloud app services list --project={project}'.format(
+        project=self.__gcp_project)
+    out, err = (subprocess.Popen(command,
+                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                 shell=True)
+                .communicate())
+    logging.debug(
+        'Checking if project has default app version: {command} returned: {out}'
+        .format(command=command, out=out))
+
     # Expect an output similar to:
     # SERVICE        NUM_VERSIONS
     # default        1
     # other_version  1
-    return '\ndefault ' in out
+    return '\ndefault ' in out.decode(encoding='utf-8')
 
   def create_app(self):
     # Not testing create_app, since the operation is well tested elsewhere.
