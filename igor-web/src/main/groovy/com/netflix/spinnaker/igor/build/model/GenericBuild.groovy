@@ -28,7 +28,12 @@ class GenericBuild {
     String name
     int number
     Integer duration
+
+    /**
+     * String representation of time in nanoseconds since Unix epoch
+     */
     String timestamp
+
     Result result
     List<GenericArtifact> artifacts
     List<TestResults> testResults

@@ -105,7 +105,7 @@ public class ConcourseService implements BuildService, BuildProperties {
   @Nullable
   @Override
   public GenericBuild getGenericBuild(String jobPath, int buildNumber) {
-    return getBuilds(jobPath).stream()
+    return getBuilds(jobPath, null).stream()
       .filter(build -> build.getNumber() == buildNumber)
       .findAny()
       .map(build -> getGenericBuild(jobPath, build, true))
@@ -124,6 +124,7 @@ public class ConcourseService implements BuildService, BuildProperties {
     build.setFullDisplayName(job.getTeamName() + "/" + job.getPipelineName() + "/" + job.getName());
     build.setUrl(host.getUrl() + "/teams/" + job.getTeamName() + "/pipelines/" + job.getPipelineName() + "/jobs/" +
       job.getName() + "/builds/" + b.getNumber());
+    build.setTimestamp(Long.toString(b.getStartTime() * 1000));
 
     if (!fetchResources) {
       return build;
@@ -226,8 +227,10 @@ public class ConcourseService implements BuildService, BuildProperties {
   }
 
   @Override
-  public List<Build> getBuilds(String jobPath) {
-    return getBuilds(jobPath, null);
+  public List<GenericBuild> getBuilds(String jobPath) {
+    return getBuilds(jobPath, null).stream()
+      .map(build -> getGenericBuild(jobPath, build, false))
+      .collect(Collectors.toList());
   }
 
   public List<Build> getBuilds(String jobPath, @Nullable Long since) {
