@@ -24,16 +24,17 @@ import { cfServerGroupDetailsGetter } from './serverGroup/details/cfServerGroupD
 
 import './logo/cf.logo.less';
 import { CloudFoundryNoLoadBalancerModal } from './loadBalancer/configure/cloudFoundryNoLoadBalancerModal';
-import 'cloudfoundry/pipeline/config/validation/instanceSize.validator';
 import 'cloudfoundry/pipeline/config/validation/cfTargetImpedance.validator';
+import 'cloudfoundry/pipeline/config/validation/instanceSize.validator';
+import 'cloudfoundry/pipeline/config/validation/requiredRoutes.validator';
 import { CLOUD_FOUNDRY_CLONE_SERVER_GROUP_STAGE } from './pipeline/stages/cloneServerGroup/cloudfoundryCloneServerGroupStage.module';
 import './pipeline/stages/deployService/cloudfoundryDeployServiceStage.module';
 import { CLOUD_FOUNDRY_DESTROY_ASG_STAGE } from './pipeline/stages/destroyAsg/cloudfoundryDestroyAsgStage.module';
 import './pipeline/stages/destroyService/cloudfoundryDestroyServiceStage.module';
 import { CLOUD_FOUNDRY_DISABLE_ASG_STAGE } from './pipeline/stages/disableAsg/cloudfoundryDisableAsgStage.module';
 import { CLOUD_FOUNDRY_ENABLE_ASG_STAGE } from './pipeline/stages/enableAsg/cloudfoundryEnableAsgStage.module';
-import { CLOUD_FOUNDRY_MAP_LOAD_BALANCERS_STAGE } from './pipeline/stages/mapLoadBalancers/cloudfoundryMapLoadBalancersStage.module';
-import { CLOUD_FOUNDRY_UNMAP_LOAD_BALANCERS_STAGE } from './pipeline/stages/unmapLoadBalancers/cloudfoundryUnmapLoadBalancersStage.module';
+import './pipeline/stages/mapLoadBalancers/cloudfoundryMapLoadBalancersStage.module';
+import './pipeline/stages/unmapLoadBalancers/cloudfoundryUnmapLoadBalancersStage.module';
 import { CLOUD_FOUNDRY_RESIZE_ASG_STAGE } from './pipeline/stages/resizeAsg/cloudfoundryResizeAsgStage.module';
 import { CLOUD_FOUNDRY_ROLLBACK_CLUSTER_STAGE } from './pipeline/stages/rollbackCluster/cloudfoundryRollbackClusterStage.module';
 import './pipeline/stages/shareService/cloudfoundryShareServiceStage.module';
@@ -55,8 +56,6 @@ module(CLOUD_FOUNDRY_MODULE, [
   CLOUD_FOUNDRY_ENABLE_ASG_STAGE,
   CLOUD_FOUNDRY_INSTANCE_DETAILS,
   CLOUD_FOUNDRY_LOAD_BALANCER_MODULE,
-  CLOUD_FOUNDRY_MAP_LOAD_BALANCERS_STAGE,
-  CLOUD_FOUNDRY_UNMAP_LOAD_BALANCERS_STAGE,
   CLOUD_FOUNDRY_REACT_MODULE,
   CLOUD_FOUNDRY_RESIZE_ASG_STAGE,
   CLOUD_FOUNDRY_ROLLBACK_CLUSTER_STAGE,

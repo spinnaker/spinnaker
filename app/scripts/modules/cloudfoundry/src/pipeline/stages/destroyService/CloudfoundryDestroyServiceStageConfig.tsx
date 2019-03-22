@@ -15,7 +15,7 @@ export class CloudfoundryDestroyServiceStageConfig extends React.Component<
 > {
   constructor(props: IStageConfigProps) {
     super(props);
-    props.stage.cloudProvider = 'cloudfoundry';
+    this.props.updateStageField({ cloudProvider: 'cloudfoundry' });
     this.state = {
       accounts: [],
       regions: [],

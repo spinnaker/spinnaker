@@ -61,7 +61,7 @@ export class CloudFoundryMapLoadBalancersModal extends React.Component<
       },
       taskMonitor: new TaskMonitor({
         application: props.application,
-        title: 'Mapping routes to your server group',
+        title: 'Mapping a route to your server group',
         modalInstance: TaskMonitor.modalInstanceEmulation(() => this.props.dismissModal()),
         onTaskComplete: () => this.props.application.serverGroups.refresh(),
       }),
@@ -109,12 +109,12 @@ export class CloudFoundryMapLoadBalancersModal extends React.Component<
             return (
               <>
                 <Modal.Header>
-                  <h3>Map routes to {serverGroup.name}</h3>
+                  <h3>Map route to {serverGroup.name}</h3>
                 </Modal.Header>
                 <ModalClose dismiss={this.close} />
                 <Modal.Body>
                   <Form className="form-horizontal">
-                    <Routes fieldName="routes" singleRouteOnly={true} />
+                    <Routes fieldName="routes" isRequired={true} singleRouteOnly={true} />
                   </Form>
                 </Modal.Body>
                 <ModalFooter>

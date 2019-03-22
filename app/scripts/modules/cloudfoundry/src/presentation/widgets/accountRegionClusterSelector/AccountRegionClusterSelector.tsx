@@ -50,7 +50,10 @@ export class AccountRegionClusterSelector extends React.Component<
 
   public componentDidMount(): void {
     this.setRegionList(this.props.component.credentials);
-    this.setClusterList(this.props.component.credentials, this.props.component.regions);
+    this.setClusterList(
+      this.props.component.credentials,
+      this.props.isSingleRegion ? [this.props.component.region] : this.props.component.regions,
+    );
   }
 
   private setRegionList = (credentials: string): void => {
@@ -81,6 +84,7 @@ export class AccountRegionClusterSelector extends React.Component<
       this.props.onComponentUpdate({
         ...this.props.component,
         credentials,
+        region: '',
         regions: [],
         [this.state.clusterField]: undefined,
       });

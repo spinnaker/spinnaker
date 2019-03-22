@@ -38,6 +38,7 @@ describe('<AccountRegionClusterSelector />', () => {
           createServerGroup('account-name-one', 'app-stack-detailOne', 'app', 'region-three'),
           createServerGroup('account-name-one', 'app-stack-detailThree', 'app', 'region-one'),
           createServerGroup('account-name-one', 'app-stack-detailFour', 'app', 'region-three'),
+          createServerGroup('account-name-one', 'app-stack-detailFive', 'app', 'region-two'),
         ],
       } as ApplicationDataSource);
     }),
@@ -67,10 +68,11 @@ describe('<AccountRegionClusterSelector />', () => {
     );
     $scope.$digest();
 
-    expect(component.state().availableRegions.length).toBe(2, 'number of available regions do not match');
+    expect(component.state().availableRegions.length).toBe(3, 'number of available regions does not match');
     expect(component.state().availableRegions).toContain('region-one');
+    expect(component.state().availableRegions).toContain('region-two');
     expect(component.state().availableRegions).toContain('region-three');
-    expect(component.state().clusters.length).toBe(2, 'number of clusters do not match');
+    expect(component.state().clusters.length).toBe(2, 'number of clusters does not match');
     expect(component.state().clusters).toContain('app-stack-detailOne');
     expect(component.state().clusters).toContain('app-stack-detailThree');
     expect(component.state().clusterField).toBe('cluster');
@@ -79,6 +81,7 @@ describe('<AccountRegionClusterSelector />', () => {
 
   it('retrieves the correct list of regions when account is changed', () => {
     let credentials = '';
+    let region = 'SHOULD-CHANGE';
     const accountRegionClusterProps: IAccountRegionClusterSelectorProps = {
       accounts: [
         {
@@ -98,6 +101,7 @@ describe('<AccountRegionClusterSelector />', () => {
       cloudProvider: 'cloud-provider',
       onComponentUpdate: (value: any) => {
         credentials = value.credentials;
+        region = value.region;
       },
       component: {
         cluster: 'app-stack-detailOne',
@@ -111,10 +115,11 @@ describe('<AccountRegionClusterSelector />', () => {
     );
     $scope.$digest();
 
-    expect(component.state().availableRegions.length).toBe(2, 'number of available regions do not match');
+    expect(component.state().availableRegions.length).toBe(3, 'number of available regions does not match');
     expect(component.state().availableRegions).toContain('region-one');
+    expect(component.state().availableRegions).toContain('region-two');
     expect(component.state().availableRegions).toContain('region-three');
-    expect(component.state().clusters.length).toBe(2, 'number of clusters do not match');
+    expect(component.state().clusters.length).toBe(2, 'number of clusters does not match');
     expect(component.state().clusters).toContain('app-stack-detailOne');
     expect(component.state().clusters).toContain('app-stack-detailThree');
     expect(component.state().cluster).toBe('app-stack-detailOne');
@@ -125,13 +130,14 @@ describe('<AccountRegionClusterSelector />', () => {
     accountSelectComponent.simulate('keyDown', { keyCode: 9, key: 'Tab' });
     $scope.$digest();
 
-    expect(component.state().availableRegions.length).toBe(1, 'number of available regions do not match');
+    expect(component.state().availableRegions.length).toBe(1, 'number of available regions does not match');
     expect(component.state().availableRegions).toContain('region-two');
-    expect(component.state().clusters.length).toBe(0, 'number of clusters do not match');
+    expect(component.state().clusters.length).toBe(0, 'number of clusters does not match');
+    expect(region).toEqual('');
     expect(credentials).toContain('account-name-two');
   });
 
-  it('retrieves the correct list of clusters when region is changed', () => {
+  it('retrieves the correct list of clusters when the selector is multi-region and the region is changed', () => {
     let regions: string[] = [];
     const accountRegionClusterProps: IAccountRegionClusterSelectorProps = {
       accounts: [
@@ -165,10 +171,11 @@ describe('<AccountRegionClusterSelector />', () => {
     );
     $scope.$digest();
 
-    expect(component.state().availableRegions.length).toBe(2, 'number of available regions do not match');
+    expect(component.state().availableRegions.length).toBe(3, 'number of available regions does not match');
     expect(component.state().availableRegions).toContain('region-one');
+    expect(component.state().availableRegions).toContain('region-two');
     expect(component.state().availableRegions).toContain('region-three');
-    expect(component.state().clusters.length).toBe(2, 'number of clusters do not match');
+    expect(component.state().clusters.length).toBe(2, 'number of clusters does not match');
     expect(component.state().clusters).toContain('app-stack-detailOne');
     expect(component.state().clusters).toContain('app-stack-detailThree');
 
@@ -178,13 +185,54 @@ describe('<AccountRegionClusterSelector />', () => {
     accountSelectComponent.simulate('keyDown', { keyCode: 9, key: 'Tab' });
     $scope.$digest();
 
-    expect(component.state().clusters.length).toBe(3, 'number of clusters do not match');
+    expect(component.state().clusters.length).toBe(3, 'number of clusters does not match');
     expect(component.state().clusters).toContain('app-stack-detailOne');
     expect(component.state().clusters).toContain('app-stack-detailThree');
     expect(component.state().clusters).toContain('app-stack-detailFour');
     expect(regions.length).toBe(2);
     expect(regions).toContain('region-one');
     expect(regions).toContain('region-three');
+  });
+
+  it('retrieves the correct list of clusters on startup and the selector is single-region', () => {
+    const accountRegionClusterProps: IAccountRegionClusterSelectorProps = {
+      accounts: [
+        {
+          accountId: 'account-id-two',
+          name: 'account-name-two',
+          requiredGroupMembership: [],
+          type: 'account-type',
+        },
+        {
+          accountId: 'account-id-one',
+          name: 'account-name-one',
+          requiredGroupMembership: [],
+          type: 'account-type',
+        },
+      ],
+      application,
+      cloudProvider: 'cloud-provider',
+      onComponentUpdate: (_value: any) => {},
+      component: {
+        cluster: 'app-stack-detailOne',
+        credentials: 'account-name-one',
+        region: 'region-one',
+      },
+      isSingleRegion: true,
+    };
+
+    const component = mount<AccountRegionClusterSelector>(
+      <AccountRegionClusterSelector {...accountRegionClusterProps} />,
+    );
+    $scope.$digest();
+
+    expect(component.state().availableRegions.length).toBe(3, 'number of available regions does not match');
+    expect(component.state().availableRegions).toContain('region-one');
+    expect(component.state().availableRegions).toContain('region-two');
+    expect(component.state().availableRegions).toContain('region-three');
+    expect(component.state().clusters.length).toBe(2, 'number of clusters does not match');
+    expect(component.state().clusters).toContain('app-stack-detailOne');
+    expect(component.state().clusters).toContain('app-stack-detailThree');
   });
 
   it('the cluster value is updated in the component when cluster is changed', () => {
@@ -222,10 +270,11 @@ describe('<AccountRegionClusterSelector />', () => {
     );
     $scope.$digest();
 
-    expect(component.state().availableRegions.length).toBe(2, 'number of available regions do not match');
+    expect(component.state().availableRegions.length).toBe(3, 'number of available regions does not match');
     expect(component.state().availableRegions).toContain('region-one');
+    expect(component.state().availableRegions).toContain('region-two');
     expect(component.state().availableRegions).toContain('region-three');
-    expect(component.state().clusters.length).toBe(2, 'number of clusters do not match');
+    expect(component.state().clusters.length).toBe(2, 'number of clusters does not match');
     expect(component.state().clusters).toContain('app-stack-detailOne');
     expect(component.state().clusters).toContain('app-stack-detailThree');
 

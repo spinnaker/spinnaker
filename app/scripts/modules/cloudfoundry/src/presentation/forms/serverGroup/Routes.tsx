@@ -8,19 +8,21 @@ import { ICloudFoundryCreateServerGroupCommand } from 'cloudfoundry/serverGroup/
 export interface IRoutesProps {
   fieldName: string;
   onChange?: (value: string[]) => void;
+  isRequired?: boolean;
   singleRouteOnly?: boolean;
 }
 
 export class Routes extends React.Component<IRoutesProps> {
   public render() {
-    const { fieldName, onChange, singleRouteOnly } = this.props;
+    const { fieldName, isRequired, onChange, singleRouteOnly } = this.props;
     return (
       <div>
         <div className="form-group">
           <div className="col-md-12">
-            <b>Routes</b>
+            <b>{singleRouteOnly ? 'Route' : 'Routes'}</b>
             &nbsp;
-            <HelpField id="cf.serverGroup.routes" />
+            {!isRequired && <HelpField id="cf.serverGroup.routes" />}
+            {!!isRequired && <HelpField id="cf.serverGroup.requiredRoutes" />}
             <FieldArray
               name={fieldName}
               render={arrayHelpers => {

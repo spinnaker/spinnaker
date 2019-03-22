@@ -57,11 +57,11 @@ export class CloudFoundryUnmapLoadBalancersModal extends React.Component<
 
     this.state = {
       initialValues: {
-        routes: [],
+        routes: [''],
       },
       taskMonitor: new TaskMonitor({
         application: props.application,
-        title: 'Unmap routes from your server group',
+        title: 'Unmapping a route from your server group',
         modalInstance: TaskMonitor.modalInstanceEmulation(() => this.props.dismissModal()),
         onTaskComplete: () => this.props.application.serverGroups.refresh(),
       }),
@@ -109,12 +109,12 @@ export class CloudFoundryUnmapLoadBalancersModal extends React.Component<
             return (
               <>
                 <Modal.Header>
-                  <h3>Unmap routes from {serverGroup.name}</h3>
+                  <h3>Unmap route from {serverGroup.name}</h3>
                 </Modal.Header>
                 <ModalClose dismiss={this.close} />
                 <Modal.Body>
                   <Form className="form-horizontal">
-                    <Routes fieldName="routes" />
+                    <Routes fieldName="routes" isRequired={true} singleRouteOnly={true} />
                   </Form>
                 </Modal.Body>
                 <ModalFooter>

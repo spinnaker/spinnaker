@@ -9,7 +9,6 @@ Registry.pipeline.registerStage({
   key: 'unshareService',
   cloudProvider: 'cloudfoundry',
   component: CloudfoundryUnshareServiceStageConfig,
-  templateUrl: require('./cloudfoundryUnshareServiceStage.html'),
   controller: 'cfUnshareServiceStageCtrl',
   executionDetailsSections: [CloudfoundryUnshareServiceExecutionDetails, ExecutionDetailsTasks],
   defaultTimeoutMs: 30 * 60 * 1000,

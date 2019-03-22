@@ -37,6 +37,8 @@ export class CloudfoundryRollbackClusterStageConfig extends React.Component<
       targetHealthyRollbackPercentage: 100,
     });
 
+    this.props.stage.regions = this.props.stage.regions || [];
+
     this.state = {
       accounts: [],
       application: props.application,
