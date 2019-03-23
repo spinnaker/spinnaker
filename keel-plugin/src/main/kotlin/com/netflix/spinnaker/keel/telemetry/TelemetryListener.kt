@@ -10,13 +10,12 @@ import org.springframework.stereotype.Component
 class TelemetryListener(
   private val spectator: Registry
 ) {
-  private val resourceCheckedCounterId = Id.create("keel.resource.checked")
 
   @EventListener(ResourceChecked::class)
   fun onResourceChecked(event: ResourceChecked) {
     try {
       spectator.counter(
-        resourceCheckedCounterId
+        RESOURCE_CHECKED_COUNTER_ID
           .withTag("resourceName", event.name.value)
           .withTag("resourceState", event.state.name)
       ).increment()
@@ -25,5 +24,22 @@ class TelemetryListener(
     }
   }
 
+  @EventListener(LockAttempt::class)
+  fun onLockAttempt(event: LockAttempt) {
+    try {
+      spectator.counter(
+        LOCK_ATTEMPT_COUNTER_ID
+          .withTag("success", event.success)
+      ).increment()
+    } catch (ex: Exception) {
+      log.error("Exception incrementing Atlas counter: {}", ex.message)
+    }
+  }
+
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
+
+  companion object {
+    private val RESOURCE_CHECKED_COUNTER_ID = Id.create("keel.resource.checked")
+    private val LOCK_ATTEMPT_COUNTER_ID = Id.create("keel.lock.attempt")
+  }
 }

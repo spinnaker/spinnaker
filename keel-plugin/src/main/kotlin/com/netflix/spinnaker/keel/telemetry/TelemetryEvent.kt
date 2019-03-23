@@ -9,3 +9,10 @@ data class ResourceChecked(
   val name: ResourceName,
   val state: ResourceState
 ) : TelemetryEvent()
+
+data class LockAttempt(
+  val success: Boolean
+) : TelemetryEvent()
+
+val LockAttemptSucceeded = LockAttempt(true)
+val LockAttemptFailed = LockAttempt(false)
