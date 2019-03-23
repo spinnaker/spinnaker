@@ -1,3 +1,3 @@
 # keel-retrofit
 
-Retrofit configuration shared by `keel-clouddriver` and `keel-orca`.
+Retrofit configuration shared by `keel-clouddriver`, `keel-orca`, etc.
