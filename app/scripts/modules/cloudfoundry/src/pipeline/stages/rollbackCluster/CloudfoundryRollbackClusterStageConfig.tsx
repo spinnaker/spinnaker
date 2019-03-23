@@ -1,13 +1,5 @@
 import * as React from 'react';
-import {
-  AccountService,
-  Application,
-  IAccount,
-  IPipeline,
-  IRegion,
-  IStageConfigProps,
-  StageConfigField,
-} from '@spinnaker/core';
+import { AccountService, IAccount, IPipeline, IStageConfigProps, StageConfigField } from '@spinnaker/core';
 
 import { AccountRegionClusterSelector } from 'cloudfoundry/presentation';
 
@@ -17,13 +9,6 @@ export interface ICloudfoundryRollbackClusterStageProps extends IStageConfigProp
 
 export interface ICloudfoundryRollbackClusterStageConfigState {
   accounts: IAccount[];
-  application: Application;
-  cloudProvider: string;
-  credentials: string;
-  pipeline: IPipeline;
-  regions: IRegion[];
-  targetHealthyRollbackPercentage: number;
-  waitTimeBetweenRegions: number;
 }
 
 export class CloudfoundryRollbackClusterStageConfig extends React.Component<
@@ -33,49 +18,39 @@ export class CloudfoundryRollbackClusterStageConfig extends React.Component<
   constructor(props: ICloudfoundryRollbackClusterStageProps) {
     super(props);
 
-    Object.assign(props.stage, {
+    this.props.updateStageField({
+      cloudProvider: 'cloudfoundry',
+      regions: this.props.stage.regions || [],
       targetHealthyRollbackPercentage: 100,
     });
 
-    this.props.stage.regions = this.props.stage.regions || [];
-
-    this.state = {
-      accounts: [],
-      application: props.application,
-      cloudProvider: 'cloudfoundry',
-      credentials: props.stage.credentials,
-      pipeline: props.pipeline,
-      regions: [],
-      targetHealthyRollbackPercentage: props.stage.targetHealthyRollbackPercentage,
-      waitTimeBetweenRegions: props.stage.waitTimeBetweenRegions,
-    };
+    this.state = { accounts: [] };
   }
 
   public componentDidMount = (): void => {
     AccountService.listAccounts('cloudfoundry').then(accounts => {
-      this.setState({ accounts: accounts });
+      this.setState({ accounts });
     });
-    this.props.stageFieldUpdated();
   };
 
   private waitTimeBetweenRegionsUpdated = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const time = parseInt(event.target.value || '0', 10);
-    this.setState({ waitTimeBetweenRegions: time });
-    this.props.stage.waitTimeBetweenRegions = time;
-    this.props.stageFieldUpdated();
+    this.props.updateStageField({ waitTimeBetweenRegions: time });
   };
 
   private componentUpdate = (stage: any): void => {
-    this.props.stage.credentials = stage.credentials;
-    this.props.stage.regions = stage.regions;
-    this.props.stage.cluster = stage.cluster;
-    this.props.stageFieldUpdated();
+    this.props.updateStageField({
+      credentials: stage.credentials,
+      regions: stage.regions,
+      cluster: stage.cluster,
+      moniker: stage.moniker,
+    });
   };
 
   public render() {
-    const { stage } = this.props;
+    const { application, pipeline, stage } = this.props;
     const { waitTimeBetweenRegions } = stage;
-    const { accounts, application, pipeline } = this.state;
+    const { accounts } = this.state;
     return (
       <div className="form-horizontal">
         {!pipeline.strategy && (

@@ -1,36 +1,17 @@
-import { IController, IScope, module } from 'angular';
-import { react2angular } from 'react2angular';
-
 import { CloudfoundryRollbackClusterStageConfig } from './CloudfoundryRollbackClusterStageConfig';
-import { Application, IStage, Registry } from '@spinnaker/core';
+import { IStage, Registry } from '@spinnaker/core';
 
-class CloudFoundryRollbackClusterStageCtrl implements IController {
-  public static $inject = ['$scope', 'application'];
-  constructor(public $scope: IScope, private application: Application) {
-    this.$scope.application = this.application;
-  }
-}
-
-export const CLOUD_FOUNDRY_ROLLBACK_CLUSTER_STAGE = 'spinnaker.cloudfoundry.pipeline.stage.rollbackClusterStage';
-module(CLOUD_FOUNDRY_ROLLBACK_CLUSTER_STAGE, [])
-  .config(function() {
-    Registry.pipeline.registerStage({
-      accountExtractor: (stage: IStage) => stage.context.credentials,
-      configAccountExtractor: (stage: IStage) => [stage.credentials],
-      provides: 'rollbackCluster',
-      key: 'rollbackCluster',
-      cloudProvider: 'cloudfoundry',
-      templateUrl: require('./cloudfoundryRollbackClusterStage.html'),
-      controller: 'cfRollbackClusterStageCtrl',
-      validators: [
-        { type: 'requiredField', fieldName: 'cluster' },
-        { type: 'requiredField', fieldName: 'regions' },
-        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account' },
-      ],
-    });
-  })
-  .component(
-    'cfRollbackClusterStage',
-    react2angular(CloudfoundryRollbackClusterStageConfig, ['application', 'pipeline', 'stage', 'stageFieldUpdated']),
-  )
-  .controller('cfRollbackClusterStageCtrl', CloudFoundryRollbackClusterStageCtrl);
+Registry.pipeline.registerStage({
+  accountExtractor: (stage: IStage) => stage.context.credentials,
+  configAccountExtractor: (stage: IStage) => [stage.credentials],
+  provides: 'rollbackCluster',
+  key: 'rollbackCluster',
+  cloudProvider: 'cloudfoundry',
+  component: CloudfoundryRollbackClusterStageConfig,
+  controller: 'cfRollbackClusterStageCtrl',
+  validators: [
+    { type: 'requiredField', preventSave: true, fieldName: 'cluster' },
+    { type: 'requiredField', preventSave: true, fieldName: 'regions' },
+    { type: 'requiredField', preventSave: true, fieldName: 'credentials', fieldLabel: 'account' },
+  ],
+});

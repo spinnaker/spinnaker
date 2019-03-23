@@ -36,7 +36,7 @@ import { CLOUD_FOUNDRY_ENABLE_ASG_STAGE } from './pipeline/stages/enableAsg/clou
 import './pipeline/stages/mapLoadBalancers/cloudfoundryMapLoadBalancersStage.module';
 import './pipeline/stages/unmapLoadBalancers/cloudfoundryUnmapLoadBalancersStage.module';
 import { CLOUD_FOUNDRY_RESIZE_ASG_STAGE } from './pipeline/stages/resizeAsg/cloudfoundryResizeAsgStage.module';
-import { CLOUD_FOUNDRY_ROLLBACK_CLUSTER_STAGE } from './pipeline/stages/rollbackCluster/cloudfoundryRollbackClusterStage.module';
+import './pipeline/stages/rollbackCluster/cloudfoundryRollbackClusterStage.module';
 import './pipeline/stages/shareService/cloudfoundryShareServiceStage.module';
 import './pipeline/stages/unshareService/cloudfoundryUnshareServiceStage.module';
 import { CloudFoundryCreateServerGroupModal } from 'cloudfoundry/serverGroup/configure/wizard/CreateServerGroupModal';
@@ -58,7 +58,6 @@ module(CLOUD_FOUNDRY_MODULE, [
   CLOUD_FOUNDRY_LOAD_BALANCER_MODULE,
   CLOUD_FOUNDRY_REACT_MODULE,
   CLOUD_FOUNDRY_RESIZE_ASG_STAGE,
-  CLOUD_FOUNDRY_ROLLBACK_CLUSTER_STAGE,
   CLOUD_FOUNDRY_SEARCH_FORMATTER,
   CLOUD_FOUNDRY_SERVER_GROUP_COMMAND_BUILDER,
   CLOUD_FOUNDRY_SERVER_GROUP_TRANSFORMER,

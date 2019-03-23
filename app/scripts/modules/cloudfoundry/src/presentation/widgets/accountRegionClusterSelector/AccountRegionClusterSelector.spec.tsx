@@ -2,10 +2,15 @@ import * as React from 'react';
 import { mock, noop, IScope } from 'angular';
 import { mount, shallow } from 'enzyme';
 
-import { Application, ApplicationDataSource } from 'core/application';
-import { IServerGroup } from 'core/domain';
-import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from 'core/application/applicationModel.builder';
-import { REACT_MODULE } from 'core/reactShims';
+import {
+  Application,
+  APPLICATION_MODEL_BUILDER,
+  ApplicationModelBuilder,
+  ApplicationDataSource,
+  IMoniker,
+  IServerGroup,
+  REACT_MODULE,
+} from '@spinnaker/core';
 
 import { AccountRegionClusterSelector, IAccountRegionClusterSelectorProps } from './AccountRegionClusterSelector';
 
@@ -22,6 +27,7 @@ describe('<AccountRegionClusterSelector />', () => {
       region,
       instances: [{ health: null, id: 'instance-id', launchTime: 0, name: 'instance-name', zone: 'GMT' }],
       instanceCounts: { up: 1, down: 0, starting: 0, succeeded: 1, failed: 0, unknown: 0, outOfService: 0 },
+      moniker: { app: 'my-app', cluster, detail: 'my-detail', stack: 'my-stack', sequence: 1 },
     } as IServerGroup;
   }
 
@@ -237,6 +243,7 @@ describe('<AccountRegionClusterSelector />', () => {
 
   it('the cluster value is updated in the component when cluster is changed', () => {
     let cluster = '';
+    let moniker: IMoniker = { app: '' };
     const accountRegionClusterProps: IAccountRegionClusterSelectorProps = {
       accounts: [
         {
@@ -257,6 +264,7 @@ describe('<AccountRegionClusterSelector />', () => {
       clusterField: 'newCluster',
       onComponentUpdate: (value: any) => {
         cluster = value.newCluster;
+        moniker = value.moniker;
       },
       component: {
         cluster: 'app-stack-detailOne',
@@ -264,6 +272,14 @@ describe('<AccountRegionClusterSelector />', () => {
         regions: ['region-one'],
       },
     };
+
+    const expectedMoniker = {
+      app: 'my-app',
+      cluster: 'app-stack-detailThree',
+      detail: 'my-detail',
+      stack: 'my-stack',
+      sequence: null,
+    } as IMoniker;
 
     const component = mount<AccountRegionClusterSelector>(
       <AccountRegionClusterSelector {...accountRegionClusterProps} />,
@@ -285,6 +301,7 @@ describe('<AccountRegionClusterSelector />', () => {
     $scope.$digest();
 
     expect(cluster).toBe('app-stack-detailThree');
+    expect(moniker).toEqual(expectedMoniker);
   });
 
   it('initialize with form names', () => {

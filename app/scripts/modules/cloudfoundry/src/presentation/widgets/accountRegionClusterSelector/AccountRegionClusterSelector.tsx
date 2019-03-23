@@ -1,11 +1,14 @@
 import * as React from 'react';
 
+import { first, isNil, uniq } from 'lodash';
+
 import Select, { Option } from 'react-select';
 
 import {
   Application,
   AppListExtractor,
   IAccount,
+  IMoniker,
   IServerGroup,
   IServerGroupFilter,
   StageConfigField,
@@ -113,10 +116,25 @@ export class AccountRegionClusterSelector extends React.Component<
   };
 
   public onClusterUpdate = (option: Option<string>): void => {
+    const clusterName = option.value;
+    const filterByCluster = AppListExtractor.monikerClusterNameFilter(clusterName);
+    const clusterMoniker = first(uniq(AppListExtractor.getMonikers([this.props.application], filterByCluster)));
+    let moniker: IMoniker;
+
+    if (isNil(clusterMoniker)) {
+      // remove the moniker from the stage if one doesn't exist.
+      moniker = undefined;
+    } else {
+      // clusters don't contain sequences, so null it out.
+      clusterMoniker.sequence = null;
+      moniker = clusterMoniker;
+    }
+
     this.props.onComponentUpdate &&
       this.props.onComponentUpdate({
         ...this.props.component,
-        [this.state.clusterField]: option.value,
+        [this.state.clusterField]: clusterName,
+        moniker,
       });
   };
 
