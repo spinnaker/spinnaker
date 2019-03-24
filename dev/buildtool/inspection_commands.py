@@ -531,8 +531,8 @@ class CollectArtifactVersions(CommandProcessor):
         key = package[len(prefix):]
       if not key in jar_map:
         key = package
-        if key == 'spinnaker-monitoring-daemon':
-          key = 'spinnaker-monitoring'
+        if key == 'spinnaker-monitoring':
+          key = 'spinnaker-monitoring-daemon'
         if not key in jar_map:
           if key == 'spinnaker-monitoring-third-party':
             continue
@@ -1284,7 +1284,11 @@ class AuditArtifactVersions(CommandProcessor):
         for _, buildnums in commits.items():
           for buildnum, info_list in buildnums.items():
             version_buildnum = '%s-%s' % (version, buildnum)
-            jar_ok = self.audit_jar(service, version_buildnum, info_list)
+            if service in ['monitoring-daemon', 'monitoring-third-party']:
+              # Uses debians, but not jars so missing jars is ok.
+              jar_ok = True
+            else:
+              jar_ok = self.audit_jar(service, version_buildnum, info_list)
             deb_ok = self.audit_debian(service, version_buildnum, info_list)
             gcr_ok = self.audit_container(service, version_buildnum, info_list)
             image_ok = self.audit_image(service, version_buildnum, info_list)
