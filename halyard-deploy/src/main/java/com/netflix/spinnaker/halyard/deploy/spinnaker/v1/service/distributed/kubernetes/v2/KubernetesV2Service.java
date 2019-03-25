@@ -298,8 +298,7 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
     container.addBinding("command", config.getCommand());
     container.addBinding("args", config.getArgs());
     container.addBinding("volumeMounts", volumeMounts);
-    container.addBinding("readinessProbe", null);
-    container.addBinding("livenessProbe", null);
+    container.addBinding("probe", null);
     container.addBinding("lifecycle", null);
     container.addBinding("env", config.getEnv());
     container.addBinding("resources", null);
@@ -324,23 +323,20 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
         return volume.toString();
       }).collect(Collectors.toList()));
 
-    TemplatedResource readinessProbe;
+    TemplatedResource probe;
     if (StringUtils.isNotEmpty(settings.getHealthEndpoint())) {
       if (settings.getKubernetes().getUseExecHealthCheck()) {
-        readinessProbe = new JinjaJarResource("/kubernetes/manifests/execReadinessProbe.yml");
-        readinessProbe.addBinding("command", getReadinessExecCommand(settings));
+        probe = new JinjaJarResource("/kubernetes/manifests/execReadinessProbe.yml");
+        probe.addBinding("command", getReadinessExecCommand(settings));
       } else {
-        readinessProbe = new JinjaJarResource("/kubernetes/manifests/httpReadinessProbe.yml");
-        readinessProbe.addBinding("port", settings.getPort());
-        readinessProbe.addBinding("path", settings.getHealthEndpoint());
+        probe = new JinjaJarResource("/kubernetes/manifests/httpReadinessProbe.yml");
+        probe.addBinding("port", settings.getPort());
+        probe.addBinding("path", settings.getHealthEndpoint());
       }
     } else {
-      readinessProbe = new JinjaJarResource("/kubernetes/manifests/tcpSocketReadinessProbe.yml");
-      readinessProbe.addBinding("port", settings.getPort());
+      probe = new JinjaJarResource("/kubernetes/manifests/tcpSocketReadinessProbe.yml");
+      probe.addBinding("port", settings.getPort());
     }
-
-    TemplatedResource livenessProbe = new JinjaJarResource("/kubernetes/manifests/tcpSocketLivenessProbe.yml");
-    livenessProbe.addBinding("port", settings.getPort());
 
     String lifecycle = "{}";
     List<String> preStopCommand = getPreStopCommand(settings);
@@ -367,8 +363,7 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
     port.addBinding("port", settings.getPort());
     container.addBinding("port", port.toString());
     container.addBinding("volumeMounts", volumeMounts);
-    container.addBinding("readinessProbe", readinessProbe.toString());
-    container.addBinding("livenessProbe", livenessProbe.toString());
+    container.addBinding("probe", probe.toString());
     container.addBinding("lifecycle", lifecycle);
     container.addBinding("env", env);
     container.addBinding("resources", resources.toString());

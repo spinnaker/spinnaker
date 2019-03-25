@@ -386,7 +386,7 @@ public interface KubernetesV1DistributedService<T> extends DistributedService<T,
   default KubernetesContainerDescription buildContainer(String name, ServiceSettings settings, List<ConfigSource> configSources, DeploymentEnvironment deploymentEnvironment, DeployKubernetesAtomicOperationDescription description) {
     KubernetesContainerDescription container = new KubernetesContainerDescription();
     KubernetesProbe readinessProbe = new KubernetesProbe();
-    KubernetesHandler readinessHandler = new KubernetesHandler();
+    KubernetesHandler handler = new KubernetesHandler();
     int port = settings.getPort();
     String scheme = settings.getScheme();
     if (StringUtils.isNotEmpty(scheme)) {
@@ -397,30 +397,21 @@ public interface KubernetesV1DistributedService<T> extends DistributedService<T,
 
     String healthEndpoint = settings.getHealthEndpoint();
     if (healthEndpoint != null) {
-      readinessHandler.setType(KubernetesHandlerType.HTTP);
+      handler.setType(KubernetesHandlerType.HTTP);
       KubernetesHttpGetAction action = new KubernetesHttpGetAction();
       action.setPath(healthEndpoint);
       action.setPort(port);
       action.setUriScheme(scheme);
-      readinessHandler.setHttpGetAction(action);
+      handler.setHttpGetAction(action);
     } else {
-      readinessHandler.setType(KubernetesHandlerType.TCP);
+      handler.setType(KubernetesHandlerType.TCP);
       KubernetesTcpSocketAction action = new KubernetesTcpSocketAction();
       action.setPort(port);
-      readinessHandler.setTcpSocketAction(action);
+      handler.setTcpSocketAction(action);
     }
 
-    readinessProbe.setHandler(readinessHandler);
+    readinessProbe.setHandler(handler);
     container.setReadinessProbe(readinessProbe);
-
-    KubernetesProbe livenessProbe = new KubernetesProbe();
-    KubernetesHandler livenessHandler = new KubernetesHandler();
-    livenessHandler.setType(KubernetesHandlerType.TCP);
-    KubernetesTcpSocketAction livenessHandlerAction = new KubernetesTcpSocketAction();
-    livenessHandlerAction.setPort(port);
-    livenessHandler.setTcpSocketAction(livenessHandlerAction);
-    livenessProbe.setHandler(livenessHandler);
-    container.setLivenessProbe(livenessProbe);
 
     applyCustomSize(container, deploymentEnvironment, name, description);
 
