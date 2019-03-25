@@ -50,7 +50,7 @@ public class ArtifactController {
     return artifactService.getArtifactVersions(name);
   }
 
-  @GetMapping("/{provider}/{name}/{version}")
+  @GetMapping("/{provider}/{name}/{version:.+}")
   public Artifact getVersions(
     @PathVariable("provider") String provider,
     @PathVariable("name") String name,
