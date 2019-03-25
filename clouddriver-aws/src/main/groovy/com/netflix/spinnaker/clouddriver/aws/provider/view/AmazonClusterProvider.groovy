@@ -262,8 +262,8 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster>, ServerGro
     // TODO: remove special casing for sql vs. redis; possibly via dropping redis support in the future
     if ((includeDetails && sqlApplicationIndexEnabled) &&
       ((cacheView instanceof CompositeCache &&
-      (cacheView as CompositeCache).getStoreTypes().every { (it == SQL) }) ||
-      (cacheView.storeType() == SQL))
+        (cacheView as CompositeCache).getStoreTypes().every { (it == SQL) }) ||
+        (cacheView.storeType() == SQL))
     ) {
       clusters = allClustersByApplication(applicationName)
     } else {
@@ -296,15 +296,13 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster>, ServerGro
     }
 
     Map<String, AmazonServerGroup> serverGroups = serverGroupData?.collectEntries { sg ->
+      Map<String, String> parsed = Keys.parse(sg.id)
       AmazonServerGroup serverGroup = new AmazonServerGroup(sg.attributes)
-      if (sg.relationships.containsKey(INSTANCES.ns) && !sg.relationships.instances.empty) {
-        serverGroup.instances = new HashSet<>()
-        sg.relationships.instances.each { i ->
-          if (instances.containsKey(i)) {
-            serverGroup.instances.add(instances[i])
-          }
-        }
-      }
+      Set<String> asgInstanceSet = getAsgInstanceKeys(serverGroup.asg, parsed.account, parsed.region)
+
+      serverGroup.instances = asgInstanceSet
+        .findAll { instances.containsKey(it) }
+        .collect { instances.get(it) }
 
       [(sg.id): serverGroup]
     }
