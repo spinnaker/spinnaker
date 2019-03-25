@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts.maven;
 
+import com.squareup.okhttp.OkHttpClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -36,12 +37,12 @@ public class MavenArtifactConfiguration {
   private final MavenArtifactProviderProperties mavenArtifactProviderProperties;
 
   @Bean
-  List<? extends MavenArtifactCredentials> mavenArtifactCredentials() {
+  List<? extends MavenArtifactCredentials> mavenArtifactCredentials(OkHttpClient okHttpClient) {
     return mavenArtifactProviderProperties.getAccounts()
       .stream()
       .map(a -> {
         try {
-          return new MavenArtifactCredentials(a);
+          return new MavenArtifactCredentials(a, okHttpClient);
         } catch (Exception e) {
           log.warn("Failure instantiating maven artifact account {}: ", a, e);
           return null;

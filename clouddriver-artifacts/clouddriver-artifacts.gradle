@@ -78,6 +78,10 @@ dependencies {
   compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.9.7'
   compile "org.apache.ivy:ivy:2.4.0"
 
+  compile 'org.eclipse.aether:aether-api:1.1.0'
+  compile 'org.eclipse.aether:aether-impl:1.1.0'
+  compile 'org.apache.maven:maven-aether-provider:3.3.9'
+  
   compile fileTree(sdkLocation)
 
   testCompile('org.junit.jupiter:junit-jupiter-api:5.2.0')
