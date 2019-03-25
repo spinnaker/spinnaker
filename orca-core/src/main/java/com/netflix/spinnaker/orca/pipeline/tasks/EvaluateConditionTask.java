@@ -27,7 +27,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Nonnull;
@@ -41,17 +41,17 @@ import java.util.stream.Collectors;
 import static com.netflix.spinnaker.orca.pipeline.WaitForConditionStage.WaitForConditionContext.*;
 
 @Component
-@ConditionalOnBean(ConditionSupplier.class)
+@ConditionalOnExpression("${tasks.evaluateCondition.enabled:false}")
 public class EvaluateConditionTask implements RetryableTask {
   private static final Logger log = LoggerFactory.getLogger(EvaluateConditionTask.class);
   private final ConditionConfigurationProperties conditionsConfigurationProperties;
-  private final List<ConditionSupplier> suppliers;
+  private final Optional<List<ConditionSupplier>> suppliers;
   private final Clock clock;
 
   @Autowired
   public EvaluateConditionTask(
     ConditionConfigurationProperties conditionsConfigurationProperties,
-    List<ConditionSupplier> suppliers,
+    Optional<List<ConditionSupplier>> suppliers,
     Clock clock
   ) {
     this.conditionsConfigurationProperties = conditionsConfigurationProperties;
@@ -73,7 +73,7 @@ public class EvaluateConditionTask implements RetryableTask {
   @Override
   public TaskResult execute(@Nonnull Stage stage) {
     final WaitForConditionContext ctx = stage.mapTo(WaitForConditionContext.class);
-    if (ctx.getStatus() == Status.SKIPPED) {
+    if (ctx.getStatus() == Status.SKIPPED || !suppliers.isPresent()) {
       return new TaskResult(ExecutionStatus.SUCCEEDED, Collections.singletonMap("status", Status.SKIPPED));
     }
 
@@ -88,7 +88,7 @@ public class EvaluateConditionTask implements RetryableTask {
     }
 
     try {
-      Set<Condition> conditions = suppliers
+      Set<Condition> conditions = suppliers.get()
         .stream()
         .flatMap(supplier -> supplier.getConditions(stage).stream()).filter(Objects::nonNull)
         .collect(Collectors.toSet());

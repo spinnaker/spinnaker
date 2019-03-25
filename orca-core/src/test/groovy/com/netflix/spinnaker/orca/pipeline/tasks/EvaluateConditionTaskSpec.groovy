@@ -44,7 +44,7 @@ class EvaluateConditionTaskSpec extends Specification {
   @Subject
   def task = new EvaluateConditionTask(
     conditionsConfigurationProperties,
-    [conditionSupplier],
+    Optional.of([conditionSupplier]),
     clock
   )
 

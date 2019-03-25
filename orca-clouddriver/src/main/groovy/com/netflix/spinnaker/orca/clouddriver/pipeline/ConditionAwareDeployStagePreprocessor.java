@@ -17,12 +17,10 @@
 package com.netflix.spinnaker.orca.clouddriver.pipeline;
 
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.DeployStagePreProcessor;
-import com.netflix.spinnaker.orca.conditions.ConditionSupplier;
 import com.netflix.spinnaker.orca.kato.pipeline.support.StageData;
 import com.netflix.spinnaker.orca.pipeline.WaitForConditionStage;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
 
@@ -33,7 +31,6 @@ import java.util.Map;
 
 @Component
 @ConditionalOnExpression("${tasks.evaluateCondition.enabled:false}")
-@ConditionalOnBean(value = ConditionSupplier.class)
 public class ConditionAwareDeployStagePreprocessor implements DeployStagePreProcessor {
   private final WaitForConditionStage waitForConditionStage;
 
