@@ -18,6 +18,7 @@ package com.netflix.spinnaker.igor.config
 
 import com.netflix.hystrix.exception.HystrixRuntimeException
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.igor.artifacts.ArtifactServices
 import com.netflix.spinnaker.igor.service.ArtifactDecorator
 import com.netflix.spinnaker.igor.service.BuildServices
 import com.netflix.spinnaker.kork.artifacts.parsing.DefaultJinjavaFactory
@@ -67,6 +68,11 @@ class IgorConfig extends WebMvcConfigurerAdapter {
     @Bean
     BuildServices buildServices() {
         new BuildServices()
+    }
+
+    @Bean
+    ArtifactServices artifactServices() {
+      new ArtifactServices()
     }
 
     @Bean

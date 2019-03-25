@@ -37,7 +37,6 @@ dependencies {
     compile spinnaker.dependency("okHttp")
     compile spinnaker.dependency('logstashEncoder')
     compile spinnaker.dependency("lombok")
-    compile spinnaker.dependency('korkArtifacts')
 
     compile 'io.projectreactor:reactor-core:3.2.6.RELEASE'
     compile "com.squareup.okhttp3:okhttp-sse:${spinnaker.version("okHttp3")}"
