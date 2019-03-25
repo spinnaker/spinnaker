@@ -94,7 +94,7 @@ internal object ResourceActuatorTests : JUnit5Minutests {
         }
 
         test("a telemetry event is published") {
-          verify { publisher.publishEvent(ResourceChecked(resource.metadata.name, Ok)) }
+          verify { publisher.publishEvent(ResourceChecked(resource.apiVersion, resource.kind, resource.metadata.name, Ok)) }
         }
       }
 
@@ -118,7 +118,7 @@ internal object ResourceActuatorTests : JUnit5Minutests {
         }
 
         test("a telemetry event is published") {
-          verify { publisher.publishEvent(ResourceChecked(resource.metadata.name, Missing)) }
+          verify { publisher.publishEvent(ResourceChecked(resource.apiVersion, resource.kind, resource.metadata.name, Missing)) }
         }
       }
 
@@ -142,7 +142,7 @@ internal object ResourceActuatorTests : JUnit5Minutests {
         }
 
         test("a telemetry event is published") {
-          verify { publisher.publishEvent(ResourceChecked(resource.metadata.name, Diff)) }
+          verify { publisher.publishEvent(ResourceChecked(resource.apiVersion, resource.kind, resource.metadata.name, Diff)) }
         }
       }
     }

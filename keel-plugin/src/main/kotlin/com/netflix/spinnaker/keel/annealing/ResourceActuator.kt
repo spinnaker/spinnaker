@@ -36,10 +36,13 @@ class ResourceActuator(
     try {
       when (val current = plugin.current(resource)) {
         null -> {
-          log.warn("Resource {} is missing", resource.metadata.name)
-          publisher.publishEvent(ResourceChecked(resource.metadata.name, Missing))
+          with(resource) {
+            log.warn("Resource {} is missing", metadata.name)
+            publisher.publishEvent(ResourceChecked(apiVersion, kind, metadata.name, Missing))
 
-          resourceRepository.updateState(resource.metadata.uid, Missing)
+            resourceRepository.updateState(metadata.uid, Missing)
+          }
+
           plugin.create(resource)
         }
         else -> {
@@ -52,17 +55,22 @@ class ResourceActuator(
                 .append(node.toString())
                 .append("\n")
             }
-            log.warn("Resource {} is invalid", resource.metadata.name)
-            log.info("Resource {} delta: {}", resource.metadata.name, builder.toString())
-            publisher.publishEvent(ResourceChecked(resource.metadata.name, Diff))
+            with(resource) {
+              log.warn("Resource {} is invalid", metadata.name)
+              log.info("Resource {} delta: {}", metadata.name, builder.toString())
+              publisher.publishEvent(ResourceChecked(apiVersion, kind, metadata.name, Diff))
 
-            resourceRepository.updateState(resource.metadata.uid, Diff)
+              resourceRepository.updateState(metadata.uid, Diff)
+            }
+
             plugin.update(resource, ResourceDiff(current, diff))
           } else {
-            log.info("Resource {} is valid", resource.metadata.name)
-            publisher.publishEvent(ResourceChecked(resource.metadata.name, Ok))
+            with(resource) {
+              log.info("Resource {} is valid", metadata.name)
+              publisher.publishEvent(ResourceChecked(apiVersion, kind, metadata.name, Ok))
 
-            resourceRepository.updateState(resource.metadata.uid, Ok)
+              resourceRepository.updateState(metadata.uid, Ok)
+            }
           }
         }
       }

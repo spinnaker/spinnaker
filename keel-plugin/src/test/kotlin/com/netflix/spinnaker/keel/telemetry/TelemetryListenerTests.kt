@@ -5,6 +5,7 @@ import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.Registry
 import com.netflix.spectator.api.Tag
 import com.netflix.spinnaker.keel.api.ResourceName
+import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.persistence.ResourceState.Diff
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -24,8 +25,10 @@ internal object TelemetryListenerTests : JUnit5Minutests {
   private val registry = mockk<Registry>()
   private val counter = mockk<Counter>(relaxUnitFun = true)
   private val event = ResourceChecked(
-    ResourceName("ec2:cluster:prod:ap-south-1:keel-main"),
-    Diff
+    apiVersion = SPINNAKER_API_V1.subApi("ec2"),
+    kind = "cluster",
+    name = ResourceName("ec2:cluster:prod:ap-south-1:keel-main"),
+    state = Diff
   )
 
   fun tests() = rootContext<TelemetryListener> {
@@ -56,6 +59,14 @@ internal object TelemetryListenerTests : JUnit5Minutests {
         expectThat(id.captured) {
           name().isEqualTo("keel.resource.checked")
           tags()
+            .any {
+              key().isEqualTo("apiVersion")
+              value().isEqualTo(event.apiVersion.toString())
+            }
+            .any {
+              key().isEqualTo("resourceKind")
+              value().isEqualTo(event.kind)
+            }
             .any {
               key().isEqualTo("resourceName")
               value().isEqualTo(event.name.value)

@@ -17,6 +17,8 @@ class TelemetryListener(
       spectator.counter(
         RESOURCE_CHECKED_COUNTER_ID
           .withTag("resourceName", event.name.value)
+          .withTag("apiVersion", event.apiVersion.toString())
+          .withTag("resourceKind", event.kind)
           .withTag("resourceState", event.state.name)
       ).increment()
     } catch (ex: Exception) {
