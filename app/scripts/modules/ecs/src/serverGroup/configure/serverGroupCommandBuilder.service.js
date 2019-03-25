@@ -138,7 +138,7 @@ module.exports = angular
               availabilityZones: availabilityZones,
               subnetType: '',
               securityGroups: [],
-              healthgraceperiod: '',
+              healthCheckGracePeriodSeconds: '',
               placementStrategyName: '',
               placementStrategySequence: [],
               ecsClusterName: '',
