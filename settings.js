@@ -235,6 +235,7 @@ window.spinnakerSettings = {
     'pipeline',
     'pubsub',
     'travis',
+    'webhook',
     'wercker',
   ],
   useClassicFirewallLabels: useClassicFirewallLabels,
