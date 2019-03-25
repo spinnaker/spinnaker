@@ -7,6 +7,7 @@ export interface ICertificate {
   path: string;
   serverCertificateId: string;
   serverCertificateName: string;
+  uploadDate: number;
 }
 
 export class CertificateReader {
