@@ -9,6 +9,8 @@ import {
 } from 'core/application/config/customBanner/customBannerColors';
 
 import { noop } from 'core/utils';
+import { Markdown } from 'core/presentation/Markdown';
+import { HelpField } from 'core/help/HelpField';
 
 import './customBannerConfig.less';
 
@@ -180,6 +182,21 @@ export class CustomBannerConfig extends React.Component<ICustomBannerConfigProps
                       }}
                       value={banner.text}
                     />
+                    <div className="small text-right">
+                      Markdown is okay <HelpField id="markdown.examples" />
+                    </div>
+                    <div>
+                      <b>Preview</b>
+                      <div
+                        className="input-sm custom-banner-config-preview"
+                        style={{
+                          backgroundColor: banner.backgroundColor,
+                          color: banner.textColor,
+                        }}
+                      >
+                        <Markdown message={banner.text} />
+                      </div>
+                    </div>
                   </td>
                   <td>
                     <Select

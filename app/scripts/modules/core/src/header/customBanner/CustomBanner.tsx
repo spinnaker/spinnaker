@@ -3,6 +3,7 @@ import { get } from 'lodash';
 
 import { ICustomBannerConfig } from 'core/application/config/customBanner/CustomBannerConfig';
 import { ApplicationReader } from 'core/application/service/ApplicationReader';
+import { Markdown } from 'core/presentation/Markdown';
 import { ReactInjector } from 'core/reactShims';
 import { noop } from 'core/utils';
 
@@ -65,7 +66,7 @@ export class CustomBanner extends React.Component<{}, ICustomBannerState> {
           color: bannerConfig.textColor,
         }}
       >
-        {bannerConfig.text}
+        <Markdown message={bannerConfig.text} />
       </div>
     );
   }
