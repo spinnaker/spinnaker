@@ -113,10 +113,18 @@ class JarDiffsTask implements DiffTask {
   }
 
   InstanceService createInstanceService(String address) {
+    def okHttpClient = new OkHttpClient(retryOnConnectionFailure: false)
+
+    // short circuit as quickly as possible security groups don't allow ingress to <instance>:8077
+    // (spinnaker applications don't allow this)
+    okHttpClient.setConnectTimeout(2, TimeUnit.SECONDS)
+    okHttpClient.setReadTimeout(2, TimeUnit.SECONDS)
+
     RestAdapter restAdapter = new RestAdapter.Builder()
       .setEndpoint(address)
-      .setClient(new OkClient(new OkHttpClient(retryOnConnectionFailure: false)))
+      .setClient(new OkClient(okHttpClient))
       .build()
+
     return restAdapter.create(InstanceService.class)
   }
 
