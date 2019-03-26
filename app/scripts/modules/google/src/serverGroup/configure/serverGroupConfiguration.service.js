@@ -369,7 +369,7 @@ module.exports = angular
         const regions = command.backingData.credentialsKeyedByAccount[command.credentials].regions;
         if (_.isArray(regions)) {
           filteredData.zones = _.find(regions, { name: command.region }).zones;
-          filteredData.truncatedZones = _.takeRight(filteredData.zones.sort(), 3);
+          filteredData.automaticZones = filteredData.zones.slice().sort();
         } else {
           // TODO(duftler): Remove this once we finish deprecating the old style regions/zones in clouddriver GCE credentials.
           filteredData.zones = regions[command.region];
