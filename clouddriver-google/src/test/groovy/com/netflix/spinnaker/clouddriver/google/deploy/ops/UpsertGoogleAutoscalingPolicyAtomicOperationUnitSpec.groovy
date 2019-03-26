@@ -23,6 +23,7 @@ import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.GoogleApiTestUtils
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
+import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleAutoscalingPolicyDescription
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoHealingPolicy
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy
@@ -67,6 +68,10 @@ class UpsertGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
   private static final REGION = "us-central1"
   private static final AUTOSCALER = GCEUtil.buildAutoscaler(SERVER_GROUP_NAME, SELF_LINK, GOOGLE_SCALING_POLICY)
 
+  def googleClusterProviderMock = Mock(GoogleClusterProvider)
+  def computeMock = Mock(Compute)
+  def operationPollerMock = Mock(GoogleOperationPoller)
+
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
   }
@@ -75,7 +80,6 @@ class UpsertGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
   void "can create zonal and regional scaling policies"() {
     setup:
     def registry = new DefaultRegistry()
-    def googleClusterProviderMock = Mock(GoogleClusterProvider)
     def serverGroup = new GoogleServerGroup(zone: ZONE, regional: isRegional, selfLink: SELF_LINK).view
     def computeMock = Mock(Compute)
 
@@ -102,6 +106,7 @@ class UpsertGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
     @Subject def operation = Spy(UpsertGoogleAutoscalingPolicyAtomicOperation, constructorArgs: [description])
     operation.registry = registry
     operation.googleClusterProvider = googleClusterProviderMock
+    operation.googleOperationPoller = operationPollerMock
 
     when:
     operation.operate([])
@@ -113,11 +118,11 @@ class UpsertGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
     if (isRegional) {
       1 * computeMock.regionAutoscalers() >> regionAutoscalerMock
       1 * regionAutoscalerMock.insert(PROJECT_NAME, location, AUTOSCALER) >> regionInsertMock
-      1 * regionInsertMock.execute()
+      1 * regionInsertMock.execute() >> [name: 'insertOp']
     } else {
       1 * computeMock.autoscalers() >> autoscalerMock
       1 * autoscalerMock.insert(PROJECT_NAME, location, AUTOSCALER) >> insertMock
-      1 * insertMock.execute()
+      1 * insertMock.execute() >> [name: 'insertOp']
     }
 
     registry.timer(regionalTimerId).count() == (isRegional ? 1 : 0)
@@ -133,7 +138,6 @@ class UpsertGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
   void "can update zonal and regional scaling policies"() {
     given:
     def registry = new DefaultRegistry()
-    def googleClusterProviderMock = Mock(GoogleClusterProvider)
     def computeMock = Mock(Compute)
     def autoscalingPolicy = new AutoscalingPolicy(
       minNumReplicas: 1,
@@ -163,6 +167,7 @@ class UpsertGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
     @Subject def operation = Spy(UpsertGoogleAutoscalingPolicyAtomicOperation, constructorArgs: [description])
     operation.registry = registry
     operation.googleClusterProvider = googleClusterProviderMock
+    operation.googleOperationPoller = operationPollerMock
 
     when:
     operation.operate([])
@@ -174,11 +179,11 @@ class UpsertGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
     if (isRegional) {
       1 * computeMock.regionAutoscalers() >> regionAutoscalerMock
       1 * regionAutoscalerMock.update(PROJECT_NAME, location, AUTOSCALER) >> regionUpdateMock
-      1 * regionUpdateMock.execute()
+      1 * regionUpdateMock.execute() >> [name: 'updateOp']
     } else {
       1 * computeMock.autoscalers() >> autoscalerMock
       1 * autoscalerMock.update(PROJECT_NAME, location, AUTOSCALER) >> updateMock
-      1 * updateMock.execute()
+      1 * updateMock.execute() >> [name: 'updateOp']
     }
     registry.timer(regionalTimerId).count() == (isRegional ? 1 : 0)
     registry.timer(zonalTimerId).count() == (isRegional ? 0 : 1)
@@ -208,7 +213,6 @@ class UpsertGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
     def expectedAutoscaler = GCEUtil.buildAutoscaler(
       SERVER_GROUP_NAME, SELF_LINK, ancestorDescription)
 
-    def googleClusterProviderMock = Mock(GoogleClusterProvider)
     def computeMock = Mock(Compute)
     def serverGroup = new GoogleServerGroup(
       zone: ZONE,
@@ -235,6 +239,7 @@ class UpsertGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
     @Subject def operation = Spy(UpsertGoogleAutoscalingPolicyAtomicOperation, constructorArgs: [description])
     operation.registry = registry
     operation.googleClusterProvider = googleClusterProviderMock
+    operation.googleOperationPoller = operationPollerMock
 
     when:
     operation.operate([])
@@ -245,11 +250,11 @@ class UpsertGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
     if (isRegional) {
       1 * computeMock.regionAutoscalers() >> regionAutoscalerMock
       1 * regionAutoscalerMock.update(PROJECT_NAME, location, expectedAutoscaler) >> regionUpdateMock
-      1 * regionUpdateMock.execute()
+      1 * regionUpdateMock.execute() >> [name: 'updateOp']
     } else {
       1 * computeMock.autoscalers() >> autoscalerMock
       1 * autoscalerMock.update(PROJECT_NAME, location, expectedAutoscaler) >> updateMock
-      1 * updateMock.execute()
+      1 * updateMock.execute() >> [name: 'updateOp']
     }
 
     where:
@@ -286,7 +291,6 @@ class UpsertGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
     def expectedAutoscaler = GCEUtil.buildAutoscaler(
       SERVER_GROUP_NAME, SELF_LINK, updatePolicy)
 
-    def googleClusterProviderMock = Mock(GoogleClusterProvider)
     def computeMock = Mock(Compute)
     def serverGroup = new GoogleServerGroup(zone: ZONE,
       selfLink: SELF_LINK,
@@ -312,6 +316,7 @@ class UpsertGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
     @Subject def operation = Spy(UpsertGoogleAutoscalingPolicyAtomicOperation, constructorArgs: [description])
     operation.registry = registry
     operation.googleClusterProvider = googleClusterProviderMock
+    operation.googleOperationPoller = operationPollerMock
 
     when:
     operation.operate([])
@@ -322,11 +327,11 @@ class UpsertGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
     if (isRegional) {
       1 * computeMock.regionAutoscalers() >> regionAutoscalerMock
       1 * regionAutoscalerMock.update(PROJECT_NAME, location, expectedAutoscaler) >> regionUpdateMock
-      1 * regionUpdateMock.execute()
+      1 * regionUpdateMock.execute() >> [name: 'updateOp']
     } else {
       1 * computeMock.autoscalers() >> autoscalerMock
       1 * autoscalerMock.update(PROJECT_NAME, location, expectedAutoscaler) >> updateMock
-      1 * updateMock.execute()
+      1 * updateMock.execute() >> [name: 'updateOp']
     }
 
     where:
@@ -395,7 +400,6 @@ class UpsertGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
   void "update the instance template when updatePolicyMetadata is called"() {
     given:
     def registry = new DefaultRegistry()
-    def googleClusterProviderMock = Mock(GoogleClusterProvider)
     def computeMock = Mock(Compute)
     def autoscaler = [:]
 
@@ -426,6 +430,7 @@ class UpsertGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
     @Subject def operation = Spy(UpsertGoogleAutoscalingPolicyAtomicOperation, constructorArgs: [description])
     operation.registry = registry
     operation.googleClusterProvider = googleClusterProviderMock
+    operation.googleOperationPoller = operationPollerMock
 
     when:
     operation.updatePolicyMetadata(computeMock, credentials, PROJECT_NAME, groupUrl, autoscaler)

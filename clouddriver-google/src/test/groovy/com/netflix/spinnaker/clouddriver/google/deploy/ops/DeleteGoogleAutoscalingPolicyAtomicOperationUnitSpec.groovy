@@ -24,6 +24,7 @@ import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.GoogleApiTestUtils
+import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.clouddriver.google.deploy.description.DeleteGoogleAutoscalingPolicyDescription
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
@@ -39,6 +40,10 @@ class DeleteGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
   private static final PROJECT_NAME = "my-project"
   private static final ZONE = "us-central1-f"
 
+  def googleClusterProviderMock = Mock(GoogleClusterProvider)
+  def computeMock = Mock(Compute)
+  def operationPollerMock = Mock(GoogleOperationPoller)
+
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
   }
@@ -47,8 +52,6 @@ class DeleteGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
   void "should delete zonal and regional autoscaling policy"() {
     setup:
     def registry = new DefaultRegistry()
-    def googleClusterProviderMock = Mock(GoogleClusterProvider)
-    def computeMock = Mock(Compute)
 
     // zonal setup
     def autoscalersMock = Mock(Compute.Autoscalers)
@@ -73,6 +76,7 @@ class DeleteGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
     @Subject def operation = Spy(DeleteGoogleAutoscalingPolicyAtomicOperation, constructorArgs: [description])
     operation.registry = registry
     operation.googleClusterProvider = googleClusterProviderMock
+    operation.googleOperationPoller = operationPollerMock
 
     when:
     operation.operate([])
@@ -84,11 +88,11 @@ class DeleteGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
     if (isRegional) {
       1 * computeMock.regionAutoscalers() >> regionAutoscalersMock
       1 * regionAutoscalersMock.delete(PROJECT_NAME, REGION, SERVER_GROUP_NAME) >> regionDeleteMock
-      1 * regionDeleteMock.execute()
+      1 * regionDeleteMock.execute() >> [name: 'deleteOp']
     } else {
       1 * computeMock.autoscalers() >> autoscalersMock
       1 * autoscalersMock.delete(PROJECT_NAME, ZONE, SERVER_GROUP_NAME) >> deleteMock
-      1 * deleteMock.execute()
+      1 * deleteMock.execute() >> [name: 'deleteOp']
     }
     registry.timer(regionalTimerId).count() == (isRegional ? 1 : 0)
     registry.timer(zonalTimerId).count() == (isRegional ? 0 : 1)
@@ -101,7 +105,6 @@ class DeleteGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
   void "should delete zonal and regional autoHealing policy"() {
     setup:
     def registry = new DefaultRegistry()
-    def googleClusterProviderMock = Mock(GoogleClusterProvider)
     def computeMock = Mock(Compute)
     def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
     def description = new DeleteGoogleAutoscalingPolicyDescription(
@@ -134,6 +137,7 @@ class DeleteGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
     @Subject def operation = Spy(DeleteGoogleAutoscalingPolicyAtomicOperation, constructorArgs: [description])
     operation.registry = registry
     operation.googleClusterProvider = googleClusterProviderMock
+    operation.googleOperationPoller = operationPollerMock
 
     when:
     operation.operate([])
@@ -145,9 +149,11 @@ class DeleteGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
     if (isRegional) {
       computeMock.regionInstanceGroupManagers() >> regionalManagerMock
       regionalManagerMock.setAutoHealingPolicies(PROJECT_NAME, REGION, SERVER_GROUP_NAME, regionalRequest) >> regionalSetAutoHealingPolicyMock
+      regionalSetAutoHealingPolicyMock.execute() >> [name: 'autoHealingOp']
     } else {
       computeMock.instanceGroupManagers() >> zonalManagerMock
       zonalManagerMock.setAutoHealingPolicies(PROJECT_NAME, ZONE, SERVER_GROUP_NAME, zonalRequest) >> zonalSetAutoHealingPolicyMock
+      zonalSetAutoHealingPolicyMock.execute() >> [name: 'autoHealingOp']
     }
     registry.timer(regionalTimerId).count() == (isRegional ? 1 : 0)
     registry.timer(zonalTimerId).count() == (isRegional ? 0 : 1)
@@ -159,7 +165,6 @@ class DeleteGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
   void "delete the instance template when deletePolicyMetadata is called"() {
     given:
     def registry = new DefaultRegistry()
-    def googleClusterProviderMock = Mock(GoogleClusterProvider)
     def computeMock = Mock(Compute)
     def autoscaler = [:]
 
@@ -188,6 +193,7 @@ class DeleteGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
     @Subject def operation = Spy(DeleteGoogleAutoscalingPolicyAtomicOperation, constructorArgs: [description])
     operation.registry = registry
     operation.googleClusterProvider = googleClusterProviderMock
+    operation.googleOperationPoller = operationPollerMock
 
     when:
     operation.deletePolicyMetadata(computeMock, credentials, PROJECT_NAME, groupUrl)
