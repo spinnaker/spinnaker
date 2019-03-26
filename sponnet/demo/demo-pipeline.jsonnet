@@ -126,7 +126,8 @@ local deployManifestArtifact = sponnet.stages
                                .withMoniker(moniker)
                                .withOverrideTimeout('300000')
                                .withRestrictedExecutionWindow(['1', '2', '3'], whitelist)
-                               .withRequisiteStages(wait);
+                               .withRequisiteStages(wait)
+                               .withSkipExpressionEvaluation();
 
 local deployManifestTextBaseline = sponnet.stages
                                    .deployManifest('Deploy a manifest')
