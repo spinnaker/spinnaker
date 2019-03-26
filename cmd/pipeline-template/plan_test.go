@@ -32,7 +32,7 @@ func TestPipelineTemplatePlan_basic(t *testing.T) {
 		t.Fatal("Could not create temp pipeline template file.")
 	}
 	defer os.Remove(tempFile.Name())
-	args := []string{"pipeline-template", "plan", "--config", tempFile.Name(), "--gate-endpoint", ts.URL}
+	args := []string{"pipeline-template", "plan", "--file", tempFile.Name(), "--gate-endpoint", ts.URL}
 
 	currentCmd := NewPlanCmd(pipelineTemplateOptions{})
 	rootCmd := getRootCmdForTest()
@@ -87,7 +87,7 @@ func TestPipelineTemplatePlan_fail(t *testing.T) {
 	}
 	defer os.Remove(tempFile.Name())
 
-	args := []string{"pipeline-template", "plan", "--config", tempFile.Name(), "--gate-endpoint", ts.URL}
+	args := []string{"pipeline-template", "plan", "--file", tempFile.Name(), "--gate-endpoint", ts.URL}
 	currentCmd := NewPlanCmd(pipelineTemplateOptions{})
 	rootCmd := getRootCmdForTest()
 	pipelineTemplateCmd := NewPipelineTemplateCmd(os.Stdout)

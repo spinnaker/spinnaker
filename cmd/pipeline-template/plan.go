@@ -46,7 +46,7 @@ func NewPlanCmd(pipelineTemplateOptions pipelineTemplateOptions) *cobra.Command 
 		},
 	}
 
-	cmd.PersistentFlags().StringVarP(&options.configPath, "config", "c", "", "path to the pipeline template config file")
+	cmd.PersistentFlags().StringVarP(&options.configPath, "file", "f", "", "path to the pipeline template config file")
 
 	return cmd
 }
