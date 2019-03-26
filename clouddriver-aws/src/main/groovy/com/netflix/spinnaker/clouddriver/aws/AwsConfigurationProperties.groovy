@@ -45,15 +45,8 @@ class AwsConfigurationProperties {
     final AlarmsConfig alarms = new AlarmsConfig()
   }
 
-  @Canonical
-  static class MigrationConfig {
-    List<String> infrastructureApplications = []
-  }
-
   @NestedConfigurationProperty
   final ClientConfig client = new ClientConfig()
   @NestedConfigurationProperty
   final CleanupConfig cleanup = new CleanupConfig()
-  @NestedConfigurationProperty
-  final MigrationConfig migration = new MigrationConfig()
 }
