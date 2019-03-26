@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "spinnaker-gcb-test",
+  "private_key_id": "8b362792857a0ea43501eceb138c0402425cc90a",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQDYegEWFgg0hNpe\nRQB/Gj4LDbZeq1czRT1cntIZ5lC1KMSLsg+fbh5/qCD5jvcf8DWK1N3oAzmq7jCg\nEiYVde73eBx6JrpquZRXjq+4BN/RgWQszGLnp1tT6ZfKdw9liyucsYv5Nw/VsMb/\noDhBPrq4R1Tl5rbVT9+5BY9Zos3AMInN7Lvi9BYTUwnSaYx9BU1sFUV48RtX7JfJ\ny9A717Zy9vUR7gWV7/ctfLKQmMjA8FtOQCefVZlaq808KFqqo8L2L50lLwCyz/dG\nNe/d25WCaqywXi6RVB9SYYCkm7ho0txjAjr+fX9NQizoFamp9HK7JPqo1m6oU6ZE\n04+JXzPrAgMBAAECggEBAJvGb7Gs+QqR73GWxdywzaS2oV1OftluIdHcl+P7UGiM\nhaLg500auOez3Ma4kixxdpYIyAaFC6Js9KC7bpxS2TtLO3LLG6phENZQ3zHUkBr6\nuVNjYGjCjX28wnX3ZyTzGNcRDGCxtrtXElwwt0p8EXE6I2WsuDSX3a4OyjD+boC1\nGXaAuH4MXkPwVtL8v/s9xxO6eLBwAEVk/HkGtqHl9vGQEX5eRtIMeD2KE52tQYjZ\ns+wsAXSed3dKkvbJq1bVbhCwvr8YdAxAzgGdEgIJz5q3i+LYTWnXXOYVMaoibjKp\n3T26vwjDdDQR8RinXTqlv0HlxJp1ogDpt5PHf5ldjkECgYEA+usg0PV4e1FzBa1r\njMpjlVGYkzYBaBpcvR/1X6BYWIt0Eevgl3DIDA4JBDz3n3VYq8EoJD+DXJj+fcpQ\nZJjS07BkKEcfYOQk9OwgG4LfKqsRDjBioCDnLuFKQgK4aPjU4aGaaBRBIUm7GWjS\nL5PLmJgnYxlVVadmYSoqy8U/0KUCgYEA3NxQavTAiuep715W4IR7OwbOcdgPRHko\nfRb+sr4rorz1YwFQlUVRNGqGIYnzlt73BlQ/rLD8bQQFlZ1gF5ecA7F/z3TMmZJd\nkTZfM2vQl0kWywrs1VfdEtl6IOOG2msgw8eSfIU2QrN1gPYpx6K3Jpznwa7jvR7q\nGN2xeaHUvU8CgYAn0WhDwLB94U7/d6W5keR7rZcoxUkz2/sbiBbINgnPA1JIBcZ+\nQcd9Ij0MDyC8jUKk/uH/3pRZ/W1lSNW5IQdT0IoUWjUAizPSKiZuNzZy7vKl7ce4\n4X/OULIYB5Z8EgC2TY7TNWOghLLMNXYlVq7YaEzXzQ1dqlL02FwyOfsGgQKBgQCv\n0uBeVVxW+JhLTDIjaLRlyERfUx7MZxu5ga3gBA7e7kj3uVs6ikVcUhVX6+e0yumi\n6z0JsJgz/Uio0/FktrhoJE1YjWY4N9IvQTbGy+TyGyh/GcJzERCY6fMU7a00gqZB\n1cYjRTVuIknAEbgvCrV9ktnZUe5RZ6P7ibm42AFxdwKBgQDghX7NulRF/BpRJ8ls\n4sK93dFPIS7dp5LFrhR4f8GLzIBJ7w5B5iEC3GqdrfGesJTRVIJs5CRC36Bi7nhR\nUaME//wmnr+LX2ToElBel25sLnkAmcK7BSby2ConQEYvc4zMp8vmYAMe4rvN+dgs\nqmlvJiSZWW2lD76tH43J3xmXHw==\n-----END PRIVATE KEY-----\n",
+  "client_email": "test-account@spinnaker-gcb-test.iam.gserviceaccount.com",
+  "client_id": "1",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://accounts.google.com/o/oauth2/auth",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/test-account%40spinnaker-gcb-test.iam.gserviceaccount.com"
+}

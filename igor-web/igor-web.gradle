@@ -20,6 +20,7 @@ dependencies {
     spinnaker.group "jackson"
     spinnaker.group "retrofitDefault"
 
+    compile spinnaker.dependency("googleCloudBuild")
     compile spinnaker.dependency("kork")
     compile spinnaker.dependency("korkArtifacts")
     compile spinnaker.dependency("korkStackdriver")
@@ -49,11 +50,16 @@ dependencies {
     compile 'org.jfrog.artifactory.client:artifactory-java-client-services:2.8.1'
 
     testCompile 'com.squareup.okhttp:mockwebserver:2.7.0'
+    testCompile 'org.springframework.boot:spring-boot-starter-test'
     testCompile spinnaker.dependency("korkJedisTest")
     testCompile spinnaker.dependency("junitJupiterApi")
     testCompile spinnaker.dependency("assertj")
 
     testRuntimeOnly "org.junit.vintage:junit-vintage-engine:${spinnaker.version('jupiter')}"
+    testCompile 'org.junit.jupiter:junit-jupiter-api:5.2.0'
+    testRuntime 'org.junit.jupiter:junit-jupiter-engine:5.2.0'
+    testCompile 'com.github.tomakehurst:wiremock-jre8:2.22.0'
+    testCompile 'org.mockito:mockito-core:2.6.8'
 }
 
 configurations.all {
