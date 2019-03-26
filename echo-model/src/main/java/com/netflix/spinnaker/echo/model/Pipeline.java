@@ -73,6 +73,12 @@ public class Pipeline {
   String type;
 
   @JsonProperty
+  String schema;
+
+  @JsonProperty
+  Object template;
+
+  @JsonProperty
   List<Map<String, Object>> stages;
 
   @JsonProperty

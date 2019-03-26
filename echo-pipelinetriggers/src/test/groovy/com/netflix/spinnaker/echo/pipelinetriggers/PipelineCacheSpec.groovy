@@ -22,24 +22,20 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.echo.model.Pipeline
 import com.netflix.spinnaker.echo.model.Trigger
+import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService
 import com.netflix.spinnaker.echo.services.Front50Service
 import com.netflix.spinnaker.echo.test.RetrofitStubs
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
-import spock.lang.Unroll
 
-import java.util.concurrent.Callable
-import java.util.concurrent.ExecutorService
 import java.util.concurrent.ScheduledExecutorService
-import java.util.concurrent.ScheduledFuture
-import java.util.concurrent.TimeUnit
-
-import static java.util.concurrent.TimeUnit.SECONDS
 
 class PipelineCacheSpec extends Specification implements RetrofitStubs {
   def front50 = Mock(Front50Service)
+  def orca = Mock(OrcaService)
   def registry = new NoopRegistry()
+  def objectMapper = new ObjectMapper()
 
   @Shared
   def interval = 30
@@ -48,13 +44,19 @@ class PipelineCacheSpec extends Specification implements RetrofitStubs {
   def sleepMs = 100
 
   @Subject
-  def pipelineCache = new PipelineCache(Mock(ScheduledExecutorService), interval, sleepMs, front50, registry)
+  def pipelineCache = new PipelineCache(Mock(ScheduledExecutorService), interval, sleepMs, objectMapper, front50, orca, registry)
 
   def "keeps polling if Front50 returns an error"() {
     given:
+    def pipelineMap = [
+      application: 'application',
+      name       : 'Pipeline',
+      id         : 'P1'
+    ]
     def pipeline = Pipeline.builder().application('application').name('Pipeline').id('P1').build()
+
     def initialLoad = []
-    front50.getPipelines() >> initialLoad >> { throw unavailable() } >> [pipeline]
+    front50.getPipelines() >> initialLoad >> { throw unavailable() } >> [pipelineMap]
     pipelineCache.start()
 
     expect: 'null pipelines when we have not polled yet'
