@@ -381,6 +381,30 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
     )
   }
 
+  @Override
+  Collection<Map> pendingOnDemandRequests(ProviderCache providerCache) {
+    Collection<String> keys = providerCache.filterIdentifiers(
+      ON_DEMAND.ns,
+      Keys.getLoadBalancerKey("*", "*", "*", "*", "*")
+    )
+
+    if (keys.isEmpty()) {
+      return []
+    } else {
+      return providerCache.getAll(ON_DEMAND.ns, keys, RelationshipCacheFilter.none()).collect {
+        def details = Keys.parse(it.id)
+
+        return [
+          id: it.id,
+          details: details,
+          cacheTime     : it.attributes.cacheTime,
+          cacheExpiry   : it.attributes.cacheExpiry,
+          processedTime : it.attributes.processedTime
+        ]
+      }
+    }
+  }
+
   private CacheResult buildCacheResult(ProviderCache providerCache,
                                        Collection<LoadBalancer> allLoadBalancers,
                                        Map<String, List> loadBalancerAttributes,
