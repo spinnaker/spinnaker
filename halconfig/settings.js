@@ -19,7 +19,7 @@ var displayTimestampsInUserLocalTime = '{%features.displayTimestampsInUserLocalT
 var entityTagsEnabled = false;
 var fiatEnabled = '{%features.fiat%}' === 'true';
 var gremlinEnabled = '{%features.gremlinEnabled%}' === 'true';
-var iapRefresherEnabled = '{%features.iapRefresherEnabled}' === 'true';
+var iapRefresherEnabled = '{%features.iapRefresherEnabled%}' === 'true';
 var infrastructureStagesEnabled = '{%features.infrastructureStages%}' === 'true';
 var managedPipelineTemplatesV2UIEnabled = '{%features.managedPipelineTemplatesV2UI%}' === 'true';
 var jobsEnabled = '{%features.jobs%}' === 'true';
