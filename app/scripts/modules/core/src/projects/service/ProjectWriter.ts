@@ -7,6 +7,7 @@ export class ProjectWriter {
   public static upsertProject(project: IProject): IPromise<ITask> {
     const descriptor = project.id ? 'Update' : 'Create';
     return TaskExecutor.executeTask({
+      application: 'spinnaker',
       job: [
         {
           type: 'upsertProject',
@@ -20,6 +21,7 @@ export class ProjectWriter {
 
   public static deleteProject(project: IProject): IPromise<ITask> {
     return TaskExecutor.executeTask({
+      application: 'spinnaker',
       job: [
         {
           type: 'deleteProject',
