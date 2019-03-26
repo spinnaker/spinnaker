@@ -150,8 +150,7 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
     return false;
   }
 
-  @Override
-  public boolean hasPermission(Authentication authentication,
+  public boolean hasPermission(String username,
                                Serializable resourceName,
                                String resourceType,
                                Object authorization) {
@@ -175,7 +174,7 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
       resourceName = resourceName.toString();
     }
 
-    UserPermission.View permission = getPermission(getUsername(authentication));
+    UserPermission.View permission = getPermission(username);
     boolean hasPermission = permissionContains(permission, resourceName.toString(), r, a);
 
     authorizationFailure.set(
@@ -183,6 +182,14 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
     );
 
     return hasPermission;
+  }
+
+  @Override
+  public boolean hasPermission(Authentication authentication,
+                               Serializable resourceName,
+                               String resourceType,
+                               Object authorization) {
+    return hasPermission(getUsername(authentication), resourceName, resourceType, authorization);
   }
 
   public void invalidatePermission(String username) {
