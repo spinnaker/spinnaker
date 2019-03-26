@@ -49,6 +49,10 @@ class GceAcceleratorConfigurerController implements IComponentController {
     return config.availableCardCounts;
   }
 
+  public acceleratorsAvailableInSelectedZone(): boolean {
+    return !this.command.regional && !!this.command.zone && this.getAvailableAcceleratorTypes().length > 0;
+  }
+
   public onAcceleratorTypeChanged(acceleratorConfig: IGceAcceleratorConfig): void {
     if (!acceleratorConfig) {
       return;
@@ -77,6 +81,7 @@ const gceAcceleratorConfigurer: IComponentOptions = {
     <div class="form-group">
       <div class="sm-label-left" style="margin-bottom: 5px;">
         Accelerators
+        <help-field key="gce.serverGroup.accelerator"></help-field>
       </div>
 
       <table class="table table-condensed packed tags">
@@ -114,18 +119,31 @@ const gceAcceleratorConfigurer: IComponentOptions = {
         <tfoot>
           <tr ng-if="$ctrl.command.acceleratorConfigs && $ctrl.command.acceleratorConfigs.length > 0">
             <td colspan="3">
-              Adding Accelerators places constraints on the instances that you can deploy. For a complete list of
-              these restrictions see <a href="https://cloud.google.com/compute/docs/gpus/#restrictions">the docs on GPUs</a>.
+              Adding Accelerators places constraints on the instances that you can deploy. See
+              <a href="https://cloud.google.com/compute/docs/gpus/#restrictions">the complete list of
+              these restrictions</a> for more information.
             </td>
           </tr>
-          <tr>
+          <tr ng-if="$ctrl.acceleratorsAvailableInSelectedZone()">
             <td colspan="3">
               <button class="btn btn-block btn-sm add-new" ng-click="$ctrl.addAccelerator()">
                 <span class="glyphicon glyphicon-plus-sign"></span> Add Accelerator
               </button>
             </td>
           </tr>
-      </div>
+          <tr ng-if="!$ctrl.acceleratorsAvailableInSelectedZone()">
+            <td ng-if="$ctrl.command.regional" colspan="3">
+              Adding accelerators is not currently supported in multi-zone deployments.
+            </td>
+            <td ng-if="!$ctrl.command.regional && !$ctrl.command.zone" colspan="3">
+              A zone must be selected to configure accelerators. Please note: the set of available accelerator types are limited
+              by zone. See <a href="https://cloud.google.com/compute/docs/gpus/#gpus-list">the complete list of types in each zone</a>
+              for more information.
+            </td>
+            <td ng-if="!$ctrl.command.regional && $ctrl.command.zone" colspan="3">
+              There are no accelerators available in the currently selected zone
+            </td>
+          </tr>
         </tfoot>
       </table>
     </div>
