@@ -132,10 +132,11 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
 
     TargetGroupAssociations targetGroupAssociations = this.buildTargetGroupAssociations(loadBalancing, targetGroups, false)
     ListenerAssociations listenerAssociations = this.buildListenerAssociations(loadBalancing, [loadBalancer], false)
-    List<String, List> loadBalancerAttributes = this.buildLoadBalancerAttributes(loadBalancing, [loadBalancer], false)
+    Map<String, List<LoadBalancerAttribute>> loadBalancerAttributes = this.buildLoadBalancerAttributes(loadBalancing, [loadBalancer], false)
 
     def cacheResult = metricsSupport.transformData {
       buildCacheResult(
+        providerCache,
         [loadBalancer],
         loadBalancerAttributes,
         targetGroups,
@@ -362,7 +363,7 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
     def pendingOnDemandRequestsForLoadBalancers = providerCache.getAll(ON_DEMAND.ns, pendingOnDemandRequestKeys)
     pendingOnDemandRequestsForLoadBalancers.each {
       if (it.attributes.cacheTime < start) {
-//        evictableOnDemandCacheDatas << it
+        evictableOnDemandCacheDatas << it
       } else {
         usableOnDemandCacheDatas << it
       }
