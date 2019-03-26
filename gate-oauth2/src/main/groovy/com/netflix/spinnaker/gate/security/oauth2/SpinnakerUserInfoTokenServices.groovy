@@ -59,7 +59,7 @@ class SpinnakerUserInfoTokenServices implements ResourceServerTokenServices {
   CredentialsService credentialsService
 
   @Autowired
-  OAuth2SsoConfig.UserInfoMapping userInfoMapping
+  protected OAuth2SsoConfig.UserInfoMapping userInfoMapping
 
   @Autowired
   OAuth2SsoConfig.UserInfoRequirements userInfoRequirements
@@ -97,11 +97,15 @@ class SpinnakerUserInfoTokenServices implements ResourceServerTokenServices {
     }
 
     def username = details[userInfoMapping.username] as String
-    def roles = []
+    def roles = getRoles(details)
 
     // Service accounts are already logged in.
     if (!isServiceAccount) {
-      permissionService.login(username)
+      if (roles.isEmpty()) {
+        permissionService.login(username)
+      } else {
+        permissionService.loginWithRoles(username, roles)
+      }
     }
 
     User spinnakerUser = new User(
@@ -177,5 +181,9 @@ class SpinnakerUserInfoTokenServices implements ResourceServerTokenServices {
   static String mutateRegexPattern(String val) {
     // "/expr/" -> "expr"
     val.substring(1, val.length() - 1)
+  }
+
+  protected List<String> getRoles(Map<String, String> details) {
+    return []
   }
 }

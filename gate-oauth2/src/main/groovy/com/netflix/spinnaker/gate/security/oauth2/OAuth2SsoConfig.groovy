@@ -115,6 +115,7 @@ class OAuth2SsoConfig extends WebSecurityConfigurerAdapter {
     String lastName = "family_name"
     String username = "email"
     String serviceAccountEmail = "client_email"
+    String roles = "roles"
   }
 
   @Component
