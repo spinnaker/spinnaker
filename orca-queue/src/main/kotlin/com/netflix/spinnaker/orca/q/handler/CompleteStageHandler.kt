@@ -29,6 +29,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.Task
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
+import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import com.netflix.spinnaker.orca.q.*
 import com.netflix.spinnaker.q.Queue
 import org.springframework.beans.factory.annotation.Qualifier
@@ -41,13 +42,14 @@ import java.util.concurrent.TimeUnit
 class CompleteStageHandler(
   override val queue: Queue,
   override val repository: ExecutionRepository,
+  override val stageNavigator: StageNavigator,
   @Qualifier("queueEventPublisher") private val publisher: ApplicationEventPublisher,
   private val clock: Clock,
   private val exceptionHandlers: List<ExceptionHandler>,
   override val contextParameterProcessor: ContextParameterProcessor,
   private val registry: Registry,
   override val stageDefinitionBuilderFactory: StageDefinitionBuilderFactory
-) : OrcaMessageHandler<CompleteStage>, StageBuilderAware, ExpressionAware {
+) : OrcaMessageHandler<CompleteStage>, StageBuilderAware, ExpressionAware, AuthenticationAware {
 
   override fun handle(message: CompleteStage) {
     message.withStage { stage ->
@@ -64,7 +66,9 @@ class CompleteStageHandler(
             // check to see if this stage has any unplanned synthetic after stages
             var afterStages = stage.firstAfterStages()
             if (afterStages.isEmpty()) {
-              stage.planAfterStages()
+              stage.withAuth {
+                stage.planAfterStages()
+              }
               afterStages = stage.firstAfterStages()
             }
             if (afterStages.isNotEmpty() && afterStages.any { it.status == NOT_STARTED }) {
@@ -78,7 +82,13 @@ class CompleteStageHandler(
               status = SKIPPED
             }
           } else if (status.isFailure) {
-            if (stage.planOnFailureStages()) {
+            var hasOnFailureStages = false
+
+            stage.withAuth {
+              hasOnFailureStages = stage.planOnFailureStages()
+            }
+
+            if (hasOnFailureStages) {
               stage.firstAfterStages().forEach {
                 queue.push(StartStage(it))
               }

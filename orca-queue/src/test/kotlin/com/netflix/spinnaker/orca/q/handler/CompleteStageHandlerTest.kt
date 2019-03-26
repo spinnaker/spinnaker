@@ -35,6 +35,7 @@ import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_AFTER
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
+import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import com.netflix.spinnaker.orca.q.*
 import com.netflix.spinnaker.q.Message
 import com.netflix.spinnaker.q.Queue
@@ -54,6 +55,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
 
   val queue: Queue = mock()
   val repository: ExecutionRepository = mock()
+  val stageNavigator: StageNavigator = mock()
   val publisher: ApplicationEventPublisher = mock()
   val exceptionHandler: ExceptionHandler = DefaultExceptionHandler()
   val clock = fixedClock()
@@ -105,6 +107,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
     CompleteStageHandler(
       queue,
       repository,
+      stageNavigator,
       publisher,
       clock,
       listOf(exceptionHandler),
