@@ -108,7 +108,7 @@ class AbstractCloudFoundryLoadBalancerMappingOperationTest {
       exception = illegalArgumentException;
     }
     assertThat(exception).isNotNull();
-    assertThat(exception.getMessage()).isEqualTo("road.to.nowhereis an invalid route");
+    assertThat(exception.getMessage()).isEqualTo("road.to.nowhere is an invalid route");
   }
 
   @Test

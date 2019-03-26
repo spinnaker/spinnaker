@@ -53,7 +53,7 @@ public abstract class AbstractCloudFoundryLoadBalancerMappingOperation {
       .map(routePath -> {
         RouteId routeId = client.getRoutes().toRouteId(routePath);
         if (routeId == null) {
-          throw new IllegalArgumentException(routePath + "is an invalid route");
+          throw new IllegalArgumentException(routePath + " is an invalid route");
         }
         return routeId;
       })
