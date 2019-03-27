@@ -60,7 +60,6 @@ module.exports = angular
       this.application = app;
 
       $scope.gateUrl = SETTINGS.gateUrl;
-      $scope.titusMetricOptions = titusMetricOptions;
 
       $scope.state = {
         loading: true,
