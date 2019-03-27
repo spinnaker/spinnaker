@@ -223,45 +223,54 @@ export class ConfigBinModal extends React.Component<IConfigBinModalProps, IConfi
           <h3>Edit Metrics</h3>
         </Modal.Header>
         <Modal.Body>
-          <p>
-            This sets up metrics via Self-service CloudWatch Forwarding, which can also be configured{' '}
-            <a href="https://configbin.prod.netflix.net/app/cloudwatch-forwarding/type/clusters/LATEST" target="_blank">
-              here
-            </a>
-            .
-          </p>
+          <p>This sets up metrics via Self-service CloudWatch Forwarding, which can be configured here.</p>
           <p>Forwarding metrics via the Atlas Java Client will be deprecated in the future.</p>
           <div>
-            <h4>Standard Metrics</h4>
-            <p>These Atlas metrics are generally good ones to pick for autoscaling.</p>
-            {cannedMetrics.map(metric => {
-              const enabled = cannedExpressions.some(e => e.metricName === metric.metricName);
+            <h4 className="section-heading" style={{ marginTop: '10px' }}>
+              Standard Metrics
+            </h4>
+            <div className="section-body sp-margin-m-xaxis">
+              <p>These Atlas metrics are generally good ones to pick for autoscaling.</p>
+              {cannedMetrics.map(metric => {
+                const enabled = cannedExpressions.some(e => e.metricName === metric.metricName);
+                return (
+                  <div key={metric.metric} className="checkbox">
+                    <label>
+                      <input
+                        type="checkbox"
+                        checked={enabled}
+                        value={metric.metricName}
+                        onChange={this.optionToggled}
+                      />
+                      <div>
+                        <b>{metric.metricName}</b>
+                      </div>
+                      <em>{metric.description}</em>
+                    </label>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          <h4 className="section-heading" style={{ marginTop: '10px' }}>
+            Custom Metrics
+          </h4>
+          <div className="section-body sp-margin-m-xaxis">
+            <p>If you need to scale on some other metrics, you can add them here.</p>
+            {customExpressions.map((e, i) => {
               return (
-                <div key={metric.metric} className="checkbox">
-                  <label>
-                    <input type="checkbox" checked={enabled} value={metric.metricName} onChange={this.optionToggled} />
-                    <div>{metric.metricName}</div>
-                    <em>{metric.description}</em>
-                  </label>
-                </div>
+                <CustomMetric
+                  key={i}
+                  metric={e}
+                  metricUpdated={this.metricUpdated}
+                  metricRemoved={this.removeCustomExpression}
+                />
               );
             })}
+            <button className="add-new btn btn-block btn-sm" onClick={this.addCustomExpression}>
+              <span className="glyphicon glyphicon-plus-sign" /> Add custom expression
+            </button>
           </div>
-          <h4 style={{ marginTop: '20px' }}>Custom Metrics</h4>
-          <p>If you need to scale on some other metrics, you can add them here.</p>
-          {customExpressions.map((e, i) => {
-            return (
-              <CustomMetric
-                key={i}
-                metric={e}
-                metricUpdated={this.metricUpdated}
-                metricRemoved={this.removeCustomExpression}
-              />
-            );
-          })}
-          <button className="add-new btn btn-block btn-sm" onClick={this.addCustomExpression}>
-            <span className="glyphicon glyphicon-plus-sign" /> Add custom expression
-          </button>
         </Modal.Body>
         <Modal.Footer>
           <button className="btn btn-default" onClick={this.close}>
