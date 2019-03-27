@@ -65,10 +65,7 @@ abstract class AbstractWaitForClusterWideClouddriverTask extends AbstractCloudPr
       // Possible issue here for GCE if multiple server groups are named the same in
       // different zones but with the same region. However, this is not allowable by
       // Spinnaker constraints, so we're accepting the risk.
-      log.info "currentServerGroup.region: $it.region, currentServerGroup.name: $it.name"
-      log.info " deployServerGroup.region: $it.region,  deployServerGroup.name: $it.name"
       def isMatch = it.region == deployServerGroup.region && it.name == deployServerGroup.name
-      log.info "is match? $isMatch"
       isMatch
     })
     log.info "Server groups matching $deployServerGroup : $matchingServerGroups"
