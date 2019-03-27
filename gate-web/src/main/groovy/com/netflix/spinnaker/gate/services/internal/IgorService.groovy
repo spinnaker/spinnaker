@@ -63,4 +63,7 @@ interface IgorService {
 
   @GET('/concourse/{buildMaster}/teams/{team}/pipelines/{pipeline}/jobs')
   List<String> getConcourseJobs(@Path("buildMaster") String buildMaster, @Path("team") String team, @Path("pipeline") String pipeline);
+
+  @GET('/gcb/accounts')
+  List<String> getGoogleCloudBuildAccounts();
 }
