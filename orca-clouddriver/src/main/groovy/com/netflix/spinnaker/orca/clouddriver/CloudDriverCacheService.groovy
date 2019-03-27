@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.clouddriver
 import retrofit.client.Response
 import retrofit.http.Body
 import retrofit.http.POST
+import retrofit.http.PUT
 import retrofit.http.Path
 
 interface CloudDriverCacheService {
@@ -28,4 +29,6 @@ interface CloudDriverCacheService {
                             @Path("type") String type,
                             @Body Map<String, ? extends Object> data)
 
+  @PUT("/admin/db/truncate/{namespace}")
+  Map<String, Object> clearNamespace(@Path("namespace") String namespace)
 }
