@@ -7,7 +7,6 @@ import {
   AccountService,
   ClusterTargetBuilder,
   CONFIRMATION_MODAL_SERVICE,
-  NameUtils,
   ServerGroupReader,
   ServerGroupWarningMessageService,
   SERVER_GROUP_WRITER,
@@ -18,18 +17,13 @@ import { TitusReactInjector } from 'titus/reactShims';
 
 import { SCALING_POLICY_MODULE } from './scalingPolicy/scalingPolicy.module';
 
-import { ConfigBinService } from './scalingPolicy/configBin/configBin.reader';
-import { CONFIG_BIN_LINK_COMPONENT } from './scalingPolicy/configBin/configBinLink.component';
-
 import { TitusCloneServerGroupModal } from '../configure/wizard/TitusCloneServerGroupModal';
 import { TITUS_SECURITY_GROUPS_DETAILS } from './titusSecurityGroups.component';
-import { titusMetricOptions } from './scalingPolicy/configBin/metricOptions';
 
 module.exports = angular
   .module('spinnaker.serverGroup.details.titus.controller', [
     require('@uirouter/angularjs').default,
     require('../configure/ServerGroupCommandBuilder').name,
-    CONFIG_BIN_LINK_COMPONENT,
     CONFIRMATION_MODAL_SERVICE,
     SERVER_GROUP_WRITER,
     require('./resize/resizeServerGroup.controller').name,
@@ -126,17 +120,6 @@ module.exports = angular
         }, autoClose);
       }
 
-      $scope.addConfigBinData = () => {
-        const cluster = NameUtils.parseServerGroupName($scope.serverGroup.name).cluster;
-        ConfigBinService.getConfig(cluster)
-          .then(config => {
-            $scope.configBinData = config;
-          })
-          .catch(() => {
-            /* not found */
-          });
-      };
-
       function transformScalingPolicies(serverGroup) {
         serverGroup.scalingPolicies = (serverGroup.scalingPolicies || [])
           .map(p => {
@@ -200,7 +183,6 @@ module.exports = angular
 
       retrieveServerGroup()
         .then(() => {
-          $scope.addConfigBinData();
           // If the user navigates away from the view before the initial retrieveServerGroup call completes,
           // do not bother subscribing to the refresh
           if (!$scope.$$destroyed) {
