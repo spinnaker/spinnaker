@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Button, Modal } from 'react-bootstrap';
 import { get } from 'lodash';
 
-import { Application } from 'core/application';
+import { Application, ApplicationModelBuilder } from 'core/application';
 import { IPagerDutyService, PagerDutyWriter } from 'core/pagerDuty';
 import { NgReact } from 'core/reactShims';
 import { SETTINGS } from 'core/config';
@@ -71,6 +71,7 @@ export class PageModal extends React.Component<IPageModalProps, IPageModalState>
 
   public sendPage = (): void => {
     const taskMonitor = new TaskMonitor({
+      application: new ApplicationModelBuilder().createStandaloneApplication('spinnaker'),
       title: `Sending page to ${this.state.pageCount} policies`,
       modalInstance: TaskMonitor.modalInstanceEmulation(() => this.close()),
       onTaskComplete: () => this.props.closeCallback(true),
