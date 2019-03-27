@@ -19,7 +19,9 @@ package com.netflix.spinnaker.igor.gcb;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Keeps track of all registered instances of GoogleCloudBuildAccount and returns the appropriate account when
@@ -30,6 +32,10 @@ public class GoogleCloudBuildAccountRepository {
 
   public void registerAccount(String name, GoogleCloudBuildAccount account) {
     accounts.put(name, account);
+  }
+
+  public List<String> getAccounts() {
+    return accounts.keySet().stream().sorted().collect(Collectors.toList());
   }
 
   public GoogleCloudBuildAccount getGoogleCloudBuild(String name) {

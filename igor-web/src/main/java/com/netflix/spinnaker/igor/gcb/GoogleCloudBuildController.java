@@ -23,12 +23,19 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @ConditionalOnProperty("gcb.enabled")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(value = "/gcb")
 public class GoogleCloudBuildController {
   private final GoogleCloudBuildAccountRepository googleCloudBuildAccountRepository;
+
+  @RequestMapping(value = "/accounts", method = RequestMethod.GET)
+  List<String> getAccounts() {
+    return googleCloudBuildAccountRepository.getAccounts();
+  }
 
   @RequestMapping(value = "/builds/create/{account}", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
   Operation createBuild(@PathVariable String account, @RequestBody Build build) {

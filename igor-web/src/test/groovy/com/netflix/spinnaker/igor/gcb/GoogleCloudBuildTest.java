@@ -40,6 +40,7 @@ import java.util.*;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -94,6 +95,20 @@ public class GoogleCloudBuildTest {
         .content(buildRequest)
     ).andExpect(status().is(200))
       .andExpect(content().json(buildResponse));
+
+    assertThat(stubCloudBuildService.findUnmatchedRequests().getRequests()).isEmpty();
+  }
+
+  @Test
+  public void listAccountTest() throws Exception {
+    List<String> expectedAccounts = Collections.singletonList("gcb-account");
+    String expectedResponse = objectMapper.writeValueAsString(expectedAccounts);
+
+    mockMvc.perform(
+      get("/gcb/accounts")
+        .accept(MediaType.APPLICATION_JSON)
+    ).andExpect(status().is(200))
+      .andExpect(content().json(expectedResponse));
 
     assertThat(stubCloudBuildService.findUnmatchedRequests().getRequests()).isEmpty();
   }

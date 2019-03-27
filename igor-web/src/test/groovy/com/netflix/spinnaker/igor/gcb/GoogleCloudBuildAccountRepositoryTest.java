@@ -21,7 +21,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import static org.junit.jupiter.api.Assertions.assertSame;
+import java.util.Collections;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -43,6 +46,7 @@ public class GoogleCloudBuildAccountRepositoryTest {
     repository.getGoogleCloudBuild("missing");
   }
 
+  @Test
   public void presentAccount() {
     GoogleCloudBuildAccountRepository repository = new GoogleCloudBuildAccountRepository();
 
@@ -52,4 +56,20 @@ public class GoogleCloudBuildAccountRepositoryTest {
     GoogleCloudBuildAccount retrievedAccount = repository.getGoogleCloudBuild("present");
     assertSame(presentAccount, retrievedAccount);
   }
+
+  @Test
+  public void getAccounts() {
+    GoogleCloudBuildAccountRepository repository = new GoogleCloudBuildAccountRepository();
+
+    GoogleCloudBuildAccount presentAccount = mock(GoogleCloudBuildAccount.class);
+
+    List<String> accountsBefore = repository.getAccounts();
+    assertTrue(accountsBefore.isEmpty());
+
+    repository.registerAccount("present", presentAccount);
+
+    List<String> accountsAfter = repository.getAccounts();
+    assertEquals(accountsAfter, Collections.singletonList("present"));
+  }
+
 }
