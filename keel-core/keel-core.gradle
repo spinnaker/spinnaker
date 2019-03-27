@@ -15,7 +15,6 @@
  */
 
 apply plugin: "java-library"
-apply from: "$rootDir/gradle/junit5.gradle"
 
 dependencies {
   api "com.fasterxml.jackson.core:jackson-databind"

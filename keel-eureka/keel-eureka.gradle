@@ -1,6 +1,5 @@
 apply plugin: "java-library"
 apply plugin: "kotlin-spring"
-apply from: "$rootDir/gradle/junit5.gradle"
 
 dependencies {
   implementation project(":keel-core")
