@@ -8,18 +8,9 @@ export interface ICustomMetricProps {
   metricRemoved: (metric: IClusterConfigExpression) => void;
 }
 
-export interface ICustomMetricState {
-  name: string;
-  uri: string;
-}
-
-export class CustomMetric extends React.Component<ICustomMetricProps, ICustomMetricState> {
+export class CustomMetric extends React.Component<ICustomMetricProps> {
   constructor(props: ICustomMetricProps) {
     super(props);
-    this.state = {
-      name: props.metric.metricName,
-      uri: props.metric.atlasUri,
-    };
   }
 
   private metricNameUpdated = (e: React.ChangeEvent<HTMLInputElement>): void => {

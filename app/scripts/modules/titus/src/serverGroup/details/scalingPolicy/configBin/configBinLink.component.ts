@@ -14,5 +14,6 @@ module(CONFIG_BIN_LINK_COMPONENT, []).component(
     'region',
     'env',
     'configUpdated',
+    'cannedMetrics',
   ]),
 );

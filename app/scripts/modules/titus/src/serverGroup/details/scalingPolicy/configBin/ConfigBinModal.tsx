@@ -3,15 +3,16 @@ import * as React from 'react';
 import { Modal } from 'react-bootstrap';
 import { cloneDeep, partition } from 'lodash';
 
-import { Application, HelpField, NgReact, TaskExecutor, TaskMonitor } from '@spinnaker/core';
+import { Application, NgReact, TaskExecutor, TaskMonitor } from '@spinnaker/core';
 
-import { metricOptions } from './metricOptions';
+import { IMetricOption } from './metricOptions';
 import { IClusterConfig, IClusterConfigExpression } from './configBin.reader';
 import { CustomMetric } from './CustomMetric';
 
 export interface IConfigBinModalProps {
   application: Application;
   config: IClusterConfig;
+  cannedMetrics: IMetricOption[];
   showCallback: () => void;
   clusterName: string;
   awsAccountId: string;
@@ -58,7 +59,7 @@ export class ConfigBinModal extends React.Component<IConfigBinModalProps, IConfi
 
     editableExpressions.forEach(e => {
       const model = this.asConfigModel(e);
-      if (model.region === props.region || model.isCustom) {
+      if (model.region === props.region) {
         if (model.isCustom) {
           customExpressions.push(model);
         } else {
@@ -79,12 +80,16 @@ export class ConfigBinModal extends React.Component<IConfigBinModalProps, IConfi
     };
   }
 
+  private buildAtlasUri(metric: string, region: string, env: string): string {
+    return `http://atlas-main.${region}.${env}.netflix.net/api/v1/graph?q=name,${metric},:eq,nf.cluster,${
+      this.props.clusterName
+    },:eq,:and,:sum,(,nf.account,nf.asg,),:by`;
+  }
+
   private asConfigExpression(model: IExpressionModel): IClusterConfigExpression {
     const expression = cloneDeep(model);
     if (!model.isCustom) {
-      expression.atlasUri = `http://atlas-main.${model.region}.${model.env}.netflix.net/api/v1/graph?q=name,${
-        model.metric
-      },:eq,nf.cluster,${this.props.clusterName},:eq,:and,:sum,(,nf.account,nf.asg,),:by`;
+      expression.atlasUri = this.buildAtlasUri(model.metric, model.region, model.env);
     }
     expression.comment = 'Created via Spinnaker';
     // might consider leaving these fields and using that to drive the custom/not-custom behavior
@@ -99,29 +104,21 @@ export class ConfigBinModal extends React.Component<IConfigBinModalProps, IConfi
     const model: IExpressionModel = { isCustom: false, ...expression };
     // pretty gross, but let's take our best guess at whether these are canned expressions by parsing the URL
     // e.g. http://atlas-main.us-east-1.prod.netflix.net/api/v1/graph?q=name,cgroup.cpu.processingTime,:eq,nf.cluster,cbmigrate-titus-autoscale2,:eq,:and,:sum,(,nf.asg,),:by
-    let uri = expression.atlasUri;
-    if (!uri.startsWith('http://atlas-main.') || !uri.endsWith(',:eq,:and,:sum,(,nf.account,nf.asg,),:by')) {
-      model.isCustom = true;
+    const uri = expression.atlasUri;
+    const cannedMatch = this.props.cannedMetrics.find(
+      m =>
+        this.buildAtlasUri(model.metric, model.region, model.env) ===
+        this.buildAtlasUri(m.metric, model.region, model.env),
+    );
+    model.isCustom = !cannedMatch;
+    if (model.isCustom && !uri.startsWith('http://atlas-main')) {
+      // not what we are expecting
       return model;
     }
-    uri = uri.replace('http://atlas-main.', '').replace(',:eq,:and,:sum,(,nf.account,nf.asg,),:by', '');
-    const parts = uri.split('/');
-    // should now have [ us-east-1.prod.netflix.net, api, v1, (graph...) ]
-    const [region, env] = parts[0].split('.');
-    if (!region || !env || parts.length !== 4) {
-      model.isCustom = true;
-      return model;
-    }
-    // graph?q=name,cgroup.cpu.processingTime,:eq,nf.cluster,cbmigrate-titus-autoscale2,:eq,:and,:sum,(,nf.asg,),:by
-    const [, metric, , , cluster] = parts[3].split(',');
-    if (!cluster || !metric || cluster !== this.props.clusterName) {
-      model.isCustom = true;
-      return model;
-    }
-
+    const [, region, env] = uri.split('.');
     model.region = region;
     model.env = env;
-    model.metric = metric;
+    model.metric = !model.isCustom && cannedMatch.metric;
 
     return model;
   }
@@ -199,20 +196,23 @@ export class ConfigBinModal extends React.Component<IConfigBinModalProps, IConfi
   };
 
   private optionToggled = (event: React.ChangeEvent<HTMLInputElement>): void => {
-    const metric = event.target.value;
-    const existingExpression = this.state.cannedExpressions.find(e => e.metric === metric);
+    const { cannedExpressions } = this.state;
+    const metricName = event.target.value;
+    const existingExpression = cannedExpressions.find(e => e.metricName === metricName);
     if (existingExpression) {
-      this.setState({ cannedExpressions: this.state.cannedExpressions.filter(e => e !== existingExpression) });
+      this.setState({ cannedExpressions: cannedExpressions.filter(e => e !== existingExpression) });
     } else {
       const newExpression = this.getExpressionTemplate();
-      newExpression.metric = metric;
-      newExpression.metricName = metric;
+      const cannedMetric = this.props.cannedMetrics.find(e => e.metricName === metricName);
+      newExpression.metric = cannedMetric.metric;
+      newExpression.metricName = cannedMetric.metricName;
       newExpression.region = this.props.region;
-      this.setState({ cannedExpressions: this.state.cannedExpressions.concat([newExpression]) });
+      this.setState({ cannedExpressions: cannedExpressions.concat([newExpression]) });
     }
   };
 
   public render() {
+    const { cannedMetrics = [] } = this.props;
     const { cannedExpressions, customExpressions } = this.state;
     const { TaskMonitorWrapper } = NgReact;
     return (
@@ -224,40 +224,25 @@ export class ConfigBinModal extends React.Component<IConfigBinModalProps, IConfi
         </Modal.Header>
         <Modal.Body>
           <p>
-            Metrics must be forwarded from Atlas to Cloudwatch in order to use them in scaling policies. Metrics can be
-            forwarded via the{' '}
-            <a href="http://insight-docs.prod.netflix.net/atlas/autoscaling/#sending-custom-metrics" target="_blank">
-              Atlas Java Client
-            </a>
-            , or via ConfigBin, which can be configured{' '}
+            This sets up metrics via Self-service CloudWatch Forwarding, which can also be configured{' '}
             <a href="https://configbin.prod.netflix.net/app/cloudwatch-forwarding/type/clusters/LATEST" target="_blank">
               here
             </a>
             .
           </p>
-          <p>
-            Additional information on metrics below can be found in{' '}
-            <a href="http://insight-docs.prod.netflix.net/glossary/cgroup-system/" target="_blank">
-              the documentation
-            </a>
-            .
-          </p>
+          <p>Forwarding metrics via the Atlas Java Client will be deprecated in the future.</p>
           <div>
-            {metricOptions.map(group => {
+            <h4>Standard Metrics</h4>
+            <p>These Atlas metrics are generally good ones to pick for autoscaling.</p>
+            {cannedMetrics.map(metric => {
+              const enabled = cannedExpressions.some(e => e.metricName === metric.metricName);
               return (
-                <div key={group.category}>
-                  <h4 style={{ marginTop: '20px' }}>Available Metrics: {group.category}</h4>
-                  {group.options.map(o => {
-                    const enabled = cannedExpressions.some(e => e.metric === o.name);
-                    return (
-                      <div key={o.name} className="checkbox">
-                        <label>
-                          <input type="checkbox" checked={enabled} value={o.name} onChange={this.optionToggled} />
-                          {o.name} <HelpField content={o.description} />
-                        </label>
-                      </div>
-                    );
-                  })}
+                <div key={metric.metric} className="checkbox">
+                  <label>
+                    <input type="checkbox" checked={enabled} value={metric.metricName} onChange={this.optionToggled} />
+                    <div>{metric.metricName}</div>
+                    <em>{metric.description}</em>
+                  </label>
                 </div>
               );
             })}
@@ -275,8 +260,7 @@ export class ConfigBinModal extends React.Component<IConfigBinModalProps, IConfi
             );
           })}
           <button className="add-new btn btn-block btn-sm" onClick={this.addCustomExpression}>
-            <span className="glyphicon glyphicon-plus-sign" />
-            Add custom expression
+            <span className="glyphicon glyphicon-plus-sign" /> Add custom expression
           </button>
         </Modal.Body>
         <Modal.Footer>

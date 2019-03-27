@@ -2,48 +2,32 @@ import * as React from 'react';
 
 import { CollapsibleSection, Overridable, Tooltip } from '@spinnaker/core';
 
-import { IScalingProcess } from 'amazon/domain';
+import { IAmazonServerGroupView, IScalingProcess } from 'amazon/domain';
 import { AwsNgReact } from 'amazon/reactShims';
 import { AutoScalingProcessService } from '../scalingProcesses/AutoScalingProcessService';
 
 import { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
 import { CreateScalingPolicyButton } from '../scalingPolicy/CreateScalingPolicyButton';
 
-export interface IScalingPoliciesDetailsSectionState {
-  scalingPoliciesDisabled: boolean;
-}
-
 @Overridable('aws.serverGroup.ScalingPoliciesDetailsSection')
-export class ScalingPoliciesDetailsSection extends React.Component<
-  IAmazonServerGroupDetailsSectionProps,
-  IScalingPoliciesDetailsSectionState
-> {
+export class ScalingPoliciesDetailsSection extends React.Component<IAmazonServerGroupDetailsSectionProps> {
   constructor(props: IAmazonServerGroupDetailsSectionProps) {
     super(props);
-
-    this.state = this.getState(props);
   }
 
-  private getState(props: IAmazonServerGroupDetailsSectionProps): IScalingPoliciesDetailsSectionState {
-    const { serverGroup } = props;
-
+  public static arePoliciesDisabled(serverGroup: IAmazonServerGroupView): boolean {
     const autoScalingProcesses: IScalingProcess[] = AutoScalingProcessService.normalizeScalingProcesses(serverGroup);
-    const scalingPoliciesDisabled =
+    return (
       serverGroup.scalingPolicies.length > 0 &&
       autoScalingProcesses
         .filter(p => !p.enabled)
-        .some(p => ['Launch', 'Terminate', 'AlarmNotification'].includes(p.name));
-
-    return { scalingPoliciesDisabled };
-  }
-
-  public componentWillReceiveProps(nextProps: IAmazonServerGroupDetailsSectionProps): void {
-    this.setState(this.getState(nextProps));
+        .some(p => ['Launch', 'Terminate', 'AlarmNotification'].includes(p.name))
+    );
   }
 
   public render(): JSX.Element {
     const { app, serverGroup } = this.props;
-    const { scalingPoliciesDisabled } = this.state;
+    const scalingPoliciesDisabled = ScalingPoliciesDetailsSection.arePoliciesDisabled(serverGroup);
 
     const { ScalingPolicySummary } = AwsNgReact;
 

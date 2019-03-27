@@ -18,11 +18,12 @@ import { TitusReactInjector } from 'titus/reactShims';
 
 import { SCALING_POLICY_MODULE } from './scalingPolicy/scalingPolicy.module';
 
-import { configBinService } from './scalingPolicy/configBin/configBin.reader';
+import { ConfigBinService } from './scalingPolicy/configBin/configBin.reader';
 import { CONFIG_BIN_LINK_COMPONENT } from './scalingPolicy/configBin/configBinLink.component';
 
 import { TitusCloneServerGroupModal } from '../configure/wizard/TitusCloneServerGroupModal';
 import { TITUS_SECURITY_GROUPS_DETAILS } from './titusSecurityGroups.component';
+import { titusMetricOptions } from './scalingPolicy/configBin/metricOptions';
 
 module.exports = angular
   .module('spinnaker.serverGroup.details.titus.controller', [
@@ -65,6 +66,7 @@ module.exports = angular
       this.application = app;
 
       $scope.gateUrl = SETTINGS.gateUrl;
+      $scope.titusMetricOptions = titusMetricOptions;
 
       $scope.state = {
         loading: true,
@@ -126,8 +128,7 @@ module.exports = angular
 
       $scope.addConfigBinData = () => {
         const cluster = NameUtils.parseServerGroupName($scope.serverGroup.name).cluster;
-        configBinService
-          .getConfig(cluster)
+        ConfigBinService.getConfig(cluster)
           .then(config => {
             $scope.configBinData = config;
           })

@@ -1,7 +1,9 @@
 import * as React from 'react';
+import { Application, HelpField } from '@spinnaker/core';
+
 import { IClusterConfig } from './configBin.reader';
 import { ConfigBinModal } from './ConfigBinModal';
-import { Application, HelpField } from '@spinnaker/core';
+import { IMetricOption } from './metricOptions';
 
 export interface IConfigBinLinkProps {
   application: Application;
@@ -11,7 +13,7 @@ export interface IConfigBinLinkProps {
   region: string;
   env: string;
   configUpdated: () => void;
-  linkText?: string;
+  cannedMetrics: IMetricOption[];
 }
 
 export interface IConfigBinLinkState {
@@ -36,12 +38,11 @@ export class ConfigBinLink extends React.Component<IConfigBinLinkProps, IConfigB
   };
 
   public render() {
-    const { config, awsAccountId, env, region, clusterName, application } = this.props;
-    const linkText = this.props.linkText || 'Configure available metrics';
+    const { config, awsAccountId, env, region, clusterName, application, cannedMetrics } = this.props;
     return (
       <div>
         <a className="clickable" onClick={this.showModal}>
-          {linkText}
+          Configure available metrics
         </a>{' '}
         <HelpField id="titus.configBin.metrics" />
         {this.state.modalOpen && (
@@ -53,6 +54,7 @@ export class ConfigBinLink extends React.Component<IConfigBinLinkProps, IConfigB
             region={region}
             showCallback={this.hideModal}
             clusterName={clusterName}
+            cannedMetrics={cannedMetrics}
           />
         )}
       </div>

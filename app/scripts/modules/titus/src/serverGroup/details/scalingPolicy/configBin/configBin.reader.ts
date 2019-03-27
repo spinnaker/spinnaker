@@ -16,9 +16,7 @@ export interface IClusterConfig {
 }
 
 export class ConfigBinService {
-  public getConfig(clusterName: string): IPromise<IClusterConfig> {
+  public static getConfig(clusterName: string): IPromise<IClusterConfig> {
     return API.one('configbin', 'cloudwatch-forwarding', clusterName).get();
   }
 }
-
-export const configBinService = new ConfigBinService();
