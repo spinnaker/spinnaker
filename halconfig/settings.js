@@ -178,6 +178,9 @@ window.spinnakerSettings = {
   gateUrl: gateHost,
   gitSources: ['bitbucket', 'gitlab', 'github', 'stash'],
   maxPipelineAgeDays: maxPipelineAgeDays,
+  newApplicationDefaults: {
+    chaosMonkey: false,
+  },
   notifications: {
     bearychat: {
       enabled: true,

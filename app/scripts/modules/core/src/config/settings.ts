@@ -65,6 +65,10 @@ export interface IDockerInsightSettings {
   url: string;
 }
 
+export interface INewApplicationDefaults {
+  chaosMonkey?: boolean;
+}
+
 export interface ISpinnakerSettings {
   [key: string]: any;
 
@@ -108,6 +112,7 @@ export interface ISpinnakerSettings {
   gateUrl: string;
   gitSources: string[];
   maxPipelineAgeDays: number;
+  newApplicationDefaults: INewApplicationDefaults;
   notifications: INotificationSettings;
   onDemandClusterThreshold: number;
   pagerDuty?: {

@@ -10,7 +10,7 @@ export class ChaosMonkeyNewApplicationConfigController {
     this.enabled = SETTINGS.feature.chaosMonkey;
     if (this.enabled) {
       this.applicationConfig.chaosMonkey = {
-        enabled: this.enabled,
+        enabled: SETTINGS.newApplicationDefaults.chaosMonkey,
         meanTimeBetweenKillsInWorkDays: 2,
         minTimeBetweenKillsInWorkDays: 1,
         grouping: 'cluster',
