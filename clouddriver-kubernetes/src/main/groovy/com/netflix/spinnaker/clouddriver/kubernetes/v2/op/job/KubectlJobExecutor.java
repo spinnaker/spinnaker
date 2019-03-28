@@ -118,6 +118,22 @@ public class KubectlJobExecutor {
     return status.getStdOut();
   }
 
+  public String jobLogs(KubernetesV2Credentials credentials, String namespace, String jobName) {
+    List<String> command = kubectlNamespacedAuthPrefix(credentials, namespace);
+    command.add("logs");
+    command.add("job/"+jobName);
+
+    JobStatus status = jobExecutor.runJob(new JobRequest(command),
+      System.getenv(),
+      new ByteArrayInputStream(new byte[0]));
+
+    if (status.getResult() != JobStatus.Result.SUCCESS) {
+      throw new KubectlException("Failed to get logs from job/" + jobName + " in " + namespace + ": " + status.getStdErr());
+    }
+
+    return status.getStdOut();
+  }
+
   public List<String> delete(KubernetesV2Credentials credentials, KubernetesKind kind, String namespace, String name, KubernetesSelectorList labelSelectors, V1DeleteOptions deleteOptions) {
     List<String> command = kubectlNamespacedAuthPrefix(credentials, namespace);
 

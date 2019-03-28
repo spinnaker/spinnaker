@@ -30,8 +30,12 @@ import java.util.stream.Collectors;
 @Slf4j
 public class KubernetesModelUtil {
   public static long translateTime(String time) {
+    return KubernetesModelUtil.translateTime(time, "yyyy-MM-dd'T'HH:mm:ssX");
+  }
+
+  public static long translateTime(String time, String format) {
     try {
-      return StringUtils.isNotEmpty(time) ? (new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssX").parse(time)).getTime() : 0;
+      return StringUtils.isNotEmpty(time) ? (new SimpleDateFormat(format).parse(time)).getTime() : 0;
     } catch (ParseException e) {
       log.error("Failed to parse kubernetes timestamp", e);
       return 0;

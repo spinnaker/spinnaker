@@ -22,17 +22,19 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Cred
 import com.netflix.spinnaker.clouddriver.model.JobProvider
 import com.netflix.spinnaker.clouddriver.model.JobState
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
-import org.springframework.beans.factory.annotation.Autowired
+import io.fabric8.kubernetes.api.model.Pod
 import org.springframework.stereotype.Component
+
 
 @Component
 class KubernetesJobProvider implements JobProvider<KubernetesJobStatus> {
   String platform = "kubernetes"
 
-  @Autowired
   AccountCredentialsProvider accountCredentialsProvider
 
-  KubernetesJobProvider() { }
+  KubernetesJobProvider(AccountCredentialsProvider accountCredentialsProvider) {
+    this.accountCredentialsProvider = accountCredentialsProvider
+  }
 
   @Override
   KubernetesJobStatus collectJob(String account, String location, String id) {
@@ -41,7 +43,7 @@ class KubernetesJobProvider implements JobProvider<KubernetesJobStatus> {
       return null
     }
     def trueCredentials = (credentials as KubernetesNamedAccountCredentials).credentials
-    def pod = trueCredentials.apiAdaptor.getPod(location, id)
+    Pod pod = trueCredentials.apiAdaptor.getPod(location, id)
     def status = new KubernetesJobStatus(pod, account)
 
     String podName = pod.getMetadata().getName()
