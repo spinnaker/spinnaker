@@ -30,7 +30,7 @@ public class TitusPreconfiguredJobProperties extends PreconfiguredJobStageProper
   private Map<String, Object> cluster = new HashMap<>();
 
   public List<String> getOverridableFields() {
-    List<String> overrideableFields = Arrays.asList("cluster");
+    List<String> overrideableFields = new ArrayList<>(Arrays.asList("cluster"));
     overrideableFields.addAll(super.getOverridableFields());
     return overrideableFields;
   }

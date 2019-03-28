@@ -31,7 +31,7 @@ public class JobService {
 
   @Autowired JobConfigurationProperties jobConfigurationProperties;
 
-  List<PreconfiguredJobStageProperties> getPreconfiguredStages() {
+  public List<PreconfiguredJobStageProperties> getPreconfiguredStages() {
     if(jobConfigurationProperties.getTitus()==null && jobConfigurationProperties.getKubernetes()==null){
       return Collections.EMPTY_LIST;
     }
