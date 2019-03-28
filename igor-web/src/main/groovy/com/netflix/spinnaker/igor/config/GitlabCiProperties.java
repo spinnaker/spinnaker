@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.igor.config;
 
+import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
@@ -25,7 +26,7 @@ import java.util.List;
 
 @ConfigurationProperties(prefix = "gitlab-ci")
 @Validated
-public class GitlabCiProperties {
+public class GitlabCiProperties implements BuildServerProperties<GitlabCiProperties.GitlabCiHost> {
     private int cachedJobTTLDays = 60;
 
     @Valid
@@ -48,7 +49,7 @@ public class GitlabCiProperties {
         this.masters = masters;
     }
 
-    public static class GitlabCiHost {
+    public static class GitlabCiHost implements BuildServerProperties.Host {
         @NotEmpty
         private String name;
         @NotEmpty
@@ -57,6 +58,7 @@ public class GitlabCiProperties {
         private boolean limitByMembership = false;
         private boolean limitByOwnership = true;
         private Integer itemUpperThreshold;
+        private Permissions.Builder permissions = new Permissions.Builder();
 
         public String getName() {
             return name;
@@ -112,6 +114,14 @@ public class GitlabCiProperties {
 
         public void setItemUpperThreshold(Integer itemUpperThreshold) {
             this.itemUpperThreshold = itemUpperThreshold;
+        }
+
+        public Permissions.Builder getPermissions() {
+            return permissions;
+        }
+
+        public void setPermissions(Permissions.Builder permissions) {
+            this.permissions = permissions;
         }
     }
 }

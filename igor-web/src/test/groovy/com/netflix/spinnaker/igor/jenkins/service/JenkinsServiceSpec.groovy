@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.igor.jenkins.service
 
+import com.netflix.spinnaker.fiat.model.resources.Permissions
 import com.netflix.spinnaker.igor.build.model.GenericGitRevision
 import com.netflix.spinnaker.igor.config.JenkinsConfig
 import com.netflix.spinnaker.igor.config.JenkinsProperties
@@ -48,8 +49,8 @@ class JenkinsServiceSpec extends Specification {
 
     void setup() {
         client = Mock(JenkinsClient)
-        service = new JenkinsService('http://my.jenkins.net', client, false)
-        csrfService = new JenkinsService('http://my.jenkins.net', client, true)
+        service = new JenkinsService('http://my.jenkins.net', client, false, Permissions.EMPTY)
+        csrfService = new JenkinsService('http://my.jenkins.net', client, true, Permissions.EMPTY)
     }
 
     @Unroll
@@ -157,7 +158,7 @@ class JenkinsServiceSpec extends Specification {
             username: 'username',
             password: 'password')
         client = new JenkinsConfig().jenkinsClient(host)
-        service = new JenkinsService('http://my.jenkins.net', client, true)
+        service = new JenkinsService('http://my.jenkins.net', client, true, Permissions.EMPTY)
 
         when:
         String crumb = service.getCrumb()
@@ -183,7 +184,7 @@ class JenkinsServiceSpec extends Specification {
             username: 'username',
             password: 'password')
         client = new JenkinsConfig().jenkinsClient(host)
-        service = new JenkinsService('http://my.jenkins.net', client, false)
+        service = new JenkinsService('http://my.jenkins.net', client, false, Permissions.EMPTY)
 
         when:
         List<Project> projects = service.projects.list
@@ -277,7 +278,7 @@ class JenkinsServiceSpec extends Specification {
             username: 'username',
             password: 'password')
         client = new JenkinsConfig().jenkinsClient(host)
-        service = new JenkinsService('http://my.jenkins.net', client, false)
+        service = new JenkinsService('http://my.jenkins.net', client, false, Permissions.EMPTY)
 
         when:
         List<GenericGitRevision> genericGitRevision = service.getGenericGitRevisions('test', 1)
@@ -330,7 +331,7 @@ class JenkinsServiceSpec extends Specification {
             username: 'username',
             password: 'password')
         client = new JenkinsConfig().jenkinsClient(host)
-        service = new JenkinsService('http://my.jenkins.net', client, false)
+        service = new JenkinsService('http://my.jenkins.net', client, false, Permissions.EMPTY)
 
         when:
         List<GenericGitRevision> genericGitRevision = service.getGenericGitRevisions('test', 1)
@@ -383,7 +384,7 @@ class JenkinsServiceSpec extends Specification {
             username: 'username',
             password: 'password')
         client = new JenkinsConfig().jenkinsClient(host)
-        service = new JenkinsService('http://my.jenkins.net', client, false)
+        service = new JenkinsService('http://my.jenkins.net', client, false, Permissions.EMPTY)
 
         when:
         List<GenericGitRevision> genericGitRevision = service.getGenericGitRevisions('test', 1)
@@ -442,7 +443,7 @@ class JenkinsServiceSpec extends Specification {
             username: 'username',
             password: 'password')
         client = new JenkinsConfig().jenkinsClient(host)
-        service = new JenkinsService('http://my.jenkins.net', client, false)
+        service = new JenkinsService('http://my.jenkins.net', client, false, Permissions.EMPTY)
 
         when:
         List<GenericGitRevision> genericGitRevision = service.getGenericGitRevisions('test', 1)
@@ -504,7 +505,7 @@ class JenkinsServiceSpec extends Specification {
             username: 'username',
             password: 'password')
         client = new JenkinsConfig().jenkinsClient(host)
-        service = new JenkinsService('http://my.jenkins.net', client, false)
+        service = new JenkinsService('http://my.jenkins.net', client, false, Permissions.EMPTY)
 
         when:
         List<GenericGitRevision> genericGitRevision = service.getGenericGitRevisions('test', 1)
@@ -566,7 +567,7 @@ class JenkinsServiceSpec extends Specification {
             username: 'username',
             password: 'password')
         client = new JenkinsConfig().jenkinsClient(host)
-        service = new JenkinsService('http://my.jenkins.net', client, false)
+        service = new JenkinsService('http://my.jenkins.net', client, false, Permissions.EMPTY)
 
         when:
         List<GenericGitRevision> genericGitRevision = service.getGenericGitRevisions('test', 1)
@@ -618,7 +619,7 @@ class JenkinsServiceSpec extends Specification {
             username: 'username',
             password: 'password')
         client = new JenkinsConfig().jenkinsClient(host)
-        service = new JenkinsService('http://my.jenkins.net', client, false)
+        service = new JenkinsService('http://my.jenkins.net', client, false, Permissions.EMPTY)
 
         expect:
         service.getBuildProperties("PropertiesTest", 1, "props$extension") == testCase.result

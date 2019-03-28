@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.igor.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import com.netflix.spinnaker.igor.IgorConfigurationProperties;
 import com.netflix.spinnaker.igor.service.ArtifactDecorator;
 import com.netflix.spinnaker.igor.service.BuildServices;
@@ -65,7 +66,7 @@ public class TravisConfig {
                 log.info("bootstrapping {} as {}", host.getAddress(), travisName);
 
                 TravisClient client = travisClient(host.getAddress(), igorConfigurationProperties.getClient().getTimeout(), objectMapper);
-                return travisService(travisName, host.getBaseUrl(), host.getGithubToken(), host.getNumberOfRepositories(), client, travisCache, artifactDecorator, (travisProperties == null ? null : travisProperties.getRegexes()));
+                return travisService(travisName, host.getBaseUrl(), host.getGithubToken(), host.getNumberOfRepositories(), client, travisCache, artifactDecorator, (travisProperties == null ? null : travisProperties.getRegexes()), host.getPermissions().build());
             })
             .collect(Collectors.toMap(TravisService::getGroupKey, Function.identity()));
 
@@ -73,8 +74,8 @@ public class TravisConfig {
         return travisMasters;
     }
 
-    public static TravisService travisService(String travisHostId, String baseUrl, String githubToken, int numberOfRepositories, TravisClient travisClient, TravisCache travisCache, Optional<ArtifactDecorator> artifactDecorator, Collection<String> artifactRexeges) {
-        return new TravisService(travisHostId, baseUrl, githubToken, numberOfRepositories, travisClient, travisCache, artifactDecorator, artifactRexeges);
+    private static TravisService travisService(String travisHostId, String baseUrl, String githubToken, int numberOfRepositories, TravisClient travisClient, TravisCache travisCache, Optional<ArtifactDecorator> artifactDecorator, Collection<String> artifactRexeges, Permissions permissions) {
+        return new TravisService(travisHostId, baseUrl, githubToken, numberOfRepositories, travisClient, travisCache, artifactDecorator, artifactRexeges, permissions);
     }
 
     public static TravisClient travisClient(String address, int timeout, ObjectMapper objectMapper) {

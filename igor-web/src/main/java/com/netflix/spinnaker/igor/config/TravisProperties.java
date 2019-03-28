@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.igor.config;
 
+import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -24,7 +25,7 @@ import javax.validation.Valid;
 import java.util.List;
 
 @ConfigurationProperties(prefix = "travis")
-public class TravisProperties {
+public class TravisProperties implements BuildServerProperties<TravisProperties.TravisHost> {
     private long newBuildGracePeriodSeconds = 10;
     private boolean repositorySyncEnabled = false;
     private int cachedJobTTLDays = 60;
@@ -77,7 +78,7 @@ public class TravisProperties {
         this.newBuildGracePeriodSeconds = newBuildGracePeriodSeconds;
     }
 
-    public static class TravisHost {
+    public static class TravisHost implements BuildServerProperties.Host {
         @NotEmpty
         private String name;
         @NotEmpty
@@ -88,6 +89,7 @@ public class TravisProperties {
         private String githubToken;
         private int numberOfRepositories = 25;
         private Integer itemUpperThreshold;
+        private Permissions.Builder permissions = new Permissions.Builder();
 
         public String getName() {
             return name;
@@ -137,5 +139,12 @@ public class TravisProperties {
             this.itemUpperThreshold = itemUpperThreshold;
         }
 
+        public Permissions.Builder getPermissions() {
+            return permissions;
+        }
+
+        public void setPermissions(Permissions.Builder permissions) {
+            this.permissions = permissions;
+        }
     }
 }

@@ -8,22 +8,23 @@
  */
 package com.netflix.spinnaker.igor.config
 
+import com.netflix.spinnaker.fiat.model.resources.Permissions
 import groovy.transform.CompileStatic
-
 import org.hibernate.validator.constraints.NotEmpty
 import org.springframework.boot.context.properties.ConfigurationProperties
 
 import javax.validation.Valid
+
 /**
  * Helper class to map masters in properties file into a validated property map
  */
 @CompileStatic
 @ConfigurationProperties(prefix = 'wercker')
-class WerckerProperties {
+class WerckerProperties implements BuildServerProperties<WerckerProperties.WerckerHost> {
     @Valid
     List<WerckerHost> masters
 
-    static class WerckerHost {
+    static class WerckerHost implements BuildServerProperties.Host {
         @NotEmpty
         String name
 
@@ -35,5 +36,7 @@ class WerckerProperties {
         String token
 
         Integer itemUpperThreshold
+
+        Permissions.Builder permissions = new Permissions.Builder()
     }
 }

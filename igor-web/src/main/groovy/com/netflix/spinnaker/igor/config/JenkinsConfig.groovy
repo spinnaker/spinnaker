@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.module.jaxb.JaxbAnnotationModule
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.fiat.model.resources.Permissions
 import com.netflix.spinnaker.igor.IgorConfigurationProperties
 import com.netflix.spinnaker.igor.config.client.DefaultJenkinsOkHttpClientProvider
 import com.netflix.spinnaker.igor.config.client.DefaultJenkinsRetrofitRequestInterceptorProvider
@@ -86,7 +87,7 @@ class JenkinsConfig {
                                                JenkinsRetrofitRequestInterceptorProvider jenkinsRetrofitRequestInterceptorProvider,
                                                Registry registry) {
         log.info "creating jenkinsMasters"
-        Map<String, JenkinsService> jenkinsMasters = ( jenkinsProperties?.masters?.collectEntries { JenkinsProperties.JenkinsHost host ->
+        Map<String, JenkinsService> jenkinsMasters = jenkinsProperties?.masters?.collectEntries { JenkinsProperties.JenkinsHost host ->
             log.info "bootstrapping ${host.address} as ${host.name}"
             [(host.name): jenkinsService(
                 host.name,
@@ -105,16 +106,17 @@ class JenkinsConfig {
                         [master: host.name]
                     )
                 ),
-                host.csrf
+                host.csrf,
+                host.permissions.build()
             )]
-        })
+        }
 
         buildServices.addServices(jenkinsMasters)
         jenkinsMasters
     }
 
-    static JenkinsService jenkinsService(String jenkinsHostId, JenkinsClient jenkinsClient, Boolean csrf) {
-        return new JenkinsService(jenkinsHostId, jenkinsClient, csrf)
+    static JenkinsService jenkinsService(String jenkinsHostId, JenkinsClient jenkinsClient, Boolean csrf, Permissions permissions) {
+        return new JenkinsService(jenkinsHostId, jenkinsClient, csrf, permissions)
     }
 
     static ObjectMapper getObjectMapper() {

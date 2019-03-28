@@ -61,7 +61,7 @@ class JenkinsBuildMonitorSchedulingSpec extends Specification {
             new JenkinsProperties()
         )
         monitor.worker = scheduler.createWorker()
-        jenkinsService.buildServiceProvider() >> BuildServiceProvider.JENKINS
+        jenkinsService.getBuildServiceProvider() >> BuildServiceProvider.JENKINS
 
         when:
         monitor.onApplicationEvent(Mock(RemoteStatusChangedEvent))
@@ -111,7 +111,7 @@ class JenkinsBuildMonitorSchedulingSpec extends Specification {
             new JenkinsProperties()
         )
         monitor.worker = scheduler.createWorker()
-        jenkinsService.buildServiceProvider() >> BuildServiceProvider.JENKINS
+        jenkinsService.getBuildServiceProvider() >> BuildServiceProvider.JENKINS
 
         when:
         monitor.onApplicationEvent(Mock(RemoteStatusChangedEvent))

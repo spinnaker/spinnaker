@@ -52,7 +52,7 @@ class WerckerBuildMonitorSchedulingSpec extends Specification {
                 new WerckerProperties()
                 )
         monitor.worker = scheduler.createWorker()
-        werckerService.buildServiceProvider() >> BuildServiceProvider.WERCKER
+        werckerService.getBuildServiceProvider() >> BuildServiceProvider.WERCKER
 
         when:
         monitor.onApplicationEvent(Mock(RemoteStatusChangedEvent))

@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.igor.gitlabci.service
 
+import com.netflix.spinnaker.fiat.model.resources.Permissions
 import com.netflix.spinnaker.igor.gitlabci.client.GitlabCiClient
 import com.netflix.spinnaker.igor.gitlabci.client.model.Pipeline
 import com.netflix.spinnaker.igor.gitlabci.client.model.PipelineSummary
@@ -31,7 +32,7 @@ class GitlabCiServiceSpec extends Specification {
 
     void setup() {
         client = Mock(GitlabCiClient)
-        service = new GitlabCiService(client, null, false, false)
+        service = new GitlabCiService(client, "gitlab", null, false, false, Permissions.EMPTY)
     }
 
     def "verify project pagination"() {

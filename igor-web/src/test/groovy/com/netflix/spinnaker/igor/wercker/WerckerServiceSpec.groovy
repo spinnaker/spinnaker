@@ -9,6 +9,7 @@
 
 package com.netflix.spinnaker.igor.wercker
 
+import com.netflix.spinnaker.fiat.model.resources.Permissions
 import com.netflix.spinnaker.igor.config.WerckerProperties.WerckerHost
 import com.netflix.spinnaker.igor.wercker.model.*
 
@@ -30,7 +31,7 @@ class WerckerServiceSpec extends Specification {
     void setup() {
         client = Mock(WerckerClient)
         service = new WerckerService(
-                new WerckerHost(name: master, address: werckerDev), cache, client)
+                new WerckerHost(name: master, address: werckerDev), cache, client, Permissions.EMPTY)
     }
 
     void 'get pipelines as jobs'() {

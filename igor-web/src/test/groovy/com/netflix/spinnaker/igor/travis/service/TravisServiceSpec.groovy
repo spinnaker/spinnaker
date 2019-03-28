@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.igor.travis.service
 
+import com.netflix.spinnaker.fiat.model.resources.Permissions
 import com.netflix.spinnaker.igor.build.artifact.decorator.DebDetailsDecorator
 import com.netflix.spinnaker.igor.build.artifact.decorator.RpmDetailsDecorator
 import com.netflix.spinnaker.igor.build.model.GenericBuild
@@ -47,7 +48,7 @@ class TravisServiceSpec extends Specification{
     void setup() {
         client = Mock(TravisClient)
         artifactDecorator = Optional.of(new ArtifactDecorator([new DebDetailsDecorator(), new RpmDetailsDecorator()], null))
-        service = new TravisService('travis-ci', 'http://my.travis.ci', 'someToken', 25, client, null, artifactDecorator, [])
+        service = new TravisService('travis-ci', 'http://my.travis.ci', 'someToken', 25, client, null, artifactDecorator, [], Permissions.EMPTY)
 
         AccessToken accessToken = new AccessToken()
         accessToken.accessToken = "someToken"

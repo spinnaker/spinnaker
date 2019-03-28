@@ -16,13 +16,15 @@
 
 package com.netflix.spinnaker.igor.build
 
+import com.netflix.spinnaker.fiat.model.Authorization
+import com.netflix.spinnaker.fiat.model.resources.Permissions
 import com.netflix.spinnaker.igor.config.GitlabCiProperties
 import com.netflix.spinnaker.igor.config.JenkinsConfig
 import com.netflix.spinnaker.igor.config.JenkinsProperties
 import com.netflix.spinnaker.igor.config.TravisProperties
 import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
 import com.netflix.spinnaker.igor.model.BuildServiceProvider
-import com.netflix.spinnaker.igor.service.BuildService
+import com.netflix.spinnaker.igor.service.BuildOperations
 import com.netflix.spinnaker.igor.service.BuildServices
 import com.netflix.spinnaker.igor.travis.service.TravisService
 import com.netflix.spinnaker.igor.wercker.WerckerService
@@ -38,7 +40,6 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
-
 /**
  * tests for the info controller
  */
@@ -69,7 +70,7 @@ class InfoControllerSpec extends Specification {
         server = new MockWebServer()
     }
 
-    void createMocks(Map<String, BuildService> buildServices) {
+    void createMocks(Map<String, BuildOperations> buildServices) {
         cache = Mock(BuildCache)
         this.buildServices = new BuildServices()
         this.buildServices.addServices(buildServices)
@@ -97,24 +98,69 @@ class InfoControllerSpec extends Specification {
         response.contentAsString == '["build.buildServices.blah","master1","master2"]'
     }
 
-    void 'is able to get a list of buildMasters with urls'() {
+    void 'is able to get a list of buildServices with permissions'() {
         given:
-        createMocks([:])
+        JenkinsService jenkinsService1 = new JenkinsService('jenkins-foo', null, false, Permissions.EMPTY)
+        JenkinsService jenkinsService2 = new JenkinsService('jenkins-bar', null, false,
+            new Permissions.Builder()
+                .add(Authorization.READ, ['group-1', 'group-2'])
+                .add(Authorization.WRITE, 'group-2').build())
+        TravisService travisService = new TravisService('travis-baz', null, null, 100, null, null, Optional.empty(), [],
+            new Permissions.Builder()
+                .add(Authorization.READ, ['group-3', 'group-4'])
+                .add(Authorization.WRITE, 'group-3').build())
+        createMocks([
+            'jenkins-foo': jenkinsService1,
+            'jenkins-bar': jenkinsService2,
+            'travis-baz': travisService
+        ])
 
         when:
-        MockHttpServletResponse response = mockMvc.perform(get('/masters')
-            .param("showUrl", "true")
+        MockHttpServletResponse response = mockMvc.perform(get('/buildServices')
             .accept(MediaType.APPLICATION_JSON))
             .andReturn()
             .response
 
         then:
-        1 * jenkinsProperties.masters >> [['name': 'jenkins-foo', 'address': 'http://jenkins-bar']]
-        1 * travisProperties.masters >> [['name': 'travis-foo', 'address': 'http://travis-bar']]
-        1 * gitlabCiProperties.masters >> [['name': 'gitlab-foo', 'address': 'http://gitlab-bar']]
-        response.getContentAsString() == '[{"name":"jenkins-foo","address":"http://jenkins-bar"},' +
-            '{"name":"travis-foo","address":"http://travis-bar"},' +
-            '{"name":"gitlab-foo","address":"http://gitlab-bar"}]'
+        def jsonResponse = new JsonSlurper().parseText(response.getContentAsString())
+        jsonResponse == new JsonSlurper().parseText(
+            """
+            [
+                {
+                    "name": "jenkins-foo",
+                    "buildServiceProvider": "JENKINS",
+                    "permissions": {}
+                },
+                {
+                    "name": "jenkins-bar",
+                    "buildServiceProvider": "JENKINS",
+                    "permissions": {
+                        "READ": [
+                            "group-1",
+                            "group-2"
+                        ],
+                        "WRITE": [
+                            "group-2"
+                        ]
+                    }
+                },
+                {
+                    "name": "travis-baz",
+                    "buildServiceProvider": "TRAVIS",
+                    "permissions": {
+                        "READ": [
+                            "group-3",
+                            "group-4"
+                        ],
+                        "WRITE": [
+                            "group-3"
+                        ]
+                    }
+                }
+            ]
+
+            """.stripMargin()
+        )
     }
 
     void 'is able to get jobs for a jenkins master'() {
@@ -145,7 +191,7 @@ class InfoControllerSpec extends Specification {
             .accept(MediaType.APPLICATION_JSON)).andReturn().response
 
         then:
-        jenkinsService.buildServiceProvider() >> BuildServiceProvider.JENKINS
+        jenkinsService.getBuildServiceProvider() >> BuildServiceProvider.JENKINS
         jenkinsService.getJobs() >> ['list': [
             ['name': 'folder', 'list': [
                 ['name': 'job1'],
@@ -166,7 +212,7 @@ class InfoControllerSpec extends Specification {
             .accept(MediaType.APPLICATION_JSON)).andReturn().response
 
         then:
-        travisService.buildServiceProvider() >> BuildServiceProvider.TRAVIS
+        travisService.getBuildServiceProvider() >> BuildServiceProvider.TRAVIS
         1 * cache.getJobNames('travis-master1') >> ["some-job"]
         response.contentAsString == '["some-job"]'
 
@@ -183,7 +229,7 @@ class InfoControllerSpec extends Specification {
             .accept(MediaType.APPLICATION_JSON)).andReturn().response
 
         then:
-        werckerService.buildServiceProvider() >> BuildServiceProvider.WERCKER
+        werckerService.getBuildServiceProvider() >> BuildServiceProvider.WERCKER
         werckerService.getJobs() >> [werckerJob]
         response.contentAsString == '["' + werckerJob + '"]'
 
@@ -200,7 +246,7 @@ class InfoControllerSpec extends Specification {
             address: server.getUrl('/').toString(),
             username: 'username',
             password: 'password')
-        service = new JenkinsConfig().jenkinsService("jenkins", new JenkinsConfig().jenkinsClient(host), false)
+        service = new JenkinsConfig().jenkinsService("jenkins", new JenkinsConfig().jenkinsClient(host), false, Permissions.EMPTY)
     }
 
     @Unroll

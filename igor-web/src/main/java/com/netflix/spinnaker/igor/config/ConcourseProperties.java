@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.igor.config;
 
+import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -55,5 +56,7 @@ public class ConcourseProperties {
      * this number of recent builds.
      */
     private Integer buildLookbackLimit = 200;
+
+    private Permissions.Builder permissions = new Permissions.Builder();
   }
 }

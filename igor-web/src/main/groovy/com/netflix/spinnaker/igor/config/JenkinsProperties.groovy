@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.igor.config
 
+import com.netflix.spinnaker.fiat.model.resources.Permissions
 import groovy.transform.CompileStatic
 import org.hibernate.validator.constraints.NotEmpty
 import org.springframework.boot.context.properties.ConfigurationProperties
@@ -30,11 +31,11 @@ import java.security.KeyStore
 @CompileStatic
 @ConfigurationProperties(prefix = 'jenkins')
 @Validated
-class JenkinsProperties {
+class JenkinsProperties implements BuildServerProperties<JenkinsProperties.JenkinsHost> {
     @Valid
     List<JenkinsHost> masters
 
-    static class JenkinsHost {
+    static class JenkinsHost implements BuildServerProperties.Host {
         @NotEmpty
         String name
 
@@ -61,5 +62,7 @@ class JenkinsProperties {
         String trustStorePassword
 
         Boolean skipHostnameVerification = false
+
+        Permissions.Builder permissions = new Permissions.Builder()
     }
 }

@@ -19,6 +19,7 @@ dependencies {
     spinnaker.group "bootWeb"
     spinnaker.group "jackson"
     spinnaker.group "retrofitDefault"
+    spinnaker.group "fiat"
 
     compile spinnaker.dependency("googleCloudBuild")
     compile spinnaker.dependency("kork")

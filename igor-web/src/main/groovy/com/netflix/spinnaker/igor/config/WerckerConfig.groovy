@@ -38,7 +38,7 @@ import retrofit.client.OkClient
 @CompileStatic
 @ConditionalOnProperty("wercker.enabled")
 @EnableConfigurationProperties(WerckerProperties)
-public class WerckerConfig {
+class WerckerConfig {
     @Bean
     Map<String, WerckerService> werckerMasters(
         BuildServices buildServices,
@@ -46,10 +46,10 @@ public class WerckerConfig {
         IgorConfigurationProperties igorConfigurationProperties,
         @Valid WerckerProperties werckerProperties) {
         log.debug "creating werckerMasters"
-        Map<String, WerckerService> werckerMasters = ( werckerProperties?.masters?.collectEntries { WerckerProperties.WerckerHost host ->
+        Map<String, WerckerService> werckerMasters = werckerProperties?.masters?.collectEntries { WerckerHost host ->
             log.debug "bootstrapping Wercker ${host.address} as ${host.name}"
-            [(host.name): new WerckerService(host, cache, werckerClient(host, igorConfigurationProperties.getClient().timeout))]
-        })
+            [(host.name): new WerckerService(host, cache, werckerClient(host, igorConfigurationProperties.getClient().timeout), host.permissions.build())]
+        }
 
         buildServices.addServices(werckerMasters)
         werckerMasters

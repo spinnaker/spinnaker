@@ -36,6 +36,7 @@ import retrofit.converter.JacksonConverter;
 
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Configuration
@@ -51,15 +52,15 @@ public class GitlabCiConfig {
                                                         ObjectMapper objectMapper) {
         log.info("creating gitlabCiMasters");
         Map<String, GitlabCiService> gitlabCiMasters = gitlabCiProperties.getMasters().stream()
-            .collect(Collectors.toMap(
-                gitlabCiHost -> "gitlab-ci-" + gitlabCiHost.getName(),
-                gitlabCiHost -> gitlabCiService(igorConfigurationProperties, gitlabCiHost, objectMapper)
-            ));
+            .map(gitlabCiHost ->
+                gitlabCiService(igorConfigurationProperties, "gitlab-ci-" + gitlabCiHost.getName(), gitlabCiHost, objectMapper))
+            .collect(Collectors.toMap(GitlabCiService::getName, Function.identity()));
         buildServices.addServices(gitlabCiMasters);
         return gitlabCiMasters;
     }
 
     private static GitlabCiService gitlabCiService(IgorConfigurationProperties igorConfigurationProperties,
+                                                   String name,
                                                    GitlabCiProperties.GitlabCiHost host,
                                                    ObjectMapper objectMapper) {
         return new GitlabCiService(
@@ -68,9 +69,11 @@ public class GitlabCiConfig {
                 host.getPrivateToken(),
                 igorConfigurationProperties.getClient().getTimeout(),
                 objectMapper),
+            name,
             host.getAddress(),
             host.getLimitByMembership(),
-            host.getLimitByOwnership());
+            host.getLimitByOwnership(),
+            host.getPermissions().build());
     }
 
     public static GitlabCiClient gitlabCiClient(String address, String privateToken, int timeout, ObjectMapper objectMapper) {

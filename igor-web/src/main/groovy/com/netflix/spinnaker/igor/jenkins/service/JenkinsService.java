@@ -19,6 +19,7 @@ package com.netflix.spinnaker.igor.jenkins.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import com.netflix.spinnaker.hystrix.SimpleJava8HystrixCommand;
 import com.netflix.spinnaker.igor.build.model.GenericBuild;
 import com.netflix.spinnaker.igor.build.model.GenericGitRevision;
@@ -26,11 +27,19 @@ import com.netflix.spinnaker.igor.exceptions.ArtifactNotFoundException;
 import com.netflix.spinnaker.igor.exceptions.BuildJobError;
 import com.netflix.spinnaker.igor.exceptions.QueuedJobDeterminationError;
 import com.netflix.spinnaker.igor.jenkins.client.JenkinsClient;
-import com.netflix.spinnaker.igor.jenkins.client.model.*;
+import com.netflix.spinnaker.igor.jenkins.client.model.Build;
+import com.netflix.spinnaker.igor.jenkins.client.model.BuildArtifact;
+import com.netflix.spinnaker.igor.jenkins.client.model.BuildDependencies;
+import com.netflix.spinnaker.igor.jenkins.client.model.JobConfig;
+import com.netflix.spinnaker.igor.jenkins.client.model.JobList;
+import com.netflix.spinnaker.igor.jenkins.client.model.Project;
+import com.netflix.spinnaker.igor.jenkins.client.model.ProjectsList;
+import com.netflix.spinnaker.igor.jenkins.client.model.QueuedJob;
+import com.netflix.spinnaker.igor.jenkins.client.model.ScmDetails;
 import com.netflix.spinnaker.igor.model.BuildServiceProvider;
 import com.netflix.spinnaker.igor.model.Crumb;
+import com.netflix.spinnaker.igor.service.BuildOperations;
 import com.netflix.spinnaker.igor.service.BuildProperties;
-import com.netflix.spinnaker.igor.service.BuildService;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import lombok.extern.slf4j.Slf4j;
@@ -55,19 +64,26 @@ import static net.logstash.logback.argument.StructuredArguments.kv;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 @Slf4j
-public class JenkinsService implements BuildService, BuildProperties {
+public class JenkinsService implements BuildOperations, BuildProperties {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final String groupKey;
     private final String serviceName;
     private final JenkinsClient jenkinsClient;
     private final Boolean csrf;
     private final RetrySupport retrySupport = new RetrySupport();
+    private final Permissions permissions;
 
-    public JenkinsService(String jenkinsHostId, JenkinsClient jenkinsClient, Boolean csrf) {
+    public JenkinsService(String jenkinsHostId, JenkinsClient jenkinsClient, Boolean csrf, Permissions permissions) {
         this.serviceName = jenkinsHostId;
         this.groupKey = "jenkins-" + jenkinsHostId;
         this.jenkinsClient = jenkinsClient;
         this.csrf = csrf;
+        this.permissions = permissions;
+    }
+
+    @Override
+    public String getName() {
+        return this.serviceName;
     }
 
     private String encode(String uri) {
@@ -159,6 +175,11 @@ public class JenkinsService implements BuildService, BuildProperties {
 
         int lastSlash = queuedLocation.lastIndexOf('/');
         return Integer.parseInt(queuedLocation.substring(lastSlash + 1));
+    }
+
+    @Override
+    public Permissions getPermissions() {
+        return permissions;
     }
 
     private ScmDetails getGitDetails(String jobName, Integer buildNumber) {
@@ -270,7 +291,7 @@ public class JenkinsService implements BuildService, BuildProperties {
     }
 
     @Override
-    public BuildServiceProvider buildServiceProvider() {
+    public BuildServiceProvider getBuildServiceProvider() {
         return BuildServiceProvider.JENKINS;
     }
 

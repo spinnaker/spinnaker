@@ -16,15 +16,21 @@
 
 package com.netflix.spinnaker.igor.concourse.service;
 
+import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import com.netflix.spinnaker.igor.build.model.GenericBuild;
 import com.netflix.spinnaker.igor.build.model.GenericGitRevision;
 import com.netflix.spinnaker.igor.build.model.Result;
 import com.netflix.spinnaker.igor.concourse.client.ConcourseClient;
-import com.netflix.spinnaker.igor.concourse.client.model.*;
+import com.netflix.spinnaker.igor.concourse.client.model.Build;
+import com.netflix.spinnaker.igor.concourse.client.model.Event;
+import com.netflix.spinnaker.igor.concourse.client.model.Job;
+import com.netflix.spinnaker.igor.concourse.client.model.Pipeline;
+import com.netflix.spinnaker.igor.concourse.client.model.Resource;
+import com.netflix.spinnaker.igor.concourse.client.model.Team;
 import com.netflix.spinnaker.igor.config.ConcourseProperties;
 import com.netflix.spinnaker.igor.model.BuildServiceProvider;
+import com.netflix.spinnaker.igor.service.BuildOperations;
 import com.netflix.spinnaker.igor.service.BuildProperties;
-import com.netflix.spinnaker.igor.service.BuildService;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
@@ -44,12 +50,16 @@ import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
-import static java.util.stream.Collectors.*;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.reducing;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 
 @Slf4j
-public class ConcourseService implements BuildService, BuildProperties {
+public class ConcourseService implements BuildOperations, BuildProperties {
   private final ConcourseProperties.Host host;
   private final ConcourseClient client;
+  private final Permissions permissions;
 
   @Nullable
   private final Pattern resourceFilter;
@@ -58,6 +68,7 @@ public class ConcourseService implements BuildService, BuildProperties {
     this.host = host;
     this.client = new ConcourseClient(host.getUrl(), host.getUsername(), host.getPassword());
     this.resourceFilter = host.getResourceFilterRegex() == null ? null : Pattern.compile(host.getResourceFilterRegex());
+    this.permissions = host.getPermissions().build();
   }
 
   public String getMaster() {
@@ -65,8 +76,18 @@ public class ConcourseService implements BuildService, BuildProperties {
   }
 
   @Override
-  public BuildServiceProvider buildServiceProvider() {
+  public String getName() {
+    return getMaster();
+  }
+
+  @Override
+  public BuildServiceProvider getBuildServiceProvider() {
     return BuildServiceProvider.CONCOURSE;
+  }
+
+  @Override
+  public Permissions getPermissions() {
+    return permissions;
   }
 
   public Collection<Team> teams() {

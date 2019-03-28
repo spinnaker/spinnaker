@@ -9,6 +9,7 @@
 package com.netflix.spinnaker.igor.wercker
 
 import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spinnaker.fiat.model.resources.Permissions
 import com.netflix.spinnaker.igor.IgorConfigurationProperties
 import com.netflix.spinnaker.igor.config.WerckerProperties
 import com.netflix.spinnaker.igor.config.WerckerProperties.WerckerHost
@@ -40,7 +41,7 @@ class WerckerBuildMonitorSpec extends Specification {
     void setup() {
         client = Mock(WerckerClient)
         werckerService = new WerckerService(
-                new WerckerHost(name: master, address: werckerDev), cache, client)
+                new WerckerHost(name: master, address: werckerDev), cache, client, Permissions.EMPTY)
     }
 
     final MASTER = 'MASTER'
@@ -68,7 +69,7 @@ class WerckerBuildMonitorSpec extends Specification {
         monitor.worker = scheduler.createWorker()
         mockService.getRunsSince(_) >> [pipeline: runs1]
         cache.getBuildNumber(*_) >> 1
-        mockService.buildServiceProvider() >> BuildServiceProvider.WERCKER
+        mockService.getBuildServiceProvider() >> BuildServiceProvider.WERCKER
 
         when:
         monitor.onApplicationEvent(Mock(RemoteStatusChangedEvent))
@@ -95,7 +96,7 @@ class WerckerBuildMonitorSpec extends Specification {
         monitor.worker = scheduler.createWorker()
         mockService.getRunsSince(_) >> [pipeline: runs1]
         cache.getBuildNumber(*_) >> 1
-        mockService.buildServiceProvider() >> BuildServiceProvider.WERCKER
+        mockService.getBuildServiceProvider() >> BuildServiceProvider.WERCKER
 
         when:
         monitor.onApplicationEvent(Mock(RemoteStatusChangedEvent))
@@ -115,7 +116,7 @@ class WerckerBuildMonitorSpec extends Specification {
         monitor.worker = scheduler.createWorker()
         mockService.getRunsSince(_) >> [:]
         cache.getBuildNumber(*_) >> 1
-        mockService.buildServiceProvider() >> BuildServiceProvider.WERCKER
+        mockService.getBuildServiceProvider() >> BuildServiceProvider.WERCKER
 
         when:
         monitor.onApplicationEvent(Mock(RemoteStatusChangedEvent))
@@ -158,7 +159,7 @@ class WerckerBuildMonitorSpec extends Specification {
         monitor.worker = scheduler.createWorker()
         cache.getBuildNumber(*_) >> 1
         client.getRunsSince(_, _, _, _, _) >> []
-        mockService.buildServiceProvider() >> BuildServiceProvider.WERCKER
+        mockService.getBuildServiceProvider() >> BuildServiceProvider.WERCKER
 
         when:
         monitor.onApplicationEvent(Mock(RemoteStatusChangedEvent))

@@ -24,13 +24,19 @@ import com.netflix.spinnaker.igor.config.TravisProperties
 import com.netflix.spinnaker.igor.config.WerckerProperties
 import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
 import com.netflix.spinnaker.igor.model.BuildServiceProvider
+import com.netflix.spinnaker.igor.service.BuildService
 import com.netflix.spinnaker.igor.service.BuildServices
 import com.netflix.spinnaker.igor.wercker.WerckerService
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import groovy.util.logging.Slf4j
-import org.springframework.beans.factory.annotation.Autowire
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.web.bind.annotation.*
+import org.springframework.security.access.prepost.PostFilter
+import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestMethod
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.servlet.HandlerMapping
 
 import javax.servlet.http.HttpServletRequest
@@ -64,45 +70,25 @@ class InfoController {
     ConcourseProperties concourseProperties
 
     @RequestMapping(value = '/masters', method = RequestMethod.GET)
-    List<Object> listMasters(
-        @RequestParam(value = "showUrl", defaultValue = "false") String showUrl,
-        @RequestParam(value = "type", defaultValue = "") String type) {
+    @PostFilter("hasPermission(filterObject, 'BUILD_SERVICE', 'READ')")
+    List<String> listMasters(@RequestParam(value = "type", defaultValue = "") String type) {
 
-        BuildServiceProvider providerType = (type == "") ? null :
-            BuildServiceProvider.valueOf(type.toUpperCase())
-
-        if (showUrl == 'true') {
-            List<Object> masterList = []
-            addMaster(masterList, providerType, jenkinsProperties,  BuildServiceProvider.JENKINS)
-            addMaster(masterList, providerType, travisProperties,   BuildServiceProvider.TRAVIS)
-            addMaster(masterList, providerType, gitlabCiProperties, BuildServiceProvider.GITLAB_CI)
-            addMaster(masterList, providerType, werckerProperties,  BuildServiceProvider.WERCKER)
-            addMaster(masterList, providerType, concourseProperties, BuildServiceProvider.CONCOURSE)
-            return masterList
+        BuildServiceProvider providerType = (type == "") ? null : BuildServiceProvider.valueOf(type.toUpperCase())
+        //Filter by provider type if it is specified
+        if (providerType) {
+            return buildServices.getServiceNames(providerType)
         } else {
-            //Filter by provider type if it is specified
-            if (providerType) {
-                return buildServices.getServiceNames(providerType)
-            } else {
-                return buildServices.getServiceNames()
-            }
+            return buildServices.getServiceNames()
         }
     }
 
-    void addMaster(masterList, providerType, properties, expctedType) {
-        if (!providerType || providerType == expctedType) {
-            masterList.addAll(
-                properties?.masters.collect {
-                    [
-                        "name"         : it.name,
-                        "address"      : it.address
-                    ]
-                }
-            )
-        }
+    @RequestMapping(value = '/buildServices', method = RequestMethod.GET)
+    List<BuildService> getAllBuildServices() {
+        buildServices.allBuildServices
     }
 
     @RequestMapping(value = '/jobs/{master:.+}', method = RequestMethod.GET)
+    @PreAuthorize("hasPermission(#master, 'BUILD_SERVICE', 'READ')")
     List<String> getJobs(@PathVariable String master) {
         def buildService = buildServices.getService(master)
         if (buildService == null) {
@@ -114,7 +100,7 @@ class InfoController {
             def jobList = []
             def recursiveGetJobs
 
-            recursiveGetJobs = { list, prefix="" ->
+            recursiveGetJobs = { list, prefix = "" ->
                 if (prefix) {
                     prefix = prefix + "/job/"
                 }
@@ -138,6 +124,7 @@ class InfoController {
     }
 
     @RequestMapping(value = '/jobs/{master:.+}/**')
+    @PreAuthorize("hasPermission(#master, 'BUILD_SERVICE', 'READ')")
     Object getJobConfig(@PathVariable String master, HttpServletRequest request) {
         def job = (String) request.getAttribute(
             HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE).split('/').drop(3).join('/')
@@ -147,4 +134,5 @@ class InfoController {
         }
         return service.getJobConfig(job)
     }
+
 }

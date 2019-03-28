@@ -24,13 +24,13 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class BuildServices {
-    private final Map<String, BuildService> buildServices = new HashMap<>();
+    private final Map<String, BuildOperations> buildServices = new HashMap<>();
 
-    public void addServices(Map<String, ? extends BuildService> services) {
+    public void addServices(Map<String, ? extends BuildOperations> services) {
         buildServices.putAll(services);
     }
 
-    public BuildService getService(String name) {
+    public BuildOperations getService(String name) {
         return buildServices.get(name);
     }
 
@@ -41,9 +41,15 @@ public class BuildServices {
     public List<String> getServiceNames(BuildServiceProvider buildServiceProvider) {
         return buildServices.entrySet().stream()
             .filter(e -> e.getValue() != null)
-            .filter(e -> e.getValue().buildServiceProvider() == buildServiceProvider)
+            .filter(e -> e.getValue().getBuildServiceProvider() == buildServiceProvider)
             .map(Map.Entry::getKey)
             .sorted()
+            .collect(Collectors.toList());
+    }
+
+    public List<BuildService> getAllBuildServices() {
+        return buildServices.values().stream()
+            .map(BuildOperations::getView)
             .collect(Collectors.toList());
     }
 }

@@ -16,17 +16,21 @@
 
 package com.netflix.spinnaker.igor.build
 
-import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import com.netflix.spinnaker.igor.build.model.GenericBuild
 import com.netflix.spinnaker.igor.config.JenkinsConfig
-import com.netflix.spinnaker.igor.jenkins.client.model.*
+import com.netflix.spinnaker.igor.jenkins.client.model.Build
+import com.netflix.spinnaker.igor.jenkins.client.model.BuildArtifact
+import com.netflix.spinnaker.igor.jenkins.client.model.JobConfig
+import com.netflix.spinnaker.igor.jenkins.client.model.ParameterDefinition
+import com.netflix.spinnaker.igor.jenkins.client.model.QueuedJob
 import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
 import com.netflix.spinnaker.igor.model.BuildServiceProvider
+import com.netflix.spinnaker.igor.service.BuildOperations
 import com.netflix.spinnaker.igor.service.BuildServices
-import com.netflix.spinnaker.igor.service.BuildService
 import com.netflix.spinnaker.igor.travis.service.TravisService
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.kork.web.exceptions.GenericExceptionHandlers
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import com.squareup.okhttp.mockwebserver.MockWebServer
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -37,10 +41,10 @@ import retrofit.client.Header
 import retrofit.client.Response
 import spock.lang.Shared
 import spock.lang.Specification
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
-
 /**
  * Tests for BuildController
  */
@@ -51,9 +55,9 @@ class BuildControllerSpec extends Specification {
     BuildServices buildServices
     BuildCache cache
     JenkinsService jenkinsService
-    BuildService service
+    BuildOperations service
     TravisService travisService
-    Map<String, BuildService> serviceList
+    Map<String, BuildOperations> serviceList
     def retrySupport = Spy(RetrySupport) {
         _ * sleep(_) >> { /* do nothing */ }
     }
@@ -76,11 +80,11 @@ class BuildControllerSpec extends Specification {
     }
 
     void setup() {
-        service = Mock(BuildService)
+        service = Mock(BuildOperations)
         jenkinsService = Mock(JenkinsService)
-        jenkinsService.buildServiceProvider() >> BuildServiceProvider.JENKINS
+        jenkinsService.getBuildServiceProvider() >> BuildServiceProvider.JENKINS
         travisService = Mock(TravisService)
-        travisService.buildServiceProvider() >> BuildServiceProvider.TRAVIS
+        travisService.getBuildServiceProvider() >> BuildServiceProvider.TRAVIS
         buildServices = new BuildServices()
         buildServices.addServices([
             (SERVICE) : service,

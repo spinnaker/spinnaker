@@ -24,8 +24,8 @@ import com.netflix.spinnaker.igor.exceptions.QueuedJobDeterminationError
 import com.netflix.spinnaker.igor.jenkins.client.model.JobConfig
 import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
 import com.netflix.spinnaker.igor.service.ArtifactDecorator
+import com.netflix.spinnaker.igor.service.BuildOperations
 import com.netflix.spinnaker.igor.service.BuildProperties
-import com.netflix.spinnaker.igor.service.BuildService
 import com.netflix.spinnaker.igor.service.BuildServices
 import com.netflix.spinnaker.igor.travis.service.TravisService
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
@@ -33,7 +33,12 @@ import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
-import org.springframework.web.bind.annotation.*
+import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestMethod
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.servlet.HandlerMapping
 import retrofit.RetrofitError
 import retrofit.http.Query
@@ -61,12 +66,12 @@ class BuildController {
         this.artifactExtractor = artifactExtractor.orElse(null)
     }
 
-    private GenericBuild jobStatus(BuildService buildService, String master, String job, Integer buildNumber) {
+    private GenericBuild jobStatus(BuildOperations buildService, String master, String job, Integer buildNumber) {
         GenericBuild build = buildService.getGenericBuild(job, buildNumber)
         try {
             build.genericGitRevisions = buildService.getGenericGitRevisions(job, buildNumber)
         } catch (Exception e) {
-            log.error("could not get scm results for {} / {} / {}", kv("master", master), kv("job", job), kv("buildNumber", buildNumber))
+            log.error("could not get scm results for {} / {} / {}", kv("master", master), kv("job", job), kv("buildNumber", buildNumber), e)
         }
 
         if (artifactDecorator) {
@@ -76,23 +81,25 @@ class BuildController {
         if (buildArtifactFilter) {
             build.artifacts = buildArtifactFilter.filterArtifacts(build.artifacts)
         }
-        return build;
+        return build
     }
 
     @RequestMapping(value = '/builds/status/{buildNumber}/{master:.+}/**')
+    @PreAuthorize("hasPermission(#master, 'BUILD_SERVICE', 'READ')")
     GenericBuild getJobStatus(@PathVariable String master, @PathVariable
         Integer buildNumber, HttpServletRequest request) {
-        def job = (String) request.getAttribute(
-            HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE).split('/').drop(5).join('/')
+        def job = ((String) request.getAttribute(
+            HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE)).split('/').drop(5).join('/')
         def buildService = getBuildService(master)
         return jobStatus(buildService, master, job, buildNumber)
     }
 
     @RequestMapping(value = '/builds/artifacts/{buildNumber}/{master:.+}/**')
+    @PreAuthorize("hasPermission(#master, 'BUILD_SERVICE', 'READ')")
     List<Artifact> getBuildResults(@PathVariable String master, @PathVariable
         Integer buildNumber, @Query("propertyFile") String propertyFile, HttpServletRequest request) {
-        def job = (String) request.getAttribute(
-            HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE).split('/').drop(5).join('/')
+        def job = ((String) request.getAttribute(
+            HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE)).split('/').drop(5).join('/')
         def buildService = getBuildService(master)
         GenericBuild build = jobStatus(buildService, master, job, buildNumber)
         if (buildService instanceof BuildProperties && artifactExtractor != null) {
@@ -103,11 +110,12 @@ class BuildController {
     }
 
     @RequestMapping(value = '/builds/queue/{master}/{item}')
+    @PreAuthorize("hasPermission(#master, 'BUILD_SERVICE', 'READ')")
     Object getQueueLocation(@PathVariable String master, @PathVariable int item) {
         def buildService = getBuildService(master)
         if (buildService instanceof JenkinsService) {
             JenkinsService jenkinsService = (JenkinsService) buildService
-            return jenkinsService.queuedBuild(item);
+            return jenkinsService.queuedBuild(item)
         } else if (buildService instanceof TravisService) {
             TravisService travisService = (TravisService) buildService
             return travisService.queuedBuild(item)
@@ -116,14 +124,16 @@ class BuildController {
     }
 
     @RequestMapping(value = '/builds/all/{master:.+}/**')
+    @PreAuthorize("hasPermission(#master, 'BUILD_SERVICE', 'READ')")
     List<Object> getBuilds(@PathVariable String master, HttpServletRequest request) {
-        def job = (String) request.getAttribute(
-            HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE).split('/').drop(4).join('/')
+        def job = ((String) request.getAttribute(
+            HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE)).split('/').drop(4).join('/')
         def buildService = getBuildService(master)
         return buildService.getBuilds(job)
     }
 
     @RequestMapping(value = "/masters/{name}/jobs/{jobName}/stop/{queuedBuild}/{buildNumber}", method = RequestMethod.PUT)
+    @PreAuthorize("hasPermission(#master, 'BUILD_SERVICE', 'WRITE')")
     String stop(
         @PathVariable("name") String master,
         @PathVariable String jobName,
@@ -157,11 +167,12 @@ class BuildController {
     }
 
     @RequestMapping(value = '/masters/{name}/jobs/**', method = RequestMethod.PUT)
+    @PreAuthorize("hasPermission(#master, 'BUILD_SERVICE', 'WRITE')")
     String build(
         @PathVariable("name") String master,
         @RequestParam Map<String, String> requestParams, HttpServletRequest request) {
-        def job = (String) request.getAttribute(
-            HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE).split('/').drop(4).join('/')
+        def job = ((String) request.getAttribute(
+            HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE)).split('/').drop(4).join('/')
         def buildService = getBuildService(master)
         if (buildService instanceof JenkinsService) {
             def response
@@ -214,21 +225,22 @@ class BuildController {
     }
 
     @RequestMapping(value = '/builds/properties/{buildNumber}/{fileName}/{master:.+}/**')
+    @PreAuthorize("hasPermission(#master, 'BUILD_SERVICE', 'READ')")
     Map<String, Object> getProperties(
         @PathVariable String master,
         @PathVariable Integer buildNumber, @PathVariable
             String fileName, HttpServletRequest request) {
-        def job = (String) request.getAttribute(
-            HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE).split('/').drop(6).join('/')
+        def job = ((String) request.getAttribute(
+            HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE)).split('/').drop(6).join('/')
         def buildService = getBuildService(master)
         if (buildService instanceof BuildProperties) {
-            BuildProperties buildProperties = (BuildProperties) buildService;
-            return buildProperties.getBuildProperties(job, buildNumber, fileName);
+            BuildProperties buildProperties = (BuildProperties) buildService
+            return buildProperties.getBuildProperties(job, buildNumber, fileName)
         }
-        return Collections.emptyMap();
+        return Collections.emptyMap()
     }
 
-    private BuildService getBuildService(String master) {
+    private BuildOperations getBuildService(String master) {
         def buildService = buildServices.getService(master)
         if (buildService == null) {
             throw new NotFoundException("Master '${master}' not found}")
