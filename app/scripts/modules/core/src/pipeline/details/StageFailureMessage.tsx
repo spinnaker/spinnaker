@@ -7,6 +7,7 @@ import { IExecutionStage, ITaskStep } from 'core/domain';
 import { robotToHuman, Markdown } from 'core/presentation';
 import { EventBus } from 'core/event/EventBus';
 import { ReactInjector } from 'core/reactShims';
+import { TrafficGuardHelperLink } from 'core/task/TrafficGuardHelperLink';
 
 export interface IStageFailureMessageProps {
   message?: string;
@@ -87,6 +88,7 @@ export class StageFailureMessage extends React.Component<IStageFailureMessagePro
                     {exceptionTitle} {failedTask && <span>( {robotToHuman(failedTask.name)} )</span>}
                   </h5>
                   {displayMessages}
+                  <TrafficGuardHelperLink errorMessage={message || messages.join(',')} />
                 </div>
               </div>
             </div>

@@ -7,7 +7,7 @@
       <div class="col-md-8 col-md-offset-2 overlay-modal-status" ng-if="taskMonitor.task">
         <task-monitor-status monitor="taskMonitor"></task-monitor-status>
       </div>
-      <task-monitor-error monitor="taskMonitor"></task-monitor-error>
+      <task-monitor-error error-message="taskMonitor.errorMessage" task="taskMonitor.task"></task-monitor-error>
     </div>
   </div>
   <div class="modal-footer" ng-if="!taskMonitor.error">

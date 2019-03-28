@@ -2,6 +2,7 @@ import { IComponentOptions, module } from 'angular';
 
 import { AUTO_SCROLL_DIRECTIVE } from 'core/presentation/autoScroll/autoScroll.directive';
 import { MODAL_CLOSE_COMPONENT } from 'core/modal/buttons/modalClose.component';
+import { TASK_MONITOR_ERROR } from './TaskMonitorError';
 
 import './taskMonitor.directive.less';
 
@@ -11,7 +12,7 @@ const ngmodule = module(TASKS_MONITOR_DIRECTIVE, [
   AUTO_SCROLL_DIRECTIVE,
   require('../../modal/modalOverlay.directive').name,
   MODAL_CLOSE_COMPONENT,
-  require('./taskMonitorError.component').name,
+  TASK_MONITOR_ERROR,
   require('./taskMonitorStatus.component').name,
 ]);
 

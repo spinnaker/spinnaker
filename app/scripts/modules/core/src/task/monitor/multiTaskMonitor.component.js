@@ -25,7 +25,7 @@ module.exports = angular.module('spinnaker.core.task.monitor.multiTaskMonitor', 
             <div class="col-md-6 overlay-modal-status" ng-repeat="monitor in $ctrl.monitors">
               <h4>{{monitor.title}}</h4>
               <task-monitor-status monitor="monitor"></task-monitor-status>
-              <task-monitor-error monitor="monitor"></task-monitor-error>
+              <task-monitor-error error-message="monitor.errorMessage" task="monitor.task"></task-monitor-error>
             </div>
           </div>
         </div>
