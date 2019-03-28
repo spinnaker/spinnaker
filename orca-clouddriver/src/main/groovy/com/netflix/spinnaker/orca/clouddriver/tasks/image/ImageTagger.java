@@ -32,7 +32,6 @@ import java.util.List;
 import java.util.Map;
 
 import static java.lang.String.format;
-import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 
 public abstract class ImageTagger {
@@ -85,12 +84,7 @@ public abstract class ImageTagger {
         String upstreamImageName = (String) allMatchedImages.get(0).get("imageName");
         imageNames.add(upstreamImageName);
 
-        log.info(
-          format("Found upstream image '%s' for imageId '%s' (executionId: %s)",
-            upstreamImageName,
-            upstreamImageId,
-            stage.getExecution().getId())
-        );
+        log.info(format("Found upstream image '%s' (executionId: %s)", upstreamImageName, stage.getExecution().getId()));
       }
     }
 
@@ -108,14 +102,6 @@ public abstract class ImageTagger {
       foundImages.add(objectMapper.convertValue(matchedImage, matchedImageType));
     }
 
-    if (foundImages.size() < upstreamImageIds.size()) {
-      throw new ImageNotFound(
-        format("Only found %d images to tag but %d were specified upstream (%s)",
-          foundImages.size(),
-          upstreamImageIds.size(),
-          imageNames
-          ), true);
-    }
     return foundImages;
   }
 
