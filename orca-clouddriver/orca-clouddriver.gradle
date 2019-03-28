@@ -31,6 +31,7 @@ dependencies {
   compile project(":orca-core")
   compile 'com.netflix.spinnaker.moniker:moniker:0.2.0'
   compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${spinnaker.version('jackson')}"
+  compile 'io.kubernetes:client-java:1.0.0-beta1'
 
   testCompile project(":orca-test")
   testCompile project(":orca-test-groovy")

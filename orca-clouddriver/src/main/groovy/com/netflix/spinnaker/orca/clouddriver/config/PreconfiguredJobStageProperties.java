@@ -16,27 +16,34 @@
 
 package com.netflix.spinnaker.orca.clouddriver.config;
 
+import com.google.common.collect.ImmutableList;
+import jdk.nashorn.internal.ir.annotations.Immutable;
 import lombok.Data;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Data
+public abstract class PreconfiguredJobStageProperties {
 
-public class PreconfiguredJobStageProperties {
+  private boolean enabled = true;
+  private String label;
+  private String description;
+  private String type;
+  private List<PreconfiguredJobStageParameter> parameters;
+  private boolean waitForCompletion = true;
+  private String cloudProvider;
+  private String credentials;
+  private String region;
+  private String propertyFile;
 
-  // Fields are public as job stages use reflection to access these directly from outside the class
-  public boolean enabled = true;
-  public String label;
-  public String description;
-  public String type;
-  public List<PreconfiguredJobStageParameter> parameters;
-  public boolean waitForCompletion = true;
-  public String cloudProvider;
-  public String credentials;
-  public String region;
-  public String propertyFile;
-  public Map<String, Object> cluster = new HashMap<>();
+  public List<String> getOverridableFields() {
+    return Arrays.asList(
+      "cloudProvider",
+      "credentials",
+      "region",
+      "propertyFile",
+      "waitForCompletion"
+    );
+  }
 
 }

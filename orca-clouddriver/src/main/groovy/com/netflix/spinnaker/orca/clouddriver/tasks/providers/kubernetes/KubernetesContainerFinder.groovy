@@ -65,7 +65,7 @@ class KubernetesContainerFinder {
     }
 
     containers.forEach { container ->
-      if (container.imageDescription.fromContext) {
+      if (container?.imageDescription?.fromContext) {
         def image = deploymentDetails.find {
           // stageId is used here to match the source of the image to the find image stage specified by the user.
           // Previously, this was done by matching the pattern used to the pattern selected in the deploy stage, but
@@ -83,7 +83,7 @@ class KubernetesContainerFinder {
         throw new IllegalStateException("No image found in context for pattern $container.imageDescription.pattern.")
       }
 
-      if (container.imageDescription.fromTrigger) {
+      if (container?.imageDescription?.fromTrigger) {
         if (stage.execution.type == PIPELINE) {
           def trigger = stage.execution.trigger
 
@@ -92,12 +92,12 @@ class KubernetesContainerFinder {
           }
         }
 
-        if (!container.imageDescription.tag) {
+        if (!container?.imageDescription?.tag) {
           throw new IllegalStateException("No tag found for image ${container.imageDescription.registry}/${container.imageDescription.repository} in trigger context.")
         }
       }
 
-      if (container.imageDescription.fromArtifact) {
+      if (container?.imageDescription?.fromArtifact) {
         def resolvedArtifact = artifactResolver.getBoundArtifactForId(stage, container.imageDescription.artifactId)
         container.imageDescription.uri = resolvedArtifact.reference
       }
