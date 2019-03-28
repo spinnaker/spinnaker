@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.Ints;
 import com.netflix.spinnaker.cats.cache.CacheData;
+import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactReplacer;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactReplacerFactory;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
@@ -205,6 +206,7 @@ public class KubernetesV2ServerGroup extends ManifestBasedModel implements Serve
       .name(getName())
       .region(getRegion())
       .isDisabled(isDisabled())
+      .cloudProvider(KubernetesCloudProvider.getID())
       .build();
   }
 

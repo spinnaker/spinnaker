@@ -146,6 +146,7 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
           isDisabled: isDisabled,
           detachedInstances: [],
           instances: [],
+          cloudProvider: GoogleCloudProvider.ID,
       )
 
       // TODO(duftler): De-frigga this.

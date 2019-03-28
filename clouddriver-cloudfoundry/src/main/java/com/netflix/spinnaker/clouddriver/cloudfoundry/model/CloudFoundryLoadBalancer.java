@@ -94,7 +94,8 @@ public class CloudFoundryLoadBalancer extends CloudFoundryModel implements LoadB
         app.getInstances()
           .stream()
           .map(it -> new LoadBalancerInstance(it.getId(), it.getName(), null, it.getHealth().get(0)))
-          .collect(toSet())
+          .collect(toSet()),
+        CloudFoundryCloudProvider.ID
       )
     ).collect(toSet());
   }

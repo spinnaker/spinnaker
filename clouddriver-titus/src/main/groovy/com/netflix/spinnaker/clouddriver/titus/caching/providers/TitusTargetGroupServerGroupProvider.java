@@ -24,6 +24,7 @@ import com.netflix.spinnaker.clouddriver.aws.model.AmazonTargetGroup;
 import com.netflix.spinnaker.clouddriver.aws.model.TargetGroupServerGroupProvider;
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerInstance;
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup;
+import com.netflix.spinnaker.clouddriver.titus.TitusCloudProvider;
 import com.netflix.spinnaker.clouddriver.titus.caching.Keys;
 import com.netflix.spinnaker.clouddriver.titus.caching.utils.AwsLookupUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -118,7 +119,8 @@ public class TitusTargetGroupServerGroupProvider implements TargetGroupServerGro
             attributes.get("region").toString(),
             !(Boolean) job.get("inService"),
             Collections.emptySet(),
-            targetGroupInstances
+            targetGroupInstances,
+            TitusCloudProvider.ID
           );
 
           if (allTargetGroups.containsKey(targetGroup)) {

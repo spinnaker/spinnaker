@@ -90,7 +90,9 @@ class DcosLoadBalancer implements LoadBalancer, Serializable, LoadBalancerProvid
           //}
         } as Set,
         // TODO once we can do this
-        detachedInstances: [])
+        detachedInstances: [],
+        cloudProvider: DcosCloudProvider.ID
+      )
     } as Set
   }
 

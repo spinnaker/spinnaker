@@ -95,7 +95,8 @@ class AzureAppGatewayProvider implements LoadBalancerProvider<AzureLoadBalancer>
         name: serverGroup,
         isDisabled: false,
         detachedInstances: [],
-        instances: []
+        instances: [],
+        cloudProvider: AzureCloudProvider.ID
       ))
     }
 

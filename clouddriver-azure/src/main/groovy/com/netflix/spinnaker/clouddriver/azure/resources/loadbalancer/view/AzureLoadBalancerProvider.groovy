@@ -84,7 +84,7 @@ class AzureLoadBalancerProvider /*implements LoadBalancerProvider<AzureLoadBalan
       region: loadBalancerDescription.region,
       vnet: loadBalancerDescription.vnet ?: "vnet-unassigned",
       subnet: loadBalancerDescription.subnet ?: "subnet-unassigned",
-      serverGroups: [new LoadBalancerServerGroup(name: loadBalancerDescription.serverGroup, isDisabled: false, detachedInstances: [], instances: [])]
+      serverGroups: [new LoadBalancerServerGroup(name: loadBalancerDescription.serverGroup, isDisabled: false, detachedInstances: [], instances: [], cloudProvider: AzureCloudProvider.ID)]
     )
   }
 

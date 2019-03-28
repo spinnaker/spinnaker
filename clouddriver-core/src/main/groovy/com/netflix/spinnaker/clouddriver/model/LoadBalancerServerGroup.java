@@ -34,4 +34,5 @@ public class LoadBalancerServerGroup {
   Boolean isDisabled;
   Set<String> detachedInstances;
   Set<LoadBalancerInstance> instances;
+  String cloudProvider;
 }

@@ -23,6 +23,7 @@ import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerInstance
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
+import com.netflix.spinnaker.clouddriver.openstack.OpenstackCloudProvider
 import com.netflix.spinnaker.clouddriver.openstack.cache.Keys
 import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackFloatingIP
 import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackLoadBalancer
@@ -329,7 +330,7 @@ class OpenstackLoadBalancerProviderSpec extends Specification {
     def healthMonitor = new OpenstackLoadBalancer.OpenstackHealthMonitor(id: "health$i", httpMethod: 'GET',
                                                                          maxRetries: 5, adminStateUp: 'UP', delay: 5, expectedCodes: [200])
     def serverGroups = [new LoadBalancerServerGroup(name: 'sg1', isDisabled: false,
-                                                    instances: [new LoadBalancerInstance(id: 'id', zone: "zone$i", health: [state:'up', zone: "zone$i"])])]
+                                                    instances: [new LoadBalancerInstance(id: 'id', zone: "zone$i", health: [state:'up', zone: "zone$i"])], cloudProvider: OpenstackCloudProvider.ID)]
     new OpenstackLoadBalancer.View(account: account, region: region, id: id, name: name, description: description,
                                    status: status, algorithm: algorithm, ip: ip, subnetId: subnet, subnetName: subnet, networkId: network, networkName: network,
                                    healthMonitor: healthMonitor, serverGroups: serverGroups)

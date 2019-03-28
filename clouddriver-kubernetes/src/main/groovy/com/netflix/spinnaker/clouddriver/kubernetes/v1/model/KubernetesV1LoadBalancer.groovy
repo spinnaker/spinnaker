@@ -85,7 +85,9 @@ class KubernetesV1LoadBalancer implements LoadBalancer, Serializable, LoadBalanc
           } else {
             return (String) null
           }
-        } as Set)
+        } as Set,
+        cloudProvider: KubernetesCloudProvider.ID
+      )
     } as Set
   }
 
