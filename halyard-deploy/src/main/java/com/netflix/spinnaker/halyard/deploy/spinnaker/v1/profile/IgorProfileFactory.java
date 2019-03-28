@@ -35,6 +35,11 @@ public class IgorProfileFactory extends SpringProfileFactory {
   }
 
   @Override
+  public String getMinimumSecretDecryptionVersion(String deploymentName) {
+    return "1.0.2";
+  }
+
+  @Override
   public void setProfile(Profile profile, DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     super.setProfile(profile, deploymentConfiguration, endpoints);
     Providers providers = deploymentConfiguration.getProviders();

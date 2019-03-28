@@ -49,6 +49,11 @@ public class KayentaProfileFactory extends SpringProfileFactory {
   }
 
   @Override
+  public String getMinimumSecretDecryptionVersion(String deploymentName) {
+    return "0.6.2";
+  }
+
+  @Override
   protected void setProfile(Profile profile, DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     super.setProfile(profile, deploymentConfiguration, endpoints);
     profile.appendContents(profile.getBaseContents());

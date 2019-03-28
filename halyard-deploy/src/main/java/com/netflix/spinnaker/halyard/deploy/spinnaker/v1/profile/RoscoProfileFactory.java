@@ -29,6 +29,11 @@ import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.registry.v1.ProfileRegistry;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.yaml.snakeyaml.Yaml;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -37,10 +42,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import org.yaml.snakeyaml.Yaml;
 
 @Component
 @Slf4j
@@ -48,6 +49,11 @@ public class RoscoProfileFactory extends SpringProfileFactory {
   @Override
   public SpinnakerArtifact getArtifact() {
     return SpinnakerArtifact.ROSCO;
+  }
+
+  @Override
+  public String getMinimumSecretDecryptionVersion(String deploymentName) {
+    return "0.9.1";
   }
 
   @Autowired

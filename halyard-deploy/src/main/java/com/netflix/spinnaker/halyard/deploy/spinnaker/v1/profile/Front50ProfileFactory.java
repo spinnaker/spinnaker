@@ -49,6 +49,12 @@ public class Front50ProfileFactory extends SpringProfileFactory {
     return SpinnakerArtifact.FRONT50;
   }
 
+
+  @Override
+  public String getMinimumSecretDecryptionVersion(String deploymentName) {
+    return "0.15.3";
+  }
+
   @Override
   public void setProfile(Profile profile, DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     PersistentStorage persistentStorage = deploymentConfiguration.getPersistentStorage();

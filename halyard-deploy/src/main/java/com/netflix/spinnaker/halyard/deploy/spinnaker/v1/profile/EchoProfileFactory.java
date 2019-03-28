@@ -37,6 +37,11 @@ public class EchoProfileFactory extends SpringProfileFactory {
   }
 
   @Override
+  public String getMinimumSecretDecryptionVersion(String deploymentName) {
+    return "2.3.2";
+  }
+
+  @Override
   protected void setProfile(Profile profile, DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     super.setProfile(profile, deploymentConfiguration, endpoints);
 
