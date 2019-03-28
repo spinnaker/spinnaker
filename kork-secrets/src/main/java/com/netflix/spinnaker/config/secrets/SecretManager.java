@@ -20,8 +20,9 @@ import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -45,19 +46,10 @@ public class SecretManager {
    * @return secret in plaintext
    */
   public String decrypt(String configValue) {
-    EncryptedSecret encryptedSecret = EncryptedSecret.parse(configValue);
-    if (encryptedSecret == null) {
-      return configValue;
+    if (EncryptedSecret.isEncryptedSecret(configValue)) {
+      return new String(decryptAsBytes(configValue));
     }
-
-    SecretEngine secretEngine = secretEngineRegistry.getEngine(encryptedSecret.getEngineIdentifier());
-    if (secretEngine == null) {
-      throw new InvalidSecretFormatException("Secret Engine does not exist: " + encryptedSecret.getEngineIdentifier());
-    }
-
-    secretEngine.validate(encryptedSecret);
-
-    return secretEngine.decrypt(encryptedSecret);
+    return configValue;
   }
 
   /**
@@ -79,17 +71,38 @@ public class SecretManager {
     if (!EncryptedSecret.isEncryptedSecret(filePathOrEncrypted)) {
       return Paths.get(filePathOrEncrypted);
     } else {
-      return createTempFile("tmp", decrypt(filePathOrEncrypted));
+      return createTempFile("tmp", decryptAsBytes(filePathOrEncrypted));
     }
   }
 
-  protected Path createTempFile(String prefix, String decryptedContents) {
+  public byte[] decryptAsBytes(String encryptedString) {
+    EncryptedSecret encryptedSecret = EncryptedSecret.parse(encryptedString);
+    if (encryptedSecret == null) {
+      return encryptedString.getBytes();
+    }
+
+    SecretEngine secretEngine = secretEngineRegistry.getEngine(encryptedSecret.getEngineIdentifier());
+    if (secretEngine == null) {
+      throw new SecretDecryptionException("Secret Engine does not exist: " + encryptedSecret.getEngineIdentifier());
+    }
+
+    secretEngine.validate(encryptedSecret);
+
+    return secretEngine.decrypt(encryptedSecret);
+  }
+
+  protected Path createTempFile(String prefix, byte[] decryptedContents) {
     try {
       File tempFile = File.createTempFile(prefix, ".secret");
-      try (FileWriter fileWriter = new FileWriter(tempFile)) {
-        fileWriter.write(decryptedContents);
-      }
+      FileOutputStream fileOutputStream = new FileOutputStream(tempFile);
+      BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(fileOutputStream);
+
+      bufferedOutputStream.write(decryptedContents);
+
       tempFile.deleteOnExit();
+      bufferedOutputStream.close();
+      fileOutputStream.close();
+
       return tempFile.toPath();
     } catch (IOException e) {
       throw new SecretDecryptionException(e.getMessage());

@@ -34,6 +34,10 @@ public class SecretSession {
     return decryptedFile;
   }
 
+  public byte[] decryptAsBytes(String encrypted) {
+    return secretManager.decryptAsBytes(encrypted);
+  }
+
   public void clearCachedSecrets() {
     secretCache.clear();
     secretFileCache.clear();

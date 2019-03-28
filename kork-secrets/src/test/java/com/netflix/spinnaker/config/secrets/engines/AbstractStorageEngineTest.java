@@ -24,8 +24,10 @@ import org.yaml.snakeyaml.Yaml;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.util.Arrays;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class AbstractStorageEngineTest {
   AbstractStorageSecretEngine engine;
@@ -54,8 +56,8 @@ public class AbstractStorageEngineTest {
     ByteArrayInputStream bis = readStream("test: value\na:\n  b: othervalue\nc:\n  - d\n  - e");
     engine.yamlParser = new Yaml();
     engine.parseAsYaml("a/b", bis);
-    assertEquals("value", engine.getParsedValue("a/b", "test"));
-    assertEquals("othervalue", engine.getParsedValue("a/b", "a.b"));
+    assertTrue(Arrays.equals("value".getBytes(), engine.getParsedValue("a/b", "test")));
+    assertTrue(Arrays.equals("othervalue".getBytes(), engine.getParsedValue("a/b", "a.b")));
   }
 
 }

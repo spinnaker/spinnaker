@@ -60,7 +60,7 @@ public class SecretManagerTest {
   @Test
   public void decryptTest() throws SecretDecryptionException {
     String secretConfig = "encrypted:s3!paramName:paramValue";
-    when(secretEngine.decrypt(any())).thenReturn("test");
+    when(secretEngine.decrypt(any())).thenReturn("test".getBytes());
     assertEquals("test", secretManager.decrypt(secretConfig));
   }
 
@@ -68,7 +68,7 @@ public class SecretManagerTest {
   public void decryptSecretEngineNotFound() throws SecretDecryptionException {
     when(secretEngineRegistry.getEngine("does-not-exist")).thenReturn(null);
     String secretConfig = "encrypted:does-not-exist!paramName:paramValue";
-    exceptionRule.expect(InvalidSecretFormatException.class);
+    exceptionRule.expect(SecretDecryptionException.class);
     exceptionRule.expectMessage("Secret Engine does not exist: does-not-exist");
     secretManager.decrypt(secretConfig);
   }
@@ -84,7 +84,7 @@ public class SecretManagerTest {
   @Test
   public void decryptFile() throws SecretDecryptionException, IOException {
     String secretConfig = "encrypted:s3!paramName:paramValue";
-    when(secretEngine.decrypt(any())).thenReturn("test");
+    when(secretEngine.decrypt(any())).thenReturn("test".getBytes());
     Path path = secretManager.decryptAsFile(secretConfig);
     assertTrue(path.toAbsolutePath().toString().matches(".*.secret$"));
     BufferedReader reader = new BufferedReader(new FileReader(path.toFile()));
@@ -96,7 +96,7 @@ public class SecretManagerTest {
   public void decryptFileSecretEngineNotFound() throws SecretDecryptionException {
     when(secretEngineRegistry.getEngine("does-not-exist")).thenReturn(null);
     String secretConfig = "encrypted:does-not-exist!paramName:paramValue";
-    exceptionRule.expect(InvalidSecretFormatException.class);
+    exceptionRule.expect(SecretDecryptionException.class);
     exceptionRule.expectMessage("Secret Engine does not exist: does-not-exist");
     secretManager.decryptAsFile(secretConfig);
   }

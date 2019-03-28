@@ -35,8 +35,8 @@ public class NoopSecretEngine implements SecretEngine {
   }
 
   @Override
-  public String decrypt(EncryptedSecret encryptedSecret) {
-    return encryptedSecret.getParams().get(PARAM_VALUE);
+  public byte[] decrypt(EncryptedSecret encryptedSecret) {
+    return encryptedSecret.getParams().get(PARAM_VALUE).getBytes();
   }
 
   @Override
