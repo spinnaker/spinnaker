@@ -85,4 +85,6 @@ export * from './validation';
 
 export * from './widgets';
 
+export * from './yamlEditor';
+
 export * from './core.module';

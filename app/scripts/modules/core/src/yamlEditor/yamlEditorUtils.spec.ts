@@ -1,4 +1,4 @@
-import { yamlStringToDocuments, yamlDocumentsToString } from 'kubernetes/v2/manifest/editor/yaml/yamlEditorUtils';
+import { yamlStringToDocuments, yamlDocumentsToString } from './yamlEditorUtils';
 
 describe('YAML editor utils', () => {
   describe('yamlStringToDocuments', () => {

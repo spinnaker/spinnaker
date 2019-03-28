@@ -8,6 +8,7 @@ import {
   IExpectedArtifact,
   ArtifactTypePatterns,
   SETTINGS,
+  yamlDocumentsToString,
 } from '@spinnaker/core';
 
 import {
@@ -17,7 +18,6 @@ import {
 } from 'kubernetes/v2/manifest/manifestCommandBuilder.service';
 
 import { IManifestBindArtifact } from './ManifestBindArtifactsSelector';
-import { yamlDocumentsToString } from '../../../manifest/editor/yaml/yamlEditorUtils';
 
 export class KubernetesV2DeployManifestConfigCtrl implements IController {
   public state = {

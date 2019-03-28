@@ -44,6 +44,7 @@ import { STAGE_SUMMARY_COMPONENT } from './details/stageSummary.component';
 import { PRODUCES_ARTIFACTS } from './config/stages/producesArtifacts/producesArtifacts.component';
 import { ARTIFACT_LIST } from './status/artifactList.component';
 import { PIPELINE_TEMPLATES_V2_STATES_CONFIG } from './config/templates/v2/pipelineTemplateV2.states';
+import './config/stages/googleCloudBuild/googleCloudBuildStage';
 
 import './pipeline.less';
 import 'angular-ui-sortable';

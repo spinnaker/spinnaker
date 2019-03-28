@@ -2,9 +2,8 @@ import * as React from 'react';
 import { FormikProps } from 'formik';
 import { dump } from 'js-yaml';
 
-import { Application } from '@spinnaker/core';
+import { Application, YamlEditor } from '@spinnaker/core';
 
-import { YamlEditor } from 'kubernetes/v2/manifest/editor/yaml/YamlEditor';
 import { IKubernetesManifestCommandData } from 'kubernetes/v2/manifest/manifestCommandBuilder.service';
 
 export interface IManifestBasicSettingsProps {

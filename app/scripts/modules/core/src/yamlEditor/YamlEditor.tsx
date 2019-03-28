@@ -3,7 +3,7 @@ import AceEditor, { Annotation } from 'react-ace';
 import { $log } from 'ngimport';
 import { loadAll, YAMLException } from 'js-yaml';
 
-import { yamlStringToDocuments } from 'kubernetes/v2/manifest/editor/yaml/yamlEditorUtils';
+import { yamlStringToDocuments } from './yamlEditorUtils';
 
 import 'brace/theme/textmate';
 import 'brace/mode/yaml';
@@ -59,7 +59,7 @@ export class YamlEditor extends React.Component<IYamlEditorProps> {
         mode="yaml"
         theme="textmate"
         name="yaml-editor"
-        style={{ width: 'inherit' }}
+        style={{ width: 'auto' }}
         onChange={this.handleChange}
         fontSize={12}
         showGutter={true}
