@@ -192,11 +192,6 @@ class PipelineController {
       // Check if template id which is after :// is in the store
       if (source?.startsWith(SPINNAKER_PREFIX)) {
         String templateId = source.substring(SPINNAKER_PREFIX.length())
-        if (pipeline.getSchema() == "v2") {
-          templateId = templateId?.contains("@sha256:") || templateId?.contains(":") ?
-              templateId : "$templateId:latest"
-        }
-
         try {
           templateDAO.findById(templateId)
         } catch (NotFoundException notFoundEx) {
