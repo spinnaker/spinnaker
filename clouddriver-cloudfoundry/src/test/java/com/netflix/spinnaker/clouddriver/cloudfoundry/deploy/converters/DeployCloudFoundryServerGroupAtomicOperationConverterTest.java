@@ -103,6 +103,55 @@ class DeployCloudFoundryServerGroupAtomicOperationConverterTest {
   }
 
   @Test
+  void convertDescriptionForCloneWithEnvironmentVariables() {
+    final Map input = HashMap.of(
+      "credentials", "destinationAccount",
+      "region", "org > space",
+      "startApplication", "true",
+      "source", HashMap.of(
+        "account", "sourceAccount",
+        "asgName", "serverGroupName1",
+        "region", "org > space"
+      ).toJavaMap(),
+      "manifest", HashMap.of(
+        "metadata", HashMap.of(
+          "direct", HashMap.of(
+            "buildpacks", Collections.emptyList(),
+            "memory", "1024",
+            "diskQuota", "1024",
+            "instances", "42",
+            "environment", List.of(
+              HashMap.of(
+                "key", "testKey",
+                "value", "testValue").toJavaMap()
+            ).toJavaList()
+          ).toJavaMap()
+        ).toJavaMap()
+      ).toJavaMap()
+    ).toJavaMap();
+
+    final DeployCloudFoundryServerGroupDescription result = converter.convertDescription(input);
+
+    CloudFoundryCredentials sourceCredentials = converter.getCredentialsObject("sourceAccount");
+    assertThat(result.getAccountName()).isEqualTo("destinationAccount");
+    assertThat(result.getArtifactCredentials())
+      .isEqualToComparingFieldByFieldRecursively(new PackageArtifactCredentials(sourceCredentials.getClient()));
+    assertThat(result.getSpace()).isEqualToComparingFieldByFieldRecursively(
+      CloudFoundrySpace.builder().id("spaceID").name("space").organization(
+        CloudFoundryOrganization.builder().id("orgID").name("org").build()).build());
+    assertThat(result.isStartApplication()).isTrue();
+
+    assertThat(result.getApplicationAttributes()).isEqualToComparingFieldByFieldRecursively(
+      new DeployCloudFoundryServerGroupDescription.ApplicationAttributes()
+        .setInstances(42)
+        .setMemory("1024")
+        .setDiskQuota("1024")
+        .setEnv(HashMap.of("testKey", "testValue").toJavaMap())
+        .setBuildpacks(Collections.emptyList())
+    );
+  }
+
+  @Test
   void convertDescriptionWithSourceSet() {
     final Map input = HashMap.of(
       "credentials", "destinationAccount",

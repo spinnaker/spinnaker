@@ -39,6 +39,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static io.vavr.API.*;
 import static java.util.stream.Collectors.toList;
@@ -97,8 +98,19 @@ public class DeployCloudFoundryServerGroupAtomicOperationConverter extends Abstr
       if(converted.getManifest().getType() == null) {
         Map<String, Object> metadata = converted.getManifest().getMetadata();
         if(metadata != null) {
-          converted.setApplicationAttributes(getObjectMapper().convertValue(metadata.get("direct"),
+          Map<String, Object> direct = (Map<String, Object>) metadata.get("direct");
+
+          if(direct == null) {
+            throw new IllegalArgumentException("Expected to find a 'direct' metadata field with the contents of the manifest");
+          }
+
+          converted.setApplicationAttributes(getObjectMapper().convertValue(direct,
             DeployCloudFoundryServerGroupDescription.ApplicationAttributes.class));
+
+          Optional.ofNullable(direct.get("environment"))
+            .map(env -> getObjectMapper().<List<EnvironmentVariable>>convertValue(env, new TypeReference<List<EnvironmentVariable>>() {}))
+            .ifPresent(vars -> converted.getApplicationAttributes().setEnv(vars.stream()
+              .collect(Collectors.toMap(EnvironmentVariable::getKey, EnvironmentVariable::getValue))));
         }
       }
     } else {
@@ -180,4 +192,9 @@ public class DeployCloudFoundryServerGroupAtomicOperationConverter extends Abstr
     private Map<String, String> env;
   }
 
+  @Data
+  private static class EnvironmentVariable {
+    String key;
+    String value;
+  }
 }
