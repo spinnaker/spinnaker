@@ -31,6 +31,21 @@ export class ArtifactEditor extends React.Component<IArtifactEditorProps> {
     this.props.onArtifactEdit(artifact);
   };
 
+  private defaultArtifactAccountIfNecessary(): void {
+    const { artifact, artifactAccounts } = this.props;
+    if (!artifact.artifactAccount && artifactAccounts.length > 0) {
+      this.onArtifactAccountChanged(artifactAccounts[0]);
+    }
+  }
+
+  public componentDidMount(): void {
+    this.defaultArtifactAccountIfNecessary();
+  }
+
+  public componentDidUpdate(): void {
+    this.defaultArtifactAccountIfNecessary();
+  }
+
   public render(): React.ReactNode {
     const { pipeline, artifact, artifactAccounts, onArtifactEdit, isDefault } = this.props;
     const artifactAccount = artifactAccounts.find(acc => acc.name === artifact.artifactAccount) || artifactAccounts[0];
