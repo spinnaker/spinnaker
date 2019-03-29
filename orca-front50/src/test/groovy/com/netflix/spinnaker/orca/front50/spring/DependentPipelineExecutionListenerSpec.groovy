@@ -22,9 +22,12 @@ import com.netflix.spinnaker.orca.front50.DependentPipelineStarter
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.pipeline.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.model.Task
+import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
+import com.netflix.spinnaker.orca.pipelinetemplate.V2Util
 import com.netflix.spinnaker.security.User
 import spock.lang.Specification
 import spock.lang.Subject
+
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
@@ -33,7 +36,10 @@ class DependentPipelineExecutionListenerSpec extends Specification {
   def front50Service = Mock(Front50Service)
   def dependentPipelineStarter = Mock(DependentPipelineStarter)
   def pipelineConfig = buildPipelineConfig(null)
+  def v2MptPipelineConfig = buildTemplatedPipelineConfig()
   def pipelineConfigWithRunAsUser = buildPipelineConfig("my_run_as_user")
+  def contextParameterProcessor = new ContextParameterProcessor()
+  def templatePreprocessor = [process: {}] // Groovy thunk mock since the actual class is Kotlin and makes compliation fail.
 
   def pipeline = pipeline {
     application = "orca"
@@ -49,7 +55,7 @@ class DependentPipelineExecutionListenerSpec extends Specification {
 
   @Subject
   DependentPipelineExecutionListener listener = new DependentPipelineExecutionListener(
-    front50Service, dependentPipelineStarter, fiatStatus
+    front50Service, dependentPipelineStarter, fiatStatus, Optional.of([templatePreprocessor]), contextParameterProcessor
   )
 
   def "should trigger downstream pipeline when status and pipelines match"() {
@@ -69,6 +75,31 @@ class DependentPipelineExecutionListenerSpec extends Specification {
 
     then:
     1 * dependentPipelineStarter.trigger(_, _, _, _, _, null)
+    1 * dependentPipelineStarter.trigger(_, _, _, _, _, { User user -> user.email == "my_run_as_user" })
+
+    where:
+    status << [ExecutionStatus.SUCCEEDED, ExecutionStatus.TERMINAL]
+  }
+
+  def "should trigger downstream v2 templated pipeline when status and pipelines match"() {
+    given:
+    pipeline.stages.each {
+      it.status = status
+      it.tasks = [Mock(Task)]
+    }
+
+    pipeline.pipelineConfigId = "97c435a0-0faf-11e5-a62b-696d38c37faa"
+    front50Service.getAllPipelines() >> [
+      pipelineConfig, pipelineConfigWithRunAsUser, v2MptPipelineConfig
+    ]
+    GroovyMock(V2Util, global: true)
+    V2Util.planPipeline(_, _, v2MptPipelineConfig) >> v2MptPipelineConfig
+
+    when:
+    listener.afterExecution(null, pipeline, null, true)
+
+    then:
+    2 * dependentPipelineStarter.trigger(_, _, _, _, _, null)
     1 * dependentPipelineStarter.trigger(_, _, _, _, _, { User user -> user.email == "my_run_as_user" })
 
     where:
@@ -163,6 +194,25 @@ class DependentPipelineExecutionListenerSpec extends Specification {
 
     then:
     0 * dependentPipelineStarter._
+  }
+
+  private static Map buildTemplatedPipelineConfig() {
+    return [
+      schema: "v2",
+      type: "templatedPipeline",
+      triggers: [
+        [
+          "enabled"    : true,
+          "type"       : "pipeline",
+          "application": "rush",
+          "status"     : [
+            "successful", "failed"
+          ],
+          "pipeline"   : "97c435a0-0faf-11e5-a62b-696d38c37faa",
+          "runAsUser"  : null
+        ]
+      ]
+    ]
   }
 
   private static Map buildPipelineConfig(String runAsUser) {
