@@ -37,4 +37,5 @@ public class AzureAccount extends Account {
   private String packerResourceGroup;
   private String packerStorageAccount;
   private List<String> regions = new ArrayList<>();
+  private String useSshPublicKey;
 }

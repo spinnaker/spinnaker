@@ -101,6 +101,12 @@ class AzureAddAccountCommand extends AbstractAddAccountCommand {
   )
   private List<String> regions = new ArrayList<String>(Arrays.asList("westus", "eastus"));
 
+  @Parameter(
+      names = "--useSshPublicKey",
+      description = AzureCommandProperties.USE_SSH_PUBLIC_KEY_DESCRIPTION
+  )
+  private String useSshPublicKey = "true";
+
   @Override
   protected Account buildAccount(String accountName) {
     return ((AzureAccount) new AzureAccount().setName(accountName))
@@ -113,7 +119,8 @@ class AzureAddAccountCommand extends AbstractAddAccountCommand {
         .setDefaultKeyVault(defaultKeyVault)
         .setPackerResourceGroup(packerResourceGroup)
         .setPackerStorageAccount(packerStorageAccount)
-        .setRegions(regions);
+        .setRegions(regions)
+        .setUseSshPublicKey(useSshPublicKey);
   }
 
   @Override

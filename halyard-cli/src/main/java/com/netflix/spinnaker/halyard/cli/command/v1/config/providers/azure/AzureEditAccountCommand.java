@@ -94,6 +94,12 @@ public class AzureEditAccountCommand extends AbstractEditAccountCommand<AzureAcc
   )
   private List<String> regions;
 
+  @Parameter(
+      names = "--useSshPublicKey",
+      description = AzureCommandProperties.USE_SSH_PUBLIC_KEY_DESCRIPTION
+  )
+  private String useSshPublicKey;
+
   @Override
   protected Account editAccount(AzureAccount account) {
     account.setClientId(isSet(clientId) ? clientId : account.getClientId());
@@ -105,6 +111,7 @@ public class AzureEditAccountCommand extends AbstractEditAccountCommand<AzureAcc
     account.setDefaultKeyVault(isSet(defaultKeyVault) ? defaultKeyVault : account.getDefaultKeyVault());
     account.setPackerResourceGroup(isSet(packerResourceGroup) ? packerResourceGroup : account.getPackerResourceGroup());
     account.setPackerStorageAccount(isSet(packerStorageAccount) ? packerStorageAccount : account.getPackerStorageAccount());
+    account.setUseSshPublicKey(isSet(useSshPublicKey) ? useSshPublicKey : account.getUseSshPublicKey());
 
     try {
       account.setRegions(regions);
