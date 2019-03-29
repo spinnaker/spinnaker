@@ -104,6 +104,11 @@ public class SecretSessionManager {
     }
   }
 
+  public byte[] decryptAsBytes(String encrypted) {
+    SecretSession session = getSession();
+    return session.decryptAsBytes(encrypted);
+  }
+
   public String encrypt(String unencryptedString) {
     throw new UnsupportedOperationException();
   }

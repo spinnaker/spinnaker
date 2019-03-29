@@ -95,10 +95,10 @@ public class DecryptingObjectMapper extends ObjectMapper {
             public void serialize(Object value, JsonGenerator gen, SerializerProvider provider) throws IOException {
                 if (value != null) {
                     String sValue = value.toString();
-                    if (!EncryptedSecret.isEncryptedSecret(sValue)) {
-                        gen.writeString(sValue);
-                    } else {
+                    if (EncryptedSecret.isEncryptedSecret(sValue)) {
                         gen.writeString(secretSessionManager.decrypt(sValue));
+                    } else {
+                        gen.writeString(sValue);
                     }
                 }
             }
@@ -114,9 +114,9 @@ public class DecryptingObjectMapper extends ObjectMapper {
                     if (EncryptedSecret.isEncryptedSecret(sValue)) {
                         // Decrypt the content of the file and store on the profile under a random
                         // generated file name
-                        String decrypted = secretSessionManager.decrypt(sValue);
                         String name = newRandomFilePath(beanPropertyWriter.getName());
-                        profile.getDecryptedFiles().put(name, decrypted);
+                        byte[] bytes = secretSessionManager.decryptAsBytes(sValue);
+                        profile.getDecryptedFiles().put(name, bytes);
                         sValue = getCompleteFilePath(name);
                     }
                     if (annotation != null) {
@@ -148,22 +148,6 @@ public class DecryptingObjectMapper extends ObjectMapper {
         }
         if (_class.getSuperclass() != null) {
             return getSecretFieldAnnotationType(_class.getSuperclass(), fieldName);
-        }
-        return null;
-    }
-
-    protected SecretFile getFieldSecretTypeAnnotation(Class _class, String fieldName) {
-        for (Field f : _class.getDeclaredFields()) {
-            if (f.getName().equals(fieldName)) {
-                SecretFile sf = f.getAnnotation(SecretFile.class);
-                if (sf != null) {
-                    return sf;
-                }
-                break;
-            }
-        }
-        if (_class.getSuperclass() != null) {
-            return getFieldSecretTypeAnnotation(_class.getSuperclass(), fieldName);
         }
         return null;
     }

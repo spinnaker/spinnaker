@@ -42,7 +42,7 @@ public class Profile {
   private String contents = "";
   private List<String> requiredFiles = new ArrayList<>();
   // Secret file content decrypted in memory keyed by generated filename
-  private Map<String, String> decryptedFiles = new HashMap<>();
+  private Map<String, byte[]> decryptedFiles = new HashMap<>();
   private Map<String, String> env = new HashMap<>();
 
   // Name of the profile itself (not the service or artifact)

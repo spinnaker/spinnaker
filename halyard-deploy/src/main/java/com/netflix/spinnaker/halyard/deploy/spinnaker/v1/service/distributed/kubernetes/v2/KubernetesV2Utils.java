@@ -115,8 +115,8 @@ public class KubernetesV2Utils {
     Map<String, String> contentMap = new HashMap<>();
     for (SecretMountPair pair: files) {
       String contents;
-      if (pair.getContentString() != null) {
-        contents = new String(Base64.getEncoder().encode(pair.getContentString().getBytes()));
+      if (pair.getContentBytes() != null) {
+        contents = new String(Base64.getEncoder().encode(pair.getContentBytes()));
       } else {
         try {
           contents = new String(Base64.getEncoder().encode(IOUtils.toByteArray(new FileInputStream(pair.getContents()))));
@@ -162,7 +162,7 @@ public class KubernetesV2Utils {
   @Data
   static public class SecretMountPair {
     File contents;
-    String contentString;
+    byte[] contentBytes;
     String name;
 
     public SecretMountPair(File inputFile) {
@@ -174,8 +174,8 @@ public class KubernetesV2Utils {
       this.name = outputFile.getName();
     }
 
-    public SecretMountPair(String name, String contentString) {
-      this.contentString = contentString;
+    public SecretMountPair(String name, byte[] contentBytes) {
+      this.contentBytes = contentBytes;
       this.name = name;
     }
   }
