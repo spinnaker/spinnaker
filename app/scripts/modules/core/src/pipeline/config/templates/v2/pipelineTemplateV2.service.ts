@@ -30,4 +30,9 @@ export class PipelineTemplateV2Service {
   public static getUnsupportedCopy(task: string): string {
     return `${task} of templated v2 pipelines through the UI is unsupported. Use Spin CLI instead.`;
   }
+
+  public static idForTemplate(template: { id: string; digest?: string }): string {
+    const { id, digest = '' } = template;
+    return `${id}:${digest}`;
+  }
 }

@@ -1,5 +1,8 @@
 import * as React from 'react';
+import { IPromise } from 'angular';
+import * as classnames from 'classnames';
 
+import { Spinner } from 'core/widgets/spinners/Spinner';
 import { IModalComponentProps, JsonEditor } from 'core/presentation';
 import { IPipelineTemplateV2 } from 'core/domain';
 import { CopyToClipboard, noop, JsonUtils } from 'core/utils';
@@ -11,10 +14,13 @@ export interface IShowPipelineTemplateJsonModalProps extends IModalComponentProp
   editable?: boolean;
   modalHeading?: string;
   descriptionText?: string;
+  saveTemplate?: (template: IPipelineTemplateV2) => IPromise<boolean>;
 }
 
 export interface IShowPipelineTemplateJsonModalState {
   template: IPipelineTemplateV2;
+  saveError: Error;
+  saving: boolean;
 }
 
 export class ShowPipelineTemplateJsonModal extends React.Component<
@@ -31,7 +37,7 @@ export class ShowPipelineTemplateJsonModal extends React.Component<
 
   constructor(props: IShowPipelineTemplateJsonModalProps) {
     super(props);
-    this.state = { template: props.template };
+    this.state = { template: props.template, saveError: null, saving: false };
   }
 
   private onChange = (e: React.ChangeEvent<HTMLInputElement>, property: string) => {
@@ -49,13 +55,44 @@ export class ShowPipelineTemplateJsonModal extends React.Component<
     });
   };
 
+  private onTemplateSaved = (error?: Error) => {
+    this.setState({ saveError: error, saving: false });
+  };
+
+  private saveTemplate = () => {
+    this.setState({ saveError: null, saving: true });
+    this.props.saveTemplate(this.state.template).then(
+      (shouldClose: boolean) => {
+        if (shouldClose) {
+          this.props.dismissModal();
+        } else {
+          this.onTemplateSaved();
+        }
+      },
+      (err: Error) => this.onTemplateSaved(err),
+    );
+  };
+
   public render() {
-    const { dismissModal, editable, modalHeading, descriptionText } = this.props;
-    const { template } = this.state;
+    const { dismissModal, editable, modalHeading, descriptionText, saveTemplate } = this.props;
+    const { template, saveError, saving } = this.state;
     const sortedTemplate = JsonUtils.sortObject(template);
     const templateStr = JsonUtils.makeStringFromObject(sortedTemplate, 0);
     const templateStrWithSpacing = JsonUtils.makeStringFromObject(sortedTemplate);
+    const disabled = !editable || !!saving;
 
+    if (saving) {
+      return (
+        <div className="flex-fill">
+          <div className="modal-header">
+            <h3>{modalHeading}</h3>
+          </div>
+          <div className="modal-body flex-fill show-pipeline-template-json-modal__saving-spinner">
+            <Spinner size="medium" message="Saving ..." />
+          </div>
+        </div>
+      );
+    }
     return (
       <div className="flex-fill">
         <div className="modal-header">
@@ -75,7 +112,7 @@ export class ShowPipelineTemplateJsonModal extends React.Component<
                   type="text"
                   value={template.metadata.name}
                   onChange={e => this.onChange(e, 'name')}
-                  disabled={!editable}
+                  disabled={disabled}
                 />
               </div>
             </div>
@@ -91,7 +128,7 @@ export class ShowPipelineTemplateJsonModal extends React.Component<
                   value={template.metadata.description}
                   onChange={e => this.onChange(e, 'description')}
                   placeholder="Template Description"
-                  disabled={!editable}
+                  disabled={disabled}
                 />
               </div>
             </div>
@@ -106,11 +143,11 @@ export class ShowPipelineTemplateJsonModal extends React.Component<
                   type="text"
                   value={template.metadata.owner}
                   onChange={e => this.onChange(e, 'owner')}
-                  disabled={!editable}
+                  disabled={disabled}
                 />
               </div>
             </div>
-            {editable && (
+            {!disabled && (
               <div className="show-pipeline-template-json-modal__copy text-right">
                 <CopyToClipboard
                   buttonInnerNode={<a>Copy the spin command for saving this template</a>}
@@ -122,11 +159,33 @@ export class ShowPipelineTemplateJsonModal extends React.Component<
           <JsonEditor value={templateStrWithSpacing} readOnly={true} />
         </div>
         <div className="modal-footer">
-          <button className="btn btn-primary" onClick={dismissModal}>
-            Close
-          </button>
+          {saveError && <span className="show-pipeline-template-json-modal__save-error">{String(saveError)}</span>}
+          <ShowPipelineTemplateJsonModalButtons onSave={saveTemplate && this.saveTemplate} onClose={dismissModal} />
         </div>
       </div>
     );
   }
 }
+
+interface IShowPipelineTemplateJsonModalButtons {
+  onSave: (e: React.SyntheticEvent<HTMLButtonElement>) => void;
+  onClose: (e: React.SyntheticEvent<HTMLButtonElement>) => void;
+}
+
+const ShowPipelineTemplateJsonModalButtons = (props: IShowPipelineTemplateJsonModalButtons) => {
+  const { onClose, onSave } = props;
+  const closeClasses = classnames({ btn: true, 'btn-primary': !onSave });
+  const saveClasses = classnames({ btn: true, 'btn-primary': true });
+  return (
+    <>
+      <button className={closeClasses} onClick={onClose}>
+        Close
+      </button>
+      {onSave && (
+        <button className={saveClasses} onClick={onSave}>
+          Save
+        </button>
+      )}
+    </>
+  );
+};

@@ -16,6 +16,7 @@ import { ExecutionsTransformer } from 'core/pipeline/service/ExecutionsTransform
 import { EditPipelineJsonModal } from 'core/pipeline/config/actions/pipelineJson/EditPipelineJsonModal';
 import { ShowPipelineTemplateJsonModal } from 'core/pipeline/config/actions/templateJson/ShowPipelineTemplateJsonModal';
 import { PipelineTemplateV2Service } from 'core/pipeline';
+import { PipelineTemplateWriter } from 'core/pipeline/config/templates/PipelineTemplateWriter';
 
 module.exports = angular
   .module('spinnaker.core.pipeline.config.pipelineConfigurer', [OVERRIDE_REGISTRY, EXECUTION_BUILD_TITLE])
@@ -40,10 +41,11 @@ module.exports = angular
     '$timeout',
     '$window',
     '$q',
+    '$state',
     'executionService',
     'overrideRegistry',
     '$location',
-    function($scope, $uibModal, $timeout, $window, $q, executionService, overrideRegistry, $location) {
+    function($scope, $uibModal, $timeout, $window, $q, $state, executionService, overrideRegistry, $location) {
       // For standard pipelines, a 'renderablePipeline' is just the pipeline config.
       // For templated pipelines, a 'renderablePipeline' is the pipeline template plan, and '$scope.pipeline' is the template config.
       $scope.renderablePipeline = $scope.plan || $scope.pipeline;
@@ -218,7 +220,11 @@ module.exports = angular
         const pipeline = $scope.pipeline;
         const ownerEmail = _.get($scope, 'application.attributes.email', '');
         const template = PipelineTemplateV2Service.createPipelineTemplate(pipeline, ownerEmail);
-        ReactModal.show(ShowPipelineTemplateJsonModal, { template }, modalProps);
+        const templateProps = {
+          template,
+          saveTemplate: this.saveTemplate,
+        };
+        ReactModal.show(ShowPipelineTemplateJsonModal, templateProps, modalProps);
       };
 
       // Disabling a pipeline also just toggles the disabled flag - it does not save any pending changes
@@ -537,5 +543,20 @@ module.exports = angular
       if ($scope.isTemplatedPipeline && $scope.pipeline.isNew && !$scope.hasDynamicSource) {
         this.configureTemplate();
       }
+
+      this.saveTemplate = template => {
+        return PipelineTemplateWriter.savePipelineTemplateV2(template).then(
+          response => {
+            const id = response.variables.find(v => v.key === 'pipelineTemplate.id').value;
+            $state.go('home.pipeline-templates.pipeline-templates-detail', {
+              templateId: PipelineTemplateV2Service.idForTemplate({ id }),
+            });
+            return true;
+          },
+          err => {
+            throw err;
+          },
+        );
+      };
     },
   ]);

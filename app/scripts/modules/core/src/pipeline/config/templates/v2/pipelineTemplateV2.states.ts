@@ -8,6 +8,16 @@ export const PIPELINE_TEMPLATES_V2_STATES_CONFIG = 'spinnaker.core.pipeline.temp
 module(PIPELINE_TEMPLATES_V2_STATES_CONFIG, [STATE_CONFIG_PROVIDER]).config([
   'stateConfigProvider',
   (stateConfigProvider: StateConfigProvider) => {
+    const pipelineTemplateDetail: INestedState = {
+      name: 'pipeline-templates-detail',
+      url: '/:templateId',
+      data: {
+        pageTitleMain: {
+          label: 'Pipeline Templates',
+        },
+      },
+    };
+
     const pipelineTemplatesList: INestedState = {
       name: 'pipeline-templates',
       url: '/pipeline-templates',
@@ -22,7 +32,9 @@ module(PIPELINE_TEMPLATES_V2_STATES_CONFIG, [STATE_CONFIG_PROVIDER]).config([
           label: 'Pipeline Templates',
         },
       },
+      children: [pipelineTemplateDetail],
     };
+
     if (SETTINGS.feature.managedPipelineTemplatesV2UI) {
       stateConfigProvider.addToRootState(pipelineTemplatesList);
     }
