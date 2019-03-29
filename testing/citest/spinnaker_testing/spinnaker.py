@@ -489,9 +489,10 @@ class SpinnakerAgent(service_testing.HttpAgent):
 
     logger.info('%s is available at %s', name, base_url)
     env_url = os.path.join(base_url, 'resolvedEnv')
-    deployed_config = scrape_spring_config(env_url, headers={
-      'Authorization': 'Bearer {}'.format(bearer_auth_token)
-    }, ignore_ssl_cert_verification=ignore_ssl_cert_verification)
+    headers = {}
+    if bearer_auth_token:
+      headers['Authorization'] = 'Bearer {}'.format(bearer_auth_token)
+    deployed_config = scrape_spring_config(env_url, headers=headers, ignore_ssl_cert_verification=ignore_ssl_cert_verification)
     JournalLogger.journal_or_log_detail(
         '{0} configuration'.format(name), deployed_config)
 
