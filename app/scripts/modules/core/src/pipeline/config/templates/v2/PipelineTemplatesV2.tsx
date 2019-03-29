@@ -171,15 +171,15 @@ export class PipelineTemplatesV2 extends React.Component<{}, IPipelineTemplatesV
                   <tbody>
                     {filteredResults.map(template => {
                       const { metadata } = template;
-                      const templateId = PipelineTemplateV2Service.idForTemplate(template);
+                      const id = PipelineTemplateV2Service.idForTemplate(template);
                       return (
-                        <tr key={templateId}>
+                        <tr key={id}>
                           <td>{metadata.name || '-'}</td>
                           <td>{metadata.owner || '-'}</td>
                           <td>{this.getUpdateTimeForTemplate(template) || '-'}</td>
                           <td className="pipeline-template-actions">
-                            <UISref to={`.pipeline-templates-detail`} params={{ templateId }}>
-                              <button className="link" onClick={() => this.setState({ templateId })}>
+                            <UISref to={`.pipeline-templates-detail`} params={{ templateId: id }}>
+                              <button className="link" onClick={() => this.setState({ templateId: id })}>
                                 View
                               </button>
                             </UISref>
