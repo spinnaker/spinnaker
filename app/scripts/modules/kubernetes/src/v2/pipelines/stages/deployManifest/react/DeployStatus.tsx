@@ -10,10 +10,24 @@ import { KubernetesManifestService } from 'kubernetes/v2/manifest/manifest.servi
 import { ManifestStatus } from './ManifestStatus';
 
 // from https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.12/
-const BUILT_IN_GROUPS = ['', 'core', 'batch', 'apps', 'extensions', 'storage.k8s.io',
-  'apiextensions.k8s.io', 'apiregistration.k8s.io', 'policy', 'scheduling.k8s.io',
-  'settings.k8s.io', 'authorization.k8s.io', 'authentication.k8s.io', 'rbac.authorization.k8s.io',
-  'certifcates.k8s.io', 'networking.k8s.io']
+const BUILT_IN_GROUPS = [
+  '',
+  'core',
+  'batch',
+  'apps',
+  'extensions',
+  'storage.k8s.io',
+  'apiextensions.k8s.io',
+  'apiregistration.k8s.io',
+  'policy',
+  'scheduling.k8s.io',
+  'settings.k8s.io',
+  'authorization.k8s.io',
+  'authentication.k8s.io',
+  'rbac.authorization.k8s.io',
+  'certifcates.k8s.io',
+  'networking.k8s.io',
+];
 
 export interface IManifestSubscription {
   id: string;
@@ -94,7 +108,7 @@ export class DeployStatus extends React.Component<IExecutionDetailsSectionProps,
     // manifest.metadata.namespace doesn't exist if it's a namespace being deployed
     const namespace = (manifest.metadata.namespace || '_').toLowerCase();
     const name = manifest.metadata.name.toLowerCase();
-    const apiVersion = manifest.apiVersion.toLowerCase();
+    const apiVersion = (manifest.apiVersion || '_').toLowerCase();
     // assuming this identifier is opaque and not parsed anywhere. Including the
     // apiVersion will prevent collisions with CRD kinds without having any visible
     // effect elsewhere
@@ -102,11 +116,11 @@ export class DeployStatus extends React.Component<IExecutionDetailsSectionProps,
   }
 
   private apiGroup(manifest: IStageManifest): string {
-    const parts = manifest.apiVersion.split('/');
+    const parts = (manifest.apiVersion || '_').split('/');
     if (parts.length < 2) {
-      return ''
+      return '';
     }
-    return parts[0]
+    return parts[0];
   }
 
   private isCRDGroup(manifest: IStageManifest): boolean {
@@ -118,7 +132,7 @@ export class DeployStatus extends React.Component<IExecutionDetailsSectionProps,
       return upperFirst(manifest.kind) + '.' + this.apiGroup(manifest);
     }
 
-    return upperFirst(manifest.kind)
+    return upperFirst(manifest.kind);
   }
 
   private stageManifestToIManifest(manifest: IStageManifest, account: string): IManifest {
