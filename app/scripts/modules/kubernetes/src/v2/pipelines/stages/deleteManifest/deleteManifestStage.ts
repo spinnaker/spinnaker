@@ -3,7 +3,7 @@ import { module } from 'angular';
 import { Registry, SETTINGS, IStage, ExecutionDetailsTasks } from '@spinnaker/core';
 
 import { manifestExecutionDetails } from 'kubernetes/v2/pipelines/stages/ManifestExecutionDetails';
-import { trafficValidators } from 'kubernetes/v2/pipelines/stages/traffic/validators';
+import { manifestSelectorValidators } from '../validators/manifestSelectorValidators';
 import { DeleteManifestStageConfig } from 'kubernetes/v2/pipelines/stages/deleteManifest/DeleteManifestStageConfig';
 
 export const KUBERNETES_DELETE_MANIFEST_STAGE = 'spinnaker.kubernetes.v2.pipeline.stage.deleteManifestStage';
@@ -22,7 +22,7 @@ module(KUBERNETES_DELETE_MANIFEST_STAGE, []).config(() => {
       executionDetailsSections: [manifestExecutionDetails(STAGE_KEY), ExecutionDetailsTasks],
       accountExtractor: (stage: IStage): string => (stage.account ? stage.account : []),
       configAccountExtractor: (stage: any): string[] => (stage.account ? [stage.account] : []),
-      validators: trafficValidators(STAGE_NAME),
+      validators: manifestSelectorValidators(STAGE_NAME),
     });
   }
 });

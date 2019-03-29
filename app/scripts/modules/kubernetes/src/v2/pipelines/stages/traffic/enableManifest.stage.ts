@@ -1,8 +1,9 @@
 import { module } from 'angular';
 
 import { EXECUTION_ARTIFACT_TAB, ExecutionDetailsTasks, IStage, Registry } from '@spinnaker/core';
+
 import { ManifestTrafficStageConfig } from './ManifestTrafficStageConfig';
-import { trafficValidators } from 'kubernetes/v2/pipelines/stages/traffic/validators';
+import { manifestSelectorValidators } from '../validators/manifestSelectorValidators';
 import { manifestExecutionDetails } from 'kubernetes/v2/pipelines/stages/ManifestExecutionDetails';
 
 const STAGE_NAME = 'Enable (Manifest)';
@@ -19,6 +20,6 @@ module(KUBERNETES_ENABLE_MANIFEST_STAGE, [EXECUTION_ARTIFACT_TAB]).config(() => 
     defaultTimeoutMs: 30 * 60 * 1000, // 30 minutes
     accountExtractor: (stage: IStage): string => (stage.account ? stage.account : ''),
     configAccountExtractor: (stage: IStage): string[] => (stage.account ? [stage.account] : []),
-    validators: trafficValidators(STAGE_NAME),
+    validators: manifestSelectorValidators(STAGE_NAME),
   });
 });

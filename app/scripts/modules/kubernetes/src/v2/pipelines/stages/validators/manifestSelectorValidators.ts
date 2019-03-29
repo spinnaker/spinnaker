@@ -1,7 +1,8 @@
 import { IPipeline, IStage, IValidatorConfig, ICustomValidator } from '@spinnaker/core';
+
 import { IManifestSelector, SelectorMode } from 'kubernetes/v2/manifest/selector/IManifestSelector';
 
-export const trafficValidators = (stageName: string): IValidatorConfig[] => {
+export const manifestSelectorValidators = (stageName: string): IValidatorConfig[] => {
   const required = (field: string) => `<strong>${field}</strong> is a required field for ${stageName} stages.`;
 
   return [

@@ -4,16 +4,18 @@ import { Registry, SETTINGS, ExecutionDetailsTasks, ExecutionArtifactTab } from 
 
 import { KubernetesV2FindArtifactsFromResourceConfigCtrl } from './findArtifactsFromResourceConfig.controller';
 import { KUBERNETES_MANIFEST_SELECTOR } from '../../../manifest/selector/selector.component';
+import { manifestSelectorValidators } from '../validators/manifestSelectorValidators';
 
 export const KUBERNETES_FIND_ARTIFACTS_FROM_RESOURCE_STAGE =
   'spinnaker.kubernetes.v2.pipeline.stage.findArtifactsFromResource';
 
+const STAGE_NAME = 'Find Artifacts From Resource (Manifest)';
 module(KUBERNETES_FIND_ARTIFACTS_FROM_RESOURCE_STAGE, [KUBERNETES_MANIFEST_SELECTOR])
   .config(() => {
     // Todo: replace feature flag with proper versioned provider mechanism once available.
     if (SETTINGS.feature.artifacts) {
       Registry.pipeline.registerStage({
-        label: 'Find Artifacts From Resource (Manifest)',
+        label: STAGE_NAME,
         description: 'Finds artifacts from a Kubernetes resource.',
         key: 'findArtifactsFromResource',
         cloudProvider: 'kubernetes',
@@ -22,11 +24,7 @@ module(KUBERNETES_FIND_ARTIFACTS_FROM_RESOURCE_STAGE, [KUBERNETES_MANIFEST_SELEC
         controllerAs: 'ctrl',
         executionDetailsSections: [ExecutionDetailsTasks, ExecutionArtifactTab],
         producesArtifacts: true,
-        validators: [
-          { type: 'requiredField', fieldName: 'location', fieldLabel: 'Namespace' },
-          { type: 'requiredField', fieldName: 'account', fieldLabel: 'Account' },
-          { type: 'manifestSelector' },
-        ],
+        validators: manifestSelectorValidators(STAGE_NAME),
       });
     }
   })
