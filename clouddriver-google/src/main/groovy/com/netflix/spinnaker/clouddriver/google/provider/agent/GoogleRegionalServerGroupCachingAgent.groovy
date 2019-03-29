@@ -22,13 +22,7 @@ import com.google.api.client.googleapis.batch.json.JsonBatchCallback
 import com.google.api.client.googleapis.json.GoogleJsonError
 import com.google.api.client.http.HttpHeaders
 import com.google.api.services.compute.ComputeRequest
-import com.google.api.services.compute.model.Autoscaler
-import com.google.api.services.compute.model.AutoscalerStatusDetails
-import com.google.api.services.compute.model.AutoscalersScopedList
-import com.google.api.services.compute.model.DistributionPolicy
-import com.google.api.services.compute.model.InstanceGroupManager
-import com.google.api.services.compute.model.InstanceTemplate
-import com.google.api.services.compute.model.RegionInstanceGroupManagerList
+import com.google.api.services.compute.model.*
 import com.netflix.frigga.Names
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.AgentDataType
@@ -40,6 +34,7 @@ import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
 import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.GoogleExecutorTraits
+import com.netflix.spinnaker.clouddriver.google.batch.GoogleBatchRequest
 import com.netflix.spinnaker.clouddriver.google.cache.CacheResultBuilder
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
@@ -49,7 +44,6 @@ import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.provider.agent.util.PaginatedRequest
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
-import com.netflix.spinnaker.clouddriver.google.batch.GoogleBatchRequest
 import com.netflix.spinnaker.moniker.Moniker
 import groovy.transform.Canonical
 import groovy.util.logging.Slf4j
@@ -58,12 +52,7 @@ import java.util.concurrent.TimeUnit
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
-import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.APPLICATIONS
-import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.CLUSTERS
-import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.INSTANCES
-import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.LOAD_BALANCERS
-import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.ON_DEMAND
-import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.SERVER_GROUPS
+import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.*
 
 @Slf4j
 class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent implements OnDemandAgent, GoogleExecutorTraits {
@@ -424,7 +413,8 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
         }
 
         def autoscalerCallback = new AutoscalerAggregatedListCallback(serverGroups: serverGroups)
-        autoscalerRequest.queue(compute.autoscalers().aggregatedList(project), autoscalerCallback)
+        buildAutoscalerListRequest().queue(autoscalerRequest, autoscalerCallback,
+          'GoogleRegionalServerGroupCachingAgent.autoscalerAggregatedList')
       }
     }
 
@@ -531,6 +521,20 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
             }
           }
         }
+      }
+    }
+  }
+
+  PaginatedRequest<AutoscalerAggregatedList> buildAutoscalerListRequest() {
+    return new PaginatedRequest<AutoscalerAggregatedList>(this) {
+      @Override
+      protected String getNextPageToken(AutoscalerAggregatedList autoscalerAggregatedList) {
+        return autoscalerAggregatedList.getNextPageToken()
+      }
+
+      @Override
+      protected ComputeRequest<AutoscalerAggregatedList> request(String pageToken) {
+        return compute.autoscalers().aggregatedList(project).setPageToken(pageToken)
       }
     }
   }

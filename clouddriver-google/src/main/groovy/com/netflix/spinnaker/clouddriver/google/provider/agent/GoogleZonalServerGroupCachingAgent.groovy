@@ -23,14 +23,7 @@ import com.google.api.client.googleapis.json.GoogleJsonError
 import com.google.api.client.http.HttpHeaders
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.ComputeRequest
-import com.google.api.services.compute.model.Autoscaler
-import com.google.api.services.compute.model.AutoscalerStatusDetails
-import com.google.api.services.compute.model.AutoscalersScopedList
-import com.google.api.services.compute.model.InstanceGroupManager
-import com.google.api.services.compute.model.InstanceGroupManagerList
-import com.google.api.services.compute.model.InstanceTemplate
-import com.google.api.services.compute.model.InstanceTemplateList
-import com.google.api.services.compute.model.Metadata
+import com.google.api.services.compute.model.*
 import com.netflix.frigga.Names
 import com.netflix.frigga.ami.AppVersion
 import com.netflix.spectator.api.Registry
@@ -42,7 +35,9 @@ import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
 import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
+import com.netflix.spinnaker.clouddriver.google.GoogleExecutor
 import com.netflix.spinnaker.clouddriver.google.GoogleExecutorTraits
+import com.netflix.spinnaker.clouddriver.google.batch.GoogleBatchRequest
 import com.netflix.spinnaker.clouddriver.google.cache.CacheResultBuilder
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
@@ -53,8 +48,6 @@ import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLo
 import com.netflix.spinnaker.clouddriver.google.provider.agent.util.PaginatedRequest
 import com.netflix.spinnaker.clouddriver.google.security.AccountForClient
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
-import com.netflix.spinnaker.clouddriver.google.GoogleExecutor
-import com.netflix.spinnaker.clouddriver.google.batch.GoogleBatchRequest
 import com.netflix.spinnaker.moniker.Moniker
 import groovy.transform.Canonical
 import groovy.util.logging.Slf4j
@@ -63,17 +56,8 @@ import java.util.concurrent.TimeUnit
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
-import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.APPLICATIONS
-import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.CLUSTERS
-import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.IMAGES
-import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.INSTANCES
-import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.LOAD_BALANCERS
-import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.ON_DEMAND
-import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.SERVER_GROUPS
-import static com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil.BACKEND_SERVICE_NAMES
-import static com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil.GLOBAL_LOAD_BALANCER_NAMES
-import static com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil.LOAD_BALANCING_POLICY
-import static com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil.REGIONAL_LOAD_BALANCER_NAMES
+import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.*
+import static com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil.*
 
 @Slf4j
 class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent implements OnDemandAgent, GoogleExecutorTraits {
@@ -471,7 +455,8 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
         }
 
         def autoscalerCallback = new AutoscalerAggregatedListCallback(serverGroups: serverGroups)
-        autoscalerRequest.queue(compute.autoscalers().aggregatedList(project), autoscalerCallback)
+        buildAutoscalerListRequest().queue(autoscalerRequest, autoscalerCallback,
+          'GoogleZonalServerGroupCachingAgent.autoscalerAggregatedList')
       }
     }
 
@@ -691,6 +676,7 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
 
     @Override
     void onSuccess(AutoscalerAggregatedList autoscalerAggregatedList, HttpHeaders responseHeaders) throws IOException {
+
       autoscalerAggregatedList?.items?.each { String location, AutoscalersScopedList autoscalersScopedList ->
         if (location.startsWith("zones/")) {
           def localZoneName = Utils.getLocalName(location)
@@ -715,6 +701,20 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
             }
           }
         }
+      }
+    }
+  }
+
+  PaginatedRequest<AutoscalerAggregatedList> buildAutoscalerListRequest() {
+    return new PaginatedRequest<AutoscalerAggregatedList>(this) {
+      @Override
+      protected String getNextPageToken(AutoscalerAggregatedList autoscalerAggregatedList) {
+        return autoscalerAggregatedList.getNextPageToken()
+      }
+
+      @Override
+      protected ComputeRequest<AutoscalerAggregatedList> request(String pageToken) {
+        return compute.autoscalers().aggregatedList(project).setPageToken(pageToken)
       }
     }
   }
