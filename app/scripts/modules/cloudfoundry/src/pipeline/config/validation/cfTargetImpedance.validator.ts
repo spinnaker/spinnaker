@@ -42,7 +42,7 @@ export class CfTargetImpedanceValidator implements IStageOrTriggerValidator {
           });
         } else if (
           toTest.type === 'cloneServerGroup' &&
-          toTest.targetCluster === stage.cluster &&
+          NameUtils.getClusterName(toTest.application, toTest.stack, toTest.freeFormDetails) === stage.cluster &&
           toTest.region === region
         ) {
           regionFound = true;
