@@ -25,10 +25,13 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Data
@@ -64,8 +67,28 @@ public class IndexParser {
     }
     List<EntryConfig> configs = buildEntryConfigsByName(buildIndexConfig(in), name);
     String validVersion = StringUtils.isBlank(version) ? findLatestVersion(configs) : version;
-    return findUrlsByVersion(configs, validVersion);
+    return resolveReferenceUrls(findUrlsByVersion(configs, validVersion));
 
+  }
+
+  private List<String> resolveReferenceUrls(List<String> urls) {
+    return urls.stream().map(this::resolveReferenceUrl).collect(Collectors.toList());
+  }
+
+  private String resolveReferenceUrl(String ref) {
+    String resolvedRef = ref;
+    String base = repository;
+    if(!base.endsWith("/")) {
+      base = base.concat("/");
+    }
+    try {
+      URL baseUrl = new URL(base);
+      URL resolvedUrl = new URL(baseUrl, ref);
+      resolvedRef = resolvedUrl.toExternalForm();
+    } catch (MalformedURLException e) {
+      log.error("Failed to resolve reference url:" + ref, e);
+    }
+    return resolvedRef;
   }
 
   private List<String> findUrlsByVersion(List<EntryConfig> configs, String version) {
