@@ -1,3 +1,5 @@
+apply plugin: "groovy"
+
 dependencies {
   compile project(":kork-security")
   compile project(":kork-exceptions")
@@ -15,5 +17,3 @@ dependencies {
 
   spinnaker.group('spockBase')
 }
-
-apply plugin: 'groovy'

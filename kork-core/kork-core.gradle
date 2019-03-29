@@ -1,3 +1,5 @@
+apply plugin: "groovy"
+
 dependencies {
     compile spinnaker.dependency('bootAutoConfigure')
     compile spinnaker.dependency('bootActuator')
@@ -10,9 +12,16 @@ dependencies {
     compile spinnaker.dependency('spectatorJvm')
     compile spinnaker.dependency('spectatorWebSpring')
     compile project(":kork-secrets-aws")
+  compile "com.google.code.findbugs:jsr305:3.0.2"
+  compile "com.netflix.netflix-commons:netflix-eventbus:0.3.0"
+  compile "javax.inject:javax.inject:1"
+  compile "commons-configuration:commons-configuration:1.8"
+
+  compileOnly spinnaker.dependency('lombok')
+  annotationProcessor spinnaker.dependency('lombok')
 
     testCompile spinnaker.dependency('groovy')
     spinnaker.group('spockBase')
     testRuntime spinnaker.dependency('slf4jSimple')
-    testCompile(group: 'org.mockito', name: 'mockito-core', version: '2.23.4')
+    testCompile('org.mockito:mockito-core:2.23.4')
 }

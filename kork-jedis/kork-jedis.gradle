@@ -1,3 +1,5 @@
+apply plugin: "groovy"
+
 dependencies {
   compile project(":kork-core")
   compile spinnaker.dependency('spectatorApi')

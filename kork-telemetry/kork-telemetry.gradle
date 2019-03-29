@@ -1,3 +1,5 @@
+apply plugin: "groovy"
+
 dependencies {
   compile spinnaker.dependency("spectatorApi")
   compile spinnaker.dependency("guava")

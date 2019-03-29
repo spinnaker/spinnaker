@@ -1,3 +1,5 @@
+apply plugin: "java-library"
+
 dependencies {
   compile project(":kork-jedis")
   compile("com.netflix.dyno:dyno-jedis:${spinnaker.version('dynomite')}") {

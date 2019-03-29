@@ -1,3 +1,5 @@
+apply plugin: "groovy"
+
 dependencies {
   compile spinnaker.dependency('groovy')
   compile spinnaker.dependency('spectatorApi')
@@ -9,5 +11,3 @@ dependencies {
 
   spinnaker.group('spockBase')
 }
-
-apply plugin: 'groovy'

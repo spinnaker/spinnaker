@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+apply plugin: "groovy"
 
 dependencies {
   compile spinnaker.dependency('groovy')
@@ -25,5 +26,3 @@ dependencies {
 
   spinnaker.group("spockBase")
 }
-
-apply plugin: 'groovy'

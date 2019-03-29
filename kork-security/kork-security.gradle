@@ -1,3 +1,5 @@
+apply plugin: "groovy"
+
 dependencies {
   compile spinnaker.dependency('springSecurityCore')
   compile spinnaker.dependency('groovy')
@@ -7,5 +9,3 @@ dependencies {
   compile spinnaker.dependency('slf4j')
   compile spinnaker.dependency('logbackClassic')
 }
-
-apply plugin: 'groovy'

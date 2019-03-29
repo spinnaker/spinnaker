@@ -1,7 +1,7 @@
+apply plugin: "groovy"
+
 dependencies {
   spinnaker.group('spockBase')
 
   testCompile spinnaker.dependency('groovy')
 }
-
-apply plugin: 'groovy'

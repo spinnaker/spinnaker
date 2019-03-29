@@ -1,3 +1,5 @@
+apply plugin: "java-library"
+
 dependencies {
   compile spinnaker.dependency('jedis')
   compile spinnaker.dependency('redisEmbedded')
