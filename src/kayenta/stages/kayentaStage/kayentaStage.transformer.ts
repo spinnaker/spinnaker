@@ -35,7 +35,7 @@ export class KayentaStageTransformer implements ITransformer {
 
         // For now, a 'kayentaCanary' stage should only have an 'aggregateCanaryResults' task, which should definitely go last.
         stage.tasks = [...syntheticCanaryStages, ...stage.tasks];
-      } else if (stage.type === CREATE_SERVER_GROUP) {
+      } else if (stage.type === CREATE_SERVER_GROUP && this.isDescendantOf(stage, kayentaStage, execution)) {
         OrchestratedItemTransformer.defineProperties(stage);
         const locations = stage.context['deploy.server.groups'] && Object.keys(stage.context['deploy.server.groups']);
         stage.name = `Deploy ${stage.context.freeFormDetails}${locations ? ' in ' + locations.join(', ') : ''}`;
