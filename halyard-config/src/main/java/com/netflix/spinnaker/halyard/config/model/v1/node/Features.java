@@ -58,6 +58,8 @@ public class Features extends Node {
   private Boolean wercker;
   @ValidForSpinnakerVersion(lowerBound = "1.13.0", tooLowMessage = "Managed Pipeline Templates v2 UI is not available prior to this release.")
   private Boolean managedPipelineTemplatesV2UI;
+  @ValidForSpinnakerVersion(lowerBound = "1.13.0", tooLowMessage = "Gremlin is not available prior to this release.")
+  private Boolean gremlin;
 
   public boolean isAuth(DeploymentConfiguration deploymentConfiguration) {
     return deploymentConfiguration.getSecurity().getAuthn().isEnabled();
