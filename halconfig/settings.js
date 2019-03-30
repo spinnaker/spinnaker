@@ -18,7 +18,7 @@ var defaultStorageAccountName = '{%canary.defaultStorageAccount%}';
 var displayTimestampsInUserLocalTime = '{%features.displayTimestampsInUserLocalTime%}' === 'true';
 var entityTagsEnabled = false;
 var fiatEnabled = '{%features.fiat%}' === 'true';
-var gremlinEnabled = '{%features.gremlinEnabled%}' === 'true';
+var gremlinEnabled = '{%features.gremlin%}' === 'true';
 var iapRefresherEnabled = '{%features.iapRefresherEnabled%}' === 'true';
 var infrastructureStagesEnabled = '{%features.infrastructureStages%}' === 'true';
 var managedPipelineTemplatesV2UIEnabled = '{%features.managedPipelineTemplatesV2UI%}' === 'true';
