@@ -2,3 +2,8 @@
 
 redis:
   connection: ${services.redis.baseUrl:redis://localhost:6379}
+
+integrations:
+  gremlin:
+    enabled: ${features.gremlin:false}
+    baseUrl: https://api.gremlin.com/v1
