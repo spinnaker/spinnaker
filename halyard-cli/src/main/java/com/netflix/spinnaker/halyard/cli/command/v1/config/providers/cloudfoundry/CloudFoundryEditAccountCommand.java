@@ -37,16 +37,16 @@ public class CloudFoundryEditAccountCommand extends AbstractEditAccountCommand<C
     private String api;
 
     @Parameter(
-            names = "--appsManagerURI",
+            names = "--appsManagerUri",
             description = CloudFoundryCommandProperties.APPS_MANAGER_URI_DESCRIPTION
     )
-    private String appsManagerURI;
+    private String appsManagerUri;
 
     @Parameter(
-            names = "--metricsURI",
+            names = "--metricsUri",
             description = CloudFoundryCommandProperties.METRICS_URI_DESCRIPTION
     )
-    private String metricsURI;
+    private String metricsUri;
 
     @Parameter(
             names = "--password",
@@ -65,8 +65,8 @@ public class CloudFoundryEditAccountCommand extends AbstractEditAccountCommand<C
     @Override
     protected Account editAccount(CloudFoundryAccount account) {
         account.setApi(isSet(api) ? api : account.getApi());
-        account.setAppsManagerURI(isSet(appsManagerURI) ? appsManagerURI : account.getAppsManagerURI());
-        account.setMetricsURI(isSet(metricsURI) ? metricsURI : account.getMetricsURI());
+        account.setAppsManagerUri(isSet(appsManagerUri) ? appsManagerUri : account.getAppsManagerUri());
+        account.setMetricsUri(isSet(metricsUri) ? metricsUri : account.getMetricsUri());
         account.setPassword(isSet(password) ? password : account.getPassword());
         account.setUser(isSet(user) ? user : account.getUser());
 

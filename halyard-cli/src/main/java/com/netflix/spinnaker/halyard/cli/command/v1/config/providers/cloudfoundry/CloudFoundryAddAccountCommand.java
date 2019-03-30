@@ -32,16 +32,16 @@ public class CloudFoundryAddAccountCommand extends AbstractAddAccountCommand {
     private String api;
 
     @Parameter(
-            names = "--appsManagerURI",
+            names = "--appsManagerUri",
             description = CloudFoundryCommandProperties.APPS_MANAGER_URI_DESCRIPTION
     )
-    private String appsManagerURI;
+    private String appsManagerUri;
 
     @Parameter(
-            names = "--metricsURI",
+            names = "--metricsUri",
             description = CloudFoundryCommandProperties.METRICS_URI_DESCRIPTION
     )
-    private String metricsURI;
+    private String metricsUri;
 
     @Parameter(
             names = "--password",
@@ -62,8 +62,8 @@ public class CloudFoundryAddAccountCommand extends AbstractAddAccountCommand {
         CloudFoundryAccount cloudFoundryAccount = (CloudFoundryAccount) new CloudFoundryAccount().setName(accountName);
         return cloudFoundryAccount
                 .setApi(api)
-                .setAppsManagerURI(appsManagerURI)
-                .setMetricsURI(metricsURI)
+                .setAppsManagerUri(appsManagerUri)
+                .setMetricsUri(metricsUri)
                 .setPassword(password)
                 .setUser(user);
     }

@@ -25,8 +25,8 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 public class CloudFoundryAccount extends Account {
     String api;
-    String appsManagerURI;
-    String metricsURI;
+    String appsManagerUri;
+    String metricsUri;
     @Secret
     String password;
     String user;
