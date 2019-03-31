@@ -4,7 +4,9 @@ import { DateTime } from 'luxon';
 import { get, memoize } from 'lodash';
 import { Subscription } from 'rxjs';
 import { UISref } from '@uirouter/react';
+
 import { PipelineTemplateV2Service } from './pipelineTemplateV2.service';
+import CreatePipelineFromTemplate from './CreatePipelineFromTemplate';
 import { IPipelineTemplateV2 } from 'core/domain/IPipelineTemplateV2';
 import { ShowPipelineTemplateJsonModal } from 'core/pipeline/config/actions/templateJson/ShowPipelineTemplateJsonModal';
 import { ReactInjector, IStateChange } from 'core/reactShims';
@@ -16,11 +18,12 @@ import './PipelineTemplatesV2.less';
 const { idForTemplate } = PipelineTemplateV2Service;
 
 export interface IPipelineTemplatesV2State {
-  templates: IPipelineTemplateV2[];
   fetchError: string;
   searchValue: string;
   viewTemplateId?: string;
   deleteTemplateId?: string;
+  selectedTemplate: IPipelineTemplateV2;
+  templates: IPipelineTemplateV2[];
 }
 
 export const PipelineTemplatesV2Error = (props: { message: string }) => {
@@ -35,16 +38,21 @@ export const PipelineTemplatesV2Error = (props: { message: string }) => {
 export class PipelineTemplatesV2 extends React.Component<{}, IPipelineTemplatesV2State> {
   private routeChangedSubscription: Subscription = null;
 
-  constructor(props: {}) {
-    super(props);
-    const { $stateParams } = ReactInjector;
-    const viewTemplateId: string = $stateParams.templateId;
-    this.state = { templates: [], fetchError: null, searchValue: '', viewTemplateId };
-  }
+  public state: IPipelineTemplatesV2State = {
+    fetchError: null,
+    searchValue: '',
+    selectedTemplate: null,
+    templates: [],
+    viewTemplateId: ReactInjector.$stateParams.templateId,
+  };
 
   public componentDidMount() {
     this.fetchTemplates();
     this.routeChangedSubscription = ReactInjector.stateEvents.stateChangeSuccess.subscribe(this.onRouteChanged);
+  }
+
+  public componentWillUnmount() {
+    this.routeChangedSubscription.unsubscribe();
   }
 
   private fetchTemplates() {
@@ -59,10 +67,6 @@ export class PipelineTemplatesV2 extends React.Component<{}, IPipelineTemplatesV
         }
       },
     );
-  }
-
-  public componentWillUnmount() {
-    this.routeChangedSubscription.unsubscribe();
   }
 
   private onRouteChanged = (stateChange: IStateChange) => {
@@ -131,13 +135,22 @@ export class PipelineTemplatesV2 extends React.Component<{}, IPipelineTemplatesV
 
   private getTemplateToDelete = () => this.state.templates.find(t => idForTemplate(t) === this.state.deleteTemplateId);
 
+  private handleCreatePipelineClick(template: IPipelineTemplateV2): void {
+    this.setState({ selectedTemplate: template });
+  }
+
+  public handleCreatePipelineModalClose = () => {
+    this.setState({ selectedTemplate: null });
+  };
+
   public render() {
-    const { templates, searchValue, fetchError, viewTemplateId, deleteTemplateId } = this.state;
+    const { templates, selectedTemplate, searchValue, fetchError, viewTemplateId, deleteTemplateId } = this.state;
     const detailsTemplate = viewTemplateId ? this.getViewedTemplate() : null;
     const searchPerformed = searchValue.trim() !== '';
     const filteredResults = this.sortTemplates(this.filterSearchResults(templates, searchValue));
     const resultsAvailable = filteredResults.length > 0;
     const deleteTemplate = deleteTemplateId ? this.getTemplateToDelete() : null;
+
     return (
       <>
         <div className="infrastructure">
@@ -194,6 +207,12 @@ export class PipelineTemplatesV2 extends React.Component<{}, IPipelineTemplatesV
                             <button className="link" onClick={() => this.setState({ deleteTemplateId: id })}>
                               Delete
                             </button>
+                            <button
+                              className="link link--create"
+                              onClick={() => this.handleCreatePipelineClick(template)}
+                            >
+                              Create Pipeline
+                            </button>
                           </td>
                         </tr>
                       );
@@ -222,6 +241,12 @@ export class PipelineTemplatesV2 extends React.Component<{}, IPipelineTemplatesV
               this.fetchTemplates();
               this.setState({ deleteTemplateId: null });
             }}
+          />
+        )}
+        {selectedTemplate && (
+          <CreatePipelineFromTemplate
+            closeModalCallback={this.handleCreatePipelineModalClose}
+            template={selectedTemplate}
           />
         )}
       </>

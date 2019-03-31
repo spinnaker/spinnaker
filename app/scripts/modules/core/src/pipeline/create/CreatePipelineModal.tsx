@@ -17,7 +17,9 @@ import {
   PipelineTemplateReader,
 } from 'core/pipeline/config/templates/PipelineTemplateReader';
 import { Spinner } from 'core/widgets/spinners/Spinner';
+import { IPipelineTemplateV2 } from 'core/domain/IPipelineTemplateV2';
 import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
+import { PipelineTemplateV2Service } from 'core/pipeline';
 
 import { TemplateDescription } from './TemplateDescription';
 import { ManagedTemplateSelector } from './ManagedTemplateSelector';
@@ -55,9 +57,10 @@ export interface ICreatePipelineCommand {
 
 export interface ICreatePipelineModalProps {
   application: Application;
+  pipelineSavedCallback: (pipelineId: string) => void;
   show: boolean;
   showCallback: (show: boolean) => void;
-  pipelineSavedCallback: (pipelineId: string) => void;
+  preselectedTemplate?: IPipelineTemplateV2;
 }
 
 @Overridable('core.pipeline.CreatePipelineModal')
@@ -66,6 +69,10 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
     super(props);
     this.state = this.getDefaultState();
   }
+
+  public static defaultProps: Partial<ICreatePipelineModalProps> = {
+    preselectedTemplate: null,
+  };
 
   public componentWillUpdate(nextProps: ICreatePipelineModalProps): void {
     if (nextProps.show && !this.props.show && !this.state.loading) {
@@ -144,22 +151,29 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
   };
 
   private submitPipelineTemplateConfig = (): void => {
-    const config: Partial<IPipelineTemplateConfig> = {
-      name: this.state.command.name,
-      application: this.props.application.name,
+    const { application, preselectedTemplate } = this.props;
+    const { command } = this.state;
+
+    const pipelineConfig: Partial<IPipeline> = {
+      name: command.name,
+      application: application.name,
       type: 'templatedPipeline',
       limitConcurrent: true,
       keepWaitingPipelines: false,
       triggers: [],
-      config: {
-        schema: '1',
-        pipeline: {
-          name: this.state.command.name,
-          application: this.props.application.name,
-          template: { source: this.state.command.template.selfLink },
-        },
-      },
     };
+
+    const config = {
+      ...pipelineConfig,
+      ...(preselectedTemplate
+        ? PipelineTemplateV2Service.getPipelineTemplateConfigV2(preselectedTemplate.id)
+        : PipelineTemplateReader.getPipelineTemplateConfig({
+            name: command.name,
+            application: application.name,
+            source: command.template.selfLink,
+          })),
+    };
+
     this.setState({ submitting: true });
     PipelineConfigService.savePipeline(config as IPipeline).then(() => this.onSaveSuccess(config), this.onSaveFailure);
   };
@@ -313,6 +327,8 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
   }
 
   public render() {
+    const { preselectedTemplate } = this.props;
+    const hasSelectedATemplate = this.state.useTemplate || preselectedTemplate;
     const nameHasError: boolean = !this.validateNameCharacters();
     const nameIsNotUnique: boolean = !this.validateNameIsUnique();
     const formValid =
@@ -362,19 +378,21 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
             )}
             {!(this.state.saveError || this.state.loadError) && (
               <form role="form" name="form" className="clearfix">
-                <div className="form-group clearfix">
-                  <div className="col-md-3 sm-label-right">
-                    <b>Type</b>
+                {!preselectedTemplate && (
+                  <div className="form-group clearfix">
+                    <div className="col-md-3 sm-label-right">
+                      <b>Type</b>
+                    </div>
+                    <div className="col-md-7">
+                      <Select
+                        options={[{ label: 'Pipeline', value: false }, { label: 'Strategy', value: true }]}
+                        clearable={false}
+                        value={this.state.command.strategy ? { label: 'Strategy' } : { label: 'Pipeline' }}
+                        onChange={this.handleTypeChange}
+                      />
+                    </div>
                   </div>
-                  <div className="col-md-7">
-                    <Select
-                      options={[{ label: 'Pipeline', value: false }, { label: 'Strategy', value: true }]}
-                      clearable={false}
-                      value={this.state.command.strategy ? { label: 'Strategy' } : { label: 'Pipeline' }}
-                      onChange={this.handleTypeChange}
-                    />
-                  </div>
-                </div>
+                )}
                 <div className="form-group clearfix">
                   <div className="col-md-3 sm-label-right">
                     <b>{this.state.command.strategy ? 'Strategy' : 'Pipeline'} Name</b>
@@ -410,7 +428,7 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
                     </div>
                   </div>
                 )}
-                {SETTINGS.feature.pipelineTemplates && !this.state.command.strategy && (
+                {SETTINGS.feature.pipelineTemplates && !preselectedTemplate && !this.state.command.strategy && (
                   <div className="form-group clearfix">
                     <div className="col-md-3 sm-label-right">
                       <strong>Create From</strong>
@@ -455,7 +473,7 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
                     </div>
                   </div>
                 )}
-                {SETTINGS.feature.pipelineTemplates && this.state.useTemplate && (
+                {SETTINGS.feature.pipelineTemplates && hasSelectedATemplate && (
                   <div>
                     <hr />
                     {this.state.templates.length > 0 && (
@@ -481,7 +499,7 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
                         </div>
                       </div>
                     )}
-                    {this.state.useManagedTemplate && (
+                    {this.state.useManagedTemplate && !preselectedTemplate && (
                       <ManagedTemplateSelector
                         templates={this.state.templates}
                         onChange={this.handleTemplateSelection}
@@ -504,22 +522,24 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
                     <TemplateDescription
                       loading={this.state.loadingTemplateFromSource}
                       loadingError={this.state.loadingTemplateFromSourceError}
-                      template={this.state.command.template}
+                      template={this.state.command.template || preselectedTemplate}
                     />
-                    <div className="form-group clearfix">
-                      <div className="col-md-12">
-                        <em>
-                          * v1 templates only. For creating pipelines from v2 templates, use{' '}
-                          <a
-                            href="https://www.spinnaker.io/guides/spin/pipeline/"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            Spin CLI.
-                          </a>
-                        </em>
+                    {!SETTINGS.feature.managedPipelineTemplatesV2UI && (
+                      <div className="form-group clearfix">
+                        <div className="col-md-12">
+                          <em>
+                            * v1 templates only. For creating pipelines from v2 templates, use{' '}
+                            <a
+                              href="https://www.spinnaker.io/guides/spin/pipeline/"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              Spin CLI.
+                            </a>
+                          </em>
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 )}
               </form>
@@ -528,7 +548,7 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
         )}
         <Modal.Footer>
           <Button onClick={this.close}>Cancel</Button>
-          {SETTINGS.feature.pipelineTemplates && this.state.useTemplate && (
+          {SETTINGS.feature.pipelineTemplates && hasSelectedATemplate && (
             <SubmitButton
               label="Continue"
               submitting={this.state.submitting}
@@ -536,7 +556,7 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
               onClick={this.submitPipelineTemplateConfig}
             />
           )}
-          {!this.state.useTemplate && (
+          {!hasSelectedATemplate && (
             <SubmitButton
               label="Create"
               onClick={this.submit}
