@@ -21,6 +21,7 @@ export class PagerDutyWriter {
     applications: Application[],
     keys: string[],
     reason: string,
+    ownerApp: Application,
     details?: { [key: string]: any },
   ): IPromise<any> {
     const job = {
@@ -38,19 +39,15 @@ export class PagerDutyWriter {
     }
 
     const task = {
+      application: ownerApp,
       job: [job],
       description: 'Send Page',
     } as ITaskCommand;
-
-    // If only one application was passed in, assign ownership
-    if (applications && applications.length === 1) {
-      task.application = applications[0];
-    }
 
     return TaskExecutor.executeTask(task);
   }
 
   public static pageApplicationOwner(application: Application, reason: string, details?: string): IPromise<any> {
-    return this.sendPage([application], undefined, reason, { details });
+    return this.sendPage([application], undefined, reason, application, { details });
   }
 }
