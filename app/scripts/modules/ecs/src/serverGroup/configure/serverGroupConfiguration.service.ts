@@ -217,6 +217,7 @@ export class EcsServerGroupConfigurationService {
         this.configureAvailableSecrets(cmd);
         this.configureAvailableImages(cmd);
         this.configureAvailableRegions(cmd);
+        this.configureLoadBalancerOptions(cmd);
         this.applyOverrides('afterConfiguration', cmd);
         this.attachEventHandlers(cmd);
       });
