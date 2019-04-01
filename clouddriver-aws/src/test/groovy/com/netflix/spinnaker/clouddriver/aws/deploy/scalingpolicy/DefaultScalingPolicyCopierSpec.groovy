@@ -56,14 +56,24 @@ class DefaultScalingPolicyCopierSpec extends Specification {
     getCloudWatch(_, 'us-east-1', true) >> sourceCloudWatch
     getCloudWatch(_, 'us-west-1', true) >> targetCloudWatch
   }
+  String newPolicyName = 'new_policy_name'
+
+  def policyNameGenerator = Stub(DefaultScalingPolicyCopier.PolicyNameGenerator) {
+    generateScalingPolicyName(_, _, _, _, _) >>
+      'new_policy_name'
+  }
 
   int count = 0
   def idGenerator = Stub(IdGenerator) {
     nextId() >> { (++count).toString() }
   }
 
+  void cleanup() {
+    count = 0
+  }
+
   @Subject
-  ScalingPolicyCopier scalingPolicyCopier = new DefaultScalingPolicyCopier(amazonClientProvider: amazonClientProvider, idGenerator: idGenerator)
+  ScalingPolicyCopier scalingPolicyCopier = new DefaultScalingPolicyCopier(amazonClientProvider, idGenerator, policyNameGenerator)
 
   void 'should copy nothing when there are no scaling policies'() {
     when:
@@ -87,6 +97,71 @@ class DefaultScalingPolicyCopierSpec extends Specification {
 
     then:
     replacedActions == ['ok-one', 'newPolicyARN']
+  }
+
+  void 'generates a semantically meaningful alarm name'() {
+    given:
+    ScalingPolicy policy = new ScalingPolicy(
+      policyARN: 'oldPolicyARN1',
+      autoScalingGroupName: 'asgard-v000',
+      policyName: 'policy1',
+      scalingAdjustment: 5,
+      adjustmentType: 'ChangeInCapacity',
+      cooldown: 100,
+      minAdjustmentStep: 2,
+      alarms: [new Alarm(alarmName: 'alarm1')]
+    )
+    MetricAlarm alarm = new MetricAlarm(
+        alarmName: 'alarm1',
+        alarmDescription: 'alarm 1 description',
+        actionsEnabled: true,
+        oKActions: [],
+        alarmActions: ['oldPolicyARN1'],
+        insufficientDataActions: [],
+        metricName: 'metric1',
+        namespace: 'namespace1',
+        statistic: 'statistic1',
+        dimensions: [
+          new Dimension(name: AsgReferenceCopier.DIMENSION_NAME_FOR_ASG, value: 'asgard-v000')
+        ],
+        period: 1,
+        unit: 'unit1',
+        evaluationPeriods: 2,
+        threshold: 4.2,
+        comparisonOperator: 'GreaterThanOrEqualToThreshold'
+      )
+
+    DefaultScalingPolicyCopier.PolicyNameGenerator generator = new DefaultScalingPolicyCopier.PolicyNameGenerator(idGenerator, amazonClientProvider)
+
+    when:
+    String result = generator.generateScalingPolicyName(sourceCredentials, 'us-east-1', 'asgard-v010', 'asgard-v011', policy)
+
+    then:
+    result.startsWith('asgard-v011-namespace1-metric1-GreaterThanOrEqualToThreshold-4.2-2-1-')
+    1 * sourceCloudWatch.describeAlarms(new DescribeAlarmsRequest(alarmNames: ['alarm1'])) >> new DescribeAlarmsResult(metricAlarms: [
+      alarm
+    ])
+  }
+
+  void 'falls back to asg name replacement when no alarms found'() {
+    given:
+    ScalingPolicy policy = new ScalingPolicy(
+      policyARN: 'oldPolicyARN1',
+      autoScalingGroupName: 'asgard-v000',
+      policyName: 'asgard-v010-blah-blah-blah',
+      scalingAdjustment: 5,
+      adjustmentType: 'ChangeInCapacity',
+      cooldown: 100,
+      minAdjustmentStep: 2,
+      alarms: []
+    )
+    DefaultScalingPolicyCopier.PolicyNameGenerator generator = new DefaultScalingPolicyCopier.PolicyNameGenerator(idGenerator, amazonClientProvider)
+
+    when:
+    String result = generator.generateScalingPolicyName(sourceCredentials, 'us-east-1', 'asgard-v010', 'asgard-v011', policy)
+
+    then:
+    result == 'asgard-v011-blah-blah-blah'
   }
 
   void 'should copy scaling policies and alarms'() {
@@ -131,7 +206,7 @@ class DefaultScalingPolicyCopierSpec extends Specification {
       )
     1 * targetAutoScaling.putScalingPolicy(new PutScalingPolicyRequest(
       autoScalingGroupName: 'asgard-v001',
-      policyName: 'asgard-v001-policy-1',
+      policyName: newPolicyName,
       scalingAdjustment: 5,
       adjustmentType: 'ChangeInCapacity',
       cooldown: 100,
@@ -139,7 +214,7 @@ class DefaultScalingPolicyCopierSpec extends Specification {
     )) >> new PutScalingPolicyResult(policyARN: 'newPolicyARN1')
     1 * targetAutoScaling.putScalingPolicy(new PutScalingPolicyRequest(
       autoScalingGroupName: 'asgard-v001',
-      policyName: 'asgard-v001-policy-2',
+      policyName: newPolicyName,
       scalingAdjustment: 10,
       adjustmentType: 'PercentChangeInCapacity',
       cooldown: 200,
@@ -216,7 +291,7 @@ class DefaultScalingPolicyCopierSpec extends Specification {
       ),
     ])
     1 * targetCloudWatch.putMetricAlarm(new PutMetricAlarmRequest(
-      alarmName: 'asgard-v001-alarm-3',
+      alarmName: 'asgard-v001-alarm-1',
       alarmDescription: 'alarm 1 description',
       actionsEnabled: true,
       oKActions: [],
@@ -235,7 +310,7 @@ class DefaultScalingPolicyCopierSpec extends Specification {
       comparisonOperator: 'GreaterThanOrEqualToThreshold'
     ))
     1 * targetCloudWatch.putMetricAlarm(new PutMetricAlarmRequest(
-      alarmName: 'asgard-v001-alarm-4',
+      alarmName: 'asgard-v001-alarm-2',
       alarmDescription: 'alarm 2 description',
       actionsEnabled: true,
       oKActions: [],
@@ -255,7 +330,7 @@ class DefaultScalingPolicyCopierSpec extends Specification {
       comparisonOperator: 'LessThanOrEqualToThreshold'
     ))
     1 * targetCloudWatch.putMetricAlarm(new PutMetricAlarmRequest(
-      alarmName: 'asgard-v001-alarm-5',
+      alarmName: 'asgard-v001-alarm-3',
       alarmDescription: 'alarm 3 description',
       actionsEnabled: false,
       oKActions: [],
