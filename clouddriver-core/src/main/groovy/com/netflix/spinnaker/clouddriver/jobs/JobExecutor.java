@@ -15,9 +15,6 @@
  */
 package com.netflix.spinnaker.clouddriver.jobs;
 
-import java.io.InputStream;
-import java.util.Map;
-
 public interface JobExecutor {
-  JobStatus runJob(JobRequest jobRequest, Map<String, String> environment, InputStream inputStream);
+  JobStatus runJob(JobRequest jobRequest);
 }

@@ -18,72 +18,77 @@ package com.netflix.spinnaker.clouddriver.jobs.local;
 import com.netflix.spinnaker.clouddriver.jobs.JobExecutor;
 import com.netflix.spinnaker.clouddriver.jobs.JobRequest;
 import com.netflix.spinnaker.clouddriver.jobs.JobStatus;
-import lombok.Setter;
+import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.exec.*;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
-import java.util.Map;
+import java.io.OutputStream;
 import java.util.UUID;
 
 @Slf4j
 public class JobExecutorLocal implements JobExecutor {
-  @Setter
-  @Value("${jobs.local.timeoutMinutes:10}")
-  private long timeoutMinutes;
+  private final long timeoutMinutes;
+
+  public JobExecutorLocal(long timeoutMinutes) {
+    this.timeoutMinutes = timeoutMinutes;
+  }
 
   @Override
-  public JobStatus runJob(final JobRequest jobRequest, Map<String, String> environment, InputStream inputStream) {
-    log.debug("Starting job: \'" + String.join(" ", jobRequest.getTokenizedCommand()) + "\'...");
+  public JobStatus runJob(final JobRequest jobRequest) {
+    log.debug(String.format("Starting job: '%s'...", String.join(" ", jobRequest.getTokenizedCommand())));
+
     final String jobId = UUID.randomUUID().toString();
-    log.debug("Executing job with tokenized command: " + String.valueOf(jobRequest.getTokenizedCommand()));
-
-    CommandLine commandLine = createCommandLine(jobRequest.getTokenizedCommand());
-    ByteArrayOutputStream stdOut = new ByteArrayOutputStream();
-    ByteArrayOutputStream stdErr = new ByteArrayOutputStream();
-    PumpStreamHandler pumpStreamHandler = new PumpStreamHandler(stdOut, stdErr, inputStream);
-    ExecuteWatchdog watchdog = new ExecuteWatchdog(timeoutMinutes * 60 * 1000);
-    Executor executor = new DefaultExecutor();
-    executor.setStreamHandler(pumpStreamHandler);
-    executor.setWatchdog(watchdog);
-    executor.setExitValues(null);
-
-    boolean success = false;
+    ExecuteResult executeResult;
     try {
-      int exitValue = executor.execute(commandLine, environment);
-      if (watchdog.killedProcess()) {
-        log.warn("Job " + jobId + " timed out (after " + String.valueOf(timeoutMinutes) + " minutes).");
-      }
-
-      if (exitValue == 0) {
-        success = true;
-      }
+      executeResult = executeJob(jobRequest);
     } catch (IOException e) {
       throw new RuntimeException("Failed to execute job", e);
     }
 
+    if (executeResult.wasKilled) {
+      log.warn(String.format("Job %s timed out (after %d minutes)", jobId, timeoutMinutes));
+    }
+
     return JobStatus.builder()
-      .result(success ? JobStatus.Result.SUCCESS : JobStatus.Result.FAILURE)
-      .stdOut(stdOut.toString())
-      .stdErr(stdErr.toString())
+      .result(executeResult.exitValue == 0 ? JobStatus.Result.SUCCESS : JobStatus.Result.FAILURE)
+      .stdOut(executeResult.stdOut.toString())
+      .stdErr(executeResult.stdErr.toString())
       .build();
   }
 
-  private CommandLine createCommandLine(List<String> tokenizedCommand) {
-    if (tokenizedCommand == null || tokenizedCommand.size() == 0) {
-      throw new IllegalArgumentException("No tokenizedCommand specified.");
-    }
+  private ExecuteResult executeJob(JobRequest jobRequest) throws IOException {
+    ByteArrayOutputStream stdOut = new ByteArrayOutputStream();
+    ByteArrayOutputStream stdErr = new ByteArrayOutputStream();
 
-    // Grab the first element as the command.
-    CommandLine commandLine = new CommandLine(tokenizedCommand.get(0));
+    Executor executor = buildExecutor(new PumpStreamHandler(stdOut, stdErr, jobRequest.getInputStream()));
+    int exitValue = executor.execute(jobRequest.getCommandLine(), jobRequest.getEnvironment());
 
-    int size = tokenizedCommand.size();
-    String[] arguments = tokenizedCommand.subList(1, size).toArray(new String[size - 1]);
-    commandLine.addArguments(arguments, false);
-    return commandLine;
+    return ExecuteResult.builder()
+      .stdOut(stdOut)
+      .stdErr(stdErr)
+      .exitValue(exitValue)
+      .wasKilled(executor.getWatchdog().killedProcess())
+      .build();
+  }
+
+  private Executor buildExecutor(ExecuteStreamHandler streamHandler) {
+    Executor executor = new DefaultExecutor();
+    executor.setStreamHandler(streamHandler);
+    executor.setWatchdog(new ExecuteWatchdog(timeoutMinutes * 60 * 1000));
+    // Setting this to null causes the executor to skip verifying exit codes; we'll handle checking the exit status
+    // instead of having the executor throw an exception for non-zero exit codes.
+    executor.setExitValues(null);
+
+    return executor;
+  }
+
+  @Builder
+  private static class ExecuteResult {
+    final OutputStream stdOut;
+    final OutputStream stdErr;
+    final int exitValue;
+    final boolean wasKilled;
   }
 }

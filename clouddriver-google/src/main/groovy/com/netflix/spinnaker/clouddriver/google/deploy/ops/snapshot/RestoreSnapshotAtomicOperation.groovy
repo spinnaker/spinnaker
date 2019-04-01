@@ -146,7 +146,7 @@ class RestoreSnapshotAtomicOperation implements AtomicOperation<Void> {
     // of String). It is thus important to only add Strings to command.  For example, adding a flag "--test=$testvalue"
     // below will cause the job to fail unless you explicitly convert it to a String via "--test=$testvalue".toString()
     ArrayList<String> command = ["terraform", "apply", "-state=" + directory + "/terraform.tfstate", directory]
-    JobStatus jobStatus = jobExecutor.runJob(new JobRequest(command), System.getenv(), new ByteArrayInputStream())
+    JobStatus jobStatus = jobExecutor.runJob(new JobRequest(command))
     cleanUpDirectory()
     if (jobStatus.getResult() == JobStatus.Result.FAILURE && jobStatus.getStdOut()) {
       String stdOut = jobStatus.getStdOut()
@@ -230,7 +230,7 @@ class RestoreSnapshotAtomicOperation implements AtomicOperation<Void> {
     // of String). It is thus important to only add Strings to command.  For example, adding a flag "--test=$testvalue"
     // below will cause the job to fail unless you explicitly convert it to a String via "--test=$testvalue".toString()
     ArrayList<String> command = ["terraform", "import", "-state=" + directory + "/terraform.tfstate", resource + "." + name, id]
-    JobStatus jobStatus = jobExecutor.runJob(new JobRequest(command), env, inputStream)
+    JobStatus jobStatus = jobExecutor.runJob(new JobRequest(command, env, inputStream))
     if (jobStatus.getResult() == JobStatus.Result.FAILURE && jobStatus.stdOut) {
       cleanUpDirectory()
       throw new IllegalArgumentException("$jobStatus.stdOut + $jobStatus.stdErr")
