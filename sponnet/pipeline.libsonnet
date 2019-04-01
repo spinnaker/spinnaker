@@ -19,7 +19,7 @@
     withTemplate(templateArtifact):: self + { template: templateArtifact },
     withSchema(schema):: self + { schema: schema },
     withInherit(inheritedFields):: self + if std.type(inheritedFields) == 'array' then { inherit: inheritedFields } else { inherit: [inheritedFields] },
-    withVariableValues(variables):: self + { variables: variables }, // variables are key-value pairs of <variable name> -> <variable value>
+    withVariableValues(variables):: self + { variables: variables },  // variables are key-value pairs of <variable name> -> <variable value>
   },
 
   moniker(app, cluster):: {
@@ -52,7 +52,7 @@
     httpFile():: artifact('http/file', 'http'),
     // kubernetesObject to be tested. Where kind is Deployment/Configmap/Service/etc
     kubernetesObject(kind):: artifact('kubernetes/' + kind, 'custom'),
-    front50PipelineTemplate():: artifact('front50/pipelineTemplate', '').withArtifactAccount('front50ArtifactCredentials') // credentials are static
+    front50PipelineTemplate():: artifact('front50/pipelineTemplate', '').withArtifactAccount('front50ArtifactCredentials'),  // credentials are static
   },
 
   // expected artifacts
@@ -227,6 +227,7 @@
       withManifestArtifact(artifact):: self + { manifestArtifactId: artifact.id, source: 'artifact' },
       withManifests(manifests):: self + if std.type(manifests) == 'array' then { manifests: manifests } else { manifests: [manifests] },
       withMoniker(moniker):: self + { moniker: moniker },
+      withSkipExpressionEvaluation():: self + { skipExpressionEvaluation: true },
     },
     deleteManifest(name):: stage(name, 'deleteManifest') {
       cloudProvider: 'kubernetes',
