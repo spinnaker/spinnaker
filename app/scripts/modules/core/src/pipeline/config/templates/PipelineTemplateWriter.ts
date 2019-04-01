@@ -13,4 +13,20 @@ export class PipelineTemplateWriter {
         .then(resolve, reject);
     });
   }
+
+  public static deleteTemplate(template: { id: string; digest?: string; version?: string }): IPromise<any> {
+    let request = API.one('v2')
+      .one('pipelineTemplates')
+      .one(template.id);
+
+    const params: { digest?: string; version?: string } = {};
+    if (template.digest) {
+      params.digest = template.digest;
+    } else if (template.version) {
+      params.version = template.version;
+    }
+
+    request = request.withParams(params);
+    return request.remove();
+  }
 }
