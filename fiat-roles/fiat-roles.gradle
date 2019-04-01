@@ -27,6 +27,7 @@ dependencies {
   compile spinnaker.dependency("korkDynomite")
   compile spinnaker.dependency("korkHystrix")
   compile spinnaker.dependency("korkJedis")
+  compile "redis.clients:jedis:2.9.3"
 
   testCompile spinnaker.dependency("korkJedisTest")
   testCompile "org.apache.commons:commons-collections4:4.1"
