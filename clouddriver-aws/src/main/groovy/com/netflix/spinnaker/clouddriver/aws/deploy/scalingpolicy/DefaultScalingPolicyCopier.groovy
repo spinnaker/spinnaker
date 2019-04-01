@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.scalingpolicy
 
-import com.amazonaws.services.autoscaling.model.Alarm
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
 import com.amazonaws.services.autoscaling.model.DescribePoliciesRequest
 import com.amazonaws.services.autoscaling.model.DescribePoliciesResult
@@ -43,10 +42,8 @@ class DefaultScalingPolicyCopier implements ScalingPolicyCopier {
 
   public static final DIMENSION_NAME_FOR_ASG = 'AutoScalingGroupName'
 
-  @Autowired
   AmazonClientProvider amazonClientProvider
 
-  @Autowired
   IdGenerator idGenerator
 
   PolicyNameGenerator policyNameGenerator

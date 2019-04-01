@@ -48,6 +48,7 @@ import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentialsInitializ
 import com.netflix.spinnaker.clouddriver.aws.security.EddaTimeoutConfig
 import com.netflix.spinnaker.clouddriver.aws.security.EddaTimeoutConfig.Builder
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
+import com.netflix.spinnaker.clouddriver.aws.services.IdGenerator
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
 import com.netflix.spinnaker.clouddriver.core.limits.ServiceLimitConfiguration
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
@@ -121,8 +122,8 @@ class AwsConfiguration {
 
   @Bean
   @ConditionalOnMissingBean(ScalingPolicyCopier)
-  DefaultScalingPolicyCopier defaultScalingPolicyCopier() {
-    new DefaultScalingPolicyCopier()
+  DefaultScalingPolicyCopier defaultScalingPolicyCopier(AmazonClientProvider amazonClientProvider, IdGenerator idGenerator) {
+    new DefaultScalingPolicyCopier(amazonClientProvider, idGenerator)
   }
 
   @Bean
