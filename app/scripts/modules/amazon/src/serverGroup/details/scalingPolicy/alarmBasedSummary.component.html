@@ -1,4 +1,5 @@
 <span class="label label-default">{{ $ctrl.policy.policyType | robotToHuman | uppercase }}</span>
+
 <div ng-repeat="alarm in $ctrl.policy.alarms track by $index">
   <div
     uib-popover-template="$ctrl.popoverTemplate"
@@ -16,14 +17,19 @@
       {{ alarm.evaluationPeriods }} consecutive periods of {{ alarm.period }} seconds
     </div>
   </div>
-  <div class="actions text-right">
-    <button class="btn btn-xs btn-link" ng-click="$ctrl.editPolicy()">
-      <span class="glyphicon glyphicon-cog" uib-tooltip="Edit policy"></span>
-      <span class="sr-only">Edit policy</span>
-    </button>
-    <button class="btn btn-xs btn-link" ng-click="$ctrl.deletePolicy()">
-      <span class="glyphicon glyphicon-trash" uib-tooltip="Delete policy"></span>
-      <span class="sr-only">Delete policy</span>
-    </button>
-  </div>
+</div>
+
+<div ng-if="!$ctrl.policy.alarms.length">
+  <em>No alarms configured for this policy &mdash; it's safe to delete.</em>
+</div>
+
+<div class="actions text-right">
+  <button class="btn btn-xs btn-link" ng-click="$ctrl.editPolicy()" ng-if="$ctrl.policy.alarms.length">
+    <span class="glyphicon glyphicon-cog" uib-tooltip="Edit policy"></span>
+    <span class="sr-only">Edit policy</span>
+  </button>
+  <button class="btn btn-xs btn-link" ng-click="$ctrl.deletePolicy()">
+    <span class="glyphicon glyphicon-trash" uib-tooltip="Delete policy"></span>
+    <span class="sr-only">Delete policy</span>
+  </button>
 </div>

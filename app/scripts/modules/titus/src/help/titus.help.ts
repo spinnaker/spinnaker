@@ -45,16 +45,6 @@ const helpContents: { [key: string]: string } = {
     'AWS Security Groups to assign to this service. Security groups are set only if <samp>Allocate IP?</samp> has been selected and are assigned to the Titus AWS Elastic Network Interface.',
   'titus.job.capacityGroup': 'Capacity Group will default to application name if not specified.',
   'titus.job.securityGroups': 'AWS Security Groups to assign to this job',
-  'titus.configBin.metrics': `
-      <p>Metrics must be forwarded from Atlas to Cloudwatch in order to use them in scaling policies. Metrics can be
-        forwarded via
-        the <a href="http://insight-docs.prod.netflix.net/atlas/autoscaling/#sending-custom-metrics" target="_blank">
-          Atlas Java Client
-        </a>, or via ConfigBin, which can be configured here.
-      <p>Additional information on metrics below can be found
-        in <a href="http://insight-docs.prod.netflix.net/glossary/cgroup-system/" target="_blank">the documentation</a>.
-      </p>
-  `,
   'titus.autoscaling.cooldown': `
       <p>The amount of time, in seconds, after a scaling activity completes where previous trigger-related scaling
         activities can influence future scaling events.</p>

@@ -54,7 +54,7 @@ module.exports = angular
           confirmationModalService.confirm({
             header: 'Really delete ' + this.policy.policyName + '?',
             buttonText: 'Delete scaling policy',
-            account: this.serverGroup.account,
+            account: this.policy.alarms.length ? this.serverGroup.account : null, // don't confirm if it's a junk policy
             provider: 'aws',
             taskMonitorConfig: taskMonitor,
             submitMethod: submitMethod,
