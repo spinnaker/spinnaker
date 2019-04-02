@@ -211,6 +211,7 @@
     jenkins(name):: stage(name, 'jenkins') {
       withJob(job):: self + { job: job },
       withMaster(master):: self + { master: master },
+      withParameters(parameters):: self + { parameters: parameters},
       withPropertyFile(propertyFile):: self + { propertyFile: propertyFile },
       withMarkUnstableAsSuccessful(markUnstableAsSuccessful):: self + { markUnstableAsSuccessful: markUnstableAsSuccessful },
       withWaitForCompletion(waitForCompletion):: self + { waitForCompletion: waitForCompletion },
