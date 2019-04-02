@@ -159,6 +159,13 @@ export class CloudFoundryServerGroupCommandBuilder {
       command.target = stage.target;
       command.targetCluster = stage.targetCluster;
       command.manifest = stage.manifest || command.manifest;
+
+      command.viewState = {
+        ...command.viewState,
+        pipeline,
+        stage,
+      };
+
       return command;
     });
   }
