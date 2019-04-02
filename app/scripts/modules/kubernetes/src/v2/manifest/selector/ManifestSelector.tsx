@@ -3,7 +3,7 @@ import Select, { Creatable, Option } from 'react-select';
 import { IPromise } from 'angular';
 import { Observable, Subject } from 'rxjs';
 import { $q } from 'ngimport';
-import { get } from 'lodash';
+import { get, isEmpty } from 'lodash';
 
 import {
   AppListExtractor,
@@ -17,6 +17,7 @@ import {
   AccountService,
   noop,
   ScopeClusterSelector,
+  IServerGroup,
 } from '@spinnaker/core';
 
 import {
@@ -288,6 +289,28 @@ export class ManifestSelector extends React.Component<IManifestSelectorProps, IM
 
   private getSelectedMode = (): SelectorMode => this.state.selector.mode || SelectorMode.Static;
 
+  private getFilteredClusters = (): string[] => {
+    const { application, includeSpinnakerKinds } = this.props;
+    const { selector } = this.state;
+    const applications = application ? [application] : [];
+    // If the only whitelisted Spinnaker kind is `serverGroups`, exclude server groups with `serverGroupManagers`.
+    // This is because traffic management stages only allow ReplicaSets.
+    const includeServerGroupsWithManagers: boolean =
+      isEmpty(includeSpinnakerKinds) || includeSpinnakerKinds.length > 1 || includeSpinnakerKinds[0] !== 'serverGroups';
+    const filter = (serverGroup: IServerGroup): boolean => {
+      const accountAndNamespaceFilter: boolean = AppListExtractor.clusterFilterForCredentialsAndRegion(
+        selector.account,
+        selector.location,
+      )(serverGroup);
+      const hasServerGroupManagers: boolean = get(serverGroup, 'serverGroupManagers.length', 0) > 0;
+      const serverGroupManagerFilter: boolean = includeServerGroupsWithManagers || !hasServerGroupManagers;
+      const nameToParseKind: string = hasServerGroupManagers ? serverGroup.cluster : serverGroup.name;
+      const kindFilter: boolean = parseSpinnakerName(nameToParseKind).kind === this.modeDelegate().getKind();
+      return accountAndNamespaceFilter && serverGroupManagerFilter && kindFilter;
+    };
+    return AppListExtractor.getClusters(applications, filter);
+  };
+
   public render() {
     const { TargetSelect } = NgReact;
     const selectedMode = this.getSelectedMode();
@@ -296,13 +319,6 @@ export class ManifestSelector extends React.Component<IManifestSelectorProps, IM
     const kind = this.modeDelegate().getKind();
     const name = parseSpinnakerName(selector.manifestName).name;
     const resourceNames = resources.map(resource => parseSpinnakerName(resource).name);
-    const clusters = AppListExtractor.getClusters(
-      this.props.application ? [this.props.application] : [],
-      serverGroup =>
-        AppListExtractor.clusterFilterForCredentialsAndRegion(selector.account, selector.location)(serverGroup) &&
-        get(serverGroup, 'serverGroupManagers.length', 0) === 0 &&
-        parseSpinnakerName(serverGroup.name).kind === this.modeDelegate().getKind(),
-    );
     const selectedKinds = selector.kinds || [];
     const KindField = (
       <StageConfigField label="Kind">
@@ -369,7 +385,11 @@ export class ManifestSelector extends React.Component<IManifestSelectorProps, IM
         {modes.includes(SelectorMode.Dynamic) && selectedMode === SelectorMode.Dynamic && (
           <>
             <StageConfigField label="Cluster">
-              <ScopeClusterSelector clusters={clusters} model={selector.cluster} onChange={this.handleClusterChange} />
+              <ScopeClusterSelector
+                clusters={this.getFilteredClusters()}
+                model={selector.cluster}
+                onChange={this.handleClusterChange}
+              />
             </StageConfigField>
             <StageConfigField label="Target">
               <TargetSelect
