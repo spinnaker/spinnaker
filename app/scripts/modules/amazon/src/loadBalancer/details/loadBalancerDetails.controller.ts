@@ -181,7 +181,7 @@ export class AwsLoadBalancerDetailsController implements IController {
               }
             }
 
-            this.loadBalancer.elb.securityGroups.forEach((securityGroupId: string) => {
+            (this.loadBalancer.elb.securityGroups || []).forEach((securityGroupId: string) => {
               const match = this.securityGroupReader.getApplicationSecurityGroup(
                 this.app,
                 this.loadBalancerFromParams.accountId,
