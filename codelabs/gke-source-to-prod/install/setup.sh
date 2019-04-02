@@ -23,16 +23,12 @@ gcloud iam service-accounts create \
   $SERVICE_ACCOUNT_NAME \
   --display-name $SERVICE_ACCOUNT_NAME
 
-SA_EMAIL=$(gcloud iam service-accounts list \
-  --filter="displayName:$SERVICE_ACCOUNT_NAME" \
-  --format='value(email)')
-
 gcloud projects add-iam-policy-binding $PROJECT_ID \
-  --member serviceAccount:$SA_EMAIL \
+  --member serviceAccount:$SERVICE_ACCOUNT_EMAIL \
   --role roles/owner
 
 gcloud projects add-iam-policy-binding $PROJECT_ID \
-  --member serviceAccount:$SA_EMAIL \
+  --member serviceAccount:$SERVICE_ACCOUNT_EMAIL \
   --role roles/pubsub.subscriber
 
 bold "Using bucket $BUCKET_URI..."
@@ -98,7 +94,7 @@ gcloud beta pubsub subscriptions create $GCR_SUB --topic $GCR_TOPIC
 bold "Creating your cluster $GKE_CLUSTER..."
 
 gcloud container clusters create $GKE_CLUSTER --zone $ZONE \
-  --service-account $SA_EMAIL \
+  --service-account $SERVICE_ACCOUNT_EMAIL \
   --username admin \
   --machine-type n1-standard-4 --image-type COS --disk-size 100 \
   --num-nodes 3 --enable-cloud-logging --enable-cloud-monitoring
