@@ -21,6 +21,8 @@ else
   echo $SERVICE_ACCOUNT_NAME > account.txt
 fi
 
+SERVICE_ACCOUNT_EMAIL="${SERVICE_ACCOUNT_NAME}@${PROJECT_ID}.iam.gserviceaccount.com"
+
 GCS_TOPIC="spin-gcs-topic"
 GCS_SUB="spin-gcs-sub"
 GCR_TOPIC="projects/${PROJECT_ID}/topics/gcr"
