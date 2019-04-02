@@ -217,6 +217,13 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent {
                   updateJob(state, notification.getJobUpdate().getJob());
                   break;
                 case TASKUPDATE:
+                  if (notification.getTaskUpdate().getMovedFromAnotherJob()) {
+                    Task task = notification.getTaskUpdate().getTask();
+                    String destinationJobId = task.getJobId();
+                    String sourceJobId = task.getTaskContextOrDefault("task.movedFromJob", null);
+                    log.info("{} task moved from job {} to {}", task.getId(), sourceJobId, destinationJobId);
+                    updateMovedTask(state, task, sourceJobId);
+                  }
                   updateTask(state, notification.getTaskUpdate().getTask());
                   break;
                 case SNAPSHOTEND:
@@ -303,7 +310,6 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent {
             Keys.getInstanceV2Key(task.getId(), account.getName(), region.getName())
           );
         }
-
         if (state.tasks.containsKey(jobId)) {
           state.tasks.get(jobId).remove(task);
         } else if (state.snapshotComplete) {
@@ -320,6 +326,15 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent {
       }
 
       state.changes.incrementAndGet();
+    }
+
+    private void updateMovedTask(StreamingCacheState state, Task task, String sourceJobId) {
+      if (sourceJobId != null) {
+        if (state.tasks.containsKey(sourceJobId)) {
+          state.tasks.get(sourceJobId).remove(task);
+          state.updatedJobs.add(sourceJobId);
+        }
+      }
     }
 
     private void writeToCache(StreamingCacheState state) {
@@ -407,7 +422,7 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent {
 
       if (state.savedSnapshot) {
         List<String> missingJobMappings = state.updatedJobs.stream()
-        .filter(j -> !state.jobIdToApp.containsKey(j))
+          .filter(j -> !state.jobIdToApp.containsKey(j))
           .collect(Collectors.toList());
 
         if (!missingJobMappings.isEmpty()) {
