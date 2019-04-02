@@ -1,6 +1,7 @@
 import { IComponentOptions, IController, module } from 'angular';
 import { set } from 'lodash';
 import { IGceAutoHealingPolicy } from 'google/domain/autoHealingPolicy';
+import { IGceHealthCheckOption, parseHealthCheckUrl } from 'google/healthCheck/healthCheckUtils';
 
 class GceAutoHealingPolicySelector implements IController {
   public healthChecks: string[];
@@ -34,6 +35,14 @@ class GceAutoHealingPolicySelector implements IController {
     } else {
       const toDeleteKey = selectedMetric === 'percent' ? 'fixed' : 'percent';
       set(this.autoHealingPolicy, ['maxUnavailable', toDeleteKey], undefined);
+    }
+  }
+
+  public onHealthCheckChange(_healthCheck: IGceHealthCheckOption, healthCheckUrl: string) {
+    if (healthCheckUrl) {
+      const { healthCheckName, healthCheckKind } = parseHealthCheckUrl(healthCheckUrl);
+      this.autoHealingPolicy.healthCheck = healthCheckName;
+      this.autoHealingPolicy.healthCheckKind = healthCheckKind;
     }
   }
 }

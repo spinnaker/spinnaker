@@ -139,7 +139,7 @@ module.exports = angular
               if (
                 !_.chain(healthChecks)
                   .map('selfLink')
-                  .includes(command.autoHealingPolicy.healthCheck)
+                  .includes(command.autoHealingPolicy.healthCheckUrl)
                   .value()
               ) {
                 healthCheckReloader = refreshHealthChecks(command, true);
@@ -406,7 +406,7 @@ module.exports = angular
           _.has(command, 'autoHealingPolicy.healthCheck') &&
           !_.chain(filteredData.healthChecks)
             .map('selfLink')
-            .includes(command.autoHealingPolicy.healthCheck)
+            .includes(command.autoHealingPolicy.healthCheckUrl)
             .value()
         ) {
           delete command.autoHealingPolicy.healthCheck;

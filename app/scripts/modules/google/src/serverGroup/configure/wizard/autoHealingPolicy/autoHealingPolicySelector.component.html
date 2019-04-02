@@ -3,7 +3,12 @@
     <b>Health Check</b>
   </div>
   <div class="col-md-6">
-    <ui-select ng-model="$ctrl.autoHealingPolicy.healthCheck" class="form-control input-sm" required>
+    <ui-select
+      ng-model="$ctrl.autoHealingPolicy.healthCheckUrl"
+      on-select="$ctrl.onHealthCheckChange($item, $model)"
+      class="form-control input-sm"
+      required
+    >
       <ui-select-match placeholder="Select...">{{ $select.selected.displayName }}</ui-select-match>
       <ui-select-choices
         repeat="healthCheck.selfLink as healthCheck in $ctrl.healthChecks | orderBy: 'displayName' | filter: { displayName: $select.search }"

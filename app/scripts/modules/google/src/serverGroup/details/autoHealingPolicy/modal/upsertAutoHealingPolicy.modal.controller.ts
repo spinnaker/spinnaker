@@ -6,7 +6,7 @@ import { Application, TaskMonitor } from '@spinnaker/core';
 
 import { IGceAutoHealingPolicy, IGceServerGroup } from 'google/domain/index';
 import { GCE_HEALTH_CHECK_READER, GceHealthCheckReader } from 'google/healthCheck/healthCheck.read.service';
-import { getHealthCheckOptions, IGceHealthCheckOption, parseHealthCheckUrl } from 'google/healthCheck/healthCheckUtils';
+import { getHealthCheckOptions, IGceHealthCheckOption } from 'google/healthCheck/healthCheckUtils';
 
 import './upsertAutoHealingPolicy.modal.less';
 
@@ -37,9 +37,6 @@ class GceUpsertAutoHealingPolicyModalCtrl implements IController {
 
   public submit(): void {
     const submitMethod = () => {
-      const { healthCheckName, healthCheckKind } = parseHealthCheckUrl(this.autoHealingPolicy.healthCheck);
-      this.autoHealingPolicy.healthCheck = healthCheckName;
-      this.autoHealingPolicy.healthCheckKind = healthCheckKind;
       return this.gceAutoscalingPolicyWriter.upsertAutoHealingPolicy(
         this.application,
         this.serverGroup,
