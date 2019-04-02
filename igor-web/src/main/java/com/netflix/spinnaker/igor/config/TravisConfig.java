@@ -66,7 +66,7 @@ public class TravisConfig {
                 log.info("bootstrapping {} as {}", host.getAddress(), travisName);
 
                 TravisClient client = travisClient(host.getAddress(), igorConfigurationProperties.getClient().getTimeout(), objectMapper);
-                return travisService(travisName, host.getBaseUrl(), host.getGithubToken(), host.getNumberOfRepositories(), client, travisCache, artifactDecorator, (travisProperties == null ? null : travisProperties.getRegexes()), host.getPermissions().build());
+                return travisService(travisName, host.getBaseUrl(), host.getGithubToken(), host.getNumberOfRepositories(), client, travisCache, artifactDecorator, (travisProperties == null ? null : travisProperties.getRegexes()), travisProperties.getBuildMessageKey(), host.getPermissions().build());
             })
             .collect(Collectors.toMap(TravisService::getGroupKey, Function.identity()));
 
@@ -74,8 +74,8 @@ public class TravisConfig {
         return travisMasters;
     }
 
-    private static TravisService travisService(String travisHostId, String baseUrl, String githubToken, int numberOfRepositories, TravisClient travisClient, TravisCache travisCache, Optional<ArtifactDecorator> artifactDecorator, Collection<String> artifactRexeges, Permissions permissions) {
-        return new TravisService(travisHostId, baseUrl, githubToken, numberOfRepositories, travisClient, travisCache, artifactDecorator, artifactRexeges, permissions);
+    private static TravisService travisService(String travisHostId, String baseUrl, String githubToken, int numberOfRepositories, TravisClient travisClient, TravisCache travisCache, Optional<ArtifactDecorator> artifactDecorator, Collection<String> artifactRexeges, String buildMessageKey, Permissions permissions) {
+        return new TravisService(travisHostId, baseUrl, githubToken, numberOfRepositories, travisClient, travisCache, artifactDecorator, artifactRexeges, buildMessageKey, permissions);
     }
 
     public static TravisClient travisClient(String address, int timeout, ObjectMapper objectMapper) {

@@ -22,18 +22,22 @@ import com.netflix.spinnaker.igor.build.artifact.decorator.RpmDetailsDecorator
 import com.netflix.spinnaker.igor.build.model.GenericBuild
 import com.netflix.spinnaker.igor.build.model.Result
 import com.netflix.spinnaker.igor.service.ArtifactDecorator
+import com.netflix.spinnaker.igor.travis.TravisCache
 import com.netflix.spinnaker.igor.travis.client.TravisClient
 import com.netflix.spinnaker.igor.travis.client.model.AccessToken
 import com.netflix.spinnaker.igor.travis.client.model.Build
 import com.netflix.spinnaker.igor.travis.client.model.Builds
 import com.netflix.spinnaker.igor.travis.client.model.Commit
+import com.netflix.spinnaker.igor.travis.client.model.RepoRequest
+import com.netflix.spinnaker.igor.travis.client.model.TriggerResponse
+import com.netflix.spinnaker.igor.travis.client.model.v3.Request
 import com.netflix.spinnaker.igor.travis.client.model.v3.TravisBuildType
+import com.netflix.spinnaker.igor.travis.client.model.v3.V3Repository
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
 import java.time.Instant
-
 
 class TravisServiceSpec extends Specification{
     @Shared
@@ -43,12 +47,16 @@ class TravisServiceSpec extends Specification{
     TravisService service
 
     @Shared
+    TravisCache travisCache
+
+    @Shared
     Optional<ArtifactDecorator> artifactDecorator
 
     void setup() {
-        client = Mock(TravisClient)
+        client = Mock()
+        travisCache = Mock()
         artifactDecorator = Optional.of(new ArtifactDecorator([new DebDetailsDecorator(), new RpmDetailsDecorator()], null))
-        service = new TravisService('travis-ci', 'http://my.travis.ci', 'someToken', 25, client, null, artifactDecorator, [], Permissions.EMPTY)
+        service = new TravisService('travis-ci', 'http://my.travis.ci', 'someToken', 25, client, travisCache, artifactDecorator, [], "travis.buildMessage", Permissions.EMPTY)
 
         AccessToken accessToken = new AccessToken()
         accessToken.accessToken = "someToken"
@@ -218,5 +226,31 @@ class TravisServiceSpec extends Specification{
         "my-org/repo/pull_request_master" || TravisBuildType.pull_request
         "m/r/some_pull_request_in_name"   || TravisBuildType.branch
         "my-org/repo/tags"                || TravisBuildType.tag
+    }
+
+    def "set buildMessage from buildProperties"() {
+        given:
+        def response = new TriggerResponse()
+        response.setRemainingRequests(1)
+        def request = new Request()
+        request.setId(1337)
+        def repository = new V3Repository()
+        repository.setId(42)
+        request.setRepository(repository)
+        response.setRequest(request)
+
+        when:
+        int buildNumber = service.triggerBuildWithParameters("my/slug/branch", ["travis.buildMessage": "My build message"])
+
+        then:
+        1 * client.triggerBuild("token someToken", "my/slug", { RepoRequest repoRequest ->
+            assert repoRequest.branch == "branch"
+            assert repoRequest.config.env == null
+            assert repoRequest.message == "Triggered from Spinnaker: My build message"
+            return repoRequest
+        }) >> response
+        1 * travisCache.setQueuedJob("travis-ci", 42, 1337) >> 1
+
+        buildNumber == 1
     }
 }

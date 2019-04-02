@@ -33,6 +33,13 @@ public class TravisProperties implements BuildServerProperties<TravisProperties.
     private List<TravisHost> masters;
     @Valid
     private List<String> regexes;
+    /**
+     * Lets you customize the build message used when Spinnaker triggers builds in Travis. If you set a custom parameter
+     * in the Travis stage in Spinnaker with the value of this property as the key (e.g
+     * <code>travis.buildMessage=My customized message</code>, the build message in Travis will be
+     * <em>Triggered from Spinnaker: My customized message</em>. The first part of this message is not customizable.
+     */
+    private String buildMessageKey = "travis.buildMessage";
 
     public boolean getRepositorySyncEnabled() {
         return repositorySyncEnabled;
@@ -70,7 +77,15 @@ public class TravisProperties implements BuildServerProperties<TravisProperties.
         this.regexes = regexes;
     }
 
-    public long getNewBuildGracePeriodSeconds() {
+    public String getBuildMessageKey() {
+      return buildMessageKey;
+    }
+
+    public void setBuildMessageKey(String buildMessageKey) {
+      this.buildMessageKey = buildMessageKey;
+    }
+
+  public long getNewBuildGracePeriodSeconds() {
         return newBuildGracePeriodSeconds;
     }
 

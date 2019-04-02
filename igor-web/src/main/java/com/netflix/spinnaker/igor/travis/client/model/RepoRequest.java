@@ -24,7 +24,7 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 @JsonRootName("request")
 public class RepoRequest {
     private String branch;
-    private String message = "Triggered from spinnaker";
+    private String message = "Triggered from Spinnaker";
     private Config config;
 
     public RepoRequest(String branch) {

@@ -85,6 +85,7 @@ public class TravisService implements BuildOperations, BuildProperties {
     private final TravisCache travisCache;
     private final Collection<String> artifactRegexes;
     private final Optional<ArtifactDecorator> artifactDecorator;
+    private final String buildMessageKey;
     private final Permissions permissions;
     protected AccessToken accessToken;
     private Accounts accounts;
@@ -92,7 +93,7 @@ public class TravisService implements BuildOperations, BuildProperties {
     public TravisService(String travisHostId, String baseUrl, String githubToken, int numberOfRepositories,
                          TravisClient travisClient, TravisCache travisCache,
                          Optional<ArtifactDecorator> artifactDecorator, Collection<String> artifactRegexes,
-                         Permissions permissions) {
+                         String buildMessageKey, Permissions permissions) {
         this.numberOfRepositories = numberOfRepositories;
         this.groupKey = travisHostId;
         this.gitHubAuth = new GithubAuth(githubToken);
@@ -101,6 +102,7 @@ public class TravisService implements BuildOperations, BuildProperties {
         this.travisCache = travisCache;
         this.artifactDecorator = artifactDecorator;
         this.artifactRegexes = artifactRegexes != null ? new HashSet<>(artifactRegexes) : Collections.emptySet();
+        this.buildMessageKey = buildMessageKey;
         this.permissions = permissions;
     }
 
@@ -144,6 +146,11 @@ public class TravisService implements BuildOperations, BuildProperties {
         String repoSlug = cleanRepoSlug(inputRepoSlug);
         String branch = branchFromRepoSlug(inputRepoSlug);
         RepoRequest repoRequest = new RepoRequest(branch.isEmpty() ? "master" : branch);
+        if (buildMessageKey != null && queryParameters.containsKey(buildMessageKey)) {
+            String buildMessage = queryParameters.get(buildMessageKey);
+            queryParameters.remove(buildMessageKey);
+            repoRequest.setMessage(repoRequest.getMessage() + ": " + buildMessage);
+        }
         repoRequest.setConfig(new Config(queryParameters));
         final TriggerResponse triggerResponse = travisClient.triggerBuild(getAccessToken(), repoSlug, repoRequest);
         if (triggerResponse.getRemainingRequests() > 0) {

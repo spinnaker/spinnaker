@@ -105,7 +105,7 @@ class InfoControllerSpec extends Specification {
             new Permissions.Builder()
                 .add(Authorization.READ, ['group-1', 'group-2'])
                 .add(Authorization.WRITE, 'group-2').build())
-        TravisService travisService = new TravisService('travis-baz', null, null, 100, null, null, Optional.empty(), [],
+        TravisService travisService = new TravisService('travis-baz', null, null, 100, null, null, Optional.empty(), [], null,
             new Permissions.Builder()
                 .add(Authorization.READ, ['group-3', 'group-4'])
                 .add(Authorization.WRITE, 'group-3').build())
