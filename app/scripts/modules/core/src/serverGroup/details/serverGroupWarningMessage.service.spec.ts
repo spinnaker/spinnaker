@@ -1,21 +1,13 @@
-import { mock } from 'angular';
 import { ServerGroupWarningMessageService } from './serverGroupWarningMessage.service';
-import { ApplicationModelBuilder, APPLICATION_MODEL_BUILDER } from 'core/application/applicationModel.builder';
+import { ApplicationModelBuilder } from 'core/application/applicationModel.builder';
 import { IServerGroup } from 'core/domain';
 import { Application } from 'core/application/application.model';
 import { IConfirmationModalParams } from 'core/confirmationModal/confirmationModal.service';
 
 describe('ServerGroupWarningMessageService', () => {
-  let applicationModelBuilder: ApplicationModelBuilder, app: Application, serverGroup: IServerGroup;
+  let app: Application, serverGroup: IServerGroup;
 
-  beforeEach(mock.module(APPLICATION_MODEL_BUILDER));
-
-  beforeEach(
-    mock.inject((_applicationModelBuilder_: ApplicationModelBuilder) => {
-      applicationModelBuilder = _applicationModelBuilder_;
-      app = applicationModelBuilder.createApplicationForTests('app');
-    }),
-  );
+  beforeEach(() => (app = ApplicationModelBuilder.createApplicationForTests('app')));
 
   describe('addDestroyWarningMessage', () => {
     it('leaves parameters unchanged when additional server groups exist in cluster', () => {

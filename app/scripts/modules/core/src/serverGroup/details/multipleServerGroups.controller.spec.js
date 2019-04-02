@@ -1,4 +1,4 @@
-import { APPLICATION_MODEL_BUILDER } from 'core/application/applicationModel.builder';
+import { ApplicationModelBuilder } from 'core/application/applicationModel.builder';
 import { ClusterState } from 'core/state';
 import * as State from 'core/state';
 
@@ -6,17 +6,17 @@ describe('Controller: MultipleServerGroups', function() {
   var controller;
   var scope;
 
-  beforeEach(window.module(require('./multipleServerGroups.controller').name, APPLICATION_MODEL_BUILDER));
+  beforeEach(window.module(require('./multipleServerGroups.controller').name));
 
   beforeEach(() => State.initialize());
 
   beforeEach(
-    window.inject(function($rootScope, $controller, _$q_, applicationModelBuilder) {
+    window.inject(function($rootScope, $controller) {
       scope = $rootScope.$new();
       ClusterState.filterModel.sortFilter.multiselect = true;
 
       this.createController = function(serverGroups) {
-        let application = applicationModelBuilder.createApplicationForTests('app', { key: 'serverGroups', lazy: true });
+        let application = ApplicationModelBuilder.createApplicationForTests('app', { key: 'serverGroups', lazy: true });
         application.serverGroups.data = serverGroups;
         application.serverGroups.loaded = true;
         this.application = application;

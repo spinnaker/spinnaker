@@ -1,4 +1,4 @@
-import { APPLICATION_MODEL_BUILDER } from 'core/application/applicationModel.builder';
+import { ApplicationModelBuilder } from 'core/application/applicationModel.builder';
 import * as State from 'core/state';
 
 describe('Controller: MultipleInstances', function() {
@@ -7,14 +7,14 @@ describe('Controller: MultipleInstances', function() {
 
   beforeEach(() => State.initialize());
 
-  beforeEach(window.module(require('./multipleInstances.controller').name, APPLICATION_MODEL_BUILDER));
+  beforeEach(window.module(require('./multipleInstances.controller').name));
 
   beforeEach(
-    window.inject(function($rootScope, $controller, _$q_, applicationModelBuilder) {
+    window.inject(function($rootScope, $controller) {
       scope = $rootScope.$new();
 
       this.createController = function(serverGroups) {
-        let application = applicationModelBuilder.createApplicationForTests('app', { key: 'serverGroups', lazy: true });
+        let application = ApplicationModelBuilder.createApplicationForTests('app', { key: 'serverGroups', lazy: true });
         application.serverGroups.data = serverGroups;
         application.serverGroups.loaded = true;
         this.application = application;

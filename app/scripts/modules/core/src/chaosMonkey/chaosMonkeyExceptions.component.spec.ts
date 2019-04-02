@@ -2,15 +2,14 @@ import { mock, IComponentControllerService, IScope, IQService, IRootScopeService
 
 import { CHAOS_MONKEY_EXCEPTIONS_COMPONENT, ChaosMonkeyExceptionsController } from './chaosMonkeyExceptions.component';
 import { AccountService } from 'core/account/AccountService';
-import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from 'core/application/applicationModel.builder';
+import { ApplicationModelBuilder } from 'core/application/applicationModel.builder';
 import { ChaosMonkeyConfig } from 'core/chaosMonkey/chaosMonkeyConfig.component';
 
 describe('Controller: ChaosMonkeyExceptions', () => {
   let $componentController: IComponentControllerService,
     $ctrl: ChaosMonkeyExceptionsController,
     $scope: IScope,
-    $q: IQService,
-    applicationBuilder: ApplicationModelBuilder;
+    $q: IQService;
 
   const initializeController = (data: any) => {
     $ctrl = $componentController(
@@ -20,20 +19,14 @@ describe('Controller: ChaosMonkeyExceptions', () => {
     ) as ChaosMonkeyExceptionsController;
   };
 
-  beforeEach(mock.module(APPLICATION_MODEL_BUILDER, CHAOS_MONKEY_EXCEPTIONS_COMPONENT));
+  beforeEach(mock.module(CHAOS_MONKEY_EXCEPTIONS_COMPONENT));
 
   beforeEach(
     mock.inject(
-      (
-        _$componentController_: IComponentControllerService,
-        _$q_: IQService,
-        $rootScope: IRootScopeService,
-        _applicationModelBuilder_: ApplicationModelBuilder,
-      ) => {
+      (_$componentController_: IComponentControllerService, _$q_: IQService, $rootScope: IRootScopeService) => {
         $scope = $rootScope.$new();
         $componentController = _$componentController_;
         $q = _$q_;
-        applicationBuilder = _applicationModelBuilder_;
       },
     ),
   );
@@ -48,7 +41,7 @@ describe('Controller: ChaosMonkeyExceptions', () => {
       spyOn(AccountService, 'listAllAccounts').and.returnValue($q.when(accounts));
 
       initializeController(null);
-      $ctrl.application = applicationBuilder.createApplicationForTests('app', {
+      $ctrl.application = ApplicationModelBuilder.createApplicationForTests('app', {
         key: 'serverGroups',
         loader: () => $q.resolve([]),
         onLoad: (_app, data) => $q.resolve(data),

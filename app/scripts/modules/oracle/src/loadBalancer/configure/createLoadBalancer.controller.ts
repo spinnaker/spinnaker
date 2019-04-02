@@ -498,5 +498,6 @@ export class OracleLoadBalancerController implements IController {
 export const ORACLE_LOAD_BALANCER_CREATE_CONTROLLER = 'spinnaker.oracle.loadBalancer.create.controller';
 module(ORACLE_LOAD_BALANCER_CREATE_CONTROLLER, [
   require('angular-ui-bootstrap'),
+  require('@uirouter/angularjs').default,
   ORACLE_LOAD_BALANCER_TRANSFORMER,
 ]).controller('oracleCreateLoadBalancerCtrl', OracleLoadBalancerController);

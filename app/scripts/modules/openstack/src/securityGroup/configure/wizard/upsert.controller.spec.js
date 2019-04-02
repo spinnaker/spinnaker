@@ -1,17 +1,17 @@
-import { AccountService, APPLICATION_MODEL_BUILDER, SecurityGroupWriter } from '@spinnaker/core';
+import { AccountService, ApplicationModelBuilder, SecurityGroupWriter } from '@spinnaker/core';
 
 import { OpenStackProviderSettings } from '../../../openstack.settings';
 
 describe('Controller: openstackCreateSecurityGroupCtrl', function() {
   // load the controller's module
-  beforeEach(window.module(require('./upsert.controller').name, APPLICATION_MODEL_BUILDER));
+  beforeEach(window.module(require('./upsert.controller').name));
 
   afterEach(OpenStackProviderSettings.resetToOriginal);
 
   // Initialize the controller and a mock scope
   var testSuite;
   beforeEach(
-    window.inject(function($controller, $rootScope, $q, applicationModelBuilder) {
+    window.inject(function($controller, $rootScope, $q) {
       testSuite = this;
       OpenStackProviderSettings.defaults.account = 'account1';
 
@@ -65,7 +65,7 @@ describe('Controller: openstackCreateSecurityGroupCtrl', function() {
         close: jasmine.createSpy(),
         result: $q.when(null),
       };
-      let application = applicationModelBuilder.createApplicationForTests('app', {
+      let application = ApplicationModelBuilder.createApplicationForTests('app', {
         key: 'securityGroups',
         onLoad: angular.noop,
         loader: angular.noop,

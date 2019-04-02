@@ -1,7 +1,7 @@
 import { mock } from 'angular';
 
 import { Application } from './application.model';
-import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from './applicationModel.builder';
+import { ApplicationModelBuilder } from './applicationModel.builder';
 import { ApplicationDataSourceRegistry } from './service/ApplicationDataSourceRegistry';
 import { LOAD_BALANCER_DATA_SOURCE } from 'core/loadBalancer/loadBalancer.dataSource';
 import { SecurityGroupReader } from 'core/securityGroup/securityGroupReader.service';
@@ -11,24 +11,16 @@ import { SECURITY_GROUP_DATA_SOURCE } from 'core/securityGroup/securityGroup.dat
 import { IEntityTag, IEntityTags, IServerGroup, IInstanceCounts, ILoadBalancer } from 'core/domain';
 
 describe('Application Model', function() {
-  let application: Application;
-  let securityGroupReader: SecurityGroupReader,
+  let application: Application,
+    securityGroupReader: SecurityGroupReader,
     loadBalancerReader: any,
     clusterService: any,
     $q: ng.IQService,
-    $scope: ng.IScope,
-    applicationModelBuilder: ApplicationModelBuilder;
+    $scope: ng.IScope;
 
   beforeEach(() => ApplicationDataSourceRegistry.clearDataSources());
 
-  beforeEach(
-    mock.module(
-      SECURITY_GROUP_DATA_SOURCE,
-      SERVER_GROUP_DATA_SOURCE,
-      LOAD_BALANCER_DATA_SOURCE,
-      APPLICATION_MODEL_BUILDER,
-    ),
-  );
+  beforeEach(mock.module(SECURITY_GROUP_DATA_SOURCE, SERVER_GROUP_DATA_SOURCE, LOAD_BALANCER_DATA_SOURCE));
 
   beforeEach(
     mock.inject(function(
@@ -37,14 +29,12 @@ describe('Application Model', function() {
       _$q_: ng.IQService,
       _loadBalancerReader_: any,
       $rootScope: any,
-      _applicationModelBuilder_: ApplicationModelBuilder,
     ) {
       securityGroupReader = _securityGroupReader_;
       clusterService = _clusterService_;
       loadBalancerReader = _loadBalancerReader_;
       $q = _$q_;
       $scope = $rootScope.$new();
-      applicationModelBuilder = _applicationModelBuilder_;
     }),
   );
 
@@ -61,7 +51,7 @@ describe('Application Model', function() {
     ) {
       return $q.when(groupsByName || []);
     });
-    application = applicationModelBuilder.createApplicationForTests(
+    application = ApplicationModelBuilder.createApplicationForTests(
       'app',
       ...ApplicationDataSourceRegistry.getDataSources(),
     );

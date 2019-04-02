@@ -1,17 +1,17 @@
 'use strict';
 
-import { API, APPLICATION_MODEL_BUILDER } from '@spinnaker/core';
+import { API, ApplicationModelBuilder } from '@spinnaker/core';
 
 describe('Controller: azureCreateLoadBalancerCtrl', function() {
   var $http;
 
   // load the controller's module
-  beforeEach(window.module(require('./createLoadBalancer.controller').name, APPLICATION_MODEL_BUILDER));
+  beforeEach(window.module(require('./createLoadBalancer.controller').name));
 
   // Initialize the controller and a mock scope
   beforeEach(
-    window.inject(function($controller, $rootScope, applicationModelBuilder) {
-      const app = applicationModelBuilder.createApplicationForTests('app', { key: 'loadBalancers', lazy: true });
+    window.inject(function($controller, $rootScope) {
+      const app = ApplicationModelBuilder.createApplicationForTests('app', { key: 'loadBalancers', lazy: true });
       this.$scope = $rootScope.$new();
       this.ctrl = $controller('azureCreateLoadBalancerCtrl', {
         $scope: this.$scope,

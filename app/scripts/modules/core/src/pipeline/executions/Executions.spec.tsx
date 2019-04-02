@@ -4,10 +4,12 @@ import { set } from 'lodash';
 import { IScope, ITimeoutService, mock, noop } from 'angular';
 
 import { Application } from 'core/application';
-import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from 'core/application/applicationModel.builder';
+import { ApplicationModelBuilder } from 'core/application/applicationModel.builder';
 import { INSIGHT_FILTER_STATE_MODEL } from 'core/insight/insightFilterState.model';
 import { REACT_MODULE, ReactInjector } from 'core/reactShims';
+import { OVERRIDE_REGISTRY } from 'core/overrideRegistry';
 import { ScrollToService } from 'core/utils';
+import * as State from 'core/state';
 import { IExecutionsProps, IExecutionsState, Executions } from './Executions';
 
 describe('<Executions/>', () => {
@@ -31,12 +33,13 @@ describe('<Executions/>', () => {
     component = mount(<Executions app={application} />);
   }
 
-  beforeEach(mock.module(APPLICATION_MODEL_BUILDER, INSIGHT_FILTER_STATE_MODEL, REACT_MODULE));
+  beforeEach(mock.module(INSIGHT_FILTER_STATE_MODEL, REACT_MODULE, OVERRIDE_REGISTRY));
   beforeEach(
-    mock.inject((_$timeout_: ITimeoutService, $rootScope: IScope, applicationModelBuilder: ApplicationModelBuilder) => {
+    mock.inject((_$timeout_: ITimeoutService, $rootScope: IScope) => {
+      State.initialize();
       scope = $rootScope.$new();
       $timeout = _$timeout_;
-      application = applicationModelBuilder.createApplicationForTests(
+      application = ApplicationModelBuilder.createApplicationForTests(
         'app',
         { key: 'executions', lazy: true },
         { key: 'pipelineConfigs', lazy: true },
@@ -46,7 +49,6 @@ describe('<Executions/>', () => {
 
   it('should not set loading flag to false until executions and pipeline configs have been loaded', function() {
     initializeApplication();
-
     expect(component.state().loading).toBe(true);
     application.executions.dataUpdated();
     application.pipelineConfigs.dataUpdated();

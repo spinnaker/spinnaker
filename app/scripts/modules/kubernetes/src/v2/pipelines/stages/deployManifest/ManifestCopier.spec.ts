@@ -1,19 +1,17 @@
 import { IQService, IScope, mock } from 'angular';
 
-import { ApplicationModelBuilder, Application, noop, APPLICATION_MODEL_BUILDER } from '@spinnaker/core';
+import { ApplicationModelBuilder, Application, noop } from '@spinnaker/core';
 import { ManifestCopier } from './ManifestCopier';
 
 describe('<ManifestCopier />', () => {
   let application: Application;
 
-  beforeEach(mock.module(APPLICATION_MODEL_BUILDER));
-
   beforeEach(
-    mock.inject(($q: IQService, $rootScope: IScope, applicationModelBuilder: ApplicationModelBuilder) => {
+    mock.inject(($q: IQService, $rootScope: IScope) => {
       const $scope = $rootScope.$new();
       // The application model implicitly depends on a bunch of Angular things, which is why
       // we need the Angular mock environment (even though we're testing a React component).
-      application = applicationModelBuilder.createApplicationForTests(
+      application = ApplicationModelBuilder.createApplicationForTests(
         'app',
         {
           key: 'serverGroups',

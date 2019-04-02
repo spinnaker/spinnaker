@@ -1,4 +1,4 @@
-import { APPLICATION_MODEL_BUILDER, InstanceReader } from '@spinnaker/core';
+import { ApplicationModelBuilder, InstanceReader } from '@spinnaker/core';
 
 describe('Controller: awsInstanceDetailsCtrl', function() {
   var controller;
@@ -6,10 +6,10 @@ describe('Controller: awsInstanceDetailsCtrl', function() {
   var $q;
   var application;
 
-  beforeEach(window.module(require('./instance.details.controller').name, APPLICATION_MODEL_BUILDER));
+  beforeEach(window.module(require('./instance.details.controller').name));
 
   beforeEach(
-    window.inject(function($rootScope, $controller, _$q_, applicationModelBuilder) {
+    window.inject(function($rootScope, $controller, _$q_) {
       scope = $rootScope.$new();
       $q = _$q_;
 
@@ -24,7 +24,7 @@ describe('Controller: awsInstanceDetailsCtrl', function() {
         });
       };
 
-      application = applicationModelBuilder.createApplicationForTests(
+      application = ApplicationModelBuilder.createApplicationForTests(
         'app',
         { key: 'loadBalancers', lazy: true },
         { key: 'serverGroups', lazy: true },

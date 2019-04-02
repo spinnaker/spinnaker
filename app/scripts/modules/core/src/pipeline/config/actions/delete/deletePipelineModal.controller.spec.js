@@ -1,15 +1,15 @@
-import { APPLICATION_MODEL_BUILDER } from 'core/application/applicationModel.builder';
+import { ApplicationModelBuilder } from 'core/application/applicationModel.builder';
 import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
 
 describe('Controller: deletePipelineModal', function() {
   const angular = require('angular');
 
-  beforeEach(window.module(require('./delete.module').name, APPLICATION_MODEL_BUILDER));
+  beforeEach(window.module(require('./delete.module').name));
   beforeEach(
-    window.inject(function($controller, $rootScope, $log, $q, $state, applicationModelBuilder) {
+    window.inject(function($controller, $rootScope, $log, $q, $state) {
       this.$rootScope = $rootScope;
       this.$q = $q;
-      this.application = applicationModelBuilder.createApplicationForTests('app', {
+      this.application = ApplicationModelBuilder.createApplicationForTests('app', {
         key: 'pipelineConfigs',
         lazy: true,
         loader: () => this.$q.when(this.application.pipelineConfigs.data),

@@ -1,4 +1,4 @@
-import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from 'core/application/applicationModel.builder';
+import { ApplicationModelBuilder } from 'core/application/applicationModel.builder';
 import { Application } from 'core/application/application.model';
 import { mock, IQService, IScope, IRootScopeService } from 'angular';
 import { IModalService } from 'angular-ui-bootstrap';
@@ -25,14 +25,11 @@ function fakeAccount(provider: string): IAccountDetails {
 }
 
 describe('providerSelectionService: API', () => {
-  beforeEach(mock.module(APPLICATION_MODEL_BUILDER, PROVIDER_SELECTION_SERVICE, require('angular-ui-bootstrap')));
+  beforeEach(mock.module(PROVIDER_SELECTION_SERVICE, require('angular-ui-bootstrap')));
 
   // required to ensure registry provider is available
-  let $q: IQService,
-    $scope: IScope,
-    $modal: IModalService,
-    providerService: ProviderSelectionService,
-    applicationBuilder: ApplicationModelBuilder;
+  let $q: IQService, $scope: IScope, $modal: IModalService, providerService: ProviderSelectionService;
+
   beforeEach(
     mock.inject(
       (
@@ -40,13 +37,11 @@ describe('providerSelectionService: API', () => {
         $rootScope: IRootScopeService,
         _$uibModal_: IModalService,
         _providerSelectionService_: ProviderSelectionService,
-        _applicationModelBuilder_: ApplicationModelBuilder,
       ) => {
         $q = _$q_;
         $scope = $rootScope.$new();
         $modal = _$uibModal_;
         providerService = _providerSelectionService_;
-        applicationBuilder = _applicationModelBuilder_;
       },
     ),
   );
@@ -79,7 +74,7 @@ describe('providerSelectionService: API', () => {
     accounts = [];
     delete SETTINGS.defaultProvider;
 
-    application = applicationBuilder.createApplicationForTests('app');
+    application = ApplicationModelBuilder.createApplicationForTests('app');
     application.attributes = { cloudProviders: 'testProvider' };
 
     config = {

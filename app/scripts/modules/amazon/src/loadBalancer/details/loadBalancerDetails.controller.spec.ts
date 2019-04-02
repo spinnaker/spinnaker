@@ -1,7 +1,7 @@
 import { IControllerService, IRootScopeService, mock } from 'angular';
 import { StateService } from '@uirouter/core';
 
-import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder, ISubnet } from '@spinnaker/core';
+import { ApplicationModelBuilder, ISubnet } from '@spinnaker/core';
 
 import { AWS_LOAD_BALANCER_DETAILS_CTRL, AwsLoadBalancerDetailsController } from './loadBalancerDetails.controller';
 
@@ -17,28 +17,21 @@ describe('Controller: LoadBalancerDetailsCtrl', function() {
     vpcId: '1',
   };
 
-  beforeEach(mock.module(APPLICATION_MODEL_BUILDER, AWS_LOAD_BALANCER_DETAILS_CTRL));
+  beforeEach(mock.module(AWS_LOAD_BALANCER_DETAILS_CTRL));
 
   beforeEach(
-    mock.inject(
-      (
-        $controller: IControllerService,
-        $rootScope: IRootScopeService,
-        _$state_: StateService,
-        applicationModelBuilder: ApplicationModelBuilder,
-      ) => {
-        $scope = $rootScope.$new();
-        $state = _$state_;
-        const app = applicationModelBuilder.createApplicationForTests('app', { key: 'loadBalancers', lazy: true });
-        app.loadBalancers.data.push(loadBalancer);
-        controller = $controller(AwsLoadBalancerDetailsController, {
-          $scope,
-          loadBalancer,
-          app,
-          $state,
-        });
-      },
-    ),
+    mock.inject(($controller: IControllerService, $rootScope: IRootScopeService, _$state_: StateService) => {
+      $scope = $rootScope.$new();
+      $state = _$state_;
+      const app = ApplicationModelBuilder.createApplicationForTests('app', { key: 'loadBalancers', lazy: true });
+      app.loadBalancers.data.push(loadBalancer);
+      controller = $controller(AwsLoadBalancerDetailsController, {
+        $scope,
+        loadBalancer,
+        app,
+        $state,
+      });
+    }),
   );
 
   it('should have an instantiated controller', function() {

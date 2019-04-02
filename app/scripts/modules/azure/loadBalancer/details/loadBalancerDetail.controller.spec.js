@@ -1,4 +1,4 @@
-import { APPLICATION_MODEL_BUILDER } from '@spinnaker/core';
+import { ApplicationModelBuilder } from '@spinnaker/core';
 
 describe('Controller: azureLoadBalancerDetailsCtrl', function() {
   var controller;
@@ -12,13 +12,13 @@ describe('Controller: azureLoadBalancerDetailsCtrl', function() {
     vpcId: '1',
   };
 
-  beforeEach(window.module(require('./loadBalancerDetail.controller').name, APPLICATION_MODEL_BUILDER));
+  beforeEach(window.module(require('./loadBalancerDetail.controller').name));
 
   beforeEach(
-    window.inject(function($controller, $rootScope, _$state_, applicationModelBuilder) {
+    window.inject(function($controller, $rootScope, _$state_) {
       $scope = $rootScope.$new();
       $state = _$state_;
-      let app = applicationModelBuilder.createApplicationForTests('app', { key: 'loadBalancers', lazy: true });
+      let app = ApplicationModelBuilder.createApplicationForTests('app', { key: 'loadBalancers', lazy: true });
       app.loadBalancers.data.push(loadBalancer);
       controller = $controller('azureLoadBalancerDetailsCtrl', {
         $scope: $scope,

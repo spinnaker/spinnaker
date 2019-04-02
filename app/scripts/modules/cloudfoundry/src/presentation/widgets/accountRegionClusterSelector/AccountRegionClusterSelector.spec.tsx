@@ -4,7 +4,6 @@ import { mount, shallow } from 'enzyme';
 
 import {
   Application,
-  APPLICATION_MODEL_BUILDER,
   ApplicationModelBuilder,
   ApplicationDataSource,
   IMoniker,
@@ -31,11 +30,11 @@ describe('<AccountRegionClusterSelector />', () => {
     } as IServerGroup;
   }
 
-  beforeEach(mock.module(APPLICATION_MODEL_BUILDER, REACT_MODULE));
+  beforeEach(mock.module(REACT_MODULE));
   beforeEach(
-    mock.inject(($rootScope: IScope, applicationModelBuilder: ApplicationModelBuilder) => {
+    mock.inject(($rootScope: IScope) => {
       $scope = $rootScope.$new();
-      application = applicationModelBuilder.createApplicationForTests('app', {
+      application = ApplicationModelBuilder.createApplicationForTests('app', {
         key: 'serverGroups',
         loaded: true,
         data: [

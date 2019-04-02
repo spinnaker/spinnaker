@@ -91,9 +91,8 @@ module(INSTANCE_STATES, [APPLICATION_STATE_PROVIDER, STATE_CONFIG_PROVIDER]).con
           },
         ],
         app: [
-          'applicationModelBuilder',
-          (applicationModelBuilder: ApplicationModelBuilder): Application => {
-            return applicationModelBuilder.createStandaloneApplication('(standalone instance)');
+          (): Application => {
+            return ApplicationModelBuilder.createStandaloneApplication('(standalone instance)');
           },
         ],
         overrides: () => {

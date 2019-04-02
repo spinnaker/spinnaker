@@ -3,7 +3,7 @@ import * as React from 'react';
 import { ReactWrapper, mount } from 'enzyme';
 
 import { Application } from 'core/application/application.model';
-import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from 'core/application/applicationModel.builder';
+import { ApplicationModelBuilder } from 'core/application/applicationModel.builder';
 import { ILoadBalancersTagProps } from './LoadBalancersTagWrapper';
 import { LoadBalancersTag } from './LoadBalancersTag';
 import { IServerGroup } from 'core/domain';
@@ -15,13 +15,11 @@ describe('<LoadBalancersTag />', () => {
 
   let $q: IQService, $scope: IScope, application: Application, component: ReactWrapper<ILoadBalancersTagProps, any>;
 
-  beforeEach(mock.module(APPLICATION_MODEL_BUILDER));
-
   beforeEach(
-    mock.inject((_$q_: IQService, $rootScope: IScope, applicationModelBuilder: ApplicationModelBuilder) => {
+    mock.inject((_$q_: IQService, $rootScope: IScope) => {
       $q = _$q_;
       $scope = $rootScope.$new();
-      application = applicationModelBuilder.createApplicationForTests('app', {
+      application = ApplicationModelBuilder.createApplicationForTests('app', {
         key: 'loadBalancers',
         loader: () => $q.resolve(application.loadBalancers.data),
         onLoad: (_app, data) => $q.resolve(data),

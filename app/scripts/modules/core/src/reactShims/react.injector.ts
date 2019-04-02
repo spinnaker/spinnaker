@@ -3,7 +3,6 @@ import IInjectorService = angular.auto.IInjectorService;
 
 import { StateParams, StateService, UIRouter } from '@uirouter/core';
 
-import { ApplicationModelBuilder } from '../application/applicationModel.builder';
 import { CacheInitializerService } from '../cache/cacheInitializer.service';
 import { ConfirmationModalService } from '../confirmationModal/confirmationModal.service';
 import { ExecutionDetailsSectionService } from 'core/pipeline/details/executionDetailsSection.service';
@@ -45,7 +44,6 @@ export class CoreReactInject extends ReactInject {
   public get $rootScope() { return this.$injector.get('$rootScope') as IScope; }
   public get $stateParams() { return this.$injector.get('$stateParams') as StateParams; }
   public get $uiRouter() { return this.$injector.get('$uiRouter') as UIRouter; }
-  public get applicationModelBuilder() { return this.$injector.get('applicationModelBuilder') as ApplicationModelBuilder; }
   public get cacheInitializer() { return this.$injector.get('cacheInitializer') as CacheInitializerService; }
   public get confirmationModalService() { return this.$injector.get('confirmationModalService') as ConfirmationModalService; }
   public get executionDetailsSectionService() { return this.$injector.get('executionDetailsSectionService') as ExecutionDetailsSectionService; }

@@ -1,7 +1,5 @@
-import { mock } from 'angular';
-
 import { Application } from 'core/application/application.model';
-import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from 'core/application/applicationModel.builder';
+import { ApplicationModelBuilder } from 'core/application/applicationModel.builder';
 import { ILoadBalancer, IServerGroup, ILoadBalancerGroup } from 'core/domain';
 import { LoadBalancerState } from 'core/state';
 
@@ -9,18 +7,14 @@ import { LoadBalancerState } from 'core/state';
 describe('Service: loadBalancerFilterService', function() {
   const debounceTimeout = 30;
 
-  let app: Application, resultJson: any, modelBuilder: ApplicationModelBuilder;
+  let app: Application, resultJson: any;
 
   beforeEach(() => {
-    mock.module(APPLICATION_MODEL_BUILDER);
-    mock.inject(function(applicationModelBuilder: ApplicationModelBuilder) {
-      modelBuilder = applicationModelBuilder;
-    });
     LoadBalancerState.filterModel.asFilterModel.groups = [];
   });
 
   beforeEach(function() {
-    app = modelBuilder.createApplicationForTests('app', { key: 'loadBalancers', lazy: true });
+    app = ApplicationModelBuilder.createApplicationForTests('app', { key: 'loadBalancers', lazy: true });
     app.getDataSource('loadBalancers').data = [
       {
         name: 'elb-1',

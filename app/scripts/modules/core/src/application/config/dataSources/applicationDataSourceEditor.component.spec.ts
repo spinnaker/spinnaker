@@ -1,13 +1,12 @@
 import { mock } from 'angular';
 
 import { Application } from 'core/application/application.model';
-import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from 'core/application/applicationModel.builder';
+import { ApplicationModelBuilder } from 'core/application/applicationModel.builder';
 import { APPLICATION_DATA_SOURCE_EDITOR, DataSourceEditorController } from './applicationDataSourceEditor.component';
 import { ApplicationWriter } from 'core/application/service/ApplicationWriter';
 
 describe('Component: Application Data Source Editor', () => {
-  let applicationModelBuilder: ApplicationModelBuilder,
-    application: Application,
+  let application: Application,
     $componentController: ng.IComponentControllerService,
     ctrl: DataSourceEditorController,
     $q: ng.IQService,
@@ -22,17 +21,15 @@ describe('Component: Application Data Source Editor', () => {
     ctrl.$onInit();
   };
 
-  beforeEach(mock.module(APPLICATION_DATA_SOURCE_EDITOR, APPLICATION_MODEL_BUILDER));
+  beforeEach(mock.module(APPLICATION_DATA_SOURCE_EDITOR));
 
   beforeEach(
     mock.inject(
       (
-        _applicationModelBuilder_: ApplicationModelBuilder,
         _$componentController_: ng.IComponentControllerService,
         _$q_: ng.IQService,
         $rootScope: ng.IRootScopeService,
       ) => {
-        applicationModelBuilder = _applicationModelBuilder_;
         $componentController = _$componentController_;
         $q = _$q_;
         $scope = $rootScope.$new();
@@ -41,7 +38,7 @@ describe('Component: Application Data Source Editor', () => {
   );
 
   beforeEach(() => {
-    application = applicationModelBuilder.createApplicationForTests(
+    application = ApplicationModelBuilder.createApplicationForTests(
       'app',
       {
         key: 'optionalSource',

@@ -1,16 +1,13 @@
 import { IQService, IRootScopeService, IScope, mock } from 'angular';
-import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from 'core/application';
+import { ApplicationModelBuilder } from 'core/application';
 
 import { SkinService } from './skin.service';
 
 describe('Service: SkinService', () => {
-  let appBuilder: ApplicationModelBuilder, scope: IScope, $q: IQService;
-
-  beforeEach(mock.module(APPLICATION_MODEL_BUILDER));
+  let scope: IScope, $q: IQService;
 
   beforeEach(
-    mock.inject(($rootScope: IRootScopeService, _$q_: IQService, applicationModelBuilder: ApplicationModelBuilder) => {
-      appBuilder = applicationModelBuilder;
+    mock.inject(($rootScope: IRootScopeService, _$q_: IQService) => {
       scope = $rootScope.$new();
       $q = _$q_;
     }),
@@ -29,7 +26,7 @@ describe('Service: SkinService', () => {
     });
 
     it('uses available accounts to determine skin if possible', () => {
-      const app = appBuilder.createStandaloneApplication('myApp');
+      const app = ApplicationModelBuilder.createStandaloneApplication('myApp');
 
       SkinService.getInstanceSkin('appengine', 'my-instance-id', app).then(skin => {
         expect(skin).toEqual('v1');
@@ -42,7 +39,7 @@ describe('Service: SkinService', () => {
     });
 
     it('scrapes application server groups to determine skin if possible', () => {
-      const app = appBuilder.createApplicationForTests(
+      const app = ApplicationModelBuilder.createApplicationForTests(
         'myApp',
         {
           key: 'serverGroups',
@@ -71,7 +68,7 @@ describe('Service: SkinService', () => {
     });
 
     it('scrapes application load balancers to determine skin if possible', () => {
-      const app = appBuilder.createApplicationForTests(
+      const app = ApplicationModelBuilder.createApplicationForTests(
         'myApp',
         {
           key: 'loadBalancers',
@@ -99,7 +96,7 @@ describe('Service: SkinService', () => {
     });
 
     it("scrapes application load balancers' server groups to determine skin if possible", () => {
-      const app = appBuilder.createApplicationForTests(
+      const app = ApplicationModelBuilder.createApplicationForTests(
         'myApp',
         {
           key: 'loadBalancers',

@@ -1,28 +1,27 @@
 import { mock, IQService } from 'angular';
 
 import { Application } from 'core/application/application.model';
-import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from 'core/application/applicationModel.builder';
+import { ApplicationModelBuilder } from 'core/application/applicationModel.builder';
 import { ApplicationDataSourceRegistry } from '../application/service/ApplicationDataSourceRegistry';
 import { TaskReader } from 'core/task/task.read.service';
 
 describe('Task Data Source', function() {
-  let application: Application, $scope: any, applicationModelBuilder: ApplicationModelBuilder, $q: IQService;
+  let application: Application, $scope: any, $q: IQService;
 
   beforeEach(() => ApplicationDataSourceRegistry.clearDataSources());
 
-  beforeEach(mock.module(require('./task.dataSource').name, APPLICATION_MODEL_BUILDER));
+  beforeEach(mock.module(require('./task.dataSource').name));
 
   beforeEach(
-    mock.inject(function(_$q_: any, $rootScope: any, _applicationModelBuilder_: any) {
+    mock.inject(function(_$q_: any, $rootScope: any) {
       $q = _$q_;
       $scope = $rootScope.$new();
-      applicationModelBuilder = _applicationModelBuilder_;
     }),
   );
 
   function configureApplication() {
     ApplicationDataSourceRegistry.registerDataSource({ key: 'serverGroups' });
-    application = applicationModelBuilder.createApplicationForTests(
+    application = ApplicationModelBuilder.createApplicationForTests(
       'app',
       ...ApplicationDataSourceRegistry.getDataSources(),
     );

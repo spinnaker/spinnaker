@@ -2,7 +2,7 @@ import { mock } from 'angular';
 import * as _ from 'lodash';
 import { CLUSTER_SERVICE } from 'core/cluster/cluster.service';
 import { Application } from 'core/application/application.model';
-import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from 'core/application/applicationModel.builder';
+import { ApplicationModelBuilder } from 'core/application/applicationModel.builder';
 import * as State from 'core/state';
 
 const ClusterState = State.ClusterState;
@@ -14,19 +14,12 @@ describe('Service: clusterFilterService', function() {
   let clusterService: any;
   let applicationJSON: any;
   let groupedJSON: any;
-  let applicationModelBuilder: ApplicationModelBuilder;
   let application: Application;
 
   beforeEach(function() {
-    mock.module(APPLICATION_MODEL_BUILDER, CLUSTER_SERVICE, require('./mockApplicationData').name, 'ui.router');
-    mock.inject(function(
-      _applicationJSON_: any,
-      _groupedJSON_: any,
-      _clusterService_: any,
-      _applicationModelBuilder_: ApplicationModelBuilder,
-    ) {
+    mock.module(CLUSTER_SERVICE, require('./mockApplicationData').name, 'ui.router');
+    mock.inject(function(_applicationJSON_: any, _groupedJSON_: any, _clusterService_: any) {
       clusterService = _clusterService_;
-      applicationModelBuilder = _applicationModelBuilder_;
 
       applicationJSON = _applicationJSON_;
       groupedJSON = _groupedJSON_;
@@ -35,7 +28,7 @@ describe('Service: clusterFilterService', function() {
     });
 
     this.buildApplication = (json: any) => {
-      const app = applicationModelBuilder.createApplicationForTests('app', { key: 'serverGroups', lazy: true });
+      const app = ApplicationModelBuilder.createApplicationForTests('app', { key: 'serverGroups', lazy: true });
       if (json.serverGroups) {
         app.getDataSource('serverGroups').data = _.cloneDeep(json.serverGroups.data);
       }

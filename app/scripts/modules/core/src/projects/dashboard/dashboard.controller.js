@@ -3,6 +3,7 @@
 const angular = require('angular');
 import _ from 'lodash';
 
+import { ApplicationModelBuilder } from 'core/application/applicationModel.builder';
 import { EXECUTION_SERVICE } from 'core/pipeline/service/execution.service';
 import { RecentHistoryService } from 'core/history/recentHistory.service';
 import { SchedulerFactory } from 'core/scheduler/SchedulerFactory';
@@ -28,6 +29,7 @@ module.exports = angular
     '$q',
     function($scope, $rootScope, projectConfiguration, executionService, regionFilterService, $q) {
       this.project = projectConfiguration;
+      this.application = ApplicationModelBuilder.createStandaloneApplication('project');
 
       // These templates are almost identical, but it doesn't look like you can pass in a directive easily as a tooltip so
       // here they are

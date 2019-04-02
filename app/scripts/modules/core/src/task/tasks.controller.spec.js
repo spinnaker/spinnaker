@@ -1,4 +1,4 @@
-import { APPLICATION_MODEL_BUILDER } from 'core/application/applicationModel.builder';
+import { ApplicationModelBuilder } from 'core/application/applicationModel.builder';
 import { TaskWriter } from './task.write.service';
 
 describe('Controller: tasks', function() {
@@ -6,14 +6,14 @@ describe('Controller: tasks', function() {
   var scope;
   var $q;
 
-  beforeEach(window.module(require('./tasks.controller').name, APPLICATION_MODEL_BUILDER));
+  beforeEach(window.module(require('./tasks.controller').name));
 
   beforeEach(
-    window.inject(function($controller, $rootScope, _$q_, applicationModelBuilder) {
+    window.inject(function($controller, $rootScope, _$q_) {
       $q = _$q_;
 
       this.initializeController = tasks => {
-        let application = applicationModelBuilder.createApplicationForTests('app', { key: 'tasks', lazy: true });
+        let application = ApplicationModelBuilder.createApplicationForTests('app', { key: 'tasks', lazy: true });
         application.tasks.activate = angular.noop;
         application.tasks.data = tasks || [];
         application.tasks.loaded = true;

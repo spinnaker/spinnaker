@@ -5,7 +5,6 @@ import {
 import { IControllerService, IRootScopeService, IScope, mock } from 'angular';
 import { StateService } from '@uirouter/angularjs';
 import {
-  APPLICATION_MODEL_BUILDER,
   ApplicationModelBuilder,
   SECURITY_GROUP_READER,
   SecurityGroupReader,
@@ -34,7 +33,6 @@ describe('Controller: oracleLoadBalancerDetailCtrl', function() {
   beforeEach(
     mock.module(
       ORACLE_LOAD_BALANCER_DETAIL_CONTROLLER,
-      APPLICATION_MODEL_BUILDER,
       SECURITY_GROUP_READER,
       LOAD_BALANCER_READ_SERVICE,
       CONFIRMATION_MODAL_SERVICE,
@@ -50,11 +48,10 @@ describe('Controller: oracleLoadBalancerDetailCtrl', function() {
         _securityGroupReader_: SecurityGroupReader,
         _confirmationModalService_: ConfirmationModalService,
         _loadBalancerReader_: LoadBalancerReader,
-        applicationModelBuilder: ApplicationModelBuilder,
       ) => {
         $scope = $rootScope.$new();
         $state = _$state_;
-        const app = applicationModelBuilder.createApplicationForTests('app', { key: 'loadBalancers', lazy: true });
+        const app = ApplicationModelBuilder.createApplicationForTests('app', { key: 'loadBalancers', lazy: true });
         app.loadBalancers.data.push(loadBalancer);
         securityGroupReader = _securityGroupReader_;
         confirmationModalService = _confirmationModalService_;

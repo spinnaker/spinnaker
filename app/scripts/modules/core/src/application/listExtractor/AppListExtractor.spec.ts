@@ -1,15 +1,12 @@
-import { mock } from 'angular';
 import { IInstance, IServerGroup } from 'core/domain';
 import { Application } from '../application.model';
-import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from '../applicationModel.builder';
+import { ApplicationModelBuilder } from '../applicationModel.builder';
 import { AppListExtractor } from './AppListExtractor';
 import { IMoniker } from 'core/naming/IMoniker';
 
 describe('AppListExtractor', function() {
-  let applicationModelBuilder: ApplicationModelBuilder;
-
   const buildApplication = (serverGroups: any[] = []): Application => {
-    const application: Application = applicationModelBuilder.createApplicationForTests('app', {
+    const application: Application = ApplicationModelBuilder.createApplicationForTests('app', {
       key: 'serverGroups',
       lazy: true,
     });
@@ -21,14 +18,6 @@ describe('AppListExtractor', function() {
     const { id, availabilityZone } = instance;
     return { id, availabilityZone };
   };
-
-  beforeEach(mock.module(APPLICATION_MODEL_BUILDER));
-
-  beforeEach(
-    mock.inject((_applicationModelBuilder_: ApplicationModelBuilder) => {
-      applicationModelBuilder = _applicationModelBuilder_;
-    }),
-  );
 
   describe('Get Monikers from a list of applications', function() {
     it('should return a filtered list of monikers', function() {

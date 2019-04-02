@@ -29,7 +29,11 @@
       <div class="horizontal center" ng-if="!vm.state.executions.loaded">
         <loading-spinner size="'small'"></loading-spinner>
       </div>
-      <project-pipeline ng-repeat="execution in vm.executions" execution="execution"></project-pipeline>
+      <project-pipeline
+        ng-repeat="execution in vm.executions"
+        execution="execution"
+        application="vm.application"
+      ></project-pipeline>
       <h4 ng-if="!vm.project.config.pipelineConfigs.length">No pipelines configured</h4>
       <h4 ng-if="vm.state.executions.error">There was a problem loading the executions for this project.</h4>
     </div>

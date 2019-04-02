@@ -167,7 +167,7 @@ export class OracleLoadBalancerDetailController implements IController {
 }
 
 export const ORACLE_LOAD_BALANCER_DETAIL_CONTROLLER = 'spinnaker.oracle.loadBalancerDetail.controller';
-module(ORACLE_LOAD_BALANCER_DETAIL_CONTROLLER, [require('angular-ui-bootstrap')]).controller(
-  'oracleLoadBalancerDetailCtrl',
-  OracleLoadBalancerDetailController,
-);
+module(ORACLE_LOAD_BALANCER_DETAIL_CONTROLLER, [
+  require('@uirouter/angularjs').default,
+  require('angular-ui-bootstrap'),
+]).controller('oracleLoadBalancerDetailCtrl', OracleLoadBalancerDetailController);

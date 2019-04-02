@@ -7,25 +7,16 @@ import { API } from 'core/api/ApiService';
 import { ITask } from 'core/domain';
 import { TaskMonitor } from './TaskMonitor';
 import { OrchestratedItemTransformer } from 'core/orchestratedItem/orchestratedItem.transformer';
-import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from 'core/application/applicationModel.builder';
+import { ApplicationModelBuilder } from 'core/application/applicationModel.builder';
 
 describe('TaskMonitor', () => {
-  let $scope: ng.IScope, $http: ng.IHttpBackendService, applicationModelBuilder: ApplicationModelBuilder;
-
-  beforeEach(mock.module(APPLICATION_MODEL_BUILDER));
+  let $scope: ng.IScope, $http: ng.IHttpBackendService;
 
   beforeEach(
-    mock.inject(
-      (
-        $rootScope: ng.IRootScopeService,
-        $httpBackend: ng.IHttpBackendService,
-        _applicationModelBuilder_: ApplicationModelBuilder,
-      ) => {
-        $scope = $rootScope.$new();
-        $http = $httpBackend;
-        applicationModelBuilder = _applicationModelBuilder_;
-      },
-    ),
+    mock.inject(($rootScope: ng.IRootScopeService, $httpBackend: ng.IHttpBackendService) => {
+      $scope = $rootScope.$new();
+      $http = $httpBackend;
+    }),
   );
 
   describe('task submit', () => {
@@ -36,7 +27,7 @@ describe('TaskMonitor', () => {
 
       const operation = () => $q.when(task);
       const monitor = new TaskMonitor({
-        application: applicationModelBuilder.createApplicationForTests('app', { key: 'runningTasks', lazy: true }),
+        application: ApplicationModelBuilder.createApplicationForTests('app', { key: 'runningTasks', lazy: true }),
         title: 'some task',
         modalInstance: { result: $q.defer().promise } as IModalServiceInstance,
         onTaskComplete: () => (completeCalled = true),
@@ -69,7 +60,7 @@ describe('TaskMonitor', () => {
       const task = { failureMessage: 'it failed' };
       const operation = () => $q.reject(task);
       const monitor = new TaskMonitor({
-        application: applicationModelBuilder.createApplicationForTests('app', { key: 'runningTasks', lazy: true }),
+        application: ApplicationModelBuilder.createApplicationForTests('app', { key: 'runningTasks', lazy: true }),
         title: 'a task',
         modalInstance: { result: $q.defer().promise } as IModalServiceInstance,
         onTaskComplete: () => (completeCalled = true),
@@ -93,7 +84,7 @@ describe('TaskMonitor', () => {
 
       const operation = () => $q.when(task);
       const monitor = new TaskMonitor({
-        application: applicationModelBuilder.createApplicationForTests('app', { key: 'runningTasks', lazy: true }),
+        application: ApplicationModelBuilder.createApplicationForTests('app', { key: 'runningTasks', lazy: true }),
         title: 'a task',
         modalInstance: { result: $q.defer().promise } as IModalServiceInstance,
         onTaskComplete: () => (completeCalled = true),

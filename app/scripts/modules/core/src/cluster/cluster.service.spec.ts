@@ -2,7 +2,7 @@ import { IHttpBackendService, mock } from 'angular';
 import { find } from 'lodash';
 
 import * as State from 'core/state';
-import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from 'core/application/applicationModel.builder';
+import { ApplicationModelBuilder } from 'core/application/applicationModel.builder';
 import { IInstanceCounts, IServerGroup } from 'core/domain';
 import { Application } from 'core/application/application.model';
 
@@ -13,7 +13,7 @@ import { SETTINGS } from 'core/config/settings';
 const ClusterState = State.ClusterState;
 
 describe('Service: Cluster', function() {
-  beforeEach(mock.module(CLUSTER_SERVICE, APPLICATION_MODEL_BUILDER));
+  beforeEach(mock.module(CLUSTER_SERVICE));
 
   let clusterService: ClusterService;
   let $http: IHttpBackendService;
@@ -33,30 +33,24 @@ describe('Service: Cluster', function() {
   });
 
   beforeEach(
-    mock.inject(
-      (
-        $httpBackend: IHttpBackendService,
-        _clusterService_: ClusterService,
-        applicationModelBuilder: ApplicationModelBuilder,
-      ) => {
-        $http = $httpBackend;
-        clusterService = _clusterService_;
+    mock.inject(($httpBackend: IHttpBackendService, _clusterService_: ClusterService) => {
+      $http = $httpBackend;
+      clusterService = _clusterService_;
 
-        application = applicationModelBuilder.createApplicationForTests(
-          'app',
-          { key: 'serverGroups' },
-          { key: 'runningExecutions' },
-          { key: 'runningTasks' },
-        );
-        application.getDataSource('serverGroups').data = [
-          { name: 'the-target', account: 'not-the-target', region: 'us-east-1' },
-          { name: 'the-target', account: 'test', region: 'not-the-target' },
-          { name: 'the-target', account: 'test', region: 'us-east-1' },
-          { name: 'not-the-target', account: 'test', region: 'us-east-1' },
-          { name: 'the-source', account: 'test', region: 'us-east-1' },
-        ];
-      },
-    ),
+      application = ApplicationModelBuilder.createApplicationForTests(
+        'app',
+        { key: 'serverGroups' },
+        { key: 'runningExecutions' },
+        { key: 'runningTasks' },
+      );
+      application.getDataSource('serverGroups').data = [
+        { name: 'the-target', account: 'not-the-target', region: 'us-east-1' },
+        { name: 'the-target', account: 'test', region: 'not-the-target' },
+        { name: 'the-target', account: 'test', region: 'us-east-1' },
+        { name: 'not-the-target', account: 'test', region: 'us-east-1' },
+        { name: 'the-source', account: 'test', region: 'us-east-1' },
+      ];
+    }),
   );
 
   describe('lazy cluster fetching', () => {

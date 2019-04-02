@@ -1,7 +1,7 @@
 import { IControllerService, IRootScopeService, IScope, mock, noop } from 'angular';
 import { StateService } from '@uirouter/core';
 
-import { API, APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from '@spinnaker/core';
+import { API, ApplicationModelBuilder } from '@spinnaker/core';
 
 import { ORACLE_LOAD_BALANCER_CREATE_CONTROLLER, OracleLoadBalancerController } from './createLoadBalancer.controller';
 import {
@@ -18,40 +18,33 @@ describe('Controller: oracleCreateLoadBalancerCtrl', function() {
   let $scope: IScope;
   let $state: StateService;
 
-  beforeEach(mock.module(APPLICATION_MODEL_BUILDER, ORACLE_LOAD_BALANCER_CREATE_CONTROLLER));
+  beforeEach(mock.module(ORACLE_LOAD_BALANCER_CREATE_CONTROLLER));
 
   // Initialize the controller and a mock scope
   beforeEach(
-    mock.inject(
-      (
-        $controller: IControllerService,
-        $rootScope: IRootScopeService,
-        _$state_: StateService,
-        applicationModelBuilder: ApplicationModelBuilder,
-      ) => {
-        $scope = $rootScope.$new();
-        $state = _$state_;
-        const application = applicationModelBuilder.createApplicationForTests('app', {
-          key: 'loadBalancers',
-          lazy: true,
-        });
+    mock.inject(($controller: IControllerService, $rootScope: IRootScopeService, _$state_: StateService) => {
+      $scope = $rootScope.$new();
+      $state = _$state_;
+      const application = ApplicationModelBuilder.createApplicationForTests('app', {
+        key: 'loadBalancers',
+        lazy: true,
+      });
 
-        const isNew = true;
-        controller = $controller(OracleLoadBalancerController, {
-          $scope,
-          $uibModalInstance: { dismiss: noop, result: { then: noop } },
-          loadBalancer,
-          application,
-          $state,
-          isNew,
-        });
-        controller.addBackendSet();
-        controller.addListener();
-        controller.addCert();
+      const isNew = true;
+      controller = $controller(OracleLoadBalancerController, {
+        $scope,
+        $uibModalInstance: { dismiss: noop, result: { then: noop } },
+        loadBalancer,
+        application,
+        $state,
+        isNew,
+      });
+      controller.addBackendSet();
+      controller.addListener();
+      controller.addCert();
 
-        controller.listeners[0].defaultBackendSetName = controller.backendSets[0].name;
-      },
-    ),
+      controller.listeners[0].defaultBackendSetName = controller.backendSets[0].name;
+    }),
   );
 
   beforeEach(

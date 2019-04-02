@@ -3,13 +3,10 @@ import {
   DeployInitializerController,
   DEPLOY_INITIALIZER_COMPONENT,
 } from 'core/serverGroup/configure/common/deployInitializer.component';
-import { Application, ApplicationModelBuilder, APPLICATION_MODEL_BUILDER } from 'core/application';
+import { Application, ApplicationModelBuilder } from 'core/application';
 
 describe('Component: deployInitializer', () => {
-  let ctrl: DeployInitializerController,
-    $componentController: IComponentControllerService,
-    applicationModelBuilder: ApplicationModelBuilder,
-    application: Application;
+  let ctrl: DeployInitializerController, $componentController: IComponentControllerService, application: Application;
 
   const initialize = () => {
     ctrl = $componentController(
@@ -20,20 +17,17 @@ describe('Component: deployInitializer', () => {
     ctrl.$onInit();
   };
 
-  beforeEach(mock.module(DEPLOY_INITIALIZER_COMPONENT, APPLICATION_MODEL_BUILDER));
+  beforeEach(mock.module(DEPLOY_INITIALIZER_COMPONENT));
 
   beforeEach(
-    mock.inject(
-      (_applicationModelBuilder_: ApplicationModelBuilder, _$componentController_: IComponentControllerService) => {
-        applicationModelBuilder = _applicationModelBuilder_;
-        $componentController = _$componentController_;
-      },
-    ),
+    mock.inject((_$componentController_: IComponentControllerService) => {
+      $componentController = _$componentController_;
+    }),
   );
 
   describe('template initialization', () => {
     it('creates separate template options for each account and region of a cluster', () => {
-      application = applicationModelBuilder.createApplicationForTests('app', { key: 'serverGroups', lazy: true });
+      application = ApplicationModelBuilder.createApplicationForTests('app', { key: 'serverGroups', lazy: true });
       application.getDataSource('serverGroups').data = [
         {
           name: 'sg1',

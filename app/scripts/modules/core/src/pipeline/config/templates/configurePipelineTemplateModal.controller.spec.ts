@@ -5,7 +5,7 @@ import {
   ConfigurePipelineTemplateModalController,
 } from './configurePipelineTemplateModal.controller';
 import { IVariable } from './inputs/variableInput.service';
-import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from 'core/application/applicationModel.builder';
+import { ApplicationModelBuilder } from 'core/application/applicationModel.builder';
 import { Application } from 'core/application/application.model';
 import { PIPELINE_TEMPLATE_MODULE } from './pipelineTemplate.module';
 import { PipelineTemplateReader } from './PipelineTemplateReader';
@@ -74,39 +74,32 @@ describe('Controller: ConfigurePipelineTemplateModalCtrl', () => {
     ],
   };
 
-  beforeEach(mock.module(APPLICATION_MODEL_BUILDER, CONFIGURE_PIPELINE_TEMPLATE_MODAL_CTRL, PIPELINE_TEMPLATE_MODULE));
+  beforeEach(mock.module(CONFIGURE_PIPELINE_TEMPLATE_MODAL_CTRL, PIPELINE_TEMPLATE_MODULE));
 
   beforeEach(() => {
-    mock.inject(
-      (
-        $controller: ng.IControllerService,
-        $rootScope: ng.IRootScopeService,
-        _$q_: IQService,
-        applicationModelBuilder: ApplicationModelBuilder,
-      ) => {
-        application = applicationModelBuilder.createStandaloneApplication('app');
-        $scope = $rootScope.$new();
-        $q = _$q_;
-        ctrl = $controller('ConfigurePipelineTemplateModalCtrl', {
-          $scope,
-          application,
-          $uibModalInstance: { close: $q.resolve(null) },
-          pipelineTemplateConfig: {
-            config: {
-              pipeline: {
-                name: 'My Managed Pipeline',
-                template: {
-                  source: 'spinnaker://myPipelineId',
-                },
+    mock.inject(($controller: ng.IControllerService, $rootScope: ng.IRootScopeService, _$q_: IQService) => {
+      application = ApplicationModelBuilder.createStandaloneApplication('app');
+      $scope = $rootScope.$new();
+      $q = _$q_;
+      ctrl = $controller('ConfigurePipelineTemplateModalCtrl', {
+        $scope,
+        application,
+        $uibModalInstance: { close: $q.resolve(null) },
+        pipelineTemplateConfig: {
+          config: {
+            pipeline: {
+              name: 'My Managed Pipeline',
+              template: {
+                source: 'spinnaker://myPipelineId',
               },
             },
           },
-          pipelineId: '1234',
-          executionId: null,
-          isNew: true,
-        }) as ConfigurePipelineTemplateModalController;
-      },
-    );
+        },
+        pipelineId: '1234',
+        executionId: null,
+        isNew: true,
+      }) as ConfigurePipelineTemplateModalController;
+    });
   });
 
   describe('data initialization', () => {

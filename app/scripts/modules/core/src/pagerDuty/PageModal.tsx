@@ -71,7 +71,7 @@ export class PageModal extends React.Component<IPageModalProps, IPageModalState>
 
   public sendPage = (): void => {
     const { applications, services } = this.props;
-    const defaultApp = new ApplicationModelBuilder().createStandaloneApplication('spinnaker');
+    const defaultApp = ApplicationModelBuilder.createStandaloneApplication('spinnaker');
     const ownerApp = applications && applications.length === 1 ? applications[0] : defaultApp;
 
     const taskMonitor = new TaskMonitor({

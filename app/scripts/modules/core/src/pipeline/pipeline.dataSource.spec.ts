@@ -1,21 +1,17 @@
 import { IQProvider, mock } from 'angular';
 
 import { Application } from 'core/application/application.model';
-import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from 'core/application/applicationModel.builder';
+import { ApplicationModelBuilder } from 'core/application/applicationModel.builder';
 import { ApplicationDataSourceRegistry } from '../application/service/ApplicationDataSourceRegistry';
 import { EXECUTION_SERVICE } from './service/execution.service';
 import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
 
 describe('Pipeline Data Source', function() {
-  let application: Application,
-    executionService: any,
-    $scope: ng.IScope,
-    applicationModelBuilder: ApplicationModelBuilder,
-    $q: ng.IQService;
+  let application: Application, executionService: any, $scope: ng.IScope, $q: ng.IQService;
 
   beforeEach(() => ApplicationDataSourceRegistry.clearDataSources());
 
-  beforeEach(mock.module(require('./pipeline.dataSource').name, EXECUTION_SERVICE, APPLICATION_MODEL_BUILDER));
+  beforeEach(mock.module(require('./pipeline.dataSource').name, EXECUTION_SERVICE));
 
   // https://docs.angularjs.org/guide/migration#migrate1.5to1.6-ng-services-$q
   beforeEach(
@@ -25,22 +21,16 @@ describe('Pipeline Data Source', function() {
   );
 
   beforeEach(
-    mock.inject(function(
-      _executionService_: any,
-      _$q_: ng.IQService,
-      $rootScope: ng.IRootScopeService,
-      _applicationModelBuilder_: ApplicationModelBuilder,
-    ) {
+    mock.inject(function(_executionService_: any, _$q_: ng.IQService, $rootScope: ng.IRootScopeService) {
       $q = _$q_;
       $scope = $rootScope.$new();
       executionService = _executionService_;
-      applicationModelBuilder = _applicationModelBuilder_;
     }),
   );
 
   function configureApplication() {
     ApplicationDataSourceRegistry.registerDataSource({ key: 'serverGroups' });
-    application = applicationModelBuilder.createApplicationForTests(
+    application = ApplicationModelBuilder.createApplicationForTests(
       'app',
       ...ApplicationDataSourceRegistry.getDataSources(),
     );

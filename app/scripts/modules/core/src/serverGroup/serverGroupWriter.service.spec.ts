@@ -8,7 +8,7 @@ import {
 } from './configure/common/serverGroupCommandBuilder.service';
 import { ITaskCommand } from 'core/task/taskExecutor';
 import { Application } from 'core/application/application.model';
-import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from 'core/application/applicationModel.builder';
+import { ApplicationModelBuilder } from 'core/application/applicationModel.builder';
 import { ApplicationDataSourceRegistry } from 'core/application/service/ApplicationDataSourceRegistry';
 
 interface IApplicationTask {
@@ -20,23 +20,18 @@ class TestApplication extends Application {
 }
 
 describe('serverGroupWriter', function() {
-  let $httpBackend: ng.IHttpBackendService,
-    applicationModelBuilder: ApplicationModelBuilder,
-    serverGroupTransformer: any,
-    serverGroupWriter: ServerGroupWriter;
+  let $httpBackend: ng.IHttpBackendService, serverGroupTransformer: any, serverGroupWriter: ServerGroupWriter;
 
-  beforeEach(mock.module(APPLICATION_MODEL_BUILDER, SERVER_GROUP_WRITER));
+  beforeEach(mock.module(SERVER_GROUP_WRITER));
 
   beforeEach(function() {
     mock.inject(function(
       _serverGroupWriter_: ServerGroupWriter,
       _$httpBackend_: ng.IHttpBackendService,
-      _applicationModelBuilder_: ApplicationModelBuilder,
       _serverGroupTransformer_: any,
     ) {
       serverGroupWriter = _serverGroupWriter_;
       $httpBackend = _$httpBackend_;
-      applicationModelBuilder = _applicationModelBuilder_;
       serverGroupTransformer = _serverGroupTransformer_;
     });
   });
@@ -64,7 +59,7 @@ describe('serverGroupWriter', function() {
         })
         .respond(200, { ref: '/1' });
 
-      const application: TestApplication = applicationModelBuilder.createApplicationForTests(
+      const application: TestApplication = ApplicationModelBuilder.createApplicationForTests(
         'app',
         ...ApplicationDataSourceRegistry.getDataSources(),
       ) as TestApplication;
@@ -81,7 +76,7 @@ describe('serverGroupWriter', function() {
 
     let command: IServerGroupCommand;
     beforeEach(() => {
-      const application: Application = applicationModelBuilder.createApplicationForTests(
+      const application: Application = ApplicationModelBuilder.createApplicationForTests(
         'app',
         ...ApplicationDataSourceRegistry.getDataSources(),
       );

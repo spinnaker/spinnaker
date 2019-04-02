@@ -2,7 +2,6 @@ import { mock, IQService, IScope, IRootScopeService } from 'angular';
 
 import {
   AccountService,
-  APPLICATION_MODEL_BUILDER,
   ApplicationModelBuilder,
   CacheInitializerService,
   LoadBalancerReader,
@@ -23,10 +22,9 @@ describe('Service: awsServerGroupConfiguration', function() {
     awsInstanceTypeService: any,
     cacheInitializer: CacheInitializerService,
     loadBalancerReader: LoadBalancerReader,
-    applicationModelBuilder: ApplicationModelBuilder,
     $scope: IScope;
 
-  beforeEach(mock.module(APPLICATION_MODEL_BUILDER, AWS_SERVER_GROUP_CONFIGURATION_SERVICE));
+  beforeEach(mock.module(AWS_SERVER_GROUP_CONFIGURATION_SERVICE));
 
   beforeEach(
     mock.inject(function(
@@ -36,7 +34,6 @@ describe('Service: awsServerGroupConfiguration', function() {
       _awsInstanceTypeService_: any,
       _cacheInitializer_: CacheInitializerService,
       _loadBalancerReader_: LoadBalancerReader,
-      _applicationModelBuilder_: ApplicationModelBuilder,
       $rootScope: IRootScopeService,
     ) {
       service = _awsServerGroupConfigurationService_;
@@ -45,7 +42,6 @@ describe('Service: awsServerGroupConfiguration', function() {
       awsInstanceTypeService = _awsInstanceTypeService_;
       cacheInitializer = _cacheInitializer_;
       loadBalancerReader = _loadBalancerReader_;
-      applicationModelBuilder = _applicationModelBuilder_;
       $scope = $rootScope.$new();
 
       this.allLoadBalancers = [
@@ -108,7 +104,7 @@ describe('Service: awsServerGroupConfiguration', function() {
       } as any;
 
       service.configureCommand(
-        applicationModelBuilder.createApplicationForTests('name', { key: 'loadBalancers', lazy: true }),
+        ApplicationModelBuilder.createApplicationForTests('name', { key: 'loadBalancers', lazy: true }),
         command,
       );
       $scope.$digest();

@@ -5,7 +5,7 @@ import { shallow } from 'enzyme';
 import { CreatePipelineModal, ICreatePipelineModalProps } from './CreatePipelineModal';
 import { PipelineTemplateReader } from 'core/pipeline/config/templates/PipelineTemplateReader';
 import { Application } from 'core/application/application.model';
-import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from 'core/application/applicationModel.builder';
+import { ApplicationModelBuilder } from 'core/application/applicationModel.builder';
 import { IPipeline } from 'core/domain';
 import { SETTINGS } from 'core/config/settings';
 import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
@@ -19,14 +19,12 @@ xdescribe('CreatePipelineModal', () => {
   let initializeComponent: (configs?: Array<Partial<IPipeline>>) => void;
   let component: CreatePipelineModal;
 
-  beforeEach(mock.module(APPLICATION_MODEL_BUILDER));
-
   beforeEach(
-    mock.inject((_$q_: IQService, $rootScope: IScope, applicationModelBuilder: ApplicationModelBuilder) => {
+    mock.inject((_$q_: IQService, $rootScope: IScope) => {
       $q = _$q_;
       $scope = $rootScope.$new();
       initializeComponent = (configs = []) => {
-        application = applicationModelBuilder.createApplicationForTests(
+        application = ApplicationModelBuilder.createApplicationForTests(
           'app',
           {
             key: 'pipelineConfigs',

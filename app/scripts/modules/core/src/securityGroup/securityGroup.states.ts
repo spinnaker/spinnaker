@@ -6,7 +6,6 @@ import {
   APPLICATION_STATE_PROVIDER,
   ApplicationStateProvider,
   Application,
-  APPLICATION_MODEL_BUILDER,
   ApplicationModelBuilder,
 } from 'core/application';
 import { SkinService } from 'core/cloudProvider';
@@ -17,7 +16,7 @@ import { filterModelConfig } from './filter/SecurityGroupFilterModel';
 import { SecurityGroupDetails } from './SecurityGroupDetails';
 
 export const SECURITY_GROUP_STATES = 'spinnaker.core.securityGroup.states';
-module(SECURITY_GROUP_STATES, [APPLICATION_STATE_PROVIDER, STATE_CONFIG_PROVIDER, APPLICATION_MODEL_BUILDER]).config([
+module(SECURITY_GROUP_STATES, [APPLICATION_STATE_PROVIDER, STATE_CONFIG_PROVIDER]).config([
   'applicationStateProvider',
   'stateConfigProvider',
   (applicationStateProvider: ApplicationStateProvider, stateConfigProvider: StateConfigProvider) => {
@@ -126,16 +125,11 @@ module(SECURITY_GROUP_STATES, [APPLICATION_STATE_PROVIDER, STATE_CONFIG_PROVIDER
         app: [
           '$stateParams',
           'securityGroupReader',
-          'applicationModelBuilder',
-          (
-            $stateParams: StateParams,
-            securityGroupReader: SecurityGroupReader,
-            applicationModelBuilder: ApplicationModelBuilder,
-          ): ng.IPromise<Application> => {
+          ($stateParams: StateParams, securityGroupReader: SecurityGroupReader): ng.IPromise<Application> => {
             // we need the application to have a firewall index (so rules get attached and linked properly)
             // and its name should just be the name of the firewall (so cloning works as expected)
             return securityGroupReader.loadSecurityGroups().then(securityGroupsIndex => {
-              const application: Application = applicationModelBuilder.createStandaloneApplication($stateParams.name);
+              const application: Application = ApplicationModelBuilder.createStandaloneApplication($stateParams.name);
               application['securityGroupsIndex'] = securityGroupsIndex; // TODO: refactor the securityGroupsIndex out
               return application;
             });

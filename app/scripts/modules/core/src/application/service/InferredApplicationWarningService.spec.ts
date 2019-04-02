@@ -1,32 +1,20 @@
-import { mock } from 'angular';
-
 import Spy = jasmine.Spy;
 
 import { NotifierService } from 'core/widgets/notifier/notifier.service';
 
 import { InferredApplicationWarningService } from './InferredApplicationWarningService';
 import { Application } from '../application.model';
-import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from '../applicationModel.builder';
+import { ApplicationModelBuilder } from '../applicationModel.builder';
 
 describe('Service: inferredApplicationWarning', () => {
-  let applicationModelBuilder: ApplicationModelBuilder;
-
-  beforeEach(mock.module(APPLICATION_MODEL_BUILDER));
-
-  beforeEach(
-    mock.inject((_applicationModelBuilder_: ApplicationModelBuilder) => {
-      applicationModelBuilder = _applicationModelBuilder_;
-    }),
-  );
-
   describe('checkIfInferredAndWarn', () => {
     let configuredApp: Application, inferredApp: Application;
 
     beforeEach(function() {
-      configuredApp = applicationModelBuilder.createApplicationForTests('myConfiguredApp');
+      configuredApp = ApplicationModelBuilder.createApplicationForTests('myConfiguredApp');
       configuredApp.attributes.email = 'email@email.email';
 
-      inferredApp = applicationModelBuilder.createNotFoundApplication('myInferredApp');
+      inferredApp = ApplicationModelBuilder.createNotFoundApplication('myInferredApp');
 
       InferredApplicationWarningService.resetViewedApplications();
       spyOn(NotifierService, 'publish');

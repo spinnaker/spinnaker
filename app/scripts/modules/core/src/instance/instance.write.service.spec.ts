@@ -2,7 +2,7 @@ import { mock } from 'angular';
 
 import { IMultiInstanceGroup, INSTANCE_WRITE_SERVICE, InstanceWriter } from 'core/instance/instance.write.service';
 import { Application } from 'core/application/application.model';
-import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from '../application/applicationModel.builder';
+import { ApplicationModelBuilder } from '../application/applicationModel.builder';
 import { IInstance, IServerGroup } from 'core/domain';
 import * as State from 'core/state';
 
@@ -10,26 +10,18 @@ import { ServerGroupReader } from '../serverGroup/serverGroupReader.service';
 import { IJob, ITaskCommand, TaskExecutor } from '../task/taskExecutor';
 
 describe('Service: instance writer', function() {
-  let service: InstanceWriter, $q: ng.IQService, $scope: ng.IScope, applicationModelBuilder: ApplicationModelBuilder;
+  let service: InstanceWriter, $q: ng.IQService, $scope: ng.IScope;
 
   beforeEach(() => State.initialize());
 
-  beforeEach(mock.module(INSTANCE_WRITE_SERVICE, APPLICATION_MODEL_BUILDER));
+  beforeEach(mock.module(INSTANCE_WRITE_SERVICE));
 
   beforeEach(
-    mock.inject(
-      (
-        instanceWriter: InstanceWriter,
-        _$q_: ng.IQService,
-        $rootScope: ng.IRootScopeService,
-        _applicationModelBuilder_: ApplicationModelBuilder,
-      ) => {
-        service = instanceWriter;
-        $q = _$q_;
-        $scope = $rootScope.$new();
-        applicationModelBuilder = _applicationModelBuilder_;
-      },
-    ),
+    mock.inject((instanceWriter: InstanceWriter, _$q_: ng.IQService, $rootScope: ng.IRootScopeService) => {
+      service = instanceWriter;
+      $q = _$q_;
+      $scope = $rootScope.$new();
+    }),
   );
 
   describe('terminate and decrement server group', () => {
@@ -51,7 +43,7 @@ describe('Service: instance writer', function() {
         zone: 'a',
         launchTime: 2,
       };
-      const application: Application = applicationModelBuilder.createApplicationForTests('app', {
+      const application: Application = ApplicationModelBuilder.createApplicationForTests('app', {
         key: 'serverGroups',
         lazy: true,
       });
@@ -111,7 +103,7 @@ describe('Service: instance writer', function() {
     });
 
     it('only sends jobs for groups with instances', () => {
-      const application: Application = applicationModelBuilder.createApplicationForTests('app');
+      const application: Application = ApplicationModelBuilder.createApplicationForTests('app');
       addInstance(serverGroupB, {
         name: 'i-234',
         id: 'i-234',
@@ -143,7 +135,7 @@ describe('Service: instance writer', function() {
     });
 
     it('includes additional job properties for terminate and shrink', () => {
-      const application: Application = applicationModelBuilder.createApplicationForTests('app');
+      const application: Application = ApplicationModelBuilder.createApplicationForTests('app');
       addInstance(serverGroupA, {
         name: 'i-234',
         id: 'i-234',
@@ -177,7 +169,7 @@ describe('Service: instance writer', function() {
     });
 
     it('includes a useful descriptor on terminate instances', () => {
-      const application: Application = applicationModelBuilder.createApplicationForTests('app');
+      const application: Application = ApplicationModelBuilder.createApplicationForTests('app');
       addInstance(serverGroupA, {
         name: 'i-123',
         id: 'i-123',
@@ -203,7 +195,7 @@ describe('Service: instance writer', function() {
     });
 
     it('includes a useful descriptor on reboot instances', function() {
-      const application: Application = applicationModelBuilder.createApplicationForTests('app');
+      const application: Application = ApplicationModelBuilder.createApplicationForTests('app');
       addInstance(serverGroupA, {
         name: 'i-123',
         id: 'i-123',
@@ -229,7 +221,7 @@ describe('Service: instance writer', function() {
     });
 
     it('includes a useful descriptor on disable in discovery', function() {
-      const application: Application = applicationModelBuilder.createApplicationForTests('app');
+      const application: Application = ApplicationModelBuilder.createApplicationForTests('app');
       addInstance(serverGroupA, {
         name: 'i-123',
         id: 'i-123',
@@ -255,7 +247,7 @@ describe('Service: instance writer', function() {
     });
 
     it('includes a useful descriptor on enable in discovery', function() {
-      const application: Application = applicationModelBuilder.createApplicationForTests('app');
+      const application: Application = ApplicationModelBuilder.createApplicationForTests('app');
       addInstance(serverGroupA, {
         name: 'i-123',
         id: 'i-123',
