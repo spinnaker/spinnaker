@@ -75,7 +75,6 @@ public abstract class AbstractStorageSecretEngine implements SecretEngine {
 
   /**
    * @param encryptedSecret
-   * @return true
    * @throws InvalidSecretFormatException
    */
   public void validate(EncryptedSecret encryptedSecret) throws InvalidSecretFormatException {

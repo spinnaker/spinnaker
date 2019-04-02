@@ -1,6 +1,11 @@
 apply plugin: "java-platform"
 apply plugin: "maven-publish"
 
+// without this building the pom fails when using the Nebula publishing plugin
+configurations {
+  compileOnly
+}
+
 javaPlatform {
   allowDependencies()
 }
@@ -13,63 +18,27 @@ publishing {
   }
 }
 
-ext {
-  versions = [
-    aws: "1.11.469",
-    boot: "2.1.3.RELEASE",
-    coroutines: "1.1.1",
-    kork: "4.0.0-rc.15-springBoot2",
-    moniker: "0.2.0",
-    funktionale: "1.2",
-    hikari: "2.5.1",
-    diff: "0.95",
-    jooq: "3.11.9",
-    junit: "5.4.1",
-    kotlin: "1.3.21",
-    liquibase: "3.6.3",
-    minutest: "1.5.0",
-    mockk: "1.9.2",
-    mysql: "8.0.15",
-    okhttp3: "3.12.0",
-    retrofit2: "2.5.0",
-    strikt: "0.19.4",
-    testcontainers: "1.10.7",
-    ulid: "8.2.0",
-  ]
-}
-
 dependencies {
-  api(platform("org.jetbrains.kotlin:kotlin-bom:${versions.kotlin}"))
-  api(platform("org.junit:junit-bom:${versions.junit}"))
-  api(platform("org.springframework.boot:spring-boot-dependencies:${versions.boot}"))
+  api(platform(project(":spinnaker-dependencies")))
   constraints {
-    api("com.amazonaws:aws-java-sdk-sqs:${versions.aws}")
-    api("com.netflix.spinnaker.kork:kork-artifacts:${versions.kork}")
-    api("com.netflix.spinnaker.kork:kork-aws:${versions.kork}")
-    api("com.netflix.spinnaker.kork:kork-core:${versions.kork}")
-    api("com.netflix.spinnaker.kork:kork-dynomite:${versions.kork}")
-    api("com.netflix.spinnaker.kork:kork-jedis-test:${versions.kork}")
-    api("com.netflix.spinnaker.kork:kork-jedis:${versions.kork}")
-    api("com.netflix.spinnaker.kork:kork-sql:${versions.kork}")
-    api("com.netflix.spinnaker.kork:kork-web:${versions.kork}")
-    api("com.netflix.spinnaker.moniker:moniker:${versions.moniker}")
-    api("com.squareup.okhttp3:logging-interceptor:${versions.okhttp3}")
-    api("com.squareup.okhttp3:mockwebserver:${versions.okhttp3}")
-    api("com.squareup.retrofit2:converter-jackson:${versions.retrofit2}")
-    api("com.squareup.retrofit2:retrofit-mock:${versions.retrofit2}")
-    api("com.squareup.retrofit2:retrofit:${versions.retrofit2}")
-    api("com.zaxxer:HikariCP:${versions.hikari}")
-    api("de.danielbechler:java-object-diff:${versions.java-object-diff}")
-    api("de.huxhorn.sulky:de.huxhorn.sulky.ulid:${versions.ulid}")
-    api("dev.minutest:minutest:${versions.minutest}")
-    api("io.mockk:mockk:${versions.mockk}")
-    api("io.strikt:strikt-core:${versions.strikt}")
-    api("io.strikt:strikt-jackson:${versions.strikt}")
-    api("mysql:mysql-connector-java:${versions.mysql}")
-    api("org.funktionale:funktionale-partials:${versions.funktionale}")
-    api("org.jetbrains.kotlinx:kotlinx-coroutines-core:${versions.coroutines}")
-    api("org.jooq:jooq:${versions.jooq}")
-    api("org.liquibase:liquibase-core:${versions.liquibase}")
-    api("org.testcontainers:mysql:${versions.testcontainers}")
+    api(project(":kork-artifacts"))
+    api(project(":kork-aws"))
+    api(project(":kork-core"))
+    api(project(":kork-dynomite"))
+    api(project(":kork-exceptions"))
+    api(project(":kork-expressions"))
+    api(project(":kork-hystrix"))
+    api(project(":kork-jedis"))
+    api(project(":kork-jedis-test"))
+    api(project(":kork-secrets"))
+    api(project(":kork-secrets-aws"))
+    api(project(":kork-security"))
+    api(project(":kork-sql"))
+    api(project(":kork-sql-test"))
+    api(project(":kork-stackdriver"))
+    api(project(":kork-swagger"))
+    api(project(":kork-telemetry"))
+    api(project(":kork-test"))
+    api(project(":kork-web"))
   }
 }

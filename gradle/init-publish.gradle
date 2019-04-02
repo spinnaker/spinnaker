@@ -1,14 +1,24 @@
 initscript {
-    repositories {
-      jcenter()
-      maven { url 'https://dl.bintray.com/spinnaker/gradle/' }
-      maven { url "https://plugins.gradle.org/m2/" }
-    }
-    dependencies {
-      classpath 'com.netflix.spinnaker.gradle:spinnaker-gradle-project:5.2.0'
-    }
+  repositories {
+    jcenter()
+    maven { url "https://dl.bintray.com/spinnaker/gradle/" }
+    maven { url "https://plugins.gradle.org/m2/" }
+  }
+  dependencies {
+    classpath "com.netflix.spinnaker.gradle:spinnaker-gradle-project:5.2.0"
+  }
 }
 
 // Can't use the plugin ID (spinnaker.project) on init scripts for some reason.
 apply plugin: com.netflix.spinnaker.gradle.project.SpinnakerProjectPlugin
 
+// c&p this because NetflixOss reverts it to 1.7 and ends up getting applied last.
+allprojects {
+  project.afterEvaluate {
+    project.plugins.withType(JavaBasePlugin) {
+      JavaPluginConvention convention = project.convention.getPlugin(JavaPluginConvention)
+      convention.sourceCompatibility = JavaVersion.VERSION_1_8
+      convention.targetCompatibility = JavaVersion.VERSION_1_8
+    }
+  }
+}

@@ -33,7 +33,6 @@ public interface SecretEngine {
    * should not contain ':'
    *
    * @param encryptedSecret
-   * @return boolean indicating the EncryptedSecret contains the correct parameters
    * @throws InvalidSecretFormatException
    */
   void validate(EncryptedSecret encryptedSecret);

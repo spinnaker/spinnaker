@@ -14,36 +14,40 @@
  * limitations under the License.
  */
 
-include 'kork-core',
-  'kork-jedis-test',
-  'kork-swagger',
-  'kork-security',
-  'kork-web',
-  'kork-hystrix',
-  'kork-stackdriver',
-  'kork-exceptions',
-  'kork-artifacts',
-  'kork-jedis',
-  'kork-dynomite',
-  'kork-aws',
-  'kork-secrets',
-  'kork-secrets-aws',
-  'kork-sql',
-  'kork-sql-test',
-  'kork-test',
-  'kork-telemetry',
-  'kork-expressions'
+include(
+  "spinnaker-dependencies",
+  "kork-artifacts",
+  "kork-aws",
+  "kork-bom",
+  "kork-core",
+  "kork-dynomite",
+  "kork-exceptions",
+  "kork-expressions",
+  "kork-hystrix",
+  "kork-jedis",
+  "kork-jedis-test",
+  "kork-secrets",
+  "kork-secrets-aws",
+  "kork-security",
+  "kork-sql",
+  "kork-sql-test",
+  "kork-stackdriver",
+  "kork-swagger",
+  "kork-telemetry",
+  "kork-test",
+  "kork-web"
+)
 
-rootProject.name='kork'
+rootProject.name = "kork"
 
 def setBuildFile(project) {
-    project.buildFileName = "${project.name}.gradle"
-    project.children.each {
-        setBuildFile(it)
-    }
+  project.buildFileName = "${project.name}.gradle"
+  project.children.forEach {
+    setBuildFile(it)
+  }
 }
 
-rootProject.children.each {
-    setBuildFile it
+rootProject.children.forEach {
+  setBuildFile(it)
 }
 

@@ -13,16 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+apply plugin: "java-library"
 apply plugin: "groovy"
 
 dependencies {
-  compile spinnaker.dependency('groovy')
-  compile spinnaker.dependency('bootAutoConfigure')
-  compile spinnaker.dependency('awsCore')
-  compile spinnaker.dependency("aws")
-  compile 'com.jcraft:jsch.agentproxy.jsch:0.0.9'
-  compile 'com.jcraft:jsch.agentproxy.connector-factory:0.0.9'
-  compile 'com.aestasit.infrastructure.sshoogr:sshoogr:0.9.25'
+  api(platform(project(":spinnaker-dependencies")))
 
-  spinnaker.group("spockBase")
+  api "org.springframework.boot:spring-boot-autoconfigure"
+  api "com.amazonaws:aws-java-sdk-core"
+  api "com.amazonaws:aws-java-sdk-sns"
+  api "com.amazonaws:aws-java-sdk-sqs"
+  api "org.codehaus.groovy:groovy-all"
+  api "com.hubspot.jinjava:jinjava"
+  api "com.jcraft:jsch.agentproxy.jsch"
+  api "com.jcraft:jsch.agentproxy.connector-factory"
+  api "com.aestasit.infrastructure.sshoogr:sshoogr"
+
+  testImplementation "org.spockframework:spock-core"
+  testRuntimeOnly "cglib:cglib-nodep"
+  testRuntimeOnly "org.objenesis:objenesis"
 }

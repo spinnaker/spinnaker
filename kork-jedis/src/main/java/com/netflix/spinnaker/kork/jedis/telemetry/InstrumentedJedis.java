@@ -15,6 +15,11 @@
  */
 package com.netflix.spinnaker.kork.jedis.telemetry;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.Callable;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spectator.api.histogram.PercentileDistributionSummary;
 import com.netflix.spectator.api.histogram.PercentileTimer;
@@ -24,13 +29,6 @@ import redis.clients.jedis.params.sortedset.ZAddParams;
 import redis.clients.jedis.params.sortedset.ZIncrByParams;
 import redis.clients.util.Pool;
 import redis.clients.util.Slowlog;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.Callable;
-
 import static com.netflix.spinnaker.kork.jedis.telemetry.TelemetryHelper.*;
 
 /**
@@ -2995,7 +2993,7 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public List<byte[]> bitfield(byte[] key, byte[]... arguments) {
+  public List<Long> bitfield(byte[] key, byte[]... arguments) {
     String command = "bitfield";
     return instrumented(command, () -> delegated.bitfield(key, arguments));
   }

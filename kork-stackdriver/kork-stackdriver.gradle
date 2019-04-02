@@ -16,16 +16,16 @@
 apply plugin: "java-library"
 
 dependencies {
-  compile spinnaker.dependency('rxJava')
+  api(platform(project(":spinnaker-dependencies")))
 
-  compile spinnaker.dependency('spectatorApi')
-  compile spinnaker.dependency('spectatorWebSpring')
-
-  compile spinnaker.dependency('googleMonitoring')
+  api "io.reactivex:rxjava"
+  api "com.netflix.spectator:spectator-api"
+  api "com.netflix.spectator:spectator-web-spring"
+  api "com.google.apis:google-api-services-monitoring"
 
   // Force component bringing this in to already support spring boot configure.
-  compileOnly spinnaker.dependency('bootAutoConfigure')
+  compileOnly "org.springframework.boot:spring-boot-autoconfigure"
 
-  testCompile 'org.mockito:mockito-core:2.+'
-  testCompile 'junit:junit:4.+'
+  testImplementation "org.mockito:mockito-core"
+  testImplementation "junit:junit"
 }

@@ -1,7 +1,13 @@
+apply plugin: "java-library"
 apply plugin: "groovy"
 
 dependencies {
-  spinnaker.group('spockBase')
+  api(platform(project(":spinnaker-dependencies")))
 
-  testCompile spinnaker.dependency('groovy')
+  testImplementation "org.codehaus.groovy:groovy-all"
+  testImplementation "org.spockframework:spock-core"
+  testRuntimeOnly "cglib:cglib-nodep"
+  testRuntimeOnly "org.objenesis:objenesis"
+
+  testImplementation "com.hubspot.jinjava:jinjava"
 }

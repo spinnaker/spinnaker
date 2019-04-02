@@ -18,17 +18,17 @@ apply plugin: "nebula.kotlin"
 apply plugin: "kotlin-spring"
 
 dependencies {
-  testCompile "org.junit.jupiter:junit-jupiter-api:${spinnaker.version("jupiter")}"
-  testCompile "org.junit.platform:junit-platform-runner:${spinnaker.version("junit5")}"
-  testCompile "org.jetbrains.spek:spek-api:${spinnaker.version("spek")}"
-  testCompile "com.nhaarman:mockito-kotlin:1.5.0"
-  testCompile "org.assertj:assertj-core:3.9.0"
-  testCompile "io.strikt:strikt-core:0.14.2"
+  testImplementation "org.junit.jupiter:junit-jupiter-api"
+  testImplementation "org.junit.platform:junit-platform-runner"
+  testImplementation "org.jetbrains.spek:spek-api"
+  testImplementation "com.nhaarman:mockito-kotlin:1.5.0"
+  testImplementation "org.assertj:assertj-core"
+  testImplementation "io.strikt:strikt-core"
 
-  testRuntime "org.junit.platform:junit-platform-launcher:${spinnaker.version("junit5")}"
-  testRuntime "org.junit.jupiter:junit-jupiter-engine:${spinnaker.version("jupiter")}"
-  testRuntime "org.junit.vintage:junit-vintage-engine:${spinnaker.version("junitVintage")}"
-  testRuntime "org.jetbrains.spek:spek-junit-platform-engine:${spinnaker.version("spek")}"
+  testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+  testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
+  testRuntimeOnly "org.junit.vintage:junit-vintage-engine"
+  testRuntimeOnly "org.jetbrains.spek:spek-junit-platform-engine"
 }
 
 test {
@@ -37,19 +37,9 @@ test {
   }
 }
 
-configurations.all {
-  resolutionStrategy {
-    eachDependency { details ->
-      if (details.requested.group == "org.jetbrains.kotlin") {
-        details.useVersion kotlinVersion
-      }
-    }
-  }
-}
-
 compileKotlin {
   kotlinOptions {
-    languageVersion = "1.2"
+    languageVersion = "1.3"
     jvmTarget = "1.8"
   }
 }

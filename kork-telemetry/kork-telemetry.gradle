@@ -1,9 +1,15 @@
+apply plugin: "java-library"
 apply plugin: "groovy"
 
 dependencies {
-  compile spinnaker.dependency("spectatorApi")
-  compile spinnaker.dependency("guava")
+  api(platform(project(":spinnaker-dependencies")))
 
-  testCompile spinnaker.dependency('groovy')
-  spinnaker.group('spockBase')
+  api "com.netflix.spectator:spectator-api"
+  api "com.google.guava:guava"
+
+  testImplementation "org.codehaus.groovy:groovy-all"
+  testImplementation "com.hubspot.jinjava:jinjava"
+  testImplementation "org.spockframework:spock-core"
+  testRuntimeOnly "cglib:cglib-nodep"
+  testRuntimeOnly "org.objenesis:objenesis"
 }

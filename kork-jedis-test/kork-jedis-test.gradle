@@ -1,6 +1,8 @@
 apply plugin: "java-library"
 
 dependencies {
-  compile spinnaker.dependency('jedis')
-  compile spinnaker.dependency('redisEmbedded')
+  api(platform(project(":spinnaker-dependencies")))
+
+  api "redis.clients:jedis"
+  api "com.netflix.spinnaker.embedded-redis:embedded-redis"
 }

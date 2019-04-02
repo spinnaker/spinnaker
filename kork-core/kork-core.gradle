@@ -1,27 +1,35 @@
+apply plugin: "java-library"
 apply plugin: "groovy"
 
 dependencies {
-    compile spinnaker.dependency('bootAutoConfigure')
-    compile spinnaker.dependency('bootActuator')
-    compile spinnaker.dependency('archaiusCore')
-    compile spinnaker.dependency('eurekaClient')
-    compile spinnaker.dependency('awsCore')
-    compile spinnaker.dependency('spectatorApi')
-    compile spinnaker.dependency('spectatorAws')
-    compile spinnaker.dependency('spectatorGc')
-    compile spinnaker.dependency('spectatorJvm')
-    compile spinnaker.dependency('spectatorWebSpring')
-    compile project(":kork-secrets-aws")
-  compile "com.google.code.findbugs:jsr305:3.0.2"
-  compile "com.netflix.netflix-commons:netflix-eventbus:0.3.0"
-  compile "javax.inject:javax.inject:1"
-  compile "commons-configuration:commons-configuration:1.8"
+  api(platform(project(":spinnaker-dependencies")))
 
-  compileOnly spinnaker.dependency('lombok')
-  annotationProcessor spinnaker.dependency('lombok')
+  api "org.springframework.boot:spring-boot-autoconfigure"
+  api "org.springframework.boot:spring-boot-starter-actuator"
+  api "com.netflix.archaius:archaius-core"
+  api "com.netflix.eureka:eureka-client"
+  api "com.amazonaws:aws-java-sdk-core"
+  api "com.netflix.spectator:spectator-api"
+  api "com.netflix.spectator:spectator-ext-aws"
+  api "com.netflix.spectator:spectator-ext-gc"
+  api "com.netflix.spectator:spectator-ext-jvm"
+  api "com.netflix.spectator:spectator-web-spring"
+  api project(":kork-secrets-aws")
+  api "com.google.code.findbugs:jsr305"
+  api "com.netflix.netflix-commons:netflix-eventbus"
+  api "javax.inject:javax.inject:1"
+  api "commons-configuration:commons-configuration"
 
-    testCompile spinnaker.dependency('groovy')
-    spinnaker.group('spockBase')
-    testRuntime spinnaker.dependency('slf4jSimple')
-    testCompile('org.mockito:mockito-core:2.23.4')
+  testImplementation "org.codehaus.groovy:groovy-all"
+  testImplementation("org.mockito:mockito-core")
+  testImplementation "org.spockframework:spock-core"
+  testRuntimeOnly "cglib:cglib-nodep"
+  testRuntimeOnly "org.objenesis:objenesis"
+  testRuntimeOnly "org.slf4j:slf4j-simple"
+
+  compileOnly "org.projectlombok:lombok"
+  annotationProcessor(platform(project(":spinnaker-dependencies")))
+  annotationProcessor "org.projectlombok:lombok"
+  testAnnotationProcessor(platform(project(":spinnaker-dependencies")))
+  testAnnotationProcessor "org.projectlombok:lombok"
 }

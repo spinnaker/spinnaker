@@ -1,13 +1,18 @@
+apply plugin: "java-library"
 apply plugin: "groovy"
 
 dependencies {
-  compile spinnaker.dependency('groovy')
-  compile spinnaker.dependency('spectatorApi')
+  api(platform(project(":spinnaker-dependencies")))
 
-  compile "org.springframework:spring-context:${spinnaker.version('spring')}"
-  compile "org.springframework:spring-beans:${spinnaker.version('spring')}"
-  compile 'com.netflix.hystrix:hystrix-core:1.4.21'
-  compile 'com.netflix.hystrix:hystrix-javanica:1.4.21'
+  api "org.codehaus.groovy:groovy-all"
+  api "com.hubspot.jinjava:jinjava"
+  api "com.netflix.spectator:spectator-api"
+  api "org.springframework:spring-context"
+  api "org.springframework:spring-beans"
+  api "com.netflix.hystrix:hystrix-core"
+  api "com.netflix.hystrix:hystrix-javanica"
 
-  spinnaker.group('spockBase')
+  testImplementation "org.spockframework:spock-core"
+  testRuntimeOnly "cglib:cglib-nodep"
+  testRuntimeOnly "org.objenesis:objenesis"
 }

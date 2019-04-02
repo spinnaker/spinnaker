@@ -1,7 +1,9 @@
 apply plugin: "java-library"
 
 dependencies {
-  compile spinnaker.dependency('bootAutoConfigure')
-  compile "io.springfox:springfox-swagger2:2.7.0"
-  compile "io.springfox:springfox-swagger-ui:2.7.0"
+  api(platform(project(":spinnaker-dependencies")))
+
+  api "org.springframework.boot:spring-boot-autoconfigure"
+  api "io.springfox:springfox-swagger2"
+  api "io.springfox:springfox-swagger-ui"
 }

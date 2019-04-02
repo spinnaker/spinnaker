@@ -22,49 +22,22 @@ buildscript {
   repositories {
     mavenCentral()
     jcenter()
-    maven { url 'https://dl.bintray.com/spinnaker/gradle/' }
+    maven { url "https://dl.bintray.com/spinnaker/gradle/" }
     maven { url "https://plugins.gradle.org/m2/" }
   }
   dependencies {
-    classpath 'com.netflix.spinnaker.gradle:spinnaker-dev-plugin:5.2.0'
-    classpath "com.netflix.nebula:nebula-kotlin-plugin:$kotlinVersion"
-    classpath "org.jetbrains.kotlin:kotlin-allopen:$kotlinVersion"
+    classpath("com.netflix.spinnaker.gradle:spinnaker-dev-plugin:5.2.0")
+    classpath("com.netflix.nebula:nebula-kotlin-plugin:1.3.21")
+    classpath("org.jetbrains.kotlin:kotlin-allopen:1.3.21")
   }
 }
 
 allprojects {
-  apply plugin: 'spinnaker.base-project'
+  apply(plugin: "spinnaker.base-project")
+  
+  group = "com.netflix.spinnaker.kork"
 
-  group = 'com.netflix.spinnaker.kork'
-
-  ext {
-    spinnakerDependenciesVersion = project.hasProperty('spinnakerDependenciesVersion') ? project.property('spinnakerDependenciesVersion') : '1.37.0'
-  }
-
-  def checkLocalVersions = [spinnakerDependenciesVersion: spinnakerDependenciesVersion]
-  if (ext.has('versions')) {
-    def extVers = ext.get('versions')
-    if (extVers instanceof Map) {
-      checkLocalVersions.putAll(extVers)
-    }
-  }
-
-  def localVersions = checkLocalVersions.findAll { it.value.endsWith('-SNAPSHOT') }
-  if (localVersions) {
-    logger.info("Enabling mavenLocal repo for $localVersions")
-    repositories {
-      mavenLocal()
-    }
-  }
-
-  spinnaker {
-    dependenciesVersion = spinnakerDependenciesVersion
-  }
-
-  //c&p this because NetflixOss reverts it to 1.7 and ends up getting applied last.
-  project.plugins.withType(JavaBasePlugin) {
-    JavaPluginConvention convention = project.convention.getPlugin(JavaPluginConvention)
-    convention.sourceCompatibility = JavaVersion.VERSION_1_8
-    convention.targetCompatibility = JavaVersion.VERSION_1_8
+  repositories {
+    jcenter()
   }
 }

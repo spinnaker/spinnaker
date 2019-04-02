@@ -1,1 +1,5 @@
 apply plugin: "java-library"
+
+dependencies {
+  api(platform(project(":spinnaker-dependencies")))
+}

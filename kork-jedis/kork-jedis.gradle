@@ -1,12 +1,18 @@
+apply plugin: "java-library"
 apply plugin: "groovy"
 
 dependencies {
-  compile project(":kork-core")
-  compile spinnaker.dependency('spectatorApi')
-  compile spinnaker.dependency('bootActuator')
-  compile spinnaker.dependency('jedis')
+  api(platform(project(":spinnaker-dependencies")))
 
-  testCompile spinnaker.dependency('groovy')
-  testCompile project(":kork-jedis-test")
-  spinnaker.group('spockBase')
+  api "org.springframework.boot:spring-boot-starter-actuator"
+  api "redis.clients:jedis"
+  api project(":kork-core")
+  api "com.netflix.spectator:spectator-api"
+
+  testImplementation "com.hubspot.jinjava:jinjava"
+  testImplementation project(":kork-jedis-test")
+  testImplementation "org.codehaus.groovy:groovy-all"
+  testImplementation "org.spockframework:spock-core"
+  testRuntimeOnly "cglib:cglib-nodep"
+  testRuntimeOnly "org.objenesis:objenesis"
 }
