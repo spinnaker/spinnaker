@@ -77,7 +77,7 @@ class V2InstanceTypeSelectorController implements IComponentController {
         this.command.viewState.instanceTypeDetails = instanceTypeDetails;
       });
 
-    this.onTypeChanged(this.command.instanceType);
+    this.onTypeChanged && this.onTypeChanged(this.command.instanceType);
   };
 
   public getStorageDescription = (instanceType: IPreferredInstanceType) => {
