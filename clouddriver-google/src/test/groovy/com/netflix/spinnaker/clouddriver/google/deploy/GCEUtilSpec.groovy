@@ -1,4 +1,4 @@
-/*
+  /*
  * Copyright 2014 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,45 +16,36 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
-import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
-import com.google.api.client.http.HttpRequest
-import com.google.api.client.http.HttpRequestFactory
-import com.google.api.client.http.HttpResponse
-import com.google.api.client.json.jackson2.JacksonFactory
-import com.google.api.services.compute.Compute
-import com.google.api.services.compute.model.BackendService
-import com.google.api.services.compute.model.ForwardingRuleList
-import com.google.api.services.compute.model.Image
-import com.google.api.services.compute.model.ImageList
-import com.google.api.services.compute.model.Instance
-import com.google.api.services.compute.model.InstanceAggregatedList
-import com.google.api.services.compute.model.InstanceTemplate
-import com.google.api.services.compute.model.InstancesScopedList
-import com.google.api.services.compute.model.Metadata
-import com.google.api.services.compute.model.ServiceAccount
-import com.netflix.spectator.api.DefaultRegistry
-import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.clouddriver.data.task.Task
-import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
-import com.netflix.spinnaker.clouddriver.google.GoogleExecutorTraits
-import com.netflix.spinnaker.clouddriver.google.deploy.description.BasicGoogleDeployDescription
-import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationException
-import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleResourceNotFoundException
-import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy
-import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
-import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancer
-import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleNetworkLoadBalancer
-import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancerProvider
-import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
-import com.netflix.spinnaker.clouddriver.google.batch.GoogleBatchRequest
-import com.netflix.spinnaker.kork.artifacts.model.Artifact
-import spock.lang.Shared
-import spock.lang.Specification
-import spock.lang.Unroll
+  import com.fasterxml.jackson.databind.ObjectMapper
+  import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
+  import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
+  import com.google.api.client.http.HttpRequest
+  import com.google.api.client.http.HttpRequestFactory
+  import com.google.api.client.http.HttpResponse
+  import com.google.api.client.json.jackson2.JacksonFactory
+  import com.google.api.services.compute.Compute
+  import com.google.api.services.compute.model.*
+  import com.netflix.spectator.api.DefaultRegistry
+  import com.netflix.spectator.api.Registry
+  import com.netflix.spinnaker.clouddriver.data.task.Task
+  import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+  import com.netflix.spinnaker.clouddriver.google.GoogleExecutorTraits
+  import com.netflix.spinnaker.clouddriver.google.batch.GoogleBatchRequest
+  import com.netflix.spinnaker.clouddriver.google.deploy.description.BasicGoogleDeployDescription
+  import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationException
+  import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleResourceNotFoundException
+  import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy
+  import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
+  import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancer
+  import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleNetworkLoadBalancer
+  import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancerProvider
+  import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
+  import com.netflix.spinnaker.kork.artifacts.model.Artifact
+  import spock.lang.Shared
+  import spock.lang.Specification
+  import spock.lang.Unroll
 
-class GCEUtilSpec extends Specification {
+  class GCEUtilSpec extends Specification {
   class TestExecutor implements GoogleExecutorTraits {
     def Registry registry = new DefaultRegistry()
   }
@@ -561,6 +552,9 @@ class GCEUtilSpec extends Specification {
 
       googleLoadBalancerProviderMock.getApplicationLoadBalancers("") >> loadBalancerList
       def task = Mock(Task)
+
+      def googleOperationPoller = Mock(GoogleOperationPoller)
+      def updateOpName = 'updateOp'
       def bs = new BackendService(backends: [])
       if (lbNames) {
         serverGroup.launchConfig.instanceTemplate.properties.metadata.items.add(
@@ -572,14 +566,15 @@ class GCEUtilSpec extends Specification {
       }
 
     when:
-      GCEUtil.addHttpLoadBalancerBackends(computeMock, new ObjectMapper(), PROJECT_NAME, serverGroup, googleLoadBalancerProviderMock, task, "PHASE", executor)
+      GCEUtil.addHttpLoadBalancerBackends(computeMock, new ObjectMapper(), PROJECT_NAME, serverGroup, googleLoadBalancerProviderMock, task, "PHASE", googleOperationPoller, executor)
 
     then:
       _ * computeMock.backendServices() >> backendServicesMock
       _ * backendServicesMock.get(PROJECT_NAME, 'backend-service') >> backendSvcGetMock
       _ * backendSvcGetMock.execute() >> bs
       _ * backendServicesMock.update(PROJECT_NAME, 'backend-service', bs) >> backendUpdateMock
-      _ * backendUpdateMock.execute()
+      _ * backendUpdateMock.execute() >> [name: updateOpName] // Mock for async op
+      _ * googleOperationPoller.waitForGlobalOperation(computeMock, PROJECT_NAME, updateOpName, null, task, _, _)
 
       _ * computeMock.globalForwardingRules() >> globalForwardingRules
       _ * globalForwardingRules.list(PROJECT_NAME) >> globalForwardingRulesList

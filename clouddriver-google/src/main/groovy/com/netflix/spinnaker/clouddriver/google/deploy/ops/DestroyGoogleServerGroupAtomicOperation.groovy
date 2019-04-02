@@ -197,7 +197,7 @@ class DestroyGoogleServerGroupAtomicOperation extends GoogleAtomicOperation<Void
                                           GoogleServerGroup.View serverGroup,
                                           GoogleLoadBalancerProvider googleLoadBalancerProvider) {
     return {
-      GCEUtil.destroyHttpLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, BASE_PHASE, this)
+      GCEUtil.destroyHttpLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, BASE_PHASE, googleOperationPoller, this)
       null
     }
   }
@@ -207,7 +207,7 @@ class DestroyGoogleServerGroupAtomicOperation extends GoogleAtomicOperation<Void
                                               GoogleServerGroup.View serverGroup,
                                               GoogleLoadBalancerProvider googleLoadBalancerProvider) {
     return {
-      GCEUtil.destroyInternalLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, BASE_PHASE, this)
+      GCEUtil.destroyInternalLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, BASE_PHASE, googleOperationPoller, this)
       null
     }
   }
@@ -217,7 +217,7 @@ class DestroyGoogleServerGroupAtomicOperation extends GoogleAtomicOperation<Void
                                          GoogleServerGroup.View serverGroup,
                                          GoogleLoadBalancerProvider googleLoadBalancerProvider) {
     return {
-      GCEUtil.destroySslLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, BASE_PHASE, this)
+      GCEUtil.destroySslLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, BASE_PHASE, googleOperationPoller, this)
       null
     }
   }
@@ -227,7 +227,7 @@ class DestroyGoogleServerGroupAtomicOperation extends GoogleAtomicOperation<Void
                                          GoogleServerGroup.View serverGroup,
                                          GoogleLoadBalancerProvider googleLoadBalancerProvider) {
     return {
-      GCEUtil.destroyTcpLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, BASE_PHASE, this)
+      GCEUtil.destroyTcpLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, BASE_PHASE, googleOperationPoller, this)
       null
     }
   }

@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.consul.deploy.ops.EnableDisableConsulIn
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
+import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
 import com.netflix.spinnaker.clouddriver.google.deploy.description.EnableDisableGoogleServerGroupDescription
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy
@@ -42,6 +43,9 @@ abstract class AbstractEnableDisableAtomicOperation extends GoogleAtomicOperatio
 
   @Autowired
   GoogleClusterProvider googleClusterProvider
+
+  @Autowired
+  GoogleOperationPoller googleOperationPoller
 
   @Autowired
   ObjectMapper objectMapper
@@ -374,56 +378,56 @@ abstract class AbstractEnableDisableAtomicOperation extends GoogleAtomicOperatio
 
   Closure destroyHttpLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, phaseName) {
     return {
-      GCEUtil.destroyHttpLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, phaseName, this)
+      GCEUtil.destroyHttpLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, phaseName, googleOperationPoller, this)
       null
     }
   }
 
   Closure destroyInternalLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, phaseName) {
     return {
-      GCEUtil.destroyInternalLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, phaseName, this)
+      GCEUtil.destroyInternalLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, phaseName, googleOperationPoller, this)
       null
     }
   }
 
   Closure destroySslLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, phaseName) {
     return {
-      GCEUtil.destroySslLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, phaseName, this)
+      GCEUtil.destroySslLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, phaseName, googleOperationPoller, this)
       null
     }
   }
 
   Closure destroyTcpLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, phaseName) {
     return {
-      GCEUtil.destroyTcpLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, phaseName, this)
+      GCEUtil.destroyTcpLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, phaseName, googleOperationPoller, this)
       null
     }
   }
 
   Closure addHttpLoadBalancerBackends(compute, objectMapper, project, serverGroup, googleLoadBalancerProvider, task, phaseName) {
     return {
-      GCEUtil.addHttpLoadBalancerBackends(compute, objectMapper, project, serverGroup, googleLoadBalancerProvider, task, phaseName, this)
+      GCEUtil.addHttpLoadBalancerBackends(compute, objectMapper, project, serverGroup, googleLoadBalancerProvider, task, phaseName, googleOperationPoller, this)
       null
     }
   }
 
   Closure addSslLoadBalancerBackends(compute, objectMapper, project, serverGroup, googleLoadBalancerProvider, task, phaseName) {
     return {
-      GCEUtil.addSslLoadBalancerBackends(compute, objectMapper, project, serverGroup, googleLoadBalancerProvider, task, phaseName, this)
+      GCEUtil.addSslLoadBalancerBackends(compute, objectMapper, project, serverGroup, googleLoadBalancerProvider, task, phaseName, googleOperationPoller, this)
       null
     }
   }
 
   Closure addTcpLoadBalancerBackends(compute, objectMapper, project, serverGroup, googleLoadBalancerProvider, task, phaseName) {
     return {
-      GCEUtil.addTcpLoadBalancerBackends(compute, objectMapper, project, serverGroup, googleLoadBalancerProvider, task, phaseName, this)
+      GCEUtil.addTcpLoadBalancerBackends(compute, objectMapper, project, serverGroup, googleLoadBalancerProvider, task, phaseName, googleOperationPoller, this)
       null
     }
   }
 
   Closure addInternalLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, phaseName) {
     return {
-      GCEUtil.addInternalLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, phaseName, this)
+      GCEUtil.addInternalLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, phaseName, googleOperationPoller, this)
       null
     }
   }
