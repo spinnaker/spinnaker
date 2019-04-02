@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
-tar -cvf install.tgz -C install .
+tar -cvzf install.tgz -C install .
 
-tar -cvf front50.tgz front50
+tar -cvzf front50.tgz front50
 
-tar -cvf services.tgz services
+tar -cvzf services.tgz services
 
 gsutil cp install.tgz gs://gke-spinnaker-codelab
 gsutil cp front50.tgz gs://gke-spinnaker-codelab

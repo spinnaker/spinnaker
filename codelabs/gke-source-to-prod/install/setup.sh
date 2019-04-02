@@ -38,10 +38,10 @@ gsutil mb -p $PROJECT_ID $BUCKET_URI
 bold "Configuring sample code & pipelines..."
 
 gsutil cp gs://gke-spinnaker-codelab/services.tgz .
-tar -xvf services.tgz
+tar -xvzf services.tgz
 
 gsutil cp gs://gke-spinnaker-codelab/front50.tgz .
-tar -xvf front50.tgz
+tar -xvzf front50.tgz
 
 replace() {
   find front50 -type f -name "*.json" -print0 | xargs -0 sed -i $1
