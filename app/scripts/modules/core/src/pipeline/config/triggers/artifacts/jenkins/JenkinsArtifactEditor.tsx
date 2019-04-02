@@ -77,6 +77,7 @@ export const JenkinsDefault: IArtifactKindConfig = {
       const { buildNumbers, jobs } = this.state;
       const { artifact } = this.props;
       const buildOptions = buildNumbers.map((b: string) => ({ label: b, value: b }));
+      buildOptions.splice(0, 0, { label: 'lastSuccessfulBuild', value: 'lastSuccessfulBuild' });
       const jobOptions = jobs.map((j: string) => ({ label: j, value: j }));
       return (
         <>
