@@ -25,6 +25,7 @@ dependencies {
   compile "org.funktionale:funktionale-partials:1.2"
   compile spinnaker.dependency("logstashEncoder")
   compile "com.netflix.spinnaker.keiko:keiko-spring:$keikoVersion"
+  compile "javax.ws.rs:jsr311-api:1.1.1"
 
   testCompile project(":orca-test-kotlin")
   testCompile project(":orca-queue-tck")

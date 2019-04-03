@@ -20,6 +20,7 @@ dependencies {
   compile project(":orca-clouddriver")
   compile project(":orca-front50")
   compile project(":orca-retrofit")
-  compile spinnaker.dependency('lombok')
+  compileOnly spinnaker.dependency('lombok')
+  annotationProcessor spinnaker.dependency('lombok')
   testCompile project(":orca-test-groovy")
 }
