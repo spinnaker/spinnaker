@@ -10,12 +10,12 @@ import { ArtifactService } from '../ArtifactService';
 export const HELM_ARTIFACT = 'spinnaker.core.pipeline.trigger.artifact.helm';
 
 module(HELM_ARTIFACT, []).config(() => {
-  Registry.pipeline.mergeArtifactKind({
+  const helmArtifact = {
     label: 'Helm',
     typePattern: ArtifactTypePatterns.HELM_CHART,
     type: 'helm/chart',
-    isDefault: true,
-    isMatch: true,
+    isDefault: false,
+    isMatch: false,
     description: 'A helm chart to be deployed',
     key: 'helm',
     controller: function(artifact: IArtifact) {
@@ -101,5 +101,7 @@ module(HELM_ARTIFACT, []).config(() => {
   </div>
 </div>
 `,
-  });
+  };
+  Registry.pipeline.mergeArtifactKind(Object.assign({}, helmArtifact, { key: 'default.helm', isDefault: true }));
+  Registry.pipeline.mergeArtifactKind(Object.assign({}, helmArtifact, { key: 'helm', isMatch: true }));
 });

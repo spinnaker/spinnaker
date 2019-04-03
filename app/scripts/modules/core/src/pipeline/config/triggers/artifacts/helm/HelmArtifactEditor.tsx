@@ -103,6 +103,6 @@ export const HelmDefault: IArtifactKindConfig = {
   isDefault: true,
   isMatch: false,
   description: 'A helm chart to be deployed',
-  key: 'helm',
+  key: 'default.helm',
   editCmp: HelmEditor,
 };
