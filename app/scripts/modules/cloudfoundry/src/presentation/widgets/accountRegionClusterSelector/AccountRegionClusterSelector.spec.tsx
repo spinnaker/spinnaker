@@ -87,6 +87,8 @@ describe('<AccountRegionClusterSelector />', () => {
   it('retrieves the correct list of regions when account is changed', () => {
     let credentials = '';
     let region = 'SHOULD-CHANGE';
+    let regions = ['SHOULD-CHANGE'];
+    let cluster = 'SHOULD-CHANGE';
     const accountRegionClusterProps: IAccountRegionClusterSelectorProps = {
       accounts: [
         {
@@ -107,6 +109,8 @@ describe('<AccountRegionClusterSelector />', () => {
       onComponentUpdate: (value: any) => {
         credentials = value.credentials;
         region = value.region;
+        regions = value.regions;
+        cluster = value.cluster;
       },
       component: {
         cluster: 'app-stack-detailOne',
@@ -138,12 +142,15 @@ describe('<AccountRegionClusterSelector />', () => {
     expect(component.state().availableRegions.length).toBe(1, 'number of available regions does not match');
     expect(component.state().availableRegions).toContain('region-two');
     expect(component.state().clusters.length).toBe(0, 'number of clusters does not match');
-    expect(region).toEqual('');
+    expect(region).toEqual('', 'selected region is not cleared');
+    expect(regions.length).toBe(0, 'selected regions list is not cleared');
     expect(credentials).toContain('account-name-two');
+    expect(cluster).toBeUndefined('selected cluster is not cleared');
   });
 
   it('retrieves the correct list of clusters when the selector is multi-region and the region is changed', () => {
     let regions: string[] = [];
+    let cluster = 'SHOULD-CHANGE';
     const accountRegionClusterProps: IAccountRegionClusterSelectorProps = {
       accounts: [
         {
@@ -161,11 +168,12 @@ describe('<AccountRegionClusterSelector />', () => {
       ],
       application,
       cloudProvider: 'cloud-provider',
+      clusterField: 'newCluster',
       onComponentUpdate: (value: any) => {
         regions = value.regions;
+        cluster = value.newCluster;
       },
       component: {
-        cluster: 'app-stack-detailOne',
         credentials: 'account-name-one',
         regions: ['region-one'],
       },
@@ -194,6 +202,7 @@ describe('<AccountRegionClusterSelector />', () => {
     expect(component.state().clusters).toContain('app-stack-detailOne');
     expect(component.state().clusters).toContain('app-stack-detailThree');
     expect(component.state().clusters).toContain('app-stack-detailFour');
+    expect(cluster).toBeUndefined('selected cluster is not cleared');
     expect(regions.length).toBe(2);
     expect(regions).toContain('region-one');
     expect(regions).toContain('region-three');
@@ -293,10 +302,10 @@ describe('<AccountRegionClusterSelector />', () => {
     expect(component.state().clusters).toContain('app-stack-detailOne');
     expect(component.state().clusters).toContain('app-stack-detailThree');
 
-    const accountSelectComponent = component.find('Select[name="newCluster"] .Select-control input');
-    accountSelectComponent.simulate('mouseDown');
-    accountSelectComponent.simulate('change', { target: { value: 'app-stack-detailThree' } });
-    accountSelectComponent.simulate('keyDown', { keyCode: 9, key: 'Tab' });
+    const clusterSelectComponent = component.find('Select[name="newCluster"] .Select-control input');
+    clusterSelectComponent.simulate('mouseDown');
+    clusterSelectComponent.simulate('change', { target: { value: 'app-stack-detailThree' } });
+    clusterSelectComponent.simulate('keyDown', { keyCode: 9, key: 'Tab' });
     $scope.$digest();
 
     expect(cluster).toBe('app-stack-detailThree');

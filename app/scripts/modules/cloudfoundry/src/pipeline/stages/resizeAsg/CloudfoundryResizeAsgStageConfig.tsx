@@ -24,7 +24,6 @@ export interface ICloudfoundryResizeAsgStageConfigState {
   application: Application;
   capacity?: Partial<ICapacity>;
   cloudProvider?: string;
-  cloudProviderType?: string;
   credentials: string;
   diskQuota?: number;
   instanceCount?: number;
@@ -59,7 +58,6 @@ export class CloudfoundryResizeAsgStageConfig extends React.Component<
       action: 'scale_exact',
       capacity: props.stage.capacity,
       cloudProvider: 'cloudfoundry',
-      cloudProviderType: props.stage.cloudProvider,
       diskQuota: props.stage.diskQuota || 1024,
       instanceCount: props.stage.instanceCount || 1,
       interestingHealthProviderNames: interestingHealthProviderNames,
