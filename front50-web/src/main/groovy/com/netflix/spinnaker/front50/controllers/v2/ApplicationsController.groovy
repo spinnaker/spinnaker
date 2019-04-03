@@ -74,13 +74,24 @@ public class ApplicationsController {
     params.remove("restricted")
 
     def applications
+    def permissions = applicationPermissionDAO ? applicationPermissionDAO.all()
+      .findAll { !it.permissions.isEmpty() }
+      .groupBy { it.name.toLowerCase() } : [:]
     if (params.isEmpty()) {
       applications = applicationDAO.all().sort { it.name }
     } else {
       applications = applicationDAO.search(params)
     }
 
-    return pageSize ? applications.asList().subList(0, Math.min(pageSize, applications.size())) : applications
+    Set<Application> results = pageSize ? applications.asList().subList(0, Math.min(pageSize, applications.size())) : applications
+    results.each { application ->
+      if (permissions.containsKey(application.name.toLowerCase())) {
+        application.set("permissions", permissions.get(application.name.toLowerCase())[0].permissions)
+      } else {
+        application.details().remove("permissions")
+      }
+    }
+    return results
   }
 
   // TODO(ttomsu): Think through application creation permissions.
