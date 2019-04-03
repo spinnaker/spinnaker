@@ -29,7 +29,7 @@ module.exports = angular
       }
 
       function convertServerGroupCommandToDeployConfiguration(base) {
-        const automaticZones = base.backingData.filtered.automaticZones;
+        const truncatedZones = base.backingData.filtered.truncatedZones;
 
         // use defaults to avoid copying the backingData, which is huge and expensive to copy over
         const command = defaults({ backingData: [], viewState: [] }, base);
@@ -40,7 +40,7 @@ module.exports = angular
         command.disableTraffic = !command.enableTraffic;
         command.cloudProvider = 'gce';
         command.availabilityZones = {};
-        command.availabilityZones[command.region] = base.zone ? [base.zone] : automaticZones;
+        command.availabilityZones[command.region] = base.zone ? [base.zone] : truncatedZones;
         command.account = command.credentials;
         delete command.viewState;
         delete command.backingData;
