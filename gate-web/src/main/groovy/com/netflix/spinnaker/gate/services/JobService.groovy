@@ -44,13 +44,6 @@ class JobService {
   @Autowired
   ProviderLookupService providerLookupService
 
-  List getForApplication(String applicationName, String expand, String selectorKey) {
-    String commandKey = Boolean.valueOf(expand) ? "getExpandedJobsForApplication" : "getJobsForApplication"
-    HystrixFactory.newListCommand(GROUP, commandKey) {
-      clouddriverServiceSelector.select(selectorKey).getJobs(applicationName, expand)
-    } execute()
-  }
-
   List getPreconfiguredJobs() {
     RequestContext requestContext = RequestContext.get()
     HystrixFactory.newListCommand(GROUP, "getPreconfiguredJobs") {

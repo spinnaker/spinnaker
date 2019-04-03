@@ -155,10 +155,6 @@ interface ClouddriverService {
                        @Query("cloudProvider") String cloudProvider)
 
   @Headers("Accept: application/json")
-  @GET("/applications/{name}/jobs")
-  List getJobs(@Path("name") String name, @Query("expand") String expand)
-
-  @Headers("Accept: application/json")
   @POST("/applications/{name}/jobs/{account}/{region}/{jobName}")
   Map getJobDetails(@Path("name") String name,
                     @Path("account") String account,
