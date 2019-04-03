@@ -25,6 +25,7 @@ import org.apache.commons.io.IOUtils;
 import org.springframework.stereotype.Component;
 
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Path;
 
@@ -41,9 +42,17 @@ abstract public class CustomProfileFactory extends ProfileFactory {
   @Override
   protected Profile getBaseProfile(String name, String version, String outputFile) {
     try {
-      return new Profile(name, version, outputFile, IOUtils.toString(new FileInputStream(getUserProfilePath().toFile())));
+      return new Profile(name, version, outputFile, readUserProfile());
     } catch (IOException e) {
       throw new HalException(Problem.Severity.FATAL, "Unable to read user profile contents: " + e.getMessage(), e);
+    }
+  }
+
+  private String readUserProfile() throws IOException {
+    try(FileInputStream fis = new FileInputStream(getUserProfilePath().toFile())) {
+      return IOUtils.toString(fis);
+    } catch (FileNotFoundException e) {
+      return "";
     }
   }
 
