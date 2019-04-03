@@ -32,4 +32,6 @@ public class DisruptionBudget implements Serializable {
   List<TimeWindow> timeWindows;
   List<ContainerHealthProvider> containerHealthProviders;
   SelfManaged selfManaged;
+  RatePerInterval ratePerInterval;
+  RatePercentagePerInterval ratePercentagePerInterval;
 }
