@@ -67,12 +67,12 @@ public class CreateV2PipelineTemplateTask implements RetryableTask, SaveV2Pipeli
 
     validate(pipelineTemplate);
 
-    String version = (String) stage.getContext().get("version");
-    Response response = front50Service.saveV2PipelineTemplate(version,
+    String tag = (String) stage.getContext().get("tag");
+    Response response = front50Service.saveV2PipelineTemplate(tag,
       (Map<String, Object>) stage.decodeBase64("/pipelineTemplate", Map.class, pipelineTemplateObjectMapper));
 
     // TODO(jacobkiefer): Reduce duplicated code.
-    String templateId = StringUtils.isEmpty(version) ? pipelineTemplate.getId() : String.format("%s:%s", pipelineTemplate.getId(), version);
+    String templateId = StringUtils.isEmpty(tag) ? pipelineTemplate.getId() : String.format("%s:%s", pipelineTemplate.getId(), tag);
     Map<String, Object> outputs = new HashMap<>();
     outputs.put("notification.type", "createpipelinetemplate");
     outputs.put("pipelineTemplate.id", templateId);
