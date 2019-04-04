@@ -595,15 +595,27 @@ public class JobDescription {
       );
     }
 
-    if (budget.getRelocationLimit() != null) {
-      builder.setRelocationLimit(
-          JobDisruptionBudget.RelocationLimit.newBuilder().setLimit(budget.getRelocationLimit().getLimit())
+    if (budget.getRatePerInterval() != null) {
+      builder.setRatePerInterval(
+        JobDisruptionBudget.RatePerInterval.newBuilder()
+          .setIntervalMs(budget.getRatePerInterval().getIntervalMs())
+          .setLimitPerInterval(budget.getRatePerInterval().getLimitPerInterval())
+          .build()
       );
     }
 
-    if (budget.getSelfManaged() != null) {
-      builder.setSelfManaged(
-          JobDisruptionBudget.SelfManaged.newBuilder().setRelocationTimeMs(budget.getRelocationLimit().getLimit())
+    if (budget.getRatePercentagePerInterval() != null) {
+      builder.setRatePercentagePerInterval(
+        JobDisruptionBudget.RatePercentagePerInterval.newBuilder()
+          .setIntervalMs(budget.getRatePercentagePerInterval().getIntervalMs())
+          .setPercentageLimitPerInterval(budget.getRatePercentagePerInterval().getPercentageLimitPerInterval())
+          .build()
+      );
+    }
+
+    if (budget.getRelocationLimit() != null) {
+      builder.setRelocationLimit(
+          JobDisruptionBudget.RelocationLimit.newBuilder().setLimit(budget.getRelocationLimit().getLimit())
       );
     }
 
