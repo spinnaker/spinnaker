@@ -101,7 +101,7 @@ interface Front50Service {
   // v2
   @GET('/v2/pipelineTemplates/{pipelineTemplateId}')
   Map getV2PipelineTemplate(@Path("pipelineTemplateId") String pipelineTemplateId,
-                            @Query("version") String version,
+                            @Query("tag") String tag,
                             @Query("digest") String digest)
 
   @GET('/v2/pipelineTemplates')

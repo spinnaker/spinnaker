@@ -41,8 +41,8 @@ public class V2PipelineTemplateService {
     this.orcaServiceSelector = orcaServiceSelector;
   }
 
-  public Map get(String id, String version, String digest) {
-    return front50Service.getV2PipelineTemplate(id, version, digest);
+  public Map get(String id, String tag, String digest) {
+    return front50Service.getV2PipelineTemplate(id, tag, digest);
   }
 
   public Map<String, Object> plan(Map<String, Object> pipeline) {

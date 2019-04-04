@@ -82,13 +82,13 @@ public class V2PipelineTemplatesController {
   @ApiOperation(value = "(ALPHA) Create a pipeline template.", response = HashMap.class)
   @RequestMapping(value = "/create", method = RequestMethod.POST)
   @ResponseStatus(value = HttpStatus.ACCEPTED)
-  public Map create(@RequestParam(value = "version", required = false) String version, @RequestBody Map<String, Object> pipelineTemplate) {
+  public Map create(@RequestParam(value = "tag", required = false) String tag, @RequestBody Map<String, Object> pipelineTemplate) {
     validateSchema(pipelineTemplate);
-    Map<String, Object> operation = makeCreateOp(pipelineTemplate, version);
+    Map<String, Object> operation = makeCreateOp(pipelineTemplate, tag);
     return taskService.createAndWaitForCompletion(operation);
   }
 
-  private Map<String, Object> makeCreateOp(Map<String, Object> pipelineTemplate, String version) {
+  private Map<String, Object> makeCreateOp(Map<String, Object> pipelineTemplate, String tag) {
     PipelineTemplate template;
     try {
       template = objectMapper.convertValue(pipelineTemplate, PipelineTemplate.class);
@@ -101,8 +101,8 @@ public class V2PipelineTemplatesController {
     job.put("type", "createV2PipelineTemplate");
     job.put("pipelineTemplate", encodeAsBase64(pipelineTemplate, objectMapper));
     job.put("user", AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"));
-    if (!StringUtils.isEmpty(version)) {
-      job.put("version", version);
+    if (!StringUtils.isEmpty(tag)) {
+      job.put("tag", tag);
     }
     jobs.add(job);
 
@@ -126,15 +126,15 @@ public class V2PipelineTemplatesController {
   @RequestMapping(value = "/update/{id}", method = RequestMethod.POST)
   @ResponseStatus(value = HttpStatus.ACCEPTED)
   public Map update(@PathVariable String id,
-    @RequestParam(value = "version", required = false) String version,
+    @RequestParam(value = "tag", required = false) String tag,
     @RequestBody Map<String, Object> pipelineTemplate,
     @RequestParam(value = "skipPlanDependents", defaultValue = "false") boolean skipPlanDependents) {
-    Map<String, Object> operation = makeUpdateOp(pipelineTemplate, id, skipPlanDependents, version);
+    Map<String, Object> operation = makeUpdateOp(pipelineTemplate, id, skipPlanDependents, tag);
     return taskService.createAndWaitForCompletion(operation);
   }
 
   private Map<String, Object> makeUpdateOp(Map<String, Object> pipelineTemplate, String id,
-                                           boolean skipPlanDependents, String version) {
+                                           boolean skipPlanDependents, String tag) {
     PipelineTemplate template;
     try {
       template = objectMapper.convertValue(pipelineTemplate, PipelineTemplate.class);
@@ -149,8 +149,8 @@ public class V2PipelineTemplatesController {
     job.put("pipelineTemplate", encodeAsBase64(pipelineTemplate, objectMapper));
     job.put("user", AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"));
     job.put("skipPlanDependents", skipPlanDependents);
-    if (!StringUtils.isEmpty(version)) {
-      job.put("version", version);
+    if (!StringUtils.isEmpty(tag)) {
+      job.put("tag", tag);
     }
     jobs.add(job);
 
@@ -164,23 +164,23 @@ public class V2PipelineTemplatesController {
   @ApiOperation(value = "(ALPHA) Get a pipeline template.", response = HashMap.class)
   @RequestMapping(value = "/{id}", method = RequestMethod.GET)
   public Map get(@PathVariable String id,
-    @RequestParam(value = "version", required = false) String version,
+    @RequestParam(value = "tag", required = false) String tag,
     @RequestParam(value = "digest", required = false) String digest) {
-    return v2PipelineTemplateService.get(id, version, digest);
+    return v2PipelineTemplateService.get(id, tag, digest);
   }
 
   @ApiOperation(value = "Delete a pipeline template.", response = HashMap.class)
   @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
   @ResponseStatus(value = HttpStatus.ACCEPTED)
   public Map delete(@PathVariable String id,
-                    @RequestParam(value = "version", required = false) String version,
+                    @RequestParam(value = "tag", required = false) String tag,
                     @RequestParam(value = "digest", required = false) String digest,
                     @RequestParam(value = "application", required = false) String application) {
     List<Map<String, Object>> jobs = new ArrayList<>();
     Map<String, Object> job = new HashMap<>();
     job.put("type", "deleteV2PipelineTemplate");
     job.put("pipelineTemplateId", id);
-    job.put("version", version);
+    job.put("tag", tag);
     job.put("digest", digest);
     job.put("user", AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"));
     jobs.add(job);
