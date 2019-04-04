@@ -80,6 +80,8 @@ public class OkHttpClientBuilder {
   public static okhttp3.OkHttpClient retryingClient3(Supplier<Token> refreshToken) {
     return new okhttp3.OkHttpClient.Builder()
       .addInterceptor(chain -> OkHttpClientBuilder.createRetryInterceptor3(chain, refreshToken))
+      .hostnameVerifier((s, sslSession) -> true)
+      .sslSocketFactory(getSslContext().getSocketFactory(), (X509TrustManager) trustAllCerts[0])
       .connectTimeout(Duration.ofSeconds(15))
       .readTimeout(Duration.ofSeconds(15))
       .build();
