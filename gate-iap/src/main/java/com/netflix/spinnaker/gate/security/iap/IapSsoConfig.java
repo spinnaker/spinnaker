@@ -21,7 +21,7 @@ import com.netflix.spinnaker.gate.config.AuthConfig;
 import com.netflix.spinnaker.gate.security.MultiAuthConfigurer;
 import com.netflix.spinnaker.gate.security.SpinnakerAuthConfig;
 import com.netflix.spinnaker.gate.security.SuppportsMultiAuth;
-import com.netflix.spinnaker.gate.security.iap.IAPSsoConfig.IAPSecurityConfigProperties;
+import com.netflix.spinnaker.gate.security.iap.IapSsoConfig.IapSecurityConfigProperties;
 import com.netflix.spinnaker.gate.services.PermissionService;
 import com.netflix.spinnaker.gate.services.internal.Front50Service;
 import java.util.List;
@@ -55,9 +55,9 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 @ConditionalOnExpression("${google.iap.enabled:false}")
 @Import(SecurityAutoConfiguration.class)
 @SuppportsMultiAuth
-@EnableConfigurationProperties(IAPSecurityConfigProperties.class)
+@EnableConfigurationProperties(IapSecurityConfigProperties.class)
 @Order(Ordered.LOWEST_PRECEDENCE)
-public class IAPSsoConfig extends WebSecurityConfigurerAdapter {
+public class IapSsoConfig extends WebSecurityConfigurerAdapter {
 
   @Autowired
   AuthConfig authConfig;
@@ -69,16 +69,16 @@ public class IAPSsoConfig extends WebSecurityConfigurerAdapter {
   Front50Service front50Service;
 
   @Autowired
-  IAPSecurityConfigProperties configProperties;
+  IapSecurityConfigProperties configProperties;
 
   @Bean
-  public IAPAuthenticationFilter iapAuthenticationFilter() {
-    return new IAPAuthenticationFilter(
+  public IapAuthenticationFilter iapAuthenticationFilter() {
+    return new IapAuthenticationFilter(
       configProperties, permissionService, front50Service);
   }
 
   @Bean
-  public FilterRegistrationBean iapFilterRegistration(IAPAuthenticationFilter filter) {
+  public FilterRegistrationBean iapFilterRegistration(IapAuthenticationFilter filter) {
     FilterRegistrationBean registration = new FilterRegistrationBean(filter);
     registration.setEnabled(false);
     return registration;
@@ -89,12 +89,14 @@ public class IAPSsoConfig extends WebSecurityConfigurerAdapter {
 
   @ConfigurationProperties("google.iap")
   @Data
-  public static class IAPSecurityConfigProperties {
+  public static class IapSecurityConfigProperties {
 
     String jwtHeader = "x-goog-iap-jwt-assertion";
     String issuerId = "https://cloud.google.com/iap";
     String audience;
     String iapVerifyKeyUrl = "https://www.gstatic.com/iap/verify/public_key-jwk";
+    long issuedAtTimeAllowedSkew = 30000L;
+    long expirationTimeAllowedSkew = 30000L;
   }
 
   @Override
@@ -104,6 +106,11 @@ public class IAPSsoConfig extends WebSecurityConfigurerAdapter {
     Preconditions.checkNotNull(configProperties.getAudience(), "Please set the "
       + "Audience field. You can retrieve this field from the IAP console: "
       + "https://cloud.google.com/iap/docs/signed-headers-howto#verify_the_id_token_header.");
+
+    Preconditions.checkArgument(configProperties.getIssuedAtTimeAllowedSkew() >= 0,
+      "IAP security issuedAtTimeAllowedSkew value must be >= 0.");
+    Preconditions.checkArgument(configProperties.getExpirationTimeAllowedSkew() >= 0,
+      "IAP security expirationTimeAllowedSkew value must be >= 0.");
 
     authConfig.configure(http);
     http.addFilterBefore(iapAuthenticationFilter(), BasicAuthenticationFilter.class);

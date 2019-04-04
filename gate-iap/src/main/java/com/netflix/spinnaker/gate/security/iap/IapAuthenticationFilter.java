@@ -18,6 +18,7 @@ package com.netflix.spinnaker.gate.security.iap;
 
 import com.google.common.base.Preconditions;
 import com.netflix.spinnaker.fiat.model.resources.ServiceAccount;
+import com.netflix.spinnaker.gate.security.iap.IapSsoConfig.IapSecurityConfigProperties;
 import com.netflix.spinnaker.gate.services.PermissionService;
 import com.netflix.spinnaker.gate.services.internal.Front50Service;
 import com.netflix.spinnaker.security.User;
@@ -33,6 +34,8 @@ import com.nimbusds.jwt.SignedJWT;
 import java.io.IOException;
 import java.net.URL;
 import java.security.interfaces.ECPublicKey;
+import java.time.Clock;
+import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -55,20 +58,22 @@ import retrofit.RetrofitError;
  * The user email from the payload used to create the Spinnaker user.
  */
 @Slf4j
-public class IAPAuthenticationFilter extends OncePerRequestFilter {
+public class IapAuthenticationFilter extends OncePerRequestFilter {
+  private static final String SIGNATURE_ATTRIBUTE = "JWTSignature";
 
-  private IAPSsoConfig.IAPSecurityConfigProperties configProperties;
+  private static final Clock CLOCK = Clock.systemUTC();
+
+  private IapSecurityConfigProperties configProperties;
 
   private PermissionService permissionService;
 
   private Front50Service front50Service;
 
-  private static final String signatureAttribute = "JWTSignature";
-
   private final Map<String, JWK> keyCache = new HashMap<>();
 
-  public IAPAuthenticationFilter(
-    IAPSsoConfig.IAPSecurityConfigProperties configProperties,
+
+  public IapAuthenticationFilter(
+    IapSecurityConfigProperties configProperties,
     PermissionService permissionService,
     Front50Service front50Service) {
     this.configProperties = configProperties;
@@ -82,12 +87,12 @@ public class IAPAuthenticationFilter extends OncePerRequestFilter {
     HttpSession session = request.getSession();
 
     try {
-      String token = request.getHeader(configProperties.jwtHeader);
-      Preconditions.checkNotNull(token);
+      String token = request.getHeader(configProperties.getJwtHeader());
+      Preconditions.checkNotNull(token, String.format("Request is missing JWT header: %s", configProperties.getJwtHeader()));
 
       SignedJWT jwt = SignedJWT.parse(token);
 
-      Base64URL signatureInSession = (Base64URL) session.getAttribute(signatureAttribute);
+      Base64URL signatureInSession = (Base64URL) session.getAttribute(SIGNATURE_ATTRIBUTE);
 
       if (signatureInSession != null && signatureInSession.equals(jwt.getSignature())) {
         // Signature matches in previous request signatures in current session, skip validation.
@@ -112,7 +117,7 @@ public class IAPAuthenticationFilter extends OncePerRequestFilter {
       SecurityContextHolder.getContext().setAuthentication(authentication);
 
       // Save the signature to skip validation for subsequent requests with same token.
-      session.setAttribute(signatureAttribute, jwt.getSignature());
+      session.setAttribute(SIGNATURE_ATTRIBUTE, jwt.getSignature());
 
     } catch (Exception e) {
       if (log.isDebugEnabled()) {
@@ -144,27 +149,31 @@ public class IAPAuthenticationFilter extends OncePerRequestFilter {
   private User verifyJWTAndGetUser(SignedJWT jwt) throws Exception {
     JWSHeader jwsHeader = jwt.getHeader();
 
-    Preconditions.checkNotNull(jwsHeader.getAlgorithm());
-    Preconditions.checkNotNull(jwsHeader.getKeyID());
+    Preconditions.checkNotNull(jwsHeader.getAlgorithm(), "JWT header is missing algorithm (alg)");
+    Preconditions.checkNotNull(jwsHeader.getKeyID(), "JWT header is missing key ID (kid)");
 
     JWTClaimsSet claims = jwt.getJWTClaimsSet();
 
-    Preconditions.checkArgument(claims.getAudience().contains(configProperties.audience));
-    Preconditions.checkArgument(claims.getIssuer().contains(configProperties.issuerId));
+    Preconditions.checkArgument(claims.getAudience().contains(configProperties.getAudience()),
+      String.format("JWT payload audience claim (aud) must contain: %s.", configProperties.getAudience()));
+    Preconditions.checkArgument(claims.getIssuer().equals(configProperties.getIssuerId()),
+      String.format("JWT payload issuer claim (iss) must be: %s", configProperties.getIssuerId()));
 
-    Date currentTime = new Date();
-    Preconditions.checkArgument(claims.getIssueTime().before(currentTime));
-    Preconditions.checkArgument(claims.getExpirationTime().after(currentTime));
+    Date currentTime = Date.from(Instant.now(CLOCK));
+    Preconditions.checkArgument(claims.getIssueTime().before(new Date(currentTime.getTime() + configProperties.getIssuedAtTimeAllowedSkew())),
+      String.format("JWT payloadissued-at time claim (iat) must be before the current time (with %dms allowed clock skew): currentTime=%d, issueTime=%d", configProperties.getIssuedAtTimeAllowedSkew(), currentTime.getTime(), claims.getIssueTime().getTime()));
+    Preconditions.checkArgument(claims.getExpirationTime().after(new Date(currentTime.getTime() - configProperties.getExpirationTimeAllowedSkew())),
+      String.format("JWT payload expiration time claim (exp) must be after the current time (with %dms allowed clock skew): currentTime=%d, expirationTime=%d", configProperties.getExpirationTimeAllowedSkew(), currentTime.getTime(), claims.getExpirationTime().getTime()));
 
-    Preconditions.checkNotNull(claims.getSubject());
+    Preconditions.checkNotNull(claims.getSubject(), "JWT payload is missing subject (sub)");
     String email = (String) claims.getClaim("email");
-    Preconditions.checkNotNull(email);
+    Preconditions.checkNotNull(email, "JWT payload is missing user email (email)");
 
     ECPublicKey publicKey = getKey(jwsHeader.getKeyID(), jwsHeader.getAlgorithm().getName());
-    Preconditions.checkNotNull(publicKey);
+    Preconditions.checkNotNull(publicKey, "Failed to get EC public key");
 
     JWSVerifier jwsVerifier = new ECDSAVerifier(publicKey);
-    Preconditions.checkState(jwt.verify(jwsVerifier));
+    Preconditions.checkState(jwt.verify(jwsVerifier), "EC public key failed verification");
 
     User verifiedUser = new User();
     verifiedUser.setEmail(email);
@@ -176,7 +185,7 @@ public class IAPAuthenticationFilter extends OncePerRequestFilter {
     JWK jwk = keyCache.get(kid);
     if (jwk == null) {
       // update cache loading jwk public key data from url
-      JWKSet jwkSet = JWKSet.load(new URL(configProperties.iapVerifyKeyUrl));
+      JWKSet jwkSet = JWKSet.load(new URL(configProperties.getIapVerifyKeyUrl()));
       for (JWK key : jwkSet.getKeys()) {
         keyCache.put(key.getKeyID(), key);
       }
