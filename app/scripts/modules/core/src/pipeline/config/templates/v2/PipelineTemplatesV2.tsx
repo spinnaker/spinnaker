@@ -38,7 +38,7 @@ export class PipelineTemplatesV2 extends React.Component<{}, IPipelineTemplatesV
   constructor(props: {}) {
     super(props);
     const { $stateParams } = ReactInjector;
-    const viewTemplateId: string = $stateParams.viewTemplateId;
+    const viewTemplateId: string = $stateParams.templateId;
     this.state = { templates: [], fetchError: null, searchValue: '', viewTemplateId };
   }
 
@@ -188,10 +188,8 @@ export class PipelineTemplatesV2 extends React.Component<{}, IPipelineTemplatesV
                           <td>{metadata.owner || '-'}</td>
                           <td>{this.getUpdateTimeForTemplate(template) || '-'}</td>
                           <td className="pipeline-template-actions">
-                            <UISref to={`.pipeline-templates-detail`} params={{ viewTemplateId: id }}>
-                              <button className="link" onClick={() => this.setState({ viewTemplateId: id })}>
-                                View
-                              </button>
+                            <UISref to={`.pipeline-templates-detail`} params={{ templateId: id }}>
+                              <button className="link">View</button>
                             </UISref>
                             <button className="link" onClick={() => this.setState({ deleteTemplateId: id })}>
                               Delete
