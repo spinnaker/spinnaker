@@ -36,6 +36,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -56,8 +57,8 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class V2PipelineTemplateController {
 
-  // TODO(jacobkiefer): Does this handle all the version strings we want to support?
-  private static final String VALID_TEMPLATE_VERSION_REGEX = "^[a-zA-Z0-9-_.]+$";
+  // TODO(jacobkiefer): (PLACEHOLDER) Decide on the final set of supported tags.
+  private static final List<String> VALID_TEMPLATE_TAGS = Arrays.asList("latest", "stable", "unstable", "experimental", "test", "canary");
 
   @Autowired(required = false)
   PipelineTemplateDAO pipelineTemplateDAO = null;
@@ -75,16 +76,16 @@ public class V2PipelineTemplateController {
   }
 
   @RequestMapping(value = "", method = RequestMethod.POST)
-  void save(@RequestParam(value = "version", required = false) String version, @RequestBody PipelineTemplate pipelineTemplate) {
-    if (StringUtils.isNotEmpty(version)) {
-      validatePipelineTemplateVersion(version);
+  void save(@RequestParam(value = "tag", required = false) String tag, @RequestBody PipelineTemplate pipelineTemplate) {
+    if (StringUtils.isNotEmpty(tag)) {
+      validatePipelineTemplateTag(tag);
     }
 
-    // NOTE: We need to store the version in the template blob to resolve the proper id later.
+    // NOTE: We need to store the tag in the template blob to resolve the proper id later.
     String templateId;
-    if (StringUtils.isNotEmpty(version)) {
-      templateId = String.format("%s:%s", pipelineTemplate.undecoratedId(), version);
-      pipelineTemplate.setVersion(version);
+    if (StringUtils.isNotEmpty(tag)) {
+      templateId = String.format("%s:%s", pipelineTemplate.undecoratedId(), tag);
+      pipelineTemplate.setVersion(tag);
     } else {
       templateId = pipelineTemplate.undecoratedId();
     }
@@ -92,7 +93,7 @@ public class V2PipelineTemplateController {
     try {
       checkForDuplicatePipelineTemplate(templateId);
     } catch (DuplicateEntityException dee) {
-      log.debug("Updating latest version for template with id: {}", templateId);
+      log.debug("Updating latest tag for template with id: {}", templateId);
       return;
     }
     getPipelineTemplateDAO().create(templateId, pipelineTemplate);
@@ -114,12 +115,12 @@ public class V2PipelineTemplateController {
   }
 
   @RequestMapping(value = "{id}", method = RequestMethod.PUT)
-  PipelineTemplate update(@PathVariable String id, @RequestParam(value = "version", required = false) String version, @RequestBody PipelineTemplate pipelineTemplate) {
-    if (StringUtils.isNotEmpty(version)) {
-      validatePipelineTemplateVersion(version);
+  PipelineTemplate update(@PathVariable String id, @RequestParam(value = "tag", required = false) String tag, @RequestBody PipelineTemplate pipelineTemplate) {
+    if (StringUtils.isNotEmpty(tag)) {
+      validatePipelineTemplateTag(tag);
     }
 
-    String templateId = StringUtils.isNotEmpty(version) ? String.format("%s:%s", id, version) : pipelineTemplate.undecoratedId();
+    String templateId = StringUtils.isNotEmpty(tag) ? String.format("%s:%s", id, tag) : pipelineTemplate.undecoratedId();
     pipelineTemplate.setLastModified(System.currentTimeMillis());
     getPipelineTemplateDAO().update(templateId, pipelineTemplate);
     updateDigest(pipelineTemplate);
@@ -133,23 +134,23 @@ public class V2PipelineTemplateController {
 
   @RequestMapping(value = "{id}", method = RequestMethod.GET)
   PipelineTemplate get(@PathVariable String id,
-                       @RequestParam(value = "version", required = false) String version,
+                       @RequestParam(value = "tag", required = false) String tag,
                        @RequestParam(value = "digest", required = false) String digest) {
-    String templateId = formatId(id, version, digest);
+    String templateId = formatId(id, tag, digest);
     // We don't need to surface our internal accounting information to the user.
     // This would muddle the API and probably be bug-friendly.
     PipelineTemplate foundTemplate = getPipelineTemplateDAO().findById(templateId);
     foundTemplate.remove("digest");
-    foundTemplate.remove("version");
+    foundTemplate.remove("tag");
 
     return foundTemplate;
   }
 
   @RequestMapping(value = "{id}", method = RequestMethod.DELETE)
   void delete(@PathVariable String id,
-              @RequestParam(value = "version", required = false) String version,
+              @RequestParam(value = "tag", required = false) String tag,
               @RequestParam(value = "digest", required = false) String digest) {
-    String templateId = formatId(id, version, digest);
+    String templateId = formatId(id, tag, digest);
     // TODO(jacobkiefer): Refactor dependent config checking once we replace templateSource with Artifact(s).
     checkForDependentConfigs(templateId);
     getPipelineTemplateDAO().delete(templateId);
@@ -243,22 +244,22 @@ public class V2PipelineTemplateController {
     return pipelineTemplateDAO;
   }
 
-  private void validatePipelineTemplateVersion(String version) {
-    if (!version.matches(VALID_TEMPLATE_VERSION_REGEX)) {
-      throw new InvalidRequestException(String.format("The provided version %s contains illegal characters."
-        + " Pipeline template versions must match %s", version, VALID_TEMPLATE_VERSION_REGEX));
+  private void validatePipelineTemplateTag(String tag) {
+    if (!VALID_TEMPLATE_TAGS.contains(tag)) {
+      throw new InvalidRequestException(String.format("The provided tag %s is not supported."
+        + " Pipeline template tag be one of %s", tag, VALID_TEMPLATE_TAGS));
     }
   }
 
-  private String formatId(String id, String version, String digest) {
-    if (StringUtils.isNotEmpty(digest) && StringUtils.isNotEmpty(version)) {
-      throw new InvalidRequestException("Cannot query pipeline by 'version' and 'digest' simultaneously. Specify one of 'version' or 'digest'.");
+  private String formatId(String id, String tag, String digest) {
+    if (StringUtils.isNotEmpty(digest) && StringUtils.isNotEmpty(tag)) {
+      throw new InvalidRequestException("Cannot query pipeline by 'tag' and 'digest' simultaneously. Specify one of 'tag' or 'digest'.");
     }
 
     if (StringUtils.isNotEmpty(digest)) {
       return String.format("%s@sha256:%s", id, digest);
-    } else if (StringUtils.isNotEmpty(version)) {
-      return String.format("%s:%s", id, version);
+    } else if (StringUtils.isNotEmpty(tag)) {
+      return String.format("%s:%s", id, tag);
     } else {
       return id;
     }
