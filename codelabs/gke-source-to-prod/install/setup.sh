@@ -70,16 +70,16 @@ bold "Pushing sample images into gcr.io/$PROJECT_ID..."
 
 gcloud auth configure-docker -q
 
-gcloud docker -- pull gcr.io/spinnaker-marketplace/frontend
-gcloud docker -- pull gcr.io/spinnaker-marketplace/backend
+docker pull gcr.io/spinnaker-marketplace/frontend
+docker pull gcr.io/spinnaker-marketplace/backend
 
-gcloud docker -- tag gcr.io/spinnaker-marketplace/frontend \
+docker tag gcr.io/spinnaker-marketplace/frontend \
   gcr.io/$PROJECT_ID/frontend
-gcloud docker -- tag gcr.io/spinnaker-marketplace/backend \
+docker tag gcr.io/spinnaker-marketplace/backend \
   gcr.io/$PROJECT_ID/backend
 
-gcloud docker -- push gcr.io/$PROJECT_ID/frontend
-gcloud docker -- push gcr.io/$PROJECT_ID/backend
+docker push gcr.io/$PROJECT_ID/frontend
+docker push gcr.io/$PROJECT_ID/backend
 
 bold "Configuring pub/sub from $GCS_TOPIC -> $GCS_SUB..."
 
