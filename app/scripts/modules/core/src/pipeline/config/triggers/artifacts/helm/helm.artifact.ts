@@ -102,6 +102,6 @@ module(HELM_ARTIFACT, []).config(() => {
 </div>
 `,
   };
-  Registry.pipeline.mergeArtifactKind(Object.assign({}, helmArtifact, { key: 'default.helm', isDefault: true }));
-  Registry.pipeline.mergeArtifactKind(Object.assign({}, helmArtifact, { key: 'helm', isMatch: true }));
+  Registry.pipeline.mergeArtifactKind({ ...helmArtifact, key: 'default.helm', isDefault: true });
+  Registry.pipeline.mergeArtifactKind({ ...helmArtifact, key: 'helm', isMatch: true });
 });
