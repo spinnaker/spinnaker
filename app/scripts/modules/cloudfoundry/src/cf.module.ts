@@ -28,6 +28,7 @@ import 'cloudfoundry/pipeline/config/validation/cfTargetImpedance.validator';
 import 'cloudfoundry/pipeline/config/validation/instanceSize.validator';
 import 'cloudfoundry/pipeline/config/validation/requiredRoutes.validator';
 import { CLOUD_FOUNDRY_CLONE_SERVER_GROUP_STAGE } from './pipeline/stages/cloneServerGroup/cloudfoundryCloneServerGroupStage.module';
+import './pipeline/stages/createServiceKey/cloudfoundryCreateServiceKeyStage.module';
 import './pipeline/stages/deployService/cloudfoundryDeployServiceStage.module';
 import { CLOUD_FOUNDRY_DESTROY_ASG_STAGE } from './pipeline/stages/destroyAsg/cloudfoundryDestroyAsgStage.module';
 import './pipeline/stages/destroyService/cloudfoundryDestroyServiceStage.module';
