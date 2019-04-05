@@ -17,6 +17,7 @@ module.exports = angular
   .module('spinnaker.azure.serverGroup.details.controller', [
     require('@uirouter/angularjs').default,
     require('../configure/serverGroupCommandBuilder.service').name,
+    require('./rollback/rollbackServerGroup.controller').name,
     CONFIRMATION_MODAL_SERVICE,
     SERVER_GROUP_WRITER,
   ])
@@ -223,6 +224,22 @@ module.exports = angular
           account: serverGroup.account,
           taskMonitorConfig: taskMonitor,
           submitMethod: submitMethod,
+        });
+      };
+
+      this.rollbackServerGroup = () => {
+        var serverGroup = $scope.serverGroup;
+        $uibModal.open({
+          templateUrl: require('./rollback/rollbackServerGroup.html'),
+          controller: 'azureRollbackServerGroupCtrl as ctrl',
+          resolve: {
+            serverGroup: () => serverGroup,
+            disabledServerGroups: () => {
+              const cluster = _.find(app.clusters, { name: serverGroup.cluster, account: serverGroup.account });
+              return _.filter(cluster.serverGroups, { isDisabled: true, region: serverGroup.region });
+            },
+            application: () => app,
+          },
         });
       };
 

@@ -28,6 +28,7 @@
           Server Group Actions <span class="caret"></span>
         </button>
         <ul class="dropdown-menu" uib-dropdown-menu role="menu">
+          <li><a href ng-if="!serverGroup.isDisabled" ng-click="ctrl.rollbackServerGroup()">Rollback</a></li>
           <div ng-if="false">
             <li><a href ng-click="ctrl.resizeServerGroup()">Resize</a></li>
           </div>

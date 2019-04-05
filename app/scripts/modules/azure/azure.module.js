@@ -76,4 +76,4 @@ module.exports = angular
     });
   });
 
-DeploymentStrategyRegistry.registerProvider('azure', []);
+DeploymentStrategyRegistry.registerProvider('azure', ['redblack']);
