@@ -20,7 +20,6 @@ import com.netflix.spinnaker.gate.services.ArtifactService;
 import io.swagger.annotations.ApiOperation;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -74,5 +73,14 @@ public class ArtifactController {
     @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp
   ) {
     return artifactService.getArtifactVersions(sourceApp, accountName, type, artifactName);
+  }
+
+  @ApiOperation(value = "Retrieve the available artifact versions for an artifact provider and package name")
+  @RequestMapping(value = "/{provider}/{packageName}", method = RequestMethod.GET)
+  List<String> getVersionsOfArtifactForProvider(
+    @PathVariable String provider,
+    @PathVariable String packageName
+  ) {
+    return artifactService.getVersionsOfArtifactForProvider(provider, packageName);
   }
 }

@@ -66,4 +66,8 @@ interface IgorService {
 
   @GET('/gcb/accounts')
   List<String> getGoogleCloudBuildAccounts();
+
+  @GET('/artifacts/{provider}/{packageName}')
+  List<String> getArtifactVersions(@Path("provider") String provider,
+                                   @Path("packageName") String packageName);
 }
