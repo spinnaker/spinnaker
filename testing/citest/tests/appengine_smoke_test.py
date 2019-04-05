@@ -92,6 +92,10 @@ class AppengineSmokeTestScenario(sk.SpinnakerTestScenario):
         help='Storage account when testing GCS buckets.'
         ' If not specified, use the application default credentials.')
 
+    parser.add_argument(
+        '--test_appengine_region', default='us-central',
+        help='Region to use for AppEngine tests.')
+
     parser.add_argument('--git_repo_url', default=None,
                         help='URL of a GIT source code repository used by Spinnaker to deploy to App Engine.')
     parser.add_argument('--branch', default='master',
@@ -228,7 +232,7 @@ class AppengineSmokeTestScenario(sk.SpinnakerTestScenario):
         'configFiles': [self.__app_yaml],
         'type': 'createServerGroup',
         'cloudProvider': 'appengine',
-        'region': 'us-central'
+        'region': self.bindings['TEST_APPENGINE_REGION']
       }
     storageAccountName = self.bindings.get('TEST_STORAGE_ACCOUNT_NAME')
     if storageAccountName is not None:
@@ -266,7 +270,7 @@ class AppengineSmokeTestScenario(sk.SpinnakerTestScenario):
         'application': self.TEST_APP,
         'cloudProvider': 'appengine',
         'provider': 'appengine',
-        'region': 'us-central',
+        'region': self.bindings['TEST_APPENGINE_REGION'],
         'repositoryUrl': self.__test_repository_url,
         'stack': self.TEST_STACK
     }
@@ -295,7 +299,7 @@ class AppengineSmokeTestScenario(sk.SpinnakerTestScenario):
             'loadBalancerName': self.__lb_name,
             'migrateTraffic': False,
             'name': self.__lb_name,
-            'region': 'us-central',
+            'region': self.bindings['TEST_APPENGINE_REGION'],
             'splitDescription': {
                 'allocationDescriptions': [
                 {

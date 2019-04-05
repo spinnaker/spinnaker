@@ -1159,6 +1159,10 @@ def init_argument_parser(parser, defaults):
       help='Whether or not to ignore SSL certificate verification when making'
            ' requests to Spinnaker. This is False by default.')
 
+  add_parser_argument(
+      parser, 'test_appengine_region', defaults, 'us-central',
+      help='Region to use for AppEngine tests.')
+
 def validate_options(options):
   """Validate testing related command-line parameters."""
   if not os.path.exists(options.test_profiles):
