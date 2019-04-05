@@ -37,6 +37,6 @@ public class V2Util {
     Map<String, Object> augmentedContext = new HashMap<>();
     augmentedContext.put("trigger", pipeline.get("trigger"));
     augmentedContext.put("templateVariables", pipeline.getOrDefault("templateVariables", Collections.EMPTY_MAP));
-    return contextParameterProcessor.process(pipeline, augmentedContext, false);
+    return contextParameterProcessor.process(pipeline, augmentedContext, true);
   }
 }
