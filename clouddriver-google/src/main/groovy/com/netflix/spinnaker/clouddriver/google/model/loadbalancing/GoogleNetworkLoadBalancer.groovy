@@ -30,6 +30,7 @@ class GoogleNetworkLoadBalancer extends GoogleLoadBalancer {
   GoogleLoadBalancingScheme loadBalancingScheme = GoogleLoadBalancingScheme.EXTERNAL
 
   String targetPool
+  String sessionAffinity
   GoogleHealthCheck healthCheck
 
   @JsonIgnore
@@ -51,6 +52,8 @@ class GoogleNetworkLoadBalancer extends GoogleLoadBalancer {
     String portRange = GoogleNetworkLoadBalancer.this.portRange
 
     String targetPool =  GoogleNetworkLoadBalancer.this.targetPool
+    String sessionAffinity = GoogleNetworkLoadBalancer.this.sessionAffinity
+
     GoogleHealthCheck.View healthCheck = GoogleNetworkLoadBalancer.this.healthCheck?.view
 
     Set<LoadBalancerServerGroup> serverGroups = new HashSet<>()

@@ -208,6 +208,7 @@ class GoogleNetworkLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCa
     @Override
     void onSuccess(TargetPool targetPool, HttpHeaders responseHeaders) throws IOException {
       googleLoadBalancer.targetPool = targetPool?.selfLink
+      googleLoadBalancer.sessionAffinity = targetPool?.sessionAffinity
       boolean hasHealthChecks = targetPool?.healthChecks
       targetPool?.healthChecks?.each { def healthCheckUrl ->
         def localHealthCheckName = Utils.getLocalName(healthCheckUrl)
