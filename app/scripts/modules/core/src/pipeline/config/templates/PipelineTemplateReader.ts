@@ -114,6 +114,27 @@ export class PipelineTemplateReader {
       });
   }
 
+  public static getPipelineTemplateConfig({
+    name,
+    application,
+    source,
+  }: {
+    name: string;
+    application: string;
+    source: string;
+  }): Partial<IPipelineTemplateConfig> {
+    return {
+      config: {
+        schema: '1',
+        pipeline: {
+          name,
+          application,
+          template: { source },
+        },
+      },
+    };
+  }
+
   public static getV2PipelineTemplateList(): IPromise<IPipelineTemplateV2[]> {
     return API.one('pipelineTemplates')
       .get()

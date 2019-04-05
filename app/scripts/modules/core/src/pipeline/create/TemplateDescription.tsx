@@ -2,18 +2,23 @@ import * as React from 'react';
 import * as classNames from 'classnames';
 
 import { IPipelineTemplate } from 'core/pipeline/config/templates/PipelineTemplateReader';
+import { IPipelineTemplateV2 } from 'core/domain/IPipelineTemplateV2';
 import { SETTINGS } from 'core/config/settings';
 import { Spinner } from 'core/widgets/spinners/Spinner';
 
 import './TemplateDescription.less';
 
 export interface ITemplateDescriptionProps {
-  template: IPipelineTemplate;
+  template: IPipelineTemplate | IPipelineTemplateV2;
   loading: boolean;
   loadingError: boolean;
 }
 
 export class TemplateDescription extends React.Component<ITemplateDescriptionProps> {
+  private isV1Template(template: IPipelineTemplate | IPipelineTemplateV2): template is IPipelineTemplate {
+    return template.schema === '1';
+  }
+
   public render() {
     const { loading, loadingError, template } = this.props;
 
@@ -27,7 +32,7 @@ export class TemplateDescription extends React.Component<ITemplateDescriptionPro
         {template && (
           <div className="alert alert-info">
             <strong>{template.metadata.name}</strong>
-            {template.selfLink && (
+            {this.isV1Template(template) && template.selfLink && (
               <p className="small">
                 <a href={this.buildTemplateResolutionLink(template.selfLink)} target="_blank">
                   {template.selfLink}

@@ -9,6 +9,7 @@ export * from './config/templates/v2/pipelineTemplateV2.service';
 export * from './config/triggers/ITriggerConfigProps';
 export * from './config/triggers/RunAsUser';
 export * from './config/validation/PipelineConfigValidator';
+export * from './create';
 export * from './details';
 export * from './executions/execution/Execution';
 export * from './filter/ExecutionFilterModel';
