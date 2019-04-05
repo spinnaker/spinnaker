@@ -148,6 +148,7 @@ export class CloudFoundryServerGroupCommandBuilder {
     }).then(command => {
       command.credentials = stage.credentials;
       command.capacity = stage.capacity;
+      command.account = stage.account;
       command.destination = stage.destination;
       command.delayBeforeDisableSec = stage.delayBeforeDisableSec;
       command.freeFormDetails = stage.freeFormDetails || command.freeFormDetails;

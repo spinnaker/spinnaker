@@ -3,6 +3,7 @@ import { ICloudFoundryEnvVar } from 'cloudfoundry/domain';
 
 export interface ICloudFoundryCreateServerGroupCommand extends IServerGroupCommand {
   // clone server group model
+  account?: string;
   destination?: ICloudFoundryDestination;
   source?: ICloudFoundrySource;
   rollback?: boolean;
@@ -38,7 +39,6 @@ export interface ICloudFoundrySource {
 
 export interface ICloudFoundryDestination {
   region: string;
-  account: string;
 }
 
 export interface ICloudFoundryManifestDirectSource {

@@ -29,6 +29,7 @@ export class CloudfoundryCloneServerGroupStageConfig extends React.Component<
   private handleResult = (command: any) => {
     this.props.stage.credentials = command.credentials;
     this.props.stage.capacity = command.capacity;
+    this.props.stage.account = command.account;
     this.props.stage.destination = command.destination;
     this.props.stage.delayBeforeDisableSec = command.delayBeforeDisableSec;
     this.props.stage.freeFormDetails = command.freeFormDetails;
@@ -99,7 +100,7 @@ export class CloudfoundryCloneServerGroupStageConfig extends React.Component<
             </thead>
             <tbody>
               <tr>
-                <td>{stage.destination ? stage.destination.account : ''}</td>
+                <td>{stage.account || ''}</td>
                 <td>{stage.destination ? stage.destination.region : ''}</td>
               </tr>
             </tbody>

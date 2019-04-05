@@ -53,7 +53,7 @@ export class CloudFoundryServerGroupBasicSettings
   };
 
   private updateRegionList = (): void => {
-    const accountField = this.props.isPipelineClone ? 'destination.account' : 'credentials';
+    const accountField = this.props.isPipelineClone ? 'account' : 'credentials';
     const credentials = get(this.props.formik.values, accountField, undefined);
     if (credentials) {
       AccountService.getRegionsForAccount(credentials).then(regions => {
@@ -74,7 +74,7 @@ export class CloudFoundryServerGroupBasicSettings
     const { formik, isPipelineClone } = this.props;
     const { accounts, regions } = this.state;
     const { values } = formik;
-    const accountField = isPipelineClone ? 'destination.account' : 'credentials';
+    const accountField = isPipelineClone ? 'account' : 'credentials';
     const regionField = isPipelineClone ? 'destination.region' : 'region';
     return (
       <div className="form-group">
