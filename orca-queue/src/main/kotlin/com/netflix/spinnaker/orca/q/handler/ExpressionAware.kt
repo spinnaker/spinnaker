@@ -16,7 +16,10 @@
 
 package com.netflix.spinnaker.orca.q.handler
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.convertValue
 import com.netflix.spinnaker.orca.exceptions.ExceptionHandler
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.expressions.ExpressionEvaluationSummary
 import com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator
 import com.netflix.spinnaker.orca.pipeline.model.Execution
@@ -35,6 +38,9 @@ interface ExpressionAware {
   val contextParameterProcessor: ContextParameterProcessor
   val log: Logger
     get() = LoggerFactory.getLogger(javaClass)
+  private val mapper: ObjectMapper
+    get() = OrcaObjectMapper.newInstance()
+
 
   fun Stage.withMergedContext(): Stage {
     val evalSummary = ExpressionEvaluationSummary()
@@ -130,7 +136,9 @@ interface ExpressionAware {
 
   private fun StageContext.augmentContext(execution: Execution): StageContext =
     if (execution.type == PIPELINE) {
-      this + mapOf("trigger" to execution.trigger, "execution" to execution)
+      this + mapOf(
+        "trigger" to mapper.convertValue<Map<String, Any>>(execution.trigger),
+        "execution" to execution)
     } else {
       this
     }
