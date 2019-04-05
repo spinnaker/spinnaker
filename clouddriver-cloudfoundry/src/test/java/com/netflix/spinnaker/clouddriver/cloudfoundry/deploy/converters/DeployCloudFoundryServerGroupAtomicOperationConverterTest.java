@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.artifacts.ArtifactCredentialsRepository;
 import com.netflix.spinnaker.clouddriver.artifacts.ArtifactDownloader;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.artifacts.ArtifactCredentialsFromString;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.artifacts.PackageArtifactCredentials;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.artifacts.CloudFoundryArtifactCredentials;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.MockCloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.DeployCloudFoundryServerGroupDescription;
@@ -100,131 +100,6 @@ class DeployCloudFoundryServerGroupAtomicOperationConverterTest {
   void initializeClassUnderTest() {
     converter.setAccountCredentialsProvider(accountCredentialsProvider);
     converter.setObjectMapper(new ObjectMapper());
-  }
-
-  @Test
-  void convertDescriptionForCloneWithEnvironmentVariables() {
-    final Map input = HashMap.of(
-      "credentials", "destinationAccount",
-      "region", "org > space",
-      "startApplication", "true",
-      "source", HashMap.of(
-        "account", "sourceAccount",
-        "asgName", "serverGroupName1",
-        "region", "org > space"
-      ).toJavaMap(),
-      "manifest", HashMap.of(
-        "metadata", HashMap.of(
-          "direct", HashMap.of(
-            "buildpacks", Collections.emptyList(),
-            "memory", "1024",
-            "diskQuota", "1024",
-            "instances", "42",
-            "environment", List.of(
-              HashMap.of(
-                "key", "testKey",
-                "value", "testValue").toJavaMap()
-            ).toJavaList()
-          ).toJavaMap()
-        ).toJavaMap()
-      ).toJavaMap()
-    ).toJavaMap();
-
-    final DeployCloudFoundryServerGroupDescription result = converter.convertDescription(input);
-
-    CloudFoundryCredentials sourceCredentials = converter.getCredentialsObject("sourceAccount");
-    assertThat(result.getAccountName()).isEqualTo("destinationAccount");
-    assertThat(result.getArtifactCredentials())
-      .isEqualToComparingFieldByFieldRecursively(new PackageArtifactCredentials(sourceCredentials.getClient()));
-    assertThat(result.getSpace()).isEqualToComparingFieldByFieldRecursively(
-      CloudFoundrySpace.builder().id("spaceID").name("space").organization(
-        CloudFoundryOrganization.builder().id("orgID").name("org").build()).build());
-    assertThat(result.isStartApplication()).isTrue();
-
-    assertThat(result.getApplicationAttributes()).isEqualToComparingFieldByFieldRecursively(
-      new DeployCloudFoundryServerGroupDescription.ApplicationAttributes()
-        .setInstances(42)
-        .setMemory("1024")
-        .setDiskQuota("1024")
-        .setEnv(HashMap.of("testKey", "testValue").toJavaMap())
-        .setBuildpacks(Collections.emptyList())
-    );
-  }
-
-  @Test
-  void convertDescriptionWithSourceSet() {
-    final Map input = HashMap.of(
-      "credentials", "destinationAccount",
-      "region", "org > space",
-      "startApplication", "true",
-      "source", HashMap.of(
-        "account", "sourceAccount",
-        "asgName", "serverGroupName1",
-        "region", "org > space"
-      ).toJavaMap(),
-      "manifest", HashMap.of(
-        "type", "test",
-        "artifactAccount", "test",
-        "reference", "ref1"
-      ).toJavaMap()
-    ).toJavaMap();
-
-    final DeployCloudFoundryServerGroupDescription result = converter.convertDescription(input);
-
-    CloudFoundryCredentials sourceCredentials = converter.getCredentialsObject("sourceAccount");
-    assertThat(result.getAccountName()).isEqualTo("destinationAccount");
-    assertThat(result.getArtifactCredentials())
-      .isEqualToComparingFieldByFieldRecursively(new PackageArtifactCredentials(sourceCredentials.getClient()));
-    assertThat(result.getSpace()).isEqualToComparingFieldByFieldRecursively(
-      CloudFoundrySpace.builder().id("spaceID").name("space").organization(
-        CloudFoundryOrganization.builder().id("orgID").name("org").build()).build());
-    assertThat(result.isStartApplication()).isTrue();
-    assertThat(result.getApplicationAttributes()).isEqualToComparingFieldByFieldRecursively(
-      new DeployCloudFoundryServerGroupDescription.ApplicationAttributes()
-        .setInstances(42)
-        .setMemory("1024")
-        .setDiskQuota("1024")
-        .setBuildpacks(Collections.emptyList())
-    );
-  }
-
-  @Test
-  void convertDescriptionWithDestinationSet() {
-    final Map input = HashMap.of(
-      "credentials", "destinationAccount",
-      "region", "org > space",
-      "destination", HashMap.of(
-        "account", "sourceAccount1",
-        "region", "org1 > space1"
-      ).toJavaMap(),
-      "source", HashMap.of(
-        "account", "sourceAccount2",
-        "asgName", "serverGroupName1",
-        "region", "org > space"
-      ).toJavaMap(),
-      "manifest", HashMap.of(
-        "artifactAccount", "test",
-        "reference", "ref1",
-        "type", "test"
-      ).toJavaMap()
-    ).toJavaMap();
-
-    final DeployCloudFoundryServerGroupDescription result = converter.convertDescription(input);
-
-    CloudFoundryCredentials sourceCredentials = converter.getCredentialsObject("sourceAccount2");
-    assertThat(result.getAccountName()).isEqualTo("sourceAccount1");
-    assertThat(result.getArtifactCredentials())
-      .isEqualToComparingFieldByFieldRecursively(new PackageArtifactCredentials(sourceCredentials.getClient()));
-    assertThat(result.getSpace()).isEqualToComparingFieldByFieldRecursively(
-      CloudFoundrySpace.builder().id("space1ID").name("space1").organization(
-        CloudFoundryOrganization.builder().id("org1ID").name("org1").build()).build());
-    assertThat(result.getApplicationAttributes()).isEqualToComparingFieldByFieldRecursively(
-      new DeployCloudFoundryServerGroupDescription.ApplicationAttributes()
-        .setInstances(42)
-        .setMemory("1024")
-        .setDiskQuota("1024")
-        .setBuildpacks(Collections.emptyList())
-    );
   }
 
   @Test

@@ -29,18 +29,20 @@ import static java.util.Collections.singletonList;
 
 @AllArgsConstructor
 @Getter
-public class PackageArtifactCredentials implements ArtifactCredentials {
-  private final String name = "package";
+public class CloudFoundryArtifactCredentials implements ArtifactCredentials {
+  public static final String TYPE = "cloudfoundry/app";
+
+  private final String name = "cloudfoundry";
   private final CloudFoundryClient client;
 
   @Override
   public List<String> getTypes() {
-    return singletonList("package");
+    return singletonList(TYPE);
   }
 
   @Override
   public InputStream download(Artifact artifact) {
-    String packageId = client.getApplications().findCurrentPackageIdByAppId(artifact.getReference());
+    String packageId = client.getApplications().findCurrentPackageIdByAppId(artifact.getUuid());
     return client.getApplications().downloadPackageBits(packageId);
   }
 }

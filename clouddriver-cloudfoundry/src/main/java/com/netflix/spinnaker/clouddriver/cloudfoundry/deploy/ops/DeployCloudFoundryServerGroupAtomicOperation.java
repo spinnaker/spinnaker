@@ -34,7 +34,6 @@ import javax.annotation.Nullable;
 import java.io.*;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -76,7 +75,9 @@ public class DeployCloudFoundryServerGroupAtomicOperation
       serverGroup = createApplication(description);
       packageId = buildPackage(serverGroup.getId(), description, packageArtifact);
     } finally {
-      packageArtifact.delete();
+      if (packageArtifact != null) {
+        packageArtifact.delete();
+      }
     }
 
     buildDroplet(packageId, serverGroup.getId(), description);
@@ -112,11 +113,8 @@ public class DeployCloudFoundryServerGroupAtomicOperation
 
   private DeploymentResult deploymentResult() {
     DeploymentResult deploymentResult = new DeploymentResult();
-    String destinationRegion = Optional.ofNullable(description.getDestination())
-      .map(DeployCloudFoundryServerGroupDescription.Destination::getRegion)
-      .orElse(description.getRegion());
-    deploymentResult.setServerGroupNames(Collections.singletonList(destinationRegion + ":" + description.getServerGroupName()));
-    deploymentResult.getServerGroupNameByRegion().put(destinationRegion, description.getServerGroupName());
+    deploymentResult.setServerGroupNames(Collections.singletonList(description.getRegion() + ":" + description.getServerGroupName()));
+    deploymentResult.getServerGroupNameByRegion().put(description.getRegion(), description.getServerGroupName());
     deploymentResult.setMessages(getTask().getHistory().stream()
       .map(hist -> hist.getPhase() + ":" + hist.getStatus())
       .collect(toList()));
