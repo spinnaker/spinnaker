@@ -35,7 +35,8 @@ class ServiceAccountsControllerSpec extends Specification {
     serviceAccountDAO: serviceAccountDAO,
     fiatService: fiatService,
     fiatClientConfigurationProperties: fiatClientConfigurationProperties,
-    fiatPermissionEvaluator: fiatPermissionsEvaluator
+    fiatPermissionEvaluator: fiatPermissionsEvaluator,
+    roleSync: true
   )
 
   def "should invalidate local cache"() {
