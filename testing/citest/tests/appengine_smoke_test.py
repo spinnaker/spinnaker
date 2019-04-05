@@ -92,6 +92,10 @@ class AppengineSmokeTestScenario(sk.SpinnakerTestScenario):
         help='Storage account when testing GCS buckets.'
         ' If not specified, use the application default credentials.')
 
+    parser.add_argument(
+        '--test_appengine_region', default='us-central',
+        help='Region to use for AppEngine tests.')
+
     parser.add_argument('--git_repo_url', default=None,
                         help='URL of a GIT source code repository used by Spinnaker to deploy to App Engine.')
     parser.add_argument('--branch', default='master',
