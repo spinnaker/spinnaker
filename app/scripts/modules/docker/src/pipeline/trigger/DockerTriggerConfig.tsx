@@ -12,12 +12,14 @@ export interface IDockerTriggerConfigProps extends ITriggerConfigProps {
 
 export interface IDockerTriggerConfigState {
   fiatEnabled: boolean;
+  managedServiceAccountsEnabled: boolean;
   serviceAccounts: string[];
 }
 
 export class DockerTriggerConfig extends React.Component<IDockerTriggerConfigProps, IDockerTriggerConfigState> {
   public state: IDockerTriggerConfigState = {
     fiatEnabled: SETTINGS.feature.fiatEnabled,
+    managedServiceAccountsEnabled: SETTINGS.feature.managedServiceAccounts,
     serviceAccounts: [],
   };
 
@@ -43,7 +45,7 @@ export class DockerTriggerConfig extends React.Component<IDockerTriggerConfigPro
 
   public render() {
     const { trigger } = this.props;
-    const { fiatEnabled, serviceAccounts } = this.state;
+    const { fiatEnabled, managedServiceAccountsEnabled, serviceAccounts } = this.state;
     return (
       <div className="form-horizontal">
         <DockerImageAndTagSelector
@@ -58,8 +60,9 @@ export class DockerTriggerConfig extends React.Component<IDockerTriggerConfigPro
           showDigest={false}
         />
 
-        {fiatEnabled && (
+        {fiatEnabled && !managedServiceAccountsEnabled && (
           <div className="form-group">
+            <h1>YOLO!</h1>
             <RunAsUser
               serviceAccounts={serviceAccounts}
               value={trigger.runAsUser}

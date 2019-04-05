@@ -120,7 +120,7 @@ export class ConcourseTriggerConfig extends React.Component<
             )}
           </div>
         </div>
-        {SETTINGS.feature.fiatEnabled && (
+        {SETTINGS.feature.fiatEnabled && !SETTINGS.feature.managedServiceAccounts && (
           <div className="form-group">
             <RunAsUser serviceAccounts={serviceAccounts} value={runAsUser} onChange={this.onRunAsUserChanged} />
             />
