@@ -85,7 +85,7 @@ public class V2PipelineTemplateController {
     String templateId;
     if (StringUtils.isNotEmpty(tag)) {
       templateId = String.format("%s:%s", pipelineTemplate.undecoratedId(), tag);
-      pipelineTemplate.setVersion(tag);
+      pipelineTemplate.setTag(tag);
     } else {
       templateId = pipelineTemplate.undecoratedId();
     }
@@ -247,7 +247,7 @@ public class V2PipelineTemplateController {
   private void validatePipelineTemplateTag(String tag) {
     if (!VALID_TEMPLATE_TAGS.contains(tag)) {
       throw new InvalidRequestException(String.format("The provided tag %s is not supported."
-        + " Pipeline template tag be one of %s", tag, VALID_TEMPLATE_TAGS));
+        + " Pipeline template must tag be one of %s", tag, VALID_TEMPLATE_TAGS));
     }
   }
 
