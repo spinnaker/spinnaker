@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
+package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.clone
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.ExecutionStatus
@@ -27,21 +27,19 @@ import com.netflix.spinnaker.orca.kato.tasks.DeploymentDetailsAware
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 
 @Slf4j
 @Component
 class CloneServerGroupTask extends AbstractCloudProviderAwareTask implements Task, DeploymentDetailsAware {
+  @Autowired
+  Collection<CloneDescriptionDecorator> cloneDescriptionDecorators = []
 
   @Autowired
   KatoService kato
 
   @Autowired
   ObjectMapper mapper
-
-  @Value('${default.bake.account:default}')
-  String defaultBakeAccount
 
   @Override
   TaskResult execute(Stage stage) {
@@ -62,7 +60,7 @@ class CloneServerGroupTask extends AbstractCloudProviderAwareTask implements Tas
     }
 
     String credentials = getCredentials(stage)
-    def taskId = kato.requestOperations(cloudProvider, getDescriptions(operation)).toBlocking().first()
+    def taskId = kato.requestOperations(cloudProvider, getDescriptions(stage, operation)).toBlocking().first()
 
     def outputs = [
       "notification.type"   : "createcopylastasg",
@@ -81,32 +79,15 @@ class CloneServerGroupTask extends AbstractCloudProviderAwareTask implements Tas
     new TaskResult(ExecutionStatus.SUCCEEDED, outputs)
   }
 
-  private List<Map<String, Object>> getDescriptions(Map operation) {
-    log.info("Generating descriptions (cloudProvider: ${operation.cloudProvider}, getCloudProvider: ${getCloudProvider(operation)}, credentials: ${operation.credentials}, defaultBakeAccount: ${defaultBakeAccount}, availabilityZones: ${operation.availabilityZones})")
+  private List<Map<String, Object>> getDescriptions(Stage stage, Map operation) {
+    log.info("Generating descriptions (cloudProvider: ${operation.cloudProvider}, getCloudProvider: ${getCloudProvider(operation)}, credentials: ${operation.credentials}, availabilityZones: ${operation.availabilityZones})")
 
-    List<Map<String, Object>> descriptions = []
-    // NFLX bakes images in their test account. This rigmarole is to allow the prod account access to that image.
-    Collection<String> targetRegions = operation.region ? [operation.region] :
-      operation.availabilityZones ? operation.availabilityZones.keySet() : []
-    if (getCloudProvider(operation) == "aws" && // the operation is a clone of stage.context.
-        operation.credentials != defaultBakeAccount &&
-        targetRegions &&
-        operation.amiName) {
-      def allowLaunchDescriptions = targetRegions.collect { String region ->
-        [
-          allowLaunchDescription: [
-            account    : operation.credentials,
-            credentials: defaultBakeAccount,
-            region     : region,
-            amiName    : operation.amiName
-          ]
-        ]
+    List<Map<String, Object>> descriptions = [[cloneServerGroup: operation]]
+    cloneDescriptionDecorators.each { decorator ->
+      if (decorator.shouldDecorate(operation)) {
+        decorator.decorate(operation, descriptions, stage)
       }
-      descriptions.addAll(allowLaunchDescriptions)
-
-      log.info("Generated `allowLaunchDescriptions` (allowLaunchDescriptions: ${allowLaunchDescriptions})")
     }
-    descriptions.add([cloneServerGroup: operation])
     descriptions
   }
 }

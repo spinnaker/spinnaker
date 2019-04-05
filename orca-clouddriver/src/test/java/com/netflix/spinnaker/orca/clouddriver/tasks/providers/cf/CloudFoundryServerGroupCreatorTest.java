@@ -17,11 +17,16 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.cf;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.util.Base64;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 class CloudFoundryServerGroupCreatorTest {
   @Test
@@ -47,11 +52,13 @@ class CloudFoundryServerGroupCreatorTest {
 
     ObjectMapper mapper = new ObjectMapper();
 
-    CloudFoundryServerGroupCreator.DirectManifest direct = mapper.readValue(manifestPipelineJson,
-      CloudFoundryServerGroupCreator.Manifest.class).getDirect();
+    ArtifactResolver artifactResolver = mock(ArtifactResolver.class);
+    Stage stage = mock(Stage.class);
 
-    assertThat(direct).isNotNull();
-    assertThat(direct.toManifestYml()).isEqualTo(
+    Artifact artifact = mapper.readValue(manifestPipelineJson, Manifest.class).toArtifact(artifactResolver, stage);
+
+    assertThat(artifact.getType()).isEqualTo("embedded/base64");
+    assertThat(new String(Base64.getDecoder().decode(artifact.getReference()))).isEqualTo(
       "---\n" +
         "applications:\n" +
         " -\n" +
