@@ -17,10 +17,9 @@
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client;
 
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.ApplicationService;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.ApplicationEnv;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.InstanceStatus;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.ServiceInstance;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.*;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.*;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Application;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Package;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Process;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryOrganization;
@@ -28,9 +27,10 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryServerGr
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
 import io.vavr.collection.HashMap;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
-import retrofit.mime.TypedInput;
 
 import java.time.ZonedDateTime;
 import java.util.Arrays;
@@ -169,5 +169,50 @@ class ApplicationsTest {
     when(applicationService.findProcessStatsById(anyString())).thenThrow(RetrofitError.httpError("http://capi.io", errorResponse, null, null));
     ProcessStats.State result = apps.getProcessState("some-app-guid");
     assertThat(result).isEqualTo(ProcessStats.State.DOWN);
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = { "myapp-v999", "myapp" })
+  void getLatestServerGroup(String existingApp) {
+    com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Application application = new com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Application()
+      .setName(existingApp)
+      .setSpaceGuid("space");
+
+    when(applicationService.appsLessThanName(contains("myapp"), eq("desc"), eq(1)))
+      .thenReturn(Page.singleton(application, "123"));
+
+    Resource<com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Application> latest = apps
+      .getLatestServerGroup("myapp", "space");
+    assertThat(latest).isNotNull();
+    assertThat(latest.getEntity().getName()).isEqualTo(existingApp);
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = { "myapp-v999", "myapp", "myapp-stack2", "anothername", "myapp-stack-detail" })
+  void getLatestServerGroupWhenNoPriorVersionExists(String similarAppName) {
+    com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Application application = new com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Application()
+      .setName(similarAppName)
+      .setSpaceGuid("space");
+
+    when(applicationService.appsLessThanName(anyString(), eq("desc"), eq(1)))
+      .thenReturn(Page.singleton(application, "123"));
+
+    Resource<com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Application> latest = apps
+      .getLatestServerGroup("myapp-stack", "space");
+    assertThat(latest).isNull();
+  }
+
+  @Test
+  void getLatestServerGroupDifferentRegion() {
+    com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Application application = new com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Application()
+      .setName("myapp-v003")
+      .setSpaceGuid("space");
+
+    when(applicationService.appsLessThanName(anyString(), eq("desc"), eq(1)))
+      .thenReturn(Page.singleton(application, "123"));
+
+    Resource<com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Application> latest = apps
+      .getLatestServerGroup("myapp", "anotherspace");
+    assertThat(latest).isNull();
   }
 }

@@ -93,7 +93,7 @@ class DeployCloudFoundryServerGroupAtomicOperationConverterTest {
     new DefaultAccountCredentialsProvider(accountCredentialsRepository);
 
   private final DeployCloudFoundryServerGroupAtomicOperationConverter converter =
-    new DeployCloudFoundryServerGroupAtomicOperationConverter(null, artifactCredentialsRepository, null,
+    new DeployCloudFoundryServerGroupAtomicOperationConverter(null, artifactCredentialsRepository,
       new ArtifactDownloader(artifactCredentialsRepository));
 
   @BeforeEach

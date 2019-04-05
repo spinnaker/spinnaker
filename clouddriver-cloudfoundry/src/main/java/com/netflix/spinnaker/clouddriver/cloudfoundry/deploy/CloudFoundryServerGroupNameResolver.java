@@ -17,26 +17,24 @@
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy;
 
 import com.netflix.frigga.Names;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.provider.view.CloudFoundryClusterProvider;
 import com.netflix.spinnaker.clouddriver.helpers.AbstractServerGroupNameResolver;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-
-import static java.util.Collections.emptySet;
-import static java.util.stream.Collectors.toList;
+import java.util.Optional;
 
 @AllArgsConstructor
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class CloudFoundryServerGroupNameResolver extends AbstractServerGroupNameResolver {
   private static final String PHASE = "DEPLOY";
 
-  String account;
-  CloudFoundryClusterProvider clusters;
+  CloudFoundryClient client;
   CloudFoundrySpace space;
 
   @Override
@@ -49,21 +47,18 @@ public class CloudFoundryServerGroupNameResolver extends AbstractServerGroupName
     return space.getRegion();
   }
 
+  /**
+   * Since this is only used to determine the next server group sequence number, it is only important to find
+   * the latest server group in this cluster.
+   */
   @Override
   public List<TakenSlot> getTakenSlots(String clusterName) {
-    return clusters.getClusters()
-      .getOrDefault(account, emptySet())
-      .stream()
-      .flatMap(cluster -> cluster.getServerGroups().stream())
-      .filter(serverGroup -> {
-        Names names = Names.parseName(serverGroup.getName());
-        return clusterName.equals(names.getCluster()) && getRegion().equals(serverGroup.getRegion());
+    return Optional.ofNullable(client.getApplications().getLatestServerGroup(clusterName, space.getId()))
+      .map(app -> {
+        Names names = Names.parseName(app.getEntity().getName());
+        return Collections.singletonList(new TakenSlot(names.getCluster(), names.getSequence(),
+          Date.from(app.getMetadata().getCreatedAt().toInstant())));
       })
-      .map(serverGroup -> {
-        Names names = Names.parseName(serverGroup.getName());
-        return new TakenSlot(serverGroup.getName(), names.getSequence(),
-          serverGroup.getCreatedTime() == null ? null : new Date(serverGroup.getCreatedTime()));
-      })
-      .collect(toList());
+      .orElse(Collections.emptyList());
   }
 }

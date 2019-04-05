@@ -20,9 +20,10 @@ import com.netflix.frigga.Names;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.ApplicationService;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.ApplicationEnv;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.MapRoute;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.*;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Resource;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Package;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Process;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.*;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.*;
 import com.netflix.spinnaker.clouddriver.model.HealthState;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +39,7 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.util.*;
 
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClientUtils.collectPages;
@@ -142,7 +144,7 @@ public class Applications {
         } catch (RetrofitError e) {
           try {
             log.debug("Unable to retrieve instances for application '" + application.getName() + "': " +
-              IOUtils.toString(e.getResponse().getBody().in()));
+              IOUtils.toString(e.getResponse().getBody().in(), Charset.defaultCharset()));
           } catch (IOException e1) {
             log.debug("Unable to retrieve instances for application '" + application.getName());
           }
@@ -373,8 +375,20 @@ public class Applications {
 
   @Nullable
   public ProcessStats.State getProcessState(String appGuid) throws CloudFoundryApiException {
-    return safelyCall(() -> this.api.findProcessStatsById(appGuid))
+    return safelyCall(() -> api.findProcessStatsById(appGuid))
       .flatMap(pr -> pr.getResources().stream().findAny().map(ProcessStats::getState))
       .orElse(ProcessStats.State.DOWN);
+  }
+
+  @Nullable
+  public Resource<com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Application> getLatestServerGroup(String clusterName, String spaceId) {
+    return safelyCall(() -> api.appsLessThanName("name<" + clusterName + "-v9999", "desc", 1))
+      .flatMap(pr -> pr.getResources().stream()
+        .filter(app -> {
+          Names names = Names.parseName(app.getEntity().getName());
+          return clusterName.equals(names.getCluster()) && spaceId.equals(app.getEntity().getSpaceGuid());
+        })
+        .findAny())
+      .orElse(null);
   }
 }

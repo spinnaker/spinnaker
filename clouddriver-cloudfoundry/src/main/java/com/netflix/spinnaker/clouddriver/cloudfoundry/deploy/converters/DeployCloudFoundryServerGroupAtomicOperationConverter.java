@@ -28,7 +28,6 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.CloudFoundryOperation;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.artifacts.CloudFoundryArtifactCredentials;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.DeployCloudFoundryServerGroupDescription;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops.DeployCloudFoundryServerGroupAtomicOperation;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.provider.view.CloudFoundryClusterProvider;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.security.CloudFoundryCredentials;
 import com.netflix.spinnaker.clouddriver.helpers.OperationPoller;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
@@ -51,22 +50,19 @@ import static java.util.stream.Collectors.toList;
 public class DeployCloudFoundryServerGroupAtomicOperationConverter extends AbstractCloudFoundryServerGroupAtomicOperationConverter {
   private final OperationPoller operationPoller;
   private final ArtifactCredentialsRepository credentialsRepository;
-  private final CloudFoundryClusterProvider clusterProvider;
   private final ArtifactDownloader artifactDownloader;
 
   public DeployCloudFoundryServerGroupAtomicOperationConverter(@Qualifier("cloudFoundryOperationPoller") OperationPoller operationPoller,
                                                                ArtifactCredentialsRepository credentialsRepository,
-                                                               CloudFoundryClusterProvider clusterProvider,
                                                                ArtifactDownloader artifactDownloader) {
     this.operationPoller = operationPoller;
     this.credentialsRepository = credentialsRepository;
-    this.clusterProvider = clusterProvider;
     this.artifactDownloader = artifactDownloader;
   }
 
   @Override
   public AtomicOperation convertOperation(Map input) {
-    return new DeployCloudFoundryServerGroupAtomicOperation(operationPoller, convertDescription(input), clusterProvider);
+    return new DeployCloudFoundryServerGroupAtomicOperation(operationPoller, convertDescription(input));
   }
 
   @Override

@@ -74,7 +74,7 @@ class DeployCloudFoundryServerGroupAtomicOperationTest extends AbstractCloudFoun
     final DeployCloudFoundryServerGroupDescription description = getDeployCloudFoundryServerGroupDescription(true);
     final CloudFoundryClusterProvider clusterProvider = mock(CloudFoundryClusterProvider.class);
     final DeployCloudFoundryServerGroupAtomicOperation operation =
-      new DeployCloudFoundryServerGroupAtomicOperation(new PassThroughOperationPoller(), description, clusterProvider);
+      new DeployCloudFoundryServerGroupAtomicOperation(new PassThroughOperationPoller(), description);
     final Applications apps = getApplications(clusterProvider, ProcessStats.State.RUNNING);
 
     // When
@@ -93,7 +93,7 @@ class DeployCloudFoundryServerGroupAtomicOperationTest extends AbstractCloudFoun
     final DeployCloudFoundryServerGroupDescription description = getDeployCloudFoundryServerGroupDescription(true);
     final CloudFoundryClusterProvider clusterProvider = mock(CloudFoundryClusterProvider.class);
     final DeployCloudFoundryServerGroupAtomicOperation operation =
-      new DeployCloudFoundryServerGroupAtomicOperation(new PassThroughOperationPoller(), description, clusterProvider);
+      new DeployCloudFoundryServerGroupAtomicOperation(new PassThroughOperationPoller(), description);
     final Applications apps = getApplications(clusterProvider, ProcessStats.State.CRASHED);
 
     Exception exception = null;
@@ -115,7 +115,7 @@ class DeployCloudFoundryServerGroupAtomicOperationTest extends AbstractCloudFoun
     final DeployCloudFoundryServerGroupDescription description = getDeployCloudFoundryServerGroupDescription(false);
     final CloudFoundryClusterProvider clusterProvider = mock(CloudFoundryClusterProvider.class);
     final DeployCloudFoundryServerGroupAtomicOperation operation =
-      new DeployCloudFoundryServerGroupAtomicOperation(new PassThroughOperationPoller(), description, clusterProvider);
+      new DeployCloudFoundryServerGroupAtomicOperation(new PassThroughOperationPoller(), description);
     final Applications apps = getApplications(clusterProvider, ProcessStats.State.RUNNING);
 
     // When
