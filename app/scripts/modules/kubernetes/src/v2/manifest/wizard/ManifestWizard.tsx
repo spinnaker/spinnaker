@@ -15,7 +15,7 @@ import {
   KubernetesManifestCommandBuilder,
   IKubernetesManifestCommandData,
 } from 'kubernetes/v2/manifest/manifestCommandBuilder.service';
-import { ManifestBasicSettings } from 'kubernetes/v2/manifest/wizard/BasicSettings';
+import { WizardManifestBasicSettings } from 'kubernetes/v2/manifest/wizard/BasicSettings';
 import { ManifestEntry } from 'kubernetes/v2/manifest/wizard/ManifestEntry';
 
 export interface IKubernetesManifestModalProps extends IModalComponentProps {
@@ -87,7 +87,9 @@ export class ManifestWizard extends React.Component<IKubernetesManifestModalProp
               label="Basic Settings"
               wizard={wizard}
               order={nextIdx()}
-              render={({ innerRef }) => <ManifestBasicSettings ref={innerRef} formik={formik} app={application} />}
+              render={({ innerRef }) => (
+                <WizardManifestBasicSettings ref={innerRef} formik={formik} app={application} />
+              )}
             />
 
             <WizardPage
