@@ -34,7 +34,7 @@ import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleSecurityGrou
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.jobs.JobExecutor
 import com.netflix.spinnaker.clouddriver.jobs.JobRequest
-import com.netflix.spinnaker.clouddriver.jobs.JobStatus
+import com.netflix.spinnaker.clouddriver.jobs.JobResult
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import org.springframework.beans.factory.annotation.Autowired
@@ -146,11 +146,11 @@ class RestoreSnapshotAtomicOperation implements AtomicOperation<Void> {
     // of String). It is thus important to only add Strings to command.  For example, adding a flag "--test=$testvalue"
     // below will cause the job to fail unless you explicitly convert it to a String via "--test=$testvalue".toString()
     ArrayList<String> command = ["terraform", "apply", "-state=" + directory + "/terraform.tfstate", directory]
-    JobStatus jobStatus = jobExecutor.runJob(new JobRequest(command))
+    JobResult<String> jobStatus = jobExecutor.runJob(new JobRequest(command))
     cleanUpDirectory()
-    if (jobStatus.getResult() == JobStatus.Result.FAILURE && jobStatus.getStdOut()) {
-      String stdOut = jobStatus.getStdOut()
-      String stdErr = jobStatus.getStdErr()
+    if (jobStatus.getResult() == JobResult.Result.FAILURE && jobStatus.getStdOut()) {
+      String stdOut = jobStatus.getOutput()
+      String stdErr = jobStatus.getError()
       throw new IllegalArgumentException("$stdOut + $stdErr")
     }
     return null
@@ -230,10 +230,10 @@ class RestoreSnapshotAtomicOperation implements AtomicOperation<Void> {
     // of String). It is thus important to only add Strings to command.  For example, adding a flag "--test=$testvalue"
     // below will cause the job to fail unless you explicitly convert it to a String via "--test=$testvalue".toString()
     ArrayList<String> command = ["terraform", "import", "-state=" + directory + "/terraform.tfstate", resource + "." + name, id]
-    JobStatus jobStatus = jobExecutor.runJob(new JobRequest(command, env, inputStream))
-    if (jobStatus.getResult() == JobStatus.Result.FAILURE && jobStatus.stdOut) {
+    JobResult<String> jobStatus = jobExecutor.runJob(new JobRequest(command, env, inputStream))
+    if (jobStatus.getResult() == JobResult.Result.FAILURE && jobStatus.getOutput()) {
       cleanUpDirectory()
-      throw new IllegalArgumentException("$jobStatus.stdOut + $jobStatus.stdErr")
+      throw new IllegalArgumentException(jobStatus.getOutput() + jobStatus.getError())
     }
   }
 
