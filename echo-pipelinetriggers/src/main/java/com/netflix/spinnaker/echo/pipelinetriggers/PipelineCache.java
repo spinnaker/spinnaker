@@ -19,6 +19,7 @@ package com.netflix.spinnaker.echo.pipelinetriggers;
 import static java.time.Instant.now;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.exc.InvalidDefinitionException;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spectator.api.patterns.PolledMeter;
 import com.netflix.spinnaker.echo.model.Pipeline;
@@ -27,10 +28,7 @@ import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService;
 import com.netflix.spinnaker.echo.services.Front50Service;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -156,22 +154,42 @@ public class PipelineCache implements MonitoredPoller {
     };
 
     return rawPipelines.stream()
-      .map((Map<String, Object> p) -> {
-        if (isV2Pipeline.test(p)) {
-          try {
-            return orca.v2Plan(p);
-          } catch (Exception e) {
-            // Don't fail the entire cache cycle if we fail a plan.
-            log.error("Caught exception while planning templated pipeline: {}", p, e);
-            return Collections.emptyMap();
-          }
-        } else {
-          return p;
-        }
-      })
+      .map((Map<String, Object> p) -> planPipelineIfNeeded(p, isV2Pipeline))
       .filter(m -> !m.isEmpty())
-      .map(m -> objectMapper.convertValue(m, Pipeline.class))
+      .map(m -> convertToPipeline(m))
+      .filter(Objects::nonNull)
       .collect(Collectors.toList());
+  }
+
+  /**
+   * If the pipeline is a v2 pipeline, plan that pipeline.
+   * Returns an empty map if the plan fails, so that the pipeline is skipped.
+   */
+  private Map<String, Object> planPipelineIfNeeded(Map<String, Object> pipeline, Predicate<Map<String, Object>> isV2Pipeline) {
+    if (isV2Pipeline.test(pipeline)) {
+      try {
+        return orca.v2Plan(pipeline);
+      } catch (Exception e) {
+        // Don't fail the entire cache cycle if we fail a plan.
+        log.error("Caught exception while planning templated pipeline: {}", pipeline, e);
+        return Collections.emptyMap();
+      }
+    } else {
+      return pipeline;
+    }
+  }
+
+  /**
+   * Converts map to pipeline.
+   * Returns null if conversion fails so that the pipeline is skipped.
+   */
+  private Pipeline convertToPipeline(Map<String, Object> pipeline) {
+    try {
+      return objectMapper.convertValue(pipeline, Pipeline.class);
+    } catch (Exception e) {
+      log.warn("Pipeline failed to be converted to Pipeline.class: {}", pipeline, e);
+      return null;
+    }
   }
 
   @Override
