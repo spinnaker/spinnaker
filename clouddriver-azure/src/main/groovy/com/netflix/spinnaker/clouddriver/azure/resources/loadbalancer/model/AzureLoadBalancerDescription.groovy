@@ -89,7 +89,7 @@ class AzureLoadBalancerDescription extends AzureResourceOpsDescription {
     description.serverGroup = azureLoadBalancer.tags?.serverGroup
     description.vnet = azureLoadBalancer.tags?.vnet
     description.createdTime = azureLoadBalancer.tags?.createdTime?.toLong()
-    description.tags = azureLoadBalancer.tags
+    description.tags.putAll(azureLoadBalancer.tags)
     description.region = azureLoadBalancer.location()
 
     for (def rule : azureLoadBalancer.loadBalancingRules()) {

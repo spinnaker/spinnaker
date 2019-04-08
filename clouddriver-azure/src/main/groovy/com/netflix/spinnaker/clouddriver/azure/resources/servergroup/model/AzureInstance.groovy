@@ -32,7 +32,7 @@ class AzureInstance implements Instance, Serializable {
   Long launchTime
   final String zone = 'N/A'
   String instanceType
-  List<Map<String, String>> health
+  List<Map<String, Object>> health
   final String providerType = AzureCloudProvider.ID
   final String cloudProvider = AzureCloudProvider.ID
 

@@ -85,7 +85,16 @@ class AzureServerGroupCachingAgent extends AzureCachingAgent {
       it.attributes.processedCount = (it.attributes.processedCount ?: 0) + 1
     }
 
-    if (result.cacheResults[AZURE_SERVER_GROUPS.ns]) {
+    def cacheServerGroups = result.cacheResults[AZURE_SERVER_GROUPS.ns]
+
+    if (cacheServerGroups) {
+      cacheServerGroups.each { cacheServerGroup ->
+        if(!cacheServerGroup.relationships.containsKey(AZURE_INSTANCES.ns)) {
+          def serverGroupName = cacheServerGroup.attributes.serverGroup.name
+          removeDeadCacheEntries(result, providerCache, serverGroupName)
+        }
+      }
+
       result
     } else {
       // run the cache cleanup routine on an empty server group list only for now
@@ -93,8 +102,8 @@ class AzureServerGroupCachingAgent extends AzureCachingAgent {
     }
   }
 
-  CacheResult removeDeadCacheEntries(CacheResult cacheResult, ProviderCache providerCache) {
-    def sgIdentifiers = providerCache.filterIdentifiers(AZURE_SERVER_GROUPS.ns, Keys.getServerGroupKey(AzureCloudProvider.ID, "*", region, accountName))
+  CacheResult removeDeadCacheEntries(CacheResult cacheResult, ProviderCache providerCache, String serverGroupName = "*") {
+    def sgIdentifiers = providerCache.filterIdentifiers(AZURE_SERVER_GROUPS.ns, Keys.getServerGroupKey(AzureCloudProvider.ID, serverGroupName, region, accountName))
     def sgCacheResults = providerCache.getAll((AZURE_SERVER_GROUPS.ns), sgIdentifiers, RelationshipCacheFilter.none())
     def evictedSGList = sgCacheResults.collect{ cached ->
       if (!cacheResult.cacheResults[AZURE_SERVER_GROUPS.ns].find {it.id == cached.id}) {
@@ -107,7 +116,7 @@ class AzureServerGroupCachingAgent extends AzureCachingAgent {
       cacheResult.evictions[AZURE_SERVER_GROUPS.ns] = evictedSGList
     }
 
-    def instanceIdentifiers = providerCache.filterIdentifiers(AZURE_INSTANCES.ns, Keys.getInstanceKey(AzureCloudProvider.ID, "*", "*", region, accountName))
+    def instanceIdentifiers = providerCache.filterIdentifiers(AZURE_INSTANCES.ns, Keys.getInstanceKey(AzureCloudProvider.ID, serverGroupName, "*", region, accountName))
     def instanceCacheResults = providerCache.getAll((AZURE_INSTANCES.ns), instanceIdentifiers, RelationshipCacheFilter.none())
     def evictedInstanceList = instanceCacheResults.collect{ cached ->
       if (!cacheResult.cacheResults[AZURE_INSTANCES.ns].find {it.id == cached.id}) {

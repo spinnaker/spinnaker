@@ -29,7 +29,7 @@ class AzureVirtualNetworkDescription extends AzureResourceOpsDescription {
   List<String> addressSpace /* see addressPrefix */
   String resourceId /* Azure resource ID */
   String resourceGroup /* the Azure resource group where virtual network was created */
-  Map<String, String> tags
+  Map<String, Object> tags
   List<AzureSubnetDescription> subnets
   int maxSubnets
   int subnetAddressPrefixLength
@@ -48,7 +48,10 @@ class AzureVirtualNetworkDescription extends AzureResourceOpsDescription {
     description.resourceId = vnet.id()
     description.resourceGroup = AzureUtilities.getResourceGroupNameFromResourceId(vnet.id())
     description.id = vnet.name()
-    description.tags = vnet.getTags()
+    if (vnet.getTags()){
+      description.tags = new HashMap<String, Object>()
+      description.tags.putAll(vnet.getTags())
+    }
     description.subnetAddressPrefixLength = description.subnets?.min {it.addressPrefixLength}?.addressPrefixLength ?: AzureUtilities.SUBNET_DEFAULT_ADDRESS_PREFIX_LENGTH
     description.maxSubnets = AzureUtilities.getSubnetRangeMax(
       description.addressSpace?.first(),

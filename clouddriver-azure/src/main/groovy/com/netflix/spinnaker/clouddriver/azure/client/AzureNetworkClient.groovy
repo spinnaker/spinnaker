@@ -629,7 +629,7 @@ class AzureNetworkClient extends AzureBaseClient {
     sgItem.provisioningState = item.provisioningState()
     sgItem.resourceGuid = item.id()
     sgItem.resourceId = item.id()
-    sgItem.tags = item.tags
+    sgItem.tags.putAll(item.tags)
     def parsedName = Names.parseName(item.name())
     sgItem.stack = item.tags?.stack ?: parsedName.stack
     sgItem.detail = item.tags?.detail ?: parsedName.detail

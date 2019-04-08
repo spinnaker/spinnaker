@@ -24,7 +24,7 @@ class AzureSecurityGroupDescription extends AzureResourceOpsDescription {
   String id
   String location
   String type
-  Map<String, String> tags = [:]
+  Map<String, Object> tags = [:]
   String provisioningState
   String resourceGuid
   List<AzureSGRule> securityRules = []

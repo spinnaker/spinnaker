@@ -34,5 +34,5 @@ class AzureResourceOpsDescription {
   String user
   Long createdTime
   long lastReadTime
-  Map<String,String> tags = [:]
+  Map<String,Object> tags = [:]
 }

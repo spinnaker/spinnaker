@@ -143,7 +143,7 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription implements
     new ServerGroup.Capacity(
       min: 1,
       max: instances ? instances.size() : 1,
-      desired: 1 //TODO (scotm) figure out how these should be set correctly
+      desired: instances ? instances.size() : 1
     )
   }
 
