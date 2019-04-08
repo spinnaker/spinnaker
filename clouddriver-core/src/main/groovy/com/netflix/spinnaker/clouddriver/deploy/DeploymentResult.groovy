@@ -55,6 +55,8 @@ class DeploymentResult {
 
     Capacity capacity
 
+    Map<String, Object> metadata = [:]
+
     boolean equals(o) {
       Collections.emptyList()
 

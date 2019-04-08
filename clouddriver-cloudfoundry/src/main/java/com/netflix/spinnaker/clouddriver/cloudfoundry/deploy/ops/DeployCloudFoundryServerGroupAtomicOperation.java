@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops;
 
+import com.netflix.spinnaker.clouddriver.cloudfoundry.CloudFoundryCloudProvider;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryApiException;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.ProcessStats;
@@ -31,12 +32,12 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nullable;
 import java.io.*;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops.CloudFoundryOperationUtils.describeProcessState;
+import static com.netflix.spinnaker.clouddriver.deploy.DeploymentResult.*;
+import static com.netflix.spinnaker.clouddriver.deploy.DeploymentResult.Deployment.*;
 import static java.util.stream.Collectors.toList;
 
 @RequiredArgsConstructor
@@ -116,6 +117,26 @@ public class DeployCloudFoundryServerGroupAtomicOperation
     deploymentResult.setMessages(getTask().getHistory().stream()
       .map(hist -> hist.getPhase() + ":" + hist.getStatus())
       .collect(toList()));
+    List<String> routes = description.getApplicationAttributes().getRoutes();
+    if (routes == null) {
+      routes = Collections.emptyList();
+    }
+    final Integer desiredInstanceCount = description.getApplicationAttributes().getInstances();
+    final Deployment deployment = new Deployment();
+    deployment.setCloudProvider(CloudFoundryCloudProvider.ID);
+    deployment.setAccount(description.getAccountName());
+    deployment.setServerGroupName(description.getServerGroupName());
+    final Capacity capacity = new Capacity();
+    capacity.setDesired(desiredInstanceCount);
+    deployment.setCapacity(capacity);
+    final Map<String, Object> metadata = new HashMap<>();
+    metadata.put("env", description.getApplicationAttributes().getEnv());
+    metadata.put("routes", routes);
+    deployment.setMetadata(metadata);
+    if (!routes.isEmpty()) {
+      deployment.setLocation(routes.get(0));
+    }
+    deploymentResult.setDeployments(Collections.singleton(deployment));
     return deploymentResult;
   }
 
