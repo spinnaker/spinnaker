@@ -41,4 +41,13 @@ public interface IgorService {
     @Query("propertyFile") String propertyFile,
     @Path("master") String master,
     @Path(value = "job", encode = false) String job);
+
+  @GET("/artifacts/{provider}/{packageName}")
+  List<String> getVersions(@Path("provider") String provider,
+                           @Path("packageName") String packageName);
+
+  @GET("/artifacts/{provider}/{packageName}/{version}")
+  Artifact getArtifactByVersion(@Path("provider") String provider,
+                                @Path("packageName") String packageName,
+                                @Path("version") String version);
 }
