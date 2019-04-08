@@ -1,10 +1,12 @@
 <div ng-if="ctrl.state.loaded" class="clearfix">
   <div class="container-fluid form-horizontal">
     <h4>Basic Settings</h4>
+    <hr />
     <kubernetes-manifest-basic-settings command="ctrl.$scope.stage" metadata="ctrl.metadata">
     </kubernetes-manifest-basic-settings>
 
     <h4>Manifest Configuration</h4>
+    <hr />
     <ng-form name="kubernetesManifestSource">
       <stage-config-field label="Manifest Source" help-key="kubernetes.manifest.source">
         <label class="sm-label-right">
@@ -28,6 +30,7 @@
       on-change="ctrl.handleRawManifestChange"
     >
     </yaml-editor>
+    <hr ng-if="stage.source === ctrl.textSource" />
     <div ng-if="ctrl.checkFeatureFlag('artifactsRewrite')">
       <stage-config-field
         label="Manifest Artifact"
@@ -57,7 +60,6 @@
           </label>
         </div>
       </stage-config-field>
-      <hr />
       <stage-config-field
         label="Req. Artifacts to Bind"
         help-field-key="kubernetes.manifest.requiredArtifactsToBind"
@@ -117,7 +119,6 @@
           </label>
         </div>
       </stage-config-field>
-      <hr />
       <expected-artifact-multi-selector
         command="ctrl.$scope.stage"
         ids-field="requiredArtifactIds"
@@ -128,5 +129,12 @@
       >
       </expected-artifact-multi-selector>
     </div>
+    <manifest-deployment-options
+      ng-if="ctrl.checkFeatureFlag('kubernetesRolloutStrategies')"
+      accounts="ctrl.metadata.backingData.accounts"
+      config="ctrl.$scope.stage.trafficManagement"
+      on-config-change="ctrl.handleTrafficManagementConfigChange"
+      selected-account="ctrl.$scope.stage.account"
+    />
   </div>
 </div>

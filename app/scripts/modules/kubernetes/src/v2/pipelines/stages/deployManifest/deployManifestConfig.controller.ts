@@ -18,6 +18,7 @@ import {
 } from 'kubernetes/v2/manifest/manifestCommandBuilder.service';
 
 import { IManifestBindArtifact } from './ManifestBindArtifactsSelector';
+import { ITrafficManagementConfig, defaultTrafficManagementConfig } from './ManifestDeploymentOptions';
 
 export class KubernetesV2DeployManifestConfigCtrl implements IController {
   public state = {
@@ -60,6 +61,9 @@ export class KubernetesV2DeployManifestConfigCtrl implements IController {
           source: this.textSource,
           skipExpressionEvaluation: false,
         });
+      }
+      if (!stage.trafficManagement) {
+        stage.trafficManagement = defaultTrafficManagementConfig;
       }
       this.metadata = builtCommand.metadata;
       this.state.loaded = true;
@@ -121,6 +125,12 @@ export class KubernetesV2DeployManifestConfigCtrl implements IController {
   public handleRawManifestChange = (rawManifest: string, manifests: any): void => {
     this.rawManifest = rawManifest;
     this.$scope.stage.manifests = manifests;
+    // This method is called from a React component.
+    this.$scope.$applyAsync();
+  };
+
+  public handleTrafficManagementConfigChange = (trafficManagementConfig: ITrafficManagementConfig): void => {
+    this.$scope.stage.trafficManagement = trafficManagementConfig;
     // This method is called from a React component.
     this.$scope.$applyAsync();
   };
