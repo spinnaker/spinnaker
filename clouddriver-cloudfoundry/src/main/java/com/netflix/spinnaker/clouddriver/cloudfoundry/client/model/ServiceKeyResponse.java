@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2;
+package com.netflix.spinnaker.clouddriver.cloudfoundry.client.model;
 
 import lombok.Data;
 
-import java.util.Set;
+import java.util.Collections;
+import java.util.Map;
 
 @Data
-public class SpaceSummary {
-  private Set<SummaryServiceInstance> services;
+public class ServiceKeyResponse extends ServiceInstanceResponse {
+  Map<String, Object> serviceKey = Collections.emptyMap();
+  String serviceKeyName;
 }

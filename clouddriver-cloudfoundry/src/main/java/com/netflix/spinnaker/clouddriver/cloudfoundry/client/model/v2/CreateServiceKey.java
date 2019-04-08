@@ -16,11 +16,15 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
-
-import java.util.Set;
+import lombok.EqualsAndHashCode;
 
 @Data
-public class SpaceSummary {
-  private Set<SummaryServiceInstance> services;
+@EqualsAndHashCode
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class CreateServiceKey {
+  private String name;
+
+  private String serviceInstanceGuid;
 }

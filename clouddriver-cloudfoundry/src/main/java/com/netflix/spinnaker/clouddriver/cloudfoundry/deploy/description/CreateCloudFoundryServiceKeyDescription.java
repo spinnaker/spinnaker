@@ -14,13 +14,16 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2;
+package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.Set;
 
 @Data
-public class SpaceSummary {
-  private Set<SummaryServiceInstance> services;
+@EqualsAndHashCode(callSuper = true)
+public class CreateCloudFoundryServiceKeyDescription extends AbstractCloudFoundryServiceDescription {
+  private String serviceInstanceName;
+  private String serviceKeyName;
 }

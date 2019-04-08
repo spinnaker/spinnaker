@@ -93,6 +93,7 @@ public final class AtomicOperations {
   public static final String DEREGISTER_IMAGE = "deleteImage";
 
   // Service operations
+  public static final String CREATE_SERVICE_KEY = "createServiceKey";
   public static final String DEPLOY_SERVICE = "deployService";
   public static final String DESTROY_SERVICE = "destroyService";
   public static final String SHARE_SERVICE = "shareService";

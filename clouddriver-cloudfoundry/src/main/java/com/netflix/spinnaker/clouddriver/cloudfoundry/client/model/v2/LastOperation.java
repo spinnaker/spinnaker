@@ -30,6 +30,7 @@ public class LastOperation {
 
   public enum Type {
     CREATE("create"),
+    CREATE_SERVICE_KEY("createServiceKey"),
     DELETE("delete"),
     SHARE("share"),
     UNSHARE("unshare"),

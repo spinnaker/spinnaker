@@ -18,9 +18,8 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2;
 
 import lombok.Data;
 
-import java.util.Set;
-
 @Data
-public class SpaceSummary {
-  private Set<SummaryServiceInstance> services;
+public class SummaryServiceInstance {
+  String name;
+  String guid;
 }
