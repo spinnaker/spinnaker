@@ -157,11 +157,8 @@ func userConfig(flags *pflag.FlagSet, gateClient *GatewayClient) error {
 		}
 		gateClient.configLocation = filepath.Join(userHome, ".spin", "config")
 	}
-	yamlFile, err := ioutil.ReadFile(gateClient.configLocation)
-	if err != nil {
-		util.UI.Warn(fmt.Sprintf("Could not read configuration file from %s.", gateClient.configLocation))
-	}
 
+	yamlFile, err := ioutil.ReadFile(gateClient.configLocation)
 	if yamlFile != nil {
 		err = yaml.UnmarshalStrict([]byte(os.ExpandEnv(string(yamlFile))), &gateClient.Config)
 		if err != nil {
