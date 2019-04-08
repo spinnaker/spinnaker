@@ -21,6 +21,7 @@ import (
 	"github.com/spinnaker/spin/cmd/gateclient"
 	"github.com/spinnaker/spin/cmd/orca-tasks"
 	"github.com/spinnaker/spin/util"
+	"strings"
 )
 
 type SaveOptions struct {
@@ -73,7 +74,7 @@ func saveApplication(cmd *cobra.Command, options SaveOptions) error {
 		app = initialApp
 		if len(*options.cloudProviders) != 0 {
 			util.UI.Warn("Overriding application cloud providers with explicit flag values.\n")
-			app["cloudProviders"] = options.cloudProviders
+			app["cloudProviders"] = strings.Join(*options.cloudProviders, ",")
 		}
 		if options.applicationName != "" {
 			util.UI.Warn("Overriding application name with explicit flag values.\n")
@@ -92,7 +93,7 @@ func saveApplication(cmd *cobra.Command, options SaveOptions) error {
 			return errors.New("Required application parameter missing, exiting...")
 		}
 		app = map[string]interface{}{
-			"cloudProviders": options.cloudProviders,
+			"cloudProviders": strings.Join(*options.cloudProviders, ","),
 			"instancePort":   80,
 			"name":           options.applicationName,
 			"email":          options.ownerEmail,
