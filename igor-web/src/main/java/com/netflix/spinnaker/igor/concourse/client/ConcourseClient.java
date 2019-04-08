@@ -57,6 +57,9 @@ public class ConcourseClient {
   @Getter
   private SkyService skyService;
 
+  @Getter
+  private ResourceService resourceService;
+
   private volatile ZonedDateTime tokenExpiration = ZonedDateTime.now();
   private volatile Token token;
 
@@ -97,6 +100,7 @@ public class ConcourseClient {
     this.jobService = createService(JobService.class);
     this.teamService = createService(TeamService.class);
     this.pipelineService = createService(PipelineService.class);
+    this.resourceService = createService(ResourceService.class);
     this.skyService = createService(SkyService.class);
     this.eventService = new EventService(host, this::refreshToken, mapper);
   }

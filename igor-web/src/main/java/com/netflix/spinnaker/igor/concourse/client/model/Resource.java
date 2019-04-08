@@ -17,23 +17,30 @@
 package com.netflix.spinnaker.igor.concourse.client.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
 import java.util.HashMap;
 import java.util.Map;
 
-@RequiredArgsConstructor
-@Getter
+@Data
 @EqualsAndHashCode(of = "id")
 public class Resource {
-  private final String id;
-  private final String name;
-  private final String type;
+  private String id;
+  private String name;
+  private String type;
 
   @JsonIgnore
   @Setter
   private Map<String, String> metadata = new HashMap<>(); // comes from events
+
+  public Resource() {}
+
+  Resource(String id, String name, String type) {
+    this.id = id;
+    this.name = name;
+    this.type = type;
+  }
 }

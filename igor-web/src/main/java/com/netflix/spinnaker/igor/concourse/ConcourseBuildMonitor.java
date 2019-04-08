@@ -92,7 +92,10 @@ public class ConcourseBuildMonitor extends CommonPollingMonitor<ConcourseBuildMo
 
     final Long lastPollTs = cache.getLastPollCycleTimestamp(host, job);
 
-    List<Build> builds = concourseService.getBuilds(jobPath, lastPollTs);
+    List<Build> builds = concourseService.getBuilds(jobPath, lastPollTs).stream()
+      .filter(Build::isSuccessful)
+      .collect(Collectors.toList());
+
     if (builds.isEmpty()) {
       return null;
     }

@@ -39,15 +39,16 @@ dependencies {
     compile spinnaker.dependency("okHttp")
     compile spinnaker.dependency('logstashEncoder')
     compile spinnaker.dependency("lombok")
+    compile spinnaker.dependency('korkArtifacts')
+    compile spinnaker.dependency("resilience4jRetry")
 
     compile 'io.projectreactor:reactor-core:3.2.6.RELEASE'
     compile "com.squareup.okhttp3:okhttp-sse:${spinnaker.version("okHttp3")}"
-    compile 'io.github.resilience4j:resilience4j-retry:0.13.1'
 
     compile 'org.yaml:snakeyaml:1.15'
     compile 'com.squareup.retrofit:converter-simplexml:1.9.0'
-    compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.9.6'
     compile 'com.google.code.gson:gson:2.8.2'
+    compile "com.fasterxml.jackson.dataformat:jackson-dataformat-xml:${spinnaker.version("jackson")}"
     compile 'org.jfrog.artifactory.client:artifactory-java-client-services:2.8.1'
 
     testCompile 'com.squareup.okhttp:mockwebserver:2.7.0'

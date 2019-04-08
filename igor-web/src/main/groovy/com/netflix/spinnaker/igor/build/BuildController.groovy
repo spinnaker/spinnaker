@@ -43,6 +43,7 @@ import org.springframework.web.servlet.HandlerMapping
 import retrofit.RetrofitError
 import retrofit.http.Query
 
+import javax.annotation.Nullable
 import javax.servlet.http.HttpServletRequest
 
 import static net.logstash.logback.argument.StructuredArguments.kv
@@ -66,8 +67,12 @@ class BuildController {
         this.artifactExtractor = artifactExtractor.orElse(null)
     }
 
+    @Nullable
     private GenericBuild jobStatus(BuildOperations buildService, String master, String job, Integer buildNumber) {
         GenericBuild build = buildService.getGenericBuild(job, buildNumber)
+        if(!build)
+            return null
+
         try {
             build.genericGitRevisions = buildService.getGenericGitRevisions(job, buildNumber)
         } catch (Exception e) {
@@ -102,7 +107,7 @@ class BuildController {
             HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE)).split('/').drop(5).join('/')
         def buildService = getBuildService(master)
         GenericBuild build = jobStatus(buildService, master, job, buildNumber)
-        if (buildService instanceof BuildProperties && artifactExtractor != null) {
+        if (build && buildService instanceof BuildProperties && artifactExtractor != null) {
             build.properties = buildService.getBuildProperties(job, buildNumber, propertyFile)
             return artifactExtractor.extractArtifacts(build)
         }

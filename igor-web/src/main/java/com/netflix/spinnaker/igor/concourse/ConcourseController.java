@@ -78,6 +78,17 @@ public class ConcourseController {
       .orElse(emptyList());
   }
 
+  @GetMapping("/{buildMaster}/teams/{team}/pipelines/{pipeline}/resources")
+  public List<String> getResourceNames(@PathVariable("buildMaster") String buildMaster,
+                              @PathVariable("team") String team,
+                              @PathVariable("pipeline") String pipeline) {
+    return getService(buildMaster)
+      .map(service -> service.getResourceNames(team, pipeline).stream()
+        .sorted()
+        .collect(Collectors.toList()))
+      .orElse(emptyList());
+  }
+
   private Optional<ConcourseService> getService(String buildMaster) {
     return Optional.ofNullable((ConcourseService) buildServices.getService(buildMaster));
   }

@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.igor.concourse.client.model;
 
+import com.netflix.spinnaker.igor.build.model.Result;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -33,5 +34,25 @@ public class Build {
 
   public int getNumber() {
     return Integer.parseInt(name);
+  }
+
+  public boolean isSuccessful() {
+    return "succeeded".equals(status);
+  }
+
+  public Result getResult() {
+    if("succeeded".equals(status)) {
+      return Result.SUCCESS;
+    }
+    else if("failed".equals(status)) {
+      return Result.FAILURE;
+    }
+    else if("started".equals(status)) {
+      return Result.BUILDING;
+    }
+    else if("aborted".equals(status)) {
+      return Result.ABORTED;
+    }
+    return Result.NOT_BUILT;
   }
 }

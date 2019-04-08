@@ -19,7 +19,6 @@ package com.netflix.spinnaker.igor.concourse.service;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import com.netflix.spinnaker.igor.build.model.GenericBuild;
 import com.netflix.spinnaker.igor.build.model.GenericGitRevision;
-import com.netflix.spinnaker.igor.build.model.Result;
 import com.netflix.spinnaker.igor.concourse.client.ConcourseClient;
 import com.netflix.spinnaker.igor.concourse.client.model.Build;
 import com.netflix.spinnaker.igor.concourse.client.model.Event;
@@ -140,7 +139,7 @@ public class ConcourseService implements BuildOperations, BuildProperties {
     build.setId(b.getId());
     build.setBuilding(false);
     build.setNumber(b.getNumber());
-    build.setResult(Result.SUCCESS);
+    build.setResult(b.getResult());
     build.setName(job.getName());
     build.setFullDisplayName(job.getTeamName() + "/" + job.getPipelineName() + "/" + job.getName());
     build.setUrl(host.getUrl() + "/teams/" + job.getTeamName() + "/pipelines/" + job.getPipelineName() + "/jobs/" +
@@ -172,7 +171,7 @@ public class ConcourseService implements BuildOperations, BuildProperties {
       .findAny()
       .ifPresent(gitResourceName -> {
         Map<String, String> git = mergedMetadataByResourceName.remove(gitResourceName);
-        if (git != null) {
+        if (git != null && !git.isEmpty()) {
           String message = git.get("message");
           String timestamp = git.get("committer_date");
           build.setGenericGitRevisions(Collections.singletonList(GenericGitRevision.builder()
@@ -250,6 +249,7 @@ public class ConcourseService implements BuildOperations, BuildProperties {
   @Override
   public List<GenericBuild> getBuilds(String jobPath) {
     return getBuilds(jobPath, null).stream()
+      .filter(Build::isSuccessful)
       .map(build -> getGenericBuild(jobPath, build, false))
       .collect(Collectors.toList());
   }
@@ -262,10 +262,13 @@ public class ConcourseService implements BuildOperations, BuildProperties {
     }
 
     return client.getBuildService()
-      .builds(job.getTeamName(), job.getPipelineName(), job.getName(), host.getBuildLookbackLimit(), since)
-      .stream()
-      .filter(b -> "succeeded".equals(b.getStatus()))
-      .collect(Collectors.toList());
+      .builds(job.getTeamName(), job.getPipelineName(), job.getName(), host.getBuildLookbackLimit(), since);
+  }
+
+  public List<String> getResourceNames(String team, String pipeline) {
+    return client.getResourceService().resources(team, pipeline).stream()
+      .map(Resource::getName)
+      .collect(toList());
   }
 
   private Job toJob(String jobPath) {
