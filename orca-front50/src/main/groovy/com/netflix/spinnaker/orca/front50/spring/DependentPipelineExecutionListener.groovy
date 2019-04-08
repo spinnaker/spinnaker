@@ -73,7 +73,7 @@ class DependentPipelineExecutionListener implements ExecutionListener {
     if (pipelinePreprocessors) {
       // Resolve templated pipelines if enabled.
       allPipelines = allPipelines.collect { pipeline ->
-       if (pipeline.type == 'templatedPipeline' && pipeline?.schema != "1") {
+       if (pipeline.type == 'templatedPipeline' && pipeline?.schema != null && pipeline?.schema != "1") {
          return V2Util.planPipeline(contextParameterProcessor, pipelinePreprocessors, pipeline)
        } else {
          return pipeline
