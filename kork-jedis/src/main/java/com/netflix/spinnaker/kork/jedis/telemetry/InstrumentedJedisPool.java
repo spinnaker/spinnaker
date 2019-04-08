@@ -43,7 +43,7 @@ public class InstrumentedJedisPool extends JedisPool {
   }
 
   @SuppressWarnings("unchecked")
-  private GenericObjectPool<Jedis> getInternalPoolReference() {
+  public GenericObjectPool<Jedis> getInternalPoolReference() {
     if (delegateInternalPool == null) {
       try {
         Field f = delegated.getClass().getDeclaredField("internalPool");
