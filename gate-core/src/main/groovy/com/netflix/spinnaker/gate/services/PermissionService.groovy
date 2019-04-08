@@ -135,4 +135,8 @@ class PermissionService {
       }
     }.execute() as List<String>
   }
+
+  boolean isAdmin(String userId) {
+    return permissionEvaluator.getPermission(userId)?.isAdmin()
+  }
 }

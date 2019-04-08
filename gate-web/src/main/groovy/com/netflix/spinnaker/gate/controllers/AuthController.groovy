@@ -18,12 +18,14 @@ package com.netflix.spinnaker.gate.controllers
 
 import com.netflix.spinnaker.gate.security.SpinnakerUser
 import com.netflix.spinnaker.gate.services.PermissionService
+import com.netflix.spinnaker.security.AuthenticatedRequest
 import com.netflix.spinnaker.security.User
 import groovy.util.logging.Slf4j
 import io.swagger.annotations.ApiOperation
 import org.apache.commons.lang.exception.ExceptionUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RequestParam
@@ -98,6 +100,7 @@ class AuthController {
    */
   @ApiOperation(value = "Sync user roles")
   @RequestMapping(value = "/roles/sync", method = RequestMethod.POST)
+  @PreAuthorize("@authController.isAdmin()")
   void sync() {
     permissionService.sync()
   }
@@ -137,5 +140,11 @@ class AuthController {
 
     return toURL.host == deckBaseUrl.host &&
         toURLPort == deckBaseUrlPort
+  }
+
+  boolean isAdmin() {
+    return permissionService.isAdmin(
+        AuthenticatedRequest.getSpinnakerUser().orElse("anonymous")
+    )
   }
 }
