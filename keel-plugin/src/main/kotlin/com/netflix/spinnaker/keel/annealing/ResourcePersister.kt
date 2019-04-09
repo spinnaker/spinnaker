@@ -1,10 +1,8 @@
 package com.netflix.spinnaker.keel.annealing
 
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.events.ResourceCreated
-import com.netflix.spinnaker.keel.events.ResourceDeleted
-import com.netflix.spinnaker.keel.events.ResourceEvent
-import com.netflix.spinnaker.keel.events.ResourceUpdated
+import com.netflix.spinnaker.keel.api.ResourceName
+import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.get
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
@@ -18,25 +16,24 @@ class ResourcePersister(
   private val handlers: List<ResourceHandler<*>>,
   private val queue: ResourceCheckQueue
 ) {
-  fun handle(event: ResourceEvent): Resource<*> {
-    log.info("Received event {}", event)
-    return when (event) {
-      is ResourceCreated ->
-        handlers.supporting(event.resource.apiVersion, event.resource.kind)
-          .normalize(event.resource)
-          .also(resourceRepository::store)
-          .also { queue.scheduleCheck(it) }
-      is ResourceUpdated ->
-        handlers.supporting(event.resource.apiVersion, event.resource.kind)
-          .normalize(event.resource)
-          .also(resourceRepository::store)
-          .also { queue.scheduleCheck(it) }
-      is ResourceDeleted -> {
-        resourceRepository.delete(event.name)
-        resourceRepository.get<Any>(event.name).also {
-          queue.scheduleCheck(it)
-        }
-      }
+  fun create(resource: SubmittedResource<Any>): Resource<out Any> {
+    return handlers.supporting(resource.apiVersion, resource.kind)
+      .normalize(resource)
+      .also(resourceRepository::store)
+      .also { queue.scheduleCheck(it) }
+  }
+
+  fun update(resource: Resource<Any>): Resource<out Any> {
+    return handlers.supporting(resource.apiVersion, resource.kind)
+      .normalize(resource)
+      .also(resourceRepository::store)
+      .also { queue.scheduleCheck(it) }
+  }
+
+  fun delete(name: ResourceName): Resource<out Any> {
+    resourceRepository.delete(name)
+    return resourceRepository.get<Any>(name).also {
+      queue.scheduleCheck(it)
     }
   }
 

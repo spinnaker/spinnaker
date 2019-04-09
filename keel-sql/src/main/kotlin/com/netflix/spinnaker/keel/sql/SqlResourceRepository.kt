@@ -14,7 +14,6 @@ import com.netflix.spinnaker.keel.persistence.ResourceHeader
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.ResourceState
 import com.netflix.spinnaker.keel.persistence.ResourceState.Unknown
-import com.netflix.spinnaker.keel.persistence.ResourceState.valueOf
 import com.netflix.spinnaker.keel.persistence.ResourceStateHistoryEntry
 import de.huxhorn.sulky.ulid.ULID
 import org.jooq.DSLContext
@@ -253,7 +252,7 @@ class SqlResourceRepository(
       uid = uid,
       resourceVersion = resourceVersion,
       data = metadataAttributes)
-  private val ResultSet.metadataAttributes : Map<String, Any?>
+  private val ResultSet.metadataAttributes: Map<String, Any?>
     get() = objectMapper.readValue(getString("metadata"))
   private val ResultSet.resourceName: ResourceName
     get() = getString("name").let(::ResourceName)

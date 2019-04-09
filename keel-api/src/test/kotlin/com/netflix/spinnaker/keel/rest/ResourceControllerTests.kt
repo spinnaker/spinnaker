@@ -7,7 +7,6 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceMetadata
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.randomUID
-import com.netflix.spinnaker.keel.events.ResourceDeleted
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
 import com.netflix.spinnaker.keel.redis.spring.MockEurekaConfiguration
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML
@@ -73,7 +72,7 @@ internal class ResourceControllerTests {
 
   @Test
   fun `can create a resource as YAML`() {
-    every { resourcePersister.handle(any()) } returns resource
+    every { resourcePersister.create(any()) } returns resource
 
     val request = post("/resources")
       .accept(APPLICATION_YAML)
@@ -95,7 +94,7 @@ internal class ResourceControllerTests {
 
   @Test
   fun `can create a resource as JSON`() {
-    every { resourcePersister.handle(any()) } returns resource
+    every { resourcePersister.create(any()) } returns resource
 
     val request = post("/resources")
       .accept(APPLICATION_JSON)
@@ -157,7 +156,7 @@ internal class ResourceControllerTests {
 
   @Test
   fun `can delete a resource`() {
-    every { resourcePersister.handle(any()) } returns resource
+    every { resourcePersister.delete(resource.metadata.name) } returns resource
 
     resourceRepository.store(resource)
 
@@ -167,7 +166,7 @@ internal class ResourceControllerTests {
       .perform(request)
       .andExpect(status().isOk)
 
-    verify { resourcePersister.handle(ResourceDeleted(resource.metadata.name)) }
+    verify { resourcePersister.delete(resource.metadata.name) }
 
     //clean up after the test
     resourceRepository.delete(resource.metadata.name)

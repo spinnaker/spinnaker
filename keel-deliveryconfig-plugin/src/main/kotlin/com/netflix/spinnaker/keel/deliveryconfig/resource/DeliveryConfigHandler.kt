@@ -11,8 +11,6 @@ import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.api.deliveryconfig.ChildResource
 import com.netflix.spinnaker.keel.api.deliveryconfig.DeliveryConfig
 import com.netflix.spinnaker.keel.api.deliveryconfig.DeliveryEnvironment
-import com.netflix.spinnaker.keel.events.ResourceCreated
-import com.netflix.spinnaker.keel.events.ResourceUpdated
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.get
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
@@ -106,7 +104,7 @@ class DeliveryConfigHandler(
 
   private fun ChildResource.createNew() =
     resourcePersister
-      .handle(ResourceCreated(this.asSubmittedResource()))
+      .create(asSubmittedResource())
       .asBaseSubResource()
 
 
@@ -117,11 +115,11 @@ class DeliveryConfigHandler(
 
   private fun ChildResource.updateMetadata(extraMetadata: Map<String, Any?>) =
     resourcePersister
-      .handle(ResourceUpdated(
+      .update(
         objectMapper.convertValue(
           this.copy(
             metadata = this.metadata?.let { it + extraMetadata }
-          )))).asBaseSubResource()
+          ))).asBaseSubResource()
 
   private fun ChildResource.asSubmittedResource() =
     objectMapper.convertValue<SubmittedResource<Any>>(

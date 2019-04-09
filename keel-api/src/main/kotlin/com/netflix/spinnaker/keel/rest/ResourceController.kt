@@ -19,9 +19,6 @@ import com.netflix.spinnaker.keel.annealing.ResourcePersister
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SubmittedResource
-import com.netflix.spinnaker.keel.events.ResourceCreated
-import com.netflix.spinnaker.keel.events.ResourceDeleted
-import com.netflix.spinnaker.keel.events.ResourceUpdated
 import com.netflix.spinnaker.keel.exceptions.FailedNormalizationException
 import com.netflix.spinnaker.keel.exceptions.InvalidResourceStructureException
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceException
@@ -60,9 +57,9 @@ class ResourceController(
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
   @ResponseStatus(CREATED)
-  fun create(@RequestBody submittedResource: SubmittedResource<*>): Resource<*> {
+  fun create(@RequestBody submittedResource: SubmittedResource<Any>): Resource<out Any> {
     log.debug("Creating: $submittedResource")
-    return resourcePersister.handle(ResourceCreated(submittedResource))
+    return resourcePersister.create(submittedResource)
   }
 
   @GetMapping(
@@ -81,7 +78,7 @@ class ResourceController(
   )
   fun update(@PathVariable("name") name: ResourceName, @RequestBody resource: Resource<Any>): Resource<out Any> {
     log.debug("Updating: $resource")
-    return resourcePersister.handle(ResourceUpdated(resource))
+    return resourcePersister.update(resource)
   }
 
   @DeleteMapping(
@@ -90,7 +87,7 @@ class ResourceController(
   )
   fun delete(@PathVariable("name") name: ResourceName): Resource<*> {
     log.debug("Deleting: $name")
-    return resourcePersister.handle(ResourceDeleted(name))
+    return resourcePersister.delete(name)
   }
 
   @ExceptionHandler(NoSuchResourceException::class)
