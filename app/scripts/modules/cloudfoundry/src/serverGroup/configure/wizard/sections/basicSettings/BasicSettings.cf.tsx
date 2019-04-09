@@ -23,7 +23,7 @@ import 'cloudfoundry/common/cloudFoundry.less';
 
 export interface ICloudFoundryServerGroupBasicSettingsProps {
   formik: FormikProps<ICloudFoundryCreateServerGroupCommand>;
-  isPipelineClone: boolean;
+  isClone: boolean;
 }
 
 export interface ICloudFoundryServerGroupLocationSettingsState {
@@ -48,12 +48,12 @@ export class CloudFoundryServerGroupBasicSettings
 
   private accountChanged = (): void => {
     this.updateRegionList();
-    const regionField = this.props.isPipelineClone ? 'destination.region' : 'region';
+    const regionField = this.props.isClone ? 'destination.region' : 'region';
     this.props.formik.setFieldValue(regionField, '');
   };
 
   private updateRegionList = (): void => {
-    const accountField = this.props.isPipelineClone ? 'account' : 'credentials';
+    const accountField = this.props.isClone ? 'account' : 'credentials';
     const credentials = get(this.props.formik.values, accountField, undefined);
     if (credentials) {
       AccountService.getRegionsForAccount(credentials).then(regions => {
@@ -71,11 +71,11 @@ export class CloudFoundryServerGroupBasicSettings
   };
 
   public render(): JSX.Element {
-    const { formik, isPipelineClone } = this.props;
+    const { formik, isClone } = this.props;
     const { accounts, regions } = this.state;
     const { values } = formik;
-    const accountField = isPipelineClone ? 'account' : 'credentials';
-    const regionField = isPipelineClone ? 'destination.region' : 'region';
+    const accountField = isClone ? 'account' : 'credentials';
+    const regionField = isClone ? 'destination.region' : 'region';
     return (
       <div className="form-group">
         <div className="col-md-11">
@@ -137,7 +137,9 @@ export class CloudFoundryServerGroupBasicSettings
               help={<HelpField id="cf.serverGroup.startApplication" />}
             />
           </div>
-          {(values.viewState.mode === 'editPipeline' || values.viewState.mode === 'createPipeline') && (
+          {(values.viewState.mode === 'editPipeline' ||
+            values.viewState.mode === 'createPipeline' ||
+            values.viewState.mode === 'editClonePipeline') && (
             <CloudFoundryDeploymentStrategySelector
               onFieldChange={this.onStrategyFieldChange}
               onStrategyChange={this.strategyChanged}

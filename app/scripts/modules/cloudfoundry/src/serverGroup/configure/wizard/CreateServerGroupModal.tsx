@@ -143,7 +143,7 @@ export class CloudFoundryCreateServerGroupModal extends React.Component<
               wizard={wizard}
               order={nextIdx()}
               render={({ innerRef }) => (
-                <CloudFoundryServerGroupBasicSettings ref={innerRef} formik={formik} isPipelineClone={isClone} />
+                <CloudFoundryServerGroupBasicSettings ref={innerRef} formik={formik} isClone={isClone} />
               )}
             />
 
