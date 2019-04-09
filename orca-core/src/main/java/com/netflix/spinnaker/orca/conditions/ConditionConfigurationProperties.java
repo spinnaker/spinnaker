@@ -17,9 +17,11 @@
 package com.netflix.spinnaker.orca.conditions;
 
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @Component
@@ -29,7 +31,10 @@ public class ConditionConfigurationProperties {
   private boolean enabled = false;
   private Long backoffWaitMs = TimeUnit.MINUTES.toMillis(5);
   private Long waitTimeoutMs = TimeUnit.MINUTES.toMillis(120);
+  private List<String> clusters;
+  private List<String> activeConditions;
 
+  @Autowired
   public ConditionConfigurationProperties(DynamicConfigService configService) {
     this.configService = configService;
   }
@@ -56,5 +61,21 @@ public class ConditionConfigurationProperties {
 
   public void setWaitTimeoutMs(long waitTimeoutMs) {
     this.waitTimeoutMs = waitTimeoutMs;
+  }
+
+  public List<String> getClusters() {
+    return configService.getConfig(List.class, "tasks.evaluateCondition.clusters", clusters);
+  }
+
+  public List<String> getActiveConditions() {
+    return configService.getConfig(List.class, "tasks.evaluateCondition.activeConditions", activeConditions);
+  }
+
+  public void setClusters(List<String> clusters) {
+    this.clusters = clusters;
+  }
+
+  public void setActiveConditions(List<String> activeConditions) {
+    this.activeConditions = activeConditions;
   }
 }

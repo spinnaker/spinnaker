@@ -63,4 +63,12 @@ public class Condition {
   public int hashCode() {
     return Objects.hash(name, description);
   }
+
+  @Override
+  public String toString() {
+    return "Condition{" +
+      "name='" + name + '\'' +
+      ", description='" + description + '\'' +
+      '}';
+  }
 }
