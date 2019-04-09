@@ -1,7 +1,5 @@
 package com.netflix.spinnaker.keel.rest
 
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.node.ArrayNode
 import com.netflix.spinnaker.keel.KeelApplication
 import com.netflix.spinnaker.keel.annealing.ResourcePersister
 import com.netflix.spinnaker.keel.api.ApiVersion
@@ -10,13 +8,9 @@ import com.netflix.spinnaker.keel.api.ResourceMetadata
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.events.ResourceDeleted
-import com.netflix.spinnaker.keel.persistence.ResourceState.Diff
-import com.netflix.spinnaker.keel.persistence.ResourceState.Ok
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
 import com.netflix.spinnaker.keel.redis.spring.MockEurekaConfiguration
-import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML
-import com.netflix.spinnaker.time.MutableClock
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
 import io.mockk.verify
@@ -27,9 +21,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Primary
 import org.springframework.http.MediaType
 import org.springframework.http.MediaType.APPLICATION_JSON
 import org.springframework.mock.web.MockHttpServletResponse
@@ -42,16 +33,11 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import strikt.api.Assertion
 import strikt.api.DescribeableBuilder
 import strikt.api.expectThat
-import strikt.assertions.all
 import strikt.assertions.isNotNull
-import strikt.jackson.has
-import strikt.jackson.isArray
-import strikt.jackson.isObject
-import java.time.Duration
 
 @ExtendWith(SpringExtension::class)
 @SpringBootTest(
-  classes = [KeelApplication::class, MockEurekaConfiguration::class, MockTimeConfiguration::class],
+  classes = [KeelApplication::class, MockEurekaConfiguration::class],
   properties = [
     "clouddriver.baseUrl=https://localhost:8081",
     "orca.baseUrl=https://localhost:8082",
@@ -69,9 +55,6 @@ internal class ResourceControllerTests {
 
   @MockkBean
   lateinit var resourcePersister: ResourcePersister
-
-  @Autowired
-  lateinit var clock: MutableClock
 
   var resource = Resource(
     apiVersion = ApiVersion("ec2.spinnaker.netflix.com/v1"),
@@ -198,32 +181,6 @@ internal class ResourceControllerTests {
       .perform(request)
       .andExpect(status().isNotFound)
   }
-
-  @Test
-  fun `can get state history for a resource`() {
-    with(resourceRepository) {
-      store(resource)
-      sequenceOf(Ok, Diff, Ok).forEach {
-        clock.incrementBy(Duration.ofMinutes(10))
-        updateState(resource.metadata.uid, it)
-      }
-    }
-
-    val request = get("/resources/${resource.metadata.name}/history")
-      .accept(APPLICATION_YAML)
-    val result = mvc
-      .perform(request)
-      .andExpect(status().isOk)
-      .andReturn()
-    expectThat(result.response.contentAsTree)
-      .isArray()
-      .hasSize(4)
-      .all {
-        isObject()
-          .has("state")
-          .has("timestamp")
-      }
-  }
 }
 
 private val Assertion.Builder<MockHttpServletResponse>.contentType: DescribeableBuilder<MediaType?>
@@ -234,19 +191,3 @@ private fun <T : MediaType?> Assertion.Builder<T>.isCompatibleWith(expected: Med
   assertThat("is compatible with $expected") {
     it?.isCompatibleWith(expected) ?: false
   } as Assertion.Builder<MediaType>
-
-private fun Assertion.Builder<ArrayNode>.hasSize(expected: Int): Assertion.Builder<ArrayNode> =
-  assert("has $expected elements") { subject ->
-    if (subject.size() == expected) pass()
-    else fail(subject.size())
-  }
-
-private val MockHttpServletResponse.contentAsTree: JsonNode
-  get() = configuredYamlMapper().readTree(contentAsString)
-
-@Configuration
-class MockTimeConfiguration {
-  @Bean
-  @Primary
-  fun clock() = MutableClock()
-}

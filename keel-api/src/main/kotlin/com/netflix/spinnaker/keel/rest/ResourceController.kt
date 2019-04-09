@@ -26,7 +26,6 @@ import com.netflix.spinnaker.keel.exceptions.FailedNormalizationException
 import com.netflix.spinnaker.keel.exceptions.InvalidResourceStructureException
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceException
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
-import com.netflix.spinnaker.keel.persistence.ResourceStateHistoryEntry
 import com.netflix.spinnaker.keel.persistence.get
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
 import org.slf4j.LoggerFactory
@@ -92,17 +91,6 @@ class ResourceController(
   fun delete(@PathVariable("name") name: ResourceName): Resource<*> {
     log.debug("Deleting: $name")
     return resourcePersister.handle(ResourceDeleted(name))
-  }
-
-  @GetMapping(
-    path = ["/{name}/history"],
-    produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
-  )
-  fun history(@PathVariable("name") name: ResourceName): List<ResourceStateHistoryEntry> {
-    log.debug("Getting state history for: $name")
-    return resourceRepository.get(name, Any::class.java).let {
-      resourceRepository.stateHistory(it.metadata.uid)
-    }
   }
 
   @ExceptionHandler(NoSuchResourceException::class)
