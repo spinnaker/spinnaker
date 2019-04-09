@@ -1,6 +1,7 @@
 *.class
 out/
 .gradle/
+.DS_Store
 build/
 *.iml
 *.ipr
@@ -12,3 +13,8 @@ vendor/
 .bundle/
 *.rdb
 docker/account.json
+.classpath
+.project
+.settings/
+.vscode/
+bin
