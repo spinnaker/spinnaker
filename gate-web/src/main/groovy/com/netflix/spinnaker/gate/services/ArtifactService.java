@@ -29,6 +29,7 @@ import retrofit.client.Response;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 
 @CompileStatic
@@ -37,10 +38,11 @@ public class ArtifactService {
   private static final String GROUP = "artifacts";
 
   private ClouddriverServiceSelector clouddriverServiceSelector;
-  private IgorService igorService;
+  private Optional<IgorService> igorService;
+
 
   @Autowired
-  public ArtifactService(ClouddriverServiceSelector clouddriverServiceSelector, IgorService igorService) {
+  public ArtifactService(ClouddriverServiceSelector clouddriverServiceSelector, Optional<IgorService> igorService) {
     this.clouddriverServiceSelector = clouddriverServiceSelector;
     this.igorService = igorService;
   }
@@ -84,8 +86,12 @@ public class ArtifactService {
   }
 
   public List<String> getVersionsOfArtifactForProvider(String provider, String packageName) {
+    if (!igorService.isPresent()) {
+      throw new IllegalStateException("Cannot fetch artifact versions because Igor is not enabled.");
+    }
+
     return stringListCommand("artifactVersionsByProvider",
-      () -> igorService.getArtifactVersions(provider, packageName))
+      () -> igorService.get().getArtifactVersions(provider, packageName))
       .execute();
   }
 }
