@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 import retrofit.RetrofitError;
 
 import java.util.*;
@@ -108,7 +109,7 @@ public class ManualEventHandler implements TriggerEventHandler<ManualEvent> {
       artifacts.addAll(buildInfoService.get().getArtifactsFromBuildEvent(buildEvent, manualTrigger));
     }
 
-    if (artifactInfoService.isPresent() && manualTrigger.getArtifacts().size() != 0) {
+    if (artifactInfoService.isPresent() && !CollectionUtils.isEmpty(manualTrigger.getArtifacts())) {
       List<Artifact> resolvedArtifacts = resolveArtifacts(manualTrigger.getArtifacts());
       artifacts.addAll(resolvedArtifacts);
       // update the artifacts on the manual trigger with the resolved artifacts
