@@ -41,10 +41,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.*;
+import java.util.stream.Collectors;
 
-import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClientUtils.collectPages;
-import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClientUtils.safelyCall;
+import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClientUtils.*;
+import static java.util.Arrays.asList;
 import static java.util.Collections.*;
+import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
@@ -158,7 +160,7 @@ public class Applications {
         .map(packages ->
           packages.getResources().stream().findFirst()
             .map(pkg -> CloudFoundryPackage.builder()
-              .downloadUrl(pkg.getLinks().containsKey("download") ? pkg.getLinks().get("download").getHref(): null)
+              .downloadUrl(pkg.getLinks().containsKey("download") ? pkg.getLinks().get("download").getHref() : null)
               .checksumType(pkg.getData().getChecksum() == null ? null : pkg.getData().getChecksum().getType())
               .checksum(pkg.getData().getChecksum() == null ? null : pkg.getData().getChecksum().getValue())
               .build()
@@ -173,7 +175,7 @@ public class Applications {
             .id(apiDroplet.getGuid())
             .name(application.getName() + "-droplet")
             .stack(apiDroplet.getStack())
-            .buildpacks(Optional.ofNullable(apiDroplet.getBuildpacks())
+            .buildpacks(ofNullable(apiDroplet.getBuildpacks())
               .orElse(emptyList())
               .stream()
               .map(bp -> CloudFoundryBuildpack.builder()
@@ -220,12 +222,12 @@ public class Applications {
     }
 
     String serverGroupAppManagerUri = appsManagerUri;
-    if (StringUtils.isNotEmpty(appsManagerUri)){
+    if (StringUtils.isNotEmpty(appsManagerUri)) {
       serverGroupAppManagerUri = appsManagerUri + "/organizations/" + space.getOrganization().getId() + "/spaces/" + space.getId() + "/applications/" + application.getGuid();
     }
 
     String serverGroupMetricsUri = metricsUri;
-    if (StringUtils.isNotEmpty(metricsUri)){
+    if (StringUtils.isNotEmpty(metricsUri)) {
       serverGroupMetricsUri = metricsUri + "/apps/" + application.getGuid();
     }
 
@@ -380,15 +382,14 @@ public class Applications {
       .orElse(ProcessStats.State.DOWN);
   }
 
-  @Nullable
-  public Resource<com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Application> getLatestServerGroup(String clusterName, String spaceId) {
-    return safelyCall(() -> api.appsLessThanName("name<" + clusterName + "-v9999", "desc", 1))
-      .flatMap(pr -> pr.getResources().stream()
-        .filter(app -> {
-          Names names = Names.parseName(app.getEntity().getName());
-          return clusterName.equals(names.getCluster()) && spaceId.equals(app.getEntity().getSpaceGuid());
-        })
-        .findAny())
-      .orElse(null);
+  public List<Resource<com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Application>> getTakenSlots(String clusterName, String spaceId) {
+    List<String> filter = asList("name<" + clusterName + "-v9999", "name>=" + clusterName, "space_guid:" + spaceId);
+    return collectPageResources("applications", page -> api.listAppsFiltered(page, filter, 10))
+      .stream()
+      .filter(app -> {
+        Names names = Names.parseName(app.getEntity().getName());
+        return clusterName.equals(names.getCluster());
+      })
+      .collect(Collectors.toList());
   }
 }

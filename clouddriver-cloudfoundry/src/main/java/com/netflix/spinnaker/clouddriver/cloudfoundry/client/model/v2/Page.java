@@ -18,8 +18,11 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2;
 
 import lombok.Data;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Data
 public class Page<R> {
@@ -40,6 +43,27 @@ public class Page<R> {
     resource.setEntity(data);
 
     page.setResources(Collections.singletonList(resource));
+
+    return page;
+  }
+
+  public static <R> Page<R> asPage(R... data) {
+    Page<R> page = new Page<>();
+    page.setTotalPages(1);
+    page.setTotalResults(data.length);
+
+    page.setResources(Arrays.stream(data)
+      .map(d -> {
+        Resource.Metadata metadata = new Resource.Metadata();
+        metadata.setGuid(UUID.randomUUID().toString());
+
+        Resource<R> resource = new Resource<>();
+        resource.setMetadata(metadata);
+        resource.setEntity(d);
+        return resource;
+      })
+      .collect(Collectors.toList())
+    );
 
     return page;
   }

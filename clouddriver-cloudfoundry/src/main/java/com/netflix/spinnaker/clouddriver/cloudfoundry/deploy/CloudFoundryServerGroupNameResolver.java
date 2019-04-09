@@ -24,10 +24,9 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 @AllArgsConstructor
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
@@ -47,18 +46,14 @@ public class CloudFoundryServerGroupNameResolver extends AbstractServerGroupName
     return space.getRegion();
   }
 
-  /**
-   * Since this is only used to determine the next server group sequence number, it is only important to find
-   * the latest server group in this cluster.
-   */
   @Override
   public List<TakenSlot> getTakenSlots(String clusterName) {
-    return Optional.ofNullable(client.getApplications().getLatestServerGroup(clusterName, space.getId()))
+    return client.getApplications().getTakenSlots(clusterName, space.getId()).stream()
       .map(app -> {
         Names names = Names.parseName(app.getEntity().getName());
-        return Collections.singletonList(new TakenSlot(names.getCluster(), names.getSequence(),
-          Date.from(app.getMetadata().getCreatedAt().toInstant())));
+        return new TakenSlot(names.getCluster(), names.getSequence(),
+          Date.from(app.getMetadata().getCreatedAt().toInstant()));
       })
-      .orElse(Collections.emptyList());
+      .collect(Collectors.toList());
   }
 }

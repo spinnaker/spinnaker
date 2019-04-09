@@ -18,10 +18,10 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.client;
 
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.ApplicationService;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.*;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.*;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Application;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Package;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Process;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.*;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryOrganization;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryServerGroup;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
@@ -36,6 +36,7 @@ import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -155,7 +156,7 @@ class ApplicationsTest {
   }
 
   @Test
-  void getProcessState(){
+  void getProcessState() {
     ProcessStats processStats = new ProcessStats().setState(ProcessStats.State.RUNNING);
     ProcessResources processResources = new ProcessResources().setResources(Collections.singletonList(processStats));
     when(applicationService.findProcessStatsById(anyString())).thenReturn(processResources);
@@ -164,55 +165,62 @@ class ApplicationsTest {
   }
 
   @Test
-  void getProcessStateWhenStatsNotFound(){
-    Response errorResponse = new Response("http://capi.io", 404,"Not Found", Collections.EMPTY_LIST, null);
+  void getProcessStateWhenStatsNotFound() {
+    Response errorResponse = new Response("http://capi.io", 404, "Not Found", Collections.emptyList(), null);
     when(applicationService.findProcessStatsById(anyString())).thenThrow(RetrofitError.httpError("http://capi.io", errorResponse, null, null));
     ProcessStats.State result = apps.getProcessState("some-app-guid");
     assertThat(result).isEqualTo(ProcessStats.State.DOWN);
   }
 
   @ParameterizedTest
-  @ValueSource(strings = { "myapp-v999", "myapp" })
-  void getLatestServerGroup(String existingApp) {
+  @ValueSource(strings = {"myapp-v999", "myapp"})
+  void getTakenServerGroups(String existingApp) {
     com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Application application = new com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Application()
       .setName(existingApp)
       .setSpaceGuid("space");
 
-    when(applicationService.appsLessThanName(contains("myapp"), eq("desc"), eq(1)))
+    when(applicationService.listAppsFiltered(isNull(Integer.class), anyListOf(String.class), anyInt()))
       .thenReturn(Page.singleton(application, "123"));
 
-    Resource<com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Application> latest = apps
-      .getLatestServerGroup("myapp", "space");
-    assertThat(latest).isNotNull();
-    assertThat(latest.getEntity().getName()).isEqualTo(existingApp);
+    List<Resource<com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Application>> taken = apps
+      .getTakenSlots("myapp", "space");
+    assertThat(taken).first().extracting(app -> app.getEntity().getName()).isEqualTo(existingApp);
   }
 
   @ParameterizedTest
-  @ValueSource(strings = { "myapp-v999", "myapp", "myapp-stack2", "anothername", "myapp-stack-detail" })
-  void getLatestServerGroupWhenNoPriorVersionExists(String similarAppName) {
+  @ValueSource(strings = {"myapp-v999", "myapp", "myapp-stack2", "anothername", "myapp-stack-detail"})
+  void getTakenServerGroupsWhenNoPriorVersionExists(String similarAppName) {
     com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Application application = new com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Application()
       .setName(similarAppName)
       .setSpaceGuid("space");
 
-    when(applicationService.appsLessThanName(anyString(), eq("desc"), eq(1)))
+    when(applicationService.listAppsFiltered(isNull(Integer.class), anyListOf(String.class), anyInt()))
       .thenReturn(Page.singleton(application, "123"));
 
-    Resource<com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Application> latest = apps
-      .getLatestServerGroup("myapp-stack", "space");
-    assertThat(latest).isNull();
+    List<Resource<com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Application>> taken = apps
+      .getTakenSlots("myapp-stack", "space");
+    assertThat(taken).isEmpty();
   }
 
   @Test
-  void getLatestServerGroupDifferentRegion() {
+  void getLatestServerGroupCapiDoesntCorrectlyOrderResults() {
     com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Application application = new com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Application()
+      .setName("myapp-prod-v046")
+      .setSpaceGuid("space");
+
+    com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Application application2 = new com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Application()
       .setName("myapp-v003")
       .setSpaceGuid("space");
 
-    when(applicationService.appsLessThanName(anyString(), eq("desc"), eq(1)))
-      .thenReturn(Page.singleton(application, "123"));
+    com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Application application3 = new com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Application()
+      .setName("myapp")
+      .setSpaceGuid("space");
 
-    Resource<com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Application> latest = apps
-      .getLatestServerGroup("myapp", "anotherspace");
-    assertThat(latest).isNull();
+    when(applicationService.listAppsFiltered(isNull(Integer.class), anyListOf(String.class), anyInt()))
+      .thenReturn(Page.asPage(application, application2, application3));
+
+    List<Resource<com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Application>> taken = apps
+      .getTakenSlots("myapp", "space");
+    assertThat(taken).extracting(app -> app.getEntity().getName()).contains("myapp", "myapp-v003");
   }
 }
