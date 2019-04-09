@@ -625,7 +625,7 @@ func (a *PipelineControllerApiService) EvaluateExpressionForExecutionUsingPUT(ct
  @param id id
  @param pipelineExpression pipelineExpression
  @return map[string]interface{}*/
-func (a *PipelineControllerApiService) EvaluateExpressionForExecutionViaPOSTUsingPOST(ctx context.Context, id string, pipelineExpression string) (map[string]interface{},  *http.Response, error) {
+func (a *PipelineControllerApiService) EvaluateExpressionForExecutionViaPOSTUsingPOST1(ctx context.Context, id string, pipelineExpression interface{}) (map[string]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Post")
 		localVarPostBody interface{}
@@ -644,7 +644,7 @@ func (a *PipelineControllerApiService) EvaluateExpressionForExecutionViaPOSTUsin
 
 
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "text/plain",  }
+	localVarHttpContentTypes := []string{ "application/json",  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)

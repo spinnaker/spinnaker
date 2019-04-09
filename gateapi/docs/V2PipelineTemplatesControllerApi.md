@@ -31,7 +31,7 @@ Optional parameters are passed through a map[string]interface{}.
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **pipelineTemplate** | [**interface{}**](interface{}.md)| pipelineTemplate | 
- **version** | **string**| version | 
+ **tag** | **string**| tag | 
 
 ### Return type
 
@@ -66,7 +66,7 @@ Optional parameters are passed through a map[string]interface{}.
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **id** | **string**| id | 
- **version** | **string**| version | 
+ **tag** | **string**| tag | 
  **digest** | **string**| digest | 
  **application** | **string**| application | 
 
@@ -103,7 +103,7 @@ Optional parameters are passed through a map[string]interface{}.
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **id** | **string**| id | 
- **version** | **string**| version | 
+ **tag** | **string**| tag | 
  **digest** | **string**| digest | 
 
 ### Return type
@@ -226,7 +226,7 @@ Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **id** | **string**| id | 
  **pipelineTemplate** | [**interface{}**](interface{}.md)| pipelineTemplate | 
- **version** | **string**| version | 
+ **tag** | **string**| tag | 
  **skipPlanDependents** | **bool**| skipPlanDependents | [default to false]
 
 ### Return type
