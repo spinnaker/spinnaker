@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.orca.pipeline.expressions.functions;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.pipeline.expressions.ExpressionFunctionProvider;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
@@ -25,6 +26,9 @@ import org.springframework.stereotype.Component;
 
 import java.util.*;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
+
+import static java.util.Collections.*;
 
 @Component
 public class DeployedServerGroupsExpressionFunctionProvider implements ExpressionFunctionProvider {
@@ -42,7 +46,7 @@ public class DeployedServerGroupsExpressionFunctionProvider implements Expressio
   @NotNull
   @Override
   public Collection<FunctionDefinition> getFunctions() {
-    return Collections.singletonList(
+    return singletonList(
       new FunctionDefinition("deployedServerGroups", Arrays.asList(
         new FunctionParameter(Execution.class, "execution", "The execution to search for stages within"),
         new FunctionParameter(String[].class, "ids", "A list of stage name or stage IDs to search")
@@ -83,11 +87,30 @@ public class DeployedServerGroupsExpressionFunctionProvider implements Expressio
             deployDetails.put("serverGroup", serverGroups.get(0));
           }
 
+          DeploymentContext deploymentContext = stage.mapTo(DeploymentContext.class);
+          List<Map<String, Object>> deployments = Optional.ofNullable(deploymentContext.tasks).orElse(emptyList()).stream()
+            .flatMap(task -> Optional.ofNullable(task.results).orElse(emptyList()).stream())
+            .flatMap(result -> Optional.ofNullable(result.deployments).orElse(emptyList()).stream())
+            .collect(Collectors.toList());
+          deployDetails.put("deployments", deployments);
+
           deployedServerGroups.add(deployDetails);
         }
       });
 
     return deployedServerGroups;
+  }
+
+  static class DeploymentContext {
+    @JsonProperty("kato.tasks") List<KatoTasks> tasks;
+  }
+
+  static class KatoTasks {
+    @JsonProperty("resultObjects") List<ResultObject> results;
+  }
+
+  static class ResultObject {
+    @JsonProperty("deployments") List<Map<String, Object>> deployments;
   }
 
   private static Predicate<Stage> matchesDeployedStage(String... id) {

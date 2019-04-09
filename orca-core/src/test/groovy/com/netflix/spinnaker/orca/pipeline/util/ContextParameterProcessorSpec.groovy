@@ -543,6 +543,7 @@ class ContextParameterProcessorSpec extends Specification {
     result.deployed.serverGroup == ["flex-test-v043", "flex-prestaging-v011"]
     result.deployed.region == ["us-east-1", "us-west-1"]
     result.deployed.ami == ["ami-06362b6e", "ami-f759b7b3"]
+    result.deployed.deployments == [ [[ "serverGroupName": "flex-test-v043" ]], [] ]
 
     when: 'specifying a stage name'
     source = ['deployed': '${#deployedServerGroups("Deploy in us-east-1")}']
@@ -553,7 +554,7 @@ class ContextParameterProcessorSpec extends Specification {
     result.deployed.serverGroup == ["flex-test-v043"]
     result.deployed.region == ["us-east-1"]
     result.deployed.ami == ["ami-06362b6e"]
-
+    result.deployed.deployments == [ [[ "serverGroupName": "flex-test-v043" ]] ]
 
     where:
     execution = pipeline {
@@ -624,6 +625,19 @@ class ContextParameterProcessorSpec extends Specification {
             "suspendedProcesses": [],
             "terminationPolicies": [
               "Default"
+            ],
+            "kato.tasks": [
+              [
+                "resultObjects": [
+                  [
+                    "deployments": [
+                      [
+                        "serverGroupName": "flex-test-v043"
+                      ]
+                    ]
+                  ]
+                ]
+              ]
             ]
           )
         }

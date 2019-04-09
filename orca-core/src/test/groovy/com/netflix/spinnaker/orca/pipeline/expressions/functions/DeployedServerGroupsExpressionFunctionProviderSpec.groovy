@@ -106,4 +106,84 @@ class DeployedServerGroupsExpressionFunctionProviderSpec extends Specification {
     then: "(deploy|createServerGroup|cloneServerGroup|rollingPush)"
     map.serverGroup == ["app-test-v001"]
   }
+
+  def "deployedServerGroup should resolve deployments for valid stage type"() {
+
+    final pipelineWithDeployments = pipeline {
+      stage {
+        id = "1"
+        status = SUCCEEDED
+        type = "createServerGroup"
+        name = "Deploy in us-east-1"
+        context.putAll(
+          "account": "test",
+          "deploy.account.name": "test",
+          "availabilityZones": [
+            "us-east-1": [
+              "us-east-1c",
+              "us-east-1d",
+              "us-east-1e"
+            ]
+          ],
+          "capacity": [
+            "desired": 1,
+            "max"    : 1,
+            "min"    : 1
+          ],
+          "deploy.server.groups": [
+            "us-east-1": [
+              "app-test-v001",
+              "app-test-v002",
+              "app-test-v003"
+            ]
+          ],
+          "kato.tasks": [
+            [
+              "resultObjects": [
+                [
+                  "deployments": [
+                    [
+                      "serverGroupName": "app-test-v001"
+                    ]
+                  ],
+                  "serverGroupNames": [
+                    "us-east-1:app-test-v001"
+                  ]
+                ]
+              ]
+            ],
+            [
+              "resultObjects": [
+                [
+                  "deployments": [
+                    [
+                      "serverGroupName": "app-test-v002"
+                    ],
+                    [
+                      "serverGroupName": "app-test-v003"
+                    ]
+                  ]
+                ]
+              ]
+            ],
+            [
+              "resultObjects": [ [:] ]
+            ],
+            [:]
+          ]
+        )
+      }
+    }
+
+    when:
+    def map = deployedServerGroups(pipelineWithDeployments)
+
+    then:
+    map.serverGroup == ["app-test-v001"]
+    map.deployments == [[
+      [ "serverGroupName": "app-test-v001" ],
+      [ "serverGroupName": "app-test-v002" ],
+      [ "serverGroupName": "app-test-v003" ],
+    ]]
+  }
 }
