@@ -23,14 +23,13 @@ describe('<Artifact/>', () => {
       type: ARTIFACT_TYPE,
       name: ARTIFACT_NAME,
     };
+
     component = shallow(<Artifact artifact={artifact} />);
-    const dl = component.find('dl');
-    const dt = dl.find('dt');
-    const dd = dl.find('dd');
-    expect(dl.length).toEqual(1);
-    expect(dt.length).toEqual(1);
-    expect(dd.length).toEqual(1);
-    expect(dd.at(0).text()).toEqual(ARTIFACT_NAME);
+
+    const artifactName = component.find('.artifact-name');
+
+    expect(artifactName.length).toEqual(1);
+    expect(artifactName.text()).toEqual(ARTIFACT_NAME);
   });
 
   it('renders an artifact version if present', function() {
@@ -42,13 +41,11 @@ describe('<Artifact/>', () => {
       version,
     };
     component = shallow(<Artifact artifact={artifact} />);
-    const dl = component.find('dl');
-    const dt = dl.find('dt');
-    const dd = dl.find('dd');
-    expect(dl.length).toEqual(1);
-    expect(dt.length).toEqual(2);
-    expect(dd.length).toEqual(2);
-    expect(dd.at(1).text()).toEqual(version);
+
+    const artifactVersion = component.find('.artifact-version');
+
+    expect(artifactVersion.length).toEqual(1);
+    expect(artifactVersion.text()).toEqual(` - ${version}`);
   });
 
   it('includes the artifact reference in the tootip', function() {

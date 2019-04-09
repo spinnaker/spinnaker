@@ -194,6 +194,7 @@ export class SingleExecutionDetails extends React.Component<
               <Execution
                 execution={execution}
                 application={app}
+                pipelineConfig={null}
                 standalone={true}
                 showDurations={sortFilter.showDurations}
               />

@@ -240,6 +240,7 @@ export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecu
       <Execution
         key={execution.id}
         execution={execution}
+        pipelineConfig={pipelineConfig}
         application={this.props.application}
         onRerun={pipelineConfig && !hasMPTv2PipelineConfig ? this.rerunExecutionClicked : undefined}
       />

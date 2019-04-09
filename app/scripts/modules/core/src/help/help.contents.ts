@@ -429,6 +429,7 @@ const helpContents: { [key: string]: string } = {
   'pipeline.config.parameter.label': '(Optional): a label to display when users are triggering the pipeline manually',
   'pipeline.config.parameter.description': `(Optional): if supplied, will be displayed to users as a tooltip
       when triggering the pipeline manually. You can include HTML in this field.`,
+  'pipeline.config.parameter.pinned': `(Optional): if checked, this parameter will be always shown in a pipeline execution view, otherwise it'll be collapsed by default.`,
   'pipeline.config.failOnFailedExpressions': `When this option is enabled, the stage will be marked as failed if it contains any failed expressions`,
   'pipeline.config.roles.help': `
     <p> When the pipeline is triggered using an automated trigger, these roles will be used to decide if the pipeline has permissions to access a protected application or account.</p>

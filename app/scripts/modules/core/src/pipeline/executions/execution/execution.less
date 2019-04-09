@@ -1,5 +1,7 @@
 @import (reference) '~core/presentation/less/imports/commonImports.less';
 
+@execution-parameters-icon-width: 1.4em;
+
 .execution {
   .label {
     text-transform: uppercase;
@@ -113,4 +115,18 @@ execution-details-section-nav {
     }
     min-width: 50px;
   }
+}
+
+.execution-parameters-button,
+.execution-details-button {
+  font-size: 0.8em;
+  line-height: 12px;
+
+  span.glyphicon {
+    width: @execution-parameters-icon-width;
+  }
+}
+
+.execution-details-button {
+  margin-top: 6px;
 }

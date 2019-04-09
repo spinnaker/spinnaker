@@ -1,5 +1,5 @@
 <page-navigator scrollable-container="[ui-view]">
-  <page-section key="concurrent" label="Concurrent Executions" visible="!pipeline.strategy">
+  <page-section key="concurrent" label="Execution Options" visible="!pipeline.strategy">
     <div class="row">
       <div class="col-md-11 col-md-offset-1">
         <div class="checkbox">
@@ -13,6 +13,12 @@
             <input type="checkbox" ng-model="pipeline.keepWaitingPipelines" />
             <strong>Do not automatically cancel pipelines waiting in queue.</strong>
             <help-field key="pipeline.config.parallel.cancel.queue"></help-field>
+          </label>
+        </div>
+        <div class="checkbox">
+          <label>
+            <input type="checkbox" ng-model="pipeline.pinAllParameters" />
+            <strong>Pin all parameters when viewing an execution</strong>
           </label>
         </div>
       </div>

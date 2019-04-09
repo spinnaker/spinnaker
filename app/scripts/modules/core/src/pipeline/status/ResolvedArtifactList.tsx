@@ -8,11 +8,16 @@ import './artifactList.less';
 export interface IResolvedArtifactListProps {
   artifacts: IArtifact[];
   resolvedExpectedArtifacts?: IExpectedArtifact[];
+  showingExpandedArtifacts: boolean;
 }
 
 export class ResolvedArtifactList extends React.Component<IResolvedArtifactListProps> {
+  constructor(props: IResolvedArtifactListProps) {
+    super(props);
+  }
+
   public render() {
-    let { artifacts, resolvedExpectedArtifacts } = this.props;
+    let { artifacts, resolvedExpectedArtifacts, showingExpandedArtifacts } = this.props;
 
     artifacts = artifacts || [];
     resolvedExpectedArtifacts = resolvedExpectedArtifacts || [];
@@ -29,28 +34,44 @@ export class ResolvedArtifactList extends React.Component<IResolvedArtifactListP
       .map(rea => rea.boundArtifact)
       .filter(({ name, type }) => name && type);
 
-    if (decoratedArtifacts.length === 0 && decoratedExpectedArtifacts.length === 0) {
+    // if there's none, don't show it
+    if (!showingExpandedArtifacts || (decoratedArtifacts.length === 0 && decoratedExpectedArtifacts.length === 0)) {
       return null;
     }
 
+    // if we're exceeding the limit, don't show it
+    if (!showingExpandedArtifacts) {
+      return null;
+    }
+
+    const halfIndex = Math.ceil(decoratedArtifacts.length / 2);
+    const columns = [decoratedArtifacts.slice(0, halfIndex), decoratedArtifacts.slice(halfIndex)];
+
     return (
-      <div className="artifact-list">
-        <ul>
-          {decoratedExpectedArtifacts.map((artifact: IArtifact, i: number) => {
-            const { reference } = artifact;
-            const isDefault = defaultArtifactRefs.has(reference);
+      <div className="resolved-artifacts">
+        <h6 className="artifacts-title">Artifacts</h6>
+        <div className="resolved-artifact-list">
+          {columns.map((artifactSubset: IArtifact[], colNum: number) => {
             return (
-              <li key={`${i}-${name}`} className="break-word">
-                <Artifact artifact={artifact} isDefault={isDefault} />
-              </li>
+              <div key={`artifact-list-column-${colNum}`} className="artifact-list-column">
+                {artifactSubset.map((artifact: IArtifact, i: number) => {
+                  const { reference } = artifact;
+                  const isDefault = defaultArtifactRefs.has(reference);
+                  return (
+                    <div key={`${i}-${name}`} className="break-word">
+                      <Artifact artifact={artifact} isDefault={isDefault} />
+                    </div>
+                  );
+                })}
+              </div>
             );
           })}
-          {decoratedArtifacts.length > decoratedExpectedArtifacts.length && (
-            <li key="extraneous-artifacts">
-              {decoratedArtifacts.length - decoratedExpectedArtifacts.length} received artifacts were not consumed
-            </li>
-          )}
-        </ul>
+        </div>
+        {decoratedArtifacts.length > decoratedExpectedArtifacts.length && (
+          <div className="extraneous-artifacts">
+            {decoratedArtifacts.length - decoratedExpectedArtifacts.length} received artifacts were not consumed
+          </div>
+        )}
       </div>
     );
   }

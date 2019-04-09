@@ -39,7 +39,7 @@ export class Artifact extends React.Component<IArtifactProps> {
     return (
       <div className="artifact-details">
         <dl title={this.tooltip(artifact, isDefault)}>
-          <div>
+          <div className="artifact-detail">
             <dt>
               {ArtifactIconService.getPath(type) ? (
                 <img className="artifact-icon" src={ArtifactIconService.getPath(type)} width="18" height="18" />
@@ -47,14 +47,11 @@ export class Artifact extends React.Component<IArtifactProps> {
                 <span>{type}</span>
               )}
             </dt>
-            <dd>{name}</dd>
+            <dd>
+              <div className="artifact-name">{name}</div>
+              {version && <div className="artifact-version"> - {version}</div>}
+            </dd>
           </div>
-          {version && (
-            <div>
-              <dt>Version</dt>
-              <dd>{version}</dd>
-            </div>
-          )}
         </dl>
       </div>
     );

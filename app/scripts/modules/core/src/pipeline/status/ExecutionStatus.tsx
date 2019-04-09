@@ -1,5 +1,4 @@
 import * as React from 'react';
-import * as ReactGA from 'react-ga';
 import { has } from 'lodash';
 
 import { IExecution } from 'core/domain';
@@ -10,25 +9,22 @@ import { Registry } from 'core/registry';
 import { relativeTime, timestamp } from 'core/utils';
 import { ISortFilter } from 'core/filterModel';
 import { ExecutionState } from 'core/state';
-import { SETTINGS } from 'core/config/settings';
 
 import { buildDisplayName } from '../executionBuild/buildDisplayName.filter';
 import { ExecutionBuildLink } from '../executionBuild/ExecutionBuildLink';
 import { ExecutionUserStatus } from './ExecutionUserStatus';
-import { ResolvedArtifactList } from './ResolvedArtifactList';
 
 import './executionStatus.less';
 
 export interface IExecutionStatusProps {
   execution: IExecution;
-  toggleDetails: (stageIndex?: number) => void;
   showingDetails: boolean;
+  showingParams: boolean;
   standalone: boolean;
 }
 
 export interface IExecutionStatusState {
   sortFilter: ISortFilter;
-  parameters: Array<{ key: string; value: any }>;
   timestamp: string;
 }
 
@@ -38,25 +34,11 @@ export class ExecutionStatus extends React.Component<IExecutionStatusProps, IExe
   constructor(props: IExecutionStatusProps) {
     super(props);
 
-    // these are internal parameters that are not useful to end users
-    const strategyExclusions = ['parentPipelineId', 'strategy', 'parentStageId', 'deploymentDetails', 'cloudProvider'];
-
-    let parameters: Array<{ key: string; value: any }> = [];
-
     const { execution } = this.props;
-    if (execution.trigger && execution.trigger.parameters) {
-      parameters = Object.keys(execution.trigger.parameters)
-        .sort()
-        .filter(paramKey => (execution.isStrategy ? !strategyExclusions.includes(paramKey) : true))
-        .map((paramKey: string) => {
-          return { key: paramKey, value: JSON.stringify(execution.trigger.parameters[paramKey]) };
-        });
-    }
 
     this.state = {
       sortFilter: ExecutionState.filterModel.asFilterModel.sortFilter,
-      parameters,
-      timestamp: relativeTime(this.props.execution.startTime),
+      timestamp: relativeTime(execution.startTime),
     };
   }
 
@@ -100,15 +82,9 @@ export class ExecutionStatus extends React.Component<IExecutionStatusProps, IExe
     return null;
   }
 
-  private toggleDetails = (): void => {
-    ReactGA.event({ category: 'Pipeline', action: 'Execution details toggled (Details link)' });
-    this.props.toggleDetails();
-  };
-
   public render() {
-    const { execution, showingDetails, standalone } = this.props;
+    const { execution } = this.props;
     const { trigger, authentication } = execution;
-    const { artifacts, resolvedExpectedArtifacts } = trigger;
     const TriggerExecutionStatus = this.getTriggerExecutionStatus();
     return (
       <div className="execution-status-section">
@@ -129,23 +105,7 @@ export class ExecutionStatus extends React.Component<IExecutionStatusProps, IExe
               {this.state.timestamp}
             </HoverablePopover>
           </li>
-          {this.state.parameters.map(p => (
-            <li key={p.key} className="break-word">
-              <span className="parameter-key">{p.key}</span>: {p.value}
-            </li>
-          ))}
         </ul>
-        {SETTINGS.feature.artifacts && (
-          <ResolvedArtifactList artifacts={artifacts} resolvedExpectedArtifacts={resolvedExpectedArtifacts} />
-        )}
-        {!standalone && (
-          <a className="clickable" onClick={this.toggleDetails}>
-            <span
-              className={`small glyphicon ${showingDetails ? 'glyphicon-chevron-down' : 'glyphicon-chevron-right'}`}
-            />
-            Details
-          </a>
-        )}
       </div>
     );
   }
