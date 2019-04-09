@@ -21,7 +21,7 @@ import com.netflix.spinnaker.orca.clouddriver.FeaturesService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.AbstractDeployStrategyStage
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.instance.WaitForUpInstancesTask
-import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.clone.CloneServerGroupTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.CloneServerGroupTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.AddServerGroupEntityTagsTask
 import com.netflix.spinnaker.orca.pipeline.TaskNode

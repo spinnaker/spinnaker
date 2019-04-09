@@ -20,7 +20,6 @@ import com.fasterxml.jackson.datatype.guava.GuavaModule
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.clone.BakeryImageAccessDescriptionDecorator
-import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.clone.CloneServerGroupTask
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.test.model.ExecutionBuilder
