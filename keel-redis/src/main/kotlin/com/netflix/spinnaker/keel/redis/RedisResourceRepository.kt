@@ -99,7 +99,7 @@ class RedisResourceRepository(
         ?: throw NoSuchResourceUID(uid)
     }
 
-  override fun stateHistory(uid: UID): List<ResourceStateHistoryEntry> =
+  override fun eventHistory(uid: UID): List<ResourceStateHistoryEntry> =
     redisClient.withCommandsClient<List<ResourceStateHistoryEntry>> { redis: JedisCommands ->
       redis.lrange(uid.stateKey, 0, -1)
         .also { if (it.isEmpty()) throw NoSuchResourceUID(uid) }

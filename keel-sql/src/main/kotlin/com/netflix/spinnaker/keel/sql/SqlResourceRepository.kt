@@ -166,7 +166,7 @@ class SqlResourceRepository(
         }
       }
 
-  override fun stateHistory(uid: UID): List<ResourceStateHistoryEntry> =
+  override fun eventHistory(uid: UID): List<ResourceStateHistoryEntry> =
     jooq
       .select(
         field("state"),
@@ -270,7 +270,7 @@ class SqlResourceRepository(
     objectMapper.readValue(getString("spec"), type)
 
   private val ResultSet.state: ResourceState
-    get() = getString("state").let { valueOf(it) }
+    get() = getString("state").let(ResourceState::valueOf)
   private val ResultSet.timestamp: Instant
     get() = getTimestamp("timestamp").toInstant()
 

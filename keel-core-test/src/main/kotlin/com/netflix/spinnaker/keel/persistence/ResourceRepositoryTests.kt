@@ -184,7 +184,7 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
         }
 
         test("the new state is included in the history") {
-          expectThat(subject.stateHistory(resource.metadata.uid))
+          expectThat(subject.eventHistory(resource.metadata.uid))
             .hasSize(2)
             .map { it.state }
             .containsExactly(Ok, Unknown)
@@ -203,7 +203,7 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
           }
 
           test("the new state is included in the history") {
-            expectThat(subject.stateHistory(resource.metadata.uid))
+            expectThat(subject.eventHistory(resource.metadata.uid))
               .hasSize(3)
               .map { it.state }
               .containsExactly(Diff, Ok, Unknown)
@@ -217,7 +217,7 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
           }
 
           test("the new state is not added to the history") {
-            expectThat(subject.stateHistory(resource.metadata.uid))
+            expectThat(subject.eventHistory(resource.metadata.uid))
               .hasSize(2)
               .map { it.state }
               .containsExactly(Ok, Unknown)
@@ -239,7 +239,7 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
           }
 
           test("the history shows the reversion to unknown state") {
-            expectThat(subject.stateHistory(resource.metadata.uid))
+            expectThat(subject.eventHistory(resource.metadata.uid))
               .hasSize(3)
               .map { it.state }
               .containsExactly(Unknown, Ok, Unknown)

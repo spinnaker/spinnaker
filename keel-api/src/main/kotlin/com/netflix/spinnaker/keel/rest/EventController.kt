@@ -35,7 +35,7 @@ class EventController(
     log.debug("Getting state history for: $name")
     return resourceRepository.get(name, Any::class.java).let { resource ->
       resourceRepository
-        .stateHistory(resource.metadata.uid)
+        .eventHistory(resource.metadata.uid)
         .filter { it.timestamp > since }
     }
   }

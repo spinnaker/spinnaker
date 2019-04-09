@@ -78,9 +78,9 @@ interface ResourceRepository {
   fun lastKnownState(uid: UID): ResourceStateHistoryEntry
 
   /**
-   * Retrieves the state history of the resource represented by [uid].
+   * Retrieves the history of state change events for the resource represented by [uid].
    */
-  fun stateHistory(uid: UID): List<ResourceStateHistoryEntry>
+  fun eventHistory(uid: UID): List<ResourceStateHistoryEntry>
 
   /**
    * Updates the last known state of the resource represented by [uid].
