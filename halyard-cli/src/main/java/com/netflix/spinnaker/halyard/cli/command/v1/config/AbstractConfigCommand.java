@@ -18,8 +18,9 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.netflix.spinnaker.fiat.model.Authorization;
+import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import com.netflix.spinnaker.halyard.cli.command.v1.GlobalConfigOptions;
-import com.netflix.spinnaker.halyard.cli.command.v1.GlobalOptions;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
@@ -90,6 +91,23 @@ abstract public class AbstractConfigCommand extends NestableCommand {
 
       return old;
     }
+  }
+
+  protected static void updatePermissions(Permissions.Builder permissions,
+                                          List<String> readPermissions,
+                                          String addReadPermission,
+                                          String removeReadPermission,
+                                          List<String> writePermissions,
+                                          String addWritePermission,
+                                          String removeWritePermission) {
+    List<String> resolvedReadPermissions = updateStringList(
+        permissions.get(Authorization.READ), readPermissions, addReadPermission, removeReadPermission);
+    List<String> resolvedWritePermissions = updateStringList(
+        permissions.get(Authorization.WRITE), writePermissions, addWritePermission, removeWritePermission);
+
+    permissions.clear();
+    permissions.add(Authorization.READ, resolvedReadPermissions);
+    permissions.add(Authorization.WRITE, resolvedWritePermissions);
   }
 
   protected static boolean isSet(Object o) {

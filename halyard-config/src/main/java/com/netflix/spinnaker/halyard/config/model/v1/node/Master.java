@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.node;
 
+import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -23,6 +24,7 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = false)
 public abstract class Master extends Node implements Cloneable {
   String name;
+  Permissions.Builder permissions = new Permissions.Builder();
 
   @Override
   public String getNodeName() {

@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.halyard.cli.command.v1.config.ci.master;
 
+import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
@@ -27,6 +28,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Parameters(separators = "=")
@@ -36,6 +38,44 @@ public abstract class AbstractEditMasterCommand<T extends Master> extends Abstra
 
   @Getter(AccessLevel.PUBLIC)
   private String commandName = "edit";
+
+  @Parameter(
+      names = "--add-read-permission",
+      description = "Add this permission to the list of read permissions."
+  )
+  private String addReadPermission;
+
+  @Parameter(
+      names = "--remove-read-permission",
+      description = "Remove this permission from the list of read permissions."
+  )
+  private String removeReadPermission;
+
+  @Parameter(
+      variableArity = true,
+      names = "--read-permissions",
+      description = MasterCommandProperties.READ_PERMISSION_DESCRIPTION
+  )
+  private List<String> readPermissions;
+
+  @Parameter(
+      names = "--add-write-permission",
+      description = "Add this permission to the list of write permissions."
+  )
+  private String addWritePermission;
+
+  @Parameter(
+      names = "--remove-write-permission",
+      description = "Remove this permission from the list of write permissions."
+  )
+  private String removeWritePermission;
+
+  @Parameter(
+      variableArity = true,
+      names = "--write-permissions",
+      description = MasterCommandProperties.WRITE_PERMISSION_DESCRIPTION
+  )
+  private List<String> writePermissions;
 
   protected abstract Master editMaster(T master);
 
@@ -57,6 +97,9 @@ public abstract class AbstractEditMasterCommand<T extends Master> extends Abstra
     int originalHash = master.hashCode();
 
     master = editMaster((T) master);
+
+    updatePermissions(master.getPermissions(), readPermissions, addReadPermission, removeReadPermission,
+        writePermissions, addWritePermission, removeWritePermission);
 
     if (originalHash == master.hashCode()) {
       AnsiUi.failure("No changes supplied.");
