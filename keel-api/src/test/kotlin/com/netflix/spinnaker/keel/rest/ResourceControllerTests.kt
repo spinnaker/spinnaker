@@ -20,7 +20,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
+import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK
 import org.springframework.http.MediaType
 import org.springframework.http.MediaType.APPLICATION_JSON
 import org.springframework.mock.web.MockHttpServletResponse
@@ -43,7 +43,7 @@ import strikt.assertions.isNotNull
     "orca.baseUrl=https://localhost:8082",
     "front50.baseUrl=https://localhost:8083"
   ],
-  webEnvironment = RANDOM_PORT
+  webEnvironment = MOCK
 )
 @AutoConfigureMockMvc
 internal class ResourceControllerTests {
