@@ -3,6 +3,7 @@ import { module } from 'angular';
 import { CloudProviderRegistry, STAGE_ARTIFACT_SELECTOR_COMPONENT_REACT, YAML_EDITOR_COMPONENT } from '@spinnaker/core';
 
 import '../logo/kubernetes.logo.less';
+
 import { KUBERNETES_MANIFEST_BASIC_SETTINGS } from './manifest/wizard/basicSettings.component';
 import { KUBERNETES_MANIFEST_DELETE_CTRL } from './manifest/delete/delete.controller';
 import { KUBERNETES_MANIFEST_SCALE_CTRL } from './manifest/scale/scale.controller';
@@ -41,6 +42,8 @@ import { JSON_EDITOR_COMPONENT } from './manifest/editor/json/jsonEditor.compone
 import { ManifestWizard } from 'kubernetes/v2/manifest/wizard/ManifestWizard';
 import { KUBERNETES_ENABLE_MANIFEST_STAGE } from 'kubernetes/v2/pipelines/stages/traffic/enableManifest.stage';
 import { KUBERNETES_DISABLE_MANIFEST_STAGE } from 'kubernetes/v2/pipelines/stages/traffic/disableManifest.stage';
+import { KUBERNETES_V2_RUN_JOB_STAGE } from 'kubernetes/v2/pipelines/stages/runJob/runJobStage';
+
 import './pipelines/validation/manifestSelector.validator';
 
 // load all templates into the $templateCache
@@ -93,6 +96,7 @@ module(KUBERNETES_V2_MODULE, [
   KUBERNETES_ENABLE_MANIFEST_STAGE,
   KUBERNETES_DISABLE_MANIFEST_STAGE,
   STAGE_ARTIFACT_SELECTOR_COMPONENT_REACT,
+  KUBERNETES_V2_RUN_JOB_STAGE,
 ]).config(() => {
   CloudProviderRegistry.registerProvider('kubernetes', {
     name: 'Kubernetes',
