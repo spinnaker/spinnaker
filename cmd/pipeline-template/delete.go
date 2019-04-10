@@ -24,6 +24,7 @@ import (
 
 type DeleteOptions struct {
 	*pipelineTemplateOptions
+	tag string
 }
 
 var (
@@ -32,17 +33,27 @@ var (
 )
 
 func NewDeleteCmd(pipelineTemplateOptions pipelineTemplateOptions) *cobra.Command {
+	options := DeleteOptions{
+		pipelineTemplateOptions: &pipelineTemplateOptions,
+	}
+
 	cmd := &cobra.Command{
 		Use:     "delete",
 		Aliases: []string{"del"},
 		Short:   deletePipelineTemplateShort,
 		Long:    deletePipelineTemplateLong,
-		RunE: deletePipelineTemplate,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return deletePipelineTemplate(cmd, options, args)
+		},
 	}
+
+	cmd.PersistentFlags().StringVar(&options.tag, "tag", "",
+		"(optional) specific tag to query")
+
 	return cmd
 }
 
-func deletePipelineTemplate(cmd *cobra.Command, args []string) error {
+func deletePipelineTemplate(cmd *cobra.Command, options DeleteOptions, args []string) error {
 	gateClient, err := gateclient.NewGateClient(cmd.InheritedFlags())
 	if err != nil {
 		return err
@@ -53,7 +64,12 @@ func deletePipelineTemplate(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	_, resp, err := gateClient.V2PipelineTemplatesControllerApi.DeleteUsingDELETE1(gateClient.Context, id, nil)
+	queryParams := map[string]interface{}{}
+	if options.tag != "" {
+		queryParams["tag"] = options.tag
+	}
+
+	_, resp, err := gateClient.V2PipelineTemplatesControllerApi.DeleteUsingDELETE1(gateClient.Context, id, queryParams)
 
 	if err != nil {
 		return err

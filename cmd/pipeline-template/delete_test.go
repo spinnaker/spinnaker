@@ -43,6 +43,24 @@ func TestPipelineTemplateDelete_basic(t *testing.T) {
 	}
 }
 
+func TestPipelineTemplateDelete_tag(t *testing.T) {
+	ts := gateServerDeleteSuccess()
+	defer ts.Close()
+
+	args := []string{"pipeline-template", "delete", "myTemplate", "--tag", "stable", "--gate-endpoint", ts.URL}
+	currentCmd := NewDeleteCmd(pipelineTemplateOptions{})
+	rootCmd := getRootCmdForTest()
+	pipelineTemplateCmd := NewPipelineTemplateCmd(os.Stdout)
+	pipelineTemplateCmd.AddCommand(currentCmd)
+	rootCmd.AddCommand(pipelineTemplateCmd)
+
+	rootCmd.SetArgs(args)
+	err := rootCmd.Execute()
+	if err != nil {
+		t.Fatalf("Command failed with: %s", err)
+	}
+}
+
 func TestPipelineTemplateDelete_fail(t *testing.T) {
 	ts := GateServerFail()
 	defer ts.Close()
