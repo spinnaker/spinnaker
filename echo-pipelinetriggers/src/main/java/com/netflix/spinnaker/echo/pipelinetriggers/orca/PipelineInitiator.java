@@ -84,35 +84,40 @@ public class PipelineInitiator {
 
   public void startPipeline(Pipeline pipeline) {
     if (enabled) {
-      if (pipeline.getTrigger() != null &&
+      try {
+        if (pipeline.getTrigger() != null &&
           pipeline.isRespectQuietPeriod() &&
           quietPeriodIndicator.inQuietPeriod(System.currentTimeMillis(), pipeline.getTrigger().getType())) {
-        log.info("Would trigger {} due to {} but pipeline is set to ignore automatic triggers during quiet periods", pipeline, pipeline.getTrigger());
-      } else {
-        log.info("Triggering {} due to {}", pipeline, pipeline.getTrigger());
+          log.info("Would trigger {} due to {} but pipeline is set to ignore automatic triggers during quiet periods", pipeline, pipeline.getTrigger());
+        } else {
+          log.info("Triggering {} due to {}", pipeline, pipeline.getTrigger());
 
-        final String templatedPipelineType = "templatedPipeline";
-        if (templatedPipelineType.equals(pipeline.getType())) { // TODO(jacobkiefer): Constantize.
-          // We need to store and re-set the propagateAuth flag, as it is ignored on deserialization
-          // TODO(ezimanyi): Find a better way to pass the propagateAuth flag than on the trigger itself
-          boolean propagateAuth = pipeline.getTrigger() != null && pipeline.getTrigger().isPropagateAuth();
-          log.debug("Planning templated pipeline {} before triggering", pipeline.getId());
-          pipeline = pipeline.withPlan(true);
-          Map resolvedPipelineMap = orca.plan(objectMapper.convertValue(pipeline, Map.class), true);
-          pipeline = objectMapper.convertValue(resolvedPipelineMap, Pipeline.class);
-          if (propagateAuth) {
-            pipeline = pipeline.withTrigger(pipeline.getTrigger().atPropagateAuth(true));
+          final String templatedPipelineType = "templatedPipeline";
+          if (templatedPipelineType.equals(pipeline.getType())) { // TODO(jacobkiefer): Constantize.
+            // We need to store and re-set the propagateAuth flag, as it is ignored on deserialization
+            // TODO(ezimanyi): Find a better way to pass the propagateAuth flag than on the trigger itself
+            boolean propagateAuth = pipeline.getTrigger() != null && pipeline.getTrigger().isPropagateAuth();
+            log.debug("Planning templated pipeline {} before triggering", pipeline.getId());
+            pipeline = pipeline.withPlan(true);
+            Map resolvedPipelineMap = orca.plan(objectMapper.convertValue(pipeline, Map.class), true);
+            pipeline = objectMapper.convertValue(resolvedPipelineMap, Pipeline.class);
+            if (propagateAuth) {
+              pipeline = pipeline.withTrigger(pipeline.getTrigger().atPropagateAuth(true));
+            }
           }
+          triggerPipeline(pipeline);
+          registry.counter("orca.requests").increment();
         }
-        triggerPipeline(pipeline);
-        registry.counter("orca.requests").increment();
+      } catch (Exception e) {
+        registry.counter("orca.errors", "exception", e.getClass().getName()).increment();
+        log.error("Unable to trigger pipeline {}: {}", pipeline, e);
       }
     } else {
       log.info("Would trigger {} due to {} but triggering is disabled", pipeline, pipeline.getTrigger());
     }
   }
 
-  private void triggerPipeline(Pipeline pipeline) {
+  private void triggerPipeline(Pipeline pipeline) throws Exception {
     Observable<OrcaService.TriggerResponse> orcaResponse = createTriggerObservable(pipeline)
       .retryWhen(new RetryWithDelay(retryCount, retryDelayMillis))
       .doOnNext(this::onOrcaResponse)
@@ -128,12 +133,7 @@ public class PipelineInitiator {
       if (fiatStatus.isEnabled() && pipeline.getTrigger() != null) {
         korkUser.setEmail(pipeline.getTrigger().getRunAsUser());
       }
-      try {
-        AuthenticatedRequest.propagate(() -> orcaResponse.subscribe(), korkUser).call();
-      } catch (Exception e) {
-        registry.counter("orca.error", "exception", e.getClass().getName()).increment();
-        log.error("Unable to trigger pipeline {}: {}", pipeline, e);
-      }
+      AuthenticatedRequest.propagate(() -> orcaResponse.subscribe(), korkUser).call();
     }
   }
 
