@@ -89,6 +89,15 @@ public class PipelineTemplate extends HashMap<String, Object> implements Timesta
     return (updateTs != null) ? Long.valueOf(updateTs) : null;
   }
 
+  /**
+   * Removes and returns last modified time from the pipeline template.
+   * @return last modified time of the pipeline template.
+   */
+  public Long removeLastModified() {
+    String updateTs = (String) super.remove("updateTs");
+    return (updateTs != null) ? Long.valueOf(updateTs) : null;
+  }
+
   @Override
   public void setLastModified(Long lastModified) {
     super.put("updateTs", lastModified.toString());
@@ -97,6 +106,14 @@ public class PipelineTemplate extends HashMap<String, Object> implements Timesta
   @Override
   public String getLastModifiedBy() {
     return (String) super.get("lastModifiedBy");
+  }
+
+  /**
+   * Removes and returns user that last modified the pipeline template.
+   * @return user last modifying the pipeline template.
+   */
+  public String removeLastModifiedBy() {
+    return (String) super.remove("lastModifiedBy");
   }
 
   @Override

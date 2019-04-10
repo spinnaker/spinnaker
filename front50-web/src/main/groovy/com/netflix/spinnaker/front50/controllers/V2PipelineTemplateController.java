@@ -81,55 +81,38 @@ public class V2PipelineTemplateController {
       validatePipelineTemplateTag(tag);
     }
 
-    // NOTE: We need to store the tag in the template blob to resolve the proper id later.
     String templateId;
-    if (StringUtils.isNotEmpty(tag)) {
+    boolean nonEmptyTag = StringUtils.isNotEmpty(tag);
+    if (nonEmptyTag) {
       templateId = String.format("%s:%s", pipelineTemplate.undecoratedId(), tag);
+      // NOTE: We need to store the tag in the template blob to resolve the proper id later.
       pipelineTemplate.setTag(tag);
     } else {
       templateId = pipelineTemplate.undecoratedId();
     }
 
-    try {
-      checkForDuplicatePipelineTemplate(templateId);
-    } catch (DuplicateEntityException dee) {
-      log.debug("Updating latest tag for template with id: {}", templateId);
-      return;
-    }
+    checkForDuplicatePipelineTemplate(templateId);
     getPipelineTemplateDAO().create(templateId, pipelineTemplate);
+    saveLatest(pipelineTemplate, tag);
     saveDigest(pipelineTemplate);
-  }
-
-  public void saveDigest(PipelineTemplate pipelineTemplate) {
-    pipelineTemplate.remove("digest");
-    String digest = computeSHA256Digest(pipelineTemplate);
-    String digestId = String.format("%s@sha256:%s", pipelineTemplate.undecoratedId(), digest);
-    pipelineTemplate.setDigest(digest);
-    try {
-      checkForDuplicatePipelineTemplate(digestId);
-    } catch (DuplicateEntityException dee) {
-      log.debug("Duplicate pipeline digest calculated, not updating key {}", digestId);
-      return;
-    }
-    getPipelineTemplateDAO().create(digestId, pipelineTemplate);
   }
 
   @RequestMapping(value = "{id}", method = RequestMethod.PUT)
   PipelineTemplate update(@PathVariable String id, @RequestParam(value = "tag", required = false) String tag, @RequestBody PipelineTemplate pipelineTemplate) {
-    if (StringUtils.isNotEmpty(tag)) {
+    boolean nonEmptyTag = StringUtils.isNotEmpty(tag);
+    if (nonEmptyTag) {
       validatePipelineTemplateTag(tag);
     }
 
-    String templateId = StringUtils.isNotEmpty(tag) ? String.format("%s:%s", id, tag) : pipelineTemplate.undecoratedId();
+    String templateId = nonEmptyTag ? String.format("%s:%s", id, tag) : pipelineTemplate.undecoratedId();
+    pipelineTemplate.setTag(tag);
     pipelineTemplate.setLastModified(System.currentTimeMillis());
-    getPipelineTemplateDAO().update(templateId, pipelineTemplate);
-    updateDigest(pipelineTemplate);
-    return pipelineTemplate;
-  }
+    // TODO(jacobkiefer): setLastModifiedBy() user here for Fiat?
 
-  private void updateDigest(PipelineTemplate pipelineTemplate) {
-    String digestId = String.format("%s@sha256:%s", pipelineTemplate.undecoratedId(), computeSHA256Digest(pipelineTemplate));
-    getPipelineTemplateDAO().update(digestId, pipelineTemplate);
+    getPipelineTemplateDAO().update(templateId, pipelineTemplate);
+    saveLatest(pipelineTemplate, tag);
+    saveDigest(pipelineTemplate);
+    return pipelineTemplate;
   }
 
   @RequestMapping(value = "{id}", method = RequestMethod.GET)
@@ -262,6 +245,44 @@ public class V2PipelineTemplateController {
       return String.format("%s:%s", id, tag);
     } else {
       return id;
+    }
+  }
+
+  private void saveDigest(PipelineTemplate pipelineTemplate) {
+    // Clear front50 accounting information when computing digests.
+    pipelineTemplate.remove("digest");
+    String lastModifiedBy = pipelineTemplate.removeLastModifiedBy();
+    Long lastModified = pipelineTemplate.removeLastModified();
+
+    String digest = computeSHA256Digest(pipelineTemplate);
+    String digestId = String.format("%s@sha256:%s", pipelineTemplate.undecoratedId(), digest);
+    pipelineTemplate.setDigest(digest);
+    try {
+      checkForDuplicatePipelineTemplate(digestId);
+    } catch (DuplicateEntityException dee) {
+      log.debug("Duplicate pipeline digest calculated, not updating key {}", digestId);
+      return;
+    }
+
+    // Re-insert front50 last updated accounting info.
+    if (lastModified != null) {
+      pipelineTemplate.setLastModified(lastModified);
+    }
+    if (StringUtils.isNotEmpty(lastModifiedBy)) {
+      pipelineTemplate.setLastModifiedBy(lastModifiedBy);
+    }
+
+    getPipelineTemplateDAO().create(digestId, pipelineTemplate);
+  }
+
+  private void saveLatest(PipelineTemplate pipelineTemplate, String tag) {
+    boolean emptyTag = StringUtils.isEmpty(tag);
+    boolean nonLatestTag = !emptyTag && !tag.equals("latest");
+    if (emptyTag || nonLatestTag) {
+      String latestTemplateId = String.format("%s:latest", pipelineTemplate.undecoratedId());
+      pipelineTemplate.setTag("latest");
+      getPipelineTemplateDAO().update(latestTemplateId, pipelineTemplate);
+      log.debug("Wrote latest tag for template: {}", pipelineTemplate.undecoratedId());
     }
   }
 }
