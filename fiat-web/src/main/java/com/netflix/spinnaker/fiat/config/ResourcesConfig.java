@@ -65,10 +65,6 @@ public class ResourcesConfig {
   @Setter
   private String clouddriverEndpoint;
 
-  @Value("${services.igor.baseUrl}")
-  @Setter
-  private String igorEndpoint;
-
   @Bean
   Front50Api front50Api() {
     return new RestAdapter.Builder()
@@ -105,7 +101,7 @@ public class ResourcesConfig {
 
   @Bean
   @ConditionalOnProperty("services.igor.enabled")
-  IgorApi igorApi() {
+  IgorApi igorApi(@Value("${services.igor.enabled}") String igorEndpoint) {
     return new RestAdapter.Builder()
         .setEndpoint(Endpoints.newFixedEndpoint(igorEndpoint))
         .setClient(okClient)
