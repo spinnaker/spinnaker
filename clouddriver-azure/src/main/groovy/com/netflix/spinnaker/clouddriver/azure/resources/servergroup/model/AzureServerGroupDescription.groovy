@@ -67,6 +67,7 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription implements
   Boolean hasNewSubnet = false
   Boolean createNewSubnet = false
   AzureExtensionCustomScriptSettings customScriptsSettings
+  Boolean enableInboundNAT = false
 
   static class AzureScaleSetSku {
     String name
@@ -161,6 +162,7 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription implements
     azureSG.clusterName = scaleSet.tags?.cluster ?: parsedName.cluster
     azureSG.securityGroupName = scaleSet.tags?.securityGroupName
     azureSG.loadBalancerName = scaleSet.tags?.loadBalancerName
+    azureSG.enableInboundNAT = scaleSet.tags?.enableInboundNAT
     azureSG.appGatewayName = scaleSet.tags?.appGatewayName
     azureSG.appGatewayBapId = scaleSet.tags?.appGatewayBapId
     // TODO: appGatewayBapId can be retrieved via scaleSet->networkProfile->networkInterfaceConfigurations->ipConfigurations->ApplicationGatewayBackendAddressPools

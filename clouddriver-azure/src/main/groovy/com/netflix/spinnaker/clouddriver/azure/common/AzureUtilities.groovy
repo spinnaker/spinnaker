@@ -35,6 +35,7 @@ class AzureUtilities {
   static final String IPCONFIG_NAME_PREFIX = "ipc-"
   static final String NETWORK_INTERFACE_PREFIX = "nic-"
   static final Pattern IPV4_PREFIX_REGEX = ~/^(?<addr3>\d+)\.(?<addr2>\d+)\.(?<addr1>\d+)\.(?<addr0>\d+)\/(?<length>\d+)$/
+  static final String LB_NAME_PREFIX = "lb-"
   static final String INBOUND_NATPOOL_PREFIX = "np-"
   static final String VNET_DEFAULT_ADDRESS_PREFIX = "10.0.0.0/8"
   static final int SUBNET_DEFAULT_ADDRESS_PREFIX_LENGTH = 24
