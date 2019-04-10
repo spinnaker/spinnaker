@@ -20,6 +20,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.description
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifestAnnotater
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifestTraffic
 import com.netflix.spinnaker.moniker.Moniker
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -80,5 +81,61 @@ class KubernetesManifestAnnotatorSpec extends Specification {
     "c"     | "a"
     ""      | "a"
 
+  }
+
+  void "setTraffic correctly sets traffic on a manifest without traffic defined"() {
+    given:
+    def manifest = freshManifest()
+    def traffic = new KubernetesManifestTraffic(["service my-service"])
+
+    when:
+    KubernetesManifestAnnotater.setTraffic(manifest, traffic)
+
+    then:
+    KubernetesManifestAnnotater.getTraffic(manifest) == traffic
+  }
+
+  void "setTraffic is a no-op if the new traffic is equal to the existing traffic"() {
+    given:
+    def manifest
+    def traffic = new KubernetesManifestTraffic(loadBalancers)
+
+    when:
+    manifest = freshManifest()
+    KubernetesManifestAnnotater.setTraffic(manifest, traffic)
+    KubernetesManifestAnnotater.setTraffic(manifest, traffic)
+
+    then:
+    KubernetesManifestAnnotater.getTraffic(manifest) == traffic
+
+    where:
+    loadBalancers << [
+      [],
+      ["service my-service"],
+      ["service my-service", "service my-other-service"]
+    ]
+  }
+
+  void "setTraffic fails if the new traffic is not equal to the existing traffic"() {
+    given:
+    def manifest
+    def existingTraffic = new KubernetesManifestTraffic(existingLoadBalancers)
+    def newTraffic = new KubernetesManifestTraffic(newLoadBalancers)
+
+    when:
+    manifest = freshManifest()
+    KubernetesManifestAnnotater.setTraffic(manifest, existingTraffic)
+    KubernetesManifestAnnotater.setTraffic(manifest, newTraffic)
+
+    then:
+    thrown(Exception)
+
+    where:
+    existingLoadBalancers                              | newLoadBalancers
+    []                                                 | ["service my-service"]
+    ["service my-service"]                             | []
+    ["service my-service"]                             | ["service my-other-service"]
+    ["service my-service"]                             | ["service my-service", "service my-other-service"]
+    ["service my-service", "service my-other-service"] | ["service my-other-service", "service my-service"]
   }
 }

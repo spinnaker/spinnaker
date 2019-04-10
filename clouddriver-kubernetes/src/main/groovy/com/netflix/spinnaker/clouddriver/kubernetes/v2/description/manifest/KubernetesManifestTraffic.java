@@ -17,16 +17,14 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
 import java.util.List;
 
-@Data
-@Builder
 @AllArgsConstructor
-@NoArgsConstructor
+@EqualsAndHashCode
+@Getter
 public class KubernetesManifestTraffic {
-  List<String> loadBalancers;
+  private List<String> loadBalancers;
 }

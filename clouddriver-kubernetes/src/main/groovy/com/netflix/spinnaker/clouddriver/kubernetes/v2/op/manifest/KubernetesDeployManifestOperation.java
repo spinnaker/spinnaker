@@ -24,13 +24,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactReplacer
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.KubernetesArtifactConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourceProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesDeployManifestDescription;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifestAnnotater;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifestStrategy;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifestTraffic;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesSourceCapacity;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.*;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.OperationResult;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.CanLoadBalance;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.CanScale;
@@ -46,13 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -146,7 +134,6 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
     for (KubernetesManifest manifest : deployManifests) {
       KubernetesResourceProperties properties = findResourceProperties(manifest);
       KubernetesManifestStrategy strategy = KubernetesManifestAnnotater.getStrategy(manifest);
-      KubernetesManifestTraffic traffic = KubernetesManifestAnnotater.getTraffic(manifest);
       boolean versioned = isVersioned(properties, strategy);
       boolean useSourceCapacity = isUseSourceCapacity(strategy);
       boolean recreate = isRecreate(strategy);
@@ -173,15 +160,19 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
       getTask().updateStatus(OP_NAME, "Annotating manifest " + manifest.getFullResourceName() + " with artifact, relationships & moniker...");
       KubernetesManifestAnnotater.annotateManifest(manifest, artifact);
 
-      if (useSourceCapacity && deployer instanceof CanScale) { 
+      if (useSourceCapacity && deployer instanceof CanScale) {
         Double replicas = KubernetesSourceCapacity.getSourceCapacity(manifest, credentials);
         if (replicas != null) {
           manifest.setReplicas(replicas);
-        } 
+        }
       }
 
-      applyTraffic(traffic, manifest);
- 
+      setTrafficAnnotation(description.getServices(), manifest);
+      if (description.isEnableTraffic()) {
+        KubernetesManifestTraffic traffic = KubernetesManifestAnnotater.getTraffic(manifest);
+        applyTraffic(traffic, manifest);
+      }
+
       namer.applyMoniker(manifest, moniker);
       manifest.setName(converter.getDeployedName(artifact));
 
@@ -202,6 +193,14 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
 
     getTask().updateStatus(OP_NAME, "Deploy manifest task completed successfully.");
     return result;
+  }
+
+  private void setTrafficAnnotation(List<String> services, KubernetesManifest manifest) {
+    if (services == null || services.isEmpty()) {
+      return;
+    }
+    KubernetesManifestTraffic traffic = new KubernetesManifestTraffic(services);
+    KubernetesManifestAnnotater.setTraffic(manifest, traffic);
   }
 
   private void applyTraffic(KubernetesManifestTraffic traffic, KubernetesManifest target) {
