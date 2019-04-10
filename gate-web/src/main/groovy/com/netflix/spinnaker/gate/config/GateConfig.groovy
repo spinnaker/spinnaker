@@ -26,6 +26,7 @@ import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.fiat.shared.FiatService
 import com.netflix.spinnaker.fiat.shared.FiatStatus
 import com.netflix.spinnaker.filters.AuthenticatedRequestFilter
+import com.netflix.spinnaker.gate.config.PostConnectionConfiguringJedisConnectionFactory.ConnectionPostProcessor
 import com.netflix.spinnaker.gate.filters.CorsFilter
 import com.netflix.spinnaker.gate.filters.GateOriginValidator
 import com.netflix.spinnaker.gate.filters.OriginValidator
@@ -62,7 +63,6 @@ import org.springframework.boot.web.servlet.FilterRegistrationBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.Ordered
-import org.springframework.data.redis.connection.jedis.JedisConnectionFactory
 import org.springframework.security.web.context.AbstractSecurityWebApplicationInitializer
 import org.springframework.session.data.redis.config.ConfigureRedisAction
 import org.springframework.session.data.redis.config.annotation.web.http.RedisHttpSessionConfiguration
@@ -103,20 +103,10 @@ class GateConfig extends RedisHttpSessionConfiguration {
   @Autowired
   RequestInterceptor spinnakerRequestInterceptor
 
-  @Bean
-  JedisConnectionFactory jedisConnectionFactory(
-    @Value('${redis.connection:redis://localhost:6379}') String connection
-  ) {
-    URI redis = URI.create(connection)
-    def factory = new JedisConnectionFactory()
-    factory.hostName = redis.host
-    factory.port = redis.port
-    if (redis.userInfo) {
-      factory.password = redis.userInfo.split(":", 2)[1]
-    }
-    factory
-  }
-
+  /**
+   * This pool is used for the rate limit storage, as opposed to the JedisConnectionFactory, which
+   * is a separate pool used for Spring Boot's session management.
+   */
   @Bean
   JedisPool jedis(@Value('${redis.connection:redis://localhost:6379}') String connection,
                   @Value('${redis.timeout:2000}') int timeout) {
@@ -129,9 +119,20 @@ class GateConfig extends RedisHttpSessionConfiguration {
     new RestTemplate()
   }
 
+  /**
+   * Always disable the ConfigureRedisAction that Spring Boot uses internally. Instead we use one
+   * qualified with @ConnectionPostProcessor. See
+   * {@link PostConnectionConfiguringJedisConnectionFactory}.
+   * */
   @Bean
+  ConfigureRedisAction springBootConfigureRedisAction() {
+    return ConfigureRedisAction.NO_OP
+  }
+
+  @Bean
+  @ConnectionPostProcessor
   @ConditionalOnProperty("redis.configuration.secure")
-  ConfigureRedisAction configureRedisAction() {
+  ConfigureRedisAction connectionPostProcessorConfigureRedisAction() {
     return ConfigureRedisAction.NO_OP
   }
 
