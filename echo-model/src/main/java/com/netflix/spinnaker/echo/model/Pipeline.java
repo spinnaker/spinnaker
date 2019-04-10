@@ -100,5 +100,13 @@ public class Pipeline {
 
   @JsonPOJOBuilder(withPrefix = "")
   public static final class PipelineBuilder {
+    @JsonProperty("config")
+    private void unpackConfig(Map<String, Object> config) {
+      if (config == null) {
+        return;
+      }
+      this.config = config;
+      schema = (String) config.get("schema");
+    }
   }
 }
