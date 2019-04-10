@@ -73,6 +73,24 @@ func TestPipelineGet_args(t *testing.T) {
 	}
 }
 
+func TestPipelineGet_tag(t *testing.T) {
+	ts := testGatePipelineTemplateGetSuccess()
+	defer ts.Close()
+	currentCmd := NewGetCmd(pipelineTemplateOptions{})
+	rootCmd := getRootCmdForTest()
+	pipelineTemplateCmd := NewPipelineTemplateCmd(os.Stdout)
+	pipelineTemplateCmd.AddCommand(currentCmd)
+	rootCmd.AddCommand(pipelineTemplateCmd)
+
+	args := []string{"pipeline-template", "get", "newSpelTemplate", "--tag", "stable", "--gate-endpoint", ts.URL}
+	rootCmd.SetArgs(args)
+
+	err := rootCmd.Execute()
+	if err != nil {
+		t.Fatalf("Command failed with: %s", err)
+	}
+}
+
 func TestPipelineGet_flags(t *testing.T) {
 	ts := testGatePipelineTemplateGetSuccess()
 	defer ts.Close()

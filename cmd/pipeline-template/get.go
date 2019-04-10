@@ -26,6 +26,7 @@ import (
 type GetOptions struct {
 	*pipelineTemplateOptions
 	id string
+	tag string
 }
 
 var (
@@ -47,6 +48,8 @@ func NewGetCmd(pipelineTemplateOptions pipelineTemplateOptions) *cobra.Command {
 	}
 
 	cmd.PersistentFlags().StringVar(&options.id, "id", "", "id of the pipeline template")
+	cmd.PersistentFlags().StringVar(&options.tag, "tag", "",
+		"(optional) specific tag to query")
 
 	return cmd
 }
@@ -68,8 +71,13 @@ func getPipelineTemplate(cmd *cobra.Command, options GetOptions, args []string) 
 		}
 	}
 
+	queryParams := map[string]interface{}{}
+	if options.tag != "" {
+		queryParams["tag"] = options.tag
+	}
+
 	successPayload, resp, err := gateClient.V2PipelineTemplatesControllerApi.GetUsingGET2(gateClient.Context,
-		options.id, map[string]interface{}{})
+		id, queryParams)
 
 	if err != nil {
 		return err
@@ -77,7 +85,7 @@ func getPipelineTemplate(cmd *cobra.Command, options GetOptions, args []string) 
 
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("Encountered an error getting pipeline template with id %s, status code: %d\n",
-			options.id,
+			id,
 			resp.StatusCode)
 	}
 
