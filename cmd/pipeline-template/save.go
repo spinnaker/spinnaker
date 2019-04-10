@@ -25,12 +25,13 @@ import (
 type SaveOptions struct {
 	*pipelineTemplateOptions
 	output       string
-	pipelineFile string
+	templateFile string
+	tag string
 }
 
 var (
-	savePipelineShort   = "Save the provided pipeline"
-	savePipelineLong    = "Save the provided pipeline"
+	saveTemplateShort   = "Save the provided pipeline template"
+	saveTemplateLong    = "Save the provided pipeline template"
 )
 
 func NewSaveCmd(pipelineTemplateOptions pipelineTemplateOptions) *cobra.Command {
@@ -40,14 +41,17 @@ func NewSaveCmd(pipelineTemplateOptions pipelineTemplateOptions) *cobra.Command 
 	cmd := &cobra.Command{
 		Use:     "save",
 		Aliases: []string{},
-		Short:   savePipelineShort,
-		Long:    savePipelineLong,
+		Short:   saveTemplateShort,
+		Long:    saveTemplateLong,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return savePipelineTemplate(cmd, options)
 		},
 	}
 
-	cmd.PersistentFlags().StringVarP(&options.pipelineFile, "file", "f", "", "path to the pipeline template file")
+	cmd.PersistentFlags().StringVarP(&options.templateFile, "file",
+		"f", "", "path to the pipeline template file")
+	cmd.PersistentFlags().StringVar(&options.tag, "tag", "",
+		"(optional) specific tag to tag pipeline template with")
 
 	return cmd
 }
@@ -58,7 +62,7 @@ func savePipelineTemplate(cmd *cobra.Command, options SaveOptions) error {
 		return err
 	}
 
-	templateJson, err := util.ParseJsonFromFileOrStdin(options.pipelineFile, false)
+	templateJson, err := util.ParseJsonFromFileOrStdin(options.templateFile, false)
 	if err != nil {
 		return err
 	}
@@ -78,14 +82,19 @@ func savePipelineTemplate(cmd *cobra.Command, options SaveOptions) error {
 
 	templateId := templateJson["id"].(string)
 
-	_, resp, queryErr := gateClient.V2PipelineTemplatesControllerApi.GetUsingGET2(gateClient.Context, templateId, map[string]interface{}{})
+	queryParams := map[string]interface{}{}
+	if options.tag != "" {
+		queryParams["tag"] = options.tag
+	}
+
+	_, resp, queryErr := gateClient.V2PipelineTemplatesControllerApi.GetUsingGET2(gateClient.Context, templateId, queryParams)
 
 	var saveResp *http.Response
 	var saveErr error
 	if resp.StatusCode == http.StatusOK {
-		saveResp, saveErr = gateClient.V2PipelineTemplatesControllerApi.UpdateUsingPOST1(gateClient.Context, templateId, templateJson, nil)
+		saveResp, saveErr = gateClient.V2PipelineTemplatesControllerApi.UpdateUsingPOST1(gateClient.Context, templateId, templateJson, queryParams)
 	} else if resp.StatusCode == http.StatusNotFound {
-		saveResp, saveErr = gateClient.V2PipelineTemplatesControllerApi.CreateUsingPOST1(gateClient.Context, templateJson, map[string]interface{}{})
+		saveResp, saveErr = gateClient.V2PipelineTemplatesControllerApi.CreateUsingPOST1(gateClient.Context, templateJson, queryParams)
 	} else {
 		if queryErr != nil {
       return queryErr

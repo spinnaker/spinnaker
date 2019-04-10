@@ -47,6 +47,30 @@ func TestPipelineTemplateSave_create(t *testing.T) {
 	}
 }
 
+func TestPipelineTemplateSave_createtag(t *testing.T) {
+	ts := gateServerCreateSuccess()
+	defer ts.Close()
+
+	tempFile := tempPipelineTemplateFile(testPipelineTemplateJsonStr)
+	if tempFile == nil {
+		t.Fatal("Could not create temp pipeline template file.")
+	}
+	defer os.Remove(tempFile.Name())
+	args := []string{"pipeline-template", "save", "--file", tempFile.Name(), "--tag", "stable", "--gate-endpoint", ts.URL}
+
+	currentCmd := NewSaveCmd(pipelineTemplateOptions{})
+	rootCmd := getRootCmdForTest()
+	pipelineTemplateCmd := NewPipelineTemplateCmd(os.Stdout)
+	pipelineTemplateCmd.AddCommand(currentCmd)
+	rootCmd.AddCommand(pipelineTemplateCmd)
+
+	rootCmd.SetArgs(args)
+	err := rootCmd.Execute()
+	if err != nil {
+		t.Fatalf("Command failed with: %s", err)
+	}
+}
+
 func TestPipelineTemplateSave_update(t *testing.T) {
 	ts := gateServerUpdateSuccess()
 	defer ts.Close()
@@ -57,6 +81,30 @@ func TestPipelineTemplateSave_update(t *testing.T) {
 	}
 	defer os.Remove(tempFile.Name())
 	args := []string{"pipeline-template", "save", "--file", tempFile.Name(), "--gate-endpoint", ts.URL}
+
+	currentCmd := NewSaveCmd(pipelineTemplateOptions{})
+	rootCmd := getRootCmdForTest()
+	pipelineTemplateCmd := NewPipelineTemplateCmd(os.Stdout)
+	pipelineTemplateCmd.AddCommand(currentCmd)
+	rootCmd.AddCommand(pipelineTemplateCmd)
+
+	rootCmd.SetArgs(args)
+	err := rootCmd.Execute()
+	if err != nil {
+		t.Fatalf("Command failed with: %s", err)
+	}
+}
+
+func TestPipelineTemplateSave_updatetag(t *testing.T) {
+	ts := gateServerUpdateSuccess()
+	defer ts.Close()
+
+	tempFile := tempPipelineTemplateFile(testPipelineTemplateJsonStr)
+	if tempFile == nil {
+		t.Fatal("Could not create temp pipeline template file.")
+	}
+	defer os.Remove(tempFile.Name())
+	args := []string{"pipeline-template", "save", "--file", tempFile.Name(), "--tag", "stable", "--gate-endpoint", ts.URL}
 
 	currentCmd := NewSaveCmd(pipelineTemplateOptions{})
 	rootCmd := getRootCmdForTest()
