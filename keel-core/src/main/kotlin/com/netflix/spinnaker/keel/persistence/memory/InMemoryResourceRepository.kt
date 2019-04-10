@@ -76,7 +76,7 @@ class InMemoryResourceRepository(
       }
   }
 
-  override fun lastKnownState(uid: UID): ResourceStateHistoryEntry =
+  fun lastKnownState(uid: UID): ResourceStateHistoryEntry =
     states[uid]?.first() ?: throw NoSuchResourceUID(uid)
 
   override fun eventHistory(uid: UID): List<ResourceStateHistoryEntry> =

@@ -72,15 +72,9 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
         verify { callback wasNot Called }
       }
 
-      test("getting latest state throws an exception") {
-        expectThrows<NoSuchResourceUID> {
-          subject.lastKnownState(randomUID())
-        }
-      }
-
       test("getting state history throws an exception") {
         expectThrows<NoSuchResourceUID> {
-          subject.lastKnownState(randomUID())
+          subject.eventHistory(randomUID())
         }
       }
     }
@@ -118,12 +112,6 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
       test("it can be retrieved by uid") {
         val retrieved = subject.get<Map<String, Any>>(resource.metadata.uid)
         expectThat(retrieved).isEqualTo(resource)
-      }
-
-      test("its state is unknown") {
-        expectThat(subject.lastKnownState(resource.metadata.uid))
-          .get { state }
-          .isEqualTo(Unknown)
       }
 
       context("storing another resource with a different name") {
@@ -177,12 +165,6 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
           subject.updateState(resource.metadata.uid, Ok)
         }
 
-        test("it reports the new state") {
-          expectThat(subject.lastKnownState(resource.metadata.uid))
-            .get { state }
-            .isEqualTo(Ok)
-        }
-
         test("the new state is included in the history") {
           expectThat(subject.eventHistory(resource.metadata.uid))
             .hasSize(2)
@@ -194,12 +176,6 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
           before {
             clock.incrementBy(ONE_SECOND)
             subject.updateState(resource.metadata.uid, Diff)
-          }
-
-          test("it reports the newest state") {
-            expectThat(subject.lastKnownState(resource.metadata.uid))
-              .get { state }
-              .isEqualTo(Diff)
           }
 
           test("the new state is included in the history") {
@@ -230,12 +206,6 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
             subject.store(resource.copy(
               spec = randomData()
             ))
-          }
-
-          test("its state becomes unknown again") {
-            expectThat(subject.lastKnownState(resource.metadata.uid))
-              .get { state }
-              .isEqualTo(Unknown)
           }
 
           test("the history shows the reversion to unknown state") {

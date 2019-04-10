@@ -145,26 +145,6 @@ class SqlResourceRepository(
     }
   }
 
-  override fun lastKnownState(uid: UID): ResourceStateHistoryEntry =
-    jooq
-      .select(
-        field("state"),
-        field("timestamp")
-      )
-      .from(RESOURCE_STATE)
-      .where(field("uid").eq(uid.toString()))
-      .orderBy(field("timestamp").desc())
-      .limit(1)
-      .fetch()
-      .intoResultSet()
-      .run {
-        if (next()) {
-          ResourceStateHistoryEntry(state, timestamp)
-        } else {
-          throw NoSuchResourceUID(uid)
-        }
-      }
-
   override fun eventHistory(uid: UID): List<ResourceStateHistoryEntry> =
     jooq
       .select(

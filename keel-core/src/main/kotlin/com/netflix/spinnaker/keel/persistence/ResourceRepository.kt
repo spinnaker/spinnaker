@@ -71,13 +71,6 @@ interface ResourceRepository {
   fun delete(name: ResourceName)
 
   /**
-   * Retrieves the last known state of a resource.
-   *
-   * @return The last known state of the resource represented by [uid].
-   */
-  fun lastKnownState(uid: UID): ResourceStateHistoryEntry
-
-  /**
    * Retrieves the history of state change events for the resource represented by [uid].
    */
   fun eventHistory(uid: UID): List<ResourceStateHistoryEntry>
