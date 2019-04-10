@@ -17,7 +17,7 @@ RUN echo '#!/usr/bin/env bash' | tee /usr/local/bin/hal > /dev/null && \
 
 RUN chmod +x /usr/local/bin/hal
 
-ENV KUBECTL_RELEASE=1.10.3
+ENV KUBECTL_RELEASE=1.14.1
 ENV AWS_BINARY_RELEASE_DATE=2018-07-26
 
 RUN curl -LO https://storage.googleapis.com/kubernetes-release/release/v${KUBECTL_RELEASE}/bin/linux/amd64/kubectl && \

@@ -2,7 +2,7 @@ FROM openjdk:8
 
 MAINTAINER delivery-engineering@netflix.com
 
-ENV KUBECTL_RELEASE=1.10.3
+ENV KUBECTL_RELEASE=1.14.1
 ENV AWS_BINARY_RELEASE_DATE=2018-07-26
 
 COPY . workdir/
