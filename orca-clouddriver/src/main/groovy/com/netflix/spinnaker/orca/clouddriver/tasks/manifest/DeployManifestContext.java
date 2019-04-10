@@ -19,8 +19,10 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.manifest;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 
 @Getter
 public class DeployManifestContext extends HashMap<String, Object> {
@@ -28,6 +30,7 @@ public class DeployManifestContext extends HashMap<String, Object> {
   private final String manifestArtifactId;
   private final String manifestArtifactAccount;
   private final Boolean skipExpressionEvaluation;
+  private final TrafficManagement trafficManagement;
   private final List<String> requiredArtifactIds;
 
   // There does not seem to be a way to auto-generate a constructor using our current version of Lombok (1.16.20) that
@@ -37,12 +40,42 @@ public class DeployManifestContext extends HashMap<String, Object> {
     @JsonProperty("manifestArtifactId") String manifestArtifactId,
     @JsonProperty("manifestArtifactAccount") String manifestArtifactAccount,
     @JsonProperty("skipExpressionEvaluation") Boolean skipExpressionEvaluation,
+    @JsonProperty("trafficManagement") TrafficManagement trafficManagement,
     @JsonProperty("requiredArtifactIds") List<String> requiredArtifactIds
   ){
     this.source = source;
     this.manifestArtifactId = manifestArtifactId;
     this.manifestArtifactAccount = manifestArtifactAccount;
     this.skipExpressionEvaluation = skipExpressionEvaluation;
+    this.trafficManagement = trafficManagement;
     this.requiredArtifactIds = requiredArtifactIds;
+  }
+
+  @Getter
+  static class TrafficManagement {
+    private final boolean enabled;
+    private final Options options;
+
+    public TrafficManagement (
+      @JsonProperty("enabled") Boolean enabled,
+      @JsonProperty("options") Options options
+    ) {
+      this.enabled = Optional.ofNullable(enabled).orElse(false);
+      this.options = options;
+    }
+
+    @Getter
+    static class Options {
+      private final boolean enableTraffic;
+      private final List<String> services;
+
+      public Options(
+        @JsonProperty("enableTraffic") Boolean enableTraffic,
+        @JsonProperty("services") List<String> services
+      ) {
+        this.enableTraffic = Optional.ofNullable(enableTraffic).orElse(false);
+        this.services = Optional.ofNullable(services).orElse(Collections.emptyList());
+      }
+    }
   }
 }
