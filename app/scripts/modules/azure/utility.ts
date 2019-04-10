@@ -14,7 +14,7 @@ export enum TagError {
 }
 
 export default class Utility {
-  public static readonly TAG_LIMITATION: number = 12;
+  public static readonly TAG_LIMITATION: number = 8;
   public static readonly TAG_KEY_LENGTH_LIMITATION: number = 512;
   public static readonly TAG_VALUE_LENGTH_LIMITATION: number = 256;
   public static readonly TAG_INVALID_CHAR_REG_EXR: RegExp = /[<>%&\\?/]/;

@@ -12,17 +12,7 @@ module.exports = angular
     function($scope, loadBalancerReader) {
       ModalWizard.markClean('load-balancers');
 
-      if ($scope.command.credentials && $scope.command.region && $scope.command.loadBalancerName) {
-        $scope.command.viewState.networkSettingsConfigured = true;
-      }
-
-      this.loadBalancerChanged = function(item) {
-        $scope.command.viewState.networkSettingsConfigured = true;
-        ModalWizard.markComplete('load-balancers');
-        $scope.command.selectedVnetSubnets = [];
-        $scope.command.selectedSubnet = null;
-        InfrastructureCaches.clearCache('networks');
-
+      function loadVnetSubnets(item) {
         loadBalancerReader
           .getLoadBalancerDetails('azure', $scope.command.credentials, $scope.command.region, item)
           .then(function(LBs) {
@@ -57,6 +47,21 @@ module.exports = angular
               });
             }
           });
+      }
+
+      if ($scope.command.credentials && $scope.command.region && $scope.command.loadBalancerName) {
+        $scope.command.viewState.networkSettingsConfigured = true;
+        $scope.command.selectedVnetSubnets = [];
+        loadVnetSubnets($scope.command.loadBalancerName);
+      }
+
+      this.loadBalancerChanged = function(item) {
+        $scope.command.viewState.networkSettingsConfigured = true;
+        ModalWizard.markComplete('load-balancers');
+        $scope.command.selectedVnetSubnets = [];
+        $scope.command.selectedSubnet = null;
+        InfrastructureCaches.clearCache('networks');
+        loadVnetSubnets(item);
       };
     },
   ]);

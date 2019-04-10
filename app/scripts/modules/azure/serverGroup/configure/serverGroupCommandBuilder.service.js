@@ -5,11 +5,15 @@ const angular = require('angular');
 import { NameUtils } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.azure.serverGroupCommandBuilder.service', [require('../../image/image.reader').name])
+  .module('spinnaker.azure.serverGroupCommandBuilder.service', [
+    require('../../image/image.reader').name,
+    require('../serverGroup.transformer').name,
+  ])
   .factory('azureServerGroupCommandBuilder', [
     '$q',
     'azureImageReader',
-    function($q, azureImageReader) {
+    'azureServerGroupTransformer',
+    function($q, azureImageReader, azureServerGroupTransformer) {
       function buildNewServerGroupCommand(application, defaults) {
         defaults = defaults || {};
 
@@ -50,6 +54,7 @@ module.exports = angular
                 networkSettingsConfigured: false,
                 securityGroupsConfigured: false,
               },
+              enableInboundNAT: false,
             };
           });
       }
@@ -91,6 +96,7 @@ module.exports = angular
           },
           tags: [],
           instanceTags: serverGroup.instanceTags,
+          instanceType: serverGroup.sku.name,
           selectedProvider: 'azure',
           source: {
             account: serverGroup.account,
@@ -107,7 +113,19 @@ module.exports = angular
             mode: mode,
             disableStrategySelection: true,
           },
+          enableInboundNAT: serverGroup.enableInboundNAT,
         };
+
+        if (typeof serverGroup.customScriptsSettings !== 'undefined') {
+          command.customScriptsSettings = {};
+          command.customScriptsSettings.commandToExecute = serverGroup.customScriptsSettings.commandToExecute;
+          if (
+            typeof serverGroup.customScriptsSettings.fileUris !== 'undefined' &&
+            serverGroup.customScriptsSettings.fileUris != ''
+          ) {
+            azureServerGroupTransformer.parseCustomScriptsSettings(serverGroup, command);
+          }
+        }
 
         return $q.when(command);
       }
