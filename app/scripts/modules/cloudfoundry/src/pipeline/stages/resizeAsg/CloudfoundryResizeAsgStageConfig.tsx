@@ -1,4 +1,7 @@
 import * as React from 'react';
+
+import { Observable, Subject } from 'rxjs';
+
 import {
   AccountService,
   Application,
@@ -42,6 +45,8 @@ export class CloudfoundryResizeAsgStageConfig extends React.Component<
   ICloudfoundryResizeAsgStageProps,
   ICloudfoundryResizeAsgStageConfigState
 > {
+  private destroy$ = new Subject();
+
   constructor(props: ICloudfoundryResizeAsgStageProps) {
     super(props);
     let interestingHealthProviderNames;
@@ -80,20 +85,26 @@ export class CloudfoundryResizeAsgStageConfig extends React.Component<
     Object.assign(this.state, initStage);
   }
 
-  public componentDidMount = (): void => {
-    AccountService.listAccounts('cloudfoundry').then(accounts => {
-      this.setState({ accounts: accounts });
-      this.accountUpdated();
-    });
+  public componentDidMount(): void {
+    Observable.fromPromise(AccountService.listAccounts('cloudfoundry'))
+      .takeUntil(this.destroy$)
+      .subscribe(accounts => {
+        this.setState({ accounts });
+        this.accountUpdated();
+      });
     this.props.stageFieldUpdated();
-  };
+  }
+
+  public componentWillUnmount(): void {
+    this.destroy$.next();
+  }
 
   private accountUpdated = (): void => {
     const { credentials } = this.props.stage;
     if (credentials) {
-      AccountService.getRegionsForAccount(credentials).then(regions => {
-        this.setState({ regions: regions });
-      });
+      Observable.fromPromise(AccountService.getRegionsForAccount(credentials))
+        .takeUntil(this.destroy$)
+        .subscribe(regions => this.setState({ regions }));
     }
   };
 

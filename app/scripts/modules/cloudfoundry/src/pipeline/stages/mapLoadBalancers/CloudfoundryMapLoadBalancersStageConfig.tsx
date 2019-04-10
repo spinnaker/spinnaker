@@ -1,5 +1,7 @@
 import * as React from 'react';
 
+import { Observable, Subject } from 'rxjs';
+
 import {
   AccountService,
   Application,
@@ -34,6 +36,7 @@ export class CloudfoundryMapLoadBalancersStageConfig extends React.Component<
   ICloudfoundryMapLoadBalancersStageConfigState
 > {
   private formikRef = React.createRef<Formik<ICloudFoundryMapLoadBalancersValues>>();
+  private destroy$ = new Subject();
 
   constructor(props: ICloudfoundryLoadBalancerStageConfigProps) {
     super(props);
@@ -53,11 +56,15 @@ export class CloudfoundryMapLoadBalancersStageConfig extends React.Component<
     };
   }
 
-  public componentDidMount = () => {
-    AccountService.listAccounts('cloudfoundry').then(accounts => {
-      this.setState({ accounts });
-    });
-  };
+  public componentDidMount(): void {
+    Observable.fromPromise(AccountService.listAccounts('cloudfoundry'))
+      .takeUntil(this.destroy$)
+      .subscribe(accounts => this.setState({ accounts }));
+  }
+
+  public componentWillUnmount(): void {
+    this.destroy$.next();
+  }
 
   private targetUpdated = (target: string) => {
     this.props.updateStageField({ target });

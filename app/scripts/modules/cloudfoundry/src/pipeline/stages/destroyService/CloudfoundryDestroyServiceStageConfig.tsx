@@ -1,6 +1,7 @@
 import * as React from 'react';
 
 import Select, { Option } from 'react-select';
+import { Observable, Subject } from 'rxjs';
 
 import { AccountService, IAccount, IRegion, IStageConfigProps, StageConfigField } from '@spinnaker/core';
 
@@ -13,6 +14,7 @@ export class CloudfoundryDestroyServiceStageConfig extends React.Component<
   IStageConfigProps,
   ICloudfoundryDestroyServiceStageConfigState
 > {
+  private destroy$ = new Subject();
   constructor(props: IStageConfigProps) {
     super(props);
     this.props.updateStageField({ cloudProvider: 'cloudfoundry' });
@@ -22,20 +24,29 @@ export class CloudfoundryDestroyServiceStageConfig extends React.Component<
     };
   }
 
-  public componentDidMount = () => {
-    AccountService.listAccounts('cloudfoundry').then((accounts: IAccount[]) => {
-      this.setState({ accounts });
-      if (this.props.stage.credentials) {
-        this.clearAndReloadRegions();
-      }
-    });
-  };
+  public componentDidMount(): void {
+    Observable.fromPromise(AccountService.listAccounts('cloudfoundry'))
+      .takeUntil(this.destroy$)
+      .subscribe(accounts => {
+        this.setState({ accounts });
+        if (this.props.stage.credentials) {
+          this.clearAndReloadRegions();
+        }
+      });
+  }
+
+  public componentWillUnmount(): void {
+    this.destroy$.next();
+  }
 
   private clearAndReloadRegions = () => {
     this.setState({ regions: [] });
-    AccountService.getRegionsForAccount(this.props.stage.credentials).then((regions: IRegion[]) =>
-      this.setState({ regions }),
-    );
+    const { credentials } = this.props.stage;
+    if (credentials) {
+      Observable.fromPromise(AccountService.getRegionsForAccount(credentials))
+        .takeUntil(this.destroy$)
+        .subscribe(regions => this.setState({ regions }));
+    }
   };
 
   private accountUpdated = (option: Option<string>) => {

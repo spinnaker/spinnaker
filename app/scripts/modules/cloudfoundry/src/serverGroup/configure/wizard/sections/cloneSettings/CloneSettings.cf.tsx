@@ -1,5 +1,7 @@
 import * as React from 'react';
 
+import { Observable, Subject } from 'rxjs';
+
 import { FormikErrors, FormikProps } from 'formik';
 
 import {
@@ -31,14 +33,19 @@ export interface ICloudFoundryCloneSettingsState {
 export class CloudFoundryServerGroupCloneSettings
   extends React.Component<ICloudFoundryCloneSettingsProps, ICloudFoundryCloneSettingsState>
   implements IWizardPageComponent<ICloudFoundryCreateServerGroupCommand> {
+  private destroy$ = new Subject();
   public state: ICloudFoundryCloneSettingsState = {
     accounts: [],
   };
 
   public componentDidMount(): void {
-    AccountService.listAccounts('cloudfoundry').then(accounts => {
-      this.setState({ accounts });
-    });
+    Observable.fromPromise(AccountService.listAccounts('cloudfoundry'))
+      .takeUntil(this.destroy$)
+      .subscribe(accounts => this.setState({ accounts }));
+  }
+
+  public componentWillUnmount(): void {
+    this.destroy$.next();
   }
 
   private strategyOptionRenderer = (option: IDeploymentStrategy) => {

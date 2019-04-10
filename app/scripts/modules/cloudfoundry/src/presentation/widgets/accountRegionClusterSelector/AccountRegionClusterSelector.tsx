@@ -1,5 +1,7 @@
 import * as React from 'react';
 
+import { Observable, Subject } from 'rxjs';
+
 import { first, isNil, uniq } from 'lodash';
 
 import Select, { Option } from 'react-select';
@@ -38,6 +40,8 @@ export class AccountRegionClusterSelector extends React.Component<
   IAccountRegionClusterSelectorProps,
   IAccountRegionClusterSelectorState
 > {
+  private destroy$ = new Subject();
+
   constructor(props: IAccountRegionClusterSelectorProps) {
     super(props);
     const clusterField = props.clusterField || 'cluster';
@@ -59,24 +63,32 @@ export class AccountRegionClusterSelector extends React.Component<
     );
   }
 
+  public componentWillUnmount(): void {
+    this.destroy$.next();
+  }
+
   private setRegionList = (credentials: string): void => {
     const { application } = this.props;
     const accountFilter: IServerGroupFilter = (serverGroup: IServerGroup) =>
       serverGroup ? serverGroup.account === credentials : true;
-    application.ready().then(() => {
-      const availableRegions = AppListExtractor.getRegions([application], accountFilter);
-      availableRegions.sort();
-      this.setState({ availableRegions });
-    });
+    Observable.fromPromise(application.ready())
+      .takeUntil(this.destroy$)
+      .subscribe(() => {
+        const availableRegions = AppListExtractor.getRegions([application], accountFilter);
+        availableRegions.sort();
+        this.setState({ availableRegions });
+      });
   };
 
   private setClusterList = (credentials: string, regions: string[]): void => {
     const { application } = this.props;
-    application.ready().then(() => {
-      const clusterFilter = AppListExtractor.clusterFilterForCredentialsAndRegion(credentials, regions);
-      const clusters = AppListExtractor.getClusters([application], clusterFilter);
-      this.setState({ clusters });
-    });
+    Observable.fromPromise(application.ready())
+      .takeUntil(this.destroy$)
+      .subscribe(() => {
+        const clusterFilter = AppListExtractor.clusterFilterForCredentialsAndRegion(credentials, regions);
+        const clusters = AppListExtractor.getClusters([application], clusterFilter);
+        this.setState({ clusters });
+      });
   };
 
   public onAccountUpdate = (option: Option<string>): void => {

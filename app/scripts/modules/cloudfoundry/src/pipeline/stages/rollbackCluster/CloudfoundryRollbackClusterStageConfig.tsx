@@ -1,4 +1,7 @@
 import * as React from 'react';
+
+import { Observable, Subject } from 'rxjs';
+
 import { AccountService, IAccount, IPipeline, IStageConfigProps, StageConfigField } from '@spinnaker/core';
 
 import { AccountRegionClusterSelector } from 'cloudfoundry/presentation';
@@ -15,6 +18,8 @@ export class CloudfoundryRollbackClusterStageConfig extends React.Component<
   ICloudfoundryRollbackClusterStageProps,
   ICloudfoundryRollbackClusterStageConfigState
 > {
+  private destroy$ = new Subject();
+
   constructor(props: ICloudfoundryRollbackClusterStageProps) {
     super(props);
 
@@ -27,11 +32,15 @@ export class CloudfoundryRollbackClusterStageConfig extends React.Component<
     this.state = { accounts: [] };
   }
 
-  public componentDidMount = (): void => {
-    AccountService.listAccounts('cloudfoundry').then(accounts => {
-      this.setState({ accounts });
-    });
-  };
+  public componentDidMount(): void {
+    Observable.fromPromise(AccountService.listAccounts('cloudfoundry'))
+      .takeUntil(this.destroy$)
+      .subscribe(accounts => this.setState({ accounts }));
+  }
+
+  public componentWillUnmount(): void {
+    this.destroy$.next();
+  }
 
   private waitTimeBetweenRegionsUpdated = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const time = parseInt(event.target.value || '0', 10);

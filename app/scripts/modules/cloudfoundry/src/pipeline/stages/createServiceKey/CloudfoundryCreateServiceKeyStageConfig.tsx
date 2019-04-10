@@ -1,5 +1,7 @@
 import * as React from 'react';
 
+import { Observable, Subject } from 'rxjs';
+
 import { Option } from 'react-select';
 
 import {
@@ -21,6 +23,8 @@ export class CloudfoundryCreateServiceKeyStageConfig extends React.Component<
   IStageConfigProps,
   ICloudfoundryCreateServiceKeyStageConfigState
 > {
+  private destroy$ = new Subject();
+
   constructor(props: IStageConfigProps) {
     super(props);
     props.stage.cloudProvider = 'cloudfoundry';
@@ -30,22 +34,28 @@ export class CloudfoundryCreateServiceKeyStageConfig extends React.Component<
     };
   }
 
-  public componentDidMount = () => {
-    AccountService.listAccounts('cloudfoundry').then((rawAccounts: IAccount[]) => {
-      this.setState({ accounts: rawAccounts.map(it => it.name) });
-    });
+  public componentDidMount(): void {
+    Observable.fromPromise(AccountService.listAccounts('cloudfoundry'))
+      .takeUntil(this.destroy$)
+      .subscribe((rawAccounts: IAccount[]) => this.setState({ accounts: rawAccounts.map(it => it.name) }));
     if (this.props.stage.credentials) {
       this.clearAndReloadRegions();
     }
-  };
+  }
+
+  public componentWillUnmount(): void {
+    this.destroy$.next();
+  }
 
   private clearAndReloadRegions = () => {
     this.setState({ regions: [] });
-    AccountService.getRegionsForAccount(this.props.stage.credentials).then((regionList: IRegion[]) => {
-      const regions = regionList.map(r => r.name);
-      regions.sort((a, b) => a.localeCompare(b));
-      this.setState({ regions });
-    });
+    Observable.fromPromise(AccountService.getRegionsForAccount(this.props.stage.credentials))
+      .takeUntil(this.destroy$)
+      .subscribe((regionList: IRegion[]) => {
+        const regions = regionList.map(r => r.name);
+        regions.sort((a, b) => a.localeCompare(b));
+        this.setState({ regions });
+      });
   };
 
   private serviceInstanceNameUpdated = (event: React.ChangeEvent<HTMLInputElement>) => {

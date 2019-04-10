@@ -1,5 +1,7 @@
 import * as React from 'react';
 
+import { Observable, Subject } from 'rxjs';
+
 import Select, { Option } from 'react-select';
 
 import {
@@ -21,6 +23,8 @@ export class CloudfoundryUnshareServiceStageConfig extends React.Component<
   IStageConfigProps,
   ICloudfoundryShareServiceStageConfigState
 > {
+  private destroy$ = new Subject();
+
   constructor(props: IStageConfigProps) {
     super(props);
     props.stage.cloudProvider = 'cloudfoundry';
@@ -30,22 +34,28 @@ export class CloudfoundryUnshareServiceStageConfig extends React.Component<
     };
   }
 
-  public componentDidMount = () => {
-    AccountService.listAccounts('cloudfoundry').then((accounts: IAccount[]) => {
-      this.setState({ accounts });
-    });
+  public componentDidMoun(): void {
+    Observable.fromPromise(AccountService.listAccounts('cloudfoundry'))
+      .takeUntil(this.destroy$)
+      .subscribe(accounts => this.setState({ accounts }));
     if (this.props.stage.credentials) {
       this.clearAndReloadRegions();
     }
-  };
+  }
+
+  public componentWillUnmount(): void {
+    this.destroy$.next();
+  }
 
   private clearAndReloadRegions = () => {
     this.setState({ regions: [] });
-    AccountService.getRegionsForAccount(this.props.stage.credentials).then((regionList: IRegion[]) => {
-      const regions = regionList.map(r => r.name);
-      regions.sort((a, b) => a.localeCompare(b));
-      this.setState({ regions });
-    });
+    Observable.fromPromise(AccountService.getRegionsForAccount(this.props.stage.credentials))
+      .takeUntil(this.destroy$)
+      .subscribe((regionList: IRegion[]) => {
+        const regions = regionList.map(r => r.name);
+        regions.sort((a, b) => a.localeCompare(b));
+        this.setState({ regions });
+      });
   };
 
   private serviceInstanceNameUpdated = (event: React.ChangeEvent<HTMLInputElement>) => {

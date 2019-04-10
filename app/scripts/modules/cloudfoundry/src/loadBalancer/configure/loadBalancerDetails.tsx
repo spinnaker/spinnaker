@@ -1,5 +1,7 @@
 import * as React from 'react';
 
+import { Observable, Subject } from 'rxjs';
+
 import Select, { Option } from 'react-select';
 
 import { FormikErrors, FormikProps } from 'formik';
@@ -25,6 +27,7 @@ export interface ILoadBalancerDetailsState {
 
 export class LoadBalancerDetails extends React.Component<ILoadBalancerDetailsProps, ILoadBalancerDetailsState>
   implements IWizardPageComponent<ICloudFoundryLoadBalancerUpsertCommand> {
+  private destroy$ = new Subject();
   public state: ILoadBalancerDetailsState = {
     accounts: undefined,
     availabilityZones: [],
@@ -60,11 +63,17 @@ export class LoadBalancerDetails extends React.Component<ILoadBalancerDetailsPro
     this.loadAccounts();
   }
 
+  public componentWillUnmount(): void {
+    this.destroy$.next();
+  }
+
   private loadAccounts(): void {
-    AccountService.listAccounts('cloudfoundry').then(accounts => {
-      this.setState({ accounts });
-      this.loadDomainsAndRegions();
-    });
+    Observable.fromPromise(AccountService.listAccounts('cloudfoundry'))
+      .takeUntil(this.destroy$)
+      .subscribe(accounts => {
+        this.setState({ accounts });
+        this.loadDomainsAndRegions();
+      });
   }
 
   private accountUpdated = (option: Option<string>): void => {
@@ -76,12 +85,12 @@ export class LoadBalancerDetails extends React.Component<ILoadBalancerDetailsPro
   private loadDomainsAndRegions(): void {
     const account = this.props.formik.values.credentials;
     if (account) {
-      AccountService.getAccountDetails(account).then((accountDetails: ICloudFoundryAccount) => {
-        this.setState({ domains: accountDetails.domains });
-      });
-      AccountService.getRegionsForAccount(account).then(regions => {
-        this.setState({ regions });
-      });
+      Observable.fromPromise(AccountService.getAccountDetails(account))
+        .takeUntil(this.destroy$)
+        .subscribe((accountDetails: ICloudFoundryAccount) => this.setState({ domains: accountDetails.domains }));
+      Observable.fromPromise(AccountService.getRegionsForAccount(account))
+        .takeUntil(this.destroy$)
+        .subscribe(regions => this.setState({ regions }));
     }
   }
 
@@ -90,14 +99,16 @@ export class LoadBalancerDetails extends React.Component<ILoadBalancerDetailsPro
     this.props.formik.setFieldValue('region', region);
     if (region) {
       const { credentials } = this.props.formik.values;
-      AccountService.getAccountDetails(credentials).then((accountDetails: ICloudFoundryAccount) => {
-        const { domains } = accountDetails;
-        this.setState({
-          domains: domains.filter(
-            domain => domain.organization === undefined || region.match('^' + domain.organization.name),
-          ),
+      Observable.fromPromise(AccountService.getAccountDetails(credentials))
+        .takeUntil(this.destroy$)
+        .subscribe((accountDetails: ICloudFoundryAccount) => {
+          const { domains } = accountDetails;
+          this.setState({
+            domains: domains.filter(
+              domain => domain.organization === undefined || region.match('^' + domain.organization.name),
+            ),
+          });
         });
-      });
     }
   };
 

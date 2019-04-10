@@ -1,6 +1,7 @@
 import * as React from 'react';
 
 import { Option } from 'react-select';
+import { Observable, Subject } from 'rxjs';
 
 import {
   IService,
@@ -30,6 +31,7 @@ export class CreateServiceInstanceDirectInput extends React.Component<
   ICreateServiceInstanceDirectInputProps,
   ICreateServiceInstanceDirectInputState
 > {
+  private destroy$ = new Subject();
   constructor(props: ICreateServiceInstanceDirectInputProps) {
     super(props);
     this.state = { serviceNamesAndPlans: [] };
@@ -42,15 +44,19 @@ export class CreateServiceInstanceDirectInput extends React.Component<
     }
   }
 
-  public componentDidMount = () => {
+  public componentDidMount(): void {
     this.loadServices(this.props.credentials, this.props.region);
-  };
+  }
+
+  public componentWillUnmount(): void {
+    this.destroy$.next();
+  }
 
   private loadServices(credentials: string, region: string) {
     if (credentials && region) {
-      ServicesReader.getServices(credentials, region).then(serviceNamesAndPlans => {
-        this.setState({ serviceNamesAndPlans });
-      });
+      Observable.fromPromise(ServicesReader.getServices(credentials, region))
+        .takeUntil(this.destroy$)
+        .subscribe(serviceNamesAndPlans => this.setState({ serviceNamesAndPlans }));
     }
   }
 

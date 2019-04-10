@@ -1,5 +1,7 @@
 import * as React from 'react';
 
+import { Observable, Subject } from 'rxjs';
+
 import { get } from 'lodash';
 
 import { FormikErrors, FormikProps } from 'formik';
@@ -34,16 +36,23 @@ export interface ICloudFoundryServerGroupLocationSettingsState {
 export class CloudFoundryServerGroupBasicSettings
   extends React.Component<ICloudFoundryServerGroupBasicSettingsProps, ICloudFoundryServerGroupLocationSettingsState>
   implements IWizardPageComponent<ICloudFoundryCreateServerGroupCommand> {
+  private destroy$ = new Subject();
   public state: ICloudFoundryServerGroupLocationSettingsState = {
     accounts: [],
     regions: [],
   };
 
   public componentDidMount(): void {
-    AccountService.listAccounts('cloudfoundry').then(accounts => {
-      this.setState({ accounts });
-      this.updateRegionList();
-    });
+    Observable.fromPromise(AccountService.listAccounts('cloudfoundry'))
+      .takeUntil(this.destroy$)
+      .subscribe(accounts => {
+        this.setState({ accounts });
+        this.updateRegionList();
+      });
+  }
+
+  public componentWillUnmount(): void {
+    this.destroy$.next();
   }
 
   private accountChanged = (): void => {
@@ -56,9 +65,9 @@ export class CloudFoundryServerGroupBasicSettings
     const accountField = this.props.isClone ? 'account' : 'credentials';
     const credentials = get(this.props.formik.values, accountField, undefined);
     if (credentials) {
-      AccountService.getRegionsForAccount(credentials).then(regions => {
-        this.setState({ regions: regions });
-      });
+      Observable.fromPromise(AccountService.getRegionsForAccount(credentials))
+        .takeUntil(this.destroy$)
+        .subscribe(regions => this.setState({ regions }));
     }
   };
 
