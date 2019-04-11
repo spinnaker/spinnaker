@@ -1,14 +1,14 @@
 import * as React from 'react';
 import { get } from 'lodash';
 
-import { RunJobLogsModal, IRunJobLogsModalProps } from './RunJobLogsModal';
-
 import {
   IExecutionDetailsSectionProps,
   ExecutionDetailsSection,
   AccountTag,
   ReactModal,
   ReactInjector,
+  LogsModal,
+  ILogsModalProps,
 } from '@spinnaker/core';
 
 export class RunJobExecutionDetails extends React.Component<IExecutionDetailsSectionProps> {
@@ -25,10 +25,10 @@ export class RunJobExecutionDetails extends React.Component<IExecutionDetailsSec
 
       const modalProps = { dialogClassName: 'modal-lg modal-fullscreen' };
       ReactModal.show(
-        RunJobLogsModal,
+        LogsModal,
         {
           logs: get(fullStage, 'context.jobStatus.logs', 'No log output found.'),
-        } as IRunJobLogsModalProps,
+        } as ILogsModalProps,
         modalProps,
       );
     });

@@ -1,13 +1,13 @@
 import * as React from 'react';
 
-import { IModalComponentProps } from '@spinnaker/core';
+import { IModalComponentProps } from 'core/presentation';
 
-export interface IRunJobLogsModalProps extends IModalComponentProps {
+export interface ILogsModalProps extends IModalComponentProps {
   logs: string;
 }
 
-export class RunJobLogsModal extends React.Component<IRunJobLogsModalProps> {
-  constructor(props: IRunJobLogsModalProps) {
+export class LogsModal extends React.Component<ILogsModalProps> {
+  constructor(props: ILogsModalProps) {
     super(props);
   }
 
