@@ -9,6 +9,19 @@ import { TRIGGER_ARTIFACT_CONSTRAINT_SELECTOR_REACT } from './artifacts';
 
 const angular = require('angular');
 
+const removeUnusedExpectedArtifacts = function(pipeline) {
+  // remove unused expected artifacts from the pipeline
+  const artifacts = pipeline.expectedArtifacts;
+  artifacts.forEach(artifact => {
+    if (!pipeline.triggers.find(t => t.expectedArtifactIds && t.expectedArtifactIds.includes(artifact.id))) {
+      pipeline.expectedArtifacts.splice(pipeline.expectedArtifacts.indexOf(artifact), 1);
+      if (pipeline.expectedArtifacts.length === 0) {
+        delete pipeline.expectedArtifacts;
+      }
+    }
+  });
+};
+
 module.exports = angular
   .module('spinnaker.core.pipeline.config.trigger.triggerDirective', [TRIGGER_ARTIFACT_CONSTRAINT_SELECTOR_REACT])
   .directive('trigger', function() {
@@ -43,6 +56,9 @@ module.exports = angular
       this.removeTrigger = function(trigger) {
         var triggerIndex = $scope.pipeline.triggers.indexOf(trigger);
         $scope.pipeline.triggers.splice(triggerIndex, 1);
+        if (this.checkFeatureFlag('artifactsRewrite')) {
+          removeUnusedExpectedArtifacts($scope.pipeline);
+        }
       };
 
       this.checkFeatureFlag = function(flag) {
@@ -52,19 +68,7 @@ module.exports = angular
       this.changeExpectedArtifacts = function(expectedArtifacts, trigger) {
         $scope.$applyAsync(() => {
           trigger.expectedArtifactIds = expectedArtifacts;
-
-          // remove unused expected artifacts from the pipeline
-          const artifacts = $scope.pipeline.expectedArtifacts;
-          artifacts.forEach(artifact => {
-            if (
-              !$scope.pipeline.triggers.find(t => t.expectedArtifactIds && t.expectedArtifactIds.includes(artifact.id))
-            ) {
-              $scope.pipeline.expectedArtifacts.splice($scope.pipeline.expectedArtifacts.indexOf(artifact), 1);
-              if ($scope.pipeline.expectedArtifacts.length === 0) {
-                delete $scope.pipeline.expectedArtifacts;
-              }
-            }
-          });
+          removeUnusedExpectedArtifacts($scope.pipeline);
         });
       };
 
