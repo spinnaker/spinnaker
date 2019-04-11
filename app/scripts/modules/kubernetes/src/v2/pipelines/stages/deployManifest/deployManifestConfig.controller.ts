@@ -48,6 +48,7 @@ export class KubernetesV2DeployManifestConfigCtrl implements IController {
       ArtifactTypePatterns.DOCKER_IMAGE,
       ArtifactTypePatterns.KUBERNETES,
       ArtifactTypePatterns.FRONT50_PIPELINE_TEMPLATE,
+      ArtifactTypePatterns.EMBEDDED_BASE64,
     ];
 
     KubernetesManifestCommandBuilder.buildNewManifestCommand(
