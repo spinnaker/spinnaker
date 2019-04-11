@@ -20,7 +20,7 @@ class LdapValidatorSpec extends Specification {
   @Unroll
   void "valid case: #description"() {
     setup:
-    def ldap = new Ldap(userDnPattern: userDnPattern, userSearchBase: userSearchBase, userSearchFilter: userSearchFilter)
+    def ldap = new Ldap(userDnPattern: userDnPattern, userSearchBase: userSearchBase, userSearchFilter: userSearchFilter, managerDn: managerDn, managerPassword: managerPassword, groupSearchBase: groupSearchBase)
     ldap.url = ldapUrl ? new URI(ldapUrl) : null
     ldap.enabled = enabled
 
@@ -32,10 +32,11 @@ class LdapValidatorSpec extends Specification {
     problemSet.empty
 
     where:
-    description         | enabled | ldapUrl                     | userDnPattern  | userSearchBase | userSearchFilter
-    "not enabled"       | false   | null                        | null           | null           | null
-    "user DN pattern"   | true    | "ldaps://ldap.some.com:123" | "some pattern" | null           | null
-    "search and filter" | true    | "ldap://ldap.some.com:123"  | null           | "sub"          | "ou=foo"
+    description         | enabled | ldapUrl                     | userDnPattern  | userSearchBase | userSearchFilter | managerDn | managerPassword | groupSearchBase
+    "not enabled"       | false   | null                        | null           | null           | null             | null      | null            | null
+    "user DN pattern"   | true    | "ldaps://ldap.some.com:123" | "some pattern" | null           | null             | null      | null            | null
+    "search and filter" | true    | "ldap://ldap.some.com:123"  | null           | "sub"          | "ou=foo"         | null      | null            | null
+    "search and filter" | true    | "ldap://ldap.some.com:123"  | null           | "sub"          | "ou=foo"         | "admin"   | "secret"        | "ou=company"
   }
 
   @Unroll
@@ -50,7 +51,7 @@ class LdapValidatorSpec extends Specification {
     ProblemSet problemSet = problemSetBuilder.build()
 
     then:
-    ! problemSet.empty
+    !problemSet.empty
     problemSet.problems.size() == 1
     problemSet.problems[0].severity == Problem.Severity.ERROR
     problemSet.problems[0].message.toLowerCase().contains(errorMessageMatches)

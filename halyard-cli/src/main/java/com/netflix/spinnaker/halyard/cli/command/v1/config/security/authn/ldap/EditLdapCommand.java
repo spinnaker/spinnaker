@@ -75,6 +75,28 @@ public class EditLdapCommand extends AbstractEditAuthnMethodCommand<Ldap> {
   )
   private String userSearchFilter;
 
+  @Parameter(
+      names = "--manager-dn",
+      description = "An LDAP manager user is required for binding to the LDAP server for the user " +
+          "authentication process. This property refers to the DN of that entry. I.e. this is not " +
+          "the user which will be authenticated when logging into DHIS2, rather the user which binds " +
+          "to the LDAP server in order to do the authentication."
+  )
+  private String managerDn;
+
+  @Parameter(
+      names = "--manager-password",
+      password = true,
+      description = "The password for the LDAP manager user."
+  )
+  private String managerPassword;
+
+  @Parameter(
+      names = "--group-search-base",
+      description = "The part of the directory tree under which group searches should be performed. "
+  )
+  private String groupSearchBase;
+
   @Override
   protected AuthnMethod editAuthnMethod(Ldap ldap) {
     ldap.setUrl(isSet(url) ? url : ldap.getUrl());
@@ -93,6 +115,10 @@ public class EditLdapCommand extends AbstractEditAuthnMethodCommand<Ldap> {
         ldap.setUserSearchFilter(null);
       }
     }
+
+    ldap.setManagerDn(isSet(managerDn) ? managerDn : ldap.getManagerDn());
+    ldap.setManagerPassword(isSet(managerPassword) ? managerPassword : ldap.getManagerPassword());
+    ldap.setGroupSearchBase(isSet(groupSearchBase) ? groupSearchBase : ldap.getGroupSearchBase());
 
     return ldap;
   }

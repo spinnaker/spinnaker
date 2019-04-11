@@ -9286,6 +9286,9 @@ hal config security authn ldap edit [parameters]
 
 #### Parameters
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--group-search-base`: The part of the directory tree under which group searches should be performed. 
+ * `--manager-dn`: An LDAP manager user is required for binding to the LDAP server for the user authentication process. This property refers to the DN of that entry. I.e. this is not the user which will be authenticated when logging into DHIS2, rather the user which binds to the LDAP server in order to do the authentication.
+ * `--manager-password`: (*Sensitive data* - user will be prompted on standard input) The password for the LDAP manager user.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--url`: ldap:// or ldaps:// url of the LDAP server
  * `--user-dn-pattern`: The pattern for finding a user's DN using simple pattern matching. For example, if your LDAP server has the URL ldap://mysite.com/dc=spinnaker,dc=org, and you have the pattern 'uid={0},ou=members', 'me' will map to a DN uid=me,ou=members,dc=spinnaker,dc=org. If no match is found, will try to find the user using user-search-filter, if set.
