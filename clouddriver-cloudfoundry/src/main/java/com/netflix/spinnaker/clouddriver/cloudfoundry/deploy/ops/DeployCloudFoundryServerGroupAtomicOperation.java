@@ -91,7 +91,8 @@ public class DeployCloudFoundryServerGroupAtomicOperation
       return deploymentResult();
     }
 
-    if (description.isStartApplication()) {
+    final Integer desiredInstanceCount = description.getApplicationAttributes().getInstances();
+    if (description.isStartApplication() && desiredInstanceCount > 0) {
       client.getApplications().startApplication(serverGroup.getId());
       ProcessStats.State state = operationPoller.waitForOperation(
         () -> client.getApplications().getProcessState(serverGroup.getId()),
