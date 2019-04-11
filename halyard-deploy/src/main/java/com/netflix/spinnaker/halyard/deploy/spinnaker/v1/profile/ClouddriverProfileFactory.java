@@ -88,6 +88,7 @@ public class ClouddriverProfileFactory extends SpringProfileFactory {
         .setRequiredFiles(files);
 
     deploymentConfiguration.setProviders(originalProviders);
+    deploymentConfiguration.parentify();
   }
 
   protected void processProviders(Providers providers) {
