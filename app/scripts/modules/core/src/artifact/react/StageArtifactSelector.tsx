@@ -2,6 +2,7 @@ import * as React from 'react';
 import { module } from 'angular';
 import Select from 'react-select';
 import { react2angular } from 'react2angular';
+import { Observable, Subject } from 'rxjs';
 
 import { IArtifact, IExpectedArtifact, IPipeline, IStage } from 'core/domain';
 import { ArtifactIcon, ExpectedArtifactService } from 'core/artifact';
@@ -38,6 +39,8 @@ export class StageArtifactSelector extends React.Component<IStageArtifactSelecto
     id: DEFINE_NEW_ARTIFACT,
   };
 
+  private destroy$ = new Subject();
+
   constructor(props: IStageArtifactSelectorProps) {
     super(props);
 
@@ -46,17 +49,23 @@ export class StageArtifactSelector extends React.Component<IStageArtifactSelecto
     };
   }
 
+  public componentWillUnmount(): void {
+    this.destroy$.next();
+  }
+
   public componentDidMount(): void {
     const excludedPatterns = this.props.excludedArtifactTypePatterns;
-    AccountService.getArtifactAccounts().then(artifactAccounts => {
-      this.setState({
-        artifactAccounts: excludedPatterns
-          ? artifactAccounts.filter(
-              account => !account.types.some(typ => excludedPatterns.some(typPattern => typPattern.test(typ))),
-            )
-          : artifactAccounts,
+    Observable.fromPromise(AccountService.getArtifactAccounts())
+      .takeUntil(this.destroy$)
+      .subscribe(artifactAccounts => {
+        this.setState({
+          artifactAccounts: excludedPatterns
+            ? artifactAccounts.filter(
+                account => !account.types.some(typ => excludedPatterns.some(typPattern => typPattern.test(typ))),
+              )
+            : artifactAccounts,
+        });
       });
-    });
   }
 
   private renderArtifact = (value: IExpectedArtifact) => {
@@ -123,7 +132,7 @@ export class StageArtifactSelector extends React.Component<IStageArtifactSelecto
     return (
       <>
         <div className="sp-margin-m-bottom">{renderLabel ? renderLabel(select) : select}</div>
-        {artifact && (
+        {!!artifact && (
           <ArtifactEditor
             pipeline={pipeline}
             artifact={artifact}

@@ -10,6 +10,7 @@ import { SpelAutocompleteService } from './SpelAutocompleteService';
 import { ExecutionService } from '../../pipeline/service/execution.service';
 import { StateService } from '@uirouter/core';
 import { IPipeline } from '../../domain';
+import { Observable, Subject } from 'rxjs';
 
 export interface ISpelTextProps {
   placeholder: string;
@@ -25,7 +26,8 @@ export interface ISpelTextState {
 
 export class SpelText extends React.Component<ISpelTextProps, ISpelTextState> {
   private autocompleteService: SpelAutocompleteService;
-  private spelInputRef: any;
+  private readonly spelInputRef: any;
+  private destroy$ = new Subject();
 
   constructor(props: ISpelTextProps) {
     super(props);
@@ -34,10 +36,16 @@ export class SpelText extends React.Component<ISpelTextProps, ISpelTextState> {
       $q,
       new ExecutionService($http, $q, {} as StateService, $timeout),
     );
-    this.autocompleteService.addPipelineInfo(this.props.pipeline).then(textcompleteConfig => {
-      this.setState({ textcompleteConfig: textcompleteConfig });
-    });
+    Observable.fromPromise(this.autocompleteService.addPipelineInfo(this.props.pipeline))
+      .takeUntil(this.destroy$)
+      .subscribe(textcompleteConfig => {
+        this.setState({ textcompleteConfig: textcompleteConfig });
+      });
     this.spelInputRef = React.createRef();
+  }
+
+  public componentWillUnmount(): void {
+    this.destroy$.next();
   }
 
   public componentDidMount(): void {

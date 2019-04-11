@@ -48,7 +48,7 @@ export class ManifestBindArtifactsSelector extends React.Component<IManifestBind
               pipeline={pipeline}
               stage={stage}
               expectedArtifactId={binding && binding.expectedArtifactId}
-              artifact={binding && binding.artifact}
+              artifact={!!binding && binding.artifact}
               onArtifactEdited={(artifact: IArtifact) => this.onChangeBinding(i, { artifact: artifact })}
               onExpectedArtifactSelected={(expectedArtifact: IExpectedArtifact) =>
                 this.onChangeBinding(i, { expectedArtifactId: expectedArtifact.id })
