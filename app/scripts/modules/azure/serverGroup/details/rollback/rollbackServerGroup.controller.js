@@ -27,6 +27,7 @@ module.exports = angular
         rollbackType: 'EXPLICIT',
         rollbackContext: {
           rollbackServerGroupName: serverGroup.name,
+          enableAndDisableOnly: true,
         },
       };
 
