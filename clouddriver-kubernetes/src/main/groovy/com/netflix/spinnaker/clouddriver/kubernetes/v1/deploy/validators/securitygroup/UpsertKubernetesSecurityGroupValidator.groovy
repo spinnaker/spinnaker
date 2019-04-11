@@ -60,7 +60,7 @@ class UpsertKubernetesSecurityGroupValidator {
           }
           rule.value?.http?.paths?.eachWithIndex{ KubernetesHttpIngressPath path, j ->
             if (path.path) {
-              helper.validatePath(path.path, "rules[$i].value.http.paths[$j].path")
+              helper.validateHttpPath(path.path, "rules[$i].value.http.paths[$j].path")
             }
           }
         }

@@ -26,8 +26,9 @@ class StandardKubernetesAttributeValidator {
   static final dnsSubdomainPattern = /^[a-z0-9]+([-\.a-z0-9]*[a-z0-9])?$/
   static final credentialsPattern = /^[a-z0-9]+([-a-z0-9_]*[a-z0-9])?$/
   static final prefixPattern = /^[a-z0-9]+$/
-  static final pathPattern = /^\/.*$/
-  static final relativePathPattern = /^[^\/].*$/
+  static final httpPathPattern = /^\/.*$/
+  static final unixPathPattern = /^\/.*$/
+  static final winPathPattern = /^[a-zA-Z]:(\\|\/).*$/
   static final quantityPattern = /^([+-]?[0-9.]+)([eEimkKMGTP]*[-+]?[0-9]*)$/
   static final protocolList = ['TCP', 'UDP']
   static final serviceTypeList = ['ClusterIP', 'NodePort', 'LoadBalancer']
@@ -97,19 +98,41 @@ class StandardKubernetesAttributeValidator {
   }
 
   def validatePath(String value, String attribute) {
+    def result
     if (validateNotEmpty(value, attribute)) {
-      return validateByRegex(value, attribute, pathPattern)
+      if (value ==~ unixPathPattern || value ==~ winPathPattern) {
+        result = true
+      } else {
+        errors.rejectValue("${context}.${attribute}", "${context}.${attribute}.invalid (Must match ${unixPathPattern} or ${winPathPattern})")
+        result = false
+      }
+    } else {
+      result = false
+    }
+    result
+  }
+
+  def validateHttpPath(String value, String attribute) {
+    if (validateNotEmpty(value, attribute)) {
+      return validateByRegex(value, attribute, httpPathPattern)
     } else {
       return false
     }
   }
 
   def validateRelativePath(String value, String attribute) {
+    def result
     if (validateNotEmpty(value, attribute)) {
-      return validateByRegex(value, attribute, relativePathPattern)
+      if (value ==~ unixPathPattern || value ==~ winPathPattern) {
+        errors.rejectValue("${context}.${attribute}", "${context}.${attribute}.invalid (Must not match ${unixPathPattern} or ${winPathPattern})")
+        result = false
+      } else {
+        result = true
+      }
     } else {
-      return false
+      result = false
     }
+    result
   }
 
   def validateProtocol(String value, String attribute) {
