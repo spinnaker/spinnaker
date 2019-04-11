@@ -28,6 +28,8 @@ module.exports = angular
     function($scope, $uibModalInstance, $state, azureLoadBalancerTransformer, application, loadBalancer, isNew) {
       var ctrl = this;
 
+      $scope.regions = [];
+
       $scope.pages = {
         location: require('./createLoadBalancerProperties.html'),
         listeners: require('./listeners.html'),

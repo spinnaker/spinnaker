@@ -25,6 +25,8 @@ module.exports = angular
         ingress: require('./createSecurityGroupIngress.html'),
       };
 
+      $scope.regions = [];
+
       $scope.firewallLabel = FirewallLabels.get('Firewall');
 
       var ctrl = this;

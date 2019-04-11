@@ -68,7 +68,7 @@ module.exports = angular
 
       function constructNewLoadBalancerTemplate(application) {
         var defaultCredentials = application.defaultCredentials.azure || AzureProviderSettings.defaults.account,
-          defaultRegion = application.defaultRegion || AzureProviderSettings.defaults.region;
+          defaultRegion = application.defaultRegions.azure || AzureProviderSettings.defaults.region;
         return {
           stack: '',
           detail: 'frontend',
