@@ -36,11 +36,13 @@ import org.slf4j.LoggerFactory
 interface ExpressionAware {
 
   val contextParameterProcessor: ContextParameterProcessor
+
+  companion object {
+    val mapper: ObjectMapper = OrcaObjectMapper.newInstance()
+  }
+
   val log: Logger
     get() = LoggerFactory.getLogger(javaClass)
-  private val mapper: ObjectMapper
-    get() = OrcaObjectMapper.newInstance()
-
 
   fun Stage.withMergedContext(): Stage {
     val evalSummary = ExpressionEvaluationSummary()
@@ -134,6 +136,8 @@ interface ExpressionAware {
     )
     )
 
+  // TODO (mvulfson): Ideally, we opt out of this method and use ContextParameterProcessor.buildExecutionContext
+  // but that doesn't generate StageContext preventing us from doing recursive lookups... An investigation for another day
   private fun StageContext.augmentContext(execution: Execution): StageContext =
     if (execution.type == PIPELINE) {
       this + mapOf(

@@ -29,6 +29,11 @@ import javax.annotation.Nonnull;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Copies previously evaluated expressions to the outputs map for consumption by subsequent stages.
+ * The variables aren't evaluated here because would've been evaluated already by a call to
+ * e.g. ExpressionAware.Stage#withMergedContext
+ */
 @Component
 public class EvaluateVariablesTask implements Task {
 
@@ -36,11 +41,6 @@ public class EvaluateVariablesTask implements Task {
   public EvaluateVariablesTask() {
   }
 
-  /**
-   * Copies previously evaluated expressions to the outputs map for consumption by subsequent stages.
-   * The variables aren't evaluated here because would've been evaluated already by a call to
-   * e.g. ExpressionAware.Stage#withMergedContext
-   */
   @Nonnull
   @Override
   public TaskResult execute(@Nonnull Stage stage) {
