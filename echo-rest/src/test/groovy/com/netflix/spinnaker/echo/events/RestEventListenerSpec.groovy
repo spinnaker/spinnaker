@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.echo.events
 
+import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.echo.config.RestUrls
 import com.netflix.spinnaker.echo.model.Event
 import com.netflix.spinnaker.echo.rest.RestService
@@ -26,7 +27,7 @@ import spock.lang.Subject
 class RestEventListenerSpec extends Specification {
 
   @Subject
-  RestEventListener listener = new RestEventListener()
+  RestEventListener listener = new RestEventListener(null, null, new NoopRegistry())
   Event event = new Event(content: ['uno': 'dos'])
   RestService restService
 

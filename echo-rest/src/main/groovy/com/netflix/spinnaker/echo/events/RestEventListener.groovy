@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.echo.events
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.echo.config.RestUrls
 import com.netflix.spinnaker.echo.model.Event
 import groovy.util.logging.Slf4j
@@ -36,17 +37,26 @@ class RestEventListener implements EchoEventListener {
 
   ObjectMapper mapper = new ObjectMapper()
 
-  @Autowired
   RestUrls restUrls
 
-  @Autowired
   RestEventTemplateEngine restEventTemplateEngine
+
+  Registry registry
 
   @Value('${rest.defaultEventName:spinnaker_events}')
   String eventName
 
   @Value('${rest.defaultFieldName:payload}')
   String fieldName
+
+  @Autowired
+  RestEventListener(RestUrls restUrls,
+                    RestEventTemplateEngine restEventTemplateEngine,
+                    Registry registry) {
+    this.restUrls = restUrls
+    this.restEventTemplateEngine = restEventTemplateEngine
+    this.registry = registry
+  }
 
   @Override
   void processEvent(Event event) {
@@ -72,7 +82,10 @@ class RestEventListener implements EchoEventListener {
         }
         service.client.recordEvent(sentEvent)
       } catch (e) {
-        log.error("Could not send event ${event} to ${service.config.url}", e)
+        log.error("Could not send event source=${event?.details?.source}, type=${event?.details?.type} to ${service.config.url}.\n" +
+          "Event details: ${event}", e)
+
+        registry.counter("event.send.errors", "exception", e.getClass().getName()).increment()
       }
     }
   }
