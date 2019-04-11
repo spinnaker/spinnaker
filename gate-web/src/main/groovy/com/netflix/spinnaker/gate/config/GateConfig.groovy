@@ -62,6 +62,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.web.servlet.FilterRegistrationBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Primary
 import org.springframework.core.Ordered
 import org.springframework.security.web.context.AbstractSecurityWebApplicationInitializer
 import org.springframework.session.data.redis.config.ConfigureRedisAction
@@ -125,6 +126,7 @@ class GateConfig extends RedisHttpSessionConfiguration {
    * {@link PostConnectionConfiguringJedisConnectionFactory}.
    * */
   @Bean
+  @Primary
   ConfigureRedisAction springBootConfigureRedisAction() {
     return ConfigureRedisAction.NO_OP
   }
