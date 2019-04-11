@@ -17,10 +17,12 @@ module.exports = angular
   })
   .controller('ParameterCtrl', [
     '$scope',
-    function($scope) {
+    '$timeout',
+    function($scope, $timeout) {
       this.remove = function(parameter) {
         var index = $scope.pipeline.parameterConfig.indexOf(parameter);
         $scope.pipeline.parameterConfig.splice(index, 1);
+        this.setPinAllParametersState();
       };
 
       this.addOption = function(parameter) {
@@ -36,6 +38,13 @@ module.exports = angular
 
       this.removeOption = function(index, parameter) {
         parameter.options.splice(index, 1);
+      };
+
+      const parametersCtrl = $scope.$parent.$parent.parametersCtrl;
+      this.setPinAllParametersState = function() {
+        $timeout(function() {
+          parametersCtrl.setPinAllParametersState();
+        });
       };
     },
   ]);

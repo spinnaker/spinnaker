@@ -6,7 +6,6 @@ import { REACT_MODULE } from 'core/reactShims';
 
 import { IExecutionParametersProps, ExecutionParameters } from './ExecutionParameters';
 import { IDisplayableParameter } from 'core/pipeline';
-import { IPipeline } from 'core/domain';
 
 describe('<ExecutionParameters/>', () => {
   let component: ShallowWrapper<IExecutionParametersProps>;
@@ -19,10 +18,9 @@ describe('<ExecutionParameters/>', () => {
 
     component = shallow(
       <ExecutionParameters
-        displayableParameters={parameters}
         pinnedDisplayableParameters={[]}
+        displayableParameters={parameters}
         shouldShowAllParams={false}
-        pipelineConfig={null}
       />,
     );
 
@@ -37,37 +35,6 @@ describe('<ExecutionParameters/>', () => {
         pinnedDisplayableParameters={parameters}
         displayableParameters={[]}
         shouldShowAllParams={false}
-        pipelineConfig={null}
-      />,
-    );
-
-    expect(component.find('.execution-parameters-column').length).toEqual(2);
-    expect(component.find('.parameter-key').length).toEqual(2);
-    expect(component.find('.parameter-value').length).toEqual(2);
-  });
-
-  it(`shows pinned parameters title when all parameters are pinned`, function() {
-    const parameters: IDisplayableParameter[] = [{ key: '1', value: 'a' }, { key: '2', value: 'b' }];
-    const pipelineConfig: IPipeline = {
-      application: 'my-app',
-      id: '123-abc',
-      index: 0,
-      name: 'my-pipeline',
-      stages: [],
-      keepWaitingPipelines: false,
-      limitConcurrent: false,
-      strategy: false,
-      triggers: [],
-      parameterConfig: [],
-      pinAllParameters: true,
-    };
-
-    component = shallow(
-      <ExecutionParameters
-        pinnedDisplayableParameters={[]}
-        displayableParameters={parameters}
-        shouldShowAllParams={false}
-        pipelineConfig={pipelineConfig}
       />,
     );
 
@@ -84,7 +51,6 @@ describe('<ExecutionParameters/>', () => {
         pinnedDisplayableParameters={parameters}
         displayableParameters={[]}
         shouldShowAllParams={true}
-        pipelineConfig={null}
       />,
     );
 
@@ -99,7 +65,6 @@ describe('<ExecutionParameters/>', () => {
         pinnedDisplayableParameters={[]}
         displayableParameters={parameters}
         shouldShowAllParams={true}
-        pipelineConfig={null}
       />,
     );
 

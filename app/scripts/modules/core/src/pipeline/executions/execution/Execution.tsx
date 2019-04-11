@@ -240,8 +240,7 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
       if (pipelineConfig) {
         const paramConfigIndexByName = keyBy(pipelineConfig.parameterConfig, 'name');
         const isParamPinned = (param: IDisplayableParameter): boolean =>
-          pipelineConfig.pinAllParameters ||
-          (paramConfigIndexByName[param.key] && paramConfigIndexByName[param.key].pinned); // an older execution's parameter might be missing from a newer pipelineConfig.parameterConfig
+          paramConfigIndexByName[param.key] && paramConfigIndexByName[param.key].pinned; // an older execution's parameter might be missing from a newer pipelineConfig.parameterConfig
 
         pinnedDisplayableParameters = displayableParameters.filter(isParamPinned);
       }
@@ -487,7 +486,6 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
             shouldShowAllParams={showingParams}
             displayableParameters={displayableParameters}
             pinnedDisplayableParameters={pinnedDisplayableParameters}
-            pipelineConfig={pipelineConfig}
           />
 
           {SETTINGS.feature.artifacts && (

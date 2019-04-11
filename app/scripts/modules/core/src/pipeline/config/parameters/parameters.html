@@ -1,4 +1,11 @@
 <div ng-model="pipeline.parameterConfig" ui-sortable="parametersCtrl.sortOptions">
+  <div class="checkbox">
+    <label>
+      <input type="checkbox" ng-model="parametersCtrl.allParametersPinned" ng-click="parametersCtrl.togglePins()" />
+      <span class="label-text sm-label-right">Pin all parameters</span>
+      <help-field key="pipeline.config.parameter.pinAll" expand="vm.helpKeyExpand"></help-field>
+    </label>
+  </div>
   <parameter ng-repeat="parameter in pipeline.parameterConfig" parameter="parameter" pipeline="pipeline"></parameter>
 </div>
 <div class="row">

@@ -42,7 +42,7 @@
       <stage-config-field label="Pin Parameter" help-key="pipeline.config.parameter.pinned">
         <div class="checkbox">
           <label>
-            <input type="checkbox" ng-model="parameter.pinned" />
+            <input type="checkbox" ng-model="parameter.pinned" ng-click="parameterCtrl.setPinAllParametersState()" />
           </label>
         </div>
       </stage-config-field>

@@ -1,7 +1,6 @@
 import * as React from 'react';
 
 import { IDisplayableParameter } from 'core/pipeline';
-import { IPipeline } from 'core/domain';
 
 import './executionStatus.less';
 import './executionParameters.less';
@@ -10,7 +9,6 @@ export interface IExecutionParametersProps {
   shouldShowAllParams: boolean;
   displayableParameters: IDisplayableParameter[];
   pinnedDisplayableParameters: IDisplayableParameter[];
-  pipelineConfig: IPipeline;
 }
 
 interface IExecutionParametersState {
@@ -33,10 +31,10 @@ export class ExecutionParameters extends React.Component<IExecutionParametersPro
   }
 
   public render() {
-    const { shouldShowAllParams, displayableParameters, pinnedDisplayableParameters, pipelineConfig } = this.props;
+    const { shouldShowAllParams, displayableParameters, pinnedDisplayableParameters } = this.props;
 
     let parameters = pinnedDisplayableParameters;
-    if (shouldShowAllParams || (pipelineConfig && pipelineConfig.pinAllParameters)) {
+    if (shouldShowAllParams) {
       parameters = displayableParameters;
     }
 
