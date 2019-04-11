@@ -18,6 +18,8 @@ package com.netflix.spinnaker.fiat.roles;
 
 import com.netflix.appinfo.InstanceInfo;
 import com.netflix.discovery.DiscoveryClient;
+import com.netflix.spectator.api.Gauge;
+import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.fiat.config.ResourceProvidersHealthIndicator;
 import com.netflix.spinnaker.fiat.config.UnrestrictedResourceConfig;
 import com.netflix.spinnaker.fiat.model.UserPermission;
@@ -71,8 +73,11 @@ public class UserRolesSyncer implements ApplicationListener<RemoteStatusChangedE
 
   private final AtomicBoolean isEnabled;
 
+  private final Gauge userRolesSyncCount;
+
   @Autowired
   public UserRolesSyncer(Optional<DiscoveryClient> discoveryClient,
+                         Registry registry,
                          LockManager lockManager,
                          PermissionsRepository permissionsRepository,
                          PermissionsResolver permissionsResolver,
@@ -99,6 +104,8 @@ public class UserRolesSyncer implements ApplicationListener<RemoteStatusChangedE
         // default to enabled iff discovery is not available
         !discoveryClient.isPresent()
     );
+
+    this.userRolesSyncCount = registry.gauge("fiat.userRoles.syncCount");
   }
 
   @Override
@@ -109,6 +116,7 @@ public class UserRolesSyncer implements ApplicationListener<RemoteStatusChangedE
   @Scheduled(fixedDelay = 30000L)
   public void schedule() {
     if (syncDelayMs < 0 || !isEnabled.get()) {
+      log.warn("User roles syncing is disabled (syncDelayMs: {}, isEnabled: {})", syncDelayMs, isEnabled.get());
       return;
     }
 
@@ -118,7 +126,14 @@ public class UserRolesSyncer implements ApplicationListener<RemoteStatusChangedE
         .withSuccessInterval(Duration.ofMillis(syncDelayMs))
         .withFailureInterval(Duration.ofMillis(syncFailureDelayMs));
 
-    lockManager.acquireLock(lockOptions, () -> this.syncAndReturn(new ArrayList<>()));
+    lockManager.acquireLock(lockOptions, () -> {
+      try {
+        userRolesSyncCount.set(this.syncAndReturn(new ArrayList<>()));
+      } catch (Exception e) {
+        log.error("User roles synchronization failed", e);
+        userRolesSyncCount.set(-1);
+      }
+    });
   }
 
   public long syncAndReturn(List<String> roles) {

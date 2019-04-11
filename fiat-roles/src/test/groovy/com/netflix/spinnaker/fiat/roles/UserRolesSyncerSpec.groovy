@@ -20,6 +20,8 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.appinfo.InstanceInfo.InstanceStatus
 import com.netflix.discovery.DiscoveryClient
+import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.fiat.config.ResourceProvidersHealthIndicator
 import com.netflix.spinnaker.fiat.config.UnrestrictedResourceConfig
 import com.netflix.spinnaker.fiat.model.UserPermission
@@ -46,6 +48,9 @@ import java.util.concurrent.Callable
 class UserRolesSyncerSpec extends Specification {
 
   private static final String UNRESTRICTED = UnrestrictedResourceConfig.UNRESTRICTED_USERNAME;
+
+  @Shared
+  Registry registry = new NoopRegistry()
 
   @Shared
   @AutoCleanup("destroy")
@@ -133,6 +138,7 @@ class UserRolesSyncerSpec extends Specification {
     @Subject
     def syncer = new UserRolesSyncer(
         Optional.ofNullable(null),
+        registry,
         lockManager,
         repo,
         permissionsResolver,
@@ -205,6 +211,7 @@ class UserRolesSyncerSpec extends Specification {
     def lockManager = Mock(LockManager)
     def userRolesSyncer = new UserRolesSyncer(
         Optional.ofNullable(discoveryClient),
+        registry,
         lockManager,
         null,
         null,
