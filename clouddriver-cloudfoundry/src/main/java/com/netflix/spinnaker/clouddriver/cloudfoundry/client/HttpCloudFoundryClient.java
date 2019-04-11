@@ -38,6 +38,7 @@ import retrofit.converter.JacksonConverter;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
+import java.net.SocketTimeoutException;
 import java.nio.charset.Charset;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
@@ -75,10 +76,18 @@ public class HttpCloudFoundryClient implements CloudFoundryClient {
   };
 
   private static class RetryableApiException extends RuntimeException {
+    RetryableApiException() {
+      super();
+    }
+
+    RetryableApiException(String message, Throwable cause) {
+      super(message, cause);
+    }
   }
 
   Response createRetryInterceptor(Interceptor.Chain chain) {
-    Retry retry = Retry.of("cf.api.call", RetryConfig.custom()
+    final String callName = "cf.api.call";
+    Retry retry = Retry.of(callName, RetryConfig.custom()
       .retryExceptions(RetryableApiException.class)
       .build());
 
@@ -109,8 +118,14 @@ public class HttpCloudFoundryClient implements CloudFoundryClient {
 
         return response;
       });
+    } catch (SocketTimeoutException e) {
+      throw new RetryableApiException("Timeout " + callName, e);
     } catch (Exception e) {
-      return lastResponse.get();
+      final Response response = lastResponse.get();
+      if (response == null) {
+        throw new IllegalStateException(e);
+      }
+      return response;
     }
   }
 
