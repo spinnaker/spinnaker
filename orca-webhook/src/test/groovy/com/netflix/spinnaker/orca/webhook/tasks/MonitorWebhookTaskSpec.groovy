@@ -70,6 +70,45 @@ class MonitorWebhookTaskSpec extends Specification {
     ex.message == "Missing required parameters 'statusEndpoint', 'statusJsonPath'" as String
   }
 
+  def "should fail in case of URL validation error"() {
+    setup:
+    def stage = new Stage(pipeline, "webhook", [
+      statusEndpoint: 'https://my-service.io/api/status/123',
+      statusJsonPath: '$.status'])
+
+    monitorWebhookTask.webhookService = Stub(WebhookService) {
+      getStatus(_, _) >> {
+        throw new IllegalArgumentException("Invalid URL")
+      }
+    }
+
+    when:
+    monitorWebhookTask.execute stage
+
+    then:
+    def ex = thrown IllegalArgumentException
+    ex.message == "Invalid URL"
+  }
+
+  def "should retry in case of name resolution error"() {
+    setup:
+    def stage = new Stage(pipeline, "webhook", [
+      statusEndpoint: 'https://my-service.io/api/status/123',
+      statusJsonPath: '$.status'])
+
+    monitorWebhookTask.webhookService = Stub(WebhookService) {
+      getStatus(_, _) >> {
+        throw new IllegalArgumentException("Invalid URL", new UnknownHostException())
+      }
+    }
+
+    when:
+    def result = monitorWebhookTask.execute stage
+
+    then:
+    result.status == ExecutionStatus.RUNNING
+  }
+
   def "should do a get request to the defined statusEndpoint"() {
     setup:
     monitorWebhookTask.webhookService = Mock(WebhookService) {

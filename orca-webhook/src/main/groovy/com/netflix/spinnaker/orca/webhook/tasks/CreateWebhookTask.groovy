@@ -59,14 +59,19 @@ class CreateWebhookTask implements RetryableTask {
     def response
     try {
       response = webhookService.exchange(stageData.method, stageData.url, stageData.payload, stageData.customHeaders)
-    } catch(IllegalArgumentException e) {
+    } catch (IllegalArgumentException e) {
       if (e.cause instanceof UnknownHostException) {
         String errorMessage = "name resolution failure in webhook for pipeline ${stage.execution.id} to ${stageData.url}, will retry."
         log.warn(errorMessage, e)
         outputs.webhook << [error: errorMessage]
         return new TaskResult(ExecutionStatus.RUNNING, outputs)
+      } else {
+        String errorMessage = "an exception occurred in webhook to ${stageData.url}: ${e}"
+        log.error(errorMessage, e)
+        outputs.webhook << [error: errorMessage]
+        return new TaskResult(ExecutionStatus.TERMINAL, outputs)
       }
-    } catch(HttpStatusCodeException e) {
+    } catch (HttpStatusCodeException e) {
       def statusCode = e.getStatusCode()
 
       outputs.webhook << [statusCode: statusCode, statusCodeValue: statusCode.value()]

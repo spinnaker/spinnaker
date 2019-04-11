@@ -80,12 +80,20 @@ class MonitorWebhookTask implements OverridableTimeoutRetryableTask {
         stage.execution.id,
         stage.id
       )
+    } catch (IllegalArgumentException e) {
+      if (e.cause instanceof UnknownHostException) {
+        log.warn("name resolution failure in webhook for pipeline ${stage.execution.id} to ${statusEndpoint}, will retry.", e)
+        return new TaskResult(ExecutionStatus.RUNNING)
+      }
+
+      throw e
     } catch (HttpStatusCodeException  e) {
       def statusCode = e.getStatusCode()
       if (statusCode.is5xxServerError() || statusCode.value() == 429) {
         log.warn("error getting webhook status from ${statusEndpoint}, will retry", e)
         return new TaskResult(ExecutionStatus.RUNNING)
       }
+
       throw e
     }
 

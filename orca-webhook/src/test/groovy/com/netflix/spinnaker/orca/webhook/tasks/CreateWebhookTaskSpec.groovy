@@ -211,6 +211,28 @@ class CreateWebhookTaskSpec extends Specification {
     ]
   }
 
+  def "should return TERMINAL on URL validation failure"() {
+    setup:
+    def stage = new Stage(pipeline, "webhook", "My webhook", [url: "wrong://my-service.io/api/"])
+
+    createWebhookTask.webhookService = Stub(WebhookService) {
+      exchange(_, _, _, _) >> {
+        throw new IllegalArgumentException("Invalid URL")
+      }
+    }
+
+    when:
+    def result = createWebhookTask.execute(stage)
+
+    then:
+    result.status == ExecutionStatus.TERMINAL
+    (result.context as Map) == [
+      webhook: [
+        error: "an exception occurred in webhook to wrong://my-service.io/api/: java.lang.IllegalArgumentException: Invalid URL"
+      ]
+    ]
+  }
+
   def "should parse response correctly on failure"() {
     setup:
     def stage = new Stage(pipeline, "webhook", "My webhook", [
