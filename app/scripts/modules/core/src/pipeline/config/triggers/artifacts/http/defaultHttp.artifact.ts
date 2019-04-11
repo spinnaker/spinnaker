@@ -17,6 +17,9 @@ module(DEFAULT_HTTP_ARTIFACT, []).config(() => {
     controller: function(artifact: IArtifact) {
       this.artifact = artifact;
       this.artifact.type = 'http/file';
+      if (this.artifact.name && !this.artifact.reference) {
+        this.artifact.reference = this.artifact.name;
+      }
     },
     controllerAs: 'ctrl',
     template: `
@@ -29,7 +32,7 @@ module(DEFAULT_HTTP_ARTIFACT, []).config(() => {
       <input type="text"
              placeholder="http://host/path/file.ext"
              class="form-control input-sm"
-             ng-model="ctrl.artifact.name" />
+             ng-model="ctrl.artifact.reference" />
     </div>
   </div>
 </div>
