@@ -44,6 +44,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+import static java.util.Collections.emptyList;
+
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -70,25 +72,25 @@ public class DeployManifestTask extends AbstractCloudProviderAwareTask implement
     Map<String, Object> task = new HashMap<>(context);
     String artifactSource = context.getSource();
     if (StringUtils.isNotEmpty(artifactSource) && artifactSource.equals("artifact")) {
-      String manifestArtifactId = context.getManifestArtifactId();
-      if (manifestArtifactId == null) {
+      Artifact manifestArtifact = artifactResolver.getBoundArtifactForStage(stage, context.getManifestArtifactId(),
+        context.getManifestArtifact());
+
+      if (manifestArtifact == null) {
         throw new IllegalArgumentException("No manifest artifact was specified.");
       }
 
-      String manifestArtifactAccount = context.getManifestArtifactAccount();
-      if (manifestArtifactAccount == null) {
-        throw new IllegalArgumentException("No manifest artifact account was specified.");
+      // Once the legacy artifacts feature is removed, all trigger expected artifacts will be required to define
+      // an account up front.
+      if(context.getManifestArtifactAccount() != null) {
+        manifestArtifact.setArtifactAccount(context.getManifestArtifactAccount());
       }
 
-      Artifact manifestArtifact = artifactResolver.getBoundArtifactForId(stage, manifestArtifactId);
-
-      if (manifestArtifact == null) {
-        throw new IllegalArgumentException("No artifact could be bound to '" + manifestArtifactId + "'");
+      if (manifestArtifact.getArtifactAccount() == null) {
+        throw new IllegalArgumentException("No manifest artifact account was specified.");
       }
 
       log.info("Using {} as the manifest to be deployed", manifestArtifact);
 
-      manifestArtifact.setArtifactAccount(manifestArtifactAccount);
       Object parsedManifests = retrySupport.retry(() -> {
         try {
           Response manifestText = oort.fetchArtifact(manifestArtifact);
@@ -132,13 +134,22 @@ public class DeployManifestTask extends AbstractCloudProviderAwareTask implement
       task.put("source", "text");
     }
 
-    List<String> requiredArtifactIds = context.getRequiredArtifactIds();
     List<Artifact> requiredArtifacts = new ArrayList<>();
-    requiredArtifactIds = requiredArtifactIds == null ? new ArrayList<>() : requiredArtifactIds;
-    for (String id : requiredArtifactIds) {
+    for (String id : Optional.ofNullable(context.getRequiredArtifactIds()).orElse(emptyList())) {
       Artifact requiredArtifact = artifactResolver.getBoundArtifactForId(stage, id);
       if (requiredArtifact == null) {
         throw new IllegalStateException("No artifact with id '" + id + "' could be found in the pipeline context.");
+      }
+
+      requiredArtifacts.add(requiredArtifact);
+    }
+
+    // resolve SpEL expressions in artifacts defined inline in the stage
+    for (DeployManifestContext.BindArtifact artifact : Optional.ofNullable(context.getRequiredArtifacts()).orElse(emptyList())) {
+      Artifact requiredArtifact = artifactResolver.getBoundArtifactForStage(stage, artifact.getExpectedArtifactId(), artifact.getArtifact());
+
+      if (requiredArtifact == null) {
+        throw new IllegalStateException("No artifact with id '" + artifact.getExpectedArtifactId() + "' could be found in the pipeline context.");
       }
 
       requiredArtifacts.add(requiredArtifact);

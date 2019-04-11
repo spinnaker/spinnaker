@@ -17,7 +17,9 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.manifest;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import lombok.Getter;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -28,27 +30,49 @@ import java.util.Optional;
 public class DeployManifestContext extends HashMap<String, Object> {
   private final String source;
   private final String manifestArtifactId;
+  private final Artifact manifestArtifact;
   private final String manifestArtifactAccount;
   private final Boolean skipExpressionEvaluation;
   private final TrafficManagement trafficManagement;
   private final List<String> requiredArtifactIds;
+  private final List<BindArtifact> requiredArtifacts;
 
   // There does not seem to be a way to auto-generate a constructor using our current version of Lombok (1.16.20) that
   // Jackson can use to deserialize.
   public DeployManifestContext(
     @JsonProperty("source") String source,
     @JsonProperty("manifestArtifactId") String manifestArtifactId,
+    @JsonProperty("manifestArtifact") Artifact manifestArtifact,
     @JsonProperty("manifestArtifactAccount") String manifestArtifactAccount,
     @JsonProperty("skipExpressionEvaluation") Boolean skipExpressionEvaluation,
     @JsonProperty("trafficManagement") TrafficManagement trafficManagement,
-    @JsonProperty("requiredArtifactIds") List<String> requiredArtifactIds
+    @JsonProperty("requiredArtifactIds") List<String> requiredArtifactIds,
+    @JsonProperty("requiredArtifacts") List<BindArtifact> requiredArtifacts
   ){
     this.source = source;
     this.manifestArtifactId = manifestArtifactId;
+    this.manifestArtifact = manifestArtifact;
     this.manifestArtifactAccount = manifestArtifactAccount;
     this.skipExpressionEvaluation = skipExpressionEvaluation;
     this.trafficManagement = trafficManagement;
     this.requiredArtifactIds = requiredArtifactIds;
+    this.requiredArtifacts = requiredArtifacts;
+  }
+
+  @Getter
+  public static class BindArtifact {
+    @Nullable
+    private final String expectedArtifactId;
+
+    @Nullable
+    private final Artifact artifact;
+
+
+    public BindArtifact(@JsonProperty("expectedArtifactId") @Nullable String expectedArtifactId,
+                        @JsonProperty("artifact") @Nullable Artifact artifact) {
+      this.expectedArtifactId = expectedArtifactId;
+      this.artifact = artifact;
+    }
   }
 
   @Getter
