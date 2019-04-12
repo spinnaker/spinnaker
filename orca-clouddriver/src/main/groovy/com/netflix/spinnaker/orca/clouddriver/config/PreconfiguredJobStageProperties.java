@@ -35,6 +35,7 @@ public abstract class PreconfiguredJobStageProperties {
   private String credentials;
   private String region;
   private String propertyFile;
+  private boolean producesArtifacts = false;
 
   public List<String> getOverridableFields() {
     return Arrays.asList(

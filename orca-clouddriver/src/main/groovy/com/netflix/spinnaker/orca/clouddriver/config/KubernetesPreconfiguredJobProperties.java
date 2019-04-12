@@ -33,6 +33,10 @@ public class KubernetesPreconfiguredJobProperties extends PreconfiguredJobStageP
   private String application;
   private V1Job manifest;
 
+  public KubernetesPreconfiguredJobProperties() {
+    this.setProducesArtifacts(true);
+  }
+
   public List<String> getOverridableFields() {
     List<String> overrideableFields = new ArrayList<>(Arrays.asList("account", "manifest", "application"));
     overrideableFields.addAll(super.getOverridableFields());

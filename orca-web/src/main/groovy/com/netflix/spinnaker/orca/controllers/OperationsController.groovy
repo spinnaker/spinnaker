@@ -361,6 +361,7 @@ class OperationsController {
         waitForCompletion: it.waitForCompletion,
         noUserConfigurableFields: true,
         parameters: it.parameters,
+        producesArtifacts: it.producesArtifacts,
       ]
     }
   }
