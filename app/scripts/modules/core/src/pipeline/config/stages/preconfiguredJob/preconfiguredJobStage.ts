@@ -22,6 +22,7 @@ interface IPreconfiguredJob {
   description?: string;
   waitForCompletion?: boolean;
   parameters?: IPreconfiguredJobParameter[];
+  producesArtifacts: boolean;
 }
 
 export const PRECONFIGUREDJOB_STAGE = 'spinnaker.core.pipeline.stage.preconfiguredJobStage';
@@ -32,7 +33,7 @@ module(PRECONFIGUREDJOB_STAGE, []).run(() => {
     .getList()
     .then((preconfiguredJobs: IPreconfiguredJob[]) => {
       preconfiguredJobs.forEach(preconfiguredJob => {
-        const { label, description, type, waitForCompletion, parameters } = preconfiguredJob;
+        const { label, description, type, waitForCompletion, parameters, producesArtifacts } = preconfiguredJob;
         const defaults = {
           parameters: parameters.reduce(
             (acc, parameter) => {
@@ -58,6 +59,7 @@ module(PRECONFIGUREDJOB_STAGE, []).run(() => {
             waitForCompletion,
             parameters,
           },
+          producesArtifacts,
         });
       });
     });
