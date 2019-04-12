@@ -28,6 +28,8 @@ class JobRequest {
   List<String> tokenizedCommand
   List<String> maskedParameters = []
   String jobId
+  /** Whether to merge command output and error streams. */
+  boolean combineStdOutAndErr = true
 
   List<String> getMaskedTokenizedCommand() {
     return tokenizedCommand.collect { String masked ->

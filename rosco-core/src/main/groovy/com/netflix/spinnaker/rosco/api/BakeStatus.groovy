@@ -50,6 +50,9 @@ class BakeStatus implements Serializable {
   String resource_id
 
   @JsonIgnore
+  String outputContent
+
+  @JsonIgnore
   String logsContent
 
   @JsonIgnore

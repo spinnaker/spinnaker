@@ -45,7 +45,7 @@ public class HelmBakeManifestService {
     BakeStatus bakeStatus;
 
     try {
-      JobRequest jobRequest = new JobRequest(recipe.getCommand(), new ArrayList<>(), UUID.randomUUID().toString());
+      JobRequest jobRequest = new JobRequest(recipe.getCommand(), new ArrayList<>(), UUID.randomUUID().toString(), false);
       String jobId = jobExecutor.startJob(jobRequest);
 
       bakeStatus = jobExecutor.updateJob(jobId);
@@ -69,7 +69,7 @@ public class HelmBakeManifestService {
     return Artifact.builder()
         .type("embedded/base64")
         .name(request.getOutputArtifactName())
-        .reference(Base64.getEncoder().encodeToString(bakeStatus.getLogsContent().getBytes()))
+        .reference(Base64.getEncoder().encodeToString(bakeStatus.getOutputContent().getBytes()))
         .build();
   }
 }

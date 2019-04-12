@@ -59,8 +59,18 @@ class JobExecutorLocal implements JobExecutor {
       new Action0() {
         @Override
         public void call() {
-          ByteArrayOutputStream stdOutAndErr = new ByteArrayOutputStream()
-          PumpStreamHandler pumpStreamHandler = new PumpStreamHandler(stdOutAndErr)
+          PumpStreamHandler pumpStreamHandler
+          ByteArrayOutputStream stdOut
+          ByteArrayOutputStream stdErr
+          if (jobRequest.combineStdOutAndErr) {
+            stdOut = new ByteArrayOutputStream()
+            stdErr = null
+            pumpStreamHandler = new PumpStreamHandler(stdOut)
+          } else {
+            stdOut = new ByteArrayOutputStream()
+            stdErr = new ByteArrayOutputStream()
+            pumpStreamHandler = new PumpStreamHandler(stdOut, stdErr)
+          }
           CommandLine commandLine
 
           if (jobRequest.tokenizedCommand) {
@@ -105,7 +115,8 @@ class JobExecutorLocal implements JobExecutor {
           jobIdToHandlerMap.put(jobId, [
             handler: resultHandler,
             watchdog: watchdog,
-            stdOutAndErr: stdOutAndErr
+            stdOut: stdOut,
+            stdErr: stdErr
           ])
         }
       }
@@ -128,14 +139,17 @@ class JobExecutorLocal implements JobExecutor {
         BakeStatus bakeStatus = new BakeStatus(id: jobId, resource_id: jobId)
 
         DefaultExecuteResultHandler resultHandler
-        ByteArrayOutputStream stdOutAndErr
+        ByteArrayOutputStream stdOut
+        ByteArrayOutputStream stdErr
 
         jobIdToHandlerMap[jobId].with {
           resultHandler = it.handler
-          stdOutAndErr = it.stdOutAndErr
+          stdOut = it.stdOut
+          stdErr = it.stdErr
         }
 
-        String logsContent = new String(stdOutAndErr.toByteArray())
+        String outputContent = new String(stdOut.toByteArray())
+        String logsContent = (stdErr == null) ? outputContent : new String(stdErr.toByteArray())
 
         if (resultHandler.hasResult()) {
           log.info("State for $jobId changed with exit code $resultHandler.exitValue.")
@@ -155,6 +169,10 @@ class JobExecutorLocal implements JobExecutor {
           jobIdToHandlerMap.remove(jobId)
         } else {
           bakeStatus.state = BakeStatus.State.RUNNING
+        }
+
+        if (outputContent) {
+          bakeStatus.outputContent = outputContent
         }
 
         if (logsContent) {
