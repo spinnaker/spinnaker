@@ -20,9 +20,8 @@ import com.netflix.spinnaker.keel.api.ResourceMetadata
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.randomUID
-import com.netflix.spinnaker.keel.persistence.ResourceState.Diff
-import com.netflix.spinnaker.keel.persistence.ResourceState.Ok
-import com.netflix.spinnaker.keel.persistence.ResourceState.Unknown
+import com.netflix.spinnaker.keel.events.ResourceCreated
+import com.netflix.spinnaker.keel.events.ResourceDeltaDetected
 import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -33,10 +32,10 @@ import io.mockk.verify
 import io.mockk.verifyAll
 import strikt.api.expectThat
 import strikt.api.expectThrows
-import strikt.assertions.containsExactly
+import strikt.assertions.first
 import strikt.assertions.hasSize
+import strikt.assertions.isA
 import strikt.assertions.isEqualTo
-import strikt.assertions.map
 import java.time.Clock
 import java.time.Duration
 import java.util.UUID.randomUUID
@@ -162,57 +161,28 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
       context("updating the state of the resource") {
         before {
           clock.incrementBy(ONE_SECOND)
-          subject.updateState(resource.metadata.uid, Ok)
+          subject.appendHistory(ResourceCreated(resource, clock))
         }
 
         test("the new state is included in the history") {
           expectThat(subject.eventHistory(resource.metadata.uid))
-            .hasSize(2)
-            .map { it.state }
-            .containsExactly(Ok, Unknown)
+            .hasSize(1)
+            .first()
+            .isA<ResourceCreated>()
+            .get { uid }
         }
 
         context("updating the state again") {
           before {
             clock.incrementBy(ONE_SECOND)
-            subject.updateState(resource.metadata.uid, Diff)
+            subject.appendHistory(ResourceDeltaDetected(resource, clock))
           }
 
           test("the new state is included in the history") {
             expectThat(subject.eventHistory(resource.metadata.uid))
-              .hasSize(3)
-              .map { it.state }
-              .containsExactly(Diff, Ok, Unknown)
-          }
-        }
-
-        context("updating the state with the same value") {
-          before {
-            clock.incrementBy(ONE_SECOND)
-            subject.updateState(resource.metadata.uid, Ok)
-          }
-
-          test("the new state is not added to the history") {
-            expectThat(subject.eventHistory(resource.metadata.uid))
               .hasSize(2)
-              .map { it.state }
-              .containsExactly(Ok, Unknown)
-          }
-        }
-
-        context("after updating the resource") {
-          before {
-            clock.incrementBy(ONE_SECOND)
-            subject.store(resource.copy(
-              spec = randomData()
-            ))
-          }
-
-          test("the history shows the reversion to unknown state") {
-            expectThat(subject.eventHistory(resource.metadata.uid))
-              .hasSize(3)
-              .map { it.state }
-              .containsExactly(Unknown, Ok, Unknown)
+              .first()
+              .isA<ResourceDeltaDetected>()
           }
         }
       }

@@ -1,9 +1,9 @@
 package com.netflix.spinnaker.keel.rest
 
 import com.netflix.spinnaker.keel.api.ResourceName
+import com.netflix.spinnaker.keel.events.ResourceEvent
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceException
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
-import com.netflix.spinnaker.keel.persistence.ResourceStateHistoryEntry
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
 import org.slf4j.LoggerFactory.getLogger
 import org.springframework.http.HttpStatus.NOT_FOUND
@@ -31,7 +31,7 @@ class EventController(
   fun eventHistory(
     @PathVariable("name") name: ResourceName,
     @RequestParam("since", defaultValue = "1970-01-01T00:00:00Z") since: Instant
-  ): List<ResourceStateHistoryEntry> {
+  ): List<ResourceEvent> {
     log.debug("Getting state history for: $name")
     return resourceRepository.get(name, Any::class.java).let { resource ->
       resourceRepository

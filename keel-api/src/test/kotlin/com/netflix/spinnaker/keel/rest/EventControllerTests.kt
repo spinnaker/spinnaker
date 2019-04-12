@@ -1,14 +1,17 @@
 package com.netflix.spinnaker.keel.rest
 
 import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.KeelApplication
 import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceMetadata
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.randomUID
-import com.netflix.spinnaker.keel.persistence.ResourceState.Diff
-import com.netflix.spinnaker.keel.persistence.ResourceState.Ok
+import com.netflix.spinnaker.keel.events.ResourceCreated
+import com.netflix.spinnaker.keel.events.ResourceDeltaDetected
+import com.netflix.spinnaker.keel.events.ResourceDeltaResolved
+import com.netflix.spinnaker.keel.events.ResourceEvent
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
 import com.netflix.spinnaker.keel.redis.spring.MockEurekaConfiguration
 import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
@@ -33,12 +36,12 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import strikt.api.expectThat
 import strikt.assertions.all
+import strikt.assertions.containsExactly
+import strikt.assertions.hasSize
 import strikt.assertions.isGreaterThan
 import strikt.assertions.map
-import strikt.jackson.has
 import strikt.jackson.hasSize
 import strikt.jackson.isArray
-import strikt.jackson.isObject
 import java.net.URI
 import java.time.Duration
 import java.time.Instant
@@ -94,17 +97,14 @@ internal class EventControllerTests : JUnit5Minutests {
     }
 
     context("a resource exists") {
-      deriveFixture {
-        copy()
-      }
-
       before {
         with(resourceRepository) {
           store(resource)
-          sequenceOf(Ok, Diff, Ok).forEach {
-            clock.incrementBy(Duration.ofMinutes(10))
-            updateState(resource.metadata.uid, it)
-          }
+          appendHistory(ResourceCreated(resource, clock))
+          clock.incrementBy(Duration.ofMinutes(10))
+          appendHistory(ResourceDeltaDetected(resource, clock))
+          clock.incrementBy(Duration.ofMinutes(10))
+          appendHistory(ResourceDeltaResolved(resource, clock))
           clock.incrementBy(Duration.ofMinutes(10))
         }
       }
@@ -114,21 +114,31 @@ internal class EventControllerTests : JUnit5Minutests {
       }
 
       setOf(APPLICATION_YAML, APPLICATION_JSON).forEach { accept ->
-        test("can get event history as ${accept.type}") {
-          val request = get(eventsUri).accept(accept)
-          val result = mvc
-            .perform(request)
-            .andExpect(status().isOk)
-            .andExpect(content().contentTypeCompatibleWith(accept))
-            .andReturn()
-          expectThat(result.response.contentAsTree)
-            .isArray()
-            .hasSize(4)
-            .all {
-              isObject()
-                .has("state")
-                .has("timestamp")
-            }
+        context("getting event history as $accept") {
+          test("the list contains all events") {
+            val request = get(eventsUri).accept(accept)
+            val result = mvc
+              .perform(request)
+              .andExpect(status().isOk)
+              .andExpect(content().contentTypeCompatibleWith(accept))
+              .andReturn()
+            expectThat(result.response.contentAsTree)
+              .isArray()
+              .hasSize(3)
+          }
+
+          test("every event specifies its type") {
+            val request = get(eventsUri).accept(accept)
+            val result = mvc
+              .perform(request)
+              .andExpect(status().isOk)
+              .andExpect(content().contentTypeCompatibleWith(accept))
+              .andReturn()
+            expectThat(result.response.contentAs<List<ResourceEvent>>())
+              .hasSize(3)
+              .map { it.javaClass }
+              .containsExactly(ResourceDeltaResolved::class.java, ResourceDeltaDetected::class.java, ResourceCreated::class.java)
+          }
         }
       }
 
@@ -165,6 +175,9 @@ internal class EventControllerTests : JUnit5Minutests {
     }
   }
 }
+
+private inline fun <reified T> MockHttpServletResponse.contentAs(): T =
+  configuredYamlMapper().readValue<T>(contentAsString)
 
 private val MockHttpServletResponse.contentAsTree: JsonNode
   get() = configuredYamlMapper().readTree(contentAsString)

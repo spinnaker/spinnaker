@@ -3,6 +3,9 @@ package com.netflix.spinnaker.keel.annealing
 import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceName
+import com.netflix.spinnaker.keel.events.ResourceDeltaDetected
+import com.netflix.spinnaker.keel.events.ResourceDeltaResolved
+import com.netflix.spinnaker.keel.events.ResourceMissing
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.ResourceState.Diff
 import com.netflix.spinnaker.keel.persistence.ResourceState.Missing
@@ -17,12 +20,14 @@ import de.danielbechler.diff.node.DiffNode
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
+import java.time.Clock
 
 @Component
 class ResourceActuator(
   private val resourceRepository: ResourceRepository,
   private val handlers: List<ResourceHandler<*>>,
-  private val publisher: ApplicationEventPublisher
+  private val publisher: ApplicationEventPublisher,
+  private val clock: Clock
 ) {
 
   private val differ = ObjectDifferBuilder.buildDefault()
@@ -38,9 +43,8 @@ class ResourceActuator(
         null -> {
           with(resource) {
             log.warn("Resource {} is missing", metadata.name)
-            publisher.publishEvent(ResourceChecked(apiVersion, kind, metadata.name, Missing))
-
-            resourceRepository.updateState(metadata.uid, Missing)
+            resourceRepository.appendHistory(ResourceMissing(resource, clock))
+            publisher.publishEvent(ResourceChecked(resource, Missing))
           }
 
           plugin.create(resource)
@@ -58,18 +62,18 @@ class ResourceActuator(
             with(resource) {
               log.warn("Resource {} is invalid", metadata.name)
               log.info("Resource {} delta: {}", metadata.name, builder.toString())
-              publisher.publishEvent(ResourceChecked(apiVersion, kind, metadata.name, Diff))
-
-              resourceRepository.updateState(metadata.uid, Diff)
+              resourceRepository.appendHistory(ResourceDeltaDetected(resource, clock))
+              publisher.publishEvent(ResourceChecked(resource, Diff))
             }
 
             plugin.update(resource, ResourceDiff(current, diff))
           } else {
             with(resource) {
               log.info("Resource {} is valid", metadata.name)
-              publisher.publishEvent(ResourceChecked(apiVersion, kind, metadata.name, Ok))
-
-              resourceRepository.updateState(metadata.uid, Ok)
+              if (resourceRepository.eventHistory(resource.metadata.uid).first() is ResourceDeltaDetected) {
+                resourceRepository.appendHistory(ResourceDeltaResolved(resource, clock))
+              }
+              publisher.publishEvent(ResourceChecked(resource, Ok))
             }
           }
         }

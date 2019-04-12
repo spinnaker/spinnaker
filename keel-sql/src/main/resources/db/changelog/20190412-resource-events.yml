@@ -1,0 +1,67 @@
+databaseChangeLog:
+  - changeSet:
+      id: drop-resource-state-table
+      author: fletch
+      changes:
+        - dropIndex:
+            indexName: resource_state_uid_idx
+            tableName: resource_state
+        - dropIndex:
+            indexName: resource_state_timestamp_idx
+            tableName: resource_state
+        - dropTable:
+            tableName: resource_state
+  - changeSet:
+      id: create-resource-event-table
+      author: fletch
+      changes:
+        - createTable:
+            tableName: resource_event
+            columns:
+              - column:
+                  name: uid
+                  type: char(26)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: timestamp
+                  type: timestamp
+                  constraints:
+                    nullable: false
+              - column:
+                  name: json
+                  type: longtext
+                  constraints:
+                    nullable: false
+        - modifySql:
+            dbms: mysql
+            append:
+              value: " engine innodb"
+      rollback:
+        - dropTable:
+            tableName: resource_event
+  - changeSet:
+      id: create-resource-event-indexes
+      author: fletch
+      changes:
+        - createIndex:
+            indexName: resource_event_uid_idx
+            tableName: resource_event
+            columns:
+              - column:
+                  name: uid
+        - createIndex:
+            indexName: resource_event_uid_timestamp_idx
+            tableName: resource_event
+            columns:
+              - column:
+                  name: uid
+              - column:
+                  name: timestamp
+      rollback:
+        - dropIndex:
+            indexName: resource_event_uid_idx
+            tableName: resource_event
+        - dropIndex:
+            indexName: resource_event_uid_timestamp_idx
+            tableName: resource_event

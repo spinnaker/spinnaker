@@ -23,13 +23,11 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceMetadata
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.UID
+import com.netflix.spinnaker.keel.events.ResourceEvent
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceName
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceUID
 import com.netflix.spinnaker.keel.persistence.ResourceHeader
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
-import com.netflix.spinnaker.keel.persistence.ResourceState
-import com.netflix.spinnaker.keel.persistence.ResourceState.Unknown
-import com.netflix.spinnaker.keel.persistence.ResourceStateHistoryEntry
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
 import de.huxhorn.sulky.ulid.ULID
 import org.slf4j.LoggerFactory
@@ -79,7 +77,6 @@ class RedisResourceRepository(
       redis.hmset(resource.metadata.uid.key, resource.toHash())
       redis.sadd(INDEX_SET, resource.metadata.uid.toString())
       redis.hset(NAME_TO_UID_HASH, resource.metadata.name.value, resource.metadata.uid.toString())
-      redis.lpush(resource.metadata.uid.stateKey, objectMapper.writeValueAsString(ResourceStateHistoryEntry(Unknown, clock.instant())))
     }
   }
 
@@ -92,24 +89,16 @@ class RedisResourceRepository(
     }
   }
 
-  override fun eventHistory(uid: UID): List<ResourceStateHistoryEntry> =
-    redisClient.withCommandsClient<List<ResourceStateHistoryEntry>> { redis: JedisCommands ->
+  override fun eventHistory(uid: UID): List<ResourceEvent> =
+    redisClient.withCommandsClient<List<ResourceEvent>> { redis: JedisCommands ->
       redis.lrange(uid.stateKey, 0, -1)
         .also { if (it.isEmpty()) throw NoSuchResourceUID(uid) }
-        .map { objectMapper.readValue<ResourceStateHistoryEntry>(it) }
+        .map { objectMapper.readValue<ResourceEvent>(it) }
     }
 
-  override fun updateState(uid: UID, state: ResourceState) {
+  override fun appendHistory(event: ResourceEvent) {
     redisClient.withCommandsClient<Unit> { redis: JedisCommands ->
-      // TODO: probably not super thread safe
-      redis.lindex(uid.stateKey, 0)
-        ?.let { objectMapper.readValue<ResourceStateHistoryEntry>(it) }
-        ?.state
-        .also {
-          if (it != state) {
-            redis.lpush(uid.stateKey, objectMapper.writeValueAsString(ResourceStateHistoryEntry(state, clock.instant())))
-          }
-        }
+      redis.lpush(event.uid.stateKey, objectMapper.writeValueAsString(event))
     }
   }
 

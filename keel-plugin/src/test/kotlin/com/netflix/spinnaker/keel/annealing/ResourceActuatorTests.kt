@@ -6,10 +6,12 @@ import com.netflix.spinnaker.keel.api.ResourceMetadata
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.randomUID
+import com.netflix.spinnaker.keel.events.ResourceCreated
+import com.netflix.spinnaker.keel.events.ResourceDeltaDetected
+import com.netflix.spinnaker.keel.events.ResourceMissing
 import com.netflix.spinnaker.keel.persistence.ResourceState.Diff
 import com.netflix.spinnaker.keel.persistence.ResourceState.Missing
 import com.netflix.spinnaker.keel.persistence.ResourceState.Ok
-import com.netflix.spinnaker.keel.persistence.ResourceState.Unknown
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.netflix.spinnaker.keel.telemetry.ResourceChecked
@@ -20,7 +22,10 @@ import io.mockk.mockk
 import io.mockk.verify
 import org.springframework.context.ApplicationEventPublisher
 import strikt.api.expectThat
-import strikt.assertions.isEqualTo
+import strikt.assertions.first
+import strikt.assertions.hasSize
+import strikt.assertions.isA
+import java.time.Clock
 
 internal object ResourceActuatorTests : JUnit5Minutests {
 
@@ -32,7 +37,7 @@ internal object ResourceActuatorTests : JUnit5Minutests {
   fun tests() = rootContext<ResourceActuator> {
 
     fixture {
-      ResourceActuator(resourceRepository, listOf(plugin1, plugin2), publisher)
+      ResourceActuator(resourceRepository, listOf(plugin1, plugin2), publisher, Clock.systemDefaultZone())
     }
 
     before {
@@ -60,12 +65,14 @@ internal object ResourceActuatorTests : JUnit5Minutests {
 
       before {
         resourceRepository.store(resource)
+        resourceRepository.appendHistory(ResourceCreated(resource))
       }
 
-      test("before the actuator checks the resource its status is unknown") {
-        expectThat(resourceRepository.lastKnownState(resource.metadata.uid))
-          .get { state }
-          .isEqualTo(Unknown)
+      test("before the actuator checks the resource the only event in its history is creation") {
+        expectThat(resourceRepository.eventHistory(resource.metadata.uid))
+          .hasSize(1)
+          .first()
+          .isA<ResourceCreated>()
       }
 
       context("the current state matches the desired state") {
@@ -87,14 +94,14 @@ internal object ResourceActuatorTests : JUnit5Minutests {
           verify(exactly = 0) { plugin2.current(any()) }
         }
 
-        test("the resource state is recorded") {
-          expectThat(resourceRepository.lastKnownState(resource.metadata.uid))
-            .get { state }
-            .isEqualTo(Ok)
+        test("nothing is addded to the resource history") {
+          expectThat(resourceRepository.eventHistory(resource.metadata.uid))
+            .hasSize(1)
         }
 
         test("a telemetry event is published") {
-          verify { publisher.publishEvent(ResourceChecked(resource.apiVersion, resource.kind, resource.metadata.name, Ok)) }
+          // TODO: this is wrong
+          verify { publisher.publishEvent(ResourceChecked(resource, Ok)) }
         }
       }
 
@@ -107,18 +114,19 @@ internal object ResourceActuatorTests : JUnit5Minutests {
           }
         }
 
-        test("the resource is created") {
+        test("the resource is created via the relevant handler") {
           verify { plugin1.create(resource) }
         }
 
         test("the resource state is recorded") {
-          expectThat(resourceRepository.lastKnownState(resource.metadata.uid))
-            .get { state }
-            .isEqualTo(Missing)
+          expectThat(resourceRepository.eventHistory(resource.metadata.uid))
+            .hasSize(2)
+            .first()
+            .isA<ResourceMissing>()
         }
 
         test("a telemetry event is published") {
-          verify { publisher.publishEvent(ResourceChecked(resource.apiVersion, resource.kind, resource.metadata.name, Missing)) }
+          verify { publisher.publishEvent(ResourceChecked(resource, Missing)) }
         }
       }
 
@@ -136,13 +144,14 @@ internal object ResourceActuatorTests : JUnit5Minutests {
         }
 
         test("the resource state is recorded") {
-          expectThat(resourceRepository.lastKnownState(resource.metadata.uid))
-            .get { state }
-            .isEqualTo(Diff)
+          expectThat(resourceRepository.eventHistory(resource.metadata.uid))
+            .hasSize(2)
+            .first()
+            .isA<ResourceDeltaDetected>()
         }
 
         test("a telemetry event is published") {
-          verify { publisher.publishEvent(ResourceChecked(resource.apiVersion, resource.kind, resource.metadata.name, Diff)) }
+          verify { publisher.publishEvent(ResourceChecked(resource, Diff)) }
         }
       }
     }

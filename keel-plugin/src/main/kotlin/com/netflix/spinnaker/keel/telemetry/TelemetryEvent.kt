@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.keel.telemetry
 
 import com.netflix.spinnaker.keel.api.ApiVersion
+import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.persistence.ResourceState
 
@@ -11,7 +12,14 @@ data class ResourceChecked(
   val kind: String,
   val name: ResourceName,
   val state: ResourceState
-) : TelemetryEvent()
+) : TelemetryEvent() {
+  constructor(resource: Resource<*>, state: ResourceState) : this(
+    resource.apiVersion,
+    resource.kind,
+    resource.metadata.name,
+    state
+  )
+}
 
 data class LockAttempt(
   val success: Boolean

@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.keel.yaml
+package com.netflix.spinnaker.config
 
+import com.netflix.spinnaker.keel.yaml.YamlHttpMessageConverter
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 

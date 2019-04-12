@@ -11,3 +11,6 @@ databaseChangeLog:
   - include:
       file: changelog/20190321-persist-metadata.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20190412-resource-events.yml
+      relativeToChangelogFile: true

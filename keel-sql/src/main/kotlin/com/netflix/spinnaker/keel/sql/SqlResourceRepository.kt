@@ -7,14 +7,12 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceMetadata
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.UID
+import com.netflix.spinnaker.keel.events.ResourceEvent
 import com.netflix.spinnaker.keel.info.InstanceIdSupplier
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceName
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceUID
 import com.netflix.spinnaker.keel.persistence.ResourceHeader
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
-import com.netflix.spinnaker.keel.persistence.ResourceState
-import com.netflix.spinnaker.keel.persistence.ResourceState.Unknown
-import com.netflix.spinnaker.keel.persistence.ResourceStateHistoryEntry
 import de.huxhorn.sulky.ulid.ULID
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
@@ -127,39 +125,23 @@ class SqlResourceRepository(
         .onDuplicateKeyUpdate()
         .set(updatePairs)
         .execute()
-
-      insertInto(RESOURCE_STATE)
-        .columns(
-          field("uid"),
-          field("state"),
-          field("timestamp"),
-          field("instance_id")
-        )
-        .values(
-          resource.metadata.uid.toString(),
-          Unknown.name,
-          clock.instant().let(Timestamp::from),
-          instanceIdSupplier.get()
-        )
-        .execute()
     }
   }
 
-  override fun eventHistory(uid: UID): List<ResourceStateHistoryEntry> =
+  override fun eventHistory(uid: UID): List<ResourceEvent> =
     jooq
       .select(
-        field("state"),
-        field("timestamp")
+        field("json")
       )
-      .from(RESOURCE_STATE)
+      .from(RESOURCE_EVENT)
       .where(field("uid").eq(uid.toString()))
       .orderBy(field("timestamp").desc())
       .fetch()
       .intoResultSet()
       .run {
-        val results = mutableListOf<ResourceStateHistoryEntry>()
+        val results = mutableListOf<ResourceEvent>()
         while (next()) {
-          results.add(ResourceStateHistoryEntry(state, timestamp))
+          results.add(event)
         }
         results
       }
@@ -167,41 +149,20 @@ class SqlResourceRepository(
         if (isEmpty()) throw NoSuchResourceUID(uid)
       }
 
-  override fun updateState(uid: UID, state: ResourceState) {
-    // TODO: long term it may make more sense to use 2 tables
-    // one storing the "latest" state and one storing the full
-    // history. Can then do a single tx.
+  override fun appendHistory(event: ResourceEvent) {
     jooq.inTransaction {
-      select(
-        field("state")
-      )
-        .from(RESOURCE_STATE)
-        .where(
-          field("uid").eq(uid.toString())
+      insertInto(RESOURCE_EVENT)
+        .columns(
+          field("uid"),
+          field("timestamp"),
+          field("json")
         )
-        .orderBy(field("timestamp").desc())
-        .limit(1)
-        .forUpdate()
-        .fetch()
-        .intoResultSet()
-        .apply {
-          if (!next() || getString("state") != state.name) {
-            insertInto(RESOURCE_STATE)
-              .columns(
-                field("uid"),
-                field("state"),
-                field("timestamp"),
-                field("instance_id")
-              )
-              .values(
-                uid.toString(),
-                state.name,
-                clock.instant().let(Timestamp::from),
-                instanceIdSupplier.get()
-              )
-              .execute()
-          }
-        }
+        .values(
+          event.uid.toString(),
+          event.timestamp.let(Timestamp::from),
+          objectMapper.writeValueAsString(event)
+        )
+        .execute()
     }
   }
 
@@ -215,7 +176,7 @@ class SqlResourceRepository(
 
   companion object {
     private val RESOURCE = DSL.table("resource")
-    private val RESOURCE_STATE = DSL.table("resource_state")
+    private val RESOURCE_EVENT = DSL.table("resource_event")
   }
 
   private fun <T : Any> ResultSet.toResource(specType: Class<T>): Resource<T> =
@@ -248,10 +209,11 @@ class SqlResourceRepository(
   private fun <T : Any> ResultSet.spec(type: Class<T>): T =
     objectMapper.readValue(getString("spec"), type)
 
-  private val ResultSet.state: ResourceState
-    get() = getString("state").let(ResourceState::valueOf)
   private val ResultSet.timestamp: Instant
     get() = getTimestamp("timestamp").toInstant()
+
+  private val ResultSet.event: ResourceEvent
+    get() = objectMapper.readValue(getString("json"))
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 }

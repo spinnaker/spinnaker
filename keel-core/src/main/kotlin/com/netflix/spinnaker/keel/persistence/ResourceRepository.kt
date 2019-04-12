@@ -19,6 +19,7 @@ import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.UID
+import com.netflix.spinnaker.keel.events.ResourceEvent
 
 data class ResourceHeader(
   val uid: UID,
@@ -73,12 +74,12 @@ interface ResourceRepository {
   /**
    * Retrieves the history of state change events for the resource represented by [uid].
    */
-  fun eventHistory(uid: UID): List<ResourceStateHistoryEntry>
+  fun eventHistory(uid: UID): List<ResourceEvent>
 
   /**
-   * Updates the last known state of the resource represented by [uid].
+   * Records an event associated with a resource.
    */
-  fun updateState(uid: UID, state: ResourceState)
+  fun appendHistory(event: ResourceEvent)
 }
 
 inline fun <reified T : Any> ResourceRepository.get(name: ResourceName): Resource<T> = get(name, T::class.java)

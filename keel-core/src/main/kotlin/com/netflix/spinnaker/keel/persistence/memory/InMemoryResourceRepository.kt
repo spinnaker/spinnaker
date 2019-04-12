@@ -18,13 +18,11 @@ package com.netflix.spinnaker.keel.persistence.memory
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.UID
+import com.netflix.spinnaker.keel.events.ResourceEvent
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceName
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceUID
 import com.netflix.spinnaker.keel.persistence.ResourceHeader
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
-import com.netflix.spinnaker.keel.persistence.ResourceState
-import com.netflix.spinnaker.keel.persistence.ResourceState.Unknown
-import com.netflix.spinnaker.keel.persistence.ResourceStateHistoryEntry
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import java.time.Clock
 
@@ -32,7 +30,7 @@ class InMemoryResourceRepository(
   private val clock: Clock = Clock.systemDefaultZone()
 ) : ResourceRepository {
   private val resources = mutableMapOf<UID, Resource<*>>()
-  private val states = mutableMapOf<UID, MutableList<ResourceStateHistoryEntry>>()
+  private val events = mutableMapOf<UID, MutableList<ResourceEvent>>()
 
   override fun allResources(callback: (ResourceHeader) -> Unit) {
     resources.values.forEach {
@@ -61,7 +59,6 @@ class InMemoryResourceRepository(
 
   override fun store(resource: Resource<*>) {
     resources[resource.metadata.uid] = resource
-    updateState(resource.metadata.uid, Unknown)
   }
 
   override fun delete(name: ResourceName) {
@@ -72,28 +69,24 @@ class InMemoryResourceRepository(
       .singleOrNull()
       ?.also {
         resources.remove(it)
-        states.remove(it)
+        events.remove(it)
       }
   }
 
-  fun lastKnownState(uid: UID): ResourceStateHistoryEntry =
-    states[uid]?.first() ?: throw NoSuchResourceUID(uid)
+  override fun eventHistory(uid: UID): List<ResourceEvent> =
+    events[uid] ?: throw NoSuchResourceUID(uid)
 
-  override fun eventHistory(uid: UID): List<ResourceStateHistoryEntry> =
-    states[uid] ?: throw NoSuchResourceUID(uid)
-
-  override fun updateState(uid: UID, state: ResourceState) {
-    states.computeIfAbsent(uid) {
+  override fun appendHistory(event: ResourceEvent) {
+    events.computeIfAbsent(event.uid) {
       mutableListOf()
     }
       .let {
-        if (it.firstOrNull()?.state != state) {
-          it.add(0, ResourceStateHistoryEntry(state, clock.instant()))
-        }
+        it.add(0, event)
       }
   }
 
   fun dropAll() {
     resources.clear()
+    events.clear()
   }
 }
