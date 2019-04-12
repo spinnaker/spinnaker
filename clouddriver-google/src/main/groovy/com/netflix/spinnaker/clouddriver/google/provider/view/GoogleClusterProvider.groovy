@@ -181,7 +181,7 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster.View> {
       def securityGroups = securityGroupProvider.getAllByAccount(false, clusterView.accountName)
 
       def instanceCacheData = instanceProvider.getInstanceCacheData(instanceKeySuperSet as List).findAll { instance ->
-        instance.relationships.get(CLUSTERS.ns)?.collect { Keys.parse(it).cluster }?.contains(clusterView.name)
+        instance.relationships.get(CLUSTERS.ns)?.collect { Keys.parse(it).cluster }?.any { it.contains(clusterView.name) }
       }
 
       def instances = instanceProvider.getInstancesFromCacheData(clusterView.accountName, instanceCacheData, securityGroups)
