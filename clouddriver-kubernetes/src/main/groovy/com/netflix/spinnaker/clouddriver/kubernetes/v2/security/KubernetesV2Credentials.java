@@ -69,6 +69,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
   private final boolean onlySpinnakerManaged;
   @Getter
   private final boolean liveManifestCalls;
+  private final boolean checkPermissionsOnStartup;
 
   // TODO(lwander) make configurable
   private final static int namespaceExpirySeconds = 30;
@@ -398,6 +399,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
       .collect(Collectors.toMap(k -> k, k -> InvalidKindReason.EXPLICITLY_OMITTED_BY_CONFIGURATION));
     this.onlySpinnakerManaged = onlySpinnakerManaged;
     this.liveManifestCalls = liveManifestCalls;
+    this.checkPermissionsOnStartup = checkPermissionsOnStartup;
 
     this.liveNamespaceSupplier = Suppliers.memoizeWithExpiration(() -> jobExecutor.list(this, Collections.singletonList(KubernetesKind.NAMESPACE), "", new KubernetesSelectorList())
         .stream()
@@ -426,7 +428,9 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
         return new ArrayList<>();
       }
     }, crdExpirySeconds, TimeUnit.SECONDS);
+  }
 
+  public void initialize() {
     // ensure this is called at least once before the credentials object is created to ensure all crds are registered
     this.liveCrdSupplier.get();
 

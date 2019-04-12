@@ -103,6 +103,7 @@ class KubernetesV2ProviderConfig {
             log.warn("Error encountered registering {}: ", cr, e);
           }
         });
+        v2Credentials.initialize();
 
         List<Agent> newlyAddedAgents = kubernetesV2CachingAgentDispatcher.buildAllCachingAgents(credentials)
             .stream()

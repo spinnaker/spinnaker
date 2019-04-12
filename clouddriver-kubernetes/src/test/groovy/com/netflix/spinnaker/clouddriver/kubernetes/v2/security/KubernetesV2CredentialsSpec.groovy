@@ -38,6 +38,7 @@ class KubernetesV2CredentialsSpec extends Specification {
     KubernetesV2Credentials credentials = getBuilder()
       .checkPermissionsOnStartup(false)
       .build()
+    credentials.initialize()
 
     then:
     credentials.isValidKind(KubernetesKind.DEPLOYMENT) == true
@@ -50,6 +51,7 @@ class KubernetesV2CredentialsSpec extends Specification {
       .checkPermissionsOnStartup(false)
       .kinds([])
       .build()
+    credentials.initialize()
 
     then:
     credentials.isValidKind(KubernetesKind.DEPLOYMENT) == true
@@ -62,6 +64,7 @@ class KubernetesV2CredentialsSpec extends Specification {
       .checkPermissionsOnStartup(false)
       .kinds(["deployment"])
       .build()
+    credentials.initialize()
 
     then:
     credentials.isValidKind(KubernetesKind.DEPLOYMENT) == true
@@ -74,6 +77,7 @@ class KubernetesV2CredentialsSpec extends Specification {
       .checkPermissionsOnStartup(false)
       .omitKinds(["deployment"])
       .build()
+    credentials.initialize()
 
     then:
     credentials.isValidKind(KubernetesKind.DEPLOYMENT) == false
@@ -85,6 +89,7 @@ class KubernetesV2CredentialsSpec extends Specification {
     KubernetesV2Credentials credentials = getBuilder()
       .checkPermissionsOnStartup(true)
       .build()
+    credentials.initialize()
 
     then:
     kubectlJobExecutor.list(_, { it.contains(KubernetesKind.DEPLOYMENT) }, _, _) >> {
