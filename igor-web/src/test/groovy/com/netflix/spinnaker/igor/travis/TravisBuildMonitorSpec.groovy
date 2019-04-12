@@ -56,6 +56,7 @@ class TravisBuildMonitorSpec extends Specification {
             Optional.of(echoService),
             Optional.empty()
         )
+        travisService.isLogReady(_) >> true
     }
 
     void 'flag a new build on master, but do not send event on repo if a newer build is present at repo level'() {
@@ -76,6 +77,7 @@ class TravisBuildMonitorSpec extends Specification {
         1 * travisService.getReposForAccounts() >> repos
         1 * travisService.getBuilds(repo, 5) >> [ build ]
         build.branchedRepoSlug() >> "test-org/test-repo/master"
+        build.jobs >> []
         build.getNumber() >> 4
         build.getState() >> TravisBuildState.passed
         build.repository >> repository
@@ -118,6 +120,7 @@ class TravisBuildMonitorSpec extends Specification {
         build.branchedRepoSlug() >> "test-org/test-repo/master"
         build.getNumber() >> 4
         build.getState() >> TravisBuildState.passed
+        build.jobs >> []
         build.repository >> repository
         repository.slug >> 'test-org/test-repo'
 
@@ -153,6 +156,7 @@ class TravisBuildMonitorSpec extends Specification {
         build.branchedRepoSlug() >> "test-org/test-repo/my_branch"
         build.getNumber() >> 4
         build.getState() >> TravisBuildState.passed
+        build.jobs >> []
         build.repository >> repository
         repository.slug >> 'test-org/test-repo'
 
@@ -195,6 +199,7 @@ class TravisBuildMonitorSpec extends Specification {
         1 * buildCache.setLastBuild(MASTER, 'test-org/test-repo/my_branch', 4, false, CACHED_JOB_TTL_SECONDS)
         1 * buildCache.setLastBuild(MASTER, 'test-org/test-repo', 4, false, CACHED_JOB_TTL_SECONDS)
 
+        build.jobs >> []
         build.repository >> repository
         repository.slug >> 'test-org/test-repo'
         build.getState() >> "passed"
@@ -223,10 +228,12 @@ class TravisBuildMonitorSpec extends Specification {
         build.branchedRepoSlug() >> "test-org/test-repo/my_branch"
         build.getNumber() >> 4
         build.getState() >> TravisBuildState.passed
+        build.jobs >> []
         build.repository >> repository
         buildDifferentBranch.branchedRepoSlug() >> "test-org/test-repo/different_branch"
         buildDifferentBranch.getNumber() >> 3
         buildDifferentBranch.getState() >> TravisBuildState.passed
+        buildDifferentBranch.jobs >> []
         buildDifferentBranch.repository >> repository
         repository.slug >> 'test-org/test-repo'
         1 * travisService.getGenericBuild(build, true) >> TravisBuildConverter.genericBuild(build, MASTER)

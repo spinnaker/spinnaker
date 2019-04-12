@@ -22,6 +22,7 @@ import com.netflix.spinnaker.hystrix.SimpleJava8HystrixCommand;
 import com.netflix.spinnaker.igor.build.model.GenericBuild;
 import com.netflix.spinnaker.igor.build.model.GenericGitRevision;
 import com.netflix.spinnaker.igor.build.model.GenericJobConfiguration;
+import com.netflix.spinnaker.igor.build.model.Result;
 import com.netflix.spinnaker.igor.model.BuildServiceProvider;
 import com.netflix.spinnaker.igor.service.ArtifactDecorator;
 import com.netflix.spinnaker.igor.service.BuildOperations;
@@ -54,8 +55,6 @@ import net.logstash.logback.argument.StructuredArguments;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import retrofit.RetrofitError;
-import retrofit.client.Response;
-import retrofit.mime.TypedByteArray;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -137,7 +136,7 @@ public class TravisService implements BuildOperations, BuildProperties {
         return new SimpleJava8HystrixCommand<>(groupKey, buildCommandKey("getGenericBuild"), () -> {
             String repoSlug = cleanRepoSlug(inputRepoSlug);
             Build build = getBuild(repoSlug, buildNumber);
-            return getGenericBuild(build, repoSlug, true);
+            return getGenericBuild(build, repoSlug);
         }).execute();
     }
 
@@ -276,7 +275,8 @@ public class TravisService implements BuildOperations, BuildProperties {
 
     public Job getJob(int jobId) {
         log.debug("fetching job for {}", jobId);
-        Jobs jobs = travisClient.jobs(getAccessToken(), jobId);
+        Jobs jobs = new SimpleJava8HystrixCommand<>(groupKey, buildCommandKey("getJob"), () ->
+            travisClient.jobs(getAccessToken(), jobId)).execute();
         return jobs.getJob();
     }
 
@@ -286,15 +286,8 @@ public class TravisService implements BuildOperations, BuildProperties {
             return "";
         }
         String travisLog = jobIds.stream()
-            .map(this::getJob)
-            .map(job -> {
-                if (job.getLogId() > 0) {
-                    return getLog(job.getLogId());
-                } else {
-                    V3Log log = getJobLog(job.getId());
-                    return log == null ? "" : log.getContent();
-                }
-            })
+            .map(this::getJobLog)
+            .filter(Objects::nonNull)
             .collect(Collectors.joining("\n"));
         log.info("fetched logs for [buildNumber:{}], [buildId:{}], [logLength:{}]", build.getNumber(), build.getId(), travisLog.length());
         return travisLog;
@@ -305,21 +298,42 @@ public class TravisService implements BuildOperations, BuildProperties {
             .map(V3Job::getId)
             .map(this::getJobLog)
             .filter(Objects::nonNull)
-            .map(V3Log::getContent)
             .collect(Collectors.joining("\n"));
         log.info("fetched logs for [buildNumber:{}], [buildId:{}], [logLength:{}]", build.getNumber(), build.getId(), travisLog.length());
         return travisLog;
     }
 
-    public String getLog(int logId) {
-        log.debug("fetching log by logId {}", logId);
-        Response response = travisClient.log(getAccessToken(), logId);
-        return new String(((TypedByteArray) response.getBody()).getBytes());
+    public boolean isLogReady(List<Integer> jobIds) {
+        return jobIds.stream()
+            .map(this::getAndCacheJobLog)
+            .allMatch(Optional::isPresent);
     }
 
-    public V3Log getJobLog(int jobId) {
+    private Optional<String> getAndCacheJobLog(int jobId) {
         log.debug("fetching log by jobId {}", jobId);
-        return travisClient.jobLog(getAccessToken(), jobId);
+        String cachedLog = travisCache.getJobLog(groupKey, jobId);
+        if (cachedLog != null) {
+            log.info("Found log for jobId {} in the cache", jobId);
+            return Optional.of(cachedLog);
+        }
+        V3Log v3Log = new SimpleJava8HystrixCommand<>(groupKey, buildCommandKey("getJobLog"), () ->
+            travisClient.jobLog(getAccessToken(), jobId)).execute();
+        if (v3Log != null && v3Log.isReady()) {
+            log.info("Log for jobId {} was ready, caching it", jobId);
+            travisCache.setJobLog(groupKey, jobId, v3Log.getContent());
+            return Optional.of(v3Log.getContent());
+        }
+        return Optional.empty();
+    }
+
+    public String getJobLog(int jobId) {
+        Optional<String> jobLog = getAndCacheJobLog(jobId);
+        if (jobLog.isPresent()) {
+            return jobLog.get();
+        } else {
+            log.warn("Incomplete log for jobId {}! This is not supposed to happen.", jobId);
+            return null;
+        }
     }
 
     public Repo getRepo(int repositoryId) {
@@ -331,13 +345,12 @@ public class TravisService implements BuildOperations, BuildProperties {
     }
 
     public GenericBuild getGenericBuild(Build build, String repoSlug) {
-        return getGenericBuild(build, repoSlug, false);
-    }
-
-    public GenericBuild getGenericBuild(Build build, String repoSlug, boolean fetchLogs) {
         GenericBuild genericBuild = TravisBuildConverter.genericBuild(build, repoSlug, baseUrl);
-        if (fetchLogs) {
+        boolean logReady = isLogReady(build.getJob_ids());
+        if (logReady) {
             parseAndDecorateArtifacts(getLog(build), genericBuild);
+        } else {
+            genericBuild.setResult(Result.BUILDING);
         }
         return genericBuild;
     }
@@ -370,7 +383,7 @@ public class TravisService implements BuildOperations, BuildProperties {
         Request requestResponse = travisClient.request(getAccessToken(), queuedJob.get("repositoryId"), queuedJob.get("requestId"));
         if (!requestResponse.getBuilds().isEmpty()) {
             log.info("{}: Build found: [{}:{}] . Removing {} from {} travisCache.", StructuredArguments.kv("group", groupKey), requestResponse.getRepository().getSlug(), requestResponse.getBuilds().get(0).getNumber(), queueId, groupKey);
-            travisCache.remove(groupKey, queueId);
+            travisCache.removeQuededJob(groupKey, queueId);
             LinkedHashMap<String, Integer> map = new LinkedHashMap<>(1);
             map.put("number", requestResponse.getBuilds().get(0).getNumber());
             return map;

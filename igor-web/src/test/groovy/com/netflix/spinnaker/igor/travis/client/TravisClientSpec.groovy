@@ -31,10 +31,9 @@ import com.netflix.spinnaker.igor.travis.client.model.RepoWrapper
 import com.netflix.spinnaker.igor.travis.client.model.Repos
 import com.netflix.spinnaker.igor.travis.client.model.TriggerResponse
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Builds
+import com.netflix.spinnaker.igor.travis.client.model.v3.V3Log
 import com.squareup.okhttp.mockwebserver.MockResponse
 import com.squareup.okhttp.mockwebserver.MockWebServer
-import retrofit.client.Response
-import retrofit.mime.TypedByteArray
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -218,21 +217,80 @@ class TravisClientSpec extends Specification {
 
     def "Log"() {
         given:
-        setPlainTextResponse '''ERROR: An error occured while trying to parse your .travis.yml file.
-
-            Please make sure that the file is valid YAML.
-
-            http://lint.travis-ci.org can check your .travis.yml.
-
-            The error was "undefined method `merge' for false:FalseClass".'''
+        setResponse '''
+        {
+            "@type": "log",
+            "@href": "/job/123/log",
+            "@representation": "standard",
+            "@permissions": {
+                "read": true,
+                "debug": false,
+                "cancel": false,
+                "restart": false,
+                "delete_log": false
+            },
+            "id": 1337,
+            "content": "ERROR: An error occured while trying to parse your .travis.yml file.\\n\\nPlease make sure that the file is valid YAML.\\n\\nhttp://lint.travis-ci.org can check your .travis.yml.\\n\\nThe error was \\"undefined method `merge' for false:FalseClass\\".",
+            "log_parts": [
+                {
+                    "content": "ERROR: An error occured while trying to parse your .travis.yml file.\\n\\nPlease make sure that the file is valid YAML.\\n\\n",
+                    "final": false,
+                    "number": 0
+                },
+                {
+                    "content": "http://lint.travis-ci.org can check your .travis.yml.\\n\\nThe error was \\"undefined method `merge' for false:FalseClass\\".",
+                    "final": true,
+                    "number": 1
+                }
+            ],
+            "@raw_log_href": "/v3/job/123/log.txt?log.token=hfeus7seyfhfe8"
+        }'''.stripIndent()
 
         when:
-        Response response = client.log("someToken", 123)
-        String logMylog = new String(((TypedByteArray) response.getBody()).getBytes());
+        V3Log v3Log = client.jobLog("someToken", 123)
 
         then:
-        logMylog.contains "false:FalseClass"
+        v3Log.content.contains "false:FalseClass"
+        v3Log.ready
+    }
 
+    def "detect incomplete log"() {
+        given:
+        setResponse '''
+        {
+            "@type": "log",
+            "@href": "/job/123/log",
+            "@representation": "standard",
+            "@permissions": {
+                "read": true,
+                "debug": false,
+                "cancel": false,
+                "restart": false,
+                "delete_log": false
+            },
+            "id": 1337,
+            "content": "ERROR: An error occured while trying to parse your .travis.yml file.\\n\\nPlease make sure that the file is valid YAML.\\n\\nhttp://lint.travis-ci.org can check your .travis.yml.\\n\\nThe error was \\"undefined method `merge' for false:FalseClass\\".",
+            "log_parts": [
+                {
+                    "content": "ERROR: An error occured while trying to parse your .travis.yml file.\\n\\nPlease make sure that the file is valid YAML.\\n\\n",
+                    "final": false,
+                    "number": 0
+                },
+                {
+                    "content": "http://lint.travis-ci.org can check your .travis.yml.\\n\\nThe error was \\"undefined method `merge' for false:FalseClass\\".",
+                    "final": false,
+                    "number": 1
+                }
+            ],
+            "@raw_log_href": "/v3/job/123/log.txt?log.token=hfeus7seyfhfe8"
+        }'''.stripIndent()
+
+        when:
+        V3Log v3Log = client.jobLog("someToken", 123)
+
+        then:
+        v3Log.content.contains "false:FalseClass"
+        !v3Log.ready
     }
 
     def "getBuilds(accessToken, repoSlug, buildNumber"() {
@@ -632,16 +690,5 @@ class TravisClientSpec extends Specification {
         )
         server.start()
         client = new TravisConfig().travisClient(server.getUrl('/').toString(), 3000, mapper)
-    }
-
-    private void setPlainTextResponse(String body) {
-        server.enqueue(
-            new MockResponse()
-                .setBody(body)
-                .setHeader('Content-Type', 'text/plain;charset=utf-8')
-        )
-        server.start()
-        client = new TravisConfig().travisClient(server.getUrl('/').toString(), 3000, mapper)
-
     }
 }

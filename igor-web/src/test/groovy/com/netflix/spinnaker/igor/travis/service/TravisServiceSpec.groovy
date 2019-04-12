@@ -32,6 +32,7 @@ import com.netflix.spinnaker.igor.travis.client.model.RepoRequest
 import com.netflix.spinnaker.igor.travis.client.model.TriggerResponse
 import com.netflix.spinnaker.igor.travis.client.model.v3.Request
 import com.netflix.spinnaker.igor.travis.client.model.v3.TravisBuildType
+import com.netflix.spinnaker.igor.travis.client.model.v3.V3Log
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Repository
 import spock.lang.Shared
 import spock.lang.Specification
@@ -66,6 +67,12 @@ class TravisServiceSpec extends Specification{
     def "getGenericBuild(build, repoSlug)" () {
         given:
         Build build = Mock(Build)
+        def v3log = new V3Log()
+        def logPart = new V3Log.V3LogPart()
+        logPart.content = ""
+        logPart.final = true
+        logPart.number = 0
+        v3log.logParts = [logPart]
 
         when:
         GenericBuild genericBuild = service.getGenericBuild(build, "some/repo-slug")
@@ -76,7 +83,11 @@ class TravisServiceSpec extends Specification{
         genericBuild.duration == 32
         genericBuild.timestamp == "1458051084000"
 
-        1 * build.number >> 1337
+        2 * travisCache.getJobLog('travis-ci', 42) >>> [null, ""]
+        1 * travisCache.setJobLog('travis-ci', 42, "") >>> [null, ""]
+        1 * client.jobLog(_, 42) >> v3log
+        2 * build.job_ids >> [42]
+        2 * build.number >> 1337
         2 * build.state >> 'passed'
         1 * build.duration >> 32
         1 * build.finishedAt >> Instant.now()

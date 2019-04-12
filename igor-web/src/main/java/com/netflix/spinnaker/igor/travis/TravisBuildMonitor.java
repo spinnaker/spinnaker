@@ -33,6 +33,7 @@ import com.netflix.spinnaker.igor.service.BuildServices;
 import com.netflix.spinnaker.igor.travis.client.model.Repo;
 import com.netflix.spinnaker.igor.travis.client.model.v3.TravisBuildState;
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Build;
+import com.netflix.spinnaker.igor.travis.client.model.v3.V3Job;
 import com.netflix.spinnaker.igor.travis.service.TravisBuildConverter;
 import com.netflix.spinnaker.igor.travis.service.TravisService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +43,7 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -178,10 +180,11 @@ public class TravisBuildMonitor extends CommonPollingMonitor<TravisBuildMonitor.
             .map(build -> setTracking(build, master))
             .filter(filterNewBuildsPredicate())
             .forEach(build -> {
-            String branchedRepoSlug = build.branchedRepoSlug();
-            int cachedBuild = buildCache.getLastBuild(master, branchedRepoSlug, build.getState().isRunning());
-            GenericBuild genericBuild = TravisBuildConverter.genericBuild(build, travisService.getBaseUrl());
-            if (build.getNumber() > cachedBuild && !build.spinnakerTriggered()) {
+                String branchedRepoSlug = build.branchedRepoSlug();
+                int cachedBuild = buildCache.getLastBuild(master, branchedRepoSlug, build.getState().isRunning());
+                GenericBuild genericBuild = TravisBuildConverter.genericBuild(build, travisService.getBaseUrl());
+                List<Integer> jobIds = build.getJobs() != null ? build.getJobs().stream().map(V3Job::getId).collect(Collectors.toList()) : Collections.emptyList();
+                if (build.getNumber() > cachedBuild && !build.spinnakerTriggered() && travisService.isLogReady(jobIds)) {
                 BuildDelta delta = new BuildDelta()
                     .setBranchedRepoSlug(branchedRepoSlug)
                     .setBuild(build)

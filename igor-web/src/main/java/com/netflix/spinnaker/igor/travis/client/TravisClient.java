@@ -42,7 +42,6 @@ import retrofit.http.Headers;
 import retrofit.http.POST;
 import retrofit.http.Path;
 import retrofit.http.Query;
-import retrofit.http.Streaming;
 
 public interface TravisClient {
     @POST("/auth/github")
@@ -87,11 +86,6 @@ public interface TravisClient {
 
     @GET("/jobs/{job_id}")
     public abstract Jobs jobs(@Header("Authorization") String accessToken, @Path("job_id") int jobId);
-
-    @Streaming
-    @Headers("Accept: text/plain")
-    @GET("/logs/{logId}")
-    public abstract Response log(@Header("Authorization") String accessToken, @Path("logId") int logId);
 
     @Headers({"Travis-API-Version: 3", "Accept: text/plain"})
     @GET("/job/{jobId}/log")
