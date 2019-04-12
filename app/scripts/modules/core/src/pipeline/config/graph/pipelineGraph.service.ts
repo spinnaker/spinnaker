@@ -51,7 +51,7 @@ export interface IPipelineGraphNode {
   executionId?: string;
   executionStage?: boolean;
   hasNotStarted?: boolean;
-  labelComponent?: React.ComponentClass<{ stage: IExecutionStageSummary }>;
+  labelComponent?: React.ComponentType<{ stage: IExecutionStageSummary }>;
   masterStage?: IStage;
   stage?: IExecutionStageSummary;
   status?: string;

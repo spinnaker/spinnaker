@@ -242,7 +242,7 @@ export class ExecutionsTransformer {
       : 0;
     this.filterStages(summary);
     this.setFirstActiveStage(summary);
-    this.setExecutionWindow(summary);
+    this.setSuspendedStageTypes(summary);
     this.transformStage(summary);
     this.styleStage(summary);
     OrchestratedItemTransformer.defineProperties(summary);
@@ -259,10 +259,10 @@ export class ExecutionsTransformer {
     }
   }
 
-  private static setExecutionWindow(summary: IExecutionStageSummary): void {
-    if (summary.stages.some(s => s.type === 'restrictExecutionDuringTimeWindow' && s.isSuspended)) {
-      summary.inSuspendedExecutionWindow = true;
-    }
+  private static setSuspendedStageTypes(summary: IExecutionStageSummary): void {
+    summary.suspendedStageTypes = new Set(
+      summary.stages.filter(({ isSuspended }) => isSuspended).map(({ type }) => type),
+    );
   }
 
   private static setFirstActiveStage(summary: IExecutionStageSummary): void {

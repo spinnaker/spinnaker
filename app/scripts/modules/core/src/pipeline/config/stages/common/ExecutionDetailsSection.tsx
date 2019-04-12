@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { IExecutionDetailsComponentProps } from 'core/domain';
+import { IExecutionDetailsProps } from 'core/domain';
 
 export interface IExecutionDetailsSectionWrapperProps {
   children?: any;
@@ -8,7 +8,7 @@ export interface IExecutionDetailsSectionWrapperProps {
   current: string;
 }
 
-export type IExecutionDetailsSectionProps = IExecutionDetailsSectionWrapperProps & IExecutionDetailsComponentProps;
+export type IExecutionDetailsSectionProps = IExecutionDetailsSectionWrapperProps & IExecutionDetailsProps;
 
 export const ExecutionDetailsSection = (props: IExecutionDetailsSectionWrapperProps) => {
   if (props.current === props.name) {

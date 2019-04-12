@@ -5,7 +5,8 @@ import { Application } from 'core/application/application.model';
 import { ReactInjector } from 'core/reactShims';
 import { duration } from 'core/utils/timeFormatters';
 import { OrchestratedItemRunningTime } from 'core/pipeline/executions/execution/OrchestratedItemRunningTime';
-import { DEFAULT_SKIP_WAIT_TEXT } from './waitStage';
+
+export const DEFAULT_SKIP_WAIT_TEXT = 'The pipeline will proceed immediately, marking this stage completed.';
 
 export interface ISkipWaitProps {
   execution: IExecution;
@@ -53,10 +54,6 @@ export class SkipWait extends React.Component<ISkipWaitProps, ISkipWaitState> {
       },
     });
   };
-
-  public componentWillReceiveProps() {
-    this.runningTime.checkStatus();
-  }
 
   public componentDidMount() {
     this.runningTime = new OrchestratedItemRunningTime(this.props.stage, (time: number) => this.setRemainingWait(time));

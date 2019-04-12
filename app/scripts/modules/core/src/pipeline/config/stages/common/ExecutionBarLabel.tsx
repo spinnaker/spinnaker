@@ -1,13 +1,14 @@
 import * as React from 'react';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 
-import { IExecutionStageLabelComponentProps } from 'core/domain';
+import { IExecutionStageLabelProps } from 'core/domain';
 import { ExecutionWindowActions } from 'core/pipeline/config/stages/executionWindows/ExecutionWindowActions';
+import { SkipConditionWait } from 'core/pipeline/config/stages/waitForCondition/SkipConditionWait';
 import { HoverablePopover } from 'core/presentation/HoverablePopover';
 import { ReactInjector } from 'core/reactShims';
 import { Spinner } from 'core/widgets';
 
-export interface IExecutionBarLabelProps extends IExecutionStageLabelComponentProps {
+export interface IExecutionBarLabelProps extends IExecutionStageLabelProps {
   tooltip?: JSX.Element;
 }
 
@@ -47,8 +48,8 @@ export class ExecutionBarLabel extends React.Component<IExecutionBarLabelProps, 
 
   public render() {
     const { stage, application, execution, executionMarker } = this.props;
-    const inSuspendedExecutionWindow = stage.inSuspendedExecutionWindow;
-    if (inSuspendedExecutionWindow && executionMarker) {
+    const { suspendedStageTypes } = stage;
+    if (suspendedStageTypes.has('restrictExecutionDuringTimeWindow') && executionMarker) {
       const executionWindowStage = stage.stages.find(s => s.type === 'restrictExecutionDuringTimeWindow');
       const template = (
         <div>
@@ -56,6 +57,18 @@ export class ExecutionBarLabel extends React.Component<IExecutionBarLabelProps, 
             <b>{stage.name}</b> (waiting for execution window)
           </div>
           <ExecutionWindowActions application={application} execution={execution} stage={executionWindowStage} />
+        </div>
+      );
+      return <HoverablePopover template={template}>{this.props.children}</HoverablePopover>;
+    } else if (suspendedStageTypes.has('waitForCondition') && executionMarker) {
+      const waitForConditionStage = stage.stages.find(s => s.type === 'waitForCondition');
+      const template = (
+        <div>
+          <p>
+            <b>{stage.name}</b> (waiting until conditions are met)
+          </p>
+          Conditions:
+          <SkipConditionWait application={application} execution={execution} stage={waitForConditionStage} />
         </div>
       );
       return <HoverablePopover template={template}>{this.props.children}</HoverablePopover>;

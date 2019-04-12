@@ -5,8 +5,5 @@ export interface IExecutionMarkerIconProps {
   stage: IExecutionStageSummary;
 }
 
-export class ExecutionMarkerIcon extends React.Component<IExecutionMarkerIconProps, any> {
-  public render() {
-    return this.props.stage.inSuspendedExecutionWindow ? <span className="far fa-clock" /> : null;
-  }
-}
+export const ExecutionMarkerIcon = ({ stage }: IExecutionMarkerIconProps) =>
+  stage.isSuspended || stage.suspendedStageTypes.size > 0 ? <span className="far fa-clock sp-margin-xs-right" /> : null;

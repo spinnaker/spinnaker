@@ -1,15 +1,12 @@
 import * as React from 'react';
 import { isEqual } from 'lodash';
 
-import { IExecutionDetailsComponentProps, IExecutionDetailsComponentState } from 'core/domain';
+import { IExecutionDetailsProps, IExecutionDetailsState } from 'core/domain';
 import { ExecutionDetailsSectionNav } from 'core/pipeline/details';
 import { ReactInjector } from 'core/reactShims';
 
-export class StepExecutionDetails extends React.Component<
-  IExecutionDetailsComponentProps,
-  IExecutionDetailsComponentState
-> {
-  constructor(props: IExecutionDetailsComponentProps) {
+export class StepExecutionDetails extends React.Component<IExecutionDetailsProps, IExecutionDetailsState> {
+  constructor(props: IExecutionDetailsProps) {
     super(props);
     this.state = {
       configSections: props.detailsSections.map(s => s.title),
@@ -32,7 +29,7 @@ export class StepExecutionDetails extends React.Component<
     this.syncDetails(this.state.configSections);
   }
 
-  public componentWillReceiveProps(nextProps: IExecutionDetailsComponentProps): void {
+  public componentWillReceiveProps(nextProps: IExecutionDetailsProps): void {
     const configSections = nextProps.detailsSections.map(s => s.title);
     if (!isEqual(this.state.configSections, configSections)) {
       this.setState({ configSections });
