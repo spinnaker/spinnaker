@@ -4,6 +4,7 @@ import groovy.json.JsonOutput
 import com.netflix.spinnaker.echo.model.Trigger
 import retrofit.Endpoints
 import retrofit.RestAdapter
+import retrofit.converter.JacksonConverter
 import spock.lang.Ignore
 import spock.lang.Specification
 import spock.lang.Subject
@@ -18,6 +19,7 @@ class Front50ServiceSpec extends Specification {
   def client = Stub(Client)
   @Subject front50 = new RestAdapter.Builder()
     .setEndpoint(Endpoints.newFixedEndpoint(endpoint))
+    .setConverter(new JacksonConverter())
     .setClient(client)
     .build()
     .create(Front50Service)

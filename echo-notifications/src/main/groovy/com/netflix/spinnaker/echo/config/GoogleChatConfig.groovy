@@ -27,6 +27,7 @@ import org.springframework.context.annotation.Configuration
 import retrofit.Endpoint
 import retrofit.RestAdapter
 import retrofit.client.Client
+import retrofit.converter.JacksonConverter
 
 import static retrofit.Endpoints.newFixedEndpoint
 
@@ -47,6 +48,7 @@ class GoogleChatConfig {
     log.info("Chat service loaded");
 
     def chatClient = new RestAdapter.Builder()
+            .setConverter(new JacksonConverter())
             .setClient(retrofitClient)
             .setEndpoint(chatEndpoint)
             .setLogLevel(retrofitLogLevel)

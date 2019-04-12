@@ -18,6 +18,8 @@
 
 package com.netflix.spinnaker.echo.config
 
+import retrofit.converter.JacksonConverter
+
 import static retrofit.Endpoints.newFixedEndpoint
 
 import com.netflix.spinnaker.echo.hipchat.HipchatService
@@ -50,6 +52,7 @@ class HipchatConfig {
 
         new RestAdapter.Builder()
                 .setEndpoint(hipchatEndpoint)
+                .setConverter(new JacksonConverter())
                 .setClient(retrofitClient)
                 .setLogLevel(retrofitLogLevel)
                 .setLog(new Slf4jRetrofitLogger(HipchatService.class))

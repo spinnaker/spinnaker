@@ -30,6 +30,7 @@ import retrofit.Endpoints;
 import retrofit.RestAdapter.Builder;
 import retrofit.RestAdapter.LogLevel;
 import retrofit.client.OkClient;
+import retrofit.converter.JacksonConverter;
 
 @Configuration
 @Slf4j
@@ -65,8 +66,10 @@ public class Front50Config {
   public Front50Service front50Service(Endpoint front50Endpoint, OkHttpClient okHttpClient,
     LogLevel retrofitLogLevel) {
     log.info("front50 service loaded");
+
     return new Builder()
       .setEndpoint(front50Endpoint)
+      .setConverter(new JacksonConverter())
       .setClient(new OkClient(okHttpClient))
       .setLogLevel(retrofitLogLevel)
       .setLog(new Slf4jRetrofitLogger(Front50Service.class)).build()

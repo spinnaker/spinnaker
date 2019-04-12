@@ -31,6 +31,7 @@ import org.springframework.context.annotation.Configuration
 import retrofit.Endpoint
 import retrofit.RestAdapter
 import retrofit.client.Client
+import retrofit.converter.JacksonConverter
 
 import static retrofit.Endpoints.newFixedEndpoint
 
@@ -60,6 +61,7 @@ class SlackConfig {
 
     def slackClient = new RestAdapter.Builder()
         .setEndpoint(slackEndpoint)
+        .setConverter(new JacksonConverter())
         .setClient(retrofitClient)
         .setLogLevel(retrofitLogLevel)
         .setLog(new Slf4jRetrofitLogger(SlackClient.class))

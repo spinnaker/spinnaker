@@ -26,6 +26,7 @@ import org.springframework.context.annotation.Configuration;
 import retrofit.Endpoint;
 import retrofit.RestAdapter;
 import retrofit.client.Client;
+import retrofit.converter.JacksonConverter;
 
 import static retrofit.Endpoints.newFixedEndpoint;
 
@@ -47,6 +48,7 @@ public class PagerDutyConfig {
 
     return new RestAdapter.Builder()
       .setEndpoint(pagerDutyEndpoint)
+      .setConverter(new JacksonConverter())
       .setClient(retrofitClient)
       .setLogLevel(retrofitLogLevel)
       .setLog(new Slf4jRetrofitLogger(PagerDutyService.class))

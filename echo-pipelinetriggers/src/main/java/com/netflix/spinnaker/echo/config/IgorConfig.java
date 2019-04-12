@@ -29,6 +29,7 @@ import retrofit.Endpoints;
 import retrofit.RequestInterceptor;
 import retrofit.RestAdapter.Builder;
 import retrofit.RestAdapter.LogLevel;
+import retrofit.converter.JacksonConverter;
 
 @Configuration
 @ConditionalOnProperty("igor.enabled")
@@ -45,6 +46,7 @@ public class IgorConfig {
     log.info("igor service loaded");
     return new Builder()
       .setEndpoint(igorEndpoint)
+      .setConverter(new JacksonConverter())
       .setClient(ok3Client)
       .setRequestInterceptor(spinnakerRequestInterceptor)
       .setLogLevel(retrofitLogLevel)

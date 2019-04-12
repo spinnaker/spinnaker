@@ -18,6 +18,8 @@ package com.netflix.spinnaker.echo.config
 
 import com.netflix.spinnaker.echo.bearychat.BearychatService
 import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger
+import retrofit.converter.JacksonConverter
+
 import static retrofit.Endpoints.newFixedEndpoint
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -47,6 +49,7 @@ class BearychatConfig {
 
     new RestAdapter.Builder()
       .setEndpoint(bearychatEndpoint)
+      .setConverter(new JacksonConverter())
       .setClient(retrofitClient)
       .setLogLevel(retrofitLogLevel)
       .setLog(new Slf4jRetrofitLogger(BearychatService.class))

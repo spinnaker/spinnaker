@@ -27,6 +27,7 @@ import retrofit.Endpoint;
 import retrofit.Endpoints;
 import retrofit.RestAdapter;
 import retrofit.client.Client;
+import retrofit.converter.JacksonConverter;
 
 @Configuration
 @ConditionalOnProperty("githubStatus.enabled")
@@ -46,6 +47,7 @@ public class GithubConfig {
 
     GithubService githubClient = new RestAdapter.Builder()
       .setEndpoint(githubEndpoint)
+      .setConverter(new JacksonConverter())
       .setClient(retrofitClient)
       .setLogLevel(RestAdapter.LogLevel.FULL)
       .setLog(new Slf4jRetrofitLogger(GithubService.class))

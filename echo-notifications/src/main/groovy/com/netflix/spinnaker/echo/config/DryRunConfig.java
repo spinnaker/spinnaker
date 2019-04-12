@@ -32,6 +32,8 @@ import org.springframework.context.annotation.Configuration;
 import retrofit.Endpoint;
 import retrofit.RestAdapter;
 import retrofit.client.OkClient;
+import retrofit.converter.JacksonConverter;
+
 import static retrofit.Endpoints.newFixedEndpoint;
 
 @Configuration
@@ -55,6 +57,7 @@ public class DryRunConfig {
     log.info("Pipeline dry runs will execute at {}", dryRunEndpoint.getUrl());
     OrcaService orca = new RestAdapter.Builder()
       .setEndpoint(dryRunEndpoint)
+      .setConverter(new JacksonConverter())
       .setClient(new OkClient(okHttpClient))
       .setLogLevel(retrofitLogLevel)
       .setLog(new Slf4jRetrofitLogger(OrcaService.class))

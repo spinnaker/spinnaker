@@ -12,6 +12,7 @@ import retrofit.Endpoint;
 import retrofit.Endpoints;
 import retrofit.RestAdapter;
 import retrofit.RestAdapter.LogLevel;
+import retrofit.converter.JacksonConverter;
 
 @Configuration
 @Slf4j
@@ -33,6 +34,7 @@ public class KeelConfig {
                                  LogLevel retrofitLogLevel) {
     return new RestAdapter.Builder()
       .setEndpoint(keelEndpoint)
+      .setConverter(new JacksonConverter())
       .setClient(ok3Client)
       .setLogLevel(retrofitLogLevel)
       .setLog(new Slf4jRetrofitLogger(KeelService.class)).build()

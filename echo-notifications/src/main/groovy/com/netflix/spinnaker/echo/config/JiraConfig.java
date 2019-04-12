@@ -30,6 +30,7 @@ import org.springframework.context.annotation.Configuration;
 import retrofit.RestAdapter;
 import retrofit.client.Client;
 import retrofit.client.OkClient;
+import retrofit.converter.JacksonConverter;
 
 import static retrofit.Endpoints.newFixedEndpoint;
 
@@ -53,6 +54,7 @@ public class JiraConfig {
 
     RestAdapter.Builder builder = new RestAdapter.Builder()
       .setEndpoint(newFixedEndpoint(jiraProperties.getBaseUrl()))
+      .setConverter(new JacksonConverter())
       .setClient(retrofitClient)
       .setLogLevel(retrofitLogLevel)
       .setLog(new Slf4jRetrofitLogger(JiraService.class));
