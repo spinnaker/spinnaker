@@ -205,6 +205,9 @@ const helpContents: { [key: string]: string } = {
   'kubernetes.manifest.rolloutStrategyOptions': `
     <p>Allow Spinnaker to associate your workload with one or more Services and manage traffic based on your selected rollout strategy options. Valid for ReplicaSets only.</p>
   `,
+  'kubernetes.manifest.rolloutStrategy': `
+    <p>The rollout strategy tells Spinnaker what to do with the previous version(s) of the ReplicaSet in the cluster.</p>
+  `,
   'kubernetes.manifest.expectedArtifact':
     'The artifact that is to be applied to the Kubernetes account for this stage.  The artifact should represent a valid Kubernetes manifest.',
   'kubernetes.manifest.requiredArtifactsToBind':

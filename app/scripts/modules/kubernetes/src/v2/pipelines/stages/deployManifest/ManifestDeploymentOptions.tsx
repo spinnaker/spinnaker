@@ -1,12 +1,14 @@
 import { module } from 'angular';
+import * as DOMPurify from 'dompurify';
 import * as React from 'react';
 import { react2angular } from 'react2angular';
 import { cloneDeep, find, get, map, set, split } from 'lodash';
 import Select, { Option } from 'react-select';
 
-import { IAccountDetails, StageConfigField } from '@spinnaker/core';
+import { IAccountDetails, IDeploymentStrategy, StageConfigField } from '@spinnaker/core';
 
 import { ManifestKindSearchService } from 'kubernetes/v2/manifest/ManifestKindSearch';
+import { rolloutStrategies } from 'kubernetes/v2/rolloutStrategy';
 
 export interface ITrafficManagementConfig {
   enabled: boolean;
@@ -73,6 +75,19 @@ export class ManifestDeploymentOptions extends React.Component<
     return map(namespaces, n => ({ label: n, value: n }));
   };
 
+  private strategyOptionRenderer = (option: IDeploymentStrategy) => {
+    return (
+      <div className="body-regular">
+        <strong>
+          <span dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(option.label) }} />
+        </strong>
+        <div>
+          <span dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(option.description) }} />
+        </div>
+      </div>
+    );
+  };
+
   public componentDidMount() {
     this.fetchServices();
   }
@@ -85,6 +100,10 @@ export class ManifestDeploymentOptions extends React.Component<
     if (prevProps.config.options.namespace !== this.props.config.options.namespace) {
       this.onConfigChange('options.services', null);
       this.fetchServices();
+    }
+
+    if (!this.props.config.options.enableTraffic && !!this.props.config.options.strategy) {
+      this.onConfigChange('options.enableTraffic', true);
     }
   }
 
@@ -130,12 +149,25 @@ export class ManifestDeploymentOptions extends React.Component<
                 <label>
                   <input
                     checked={config.options.enableTraffic}
+                    disabled={!!config.options.strategy}
                     onChange={e => this.onConfigChange('options.enableTraffic', e.target.checked)}
                     type="checkbox"
                   />
                   Send client requests to new pods
                 </label>
               </div>
+            </StageConfigField>
+            <StageConfigField fieldColumns={8} helpKey="kubernetes.manifest.rolloutStrategy" label="Strategy">
+              <Select
+                clearable={false}
+                onChange={(option: Option<IDeploymentStrategy>) => this.onConfigChange('options.strategy', option.key)}
+                options={rolloutStrategies}
+                optionRenderer={this.strategyOptionRenderer}
+                placeholder="None"
+                value={config.options.strategy}
+                valueKey="key"
+                valueRenderer={o => <>{o.label}</>}
+              />
             </StageConfigField>
           </>
         )}

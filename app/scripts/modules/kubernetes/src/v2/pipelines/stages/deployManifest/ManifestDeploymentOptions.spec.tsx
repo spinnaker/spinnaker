@@ -29,10 +29,10 @@ describe('<ManifestDeploymentOptions />', () => {
       expect(wrapper.find(StageConfigField).length).toEqual(1);
       expect(wrapper.find('input[type="checkbox"]').length).toEqual(1);
     });
-    it('renders config fields for `namespace`, `services`, and `enableTraffic` when config is enabled', () => {
+    it('renders config fields for `namespace`, `services`, `enableTraffic`, and `strategy` when config is enabled', () => {
       props.config.enabled = true;
       wrapper = shallow(<ManifestDeploymentOptions {...props} />);
-      expect(wrapper.find(StageConfigField).length).toEqual(4);
+      expect(wrapper.find(StageConfigField).length).toEqual(5);
     });
   });
 
@@ -46,6 +46,16 @@ describe('<ManifestDeploymentOptions />', () => {
         ...defaultTrafficManagementConfig,
         enabled: true,
       });
+    });
+    it('disables the traffic checkbox when a non-None rollout strategy is selected', () => {
+      props.config.options.strategy = 'redblack';
+      wrapper = shallow(<ManifestDeploymentOptions {...props} />);
+      expect(
+        wrapper
+          .find('input[type="checkbox"]')
+          .at(1)
+          .props().disabled,
+      ).toEqual(true);
     });
   });
 });
