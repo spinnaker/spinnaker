@@ -172,7 +172,10 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
         if (description.inService == null) {
           description.inService = sourceJob.inService
         }
-        description.migrationPolicy = description.migrationPolicy ?: sourceJob.migrationPolicy
+        if (description.disruptionBudget == null) {
+          //migrationPolicy should only be used when the disruptionBudget has not been specified
+          description.migrationPolicy = description.migrationPolicy ?: sourceJob.migrationPolicy
+        }
         description.jobType = description.jobType ?: "service"
         if (!description.hardConstraints) description.hardConstraints = []
         if (!description.softConstraints) description.softConstraints = []
