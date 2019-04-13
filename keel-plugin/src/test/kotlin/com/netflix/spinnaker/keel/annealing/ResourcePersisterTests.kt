@@ -17,6 +17,7 @@ import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.mockk
+import io.mockk.verify
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
@@ -33,7 +34,7 @@ internal class ResourcePersisterTests : JUnit5Minutests {
 
   data class Fixture<T : Any>(
     val repository: InMemoryResourceRepository = InMemoryResourceRepository(),
-    val queue: ResourceCheckQueue = mockk(),
+    val queue: ResourceCheckQueue = mockk(relaxUnitFun = true),
     val publisher: ApplicationEventPublisher = mockk(),
     val handler: ResourceHandler<String> = StringResourceHandler(),
     val clock: Clock = Clock.systemDefaultZone(),
@@ -73,6 +74,10 @@ internal class ResourcePersisterTests : JUnit5Minutests {
             .isA<ResourceCreated>()
         }
 
+        test("queues the resource for checking") {
+          verify { queue.scheduleCheck(resource!!) }
+        }
+
         context("update") {
           before {
             resource = subject.update(resource!!.copy(spec = "kthxbye") as Resource<Any>) as Resource<String>
@@ -90,6 +95,10 @@ internal class ResourcePersisterTests : JUnit5Minutests {
               .first()
               .isA<ResourceUpdated>()
           }
+
+          test("queues the resource for checking") {
+            verify { queue.scheduleCheck(resource!!) }
+          }
         }
 
         context("no-op update") {
@@ -106,6 +115,10 @@ internal class ResourcePersisterTests : JUnit5Minutests {
           test("does not record that the resource was updated") {
             expectThat(repository.eventHistory(resource!!.metadata.uid))
               .hasSize(1)
+          }
+
+          test("does not queue the resource for checking") {
+            verify { queue.scheduleCheck(resource!!) }
           }
         }
       }
