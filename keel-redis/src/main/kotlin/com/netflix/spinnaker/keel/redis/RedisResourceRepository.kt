@@ -86,19 +86,20 @@ class RedisResourceRepository(
       redis.del(uid.key)
       redis.srem(INDEX_SET, uid.toString())
       redis.hdel(NAME_TO_UID_HASH, name.value)
+      redis.del(uid.eventsKey)
     }
   }
 
   override fun eventHistory(uid: UID): List<ResourceEvent> =
     redisClient.withCommandsClient<List<ResourceEvent>> { redis: JedisCommands ->
-      redis.lrange(uid.stateKey, 0, -1)
+      redis.lrange(uid.eventsKey, 0, -1)
         .also { if (it.isEmpty()) throw NoSuchResourceUID(uid) }
         .map { objectMapper.readValue<ResourceEvent>(it) }
     }
 
   override fun appendHistory(event: ResourceEvent) {
     redisClient.withCommandsClient<Unit> { redis: JedisCommands ->
-      redis.lpush(event.uid.stateKey, objectMapper.writeValueAsString(event))
+      redis.lpush(event.uid.eventsKey, objectMapper.writeValueAsString(event))
     }
   }
 
@@ -117,7 +118,7 @@ class RedisResourceRepository(
     private const val NAME_TO_UID_HASH = "keel.resource.names"
     private const val INDEX_SET = "keel.resources"
     private const val RESOURCE_HASH = "{keel.resource.%s}"
-    private const val STATE_SORTED_SET = "$RESOURCE_HASH.state"
+    private const val EVENTS_SORTED_SET = "$RESOURCE_HASH.events"
   }
 
   private fun <T : Any> readResource(redis: JedisCommands, uid: UID, specType: Class<T>): Resource<T> =
@@ -125,7 +126,7 @@ class RedisResourceRepository(
       redis.hgetAll(uid.key).let {
         Resource<T>(
           apiVersion = ApiVersion(it.getValue("apiVersion")),
-          metadata = ResourceMetadata(objectMapper.readValue<Map<String, Any?>>(it.getValue("metadata"))),
+          metadata = ResourceMetadata(objectMapper.readValue(it.getValue("metadata"))),
           kind = it.getValue("kind"),
           spec = objectMapper.readValue(it.getValue("spec"), specType)
         )
@@ -144,8 +145,8 @@ class RedisResourceRepository(
   private val UID.key: String
     get() = RESOURCE_HASH.format(this)
 
-  private val UID.stateKey: String
-    get() = STATE_SORTED_SET.format(this)
+  private val UID.eventsKey: String
+    get() = EVENTS_SORTED_SET.format(this)
 
   private fun Resource<*>.toHash(): Map<String, String> = mapOf(
     "apiVersion" to apiVersion.toString(),

@@ -168,8 +168,16 @@ class SqlResourceRepository(
 
   override fun delete(name: ResourceName) {
     jooq.inTransaction {
-      deleteFrom(RESOURCE)
+      val uid = select(field("uid"))
+        .from(RESOURCE)
         .where(field("name").eq(name.value))
+        .fetchOne("uid", String::class.java)
+        .let(ULID::parseULID)
+      deleteFrom(RESOURCE)
+        .where(field("uid").eq(uid.toString()))
+        .execute()
+      deleteFrom(RESOURCE_EVENT)
+        .where(field("uid").eq(uid.toString()))
         .execute()
     }
   }

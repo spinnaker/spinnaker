@@ -22,6 +22,7 @@ import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.events.ResourceDeltaDetected
+import com.netflix.spinnaker.keel.events.ResourceUpdated
 import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -93,6 +94,7 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
 
       before {
         subject.store(resource)
+        subject.appendHistory(ResourceCreated(resource, clock))
       }
 
       test("it is returned by allResources") {
@@ -128,6 +130,7 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
 
         before {
           subject.store(anotherResource)
+          subject.appendHistory(ResourceCreated(resource, clock))
         }
 
         test("it does not overwrite the first resource") {
@@ -161,15 +164,14 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
       context("updating the state of the resource") {
         before {
           clock.incrementBy(ONE_SECOND)
-          subject.appendHistory(ResourceCreated(resource, clock))
+          subject.appendHistory(ResourceUpdated(resource, clock))
         }
 
         test("the new state is included in the history") {
           expectThat(subject.eventHistory(resource.metadata.uid))
-            .hasSize(1)
+            .hasSize(2)
             .first()
-            .isA<ResourceCreated>()
-            .get { uid }
+            .isA<ResourceUpdated>()
         }
 
         context("updating the state again") {
@@ -180,7 +182,7 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
 
           test("the new state is included in the history") {
             expectThat(subject.eventHistory(resource.metadata.uid))
-              .hasSize(2)
+              .hasSize(3)
               .first()
               .isA<ResourceDeltaDetected>()
           }
@@ -195,12 +197,18 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
         test("the resource is no longer returned when listing all resources") {
           subject.allResources(callback)
 
-          verify(exactly = 0) { callback(ResourceHeader(resource)) }
+          verify(exactly = 0) { callback(any()) }
         }
 
         test("the resource can no longer be retrieved by name") {
           expectThrows<NoSuchResourceException> {
             subject.get<Map<String, Any>>(resource.metadata.name)
+          }
+        }
+
+        test("events for the resource are also deleted") {
+          expectThrows<NoSuchResourceException>() {
+            subject.eventHistory(resource.metadata.uid)
           }
         }
       }

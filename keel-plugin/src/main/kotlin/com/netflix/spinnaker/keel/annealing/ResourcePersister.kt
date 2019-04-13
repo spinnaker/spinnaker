@@ -22,28 +22,31 @@ class ResourcePersister(
   private val publisher: ApplicationEventPublisher,
   private val clock: Clock
 ) {
-  fun create(resource: SubmittedResource<Any>): Resource<out Any> {
-    return handlers.supporting(resource.apiVersion, resource.kind)
+  fun create(resource: SubmittedResource<Any>): Resource<out Any> =
+    handlers.supporting(resource.apiVersion, resource.kind)
       .normalize(resource)
       .also(resourceRepository::store)
       .also { resourceRepository.appendHistory(ResourceCreated(it, clock)) }
       .also { queue.scheduleCheck(it) }
-  }
 
   fun update(resource: Resource<Any>): Resource<out Any> {
-    return handlers.supporting(resource.apiVersion, resource.kind)
-      .normalize(resource)
-      .also(resourceRepository::store)
-      .also { resourceRepository.appendHistory(ResourceUpdated(it, clock)) }
-      .also { queue.scheduleCheck(it) }
-  }
+    val existing = resourceRepository.get<Any>(resource.metadata.uid)
 
-  fun delete(name: ResourceName): Resource<out Any> {
-    resourceRepository.delete(name)
-    return resourceRepository.get<Any>(name).also {
-      queue.scheduleCheck(it)
+    return if (existing.spec == resource.spec) {
+      existing
+    } else {
+      handlers.supporting(resource.apiVersion, resource.kind)
+        .normalize(resource)
+        .also(resourceRepository::store)
+        .also { resourceRepository.appendHistory(ResourceUpdated(it, clock)) }
+        .also { queue.scheduleCheck(it) }
     }
   }
+
+  fun delete(name: ResourceName): Resource<out Any> =
+    resourceRepository
+      .get<Any>(name)
+      .also { resourceRepository.delete(name) }
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 }
