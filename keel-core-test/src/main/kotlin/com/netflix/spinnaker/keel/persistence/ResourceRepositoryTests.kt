@@ -143,7 +143,6 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
         }
       }
 
-
       context("storing a new version of the resource") {
         val updatedResource = resource.copy(
           spec = randomData()
