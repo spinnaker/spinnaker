@@ -53,7 +53,7 @@ Animated gifs are a great way to show action; however, they sometimes move too f
 One way to improve them is to capture 3 pieces of content:
 - screenshot before an action
 - screenshot after the action
-- gif of the action
+- animated gif of the action
 - You can edit a gif using https://ezgif.com/
 
 ## Put a border around a screenshot/gif
