@@ -17,6 +17,22 @@ const Feedback = () =>
     </MenuItem>
   ) : null;
 
+const AdditionalHelpLinks = () =>
+  SETTINGS.additionalHelpLinks && SETTINGS.additionalHelpLinks.length ? (
+    <>
+      {SETTINGS.additionalHelpLinks.map((helpLink, i) => (
+        <MenuItem href={helpLink.url} key={i} target="_blank">
+          {helpLink.icon ? (
+            <span>
+              <i className={helpLink.icon} /> &nbsp;
+            </span>
+          ) : null}
+          {helpLink.text || `Additional Help`}
+        </MenuItem>
+      ))}
+    </>
+  ) : null;
+
 export const HelpMenu = () => {
   return (
     <li className="help-menu">
@@ -26,6 +42,7 @@ export const HelpMenu = () => {
         </Dropdown.Toggle>
         <Dropdown.Menu>
           <Feedback />
+          <AdditionalHelpLinks />
           <MenuItem href={DOCS_URL} target="_blank">
             Docs
           </MenuItem>
@@ -51,6 +68,7 @@ export const HelpMenu = () => {
         </Dropdown.Toggle>
         <Dropdown.Menu>
           <Feedback />
+          <AdditionalHelpLinks />
           <MenuItem href={DOCS_URL} target="_blank">
             Docs
           </MenuItem>

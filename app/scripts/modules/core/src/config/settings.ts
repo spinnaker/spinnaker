@@ -1,5 +1,11 @@
 import { cloneDeep, merge } from 'lodash';
 
+export interface IAdditionalHelpLinks {
+  text: string;
+  url: string;
+  icon?: string;
+}
+
 export interface IProviderSettings {
   defaults: any;
   resetToOriginal?: () => void;
@@ -110,6 +116,7 @@ export interface ISpinnakerSettings {
     text?: string;
     url: string;
   };
+  additionalHelpLinks?: IAdditionalHelpLinks[];
   gateUrl: string;
   gitSources: string[];
   maxPipelineAgeDays: number;
