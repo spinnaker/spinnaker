@@ -55,7 +55,7 @@ It's a work in progress, but please try to follow the https://github.com/spinnak
 == Customizing the UI
 
 It's certainly doable - we're in the middle of some significant changes to our build process, which should make it easier.
-For now, you can look at the https://github.com/spinnaker/deck/tree/master/app/scripts/modules/netflix[netflix module] to
+For now, you can look at the https://github.com/spinnaker/deck/tree/master/app/scripts/modules/[all modules] to
 get an idea how we are customizing Deck internally. Expect a lot of this to change, though, as we figure out better, cleaner
 hooks and integration points. And we're happy to provide new integration points (or accept pull requests) following
 those existing conventions if you need an integration point that doesn't already exist.
