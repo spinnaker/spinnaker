@@ -23,6 +23,7 @@ import com.google.api.services.compute.model.Image
 import com.google.api.services.compute.model.InstanceProperties
 import com.google.api.services.compute.model.InstanceTemplate
 import com.google.api.services.compute.model.Scheduling
+import com.google.api.services.compute.model.ShieldedVmConfig
 import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
@@ -96,6 +97,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
   private def instanceMetadata
   private def tags
   private def scheduling
+  private def shieldedVmConfig
   private def serviceAccount
   private def instanceProperties
   private def instanceTemplate

@@ -188,6 +188,30 @@ class GCEUtil {
     }
   }
 
+  static boolean isShieldedVmCompatible(Image image) {
+    java.util.List<GuestOsFeature> guestOsFeatureList = image.getGuestOsFeatures()
+    if (guestOsFeatureList == null || guestOsFeatureList.size() == 0) {
+      return false
+    }
+
+    boolean isUefiCompatible = false;
+    boolean isSecureBootCompatible = false;
+
+    guestOsFeatureList.each { feature ->
+      if (feature.getType() == "UEFI_COMPATIBLE") {
+        isUefiCompatible= true
+        return
+      }
+
+      if (feature.getType() == "SECURE_BOOT") {
+        isSecureBootCompatible = true
+        return
+      }
+    }
+
+    return isUefiCompatible && isSecureBootCompatible
+  }
+
   static GoogleNetwork queryNetwork(String accountName, String networkName, Task task, String phase, GoogleNetworkProvider googleNetworkProvider) {
     task.updateStatus phase, "Looking up network $networkName..."
 
@@ -612,6 +636,7 @@ class GCEUtil {
 
     def networkInterface = instanceTemplateProperties.networkInterfaces[0]
     def serviceAccountEmail = instanceTemplateProperties.serviceAccounts?.getAt(0)?.email
+    def shieldedVmConfig = instanceTemplateProperties.shieldedVmConfig
 
     return new BaseGoogleInstanceDescription(
       image: image,
@@ -625,7 +650,10 @@ class GCEUtil {
       network: Utils.decorateXpnResourceIdIfNeeded(project, networkInterface.network),
       subnet: Utils.decorateXpnResourceIdIfNeeded(project, networkInterface.subnet),
       serviceAccountEmail: serviceAccountEmail,
-      authScopes: retrieveScopesFromServiceAccount(serviceAccountEmail, instanceTemplateProperties.serviceAccounts)
+      authScopes: retrieveScopesFromServiceAccount(serviceAccountEmail, instanceTemplateProperties.serviceAccounts),
+      enableSecureBoot: shieldedVmConfig?.enableSecureBoot,
+      enableVtpm: shieldedVmConfig?.enableVtpm,
+      enableIntegrityMonitoring: shieldedVmConfig?.enableIntegrityMonitoring
     )
   }
 
@@ -741,6 +769,7 @@ class GCEUtil {
                                                String phase,
                                                String clouddriverUserAgentApplicationName,
                                                List<String> baseImageProjects,
+                                               Image bootImage,
                                                SafeRetry safeRetry,
                                                GoogleExecutorTraits executor) {
     def credentials = description.credentials
@@ -754,14 +783,6 @@ class GCEUtil {
     if (!disks) {
       throw new GoogleOperationException("Unable to determine disks for instance type $instanceType.")
     }
-
-    def bootImage = getBootImage(description,
-                                 task,
-                                 phase,
-                                 clouddriverUserAgentApplicationName,
-                                 baseImageProjects,
-                                 safeRetry,
-                                 executor)
 
     disks.findAll { it.isPersistent() }
       .eachWithIndex { disk, i ->
@@ -920,6 +941,24 @@ class GCEUtil {
     }
 
     return scheduling
+  }
+
+  static ShieldedVmConfig buildShieldedVmConfig(BaseGoogleInstanceDescription description) {
+    def shieldedVmConfig = new ShieldedVmConfig()
+
+    if (description.enableSecureBoot != null) {
+      shieldedVmConfig.enableSecureBoot = description.enableSecureBoot
+    }
+
+    if (description.enableVtpm != null) {
+      shieldedVmConfig.enableVtpm = description.enableVtpm
+    }
+
+    if (description.enableIntegrityMonitoring != null) {
+      shieldedVmConfig.enableIntegrityMonitoring = description.enableIntegrityMonitoring
+    }
+
+    return shieldedVmConfig
   }
 
   static void updateStatusAndThrowNotFoundException(String errorMsg, Task task, String phase) {

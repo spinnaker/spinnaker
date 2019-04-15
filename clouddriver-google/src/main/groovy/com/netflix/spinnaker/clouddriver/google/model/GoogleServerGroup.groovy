@@ -56,6 +56,9 @@ class GoogleServerGroup implements GoogleLabeledResource {
   Boolean discovery = false
   String networkName
   Boolean canIpForward = false
+  Boolean enableSecureBoot = false
+  Boolean enableVtpm = false
+  Boolean enableIntegrityMonitoring = false
   Set<String> instanceTemplateTags = []
   Map<String, String> instanceTemplateLabels = [:]
   String selfLink
@@ -109,6 +112,9 @@ class GoogleServerGroup implements GoogleLabeledResource {
     Boolean disabled = GoogleServerGroup.this.disabled
     String networkName = GoogleServerGroup.this.networkName
     Boolean canIpForward = GoogleServerGroup.this.canIpForward
+    Boolean enableSecureBoot = GoogleServerGroup.this.enableSecureBoot
+    Boolean enableVtpm = GoogleServerGroup.this.enableVtpm
+    Boolean enableIntegrityMonitoring = GoogleServerGroup.this.enableIntegrityMonitoring
     Set<String> instanceTemplateTags = GoogleServerGroup.this.instanceTemplateTags
     Map<String, String> instanceTemplateLabels = GoogleServerGroup.this.instanceTemplateLabels
     String selfLink = GoogleServerGroup.this.selfLink

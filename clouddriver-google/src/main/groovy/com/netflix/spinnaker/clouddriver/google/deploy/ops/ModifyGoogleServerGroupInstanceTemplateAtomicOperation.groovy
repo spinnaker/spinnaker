@@ -168,6 +168,18 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation extends GoogleAtomi
         clonedDescription.disks = overriddenProperties.disks
 
         clonedDescription.baseDeviceName = description.serverGroupName
+
+        def bootImage = GCEUtil.getBootImage(description,
+          task,
+          BASE_PHASE,
+          clouddriverUserAgentApplicationName,
+          googleConfigurationProperties.baseImageProjects,
+          safeRetry,
+          this)
+
+        // We include a subset of the image's attributes and a reference in the disks.
+        // Furthermore, we're using the underlying raw compute model classes
+        // so we can't simply change the representation to support what we need for shielded VMs.
         def attachedDisks = GCEUtil.buildAttachedDisks(clonedDescription,
                                                        null,
                                                        false,
@@ -176,6 +188,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation extends GoogleAtomi
                                                        BASE_PHASE,
                                                        clouddriverUserAgentApplicationName,
                                                        googleConfigurationProperties.baseImageProjects,
+                                                       bootImage,
                                                        safeRetry,
                                                        this)
 
@@ -203,6 +216,10 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation extends GoogleAtomi
       // Override the instance template's canIpForward property if it was specified.
       if (overriddenProperties.canIpForward) {
         instanceTemplateProperties.setCanIpForward(canIpForward)
+      }
+
+      if (overriddenProperties.shieldedVmConfig) {
+        instanceTemplateProperties.setShieldedVmConfig(description.shieldedVmConfig)
       }
 
       // Override the instance template's metadata if instanceMetadata was specified.

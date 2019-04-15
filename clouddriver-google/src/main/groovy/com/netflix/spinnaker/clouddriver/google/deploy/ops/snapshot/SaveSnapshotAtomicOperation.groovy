@@ -262,6 +262,9 @@ class SaveSnapshotAtomicOperation implements AtomicOperation<Void> {
         instanceTemplateMap.metadata[item.key] = item.value
       }
     }
+    if (instanceTemplate.properties.shieldedVmConfig) {
+      addShieldedVmConfigToInstanceTemplateMap(instanceTemplate.properties.shieldedVmConfig as ShieldedVmConfig, instanceTemplateMap)
+    }
     numInstanceTemplates++
     resourceMap.google_compute_instance_template[instanceTemplate.name as String] = instanceTemplateMap
 
@@ -278,6 +281,20 @@ class SaveSnapshotAtomicOperation implements AtomicOperation<Void> {
     }
     if (scheduling.preemptible != null) {
       instanceTemplateMap.scheduling.preemptible = scheduling.preemptible
+    }
+    return null
+  }
+
+  private Void addShieldedVmConfigToInstanceTemplateMap(ShieldedVmConfig shieldedVmConfig, Map instanceTemplateMap) {
+    instanceTemplateMap.shielded_vm_config = [:]
+    if (shieldedVmConfig.enableSecureBoot != null) {
+      instanceTemplateMap.shielded_vm_config.enable_secure_boot = shieldedVmConfig.enableSecureBoot
+    }
+    if (shieldedVmConfig.enableVtpm != null) {
+      instanceTemplateMap.shielded_vm_config.enable_vtpm = shieldedVmConfig.enableVtpm
+    }
+    if (shieldedVmConfig.enableIntegrityMonitoring != null) {
+      instanceTemplateMap.shielded_vm_config.enable_integrity_monitoring = shieldedVmConfig.enableIntegrityMonitoring
     }
     return null
   }
@@ -612,6 +629,9 @@ class SaveSnapshotAtomicOperation implements AtomicOperation<Void> {
         instanceProperties.serviceAccounts.add(convertMapToServiceAccount(serviceAccountMap))
       }
     }
+    if (instancePropertiesMap.shieldedVmConfig) {
+      instanceProperties.shieldedVmConfig = convertMapToShieldedVmConfig(instancePropertiesMap.shieldedVmConfig as Map)
+    }
     return instanceProperties
   }
 
@@ -645,6 +665,16 @@ class SaveSnapshotAtomicOperation implements AtomicOperation<Void> {
     scheduling.onHostMaintenance = schedulingMap.onHostMaintenance as String
     scheduling.preemptible = schedulingMap.preemptible as Boolean
     return scheduling
+  }
+
+  private ShieldedVmConfig convertMapToShieldedVmConfig(Map shieldedVmConfigMap) {
+    
+    ShieldedVmConfig shieldedVmConfig = new ShieldedVmConfig()
+
+    shieldedVmConfig.enableSecureBoot = shieldedVmConfigMap.enableSecureBoot as Boolean
+    shieldedVmConfig.enableVtpm = shieldedVmConfigMap.enableVtpm as Boolean
+    shieldedVmConfig.enableIntegrityMonitoring = shieldedVmConfigMap.enableIntegrityMonitoring as Boolean
+    return shieldedVmConfig
   }
 
   private NetworkInterface convertMapToNetworkInterface(Map networkInterfaceMap) {
