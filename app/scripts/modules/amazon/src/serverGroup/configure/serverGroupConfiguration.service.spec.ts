@@ -113,7 +113,6 @@ describe('Service: awsServerGroupConfiguration', function() {
       expect(cacheInitializer.refreshCache).toHaveBeenCalledWith('securityGroups');
       expect(refreshCacheSpy.calls.count()).toBe(1);
       expect(getAllSecurityGroupsSpy.calls.count()).toBe(2);
-      expect(command.dirty).toBeUndefined();
     });
   });
 

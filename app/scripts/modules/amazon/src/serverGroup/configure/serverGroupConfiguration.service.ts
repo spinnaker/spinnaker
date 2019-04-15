@@ -585,7 +585,6 @@ export class AwsServerGroupConfigurationService {
     };
 
     cmd.credentialsChanged = (command: IAmazonServerGroupCommand): IServerGroupCommandResult => {
-      command.dirty = command.dirty || {};
       const result: IAmazonServerGroupCommandResult = { dirty: {} };
       const backingData = command.backingData;
       if (command.credentials) {

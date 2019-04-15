@@ -89,7 +89,7 @@ export interface IServerGroupCommandBackingData {
   securityGroups: ISecurityGroupsByAccountSourceData;
 }
 
-export interface IServerGroupCommand extends IServerGroupCommandResult {
+export interface IServerGroupCommand {
   amiName?: string;
   application: string;
   availabilityZones: string[];
