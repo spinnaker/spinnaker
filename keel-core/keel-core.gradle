@@ -22,6 +22,7 @@ dependencies {
   api "com.fasterxml.jackson.module:jackson-module-kotlin"
   api "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
   api "de.huxhorn.sulky:de.huxhorn.sulky.ulid:${spinnaker.version("ulid")}"
+  api "de.danielbechler:java-object-diff:0.95"
 
   testImplementation project(":keel-core-test")
   testImplementation "io.strikt:strikt-jackson:$striktVersion"

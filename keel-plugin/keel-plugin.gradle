@@ -3,7 +3,6 @@ apply plugin: "kotlin-spring"
 
 dependencies {
   api project(":keel-core")
-  api "de.danielbechler:java-object-diff:0.95"
 
   implementation "org.springframework:spring-context"
   implementation "org.springframework.boot:spring-boot-autoconfigure"
