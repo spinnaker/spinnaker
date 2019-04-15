@@ -39,7 +39,7 @@ public class StackdriverStore extends MetricStore {
 
   @JsonProperty("credentials_path")
   @LocalFile
-  @SecretFile
+  @SecretFile(alwaysDecrypt = true)
   private String credentialsPath;
 
   private String project;

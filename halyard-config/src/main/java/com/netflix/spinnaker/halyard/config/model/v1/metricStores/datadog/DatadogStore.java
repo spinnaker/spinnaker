@@ -39,10 +39,11 @@ public class DatadogStore extends MetricStore {
   @JsonIgnore
   private MetricStores.MetricStoreType metricStoreType = MetricStores.MetricStoreType.DATADOG;
 
-  @Secret
+  @Secret(alwaysDecrypt = true)
   @JsonProperty("api_key")
   private String apiKey;
 
+  @Secret(alwaysDecrypt = true)
   @JsonProperty("app_key")
   private String appKey;
 

@@ -44,9 +44,6 @@ abstract public class ProfileFactory {
   private Yaml yamlParser;
 
   @Autowired
-  private ObjectMapper strictObjectMapper;
-
-  @Autowired
   protected SecretSessionManager secretSessionManager;
 
   protected String getMinimumSecretDecryptionVersion(String deploymentName) {
@@ -120,14 +117,10 @@ abstract public class ProfileFactory {
   }
 
   protected Map convertToMap(String deploymentName, Profile profile, Object o) {
-    ObjectMapper mapper;
-    if (supportsSecretDecryption(deploymentName)) {
-      mapper = strictObjectMapper;
-    } else {
-      mapper = new DecryptingObjectMapper(secretSessionManager,
+    ObjectMapper mapper = new DecryptingObjectMapper(secretSessionManager,
               profile,
-              halconfigDirectoryStructure.getStagingDependenciesPath(deploymentName));
-    }
+              halconfigDirectoryStructure.getStagingDependenciesPath(deploymentName),
+              !supportsSecretDecryption(deploymentName));
     return mapper.convertValue(o, Map.class);
   }
 }

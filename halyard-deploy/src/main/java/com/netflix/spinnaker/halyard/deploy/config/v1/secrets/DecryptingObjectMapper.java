@@ -55,8 +55,12 @@ public class DecryptingObjectMapper extends ObjectMapper {
     protected Profile profile;
     protected Path decryptedOutputDirectory;
     protected SecretSessionManager secretSessionManager;
+    protected boolean decryptAllSecrets;
 
-    public DecryptingObjectMapper(SecretSessionManager secretSessionManager, Profile profile, Path decryptedOutputDirectory) {
+    public DecryptingObjectMapper(SecretSessionManager secretSessionManager,
+                                  Profile profile,
+                                  Path decryptedOutputDirectory,
+                                  boolean decryptAllSecrets) {
         super();
         this.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true);
         this.setSerializationInclusion(JsonInclude.Include.NON_NULL);
@@ -64,23 +68,21 @@ public class DecryptingObjectMapper extends ObjectMapper {
         this.secretSessionManager = secretSessionManager;
         this.profile = profile;
         this.decryptedOutputDirectory = decryptedOutputDirectory;
+        this.decryptAllSecrets = decryptAllSecrets;
 
         SimpleModule module = new SimpleModule();
         module.setSerializerModifier(new BeanSerializerModifier() {
 
             @Override
             public List<BeanPropertyWriter> changeProperties(SerializationConfig config, BeanDescription beanDesc, List<BeanPropertyWriter> beanProperties) {
-                Class _class = beanDesc.getBeanClass();
-
                 for (BeanPropertyWriter bpw : beanProperties) {
-                    Annotation annotation = getSecretFieldAnnotationType(_class, bpw.getName());
-                    if (annotation != null) {
-                        if (annotation.annotationType() == Secret.class) {
-                            // Decrypt the field secret before sending
-                            bpw.assignSerializer(getSecretSerializer());
-                        } else if (annotation.annotationType() == SecretFile.class) {
-                            bpw.assignSerializer(getSecretFileSerializer(bpw, (SecretFile) annotation));
-                        }
+                    Secret secret = bpw.getAnnotation(Secret.class);
+                    if (secret != null && (decryptAllSecrets || secret.alwaysDecrypt())) {
+                        bpw.assignSerializer(getSecretSerializer());
+                    }
+                    SecretFile secretFile = bpw.getAnnotation(SecretFile.class);
+                    if (secretFile != null && (decryptAllSecrets || secretFile.alwaysDecrypt())) {
+                        bpw.assignSerializer(getSecretFileSerializer(bpw, secretFile));
                     }
                 }
                 return beanProperties;
@@ -132,24 +134,6 @@ public class DecryptingObjectMapper extends ObjectMapper {
         this.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         this.configure(DeserializationFeature.FAIL_ON_NULL_CREATOR_PROPERTIES, false);
         return this;
-    }
-
-    protected Annotation getSecretFieldAnnotationType(Class _class, String fieldName) {
-        for (Field f : _class.getDeclaredFields()) {
-            if (f.getName().equals(fieldName)) {
-                if (f.isAnnotationPresent(Secret.class)) {
-                    return f.getAnnotation(Secret.class);
-                }
-                if (f.isAnnotationPresent(SecretFile.class)) {
-                    return f.getAnnotation(SecretFile.class);
-                }
-                return null;
-            }
-        }
-        if (_class.getSuperclass() != null) {
-            return getSecretFieldAnnotationType(_class.getSuperclass(), fieldName);
-        }
-        return null;
     }
 
     protected String newRandomFilePath(String fieldName) {

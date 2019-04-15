@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spinnaker.halyard.config.config.v1.RelaxedObjectMapper;
 import com.netflix.spinnaker.halyard.config.model.v1.node.*;
 import com.netflix.spinnaker.halyard.config.model.v1.persistentStorage.RedisPersistentStore;
 import com.netflix.spinnaker.halyard.config.services.v1.AccountService;
@@ -40,9 +39,6 @@ import java.util.Map;
 public class Front50ProfileFactory extends SpringProfileFactory {
   @Autowired
   AccountService accountService;
-
-  @Autowired
-  RelaxedObjectMapper objectMapper;
 
   @Override
   public SpinnakerArtifact getArtifact() {
@@ -105,11 +101,9 @@ public class Front50ProfileFactory extends SpringProfileFactory {
   }
 
   protected ObjectMapper getRelaxedObjectMapper(String deploymentName, Profile profile) {
-    if (!supportsSecretDecryption(deploymentName)) {
-      return new DecryptingObjectMapper(secretSessionManager,
-              profile,
-              halconfigDirectoryStructure.getStagingDependenciesPath(deploymentName)).relax();
-    }
-    return objectMapper;
+    return new DecryptingObjectMapper(secretSessionManager,
+            profile,
+            halconfigDirectoryStructure.getStagingDependenciesPath(deploymentName),
+            !supportsSecretDecryption(deploymentName)).relax();
   }
 }
