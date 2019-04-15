@@ -19,11 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.config.TransactionRetryProperties
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.ExecutionStatus.BUFFERED
-import com.netflix.spinnaker.orca.ExecutionStatus.CANCELED
-import com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED
-import com.netflix.spinnaker.orca.ExecutionStatus.PAUSED
-import com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
+import com.netflix.spinnaker.orca.ExecutionStatus.*
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.ORCHESTRATION
@@ -33,28 +29,15 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator
-import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator.BUILD_TIME_DESC
-import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator.NATURAL_ASC
-import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator.START_TIME_OR_ID
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator.*
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionCriteria
 import com.netflix.spinnaker.orca.pipeline.persistence.UnpausablePipelineException
 import com.netflix.spinnaker.orca.pipeline.persistence.UnresumablePipelineException
 import de.huxhorn.sulky.ulid.SpinULID
-import org.jooq.DSLContext
-import org.jooq.Field
-import org.jooq.Record
-import org.jooq.SelectConditionStep
-import org.jooq.SelectConnectByStep
-import org.jooq.SelectForUpdateStep
-import org.jooq.SelectJoinStep
-import org.jooq.SelectWhereStep
-import org.jooq.Table
+import org.jooq.*
 import org.jooq.exception.SQLDialectNotSupportedException
 import org.jooq.impl.DSL
-import org.jooq.impl.DSL.count
-import org.jooq.impl.DSL.field
-import org.jooq.impl.DSL.name
-import org.jooq.impl.DSL.table
+import org.jooq.impl.DSL.*
 import org.slf4j.LoggerFactory
 import rx.Observable
 import java.lang.System.currentTimeMillis
@@ -443,14 +426,17 @@ class SqlExecutionRepository(
     val select = jooq.selectExecutions(
       PIPELINE,
       conditions = {
-        val inClause = "config_id IN (${pipelineConfigIds.joinToString(",") { "'$it'" }})"
-        val timeCondition = it.where(inClause)
+        var conditions = it.where(
+          field("config_id").`in`(*pipelineConfigIds.toTypedArray())
           .and(field("build_time").gt(buildTimeStartBoundary))
           .and(field("build_time").lt(buildTimeEndBoundary))
-        var conditions = timeCondition
+        )
+
         if (executionCriteria.statuses.isNotEmpty()) {
-          conditions = timeCondition.and("status IN (${executionCriteria.statuses.joinToString(",") { "'$it'" }})")
+          val statusStrings = executionCriteria.statuses.map { it.toString() }
+          conditions = conditions.and(field("status").`in`(*statusStrings.toTypedArray()))
         }
+
         conditions
       },
       seek = {
@@ -693,7 +679,9 @@ class SqlExecutionRepository(
     if (statuses.isEmpty() || statuses.size == ExecutionStatus.values().size) {
       return this
     }
-    val clause = "status IN (${statuses.joinToString(",") { "'$it'" }})"
+
+    var statusStrings = statuses.map { it.toString() }
+    val clause = DSL.field("status").`in`(*statusStrings.toTypedArray())
 
     return run {
       when (this) {

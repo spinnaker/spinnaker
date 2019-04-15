@@ -33,17 +33,17 @@ import java.io.Closeable;
 import java.sql.SQLException;
 import java.util.Arrays;
 
-import static org.jooq.SQLDialect.H2;
+import static org.jooq.SQLDialect.MYSQL;
 import static org.jooq.conf.RenderNameStyle.AS_IS;
 
 public class SqlTestUtil {
 
   public static TestDatabase initDatabase() {
-    return initDatabase("jdbc:h2:mem:orca_test");
+    return initDatabase("jdbc:h2:mem:orca_test;MODE=MYSQL");
   }
 
   public static TestDatabase initPreviousDatabase() {
-    return initDatabase("jdbc:h2:mem:orca_test_previous");
+    return initDatabase("jdbc:h2:mem:orca_test_previous;MODE=MYSQL");
   }
 
   public static TestDatabase initDatabase(String jdbcUrl) {
@@ -54,7 +54,7 @@ public class SqlTestUtil {
 
     DefaultConfiguration config = new DefaultConfiguration();
     config.set(new DataSourceConnectionProvider(dataSource));
-    config.setSQLDialect(H2);
+    config.setSQLDialect(MYSQL);
     config.settings().withRenderNameStyle(AS_IS);
 
     DSLContext context = new DefaultDSLContext(config);

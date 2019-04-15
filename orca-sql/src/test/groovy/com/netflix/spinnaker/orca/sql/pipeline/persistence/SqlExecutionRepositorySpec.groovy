@@ -491,4 +491,14 @@ class SqlExecutionRepositorySpec extends ExecutionRepositoryTck<SqlExecutionRepo
     storeLimit = 6
   }
 
+  def "doesn't fail on empty configIds"() {
+    expect:
+    repository
+      .retrieveAllPipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(
+      [],
+      0L,
+      5L,
+      new ExecutionCriteria().setPageSize(1).setSortType(BUILD_TIME_ASC)
+    ).size() == 0
+  }
 }
