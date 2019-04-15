@@ -64,7 +64,7 @@ Add a border to help improve the readability.
 
 ## Add expandable sections
 <details>
-<summary>Add expandable sections to hide away large code blocks/images or reduce the motion of a gifs</summary>
+<summary>Add expandable sections to hide away large code blocks/images or reduce the motion of a gif</summary>
 
 ```js
 const example = 'spinnaker spinnaker SPINNAKER';
