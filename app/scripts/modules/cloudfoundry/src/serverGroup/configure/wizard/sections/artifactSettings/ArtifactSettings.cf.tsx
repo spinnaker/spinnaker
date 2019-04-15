@@ -43,7 +43,19 @@ export class CloudFoundryServerGroupArtifactSettings
   };
 
   public validate(_values: ICloudFoundryCreateServerGroupCommand) {
-    return {};
+    const { applicationArtifact } = this.props.formik.values;
+    const errors = {} as any;
+    if (
+      !applicationArtifact ||
+      !(
+        (applicationArtifact.artifact && applicationArtifact.artifact.type && applicationArtifact.artifact.reference) ||
+        applicationArtifact.artifactId
+      )
+    ) {
+      errors.applicationArtifact = 'Application artifact information is required';
+    }
+
+    return errors;
   }
 
   public render() {

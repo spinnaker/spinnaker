@@ -162,11 +162,12 @@ export class CloudFoundryServerGroupConfigurationSettings
     );
   }
 
-  public validate(props: ICloudFoundryServerGroupConfigurationSettingsProps) {
+  public validate(_props: ICloudFoundryServerGroupConfigurationSettingsProps) {
     const errors = {} as any;
     const isStorageSize = (value: string) => /\d+[MG]/.test(value);
 
-    if (!props.formik) {
+    if (!this.props.formik.values.manifest) {
+      errors.manifest = 'No manifest information provided';
       return errors;
     }
 
@@ -219,6 +220,14 @@ export class CloudFoundryServerGroupConfigurationSettings
           errors.manifest = errors.manifest || {};
           errors.manifest.environment = envErrors;
         }
+      }
+    } else {
+      const { manifest } = this.props.formik.values;
+      if (
+        !manifest ||
+        !((manifest.artifact && manifest.artifact.type && manifest.artifact.reference) || manifest.artifactId)
+      ) {
+        errors.manifest = 'Manifest artifact information is required';
       }
     }
 
