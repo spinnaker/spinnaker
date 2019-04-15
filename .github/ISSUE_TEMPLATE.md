@@ -49,7 +49,7 @@ Descriptions:
 - Another app you can use is https://www.getcloudapp.com/.
 
 ## Add a gif to show an action
-GIFs are great to show an action, however they sometimes move too fast. 
+Animated gifs are a great way to show action; however, they sometimes move too fast.
 One way to improve them is to capture 3 pieces of content:
 - screenshot before an action
 - screenshot after the action
