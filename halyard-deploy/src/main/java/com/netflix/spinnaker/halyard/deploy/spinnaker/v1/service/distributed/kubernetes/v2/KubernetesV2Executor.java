@@ -272,4 +272,47 @@ public class KubernetesV2Executor {
           stdout.toString()));
     }
   }
+
+  public void replace(String manifest) {
+    manifest = kubernetesV2Utils.prettify(manifest);
+    List<String> command = kubernetesV2Utils.kubectlPrefix(account);
+    command.add("replace");
+    command.add("--force");
+    command.add("-f");
+    command.add("-"); // read from stdin
+
+    JobRequest request = new JobRequest().setTokenizedCommand(command);
+
+    ByteArrayOutputStream stdout = new ByteArrayOutputStream();
+    ByteArrayOutputStream stderr = new ByteArrayOutputStream();
+
+    String jobId = executor.startJob(request,
+        System.getenv(),
+        new ByteArrayInputStream(manifest.getBytes()),
+        stdout,
+        stderr);
+
+    JobStatus status;
+    try {
+      status = executor.backoffWait(jobId);
+    } catch (InterruptedException e) {
+      throw new DaemonTaskInterrupted(e);
+    }
+
+    if (status.getState() != JobStatus.State.COMPLETED) {
+      throw new HalException(Problem.Severity.FATAL, String.join("\n",
+          "Unterminated deployment of manifest:",
+          manifest,
+          stderr.toString(),
+          stdout.toString()));
+    }
+
+    if (status.getResult() != JobStatus.Result.SUCCESS) {
+      throw new HalException(Problem.Severity.FATAL, String.join("\n",
+          "Failed to deploy manifest:",
+          manifest,
+          stderr.toString(),
+          stdout.toString()));
+    }
+  }
 }
