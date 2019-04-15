@@ -101,8 +101,9 @@ public class ManualEventHandler implements TriggerEventHandler<ManualEvent> {
     List<Artifact> artifacts = new ArrayList<>();
     String master = manualTrigger.getMaster();
     String job = manualTrigger.getJob();
-    if (buildInfoService.isPresent() && StringUtils.isNoneEmpty(master, job)) {
-      BuildEvent buildEvent = buildInfoService.get().getBuildEvent(master, job, manualTrigger.getBuildNumber());
+    Integer buildNumber = manualTrigger.getBuildNumber();
+    if (buildInfoService.isPresent() && StringUtils.isNoneEmpty(master, job) && buildNumber != null) {
+      BuildEvent buildEvent = buildInfoService.get().getBuildEvent(master, job, buildNumber);
       trigger = trigger
         .withBuildInfo(buildInfoService.get().getBuildInfo(buildEvent))
         .withProperties(buildInfoService.get().getProperties(buildEvent, manualTrigger.getPropertyFile()));
