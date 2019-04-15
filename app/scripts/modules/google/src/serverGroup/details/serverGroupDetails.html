@@ -255,6 +255,26 @@
         </dd>
       </dl>
     </collapsible-section>
+    <collapsible-section heading="Shielded VM Policies">
+      <div ng-if="!ctrl.serverGroup.shieldedVmConfig">No Shielded VM policies associated with this server group</div>
+      <dl ng-if="ctrl.serverGroup.shieldedVmConfig" class="horizontal-when-filters-collapsed">
+        <dt>
+          Secure Boot
+          <help-field key="gce.serverGroup.shieldedVmSecureBoot"></help-field>
+        </dt>
+        <dd>{{ctrl.serverGroup.shieldedVmConfig.enableSecureBoot}}</dd>
+        <dt>
+          vTPM
+          <help-field key="gce.serverGroup.shieldedVmVtpm"></help-field>
+        </dt>
+        <dd>{{ctrl.serverGroup.shieldedVmConfig.enableVtpm}}</dd>
+        <dt>
+          Integrity Monitoring
+          <help-field key="gce.serverGroup.shieldedVmIntegrityMonitoring"></help-field>
+        </dt>
+        <dd>{{ctrl.serverGroup.shieldedVmConfig.enableIntegrityMonitoring}}</dd>
+      </dl>
+    </collapsible-section>
     <collapsible-section heading="Availability Policies">
       <div ng-if="!ctrl.serverGroup.availabilityPolicies">
         No availability policies associated with this server group

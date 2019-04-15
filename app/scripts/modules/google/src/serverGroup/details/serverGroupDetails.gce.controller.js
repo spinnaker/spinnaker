@@ -143,6 +143,7 @@ module.exports = angular
             findStartupScript();
             prepareDiskDescriptions();
             prepareAvailabilityPolicies();
+            prepareShieldedVmConfig();
             prepareAutoHealingPolicy();
             prepareAuthScopes();
             prepareCurrentActions();
@@ -236,6 +237,18 @@ module.exports = angular
             preemptibility: scheduling.preemptible ? 'On' : 'Off',
             automaticRestart: scheduling.automaticRestart ? 'On' : 'Off',
             onHostMaintenance: scheduling.onHostMaintenance === 'MIGRATE' ? 'Migrate' : 'Terminate',
+          };
+        }
+      };
+
+      const prepareShieldedVmConfig = () => {
+        if (_.has(this.serverGroup, 'launchConfig.instanceTemplate.properties.shieldedVmConfig')) {
+          const shieldedVmConfig = this.serverGroup.launchConfig.instanceTemplate.properties.shieldedVmConfig;
+
+          this.serverGroup.shieldedVmConfig = {
+            enableSecureBoot: shieldedVmConfig.enableSecureBoot ? 'On' : 'Off',
+            enableVtpm: shieldedVmConfig.enableVtpm ? 'On' : 'Off',
+            enableIntegrityMonitoring: shieldedVmConfig.enableIntegrityMonitoring ? 'On' : 'Off',
           };
         }
       };

@@ -48,5 +48,12 @@ module.exports = angular
           this.command.onHostMaintenance = 'MIGRATE';
         }
       };
+
+      this.setEnableVtpm = () => {
+        if (!this.command.enableVtpm) {
+          // Integrity monitoring requires vTPM to be enabled.
+          this.command.enableIntegrityMonitoring = false;
+        }
+      };
     },
   ]);

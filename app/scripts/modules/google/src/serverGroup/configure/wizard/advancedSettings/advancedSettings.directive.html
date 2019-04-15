@@ -82,6 +82,33 @@
   <map-editor model="vm.command.labels" add-button-label="Add New Label" allow-empty="true"></map-editor>
 </div>
 <div class="form-group">
+  <div class="sm-label-left">
+    Shielded VMs
+    <help-field key="gce.serverGroup.shieldedVmConfig"></help-field>
+  </div>
+  <div class="col-md-9 checkbox">
+    <label>
+      <input type="checkbox" ng-model="vm.command.enableSecureBoot" />
+      Turn on Secure Boot
+      <help-field key="gce.serverGroup.shieldedVmSecureBoot"></help-field>
+    </label>
+  </div>
+  <div class="col-md-9 checkbox">
+    <label>
+      <input type="checkbox" ng-model="vm.command.enableVtpm" ng-change="vm.setEnableVtpm()" />
+      Turn on vTPM
+      <help-field key="gce.serverGroup.shieldedVmVtpm"></help-field>
+    </label>
+  </div>
+  <div class="col-md-9 checkbox">
+    <label>
+      <input type="checkbox" ng-model="vm.command.enableIntegrityMonitoring" ng-disabled="!vm.command.enableVtpm" />
+      Turn on Integrity Monitoring
+      <help-field key="gce.serverGroup.shieldedVmIntegrityMonitoring"></help-field>
+    </label>
+  </div>
+</div>
+<div class="form-group">
   <div class="col-md-5 sm-label-right">
     <b>Preemptibility</b>
     <help-field key="gce.serverGroup.preemptibility"></help-field>

@@ -219,6 +219,12 @@ module.exports = angular
         }
       }
 
+      function populateShieldedVmConfig(serverGroup, command) {
+        command.enableSecureBoot = serverGroup.enableSecureBoot;
+        command.enableVtpm = serverGroup.enableVtpm;
+        command.enableIntegrityMonitoring = serverGroup.enableIntegrityMonitoring;
+      }
+
       function populateCustomMetadata(metadataItems, command) {
         // Hide metadata items in the wizard.
         if (metadataItems) {
@@ -347,6 +353,9 @@ module.exports = angular
           instanceMetadata: {},
           tags: [],
           labels: {},
+          enableSecureBoot: false,
+          enableVtpm: false,
+          enableIntegrityMonitoring: false,
           preemptible: false,
           automaticRestart: true,
           onHostMaintenance: 'MIGRATE',
@@ -422,6 +431,9 @@ module.exports = angular
           tags: [],
           labels: {},
           availabilityZones: [],
+          enableSecureBoot: serverGroup.enableSecureBoot,
+          enableVtpm: serverGroup.enableVtpm,
+          enableIntegrityMonitoring: serverGroup.enableIntegrityMonitoring,
           enableTraffic: true,
           cloudProvider: 'gce',
           selectedProvider: 'gce',
@@ -546,6 +558,7 @@ module.exports = angular
             extendedCommand.instanceMetadata = {};
             populateCustomMetadata(instanceMetadata, extendedCommand);
             populateAutoHealingPolicy(pipelineCluster, extendedCommand);
+            populateShieldedVmConfig(pipelineCluster, extendedCommand);
 
             const instanceTemplateTags = { items: extendedCommand.tags };
             extendedCommand.tags = [];

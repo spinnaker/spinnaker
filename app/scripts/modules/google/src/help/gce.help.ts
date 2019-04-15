@@ -115,6 +115,14 @@ const helpContents: { [key: string]: string } = {
   'gce.serverGroup.labels.spinnaker-region': 'This label can be used to group instances when querying for metrics.',
   'gce.serverGroup.labels.spinnaker-server-group':
     'This label can be used to group instances when querying for metrics.',
+  'gce.serverGroup.shieldedVmConfig':
+    'Shielded VM features include trusted UEFI firmware and come with options for Secure Boot, Virtual Trusted Platform Module (vTPM), and Integrity Monitoring.',
+  'gce.serverGroup.shieldedVmSecureBoot':
+    'Secure boot helps protect your VM instances against boot-level and kernel-level malware and rootkits.',
+  'gce.serverGroup.shieldedVmVtpm':
+    'Virtual Trusted Platform Module (vTPM) validates your guest VM pre-boot and boot integrity, and offers key generation and protection.',
+  'gce.serverGroup.shieldedVmIntegrityMonitoring':
+    'Integrity monitoring lets you monitor and verify the runtime boot integrity of your shielded VM instances using Stackdriver reports. Note: requires vTPM to be enabled.',
   'gce.serverGroup.preemptibility':
     'A preemptible VM costs much less, but lasts only 24 hours. It can be terminated sooner due to system demands.',
   'gce.serverGroup.automaticRestart':
