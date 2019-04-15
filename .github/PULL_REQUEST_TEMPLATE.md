@@ -27,7 +27,7 @@
 - In OSX Mojave, you can capture screenshots and add annotations. https://support.apple.com/en-us/HT201361
 - Another app you can use is https://www.getcloudapp.com/.
 
-## Add a gif to show an action
+## Add an animated gif to show an action
 Animated gifs are a great way to show action; however, they sometimes move too fast.
 One way to improve them is to capture 3 pieces of content:
 - screenshot before an action
