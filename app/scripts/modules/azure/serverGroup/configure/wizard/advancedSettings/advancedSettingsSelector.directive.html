@@ -47,7 +47,7 @@
     </div>
     <div class="form-group">
       <div class="col-md-4 sm-label-right">
-        <input type="checkbox" ng-model="adv.command.enableInboundNAT" />
+        <input type="checkbox" ng-model="adv.command.enableInboundNAT" ng-disabled="adv.command.zonesEnabled" />
       </div>
       <div class="col-md-7">
         <b>Enable inbound NAT port-forwarding rules to connect to VM instances</b>

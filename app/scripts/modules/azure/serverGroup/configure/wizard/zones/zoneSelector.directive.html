@@ -1,7 +1,7 @@
 <div class="form-group" ng-if="vm.command.region">
   <div class="col-md-10">
     <label ng-if="vm.command.backingData.filtered.zones && vm.command.backingData.filtered.zones.length !== 0">
-      <input type="checkbox" ng-model="vm.command.zonesEnabled" />
+      <input type="checkbox" ng-model="vm.command.zonesEnabled" ng-change="vm.updateEnableInboundNAT()" />
       Set availability zones
     </label>
     <ui-select multiple ng-if="vm.command.zonesEnabled" ng-model="vm.command.zones" class="form-control input-sm">

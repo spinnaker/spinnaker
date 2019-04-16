@@ -13,6 +13,15 @@ module.exports = angular
         command: '=',
       },
       controllerAs: 'vm',
-      controller: angular.noop,
+      controller: [
+        '$scope',
+        function($scope) {
+          this.updateEnableInboundNAT = () => {
+            if ($scope.vm.command.zonesEnabled) {
+              $scope.vm.command.enableInboundNAT = false;
+            }
+          };
+        },
+      ],
     };
   });
