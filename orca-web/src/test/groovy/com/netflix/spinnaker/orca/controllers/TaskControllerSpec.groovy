@@ -25,6 +25,7 @@ import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.ExecutionRunner
 import com.netflix.spinnaker.orca.pipeline.model.*
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import groovy.json.JsonSlurper
 import org.springframework.http.MediaType
 import org.springframework.mock.web.MockHttpServletResponse
@@ -69,7 +70,8 @@ class TaskControllerSpec extends Specification {
         numberOfOldPipelineExecutionsToInclude: numberOfOldPipelineExecutionsToInclude,
         clock: clock,
         mapper: mapper,
-        registry: registry
+        registry: registry,
+        contextParameterProcessor: new ContextParameterProcessor()
       )
     ).build()
   }
@@ -213,6 +215,33 @@ class TaskControllerSpec extends Specification {
 
     then:
     results.id == ['not-started', 'also-not-started', 'older2', 'older1', 'newer']
+  }
+
+  void '/applications/{application}/evaluateExpressions precomputes values'() {
+    given:
+    executionRepository.retrieve(Execution.ExecutionType.PIPELINE, "1") >> {
+      pipeline {
+        id = "1"
+        application = "doesn't matter"
+        startTime = 1
+        pipelineConfigId = "1"
+        trigger = new DefaultTrigger("manual", "id", "user", [param1: "param1Value"])
+      }
+    }
+
+    when:
+    def response = mockMvc.perform(
+      get("/pipelines/1/evaluateExpression")
+        .param("id", "1")
+        .param("expression", '${parameters.param1}'))
+      .andReturn().response
+    Map results = new ObjectMapper().readValue(response.contentAsString, Map)
+
+    then:
+    results == [
+      result: "param1Value",
+      detail: null
+    ]
   }
 
   void '/pipelines should only return the latest pipelines for the provided config ids, newest first'() {
