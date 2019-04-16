@@ -175,6 +175,29 @@ public class AmazonImageTagger extends ImageTagger implements CloudProviderAware
   }
 
   @Override
+  protected void foundAllImages(List<String> upstreamImageIds, Collection<?> foundImages) {
+    Set<String> foundAmis = new HashSet<>();
+    Collection<MatchedImage> matchedImages = ((Collection<MatchedImage>) foundImages);
+
+    for (MatchedImage matchedImage : matchedImages) {
+      matchedImage.amis.values().forEach(foundAmis::addAll);
+    }
+
+    if (foundAmis.size() < upstreamImageIds.size()) {
+      throw new ImageNotFound(
+        format("Only found %d images to tag but %d were specified upstream (found imageIds: %s, found imageNames: %s)",
+          foundAmis.size(),
+          upstreamImageIds.size(),
+          foundAmis,
+          matchedImages.stream()
+            .map(i -> i.imageName)
+            .collect(Collectors.toSet())),
+        true
+      );
+    }
+  }
+
+  @Override
   public String getCloudProvider() {
     return "aws";
   }
