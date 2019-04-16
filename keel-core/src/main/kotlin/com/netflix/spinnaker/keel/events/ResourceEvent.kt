@@ -74,17 +74,19 @@ data class ResourceUpdated(
   override val apiVersion: ApiVersion,
   override val kind: String,
   override val name: String,
+  val delta: Map<String, Any?>,
   override val timestamp: Instant
 ) : ResourceEvent() {
-  constructor(resource: Resource<*>, clock: Clock) : this(
+  constructor(resource: Resource<*>, delta: Map<String, Any?>, clock: Clock) : this(
     resource.metadata.uid,
     resource.apiVersion,
     resource.kind,
     resource.metadata.name.value,
+    delta,
     clock.instant()
   )
 
-  constructor(resource: Resource<*>) : this(resource, clock)
+  constructor(resource: Resource<*>, delta: Map<String, Any?>) : this(resource, delta, clock)
 }
 
 data class ResourceMissing(
@@ -110,17 +112,19 @@ data class ResourceDeltaDetected(
   override val apiVersion: ApiVersion,
   override val kind: String,
   override val name: String,
+  val delta: Map<String, Any?>,
   override val timestamp: Instant
 ) : ResourceEvent() {
-  constructor(resource: Resource<*>, clock: Clock) : this(
+  constructor(resource: Resource<*>, delta: Map<String, Any?>, clock: Clock) : this(
     resource.metadata.uid,
     resource.apiVersion,
     resource.kind,
     resource.metadata.name.value,
+    delta,
     clock.instant()
   )
 
-  constructor(resource: Resource<*>) : this(resource, clock)
+  constructor(resource: Resource<*>, delta: Map<String, Any?>) : this(resource, delta, clock)
 }
 
 data class ResourceDeltaResolved(

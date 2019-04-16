@@ -163,7 +163,8 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
       context("updating the state of the resource") {
         before {
           clock.incrementBy(ONE_SECOND)
-          subject.appendHistory(ResourceUpdated(resource, clock))
+          // TODO: ensure persisting a map with actual data
+          subject.appendHistory(ResourceUpdated(resource, emptyMap(), clock))
         }
 
         test("the new state is included in the history") {
@@ -176,7 +177,8 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
         context("updating the state again") {
           before {
             clock.incrementBy(ONE_SECOND)
-            subject.appendHistory(ResourceDeltaDetected(resource, clock))
+            // TODO: ensure persisting a map with actual data
+            subject.appendHistory(ResourceDeltaDetected(resource, emptyMap(), clock))
           }
 
           test("the new state is included in the history") {

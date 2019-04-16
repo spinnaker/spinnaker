@@ -3,12 +3,15 @@ package com.netflix.spinnaker.keel.annealing
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SubmittedResource
+import com.netflix.spinnaker.keel.diff.toDebug
+import com.netflix.spinnaker.keel.diff.toJson
 import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.events.ResourceUpdated
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.get
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.netflix.spinnaker.keel.plugin.supporting
+import de.danielbechler.diff.ObjectDifferBuilder
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
@@ -22,6 +25,8 @@ class ResourcePersister(
   private val publisher: ApplicationEventPublisher,
   private val clock: Clock
 ) {
+  private val differ = ObjectDifferBuilder.buildDefault()
+
   fun create(resource: SubmittedResource<Any>): Resource<out Any> =
     handlers.supporting(resource.apiVersion, resource.kind)
       .normalize(resource)
@@ -32,14 +37,16 @@ class ResourcePersister(
   fun update(resource: Resource<Any>): Resource<out Any> {
     val existing = resourceRepository.get<Any>(resource.metadata.uid)
 
-    return if (existing.spec == resource.spec) {
-      existing
-    } else {
+    val diff = differ.compare(resource.spec, existing.spec)
+    log.debug("Resource {} updated: {}", resource.metadata.name, diff.toDebug(resource.spec, existing.spec))
+    return if (diff.hasChanges()) {
       handlers.supporting(resource.apiVersion, resource.kind)
         .normalize(resource)
         .also(resourceRepository::store)
-        .also { resourceRepository.appendHistory(ResourceUpdated(it, clock)) }
+        .also { resourceRepository.appendHistory(ResourceUpdated(it, diff.toJson(resource.spec, existing.spec), clock)) }
         .also { queue.scheduleCheck(it) }
+    } else {
+      existing
     }
   }
 

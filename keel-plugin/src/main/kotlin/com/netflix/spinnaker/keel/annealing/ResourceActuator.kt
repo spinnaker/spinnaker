@@ -3,6 +3,8 @@ package com.netflix.spinnaker.keel.annealing
 import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceName
+import com.netflix.spinnaker.keel.diff.toDebug
+import com.netflix.spinnaker.keel.diff.toJson
 import com.netflix.spinnaker.keel.events.ResourceDeltaDetected
 import com.netflix.spinnaker.keel.events.ResourceDeltaResolved
 import com.netflix.spinnaker.keel.events.ResourceMissing
@@ -52,17 +54,10 @@ class ResourceActuator(
         else -> {
           val diff = differ.compare(current, resource.spec)
           if (diff.hasChanges()) {
-            val builder = StringBuilder()
-            diff.visit { node, _ ->
-              builder
-                .append("".padStart(node.depth * 2))
-                .append(node.toString())
-                .append("\n")
-            }
             with(resource) {
               log.warn("Resource {} is invalid", metadata.name)
-              log.info("Resource {} delta: {}", metadata.name, builder.toString())
-              resourceRepository.appendHistory(ResourceDeltaDetected(resource, clock))
+              log.info("Resource {} delta: {}", metadata.name, diff.toDebug(current, resource.spec))
+              resourceRepository.appendHistory(ResourceDeltaDetected(resource, diff.toJson(current, resource.spec), clock))
               publisher.publishEvent(ResourceChecked(resource, Diff))
             }
 
@@ -102,7 +97,7 @@ class ResourceActuator(
   }
 
   @Suppress("UNCHECKED_CAST")
-  private fun <T : Any> ResourceHandler<T>.update(resource: Resource<*>, resourceDiff: ResourceHandler.ResourceDiff<*>) {
+  private fun <T : Any> ResourceHandler<T>.update(resource: Resource<*>, resourceDiff: ResourceDiff<*>) {
     update(resource as Resource<T>, resourceDiff as ResourceDiff<T>)
   }
   // end type coercing extensions
