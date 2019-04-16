@@ -8,5 +8,6 @@ export interface ISubnet {
   label: string;
   purpose: string;
   deprecated: boolean;
+  target?: string;
   vpcId?: string;
 }

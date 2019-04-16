@@ -24,11 +24,11 @@ export class NumberInput extends React.Component<INumberInputProps> {
   };
 
   public componentDidMount() {
-    this.props.validation.addValidator(this.validator);
+    this.props.validation && this.props.validation.addValidator(this.validator);
   }
 
   public componentWillUnmount() {
-    this.props.validation.removeValidator(this.validator);
+    this.props.validation && this.props.validation.removeValidator(this.validator);
   }
 
   public render() {

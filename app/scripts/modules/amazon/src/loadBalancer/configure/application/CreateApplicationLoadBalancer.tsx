@@ -59,7 +59,9 @@ export class CreateApplicationLoadBalancer extends React.Component<
   constructor(props: ICreateApplicationLoadBalancerProps) {
     super(props);
 
-    const loadBalancerCommand = props.loadBalancer
+    const loadBalancerCommand = props.command
+      ? (props.command as IAmazonApplicationLoadBalancerUpsertCommand) // ejecting from a wizard
+      : props.loadBalancer
       ? AwsReactInjector.awsLoadBalancerTransformer.convertApplicationLoadBalancerForEditing(props.loadBalancer)
       : AwsReactInjector.awsLoadBalancerTransformer.constructNewApplicationLoadBalancerTemplate(props.app);
 

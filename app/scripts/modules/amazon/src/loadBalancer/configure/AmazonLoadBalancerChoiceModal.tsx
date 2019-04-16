@@ -1,9 +1,9 @@
 import * as React from 'react';
 import { Button, Modal } from 'react-bootstrap';
 
-import { ILoadBalancerModalProps, ModalClose, ReactModal, noop } from '@spinnaker/core';
+import { ILoadBalancerModalProps, ModalClose, ReactModal, noop, ReactInjector } from '@spinnaker/core';
 
-import { IAmazonLoadBalancerConfig, LoadBalancerTypes } from './LoadBalancerTypes';
+import { IAmazonLoadBalancerConfig, LoadBalancerTypes, ICloseableLoadBalancerModal } from './LoadBalancerTypes';
 
 export interface IAmazonLoadBalancerChoiceModalState {
   choices: IAmazonLoadBalancerConfig[];
@@ -38,10 +38,18 @@ export class AmazonLoadBalancerChoiceModal extends React.Component<
     this.setState({ selectedChoice: choice });
   }
 
+  private getSelectedChoiceComponent(): ICloseableLoadBalancerModal {
+    const selected = this.state.selectedChoice;
+    const override = ReactInjector.overrideRegistry.getComponent(
+      `amazon.loadBalancer.create.component.${selected.type}`,
+    ) as ICloseableLoadBalancerModal;
+    return override || selected.component;
+  }
+
   private choose = (): void => {
     const { children, ...loadBalancerProps } = this.props;
     this.close();
-    this.state.selectedChoice.component
+    this.getSelectedChoiceComponent()
       .show(loadBalancerProps)
       .then(loadBalancer => {
         this.props.closeModal(loadBalancer);

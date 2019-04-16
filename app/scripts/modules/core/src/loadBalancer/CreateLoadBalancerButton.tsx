@@ -13,6 +13,7 @@ export interface ILoadBalancerModalProps extends IModalComponentProps {
   app: Application;
   forPipelineConfig?: boolean;
   loadBalancer: ILoadBalancer;
+  command?: ILoadBalancerUpsertCommand; // optional, when ejecting from a wizard
   closeModal?(loadBalancerCommand: ILoadBalancerUpsertCommand): void; // provided by ReactModal
   dismissModal?(rejectReason?: any): void; // provided by ReactModal
 }

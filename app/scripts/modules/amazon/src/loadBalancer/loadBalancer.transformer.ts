@@ -1,4 +1,13 @@
-import { AccountService, Application, IHealth, IInstance, IServerGroup, IVpc, NameUtils } from '@spinnaker/core';
+import {
+  AccountService,
+  Application,
+  IHealth,
+  IInstance,
+  IServerGroup,
+  IVpc,
+  NameUtils,
+  SETTINGS,
+} from '@spinnaker/core';
 import { AWSProviderSettings } from 'amazon/aws.settings';
 import {
   IALBListenerCertificate,
@@ -511,6 +520,7 @@ export class AwsLoadBalancerTransformer {
     const defaultCredentials = application.defaultCredentials.aws || AWSProviderSettings.defaults.account,
       defaultRegion = application.defaultRegions.aws || AWSProviderSettings.defaults.region,
       defaultSubnetType = AWSProviderSettings.defaults.subnetType,
+      defaultPort = application.attributes.instancePort || SETTINGS.defaultInstancePort,
       defaultTargetGroupName = `targetgroup`;
     return {
       name: '',
@@ -530,7 +540,7 @@ export class AwsLoadBalancerTransformer {
         {
           name: defaultTargetGroupName,
           protocol: 'HTTP',
-          port: 7001,
+          port: defaultPort,
           targetType: 'instance',
           healthCheckProtocol: 'HTTP',
           healthCheckPort: 'traffic-port',
