@@ -35,8 +35,6 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import org.apache.commons.lang.RandomStringUtils;
 
 import java.io.IOException;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -81,8 +79,9 @@ public class DecryptingObjectMapper extends ObjectMapper {
                         bpw.assignSerializer(getSecretSerializer());
                     }
                     SecretFile secretFile = bpw.getAnnotation(SecretFile.class);
-                    if (secretFile != null && (decryptAllSecrets || secretFile.alwaysDecrypt())) {
-                        bpw.assignSerializer(getSecretFileSerializer(bpw, secretFile));
+                    if (secretFile != null) {
+                        boolean shouldDecrypt = (decryptAllSecrets || secretFile.alwaysDecrypt());
+                        bpw.assignSerializer(getSecretFileSerializer(bpw, secretFile, shouldDecrypt));
                     }
                 }
                 return beanProperties;
@@ -107,22 +106,21 @@ public class DecryptingObjectMapper extends ObjectMapper {
         };
     }
 
-    protected StdScalarSerializer<Object> getSecretFileSerializer(BeanPropertyWriter beanPropertyWriter, SecretFile annotation) {
+    protected StdScalarSerializer<Object> getSecretFileSerializer(BeanPropertyWriter beanPropertyWriter, SecretFile annotation, boolean shouldDecrypt) {
         return new StdScalarSerializer<Object>(String.class, false) {
             @Override
             public void serialize(Object value, JsonGenerator gen, SerializerProvider provider) throws IOException {
                 if (value != null) {
                     String sValue = value.toString();
-                    if (EncryptedSecret.isEncryptedSecret(sValue)) {
+                    if (!EncryptedSecret.isEncryptedSecret(sValue)) {
+                        sValue = annotation.prefix() + sValue;
+                    } else if (shouldDecrypt) {
                         // Decrypt the content of the file and store on the profile under a random
                         // generated file name
                         String name = newRandomFilePath(beanPropertyWriter.getName());
                         byte[] bytes = secretSessionManager.decryptAsBytes(sValue);
                         profile.getDecryptedFiles().put(name, bytes);
-                        sValue = getCompleteFilePath(name);
-                    }
-                    if (annotation != null) {
-                        sValue = annotation.prefix() + sValue;
+                        sValue = annotation.prefix() + getCompleteFilePath(name);
                     }
                     gen.writeString(sValue);
                 }
