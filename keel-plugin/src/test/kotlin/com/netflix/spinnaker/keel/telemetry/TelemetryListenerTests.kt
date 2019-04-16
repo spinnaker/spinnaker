@@ -1,7 +1,6 @@
 package com.netflix.spinnaker.keel.telemetry
 
 import com.netflix.spectator.api.Counter
-import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.Registry
 import com.netflix.spectator.api.Tag
 import com.netflix.spinnaker.keel.api.ResourceName
@@ -37,7 +36,7 @@ internal object TelemetryListenerTests : JUnit5Minutests {
     }
 
     before {
-      every { registry.counter(any<Id>()) } returns counter
+      every { registry.counter(any(), any<List<Tag>>()) } returns counter
     }
 
     context("successful metric submission") {
@@ -52,29 +51,29 @@ internal object TelemetryListenerTests : JUnit5Minutests {
       }
 
       test("tags the counter") {
-        val id = slot<Id>()
+        val id = slot<String>()
+        val tags = slot<List<Tag>>()
         verify {
-          registry.counter(capture(id))
+          registry.counter(capture(id), capture(tags))
         }
-        expectThat(id.captured) {
-          name().isEqualTo("keel.resource.checked")
-          tags()
-            .any {
-              key().isEqualTo("apiVersion")
-              value().isEqualTo(event.apiVersion.toString())
-            }
-            .any {
-              key().isEqualTo("resourceKind")
-              value().isEqualTo(event.kind)
-            }
-            .any {
-              key().isEqualTo("resourceName")
-              value().isEqualTo(event.name.value)
-            }
-            .any {
-              key().isEqualTo("resourceState")
-              value().isEqualTo(event.state.name)
-            }
+        expectThat(id.captured).isEqualTo("keel.resource.checked")
+        expectThat(tags.captured) {
+          any {
+            key().isEqualTo("apiVersion")
+            value().isEqualTo(event.apiVersion.toString())
+          }
+          any {
+            key().isEqualTo("resourceKind")
+            value().isEqualTo(event.kind)
+          }
+          any {
+            key().isEqualTo("resourceName")
+            value().isEqualTo(event.name.value)
+          }
+          any {
+            key().isEqualTo("resourceState")
+            value().isEqualTo(event.state.name)
+          }
         }
       }
     }
@@ -94,7 +93,5 @@ internal object TelemetryListenerTests : JUnit5Minutests {
   }
 }
 
-fun Assertion.Builder<Id>.name() = get { name() }
-fun Assertion.Builder<Id>.tags() = get { tags() }
 fun Assertion.Builder<Tag>.key() = get { key() }
 fun Assertion.Builder<Tag>.value() = get { value() }

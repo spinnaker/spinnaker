@@ -6,11 +6,11 @@ dependencies {
 
   implementation "org.springframework:spring-context"
   implementation "org.springframework.boot:spring-boot-autoconfigure"
-  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
-  implementation "com.netflix.spinnaker.kork:kork-core:${spinnaker.version("kork")}"
+  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
+  implementation "com.netflix.spinnaker.kork:kork-core"
 
   testImplementation project(":keel-spring-test-support")
   testImplementation "org.springframework.boot:spring-boot-starter-web"
-  testImplementation "dev.minutest:minutest:$minutestVersion"
-  testImplementation "io.strikt:strikt-core:$striktVersion"
+  testImplementation "dev.minutest:minutest"
+  testImplementation "io.strikt:strikt-core"
 }

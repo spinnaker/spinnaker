@@ -3,13 +3,13 @@ apply plugin: "kotlin-spring"
 
 dependencies {
   implementation project(":keel-plugin")
-  implementation("com.amazonaws:aws-java-sdk-sqs:${spinnaker.version("aws")}")
-  implementation("com.netflix.spinnaker.kork:kork-aws:${spinnaker.version("kork")}")
-  implementation("org.springframework.boot:spring-boot:${spinnaker.version("springBoot")}")
-  implementation("org.springframework.boot:spring-boot-autoconfigure:${spinnaker.version("springBoot")}")
-  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
+  implementation("com.amazonaws:aws-java-sdk-sqs")
+  implementation("com.netflix.spinnaker.kork:kork-aws")
+  implementation("org.springframework.boot:spring-boot")
+  implementation("org.springframework.boot:spring-boot-autoconfigure")
+  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
 
   testImplementation("org.springframework.boot:spring-boot-starter-test")
-  testImplementation("dev.minutest:minutest:$minutestVersion")
-  testImplementation("io.strikt:strikt-core:$striktVersion")
+  testImplementation("dev.minutest:minutest")
+  testImplementation("io.strikt:strikt-core")
 }

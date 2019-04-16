@@ -8,12 +8,11 @@ dependencies {
   api "com.fasterxml.jackson.module:jackson-module-kotlin"
   api "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
   api project(":keel-core-test")
-  implementation platform("org.junit:junit-bom:${spinnaker.version('jupiter')}")
   implementation "org.junit.jupiter:junit-jupiter-api"
-  implementation "com.squareup.retrofit2:retrofit-mock:${spinnaker.version('retrofit2')}"
-  implementation "com.squareup.okhttp3:mockwebserver:${spinnaker.version('okHttp3')}"
-  implementation "dev.minutest:minutest:$minutestVersion"
-  implementation "io.strikt:strikt-core:$striktVersion"
+  implementation "com.squareup.retrofit2:retrofit-mock"
+  implementation "com.squareup.okhttp3:mockwebserver"
+  implementation "dev.minutest:minutest"
+  implementation "io.strikt:strikt-core"
 
   runtime "org.jetbrains.kotlin:kotlin-reflect"
 }

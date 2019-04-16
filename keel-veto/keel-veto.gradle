@@ -2,9 +2,9 @@ apply plugin: "java-library"
 
 dependencies {
   implementation project(":keel-plugin")
-  implementation "com.netflix.spinnaker.kork:kork-core:${spinnaker.version('kork')}"
+  implementation "com.netflix.spinnaker.kork:kork-core"
 
-  testImplementation "io.strikt:strikt-core:$striktVersion"
-  testImplementation "dev.minutest:minutest:$minutestVersion"
+  testImplementation "io.strikt:strikt-core"
+  testImplementation "dev.minutest:minutest"
 }
 

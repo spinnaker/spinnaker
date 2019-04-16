@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.telemetry
 
-import com.netflix.spectator.api.Id
+import com.netflix.spectator.api.BasicTag
 import com.netflix.spectator.api.Registry
 import org.slf4j.LoggerFactory
 import org.springframework.context.event.EventListener
@@ -15,11 +15,13 @@ class TelemetryListener(
   fun onResourceChecked(event: ResourceChecked) {
     try {
       spectator.counter(
-        RESOURCE_CHECKED_COUNTER_ID
-          .withTag("resourceName", event.name.value)
-          .withTag("apiVersion", event.apiVersion.toString())
-          .withTag("resourceKind", event.kind)
-          .withTag("resourceState", event.state.name)
+        RESOURCE_CHECKED_COUNTER_ID,
+        listOf(
+          BasicTag("resourceName", event.name.value),
+          BasicTag("apiVersion", event.apiVersion.toString()),
+          BasicTag("resourceKind", event.kind),
+          BasicTag("resourceState", event.state.name)
+        )
       ).increment()
     } catch (ex: Exception) {
       log.error("Exception incrementing Atlas counter: {}", ex.message)
@@ -30,8 +32,8 @@ class TelemetryListener(
   fun onLockAttempt(event: LockAttempt) {
     try {
       spectator.counter(
-        LOCK_ATTEMPT_COUNTER_ID
-          .withTag("success", event.success)
+        LOCK_ATTEMPT_COUNTER_ID,
+        listOf(BasicTag("success", event.success.toString()))
       ).increment()
     } catch (ex: Exception) {
       log.error("Exception incrementing Atlas counter: {}", ex.message)
@@ -41,7 +43,7 @@ class TelemetryListener(
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   companion object {
-    private val RESOURCE_CHECKED_COUNTER_ID = Id.create("keel.resource.checked")
-    private val LOCK_ATTEMPT_COUNTER_ID = Id.create("keel.lock.attempt")
+    private const val RESOURCE_CHECKED_COUNTER_ID = "keel.resource.checked"
+    private const val LOCK_ATTEMPT_COUNTER_ID = "keel.lock.attempt"
   }
 }

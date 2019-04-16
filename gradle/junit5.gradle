@@ -21,7 +21,7 @@ repositories {
 dependencies {
   testImplementation "org.junit.platform:junit-platform-runner"
   testImplementation "org.junit.jupiter:junit-jupiter-api"
-  testImplementation "io.mockk:mockk:1.9.2"
+  testImplementation "io.mockk:mockk"
 
   testRuntimeOnly "org.junit.platform:junit-platform-launcher"
   testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"

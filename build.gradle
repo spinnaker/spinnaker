@@ -21,9 +21,8 @@ buildscript {
   }
   dependencies {
     classpath "com.netflix.spinnaker.gradle:spinnaker-dev-plugin:5.2.2"
-    classpath "org.springframework.boot:spring-boot-gradle-plugin:$bootVersion"
-    classpath "com.netflix.nebula:nebula-kotlin-plugin:$kotlinVersion"
-    classpath "org.jetbrains.kotlin:kotlin-allopen:$kotlinVersion"
+    classpath "com.netflix.nebula:nebula-kotlin-plugin:1.3.30"
+    classpath "org.jetbrains.kotlin:kotlin-allopen:1.3.30"
   }
 }
 
@@ -31,23 +30,6 @@ allprojects {
   apply plugin: "spinnaker.base-project"
 
   group = "com.netflix.spinnaker.keel"
-
-  ext {
-    spinnakerDependenciesVersion = "2.0.0-rc.11-springBoot2"
-    if (project.hasProperty("spinnakerDependenciesVersion")) {
-      spinnakerDependenciesVersion = project.property("spinnakerDependenciesVersion")
-    }
-  }
-
-  spinnaker {
-    dependenciesVersion = spinnakerDependenciesVersion
-  }
-
-  configurations.all {
-    exclude group: "javax.servlet", module: "servlet-api"
-    exclude group: "org.slf4j", module: "slf4j-log4j12"
-    exclude group: "org.slf4j", module: "slf4j-simple"
-  }
 }
 
 subprojects {
@@ -60,19 +42,8 @@ subprojects {
   }
   
   dependencies {
-    implementation platform("org.springframework.boot:spring-boot-dependencies:$bootVersion")
-    testImplementation platform("org.junit:junit-bom:${spinnaker.version('jupiter')}")
+    implementation platform("com.netflix.spinnaker.kork:kork-bom:4.1.0-rc.3-springBoot2")
     implementation "org.slf4j:slf4j-api"
-  }
-
-  configurations.all {
-    resolutionStrategy {
-      eachDependency {
-        if (it.requested.group.startsWith("com.fasterxml.jackson")) {
-          it.useVersion(spinnaker.version("jackson"))
-        }
-      }
-    }
   }
 
   test {

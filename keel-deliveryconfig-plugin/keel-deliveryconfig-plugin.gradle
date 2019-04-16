@@ -6,9 +6,9 @@ dependencies {
   implementation project(":keel-plugin")
   implementation project(":keel-front50")
 
-  implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion"
+  implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core"
   implementation "org.springframework:spring-context"
   implementation "org.springframework.boot:spring-boot-autoconfigure"
-  testImplementation "io.strikt:strikt-core:$striktVersion"
-  testImplementation "dev.minutest:minutest:$minutestVersion"
+  testImplementation "io.strikt:strikt-core"
+  testImplementation "dev.minutest:minutest"
 }

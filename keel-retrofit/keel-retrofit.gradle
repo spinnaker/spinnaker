@@ -17,11 +17,11 @@ apply plugin: "java-library"
 apply plugin: "kotlin-spring"
 
 dependencies {
-  api "com.squareup.retrofit2:retrofit:${spinnaker.version('retrofit2')}"
-  api "com.squareup.retrofit2:converter-jackson:${spinnaker.version('retrofit2')}"
+  api "com.squareup.retrofit2:retrofit"
+  api "com.squareup.retrofit2:converter-jackson"
   api "com.jakewharton.retrofit:retrofit2-kotlin-coroutines-adapter:0.9.2"
 
-  implementation "com.netflix.spinnaker.kork:kork-web:${spinnaker.version('kork')}"
-  implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion"
-  implementation "com.squareup.okhttp3:logging-interceptor:${spinnaker.version('okHttp3')}"
+  implementation "com.netflix.spinnaker.kork:kork-web"
+  implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core"
+  implementation "com.squareup.okhttp3:logging-interceptor"
 }

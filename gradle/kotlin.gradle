@@ -31,13 +31,3 @@ compileTestKotlin {
     freeCompilerArgs += ["-progressive"]
   }
 }
-
-configurations.all {
-  resolutionStrategy {
-    eachDependency { details ->
-      if (details.requested.group == "org.jetbrains.kotlin") {
-        details.useVersion kotlinVersion
-      }
-    }
-  }
-}
