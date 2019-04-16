@@ -35,15 +35,17 @@ class ResourcePersister(
       .also { queue.scheduleCheck(it) }
 
   fun update(resource: Resource<Any>): Resource<out Any> {
-    val existing = resourceRepository.get<Any>(resource.metadata.uid)
+    val normalized = handlers.supporting(resource.apiVersion, resource.kind)
+      .normalize(resource)
 
-    val diff = differ.compare(resource.spec, existing.spec)
-    log.debug("Resource {} updated: {}", resource.metadata.name, diff.toDebug(resource.spec, existing.spec))
+    val existing = resourceRepository.get(normalized.metadata.uid, normalized.spec.javaClass)
+
+    val diff = differ.compare(normalized.spec, existing.spec)
     return if (diff.hasChanges()) {
-      handlers.supporting(resource.apiVersion, resource.kind)
-        .normalize(resource)
+      log.debug("Resource {} updated: {}", normalized.metadata.name, diff.toDebug(normalized.spec, existing.spec))
+      normalized
         .also(resourceRepository::store)
-        .also { resourceRepository.appendHistory(ResourceUpdated(it, diff.toJson(resource.spec, existing.spec), clock)) }
+        .also { resourceRepository.appendHistory(ResourceUpdated(it, diff.toJson(normalized.spec, existing.spec), clock)) }
         .also { queue.scheduleCheck(it) }
     } else {
       existing
