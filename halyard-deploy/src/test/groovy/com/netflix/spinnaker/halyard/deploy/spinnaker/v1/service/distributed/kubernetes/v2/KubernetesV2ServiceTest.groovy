@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.v2
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.halyard.config.config.v1.StrictObjectMapper
+import com.netflix.spinnaker.halyard.config.model.v1.node.AffinityConfig
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration
 import com.netflix.spinnaker.halyard.config.model.v1.node.SidecarConfig
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesAccount
@@ -50,6 +53,11 @@ class KubernetesV2ServiceTest extends Specification {
             @Override
             int hashCode() {
                 return 42
+            }
+
+            @Override
+            ObjectMapper getObjectMapper() {
+                return new StrictObjectMapper();
             }
         }
         testService.serviceDelegate = new KubernetesV2ServiceDelegate()
@@ -213,5 +221,152 @@ class KubernetesV2ServiceTest extends Specification {
     "secretName": "sMap"
   }
 }''')
+    }
+
+    def "Can we set initContainers?"() {
+        setup:
+        def executor = Mock(KubernetesV2Executor)
+        HashMap car = new HashMap()
+        car.put("container", "gcr.io/test:latest")
+
+        details.deploymentConfiguration = new DeploymentConfiguration()
+        details.deploymentConfiguration.deploymentEnvironment.initContainers.put("spin-orca", [car])
+
+        when:
+        String yaml = testService.getPodSpecYaml(executor, details, config)
+
+        then:
+        yaml.contains('"container":"gcr.io/test:latest"')
+    }
+
+    def "Can we set nodeAffinities?"() {
+        setup:
+        def executor = Mock(KubernetesV2Executor)
+        def affinity = new AffinityConfig(
+                nodeAffinity: new AffinityConfig.NodeAffinity(
+                    requiredDuringSchedulingIgnoredDuringExecution: new AffinityConfig.NodeSelector(
+                        nodeSelectorTerms: [new AffinityConfig.NodeSelectorTerm(
+                            matchExpressions: [new AffinityConfig.NodeSelectorRequirement(
+                                    key: "test_key",
+                                    operator: AffinityConfig.NodeSelectorRequirement.Operator.In,
+                                    values: ["test_value"]
+                            )]
+                        )]
+                    )
+                )
+        )
+
+        details.deploymentConfiguration = new DeploymentConfiguration()
+        details.deploymentConfiguration.deploymentEnvironment.affinity.put("spin-orca", affinity)
+
+        when:
+        String yaml = testService.getPodSpecYaml(executor, details, config)
+
+        then:
+        yaml.contains('"nodeAffinity":{"requiredDuringSchedulingIgnoredDuringExecution":{"nodeSelectorTerms":[{"matchExpressions":[{"key":"test_key","operator":"In","values":["test_value"]}]}]}}}')
+
+        when:
+        //try a weighted affinity
+        def weightedSelector = new AffinityConfig.PreferredSchedulingTerm()
+        weightedSelector.weight = 100
+        weightedSelector.preference = affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0]
+
+        affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution = null
+        affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution = [weightedSelector]
+        details.deploymentConfiguration = new DeploymentConfiguration()
+        details.deploymentConfiguration.deploymentEnvironment.affinity.put("spin-orca", affinity)
+
+        yaml = testService.getPodSpecYaml(executor, details, config)
+
+        then:
+        yaml.contains('"nodeAffinity":{"preferredDuringSchedulingIgnoredDuringExecution":[{"weight":100,"preference":{"matchExpressions":[{"key":"test_key","operator":"In","values":["test_value"]}]}}]}}')
+    }
+
+    def "Can we set podAffinities?"() {
+        setup:
+        def executor = Mock(KubernetesV2Executor)
+        def affinity = new AffinityConfig(
+                podAffinity: new AffinityConfig.PodAffinity(
+                        requiredDuringSchedulingIgnoredDuringExecution: [new AffinityConfig.PodAffinityTerm(
+                                labelSelector: new AffinityConfig.LabelSelector(
+                                        matchExpressions: [new AffinityConfig.LabelSelectorRequirement(
+                                                key: "test_key",
+                                                operator: AffinityConfig.LabelSelectorRequirement.Operator.In,
+                                                values: ["test_value"]
+                                        )]
+                                ),
+                                namespaces: ["test_namespace"],
+                                topologyKey: "failure-domain.beta.kubernetes.io/zone"
+                        )]
+                )
+        )
+
+        details.deploymentConfiguration = new DeploymentConfiguration()
+        details.deploymentConfiguration.deploymentEnvironment.affinity.put("spin-orca", affinity)
+
+        when:
+        String yaml = testService.getPodSpecYaml(executor, details, config)
+
+        then:
+        yaml.contains('"podAffinity":{"requiredDuringSchedulingIgnoredDuringExecution":[{"labelSelector":{"matchExpressions":[{"key":"test_key","operator":"In","values":["test_value"]}]},"namespaces":["test_namespace"],"topologyKey":"failure-domain.beta.kubernetes.io/zone"}]}}')
+
+        when:
+        def term = affinity.podAffinity.requiredDuringSchedulingIgnoredDuringExecution[0]
+        affinity.podAffinity.preferredDuringSchedulingIgnoredDuringExecution = [new AffinityConfig.WeightedPodAffinityTerm(
+                weight: 100,
+                podAffinityTerm: term
+        )]
+        affinity.podAffinity.requiredDuringSchedulingIgnoredDuringExecution = null
+        details.deploymentConfiguration = new DeploymentConfiguration()
+        details.deploymentConfiguration.deploymentEnvironment.affinity.put("spin-orca", affinity)
+
+        yaml = testService.getPodSpecYaml(executor, details, config)
+
+        then:
+        yaml.contains('"podAffinity":{"preferredDuringSchedulingIgnoredDuringExecution":[{"weight":100,"podAffinityTerm":{"labelSelector":{"matchExpressions":[{"key":"test_key","operator":"In","values":["test_value"]}]},"namespaces":["test_namespace"],"topologyKey":"failure-domain.beta.kubernetes.io/zone"}}]}}')
+    }
+
+    def "Can we set podAntiAffinities?"() {
+        setup:
+        def executor = Mock(KubernetesV2Executor)
+        def affinity = new AffinityConfig(
+                podAntiAffinity: new AffinityConfig.PodAffinity(
+                        requiredDuringSchedulingIgnoredDuringExecution: [new AffinityConfig.PodAffinityTerm(
+                                labelSelector: new AffinityConfig.LabelSelector(
+                                        matchExpressions: [new AffinityConfig.LabelSelectorRequirement(
+                                                key: "test_key",
+                                                operator: AffinityConfig.LabelSelectorRequirement.Operator.In,
+                                                values: ["test_value"]
+                                        )]
+                                ),
+                                namespaces: ["test_namespace"],
+                                topologyKey: "failure-domain.beta.kubernetes.io/zone"
+                        )]
+                )
+        )
+
+        details.deploymentConfiguration = new DeploymentConfiguration()
+        details.deploymentConfiguration.deploymentEnvironment.affinity.put("spin-orca", affinity)
+
+        when:
+        String yaml = testService.getPodSpecYaml(executor, details, config)
+
+        then:
+        yaml.contains('"podAntiAffinity":{"requiredDuringSchedulingIgnoredDuringExecution":[{"labelSelector":{"matchExpressions":[{"key":"test_key","operator":"In","values":["test_value"]}]},"namespaces":["test_namespace"],"topologyKey":"failure-domain.beta.kubernetes.io/zone"}]}}')
+
+        when:
+        def term = affinity.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution[0]
+        affinity.podAntiAffinity.preferredDuringSchedulingIgnoredDuringExecution = [new AffinityConfig.WeightedPodAffinityTerm(
+                weight: 100,
+                podAffinityTerm: term
+        )]
+        affinity.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution = null
+        details.deploymentConfiguration = new DeploymentConfiguration()
+        details.deploymentConfiguration.deploymentEnvironment.affinity.put("spin-orca", affinity)
+
+        yaml = testService.getPodSpecYaml(executor, details, config)
+
+        then:
+        yaml.contains('"podAntiAffinity":{"preferredDuringSchedulingIgnoredDuringExecution":[{"weight":100,"podAffinityTerm":{"labelSelector":{"matchExpressions":[{"key":"test_key","operator":"In","values":["test_value"]}]},"namespaces":["test_namespace"],"topologyKey":"failure-domain.beta.kubernetes.io/zone"}}]}}')
     }
 }

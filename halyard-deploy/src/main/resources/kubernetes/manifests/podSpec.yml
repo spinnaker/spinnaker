@@ -43,6 +43,10 @@
     },
   {% endif %}
 
+  {% if affinity %}
+    "affinity": {{ affinity }},
+  {% endif %}
+
   {% if securityContext != null %}
   "securityContext": {
     {% if securityContext.runAsUser != null %}

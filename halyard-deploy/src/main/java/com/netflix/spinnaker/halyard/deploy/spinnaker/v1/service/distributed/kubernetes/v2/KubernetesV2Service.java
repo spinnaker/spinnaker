@@ -18,10 +18,12 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.v2;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.KubernetesUtil;
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.servergroup.KubernetesImageDescription;
+import com.netflix.spinnaker.halyard.config.model.v1.node.AffinityConfig;
 import com.netflix.spinnaker.halyard.config.model.v1.node.CustomSizing;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.SidecarConfig;
@@ -227,6 +229,7 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
               .addBinding("serviceAccountName", settings.getKubernetes().getServiceAccountName())
               .addBinding("terminationGracePeriodSeconds", terminationGracePeriodSeconds())
               .addBinding("nodeSelector", settings.getKubernetes().getNodeSelector())
+              .addBinding("affinity", getAffinity(details))
               .addBinding("volumes", combineVolumes(configSources, settings.getKubernetes(), sidecarConfigs))
               .addBinding("securityContext", settings.getKubernetes().getSecurityContext())
               .toString();
@@ -549,6 +552,26 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
             }).collect(Collectors.toList());
 
     return hostAliases;
+  }
+
+  default String getAffinity(AccountDeploymentDetails<KubernetesAccount> details) {
+    AffinityConfig affinityConfig = details.getDeploymentConfiguration()
+            .getDeploymentEnvironment()
+            .getAffinity()
+            .getOrDefault(getService().getServiceName(), new AffinityConfig());
+
+    if (affinityConfig.equals(new AffinityConfig())) {
+      affinityConfig = details.getDeploymentConfiguration()
+              .getDeploymentEnvironment()
+              .getAffinity()
+              .getOrDefault(getService().getBaseCanonicalName(), new AffinityConfig());
+    }
+
+    try {
+      return getObjectMapper().writeValueAsString(affinityConfig);
+    } catch (JsonProcessingException e) {
+      throw new HalException(Problem.Severity.FATAL, "Invalid affinity format: " + e.getMessage(), e);
+    }
   }
 
   default List<String> getInitContainers(AccountDeploymentDetails<KubernetesAccount> details) {
