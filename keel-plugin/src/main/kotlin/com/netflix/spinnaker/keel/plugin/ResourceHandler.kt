@@ -23,6 +23,7 @@ import com.netflix.spinnaker.keel.api.ResourceMetadata
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.api.randomUID
+import com.netflix.spinnaker.keel.events.TaskRef
 import com.netflix.spinnaker.keel.exceptions.InvalidResourceStructureException
 import de.danielbechler.diff.node.DiffNode
 import org.slf4j.Logger
@@ -32,7 +33,7 @@ interface ResourceHandler<T : Any> : KeelPlugin {
     val source: T,
     val diff: DiffNode
   ) {
-    constructor(source : T) : this(source, DiffNode.newRootNode())
+    constructor(source: T) : this(source, DiffNode.newRootNode())
   }
 
 
@@ -63,7 +64,7 @@ interface ResourceHandler<T : Any> : KeelPlugin {
     val spec: T
     try {
       spec = objectMapper.convertValue(resource.spec, supportedKind.second)
-    } catch (e: IllegalArgumentException){
+    } catch (e: IllegalArgumentException) {
       throw InvalidResourceStructureException(
         "Submitted resource with an incorrect structure, cannot convert to ${resource.kind} ${resource.spec}",
         resource.spec.toString(),
@@ -125,10 +126,11 @@ interface ResourceHandler<T : Any> : KeelPlugin {
    *
    * Implement this method and [update] if you need to handle create and update in different ways.
    * Otherwise just implement [upsert].
+   *
+   * @return a list of tasks launched to actuate the resource.
    */
-  fun create(resource: Resource<T>) {
+  fun create(resource: Resource<T>): List<TaskRef> =
     upsert(resource, null)
-  }
 
   /**
    * Update a resource so that it matches the desired state represented by [resource].
@@ -137,18 +139,24 @@ interface ResourceHandler<T : Any> : KeelPlugin {
    *
    * Implement this method and [create] if you need to handle create and update in different ways.
    * Otherwise just implement [upsert].
+   *
+   * @return a list of tasks launched to actuate the resource.
    */
-  fun update(resource: Resource<T>, resourceDiff: ResourceDiff<T> = ResourceDiff(resource.spec)) {
+  fun update(
+    resource: Resource<T>,
+    resourceDiff: ResourceDiff<T> = ResourceDiff(resource.spec)
+  ): List<TaskRef> =
     upsert(resource, resourceDiff)
-  }
 
   /**
    * Create or update a resource so that it matches the desired state represented by [resource].
    *
    * You don't need to implement this method if you are implementing [create] and [update]
    * individually.
+   *
+   * @return a list of tasks launched to actuate the resource.
    */
-  fun upsert(resource: Resource<T>, resourceDiff: ResourceDiff<T>? = null) {
+  fun upsert(resource: Resource<T>, resourceDiff: ResourceDiff<T>? = null): List<TaskRef> {
     TODO("Not implemented")
   }
 

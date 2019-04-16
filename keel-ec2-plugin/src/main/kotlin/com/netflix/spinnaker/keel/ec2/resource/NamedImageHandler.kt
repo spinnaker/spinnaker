@@ -9,6 +9,7 @@ import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.ec2.ImageResult
 import com.netflix.spinnaker.keel.api.ec2.NamedImage
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
+import com.netflix.spinnaker.keel.events.TaskRef
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.netflix.spinnaker.keel.plugin.ResourceHandler.ResourceDiff
@@ -53,7 +54,7 @@ class NamedImageHandler(
     }
 
 
-  override fun upsert(resource: Resource<NamedImage>, resourceDiff: ResourceDiff<NamedImage>?) {
+  override fun upsert(resource: Resource<NamedImage>, resourceDiff: ResourceDiff<NamedImage>?): List<TaskRef> {
     runBlocking {
       resourceDiff?.also {
         resourceRepository.store(resource.copy(
@@ -61,6 +62,7 @@ class NamedImageHandler(
         ))
       }
     }
+    return emptyList()
   }
 
   override fun delete(resource: Resource<NamedImage>) {

@@ -11,6 +11,7 @@ import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.api.deliveryconfig.ChildResource
 import com.netflix.spinnaker.keel.api.deliveryconfig.DeliveryConfig
 import com.netflix.spinnaker.keel.api.deliveryconfig.DeliveryEnvironment
+import com.netflix.spinnaker.keel.events.TaskRef
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.get
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
@@ -64,7 +65,7 @@ class DeliveryConfigHandler(
     TODO("Not implemented")
   }
 
-  override fun upsert(resource: Resource<DeliveryConfig>, resourceDiff: ResourceDiff<DeliveryConfig>?) {
+  override fun upsert(resource: Resource<DeliveryConfig>, resourceDiff: ResourceDiff<DeliveryConfig>?): List<TaskRef> {
     runBlocking {
       resourceRepository.store(resource.copy(spec = resource.spec.copy(
         deliveryEnvironments = resource.spec.deliveryEnvironments.map { env ->
@@ -79,6 +80,7 @@ class DeliveryConfigHandler(
         }
       )))
     }
+    return emptyList()
   }
 
   private fun DeliveryEnvironment.refreshFromRepository() =

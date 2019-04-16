@@ -25,6 +25,7 @@ import com.netflix.spinnaker.keel.api.ec2.SecurityGroupRule.Protocol
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
+import com.netflix.spinnaker.keel.events.TaskRef
 import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.model.OrchestrationTrigger
@@ -62,7 +63,7 @@ class SecurityGroupHandler(
   override fun current(resource: Resource<SecurityGroup>): SecurityGroup? =
     cloudDriverService.getSecurityGroup(resource.spec)
 
-  override fun create(resource: Resource<SecurityGroup>) {
+  override fun create(resource: Resource<SecurityGroup>): List<TaskRef> {
     val taskRef = runBlocking {
       resource.spec.let { spec ->
         orcaService
@@ -77,9 +78,10 @@ class SecurityGroupHandler(
       }
     }
     log.info("Started task {} to create security group", taskRef.ref)
+    return listOf(TaskRef(taskRef.ref))
   }
 
-  override fun update(resource: Resource<SecurityGroup>, resourceDiff: ResourceDiff<SecurityGroup>) {
+  override fun update(resource: Resource<SecurityGroup>, resourceDiff: ResourceDiff<SecurityGroup>): List<TaskRef> {
     val taskRef = runBlocking {
       resource.spec.let { spec ->
         orcaService
@@ -94,6 +96,7 @@ class SecurityGroupHandler(
       }
     }
     log.info("Started task {} to update security group", taskRef.ref)
+    return listOf(TaskRef(taskRef.ref))
   }
 
   override fun delete(resource: Resource<SecurityGroup>) {

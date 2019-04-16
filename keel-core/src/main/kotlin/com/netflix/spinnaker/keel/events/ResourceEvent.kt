@@ -21,6 +21,8 @@ import com.fasterxml.jackson.annotation.JsonSubTypes.Type
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer
 import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.UID
@@ -51,6 +53,9 @@ sealed class ResourceEvent {
   }
 }
 
+/**
+ * A new resource was registered for management.
+ */
 data class ResourceCreated @JsonCreator constructor(
   override val uid: UID,
   override val apiVersion: ApiVersion,
@@ -69,6 +74,12 @@ fun ResourceCreated(resource: Resource<*>, clock: Clock) = ResourceCreated(
 
 fun ResourceCreated(resource: Resource<*>) = ResourceCreated(resource, ResourceEvent.clock)
 
+/**
+ * The desired state of a resource was updated.
+ *
+ * @property delta The difference between the "base" spec (previous version) and "working" spec (the
+ * updated version).
+ */
 data class ResourceUpdated(
   override val uid: UID,
   override val apiVersion: ApiVersion,
@@ -89,6 +100,9 @@ data class ResourceUpdated(
   constructor(resource: Resource<*>, delta: Map<String, Any?>) : this(resource, delta, clock)
 }
 
+/**
+ * A managed resource does not currently exist in the cloud.
+ */
 data class ResourceMissing(
   override val uid: UID,
   override val apiVersion: ApiVersion,
@@ -107,6 +121,11 @@ data class ResourceMissing(
   constructor(resource: Resource<*>) : this(resource, clock)
 }
 
+/**
+ * A difference between the desired and actual state of a managed resource was detected.
+ *
+ * @property delta The difference between the "base" spec (desired) and "working" spec (actual).
+ */
 data class ResourceDeltaDetected(
   override val uid: UID,
   override val apiVersion: ApiVersion,
@@ -127,6 +146,38 @@ data class ResourceDeltaDetected(
   constructor(resource: Resource<*>, delta: Map<String, Any?>) : this(resource, delta, clock)
 }
 
+/**
+ * A task or tasks were launched to resolve a mismatch between desired and actual state of a managed
+ * resource.
+ */
+data class ResourceActuationLaunched(
+  override val uid: UID,
+  override val apiVersion: ApiVersion,
+  override val kind: String,
+  override val name: String,
+  val plugin: String,
+  val tasks: List<TaskRef>,
+  override val timestamp: Instant
+) : ResourceEvent() {
+  constructor(resource: Resource<*>, plugin: String, tasks: List<TaskRef>, clock: Clock) :
+    this(
+      resource.metadata.uid,
+      resource.apiVersion,
+      resource.kind,
+      resource.metadata.name.value,
+      plugin,
+      tasks,
+      clock.instant()
+    )
+
+  constructor(resource: Resource<*>, plugin: String, tasks: List<TaskRef>) :
+    this(resource, plugin, tasks, clock)
+}
+
+/**
+ * The desired and actual states of a managed resource now match where previously there was a delta
+ * (or the resource did not exist).
+ */
 data class ResourceDeltaResolved(
   override val uid: UID,
   override val apiVersion: ApiVersion,
@@ -143,4 +194,13 @@ data class ResourceDeltaResolved(
   )
 
   constructor(resource: Resource<*>) : this(resource, clock)
+}
+
+/**
+ * The reference to a task launched (currently always in Orca) to resolve a difference between the
+ * desired and actual states of a managed resource.
+ */
+@JsonSerialize(using = ToStringSerializer::class)
+data class TaskRef(val value: String) {
+  override fun toString(): String = value
 }

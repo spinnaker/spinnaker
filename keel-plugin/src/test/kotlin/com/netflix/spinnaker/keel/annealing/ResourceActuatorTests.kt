@@ -6,9 +6,11 @@ import com.netflix.spinnaker.keel.api.ResourceMetadata
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.randomUID
+import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
 import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.events.ResourceDeltaDetected
 import com.netflix.spinnaker.keel.events.ResourceMissing
+import com.netflix.spinnaker.keel.events.TaskRef
 import com.netflix.spinnaker.keel.persistence.ResourceState.Diff
 import com.netflix.spinnaker.keel.persistence.ResourceState.Missing
 import com.netflix.spinnaker.keel.persistence.ResourceState.Ok
@@ -21,6 +23,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import org.springframework.context.ApplicationEventPublisher
+import strikt.api.Assertion
 import strikt.api.expectThat
 import strikt.assertions.first
 import strikt.assertions.hasSize
@@ -41,8 +44,10 @@ internal object ResourceActuatorTests : JUnit5Minutests {
     }
 
     before {
+      every { plugin1.name } returns "plugin1"
       every { plugin1.apiVersion } returns SPINNAKER_API_V1.subApi("plugin1")
       every { plugin1.supportedKind } returns (ResourceKind(SPINNAKER_API_V1.subApi("plugin1").group, "foo", "foos") to DummyResource::class.java)
+      every { plugin2.name } returns "plugin2"
       every { plugin2.apiVersion } returns SPINNAKER_API_V1.subApi("plugin2")
       every { plugin2.supportedKind } returns (ResourceKind(SPINNAKER_API_V1.subApi("plugin2").group, "bar", "bars") to DummyResource::class.java)
     }
@@ -94,7 +99,7 @@ internal object ResourceActuatorTests : JUnit5Minutests {
           verify(exactly = 0) { plugin2.current(any()) }
         }
 
-        test("nothing is addded to the resource history") {
+        test("nothing is added to the resource history") {
           expectThat(resourceRepository.eventHistory(resource.metadata.uid))
             .hasSize(1)
         }
@@ -108,6 +113,7 @@ internal object ResourceActuatorTests : JUnit5Minutests {
       context("the current state is missing") {
         before {
           every { plugin1.current(resource) } returns null as DummyResource?
+          every { plugin1.create(resource) } returns listOf(TaskRef("/tasks/${randomUID()}"))
 
           with(resource) {
             checkResource(metadata.name, apiVersion, kind)
@@ -119,10 +125,11 @@ internal object ResourceActuatorTests : JUnit5Minutests {
         }
 
         test("the resource state is recorded") {
-          expectThat(resourceRepository.eventHistory(resource.metadata.uid))
-            .hasSize(2)
-            .first()
-            .isA<ResourceMissing>()
+          expectThat(resourceRepository.eventHistory(resource.metadata.uid)) {
+            hasSize(3)
+            first().isA<ResourceActuationLaunched>()
+            second().isA<ResourceMissing>()
+          }
         }
 
         test("a telemetry event is published") {
@@ -133,6 +140,7 @@ internal object ResourceActuatorTests : JUnit5Minutests {
       context("the current state is wrong") {
         before {
           every { plugin1.current(resource) } returns DummyResource("some other state that does not match")
+          every { plugin1.update(resource, any()) } returns listOf(TaskRef("/tasks/${randomUID()}"))
 
           with(resource) {
             checkResource(metadata.name, apiVersion, kind)
@@ -144,10 +152,11 @@ internal object ResourceActuatorTests : JUnit5Minutests {
         }
 
         test("the resource state is recorded") {
-          expectThat(resourceRepository.eventHistory(resource.metadata.uid))
-            .hasSize(2)
-            .first()
-            .isA<ResourceDeltaDetected>()
+          expectThat(resourceRepository.eventHistory(resource.metadata.uid)) {
+            hasSize(3)
+            first().isA<ResourceActuationLaunched>()
+            second().isA<ResourceDeltaDetected>()
+          }
         }
 
         test("a telemetry event is published") {
@@ -157,5 +166,8 @@ internal object ResourceActuatorTests : JUnit5Minutests {
     }
   }
 }
+
+private fun <T : Iterable<E>, E> Assertion.Builder<T>.second(): Assertion.Builder<E> =
+  get("second element %s") { toList()[1] }
 
 internal data class DummyResource(val state: String)

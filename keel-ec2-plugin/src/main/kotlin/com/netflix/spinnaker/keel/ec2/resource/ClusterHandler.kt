@@ -24,6 +24,7 @@ import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.ClusterActiveServerGroup
 import com.netflix.spinnaker.keel.clouddriver.model.Tag
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
+import com.netflix.spinnaker.keel.events.TaskRef
 import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.model.OrchestrationTrigger
@@ -121,7 +122,7 @@ class ClusterHandler(
     }
   }
 
-  override fun upsert(resource: Resource<Cluster>, resourceDiff: ResourceDiff<Cluster>?) {
+  override fun upsert(resource: Resource<Cluster>, resourceDiff: ResourceDiff<Cluster>?): List<TaskRef> =
     runBlocking {
       val spec = resource.spec
       val job = when {
@@ -146,10 +147,10 @@ class ClusterHandler(
       } else {
         null
       }
-    }?.also {
-      log.info("Started task {} to upsert cluster", it.ref)
     }
-  }
+      ?.also { log.info("Started task {} to upsert cluster", it.ref) }
+      // TODO: ugleee
+      .let { if (it == null) emptyList() else listOf(TaskRef(it.ref)) }
 
   /**
    * @return `true` if the only changes in the diff are to capacity.

@@ -5,9 +5,11 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.diff.toDebug
 import com.netflix.spinnaker.keel.diff.toJson
+import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
 import com.netflix.spinnaker.keel.events.ResourceDeltaDetected
 import com.netflix.spinnaker.keel.events.ResourceDeltaResolved
 import com.netflix.spinnaker.keel.events.ResourceMissing
+import com.netflix.spinnaker.keel.events.TaskRef
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.ResourceState.Diff
 import com.netflix.spinnaker.keel.persistence.ResourceState.Missing
@@ -45,11 +47,15 @@ class ResourceActuator(
         null -> {
           with(resource) {
             log.warn("Resource {} is missing", metadata.name)
-            resourceRepository.appendHistory(ResourceMissing(resource, clock))
             publisher.publishEvent(ResourceChecked(resource, Missing))
+
+            resourceRepository.appendHistory(ResourceMissing(resource, clock))
           }
 
           plugin.create(resource)
+            .also { tasks ->
+              resourceRepository.appendHistory(ResourceActuationLaunched(resource, plugin.name, tasks, clock))
+            }
         }
         else -> {
           val diff = differ.compare(current, resource.spec)
@@ -57,15 +63,20 @@ class ResourceActuator(
             with(resource) {
               log.warn("Resource {} is invalid", metadata.name)
               log.info("Resource {} delta: {}", metadata.name, diff.toDebug(current, resource.spec))
-              resourceRepository.appendHistory(ResourceDeltaDetected(resource, diff.toJson(current, resource.spec), clock))
               publisher.publishEvent(ResourceChecked(resource, Diff))
+
+              resourceRepository.appendHistory(ResourceDeltaDetected(resource, diff.toJson(current, resource.spec), clock))
             }
 
             plugin.update(resource, ResourceDiff(current, diff))
+              .also { tasks ->
+                resourceRepository.appendHistory(ResourceActuationLaunched(resource, plugin.name, tasks, clock))
+              }
           } else {
             with(resource) {
               log.info("Resource {} is valid", metadata.name)
-              if (resourceRepository.eventHistory(resource.metadata.uid).first() is ResourceDeltaDetected) {
+              val lastEvent = resourceRepository.eventHistory(resource.metadata.uid).first()
+              if (lastEvent is ResourceDeltaDetected || lastEvent is ResourceActuationLaunched) {
                 resourceRepository.appendHistory(ResourceDeltaResolved(resource, clock))
               }
               publisher.publishEvent(ResourceChecked(resource, Ok))
@@ -92,14 +103,15 @@ class ResourceActuator(
     current(resource as Resource<T>)
 
   @Suppress("UNCHECKED_CAST")
-  private fun <T : Any> ResourceHandler<T>.create(resource: Resource<*>) {
+  private fun <T : Any> ResourceHandler<T>.create(resource: Resource<*>): List<TaskRef> =
     create(resource as Resource<T>)
-  }
 
   @Suppress("UNCHECKED_CAST")
-  private fun <T : Any> ResourceHandler<T>.update(resource: Resource<*>, resourceDiff: ResourceDiff<*>) {
+  private fun <T : Any> ResourceHandler<T>.update(
+    resource: Resource<*>,
+    resourceDiff: ResourceDiff<*>
+  ): List<TaskRef> =
     update(resource as Resource<T>, resourceDiff as ResourceDiff<T>)
-  }
   // end type coercing extensions
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
