@@ -25,6 +25,7 @@ ext {
     hystrix       : "1.4.21",
     jsch          : "0.0.9",
     okhttp        : "2.7.0",
+    okhttp3       : "3.12.2",
     retrofit      : "1.9.0",
     retrofit2     : "2.5.0",
     slf4j         : "1.7.25",
@@ -49,10 +50,10 @@ dependencies {
   api(platform("com.fasterxml.jackson:jackson-bom:2.9.8"))
   api(platform("org.springframework.boot:spring-boot-dependencies:1.5.17.RELEASE"))
   api(platform("com.amazonaws:aws-java-sdk-bom:1.11.469"))
-  api(platform("com.squareup.okhttp3:okhttp-bom:3.12.0"))
+  api(platform("com.squareup.okhttp3:okhttp-bom:${versions.okhttp3}"))
   api(platform("io.strikt:strikt-bom:0.19.7"))
   api(platform("org.spockframework:spock-bom:1.1-groovy-2.4"))
-  
+
   constraints {
     api("cglib:cglib-nodep:3.2.0")
     api("ch.qos.logback:logback-classic:1.2.3")
@@ -77,6 +78,7 @@ dependencies {
     api("com.squareup.okhttp:okhttp-apache:${versions.okhttp}")
     api("com.squareup.okhttp:okhttp-urlconnection:${versions.okhttp}")
     api("com.squareup.okhttp:okhttp:${versions.okhttp}")
+    api("com.squareup.okhttp3:logging-interceptor:${versions.okhttp3}") // see https://github.com/square/okhttp/issues/4960
     api("com.squareup.retrofit2:converter-jackson:${versions.retrofit2}")
     api("com.squareup.retrofit2:retrofit-mock:${versions.retrofit2}")
     api("com.squareup.retrofit2:retrofit:${versions.retrofit2}")
