@@ -340,9 +340,7 @@ function install_halyard() {
   tar --no-same-owner -xvf halyard.tar.gz -C /opt
 
 
-  which systemd-sysusers &>/dev/null
-  if [ "$?" = "0" ]; then
-
+  if which systemd-sysusers &>/dev/null; then
     cat > /usr/lib/sysusers.d/halyard.conf <<EOL
 g halyard - -
 g spinnaker - -
