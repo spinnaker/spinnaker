@@ -171,7 +171,7 @@ module.exports = angular
         var submitMethod = function() {
           let params = { cloudProvider: 'titus' };
           if (instance.serverGroup) {
-            params.managedInstanceGroupName = instance.serverGroup;
+            params.serverGroupName = instance.serverGroup;
           }
           return instanceWriter.terminateInstance(instance, app, params);
         };
