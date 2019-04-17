@@ -33,12 +33,11 @@ public class V2TemplateConfiguration implements VersionedSchema {
   private Artifact template;
   private Map<String, Object> variables = new HashMap<>();
   private List<V2StageDefinition> stages = new ArrayList<>();
-  private List<String> inherit = new ArrayList<>();
+  private List<String> exclude = new ArrayList<>();
   private Map<String, Object> concurrentExecutions = new HashMap<>();
   private List<HashMap<String, Object>> triggers = new ArrayList<>();
   private List<HashMap<String, Object>> parameters = new ArrayList<>();
   private List<HashMap<String, Object>> notifications = new ArrayList<>();
-  private List<HashMap<String, Object>> expectedArtifacts = new ArrayList<>();
   private String description;
 
   private final String runtimeId = UUID.randomUUID().toString();
