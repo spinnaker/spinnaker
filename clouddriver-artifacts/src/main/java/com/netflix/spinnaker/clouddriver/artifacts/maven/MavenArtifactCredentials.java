@@ -180,7 +180,7 @@ public class MavenArtifactCredentials implements ArtifactCredentials {
     } else if (isLatest(artifact) || version.startsWith("[") || version.startsWith("(")) {
       metadata = new DefaultMetadata(group, artifactId, MAVEN_METADATA_XML, Metadata.Nature.RELEASE_OR_SNAPSHOT);
     } else {
-      metadata = new DefaultMetadata(group, artifactId, version, MAVEN_METADATA_XML, Metadata.Nature.RELEASE);
+      metadata = new DefaultMetadata(group, artifactId, MAVEN_METADATA_XML, Metadata.Nature.RELEASE);
     }
 
     return repositoryLayout.getLocation(metadata, false);

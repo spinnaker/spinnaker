@@ -34,7 +34,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class MavenArtifactCredentialsTest {
   @Test
   void release(@WiremockResolver.Wiremock WireMockServer server) {
-    server.stubFor(any(urlPathMatching("/com/test/app/(.*/)?maven-metadata.xml"))
+    server.stubFor(any(urlPathMatching("/com/test/app/maven-metadata.xml"))
       .willReturn(aResponse()
         .withBody("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
           "<metadata modelVersion=\"1.1.0\">\n" +
