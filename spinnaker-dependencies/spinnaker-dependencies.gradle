@@ -50,7 +50,6 @@ dependencies {
   api(platform("com.fasterxml.jackson:jackson-bom:2.9.8"))
   api(platform("org.springframework.boot:spring-boot-dependencies:1.5.17.RELEASE"))
   api(platform("com.amazonaws:aws-java-sdk-bom:1.11.469"))
-  api(platform("com.squareup.okhttp3:okhttp-bom:${versions.okhttp3}"))
   api(platform("io.strikt:strikt-bom:0.20.0"))
   api(platform("org.spockframework:spock-bom:1.1-groovy-2.4"))
 
@@ -58,6 +57,7 @@ dependencies {
     api("cglib:cglib-nodep:3.2.0")
     api("ch.qos.logback:logback-classic:1.2.3")
     api("com.google.apis:google-api-services-monitoring:v3-rev477-1.25.0")
+    api("com.google.guava:guava:27.1-jre")
     api("com.h2database:h2:1.4.197")
     api("com.hubspot.jinjava:jinjava:2.4.12")
     api("com.natpryce:hamkrest:1.4.2.2")
@@ -78,7 +78,10 @@ dependencies {
     api("com.squareup.okhttp:okhttp-apache:${versions.okhttp}")
     api("com.squareup.okhttp:okhttp-urlconnection:${versions.okhttp}")
     api("com.squareup.okhttp:okhttp:${versions.okhttp}")
-    api("com.squareup.okhttp3:logging-interceptor:${versions.okhttp3}") // see https://github.com/square/okhttp/issues/4960
+    api("com.squareup.okhttp3:okhttp:${versions.okhttp3}")
+    api("com.squareup.okhttp3:okhttp-urlconnection:${versions.okhttp3}")
+    api("com.squareup.okhttp3:logging-interceptor:${versions.okhttp3}")
+    api("com.squareup.okhttp3:mockwebserver:${versions.okhttp3}")
     api("com.squareup.retrofit2:converter-jackson:${versions.retrofit2}")
     api("com.squareup.retrofit2:retrofit-mock:${versions.retrofit2}")
     api("com.squareup.retrofit2:retrofit:${versions.retrofit2}")
