@@ -13,20 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-apply plugin: "java-library"
-apply plugin: "kotlin-spring"
+plugins {
+  `java-library`
+  id("kotlin-spring")
+}
 
 dependencies {
-  implementation project(":keel-core")
-  implementation "com.netflix.spinnaker.kork:kork-jedis"
+  implementation(project(":keel-core"))
+  implementation("com.netflix.spinnaker.kork:kork-jedis")
   implementation("com.netflix.spinnaker.kork:kork-dynomite") {
-    exclude module: "junit"
+    exclude(module= "junit")
   }
 
-  testImplementation "io.strikt:strikt-core"
-  testImplementation project(":keel-spring-test-support")
-  testImplementation project(":keel-core-test")
-  testImplementation project(":keel-api")
-  testImplementation "com.netflix.spinnaker.kork:kork-jedis-test"
-  testImplementation "org.springframework.boot:spring-boot-starter-web"
+  testImplementation("io.strikt:strikt-core")
+  testImplementation(project(":keel-spring-test-support"))
+  testImplementation(project(":keel-core-test"))
+  testImplementation(project(":keel-api"))
+  testImplementation("com.netflix.spinnaker.kork:kork-jedis-test")
+  testImplementation("org.springframework.boot:spring-boot-starter-web")
 }

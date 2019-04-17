@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-include "keel-api",
+include(
+  "keel-api",
   "keel-clouddriver",
   "keel-core",
   "keel-core-test",
@@ -31,16 +32,17 @@ include "keel-api",
   "keel-sql",
   "keel-sqs",
   "keel-veto"
+)
 
 rootProject.name = "keel"
 
-def setBuildFile(project) {
-  project.buildFileName = "${project.name}.gradle"
-  project.children.each {
-    setBuildFile(it)
+fun ProjectDescriptor.setBuildFile() {
+  buildFileName = "${name}.gradle.kts"
+  children.forEach {
+    it.setBuildFile()
   }
 }
 
-rootProject.children.each {
-  setBuildFile it
+rootProject.children.forEach {
+  it.setBuildFile()
 }

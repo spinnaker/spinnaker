@@ -1,8 +1,10 @@
-apply plugin: "java-library"
-apply plugin: "kotlin-spring"
+plugins {
+  `java-library`
+  id("kotlin-spring")
+}
 
 dependencies {
-  implementation project(":keel-plugin")
+  implementation(project(":keel-plugin"))
   implementation("com.amazonaws:aws-java-sdk-sqs")
   implementation("com.netflix.spinnaker.kork:kork-aws")
   implementation("org.springframework.boot:spring-boot")

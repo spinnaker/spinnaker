@@ -13,22 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-repositories {
-  jcenter()
+plugins {
+  `java-library`
+  id("kotlin-spring")
 }
 
 dependencies {
-  testImplementation "org.junit.platform:junit-platform-runner"
-  testImplementation "org.junit.jupiter:junit-jupiter-api"
-  testImplementation "io.mockk:mockk"
+  api("com.squareup.retrofit2:retrofit")
+  api("com.squareup.retrofit2:converter-jackson")
+  api("com.jakewharton.retrofit:retrofit2-kotlin-coroutines-adapter:0.9.2")
 
-  testRuntimeOnly "org.junit.platform:junit-platform-launcher"
-  testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
-}
-
-test {
-  useJUnitPlatform {
-    includeEngines "junit-jupiter"
-  }
+  implementation("com.netflix.spinnaker.kork:kork-web")
+  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
+  implementation("com.squareup.okhttp3:logging-interceptor")
 }

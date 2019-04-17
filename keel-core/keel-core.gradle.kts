@@ -13,15 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-apply plugin: "java-library"
-apply plugin: "kotlin-spring"
+
+plugins {
+  `java-library`
+}
 
 dependencies {
-  api "com.squareup.retrofit2:retrofit"
-  api "com.squareup.retrofit2:converter-jackson"
-  api "com.jakewharton.retrofit:retrofit2-kotlin-coroutines-adapter:0.9.2"
+  api("com.fasterxml.jackson.core:jackson-databind")
+  api("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
+  api("com.fasterxml.jackson.module:jackson-module-kotlin")
+  api("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+  api("de.huxhorn.sulky:de.huxhorn.sulky.ulid")
+  api("de.danielbechler:java-object-diff")
 
-  implementation "com.netflix.spinnaker.kork:kork-web"
-  implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core"
-  implementation "com.squareup.okhttp3:logging-interceptor"
+  testImplementation(project (":keel-core-test"))
+  testImplementation("io.strikt:strikt-jackson")
+  testImplementation("dev.minutest:minutest")
 }
