@@ -71,6 +71,7 @@ class TitusInstanceSpec extends Specification {
     titusInstance.env?.account == 'test'
     titusInstance.submittedAt == task.submittedAt.time
     titusInstance.finishedAt == null
+    titusInstance.privateIpAddress == task.data.ipAddresses.nfvpc
   }
 
   void 'can handle null ports'() {

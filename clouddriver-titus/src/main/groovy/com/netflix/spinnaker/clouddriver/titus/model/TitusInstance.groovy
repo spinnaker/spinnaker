@@ -47,6 +47,7 @@ class TitusInstance implements Instance {
   Set<TitusSecurityGroup> securityGroups
   final String providerType = TitusCloudProvider.ID
   final String cloudProvider = TitusCloudProvider.ID
+  String privateIpAddress
 
   TitusInstance() {}
 
@@ -80,6 +81,9 @@ class TitusInstance implements Instance {
     finishedAt = task.finishedAt ? task.finishedAt.time : null
     stdoutLive = task.stdoutLive
     logs = task.logs
+
+    // expose containerIp as privateIpAddress to remain consistent with aws
+    privateIpAddress = task.containerIp ?: task.data?.ipAddresses?.nfvpc
   }
 
   @Override
