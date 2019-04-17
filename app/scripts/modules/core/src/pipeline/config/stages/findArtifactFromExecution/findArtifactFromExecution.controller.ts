@@ -60,7 +60,7 @@ export class FindArtifactFromExecutionCtrl implements IController {
     this.state.pipelinesLoaded = false;
     if (this.stage.application) {
       PipelineConfigService.getPipelinesForApplication(this.stage.application).then(ps => {
-        this.state.pipelines = ps.filter(p => p.id !== this.$scope.pipeline.id);
+        this.state.pipelines = ps;
         this.state.pipelinesLoaded = true;
       });
     }
