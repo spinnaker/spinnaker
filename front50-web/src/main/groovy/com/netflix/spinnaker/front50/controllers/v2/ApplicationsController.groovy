@@ -135,7 +135,7 @@ public class ApplicationsController {
       if (perm?.permissions?.isRestricted()) {
         app.details().put("permissions", perm.permissions)
       } else {
-        application.details().remove("permissions")
+        app.details().remove("permissions")
       }
     } catch (NotFoundException nfe) {
       // ignored.
