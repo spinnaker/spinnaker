@@ -5,4 +5,5 @@ export * from './loadBalancer.transformer';
 export * from './TargetGroup';
 export * from './TargetGroupDetails';
 export * from './configure/common/AmazonCertificateSelectField';
+export * from './configure/AmazonLoadBalancerChoiceModal';
 export * from './configure/LoadBalancerTypes';
