@@ -35,6 +35,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
@@ -131,7 +132,7 @@ public class PipelineCache implements MonitoredPoller {
     try {
       log.debug("Getting pipelines from Front50...");
       long start = System.currentTimeMillis();
-      pipelines = decorateTriggers(fetchHydratedPipelines());
+      pipelines = fetchHydratedPipelines();
 
       lastPollTimestamp = now();
       registry.counter("front50.requests").increment();
@@ -142,23 +143,66 @@ public class PipelineCache implements MonitoredPoller {
     }
   }
 
-  private List<Pipeline> fetchHydratedPipelines() {
-    List<Map<String, Object>> rawPipelines = front50.getPipelines();
-    if (rawPipelines == null) {
-      return Collections.emptyList();
-    }
-
+  private Map<String, Object> hydrate(Map<String, Object> rawPipeline) {
     Predicate<Map<String, Object>> isV2Pipeline = p -> {
       return p.getOrDefault("type", "").equals("templatedPipeline") &&
         p.getOrDefault("schema", "").equals("v2");
     };
 
-    return rawPipelines.stream()
-      .map((Map<String, Object> p) -> planPipelineIfNeeded(p, isV2Pipeline))
+    return planPipelineIfNeeded(rawPipeline, isV2Pipeline);
+  }
+
+  // converts a raw pipeline config from front50 into a processed Pipeline object
+  private Optional<Pipeline> process(Map<String, Object> rawPipeline) {
+    return Stream.of(rawPipeline)
+      .map(this::hydrate)
       .filter(m -> !m.isEmpty())
-      .map(m -> convertToPipeline(m))
+      .map(this::convertToPipeline)
       .filter(Objects::nonNull)
+      .map(PipelineCache::decorateTriggers)
+      .findFirst();
+  }
+
+  private List<Map<String, Object>> fetchRawPipelines() {
+    List<Map<String, Object>> rawPipelines = front50.getPipelines();
+    return (rawPipelines == null) ? Collections.emptyList() : rawPipelines;
+  }
+
+  private List<Pipeline> fetchHydratedPipelines() {
+    List<Map<String, Object>> rawPipelines = fetchRawPipelines();
+
+    return rawPipelines.stream()
+      .map(this::process)
+      .filter(Optional::isPresent)
+      .map(Optional::get)
       .collect(Collectors.toList());
+  }
+
+  // looks up the latest version in front50 of a (potentially stale) pipeline config from the cache
+  // if anything fails during the refresh, we fall back to returning the cached version
+  public Pipeline refresh(Pipeline cached) {
+    try {
+      List<Map<String, Object>> latestVersion = front50.getLatestVersion(cached.getId());
+      if (latestVersion.isEmpty()) {
+        // if that corresponds to the case where the pipeline has been deleted, maybe we should not return the
+        // cached version
+        log.warn("Got empty results back from front50's /pipelines/{}/history?limit=1, falling back to cached={}",
+          cached.getId(), cached);
+        return cached;
+      }
+
+      Optional<Pipeline> processed = process(latestVersion.get(0));
+      if (!processed.isPresent()) {
+        log.warn("Failed to process raw pipeline, falling back to cached={}\n  latestVersion={}", cached, latestVersion);
+        return cached;
+      }
+
+      // at this point, we are not updating the cache but just providing a fresh view
+      return processed.get();
+    } catch(Exception e) {
+      log.error("Exception during pipeline refresh, falling back to cached={}", cached, e);
+      return cached;
+    }
   }
 
   /**
@@ -241,27 +285,29 @@ public class PipelineCache implements MonitoredPoller {
     return pipelines;
   }
 
+  public static Pipeline decorateTriggers(Pipeline pipeline) {
+    List<Trigger> triggers = pipeline.getTriggers();
+    if (triggers == null || triggers.isEmpty()) {
+      return pipeline;
+    }
+
+    List<Trigger> newTriggers = new ArrayList<>(triggers.size());
+    Pipeline newPipe = pipeline.withTriggers(newTriggers);
+
+    for (Trigger oldTrigger: triggers) {
+      Trigger newTrigger = oldTrigger.withParent(newPipe);
+      newTrigger = newTrigger.withId(newTrigger.generateFallbackId());
+      newTriggers.add(newTrigger);
+    }
+
+    return newPipe;
+  }
+
   // visible for testing
   public static List<Pipeline> decorateTriggers(final List<Pipeline> pipelines) {
     return pipelines
       .stream()
-      .map(p -> {
-        List<Trigger> triggers = p.getTriggers();
-        if (triggers == null || triggers.size() == 0) {
-          return p;
-        }
-
-        List<Trigger> newTriggers = new ArrayList<>(triggers.size());
-        Pipeline newPipe = p.withTriggers(newTriggers);
-
-        for (Trigger oldTrigger: triggers) {
-          Trigger newTrigger = oldTrigger.withParent(newPipe);
-          newTrigger = newTrigger.withId(newTrigger.generateFallbackId());
-          newTriggers.add(newTrigger);
-        }
-
-        return newPipe;
-      })
+      .map(PipelineCache::decorateTriggers)
       .collect(Collectors.toList());
   }
 

@@ -27,6 +27,7 @@ import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.model.trigger.BuildEvent;
 import com.netflix.spinnaker.echo.model.trigger.ManualEvent;
 import com.netflix.spinnaker.echo.model.trigger.ManualEvent.Content;
+import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import org.apache.commons.lang3.StringUtils;
@@ -55,16 +56,19 @@ public class ManualEventHandler implements TriggerEventHandler<ManualEvent> {
   private final ObjectMapper objectMapper;
   private final Optional<BuildInfoService> buildInfoService;
   private final Optional<ArtifactInfoService> artifactInfoService;
+  private final PipelineCache pipelineCache;
 
   @Autowired
   public ManualEventHandler(
     ObjectMapper objectMapper,
     Optional<BuildInfoService> buildInfoService,
-    Optional<ArtifactInfoService> artifactInfoService
+    Optional<ArtifactInfoService> artifactInfoService,
+    PipelineCache pipelineCache
   ) {
     this.objectMapper = objectMapper;
     this.buildInfoService = buildInfoService;
     this.artifactInfoService = artifactInfoService;
+    this.pipelineCache = pipelineCache;
   }
 
   @Override
@@ -83,7 +87,7 @@ public class ManualEventHandler implements TriggerEventHandler<ManualEvent> {
     String application = content.getApplication();
     String pipelineNameOrId = content.getPipelineNameOrId();
     if (pipelineMatches(application, pipelineNameOrId, pipeline)) {
-      return Optional.of(buildTrigger(pipeline, content.getTrigger()));
+      return Optional.of(buildTrigger(pipelineCache.refresh(pipeline), content.getTrigger()));
     } else {
       return Optional.empty();
     }

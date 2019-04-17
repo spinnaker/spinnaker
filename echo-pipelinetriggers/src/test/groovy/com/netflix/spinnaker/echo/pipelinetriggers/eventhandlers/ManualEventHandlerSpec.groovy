@@ -22,6 +22,8 @@ import com.netflix.spinnaker.echo.artifacts.ArtifactInfoService
 import com.netflix.spinnaker.echo.build.BuildInfoService
 import com.netflix.spinnaker.echo.model.Pipeline
 import com.netflix.spinnaker.echo.model.Trigger
+import com.netflix.spinnaker.echo.model.trigger.ManualEvent
+import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache
 import com.netflix.spinnaker.echo.test.RetrofitStubs
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import retrofit.RetrofitError
@@ -33,6 +35,7 @@ class ManualEventHandlerSpec extends Specification implements RetrofitStubs {
   def objectMapper = new ObjectMapper()
   def buildInfoService = Mock(BuildInfoService)
   def artifactInfoService = Mock(ArtifactInfoService)
+  def pipelineCache = Mock(PipelineCache)
 
   Artifact artifact = new Artifact(
     "deb",
@@ -51,7 +54,8 @@ class ManualEventHandlerSpec extends Specification implements RetrofitStubs {
   def eventHandler = new ManualEventHandler(
     objectMapper,
     Optional.of(buildInfoService),
-    Optional.of(artifactInfoService)
+    Optional.of(artifactInfoService),
+    pipelineCache
   )
 
   def "should replace artifact with full version if it exists"() {
@@ -157,6 +161,37 @@ class ManualEventHandlerSpec extends Specification implements RetrofitStubs {
     resolvedPipeline.receivedArtifacts.size() == 1
   }
 
+  def "should trigger a pipeline refresh before building the trigger"() {
+    given:
+    Pipeline inputPipeline = Pipeline.builder()
+      .application("application")
+      .name("stale")
+      .id("boop-de-boop")
+      .build()
+
+    def user = "definitely not a robot"
+    def manualEvent = new ManualEvent()
+    manualEvent.content = new ManualEvent.Content()
+    manualEvent.content.pipelineNameOrId = inputPipeline.id
+    manualEvent.content.application = inputPipeline.application
+    manualEvent.content.trigger = Trigger.builder().user(user).build()
+
+
+    when: 'we generate the pipeline config we are about to start'
+    def materializedPipeline = eventHandler.withMatchingTrigger(manualEvent, inputPipeline)
+
+    then: 'we get a fresh config from front50, not the potentially stale config from the pipeline cache'
+    1 * pipelineCache.refresh(inputPipeline) >> Pipeline.builder()
+      .application("application")
+      .name("fresh")
+      .id("boop-de-boop")
+      .build()
+    materializedPipeline.isPresent()
+    materializedPipeline.get().name == "fresh"
+
+    and: 'the materialized pipeline has the trigger field populated from the manual event'
+    materializedPipeline.get().trigger.user == user
+  }
 }
 
 
