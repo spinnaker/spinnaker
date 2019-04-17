@@ -40,19 +40,21 @@ public class UpsertLambdaAliasAtomicOperation
 
   @Override
   public Object operate(List priorOutputs) {
-    LambdaFunction lambdaFunction = (LambdaFunction) lambdaFunctionProvider.getFunction(
-      description.getAccount(), description.getRegion(), description.getFunctionName()
-    );
 
+    String functionName = description.getFunctionName();
+    String region = description.getRegion();
+    String account = description.getAccount();
+    LambdaFunction cache = (LambdaFunction) lambdaFunctionProvider.getFunction(account, region, functionName);
+    List<AliasConfiguration> aliasConfigurations  = cache.getAliasConfigurations();
     boolean aliasExists = false;
 
-    for (AliasConfiguration aliasConfiguration : lambdaFunction.getAliasConfigurations()) {
+    for (AliasConfiguration aliasConfiguration : aliasConfigurations) {
       if (aliasConfiguration.getName().equalsIgnoreCase(description.getAliasName())) {
         aliasExists = true;
       }
     }
 
-    return aliasExists ? updateAliasResult(lambdaFunction) : createAliasResult(lambdaFunction);
+    return aliasExists ? updateAliasResult(cache) : createAliasResult(cache);
   }
 
   private UpdateAliasResult updateAliasResult(LambdaFunction cache) {
