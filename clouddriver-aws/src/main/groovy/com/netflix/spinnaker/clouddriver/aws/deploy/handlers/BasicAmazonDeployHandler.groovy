@@ -231,7 +231,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
         description.blockDevices = blockDeviceConfig.getBlockDevicesForInstanceType(description.instanceType)
       }
       ResolvedAmiResult ami = priorOutputs.find({
-        it instanceof ResolvedAmiResult && it.region == region && it.amiName == description.amiName
+        it instanceof ResolvedAmiResult && it.region == region && (it.amiName == description.amiName || it.amiId == description.amiName)
       }) ?: AmiIdResolver.resolveAmiIdFromAllSources(amazonEC2, region, description.amiName, description.credentials.accountId)
 
       if (!ami) {

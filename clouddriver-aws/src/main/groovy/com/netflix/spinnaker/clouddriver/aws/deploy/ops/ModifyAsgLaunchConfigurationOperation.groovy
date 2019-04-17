@@ -86,7 +86,7 @@ class ModifyAsgLaunchConfigurationOperation implements AtomicOperation<Void> {
     if (description.amiName) {
       def amazonEC2 = regionScopedProvider.amazonEC2
       ResolvedAmiResult ami = priorOutputs.find({
-        it instanceof ResolvedAmiResult && it.region == description.region && it.amiName == description.amiName
+        it instanceof ResolvedAmiResult && it.region == description.region && (it.amiName == description.amiName || it.amiId == description.amiName)
       }) ?: AmiIdResolver.resolveAmiIdFromAllSources(amazonEC2, description.region, description.amiName, description.credentials.accountId)
 
       props.ami = ami.amiId
