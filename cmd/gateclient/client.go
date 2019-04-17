@@ -23,7 +23,6 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"net"
 	"net/http"
 	"net/http/cookiejar"
 	_ "net/http/pprof"
@@ -401,12 +400,6 @@ func prompt() string {
 }
 
 func dialGate(gateClient *GatewayClient) error {
-	gateEndpoint := gateClient.GateEndpoint()
-	lastIdx := strings.LastIndex(gateEndpoint, "://")
-	if lastIdx != -1 {
-		gateEndpoint = gateEndpoint[lastIdx+3:]
-	}
-
-	_, err := net.Dial("tcp", gateEndpoint)
-	return err
+  _, err := http.Get(gateClient.GateEndpoint())
+  return err
 }
