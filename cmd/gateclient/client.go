@@ -400,6 +400,6 @@ func prompt() string {
 }
 
 func dialGate(gateClient *GatewayClient) error {
-  _, err := http.Get(gateClient.GateEndpoint())
-  return err
+	_, err := http.Get(gateClient.GateEndpoint())
+	return err
 }
