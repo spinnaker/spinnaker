@@ -20,4 +20,5 @@ import java.util.Collection;
 
 public interface FunctionProvider {
   Collection<? extends Function> getAllFunctions();
+  Function getFunction(String account, String region, String functionName);
 }
