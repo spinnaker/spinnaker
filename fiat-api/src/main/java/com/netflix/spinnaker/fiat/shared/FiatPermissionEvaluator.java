@@ -232,7 +232,7 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
                             .map(a -> new Account().setName(a))
                             .collect(Collectors.toSet())
                     )
-            ).setLegacyFallback(true);
+            ).setLegacyFallback(true).setAllowAccessToUnknownApplications(true);
           }
         }).call();
       });
@@ -253,10 +253,6 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
               exception
       );
       id = id.withTag("legacyFallback", legacyFallback.get());
-    }
-
-    if (legacyFallback.get()) {
-      permissionsCache.invalidate(username);
     }
 
     registry.counter(id).increment();
