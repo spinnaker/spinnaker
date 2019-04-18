@@ -54,7 +54,7 @@ public class DeployManifestContext extends HashMap<String, Object> {
     this.manifestArtifact = manifestArtifact;
     this.manifestArtifactAccount = manifestArtifactAccount;
     this.skipExpressionEvaluation = skipExpressionEvaluation;
-    this.trafficManagement = trafficManagement;
+    this.trafficManagement = Optional.ofNullable(trafficManagement).orElse(new TrafficManagement(false, null));
     this.requiredArtifactIds = requiredArtifactIds;
     this.requiredArtifacts = requiredArtifacts;
   }
@@ -76,7 +76,7 @@ public class DeployManifestContext extends HashMap<String, Object> {
   }
 
   @Getter
-  static class TrafficManagement {
+  public static class TrafficManagement {
     private final boolean enabled;
     private final Options options;
 
@@ -85,20 +85,23 @@ public class DeployManifestContext extends HashMap<String, Object> {
       @JsonProperty("options") Options options
     ) {
       this.enabled = Optional.ofNullable(enabled).orElse(false);
-      this.options = options;
+      this.options = Optional.ofNullable(options).orElse(new Options(false, Collections.emptyList(), null));
     }
 
     @Getter
-    static class Options {
+    public static class Options {
       private final boolean enableTraffic;
       private final List<String> services;
+      private final ManifestStrategyType strategy;
 
       public Options(
         @JsonProperty("enableTraffic") Boolean enableTraffic,
-        @JsonProperty("services") List<String> services
+        @JsonProperty("services") List<String> services,
+        @JsonProperty("strategy") String strategy
       ) {
         this.enableTraffic = Optional.ofNullable(enableTraffic).orElse(false);
         this.services = Optional.ofNullable(services).orElse(Collections.emptyList());
+        this.strategy = ManifestStrategyType.fromKey(strategy);
       }
     }
   }
