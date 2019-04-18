@@ -56,10 +56,10 @@ module.exports = angular
         const permissions = get(this.application, 'attributes.permissions');
         if (permissions) {
           const permissionsMap = new Map();
-          permissions.READ.forEach(role => {
+          (permissions.READ || []).forEach(role => {
             permissionsMap.set(role, 'read');
           });
-          permissions.WRITE.forEach(role => {
+          (permissions.WRITE || []).forEach(role => {
             if (permissionsMap.has(role)) {
               permissionsMap.set(role, permissionsMap.get(role) + ', write');
             } else {
