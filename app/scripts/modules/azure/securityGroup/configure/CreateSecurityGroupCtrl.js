@@ -3,7 +3,7 @@
 const angular = require('angular');
 const _ = require('lodash');
 
-import { AccountService, FirewallLabels, InfrastructureCaches, NetworkReader, TaskMonitor } from '@spinnaker/core';
+import { AccountService, FirewallLabels, NetworkReader, TaskMonitor } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.azure.securityGroup.create.controller', [

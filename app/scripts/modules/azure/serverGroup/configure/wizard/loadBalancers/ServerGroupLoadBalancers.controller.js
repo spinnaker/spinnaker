@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-import { InfrastructureCaches, LOAD_BALANCER_READ_SERVICE, NetworkReader, ModalWizard } from '@spinnaker/core';
+import { LOAD_BALANCER_READ_SERVICE, NetworkReader, ModalWizard } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.azure.serverGroup.configure.loadBalancer.controller', [LOAD_BALANCER_READ_SERVICE])

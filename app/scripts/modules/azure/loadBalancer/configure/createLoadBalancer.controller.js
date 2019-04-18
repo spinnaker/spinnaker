@@ -3,14 +3,7 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import {
-  AccountService,
-  InfrastructureCaches,
-  LoadBalancerWriter,
-  NameUtils,
-  NetworkReader,
-  TaskMonitor,
-} from '@spinnaker/core';
+import { AccountService, LoadBalancerWriter, NameUtils, NetworkReader, TaskMonitor } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.azure.loadBalancer.create.controller', [
