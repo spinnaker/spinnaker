@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.gate.security.x509
 
+import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.fiat.model.UserPermission
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.gate.services.PermissionService
@@ -15,6 +16,8 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicLong
 
 class X509AuthenticationUserDetailsServiceSpec extends Specification {
+
+  def registry = new NoopRegistry()
 
   def "should debounce login calls"() {
     given:
@@ -32,6 +35,7 @@ class X509AuthenticationUserDetailsServiceSpec extends Specification {
     userDetails.setPermissionService(perms)
     userDetails.setDynamicConfigService(config)
     userDetails.setFiatPermissionEvaluator(fiatPermissionEvaluator)
+    userDetails.registry = registry
 
     when: "initial login"
     userDetails.handleLogin(email, cert)
@@ -80,6 +84,7 @@ class X509AuthenticationUserDetailsServiceSpec extends Specification {
     userDetails.setPermissionService(perms)
     userDetails.setDynamicConfigService(config)
     userDetails.setFiatPermissionEvaluator(fiatPermissionEvaluator)
+    userDetails.registry = registry
 
     when:
     userDetails.handleLogin(email, cert)
@@ -121,6 +126,7 @@ class X509AuthenticationUserDetailsServiceSpec extends Specification {
     userDetails.setDynamicConfigService(config)
     userDetails.setRolesExtractor(rolesExtractor)
     userDetails.setFiatPermissionEvaluator(fiatPermissionEvaluator)
+    userDetails.registry = registry
 
     when:
     userDetails.handleLogin(email, cert)

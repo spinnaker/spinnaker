@@ -18,7 +18,9 @@ package com.netflix.spinnaker.gate.security.x509
 
 import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.fiat.model.UserPermission
+import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.gate.security.AllowedAccountsSupport
 import com.netflix.spinnaker.gate.services.PermissionService
@@ -69,6 +71,12 @@ class X509AuthenticationUserDetailsService implements AuthenticationUserDetailsS
 
   @Autowired
   FiatPermissionEvaluator fiatPermissionEvaluator
+
+  @Autowired
+  FiatClientConfigurationProperties fiatClientConfigurationProperties
+
+  @Autowired
+  Registry registry
 
   @Value('${x509.requiredRoles:}#{T(java.util.Collections).emptyList()}')
   List<String> requiredRoles = []
@@ -148,11 +156,37 @@ class X509AuthenticationUserDetailsService implements AuthenticationUserDetailsS
     }
 
     if (shouldLogin) {
-      if (rolesExtractor) {
-        permissionService.loginWithRoles(email, roles)
-      } else {
-        permissionService.login(email)
+      def id = registry
+          .createId("fiat.login")
+          .withTag("type", "x509")
+
+      try {
+        if (rolesExtractor) {
+          permissionService.loginWithRoles(email, roles)
+          log.debug("Successful X509 authentication (user: {}, roleCount: {}, roles: {})", email, roles.size(), roles)
+        } else {
+          permissionService.login(email)
+          log.debug("Successful X509 authentication (user: {})", email)
+        }
+
+        id = id.withTag("success", true).withTag("fallback", "none")
+      } catch (Exception e) {
+        log.debug(
+            "Unsuccessful X509 authentication (user: {}, roleCount: {}, roles: {}, legacyFallback: {})",
+            email,
+            roles.size(),
+            roles,
+            fiatClientConfigurationProperties.legacyFallback
+        )
+        id = id.withTag("success", false).withTag("fallback", fiatClientConfigurationProperties.legacyFallback)
+
+        if (!fiatClientConfigurationProperties.legacyFallback) {
+          throw e
+        }
+      } finally {
+        registry.counter(id).increment()
       }
+
       if (loginDebounceEnabled) {
         loginDebounce.put(email, now)
       }
