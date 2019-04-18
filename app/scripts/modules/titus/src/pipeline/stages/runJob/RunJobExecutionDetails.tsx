@@ -55,6 +55,17 @@ export class RunJobExecutionDetails extends React.Component<
     const jobId = cluster ? get(context['deploy.jobs'], cluster.region, [])[0] : null;
     const taskId = get(context, 'jobStatus.completionDetails.taskId');
 
+    const renderProperty = (entry: string) => {
+      const linkPattern = /^https?\:\/\/([^\s])*$/;
+      return linkPattern.test(entry) ? (
+        <a href={entry} target="_blank">
+          {entry}
+        </a>
+      ) : (
+        <span>{entry}</span>
+      );
+    };
+
     return (
       <ExecutionDetailsSection name={name} current={current}>
         <div className="row">
@@ -143,7 +154,7 @@ export class RunJobExecutionDetails extends React.Component<
                   .map(key => (
                     <React.Fragment key={key}>
                       <dt>{key}</dt>
-                      <dd>{context.propertyFileContents[key]}</dd>
+                      <dd>{renderProperty(context.propertyFileContents[key])}</dd>
                     </React.Fragment>
                   ))}
               </dl>
