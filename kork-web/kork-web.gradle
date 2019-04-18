@@ -15,7 +15,7 @@ dependencies {
   api "com.squareup.okhttp:okhttp"
   api "com.squareup.okhttp3:okhttp"
   api "com.squareup.retrofit:retrofit"
-  api "com.google.guava:guava"
+  api "com.github.ben-manes.caffeine:guava"
 
   compileOnly "org.springframework.boot:spring-boot-starter-actuator"
 

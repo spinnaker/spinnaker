@@ -5,7 +5,7 @@ dependencies {
   api(platform(project(":spinnaker-dependencies")))
 
   api "com.netflix.spectator:spectator-api"
-  api "com.google.guava:guava"
+  api "com.github.ben-manes.caffeine:guava"
 
   testImplementation "org.codehaus.groovy:groovy-all"
   testImplementation "com.hubspot.jinjava:jinjava"
