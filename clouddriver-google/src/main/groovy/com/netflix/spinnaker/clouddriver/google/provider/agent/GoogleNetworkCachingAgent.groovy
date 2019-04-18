@@ -62,7 +62,7 @@ class GoogleNetworkCachingAgent extends AbstractGoogleCachingAgent {
   }
 
   private CacheResult buildCacheResult(ProviderCache _, List<Network> networkList) {
-    log.info("Describing items in ${agentType}")
+    log.debug("Describing items in ${agentType}")
 
     def cacheResultBuilder = new CacheResultBuilder()
 
@@ -74,7 +74,7 @@ class GoogleNetworkCachingAgent extends AbstractGoogleCachingAgent {
       }
     }
 
-    log.info("Caching ${cacheResultBuilder.namespace(NETWORKS.ns).keepSize()} items in ${agentType}")
+    log.debug("Caching ${cacheResultBuilder.namespace(NETWORKS.ns).keepSize()} items in ${agentType}")
 
     cacheResultBuilder.build()
   }

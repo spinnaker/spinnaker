@@ -109,7 +109,7 @@ class GoogleBackendServiceCachingAgent extends AbstractGoogleCachingAgent {
   }
 
   private CacheResult buildCacheResult(ProviderCache _, List<GoogleBackendService> backendServiceList) {
-    log.info("Describing items in ${agentType}")
+    log.debug("Describing items in ${agentType}")
 
     def cacheResultBuilder = new CacheResultBuilder()
 
@@ -129,7 +129,7 @@ class GoogleBackendServiceCachingAgent extends AbstractGoogleCachingAgent {
       }
     }
 
-    log.info("Caching ${cacheResultBuilder.namespace(BACKEND_SERVICES.ns).keepSize()} items in ${agentType}")
+    log.debug("Caching ${cacheResultBuilder.namespace(BACKEND_SERVICES.ns).keepSize()} items in ${agentType}")
 
     cacheResultBuilder.build()
   }

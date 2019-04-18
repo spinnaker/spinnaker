@@ -135,7 +135,7 @@ class GoogleSecurityGroupCachingAgent extends AbstractGoogleCachingAgent impleme
       evictions[SECURITY_GROUPS.ns].addAll(identifiers)
     }
 
-    log.info("On demand cache refresh succeeded. Data: ${data}. Added ${firewall ? 1 : 0} items to the cache.")
+    log.debug("On demand cache refresh succeeded. Data: ${data}. Added ${firewall ? 1 : 0} items to the cache.")
 
     return new OnDemandAgent.OnDemandResult(
       sourceAgentType: getOnDemandAgentType(),
@@ -223,7 +223,7 @@ class GoogleSecurityGroupCachingAgent extends AbstractGoogleCachingAgent impleme
   }
 
   private CacheResult buildCacheResult(CacheResultBuilder cacheResultBuilder, List<Firewall> firewalls) {
-    log.info("Describing items in ${agentType}")
+    log.debug("Describing items in ${agentType}")
 
     firewalls.each { Firewall firewall ->
       def securityGroupKey = Keys.getSecurityGroupKey(firewall.getName(),
@@ -240,9 +240,9 @@ class GoogleSecurityGroupCachingAgent extends AbstractGoogleCachingAgent impleme
       }
     }
 
-    log.info("Caching ${cacheResultBuilder.namespace(SECURITY_GROUPS.ns).keepSize()} security groups in ${agentType}")
-    log.info "Caching ${cacheResultBuilder.onDemand.toKeep.size()} onDemand entries in ${agentType}"
-    log.info "Evicting ${cacheResultBuilder.onDemand.toEvict.size()} onDemand entries in ${agentType}"
+    log.debug("Caching ${cacheResultBuilder.namespace(SECURITY_GROUPS.ns).keepSize()} security groups in ${agentType}")
+    log.debug "Caching ${cacheResultBuilder.onDemand.toKeep.size()} onDemand entries in ${agentType}"
+    log.debug "Evicting ${cacheResultBuilder.onDemand.toEvict.size()} onDemand entries in ${agentType}"
 
     return cacheResultBuilder.build()
   }

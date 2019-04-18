@@ -78,7 +78,7 @@ class GoogleSubnetCachingAgent extends AbstractGoogleCachingAgent {
   }
 
   private CacheResult buildCacheResult(ProviderCache _, List<Subnetwork> subnetList) {
-    log.info("Describing items in ${agentType}")
+    log.debug("Describing items in ${agentType}")
 
     def cacheResultBuilder = new CacheResultBuilder()
 
@@ -90,7 +90,7 @@ class GoogleSubnetCachingAgent extends AbstractGoogleCachingAgent {
       }
     }
 
-    log.info("Caching ${cacheResultBuilder.namespace(SUBNETS.ns).keepSize()} items in ${agentType}")
+    log.debug("Caching ${cacheResultBuilder.namespace(SUBNETS.ns).keepSize()} items in ${agentType}")
 
     cacheResultBuilder.build()
   }

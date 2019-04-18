@@ -67,7 +67,7 @@ class GoogleRegionalAddressCachingAgent extends AbstractGoogleCachingAgent {
   }
 
   private CacheResult buildCacheResult(ProviderCache _, List<Address> addressList) {
-    log.info("Describing items in ${agentType}")
+    log.debug("Describing items in ${agentType}")
 
     def cacheResultBuilder = new CacheResultBuilder()
 
@@ -79,7 +79,7 @@ class GoogleRegionalAddressCachingAgent extends AbstractGoogleCachingAgent {
       }
     }
 
-    log.info("Caching ${cacheResultBuilder.namespace(ADDRESSES.ns).keepSize()} items in ${agentType}")
+    log.debug("Caching ${cacheResultBuilder.namespace(ADDRESSES.ns).keepSize()} items in ${agentType}")
 
     cacheResultBuilder.build()
   }

@@ -141,7 +141,7 @@ abstract class AbstractGoogleLoadBalancerCachingAgent extends AbstractGoogleCach
       evictions[LOAD_BALANCERS.ns].addAll(identifiers)
     }
 
-    log.info("On demand cache refresh succeeded. Data: ${data}. Added ${loadBalancer ? 1 : 0} items to the cache.")
+    log.debug("On demand cache refresh succeeded. Data: ${data}. Added ${loadBalancer ? 1 : 0} items to the cache.")
 
     return new OnDemandAgent.OnDemandResult(
       sourceAgentType: getOnDemandAgentType(),
@@ -214,7 +214,7 @@ abstract class AbstractGoogleLoadBalancerCachingAgent extends AbstractGoogleCach
   abstract List<GoogleLoadBalancer> constructLoadBalancers(String onDemandLoadBalancerName = null)
 
   CacheResult buildCacheResult(CacheResultBuilder cacheResultBuilder, List<GoogleLoadBalancer> googleLoadBalancers) {
-    log.info "Describing items in ${agentType}"
+    log.debug "Describing items in ${agentType}"
 
     googleLoadBalancers.each { GoogleLoadBalancer loadBalancer ->
       // TODO(duftler): Pull out getLoadBalancerKey() like getServerGroupKey()?
@@ -239,10 +239,10 @@ abstract class AbstractGoogleLoadBalancerCachingAgent extends AbstractGoogleCach
       }
     }
 
-    log.info "Caching ${cacheResultBuilder.namespace(LOAD_BALANCERS.ns).keepSize()} load balancers in ${agentType}"
-    log.info "Caching ${cacheResultBuilder.namespace(INSTANCES.ns).keepSize()} instance relationships in ${agentType}"
-    log.info "Caching ${cacheResultBuilder.onDemand.toKeep.size()} onDemand entries in ${agentType}"
-    log.info "Evicting ${cacheResultBuilder.onDemand.toEvict.size()} onDemand entries in ${agentType}"
+    log.debug "Caching ${cacheResultBuilder.namespace(LOAD_BALANCERS.ns).keepSize()} load balancers in ${agentType}"
+    log.debug "Caching ${cacheResultBuilder.namespace(INSTANCES.ns).keepSize()} instance relationships in ${agentType}"
+    log.debug "Caching ${cacheResultBuilder.onDemand.toKeep.size()} onDemand entries in ${agentType}"
+    log.debug "Evicting ${cacheResultBuilder.onDemand.toEvict.size()} onDemand entries in ${agentType}"
 
     return cacheResultBuilder.build()
   }

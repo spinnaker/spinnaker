@@ -78,7 +78,7 @@ class GoogleGlobalAddressCachingAgent extends AbstractGoogleCachingAgent {
   }
 
   private CacheResult buildCacheResult(ProviderCache _, List<Address> addressList) {
-    log.info("Describing items in ${agentType}")
+    log.debug("Describing items in ${agentType}")
 
     def cacheResultBuilder = new CacheResultBuilder()
 
@@ -90,7 +90,7 @@ class GoogleGlobalAddressCachingAgent extends AbstractGoogleCachingAgent {
       }
     }
 
-    log.info("Caching ${cacheResultBuilder.namespace(ADDRESSES.ns).keepSize()} items in ${agentType}")
+    log.debug("Caching ${cacheResultBuilder.namespace(ADDRESSES.ns).keepSize()} items in ${agentType}")
 
     cacheResultBuilder.build()
   }

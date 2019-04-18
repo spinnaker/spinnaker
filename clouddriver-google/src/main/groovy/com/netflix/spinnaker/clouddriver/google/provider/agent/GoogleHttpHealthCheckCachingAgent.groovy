@@ -62,7 +62,7 @@ class GoogleHttpHealthCheckCachingAgent extends AbstractGoogleCachingAgent {
   }
 
   private CacheResult buildCacheResult(ProviderCache _, List<HttpHealthCheck> httpHealthCheckList) {
-    log.info("Describing items in ${agentType}")
+    log.debug("Describing items in ${agentType}")
 
     def cacheResultBuilder = new CacheResultBuilder()
 
@@ -74,7 +74,7 @@ class GoogleHttpHealthCheckCachingAgent extends AbstractGoogleCachingAgent {
       }
     }
 
-    log.info("Caching ${cacheResultBuilder.namespace(HTTP_HEALTH_CHECKS.ns).keepSize()} items in ${agentType}")
+    log.debug("Caching ${cacheResultBuilder.namespace(HTTP_HEALTH_CHECKS.ns).keepSize()} items in ${agentType}")
 
     cacheResultBuilder.build()
   }
