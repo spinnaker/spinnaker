@@ -25,8 +25,10 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.artifacts.MessageArtifactTranslator;
 import com.netflix.spinnaker.echo.config.AmazonPubsubProperties;
 import com.netflix.spinnaker.echo.discovery.DiscoveryActivated;
+import com.netflix.spinnaker.echo.pubsub.PubsubEventCreator;
 import com.netflix.spinnaker.echo.pubsub.PubsubMessageHandler;
 import com.netflix.spinnaker.echo.pubsub.PubsubSubscribers;
+import com.netflix.spinnaker.echo.pubsub.model.EventCreator;
 import com.netflix.spinnaker.echo.pubsub.model.PubsubSubscriber;
 import com.netflix.spinnaker.kork.aws.ARN;
 import org.slf4j.Logger;
@@ -38,6 +40,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
@@ -54,7 +57,7 @@ public class SQSSubscriberProvider implements DiscoveryActivated {
   private final AWSCredentialsProvider awsCredentialsProvider;
   private final AmazonPubsubProperties properties;
   private final PubsubSubscribers pubsubSubscribers;
-  private final PubsubMessageHandler pubsubMessageHandler;
+  private final PubsubMessageHandler.Factory pubsubMessageHandlerFactory;
   private final Registry registry;
   private final MessageArtifactTranslator.Factory messageArtifactTranslatorFactory;
 
@@ -63,14 +66,14 @@ public class SQSSubscriberProvider implements DiscoveryActivated {
                         AWSCredentialsProvider awsCredentialsProvider,
                         AmazonPubsubProperties properties,
                         PubsubSubscribers pubsubSubscribers,
-                        PubsubMessageHandler pubsubMessageHandler,
+                        PubsubMessageHandler.Factory pubsubMessageHandlerFactory,
                         Registry registry,
                         MessageArtifactTranslator.Factory messageArtifactTranslatorFactory) {
     this.objectMapper = objectMapper;
     this.awsCredentialsProvider = awsCredentialsProvider;
     this.properties = properties;
     this.pubsubSubscribers = pubsubSubscribers;
-    this.pubsubMessageHandler = pubsubMessageHandler;
+    this.pubsubMessageHandlerFactory = pubsubMessageHandlerFactory;
     this.registry = registry;
     this.messageArtifactTranslatorFactory = messageArtifactTranslatorFactory;
   }
@@ -95,10 +98,17 @@ public class SQSSubscriberProvider implements DiscoveryActivated {
 
       ARN queueArn = new ARN(subscription.getQueueARN());
 
+      Optional<MessageArtifactTranslator> messageArtifactTranslator = Optional.empty();
+      if (subscription.getMessageFormat() != AmazonPubsubProperties.MessageFormat.NONE) {
+        messageArtifactTranslator = Optional.ofNullable(subscription.readTemplatePath())
+          .map(messageArtifactTranslatorFactory::createJinja);
+      }
+      EventCreator eventCreator = new PubsubEventCreator(messageArtifactTranslator);
+
       SQSSubscriber worker = new SQSSubscriber(
         objectMapper,
         subscription,
-        pubsubMessageHandler,
+        pubsubMessageHandlerFactory.create(eventCreator),
         AmazonSNSClientBuilder
           .standard()
           .withCredentials(awsCredentialsProvider)
@@ -112,8 +122,7 @@ public class SQSSubscriberProvider implements DiscoveryActivated {
           .withRegion(queueArn.getRegion())
           .build(),
         enabled::get,
-        registry,
-        messageArtifactTranslatorFactory
+        registry
       );
 
       try {

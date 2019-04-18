@@ -16,11 +16,12 @@
 
 package com.netflix.spinnaker.echo.pubsub
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spinnaker.echo.artifacts.MessageArtifactTranslator
+import com.netflix.spinnaker.echo.events.EventPropagator
 import com.netflix.spinnaker.echo.model.pubsub.MessageDescription
 import com.netflix.spinnaker.echo.model.pubsub.PubsubSystem
-import com.netflix.spinnaker.echo.pipelinetriggers.monitor.TriggerEventListener
+import com.netflix.spinnaker.echo.pubsub.model.EventCreator
 import com.netflix.spinnaker.echo.pubsub.model.MessageAcknowledger
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
@@ -47,15 +48,18 @@ class PubsubMessageHandlerSpec extends Specification {
 
   MessageDigest messageDigest = MessageDigest.getInstance("SHA-256")
 
-  TriggerEventListener triggerEventListener = Mock(TriggerEventListener)
+  EventPropagator eventPropagator = Mock(EventPropagator)
 
-  @Subject
-  PubsubMessageHandler pubsubMessageHandler = new PubsubMessageHandler(
-    triggerEventListener,
-    new ObjectMapper(),
+  PubsubMessageHandler.Factory pubsubMessageHandlerFactory = new PubsubMessageHandler.Factory(
+    eventPropagator,
     redisClientSelector,
     new NoopRegistry()
   )
+
+  EventCreator eventCreator = new PubsubEventCreator(Optional.empty())
+
+  @Subject
+  PubsubMessageHandler pubsubMessageHandler = pubsubMessageHandlerFactory.create(eventCreator)
 
   def setupSpec() {
     embeddedRedis = EmbeddedRedis.embed()
@@ -142,7 +146,7 @@ class PubsubMessageHandlerSpec extends Specification {
     pubsubMessageHandler.handleMessage(description, acker, id, messageId)
 
     then:
-    1 * triggerEventListener.processEvent(_)
+    1 * eventPropagator.processEvent(_)
     1 * acker.ack()
     0 * acker.nack() // Lock acquisition failed.
   }
@@ -166,7 +170,7 @@ class PubsubMessageHandlerSpec extends Specification {
     pubsubMessageHandler.handleMessage(description, acker, id, messageId)
 
     then:
-    1 * triggerEventListener.processEvent(_)
+    1 * eventPropagator.processEvent(_)
     2 * acker.ack() // duplicate is dismissed
   }
 }

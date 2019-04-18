@@ -19,11 +19,13 @@ package com.netflix.spinnaker.echo.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.echo.artifacts.MessageArtifactTranslator;
 import com.netflix.spinnaker.echo.config.GooglePubsubProperties.GooglePubsubSubscription;
+import com.netflix.spinnaker.echo.pubsub.PubsubEventCreator;
 import com.netflix.spinnaker.echo.pubsub.PubsubMessageHandler;
 import com.netflix.spinnaker.echo.pubsub.PubsubPublishers;
 import com.netflix.spinnaker.echo.pubsub.PubsubSubscribers;
 import com.netflix.spinnaker.echo.pubsub.google.GooglePubsubPublisher;
 import com.netflix.spinnaker.echo.pubsub.google.GooglePubsubSubscriber;
+import com.netflix.spinnaker.echo.pubsub.model.EventCreator;
 import com.netflix.spinnaker.echo.pubsub.model.PubsubPublisher;
 import com.netflix.spinnaker.echo.pubsub.model.PubsubSubscriber;
 import lombok.RequiredArgsConstructor;
@@ -37,6 +39,7 @@ import javax.validation.Valid;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Configuration
@@ -47,7 +50,7 @@ import java.util.stream.Collectors;
 public class GooglePubsubConfig {
   private final PubsubSubscribers pubsubSubscribers;
   private final PubsubPublishers pubsubPublishers;
-  private final PubsubMessageHandler pubsubMessageHandler;
+  private final PubsubMessageHandler.Factory pubsubMessageHandlerFactory;
   @Valid
   private final GooglePubsubProperties googlePubsubProperties;
   private final ObjectMapper mapper;
@@ -61,8 +64,13 @@ public class GooglePubsubConfig {
       log.info("Bootstrapping Google Pubsub Subscriber listening to subscription: {} in project: {}",
           subscription.getSubscriptionName(),
           subscription.getProject());
-      GooglePubsubSubscriber subscriber = GooglePubsubSubscriber
-        .buildSubscriber(subscription, pubsubMessageHandler, messageArtifactTranslatorFactory);
+
+      Optional<MessageArtifactTranslator> messageArtifactTranslator = Optional.ofNullable(subscription.readTemplatePath())
+        .map(messageArtifactTranslatorFactory::createJinja);
+      EventCreator eventCreator = new PubsubEventCreator(messageArtifactTranslator);
+      PubsubMessageHandler pubsubMessageHandler = pubsubMessageHandlerFactory.create(eventCreator);
+
+      GooglePubsubSubscriber subscriber = GooglePubsubSubscriber.buildSubscriber(subscription, pubsubMessageHandler);
 
       newSubscribers.add(subscriber);
     });

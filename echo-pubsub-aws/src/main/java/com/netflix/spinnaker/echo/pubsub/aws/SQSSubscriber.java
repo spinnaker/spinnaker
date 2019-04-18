@@ -23,17 +23,14 @@ import com.amazonaws.services.sqs.model.QueueDoesNotExistException;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.ReceiveMessageResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.hubspot.jinjava.interpret.FatalTemplateErrorsException;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
-import com.netflix.spinnaker.echo.artifacts.MessageArtifactTranslator;
 import com.netflix.spinnaker.echo.config.AmazonPubsubProperties;
 import com.netflix.spinnaker.echo.model.pubsub.MessageDescription;
 import com.netflix.spinnaker.echo.model.pubsub.PubsubSystem;
 import com.netflix.spinnaker.echo.pubsub.PubsubMessageHandler;
 import com.netflix.spinnaker.echo.pubsub.model.PubsubSubscriber;
 import com.netflix.spinnaker.echo.pubsub.utils.NodeIdentity;
-import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.aws.ARN;
 import com.netflix.spinnaker.kork.aws.pubsub.PubSubUtils;
 import org.slf4j.Logger;
@@ -41,7 +38,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -65,7 +61,6 @@ public class SQSSubscriber implements Runnable, PubsubSubscriber {
   private final AmazonPubsubProperties.AmazonPubsubSubscription subscription;
 
   private final PubsubMessageHandler pubsubMessageHandler;
-  private final MessageArtifactTranslator messageArtifactTranslator;
 
   private final NodeIdentity identity = new NodeIdentity();
 
@@ -84,8 +79,7 @@ public class SQSSubscriber implements Runnable, PubsubSubscriber {
                        AmazonSNS amazonSNS,
                        AmazonSQS amazonSQS,
                        Supplier<Boolean> isEnabled,
-                       Registry registry,
-                       MessageArtifactTranslator.Factory messageArtifactTranslatorFactory) {
+                       Registry registry) {
     this.objectMapper = objectMapper;
     this.subscription = subscription;
     this.pubsubMessageHandler = pubsubMessageHandler;
@@ -94,7 +88,6 @@ public class SQSSubscriber implements Runnable, PubsubSubscriber {
     this.isEnabled = isEnabled;
     this.registry = registry;
 
-    this.messageArtifactTranslator = messageArtifactTranslatorFactory.createJinja(subscription.readTemplatePath());
     this.queueARN = new ARN(subscription.getQueueARN());
     this.topicARN = new ARN(subscription.getTopicARN());
   }
@@ -191,14 +184,6 @@ public class SQSSubscriber implements Runnable, PubsubSubscriber {
 
       AmazonMessageAcknowledger acknowledger = new AmazonMessageAcknowledger(amazonSQS, queueId, message, registry, getName());
 
-      if (subscription.getMessageFormat() != AmazonPubsubProperties.MessageFormat.NONE) {
-        try {
-          description.setArtifacts(parseArtifacts(description.getMessagePayload(), messageId));
-        } catch (FatalTemplateErrorsException e) {
-          log.error("Template failed to process artifacts for message {}", message, e);
-        }
-      }
-
       if (subscription.getAlternateIdInMessageAttributes() != null
           && !subscription.getAlternateIdInMessageAttributes().isEmpty()
           && stringifiedMessageAttributes.containsKey(subscription.getAlternateIdInMessageAttributes())){
@@ -212,16 +197,6 @@ public class SQSSubscriber implements Runnable, PubsubSubscriber {
       log.error("Message {} from queue {} failed to be handled", message, queueId, e);
       // Todo emjburns: add dead-letter queue policy
     }
-  }
-
-  private List<Artifact> parseArtifacts(String messagePayload, String messageId){
-    List<Artifact> artifacts = messageArtifactTranslator.parseArtifacts(messagePayload);
-    // Artifact must have at least a reference defined.
-    if (artifacts == null || artifacts.size() == 0
-        || artifacts.get(0).getReference() == null || artifacts.get(0).getReference().equals("")) {
-      return Collections.emptyList();
-    }
-    return artifacts;
   }
 
   private String unmarshalMessageBody(String messageBody) {
