@@ -17,6 +17,7 @@ To update the icon font using Icomoon, do the following:
 - After unzipping the download, rename `styles.css` to `icons.css`
 - replace the following files in the deck repo with your new ones:
   `icomoon.svg`, `icomoon.ttf`, `icomoon.woff`, `selection.json`, `icons.css`
+- you may need to run `npx prettier --write app/fonts/**/*.{css,json}` if prettier has not picked up the new files.
 
 ## Icon Resources
 
