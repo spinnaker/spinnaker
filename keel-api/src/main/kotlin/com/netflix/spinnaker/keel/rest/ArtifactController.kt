@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.rest
 
-import com.netflix.spinnaker.kork.artifacts.model.Artifact
+import com.netflix.spinnaker.keel.events.ArtifactEvent
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
@@ -16,11 +16,13 @@ class ArtifactController(
 ) {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
-  @PostMapping(
-    consumes = [APPLICATION_JSON_VALUE]
-  )
+  @PostMapping(consumes = [APPLICATION_JSON_VALUE])
   fun submitArtifact(@RequestBody echoArtifactEvent: EchoArtifactEvent) {
-    log.debug("Received artifact events for ${echoArtifactEvent.payload.artifacts.map { it.reference }}")
+    log.debug(
+      "Received artifact events {} for {}",
+      echoArtifactEvent.eventName,
+      echoArtifactEvent.payload.artifacts.map { it.reference }
+    )
     publisher.publishEvent(echoArtifactEvent.payload)
   }
 }
@@ -28,9 +30,4 @@ class ArtifactController(
 data class EchoArtifactEvent(
   val payload: ArtifactEvent,
   val eventName: String
-)
-
-data class ArtifactEvent(
-  val artifacts: List<Artifact>,
-  val details: Map<String, Any>?
 )

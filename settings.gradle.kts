@@ -16,6 +16,7 @@
 
 include(
   "keel-api",
+  "keel-artifact",
   "keel-clouddriver",
   "keel-core",
   "keel-core-test",
