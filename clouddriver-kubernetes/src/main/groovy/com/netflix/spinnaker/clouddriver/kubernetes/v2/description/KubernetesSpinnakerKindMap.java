@@ -87,7 +87,7 @@ public class KubernetesSpinnakerKindMap {
 
   public Map<String, String> kubernetesToSpinnakerKindStringMap() {
     return kubernetesToSpinnaker.entrySet().stream().filter(
-      x -> x.getValue() != SpinnakerKind.UNCLASSIFIED && x.getKey() != KubernetesKind.NONE
+      x -> x.getKey() != KubernetesKind.NONE
     ).collect(
       Collectors.toMap(x -> x.getKey().toString(), x -> x.getValue().toString()));
   }
