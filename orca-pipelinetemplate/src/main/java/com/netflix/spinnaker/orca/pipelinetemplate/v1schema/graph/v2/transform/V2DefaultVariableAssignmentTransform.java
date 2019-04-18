@@ -17,10 +17,10 @@
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.graph.v2.transform;
 
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.IllegalTemplateConfigurationException;
-import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration;
 import com.netflix.spinnaker.orca.pipelinetemplate.v2schema.V2PipelineTemplateVisitor;
 import com.netflix.spinnaker.orca.pipelinetemplate.v2schema.model.V2PipelineTemplate;
 import com.netflix.spinnaker.orca.pipelinetemplate.v2schema.model.V2TemplateConfiguration;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collection;
@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class V2DefaultVariableAssignmentTransform implements V2PipelineTemplateVisitor {
 
   private V2TemplateConfiguration templateConfiguration;
@@ -45,7 +46,7 @@ public class V2DefaultVariableAssignmentTransform implements V2PipelineTemplateV
     }
 
     Map<String, Object> configVars = templateConfiguration.getVariables() != null
-      ? templateConfiguration.getVariables()
+      ? configurationVariables(pipelineTemplateVariables, templateConfiguration.getVariables())
       : new HashMap<>();
 
     // if the config is missing vars and the template defines a default value, assign those values from the config
@@ -119,5 +120,22 @@ public class V2DefaultVariableAssignmentTransform implements V2PipelineTemplateV
     String expectedtype = templateVar.getType();
     return expectedtype.equalsIgnoreCase("int") &&
       (actualVar instanceof Integer || (noDecimal && instanceOfDouble) || (noDecimal && instanceOfFloat));
+  }
+
+  /**
+   * Filter out configuration variables that don't exist in the template.
+   *
+   * @param pipelineTemplateVariables Variables from the pipeline template.
+   * @param configVariables           Variables from the pipeline configuration referencing the template.
+   * @return Map of configuration variables exist in the declared template variables.
+   */
+  public static Map<String, Object> configurationVariables(List<V2PipelineTemplate.Variable> pipelineTemplateVariables,
+                                                           Map<String, Object> configVariables) {
+    List<String> templateVariableNames = pipelineTemplateVariables.stream()
+      .map(var -> var.getName()).collect(Collectors.toList());
+    return configVariables.entrySet()
+      .stream()
+      .filter(configVar -> templateVariableNames.contains(configVar.getKey()))
+      .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 }

@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.pipelinetemplate.v2schema;
 import com.netflix.spinnaker.orca.pipelinetemplate.TemplatedPipelineRequest;
 import com.netflix.spinnaker.orca.pipelinetemplate.generator.V2ExecutionGenerator;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.TemplateMerge;
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.graph.v2.transform.V2DefaultVariableAssignmentTransform;
 import com.netflix.spinnaker.orca.pipelinetemplate.v2schema.model.V2PipelineTemplate;
 import com.netflix.spinnaker.orca.pipelinetemplate.v2schema.model.V2TemplateConfiguration;
 
@@ -46,7 +47,8 @@ public class V2SchemaExecutionGenerator implements V2ExecutionGenerator {
     addNotifications(pipeline, template, configuration);
     addParameters(pipeline, template, configuration);
     addTriggers(pipeline, template, configuration);
-    pipeline.put("templateVariables", configuration.getVariables());
+    pipeline.put("templateVariables",
+      V2DefaultVariableAssignmentTransform.configurationVariables(template.getVariables(), configuration.getVariables()));
 
     if (request.getTrigger() != null && !request.getTrigger().isEmpty()) {
       pipeline.put("trigger", request.getTrigger());
