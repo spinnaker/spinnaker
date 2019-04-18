@@ -80,19 +80,18 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
    * @see ExponentialBackOff
    */
   static class ExponentialBackoffRetryHandler implements RetryHandler {
-    private final long maxBackoff;
-    private final long initialBackoff;
-    private final double backoffMultiplier;
+    private final FiatClientConfigurationProperties.RetryConfiguration retryConfiguration;
 
-    public ExponentialBackoffRetryHandler(long maxBackoff, long initialBackoff, double backoffMultiplier) {
-      this.maxBackoff = maxBackoff;
-      this.initialBackoff = initialBackoff;
-      this.backoffMultiplier = backoffMultiplier;
+    public ExponentialBackoffRetryHandler(FiatClientConfigurationProperties.RetryConfiguration retryConfiguration) {
+      this.retryConfiguration = retryConfiguration;
     }
 
     public <T> T retry(String description, Callable<T> callable) throws Exception {
-      ExponentialBackOff backOff = new ExponentialBackOff(initialBackoff, backoffMultiplier);
-      backOff.setMaxElapsedTime(maxBackoff);
+      ExponentialBackOff backOff = new ExponentialBackOff(
+          retryConfiguration.getInitialBackoffMillis(),
+          retryConfiguration.getRetryMultiplier()
+      );
+      backOff.setMaxElapsedTime(retryConfiguration.getMaxBackoffMillis());
       BackOffExecution backOffExec = backOff.start();
       while (true) {
         try {
@@ -107,7 +106,6 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
         }
       }
     }
-
   }
 
   @Autowired
@@ -119,8 +117,7 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
   }
 
   private static RetryHandler buildRetryHandler(FiatClientConfigurationProperties fiatClientConfigurationProperties) {
-    FiatClientConfigurationProperties.RetryConfiguration retry = fiatClientConfigurationProperties.getRetry();
-    return new ExponentialBackoffRetryHandler(retry.getMaxBackoffMillis(), retry.getInitialBackoffMillis(), retry.getRetryMultiplier());
+    return new ExponentialBackoffRetryHandler(fiatClientConfigurationProperties.getRetry());
   }
 
   FiatPermissionEvaluator(Registry registry,

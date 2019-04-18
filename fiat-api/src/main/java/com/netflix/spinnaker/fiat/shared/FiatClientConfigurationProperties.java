@@ -16,13 +16,17 @@
 
 package com.netflix.spinnaker.fiat.shared;
 
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import lombok.Data;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
 @Data
 @ConfigurationProperties("services.fiat")
 public class FiatClientConfigurationProperties {
+  @Autowired
+  private DynamicConfigService dynamicConfigService;
 
   private boolean enabled;
 
@@ -38,6 +42,11 @@ public class FiatClientConfigurationProperties {
   @NestedConfigurationProperty
   private RetryConfiguration retry = new RetryConfiguration();
 
+  public RetryConfiguration getRetry() {
+    retry.setDynamicConfigService(dynamicConfigService);
+    return retry;
+  }
+
   @Data
   class PermissionsCache {
     private Integer maxEntries = 1000;
@@ -47,8 +56,38 @@ public class FiatClientConfigurationProperties {
 
   @Data
   class RetryConfiguration {
+    private DynamicConfigService dynamicConfigService;
+
     private long maxBackoffMillis = 10000;
     private long initialBackoffMillis = 500;
     private double retryMultiplier = 1.5;
+
+    public void setDynamicConfigService(DynamicConfigService dynamicConfigService) {
+      this.dynamicConfigService = dynamicConfigService;
+    }
+
+    public long getMaxBackoffMillis() {
+      if (dynamicConfigService == null) {
+        return maxBackoffMillis;
+      }
+
+      return dynamicConfigService.getConfig(Long.class, "fiat.retry.maxBackoffMills", maxBackoffMillis);
+    }
+
+    public long getInitialBackoffMillis() {
+      if (dynamicConfigService == null) {
+        return initialBackoffMillis;
+      }
+
+      return dynamicConfigService.getConfig(Long.class, "fiat.retry.initialBackoffMillis", initialBackoffMillis);
+    }
+
+    public double getRetryMultiplier() {
+      if (dynamicConfigService == null) {
+        return retryMultiplier;
+      }
+
+      return dynamicConfigService.getConfig(Double.class, "fiat.retry.retryMultiplier", retryMultiplier);
+    }
   }
 }

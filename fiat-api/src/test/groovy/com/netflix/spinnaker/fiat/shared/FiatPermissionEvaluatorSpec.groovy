@@ -148,12 +148,18 @@ class FiatPermissionEvaluatorSpec extends Specification {
   @Unroll
   def "should retry fiat requests"() {
     given:
+    def retryConfiguration = new FiatClientConfigurationProperties.RetryConfiguration()
+    retryConfiguration.setMaxBackoffMillis(10)
+    retryConfiguration.setInitialBackoffMillis(15)
+    retryConfiguration.setRetryMultiplier(1.5)
+
+    and:
     FiatPermissionEvaluator evaluator = new FiatPermissionEvaluator(
             registry,
             fiatService,
             buildConfigurationProperties(),
             fiatStatus,
-            new FiatPermissionEvaluator.ExponentialBackoffRetryHandler(10, 15, 1)
+            new FiatPermissionEvaluator.ExponentialBackoffRetryHandler(retryConfiguration)
     )
 
     when:
