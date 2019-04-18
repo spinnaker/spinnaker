@@ -18,8 +18,10 @@ package com.netflix.spinnaker.keel
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.annealing.ResourceCheckQueue
 import com.netflix.spinnaker.keel.info.InstanceIdSupplier
+import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.ResourceVersionTracker
+import com.netflix.spinnaker.keel.persistence.memory.InMemoryArtifactRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceVersionTracker
 import com.netflix.spinnaker.keel.plugin.KeelPlugin
@@ -90,6 +92,10 @@ class KeelApplication {
   fun resourceRepository(clock: Clock): ResourceRepository = InMemoryResourceRepository(clock)
 
   @Bean
+  @ConditionalOnMissingBean
+  fun artifactRepository(): ArtifactRepository = InMemoryArtifactRepository()
+
+  @Bean
   @ConditionalOnMissingBean(ResourceVersionTracker::class)
   fun resourceVersionTracker(): ResourceVersionTracker = InMemoryResourceVersionTracker()
 
@@ -107,6 +113,9 @@ class KeelApplication {
       http.csrf().disable()
     }
   }
+
+  @Autowired
+  lateinit var artifactRepository: ArtifactRepository
 
   @Autowired
   lateinit var resourceRepository: ResourceRepository
@@ -129,6 +138,7 @@ class KeelApplication {
   @PostConstruct
   fun initialStatus() {
     sequenceOf(
+      ArtifactRepository::class to artifactRepository.javaClass,
       ResourceRepository::class to resourceRepository.javaClass,
       ResourceVersionTracker::class to resourceVersionTracker.javaClass,
       ResourceCheckQueue::class to resourceCheckQueue.javaClass,
