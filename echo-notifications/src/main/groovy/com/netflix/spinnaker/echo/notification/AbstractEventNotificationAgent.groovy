@@ -53,7 +53,7 @@ abstract class AbstractEventNotificationAgent implements EchoEventListener {
 
   @Override
   void processEvent(Event event) {
-    if (log.isDebugEnabled() && mapper != null) {
+    if (log.isDebugEnabled() && mapper != null && !event.getDetails().getType().equals("pubsub")) {
       log.debug("Event received: " + mapper.writerWithDefaultPrettyPrinter().writeValueAsString(event))
     }
 
