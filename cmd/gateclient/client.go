@@ -22,6 +22,7 @@ import (
 	"crypto/x509"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/http/cookiejar"
@@ -185,7 +186,7 @@ func createClient(flags *pflag.FlagSet) (*GatewayClient, error) {
 	}, nil
 }
 
-func configureOutput(flags *pflag.FlagSet) (error) {
+func configureOutput(flags *pflag.FlagSet) error {
 	quiet, err := flags.GetBool("quiet")
 	if err != nil {
 		return err
@@ -368,7 +369,7 @@ func (m *GatewayClient) authenticateIAP() (string, error) {
 }
 
 func (m *GatewayClient) login(accessToken string) error {
-	loginReq, err := http.NewRequest("GET", m.GateEndpoint() + "/login", nil)
+	loginReq, err := http.NewRequest("GET", m.GateEndpoint()+"/login", nil)
 	if err != nil {
 		return err
 	}
@@ -400,6 +401,11 @@ func prompt() string {
 }
 
 func dialGate(gateClient *GatewayClient) error {
-	_, err := http.Get(gateClient.GateEndpoint())
-	return err
+	res, err := http.Get(gateClient.GateEndpoint())
+	if err != nil {
+		return err
+	}
+	io.Copy(ioutil.Discard, res.Body)
+	res.Body.Close()
+	return nil
 }
