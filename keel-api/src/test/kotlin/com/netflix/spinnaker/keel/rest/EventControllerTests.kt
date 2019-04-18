@@ -8,10 +8,12 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceMetadata
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.randomUID
+import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
 import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.events.ResourceDeltaDetected
 import com.netflix.spinnaker.keel.events.ResourceDeltaResolved
 import com.netflix.spinnaker.keel.events.ResourceEvent
+import com.netflix.spinnaker.keel.events.TaskRef
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
 import com.netflix.spinnaker.keel.redis.spring.MockEurekaConfiguration
 import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
@@ -104,6 +106,8 @@ internal class EventControllerTests : JUnit5Minutests {
           clock.incrementBy(Duration.ofMinutes(10))
           appendHistory(ResourceDeltaDetected(resource, emptyMap(), clock))
           clock.incrementBy(Duration.ofMinutes(10))
+          appendHistory(ResourceActuationLaunched(resource, "a-plugin", listOf(TaskRef(randomUID().toString())), clock))
+          clock.incrementBy(Duration.ofMinutes(10))
           appendHistory(ResourceDeltaResolved(resource, clock))
           clock.incrementBy(Duration.ofMinutes(10))
         }
@@ -124,7 +128,7 @@ internal class EventControllerTests : JUnit5Minutests {
               .andReturn()
             expectThat(result.response.contentAsTree)
               .isArray()
-              .hasSize(3)
+              .hasSize(4)
           }
 
           test("every event specifies its type") {
@@ -135,9 +139,14 @@ internal class EventControllerTests : JUnit5Minutests {
               .andExpect(content().contentTypeCompatibleWith(accept))
               .andReturn()
             expectThat(result.response.contentAs<List<ResourceEvent>>())
-              .hasSize(3)
+              .hasSize(4)
               .map { it.javaClass }
-              .containsExactly(ResourceDeltaResolved::class.java, ResourceDeltaDetected::class.java, ResourceCreated::class.java)
+              .containsExactly(
+                ResourceDeltaResolved::class.java,
+                ResourceActuationLaunched::class.java,
+                ResourceDeltaDetected::class.java,
+                ResourceCreated::class.java
+              )
           }
         }
       }

@@ -21,7 +21,11 @@ import com.fasterxml.jackson.annotation.JsonSubTypes.Type
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id
+import com.fasterxml.jackson.core.JsonParser
+import com.fasterxml.jackson.databind.DeserializationContext
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
+import com.fasterxml.jackson.databind.deser.std.StdDeserializer
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer
 import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Resource
@@ -38,6 +42,7 @@ import java.time.Instant
   Type(value = ResourceCreated::class, name = "ResourceCreated"),
   Type(value = ResourceUpdated::class, name = "ResourceUpdated"),
   Type(value = ResourceMissing::class, name = "ResourceMissing"),
+  Type(value = ResourceActuationLaunched::class, name = "ResourceActuationLaunched"),
   Type(value = ResourceDeltaDetected::class, name = "ResourceDeltaDetected"),
   Type(value = ResourceDeltaResolved::class, name = "ResourceDeltaResolved")
 )
@@ -201,6 +206,12 @@ data class ResourceDeltaResolved(
  * desired and actual states of a managed resource.
  */
 @JsonSerialize(using = ToStringSerializer::class)
+@JsonDeserialize(using = TaskRefDeserializer::class)
 data class TaskRef(val value: String) {
   override fun toString(): String = value
+}
+
+class TaskRefDeserializer : StdDeserializer<TaskRef>(TaskRef::class.java) {
+  override fun deserialize(parser: JsonParser, context: DeserializationContext): TaskRef =
+    TaskRef(parser.valueAsString)
 }
