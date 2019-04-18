@@ -118,7 +118,7 @@ class DetachInstancesAtomicOperationSpec extends Specification {
     def description = new DetachInstancesDescription(
       instanceIds: ["i-000001", "i-000002"],
       terminateDetachedInstances: false,
-      decrementDesiredCapacity: false,
+      decrementDesiredCapacity: true,
       adjustMinIfNecessary: true
     )
 
@@ -146,14 +146,17 @@ class DetachInstancesAtomicOperationSpec extends Specification {
       request.minSize == 0
     } as UpdateAutoScalingGroupRequest)
     1 * amazonAutoScaling.detachInstances({ DetachInstancesRequest request ->
-      request.instanceIds == ["i-000001"] && !request.shouldDecrementDesiredCapacity
+      request.instanceIds == ["i-000001"] && request.shouldDecrementDesiredCapacity
     } as DetachInstancesRequest)
     0 * _
   }
 
   void "should fail if minSize adjustment is necessary but not allowed"() {
     given:
-    def description = new DetachInstancesDescription(instanceIds: ["i-000001", "i-000002"])
+    def description = new DetachInstancesDescription(
+      instanceIds: ["i-000001", "i-000002"],
+      decrementDesiredCapacity: true
+    )
 
     and:
     def operation = new DetachInstancesAtomicOperation(description)

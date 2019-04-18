@@ -78,9 +78,9 @@ class DetachInstancesAtomicOperation implements AtomicOperation<Void> {
         return false
       }
 
-      if ((autoScalingGroup.desiredCapacity - validInstanceIds.size()) < autoScalingGroup.minSize) {
+      int newMin = autoScalingGroup.desiredCapacity - validInstanceIds.size()
+      if (description.decrementDesiredCapacity && newMin < autoScalingGroup.minSize) {
         if (description.adjustMinIfNecessary) {
-          int newMin = autoScalingGroup.desiredCapacity - validInstanceIds.size()
           if (newMin < 0) {
             task.updateStatus BASE_PHASE, "Cannot adjust min size below 0"
           } else {
