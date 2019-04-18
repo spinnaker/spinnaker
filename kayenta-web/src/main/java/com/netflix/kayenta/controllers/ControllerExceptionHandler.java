@@ -30,13 +30,17 @@ public class ControllerExceptionHandler {
 
   @ResponseStatus(HttpStatus.BAD_REQUEST)
   @ExceptionHandler(IllegalArgumentException.class)
-  public String handleException(IllegalArgumentException e) {
-    return e.getMessage();
+  public Map handleException(IllegalArgumentException e) {
+    return toErrorResponse(e);
   }
 
   @ResponseStatus(HttpStatus.NOT_FOUND)
   @ExceptionHandler(NotFoundException.class)
   public Map handleException(NotFoundException e) {
+    return toErrorResponse(e);
+  }
+
+  private Map toErrorResponse(Exception e) {
     return Collections.singletonMap("message", e.getMessage());
   }
 }
