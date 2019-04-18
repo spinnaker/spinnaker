@@ -40,6 +40,8 @@ public class AtlasCanaryScope extends CanaryScope {
   @NotNull
   private String environment;
 
+  private String accountId; // AWS or other account ID we will use to look up the atlas back-end for.
+
   public String cq() {
     if (type == null) {
       throw new IllegalArgumentException("Atlas canary scope requires 'type' to be asg, cluster, or query.");

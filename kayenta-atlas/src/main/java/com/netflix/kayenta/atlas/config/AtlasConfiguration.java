@@ -16,6 +16,8 @@
 
 package com.netflix.kayenta.atlas.config;
 
+import com.netflix.kayenta.atlas.backends.AtlasStorageUpdater;
+import com.netflix.kayenta.atlas.backends.AtlasStorageUpdaterService;
 import com.netflix.kayenta.atlas.backends.BackendUpdater;
 import com.netflix.kayenta.atlas.backends.BackendUpdaterService;
 import com.netflix.kayenta.atlas.metrics.AtlasMetricsService;
@@ -44,10 +46,12 @@ import java.util.List;
 @Slf4j
 public class AtlasConfiguration {
 
+  private final AtlasStorageUpdaterService atlasStorageUpdaterService;
   private final BackendUpdaterService backendUpdaterService;
 
   @Autowired
-  public AtlasConfiguration(BackendUpdaterService backendUpdaterService) {
+  public AtlasConfiguration(AtlasStorageUpdaterService atlasStorageUpdaterService, BackendUpdaterService backendUpdaterService) {
+    this.atlasStorageUpdaterService = atlasStorageUpdaterService;
     this.backendUpdaterService = backendUpdaterService;
   }
 
@@ -74,7 +78,8 @@ public class AtlasConfiguration {
           .builder()
           .build();
 
-      BackendUpdater updater = BackendUpdater.builder().uri(backendsJsonUriPrefix).build();
+      BackendUpdater backendUpdater = BackendUpdater.builder().uri(backendsJsonUriPrefix).build();
+      AtlasStorageUpdater atlasStorageUpdater = AtlasStorageUpdater.builder().uri(backendsJsonUriPrefix).build();
       AtlasNamedAccountCredentials.AtlasNamedAccountCredentialsBuilder atlasNamedAccountCredentialsBuilder =
         AtlasNamedAccountCredentials
           .builder()
@@ -82,7 +87,8 @@ public class AtlasConfiguration {
           .credentials(atlasCredentials)
           .fetchId(atlasManagedAccount.getFetchId())
           .recommendedLocations(atlasManagedAccount.getRecommendedLocations())
-          .backendUpdater(updater);
+          .atlasStorageUpdater(atlasStorageUpdater)
+          .backendUpdater(backendUpdater);
 
       if (!CollectionUtils.isEmpty(supportedTypes)) {
         atlasNamedAccountCredentialsBuilder.supportedTypes(supportedTypes);
@@ -93,6 +99,7 @@ public class AtlasConfiguration {
       atlasMetricsServiceBuilder.accountName(name);
 
       backendUpdaterService.add(atlasNamedAccountCredentials.getBackendUpdater());
+      atlasStorageUpdaterService.add(atlasNamedAccountCredentials.getAtlasStorageUpdater());
     }
 
     AtlasMetricsService atlasMetricsService = atlasMetricsServiceBuilder.build();

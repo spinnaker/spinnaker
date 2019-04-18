@@ -16,11 +16,13 @@
 
 package com.netflix.kayenta.atlas.metrics;
 
+import com.netflix.kayenta.atlas.backends.AtlasStorageDatabase;
 import com.netflix.kayenta.atlas.backends.BackendDatabase;
 import com.netflix.kayenta.atlas.canary.AtlasCanaryScope;
 import com.netflix.kayenta.atlas.config.AtlasSSEConverter;
 import com.netflix.kayenta.atlas.model.AtlasResults;
 import com.netflix.kayenta.atlas.model.AtlasResultsHelper;
+import com.netflix.kayenta.atlas.model.AtlasStorage;
 import com.netflix.kayenta.atlas.model.Backend;
 import com.netflix.kayenta.atlas.security.AtlasNamedAccountCredentials;
 import com.netflix.kayenta.atlas.service.AtlasRemoteService;
@@ -115,6 +117,34 @@ public class AtlasMetricsService implements MetricsService {
     AtlasNamedAccountCredentials credentials = getCredentials(accountName);
     BackendDatabase backendDatabase = credentials.getBackendUpdater().getBackendDatabase();
     String uri = backendDatabase.getUriForLocation(URI_SCHEME, atlasCanaryScope.getLocation());
+
+    // If the location was not explicitly given, look up the account in the atlastStorageService.  If it
+    // is found there, use the proper cname found there.
+    //
+    // For a global dataset:
+    //     accountId == the account ID to look up
+    //     dataset == global
+    // For a regional dataset:
+    //     accountId == the account ID to look up
+    //     dataset == regional
+    //     location == region (us-east-1, etc)
+    if (uri == null && atlasCanaryScope.getAccountId() != null) {
+      String accountId = atlasCanaryScope.getAccountId();
+      AtlasStorageDatabase atlasStorageDatabase = credentials.getAtlasStorageUpdater().getAtlasStorageDatabase();
+      if (atlasCanaryScope.getDataset().equals("global")) {
+        Optional<String> globalCname = atlasStorageDatabase.getGlobalUri(URI_SCHEME, accountId);
+        if (globalCname.isPresent()) {
+          uri = globalCname.get();
+        }
+      } else {
+        String region = atlasCanaryScope.getLocation();
+        Optional<String> regionalCname = atlasStorageDatabase.getRegionalUri(URI_SCHEME, accountId, region);
+        if (regionalCname.isPresent()) {
+          uri = regionalCname.get();
+        }
+      }
+    }
+
     if (uri == null) {
       Optional<Backend> backend = backendDatabase.getOne(atlasCanaryScope.getDeployment(),
                                                          atlasCanaryScope.getDataset(),
@@ -131,10 +161,11 @@ public class AtlasMetricsService implements MetricsService {
 
     if (uri == null) {
       throw new IllegalArgumentException("Unable to find an appropriate Atlas cluster for" +
-                                           " location=" + atlasCanaryScope.getLocation() +
-                                           " dataset=" + atlasCanaryScope.getDataset() +
-                                           " deployment=" + atlasCanaryScope.getDeployment() +
-                                           " environment=" + atlasCanaryScope.getEnvironment());
+                                         " location=" + atlasCanaryScope.getLocation() +
+                                         " accountId=" + atlasCanaryScope.getAccountId() +
+                                         " dataset=" + atlasCanaryScope.getDataset() +
+                                         " deployment=" + atlasCanaryScope.getDeployment() +
+                                         " environment=" + atlasCanaryScope.getEnvironment());
     }
 
     RemoteService remoteService = new RemoteService();

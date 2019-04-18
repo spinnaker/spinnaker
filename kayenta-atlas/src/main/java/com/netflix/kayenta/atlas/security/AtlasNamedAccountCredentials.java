@@ -17,6 +17,7 @@
 package com.netflix.kayenta.atlas.security;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.netflix.kayenta.atlas.backends.AtlasStorageUpdater;
 import com.netflix.kayenta.atlas.backends.BackendUpdater;
 import com.netflix.kayenta.security.AccountCredentials;
 import lombok.Builder;
@@ -52,6 +53,9 @@ public class AtlasNamedAccountCredentials implements AccountCredentials<AtlasCre
 
   @JsonIgnore
   private BackendUpdater backendUpdater;
+
+  @JsonIgnore
+  private AtlasStorageUpdater atlasStorageUpdater;
 
   @Override
   public List<String> getLocations() {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Netflix, Inc.
+ * Copyright 2019 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -34,15 +34,15 @@ import java.util.List;
 @Slf4j
 @EnableConfigurationProperties
 @ConditionalOnProperty("kayenta.atlas.enabled")
-public class BackendUpdaterService extends AbstractHealthIndicator {
+public class AtlasStorageUpdaterService extends AbstractHealthIndicator {
   private final RetrofitClientFactory retrofitClientFactory;
   private final ObjectMapper objectMapper;
   private final OkHttpClient okHttpClient;
-  private final List<BackendUpdater> backendUpdaters = new ArrayList<>();
+  private final List<AtlasStorageUpdater> atlasStorageUpdaters = new ArrayList<>();
   private int checksCompleted = 0;
 
   @Autowired
-  public BackendUpdaterService(RetrofitClientFactory retrofitClientFactory, ObjectMapper objectMapper, OkHttpClient okHttpClient) {
+  public AtlasStorageUpdaterService(RetrofitClientFactory retrofitClientFactory, ObjectMapper objectMapper, OkHttpClient okHttpClient) {
     this.retrofitClientFactory = retrofitClientFactory;
     this.objectMapper = objectMapper;
     this.okHttpClient = okHttpClient;
@@ -55,7 +55,7 @@ public class BackendUpdaterService extends AbstractHealthIndicator {
     // TODO: Locking may not matter as we should rarely, if ever, modify this list.
     // TODO: Although, for healthcheck, it may...
     int checks = 0;
-    for (BackendUpdater updater: backendUpdaters) {
+    for (AtlasStorageUpdater updater: atlasStorageUpdaters) {
       synchronized(this) {
         boolean result = updater.run(retrofitClientFactory, objectMapper, okHttpClient);
         if (result)
@@ -65,18 +65,18 @@ public class BackendUpdaterService extends AbstractHealthIndicator {
     checksCompleted = checks;
   }
 
-  public synchronized void add(BackendUpdater updater) {
-    backendUpdaters.add(updater);
+  public synchronized void add(AtlasStorageUpdater updater) {
+    atlasStorageUpdaters.add(updater);
   }
 
   @Override
   protected synchronized void doHealthCheck(Health.Builder builder) throws Exception {
-    if (checksCompleted == backendUpdaters.size()) {
+    if (checksCompleted == atlasStorageUpdaters.size()) {
       builder.up();
     } else {
       builder.down();
     }
     builder.withDetail("checksCompleted", checksCompleted);
-    builder.withDetail("checksExpected", backendUpdaters.size());
+    builder.withDetail("checksExpected", atlasStorageUpdaters.size());
   }
 }

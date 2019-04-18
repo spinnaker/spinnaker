@@ -50,6 +50,7 @@ public class AtlasCanaryScopeFactory implements CanaryScopeFactory {
     atlasCanaryScope.setDeployment(extendedScopeParams.getOrDefault("deployment", "main"));
     atlasCanaryScope.setDataset(extendedScopeParams.getOrDefault("dataset", "regional"));
     atlasCanaryScope.setEnvironment(extendedScopeParams.getOrDefault("environment", "test"));
+    atlasCanaryScope.setAccountId(extendedScopeParams.get("accountId"));
 
     return atlasCanaryScope;
   }
