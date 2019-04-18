@@ -270,11 +270,14 @@ public class PrometheusMetricsService implements MetricsService {
     if (!CollectionUtils.isEmpty(prometheusResultsList)) {
       for (PrometheusResults prometheusResults : prometheusResultsList) {
         Instant responseStartTimeInstant = Instant.ofEpochMilli(prometheusResults.getStartTimeMillis());
+        Instant responseEndTimeInstant = Instant.ofEpochMilli(prometheusResults.getEndTimeMillis());
         MetricSet.MetricSetBuilder metricSetBuilder =
           MetricSet.builder()
             .name(canaryMetricConfig.getName())
             .startTimeMillis(prometheusResults.getStartTimeMillis())
             .startTimeIso(responseStartTimeInstant.toString())
+            .endTimeMillis(prometheusResults.getEndTimeMillis())
+            .endTimeIso(responseEndTimeInstant.toString())
             .stepMillis(TimeUnit.SECONDS.toMillis(prometheusResults.getStepSecs()))
             .values(prometheusResults.getValues());
 
