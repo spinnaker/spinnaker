@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.orca.q.audit
 
 import com.netflix.spinnaker.orca.q.ExecutionLevel
+import com.netflix.spinnaker.orca.q.StageLevel
+import com.netflix.spinnaker.orca.q.TaskLevel
 import com.netflix.spinnaker.q.Message
 import com.netflix.spinnaker.q.MessageHandler
 import com.netflix.spinnaker.security.AuthenticatedRequest.SPINNAKER_EXECUTION_ID
@@ -41,9 +43,18 @@ class ExecutionTrackingMessageHandlerPostProcessor : BeanPostProcessor {
   ) : MessageHandler<M> by delegate {
     override fun invoke(message: Message) {
       try {
-        if (message is ExecutionLevel) {
-          MDC.put(SPINNAKER_EXECUTION_ID, message.executionId)
+        when(message) {
+          is TaskLevel -> {
+            MDC.put(SPINNAKER_EXECUTION_ID, "${message.executionId}:${message.stageId}:${message.taskId}")
+          }
+          is StageLevel -> {
+            MDC.put(SPINNAKER_EXECUTION_ID, "${message.executionId}:${message.stageId}")
+          }
+          is ExecutionLevel -> {
+            MDC.put(SPINNAKER_EXECUTION_ID, message.executionId)
+          }
         }
+
         delegate.invoke(message)
       } finally {
         MDC.remove(SPINNAKER_EXECUTION_ID)
