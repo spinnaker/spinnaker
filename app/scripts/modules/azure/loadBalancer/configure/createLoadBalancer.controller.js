@@ -161,7 +161,6 @@ module.exports = angular
         $scope.loadBalancer.vnet = null;
         $scope.loadBalancer.vnetResourceGroup = null;
         ctrl.selectedVnets = [];
-        InfrastructureCaches.clearCache('networks');
 
         NetworkReader.listNetworks().then(function(vnets) {
           if (vnets.azure) {

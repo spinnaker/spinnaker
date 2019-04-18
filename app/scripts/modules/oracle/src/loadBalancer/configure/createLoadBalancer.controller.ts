@@ -7,7 +7,6 @@ import { trimEnd } from 'lodash';
 import {
   AccountService,
   Application,
-  InfrastructureCaches,
   LoadBalancerWriter,
   NameUtils,
   NetworkReader,
@@ -274,7 +273,6 @@ export class OracleLoadBalancerController implements IController {
   }
 
   public loadVnets() {
-    InfrastructureCaches.clearCache('networks'); // TODO desagar previous code had this line. What does it do exactly? is it safe to clear?
     NetworkReader.listNetworksByProvider(this.oracle).then((vnets: INetwork[]) => {
       this.allVnets = vnets || [];
       if (this.$scope.loadBalancerCmd.region) {

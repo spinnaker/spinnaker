@@ -16,7 +16,6 @@ module.exports = angular
         });
       });
 
-      InfrastructureCaches.clearCache('loadBalancers');
       InfrastructureCaches.clearCache('backendServices');
       InfrastructureCaches.clearCache('healthChecks');
 
@@ -40,7 +39,6 @@ module.exports = angular
 
       angular.extend(job, params);
 
-      InfrastructureCaches.clearCache('loadBalancers');
       InfrastructureCaches.clearCache('backendServices');
       InfrastructureCaches.clearCache('healthChecks');
 

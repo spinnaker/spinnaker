@@ -17,7 +17,7 @@ export class CommonGceLoadBalancerCtrl {
   ) {}
 
   public onTaskComplete(loadBalancer: IGceLoadBalancer): void {
-    InfrastructureCaches.clearCache('healthCheck');
+    InfrastructureCaches.clearCache('healthChecks');
     this.application.getDataSource('loadBalancers').refresh();
     this.application
       .getDataSource('loadBalancers')

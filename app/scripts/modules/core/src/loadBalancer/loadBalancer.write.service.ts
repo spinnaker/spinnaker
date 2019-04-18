@@ -1,7 +1,6 @@
 import { IPromise } from 'angular';
 
 import { Application } from 'core/application/application.model';
-import { InfrastructureCaches } from 'core/cache';
 import { ITask } from 'core/domain';
 import { IJob, TaskExecutor } from 'core/task/taskExecutor';
 import { IMoniker } from 'core/naming/IMoniker';
@@ -32,8 +31,6 @@ export class LoadBalancerWriter {
   public static deleteLoadBalancer(command: ILoadBalancerDeleteCommand, application: Application): ng.IPromise<ITask> {
     command.type = 'deleteLoadBalancer';
 
-    InfrastructureCaches.clearCache('loadBalancers');
-
     return TaskExecutor.executeTask({
       job: [command],
       application,
@@ -49,8 +46,6 @@ export class LoadBalancerWriter {
   ): IPromise<ITask> {
     Object.assign(command, params);
     command.type = 'upsertLoadBalancer';
-
-    InfrastructureCaches.clearCache('loadBalancers');
 
     return TaskExecutor.executeTask({
       job: [command],

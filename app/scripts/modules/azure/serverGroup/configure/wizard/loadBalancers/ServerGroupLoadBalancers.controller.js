@@ -60,7 +60,6 @@ module.exports = angular
         ModalWizard.markComplete('load-balancers');
         $scope.command.selectedVnetSubnets = [];
         $scope.command.selectedSubnet = null;
-        InfrastructureCaches.clearCache('networks');
         loadVnetSubnets(item);
       };
     },

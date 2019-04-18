@@ -103,8 +103,6 @@ module.exports = angular
 
         ctrl.selectedVnets = [];
 
-        InfrastructureCaches.clearCache('networks');
-
         NetworkReader.listNetworks().then(function(vnets) {
           if (vnets.azure) {
             vnets.azure.forEach(vnet => {
