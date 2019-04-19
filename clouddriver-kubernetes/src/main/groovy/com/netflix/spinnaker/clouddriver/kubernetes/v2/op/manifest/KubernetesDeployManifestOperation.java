@@ -98,6 +98,8 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
 
     Set<Artifact> boundArtifacts = new HashSet<>();
 
+    validateManifestsForRolloutStrategies(inputManifests);
+
     for (KubernetesManifest manifest : inputManifests) {
       if (StringUtils.isEmpty(manifest.getNamespace()) && manifest.getKind().isNamespaced()) {
         manifest.setNamespace(credentials.getDefaultNamespace());
@@ -111,6 +113,8 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
       if (deployer == null) {
         throw new IllegalArgumentException("No deployer available for Kubernetes object kind '" + manifest.getKind().toString() + "', unable to continue.");
       }
+
+      KubernetesManifestAnnotater.validateAnnotationsForRolloutStrategies(manifest, description.getStrategy());
 
       getTask().updateStatus(OP_NAME, "Swapping out artifacts in " + manifest.getFullResourceName() + " from context...");
       ReplaceResult replaceResult = deployer.replaceArtifacts(manifest, artifacts, description.getAccount());
@@ -205,6 +209,14 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
 
   private void applyTraffic(KubernetesManifestTraffic traffic, KubernetesManifest target) {
     traffic.getLoadBalancers().forEach(l -> attachLoadBalancer(l, target));
+  }
+
+  private void validateManifestsForRolloutStrategies(List<KubernetesManifest> manifests) {
+    if (description.getStrategy() != null && (manifests.size() != 1 || manifests.get(0).getKind() != KubernetesKind.REPLICA_SET)) {
+      throw new RuntimeException(
+        "Spinnaker can manage traffic for ReplicaSets only. Please deploy exactly one ReplicaSet manifest or disable rollout strategies."
+      );
+    }
   }
 
   private void attachLoadBalancer(String loadBalancerName, KubernetesManifest target) {

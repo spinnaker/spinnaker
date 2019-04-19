@@ -40,9 +40,16 @@ public class KubernetesDeployManifestDescription extends KubernetesAtomicOperati
 
   private boolean enableTraffic = true;
   private List<String> services;
+  private Strategy strategy;
 
   public enum Source {
     artifact,
     text
+  }
+
+  public enum Strategy {
+    RED_BLACK,
+    HIGHLANDER,
+    NONE
   }
 }

@@ -229,6 +229,17 @@ public class KubernetesManifestAnnotater {
     storeAnnotation(annotations, LOAD_BALANCERS, loadBalancers);
   }
 
+  public static void validateAnnotationsForRolloutStrategies(KubernetesManifest manifest, KubernetesDeployManifestDescription.Strategy strategy) {
+    Map<String, String> annotations = manifest.getAnnotations();
+    Integer maxVersionHistory = getAnnotation(annotations, MAX_VERSION_HISTORY, new TypeReference<Integer>() {});
+    if (strategy == KubernetesDeployManifestDescription.Strategy.RED_BLACK && maxVersionHistory != null && maxVersionHistory < 2) {
+      throw new RuntimeException(String.format(
+        "The max version history specified in your manifest conflicts with the behavior of the Red/Black rollout strategy. Please update your %s annotation to a value greater than or equal to 2.",
+        MAX_VERSION_HISTORY
+      ));
+    }
+  }
+
   public static KubernetesCachingProperties getCachingProperties(KubernetesManifest manifest) {
     Map<String, String> annotations = manifest.getAnnotations();
 
