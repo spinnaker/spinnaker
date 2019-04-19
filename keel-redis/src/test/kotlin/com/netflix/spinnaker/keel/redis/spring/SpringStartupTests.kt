@@ -1,8 +1,10 @@
 package com.netflix.spinnaker.keel.redis.spring
 
 import com.netflix.spinnaker.keel.KeelApplication
+import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.ResourceVersionTracker
+import com.netflix.spinnaker.keel.redis.RedisArtifactRepository
 import com.netflix.spinnaker.keel.redis.RedisLock
 import com.netflix.spinnaker.keel.redis.RedisResourceRepository
 import com.netflix.spinnaker.keel.redis.RedisResourceVersionTracker
@@ -28,6 +30,9 @@ import strikt.assertions.isA
 internal class SpringStartupTests {
 
   @Autowired
+  lateinit var artifactRepository: ArtifactRepository
+
+  @Autowired
   lateinit var resourceRepository: ResourceRepository
 
   @Autowired
@@ -35,6 +40,11 @@ internal class SpringStartupTests {
 
   @Autowired
   lateinit var lock: Lock
+
+  @Test
+  fun `uses RedisArtifactRepository`() {
+    expectThat(artifactRepository).isA<RedisArtifactRepository>()
+  }
 
   @Test
   fun `uses RedisResourceRepository`() {
