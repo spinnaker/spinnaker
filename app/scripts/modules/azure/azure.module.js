@@ -5,6 +5,7 @@ const angular = require('angular');
 import { CloudProviderRegistry, DeploymentStrategyRegistry } from '@spinnaker/core';
 
 import './help/azure.help';
+import './logo/azure.logo.less';
 
 // load all templates into the $templateCache
 var templates = require.context('./', true, /\.html$/);
@@ -39,7 +40,7 @@ module.exports = angular
     CloudProviderRegistry.registerProvider('azure', {
       name: 'Azure',
       logo: {
-        path: require('./logo_azure.png'),
+        path: require('./logo/logo_azure.png'),
       },
       image: {
         reader: 'azureImageReader',
