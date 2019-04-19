@@ -27,4 +27,8 @@ class InMemoryArtifactRepository : ArtifactRepository {
 
   override fun versions(artifact: DeliveryArtifact): List<DeliveryArtifactVersion> =
     artifacts[artifact] ?: emptyList()
+
+  fun dropAll() {
+    artifacts.clear()
+  }
 }
