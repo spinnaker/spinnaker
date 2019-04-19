@@ -14,3 +14,6 @@ databaseChangeLog:
   - include:
       file: changelog/20190412-resource-events.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20190418-delivery-artifact.yml
+      relativeToChangelogFile: true

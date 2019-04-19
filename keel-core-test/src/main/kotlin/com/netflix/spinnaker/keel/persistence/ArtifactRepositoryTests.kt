@@ -95,8 +95,8 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
         test("the new version is persisted") {
           expectThat(repository.versions(artifact)) {
             hasSize(2)
-            first().get { version }.isEqualTo("2.0")
-            second().get { version }.isEqualTo("1.0")
+            first().version.isEqualTo("2.0")
+            second().version.isEqualTo("1.0")
           }
         }
       }
@@ -106,3 +106,6 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
 
 private fun <T : Iterable<E>, E> Assertion.Builder<T>.second(): Assertion.Builder<E> =
   get { toList()[1] }
+
+private val Assertion.Builder<DeliveryArtifactVersion>.version: Assertion.Builder<String>
+  get() = get { version }

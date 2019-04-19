@@ -1,0 +1,106 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-delivery-artifact-table
+      author: fletch
+      changes:
+        - createTable:
+            tableName: delivery_artifact
+            columns:
+              - column:
+                  name: name
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: type
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+        - modifySql:
+            dbms: mysql
+            append:
+              value: " engine innodb"
+      rollback:
+        - dropTable:
+            tableName: delivery_artifact
+  - changeSet:
+      id: create-delivery-artifact-version-table
+      author: fletch
+      changes:
+        - createTable:
+            tableName: delivery_artifact_version
+            columns:
+              - column:
+                  name: name
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: type
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: version
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: provenance
+                  type: varchar(255)
+                  constraints:
+                    nullable: true
+        - modifySql:
+            dbms: mysql
+            append:
+              value: " engine innodb"
+      rollback:
+        - dropTable:
+            tableName: delivery_artifact_version
+  - changeSet:
+      id: create-delivery-artifact-indices
+      author: fletch
+      changes:
+        - createIndex:
+            indexName: delivery_artifact_name_type_idx
+            tableName: delivery_artifact
+            unique: true
+            columns:
+              - column:
+                  name: name
+              - column:
+                  name: type
+      rollback:
+        - dropIndex:
+            indexName: delivery_artifact_name_type_idx
+            tableName: delivery_artifact
+  - changeSet:
+      id: create-delivery-artifact-version-indices
+      author: fletch
+      changes:
+        - createIndex:
+            indexName: delivery_artifact_version_name_type_version_idx
+            tableName: delivery_artifact_version
+            unique: true
+            columns:
+              - column:
+                  name: name
+              - column:
+                  name: type
+              - column:
+                  name: version
+        - createIndex:
+            indexName: delivery_artifact_version_name_type_idx
+            tableName: delivery_artifact_version
+            columns:
+              - column:
+                  name: name
+              - column:
+                  name: type
+      rollback:
+        - dropIndex:
+            indexName: delivery_artifact_version_name_type_version_idx
+            tableName: delivery_artifact_version
+        - dropIndex:
+            indexName: delivery_artifact_version_name_type_idx
+            tableName: delivery_artifact_version

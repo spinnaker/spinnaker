@@ -9,6 +9,7 @@ interface ArtifactRepository {
   fun store(artifact: DeliveryArtifact)
   fun store(artifactVersion: DeliveryArtifactVersion)
 
+  // TODO: should this just return boolean?
   fun get(name: String, type: ArtifactType): DeliveryArtifact?
 
   fun versions(artifact: DeliveryArtifact): List<DeliveryArtifactVersion>

@@ -15,8 +15,8 @@ import com.netflix.spinnaker.keel.persistence.ResourceHeader
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import de.huxhorn.sulky.ulid.ULID
 import org.jooq.DSLContext
-import org.jooq.impl.DSL
 import org.jooq.impl.DSL.field
+import org.jooq.impl.DSL.table
 import org.slf4j.LoggerFactory
 import java.sql.ResultSet
 import java.sql.Timestamp
@@ -183,8 +183,8 @@ class SqlResourceRepository(
   }
 
   companion object {
-    private val RESOURCE = DSL.table("resource")
-    private val RESOURCE_EVENT = DSL.table("resource_event")
+    private val RESOURCE = table("resource")
+    private val RESOURCE_EVENT = table("resource_event")
   }
 
   private fun <T : Any> ResultSet.toResource(specType: Class<T>): Resource<T> =
