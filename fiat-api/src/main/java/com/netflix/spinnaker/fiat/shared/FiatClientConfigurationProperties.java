@@ -71,7 +71,7 @@ public class FiatClientConfigurationProperties {
         return maxBackoffMillis;
       }
 
-      return dynamicConfigService.getConfig(Long.class, "fiat.retry.maxBackoffMills", maxBackoffMillis);
+      return dynamicConfigService.getConfig(Long.class, "fiat.retry.maxBackoffMillis", maxBackoffMillis);
     }
 
     public long getInitialBackoffMillis() {
