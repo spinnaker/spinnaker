@@ -163,6 +163,7 @@ public class DeployManifestTask extends AbstractCloudProviderAwareTask implement
     if (context.getTrafficManagement() != null && context.getTrafficManagement().isEnabled()) {
       task.put("services", context.getTrafficManagement().getOptions().getServices());
       task.put("enableTraffic", context.getTrafficManagement().getOptions().isEnableTraffic());
+      task.put("strategy", context.getTrafficManagement().getOptions().getStrategy().name());
     } else {
       // For backwards compatibility, traffic is always enabled to new server groups when the new traffic management
       // features are not enabled.
