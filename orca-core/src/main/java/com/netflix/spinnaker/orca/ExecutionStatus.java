@@ -102,7 +102,7 @@ public enum ExecutionStatus {
     return halt;
   }
 
-  public static final Collection<ExecutionStatus> COMPLETED = Collections.unmodifiableList(Arrays.asList(SUCCEEDED, STOPPED, SKIPPED, TERMINAL, FAILED_CONTINUE));
+  public static final Collection<ExecutionStatus> COMPLETED = Collections.unmodifiableList(Arrays.asList(CANCELED, SUCCEEDED, STOPPED, SKIPPED, TERMINAL, FAILED_CONTINUE));
 
   private static final Collection<ExecutionStatus> SUCCESSFUL = Collections.unmodifiableList(Arrays.asList(SUCCEEDED, STOPPED, SKIPPED));
   private static final Collection<ExecutionStatus> FAILURE = Collections.unmodifiableList(Arrays.asList(TERMINAL, STOPPED, FAILED_CONTINUE));
