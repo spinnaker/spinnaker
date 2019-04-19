@@ -24,7 +24,6 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.DeployManifestConte
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.DeployManifestTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ManifestForceCacheRefreshTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ManifestStrategyStagesAdder;
-import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ManifestStrategyType;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.PromoteManifestKatoOutputsTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.WaitForManifestStableTask;
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
@@ -35,8 +34,6 @@ import com.netflix.spinnaker.orca.pipeline.tasks.artifacts.BindProducedArtifacts
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-
-import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
