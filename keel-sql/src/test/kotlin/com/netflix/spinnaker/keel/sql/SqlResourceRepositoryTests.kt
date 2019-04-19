@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.keel.sql
 
-import com.netflix.spinnaker.keel.info.InstanceIdSupplier
 import com.netflix.spinnaker.keel.persistence.ResourceRepositoryTests
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import org.jooq.SQLDialect.MYSQL_5_7
@@ -16,11 +15,7 @@ internal object SqlResourceRepositoryTests : ResourceRepositoryTests<SqlResource
   override fun factory(clock: Clock): SqlResourceRepository {
     return SqlResourceRepository(
       jooq,
-      configuredObjectMapper(),
-      clock,
-      object : InstanceIdSupplier {
-        override fun get() = "localhost"
-      }
+      configuredObjectMapper()
     )
   }
 

@@ -8,7 +8,6 @@ import com.netflix.spinnaker.keel.api.ResourceMetadata
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.UID
 import com.netflix.spinnaker.keel.events.ResourceEvent
-import com.netflix.spinnaker.keel.info.InstanceIdSupplier
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceName
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceUID
 import com.netflix.spinnaker.keel.persistence.ResourceHeader
@@ -18,105 +17,78 @@ import org.jooq.DSLContext
 import org.jooq.impl.DSL.field
 import org.jooq.impl.DSL.table
 import org.slf4j.LoggerFactory
-import java.sql.ResultSet
 import java.sql.Timestamp
-import java.time.Clock
-import java.time.Instant
 
 class SqlResourceRepository(
   private val jooq: DSLContext,
-  private val objectMapper: ObjectMapper,
-  private val clock: Clock,
-  private val instanceIdSupplier: InstanceIdSupplier
+  private val objectMapper: ObjectMapper
 ) : ResourceRepository {
 
   override fun allResources(callback: (ResourceHeader) -> Unit) {
     jooq
-      .select(
-        field("uid"),
-        field("api_version"),
-        field("kind"),
-        field("name"),
-        field("resource_version")
-      )
+      .select(UID, API_VERSION, KIND, NAME, RESOURCE_VERSION)
       .from(RESOURCE)
       .fetch()
-      .intoResultSet()
-      .apply {
-        while (next()) {
-          callback(
-            ResourceHeader(
-              uid = uid,
-              name = resourceName,
-              resourceVersion = resourceVersion,
-              apiVersion = apiVersion,
-              kind = kind
-            )
-          )
-        }
+      .map { (uid, apiVersion, kind, name, resourceVersion) ->
+        ResourceHeader(ULID.parseULID(uid), ResourceName(name), resourceVersion, ApiVersion(apiVersion), kind)
       }
+      .forEach(callback)
   }
 
   override fun <T : Any> get(uid: UID, specType: Class<T>): Resource<T> {
     return jooq
-      .select(
-        field("uid"),
-        field("api_version"),
-        field("kind"),
-        field("name"),
-        field("resource_version"),
-        field("metadata"),
-        field("spec")
-      )
+      .select(UID, API_VERSION, KIND, NAME, RESOURCE_VERSION, METADATA, SPEC)
       .from(RESOURCE)
-      .where(field("uid").eq(uid.toString()))
-      .fetch()
-      .intoResultSet()
-      .run {
-        if (next()) {
-          toResource(specType)
-        } else {
-          throw NoSuchResourceUID(uid)
-        }
-      }
+      .where(UID.eq(uid.toString()))
+      .fetchOne()
+      ?.let { (uid, apiVersion, kind, name, resourceVersion, metadata, spec) ->
+        Resource(
+          ApiVersion(apiVersion),
+          kind,
+          ResourceMetadata(
+            ResourceName(name),
+            resourceVersion,
+            ULID.parseULID(uid),
+            objectMapper.readValue(metadata)
+          ),
+          objectMapper.readValue(spec, specType)
+        )
+      } ?: throw NoSuchResourceUID(uid)
   }
 
   override fun <T : Any> get(name: ResourceName, specType: Class<T>): Resource<T> {
     return jooq
-      .select(
-        field("uid"),
-        field("api_version"),
-        field("kind"),
-        field("name"),
-        field("resource_version"),
-        field("metadata"),
-        field("spec")
-      )
+      .select(UID, API_VERSION, KIND, NAME, RESOURCE_VERSION, METADATA, SPEC)
       .from(RESOURCE)
-      .where(field("name").eq(name.value))
-      .fetch()
-      .intoResultSet()
-      .run {
-        if (next()) {
-          toResource(specType)
-        } else {
-          throw NoSuchResourceName(name)
-        }
-      }
+      .where(NAME.eq(name.value))
+      .fetchOne()
+      ?.let { (uid, apiVersion, kind, name, resourceVersion, metadata, spec) ->
+        Resource(
+          ApiVersion(apiVersion),
+          kind,
+          ResourceMetadata(
+            ResourceName(name),
+            resourceVersion,
+            ULID.parseULID(uid),
+            objectMapper.readValue(metadata)
+          ),
+          objectMapper.readValue(spec, specType)
+        )
+      } ?: throw NoSuchResourceName(name)
   }
 
   override fun store(resource: Resource<*>) {
     jooq.inTransaction {
       val uid = resource.metadata.uid.toString()
       val updatePairs = mapOf(
-        field("api_version") to resource.apiVersion.toString(),
-        field("kind") to resource.kind,
-        field("name") to resource.metadata.name.value,
-        field("resource_version") to resource.metadata.resourceVersion,
-        field("metadata") to objectMapper.writeValueAsString(resource.metadata.data),
-        field("spec") to objectMapper.writeValueAsString(resource.spec)
+        API_VERSION to resource.apiVersion.toString(),
+        KIND to resource.kind,
+        NAME to resource.metadata.name.value,
+        RESOURCE_VERSION to resource.metadata.resourceVersion,
+        METADATA to objectMapper.writeValueAsString(resource.metadata.data),
+        SPEC to objectMapper.writeValueAsString(resource.spec)
       )
-      val insertPairs = updatePairs + (field("uid") to uid)
+      val insertPairs = updatePairs + (UID to uid)
       insertInto(
         RESOURCE,
         *insertPairs.keys.toTypedArray()
@@ -130,33 +102,22 @@ class SqlResourceRepository(
 
   override fun eventHistory(uid: UID): List<ResourceEvent> =
     jooq
-      .select(
-        field("json")
-      )
+      .select(JSON)
       .from(RESOURCE_EVENT)
-      .where(field("uid").eq(uid.toString()))
-      .orderBy(field("timestamp").desc())
+      .where(UID.eq(uid.toString()))
+      .orderBy(TIMESTAMP.desc())
       .fetch()
-      .intoResultSet()
-      .run {
-        val results = mutableListOf<ResourceEvent>()
-        while (next()) {
-          results.add(event)
-        }
-        results
+      .map { (json) ->
+        objectMapper.readValue<ResourceEvent>(json)
       }
-      .apply {
-        if (isEmpty()) throw NoSuchResourceUID(uid)
+      .ifEmpty {
+        throw NoSuchResourceUID(uid)
       }
 
   override fun appendHistory(event: ResourceEvent) {
     jooq.inTransaction {
       insertInto(RESOURCE_EVENT)
-        .columns(
-          field("uid"),
-          field("timestamp"),
-          field("json")
-        )
+        .columns(UID, TIMESTAMP, JSON)
         .values(
           event.uid.toString(),
           event.timestamp.let(Timestamp::from),
@@ -168,16 +129,16 @@ class SqlResourceRepository(
 
   override fun delete(name: ResourceName) {
     jooq.inTransaction {
-      val uid = select(field("uid"))
+      val uid = select(UID)
         .from(RESOURCE)
-        .where(field("name").eq(name.value))
-        .fetchOne("uid", String::class.java)
+        .where(NAME.eq(name.value))
+        .fetchOne(UID)
         .let(ULID::parseULID)
       deleteFrom(RESOURCE)
-        .where(field("uid").eq(uid.toString()))
+        .where(UID.eq(uid.toString()))
         .execute()
       deleteFrom(RESOURCE_EVENT)
-        .where(field("uid").eq(uid.toString()))
+        .where(UID.eq(uid.toString()))
         .execute()
     }
   }
@@ -185,43 +146,17 @@ class SqlResourceRepository(
   companion object {
     private val RESOURCE = table("resource")
     private val RESOURCE_EVENT = table("resource_event")
+
+    private val UID = field("uid", String::class.java)
+    private val API_VERSION = field("api_version", String::class.java)
+    private val KIND = field("kind", String::class.java)
+    private val NAME = field("name", String::class.java)
+    private val RESOURCE_VERSION = field("resource_version", Long::class.java)
+    private val METADATA = field("metadata", String::class.java)
+    private val SPEC = field("spec", String::class.java)
+    private val JSON = field("json", String::class.java)
+    private val TIMESTAMP = field("timestamp", Timestamp::class.java)
   }
-
-  private fun <T : Any> ResultSet.toResource(specType: Class<T>): Resource<T> =
-    Resource(
-      apiVersion,
-      kind,
-      metadata,
-      spec(specType)
-    )
-
-  private val ResultSet.metadata: ResourceMetadata
-    get() = ResourceMetadata(
-      name = resourceName,
-      uid = uid,
-      resourceVersion = resourceVersion,
-      data = metadataAttributes)
-  private val ResultSet.metadataAttributes: Map<String, Any?>
-    get() = objectMapper.readValue(getString("metadata"))
-  private val ResultSet.resourceName: ResourceName
-    get() = getString("name").let(::ResourceName)
-  private val ResultSet.resourceVersion: Long
-    get() = getLong("resource_version")
-  private val ResultSet.apiVersion: ApiVersion
-    get() = getString("api_version").let(::ApiVersion)
-  private val ResultSet.kind: String
-    get() = getString("kind")
-  private val ResultSet.uid: UID
-    get() = getString("uid").let(ULID::parseULID)
-
-  private fun <T : Any> ResultSet.spec(type: Class<T>): T =
-    objectMapper.readValue(getString("spec"), type)
-
-  private val ResultSet.timestamp: Instant
-    get() = getTimestamp("timestamp").toInstant()
-
-  private val ResultSet.event: ResourceEvent
-    get() = objectMapper.readValue(getString("json"))
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 }

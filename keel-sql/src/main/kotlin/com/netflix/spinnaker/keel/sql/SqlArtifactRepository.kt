@@ -6,8 +6,6 @@ import com.netflix.spinnaker.keel.api.DeliveryArtifactVersion
 import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import org.jooq.DSLContext
-import org.jooq.Record
-import org.jooq.ResultQuery
 import org.jooq.impl.DSL.field
 import org.jooq.impl.DSL.table
 import org.slf4j.LoggerFactory
@@ -31,14 +29,15 @@ class SqlArtifactRepository(
         .where(NAME.eq(artifactVersion.artifact.name))
         .and(TYPE.eq(artifactVersion.artifact.type.name))
         .fetchOne()
-      if (uid == null) {
-        throw IllegalArgumentException()
-      } else {
-        insertInto(DELIVERY_ARTIFACT_VERSION, DELIVERY_ARTIFACT_UID, VERSION, PROVENANCE)
-          .values(uid.value1(), artifactVersion.version, artifactVersion.provenance.toASCIIString())
-          .onDuplicateKeyIgnore()
-          .execute()
+
+      requireNotNull(uid) {
+        "No registered artifact with name ${artifactVersion.artifact.name} and type ${artifactVersion.artifact.type}"
       }
+
+      insertInto(DELIVERY_ARTIFACT_VERSION, DELIVERY_ARTIFACT_UID, VERSION, PROVENANCE)
+        .values(uid.value1(), artifactVersion.version, artifactVersion.provenance.toASCIIString())
+        .onDuplicateKeyIgnore()
+        .execute()
     }
   }
 
@@ -77,7 +76,3 @@ class SqlArtifactRepository(
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 }
-
-private inline fun <reified E> Record.into(): E = into(E::class.java)
-
-private inline fun <reified E> ResultQuery<*>.fetchInto(): List<E> = fetchInto(E::class.java)
