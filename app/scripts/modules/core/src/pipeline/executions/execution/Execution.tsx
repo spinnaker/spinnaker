@@ -1,19 +1,17 @@
 import * as React from 'react';
 import * as ReactGA from 'react-ga';
-import { clone, isEqual, keyBy, truncate } from 'lodash';
+import { clone, isEqual } from 'lodash';
 import { $location } from 'ngimport';
 import { Subscription } from 'rxjs';
 import * as classNames from 'classnames';
-import memoizeOne from 'memoize-one';
 
 import { Application } from 'core/application/application.model';
 import { CopyToClipboard } from 'core/utils';
 import { StageExecutionDetails } from 'core/pipeline/details/StageExecutionDetails';
 import { ExecutionStatus } from 'core/pipeline/status/ExecutionStatus';
-import { ExecutionParameters } from 'core/pipeline/status/ExecutionParameters';
+import { ParametersAndArtifacts } from 'core/pipeline/status/ParametersAndArtifacts';
 import { IExecution, IRestartDetails, IPipeline } from 'core/domain';
 import { IExecutionViewState, IPipelineGraphNode } from 'core/pipeline/config/graph/pipelineGraph.service';
-import { ResolvedArtifactList } from 'core/pipeline/status/ResolvedArtifactList';
 import { OrchestratedItemRunningTime } from './OrchestratedItemRunningTime';
 import { SETTINGS } from 'core/config/settings';
 import { AccountTag } from 'core/account';
@@ -52,13 +50,6 @@ export interface IExecutionState {
   sortFilter: ISortFilter;
   restartDetails: IRestartDetails;
   runningTimeInMs: number;
-}
-
-export interface IDisplayableParameter {
-  key: string;
-  value: string;
-  showTruncatedValue?: boolean;
-  valueTruncated?: string;
 }
 
 export class Execution extends React.Component<IExecutionProps, IExecutionState> {
@@ -137,11 +128,6 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
     });
   };
 
-  public toggleParams = (): void => {
-    const { showingParams } = this.state;
-    this.setState({ showingParams: !showingParams });
-  };
-
   public getUrl(): string {
     let url = $location.absUrl();
     if (!this.props.standalone) {
@@ -200,54 +186,6 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
       submitMethod: () => executionService.resumeExecution(this.props.application, this.props.execution.id),
     });
   }
-
-  private getDisplayableParameters = memoizeOne(
-    (
-      execution: IExecution,
-      pipelineConfig: IPipeline,
-    ): { displayableParameters: IDisplayableParameter[]; pinnedDisplayableParameters: IDisplayableParameter[] } => {
-      // these are internal parameters that are not useful to end users
-      const strategyExclusions = [
-        'parentPipelineId',
-        'strategy',
-        'parentStageId',
-        'deploymentDetails',
-        'cloudProvider',
-      ];
-
-      const truncateLength = 200;
-
-      const isParamDisplayable = (paramKey: string) =>
-        execution.isStrategy ? !strategyExclusions.includes(paramKey) : true;
-
-      const displayableParameters: IDisplayableParameter[] = Object.keys(
-        (execution.trigger && execution.trigger.parameters) || {},
-      )
-        .filter(isParamDisplayable)
-        .sort()
-        .map((key: string) => {
-          const value = JSON.stringify(execution.trigger.parameters[key]);
-          const showTruncatedValue = value.length > truncateLength;
-          let valueTruncated;
-          if (showTruncatedValue) {
-            valueTruncated = truncate(value, { length: truncateLength });
-          }
-          return { key, value, valueTruncated, showTruncatedValue };
-        });
-
-      let pinnedDisplayableParameters: IDisplayableParameter[] = [];
-
-      if (pipelineConfig) {
-        const paramConfigIndexByName = keyBy(pipelineConfig.parameterConfig, 'name');
-        const isParamPinned = (param: IDisplayableParameter): boolean =>
-          paramConfigIndexByName[param.key] && paramConfigIndexByName[param.key].pinned; // an older execution's parameter might be missing from a newer pipelineConfig.parameterConfig
-
-        pinnedDisplayableParameters = displayableParameters.filter(isParamPinned);
-      }
-
-      return { displayableParameters, pinnedDisplayableParameters };
-    },
-  );
 
   public componentDidMount(): void {
     const { execution } = this.props;
@@ -332,9 +270,7 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
       cancelHelpText,
       pipelineConfig,
     } = this.props;
-    const { pipelinesUrl, restartDetails, showingDetails, showingParams, sortFilter, viewState } = this.state;
-    const { trigger } = execution;
-    const { artifacts, resolvedExpectedArtifacts } = trigger;
+    const { pipelinesUrl, restartDetails, showingDetails, sortFilter, viewState } = this.state;
 
     const accountLabels = this.props.execution.deploymentTargets.map(account => (
       <AccountTag key={account} account={account} />
@@ -362,15 +298,6 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
       'show-durations': showDurations,
     });
 
-    const { displayableParameters, pinnedDisplayableParameters } = this.getDisplayableParameters(
-      execution,
-      pipelineConfig,
-    );
-
-    const parametersAndArtifactsExpanded =
-      showingParams ||
-      (displayableParameters.length === pinnedDisplayableParameters.length && !resolvedExpectedArtifacts.length);
-
     return (
       <div className={className} id={`execution-${execution.id}`}>
         <div className={`execution-overview group-by-${sortFilter.groupBy}`}>
@@ -388,12 +315,7 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
               {execution.name}
             </h4>
           )}
-          <ExecutionStatus
-            execution={execution}
-            showingDetails={showingDetails}
-            showingParams={showingParams}
-            standalone={standalone}
-          />
+          <ExecutionStatus execution={execution} showingDetails={showingDetails} standalone={standalone} />
           <div className="execution-bar">
             <div className="stages">
               {executionMarkers}
@@ -471,30 +393,11 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
             )}
           </div>
 
-          <div className="execution-parameters-button">
-            <a className="clickable" onClick={this.toggleParams}>
-              <span
-                className={`small glyphicon ${
-                  parametersAndArtifactsExpanded ? 'glyphicon-chevron-down' : 'glyphicon-chevron-right'
-                }`}
-              />
-              {parametersAndArtifactsExpanded ? '' : 'View All '}
-              Parameters/Artifacts ({displayableParameters.length}/{`${resolvedExpectedArtifacts.length}`})
-            </a>
-          </div>
-          <ExecutionParameters
-            shouldShowAllParams={showingParams}
-            displayableParameters={displayableParameters}
-            pinnedDisplayableParameters={pinnedDisplayableParameters}
+          <ParametersAndArtifacts
+            execution={execution}
+            expandParamsOnInit={standalone}
+            pipelineConfig={pipelineConfig}
           />
-
-          {SETTINGS.feature.artifacts && (
-            <ResolvedArtifactList
-              artifacts={artifacts}
-              resolvedExpectedArtifacts={resolvedExpectedArtifacts}
-              showingExpandedArtifacts={showingParams}
-            />
-          )}
 
           {!standalone && (
             <div className="execution-details-button">

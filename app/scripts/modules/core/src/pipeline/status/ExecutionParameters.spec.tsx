@@ -4,8 +4,7 @@ import { mock } from 'angular';
 
 import { REACT_MODULE } from 'core/reactShims';
 
-import { IExecutionParametersProps, ExecutionParameters } from './ExecutionParameters';
-import { IDisplayableParameter } from 'core/pipeline';
+import { IExecutionParametersProps, ExecutionParameters, IDisplayableParameter } from './ExecutionParameters';
 
 describe('<ExecutionParameters/>', () => {
   let component: ShallowWrapper<IExecutionParametersProps>;

@@ -19,7 +19,6 @@ import './executionStatus.less';
 export interface IExecutionStatusProps {
   execution: IExecution;
   showingDetails: boolean;
-  showingParams: boolean;
   standalone: boolean;
 }
 

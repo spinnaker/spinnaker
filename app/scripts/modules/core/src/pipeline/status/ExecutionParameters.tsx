@@ -1,7 +1,5 @@
 import * as React from 'react';
 
-import { IDisplayableParameter } from 'core/pipeline';
-
 import './executionStatus.less';
 import './executionParameters.less';
 
@@ -9,6 +7,13 @@ export interface IExecutionParametersProps {
   shouldShowAllParams: boolean;
   displayableParameters: IDisplayableParameter[];
   pinnedDisplayableParameters: IDisplayableParameter[];
+}
+
+export interface IDisplayableParameter {
+  key: string;
+  value: string;
+  showTruncatedValue?: boolean;
+  valueTruncated?: string;
 }
 
 interface IExecutionParametersState {
