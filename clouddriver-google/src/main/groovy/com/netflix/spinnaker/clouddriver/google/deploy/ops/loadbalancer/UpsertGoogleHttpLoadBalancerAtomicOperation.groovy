@@ -440,15 +440,19 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
           TargetHttpsProxiesSetSslCertificatesRequest setSslReq = new TargetHttpsProxiesSetSslCertificatesRequest(
             sslCertificates: [GCEUtil.buildCertificateUrl(project, httpLoadBalancer.certificate)],
           )
-          timeExecute(
+          def sslCertOp = timeExecute(
               compute.targetHttpsProxies().setSslCertificates(project, targetProxyName, setSslReq),
               "compute.targetHttpsProxies.setSslCertificates",
               TAG_SCOPE, SCOPE_GLOBAL)
+          googleOperationPoller.waitForGlobalOperation(compute, project, sslCertOp.getName(), null, task,
+            "set ssl cert ${httpLoadBalancer.certificate}", BASE_PHASE)
           UrlMapReference urlMapRef = new UrlMapReference(urlMap: urlMapUrl)
           def setUrlMapOp = timeExecute(
                   compute.targetHttpsProxies().setUrlMap(project, targetProxyName, urlMapRef),
                   "compute.targetHttpsProxies.setUrlMap",
                   TAG_SCOPE, SCOPE_GLOBAL)
+          googleOperationPoller.waitForGlobalOperation(compute, project, setUrlMapOp.getName(), null, task,
+            "set urlMap $urlMapUrl for target proxy $targetProxyName", BASE_PHASE)
           targetProxyUrl = setUrlMapOp.getTargetLink()
           break
         default:
