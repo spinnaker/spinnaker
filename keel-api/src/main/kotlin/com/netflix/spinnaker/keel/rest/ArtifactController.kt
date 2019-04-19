@@ -6,6 +6,7 @@ import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
+import org.springframework.http.HttpStatus.ACCEPTED
 import org.springframework.http.HttpStatus.CONFLICT
 import org.springframework.http.HttpStatus.CREATED
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
@@ -23,17 +24,24 @@ class ArtifactController(
 ) {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
-  @PostMapping(consumes = [APPLICATION_JSON_VALUE])
+  @PostMapping(
+    path = ["/events"],
+    consumes = [APPLICATION_JSON_VALUE]
+  )
+  @ResponseStatus(ACCEPTED)
   fun submitArtifact(@RequestBody echoArtifactEvent: EchoArtifactEvent) {
     log.debug(
       "Received artifact events {} for {}",
       echoArtifactEvent.eventName,
-      echoArtifactEvent.payload.artifacts.map { it.reference }
+      echoArtifactEvent.payload.artifacts.map { it.name }
     )
     publisher.publishEvent(echoArtifactEvent.payload)
   }
 
-  @PostMapping(path = ["/register"], consumes = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE])
+  @PostMapping(
+    consumes = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE],
+    produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
+  )
   @ResponseStatus(CREATED)
   fun register(@RequestBody artifact: DeliveryArtifact) {
     if (artifactRepository.isRegistered(artifact.name, artifact.type)) {

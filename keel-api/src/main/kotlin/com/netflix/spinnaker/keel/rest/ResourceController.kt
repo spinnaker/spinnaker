@@ -115,8 +115,8 @@ class ResourceController(
   fun onParseFailure(e: InvalidResourceStructureException): Map<String, Any?> {
     log.error(e.message)
     return mapOf(
-        "message" to e.message,
-        "cause" to e.cause.message
+      "message" to e.message,
+      "cause" to e.cause.message
     )
   }
 }

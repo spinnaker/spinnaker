@@ -43,7 +43,7 @@ internal class ArtifactControllerTests {
 
   @Test
   fun `can register a new artifact`() {
-    val request = post("/artifacts/register")
+    val request = post("/artifacts")
       .accept(APPLICATION_YAML)
       .contentType(APPLICATION_YAML)
       .content(
@@ -61,7 +61,7 @@ internal class ArtifactControllerTests {
   fun `if an artifact is already registered endpoint responds with a conflict`() {
     artifactRepository.store(DeliveryArtifact("fnord", DEB))
 
-    val request = post("/artifacts/register")
+    val request = post("/artifacts")
       .accept(APPLICATION_YAML)
       .contentType(APPLICATION_YAML)
       .content(
