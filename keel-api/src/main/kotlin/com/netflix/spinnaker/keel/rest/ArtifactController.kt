@@ -1,6 +1,8 @@
 package com.netflix.spinnaker.keel.rest
 
+import com.netflix.spinnaker.keel.api.ArtifactType
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.DeliveryArtifactVersion
 import com.netflix.spinnaker.keel.events.ArtifactEvent
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
@@ -10,6 +12,8 @@ import org.springframework.http.HttpStatus.ACCEPTED
 import org.springframework.http.HttpStatus.CONFLICT
 import org.springframework.http.HttpStatus.CREATED
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -49,6 +53,16 @@ class ArtifactController(
     }
     artifactRepository.store(artifact)
   }
+
+  @GetMapping(
+    path = ["/{name}/{type}"],
+    produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
+  )
+  fun listVersions(
+    @PathVariable name: String,
+    @PathVariable type: ArtifactType
+  ): List<DeliveryArtifactVersion> =
+    artifactRepository.versions(DeliveryArtifact(name, type))
 }
 
 data class EchoArtifactEvent(
