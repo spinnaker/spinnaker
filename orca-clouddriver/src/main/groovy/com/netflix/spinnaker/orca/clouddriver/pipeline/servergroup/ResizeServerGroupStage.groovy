@@ -45,8 +45,8 @@ class ResizeServerGroupStage extends TargetServerGroupLinearStageSupport {
       .withTask("determineHealthProviders", DetermineHealthProvidersTask)
       .withTask("resizeServerGroup", ResizeServerGroupTask)
       .withTask("monitorServerGroup", MonitorKatoTask)
-      .withTask("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
       .withTask("waitForCapacityMatch", WaitForCapacityMatchTask)
+      .withTask("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
   }
 
   @Override
