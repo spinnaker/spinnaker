@@ -113,13 +113,21 @@
                 </div>
               </td>
               <td>
-                <account-tag account="task.getValueFor('credentials')" pad="both"></account-tag>
+                <account-tag
+                  account="task.getValueFor('credentials') ? task.getValueFor('credentials') : task.getValueFor('account')"
+                  pad="both"
+                ></account-tag>
               </td>
               <td>
                 <span ng-if="task.getValueFor('region')">{{task.getValueFor('region')}}</span>
                 <span ng-if="!task.getValueFor('region') && task.getValueFor('regions')"
                   >{{task.getValueFor('regions').join(', ')}}</span
                 >
+                <span
+                  ng-if="!task.getValueFor('region') && !task.getValueFor('regions') && task.getValueFor('location')"
+                >
+                  {{task.getValueFor('location')}}
+                </span>
               </td>
               <td>
                 <task-progress-bar task="task"></task-progress-bar>
