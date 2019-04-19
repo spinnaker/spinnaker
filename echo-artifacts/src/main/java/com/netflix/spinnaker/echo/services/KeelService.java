@@ -6,6 +6,6 @@ import retrofit.http.POST;
 import java.util.Map;
 
 public interface KeelService {
-  @POST("/artifacts")
+  @POST("/artifacts/events")
   Void sendArtifactEvent(@Body Map event);
 }
