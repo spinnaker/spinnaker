@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.igor.pipeline
 
-import com.google.api.services.cloudbuild.v1.model.Build
+
 import com.netflix.spinnaker.orca.igor.tasks.StartGoogleCloudBuildTask
 import spock.lang.Specification
 
@@ -24,7 +24,7 @@ import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class GoogleCloudBuildStageSpec extends Specification {
   def ACCOUNT = "my-account"
-  def BUILD = new Build()
+  def BUILD = new HashMap<String, Object>()
 
   def "should start a build"() {
     given:

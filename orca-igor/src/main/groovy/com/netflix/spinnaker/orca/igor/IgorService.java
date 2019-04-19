@@ -15,8 +15,6 @@
  */
 package com.netflix.spinnaker.orca.igor;
 
-import com.google.api.services.cloudbuild.v1.model.Build;
-import com.google.api.services.cloudbuild.v1.model.Operation;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import retrofit.http.*;
 
@@ -72,7 +70,7 @@ public interface IgorService {
     @Path(value = "job", encode = false) String job);
 
   @POST("/gcb/builds/create/{account}")
-  Operation createGoogleCloudBuild(
+  Map<String, Object> createGoogleCloudBuild(
     @Path("account") String account,
-    @Body Build job);
+    @Body Map<String, Object> job);
 }

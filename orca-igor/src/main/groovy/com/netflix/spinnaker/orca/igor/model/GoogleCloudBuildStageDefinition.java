@@ -17,19 +17,20 @@
 package com.netflix.spinnaker.orca.igor.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.api.services.cloudbuild.v1.model.Build;
 import lombok.Getter;
+
+import java.util.Map;
 
 @Getter
 public class GoogleCloudBuildStageDefinition {
   private final String account;
-  private final Build buildDefinition;
+  private final Map<String, Object> buildDefinition;
 
   // There does not seem to be a way to auto-generate a constructor using our current version of Lombok (1.16.20) that
   // Jackson can use to deserialize.
   public GoogleCloudBuildStageDefinition(
     @JsonProperty("account") String account,
-    @JsonProperty("buildDefinition") Build buildDefinition
+    @JsonProperty("buildDefinition") Map<String, Object> buildDefinition
   ) {
     this.account = account;
     this.buildDefinition = buildDefinition;

@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.igor.tasks
 
-import com.google.api.services.cloudbuild.v1.model.Build
+
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.igor.IgorService
 import com.netflix.spinnaker.orca.pipeline.model.Execution
@@ -26,7 +26,7 @@ import spock.lang.Subject
 
 class StartGoogleCloudBuildTaskSpec extends Specification {
   def ACCOUNT = "my-account"
-  def BUILD = new Build()
+  def BUILD = new HashMap<String, Object>()
 
   Execution execution = Mock(Execution)
   IgorService igorService = Mock(IgorService)

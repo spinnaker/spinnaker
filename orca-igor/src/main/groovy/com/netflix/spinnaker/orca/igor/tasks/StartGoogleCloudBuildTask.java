@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.igor.tasks;
 
-import com.google.api.services.cloudbuild.v1.model.Operation;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.Task;
 import com.netflix.spinnaker.orca.TaskResult;
@@ -27,6 +26,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Nonnull;
+import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
@@ -36,7 +36,7 @@ public class StartGoogleCloudBuildTask implements Task {
   @Override
   @Nonnull public TaskResult execute(@Nonnull Stage stage) {
     GoogleCloudBuildStageDefinition stageDefinition = stage.mapTo(GoogleCloudBuildStageDefinition.class);
-    Operation result = igorService.createGoogleCloudBuild(stageDefinition.getAccount(), stageDefinition.getBuildDefinition());
+    Map<String, Object> result = igorService.createGoogleCloudBuild(stageDefinition.getAccount(), stageDefinition.getBuildDefinition());
     return new TaskResult(ExecutionStatus.SUCCEEDED);
   }
 }
