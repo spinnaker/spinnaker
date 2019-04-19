@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.keel.sql.SqlArtifactRepository
 import com.netflix.spinnaker.keel.sql.SqlLock
 import com.netflix.spinnaker.keel.sql.SqlResourceRepository
 import com.netflix.spinnaker.kork.sql.config.DefaultSqlConfiguration
@@ -18,6 +19,10 @@ class SqlConfiguration {
   @Bean
   fun resourceRepository(jooq: DSLContext, objectMapper: ObjectMapper) =
     SqlResourceRepository(jooq, objectMapper)
+
+  @Bean
+  fun artifactRepository(jooq: DSLContext) =
+    SqlArtifactRepository(jooq)
 
   @Bean
   fun lock(jooq: DSLContext, clock: Clock) =

@@ -1,7 +1,9 @@
 package com.netflix.spinnaker.keel.sql.spring
 
 import com.netflix.spinnaker.keel.KeelApplication
+import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
+import com.netflix.spinnaker.keel.sql.SqlArtifactRepository
 import com.netflix.spinnaker.keel.sql.SqlLock
 import com.netflix.spinnaker.keel.sql.SqlResourceRepository
 import com.netflix.spinnaker.keel.sync.Lock
@@ -28,13 +30,21 @@ import strikt.assertions.isA
 internal class SpringStartupTests {
 
   @Autowired
+  lateinit var artifactRepository: ArtifactRepository
+
+  @Autowired
   lateinit var resourceRepository: ResourceRepository
 
   @Autowired
   lateinit var lock: Lock
 
   @Test
-  fun `uses RedisResourceRepository`() {
+  fun `uses SqlArtifactRepository`() {
+    expectThat(artifactRepository).isA<SqlArtifactRepository>()
+  }
+
+  @Test
+  fun `uses SqlResourceRepository`() {
     expectThat(resourceRepository).isA<SqlResourceRepository>()
   }
 
