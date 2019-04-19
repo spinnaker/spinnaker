@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.config.OkHttpClientConfiguration;
-import com.netflix.spinnaker.okhttp.OkHttpMetricsInterceptor;
 import com.netflix.spinnaker.okhttp.SpinnakerRequestInterceptor;
 import com.squareup.okhttp.OkHttpClient;
 import lombok.Setter;
@@ -29,7 +28,6 @@ import lombok.val;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -42,9 +40,10 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.web.context.SecurityContextPersistenceFilter;
 import retrofit.Endpoints;
 import retrofit.RestAdapter;
-import retrofit.client.Client;
 import retrofit.client.OkClient;
 import retrofit.converter.JacksonConverter;
+
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @EnableWebSecurity
@@ -70,6 +69,14 @@ public class FiatAuthenticationConfig {
     objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
     OkHttpClient okHttpClient = okHttpClientConfiguration.create();
+
+    if (fiatConfigurationProperties.getConnectTimeoutMs() != null) {
+      okHttpClient.setConnectTimeout(fiatConfigurationProperties.getConnectTimeoutMs(), TimeUnit.MILLISECONDS);
+    }
+
+    if (fiatConfigurationProperties.getReadTimeoutMs() != null) {
+      okHttpClient.setConnectTimeout(fiatConfigurationProperties.getReadTimeoutMs(), TimeUnit.MILLISECONDS);
+    }
 
     return new RestAdapter.Builder()
         .setEndpoint(Endpoints.newFixedEndpoint(fiatConfigurationProperties.getBaseUrl()))

@@ -36,6 +36,10 @@ public class FiatClientConfigurationProperties {
 
   private boolean refreshable = true;
 
+  private Integer connectTimeoutMs;
+
+  private Integer readTimeoutMs;
+
   @NestedConfigurationProperty
   private PermissionsCache cache = new PermissionsCache();
 
