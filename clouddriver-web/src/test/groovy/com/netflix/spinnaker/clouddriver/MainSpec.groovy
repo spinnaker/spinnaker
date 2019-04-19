@@ -21,7 +21,7 @@ import org.springframework.test.context.TestPropertySource
 import spock.lang.Specification
 
 @SpringBootTest(classes = [Main])
-@TestPropertySource(properties = ["redis.enabled = false"])
+@TestPropertySource(properties = ["redis.enabled = false", "sql.enabled = false"])
 class MainSpec extends Specification {
   def "Ensure clouddriver starts with the default profile"() {
     when:

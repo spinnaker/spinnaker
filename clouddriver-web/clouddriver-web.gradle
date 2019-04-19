@@ -27,6 +27,7 @@ dependencies {
   compile project(':clouddriver-core')
   compile project(':clouddriver-security')
   compile project(':clouddriver-artifacts')
+  compile project(':clouddriver-sql-mysql')
 
   runtime spinnaker.dependency('kork')
   compile spinnaker.dependency('korkWeb')

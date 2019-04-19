@@ -24,9 +24,10 @@ dependencies {
   spinnaker.group("spockBase")
   testCompile spinnaker.dependency("groovy")
 
-  compile("com.netflix.spinnaker.clouddriver:cats-core:${clouddriverVersion}")
-  compile("com.netflix.spinnaker.clouddriver:cats-redis:${clouddriverVersion}")
+  compile project(':cats:cats-core')
+  compile project(':cats:cats-redis')
   compile project(":clouddriver-sql")
+  compile project(":clouddriver-core")
   compile("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.1.1")
   compile("org.jetbrains.kotlinx:kotlinx-coroutines-core-common:1.1.1")
   compile("org.jetbrains.kotlinx:kotlinx-coroutines-slf4j:1.1.1")
@@ -38,7 +39,7 @@ dependencies {
   testCompile "org.junit.jupiter:junit-jupiter-api:${spinnaker.version("jupiter")}"
   testCompile "com.nhaarman:mockito-kotlin:1.5.0"
 
-  testCompile("com.netflix.spinnaker.clouddriver:cats-test:${clouddriverVersion}")
+  testCompile project(':cats:cats-test')
   testCompile(spinnaker.dependency("korkSqlTest"))
   testRuntime "org.junit.jupiter:junit-jupiter-engine:${spinnaker.version("jupiter")}"
   testRuntime "org.junit.platform:junit-platform-launcher:${spinnaker.version("junit5")}"

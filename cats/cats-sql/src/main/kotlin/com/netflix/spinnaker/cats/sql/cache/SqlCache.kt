@@ -16,7 +16,9 @@ import kotlinx.coroutines.*
 import org.jooq.DSLContext
 import org.jooq.exception.DataAccessException
 import org.jooq.exception.SQLDialectNotSupportedException
-import org.jooq.impl.DSL.*
+import org.jooq.impl.DSL.field
+import org.jooq.impl.DSL.sql
+import org.jooq.impl.DSL.table
 import org.jooq.util.mysql.MySQLDSL
 import org.slf4j.LoggerFactory
 import org.springframework.jdbc.BadSqlGrammarException
@@ -63,7 +65,7 @@ class SqlCache(
   private var createdTables = ConcurrentSkipListSet<String>()
 
   init {
-    log.info("Using ${javaClass.simpleName}")
+    log.info("Configured for $name")
   }
 
   override fun storeType(): StoreType = SQL
@@ -1456,8 +1458,10 @@ class SqlCache(
           .ignoreExceptions(SQLDialectNotSupportedException::class.java)
           .build()
       )
+
+      Try.ofSupplier(Retry.decorateSupplier(retry, action)).get()
     } else {
-      Retry.of(
+      val retry = Retry.of(
         "sqlRead",
         RetryConfig.custom<T>()
           .maxAttempts(sqlRetryProperties.reads.maxRetries)
@@ -1465,8 +1469,9 @@ class SqlCache(
           .ignoreExceptions(SQLDialectNotSupportedException::class.java)
           .build()
       )
+
+      Try.ofSupplier(Retry.decorateSupplier(retry, action)).get()
     }
-    return Try.ofSupplier(Retry.decorateSupplier(retry, action)).get()
   }
 
   @ExperimentalContracts

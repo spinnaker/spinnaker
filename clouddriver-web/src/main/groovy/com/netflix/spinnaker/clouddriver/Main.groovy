@@ -20,6 +20,7 @@ import com.netflix.spinnaker.clouddriver.security.config.SecurityConfig
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration
 import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
 import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.boot.web.support.SpringBootServletInitializer
 import org.springframework.context.annotation.ComponentScan
@@ -42,6 +43,7 @@ import java.security.Security
 @EnableAutoConfiguration(exclude = [
     BatchAutoConfiguration,
     GroovyTemplateAutoConfiguration,
+    DataSourceAutoConfiguration
 ])
 @EnableScheduling
 class Main extends SpringBootServletInitializer {

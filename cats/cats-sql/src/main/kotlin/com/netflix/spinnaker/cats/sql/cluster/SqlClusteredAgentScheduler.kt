@@ -26,7 +26,9 @@ import com.netflix.spinnaker.cats.cluster.NodeIdentity
 import com.netflix.spinnaker.cats.cluster.NodeStatusProvider
 import com.netflix.spinnaker.cats.module.CatsModuleAware
 import com.netflix.spinnaker.cats.thread.NamedThreadFactory
+import com.netflix.spinnaker.config.ConnectionPools
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
+import com.netflix.spinnaker.kork.sql.routing.withPool
 import org.jooq.DSLContext
 import org.jooq.impl.DSL.field
 import org.jooq.impl.DSL.table
@@ -80,7 +82,9 @@ class SqlClusteredAgentScheduler(
 
   init {
     if (!tableNamespace.isNullOrBlank()) {
-      jooq.execute("CREATE TABLE IF NOT EXISTS $lockTable LIKE $referenceTable")
+      withPool(POOL_NAME) {
+        jooq.execute("CREATE TABLE IF NOT EXISTS $lockTable LIKE $referenceTable")
+      }
     }
 
     val lockInterval = agentLockAcquisitionIntervalSeconds ?: 1L
@@ -160,27 +164,29 @@ class SqlClusteredAgentScheduler(
       .filter { enabledAgents.matcher(it.key).matches() }
       .toMutableMap()
 
-    val existingLocks = jooq.select(field("agent_name"), field("lock_expiry"))
-      .from(table(lockTable))
-      .fetch()
-      .intoResultSet()
+    withPool(POOL_NAME) {
+      val existingLocks = jooq.select(field("agent_name"), field("lock_expiry"))
+        .from(table(lockTable))
+        .fetch()
+        .intoResultSet()
 
-    val now = System.currentTimeMillis()
-    while (existingLocks.next()) {
-      if (now > existingLocks.getLong("lock_expiry")) {
-        try {
-          jooq.deleteFrom(table(lockTable))
-            .where(field("agent_name").eq(existingLocks.getString("agent_name"))
-              .and(field("lock_expiry").eq(existingLocks.getString("lock_expiry"))))
-            .execute()
-        } catch (e: SQLException) {
-          log.error("Failed deleting agent lock ${existingLocks.getString("agent_name")} with expiry " +
-            existingLocks.getString("lock_expiry"), e)
+      val now = System.currentTimeMillis()
+      while (existingLocks.next()) {
+        if (now > existingLocks.getLong("lock_expiry")) {
+          try {
+            jooq.deleteFrom(table(lockTable))
+              .where(field("agent_name").eq(existingLocks.getString("agent_name"))
+                .and(field("lock_expiry").eq(existingLocks.getString("lock_expiry"))))
+              .execute()
+          } catch (e: SQLException) {
+            log.error("Failed deleting agent lock ${existingLocks.getString("agent_name")} with expiry " +
+              existingLocks.getString("lock_expiry"), e)
 
+            candidateAgentLocks.remove(existingLocks.getString("agent_name"))
+          }
+        } else {
           candidateAgentLocks.remove(existingLocks.getString("agent_name"))
         }
-      } else {
-        candidateAgentLocks.remove(existingLocks.getString("agent_name"))
       }
     }
 
@@ -198,20 +204,22 @@ class SqlClusteredAgentScheduler(
 
   private fun tryAcquireSingle(agentType: String, now: Long, timeout: Long): Boolean {
     try {
-      jooq.insertInto(table(lockTable))
-        .columns(
-          field("agent_name"),
-          field("owner_id"),
-          field("lock_acquired"),
-          field("lock_expiry")
-        )
-        .values(
-          agentType,
-          nodeIdentity.nodeIdentity,
-          now,
-          now + timeout
-        )
-        .execute()
+      withPool(POOL_NAME) {
+        jooq.insertInto(table(lockTable))
+          .columns(
+            field("agent_name"),
+            field("owner_id"),
+            field("lock_acquired"),
+            field("lock_expiry")
+          )
+          .values(
+            agentType,
+            nodeIdentity.nodeIdentity,
+            now,
+            now + timeout
+          )
+          .execute()
+      }
     } catch (e: DataIntegrityViolationException) {
       // Integrity constraint exceptions are ok: It means another clouddriver grabbed the lock before us.
       return false
@@ -225,20 +233,22 @@ class SqlClusteredAgentScheduler(
   private fun releaseLock(agentType: String, nextExecutionTime: Long) {
     val newTtl = nextExecutionTime - System.currentTimeMillis()
 
-    if (newTtl < 500L) {
-      try {
-        jooq.delete(table(lockTable)).where(field("agent_name").eq(agentType)).execute()
-      } catch (e: SQLException) {
-        log.error("Failed to immediately release lock for agent: $agentType", e)
-      }
-    } else {
-      try {
-        jooq.update(table(lockTable))
-          .set(field("lock_expiry"), System.currentTimeMillis() + newTtl)
-          .where(field("agent_name").eq(agentType))
-          .execute()
-      } catch (e: SQLException) {
-        log.error("Failed to update lock TTL for agent: $agentType", e)
+    withPool(POOL_NAME) {
+      if (newTtl < 500L) {
+        try {
+          jooq.delete(table(lockTable)).where(field("agent_name").eq(agentType)).execute()
+        } catch (e: SQLException) {
+          log.error("Failed to immediately release lock for agent: $agentType", e)
+        }
+      } else {
+        try {
+          jooq.update(table(lockTable))
+            .set(field("lock_expiry"), System.currentTimeMillis() + newTtl)
+            .where(field("agent_name").eq(agentType))
+            .execute()
+        } catch (e: SQLException) {
+          log.error("Failed to update lock TTL for agent: $agentType", e)
+        }
       }
     }
   }
@@ -249,6 +259,10 @@ class SqlClusteredAgentScheduler(
     } finally {
       activeAgents.remove(agentType)
     }
+  }
+
+  companion object {
+    private val POOL_NAME = ConnectionPools.CACHE_WRITER.value
   }
 }
 

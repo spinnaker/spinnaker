@@ -17,13 +17,13 @@
 apply from: "$rootDir/gradle/kotlin.gradle"
 
 dependencies {
-  compile("com.netflix.spinnaker.clouddriver:clouddriver-core:${clouddriverVersion}")
+  compile project(':clouddriver-core')
+  compile project(':cats:cats-core')
+
   compile spinnaker.dependency("korkSql")
   compile spinnaker.dependency("ulid")
   compile spinnaker.dependency("resilience4jRetry")
 
-  runtime "mysql:mysql-connector-java:8.0.12"
-
-  testCompile "com.netflix.spinnaker.clouddriver:clouddriver-core-tck:${clouddriverVersion}"
+  testCompile project(":clouddriver-core-tck")
   testCompile spinnaker.dependency("korkSqlTest")
 }
