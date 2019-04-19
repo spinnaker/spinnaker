@@ -11,6 +11,7 @@ import strikt.api.expectThrows
 import strikt.assertions.first
 import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
+import strikt.assertions.isFalse
 import java.net.URI
 
 abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests {
@@ -31,27 +32,32 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
       )
     }
 
-    before {
-      repository.store(artifact)
-    }
-
     after {
       flush()
     }
 
-    context("registering a new artifact version") {
-      context("the artifact is unknown") {
-        test("registering a new version throws an exception") {
-          expectThrows<IllegalArgumentException> {
-            repository.store(
-              DeliveryArtifactVersion(
-                DeliveryArtifact("some-other-artifact", DEB),
-                "58.0",
-                URI("https://my.jenkins.master/job/some-other-artifact/58")
-              )
+    context("the artifact is unknown") {
+      test("the artifact is not registered") {
+        expectThat(repository.isRegistered(artifact.name, artifact.type)).isFalse()
+      }
+
+      test("registering a new version throws an exception") {
+        expectThrows<IllegalArgumentException> {
+          repository.store(
+            DeliveryArtifactVersion(
+              artifact,
+              "1.0",
+              URI("https://my.jenkins.master/job/${artifact.name}-release/1")
             )
-          }
+          )
         }
+      }
+    }
+
+    context("the artifact is known") {
+
+      before {
+        repository.store(artifact)
       }
 
       context("the artifact version already exists") {

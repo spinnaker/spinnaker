@@ -33,12 +33,9 @@ class RedisArtifactRepository(
     }
   }
 
-  override fun get(name: String, type: ArtifactType): DeliveryArtifact? =
-    redisClient.withCommandsClient<DeliveryArtifact?> { redis ->
-      DeliveryArtifact(name, type)
-        .let {
-          if (redis.isRegistered(it)) it else null
-        }
+  override fun isRegistered(name: String, type: ArtifactType): Boolean =
+    redisClient.withCommandsClient<Boolean> { redis ->
+      redis.isRegistered(DeliveryArtifact(name, type))
     }
 
   override fun versions(artifact: DeliveryArtifact): List<DeliveryArtifactVersion> =

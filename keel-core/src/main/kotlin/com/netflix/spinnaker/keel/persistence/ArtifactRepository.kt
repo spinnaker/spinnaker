@@ -7,10 +7,10 @@ import com.netflix.spinnaker.keel.api.DeliveryArtifactVersion
 interface ArtifactRepository {
 
   fun store(artifact: DeliveryArtifact)
-  fun store(artifactVersion: DeliveryArtifactVersion)
 
-  // TODO: should this just return boolean?
-  fun get(name: String, type: ArtifactType): DeliveryArtifact?
+  fun isRegistered(name: String, type: ArtifactType): Boolean
+
+  fun store(artifactVersion: DeliveryArtifactVersion)
 
   fun versions(artifact: DeliveryArtifact): List<DeliveryArtifactVersion>
 

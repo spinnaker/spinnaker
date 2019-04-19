@@ -41,14 +41,13 @@ class SqlArtifactRepository(
     }
   }
 
-  override fun get(name: String, type: ArtifactType): DeliveryArtifact? =
+  override fun isRegistered(name: String, type: ArtifactType): Boolean =
     jooq
-      .select(NAME, TYPE)
+      .selectOne()
       .from(DELIVERY_ARTIFACT)
       .where(NAME.eq(name))
       .and(TYPE.eq(type.name))
-      .fetchOne()
-      .into<DeliveryArtifact>()
+      .fetchOne() != null
 
   override fun versions(artifact: DeliveryArtifact): List<DeliveryArtifactVersion> =
     jooq

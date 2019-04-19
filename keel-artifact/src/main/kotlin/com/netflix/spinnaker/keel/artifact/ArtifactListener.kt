@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.keel.artifact
 
 import com.netflix.spinnaker.keel.api.ArtifactType
+import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryArtifactVersion
 import com.netflix.spinnaker.keel.events.ArtifactEvent
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
@@ -17,14 +18,17 @@ class ArtifactListener(
   fun onArtifactEvent(event: ArtifactEvent) {
     log.info("Received artifact event: {}", event)
     event.artifacts.forEach {
-      val registeredArtifact = artifactRepository.get(it.name, ArtifactType.valueOf(it.type))
-      if (registeredArtifact != null) {
-        artifactRepository.store(DeliveryArtifactVersion(
-          registeredArtifact,
-          it.version,
-          it.provenance.let(::URI)
-        ))
-      }
+      DeliveryArtifactVersion(
+        DeliveryArtifact(it.name, ArtifactType.valueOf(it.type)),
+        it.version,
+        it.provenance.let(URI::create)
+      )
+        .apply {
+          if (artifactRepository.isRegistered(artifact.name, artifact.type)) {
+            log.info("Registering version {} of {} {}", version, artifact.name, artifact.type)
+            artifactRepository.store(this)
+          }
+        }
     }
   }
 

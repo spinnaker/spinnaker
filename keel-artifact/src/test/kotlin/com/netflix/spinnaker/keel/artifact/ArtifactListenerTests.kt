@@ -51,7 +51,7 @@ internal class ArtifactListenerTests : JUnit5Minutests {
 
     context("the artifact is not something we're tracking") {
       before {
-        every { repository.get(any(), any()) } returns null
+        every { repository.isRegistered(any(), any()) } returns false
 
         listener.onArtifactEvent(event)
       }
@@ -63,7 +63,7 @@ internal class ArtifactListenerTests : JUnit5Minutests {
 
     context("the artifact is registered") {
       before {
-        every { repository.get(artifact.name, artifact.type) } returns artifact
+        every { repository.isRegistered(artifact.name, artifact.type) } returns true
 
         listener.onArtifactEvent(event)
       }
@@ -74,7 +74,7 @@ internal class ArtifactListenerTests : JUnit5Minutests {
             DeliveryArtifactVersion(
               artifact,
               event.artifacts.first().version,
-              event.artifacts.first().provenance.let(::URI)
+              event.artifacts.first().provenance.let(URI::create)
             )
           )
         }

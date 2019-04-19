@@ -20,8 +20,8 @@ class InMemoryArtifactRepository : ArtifactRepository {
     }
   }
 
-  override fun get(name: String, type: ArtifactType): DeliveryArtifact? =
-    artifacts.keys.firstOrNull {
+  override fun isRegistered(name: String, type: ArtifactType) =
+    artifacts.keys.any {
       it.name == name && it.type == type
     }
 
