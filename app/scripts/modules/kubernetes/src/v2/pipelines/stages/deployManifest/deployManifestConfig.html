@@ -130,7 +130,6 @@
       </expected-artifact-multi-selector>
     </div>
     <manifest-deployment-options
-      ng-if="ctrl.checkFeatureFlag('kubernetesRolloutStrategies')"
       accounts="ctrl.metadata.backingData.accounts"
       config="ctrl.$scope.stage.trafficManagement"
       on-config-change="ctrl.handleTrafficManagementConfigChange"
