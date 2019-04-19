@@ -7,6 +7,12 @@ databaseChangeLog:
             tableName: delivery_artifact
             columns:
               - column:
+                  name: uid
+                  type: char(26)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
                   name: name
                   type: varchar(255)
                   constraints:
@@ -31,13 +37,8 @@ databaseChangeLog:
             tableName: delivery_artifact_version
             columns:
               - column:
-                  name: name
-                  type: varchar(255)
-                  constraints:
-                    nullable: false
-              - column:
-                  name: type
-                  type: varchar(255)
+                  name: delivery_artifact_uid
+                  type: char(26)
                   constraints:
                     nullable: false
               - column:
@@ -78,29 +79,20 @@ databaseChangeLog:
       id: create-delivery-artifact-version-indices
       author: fletch
       changes:
-        - createIndex:
-            indexName: delivery_artifact_version_name_type_version_idx
+        - addPrimaryKey:
+            constraintName: delivery_artifact_version_pk
             tableName: delivery_artifact_version
-            unique: true
-            columns:
-              - column:
-                  name: name
-              - column:
-                  name: type
-              - column:
-                  name: version
+            columnNames: delivery_artifact_uid, version
         - createIndex:
-            indexName: delivery_artifact_version_name_type_idx
+            indexName: delivery_artifact_version_uid_idx
             tableName: delivery_artifact_version
             columns:
               - column:
-                  name: name
-              - column:
-                  name: type
+                  name: delivery_artifact_uid
       rollback:
-        - dropIndex:
-            indexName: delivery_artifact_version_name_type_version_idx
+        - dropPrimaryKey:
+            constraintName: delivery_artifact_version_pk
             tableName: delivery_artifact_version
         - dropIndex:
-            indexName: delivery_artifact_version_name_type_idx
+            indexName: delivery_artifact_version_uid_idx
             tableName: delivery_artifact_version
