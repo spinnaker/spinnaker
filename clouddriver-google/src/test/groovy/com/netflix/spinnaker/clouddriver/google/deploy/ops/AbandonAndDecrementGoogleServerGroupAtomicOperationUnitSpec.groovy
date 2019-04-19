@@ -22,7 +22,9 @@ import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
+import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.clouddriver.google.deploy.description.AbandonAndDecrementGoogleServerGroupDescription
+import com.netflix.spinnaker.clouddriver.google.deploy.instancegroups.GoogleServerGroupManagersFactory
 import com.netflix.spinnaker.clouddriver.google.model.GoogleInstance
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
@@ -54,7 +56,9 @@ class AbandonAndDecrementGoogleServerGroupAtomicOperationUnitSpec extends Specif
     setup:
       def googleClusterProviderMock = Mock(GoogleClusterProvider)
       def serverGroup = new GoogleServerGroup(
+          name: SERVER_GROUP_NAME,
           regional: isRegional,
+          region: REGION,
           zone: ZONE,
           instances: INSTANCE_URLS.collect {
             new GoogleInstance(
@@ -79,6 +83,7 @@ class AbandonAndDecrementGoogleServerGroupAtomicOperationUnitSpec extends Specif
       @Subject def operation = new AbandonAndDecrementGoogleServerGroupAtomicOperation(description)
       operation.registry = registry
       operation.googleClusterProvider = googleClusterProviderMock
+      operation.serverGroupManagersFactory = new GoogleServerGroupManagersFactory(Mock(GoogleOperationPoller), registry)
 
     when:
       operation.operate([])

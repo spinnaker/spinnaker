@@ -16,14 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.ops
 
-import com.google.api.services.compute.model.InstanceGroupManagersAbandonInstancesRequest
-import com.google.api.services.compute.model.RegionInstanceGroupManagersAbandonInstancesRequest
+
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
+import com.netflix.spinnaker.clouddriver.google.deploy.instancegroups.GoogleServerGroupManagersFactory
 import com.netflix.spinnaker.clouddriver.google.deploy.description.AbandonAndDecrementGoogleServerGroupDescription
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
-import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 
 /**
@@ -46,6 +45,9 @@ class AbandonAndDecrementGoogleServerGroupAtomicOperation extends GoogleAtomicOp
   @Autowired
   GoogleClusterProvider googleClusterProvider
 
+  @Autowired
+  GoogleServerGroupManagersFactory serverGroupManagersFactory
+
   AbandonAndDecrementGoogleServerGroupAtomicOperation(AbandonAndDecrementGoogleServerGroupDescription description) {
     this.description = description
   }
@@ -62,34 +64,14 @@ class AbandonAndDecrementGoogleServerGroupAtomicOperation extends GoogleAtomicOp
 
     def accountName = description.accountName
     def credentials = description.credentials
-    def compute = credentials.compute
-    def project = credentials.project
     def region = description.region
     def serverGroupName = description.serverGroupName
     def serverGroup = GCEUtil.queryServerGroup(googleClusterProvider, accountName, region, serverGroupName)
-    def isRegional = serverGroup.regional
-    // Will return null if this is a regional server group.
-    def zone = serverGroup.zone
     def instanceIds = description.instanceIds
     def instanceUrls = GCEUtil.collectInstanceUrls(serverGroup, instanceIds)
 
-    if (isRegional) {
-      def instanceGroupManagers = compute.regionInstanceGroupManagers()
-      def abandonRequest = new RegionInstanceGroupManagersAbandonInstancesRequest().setInstances(instanceUrls)
-
-      timeExecute(
-          instanceGroupManagers.abandonInstances(project, region, serverGroupName, abandonRequest),
-          "compute.regionInstanceGroupManagers.abandonInstances",
-          TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region)
-    } else {
-      def instanceGroupManagers = compute.instanceGroupManagers()
-      def abandonRequest = new InstanceGroupManagersAbandonInstancesRequest().setInstances(instanceUrls)
-
-      timeExecute(
-          instanceGroupManagers.abandonInstances(project, zone, serverGroupName, abandonRequest),
-          "compute.instanceGroupManagers.abandonInstances",
-          TAG_SCOPE, SCOPE_ZONAL, TAG_ZONE, zone)
-    }
+    def serverGroupManagers = serverGroupManagersFactory.getManagers(credentials, serverGroup)
+    serverGroupManagers.abandonInstances(instanceUrls)
 
     task.updateStatus BASE_PHASE, "Done abandoning and decrementing instances " +
       "(${description.instanceIds.join(", ")}) from server group $serverGroupName in $region."

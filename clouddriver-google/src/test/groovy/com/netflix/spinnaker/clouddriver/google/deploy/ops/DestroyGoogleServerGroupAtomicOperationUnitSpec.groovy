@@ -16,35 +16,36 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.ops
 
-      import com.google.api.client.googleapis.json.GoogleJsonError
-      import com.google.api.client.googleapis.json.GoogleJsonResponseException
-      import com.google.api.client.http.HttpHeaders
-      import com.google.api.client.http.HttpResponseException
-      import com.google.api.services.compute.Compute
-      import com.google.api.services.compute.model.*
-      import com.netflix.frigga.Names
-      import com.netflix.spectator.api.DefaultRegistry
-      import com.netflix.spinnaker.clouddriver.data.task.Task
-      import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
-      import com.netflix.spinnaker.clouddriver.google.GoogleApiTestUtils
-      import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
-      import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
-      import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
-      import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
-      import com.netflix.spinnaker.clouddriver.google.deploy.description.DestroyGoogleServerGroupDescription
-      import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
-      import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService
-      import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancer
-      import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleInternalLoadBalancer
-      import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
-      import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancerProvider
-      import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
-      import spock.lang.Shared
-      import spock.lang.Specification
-      import spock.lang.Subject
-      import spock.lang.Unroll
+import com.google.api.client.googleapis.json.GoogleJsonError
+import com.google.api.client.googleapis.json.GoogleJsonResponseException
+import com.google.api.client.http.HttpHeaders
+import com.google.api.client.http.HttpResponseException
+import com.google.api.services.compute.Compute
+import com.google.api.services.compute.model.*
+import com.netflix.frigga.Names
+import com.netflix.spectator.api.DefaultRegistry
+import com.netflix.spinnaker.clouddriver.data.task.Task
+import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.google.GoogleApiTestUtils
+import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
+import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
+import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
+import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
+import com.netflix.spinnaker.clouddriver.google.deploy.description.DestroyGoogleServerGroupDescription
+import com.netflix.spinnaker.clouddriver.google.deploy.instancegroups.GoogleServerGroupManagersFactory
+import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancer
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleInternalLoadBalancer
+import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
+import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancerProvider
+import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
+import spock.lang.Shared
+import spock.lang.Specification
+import spock.lang.Subject
+import spock.lang.Unroll
 
-      class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
+class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
   private static final ACCOUNT_NAME = "auto"
   private static final PROJECT_NAME = "my_project"
   private static final SERVER_GROUP_NAME = "spinnaker-test-v000"
@@ -73,7 +74,8 @@ package com.netflix.spinnaker.clouddriver.google.deploy.ops
       def registry = new DefaultRegistry()
       def googleClusterProviderMock = Mock(GoogleClusterProvider)
       def serverGroup =
-        new GoogleServerGroup(region: REGION,
+        new GoogleServerGroup(name: SERVER_GROUP_NAME,
+                              region: REGION,
                               zone: ZONE,
                               launchConfig: [instanceTemplate: new InstanceTemplate(name: INSTANCE_TEMPLATE_NAME)]).view
       def computeMock = Mock(Compute)
@@ -113,6 +115,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy.ops
       operation.safeRetry = safeRetry
       operation.googleClusterProvider = googleClusterProviderMock
       operation.googleLoadBalancerProvider = googleLoadBalancerProviderMock
+      operation.serverGroupManagersFactory = new GoogleServerGroupManagersFactory(operation.googleOperationPoller, registry)
 
     when:
       operation.operate([])
@@ -150,12 +153,13 @@ package com.netflix.spinnaker.clouddriver.google.deploy.ops
   }
 
   @Unroll
-  void "should delete managed instance group and autoscaler if defined"() {
+  void "should delete managed instance group and autoscaler if defined (isRegional: #isRegional)"() {
     setup:
       def registry = new DefaultRegistry()
       def googleClusterProviderMock = Mock(GoogleClusterProvider)
       def serverGroup =
-        new GoogleServerGroup(region: REGION,
+        new GoogleServerGroup(name: SERVER_GROUP_NAME,
+                              region: REGION,
                               regional: isRegional,
                               zone: ZONE,
                               launchConfig: [instanceTemplate: new InstanceTemplate(name: INSTANCE_TEMPLATE_NAME)],
@@ -221,6 +225,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy.ops
       operation.safeRetry = safeRetry
       operation.googleClusterProvider = googleClusterProviderMock
       operation.googleLoadBalancerProvider = googleLoadBalancerProviderMock
+      operation.serverGroupManagersFactory = new GoogleServerGroupManagersFactory(operation.googleOperationPoller, registry)
 
     when:
       operation.operate([])
@@ -357,6 +362,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy.ops
       operation.safeRetry = safeRetry
       operation.googleClusterProvider = googleClusterProviderMock
       operation.googleLoadBalancerProvider = googleLoadBalancerProviderMock
+      operation.serverGroupManagersFactory = new GoogleServerGroupManagersFactory(operation.googleOperationPoller, registry)
 
     when:
       def closure = operation.destroyHttpLoadBalancerBackends(computeMock, PROJECT_NAME, serverGroup, googleLoadBalancerProviderMock)
