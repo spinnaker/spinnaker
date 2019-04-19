@@ -73,7 +73,6 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
           }
         }
 
-        // TODO: should we throw an exception instead?
         test("registering the same version is a no-op") {
           expectThat(repository.versions(artifact)).hasSize(1)
         }
