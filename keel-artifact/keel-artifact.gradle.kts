@@ -5,6 +5,7 @@ plugins {
 
 dependencies {
   implementation(project(":keel-core"))
+  implementation(project(":keel-plugin"))
   implementation("org.springframework:spring-context")
 
   testImplementation("dev.minutest:minutest")

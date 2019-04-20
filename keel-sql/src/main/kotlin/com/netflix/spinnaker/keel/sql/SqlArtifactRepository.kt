@@ -14,7 +14,7 @@ import java.net.URI
 class SqlArtifactRepository(
   private val jooq: DSLContext
 ) : ArtifactRepository {
-  override fun store(artifact: DeliveryArtifact) {
+  override fun register(artifact: DeliveryArtifact) {
     jooq.inTransaction {
       insertInto(DELIVERY_ARTIFACT, UID, NAME, TYPE)
         .values(randomUID().toString(), artifact.name, artifact.type.name)
@@ -22,7 +22,7 @@ class SqlArtifactRepository(
     }
   }
 
-  override fun store(artifactVersion: DeliveryArtifactVersion) {
+  override fun store(artifactVersion: DeliveryArtifactVersion): Boolean =
     jooq.inTransaction {
       val uid = select(UID)
         .from(DELIVERY_ARTIFACT)
@@ -37,9 +37,8 @@ class SqlArtifactRepository(
       insertInto(DELIVERY_ARTIFACT_VERSION, DELIVERY_ARTIFACT_UID, VERSION, PROVENANCE)
         .values(uid.value1(), artifactVersion.version, artifactVersion.provenance.toASCIIString())
         .onDuplicateKeyIgnore()
-        .execute()
+        .execute() == 1
     }
-  }
 
   override fun isRegistered(name: String, type: ArtifactType): Boolean =
     jooq

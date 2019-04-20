@@ -9,14 +9,17 @@ class InMemoryArtifactRepository : ArtifactRepository {
   private val artifacts: MutableMap<DeliveryArtifact, MutableList<DeliveryArtifactVersion>> =
     mutableMapOf()
 
-  override fun store(artifact: DeliveryArtifact) {
+  override fun register(artifact: DeliveryArtifact) {
     artifacts[artifact] = mutableListOf()
   }
 
-  override fun store(artifactVersion: DeliveryArtifactVersion) {
+  override fun store(artifactVersion: DeliveryArtifactVersion): Boolean {
     val versions = artifacts[artifactVersion.artifact] ?: throw  IllegalArgumentException()
-    if (versions.none { it.version == artifactVersion.version }) {
+    return if (versions.none { it.version == artifactVersion.version }) {
       versions.add(0, artifactVersion)
+      true
+    } else {
+      false
     }
   }
 

@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.keel.telemetry
 
 import com.netflix.spinnaker.keel.api.ApiVersion
+import com.netflix.spinnaker.keel.api.ArtifactType
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.persistence.ResourceState
@@ -27,3 +28,8 @@ data class LockAttempt(
 
 val LockAttemptSucceeded = LockAttempt(true)
 val LockAttemptFailed = LockAttempt(false)
+
+data class ArtifactVersionUpdated(
+  val name: String,
+  val type: ArtifactType
+)

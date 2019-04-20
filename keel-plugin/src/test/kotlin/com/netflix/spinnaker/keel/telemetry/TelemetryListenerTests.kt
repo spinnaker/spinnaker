@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.keel.telemetry
 
 import com.netflix.spectator.api.Counter
+import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spectator.api.Registry
 import com.netflix.spectator.api.Tag
 import com.netflix.spinnaker.keel.api.ResourceName
@@ -12,11 +13,10 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
+import org.junit.jupiter.api.fail
 import strikt.api.Assertion
-import strikt.api.catching
 import strikt.api.expectThat
 import strikt.assertions.any
-import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 
 internal object TelemetryListenerTests : JUnit5Minutests {
@@ -80,14 +80,16 @@ internal object TelemetryListenerTests : JUnit5Minutests {
 
     context("metric submission fails") {
       before {
+        every { counter.id() } returns NoopRegistry().createId("whatever")
         every { counter.increment() } throws IllegalStateException("Somebody set up us the bomb")
       }
 
       test("does not propagate exception") {
-        expectThat(catching {
+        try {
           onResourceChecked(event)
-        }).not().isA<Throwable>()
-
+        } catch (ex: Exception) {
+          fail { "Did not expect an exception but caught: ${ex.message}" }
+        }
       }
     }
   }

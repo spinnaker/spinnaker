@@ -13,14 +13,14 @@ class RedisArtifactRepository(
   private val redisClient: RedisClientDelegate,
   private val objectMapper: ObjectMapper
 ) : ArtifactRepository {
-  override fun store(artifact: DeliveryArtifact) {
+  override fun register(artifact: DeliveryArtifact) {
     redisClient.withCommandsClient<Unit> { redis ->
       redis.sadd("keel.delivery_artifacts", artifact.asJson())
     }
   }
 
-  override fun store(artifactVersion: DeliveryArtifactVersion) {
-    redisClient.withCommandsClient<Unit> { redis ->
+  override fun store(artifactVersion: DeliveryArtifactVersion): Boolean =
+    redisClient.withCommandsClient<Boolean> { redis ->
       with(artifactVersion) {
         require(redis.isRegistered(artifact)) {
           "No registered artifact with name ${artifact.name} and type ${artifact.type}"
@@ -28,10 +28,9 @@ class RedisArtifactRepository(
         redis.sadd(
           artifact.versionsKey,
           objectMapper.writeValueAsString(this)
-        )
+        ) > 0
       }
     }
-  }
 
   override fun isRegistered(name: String, type: ArtifactType): Boolean =
     redisClient.withCommandsClient<Boolean> { redis ->

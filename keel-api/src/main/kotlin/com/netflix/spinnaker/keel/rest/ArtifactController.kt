@@ -51,7 +51,7 @@ class ArtifactController(
     if (artifactRepository.isRegistered(artifact.name, artifact.type)) {
       throw ArtifactAlreadyRegistered("Delivery artifact ${artifact.name} of type ${artifact.type} is already registered")
     }
-    artifactRepository.store(artifact)
+    artifactRepository.register(artifact)
   }
 
   @GetMapping(

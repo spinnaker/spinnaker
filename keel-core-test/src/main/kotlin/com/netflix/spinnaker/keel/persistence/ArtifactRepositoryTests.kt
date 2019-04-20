@@ -12,6 +12,7 @@ import strikt.assertions.first
 import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
+import strikt.assertions.isTrue
 import java.net.URI
 
 abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests {
@@ -57,23 +58,29 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
     context("the artifact is known") {
 
       before {
-        repository.store(artifact)
+        repository.register(artifact)
       }
 
       context("the artifact version already exists") {
         before {
-          repeat(2) {
-            repository.store(
-              DeliveryArtifactVersion(
-                artifact,
-                "1.0",
-                URI("https://my.jenkins.master/job/${artifact.name}-release/1")
-              )
+          repository.store(
+            DeliveryArtifactVersion(
+              artifact,
+              "1.0",
+              URI("https://my.jenkins.master/job/${artifact.name}-release/1")
             )
-          }
+          )
         }
 
         test("registering the same version is a no-op") {
+          val result = repository.store(
+            DeliveryArtifactVersion(
+              artifact,
+              "1.0",
+              URI("https://my.jenkins.master/job/${artifact.name}-release/1")
+            )
+          )
+          expectThat(result).isFalse()
           expectThat(repository.versions(artifact)).hasSize(1)
         }
       }
@@ -87,17 +94,18 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
               URI("https://my.jenkins.master/job/${artifact.name}-release/1")
             )
           )
+        }
 
-          repository.store(
+        test("the new version is persisted") {
+          val result = repository.store(
             DeliveryArtifactVersion(
               artifact,
               "2.0",
               URI("https://my.jenkins.master/job/${artifact.name}-release/2")
             )
           )
-        }
 
-        test("the new version is persisted") {
+          expectThat(result).isTrue()
           expectThat(repository.versions(artifact)) {
             hasSize(2)
             first().version.isEqualTo("2.0")

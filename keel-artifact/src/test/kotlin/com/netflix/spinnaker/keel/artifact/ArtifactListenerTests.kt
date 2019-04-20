@@ -5,21 +5,25 @@ import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryArtifactVersion
 import com.netflix.spinnaker.keel.events.ArtifactEvent
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
+import com.netflix.spinnaker.keel.telemetry.ArtifactVersionUpdated
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import io.mockk.Called
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import org.springframework.context.ApplicationEventPublisher
 import java.net.URI
 
 internal class ArtifactListenerTests : JUnit5Minutests {
   data class Fixture(
     val event: ArtifactEvent,
     val artifact: DeliveryArtifact,
-    val repository: ArtifactRepository = mockk(relaxUnitFun = true)
+    val repository: ArtifactRepository = mockk(relaxUnitFun = true),
+    val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
   ) {
-    val listener: ArtifactListener = ArtifactListener(repository)
+    val listener: ArtifactListener = ArtifactListener(repository, publisher)
   }
 
   fun tests() = rootContext<Fixture> {
@@ -59,24 +63,50 @@ internal class ArtifactListenerTests : JUnit5Minutests {
       test("the event is ignored") {
         verify(exactly = 0) { repository.store(any<DeliveryArtifactVersion>()) }
       }
+
+      test("no telemetry is recorded") {
+        verify { publisher wasNot Called }
+      }
     }
 
     context("the artifact is registered") {
       before {
         every { repository.isRegistered(artifact.name, artifact.type) } returns true
-
-        listener.onArtifactEvent(event)
       }
 
-      test("a new artifact version is stored") {
-        verify {
-          repository.store(
-            DeliveryArtifactVersion(
-              artifact,
-              event.artifacts.first().version,
-              event.artifacts.first().provenance.let(URI::create)
+      context("the version was already known") {
+        before {
+          every { repository.store(any()) } returns false
+
+          listener.onArtifactEvent(event)
+        }
+
+        test("no telemetry is recorded") {
+          verify { publisher wasNot Called }
+        }
+      }
+
+      context("the version is new") {
+        before {
+          every { repository.store(any()) } returns true
+
+          listener.onArtifactEvent(event)
+        }
+
+        test("a new artifact version is stored") {
+          verify {
+            repository.store(
+              DeliveryArtifactVersion(
+                artifact,
+                event.artifacts.first().version,
+                event.artifacts.first().provenance.let(URI::create)
+              )
             )
-          )
+          }
+        }
+
+        test("a telemetry event is recorded") {
+          verify { publisher.publishEvent(any<ArtifactVersionUpdated>()) }
         }
       }
     }

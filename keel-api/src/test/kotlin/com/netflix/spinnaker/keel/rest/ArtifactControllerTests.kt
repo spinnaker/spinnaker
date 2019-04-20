@@ -63,7 +63,7 @@ internal class ArtifactControllerTests {
 
   @Test
   fun `if an artifact is already registered endpoint responds with a conflict`() {
-    artifactRepository.store(DeliveryArtifact("fnord", DEB))
+    artifactRepository.register(DeliveryArtifact("fnord", DEB))
 
     val request = post("/artifacts")
       .accept(APPLICATION_YAML)
@@ -83,7 +83,7 @@ internal class ArtifactControllerTests {
   fun `can get the versions of an artifact`() {
     val artifact = DeliveryArtifact("fnord", DEB)
     with(artifactRepository) {
-      store(artifact)
+      register(artifact)
       store(DeliveryArtifactVersion(artifact, "1.0", URI.create("https://my.jenkins.master/builds/1")))
       store(DeliveryArtifactVersion(artifact, "2.0", URI.create("https://my.jenkins.master/builds/2")))
       store(DeliveryArtifactVersion(artifact, "2.1", URI.create("https://my.jenkins.master/builds/3")))
