@@ -182,6 +182,7 @@ class FindImageFromClusterTaskSpec extends Specification {
     ['foo-x86_64-201603232351']                                     | ['foo-x86_64-201603232351'] as Set
   }
 
+  @Unroll
   def "should resolve images via find if not all regions exist in source server group"() {
     given:
     def pipe = pipeline {
@@ -189,7 +190,7 @@ class FindImageFromClusterTaskSpec extends Specification {
     }
     def stage = new Stage(pipe, "findImage", [
       resolveMissingLocations: true,
-      cloudProvider          : "cloudProvider",
+      cloudProvider          : cloudProvider,
       cluster                : "foo-test",
       account                : "test",
       selectionStrategy      : "LARGEST",
@@ -204,21 +205,28 @@ class FindImageFromClusterTaskSpec extends Specification {
     def result = task.execute(stage)
 
     then:
-    1 * oortService.getServerGroupSummary("foo", "test", "foo-test", "cloudProvider", location1.value,
+    1 * oortService.getServerGroupSummary("foo", "test", "foo-test", cloudProvider, location1.value,
       "LARGEST", FindImageFromClusterTask.SUMMARY_TYPE, false.toString()) >> oortResponse1
-    1 * oortService.getServerGroupSummary("foo", "test", "foo-test", "cloudProvider", location2.value,
+    findCalls * oortService.getServerGroupSummary("foo", "test", "foo-test", cloudProvider, location2.value,
       "LARGEST", FindImageFromClusterTask.SUMMARY_TYPE, false.toString()) >> {
       throw RetrofitError.httpError("http://clouddriver", new Response("http://clouddriver", 404, 'Not Found', [], new TypedString("{}")), null, Map)
     }
-    1 * oortService.findImage("cloudProvider", "ami-012-name-ebs*", "test", null, null) >> imageSearchResult
-    1 * regionCollector.getRegionsFromChildStages(stage) >> regionCollectorResponse
+    findCalls * oortService.findImage(cloudProvider, "ami-012-name-ebs*", "test", null, null) >> imageSearchResult
+    findCalls * regionCollector.getRegionsFromChildStages(stage) >> regionCollectorResponse
 
     assertNorth(result.outputs?.deploymentDetails?.find {
       it.region == "north"
     } as Map, [imageName: "ami-012-name-ebs"])
-    assertSouth(result.outputs?.deploymentDetails?.find {
-      it.region == "south"
-    } as Map, [sourceServerGroup: "foo-test", imageName: "ami-012-name-ebs1", foo: "bar"])
+
+    if (cloudProvider == "aws") {
+      assertSouth(result.outputs?.deploymentDetails?.find {
+        it.region == "south"
+      } as Map, [sourceServerGroup: "foo-test", imageName: "ami-012-name-ebs1", foo: "bar"])
+    } else {
+      assert !result.outputs?.deploymentDetails?.any {
+        it.region == "south"
+      }
+    }
 
     where:
     location1 = new Location(type: Location.Type.REGION, value: "north")
@@ -250,6 +258,10 @@ class FindImageFromClusterTaskSpec extends Specification {
         ]
       ]
     ]
+
+    cloudProvider || findCalls
+    "aws" || 1
+    "gcp" || 0
   }
 
   def "should resolve images via find if not all regions exist in source server group without build info"() {
