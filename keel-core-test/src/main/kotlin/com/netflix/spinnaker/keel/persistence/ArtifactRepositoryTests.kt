@@ -10,6 +10,7 @@ import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.first
 import strikt.assertions.hasSize
+import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
 import strikt.assertions.isTrue
@@ -43,7 +44,7 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
       }
 
       test("registering a new version throws an exception") {
-        expectThrows<IllegalArgumentException> {
+        expectThrows<NoSuchArtifactException> {
           repository.store(
             DeliveryArtifactVersion(
               artifact,
@@ -51,6 +52,12 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
               URI("https://my.jenkins.master/job/${artifact.name}-release/1")
             )
           )
+        }
+      }
+
+      test("trying to get versions throws an exception") {
+        expectThrows<NoSuchArtifactException> {
+          repository.versions(artifact)
         }
       }
     }
@@ -61,7 +68,19 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
         repository.register(artifact)
       }
 
-      context("the artifact version already exists") {
+      test("re-registering the same artifact raises an exception") {
+        expectThrows<ArtifactAlreadyRegistered>() {
+          repository.register(artifact)
+        }
+      }
+
+      context("no versions exist") {
+        test("listing versions returns an empty list") {
+          expectThat(repository.versions(artifact)).isEmpty()
+        }
+      }
+
+      context("an artifact version already exists") {
         before {
           repository.store(
             DeliveryArtifactVersion(

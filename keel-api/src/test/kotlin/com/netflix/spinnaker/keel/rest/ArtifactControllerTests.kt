@@ -114,4 +114,13 @@ internal class ArtifactControllerTests {
         """.trimMargin()
       ))
   }
+
+  @Test
+  fun `unregistered artifact is not found when requesting versions`() {
+    val request = get("/artifacts/unregistered/DEB")
+      .accept(APPLICATION_YAML)
+    mvc
+      .perform(request)
+      .andExpect(status().isNotFound)
+  }
 }

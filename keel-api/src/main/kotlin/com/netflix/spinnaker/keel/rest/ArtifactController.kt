@@ -4,14 +4,18 @@ import com.netflix.spinnaker.keel.api.ArtifactType
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryArtifactVersion
 import com.netflix.spinnaker.keel.events.ArtifactEvent
+import com.netflix.spinnaker.keel.persistence.ArtifactAlreadyRegistered
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
+import com.netflix.spinnaker.keel.persistence.NoSuchArtifactException
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.http.HttpStatus.ACCEPTED
 import org.springframework.http.HttpStatus.CONFLICT
 import org.springframework.http.HttpStatus.CREATED
+import org.springframework.http.HttpStatus.NOT_FOUND
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
+import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -48,9 +52,6 @@ class ArtifactController(
   )
   @ResponseStatus(CREATED)
   fun register(@RequestBody artifact: DeliveryArtifact) {
-    if (artifactRepository.isRegistered(artifact.name, artifact.type)) {
-      throw ArtifactAlreadyRegistered("Delivery artifact ${artifact.name} of type ${artifact.type} is already registered")
-    }
     artifactRepository.register(artifact)
   }
 
@@ -63,12 +64,21 @@ class ArtifactController(
     @PathVariable type: ArtifactType
   ): List<DeliveryArtifactVersion> =
     artifactRepository.versions(DeliveryArtifact(name, type))
+
+  @ExceptionHandler(NoSuchArtifactException::class)
+  @ResponseStatus(NOT_FOUND)
+  fun onNotFound(e: NoSuchArtifactException) {
+    log.error(e.message)
+  }
+
+  @ExceptionHandler(ArtifactAlreadyRegistered::class)
+  @ResponseStatus(CONFLICT)
+  fun onAlreadyRegistered(e: ArtifactAlreadyRegistered) {
+    log.error(e.message)
+  }
 }
 
 data class EchoArtifactEvent(
   val payload: ArtifactEvent,
   val eventName: String
 )
-
-@ResponseStatus(CONFLICT)
-class ArtifactAlreadyRegistered(message: String) : RuntimeException(message)

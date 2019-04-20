@@ -5,7 +5,9 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.api.ArtifactType
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryArtifactVersion
+import com.netflix.spinnaker.keel.persistence.ArtifactAlreadyRegistered
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
+import com.netflix.spinnaker.keel.persistence.NoSuchArtifactException
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
 import redis.clients.jedis.JedisCommands
 
@@ -16,14 +18,17 @@ class RedisArtifactRepository(
   override fun register(artifact: DeliveryArtifact) {
     redisClient.withCommandsClient<Unit> { redis ->
       redis.sadd("keel.delivery_artifacts", artifact.asJson())
+        .also { count ->
+          if (count == 0L) throw ArtifactAlreadyRegistered(artifact)
+        }
     }
   }
 
   override fun store(artifactVersion: DeliveryArtifactVersion): Boolean =
     redisClient.withCommandsClient<Boolean> { redis ->
       with(artifactVersion) {
-        require(redis.isRegistered(artifact)) {
-          "No registered artifact with name ${artifact.name} and type ${artifact.type}"
+        if (!redis.isRegistered(artifact)) {
+          throw NoSuchArtifactException(artifact)
         }
         redis.sadd(
           artifact.versionsKey,
@@ -39,6 +44,9 @@ class RedisArtifactRepository(
 
   override fun versions(artifact: DeliveryArtifact): List<DeliveryArtifactVersion> =
     redisClient.withCommandsClient<List<DeliveryArtifactVersion>> { redis ->
+      if (!redis.isRegistered(artifact)) {
+        throw NoSuchArtifactException(artifact)
+      }
       redis.smembers(artifact.versionsKey)
         .map { objectMapper.readValue<DeliveryArtifactVersion>(it) }
         .sortedByDescending { it.version }

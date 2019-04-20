@@ -17,5 +17,14 @@ interface ArtifactRepository {
   fun store(artifactVersion: DeliveryArtifactVersion): Boolean
 
   fun versions(artifact: DeliveryArtifact): List<DeliveryArtifactVersion>
+}
 
+class NoSuchArtifactException(name: String, type: ArtifactType) :
+  RuntimeException("No $type artifact named $name is registered") {
+  constructor(artifact: DeliveryArtifact) : this(artifact.name, artifact.type)
+}
+
+class ArtifactAlreadyRegistered(name: String, type: ArtifactType) :
+  RuntimeException("The $type artifact $name is already registered") {
+  constructor(artifact: DeliveryArtifact) : this(artifact.name, artifact.type)
 }
