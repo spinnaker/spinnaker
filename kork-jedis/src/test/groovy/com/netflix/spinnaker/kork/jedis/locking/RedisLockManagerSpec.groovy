@@ -28,7 +28,7 @@ import redis.clients.jedis.JedisCommands
 import redis.clients.jedis.JedisPool
 import spock.lang.Shared
 
-class RedisLockManagerSpec extends BaseLockManagerSpec {
+class RedisLockManagerSpec extends BaseLockManagerSpec<RedisLockManager> {
   @Shared def embeddedRedis = EmbeddedRedis.embed()
   def jedisPool = embeddedRedis.getPool() as JedisPool
   def objectMapper = new ObjectMapper()
@@ -37,7 +37,7 @@ class RedisLockManagerSpec extends BaseLockManagerSpec {
   def heartbeatRateMillis = 30L
 
   @Override
-  protected LockManager subject() {
+  protected RedisLockManager subject() {
     return new RedisLockManager(
       "testOwner",
       clock,
