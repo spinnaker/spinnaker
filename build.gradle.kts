@@ -39,7 +39,7 @@ subprojects {
   }
 
   dependencies {
-    "implementation"(platform("com.netflix.spinnaker.kork:kork-bom:4.1.0-rc.3-springBoot2"))
+    "implementation"(platform("com.netflix.spinnaker.kork:kork-bom:4.1.0-rc.5-springBoot2"))
     "implementation"("org.slf4j:slf4j-api")
 
     "testImplementation"("org.junit.platform:junit-platform-runner")
