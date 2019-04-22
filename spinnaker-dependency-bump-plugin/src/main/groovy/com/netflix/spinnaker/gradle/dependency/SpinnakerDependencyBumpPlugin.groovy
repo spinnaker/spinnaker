@@ -32,6 +32,7 @@ class SpinnakerDependencyBumpPlugin implements Plugin<Project> {
       "kayenta",
       "orca",
       "rosco",
+      "keel"
   ]
 
   @Override

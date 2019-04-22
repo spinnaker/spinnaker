@@ -22,6 +22,7 @@ import com.github.jk1.license.filter.LicenseBundleNormalizer
 import com.github.jk1.license.render.CsvReportRenderer
 import com.github.jk1.license.render.InventoryHtmlReportRenderer
 import com.github.jk1.license.render.JsonReportRenderer
+
 import groovy.json.JsonSlurper
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -38,9 +39,9 @@ class SpinnakerLicenseReportPlugin implements Plugin<Project> {
         LicenseReportExtension pluginConfig = project.extensions.getByType(LicenseReportExtension)
         pluginConfig.configurations = LicenseReportExtension.ALL
         pluginConfig.renderers = [
-                new InventoryHtmlReportRenderer(),
-                new CsvReportRenderer(),
-                new JsonReportRenderer() ]
+          new InventoryHtmlReportRenderer(),
+          new CsvReportRenderer(),
+          new JsonReportRenderer() ]
 
         def licenseBundleNormalizer = new LicenseBundleNormalizer()
         addSpinnakerNormalizerBundle(licenseBundleNormalizer.normalizerConfig)
@@ -50,12 +51,12 @@ class SpinnakerLicenseReportPlugin implements Plugin<Project> {
     def addSpinnakerNormalizerBundle(LicenseBundleNormalizerConfig config) {
         def additionalConfig = new JsonSlurper().parse(getClass().getResourceAsStream("/license-normalizer-bundle.json"))
 
-        additionalConfig.bundles.each {
-            config.bundles.add(new NormalizerLicenseBundle(it))
+        additionalConfig.bundles.each { Map bundle ->
+            config.bundles.add(new NormalizerLicenseBundle(bundle))
         }
 
-        additionalConfig.transformationRules.each {
-            config.transformationRules.add(new NormalizerTransformationRule(it))
+        additionalConfig.transformationRules.each { Map transformationRule ->
+            config.transformationRules.add(new NormalizerTransformationRule(transformationRule))
         }
     }
 }

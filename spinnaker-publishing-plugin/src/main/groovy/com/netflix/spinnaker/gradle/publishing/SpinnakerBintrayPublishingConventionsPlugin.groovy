@@ -20,18 +20,31 @@ import com.jfrog.bintray.gradle.BintrayExtension
 import com.netflix.spinnaker.gradle.baseproject.SpinnakerBaseProjectConventionsPlugin
 import com.netflix.spinnaker.gradle.ospackage.OspackageBintrayExtension
 import com.netflix.spinnaker.gradle.ospackage.OspackageBintrayPublishPlugin
+import nebula.core.ProjectType
 import nebula.plugin.info.scm.ScmInfoExtension
 import nebula.plugin.netflixossproject.NetflixOssProjectPlugin
 import nebula.plugin.netflixossproject.publishing.PublishingPlugin
+import org.gradle.api.JavaVersion
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
+import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.plugins.JavaPluginConvention
 
 class SpinnakerBintrayPublishingConventionsPlugin implements Plugin<Project> {
 
     @Override
     void apply(Project project) {
         project.plugins.apply(NetflixOssProjectPlugin)
+
+        //undo the NetflixOssProjectPlugin's Java 1.7 opinion:
+        ProjectType type = new ProjectType(project)
+        if (type.isLeafProject) {
+            project.plugins.withType(JavaPlugin) { JavaPlugin javaPlugin ->
+                JavaPluginConvention convention = project.convention.getPlugin(JavaPluginConvention)
+                convention.sourceCompatibility = JavaVersion.VERSION_1_8
+            }
+        }
         project.plugins.apply(SpinnakerBaseProjectConventionsPlugin)
 
         Closure<String> propOrDefault = { String propertyName, String defaultValue ->

@@ -46,12 +46,12 @@ GITHUB_ACCESS_TOKEN=
 
     String reviewer
     try {
-      String latestReleaseUri = "/repos/spinnaker/spinnaker-dependencies/releases/latest"
+      String latestReleaseUri = "/repos/spinnaker/kork/releases/latest"
       GitHubResponse resp = client.get(new GitHubRequest(uri: latestReleaseUri, type: LatestRelease.class))
       reviewer = (resp.body as LatestRelease)?.author?.login
       logger.lifecycle("Found author of last release: $reviewer.")
     } catch (Exception e) {
-      logger.lifecycle("Could not get most recent spinnaker-dependencies releaser: ${e.getMessage()}")
+      logger.lifecycle("Could not get most recent kork releaser: ${e.getMessage()}")
     }
 
 
@@ -89,15 +89,15 @@ GITHUB_ACCESS_TOKEN=
           createBranch: true
       )
 
-      logger.lifecycle("Updating spinnakerDependenciesVersion to ${project.version}")
+      logger.lifecycle("Updating korkVersion to ${project.version}")
       ant.replaceregexp(
           file: "clones/${upstream.name}/build.gradle",
-          match: "spinnakerDependenciesVersion = '.*?'",
-          replace: "spinnakerDependenciesVersion = '${project.version}'")
+          match: "korkVersion = '.*?'",
+          replace: "korkVersion = '${project.version}'")
 
       logger.lifecycle("Committing changes")
       grgit.commit(
-          message: "chore(dependencies): Autobump spinnaker-dependencies",
+          message: "chore(dependencies): Autobump korkVersion",
           all: true)
       grgit.remote.add(name: "userFork", url: userFork.cloneUrl)
 
@@ -112,7 +112,7 @@ GITHUB_ACCESS_TOKEN=
         PullRequestService prSvc = new PullRequestService(client)
         try {
           pr = prSvc.createPullRequest(upstream, new PullRequest(
-              title: "chore(dependencies): Autobump spinnaker-dependencies",
+              title: "chore(dependencies): Autobump korkVersion",
               body: COMMIT_BODY,
               base: new PullRequestMarker(label: "master"),
               head: new PullRequestMarker(label: "${userFork.owner.login}:auto-bump"),

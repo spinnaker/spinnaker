@@ -18,26 +18,14 @@ package com.netflix.spinnaker.gradle.project
 
 import com.netflix.spinnaker.gradle.ospackage.SpinnakerPackagePlugin
 import com.netflix.spinnaker.gradle.publishing.SpinnakerBintrayPublishingPlugin
-import org.gradle.api.JavaVersion
 import org.gradle.api.Plugin
-import org.gradle.api.invocation.Gradle
-import org.gradle.api.plugins.JavaBasePlugin
-import org.gradle.api.plugins.JavaPluginConvention
+import org.gradle.api.Project
 
-class SpinnakerProjectPlugin implements Plugin<Gradle> {
+class SpinnakerProjectPlugin implements Plugin<Project> {
 
   @Override
-  void apply(Gradle gradle) {
-    gradle.allprojects { project ->
-      project.plugins.apply(SpinnakerBintrayPublishingPlugin)
-      project.plugins.apply(SpinnakerPackagePlugin)
-
-      //c&p this because NetflixOss reverts it to 1.7 and ends up getting applied last..
-      project.plugins.withType(JavaBasePlugin) {
-        JavaPluginConvention convention = project.convention.getPlugin(JavaPluginConvention)
-        convention.sourceCompatibility = JavaVersion.VERSION_1_8
-        convention.targetCompatibility = JavaVersion.VERSION_1_8
-      }
-    }
+  void apply(Project project) {
+    project.plugins.apply(SpinnakerBintrayPublishingPlugin)
+    project.plugins.apply(SpinnakerPackagePlugin)
   }
 }
