@@ -24,7 +24,6 @@ def cloudProviderProjects = [
   'dcos': [':clouddriver-dcos'],
   'gce': [':clouddriver-consul', ':clouddriver-google', ':clouddriver-google-common'],
   'kubernetes': [':clouddriver-kubernetes', ':clouddriver-docker'],
-  'openstack': [':clouddriver-openstack'],
   'oracle': [':clouddriver-oracle']
 ]
 cloudProviderProjects.put('gcp', cloudProviderProjects['appengine'] + cloudProviderProjects['gce'] + cloudProviderProjects['kubernetes'])
