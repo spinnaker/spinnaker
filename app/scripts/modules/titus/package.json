@@ -1,6 +1,6 @@
 {
   "name": "@spinnaker/titus",
-  "version": "0.0.88",
+  "version": "0.0.89",
   "main": "lib/lib.js",
   "typings": "lib/index.d.ts",
   "scripts": {
