@@ -18,5 +18,6 @@ package com.netflix.spinnaker.fiat.model;
 
 public enum Authorization {
   READ,
-  WRITE
+  WRITE,
+  EXECUTE
 }

@@ -49,7 +49,7 @@ public class Application extends BaseAccessControlled implements Viewable {
     public View(Application application, Set<Role> userRoles, boolean isAdmin) {
       this.name = application.name;
       if (isAdmin) {
-        this.authorizations = Sets.newHashSet(Authorization.READ, Authorization.WRITE);
+        this.authorizations = Sets.newHashSet(Authorization.READ, Authorization.WRITE, Authorization.EXECUTE);
       } else {
         this.authorizations = application.permissions.getAuthorizations(userRoles);
       }
