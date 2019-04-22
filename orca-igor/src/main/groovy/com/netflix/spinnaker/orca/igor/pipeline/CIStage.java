@@ -21,6 +21,7 @@ import com.netflix.spinnaker.orca.igor.model.CIStageDefinition;
 import com.netflix.spinnaker.orca.igor.tasks.*;
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.pipeline.TaskNode;
+import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.tasks.artifacts.BindProducedArtifactsTask;
 import lombok.RequiredArgsConstructor;
@@ -89,5 +90,28 @@ public abstract class CIStage implements StageDefinitionBuilder, CancellableStag
       );
     }
     return new Result(stage, new HashMap());
+  }
+
+  @Override
+  public void onFailureStages(@Nonnull Stage stage, @Nonnull StageGraphBuilder graph) {
+    CIStageDefinition stageDefinition = stage.mapTo(CIStageDefinition.class);
+    if (stageDefinition.getPropertyFile() != null && !stageDefinition.getPropertyFile().equals("")) {
+      log.info(
+        "Stage failed (stageId: {}, executionId: {}), trying to find requested property file in case it was archived.",
+        stage.getId(),
+        stage.getExecution().getId()
+      );
+      graph.add( (Stage s) -> {
+          s.setType(new GetPropertiesStage().getType());
+          s.setName("Try to get properties file");
+          Map<String, Object> context = new HashMap<>();
+          context.put("master", stageDefinition.getMaster());
+          context.put("job", stageDefinition.getJob());
+          context.put("propertyFile", stageDefinition.getPropertyFile());
+          context.put("buildNumber", stageDefinition.getBuildNumber());
+          s.setContext(context);
+        }
+      );
+    }
   }
 }

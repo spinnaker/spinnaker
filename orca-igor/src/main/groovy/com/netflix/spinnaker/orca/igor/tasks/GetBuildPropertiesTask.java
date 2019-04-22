@@ -41,7 +41,12 @@ public class GetBuildPropertiesTask extends RetryableIgorTask {
       return TaskResult.SUCCEEDED;
     }
 
-    Map<String, Object> properties = buildService.getPropertyFile(stageDefinition.getBuildNumber(), stageDefinition.getPropertyFile(), stageDefinition.getMaster(), stageDefinition.getJob());
+    Map<String, Object> properties = buildService.getPropertyFile(
+      stageDefinition.getBuildNumber(),
+      stageDefinition.getPropertyFile(),
+      stageDefinition.getMaster(),
+      stageDefinition.getJob()
+    );
     if (properties.size() == 0) {
       throw new IllegalStateException(String.format("Expected properties file %s but it was either missing, empty or contained invalid syntax", stageDefinition.getPropertyFile()));
     }
