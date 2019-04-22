@@ -34,7 +34,7 @@ class ArtifactoryBuildMonitorSpec extends Specification {
 
   MockWebServer mockArtifactory = new MockWebServer()
 
-  void setup() {
+  ArtifactoryBuildMonitor monitor(contextRoot) {
     monitor = new ArtifactoryBuildMonitor(
       igorConfigurationProperties,
       new NoopRegistry(),
@@ -44,13 +44,15 @@ class ArtifactoryBuildMonitorSpec extends Specification {
       cache,
       new ArtifactoryProperties(searches: [
         new ArtifactorySearch(
-          baseUrl: mockArtifactory.url('/'),
+          baseUrl: mockArtifactory.url(contextRoot),
           repo: 'libs-releases-local',
         )
       ])
     )
 
     monitor.worker = Schedulers.immediate().createWorker()
+
+    return monitor
   }
 
   def 'should handle any failure to talk to artifactory graciously' () {
@@ -58,9 +60,23 @@ class ArtifactoryBuildMonitorSpec extends Specification {
     mockArtifactory.enqueue(new MockResponse().setResponseCode(400))
 
     when:
-    monitor.poll(false)
+    monitor('').poll(false)
 
     then:
     notThrown(Exception)
+  }
+
+  def 'does not add extra path separators with non-empty context root'() {
+    given:
+    mockArtifactory.enqueue(new MockResponse().setResponseCode(200).setBody('{"results": []}'))
+
+    when:
+    monitor(contextRoot).poll(false)
+
+    then:
+    mockArtifactory.takeRequest().path == "/${contextRoot}api/search/aql"
+
+    where:
+    contextRoot << ['artifactory/', '']
   }
 }

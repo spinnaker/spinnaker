@@ -63,13 +63,3 @@ dependencies {
     testCompile 'com.github.tomakehurst:wiremock-jre8:2.22.0'
     testCompile 'org.mockito:mockito-core:2.6.8'
 }
-
-configurations.all {
-    resolutionStrategy {
-        force 'org.apache.log4j:log4j:1.2.17'
-        force 'commons-codec:commons-codec:1.7'
-    }
-    exclude group: 'javax.servlet', module: 'servlet-api'
-    exclude group: "org.slf4j", module: "slf4j-log4j12"
-    exclude group: "org.mortbay.jetty", module: "servlet-api"
-}

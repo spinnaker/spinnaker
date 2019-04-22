@@ -124,7 +124,7 @@ public class ArtifactoryBuildMonitor extends CommonPollingMonitor<ArtifactoryBui
 
         ArtifactoryRequest aqlRequest = new ArtifactoryRequestImpl()
           .method(ArtifactoryRequest.Method.POST)
-          .apiUrl("/api/search/aql")
+          .apiUrl("api/search/aql")
           .requestType(ArtifactoryRequest.ContentType.TEXT)
           .responseType(ArtifactoryRequest.ContentType.JSON)
           .requestBody(aqlQuery);
