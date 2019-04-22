@@ -23,6 +23,7 @@ import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,10 +39,16 @@ import static com.netflix.spinnaker.echo.pipelinetriggers.artifacts.ArtifactMatc
 @Component
 public class WebhookEventHandler extends BaseTriggerEventHandler<WebhookEvent> {
   private static final String TRIGGER_TYPE = "webhook";
+  private static final List<String> supportedTriggerTypes = Collections.singletonList(TRIGGER_TYPE);
 
   @Autowired
   public WebhookEventHandler(Registry registry, ObjectMapper objectMapper) {
     super(registry, objectMapper);
+  }
+
+  @Override
+  public List<String> supportedTriggerTypes() {
+    return supportedTriggerTypes;
   }
 
   @Override

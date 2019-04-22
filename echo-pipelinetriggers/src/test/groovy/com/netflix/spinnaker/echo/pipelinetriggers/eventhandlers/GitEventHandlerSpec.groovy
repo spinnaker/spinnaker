@@ -27,6 +27,7 @@ import spock.lang.Unroll
 class GitEventHandlerSpec extends Specification implements RetrofitStubs {
   def registry = new NoopRegistry()
   def objectMapper = new ObjectMapper()
+  def handlerSupport = new EventHandlerSupport()
 
   @Subject
   def eventHandler = new GitEventHandler(registry, objectMapper)
@@ -35,7 +36,7 @@ class GitEventHandlerSpec extends Specification implements RetrofitStubs {
   def "triggers pipelines for successful builds for #triggerType"() {
     given:
     def pipeline = createPipelineWith(trigger)
-    def pipelines = [pipeline]
+    def pipelines = handlerSupport.pipelineCache(pipeline)
 
     when:
     def matchingPipelines = eventHandler.getMatchingPipelines(event, pipelines)
@@ -53,7 +54,7 @@ class GitEventHandlerSpec extends Specification implements RetrofitStubs {
 
   def "attaches stash trigger to the pipeline"() {
     given:
-    def pipelines = [pipeline]
+    def pipelines = handlerSupport.pipelineCache(pipeline)
 
     when:
     def matchingPipelines = eventHandler.getMatchingPipelines(event, pipelines)
@@ -72,7 +73,7 @@ class GitEventHandlerSpec extends Specification implements RetrofitStubs {
 
   def "attaches bitbucket trigger to the pipeline"() {
     given:
-    def pipelines = [pipeline]
+    def pipelines = handlerSupport.pipelineCache(pipeline)
 
     when:
     def matchingPipelines = eventHandler.getMatchingPipelines(event, pipelines)
@@ -90,8 +91,11 @@ class GitEventHandlerSpec extends Specification implements RetrofitStubs {
   }
 
   def "an event can trigger multiple pipelines"() {
+    given:
+    def cache = handlerSupport.pipelineCache(pipelines)
+
     when:
-    def matchingPipelines = eventHandler.getMatchingPipelines(event, pipelines)
+    def matchingPipelines = eventHandler.getMatchingPipelines(event, cache)
 
     then:
     matchingPipelines.size() == pipelines.size()
@@ -111,7 +115,7 @@ class GitEventHandlerSpec extends Specification implements RetrofitStubs {
   @Unroll
   def "does not trigger #description pipelines"() {
     given:
-    def pipelines = [pipeline]
+    def pipelines = handlerSupport.pipelineCache(pipeline)
 
     when:
     def matchingPipelines = eventHandler.getMatchingPipelines(event, pipelines)
@@ -131,7 +135,7 @@ class GitEventHandlerSpec extends Specification implements RetrofitStubs {
   @Unroll
   def "does not trigger #description pipelines for stash"() {
     given:
-    def pipelines = [pipeline]
+    def pipelines = handlerSupport.pipelineCache(pipeline)
 
     when:
     def matchingPipelines = eventHandler.getMatchingPipelines(event, pipelines)
@@ -154,7 +158,7 @@ class GitEventHandlerSpec extends Specification implements RetrofitStubs {
   @Unroll
   def "does not trigger #description pipelines for bitbucket"() {
     given:
-    def pipelines = [pipeline]
+    def pipelines = handlerSupport.pipelineCache(pipeline)
 
     when:
     def matchingPipelines = eventHandler.getMatchingPipelines(event, pipelines)
@@ -177,7 +181,7 @@ class GitEventHandlerSpec extends Specification implements RetrofitStubs {
   @Unroll
   def "does not trigger a pipeline that has an enabled stash trigger with missing #field"() {
     given:
-    def pipelines = [badPipeline, goodPipeline]
+    def pipelines = handlerSupport.pipelineCache([goodPipeline, badPipeline])
 
     when:
     def matchingPipelines = eventHandler.getMatchingPipelines(event, pipelines)
@@ -200,7 +204,7 @@ class GitEventHandlerSpec extends Specification implements RetrofitStubs {
   @Unroll
   def "does not trigger a pipeline that has an enabled bitbucket trigger with missing #field"() {
     given:
-    def pipelines = [badPipeline, goodPipeline]
+    def pipelines = handlerSupport.pipelineCache([badPipeline, goodPipeline])
 
     when:
     def matchingPipelines = eventHandler.getMatchingPipelines(event, pipelines)
@@ -227,7 +231,7 @@ class GitEventHandlerSpec extends Specification implements RetrofitStubs {
     gitEvent.content.branch = eventBranch
     def trigger = enabledStashTrigger.atBranch(triggerBranch)
     def pipeline = createPipelineWith(trigger)
-    def pipelines = [pipeline]
+    def pipelines = handlerSupport.pipelineCache(pipeline)
 
     when:
     def matchingPipelines = eventHandler.getMatchingPipelines(gitEvent, pipelines)
@@ -253,7 +257,7 @@ class GitEventHandlerSpec extends Specification implements RetrofitStubs {
     gitEvent.content.branch = eventBranch
     def trigger = enabledStashTrigger.atBranch(triggerBranch)
     def pipeline = createPipelineWith(trigger)
-    def pipelines = [pipeline]
+    def pipelines = handlerSupport.pipelineCache(pipeline)
 
     when:
     def matchingPipelines = eventHandler.getMatchingPipelines(gitEvent, pipelines)
@@ -279,7 +283,7 @@ class GitEventHandlerSpec extends Specification implements RetrofitStubs {
     def trigger = enabledGithubTrigger.atSecret(secret).atBranch("master")
 
     def pipeline = createPipelineWith(trigger)
-    def pipelines = [pipeline]
+    def pipelines = handlerSupport.pipelineCache(pipeline)
 
     when:
     def matchingPipelines = eventHandler.getMatchingPipelines(gitEvent, pipelines)

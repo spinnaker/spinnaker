@@ -27,6 +27,7 @@ import spock.lang.Unroll
 class WebhookEventHandlerSpec extends Specification implements RetrofitStubs {
   def registry = new NoopRegistry()
   def objectMapper = new ObjectMapper()
+  def handlerSupport = new EventHandlerSupport()
 
   @Shared
   def goodExpectedArtifacts = [
@@ -45,7 +46,7 @@ class WebhookEventHandlerSpec extends Specification implements RetrofitStubs {
   def 'triggers pipelines for successful builds for webhook'() {
     given:
     def pipeline = createPipelineWith(goodExpectedArtifacts, trigger)
-    def pipelines = [pipeline]
+    def pipelines = handlerSupport.pipelineCache(pipeline)
 
     when:
     def matchingPipelines = eventHandler.getMatchingPipelines(event, pipelines)
@@ -66,7 +67,7 @@ class WebhookEventHandlerSpec extends Specification implements RetrofitStubs {
 
   def 'attaches webhook trigger to the pipeline'() {
     given:
-    def pipelines = [pipeline]
+    def pipelines = handlerSupport.pipelineCache(pipeline)
 
     when:
     def matchingPipelines = eventHandler.getMatchingPipelines(event, pipelines)
@@ -85,7 +86,7 @@ class WebhookEventHandlerSpec extends Specification implements RetrofitStubs {
   @Unroll
   def "does not trigger #description pipelines for webhook"() {
     given:
-    def pipelines = [pipeline]
+    def pipelines = handlerSupport.pipelineCache(pipeline)
 
     when:
     def matchingPipelines = eventHandler.getMatchingPipelines(event, pipelines)

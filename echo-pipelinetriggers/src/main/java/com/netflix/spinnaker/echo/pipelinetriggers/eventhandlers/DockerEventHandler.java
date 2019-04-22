@@ -38,10 +38,16 @@ import java.util.regex.PatternSyntaxException;
 @Component
 public class DockerEventHandler extends BaseTriggerEventHandler<DockerEvent> {
   private static final String TRIGGER_TYPE = "docker";
+  private static final List<String> supportedTriggerTypes = Collections.singletonList(TRIGGER_TYPE);
 
   @Autowired
   public DockerEventHandler(Registry registry, ObjectMapper objectMapper) {
     super(registry, objectMapper);
+  }
+
+  @Override
+  public List<String> supportedTriggerTypes() {
+    return supportedTriggerTypes;
   }
 
   @Override

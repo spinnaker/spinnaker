@@ -75,8 +75,7 @@ public class TriggerMonitor<T extends TriggerEvent> implements EchoEventListener
 
   private void triggerMatchingPipelines(T event) {
     try {
-      List<Pipeline> allPipelines = pipelineCache.getPipelinesSync();
-      List<Pipeline> matchingPipelines = eventHandler.getMatchingPipelines(event, allPipelines);
+      List<Pipeline> matchingPipelines = eventHandler.getMatchingPipelines(event, pipelineCache);
       matchingPipelines.stream()
         .map(pipelinePostProcessorHandler::process)
         .forEach(p -> {

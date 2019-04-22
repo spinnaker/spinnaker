@@ -36,9 +36,15 @@ import java.util.function.Predicate;
 @Component
 public class ArtifactoryEventHandler extends BaseTriggerEventHandler<ArtifactoryEvent> {
   private static final String ARTIFACTORY_TRIGGER_TYPE = "artifactory";
+  private static final List<String> supportedTriggerTypes = Collections.singletonList(ARTIFACTORY_TRIGGER_TYPE);
 
   public ArtifactoryEventHandler(Registry registry, ObjectMapper objectMapper) {
     super(registry, objectMapper);
+  }
+
+  @Override
+  public List<String> supportedTriggerTypes() {
+    return supportedTriggerTypes;
   }
 
   @Override

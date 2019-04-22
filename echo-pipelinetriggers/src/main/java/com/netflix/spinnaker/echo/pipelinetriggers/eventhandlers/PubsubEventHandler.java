@@ -26,6 +26,7 @@ import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,10 +41,16 @@ import static com.netflix.spinnaker.echo.pipelinetriggers.artifacts.ArtifactMatc
  */
 public class PubsubEventHandler extends BaseTriggerEventHandler<PubsubEvent> {
   public static final String PUBSUB_TRIGGER_TYPE = "pubsub";
+  private static final List<String> supportedTriggerTypes = Collections.singletonList(PUBSUB_TRIGGER_TYPE);
 
   @Autowired
   public PubsubEventHandler(Registry registry, ObjectMapper objectMapper) {
     super(registry, objectMapper);
+  }
+
+  @Override
+  public List<String> supportedTriggerTypes() {
+    return supportedTriggerTypes;
   }
 
   @Override

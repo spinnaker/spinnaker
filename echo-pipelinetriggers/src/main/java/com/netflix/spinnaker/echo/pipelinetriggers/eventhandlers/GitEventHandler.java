@@ -28,6 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -43,10 +44,16 @@ import java.util.regex.Pattern;
 public class GitEventHandler extends BaseTriggerEventHandler<GitEvent> {
   private static final String GIT_TRIGGER_TYPE = "git";
   private static final String GITHUB_SECURE_SIGNATURE_HEADER = "X-Hub-Signature";
+  private static final List<String> supportedTriggerTypes = Collections.singletonList(GIT_TRIGGER_TYPE);
 
   @Autowired
   public GitEventHandler(Registry registry, ObjectMapper objectMapper) {
     super(registry, objectMapper);
+  }
+
+  @Override
+  public List<String> supportedTriggerTypes() {
+    return supportedTriggerTypes;
   }
 
   @Override

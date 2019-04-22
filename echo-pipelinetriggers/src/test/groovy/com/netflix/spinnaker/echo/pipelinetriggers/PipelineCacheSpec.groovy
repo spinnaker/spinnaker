@@ -114,5 +114,50 @@ class PipelineCacheSpec extends Specification implements RetrofitStubs {
     then:
     notThrown(JsonMappingException)
   }
+
+  def "disabled triggers and triggers for disabled pipelines do not appear in trigger index"() {
+    given:
+    Trigger enabledTrigger = Trigger.builder().type('git').enabled(true).build()
+    Trigger disabledTrigger = Trigger.builder().type('jenkins').enabled(false).build()
+
+    def enabledPipeline = Pipeline.builder().application('app').name('pipe').id('enabledPipeId').disabled(false)
+      .triggers([enabledTrigger, disabledTrigger]).build()
+    def disabledPipeline = Pipeline.builder().application('app').name('pipe').id('disabledPipedId').disabled(true)
+      .triggers([enabledTrigger]).build()
+
+    def pipelines = [enabledPipeline, disabledPipeline]
+
+    when:
+    def triggers = PipelineCache.extractEnabledTriggersFrom(PipelineCache.decorateTriggers(pipelines))
+
+    then: 'we only get the enabled trigger for the enabled pipeline'
+    triggers.size() == 1
+    triggers.get('git').size() == 1
+    triggers.get('git').first().parent.id == 'enabledPipeId'
+  }
+
+  def "trigger indexing supports pipelines with null triggers"() {
+    given:
+    def pipeline = Pipeline.builder().application('app').name('pipe').triggers(null).build()
+
+    when:
+    def triggers = PipelineCache.extractEnabledTriggersFrom(PipelineCache.decorateTriggers([pipeline]))
+
+    then:
+    triggers.isEmpty()
+  }
+
+  def "trigger indexing supports triggers with null type"() {
+    given:
+    def pipeline = Pipeline.builder().application('app').name('pipe').triggers(
+      [Trigger.builder().type(null).enabled(true).build()]
+    ).build()
+
+    when:
+    def triggers = PipelineCache.extractEnabledTriggersFrom(PipelineCache.decorateTriggers([pipeline]))
+
+    then:
+    triggers.isEmpty()
+  }
 }
 

@@ -28,6 +28,7 @@ import spock.lang.Unroll
 class DockerEventHandlerSpec extends Specification implements RetrofitStubs {
   def registry = new NoopRegistry()
   def objectMapper = new ObjectMapper()
+  def handlerSupport = new EventHandlerSupport()
 
   @Subject
   def eventHandler = new DockerEventHandler(registry, objectMapper)
@@ -36,7 +37,7 @@ class DockerEventHandlerSpec extends Specification implements RetrofitStubs {
   def "triggers pipelines for successful builds for #triggerType"() {
     given:
     def pipeline = createPipelineWith(trigger)
-    def pipelines = [pipeline]
+    def pipelines = handlerSupport.pipelineCache(pipeline)
 
     when:
     def matchingPipelines = eventHandler.getMatchingPipelines(event, pipelines)
@@ -53,7 +54,7 @@ class DockerEventHandlerSpec extends Specification implements RetrofitStubs {
 
   def "attaches docker trigger to the pipeline"() {
     given:
-    def pipelines = [pipeline]
+    def pipelines = handlerSupport.pipelineCache(pipeline)
 
     when:
     def matchingPipelines = eventHandler.getMatchingPipelines(event, pipelines)
@@ -79,8 +80,11 @@ class DockerEventHandlerSpec extends Specification implements RetrofitStubs {
   }
 
   def "an event can trigger multiple pipelines"() {
+    given:
+    def cache = handlerSupport.pipelineCache(pipelines)
+
     when:
-    def matchingPipelines = eventHandler.getMatchingPipelines(event, pipelines)
+    def matchingPipelines = eventHandler.getMatchingPipelines(event, cache)
 
     then:
     matchingPipelines.size() == pipelines.size()
@@ -100,7 +104,7 @@ class DockerEventHandlerSpec extends Specification implements RetrofitStubs {
   @Unroll
   def "does not trigger #description pipelines"() {
     given:
-    def pipelines = [pipeline]
+    def pipelines = handlerSupport.pipelineCache(pipeline)
 
     when:
     def matchingPipelines = eventHandler.getMatchingPipelines(event, pipelines)
@@ -120,7 +124,7 @@ class DockerEventHandlerSpec extends Specification implements RetrofitStubs {
   @Unroll
   def "does not trigger #description pipelines for docker"() {
     given:
-    def pipelines = [pipeline]
+    def pipelines = handlerSupport.pipelineCache(pipeline)
 
     when:
     def matchingPipelines = eventHandler.getMatchingPipelines(event, pipelines)
@@ -142,7 +146,7 @@ class DockerEventHandlerSpec extends Specification implements RetrofitStubs {
   @Unroll
   def "does not trigger a pipeline that has an enabled docker trigger with missing #field"() {
     given:
-    def pipelines = [badPipeline, goodPipeline]
+    def pipelines = handlerSupport.pipelineCache(badPipeline, goodPipeline)
 
     when:
     def matchingPipelines = eventHandler.getMatchingPipelines(event, pipelines)
@@ -165,7 +169,7 @@ class DockerEventHandlerSpec extends Specification implements RetrofitStubs {
   def "triggers a pipeline that has an enabled docker trigger with regex"() {
     given:
     def pipeline = createPipelineWith(trigger)
-    def pipelines = [pipeline]
+    def pipelines = handlerSupport.pipelineCache(pipeline)
 
     when:
     def matchingPipelines = eventHandler.getMatchingPipelines(event, pipelines)
@@ -185,7 +189,7 @@ class DockerEventHandlerSpec extends Specification implements RetrofitStubs {
   def "triggers a pipeline that has an enabled docker trigger with empty string for regex"() {
     given:
     def pipeline = createPipelineWith(trigger)
-    def pipelines = [pipeline]
+    def pipelines = handlerSupport.pipelineCache(pipeline)
 
     when:
     def matchingPipelines = eventHandler.getMatchingPipelines(event, pipelines)
@@ -205,7 +209,7 @@ class DockerEventHandlerSpec extends Specification implements RetrofitStubs {
   def "triggers a pipeline that has an enabled docker trigger with only whitespace for regex"() {
     given:
     def pipeline = createPipelineWith(trigger)
-    def pipelines = [pipeline]
+    def pipelines = handlerSupport.pipelineCache(pipeline)
 
     when:
     def matchingPipelines = eventHandler.getMatchingPipelines(event, pipelines)
@@ -225,7 +229,7 @@ class DockerEventHandlerSpec extends Specification implements RetrofitStubs {
   def "does not trigger a pipeline that has an enabled docker trigger with regex"() {
     given:
     def pipeline = createPipelineWith(trigger)
-    def pipelines = [pipeline]
+    def pipelines = handlerSupport.pipelineCache(pipeline)
 
     when:
     def matchingPipelines = eventHandler.getMatchingPipelines(event, pipelines)

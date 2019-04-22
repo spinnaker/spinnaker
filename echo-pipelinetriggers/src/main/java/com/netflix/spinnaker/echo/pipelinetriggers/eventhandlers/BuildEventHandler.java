@@ -44,12 +44,18 @@ import java.util.function.Predicate;
 @Slf4j
 public class BuildEventHandler extends BaseTriggerEventHandler<BuildEvent> {
   private static final String[] BUILD_TRIGGER_TYPES = {"jenkins", "travis", "wercker", "concourse"};
+  private static final List<String> supportedTriggerTypes = Collections.unmodifiableList(Arrays.asList(BUILD_TRIGGER_TYPES));
   private final Optional<BuildInfoService> buildInfoService;
 
   @Autowired
   public BuildEventHandler(Registry registry, ObjectMapper objectMapper, Optional<BuildInfoService> buildInfoService) {
     super(registry, objectMapper);
     this.buildInfoService = buildInfoService;
+  }
+
+  @Override
+  public List<String> supportedTriggerTypes() {
+    return supportedTriggerTypes;
   }
 
   @Override
