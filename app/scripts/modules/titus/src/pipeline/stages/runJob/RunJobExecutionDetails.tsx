@@ -55,8 +55,11 @@ export class RunJobExecutionDetails extends React.Component<
     const jobId = cluster ? get(context['deploy.jobs'], cluster.region, [])[0] : null;
     const taskId = get(context, 'jobStatus.completionDetails.taskId');
 
-    const renderProperty = (entry: string) => {
-      const linkPattern = /^https?\:\/\/([^\s])*$/;
+    const renderProperty = (entry: any) => {
+      if (typeof entry === 'object' && !Array.isArray(entry)) {
+        return <pre>{JSON.stringify(entry, null, 2)}</pre>;
+      }
+      const linkPattern = /^https?:\/\/([^\s])*$/;
       return linkPattern.test(entry) ? (
         <a href={entry} target="_blank">
           {entry}
@@ -113,7 +116,7 @@ export class RunJobExecutionDetails extends React.Component<
                   <dd>
                     <ul className="nostyle">
                       {Object.keys(resources).map(key => (
-                        <li>
+                        <li key={key}>
                           {key}: {resources[key]}
                         </li>
                       ))}
