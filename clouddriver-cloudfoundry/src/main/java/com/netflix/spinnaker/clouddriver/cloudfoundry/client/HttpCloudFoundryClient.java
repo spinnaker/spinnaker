@@ -66,6 +66,7 @@ public class HttpCloudFoundryClient implements CloudFoundryClient {
   private Routes routes;
   private Applications applications;
   private ServiceInstances serviceInstances;
+  private ServiceKeys serviceKeys;
 
   private final RequestInterceptor oauthInterceptor = new RequestInterceptor() {
     @Override
@@ -184,6 +185,7 @@ public class HttpCloudFoundryClient implements CloudFoundryClient {
     this.domains = new Domains(createService(DomainService.class), organizations);
     this.serviceInstances = new ServiceInstances(createService(ServiceInstanceService.class), createService(ConfigService.class), organizations, spaces);
     this.routes = new Routes(account, createService(RouteService.class), applications, domains, spaces);
+    this.serviceKeys = new ServiceKeys(createService(ServiceKeyService.class), spaces);
   }
 
   private void refreshTokenIfNecessary() {
@@ -238,5 +240,10 @@ public class HttpCloudFoundryClient implements CloudFoundryClient {
   @Override
   public ServiceInstances getServiceInstances() {
     return serviceInstances;
+  }
+
+  @Override
+  public ServiceKeys getServiceKeys() {
+    return serviceKeys;
   }
 }

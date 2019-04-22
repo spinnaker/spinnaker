@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Pivotal, Inc.
+ * Copyright 2019 Pivotal, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,15 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.cloudfoundry.client;
+package com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2;
 
-public interface CloudFoundryClient {
-  Spaces getSpaces();
+import lombok.Data;
 
-  Organizations getOrganizations();
+import java.util.Map;
 
-  Domains getDomains();
-
-  Routes getRoutes();
-
-  Applications getApplications();
-
-  ServiceInstances getServiceInstances();
-
-  ServiceKeys getServiceKeys();
+@Data
+public class ServiceKey {
+  private String name;
+  private String serviceInstanceGuid;
+  private Map<String, Object> credentials;
 }

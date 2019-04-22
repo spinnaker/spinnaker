@@ -21,7 +21,6 @@ import com.google.api.client.repackaged.com.google.common.annotations.VisibleFor
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.ConfigService;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.ServiceInstanceService;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.ServiceInstanceResponse;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.ServiceKeyResponse;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.*;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.CreateSharedServiceInstances;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.*;
@@ -308,28 +307,6 @@ public class ServiceInstances {
     }
 
     return serviceInstances.get(0);
-  }
-
-  public ServiceKeyResponse createServiceKey(CloudFoundrySpace space, String serviceInstanceName, String serviceKeyName) {
-    return Optional.ofNullable(spaces.getSummaryServiceInstanceByNameAndSpace(serviceInstanceName, space))
-      .map(ssi ->
-        safelyCall(() -> {
-          CreateServiceKey body = new CreateServiceKey().setName(serviceKeyName).setServiceInstanceGuid(ssi.getGuid());
-          return api.createServiceKey(body);
-        })
-          .map(Resource::getEntity)
-          .map(serviceCredentials -> (ServiceKeyResponse) new ServiceKeyResponse()
-            .setServiceKeyName(serviceKeyName)
-            .setServiceKey(serviceCredentials.getCredentials())
-            .setType(LastOperation.Type.CREATE_SERVICE_KEY)
-            .setState(LastOperation.State.SUCCEEDED)
-            .setServiceInstanceName(serviceInstanceName)
-          )
-          .orElseThrow(() -> new CloudFoundryApiException("Service key '" + serviceKeyName +
-            "' could not be created for service instance '" + serviceInstanceName + "' in region '" +
-            space.getRegion() + "'")))
-      .orElseThrow(() -> new CloudFoundryApiException("Service instance '" + serviceInstanceName +
-        "' not found in region '" + space.getRegion() + "'"));
   }
 
   public ServiceInstanceResponse destroyServiceInstance(CloudFoundrySpace space, String serviceInstanceName) {

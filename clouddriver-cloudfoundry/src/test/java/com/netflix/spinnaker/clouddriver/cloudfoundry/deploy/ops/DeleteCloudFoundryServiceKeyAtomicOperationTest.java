@@ -19,7 +19,7 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops;
 
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryApiException;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.ServiceKeyResponse;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.CreateCloudFoundryServiceKeyDescription;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.DeleteCloudFoundryServiceKeyDescription;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryOrganization;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
@@ -29,13 +29,13 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation.State.SUCCEEDED;
-import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation.Type.CREATE_SERVICE_KEY;
+import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation.Type.DELETE_SERVICE_KEY;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.atIndex;
 import static org.mockito.Mockito.*;
 
-class CreateCloudFoundryServiceKeyAtomicOperationTest extends AbstractCloudFoundryAtomicOperationTest {
-  private CreateCloudFoundryServiceKeyDescription desc = new CreateCloudFoundryServiceKeyDescription();
+class DeleteCloudFoundryServiceKeyAtomicOperationTest extends AbstractCloudFoundryAtomicOperationTest {
+  private DeleteCloudFoundryServiceKeyDescription desc = new DeleteCloudFoundryServiceKeyDescription();
   private final CloudFoundrySpace cloudFoundrySpace = CloudFoundrySpace.builder()
     .name("space")
     .organization(CloudFoundryOrganization.builder()
@@ -44,7 +44,7 @@ class CreateCloudFoundryServiceKeyAtomicOperationTest extends AbstractCloudFound
     .build();
 
   @Test
-  void printsTwoStatusesWhenCreatingServiceKeySucceeds() {
+  void printsTwoStatusesWhenDeletingServiceKeySucceeds() {
     String serviceInstanceName = "service-instance-name";
     String serviceKeyName = "service-key-name";
     desc.setSpace(cloudFoundrySpace);
@@ -57,21 +57,21 @@ class CreateCloudFoundryServiceKeyAtomicOperationTest extends AbstractCloudFound
       ).toJavaMap())
       .setServiceKeyName(serviceKeyName)
       .setServiceInstanceName(serviceInstanceName)
-      .setType(CREATE_SERVICE_KEY)
+      .setType(DELETE_SERVICE_KEY)
       .setState(SUCCEEDED);
-    when(client.getServiceKeys().createServiceKey(any(), any(), any()))
+    when(client.getServiceKeys().deleteServiceKey(any(), any(), any()))
       .thenReturn(serviceKeyResponse);
 
-    CreateCloudFoundryServiceKeyAtomicOperation op = new CreateCloudFoundryServiceKeyAtomicOperation(desc);
+    DeleteCloudFoundryServiceKeyAtomicOperation op = new DeleteCloudFoundryServiceKeyAtomicOperation(desc);
 
     Task task = runOperation(op);
 
-    verify(client.getServiceKeys()).createServiceKey(eq(cloudFoundrySpace), eq(serviceInstanceName), eq(serviceKeyName));
+    verify(client.getServiceKeys()).deleteServiceKey(eq(cloudFoundrySpace), eq(serviceInstanceName), eq(serviceKeyName));
     assertThat(task.getHistory())
-      .has(status("Creating service key 'service-key-name' for service 'service-instance-name' in 'org > space'"),
+      .has(status("Deleting service key 'service-key-name' for service 'service-instance-name' in 'org > space'"),
         atIndex(1));
     assertThat(task.getHistory())
-      .has(status("Finished creating service key 'service-key-name'"),
+      .has(status("Finished deleting service key 'service-key-name'"),
         atIndex(2));
     List<Object> resultObjects = task.getResultObjects();
     assertThat(resultObjects.size()).isEqualTo(1);
@@ -82,7 +82,7 @@ class CreateCloudFoundryServiceKeyAtomicOperationTest extends AbstractCloudFound
   }
 
   @Test
-  void printsOnlyOneStatusWhenCreationFails() {
+  void printsOnlyOneStatusWhenDeletionFails() {
     String serviceInstanceName = "service-instance-name";
     String serviceKeyName = "service-key-name";
     desc.setSpace(cloudFoundrySpace);
@@ -90,17 +90,17 @@ class CreateCloudFoundryServiceKeyAtomicOperationTest extends AbstractCloudFound
     desc.setServiceKeyName(serviceKeyName);
     desc.setClient(client);
 
-    when(client.getServiceKeys().createServiceKey(any(), any(), any()))
+    when(client.getServiceKeys().deleteServiceKey(any(), any(), any()))
       .thenThrow(new CloudFoundryApiException("Much fail"));
 
-    CreateCloudFoundryServiceKeyAtomicOperation op = new CreateCloudFoundryServiceKeyAtomicOperation(desc);
+    DeleteCloudFoundryServiceKeyAtomicOperation op = new DeleteCloudFoundryServiceKeyAtomicOperation(desc);
 
     Task task = runOperation(op);
 
-    verify(client.getServiceKeys()).createServiceKey(eq(cloudFoundrySpace), eq(serviceInstanceName), eq(serviceKeyName));
+    verify(client.getServiceKeys()).deleteServiceKey(eq(cloudFoundrySpace), eq(serviceInstanceName), eq(serviceKeyName));
     assertThat(task.getHistory().size()).isEqualTo(2);
     assertThat(task.getHistory())
-      .has(status("Creating service key 'service-key-name' for service 'service-instance-name' in 'org > space'"),
+      .has(status("Deleting service key 'service-key-name' for service 'service-instance-name' in 'org > space'"),
         atIndex(1));
     List<Object> resultObjects = task.getResultObjects();
     assertThat(resultObjects.size()).isEqualTo(1);

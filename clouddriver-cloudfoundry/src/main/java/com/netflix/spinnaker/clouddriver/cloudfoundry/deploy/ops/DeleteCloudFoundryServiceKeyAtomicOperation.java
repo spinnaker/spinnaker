@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops;
 
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.ServiceKeyResponse;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.CreateCloudFoundryServiceKeyDescription;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.DeleteCloudFoundryServiceKeyDescription;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
@@ -27,9 +27,9 @@ import lombok.RequiredArgsConstructor;
 import java.util.List;
 
 @RequiredArgsConstructor
-public class CreateCloudFoundryServiceKeyAtomicOperation implements AtomicOperation<ServiceKeyResponse> {
-  private static final String PHASE = "CREATE_SERVICE_KEY";
-  private final CreateCloudFoundryServiceKeyDescription description;
+public class DeleteCloudFoundryServiceKeyAtomicOperation implements AtomicOperation<ServiceKeyResponse> {
+  private static final String PHASE = "DELETE_SERVICE_KEY";
+  private final DeleteCloudFoundryServiceKeyDescription description;
 
   private static Task getTask() {
     return TaskRepository.threadLocalTask.get();
@@ -42,11 +42,11 @@ public class CreateCloudFoundryServiceKeyAtomicOperation implements AtomicOperat
     CloudFoundrySpace space = description.getSpace();
     String serviceInstanceName = description.getServiceInstanceName();
     String serviceKeyName = description.getServiceKeyName();
-    task.updateStatus(PHASE, "Creating service key '" + serviceKeyName + "' for service '" + serviceInstanceName + "' in '" + space.getRegion() + "'");
+    task.updateStatus(PHASE, "Deleting service key '" + serviceKeyName + "' for service '" + serviceInstanceName + "' in '" + space.getRegion() + "'");
 
-    ServiceKeyResponse results = description.getClient().getServiceKeys().createServiceKey(space, serviceInstanceName, serviceKeyName);
+    ServiceKeyResponse results = description.getClient().getServiceKeys().deleteServiceKey(space, serviceInstanceName, serviceKeyName);
 
-    task.updateStatus(PHASE, "Finished creating service key '" + serviceKeyName + "'");
+    task.updateStatus(PHASE, "Finished deleting service key '" + serviceKeyName + "'");
 
     return results;
   }

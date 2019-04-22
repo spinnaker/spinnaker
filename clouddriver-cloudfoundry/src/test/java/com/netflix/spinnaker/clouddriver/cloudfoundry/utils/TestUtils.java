@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Pivotal, Inc.
+ * Copyright 2019 Pivotal, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,21 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.cloudfoundry.client;
+package com.netflix.spinnaker.clouddriver.cloudfoundry.utils;
 
-public interface CloudFoundryClient {
-  Spaces getSpaces();
+import java.util.function.Supplier;
 
-  Organizations getOrganizations();
+import static org.assertj.core.api.Assertions.assertThat;
 
-  Domains getDomains();
-
-  Routes getRoutes();
-
-  Applications getApplications();
-
-  ServiceInstances getServiceInstances();
-
-  ServiceKeys getServiceKeys();
+public class TestUtils {
+  public static void assertThrows(Supplier<?> s, Class clazz, String errorString) {
+    RuntimeException runtimeException = null;
+    try {
+      s.get();
+    } catch (RuntimeException e) {
+      runtimeException = e;
+    }
+    assertThat(runtimeException).isInstanceOf(clazz);
+    assertThat(runtimeException.getMessage()).isEqualTo(errorString);
+  }
 }

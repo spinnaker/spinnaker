@@ -20,21 +20,18 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.ConfigService;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.ServiceInstanceService;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.ErrorDescription;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.ServiceInstanceResponse;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.ServiceKeyResponse;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.*;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.CreateSharedServiceInstances;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryOrganization;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryServerGroup;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryServiceInstance;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
-import io.vavr.collection.HashMap;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
 
 import java.util.*;
-import java.util.function.Supplier;
 
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.ConfigFeatureFlag.ConfigFlag.SERVICE_INSTANCE_SHARING;
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation.State.IN_PROGRESS;
@@ -42,6 +39,7 @@ import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Las
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation.Type.*;
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.ServiceInstance.Type.MANAGED_SERVICE_INSTANCE;
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.ServiceInstance.Type.USER_PROVIDED_SERVICE_INSTANCE;
+import static com.netflix.spinnaker.clouddriver.cloudfoundry.utils.TestUtils.assertThrows;
 import static java.util.Collections.singleton;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
@@ -1023,81 +1021,6 @@ class ServiceInstancesTest {
     verify(serviceInstanceService, never()).destroyServiceInstance(any());
   }
 
-  @Test
-  void createServiceKeyShouldReturnSuccessWhenServiceKeyIsCreated() {
-    String serviceInstanceName = "service-instance-name";
-    String serviceKeyName = "service-key-name";
-    String serviceInstanceId = "service-instance-guid";
-    when(spaces.getSummaryServiceInstanceByNameAndSpace(any(), any())).thenReturn(new SummaryServiceInstance()
-      .setName(serviceKeyName)
-      .setGuid(serviceInstanceId));
-    Map<String, Object> credentials = HashMap.of(
-      "username", "name1",
-      "password", "xxwer3",
-      "details", singleton("detail")
-    ).toJavaMap();
-    ServiceCredentials serviceCredentials = new ServiceCredentials().setCredentials(credentials);
-    Resource<ServiceCredentials> resource = new Resource<>();
-    resource.setEntity(serviceCredentials);
-    when(serviceInstanceService.createServiceKey(any())).thenReturn(resource);
-    CreateServiceKey requestBody = new CreateServiceKey()
-      .setName(serviceKeyName)
-      .setServiceInstanceGuid(serviceInstanceId);
-
-    ServiceKeyResponse expectedResults = new ServiceKeyResponse();
-    expectedResults.setServiceKey(credentials);
-    expectedResults.setType(CREATE_SERVICE_KEY);
-    expectedResults.setState(SUCCEEDED);
-    expectedResults.setServiceInstanceName(serviceInstanceName);
-    expectedResults.setServiceKeyName(serviceKeyName);
-
-    ServiceKeyResponse results = serviceInstances.createServiceKey(cloudFoundrySpace, serviceInstanceName, serviceKeyName);
-
-    assertThat(results).isEqualToComparingFieldByFieldRecursively(expectedResults);
-    verify(spaces).getSummaryServiceInstanceByNameAndSpace(eq(serviceInstanceName), eq(cloudFoundrySpace));
-    verify(serviceInstanceService).createServiceKey(eq(requestBody));
-  }
-
-  @Test
-  void createServiceKeyShouldThrowExceptionWhenServiceNameDoesNotExistInSpace() {
-    String serviceInstanceName = "service-instance-name";
-    String serviceKeyName = "service-key-name";
-    when(spaces.getSummaryServiceInstanceByNameAndSpace(any(), any())).thenReturn(null);
-
-    assertThrows(
-      () -> serviceInstances.createServiceKey(cloudFoundrySpace, serviceInstanceName, serviceKeyName),
-      CloudFoundryApiException.class,
-      "Cloud Foundry API returned with error(s): Service instance '"
-        + serviceInstanceName + "' not found in region '" + cloudFoundrySpace.getRegion() + "'");
-    verify(spaces).getSummaryServiceInstanceByNameAndSpace(eq(serviceInstanceName), eq(cloudFoundrySpace));
-    verify(serviceInstanceService, never()).createServiceKey(any());
-  }
-
-  @Test
-  void createServiceKeyShouldThrowExceptionWhenServiceKeyReturnsNotFound() {
-    String serviceInstanceName = "service-instance-name";
-    String serviceKeyName = "service-key-name";
-    String serviceInstanceId = "service-instance-guid";
-    when(spaces.getSummaryServiceInstanceByNameAndSpace(any(), any())).thenReturn(new SummaryServiceInstance()
-      .setName(serviceKeyName)
-      .setGuid(serviceInstanceId));
-    CreateServiceKey requestBody = new CreateServiceKey()
-      .setName(serviceKeyName)
-      .setServiceInstanceGuid(serviceInstanceId);
-    RetrofitError retrofitErrorNotFound = mock(RetrofitError.class);
-    Response notFoundResponse = new Response("someUri", 404, "whynot", Collections.emptyList(), null);
-    when(retrofitErrorNotFound.getResponse()).thenReturn(notFoundResponse);
-    when(serviceInstanceService.createServiceKey(any())).thenThrow(retrofitErrorNotFound);
-
-    assertThrows(
-      () -> serviceInstances.createServiceKey(cloudFoundrySpace, serviceInstanceName, serviceKeyName),
-      CloudFoundryApiException.class,
-      "Cloud Foundry API returned with error(s): Service key '" + serviceKeyName + "' could not be created for service instance '"
-        + serviceInstanceName + "' in region '" + cloudFoundrySpace.getRegion() + "'");
-    verify(spaces).getSummaryServiceInstanceByNameAndSpace(eq(serviceInstanceName), eq(cloudFoundrySpace));
-    verify(serviceInstanceService).createServiceKey(requestBody);
-  }
-
   private Resource<ServiceInstance> createServiceInstanceResource() {
     ServiceInstance serviceInstance = new ServiceInstance();
     serviceInstance.setServicePlanGuid("plan-guid").setName("new-service-instance-name");
@@ -1153,16 +1076,5 @@ class ServiceInstancesTest {
       .setTotalResults(0)
       .setTotalPages(1);
     return userProvidedServiceInstancePage;
-  }
-
-  private static void assertThrows(Supplier<?> s, Class clazz, String errorString) {
-    RuntimeException runtimeException = null;
-    try {
-      s.get();
-    } catch (RuntimeException e) {
-      runtimeException = e;
-    }
-    assertThat(runtimeException).isInstanceOf(clazz);
-    assertThat(runtimeException.getMessage()).isEqualTo(errorString);
   }
 }

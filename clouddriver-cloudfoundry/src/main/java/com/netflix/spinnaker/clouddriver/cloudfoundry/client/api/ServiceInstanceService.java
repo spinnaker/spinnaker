@@ -72,9 +72,6 @@ public interface ServiceInstanceService {
   @DELETE("/v2/user_provided_service_instances/{guid}")
   Response destroyUserProvidedServiceInstance(@Path("guid") String serviceInstanceGuid);
 
-  @POST("/v2/service_keys")
-  Resource<ServiceCredentials> createServiceKey(@Body CreateServiceKey body);
-
   @POST("/v3/service_instances/{guid}/relationships/shared_spaces")
   Response shareServiceInstanceToSpaceIds(@Path("guid") String serviceInstanceGuid, @Body CreateSharedServiceInstances body);
 

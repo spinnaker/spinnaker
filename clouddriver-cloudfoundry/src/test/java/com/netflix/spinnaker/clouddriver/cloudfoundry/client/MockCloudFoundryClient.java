@@ -26,6 +26,7 @@ public class MockCloudFoundryClient implements CloudFoundryClient {
   final Routes routes = mock(Routes.class);
   final Applications applications = mock(Applications.class);
   final ServiceInstances serviceInstances = mock(ServiceInstances.class);
+  final ServiceKeys serviceKeys = mock(ServiceKeys.class);
 
   public Spaces getSpaces() {
     return spaces;
@@ -49,5 +50,9 @@ public class MockCloudFoundryClient implements CloudFoundryClient {
 
   public ServiceInstances getServiceInstances() {
     return serviceInstances;
+  }
+
+  public ServiceKeys getServiceKeys() {
+    return serviceKeys;
   }
 }

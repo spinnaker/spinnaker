@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Pivotal, Inc.
+ * Copyright 2019 Pivotal, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,14 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.cloudfoundry.client;
+package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description;
 
-public interface CloudFoundryClient {
-  Spaces getSpaces();
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
-  Organizations getOrganizations();
-
-  Domains getDomains();
-
-  Routes getRoutes();
-
-  Applications getApplications();
-
-  ServiceInstances getServiceInstances();
-
-  ServiceKeys getServiceKeys();
+@Data
+@EqualsAndHashCode(callSuper = true)
+public class DeleteCloudFoundryServiceKeyDescription extends AbstractCloudFoundryServiceDescription {
+  private String serviceInstanceName;
+  private String serviceKeyName;
 }
