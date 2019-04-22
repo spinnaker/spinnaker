@@ -33,7 +33,7 @@ allprojects {
     sourceSets.main.groovy.srcDirs += ["src/main/java"]
 
     ext {
-        spinnakerDependenciesVersion = '1.40.0'
+        spinnakerDependenciesVersion = '1.41.0'
         if (project.hasProperty('spinnakerDependenciesVersion')) {
           spinnakerDependenciesVersion = project.property('spinnakerDependenciesVersion')
         }
