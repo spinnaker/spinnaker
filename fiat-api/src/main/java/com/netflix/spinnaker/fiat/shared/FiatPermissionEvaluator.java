@@ -329,7 +329,7 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
             .stream()
             .anyMatch(view -> view.getName().equalsIgnoreCase(resourceName));
       case BUILD_SERVICE:
-        return containsAuth.apply(permission.getBuildServices());
+        return permission.isLegacyFallback() || containsAuth.apply(permission.getBuildServices());
       default:
         return false;
     }
