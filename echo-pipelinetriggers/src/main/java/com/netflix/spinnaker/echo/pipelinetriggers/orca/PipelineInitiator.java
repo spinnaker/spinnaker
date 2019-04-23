@@ -21,6 +21,10 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.model.Pipeline;
 import com.netflix.spinnaker.echo.pipelinetriggers.QuietPeriodIndicator;
 import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService.TriggerResponse;
+import com.netflix.spinnaker.fiat.model.Authorization;
+import com.netflix.spinnaker.fiat.model.UserPermission;
+import com.netflix.spinnaker.fiat.model.resources.Account;
+import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import com.netflix.spinnaker.fiat.shared.FiatStatus;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import com.netflix.spinnaker.security.User;
@@ -37,8 +41,12 @@ import retrofit.client.Response;
 import rx.Observable;
 import rx.functions.Func1;
 
+import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * Triggers a {@link Pipeline} by invoking _Orca_.
@@ -49,7 +57,9 @@ public class PipelineInitiator {
 
   private final Registry registry;
   private final OrcaService orca;
+  private final FiatPermissionEvaluator fiatPermissionEvaluator;
   private final FiatStatus fiatStatus;
+
   private final ObjectMapper objectMapper;
   private final QuietPeriodIndicator quietPeriodIndicator;
   private final boolean enabled;
@@ -59,6 +69,7 @@ public class PipelineInitiator {
   @Autowired
   public PipelineInitiator(@NonNull Registry registry,
                            @NonNull OrcaService orca,
+                           @NonNull Optional<FiatPermissionEvaluator> fiatPermissionEvaluator,
                            @NonNull FiatStatus fiatStatus,
                            ObjectMapper objectMapper,
                            @NonNull QuietPeriodIndicator quietPeriodIndicator,
@@ -67,6 +78,7 @@ public class PipelineInitiator {
                            @Value("${orca.pipelineInitiatorRetryDelayMillis:5000}") long retryDelayMillis) {
     this.registry = registry;
     this.orca = orca;
+    this.fiatPermissionEvaluator = fiatPermissionEvaluator.orElse(null);
     this.fiatStatus = fiatStatus;
     this.objectMapper = objectMapper;
     this.quietPeriodIndicator = quietPeriodIndicator;
@@ -130,8 +142,15 @@ public class PipelineInitiator {
     } else {
       // If we should not propagate authentication, create an empty User object for the request
       User korkUser = new User();
-      if (fiatStatus.isEnabled() && pipeline.getTrigger() != null) {
-        korkUser.setEmail(pipeline.getTrigger().getRunAsUser());
+      if (fiatStatus.isEnabled()) {
+        if (pipeline.getTrigger() != null && pipeline.getTrigger().getRunAsUser() != null) {
+          korkUser.setEmail(pipeline.getTrigger().getRunAsUser());
+        } else {
+          // consistent with the existing pattern of `AuthenticatedRequest.getSpinnakerUser().orElse("anonymous")`
+          // and defaulting to `anonymous` throughout all Spinnaker services
+          korkUser.setEmail("anonymous");
+        }
+        korkUser.setAllowedAccounts(getAllowedAccountsForUser(korkUser.getEmail()));
       }
       AuthenticatedRequest.propagate(() -> orcaResponse.subscribe(), korkUser).call();
     }
@@ -148,6 +167,37 @@ public class PipelineInitiator {
   private void onOrcaError(Pipeline pipeline, Throwable error) {
     registry.counter("orca.errors", "exception", error.getClass().getName()).increment();
     log.error("Error triggering pipeline: {}", pipeline, error);
+  }
+
+  /**
+   * The set of accounts that a user has WRITE access to.
+   *
+   * Similar filtering can be found in `gate` (see AllowedAccountsSupport.java).
+   *
+   * @param user A service account name (or 'anonymous' if not specified)
+   * @return the allowed accounts for {@param user} as determined by fiat
+   */
+  private Set<String> getAllowedAccountsForUser(String user) {
+    if (fiatPermissionEvaluator == null || !fiatStatus.isLegacyFallbackEnabled()) {
+      return Collections.emptySet();
+    }
+
+    UserPermission.View userPermission = null;
+    try {
+      userPermission = fiatPermissionEvaluator.getPermission(user);
+    } catch (Exception e) {
+      log.error("Unable to fetch permission for {}", user, e);
+    }
+
+    if (userPermission == null) {
+      return Collections.emptySet();
+    }
+
+    return userPermission.getAccounts()
+      .stream()
+      .filter(v -> v.getAuthorizations().contains(Authorization.WRITE))
+      .map(Account.View::getName)
+      .collect(Collectors.toSet());
   }
 
   private static boolean isRetryable(Throwable error) {
