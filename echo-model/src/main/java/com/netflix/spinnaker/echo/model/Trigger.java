@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
 import lombok.experimental.Wither;
@@ -37,6 +38,7 @@ import org.slf4j.LoggerFactory;
 @Wither
 @ToString(of = {"id", "parent", "type", "master", "job", "cronExpression", "source", "project", "slug", "account", "repository", "tag", "parameters", "payloadConstraints", "attributeConstraints", "branch", "runAsUser", "subscriptionName", "pubsubSystem", "expectedArtifactIds", "payload", "status", "artifactName", "link", "linkText"}, includeFieldNames = false)
 @Value
+@EqualsAndHashCode(exclude = "parent")
 public class Trigger {
   public enum Type {
     CRON("cron"),

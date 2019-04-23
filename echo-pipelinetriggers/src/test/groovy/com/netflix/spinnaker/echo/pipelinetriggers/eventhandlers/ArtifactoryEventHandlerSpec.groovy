@@ -76,7 +76,9 @@ class ArtifactoryEventHandlerSpec extends Specification {
     Pipeline artifactoryPipeline = createPipelineWith(Collections.singletonList(createEnabledArtifactoryTrigger()))
 
     when:
-    List<Pipeline> matchingPipelines = eventHandler.getMatchingPipelines(artifactoryEvent, handlerSupport.pipelineCache(artifactoryPipeline, artifactoryPipeline))
+    List<Pipeline> matchingPipelines = eventHandler.getMatchingPipelines(artifactoryEvent, handlerSupport.pipelineCache(
+      artifactoryPipeline,
+      artifactoryPipeline.withName("another pipeline with the same trigger")))
 
     then:
     matchingPipelines.size() == 2

@@ -64,6 +64,7 @@ public abstract class BaseTriggerEventHandler<T extends TriggerEvent> implements
       .map(trigger -> withMatchingTrigger(event, trigger))
       .filter(Optional::isPresent)
       .map(Optional::get)
+      .distinct()
       .collect(Collectors.toList());
   }
 
