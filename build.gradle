@@ -22,7 +22,7 @@ buildscript {
   }
   dependencies {
     classpath 'com.netflix.spinnaker.gradle:spinnaker-dev-plugin:5.2.2'
-    classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.0'
+    classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.8'
 
   }
 }

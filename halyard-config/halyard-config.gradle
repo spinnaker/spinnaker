@@ -8,6 +8,8 @@ dependencies {
   compile spinnaker.dependency('clouddriverCloudfoundry')
   compile spinnaker.dependency('front50Gcs')
   compile spinnaker.dependency('front50S3')
+  compileOnly spinnaker.dependency("lombok")
+  annotationProcessor spinnaker.dependency("lombok")
 
 //  TODO: add clouddriverDCOS once that's merged
   compile project(':halyard-core')
