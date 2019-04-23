@@ -244,7 +244,7 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster.View> {
     }
     serverGroup.loadBalancers = loadBalancers*.view
 
-    serverGroup.securityGroups = GoogleSecurityGroupProvider.getMatchingServerGroupNames(
+    serverGroup.securityGroups = GoogleSecurityGroupProvider.getMatchingSecurityGroupNames(
         account,
         securityGroups,
         serverGroup.instanceTemplateTags,

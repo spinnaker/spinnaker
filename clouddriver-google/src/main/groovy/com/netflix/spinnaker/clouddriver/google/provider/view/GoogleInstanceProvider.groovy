@@ -141,7 +141,7 @@ class GoogleInstanceProvider implements InstanceProvider<GoogleInstance.View, St
       instance.serverGroup = serverGroup
     }
 
-    instance.securityGroups = GoogleSecurityGroupProvider.getMatchingServerGroupNames(
+    instance.securityGroups = GoogleSecurityGroupProvider.getMatchingSecurityGroupNames(
         account,
         securityGroups,
         instance.tags.items as Set<String>,
