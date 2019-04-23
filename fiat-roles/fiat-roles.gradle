@@ -20,6 +20,7 @@ dependencies {
   spinnaker.group("retrofitDefault")
 
   compileOnly spinnaker.dependency("lombok")
+  annotationProcessor spinnaker.dependency("lombok")
 
   compile spinnaker.dependency("bootActuator")
   compile spinnaker.dependency("bootWeb")

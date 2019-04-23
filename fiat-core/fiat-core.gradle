@@ -7,6 +7,7 @@ dependencies {
   compileOnly spinnaker.dependency("retrofitJackson")
 
   compileOnly spinnaker.dependency("lombok")
+  annotationProcessor spinnaker.dependency("lombok")
 
   compile "org.apache.commons:commons-lang3:3.4"
   compile spinnaker.dependency("slf4jApi")

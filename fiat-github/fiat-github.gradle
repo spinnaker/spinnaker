@@ -9,4 +9,5 @@ dependencies {
   compile spinnaker.dependency("retrofitJackson")
 
   compileOnly spinnaker.dependency("lombok")
+  annotationProcessor spinnaker.dependency("lombok")
 }

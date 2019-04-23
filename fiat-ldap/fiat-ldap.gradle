@@ -24,6 +24,7 @@ dependencies {
   compileOnly spinnaker.dependency("retrofitJackson")
 
   compileOnly spinnaker.dependency("lombok")
+  annotationProcessor spinnaker.dependency("lombok")
 
   compile "org.springframework.security:spring-security-ldap:${spinnaker.version('springSecurity')}"
 
