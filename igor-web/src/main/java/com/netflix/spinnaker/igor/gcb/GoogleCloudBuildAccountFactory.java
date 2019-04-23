@@ -17,15 +17,10 @@
 package com.netflix.spinnaker.igor.gcb;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
-import com.google.api.client.http.HttpRequestInitializer;
-import com.google.api.client.http.HttpTransport;
-import com.google.api.client.json.JsonFactory;
-import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.cloudbuild.v1.CloudBuild;
 import com.netflix.spinnaker.igor.config.GoogleCloudBuildProperties;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
@@ -41,13 +36,19 @@ public class GoogleCloudBuildAccountFactory {
   private final GoogleCredentialService credentialService;
   private final CloudBuildFactory cloudBuildFactory;
   private final GoogleCloudBuildExecutor googleCloudBuildExecutor;
+  private final GoogleCloudBuildCache.Factory googleCloudBuildCacheFactory;
 
   public GoogleCloudBuildAccount build(GoogleCloudBuildProperties.Account account) {
     GoogleCredential credential = getCredential(account);
     String applicationName = getApplicationName();
     CloudBuild cloudBuild = cloudBuildFactory.getCloudBuild(credential, applicationName);
 
-    return new GoogleCloudBuildAccount(account.getProject(), cloudBuild, googleCloudBuildExecutor);
+    return new GoogleCloudBuildAccount(
+      account.getProject(),
+      cloudBuild,
+      googleCloudBuildExecutor,
+      googleCloudBuildCacheFactory.create(account.getName())
+    );
   }
 
   private String getApplicationName() {

@@ -18,9 +18,13 @@ package com.netflix.spinnaker.igor.config;
 
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.HttpTransport;
+import com.netflix.spinnaker.igor.IgorConfigurationProperties;
 import com.netflix.spinnaker.igor.gcb.GoogleCloudBuildAccount;
 import com.netflix.spinnaker.igor.gcb.GoogleCloudBuildAccountFactory;
 import com.netflix.spinnaker.igor.gcb.GoogleCloudBuildAccountRepository;
+import com.netflix.spinnaker.igor.gcb.GoogleCloudBuildCache;
+import com.netflix.spinnaker.igor.polling.LockService;
+import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -33,7 +37,7 @@ import java.security.GeneralSecurityException;
 @Configuration
 @ComponentScan("com.netflix.spinnaker.igor.gcb")
 @ConditionalOnProperty("gcb.enabled")
-@EnableConfigurationProperties(GoogleCloudBuildProperties.class)
+@EnableConfigurationProperties({GoogleCloudBuildProperties.class, IgorConfigurationProperties.class})
 public class GoogleCloudBuildConfig {
     @Bean
     HttpTransport httpTransport() throws IOException, GeneralSecurityException {
@@ -51,5 +55,18 @@ public class GoogleCloudBuildConfig {
             credentials.registerAccount(a.getName(), account);
         });
         return credentials;
+    }
+
+    @Bean
+    GoogleCloudBuildCache.Factory googleCloudBuildCacheFactory(
+      IgorConfigurationProperties igorConfigurationProperties,
+      RedisClientDelegate redisClientDelegate,
+      LockService lockService
+    ) {
+      return new GoogleCloudBuildCache.Factory(
+        lockService,
+        redisClientDelegate,
+        igorConfigurationProperties.getSpinnaker().getJedis().getPrefix()
+      );
     }
 }

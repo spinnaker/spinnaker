@@ -30,6 +30,7 @@ public class GoogleCloudBuildProperties {
     public static class Account {
         private String name;
         private String project;
+        private String subscriptionName;
         private String jsonKey;
     }
 }

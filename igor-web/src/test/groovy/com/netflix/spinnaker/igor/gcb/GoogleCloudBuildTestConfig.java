@@ -16,12 +16,15 @@
 
 package com.netflix.spinnaker.igor.gcb;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.testing.auth.oauth2.MockTokenServerTransport;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.cloudbuild.v1.CloudBuildScopes;
+import com.netflix.spectator.api.NoopRegistry;
+import com.netflix.spectator.api.Registry;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
@@ -31,7 +34,17 @@ import java.io.InputStream;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 
-public class WireMockConfig {
+public class GoogleCloudBuildTestConfig {
+  @Bean
+  ObjectMapper objectMapper() {
+    return new ObjectMapper();
+  }
+
+  @Bean
+  Registry registry() {
+    return new NoopRegistry();
+  }
+
   @Bean(name = "stubCloudBuildService")
   WireMockServer stubCloudBuildService() {
     WireMockServer server = new WireMockServer(options().dynamicPort());

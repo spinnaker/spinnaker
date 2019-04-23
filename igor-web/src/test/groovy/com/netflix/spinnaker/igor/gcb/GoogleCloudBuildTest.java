@@ -16,13 +16,17 @@
 
 package com.netflix.spinnaker.igor.gcb;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.google.api.services.cloudbuild.v1.model.Build;
+import com.google.api.services.cloudbuild.v1.model.BuildOptions;
 import com.google.api.services.cloudbuild.v1.model.BuildStep;
 import com.google.api.services.cloudbuild.v1.model.Operation;
+import com.netflix.spinnaker.igor.RedisConfig;
 import com.netflix.spinnaker.igor.config.GoogleCloudBuildConfig;
+import com.netflix.spinnaker.igor.config.LockManagerConfig;
 import com.netflix.spinnaker.kork.web.exceptions.GenericExceptionHandlers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -42,6 +46,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -52,8 +57,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(classes = {
   GoogleCloudBuildConfig.class,
   GoogleCloudBuildController.class,
+  RedisConfig.class,
+  LockManagerConfig.class,
   GenericExceptionHandlers.class,
-  WireMockConfig.class
+  GoogleCloudBuildTestConfig.class
 })
 @TestPropertySource(properties = {"spring.config.location=classpath:gcb/gcb-test.yml"})
 public class GoogleCloudBuildTest {
@@ -80,12 +87,13 @@ public class GoogleCloudBuildTest {
   public void presentAccountTest() throws Exception {
     String buildRequest = objectMapper.writeValueAsString(buildRequest());
     String buildResponse = objectMapper.writeValueAsString(buildResponse());
+    String operationResponse = objectMapper.writeValueAsString(operationResponse());
     stubCloudBuildService.stubFor(
       WireMock
         .post(urlEqualTo("/v1/projects/spinnaker-gcb-test/builds"))
         .withHeader("Authorization", equalTo("Bearer test-token"))
         .withRequestBody(equalToJson(buildRequest))
-        .willReturn(aResponse().withStatus(200).withBody(buildResponse))
+        .willReturn(aResponse().withStatus(200).withBody(operationResponse))
     );
 
     mockMvc.perform(
@@ -97,6 +105,60 @@ public class GoogleCloudBuildTest {
       .andExpect(content().json(buildResponse));
 
     assertThat(stubCloudBuildService.findUnmatchedRequests().getRequests()).isEmpty();
+  }
+
+  @Test
+  public void updateBuildTest() throws Exception {
+    String buildId = "f0fc7c14-6035-4e5c-bda1-4848a73af5b4";
+    String working = "WORKING";
+    String success = "SUCCESS";
+    String queued = "QUEUED";
+
+    Build workingBuild = buildRequest().setId(buildId).setStatus(working);
+    mockMvc.perform(
+      put(String.format("/gcb/builds/gcb-account/%s?status=%s", buildId, working))
+        .accept(MediaType.APPLICATION_JSON)
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(workingBuild))
+    ).andExpect(status().is(200));
+
+    assertThat(stubCloudBuildService.findUnmatchedRequests().getRequests()).isEmpty();
+
+    mockMvc.perform(
+      get(String.format("/gcb/builds/gcb-account/%s", buildId))
+        .accept(MediaType.APPLICATION_JSON)
+    ).andExpect(status().is(200)).andExpect(content().json(objectMapper.writeValueAsString(workingBuild)));
+
+    Build successfulBuild = buildRequest().setId(buildId).setStatus(success);
+    mockMvc.perform(
+      put(String.format("/gcb/builds/gcb-account/%s?status=%s", buildId, success))
+        .accept(MediaType.APPLICATION_JSON)
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(successfulBuild))
+    ).andExpect(status().is(200));
+
+    assertThat(stubCloudBuildService.findUnmatchedRequests().getRequests()).isEmpty();
+
+    mockMvc.perform(
+      get(String.format("/gcb/builds/gcb-account/%s", buildId))
+        .accept(MediaType.APPLICATION_JSON)
+    ).andExpect(status().is(200)).andExpect(content().json(objectMapper.writeValueAsString(successfulBuild)));
+
+    // Test that an out-of-order update back to "QUEUED" does not affect the cached value
+    Build queuedBuild = buildRequest().setId(buildId).setStatus(queued);
+    mockMvc.perform(
+      put(String.format("/gcb/builds/gcb-account/%s?status=%s", buildId, queued))
+        .accept(MediaType.APPLICATION_JSON)
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(queuedBuild))
+    ).andExpect(status().is(200));
+
+    assertThat(stubCloudBuildService.findUnmatchedRequests().getRequests()).isEmpty();
+
+    mockMvc.perform(
+      get(String.format("/gcb/builds/gcb-account/%s", buildId))
+        .accept(MediaType.APPLICATION_JSON)
+    ).andExpect(status().is(200)).andExpect(content().json(objectMapper.writeValueAsString(successfulBuild)));
   }
 
   @Test
@@ -119,19 +181,25 @@ public class GoogleCloudBuildTest {
     args.add("Hello, world!");
 
     BuildStep buildStep = new BuildStep().setArgs(args).setName("hello");
-    return new Build().setSteps(Collections.singletonList(buildStep));
+    BuildOptions buildOptions = new BuildOptions().setLogging("LEGACY");
+
+    return new Build().setSteps(Collections.singletonList(buildStep)).setOptions(buildOptions);
   }
 
-  private Operation buildResponse() {
+  private Build buildResponse() {
     Build build = buildRequest();
     build.setId("9f7a39db-b605-437f-aac1-f1ec3b798105");
     build.setStatus("QUEUED");
     build.setProjectId("spinnaker-gcb-test");
     build.setCreateTime("2019-03-26T16:00:08.659446379Z");
 
+    return build;
+  }
+
+  private Operation operationResponse() {
     Map<String, Object> metadata = new HashMap<>();
     metadata.put("@type", "type.googleapis.com/google.devtools.cloudbuild.v1.BuildOperationMetadata");
-    metadata.put("build", build);
+    metadata.put("build", buildResponse());
 
     Operation operation = new Operation();
     operation.setName("operations/build/spinnaker-gcb-test/operationid");
