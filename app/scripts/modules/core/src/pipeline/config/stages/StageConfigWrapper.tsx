@@ -18,6 +18,7 @@ export class StageConfigWrapper extends React.Component<IStageConfigWrapperProps
     const { component: StageConfig, updateStageField, ...otherProps } = this.props;
     return (
       <StageConfig
+        updateStage={updateStageField}
         updateStageField={(changes: { [key: string]: any }) => {
           updateStageField(changes);
           this.forceUpdate();

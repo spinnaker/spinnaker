@@ -7,5 +7,6 @@ export interface IStageConfigProps {
   pipeline: IPipeline;
   configuration?: any;
   stageFieldUpdated: () => void;
+  updateStage: (changes: { [key: string]: any }) => void;
   updateStageField: (changes: { [key: string]: any }) => void;
 }
