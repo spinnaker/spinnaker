@@ -117,19 +117,22 @@ export class DockerTriggerTemplate extends React.Component<
     const { command } = this.props;
     command.triggerInvalid = true;
 
+    // These fields will be added to the trigger when the form is submitted
+    command.extraFields = {};
+
+    if (this.subscription) {
+      this.subscription.unsubscribe();
+    }
+
+    // cancel search stream if trigger has changed to some other type
+    if (command.trigger.type !== 'docker') {
+      return;
+    }
+
     this.subscription = this.queryStream
       .debounceTime(250)
       .switchMap(this.handleQuery)
       .subscribe(this.tagLoadSuccess, this.tagLoadFailure);
-
-    // These fields will be added to the trigger when the form is submitted
-    command.extraFields = {};
-
-    // cancel search stream if trigger has changed to some other type
-    if (command.trigger.type !== 'docker') {
-      this.subscription.unsubscribe();
-      return;
-    }
 
     this.searchTags();
   };
@@ -142,6 +145,12 @@ export class DockerTriggerTemplate extends React.Component<
 
   public componentDidMount() {
     this.initialize();
+  }
+
+  public componentWillUnmount() {
+    if (this.subscription) {
+      this.subscription.unsubscribe();
+    }
   }
 
   private searchTags = (query = '') => {
