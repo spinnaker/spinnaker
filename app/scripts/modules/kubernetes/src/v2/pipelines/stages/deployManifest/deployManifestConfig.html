@@ -33,6 +33,7 @@
     <hr ng-if="stage.source === ctrl.textSource" />
     <div ng-if="ctrl.checkFeatureFlag('artifactsRewrite')">
       <stage-config-field
+        ng-if="stage.source === ctrl.artifactSource"
         label="Manifest Artifact"
         help-field-key="kubernetes.manifest.expectedArtifact"
         field-columns="8"
