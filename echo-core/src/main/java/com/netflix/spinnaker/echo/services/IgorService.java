@@ -17,9 +17,9 @@
 package com.netflix.spinnaker.echo.services;
 
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import retrofit.http.GET;
-import retrofit.http.Path;
-import retrofit.http.Query;
+import retrofit.client.Response;
+import retrofit.http.*;
+import retrofit.mime.TypedInput;
 
 import java.util.List;
 import java.util.Map;
@@ -50,4 +50,12 @@ public interface IgorService {
   Artifact getArtifactByVersion(@Path("provider") String provider,
                                 @Path("packageName") String packageName,
                                 @Path("version") String version);
+
+  @PUT("/gcb/builds/{account}/{buildId}")
+  Response updateBuildStatus(
+    @Path("account") String account,
+    @Path("buildId") String buildId,
+    @Query("status") String status,
+    @Body TypedInput build
+  );
 }

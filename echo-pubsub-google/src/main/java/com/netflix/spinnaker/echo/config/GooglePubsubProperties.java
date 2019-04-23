@@ -25,6 +25,9 @@ import java.util.List;
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -43,7 +46,9 @@ public class GooglePubsubProperties {
   @Valid
   private List<GooglePubsubPublisherConfig> publishers = new ArrayList<>();
 
+  @Builder
   @Data
+  @AllArgsConstructor
   @NoArgsConstructor
   public static class GooglePubsubSubscription {
 
@@ -57,6 +62,7 @@ public class GooglePubsubProperties {
     private String subscriptionName;
 
     @NotNull
+    @Builder.Default
     private Integer ackDeadlineSeconds = 10;
 
     // Not required since subscriptions can be public.
@@ -64,6 +70,7 @@ public class GooglePubsubProperties {
 
     private String templatePath;
 
+    @Builder.Default
     private MessageFormat messageFormat = MessageFormat.CUSTOM;
 
     public InputStream readTemplatePath() {
