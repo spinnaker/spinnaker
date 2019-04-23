@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 import { IRegion } from 'core/account/AccountService';
-import { IFormInputProps } from 'core/presentation';
+import { IFormInputProps } from '../presentation';
 
 export interface IRegionSelectInputProps extends IFormInputProps {
   account: string;

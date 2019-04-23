@@ -4,7 +4,7 @@ import { flatten, isEqual, map, uniq, xor } from 'lodash';
 import Select, { Option } from 'react-select';
 
 import { createFakeReactSyntheticEvent } from 'core/presentation/forms/inputs/utils';
-import { IFormInputProps } from 'core/presentation';
+import { IFormInputProps } from '../presentation';
 
 import { AccountService, IAccount } from './AccountService';
 
