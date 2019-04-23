@@ -36,7 +36,7 @@ import org.slf4j.LoggerFactory;
 @JsonDeserialize(builder = Trigger.TriggerBuilder.class)
 @Builder(toBuilder = true)
 @Wither
-@ToString(of = {"id", "parent", "type", "master", "job", "cronExpression", "source", "project", "slug", "account", "repository", "tag", "parameters", "payloadConstraints", "attributeConstraints", "branch", "runAsUser", "subscriptionName", "pubsubSystem", "expectedArtifactIds", "payload", "status", "artifactName", "link", "linkText"}, includeFieldNames = false)
+@ToString(of = {"id", "parent", "type", "master", "job", "cronExpression", "source", "project", "slug", "account", "repository", "tag", "parameters", "payloadConstraints", "attributeConstraints", "branch", "runAsUser", "subscriptionName", "pubsubSystem", "expectedArtifactIds", "payload", "status", "artifactName", "link", "linkText", "application", "pipeline"}, includeFieldNames = false)
 @Value
 @EqualsAndHashCode(exclude = "parent")
 public class Trigger {
@@ -48,7 +48,8 @@ public class Trigger {
     DOCKER("docker"),
     WEBHOOK("webhook"),
     PUBSUB("pubsub"),
-    DRYRUN("dryrun");
+    DRYRUN("dryrun"),
+    PIPELINE("pipeline");
 
     private final String type;
 
@@ -68,9 +69,12 @@ public class Trigger {
   String type;
   boolean enabled;
 
-  // Configuration for pipeline triggers
   String parentPipelineId;
   String parentPipelineApplication;
+
+  // Configuration for pipeline triggers
+  String application;
+  String pipeline;
 
   // Configuration for git triggers
   String project;
