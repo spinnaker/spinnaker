@@ -14,16 +14,13 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.conditions
+package com.netflix.spinnaker.orca.clouddriver.pipeline.conditions
 
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
-import com.netflix.spinnaker.orca.pipeline.WaitForConditionStage
 import com.netflix.spinnaker.orca.time.MutableClock
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
-
-import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class ConfigurationBackedConditionSupplierSpec extends Specification {
   def configService = Stub(DynamicConfigService) {
@@ -40,29 +37,21 @@ class ConfigurationBackedConditionSupplierSpec extends Specification {
   @Unroll
   def "should return configured conditions"() {
     given:
-    def stage = stage {
-      refId = "1"
-      type = WaitForConditionStage.STAGE_TYPE
-      startTime = clock.millis()
-      context = ctx
-    }
-
-    and:
     conditionsConfigurationProperties.setClusters(clusters)
     conditionsConfigurationProperties.setActiveConditions(activeConditions)
 
     when:
-    def result = conditionSupplier.getConditions(stage)
+    def result = conditionSupplier.getConditions(cluster, "region", "account")
 
     then:
     result.size() == numberOfResultingConditions
 
     where:
-    ctx                 | clusters        | activeConditions     | numberOfResultingConditions
-    [cluster: "foo"]    | []              | []                   | 0
-    [cluster: "foo"]    | ["foo", "bar"]  | []                   | 0
-    [cluster: "foo"]    | ["bar"]         | [ "c1", "c2"]        | 0
-    [cluster: "foo"]    | ["foo", "bar"]  | [ "c1", "c2"]        | 2
-    [cluster: "foo"]    | []              | [ "c1", "c2"]        | 0
+    cluster                 | clusters        | activeConditions     | numberOfResultingConditions
+    "foo"                   | []              | []                   | 0
+    "foo"                   | ["foo", "bar"]  | []                   | 0
+    "foo"                   | ["bar"]         | [ "c1", "c2"]        | 0
+    "foo"                   | ["foo", "bar"]  | [ "c1", "c2"]        | 2
+    "foo"                   | []              | [ "c1", "c2"]        | 0
   }
 }

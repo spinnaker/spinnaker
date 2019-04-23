@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.conditions;
+package com.netflix.spinnaker.orca.clouddriver.pipeline.conditions;
 
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import java.util.List;
 
 /**
@@ -26,5 +25,5 @@ public interface ConditionSupplier {
   /**
    * returns a list of currently unmet conditions.
    */
-  List<Condition> getConditions(Stage stage);
+  List<Condition> getConditions(String cluster, String region, String account);
 }

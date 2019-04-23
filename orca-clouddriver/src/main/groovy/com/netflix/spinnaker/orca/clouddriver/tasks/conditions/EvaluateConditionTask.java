@@ -14,19 +14,21 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.pipeline.tasks;
+package com.netflix.spinnaker.orca.clouddriver.tasks.conditions;
 
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
-import com.netflix.spinnaker.orca.conditions.ConditionConfigurationProperties;
-import com.netflix.spinnaker.orca.conditions.Condition;
-import com.netflix.spinnaker.orca.conditions.ConditionSupplier;
-import com.netflix.spinnaker.orca.pipeline.WaitForConditionStage.WaitForConditionContext;
+import com.netflix.spinnaker.orca.clouddriver.pipeline.conditions.Condition;
+import com.netflix.spinnaker.orca.clouddriver.pipeline.conditions.ConditionConfigurationProperties;
+import com.netflix.spinnaker.orca.clouddriver.pipeline.conditions.ConditionSupplier;
+import com.netflix.spinnaker.orca.clouddriver.pipeline.conditions.WaitForConditionStage.WaitForConditionContext;
+import com.netflix.spinnaker.orca.clouddriver.pipeline.conditions.WaitForConditionStage.WaitForConditionContext.Status;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
 
@@ -38,20 +40,20 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static com.netflix.spinnaker.orca.pipeline.WaitForConditionStage.WaitForConditionContext.*;
 
 @Component
+@ConditionalOnBean(ConditionSupplier.class)
 @ConditionalOnExpression("${tasks.evaluateCondition.enabled:false}")
 public class EvaluateConditionTask implements RetryableTask {
   private static final Logger log = LoggerFactory.getLogger(EvaluateConditionTask.class);
   private final ConditionConfigurationProperties conditionsConfigurationProperties;
-  private final Optional<List<ConditionSupplier>> suppliers;
+  private final List<ConditionSupplier> suppliers;
   private final Clock clock;
 
   @Autowired
   public EvaluateConditionTask(
     ConditionConfigurationProperties conditionsConfigurationProperties,
-    Optional<List<ConditionSupplier>> suppliers,
+    List<ConditionSupplier> suppliers,
     Clock clock
   ) {
     this.conditionsConfigurationProperties = conditionsConfigurationProperties;
@@ -73,7 +75,7 @@ public class EvaluateConditionTask implements RetryableTask {
   @Override
   public TaskResult execute(@Nonnull Stage stage) {
     final WaitForConditionContext ctx = stage.mapTo(WaitForConditionContext.class);
-    if (ctx.getStatus() == Status.SKIPPED || !suppliers.isPresent()) {
+    if (ctx.getStatus() == Status.SKIPPED) {
       return new TaskResult(ExecutionStatus.SUCCEEDED, Collections.singletonMap("status", Status.SKIPPED));
     }
 
@@ -88,9 +90,13 @@ public class EvaluateConditionTask implements RetryableTask {
     }
 
     try {
-      Set<Condition> conditions = suppliers.get()
+      Set<Condition> conditions = suppliers
         .stream()
-        .flatMap(supplier -> supplier.getConditions(stage).stream()).filter(Objects::nonNull)
+        .flatMap(supplier -> supplier.getConditions(
+          ctx.getCluster(),
+          ctx.getRegion(),
+          ctx.getAccount()
+        ).stream()).filter(Objects::nonNull)
         .collect(Collectors.toSet());
 
       log.info("Found conditions: {}", conditions);

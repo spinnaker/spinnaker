@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.conditions;
+package com.netflix.spinnaker.orca.clouddriver.pipeline.conditions;
 
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import org.springframework.beans.factory.annotation.Autowired;

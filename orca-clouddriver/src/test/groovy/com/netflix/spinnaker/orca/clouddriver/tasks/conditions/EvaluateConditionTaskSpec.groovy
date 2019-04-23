@@ -14,21 +14,22 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.pipeline.tasks
+package com.netflix.spinnaker.orca.clouddriver.tasks.conditions
 
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.conditions.Condition
-import com.netflix.spinnaker.orca.conditions.ConditionSupplier
-import com.netflix.spinnaker.orca.conditions.ConditionConfigurationProperties
+import com.netflix.spinnaker.orca.clouddriver.pipeline.conditions.Condition
+import com.netflix.spinnaker.orca.clouddriver.pipeline.conditions.ConditionConfigurationProperties
+import com.netflix.spinnaker.orca.clouddriver.pipeline.conditions.ConditionSupplier
 import com.netflix.spinnaker.orca.time.MutableClock
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+
 import java.time.Duration
 
-import static com.netflix.spinnaker.orca.pipeline.WaitForConditionStage.*
-import static com.netflix.spinnaker.orca.pipeline.WaitForConditionStage.WaitForConditionContext.Status.*
+import static com.netflix.spinnaker.orca.clouddriver.pipeline.conditions.WaitForConditionStage.*
+import static com.netflix.spinnaker.orca.clouddriver.pipeline.conditions.WaitForConditionStage.WaitForConditionContext.Status.*
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class EvaluateConditionTaskSpec extends Specification {
@@ -44,7 +45,7 @@ class EvaluateConditionTaskSpec extends Specification {
   @Subject
   def task = new EvaluateConditionTask(
     conditionsConfigurationProperties,
-    Optional.of([conditionSupplier]),
+    [conditionSupplier],
     clock
   )
 
@@ -54,7 +55,10 @@ class EvaluateConditionTaskSpec extends Specification {
       type = STAGE_TYPE
       startTime = clock.millis()
       context = [
-        status: WAITING
+        status: WAITING.toString(),
+        region: "region",
+        cluster: "cluster",
+        account: "account"
       ]
     }
 
@@ -65,7 +69,7 @@ class EvaluateConditionTaskSpec extends Specification {
     def result = task.execute(stage)
 
     then:
-    0 * conditionSupplier.getConditions(stage)
+    0 * conditionSupplier.getConditions("cluster", "region", "account")
     result.status == ExecutionStatus.RUNNING
 
     when:
@@ -76,14 +80,18 @@ class EvaluateConditionTaskSpec extends Specification {
     result = task.execute(stage)
 
     then:
-    1 * conditionSupplier.getConditions(stage) >> [new Condition("a", "b")]
+    1 * conditionSupplier.getConditions(
+      "cluster",
+      "region",
+      "account"
+    ) >> [new Condition("a", "b")]
     result.status == ExecutionStatus.RUNNING
 
     when:
     result = task.execute(stage)
 
     then:
-    1 * conditionSupplier.getConditions(stage) >> []
+    1 * conditionSupplier.getConditions("cluster", "region", "account") >> []
     result.status == ExecutionStatus.SUCCEEDED
 
     when:
@@ -92,7 +100,7 @@ class EvaluateConditionTaskSpec extends Specification {
 
     then:
     result.status == ExecutionStatus.SUCCEEDED
-    0 * conditionSupplier.getConditions(stage)
+    0 * conditionSupplier.getConditions(_, _, _)
   }
 
   @Unroll
@@ -102,7 +110,12 @@ class EvaluateConditionTaskSpec extends Specification {
       refId = "1"
       type = STAGE_TYPE
       startTime = clock.millis()
-      context = ctx
+      context = [
+        status: initialWaitStatus.toString(),
+        region: "region",
+        cluster: "cluster",
+        account: "account"
+      ]
     }
 
     and:
@@ -114,15 +127,14 @@ class EvaluateConditionTaskSpec extends Specification {
     def result = task.execute(stage)
 
     then:
-    conditionSupplier.getConditions(stage) >> conditions
+    conditionSupplier.getConditions("cluster", "region", "account") >> conditions
     result.status == executionStatus
-    result.getContext().status == waitStatus
 
     where:
-    ctx                 | conditions                      | waitStatus | executionStatus
-    [:]                 | []                              | SKIPPED    | ExecutionStatus.SUCCEEDED
-    [status: WAITING]   | []                              | SKIPPED    | ExecutionStatus.SUCCEEDED
-    [status: SKIPPED]   | []                              | SKIPPED    | ExecutionStatus.SUCCEEDED
-    [status: WAITING]   | [new Condition("n", "d")]       | WAITING    | ExecutionStatus.RUNNING
+    initialWaitStatus   | conditions                                  | executionStatus
+    WAITING             | []                                          | ExecutionStatus.SUCCEEDED
+    SKIPPED             | []                                          | ExecutionStatus.SUCCEEDED
+    WAITING             | [new Condition("n", "d")]                   | ExecutionStatus.RUNNING
+    SKIPPED             | [new Condition("n", "d")]                   | ExecutionStatus.SUCCEEDED
   }
 }

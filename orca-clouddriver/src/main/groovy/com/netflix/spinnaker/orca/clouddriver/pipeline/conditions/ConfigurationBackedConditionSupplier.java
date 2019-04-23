@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.conditions;
+package com.netflix.spinnaker.orca.clouddriver.pipeline.conditions;
 
-import com.netflix.spinnaker.orca.pipeline.WaitForConditionStage.WaitForConditionContext;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
@@ -41,8 +39,7 @@ public class ConfigurationBackedConditionSupplier implements ConditionSupplier {
   }
 
   @Override
-  public List<Condition> getConditions(Stage stage) {
-    final WaitForConditionContext ctx = stage.mapTo(WaitForConditionContext.class);
+  public List<Condition> getConditions(String cluster, String region, String account) {
     final List<String> clusters = conditionsConfigurationProperties.getClusters();
     final List<String> activeConditions = conditionsConfigurationProperties.getActiveConditions();
 
@@ -50,7 +47,7 @@ public class ConfigurationBackedConditionSupplier implements ConditionSupplier {
       return Collections.emptyList();
     }
 
-    if (!clusters.contains(ctx.getCluster())) {
+    if (!clusters.contains(cluster)) {
       return Collections.emptyList();
     }
 

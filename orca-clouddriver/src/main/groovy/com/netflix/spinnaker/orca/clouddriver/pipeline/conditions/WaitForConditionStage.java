@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.pipeline;
+package com.netflix.spinnaker.orca.clouddriver.pipeline.conditions;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.netflix.spinnaker.orca.clouddriver.tasks.conditions.EvaluateConditionTask;
+import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
+import com.netflix.spinnaker.orca.pipeline.TaskNode;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import com.netflix.spinnaker.orca.pipeline.tasks.EvaluateConditionTask;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
@@ -38,16 +40,19 @@ public class WaitForConditionStage implements StageDefinitionBuilder {
     private Status status;
     private String region;
     private String cluster;
+    private String account;
 
     @JsonCreator
     public WaitForConditionContext(
       @JsonProperty("status") Status status,
       @JsonProperty("region") @Nullable String region,
-      @JsonProperty("cluster") @Nullable String cluster
+      @JsonProperty("cluster") @Nullable String cluster,
+      @JsonProperty("account") @Nullable String account
     ) {
       this.status = status;
       this.region = region;
       this.cluster = cluster;
+      this.account = account;
     }
 
     public enum Status {
@@ -76,6 +81,14 @@ public class WaitForConditionStage implements StageDefinitionBuilder {
 
     public void setCluster(String cluster) {
       this.cluster = cluster;
+    }
+
+    public String getAccount() {
+      return account;
+    }
+
+    public void setAccount(String account) {
+      this.account = account;
     }
   }
 }
