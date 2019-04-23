@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.controllers
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.fiat.model.UserPermission
+import com.netflix.spinnaker.fiat.model.resources.Role
 import com.netflix.spinnaker.fiat.shared.FiatService
 import com.netflix.spinnaker.fiat.shared.FiatStatus
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
@@ -329,11 +330,19 @@ class OperationsController {
     }
     def webhooks = webhookService.preconfiguredWebhooks
 
-    if (fiatStatus.isEnabled()) {
-      String user = AuthenticatedRequest.getSpinnakerUser().orElse("anonymous")
-      UserPermission.View userPermission = fiatService.getUserPermission(user)
+    if (webhooks && fiatStatus.isEnabled()) {
+      if (webhooks.any { it.permissions }) {
+        def userPermissionRoles = [new Role.View(new Role("anonymous"))] as Set<Role.View>
+        try {
+          String user = AuthenticatedRequest.getSpinnakerUser().orElse("anonymous")
+          UserPermission.View userPermission = fiatService.getUserPermission(user)
+          userPermissionRoles = userPermission.roles
+        } catch (Exception e) {
+          log.error("Unable to determine roles for current user, falling back to 'anonymous'", e)
+        }
 
-      webhooks = webhooks.findAll { it.isAllowed("READ", userPermission.roles) }
+        webhooks = webhooks.findAll { it.isAllowed("READ", userPermissionRoles) }
+      }
     }
 
     return webhooks.collect {

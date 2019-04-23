@@ -716,6 +716,27 @@ class OperationsControllerSpec extends Specification {
     ]
   }
 
+  def "should return unrestricted preconfigured webhooks if fiat is unavailable"() {
+    given:
+    UserPermission userPermission = new UserPermission()
+    userPermission.addResource(new Role("test"))
+
+    when:
+    def preconfiguredWebhooks = controller.preconfiguredWebhooks()
+
+    then:
+    1 * fiatService.getUserPermission(*_) >> {
+      throw new IllegalStateException("Sorry, Fiat is unavailable")
+    }
+    1 * controller.fiatStatus.isEnabled() >> { return true }
+    1 * webhookService.preconfiguredWebhooks >> [
+        createPreconfiguredWebhook("Webhook #1", "Description #1", "webhook_1", [:]),
+        createPreconfiguredWebhook("Webhook #2", "Description #2", "webhook_2", ["READ": ["some-role"], "WRITE": ["some-role"]]),
+        createPreconfiguredWebhook("Webhook #3", "Description #3", "webhook_3", ["READ": ["anonymous"], "WRITE": ["anonymous"]])
+    ]
+    preconfiguredWebhooks*.label == ["Webhook #1", "Webhook #3"]
+  }
+
   def "should start pipeline by config id with provided trigger"() {
     given:
     Execution startedPipeline = null
