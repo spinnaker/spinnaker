@@ -11,7 +11,10 @@ export interface IFormikStageConfigInjectedProps {
   formik: FormikProps<IStage>;
 }
 
-export type IContextualValidator = (values: IStage, context: any) => void | object | Promise<FormikErrors<IStage>>;
+export type IContextualValidator = (
+  values: IStage,
+  context: any,
+) => FormikErrors<IStage> | Promise<FormikErrors<IStage>>;
 
 export interface IFormikStageConfigProps {
   application: Application;

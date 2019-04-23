@@ -1,6 +1,8 @@
 import { IPromise } from 'angular';
 import { Subject, Subscription } from 'rxjs';
 import { $log, $q } from 'ngimport';
+import { values, flatten } from 'lodash';
+import { FormikErrors } from 'formik';
 
 import {
   IPipeline,
@@ -62,7 +64,7 @@ export class PipelineConfigValidator {
   public static validatePipeline(pipeline: IPipeline): IPromise<IPipelineValidationResults> {
     const stages: IStage[] = pipeline.stages || [],
       triggers: ITrigger[] = pipeline.triggers || [],
-      validations: Array<IPromise<string>> = [],
+      validations: Array<IPromise<void>> = [],
       pipelineValidations: string[] = this.getPipelineLevelValidations(pipeline),
       stageValidations: Map<IStage, string[]> = new Map();
     let preventSave = false;
@@ -87,7 +89,6 @@ export class PipelineConfigValidator {
                     preventSave = true;
                   }
                 }
-                return message;
               }),
             );
           }
@@ -124,11 +125,21 @@ export class PipelineConfigValidator {
                       }
                     }
                   }
-                  return message;
                 }),
             );
           }
         });
+      } else if (config && config.validateFn) {
+        validations.push(
+          $q<FormikErrors<IStage>>((resolve, reject) =>
+            Promise.resolve(config.validateFn(stage, { pipeline })).then(resolve, reject),
+          ).then((errors: FormikErrors<IStage>) => {
+            const array: string[] = PipelineConfigValidator.flattenValues(errors);
+            if (array && array.length > 0) {
+              stageValidations.set(stage, array);
+            }
+          }),
+        );
       }
     });
 
@@ -144,6 +155,13 @@ export class PipelineConfigValidator {
       return results;
     });
   }
+
+  private static flattenValues = (maybeObj: string | object): string[] => {
+    if (typeof maybeObj === 'string') {
+      return [maybeObj];
+    }
+    return flatten(values(maybeObj).map(PipelineConfigValidator.flattenValues)) as string[];
+  };
 
   private static getValidator(validator: IValidatorConfig): IStageOrTriggerValidator {
     return validator.type === 'custom' ? (validator as ICustomValidator) : this.validators.get(validator.type);

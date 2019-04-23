@@ -2,6 +2,7 @@ import * as React from 'react';
 
 import { ITriggerTemplateComponentProps } from '../pipeline/manualExecution/TriggerTemplate';
 import { IValidatorConfig } from '../pipeline/config/validation/PipelineConfigValidator';
+import { IContextualValidator } from 'core/pipeline';
 
 export interface IStageOrTriggerTypeConfig {
   manualExecutionComponent?: React.ComponentType<ITriggerTemplateComponentProps>;
@@ -14,4 +15,5 @@ export interface IStageOrTriggerTypeConfig {
   component?: React.ComponentType;
   providesVersionForBake?: boolean;
   validators?: IValidatorConfig[];
+  validateFn?: IContextualValidator;
 }
