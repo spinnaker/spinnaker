@@ -638,6 +638,67 @@ class ClassifierSuite extends FunSuite{
     assert(result.classification == High)
   }
 
+  test("Mann-Whitney Zero Mean: High Metric with Effect Size"){
+    val experimentData =  Array(54.9, 54.5, 55.1, 55.6, 57.4)
+    val controlData = Array(0.0, 0.0, 0.0, 0.0, 0.0)
+
+    val experimentMetric = Metric("high-metric", experimentData, "canary")
+    val controlMetric = Metric("high-metric", controlData, "baseline")
+
+    val classifier = new MannWhitneyClassifier(tolerance = 0.10, confLevel = 0.95, effectSizeThresholds = (0.8, 1.2))
+    val result = classifier.classify(controlMetric, experimentMetric, MetricDirection.Either)
+
+    assert(result.classification == High)
+    assert(result.deviation.isNaN)
+  }
+
+  test("Mann-Whitney Zero Mean: Low Metric with Effect Size"){
+    val experimentData =  Array(0.0, 0.0, 0.0, 0.0, 0.0)
+    val controlData = Array(54.9, 54.5, 55.1, 55.6, 57.4)
+
+    val experimentMetric = Metric("low-metric", experimentData, "canary")
+    val controlMetric = Metric("low-metric", controlData, "baseline")
+
+    val classifier = new MannWhitneyClassifier(tolerance = 0.10, confLevel = 0.95, effectSizeThresholds = (0.8, 1.2))
+    val result = classifier.classify(controlMetric, experimentMetric, MetricDirection.Either)
+
+    assert(result.classification == Low)
+    assert(result.deviation.isNaN)
+  }
+
+  test("Mann-Whitney Zero Mean: Critical Metric"){
+    val experimentData = Array(
+      0.05000000074505806, 0.05000000074505806, 0.01666666753590107,
+      0.01666666753590107, 0.01666666753590107, 0.05000000074505806,
+      0.03333333507180214, 0.05000000260770321, 0.05000000260770321,
+      0.13333333656191826,
+    )
+    val controlData = Array(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+
+    val experimentMetric = Metric("high-metric", experimentData, "canary")
+    val controlMetric = Metric("high-metric", controlData, "baseline")
+
+    val classifier = new MannWhitneyClassifier(tolerance = 0.10, confLevel = 0.95, criticalThresholds=(0.8, 1.2))
+    val result = classifier.classify(controlMetric, experimentMetric, MetricDirection.Either, NaNStrategy.Replace, isCriticalMetric = true)
+
+    assert(result.classification == High)
+    assert(result.critical)
+  }
+
+  test("Mann-Whitney Zero Mean: Pass Metric"){
+    val experimentData =  Array(0.0, 0.0, 0.0, 0.0, 0.0)
+    val controlData = Array(0.0, 0.0, 0.0, 0.0, 0.0)
+
+    val experimentMetric = Metric("pass-metric", experimentData, "canary")
+    val controlMetric = Metric("pass-metric", controlData, "baseline")
+
+    val classifier = new MannWhitneyClassifier(tolerance = 0.10, confLevel = 0.95, effectSizeThresholds = (0.8, 1.2))
+    val result = classifier.classify(controlMetric, experimentMetric, MetricDirection.Either)
+
+    assert(result.classification == Pass)
+    assert(result.deviation == 1.0)
+  }
+
   test("Mean Inequality Classifier Test: High Metric"){
     val experimentData = Array(10.0, 20.0, 30.0, 40.0, 50.0)
     val controlData = Array(1.0, 2.0, 3.0, 4.0, 5.0)

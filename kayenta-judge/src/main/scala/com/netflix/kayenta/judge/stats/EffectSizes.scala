@@ -14,8 +14,9 @@ object EffectSizes {
     * Note: This is included for backwards compatibility
     */
   def meanRatio(control: Array[Double], experiment: Array[Double]): Double = {
-    require(StatUtils.mean(control) != 0.0, "the mean of the control must be non-zero")
-    StatUtils.mean(experiment)/StatUtils.mean(control)
+    val controlMean = StatUtils.mean(control)
+    val experimentMean = StatUtils.mean(experiment)
+    if(controlMean == 0.0 || experimentMean == 0.0) Double.NaN else experimentMean/controlMean
   }
 
   /**
@@ -24,8 +25,7 @@ object EffectSizes {
     * Note: This is included for backwards compatibility
     */
   def meanRatio(control: Metric, experiment: Metric): Double = {
-    require(mean(control) != 0.0, "the mean of the control must be non-zero")
-    mean(experiment)/mean(control)
+    meanRatio(control.values, experiment.values)
   }
 
   /**
@@ -34,8 +34,7 @@ object EffectSizes {
     * Note: This is included for backwards compatibility
     */
   def meanRatio(control: MetricStatistics, experiment: MetricStatistics): Double = {
-    require(control.mean != 0.0, "the mean of the control must be non-zero")
-    experiment.mean/control.mean
+    if(control.mean == 0.0 || experiment.mean == 0.0) Double.NaN else experiment.mean/control.mean
   }
 
   /**

@@ -113,7 +113,7 @@ class StatisticSuite extends FunSuite{
     val experimentStats = DescriptiveStatistics.summary(experimentMetric)
     val controlStats = DescriptiveStatistics.summary(controlMetric)
 
-    val result = EffectSizes.meanRatio(controlMetric, experimentMetric)
+    val result = EffectSizes.meanRatio(controlStats, experimentStats)
     assert(result === 1.0)
   }
 
@@ -146,9 +146,8 @@ class StatisticSuite extends FunSuite{
     val experimentMetric = Metric("high-metric", experimentData, "canary")
     val controlMetric = Metric("high-metric", controlData, "baseline")
 
-    assertThrows[IllegalArgumentException]{
-      EffectSizes.meanRatio(controlMetric, experimentMetric)
-    }
+    val result = EffectSizes.meanRatio(controlMetric, experimentMetric)
+    assert(result.isNaN)
   }
 
   test("Effect Size: Cohen's D"){

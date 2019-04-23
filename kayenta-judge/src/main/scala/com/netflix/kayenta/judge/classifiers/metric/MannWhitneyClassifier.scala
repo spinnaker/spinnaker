@@ -20,7 +20,6 @@ import com.netflix.kayenta.judge.Metric
 import com.netflix.kayenta.judge.preprocessing.Transforms
 import com.netflix.kayenta.judge.stats.EffectSizes
 import com.netflix.kayenta.mannwhitney.{MannWhitney, MannWhitneyParams}
-import org.apache.commons.math3.stat.StatUtils
 
 case class MannWhitneyResult(lowerConfidence: Double, upperConfidence: Double, estimate: Double, deviation: Double)
 case class ComparisonResult(classification: MetricClassificationLabel, reason: Option[String], deviation: Double)
@@ -82,7 +81,7 @@ class MannWhitneyClassifier(tolerance: Double=0.25,
     * Calculate the deviation (Effect Size) between the experiment and control
     */
   private def calculateDeviation(experiment: Array[Double], control: Array[Double]): Double = {
-    if(StatUtils.mean(control) == 0.0) 1.0 else EffectSizes.meanRatio(control, experiment)
+    EffectSizes.meanRatio(control, experiment)
   }
 
   /**
@@ -98,17 +97,21 @@ class MannWhitneyClassifier(tolerance: Double=0.25,
     val (lowerBound, upperBound) = calculateBounds(mwResult)
 
     //Check if the experiment is high in comparison to the control
+    //If the effect size (deviation) cannot be computed, the effect size comparison is ignored
     val isHigh = {
       (direction == MetricDirection.Increase || direction == MetricDirection.Either) &&
-        mwResult.lowerConfidence > upperBound &&
-        mwResult.deviation >= effectSizeThresholds._2
+        mwResult.lowerConfidence > upperBound && {
+          if(mwResult.deviation.isNaN) true else mwResult.deviation >= effectSizeThresholds._2
+      }
     }
 
     //Check if the experiment is low in comparison to the control
+    //If the effect size (deviation) cannot be computed, the effect size comparison is ignored
     val isLow = {
       (direction == MetricDirection.Decrease || direction == MetricDirection.Either) &&
-        mwResult.upperConfidence < lowerBound &&
-        mwResult.deviation <= effectSizeThresholds._1
+        mwResult.upperConfidence < lowerBound && {
+          if(mwResult.deviation.isNaN) true else mwResult.deviation <= effectSizeThresholds._1
+      }
     }
 
     if(isHigh){
@@ -159,12 +162,27 @@ class MannWhitneyClassifier(tolerance: Double=0.25,
     //Compare the experiment to the control using the Mann-Whitney U Test, checking the magnitude of the effect
     val comparison = compare(control, experiment, direction, effectSizeThresholds)
 
-    //Check if the metric was marked as critical, and if the metric was classified as a failure (High, Low)
-    if(isCriticalMetric && comparison.classification == High && comparison.deviation >= criticalThresholds._2){
+    //Check if the metric was marked as critical, and if the metric was classified as High
+    //If the effect size (deviation) cannot be computed, the effect size comparison is ignored
+    val criticalHighFailure = {
+        isCriticalMetric && comparison.classification == High && {
+          if(comparison.deviation.isNaN) true else comparison.deviation >= criticalThresholds._2
+      }
+    }
+
+    //Check if the metric was marked as critical, and if the metric was classified as Low
+    //If the effect size (deviation) cannot be computed, the effect size comparison is ignored
+    val criticalLowFailure = {
+      isCriticalMetric && comparison.classification == Low && {
+        if(comparison.deviation.isNaN) true else comparison.deviation <= criticalThresholds._1
+      }
+    }
+
+    if(criticalHighFailure){
       val reason = s"The metric ${experiment.name} was classified as $High (Critical)"
       MetricClassification(High, Some(reason), comparison.deviation, critical = true)
 
-    }else if(isCriticalMetric && comparison.classification == Low && comparison.deviation <= criticalThresholds._1){
+    }else if(criticalLowFailure){
       val reason = s"The metric ${experiment.name} was classified as $Low (Critical)"
       MetricClassification(Low, Some(reason), comparison.deviation, critical = true)
 
