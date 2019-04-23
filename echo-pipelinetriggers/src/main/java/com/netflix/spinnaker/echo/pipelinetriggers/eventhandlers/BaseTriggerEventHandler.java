@@ -22,16 +22,18 @@ import com.netflix.spinnaker.echo.model.Event;
 import com.netflix.spinnaker.echo.model.Pipeline;
 import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.model.trigger.TriggerEvent;
+import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache;
 import com.netflix.spinnaker.echo.pipelinetriggers.artifacts.ArtifactMatcher;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Base implementation of {@link TriggerEventHandler} for events that require looking for matching
@@ -48,24 +50,34 @@ public abstract class BaseTriggerEventHandler<T extends TriggerEvent> implements
     this.objectMapper = objectMapper;
   }
 
-  public Optional<Pipeline> withMatchingTrigger(T event, Pipeline pipeline) {
-    if (pipeline.getTriggers() == null || pipeline.isDisabled()) {
+  @Override
+  public List<Pipeline> getMatchingPipelines(T event, PipelineCache pipelineCache) throws TimeoutException {
+    if (!isSuccessfulTriggerEvent(event)) {
+      return Collections.emptyList();
+    }
+
+    Map<String, List<Trigger>> triggers = pipelineCache.getEnabledTriggersSync();
+    return supportedTriggerTypes().stream()
+      .flatMap(triggerType -> Optional.ofNullable(triggers.get(triggerType)).orElse(Collections.emptyList()).stream())
+      .filter(this::isValidTrigger)
+      .filter(matchTriggerFor(event))
+      .map(trigger -> withMatchingTrigger(event, trigger))
+      .filter(Optional::isPresent)
+      .map(Optional::get)
+      .collect(Collectors.toList());
+  }
+
+  private Optional<Pipeline> withMatchingTrigger(T event, Trigger trigger) {
+    try {
+      return Stream.of(trigger)
+        .map(buildTrigger(event))
+        .map(t -> new TriggerWithArtifacts(t, getArtifacts(event, t)))
+        .filter(ta -> ArtifactMatcher.anyArtifactsMatchExpected(ta.artifacts, ta.trigger, ta.trigger.getParent().getExpectedArtifacts()))
+        .findFirst()
+        .map(ta -> ta.trigger.getParent().withTrigger(ta.trigger).withReceivedArtifacts(ta.artifacts));
+    } catch (Exception e) {
+      onSubscriberError(e);
       return Optional.empty();
-    } else {
-      try {
-        return pipeline.getTriggers()
-          .stream()
-          .filter(this::isValidTrigger)
-          .filter(matchTriggerFor(event))
-          .map(buildTrigger(event))
-          .map(t -> new TriggerWithArtifacts(t, getArtifacts(event, t)))
-          .filter(ta -> ArtifactMatcher.anyArtifactsMatchExpected(ta.artifacts, ta.trigger, pipeline.getExpectedArtifacts()))
-          .findFirst()
-          .map(ta -> pipeline.withTrigger(ta.trigger).withReceivedArtifacts(ta.artifacts));
-      } catch (Exception e) {
-        onSubscriberError(e);
-        return Optional.empty();
-      }
     }
   }
 

@@ -54,35 +54,13 @@ public interface TriggerEventHandler<T extends TriggerEvent> {
   T convertEvent(Event event);
 
   /**
-   * Determines whether the given pipeline should be triggered by the given event, and if so returns
-   * the fully-formed pipeline (with the trigger set) that should be executed.
-   * @param event The triggering event
-   * @param pipeline The pipeline to potentially trigger
-   * @return An Optional containing the pipeline to be triggered, or empty if it should not be triggered
-   */
-  Optional<Pipeline> withMatchingTrigger(T event, Pipeline pipeline);
-
-  /**
    * Given a list of pipelines and an event, returns the pipelines that should be triggered
    * by the event
    * @param event The triggering event
    * @param pipelineCache a source for pipelines and triggers to consider
    * @return The pipelines that should be triggered
    */
-  default List<Pipeline> getMatchingPipelines(T event, PipelineCache pipelineCache) throws TimeoutException {
-    if (!isSuccessfulTriggerEvent(event)) {
-      return Collections.emptyList();
-    }
-
-    Map<String, List<Trigger>> triggers = pipelineCache.getEnabledTriggersSync();
-    return supportedTriggerTypes().stream()
-      .flatMap(triggerType -> Optional.ofNullable(triggers.get(triggerType)).orElse(Collections.emptyList()).stream())
-      .map(Trigger::getParent)
-      .map(p -> withMatchingTrigger(event, p))
-      .filter(Optional::isPresent)
-      .map(Optional::get)
-      .collect(Collectors.toList());
-  }
+  List<Pipeline> getMatchingPipelines(T event, PipelineCache pipelineCache) throws TimeoutException;
 
   /**
    * Given a pipeline, gets any additional tags that should be associated with metrics recorded

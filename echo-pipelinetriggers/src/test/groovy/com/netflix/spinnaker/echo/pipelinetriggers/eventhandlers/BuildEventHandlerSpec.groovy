@@ -101,6 +101,27 @@ class BuildEventHandlerSpec extends Specification implements RetrofitStubs {
     }
   }
 
+  def "an event triggers a pipeline with 2 triggers only once"() {
+    given:
+    def pipeline = Pipeline.builder()
+      .application("application")
+      .name("pipeline")
+      .id("id")
+      .triggers([
+        enabledJenkinsTrigger,
+        enabledJenkinsTrigger.withJob("someOtherJob")])
+      .build()
+    def cache = handlerSupport.pipelineCache(pipeline)
+    def event = createBuildEventWith(SUCCESS)
+
+    when:
+    def matchingPipelines = eventHandler.getMatchingPipelines(event, cache)
+
+    then:
+    matchingPipelines.size() == 1
+    matchingPipelines.get(0).trigger.job == "job"
+  }
+
   @Unroll
   def "does not trigger pipelines for #description builds"() {
     when:

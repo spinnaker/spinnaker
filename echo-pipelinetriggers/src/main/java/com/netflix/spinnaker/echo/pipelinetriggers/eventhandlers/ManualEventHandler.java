@@ -89,8 +89,7 @@ public class ManualEventHandler implements TriggerEventHandler<ManualEvent> {
     return objectMapper.convertValue(event, ManualEvent.class);
   }
 
-  @Override
-  public Optional<Pipeline> withMatchingTrigger(ManualEvent manualEvent, Pipeline pipeline) {
+  private Optional<Pipeline> withMatchingTrigger(ManualEvent manualEvent, Pipeline pipeline) {
     Content content = manualEvent.getContent();
     String application = content.getApplication();
     String pipelineNameOrId = content.getPipelineNameOrId();
