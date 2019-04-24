@@ -31,8 +31,7 @@ internal object SimpleVetoPluginTests : JUnit5Minutests {
           kind = "ec2.SecurityGroup",
           metadata = ResourceMetadata(
             name = ResourceName("ec2.SecurityGroup:keel:prod:us-east-1:keel"),
-            uid = randomUID(),
-            resourceVersion = 1234L
+            uid = randomUID()
           ),
           spec = randomData()
         )

@@ -29,8 +29,7 @@ internal class DeliveryConfigHandlerTests : JUnit5Minutests {
     "deliveryconfig",
     ResourceMetadata(
       name = ResourceName("foo"),
-      uid = idGenerator.nextValue(),
-      resourceVersion = 1234L
+      uid = idGenerator.nextValue()
     ),
     spec
   )

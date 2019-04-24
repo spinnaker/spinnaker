@@ -26,28 +26,27 @@ class SqlResourceRepository(
 
   override fun allResources(callback: (ResourceHeader) -> Unit) {
     jooq
-      .select(UID, API_VERSION, KIND, NAME, RESOURCE_VERSION)
+      .select(UID, API_VERSION, KIND, NAME)
       .from(RESOURCE)
       .fetch()
-      .map { (uid, apiVersion, kind, name, resourceVersion) ->
-        ResourceHeader(ULID.parseULID(uid), ResourceName(name), resourceVersion, ApiVersion(apiVersion), kind)
+      .map { (uid, apiVersion, kind, name) ->
+        ResourceHeader(ULID.parseULID(uid), ResourceName(name), ApiVersion(apiVersion), kind)
       }
       .forEach(callback)
   }
 
   override fun <T : Any> get(uid: UID, specType: Class<T>): Resource<T> {
     return jooq
-      .select(UID, API_VERSION, KIND, NAME, RESOURCE_VERSION, METADATA, SPEC)
+      .select(UID, API_VERSION, KIND, NAME, METADATA, SPEC)
       .from(RESOURCE)
       .where(UID.eq(uid.toString()))
       .fetchOne()
-      ?.let { (uid, apiVersion, kind, name, resourceVersion, metadata, spec) ->
+      ?.let { (uid, apiVersion, kind, name, metadata, spec) ->
         Resource(
           ApiVersion(apiVersion),
           kind,
           ResourceMetadata(
             ResourceName(name),
-            resourceVersion,
             ULID.parseULID(uid),
             objectMapper.readValue(metadata)
           ),
@@ -58,17 +57,16 @@ class SqlResourceRepository(
 
   override fun <T : Any> get(name: ResourceName, specType: Class<T>): Resource<T> {
     return jooq
-      .select(UID, API_VERSION, KIND, NAME, RESOURCE_VERSION, METADATA, SPEC)
+      .select(UID, API_VERSION, KIND, NAME, METADATA, SPEC)
       .from(RESOURCE)
       .where(NAME.eq(name.value))
       .fetchOne()
-      ?.let { (uid, apiVersion, kind, name, resourceVersion, metadata, spec) ->
+      ?.let { (uid, apiVersion, kind, name, metadata, spec) ->
         Resource(
           ApiVersion(apiVersion),
           kind,
           ResourceMetadata(
             ResourceName(name),
-            resourceVersion,
             ULID.parseULID(uid),
             objectMapper.readValue(metadata)
           ),
@@ -84,7 +82,6 @@ class SqlResourceRepository(
         API_VERSION to resource.apiVersion.toString(),
         KIND to resource.kind,
         NAME to resource.metadata.name.value,
-        RESOURCE_VERSION to resource.metadata.resourceVersion,
         METADATA to objectMapper.writeValueAsString(resource.metadata.data),
         SPEC to objectMapper.writeValueAsString(resource.spec)
       )
@@ -151,7 +148,6 @@ class SqlResourceRepository(
     private val API_VERSION = field("api_version", String::class.java)
     private val KIND = field("kind", String::class.java)
     private val NAME = field("name", String::class.java)
-    private val RESOURCE_VERSION = field("resource_version", Long::class.java)
     private val METADATA = field("metadata", String::class.java)
     private val SPEC = field("spec", String::class.java)
     private val JSON = field("json", String::class.java)

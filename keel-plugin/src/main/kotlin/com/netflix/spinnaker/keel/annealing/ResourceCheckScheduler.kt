@@ -50,7 +50,7 @@ class ResourceCheckScheduler(
       else -> {
         log.debug("Starting scheduled validation…")
         publisher.publishEvent(LockAttemptSucceeded)
-        resourceRepository.allResources { (_, name, _, apiVersion, kind) ->
+        resourceRepository.allResources { (_, name, apiVersion, kind) ->
           resourceCheckQueue.scheduleCheck(name, apiVersion, kind)
         }
         log.debug("Scheduled validation complete")

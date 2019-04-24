@@ -17,3 +17,6 @@ databaseChangeLog:
   - include:
       file: changelog/20190418-delivery-artifact.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20190424-drop-resource-version.yml
+      relativeToChangelogFile: true

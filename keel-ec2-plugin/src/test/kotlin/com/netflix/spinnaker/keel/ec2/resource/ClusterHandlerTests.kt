@@ -86,8 +86,7 @@ internal object ClusterHandlerTests : JUnit5Minutests {
     "cluster",
     ResourceMetadata(
       name = ResourceName("my-cluster"),
-      uid = randomUID(),
-      resourceVersion = 1234L
+      uid = randomUID()
     ),
     spec
   )

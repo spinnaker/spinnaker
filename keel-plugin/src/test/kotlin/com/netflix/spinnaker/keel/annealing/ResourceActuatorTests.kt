@@ -62,7 +62,6 @@ internal object ResourceActuatorTests : JUnit5Minutests {
         kind = "foo",
         metadata = ResourceMetadata(
           name = ResourceName("resource1"),
-          resourceVersion = 1234L,
           uid = randomUID()
         ),
         spec = DummyResource("whatever")

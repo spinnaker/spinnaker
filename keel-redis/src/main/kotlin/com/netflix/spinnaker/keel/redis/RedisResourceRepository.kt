@@ -52,7 +52,7 @@ class RedisResourceRepository(
           readResource(redis, uid, Any::class.java)
             .also {
               callback(
-                ResourceHeader(uid, it.metadata.name, it.metadata.resourceVersion, it.apiVersion, it.kind)
+                ResourceHeader(uid, it.metadata.name, it.apiVersion, it.kind)
               )
             }
         }

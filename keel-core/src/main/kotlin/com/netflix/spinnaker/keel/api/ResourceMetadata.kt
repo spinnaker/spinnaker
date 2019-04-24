@@ -17,12 +17,10 @@ package com.netflix.spinnaker.keel.api
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter
 import com.fasterxml.jackson.annotation.JsonCreator
-import com.fasterxml.jackson.annotation.JsonProperty
 import de.huxhorn.sulky.ulid.ULID
 
 data class ResourceMetadata(
   val name: ResourceName,
-  @JsonProperty(defaultValue = "0") val resourceVersion: Long = 0,
   val uid: UID,
   @get:JsonAnyGetter val data: Map<String, Any?> = emptyMap()
 ) {
@@ -31,15 +29,13 @@ data class ResourceMetadata(
   @JsonCreator
   constructor(data: Map<String, Any?>) : this(
     name = data.getValue("name").toString().let(::ResourceName),
-    resourceVersion = data["resourceVersion"]?.toString()?.toLong() ?: 0,
     uid = data.getValue("uid").toString().let(ULID::parseULID),
-    data = data - "name" - "resourceVersion" - "uid"
+    data = data - "name" - "uid"
   )
 
   override fun toString(): String =
     (mapOf(
       "name" to name,
-      "resourceVersion" to resourceVersion,
       "uid" to uid
     ) + data)
       .toString()

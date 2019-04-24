@@ -9,7 +9,7 @@ import strikt.api.expectThat
 import strikt.assertions.hasEntry
 import strikt.assertions.isEqualTo
 
-internal object ResourceMetadataTest : JUnit5Minutests {
+internal object ResourceMetadataTests : JUnit5Minutests {
 
   val mapper = configuredYamlMapper()
 
@@ -18,7 +18,6 @@ internal object ResourceMetadataTest : JUnit5Minutests {
       fixture {
         ResourceMetadata(
           ResourceName("my-new-cron-object"),
-          285,
           ULID.parseULID("1423255B460011E7AF6A28D244"),
           mapOf(
             "clusterName" to "",
@@ -35,7 +34,6 @@ internal object ResourceMetadataTest : JUnit5Minutests {
         expectThat(mapper.writeValueAsString(this)).isEqualTo(
           """---
           |name: "my-new-cron-object"
-          |resourceVersion: 285
           |uid: "1423255B460011E7AF6A28D244"
           |clusterName: ""
           |creationTimestamp: "2017-05-31T12:56:35Z"
@@ -56,7 +54,6 @@ internal object ResourceMetadataTest : JUnit5Minutests {
         |deletionTimestamp: null
         |name: my-new-cron-object
         |namespace: default
-        |resourceVersion: "285"
         |selfLink: /apis/stable.example.com/v1/namespaces/default/crontabs/my-new-cron-object
         |uid: 1423255b460011e7af6a28d244
       """.trimMargin()
@@ -66,7 +63,6 @@ internal object ResourceMetadataTest : JUnit5Minutests {
         expectThat(mapper.readValue<ResourceMetadata>(this)) {
           get { name }.isEqualTo(ResourceName("my-new-cron-object"))
           get { uid }.isEqualTo(ULID.parseULID("1423255B460011E7AF6A28D244"))
-          get { resourceVersion }.isEqualTo(285L)
         }
       }
 

@@ -468,8 +468,7 @@ internal object SecurityGroupHandlerTests : JUnit5Minutests {
         name = with(securityGroup) {
           ResourceName("ec2.SecurityGroup:$application:$accountName:$region:$name")
         },
-        uid = randomUID(),
-        resourceVersion = 1234L
+        uid = randomUID()
       ),
       kind = "ec2.SecurityGroup",
       spec = securityGroup

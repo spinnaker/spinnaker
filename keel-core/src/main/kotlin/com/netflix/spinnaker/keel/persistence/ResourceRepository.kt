@@ -24,14 +24,12 @@ import com.netflix.spinnaker.keel.events.ResourceEvent
 data class ResourceHeader(
   val uid: UID,
   val name: ResourceName,
-  val resourceVersion: Long,
   val apiVersion: ApiVersion,
   val kind: String
 ) {
   constructor(resource: Resource<*>) : this(
     resource.metadata.uid,
     resource.metadata.name,
-    resource.metadata.resourceVersion,
     resource.apiVersion,
     resource.kind
   )
