@@ -42,6 +42,7 @@ internal class ResourcePersisterTests : JUnit5Minutests {
     var resource: Resource<T>? = null
   )
 
+  @Suppress("UNCHECKED_CAST")
   fun tests() = rootContext<Fixture<String>> {
     fixture { Fixture() }
 
