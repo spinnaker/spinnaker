@@ -1,4 +1,5 @@
 import { Observable, Subscription } from 'rxjs';
+import { IHttpPromiseCallbackArg } from 'angular';
 import { $location, $rootScope, $http } from 'ngimport';
 
 import { LoggedOutModal } from 'core/authentication/LoggedOutModal';
@@ -19,7 +20,7 @@ export class AuthenticationInitializer {
   private static checkForReauthentication(): void {
     $http
       .get(SETTINGS.authEndpoint)
-      .then((response: ng.IHttpPromiseCallbackArg<IAuthResponse>) => {
+      .then((response: IHttpPromiseCallbackArg<IAuthResponse>) => {
         if (response.data.username) {
           AuthenticationService.setAuthenticatedUser({
             name: response.data.username,
@@ -58,7 +59,7 @@ export class AuthenticationInitializer {
     $rootScope.authenticating = true;
     $http
       .get(SETTINGS.authEndpoint)
-      .then((response: ng.IHttpPromiseCallbackArg<IAuthResponse>) => {
+      .then((response: IHttpPromiseCallbackArg<IAuthResponse>) => {
         if (response.data.username) {
           AuthenticationService.setAuthenticatedUser({
             name: response.data.username,
@@ -75,9 +76,10 @@ export class AuthenticationInitializer {
 
   public static reauthenticateUser(): void {
     if (!this.userLoggedOut) {
+      this.userLoggedOut = true;
       $http
         .get(SETTINGS.authEndpoint)
-        .then((response: ng.IHttpPromiseCallbackArg<IAuthResponse>) => {
+        .then((response: IHttpPromiseCallbackArg<IAuthResponse>) => {
           if (response.data.username) {
             AuthenticationService.setAuthenticatedUser({
               name: response.data.username,
@@ -85,6 +87,7 @@ export class AuthenticationInitializer {
               roles: response.data.roles,
             });
             $rootScope.authenticating = false;
+            this.userLoggedOut = false;
           } else {
             this.loginNotification();
           }
