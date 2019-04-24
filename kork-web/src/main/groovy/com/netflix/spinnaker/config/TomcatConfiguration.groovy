@@ -22,19 +22,24 @@ import com.netflix.spinnaker.tomcat.x509.SslExtensionConfigurationProperties
 import groovy.util.logging.Slf4j
 import org.apache.catalina.connector.Connector
 import org.apache.coyote.http11.Http11NioProtocol
-import org.springframework.boot.actuate.endpoint.ResolvedEnvironmentEndpoint
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
-import org.springframework.boot.context.embedded.ConfigurableEmbeddedServletContainer
-import org.springframework.boot.context.embedded.EmbeddedServletContainerCustomizer
-import org.springframework.boot.context.embedded.tomcat.TomcatConnectorCustomizer
-import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainerFactory
 import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.boot.web.embedded.tomcat.TomcatConnectorCustomizer
+import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory
+import org.springframework.boot.web.server.WebServerFactory
+import org.springframework.boot.web.server.WebServerFactoryCustomizer
 import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 
 @Slf4j
 @Configuration
-@EnableConfigurationProperties([ResolvedEnvironmentEndpoint, SslExtensionConfigurationProperties, TomcatConfigurationProperties])
+@ComponentScan(basePackages = ["com.netflix.spinnaker.endpoint"])
+@EnableConfigurationProperties([
+  ResolvedEnvironmentConfigurationProperties,
+  SslExtensionConfigurationProperties,
+  TomcatConfigurationProperties
+])
 class TomcatConfiguration {
 
   @Bean
@@ -42,6 +47,7 @@ class TomcatConfiguration {
                                                               SslExtensionConfigurationProperties sslExtensionConfigurationProperties) {
     return new TomcatContainerCustomizerUtil(okHttpClientConfigurationProperties, sslExtensionConfigurationProperties)
   }
+
   /**
    * Setup multiple connectors:
    * - an https connector requiring client auth that will service API requests
@@ -49,14 +55,15 @@ class TomcatConfiguration {
    */
   @Bean
   @ConditionalOnExpression('${server.ssl.enabled:false}')
-  EmbeddedServletContainerCustomizer containerCustomizer(TomcatContainerCustomizerUtil tomcatContainerCustomizerUtil,
-                                                         TomcatConfigurationProperties tomcatConfigurationProperties) throws Exception {
+  WebServerFactoryCustomizer containerCustomizer(TomcatContainerCustomizerUtil tomcatContainerCustomizerUtil,
+                                                 TomcatConfigurationProperties tomcatConfigurationProperties) throws Exception {
     System.setProperty("jdk.tls.rejectClientInitiatedRenegotiation", "true")
     System.setProperty("jdk.tls.ephemeralDHKeySize", "2048")
 
-    return { ConfigurableEmbeddedServletContainer container ->
-      TomcatEmbeddedServletContainerFactory tomcat = (TomcatEmbeddedServletContainerFactory) container
-      //this will only handle the case where SSL is enabled on the main tomcat connector
+    return { factory ->
+      TomcatServletWebServerFactory tomcat = (TomcatServletWebServerFactory) factory
+
+      // This will only handle the case where SSL is enabled on the main Tomcat connector
       tomcat.addConnectorCustomizers(new TomcatConnectorCustomizer() {
         @Override
         void customize(Connector connector) {
@@ -64,26 +71,27 @@ class TomcatConfiguration {
         }
       })
 
-      if (tomcatConfigurationProperties.getLegacyServerPort()> 0) {
-        log.info("Creating legacy connector on port ${tomcatConfigurationProperties.getLegacyServerPort()}")
+      if (tomcatConfigurationProperties.legacyServerPort > 0) {
+        log.info("Creating legacy connecgtor on port ${tomcatConfigurationProperties.legacyServerPort}")
         def httpConnector = new Connector("org.apache.coyote.http11.Http11NioProtocol")
-        httpConnector.setScheme("http")
-        httpConnector.setPort(tomcatConfigurationProperties.getLegacyServerPort())
+        httpConnector.scheme = "http"
+        httpConnector.port = tomcatConfigurationProperties.legacyServerPort
         tomcat.addAdditionalTomcatConnectors(httpConnector)
       }
 
-      if (tomcatConfigurationProperties.getApiPort() > 0) {
-        log.info("Creating api connector on port ${tomcatConfigurationProperties.getApiPort()}")
+      if (tomcatConfigurationProperties.apiPort > 0) {
+        log.info("Creating api connector on port ${tomcatConfigurationProperties.apiPort}")
         def apiConnector = new Connector("org.apache.coyote.http11.Http11NioProtocol")
-        apiConnector.setScheme("https")
-        apiConnector.setPort(tomcatConfigurationProperties.getApiPort())
+        apiConnector.scheme = "https"
+        apiConnector.port = tomcatConfigurationProperties.apiPort
 
         def ssl = tomcatContainerCustomizerUtil.copySslConfigurationWithClientAuth(tomcat)
         Http11NioProtocol handler = apiConnector.getProtocolHandler() as Http11NioProtocol
+        // TODO(rz): no more:
         tomcat.configureSsl(handler, ssl)
         tomcatContainerCustomizerUtil.applySSLSettings(apiConnector)
         tomcat.addAdditionalTomcatConnectors(apiConnector)
       }
-    } as EmbeddedServletContainerCustomizer
+    } as WebServerFactoryCustomizer
   }
 }

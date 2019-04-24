@@ -31,12 +31,12 @@ import java.util.Map;
  *
  * Format for Encrypted Secrets:
  *
- * encrypted:&lt;engine-identifier&gt;!&lt;param-name_1&gt;:&lt;param-value_1&gt;!..!&lt;param-name_n&gt;:&lt;param-value_n&gt;
+ * encrypted:[engine-identifier]![param-name_1]:[param-value_1]!..![param-name_n]:[param-value_n]
  *
  * Note: Valid param-names match the regex: `[a-zA-Z0-9]+`
  * Note: secret-params may contain ':'
  * Note: `encrypted` cannot be a param-name
- * Note: There must be at least one &lt;param-name&gt;:&lt;param-value&gt; pair
+ * Note: There must be at least one [param-name]:[param-value] pair
  * Named parameters are used to allow for adding additional options in the future.
  */
 
@@ -58,7 +58,7 @@ public class EncryptedSecret {
   }
 
   /**
-   * @param secretConfig
+   * @param secretConfig Potentially encrypted secret value
    * @return EncryptedSecret object
    */
   public static EncryptedSecret parse(String secretConfig) {
@@ -87,7 +87,7 @@ public class EncryptedSecret {
   }
 
   /**
-   * @param secretConfig
+   * @param secretConfig Potentially encrypted secret value
    * @return boolean representing whether or not the secretConfig is formatted correctly
    */
   public static boolean isEncryptedSecret(String secretConfig) {

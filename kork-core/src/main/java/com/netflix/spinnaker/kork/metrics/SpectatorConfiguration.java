@@ -20,20 +20,15 @@ import com.netflix.spectator.api.Clock;
 import com.netflix.spectator.api.DefaultRegistry;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spectator.api.Spectator;
-import com.netflix.spectator.controllers.MetricsController;
 import com.netflix.spectator.gc.GcLogger;
 import com.netflix.spectator.jvm.Jmx;
-
-import org.springframework.boot.actuate.metrics.writer.CompositeMetricWriter;
-import org.springframework.boot.actuate.metrics.writer.MetricWriter;
+import io.micrometer.core.instrument.MeterRegistry;
+import org.springframework.boot.actuate.autoconfigure.metrics.MeterRegistryCustomizer;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 
 import javax.annotation.PreDestroy;
 import java.util.List;
@@ -50,26 +45,16 @@ public class SpectatorConfiguration {
   }
 
   @Bean
-  MetricWriter spectatorMetricWriter(Registry registry) {
-    return new SpectatorMetricWriter(registry);
+  public SpectatorMeterRegistry spectatorMeterRegistry(Registry spectatorRegistry,
+                                                       List<MeterRegistryCustomizer<MeterRegistry>> customizers) {
+    SpectatorMeterRegistry registry = new SpectatorMeterRegistry(spectatorRegistry);
+    customizers.forEach(c -> c.customize(registry));
+    return registry;
   }
 
   @Bean
-  @ConditionalOnProperty("spectator.webEndpoint.enabled")
-  MetricsController metricsController(Registry registry) {
-    return new MetricsController();
-  }
-
-  @Bean
-  @Primary
-  @ConditionalOnMissingClass("org.springframework.messaging.MessageChannel")
-  @ConditionalOnMissingBean(name = "primaryMetricWriter")
-  public MetricWriter primaryMetricWriter(List<MetricWriter> writers) {
-    return new CompositeMetricWriter(writers);
-  }
-
-  @Bean
-  RegistryInitializer registryInitializer(Registry registry, SpectatorGcLoggingConfiguration spectatorConfigurationProperties) {
+  RegistryInitializer registryInitializer(Registry registry,
+                                          SpectatorGcLoggingConfiguration spectatorConfigurationProperties) {
     return new RegistryInitializer(registry, spectatorConfigurationProperties.isLoggingEnabled());
   }
 

@@ -42,7 +42,7 @@ public class SecretManager {
    * Decrypt will deserialize the configValue into an EncryptedSecret object and decrypted based on the
    * secretEngine referenced in the configValue.
    *
-   * @param configValue
+   * @param configValue The config value to decrypt
    * @return secret in plaintext
    */
   public String decrypt(String configValue) {
@@ -64,7 +64,7 @@ public class SecretManager {
    *
    * Note: The temporary file that is created is deleted upon exiting the application.
    *
-   * @param filePathOrEncrypted
+   * @param filePathOrEncrypted A filepath or encrypted key
    * @return path to temporary file that contains decrypted contents or null if param not encrypted
    */
   public Path decryptAsFile(String filePathOrEncrypted) {

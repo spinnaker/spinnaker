@@ -17,12 +17,12 @@
 package com.netflix.spinnaker.kork.web.controllers;
 
 import com.netflix.spinnaker.kork.web.exceptions.HasAdditionalAttributes;
-import org.springframework.boot.autoconfigure.web.ErrorAttributes;
-import org.springframework.boot.autoconfigure.web.ErrorController;
+import org.springframework.boot.web.servlet.error.ErrorAttributes;
+import org.springframework.boot.web.servlet.error.ErrorController;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.context.request.ServletRequestAttributes;
+import org.springframework.web.context.request.WebRequest;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
@@ -37,12 +37,10 @@ public class GenericErrorController implements ErrorController {
 
   @RequestMapping(value = "/error")
   public Map error(@RequestParam(value = "trace", defaultValue = "false") Boolean includeStackTrace,
-                   HttpServletRequest httpServletRequest) {
-    ServletRequestAttributes servletRequestAttributes = new ServletRequestAttributes(httpServletRequest);
+                   WebRequest webRequest) {
+    Map<String, Object> attributes = errorAttributes.getErrorAttributes(webRequest, includeStackTrace);
 
-    Map<String, Object> attributes = errorAttributes.getErrorAttributes(servletRequestAttributes, includeStackTrace);
-
-    Throwable exception = errorAttributes.getError(servletRequestAttributes);
+    Throwable exception = errorAttributes.getError(webRequest);
     if (exception != null && exception instanceof HasAdditionalAttributes) {
       attributes.putAll(((HasAdditionalAttributes) exception).getAdditionalAttributes());
     }

@@ -18,12 +18,11 @@ package com.netflix.spinnaker.config
 
 import com.netflix.spinnaker.kork.web.controllers.GenericErrorController
 import com.netflix.spinnaker.kork.web.exceptions.GenericExceptionHandlers
-import org.springframework.boot.autoconfigure.web.DefaultErrorAttributes
-import org.springframework.boot.autoconfigure.web.ErrorAttributes
-import org.springframework.boot.autoconfigure.web.ErrorController
+import org.springframework.boot.web.servlet.error.DefaultErrorAttributes
+import org.springframework.boot.web.servlet.error.ErrorAttributes
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.web.context.request.RequestAttributes
+import org.springframework.web.context.request.WebRequest
 
 @Configuration
 class ErrorConfiguration {
@@ -31,19 +30,18 @@ class ErrorConfiguration {
   ErrorAttributes errorAttributes() {
     final DefaultErrorAttributes defaultErrorAttributes = new DefaultErrorAttributes()
     return new ErrorAttributes() {
-
       @Override
-      Map<String, Object> getErrorAttributes(RequestAttributes attrs, boolean includeStackTrace) {
-        Map<String, Object> errorAttributes = defaultErrorAttributes.getErrorAttributes(attrs, includeStackTrace)
+      Map<String, Object> getErrorAttributes(WebRequest webRequest, boolean includeStackTrace) {
         // By default, Spring echoes back the user's requested path. This opens up a potential XSS vulnerability where a
         // user, for example, requests "GET /<script>alert('Hi')</script> HTTP/1.1".
+        Map<String, Object> errorAttributes = defaultErrorAttributes.getErrorAttributes(webRequest, includeStackTrace)
         errorAttributes.remove("path")
         return errorAttributes
       }
 
       @Override
-      Throwable getError(RequestAttributes requestAttributes) {
-        return defaultErrorAttributes.getError(requestAttributes)
+      Throwable getError(WebRequest webRequest) {
+        return defaultErrorAttributes.getError(webRequest)
       }
     }
   }

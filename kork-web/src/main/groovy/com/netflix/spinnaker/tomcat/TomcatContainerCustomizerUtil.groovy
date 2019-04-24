@@ -6,8 +6,8 @@ import com.netflix.spinnaker.tomcat.x509.SslExtensionConfigurationProperties
 import org.apache.catalina.connector.Connector
 import org.apache.coyote.http11.AbstractHttp11JsseProtocol
 import org.apache.tomcat.util.net.SSLHostConfig
-import org.springframework.boot.context.embedded.Ssl
-import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainerFactory
+import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory
+import org.springframework.boot.web.server.Ssl
 
 class TomcatContainerCustomizerUtil {
 
@@ -20,7 +20,7 @@ class TomcatContainerCustomizerUtil {
     this.sslExtensionConfigurationProperties = sslExtensionConfigurationProperties
   }
 
-  Ssl copySslConfigurationWithClientAuth(TomcatEmbeddedServletContainerFactory tomcat) {
+  Ssl copySslConfigurationWithClientAuth(TomcatServletWebServerFactory tomcat) {
     def ssl = new Ssl()
     tomcat.ssl.properties.each { k, v ->
       try {
@@ -42,7 +42,7 @@ class TomcatContainerCustomizerUtil {
         }
         handler.setSslImplementationName(BlacklistingSSLImplementation.name)
         SSLHostConfig sslHostConfig = sslConfigs.first()
-        sslHostConfig.setHonorCipherOrder("true")
+        sslHostConfig.setHonorCipherOrder(true)
         sslHostConfig.ciphers = okHttpClientConfigurationProperties.cipherSuites.join(",")
         sslHostConfig.setProtocols(okHttpClientConfigurationProperties.tlsVersions.join(","))
         sslHostConfig.setCertificateRevocationListFile(sslExtensionConfigurationProperties.getCrlFile())

@@ -32,8 +32,8 @@ public interface SecretEngine {
    * validates it contains the required information the service needs for decryption. Parameter names
    * should not contain ':'
    *
-   * @param encryptedSecret
-   * @throws InvalidSecretFormatException
+   * @param encryptedSecret The encrypted secret
+   * @throws InvalidSecretFormatException If the encrypted secret is malformed
    */
   void validate(EncryptedSecret encryptedSecret);
 

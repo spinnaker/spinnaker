@@ -41,16 +41,16 @@ import static org.jooq.conf.RenderNameStyle.AS_IS;
 public class SqlTestUtil {
 
   public static TestDatabase initDatabase() {
-    return initDatabase("jdbc:h2:mem:test");
+    return initDatabase("jdbc:h2:mem:test;MODE=MYSQL");
   }
 
   public static TestDatabase initPreviousDatabase() {
-    return initDatabase("jdbc:h2:mem:test_previous");
+    return initDatabase("jdbc:h2:mem:test_previous;MODE=MYSQL");
   }
 
   public static TestDatabase initDatabase(String jdbcUrl) {
     HikariConfig cpConfig = new HikariConfig();
-    cpConfig.setJdbcUrl(format("%s%d", jdbcUrl, Clock.systemDefaultZone().millis()));
+    cpConfig.setJdbcUrl(jdbcUrl);
     cpConfig.setMaximumPoolSize(5);
     DataSource dataSource = new HikariDataSource(cpConfig);
 

@@ -38,7 +38,6 @@ public abstract class AbstractStorageSecretEngine implements SecretEngine {
 
   protected Yaml yamlParser = new Yaml();
 
-
   public byte[] decrypt(EncryptedSecret encryptedSecret) {
     String fileUri = encryptedSecret.getParams().get(STORAGE_FILE_URI);
     String key = encryptedSecret.getParams().get(STORAGE_PROP_KEY);
@@ -73,10 +72,6 @@ public abstract class AbstractStorageSecretEngine implements SecretEngine {
     }
   }
 
-  /**
-   * @param encryptedSecret
-   * @throws InvalidSecretFormatException
-   */
   public void validate(EncryptedSecret encryptedSecret) throws InvalidSecretFormatException {
     Set<String> paramNames = encryptedSecret.getParams().keySet();
     if (!paramNames.contains(STORAGE_BUCKET)) {
@@ -111,7 +106,7 @@ public abstract class AbstractStorageSecretEngine implements SecretEngine {
   }
 
   protected void parseAsYaml(String fileURI, InputStream inputStream) {
-    Map<String,Object> parsed = (Map<String, Object>) yamlParser.load(inputStream);
+    Map<String,Object> parsed = yamlParser.load(inputStream);
     cache.put(fileURI, parsed);
   }
 

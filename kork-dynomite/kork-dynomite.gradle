@@ -8,5 +8,6 @@ dependencies {
     exclude group: 'joda-time'
     exclude group: 'org.apache.httpcomponents'
     exclude group: 'org.slf4j'
+    exclude group: 'com.netflix.spectator'
   }
 }

@@ -32,7 +32,7 @@ class ReloadingFileBlacklistSpec extends Specification {
     bl.isBlacklisted(cert) == expected
 
     where:
-    issuer | serial | expected
+    issuerSource | serial | expected
     "O=Test, OU=Test, CN=TestCN, L=Testland, ST=CA, C=US" | 1 | true
     "O=Test, OU=Test, CN=TestCN, L=Testland, ST=CA, C=US" | 2 | true
     "O=Test, OU=Test, CN=TestCN, L=Testland, ST=CA, C=US" | 2 | true
@@ -40,7 +40,7 @@ class ReloadingFileBlacklistSpec extends Specification {
     "O=Test, OU=Test, CN=TestCN2, L=Testland, ST=CA, C=US" | 1 | true
     "O=Test, OU=Test, CN=TestCN2, L=Testland, ST=CA, C=US" | 2 | false
 
-    cert = testCert(serial, issuer)
+    cert = testCert(serial, issuerSource)
   }
 
   def "should reload cert identification from blacklist file"() {
@@ -55,7 +55,7 @@ class ReloadingFileBlacklistSpec extends Specification {
     result == false
 
     when:
-    blFile.text += issuer + ':::' + serial
+    blFile.text += issuerSource + ':::' + serial
     Thread.sleep(10)
 
     and:
@@ -66,9 +66,9 @@ class ReloadingFileBlacklistSpec extends Specification {
 
 
     where:
-    issuer = "O=Test, OU=Test, CN=TestCN2, L=Testland, ST=CA, C=US"
+    issuerSource = "O=Test, OU=Test, CN=TestCN2, L=Testland, ST=CA, C=US"
     serial = 2
-    cert = testCert(serial, issuer)
+    cert = testCert(serial, issuerSource)
   }
 
 
@@ -93,11 +93,9 @@ class ReloadingFileBlacklistSpec extends Specification {
     BigInteger serial = certSerial as BigInteger
     X500Principal issuer = new X500Principal(issuerName)
 
-
     return Stub(X509Certificate) {
       getSerialNumber() >> serial
       getIssuerX500Principal() >> issuer
     }
-
   }
 }

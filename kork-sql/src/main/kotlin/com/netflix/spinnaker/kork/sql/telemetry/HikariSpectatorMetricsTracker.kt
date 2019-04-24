@@ -16,7 +16,7 @@
 package com.netflix.spinnaker.kork.sql.telemetry
 
 import com.netflix.spectator.api.Registry
-import com.zaxxer.hikari.metrics.MetricsTracker
+import com.zaxxer.hikari.metrics.IMetricsTracker
 import com.zaxxer.hikari.metrics.PoolStats
 import java.util.concurrent.TimeUnit
 
@@ -24,7 +24,7 @@ class HikariSpectatorMetricsTracker(
   poolName: String,
   private val poolStats: PoolStats,
   private val registry: Registry
-) : MetricsTracker() {
+) : IMetricsTracker {
 
   val connectionAcquiredId = registry.createId("sql.pool.$poolName.connectionAcquiredTiming")
   val connectionUsageId = registry.createId("sql.pool.$poolName.connectionUsageTiming")

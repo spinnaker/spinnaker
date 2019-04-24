@@ -3,7 +3,6 @@ apply plugin: "groovy"
 
 dependencies {
   api(project(":kork-core"))
-  
-  implementation("org.codehaus.groovy:groovy-all")
+
   api("org.spockframework:spock-core")
 }

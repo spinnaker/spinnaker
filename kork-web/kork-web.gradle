@@ -8,8 +8,13 @@ dependencies {
   api project(":kork-exceptions")
   api "org.codehaus.groovy:groovy-all"
   api "org.springframework.boot:spring-boot-starter-web"
+  api "org.springframework.boot:spring-boot-starter-security"
   api "org.springframework.security:spring-security-core"
   api "com.netflix.spectator:spectator-api"
+  api("com.netflix.spectator:spectator-web-spring") {
+    // IMPORTANT: spectator-web-spring is Spring Boot 1.x; but is code compat with Boot 2. Exclude the transitives
+    transitive = false
+  }
   api "com.fasterxml.jackson.core:jackson-annotations"
   api "com.hubspot.jinjava:jinjava"
   api "com.squareup.okhttp:okhttp"

@@ -16,7 +16,7 @@
 package com.netflix.spinnaker.kork.sql.telemetry
 
 import com.netflix.spectator.api.Registry
-import com.zaxxer.hikari.metrics.MetricsTracker
+import com.zaxxer.hikari.metrics.IMetricsTracker
 import com.zaxxer.hikari.metrics.MetricsTrackerFactory
 import com.zaxxer.hikari.metrics.PoolStats
 import org.springframework.scheduling.annotation.Scheduled
@@ -32,7 +32,7 @@ class HikariSpectatorMetricsTrackerFactory(
     trackers.values.forEach { it.recordPoolStats() }
   }
 
-  override fun create(poolName: String, poolStats: PoolStats): MetricsTracker =
+  override fun create(poolName: String, poolStats: PoolStats): IMetricsTracker =
     HikariSpectatorMetricsTracker(poolName, poolStats, registry).let {
       trackers.putIfAbsent(poolName, it)
       it

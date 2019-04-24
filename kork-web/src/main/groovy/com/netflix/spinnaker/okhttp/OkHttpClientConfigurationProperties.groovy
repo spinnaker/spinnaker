@@ -25,7 +25,7 @@ import org.springframework.core.annotation.AliasFor
 
 @AutoClone
 @Canonical
-@ConfigurationProperties(prefix="okHttpClient")
+@ConfigurationProperties(prefix="ok-http-client")
 class OkHttpClientConfigurationProperties {
   long connectTimeoutMs = 15000
   long readTimeoutMs = 20000

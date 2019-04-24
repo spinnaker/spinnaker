@@ -16,14 +16,11 @@
 
 package com.netflix.spinnaker.config;
 
-import com.netflix.spectator.controllers.filter.PrototypeMeasurementFilter;
-import com.netflix.spectator.stackdriver.ConfigParams;
-import com.netflix.spectator.stackdriver.MetricDescriptorCache;
-import com.netflix.spectator.stackdriver.StackdriverWriter;
-
 import com.netflix.spectator.api.Measurement;
 import com.netflix.spectator.api.Registry;
-
+import com.netflix.spectator.controllers.filter.PrototypeMeasurementFilter;
+import com.netflix.spectator.stackdriver.ConfigParams;
+import com.netflix.spectator.stackdriver.StackdriverWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,20 +31,17 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-
-import java.io.IOException;
-import java.net.InetAddress;
-import java.util.Date;
-import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Predicate;
-
 import org.springframework.core.env.Environment;
 import rx.Observable;
 import rx.Scheduler;
 import rx.schedulers.Schedulers;
+
+import java.io.IOException;
+import java.net.InetAddress;
+import java.util.Date;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 
 
 @Configuration
