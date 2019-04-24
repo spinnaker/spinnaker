@@ -2,11 +2,11 @@ apply plugin: 'com.google.protobuf'
 apply plugin: 'spinnaker.application'
 
 ext {
-  springConfigLocation = System.getProperty('spring.config.node', "${System.getProperty('user.home')}/.spinnaker/")
+  springConfigLocation = System.getProperty('spring.config.location', "${System.getProperty('user.home')}/.spinnaker/")
 }
 
 run {
-  systemProperty('spring.config.node', project.springConfigLocation)
+  systemProperty('spring.config.location', project.springConfigLocation)
 }
 mainClassName = 'com.netflix.spinnaker.halyard.Main'
 
