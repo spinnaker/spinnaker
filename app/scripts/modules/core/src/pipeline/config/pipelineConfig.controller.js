@@ -3,6 +3,7 @@
 import _ from 'lodash';
 import { hri as HumanReadableIds } from 'human-readable-ids';
 
+import { SETTINGS } from 'core/config';
 import { PipelineTemplateReader } from './templates/PipelineTemplateReader';
 import { PipelineTemplateV2Service } from 'core/pipeline';
 
@@ -25,8 +26,9 @@ module.exports = angular
 
       this.initialize = () => {
         this.pipelineConfig = _.find(app.pipelineConfigs.data, { id: $stateParams.pipelineId });
+        const isV2PipelineConfig = PipelineTemplateV2Service.isV2PipelineConfig(this.pipelineConfig);
 
-        if (this.pipelineConfig && PipelineTemplateV2Service.isV2PipelineConfig(this.pipelineConfig)) {
+        if (this.pipelineConfig && isV2PipelineConfig && !SETTINGS.feature.managedPipelineTemplatesV2UI) {
           return $state.go('home.applications.application.pipelines.executions', null, { location: 'replace' });
         }
 
@@ -45,7 +47,13 @@ module.exports = angular
 
         if (this.pipelineConfig && this.pipelineConfig.type === 'templatedPipeline') {
           this.isTemplatedPipeline = true;
-          this.hasDynamicSource = this.containsJinja(this.pipelineConfig.config.pipeline.template.source);
+          this.hasDynamicSource =
+            !isV2PipelineConfig && this.containsJinja(this.pipelineConfig.config.pipeline.template.source);
+
+          if ($stateParams.new === '1') {
+            this.pipelineConfig.isNew = true;
+          }
+
           if (!this.pipelineConfig.isNew) {
             return PipelineTemplateReader.getPipelinePlan(this.pipelineConfig, $stateParams.executionId)
               .then(plan => (this.pipelinePlan = plan))

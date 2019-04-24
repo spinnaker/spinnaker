@@ -7,6 +7,7 @@ import { Application, ApplicationReader, IApplicationSummary } from 'core/applic
 import ApplicationSelector from './ApplicationSelector';
 import { CreatePipelineModal } from 'core/pipeline';
 import { IPipelineTemplateV2 } from 'core/domain/IPipelineTemplateV2';
+import { ReactInjector } from 'core/reactShims';
 import { Spinner } from 'core/widgets/spinners/Spinner';
 import { SubmitButton } from 'core/modal/buttons/SubmitButton';
 
@@ -95,6 +96,11 @@ export default class CreatePipelineFromTemplate extends React.Component<
       );
   };
 
+  private goToPipelineConfig = (application: string, id: string) => {
+    const { $state } = ReactInjector;
+    $state.go('home.applications.application.pipelines.pipelineConfig', { application, pipelineId: id, new: 1 });
+  };
+
   public render() {
     const {
       applications,
@@ -113,7 +119,9 @@ export default class CreatePipelineFromTemplate extends React.Component<
           application={loadedApplication}
           show={true}
           showCallback={closeModalCallback}
-          pipelineSavedCallback={closeModalCallback}
+          pipelineSavedCallback={id => {
+            this.goToPipelineConfig(loadedApplication.name, id);
+          }}
           preselectedTemplate={template}
         />
       );

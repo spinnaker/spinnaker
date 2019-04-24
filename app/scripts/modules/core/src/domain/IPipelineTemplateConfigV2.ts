@@ -1,7 +1,7 @@
 import { IPipeline } from 'core/domain';
 
-export interface IPipelineTemplateConfigV2 extends IPipeline {
-  inherit?: string[];
+export interface IPipelineTemplateConfigV2 extends Partial<IPipeline> {
+  exclude?: string[];
   schema: string;
   template: {
     artifactAccount: string;

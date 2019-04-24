@@ -23,7 +23,7 @@ export class PipelineTemplateV2Service {
     };
   }
 
-  public static isV2PipelineConfig(pipelineConfig: IPipeline): boolean {
+  public static isV2PipelineConfig(pipelineConfig: Partial<IPipeline>): boolean {
     return pipelineConfig.schema === PipelineTemplateV2Service.schema;
   }
 
@@ -36,16 +36,22 @@ export class PipelineTemplateV2Service {
     return `${id}:${digest}`;
   }
 
-  public static getPipelineTemplateConfigV2(id: string): Partial<IPipelineTemplateConfigV2> {
+  public static getPipelineTemplateConfigV2(source: string): IPipelineTemplateConfigV2 {
     // Scoped to Front50 in the short-term.
     return {
       schema: PipelineTemplateV2Service.schema,
       template: {
         artifactAccount: 'front50ArtifactCredentials',
-        reference: `spinnaker://${id}`,
+        reference: this.prefixSource(source),
         type: 'front50/pipelineTemplate',
       },
+      type: 'templatedPipeline',
     };
+  }
+
+  private static prefixSource(source = ''): string {
+    const referencePrefix = 'spinnaker://';
+    return source.startsWith(referencePrefix) ? source : `${referencePrefix}${source}`;
   }
 
   private static schema = 'v2';

@@ -19,6 +19,7 @@ import { TriggersTag } from 'core/pipeline/triggers/TriggersTag';
 import { AccountTag } from 'core/account';
 import { ModalInjector, ReactInjector } from 'core/reactShims';
 import { PipelineTemplateV2Service } from 'core/pipeline';
+import { SETTINGS } from 'core/config';
 import { Spinner } from 'core/widgets/spinners/Spinner';
 
 import './executionGroup.less';
@@ -206,6 +207,7 @@ export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecu
     const pipelineDescription = pipelineConfig && pipelineConfig.description;
     const hasRunningExecutions = group.runningExecutions && group.runningExecutions.length > 0;
     const hasMPTv2PipelineConfig = !!(pipelineConfig && PipelineTemplateV2Service.isV2PipelineConfig(pipelineConfig));
+    const mptv2Flag = SETTINGS.feature.managedPipelineTemplatesV2UI;
 
     const deploymentAccountLabels = without(this.state.deploymentAccounts || [], ...(group.targetAccounts || [])).map(
       (account: string) => <AccountTag key={account} account={account} />,
@@ -295,9 +297,11 @@ export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecu
                     {pipelineConfig && <NextRunTag pipeline={pipelineConfig} />}
                     <ExecutionAction
                       handleClick={this.handleConfigureClicked}
-                      disabled={hasMPTv2PipelineConfig}
+                      disabled={hasMPTv2PipelineConfig && !mptv2Flag}
                       tooltipText={
-                        hasMPTv2PipelineConfig ? PipelineTemplateV2Service.getUnsupportedCopy('Configuration') : ''
+                        hasMPTv2PipelineConfig && !mptv2Flag
+                          ? PipelineTemplateV2Service.getUnsupportedCopy('Configuration')
+                          : ''
                       }
                     >
                       <span className="glyphicon glyphicon-cog" />

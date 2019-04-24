@@ -1,6 +1,8 @@
 import { module } from 'angular';
 
 import { CONFIGURE_PIPELINE_TEMPLATE_MODAL_CTRL } from './configurePipelineTemplateModal.controller';
+import { CONFIGURE_PIPELINE_TEMPLATE_MODAL_V2_CTRL } from './v2/configurePipelineTemplateModalV2.controller';
+
 import { TEMPLATE_PLAN_ERRORS } from './templatePlanErrors.component';
 import { VARIABLE } from './variable.component';
 
@@ -16,4 +18,9 @@ import './validators/object.validator';
 import './validators/string.validator';
 
 export const PIPELINE_TEMPLATE_MODULE = 'spinnaker.core.pipelineTemplate.module';
-module(PIPELINE_TEMPLATE_MODULE, [CONFIGURE_PIPELINE_TEMPLATE_MODAL_CTRL, TEMPLATE_PLAN_ERRORS, VARIABLE]);
+module(PIPELINE_TEMPLATE_MODULE, [
+  CONFIGURE_PIPELINE_TEMPLATE_MODAL_CTRL,
+  CONFIGURE_PIPELINE_TEMPLATE_MODAL_V2_CTRL,
+  TEMPLATE_PLAN_ERRORS,
+  VARIABLE,
+]);

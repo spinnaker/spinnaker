@@ -14,7 +14,7 @@ module(PIPELINE_STATES, [APPLICATION_STATE_PROVIDER]).config([
   (applicationStateProvider: ApplicationStateProvider, stateConfigProvider: StateConfigProvider) => {
     const pipelineConfig: INestedState = {
       name: 'pipelineConfig',
-      url: '/configure/:pipelineId?executionId',
+      url: '/configure/:pipelineId?executionId&new',
       views: {
         pipelines: {
           templateUrl: require('../pipeline/config/pipelineConfig.html'),

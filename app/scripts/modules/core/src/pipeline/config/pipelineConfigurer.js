@@ -379,12 +379,22 @@ module.exports = angular
       };
 
       this.configureTemplate = () => {
+        const controller = PipelineTemplateV2Service.isV2PipelineConfig($scope.pipeline)
+          ? {
+              name: 'ConfigurePipelineTemplateModalV2Ctrl',
+              template: require('core/pipeline/config/templates/v2/configurePipelineTemplateModalV2.html'),
+            }
+          : {
+              name: 'ConfigurePipelineTemplateModalCtrl',
+              template: require('core/pipeline/config/templates/configurePipelineTemplateModal.html'),
+            };
+
         this.setViewState({ loading: true });
         $uibModal
           .open({
             size: 'lg',
-            templateUrl: require('core/pipeline/config/templates/configurePipelineTemplateModal.html'),
-            controller: 'ConfigurePipelineTemplateModalCtrl as ctrl',
+            templateUrl: controller.template,
+            controller: `${controller.name} as ctrl`,
             resolve: {
               application: () => $scope.application,
               pipelineTemplateConfig: () => _.cloneDeep($scope.pipeline),

@@ -1,0 +1,54 @@
+<div ng-if="ctrl.state.loading" style="height: 300px;">
+  <loading-spinner size="'small'"></loading-spinner>
+</div>
+<v2-modal-wizard
+  heading="Define template parameters: {{::ctrl.pipelineName}}"
+  dismiss="$dismiss()"
+  ng-if="!ctrl.state.loading"
+>
+  <v2-wizard-page
+    key="{{::group.name}}"
+    label="{{::group.name}}"
+    mark-complete-on-view="false"
+    ng-if="!ctrl.state.error && !ctrl.state.loading && !ctrl.state.loadingError && ctrl.variableMetadataGroups"
+    ng-repeat="group in ctrl.variableMetadataGroups"
+  >
+    <variable
+      ng-repeat="metadata in group.variableMetadata"
+      class="clearfix"
+      variable-metadata="metadata"
+      variable="ctrl.getVariable(metadata.name)"
+      on-change="(ctrl.handleVariableChange)"
+    ></variable>
+  </v2-wizard-page>
+  <div ng-if="ctrl.state.error" class="alert alert-danger">
+    <p>Could not generate pipeline from provided template configuration.</p>
+    <p><template-plan-errors errors="ctrl.state.planErrors"></template-plan-errors></p>
+    <p><a href ng-click="ctrl.dismissError()">[dismiss]</a></p>
+  </div>
+  <div ng-if="ctrl.state.loadingError" class="alert alert-danger">
+    <p>Could not load pipeline template.</p>
+  </div>
+  <div ng-if="ctrl.state.noVariables && !ctrl.state.error" class="alert alert-info">
+    <p>This template has no variables to configure.</p>
+  </div>
+  <div ng-if="!ctrl.state.error" class="alert alert-info">
+    <strong>Inherit the following configuration from the template</strong>
+    <p><input type="checkbox" ng-model="ctrl.state.inheritTemplateNotifications" /> Notifications</p>
+    <p><input type="checkbox" ng-model="ctrl.state.inheritTemplateParameters" /> Parameters</p>
+    <p><input type="checkbox" ng-model="ctrl.state.inheritTemplateTriggers" /> Triggers</p>
+  </div>
+  <div class="modal-footer" ng-if="!ctrl.state.loading">
+    <button ng-if="!ctrl.isNew && !ctrl.state.noVariables" class="btn btn-default" ng-click="ctrl.cancel()">
+      Cancel
+    </button>
+    <button ng-if="ctrl.state.noVariables" class="btn btn-default" ng-click="ctrl.submit()">Dismiss</button>
+    <submit-button
+      label="'Configure'"
+      ng-if="!ctrl.state.noVariables && !ctrl.state.error && !ctrl.state.loadingError"
+      is-disabled="!ctrl.formIsValid()"
+      on-click="ctrl.submit()"
+    >
+    </submit-button>
+  </div>
+</v2-modal-wizard>
