@@ -57,19 +57,19 @@ public class RetrofitConfig {
   @Setter
   private OkHttpClientConfiguration okHttpClientConfig;
 
-  @Value("${okHttpClient.connectionPool.maxIdleConnections:5}")
+  @Value("${ok-http-client.connection-pool.max-idle-connections:5}")
   @Setter
   private int maxIdleConnections;
 
-  @Value("${okHttpClient.connectionPool.keepAliveDurationMs:300000}")
+  @Value("${ok-http-client.connection-pool.keep-alive-duration-ms:300000}")
   @Setter
   private int keepAliveDurationMs;
 
-  @Value("${okHttpClient.retryOnConnectionFailure:true}")
+  @Value("${ok-http-client.retry-on-connection-failure:true}")
   @Setter
   private boolean retryOnConnectionFailure;
 
-  @Value("${okHttpClient.retries.maxElapsedBackoffMs:5000}")
+  @Value("${ok-http-client.retries.max-elapsed-backoff-ms:5000}")
   @Setter
   private long maxElapsedBackoffMs;
 
@@ -83,7 +83,7 @@ public class RetrofitConfig {
   }
 
   @Bean
-  RestAdapter.LogLevel retrofitLogLevel(@Value("${retrofit.logLevel:BASIC}") String logLevel) {
+  RestAdapter.LogLevel retrofitLogLevel(@Value("${retrofit.log-level:BASIC}") String logLevel) {
     return RestAdapter.LogLevel.valueOf(logLevel);
   }
 

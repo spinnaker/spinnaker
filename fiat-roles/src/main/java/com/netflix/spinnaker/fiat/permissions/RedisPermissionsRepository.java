@@ -155,6 +155,7 @@ public class RedisPermissionsRepository implements PermissionsRepository {
           userResponseMap.put(r, resourceMap);
           Response<Map<String, String>> unrestrictedMap = p.hgetAll(unrestrictedUserKey(r));
           unrestrictedResponseMap.put(r, unrestrictedMap);
+          log.info("Resource: {}; map size: {}", r, unrestrictedResponseMap.size());
         }
         Response<Boolean> admin = p.sismember(adminKey(), id);
         p.sync();

@@ -15,33 +15,22 @@
  */
 
 dependencies {
-  compile project(":fiat-core")
+  implementation project(":fiat-core")
 
-  compileOnly spinnaker.dependency("bootWeb")
-  compileOnly spinnaker.dependency("frigga")
-  compileOnly spinnaker.dependency("korkSecurity")
-  compileOnly spinnaker.dependency("korkWeb")
-  compileOnly spinnaker.dependency("kork")
-  compileOnly spinnaker.dependency("lombok")
-  annotationProcessor spinnaker.dependency("lombok")
-  compileOnly spinnaker.dependency("okHttp")
-  compileOnly spinnaker.dependency("okHttpUrlconnection")
-  compileOnly spinnaker.dependency("okHttpApache")
-  compileOnly spinnaker.dependency("retrofit")
-  compileOnly spinnaker.dependency("retrofitJackson")
-  compileOnly spinnaker.dependency("spectatorApi")
+  implementation "org.springframework:spring-aop"
+  implementation "org.springframework:spring-web"
+  implementation "org.springframework.security:spring-security-core"
+  implementation "org.springframework.security:spring-security-web"
+  implementation "com.netflix.spectator:spectator-api"
+  implementation "com.netflix.spinnaker.kork:kork-core"
+  implementation "com.netflix.spinnaker.kork:kork-security"
+  implementation "com.netflix.spinnaker.kork:kork-web"
+  implementation "com.squareup.retrofit:retrofit"
+  implementation "com.squareup.retrofit:converter-jackson"
 
-  compile spinnaker.dependency("guava")
-  compile spinnaker.dependency("springSecurityConfig")
-  compile spinnaker.dependency("springSecurityCore")
-  compile spinnaker.dependency("springSecurityWeb")
+  compileOnly "javax.servlet:javax.servlet-api"
 
-  testCompile spinnaker.dependency("retrofit")
-  testCompile spinnaker.dependency("okHttp")
-  testCompile spinnaker.dependency("slf4jApi")
-  testCompile spinnaker.dependency("frigga")
-  testCompile spinnaker.dependency("korkSecurity")
-  testCompile spinnaker.dependency("kork")
-  testCompile spinnaker.dependency("bootAutoConfigure")
-  testCompile spinnaker.dependency("spectatorApi")
+  implementation "com.github.ben-manes.caffeine:caffeine"
+
+  testImplementation "org.slf4j:slf4j-api"
 }

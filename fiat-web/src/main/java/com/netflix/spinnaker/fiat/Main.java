@@ -18,8 +18,9 @@ package com.netflix.spinnaker.fiat;
 
 import com.netflix.spinnaker.config.ErrorConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.gson.GsonAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.boot.web.support.SpringBootServletInitializer;
+import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -36,7 +37,7 @@ import java.util.Map;
     "com.netflix.spinnaker.config",
 })
 @Import(ErrorConfiguration.class)
-@EnableAutoConfiguration
+@EnableAutoConfiguration(exclude = {GsonAutoConfiguration.class})
 public class Main extends SpringBootServletInitializer {
 
   private static final Map<String, Object> DEFAULT_PROPS = buildDefaults();

@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.fiat.shared;
 
 import com.netflix.spectator.api.Registry;
+import com.netflix.spectator.api.patterns.PolledMeter;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,8 +47,8 @@ public class FiatStatus {
     this.enabled = new AtomicBoolean(fiatClientConfigurationProperties.isEnabled());
     this.legacyFallbackEnabled = new AtomicBoolean(fiatClientConfigurationProperties.isLegacyFallback());
 
-    registry.gauge("fiat.enabled", enabled, value -> enabled.get() ? 1 : 0);
-    registry.gauge("fiat.legacyFallback.enabled", legacyFallbackEnabled, value -> legacyFallbackEnabled.get() ? 1 : 0);
+    PolledMeter.using(registry).withName("fiat.enabled").monitorValue(enabled, value -> enabled.get() ? 1 : 0);
+    PolledMeter.using(registry).withName("fiat.legacyFallback.enabled").monitorValue(legacyFallbackEnabled, value -> legacyFallbackEnabled.get() ? 1 : 0);
   }
 
   public boolean isEnabled() {

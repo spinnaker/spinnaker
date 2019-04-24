@@ -38,12 +38,12 @@ class EmbeddedRedisConfig {
   }
 
   @Bean
-  Pool<Jedis> jedisPool() {
-    redisServer().pool
+  Pool<Jedis> jedisPool(EmbeddedRedis embeddedRedis) {
+    embeddedRedis.pool
   }
 
   @Bean
-  RedisClientDelegate redisClientDelegate(EmbeddedRedis embeddedRedis) {
-    return new JedisClientDelegate(embeddedRedis.pool)
+  RedisClientDelegate redisClientDelegate(Pool<Jedis> jedisPool) {
+    return new JedisClientDelegate(jedisPool)
   }
 }

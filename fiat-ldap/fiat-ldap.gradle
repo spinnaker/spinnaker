@@ -15,18 +15,10 @@
  */
 
 dependencies {
-  compile project(":fiat-roles")
+  implementation project(":fiat-roles")
+  implementation project(":fiat-core")
 
-  compileOnly spinnaker.dependency("retrofit")
-  compileOnly spinnaker.dependency("okHttp")
-  compileOnly spinnaker.dependency("okHttpUrlconnection")
-  compileOnly spinnaker.dependency("okHttpApache")
-  compileOnly spinnaker.dependency("retrofitJackson")
-
-  compileOnly spinnaker.dependency("lombok")
-  annotationProcessor spinnaker.dependency("lombok")
-
-  compile "org.springframework.security:spring-security-ldap:${spinnaker.version('springSecurity')}"
-
-  spinnaker.group("spockBase")
+  implementation "org.apache.commons:commons-lang3"
+  implementation "org.springframework.boot:spring-boot-autoconfigure"
+  implementation "org.springframework.security:spring-security-ldap"
 }

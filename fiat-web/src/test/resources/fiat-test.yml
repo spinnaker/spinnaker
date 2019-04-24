@@ -5,3 +5,4 @@ services:
     baseUrl: 'http://localhost:8080'
   igor:
     enabled: false
+    baseUrl: null

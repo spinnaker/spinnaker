@@ -45,7 +45,7 @@ class ResourceSpec extends Specification {
 
     where:
     input       || e
-    null        || IllegalArgumentException.class
+    null        || NullPointerException.class
     ""          || IllegalArgumentException.class
     "account:"  || IllegalArgumentException.class
     "account:s" || IllegalArgumentException.class

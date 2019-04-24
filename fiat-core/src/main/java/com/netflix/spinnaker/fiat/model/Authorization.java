@@ -16,8 +16,15 @@
 
 package com.netflix.spinnaker.fiat.model;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
 public enum Authorization {
   READ,
   WRITE,
-  EXECUTE
+  EXECUTE;
+
+  public static Set<Authorization> ALL = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(values())));
 }

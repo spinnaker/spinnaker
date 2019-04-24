@@ -20,7 +20,7 @@ import retrofit.converter.JacksonConverter;
  * Converts the list of GitHub Configuration properties a collection of clients to access the GitHub hosts
  */
 @Configuration
-@ConditionalOnProperty(value = "auth.groupMembership.service", havingValue = "github")
+@ConditionalOnProperty(value = "auth.group-membership.service", havingValue = "github")
 @Slf4j
 public class GitHubConfig {
 

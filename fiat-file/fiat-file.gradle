@@ -15,10 +15,15 @@
  */
 
 dependencies {
-  compile project(":fiat-roles")
-  compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${spinnaker.version('jackson')}"
+  implementation project(":fiat-roles")
+  implementation project(":fiat-core")
+  implementation "com.fasterxml.jackson.core:jackson-core"
+  implementation "com.fasterxml.jackson.core:jackson-databind"
+  implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
+  implementation "commons-io:commons-io"
+  implementation "org.springframework.boot:spring-boot-autoconfigure"
+  implementation "org.slf4j:slf4j-api"
 
-  compileOnly spinnaker.dependency("lombok")
-  annotationProcessor spinnaker.dependency("lombok")
+  testImplementation "com.github.ben-manes.caffeine:guava"
 
 }

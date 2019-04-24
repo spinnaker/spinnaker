@@ -24,6 +24,7 @@ import com.netflix.spinnaker.fiat.providers.internal.Front50Api;
 import com.netflix.spinnaker.fiat.providers.internal.Front50Service;
 import com.netflix.spinnaker.fiat.providers.internal.IgorApi;
 import com.netflix.spinnaker.fiat.providers.internal.IgorService;
+import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
 import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,13 +58,17 @@ public class ResourcesConfig {
   @Setter
   private OkClient okClient;
 
-  @Value("${services.front50.baseUrl}")
+  @Value("${services.front50.base-url}")
   @Setter
   private String front50Endpoint;
 
-  @Value("${services.clouddriver.baseUrl}")
+  @Value("${services.clouddriver.base-url}")
   @Setter
   private String clouddriverEndpoint;
+
+  @Value("${services.igor.base-url}")
+  @Setter
+  private String igorEndpoint;
 
   @Bean
   Front50Api front50Api() {
@@ -122,22 +127,5 @@ public class ResourcesConfig {
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   ProviderHealthTracker providerHealthTracker(ProviderCacheConfig config) {
     return new ProviderHealthTracker(config.getMaximumStalenessTimeMs());
-  }
-
-  private static class Slf4jRetrofitLogger implements RestAdapter.Log {
-    private final Logger logger;
-
-    Slf4jRetrofitLogger(Class type) {
-      this(LoggerFactory.getLogger(type));
-    }
-
-    Slf4jRetrofitLogger(Logger logger) {
-      this.logger = logger;
-    }
-
-    @Override
-    public void log(String message) {
-      logger.debug(message);
-    }
   }
 }

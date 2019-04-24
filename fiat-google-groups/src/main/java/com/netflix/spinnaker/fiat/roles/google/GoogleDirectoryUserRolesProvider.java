@@ -63,7 +63,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Component
-@ConditionalOnProperty(value = "auth.groupMembership.service", havingValue = "google")
+@ConditionalOnProperty(value = "auth.group-membership.service", havingValue = "google")
 public class GoogleDirectoryUserRolesProvider implements UserRolesProvider, InitializingBean {
 
   @Autowired
@@ -206,7 +206,7 @@ public class GoogleDirectoryUserRolesProvider implements UserRolesProvider, Init
 
   @Data
   @Configuration
-  @ConfigurationProperties("auth.groupMembership.google")
+  @ConfigurationProperties("auth.group-membership.google")
   public static class Config {
 
     /**

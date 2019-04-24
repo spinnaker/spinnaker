@@ -15,21 +15,23 @@
  */
 
 dependencies {
-  compile project(":fiat-core")
+  implementation project(":fiat-core")
 
-  spinnaker.group("retrofitDefault")
+  implementation "com.squareup.retrofit:retrofit"
+  implementation "com.squareup.retrofit:converter-jackson"
+  implementation "com.squareup.okhttp:okhttp"
+  implementation "com.squareup.okhttp:okhttp-urlconnection"
+  implementation "com.squareup.okhttp:okhttp-apache"
 
-  compileOnly spinnaker.dependency("lombok")
-  annotationProcessor spinnaker.dependency("lombok")
+  implementation "org.springframework.boot:spring-boot-starter-actuator"
+  implementation "org.springframework.boot:spring-boot-starter-web"
 
-  compile spinnaker.dependency("bootActuator")
-  compile spinnaker.dependency("bootWeb")
-  compile spinnaker.dependency("googleApiClient")
-  compile spinnaker.dependency("korkDynomite")
-  compile spinnaker.dependency("korkHystrix")
-  compile spinnaker.dependency("korkJedis")
-  compile "redis.clients:jedis:2.9.3"
+  implementation "com.netflix.spinnaker.kork:kork-dynomite"
+  implementation "com.netflix.spinnaker.kork:kork-hystrix"
+  implementation "com.netflix.spinnaker.kork:kork-jedis"
+  implementation "redis.clients:jedis"
+  implementation "com.google.api-client:google-api-client"
 
-  testCompile spinnaker.dependency("korkJedisTest")
-  testCompile "org.apache.commons:commons-collections4:4.1"
+  testImplementation "com.netflix.spinnaker.kork:kork-jedis-test"
+  testImplementation "org.apache.commons:commons-collections4:4.1"
 }

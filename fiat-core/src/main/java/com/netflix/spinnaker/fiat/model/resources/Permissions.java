@@ -18,28 +18,18 @@ package com.netflix.spinnaker.fiat.model.resources;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.netflix.spinnaker.fiat.model.Authorization;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.val;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
  * Representation of authorization configuration for a resource. This object is immutable, which
  * makes it challenging when working with Jackson's
- * {@link com.fasterxml.jackson.databind.ObjectMapper} and Spring's {@link ConfigurationProperties}.
+ * {{ObjectMapper}} and Spring's {{\@ConfigurationProperties}}.
  * The {@link Builder} is a helper class for the latter use case.
  */
 @ToString
@@ -47,7 +37,6 @@ import java.util.stream.Collectors;
 public class Permissions {
 
   public static Permissions EMPTY = new Permissions.Builder().build();
-  private static Set<Authorization> UNRESTRICTED_AUTH = ImmutableSet.copyOf(Authorization.values());
 
   private final Map<Authorization, List<String>> permissions;
 
@@ -95,7 +84,7 @@ public class Permissions {
 
   public Set<Authorization> getAuthorizations(List<String> userRoles) {
     if (!isRestricted()) {
-      return UNRESTRICTED_AUTH;
+      return Authorization.ALL;
     }
 
     return this.permissions
@@ -152,15 +141,16 @@ public class Permissions {
     }
 
     public Permissions build() {
-      ImmutableMap.Builder<Authorization, List<String>> builder = ImmutableMap.builder();
+      final Map<Authorization, List<String>> perms = new HashMap<>();
       this.forEach((auth, groups) -> {
-        List<String> lowerGroups = groups.stream()
+        List<String> lowerGroups = Collections.unmodifiableList(groups.stream()
                                          .map(String::trim)
+                                         .filter(s -> !s.isEmpty())
                                          .map(String::toLowerCase)
-                                         .collect(Collectors.toList());
-        builder.put(auth, ImmutableList.copyOf(lowerGroups));
+                                         .collect(Collectors.toList()));
+        perms.put(auth, lowerGroups);
       });
-      return new Permissions(builder.build());
+      return new Permissions(Collections.unmodifiableMap(perms));
     }
   }
 }

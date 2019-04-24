@@ -20,7 +20,6 @@ import com.netflix.spinnaker.fiat.config.LdapConfig;
 import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.fiat.permissions.ExternalUser;
 import com.netflix.spinnaker.fiat.roles.UserRolesProvider;
-import java.util.Collections;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -36,17 +35,12 @@ import org.springframework.stereotype.Component;
 
 import javax.naming.InvalidNameException;
 import javax.naming.Name;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
 @Component
-@ConditionalOnProperty(value = "auth.groupMembership.service", havingValue = "ldap")
+@ConditionalOnProperty(value = "auth.group-membership.service", havingValue = "ldap")
 public class LdapUserRolesProvider implements UserRolesProvider {
 
   @Autowired

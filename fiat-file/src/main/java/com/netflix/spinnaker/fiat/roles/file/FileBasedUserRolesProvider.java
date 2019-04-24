@@ -43,7 +43,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Component
-@ConditionalOnProperty(value = "auth.groupMembership.service", havingValue = "file")
+@ConditionalOnProperty(value = "auth.group-membership.service", havingValue = "file")
 public class FileBasedUserRolesProvider implements UserRolesProvider {
 
   @Autowired
@@ -84,7 +84,7 @@ public class FileBasedUserRolesProvider implements UserRolesProvider {
 
   @Data
   @Configuration
-  @ConfigurationProperties(prefix = "auth.groupMembership.file")
+  @ConfigurationProperties(prefix = "auth.group-membership.file")
   static class ConfigProps {
     String path;
   }

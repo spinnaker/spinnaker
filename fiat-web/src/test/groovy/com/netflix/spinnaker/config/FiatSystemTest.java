@@ -1,12 +1,14 @@
 package com.netflix.spinnaker.config;
 
 import com.netflix.spinnaker.fiat.Main;
-import com.netflix.spinnaker.fiat.config.RedisConfig;
 import com.netflix.spinnaker.fiat.config.ResourcesConfig;
+import org.junit.runner.RunWith;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 
 import java.lang.annotation.ElementType;
@@ -21,10 +23,11 @@ import java.lang.annotation.Target;
 @TestPropertySource("/fiat.properties")
 @DirtiesContext
 @ContextConfiguration(classes = {
-    RedisConfig.class,
     TestUserRoleProviderConfig.class,
     ResourcesConfig.class,
     Main.class}
 )
+@RunWith(SpringRunner.class)
+@SpringBootTest
 public @interface FiatSystemTest {
 }

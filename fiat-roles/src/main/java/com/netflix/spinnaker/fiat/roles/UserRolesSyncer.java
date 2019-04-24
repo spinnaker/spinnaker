@@ -33,7 +33,6 @@ import com.netflix.spinnaker.fiat.providers.ProviderException;
 import com.netflix.spinnaker.fiat.providers.ResourceProvider;
 import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent;
 import com.netflix.spinnaker.kork.lock.LockManager;
-import java.util.function.Function;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -52,11 +51,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j
 @Component
-@ConditionalOnExpression("${fiat.writeMode.enabled:true}")
+@ConditionalOnExpression("${fiat.write-mode.enabled:true}")
 public class UserRolesSyncer implements ApplicationListener<RemoteStatusChangedEvent> {
   private final Optional<DiscoveryClient> discoveryClient;
 
@@ -83,10 +83,10 @@ public class UserRolesSyncer implements ApplicationListener<RemoteStatusChangedE
                          PermissionsResolver permissionsResolver,
                          ResourceProvider<ServiceAccount> serviceAccountProvider,
                          ResourceProvidersHealthIndicator healthIndicator,
-                         @Value("${fiat.writeMode.retryIntervalMs:10000}") long retryIntervalMs,
-                         @Value("${fiat.writeMode.syncDelayMs:600000}") long syncDelayMs,
-                         @Value("${fiat.writeMode.syncFailureDelayMs:600000}") long syncFailureDelayMs,
-                         @Value("${fiat.writeMode.syncDelayTimeoutMs:30000}") long syncDelayTimeoutMs) {
+                         @Value("${fiat.write-mode.retry-interval-ms:10000}") long retryIntervalMs,
+                         @Value("${fiat.write-mode.sync-delay-ms:600000}") long syncDelayMs,
+                         @Value("${fiat.write-mode.sync-failure-delay-ms:600000}") long syncFailureDelayMs,
+                         @Value("${fiat.write-mode.sync-delay-timeout-ms:30000}") long syncDelayTimeoutMs) {
     this.discoveryClient = discoveryClient;
 
     this.lockManager = lockManager;

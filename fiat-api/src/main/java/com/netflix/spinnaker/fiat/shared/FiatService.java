@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.fiat.shared;
 
 import com.netflix.spinnaker.fiat.model.UserPermission;
-import com.squareup.okhttp.Response;
+import retrofit.client.Response;
 import retrofit.http.Body;
 import retrofit.http.DELETE;
 import retrofit.http.GET;

@@ -23,6 +23,7 @@ import org.springframework.core.env.PropertySource;
 import org.springframework.core.io.Resource;
 
 import java.io.IOException;
+import java.util.List;
 
 // source: https://stackoverflow.com/a/37349492/5569046
 public class YamlFileApplicationContextInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
@@ -31,8 +32,10 @@ public class YamlFileApplicationContextInitializer implements ApplicationContext
     try {
       Resource resource = applicationContext.getResource("classpath:application.yml");
       YamlPropertySourceLoader sourceLoader = new YamlPropertySourceLoader();
-      PropertySource<?> yamlTestProperties = sourceLoader.load("yamlTestProperties", resource, null);
-      applicationContext.getEnvironment().getPropertySources().addLast(yamlTestProperties);
+      List<PropertySource<?>> yamlTestProperties = sourceLoader.load("yamlTestProperties", resource);
+      for (PropertySource<?> ps : yamlTestProperties) {
+        applicationContext.getEnvironment().getPropertySources().addLast(ps);
+      }
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

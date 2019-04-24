@@ -52,16 +52,15 @@ public class FiatClientConfigurationProperties {
   }
 
   @Data
-  class PermissionsCache {
+  public static class PermissionsCache {
     private Integer maxEntries = 1000;
 
     private Integer expiresAfterWriteSeconds = 20;
   }
 
   @Data
-  class RetryConfiguration {
+  public static class RetryConfiguration {
     private DynamicConfigService dynamicConfigService;
-
     private long maxBackoffMillis = 10000;
     private long initialBackoffMillis = 500;
     private double retryMultiplier = 1.5;

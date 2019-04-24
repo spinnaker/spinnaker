@@ -43,7 +43,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @RestController
 @RequestMapping("/roles")
-@ConditionalOnExpression("${fiat.writeMode.enabled:true}")
+@ConditionalOnExpression("${fiat.write-mode.enabled:true}")
 public class RolesController {
 
   @Autowired

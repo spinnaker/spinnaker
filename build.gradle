@@ -15,48 +15,30 @@
  */
 
 buildscript {
+  ext {
+    korkVersion = "5.0.0"
+  }
   repositories {
     jcenter()
     maven { url "https://spinnaker.bintray.com/gradle" }
     maven { url "https://plugins.gradle.org/m2/" }
   }
   dependencies {
-    classpath 'com.netflix.spinnaker.gradle:spinnaker-dev-plugin:5.2.2'
+    classpath 'com.netflix.spinnaker.gradle:spinnaker-dev-plugin:6.0.0'
+    if (Boolean.valueOf(enablePublishing)) {
+      classpath 'com.netflix.spinnaker.gradle:spinnaker-gradle-project:6.0.0'
+    }
   }
 }
 
 allprojects {
   group = "com.netflix.spinnaker.fiat"
   apply plugin: 'spinnaker.base-project'
-  apply plugin: 'java'
+  if (Boolean.valueOf(enablePublishing)) {
+    apply plugin: 'spinnaker.project'
+  }
+  apply plugin: 'java-library'
   apply plugin: 'groovy'
-
-  ext {
-    spinnakerDependenciesVersion = '1.40.0'
-    if (project.hasProperty('spinnakerDependenciesVersion')) {
-      spinnakerDependenciesVersion = project.property('spinnakerDependenciesVersion')
-    }
-  }
-
-  def checkLocalVersions = [spinnakerDependenciesVersion: spinnakerDependenciesVersion]
-  if (ext.has('versions')) {
-    def extVers = ext.get('versions')
-    if (extVers instanceof Map) {
-      checkLocalVersions.putAll(extVers)
-    }
-  }
-
-  def localVersions = checkLocalVersions.findAll { it.value.endsWith('-SNAPSHOT') }
-  if (localVersions) {
-    logger.info("Enabling mavenLocal repo for $localVersions")
-    repositories {
-      mavenLocal()
-    }
-  }
-
-  spinnaker {
-    dependenciesVersion = spinnakerDependenciesVersion
-  }
 
   test {
     testLogging {
@@ -78,16 +60,23 @@ allprojects {
 
 subprojects { project ->
   dependencies {
-    spinnaker.group('test')
+    implementation platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
+    compileOnly "org.projectlombok:lombok"
+    annotationProcessor platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
+    annotationProcessor "org.projectlombok:lombok"
+    testAnnotationProcessor platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
+    testAnnotationProcessor "org.projectlombok:lombok"
 
-    testCompile spinnaker.dependency('groovy')
-  }
+    implementation "org.springframework.boot:spring-boot-properties-migrator"
 
-  //c&p this because NetflixOss reverts it to 1.7 and ends up getting applied last..
-  project.plugins.withType(JavaBasePlugin) {
-    JavaPluginConvention convention = project.convention.getPlugin(JavaPluginConvention)
-    convention.sourceCompatibility = JavaVersion.VERSION_1_8
-    convention.targetCompatibility = JavaVersion.VERSION_1_8
+    testImplementation "org.springframework.boot:spring-boot-starter-test"
+    testImplementation "org.spockframework:spock-core"
+    testImplementation "org.spockframework:spock-spring"
+    testImplementation "org.springframework:spring-test"
+    testImplementation "org.hamcrest:hamcrest-core"
+    testRuntimeOnly "cglib:cglib-nodep"
+    testRuntimeOnly "org.objenesis:objenesis"
+    testImplementation "org.codehaus.groovy:groovy-all"
   }
 }
 

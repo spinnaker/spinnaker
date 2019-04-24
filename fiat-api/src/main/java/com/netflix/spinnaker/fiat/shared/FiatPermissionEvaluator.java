@@ -17,9 +17,8 @@
 
 package com.netflix.spinnaker.fiat.shared;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.util.concurrent.UncheckedExecutionException;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.fiat.model.Authorization;
@@ -46,7 +45,6 @@ import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -130,7 +128,7 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
     this.fiatStatus = fiatStatus;
     this.retryHandler = retryHandler;
 
-    this.permissionsCache = CacheBuilder
+    this.permissionsCache = Caffeine
         .newBuilder()
         .maximumSize(configProps.getCache().getMaxEntries())
         .expireAfterWrite(configProps.getCache().getExpiresAfterWriteSeconds(), TimeUnit.SECONDS)
@@ -205,35 +203,41 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
     AtomicReference<Throwable> exception = new AtomicReference<>();
 
     try {
-      view = permissionsCache.get(username, () -> {
+      view = permissionsCache.get(username, (loadUserName) -> {
         cacheHit.set(false);
-        return AuthenticatedRequest.propagate(() -> {
-          try {
-            return retryHandler.retry("getUserPermission for " + username, () -> fiatService.getUserPermission(username));
-          } catch (Exception e) {
-            if (!fiatStatus.isLegacyFallbackEnabled()) {
-              throw e;
+        try {
+          return AuthenticatedRequest.propagate(() -> {
+            try {
+              return retryHandler.retry("getUserPermission for " + loadUserName, () -> fiatService.getUserPermission(loadUserName));
+            } catch (Exception e) {
+              if (!fiatStatus.isLegacyFallbackEnabled()) {
+                throw e;
+              }
+
+              legacyFallback.set(true);
+              successfulLookup.set(false);
+              exception.set(e);
+
+              // this fallback permission will be temporarily cached in the permissions cache
+              return new UserPermission.View(
+                  new UserPermission()
+                      .setId(AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"))
+                      .setAccounts(
+                          Arrays
+                              .stream(AuthenticatedRequest.getSpinnakerAccounts().orElse("").split(","))
+                              .map(a -> new Account().setName(a))
+                              .collect(Collectors.toSet())
+                      )
+              ).setLegacyFallback(true).setAllowAccessToUnknownApplications(true);
             }
-
-            legacyFallback.set(true);
-            successfulLookup.set(false);
-            exception.set(e);
-
-            // this fallback permission will be temporarily cached in the permissions cache
-            return new UserPermission.View(
-                new UserPermission()
-                    .setId(AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"))
-                    .setAccounts(
-                        Arrays
-                            .stream(AuthenticatedRequest.getSpinnakerAccounts().orElse("").split(","))
-                            .map(a -> new Account().setName(a))
-                            .collect(Collectors.toSet())
-                    )
-            ).setLegacyFallback(true).setAllowAccessToUnknownApplications(true);
-          }
-        }).call();
+          }).call();
+        } catch (RuntimeException re) {
+          throw re;
+        } catch (Exception e) {
+          throw new RuntimeException(e);
+        }
       });
-    } catch (ExecutionException | UncheckedExecutionException e) {
+    } catch (Exception e) {
       successfulLookup.set(false);
       exception.set(e.getCause() != null ? e.getCause() : e);
     }
@@ -352,7 +356,7 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
     return permission != null && permission.isAdmin();
   }
 
-  public class AuthorizationFailure {
+  public static class AuthorizationFailure {
     private final Authorization authorization;
     private final ResourceType resourceType;
     private final String resourceName;

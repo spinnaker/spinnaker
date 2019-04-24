@@ -25,9 +25,8 @@ import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.fiat.permissions.ExternalUser;
 import com.netflix.spinnaker.fiat.roles.UserRolesProvider;
 import com.netflix.spinnaker.fiat.roles.github.client.GitHubClient;
-import com.netflix.spinnaker.fiat.roles.github.model.Team;
 import com.netflix.spinnaker.fiat.roles.github.model.Member;
-import com.netflix.spinnaker.fiat.roles.github.model.TeamMembership;
+import com.netflix.spinnaker.fiat.roles.github.model.Team;
 import lombok.Data;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -40,27 +39,14 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import retrofit.RetrofitError;
 import retrofit.client.Header;
-import retrofit.client.Response;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 @Slf4j
 @Component
-@ConditionalOnProperty(value = "auth.groupMembership.service", havingValue = "github")
+@ConditionalOnProperty(value = "auth.group-membership.service", havingValue = "github")
 public class GithubTeamsUserRolesProvider implements UserRolesProvider, InitializingBean {
 
   private static List<String> RATE_LIMITING_HEADERS = Arrays.asList(

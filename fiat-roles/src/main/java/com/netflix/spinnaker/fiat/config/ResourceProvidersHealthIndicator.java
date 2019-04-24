@@ -30,7 +30,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 @Slf4j
 @Component
-@ConditionalOnExpression("${fiat.writeMode.enabled:true}")
+@ConditionalOnExpression("${fiat.write-mode.enabled:true}")
 public class ResourceProvidersHealthIndicator extends AbstractHealthIndicator {
 
   @Autowired

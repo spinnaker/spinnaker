@@ -20,10 +20,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 
-import java.util.Collections;
-import java.util.List;
+import javax.annotation.Nonnull;
 import java.util.Set;
 
 @Data
@@ -48,9 +46,9 @@ public class Role implements Resource, Viewable {
     this.setName(name);
   }
 
-  public Role setName(String name) {
-    if (StringUtils.isEmpty(name)) {
-      throw new IllegalArgumentException("name cannot be null or empty");
+  public Role setName(@Nonnull String name) {
+    if (name.isEmpty()) {
+      throw new IllegalArgumentException("name cannot be empty");
     }
     this.name = name.toLowerCase();
     return this;

@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.fiat.model.resources;
 
-import com.google.common.collect.Sets;
 import com.netflix.spinnaker.fiat.model.Authorization;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -50,7 +49,7 @@ public class BuildService implements Resource.AccessControlled, Viewable {
     public View(BuildService buildService, Set<Role> userRoles, boolean isAdmin) {
       this.name = buildService.name;
       if (isAdmin) {
-        this.authorizations = Sets.newHashSet(Authorization.READ, Authorization.WRITE);
+        this.authorizations = Authorization.ALL;
       } else {
         this.authorizations = buildService.permissions.getAuthorizations(userRoles);
       }

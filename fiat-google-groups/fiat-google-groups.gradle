@@ -15,15 +15,11 @@
  */
 
 dependencies {
-  compile project(":fiat-roles")
-  compile project(":fiat-core")
+  implementation project(":fiat-roles")
+  implementation project(":fiat-core")
 
-  compileOnly spinnaker.dependency("lombok")
-  annotationProcessor spinnaker.dependency("lombok")
-
-  compile spinnaker.dependency("bootWeb")
-  compile spinnaker.dependency("commonsLang")
-  compile spinnaker.dependency("googleApiClient")
-
-  compile "com.google.apis:google-api-services-admin-directory:directory_v1-rev105-1.25.0"
+  implementation "org.springframework.boot:spring-boot-starter-web"
+  implementation "org.apache.commons:commons-lang3"
+  implementation "com.google.api-client:google-api-client"
+  implementation "com.google.apis:google-api-services-admin-directory"
 }
