@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.rosco.persistence
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
 import com.netflix.spinnaker.rosco.api.Bake
 import com.netflix.spinnaker.rosco.api.BakeRequest
 import com.netflix.spinnaker.rosco.api.BakeStatus
@@ -37,11 +38,13 @@ class RedisBackedBakeStore implements BakeStore {
 
   private ObjectMapper mapper = new ObjectMapper()
   private JedisPool jedisPool
+  private RedisClientDelegate redisClientDelegate
 
   def scriptNameToSHAMap = [:]
 
-  public RedisBackedBakeStore(JedisPool jedisPool) {
+  public RedisBackedBakeStore(JedisPool jedisPool, RedisClientDelegate redisClientDelegate) {
     this.jedisPool = jedisPool;
+    this.redisClientDelegate = redisClientDelegate;
   }
 
   private void cacheAllScripts() {
@@ -453,29 +456,17 @@ class RedisBackedBakeStore implements BakeStore {
 
   @Override
   public String deleteBakeByKey(String bakeKey) {
-    def jedis = jedisPool.getResource()
     def keyList = [bakeKey, "allBakes"]
-
-    jedis.withCloseable {
-      Set<String> incompleteBakesKeys = jedis.keys(allIncompleteBakesKeyPattern)
-
-      keyList += incompleteBakesKeys
-    }
+    keyList += scanIncompleteBakesKeys()
 
     return evalSHA("deleteBakeByKeySHA", keyList, [])
   }
 
   @Override
   public String deleteBakeByKeyPreserveDetails(String bakeKey) {
-    def jedis = jedisPool.getResource()
     def updatedTimestampMilliseconds = timeInMilliseconds
     def keyList = [bakeKey, "allBakes"]
-
-    jedis.withCloseable {
-      Set<String> incompleteBakesKeys = jedis.keys(allIncompleteBakesKeyPattern)
-
-      keyList += incompleteBakesKeys
-    }
+    keyList += scanIncompleteBakesKeys()
 
     def argList = [updatedTimestampMilliseconds + ""]
 
@@ -489,15 +480,9 @@ class RedisBackedBakeStore implements BakeStore {
                                     state: BakeStatus.State.CANCELED,
                                     result: BakeStatus.Result.FAILURE)
     def bakeStatusJson = mapper.writeValueAsString(bakeStatus)
-    def jedis = jedisPool.getResource()
     def updatedTimestampMilliseconds = timeInMilliseconds
     def keyList = [bakeId, "allBakes"]
-
-    jedis.withCloseable {
-      Set<String> incompleteBakesKeys = jedis.keys(allIncompleteBakesKeyPattern)
-
-      keyList += incompleteBakesKeys
-    }
+    keyList += scanIncompleteBakesKeys()
 
     def argList = [bakeStatusJson, updatedTimestampMilliseconds + ""]
 
@@ -524,11 +509,10 @@ class RedisBackedBakeStore implements BakeStore {
 
   @Override
   public Map<String, Set<String>> getAllIncompleteBakeIds() {
+    Set<String> incompleteBakesKeys = scanIncompleteBakesKeys()
     def jedis = jedisPool.getResource()
 
     jedis.withCloseable {
-      Set<String> incompleteBakesKeys = jedis.keys(allIncompleteBakesKeyPattern)
-
       return incompleteBakesKeys.collectEntries { incompleteBakesKey ->
         String roscoInstanceId = incompleteBakesKey.substring(INCOMPLETE_BAKES_PREFIX.length())
 
@@ -566,6 +550,15 @@ class RedisBackedBakeStore implements BakeStore {
 
       return TimeUnit.SECONDS.toMillis(timeSeconds) + TimeUnit.MICROSECONDS.toMillis(microseconds)
     }
+  }
+
+  @CompileStatic
+  private Set<String> scanIncompleteBakesKeys() {
+    def incompleteBakesKeys = new HashSet()
+    redisClientDelegate.withKeyScan(allIncompleteBakesKeyPattern, 1000, { page ->
+      incompleteBakesKeys.addAll(page.getResults())
+    })
+    return incompleteBakesKeys
   }
 
   @CompileStatic

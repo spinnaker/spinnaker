@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.rosco.config
 
+import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
+import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
 import com.netflix.spinnaker.rosco.executor.BakePoller
 import com.netflix.spinnaker.rosco.persistence.BakeStore
 import com.netflix.spinnaker.rosco.persistence.RedisBackedBakeStore
@@ -58,8 +60,13 @@ class RoscoConfiguration {
   }
 
   @Bean
-  BakeStore bakeStore(JedisPool jedisPool) {
-    new RedisBackedBakeStore(jedisPool)
+  BakeStore bakeStore(JedisPool jedisPool, RedisClientDelegate redisClientDelegate) {
+    new RedisBackedBakeStore(jedisPool, redisClientDelegate)
+  }
+
+  @Bean
+  RedisClientDelegate redisClientDelegate(JedisPool jedisPool) {
+    return new JedisClientDelegate(jedisPool)
   }
 
   @Bean
