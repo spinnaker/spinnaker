@@ -6,7 +6,7 @@ import { Subscription } from 'rxjs';
 import { UISref } from '@uirouter/react';
 
 import { PipelineTemplateV2Service } from './pipelineTemplateV2.service';
-import CreatePipelineFromTemplate from './CreatePipelineFromTemplate';
+import { CreatePipelineFromTemplate } from './createPipelineFromTemplate';
 import { IPipelineTemplateV2 } from 'core/domain/IPipelineTemplateV2';
 import { ShowPipelineTemplateJsonModal } from 'core/pipeline/config/actions/templateJson/ShowPipelineTemplateJsonModal';
 import { ReactInjector, IStateChange } from 'core/reactShims';

@@ -4,14 +4,16 @@ import { Option } from 'react-select';
 import { Observable, Subject } from 'rxjs';
 
 import { Application, ApplicationReader, IApplicationSummary } from 'core/application';
-import ApplicationSelector from './ApplicationSelector';
+import ApplicationSelector from '../ApplicationSelector';
 import { CreatePipelineModal } from 'core/pipeline';
 import { IPipelineTemplateV2 } from 'core/domain/IPipelineTemplateV2';
 import { ReactInjector } from 'core/reactShims';
 import { Spinner } from 'core/widgets/spinners/Spinner';
 import { SubmitButton } from 'core/modal/buttons/SubmitButton';
 
-export interface ICreatePipelineFromTemplateProps {
+import './createPipelineFromTemplate.less';
+
+interface ICreatePipelineFromTemplateProps {
   closeModalCallback: () => void;
   template: IPipelineTemplateV2;
 }
@@ -26,7 +28,7 @@ interface ICreatePipelineFromTemplateState {
   submitting: boolean;
 }
 
-export default class CreatePipelineFromTemplate extends React.Component<
+export class CreatePipelineFromTemplate extends React.Component<
   ICreatePipelineFromTemplateProps,
   ICreatePipelineFromTemplateState
 > {
@@ -128,7 +130,7 @@ export default class CreatePipelineFromTemplate extends React.Component<
     }
 
     return (
-      <Modal show={true} onHide={closeModalCallback}>
+      <Modal show={true} onHide={closeModalCallback} className="create-pipeline-from-template-modal">
         <Modal.Header closeButton={true}>
           <Modal.Title>Select An Application</Modal.Title>
         </Modal.Header>
