@@ -91,8 +91,8 @@ export class KubernetesV2DeployManifestConfigCtrl implements IController {
   public onRequiredArtifactsChanged = (bindings: IManifestBindArtifact[]) => {
     this.$scope.$applyAsync(() => {
       this.$scope.bindings = bindings;
-      this.$scope.stage.requiredArtifactIds = bindings.filter((b: IManifestBindArtifact) => b.expectedArtifactId);
-      this.$scope.stage.requiredArtifacts = bindings.filter((b: IManifestBindArtifact) => b.artifact);
+      this.$scope.stage.requiredArtifactIds = bindings.filter(b => b.expectedArtifactId).map(b => b.expectedArtifactId);
+      this.$scope.stage.requiredArtifacts = bindings.filter(b => b.artifact);
     });
   };
 
