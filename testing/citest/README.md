@@ -57,8 +57,10 @@ The citest library is not yet published to a pip repository so you need to clone
 the citest repository and install it from there.
 
 ```
-# From another directoy, such as the parent directory to this repository.
-cd <parent directory> git clone https://github.com/google/citest.git cd citest
+# From another directory, such as the parent directory to this repository.
+cd <parent directory>
+git clone https://github.com/google/citest.git
+cd citest
 pip install -r requirements.txt
 ```
 
