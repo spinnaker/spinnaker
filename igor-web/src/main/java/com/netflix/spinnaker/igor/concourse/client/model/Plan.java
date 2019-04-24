@@ -46,12 +46,20 @@ public class Plan {
     private ResourceShape put;
 
     @Nullable
+    private OnSuccess onSuccess;
+
+    @Nullable
     public Resource getResource() {
-      ResourceShape shape = get == null ? put : get;
+      String resourceId = id;
+      ResourceShape shape = get;
+      if (shape == null && onSuccess != null) {
+        shape = onSuccess.getStep().put;
+        resourceId = onSuccess.getStep().id;
+      }
       if (shape == null) {
         return null;
       }
-      return new Resource(id, shape.getName(), shape.getType());
+      return new Resource(resourceId, shape.getName(), shape.getType());
     }
   }
 
@@ -59,6 +67,11 @@ public class Plan {
   private static class ResourceShape {
     private String type;
     private String name;
+  }
+
+  @Data
+  private static class OnSuccess {
+    private Op step;
   }
 
   public List<Resource> getResources() {

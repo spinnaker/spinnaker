@@ -19,12 +19,14 @@ package com.netflix.spinnaker.igor.concourse.client.model;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@ToString
 @Data
 public class Event {
   private Data data;
@@ -34,6 +36,7 @@ public class Event {
     return data.getOrigin() == null ? null : data.getOrigin().getId();
   }
 
+  @ToString
   @Setter
   public static class Data {
     @Getter

@@ -218,6 +218,7 @@ public class ConcourseService implements BuildOperations, BuildProperties {
 
     Disposable eventStream = events
       .doOnNext(event -> {
+        log.debug("Event for build {}: {}", buildId, event);
         Resource resource = resources.get(event.getResourceId());
         if (resource != null) {
           resource.setMetadata(event.getData().getMetadata());
