@@ -1,7 +1,7 @@
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-val korkVersion = "4.1.0-rc.11+springBoot2"
+val korkVersion = "5.0.0"
 
 buildscript {
   repositories {
