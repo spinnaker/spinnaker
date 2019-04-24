@@ -18,39 +18,19 @@ package com.netflix.spinnaker.orca.config;
 
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.jedis.JedisClientConfiguration;
-import com.netflix.spinnaker.kork.jedis.JedisClientDelegate;
-import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import com.netflix.spinnaker.kork.jedis.RedisClientSelector;
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock;
 import com.netflix.spinnaker.orca.notifications.RedisNotificationClusterLock;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import com.netflix.spinnaker.orca.pipeline.persistence.jedis.RedisExecutionRepository;
 import com.netflix.spinnaker.orca.telemetry.RedisInstrumentedExecutionRepository;
-import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
-import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.actuate.health.Health;
-import org.springframework.boot.actuate.health.HealthIndicator;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.*;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.Protocol;
-import redis.clients.util.Pool;
 import rx.Scheduler;
-import rx.schedulers.Schedulers;
-
-import java.lang.reflect.Field;
-import java.net.URI;
-
-import static org.apache.commons.lang3.StringUtils.isNotEmpty;
-import static redis.clients.jedis.Protocol.DEFAULT_DATABASE;
 
 @Configuration
 @Import({JedisClientConfiguration.class, JedisConfiguration.class})

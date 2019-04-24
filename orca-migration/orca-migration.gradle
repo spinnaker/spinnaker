@@ -18,5 +18,7 @@ apply from: "$rootDir/gradle/kotlin.gradle"
 apply from: "$rootDir/gradle/spek.gradle"
 
 dependencies {
-  compile project(":orca-front50")
+  implementation(project(":orca-core"))
+  implementation(project(":orca-front50"))
+  implementation "org.codehaus.groovy:groovy-all"
 }

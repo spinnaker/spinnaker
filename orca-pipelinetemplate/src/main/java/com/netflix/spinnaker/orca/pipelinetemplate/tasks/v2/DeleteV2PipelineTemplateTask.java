@@ -22,7 +22,6 @@ import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.front50.Front50Service;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import retrofit.client.Response;
 
@@ -50,7 +49,7 @@ public class DeleteV2PipelineTemplateTask implements RetryableTask {
     String tag = (String) stage.getContext().get("tag");
     String digest = (String) stage.getContext().get("digest");
 
-    Response _ = front50Service.deleteV2PipelineTemplate(templateId, tag, digest);
+    Response notUsed = front50Service.deleteV2PipelineTemplate(templateId, tag, digest);
 
     Map<String, Object> outputs = new HashMap<>();
     outputs.put("notification.type", "deletepipelinetemplate");

@@ -17,13 +17,21 @@
 apply from: "$rootDir/gradle/groovy.gradle"
 
 dependencies {
-  compile project(":orca-retrofit")
-  compile project(":orca-clouddriver")
-  compile project(":orca-front50")
-  compile spinnaker.dependency('kork')
-  compile spinnaker.dependency('bootAutoConfigure')
-  compileOnly spinnaker.dependency("lombok")
-  annotationProcessor spinnaker.dependency("lombok")
-  testCompile project(":orca-test-groovy")
-  testCompile spinnaker.dependency("springTest")
+  implementation(project(":orca-clouddriver"))
+  implementation(project(":orca-core"))
+  implementation(project(":orca-front50"))
+  implementation(project(":orca-retrofit"))
+
+  implementation("com.google.apis:google-api-services-cloudbuild:v1-rev836-1.25.0")
+  implementation("com.netflix.spinnaker.kork:kork-artifacts")
+  implementation("com.netflix.spinnaker.kork:kork-core")
+  implementation("com.netflix.spinnaker.kork:kork-exceptions")
+  implementation("org.springframework.boot:spring-boot-autoconfigure")
+
+  compileOnly("org.projectlombok:lombok")
+  annotationProcessor("org.projectlombok:lombok")
+  testAnnotationProcessor("org.projectlombok:lombok")
+
+  testImplementation(project(":orca-test-groovy"))
+  testImplementation("org.springframework:spring-test")
 }

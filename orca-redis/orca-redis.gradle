@@ -2,13 +2,15 @@ apply from: "$rootDir/gradle/kotlin.gradle"
 apply from: "$rootDir/gradle/spock.gradle"
 
 dependencies {
-  compile project(":orca-core")
-  compile project(":orca-front50")
+  implementation(project(":orca-core"))
+  implementation(project(":orca-front50"))
 
-  compile spinnaker.dependency('rxJava')
-  compile spinnaker.dependency('jedis')
-  compile spinnaker.dependency('korkJedis')
+  implementation("com.netflix.spinnaker.kork:kork-exceptions")
+  implementation("com.netflix.spinnaker.kork:kork-jedis")
+  implementation("io.reactivex:rxjava")
+  implementation("net.logstash.logback:logstash-logback-encoder")
+  implementation("redis.clients:jedis")
 
-  testCompile project(":orca-core-tck")
-  testCompile project(":orca-test-redis")
+  testImplementation(project(":orca-core-tck"))
+  testImplementation(project(":orca-test-redis"))
 }

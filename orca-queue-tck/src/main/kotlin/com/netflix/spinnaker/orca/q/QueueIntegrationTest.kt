@@ -68,6 +68,7 @@ import org.springframework.context.annotation.Import
 import org.springframework.context.event.ApplicationEventMulticaster
 import org.springframework.context.event.SimpleApplicationEventMulticaster
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
+import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.junit4.SpringRunner
 import java.time.Clock
 import java.time.Duration
@@ -80,6 +81,7 @@ import java.time.temporal.ChronoUnit.HOURS
   properties = ["queue.retry.delay.ms=10"]
 )
 @RunWith(SpringRunner::class)
+@DirtiesContext
 class QueueIntegrationTest {
 
   @Autowired

@@ -28,7 +28,7 @@ public class SelectableService {
   }
 
   public Object getService(Criteria criteria) {
-    Assert.notNull(criteria);
+    Assert.notNull(criteria, "criteria can't be empty");
 
     return serviceSelectors
       .stream()

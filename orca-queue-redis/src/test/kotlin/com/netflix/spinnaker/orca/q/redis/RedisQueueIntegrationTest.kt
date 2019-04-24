@@ -18,17 +18,21 @@ package com.netflix.spinnaker.orca.q.redis
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.config.RedisOrcaQueueConfiguration
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
 import com.netflix.spinnaker.kork.jedis.RedisClientSelector
 import com.netflix.spinnaker.orca.config.JedisConfiguration
+import com.netflix.spinnaker.orca.config.RedisConfiguration
 import com.netflix.spinnaker.orca.q.QueueIntegrationTest
 import com.netflix.spinnaker.orca.q.TestConfig
 import com.netflix.spinnaker.orca.q.redis.pending.RedisPendingExecutionService
 import com.netflix.spinnaker.orca.test.redis.EmbeddedRedisConfiguration
+import org.junit.jupiter.api.Test
 import org.junit.runner.RunWith
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.junit4.SpringRunner
 import redis.clients.jedis.Jedis
 import redis.clients.util.Pool
@@ -45,6 +49,9 @@ class RedisTestConfig {
   @Bean
   fun pendingExecutionService(jedisPool: Pool<Jedis>, mapper: ObjectMapper) =
     RedisPendingExecutionService(jedisPool, mapper)
+
+  @Bean
+  fun dynamicConfigService(): DynamicConfigService = DynamicConfigService.NOOP
 }
 
 /**
@@ -57,7 +64,8 @@ class RedisTestConfig {
     JedisConfiguration::class,
     TestConfig::class,
     RedisTestConfig::class,
-    RedisOrcaQueueConfiguration::class
+    RedisOrcaQueueConfiguration::class,
+    RedisConfiguration::class
   ],
   properties = [
     "queue.retry.delay.ms=10",
@@ -65,4 +73,5 @@ class RedisTestConfig {
     "logging.level.org.springframework.test=ERROR",
     "logging.level.com.netflix.spinnaker=FATAL"
   ])
+@DirtiesContext
 class RedisQueueIntegrationTest : QueueIntegrationTest()

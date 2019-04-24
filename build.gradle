@@ -15,6 +15,10 @@
  */
 
 buildscript {
+  ext {
+    korkVersion = "4.0.2"
+    keikoVersion = "2.10.0"
+  }
   repositories {
     jcenter()
     maven { url "https://spinnaker.bintray.com/gradle" }
@@ -22,84 +26,37 @@ buildscript {
   }
   dependencies {
     classpath "com.netflix.spinnaker.gradle:spinnaker-dev-plugin:5.2.2"
-    classpath "com.netflix.nebula:nebula-kotlin-plugin:$kotlinVersion"
-    classpath "org.jetbrains.kotlin:kotlin-allopen:$kotlinVersion"
+    classpath "com.netflix.nebula:nebula-kotlin-plugin:1.3.30"
+    classpath "org.jetbrains.kotlin:kotlin-allopen:1.3.30"
   }
 }
 
 allprojects {
   apply plugin: "spinnaker.base-project"
-  apply plugin: "java"
+  apply plugin: "java-library"
   group = "com.netflix.spinnaker.orca"
-
-  ext {
-    spinnakerDependenciesVersion = '1.41.0'
-    if (project.hasProperty('spinnakerDependenciesVersion')) {
-      spinnakerDependenciesVersion = project.property('spinnakerDependenciesVersion')
-    }
-  }
-
-  def checkLocalVersions = [spinnakerDependenciesVersion: spinnakerDependenciesVersion]
-  if (ext.has('versions')) {
-    def extVers = ext.get('versions')
-    if (extVers instanceof Map) {
-      checkLocalVersions.putAll(extVers)
-    }
-  }
-
-  def localVersions = checkLocalVersions.findAll { it.value.endsWith('-SNAPSHOT') }
-  if (localVersions) {
-    logger.info("Enabling mavenLocal repo for $localVersions")
-    repositories {
-      mavenLocal()
-    }
-  }
-
-  spinnaker {
-    dependenciesVersion = spinnakerDependenciesVersion
-  }
 
   test {
     testLogging {
       exceptionFormat = 'full'
     }
   }
-
-  configurations.all {
-    exclude group: "javax.servlet", module: "servlet-api"
-    exclude group: "org.slf4j", module: "slf4j-log4j12"
-    exclude group: "org.slf4j", module: "slf4j-simple"
-    resolutionStrategy {
-      force "org.antlr:antlr-runtime:3.5.2"
-      eachDependency {
-        if (it.requested.group.startsWith("com.fasterxml.jackson")) {
-          it.useVersion spinnaker.version('jackson')
-        }
-        if (it.requested.group == "com.netflix.rxjava" && it.requested.name == "rxjava-core") {
-          it.useTarget group: "io.reactivex", name: "rxjava", version: spinnaker.version("rxJava")
-        }
-        if (it.requested.group == "asm" || it.requested.group == "org.ow2.asm") {
-          it.useTarget group: "org.ow2.asm", name: "asm-all", version: "5.0.3"
-        }
-        if (it.requested.group == "cglib" || it.requested.name == "cglib") {
-          it.useTarget group: "cglib", name: "cglib", version: "3.1"
-        }
-        if (it.requested.group == "antlr") {
-          it.useTarget group: "org.antlr", name: it.requested.name, version: "3.5.2"
-        }
-        if (it.requested.group == "org.apache.xbean") {
-          it.useVersion "4.1"
-        }
-      }
+  
+  def useLocalMaven = korkVersion.endsWith('-SNAPSHOT')
+  if (useLocalMaven) {
+    logger.info("Enabling mavenLocal")
+    repositories {
+      mavenLocal()
     }
   }
-
+  
   tasks.withType(JavaExec) {
     if (System.getProperty('DEBUG', 'false') == 'true') {
       jvmArgs '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=8183'
     }
   }
 }
+
 subprojects {
   def licenseExtension = project.extensions.findByName('license')
   if (licenseExtension != null) {
@@ -112,13 +69,19 @@ subprojects {
     }
   }
 
-  project.afterEvaluate {
-    //c&p this because NetflixOss reverts it to 1.7 and ends up getting applied last..
-    project.plugins.withType(JavaBasePlugin) {
-      JavaPluginConvention convention = project.convention.getPlugin(JavaPluginConvention)
-      convention.sourceCompatibility = JavaVersion.VERSION_1_8
-      convention.targetCompatibility = JavaVersion.VERSION_1_8
-    }
+  //c&p this because NetflixOss reverts it to 1.7 and ends up getting applied last..
+  project.plugins.withType(JavaPlugin) {
+    JavaPluginConvention convention = project.convention.getPlugin(JavaPluginConvention)
+    convention.sourceCompatibility = JavaVersion.VERSION_1_8
+    convention.targetCompatibility = JavaVersion.VERSION_1_8
+  }
+  repositories {
+    jcenter()
+  }
+  dependencies {
+    implementation platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
+    annotationProcessor platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
+    testAnnotationProcessor platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
   }
 }
 

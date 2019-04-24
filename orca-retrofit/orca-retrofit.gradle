@@ -17,9 +17,17 @@
 apply from: "$rootDir/gradle/groovy.gradle"
 
 dependencies {
-  compile project(":orca-core")
-  spinnaker.group('retrofitDefault')
-  compile spinnaker.dependency('korkWeb')
-  compile spinnaker.dependency('rxJava')
-  compile spinnaker.dependency('retrofit1okHttp3Client')
+  api("com.jakewharton.retrofit:retrofit1-okhttp3-client:1.1.0")
+  api("com.squareup.okhttp:okhttp-apache")
+  api("com.squareup.okhttp:okhttp-urlconnection")
+  api("com.squareup.okhttp:okhttp")
+  api("com.squareup.retrofit:converter-jackson")
+  api("com.squareup.retrofit:retrofit")
+
+  implementation(project(":orca-core"))
+
+  implementation("com.netflix.spinnaker.kork:kork-web")
+  implementation("io.reactivex:rxjava")
+
+  testImplementation("com.squareup.retrofit:retrofit-mock")
 }

@@ -18,30 +18,31 @@ apply from: "$rootDir/gradle/kotlin.gradle"
 apply from: "$rootDir/gradle/spock.gradle"
 
 dependencies {
-  compile project(":orca-core")
+  implementation(project(":orca-core"))
 
-  // TODO rz - Prefer definitely not having this
-  compile project(":orca-queue-redis")
+  implementation('com.zaxxer:HikariCP')
+  implementation("com.netflix.spectator:spectator-api")
+  implementation("com.netflix.spinnaker.keiko:keiko-spring:$keikoVersion")
+  implementation("com.netflix.spinnaker.kork:kork-exceptions")
+  implementation("com.netflix.spinnaker.kork:kork-security")
+  implementation("org.jooq:jooq")
+  implementation("org.liquibase:liquibase-core")
+  implementation("org.springframework:spring-jdbc")
+  implementation("org.springframework:spring-tx")
+  implementation("org.springframework.boot:spring-boot-starter-actuator")
 
-  compile "org.springframework:spring-jdbc:${spinnaker.version("spring")}"
-  compile "org.springframework:spring-tx:${spinnaker.version("spring")}"
-  compile "org.jooq:jooq:3.9.6"
-  compile "org.liquibase:liquibase-core:3.6.1"
-  compile 'com.zaxxer:HikariCP:2.5.1'
+  testImplementation(project(":orca-core-tck"))
+  testImplementation(project(":orca-test-groovy"))
+  testImplementation("com.h2database:h2")
+  testImplementation("com.nhaarman:mockito-kotlin")
+  testImplementation("dev.minutest:minutest")
+  testImplementation("io.strikt:strikt-core")
+  testImplementation("org.assertj:assertj-core")
+  testImplementation("org.junit.jupiter:junit-jupiter-api")
 
-  testCompile "com.h2database:h2:1.4.197"
-  testCompile project(":orca-core-tck")
-  testCompile project(":orca-test-groovy")
-
-  testCompile "io.strikt:strikt-core:0.11.5"
-  testCompile "org.assertj:assertj-core:3.9.0"
-  testCompile "org.junit.jupiter:junit-jupiter-api:$jupiterVersion"
-  testCompile "dev.minutest:minutest:0.45.0"
-  testCompile "com.nhaarman:mockito-kotlin:1.5.0"
-
-  testRuntime "org.junit.jupiter:junit-jupiter-engine:$jupiterVersion"
-  testRuntime "org.junit.platform:junit-platform-launcher:$junitVersion"
-  testRuntime "org.junit.vintage:junit-vintage-engine:$junitLegacyVersion"
+  testRuntime "org.junit.jupiter:junit-jupiter-engine"
+  testRuntime "org.junit.platform:junit-platform-launcher"
+  testRuntime "org.junit.vintage:junit-vintage-engine"
 }
 
 test {

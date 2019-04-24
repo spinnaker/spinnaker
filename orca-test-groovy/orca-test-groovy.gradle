@@ -17,5 +17,7 @@
 apply from: "$rootDir/gradle/groovy.gradle"
 
 dependencies {
-  compile project(":orca-core")
+  implementation(project(":orca-core"))
+
+  implementation("com.netflix.spinnaker.kork:kork-artifacts")  
 }
