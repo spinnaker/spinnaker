@@ -53,15 +53,14 @@ class DeployCloudFoundryServerGroupAtomicOperationConverterTest {
         .thenAnswer((Answer<Optional<CloudFoundryOrganization>>) invocation -> {
           Object[] args = invocation.getArguments();
           return Optional.of(CloudFoundryOrganization.builder()
-            .id(args[0].toString() + "ID").name(args[0].toString()).build());
+            .id(args[0].toString() + "-guid").name(args[0].toString()).build());
         });
 
-      when(cloudFoundryClient.getSpaces().findByName(any(), any())).thenAnswer((Answer<CloudFoundrySpace>) invocation -> {
-        Object[] args = invocation.getArguments();
-        return CloudFoundrySpace.builder().id(args[1].toString() + "ID").name(args[1].toString())
+      when(cloudFoundryClient.getOrganizations().findSpaceByRegion(any()))
+        .thenReturn(Optional.of(
+          CloudFoundrySpace.builder().id("space-guid").name("space")
           .organization(CloudFoundryOrganization.builder()
-            .id(args[0].toString()).name(args[0].toString().replace("ID", "")).build()).build();
-      });
+            .id("org-guid").name("org").build()).build()));
     }
 
     return new CloudFoundryCredentials(name, "", "", "", "", "", "") {

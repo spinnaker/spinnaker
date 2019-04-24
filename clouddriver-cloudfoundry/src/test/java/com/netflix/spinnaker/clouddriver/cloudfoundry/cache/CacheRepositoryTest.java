@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.cache;
 
+import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.mem.InMemoryCache;
@@ -37,6 +38,8 @@ import static com.netflix.spinnaker.clouddriver.cloudfoundry.cache.CacheReposito
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyCollectionOf;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -75,18 +78,20 @@ class CacheRepositoryTest {
     CloudFoundryApplication app = CloudFoundryApplication.builder().name("demo").clusters(singleton(cluster)).build();
 
     CloudFoundryClient client = mock(CloudFoundryClient.class);
-
     Applications apps = mock(Applications.class);
     Routes routes = mock(Routes.class);
+    ProviderCache providerCache = mock(ProviderCache.class);
 
     when(client.getApplications()).thenReturn(apps);
     when(client.getRoutes()).thenReturn(routes);
     when(apps.all()).thenReturn(singletonList(app));
     when(routes.all()).thenReturn(emptyList());
+    when(providerCache.filterIdentifiers(any(), any())).thenReturn(emptyList());
+    when(providerCache.getAll(any(), anyCollectionOf(String.class))).thenReturn(emptyList());
 
-    CloudFoundryCachingAgent agent = new CloudFoundryCachingAgent("devaccount", client);
+    CloudFoundryCachingAgent agent = new CloudFoundryCachingAgent("devaccount", client, mock(Registry.class));
 
-    CacheResult result = agent.loadData(null);
+    CacheResult result = agent.loadData(providerCache);
     List<String> authoritativeTypes = agent.getProvidedDataTypes().stream().map(AgentDataType::getTypeName).collect(toList());
     cache.putCacheResult(agent.getAgentType(), authoritativeTypes, result);
   }

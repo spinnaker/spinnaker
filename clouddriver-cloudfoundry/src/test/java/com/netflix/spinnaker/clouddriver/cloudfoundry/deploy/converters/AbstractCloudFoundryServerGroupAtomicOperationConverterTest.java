@@ -52,30 +52,30 @@ class AbstractCloudFoundryServerGroupAtomicOperationConverterTest {
           return "servergroup-id";
         }
       });
-
-    when(cloudFoundryClient.getSpaces().findByName(any(), any())).thenAnswer((Answer<CloudFoundrySpace>) invocation -> {
-      Object[] args = invocation.getArguments();
-      if (args[1].equals("region")) {
-        return null;
-      }
-      return CloudFoundrySpace.builder().id(args[1].toString() + "ID").name(args[1].toString())
-        .organization(CloudFoundryOrganization.builder()
-          .id(args[0].toString()).name(args[0].toString().replace("ID", "")).build()).build();
-    });
   }
 
   @Test
   void getServerGroupIdSuccess() {
+    when(cloudFoundryClient.getOrganizations().findSpaceByRegion(any()))
+      .thenReturn(Optional.of(
+        CloudFoundrySpace.builder().build()
+      ));
     assertThat(converter.getServerGroupId("server", "region > space", cloudFoundryClient)).isEqualTo("servergroup-id");
   }
 
   @Test
   void getServerGroupIdFindFails() {
+    when(cloudFoundryClient.getOrganizations().findSpaceByRegion(any()))
+      .thenReturn(Optional.of(
+        CloudFoundrySpace.builder().build()
+      ));
     assertThat(converter.getServerGroupId("bad-servergroup-name", "region > space", cloudFoundryClient)).isNull();
   }
 
   @Test
   void getServerGroupIdSpaceInvalid() {
+    when(cloudFoundryClient.getOrganizations().findSpaceByRegion(any()))
+      .thenReturn(Optional.empty());
     assertThat(converter.getServerGroupId("server", "region > region", cloudFoundryClient)).isNull();
   }
 }

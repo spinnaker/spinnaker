@@ -50,7 +50,7 @@ public class CloudFoundryProvider extends AgentSchedulerAware implements Searcha
     singletonMap(new SearchableResource(APPLICATIONS.getNs(), "cloudfoundry"), new ApplicationSearchResultHydrator());
 
   private final Map<String, String> urlMappingTemplates = emptyMap();
-  private final String id = "cloudfoundry";
+  public static final String PROVIDER_ID = "cloudfoundry";
   private final String providerName = CloudFoundryProvider.class.getName();
 
   private final Collection<Agent> agents;

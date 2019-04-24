@@ -35,21 +35,7 @@ import java.util.function.Consumer;
 
 abstract class AbstractCloudFoundryAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
   Optional<CloudFoundrySpace> findSpace(String region, CloudFoundryClient client) {
-    CloudFoundrySpace space = CloudFoundrySpace.fromRegion(region);
-
-    // fully populates the space guid which is what Cloud Foundry's API expects as an input, not the name.
-    Optional<CloudFoundrySpace> spaceOptional = client.getOrganizations()
-      .findByName(space.getOrganization().getName())
-      .map(org -> client.getSpaces().findByName(org.getId(), space.getName()));
-
-    spaceOptional.ifPresent(spaceCase -> {
-      if (!(space.getName().equals(spaceCase.getName()) &&
-        space.getOrganization().getName().equals(spaceCase.getOrganization().getName()))) {
-        throw new CloudFoundryApiException("Org or Space name not in correct case");
-      }
-    });
-
-    return spaceOptional;
+    return client.getOrganizations().findSpaceByRegion(region);
   }
 
   protected CloudFoundryClient getClient(Map<?, ?> input) {

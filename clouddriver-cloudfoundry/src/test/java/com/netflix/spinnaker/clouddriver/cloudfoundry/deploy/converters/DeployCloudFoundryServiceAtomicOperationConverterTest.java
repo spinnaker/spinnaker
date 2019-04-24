@@ -51,18 +51,15 @@ class DeployCloudFoundryServiceAtomicOperationConverterTest {
 
   {
     when(cloudFoundryClient.getOrganizations().findByName(any()))
-      .thenAnswer((Answer<Optional<CloudFoundryOrganization>>) invocation -> {
-        Object[] args = invocation.getArguments();
-        return Optional.of(CloudFoundryOrganization.builder()
-          .id(args[0].toString() + "ID").name(args[0].toString()).build());
-      });
+      .thenReturn(Optional.of(
+        CloudFoundryOrganization.builder()
+        .id("space-guid").name("space").build()));
 
-    when(cloudFoundryClient.getSpaces().findByName(any(), any())).thenAnswer((Answer<CloudFoundrySpace>) invocation -> {
-      Object[] args = invocation.getArguments();
-      return CloudFoundrySpace.builder().id(args[1].toString() + "ID").name(args[1].toString())
-        .organization(CloudFoundryOrganization.builder()
-          .id(args[0].toString()).name(args[0].toString().replace("ID", "")).build()).build();
-    });
+    when(cloudFoundryClient.getOrganizations().findSpaceByRegion(any()))
+      .thenAnswer((Answer<Optional<CloudFoundrySpace>>) invocation -> Optional.of(
+        CloudFoundrySpace.builder().id("space-guid").name("space")
+      .organization(CloudFoundryOrganization.builder()
+        .id("org-guid").name("org").build()).build()));
   }
 
   private final CloudFoundryCredentials cloudFoundryCredentials = new CloudFoundryCredentials(
@@ -264,8 +261,8 @@ class DeployCloudFoundryServiceAtomicOperationConverterTest {
     final DeployCloudFoundryServiceDescription result = converter.convertDescription(input);
 
     assertThat(result.getSpace()).isEqualToComparingFieldByFieldRecursively(
-      CloudFoundrySpace.builder().id("spaceID").name("space").organization(
-        CloudFoundryOrganization.builder().id("orgID").name("org").build()).build());
+      CloudFoundrySpace.builder().id("space-guid").name("space").organization(
+        CloudFoundryOrganization.builder().id("org-guid").name("org").build()).build());
     assertThat(result.getServiceAttributes()).isEqualToComparingFieldByFieldRecursively(
       new DeployCloudFoundryServiceDescription.ServiceAttributes()
         .setService("my-service")

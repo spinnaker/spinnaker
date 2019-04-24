@@ -40,22 +40,18 @@ import static org.mockito.Mockito.when;
 class CreateCloudFoundryServiceKeyAtomicOperationConverterTest {
   private final CloudFoundryClient cloudFoundryClient = new MockCloudFoundryClient();
 
-  private CloudFoundryOrganization cloudFoundryOrganization = CloudFoundryOrganization.builder()
-    .id("org-guid")
-    .name("org")
-    .build();
-
   private CloudFoundrySpace cloudFoundrySpace = CloudFoundrySpace.builder()
     .id("space-guid")
     .name("space")
-    .organization(cloudFoundryOrganization)
+    .organization(CloudFoundryOrganization.builder()
+      .id("org-guid")
+      .name("org")
+      .build())
     .build();
 
   {
-    when(cloudFoundryClient.getOrganizations().findByName(any()))
-      .thenReturn(Optional.of(cloudFoundryOrganization));
-    when(cloudFoundryClient.getSpaces().findByName(any(), any()))
-      .thenReturn(cloudFoundrySpace);
+    when(cloudFoundryClient.getOrganizations().findSpaceByRegion(any()))
+      .thenReturn(Optional.of(cloudFoundrySpace));
   }
 
   private final CloudFoundryCredentials cloudFoundryCredentials = new CloudFoundryCredentials(

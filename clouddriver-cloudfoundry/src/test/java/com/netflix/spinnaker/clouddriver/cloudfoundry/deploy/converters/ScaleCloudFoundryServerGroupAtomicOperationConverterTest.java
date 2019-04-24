@@ -47,15 +47,11 @@ class ScaleCloudFoundryServerGroupAtomicOperationConverterTest {
       .thenAnswer((Answer<Optional<CloudFoundryOrganization>>) invocation -> {
         Object[] args = invocation.getArguments();
         return Optional.of(CloudFoundryOrganization.builder()
-          .id(args[0].toString() + "ID").name(args[0].toString()).build());
+          .id(args[0].toString() + "-guid").name(args[0].toString()).build());
       });
 
-    when(cloudFoundryClient.getSpaces().findByName(any(), any())).thenAnswer((Answer<CloudFoundrySpace>) invocation -> {
-      Object[] args = invocation.getArguments();
-      return CloudFoundrySpace.builder().id(args[1].toString() + "ID").name(args[1].toString())
-        .organization(CloudFoundryOrganization.builder()
-          .id(args[0].toString()).name(args[0].toString().replace("ID", "")).build()).build();
-    });
+    when(cloudFoundryClient.getOrganizations().findSpaceByRegion(any()))
+      .thenReturn(Optional.of(CloudFoundrySpace.builder().build()));
   }
 
   private final CloudFoundryCredentials cloudFoundryCredentials = new CloudFoundryCredentials(

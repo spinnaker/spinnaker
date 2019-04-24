@@ -16,14 +16,17 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.netflix.frigga.Names;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.ApplicationService;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.ApplicationEnv;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.MapRoute;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Resource;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.*;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Package;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Process;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.*;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.*;
 import com.netflix.spinnaker.clouddriver.model.HealthState;
 import lombok.RequiredArgsConstructor;
@@ -35,12 +38,15 @@ import retrofit.client.Response;
 import retrofit.mime.TypedFile;
 import retrofit.mime.TypedInput;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClientUtils.*;
@@ -59,14 +65,37 @@ public class Applications {
   private final ApplicationService api;
   private final Spaces spaces;
 
+  private final LoadingCache<String, CloudFoundryServerGroup> serverGroupCache = CacheBuilder
+    .newBuilder()
+    .expireAfterWrite(5, TimeUnit.MINUTES)
+    .build(new CacheLoader<String, CloudFoundryServerGroup>() {
+      @Override
+      public CloudFoundryServerGroup load(@Nonnull String guid) throws ResourceNotFoundException {
+        return safelyCall(() -> api.findById(guid))
+          .map(Applications.this::map)
+          .orElseThrow(ResourceNotFoundException::new);
+      }
+    });
+
   @Nullable
   public CloudFoundryServerGroup findById(String guid) {
-    return safelyCall(() -> api.findById(guid)).map(this::map).orElse(null);
+    return safelyCall(() -> {
+      try {
+        return serverGroupCache.get(guid);
+      } catch (ExecutionException e) {
+        if (e.getCause() instanceof ResourceNotFoundException) {
+          return null;
+        }
+        throw new CloudFoundryApiException(e.getCause(), "Unable to find server group by id");
+      }
+    }).orElse(null);
   }
 
   public List<CloudFoundryApplication> all() {
     List<CloudFoundryServerGroup> serverGroups = collectPages("applications", page -> api.all(page, null, null))
       .stream().map(this::map).collect(toList());
+    serverGroupCache.invalidateAll();
+    serverGroups.forEach(sg -> serverGroupCache.put(sg.getId(), sg));
 
     Map<String, Set<CloudFoundryServerGroup>> serverGroupsByClusters = new HashMap<>();
     Map<String, Set<String>> clustersByApps = new HashMap<>();
@@ -93,18 +122,36 @@ public class Applications {
   }
 
   @Nullable
-  public String findServerGroupId(String name, String spaceId) {
-    return safelyCall(() -> api.all(null, singletonList(name), singletonList(spaceId)))
-      .flatMap(page -> page.getResources().stream().findFirst().map(Application::getGuid))
+  public CloudFoundryServerGroup findServerGroupByNameAndSpaceId(String name, String spaceId) {
+    return Optional.ofNullable(findServerGroupId(name, spaceId))
+      .map(serverGroupId -> Optional.ofNullable(findById(serverGroupId))
+        .orElse(null))
       .orElse(null);
+  }
+
+  @Nullable
+  public String findServerGroupId(String name, String spaceId) {
+    return serverGroupCache.asMap().values().stream()
+      .filter(serverGroup -> serverGroup.getName().equalsIgnoreCase(name) && serverGroup.getSpace().getId().equals(spaceId))
+      .findFirst()
+      .map(CloudFoundryServerGroup::getId)
+      .orElseGet(() -> safelyCall(() -> api.all(null, singletonList(name), singletonList(spaceId)))
+        .flatMap(page -> page.getResources().stream().findFirst().map(this::map)
+          .map(serverGroup -> {
+            serverGroupCache.put(serverGroup.getId(), serverGroup);
+            return serverGroup;
+          })
+          .map(CloudFoundryServerGroup::getId))
+        .orElse(null));
   }
 
   private CloudFoundryServerGroup map(Application application) {
     CloudFoundryServerGroup.State state = CloudFoundryServerGroup.State.valueOf(application.getState());
 
     CloudFoundrySpace space = safelyCall(() -> spaces.findById(application.getLinks().get("space").getGuid())).orElse(null);
-    ApplicationEnv applicationEnv = safelyCall(() -> api.findApplicationEnvById(application.getGuid())).orElse(null);
-    Process process = safelyCall(() -> api.findProcessById(application.getGuid())).orElse(null);
+    String appId = application.getGuid();
+    ApplicationEnv applicationEnv = safelyCall(() -> api.findApplicationEnvById(appId)).orElse(null);
+    Process process = safelyCall(() -> api.findProcessById(appId)).orElse(null);
 
     Set<CloudFoundryInstance> instances;
     switch (state) {
@@ -114,7 +161,7 @@ public class Applications {
       case STARTED:
       default:
         try {
-          instances = safelyCall(() -> api.instances(application.getGuid()))
+          instances = safelyCall(() -> api.instances(appId))
             .orElse(emptyMap())
             .entrySet()
             .stream()
@@ -133,7 +180,7 @@ public class Applications {
                   break;
               }
               return CloudFoundryInstance.builder()
-                .appGuid(application.getGuid())
+                .appGuid(appId)
                 .key(inst.getKey())
                 .healthState(healthState)
                 .details(inst.getValue().getDetails())
@@ -156,7 +203,7 @@ public class Applications {
 
     CloudFoundryDroplet droplet = null;
     try {
-      CloudFoundryPackage cfPackage = safelyCall(() -> api.findPackagesByAppId(application.getGuid()))
+      CloudFoundryPackage cfPackage = safelyCall(() -> api.findPackagesByAppId(appId))
         .map(packages ->
           packages.getResources().stream().findFirst()
             .map(pkg -> CloudFoundryPackage.builder()
@@ -169,7 +216,7 @@ public class Applications {
         )
         .orElse(null);
 
-      droplet = safelyCall(() -> api.findDropletByApplicationGuid(application.getGuid()))
+      droplet = safelyCall(() -> api.findDropletByApplicationGuid(appId))
         .map(apiDroplet ->
           CloudFoundryDroplet.builder()
             .id(apiDroplet.getGuid())
@@ -223,12 +270,12 @@ public class Applications {
 
     String serverGroupAppManagerUri = appsManagerUri;
     if (StringUtils.isNotEmpty(appsManagerUri)) {
-      serverGroupAppManagerUri = appsManagerUri + "/organizations/" + space.getOrganization().getId() + "/spaces/" + space.getId() + "/applications/" + application.getGuid();
+      serverGroupAppManagerUri = appsManagerUri + "/organizations/" + space.getOrganization().getId() + "/spaces/" + space.getId() + "/applications/" + appId;
     }
 
     String serverGroupMetricsUri = metricsUri;
     if (StringUtils.isNotEmpty(metricsUri)) {
-      serverGroupMetricsUri = metricsUri + "/apps/" + application.getGuid();
+      serverGroupMetricsUri = metricsUri + "/apps/" + appId;
     }
 
     return CloudFoundryServerGroup.builder()
@@ -236,7 +283,7 @@ public class Applications {
       .appsManagerUri(serverGroupAppManagerUri)
       .metricsUri(serverGroupMetricsUri)
       .name(application.getName())
-      .id(application.getGuid())
+      .id(appId)
       .memory(process != null ? process.getMemoryInMb() : null)
       .instances(emptySet())
       .droplet(droplet)

@@ -25,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.*;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryOrganization;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryServerGroup;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.model.*;
 import io.vavr.collection.HashMap;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -33,11 +34,10 @@ import retrofit.RetrofitError;
 import retrofit.client.Response;
 
 import java.time.ZonedDateTime;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
+import static com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryServerGroup.State.STARTED;
+import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Matchers.any;
@@ -47,6 +47,15 @@ class ApplicationsTest {
   private ApplicationService applicationService = mock(ApplicationService.class);
   private Spaces spaces = mock(Spaces.class);
   private Applications apps = new Applications("pws", "some-apps-man-uri", "some-metrics-uri", applicationService, spaces);
+  private String spaceId = "space-guid";
+  private CloudFoundrySpace cloudFoundrySpace = CloudFoundrySpace.builder()
+    .id(spaceId)
+    .name("space-name")
+    .organization(CloudFoundryOrganization.builder()
+      .id("org-id")
+      .name("org-name")
+      .build())
+    .build();
 
   @Test
   void errorHandling() {
@@ -67,10 +76,12 @@ class ApplicationsTest {
 
   @Test
   void findByIdIfInputsAreValid() {
+    String serverGroupId = "some-app-guid";
+    String serverGroupName = "some-app-name";
     Application application = new Application()
       .setCreatedAt(ZonedDateTime.now())
-      .setGuid("some-app-guid")
-      .setName("some-app-name")
+      .setGuid(serverGroupId)
+      .setName(serverGroupName)
       .setState("STARTED")
       .setLinks(HashMap.of("space", new Link().setHref("http://capi.io/space/space-guid")).toJavaMap());
 
@@ -116,23 +127,29 @@ class ApplicationsTest {
       .organization(cloudFoundryOrganization)
       .build();
 
-    when(applicationService.findById("some-app-guid")).thenReturn(application);
-    when(applicationService.findApplicationEnvById("some-app-guid")).thenReturn(applicationEnv);
+    when(applicationService.findById(anyString())).thenReturn(application);
+    when(applicationService.findApplicationEnvById(anyString())).thenReturn(applicationEnv);
     when(spaces.findById(any())).thenReturn(cloudFoundrySpace);
     when(applicationService.findProcessById(any())).thenReturn(process);
-    when(applicationService.instances("some-app-guid")).thenReturn(
+    when(applicationService.instances(anyString())).thenReturn(
       HashMap.of("0", new InstanceStatus().setState(InstanceStatus.State.RUNNING).setUptime(2405L)).toJavaMap());
-    when(applicationService.findPackagesByAppId("some-app-guid")).thenReturn(packagePagination);
-    when(applicationService.findDropletByApplicationGuid("some-app-guid")).thenReturn(droplet);
+    when(applicationService.findPackagesByAppId(anyString())).thenReturn(packagePagination);
+    when(applicationService.findDropletByApplicationGuid(anyString())).thenReturn(droplet);
 
-    CloudFoundryServerGroup cloudFoundryServerGroup = apps.findById("some-app-guid");
+    CloudFoundryServerGroup cloudFoundryServerGroup = apps.findById(serverGroupId);
     assertThat(cloudFoundryServerGroup).isNotNull();
-    assertThat(cloudFoundryServerGroup.getId()).isEqualTo("some-app-guid");
-    assertThat(cloudFoundryServerGroup.getName()).isEqualTo("some-app-name");
+    assertThat(cloudFoundryServerGroup.getId()).isEqualTo(serverGroupId);
+    assertThat(cloudFoundryServerGroup.getName()).isEqualTo(serverGroupName);
     assertThat(cloudFoundryServerGroup.getAppsManagerUri()).isEqualTo("some-apps-man-uri/organizations/org-id/spaces/space-id/applications/some-app-guid");
     assertThat(cloudFoundryServerGroup.getMetricsUri()).isEqualTo("some-metrics-uri/apps/some-app-guid");
     assertThat(cloudFoundryServerGroup.getServiceInstances().size()).isEqualTo(1);
     assertThat(cloudFoundryServerGroup.getServiceInstances().get(0).getTags()).containsExactly("tag1", "tag2");
+
+    verify(applicationService).findById(serverGroupId);
+    verify(applicationService).findApplicationEnvById(serverGroupId);
+    verify(applicationService).instances(serverGroupId);
+    verify(applicationService).findPackagesByAppId(serverGroupId);
+    verify(applicationService).findDropletByApplicationGuid(serverGroupId);
   }
 
   @Test
@@ -175,12 +192,9 @@ class ApplicationsTest {
   @ParameterizedTest
   @ValueSource(strings = {"myapp-v999", "myapp"})
   void getTakenServerGroups(String existingApp) {
-    com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Application application = new com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Application()
-      .setName(existingApp)
-      .setSpaceGuid("space");
 
     when(applicationService.listAppsFiltered(isNull(Integer.class), anyListOf(String.class), anyInt()))
-      .thenReturn(Page.singleton(application, "123"));
+      .thenReturn(Page.singleton(getApplication(existingApp), "123"));
 
     List<Resource<com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Application>> taken = apps
       .getTakenSlots("myapp", "space");
@@ -190,9 +204,7 @@ class ApplicationsTest {
   @ParameterizedTest
   @ValueSource(strings = {"myapp-v999", "myapp", "myapp-stack2", "anothername", "myapp-stack-detail"})
   void getTakenServerGroupsWhenNoPriorVersionExists(String similarAppName) {
-    com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Application application = new com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Application()
-      .setName(similarAppName)
-      .setSpaceGuid("space");
+    com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Application application = getApplication(similarAppName);
 
     when(applicationService.listAppsFiltered(isNull(Integer.class), anyListOf(String.class), anyInt()))
       .thenReturn(Page.singleton(application, "123"));
@@ -204,23 +216,115 @@ class ApplicationsTest {
 
   @Test
   void getLatestServerGroupCapiDoesntCorrectlyOrderResults() {
-    com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Application application = new com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Application()
-      .setName("myapp-prod-v046")
-      .setSpaceGuid("space");
-
-    com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Application application2 = new com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Application()
-      .setName("myapp-v003")
-      .setSpaceGuid("space");
-
-    com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Application application3 = new com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Application()
-      .setName("myapp")
-      .setSpaceGuid("space");
-
     when(applicationService.listAppsFiltered(isNull(Integer.class), anyListOf(String.class), anyInt()))
-      .thenReturn(Page.asPage(application, application2, application3));
+      .thenReturn(Page.asPage(getApplication("myapp-prod-v046"), getApplication("myapp-v003"), getApplication("myapp")));
 
     List<Resource<com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Application>> taken = apps
       .getTakenSlots("myapp", "space");
+
     assertThat(taken).extracting(app -> app.getEntity().getName()).contains("myapp", "myapp-v003");
+  }
+
+  @Test
+  void findServerGroupId() {
+    String serverGroupName = "server-group";
+    String spaceId = "space-guid";
+    String expectedServerGroupId = "app-guid";
+    Application application = new Application()
+      .setCreatedAt(ZonedDateTime.now())
+      .setGuid(expectedServerGroupId)
+      .setName("app")
+      .setState("STARTED")
+      .setLinks(HashMap.of("space", new Link().setHref("http://capi.io/space/space-guid")).toJavaMap());
+    Pagination<Application> applicationPagination = new Pagination<Application>()
+      .setPagination(new Pagination.Details().setTotalPages(1))
+      .setResources(Collections.singletonList(application));
+    when(applicationService.all(any(), any(), any())).thenReturn(applicationPagination);
+    mockMap(cloudFoundrySpace, "droplet-id");
+
+    String serverGroupId = apps.findServerGroupId(serverGroupName, spaceId);
+
+    assertThat(serverGroupId).isEqualTo(expectedServerGroupId);
+  }
+
+  @Test
+  void findServerGroupByNameAndSpaceId() {
+    String serverGroupId = "server-group-guid";
+    String serverGroupName = "server-group";
+    Application application = new Application()
+      .setCreatedAt(ZonedDateTime.now())
+      .setGuid(serverGroupId)
+      .setName(serverGroupName)
+      .setState("STARTED")
+      .setLinks(HashMap.of("space", new Link().setHref("http://capi.io/space/space-guid")).toJavaMap());
+    Pagination<Application> applicationPagination = new Pagination<Application>()
+      .setPagination(new Pagination.Details().setTotalPages(1))
+      .setResources(Collections.singletonList(application));
+    ServiceInstance serviceInstance = new ServiceInstance();
+    serviceInstance
+      .setPlan("service-plan")
+      .setServicePlanGuid("service-plan-guid")
+      .setTags(Collections.emptySet())
+      .setName("service-instance");
+    String dropletId = "droplet-guid";
+
+    when(applicationService.all(any(), any(), any())).thenReturn(applicationPagination);
+    mockMap(cloudFoundrySpace, dropletId);
+
+    CloudFoundryDroplet expectedDroplet = CloudFoundryDroplet.builder().id(dropletId).build();
+    CloudFoundryServerGroup expectedCloudFoundryServerGroup = CloudFoundryServerGroup.builder()
+      .account("pws")
+      .state(STARTED)
+      .space(cloudFoundrySpace)
+      .droplet(expectedDroplet)
+      .id(serverGroupId)
+      .env(emptyMap())
+      .instances(Collections.emptySet())
+      .serviceInstances(Collections.emptyList())
+      .createdTime(application.getCreatedAt().toInstant().toEpochMilli())
+      .memory(0)
+      .diskQuota(0)
+      .name(serverGroupName)
+      .appsManagerUri("some-apps-man-uri/organizations/org-id/spaces/space-guid/applications/server-group-guid")
+      .metricsUri("some-metrics-uri/apps/server-group-guid")
+      .build();
+
+    CloudFoundryServerGroup serverGroup = apps.findServerGroupByNameAndSpaceId(serverGroupName, spaceId);
+
+    assertThat(serverGroup).isEqualToComparingFieldByFieldRecursively(expectedCloudFoundryServerGroup);
+    // server group should be cached because of call to "findServerGroupId"
+    verify(applicationService, never()).findById(serverGroupId);
+  }
+
+  private com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Application getApplication(String applicationName) {
+    return new com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Application()
+      .setName(applicationName)
+      .setSpaceGuid("space-guid");
+  }
+
+  private void mockMap(CloudFoundrySpace cloudFoundrySpace, String dropletId) {
+    ApplicationEnv.SystemEnv systemEnv = new ApplicationEnv.SystemEnv()
+      .setVcapServices(emptyMap());
+    ApplicationEnv applicationEnv = new ApplicationEnv()
+      .setSystemEnvJson(systemEnv);
+    Process process = new Process()
+      .setGuid("process-guid")
+      .setInstances(1);
+    Package applicationPacakage = new Package()
+      .setData(new PackageData()
+        .setChecksum(new PackageChecksum().setType("package-checksum-type").setValue("package-check-sum-value"))
+      )
+      .setLinks(HashMap.of("download", new Link().setHref("http://capi.io/download/space-guid")).toJavaMap());
+    Pagination<Package> packagePagination = new Pagination<Package>()
+      .setPagination(new Pagination.Details().setTotalPages(1))
+      .setResources(Collections.singletonList(applicationPacakage));
+    Droplet droplet = new Droplet().setGuid(dropletId);
+
+    when(applicationService.findApplicationEnvById(any())).thenReturn(applicationEnv);
+    when(spaces.findById(any())).thenReturn(cloudFoundrySpace);
+    when(applicationService.findProcessById(any())).thenReturn(process);
+    when(applicationService.instances(any())).thenReturn(emptyMap());
+    when(applicationService.findPackagesByAppId(any())).thenReturn(packagePagination);
+    when(applicationService.findDropletByApplicationGuid(any())).thenReturn(droplet);
   }
 }

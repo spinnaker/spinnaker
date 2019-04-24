@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.provider.config;
 
+import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.provider.CloudFoundryProvider;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.provider.agent.CloudFoundryCachingAgent;
@@ -39,10 +40,10 @@ public class CloudFoundryProviderConfig {
 
   @Bean
   @DependsOn("cloudFoundryAccountCredentials")
-  public CloudFoundryProvider cloudFoundryProvider(AccountCredentialsRepository accountCredentialsRepository) {
+  public CloudFoundryProvider cloudFoundryProvider(AccountCredentialsRepository accountCredentialsRepository, Registry registry) {
     CloudFoundryProvider provider = new CloudFoundryProvider(
       Collections.newSetFromMap(new ConcurrentHashMap<>()));
-    synchronizeCloudFoundryProvider(provider, accountCredentialsRepository);
+    synchronizeCloudFoundryProvider(provider, accountCredentialsRepository, registry);
     return provider;
   }
 
@@ -54,14 +55,15 @@ public class CloudFoundryProviderConfig {
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   @Bean
   public CloudFoundryProviderSynchronizer synchronizeCloudFoundryProvider(CloudFoundryProvider cloudFoundryProvider,
-                                                                          AccountCredentialsRepository accountCredentialsRepository) {
+                                                                          AccountCredentialsRepository accountCredentialsRepository,
+                                                                          Registry registry) {
     Set<String> scheduledAccounts = ProviderUtils.getScheduledAccounts(cloudFoundryProvider);
     Set<CloudFoundryCredentials> allAccounts = ProviderUtils.buildThreadSafeSetOfAccounts(accountCredentialsRepository,
       CloudFoundryCredentials.class);
 
     cloudFoundryProvider.getAgents().addAll(allAccounts.stream()
       .map(credentials -> !scheduledAccounts.contains(credentials.getName()) ?
-        new CloudFoundryCachingAgent(credentials.getName(), credentials.getClient()) :
+        new CloudFoundryCachingAgent(credentials.getName(), credentials.getClient(), registry) :
         null)
       .filter(Objects::nonNull)
       .collect(Collectors.toList()));

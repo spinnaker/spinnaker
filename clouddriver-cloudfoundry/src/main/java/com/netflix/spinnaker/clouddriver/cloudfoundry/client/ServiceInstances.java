@@ -95,31 +95,23 @@ public class ServiceInstances {
   }
 
   public List<CloudFoundryService> findAllServicesByRegion(String region) {
-    CloudFoundrySpace space = getSpaceByRegionName(region);
-    if (space == null) {
-      return Collections.emptyList();
-    }
-
-    List<Resource<Service>> services = collectPageResources("all service", pg -> api.findServiceBySpaceId(space.getId(), pg, null));
-    return services.stream()
-      .map(serviceResource ->
-        CloudFoundryService.builder()
-          .name(serviceResource.getEntity().getLabel())
-          .servicePlans(findAllServicePlansByServiceName(serviceResource.getEntity().getLabel()))
-          .build())
-      .collect(toList());
-  }
-
-  private CloudFoundrySpace getSpaceByRegionName(String region) {
-    CloudFoundrySpace space = CloudFoundrySpace.fromRegion(region);
-    Optional<CloudFoundryOrganization> org = orgs.findByName(space.getOrganization().getName());
-
-    return org.map(cfOrg -> spaces.findByName(cfOrg.getId(), space.getName())).orElse(null);
+    return orgs.findSpaceByRegion(region)
+      .map(space -> {
+        List<Resource<Service>> services = collectPageResources("all service", pg -> api.findServiceBySpaceId(space.getId(), pg, null));
+        return services.stream()
+          .map(serviceResource ->
+            CloudFoundryService.builder()
+              .name(serviceResource.getEntity().getLabel())
+              .servicePlans(findAllServicePlansByServiceName(serviceResource.getEntity().getLabel()))
+              .build())
+          .collect(toList());
+      })
+      .orElse(Collections.emptyList());
   }
 
   // Visible for testing
   CloudFoundryServiceInstance getOsbServiceInstanceByRegion(String region, String serviceInstanceName) {
-    CloudFoundrySpace space = Optional.ofNullable(getSpaceByRegionName(region))
+    CloudFoundrySpace space = orgs.findSpaceByRegion(region)
       .orElseThrow(() -> new CloudFoundryApiException("Cannot find region '" + region + "'"));
     return Optional
       .ofNullable(getOsbServiceInstance(space, serviceInstanceName))
@@ -144,7 +136,7 @@ public class ServiceInstances {
         if (sharedFromRegion.equals(r)) {
           throw new CloudFoundryApiException("Cannot specify 'org > space' as any of the " + gerund + " regions");
         }
-        return Optional.ofNullable(getSpaceByRegionName(r))
+        return orgs.findSpaceByRegion(r)
           .orElseThrow(() -> new CloudFoundryApiException("Cannot find region '" + r + "' for " + gerund));
       })
       .collect(toSet());
@@ -247,7 +239,7 @@ public class ServiceInstances {
 
   @Nullable
   public CloudFoundryServiceInstance getServiceInstance(String region, String serviceInstanceName) {
-    CloudFoundrySpace space = Optional.ofNullable(getSpaceByRegionName(region))
+    CloudFoundrySpace space = orgs.findSpaceByRegion(region)
       .orElseThrow(() -> new CloudFoundryApiException("Cannot find region '" + region + "'"));
     Supplier<CloudFoundryServiceInstance> si = () -> Optional.ofNullable(getOsbServiceInstance(space, serviceInstanceName))
       .orElse(null);

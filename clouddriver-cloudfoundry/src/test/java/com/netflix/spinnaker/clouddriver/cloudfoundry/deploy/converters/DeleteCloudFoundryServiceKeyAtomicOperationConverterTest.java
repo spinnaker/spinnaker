@@ -54,8 +54,8 @@ class DeleteCloudFoundryServiceKeyAtomicOperationConverterTest {
   {
     when(cloudFoundryClient.getOrganizations().findByName(any()))
       .thenReturn(Optional.of(cloudFoundryOrganization));
-    when(cloudFoundryClient.getSpaces().findByName(any(), any()))
-      .thenReturn(cloudFoundrySpace);
+    when(cloudFoundryClient.getOrganizations().findSpaceByRegion(any()))
+      .thenReturn(Optional.of(cloudFoundrySpace));
   }
 
   private final CloudFoundryCredentials cloudFoundryCredentials = new CloudFoundryCredentials(

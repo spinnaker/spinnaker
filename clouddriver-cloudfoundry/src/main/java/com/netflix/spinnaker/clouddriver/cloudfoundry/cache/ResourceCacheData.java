@@ -17,14 +17,15 @@
 package com.netflix.spinnaker.clouddriver.cloudfoundry.cache;
 
 import com.netflix.spinnaker.cats.cache.CacheData;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-
 @Getter
+@EqualsAndHashCode
 public class ResourceCacheData implements CacheData {
   final String id;
   final Map<String, Collection<String>> relationships;

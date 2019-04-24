@@ -65,7 +65,7 @@ public class Keys implements KeyParser {
       result.put("name", parts[4]);
     } else if (Namespace.SERVER_GROUPS.ns.equals(type)) {
       result.put("account", parts[2]);
-      result.put("name", parts[3]);
+      result.put("serverGroup", parts[3]);
       result.put("region", parts[4]);
     } else {
       return Optional.empty();
@@ -141,10 +141,11 @@ public class Keys implements KeyParser {
   @Getter
   public enum Namespace {
     APPLICATIONS("applications"),
-    LOAD_BALANCERS("loadBalancers"),
     CLUSTERS("clusters"),
-    SERVER_GROUPS("serverGroups"),
-    INSTANCES("instances");
+    INSTANCES("instances"),
+    LOAD_BALANCERS("loadBalancers"),
+    ON_DEMAND("onDemand"),
+    SERVER_GROUPS("serverGroups");
 
     final String ns;
 

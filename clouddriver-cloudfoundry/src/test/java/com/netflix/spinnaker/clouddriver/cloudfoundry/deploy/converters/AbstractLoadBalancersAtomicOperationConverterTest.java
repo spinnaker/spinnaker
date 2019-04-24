@@ -57,15 +57,10 @@ class AbstractLoadBalancersAtomicOperationConverterTest {
           .id(args[0].toString() + "ID").name(args[0].toString()).build());
       });
 
-    when(cloudFoundryClient.getSpaces().findByName(any(), any())).thenAnswer((Answer<CloudFoundrySpace>) invocation -> {
-      Object[] args = invocation.getArguments();
-      if (args[0].equals("region")) {
-        return null;
-      }
-      return CloudFoundrySpace.builder().id(args[1].toString() + "ID").name(args[1].toString())
-        .organization(CloudFoundryOrganization.builder()
-          .id(args[0].toString()).name(args[0].toString().replace("ID", "")).build()).build();
-    });
+    when(cloudFoundryClient.getOrganizations().findSpaceByRegion(any()))
+      .thenReturn(Optional.of(
+        CloudFoundrySpace.builder().build()
+      ));
 
     when(cloudFoundryClient.getRoutes().toRouteId(any())).thenAnswer((Answer<RouteId>) invocation -> {
       Object[] args = invocation.getArguments();
@@ -75,7 +70,7 @@ class AbstractLoadBalancersAtomicOperationConverterTest {
       return new RouteId("host", "index", null, "some-guid");
     });
 
-    when(cloudFoundryClient.getRoutes().find(any(), any())).thenAnswer((Answer<CloudFoundryLoadBalancer>) invocation -> CloudFoundryLoadBalancer.builder()
+    when(cloudFoundryClient.getRoutes().find(any(), any())).thenReturn(CloudFoundryLoadBalancer.builder()
       .host("host").path("index").domain(
         CloudFoundryDomain.builder().name("domain.com").build()
       ).build());
@@ -128,7 +123,7 @@ class AbstractLoadBalancersAtomicOperationConverterTest {
   void convertWithRoutesNotFound() {
     final Map input = HashMap.of(
       "credentials", "test",
-      "region", "region > region",
+      "region", "org > space",
       "loadBalancerNames", Collections.EMPTY_LIST,
       "serverGroupName", "serverGroupName"
     ).toJavaMap();
