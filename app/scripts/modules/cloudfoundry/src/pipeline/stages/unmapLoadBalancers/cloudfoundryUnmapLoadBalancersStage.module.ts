@@ -1,15 +1,16 @@
-import { CloudfoundryUnmapLoadBalancersStageConfig } from './CloudfoundryUnmapLoadBalancersStageConfig';
+import {
+  CloudfoundryLoadBalancersExecutionDetails,
+  CloudfoundryLoadBalancersStageConfig,
+} from 'cloudfoundry/presentation';
 import { ExecutionDetailsTasks, IStage, Registry } from '@spinnaker/core';
-import { CloudfoundryUnmapLoadBalancersExecutionDetails } from './CloudfoundryUnmapLoadBalancersExecutionDetails';
 
 Registry.pipeline.registerStage({
   accountExtractor: (stage: IStage) => stage.context.credentials,
   configAccountExtractor: (stage: IStage) => [stage.credentials],
   cloudProvider: 'cloudfoundry',
-  component: CloudfoundryUnmapLoadBalancersStageConfig,
-  controller: 'BaseProviderStageCtrl as baseProviderStageCtrl',
+  component: CloudfoundryLoadBalancersStageConfig,
   description: 'Unmap a load balancer',
-  executionDetailsSections: [CloudfoundryUnmapLoadBalancersExecutionDetails, ExecutionDetailsTasks],
+  executionDetailsSections: [CloudfoundryLoadBalancersExecutionDetails, ExecutionDetailsTasks],
   key: 'unmapLoadBalancers',
   label: 'Unmap Load Balancer',
   validators: [

@@ -27,18 +27,18 @@ import { CloudFoundryNoLoadBalancerModal } from './loadBalancer/configure/cloudF
 import 'cloudfoundry/pipeline/config/validation/cfTargetImpedance.validator';
 import 'cloudfoundry/pipeline/config/validation/instanceSize.validator';
 import 'cloudfoundry/pipeline/config/validation/requiredRoutes.validator';
-import { CLOUD_FOUNDRY_CLONE_SERVER_GROUP_STAGE } from './pipeline/stages/cloneServerGroup/cloudfoundryCloneServerGroupStage.module';
+import './pipeline/stages/cloneServerGroup/cloudfoundryCloneServerGroupStage.module';
 import './pipeline/stages/createServiceKey/cloudfoundryCreateServiceKeyStage.module';
 import './pipeline/stages/deployService/cloudfoundryDeployServiceStage.module';
-import { CLOUD_FOUNDRY_DESTROY_ASG_STAGE } from './pipeline/stages/destroyAsg/cloudfoundryDestroyAsgStage.module';
+import './pipeline/stages/destroyAsg/cloudfoundryDestroyAsgStage.module';
 import './pipeline/stages/destroyService/cloudfoundryDestroyServiceStage.module';
-import { CLOUD_FOUNDRY_DISABLE_ASG_STAGE } from './pipeline/stages/disableAsg/cloudfoundryDisableAsgStage.module';
-import { CLOUD_FOUNDRY_ENABLE_ASG_STAGE } from './pipeline/stages/enableAsg/cloudfoundryEnableAsgStage.module';
+import './pipeline/stages/disableAsg/cloudfoundryDisableAsgStage.module';
+import './pipeline/stages/enableAsg/cloudfoundryEnableAsgStage.module';
 import './pipeline/stages/mapLoadBalancers/cloudfoundryMapLoadBalancersStage.module';
-import './pipeline/stages/unmapLoadBalancers/cloudfoundryUnmapLoadBalancersStage.module';
-import { CLOUD_FOUNDRY_RESIZE_ASG_STAGE } from './pipeline/stages/resizeAsg/cloudfoundryResizeAsgStage.module';
+import './pipeline/stages/resizeAsg/cloudfoundryResizeAsgStage.module';
 import './pipeline/stages/rollbackCluster/cloudfoundryRollbackClusterStage.module';
 import './pipeline/stages/shareService/cloudfoundryShareServiceStage.module';
+import './pipeline/stages/unmapLoadBalancers/cloudfoundryUnmapLoadBalancersStage.module';
 import './pipeline/stages/unshareService/cloudfoundryUnshareServiceStage.module';
 import { CloudFoundryCreateServerGroupModal } from 'cloudfoundry/serverGroup/configure/wizard/CreateServerGroupModal';
 import { CLOUD_FOUNDRY_INSTANCE_DETAILS } from 'cloudfoundry/instance/details/cloudfoundryInstanceDetails.module';
@@ -51,14 +51,9 @@ templates.keys().forEach(function(key) {
 
 export const CLOUD_FOUNDRY_MODULE = 'spinnaker.cloudfoundry';
 module(CLOUD_FOUNDRY_MODULE, [
-  CLOUD_FOUNDRY_CLONE_SERVER_GROUP_STAGE,
-  CLOUD_FOUNDRY_DESTROY_ASG_STAGE,
-  CLOUD_FOUNDRY_DISABLE_ASG_STAGE,
-  CLOUD_FOUNDRY_ENABLE_ASG_STAGE,
   CLOUD_FOUNDRY_INSTANCE_DETAILS,
   CLOUD_FOUNDRY_LOAD_BALANCER_MODULE,
   CLOUD_FOUNDRY_REACT_MODULE,
-  CLOUD_FOUNDRY_RESIZE_ASG_STAGE,
   CLOUD_FOUNDRY_SEARCH_FORMATTER,
   CLOUD_FOUNDRY_SERVER_GROUP_COMMAND_BUILDER,
   CLOUD_FOUNDRY_SERVER_GROUP_TRANSFORMER,

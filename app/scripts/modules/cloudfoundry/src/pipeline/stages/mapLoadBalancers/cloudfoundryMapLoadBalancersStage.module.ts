@@ -1,15 +1,16 @@
-import { CloudfoundryMapLoadBalancersStageConfig } from './CloudfoundryMapLoadBalancersStageConfig';
+import {
+  CloudfoundryLoadBalancersExecutionDetails,
+  CloudfoundryLoadBalancersStageConfig,
+} from 'cloudfoundry/presentation';
 import { ExecutionDetailsTasks, IStage, Registry } from '@spinnaker/core';
-import { CloudfoundryMapLoadBalancersExecutionDetails } from './CloudfoundryMapLoadBalancersExecutionDetails';
 
 Registry.pipeline.registerStage({
   accountExtractor: (stage: IStage) => stage.context.credentials,
   configAccountExtractor: (stage: IStage) => [stage.credentials],
   cloudProvider: 'cloudfoundry',
-  component: CloudfoundryMapLoadBalancersStageConfig,
-  controller: 'BaseProviderStageCtrl as baseProviderStageCtrl',
+  component: CloudfoundryLoadBalancersStageConfig,
   description: 'Map a load balancer',
-  executionDetailsSections: [CloudfoundryMapLoadBalancersExecutionDetails, ExecutionDetailsTasks],
+  executionDetailsSections: [CloudfoundryLoadBalancersExecutionDetails, ExecutionDetailsTasks],
   key: 'mapLoadBalancers',
   label: 'Map Load Balancer',
   validators: [

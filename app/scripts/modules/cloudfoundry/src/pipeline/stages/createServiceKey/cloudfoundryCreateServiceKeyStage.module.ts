@@ -4,9 +4,9 @@ import { CloudfoundryCreateServiceKeyExecutionDetails } from './CloudfoundryCrea
 
 Registry.pipeline.registerStage({
   accountExtractor: (stage: IStage) => stage.context.credentials,
-  configAccountExtractor: (stage: IStage) => [stage.credentials],
   cloudProvider: 'cloudfoundry',
   component: CloudfoundryCreateServiceKeyStageConfig,
+  configAccountExtractor: (stage: IStage) => [stage.credentials],
   controller: 'BaseProviderStageCtrl as baseProviderStageCtrl',
   description: 'Create a service key',
   executionDetailsSections: [CloudfoundryCreateServiceKeyExecutionDetails, ExecutionDetailsTasks],

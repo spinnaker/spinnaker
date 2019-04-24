@@ -102,14 +102,14 @@ PipelineConfigValidator.registerValidator(
 
 Registry.pipeline.registerStage({
   accountExtractor: (stage: IStage) => stage.context.credentials,
-  configAccountExtractor: (stage: IStage) => [stage.credentials],
-  label: 'Deploy Service',
-  description: 'Deploys services using Open Service Broker and deploys user-provided services',
-  key: 'deployService',
   cloudProvider: 'cloudfoundry',
   component: CloudfoundryDeployServiceStageConfig,
-  executionDetailsSections: [CloudfoundryServiceExecutionDetails, ExecutionDetailsTasks],
+  configAccountExtractor: (stage: IStage) => [stage.credentials],
   defaultTimeoutMs: 30 * 60 * 1000,
+  description: 'Deploys services using Open Service Broker and deploys user-provided services',
+  executionDetailsSections: [CloudfoundryServiceExecutionDetails, ExecutionDetailsTasks],
+  key: 'deployService',
+  label: 'Deploy Service',
   validators: [
     { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account' },
     { type: 'requiredField', fieldName: 'region' },

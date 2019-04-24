@@ -20,23 +20,23 @@ interface ICloudfoundryLoadBalancerStageConfigProps extends IStageConfigProps {
   pipeline: IPipeline;
 }
 
-interface ICloudFoundryUnmapLoadBalancersValues {
+interface ICloudFoundryLoadBalancersValues {
   routes: string[];
 }
 
-interface ICloudfoundryUnmapLoadBalancersStageConfigState {
+interface ICloudfoundryLoadBalancersStageConfigState {
   accounts: IAccount[];
   application: Application;
-  initialValues: ICloudFoundryUnmapLoadBalancersValues;
+  initialValues: ICloudFoundryLoadBalancersValues;
   pipeline: IPipeline;
 }
 
-export class CloudfoundryUnmapLoadBalancersStageConfig extends React.Component<
+export class CloudfoundryLoadBalancersStageConfig extends React.Component<
   ICloudfoundryLoadBalancerStageConfigProps,
-  ICloudfoundryUnmapLoadBalancersStageConfigState
+  ICloudfoundryLoadBalancersStageConfigState
 > {
   private destroy$ = new Subject();
-  private formikRef = React.createRef<Formik<ICloudFoundryUnmapLoadBalancersValues>>();
+  private formikRef = React.createRef<Formik<ICloudFoundryLoadBalancersValues>>();
 
   constructor(props: ICloudfoundryLoadBalancerStageConfigProps) {
     super(props);
@@ -99,7 +99,7 @@ export class CloudfoundryUnmapLoadBalancersStageConfig extends React.Component<
         <StageConfigField label="Target">
           <TargetSelect model={{ target }} options={StageConstants.TARGET_LIST} onChange={this.targetUpdated} />
         </StageConfigField>
-        <Formik<ICloudFoundryUnmapLoadBalancersValues>
+        <Formik<ICloudFoundryLoadBalancersValues>
           ref={this.formikRef}
           initialValues={initialValues}
           onSubmit={null}

@@ -1,48 +1,47 @@
 import * as React from 'react';
 
-import { IPipeline, IStageConfigProps, StageConstants } from '@spinnaker/core';
+import { IStageConfigProps, StageConstants } from '@spinnaker/core';
 
 import { CloudFoundryCreateServerGroupModal } from 'cloudfoundry/serverGroup/configure/wizard/CreateServerGroupModal';
 import { CloudFoundryReactInjector } from 'cloudfoundry/reactShims';
-
-export interface ICloudfoundryCloneServerGroupStageProps extends IStageConfigProps {
-  pipeline: IPipeline;
-}
 
 export interface ICloudfoundryCloneServerGroupStageConfigState {
   buttonText: string;
 }
 
 export class CloudfoundryCloneServerGroupStageConfig extends React.Component<
-  ICloudfoundryCloneServerGroupStageProps,
+  IStageConfigProps,
   ICloudfoundryCloneServerGroupStageConfigState
 > {
-  constructor(props: ICloudfoundryCloneServerGroupStageProps) {
+  constructor(props: IStageConfigProps) {
     super(props);
-    props.stage.cloudProvider = 'cloudfoundry';
-    props.stage.application = props.application.name;
+    this.props.updateStageField({
+      cloudProvider: 'cloudfoundry',
+      application: props.application.name,
+    });
     this.state = {
       buttonText: props.stage.destination ? 'Edit clone configuration' : 'Add clone configuration',
     };
   }
 
   private handleResult = (command: any) => {
-    this.props.stage.credentials = command.credentials;
-    this.props.stage.capacity = command.capacity;
-    this.props.stage.account = command.account;
-    this.props.stage.destination = command.destination;
-    this.props.stage.delayBeforeDisableSec = command.delayBeforeDisableSec;
-    this.props.stage.freeFormDetails = command.freeFormDetails;
-    this.props.stage.maxRemainingAsgs = command.maxRemainingAsgs;
-    this.props.stage.region = command.region;
-    this.props.stage.startApplication = command.startApplication;
-    this.props.stage.stack = command.stack;
-    this.props.stage.strategy = command.strategy;
-    this.props.stage.target = command.target;
-    this.props.stage.targetCluster = command.targetCluster;
-    this.props.stage.manifest = command.manifest;
+    this.props.updateStageField({
+      credentials: command.credentials,
+      capacity: command.capacity,
+      account: command.account,
+      destination: command.destination,
+      delayBeforeDisableSec: command.delayBeforeDisableSec,
+      freeFormDetails: command.freeFormDetails,
+      maxRemainingAsgs: command.maxRemainingAsgs,
+      region: command.region,
+      startApplication: command.startApplication,
+      stack: command.stack,
+      strategy: command.strategy,
+      target: command.target,
+      targetCluster: command.targetCluster,
+      manifest: command.manifest,
+    });
     this.setState({ buttonText: 'Edit clone configuration' });
-    this.props.stageFieldUpdated();
   };
 
   private addCluster = () => {

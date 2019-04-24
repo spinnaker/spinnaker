@@ -1,6 +1,6 @@
 import { CloudfoundryUnshareServiceStageConfig } from './CloudfoundryUnshareServiceStageConfig';
 import { ExecutionDetailsTasks, IStage, Registry } from '@spinnaker/core';
-import { CloudfoundryUnshareServiceExecutionDetails } from 'cloudfoundry/presentation';
+import { CloudfoundryUnshareServiceExecutionDetails } from './CloudfoundryUnshareServiceExecutionDetails';
 
 Registry.pipeline.registerStage({
   accountExtractor: (stage: IStage) => stage.context.credentials,

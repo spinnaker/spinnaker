@@ -34,7 +34,7 @@ export class CloudfoundryUnshareServiceStageConfig extends React.Component<
     };
   }
 
-  public componentDidMoun(): void {
+  public componentDidMount(): void {
     Observable.fromPromise(AccountService.listAccounts('cloudfoundry'))
       .takeUntil(this.destroy$)
       .subscribe(accounts => this.setState({ accounts }));

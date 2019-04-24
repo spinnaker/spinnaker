@@ -7,7 +7,6 @@ Registry.pipeline.registerStage({
   configAccountExtractor: (stage: IStage) => [stage.credentials],
   cloudProvider: 'cloudfoundry',
   component: CloudfoundryDestroyServiceStageConfig,
-  controller: 'cfDestroyServiceStageCtrl',
   defaultTimeoutMs: 30 * 60 * 1000,
   executionDetailsSections: [CloudfoundryServiceExecutionDetails, ExecutionDetailsTasks],
   key: 'destroyService',
