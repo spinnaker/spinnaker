@@ -32,10 +32,10 @@ interface ResourceHandler<T : Any> : ResolvableResourceHandler<T, T> {
  *
  * @throws UnsupportedKind if no appropriate handlers are found in the list.
  */
-internal fun List<ResourceHandler<*>>.supporting(
+internal fun List<ResolvableResourceHandler<*, *>>.supporting(
   apiVersion: ApiVersion,
   kind: String
-): ResourceHandler<*> =
+): ResolvableResourceHandler<*, *> =
   find { it.apiVersion == apiVersion && it.supportedKind.first.singular == kind }
     ?: throw UnsupportedKind(apiVersion, kind)
 

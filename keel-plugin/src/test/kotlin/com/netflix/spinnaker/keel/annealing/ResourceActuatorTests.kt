@@ -15,7 +15,7 @@ import com.netflix.spinnaker.keel.persistence.ResourceState.Diff
 import com.netflix.spinnaker.keel.persistence.ResourceState.Missing
 import com.netflix.spinnaker.keel.persistence.ResourceState.Ok
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
-import com.netflix.spinnaker.keel.plugin.ResourceHandler
+import com.netflix.spinnaker.keel.plugin.ResolvableResourceHandler
 import com.netflix.spinnaker.keel.telemetry.ResourceChecked
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -33,8 +33,8 @@ import java.time.Clock
 internal object ResourceActuatorTests : JUnit5Minutests {
 
   val resourceRepository = InMemoryResourceRepository()
-  val plugin1 = mockk<ResourceHandler<DummyResource>>(relaxUnitFun = true)
-  val plugin2 = mockk<ResourceHandler<DummyResource>>(relaxUnitFun = true)
+  val plugin1 = mockk<ResolvableResourceHandler<DummyResourceSpec, DummyResource>>(relaxUnitFun = true)
+  val plugin2 = mockk<ResolvableResourceHandler<DummyResourceSpec, DummyResource>>(relaxUnitFun = true)
   val publisher = mockk<ApplicationEventPublisher>(relaxUnitFun = true)
 
   fun tests() = rootContext<ResourceActuator> {
@@ -46,10 +46,10 @@ internal object ResourceActuatorTests : JUnit5Minutests {
     before {
       every { plugin1.name } returns "plugin1"
       every { plugin1.apiVersion } returns SPINNAKER_API_V1.subApi("plugin1")
-      every { plugin1.supportedKind } returns (ResourceKind(SPINNAKER_API_V1.subApi("plugin1").group, "foo", "foos") to DummyResource::class.java)
+      every { plugin1.supportedKind } returns (ResourceKind(SPINNAKER_API_V1.subApi("plugin1").group, "foo", "foos") to DummyResourceSpec::class.java)
       every { plugin2.name } returns "plugin2"
       every { plugin2.apiVersion } returns SPINNAKER_API_V1.subApi("plugin2")
-      every { plugin2.supportedKind } returns (ResourceKind(SPINNAKER_API_V1.subApi("plugin2").group, "bar", "bars") to DummyResource::class.java)
+      every { plugin2.supportedKind } returns (ResourceKind(SPINNAKER_API_V1.subApi("plugin2").group, "bar", "bars") to DummyResourceSpec::class.java)
     }
 
     after {
@@ -64,7 +64,7 @@ internal object ResourceActuatorTests : JUnit5Minutests {
           name = ResourceName("resource1"),
           uid = randomUID()
         ),
-        spec = DummyResource("whatever")
+        spec = DummyResourceSpec("whatever")
       )
 
       before {
@@ -81,8 +81,8 @@ internal object ResourceActuatorTests : JUnit5Minutests {
 
       context("the current state matches the desired state") {
         before {
-          every { plugin1.desired(resource) } returns resource.spec
-          every { plugin1.current(resource) } returns resource.spec
+          every { plugin1.desired(resource) } returns DummyResource(resource.spec.state)
+          every { plugin1.current(resource) } returns DummyResource(resource.spec.state)
 
           with(resource) {
             checkResource(metadata.name, apiVersion, kind)
@@ -113,7 +113,7 @@ internal object ResourceActuatorTests : JUnit5Minutests {
 
       context("the current state is missing") {
         before {
-          every { plugin1.desired(resource) } returns resource.spec
+          every { plugin1.desired(resource) } returns DummyResource(resource.spec.state)
           every { plugin1.current(resource) } returns null as DummyResource?
           every { plugin1.create(resource) } returns listOf(TaskRef("/tasks/${randomUID()}"))
 
@@ -141,7 +141,7 @@ internal object ResourceActuatorTests : JUnit5Minutests {
 
       context("the current state is wrong") {
         before {
-          every { plugin1.desired(resource) } returns resource.spec
+          every { plugin1.desired(resource) } returns DummyResource(resource.spec.state)
           every { plugin1.current(resource) } returns DummyResource("some other state that does not match")
           every { plugin1.update(resource, any()) } returns listOf(TaskRef("/tasks/${randomUID()}"))
 
@@ -174,3 +174,5 @@ private fun <T : Iterable<E>, E> Assertion.Builder<T>.second(): Assertion.Builde
   get("second element %s") { toList()[1] }
 
 internal data class DummyResource(val state: String)
+
+internal data class DummyResourceSpec(val state: String)

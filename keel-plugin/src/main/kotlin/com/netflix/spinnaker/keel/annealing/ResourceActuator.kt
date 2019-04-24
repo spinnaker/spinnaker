@@ -17,7 +17,6 @@ import com.netflix.spinnaker.keel.persistence.ResourceState.Ok
 import com.netflix.spinnaker.keel.plugin.ResolvableResourceHandler
 import com.netflix.spinnaker.keel.plugin.ResourceConflict
 import com.netflix.spinnaker.keel.plugin.ResourceDiff
-import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.netflix.spinnaker.keel.plugin.supporting
 import com.netflix.spinnaker.keel.telemetry.ResourceChecked
 import de.danielbechler.diff.ObjectDifferBuilder
@@ -30,7 +29,7 @@ import java.time.Clock
 @Component
 class ResourceActuator(
   private val resourceRepository: ResourceRepository,
-  private val handlers: List<ResourceHandler<*>>,
+  private val handlers: List<ResolvableResourceHandler<*, *>>,
   private val publisher: ApplicationEventPublisher,
   private val clock: Clock
 ) {
