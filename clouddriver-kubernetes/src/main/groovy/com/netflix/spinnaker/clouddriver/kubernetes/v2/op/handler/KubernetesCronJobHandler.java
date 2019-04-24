@@ -20,7 +20,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactReplacerFactory;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCacheDataConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCoreCachingAgent;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV2CachingAgent;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV2CachingAgentFactory;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
@@ -73,8 +73,8 @@ public class KubernetesCronJobHandler extends KubernetesHandler implements
   }
 
   @Override
-  public Class<? extends KubernetesV2CachingAgent> cachingAgentClass() {
-    return KubernetesCoreCachingAgent.class;
+  protected KubernetesV2CachingAgentFactory cachingAgentFactory() {
+    return KubernetesCoreCachingAgent::new;
   }
 
   private Status status(V2alpha1CronJob job) {

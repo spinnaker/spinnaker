@@ -37,7 +37,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collection;
@@ -72,10 +71,6 @@ public abstract class KubernetesV2CachingAgent extends KubernetesCachingAgent<Ku
     this.agentInterval = agentInterval;
   }
 
-  protected KubernetesKind primaryKind() {
-    throw new NotImplementedException("No primary kind registered, this is an implementation error.");
-  }
-
   protected Map<String, Object> defaultIntrospectionDetails() {
     Map<String, Object> result = new HashMap<>();
     result.put("namespaces", namespaces);
@@ -83,9 +78,7 @@ public abstract class KubernetesV2CachingAgent extends KubernetesCachingAgent<Ku
     return result;
   }
 
-  protected List<KubernetesKind> primaryKinds() {
-    return Collections.singletonList(primaryKind());
-  }
+  protected abstract List<KubernetesKind> primaryKinds();
 
   protected Map<KubernetesKind, List<KubernetesManifest>> loadPrimaryResourceList() {
     Map<KubernetesKind, List<KubernetesManifest>> result = namespaces.parallelStream()

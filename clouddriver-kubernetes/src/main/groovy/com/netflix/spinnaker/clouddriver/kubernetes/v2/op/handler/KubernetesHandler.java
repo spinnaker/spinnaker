@@ -25,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactReplacer
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactReplacer.ReplaceResult;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV2CachingAgent;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV2CachingAgentFactory;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider.KubernetesCacheUtils;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap.SpinnakerKind;
@@ -38,14 +39,7 @@ import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @Slf4j
 public abstract class KubernetesHandler implements CanDeploy, CanDelete, CanPatch {
@@ -79,9 +73,7 @@ public abstract class KubernetesHandler implements CanDeploy, CanDelete, CanPatc
     return artifactReplacer.replaceAll(manifest, artifacts, namespace, account);
   }
 
-  protected Class<? extends KubernetesV2CachingAgent> cachingAgentClass() {
-    return null;
-  }
+  protected abstract KubernetesV2CachingAgentFactory cachingAgentFactory();
 
   public Set<Artifact> listArtifacts(KubernetesManifest manifest) {
     return artifactReplacer.findAll(manifest);
@@ -96,43 +88,15 @@ public abstract class KubernetesHandler implements CanDeploy, CanDelete, CanPatc
       int agentCount,
       Long agentInterval
   ) {
-    Constructor constructor;
-    Class<? extends KubernetesV2CachingAgent> clazz = cachingAgentClass();
-
-    if (clazz == null) {
-      log.error("No caching agent was registered for {} -- no resources will be cached", kind());
-    }
-
-    try {
-      constructor = clazz.getDeclaredConstructor(
-          KubernetesNamedAccountCredentials.class,
-          KubernetesResourcePropertyRegistry.class,
-          ObjectMapper.class,
-          Registry.class,
-          int.class,
-          int.class,
-          Long.class
-      );
-    } catch (NoSuchMethodException e) {
-      log.warn("Missing canonical constructor for {} caching agent", kind(), e);
-      return null;
-    }
-
-    try {
-      constructor.setAccessible(true);
-      return (KubernetesV2CachingAgent) constructor.newInstance(
-          namedAccountCredentials,
-          propertyRegistry,
-          objectMapper,
-          registry,
-          agentIndex,
-          agentCount,
-          agentInterval
-      );
-    } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-      log.warn("Can't invoke caching agent constructor for {} caching agent", kind(), e);
-      return null;
-    }
+    return cachingAgentFactory().buildCachingAgent(
+      namedAccountCredentials,
+      propertyRegistry,
+      objectMapper,
+      registry,
+      agentIndex,
+      agentCount,
+      agentInterval
+    );
   }
 
   // used for stripping sensitive values

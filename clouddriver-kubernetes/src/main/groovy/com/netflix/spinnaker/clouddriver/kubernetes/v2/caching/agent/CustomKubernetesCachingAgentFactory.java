@@ -28,6 +28,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Cred
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
 
@@ -72,8 +73,8 @@ public class CustomKubernetesCachingAgentFactory {
     }
 
     @Override
-    protected KubernetesKind primaryKind() {
-      return this.kind;
+    protected List<KubernetesKind> primaryKinds() {
+      return Collections.singletonList(this.kind);
     }
 
     @Override

@@ -18,7 +18,7 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesNamespaceCachingAgent;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV2CachingAgent;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV2CachingAgentFactory;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap.SpinnakerKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
@@ -55,7 +55,7 @@ public class KubernetesNamespaceHandler extends KubernetesHandler {
   }
 
   @Override
-  public Class<? extends KubernetesV2CachingAgent> cachingAgentClass() {
-    return KubernetesNamespaceCachingAgent.class;
+  protected KubernetesV2CachingAgentFactory cachingAgentFactory() {
+    return KubernetesNamespaceCachingAgent::new;
   }
 }

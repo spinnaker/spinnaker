@@ -22,6 +22,7 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.CustomKubernetesCachingAgentFactory;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV2CachingAgent;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV2CachingAgentFactory;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model.KubernetesV2ServerGroup;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model.KubernetesV2ServerGroupManager;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model.ManifestBasedModel;
@@ -81,7 +82,11 @@ public class CustomKubernetesHandlerFactory {
     }
 
     @Override
-    public KubernetesV2CachingAgent buildCachingAgent(
+    protected KubernetesV2CachingAgentFactory cachingAgentFactory() {
+      return this::buildCustomCachingAgent;
+    }
+
+    private KubernetesV2CachingAgent buildCustomCachingAgent(
         KubernetesNamedAccountCredentials<KubernetesV2Credentials> namedAccountCredentials,
         KubernetesResourcePropertyRegistry propertyRegistry,
         ObjectMapper objectMapper,
