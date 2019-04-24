@@ -16,13 +16,17 @@
 
 package com.netflix.spinnaker.kork.secrets;
 
-import org.springframework.context.ApplicationContextInitializer;
+import com.netflix.spinnaker.config.secrets.SecretManager;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-public class SecretApplicationContextInitializer implements ApplicationContextInitializer {
+@Configuration
+public class SecretConfiguration {
 
-  @Override
-  public void initialize(ConfigurableApplicationContext applicationContext) {
-    applicationContext.getBeanFactory().addBeanPostProcessor(new SecretBeanPostProcessor(applicationContext));
+  @Bean
+  static SecretBeanPostProcessor secretBeanPostProcessor(ConfigurableApplicationContext applicationContext, SecretManager secretManager) {
+    return new SecretBeanPostProcessor(applicationContext, secretManager);
   }
+
 }

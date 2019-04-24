@@ -10,10 +10,8 @@ import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.env.MutablePropertySources;
 import org.springframework.core.env.PropertySource;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -26,7 +24,6 @@ public class SecretBeanPostProcessorTest {
   @Mock
   private ConfigurableEnvironment environment;
 
-  private Object regularBean = new Object();
   private SecretBeanPostProcessor secretBeanPostProcessor;
   private MutablePropertySources mutablePropertySources = new MutablePropertySources();
 
@@ -57,13 +54,11 @@ public class SecretBeanPostProcessorTest {
     MockitoAnnotations.initMocks(this);
     when(applicationContext.getEnvironment()).thenReturn(environment);
     when(environment.getPropertySources()).thenReturn(mutablePropertySources);
-
-    secretBeanPostProcessor = new SecretBeanPostProcessor(applicationContext);
   }
 
   @Test
   public void secretManagerBeanShouldGetProcessed() {
-    secretBeanPostProcessor.postProcessAfterInitialization(null, "secretManager");
+    secretBeanPostProcessor = new SecretBeanPostProcessor(applicationContext, null);
     verify(applicationContext, times(1)).getEnvironment();
   }
 
@@ -72,24 +67,9 @@ public class SecretBeanPostProcessorTest {
     assertTrue(mutablePropertySources.get("testEnumerableSource") instanceof EnumerablePropertySource);
     assertFalse(mutablePropertySources.get("testPropertySource") instanceof EnumerablePropertySource);
 
-    secretBeanPostProcessor.postProcessAfterInitialization(null, "secretManager");
+    secretBeanPostProcessor = new SecretBeanPostProcessor(applicationContext, null);
 
     assertTrue(mutablePropertySources.get("testEnumerableSource") instanceof SecretAwarePropertySource);
     assertFalse(mutablePropertySources.get("testPropertySource") instanceof SecretAwarePropertySource);
-  }
-
-  @Test
-  public void nonSecretManagerBeanShouldDoNothingAndReturnSameBean() {
-    assertTrue(mutablePropertySources.get("testEnumerableSource") instanceof EnumerablePropertySource);
-    assertFalse(mutablePropertySources.get("testPropertySource") instanceof EnumerablePropertySource);
-
-    Object returnedBean = secretBeanPostProcessor.postProcessAfterInitialization(regularBean, "notSecretManager");
-
-    assertTrue(mutablePropertySources.get("testEnumerableSource") instanceof EnumerablePropertySource);
-    assertFalse(mutablePropertySources.get("testEnumerableSource") instanceof SecretAwarePropertySource);
-    assertFalse(mutablePropertySources.get("testPropertySource") instanceof SecretAwarePropertySource);
-
-    verify(applicationContext, never()).getEnvironment();
-    assertEquals(regularBean, returnedBean);
   }
 }

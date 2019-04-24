@@ -39,7 +39,8 @@ public class SecretAwarePropertySource extends EnumerablePropertySource<Enumerab
       if (secretManager == null) {
         throw new SecretException("No secret manager to decrypt value of " + name);
       }
-      if (name.toLowerCase().endsWith("file") || name.toLowerCase().endsWith("path") || name.equalsIgnoreCase("keystore")) {
+      String lName = name.toLowerCase();
+      if (lName.endsWith("file") || lName.endsWith("path") || lName.endsWith("keystore") || lName.endsWith("truststore")) {
         return secretManager.decryptAsFile((String) o).toString();
       } else {
         return secretManager.decrypt((String) o);
