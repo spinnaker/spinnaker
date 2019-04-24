@@ -17,6 +17,7 @@
 include(
   "keel-api",
   "keel-artifact",
+  "keel-bakery",
   "keel-clouddriver",
   "keel-core",
   "keel-core-test",
@@ -38,7 +39,7 @@ include(
 rootProject.name = "keel"
 
 fun ProjectDescriptor.setBuildFile() {
-  buildFileName = "${name}.gradle.kts"
+  buildFileName = "$name.gradle.kts"
   children.forEach {
     it.setBuildFile()
   }

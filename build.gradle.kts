@@ -1,6 +1,8 @@
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
+val korkVersion = "4.1.0-rc.11+springBoot2"
+
 buildscript {
   repositories {
     jcenter()
@@ -26,20 +28,13 @@ allprojects {
 subprojects {
   apply(plugin = "nebula.kotlin")
 
-  tasks.withType<KotlinCompile> {
-    kotlinOptions {
-      languageVersion = "1.3"
-      jvmTarget = "1.8"
-      freeCompilerArgs += "-progressive"
-    }
-  }
-
   repositories {
     jcenter()
   }
 
   dependencies {
-    "implementation"(platform("com.netflix.spinnaker.kork:kork-bom:4.1.0-rc.5-springBoot2"))
+    "implementation"(platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion"))
+
     "implementation"("org.slf4j:slf4j-api")
 
     "testImplementation"("org.junit.platform:junit-platform-runner")
@@ -50,7 +45,15 @@ subprojects {
     "testRuntimeOnly"("org.junit.jupiter:junit-jupiter-engine")
   }
 
-  tasks.named<Test>("test") {
+  tasks.withType<KotlinCompile> {
+    kotlinOptions {
+      languageVersion = "1.3"
+      jvmTarget = "1.8"
+      freeCompilerArgs += "-progressive"
+    }
+  }
+
+  tasks.withType<Test> {
     useJUnitPlatform {
       includeEngines("junit-jupiter")
     }
