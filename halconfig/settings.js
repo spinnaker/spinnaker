@@ -102,12 +102,6 @@ var kubernetes = {
     proxy: '{%kubernetes.default.proxy%}',
   },
 };
-var openstack = {
-  defaults: {
-    account: '{%openstack.default.account%}',
-    region: '{%openstack.default.region%}',
-  },
-};
 var oracle = {
   defaults: {
     account: '{%oracle.default.account%}',
@@ -148,7 +142,6 @@ window.spinnakerSettings = {
     'ecs',
     'gce',
     'kubernetes',
-    'openstack',
     'oracle',
     'titus',
   ],
@@ -218,7 +211,6 @@ window.spinnakerSettings = {
     ecs: ecs,
     gce: gce,
     kubernetes: kubernetes,
-    openstack: openstack,
     oracle: oracle,
     titus: {
       defaults: {

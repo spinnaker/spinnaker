@@ -50,18 +50,7 @@ window.spinnakerSettings = {
   debugEnabled: debugEnabled,
   defaultCategory: 'serverGroup',
   defaultInstancePort: 80,
-  defaultProviders: [
-    'appengine',
-    'aws',
-    'azure',
-    'cloudfoundry',
-    'dcos',
-    'ecs',
-    'gce',
-    'kubernetes',
-    'openstack',
-    'oracle',
-  ],
+  defaultProviders: ['appengine', 'aws', 'azure', 'cloudfoundry', 'dcos', 'ecs', 'gce', 'kubernetes', 'oracle'],
   defaultTimeZone: process.env.TIMEZONE || 'America/Los_Angeles', // see http://momentjs.com/timezone/docs/#/data-utilities/
   feature: {
     artifacts: artifactsEnabled,
@@ -207,12 +196,6 @@ window.spinnakerSettings = {
         account: 'DEFAULT',
         bakeryRegions: ['us-phoenix-1'],
         region: 'us-phoenix-1',
-      },
-    },
-    openstack: {
-      defaults: {
-        account: 'test',
-        region: 'us-west-1',
       },
     },
     titus: {

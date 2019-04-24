@@ -14,7 +14,6 @@ for MODULE in $MODULES ; do
       ecs) DEPS="amazon core" ;;
       google) DEPS="core" ;;
       kubernetes) DEPS="core" ;;
-      openstack) DEPS="core" ;;
       oracle) DEPS="core" ;;
       titus) DEPS="amazon docker core" ;;
       *)
