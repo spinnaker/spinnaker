@@ -47,7 +47,7 @@ abstract class AbstractGetAccountCommand extends AbstractHasAccountCommand {
         .setSuccessMessage("Account " + accountName + ": ")
         .setFormat(AnsiFormatUtils.Format.STRING)
         .setUserFormatted(true)
-        .setOperation(Daemon.getAccount(currentDeployment, providerName, accountName, false))
+        .setOperation(Daemon.getAccount(currentDeployment, providerName, accountName, !noValidate))
         .get();
   }
 }
