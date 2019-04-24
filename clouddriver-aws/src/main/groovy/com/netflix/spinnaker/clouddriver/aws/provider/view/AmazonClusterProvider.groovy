@@ -50,8 +50,8 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster>, ServerGro
   @Value('${default.build.host:http://builds.netflix.com/}')
   String defaultBuildHost
 
-  @Value('${sql.cache.hasApplicationIndex:false}')
-  Boolean sqlApplicationIndexEnabled
+  @Value('${sql.cache.enabled:false}')
+  Boolean sqlEnabled
 
   @Autowired
   AmazonClusterProvider(AmazonCloudProvider amazonCloudProvider, Cache cacheView, AwsProvider awsProvider) {
@@ -260,7 +260,7 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster>, ServerGro
     Collection<AmazonCluster> clusters
 
     // TODO: remove special casing for sql vs. redis; possibly via dropping redis support in the future
-    if ((includeDetails && sqlApplicationIndexEnabled) &&
+    if ((includeDetails && sqlEnabled) &&
       ((cacheView instanceof CompositeCache &&
         (cacheView as CompositeCache).getStoreTypes().every { (it == SQL) }) ||
         (cacheView.storeType() == SQL))
