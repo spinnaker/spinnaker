@@ -14,6 +14,7 @@ import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.ResourceState.Diff
 import com.netflix.spinnaker.keel.persistence.ResourceState.Missing
 import com.netflix.spinnaker.keel.persistence.ResourceState.Ok
+import com.netflix.spinnaker.keel.plugin.ResolvableResourceHandler
 import com.netflix.spinnaker.keel.plugin.ResourceConflict
 import com.netflix.spinnaker.keel.plugin.ResourceDiff
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
@@ -42,6 +43,8 @@ class ResourceActuator(
     val plugin = handlers.supporting(apiVersion, kind)
     val type = plugin.supportedKind.second
     val resource = resourceRepository.get(name, type)
+
+    val desired = plugin.desired(resource)
     try {
       when (val current = plugin.current(resource)) {
         null -> {
@@ -58,14 +61,14 @@ class ResourceActuator(
             }
         }
         else -> {
-          val diff = differ.compare(current, resource.spec)
+          val diff = differ.compare(current, desired)
           if (diff.hasChanges()) {
             with(resource) {
               log.warn("Resource {} is invalid", metadata.name)
-              log.info("Resource {} delta: {}", metadata.name, diff.toDebug(current, resource.spec))
+              log.info("Resource {} delta: {}", metadata.name, diff.toDebug(current, desired))
               publisher.publishEvent(ResourceChecked(resource, Diff))
 
-              resourceRepository.appendHistory(ResourceDeltaDetected(resource, diff.toJson(current, resource.spec), clock))
+              resourceRepository.appendHistory(ResourceDeltaDetected(resource, diff.toJson(current, desired), clock))
             }
 
             plugin.update(resource, ResourceDiff(current, diff))
@@ -99,19 +102,23 @@ class ResourceActuator(
   // These extensions get round the fact tht we don't know the spec type of the resource from
   // the repository. I don't want the `ResourceHandler` interface to be untyped though.
   @Suppress("UNCHECKED_CAST")
-  private fun <T : Any> ResourceHandler<T>.current(resource: Resource<*>): T? =
-    current(resource as Resource<T>)
+  private fun <S : Any, R : Any> ResolvableResourceHandler<S, R>.desired(resource: Resource<*>): R? =
+    desired(resource as Resource<S>)
 
   @Suppress("UNCHECKED_CAST")
-  private fun <T : Any> ResourceHandler<T>.create(resource: Resource<*>): List<TaskRef> =
-    create(resource as Resource<T>)
+  private fun <S : Any, R : Any> ResolvableResourceHandler<S, R>.current(resource: Resource<*>): R? =
+    current(resource as Resource<S>)
 
   @Suppress("UNCHECKED_CAST")
-  private fun <T : Any> ResourceHandler<T>.update(
+  private fun <S : Any, R : Any> ResolvableResourceHandler<S, R>.create(resource: Resource<*>): List<TaskRef> =
+    create(resource as Resource<S>)
+
+  @Suppress("UNCHECKED_CAST")
+  private fun <S : Any, R : Any> ResolvableResourceHandler<S, R>.update(
     resource: Resource<*>,
     resourceDiff: ResourceDiff<*>
   ): List<TaskRef> =
-    update(resource as Resource<T>, resourceDiff as ResourceDiff<T>)
+    update(resource as Resource<S>, resourceDiff as ResourceDiff<R>)
   // end type coercing extensions
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }

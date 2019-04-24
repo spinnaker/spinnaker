@@ -81,6 +81,7 @@ internal object ResourceActuatorTests : JUnit5Minutests {
 
       context("the current state matches the desired state") {
         before {
+          every { plugin1.desired(resource) } returns resource.spec
           every { plugin1.current(resource) } returns resource.spec
 
           with(resource) {
@@ -95,6 +96,7 @@ internal object ResourceActuatorTests : JUnit5Minutests {
         }
 
         test("only the relevant plugin is queried") {
+          verify(exactly = 0) { plugin2.desired(any()) }
           verify(exactly = 0) { plugin2.current(any()) }
         }
 
@@ -111,6 +113,7 @@ internal object ResourceActuatorTests : JUnit5Minutests {
 
       context("the current state is missing") {
         before {
+          every { plugin1.desired(resource) } returns resource.spec
           every { plugin1.current(resource) } returns null as DummyResource?
           every { plugin1.create(resource) } returns listOf(TaskRef("/tasks/${randomUID()}"))
 
@@ -138,6 +141,7 @@ internal object ResourceActuatorTests : JUnit5Minutests {
 
       context("the current state is wrong") {
         before {
+          every { plugin1.desired(resource) } returns resource.spec
           every { plugin1.current(resource) } returns DummyResource("some other state that does not match")
           every { plugin1.update(resource, any()) } returns listOf(TaskRef("/tasks/${randomUID()}"))
 
