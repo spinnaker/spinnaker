@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.node;
 
+import com.netflix.spinnaker.halyard.config.model.v1.ci.concourse.ConcourseCi;
 import com.netflix.spinnaker.halyard.config.model.v1.ci.jenkins.JenkinsCi;
 import com.netflix.spinnaker.halyard.config.model.v1.ci.travis.TravisCi;
 import com.netflix.spinnaker.halyard.config.model.v1.ci.wercker.WerckerCi;
@@ -32,6 +33,7 @@ public class Cis extends Node implements Cloneable {
   JenkinsCi jenkins = new JenkinsCi();
   TravisCi travis = new TravisCi();
   WerckerCi wercker = new WerckerCi();
+  ConcourseCi concourse = new ConcourseCi();
 
   public boolean ciEnabled() {
     NodeIterator iterator = getChildren();

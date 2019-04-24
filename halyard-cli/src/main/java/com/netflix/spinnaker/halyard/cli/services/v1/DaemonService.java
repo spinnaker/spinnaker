@@ -743,6 +743,48 @@ public interface DaemonService {
       @Path("masterName") String masterName,
       @Query("validate") boolean validate);
 
+  @GET("/v1/config/deployments/{deploymentName}/repository/{repositoryName}/")
+  DaemonTask<Halconfig, Object> getRepository(
+          @Path("deploymentName") String deploymentName,
+          @Path("repositoryName") String repositoryName,
+          @Query("validate") boolean validate);
+
+  @PUT("/v1/config/deployments/{deploymentName}/repository/{repositoryName}/enabled/")
+  DaemonTask<Halconfig, Void> setRepositoryEnabled(
+          @Path("deploymentName") String deploymentName,
+          @Path("repositoryName") String repositoryName,
+          @Query("validate") boolean validate,
+          @Body boolean enabled);
+
+  @POST("/v1/config/deployments/{deploymentName}/repository/{repositoryName}/searches/")
+  DaemonTask<Halconfig, Void> addSearch(
+          @Path("deploymentName") String deploymentName,
+          @Path("repositoryName") String ciName,
+          @Query("validate") boolean validate,
+          @Body Search search);
+
+  @GET("/v1/config/deployments/{deploymentName}/repository/{repositoryName}/searches/{searchName}/")
+  DaemonTask<Halconfig, Object> getSearch(
+          @Path("deploymentName") String deploymentName,
+          @Path("repositoryName") String repositoryName,
+          @Path("searchName") String searchName,
+          @Query("validate") boolean validate);
+
+  @PUT("/v1/config/deployments/{deploymentName}/repository/{repositoryName}/searches/{searchName}/")
+  DaemonTask<Halconfig, Void> setSearch(
+          @Path("deploymentName") String deploymentName,
+          @Path("repositoryName") String repositoryName,
+          @Path("searchName") String searchName,
+          @Query("validate") boolean validate,
+          @Body Search search);
+
+  @DELETE("/v1/config/deployments/{deploymentName}/repository/{repositoryName}/searches/{searchName}/")
+  DaemonTask<Halconfig, Void> deleteSearch(
+          @Path("deploymentName") String deploymentName,
+          @Path("repositoryName") String repositoryName,
+          @Path("searchName") String searchName,
+          @Query("validate") boolean validate);
+
   @GET("/v1/versions/")
   DaemonTask<Halconfig, Versions> getVersions();
 

@@ -65,6 +65,28 @@ public class NodeFilter implements Cloneable {
     return this;
   }
 
+  public NodeFilter withAnyRepository() {
+    matchers.add(Node.thisNodeAcceptor(Repositories.class));
+    matchers.add(Node.thisNodeAcceptor(Repository.class));
+    return this;
+  }
+
+  public NodeFilter setRepository(String name) {
+    matchers.add(Node.thisNodeAcceptor(Repositories.class));
+    matchers.add(Node.namedNodeAcceptor(Repository.class, name));
+    return this;
+  }
+
+  public NodeFilter withAnySearch() {
+    matchers.add(Node.thisNodeAcceptor(Search.class));
+    return this;
+  }
+
+  public NodeFilter setSearch(String name) {
+    matchers.add(Node.namedNodeAcceptor(Search.class, name));
+    return this;
+  }
+
   public NodeFilter withAnyNotification() {
     matchers.add(Node.thisNodeAcceptor(Notifications.class));
     matchers.add(Node.thisNodeAcceptor(Notification.class));

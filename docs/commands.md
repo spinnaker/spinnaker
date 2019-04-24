@@ -158,6 +158,15 @@
  * [**hal config canary signalfx disable**](#hal-config-canary-signalfx-disable)
  * [**hal config canary signalfx enable**](#hal-config-canary-signalfx-enable)
  * [**hal config ci**](#hal-config-ci)
+ * [**hal config ci concourse**](#hal-config-ci-concourse)
+ * [**hal config ci concourse disable**](#hal-config-ci-concourse-disable)
+ * [**hal config ci concourse enable**](#hal-config-ci-concourse-enable)
+ * [**hal config ci concourse master**](#hal-config-ci-concourse-master)
+ * [**hal config ci concourse master add**](#hal-config-ci-concourse-master-add)
+ * [**hal config ci concourse master delete**](#hal-config-ci-concourse-master-delete)
+ * [**hal config ci concourse master edit**](#hal-config-ci-concourse-master-edit)
+ * [**hal config ci concourse master get**](#hal-config-ci-concourse-master-get)
+ * [**hal config ci concourse master list**](#hal-config-ci-concourse-master-list)
  * [**hal config ci jenkins**](#hal-config-ci-jenkins)
  * [**hal config ci jenkins disable**](#hal-config-ci-jenkins-disable)
  * [**hal config ci jenkins enable**](#hal-config-ci-jenkins-enable)
@@ -461,6 +470,16 @@
  * [**hal config pubsub google subscription edit**](#hal-config-pubsub-google-subscription-edit)
  * [**hal config pubsub google subscription get**](#hal-config-pubsub-google-subscription-get)
  * [**hal config pubsub google subscription list**](#hal-config-pubsub-google-subscription-list)
+ * [**hal config repository**](#hal-config-repository)
+ * [**hal config repository artifactory**](#hal-config-repository-artifactory)
+ * [**hal config repository artifactory disable**](#hal-config-repository-artifactory-disable)
+ * [**hal config repository artifactory enable**](#hal-config-repository-artifactory-enable)
+ * [**hal config repository artifactory search**](#hal-config-repository-artifactory-search)
+ * [**hal config repository artifactory search add**](#hal-config-repository-artifactory-search-add)
+ * [**hal config repository artifactory search delete**](#hal-config-repository-artifactory-search-delete)
+ * [**hal config repository artifactory search edit**](#hal-config-repository-artifactory-search-edit)
+ * [**hal config repository artifactory search get**](#hal-config-repository-artifactory-search-get)
+ * [**hal config repository artifactory search list**](#hal-config-repository-artifactory-search-list)
  * [**hal config security**](#hal-config-security)
  * [**hal config security api**](#hal-config-security-api)
  * [**hal config security api edit**](#hal-config-security-api-edit)
@@ -787,6 +806,7 @@ hal config [parameters] [subcommands]
  * `notification`: Display the state of Spinnaker's notification settings.
  * `provider`: Configure, validate, and view the specified provider.
  * `pubsub`: Configure, validate, and view the specified pubsub.
+ * `repository`: Configure, validate, and view the specified repository.
  * `security`: Configure Spinnaker's security. This includes external SSL, authentication mechanisms, and authorization policies.
  * `storage`: Show Spinnaker's persistent storage configuration.
  * `version`: Configure & view the current deployment of Spinnaker's version.
@@ -3243,9 +3263,174 @@ hal config ci [subcommands]
 ```
 
 #### Subcommands
+ * `concourse`: Manage and view Spinnaker configuration for the concourse ci
  * `jenkins`: Manage and view Spinnaker configuration for the jenkins ci
  * `travis`: Manage and view Spinnaker configuration for the travis ci
  * `wercker`: Manage and view Spinnaker configuration for the wercker ci
+
+---
+## hal config ci concourse
+
+Manage and view Spinnaker configuration for the concourse ci
+
+#### Usage
+```
+hal config ci concourse [parameters] [subcommands]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `disable`: Set the concourse ci as disabled
+ * `enable`: Set the concourse ci as enabled
+ * `master`: Manage and view Spinnaker configuration for the concourse Continuous Integration services's master
+
+---
+## hal config ci concourse disable
+
+Set the concourse ci as disabled
+
+#### Usage
+```
+hal config ci concourse disable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config ci concourse enable
+
+Set the concourse ci as enabled
+
+#### Usage
+```
+hal config ci concourse enable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config ci concourse master
+
+Manage and view Spinnaker configuration for the concourse Continuous Integration services's master
+
+#### Usage
+```
+hal config ci concourse master MASTER [parameters] [subcommands]
+```
+
+#### Parameters
+`MASTER`: The name of the master to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `add`: Add a master for the concourse Continuous Integration service.
+ * `delete`: Delete a specific concourse master by name.
+ * `edit`: Edit a master for the concourse Continuous Integration service.
+ * `get`: Get the specified master details for concourse.
+ * `list`: List the master names for concourse.
+
+---
+## hal config ci concourse master add
+
+Add a master for the concourse Continuous Integration service.
+
+#### Usage
+```
+hal config ci concourse master add MASTER [parameters]
+```
+
+#### Parameters
+`MASTER`: The name of the master to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--password`: (*Required*) (*Sensitive data* - user will be prompted on standard input) The password of the concourse user to authenticate as.
+ * `--read-permissions`: (*Default*: `[]`) A user must have at least one of these roles in order to view this build master or use it as a trigger source.
+ * `--url`: (*Required*) The url your concourse search is reachable at.
+ * `--username`: (*Required*) The username of the concourse user to authenticate as.
+ * `--write-permissions`: (*Default*: `[]`) A user must have at least one of these roles in order to be able to run jobs on this build master.
+
+
+---
+## hal config ci concourse master delete
+
+Delete a specific concourse master by name.
+
+#### Usage
+```
+hal config ci concourse master delete MASTER [parameters]
+```
+
+#### Parameters
+`MASTER`: The name of the master to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config ci concourse master edit
+
+Edit a master for the concourse Continuous Integration service.
+
+#### Usage
+```
+hal config ci concourse master edit MASTER [parameters]
+```
+
+#### Parameters
+`MASTER`: The name of the master to operate on.
+ * `--add-read-permission`: Add this permission to the list of read permissions.
+ * `--add-write-permission`: Add this permission to the list of write permissions.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--password`: (*Sensitive data* - user will be prompted on standard input) The password of the concourse user to authenticate as.
+ * `--read-permissions`: A user must have at least one of these roles in order to view this build master or use it as a trigger source.
+ * `--remove-read-permission`: Remove this permission from the list of read permissions.
+ * `--remove-write-permission`: Remove this permission from the list of write permissions.
+ * `--url`: The url your concourse search is reachable at.
+ * `--username`: The username of the concourse user to authenticate as.
+ * `--write-permissions`: A user must have at least one of these roles in order to be able to run jobs on this build master.
+
+
+---
+## hal config ci concourse master get
+
+Get the specified master details for concourse.
+
+#### Usage
+```
+hal config ci concourse master get MASTER [parameters]
+```
+
+#### Parameters
+`MASTER`: The name of the master to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config ci concourse master list
+
+List the master names for concourse.
+
+#### Usage
+```
+hal config ci concourse master list [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
 
 ---
 ## hal config ci jenkins
@@ -9017,6 +9202,187 @@ List the subscription names for the google pubsub.
 #### Usage
 ```
 hal config pubsub google subscription list [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config repository
+
+Configure, validate, and view the specified repository.
+
+#### Usage
+```
+hal config repository [subcommands]
+```
+
+#### Subcommands
+ * `artifactory`: Manage and view Spinnaker configuration for the artifactory repository
+
+---
+## hal config repository artifactory
+
+Manage and view Spinnaker configuration for the artifactory repository
+
+#### Usage
+```
+hal config repository artifactory [parameters] [subcommands]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `disable`: Set the artifactory repository as disabled
+ * `enable`: Set the artifactory repository as enabled
+ * `search`: Manage and view Spinnaker configuration for the artifactory repository services's search
+
+---
+## hal config repository artifactory disable
+
+Set the artifactory repository as disabled
+
+#### Usage
+```
+hal config repository artifactory disable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config repository artifactory enable
+
+Set the artifactory repository as enabled
+
+#### Usage
+```
+hal config repository artifactory enable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config repository artifactory search
+
+Manage and view Spinnaker configuration for the artifactory repository services's search
+
+#### Usage
+```
+hal config repository artifactory search SEARCH [parameters] [subcommands]
+```
+
+#### Parameters
+`SEARCH`: The name of the search to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `add`: Add a search for the artifactory repository service.
+ * `delete`: Delete a specific artifactory search by name.
+ * `edit`: Edit a search for the artifactory repository service.
+ * `get`: Get the specified search details for artifactory.
+ * `list`: List the search names for artifactory.
+
+---
+## hal config repository artifactory search add
+
+Add a search for the artifactory repository service.
+
+#### Usage
+```
+hal config repository artifactory search add SEARCH [parameters]
+```
+
+#### Parameters
+`SEARCH`: The name of the search to operate on.
+ * `--base-url`: (*Required*) The base url your artifactory search is reachable at.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--groupId`: (*Required*) The group id in your artifactory to be searched.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--password`: (*Required*) (*Sensitive data* - user will be prompted on standard input) The password of the artifactory user to authenticate as.
+ * `--read-permissions`: (*Default*: `[]`) A user must have at least one of these roles in order to view this build search or use it as a trigger source.
+ * `--repo`: (*Required*) The repo in your artifactory to be searched.
+ * `--username`: (*Required*) The username of the artifactory user to authenticate as.
+ * `--write-permissions`: (*Default*: `[]`) A user must have at least one of these roles in order to be able to run jobs on this build search.
+
+
+---
+## hal config repository artifactory search delete
+
+Delete a specific artifactory search by name.
+
+#### Usage
+```
+hal config repository artifactory search delete SEARCH [parameters]
+```
+
+#### Parameters
+`SEARCH`: The name of the search to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config repository artifactory search edit
+
+Edit a search for the artifactory repository service.
+
+#### Usage
+```
+hal config repository artifactory search edit SEARCH [parameters]
+```
+
+#### Parameters
+`SEARCH`: The name of the search to operate on.
+ * `--add-read-permission`: Add this permission to the list of read permissions.
+ * `--add-write-permission`: Add this permission to the list of write permissions.
+ * `--base-url`: The base url your artifactory search is reachable at.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--groupId`: The group id in your artifactory to be searched.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--password`: The password of the artifactory user to authenticate as.
+ * `--read-permissions`: A user must have at least one of these roles in order to view this build search or use it as a trigger source.
+ * `--remove-read-permission`: Remove this permission from the list of read permissions.
+ * `--remove-write-permission`: Remove this permission from the list of write permissions.
+ * `--repo`: The repo in your artifactory to be searched.
+ * `--username`: The username of the artifactory user to authenticate as.
+ * `--write-permissions`: A user must have at least one of these roles in order to be able to run jobs on this build search.
+
+
+---
+## hal config repository artifactory search get
+
+Get the specified search details for artifactory.
+
+#### Usage
+```
+hal config repository artifactory search get SEARCH [parameters]
+```
+
+#### Parameters
+`SEARCH`: The name of the search to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config repository artifactory search list
+
+List the search names for artifactory.
+
+#### Usage
+```
+hal config repository artifactory search list [parameters]
 ```
 
 #### Parameters

@@ -16,10 +16,7 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
-import com.netflix.spinnaker.halyard.config.model.v1.node.Artifacts;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Cis;
-import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Providers;
+import com.netflix.spinnaker.halyard.config.model.v1.node.*;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import lombok.Data;
@@ -56,6 +53,12 @@ public class IgorProfileFactory extends SpringProfileFactory {
       profile.appendContents(yamlToString(deploymentConfiguration.getName(), profile, new ArtifactWrapper(artifacts)));
     }
 
+    Repositories repositories = deploymentConfiguration.getRepository();
+    if (repositories != null) {
+      files.addAll(backupRequiredFiles(repositories, deploymentConfiguration.getName()));
+      profile.appendContents(yamlToString(deploymentConfiguration.getName(), profile, repositories));
+    }
+    
     profile.appendContents(yamlToString(deploymentConfiguration.getName(), profile, cis))
         .appendContents(profile.getBaseContents())
         .setRequiredFiles(files);

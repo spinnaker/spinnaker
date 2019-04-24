@@ -88,6 +88,11 @@ public class DeploymentConfiguration extends Node {
   Cis ci = new Cis();
 
   /**
+   * Repository services, e.g. Artifactory
+   */
+  Repositories repository = new Repositories();
+
+  /**
    * Authn & Authz configuration.
    */
   Security security = new Security();

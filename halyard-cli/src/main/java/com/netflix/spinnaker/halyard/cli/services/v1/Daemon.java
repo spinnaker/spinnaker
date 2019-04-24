@@ -531,6 +531,48 @@ public class Daemon {
     };
   }
 
+  public static Supplier<Repository> getRepository(String deploymentName, String repositoryName, boolean validate) {
+    return () -> {
+      Object repository = ResponseUnwrapper.get(getService().getRepository(deploymentName, repositoryName, validate));
+      return getObjectMapper().convertValue(repository, Repositories.translateReposiroryType(repositoryName));
+    };
+  }
+
+  public static Supplier<Void> setRepositoryEnableDisable(String deploymentName, String repositoryName, boolean validate, boolean enable) {
+    return () -> {
+      ResponseUnwrapper.get(getService().setRepositoryEnabled(deploymentName, repositoryName, validate, enable));
+      return null;
+    };
+  }
+
+  public static Supplier<Search> getSearch(String deploymentName, String repositoryName, String searchName, boolean validate) {
+    return () -> {
+      Object rawSearch = ResponseUnwrapper.get(getService().getSearch(deploymentName, repositoryName, searchName, validate));
+      return getObjectMapper().convertValue(rawSearch, Repositories.translateSearchType(repositoryName));
+    };
+  }
+
+  public static Supplier<Void> addSearch(String deploymentName, String repositoryName, boolean validate, Search search) {
+    return () -> {
+      ResponseUnwrapper.get(getService().addSearch(deploymentName, repositoryName, validate, search));
+      return null;
+    };
+  }
+
+  public static Supplier<Void> setSearch(String deploymentName, String repositoryName, String searchName, boolean validate, Search search) {
+    return () -> {
+      ResponseUnwrapper.get(getService().setSearch(deploymentName, repositoryName, searchName, validate, search));
+      return null;
+    };
+  }
+
+  public static Supplier<Void> deleteSearch(String deploymentName, String repositoryName, String searchName, boolean validate) {
+    return () -> {
+      ResponseUnwrapper.get(getService().deleteSearch(deploymentName, repositoryName, searchName, validate));
+      return null;
+    };
+  }
+
   public static Supplier<String> generateDeployment(String deploymentName, boolean validate) {
     return () -> {
       return ResponseUnwrapper.get(getService().generateDeployment(deploymentName, validate, ""));
