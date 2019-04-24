@@ -272,8 +272,8 @@
       cloudProvider: 'kubernetes',
       withAccount(account):: self + { account: account },
       withNamespace(namespace):: self + { location: namespace },
-      withRevisionsBack(revisionsBack): self + { numRevisionsBack: revisionsBack },
-      withManifestName(kind, name):: self.options { manifestName: kind + ' ' + name },
+      withRevisionsBack(revisionsBack):: self + { numRevisionsBack: revisionsBack },
+      withManifestName(kind, name):: self + { manifestName: kind + ' ' + name },
     },
 
     // pipeline stages
