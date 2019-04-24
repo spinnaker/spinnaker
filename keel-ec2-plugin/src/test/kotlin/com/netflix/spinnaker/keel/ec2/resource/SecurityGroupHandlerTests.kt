@@ -40,7 +40,7 @@ import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
-import com.netflix.spinnaker.keel.plugin.ResourceHandler.ResourceDiff
+import com.netflix.spinnaker.keel.plugin.ResourceDiff
 import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import dev.minutest.junit.JUnit5Minutests

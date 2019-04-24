@@ -31,7 +31,7 @@ import com.netflix.spinnaker.keel.ec2.RETROFIT_NOT_FOUND
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
-import com.netflix.spinnaker.keel.plugin.ResourceHandler.ResourceDiff
+import com.netflix.spinnaker.keel.plugin.ResourceDiff
 import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
 import de.danielbechler.diff.ObjectDifferBuilder
 import dev.minutest.junit.JUnit5Minutests

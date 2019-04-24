@@ -15,8 +15,8 @@ import com.netflix.spinnaker.keel.persistence.ResourceState.Diff
 import com.netflix.spinnaker.keel.persistence.ResourceState.Missing
 import com.netflix.spinnaker.keel.persistence.ResourceState.Ok
 import com.netflix.spinnaker.keel.plugin.ResourceConflict
+import com.netflix.spinnaker.keel.plugin.ResourceDiff
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
-import com.netflix.spinnaker.keel.plugin.ResourceHandler.ResourceDiff
 import com.netflix.spinnaker.keel.plugin.supporting
 import com.netflix.spinnaker.keel.telemetry.ResourceChecked
 import de.danielbechler.diff.ObjectDifferBuilder
