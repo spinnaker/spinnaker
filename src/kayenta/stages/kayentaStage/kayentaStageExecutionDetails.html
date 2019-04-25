@@ -85,6 +85,10 @@
           <div class="col-md-4 sm-label-right compact">Interval</div>
           <div class="col-md-6">{{stage.context.canaryConfig.canaryAnalysisIntervalMins}} minutes</div>
         </div>
+        <div class="row" ng-if="stage.context.canaryConfig.baselineAnalysisOffsetInMins">
+          <div class="col-md-4 sm-label-right compact">Baseline Offset</div>
+          <div class="col-md-6">{{stage.context.canaryConfig.baselineAnalysisOffsetInMins}} minutes</div>
+        </div>
       </div>
     </div>
   </div>

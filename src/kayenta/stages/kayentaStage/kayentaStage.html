@@ -122,6 +122,18 @@
       <span class="form-control-static"> seconds</span>
     </stage-config-field>
 
+    <stage-config-field label="Baseline Offset"
+                        help-key="pipeline.config.canary.baselineAnalysisOffset"
+                        field-columns="3">
+      <input
+        class="form-control input-sm"
+        ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.baselineAnalysisOffsetInMins"
+        type="text"
+        min="0"
+        style="width: 33%; display: inline-block"/>
+      <span class="form-control-static"> minutes</span>
+    </stage-config-field>
+
     <stage-config-field label="Lookback Type"
                         help-key="pipeline.config.canary.lookback"
                         field-columns="3">

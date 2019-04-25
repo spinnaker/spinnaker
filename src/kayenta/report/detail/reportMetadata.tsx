@@ -36,15 +36,19 @@ const buildScopeMetadataEntries = (run: ICanaryExecutionStatusResult): IMetadata
 
   const {
     controlScope: {
-      // If the canary ran through Orca, it's not possible
-      // for start, end, and step to be different between control and experiment.
-      start,
-      end,
       step,
       location: controlLocation,
       scope: controlScope,
     },
-    experimentScope: { location: experimentLocation, scope: experimentScope },
+    experimentScope: {
+      // Since baseline starttime may be offset in canaries from Orca,
+      // Choose the experiment start and end to represent
+      // the canary start and end times
+      start: experimentStart,
+      end: experimentEnd,
+      location: experimentLocation,
+      scope: experimentScope,
+    },
   } = scopes[0];
 
   return [
@@ -83,7 +87,7 @@ const buildScopeMetadataEntries = (run: ICanaryExecutionStatusResult): IMetadata
           label: 'start',
           getContent: () => (
             <p>
-              <FormattedDate dateIso={start} />
+              <FormattedDate dateIso={experimentStart} />
             </p>
           ),
         },
@@ -91,7 +95,7 @@ const buildScopeMetadataEntries = (run: ICanaryExecutionStatusResult): IMetadata
           label: 'end',
           getContent: () => (
             <p>
-              <FormattedDate dateIso={end} />
+              <FormattedDate dateIso={experimentEnd} />
             </p>
           ),
         },

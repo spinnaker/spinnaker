@@ -22,6 +22,8 @@ const helpContents: { [key: string]: string } = {
   `,
   'pipeline.config.canary.delayBeforeAnalysis':
     '<p>The number of minutes until the first canary analysis measurement interval begins.</p>',
+  'pipeline.config.canary.baselineAnalysisOffset':
+    '<p>The offset in minutes of baseline data collection from the beginning of canary analysis. Useful for comparing metrics pre-canary for relative comparison. This field accepts SpEL</p>',
   'pipeline.config.canary.canaryInterval': `
         <p>The frequency at which a canary score is generated. The recommended interval is at least 30 minutes.</p>
         <p>If an interval is not specified, or the specified interval is larger than the overall time range, there will be one canary run over the full time range.</p>`,

@@ -87,18 +87,18 @@ function CanaryRunTimestamps({ canaryRun, firstScopeName }: { canaryRun: IStage;
     <section className="small">
       <ul className="list-unstyled">
         <li>
-          <b>Start:</b> {timestamp(Date.parse(canaryRun.context.scopes[firstScopeName].controlScope.start))}
+          <b>Start:</b> {timestamp(Date.parse(canaryRun.context.scopes[firstScopeName].experimentScope.start))}
           <CopyToClipboard
             displayText={false}
-            text={canaryRun.context.scopes[firstScopeName].controlScope.start}
+            text={canaryRun.context.scopes[firstScopeName].experimentScope.start}
             toolTip={toolTipText}
           />
         </li>
         <li>
-          <b>End:</b> {timestamp(Date.parse(canaryRun.context.scopes[firstScopeName].controlScope.end))}
+          <b>End:</b> {timestamp(Date.parse(canaryRun.context.scopes[firstScopeName].experimentScope.end))}
           <CopyToClipboard
             displayText={false}
-            text={canaryRun.context.scopes[firstScopeName].controlScope.end}
+            text={canaryRun.context.scopes[firstScopeName].experimentScope.end}
             toolTip={toolTipText}
           />
         </li>
