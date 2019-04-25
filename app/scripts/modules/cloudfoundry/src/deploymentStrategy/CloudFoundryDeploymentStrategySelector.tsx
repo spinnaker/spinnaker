@@ -11,7 +11,11 @@ import {
 } from '@spinnaker/core';
 
 import { IRedBlackCommand } from 'cloudfoundry/deploymentStrategy/strategies/redblack/redblack.strategy';
-import { AdditionalFields } from 'cloudfoundry/deploymentStrategy/strategies/redblack/AdditionalFields';
+import { AdditionalFields as AdditionalRedBlackFields } from 'cloudfoundry/deploymentStrategy/strategies/redblack/AdditionalFields';
+import {
+  AdditionalFields as AdditionalRollingRedBlackFields,
+  IRollingRedBlackCommand,
+} from 'cloudfoundry/deploymentStrategy/strategies/rollingredblack/AdditionalFields';
 
 export interface ICloudFoundryDeploymentStrategySelectorProps {
   command: IServerGroupCommand;
@@ -48,7 +52,7 @@ export class CloudFoundryDeploymentStrategySelector extends React.Component<
           'Disables <i>all</i> previous server groups in the cluster as soon as new server group passes health checks',
         key: 'redblack',
         additionalFields: ['maxRemainingAsgs'],
-        AdditionalFieldsComponent: AdditionalFields,
+        AdditionalFieldsComponent: AdditionalRedBlackFields,
         initializationMethod: (command: IRedBlackCommand) => {
           defaultsDeep(command, {
             rollback: {
@@ -57,6 +61,26 @@ export class CloudFoundryDeploymentStrategySelector extends React.Component<
             maxRemainingAsgs: 2,
             delayBeforeDisableSec: 0,
             delayBeforeScaleDownSec: 0,
+            scaleDown: false,
+          });
+        },
+      },
+      {
+        label: 'Rolling Red/Black',
+        description:
+          'Gradually replaces <i>all</i> previous server group instances in the cluster as soon as new server group instances pass health checks',
+        key: 'cfrollingredblack',
+        additionalFields: ['targetPercentages'],
+        AdditionalFieldsComponent: AdditionalRollingRedBlackFields,
+        initializationMethod: (command: IRollingRedBlackCommand) => {
+          defaultsDeep(command, {
+            rollback: {
+              onFailure: false,
+            },
+            targetPercentages: command.targetPercentages ? command.targetPercentages : [50, 100], // defaultsDeep does not work with arrays
+            delayBeforeDisableSec: 0,
+            delayBeforeScaleDownSec: 0,
+            maxRemainingAsgs: 2,
             scaleDown: false,
           });
         },

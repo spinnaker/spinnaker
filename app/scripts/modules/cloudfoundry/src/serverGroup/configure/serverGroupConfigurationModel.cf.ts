@@ -4,14 +4,16 @@ import { ICloudFoundryEnvVar } from 'cloudfoundry/domain';
 export interface ICloudFoundryCreateServerGroupCommand extends IServerGroupCommand {
   // clone server group model
   account?: string;
-  source?: ICloudFoundrySource;
+  delayBeforeScaleDownSec?: number;
   rollback?: boolean;
+  source?: ICloudFoundrySource;
   target?: string;
   targetCluster?: string;
+  targetPercentages?: number[];
 
   // deploy server group model
-  delayBeforeDisableSec?: number;
   applicationArtifact?: ICloudFoundryArtifact;
+  delayBeforeDisableSec?: number;
   manifest?: ICloudFoundryManifest;
   maxRemainingAsgs?: number;
   startApplication: boolean;
@@ -52,14 +54,16 @@ export interface ICloudFoundryManifestDirectSource {
 export interface ICloudFoundryDeployConfiguration {
   account: string;
   application: string;
-  delayBeforeDisableSec?: number;
   applicationArtifact: ICloudFoundryArtifact;
+  delayBeforeDisableSec?: number;
+  delayBeforeScaleDownSec?: number;
+  freeFormDetails?: string;
   manifest: ICloudFoundryManifest;
   maxRemainingAsgs?: number;
   region: string;
   rollback?: boolean;
   stack?: string;
-  freeFormDetails?: string;
-  strategy?: string;
   startApplication: boolean;
+  strategy?: string;
+  targetPercentages?: number[];
 }

@@ -127,6 +127,8 @@ export class CloudFoundryServerGroupCommandBuilder {
       command.rollback = originalCluster.rollback;
       command.strategy = originalCluster.strategy;
       command.startApplication = originalCluster.startApplication;
+      command.targetPercentages = originalCluster.targetPercentages;
+      command.delayBeforeScaleDownSec = originalCluster.delayBeforeScaleDownSec;
       if (originalCluster.stack) {
         command.stack = originalCluster.stack;
       }
