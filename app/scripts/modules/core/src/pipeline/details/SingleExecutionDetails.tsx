@@ -5,6 +5,7 @@ import { Subscription } from 'rxjs';
 import { UISref } from '@uirouter/react';
 
 import { Application } from 'core/application/application.model';
+import { SETTINGS } from 'core/config';
 import { IExecution, IPipeline } from 'core/domain';
 import { Execution } from 'core/pipeline/executions/execution/Execution';
 import { IScheduler, SchedulerFactory } from 'core/scheduler';
@@ -138,6 +139,7 @@ export class SingleExecutionDetails extends React.Component<
       'pipelineConfig',
       {},
     ) as IPipeline);
+    const showConfigButton = SETTINGS.feature.managedPipelineTemplatesV2UI || !isFromMPTV2Pipeline;
 
     return (
       <div style={{ width: '100%', paddingTop: 0 }}>
@@ -167,7 +169,7 @@ export class SingleExecutionDetails extends React.Component<
                       <span> stage durations</span>
                     </label>
                   </div>
-                  {!isFromMPTV2Pipeline && (
+                  {showConfigButton && (
                     <Tooltip value="Navigate to Pipeline Configuration">
                       <UISref
                         to="^.pipelineConfig"
