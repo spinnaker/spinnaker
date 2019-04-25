@@ -45,16 +45,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.netflix.spinnaker.clouddriver.cache.OnDemandAgent.OnDemandType.Manifest;
 
@@ -260,7 +252,7 @@ public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2Cachi
     String name;
     KubernetesKind kind;
 
-    if (!getAccountName().equals(account)) {
+    if (StringUtils.isEmpty(account) || !getAccountName().equals(account)) {
       return null;
     }
     
@@ -277,6 +269,9 @@ public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2Cachi
       }
 
       name = parsedName.getRight();
+      if (StringUtils.isEmpty(name)) {
+        return null;
+      }
     } catch (Exception e) {
       // This is OK - the cache controller tries (w/o much info) to get every cache agent to handle each request
       return null;
@@ -288,9 +283,7 @@ public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2Cachi
     }
 
     reloadNamespaces();
-    if ((StringUtils.isEmpty(account) || !account.equals(accountName))
-        || StringUtils.isEmpty(name)
-        || (!StringUtils.isEmpty(namespace) && !namespaces.contains(namespace))) {
+    if (!StringUtils.isEmpty(namespace) && !namespaces.contains(namespace)) {
       return null;
     }
 
@@ -321,18 +314,17 @@ public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2Cachi
 
   @Override
   public Collection<Map> pendingOnDemandRequests(ProviderCache providerCache) {
-    Collection<String> keys = providerCache.getIdentifiers(ON_DEMAND_TYPE);
-    List<Keys.InfrastructureCacheKey> infraKeys = keys.stream()
+    if (!handleReadRequests()) {
+      return Collections.emptyList();
+    }
+
+    List<String> matchingKeys = providerCache.getIdentifiers(ON_DEMAND_TYPE).stream()
         .map(Keys::parseKey)
-        .flatMap(o -> o.map(Stream::of).orElseGet(Stream::empty))
+        .filter(Optional::isPresent)
+        .map(Optional::get)
         .filter(k -> k instanceof Keys.InfrastructureCacheKey)
         .map(i -> (Keys.InfrastructureCacheKey) i)
-        .collect(Collectors.toList());
-
-    List<String> matchingKeys = infraKeys.stream()
-        .filter(i -> i.getAccount().equals(getAccountName())
-            && (StringUtils.isEmpty(i.getNamespace())) || namespaces.contains(i.getNamespace())
-            && primaryKinds().contains(i.getKubernetesKind()))
+        .filter(i -> i.getAccount().equals(getAccountName()) && primaryKinds().contains(i.getKubernetesKind()))
         .map(Keys.InfrastructureCacheKey::toString)
         .collect(Collectors.toList());
 
@@ -361,5 +353,14 @@ public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2Cachi
         .put("account", key.getAccount())
         .put("location", key.getNamespace())
         .build();
+  }
+
+  /**
+   * When fetching on-demand requests, we delegate to single caching agent, as the read request from the cache will
+   * return results for all namespaces anyway. This way we avoid having all agents perform the same query and filter
+   * to their namespaces, only to then re-combine all the results in the end.
+   */
+  private boolean handleReadRequests() {
+    return agentIndex == 0;
   }
 }
