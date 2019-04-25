@@ -9,7 +9,7 @@ import {
   StageFailureMessage,
 } from '@spinnaker/core';
 
-export function CloudfoundryCreateServiceKeyExecutionDetails(props: IExecutionDetailsSectionProps) {
+export function CloudfoundryServiceKeyExecutionDetails(props: IExecutionDetailsSectionProps) {
   const { stage } = props;
   const { context } = stage;
   const account = get(context, 'service.account', undefined);
@@ -51,8 +51,7 @@ export function CloudfoundryCreateServiceKeyExecutionDetails(props: IExecutionDe
   );
 }
 
-// TODO: refactor this to not use namespace
 // eslint-disable-next-line
-export namespace CloudfoundryCreateServiceKeyExecutionDetails {
-  export const title = 'cloudfoundryCreateServiceKeyConfig';
+export namespace CloudfoundryServiceKeyExecutionDetails {
+  export const title = 'cloudfoundryServiceKeyConfig';
 }

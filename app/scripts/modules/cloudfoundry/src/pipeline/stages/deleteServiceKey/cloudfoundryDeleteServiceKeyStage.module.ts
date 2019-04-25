@@ -1,15 +1,16 @@
-import { CloudfoundryCreateServiceKeyStageConfig } from './CloudfoundryCreateServiceKeyStageConfig';
+import { CloudfoundryDeleteServiceKeyStageConfig } from './CloudfoundryDeleteServiceKeyStageConfig';
 import { ExecutionDetailsTasks, IStage, Registry } from '@spinnaker/core';
 import { CloudfoundryServiceKeyExecutionDetails } from 'cloudfoundry/presentation';
 
 Registry.pipeline.registerStage({
   accountExtractor: (stage: IStage) => stage.context.credentials,
+  configAccountExtractor: (stage: IStage) => [stage.credentials],
   cloudProvider: 'cloudfoundry',
-  component: CloudfoundryCreateServiceKeyStageConfig,
-  description: 'Create a service key',
+  component: CloudfoundryDeleteServiceKeyStageConfig,
+  description: 'Delete a service key',
   executionDetailsSections: [CloudfoundryServiceKeyExecutionDetails, ExecutionDetailsTasks],
-  key: 'createServiceKey',
-  label: 'Create Service Key',
+  key: 'deleteServiceKey',
+  label: 'Delete Service Key',
   validators: [
     { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account' },
     { type: 'requiredField', fieldName: 'region', preventSave: true },

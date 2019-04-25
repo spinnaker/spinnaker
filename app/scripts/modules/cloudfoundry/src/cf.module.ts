@@ -29,6 +29,7 @@ import 'cloudfoundry/pipeline/config/validation/instanceSize.validator';
 import 'cloudfoundry/pipeline/config/validation/requiredRoutes.validator';
 import './pipeline/stages/cloneServerGroup/cloudfoundryCloneServerGroupStage.module';
 import './pipeline/stages/createServiceKey/cloudfoundryCreateServiceKeyStage.module';
+import './pipeline/stages/deleteServiceKey/cloudfoundryDeleteServiceKeyStage.module';
 import './pipeline/stages/deployService/cloudfoundryDeployServiceStage.module';
 import './pipeline/stages/destroyAsg/cloudfoundryDestroyAsgStage.module';
 import './pipeline/stages/destroyService/cloudfoundryDestroyServiceStage.module';
