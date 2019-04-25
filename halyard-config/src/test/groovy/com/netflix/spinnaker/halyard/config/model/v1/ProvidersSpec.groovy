@@ -26,7 +26,6 @@ import com.netflix.spinnaker.halyard.config.model.v1.providers.dcos.DCOSProvider
 import com.netflix.spinnaker.halyard.config.model.v1.providers.dockerRegistry.DockerRegistryProvider
 import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleProvider
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesProvider
-import com.netflix.spinnaker.halyard.config.model.v1.providers.openstack.OpenstackProvider
 import com.netflix.spinnaker.halyard.config.model.v1.providers.oracle.OracleProvider
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -64,8 +63,7 @@ class ProvidersSpec extends Specification {
         DockerRegistryProvider,
         GoogleProvider,
         KubernetesProvider,
-        OracleProvider,
-        OpenstackProvider
+        OracleProvider
     ]
   }
 }
