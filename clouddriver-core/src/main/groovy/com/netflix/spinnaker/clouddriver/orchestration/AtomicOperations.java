@@ -37,6 +37,7 @@ public final class AtomicOperations {
   public static final String MIGRATE_CLUSTER_CONFIGURATIONS = "migrateClusterConfigurations";
   public static final String START_SERVER_GROUP = "startServerGroup";
   public static final String STOP_SERVER_GROUP = "stopServerGroup";
+  public static final String SET_STATEFUL_DISK = "setStatefulDisk";
 
   // Instance operations
   public static final String REBOOT_INSTANCES = "rebootInstances";

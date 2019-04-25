@@ -4,6 +4,7 @@ dependencies {
   compile project(":clouddriver-consul")
   compile project(":clouddriver-google-common")
 
+  compile spinnaker.dependency('assertj')
   compile spinnaker.dependency('bootActuator')
   compile spinnaker.dependency('bootWeb')
   compile spinnaker.dependency('frigga')

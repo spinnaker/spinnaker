@@ -2,6 +2,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy.instancegroups;
 
 import com.google.api.client.googleapis.services.AbstractGoogleClientRequest;
 import com.google.api.services.compute.ComputeRequest;
+import com.google.api.services.compute.model.InstanceGroupManager;
 import com.google.api.services.compute.model.Operation;
 import com.google.common.collect.ImmutableList;
 import com.netflix.spectator.api.Registry;
@@ -38,6 +39,20 @@ public abstract class AbstractGoogleServerGroupManagers implements GoogleServerG
   }
 
   abstract ComputeRequest<Operation> performDelete() throws IOException;
+
+  @Override
+  public InstanceGroupManager get() throws IOException {
+    return timeExecute(performGet(), "get");
+  }
+
+  abstract ComputeRequest<InstanceGroupManager> performGet() throws IOException;
+
+  @Override
+  public Operation update(InstanceGroupManager content) throws IOException {
+    return timeExecute(performUpdate(content), "update");
+  }
+
+  abstract ComputeRequest<Operation> performUpdate(InstanceGroupManager content) throws IOException;
 
   private <T> T timeExecute(AbstractGoogleClientRequest<T> request, String api) throws IOException {
     return GoogleExecutor.timeExecute(

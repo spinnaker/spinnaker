@@ -2,6 +2,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy.instancegroups;
 
 import com.google.api.services.compute.Compute.InstanceGroupManagers;
 import com.google.api.services.compute.Compute.RegionInstanceGroupManagers;
+import com.google.api.services.compute.model.InstanceGroupManager;
 import com.google.api.services.compute.model.Operation;
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup;
 import java.io.IOException;
@@ -16,6 +17,10 @@ public interface GoogleServerGroupManagers {
   Operation abandonInstances(List<String> instances) throws IOException;
 
   Operation delete() throws IOException;
+
+  InstanceGroupManager get() throws IOException;
+
+  Operation update(InstanceGroupManager content) throws IOException;
 
   GoogleServerGroupOperationPoller getOperationPoller();
 }
