@@ -353,42 +353,6 @@ google:
       virtualizationSettings:
         sourceImageFamily: ubuntu-1604-lts
 
-openstack:
-  # The property referenced below, OS_ENABLED, is not set in the
-  # 'unified config' supported by the spinnaker/spinnaker project. If you
-  # copy/paste this section into a new rosco-local.yml file for use with a
-  # pre-built Spinnaker image, make sure to explicitly set the property's
-  # value to true.
-  enabled: ${OS_ENABLED:false}
-  bakeryDefaults:
-    authUrl: ${OS_AUTH_URL:}
-    domainName: Default
-    networkId: default
-    floatingIpPool: ext_network
-    securityGroups: default
-    projectName: ${OS_PROJECT_NAME:''}
-    insecure: ${OS_INSECURE:false}
-    username: ${OS_USERNAME:}
-    password: ${OS_PASSWORD:}
-    templateFile: openstack.json
-    baseImages:
-    # sourceImageId is the unique UUID of an openstack image in a region, and can be found via horizon or the image api.
-    # It is immutable for the life of the image.
-    - baseImage:
-        id: vivid
-        shortDescription: 15.04
-        detailedDescription: Ubuntu Vivid Vervet v15.04
-        packageType: deb
-      virtualizationSettings:
-      - region: r1
-        instanceType: smem-2vcpu
-        sourceImageId: b12f2467-cfca-4a65-b29b-d11b8c46818d
-        sshUserName: ubuntu
-      - region: r2
-        instanceType: smem-2vcpu
-        sourceImageId: b12f2467-cfca-4a65-b29b-d11b8c46818e
-        sshUserName: ubuntu
-
 swagger:
   enabled: true
   title: Spinnaker Rosco API

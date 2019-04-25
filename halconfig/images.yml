@@ -214,21 +214,3 @@ google:
         isImageFamily: true
       virtualizationSettings:
         sourceImageFamily: ubuntu-1604-lts
-
-openstack:
-  bakeryDefaults:
-    baseImages:
-    - baseImage:
-        id: vivid
-        shortDescription: 15.04
-        detailedDescription: Ubuntu Vivid Vervet v15.04
-        packageType: deb
-      virtualizationSettings:
-      - region: r1
-        instanceType: smem-2vcpu
-        sourceImageId: b12f2467-cfca-4a65-b29b-d11b8c46818d
-        sshUserName: ubuntu
-      - region: r2
-        instanceType: smem-2vcpu
-        sourceImageId: b12f2467-cfca-4a65-b29b-d11b8c46818e
-        sshUserName: ubuntu
