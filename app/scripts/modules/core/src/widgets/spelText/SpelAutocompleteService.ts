@@ -1,4 +1,4 @@
-import { ExecutionService } from '../../pipeline/service/execution.service';
+import { ExecutionService } from '../../pipeline';
 import { IPipeline, IExecution, IStage } from '../../domain';
 import { JsonListBuilder } from './JsonListBuilder';
 import { IPromise, IQService } from 'angular';
@@ -44,6 +44,7 @@ export class SpelAutocompleteService {
     'toJson',
     'toBase64',
     'fromBase64',
+    'cfServiceKey',
   ];
 
   private helperParams = [
@@ -164,7 +165,7 @@ export class SpelAutocompleteService {
     return textcompleteConfig;
   }
 
-  private addDeloyedServerGroupsForAutoComplete(
+  private addDeployedServerGroupsForAutoComplete(
     execution: IExecution,
     textcompleteConfig: ITextcompleteConfigElement[],
   ): ITextcompleteConfigElement[] {
@@ -348,14 +349,18 @@ export class SpelAutocompleteService {
       if (!hasManualJudmentStage) {
         helperFunctionsCopy = this.helperFunctions.filter(fnName => fnName !== 'judgment');
       }
+      const hasCreateServiceKeyStage = pipeline.stages.some(stage => stage.type === 'createServiceKey');
+      if (!hasCreateServiceKeyStage) {
+        helperFunctionsCopy = this.helperFunctions.filter(fnName => fnName !== 'cfServiceKey');
+      }
 
       const configList = [
         {
           id: 'helper functions',
-          match: /#(\w*)$/,
+          match: /#([\w\.]*)$/,
           index: 1,
           search: (term: string, callback: (value: string[]) => void) => {
-            callback(helperFunctionsCopy.filter((helper: string) => helper.indexOf(term) === 0));
+            callback(helperFunctionsCopy.filter((helper: string) => helper.startsWith(term)));
           },
           template: (value: string) => `<span class="marker function"/> #${value}`,
           replace: (helper: string) => (helper === 'toJson' ? [`#${helper}(`, ')'] : [`#${helper}( '`, `' )`]),
@@ -384,35 +389,38 @@ export class SpelAutocompleteService {
     }
   }
 
-  public addPipelineInfo(pipelineConfig: IPipeline) {
-    if (pipelineConfig && pipelineConfig.id) {
-      return this.getLastExecutionByPipelineConfig(pipelineConfig)
-        .then(lastExecution => lastExecution || pipelineConfig)
-        .then((pipeline: IPipeline & IExecution) =>
-          this.addStageNamesToCodeHelperList(
+  // visible for testing
+  public buildTextCompleteConfig(pipeline: IPipeline & IExecution): ITextcompleteConfigElement[] {
+    return this.addStageNamesToCodeHelperList(
+      pipeline,
+      this.addStageDataForAutocomplete(
+        pipeline,
+        this.addManualJudgementConfigForAutocomplete(
+          pipeline,
+          this.addTriggerConfigForAutocomplete(
             pipeline,
-            this.addStageDataForAutocomplete(
+            this.addParameterConfigForAutocomplete(
+              // TODO does this not work on stages?
               pipeline,
-              this.addManualJudgementConfigForAutocomplete(
+              this.addHelperFunctionsBasedOnStages(
                 pipeline,
-                this.addTriggerConfigForAutocomplete(
+                this.addExecutionForAutocomplete(
                   pipeline,
-                  this.addParameterConfigForAutocomplete(
-                    // TODO does this not work on stages?
-                    pipeline,
-                    this.addHelperFunctionsBasedOnStages(
-                      pipeline,
-                      this.addExecutionForAutocomplete(
-                        pipeline,
-                        this.addDeloyedServerGroupsForAutoComplete(pipeline, this.textcompleteConfig.slice(0)),
-                      ),
-                    ),
-                  ),
+                  this.addDeployedServerGroupsForAutoComplete(pipeline, this.textcompleteConfig.slice(0)),
                 ),
               ),
             ),
           ),
-        );
+        ),
+      ),
+    );
+  }
+
+  public addPipelineInfo(pipelineConfig: IPipeline) {
+    if (pipelineConfig && pipelineConfig.id) {
+      return this.getLastExecutionByPipelineConfig(pipelineConfig)
+        .then(lastExecution => lastExecution || pipelineConfig)
+        .then((pipeline: IPipeline & IExecution) => this.buildTextCompleteConfig(pipeline));
     } else {
       return this.$q.when(this.textcompleteConfig);
     }
