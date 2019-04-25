@@ -19,7 +19,7 @@ package com.netflix.spinnaker.igor.artifactory;
 import com.netflix.discovery.DiscoveryClient;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.igor.IgorConfigurationProperties;
-import com.netflix.spinnaker.igor.artifactory.model.ArtifactoryArtifact;
+import com.netflix.spinnaker.igor.artifactory.model.ArtifactoryItem;
 import com.netflix.spinnaker.igor.artifactory.model.ArtifactoryRepositoryType;
 import com.netflix.spinnaker.igor.artifactory.model.ArtifactorySearch;
 import com.netflix.spinnaker.igor.config.ArtifactoryProperties;
@@ -120,7 +120,7 @@ public class ArtifactoryBuildMonitor extends CommonPollingMonitor<ArtifactoryBui
             "*\"}," +
             "\"name\": {\"$match\":\"" +
             "*.pom\"}" +
-          "}).include(\"path\",\"repo\",\"name\")";
+          "}).include(\"path\",\"repo\",\"name\", \"artifact.module.build\")";
 
         ArtifactoryRequest aqlRequest = new ArtifactoryRequestImpl()
           .method(ArtifactoryRequest.Method.POST)
@@ -132,7 +132,7 @@ public class ArtifactoryBuildMonitor extends CommonPollingMonitor<ArtifactoryBui
         try {
           ArtifactoryResponse aqlResponse = client.restCall(aqlRequest);
           if (aqlResponse.isSuccessResponse()) {
-            List<ArtifactoryArtifact> results = aqlResponse.parseBody(ArtifactoryQueryResults.class).getResults();
+            List<ArtifactoryItem> results = aqlResponse.parseBody(ArtifactoryQueryResults.class).getResults();
             return new ArtifactPollingDelta(search.getName(), search.getPartitionName(), Collections.singletonList(
               new ArtifactDelta(System.currentTimeMillis(), search.getRepoType(), results)));
           }
@@ -151,7 +151,7 @@ public class ArtifactoryBuildMonitor extends CommonPollingMonitor<ArtifactoryBui
   protected void commitDelta(ArtifactPollingDelta delta, boolean sendEvents) {
     for (ArtifactDelta artifactDelta : delta.items) {
       if (sendEvents) {
-        for (ArtifactoryArtifact artifact : artifactDelta.getArtifacts()) {
+        for (ArtifactoryItem artifact : artifactDelta.getArtifacts()) {
           postEvent(artifactDelta.getType(), artifact, delta.getName());
           log.debug("{} event posted", artifact);
         }
@@ -159,7 +159,7 @@ public class ArtifactoryBuildMonitor extends CommonPollingMonitor<ArtifactoryBui
     }
   }
 
-  private void postEvent(ArtifactoryRepositoryType repoType, ArtifactoryArtifact artifact, String name) {
+  private void postEvent(ArtifactoryRepositoryType repoType, ArtifactoryItem artifact, String name) {
     if (!echoService.isPresent()) {
       log.warn("Cannot send build notification: Echo is not configured");
       registry.counter(missedNotificationId.withTag("monitor", ArtifactoryBuildMonitor.class.getSimpleName())).increment();
@@ -187,11 +187,11 @@ public class ArtifactoryBuildMonitor extends CommonPollingMonitor<ArtifactoryBui
   static class ArtifactDelta implements DeltaItem {
     private final long searchTimestamp;
     private final ArtifactoryRepositoryType type;
-    private final List<ArtifactoryArtifact> artifacts;
+    private final List<ArtifactoryItem> artifacts;
   }
 
   @Data
   private static class ArtifactoryQueryResults {
-    List<ArtifactoryArtifact> results;
+    List<ArtifactoryItem> results;
   }
 }
