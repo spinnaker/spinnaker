@@ -343,6 +343,3 @@ tests:
     api: gate
     args:
       alias: [standard_dcos_provider_params]
-
-# Add openstack_smoke_test
-#    need to add config support first

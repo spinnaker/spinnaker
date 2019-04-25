@@ -91,26 +91,6 @@ Microsoft Azure       | az        | [See instructions](https://docs.microsoft.co
 Google Cloud Platform | gcloud    | `curl https://sdk.cloud.google.com`
 Kubernetes            | kubectl   | [See instructions](http://kubernetes.io/docs/user-guide/prereqs/)
 DC/OS                 | dcos      | [See instructions](https://dcos.io/docs/1.9/cli/install/)
-OpenStack             | openstack | [See instructions](https://docs.openstack.org/user-guide/common/cli-install-openstack-command-line-clients.html)
-
-## Defining Environment Variables
-
-### OpenStack
-
-Below mentioned environment variables are needed in order for OpenStack client
-to work.
-
-| Variable                | Description                                 |
-| ----------------------- | ------------------------------------------- |
-| OS_AUTH_URL             | Keystone authentication server URL. (https\://identityHost\:portNumber/version) |
-| OS_PROJECT_ID           | OpenStack project ID.                       |
-| OS_PROJECT_NAME         | OpenStack project name.                     |
-| OS_USER_DOMAIN_NAME     | OpenStack user domain name.                 |
-| OS_USERNAME             | OpenStack user name.                        |
-| OS_PASSWORD             | OpenStack user password.                    |
-| OS_REGION_NAME          | OpenStack region name.                      |
-| OS_IDENTITY_API_VERSION | Keystone service endpoint version number.   |
-| OS_PROJECT_DOMAIN_NAME  | OpenStack project domain name.              |
 
 # Preparing a deployment to test against
 
@@ -246,7 +226,6 @@ Flag | Description
 spinnaker_google_credentials | The name of the Spinnaker [clouddriver] account that you wish to use for Google operations. If not specified, this will use the configured primary account.
 spinnaker_kubernetes_credentials |  The name of the Spinnaker [clouddriver] account that you wish to use for Kubernetes operations. If not specified, this will use the configured primary account.
 spinnaker_aws_credentials |  The name of the Spinnaker [clouddriver] account that you wish to use for Amazon Web Services operations. If not specified, this will use the configured primary account.
-spinnaker_os_account | The name of the Spinnaker [clouddriver] account that you wish to use for OpenStack operations. If not specified, this will use the configured primary account.
 spinnaker_azure_account | The name of the Spinnaker [clouddriver] account that you wish to use for the Azure operations. If not specified, this will use the configured primary account.
 spinnaker_dcos_account | The name of the Spinnaker [clouddriver] account that you wish to use for DC/OS operations. If not specified, this will use the configured primary account.
 spinnaker_dcos_cluster | The name of the DC/OS cluster associated to spinnaker_dcos_account to use for DC/OS operations.
@@ -257,7 +236,6 @@ Flag | Description
 -----|------------
 gce_credentials_path | The path to a service account JSON credentials file used by the test to verify effects on GCE. The permissions needed on the account may vary depending on what the test is doing. You can use the same service account that you have configured spinnaker with,
 aws_profile | The name of the awscli profile to use when verifying effects on AWS. The permissions needed in the profile may vary depending on what the test is doing. You can use the same AWS credentials as those you configured spinnaker to use.
-os_cloud | The name of the cloud. OpenStack will look for a clouds.yaml file that contains a cloud configuration to use for authentication.
 azure | For Azure, you must login with the following command on the test environment ```az login -u SPN_Client_ID -p SPN_Application_key --tenant Tenant_Name --service-principal``` prior to test execution.
 
 ## Typical Invocations
@@ -307,10 +285,6 @@ additional "observer" things.
 ### Kubernetes
 
         None (when on GCE)
-
-### OpenStack
-
-        --os_cloud=$OS_CLOUD
 
 ### Azure
 

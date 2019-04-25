@@ -84,7 +84,7 @@ class BaseScenarioPlatformSupport(object):
     This ensures the local bindings for:
        SPINNAKER_<platform>_ACCOUNT
        SPINNAKER_<platform>_ENABLED
-    where <platform> is the platform_name or OS for openstack.
+    where <platform> is the platform_name.
     It will use the scenario's deployed configuration if available and needed
     so that these variables will correspond to the agent's target.
     The default ACCOUNT is the configured primary account.
@@ -99,7 +99,7 @@ class BaseScenarioPlatformSupport(object):
     self.__observer = None
     self.__scenario = scenario
     self.__platform_name = platform_name
-    test_platform_key = platform_name if platform_name != 'openstack' else 'os'
+    test_platform_key = platform_name
 
     bindings = scenario.bindings
     agent = scenario.agent
