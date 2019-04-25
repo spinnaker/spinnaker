@@ -25,7 +25,7 @@ import javax.validation.constraints.NotNull
 /**
  * Helper class to map masters in properties file into a validated property map
  */
-@ConditionalOnProperty('bitbucket.baseUrl')
+@ConditionalOnProperty('bitbucket.base-url')
 @CompileStatic
 @ConfigurationProperties(prefix = 'bitbucket')
 class BitBucketProperties {

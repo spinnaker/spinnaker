@@ -15,49 +15,34 @@
  */
 
 buildscript {
+    ext {
+      korkVersion = "5.0.0"
+      fiatVersion = "1.0.0"
+    }
     repositories {
         jcenter()
         maven { url "https://spinnaker.bintray.com/gradle" }
         maven { url "https://plugins.gradle.org/m2/" }
     }
     dependencies {
-        classpath 'com.netflix.spinnaker.gradle:spinnaker-dev-plugin:5.2.2'
+        classpath 'com.netflix.spinnaker.gradle:spinnaker-dev-plugin:6.0.0'
+        if (Boolean.valueOf(enablePublishing)) {
+          classpath 'com.netflix.spinnaker.gradle:spinnaker-gradle-project:6.0.0'
+        }
     }
 }
 
 allprojects {
+    group = "com.netflix.spinnaker.igor"
     apply plugin: 'spinnaker.base-project'
+    if (Boolean.valueOf(enablePublishing)) {
+      apply plugin: 'spinnaker.project'
+    }
+    apply plugin: 'java-library'
     apply plugin: 'groovy'
 
     sourceSets.main.java.srcDirs = []
     sourceSets.main.groovy.srcDirs += ["src/main/java"]
-
-    ext {
-        spinnakerDependenciesVersion = '1.41.0'
-        if (project.hasProperty('spinnakerDependenciesVersion')) {
-          spinnakerDependenciesVersion = project.property('spinnakerDependenciesVersion')
-        }
-    }
-
-    def checkLocalVersions = [spinnakerDependenciesVersion: spinnakerDependenciesVersion]
-    if (ext.has('versions')) {
-        def extVers = ext.get('versions')
-        if (extVers instanceof Map) {
-            checkLocalVersions.putAll(extVers)
-        }
-    }
-
-    def localVersions = checkLocalVersions.findAll { it.value.endsWith('-SNAPSHOT') }
-    if (localVersions) {
-        logger.info("Enabling mavenLocal repo for $localVersions")
-        repositories {
-            mavenLocal()
-        }
-    }
-
-    spinnaker {
-        dependenciesVersion = spinnakerDependenciesVersion
-    }
 
     test {
       testLogging {
@@ -69,15 +54,6 @@ allprojects {
       if (System.getProperty('DEBUG', 'false') == 'true') {
         jvmArgs '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=8188'
       }
-    }
-
-    group = "com.netflix.spinnaker.igor"
-
-    //c&p this because NetflixOss reverts it to 1.7 and ends up getting applied last..
-    project.plugins.withType(JavaBasePlugin) {
-        JavaPluginConvention convention = project.convention.getPlugin(JavaPluginConvention)
-        convention.sourceCompatibility = JavaVersion.VERSION_1_8
-        convention.targetCompatibility = JavaVersion.VERSION_1_8
     }
 }
 

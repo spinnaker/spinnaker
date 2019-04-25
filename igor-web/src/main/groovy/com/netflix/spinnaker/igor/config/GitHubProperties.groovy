@@ -26,7 +26,7 @@ import javax.validation.constraints.NotNull
 /**
  * Helper class to map masters in properties file into a validated property map
  */
-@ConditionalOnProperty('github.baseUrl')
+@ConditionalOnProperty('github.base-url')
 @CompileStatic
 @ConfigurationProperties(prefix = 'github')
 class GitHubProperties {

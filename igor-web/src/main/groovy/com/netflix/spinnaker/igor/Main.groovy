@@ -21,7 +21,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration
 import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.boot.context.properties.EnableConfigurationProperties
-import org.springframework.boot.web.support.SpringBootServletInitializer
+import org.springframework.boot.web.servlet.support.SpringBootServletInitializer
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import sun.net.InetAddressCachePolicy
@@ -34,7 +34,7 @@ import java.security.Security
 @Configuration
 @EnableAutoConfiguration(exclude = [GroovyTemplateAutoConfiguration])
 @EnableConfigurationProperties(IgorConfigurationProperties)
-@ComponentScan(['com.netflix.spinnaker.igor', 'com.netflix.spinnaker.config', 'com.netflix.spinnaker.igor.health'])
+@ComponentScan([ 'com.netflix.spinnaker.config', 'com.netflix.spinnaker.igor'])
 class Main extends SpringBootServletInitializer {
 
     static final Map<String, String> DEFAULT_PROPS = [

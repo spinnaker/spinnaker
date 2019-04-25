@@ -12,7 +12,6 @@ spinnaker:
     # https://github.com/spinnaker/igor/blob/master/igor-web/src/main/groovy/com/netflix/spinnaker/igor/IgorConfigurationProperties.groovy#L47
     itemUpperThreshold: 1000
 
-
 endpoints.health.sensitive: false
 
 spring.jackson.serialization.write_dates_as_timestamps: false

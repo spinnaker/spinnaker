@@ -25,10 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import retrofit.RetrofitError;
 
 import java.util.HashMap;
@@ -37,7 +34,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController(value = "GitLabCommitController")
-@ConditionalOnProperty("gitlab.baseUrl")
+@ConditionalOnProperty("gitlab.base-url")
 @RequestMapping("/gitlab")
 public class CommitController extends AbstractCommitController {
     private static final Logger log = LoggerFactory.getLogger(CommitController.class);
@@ -50,7 +47,7 @@ public class CommitController extends AbstractCommitController {
         this.gitLabProperties = gitLabProperties;
     }
 
-    @RequestMapping(value = "/{projectKey}/{repositorySlug}/compareCommits")
+    @RequestMapping(method = RequestMethod.GET, value = "/{projectKey}/{repositorySlug}/compareCommits")
     public List<Map<String, Object>> compareCommits(@PathVariable String projectKey,
                                                     @PathVariable String repositorySlug,
                                                     @RequestParam Map<String, String> requestParams) {

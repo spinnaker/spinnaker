@@ -40,7 +40,7 @@ public abstract class AbstractCommitController {
     public static class MissingParametersException extends RuntimeException {
     }
 
-    @RequestMapping(value = "/{projectKey}/{repositorySlug}/compareCommits")
+    @RequestMapping(method = RequestMethod.GET, value = "/{projectKey}/{repositorySlug}/compareCommits")
     public List<Map<String, Object>> compareCommits(@PathVariable String projectKey,
                                                     @PathVariable String repositorySlug,
                                                     @RequestParam Map<String, String> requestParams) {

@@ -20,7 +20,6 @@ import com.netflix.spinnaker.igor.build.model.GenericArtifact
 import spock.lang.Specification
 import spock.lang.Unroll
 
-
 class RpmDetailsDecoratorSpec extends Specification {
 
     @Unroll

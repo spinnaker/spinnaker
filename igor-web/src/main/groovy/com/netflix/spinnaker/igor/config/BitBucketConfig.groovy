@@ -36,7 +36,7 @@ import javax.validation.Valid
  * Converts the list of BitBucket Configuration properties a collection of clients to access the BitBucket hosts
  */
 @Configuration
-@ConditionalOnProperty('bitbucket.baseUrl')
+@ConditionalOnProperty('bitbucket.base-url')
 @Slf4j
 @CompileStatic
 @EnableConfigurationProperties(BitBucketProperties)

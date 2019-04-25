@@ -15,52 +15,71 @@ test {
 }
 
 dependencies {
-    spinnaker.group "test"
-    spinnaker.group "bootWeb"
-    spinnaker.group "jackson"
-    spinnaker.group "retrofitDefault"
-    spinnaker.group "fiat"
+    implementation platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
+    compileOnly "org.projectlombok:lombok"
+    annotationProcessor platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
+    annotationProcessor "org.projectlombok:lombok"
+    testAnnotationProcessor platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
+    testAnnotationProcessor "org.projectlombok:lombok"
 
-    compile spinnaker.dependency("googleCloudBuild")
-    compile spinnaker.dependency("kork")
-    compile spinnaker.dependency("korkArtifacts")
-    compile spinnaker.dependency("korkStackdriver")
-    compile spinnaker.dependency("korkWeb")
-    compile spinnaker.dependency("korkJedis")
-    compile spinnaker.dependency("korkDynomite")
-    compile spinnaker.dependency("korkTelemetry")
-    compile spinnaker.dependency("jacksonJsr310")
-    compile spinnaker.dependency("groovy")
-    compile spinnaker.dependency("lombok")
-    compile spinnaker.dependency("rxJava")
-    compile spinnaker.dependency("retrofit")
-    compile spinnaker.dependency("eurekaClient")
-    compile spinnaker.dependency("korkHystrix")
-    compile spinnaker.dependency("okHttp")
-    compile spinnaker.dependency('logstashEncoder')
-    compile spinnaker.dependency("lombok")
-    annotationProcessor spinnaker.dependency("lombok")
-    compile spinnaker.dependency('korkArtifacts')
-    compile spinnaker.dependency("resilience4jRetry")
+    implementation "org.springframework.boot:spring-boot-properties-migrator"
+    implementation "org.springframework.boot:spring-boot-starter-actuator"
+    implementation "org.springframework.boot:spring-boot-starter-web"
 
-    compile 'io.projectreactor:reactor-core:3.2.6.RELEASE'
-    compile "com.squareup.okhttp3:okhttp-sse:${spinnaker.version("okHttp3")}"
+    testImplementation "org.springframework.boot:spring-boot-starter-test"
+    testImplementation "org.spockframework:spock-core"
+    testImplementation "org.spockframework:spock-spring"
+    testImplementation "org.springframework:spring-test"
+    testImplementation "org.hamcrest:hamcrest-core"
+    testRuntimeOnly "cglib:cglib-nodep"
+    testRuntimeOnly "org.objenesis:objenesis"
+    implementation "org.codehaus.groovy:groovy-all"
 
-    compile 'org.yaml:snakeyaml:1.15'
-    compile 'com.squareup.retrofit:converter-simplexml:1.9.0'
-    compile 'com.google.code.gson:gson:2.8.2'
-    compile "com.fasterxml.jackson.dataformat:jackson-dataformat-xml:${spinnaker.version("jackson")}"
-    compile 'org.jfrog.artifactory.client:artifactory-java-client-services:2.8.1'
+    implementation "com.fasterxml.jackson.core:jackson-annotations" 
+    implementation "com.fasterxml.jackson.core:jackson-core" 
+    implementation "com.fasterxml.jackson.core:jackson-databind" 
+    implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310" 
+    implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-xml"
 
-    testCompile 'com.squareup.okhttp:mockwebserver:2.7.0'
-    testCompile 'org.springframework.boot:spring-boot-starter-test'
-    testCompile spinnaker.dependency("korkJedisTest")
-    testCompile spinnaker.dependency("junitJupiterApi")
-    testCompile spinnaker.dependency("assertj")
+    implementation "com.squareup.retrofit:retrofit"
+    implementation "com.squareup.retrofit:converter-jackson"
+    implementation "com.squareup.okhttp:okhttp"
+    implementation "com.squareup.okhttp:okhttp-urlconnection"
+    implementation "com.squareup.okhttp:okhttp-apache"
+    implementation "com.squareup.okhttp3:okhttp-sse"
+    implementation "com.squareup.retrofit:converter-simplexml"
 
-    testRuntimeOnly "org.junit.vintage:junit-vintage-engine:${spinnaker.version('jupiter')}"
-    testCompile 'org.junit.jupiter:junit-jupiter-api:5.2.0'
-    testRuntime 'org.junit.jupiter:junit-jupiter-engine:5.2.0'
-    testCompile 'com.github.tomakehurst:wiremock-jre8:2.22.0'
-    testCompile 'org.mockito:mockito-core:2.6.8'
+    implementation "com.netflix.spinnaker.fiat:fiat-api:$fiatVersion"
+    implementation "com.netflix.spinnaker.fiat:fiat-core:$fiatVersion"
+    implementation "org.springframework.security:spring-security-core"
+    implementation "org.springframework.security:spring-security-config"
+    implementation "org.springframework.security:spring-security-web"
+
+    implementation "com.google.apis:google-api-services-cloudbuild"
+    implementation "com.netflix.spinnaker.kork:kork-core"
+    implementation "com.netflix.spinnaker.kork:kork-artifacts"
+    implementation "com.netflix.spinnaker.kork:kork-stackdriver"
+    implementation "com.netflix.spinnaker.kork:kork-web"
+    implementation "com.netflix.spinnaker.kork:kork-jedis"
+    implementation "com.netflix.spinnaker.kork:kork-dynomite"
+    implementation "com.netflix.spinnaker.kork:kork-telemetry"
+    implementation "com.netflix.spinnaker.kork:kork-hystrix"
+
+    implementation "io.reactivex:rxjava"
+    implementation "com.netflix.eureka:eureka-client"
+    implementation "net.logstash.logback:logstash-logback-encoder"
+    implementation "io.github.resilience4j:resilience4j-retry"
+
+    implementation "io.projectreactor:reactor-core"
+    implementation "com.google.code.gson:gson"
+    implementation "org.jfrog.artifactory.client:artifactory-java-client-services:2.8.1"
+
+    testImplementation "com.squareup.okhttp:mockwebserver"
+    testImplementation "com.netflix.spinnaker.kork:kork-jedis-test"
+    testImplementation "org.junit.jupiter:junit-jupiter-api"
+    testImplementation "org.assertj:assertj-core"
+
+    testRuntimeOnly "org.junit.vintage:junit-vintage-engine"
+    testRuntime "org.junit.jupiter:junit-jupiter-engine"
+    testImplementation "com.github.tomakehurst:wiremock-jre8:2.22.0"
 }

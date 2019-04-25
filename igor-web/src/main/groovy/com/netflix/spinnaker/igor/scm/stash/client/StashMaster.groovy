@@ -36,7 +36,7 @@ class StashMaster {
     String baseUrl
 
     @Bean
-    @ConditionalOnProperty('stash.baseUrl')
+    @ConditionalOnProperty('stash.base-url')
     StashMaster stashMaster(@Valid StashProperties stashProperties) {
         log.info "bootstrapping ${stashProperties.baseUrl}"
         new StashMaster(

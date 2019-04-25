@@ -25,7 +25,7 @@ import javax.validation.constraints.NotNull;
 /**
  * Helper class to map masters in properties file into a validated property map.
  */
-@ConditionalOnProperty("gitlab.baseUrl")
+@ConditionalOnProperty("gitlab.base-url")
 @ConfigurationProperties(prefix = "gitlab")
 public class GitLabProperties {
     @NotEmpty

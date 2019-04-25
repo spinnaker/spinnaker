@@ -32,7 +32,7 @@ import retrofit.client.OkClient
 
 
 @Configuration
-@ConditionalOnProperty(['services.clouddriver.baseUrl', 'dockerRegistry.enabled'])
+@ConditionalOnProperty(['services.clouddriver.base-url', 'docker-registry.enabled'])
 @EnableConfigurationProperties(DockerRegistryProperties)
 @CompileStatic
 class DockerRegistryConfig {

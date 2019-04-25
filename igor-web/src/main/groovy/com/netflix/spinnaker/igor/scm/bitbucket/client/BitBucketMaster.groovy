@@ -35,7 +35,7 @@ class BitBucketMaster {
   String baseUrl
 
   @Bean
-  @ConditionalOnProperty('bitbucket.baseUrl')
+  @ConditionalOnProperty('bitbucket.base-url')
   BitBucketMaster bitBucketMaster(@Valid BitBucketProperties bitBucketProperties) {
     log.info "bootstrapping ${bitBucketProperties.baseUrl}"
     new BitBucketMaster(

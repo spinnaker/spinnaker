@@ -16,10 +16,6 @@
 
 package com.netflix.spinnaker.igor.jenkins.client
 
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.dataformat.xml.XmlMapper
-import com.fasterxml.jackson.module.jaxb.JaxbAnnotationModule
 import com.netflix.spinnaker.igor.config.JenkinsConfig
 import com.netflix.spinnaker.igor.config.JenkinsProperties
 import com.netflix.spinnaker.igor.jenkins.client.model.Build
@@ -32,7 +28,6 @@ import com.squareup.okhttp.mockwebserver.MockResponse
 import com.squareup.okhttp.mockwebserver.MockWebServer
 import spock.lang.Shared
 import spock.lang.Specification
-
 /**
  * Tests that Jenkins client correctly binds to underlying XML model as expected
  */
@@ -207,13 +202,13 @@ class JenkinsClientSpec extends Specification {
         setResponse("")
 
         when:
-        def response = client.build("My-Build", "", crumb)
+        def response = client.build("My-Build", "", jenkinsCrumb)
 
         then:
         response
 
         where:
-        crumb << [null, 'crumb']
+        jenkinsCrumb << [null, 'crumb']
     }
 
     void 'trigger a build with parameters'() {
@@ -221,13 +216,13 @@ class JenkinsClientSpec extends Specification {
         setResponse("")
 
         when:
-        def response = client.buildWithParameters("My-Build", [foo:"bar", key:"value"], "", crumb)
+        def response = client.buildWithParameters("My-Build", [foo:"bar", key:"value"], "", jenkinsCrumb)
 
         then:
         response
 
         where:
-        crumb << [null, 'crumb']
+        jenkinsCrumb << [null, 'crumb']
     }
 
     private void setResponse(String body) {

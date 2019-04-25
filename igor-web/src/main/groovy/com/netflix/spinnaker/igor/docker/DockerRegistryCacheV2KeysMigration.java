@@ -24,7 +24,6 @@ import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import redis.clients.jedis.Jedis;
@@ -37,7 +36,9 @@ import rx.schedulers.Schedulers;
 
 import javax.annotation.PostConstruct;
 import java.time.Duration;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -50,7 +51,7 @@ import static java.lang.String.format;
  * to the new key format, and the old keys TTL'ed.
  */
 @Component
-@ConditionalOnProperty(value = "redis.dockerV1KeyMigration.enabled", matchIfMissing = true)
+@ConditionalOnProperty(value = "redis.docker-v1-key-migration.enabled", matchIfMissing = true)
 public class DockerRegistryCacheV2KeysMigration {
 
     private final static Logger log = LoggerFactory.getLogger(DockerRegistryCacheV2KeysMigration.class);

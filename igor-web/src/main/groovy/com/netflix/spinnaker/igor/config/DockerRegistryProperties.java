@@ -19,7 +19,7 @@ package com.netflix.spinnaker.igor.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@ConfigurationProperties(prefix = "dockerRegistry")
+@ConfigurationProperties(prefix = "docker-registry")
 public class DockerRegistryProperties {
     private boolean enabled;
     private Integer itemUpperThreshold;

@@ -33,7 +33,7 @@ import retrofit.converter.JacksonConverter;
 import javax.validation.Valid;
 
 @Configuration
-@ConditionalOnProperty("gitlab.baseUrl")
+@ConditionalOnProperty("gitlab.base-url")
 @EnableConfigurationProperties(GitLabProperties.class)
 public class GitLabConfig {
     private static final Logger log = LoggerFactory.getLogger(GitLabConfig.class);

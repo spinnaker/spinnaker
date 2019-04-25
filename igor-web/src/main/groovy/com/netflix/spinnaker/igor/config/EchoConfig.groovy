@@ -30,7 +30,7 @@ import retrofit.client.OkClient
 /**
  * history service configuration
  */
-@ConditionalOnProperty('services.echo.baseUrl')
+@ConditionalOnProperty('services.echo.base-url')
 @Configuration
 class EchoConfig {
     @Bean

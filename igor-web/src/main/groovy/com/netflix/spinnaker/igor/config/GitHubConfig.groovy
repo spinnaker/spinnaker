@@ -37,7 +37,7 @@ import javax.validation.Valid
  * Converts the list of GitHub Configuration properties a collection of clients to access the GitHub hosts
  */
 @Configuration
-@ConditionalOnProperty('github.baseUrl')
+@ConditionalOnProperty('github.base-url')
 @Slf4j
 @CompileStatic
 @EnableConfigurationProperties(GitHubProperties)

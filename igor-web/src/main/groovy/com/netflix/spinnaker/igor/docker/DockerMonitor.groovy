@@ -41,7 +41,7 @@ import static net.logstash.logback.argument.StructuredArguments.kv
 
 @Service
 @SuppressWarnings('CatchException')
-@ConditionalOnProperty(['services.clouddriver.baseUrl', 'dockerRegistry.enabled'])
+@ConditionalOnProperty(['services.clouddriver.base-url', 'docker-registry.enabled'])
 class DockerMonitor extends CommonPollingMonitor<ImageDelta, DockerPollingDelta> {
 
     private final DockerRegistryCache cache

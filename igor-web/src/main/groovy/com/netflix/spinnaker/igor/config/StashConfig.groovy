@@ -37,7 +37,7 @@ import javax.validation.Valid
  * Converts the list of Stash Configuration properties a collection of clients to access the Stash hosts
  */
 @Configuration
-@ConditionalOnProperty('stash.baseUrl')
+@ConditionalOnProperty('stash.base-url')
 @Slf4j
 @CompileStatic
 @EnableConfigurationProperties(StashProperties)

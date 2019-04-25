@@ -36,7 +36,7 @@ import org.springframework.context.annotation.Configuration
 @EnableConfigurationProperties(DynomiteConfigurationProperties.class)
 class DynomiteConfig {
     @Bean
-    @ConfigurationProperties("dynomite.connectionPool")
+    @ConfigurationProperties("dynomite.connection-pool")
     ConnectionPoolConfigurationImpl connectionPoolConfiguration(DynomiteConfigurationProperties dynomiteConfigurationProperties) {
         new ConnectionPoolConfigurationImpl(dynomiteConfigurationProperties.applicationName)
     }
