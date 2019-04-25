@@ -30,11 +30,11 @@ import retrofit.client.Client;
 import retrofit.converter.JacksonConverter;
 
 @Configuration
-@ConditionalOnProperty("githubStatus.enabled")
+@ConditionalOnProperty("github-status.enabled")
 @Slf4j
 public class GithubConfig {
   @Bean
-  public Endpoint githubEndpoint(@Value("${githubStatus.endpoint}") String endpoint) {
+  public Endpoint githubEndpoint(@Value("${github-status.endpoint}") String endpoint) {
     return Endpoints.newFixedEndpoint(endpoint);
   }
 

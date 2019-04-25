@@ -36,7 +36,7 @@ import retrofit.converter.JacksonConverter;
 @Slf4j
 public class IgorConfig {
   @Bean
-  public Endpoint igorEndpoint(@Value("${igor.baseUrl}") String igorBaseUrl) {
+  public Endpoint igorEndpoint(@Value("${igor.base-url}") String igorBaseUrl) {
     return Endpoints.newFixedEndpoint(igorBaseUrl);
   }
 

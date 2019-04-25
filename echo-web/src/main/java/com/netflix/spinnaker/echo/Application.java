@@ -20,9 +20,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.gson.GsonAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.boot.web.support.SpringBootServletInitializer;
+import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
@@ -30,7 +31,7 @@ import org.springframework.context.annotation.Configuration;
  * Application entry point.
  */
 @Configuration
-@EnableAutoConfiguration(exclude = DataSourceAutoConfiguration.class)
+@EnableAutoConfiguration(exclude = {DataSourceAutoConfiguration.class, GsonAutoConfiguration.class})
 @ComponentScan({
   "com.netflix.spinnaker.echo.config",
   "com.netflix.spinnaker.config"
@@ -51,6 +52,7 @@ public class Application extends SpringBootServletInitializer {
   }
 
   public static void main(String... args) {
+    System.setProperty("spring.main.allow-bean-definition-overriding", "true");
     new SpringApplicationBuilder().properties(DEFAULT_PROPS).sources(Application.class).run(args);
   }
 

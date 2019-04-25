@@ -43,10 +43,10 @@ class RestEventListener implements EchoEventListener {
 
   Registry registry
 
-  @Value('${rest.defaultEventName:spinnaker_events}')
+  @Value('${rest.default-event-name:spinnaker_events}')
   String eventName
 
-  @Value('${rest.defaultFieldName:payload}')
+  @Value('${rest.default-field-name:payload}')
   String fieldName
 
   @Autowired

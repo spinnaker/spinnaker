@@ -15,10 +15,17 @@
  */
 
 dependencies {
-  spinnaker.group('retrofitDefault')
-  compile project(':echo-model')
-  compile spinnaker.dependency('korkWeb')
-  compile spinnaker.dependency('jacksonDatabind')
-  testCompile spinnaker.dependency('spockSpring')
-  testCompile spinnaker.dependency('springTest')
+  implementation "com.squareup.retrofit:retrofit"
+  implementation "com.squareup.retrofit:converter-jackson"
+  implementation "com.squareup.okhttp:okhttp"
+  implementation "com.squareup.okhttp:okhttp-urlconnection"
+  implementation "com.squareup.okhttp:okhttp-apache"
+  implementation project(':echo-model')
+
+  implementation "commons-codec:commons-codec"
+
+  implementation "com.netflix.spinnaker.kork:kork-web"
+  implementation "com.fasterxml.jackson.core:jackson-databind"
+  testImplementation "org.spockframework:spock-spring"
+  testImplementation "org.springframework.boot:spring-boot-starter-test"
 }

@@ -15,19 +15,23 @@
  */
 
 dependencies {
-    compile project(':echo-core')
-    compile project(":echo-pipelinetriggers")
-    spinnaker.group("test")
-    spinnaker.group("bootWeb")
-    spinnaker.group("retrofitDefault")
-    compile spinnaker.dependency("groovy")
-    compile spinnaker.dependency("logstashEncoder")
-    compile spinnaker.dependency("kork")
-    compile spinnaker.dependency('korkWeb')
-    compile "javax.mail:mail:1.4.1"
-    compile "org.springframework.boot:spring-boot-starter-mail:${spinnaker.version('springBoot')}"
-    compile "org.springframework.boot:spring-boot-starter-freemarker:${spinnaker.version('springBoot')}"
-    compile "org.jsoup:jsoup:1.8.2"
-    compile "com.atlassian.commonmark:commonmark:0.9.0"
-    testCompile "com.icegreen:greenmail:1.4.0"
+    implementation project(':echo-core')
+    implementation project(':echo-model')
+    implementation project(":echo-pipelinetriggers")
+    implementation "org.springframework.boot:spring-boot-starter-web"
+    implementation "com.squareup.retrofit:retrofit"
+    implementation "com.squareup.retrofit:converter-jackson"
+    implementation "com.squareup.okhttp:okhttp"
+    implementation "com.squareup.okhttp:okhttp-urlconnection"
+    implementation "com.squareup.okhttp:okhttp-apache"
+    implementation "com.netflix.spinnaker.kork:kork-core"
+    implementation "com.netflix.spinnaker.kork:kork-artifacts"
+    implementation "com.netflix.spinnaker.kork:kork-web"
+    implementation "io.reactivex:rxjava"
+    implementation "javax.mail:mail:1.4.1"
+    implementation "org.springframework.boot:spring-boot-starter-mail"
+    implementation "org.springframework.boot:spring-boot-starter-freemarker"
+    implementation "org.jsoup:jsoup:1.8.2"
+    implementation "com.atlassian.commonmark:commonmark:0.9.0"
+    testImplementation "com.icegreen:greenmail:1.4.0"
 }

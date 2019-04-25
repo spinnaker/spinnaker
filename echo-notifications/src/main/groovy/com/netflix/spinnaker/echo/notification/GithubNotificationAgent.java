@@ -38,7 +38,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Slf4j
-@ConditionalOnProperty("githubStatus.enabled")
+@ConditionalOnProperty("github-status.enabled")
 @Service
 public class GithubNotificationAgent extends AbstractEventNotificationAgent {
   private ImmutableMap<String, String> STATUSES = ImmutableMap.of(
@@ -160,6 +160,6 @@ public class GithubNotificationAgent extends AbstractEventNotificationAgent {
 
   @Autowired
   private GithubService githubService;
-  @Value("${githubStatus.token}")
+  @Value("${github-status.token}")
   private String token;
 }

@@ -15,9 +15,8 @@
  */
 
 dependencies {
-  compile project(':echo-core')
-  compile project(':echo-model')
-  spinnaker.group("bootWeb")
-  compile spinnaker.dependency("groovy")
-  spinnaker.group("spockBase")
+  implementation project(':echo-core')
+  implementation project(':echo-model')
+  implementation "org.springframework.boot:spring-boot-starter-web"
+  implementation "com.netflix.spinnaker.kork:kork-artifacts"
 }

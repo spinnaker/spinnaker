@@ -31,7 +31,7 @@ import retrofit.converter.JacksonConverter;
 import static retrofit.Endpoints.newFixedEndpoint;
 
 @Configuration
-@ConditionalOnProperty("pagerDuty.enabled")
+@ConditionalOnProperty("pager-duty.enabled")
 public class PagerDutyConfig {
   private static final Logger log = LoggerFactory.getLogger(PagerDutyConfig.class);
 

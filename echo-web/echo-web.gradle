@@ -24,44 +24,40 @@ apply plugin: 'spinnaker.application'
 mainClassName = 'com.netflix.spinnaker.echo.Application'
 
 dependencies {
-    compile project(':echo-artifacts')
-    compile project(':echo-core')
-    compile project(':echo-model')
-    compile project(':echo-notifications')
-    compile project(':echo-pipelinetriggers')
-    compile project(':echo-scheduler')
-    compile project(':echo-rest')
-    compile project(':echo-webhooks')
-    compile project(':echo-pubsub-core')
-    compile project(':echo-pubsub-aws')
-    compile project(':echo-pubsub-google')
-    compile spinnaker.dependency('kork')
-    compile spinnaker.dependency('korkStackdriver')
-    compile spinnaker.dependency('korkWeb')
-    compile spinnaker.dependency('bootActuator')
-    compile spinnaker.dependency('bootWeb')
-    compile spinnaker.dependency('jacksonDatabind')
-    compile spinnaker.dependency('spectatorApi')
-    compile 'net.redhogs.cronparser:cron-parser-core:2.8'
-    compile "org.springframework.data:spring-data-rest-webmvc:2.6.10.RELEASE"
-    testCompile spinnaker.dependency('bootTest')
-    testCompile spinnaker.dependency('spockSpring')
-    testCompile spinnaker.dependency('springTest')
+    implementation project(':echo-artifacts')
+    implementation project(':echo-core')
+    implementation project(':echo-model')
+    implementation project(':echo-notifications')
+    implementation project(':echo-pipelinetriggers')
+    implementation project(':echo-scheduler')
+    implementation project(':echo-rest')
+    implementation project(':echo-webhooks')
+    implementation project(':echo-pubsub-core')
+    implementation project(':echo-pubsub-aws')
+    implementation project(':echo-pubsub-google')
+    implementation "com.netflix.spinnaker.fiat:fiat-api:$fiatVersion"
+    implementation "com.netflix.spinnaker.fiat:fiat-core:$fiatVersion"
+    implementation "org.springframework.boot:spring-boot-starter-web"
+    implementation "org.springframework.boot:spring-boot-starter-actuator"
+    implementation "com.netflix.spinnaker.kork:kork-core"
+    implementation "com.netflix.spinnaker.kork:kork-stackdriver"
+    implementation "com.netflix.spinnaker.kork:kork-web"
+    implementation "com.squareup.retrofit:retrofit"
+    implementation "com.squareup.retrofit:converter-jackson"
+    implementation "com.jakewharton.retrofit:retrofit1-okhttp3-client:1.1.0"
+    implementation "com.fasterxml.jackson.core:jackson-databind"
+    implementation "com.netflix.spectator:spectator-api"
+    implementation 'net.redhogs.cronparser:cron-parser-core:2.8'
+    implementation "org.springframework.data:spring-data-rest-webmvc"
+    implementation "org.springframework:spring-context-support"
+    implementation "org.quartz-scheduler:quartz:2.2.1"
+    testImplementation "org.springframework.boot:spring-boot-starter-test"
+    testImplementation "org.spockframework:spock-spring"
+    testImplementation "org.junit.jupiter:junit-jupiter-api"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
 }
 
 run {
-    def jamm = project.configurations.compile.find { it.name.startsWith('jamm') }
-    if (jamm) {
-        jvmArgs applicationDefaultJvmArgs.join(" ") + " -javaagent:${jamm}"
-    }
     systemProperty('spring.config.location', project.springConfigLocation)
     systemProperty('spring.profiles.active', project.springProfiles)
-}
-
-test {
-    // jamm is required when using prepared statements with in-memory C*
-    def jamm = project.configurations.compile.find { it.name.startsWith('jamm') }
-    if (jamm) {
-        jvmArgs applicationDefaultJvmArgs.join(" ") + " -javaagent:${jamm}"
-    }
 }

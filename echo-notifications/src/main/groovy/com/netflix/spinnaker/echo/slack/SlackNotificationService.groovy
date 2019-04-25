@@ -33,10 +33,10 @@ class SlackNotificationService implements NotificationService {
   @Autowired
   SlackService slack
 
-  @Value('${slack.token}')
+  @Value('${slack.token:}')
   String token
 
-  @Value('${slack.sendCompactMessages:false}')
+  @Value('${slack.send-compact-messages:false}')
   Boolean sendCompactMessages
 
   @Autowired

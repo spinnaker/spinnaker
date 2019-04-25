@@ -48,7 +48,7 @@ import static retrofit.Endpoints.newFixedEndpoint
 class RestConfig {
 
   @Bean
-  LogLevel retrofitLogLevel(@Value('${retrofit.logLevel:BASIC}') String retrofitLogLevel) {
+  LogLevel retrofitLogLevel(@Value('${retrofit.log-level:BASIC}') String retrofitLogLevel) {
     return LogLevel.valueOf(retrofitLogLevel)
   }
 

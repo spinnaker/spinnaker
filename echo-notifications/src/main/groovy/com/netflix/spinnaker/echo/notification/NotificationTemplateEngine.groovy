@@ -40,7 +40,7 @@ class NotificationTemplateEngine {
     @Autowired
     Configuration configuration
 
-    @Value('${spinnaker.baseUrl}')
+    @Value('${spinnaker.base-url}')
     String spinnakerUrl
 
     String build(Notification notification, Type type) {

@@ -15,7 +15,13 @@
  */
 
 dependencies {
-  compile project(':echo-pubsub-core')
-  compile project(':echo-notifications')
-  compile 'com.google.cloud:google-cloud-pubsub:1.59.0'
+  implementation project(':echo-artifacts')
+  implementation project(':echo-core')
+  implementation project(':echo-model')
+  implementation project(':echo-pubsub-core')
+  implementation project(':echo-notifications')
+  implementation 'com.google.cloud:google-cloud-pubsub:1.59.0'
+  implementation 'org.apache.commons:commons-lang3'
+  implementation 'org.springframework.boot:spring-boot-autoconfigure'
+  implementation "javax.validation:validation-api"
 }

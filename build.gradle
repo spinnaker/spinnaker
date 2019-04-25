@@ -15,48 +15,34 @@
  */
 
 buildscript {
+    ext {
+      korkVersion = "5.0.0"
+      fiatVersion = "1.0.0"
+    }
     repositories {
         jcenter()
         maven { url 'https://spinnaker.bintray.com/gradle/' }
         maven { url "https://plugins.gradle.org/m2/" }
     }
     dependencies {
-        classpath "com.netflix.spinnaker.gradle:spinnaker-dev-plugin:5.2.2"
+        classpath "com.netflix.spinnaker.gradle:spinnaker-dev-plugin:6.0.0"
+        if (Boolean.valueOf(enablePublishing)) {
+            classpath "com.netflix.spinnaker.gradle:spinnaker-gradle-project:6.0.0"
+        }
     }
 }
 
 allprojects {
+    group = "com.netflix.spinnaker.echo"
     apply plugin: "spinnaker.base-project"
+    if (Boolean.valueOf(enablePublishing)) {
+        apply plugin: "spinnaker.project"
+    }
+    apply plugin: "java-library"
     apply plugin: "groovy"
     apply plugin: 'jacoco'
+
     group = "com.netflix.spinnaker.echo"
-
-    ext {
-        spinnakerDependenciesVersion = '1.41.0'
-        if (project.hasProperty('spinnakerDependenciesVersion')) {
-            spinnakerDependenciesVersion = project.property('spinnakerDependenciesVersion')
-        }
-    }
-
-    def checkLocalVersions = [spinnakerDependenciesVersion: spinnakerDependenciesVersion]
-    if (ext.has('versions')) {
-        def extVers = ext.get('versions')
-        if (extVers instanceof Map) {
-            checkLocalVersions.putAll(extVers)
-        }
-    }
-
-    def localVersions = checkLocalVersions.findAll { it.value.endsWith('-SNAPSHOT') }
-    if (localVersions) {
-        logger.info("Enabling mavenLocal repo for $localVersions")
-        repositories {
-            mavenLocal()
-        }
-    }
-
-    spinnaker {
-        dependenciesVersion = spinnakerDependenciesVersion
-    }
 
     test {
       testLogging {
@@ -64,41 +50,43 @@ allprojects {
       }
     }
 
-    configurations.all {
-        exclude group: 'org.mortbay.jetty', module: 'servlet-api'
-        exclude group: 'javax.servlet', module: 'servlet-api'
-        exclude group: 'org.slf4j', module: 'slf4j-log4j12'
-        exclude group: 'org.slf4j', module: 'slf4j-simple'
-        resolutionStrategy {
-            force 'com.google.guava:guava:20.0'
-        }
-    }
-
     tasks.withType(JavaExec) {
       if (System.getProperty('DEBUG', 'false') == 'true') {
         jvmArgs '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=8189'
       }
     }
+
 }
 
 subprojects {
     jacoco {
-        toolVersion = '0.8.1'
+        toolVersion = '0.8.3'
     }
 
     dependencies {
-        compile spinnaker.dependency('groovy')
-        compile spinnaker.dependency('guava')
-        compile spinnaker.dependency('slf4j')
-        testCompile spinnaker.dependency('spock')
-        testRuntime spinnaker.dependency('slf4jSimple')
-        testRuntime "org.slf4j:jcl-over-slf4j:${spinnaker.version('slf4j')}"
-    }
+        implementation platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
+        annotationProcessor platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
+        testAnnotationProcessor platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
+        compileOnly "org.projectlombok:lombok"
+        annotationProcessor "org.projectlombok:lombok"
+        testAnnotationProcessor "org.projectlombok:lombok"
 
-    project.plugins.withType(JavaBasePlugin) {
-      JavaPluginConvention convention = project.convention.getPlugin(JavaPluginConvention)
-      convention.sourceCompatibility = JavaVersion.VERSION_1_8
-      convention.targetCompatibility = JavaVersion.VERSION_1_8
+        implementation "org.codehaus.groovy:groovy-all"
+        implementation "com.github.ben-manes.caffeine:guava"
+        implementation "com.netflix.spectator:spectator-api"
+        implementation "org.slf4j:slf4j-api"
+        implementation "net.logstash.logback:logstash-logback-encoder"
+        implementation "org.springframework.boot:spring-boot-properties-migrator"
+
+        testImplementation "org.spockframework:spock-core"
+
+        testImplementation "org.springframework.boot:spring-boot-starter-test"
+        testImplementation "org.spockframework:spock-core"
+        testImplementation "org.spockframework:spock-spring"
+        testImplementation "org.springframework:spring-test"
+        testImplementation "org.hamcrest:hamcrest-core"
+        testRuntimeOnly "cglib:cglib-nodep"
+        testRuntimeOnly "org.objenesis:objenesis"
     }
 }
 

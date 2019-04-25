@@ -31,7 +31,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.core.Ordered;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
  * Finds spring beans (@Component, @Resource, @Controller, etc.) on your classpath.
@@ -46,7 +46,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
   },
   excludeFilters = @Filter(value = Configuration.class, type = FilterType.ANNOTATION)
 )
-public class ComponentConfig extends WebMvcConfigurerAdapter {
+public class ComponentConfig implements WebMvcConfigurer {
   private Registry registry;
 
   public ComponentConfig(Registry registry) {

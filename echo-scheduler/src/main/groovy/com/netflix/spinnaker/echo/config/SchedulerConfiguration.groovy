@@ -44,6 +44,9 @@ import java.util.concurrent.TimeUnit
 @ConditionalOnExpression('${scheduler.enabled:false}')
 @Import(DefaultSqlConfiguration)
 class SchedulerConfiguration {
+  @Value('${scheduler.pipeline-configs-poller.polling-interval-ms:30000}')
+  long syncInterval
+
   @Bean
   SchedulerFactoryBean schedulerFactoryBean(
     Optional<DataSource> dataSourceOptional,
@@ -99,9 +102,9 @@ class SchedulerConfiguration {
    * Trigger for the job to sync pipeline triggers
    */
   @Bean
-  @ConditionalOnExpression('${scheduler.pipelineConfigsPoller.enabled:true}')
+  @ConditionalOnExpression('${scheduler.pipeline-configs-poller.enabled:true}')
   SimpleTriggerFactoryBean syncJobTriggerBean(
-    @Value('${scheduler.pipelineConfigsPoller.pollingIntervalMs:30000}') long intervalMs,
+    @Value('${scheduler.pipeline-configs-poller.polling-interval-ms:30000}') long intervalMs,
     JobDetail pipelineSyncJobBean
   ) {
     SimpleTriggerFactoryBean triggerBean = new SimpleTriggerFactoryBean()
@@ -129,8 +132,8 @@ class SchedulerConfiguration {
   }
 
   @Bean
-  Client retrofitClient(@Value('${retrofit.connectTimeoutMillis:10000}') long connectTimeoutMillis,
-                        @Value('${retrofit.readTimeoutMillis:15000}') long readTimeoutMillis) {
+  Client retrofitClient(@Value('${retrofit.connect-timeout-millis:10000}') long connectTimeoutMillis,
+                        @Value('${retrofit.read-timeout-millis:15000}') long readTimeoutMillis) {
     OkHttpClient okHttpClient = new OkHttpClient()
     okHttpClient.setConnectTimeout(connectTimeoutMillis, TimeUnit.MILLISECONDS)
     okHttpClient.setReadTimeout(readTimeoutMillis, TimeUnit.MILLISECONDS)

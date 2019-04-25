@@ -33,7 +33,7 @@ abstract class AbstractEventNotificationAgent implements EchoEventListener {
   @Autowired(required = false)
   protected ObjectMapper mapper
 
-  @Value('${spinnaker.baseUrl}')
+  @Value('${spinnaker.base-url}')
   String spinnakerUrl
 
   static Map CONFIG = [

@@ -74,8 +74,8 @@ public class PipelineInitiator {
                            ObjectMapper objectMapper,
                            @NonNull QuietPeriodIndicator quietPeriodIndicator,
                            @Value("${orca.enabled:true}") boolean enabled,
-                           @Value("${orca.pipelineInitiatorRetryCount:5}") int retryCount,
-                           @Value("${orca.pipelineInitiatorRetryDelayMillis:5000}") long retryDelayMillis) {
+                           @Value("${orca.pipeline-initiator-retry-count:5}") int retryCount,
+                           @Value("${orca.pipeline-initiator-retry-delay-millis:5000}") long retryDelayMillis) {
     this.registry = registry;
     this.orca = orca;
     this.fiatPermissionEvaluator = fiatPermissionEvaluator.orElse(null);

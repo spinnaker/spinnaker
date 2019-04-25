@@ -72,7 +72,7 @@ class SlackConfig {
   }
 
   @Bean(name="useIncomingWebHook")
-  boolean useIncomingWebHook(@Value('${slack.token}') String token) {
+  boolean useIncomingWebHook(@Value('${slack.token:}') String token) {
     return StringUtils.isNotBlank(token) && token.count("/") >= 2
   }
 

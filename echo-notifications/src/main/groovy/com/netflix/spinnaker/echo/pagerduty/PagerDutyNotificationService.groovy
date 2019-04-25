@@ -38,7 +38,7 @@ import static net.logstash.logback.argument.StructuredArguments.kv
 
 @Slf4j
 @Component
-@ConditionalOnProperty('pagerDuty.enabled')
+@ConditionalOnProperty('pager-duty.enabled')
 class PagerDutyNotificationService implements NotificationService {
   private static Notification.Type TYPE = Notification.Type.PAGER_DUTY
 
@@ -48,7 +48,7 @@ class PagerDutyNotificationService implements NotificationService {
   @Autowired
   PagerDutyService pagerDuty
 
-  @Value('${pagerDuty.token}')
+  @Value('${pager-duty.token:}')
   String token
 
   @Autowired

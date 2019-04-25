@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.echo.notification
 
 import com.netflix.spinnaker.echo.api.Notification
-import org.springframework.boot.autoconfigure.freemarker.FreeMarkerAutoConfiguration
+import org.springframework.boot.autoconfigure.freemarker.FreeMarkerNonWebConfiguration
 import org.springframework.boot.autoconfigure.freemarker.FreeMarkerProperties
 import spock.lang.Shared
 import spock.lang.Specification
@@ -28,8 +28,8 @@ class ManualJudgmentTemplateTest extends Specification {
     def notificationTemplateEngine
 
     void setup() {
-        def autoconfig = new FreeMarkerAutoConfiguration.FreeMarkerNonWebConfiguration()
-        autoconfig.properties = new FreeMarkerProperties(preferFileSystemAccess: false)
+        def properties = new FreeMarkerProperties(preferFileSystemAccess: false)
+        def autoconfig = new FreeMarkerNonWebConfiguration(properties)
         def config = autoconfig.freeMarkerConfiguration()
         config.afterPropertiesSet()
         notificationTemplateEngine = new NotificationTemplateEngine(

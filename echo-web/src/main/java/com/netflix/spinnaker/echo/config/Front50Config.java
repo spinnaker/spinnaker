@@ -35,13 +35,13 @@ import retrofit.converter.JacksonConverter;
 @Configuration
 @Slf4j
 public class Front50Config {
-  @Value("${okHttpClient.connectionPool.maxIdleConnections:5}")
+  @Value("${ok-http-client.connection-pool.max-idle-connections:5}")
   private int maxIdleConnections;
 
-  @Value("${okHttpClient.connectionPool.keepAliveDurationMs:300000}")
+  @Value("${ok-http-client.connection-pool.keep-alive-duration-ms:300000}")
   private int keepAliveDurationMs;
 
-  @Value("${okHttpClient.retryOnConnectionFailure:true}")
+  @Value("${ok-http-client.retry-on-connection-failure:true}")
   private boolean retryOnConnectionFailure;
 
   @Bean
@@ -58,7 +58,7 @@ public class Front50Config {
   }
 
   @Bean
-  public Endpoint front50Endpoint(@Value("${front50.baseUrl}") String front50BaseUrl) {
+  public Endpoint front50Endpoint(@Value("${front50.base-url}") String front50BaseUrl) {
     return Endpoints.newFixedEndpoint(front50BaseUrl);
   }
 

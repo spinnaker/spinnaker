@@ -18,12 +18,12 @@ package com.netflix.spinnaker.echo.config;
 
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.validator.constraints.NotEmpty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
 import java.io.*;
 import java.util.List;
 

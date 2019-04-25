@@ -66,8 +66,8 @@ public class PipelineCache implements MonitoredPoller {
   private volatile Map<String, List<Trigger>> triggersByType;
 
   @Autowired
-  public PipelineCache(@Value("${front50.pollingIntervalMs:10000}") int pollingIntervalMs,
-                       @Value("${front50.pollingSleepMs:100}") int pollingSleepMs,
+  public PipelineCache(@Value("${front50.polling-interval-ms:10000}") int pollingIntervalMs,
+                       @Value("${front50.polling-sleep-ms:100}") int pollingSleepMs,
                        ObjectMapper objectMapper,
                        @NonNull Front50Service front50,
                        @NonNull OrcaService orca,

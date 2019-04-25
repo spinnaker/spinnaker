@@ -57,7 +57,7 @@ import static net.logstash.logback.argument.StructuredArguments.kv
  * has been performed, a recurring job will be started at a less aggressive poll cycle to ensure lost triggers are
  * re-scheduled.
  */
-@ConditionalOnExpression('${scheduler.enabled:false} && ${scheduler.compensationJob.enabled:false}')
+@ConditionalOnExpression('${scheduler.enabled:false} && ${scheduler.compensation-job.enabled:false}')
 @Component
 @Slf4j
 class MissedPipelineTriggerCompensationJob implements ApplicationListener<ContextRefreshedEvent> {
@@ -79,12 +79,12 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
                                        PipelineInitiator pipelineInitiator,
                                        Registry registry,
                                        QuietPeriodIndicator quietPeriodIndicator,
-                                       @Value('${scheduler.compensationJob.windowMs:600000}') long compensationWindowMs, // 10 min
-                                       @Value('${scheduler.compensationJob.toleranceMs:30000}') long compensationWindowToleranceMs, // 30 seconds
+                                       @Value('${scheduler.compensation-job.window-ms:600000}') long compensationWindowMs, // 10 min
+                                       @Value('${scheduler.compensation-job.tolerance-ms:30000}') long compensationWindowToleranceMs, // 30 seconds
                                        @Value('${scheduler.cron.timezone:America/Los_Angeles}') String timeZoneId,
-                                       @Value('${scheduler.compensationJob.enableRecurring:true}') boolean enableRecurring,
-                                       @Value('${scheduler.compensationJob.recurringPollIntervalMs:300000}') long recurringPollIntervalMs, // 5 min
-                                       @Value('${scheduler.compensationJob.pipelineFetchSize:20}') int pipelineFetchSize) {
+                                       @Value('${scheduler.compensation-job.enable-recurring:true}') boolean enableRecurring,
+                                       @Value('${scheduler.compensation-job.recurring-poll-interval-ms:300000}') long recurringPollIntervalMs, // 5 min
+                                       @Value('${scheduler.compensation-job.pipeline-fetch-size:20}') int pipelineFetchSize) {
 
     this(pipelineCache, orcaService, pipelineInitiator, registry, quietPeriodIndicator, compensationWindowMs, compensationWindowToleranceMs, timeZoneId,
       enableRecurring, recurringPollIntervalMs, pipelineFetchSize, null)
@@ -95,12 +95,12 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
                                        PipelineInitiator pipelineInitiator,
                                        Registry registry,
                                        QuietPeriodIndicator quietPeriodIndicator,
-                                       @Value('${scheduler.compensationJob.windowMs:600000}') long compensationWindowMs, // 10 min
-                                       @Value('${scheduler.compensationJob.toleranceMs:30000}') long compensationWindowToleranceMs, // 30 seconds
+                                       @Value('${scheduler.compensation-job.window-ms:600000}') long compensationWindowMs, // 10 min
+                                       @Value('${scheduler.compensation-job.tolerance-ms:30000}') long compensationWindowToleranceMs, // 30 seconds
                                        @Value('${scheduler.cron.timezone:America/Los_Angeles}') String timeZoneId,
-                                       @Value('${scheduler.compensationJob.enableRecurring:true}') boolean enableRecurring,
-                                       @Value('${scheduler.compensationJob.recurringPollIntervalMs:300000}') long recurringPollIntervalMs, // 5 min
-                                       @Value('${scheduler.compensationJob.pipelineFetchSize:20}') int pipelineFetchSize,
+                                       @Value('${scheduler.compensation-job.enable-recurring:true}') boolean enableRecurring,
+                                       @Value('${scheduler.compensation-job.recurring-poll-interval-ms:300000}') long recurringPollIntervalMs, // 5 min
+                                       @Value('${scheduler.compensation-job.pipeline-metch-size:20}') int pipelineFetchSize,
                                        DateContext dateContext) {
     this.pipelineCache = pipelineCache
     this.orcaService = orcaService

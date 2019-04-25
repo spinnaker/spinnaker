@@ -41,7 +41,7 @@ import retrofit.client.Client
 class HipchatConfig {
 
     @Bean
-    Endpoint hipchatEndpoint(@Value('${hipchat.baseUrl}') String hipchatBaseUrl) {
+    Endpoint hipchatEndpoint(@Value('${hipchat.base-url}') String hipchatBaseUrl) {
         newFixedEndpoint(hipchatBaseUrl)
     }
 

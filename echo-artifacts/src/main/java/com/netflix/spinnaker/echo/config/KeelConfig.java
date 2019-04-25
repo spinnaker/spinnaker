@@ -19,12 +19,12 @@ import retrofit.converter.JacksonConverter;
 @ConditionalOnExpression("${keel.enabled:false}")
 public class KeelConfig {
   @Bean
-  public LogLevel retrofitLogLevel(@Value("${retrofit.logLevel:BASIC}") String retrofitLogLevel) {
+  public LogLevel retrofitLogLevel(@Value("${retrofit.log-level:BASIC}") String retrofitLogLevel) {
     return LogLevel.valueOf(retrofitLogLevel);
   }
 
   @Bean
-  public Endpoint keelEndpoint(@Value("${keel.baseUrl}") String keelBaseUrl) {
+  public Endpoint keelEndpoint(@Value("${keel.base-url}") String keelBaseUrl) {
     return Endpoints.newFixedEndpoint(keelBaseUrl);
   }
 

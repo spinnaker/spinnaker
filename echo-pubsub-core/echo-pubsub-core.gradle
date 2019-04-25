@@ -15,18 +15,18 @@
  */
 
 dependencies {
-  compile project(':echo-core')
-  compile project(':echo-model')
-  compile project(':echo-pipelinetriggers')
+  implementation project(':echo-core')
+  implementation project(':echo-model')
+  implementation project(':echo-pipelinetriggers')
 
-  spinnaker.group("bootWeb")
-  spinnaker.group("spockBase")
+  implementation "org.springframework.boot:spring-boot-starter-web"
 
-  compile spinnaker.dependency("groovy")
-  compile spinnaker.dependency("guava")
-  compile spinnaker.dependency("jedis")
-  compile spinnaker.dependency('kork')
-  compile spinnaker.dependency("korkJedis")
-  compile spinnaker.dependency("korkJedisTest")
-  compile spinnaker.dependency("korkDynomite")
+  implementation "redis.clients:jedis"
+  implementation "io.reactivex:rxjava"
+  implementation "com.hubspot.jinjava:jinjava"
+  implementation "com.netflix.spinnaker.kork:kork-core"
+  implementation "com.netflix.spinnaker.kork:kork-jedis"
+  implementation "com.netflix.spinnaker.kork:kork-dynomite"
+  implementation "com.netflix.spinnaker.kork:kork-artifacts"
+  testImplementation "com.netflix.spinnaker.kork:kork-jedis-test"
 }

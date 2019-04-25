@@ -15,29 +15,31 @@
  */
 
 dependencies {
-    annotationProcessor spinnaker.dependency('lombok')
+    implementation project(":echo-model")
 
-    spinnaker.group("retrofitDefault")
+    implementation "com.squareup.retrofit:retrofit"
+    implementation "com.squareup.retrofit:converter-jackson"
+    implementation "com.jakewharton.retrofit:retrofit1-okhttp3-client:1.1.0"
+    implementation "com.netflix.spinnaker.kork:kork-web"
+    implementation "com.netflix.spinnaker.kork:kork-artifacts"
+    implementation "com.squareup.okhttp:okhttp"
+    implementation "com.squareup.okhttp:okhttp-urlconnection"
+    implementation "com.squareup.okhttp:okhttp-apache"
 
-    compile project(":echo-model")
+    implementation "com.netflix.spinnaker.kork:kork-core"
+    implementation "com.netflix.spinnaker.kork:kork-exceptions"
+    implementation "com.netflix.spinnaker.kork:kork-security"
 
-    compile spinnaker.dependency('kork')
-    compile spinnaker.dependency('korkArtifacts')
-    compile spinnaker.dependency('korkExceptions')
-    compile spinnaker.dependency('korkSecurity')
-    compile spinnaker.dependency('korkWeb')
+    implementation "org.springframework.boot:spring-boot-starter-web"
+    implementation "org.apache.commons:commons-lang3"
+    implementation "com.netflix.eureka:eureka-client"
 
-    compile spinnaker.dependency('bootWeb')
-    compile spinnaker.dependency('commonsLang')
-    compile spinnaker.dependency('eurekaClient')
-    compile spinnaker.dependency('jinjava')
-    compile spinnaker.dependency('lombok')
-    compile spinnaker.dependency('retrofit1okHttp3Client')
-    compile spinnaker.dependency('rxJava')
-    compile spinnaker.dependency('springContext')
+    implementation "com.hubspot.jinjava:jinjava"
+    implementation "io.reactivex:rxjava"
+    implementation "org.springframework:spring-context"
 
-    compile 'commons-io:commons-io:2.5'
+    implementation 'commons-io:commons-io'
 
-    testCompile spinnaker.dependency('spockSpring')
-    testCompile spinnaker.dependency('springTest')
+    testImplementation "org.spockframework:spock-spring"
+    testImplementation "org.springframework:spring-test"
 }

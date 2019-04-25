@@ -44,7 +44,7 @@ public class PipelineTriggerConfiguration {
   }
 
   @Bean
-  public OrcaService orca(@Value("${orca.baseUrl}") final String endpoint) {
+  public OrcaService orca(@Value("${orca.base-url}") final String endpoint) {
     return bindRetrofitService(OrcaService.class, endpoint);
   }
 
@@ -67,7 +67,7 @@ public class PipelineTriggerConfiguration {
   }
 
   @Bean
-  @ConfigurationProperties(prefix = "quietPeriod")
+  @ConfigurationProperties(prefix = "quiet-period")
   public QuietPeriodIndicatorConfigurationProperties quietPeriodIndicatorConfigurationProperties() {
     return new QuietPeriodIndicatorConfigurationProperties();
   }
