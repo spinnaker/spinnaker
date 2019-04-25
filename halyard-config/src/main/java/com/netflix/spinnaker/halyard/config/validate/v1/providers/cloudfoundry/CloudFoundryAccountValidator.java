@@ -49,10 +49,6 @@ public class CloudFoundryAccountValidator extends Validator<CloudFoundryAccount>
         String password = cloudFoundryAccount.getPassword();
         String user = cloudFoundryAccount.getUser();
 
-        if (StringUtils.isEmpty(environment)) {
-            problemSetBuilder.addProblem(Problem.Severity.ERROR, "You must provide an environment name");
-        }
-
         if (StringUtils.isEmpty(user) || StringUtils.isEmpty(password)) {
             problemSetBuilder.addProblem(Problem.Severity.ERROR, "You must provide a user and a password");
         }
