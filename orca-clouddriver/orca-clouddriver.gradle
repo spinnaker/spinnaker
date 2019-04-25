@@ -23,33 +23,25 @@ test {
 }
 
 dependencies {
-  implementation project(":orca-retrofit")
-  implementation project(":orca-front50")
-  implementation project(":orca-bakery")
-  implementation project(":orca-core")
+  compile spinnaker.dependency('frigga')
+  compileOnly spinnaker.dependency('lombok')
+  annotationProcessor spinnaker.dependency("lombok")
+  compile project(":orca-retrofit")
+  compile project(":orca-front50")
+  compile project(":orca-bakery")
+  compile project(":orca-core")
+  compile 'com.netflix.spinnaker.moniker:moniker:0.2.0'
+  compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${spinnaker.version('jackson')}"
+  compile 'io.kubernetes:client-java:1.0.0-beta1'
 
-  implementation "com.netflix.frigga:frigga"
-  implementation "com.netflix.spinnaker.moniker:moniker:0.2.0"
-  implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
-  implementation "io.kubernetes:client-java:1.0.0-beta1"
-  implementation "com.netflix.spinnaker.kork:kork-core"
-  implementation "com.netflix.spinnaker.kork:kork-exceptions"
-  implementation "com.netflix.spinnaker.kork:kork-security"
-  implementation "com.netflix.spinnaker.kork:kork-artifacts"
-  implementation "javax.validation:validation-api"
+  testCompile project(":orca-test")
+  testCompile project(":orca-test-groovy")
+  testCompile "com.github.tomakehurst:wiremock:2.15.0"
+  testCompile spinnaker.dependency('springTest')
+  testCompile spinnaker.dependency("junitJupiterApi")
+  testCompile spinnaker.dependency("assertj")
+  testCompile "org.mockito:mockito-core:2.25.0"
 
-  compileOnly "org.projectlombok:lombok"
-  annotationProcessor "org.projectlombok:lombok"
-  testAnnotationProcessor "org.projectlombok:lombok"
-
-  testImplementation project(":orca-test")
-  testImplementation project(":orca-test-groovy")
-  testImplementation "com.github.tomakehurst:wiremock:2.15.0"
-  testImplementation "org.springframework:spring-test"
-  testImplementation "org.junit.jupiter:junit-jupiter-api"
-  testImplementation "org.assertj:assertj-core"
-  testImplementation "org.mockito:mockito-core"
-
-  testRuntime "org.junit.jupiter:junit-jupiter-engine"
-  testRuntime "org.junit.vintage:junit-vintage-engine"
+  testRuntime spinnaker.dependency("junitJupiterEngine")
+  testRuntime "org.junit.vintage:junit-vintage-engine:${spinnaker.version('jupiter')}"
 }

@@ -1,7 +1,6 @@
 dependencies {
-  api("redis.clients:jedis")
-  api("com.netflix.spinnaker.kork:kork-jedis")
-  api("com.netflix.spinnaker.kork:kork-jedis-test")
-
-  implementation(project(":orca-test"))
+  compile spinnaker.dependency('jedis')
+  compile spinnaker.dependency('korkJedis')
+  compile project(":orca-test")
+  compile spinnaker.dependency("korkJedisTest")
 }

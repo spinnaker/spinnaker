@@ -1,10 +1,9 @@
 apply from: "$rootDir/gradle/kotlin.gradle"
 
 dependencies {
-  implementation(project(":orca-core"))
-  implementation(project(":orca-kotlin"))
-  implementation(project(":orca-retrofit"))
-  implementation "org.codehaus.groovy:groovy-all"
+  compile project(":orca-core")
+  compile project(":orca-kotlin")
+  compile project(":orca-retrofit")
 
-  testImplementation(project(":orca-core-tck"))
+  testCompile project(":orca-core-tck")
 }

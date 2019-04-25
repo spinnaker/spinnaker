@@ -18,23 +18,17 @@
 apply from: "$rootDir/gradle/groovy.gradle"
 
 dependencies {
-  implementation(project(':orca-core'))
+  compile project(':orca-core')
+  compile spinnaker.dependency('kork')
+  compile spinnaker.dependency('korkWeb')
+  compile spinnaker.dependency('bootAutoConfigure')
+  compile spinnaker.dependency('lombok')
+  annotationProcessor spinnaker.dependency("lombok")
+  compile('com.jayway.jsonpath:json-path:2.2.0')
+  compile spinnaker.dependency("okHttp3")
+  compile spinnaker.dependency('retrofit1okHttp3Client')
+//  testCompile project(':orca-test')
+  testCompile spinnaker.dependency("springTest")
 
-  implementation("com.jakewharton.retrofit:retrofit1-okhttp3-client:1.1.0")
-  implementation("com.jayway.jsonpath:json-path:2.2.0")
-  implementation("com.netflix.spinnaker.fiat:fiat-api:0.62.0")
-  implementation("com.netflix.spinnaker.kork:kork-core")
-  implementation("com.netflix.spinnaker.kork:kork-web")
-  implementation("com.squareup.okhttp3:okhttp")
-  implementation("org.apache.httpcomponents:httpcore")
-  implementation("org.springframework.boot:spring-boot-autoconfigure")
-  implementation("org.springframework.security:spring-security-config")
-  implementation("org.springframework.security:spring-security-core")
-  implementation("org.springframework.security:spring-security-web")
-  
-  compileOnly("org.projectlombok:lombok")
-  annotationProcessor("org.projectlombok:lombok")
-  testAnnotationProcessor("org.projectlombok:lombok")
-
-  testImplementation("org.springframework:spring-test")
+  spinnaker.group("fiat")
 }

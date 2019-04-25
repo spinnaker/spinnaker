@@ -17,19 +17,16 @@
 apply from: "$rootDir/gradle/kotlin.gradle"
 apply from: "$rootDir/gradle/spek.gradle"
 
+repositories {
+  jcenter()
+}
+
 dependencies {
-  implementation(project(":orca-core"))
-  implementation(project(":orca-queue"))
-  implementation(project(":orca-redis"))
+  compile project(":orca-redis")
+  compile project(":orca-queue")
+  compile "com.netflix.spinnaker.keiko:keiko-redis-spring:$keikoVersion"
+  compile "com.fasterxml.jackson.module:jackson-module-kotlin:${spinnaker.version("jackson")}"
 
-  implementation("com.netflix.spinnaker.keiko:keiko-redis-spring:$keikoVersion")
-  implementation("com.netflix.spinnaker.kork:kork-jedis")
-  implementation("org.springframework.boot:spring-boot-test")
-
-  testImplementation(project(":orca-queue-tck"))
-  testImplementation(project(":orca-test-kotlin"))
-  testImplementation(project(":orca-test-redis"))
-  testImplementation("org.springframework:spring-test")
-  testImplementation("org.springframework.boot:spring-boot-test")
-  testRuntime "com.fasterxml.jackson.module:jackson-module-kotlin"
+  testCompile project(":orca-test-redis")
+  testCompile project(":orca-queue-tck")
 }

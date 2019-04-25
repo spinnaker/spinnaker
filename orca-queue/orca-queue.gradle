@@ -18,18 +18,16 @@ apply from: "$rootDir/gradle/kotlin.gradle"
 apply from: "$rootDir/gradle/spek.gradle"
 
 dependencies {
-  implementation(project(":orca-core"))
-  implementation(project(":orca-kotlin"))
+  compile project(":orca-core")
+  compile project(":orca-kotlin")
+  compile "com.netflix.spinnaker.keiko:keiko-spring:$keikoVersion"
+  compile "org.threeten:threeten-extra:1.0"
+  compile "org.funktionale:funktionale-partials:1.2"
+  compile spinnaker.dependency("logstashEncoder")
+  compile "com.netflix.spinnaker.keiko:keiko-spring:$keikoVersion"
+  compile "javax.ws.rs:jsr311-api:1.1.1"
 
-  implementation("com.netflix.spinnaker.keiko:keiko-spring:$keikoVersion")
-  implementation("com.netflix.spinnaker.kork:kork-exceptions")
-  implementation("com.netflix.spinnaker.kork:kork-security")
-  implementation("javax.ws.rs:jsr311-api:1.1.1")
-  implementation("net.logstash.logback:logstash-logback-encoder")
-  implementation("org.funktionale:funktionale-partials")
-  implementation("org.threeten:threeten-extra")
-
-  testImplementation(project(":orca-queue-tck"))
-  testImplementation(project(":orca-test-kotlin"))
-  testImplementation("org.assertj:assertj-core")
+  testCompile project(":orca-test-kotlin")
+  testCompile project(":orca-queue-tck")
+  testCompile "org.assertj:assertj-core:3.9.0"
 }

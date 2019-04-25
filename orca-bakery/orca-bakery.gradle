@@ -17,19 +17,12 @@
 apply from: "$rootDir/gradle/groovy.gradle"
 
 dependencies {
-  implementation project(":orca-core")
-  implementation project(":orca-retrofit")
-  implementation project(":orca-front50")
-
-  implementation "org.springframework:spring-beans"
-
-  implementation "com.netflix.spinnaker.kork:kork-exceptions"
-  implementation "com.netflix.spinnaker.kork:kork-artifacts"
-
-  compileOnly "org.projectlombok:lombok"
-  annotationProcessor "org.projectlombok:lombok"
-  testAnnotationProcessor "org.projectlombok:lombok"
-
-  testImplementation project(":orca-test-groovy")
-  testImplementation "com.github.tomakehurst:wiremock:2.15.0"
+  compile project(":orca-retrofit")
+  compile project(":orca-front50")
+  spinnaker.group('jackson')
+  compile spinnaker.dependency('jacksonGuava')
+  compileOnly spinnaker.dependency('lombok')
+  annotationProcessor spinnaker.dependency("lombok")
+  testCompile project(":orca-test-groovy")
+  testCompile "com.github.tomakehurst:wiremock:2.15.0"
 }

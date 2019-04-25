@@ -17,10 +17,6 @@
 apply from: "$rootDir/gradle/spock.gradle"
 
 dependencies {
-  implementation(project(":orca-core"))
-  implementation(project(":orca-retrofit"))
-
-  implementation("com.netflix.eureka:eureka-client")
-  implementation("com.netflix.spinnaker.kork:kork-core")
+  compile project(":orca-core")
+  compile project(":orca-retrofit")
 }
-

@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.pipelinetemplate.tasks.v2;
 
-import com.google.common.base.Strings;
+import com.netflix.servo.util.Strings;
 import com.netflix.spinnaker.orca.pipelinetemplate.v2schema.model.V2PipelineTemplate;
 
 import java.util.ArrayList;
@@ -49,7 +49,7 @@ public interface SaveV2PipelineTemplateTask {
     }
 
     if (!missingFields.isEmpty()) {
-      throw new IllegalArgumentException("Missing required fields: " + String.join(",", missingFields));
+      throw new IllegalArgumentException("Missing required fields: " + Strings.join(",", missingFields.iterator()));
     }
 
     if (!template.getSchema().equals(V2PipelineTemplate.V2_SCHEMA_VERSION)) {
@@ -72,7 +72,7 @@ public interface SaveV2PipelineTemplateTask {
       if (!invalidVariableNames.isEmpty()) {
         throw new IllegalArgumentException(
           String.format("Illegal variable names: %s. Variable names must match the regex: %s",
-                        String.join(", ", invalidVariableNames),
+                        Strings.join(", ", invalidVariableNames.iterator()),
                         TEMPLATE_VALID_VARIABLE_NAME_REGEX));
       }
     }

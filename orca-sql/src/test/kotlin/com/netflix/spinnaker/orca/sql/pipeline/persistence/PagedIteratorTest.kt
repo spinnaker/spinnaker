@@ -24,7 +24,7 @@ import org.assertj.core.api.Assertions.assertThat
 
 class PagedIteratorTest : JUnit5Minutests {
 
-  fun tests() = rootContext<PagedIterator<String, String>> {
+  override val tests = rootContext<PagedIterator<String, String>> {
 
     val pageSize = 3
     val nextPage = mock<(Int, String?) -> Iterable<String>>()

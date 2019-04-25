@@ -1,4 +1,4 @@
 dependencies {
-  implementation(project(":orca-sql"))
-  implementation("mysql:mysql-connector-java")
+  compile project(":orca-sql")
+  compile "mysql:mysql-connector-java:8.0.12"
 }

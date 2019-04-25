@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.front50.pipeline;
 
-import com.google.common.base.Strings;
+import com.netflix.servo.util.Strings;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.orca.front50.Front50Service;
 import com.netflix.spinnaker.orca.pipeline.expressions.ExpressionFunctionProvider;

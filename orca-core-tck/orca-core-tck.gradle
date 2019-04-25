@@ -1,14 +1,10 @@
 apply from: "$rootDir/gradle/groovy.gradle"
 
 dependencies {
-  api("org.spockframework:spock-core")
+  compile project(":orca-core")
+  compile spinnaker.dependency("junit")
+  compile spinnaker.dependency("spock")
 
-  api(project(":orca-core"))
-  api(project(":orca-test-groovy"))
-  api(project(":orca-test"))
-
-  implementation("com.netflix.eureka:eureka-client")
-  implementation("com.netflix.spinnaker.kork:kork-core")
-  implementation("com.netflix.spinnaker.kork:kork-exceptions")
-  implementation("junit:junit")
+  compile project(":orca-test")
+  compile project(":orca-test-groovy")
 }

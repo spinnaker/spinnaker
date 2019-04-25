@@ -15,9 +15,10 @@
  */
 package com.netflix.spinnaker.orca.pipelinetemplate.tasks;
 
+import com.netflix.servo.util.Strings;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate;
-import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate.Variable;
 
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate.Variable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -41,7 +42,7 @@ public interface SavePipelineTemplateTask {
     }
 
     if (!missingFields.isEmpty()) {
-      throw new IllegalArgumentException("Missing required fields: " + String.join(",", missingFields));
+      throw new IllegalArgumentException("Missing required fields: " + Strings.join(",", missingFields.iterator()));
     }
 
     if (template.getVariables() != null) {
@@ -53,7 +54,7 @@ public interface SavePipelineTemplateTask {
 
       if (!invalidVariableNames.isEmpty()) {
         throw new IllegalArgumentException("Variable names cannot include dashes (-)."
-          + " Invalid variable names: " + String.join(", ", invalidVariableNames));
+          + " Invalid variable names: " + Strings.join(", ", invalidVariableNames.iterator()));
       }
     }
   }

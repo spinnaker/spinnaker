@@ -17,24 +17,11 @@
 apply from: "$rootDir/gradle/groovy.gradle"
 
 dependencies {
-  api("com.netflix.spinnaker.fiat:fiat-api:0.62.0")
-  
-  implementation(project(":orca-core"))
-  implementation(project(":orca-extensionpoint"))
-  implementation(project(":orca-retrofit"))
+  compile project(":orca-retrofit")
+  compile "com.netflix.servo:servo-core:0.12.21"
+  compileOnly spinnaker.dependency("lombok")
+  annotationProcessor spinnaker.dependency("lombok")
+  spinnaker.group("fiat")
 
-  implementation("com.netflix.spectator:spectator-api")
-  implementation("com.netflix.spinnaker.kork:kork-artifacts")
-  implementation("com.netflix.spinnaker.kork:kork-exceptions")
-  implementation("com.netflix.spinnaker.kork:kork-security")
-  implementation("org.springframework.boot:spring-boot-autoconfigure")
-  implementation("org.springframework.security:spring-security-config")
-  implementation("org.springframework.security:spring-security-core")
-  implementation("org.springframework.security:spring-security-web")
-
-  compileOnly("org.projectlombok:lombok")
-  annotationProcessor("org.projectlombok:lombok")
-  testAnnotationProcessor("org.projectlombok:lombok")
-
-  testImplementation(project(":orca-test-groovy"))
+  testCompile project(":orca-test-groovy")
 }

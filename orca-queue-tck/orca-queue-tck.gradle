@@ -17,20 +17,14 @@
 apply from: "$rootDir/gradle/kotlin.gradle"
 
 dependencies {
-  implementation(project(":orca-core"))
-  implementation(project(":orca-kotlin"))
-  implementation(project(":orca-queue"))
-  implementation(project(":orca-test-kotlin"))
-  implementation(project(":orca-test"))
+  compile "com.nhaarman:mockito-kotlin:1.5.0"
+  compile "org.assertj:assertj-core:3.9.0"
 
-  implementation("com.netflix.eureka:eureka-client")
-  implementation("com.netflix.spinnaker.keiko:keiko-mem:$keikoVersion")
-  implementation("com.netflix.spinnaker.keiko:keiko-spring:$keikoVersion")
-  implementation("com.netflix.spinnaker.kork:kork-core")
-  implementation("com.nhaarman:mockito-kotlin")
-  implementation("junit:junit")
-  implementation("org.assertj:assertj-core")
-  implementation("org.springframework:spring-test")
-  implementation("org.springframework.boot:spring-boot-test")
-  implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+  compile "org.springframework.boot:spring-boot-test:${spinnaker.version('springBoot')}"
+  compile "com.netflix.spinnaker.keiko:keiko-mem:$keikoVersion"
+  compile project(":orca-queue")
+  compile project(":orca-test")
+  compile project(":orca-test-kotlin")
+  compile spinnaker.dependency("junit")
+  compile spinnaker.dependency("springTest")
 }

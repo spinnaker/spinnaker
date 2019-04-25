@@ -21,10 +21,8 @@
 apply plugin: "groovy"
 
 dependencies {
-  testImplementation "org.spockframework:spock-core"
-  testImplementation "cglib:cglib-nodep"
-  testImplementation "org.objenesis:objenesis"
-  testImplementation "org.codehaus.groovy:groovy-all"
+  spinnaker.group("spockBase")
+  testCompile spinnaker.dependency("groovy")
 }
 
 tasks.compileGroovy.enabled = false

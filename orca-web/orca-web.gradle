@@ -15,68 +15,64 @@
  */
 
 apply from: "$rootDir/gradle/groovy.gradle"
-apply plugin: "spinnaker.application"
+apply plugin: 'spinnaker.application'
 
 ext {
-  springConfigLocation = System.getProperty("spring.config.location", "${System.getProperty("user.home")}/.spinnaker/")
+  springConfigLocation = System.getProperty('spring.config.location', "${System.getProperty('user.home')}/.spinnaker/")
 }
 
 run {
-  systemProperty("spring.config.location", project.springConfigLocation)
+  systemProperty('spring.config.location', project.springConfigLocation)
 }
 
-mainClassName = "com.netflix.spinnaker.orca.Main"
+mainClassName = 'com.netflix.spinnaker.orca.Main'
 
 dependencies {
-  implementation(project(":orca-applications"))
-  implementation(project(":orca-bakery"))
-  implementation(project(":orca-clouddriver"))
-  implementation(project(":orca-core"))
-  implementation(project(":orca-dry-run"))
-  implementation(project(":orca-echo"))
-  implementation(project(":orca-eureka"))
-  implementation(project(":orca-extensionpoint"))
-  implementation(project(":orca-flex"))
-  implementation(project(":orca-front50"))
-  implementation(project(":orca-igor"))
-  implementation(project(":orca-integrations-gremlin"))
-  implementation(project(":orca-kayenta"))
-  implementation(project(":orca-keel"))
-  implementation(project(":orca-migration"))
-  implementation(project(":orca-mine"))
-  implementation(project(":orca-pipelinetemplate"))
-  implementation(project(":orca-qos"))
-  implementation(project(":orca-queue-redis"))
-  implementation(project(":orca-redis"))
-  implementation(project(":orca-sql-mysql"))
-  implementation(project(":orca-sql"))
-  implementation(project(":orca-webhook"))
+  spinnaker.group("bootWeb")
 
-  implementation("com.netflix.spinnaker.kork:kork-artifacts")
-  implementation("com.netflix.spinnaker.kork:kork-core")
-  implementation("com.netflix.spinnaker.kork:kork-exceptions")
-  implementation("com.netflix.spinnaker.kork:kork-stackdriver")
-  implementation("com.netflix.spinnaker.kork:kork-web")
-  implementation("net.logstash.logback:logstash-logback-encoder")
-  implementation("net.logstash.logback:logstash-logback-encoder")
-  implementation("org.springframework.boot:spring-boot-starter-actuator")
-  implementation("org.springframework.boot:spring-boot-starter-web")
+  compile project(":orca-redis")
+  compile project(":orca-bakery")
+  compile project(":orca-clouddriver")
+  compile project(":orca-front50")
+  compile project(":orca-applications")
+  compile project(":orca-flex")
+  compile project(":orca-dry-run")
+  compile project(":orca-echo")
+  compile project(":orca-kayenta")
+  compile project(":orca-mine")
+  compile project(":orca-igor")
+  compile project(":orca-webhook")
+  compile project(":orca-eureka")
+  compile project(":orca-queue-redis")
+  compile project(":orca-pipelinetemplate")
+  compile project(":orca-keel")
+  compile project(":orca-qos")
+  compile project(":orca-migration")
+  compile project(":orca-sql")
+  compile project(":orca-sql-mysql")
+  compile project(":orca-integrations-gremlin")
 
-  compileOnly("org.projectlombok:lombok")
-  annotationProcessor("org.projectlombok:lombok")
+  runtime spinnaker.dependency("kork")
+  compile spinnaker.dependency('korkExceptions')
+  compile spinnaker.dependency("korkStackdriver")
+  compile spinnaker.dependency("korkWeb")
+  compile spinnaker.dependency("logstashEncoder")
 
-  testImplementation(project(":orca-test-groovy"))
-  testImplementation("cglib:cglib-nodep")
-  testImplementation("com.netflix.spinnaker.keiko:keiko-mem:$keikoVersion")
-  testImplementation("junit:junit")
-  testImplementation("org.hamcrest:hamcrest-core:1.3")
-  testImplementation("org.objenesis:objenesis")
-  testImplementation("org.spockframework:spock-core")
-  testImplementation("org.spockframework:spock-spring")
-  testImplementation("org.springframework:spring-test")
-  testImplementation("org.springframework.boot:spring-boot-starter-test")
+  spinnaker.group('test')
+  testCompile project(":orca-test-groovy")
+  testCompile "com.netflix.spinnaker.keiko:keiko-mem:$keikoVersion"
+
+  //this brings in the jetty GzipFilter which boot will autoconfigure
+  runtime 'org.eclipse.jetty:jetty-servlets:9.2.11.v20150529'
 }
 
+// SHOULDN'T HAVE TO SPECIFY THIS HERE BUT SOMETHING FORCES IT LOWER
 configurations.all {
-  exclude group: 'javax.servlet', module: 'servlet-api'
+  resolutionStrategy {
+    eachDependency {
+      if (it.requested.group.startsWith("com.fasterxml.jackson")) {
+        it.useVersion spinnaker.version('jackson')
+      }
+    }
+  }
 }

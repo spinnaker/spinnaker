@@ -19,18 +19,18 @@ repositories {
 }
 
 dependencies {
-  testImplementation "org.junit.platform:junit-platform-runner"
-  testImplementation "org.jetbrains.spek:spek-api"
-  testImplementation "org.jetbrains.spek:spek-subject-extension"
-  testImplementation "com.nhaarman:mockito-kotlin"
-  testImplementation "org.assertj:assertj-core"
-  testImplementation "org.junit.jupiter:junit-jupiter-api"
+  testCompile "org.junit.platform:junit-platform-runner:$junitVersion"
+  testCompile "org.jetbrains.spek:spek-api:$spekVersion"
+  testCompile "org.jetbrains.spek:spek-subject-extension:$spekVersion"
+  testCompile "com.nhaarman:mockito-kotlin:1.5.0"
+  testCompile "org.assertj:assertj-core:3.9.0"
+  testCompile "org.junit.jupiter:junit-jupiter-api:$jupiterVersion"
 
-  testRuntime "org.junit.platform:junit-platform-launcher"
-  testRuntime "org.junit.jupiter:junit-jupiter-engine"
-  testRuntime "org.junit.vintage:junit-vintage-engine"
-  testRuntime "org.jetbrains.spek:spek-junit-platform-engine"
-  testImplementation "io.strikt:strikt-core"
+  testRuntime "org.junit.platform:junit-platform-launcher:$junitVersion"
+  testRuntime "org.junit.jupiter:junit-jupiter-engine:$jupiterVersion"
+  testRuntime "org.junit.vintage:junit-vintage-engine:$junitLegacyVersion"
+  testRuntime "org.jetbrains.spek:spek-junit-platform-engine:$spekVersion"
+  testCompile "io.strikt:strikt-core:0.11.5"
 }
 
 test {

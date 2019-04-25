@@ -17,5 +17,5 @@
 apply from: "$rootDir/gradle/kotlin.gradle"
 
 dependencies {
-  api(project(":orca-core"))
+  compile project(":orca-core")
 }

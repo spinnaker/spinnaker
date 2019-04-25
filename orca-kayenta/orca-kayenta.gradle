@@ -18,14 +18,10 @@ apply from: "$rootDir/gradle/kotlin.gradle"
 apply from: "$rootDir/gradle/spek.gradle"
 
 dependencies {
-  implementation(project(":orca-clouddriver"))
-  implementation(project(":orca-kotlin"))
-  implementation(project(":orca-retrofit"))
+  compile project(":orca-kotlin")
+  compile project(":orca-retrofit")
+  compile project(":orca-clouddriver")
 
-  implementation('com.netflix.spinnaker.moniker:moniker:0.2.0')
-  implementation("com.netflix.frigga:frigga")
-  implementation("org.codehaus.groovy:groovy-all")
-
-  testImplementation(project(":orca-test-kotlin"))
-  testImplementation("com.github.tomakehurst:wiremock:2.15.0")
+  testCompile project(":orca-test-kotlin")
+  testCompile "com.github.tomakehurst:wiremock:2.15.0"
 }
