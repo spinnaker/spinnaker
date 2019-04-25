@@ -334,9 +334,8 @@ public class Applications {
   }
 
   public void scaleApplication(String guid, @Nullable Integer instances, @Nullable Integer memInMb, @Nullable Integer diskInMb) throws CloudFoundryApiException {
-    if ((memInMb == null || memInMb == 0)
-      && (diskInMb == null || diskInMb == 0)
-      && (instances == null || instances == 0)) {
+    if ((memInMb == null && diskInMb == null && instances == null) ||
+      (Integer.valueOf(0).equals(memInMb) && Integer.valueOf(0).equals(diskInMb) && Integer.valueOf(0).equals(instances))) {
       return;
     }
     safelyCall(() -> api.scaleApplication(guid, new ScaleApplication(instances, memInMb, diskInMb)));
@@ -425,7 +424,13 @@ public class Applications {
   @Nullable
   public ProcessStats.State getProcessState(String appGuid) throws CloudFoundryApiException {
     return safelyCall(() -> api.findProcessStatsById(appGuid))
-      .flatMap(pr -> pr.getResources().stream().findAny().map(ProcessStats::getState))
+      .map(pr -> pr.getResources().stream().findAny().map(ProcessStats::getState)
+        .orElseGet(() ->
+          Optional.ofNullable(api.findById(appGuid))
+            .filter(application -> CloudFoundryServerGroup.State.STARTED.equals(CloudFoundryServerGroup.State.valueOf(application.getState())))
+            .map(appState -> ProcessStats.State.RUNNING)
+            .orElse(ProcessStats.State.DOWN)
+        ))
       .orElse(ProcessStats.State.DOWN);
   }
 

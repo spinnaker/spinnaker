@@ -75,6 +75,16 @@ class ApplicationsTest {
   }
 
   @Test
+  void scaleApplicationIfInputsAreMixOfNullAndZero() {
+    Response successResponse = new Response("http://capi.io", 200, "", Collections.emptyList(), null);
+    when(applicationService.scaleApplication(any(), any())).thenReturn(successResponse);
+
+    apps.scaleApplication("id", 0, null, null);
+
+    verify(applicationService).scaleApplication(any(), any());
+  }
+
+  @Test
   void findByIdIfInputsAreValid() {
     String serverGroupId = "some-app-guid";
     String serverGroupName = "some-app-name";
@@ -179,6 +189,7 @@ class ApplicationsTest {
     when(applicationService.findProcessStatsById(anyString())).thenReturn(processResources);
     ProcessStats.State result = apps.getProcessState("some-app-guid");
     assertThat(result).isEqualTo(ProcessStats.State.RUNNING);
+    verify(applicationService, never()).findById(anyString());
   }
 
   @Test
@@ -187,6 +198,39 @@ class ApplicationsTest {
     when(applicationService.findProcessStatsById(anyString())).thenThrow(RetrofitError.httpError("http://capi.io", errorResponse, null, null));
     ProcessStats.State result = apps.getProcessState("some-app-guid");
     assertThat(result).isEqualTo(ProcessStats.State.DOWN);
+    verify(applicationService, never()).findById(anyString());
+  }
+
+  @Test
+  void getProcessStateWhenStatsIsEmptyListAndAppIsStarted() {
+    Application application = new Application()
+      .setCreatedAt(ZonedDateTime.now())
+      .setGuid("some-app-guid")
+      .setName("some-app")
+      .setState("STARTED")
+      .setLinks(HashMap.of("space", new Link().setHref("http://capi.io/space/space-guid")).toJavaMap());
+    ProcessResources processResources = new ProcessResources().setResources(Collections.emptyList());
+    when(applicationService.findProcessStatsById(anyString())).thenReturn(processResources);
+    when(applicationService.findById(anyString())).thenReturn(application);
+    ProcessStats.State result = apps.getProcessState("some-app-guid");
+    assertThat(result).isEqualTo(ProcessStats.State.RUNNING);
+    verify(applicationService).findById("some-app-guid");
+  }
+
+  @Test
+  void getProcessStateWhenStatsIsEmptyListAndAppIsStopped() {
+    Application application = new Application()
+      .setCreatedAt(ZonedDateTime.now())
+      .setGuid("some-app-guid")
+      .setName("some-app")
+      .setState("STOPPED")
+      .setLinks(HashMap.of("space", new Link().setHref("http://capi.io/space/space-guid")).toJavaMap());
+    ProcessResources processResources = new ProcessResources().setResources(Collections.emptyList());
+    when(applicationService.findProcessStatsById(anyString())).thenReturn(processResources);
+    when(applicationService.findById(anyString())).thenReturn(application);
+    ProcessStats.State result = apps.getProcessState("some-app-guid");
+    assertThat(result).isEqualTo(ProcessStats.State.DOWN);
+    verify(applicationService).findById("some-app-guid");
   }
 
   @ParameterizedTest

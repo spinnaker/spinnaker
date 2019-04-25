@@ -32,4 +32,7 @@ public class ScaleCloudFoundryServerGroupDescription extends AbstractCloudFoundr
 
   @Nullable
   private Integer diskQuota;
+
+  @Nullable
+  private Boolean scaleStoppedServerGroup;
 }

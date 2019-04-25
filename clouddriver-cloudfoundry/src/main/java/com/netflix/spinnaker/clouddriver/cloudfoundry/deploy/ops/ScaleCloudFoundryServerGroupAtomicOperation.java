@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops;
 
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryApiException;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.ProcessStats;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.ProcessStats.State;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.ScaleCloudFoundryServerGroupDescription;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
@@ -28,7 +28,6 @@ import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
-import java.util.Optional;
 
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops.CloudFoundryOperationUtils.describeProcessState;
 
@@ -56,16 +55,17 @@ public class ScaleCloudFoundryServerGroupAtomicOperation implements AtomicOperat
       description.getMemory(),
       description.getDiskQuota());
 
-    ProcessStats.State state = operationPoller.waitForOperation(
+    State state = operationPoller.waitForOperation(
       () -> client.getApplications().getProcessState(description.getServerGroupId()),
       inProgressState -> (
-        inProgressState == ProcessStats.State.RUNNING
-          || inProgressState == ProcessStats.State.CRASHED
-          || inProgressState == ProcessStats.State.DOWN),
+        inProgressState == State.RUNNING
+          || inProgressState == State.CRASHED
+          || inProgressState == State.DOWN),
       null, getTask(), description.getServerGroupName(), PHASE);
 
-    if (state == ProcessStats.State.RUNNING ||
-      (state == ProcessStats.State.DOWN && description.getCapacity().getDesired() == 0)) {
+    if (state == State.RUNNING ||
+      (state == State.DOWN && description.getCapacity().getDesired() == 0) ||
+      (state == State.DOWN && Boolean.TRUE.equals(description.getScaleStoppedServerGroup()))) {
       getTask().updateStatus(PHASE, "Resized '" + description.getServerGroupName() + "'");
     } else {
       throw new CloudFoundryApiException("Failed to start '" + description.getServerGroupName() + "' which instead " + describeProcessState(state));
