@@ -9,23 +9,81 @@ import { ICloudFoundryLoadBalancer } from 'cloudfoundry/domain';
 import { CloudFoundryLoadBalancerStatusSection } from 'cloudfoundry/loadBalancer/details/sections/CloudFoundryLoadBalancerStatusSection';
 import { CloudFoundryLoadBalancerLinksSection } from 'cloudfoundry/loadBalancer/details/sections/CloudFoundryLoadBalancerLinksSection';
 
-export interface ICloudFoundryLoadBalancerDetailsProps {
-  application: Application;
-  confirmationModalService: ConfirmationModalService;
+interface ILoadBalancer {
+  name: string;
+  accountId: string;
+  region: string;
+}
+
+interface ICloudFoundryLoadBalancerDetailsState {
   loadBalancer: ICloudFoundryLoadBalancer;
-  loadBalancerNotFound: string;
-  loadBalancerWriter: LoadBalancerWriter;
+  loadBalancerNotFound?: string;
   loading: boolean;
+  refreshListenerUnsubscribe: () => void;
+}
+
+export interface ICloudFoundryLoadBalancerDetailsProps {
+  app: Application;
+  confirmationModalService: ConfirmationModalService;
+  loadBalancer: ILoadBalancer;
+  loadBalancerWriter: LoadBalancerWriter;
 }
 
 @UIRouterContext
-export class CloudFoundryLoadBalancerDetails extends React.Component<ICloudFoundryLoadBalancerDetailsProps> {
+export class CloudFoundryLoadBalancerDetails extends React.Component<
+  ICloudFoundryLoadBalancerDetailsProps,
+  ICloudFoundryLoadBalancerDetailsState
+> {
   constructor(props: ICloudFoundryLoadBalancerDetailsProps) {
     super(props);
+    this.state = {
+      loading: true,
+      loadBalancer: undefined,
+      refreshListenerUnsubscribe: () => {},
+    };
+
+    props.app
+      .getDataSource('loadBalancers')
+      .ready()
+      .then(() => this.extractLoadBalancer());
+  }
+
+  public componentWillUnmount(): void {
+    this.state.refreshListenerUnsubscribe();
+  }
+
+  private extractLoadBalancer(): void {
+    const { name } = this.props.loadBalancer;
+    const loadBalancer: ICloudFoundryLoadBalancer = this.props.app
+      .getDataSource('loadBalancers')
+      .data.find((test: ICloudFoundryLoadBalancer) => {
+        return test.name === name && test.account === this.props.loadBalancer.accountId;
+      });
+
+    this.setState({
+      loading: false,
+      loadBalancer,
+    });
+
+    this.state.refreshListenerUnsubscribe();
+
+    if (loadBalancer) {
+      this.setState({
+        refreshListenerUnsubscribe: this.props.app
+          .getDataSource('loadBalancers')
+          .onRefresh(null, () => this.extractLoadBalancer()),
+      });
+    } else {
+      this.setState({
+        refreshListenerUnsubscribe: () => {},
+      });
+      // this.autoClose();
+    }
   }
 
   public render(): JSX.Element {
-    const { application, confirmationModalService, loadBalancer, loadBalancerNotFound, loading } = this.props;
+    const { app, confirmationModalService } = this.props;
+    const { loadBalancer, loadBalancerNotFound, loading } = this.state;
 
     const CloseButton = (
       <div className="close-button">
@@ -58,7 +116,7 @@ export class CloudFoundryLoadBalancerDetails extends React.Component<ICloudFound
           <h3 className="horizontal middle space-between flex-1">{loadBalancer.name}</h3>
         </div>
         <CloudFoundryLoadBalancerActions
-          application={application}
+          application={app}
           confirmationModalService={confirmationModalService}
           loadBalancer={loadBalancer}
         />
@@ -83,8 +141,8 @@ export class CloudFoundryLoadBalancerDetails extends React.Component<ICloudFound
     return (
       <div className="details-panel">
         {loading && loadingHeader()}
-        {!loading && loadBalancer && loadBalancerHeader()}
-        {!loading && loadBalancer && loadBalancerContent()}
+        {!loading && !!loadBalancer && loadBalancerHeader()}
+        {!loading && !!loadBalancer && loadBalancerContent()}
         {!loading && !loadBalancer && notFoundHeader()}
         {!loading && !loadBalancer && notFoundContent()}
       </div>

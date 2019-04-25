@@ -1,4 +1,4 @@
-import { module, IPromise } from 'angular';
+import { IPromise } from 'angular';
 
 import { defaults } from 'lodash';
 
@@ -42,9 +42,3 @@ export class CloudFoundryServerGroupTransformer {
     return newEnv;
   }
 }
-
-export const CLOUD_FOUNDRY_SERVER_GROUP_TRANSFORMER = 'spinnaker.cloudfoundry.serverGroup.transformer';
-module(CLOUD_FOUNDRY_SERVER_GROUP_TRANSFORMER, []).service(
-  'cfServerGroupTransformer',
-  CloudFoundryServerGroupTransformer,
-);

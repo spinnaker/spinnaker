@@ -1,5 +1,3 @@
-import { module } from 'angular';
-
 import { camelCase, chain, cloneDeep, get, has } from 'lodash';
 
 import {
@@ -150,10 +148,3 @@ export class CloudFoundryLoadBalancerTransformer {
     return instance as IInstance;
   }
 }
-
-export const CLOUD_FOUNDRY_LOAD_BALANCER_TRANSFORMER = 'spinnaker.cloudfoundry.loadBalancer.transformer.service';
-
-module(CLOUD_FOUNDRY_LOAD_BALANCER_TRANSFORMER, []).service(
-  'cfLoadBalancerTransformer',
-  CloudFoundryLoadBalancerTransformer,
-);

@@ -1,4 +1,4 @@
-import { IPromise, IQService, module } from 'angular';
+import { IPromise, IQService } from 'angular';
 
 import { IStage, IPipeline, Application } from '@spinnaker/core';
 
@@ -9,6 +9,7 @@ import {
 } from './serverGroupConfigurationModel.cf';
 
 export class CloudFoundryServerGroupCommandBuilder {
+  // TODO:  Remove?
   public static buildUpdateServerGroupCommand(_originalServerGroup: any) {
     throw new Error('Implement me!');
   }
@@ -171,10 +172,3 @@ export class CloudFoundryServerGroupCommandBuilder {
     });
   }
 }
-
-export const CLOUD_FOUNDRY_SERVER_GROUP_COMMAND_BUILDER = 'spinnaker.cloudfoundry.serverGroupCommandBuilder.service';
-
-module(CLOUD_FOUNDRY_SERVER_GROUP_COMMAND_BUILDER, []).service(
-  'cfServerGroupCommandBuilder',
-  CloudFoundryServerGroupCommandBuilder,
-);

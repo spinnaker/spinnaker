@@ -2,29 +2,104 @@ import * as React from 'react';
 import { UISref } from '@uirouter/react';
 import { UIRouterContext } from '@uirouter/react-hybrid';
 
-import { Application, ConfirmationModalService, InstanceWriter, Spinner } from '@spinnaker/core';
+import {
+  Application,
+  ConfirmationModalService,
+  InstanceReader,
+  InstanceWriter,
+  RecentHistoryService,
+  Spinner,
+} from '@spinnaker/core';
 
 import { ICloudFoundryInstance } from 'cloudfoundry/domain';
 import { CloudFoundryInstanceDetailsSection } from 'cloudfoundry/instance/details/sections';
 import { CloudFoundryInstanceActions } from 'cloudfoundry/instance/details/CloudFoundryInstanceActions';
+import { flattenDeep } from 'lodash';
 
-export interface ICloudFoundryInstanceDetailsProps {
-  application: Application;
-  confirmationModalService: ConfirmationModalService;
-  instance: ICloudFoundryInstance;
+interface InstanceFromStateParams {
+  instanceId: string;
+}
+
+interface InstanceManager {
+  account: string;
+  region: string;
+  category: string; // e.g., serverGroup, loadBalancer.
+  name: string; // Parent resource name, not instance name.
+  instances: ICloudFoundryInstance[];
+}
+
+interface ICloudFoundryInstanceDetailsState {
+  instance?: ICloudFoundryInstance;
   instanceIdNotFound: string;
+  loading: boolean;
+}
+
+interface ICloudFoundryInstanceDetailsProps {
+  app: Application;
+  confirmationModalService: ConfirmationModalService;
+  instance: InstanceFromStateParams;
   instanceWriter: InstanceWriter;
   loading: boolean;
 }
 
 @UIRouterContext
-export class CloudFoundryInstanceDetails extends React.Component<ICloudFoundryInstanceDetailsProps> {
+export class CloudFoundryInstanceDetails extends React.Component<
+  ICloudFoundryInstanceDetailsProps,
+  ICloudFoundryInstanceDetailsState
+> {
   constructor(props: ICloudFoundryInstanceDetailsProps) {
     super(props);
+
+    this.state = {
+      loading: true,
+      instanceIdNotFound: props.instance.instanceId,
+    };
+  }
+
+  public componentDidMount(): void {
+    this.props.app.ready().then(() => this.retrieveInstance(this.props.instance));
+  }
+
+  private retrieveInstance(instanceFromParams: InstanceFromStateParams): void {
+    const instanceLocatorPredicate = (dataSource: InstanceManager) => {
+      return dataSource.instances.some(possibleMatch => possibleMatch.id === instanceFromParams.instanceId);
+    };
+
+    const dataSources: InstanceManager[] = flattenDeep([
+      this.props.app.getDataSource('serverGroups').data,
+      this.props.app.getDataSource('loadBalancers').data,
+      this.props.app.getDataSource('loadBalancers').data.map(loadBalancer => loadBalancer.serverGroups),
+    ]);
+
+    const instanceManager = dataSources.find(instanceLocatorPredicate);
+
+    if (instanceManager) {
+      const recentHistoryExtraData: { [key: string]: string } = {
+        region: instanceManager.region,
+        account: instanceManager.account,
+      };
+      if (instanceManager.category === 'serverGroup') {
+        recentHistoryExtraData.serverGroup = instanceManager.name;
+      }
+      RecentHistoryService.addExtraDataToLatest('instances', recentHistoryExtraData);
+      InstanceReader.getInstanceDetails(instanceManager.account, instanceManager.region, instanceFromParams.instanceId)
+        .then((instanceDetails: ICloudFoundryInstance) => {
+          instanceDetails.account = instanceManager.account;
+          instanceDetails.region = instanceManager.region;
+          return instanceDetails;
+        })
+        .then(instance => {
+          this.setState({
+            instance,
+            loading: false,
+          });
+        });
+    }
   }
 
   public render(): JSX.Element {
-    const { application, confirmationModalService, instance, instanceIdNotFound, instanceWriter, loading } = this.props;
+    const { app, confirmationModalService, instanceWriter } = this.props;
+    const { instance, instanceIdNotFound, loading } = this.state;
     const CloseButton = (
       <div className="close-button">
         <UISref to="^">
@@ -56,7 +131,7 @@ export class CloudFoundryInstanceDetails extends React.Component<ICloudFoundryIn
           <h3 className="horizontal middle space-between flex-1">{instance.name}</h3>
         </div>
         <CloudFoundryInstanceActions
-          application={application}
+          application={app}
           confirmationModalService={confirmationModalService}
           instance={instance}
           instanceWriter={instanceWriter}

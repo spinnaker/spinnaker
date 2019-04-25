@@ -1,4 +1,4 @@
-import { module } from 'angular';
+import { IQService, module } from 'angular';
 import { isString, isFunction } from 'lodash';
 
 import IInjectorService = angular.auto.IInjectorService;
@@ -6,12 +6,12 @@ import IInjectorService = angular.auto.IInjectorService;
 import { CloudProviderRegistry } from './CloudProviderRegistry';
 
 export class ProviderServiceDelegate {
-  public static $inject = ['$injector'];
-  constructor(private $injector: IInjectorService) {}
+  public static $inject = ['$injector', '$q'];
+  constructor(private $injector: IInjectorService, private $q: IQService) {}
 
   public hasDelegate(provider: string, serviceKey: string, skin?: string): boolean {
     const service: string = CloudProviderRegistry.getValue(provider, serviceKey, skin);
-    return this.$injector.has(service);
+    return isFunction(service) || (isString(service) && this.$injector.has(service));
   }
 
   public getDelegate<T>(provider: string, serviceKey: string, skin?: string): T {
@@ -21,7 +21,8 @@ export class ProviderServiceDelegate {
       return this.$injector.get<T>(service, 'providerDelegate');
     } else if (isFunction(service)) {
       // service is a Function, assume it's service class, so new() it
-      return new service();
+      // Inject $q in case it is required for resolving promises in a possibly non-Angular component
+      return new service(this.$q);
     } else {
       throw new Error('No "' + serviceKey + '" service found for provider "' + provider + '"');
     }
