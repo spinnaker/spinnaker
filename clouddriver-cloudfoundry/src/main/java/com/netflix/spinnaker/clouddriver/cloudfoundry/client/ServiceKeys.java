@@ -33,12 +33,12 @@ public class ServiceKeys {
   private final Spaces spaces;
 
   public ServiceKeyResponse createServiceKey(CloudFoundrySpace space, String serviceInstanceName, String serviceKeyName) {
-    return Optional.ofNullable(spaces.getSummaryServiceInstanceByNameAndSpace(serviceInstanceName, space))
-      .map(ssi -> getServiceKey(ssi.getGuid(), serviceKeyName)
+    return Optional.ofNullable(spaces.getServiceInstanceByNameAndSpace(serviceInstanceName, space))
+      .map(ssi -> getServiceKey(ssi.getId(), serviceKeyName)
         .map(Resource::getEntity)
         .map(ServiceKey::getCredentials)
         .orElseGet(() -> safelyCall(() ->
-            api.createServiceKey(new CreateServiceKey().setName(serviceKeyName).setServiceInstanceGuid(ssi.getGuid()))
+            api.createServiceKey(new CreateServiceKey().setName(serviceKeyName).setServiceInstanceGuid(ssi.getId()))
           )
             .map(Resource::getEntity)
             .map(ServiceCredentials::getCredentials)
@@ -58,9 +58,9 @@ public class ServiceKeys {
   }
 
   public ServiceKeyResponse deleteServiceKey(CloudFoundrySpace space, String serviceInstanceName, String serviceKeyName) {
-    return Optional.ofNullable(spaces.getSummaryServiceInstanceByNameAndSpace(serviceInstanceName, space))
+    return Optional.ofNullable(spaces.getServiceInstanceByNameAndSpace(serviceInstanceName, space))
       .map(ssi ->
-        getServiceKey(ssi.getGuid(), serviceKeyName)
+        getServiceKey(ssi.getId(), serviceKeyName)
           .map(serviceKeyResource ->
             safelyCall(() ->
               api.deleteServiceKey(serviceKeyResource.getMetadata().getGuid())

@@ -1,11 +1,13 @@
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client;
 
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.SpaceService;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.SpaceSummary;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.SummaryServiceInstance;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.*;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryServiceInstance;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
 import io.vavr.collection.HashSet;
 import org.junit.jupiter.api.Test;
+
+import java.util.Collections;
 
 import static java.util.Collections.singleton;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -24,47 +26,28 @@ class SpacesTest {
 
   @Test
   void getServiceInstanceByNameAndSpaceShouldReturnServiceInstance() {
-    String serviceInstanceName1 = "service-instance-1";
-    SummaryServiceInstance summaryServiceInstance1 = new SummaryServiceInstance()
-      .setGuid("service-instance-1-guid")
-      .setName(serviceInstanceName1);
-    SummaryServiceInstance summaryServiceInstance2 = new SummaryServiceInstance()
-      .setGuid("service-instance-2-guid")
-      .setName("service-instance-2");
-    SpaceSummary spaceSummary = new SpaceSummary()
-      .setServices(HashSet.of(summaryServiceInstance1, summaryServiceInstance2).toJavaSet());
-    when(spaceService.getSpaceSummaryById(any())).thenReturn(spaceSummary);
+    String serviceInstanceName = "service-instance";
+    String serviceInstanceId = "service-instance-guid";
+    ServiceInstance serviceInstance = new ServiceInstance();
+    serviceInstance.setName(serviceInstanceName);
+    when(spaceService.getServiceInstancesById(any(), any(), any()))
+      .thenReturn(Page.singleton(serviceInstance, serviceInstanceId));
 
-    SummaryServiceInstance serviceInstance = spaces.getSummaryServiceInstanceByNameAndSpace(serviceInstanceName1, cloudFoundrySpace);
+    CloudFoundryServiceInstance actual = spaces.getServiceInstanceByNameAndSpace(serviceInstanceName, cloudFoundrySpace);
 
-    assertThat(serviceInstance).isEqualToComparingFieldByFieldRecursively(summaryServiceInstance1);
-    verify(spaceService).getSpaceSummaryById(spaceId);
+    assertThat(actual.getName()).isEqualTo(serviceInstanceName);
+    assertThat(actual.getId()).isEqualTo(serviceInstanceId);
+    verify(spaceService).getServiceInstancesById(eq(spaceId), anyInt(), eq(Collections.singletonList("name:" + serviceInstanceName)));
   }
 
   @Test
-  void getSummaryServiceInstanceByNameAndSpaceShouldReturnNullWhenSpaceHasNoServiceInstances() {
-    String serviceInstanceName1 = "service-instance-1";
-    SpaceSummary spaceSummary = new SpaceSummary()
-      .setServices(null);
-    when(spaceService.getSpaceSummaryById(any())).thenReturn(spaceSummary);
+  void getServiceInstanceByNameAndSpaceShouldReturnNullWhenSpaceHasNoServiceInstances() {
+    String serviceInstanceName1 = "service-instance";
+    when(spaceService.getServiceInstancesById(any(), any(), any()))
+      .thenReturn(new Page<ServiceInstance>().setTotalResults(0).setTotalPages(1));
 
-    SummaryServiceInstance serviceInstance = spaces.getSummaryServiceInstanceByNameAndSpace(serviceInstanceName1, cloudFoundrySpace);
+    CloudFoundryServiceInstance actual = spaces.getServiceInstanceByNameAndSpace(serviceInstanceName1, cloudFoundrySpace);
 
-    assertThat(serviceInstance).isNull();
-  }
-
-  @Test
-  void getSummaryServiceInstanceByNameAndSpaceShouldReturnNullWhenSpaceHasNoMatchingServiceInstances() {
-    String serviceInstanceName1 = "service-instance-1";
-    SummaryServiceInstance summaryServiceInstance2 = new SummaryServiceInstance()
-      .setGuid("service-instance-2-guid")
-      .setName("service-instance-2");
-    SpaceSummary spaceSummary = new SpaceSummary()
-      .setServices(singleton(summaryServiceInstance2));
-    when(spaceService.getSpaceSummaryById(any())).thenReturn(spaceSummary);
-
-    SummaryServiceInstance serviceInstance = spaces.getSummaryServiceInstanceByNameAndSpace(serviceInstanceName1, cloudFoundrySpace);
-
-    assertThat(serviceInstance).isNull();
+    assertThat(actual).isNull();
   }
 }

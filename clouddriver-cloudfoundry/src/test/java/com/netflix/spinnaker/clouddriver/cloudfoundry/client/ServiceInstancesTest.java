@@ -731,16 +731,18 @@ class ServiceInstancesTest {
       .thenReturn(Optional.of(space0))
       .thenReturn(Optional.of(space1))
       .thenReturn(Optional.of(space2));
-    when(spaces.getSummaryServiceInstanceByNameAndSpace(any(), eq(space0)))
+    when(spaces.getServiceInstanceByNameAndSpace(any(), eq(space0)))
       .thenReturn(null);
-    when(spaces.getSummaryServiceInstanceByNameAndSpace(any(), eq(space1)))
-      .thenReturn(new SummaryServiceInstance()
-        .setName("service-instance-name")
-        .setGuid("service-instance-guid-1"));
-    when(spaces.getSummaryServiceInstanceByNameAndSpace(any(), eq(space2)))
-      .thenReturn(new SummaryServiceInstance()
-        .setName("service-instance-name")
-        .setGuid("service-instance-guid-2"));
+    when(spaces.getServiceInstanceByNameAndSpace(any(), eq(space1)))
+      .thenReturn(CloudFoundryServiceInstance.builder()
+        .name("service-instance-name")
+        .id("service-instance-guid-1")
+        .build());
+    when(spaces.getServiceInstanceByNameAndSpace(any(), eq(space2)))
+      .thenReturn(CloudFoundryServiceInstance.builder()
+        .name("service-instance-name")
+        .id("service-instance-guid-2")
+        .build());
     when(serviceInstanceService.unshareServiceInstanceFromSpaceId(any(), any()))
       .thenReturn(new Response("url", 202, "reason", Collections.emptyList(), null));
     Set<String> unshareFromRegions = new HashSet<>();
@@ -757,9 +759,9 @@ class ServiceInstancesTest {
     assertThat(result).isEqualToComparingFieldByFieldRecursively(expectedResult);
     verify(serviceInstanceService).unshareServiceInstanceFromSpaceId("service-instance-guid-1", "space-guid-1");
     verify(serviceInstanceService).unshareServiceInstanceFromSpaceId("service-instance-guid-2", "space-guid-2");
-    verify(spaces).getSummaryServiceInstanceByNameAndSpace(eq("service-instance-name"), eq(space0));
-    verify(spaces).getSummaryServiceInstanceByNameAndSpace(eq("service-instance-name"), eq(space1));
-    verify(spaces).getSummaryServiceInstanceByNameAndSpace(eq("service-instance-name"), eq(space2));
+    verify(spaces).getServiceInstanceByNameAndSpace(eq("service-instance-name"), eq(space0));
+    verify(spaces).getServiceInstanceByNameAndSpace(eq("service-instance-name"), eq(space1));
+    verify(spaces).getServiceInstanceByNameAndSpace(eq("service-instance-name"), eq(space2));
   }
 
   @Test

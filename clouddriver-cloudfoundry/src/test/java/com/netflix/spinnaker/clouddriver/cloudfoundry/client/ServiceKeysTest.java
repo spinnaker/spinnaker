@@ -21,6 +21,7 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.ServiceKeyServi
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.ServiceKeyResponse;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.*;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryOrganization;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryServiceInstance;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
 import io.vavr.collection.HashMap;
 import org.junit.jupiter.api.Test;
@@ -78,9 +79,10 @@ class ServiceKeysTest {
 
   @Test
   void createServiceKeyShouldReturnSuccessWhenServiceKeyIsCreated() {
-    when(spaces.getSummaryServiceInstanceByNameAndSpace(any(), any())).thenReturn(new SummaryServiceInstance()
-      .setName(serviceKeyName)
-      .setGuid(serviceInstanceId));
+    when(spaces.getServiceInstanceByNameAndSpace(any(), any())).thenReturn(CloudFoundryServiceInstance.builder()
+      .name(serviceKeyName)
+      .id(serviceInstanceId)
+      .build());
     ServiceCredentials serviceCredentials = new ServiceCredentials().setCredentials(credentials);
     Resource<ServiceCredentials> resource = new Resource<>();
     resource.setEntity(serviceCredentials);
@@ -100,28 +102,29 @@ class ServiceKeysTest {
     ServiceKeyResponse results = serviceKeys.createServiceKey(cloudFoundrySpace, serviceInstanceName, serviceKeyName);
 
     assertThat(results).isEqualToComparingFieldByFieldRecursively(expectedResults);
-    verify(spaces).getSummaryServiceInstanceByNameAndSpace(eq(serviceInstanceName), eq(cloudFoundrySpace));
+    verify(spaces).getServiceInstanceByNameAndSpace(eq(serviceInstanceName), eq(cloudFoundrySpace));
     verify(serviceKeyService).createServiceKey(eq(requestBody));
   }
 
   @Test
   void createServiceKeyShouldThrowExceptionWhenServiceNameDoesNotExistInSpace() {
-    when(spaces.getSummaryServiceInstanceByNameAndSpace(any(), any())).thenReturn(null);
+    when(spaces.getServiceInstanceByNameAndSpace(any(), any())).thenReturn(null);
 
     assertThrows(
       () -> serviceKeys.createServiceKey(cloudFoundrySpace, serviceInstanceName, serviceKeyName),
       CloudFoundryApiException.class,
       "Cloud Foundry API returned with error(s): Service instance '"
         + serviceInstanceName + "' not found in region '" + cloudFoundrySpace.getRegion() + "'");
-    verify(spaces).getSummaryServiceInstanceByNameAndSpace(eq(serviceInstanceName), eq(cloudFoundrySpace));
+    verify(spaces).getServiceInstanceByNameAndSpace(eq(serviceInstanceName), eq(cloudFoundrySpace));
     verify(serviceKeyService, never()).createServiceKey(any());
   }
 
   @Test
   void createServiceKeyShouldThrowExceptionWhenServiceKeyReturnsNotFound() {
-    when(spaces.getSummaryServiceInstanceByNameAndSpace(any(), any())).thenReturn(new SummaryServiceInstance()
-      .setName(serviceKeyName)
-      .setGuid(serviceInstanceId));
+    when(spaces.getServiceInstanceByNameAndSpace(any(), any())).thenReturn(CloudFoundryServiceInstance.builder()
+      .name(serviceKeyName)
+      .id(serviceInstanceId)
+      .build());
     CreateServiceKey requestBody = new CreateServiceKey()
       .setName(serviceKeyName)
       .setServiceInstanceGuid(serviceInstanceId);
@@ -136,15 +139,16 @@ class ServiceKeysTest {
       CloudFoundryApiException.class,
       "Cloud Foundry API returned with error(s): Service key '" + serviceKeyName + "' could not be created for service instance '"
         + serviceInstanceName + "' in region '" + cloudFoundrySpace.getRegion() + "'");
-    verify(spaces).getSummaryServiceInstanceByNameAndSpace(eq(serviceInstanceName), eq(cloudFoundrySpace));
+    verify(spaces).getServiceInstanceByNameAndSpace(eq(serviceInstanceName), eq(cloudFoundrySpace));
     verify(serviceKeyService).createServiceKey(requestBody);
   }
 
   @Test
   void createServiceKeyShouldSucceedWhenServiceKeyAlreadyExists() {
-    when(spaces.getSummaryServiceInstanceByNameAndSpace(any(), any())).thenReturn(new SummaryServiceInstance()
-      .setName(serviceKeyName)
-      .setGuid(serviceInstanceId));
+    when(spaces.getServiceInstanceByNameAndSpace(any(), any())).thenReturn(CloudFoundryServiceInstance.builder()
+      .name(serviceKeyName)
+      .id(serviceInstanceId)
+      .build());
     when(serviceKeyService.getServiceKey(any(), any())).thenReturn(createServiceKeyPage(serviceKeyName, serviceKeyId));
 
     ServiceKeyResponse expectedResults = new ServiceKeyResponse();
@@ -195,9 +199,10 @@ class ServiceKeysTest {
 
   @Test
   void deleteServiceKeyShouldSucceedWhenServiceKeyIsDeleted() {
-    when(spaces.getSummaryServiceInstanceByNameAndSpace(any(), any())).thenReturn(new SummaryServiceInstance()
-      .setName(serviceInstanceName)
-      .setGuid(serviceInstanceId));
+    when(spaces.getServiceInstanceByNameAndSpace(any(), any())).thenReturn(CloudFoundryServiceInstance.builder()
+      .name(serviceInstanceName)
+      .id(serviceInstanceId)
+      .build());
     when(serviceKeyService.getServiceKey(any(), any())).thenReturn(createServiceKeyPage(serviceKeyName, serviceKeyId));
     when(serviceKeyService.deleteServiceKey(any())).thenReturn(new Response("url", 202, "reason", Collections.emptyList(), null));
     ServiceKeyResponse expectedResponse = (ServiceKeyResponse) new ServiceKeyResponse()
@@ -209,16 +214,17 @@ class ServiceKeysTest {
     ServiceKeyResponse response = serviceKeys.deleteServiceKey(cloudFoundrySpace, serviceInstanceName, serviceKeyName);
 
     assertThat(response).isEqualTo(expectedResponse);
-    verify(spaces).getSummaryServiceInstanceByNameAndSpace(eq(serviceInstanceName), eq(cloudFoundrySpace));
+    verify(spaces).getServiceInstanceByNameAndSpace(eq(serviceInstanceName), eq(cloudFoundrySpace));
     verify(serviceKeyService).getServiceKey(anyInt(), eq(Arrays.asList("service_instance_guid:service-instance-guid", "name:service-key")));
     verify(serviceKeyService).deleteServiceKey(serviceKeyId);
   }
 
   @Test
   void deleteServiceKeyShouldSucceedWhenServiceKeyDoesNotExist() {
-    when(spaces.getSummaryServiceInstanceByNameAndSpace(any(), any())).thenReturn(new SummaryServiceInstance()
-      .setName(serviceInstanceName)
-      .setGuid(serviceInstanceId));
+    when(spaces.getServiceInstanceByNameAndSpace(any(), any())).thenReturn(CloudFoundryServiceInstance.builder()
+      .name(serviceInstanceName)
+      .id(serviceInstanceId)
+      .build());
     when(serviceKeyService.getServiceKey(anyInt(), any())).thenReturn(createEmptyServiceKeyPage());
     ServiceKeyResponse expectedResponse = (ServiceKeyResponse) new ServiceKeyResponse()
       .setServiceKeyName(serviceKeyName)
@@ -229,19 +235,19 @@ class ServiceKeysTest {
     ServiceKeyResponse response = serviceKeys.deleteServiceKey(cloudFoundrySpace, serviceInstanceName, serviceKeyName);
 
     assertThat(response).isEqualTo(expectedResponse);
-    verify(spaces).getSummaryServiceInstanceByNameAndSpace(eq(serviceInstanceName), eq(cloudFoundrySpace));
+    verify(spaces).getServiceInstanceByNameAndSpace(eq(serviceInstanceName), eq(cloudFoundrySpace));
     verify(serviceKeyService).getServiceKey(anyInt(), eq(Arrays.asList("service_instance_guid:service-instance-guid", "name:service-key")));
     verify(serviceKeyService, never()).deleteServiceKey(any());
   }
 
   @Test
   void deleteServiceKeyShouldThrowExceptionWhenServiceDoesNotExistInSpace() {
-    when(spaces.getSummaryServiceInstanceByNameAndSpace(any(), any())).thenReturn(null);
+    when(spaces.getServiceInstanceByNameAndSpace(any(), any())).thenReturn(null);
 
     assertThrows(() -> serviceKeys.deleteServiceKey(cloudFoundrySpace, serviceInstanceName, serviceKeyName),
       CloudFoundryApiException.class,
       "Cloud Foundry API returned with error(s): Cannot find service 'service-instance' in region 'org > space'");
-    verify(spaces).getSummaryServiceInstanceByNameAndSpace(eq(serviceInstanceName), eq(cloudFoundrySpace));
+    verify(spaces).getServiceInstanceByNameAndSpace(eq(serviceInstanceName), eq(cloudFoundrySpace));
     verify(serviceKeyService, never()).getServiceKey(anyInt(), any());
     verify(serviceKeyService, never()).deleteServiceKey(any());
   }

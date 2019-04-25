@@ -20,16 +20,15 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.SpaceService;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Resource;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Space;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.SpaceSummary;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.SummaryServiceInstance;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.*;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryServiceInstance;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
 import lombok.RequiredArgsConstructor;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
@@ -72,8 +71,17 @@ public class Spaces {
   }
 
   @Nullable
-  public SpaceSummary getSpaceSummaryById(String spaceId) {
-    return safelyCall(() -> api.getSpaceSummaryById(spaceId))
+  public CloudFoundryServiceInstance getServiceInstanceById(String spaceId, String serviceInstanceName) {
+    return collectPageResources("get service instances by id", pg -> api.getServiceInstancesById(
+      spaceId,
+      pg,
+      Collections.singletonList("name:" + serviceInstanceName)))
+      .stream()
+      .findFirst()
+      .map(e -> CloudFoundryServiceInstance.builder()
+        .name(e.getEntity().getName())
+        .id(e.getMetadata().getGuid())
+        .build())
       .orElse(null);
   }
 
@@ -85,13 +93,8 @@ public class Spaces {
   }
 
   @Nullable
-  public SummaryServiceInstance getSummaryServiceInstanceByNameAndSpace(String serviceInstanceName, CloudFoundrySpace space) {
-    return Optional.ofNullable(getSpaceSummaryById(space.getId()))
-      .map(SpaceSummary::getServices)
-      .map(services -> services.stream()
-        .filter(si -> serviceInstanceName.equals(si.getName()))
-        .findFirst()
-        .orElse(null))
+  public CloudFoundryServiceInstance getServiceInstanceByNameAndSpace(String serviceInstanceName, CloudFoundrySpace space) {
+    return Optional.ofNullable(getServiceInstanceById(space.getId(), serviceInstanceName))
       .orElse(null);
   }
 

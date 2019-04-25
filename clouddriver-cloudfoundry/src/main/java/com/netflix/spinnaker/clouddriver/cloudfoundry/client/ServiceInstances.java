@@ -228,8 +228,8 @@ public class ServiceInstances {
     Set<CloudFoundrySpace> unshareFromSpaces = vetUnshareServiceArgumentsAndGetSharingSpaces(serviceInstanceName, unshareFromRegions);
 
     unshareFromSpaces
-      .forEach(space -> Optional.ofNullable(spaces.getSummaryServiceInstanceByNameAndSpace(serviceInstanceName, space))
-        .map(si -> safelyCall(() -> api.unshareServiceInstanceFromSpaceId(si.getGuid(), space.getId()))));
+      .forEach(space -> Optional.ofNullable(spaces.getServiceInstanceByNameAndSpace(serviceInstanceName, space))
+        .map(si -> safelyCall(() -> api.unshareServiceInstanceFromSpaceId(si.getId(), space.getId()))));
 
     return new ServiceInstanceResponse()
       .setServiceInstanceName(serviceInstanceName)
