@@ -25,7 +25,6 @@ import 'cloudfoundry/common/cloudFoundry.less';
 
 export interface ICloudFoundryServerGroupBasicSettingsProps {
   formik: FormikProps<ICloudFoundryCreateServerGroupCommand>;
-  isClone: boolean;
 }
 
 export interface ICloudFoundryServerGroupLocationSettingsState {
@@ -57,13 +56,11 @@ export class CloudFoundryServerGroupBasicSettings
 
   private accountChanged = (): void => {
     this.updateRegionList();
-    const regionField = this.props.isClone ? 'destination.region' : 'region';
-    this.props.formik.setFieldValue(regionField, '');
+    this.props.formik.setFieldValue('region', '');
   };
 
   private updateRegionList = (): void => {
-    const accountField = this.props.isClone ? 'account' : 'credentials';
-    const credentials = get(this.props.formik.values, accountField, undefined);
+    const credentials = get(this.props.formik.values, 'credentials', undefined);
     if (credentials) {
       Observable.fromPromise(AccountService.getRegionsForAccount(credentials))
         .takeUntil(this.destroy$)
@@ -80,17 +77,15 @@ export class CloudFoundryServerGroupBasicSettings
   };
 
   public render(): JSX.Element {
-    const { formik, isClone } = this.props;
+    const { formik } = this.props;
     const { accounts, regions } = this.state;
     const { values } = formik;
-    const accountField = isClone ? 'account' : 'credentials';
-    const regionField = isClone ? 'destination.region' : 'region';
     return (
       <div className="form-group">
         <div className="col-md-11">
           <div className="sp-margin-m-bottom">
             <FormikFormField
-              name={accountField}
+              name="credentials"
               label="Account"
               fastField={false}
               input={props => (
@@ -107,7 +102,7 @@ export class CloudFoundryServerGroupBasicSettings
           </div>
           <div className="sp-margin-m-bottom">
             <FormikFormField
-              name={regionField}
+              name="region"
               label="Region"
               fastField={false}
               input={props => (

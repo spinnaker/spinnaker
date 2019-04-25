@@ -67,10 +67,12 @@ export class CloudFoundryServerGroupCloneSettings
     return (
       <div className="form-group">
         <FormikAccountRegionClusterSelector
+          componentName={'source'}
           accounts={accounts}
           application={application}
           cloudProvider={'cloudfoundry'}
           clusterField={'targetCluster'}
+          credentialsField={'account'}
           formik={formik}
         />
         <div className="col-md-9">

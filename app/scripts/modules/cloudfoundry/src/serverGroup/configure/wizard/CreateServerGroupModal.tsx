@@ -100,10 +100,7 @@ export class CloudFoundryCreateServerGroupModal extends React.Component<
       this.props.closeModal && this.props.closeModal(command);
     } else if (command.viewState.mode === 'clone') {
       this.state.taskMonitor.submit(() =>
-        ReactInjector.serverGroupWriter.cloneServerGroup(
-          { destination: { region: command.region, account: command.credentials }, ...command },
-          this.props.application,
-        ),
+        ReactInjector.serverGroupWriter.cloneServerGroup(command, this.props.application),
       );
     } else {
       this.state.taskMonitor.submit(() =>
@@ -114,7 +111,7 @@ export class CloudFoundryCreateServerGroupModal extends React.Component<
 
   public render(): React.ReactElement<CloudFoundryCreateServerGroupModal> {
     const { loading, pipeline, isClone, requiresTemplateSelection, stage, taskMonitor } = this.state;
-    const { application, command, dismissModal, title, isSourceConstant, serverGroup } = this.props;
+    const { application, command, dismissModal, title, isSourceConstant } = this.props;
 
     if (requiresTemplateSelection) {
       return (
@@ -142,9 +139,7 @@ export class CloudFoundryCreateServerGroupModal extends React.Component<
               label="Basic Settings"
               wizard={wizard}
               order={nextIdx()}
-              render={({ innerRef }) => (
-                <CloudFoundryServerGroupBasicSettings ref={innerRef} formik={formik} isClone={isClone} />
-              )}
+              render={({ innerRef }) => <CloudFoundryServerGroupBasicSettings ref={innerRef} formik={formik} />}
             />
 
             {isClone && isSourceConstant && (
@@ -156,7 +151,7 @@ export class CloudFoundryCreateServerGroupModal extends React.Component<
                   <CloudFoundryServerGroupConstantArtifactSettings
                     ref={innerRef}
                     formik={formik}
-                    serverGroup={serverGroup}
+                    source={command.source}
                   />
                 )}
               />

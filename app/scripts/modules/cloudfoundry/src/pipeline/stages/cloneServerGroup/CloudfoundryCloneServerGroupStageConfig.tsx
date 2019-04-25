@@ -29,7 +29,6 @@ export class CloudfoundryCloneServerGroupStageConfig extends React.Component<
       credentials: command.credentials,
       capacity: command.capacity,
       account: command.account,
-      destination: command.destination,
       delayBeforeDisableSec: command.delayBeforeDisableSec,
       freeFormDetails: command.freeFormDetails,
       maxRemainingAsgs: command.maxRemainingAsgs,
@@ -40,6 +39,7 @@ export class CloudfoundryCloneServerGroupStageConfig extends React.Component<
       target: command.target,
       targetCluster: command.targetCluster,
       manifest: command.manifest,
+      source: command.source,
     });
     this.setState({ buttonText: 'Edit clone configuration' });
   };
@@ -80,10 +80,10 @@ export class CloudfoundryCloneServerGroupStageConfig extends React.Component<
             </thead>
             <tbody>
               <tr>
-                <td>{stage.credentials}</td>
-                <td>{stage.region}</td>
-                <td>{stage.targetCluster}</td>
-                <td>{cloneTargets.filter(t => t.val === stage.target).map(t => t.label)}</td>
+                <td>{stage.source ? stage.source.account : ''}</td>
+                <td>{stage.source ? stage.source.region : ''}</td>
+                <td>{stage.source ? stage.source.targetCluster : ''}</td>
+                <td>{stage.source ? cloneTargets.filter(t => t.val === stage.source.target).map(t => t.label) : ''}</td>
               </tr>
             </tbody>
           </table>
@@ -99,8 +99,8 @@ export class CloudfoundryCloneServerGroupStageConfig extends React.Component<
             </thead>
             <tbody>
               <tr>
-                <td>{stage.account || ''}</td>
-                <td>{stage.destination ? stage.destination.region : ''}</td>
+                <td>{stage.credentials}</td>
+                <td>{stage.region}</td>
               </tr>
             </tbody>
           </table>

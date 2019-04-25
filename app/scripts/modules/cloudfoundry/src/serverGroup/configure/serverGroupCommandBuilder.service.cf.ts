@@ -66,7 +66,7 @@ export class CloudFoundryServerGroupCommandBuilder {
     mode = 'clone',
   ): IPromise<ICloudFoundryCreateServerGroupCommand> {
     return this.buildNewServerGroupCommand(app, { mode }).then(command => {
-      command.credentials = serverGroup.account;
+      command.credentials = '';
       command.manifest = {
         direct: {
           memory: serverGroup.memory ? serverGroup.memory + 'M' : '1024M',
@@ -82,9 +82,14 @@ export class CloudFoundryServerGroupCommandBuilder {
           healthCheckType: 'port',
         },
       };
-      command.region = serverGroup.region;
+      command.region = '';
       command.stack = serverGroup.stack;
       command.freeFormDetails = serverGroup.detail;
+      command.source = {
+        asgName: serverGroup.name,
+        region: serverGroup.region,
+        account: serverGroup.account,
+      };
       return command;
     });
   }
@@ -150,7 +155,6 @@ export class CloudFoundryServerGroupCommandBuilder {
       command.credentials = stage.credentials;
       command.capacity = stage.capacity;
       command.account = stage.account;
-      command.destination = stage.destination;
       command.delayBeforeDisableSec = stage.delayBeforeDisableSec;
       command.freeFormDetails = stage.freeFormDetails || command.freeFormDetails;
       command.maxRemainingAsgs = stage.maxRemainingAsgs;
@@ -161,6 +165,7 @@ export class CloudFoundryServerGroupCommandBuilder {
       command.target = stage.target;
       command.targetCluster = stage.targetCluster;
       command.manifest = stage.manifest || command.manifest;
+      command.source = stage.source;
 
       command.viewState = {
         ...command.viewState,
