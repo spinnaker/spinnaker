@@ -64,6 +64,7 @@ dependencies {
     implementation "com.netflix.spinnaker.kork:kork-dynomite"
     implementation "com.netflix.spinnaker.kork:kork-telemetry"
     implementation "com.netflix.spinnaker.kork:kork-hystrix"
+    implementation "com.netflix.spinnaker.kork:kork-secrets-aws"
 
     implementation "io.reactivex:rxjava"
     implementation "com.netflix.eureka:eureka-client"
