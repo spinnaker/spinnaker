@@ -22,6 +22,7 @@ dependencies {
   compile spinnaker.dependency('korkStackdriver')
   compile spinnaker.dependency("korkSwagger")
   compile spinnaker.dependency("spectatorReg")
+  runtime "com.netflix.spinnaker.kork:kork-secrets-aws:${spinnaker.version('kork')}"
   spinnaker.group("bootWeb")
 }
 
