@@ -82,7 +82,9 @@ public class EvaluateConditionTask implements RetryableTask {
     Duration backoff = Duration.ofMillis(conditionsConfigurationProperties.getBackoffWaitMs());
     Instant startTime = getStartTime(stage);
     Instant now = clock.instant();
-    if (ctx.getStatus() != null && startTime.plus(backoff).isAfter(now)) { // if status is null, then
+    if (ctx.getStatus() != null && startTime.plus(backoff).isAfter(now)) {
+      log.info("Paused deployment for execution {}, cluster",
+        stage.getExecution().getId(), ctx.getCluster());
       return new TaskResult(
         ExecutionStatus.RUNNING,
         Collections.singletonMap("status", Status.WAITING)
@@ -99,9 +101,11 @@ public class EvaluateConditionTask implements RetryableTask {
         ).stream()).filter(Objects::nonNull)
         .collect(Collectors.toSet());
 
-      log.info("Found conditions: {}", conditions);
       final Status status = conditions.isEmpty() ? Status.SKIPPED : Status.WAITING;
       if (status == Status.WAITING) {
+        log.info("Pausing deployment for execution {}. cluster {}: {}",
+          stage.getExecution().getId(), ctx.getCluster(), conditions);
+
         return new TaskResult(
           ExecutionStatus.RUNNING,
           Collections.singletonMap("status", status),
