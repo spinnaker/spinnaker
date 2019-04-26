@@ -48,7 +48,7 @@ export class AzureRollbackServerGroupModal extends React.Component<
     this.state = {
       taskMonitor: new TaskMonitor({
         application: application,
-        title: 'Rollbacking your server group',
+        title: 'Rolling back your server group',
         modalInstance: TaskMonitor.modalInstanceEmulation(() => this.props.dismissModal()),
       }),
       submitting: true,
@@ -91,7 +91,7 @@ export class AzureRollbackServerGroupModal extends React.Component<
 
   private handleServerGroupChange = (restoreServerGroupOption: any) => {
     const { disabledServerGroups } = this.props;
-    const newCommand = this.state.command;
+    const newCommand = { ...this.state.command };
     newCommand.rollbackContext.restoreServerGroupName = restoreServerGroupOption.value;
     const restoreServerGroup = this.filterServerGroups(disabledServerGroups).find(function(disabledServerGroup: any) {
       return disabledServerGroup.name === restoreServerGroupOption.value;
@@ -103,7 +103,7 @@ export class AzureRollbackServerGroupModal extends React.Component<
   };
 
   private handleTaskReasonChange = (taskReason?: any) => {
-    const newCommand = this.state.command;
+    const newCommand = { ...this.state.command };
     newCommand.reason = taskReason;
     this.setState({
       command: newCommand,
