@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.config.secrets.engines;
+package com.netflix.spinnaker.kork.secrets.engines;
 
-import com.netflix.spinnaker.config.secrets.EncryptedSecret;
-import com.netflix.spinnaker.config.secrets.SecretEngine;
+import com.netflix.spinnaker.kork.secrets.EncryptedSecret;
+import com.netflix.spinnaker.kork.secrets.SecretEngine;
 import org.springframework.stereotype.Component;
 
 /**

@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.config.secrets.engines;
+package com.netflix.spinnaker.kork.secrets.engines;
 
 import com.google.common.base.Splitter;
-import com.netflix.spinnaker.config.secrets.EncryptedSecret;
-import com.netflix.spinnaker.config.secrets.InvalidSecretFormatException;
-import com.netflix.spinnaker.config.secrets.SecretDecryptionException;
-import com.netflix.spinnaker.config.secrets.SecretEngine;
+import com.netflix.spinnaker.kork.secrets.EncryptedSecret;
+import com.netflix.spinnaker.kork.secrets.InvalidSecretFormatException;
+import com.netflix.spinnaker.kork.secrets.SecretDecryptionException;
+import com.netflix.spinnaker.kork.secrets.SecretEngine;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.ByteArrayOutputStream;

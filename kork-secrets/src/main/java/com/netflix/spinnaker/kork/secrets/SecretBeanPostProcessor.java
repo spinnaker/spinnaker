@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.kork.secrets;
 
-import com.netflix.spinnaker.config.secrets.SecretManager;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.ConfigurableApplicationContext;

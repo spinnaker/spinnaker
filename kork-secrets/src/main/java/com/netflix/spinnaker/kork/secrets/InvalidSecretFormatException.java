@@ -14,23 +14,23 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.config.secrets;
+package com.netflix.spinnaker.kork.secrets;
 
-public class SecretException extends RuntimeException {
+public class InvalidSecretFormatException extends SecretException {
 
-  public SecretException() {
+  public InvalidSecretFormatException() {
     super();
   }
 
-  public SecretException(String message) {
+  public InvalidSecretFormatException(String message) {
     super(message);
   }
 
-  public SecretException(Throwable cause) {
+  public InvalidSecretFormatException(Throwable cause) {
     super(cause);
   }
 
-  public SecretException(String message, Throwable cause) {
+  public InvalidSecretFormatException(String message, Throwable cause) {
     super(message, cause);
   }
 }

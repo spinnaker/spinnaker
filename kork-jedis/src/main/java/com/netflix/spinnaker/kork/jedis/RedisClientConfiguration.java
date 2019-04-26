@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.kork.jedis;
 
-import com.google.common.base.Strings;
 import com.netflix.spinnaker.kork.jedis.exception.RedisClientFactoryNotFound;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -122,12 +121,24 @@ public class RedisClientConfiguration {
         return v;
       });
 
-      if (Strings.isNullOrEmpty((String) properties.get("connection"))) {
+      if (stringIsNullOrEmpty((String) properties.get("connection"))) {
         return;
       }
 
       clients.add(getClientFactoryForDriver(REDIS).build(name, properties));
     }
+  }
+
+  private boolean stringIsNullOrEmpty(String s) {
+    if (s == null) {
+      return true;
+    }
+
+    if (s.isEmpty()) {
+      return true;
+    }
+
+    return false;
   }
 
   @Bean

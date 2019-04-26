@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.config.secrets;
+package com.netflix.spinnaker.kork.secrets;
 
 /**
  * SecretEngines contain service specific functionality in order to decrypt EncryptedSecrets.

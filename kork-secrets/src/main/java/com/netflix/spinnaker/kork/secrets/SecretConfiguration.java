@@ -16,12 +16,13 @@
 
 package com.netflix.spinnaker.kork.secrets;
 
-import com.netflix.spinnaker.config.secrets.SecretManager;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.ComponentScan;
 
 @Configuration
+@ComponentScan
 public class SecretConfiguration {
 
   @Bean

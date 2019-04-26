@@ -1,4 +1,4 @@
-package com.netflix.spinnaker.config.secrets;
+package com.netflix.spinnaker.kork.secrets;
 
 import java.nio.file.Path;
 import java.util.HashMap;

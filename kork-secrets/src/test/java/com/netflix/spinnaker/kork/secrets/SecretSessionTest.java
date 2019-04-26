@@ -1,6 +1,6 @@
-package com.netflix.spinnaker.config.secrets;
+package com.netflix.spinnaker.kork.secrets;
 
-import com.netflix.spinnaker.config.secrets.engines.NoopSecretEngine;
+import com.netflix.spinnaker.kork.secrets.engines.NoopSecretEngine;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;

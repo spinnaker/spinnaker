@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.config.secrets.engines;
+package com.netflix.spinnaker.kork.secrets.engines;
 
-import com.netflix.spinnaker.config.secrets.EncryptedSecret;
-import com.netflix.spinnaker.config.secrets.SecretDecryptionException;
+import com.netflix.spinnaker.kork.secrets.EncryptedSecret;
+import com.netflix.spinnaker.kork.secrets.SecretDecryptionException;
 import org.junit.Before;
 import org.junit.Test;
 import org.yaml.snakeyaml.Yaml;
@@ -26,7 +26,6 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.Arrays;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class AbstractStorageEngineTest {

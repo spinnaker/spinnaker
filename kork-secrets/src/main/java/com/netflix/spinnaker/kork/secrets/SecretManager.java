@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.config.secrets;
+package com.netflix.spinnaker.kork.secrets;
 
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;

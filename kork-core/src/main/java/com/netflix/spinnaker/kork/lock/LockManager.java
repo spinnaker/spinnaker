@@ -25,8 +25,6 @@ import javax.annotation.Nonnull;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.annotations.VisibleForTesting;
-import org.apache.http.util.Asserts;
 
 public interface LockManager {
   <R> AcquireLockResponse<R> acquireLock(@Nonnull final LockOptions lockOptions,
@@ -45,7 +43,7 @@ public interface LockManager {
 
   boolean releaseLock(@Nonnull final Lock lock, boolean wasWorkSuccessful);
 
-  @VisibleForTesting
+  //VisibleForTesting
   Lock tryCreateLock(final LockOptions lockOptions);
 
   String NAME_FALLBACK = UUID.randomUUID().toString();
@@ -297,8 +295,9 @@ public interface LockManager {
     }
 
     public void validateInputs() {
-      Asserts.check(this.lockName.matches("^[a-zA-Z0-9.-]+$"),
-        "Lock name must be alphanumeric, may contain dots");
+      if (!this.lockName.matches("^[a-zA-Z0-9.-]+$")) {
+        throw new IllegalArgumentException("Lock name must be alphanumeric, may contain dots");
+      }
 
       Objects.requireNonNull(this.lockName, "Lock name must be provided");
       Objects.requireNonNull(this.maximumLockDuration, "Lock max duration must be provided");

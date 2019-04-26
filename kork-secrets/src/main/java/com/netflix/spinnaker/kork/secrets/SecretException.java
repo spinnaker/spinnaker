@@ -14,21 +14,23 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.config.secrets;
+package com.netflix.spinnaker.kork.secrets;
 
-public class SecretDecryptionException extends SecretException {
+public class SecretException extends RuntimeException {
 
-  public SecretDecryptionException() { }
+  public SecretException() {
+    super();
+  }
 
-  public SecretDecryptionException(String message) {
+  public SecretException(String message) {
     super(message);
   }
 
-  public SecretDecryptionException(Throwable cause) {
+  public SecretException(Throwable cause) {
     super(cause);
   }
 
-  public SecretDecryptionException(String message, Throwable cause) {
+  public SecretException(String message, Throwable cause) {
     super(message, cause);
   }
 }

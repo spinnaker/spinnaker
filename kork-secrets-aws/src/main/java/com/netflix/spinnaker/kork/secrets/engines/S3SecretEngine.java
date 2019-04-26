@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.config.secrets.engines;
+package com.netflix.spinnaker.kork.secrets.engines;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.S3Object;
-import com.netflix.spinnaker.config.secrets.EncryptedSecret;
-import com.netflix.spinnaker.config.secrets.SecretException;
+import com.netflix.spinnaker.kork.secrets.EncryptedSecret;
+import com.netflix.spinnaker.kork.secrets.SecretException;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;

@@ -5,7 +5,7 @@ dependencies {
   api(platform(project(":spinnaker-dependencies")))
 
   api "org.springframework.boot:spring-boot-autoconfigure"
-  api "org.springframework.boot:spring-boot-actuator"
+  api "org.springframework.boot:spring-boot-starter-actuator"
   api "com.netflix.archaius:archaius-core"
   api "com.netflix.eureka:eureka-client"
   api "com.amazonaws:aws-java-sdk-core"
@@ -14,7 +14,6 @@ dependencies {
   api "com.netflix.spectator:spectator-ext-gc"
   api "com.netflix.spectator:spectator-ext-jvm"
   api "com.netflix.spectator:spectator-web-spring"
-  api project(":kork-secrets-aws")
   api "com.google.code.findbugs:jsr305"
   api "com.netflix.netflix-commons:netflix-eventbus"
   api "javax.inject:javax.inject:1"

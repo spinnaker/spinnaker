@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.config.secrets;
+package com.netflix.spinnaker.kork.secrets;
 import org.junit.*;
 import org.junit.rules.ExpectedException;
 import org.mockito.Mock;

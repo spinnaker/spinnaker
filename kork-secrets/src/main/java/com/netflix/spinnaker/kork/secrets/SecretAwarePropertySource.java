@@ -16,9 +16,6 @@
 
 package com.netflix.spinnaker.kork.secrets;
 
-import com.netflix.spinnaker.config.secrets.EncryptedSecret;
-import com.netflix.spinnaker.config.secrets.SecretException;
-import com.netflix.spinnaker.config.secrets.SecretManager;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.core.env.EnumerablePropertySource;

@@ -1,7 +1,5 @@
 package com.netflix.spinnaker.kork.secrets;
 
-import com.netflix.spinnaker.config.secrets.SecretException;
-import com.netflix.spinnaker.config.secrets.SecretManager;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;

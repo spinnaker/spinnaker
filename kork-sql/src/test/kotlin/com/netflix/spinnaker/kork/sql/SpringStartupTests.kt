@@ -16,7 +16,6 @@
 package com.netflix.spinnaker.kork.sql
 
 import com.netflix.spinnaker.kork.PlatformComponents
-import com.netflix.spinnaker.kork.secrets.SecretConfiguration
 import com.netflix.spinnaker.kork.sql.config.DefaultSqlConfiguration
 import com.netflix.spinnaker.kork.sql.health.SqlHealthIndicator
 import org.jooq.DSLContext
@@ -28,7 +27,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.actuate.health.HealthIndicator
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Import
 import org.springframework.test.context.junit4.SpringRunner
 import strikt.api.expectThat
@@ -68,6 +66,5 @@ internal class SpringStartupTests {
 }
 
 @SpringBootApplication
-@ComponentScan("com.netflix.spinnaker.config")
 @Import(PlatformComponents::class, DefaultSqlConfiguration::class)
 internal class StartupTestApp
