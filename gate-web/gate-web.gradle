@@ -35,6 +35,7 @@ dependencies {
   compile spinnaker.dependency("logstashEncoder")
   compile spinnaker.dependency('cglib')
   compile spinnaker.dependency('jedis')
+  runtime "com.netflix.spinnaker.kork:kork-secrets-aws:${spinnaker.version("kork")}"
 
   compile('org.apache.commons:commons-io:1.3.2')
   compile('org.springframework.session:spring-session-data-redis:1.1.1.RELEASE')
