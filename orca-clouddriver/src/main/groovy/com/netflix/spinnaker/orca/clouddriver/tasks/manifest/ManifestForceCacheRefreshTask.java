@@ -108,66 +108,68 @@ public class ManifestForceCacheRefreshTask extends AbstractCloudProviderAwareTas
     StageData stageData = fromStage(stage);
     stageData.deployedManifests = getDeployedManifests(stage);
 
-    if (refreshManifests(cloudProvider, stageData)) {
+    checkPendingRefreshes(cloudProvider, stageData, startTime);
+
+    refreshManifests(cloudProvider, stageData);
+
+    if (allManifestsProcessed(stageData)) {
       registry.timer(durationTimerId.withTags("success", "true", "outcome", "complete"))
         .record(duration, TimeUnit.MILLISECONDS);
       return new TaskResult(SUCCEEDED, toContext(stageData));
-    } else {
-      TaskResult taskResult = checkPendingRefreshes(cloudProvider, stageData, startTime);
-
-      // ignoring any non-success, non-failure statuses
-      if (taskResult.getStatus().isSuccessful()) {
-        registry.timer(durationTimerId.withTags("success", "true", "outcome", "complete"))
-          .record(duration, TimeUnit.MILLISECONDS);
-      } else if (taskResult.getStatus().isFailure()) {
-        registry.timer(durationTimerId.withTags("success", "false", "outcome", "failure"))
-          .record(duration, TimeUnit.MILLISECONDS);
-      }
-      return taskResult;
     }
+
+    return new TaskResult(RUNNING, toContext(stageData));
   }
 
-  private TaskResult checkPendingRefreshes(String provider, StageData stageData, long startTime) {
-    Collection<PendingRefresh> pendingRefreshes = objectMapper.convertValue(
-        cacheStatusService.pendingForceCacheUpdates(provider, REFRESH_TYPE),
-        new TypeReference<Collection<PendingRefresh>>() { }
-    );
+  /**
+   * Checks whether all manifests deployed in the stage have been processed by the cache
+   * @return true if all manifests have been processed
+   */
+  private boolean allManifestsProcessed(StageData stageData) {
+    return stageData.getProcessedManifests().containsAll(stageData.getDeployedManifests());
+  }
 
-    List<ScopedManifest> deployedManifests = stageData.getDeployedManifests();
+  /**
+   * Checks on the status of any pending on-demand cache refreshes. If a pending refresh has been processed, adds the
+   * corresponding manifest to processedManifests; if a pending refresh is not found in clouddriver or is invalid,
+   * removes the corresponding manifest from refreshedManifests
+   */
+  private void checkPendingRefreshes(String provider, StageData stageData, long startTime) {
     Set<ScopedManifest> refreshedManifests = stageData.getRefreshedManifests();
     Set<ScopedManifest> processedManifests = stageData.getProcessedManifests();
-    boolean allProcessed = true;
 
-    for (ScopedManifest manifest : deployedManifests) {
-      if (processedManifests.contains(manifest)) {
-        continue;
-      }
+    List<ScopedManifest> manifestsToCheck = refreshedManifests.stream()
+      .filter(m -> !processedManifests.contains(m))
+      .collect(Collectors.toList());
 
-      Optional<RefreshStatus> refreshStatus = pendingRefreshes.stream()
+    if (manifestsToCheck.isEmpty()) {
+      return;
+    }
+
+    Collection<PendingRefresh> pendingRefreshes = objectMapper.convertValue(
+      cacheStatusService.pendingForceCacheUpdates(provider, REFRESH_TYPE),
+      new TypeReference<Collection<PendingRefresh>>() { }
+    );
+
+    for (ScopedManifest manifest : manifestsToCheck) {
+      RefreshStatus refreshStatus = pendingRefreshes.stream()
         .filter(pr -> pr.getScopedManifest() != null)
         .filter(pr -> refreshMatches(pr.getScopedManifest(), manifest))
         .map(pr -> getRefreshStatus(pr, startTime))
-        .filter(status -> status != RefreshStatus.INVALID)
         .sorted()
-        .findFirst();
+        .findFirst()
+        .orElse(RefreshStatus.INVALID);
 
-      if (refreshStatus.isPresent()) {
-        RefreshStatus status = refreshStatus.get();
-        if (status == RefreshStatus.PROCESSED) {
-          log.debug("Pending manifest refresh of {} completed", manifest);
-          processedManifests.add(manifest);
-        } else if (status == RefreshStatus.PENDING) {
-          log.debug("Pending manifest refresh of {} still pending", manifest);
-          allProcessed = false;
-        }
+      if (refreshStatus == RefreshStatus.PROCESSED) {
+        log.debug("Pending manifest refresh of {} completed", manifest);
+        processedManifests.add(manifest);
+      } else if (refreshStatus == RefreshStatus.PENDING) {
+        log.debug("Pending manifest refresh of {} still pending", manifest);
       } else {
         log.warn("No valid pending refresh of {}", manifest);
-        allProcessed = false;
         refreshedManifests.remove(manifest);
       }
     }
-
-    return new TaskResult(allProcessed ? SUCCEEDED : RUNNING, toContext(stageData));
   }
 
   private boolean refreshMatches(ScopedManifest refresh, ScopedManifest manifest) {
@@ -212,10 +214,14 @@ public class ManifestForceCacheRefreshTask extends AbstractCloudProviderAwareTas
       .collect(Collectors.toList());
   }
 
-  private boolean refreshManifests(String provider, StageData stageData) {
+  /**
+   * Requests an on-demand cache refresh for any manifest without a refresh requests that is either pending or
+   * processed. Adds each manifest to refreshedManifests; if the request to clouddriver was immediately processed,
+   * also adds the manifest to processedManifests.
+   */
+  private void refreshManifests(String provider, StageData stageData) {
     List<ScopedManifest> manifests = manifestsNeedingRefresh(stageData);
 
-    boolean allRefreshesSucceeded = true;
     for (ScopedManifest manifest : manifests) {
       Map<String, String> request = objectMapper.convertValue(manifest, new TypeReference<Map<String, String>>() {});
       try {
@@ -223,27 +229,14 @@ public class ManifestForceCacheRefreshTask extends AbstractCloudProviderAwareTas
         if (response.getStatus() == HTTP_OK) {
           log.info("Refresh of {} succeeded immediately", manifest);
           stageData.getProcessedManifests().add(manifest);
-        } else {
-          allRefreshesSucceeded = false;
         }
 
         stageData.getRefreshedManifests().add(manifest);
       } catch (Exception e) {
         log.warn("Failed to refresh {}: ", manifest, e);
-        allRefreshesSucceeded = false;
         stageData.errors.add(e.getMessage());
       }
     }
-
-    boolean allRefreshesProcessed = stageData.getRefreshedManifests().equals(stageData.getProcessedManifests());
-
-    // This can happen when the prior execution of this task returned RUNNING because one or more manifests
-    // were not processed. In this case, all manifests may have been refreshed successfully without finishing processing.
-    if (allRefreshesSucceeded && !allRefreshesProcessed) {
-      log.warn("All refreshes succeeded, but not all have been processed yet...");
-    }
-
-    return allRefreshesSucceeded && allRefreshesProcessed;
   }
 
   private StageData fromStage(Stage stage) {
