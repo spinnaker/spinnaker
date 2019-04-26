@@ -565,6 +565,10 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     runAndRecordMetrics("deploy", manifest.getKind(), manifest.getNamespace(), () -> jobExecutor.deploy(this, manifest));
   }
 
+  public void replace(KubernetesManifest manifest) {
+    runAndRecordMetrics("replace", manifest.getKind(), manifest.getNamespace(), () -> jobExecutor.replace(this, manifest));
+  }
+
   public List<Integer> historyRollout(KubernetesKind kind, String namespace, String name) {
     return runAndRecordMetrics("historyRollout", kind, namespace, () -> jobExecutor.historyRollout(this, kind, namespace, name));
   }

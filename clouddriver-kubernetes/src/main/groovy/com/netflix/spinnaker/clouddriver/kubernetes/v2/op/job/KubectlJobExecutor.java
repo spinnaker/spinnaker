@@ -368,6 +368,28 @@ public class KubectlJobExecutor {
     return null;
   }
 
+  public Void replace(KubernetesV2Credentials credentials, KubernetesManifest manifest) {
+    List<String> command = kubectlAuthPrefix(credentials);
+
+    String manifestAsJson = gson.toJson(manifest);
+
+    // Read from stdin
+    command.add("replace");
+    command.add("-f");
+    command.add("-");
+
+    JobResult<String> status = jobExecutor.runJob(new JobRequest(
+      command,
+      new ByteArrayInputStream(manifestAsJson.getBytes())
+    ));
+
+    if (status.getResult() != JobResult.Result.SUCCESS) {
+      throw new KubectlException("Replace failed: " + status.getError());
+    }
+
+    return null;
+  }
+
   private void logDebugMessages(String jobId, JobResult<String> jobResult) {
     if (jobResult != null) {
       log.info("{} stdout:\n{}", jobId, jobResult.getOutput());
