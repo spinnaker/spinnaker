@@ -57,6 +57,7 @@ dependencies {
   compile spinnaker.dependency("korkStackdriver")
   compile spinnaker.dependency("korkWeb")
   compile spinnaker.dependency("logstashEncoder")
+  runtime "com.netflix.spinnaker.kork:kork-secrets-aws:${spinnaker.version('kork')}"
 
   spinnaker.group('test')
   testCompile project(":orca-test-groovy")
