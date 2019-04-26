@@ -250,7 +250,7 @@ class FiatPermissionEvaluatorSpec extends Specification {
     FiatClientConfigurationProperties configurationProperties = new FiatClientConfigurationProperties()
     configurationProperties.enabled = true
     configurationProperties.cache.maxEntries = 0
-
+    configurationProperties.cache.expiresAfterWriteSeconds = 0
     return configurationProperties
   }
 }
