@@ -30,6 +30,7 @@ import com.netflix.spinnaker.clouddriver.aws.deploy.AmiIdResolver
 import com.netflix.spinnaker.clouddriver.aws.deploy.ResolvedAmiResult
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.AllowLaunchDescription
 import com.netflix.spinnaker.clouddriver.aws.model.AwsResultsRetriever
+import com.netflix.spinnaker.kork.core.RetrySupport
 import groovy.transform.Canonical
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -61,28 +62,13 @@ class AllowLaunchAtomicOperation implements AtomicOperation<ResolvedAmiResult> {
     def sourceAmazonEC2 = amazonClientProvider.getAmazonEC2(description.credentials, description.region, true)
     def targetAmazonEC2 = amazonClientProvider.getAmazonEC2(targetCredentials, description.region, true)
 
+    def (ResolvedAmiResult resolvedAmi, ResolvedAmiLocation amiLocation) = new RetrySupport().retry({ ->
+      resolveAmi(targetCredentials, sourceAmazonEC2, targetAmazonEC2)
+    }, 5, 1000, false)
 
-    task.updateStatus BASE_PHASE, "Looking up AMI imageId '$description.amiName' in target accountId='$targetCredentials.accountId'"
-    ResolvedAmiResult resolvedAmi = AmiIdResolver.resolveAmiIdFromAllSources(targetAmazonEC2, description.region, description.amiName, targetCredentials.accountId)
-
-    boolean existsInTarget = false
-    if (!resolvedAmi) {
-      task.updateStatus BASE_PHASE, "Looking up AMI imageId '$description.amiName' in source accountId='$description.credentials.accountId'"
-      resolvedAmi = AmiIdResolver.resolveAmiIdFromAllSources(sourceAmazonEC2, description.region, description.amiName, description.credentials.accountId)
-    } else {
-      existsInTarget = true
-    }
-
-    if (!resolvedAmi && targetCredentials.allowPrivateThirdPartyImages) {
-      resolvedAmi = AmiIdResolver.resolveAmiId(targetAmazonEC2, description.region, description.amiName)
-      if (resolvedAmi) {
-        task.updateStatus BASE_PHASE, "AMI appears to be from a private third-party, which is permitted on this target account: skipping allow launch"
-        return resolvedAmi
-      }
-    }
-
-    if (!resolvedAmi) {
-      throw new IllegalArgumentException("unable to resolve AMI imageId from '$description.amiName': If this is a private AMI owned by a third-party, you will need to contact them to share the AMI to your desired account(s)")
+    if (amiLocation == ResolvedAmiLocation.THIRD_PARTY) {
+      task.updateStatus BASE_PHASE, "AMI appears to be from a private third-party, which is permitted on this target account: skipping allow launch"
+      return resolvedAmi
     }
 
     // If the AMI is public, this is a no-op
@@ -93,18 +79,19 @@ class AllowLaunchAtomicOperation implements AtomicOperation<ResolvedAmiResult> {
 
     // If the AMI was created/owned by a different account, switch to using that for modifying the image
     if (resolvedAmi.ownerId != sourceCredentials.accountId) {
-      if (resolvedAmi.getRegion())
-      sourceCredentials = accountCredentialsProvider.all.find { accountCredentials ->
-        accountCredentials instanceof NetflixAmazonCredentials &&
-          ((AmazonCredentials) accountCredentials).accountId == resolvedAmi.ownerId
-      } as NetflixAmazonCredentials
+      if (resolvedAmi.getRegion()) {
+        sourceCredentials = accountCredentialsProvider.all.find { accountCredentials ->
+          accountCredentials instanceof NetflixAmazonCredentials &&
+            ((AmazonCredentials) accountCredentials).accountId == resolvedAmi.ownerId
+        } as NetflixAmazonCredentials
+      }
       if (!sourceCredentials) {
         throw new IllegalArgumentException("Unable to find owner of resolved AMI $resolvedAmi")
       }
       sourceAmazonEC2 = amazonClientProvider.getAmazonEC2(sourceCredentials, description.region, true)
     }
 
-    if (existsInTarget) {
+    if (amiLocation == ResolvedAmiLocation.TARGET) {
       task.updateStatus BASE_PHASE, "AMI found in target account: skipping allow launch"
     } else {
       task.updateStatus BASE_PHASE, "Allowing launch of $description.amiName from $description.account"
@@ -151,6 +138,37 @@ class AllowLaunchAtomicOperation implements AtomicOperation<ResolvedAmiResult> {
 
     task.updateStatus BASE_PHASE, "Done allowing launch of $description.amiName from $description.account."
     resolvedAmi
+  }
+
+  private static enum ResolvedAmiLocation {
+    TARGET, SOURCE, THIRD_PARTY
+  }
+
+  private Tuple2<ResolvedAmiResult, ResolvedAmiLocation> resolveAmi(
+    NetflixAmazonCredentials targetCredentials,
+    AmazonEC2 sourceAmazonEC2,
+    AmazonEC2 targetAmazonEC2
+  ) {
+    task.updateStatus BASE_PHASE, "Looking up AMI imageId '$description.amiName' in target accountId='$targetCredentials.accountId'"
+    ResolvedAmiResult resolvedAmi = AmiIdResolver.resolveAmiIdFromAllSources(targetAmazonEC2, description.region, description.amiName, targetCredentials.accountId)
+    if (resolvedAmi) {
+      return new Tuple2(resolvedAmi, ResolvedAmiLocation.TARGET)
+    }
+
+    task.updateStatus BASE_PHASE, "Looking up AMI imageId '$description.amiName' in source accountId='$description.credentials.accountId'"
+    resolvedAmi = AmiIdResolver.resolveAmiIdFromAllSources(sourceAmazonEC2, description.region, description.amiName, description.credentials.accountId)
+    if (resolvedAmi) {
+      return new Tuple2(resolvedAmi, ResolvedAmiLocation.SOURCE)
+    }
+
+    if (targetCredentials.allowPrivateThirdPartyImages) {
+      resolvedAmi = AmiIdResolver.resolveAmiId(targetAmazonEC2, description.region, description.amiName)
+      if (resolvedAmi) {
+        return new Tuple2(resolvedAmi, ResolvedAmiLocation.THIRD_PARTY)
+      }
+    }
+
+    throw new IllegalArgumentException("unable to resolve AMI imageId from '$description.amiName': If this is a private AMI owned by a third-party, you will need to contact them to share the AMI to your desired account(s)")
   }
 
   @Canonical
