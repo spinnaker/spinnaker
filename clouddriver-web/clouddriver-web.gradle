@@ -33,6 +33,7 @@ dependencies {
   compile spinnaker.dependency('korkWeb')
   compile spinnaker.dependency('korkStackdriver')
   compile spinnaker.dependency('korkSwagger')
+  runtime "com.netflix.spinnaker.kork:kork-secrets-aws:${spinnaker.version('kork')}"
   compile spinnaker.dependency('bootActuator')
   compile spinnaker.dependency('bootDataRest')
   testCompile spinnaker.dependency('bootTest')
