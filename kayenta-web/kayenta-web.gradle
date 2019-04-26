@@ -40,6 +40,7 @@ dependencies {
   compile spinnaker.dependency('bootWeb')
   compile spinnaker.dependency("korkSwagger")
   compile spinnaker.dependency("korkWeb")
+  runtime "com.netflix.spinnaker.kork:kork-secrets-aws:${spinnaker.version('kork')}"
 }
 
 // SHOULDN'T HAVE TO SPECIFY THIS HERE BUT SOMETHING FORCES IT LOWER
