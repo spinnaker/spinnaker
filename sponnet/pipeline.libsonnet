@@ -12,6 +12,7 @@
     withLimitConcurrent(limitConcurrent):: self + { limitConcurrent: limitConcurrent },
     withName(name):: self + { name: name },
     withNotifications(notifications):: self + if std.type(notifications) == 'array' then { notifications: notifications } else { notifications: [notifications] },
+    withRoles(roles):: self + if std.type(roles) == 'array' then { roles: roles } else { roles: [roles] },
     withStages(stages):: self + if std.type(stages) == 'array' then { stages: stages } else { stages: [stages] },
     withTriggers(triggers):: self + if std.type(triggers) == 'array' then { triggers: triggers } else { triggers: [triggers] },
 
@@ -115,6 +116,7 @@
       withAccount(account):: self + { account: account },
       withExpectedArtifacts(expectedArtifacts):: self + if std.type(expectedArtifacts) == 'array' then { expectedArtifactIds: std.map(function(expectedArtifact) expectedArtifact.id, expectedArtifacts) } else { expectedArtifactIds: [expectedArtifacts.id] },
       withOrganization(organization):: self + { organization: organization },
+      withRunAsUser(runAsUser):: self + { runAsUser: runAsUser },
       withRegistry(registry):: self + { registry: registry },
       withRepository(repository):: self + { repository: repository },
       withTag(tag):: self + { tag: tag },
