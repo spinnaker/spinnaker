@@ -45,6 +45,7 @@ dependencies {
   compile spinnaker.dependency("korkSwagger")
   compile spinnaker.dependency("kork")
   compile spinnaker.dependency("lombok")
+  runtime "com.netflix.spinnaker.kork:kork-secrets-aws:${spinnaker.version("kork")}"
 
   compile "com.graphql-java:graphql-spring-boot-starter:3.9.2"
 
