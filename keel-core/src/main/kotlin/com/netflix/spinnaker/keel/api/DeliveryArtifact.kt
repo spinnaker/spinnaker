@@ -1,7 +1,5 @@
 package com.netflix.spinnaker.keel.api
 
-import java.net.URI
-
 data class DeliveryArtifact(
   val name: String,
   val type: ArtifactType
@@ -10,9 +8,3 @@ data class DeliveryArtifact(
 enum class ArtifactType {
   DEB
 }
-
-data class DeliveryArtifactVersion(
-  val artifact: DeliveryArtifact,
-  val version: String,
-  val provenance: URI
-)

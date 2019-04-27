@@ -2,7 +2,6 @@ package com.netflix.spinnaker.keel.artifact
 
 import com.netflix.spinnaker.keel.api.ArtifactType
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
-import com.netflix.spinnaker.keel.api.DeliveryArtifactVersion
 import com.netflix.spinnaker.keel.events.ArtifactEvent
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.telemetry.ArtifactVersionUpdated
@@ -10,7 +9,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
-import java.net.URI
 
 @Component
 class ArtifactListener(
@@ -21,22 +19,19 @@ class ArtifactListener(
   fun onArtifactEvent(event: ArtifactEvent) {
     log.info("Received artifact event: {}", event)
     event.artifacts.forEach {
-      DeliveryArtifactVersion(
-        DeliveryArtifact(it.name, ArtifactType.valueOf(it.type)),
-        it.version,
-        it.provenance.let(URI::create)
-      )
-        .apply {
-          if (artifactRepository.isRegistered(artifact.name, artifact.type)) {
-            log.info("Registering version {} of {} {}", version, artifact.name, artifact.type)
-            artifactRepository.store(this)
-              .also { wasAdded ->
-                if (wasAdded) {
-                  publisher.publishEvent(ArtifactVersionUpdated(artifact.name, artifact.type))
-                }
-              }
+      val artifact = DeliveryArtifact(it.name, ArtifactType.valueOf(it.type))
+      // TODO: should be able to construct this with Frigga or something, apparently, also it might
+      //  make sense to have a method that does this on the Kork class rather than here
+      val version = "${it.name}-${it.version}/${it.provenance.substringAfter("/jobs/")}"
+      if (artifactRepository.isRegistered(artifact.name, artifact.type)) {
+        log.info("Registering version {} of {} {}", version, artifact.name, artifact.type)
+        artifactRepository.store(artifact, version)
+          .also { wasAdded ->
+            if (wasAdded) {
+              publisher.publishEvent(ArtifactVersionUpdated(artifact.name, artifact.type))
+            }
           }
-        }
+      }
     }
   }
 

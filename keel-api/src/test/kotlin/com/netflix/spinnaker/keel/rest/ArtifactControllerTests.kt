@@ -3,7 +3,6 @@ package com.netflix.spinnaker.keel.rest
 import com.netflix.spinnaker.keel.KeelApplication
 import com.netflix.spinnaker.keel.api.ArtifactType.DEB
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
-import com.netflix.spinnaker.keel.api.DeliveryArtifactVersion
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryArtifactRepository
 import com.netflix.spinnaker.keel.redis.spring.MockEurekaConfiguration
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML
@@ -20,7 +19,6 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
-import java.net.URI
 
 @ExtendWith(SpringExtension::class)
 @SpringBootTest(
@@ -84,9 +82,9 @@ internal class ArtifactControllerTests {
     val artifact = DeliveryArtifact("fnord", DEB)
     with(artifactRepository) {
       register(artifact)
-      store(DeliveryArtifactVersion(artifact, "1.0", URI.create("https://my.jenkins.master/builds/1")))
-      store(DeliveryArtifactVersion(artifact, "2.0", URI.create("https://my.jenkins.master/builds/2")))
-      store(DeliveryArtifactVersion(artifact, "2.1", URI.create("https://my.jenkins.master/builds/3")))
+      store(artifact, "fnord-1.0/builds/1")
+      store(artifact, "fnord-2.0/builds/2")
+      store(artifact, "fnord-2.1/builds/3")
     }
 
     val request = get("/artifacts/${artifact.name}/${artifact.type}")
@@ -96,21 +94,9 @@ internal class ArtifactControllerTests {
       .andExpect(status().isOk)
       .andExpect(content().string(
         """---
-          |- artifact:
-          |    name: "fnord"
-          |    type: "DEB"
-          |  version: "2.1"
-          |  provenance: "https://my.jenkins.master/builds/3"
-          |- artifact:
-          |    name: "fnord"
-          |    type: "DEB"
-          |  version: "2.0"
-          |  provenance: "https://my.jenkins.master/builds/2"
-          |- artifact:
-          |    name: "fnord"
-          |    type: "DEB"
-          |  version: "1.0"
-          |  provenance: "https://my.jenkins.master/builds/1"
+          |- "fnord-2.1/builds/3"
+          |- "fnord-2.0/builds/2"
+          |- "fnord-1.0/builds/1"
         """.trimMargin()
       ))
   }

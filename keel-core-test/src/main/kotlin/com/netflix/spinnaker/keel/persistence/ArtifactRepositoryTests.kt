@@ -2,19 +2,15 @@ package com.netflix.spinnaker.keel.persistence
 
 import com.netflix.spinnaker.keel.api.ArtifactType.DEB
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
-import com.netflix.spinnaker.keel.api.DeliveryArtifactVersion
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
-import strikt.api.Assertion
 import strikt.api.expectThat
 import strikt.api.expectThrows
-import strikt.assertions.first
+import strikt.assertions.containsExactly
 import strikt.assertions.hasSize
 import strikt.assertions.isEmpty
-import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
 import strikt.assertions.isTrue
-import java.net.URI
 
 abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests {
   abstract fun factory(): T
@@ -45,13 +41,7 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
 
       test("registering a new version throws an exception") {
         expectThrows<NoSuchArtifactException> {
-          repository.store(
-            DeliveryArtifactVersion(
-              artifact,
-              "1.0",
-              URI("https://my.jenkins.master/job/${artifact.name}-release/1")
-            )
-          )
+          repository.store(artifact, "1.0")
         }
       }
 
@@ -63,13 +53,12 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
     }
 
     context("the artifact is known") {
-
       before {
         repository.register(artifact)
       }
 
       test("re-registering the same artifact raises an exception") {
-        expectThrows<ArtifactAlreadyRegistered>() {
+        expectThrows<ArtifactAlreadyRegistered> {
           repository.register(artifact)
         }
       }
@@ -82,23 +71,11 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
 
       context("an artifact version already exists") {
         before {
-          repository.store(
-            DeliveryArtifactVersion(
-              artifact,
-              "1.0",
-              URI("https://my.jenkins.master/job/${artifact.name}-release/1")
-            )
-          )
+          repository.store(artifact, "1.0")
         }
 
         test("registering the same version is a no-op") {
-          val result = repository.store(
-            DeliveryArtifactVersion(
-              artifact,
-              "1.0",
-              URI("https://my.jenkins.master/job/${artifact.name}-release/1")
-            )
-          )
+          val result = repository.store(artifact, "1.0")
           expectThat(result).isFalse()
           expectThat(repository.versions(artifact)).hasSize(1)
         }
@@ -106,38 +83,16 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
 
       context("a prior artifact version exists") {
         before {
-          repository.store(
-            DeliveryArtifactVersion(
-              artifact,
-              "1.0",
-              URI("https://my.jenkins.master/job/${artifact.name}-release/1")
-            )
-          )
+          repository.store(artifact, "1.0")
         }
 
         test("the new version is persisted") {
-          val result = repository.store(
-            DeliveryArtifactVersion(
-              artifact,
-              "2.0",
-              URI("https://my.jenkins.master/job/${artifact.name}-release/2")
-            )
-          )
+          val result = repository.store(artifact, "2.0")
 
           expectThat(result).isTrue()
-          expectThat(repository.versions(artifact)) {
-            hasSize(2)
-            first().version.isEqualTo("2.0")
-            second().version.isEqualTo("1.0")
-          }
+          expectThat(repository.versions(artifact)).containsExactly("2.0", "1.0")
         }
       }
     }
   }
 }
-
-private fun <T : Iterable<E>, E> Assertion.Builder<T>.second(): Assertion.Builder<E> =
-  get { toList()[1] }
-
-private val Assertion.Builder<DeliveryArtifactVersion>.version: Assertion.Builder<String>
-  get() = get { version }

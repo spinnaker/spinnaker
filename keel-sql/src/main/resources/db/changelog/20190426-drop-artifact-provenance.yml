@@ -1,0 +1,17 @@
+databaseChangeLog:
+  - changeSet:
+      id: drop-artifact-provenance
+      author: fletch
+      changes:
+        - dropColumn:
+            tableName: delivery_artifact_version
+            columnName: provenance
+      rollback:
+        - addColumn:
+            tableName: delivery_artifact_version
+            columns:
+              - column:
+                  name: provenance
+                  type: varchar(255)
+                  constraints:
+                    nullable: true

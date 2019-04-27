@@ -2,7 +2,6 @@ package com.netflix.spinnaker.keel.artifact
 
 import com.netflix.spinnaker.keel.api.ArtifactType.DEB
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
-import com.netflix.spinnaker.keel.api.DeliveryArtifactVersion
 import com.netflix.spinnaker.keel.events.ArtifactEvent
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.telemetry.ArtifactVersionUpdated
@@ -14,7 +13,6 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import org.springframework.context.ApplicationEventPublisher
-import java.net.URI
 
 internal class ArtifactListenerTests : JUnit5Minutests {
   data class Fixture(
@@ -40,7 +38,7 @@ internal class ArtifactListenerTests : JUnit5Minutests {
               "debian-local:pool/f/fnord/fnord_0.156.0-h58.f67fe09_all.deb",
               mapOf(),
               null,
-              "https://my.jenkins.master/job/fnord-release/58",
+              "https://my.jenkins.master/jobs/fnord-release/58",
               null
             )
           ),
@@ -61,7 +59,7 @@ internal class ArtifactListenerTests : JUnit5Minutests {
       }
 
       test("the event is ignored") {
-        verify(exactly = 0) { repository.store(any<DeliveryArtifactVersion>()) }
+        verify(exactly = 0) { repository.store(any(), any()) }
       }
 
       test("no telemetry is recorded") {
@@ -76,7 +74,7 @@ internal class ArtifactListenerTests : JUnit5Minutests {
 
       context("the version was already known") {
         before {
-          every { repository.store(any()) } returns false
+          every { repository.store(any(), any()) } returns false
 
           listener.onArtifactEvent(event)
         }
@@ -88,20 +86,14 @@ internal class ArtifactListenerTests : JUnit5Minutests {
 
       context("the version is new") {
         before {
-          every { repository.store(any()) } returns true
+          every { repository.store(any(), any()) } returns true
 
           listener.onArtifactEvent(event)
         }
 
         test("a new artifact version is stored") {
           verify {
-            repository.store(
-              DeliveryArtifactVersion(
-                artifact,
-                event.artifacts.first().version,
-                event.artifacts.first().provenance.let(URI::create)
-              )
-            )
+            repository.store(artifact, "fnord-0.156.0-h58.f67fe09/fnord-release/58")
           }
         }
 

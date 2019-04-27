@@ -1,10 +1,8 @@
 package com.netflix.spinnaker.keel.redis
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.api.ArtifactType
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
-import com.netflix.spinnaker.keel.api.DeliveryArtifactVersion
 import com.netflix.spinnaker.keel.persistence.ArtifactAlreadyRegistered
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchArtifactException
@@ -24,17 +22,12 @@ class RedisArtifactRepository(
     }
   }
 
-  override fun store(artifactVersion: DeliveryArtifactVersion): Boolean =
+  override fun store(artifact: DeliveryArtifact, version: String): Boolean =
     redisClient.withCommandsClient<Boolean> { redis ->
-      with(artifactVersion) {
-        if (!redis.isRegistered(artifact)) {
-          throw NoSuchArtifactException(artifact)
-        }
-        redis.sadd(
-          artifact.versionsKey,
-          objectMapper.writeValueAsString(this)
-        ) > 0
+      if (!redis.isRegistered(artifact)) {
+        throw NoSuchArtifactException(artifact)
       }
+      redis.sadd(artifact.versionsKey, version) > 0
     }
 
   override fun isRegistered(name: String, type: ArtifactType): Boolean =
@@ -42,14 +35,13 @@ class RedisArtifactRepository(
       redis.isRegistered(DeliveryArtifact(name, type))
     }
 
-  override fun versions(artifact: DeliveryArtifact): List<DeliveryArtifactVersion> =
-    redisClient.withCommandsClient<List<DeliveryArtifactVersion>> { redis ->
+  override fun versions(artifact: DeliveryArtifact): List<String> =
+    redisClient.withCommandsClient<List<String>> { redis ->
       if (!redis.isRegistered(artifact)) {
         throw NoSuchArtifactException(artifact)
       }
       redis.smembers(artifact.versionsKey)
-        .map { objectMapper.readValue<DeliveryArtifactVersion>(it) }
-        .sortedByDescending { it.version }
+        .sortedDescending()
     }
 
   private fun JedisCommands.isRegistered(artifact: DeliveryArtifact) =

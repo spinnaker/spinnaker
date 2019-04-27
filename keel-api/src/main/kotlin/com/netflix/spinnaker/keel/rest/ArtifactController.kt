@@ -2,7 +2,6 @@ package com.netflix.spinnaker.keel.rest
 
 import com.netflix.spinnaker.keel.api.ArtifactType
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
-import com.netflix.spinnaker.keel.api.DeliveryArtifactVersion
 import com.netflix.spinnaker.keel.events.ArtifactEvent
 import com.netflix.spinnaker.keel.persistence.ArtifactAlreadyRegistered
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
@@ -62,7 +61,7 @@ class ArtifactController(
   fun listVersions(
     @PathVariable name: String,
     @PathVariable type: ArtifactType
-  ): List<DeliveryArtifactVersion> =
+  ): List<String> =
     artifactRepository.versions(DeliveryArtifact(name, type))
 
   @ExceptionHandler(NoSuchArtifactException::class)

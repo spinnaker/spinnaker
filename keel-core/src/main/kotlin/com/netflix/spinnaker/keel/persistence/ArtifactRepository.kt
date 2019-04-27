@@ -2,7 +2,6 @@ package com.netflix.spinnaker.keel.persistence
 
 import com.netflix.spinnaker.keel.api.ArtifactType
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
-import com.netflix.spinnaker.keel.api.DeliveryArtifactVersion
 
 interface ArtifactRepository {
 
@@ -14,9 +13,9 @@ interface ArtifactRepository {
    * @return `true` if a new version is persisted, `false` if the specified version was already
    * known (in which case this method is a no-op).
    */
-  fun store(artifactVersion: DeliveryArtifactVersion): Boolean
+  fun store(artifact: DeliveryArtifact, version: String): Boolean
 
-  fun versions(artifact: DeliveryArtifact): List<DeliveryArtifactVersion>
+  fun versions(artifact: DeliveryArtifact): List<String>
 }
 
 class NoSuchArtifactException(name: String, type: ArtifactType) :
