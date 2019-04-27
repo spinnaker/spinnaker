@@ -67,15 +67,22 @@ class ApplySourceServerGroupCapacityTask extends AbstractServerGroupTask {
         targetServerGroup.capacity.min as Long
       )
 
-      if (context.cloudProvider == "aws") {
-        // aws is the only cloud provider supporting partial resizes
-        // updating anything other than 'min' could result in instances being
-        // unnecessarily destroyed or created if autoscaling has occurred
-        context.capacity = [min: minCapacity]
-      } else {
-        context.capacity = targetServerGroup.capacity + [
-          min: minCapacity
-        ]
+
+      switch (context.cloudProvider) {
+        case 'aws':
+          // aws is the only cloud provider supporting partial resizes
+          // updating anything other than 'min' could result in instances being
+          // unnecessarily destroyed or created if autoscaling has occurred
+          context.capacity = [min: minCapacity]
+          break
+        case 'cloudfoundry':
+          // cloudfoundry always wants to resize to the snapshot taken from desired capacity
+          context.capacity = sourceServerGroupCapacitySnapshot
+          break
+        default:
+          context.capacity = targetServerGroup.capacity + [
+            min: minCapacity
+          ]
       }
 
       log.info("Restoring min capacity of ${context.region}/${targetServerGroup.name} to ${minCapacity} (currentMin: ${targetServerGroup.capacity.min}, snapshotMin: ${sourceServerGroupCapacitySnapshot.min})")
