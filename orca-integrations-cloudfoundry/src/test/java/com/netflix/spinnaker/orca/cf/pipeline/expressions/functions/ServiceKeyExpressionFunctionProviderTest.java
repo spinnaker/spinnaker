@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.pipeline.expressions.functions;
+package com.netflix.spinnaker.orca.cf.pipeline.expressions.functions;
 
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.orca.ExecutionStatus;

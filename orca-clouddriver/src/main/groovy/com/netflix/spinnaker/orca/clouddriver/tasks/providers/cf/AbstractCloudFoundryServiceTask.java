@@ -18,10 +18,11 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.providers.cf;
 
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.orca.ExecutionStatus;
+import com.netflix.spinnaker.orca.Task;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.clouddriver.KatoService;
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId;
-import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
+import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import org.springframework.stereotype.Component;
 
@@ -31,14 +32,14 @@ import java.util.Map;
 import java.util.Optional;
 
 @Component
-abstract class AbstractCloudFoundryServiceTask extends AbstractCloudProviderAwareTask {
+public abstract class AbstractCloudFoundryServiceTask implements CloudProviderAware, Task {
   private KatoService kato;
 
   public AbstractCloudFoundryServiceTask(KatoService kato) {
     this.kato = kato;
   }
 
-  abstract String getStageName();
+  protected abstract String getNotificationType();
 
   @Nonnull
   @Override
@@ -46,11 +47,11 @@ abstract class AbstractCloudFoundryServiceTask extends AbstractCloudProviderAwar
     String cloudProvider = getCloudProvider(stage);
     String account = getCredentials(stage);
     Map<String, Map> operation = new ImmutableMap.Builder<String, Map>()
-      .put(getStageName(), stage.getContext())
+      .put(getNotificationType(), stage.getContext())
       .build();
     TaskId taskId = kato.requestOperations(cloudProvider, Collections.singletonList(operation)).toBlocking().first();
     Map<String, Object> outputs = new ImmutableMap.Builder<String, Object>()
-      .put("notification.type", getStageName())
+      .put("notification.type", getNotificationType())
       .put("kato.last.task.id", taskId)
       .put("service.region",  Optional.ofNullable(stage.getContext().get("region")).orElse(""))
       .put("service.account", account)

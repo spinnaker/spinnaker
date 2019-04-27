@@ -26,7 +26,7 @@ public class CloudFoundryUnshareServiceTask extends AbstractCloudFoundryServiceT
   }
 
   @Override
-  String getStageName() {
+  protected String getNotificationType() {
     return "unshareService";
   }
 }

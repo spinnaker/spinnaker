@@ -26,7 +26,7 @@ public class CloudFoundryDestroyServiceTask extends AbstractCloudFoundryServiceT
   }
 
   @Override
-  String getStageName() {
+  protected String getNotificationType() {
     return "destroyService";
   }
 }

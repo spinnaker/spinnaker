@@ -26,7 +26,7 @@ public class CloudFoundryShareServiceTask extends AbstractCloudFoundryServiceTas
   }
 
   @Override
-  String getStageName() {
+  protected String getNotificationType() {
     return "shareService";
   }
 }
