@@ -1,7 +1,7 @@
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-val korkVersion = "5.0.0"
+val korkVersion = "5.2.1"
 
 buildscript {
   repositories {
@@ -15,8 +15,8 @@ buildscript {
 }
 
 plugins {
-  id("nebula.kotlin") version "1.3.30" apply false
-  id("org.jetbrains.kotlin.plugin.allopen") version "1.3.30" apply false
+  id("nebula.kotlin") version "1.3.31" apply false
+  id("org.jetbrains.kotlin.plugin.allopen") version "1.3.31" apply false
 }
 
 allprojects {
