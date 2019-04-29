@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.kork.aws;
 
 import com.amazonaws.*;
-
 import java.util.Optional;
 
 public class AwsMetricsSupport {
@@ -36,7 +35,10 @@ public class AwsMetricsSupport {
       "statusCode", Integer.toString(ase.getStatusCode()),
       "errorCode", Optional.ofNullable(ase.getErrorCode()).orElse(DEFAULT_UNKNOWN),
       "serviceName", Optional.ofNullable(ase.getServiceName()).orElse(DEFAULT_UNKNOWN),
-      "errorType", Optional.ofNullable(ase.getErrorType()).orElse(AmazonServiceException.ErrorType.Unknown).name(),
+      "errorType",
+          Optional.ofNullable(ase.getErrorType())
+              .orElse(AmazonServiceException.ErrorType.Unknown)
+              .name(),
       "accountId", Optional.ofNullable(targetAccountId).orElse(DEFAULT_UNKNOWN)
     };
   }
@@ -45,12 +47,14 @@ public class AwsMetricsSupport {
     return amazonServiceException(exception, DEFAULT_UNKNOWN, -1);
   }
 
-  static AmazonServiceException amazonServiceException(Exception exception, String serviceName, int statusCode) {
+  static AmazonServiceException amazonServiceException(
+      Exception exception, String serviceName, int statusCode) {
     if (exception instanceof AmazonServiceException) {
       return (AmazonServiceException) exception;
     }
 
-    final AmazonServiceException ase = new AmazonServiceException(exception.getMessage(), exception);
+    final AmazonServiceException ase =
+        new AmazonServiceException(exception.getMessage(), exception);
     ase.setStatusCode(statusCode);
     ase.setErrorCode(DEFAULT_UNKNOWN);
     ase.setServiceName(serviceName);

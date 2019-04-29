@@ -21,6 +21,12 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spectator.controllers.filter.PrototypeMeasurementFilter;
 import com.netflix.spectator.stackdriver.ConfigParams;
 import com.netflix.spectator.stackdriver.StackdriverWriter;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.util.Date;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,21 +42,14 @@ import rx.Observable;
 import rx.Scheduler;
 import rx.schedulers.Schedulers;
 
-import java.io.IOException;
-import java.net.InetAddress;
-import java.util.Date;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Predicate;
-
-
 @Configuration
-@EnableConfigurationProperties({StackdriverConfig.SpectatorStackdriverConfigurationProperties.class})
+@EnableConfigurationProperties({
+  StackdriverConfig.SpectatorStackdriverConfigurationProperties.class
+})
 @ConditionalOnProperty("spectator.stackdriver.enabled")
 public class StackdriverConfig {
 
-  @Autowired
-  ServerProperties serverProperties;
+  @Autowired ServerProperties serverProperties;
 
   @ConfigurationProperties("spectator")
   public static class SpectatorStackdriverConfigurationProperties {
@@ -150,64 +149,78 @@ public class StackdriverConfig {
   /**
    * Schedule a thread to flush our registry into stackdriver periodically.
    *
-   * This configures our StackdriverWriter as well.
+   * <p>This configures our StackdriverWriter as well.
    */
   @Bean
-  public StackdriverWriter defaultStackdriverWriter(Environment environment,
-                                                    Registry registry,
-                                                    SpectatorStackdriverConfigurationProperties spectatorStackdriverConfigurationProperties) throws IOException {
+  public StackdriverWriter defaultStackdriverWriter(
+      Environment environment,
+      Registry registry,
+      SpectatorStackdriverConfigurationProperties spectatorStackdriverConfigurationProperties)
+      throws IOException {
     Logger log = LoggerFactory.getLogger("StackdriverConfig");
     log.info("Creating StackdriverWriter.");
-    Predicate<Measurement> filterNotSpring = new Predicate<Measurement>() {
-      public boolean test(Measurement measurement) {
-        // Dont store measurements that dont have tags.
-        // These are from spring; those of interest were replicated in spectator.
-        if (measurement.id().tags().iterator().hasNext()) {
-          return true;
-        }
+    Predicate<Measurement> filterNotSpring =
+        new Predicate<Measurement>() {
+          public boolean test(Measurement measurement) {
+            // Dont store measurements that dont have tags.
+            // These are from spring; those of interest were replicated in spectator.
+            if (measurement.id().tags().iterator().hasNext()) {
+              return true;
+            }
 
-        return false;
-      }
-    };
+            return false;
+          }
+        };
     Predicate<Measurement> measurementFilter;
 
-    final String prototypeFilterPath = spectatorStackdriverConfigurationProperties.getWebEndpoint().getPrototypeFilter().getPath();
+    final String prototypeFilterPath =
+        spectatorStackdriverConfigurationProperties.getWebEndpoint().getPrototypeFilter().getPath();
 
     if (!prototypeFilterPath.isEmpty()) {
       log.error("Ignoring prototypeFilterPath because it is not yet supported.");
       measurementFilter = null;
       log.info("Configuring stackdriver filter from {}", prototypeFilterPath);
-      measurementFilter = PrototypeMeasurementFilter.loadFromPath(
-           prototypeFilterPath).and(filterNotSpring);
+      measurementFilter =
+          PrototypeMeasurementFilter.loadFromPath(prototypeFilterPath).and(filterNotSpring);
     } else {
       measurementFilter = filterNotSpring;
     }
 
     InetAddress hostaddr = serverProperties.getAddress();
     if (hostaddr.equals(InetAddress.getLoopbackAddress())) {
-        hostaddr = InetAddress.getLocalHost();
+      hostaddr = InetAddress.getLocalHost();
     }
 
     String host = hostaddr.getCanonicalHostName();
     String hostPort = host + ":" + serverProperties.getPort();
 
-    ConfigParams params = new ConfigParams.Builder()
-        .setCounterStartTime(new Date().getTime())
-        .setCustomTypeNamespace("spinnaker")
-        .setProjectName(spectatorStackdriverConfigurationProperties.getStackdriver().getProjectName())
-        .setApplicationName(spectatorStackdriverConfigurationProperties.getApplicationName(environment.getProperty("spring.application.name")))
-        .setCredentialsPath(spectatorStackdriverConfigurationProperties.getStackdriver().getCredentialsPath())
-        .setMeasurementFilter(measurementFilter)
-        .setInstanceId(hostPort)
-        .build();
+    ConfigParams params =
+        new ConfigParams.Builder()
+            .setCounterStartTime(new Date().getTime())
+            .setCustomTypeNamespace("spinnaker")
+            .setProjectName(
+                spectatorStackdriverConfigurationProperties.getStackdriver().getProjectName())
+            .setApplicationName(
+                spectatorStackdriverConfigurationProperties.getApplicationName(
+                    environment.getProperty("spring.application.name")))
+            .setCredentialsPath(
+                spectatorStackdriverConfigurationProperties.getStackdriver().getCredentialsPath())
+            .setMeasurementFilter(measurementFilter)
+            .setInstanceId(hostPort)
+            .build();
 
     stackdriver = new StackdriverWriter(params);
 
     Scheduler scheduler = Schedulers.from(Executors.newFixedThreadPool(1));
 
-    Observable.timer(spectatorStackdriverConfigurationProperties.getStackdriver().getPeriod(), TimeUnit.SECONDS)
+    Observable.timer(
+            spectatorStackdriverConfigurationProperties.getStackdriver().getPeriod(),
+            TimeUnit.SECONDS)
         .repeat()
-        .subscribe(interval -> { stackdriver.writeRegistry(registry); });
+        .subscribe(
+            interval -> {
+              stackdriver.writeRegistry(registry);
+            });
 
     return stackdriver;
   }

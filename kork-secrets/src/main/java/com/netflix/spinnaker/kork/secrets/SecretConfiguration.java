@@ -18,16 +18,16 @@ package com.netflix.spinnaker.kork.secrets;
 
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @ComponentScan
 public class SecretConfiguration {
 
   @Bean
-  static SecretBeanPostProcessor secretBeanPostProcessor(ConfigurableApplicationContext applicationContext, SecretManager secretManager) {
+  static SecretBeanPostProcessor secretBeanPostProcessor(
+      ConfigurableApplicationContext applicationContext, SecretManager secretManager) {
     return new SecretBeanPostProcessor(applicationContext, secretManager);
   }
-
 }

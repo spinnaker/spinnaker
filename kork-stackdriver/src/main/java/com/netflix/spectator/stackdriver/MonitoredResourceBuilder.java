@@ -17,10 +17,9 @@
 package com.netflix.spectator.stackdriver;
 
 import com.google.api.services.monitoring.v3.model.MonitoredResource;
-
 import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.HashMap;
@@ -31,15 +30,12 @@ import java.util.regex.Pattern;
 /**
  * Builds a MonitoredResource instance to attach to TimeSeries data.
  *
- * This will build different resource types depending on where the runtime
- * is deployed.
+ * <p>This will build different resource types depending on where the runtime is deployed.
  */
 class MonitoredResourceBuilder {
   private String stackdriverProjectId = "";
 
-  /**
-   * Constructor.
-   */
+  /** Constructor. */
   MonitoredResourceBuilder() {
     // empty.
   }
@@ -47,20 +43,18 @@ class MonitoredResourceBuilder {
   /**
    * The GCP project that the data should be stored under.
    *
-   * This is not always used. It depends on the what the managed resource
-   * will be. Setting it makes it available later if it is needed.
+   * <p>This is not always used. It depends on the what the managed resource will be. Setting it
+   * makes it available later if it is needed.
    */
   MonitoredResourceBuilder setStackdriverProject(String name) {
     stackdriverProjectId = name;
     return this;
   }
 
-  /**
-   * This is the project that we will store data under.
-   */
+  /** This is the project that we will store data under. */
   public String determineProjectName(String defaultProjectName) {
     if (defaultProjectName != null && !defaultProjectName.isEmpty()) {
-        return defaultProjectName;
+      return defaultProjectName;
     }
     try {
       return getGoogleMetadataValue("project/project-id");
@@ -69,21 +63,16 @@ class MonitoredResourceBuilder {
     }
   }
 
-  /**
-   * Helper function to read the result from a HTTP GET.
-   */
+  /** Helper function to read the result from a HTTP GET. */
   private String getConnectionValue(HttpURLConnection con) throws IOException {
     int responseCode = con.getResponseCode();
     if (responseCode < 200 || responseCode > 299) {
       throw new IOException("Unexpected responseCode " + responseCode);
     }
-    BufferedReader input
-        = new BufferedReader(new InputStreamReader(con.getInputStream(),
-                                                   "US-ASCII"));
+    BufferedReader input =
+        new BufferedReader(new InputStreamReader(con.getInputStream(), "US-ASCII"));
     StringBuffer value = new StringBuffer();
-    for (String line = input.readLine();
-         line != null;
-         line = input.readLine()) {
+    for (String line = input.readLine(); line != null; line = input.readLine()) {
       value.append(line);
     }
     input.close();
@@ -93,11 +82,10 @@ class MonitoredResourceBuilder {
   /**
    * Helper function to read a value from the GCP Metadata Service.
    *
-   * This will throw an IOException if not on GCP.
+   * <p>This will throw an IOException if not on GCP.
    */
   String getGoogleMetadataValue(String key) throws IOException {
-    URL url = new URL(String.format(
-                "http://169.254.169.254/computeMetadata/v1/%s", key));
+    URL url = new URL(String.format("http://169.254.169.254/computeMetadata/v1/%s", key));
     HttpURLConnection con = (HttpURLConnection) url.openConnection();
     con.setConnectTimeout(1000);
     con.setInstanceFollowRedirects(true);
@@ -109,7 +97,7 @@ class MonitoredResourceBuilder {
   /**
    * Collect the GCP labels to use for a gce_instance resource.
    *
-   * This will return false if not on a GCE instance.
+   * <p>This will return false if not on a GCE instance.
    */
   boolean maybeCollectGceInstanceLabels(Map<String, String> labels) {
     try {
@@ -129,26 +117,26 @@ class MonitoredResourceBuilder {
   /**
    * Collect the GKE labels to use for a gke_container resource.
    *
-   * This will return false if not on a GKE instance.
+   * <p>This will return false if not on a GKE instance.
    */
   boolean maybeCollectGkeInstanceLabels(Map<String, String> labels) {
-      // Not sure how to get the info I need
-      /*
-       * project_id: The identifier of the GCP project associated with this.
-       * cluster_name: An immutable name for the cluster the container is in.
-       * namespace_id: Immutable ID of the cluster namespace the container is in.
-       * instance_id: Immutable ID of the GCE instance the container is in.
-       * pod_id: Immutable ID of the pod the container is in.
-       * container_name: Immutable name of the container.
-       * zone: The GCE zone in which the instance is running.
-       */
-      return false;
+    // Not sure how to get the info I need
+    /*
+     * project_id: The identifier of the GCP project associated with this.
+     * cluster_name: An immutable name for the cluster the container is in.
+     * namespace_id: Immutable ID of the cluster namespace the container is in.
+     * instance_id: Immutable ID of the GCE instance the container is in.
+     * pod_id: Immutable ID of the pod the container is in.
+     * container_name: Immutable name of the container.
+     * zone: The GCE zone in which the instance is running.
+     */
+    return false;
   }
 
   /**
    * Return the attribute value associated with the key.
    *
-   * Uses regexp matching, returning "" if the key isnt found.
+   * <p>Uses regexp matching, returning "" if the key isnt found.
    */
   String matchAttribute(String text, String key) {
     String regex = String.format("\"%s\" : \"(.+?)\"", key);
@@ -160,11 +148,10 @@ class MonitoredResourceBuilder {
   /**
    * Return the AWS identify document from the AWS Metadata Service.
    *
-   * Throws an IOException if not running on an AWS instance.
+   * <p>Throws an IOException if not running on an AWS instance.
    */
   String getAwsIdentityDocument() throws IOException {
-    URL url = new URL(
-      "http://169.254.169.254/latest/dynamic/instance-identity/document");
+    URL url = new URL("http://169.254.169.254/latest/dynamic/instance-identity/document");
     HttpURLConnection con = (HttpURLConnection) url.openConnection();
     con.setConnectTimeout(1000);
     con.setRequestMethod("GET");
@@ -174,7 +161,7 @@ class MonitoredResourceBuilder {
   /**
    * Collect the EC2 labels to use for a aws_ec2_instance resource.
    *
-   * Returns false if not an AWS ec2 instance.
+   * <p>Returns false if not an AWS ec2 instance.
    */
   boolean maybeCollectEc2InstanceLabels(Map<String, String> labels) {
     String doc;
@@ -188,7 +175,7 @@ class MonitoredResourceBuilder {
     String region = matchAttribute(doc, "region");
 
     if (id.isEmpty() || account.isEmpty() || region.isEmpty()) {
-        return false;
+      return false;
     } else if (stackdriverProjectId.isEmpty()) {
       throw new IllegalStateException("stackdriverProjectId was not set.");
     }
@@ -203,12 +190,11 @@ class MonitoredResourceBuilder {
   /**
    * Create a MonitoredResource that describes this deployment.
    *
-   * This will throw an IOException if the resource could not be created.
-   * In practice this exception is not currently thrown.
+   * <p>This will throw an IOException if the resource could not be created. In practice this
+   * exception is not currently thrown.
    *
-   * However the expectation is that custom types will be added in the future
-   * and there may be transient IO errors interacting with Stackdriver to
-   * create the type.
+   * <p>However the expectation is that custom types will be added in the future and there may be
+   * transient IO errors interacting with Stackdriver to create the type.
    */
   public MonitoredResource build() throws IOException {
     HashMap<String, String> labels = new HashMap<String, String>();

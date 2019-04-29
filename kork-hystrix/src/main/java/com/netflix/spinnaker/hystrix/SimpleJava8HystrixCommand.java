@@ -21,39 +21,43 @@ import com.netflix.hystrix.HystrixCommand;
 import com.netflix.hystrix.HystrixCommandGroupKey;
 import com.netflix.hystrix.HystrixCommandKey;
 import com.netflix.hystrix.HystrixCommandProperties;
-
-import javax.annotation.Nullable;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import javax.annotation.Nullable;
 
 public class SimpleJava8HystrixCommand<T> extends HystrixCommand<T> {
 
-    private final Supplier<T> work;
-    private final Function<Throwable, T> fallback;
+  private final Supplier<T> work;
+  private final Function<Throwable, T> fallback;
 
-    public SimpleJava8HystrixCommand(String groupKey, String commandKey, Supplier<T> work) {
-        this(groupKey, commandKey, work, null);
-    }
+  public SimpleJava8HystrixCommand(String groupKey, String commandKey, Supplier<T> work) {
+    this(groupKey, commandKey, work, null);
+  }
 
-    public SimpleJava8HystrixCommand(String groupKey, String commandKey, Supplier<T> work, @Nullable Function<Throwable, T> fallback) {
-        super(HystrixCommand.Setter.withGroupKey(HystrixCommandGroupKey.Factory.asKey(groupKey))
+  public SimpleJava8HystrixCommand(
+      String groupKey,
+      String commandKey,
+      Supplier<T> work,
+      @Nullable Function<Throwable, T> fallback) {
+    super(
+        HystrixCommand.Setter.withGroupKey(HystrixCommandGroupKey.Factory.asKey(groupKey))
             .andCommandKey(HystrixCommandKey.Factory.asKey(commandKey))
             .andCommandPropertiesDefaults(HystrixCommandProperties.Setter()));
-        this.work = work;
-        this.fallback = fallback != null ? fallback : (ignored) -> null;
-    }
+    this.work = work;
+    this.fallback = fallback != null ? fallback : (ignored) -> null;
+  }
 
-    @Override
-    protected T run() throws Exception {
-        return work.get();
-    }
+  @Override
+  protected T run() throws Exception {
+    return work.get();
+  }
 
-    @Override
-    protected T getFallback() {
-        T fallbackValue = fallback.apply(this.getFailedExecutionException());
-        if (fallbackValue == null) {
-            return super.getFallback();
-        }
-        return fallbackValue;
+  @Override
+  protected T getFallback() {
+    T fallbackValue = fallback.apply(this.getFailedExecutionException());
+    if (fallbackValue == null) {
+      return super.getFallback();
     }
+    return fallbackValue;
+  }
 }

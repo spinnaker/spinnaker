@@ -16,13 +16,12 @@
 
 package com.netflix.spinnaker.kork.artifacts.model;
 
+import java.util.regex.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang.StringUtils;
-
-import java.util.regex.Pattern;
 
 @Data
 @Builder
@@ -37,8 +36,8 @@ public class ExpectedArtifact {
   Artifact boundArtifact;
 
   /**
-   * Decide if the "matchArtifact" matches the incoming artifact. Any fields not specified
-   * in the "matchArtifact" are not compared.
+   * Decide if the "matchArtifact" matches the incoming artifact. Any fields not specified in the
+   * "matchArtifact" are not compared.
    *
    * @param other is the artifact to match against
    * @return true i.f.f. the artifacts match

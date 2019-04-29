@@ -23,55 +23,57 @@ import com.netflix.dyno.connectionpool.TokenMapSupplier;
 import com.netflix.dyno.connectionpool.impl.ConnectionPoolConfigurationImpl;
 import com.netflix.dyno.connectionpool.impl.lb.HostToken;
 import com.netflix.dyno.jedis.DynoJedisClient;
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import org.apache.commons.lang3.StringUtils;
 
 public class LocalRedisDynomiteClient {
 
   private DynoJedisClient dynoJedisClient;
 
   public LocalRedisDynomiteClient(int port) {
-    String rack = StringUtils.isBlank(System.getenv("EC2_REGION")) ? "local" : System.getenv("EC2_REGION");
-    HostSupplier localHostSupplier = new HostSupplier() {
-      final Host hostSupplierHost = new Host("localhost", rack, Host.Status.Up);
+    String rack =
+        StringUtils.isBlank(System.getenv("EC2_REGION")) ? "local" : System.getenv("EC2_REGION");
+    HostSupplier localHostSupplier =
+        new HostSupplier() {
+          final Host hostSupplierHost = new Host("localhost", rack, Host.Status.Up);
 
-      @Override
-      public List<Host> getHosts() {
-        return Collections.singletonList(hostSupplierHost);
-      }
-    };
+          @Override
+          public List<Host> getHosts() {
+            return Collections.singletonList(hostSupplierHost);
+          }
+        };
 
-    TokenMapSupplier tokenMapSupplier = new TokenMapSupplier() {
-      final Host tokenHost = new Host("localhost", port, rack, Host.Status.Up);
-      final HostToken localHostToken = new HostToken(100000L, tokenHost);
+    TokenMapSupplier tokenMapSupplier =
+        new TokenMapSupplier() {
+          final Host tokenHost = new Host("localhost", port, rack, Host.Status.Up);
+          final HostToken localHostToken = new HostToken(100000L, tokenHost);
 
-      @Override
-      public List<HostToken> getTokens(Set<Host> activeHosts) {
-        return Collections.singletonList(localHostToken);
-      }
+          @Override
+          public List<HostToken> getTokens(Set<Host> activeHosts) {
+            return Collections.singletonList(localHostToken);
+          }
 
-      @Override
-      public HostToken getTokenForHost(Host host, Set<Host> activeHosts) {
-        return localHostToken;
-      }
-    };
+          @Override
+          public HostToken getTokenForHost(Host host, Set<Host> activeHosts) {
+            return localHostToken;
+          }
+        };
 
-    this.dynoJedisClient = new DynoJedisClient.Builder()
-      .withDynomiteClusterName("local")
-      .withApplicationName(String.valueOf(port))
-      .withHostSupplier(localHostSupplier)
-      .withCPConfig(
-        new ConnectionPoolConfigurationImpl(String.valueOf(port))
-          .setCompressionStrategy(ConnectionPoolConfiguration.CompressionStrategy.NONE)
-          .setLocalRack(rack)
-          .withHashtag("{}")
-          .withHostSupplier(localHostSupplier)
-          .withTokenSupplier(tokenMapSupplier)
-      )
-      .build();
+    this.dynoJedisClient =
+        new DynoJedisClient.Builder()
+            .withDynomiteClusterName("local")
+            .withApplicationName(String.valueOf(port))
+            .withHostSupplier(localHostSupplier)
+            .withCPConfig(
+                new ConnectionPoolConfigurationImpl(String.valueOf(port))
+                    .setCompressionStrategy(ConnectionPoolConfiguration.CompressionStrategy.NONE)
+                    .setLocalRack(rack)
+                    .withHashtag("{}")
+                    .withHostSupplier(localHostSupplier)
+                    .withTokenSupplier(tokenMapSupplier))
+            .build();
   }
 
   public DynoJedisClient getClient() {

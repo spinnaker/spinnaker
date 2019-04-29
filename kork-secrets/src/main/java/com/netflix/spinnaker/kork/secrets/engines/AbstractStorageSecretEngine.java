@@ -21,20 +21,19 @@ import com.netflix.spinnaker.kork.secrets.EncryptedSecret;
 import com.netflix.spinnaker.kork.secrets.InvalidSecretFormatException;
 import com.netflix.spinnaker.kork.secrets.SecretDecryptionException;
 import com.netflix.spinnaker.kork.secrets.SecretEngine;
-import org.yaml.snakeyaml.Yaml;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
+import org.yaml.snakeyaml.Yaml;
 
 public abstract class AbstractStorageSecretEngine implements SecretEngine {
-  protected final static String STORAGE_BUCKET = "b";
-  protected final static String STORAGE_REGION = "r";
-  protected final static String STORAGE_FILE_URI = "f";
-  protected final static String STORAGE_PROP_KEY = "k";
+  protected static final String STORAGE_BUCKET = "b";
+  protected static final String STORAGE_REGION = "r";
+  protected static final String STORAGE_FILE_URI = "f";
+  protected static final String STORAGE_PROP_KEY = "k";
 
-  protected Map<String, Map<String,Object>> cache = new HashMap<>();
+  protected Map<String, Map<String, Object>> cache = new HashMap<>();
 
   protected Yaml yamlParser = new Yaml();
 
@@ -67,7 +66,8 @@ public abstract class AbstractStorageSecretEngine implements SecretEngine {
       if (is != null) {
         try {
           is.close();
-        } catch (IOException e) {}
+        } catch (IOException e) {
+        }
       }
     }
   }
@@ -75,13 +75,16 @@ public abstract class AbstractStorageSecretEngine implements SecretEngine {
   public void validate(EncryptedSecret encryptedSecret) throws InvalidSecretFormatException {
     Set<String> paramNames = encryptedSecret.getParams().keySet();
     if (!paramNames.contains(STORAGE_BUCKET)) {
-      throw new InvalidSecretFormatException("Storage bucket parameter is missing (" + STORAGE_BUCKET + "=...)");
+      throw new InvalidSecretFormatException(
+          "Storage bucket parameter is missing (" + STORAGE_BUCKET + "=...)");
     }
     if (!paramNames.contains(STORAGE_REGION)) {
-      throw new InvalidSecretFormatException("Storage region parameter is missing (" + STORAGE_REGION + "=...)");
+      throw new InvalidSecretFormatException(
+          "Storage region parameter is missing (" + STORAGE_REGION + "=...)");
     }
     if (!paramNames.contains(STORAGE_FILE_URI)) {
-      throw new InvalidSecretFormatException("Storage file parameter is missing (" + STORAGE_FILE_URI + "=...)");
+      throw new InvalidSecretFormatException(
+          "Storage file parameter is missing (" + STORAGE_FILE_URI + "=...)");
     }
   }
 
@@ -89,12 +92,13 @@ public abstract class AbstractStorageSecretEngine implements SecretEngine {
     throw new UnsupportedOperationException("This operation is not supported");
   }
 
-  protected abstract InputStream downloadRemoteFile(EncryptedSecret encryptedSecret) throws IOException;
+  protected abstract InputStream downloadRemoteFile(EncryptedSecret encryptedSecret)
+      throws IOException;
 
   protected byte[] readAll(InputStream inputStream) throws IOException {
     try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
       byte[] buf = new byte[4096];
-      for (;;) {
+      for (; ; ) {
         int read = inputStream.read(buf, 0, buf.length);
         if (read <= 0) {
           break;
@@ -106,12 +110,13 @@ public abstract class AbstractStorageSecretEngine implements SecretEngine {
   }
 
   protected void parseAsYaml(String fileURI, InputStream inputStream) {
-    Map<String,Object> parsed = yamlParser.load(inputStream);
+    Map<String, Object> parsed = yamlParser.load(inputStream);
     cache.put(fileURI, parsed);
   }
 
-  protected byte[] getParsedValue(String fileURI, String yamlPath) throws SecretDecryptionException {
-    Map<String,Object> parsed = cache.get(fileURI);
+  protected byte[] getParsedValue(String fileURI, String yamlPath)
+      throws SecretDecryptionException {
+    Map<String, Object> parsed = cache.get(fileURI);
 
     for (Iterator<String> it = Splitter.on(".").split(yamlPath).iterator(); it.hasNext(); ) {
       String pathElt = it.next();

@@ -27,10 +27,10 @@ public interface SecretEngine {
   byte[] decrypt(EncryptedSecret encryptedSecret);
 
   /**
-   * In order for a secretEngine to decrypt an EncryptedSecret, it may require extra information (e.g.
-   * decryptionKey, location, encryptionMethod, etc). This method takes an EncryptedSecret and
-   * validates it contains the required information the service needs for decryption. Parameter names
-   * should not contain ':'
+   * In order for a secretEngine to decrypt an EncryptedSecret, it may require extra information
+   * (e.g. decryptionKey, location, encryptionMethod, etc). This method takes an EncryptedSecret and
+   * validates it contains the required information the service needs for decryption. Parameter
+   * names should not contain ':'
    *
    * @param encryptedSecret The encrypted secret
    * @throws InvalidSecretFormatException If the encrypted secret is malformed

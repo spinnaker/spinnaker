@@ -1,11 +1,5 @@
 package com.netflix.spinnaker.kork.secrets;
 
-import com.netflix.spinnaker.kork.secrets.engines.NoopSecretEngine;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doCallRealMethod;
@@ -15,15 +9,19 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.netflix.spinnaker.kork.secrets.engines.NoopSecretEngine;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 public class SecretSessionTest {
 
-  @Mock
-  private SecretEngineRegistry secretEngineRegistry;
+  @Mock private SecretEngineRegistry secretEngineRegistry;
   private SecretEngine secretEngine;
   private List<SecretEngine> secretEngineList = new ArrayList<>();
   private SecretManager secretManager;

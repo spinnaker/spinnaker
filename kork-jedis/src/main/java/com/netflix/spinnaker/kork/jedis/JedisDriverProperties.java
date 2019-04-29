@@ -19,20 +19,17 @@ import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 
 public class JedisDriverProperties {
 
-  /**
-   * The redis connection uri: (e.g. redis://localhost:6379)
-   */
+  /** The redis connection uri: (e.g. redis://localhost:6379) */
   public String connection;
 
-  /**
-   * Client connection timeout. (Not to be confused with command timeout).
-   */
+  /** Client connection timeout. (Not to be confused with command timeout). */
   public int timeoutMs = 2000;
 
   /**
    * Redis object pool configuration.
    *
-   * If left null, the default object pool as defined in {@code JedisClientConfiguration} will be used.
+   * <p>If left null, the default object pool as defined in {@code JedisClientConfiguration} will be
+   * used.
    */
   public GenericObjectPoolConfig poolConfig;
 }

@@ -20,8 +20,6 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableSet;
-
-import javax.security.auth.x500.X500Principal;
 import java.io.File;
 import java.math.BigInteger;
 import java.nio.file.Files;
@@ -32,6 +30,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import javax.security.auth.x500.X500Principal;
 
 public class ReloadingFileBlacklist implements Blacklist {
   private static class Entry {
@@ -42,7 +41,8 @@ public class ReloadingFileBlacklist implements Blacklist {
     private static Entry fromString(String blacklistEntry) {
       int idx = blacklistEntry.indexOf(DELIMITER);
       if (idx == -1) {
-        throw new IllegalArgumentException("Missing delimiter " + DELIMITER + " in " + blacklistEntry);
+        throw new IllegalArgumentException(
+            "Missing delimiter " + DELIMITER + " in " + blacklistEntry);
       }
       X500Principal principal = new X500Principal(blacklistEntry.substring(0, idx));
       BigInteger serial = new BigInteger(blacklistEntry.substring(idx + DELIMITER.length()));
@@ -79,24 +79,25 @@ public class ReloadingFileBlacklist implements Blacklist {
 
   public ReloadingFileBlacklist(String blacklistFile, long reloadInterval, TimeUnit unit) {
     this.blacklistFile = blacklistFile;
-    this.blacklist = CacheBuilder
-      .newBuilder()
-      .expireAfterAccess(reloadInterval, unit)
-      .build(new CacheLoader<String, Set<Entry>>() {
-        @Override
-        public Set<Entry> load(String key) throws Exception {
-          File f = new File(key);
-          if (!f.exists()) {
-            return Collections.emptySet();
-          }
-          return ImmutableSet.copyOf(Files.readAllLines(f.toPath())
-            .stream()
-            .map(String::trim)
-            .filter(line -> !(line.isEmpty() || line.startsWith("#")))
-            .map(Entry::fromString)
-            .collect(Collectors.toSet()));
-        }
-      });
+    this.blacklist =
+        CacheBuilder.newBuilder()
+            .expireAfterAccess(reloadInterval, unit)
+            .build(
+                new CacheLoader<String, Set<Entry>>() {
+                  @Override
+                  public Set<Entry> load(String key) throws Exception {
+                    File f = new File(key);
+                    if (!f.exists()) {
+                      return Collections.emptySet();
+                    }
+                    return ImmutableSet.copyOf(
+                        Files.readAllLines(f.toPath()).stream()
+                            .map(String::trim)
+                            .filter(line -> !(line.isEmpty() || line.startsWith("#")))
+                            .map(Entry::fromString)
+                            .collect(Collectors.toSet()));
+                  }
+                });
   }
 
   public ReloadingFileBlacklist(String blacklistFile) {
@@ -106,7 +107,9 @@ public class ReloadingFileBlacklist implements Blacklist {
   @Override
   public boolean isBlacklisted(X509Certificate cert) {
     try {
-      return blacklist.get(blacklistFile).contains(new Entry(cert.getIssuerX500Principal(), cert.getSerialNumber()));
+      return blacklist
+          .get(blacklistFile)
+          .contains(new Entry(cert.getIssuerX500Principal(), cert.getSerialNumber()));
     } catch (ExecutionException ee) {
       Throwable cause = ee.getCause();
       if (cause != null) {
@@ -117,6 +120,5 @@ public class ReloadingFileBlacklist implements Blacklist {
       }
       throw new RuntimeException(ee);
     }
-
   }
 }

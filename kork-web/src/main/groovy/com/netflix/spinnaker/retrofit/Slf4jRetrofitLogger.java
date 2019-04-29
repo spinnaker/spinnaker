@@ -16,11 +16,10 @@
 
 package com.netflix.spinnaker.retrofit;
 
+import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import retrofit.RestAdapter;
-
-import java.util.Objects;
 
 public class Slf4jRetrofitLogger implements RestAdapter.Log {
   private final Logger logger;

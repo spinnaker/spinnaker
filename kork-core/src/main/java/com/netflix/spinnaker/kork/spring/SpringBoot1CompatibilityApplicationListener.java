@@ -18,10 +18,9 @@ package com.netflix.spinnaker.kork.spring;
 import org.springframework.boot.context.event.ApplicationEnvironmentPreparedEvent;
 import org.springframework.context.ApplicationListener;
 
-/**
- * Makes Spring Boot 2 behave a bit more like Spring 1.x
- */
-public class SpringBoot1CompatibilityApplicationListener implements ApplicationListener<ApplicationEnvironmentPreparedEvent> {
+/** Makes Spring Boot 2 behave a bit more like Spring 1.x */
+public class SpringBoot1CompatibilityApplicationListener
+    implements ApplicationListener<ApplicationEnvironmentPreparedEvent> {
   @Override
   public void onApplicationEvent(ApplicationEnvironmentPreparedEvent event) {
     // Allow extensions to override bean definitions in OSS projects.

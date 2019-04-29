@@ -21,13 +21,13 @@ import com.netflix.spinnaker.kork.secrets.SecretEngine;
 import org.springframework.stereotype.Component;
 
 /**
- * Secret engine that returns its value ("v") parameter which can be null if not provided.
- * Used for testing.
+ * Secret engine that returns its value ("v") parameter which can be null if not provided. Used for
+ * testing.
  */
 @Component
 public class NoopSecretEngine implements SecretEngine {
-  private final static String IDENTIFIER = "noop";
-  private final static String PARAM_VALUE = "v";
+  private static final String IDENTIFIER = "noop";
+  private static final String PARAM_VALUE = "v";
 
   @Override
   public String identifier() {

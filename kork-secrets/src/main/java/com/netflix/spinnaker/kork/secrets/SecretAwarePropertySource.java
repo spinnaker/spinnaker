@@ -21,8 +21,7 @@ import lombok.Setter;
 import org.springframework.core.env.EnumerablePropertySource;
 
 public class SecretAwarePropertySource extends EnumerablePropertySource<EnumerablePropertySource> {
-  @Setter @Getter
-  private SecretManager secretManager;
+  @Setter @Getter private SecretManager secretManager;
 
   public SecretAwarePropertySource(EnumerablePropertySource source, SecretManager secretManager) {
     super(source.getName(), source);
@@ -37,7 +36,10 @@ public class SecretAwarePropertySource extends EnumerablePropertySource<Enumerab
         throw new SecretException("No secret manager to decrypt value of " + name);
       }
       String lName = name.toLowerCase();
-      if (lName.endsWith("file") || lName.endsWith("path") || lName.endsWith("keystore") || lName.endsWith("truststore")) {
+      if (lName.endsWith("file")
+          || lName.endsWith("path")
+          || lName.endsWith("keystore")
+          || lName.endsWith("truststore")) {
         return secretManager.decryptAsFile((String) o).toString();
       } else {
         return secretManager.decrypt((String) o);
@@ -45,7 +47,6 @@ public class SecretAwarePropertySource extends EnumerablePropertySource<Enumerab
     }
     return o;
   }
-
 
   @Override
   public String[] getPropertyNames() {

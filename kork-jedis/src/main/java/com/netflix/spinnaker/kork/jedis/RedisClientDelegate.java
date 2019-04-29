@@ -15,15 +15,14 @@
  */
 package com.netflix.spinnaker.kork.jedis;
 
-import redis.clients.jedis.*;
-
 import java.util.function.Consumer;
 import java.util.function.Function;
+import redis.clients.jedis.*;
 
 /**
  * Offers a functional interface over either a vanilla Jedis or Dynomite client.
  *
- * TODO rz - remove withKeyScan once Dyno implements the Jedis interfaces
+ * <p>TODO rz - remove withKeyScan once Dyno implements the Jedis interfaces
  */
 public interface RedisClientDelegate {
 

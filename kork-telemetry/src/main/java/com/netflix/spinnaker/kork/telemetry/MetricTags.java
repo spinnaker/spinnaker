@@ -15,9 +15,7 @@
  */
 package com.netflix.spinnaker.kork.telemetry;
 
-/**
- * A collection of standard metric tags.
- */
+/** A collection of standard metric tags. */
 public class MetricTags {
 
   public static final String RESULT_KEY = "result";

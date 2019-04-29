@@ -17,33 +17,42 @@ package com.netflix.spinnaker.kork.jedis.telemetry;
 
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class TelemetryHelper {
 
-  private final static String DEFAULT_ID_PREFIX = "redis.command";
-  private final static String POOL_TAG = "poolName";
+  private static final String DEFAULT_ID_PREFIX = "redis.command";
+  private static final String POOL_TAG = "poolName";
 
   private static Logger log = LoggerFactory.getLogger(TelemetryHelper.class);
 
   static Id timerId(Registry registry, String name, String command, boolean pipelined) {
-    return registry.createId(DEFAULT_ID_PREFIX + ".latency." + command)
-      .withTags(POOL_TAG, name, "pipelined", String.valueOf(pipelined));
+    return registry
+        .createId(DEFAULT_ID_PREFIX + ".latency." + command)
+        .withTags(POOL_TAG, name, "pipelined", String.valueOf(pipelined));
   }
 
   static Id payloadSizeId(Registry registry, String name, String command, boolean pipelined) {
-    return registry.createId(DEFAULT_ID_PREFIX + ".payloadSize." + command)
-      .withTags(POOL_TAG, name, "pipelined", String.valueOf(pipelined));
+    return registry
+        .createId(DEFAULT_ID_PREFIX + ".payloadSize." + command)
+        .withTags(POOL_TAG, name, "pipelined", String.valueOf(pipelined));
   }
 
-  static Id invocationId(Registry registry, String name, String command, boolean pipelined, boolean success) {
-    return registry.createId(DEFAULT_ID_PREFIX + ".invocation." + command)
-      .withTags(POOL_TAG, name, "pipelined", String.valueOf(pipelined), "success", String.valueOf(success));
+  static Id invocationId(
+      Registry registry, String name, String command, boolean pipelined, boolean success) {
+    return registry
+        .createId(DEFAULT_ID_PREFIX + ".invocation." + command)
+        .withTags(
+            POOL_TAG,
+            name,
+            "pipelined",
+            String.valueOf(pipelined),
+            "success",
+            String.valueOf(success));
   }
 
   static long payloadSize(String payload) {

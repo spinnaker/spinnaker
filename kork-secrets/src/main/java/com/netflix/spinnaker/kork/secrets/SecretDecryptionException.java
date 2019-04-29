@@ -18,7 +18,7 @@ package com.netflix.spinnaker.kork.secrets;
 
 public class SecretDecryptionException extends SecretException {
 
-  public SecretDecryptionException() { }
+  public SecretDecryptionException() {}
 
   public SecretDecryptionException(String message) {
     super(message);

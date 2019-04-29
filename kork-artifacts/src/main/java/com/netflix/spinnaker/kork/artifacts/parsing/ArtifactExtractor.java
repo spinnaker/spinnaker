@@ -17,12 +17,9 @@
 package com.netflix.spinnaker.kork.artifacts.parsing;
 
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-
 import java.util.List;
 
-/**
- * An interface for classes that translate arbitrary String messages into Spinnaker artifacts.
- */
+/** An interface for classes that translate arbitrary String messages into Spinnaker artifacts. */
 public interface ArtifactExtractor {
   List<Artifact> getArtifacts(String messagePayload);
 }

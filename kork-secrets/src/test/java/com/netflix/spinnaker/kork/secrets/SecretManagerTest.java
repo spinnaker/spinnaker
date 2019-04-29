@@ -15,38 +15,32 @@
  */
 
 package com.netflix.spinnaker.kork.secrets;
-import org.junit.*;
-import org.junit.rules.ExpectedException;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-
-
-import org.junit.Before;
-import org.junit.Test;
+import static org.mockito.Mockito.*;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Path;
-
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.*;
+import org.junit.*;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 public class SecretManagerTest {
 
-  @Mock
-  SecretEngineRegistry secretEngineRegistry;
+  @Mock SecretEngineRegistry secretEngineRegistry;
 
-  @Mock
-  SecretEngine secretEngine;
+  @Mock SecretEngine secretEngine;
 
   SecretManager secretManager;
 
-  @Rule
-  public ExpectedException exceptionRule = ExpectedException.none();
+  @Rule public ExpectedException exceptionRule = ExpectedException.none();
 
   @Before
   public void setup() {
@@ -54,7 +48,7 @@ public class SecretManagerTest {
     when(secretEngineRegistry.getEngine("s3")).thenReturn(secretEngine);
     when(secretEngine.identifier()).thenReturn("s3");
     secretManager = new SecretManager(secretEngineRegistry);
-    //secretManager.setSecretEngineRegistry(secretEngineRegistry);
+    // secretManager.setSecretEngineRegistry(secretEngineRegistry);
   }
 
   @Test
@@ -120,4 +114,3 @@ public class SecretManagerTest {
     spy.decryptAsFile(secretConfig);
   }
 }
-

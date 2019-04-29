@@ -16,16 +16,15 @@
 
 package com.netflix.spinnaker.kork.secrets;
 
+import static org.junit.Assert.assertEquals;
+
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import static org.junit.Assert.assertEquals;
-
 public class EncryptedSecretTest {
 
-  @Rule
-  public ExpectedException exceptionRule = ExpectedException.none();
+  @Rule public ExpectedException exceptionRule = ExpectedException.none();
 
   @Test
   public void isEncryptedSecretShouldReturnFalse() {
@@ -71,7 +70,8 @@ public class EncryptedSecretTest {
 
   @Test
   public void formatEncryptedSecret() {
-    String secretConfig = "encrypted:aws-kms!foo:bar!key:value!config:value:with:colon!lastKey:secret-param_3";
+    String secretConfig =
+        "encrypted:aws-kms!foo:bar!key:value!config:value:with:colon!lastKey:secret-param_3";
     EncryptedSecret encryptedSecret = new EncryptedSecret(secretConfig);
     String formattedSecret = encryptedSecret.formatString();
     EncryptedSecret encryptedSecretFromFormattedSecret = new EncryptedSecret(formattedSecret);
@@ -81,7 +81,8 @@ public class EncryptedSecretTest {
   @Test
   public void updateThrowsInvalidSecretFormatException() {
     exceptionRule.expect(InvalidSecretFormatException.class);
-    exceptionRule.expectMessage("Invalid encrypted secret format, must have at least one parameter");
+    exceptionRule.expectMessage(
+        "Invalid encrypted secret format, must have at least one parameter");
     EncryptedSecret encryptedSecret = new EncryptedSecret();
     encryptedSecret.update("encrypted:s3");
   }
@@ -89,10 +90,9 @@ public class EncryptedSecretTest {
   @Test
   public void updateThrowsInvalidSecretFormatExceptionNoKeyValuePairs() {
     exceptionRule.expect(InvalidSecretFormatException.class);
-    exceptionRule.expectMessage("Invalid encrypted secret format, keys and values must be delimited by ':'");
+    exceptionRule.expectMessage(
+        "Invalid encrypted secret format, keys and values must be delimited by ':'");
     EncryptedSecret encryptedSecret = new EncryptedSecret();
     encryptedSecret.update("encrypted:s3!foobar");
   }
-
 }
-

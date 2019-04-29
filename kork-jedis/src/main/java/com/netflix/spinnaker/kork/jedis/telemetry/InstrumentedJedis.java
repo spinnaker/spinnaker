@@ -15,27 +15,25 @@
  */
 package com.netflix.spinnaker.kork.jedis.telemetry;
 
+import static com.netflix.spinnaker.kork.jedis.telemetry.TelemetryHelper.*;
+
+import com.netflix.spectator.api.Registry;
+import com.netflix.spectator.api.histogram.PercentileDistributionSummary;
+import com.netflix.spectator.api.histogram.PercentileTimer;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
-import com.netflix.spectator.api.Registry;
-import com.netflix.spectator.api.histogram.PercentileDistributionSummary;
-import com.netflix.spectator.api.histogram.PercentileTimer;
 import redis.clients.jedis.*;
 import redis.clients.jedis.params.geo.GeoRadiusParam;
 import redis.clients.jedis.params.sortedset.ZAddParams;
 import redis.clients.jedis.params.sortedset.ZIncrByParams;
 import redis.clients.util.Pool;
 import redis.clients.util.Slowlog;
-import static com.netflix.spinnaker.kork.jedis.telemetry.TelemetryHelper.*;
 
 /**
- * Instruments:
- * - Timer for each command
- * - Distribution summary for all payload sizes
- * - Error rates
+ * Instruments: - Timer for each command - Distribution summary for all payload sizes - Error rates
  */
 public class InstrumentedJedis extends Jedis {
 
@@ -65,16 +63,23 @@ public class InstrumentedJedis extends Jedis {
     return internalInstrumented(command, Optional.of(payloadSize), action);
   }
 
-  private <T> T internalInstrumented(String command, Optional<Long> payloadSize, Callable<T> action) {
-    payloadSize.ifPresent(size ->
-      PercentileDistributionSummary.get(registry, payloadSizeId(registry, poolName, command, false)).record(size)
-    );
+  private <T> T internalInstrumented(
+      String command, Optional<Long> payloadSize, Callable<T> action) {
+    payloadSize.ifPresent(
+        size ->
+            PercentileDistributionSummary.get(
+                    registry, payloadSizeId(registry, poolName, command, false))
+                .record(size));
     try {
-      return PercentileTimer.get(registry, timerId(registry, poolName, command, false)).record(() -> {
-        T result = action.call();
-        registry.counter(invocationId(registry, poolName, command, false, true)).increment();
-        return result;
-      });
+      return PercentileTimer.get(registry, timerId(registry, poolName, command, false))
+          .record(
+              () -> {
+                T result = action.call();
+                registry
+                    .counter(invocationId(registry, poolName, command, false, true))
+                    .increment();
+                return result;
+              });
     } catch (Exception e) {
       registry.counter(invocationId(registry, poolName, command, false, false)).increment();
       throw new InstrumentedJedisException("could not execute delegate function", e);
@@ -90,14 +95,20 @@ public class InstrumentedJedis extends Jedis {
   }
 
   private void internalInstrumented(String command, Optional<Long> payloadSize, Runnable action) {
-    payloadSize.ifPresent(size ->
-      PercentileDistributionSummary.get(registry, payloadSizeId(registry, poolName, command, false)).record(size)
-    );
+    payloadSize.ifPresent(
+        size ->
+            PercentileDistributionSummary.get(
+                    registry, payloadSizeId(registry, poolName, command, false))
+                .record(size));
     try {
-      PercentileTimer.get(registry, timerId(registry, poolName, command, false)).record(() -> {
-        action.run();
-        registry.counter(invocationId(registry, poolName, command, false, true)).increment();
-      });
+      PercentileTimer.get(registry, timerId(registry, poolName, command, false))
+          .record(
+              () -> {
+                action.run();
+                registry
+                    .counter(invocationId(registry, poolName, command, false, true))
+                    .increment();
+              });
     } catch (Exception e) {
       registry.counter(invocationId(registry, poolName, command, false, false)).increment();
       throw new InstrumentedJedisException("could not execute delegate function", e);
@@ -113,7 +124,8 @@ public class InstrumentedJedis extends Jedis {
   @Override
   public String set(String key, String value, String nxxx, String expx, long time) {
     String command = "set";
-    return instrumented(command, payloadSize(value), () -> delegated.set(key, value, nxxx, expx, time));
+    return instrumented(
+        command, payloadSize(value), () -> delegated.set(key, value, nxxx, expx, time));
   }
 
   @Override
@@ -725,15 +737,19 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Set<Tuple> zrangeByScoreWithScores(String key, double min, double max, int offset, int count) {
+  public Set<Tuple> zrangeByScoreWithScores(
+      String key, double min, double max, int offset, int count) {
     String command = "zrangeByScoreWithScores";
-    return instrumented(command, () -> delegated.zrangeByScoreWithScores(key, min, max, offset, count));
+    return instrumented(
+        command, () -> delegated.zrangeByScoreWithScores(key, min, max, offset, count));
   }
 
   @Override
-  public Set<Tuple> zrangeByScoreWithScores(String key, String min, String max, int offset, int count) {
+  public Set<Tuple> zrangeByScoreWithScores(
+      String key, String min, String max, int offset, int count) {
     String command = "zrangeByScoreWithScores";
-    return instrumented(command, () -> delegated.zrangeByScoreWithScores(key, min, max, offset, count));
+    return instrumented(
+        command, () -> delegated.zrangeByScoreWithScores(key, min, max, offset, count));
   }
 
   @Override
@@ -761,15 +777,19 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Set<Tuple> zrevrangeByScoreWithScores(String key, double max, double min, int offset, int count) {
+  public Set<Tuple> zrevrangeByScoreWithScores(
+      String key, double max, double min, int offset, int count) {
     String command = "zrevrangeByScoreWithScores";
-    return instrumented(command, () -> delegated.zrevrangeByScoreWithScores(key, max, min, offset, count));
+    return instrumented(
+        command, () -> delegated.zrevrangeByScoreWithScores(key, max, min, offset, count));
   }
 
   @Override
-  public Set<Tuple> zrevrangeByScoreWithScores(String key, String max, String min, int offset, int count) {
+  public Set<Tuple> zrevrangeByScoreWithScores(
+      String key, String max, String min, int offset, int count) {
     String command = "zrevrangeByScoreWithScores";
-    return instrumented(command, () -> delegated.zrevrangeByScoreWithScores(key, max, min, offset, count));
+    return instrumented(
+        command, () -> delegated.zrevrangeByScoreWithScores(key, max, min, offset, count));
   }
 
   @Override
@@ -895,7 +915,8 @@ public class InstrumentedJedis extends Jedis {
   @Override
   public Long linsert(String key, BinaryClient.LIST_POSITION where, String pivot, String value) {
     String command = "linsert";
-    return instrumented(command, payloadSize(value), () -> delegated.linsert(key, where, pivot, value));
+    return instrumented(
+        command, payloadSize(value), () -> delegated.linsert(key, where, pivot, value));
   }
 
   @Override
@@ -961,7 +982,10 @@ public class InstrumentedJedis extends Jedis {
   @Override
   public Object eval(String script, int keyCount, String... params) {
     String command = "eval";
-    return instrumented(command, payloadSize(script) + payloadSize(params), () -> delegated.eval(script, keyCount, params));
+    return instrumented(
+        command,
+        payloadSize(script) + payloadSize(params),
+        () -> delegated.eval(script, keyCount, params));
   }
 
   @Override
@@ -983,7 +1007,8 @@ public class InstrumentedJedis extends Jedis {
   @Override
   public Object eval(String script, List<String> keys, List<String> args) {
     String command = "eval";
-    return instrumented(command, payloadSize(script) + payloadSize(args), () -> delegated.eval(script, keys, args));
+    return instrumented(
+        command, payloadSize(script) + payloadSize(args), () -> delegated.eval(script, keys, args));
   }
 
   @Override
@@ -1007,7 +1032,8 @@ public class InstrumentedJedis extends Jedis {
   @Override
   public Object evalsha(String sha1, int keyCount, String... params) {
     String command = "evalsha";
-    return instrumented(command, payloadSize(params), () -> delegated.evalsha(sha1, keyCount, params));
+    return instrumented(
+        command, payloadSize(params), () -> delegated.evalsha(sha1, keyCount, params));
   }
 
   @Override
@@ -1165,13 +1191,15 @@ public class InstrumentedJedis extends Jedis {
   @Deprecated
   public String psetex(String key, int milliseconds, String value) {
     String command = "psetex";
-    return instrumented(command, payloadSize(value), () -> delegated.psetex(key, milliseconds, value));
+    return instrumented(
+        command, payloadSize(value), () -> delegated.psetex(key, milliseconds, value));
   }
 
   @Override
   public String psetex(String key, long milliseconds, String value) {
     String command = "psetex";
-    return instrumented(command, payloadSize(value), () -> delegated.psetex(key, milliseconds, value));
+    return instrumented(
+        command, payloadSize(value), () -> delegated.psetex(key, milliseconds, value));
   }
 
   @Override
@@ -1183,7 +1211,8 @@ public class InstrumentedJedis extends Jedis {
   @Override
   public String set(String key, String value, String nxxx, String expx, int time) {
     String command = "set";
-    return instrumented(command, payloadSize(value), () -> delegated.set(key, value, nxxx, expx, time));
+    return instrumented(
+        command, payloadSize(value), () -> delegated.set(key, value, nxxx, expx, time));
   }
 
   @Override
@@ -1508,7 +1537,8 @@ public class InstrumentedJedis extends Jedis {
   @Override
   public Long geoadd(String key, double longitude, double latitude, String member) {
     String command = "geoadd";
-    return instrumented(command, payloadSize(member), () -> delegated.geoadd(key, longitude, latitude, member));
+    return instrumented(
+        command, payloadSize(member), () -> delegated.geoadd(key, longitude, latitude, member));
   }
 
   @Override
@@ -1542,27 +1572,38 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public List<GeoRadiusResponse> georadius(String key, double longitude, double latitude, double radius, GeoUnit unit) {
+  public List<GeoRadiusResponse> georadius(
+      String key, double longitude, double latitude, double radius, GeoUnit unit) {
     String command = "georadius";
     return instrumented(command, () -> delegated.georadius(key, longitude, latitude, radius, unit));
   }
 
   @Override
-  public List<GeoRadiusResponse> georadius(String key, double longitude, double latitude, double radius, GeoUnit unit, GeoRadiusParam param) {
+  public List<GeoRadiusResponse> georadius(
+      String key,
+      double longitude,
+      double latitude,
+      double radius,
+      GeoUnit unit,
+      GeoRadiusParam param) {
     String command = "georadius";
-    return instrumented(command, () -> delegated.georadius(key, longitude, latitude, radius, unit, param));
+    return instrumented(
+        command, () -> delegated.georadius(key, longitude, latitude, radius, unit, param));
   }
 
   @Override
-  public List<GeoRadiusResponse> georadiusByMember(String key, String member, double radius, GeoUnit unit) {
+  public List<GeoRadiusResponse> georadiusByMember(
+      String key, String member, double radius, GeoUnit unit) {
     String command = "georadiusByMember";
     return instrumented(command, () -> delegated.georadiusByMember(key, member, radius, unit));
   }
 
   @Override
-  public List<GeoRadiusResponse> georadiusByMember(String key, String member, double radius, GeoUnit unit, GeoRadiusParam param) {
+  public List<GeoRadiusResponse> georadiusByMember(
+      String key, String member, double radius, GeoUnit unit, GeoRadiusParam param) {
     String command = "georadiusByMember";
-    return instrumented(command, () -> delegated.georadiusByMember(key, member, radius, unit, param));
+    return instrumented(
+        command, () -> delegated.georadiusByMember(key, member, radius, unit, param));
   }
 
   @Override
@@ -1586,7 +1627,8 @@ public class InstrumentedJedis extends Jedis {
   @Override
   public String set(byte[] key, byte[] value, byte[] nxxx, byte[] expx, long time) {
     String command = "set";
-    return instrumented(command, payloadSize(value), () -> delegated.set(key, value, nxxx, expx, time));
+    return instrumented(
+        command, payloadSize(value), () -> delegated.set(key, value, nxxx, expx, time));
   }
 
   @Override
@@ -2229,7 +2271,8 @@ public class InstrumentedJedis extends Jedis {
   @Override
   public Pipeline pipelined() {
     String command = "pipelined";
-    return instrumented(command, () -> new InstrumentedPipeline(registry, delegated.pipelined(), poolName));
+    return instrumented(
+        command, () -> new InstrumentedPipeline(registry, delegated.pipelined(), poolName));
   }
 
   @Override
@@ -2281,15 +2324,19 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Set<Tuple> zrangeByScoreWithScores(byte[] key, double min, double max, int offset, int count) {
+  public Set<Tuple> zrangeByScoreWithScores(
+      byte[] key, double min, double max, int offset, int count) {
     String command = "zrangeByScoreWithScores";
-    return instrumented(command, () -> delegated.zrangeByScoreWithScores(key, min, max, offset, count));
+    return instrumented(
+        command, () -> delegated.zrangeByScoreWithScores(key, min, max, offset, count));
   }
 
   @Override
-  public Set<Tuple> zrangeByScoreWithScores(byte[] key, byte[] min, byte[] max, int offset, int count) {
+  public Set<Tuple> zrangeByScoreWithScores(
+      byte[] key, byte[] min, byte[] max, int offset, int count) {
     String command = "zrangeByScoreWithScores";
-    return instrumented(command, () -> delegated.zrangeByScoreWithScores(key, min, max, offset, count));
+    return instrumented(
+        command, () -> delegated.zrangeByScoreWithScores(key, min, max, offset, count));
   }
 
   @Override
@@ -2323,9 +2370,11 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Set<Tuple> zrevrangeByScoreWithScores(byte[] key, double max, double min, int offset, int count) {
+  public Set<Tuple> zrevrangeByScoreWithScores(
+      byte[] key, double max, double min, int offset, int count) {
     String command = "zrevrangeByScoreWithScores";
-    return instrumented(command, () -> delegated.zrevrangeByScoreWithScores(key, max, min, offset, count));
+    return instrumented(
+        command, () -> delegated.zrevrangeByScoreWithScores(key, max, min, offset, count));
   }
 
   @Override
@@ -2335,9 +2384,11 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Set<Tuple> zrevrangeByScoreWithScores(byte[] key, byte[] max, byte[] min, int offset, int count) {
+  public Set<Tuple> zrevrangeByScoreWithScores(
+      byte[] key, byte[] max, byte[] min, int offset, int count) {
     String command = "zrevrangeByScoreWithScores";
-    return instrumented(command, () -> delegated.zrevrangeByScoreWithScores(key, max, min, offset, count));
+    return instrumented(
+        command, () -> delegated.zrevrangeByScoreWithScores(key, max, min, offset, count));
   }
 
   @Override
@@ -2539,7 +2590,8 @@ public class InstrumentedJedis extends Jedis {
   @Override
   public Long linsert(byte[] key, BinaryClient.LIST_POSITION where, byte[] pivot, byte[] value) {
     String command = "linsert";
-    return instrumented(command, payloadSize(value), () -> delegated.linsert(key, where, pivot, value));
+    return instrumented(
+        command, payloadSize(value), () -> delegated.linsert(key, where, pivot, value));
   }
 
   @Override
@@ -2627,19 +2679,26 @@ public class InstrumentedJedis extends Jedis {
   @Override
   public Object eval(byte[] script, List<byte[]> keys, List<byte[]> args) {
     String command = "eval";
-    return instrumented(command, payloadSize(script) + payloadSize(args), () -> delegated.eval(script, keys, args));
+    return instrumented(
+        command, payloadSize(script) + payloadSize(args), () -> delegated.eval(script, keys, args));
   }
 
   @Override
   public Object eval(byte[] script, byte[] keyCount, byte[]... params) {
     String command = "eval";
-    return instrumented(command, payloadSize(script) + payloadSize(params), () -> delegated.eval(script, keyCount, params));
+    return instrumented(
+        command,
+        payloadSize(script) + payloadSize(params),
+        () -> delegated.eval(script, keyCount, params));
   }
 
   @Override
   public Object eval(byte[] script, int keyCount, byte[]... params) {
     String command = "eval";
-    return instrumented(command, payloadSize(script) + payloadSize(params), () -> delegated.eval(script, keyCount, params));
+    return instrumented(
+        command,
+        payloadSize(script) + payloadSize(params),
+        () -> delegated.eval(script, keyCount, params));
   }
 
   @Override
@@ -2663,7 +2722,8 @@ public class InstrumentedJedis extends Jedis {
   @Override
   public Object evalsha(byte[] sha1, int keyCount, byte[]... params) {
     String command = "evalsha";
-    return instrumented(command, payloadSize(params), () -> delegated.evalsha(sha1, keyCount, params));
+    return instrumented(
+        command, payloadSize(params), () -> delegated.evalsha(sha1, keyCount, params));
   }
 
   @Override
@@ -2797,13 +2857,15 @@ public class InstrumentedJedis extends Jedis {
   @Deprecated
   public String psetex(byte[] key, int milliseconds, byte[] value) {
     String command = "psetex";
-    return instrumented(command, payloadSize(value), () -> delegated.psetex(key, milliseconds, value));
+    return instrumented(
+        command, payloadSize(value), () -> delegated.psetex(key, milliseconds, value));
   }
 
   @Override
   public String psetex(byte[] key, long milliseconds, byte[] value) {
     String command = "psetex";
-    return instrumented(command, payloadSize(value), () -> delegated.psetex(key, milliseconds, value));
+    return instrumented(
+        command, payloadSize(value), () -> delegated.psetex(key, milliseconds, value));
   }
 
   @Override
@@ -2815,7 +2877,8 @@ public class InstrumentedJedis extends Jedis {
   @Override
   public String set(byte[] key, byte[] value, byte[] nxxx, byte[] expx, int time) {
     String command = "set";
-    return instrumented(command, payloadSize(value), () -> delegated.set(key, value, nxxx, expx, time));
+    return instrumented(
+        command, payloadSize(value), () -> delegated.set(key, value, nxxx, expx, time));
   }
 
   @Override
@@ -2969,27 +3032,38 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public List<GeoRadiusResponse> georadius(byte[] key, double longitude, double latitude, double radius, GeoUnit unit) {
+  public List<GeoRadiusResponse> georadius(
+      byte[] key, double longitude, double latitude, double radius, GeoUnit unit) {
     String command = "georadius";
     return instrumented(command, () -> delegated.georadius(key, longitude, latitude, radius, unit));
   }
 
   @Override
-  public List<GeoRadiusResponse> georadius(byte[] key, double longitude, double latitude, double radius, GeoUnit unit, GeoRadiusParam param) {
+  public List<GeoRadiusResponse> georadius(
+      byte[] key,
+      double longitude,
+      double latitude,
+      double radius,
+      GeoUnit unit,
+      GeoRadiusParam param) {
     String command = "georadius";
-    return instrumented(command, () -> delegated.georadius(key, longitude, latitude, radius, unit, param));
+    return instrumented(
+        command, () -> delegated.georadius(key, longitude, latitude, radius, unit, param));
   }
 
   @Override
-  public List<GeoRadiusResponse> georadiusByMember(byte[] key, byte[] member, double radius, GeoUnit unit) {
+  public List<GeoRadiusResponse> georadiusByMember(
+      byte[] key, byte[] member, double radius, GeoUnit unit) {
     String command = "georadiusByMember";
     return instrumented(command, () -> delegated.georadiusByMember(key, member, radius, unit));
   }
 
   @Override
-  public List<GeoRadiusResponse> georadiusByMember(byte[] key, byte[] member, double radius, GeoUnit unit, GeoRadiusParam param) {
+  public List<GeoRadiusResponse> georadiusByMember(
+      byte[] key, byte[] member, double radius, GeoUnit unit, GeoRadiusParam param) {
     String command = "georadiusByMember";
-    return instrumented(command, () -> delegated.georadiusByMember(key, member, radius, unit, param));
+    return instrumented(
+        command, () -> delegated.georadiusByMember(key, member, radius, unit, param));
   }
 
   @Override

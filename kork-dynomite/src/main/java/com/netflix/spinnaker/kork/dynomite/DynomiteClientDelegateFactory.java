@@ -15,6 +15,9 @@
  */
 package com.netflix.spinnaker.kork.dynomite;
 
+import static com.netflix.spinnaker.kork.jedis.RedisClientConfiguration.Driver.DYNOMITE;
+import static java.lang.String.format;
+
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
@@ -24,25 +27,22 @@ import com.netflix.discovery.DiscoveryClient;
 import com.netflix.dyno.connectionpool.impl.ConnectionPoolConfigurationImpl;
 import com.netflix.spinnaker.kork.jedis.RedisClientConfiguration.Driver;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegateFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.BeanCreationException;
-
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import static com.netflix.spinnaker.kork.jedis.RedisClientConfiguration.Driver.DYNOMITE;
-import static java.lang.String.format;
-
-public class DynomiteClientDelegateFactory implements RedisClientDelegateFactory<DynomiteClientDelegate> {
+public class DynomiteClientDelegateFactory
+    implements RedisClientDelegateFactory<DynomiteClientDelegate> {
 
   private static final Logger log = LoggerFactory.getLogger(DynomiteClientDelegateFactory.class);
 
   private ObjectMapper objectMapper;
   private Optional<DiscoveryClient> discoveryClient;
 
-  public DynomiteClientDelegateFactory(ObjectMapper objectMapper, Optional<DiscoveryClient> discoveryClient) {
+  public DynomiteClientDelegateFactory(
+      ObjectMapper objectMapper, Optional<DiscoveryClient> discoveryClient) {
     this.objectMapper = objectMapper;
     this.discoveryClient = discoveryClient;
   }
@@ -56,12 +56,8 @@ public class DynomiteClientDelegateFactory implements RedisClientDelegateFactory
   public DynomiteClientDelegate build(String name, Map<String, Object> properties) {
     DynomiteDriverProperties props = convertSpringProperties(properties);
     return new DynomiteClientDelegate(
-      name,
-      new DynomiteClientFactory()
-        .properties(props)
-        .discoveryClient(discoveryClient)
-        .build()
-    );
+        name,
+        new DynomiteClientFactory().properties(props).discoveryClient(discoveryClient).build());
   }
 
   /**
@@ -80,15 +76,15 @@ public class DynomiteClientDelegateFactory implements RedisClientDelegateFactory
     ObjectMapper mapper = objectMapper.copy();
     SimpleModule simpleModule = new SimpleModule();
     simpleModule.addDeserializer(
-      ConnectionPoolConfigurationImpl.class,
-      new ConnectionPoolConfigurationImplDeserializer((String) props.get("applicationName"))
-    );
+        ConnectionPoolConfigurationImpl.class,
+        new ConnectionPoolConfigurationImplDeserializer((String) props.get("applicationName")));
     mapper.registerModule(simpleModule);
 
     return mapper.convertValue(props, DynomiteDriverProperties.class);
   }
 
-  private static class ConnectionPoolConfigurationImplDeserializer extends JsonDeserializer<ConnectionPoolConfigurationImpl> {
+  private static class ConnectionPoolConfigurationImplDeserializer
+      extends JsonDeserializer<ConnectionPoolConfigurationImpl> {
 
     private final String name;
 
@@ -98,27 +94,29 @@ public class DynomiteClientDelegateFactory implements RedisClientDelegateFactory
 
     @SuppressWarnings("unchecked")
     @Override
-    public ConnectionPoolConfigurationImpl deserialize(JsonParser p,
-                                                       DeserializationContext ctxt) throws IOException, IllegalMappingMethodAccess {
+    public ConnectionPoolConfigurationImpl deserialize(JsonParser p, DeserializationContext ctxt)
+        throws IOException, IllegalMappingMethodAccess {
       ConnectionPoolConfigurationImpl result = new ConnectionPoolConfigurationImpl(name);
 
       Map<String, Object> raw = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
       raw.putAll(ctxt.readValue(p, Map.class));
 
       Arrays.stream(ConnectionPoolConfigurationImpl.class.getDeclaredMethods())
-        .filter(it -> it.getName().startsWith("set"))
-        .forEach(method -> {
-          String fieldName = method.getName().substring(3);
-          Object value = raw.get(fieldName);
-          if (value != null) {
-            try {
-              method.setAccessible(true);
-              method.invoke(result, value);
-            } catch (IllegalAccessException|InvocationTargetException e) {
-              throw new IllegalMappingMethodAccess(format("Could not invoke %s", method.getName()), e);
-            }
-          }
-        });
+          .filter(it -> it.getName().startsWith("set"))
+          .forEach(
+              method -> {
+                String fieldName = method.getName().substring(3);
+                Object value = raw.get(fieldName);
+                if (value != null) {
+                  try {
+                    method.setAccessible(true);
+                    method.invoke(result, value);
+                  } catch (IllegalAccessException | InvocationTargetException e) {
+                    throw new IllegalMappingMethodAccess(
+                        format("Could not invoke %s", method.getName()), e);
+                  }
+                }
+              });
 
       return result;
     }

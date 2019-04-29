@@ -17,12 +17,11 @@
 package com.netflix.spinnaker.okhttp;
 
 import com.netflix.spectator.api.Registry;
-import okhttp3.Request;
-import okhttp3.Response;
-
 import java.io.IOException;
 import java.net.URL;
 import java.util.concurrent.TimeUnit;
+import okhttp3.Request;
+import okhttp3.Response;
 
 public class OkHttp3MetricsInterceptor implements okhttp3.Interceptor {
   private final Registry registry;
@@ -46,18 +45,21 @@ public class OkHttp3MetricsInterceptor implements okhttp3.Interceptor {
 
       return response;
     } finally {
-      recordTimer(registry, request.url().url(), System.nanoTime() - start, statusCode, wasSuccessful);
+      recordTimer(
+          registry, request.url().url(), System.nanoTime() - start, statusCode, wasSuccessful);
     }
   }
 
-  static void recordTimer(Registry registry, URL requestUrl, Long durationNs, int statusCode, boolean wasSuccessful) {
-    registry.timer(
-        registry.createId("okhttp.requests")
-            .withTag("requestHost", requestUrl.getHost())
-            .withTag("statusCode", String.valueOf(statusCode))
-            .withTag("status", bucket(statusCode))
-            .withTag("success", wasSuccessful)
-    )
+  static void recordTimer(
+      Registry registry, URL requestUrl, Long durationNs, int statusCode, boolean wasSuccessful) {
+    registry
+        .timer(
+            registry
+                .createId("okhttp.requests")
+                .withTag("requestHost", requestUrl.getHost())
+                .withTag("statusCode", String.valueOf(statusCode))
+                .withTag("status", bucket(statusCode))
+                .withTag("success", wasSuccessful))
         .record(durationNs, TimeUnit.NANOSECONDS);
   }
 

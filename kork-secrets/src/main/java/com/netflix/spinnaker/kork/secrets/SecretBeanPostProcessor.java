@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.kork.secrets;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -24,18 +26,17 @@ import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.env.MutablePropertySources;
 import org.springframework.core.env.PropertySource;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class SecretBeanPostProcessor implements BeanPostProcessor, Ordered {
 
   private ConfigurableApplicationContext applicationContext;
   private SecretManager secretManager;
 
-  SecretBeanPostProcessor(ConfigurableApplicationContext applicationContext, SecretManager secretManager) {
+  SecretBeanPostProcessor(
+      ConfigurableApplicationContext applicationContext, SecretManager secretManager) {
     this.applicationContext = applicationContext;
     this.secretManager = secretManager;
-    MutablePropertySources propertySources = applicationContext.getEnvironment().getPropertySources();
+    MutablePropertySources propertySources =
+        applicationContext.getEnvironment().getPropertySources();
     List<EnumerablePropertySource> enumerableSources = new ArrayList<>();
 
     for (PropertySource ps : propertySources) {
@@ -50,7 +51,8 @@ public class SecretBeanPostProcessor implements BeanPostProcessor, Ordered {
   }
 
   @Override
-  public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+  public Object postProcessBeforeInitialization(Object bean, String beanName)
+      throws BeansException {
     return bean;
   }
 
@@ -58,7 +60,6 @@ public class SecretBeanPostProcessor implements BeanPostProcessor, Ordered {
   public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
     return bean;
   }
-
 
   @Override
   public int getOrder() {

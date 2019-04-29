@@ -24,10 +24,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 /**
- * Represents an evaluation summary
- * Includes INO and ERROR Level messages
- * ERROR is anything evaluation that results in thrown Exception
- * INFO unresolved value returned that doesn't throw
+ * Represents an evaluation summary Includes INO and ERROR Level messages ERROR is anything
+ * evaluation that results in thrown Exception INFO unresolved value returned that doesn't throw
  */
 public class ExpressionEvaluationSummary {
   private Map<String, Set<Result>> expressionResult;
@@ -54,7 +52,8 @@ public class ExpressionEvaluationSummary {
     return expressionResult;
   }
 
-  public void add(String escapedExpression, Result.Level level, String description, Class<?> exceptionType) {
+  public void add(
+      String escapedExpression, Result.Level level, String description, Class<?> exceptionType) {
     Set<Result> messages = expressionResult.getOrDefault(escapedExpression, new HashSet<>());
     messages.add(new Result(level, System.currentTimeMillis(), description, exceptionType));
     expressionResult.put(escapedExpression, messages);
@@ -72,12 +71,9 @@ public class ExpressionEvaluationSummary {
   public String toString() {
     String attempted = attempts.stream().collect(Collectors.joining(","));
     String failed = expressionResult.keySet().stream().collect(Collectors.joining(","));
-    return String.format("%d expression(s) - (%s), %d failed - (%s)",
-      getTotalEvaluated(),
-      attempted,
-      getFailureCount(),
-      failed
-    );
+    return String.format(
+        "%d expression(s) - (%s), %d failed - (%s)",
+        getTotalEvaluated(), attempted, getFailureCount(), failed);
   }
 
   public static class Result {
@@ -127,12 +123,17 @@ public class ExpressionEvaluationSummary {
 
     @Override
     public String toString() {
-      return "Result {" +
-        "description='" + description + '\'' +
-        ", exceptionType=" + exceptionType +
-        ", timestamp=" + timestamp +
-        ", level=" + level +
-        '}';
+      return "Result {"
+          + "description='"
+          + description
+          + '\''
+          + ", exceptionType="
+          + exceptionType
+          + ", timestamp="
+          + timestamp
+          + ", level="
+          + level
+          + '}';
     }
 
     @Override
@@ -142,9 +143,13 @@ public class ExpressionEvaluationSummary {
 
       Result result = (Result) o;
 
-      return (description != null ? description.equals(result.description) : result.description == null)
-        && (exceptionType != null ? exceptionType.equals(result.exceptionType) : result.exceptionType == null)
-        && level == result.level;
+      return (description != null
+              ? description.equals(result.description)
+              : result.description == null)
+          && (exceptionType != null
+              ? exceptionType.equals(result.exceptionType)
+              : result.exceptionType == null)
+          && level == result.level;
     }
 
     @Override

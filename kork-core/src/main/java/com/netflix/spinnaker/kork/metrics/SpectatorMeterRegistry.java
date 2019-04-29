@@ -18,7 +18,6 @@ package com.netflix.spinnaker.kork.metrics;
 import com.netflix.spectator.api.Registry;
 import io.micrometer.core.instrument.*;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
-
 import java.util.Iterator;
 import java.util.List;
 import java.util.function.Consumer;
@@ -36,16 +35,15 @@ public class SpectatorMeterRegistry extends SimpleMeterRegistry {
 
   @Override
   public List<Meter> getMeters() {
-    return Stream.concat(spectatorRegistry.stream()
-      .map(this::convertMeter), super.getMeters().stream())
-      .collect(Collectors.toList());
+    return Stream.concat(
+            spectatorRegistry.stream().map(this::convertMeter), super.getMeters().stream())
+        .collect(Collectors.toList());
   }
 
   @Override
   public void forEachMeter(Consumer<? super Meter> consumer) {
-    Stream.concat(spectatorRegistry.stream()
-      .map(this::convertMeter), super.getMeters().stream())
-      .forEach(consumer);
+    Stream.concat(spectatorRegistry.stream().map(this::convertMeter), super.getMeters().stream())
+        .forEach(consumer);
   }
 
   public Meter convertMeter(com.netflix.spectator.api.Meter meter) {
@@ -54,8 +52,10 @@ public class SpectatorMeterRegistry extends SimpleMeterRegistry {
 
       @Override
       public Iterable<Measurement> measure() {
-        Iterator<Measurement> measurements = StreamSupport.stream(meter.measure().spliterator(), false)
-          .map(m -> new Measurement(m::value, Statistic.UNKNOWN)).iterator();
+        Iterator<Measurement> measurements =
+            StreamSupport.stream(meter.measure().spliterator(), false)
+                .map(m -> new Measurement(m::value, Statistic.UNKNOWN))
+                .iterator();
         return () -> measurements;
       }
 
@@ -67,8 +67,10 @@ public class SpectatorMeterRegistry extends SimpleMeterRegistry {
   }
 
   private Meter.Id getId(com.netflix.spectator.api.Meter meter) {
-    Iterator<Tag> tags = StreamSupport.stream(meter.id().tags().spliterator(), false)
-      .map(t -> Tag.of(t.key(), t.value())).iterator();
+    Iterator<Tag> tags =
+        StreamSupport.stream(meter.id().tags().spliterator(), false)
+            .map(t -> Tag.of(t.key(), t.value()))
+            .iterator();
     return new Meter.Id(meter.id().name(), Tags.of(() -> tags), null, "", getMeterType(meter));
   }
 

@@ -38,9 +38,9 @@ ext {
 
 dependencies {
   /*
-   * These are 3rd party BOMs we inherit from. Any version constraints they contain we get 
+   * These are 3rd party BOMs we inherit from. Any version constraints they contain we get
    * transitively.
-   * 
+   *
    * Order matters somewhat here in that if multiple BOMs constrain the same things the FIRST wins.
    * For example, `junit-bom` and `jackson-bom` will win out over the versions of JUnit and Jackson
    * specified by `spring-boot-dependencies`.

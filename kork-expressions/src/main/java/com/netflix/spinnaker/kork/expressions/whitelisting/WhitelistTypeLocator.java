@@ -23,7 +23,8 @@ import org.springframework.expression.spel.SpelMessage;
 import org.springframework.expression.spel.support.StandardTypeLocator;
 
 public class WhitelistTypeLocator implements TypeLocator {
-  private final InstantiationTypeRestrictor instantiationTypeRestrictor = new InstantiationTypeRestrictor();
+  private final InstantiationTypeRestrictor instantiationTypeRestrictor =
+      new InstantiationTypeRestrictor();
   private final TypeLocator delegate = new StandardTypeLocator();
 
   @Override

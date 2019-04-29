@@ -37,9 +37,7 @@ public class RetrySupport {
     }
   }
 
-  /**
-   * Overridable by test cases to avoid Thread.sleep()
-   */
+  /** Overridable by test cases to avoid Thread.sleep() */
   void sleep(long duration) {
     try {
       Thread.sleep(duration);

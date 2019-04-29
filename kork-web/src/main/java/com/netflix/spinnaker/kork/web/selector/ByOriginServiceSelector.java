@@ -33,9 +33,7 @@ public class ByOriginServiceSelector implements ServiceSelector {
     this.origin = (String) config.get("origin");
 
     if (config.containsKey("executionTypes")) {
-      executionTypes = new HashSet(
-        ((Map<String, String>) config.get("executionTypes")).values()
-      );
+      executionTypes = new HashSet(((Map<String, String>) config.get("executionTypes")).values());
     } else {
       executionTypes = new HashSet<>(Arrays.asList("pipeline", "orchestration"));
     }
@@ -53,8 +51,8 @@ public class ByOriginServiceSelector implements ServiceSelector {
 
   @Override
   public boolean supports(SelectableService.Criteria criteria) {
-    return origin != null &&
-      origin.equalsIgnoreCase(criteria.getOrigin()) &&
-      executionTypes.contains(criteria.getExecutionType());
+    return origin != null
+        && origin.equalsIgnoreCase(criteria.getOrigin())
+        && executionTypes.contains(criteria.getExecutionType());
   }
 }

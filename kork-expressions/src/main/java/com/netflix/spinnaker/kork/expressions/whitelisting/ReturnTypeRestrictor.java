@@ -28,6 +28,8 @@ public class ReturnTypeRestrictor extends InstantiationTypeRestrictor {
   @Override
   boolean supports(Class<?> type) {
     Class<?> returnType = type.isArray() ? type.getComponentType() : type;
-    return returnType.isPrimitive() || super.supports(returnType) || allowedReturnTypes.contains(returnType);
+    return returnType.isPrimitive()
+        || super.supports(returnType)
+        || allowedReturnTypes.contains(returnType);
   }
 }

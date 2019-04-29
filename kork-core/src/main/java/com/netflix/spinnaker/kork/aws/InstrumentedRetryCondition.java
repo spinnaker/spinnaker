@@ -21,7 +21,6 @@ import com.amazonaws.AmazonWebServiceRequest;
 import com.amazonaws.retry.PredefinedRetryPolicies;
 import com.amazonaws.retry.RetryPolicy;
 import com.netflix.spectator.api.Registry;
-
 import java.util.Objects;
 
 public class InstrumentedRetryCondition implements RetryPolicy.RetryCondition {
@@ -38,12 +37,16 @@ public class InstrumentedRetryCondition implements RetryPolicy.RetryCondition {
   }
 
   @Override
-  public boolean shouldRetry(AmazonWebServiceRequest originalRequest, AmazonClientException exception, int retriesAttempted) {
+  public boolean shouldRetry(
+      AmazonWebServiceRequest originalRequest,
+      AmazonClientException exception,
+      int retriesAttempted) {
     final boolean result = delegate.shouldRetry(originalRequest, exception, retriesAttempted);
     if (result) {
-      registry.counter("AWS_retries", AwsMetricsSupport.buildExceptionTags(originalRequest, exception)).increment();
+      registry
+          .counter("AWS_retries", AwsMetricsSupport.buildExceptionTags(originalRequest, exception))
+          .increment();
     }
     return result;
   }
-
 }

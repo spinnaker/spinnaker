@@ -15,10 +15,9 @@
  */
 package com.netflix.spinnaker.config;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "endpoints.resolved-env")
 public class ResolvedEnvironmentConfigurationProperties {
@@ -32,5 +31,4 @@ public class ResolvedEnvironmentConfigurationProperties {
   public void setKeysToSanitize(List<String> keysToSanitize) {
     this.keysToSanitize = keysToSanitize;
   }
-
 }

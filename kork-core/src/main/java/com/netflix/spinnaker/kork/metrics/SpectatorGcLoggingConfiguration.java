@@ -18,18 +18,16 @@ package com.netflix.spinnaker.kork.metrics;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-/**
- * SpectatorGcLoggingConfiguration.
- */
+/** SpectatorGcLoggingConfiguration. */
 @ConfigurationProperties("spectator.gc")
 public class SpectatorGcLoggingConfiguration {
   private boolean loggingEnabled = true;
 
   public boolean isLoggingEnabled() {
-      return loggingEnabled;
-    }
+    return loggingEnabled;
+  }
 
   public void setLoggingEnabled(boolean loggingEnabled) {
-      this.loggingEnabled = loggingEnabled;
-    }
+    this.loggingEnabled = loggingEnabled;
+  }
 }

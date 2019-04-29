@@ -15,12 +15,11 @@
  */
 package com.netflix.spinnaker.kork.jedis;
 
-import redis.clients.jedis.*;
-import redis.clients.util.Pool;
-
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import redis.clients.jedis.*;
+import redis.clients.util.Pool;
 
 public class JedisClientDelegate implements RedisClientDelegate {
 
@@ -100,7 +99,8 @@ public class JedisClientDelegate implements RedisClientDelegate {
   @Override
   public void syncPipeline(RedisPipeline p) {
     if (!(p instanceof Pipeline)) {
-      throw new IllegalArgumentException("Invalid RedisPipeline implementation: " + p.getClass().getName());
+      throw new IllegalArgumentException(
+          "Invalid RedisPipeline implementation: " + p.getClass().getName());
     }
 
     ((Pipeline) p).sync();
@@ -126,7 +126,9 @@ public class JedisClientDelegate implements RedisClientDelegate {
   }
 
   @Override
-  public boolean supportsTransactions() { return true; }
+  public boolean supportsTransactions() {
+    return true;
+  }
 
   @Override
   public void withTransaction(Consumer<Transaction> f) {

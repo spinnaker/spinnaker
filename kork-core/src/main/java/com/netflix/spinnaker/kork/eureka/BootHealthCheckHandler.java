@@ -19,6 +19,8 @@ package com.netflix.spinnaker.kork.eureka;
 import com.netflix.appinfo.ApplicationInfoManager;
 import com.netflix.appinfo.HealthCheckHandler;
 import com.netflix.appinfo.InstanceInfo;
+import java.util.Map;
+import java.util.Objects;
 import org.springframework.boot.actuate.health.CompositeHealthIndicator;
 import org.springframework.boot.actuate.health.HealthAggregator;
 import org.springframework.boot.actuate.health.HealthIndicator;
@@ -26,18 +28,18 @@ import org.springframework.boot.actuate.health.Status;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 
-import java.util.Map;
-import java.util.Objects;
-
-public class BootHealthCheckHandler implements HealthCheckHandler, ApplicationListener<ContextRefreshedEvent> {
+public class BootHealthCheckHandler
+    implements HealthCheckHandler, ApplicationListener<ContextRefreshedEvent> {
 
   private final HealthIndicator aggregateHealth;
   private final ApplicationInfoManager applicationInfoManager;
 
-  public BootHealthCheckHandler(ApplicationInfoManager applicationInfoManager,
-                                HealthAggregator aggregator,
-                                Map<String, HealthIndicator> healthIndicators) {
-    this.applicationInfoManager = Objects.requireNonNull(applicationInfoManager, "applicationInfoManager");
+  public BootHealthCheckHandler(
+      ApplicationInfoManager applicationInfoManager,
+      HealthAggregator aggregator,
+      Map<String, HealthIndicator> healthIndicators) {
+    this.applicationInfoManager =
+        Objects.requireNonNull(applicationInfoManager, "applicationInfoManager");
     this.aggregateHealth = new CompositeHealthIndicator(aggregator, healthIndicators);
   }
 
@@ -60,4 +62,3 @@ public class BootHealthCheckHandler implements HealthCheckHandler, ApplicationLi
     }
   }
 }
-

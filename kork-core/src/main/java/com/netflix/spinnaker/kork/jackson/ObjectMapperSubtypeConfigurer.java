@@ -18,27 +18,25 @@ package com.netflix.spinnaker.kork.jackson;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.jsontype.NamedType;
+import java.util.List;
+import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.core.type.filter.AssignableTypeFilter;
 import org.springframework.util.ClassUtils;
 
-import java.util.List;
-import java.util.Objects;
-
 /**
  * Handles discovery and registration of ObjectMapper subtypes.
  *
- * Using the NAME JsonTypeInfo strategy, each subtype needs to be defined
- * explicitly. If all subtypes are known at compile time, the subtypes should
- * be defined on the root type. However, Spinnaker often times offers
- * addition of new types, which may require scanning different packages for
- * additional subtypes. This class will assist this specific task.
+ * <p>Using the NAME JsonTypeInfo strategy, each subtype needs to be defined explicitly. If all
+ * subtypes are known at compile time, the subtypes should be defined on the root type. However,
+ * Spinnaker often times offers addition of new types, which may require scanning different packages
+ * for additional subtypes. This class will assist this specific task.
  */
 public class ObjectMapperSubtypeConfigurer {
 
-  private final static Logger log = LoggerFactory.getLogger(ObjectMapperSubtypeConfigurer.class);
+  private static final Logger log = LoggerFactory.getLogger(ObjectMapperSubtypeConfigurer.class);
 
   private boolean strictSerialization;
 
@@ -51,31 +49,38 @@ public class ObjectMapperSubtypeConfigurer {
   }
 
   public void registerSubtype(ObjectMapper mapper, SubtypeLocator subtypeLocator) {
-    subtypeLocator.searchPackages().forEach(pkg -> mapper.registerSubtypes(findSubtypes(subtypeLocator.rootType(), pkg)));
+    subtypeLocator
+        .searchPackages()
+        .forEach(pkg -> mapper.registerSubtypes(findSubtypes(subtypeLocator.rootType(), pkg)));
   }
 
   private NamedType[] findSubtypes(Class<?> clazz, String pkg) {
-    ClassPathScanningCandidateComponentProvider provider = new ClassPathScanningCandidateComponentProvider(false);
+    ClassPathScanningCandidateComponentProvider provider =
+        new ClassPathScanningCandidateComponentProvider(false);
     provider.addIncludeFilter(new AssignableTypeFilter(clazz));
 
     return provider.findCandidateComponents(pkg).stream()
-      .map(bean -> {
-        Class<?> cls = ClassUtils.resolveClassName(bean.getBeanClassName(), ClassUtils.getDefaultClassLoader());
+        .map(
+            bean -> {
+              Class<?> cls =
+                  ClassUtils.resolveClassName(
+                      bean.getBeanClassName(), ClassUtils.getDefaultClassLoader());
 
-        JsonTypeName nameAnnotation = cls.getAnnotation(JsonTypeName.class);
-        if (nameAnnotation == null || "".equals(nameAnnotation.value())) {
-          String message = "Subtype " + cls.getSimpleName() + " does not have a JsonTypeName annotation";
-          if (strictSerialization) {
-            throw new InvalidSubtypeConfigurationException(message);
-          }
-          log.warn(message);
-          return null;
-        }
+              JsonTypeName nameAnnotation = cls.getAnnotation(JsonTypeName.class);
+              if (nameAnnotation == null || "".equals(nameAnnotation.value())) {
+                String message =
+                    "Subtype " + cls.getSimpleName() + " does not have a JsonTypeName annotation";
+                if (strictSerialization) {
+                  throw new InvalidSubtypeConfigurationException(message);
+                }
+                log.warn(message);
+                return null;
+              }
 
-        return new NamedType(cls, nameAnnotation.value());
-      })
-      .filter(Objects::nonNull)
-      .toArray(NamedType[]::new);
+              return new NamedType(cls, nameAnnotation.value());
+            })
+        .filter(Objects::nonNull)
+        .toArray(NamedType[]::new);
   }
 
   /**
@@ -83,6 +88,7 @@ public class ObjectMapperSubtypeConfigurer {
    */
   public interface SubtypeLocator {
     Class<?> rootType();
+
     List<String> searchPackages();
   }
 

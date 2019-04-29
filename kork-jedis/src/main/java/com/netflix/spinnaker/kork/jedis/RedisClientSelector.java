@@ -16,17 +16,16 @@
 package com.netflix.spinnaker.kork.jedis;
 
 import com.netflix.spinnaker.kork.jedis.exception.RedisClientNotFound;
+import java.util.List;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
-import java.util.Optional;
-
 public class RedisClientSelector {
 
-  private final static String DEFAULT = "default";
-  private final static String PRIMARY = "primary";
-  private final static String PREVIOUS = "previous";
+  private static final String DEFAULT = "default";
+  private static final String PRIMARY = "primary";
+  private static final String PREVIOUS = "previous";
 
   private final Logger log = LoggerFactory.getLogger(RedisClientSelector.class);
 
@@ -34,9 +33,10 @@ public class RedisClientSelector {
 
   public RedisClientSelector(List<RedisClientDelegate> clients) {
     this.clients = clients;
-    clients.forEach(client -> {
-      log.info("Configured {} using {}", client.name(), client.getClass().getSimpleName());
-    });
+    clients.forEach(
+        client -> {
+          log.info("Configured {} using {}", client.name(), client.getClass().getSimpleName());
+        });
   }
 
   public RedisClientDelegate primary(String name) {
@@ -49,25 +49,28 @@ public class RedisClientSelector {
 
   public RedisClientDelegate primary(String name, boolean fallbackToDefault) {
     return select(name, true, fallbackToDefault)
-      .orElseThrow(() ->
-        new RedisClientNotFound("Could not find primary Redis client by name '" + name + "' and no default configured")
-      );
+        .orElseThrow(
+            () ->
+                new RedisClientNotFound(
+                    "Could not find primary Redis client by name '"
+                        + name
+                        + "' and no default configured"));
   }
 
   public Optional<RedisClientDelegate> previous(String name, boolean fallbackToDefault) {
     return select(name, false, fallbackToDefault);
   }
 
-  private Optional<RedisClientDelegate> select(String name, boolean primary, boolean fallbackToDefault) {
+  private Optional<RedisClientDelegate> select(
+      String name, boolean primary, boolean fallbackToDefault) {
     String stdName = getName(primary, name);
 
-    Optional<RedisClientDelegate> client = clients.stream().filter(it -> stdName.equals(it.name())).findFirst();
+    Optional<RedisClientDelegate> client =
+        clients.stream().filter(it -> stdName.equals(it.name())).findFirst();
 
     if (!client.isPresent() && fallbackToDefault) {
       String defaultName = getName(primary, DEFAULT);
-      client = clients.stream()
-        .filter(it -> defaultName.equals(it.name()))
-        .findFirst();
+      client = clients.stream().filter(it -> defaultName.equals(it.name())).findFirst();
     }
 
     return client;

@@ -17,15 +17,13 @@
 package com.netflix.spinnaker.kork.web.controllers;
 
 import com.netflix.spinnaker.kork.web.exceptions.HasAdditionalAttributes;
+import java.util.Map;
 import org.springframework.boot.web.servlet.error.ErrorAttributes;
 import org.springframework.boot.web.servlet.error.ErrorController;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.WebRequest;
-
-import javax.servlet.http.HttpServletRequest;
-import java.util.Map;
 
 @RestController
 public class GenericErrorController implements ErrorController {
@@ -36,9 +34,11 @@ public class GenericErrorController implements ErrorController {
   }
 
   @RequestMapping(value = "/error")
-  public Map error(@RequestParam(value = "trace", defaultValue = "false") Boolean includeStackTrace,
-                   WebRequest webRequest) {
-    Map<String, Object> attributes = errorAttributes.getErrorAttributes(webRequest, includeStackTrace);
+  public Map error(
+      @RequestParam(value = "trace", defaultValue = "false") Boolean includeStackTrace,
+      WebRequest webRequest) {
+    Map<String, Object> attributes =
+        errorAttributes.getErrorAttributes(webRequest, includeStackTrace);
 
     Throwable exception = errorAttributes.getError(webRequest);
     if (exception != null && exception instanceof HasAdditionalAttributes) {

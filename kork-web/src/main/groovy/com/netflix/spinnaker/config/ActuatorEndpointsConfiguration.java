@@ -30,6 +30,9 @@ public class ActuatorEndpointsConfiguration extends WebSecurityConfigurerAdapter
   @Override
   public void configure(HttpSecurity http) throws Exception {
     // The health endpoint should always be exposed without auth.
-    http.requestMatcher(EndpointRequest.to(HealthEndpoint.class)).authorizeRequests().anyRequest().permitAll();
+    http.requestMatcher(EndpointRequest.to(HealthEndpoint.class))
+        .authorizeRequests()
+        .anyRequest()
+        .permitAll();
   }
 }

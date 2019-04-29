@@ -16,34 +16,34 @@
 
 package com.netflix.spinnaker.kork.secrets.engines;
 
+import static org.junit.Assert.assertTrue;
+
 import com.netflix.spinnaker.kork.secrets.EncryptedSecret;
 import com.netflix.spinnaker.kork.secrets.SecretDecryptionException;
-import org.junit.Before;
-import org.junit.Test;
-import org.yaml.snakeyaml.Yaml;
-
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.Arrays;
-
-import static org.junit.Assert.assertTrue;
+import org.junit.Before;
+import org.junit.Test;
+import org.yaml.snakeyaml.Yaml;
 
 public class AbstractStorageEngineTest {
   AbstractStorageSecretEngine engine;
 
   @Before
   public void init() {
-    engine = new AbstractStorageSecretEngine() {
-      @Override
-      protected InputStream downloadRemoteFile(EncryptedSecret encryptedSecret) {
-        return null;
-      }
+    engine =
+        new AbstractStorageSecretEngine() {
+          @Override
+          protected InputStream downloadRemoteFile(EncryptedSecret encryptedSecret) {
+            return null;
+          }
 
-      @Override
-      public String identifier() {
-        return "test";
-      }
-    };
+          @Override
+          public String identifier() {
+            return "test";
+          }
+        };
   }
 
   protected ByteArrayInputStream readStream(String value) {
@@ -58,5 +58,4 @@ public class AbstractStorageEngineTest {
     assertTrue(Arrays.equals("value".getBytes(), engine.getParsedValue("a/b", "test")));
     assertTrue(Arrays.equals("othervalue".getBytes(), engine.getParsedValue("a/b", "a.b")));
   }
-
 }

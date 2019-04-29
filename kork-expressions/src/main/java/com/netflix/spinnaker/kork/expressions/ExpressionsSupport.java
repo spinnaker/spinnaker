@@ -18,17 +18,16 @@ package com.netflix.spinnaker.kork.expressions;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.expressions.whitelisting.*;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.stream.Stream;
-
 /**
- * Provides utility support for SpEL integration
- * Supports registering SpEL functions, ACLs to classes (via whitelisting)
+ * Provides utility support for SpEL integration Supports registering SpEL functions, ACLs to
+ * classes (via whitelisting)
  */
 public class ExpressionsSupport {
   private static final ObjectMapper mapper = new ObjectMapper();
@@ -38,31 +37,37 @@ public class ExpressionsSupport {
 
   public ExpressionsSupport(Class<?>... extraAllowedReturnTypes) {
     this.registeredHelperFunctions.put("toJson", Collections.singletonList(Object.class));
-    Stream.of("alphanumerical", "readJson", "toInt", "toFloat", "toBoolean", "toBase64", "fromBase64").forEach(fn -> {
-      this.registeredHelperFunctions.put(fn, Collections.singletonList(String.class));
-    });
+    Stream.of(
+            "alphanumerical", "readJson", "toInt", "toFloat", "toBoolean", "toBase64", "fromBase64")
+        .forEach(
+            fn -> {
+              this.registeredHelperFunctions.put(fn, Collections.singletonList(String.class));
+            });
 
-    this.allowedReturnTypes = new HashSet<>(Arrays.asList(Collection.class,
-      Map.class,
-      SortedMap.class,
-      List.class,
-      Set.class,
-      SortedSet.class,
-      ArrayList.class,
-      LinkedList.class,
-      HashSet.class,
-      LinkedHashSet.class,
-      HashMap.class,
-      LinkedHashMap.class,
-      TreeMap.class,
-      TreeSet.class));
+    this.allowedReturnTypes =
+        new HashSet<>(
+            Arrays.asList(
+                Collection.class,
+                Map.class,
+                SortedMap.class,
+                List.class,
+                Set.class,
+                SortedSet.class,
+                ArrayList.class,
+                LinkedList.class,
+                HashSet.class,
+                LinkedHashSet.class,
+                HashMap.class,
+                LinkedHashMap.class,
+                TreeMap.class,
+                TreeSet.class));
     Collections.addAll(this.allowedReturnTypes, extraAllowedReturnTypes);
   }
 
-  /**
-   * Internally registers a SpEL method to an evaluation context
-   */
-  private static void registerFunction(StandardEvaluationContext context, String name, Class<?>... types) throws NoSuchMethodException {
+  /** Internally registers a SpEL method to an evaluation context */
+  private static void registerFunction(
+      StandardEvaluationContext context, String name, Class<?>... types)
+      throws NoSuchMethodException {
     context.registerFunction(name, ExpressionsSupport.class.getDeclaredMethod(name, types));
   }
 
@@ -77,8 +82,9 @@ public class ExpressionsSupport {
   }
 
   /*
-    HELPER FUNCTIONS: These functions are explicitly registered with each invocation
-    To add a new helper function, append the function below and update ExpressionHelperFunctions and registeredHelperFunctions
+   * HELPER FUNCTIONS: These functions are explicitly registered with each invocation To add a new
+   * helper function, append the function below and update ExpressionHelperFunctions and
+   * registeredHelperFunctions
    */
 
   /**
@@ -169,26 +175,31 @@ public class ExpressionsSupport {
   /**
    * Creates a configured SpEL evaluation context
    *
-   * @param rootObject       the root object to transform
+   * @param rootObject the root object to transform
    * @param allowUnknownKeys flag to control what helper functions are available
    * @return an evaluation context hooked with helper functions and correct ACL via whitelisting
    */
-  public StandardEvaluationContext buildEvaluationContext(Object rootObject, boolean allowUnknownKeys) {
+  public StandardEvaluationContext buildEvaluationContext(
+      Object rootObject, boolean allowUnknownKeys) {
     ReturnTypeRestrictor returnTypeRestrictor = new ReturnTypeRestrictor(allowedReturnTypes);
 
     StandardEvaluationContext evaluationContext = new StandardEvaluationContext(rootObject);
     evaluationContext.setTypeLocator(new WhitelistTypeLocator());
-    evaluationContext.setMethodResolvers(Collections.singletonList(
-      new FilteredMethodResolver(returnTypeRestrictor)));
-    evaluationContext.setPropertyAccessors(Arrays.asList(new MapPropertyAccessor(allowUnknownKeys),
-      new FilteredPropertyAccessor(returnTypeRestrictor)));
+    evaluationContext.setMethodResolvers(
+        Collections.singletonList(new FilteredMethodResolver(returnTypeRestrictor)));
+    evaluationContext.setPropertyAccessors(
+        Arrays.asList(
+            new MapPropertyAccessor(allowUnknownKeys),
+            new FilteredPropertyAccessor(returnTypeRestrictor)));
 
     try {
       for (Map.Entry<String, List<Class<?>>> m : registeredHelperFunctions.entrySet()) {
         registerFunction(evaluationContext, m.getKey(), m.getValue().toArray(new Class<?>[0]));
       }
     } catch (NoSuchMethodException e) {
-      // Indicates a function was not properly registered. This should not happen. Please fix the faulty function
+      // Indicates a function was not properly registered. This should not happen. Please fix the
+      // faulty
+      // function
       LOGGER.error("Failed to register helper functions for rootObject {}", rootObject, e);
     }
 

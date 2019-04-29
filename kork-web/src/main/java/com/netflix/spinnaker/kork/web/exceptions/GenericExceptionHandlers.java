@@ -18,6 +18,13 @@ package com.netflix.spinnaker.kork.web.exceptions;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.CharStreams;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.web.servlet.error.DefaultErrorAttributes;
@@ -31,14 +38,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import retrofit.RetrofitError;
 import retrofit.client.Header;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
 @ControllerAdvice
 public class GenericExceptionHandlers {
   private static final Logger logger = LoggerFactory.getLogger(GenericExceptionHandlers.class);
@@ -46,53 +45,63 @@ public class GenericExceptionHandlers {
   private final DefaultErrorAttributes defaultErrorAttributes = new DefaultErrorAttributes();
 
   @ExceptionHandler(AccessDeniedException.class)
-  public void handleAccessDeniedException(Exception e, HttpServletResponse response, HttpServletRequest request) throws IOException {
+  public void handleAccessDeniedException(
+      Exception e, HttpServletResponse response, HttpServletRequest request) throws IOException {
     logger.error("Access Denied", e);
 
     storeException(request, response, e);
 
-    // avoid leaking any information that may be in `e.getMessage()` by returning a static error message
+    // avoid leaking any information that may be in `e.getMessage()` by returning a static error
+    // message
     response.sendError(HttpStatus.FORBIDDEN.value(), "Access is denied");
   }
 
   @ExceptionHandler(NotFoundException.class)
-  public void handleNotFoundException(Exception e, HttpServletResponse response, HttpServletRequest request) throws IOException {
+  public void handleNotFoundException(
+      Exception e, HttpServletResponse response, HttpServletRequest request) throws IOException {
     storeException(request, response, e);
     response.sendError(HttpStatus.NOT_FOUND.value(), e.getMessage());
   }
 
   @ExceptionHandler(InvalidRequestException.class)
-  public void handleInvalidRequestException(Exception e, HttpServletResponse response, HttpServletRequest request) throws IOException {
+  public void handleInvalidRequestException(
+      Exception e, HttpServletResponse response, HttpServletRequest request) throws IOException {
     storeException(request, response, e);
     response.sendError(HttpStatus.BAD_REQUEST.value(), e.getMessage());
   }
 
   @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
-  public void handleRequestMethodNotSupportedException(Exception e, HttpServletResponse response, HttpServletRequest request) throws IOException {
+  public void handleRequestMethodNotSupportedException(
+      Exception e, HttpServletResponse response, HttpServletRequest request) throws IOException {
     storeException(request, response, e);
     response.sendError(HttpStatus.METHOD_NOT_ALLOWED.value(), e.getMessage());
   }
 
   @ExceptionHandler(RetrofitError.class)
-  public void handleRetrofitError(RetrofitError e, HttpServletResponse response, HttpServletRequest request) throws IOException {
+  public void handleRetrofitError(
+      RetrofitError e, HttpServletResponse response, HttpServletRequest request)
+      throws IOException {
     if (e.getResponse() != null) {
       Map<String, Object> additionalContext = new HashMap<>();
       additionalContext.put("url", e.getResponse().getUrl());
 
-      Header contentTypeHeader = e.getResponse().getHeaders()
-        .stream()
-        .filter(h -> h.getName().equalsIgnoreCase("content-type"))
-        .findFirst()
-        .orElse(null);
+      Header contentTypeHeader =
+          e.getResponse().getHeaders().stream()
+              .filter(h -> h.getName().equalsIgnoreCase("content-type"))
+              .findFirst()
+              .orElse(null);
 
-      if (contentTypeHeader != null && contentTypeHeader.getValue().toLowerCase().contains("application/json")) {
+      if (contentTypeHeader != null
+          && contentTypeHeader.getValue().toLowerCase().contains("application/json")) {
         // include any json responses
-        additionalContext.put("body", CharStreams.toString(
-          new InputStreamReader(e.getResponse().getBody().in(), Charsets.UTF_8)
-        ));
+        additionalContext.put(
+            "body",
+            CharStreams.toString(
+                new InputStreamReader(e.getResponse().getBody().in(), Charsets.UTF_8)));
       }
 
-      storeException(request, response, new RetrofitErrorWrapper(e.getMessage(), additionalContext));
+      storeException(
+          request, response, new RetrofitErrorWrapper(e.getMessage(), additionalContext));
       response.sendError(e.getResponse().getStatus(), e.getMessage());
     } else {
       // no retrofit response (likely) indicates a NETWORK error
@@ -101,10 +110,12 @@ public class GenericExceptionHandlers {
   }
 
   @ExceptionHandler(Exception.class)
-  public void handleException(Exception e, HttpServletResponse response, HttpServletRequest request) throws IOException {
+  public void handleException(Exception e, HttpServletResponse response, HttpServletRequest request)
+      throws IOException {
     storeException(request, response, e);
 
-    ResponseStatus responseStatus = AnnotationUtils.findAnnotation(e.getClass(), ResponseStatus.class);
+    ResponseStatus responseStatus =
+        AnnotationUtils.findAnnotation(e.getClass(), ResponseStatus.class);
 
     if (responseStatus != null) {
       HttpStatus httpStatus = responseStatus.value();
@@ -125,12 +136,15 @@ public class GenericExceptionHandlers {
     }
   }
 
-  private void storeException(HttpServletRequest request, HttpServletResponse response, Exception ex) {
-    // store exception as an attribute of HttpServletRequest such that it can be referenced by GenericErrorController
+  private void storeException(
+      HttpServletRequest request, HttpServletResponse response, Exception ex) {
+    // store exception as an attribute of HttpServletRequest such that it can be referenced by
+    // GenericErrorController
     defaultErrorAttributes.resolveException(request, response, null, ex);
   }
 
-  private static class RetrofitErrorWrapper extends RuntimeException implements HasAdditionalAttributes {
+  private static class RetrofitErrorWrapper extends RuntimeException
+      implements HasAdditionalAttributes {
     private final Map<String, Object> additionalAttributes;
 
     public RetrofitErrorWrapper(String message, Map<String, Object> additionalAttributes) {

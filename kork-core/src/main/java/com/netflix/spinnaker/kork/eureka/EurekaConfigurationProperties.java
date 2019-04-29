@@ -16,10 +16,9 @@
 
 package com.netflix.spinnaker.kork.eureka;
 
+import java.util.Objects;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
-
-import java.util.Objects;
 
 @ConfigurationProperties("eureka")
 public class EurekaConfigurationProperties {
@@ -44,11 +43,9 @@ public class EurekaConfigurationProperties {
     }
   }
 
-  @NestedConfigurationProperty
-  private final Namespace instance = new Namespace("netflix.appinfo.");
+  @NestedConfigurationProperty private final Namespace instance = new Namespace("netflix.appinfo.");
 
-  @NestedConfigurationProperty
-  private final Namespace client = new Namespace("netflix.discovery.");
+  @NestedConfigurationProperty private final Namespace client = new Namespace("netflix.discovery.");
 
   public Namespace getInstance() {
     return instance;

@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.tomcat.x509;
 
-import javax.net.ssl.X509TrustManager;
 import java.security.cert.CRLReason;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateRevokedException;
@@ -24,6 +23,7 @@ import java.security.cert.X509Certificate;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Objects;
+import javax.net.ssl.X509TrustManager;
 
 public class BlacklistingX509TrustManager implements X509TrustManager {
   private final X509TrustManager delegate;
@@ -35,11 +35,16 @@ public class BlacklistingX509TrustManager implements X509TrustManager {
   }
 
   @Override
-  public void checkClientTrusted(X509Certificate[] x509Certificates, String authType) throws CertificateException {
+  public void checkClientTrusted(X509Certificate[] x509Certificates, String authType)
+      throws CertificateException {
     if (x509Certificates != null) {
       for (X509Certificate cert : x509Certificates) {
         if (blacklist.isBlacklisted(cert)) {
-          throw new CertificateRevokedException(new Date(), CRLReason.UNSPECIFIED, cert.getIssuerX500Principal(), Collections.emptyMap());
+          throw new CertificateRevokedException(
+              new Date(),
+              CRLReason.UNSPECIFIED,
+              cert.getIssuerX500Principal(),
+              Collections.emptyMap());
         }
       }
     }
@@ -48,7 +53,8 @@ public class BlacklistingX509TrustManager implements X509TrustManager {
   }
 
   @Override
-  public void checkServerTrusted(X509Certificate[] x509Certificates, String authType) throws CertificateException {
+  public void checkServerTrusted(X509Certificate[] x509Certificates, String authType)
+      throws CertificateException {
     delegate.checkServerTrusted(x509Certificates, authType);
   }
 
@@ -56,6 +62,4 @@ public class BlacklistingX509TrustManager implements X509TrustManager {
   public X509Certificate[] getAcceptedIssuers() {
     return delegate.getAcceptedIssuers();
   }
-
 }
-

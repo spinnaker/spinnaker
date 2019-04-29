@@ -21,12 +21,11 @@ import com.netflix.dyno.jedis.DynoJedisClient;
 import com.netflix.dyno.jedis.DynoJedisPipeline;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import com.netflix.spinnaker.kork.jedis.RedisScanResult;
-import redis.clients.jedis.*;
-import redis.clients.jedis.exceptions.JedisException;
-
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import redis.clients.jedis.*;
+import redis.clients.jedis.exceptions.JedisException;
 
 public class DynomiteClientDelegate implements RedisClientDelegate {
 
@@ -82,7 +81,7 @@ public class DynomiteClientDelegate implements RedisClientDelegate {
     DynoJedisPipeline p = client.pipelined();
     try {
       f.accept(p);
-    } catch (DynoException |JedisException e) {
+    } catch (DynoException | JedisException e) {
       try {
         p.close();
       } catch (Exception ne) {
@@ -97,7 +96,7 @@ public class DynomiteClientDelegate implements RedisClientDelegate {
     DynoJedisPipeline p = client.pipelined();
     try {
       return f.apply(p);
-    } catch (DynoException|JedisException e) {
+    } catch (DynoException | JedisException e) {
       try {
         p.close();
       } catch (Exception ne) {
@@ -110,7 +109,8 @@ public class DynomiteClientDelegate implements RedisClientDelegate {
   @Override
   public void syncPipeline(RedisPipeline p) {
     if (!(p instanceof DynoJedisPipeline)) {
-      throw new IllegalArgumentException("Invalid RedisPipeline implementation: " + p.getClass().getName());
+      throw new IllegalArgumentException(
+          "Invalid RedisPipeline implementation: " + p.getClass().getName());
     }
 
     ((DynoJedisPipeline) p).sync();
@@ -123,16 +123,20 @@ public class DynomiteClientDelegate implements RedisClientDelegate {
 
   @Override
   public void withMultiKeyPipeline(Consumer<Pipeline> f) {
-    throw new UnsupportedOperationException("Dynomite does not support multi-key pipelined operations");
+    throw new UnsupportedOperationException(
+        "Dynomite does not support multi-key pipelined operations");
   }
 
   @Override
   public <R> R withMultiKeyPipeline(Function<Pipeline, R> f) {
-    throw new UnsupportedOperationException("Dynomite does not support multi-key pipelined operations");
+    throw new UnsupportedOperationException(
+        "Dynomite does not support multi-key pipelined operations");
   }
 
   @Override
-  public boolean supportsTransactions() { return false; }
+  public boolean supportsTransactions() {
+    return false;
+  }
 
   @Override
   public void withTransaction(Consumer<Transaction> f) {

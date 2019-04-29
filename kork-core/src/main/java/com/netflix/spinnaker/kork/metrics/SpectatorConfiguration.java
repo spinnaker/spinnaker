@@ -23,15 +23,14 @@ import com.netflix.spectator.api.Spectator;
 import com.netflix.spectator.gc.GcLogger;
 import com.netflix.spectator.jvm.Jmx;
 import io.micrometer.core.instrument.MeterRegistry;
+import java.util.List;
+import javax.annotation.PreDestroy;
 import org.springframework.boot.actuate.autoconfigure.metrics.MeterRegistryCustomizer;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import javax.annotation.PreDestroy;
-import java.util.List;
 
 @Configuration
 @ConditionalOnClass(Registry.class)
@@ -45,16 +44,16 @@ public class SpectatorConfiguration {
   }
 
   @Bean
-  public SpectatorMeterRegistry spectatorMeterRegistry(Registry spectatorRegistry,
-                                                       List<MeterRegistryCustomizer<MeterRegistry>> customizers) {
+  public SpectatorMeterRegistry spectatorMeterRegistry(
+      Registry spectatorRegistry, List<MeterRegistryCustomizer<MeterRegistry>> customizers) {
     SpectatorMeterRegistry registry = new SpectatorMeterRegistry(spectatorRegistry);
     customizers.forEach(c -> c.customize(registry));
     return registry;
   }
 
   @Bean
-  RegistryInitializer registryInitializer(Registry registry,
-                                          SpectatorGcLoggingConfiguration spectatorConfigurationProperties) {
+  RegistryInitializer registryInitializer(
+      Registry registry, SpectatorGcLoggingConfiguration spectatorConfigurationProperties) {
     return new RegistryInitializer(registry, spectatorConfigurationProperties.isLoggingEnabled());
   }
 

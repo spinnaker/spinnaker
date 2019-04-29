@@ -23,17 +23,17 @@ import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.S3Object;
 import com.netflix.spinnaker.kork.secrets.EncryptedSecret;
 import com.netflix.spinnaker.kork.secrets.SecretException;
-import org.springframework.stereotype.Component;
-
 import java.io.IOException;
 import java.io.InputStream;
+import org.springframework.stereotype.Component;
 
 @Component
 public class S3SecretEngine extends AbstractStorageSecretEngine {
   private static String IDENTIFIER = "s3";
 
-  public String identifier() { return S3SecretEngine.IDENTIFIER;}
-
+  public String identifier() {
+    return S3SecretEngine.IDENTIFIER;
+  }
 
   @Override
   protected InputStream downloadRemoteFile(EncryptedSecret encryptedSecret) throws IOException {
@@ -41,14 +41,14 @@ public class S3SecretEngine extends AbstractStorageSecretEngine {
     String bucket = encryptedSecret.getParams().get(STORAGE_BUCKET);
     String objName = encryptedSecret.getParams().get(STORAGE_FILE_URI);
 
-    AmazonS3ClientBuilder s3ClientBuilder = AmazonS3ClientBuilder.standard()
-      .withRegion(region);
+    AmazonS3ClientBuilder s3ClientBuilder = AmazonS3ClientBuilder.standard().withRegion(region);
 
     AmazonS3 s3Client = s3ClientBuilder.build();
 
     try {
       if (!s3Client.doesBucketExistV2(bucket)) {
-        throw new SecretException(String.format("S3 Bucket does not exist. Bucket: %s, Region: %s", bucket, region));
+        throw new SecretException(
+            String.format("S3 Bucket does not exist. Bucket: %s, Region: %s", bucket, region));
       }
 
       S3Object s3Object = s3Client.getObject(bucket, objName);
@@ -57,21 +57,25 @@ public class S3SecretEngine extends AbstractStorageSecretEngine {
     } catch (AmazonS3Exception ex) {
       StringBuilder sb = new StringBuilder("Error reading contents of S3 -- ");
       if (403 == ex.getStatusCode()) {
-        sb.append(String.format(
-          "Unauthorized access. Check connectivity and permissions to the bucket. -- Bucket: %s, Object: %s, Region: %s.\n" +
-            "Error: %s ", bucket, objName, region, ex.toString()));
+        sb.append(
+            String.format(
+                "Unauthorized access. Check connectivity and permissions to the bucket. -- Bucket: %s, Object: %s, Region: %s.\n"
+                    + "Error: %s ",
+                bucket, objName, region, ex.toString()));
       } else if (404 == ex.getStatusCode()) {
-        sb.append(String.format(
-          "Not found. Does secret file exist? -- Bucket: %s, Object: %s, Region: %s.\nError: %s",
-          bucket, objName, region, ex.toString()));
+        sb.append(
+            String.format(
+                "Not found. Does secret file exist? -- Bucket: %s, Object: %s, Region: %s.\nError: %s",
+                bucket, objName, region, ex.toString()));
       } else {
         sb.append(String.format("Error: %s", ex.toString()));
       }
       throw new SecretException(sb.toString());
     } catch (AmazonClientException ex) {
-      throw new SecretException(String.format(
-        "Error reading contents of S3. Bucket: %s, Object: %s, Region: %s.\nError: %s",
-        bucket, objName, region, ex.toString()));
+      throw new SecretException(
+          String.format(
+              "Error reading contents of S3. Bucket: %s, Object: %s, Region: %s.\nError: %s",
+              bucket, objName, region, ex.toString()));
     }
   }
 }

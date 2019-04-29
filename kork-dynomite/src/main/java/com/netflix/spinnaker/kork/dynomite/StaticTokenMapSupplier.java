@@ -18,7 +18,6 @@ package com.netflix.spinnaker.kork.dynomite;
 import com.netflix.dyno.connectionpool.Host;
 import com.netflix.dyno.connectionpool.TokenMapSupplier;
 import com.netflix.dyno.connectionpool.impl.lb.HostToken;
-
 import java.util.List;
 import java.util.Set;
 

@@ -23,11 +23,10 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
-/**
- * Lock Manager with heartbeat support.
- */
+/** Lock Manager with heartbeat support. */
 public interface RefreshableLockManager extends LockManager {
   HeartbeatResponse heartbeat(final HeartbeatLockRequest heartbeatLockRequest);
+
   void queueHeartbeat(final HeartbeatLockRequest heartbeatLockRequest);
 
   class HeartbeatLockRequest {
@@ -39,11 +38,12 @@ public interface RefreshableLockManager extends LockManager {
     private final Clock clock;
     private final boolean reuseLockVersion;
 
-    public HeartbeatLockRequest(Lock lock,
-                                AtomicInteger retriesOnFailure,
-                                Clock clock,
-                                Duration heartbeatDuration,
-                                boolean reuseLockVersion) {
+    public HeartbeatLockRequest(
+        Lock lock,
+        AtomicInteger retriesOnFailure,
+        Clock clock,
+        Duration heartbeatDuration,
+        boolean reuseLockVersion) {
       this.lock = new AtomicReference<>(lock);
       this.retriesOnFailure = retriesOnFailure;
       this.clock = clock;
@@ -83,15 +83,23 @@ public interface RefreshableLockManager extends LockManager {
 
     @Override
     public String toString() {
-      return "HeartbeatLockRequest{" +
-        "requestId='" + requestId + '\'' +
-        ", lock=" + lock +
-        ", retriesOnFailure=" + retriesOnFailure +
-        ", heartbeatDuration=" + heartbeatDuration +
-        ", startedAt=" + startedAt +
-        ", clock=" + clock +
-        ", reuseLockVersion=" + reuseLockVersion +
-        '}';
+      return "HeartbeatLockRequest{"
+          + "requestId='"
+          + requestId
+          + '\''
+          + ", lock="
+          + lock
+          + ", retriesOnFailure="
+          + retriesOnFailure
+          + ", heartbeatDuration="
+          + heartbeatDuration
+          + ", startedAt="
+          + startedAt
+          + ", clock="
+          + clock
+          + ", reuseLockVersion="
+          + reuseLockVersion
+          + '}';
     }
 
     @Override
@@ -134,8 +142,7 @@ public interface RefreshableLockManager extends LockManager {
       if (this == o) return true;
       if (o == null || getClass() != o.getClass()) return false;
       HeartbeatResponse that = (HeartbeatResponse) o;
-      return Objects.equals(lock, that.lock) &&
-        lockHeartbeatStatus == that.lockHeartbeatStatus;
+      return Objects.equals(lock, that.lock) && lockHeartbeatStatus == that.lockHeartbeatStatus;
     }
 
     @Override

@@ -18,12 +18,11 @@ package com.netflix.spinnaker.kork.archaius;
 
 import com.netflix.config.PollResult;
 import com.netflix.config.PolledConfigurationSource;
-import org.springframework.core.env.ConfigurableEnvironment;
-import org.springframework.core.env.EnumerablePropertySource;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.EnumerablePropertySource;
 
 public class SpringEnvironmentPolledConfigurationSource implements PolledConfigurationSource {
 
@@ -36,15 +35,18 @@ public class SpringEnvironmentPolledConfigurationSource implements PolledConfigu
   @Override
   public PollResult poll(boolean initial, Object checkPoint) throws Exception {
     Map<String, Object> result = new HashMap<>();
-    environment.getPropertySources().iterator().forEachRemaining(source -> {
-      if (source instanceof EnumerablePropertySource) {
-        EnumerablePropertySource<?> enumerable = (EnumerablePropertySource<?>) source;
-        for (String key : enumerable.getPropertyNames()) {
-          result.putIfAbsent(key, enumerable.getProperty(key));
-        }
-      }
-    });
+    environment
+        .getPropertySources()
+        .iterator()
+        .forEachRemaining(
+            source -> {
+              if (source instanceof EnumerablePropertySource) {
+                EnumerablePropertySource<?> enumerable = (EnumerablePropertySource<?>) source;
+                for (String key : enumerable.getPropertyNames()) {
+                  result.putIfAbsent(key, enumerable.getProperty(key));
+                }
+              }
+            });
     return PollResult.createFull(result);
   }
 }
-

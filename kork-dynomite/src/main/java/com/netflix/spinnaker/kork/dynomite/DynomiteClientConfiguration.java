@@ -18,19 +18,18 @@ package com.netflix.spinnaker.kork.dynomite;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.discovery.DiscoveryClient;
 import com.netflix.spinnaker.kork.jedis.RedisClientConfiguration;
+import java.util.Optional;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-
-import java.util.Optional;
 
 @Configuration
 @Import(RedisClientConfiguration.class)
 public class DynomiteClientConfiguration {
 
   @Bean
-  DynomiteClientDelegateFactory dynomiteClientDelegateFactory(ObjectMapper objectMapper,
-                                                              Optional<DiscoveryClient> discoveryClient) {
+  DynomiteClientDelegateFactory dynomiteClientDelegateFactory(
+      ObjectMapper objectMapper, Optional<DiscoveryClient> discoveryClient) {
     return new DynomiteClientDelegateFactory(objectMapper, discoveryClient);
   }
 }

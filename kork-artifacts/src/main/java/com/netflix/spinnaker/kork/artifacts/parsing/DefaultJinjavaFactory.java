@@ -19,9 +19,8 @@ package com.netflix.spinnaker.kork.artifacts.parsing;
 import com.hubspot.jinjava.Jinjava;
 
 /**
- * Creates a regular jinjava.
- * You can overwrite this to create a custom jinjava with
- *  things like custom filters and tags.
+ * Creates a regular jinjava. You can overwrite this to create a custom jinjava with things like
+ * custom filters and tags.
  */
 public class DefaultJinjavaFactory implements JinjavaFactory {
 

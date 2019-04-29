@@ -1,15 +1,5 @@
 package com.netflix.spinnaker.kork.secrets;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.springframework.core.env.EnumerablePropertySource;
-
-import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map;
-
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -18,27 +8,37 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.springframework.core.env.EnumerablePropertySource;
+
 public class SecretAwarePropertySourceTest {
 
   private SecretAwarePropertySource secretAwarePropertySource;
   private SecretManager secretManager;
   private Map<String, String> testValues = new HashMap<>();
 
-  @Rule
-  public ExpectedException thrown = ExpectedException.none();
+  @Rule public ExpectedException thrown = ExpectedException.none();
 
   @Before
   public void setup() {
-    EnumerablePropertySource source  = new EnumerablePropertySource("testSource") {
-      @Override
-      public String[] getPropertyNames() {
-        return new String[0];
-      }
-      @Override
-      public Object getProperty(String name) {
-        return testValues.get(name);
-      }
-    };
+    EnumerablePropertySource source =
+        new EnumerablePropertySource("testSource") {
+          @Override
+          public String[] getPropertyNames() {
+            return new String[0];
+          }
+
+          @Override
+          public Object getProperty(String name) {
+            return testValues.get(name);
+          }
+        };
 
     testValues.put("testSecretFile", "encrypted:noop!k:testValue");
     testValues.put("testSecretPath", "encrypted:noop!k:testValue");
@@ -89,5 +89,4 @@ public class SecretAwarePropertySourceTest {
     thrown.expectMessage("No secret manager to decrypt value of testSecretString");
     secretAwarePropertySource.getProperty("testSecretString");
   }
-
 }

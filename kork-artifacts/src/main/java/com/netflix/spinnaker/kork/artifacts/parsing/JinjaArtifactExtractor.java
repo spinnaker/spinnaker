@@ -20,34 +20,31 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hubspot.jinjava.Jinjava;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 
-/**
- * Translates String messages into Spinnaker artifacts using a supplied Jinja template
- */
+/** Translates String messages into Spinnaker artifacts using a supplied Jinja template */
 @Slf4j
 public class JinjaArtifactExtractor implements ArtifactExtractor {
   private final JinjavaFactory jinjavaFactory;
   private final ObjectMapper objectMapper;
   private final String jinjaTemplate;
 
-  private static final TypeReference<List<Artifact>> artifactListReference = new TypeReference<List<Artifact>>() {};
-  private static final TypeReference<Map<String, ?>> stringMapReference = new TypeReference<Map<String, ?>>() {};
+  private static final TypeReference<List<Artifact>> artifactListReference =
+      new TypeReference<List<Artifact>>() {};
+  private static final TypeReference<Map<String, ?>> stringMapReference =
+      new TypeReference<Map<String, ?>>() {};
 
-  private JinjaArtifactExtractor(String jinjaTemplate,
-    JinjavaFactory jinjavaFactory,
-    ObjectMapper objectMapper
-  ) {
+  private JinjaArtifactExtractor(
+      String jinjaTemplate, JinjavaFactory jinjavaFactory, ObjectMapper objectMapper) {
     this.jinjaTemplate = jinjaTemplate;
     this.jinjavaFactory = jinjavaFactory;
     this.objectMapper = objectMapper;

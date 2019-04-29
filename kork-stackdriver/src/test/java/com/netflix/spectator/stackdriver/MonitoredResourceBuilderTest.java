@@ -16,37 +16,20 @@
 
 package com.netflix.spectator.stackdriver;
 
-import com.google.api.services.monitoring.v3.model.MonitoredResource;
-
-import org.mockito.ArgumentCaptor;
-import org.mockito.ArgumentMatcher;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.argThat;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
+import com.google.api.services.monitoring.v3.model.MonitoredResource;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 @RunWith(JUnit4.class)
 public class MonitoredResourceBuilderTest {
@@ -67,12 +50,9 @@ public class MonitoredResourceBuilderTest {
     String zone_path = "path/to/" + zone;
     String project = "MY PROJECT";
 
-    doReturn(instance).when(builder)
-        .getGoogleMetadataValue("instance/id");
-    doReturn(zone_path).when(builder)
-        .getGoogleMetadataValue("instance/zone");
-    doReturn(project).when(builder)
-        .getGoogleMetadataValue("project/project-id");
+    doReturn(instance).when(builder).getGoogleMetadataValue("instance/id");
+    doReturn(zone_path).when(builder).getGoogleMetadataValue("instance/zone");
+    doReturn(project).when(builder).getGoogleMetadataValue("project/project-id");
 
     Map<String, String> labels = new HashMap<String, String>();
     labels.put("instance_id", instance);
@@ -85,45 +65,48 @@ public class MonitoredResourceBuilderTest {
 
   @Test
   public void testMatchAttribute() {
-      String text =  "{\n"
+    String text =
+        "{\n"
             + " \"version\" : \"2016-08-01\",\n"
             + " \"instanceId\" : \"the-instance\",\n"
             + " \"region\" : \"us-east-1\"\n"
             + "}";
 
-      Assert.assertEquals("the-instance",
-                          builder.matchAttribute(text, "instanceId"));
-      Assert.assertEquals("us-east-1",
-                          builder.matchAttribute(text, "region"));
-      Assert.assertEquals("", builder.matchAttribute(text, "notFound"));
+    Assert.assertEquals("the-instance", builder.matchAttribute(text, "instanceId"));
+    Assert.assertEquals("us-east-1", builder.matchAttribute(text, "region"));
+    Assert.assertEquals("", builder.matchAttribute(text, "notFound"));
   }
 
   @Test
   public void testEc2Instance() throws IOException {
-      String region = "us-east-1";
-      String instanceId = "i-abcdef";
-      String accountId = "12345";
-      String project = "StackdriverProject";
-      
-      builder.setStackdriverProject(project);
+    String region = "us-east-1";
+    String instanceId = "i-abcdef";
+    String accountId = "12345";
+    String project = "StackdriverProject";
 
-      String awsIdentityDoc
-          = "{\n"
-          + "\"privateIp\" : \"123.45.67.89\",\n"
-          + "\"devpayProductCodes\" : null,\n"
-          + "\"availabilityZone\" : \"us-east-1d\",\n"
-          + "\"accountId\" : \"" + accountId + "\",\n"
-          + "\"version\" : \"2010-08-31\",\n"
-          + "\"instanceId\" : \"" + instanceId + "\",\n"
-          + "\"billingProducts\" : null,\n"
-          + "\"region\" : \"" + region + "\"\n"
-          + "}";
-      
-    doThrow(new IOException()).when(builder)
-        .getGoogleMetadataValue(any(String.class));
+    builder.setStackdriverProject(project);
 
-    doReturn(awsIdentityDoc).when(builder)
-        .getAwsIdentityDocument();
+    String awsIdentityDoc =
+        "{\n"
+            + "\"privateIp\" : \"123.45.67.89\",\n"
+            + "\"devpayProductCodes\" : null,\n"
+            + "\"availabilityZone\" : \"us-east-1d\",\n"
+            + "\"accountId\" : \""
+            + accountId
+            + "\",\n"
+            + "\"version\" : \"2010-08-31\",\n"
+            + "\"instanceId\" : \""
+            + instanceId
+            + "\",\n"
+            + "\"billingProducts\" : null,\n"
+            + "\"region\" : \""
+            + region
+            + "\"\n"
+            + "}";
+
+    doThrow(new IOException()).when(builder).getGoogleMetadataValue(any(String.class));
+
+    doReturn(awsIdentityDoc).when(builder).getAwsIdentityDocument();
 
     Map<String, String> labels = new HashMap<String, String>();
     labels.put("instance_id", instanceId);
@@ -138,13 +121,11 @@ public class MonitoredResourceBuilderTest {
 
   @Test
   public void testGlobal() throws IOException {
-      String project = "StackdriverProject";
-      builder.setStackdriverProject(project);
+    String project = "StackdriverProject";
+    builder.setStackdriverProject(project);
 
-    doThrow(new IOException()).when(builder)
-        .getGoogleMetadataValue(any(String.class));
-    doThrow(new IOException()).when(builder)
-        .getAwsIdentityDocument();
+    doThrow(new IOException()).when(builder).getGoogleMetadataValue(any(String.class));
+    doThrow(new IOException()).when(builder).getAwsIdentityDocument();
 
     Map<String, String> labels = new HashMap<String, String>();
     labels.put("project_id", project);

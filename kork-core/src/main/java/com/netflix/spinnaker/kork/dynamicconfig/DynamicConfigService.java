@@ -15,8 +15,8 @@
  */
 package com.netflix.spinnaker.kork.dynamicconfig;
 
-import javax.annotation.Nonnull;
 import java.util.function.Supplier;
+import javax.annotation.Nonnull;
 
 /**
  * A simple interface for interacting with dynamic Spring properties in the scope of feature flags.
@@ -26,12 +26,13 @@ public interface DynamicConfigService {
   /**
    * A noop implementation of DynamicConfigService that just falls back to default values.
    *
-   * Primarily useful as a default when an alternative implementation is not available or
-   * in unit tests or other scenarios where dynamic configuration is not important.
+   * <p>Primarily useful as a default when an alternative implementation is not available or in unit
+   * tests or other scenarios where dynamic configuration is not important.
    */
   class NoopDynamicConfig implements DynamicConfigService {
     @Override
-    public <T> T getConfig(@Nonnull Class<T> configType, @Nonnull String configName, @Nonnull T defaultValue) {
+    public <T> T getConfig(
+        @Nonnull Class<T> configType, @Nonnull String configName, @Nonnull T defaultValue) {
       return defaultValue;
     }
 
@@ -41,16 +42,22 @@ public interface DynamicConfigService {
     }
 
     @Override
-    public boolean isEnabled(@Nonnull String flagName, boolean defaultValue, @Nonnull ScopedCriteria criteria) {
+    public boolean isEnabled(
+        @Nonnull String flagName, boolean defaultValue, @Nonnull ScopedCriteria criteria) {
       return defaultValue;
     }
   }
 
   DynamicConfigService NOOP = new NoopDynamicConfig();
 
-  <T> T getConfig(@Nonnull Class<T> configType, @Nonnull String configName, @Nonnull T defaultValue);
+  <T> T getConfig(
+      @Nonnull Class<T> configType, @Nonnull String configName, @Nonnull T defaultValue);
 
-  default <T> T getConfig(@Nonnull Class<T> configType, @Nonnull String configName, @Nonnull T defaultValue, @Nonnull Supplier<Boolean> predicate) {
+  default <T> T getConfig(
+      @Nonnull Class<T> configType,
+      @Nonnull String configName,
+      @Nonnull T defaultValue,
+      @Nonnull Supplier<Boolean> predicate) {
     if (predicate.get()) {
       return getConfig(configType, configName, defaultValue);
     }
@@ -59,12 +66,14 @@ public interface DynamicConfigService {
 
   boolean isEnabled(@Nonnull String flagName, boolean defaultValue);
 
-  default boolean isEnabled(@Nonnull String flagName, boolean defaultValue, @Nonnull Supplier<Boolean> predicate) {
+  default boolean isEnabled(
+      @Nonnull String flagName, boolean defaultValue, @Nonnull Supplier<Boolean> predicate) {
     if (predicate.get()) {
       return isEnabled(flagName, defaultValue);
     }
     return defaultValue;
   }
 
-  boolean isEnabled(@Nonnull String flagName, boolean defaultValue, @Nonnull ScopedCriteria criteria);
+  boolean isEnabled(
+      @Nonnull String flagName, boolean defaultValue, @Nonnull ScopedCriteria criteria);
 }

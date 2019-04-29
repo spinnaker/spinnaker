@@ -16,18 +16,17 @@
 
 package com.netflix.spinnaker.security;
 
-import org.slf4j.MDC;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.util.CollectionUtils;
+import static java.lang.String.format;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.Callable;
-
-import static java.lang.String.format;
+import org.slf4j.MDC;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.util.CollectionUtils;
 
 public class AuthenticatedRequest {
   public static final String SPINNAKER_USER = "X-SPINNAKER-USER";
@@ -48,10 +47,9 @@ public class AuthenticatedRequest {
     return propagate(closure, true, principal);
   }
 
-  /**
-   * Ensure an appropriate MDC context is available when {@code closure} is executed.
-   */
-  public static <V> Callable<V> propagate(Callable<V> closure, boolean restoreOriginalContext, Object principal) {
+  /** Ensure an appropriate MDC context is available when {@code closure} is executed. */
+  public static <V> Callable<V> propagate(
+      Callable<V> closure, boolean restoreOriginalContext, Object principal) {
     String spinnakerUser = getSpinnakerUser(principal).orElse(null);
     String userOrigin = getSpinnakerUserOrigin().orElse(null);
     String executionId = getSpinnakerExecutionId().orElse(null);
@@ -102,7 +100,8 @@ public class AuthenticatedRequest {
           // force clear to avoid the potential for a memory leak if log4j is being used
           Class log4jMDC = Class.forName("org.apache.log4j.MDC");
           log4jMDC.getDeclaredMethod("clear").invoke(null);
-        } catch (Exception ignored) { }
+        } catch (Exception ignored) {
+        }
 
         if (restoreOriginalContext) {
           if (originalSpinnakerUser != null) {
@@ -174,36 +173,30 @@ public class AuthenticatedRequest {
   /**
    * Returns or creates a spinnaker request ID.
    *
-   * If a request ID already exists, it will be propagated without change.
-   * If a request ID does not already exist:
+   * <p>If a request ID already exists, it will be propagated without change. If a request ID does
+   * not already exist:
    *
-   * 1. If an execution ID exists, it will create a hierarchical request ID
-   *    using the execution ID, followed by a UUID.
-   * 2. If an execution ID does not exist, it will create a simple UUID request id.
+   * <p>1. If an execution ID exists, it will create a hierarchical request ID using the execution
+   * ID, followed by a UUID. 2. If an execution ID does not exist, it will create a simple UUID
+   * request id.
    */
   public static Optional<String> getSpinnakerRequestId() {
     return Optional.of(
-      Optional
-        .ofNullable(MDC.get(SPINNAKER_REQUEST_ID))
-        .orElse(
-          getSpinnakerExecutionId()
-            .map(id -> format("%s:%s", id, UUID.randomUUID().toString()))
-            .orElse(UUID.randomUUID().toString())
-        )
-    );
+        Optional.ofNullable(MDC.get(SPINNAKER_REQUEST_ID))
+            .orElse(
+                getSpinnakerExecutionId()
+                    .map(id -> format("%s:%s", id, UUID.randomUUID().toString()))
+                    .orElse(UUID.randomUUID().toString())));
   }
 
   public static Optional<String> getSpinnakerExecutionId() {
     return Optional.ofNullable(MDC.get(SPINNAKER_EXECUTION_ID));
   }
 
-  /**
-   * @return the Spring Security principal or null if there is no authority.
-   */
+  /** @return the Spring Security principal or null if there is no authority. */
   private static Object principal() {
-    return Optional
-      .ofNullable(SecurityContextHolder.getContext().getAuthentication())
-      .map(Authentication::getPrincipal)
-      .orElse(null);
+    return Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication())
+        .map(Authentication::getPrincipal)
+        .orElse(null);
   }
 }

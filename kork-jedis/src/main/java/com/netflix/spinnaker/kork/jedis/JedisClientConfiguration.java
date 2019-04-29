@@ -17,6 +17,8 @@ package com.netflix.spinnaker.kork.jedis;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -25,10 +27,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
 @Configuration
 @Import(RedisClientConfiguration.class)
 public class JedisClientConfiguration {
@@ -36,8 +34,8 @@ public class JedisClientConfiguration {
   /**
    * Backwards compatibility with pre-kork redis config.
    *
-   * Services can override this pool config to provide their own default pool config.
-   * Individual clients can also override their own pool config.
+   * <p>Services can override this pool config to provide their own default pool config. Individual
+   * clients can also override their own pool config.
    */
   @Bean
   @ConditionalOnMissingBean(GenericObjectPoolConfig.class)
@@ -47,17 +45,17 @@ public class JedisClientConfiguration {
   }
 
   @Bean
-  public JedisClientDelegateFactory jedisClientDelegateFactory(Registry registry,
-                                                        ObjectMapper objectMapper,
-                                                        GenericObjectPoolConfig redisPoolConfig) {
+  public JedisClientDelegateFactory jedisClientDelegateFactory(
+      Registry registry, ObjectMapper objectMapper, GenericObjectPoolConfig redisPoolConfig) {
     return new JedisClientDelegateFactory(registry, objectMapper, redisPoolConfig);
   }
 
   @Bean
-  public List<HealthIndicator> jedisClientHealthIndicators(List<RedisClientDelegate> redisClientDelegates) {
+  public List<HealthIndicator> jedisClientHealthIndicators(
+      List<RedisClientDelegate> redisClientDelegates) {
     return redisClientDelegates.stream()
-      .filter(it -> it instanceof JedisClientDelegate)
-      .map(it -> JedisHealthIndicatorFactory.build((JedisClientDelegate) it))
-      .collect(Collectors.toList());
+        .filter(it -> it instanceof JedisClientDelegate)
+        .map(it -> JedisHealthIndicatorFactory.build((JedisClientDelegate) it))
+        .collect(Collectors.toList());
   }
 }

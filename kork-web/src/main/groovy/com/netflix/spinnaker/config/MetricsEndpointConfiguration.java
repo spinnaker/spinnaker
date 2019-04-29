@@ -21,9 +21,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
-import org.springframework.security.config.annotation.web.WebSecurityConfigurer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
@@ -36,6 +34,9 @@ public class MetricsEndpointConfiguration extends WebSecurityConfigurerAdapter {
   @Override
   protected void configure(HttpSecurity http) throws Exception {
     // Allow anyone to access the spectator metrics endpoint.
-    http.requestMatcher(new AntPathRequestMatcher("/spectator/metrics")).authorizeRequests().anyRequest().permitAll();
+    http.requestMatcher(new AntPathRequestMatcher("/spectator/metrics"))
+        .authorizeRequests()
+        .anyRequest()
+        .permitAll();
   }
 }

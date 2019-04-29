@@ -16,13 +16,12 @@
 package com.netflix.spinnaker.kork.jedis.telemetry;
 
 import com.netflix.spectator.api.Registry;
+import java.lang.reflect.Field;
 import org.apache.commons.pool2.PooledObjectFactory;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
-
-import java.lang.reflect.Field;
 
 public class InstrumentedJedisPool extends JedisPool {
 
@@ -49,7 +48,7 @@ public class InstrumentedJedisPool extends JedisPool {
         Field f = delegated.getClass().getDeclaredField("internalPool");
         f.setAccessible(true);
         delegateInternalPool = (GenericObjectPool<Jedis>) f.get(delegated);
-      } catch (NoSuchFieldException|IllegalAccessException e) {
+      } catch (NoSuchFieldException | IllegalAccessException e) {
         throw new IllegalStateException("Could not get reference to delegate's internal pool", e);
       }
     }

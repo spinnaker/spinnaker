@@ -15,22 +15,21 @@
  */
 package com.netflix.spinnaker.kork.jedis.telemetry;
 
+import static com.netflix.spinnaker.kork.jedis.telemetry.TelemetryHelper.*;
+
 import com.netflix.spectator.api.Registry;
 import com.netflix.spectator.api.histogram.PercentileDistributionSummary;
 import com.netflix.spectator.api.histogram.PercentileTimer;
-import redis.clients.jedis.*;
-import redis.clients.jedis.params.geo.GeoRadiusParam;
-import redis.clients.jedis.params.sortedset.ZAddParams;
-import redis.clients.jedis.params.sortedset.ZIncrByParams;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
-
-import static com.netflix.spinnaker.kork.jedis.telemetry.TelemetryHelper.*;
+import redis.clients.jedis.*;
+import redis.clients.jedis.params.geo.GeoRadiusParam;
+import redis.clients.jedis.params.sortedset.ZAddParams;
+import redis.clients.jedis.params.sortedset.ZIncrByParams;
 
 public class InstrumentedPipeline extends Pipeline {
 
@@ -56,16 +55,21 @@ public class InstrumentedPipeline extends Pipeline {
     return internalInstrumented(command, Optional.of(payloadSize), action);
   }
 
-  private <T> T internalInstrumented(String command, Optional<Long> payloadSize, Callable<T> action) {
-    payloadSize.ifPresent(size ->
-      PercentileDistributionSummary.get(registry, payloadSizeId(registry, poolName, command, true)).record(size)
-    );
+  private <T> T internalInstrumented(
+      String command, Optional<Long> payloadSize, Callable<T> action) {
+    payloadSize.ifPresent(
+        size ->
+            PercentileDistributionSummary.get(
+                    registry, payloadSizeId(registry, poolName, command, true))
+                .record(size));
     try {
-      return PercentileTimer.get(registry, timerId(registry, poolName, command, true)).record(() -> {
-        T result = action.call();
-        registry.counter(invocationId(registry, poolName, command, true, true)).increment();
-        return result;
-      });
+      return PercentileTimer.get(registry, timerId(registry, poolName, command, true))
+          .record(
+              () -> {
+                T result = action.call();
+                registry.counter(invocationId(registry, poolName, command, true, true)).increment();
+                return result;
+              });
     } catch (Exception e) {
       registry.counter(invocationId(registry, poolName, command, true, false)).increment();
       throw new InstrumentedJedisException("could not execute delegate function", e);
@@ -81,14 +85,18 @@ public class InstrumentedPipeline extends Pipeline {
   }
 
   private void internalInstrumented(String command, Optional<Long> payloadSize, Runnable action) {
-    payloadSize.ifPresent(size ->
-      PercentileDistributionSummary.get(registry, payloadSizeId(registry, poolName, command, true)).record(size)
-    );
+    payloadSize.ifPresent(
+        size ->
+            PercentileDistributionSummary.get(
+                    registry, payloadSizeId(registry, poolName, command, true))
+                .record(size));
     try {
-      PercentileTimer.get(registry, timerId(registry, poolName, command, true)).record(() -> {
-        action.run();
-        registry.counter(invocationId(registry, poolName, command, true, true)).increment();
-      });
+      PercentileTimer.get(registry, timerId(registry, poolName, command, true))
+          .record(
+              () -> {
+                action.run();
+                registry.counter(invocationId(registry, poolName, command, true, true)).increment();
+              });
     } catch (Exception e) {
       registry.counter(invocationId(registry, poolName, command, true, false)).increment();
       throw new InstrumentedJedisException("could not execute delegate function", e);
@@ -689,19 +697,26 @@ public class InstrumentedPipeline extends Pipeline {
   @Override
   public Response<Object> eval(byte[] script, byte[] keyCount, byte[]... params) {
     String command = "eval";
-    return instrumented(command, payloadSize(script) + payloadSize(params), () -> delegated.eval(script, keyCount, params));
+    return instrumented(
+        command,
+        payloadSize(script) + payloadSize(params),
+        () -> delegated.eval(script, keyCount, params));
   }
 
   @Override
   public Response<Object> eval(byte[] script, List<byte[]> keys, List<byte[]> args) {
     String command = "eval";
-    return instrumented(command, payloadSize(script) + payloadSize(args), () -> delegated.eval(script, keys, args));
+    return instrumented(
+        command, payloadSize(script) + payloadSize(args), () -> delegated.eval(script, keys, args));
   }
 
   @Override
   public Response<Object> eval(byte[] script, int keyCount, byte[]... params) {
     String command = "eval";
-    return instrumented(command, payloadSize(script) + payloadSize(params), () -> delegated.eval(script, keyCount, params));
+    return instrumented(
+        command,
+        payloadSize(script) + payloadSize(params),
+        () -> delegated.eval(script, keyCount, params));
   }
 
   @Override
@@ -719,7 +734,8 @@ public class InstrumentedPipeline extends Pipeline {
   @Override
   public Response<Object> evalsha(byte[] sha1, int keyCount, byte[]... params) {
     String command = "evalsha";
-    return instrumented(command, payloadSize(params), () -> delegated.evalsha(sha1, keyCount, params));
+    return instrumented(
+        command, payloadSize(params), () -> delegated.evalsha(sha1, keyCount, params));
   }
 
   @Override
@@ -1119,15 +1135,19 @@ public class InstrumentedPipeline extends Pipeline {
   }
 
   @Override
-  public Response<Long> linsert(String key, BinaryClient.LIST_POSITION where, String pivot, String value) {
+  public Response<Long> linsert(
+      String key, BinaryClient.LIST_POSITION where, String pivot, String value) {
     String command = "linsert";
-    return instrumented(command, payloadSize(value), () -> delegated.linsert(key, where, pivot, value));
+    return instrumented(
+        command, payloadSize(value), () -> delegated.linsert(key, where, pivot, value));
   }
 
   @Override
-  public Response<Long> linsert(byte[] key, BinaryClient.LIST_POSITION where, byte[] pivot, byte[] value) {
+  public Response<Long> linsert(
+      byte[] key, BinaryClient.LIST_POSITION where, byte[] pivot, byte[] value) {
     String command = "linsert";
-    return instrumented(command, payloadSize(value), () -> delegated.linsert(key, where, pivot, value));
+    return instrumented(
+        command, payloadSize(value), () -> delegated.linsert(key, where, pivot, value));
   }
 
   @Override
@@ -1265,7 +1285,7 @@ public class InstrumentedPipeline extends Pipeline {
   @Override
   public Response<Long> rpush(String key, String... string) {
     String command = "rpush";
-    return instrumented(command,payloadSize(string),  () -> delegated.rpush(key, string));
+    return instrumented(command, payloadSize(string), () -> delegated.rpush(key, string));
   }
 
   @Override
@@ -1349,7 +1369,7 @@ public class InstrumentedPipeline extends Pipeline {
   @Override
   public Response<Long> setnx(String key, String value) {
     String command = "setnx";
-    return instrumented(command,payloadSize(value),  () -> delegated.setnx(key, value));
+    return instrumented(command, payloadSize(value), () -> delegated.setnx(key, value));
   }
 
   @Override
@@ -1535,7 +1555,8 @@ public class InstrumentedPipeline extends Pipeline {
   @Override
   public Response<Long> zadd(String key, double score, String member, ZAddParams params) {
     String command = "zadd";
-    return instrumented(command, payloadSize(member), () -> delegated.zadd(key, score, member, params));
+    return instrumented(
+        command, payloadSize(member), () -> delegated.zadd(key, score, member, params));
   }
 
   @Override
@@ -1559,7 +1580,8 @@ public class InstrumentedPipeline extends Pipeline {
   @Override
   public Response<Long> zadd(byte[] key, double score, byte[] member, ZAddParams params) {
     String command = "zadd";
-    return instrumented(command, payloadSize(member), () -> delegated.zadd(key, score, member, params));
+    return instrumented(
+        command, payloadSize(member), () -> delegated.zadd(key, score, member, params));
   }
 
   @Override
@@ -1671,25 +1693,29 @@ public class InstrumentedPipeline extends Pipeline {
   }
 
   @Override
-  public Response<Set<String>> zrangeByScore(String key, double min, double max, int offset, int count) {
+  public Response<Set<String>> zrangeByScore(
+      String key, double min, double max, int offset, int count) {
     String command = "zrangeByScore";
     return instrumented(command, () -> delegated.zrangeByScore(key, min, max, offset, count));
   }
 
   @Override
-  public Response<Set<String>> zrangeByScore(String key, String min, String max, int offset, int count) {
+  public Response<Set<String>> zrangeByScore(
+      String key, String min, String max, int offset, int count) {
     String command = "zrangeByScore";
     return instrumented(command, () -> delegated.zrangeByScore(key, min, max, offset, count));
   }
 
   @Override
-  public Response<Set<byte[]>> zrangeByScore(byte[] key, double min, double max, int offset, int count) {
+  public Response<Set<byte[]>> zrangeByScore(
+      byte[] key, double min, double max, int offset, int count) {
     String command = "zrangeByScore";
     return instrumented(command, () -> delegated.zrangeByScore(key, min, max, offset, count));
   }
 
   @Override
-  public Response<Set<byte[]>> zrangeByScore(byte[] key, byte[] min, byte[] max, int offset, int count) {
+  public Response<Set<byte[]>> zrangeByScore(
+      byte[] key, byte[] min, byte[] max, int offset, int count) {
     String command = "zrangeByScore";
     return instrumented(command, () -> delegated.zrangeByScore(key, min, max, offset, count));
   }
@@ -1719,27 +1745,35 @@ public class InstrumentedPipeline extends Pipeline {
   }
 
   @Override
-  public Response<Set<Tuple>> zrangeByScoreWithScores(String key, double min, double max, int offset, int count) {
+  public Response<Set<Tuple>> zrangeByScoreWithScores(
+      String key, double min, double max, int offset, int count) {
     String command = "zrangeByScoreWithScores";
-    return instrumented(command, () -> delegated.zrangeByScoreWithScores(key, min, max, offset, count));
+    return instrumented(
+        command, () -> delegated.zrangeByScoreWithScores(key, min, max, offset, count));
   }
 
   @Override
-  public Response<Set<Tuple>> zrangeByScoreWithScores(String key, String min, String max, int offset, int count) {
+  public Response<Set<Tuple>> zrangeByScoreWithScores(
+      String key, String min, String max, int offset, int count) {
     String command = "zrangeByScoreWithScores";
-    return instrumented(command, () -> delegated.zrangeByScoreWithScores(key, min, max, offset, count));
+    return instrumented(
+        command, () -> delegated.zrangeByScoreWithScores(key, min, max, offset, count));
   }
 
   @Override
-  public Response<Set<Tuple>> zrangeByScoreWithScores(byte[] key, double min, double max, int offset, int count) {
+  public Response<Set<Tuple>> zrangeByScoreWithScores(
+      byte[] key, double min, double max, int offset, int count) {
     String command = "zrangeByScoreWithScores";
-    return instrumented(command, () -> delegated.zrangeByScoreWithScores(key, min, max, offset, count));
+    return instrumented(
+        command, () -> delegated.zrangeByScoreWithScores(key, min, max, offset, count));
   }
 
   @Override
-  public Response<Set<Tuple>> zrangeByScoreWithScores(byte[] key, byte[] min, byte[] max, int offset, int count) {
+  public Response<Set<Tuple>> zrangeByScoreWithScores(
+      byte[] key, byte[] min, byte[] max, int offset, int count) {
     String command = "zrangeByScoreWithScores";
-    return instrumented(command, () -> delegated.zrangeByScoreWithScores(key, min, max, offset, count));
+    return instrumented(
+        command, () -> delegated.zrangeByScoreWithScores(key, min, max, offset, count));
   }
 
   @Override
@@ -1767,25 +1801,29 @@ public class InstrumentedPipeline extends Pipeline {
   }
 
   @Override
-  public Response<Set<String>> zrevrangeByScore(String key, double max, double min, int offset, int count) {
+  public Response<Set<String>> zrevrangeByScore(
+      String key, double max, double min, int offset, int count) {
     String command = "zrevrangeByScore";
     return instrumented(command, () -> delegated.zrevrangeByScore(key, max, min, offset, count));
   }
 
   @Override
-  public Response<Set<String>> zrevrangeByScore(String key, String max, String min, int offset, int count) {
+  public Response<Set<String>> zrevrangeByScore(
+      String key, String max, String min, int offset, int count) {
     String command = "zrevrangeByScore";
     return instrumented(command, () -> delegated.zrevrangeByScore(key, max, min, offset, count));
   }
 
   @Override
-  public Response<Set<byte[]>> zrevrangeByScore(byte[] key, double max, double min, int offset, int count) {
+  public Response<Set<byte[]>> zrevrangeByScore(
+      byte[] key, double max, double min, int offset, int count) {
     String command = "zrevrangeByScore";
     return instrumented(command, () -> delegated.zrevrangeByScore(key, max, min, offset, count));
   }
 
   @Override
-  public Response<Set<byte[]>> zrevrangeByScore(byte[] key, byte[] max, byte[] min, int offset, int count) {
+  public Response<Set<byte[]>> zrevrangeByScore(
+      byte[] key, byte[] max, byte[] min, int offset, int count) {
     String command = "zrevrangeByScore";
     return instrumented(command, () -> delegated.zrevrangeByScore(key, max, min, offset, count));
   }
@@ -1815,27 +1853,35 @@ public class InstrumentedPipeline extends Pipeline {
   }
 
   @Override
-  public Response<Set<Tuple>> zrevrangeByScoreWithScores(String key, double max, double min, int offset, int count) {
+  public Response<Set<Tuple>> zrevrangeByScoreWithScores(
+      String key, double max, double min, int offset, int count) {
     String command = "zrevrangeByScoreWithScores";
-    return instrumented(command, () -> delegated.zrevrangeByScoreWithScores(key, max, min, offset, count));
+    return instrumented(
+        command, () -> delegated.zrevrangeByScoreWithScores(key, max, min, offset, count));
   }
 
   @Override
-  public Response<Set<Tuple>> zrevrangeByScoreWithScores(String key, String max, String min, int offset, int count) {
+  public Response<Set<Tuple>> zrevrangeByScoreWithScores(
+      String key, String max, String min, int offset, int count) {
     String command = "zrevrangeByScoreWithScores";
-    return instrumented(command, () -> delegated.zrevrangeByScoreWithScores(key, max, min, offset, count));
+    return instrumented(
+        command, () -> delegated.zrevrangeByScoreWithScores(key, max, min, offset, count));
   }
 
   @Override
-  public Response<Set<Tuple>> zrevrangeByScoreWithScores(byte[] key, double max, double min, int offset, int count) {
+  public Response<Set<Tuple>> zrevrangeByScoreWithScores(
+      byte[] key, double max, double min, int offset, int count) {
     String command = "zrevrangeByScoreWithScores";
-    return instrumented(command, () -> delegated.zrevrangeByScoreWithScores(key, max, min, offset, count));
+    return instrumented(
+        command, () -> delegated.zrevrangeByScoreWithScores(key, max, min, offset, count));
   }
 
   @Override
-  public Response<Set<Tuple>> zrevrangeByScoreWithScores(byte[] key, byte[] max, byte[] min, int offset, int count) {
+  public Response<Set<Tuple>> zrevrangeByScoreWithScores(
+      byte[] key, byte[] max, byte[] min, int offset, int count) {
     String command = "zrevrangeByScoreWithScores";
-    return instrumented(command, () -> delegated.zrevrangeByScoreWithScores(key, max, min, offset, count));
+    return instrumented(
+        command, () -> delegated.zrevrangeByScoreWithScores(key, max, min, offset, count));
   }
 
   @Override
@@ -1983,13 +2029,15 @@ public class InstrumentedPipeline extends Pipeline {
   }
 
   @Override
-  public Response<Set<byte[]>> zrangeByLex(byte[] key, byte[] min, byte[] max, int offset, int count) {
+  public Response<Set<byte[]>> zrangeByLex(
+      byte[] key, byte[] min, byte[] max, int offset, int count) {
     String command = "zrangeByLex";
     return instrumented(command, () -> delegated.zrangeByLex(key, min, max, offset, count));
   }
 
   @Override
-  public Response<Set<String>> zrangeByLex(String key, String min, String max, int offset, int count) {
+  public Response<Set<String>> zrangeByLex(
+      String key, String min, String max, int offset, int count) {
     String command = "zrangeByLex";
     return instrumented(command, () -> delegated.zrangeByLex(key, min, max, offset, count));
   }
@@ -2007,13 +2055,15 @@ public class InstrumentedPipeline extends Pipeline {
   }
 
   @Override
-  public Response<Set<byte[]>> zrevrangeByLex(byte[] key, byte[] max, byte[] min, int offset, int count) {
+  public Response<Set<byte[]>> zrevrangeByLex(
+      byte[] key, byte[] max, byte[] min, int offset, int count) {
     String command = "zrevrangeByLex";
     return instrumented(command, () -> delegated.zrevrangeByLex(key, max, min, offset, count));
   }
 
   @Override
-  public Response<Set<String>> zrevrangeByLex(String key, String max, String min, int offset, int count) {
+  public Response<Set<String>> zrevrangeByLex(
+      String key, String max, String min, int offset, int count) {
     String command = "zrevrangeByLex";
     return instrumented(command, () -> delegated.zrevrangeByLex(key, max, min, offset, count));
   }
@@ -2067,13 +2117,15 @@ public class InstrumentedPipeline extends Pipeline {
   }
 
   @Override
-  public Response<String> migrate(String host, int port, String key, int destinationDb, int timeout) {
+  public Response<String> migrate(
+      String host, int port, String key, int destinationDb, int timeout) {
     String command = "migrate";
     return instrumented(command, () -> delegated.migrate(host, port, key, destinationDb, timeout));
   }
 
   @Override
-  public Response<String> migrate(byte[] host, int port, byte[] key, int destinationDb, int timeout) {
+  public Response<String> migrate(
+      byte[] host, int port, byte[] key, int destinationDb, int timeout) {
     String command = "migrate";
     return instrumented(command, () -> delegated.migrate(host, port, key, destinationDb, timeout));
   }
@@ -2192,26 +2244,30 @@ public class InstrumentedPipeline extends Pipeline {
   @Deprecated
   public Response<String> psetex(String key, int milliseconds, String value) {
     String command = "psetex";
-    return instrumented(command, payloadSize(value), () -> delegated.psetex(key, milliseconds, value));
+    return instrumented(
+        command, payloadSize(value), () -> delegated.psetex(key, milliseconds, value));
   }
 
   @Override
   @Deprecated
   public Response<String> psetex(byte[] key, int milliseconds, byte[] value) {
     String command = "psetex";
-    return instrumented(command, payloadSize(value), () -> delegated.psetex(key, milliseconds, value));
+    return instrumented(
+        command, payloadSize(value), () -> delegated.psetex(key, milliseconds, value));
   }
 
   @Override
   public Response<String> psetex(String key, long milliseconds, String value) {
     String command = "psetex";
-    return instrumented(command, payloadSize(value), () -> delegated.psetex(key, milliseconds, value));
+    return instrumented(
+        command, payloadSize(value), () -> delegated.psetex(key, milliseconds, value));
   }
 
   @Override
   public Response<String> psetex(byte[] key, long milliseconds, byte[] value) {
     String command = "psetex";
-    return instrumented(command, payloadSize(value), () -> delegated.psetex(key, milliseconds, value));
+    return instrumented(
+        command, payloadSize(value), () -> delegated.psetex(key, milliseconds, value));
   }
 
   @Override
@@ -2229,13 +2285,15 @@ public class InstrumentedPipeline extends Pipeline {
   @Override
   public Response<String> set(String key, String value, String nxxx, String expx, int time) {
     String command = "set";
-    return instrumented(command, payloadSize(value), () -> delegated.set(key, value, nxxx, expx, time));
+    return instrumented(
+        command, payloadSize(value), () -> delegated.set(key, value, nxxx, expx, time));
   }
 
   @Override
   public Response<String> set(byte[] key, byte[] value, byte[] nxxx, byte[] expx, int time) {
     String command = "set";
-    return instrumented(command, payloadSize(value), () -> delegated.set(key, value, nxxx, expx, time));
+    return instrumented(
+        command, payloadSize(value), () -> delegated.set(key, value, nxxx, expx, time));
   }
 
   @Override
@@ -2259,13 +2317,17 @@ public class InstrumentedPipeline extends Pipeline {
   @Override
   public Response<String> eval(String script, List<String> keys, List<String> args) {
     String command = "eval";
-    return instrumented(command, payloadSize(script) + payloadSize(args), () -> delegated.eval(script, keys, args));
+    return instrumented(
+        command, payloadSize(script) + payloadSize(args), () -> delegated.eval(script, keys, args));
   }
 
   @Override
   public Response<String> eval(String script, int numKeys, String... args) {
     String command = "eval";
-    return instrumented(command, payloadSize(script) + payloadSize(args), () -> delegated.eval(script, numKeys, args));
+    return instrumented(
+        command,
+        payloadSize(script) + payloadSize(args),
+        () -> delegated.eval(script, numKeys, args));
   }
 
   @Override
@@ -2383,51 +2445,73 @@ public class InstrumentedPipeline extends Pipeline {
   }
 
   @Override
-  public Response<List<GeoRadiusResponse>> georadius(byte[] key, double longitude, double latitude, double radius, GeoUnit unit) {
+  public Response<List<GeoRadiusResponse>> georadius(
+      byte[] key, double longitude, double latitude, double radius, GeoUnit unit) {
     String command = "georadius";
     return instrumented(command, () -> delegated.georadius(key, longitude, latitude, radius, unit));
   }
 
   @Override
-  public Response<List<GeoRadiusResponse>> georadius(byte[] key, double longitude, double latitude, double radius, GeoUnit unit, GeoRadiusParam param) {
+  public Response<List<GeoRadiusResponse>> georadius(
+      byte[] key,
+      double longitude,
+      double latitude,
+      double radius,
+      GeoUnit unit,
+      GeoRadiusParam param) {
     String command = "georadius";
-    return instrumented(command, () -> delegated.georadius(key, longitude, latitude, radius, unit, param));
+    return instrumented(
+        command, () -> delegated.georadius(key, longitude, latitude, radius, unit, param));
   }
 
   @Override
-  public Response<List<GeoRadiusResponse>> georadius(String key, double longitude, double latitude, double radius, GeoUnit unit) {
+  public Response<List<GeoRadiusResponse>> georadius(
+      String key, double longitude, double latitude, double radius, GeoUnit unit) {
     String command = "georadius";
     return instrumented(command, () -> delegated.georadius(key, longitude, latitude, radius, unit));
   }
 
   @Override
-  public Response<List<GeoRadiusResponse>> georadius(String key, double longitude, double latitude, double radius, GeoUnit unit, GeoRadiusParam param) {
+  public Response<List<GeoRadiusResponse>> georadius(
+      String key,
+      double longitude,
+      double latitude,
+      double radius,
+      GeoUnit unit,
+      GeoRadiusParam param) {
     String command = "georadius";
-    return instrumented(command, () -> delegated.georadius(key, longitude, latitude, radius, unit, param));
+    return instrumented(
+        command, () -> delegated.georadius(key, longitude, latitude, radius, unit, param));
   }
 
   @Override
-  public Response<List<GeoRadiusResponse>> georadiusByMember(byte[] key, byte[] member, double radius, GeoUnit unit) {
+  public Response<List<GeoRadiusResponse>> georadiusByMember(
+      byte[] key, byte[] member, double radius, GeoUnit unit) {
     String command = "georadiusByMember";
     return instrumented(command, () -> delegated.georadiusByMember(key, member, radius, unit));
   }
 
   @Override
-  public Response<List<GeoRadiusResponse>> georadiusByMember(byte[] key, byte[] member, double radius, GeoUnit unit, GeoRadiusParam param) {
+  public Response<List<GeoRadiusResponse>> georadiusByMember(
+      byte[] key, byte[] member, double radius, GeoUnit unit, GeoRadiusParam param) {
     String command = "georadiusByMember";
-    return instrumented(command, () -> delegated.georadiusByMember(key, member, radius, unit, param));
+    return instrumented(
+        command, () -> delegated.georadiusByMember(key, member, radius, unit, param));
   }
 
   @Override
-  public Response<List<GeoRadiusResponse>> georadiusByMember(String key, String member, double radius, GeoUnit unit) {
+  public Response<List<GeoRadiusResponse>> georadiusByMember(
+      String key, String member, double radius, GeoUnit unit) {
     String command = "georadiusByMember";
     return instrumented(command, () -> delegated.georadiusByMember(key, member, radius, unit));
   }
 
   @Override
-  public Response<List<GeoRadiusResponse>> georadiusByMember(String key, String member, double radius, GeoUnit unit, GeoRadiusParam param) {
+  public Response<List<GeoRadiusResponse>> georadiusByMember(
+      String key, String member, double radius, GeoUnit unit, GeoRadiusParam param) {
     String command = "georadiusByMember";
-    return instrumented(command, () -> delegated.georadiusByMember(key, member, radius, unit, param));
+    return instrumented(
+        command, () -> delegated.georadiusByMember(key, member, radius, unit, param));
   }
 
   @Override

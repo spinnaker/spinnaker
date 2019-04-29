@@ -18,6 +18,8 @@ package com.netflix.spinnaker.kork.web.selector;
 
 public interface ServiceSelector {
   Object getService();
+
   int getPriority();
+
   boolean supports(SelectableService.Criteria criteria);
 }

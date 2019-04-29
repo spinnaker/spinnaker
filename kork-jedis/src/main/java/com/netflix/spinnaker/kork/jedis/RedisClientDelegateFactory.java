@@ -16,7 +16,6 @@
 package com.netflix.spinnaker.kork.jedis;
 
 import com.netflix.spinnaker.kork.jedis.RedisClientConfiguration.Driver;
-
 import java.util.Map;
 
 public interface RedisClientDelegateFactory<C extends RedisClientDelegate> {

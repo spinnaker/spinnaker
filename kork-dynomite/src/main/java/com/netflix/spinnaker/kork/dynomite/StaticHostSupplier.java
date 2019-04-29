@@ -17,8 +17,6 @@ package com.netflix.spinnaker.kork.dynomite;
 
 import com.netflix.dyno.connectionpool.Host;
 import com.netflix.dyno.connectionpool.HostSupplier;
-
-import java.util.Collection;
 import java.util.List;
 
 public class StaticHostSupplier implements HostSupplier {

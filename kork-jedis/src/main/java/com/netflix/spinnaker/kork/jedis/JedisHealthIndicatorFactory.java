@@ -15,14 +15,13 @@
  */
 package com.netflix.spinnaker.kork.jedis;
 
+import java.lang.reflect.Field;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
 import redis.clients.jedis.Jedis;
 import redis.clients.util.Pool;
-
-import java.lang.reflect.Field;
 
 @SuppressWarnings("unchecked")
 public class JedisHealthIndicatorFactory {
