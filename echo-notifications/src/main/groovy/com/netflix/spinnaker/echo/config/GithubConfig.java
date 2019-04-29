@@ -40,21 +40,19 @@ public class GithubConfig {
 
   @Bean
   public GithubService githubService(
-      Endpoint githubEndpoint,
-      Client retrofitClient,
-      RestAdapter.LogLevel retrofitLogLevel) {
+      Endpoint githubEndpoint, Client retrofitClient, RestAdapter.LogLevel retrofitLogLevel) {
     log.info("Github service loaded");
 
-    GithubService githubClient = new RestAdapter.Builder()
-      .setEndpoint(githubEndpoint)
-      .setConverter(new JacksonConverter())
-      .setClient(retrofitClient)
-      .setLogLevel(RestAdapter.LogLevel.FULL)
-      .setLog(new Slf4jRetrofitLogger(GithubService.class))
-      .build()
-      .create(GithubService.class);
+    GithubService githubClient =
+        new RestAdapter.Builder()
+            .setEndpoint(githubEndpoint)
+            .setConverter(new JacksonConverter())
+            .setClient(retrofitClient)
+            .setLogLevel(RestAdapter.LogLevel.FULL)
+            .setLog(new Slf4jRetrofitLogger(GithubService.class))
+            .build()
+            .create(GithubService.class);
 
     return githubClient;
   }
-
 }

@@ -17,5 +17,4 @@
 package com.netflix.spinnaker.echo.pubsub.kafka;
 
 // TODO: move to pubsub-kafka module
-public class KafkaMonitor {
-}
+public class KafkaMonitor {}

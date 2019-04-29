@@ -16,11 +16,10 @@
 
 package com.netflix.spinnaker.echo.scm;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 public class ScmWebhookHandler {
@@ -32,10 +31,6 @@ public class ScmWebhookHandler {
   }
 
   public GitWebhookHandler getHandler(String source) {
-    return webhookEventHandlers.stream()
-      .filter(h -> h.handles(source))
-      .findFirst()
-      .orElse(null);
+    return webhookEventHandlers.stream().filter(h -> h.handles(source)).findFirst().orElse(null);
   }
-
 }

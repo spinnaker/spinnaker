@@ -25,6 +25,4 @@ import org.springframework.context.annotation.Import;
 @Configuration
 @ConditionalOnExpression("${redis.enabled:false}")
 @Import({JedisClientConfiguration.class, DynomiteClientConfiguration.class})
-public class JedisConfig {
-
-}
+public class JedisConfig {}

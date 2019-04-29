@@ -31,23 +31,20 @@ import com.netflix.spinnaker.echo.pubsub.PubsubSubscribers;
 import com.netflix.spinnaker.echo.pubsub.model.EventCreator;
 import com.netflix.spinnaker.echo.pubsub.model.PubsubSubscriber;
 import com.netflix.spinnaker.kork.aws.ARN;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
+import javax.annotation.PostConstruct;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.stereotype.Component;
 
-/***
- * Starts the individual SQS workers (one for each subscription)
- */
+/** * Starts the individual SQS workers (one for each subscription) */
 @Component
 @ConditionalOnExpression("${pubsub.enabled:false} && ${pubsub.amazon.enabled:false}")
 public class SQSSubscriberProvider implements DiscoveryActivated {
@@ -62,13 +59,14 @@ public class SQSSubscriberProvider implements DiscoveryActivated {
   private final MessageArtifactTranslator.Factory messageArtifactTranslatorFactory;
 
   @Autowired
-  SQSSubscriberProvider(ObjectMapper objectMapper,
-                        AWSCredentialsProvider awsCredentialsProvider,
-                        AmazonPubsubProperties properties,
-                        PubsubSubscribers pubsubSubscribers,
-                        PubsubMessageHandler.Factory pubsubMessageHandlerFactory,
-                        Registry registry,
-                        MessageArtifactTranslator.Factory messageArtifactTranslatorFactory) {
+  SQSSubscriberProvider(
+      ObjectMapper objectMapper,
+      AWSCredentialsProvider awsCredentialsProvider,
+      AmazonPubsubProperties properties,
+      PubsubSubscribers pubsubSubscribers,
+      PubsubMessageHandler.Factory pubsubMessageHandlerFactory,
+      Registry registry,
+      MessageArtifactTranslator.Factory messageArtifactTranslatorFactory) {
     this.objectMapper = objectMapper;
     this.awsCredentialsProvider = awsCredentialsProvider;
     this.properties = properties;
@@ -84,55 +82,60 @@ public class SQSSubscriberProvider implements DiscoveryActivated {
       return;
     }
 
-    ExecutorService executorService = Executors.newFixedThreadPool(properties.getSubscriptions().size());
+    ExecutorService executorService =
+        Executors.newFixedThreadPool(properties.getSubscriptions().size());
 
     List<PubsubSubscriber> subscribers = new ArrayList<>();
 
-    properties.getSubscriptions().forEach((AmazonPubsubProperties.AmazonPubsubSubscription subscription) -> {
-      log.info("Bootstrapping SQS for SNS topic: {}", subscription.getTopicARN());
-      if (subscription.getTemplatePath() != null && !subscription.getTemplatePath().equals("")){
-        log.info("Using template: {} for subscription: {}",
-          subscription.getTemplatePath(),
-          subscription.getName());
-      }
+    properties
+        .getSubscriptions()
+        .forEach(
+            (AmazonPubsubProperties.AmazonPubsubSubscription subscription) -> {
+              log.info("Bootstrapping SQS for SNS topic: {}", subscription.getTopicARN());
+              if (subscription.getTemplatePath() != null
+                  && !subscription.getTemplatePath().equals("")) {
+                log.info(
+                    "Using template: {} for subscription: {}",
+                    subscription.getTemplatePath(),
+                    subscription.getName());
+              }
 
-      ARN queueArn = new ARN(subscription.getQueueARN());
+              ARN queueArn = new ARN(subscription.getQueueARN());
 
-      Optional<MessageArtifactTranslator> messageArtifactTranslator = Optional.empty();
-      if (subscription.getMessageFormat() != AmazonPubsubProperties.MessageFormat.NONE) {
-        messageArtifactTranslator = Optional.ofNullable(subscription.readTemplatePath())
-          .map(messageArtifactTranslatorFactory::createJinja);
-      }
-      EventCreator eventCreator = new PubsubEventCreator(messageArtifactTranslator);
+              Optional<MessageArtifactTranslator> messageArtifactTranslator = Optional.empty();
+              if (subscription.getMessageFormat() != AmazonPubsubProperties.MessageFormat.NONE) {
+                messageArtifactTranslator =
+                    Optional.ofNullable(subscription.readTemplatePath())
+                        .map(messageArtifactTranslatorFactory::createJinja);
+              }
+              EventCreator eventCreator = new PubsubEventCreator(messageArtifactTranslator);
 
-      SQSSubscriber worker = new SQSSubscriber(
-        objectMapper,
-        subscription,
-        pubsubMessageHandlerFactory.create(eventCreator),
-        AmazonSNSClientBuilder
-          .standard()
-          .withCredentials(awsCredentialsProvider)
-          .withClientConfiguration(new ClientConfiguration())
-          .withRegion(queueArn.getRegion())
-          .build(),
-        AmazonSQSClientBuilder
-          .standard()
-          .withCredentials(awsCredentialsProvider)
-          .withClientConfiguration(new ClientConfiguration())
-          .withRegion(queueArn.getRegion())
-          .build(),
-        enabled::get,
-        registry
-      );
+              SQSSubscriber worker =
+                  new SQSSubscriber(
+                      objectMapper,
+                      subscription,
+                      pubsubMessageHandlerFactory.create(eventCreator),
+                      AmazonSNSClientBuilder.standard()
+                          .withCredentials(awsCredentialsProvider)
+                          .withClientConfiguration(new ClientConfiguration())
+                          .withRegion(queueArn.getRegion())
+                          .build(),
+                      AmazonSQSClientBuilder.standard()
+                          .withCredentials(awsCredentialsProvider)
+                          .withClientConfiguration(new ClientConfiguration())
+                          .withRegion(queueArn.getRegion())
+                          .build(),
+                      enabled::get,
+                      registry);
 
-      try {
-        executorService.submit(worker);
-        subscribers.add(worker);
-        log.debug("Created worker for subscription: {}", subscription.getName());
-      } catch (RejectedExecutionException e) {
-        log.error("Could not start " + worker.getWorkerName(), e);
-      }
-    });
+              try {
+                executorService.submit(worker);
+                subscribers.add(worker);
+                log.debug("Created worker for subscription: {}", subscription.getName());
+              } catch (RejectedExecutionException e) {
+                log.error("Could not start " + worker.getWorkerName(), e);
+              }
+            });
     pubsubSubscribers.putAll(subscribers);
   }
 }

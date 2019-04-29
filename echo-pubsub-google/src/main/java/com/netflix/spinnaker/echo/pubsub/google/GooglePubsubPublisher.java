@@ -60,7 +60,8 @@ public class GooglePubsubPublisher implements PubsubPublisher {
 
   private ObjectMapper mapper;
 
-  public static GooglePubsubPublisher buildPublisher(GooglePubsubPublisherConfig config, ObjectMapper mapper) {
+  public static GooglePubsubPublisher buildPublisher(
+      GooglePubsubPublisherConfig config, ObjectMapper mapper) {
     GooglePubsubPublisher publisher = new GooglePubsubPublisher();
     publisher.setName(config.getName());
     ProjectTopicName fullName = ProjectTopicName.of(config.getProject(), config.getTopicName());
@@ -69,16 +70,18 @@ public class GooglePubsubPublisher implements PubsubPublisher {
     publisher.setContent(config.getContent());
     publisher.setMapper(mapper);
 
-    BatchingSettings batchingSettings = BatchingSettings.newBuilder()
-      .setElementCountThreshold(config.getBatchCountThreshold())
-      .setDelayThreshold(Duration.ofMillis(config.getDelayMillisecondsThreshold()))
-      .build();
+    BatchingSettings batchingSettings =
+        BatchingSettings.newBuilder()
+            .setElementCountThreshold(config.getBatchCountThreshold())
+            .setDelayThreshold(Duration.ofMillis(config.getDelayMillisecondsThreshold()))
+            .build();
 
     try {
-      Publisher p = Publisher.newBuilder(fullName)
-        .setCredentialsProvider(new GooglePubsubCredentialsProvider(config.getJsonPath()))
-        .setBatchingSettings(batchingSettings)
-        .build();
+      Publisher p =
+          Publisher.newBuilder(fullName)
+              .setCredentialsProvider(new GooglePubsubCredentialsProvider(config.getJsonPath()))
+              .setBatchingSettings(batchingSettings)
+              .build();
       publisher.setPublisher(p);
     } catch (IOException ioe) {
       log.error("Could not create Google Pubsub Publishers: {}", ioe);
@@ -150,10 +153,11 @@ public class GooglePubsubPublisher implements PubsubPublisher {
   }
 
   public void publish(String jsonPayload, Map<String, String> attributes) {
-    PubsubMessage message = PubsubMessage.newBuilder()
-      .setData(ByteString.copyFromUtf8(jsonPayload))
-      .putAllAttributes(attributes)
-      .build();
+    PubsubMessage message =
+        PubsubMessage.newBuilder()
+            .setData(ByteString.copyFromUtf8(jsonPayload))
+            .putAllAttributes(attributes)
+            .build();
 
     log.debug("Publishing message on Google Pubsub topic {}", this.getFullTopicName());
 

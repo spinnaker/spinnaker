@@ -18,6 +18,7 @@ package com.netflix.spinnaker.echo.controller;
 
 public class EchoResponse<T extends EchoResponse.EchoResult> {
   private T value;
+
   public EchoResponse(T value) {
     this.value = value;
   }
@@ -31,6 +32,7 @@ public class EchoResponse<T extends EchoResponse.EchoResult> {
   }
 
   public interface EchoResult {}
+
   public static class Void extends EchoResponse {
     public Void() {
       super(null);

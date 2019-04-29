@@ -34,18 +34,15 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
- * Finds spring beans (@Component, @Resource, @Controller, etc.) on your classpath.
- * If you don't like classpath scanning, don't use it, you'll always have the choice.
- * I generally exclude @Configuration's from this scan, as picking those up can affect your tests.
+ * Finds spring beans (@Component, @Resource, @Controller, etc.) on your classpath. If you don't
+ * like classpath scanning, don't use it, you'll always have the choice. I generally
+ * exclude @Configuration's from this scan, as picking those up can affect your tests.
  */
 @Configuration
 @EnableFiatAutoConfig
 @ComponentScan(
-  basePackages = {
-    "com.netflix.spinnaker.echo"
-  },
-  excludeFilters = @Filter(value = Configuration.class, type = FilterType.ANNOTATION)
-)
+    basePackages = {"com.netflix.spinnaker.echo"},
+    excludeFilters = @Filter(value = Configuration.class, type = FilterType.ANNOTATION))
 public class ComponentConfig implements WebMvcConfigurer {
   private Registry registry;
 
@@ -57,8 +54,8 @@ public class ComponentConfig implements WebMvcConfigurer {
   public void addInterceptors(InterceptorRegistry registry) {
     List<String> pathVarsToTag = ImmutableList.of("type", "source");
     List<String> exclude = ImmutableList.of("BasicErrorController");
-    MetricsInterceptor interceptor = new MetricsInterceptor(this.registry, "controller.invocations",
-      pathVarsToTag, exclude);
+    MetricsInterceptor interceptor =
+        new MetricsInterceptor(this.registry, "controller.invocations", pathVarsToTag, exclude);
     registry.addInterceptor(interceptor);
   }
 
@@ -69,8 +66,8 @@ public class ComponentConfig implements WebMvcConfigurer {
 
   @Bean
   public FilterRegistrationBean authenticatedRequestFilter() {
-    FilterRegistrationBean frb = new FilterRegistrationBean(
-      new AuthenticatedRequestFilter(true, true, false));
+    FilterRegistrationBean frb =
+        new FilterRegistrationBean(new AuthenticatedRequestFilter(true, true, false));
     frb.setOrder(Ordered.HIGHEST_PRECEDENCE);
     return frb;
   }

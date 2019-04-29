@@ -16,22 +16,17 @@
 
 package com.netflix.spinnaker.echo.scm;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import static net.logstash.logback.argument.StructuredArguments.kv;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.echo.model.Event;
-import com.netflix.spinnaker.echo.model.trigger.BuildEvent;
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Map;
-
-import static net.logstash.logback.argument.StructuredArguments.kv;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
@@ -40,8 +35,8 @@ public class BitbucketWehbookEventHandler implements GitWebhookHandler {
   private ObjectMapper objectMapper;
 
   public BitbucketWehbookEventHandler() {
-    this.objectMapper = new ObjectMapper()
-      .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    this.objectMapper =
+        new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
   }
 
   public boolean handles(String source) {
@@ -53,8 +48,8 @@ public class BitbucketWehbookEventHandler implements GitWebhookHandler {
       return false;
     }
 
-    if (event.content.containsKey("hash") &&
-       event.content.get("hash").toString().startsWith("000000000")) {
+    if (event.content.containsKey("hash")
+        && event.content.get("hash").toString().startsWith("000000000")) {
       return false;
     }
 
@@ -76,21 +71,35 @@ public class BitbucketWehbookEventHandler implements GitWebhookHandler {
     String fullRepoName = getFullRepoName(event);
 
     if (fullRepoName != "") {
-      log.info("Webhook event received {} {} {} {} {} {}", kv("type", "git"),
-        kv("event_type", event.content.get("event_type").toString()),
-        kv("hook_id", event.content.containsKey("hook_id") ? event.content.get("hook_id").toString() : ""),
-        kv("repository", fullRepoName),
-        kv("request_id", event.content.containsKey("request_id") ? event.content.get("request_id").toString() : ""),
-        kv("branch", event.content.get("branch")));
+      log.info(
+          "Webhook event received {} {} {} {} {} {}",
+          kv("type", "git"),
+          kv("event_type", event.content.get("event_type").toString()),
+          kv(
+              "hook_id",
+              event.content.containsKey("hook_id") ? event.content.get("hook_id").toString() : ""),
+          kv("repository", fullRepoName),
+          kv(
+              "request_id",
+              event.content.containsKey("request_id")
+                  ? event.content.get("request_id").toString()
+                  : ""),
+          kv("branch", event.content.get("branch")));
     } else {
-      log.info("Webhook event received {} {} {} {} {}",
-        kv("type", "git"),
-        kv("event_type", event.content.get("event_type").toString()),
-        kv("hook_id", event.content.containsKey("hook_id") ? event.content.get("hook_id").toString() : ""),
-        kv("request_id", event.content.containsKey("request_id") ? event.content.get("request_id").toString() : ""),
-        kv("branch", event.content.get("branch").toString()));
+      log.info(
+          "Webhook event received {} {} {} {} {}",
+          kv("type", "git"),
+          kv("event_type", event.content.get("event_type").toString()),
+          kv(
+              "hook_id",
+              event.content.containsKey("hook_id") ? event.content.get("hook_id").toString() : ""),
+          kv(
+              "request_id",
+              event.content.containsKey("request_id")
+                  ? event.content.get("request_id").toString()
+                  : ""),
+          kv("branch", event.content.get("branch").toString()));
     }
-
   }
 
   private boolean looksLikeBitbucketCloud(Event event) {
@@ -121,11 +130,13 @@ public class BitbucketWehbookEventHandler implements GitWebhookHandler {
     }
 
     String eventType = event.content.get("event_type").toString();
-    switch(eventType) {
+    switch (eventType) {
       case "repo:refs_changesd":
         return ((Map<String, Object>) event.content.get("repository")).get("name").toString();
       case "pr:merged":
-        Map<String, Object> toRef = (Map<String, Object>) ((Map<String, Object>) event.content.get("pullRequest")).get("toRef");
+        Map<String, Object> toRef =
+            (Map<String, Object>)
+                ((Map<String, Object>) event.content.get("pullRequest")).get("toRef");
         if (toRef != null) {
           Map<String, Object> repo = (Map<String, Object>) toRef.get("repository");
           if (repo != null && repo.containsKey("name")) {
@@ -141,14 +152,14 @@ public class BitbucketWehbookEventHandler implements GitWebhookHandler {
     }
   }
 
-
   private void handleBitbucketCloudEvent(Event event, Map postedEvent) {
     String repoProject = "";
     String slug = "";
     String hash = "";
     String branch = "";
 
-    BitbucketCloudEvent bitbucketCloudEvent = objectMapper.convertValue(postedEvent, BitbucketCloudEvent.class);
+    BitbucketCloudEvent bitbucketCloudEvent =
+        objectMapper.convertValue(postedEvent, BitbucketCloudEvent.class);
     if (bitbucketCloudEvent.repository != null) {
       slug = emptyOrDefault(bitbucketCloudEvent.repository.fullName, "");
       if (bitbucketCloudEvent.repository.owner != null) {
@@ -172,7 +183,7 @@ public class BitbucketWehbookEventHandler implements GitWebhookHandler {
         }
         if (!change.commits.isEmpty()) {
           BitbucketCloudEvent.Commit commit = change.commits.get(0);
-          hash = emptyOrDefault(commit.hash,"");
+          hash = emptyOrDefault(commit.hash, "");
         }
       }
     }
@@ -195,7 +206,8 @@ public class BitbucketWehbookEventHandler implements GitWebhookHandler {
 
     String eventType = event.content.get("event_type").toString();
     if (eventType == "repo:refs_changed") {
-      BitbucketServerRefsChangedEvent refsChangedEvent = objectMapper.convertValue(event.content, BitbucketServerRefsChangedEvent.class);
+      BitbucketServerRefsChangedEvent refsChangedEvent =
+          objectMapper.convertValue(event.content, BitbucketServerRefsChangedEvent.class);
       if (refsChangedEvent.repository != null) {
         repoProject = emptyOrDefault(refsChangedEvent.repository.project.key, "");
         slug = emptyOrDefault(refsChangedEvent.repository.slug, "");
@@ -208,10 +220,11 @@ public class BitbucketWehbookEventHandler implements GitWebhookHandler {
         }
       }
     } else if (eventType == "pr:merged") {
-      BitbucketServerPrMergedEvent prMergedEvent = objectMapper.convertValue(event.content, BitbucketServerPrMergedEvent.class);
+      BitbucketServerPrMergedEvent prMergedEvent =
+          objectMapper.convertValue(event.content, BitbucketServerPrMergedEvent.class);
       if (prMergedEvent.pullRequest != null && prMergedEvent.pullRequest.toRef != null) {
         BitbucketServerPrMergedEvent.Ref toRef = prMergedEvent.pullRequest.toRef;
-        branch = emptyOrDefault(toRef.id,"").replace("refs/heads/", "");
+        branch = emptyOrDefault(toRef.id, "").replace("refs/heads/", "");
         if (toRef.repository != null) {
           repoProject = emptyOrDefault(toRef.repository.project.key, "");
           slug = emptyOrDefault(toRef.repository.slug, "");
@@ -249,7 +262,6 @@ public class BitbucketWehbookEventHandler implements GitWebhookHandler {
       String id;
     }
 
-
     @Data
     private static class PullRequest {
       Ref toRef;
@@ -260,7 +272,6 @@ public class BitbucketWehbookEventHandler implements GitWebhookHandler {
     private static class Ref {
       String id;
       Repository repository;
-
     }
 
     @Data
@@ -308,14 +319,17 @@ public class BitbucketWehbookEventHandler implements GitWebhookHandler {
   @Data
   private static class BitbucketCloudEvent {
     Repository repository;
+
     @JsonProperty("pullrequest")
     PullRequest pullRequest;
+
     Push push;
 
     @Data
     private static class Repository {
       @JsonProperty("full_name")
       String fullName;
+
       Owner owner;
     }
 
@@ -328,6 +342,7 @@ public class BitbucketWehbookEventHandler implements GitWebhookHandler {
     private static class PullRequest {
       @JsonProperty("merge_commit")
       MergeCommit mergeCommit;
+
       Destination destination;
     }
 

@@ -16,10 +16,9 @@
 
 package com.netflix.spinnaker.echo.config;
 
-import lombok.*;
-
 import java.util.ArrayList;
 import java.util.List;
+import lombok.*;
 
 @Data
 @NoArgsConstructor

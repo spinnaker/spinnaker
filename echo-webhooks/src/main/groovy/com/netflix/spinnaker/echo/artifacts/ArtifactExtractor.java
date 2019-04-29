@@ -17,14 +17,13 @@
 package com.netflix.spinnaker.echo.artifacts;
 
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 public class ArtifactExtractor {

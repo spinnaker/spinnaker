@@ -18,15 +18,14 @@ package com.netflix.spinnaker.echo.discovery;
 
 import com.netflix.appinfo.InstanceInfo;
 import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationListener;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-
 /**
- * A component that starts doing something when the instance is up in discovery
- * and stops doing that thing when it goes down.
+ * A component that starts doing something when the instance is up in discovery and stops doing that
+ * thing when it goes down.
  */
 public interface DiscoveryActivated extends ApplicationListener<RemoteStatusChangedEvent> {
 
@@ -36,11 +35,17 @@ public interface DiscoveryActivated extends ApplicationListener<RemoteStatusChan
 
   @Override
   default void onApplicationEvent(RemoteStatusChangedEvent event) {
-    if (event.getSource().getStatus() ==  InstanceInfo.InstanceStatus.UP) {
-      log.info("Instance is {}... {} starting", event.getSource().getStatus(), DiscoveryActivated.class.getSimpleName());
+    if (event.getSource().getStatus() == InstanceInfo.InstanceStatus.UP) {
+      log.info(
+          "Instance is {}... {} starting",
+          event.getSource().getStatus(),
+          DiscoveryActivated.class.getSimpleName());
       enable();
     } else if (event.getSource().getPreviousStatus() == InstanceInfo.InstanceStatus.UP) {
-      log.info("Instance is {}... {} stopping", event.getSource().getStatus(), DiscoveryActivated.class.getSimpleName());
+      log.info(
+          "Instance is {}... {} stopping",
+          event.getSource().getStatus(),
+          DiscoveryActivated.class.getSimpleName());
       disable();
     }
   }

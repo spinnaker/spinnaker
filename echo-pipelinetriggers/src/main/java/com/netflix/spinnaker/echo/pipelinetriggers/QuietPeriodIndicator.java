@@ -16,26 +16,24 @@
 
 package com.netflix.spinnaker.echo.pipelinetriggers;
 
+import static java.time.format.DateTimeFormatter.ISO_INSTANT;
+
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spectator.api.patterns.PolledMeter;
 import com.netflix.spinnaker.echo.config.QuietPeriodIndicatorConfigurationProperties;
+import java.time.Instant;
+import java.time.format.DateTimeParseException;
+import java.util.List;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.time.Instant;
-import java.time.format.DateTimeParseException;
-import java.util.List;
-
-import static java.time.format.DateTimeFormatter.ISO_INSTANT;
-
 /**
- * Handles quiet periods, where a configurable set of triggers will be
- * suppressed for a configured time interval.  Without any configuration,
- * it will default to disabled, and invalid configuration will cause
- * log messages to be generated, and disable this feature.
+ * Handles quiet periods, where a configurable set of triggers will be suppressed for a configured
+ * time interval. Without any configuration, it will default to disabled, and invalid configuration
+ * will cause log messages to be generated, and disable this feature.
  */
 @Slf4j
 @Component
@@ -50,8 +48,8 @@ public class QuietPeriodIndicator {
   private final Id quietPeriodTestId;
 
   @Autowired
-  public QuietPeriodIndicator(@NonNull Registry registry,
-                              @NonNull QuietPeriodIndicatorConfigurationProperties config) {
+  public QuietPeriodIndicator(
+      @NonNull Registry registry, @NonNull QuietPeriodIndicatorConfigurationProperties config) {
     this.registry = registry;
 
     long startEpochMillis = parseIso(config.getStartIso());
@@ -62,12 +60,20 @@ public class QuietPeriodIndicator {
 
     this.enabled = config.isEnabled() && (startEpochMillis > 0 && endEpochMillis > 0);
     if (this.enabled) {
-      log.warn("Enabling quiet periods.  Span in millis: {} to {}, ISO {} to {} (inclusive)",
-               startEpochMillis, endEpochMillis, config.getStartIso(), config.getEndIso());
-      log.warn("Will suppress triggers of types {} during quiet periods.", config.getSuppressedTriggerTypes());
+      log.warn(
+          "Enabling quiet periods.  Span in millis: {} to {}, ISO {} to {} (inclusive)",
+          startEpochMillis,
+          endEpochMillis,
+          config.getStartIso(),
+          config.getEndIso());
+      log.warn(
+          "Will suppress triggers of types {} during quiet periods.",
+          config.getSuppressedTriggerTypes());
     }
 
-    PolledMeter.using(registry).withName("quietPeriod.enabled").monitorValue(this, QuietPeriodIndicator::gaugeMonitor);
+    PolledMeter.using(registry)
+        .withName("quietPeriod.enabled")
+        .monitorValue(this, QuietPeriodIndicator::gaugeMonitor);
     quietPeriodTestId = registry.createId("quietPeriod.tests");
   }
 
@@ -86,7 +92,7 @@ public class QuietPeriodIndicator {
   }
 
   private boolean shouldSuppressType(String triggerType) {
-    for (String trigger: suppressedTriggerTypes) {
+    for (String trigger : suppressedTriggerTypes) {
       if (trigger.equalsIgnoreCase(triggerType)) {
         return true;
       }
@@ -106,7 +112,10 @@ public class QuietPeriodIndicator {
       Instant instant = Instant.from(ISO_INSTANT.parse(iso));
       return instant.toEpochMilli();
     } catch (DateTimeParseException e) {
-      log.warn("Unable to parse {} as an ISO date/time, disabling quiet periods: {}", iso, e.getMessage());
+      log.warn(
+          "Unable to parse {} as an ISO date/time, disabling quiet periods: {}",
+          iso,
+          e.getMessage());
       return -1;
     }
   }

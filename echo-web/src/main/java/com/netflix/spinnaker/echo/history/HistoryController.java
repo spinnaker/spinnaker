@@ -23,9 +23,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-/**
- * Controller for history
- */
+/** Controller for history */
 @RestController
 public class HistoryController {
   private EventPropagator propagator;

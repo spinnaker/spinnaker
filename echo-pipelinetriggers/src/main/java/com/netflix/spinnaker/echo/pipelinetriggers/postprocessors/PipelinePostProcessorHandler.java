@@ -17,16 +17,15 @@
 package com.netflix.spinnaker.echo.pipelinetriggers.postprocessors;
 
 import com.netflix.spinnaker.echo.model.Pipeline;
+import java.util.Comparator;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Comparator;
-import java.util.List;
-
 /**
  * This class is a thin wrapper around the implementations of {@link PipelinePostProcessor}. It
- * loops through the ordered list of post-processors and applies the transformation defined by
- * each to the input pipeline.
+ * loops through the ordered list of post-processors and applies the transformation defined by each
+ * to the input pipeline.
  */
 @Component
 public class PipelinePostProcessorHandler {

@@ -23,7 +23,9 @@ import retrofit.client.Response;
 public class GoogleChatService {
   GoogleChatClient googleChatClient;
 
-  public GoogleChatService(GoogleChatClient googleChatClient) { this.googleChatClient = googleChatClient; }
+  public GoogleChatService(GoogleChatClient googleChatClient) {
+    this.googleChatClient = googleChatClient;
+  }
 
   Response sendMessage(String webhook, GoogleChatMessage message) {
     return googleChatClient.sendMessage(webhook, message);

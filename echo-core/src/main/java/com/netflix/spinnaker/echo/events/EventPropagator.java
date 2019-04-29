@@ -25,9 +25,7 @@ import rx.Observable;
 import rx.Scheduler;
 import rx.schedulers.Schedulers;
 
-/**
- * responsible for sending events to classes that implement an EchoEventListener
- */
+/** responsible for sending events to classes that implement an EchoEventListener */
 @Slf4j
 @SuppressWarnings({"CatchException"})
 public class EventPropagator {
@@ -41,20 +39,21 @@ public class EventPropagator {
 
   public void processEvent(Event event) {
     Observable.from(listeners)
-      .map(listener ->
-        AuthenticatedRequest.propagate(() -> {
-          listener.processEvent(event);
-          return null;
-        })
-      )
-      .observeOn(scheduler)
-      .subscribe(callable -> {
-          try {
-            callable.call();
-          } catch (Exception e) {
-            log.error("failed processing event: {}", event.content,  e);
-          }
-        }
-      );
+        .map(
+            listener ->
+                AuthenticatedRequest.propagate(
+                    () -> {
+                      listener.processEvent(event);
+                      return null;
+                    }))
+        .observeOn(scheduler)
+        .subscribe(
+            callable -> {
+              try {
+                callable.call();
+              } catch (Exception e) {
+                log.error("failed processing event: {}", event.content, e);
+              }
+            });
   }
 }

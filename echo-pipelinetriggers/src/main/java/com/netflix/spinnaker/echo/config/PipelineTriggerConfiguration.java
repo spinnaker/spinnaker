@@ -54,9 +54,10 @@ public class PipelineTriggerConfiguration {
   }
 
   @Bean
-  public FiatStatus fiatStatus(Registry registry,
-                               DynamicConfigService dynamicConfigService,
-                               FiatClientConfigurationProperties fiatClientConfigurationProperties) {
+  public FiatStatus fiatStatus(
+      Registry registry,
+      DynamicConfigService dynamicConfigService,
+      FiatClientConfigurationProperties fiatClientConfigurationProperties) {
     return new FiatStatus(registry, dynamicConfigService, fiatClientConfigurationProperties);
   }
 
@@ -75,13 +76,14 @@ public class PipelineTriggerConfiguration {
   private <T> T bindRetrofitService(final Class<T> type, final String endpoint) {
     log.info("Connecting {} to {}", type.getSimpleName(), endpoint);
 
-    return new RestAdapter.Builder().setClient(retrofitClient)
-                                    .setRequestInterceptor(requestInterceptor)
-                                    .setConverter(new JacksonConverter(new ObjectMapper()))
-                                    .setEndpoint(endpoint)
-                                    .setLogLevel(LogLevel.BASIC)
-                                    .setLog(new Slf4jRetrofitLogger(type))
-                                    .build()
-                                    .create(type);
+    return new RestAdapter.Builder()
+        .setClient(retrofitClient)
+        .setRequestInterceptor(requestInterceptor)
+        .setConverter(new JacksonConverter(new ObjectMapper()))
+        .setEndpoint(endpoint)
+        .setLogLevel(LogLevel.BASIC)
+        .setLog(new Slf4jRetrofitLogger(type))
+        .build()
+        .create(type);
   }
 }

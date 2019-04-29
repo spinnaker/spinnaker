@@ -16,24 +16,20 @@
 
 package com.netflix.spinnaker.echo.pubsub.utils;
 
-import lombok.Getter;
-
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.net.*;
 import java.util.Collections;
 import java.util.Enumeration;
+import lombok.Getter;
 
-/**
- * Provides an identity for each echo node.
- */
+/** Provides an identity for each echo node. */
 public class NodeIdentity {
   public static final String UNKNOWN_HOST = "UnknownHost";
 
   private String runtimeName;
   private String hostName;
-  @Getter
-  private String identity;
+  @Getter private String identity;
 
   public NodeIdentity() {
     this("www.google.com", 80);
@@ -80,13 +76,13 @@ public class NodeIdentity {
           socket.connect(new InetSocketAddress(validationHost, validationPort), 125);
           return address.getHostName();
         } catch (IOException ignored) {
-          //ignored
+          // ignored
         } finally {
           if (socket != null) {
             try {
               socket.close();
             } catch (IOException ignored) {
-              //ignored
+              // ignored
             }
           }
         }

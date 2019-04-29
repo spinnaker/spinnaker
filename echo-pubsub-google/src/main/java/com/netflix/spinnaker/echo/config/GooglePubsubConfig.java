@@ -28,19 +28,18 @@ import com.netflix.spinnaker.echo.pubsub.google.GooglePubsubSubscriber;
 import com.netflix.spinnaker.echo.pubsub.model.EventCreator;
 import com.netflix.spinnaker.echo.pubsub.model.PubsubPublisher;
 import com.netflix.spinnaker.echo.pubsub.model.PubsubSubscriber;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
-
-import javax.annotation.PostConstruct;
-import javax.validation.Valid;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
+import javax.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @Slf4j
@@ -51,8 +50,7 @@ public class GooglePubsubConfig {
   private final PubsubSubscribers pubsubSubscribers;
   private final PubsubPublishers pubsubPublishers;
   private final PubsubMessageHandler.Factory pubsubMessageHandlerFactory;
-  @Valid
-  private final GooglePubsubProperties googlePubsubProperties;
+  @Valid private final GooglePubsubProperties googlePubsubProperties;
   private final ObjectMapper mapper;
   private final MessageArtifactTranslator.Factory messageArtifactTranslatorFactory;
 
@@ -60,37 +58,46 @@ public class GooglePubsubConfig {
   void googlePubsubSubscribers() {
     log.info("Creating Google Pubsub Subscribers");
     List<PubsubSubscriber> newSubscribers = new ArrayList<>();
-    googlePubsubProperties.getSubscriptions().forEach((GooglePubsubSubscription subscription) -> {
-      log.info("Bootstrapping Google Pubsub Subscriber listening to subscription: {} in project: {}",
-          subscription.getSubscriptionName(),
-          subscription.getProject());
+    googlePubsubProperties
+        .getSubscriptions()
+        .forEach(
+            (GooglePubsubSubscription subscription) -> {
+              log.info(
+                  "Bootstrapping Google Pubsub Subscriber listening to subscription: {} in project: {}",
+                  subscription.getSubscriptionName(),
+                  subscription.getProject());
 
-      Optional<MessageArtifactTranslator> messageArtifactTranslator = Optional.ofNullable(subscription.readTemplatePath())
-        .map(messageArtifactTranslatorFactory::createJinja);
-      EventCreator eventCreator = new PubsubEventCreator(messageArtifactTranslator);
-      PubsubMessageHandler pubsubMessageHandler = pubsubMessageHandlerFactory.create(eventCreator);
+              Optional<MessageArtifactTranslator> messageArtifactTranslator =
+                  Optional.ofNullable(subscription.readTemplatePath())
+                      .map(messageArtifactTranslatorFactory::createJinja);
+              EventCreator eventCreator = new PubsubEventCreator(messageArtifactTranslator);
+              PubsubMessageHandler pubsubMessageHandler =
+                  pubsubMessageHandlerFactory.create(eventCreator);
 
-      GooglePubsubSubscriber subscriber = GooglePubsubSubscriber.buildSubscriber(subscription, pubsubMessageHandler);
+              GooglePubsubSubscriber subscriber =
+                  GooglePubsubSubscriber.buildSubscriber(subscription, pubsubMessageHandler);
 
-      newSubscribers.add(subscriber);
-    });
+              newSubscribers.add(subscriber);
+            });
     pubsubSubscribers.putAll(newSubscribers);
   }
 
   @PostConstruct
   void googlePubsubPublishers() throws IOException {
     log.info("Creating Google Pubsub Publishers");
-    List<PubsubPublisher> newPublishers = googlePubsubProperties.getPublishers()
-      .stream()
-      .map(publisherConfig -> {
-        log.info(
-          "Bootstrapping Google Pubsub Publisher named {} on topic {} in project {} publishing content {}",
-          publisherConfig.getName(),
-          publisherConfig.getTopicName(),
-          publisherConfig.getProject(),
-          publisherConfig.getContent());
-        return GooglePubsubPublisher.buildPublisher(publisherConfig, mapper);
-      }).collect(Collectors.toList());
+    List<PubsubPublisher> newPublishers =
+        googlePubsubProperties.getPublishers().stream()
+            .map(
+                publisherConfig -> {
+                  log.info(
+                      "Bootstrapping Google Pubsub Publisher named {} on topic {} in project {} publishing content {}",
+                      publisherConfig.getName(),
+                      publisherConfig.getTopicName(),
+                      publisherConfig.getProject(),
+                      publisherConfig.getContent());
+                  return GooglePubsubPublisher.buildPublisher(publisherConfig, mapper);
+                })
+            .collect(Collectors.toList());
 
     pubsubPublishers.putAll(newPublishers);
   }

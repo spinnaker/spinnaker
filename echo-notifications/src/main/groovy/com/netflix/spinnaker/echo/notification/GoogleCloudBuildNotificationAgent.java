@@ -21,16 +21,16 @@ import com.netflix.spinnaker.echo.model.Event;
 import com.netflix.spinnaker.echo.model.pubsub.MessageDescription;
 import com.netflix.spinnaker.echo.services.IgorService;
 import com.netflix.spinnaker.kork.core.RetrySupport;
+import java.nio.charset.StandardCharsets;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import retrofit.mime.TypedByteArray;
 
-import java.nio.charset.StandardCharsets;
-
 /**
- * Handles Google Cloud Build notifications by forwarding information on the completed build to igor.
+ * Handles Google Cloud Build notifications by forwarding information on the completed build to
+ * igor.
  */
 @ConditionalOnProperty("gcb.enabled")
 @RequiredArgsConstructor
@@ -43,16 +43,20 @@ public class GoogleCloudBuildNotificationAgent implements EchoEventListener {
   @Override
   public void processEvent(Event event) {
     if (event.getDetails() != null && event.getDetails().getType().equals("googleCloudBuild")) {
-      MessageDescription messageDescription = (MessageDescription) event.getContent().get("messageDescription");
+      MessageDescription messageDescription =
+          (MessageDescription) event.getContent().get("messageDescription");
       retrySupport.retry(
-        () -> igorService.updateBuildStatus(
-          messageDescription.getSubscriptionName(),
-          messageDescription.getMessageAttributes().get("buildId"),
-          messageDescription.getMessageAttributes().get("status"),
-          new TypedByteArray("application/json", messageDescription.getMessagePayload().getBytes(StandardCharsets.UTF_8))
-        ),
-        5, 2000, false
-      );
+          () ->
+              igorService.updateBuildStatus(
+                  messageDescription.getSubscriptionName(),
+                  messageDescription.getMessageAttributes().get("buildId"),
+                  messageDescription.getMessageAttributes().get("status"),
+                  new TypedByteArray(
+                      "application/json",
+                      messageDescription.getMessagePayload().getBytes(StandardCharsets.UTF_8))),
+          5,
+          2000,
+          false);
     }
   }
 }

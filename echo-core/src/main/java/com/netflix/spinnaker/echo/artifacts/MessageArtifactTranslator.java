@@ -20,13 +20,12 @@ import com.netflix.spinnaker.echo.model.ArtifactEvent;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.artifacts.parsing.ArtifactExtractor;
 import com.netflix.spinnaker.kork.artifacts.parsing.JinjaArtifactExtractor;
+import java.io.InputStream;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
-
-import java.io.InputStream;
-import java.util.List;
 
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class MessageArtifactTranslator {
@@ -59,5 +58,4 @@ public class MessageArtifactTranslator {
       return this.create(jinjaExtractorFactory.create(jinjaStream));
     }
   }
-
 }

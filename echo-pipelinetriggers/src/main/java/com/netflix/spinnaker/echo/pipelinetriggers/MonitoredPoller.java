@@ -17,35 +17,29 @@
 package com.netflix.spinnaker.echo.pipelinetriggers;
 
 import com.netflix.spinnaker.echo.pipelinetriggers.health.MonitoredPollerHealth;
-
-import javax.annotation.Nullable;
 import java.time.Instant;
+import javax.annotation.Nullable;
 
 /**
- * A class that does some kind of polling operation and can be monitored by {@link MonitoredPollerHealth}.
+ * A class that does some kind of polling operation and can be monitored by {@link
+ * MonitoredPollerHealth}.
  */
 public interface MonitoredPoller {
-  /**
-   * @return `true` if polling is currently running, `false` otherwise.
-   */
+  /** @return `true` if polling is currently running, `false` otherwise. */
   boolean isRunning();
 
   /**
-   * @return `true` if the initial polling cycle has completed successfully
-   *  and there is some data available
+   * @return `true` if the initial polling cycle has completed successfully and there is some data
+   *     available
    */
   default boolean isInitialized() {
     return getLastPollTimestamp() != null;
   }
 
-  /**
-   * @return the time at which the last successful poll operation was run.
-   */
+  /** @return the time at which the last successful poll operation was run. */
   @Nullable
   Instant getLastPollTimestamp();
 
-  /**
-   * @return the interval between poll operations in seconds.
-   */
+  /** @return the interval between poll operations in seconds. */
   int getPollingIntervalSeconds();
 }

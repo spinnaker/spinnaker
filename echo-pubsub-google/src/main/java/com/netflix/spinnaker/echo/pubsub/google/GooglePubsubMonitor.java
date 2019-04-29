@@ -20,6 +20,7 @@ import com.netflix.spinnaker.echo.model.pubsub.PubsubSystem;
 import com.netflix.spinnaker.echo.pubsub.PollingMonitor;
 import com.netflix.spinnaker.echo.pubsub.PubsubSubscribers;
 import com.netflix.spinnaker.echo.pubsub.model.PubsubSubscriber;
+import javax.annotation.PreDestroy;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,11 +29,7 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PreDestroy;
-
-/**
- * Monitors Google Cloud Pubsub subscriptions.
- */
+/** Monitors Google Cloud Pubsub subscriptions. */
 @Slf4j
 @Service
 @Async
@@ -41,11 +38,9 @@ public class GooglePubsubMonitor implements PollingMonitor {
 
   private Long lastPoll;
 
-  @Getter
-  private final String name = "GooglePubsubMonitor";
+  @Getter private final String name = "GooglePubsubMonitor";
 
-  @Autowired
-  private PubsubSubscribers pubsubSubscribers;
+  @Autowired private PubsubSubscribers pubsubSubscribers;
 
   @PreDestroy
   private void closeAsyncConnections() {

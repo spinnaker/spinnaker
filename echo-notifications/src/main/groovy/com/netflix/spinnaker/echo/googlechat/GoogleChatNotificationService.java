@@ -20,22 +20,19 @@ import com.netflix.spinnaker.echo.api.Notification;
 import com.netflix.spinnaker.echo.controller.EchoResponse;
 import com.netflix.spinnaker.echo.notification.NotificationService;
 import com.netflix.spinnaker.echo.notification.NotificationTemplateEngine;
+import java.util.Collection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
-
-import java.util.Collection;
 
 @Component
 @ConditionalOnProperty("googlechat.enabled")
 class GoogleChatNotificationService implements NotificationService {
   private static Notification.Type TYPE = Notification.Type.GOOGLECHAT;
 
-  @Autowired
-  GoogleChatService chat;
+  @Autowired GoogleChatService chat;
 
-  @Autowired
-  NotificationTemplateEngine notificationTemplateEngine;
+  @Autowired NotificationTemplateEngine notificationTemplateEngine;
 
   @Override
   public boolean supportsType(Notification.Type type) {
@@ -44,11 +41,13 @@ class GoogleChatNotificationService implements NotificationService {
 
   @Override
   public EchoResponse.Void handle(Notification notification) {
-    String body = notificationTemplateEngine.build(notification, NotificationTemplateEngine.Type.BODY);
+    String body =
+        notificationTemplateEngine.build(notification, NotificationTemplateEngine.Type.BODY);
 
     Collection<String> addressSet = notification.getTo();
     for (String addr : addressSet) {
-      // In Chat, users can only copy the whole link easily. We just extract the information from the whole link.
+      // In Chat, users can only copy the whole link easily. We just extract the information from
+      // the whole link.
       // Example: https://chat.googleapis.com/v1/spaces/{partialWebhookUrl}
       String baseUrl = "https://chat.googleapis.com/v1/spaces/";
       String completeLink = addr;
@@ -58,4 +57,3 @@ class GoogleChatNotificationService implements NotificationService {
     return new EchoResponse.Void();
   }
 }
-

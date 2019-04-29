@@ -32,12 +32,11 @@ import com.netflix.spinnaker.echo.model.pubsub.PubsubSystem;
 import com.netflix.spinnaker.echo.pubsub.PubsubMessageHandler;
 import com.netflix.spinnaker.echo.pubsub.model.PubsubSubscriber;
 import com.netflix.spinnaker.echo.pubsub.utils.NodeIdentity;
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class GooglePubsubSubscriber implements PubsubSubscriber {
@@ -54,11 +53,14 @@ public class GooglePubsubSubscriber implements PubsubSubscriber {
 
   private MessageReceiver messageReceiver;
 
-  static private final PubsubSystem pubsubSystem = PubsubSystem.GOOGLE;
+  private static final PubsubSystem pubsubSystem = PubsubSystem.GOOGLE;
 
-
-  public GooglePubsubSubscriber(String name, String subscriptionName, String project, Credentials credentials,
-                                GooglePubsubMessageReceiver messageReceiver) {
+  public GooglePubsubSubscriber(
+      String name,
+      String subscriptionName,
+      String project,
+      Credentials credentials,
+      GooglePubsubMessageReceiver messageReceiver) {
     this.name = name;
     this.subscriptionName = subscriptionName;
     this.project = project;
@@ -85,16 +87,15 @@ public class GooglePubsubSubscriber implements PubsubSubscriber {
     return String.format("projects/%s/subscriptions/%s", project, name);
   }
 
-  public static GooglePubsubSubscriber buildSubscriber(GooglePubsubSubscription subscription, PubsubMessageHandler pubsubMessageHandler) {
+  public static GooglePubsubSubscriber buildSubscriber(
+      GooglePubsubSubscription subscription, PubsubMessageHandler pubsubMessageHandler) {
     String subscriptionName = subscription.getSubscriptionName();
     String project = subscription.getProject();
     String jsonPath = subscription.getJsonPath();
 
-    GooglePubsubMessageReceiver messageReceiver = new GooglePubsubMessageReceiver(
-      subscription.getAckDeadlineSeconds(),
-      subscription.getName(),
-      pubsubMessageHandler
-    );
+    GooglePubsubMessageReceiver messageReceiver =
+        new GooglePubsubMessageReceiver(
+            subscription.getAckDeadlineSeconds(), subscription.getName(), pubsubMessageHandler);
 
     Credentials credentials = null;
     try {
@@ -103,18 +104,24 @@ public class GooglePubsubSubscriber implements PubsubSubscriber {
       log.error("Could not create Google Pubsub json credentials: {}", e.getMessage());
     }
 
-    return new GooglePubsubSubscriber(subscription.getName(), subscriptionName, project, credentials, messageReceiver);
+    return new GooglePubsubSubscriber(
+        subscription.getName(), subscriptionName, project, credentials, messageReceiver);
   }
 
-  synchronized public void start() {
-    this.subscriber = Subscriber
-      .newBuilder(ProjectSubscriptionName.of(project, subscriptionName), messageReceiver)
-      .setCredentialsProvider(FixedCredentialsProvider.create(credentials))
-      .build();
+  public synchronized void start() {
+    this.subscriber =
+        Subscriber.newBuilder(
+                ProjectSubscriptionName.of(project, subscriptionName), messageReceiver)
+            .setCredentialsProvider(FixedCredentialsProvider.create(credentials))
+            .build();
 
-    subscriber.addListener(new GooglePubsubFailureHandler(this, formatSubscriptionName(project, subscriptionName)), MoreExecutors.directExecutor());
+    subscriber.addListener(
+        new GooglePubsubFailureHandler(this, formatSubscriptionName(project, subscriptionName)),
+        MoreExecutors.directExecutor());
     subscriber.startAsync().awaitRunning();
-    log.info("Google Pubsub subscriber started for {}", formatSubscriptionName(project, subscriptionName));
+    log.info(
+        "Google Pubsub subscriber started for {}",
+        formatSubscriptionName(project, subscriptionName));
   }
 
   public void stop() {
@@ -128,7 +135,9 @@ public class GooglePubsubSubscriber implements PubsubSubscriber {
       log.warn("Failure stopping subscriber: ", e);
     }
 
-    log.info("Waiting to restart Google Pubsub subscriber for {}", formatSubscriptionName(project, subscriptionName));
+    log.info(
+        "Waiting to restart Google Pubsub subscriber for {}",
+        formatSubscriptionName(project, subscriptionName));
     try {
       // TODO: Use exponential backoff?
       Thread.sleep(1000);
@@ -145,16 +154,16 @@ public class GooglePubsubSubscriber implements PubsubSubscriber {
     private PubsubMessageHandler pubsubMessageHandler;
 
     /**
-     * Logical name given to the subscription by the user, not the locator
-     * the pub/sub system uses.
+     * Logical name given to the subscription by the user, not the locator the pub/sub system uses.
      */
     private String subscriptionName;
 
     private NodeIdentity identity = new NodeIdentity();
 
-    public GooglePubsubMessageReceiver(Integer ackDeadlineSeconds,
-                                       String subscriptionName,
-                                       PubsubMessageHandler pubsubMessageHandler) {
+    public GooglePubsubMessageReceiver(
+        Integer ackDeadlineSeconds,
+        String subscriptionName,
+        PubsubMessageHandler pubsubMessageHandler) {
       this.ackDeadlineSeconds = ackDeadlineSeconds;
       this.subscriptionName = subscriptionName;
       this.pubsubMessageHandler = pubsubMessageHandler;
@@ -164,19 +173,27 @@ public class GooglePubsubSubscriber implements PubsubSubscriber {
     public void receiveMessage(PubsubMessage message, AckReplyConsumer consumer) {
       String messagePayload = message.getData().toStringUtf8();
       String messageId = message.getMessageId();
-      Map messageAttributes = message.getAttributesMap() == null ? new HashMap<>() : message.getAttributesMap();
-      log.debug("Received Google pub/sub message with payload: {}\n and attributes: {}", messagePayload, messageAttributes);
-      MessageDescription description = MessageDescription.builder()
-        .subscriptionName(subscriptionName)
-        .messagePayload(messagePayload)
-        .messageAttributes(messageAttributes)
-        .pubsubSystem(pubsubSystem)
-        .ackDeadlineSeconds(5 * ackDeadlineSeconds) // Set a high upper bound on message processing time.
-        .retentionDeadlineSeconds(7 * 24 * 60 * 60) // Expire key after max retention time, which is 7 days.
-        .build();
+      Map messageAttributes =
+          message.getAttributesMap() == null ? new HashMap<>() : message.getAttributesMap();
+      log.debug(
+          "Received Google pub/sub message with payload: {}\n and attributes: {}",
+          messagePayload,
+          messageAttributes);
+      MessageDescription description =
+          MessageDescription.builder()
+              .subscriptionName(subscriptionName)
+              .messagePayload(messagePayload)
+              .messageAttributes(messageAttributes)
+              .pubsubSystem(pubsubSystem)
+              .ackDeadlineSeconds(
+                  5 * ackDeadlineSeconds) // Set a high upper bound on message processing time.
+              .retentionDeadlineSeconds(
+                  7 * 24 * 60 * 60) // Expire key after max retention time, which is 7 days.
+              .build();
       GoogleMessageAcknowledger acknowledger = new GoogleMessageAcknowledger(consumer);
 
-      pubsubMessageHandler.handleMessage(description, acknowledger, identity.getIdentity(), messageId);
+      pubsubMessageHandler.handleMessage(
+          description, acknowledger, identity.getIdentity(), messageId);
     }
   }
 
@@ -189,11 +206,17 @@ public class GooglePubsubSubscriber implements PubsubSubscriber {
     @Override
     public void failed(ApiService.State from, Throwable failure) {
       if (failure.getMessage() != null && failure.getMessage().contains("NOT_FOUND")) {
-        log.error("Subscription name {} could not be found (will not retry): ", subscriptionName, failure);
+        log.error(
+            "Subscription name {} could not be found (will not retry): ",
+            subscriptionName,
+            failure);
         return;
       }
 
-      log.error("Google Pubsub listener for subscription name {} failure caused by: ", subscriptionName, failure);
+      log.error(
+          "Google Pubsub listener for subscription name {} failure caused by: ",
+          subscriptionName,
+          failure);
       subscriber.restart();
     }
   }

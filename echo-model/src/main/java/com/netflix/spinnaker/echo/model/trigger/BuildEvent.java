@@ -14,18 +14,16 @@
  * limitations under the License.
  */
 
-
 package com.netflix.spinnaker.echo.model.trigger;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-
-import java.util.List;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -66,7 +64,12 @@ public class BuildEvent extends TriggerEvent {
   }
 
   public enum Result {
-    SUCCESS, UNSTABLE, BUILDING, ABORTED, FAILURE, NOT_BUILT
+    SUCCESS,
+    UNSTABLE,
+    BUILDING,
+    ABORTED,
+    FAILURE,
+    NOT_BUILT
   }
 
   @JsonIgnore

@@ -23,13 +23,12 @@ import com.netflix.spinnaker.echo.model.trigger.BuildEvent;
 import com.netflix.spinnaker.echo.services.IgorService;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.core.RetrySupport;
+import java.util.*;
+import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
-
-import java.util.*;
-import java.util.function.Supplier;
 
 @Component
 @ConditionalOnProperty("igor.enabled")
@@ -42,9 +41,12 @@ public class BuildInfoService {
   private final RetrySupport retrySupport;
   private final ObjectMapper objectMapper = new ObjectMapper();
 
-  // Manual triggers try to replicate actual events (and in some cases build events) but rather than pass the event to
-  // echo, they add the information to the trigger. It may make sense to refactor manual triggering to pass a trigger and
-  // an event as with other triggers, but for now we'll see whether we can extract a build event from the trigger.
+  // Manual triggers try to replicate actual events (and in some cases build events) but rather than
+  // pass the event to
+  // echo, they add the information to the trigger. It may make sense to refactor manual triggering
+  // to pass a trigger and
+  // an event as with other triggers, but for now we'll see whether we can extract a build event
+  // from the trigger.
   public BuildEvent getBuildEvent(String master, String job, int buildNumber) {
     Map<String, Object> rawBuild = retry(() -> igorService.getBuild(buildNumber, master, job));
     BuildEvent.Build build = objectMapper.convertValue(rawBuild, BuildEvent.Build.class);
@@ -89,7 +91,7 @@ public class BuildInfoService {
 
   private List<Artifact> getArtifactsFromBuildInfo(Trigger trigger) {
     Map<String, Object> buildInfo = trigger.getBuildInfo();
-    if(buildInfo != null) {
+    if (buildInfo != null) {
       Object artifacts = buildInfo.get("artifacts");
       if (artifacts != null) {
         return objectMapper.convertValue(artifacts, new TypeReference<List<Artifact>>() {});
@@ -99,13 +101,14 @@ public class BuildInfoService {
   }
 
   public List<Artifact> getArtifactsFromBuildEvent(BuildEvent event, Trigger trigger) {
-    List<Artifact> buildArtifacts = Optional.ofNullable(event.getContent())
-      .map(BuildEvent.Content::getProject)
-      .map(BuildEvent.Project::getLastBuild)
-      .map(BuildEvent.Build::getArtifacts)
-      .orElse(Collections.emptyList());
+    List<Artifact> buildArtifacts =
+        Optional.ofNullable(event.getContent())
+            .map(BuildEvent.Content::getProject)
+            .map(BuildEvent.Project::getLastBuild)
+            .map(BuildEvent.Build::getArtifacts)
+            .orElse(Collections.emptyList());
 
-    List <Artifact> result = new ArrayList<>();
+    List<Artifact> result = new ArrayList<>();
     result.addAll(buildArtifacts);
     result.addAll(getArtifactsFromPropertyFile(event, trigger.getPropertyFile()));
     result.addAll(getArtifactsFromBuildInfo(trigger));

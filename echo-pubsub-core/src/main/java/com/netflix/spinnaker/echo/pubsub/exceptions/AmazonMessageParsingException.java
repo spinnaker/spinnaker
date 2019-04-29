@@ -17,8 +17,7 @@
 package com.netflix.spinnaker.echo.pubsub.exceptions;
 
 public class AmazonMessageParsingException extends RuntimeException {
-  public AmazonMessageParsingException() {
-  }
+  public AmazonMessageParsingException() {}
 
   public AmazonMessageParsingException(String message) {
     super(message);

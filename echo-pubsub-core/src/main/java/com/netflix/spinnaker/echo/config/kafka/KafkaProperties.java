@@ -17,5 +17,4 @@
 package com.netflix.spinnaker.echo.config.kafka;
 
 // TODO: move to pubsub-kafka module
-public class KafkaProperties {
-}
+public class KafkaProperties {}

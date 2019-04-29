@@ -17,11 +17,10 @@
 package com.netflix.spinnaker.echo.jira;
 
 import com.netflix.spinnaker.echo.controller.EchoResponse;
-import retrofit.http.Body;
-import retrofit.http.POST;
-
 import java.util.HashMap;
 import java.util.Map;
+import retrofit.http.Body;
+import retrofit.http.POST;
 
 public interface JiraService {
   @POST("/rest/api/2/issue/")

@@ -29,7 +29,9 @@ import com.netflix.spinnaker.echo.model.trigger.ManualEvent;
 import com.netflix.spinnaker.echo.model.trigger.ManualEvent.Content;
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
+import java.util.*;
+import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,22 +41,19 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import retrofit.RetrofitError;
 
-import java.util.*;
-import java.util.concurrent.TimeoutException;
-import java.util.stream.Collectors;
-
 /**
  * Implementation of TriggerEventHandler for events of type {@link ManualEvent}, which occur when a
  * user manually requests a particular pipeline to execute (possibly supplying parameters to include
- * in the trigger). This event handler is unique in that the trigger uniquely specifies which pipeline
- * to execute; rather than looking at pipeline triggers for one that matches the event, it simply
- * looks for the pipeline whose application and id/name match the manual execution request.
+ * in the trigger). This event handler is unique in that the trigger uniquely specifies which
+ * pipeline to execute; rather than looking at pipeline triggers for one that matches the event, it
+ * simply looks for the pipeline whose application and id/name match the manual execution request.
  */
 @Component
 public class ManualEventHandler implements TriggerEventHandler<ManualEvent> {
   private static final String MANUAL_TRIGGER_TYPE = "manual";
   private static final Logger log = LoggerFactory.getLogger(ManualEventHandler.class);
-  private static final List<String> supportedTriggerTypes = Collections.singletonList(MANUAL_TRIGGER_TYPE);
+  private static final List<String> supportedTriggerTypes =
+      Collections.singletonList(MANUAL_TRIGGER_TYPE);
 
   private final ObjectMapper objectMapper;
   private final Optional<BuildInfoService> buildInfoService;
@@ -63,11 +62,10 @@ public class ManualEventHandler implements TriggerEventHandler<ManualEvent> {
 
   @Autowired
   public ManualEventHandler(
-    ObjectMapper objectMapper,
-    Optional<BuildInfoService> buildInfoService,
-    Optional<ArtifactInfoService> artifactInfoService,
-    PipelineCache pipelineCache
-  ) {
+      ObjectMapper objectMapper,
+      Optional<BuildInfoService> buildInfoService,
+      Optional<ArtifactInfoService> artifactInfoService,
+      PipelineCache pipelineCache) {
     this.objectMapper = objectMapper;
     this.buildInfoService = buildInfoService;
     this.artifactInfoService = artifactInfoService;
@@ -101,37 +99,46 @@ public class ManualEventHandler implements TriggerEventHandler<ManualEvent> {
   }
 
   @Override
-  public List<Pipeline> getMatchingPipelines(ManualEvent event, PipelineCache pipelineCache) throws TimeoutException {
+  public List<Pipeline> getMatchingPipelines(ManualEvent event, PipelineCache pipelineCache)
+      throws TimeoutException {
     if (!isSuccessfulTriggerEvent(event)) {
       return Collections.emptyList();
     }
 
     return pipelineCache.getPipelinesSync().stream()
-      .map(p -> withMatchingTrigger(event, p))
-      .filter(Optional::isPresent)
-      .map(Optional::get)
-      .collect(Collectors.toList());
+        .map(p -> withMatchingTrigger(event, p))
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .collect(Collectors.toList());
   }
 
   private boolean pipelineMatches(String application, String nameOrId, Pipeline pipeline) {
     return !pipeline.isDisabled()
-      && pipeline.getApplication().equals(application)
-      && (pipeline.getName().equals(nameOrId) || pipeline.getId().equals(nameOrId));
+        && pipeline.getApplication().equals(application)
+        && (pipeline.getName().equals(nameOrId) || pipeline.getId().equals(nameOrId));
   }
 
   protected Pipeline buildTrigger(Pipeline pipeline, Trigger manualTrigger) {
-    List<Map<String, Object>> notifications = buildNotifications(pipeline.getNotifications(), manualTrigger.getNotifications());
+    List<Map<String, Object>> notifications =
+        buildNotifications(pipeline.getNotifications(), manualTrigger.getNotifications());
     Trigger trigger = manualTrigger.atPropagateAuth(true);
     List<Artifact> artifacts = new ArrayList<>();
     String master = manualTrigger.getMaster();
     String job = manualTrigger.getJob();
     Integer buildNumber = manualTrigger.getBuildNumber();
-    if (buildInfoService.isPresent() && StringUtils.isNoneEmpty(master, job) && buildNumber != null) {
+    if (buildInfoService.isPresent()
+        && StringUtils.isNoneEmpty(master, job)
+        && buildNumber != null) {
       BuildEvent buildEvent = buildInfoService.get().getBuildEvent(master, job, buildNumber);
-      trigger = trigger
-        .withBuildInfo(buildInfoService.get().getBuildInfo(buildEvent))
-        .withProperties(buildInfoService.get().getProperties(buildEvent, manualTrigger.getPropertyFile()));
-      artifacts.addAll(buildInfoService.get().getArtifactsFromBuildEvent(buildEvent, manualTrigger));
+      trigger =
+          trigger
+              .withBuildInfo(buildInfoService.get().getBuildInfo(buildEvent))
+              .withProperties(
+                  buildInfoService
+                      .get()
+                      .getProperties(buildEvent, manualTrigger.getPropertyFile()));
+      artifacts.addAll(
+          buildInfoService.get().getArtifactsFromBuildEvent(buildEvent, manualTrigger));
     }
 
     if (artifactInfoService.isPresent() && !CollectionUtils.isEmpty(manualTrigger.getArtifacts())) {
@@ -142,50 +149,60 @@ public class ManualEventHandler implements TriggerEventHandler<ManualEvent> {
     }
 
     return pipeline
-      .withTrigger(trigger)
-      .withNotifications(notifications)
-      .withReceivedArtifacts(artifacts);
+        .withTrigger(trigger)
+        .withNotifications(notifications)
+        .withReceivedArtifacts(artifacts);
   }
 
   private List<Map<String, Object>> convertToListOfMaps(List<Artifact> artifacts) {
-    return objectMapper.convertValue(artifacts, new TypeReference<List<Map<String,Object>>>() {});
+    return objectMapper.convertValue(artifacts, new TypeReference<List<Map<String, Object>>>() {});
   }
 
   /**
-   * If possible, replace trigger artifact with full artifact from the artifactInfoService.
-   * If there are no artifactInfo providers, or if the artifact is not found,
-   *   the artifact is returned as is.
+   * If possible, replace trigger artifact with full artifact from the artifactInfoService. If there
+   * are no artifactInfo providers, or if the artifact is not found, the artifact is returned as is.
    */
   protected List<Artifact> resolveArtifacts(List<Map<String, Object>> manualTriggerArtifacts) {
     List<Artifact> resolvedArtifacts = new ArrayList<>();
     for (Map a : manualTriggerArtifacts) {
-      Artifact artifact =  objectMapper.convertValue(a, Artifact.class);
+      Artifact artifact = objectMapper.convertValue(a, Artifact.class);
 
-      if (Strings.isNullOrEmpty(artifact.getName()) ||
-        Strings.isNullOrEmpty(artifact.getVersion()) ||
-        Strings.isNullOrEmpty(artifact.getLocation())) {
-        log.error("Artifact does not have enough information to fetch. " +
-          "Artifact must contain name, version, and location.");
+      if (Strings.isNullOrEmpty(artifact.getName())
+          || Strings.isNullOrEmpty(artifact.getVersion())
+          || Strings.isNullOrEmpty(artifact.getLocation())) {
+        log.error(
+            "Artifact does not have enough information to fetch. "
+                + "Artifact must contain name, version, and location.");
         resolvedArtifacts.add(artifact);
       } else {
         try {
-          Artifact resolvedArtifact = artifactInfoService.get()
-            .getArtifactByVersion(artifact.getLocation(), artifact.getName(), artifact.getVersion());
+          Artifact resolvedArtifact =
+              artifactInfoService
+                  .get()
+                  .getArtifactByVersion(
+                      artifact.getLocation(), artifact.getName(), artifact.getVersion());
           resolvedArtifacts.add(resolvedArtifact);
         } catch (RetrofitError e) {
-          if (e.getResponse() != null && e.getResponse().getStatus() == HttpStatus.NOT_FOUND.value()) {
-            log.error("Artifact " + artifact.getName() + " " + artifact.getVersion() +
-              " not found in image provider " + artifact.getLocation());
+          if (e.getResponse() != null
+              && e.getResponse().getStatus() == HttpStatus.NOT_FOUND.value()) {
+            log.error(
+                "Artifact "
+                    + artifact.getName()
+                    + " "
+                    + artifact.getVersion()
+                    + " not found in image provider "
+                    + artifact.getLocation());
             resolvedArtifacts.add(artifact);
-          }
-          else throw e;
+          } else throw e;
         }
       }
     }
     return resolvedArtifacts;
   }
 
-  private List<Map<String, Object>> buildNotifications(List<Map<String, Object>> pipelineNotifications, List<Map<String, Object>> triggerNotifications) {
+  private List<Map<String, Object>> buildNotifications(
+      List<Map<String, Object>> pipelineNotifications,
+      List<Map<String, Object>> triggerNotifications) {
     List<Map<String, Object>> notifications = new ArrayList<>();
     if (pipelineNotifications != null) {
       notifications.addAll(pipelineNotifications);

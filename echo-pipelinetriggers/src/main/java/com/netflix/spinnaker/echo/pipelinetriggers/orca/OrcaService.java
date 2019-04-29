@@ -39,20 +39,23 @@ public interface OrcaService {
   Map<String, Object> v2Plan(@Body Map pipelineConfig);
 
   @POST("/orchestrate")
-  Observable<TriggerResponse> trigger(@Body Pipeline pipeline, @Header(AuthenticatedRequest.SPINNAKER_USER) String runAsUser);
+  Observable<TriggerResponse> trigger(
+      @Body Pipeline pipeline, @Header(AuthenticatedRequest.SPINNAKER_USER) String runAsUser);
 
   @GET("/pipelines")
-  Observable<Collection<PipelineResponse>> getLatestPipelineExecutions(@Query("pipelineConfigIds") Collection<String> pipelineIds);
+  Observable<Collection<PipelineResponse>> getLatestPipelineExecutions(
+      @Query("pipelineConfigIds") Collection<String> pipelineIds);
 
   @GET("/pipelines")
-  Collection<PipelineResponse> getLatestPipelineExecutions(@Query("pipelineConfigIds") Collection<String> pipelineIds,
-                                                           @Query("limit") Integer limit);
+  Collection<PipelineResponse> getLatestPipelineExecutions(
+      @Query("pipelineConfigIds") Collection<String> pipelineIds, @Query("limit") Integer limit);
 
   // GET /pipelines accepts extra query params, which is used for echo extensions.
   @GET("/pipelines")
-  Observable<Collection<PipelineResponse>> getLatestPipelineExecutions(@Query("pipelineConfigIds") Collection<String> pipelineIds,
-                                                                       @Query("statuses") Collection<String> statuses,
-                                                                       @Query("limit") Integer limit);
+  Observable<Collection<PipelineResponse>> getLatestPipelineExecutions(
+      @Query("pipelineConfigIds") Collection<String> pipelineIds,
+      @Query("statuses") Collection<String> statuses,
+      @Query("limit") Integer limit);
 
   class TriggerResponse {
     private String ref;

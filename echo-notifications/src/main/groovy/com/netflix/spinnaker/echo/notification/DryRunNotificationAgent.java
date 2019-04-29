@@ -16,10 +16,7 @@
 
 package com.netflix.spinnaker.echo.notification;
 
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Optional;
+import static java.lang.String.format;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.echo.config.DryRunConfig;
@@ -28,8 +25,10 @@ import com.netflix.spinnaker.echo.model.Pipeline;
 import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService;
 import com.netflix.spinnaker.echo.services.Front50Service;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
-import static java.lang.String.format;
 
 @Slf4j
 public class DryRunNotificationAgent extends AbstractEventNotificationAgent {
@@ -39,37 +38,30 @@ public class DryRunNotificationAgent extends AbstractEventNotificationAgent {
   private final DryRunConfig.DryRunProperties properties;
 
   public DryRunNotificationAgent(
-    Front50Service front50,
-    OrcaService orca,
-    DryRunConfig.DryRunProperties properties
-  ) {
+      Front50Service front50, OrcaService orca, DryRunConfig.DryRunProperties properties) {
     this.front50 = front50;
     this.orca = orca;
     this.properties = properties;
   }
 
-  @Override public String getNotificationType() {
+  @Override
+  public String getNotificationType() {
     return "dryrun";
   }
 
   @Override
   public void sendNotifications(
-    Map preference,
-    String application,
-    Event event,
-    Map config,
-    String status) {
+      Map preference, String application, Event event, Map config, String status) {
     Map<String, ?> execution = (Map<String, ?>) event.getContent().get("execution");
     String pipelineConfigId = (String) execution.get("pipelineConfigId");
     if (pipelineConfigId == null) {
       return;
     }
     log.info("Received dry run notification for {}", pipelineConfigId);
-    Optional<Pipeline> match = front50
-      .getPipelines(application)
-      .stream()
-      .filter(pipeline -> pipeline.getId().equals(pipelineConfigId))
-      .findFirst();
+    Optional<Pipeline> match =
+        front50.getPipelines(application).stream()
+            .filter(pipeline -> pipeline.getId().equals(pipelineConfigId))
+            .findFirst();
 
     if (!match.isPresent()) {
       log.error("No pipeline with config id {} found for {}", pipelineConfigId, application);
@@ -79,17 +71,19 @@ public class DryRunNotificationAgent extends AbstractEventNotificationAgent {
     try {
       Pipeline pipeline = match.get();
       log.warn("Triggering dry run of {} {}", pipeline.getApplication(), pipeline.getName());
-      Trigger trigger = Trigger.builder()
-        .type(Trigger.Type.DRYRUN.toString())
-        .lastSuccessfulExecution(execution)
-        .build();
+      Trigger trigger =
+          Trigger.builder()
+              .type(Trigger.Type.DRYRUN.toString())
+              .lastSuccessfulExecution(execution)
+              .build();
       orca.trigger(
-        pipeline
-          .withName(format("%s (dry run)", pipeline.getName()))
-          .withId(null)
-          .withTrigger(trigger)
-          .withNotifications(mapper.convertValue(properties.getNotifications(), List.class)))
-        .subscribe(response -> log.info("Pipeline triggered: {}", response));
+              pipeline
+                  .withName(format("%s (dry run)", pipeline.getName()))
+                  .withId(null)
+                  .withTrigger(trigger)
+                  .withNotifications(
+                      mapper.convertValue(properties.getNotifications(), List.class)))
+          .subscribe(response -> log.info("Pipeline triggered: {}", response));
     } catch (Exception ex) {
       log.error("Error triggering dry run of {}", pipelineConfigId, ex);
     }

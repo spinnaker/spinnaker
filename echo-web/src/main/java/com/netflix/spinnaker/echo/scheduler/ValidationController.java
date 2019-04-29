@@ -19,55 +19,55 @@ package com.netflix.spinnaker.echo.scheduler;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.echo.cron.CronExpressionFuzzer;
 import com.netflix.spinnaker.echo.scheduler.actions.pipeline.InvalidCronExpressionException;
+import java.io.IOException;
+import java.text.ParseException;
+import java.util.Map;
+import javax.servlet.http.HttpServletResponse;
 import net.redhogs.cronparser.CronExpressionDescriptor;
 import net.redhogs.cronparser.Options;
 import org.quartz.CronExpression;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.text.ParseException;
-import java.util.Map;
-
 @RestController
 public class ValidationController {
 
-    @RequestMapping(value = "/validateCronExpression", method = RequestMethod.GET)
-    @ResponseStatus(value = HttpStatus.OK)
-    public Map<String,Object> validateCronExpression(@RequestParam String cronExpression) {
-      ImmutableMap.Builder<String, Object> mapBuilder = ImmutableMap.builder();
+  @RequestMapping(value = "/validateCronExpression", method = RequestMethod.GET)
+  @ResponseStatus(value = HttpStatus.OK)
+  public Map<String, Object> validateCronExpression(@RequestParam String cronExpression) {
+    ImmutableMap.Builder<String, Object> mapBuilder = ImmutableMap.builder();
 
-      try {
-        if (cronExpression == null) {
-          throw new InvalidCronExpressionException("null", "cron expression can't be null");
-        }
-
-        new CronExpression(CronExpressionFuzzer.fuzz("", cronExpression));
-
-        mapBuilder.put("response", "Cron expression is valid");
-        if (CronExpressionFuzzer.hasFuzzyExpression(cronExpression)) {
-          mapBuilder.put("description", "No description available for fuzzy cron expressions");
-        } else {
-          try {
-            Options options = new Options();
-            options.setZeroBasedDayOfWeek(false);
-            mapBuilder.put("description", CronExpressionDescriptor.getDescription(cronExpression, options));
-          } catch (ParseException IGNORED) {
-            mapBuilder.put("description", "No description available");
-          }
-        }
-
-        return mapBuilder.build();
+    try {
+      if (cronExpression == null) {
+        throw new InvalidCronExpressionException("null", "cron expression can't be null");
       }
-      catch (ParseException e) {
-        throw new InvalidCronExpressionException(cronExpression, e.getMessage());
-      }
-    }
 
-    @SuppressWarnings("unused")
-    @ExceptionHandler(InvalidCronExpressionException.class)
-    void handleInvalidCronExpression(HttpServletResponse response, InvalidCronExpressionException e) throws IOException {
-        response.sendError(HttpStatus.BAD_REQUEST.value(), e.getMessage());
+      new CronExpression(CronExpressionFuzzer.fuzz("", cronExpression));
+
+      mapBuilder.put("response", "Cron expression is valid");
+      if (CronExpressionFuzzer.hasFuzzyExpression(cronExpression)) {
+        mapBuilder.put("description", "No description available for fuzzy cron expressions");
+      } else {
+        try {
+          Options options = new Options();
+          options.setZeroBasedDayOfWeek(false);
+          mapBuilder.put(
+              "description", CronExpressionDescriptor.getDescription(cronExpression, options));
+        } catch (ParseException IGNORED) {
+          mapBuilder.put("description", "No description available");
+        }
+      }
+
+      return mapBuilder.build();
+    } catch (ParseException e) {
+      throw new InvalidCronExpressionException(cronExpression, e.getMessage());
     }
+  }
+
+  @SuppressWarnings("unused")
+  @ExceptionHandler(InvalidCronExpressionException.class)
+  void handleInvalidCronExpression(HttpServletResponse response, InvalidCronExpressionException e)
+      throws IOException {
+    response.sendError(HttpStatus.BAD_REQUEST.value(), e.getMessage());
+  }
 }

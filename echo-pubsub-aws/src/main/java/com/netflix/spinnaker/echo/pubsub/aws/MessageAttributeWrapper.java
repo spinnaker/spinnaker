@@ -12,11 +12,10 @@ public class MessageAttributeWrapper {
   @JsonProperty("Value")
   private String attributeValue;
 
-  public MessageAttributeWrapper() {
-  }
+  public MessageAttributeWrapper() {}
 
   public MessageAttributeWrapper(String attributeType, String attributeValue) {
     this.attributeType = attributeType;
-    this.attributeValue= attributeValue;
+    this.attributeValue = attributeValue;
   }
 }

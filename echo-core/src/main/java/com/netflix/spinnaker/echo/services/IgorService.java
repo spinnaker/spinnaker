@@ -17,45 +17,47 @@
 package com.netflix.spinnaker.echo.services;
 
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import java.util.List;
+import java.util.Map;
 import retrofit.client.Response;
 import retrofit.http.*;
 import retrofit.mime.TypedInput;
 
-import java.util.List;
-import java.util.Map;
-
 public interface IgorService {
   @GET("/builds/status/{buildNumber}/{master}/{job}")
-  Map<String, Object> getBuild(@Path("buildNumber") Integer buildNumber,
-    @Path("master") String master,
-    @Path(value = "job", encode = false) String job);
+  Map<String, Object> getBuild(
+      @Path("buildNumber") Integer buildNumber,
+      @Path("master") String master,
+      @Path(value = "job", encode = false) String job);
 
   @GET("/builds/properties/{buildNumber}/{fileName}/{master}/{job}")
-  Map<String, Object> getPropertyFile(@Path("buildNumber") Integer buildNumber,
-    @Path("fileName") String fileName,
-    @Path("master") String master,
-    @Path(value = "job", encode = false) String job);
+  Map<String, Object> getPropertyFile(
+      @Path("buildNumber") Integer buildNumber,
+      @Path("fileName") String fileName,
+      @Path("master") String master,
+      @Path(value = "job", encode = false) String job);
 
   @GET("/builds/artifacts/{buildNumber}/{master}/{job}")
-  List<Artifact> getArtifacts(@Path("buildNumber") Integer buildNumber,
-    @Query("propertyFile") String propertyFile,
-    @Path("master") String master,
-    @Path(value = "job", encode = false) String job);
+  List<Artifact> getArtifacts(
+      @Path("buildNumber") Integer buildNumber,
+      @Query("propertyFile") String propertyFile,
+      @Path("master") String master,
+      @Path(value = "job", encode = false) String job);
 
   @GET("/artifacts/{provider}/{packageName}")
-  List<String> getVersions(@Path("provider") String provider,
-                           @Path("packageName") String packageName);
+  List<String> getVersions(
+      @Path("provider") String provider, @Path("packageName") String packageName);
 
   @GET("/artifacts/{provider}/{packageName}/{version}")
-  Artifact getArtifactByVersion(@Path("provider") String provider,
-                                @Path("packageName") String packageName,
-                                @Path("version") String version);
+  Artifact getArtifactByVersion(
+      @Path("provider") String provider,
+      @Path("packageName") String packageName,
+      @Path("version") String version);
 
   @PUT("/gcb/builds/{account}/{buildId}")
   Response updateBuildStatus(
-    @Path("account") String account,
-    @Path("buildId") String buildId,
-    @Query("status") String status,
-    @Body TypedInput build
-  );
+      @Path("account") String account,
+      @Path("buildId") String buildId,
+      @Query("status") String status,
+      @Body TypedInput build);
 }

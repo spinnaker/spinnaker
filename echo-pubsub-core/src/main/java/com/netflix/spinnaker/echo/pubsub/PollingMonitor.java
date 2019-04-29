@@ -19,9 +19,7 @@ package com.netflix.spinnaker.echo.pubsub;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 
-/**
- * An interface for monitors which rely on polling.
- */
+/** An interface for monitors which rely on polling. */
 public interface PollingMonitor extends ApplicationListener<ContextRefreshedEvent> {
   void onApplicationEvent(ContextRefreshedEvent event);
 

@@ -25,16 +25,15 @@ import com.netflix.spinnaker.echo.model.pubsub.MessageDescription;
 import com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers.PubsubEventHandler;
 import com.netflix.spinnaker.echo.pubsub.model.EventCreator;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import java.io.IOException;
+import java.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
-import java.io.IOException;
-import java.util.*;
-
 /**
- * An EventCreator that extracts artifacts from an incoming message and creates an event of type pubsub from the
- * message and artifacts.
+ * An EventCreator that extracts artifacts from an incoming message and creates an event of type
+ * pubsub from the message and artifacts.
  */
 @Slf4j
 public class PubsubEventCreator implements EventCreator {
@@ -82,7 +81,8 @@ public class PubsubEventCreator implements EventCreator {
     }
     List<Artifact> artifacts = messageArtifactTranslator.get().parseArtifacts(messagePayload);
     // Artifact must have at least a reference defined.
-    if (CollectionUtils.isEmpty(artifacts) || StringUtils.isEmpty(artifacts.get(0).getReference())) {
+    if (CollectionUtils.isEmpty(artifacts)
+        || StringUtils.isEmpty(artifacts.get(0).getReference())) {
       return Collections.emptyList();
     }
     return artifacts;

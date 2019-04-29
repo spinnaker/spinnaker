@@ -16,11 +16,12 @@
 
 package com.netflix.spinnaker.echo.artifacts;
 
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.echo.config.ArtifactEmitterProperties;
 import com.netflix.spinnaker.echo.model.ArtifactEvent;
 import com.netflix.spinnaker.echo.services.KeelService;
+import java.util.HashMap;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,14 +29,12 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * In an effort to move towards a more artifact centric workflow, this collector will accept
- *  artifacts from all over echo, and will publish them to any keel.
+ * artifacts from all over echo, and will publish them to any keel.
  *
- *  todo eb: figure out if there are other cases for emitting artifacts, and if so make this solution more general
+ * <p>todo eb: figure out if there are other cases for emitting artifacts, and if so make this
+ * solution more general
  */
 @Component
 @ConditionalOnExpression("${artifact-emitter.enabled:false}")
@@ -47,10 +46,9 @@ public class ArtifactEmitter {
 
   @Autowired
   public ArtifactEmitter(
-    KeelService keelService,
-    ArtifactEmitterProperties artifactEmitterProperties,
-    ObjectMapper objectMapper
-  ) {
+      KeelService keelService,
+      ArtifactEmitterProperties artifactEmitterProperties,
+      ObjectMapper objectMapper) {
     this.keelService = keelService;
     this.artifactEmitterProperties = artifactEmitterProperties;
     this.objectMapper = objectMapper;
@@ -63,7 +61,8 @@ public class ArtifactEmitter {
     try {
       Map sentEvent = new HashMap();
       sentEvent.put("eventName", artifactEmitterProperties.getEventName());
-      sentEvent.put(artifactEmitterProperties.getFieldName(), objectMapper.convertValue(event, Map.class));
+      sentEvent.put(
+          artifactEmitterProperties.getFieldName(), objectMapper.convertValue(event, Map.class));
 
       keelService.sendArtifactEvent(sentEvent);
     } catch (Exception e) {

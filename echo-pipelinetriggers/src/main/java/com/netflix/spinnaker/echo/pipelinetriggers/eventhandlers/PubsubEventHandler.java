@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers;
 
+import static com.netflix.spinnaker.echo.pipelinetriggers.artifacts.ArtifactMatcher.isConstraintInPayload;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.model.Pipeline;
@@ -23,25 +25,23 @@ import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.model.pubsub.MessageDescription;
 import com.netflix.spinnaker.echo.model.trigger.PubsubEvent;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Predicate;
-
-import static com.netflix.spinnaker.echo.pipelinetriggers.artifacts.ArtifactMatcher.isConstraintInPayload;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * Implementation of TriggerEventHandler for events of type {@link PubsubEvent}, which occur when
- * a pubsub message is received.
+ * Implementation of TriggerEventHandler for events of type {@link PubsubEvent}, which occur when a
+ * pubsub message is received.
  */
 public class PubsubEventHandler extends BaseTriggerEventHandler<PubsubEvent> {
   public static final String PUBSUB_TRIGGER_TYPE = "pubsub";
-  private static final List<String> supportedTriggerTypes = Collections.singletonList(PUBSUB_TRIGGER_TYPE);
+  private static final List<String> supportedTriggerTypes =
+      Collections.singletonList(PUBSUB_TRIGGER_TYPE);
 
   @Autowired
   public PubsubEventHandler(Registry registry, ObjectMapper objectMapper) {
@@ -71,30 +71,36 @@ public class PubsubEventHandler extends BaseTriggerEventHandler<PubsubEvent> {
   @Override
   protected Function<Trigger, Trigger> buildTrigger(PubsubEvent pubsubEvent) {
     Map payload = pubsubEvent.getPayload();
-    Map parameters = payload.containsKey("parameters") ? (Map) payload.get("parameters") : new HashMap();
+    Map parameters =
+        payload.containsKey("parameters") ? (Map) payload.get("parameters") : new HashMap();
     MessageDescription description = pubsubEvent.getContent().getMessageDescription();
-    return trigger -> trigger
-          .atMessageDescription(description.getSubscriptionName(), description.getPubsubSystem().toString())
-          .atParameters(parameters)
-          .atPayload(payload)
-          .atEventId(pubsubEvent.getEventId());
+    return trigger ->
+        trigger
+            .atMessageDescription(
+                description.getSubscriptionName(), description.getPubsubSystem().toString())
+            .atParameters(parameters)
+            .atPayload(payload)
+            .atEventId(pubsubEvent.getEventId());
   }
 
   @Override
   protected boolean isValidTrigger(Trigger trigger) {
-    return trigger.isEnabled()
-        && isPubsubTrigger(trigger);
+    return trigger.isEnabled() && isPubsubTrigger(trigger);
   }
 
   @Override
   protected Predicate<Trigger> matchTriggerFor(PubsubEvent pubsubEvent) {
     MessageDescription description = pubsubEvent.getContent().getMessageDescription();
 
-    return trigger -> trigger.getType().equalsIgnoreCase(PUBSUB_TRIGGER_TYPE)
-        && trigger.getPubsubSystem().equalsIgnoreCase(description.getPubsubSystem().toString())
-        && trigger.getSubscriptionName().equalsIgnoreCase(description.getSubscriptionName())
-        && (trigger.getPayloadConstraints() == null || isConstraintInPayload(trigger.getPayloadConstraints(), pubsubEvent.getPayload()))
-        && (trigger.getAttributeConstraints() == null || isConstraintInPayload(trigger.getAttributeConstraints(), description.getMessageAttributes()));
+    return trigger ->
+        trigger.getType().equalsIgnoreCase(PUBSUB_TRIGGER_TYPE)
+            && trigger.getPubsubSystem().equalsIgnoreCase(description.getPubsubSystem().toString())
+            && trigger.getSubscriptionName().equalsIgnoreCase(description.getSubscriptionName())
+            && (trigger.getPayloadConstraints() == null
+                || isConstraintInPayload(trigger.getPayloadConstraints(), pubsubEvent.getPayload()))
+            && (trigger.getAttributeConstraints() == null
+                || isConstraintInPayload(
+                    trigger.getAttributeConstraints(), description.getMessageAttributes()));
   }
 
   @Override

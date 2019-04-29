@@ -16,26 +16,24 @@
 
 package com.netflix.spinnaker.echo.scm;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.echo.model.Event;
-import lombok.Data;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.Map;
+import lombok.Data;
+import org.springframework.stereotype.Component;
 
 @Component
 public class GitlabWehbookEventHandler implements GitWebhookHandler {
 
   private ObjectMapper objectMapper;
 
-  public GitlabWehbookEventHandler(){
-    this.objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+  public GitlabWehbookEventHandler() {
+    this.objectMapper =
+        new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
   }
 
-  public boolean handles(String source){
+  public boolean handles(String source) {
     return "gitlab".equals(source);
   };
 
@@ -44,7 +42,8 @@ public class GitlabWehbookEventHandler implements GitWebhookHandler {
   }
 
   public void handle(Event event, Map postedEvent) {
-    GitlabWebhookEvent gitlabWebhookEvent = objectMapper.convertValue(postedEvent, GitlabWebhookEvent.class);
+    GitlabWebhookEvent gitlabWebhookEvent =
+        objectMapper.convertValue(postedEvent, GitlabWebhookEvent.class);
     event.content.put("hash", gitlabWebhookEvent.after);
     event.content.put("branch", gitlabWebhookEvent.ref.replace("refs/heads/", ""));
     event.content.put("repoProject", gitlabWebhookEvent.project.namespace);

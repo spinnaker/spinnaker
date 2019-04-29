@@ -63,16 +63,17 @@ public class Front50Config {
   }
 
   @Bean
-  public Front50Service front50Service(Endpoint front50Endpoint, OkHttpClient okHttpClient,
-    LogLevel retrofitLogLevel) {
+  public Front50Service front50Service(
+      Endpoint front50Endpoint, OkHttpClient okHttpClient, LogLevel retrofitLogLevel) {
     log.info("front50 service loaded");
 
     return new Builder()
-      .setEndpoint(front50Endpoint)
-      .setConverter(new JacksonConverter())
-      .setClient(new OkClient(okHttpClient))
-      .setLogLevel(retrofitLogLevel)
-      .setLog(new Slf4jRetrofitLogger(Front50Service.class)).build()
-      .create(Front50Service.class);
+        .setEndpoint(front50Endpoint)
+        .setConverter(new JacksonConverter())
+        .setClient(new OkClient(okHttpClient))
+        .setLogLevel(retrofitLogLevel)
+        .setLog(new Slf4jRetrofitLogger(Front50Service.class))
+        .build()
+        .create(Front50Service.class);
   }
 }

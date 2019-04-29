@@ -15,27 +15,29 @@
  */
 
 package com.netflix.spinnaker.echo.artifacts;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 @Component
 @Slf4j
 public class QuayArtifactExtractor implements WebhookArtifactExtractor {
 
-  final private ObjectMapper objectMapper;
+  private final ObjectMapper objectMapper;
 
   @Autowired
-  public QuayArtifactExtractor(ObjectMapper objectMapper) { this.objectMapper = objectMapper; }
+  public QuayArtifactExtractor(ObjectMapper objectMapper) {
+    this.objectMapper = objectMapper;
+  }
 
   @Override
   public List<Artifact> getArtifacts(String source, Map payload) {
@@ -48,18 +50,22 @@ public class QuayArtifactExtractor implements WebhookArtifactExtractor {
     }
 
     return updatedTags.stream()
-      .map(a -> Artifact.builder()
-        .type("docker/image")
-        .reference(String.format("%s:%s", pushEvent.getDockerUrl(), a))
-        .name(pushEvent.getDockerUrl())
-        .version(a)
-        .provenance(pushEvent.getHomepage())
-        .build()
-      ).collect(Collectors.toList());
+        .map(
+            a ->
+                Artifact.builder()
+                    .type("docker/image")
+                    .reference(String.format("%s:%s", pushEvent.getDockerUrl(), a))
+                    .name(pushEvent.getDockerUrl())
+                    .version(a)
+                    .provenance(pushEvent.getHomepage())
+                    .build())
+        .collect(Collectors.toList());
   }
 
   @Override
-  public boolean handles(String type, String source) { return (source != null && source.equals("quay")); }
+  public boolean handles(String type, String source) {
+    return (source != null && source.equals("quay"));
+  }
 
   @Data
   private static class PushEvent {
@@ -67,8 +73,10 @@ public class QuayArtifactExtractor implements WebhookArtifactExtractor {
     private String namespace;
     private String name;
     private String homepage;
+
     @JsonProperty("docker_url")
     private String dockerUrl;
+
     @JsonProperty("updated_tags")
     private List<String> updatedTags;
   }

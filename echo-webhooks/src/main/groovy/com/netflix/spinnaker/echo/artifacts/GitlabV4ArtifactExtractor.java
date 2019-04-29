@@ -19,10 +19,6 @@ package com.netflix.spinnaker.echo.artifacts;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import lombok.Data;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -30,45 +26,56 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.Data;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 // GitlabV4ArtifactExtractor supports V4 of the Gitlab REST API
 @Component
 public class GitlabV4ArtifactExtractor implements WebhookArtifactExtractor {
-  final private ObjectMapper objectMapper;
+  private final ObjectMapper objectMapper;
 
   @Autowired
-  public GitlabV4ArtifactExtractor(ObjectMapper objectMapper) { this.objectMapper = objectMapper; }
+  public GitlabV4ArtifactExtractor(ObjectMapper objectMapper) {
+    this.objectMapper = objectMapper;
+  }
 
   @Override
   public List<Artifact> getArtifacts(String source, Map payload) {
     PushEvent pushEvent = objectMapper.convertValue(payload, PushEvent.class);
     String sha = pushEvent.after;
     Project project = pushEvent.project;
-    // since gitlab doesn't provide us with explicit API urls we have to assume the baseUrl from other
+    // since gitlab doesn't provide us with explicit API urls we have to assume the baseUrl from
+    // other
     // urls that are provided
     String gitlabBaseUrl = extractBaseUrlFromHomepage(project.homepage, project.pathWithNamespace);
-    String apiBaseUrl = String.format("%s/api/v4/projects/%s/repository/files",
-      gitlabBaseUrl,
-      URLEncoder.encode(project.pathWithNamespace));
+    String apiBaseUrl =
+        String.format(
+            "%s/api/v4/projects/%s/repository/files",
+            gitlabBaseUrl, URLEncoder.encode(project.pathWithNamespace));
 
-    Set<String> affectedFiles = pushEvent.commits.stream()
-      .map(c -> {
-        List<String> fs = new ArrayList<>();
-        fs.addAll(c.added);
-        fs.addAll(c.modified);
-        return fs;
-      })
-      .flatMap(Collection::stream)
-      .collect(Collectors.toSet());
+    Set<String> affectedFiles =
+        pushEvent.commits.stream()
+            .map(
+                c -> {
+                  List<String> fs = new ArrayList<>();
+                  fs.addAll(c.added);
+                  fs.addAll(c.modified);
+                  return fs;
+                })
+            .flatMap(Collection::stream)
+            .collect(Collectors.toSet());
 
     return affectedFiles.stream()
-      .map(f -> Artifact.builder()
-        .name(f)
-        .version(sha)
-        .type("gitlab/file")
-        .reference(String.format("%s/%s/raw", apiBaseUrl, URLEncoder.encode(f)))
-        .build())
-      .collect(Collectors.toList());
+        .map(
+            f ->
+                Artifact.builder()
+                    .name(f)
+                    .version(sha)
+                    .type("gitlab/file")
+                    .reference(String.format("%s/%s/raw", apiBaseUrl, URLEncoder.encode(f)))
+                    .build())
+        .collect(Collectors.toList());
   }
 
   public boolean handles(String type, String source) {
@@ -96,6 +103,7 @@ public class GitlabV4ArtifactExtractor implements WebhookArtifactExtractor {
   @Data
   private static class Project {
     private String homepage;
+
     @JsonProperty("path_with_namespace")
     private String pathWithNamespace;
   }

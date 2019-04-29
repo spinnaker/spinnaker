@@ -21,80 +21,60 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact;
-import lombok.*;
-import lombok.experimental.Wither;
-
 import java.util.List;
 import java.util.Map;
+import lombok.*;
+import lombok.experimental.Wither;
 
 @JsonDeserialize(builder = Pipeline.PipelineBuilder.class)
 @Builder
 @Wither
-@ToString(of = {"application", "name", "id"}, includeFieldNames = false)
+@ToString(
+    of = {"application", "name", "id"},
+    includeFieldNames = false)
 @Value
 public class Pipeline {
-  @JsonProperty
-  @NonNull String application;
+  @JsonProperty @NonNull String application;
 
-  @JsonProperty
-  Object config;
+  @JsonProperty Object config;
 
-  @JsonProperty
-  @NonNull String name;
+  @JsonProperty @NonNull String name;
 
-  @JsonProperty
-  String id;
+  @JsonProperty String id;
 
-  @JsonProperty
-  String executionEngine;
+  @JsonProperty String executionEngine;
 
-  @JsonProperty
-  boolean parallel;
+  @JsonProperty boolean parallel;
 
-  @JsonProperty
-  boolean disabled;
+  @JsonProperty boolean disabled;
 
-  @JsonProperty
-  boolean limitConcurrent;
+  @JsonProperty boolean limitConcurrent;
 
-  @JsonProperty
-  boolean keepWaitingPipelines;
+  @JsonProperty boolean keepWaitingPipelines;
 
-  @JsonProperty
-  boolean plan;
+  @JsonProperty boolean plan;
 
-  @JsonProperty
-  boolean respectQuietPeriod;
+  @JsonProperty boolean respectQuietPeriod;
 
-  @JsonProperty
-  List<Trigger> triggers;
+  @JsonProperty List<Trigger> triggers;
 
-  @JsonProperty
-  String type;
+  @JsonProperty String type;
 
-  @JsonProperty
-  String schema;
+  @JsonProperty String schema;
 
-  @JsonProperty
-  Object template;
+  @JsonProperty Object template;
 
-  @JsonProperty
-  List<Map<String, Object>> stages;
+  @JsonProperty List<Map<String, Object>> stages;
 
-  @JsonProperty
-  List<Map<String, Object>> notifications;
+  @JsonProperty List<Map<String, Object>> notifications;
 
-  @JsonProperty
-  List<Artifact> receivedArtifacts;
+  @JsonProperty List<Artifact> receivedArtifacts;
 
-  @JsonProperty
-  List<ExpectedArtifact> expectedArtifacts;
+  @JsonProperty List<ExpectedArtifact> expectedArtifacts;
 
-  @JsonProperty
-  List<Map<String, Object>> parameterConfig;
+  @JsonProperty List<Map<String, Object>> parameterConfig;
 
-  @JsonProperty
-  Object appConfig;
+  @JsonProperty Object appConfig;
 
   Trigger trigger;
 

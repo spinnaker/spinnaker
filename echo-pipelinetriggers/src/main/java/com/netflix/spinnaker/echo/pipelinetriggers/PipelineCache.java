@@ -59,30 +59,37 @@ public class PipelineCache implements MonitoredPoller {
   private volatile Boolean running;
   private volatile Instant lastPollTimestamp;
 
-  @Nullable
-  private volatile List<Pipeline> pipelines;
+  @Nullable private volatile List<Pipeline> pipelines;
 
-  @Nullable
-  private volatile Map<String, List<Trigger>> triggersByType;
+  @Nullable private volatile Map<String, List<Trigger>> triggersByType;
 
   @Autowired
-  public PipelineCache(@Value("${front50.polling-interval-ms:10000}") int pollingIntervalMs,
-                       @Value("${front50.polling-sleep-ms:100}") int pollingSleepMs,
-                       ObjectMapper objectMapper,
-                       @NonNull Front50Service front50,
-                       @NonNull OrcaService orca,
-                       @NonNull Registry registry) {
-    this(Executors.newSingleThreadScheduledExecutor(), pollingIntervalMs, pollingSleepMs, objectMapper, front50, orca, registry);
+  public PipelineCache(
+      @Value("${front50.polling-interval-ms:10000}") int pollingIntervalMs,
+      @Value("${front50.polling-sleep-ms:100}") int pollingSleepMs,
+      ObjectMapper objectMapper,
+      @NonNull Front50Service front50,
+      @NonNull OrcaService orca,
+      @NonNull Registry registry) {
+    this(
+        Executors.newSingleThreadScheduledExecutor(),
+        pollingIntervalMs,
+        pollingSleepMs,
+        objectMapper,
+        front50,
+        orca,
+        registry);
   }
 
   // VisibleForTesting
-  public PipelineCache(ScheduledExecutorService executorService,
-                       int pollingIntervalMs,
-                       int pollingSleepMs,
-                       ObjectMapper objectMapper,
-                       @NonNull Front50Service front50,
-                       @NonNull OrcaService orca,
-                       @NonNull Registry registry) {
+  public PipelineCache(
+      ScheduledExecutorService executorService,
+      int pollingIntervalMs,
+      int pollingSleepMs,
+      ObjectMapper objectMapper,
+      @NonNull Front50Service front50,
+      @NonNull OrcaService orca,
+      @NonNull Registry registry) {
     this.objectMapper = objectMapper;
     this.executorService = executorService;
     this.pollingIntervalMs = pollingIntervalMs;
@@ -106,24 +113,25 @@ public class PipelineCache implements MonitoredPoller {
     running = true;
 
     executorService.scheduleWithFixedDelay(
-      new Runnable() {
-        @Override
-        public void run() {
-          pollPipelineConfigs();
-        }
-      },
-      0, pollingIntervalMs, TimeUnit.MILLISECONDS);
+        new Runnable() {
+          @Override
+          public void run() {
+            pollPipelineConfigs();
+          }
+        },
+        0,
+        pollingIntervalMs,
+        TimeUnit.MILLISECONDS);
 
-    PolledMeter
-      .using(registry)
-      .withName("front50.lastPoll")
-      .monitorValue(this, PipelineCache::getDurationSeconds);
+    PolledMeter.using(registry)
+        .withName("front50.lastPoll")
+        .monitorValue(this, PipelineCache::getDurationSeconds);
   }
 
   private Double getDurationSeconds() {
     return lastPollTimestamp == null
-      ? -1d
-      : (double) Duration.between(lastPollTimestamp, now()).getSeconds();
+        ? -1d
+        : (double) Duration.between(lastPollTimestamp, now()).getSeconds();
   }
 
   // VisibleForTesting
@@ -142,7 +150,10 @@ public class PipelineCache implements MonitoredPoller {
 
       lastPollTimestamp = now();
       registry.counter("front50.requests").increment();
-      log.debug("Fetched {} pipeline configs in {}ms", pipelines.size(), System.currentTimeMillis() - start);
+      log.debug(
+          "Fetched {} pipeline configs in {}ms",
+          pipelines.size(),
+          System.currentTimeMillis() - start);
     } catch (Exception e) {
       log.error("Error fetching pipelines from Front50", e);
       registry.counter("front50.errors").increment();
@@ -150,10 +161,11 @@ public class PipelineCache implements MonitoredPoller {
   }
 
   private Map<String, Object> hydrate(Map<String, Object> rawPipeline) {
-    Predicate<Map<String, Object>> isV2Pipeline = p -> {
-      return p.getOrDefault("type", "").equals("templatedPipeline") &&
-        p.getOrDefault("schema", "").equals("v2");
-    };
+    Predicate<Map<String, Object>> isV2Pipeline =
+        p -> {
+          return p.getOrDefault("type", "").equals("templatedPipeline")
+              && p.getOrDefault("schema", "").equals("v2");
+        };
 
     return planPipelineIfNeeded(rawPipeline, isV2Pipeline);
   }
@@ -161,12 +173,12 @@ public class PipelineCache implements MonitoredPoller {
   // converts a raw pipeline config from front50 into a processed Pipeline object
   private Optional<Pipeline> process(Map<String, Object> rawPipeline) {
     return Stream.of(rawPipeline)
-      .map(this::hydrate)
-      .filter(m -> !m.isEmpty())
-      .map(this::convertToPipeline)
-      .filter(Objects::nonNull)
-      .map(PipelineCache::decorateTriggers)
-      .findFirst();
+        .map(this::hydrate)
+        .filter(m -> !m.isEmpty())
+        .map(this::convertToPipeline)
+        .filter(Objects::nonNull)
+        .map(PipelineCache::decorateTriggers)
+        .findFirst();
   }
 
   private List<Map<String, Object>> fetchRawPipelines() {
@@ -178,10 +190,10 @@ public class PipelineCache implements MonitoredPoller {
     List<Map<String, Object>> rawPipelines = fetchRawPipelines();
 
     return rawPipelines.stream()
-      .map(this::process)
-      .filter(Optional::isPresent)
-      .map(Optional::get)
-      .collect(Collectors.toList());
+        .map(this::process)
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .collect(Collectors.toList());
   }
 
   @Nonnull
@@ -191,17 +203,16 @@ public class PipelineCache implements MonitoredPoller {
     // When getPipelinesSync returns, this means that we have populated the pipeline cache.
     // At this point, we don't expect triggers to be null but we check anyway to avoid a
     // potential race condition.
-    return Optional.ofNullable(triggersByType)
-      .orElse(extractEnabledTriggersFrom(pipelines));
+    return Optional.ofNullable(triggersByType).orElse(extractEnabledTriggersFrom(pipelines));
   }
 
   private static Map<String, List<Trigger>> extractEnabledTriggersFrom(List<Pipeline> pipelines) {
     return pipelines.stream()
-      .filter(p -> !p.isDisabled())
-      .flatMap(p -> Optional.ofNullable(p.getTriggers()).orElse(Collections.emptyList()).stream())
-      .filter(Trigger::isEnabled)
-      .filter(t -> t.getType() != null)
-      .collect(Collectors.groupingBy(Trigger::getType));
+        .filter(p -> !p.isDisabled())
+        .flatMap(p -> Optional.ofNullable(p.getTriggers()).orElse(Collections.emptyList()).stream())
+        .filter(Trigger::isEnabled)
+        .filter(t -> t.getType() != null)
+        .collect(Collectors.groupingBy(Trigger::getType));
   }
 
   // looks up the latest version in front50 of a (potentially stale) pipeline config from the cache
@@ -210,32 +221,39 @@ public class PipelineCache implements MonitoredPoller {
     try {
       List<Map<String, Object>> latestVersion = front50.getLatestVersion(cached.getId());
       if (latestVersion.isEmpty()) {
-        // if that corresponds to the case where the pipeline has been deleted, maybe we should not return the
+        // if that corresponds to the case where the pipeline has been deleted, maybe we should not
+        // return the
         // cached version
-        log.warn("Got empty results back from front50's /pipelines/{}/history?limit=1, falling back to cached={}",
-          cached.getId(), cached);
+        log.warn(
+            "Got empty results back from front50's /pipelines/{}/history?limit=1, falling back to cached={}",
+            cached.getId(),
+            cached);
         return cached;
       }
 
       Optional<Pipeline> processed = process(latestVersion.get(0));
       if (!processed.isPresent()) {
-        log.warn("Failed to process raw pipeline, falling back to cached={}\n  latestVersion={}", cached, latestVersion);
+        log.warn(
+            "Failed to process raw pipeline, falling back to cached={}\n  latestVersion={}",
+            cached,
+            latestVersion);
         return cached;
       }
 
       // at this point, we are not updating the cache but just providing a fresh view
       return processed.get();
-    } catch(Exception e) {
+    } catch (Exception e) {
       log.error("Exception during pipeline refresh, falling back to cached={}", cached, e);
       return cached;
     }
   }
 
   /**
-   * If the pipeline is a v2 pipeline, plan that pipeline.
-   * Returns an empty map if the plan fails, so that the pipeline is skipped.
+   * If the pipeline is a v2 pipeline, plan that pipeline. Returns an empty map if the plan fails,
+   * so that the pipeline is skipped.
    */
-  private Map<String, Object> planPipelineIfNeeded(Map<String, Object> pipeline, Predicate<Map<String, Object>> isV2Pipeline) {
+  private Map<String, Object> planPipelineIfNeeded(
+      Map<String, Object> pipeline, Predicate<Map<String, Object>> isV2Pipeline) {
     if (isV2Pipeline.test(pipeline)) {
       try {
         return orca.v2Plan(pipeline);
@@ -249,10 +267,7 @@ public class PipelineCache implements MonitoredPoller {
     }
   }
 
-  /**
-   * Converts map to pipeline.
-   * Returns null if conversion fails so that the pipeline is skipped.
-   */
+  /** Converts map to pipeline. Returns null if conversion fails so that the pipeline is skipped. */
   private Pipeline convertToPipeline(Map<String, Object> pipeline) {
     try {
       return objectMapper.convertValue(pipeline, Pipeline.class);
@@ -277,9 +292,7 @@ public class PipelineCache implements MonitoredPoller {
     return (int) TimeUnit.MILLISECONDS.toSeconds(pollingIntervalMs);
   }
 
-  /**
-   * The list of pipelines as of the last successful polling cycle, or null if not available yet
-   */
+  /** The list of pipelines as of the last successful polling cycle, or null if not available yet */
   @Nullable
   public List<Pipeline> getPipelines() {
     return pipelines;
@@ -298,7 +311,8 @@ public class PipelineCache implements MonitoredPoller {
       try {
         long elapsed = System.currentTimeMillis() - start;
         if (elapsed > timeoutMillis) {
-          throw new TimeoutException("Pipeline configs are still not available after " + elapsed + "ms");
+          throw new TimeoutException(
+              "Pipeline configs are still not available after " + elapsed + "ms");
         }
 
         log.trace("Waiting for initial load of pipeline configs (elapsed={}ms)...", elapsed);
@@ -320,7 +334,7 @@ public class PipelineCache implements MonitoredPoller {
     List<Trigger> newTriggers = new ArrayList<>(triggers.size());
     Pipeline newPipe = pipeline.withTriggers(newTriggers);
 
-    for (Trigger oldTrigger: triggers) {
+    for (Trigger oldTrigger : triggers) {
       Trigger newTrigger = oldTrigger.withParent(newPipe);
       newTrigger = newTrigger.withId(newTrigger.generateFallbackId());
       newTriggers.add(newTrigger);
@@ -331,19 +345,20 @@ public class PipelineCache implements MonitoredPoller {
 
   // visible for testing
   public static List<Pipeline> decorateTriggers(final List<Pipeline> pipelines) {
-    return pipelines
-      .stream()
-      .map(PipelineCache::decorateTriggers)
-      .collect(Collectors.toList());
+    return pipelines.stream().map(PipelineCache::decorateTriggers).collect(Collectors.toList());
   }
 
   @Override
   public String toString() {
-    return "PipelineCache{" +
-      "pollingIntervalMs=" + pollingIntervalMs +
-      ", running=" + running +
-      ", lastPollTimestamp=" + lastPollTimestamp +
-      ", pipelines=" + (pipelines == null ? "null" : "<" + pipelines.size() + " pipelines>") +
-      '}';
+    return "PipelineCache{"
+        + "pollingIntervalMs="
+        + pollingIntervalMs
+        + ", running="
+        + running
+        + ", lastPollTimestamp="
+        + lastPollTimestamp
+        + ", pipelines="
+        + (pipelines == null ? "null" : "<" + pipelines.size() + " pipelines>")
+        + '}';
   }
 }

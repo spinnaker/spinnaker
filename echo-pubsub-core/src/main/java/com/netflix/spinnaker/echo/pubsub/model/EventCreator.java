@@ -20,9 +20,9 @@ import com.netflix.spinnaker.echo.model.Event;
 import com.netflix.spinnaker.echo.model.pubsub.MessageDescription;
 
 /**
- * Interface for creating an Event from a MessageDescription.  In general, a PubsubSubscriber is responsible for
- * creating a MessageDescription from an incoming pubsub message; an EventCreator is then used to create an echo Event
- * from that MessageDescription.
+ * Interface for creating an Event from a MessageDescription. In general, a PubsubSubscriber is
+ * responsible for creating a MessageDescription from an incoming pubsub message; an EventCreator is
+ * then used to create an echo Event from that MessageDescription.
  */
 public interface EventCreator {
   Event createEvent(MessageDescription description);

@@ -17,23 +17,23 @@
 package com.netflix.spinnaker.echo.artifacts;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import java.util.*;
+import java.util.stream.Collectors;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
-import java.util.stream.Collectors;
-
 @Component
 @Slf4j
 public class DockerRegistryArtifactExtractor implements WebhookArtifactExtractor {
-  final private ObjectMapper objectMapper;
-  final private String MEDIA_TYPE_V1_MANIFEST = "application/vnd.docker.distribution.manifest.v1+json";
-  final private String MEDIA_TYPE_V2_MANIFEST = "application/vnd.docker.distribution.manifest.v2+json";
+  private final ObjectMapper objectMapper;
+  private final String MEDIA_TYPE_V1_MANIFEST =
+      "application/vnd.docker.distribution.manifest.v1+json";
+  private final String MEDIA_TYPE_V2_MANIFEST =
+      "application/vnd.docker.distribution.manifest.v2+json";
 
   @Autowired
   public DockerRegistryArtifactExtractor(ObjectMapper objectMapper) {
@@ -43,40 +43,48 @@ public class DockerRegistryArtifactExtractor implements WebhookArtifactExtractor
   @Override
   public List<Artifact> getArtifacts(String source, Map payload) {
     Notification notification = objectMapper.convertValue(payload, Notification.class);
-    List<Event> pushEvents = notification.getEvents().stream()
-      .filter(e -> e.action.equals("push")
-        && e.getTarget() != null
-        && (e.getTarget().getMediaType().equals(MEDIA_TYPE_V1_MANIFEST) || e.getTarget().getMediaType().equals(MEDIA_TYPE_V2_MANIFEST))
-        && e.getTarget().getRepository() != null
-        && (e.getTarget().getTag() != null || e.getTarget().getDigest() != null))
-      .collect(Collectors.toList());
+    List<Event> pushEvents =
+        notification.getEvents().stream()
+            .filter(
+                e ->
+                    e.action.equals("push")
+                        && e.getTarget() != null
+                        && (e.getTarget().getMediaType().equals(MEDIA_TYPE_V1_MANIFEST)
+                            || e.getTarget().getMediaType().equals(MEDIA_TYPE_V2_MANIFEST))
+                        && e.getTarget().getRepository() != null
+                        && (e.getTarget().getTag() != null || e.getTarget().getDigest() != null))
+            .collect(Collectors.toList());
 
     if (pushEvents.isEmpty()) {
       return Collections.EMPTY_LIST;
     }
 
     return pushEvents.stream()
-      .map(e -> {
-        String tag;
-        String tagSeparator = ":";
-        if (e.getTarget().getTag() != null) {
-          tag = e.getTarget().getTag();
-        } else if (e.getTarget().getDigest() != null) {
-          tag = e.getTarget().getDigest();
-          tagSeparator = "@";
-        } else {
-          return null;
-        }
-        String host = (e.getRequest() != null && e.getRequest().getHost() != null) ? (e.getRequest().getHost() + "/") : "";
-        return Artifact.builder()
-          .name(host + e.getTarget().getRepository())
-          .version(tag)
-          .reference(host + e.getTarget().getRepository() + tagSeparator + tag)
-          .type("docker/image")
-          .build();
-      })
-      .filter(Objects::nonNull)
-      .collect(Collectors.toList());
+        .map(
+            e -> {
+              String tag;
+              String tagSeparator = ":";
+              if (e.getTarget().getTag() != null) {
+                tag = e.getTarget().getTag();
+              } else if (e.getTarget().getDigest() != null) {
+                tag = e.getTarget().getDigest();
+                tagSeparator = "@";
+              } else {
+                return null;
+              }
+              String host =
+                  (e.getRequest() != null && e.getRequest().getHost() != null)
+                      ? (e.getRequest().getHost() + "/")
+                      : "";
+              return Artifact.builder()
+                  .name(host + e.getTarget().getRepository())
+                  .version(tag)
+                  .reference(host + e.getTarget().getRepository() + tagSeparator + tag)
+                  .type("docker/image")
+                  .build();
+            })
+        .filter(Objects::nonNull)
+        .collect(Collectors.toList());
   }
 
   @Override

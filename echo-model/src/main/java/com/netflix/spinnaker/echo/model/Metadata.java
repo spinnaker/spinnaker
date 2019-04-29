@@ -18,24 +18,21 @@ package com.netflix.spinnaker.echo.model;
 
 import java.util.Date;
 import java.util.Map;
-
 import lombok.*;
 import org.springframework.http.HttpHeaders;
 
-/**
- * Represents event metadata
- */
+/** Represents event metadata */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class Metadata {
-    private String source;
-    private String type;
-    private String created = Long.toString(new Date().getTime());
-    private String organization;
-    private String project;
-    private String application;
-    private String _content_id;
-    private Map attributes;
-    private HttpHeaders requestHeaders = new HttpHeaders();
+  private String source;
+  private String type;
+  private String created = Long.toString(new Date().getTime());
+  private String organization;
+  private String project;
+  private String application;
+  private String _content_id;
+  private Map attributes;
+  private HttpHeaders requestHeaders = new HttpHeaders();
 }

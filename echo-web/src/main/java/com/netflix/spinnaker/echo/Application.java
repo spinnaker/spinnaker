@@ -27,15 +27,10 @@ import org.springframework.boot.web.servlet.support.SpringBootServletInitializer
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
-/**
- * Application entry point.
- */
+/** Application entry point. */
 @Configuration
 @EnableAutoConfiguration(exclude = {DataSourceAutoConfiguration.class, GsonAutoConfiguration.class})
-@ComponentScan({
-  "com.netflix.spinnaker.echo.config",
-  "com.netflix.spinnaker.config"
-})
+@ComponentScan({"com.netflix.spinnaker.echo.config", "com.netflix.spinnaker.config"})
 public class Application extends SpringBootServletInitializer {
   private static final Map<String, Object> DEFAULT_PROPS = buildDefaults();
 

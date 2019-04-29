@@ -19,20 +19,19 @@ package com.netflix.spinnaker.echo.artifacts;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import lombok.Data;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.Data;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 public class GitHubArtifactExtractor implements WebhookArtifactExtractor {
-  final private ObjectMapper objectMapper;
+  private final ObjectMapper objectMapper;
 
   @Autowired
   public GitHubArtifactExtractor(ObjectMapper objectMapper) {
@@ -43,23 +42,27 @@ public class GitHubArtifactExtractor implements WebhookArtifactExtractor {
   public List<Artifact> getArtifacts(String source, Map payload) {
     PushEvent pushEvent = objectMapper.convertValue(payload, PushEvent.class);
     String sha = pushEvent.after;
-    Set<String> affectedFiles = pushEvent.commits.stream()
-        .map(c -> {
-          List<String> fs = new ArrayList<>();
-          fs.addAll(c.added);
-          fs.addAll(c.modified);
-          return fs;
-        })
-        .flatMap(Collection::stream)
-        .collect(Collectors.toSet());
+    Set<String> affectedFiles =
+        pushEvent.commits.stream()
+            .map(
+                c -> {
+                  List<String> fs = new ArrayList<>();
+                  fs.addAll(c.added);
+                  fs.addAll(c.modified);
+                  return fs;
+                })
+            .flatMap(Collection::stream)
+            .collect(Collectors.toSet());
 
     return affectedFiles.stream()
-        .map(f -> Artifact.builder()
-            .name(f)
-            .version(sha)
-            .type("github/file")
-            .reference(pushEvent.repository.contentsUrl.replace("{+path}", f))
-            .build())
+        .map(
+            f ->
+                Artifact.builder()
+                    .name(f)
+                    .version(sha)
+                    .type("github/file")
+                    .reference(pushEvent.repository.contentsUrl.replace("{+path}", f))
+                    .build())
         .collect(Collectors.toList());
   }
 

@@ -16,19 +16,15 @@
 
 package com.netflix.spinnaker.echo.scm;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.core.JsonGenerator;
+import static net.logstash.logback.argument.StructuredArguments.kv;
+
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.echo.model.Event;
+import java.util.Map;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.Map;
-
-import static net.logstash.logback.argument.StructuredArguments.kv;
 
 @Component
 @Slf4j
@@ -37,7 +33,8 @@ public class GithubWebhookEventHandler implements GitWebhookHandler {
   private ObjectMapper objectMapper;
 
   public GithubWebhookEventHandler() {
-    this.objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    this.objectMapper =
+        new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
   }
 
   public boolean handles(String source) {
@@ -50,12 +47,20 @@ public class GithubWebhookEventHandler implements GitWebhookHandler {
 
   public void handle(Event event, Map postedEvent) {
     if (!shouldSendEvent(event)) {
-      log.info("Webhook ping received from github {} {} {}", kv("hook_id", event.content.get("hook_id"),
-        kv("repository", ((Map<String, Object>)event.content.get("repository")).get("full_name")).toString()));
+      log.info(
+          "Webhook ping received from github {} {} {}",
+          kv(
+              "hook_id",
+              event.content.get("hook_id"),
+              kv(
+                      "repository",
+                      ((Map<String, Object>) event.content.get("repository")).get("full_name"))
+                  .toString()));
       return;
     }
 
-    GithubWebhookEvent githubWebhookEvent = objectMapper.convertValue(postedEvent, GithubWebhookEvent.class);
+    GithubWebhookEvent githubWebhookEvent =
+        objectMapper.convertValue(postedEvent, GithubWebhookEvent.class);
 
     event.content.put("hash", githubWebhookEvent.after);
     event.content.put("branch", githubWebhookEvent.ref.replace("refs/heads/", ""));
@@ -72,13 +77,12 @@ public class GithubWebhookEventHandler implements GitWebhookHandler {
 
   @Data
   private static class GithubWebhookRepository {
-     GithubOwner owner;
-     String name;
+    GithubOwner owner;
+    String name;
   }
 
   @Data
   private static class GithubOwner {
     String name;
   }
-
 }

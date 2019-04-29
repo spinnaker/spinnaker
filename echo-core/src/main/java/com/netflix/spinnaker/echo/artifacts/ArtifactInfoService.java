@@ -19,12 +19,9 @@ package com.netflix.spinnaker.echo.artifacts;
 
 import com.netflix.spinnaker.echo.services.IgorService;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-
 import java.util.List;
 
-/**
- * Given an artifact, fetch the details from an artifact provider
- */
+/** Given an artifact, fetch the details from an artifact provider */
 public class ArtifactInfoService {
 
   private final IgorService igorService;

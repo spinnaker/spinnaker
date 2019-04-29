@@ -22,8 +22,9 @@ import java.util.List;
 
 public class GoogleChatMessage {
   // TODO: Make the Spinnaker info configurable to make reskinning viable.
-  transient static String SPINNAKER_ICON_URL = "https://avatars0.githubusercontent.com/u/7634182?s=200&v=4";
-  transient static String SPINNAKER_FRONT_PAGE_URL = "https://www.spinnaker.io/";
+  static transient String SPINNAKER_ICON_URL =
+      "https://avatars0.githubusercontent.com/u/7634182?s=200&v=4";
+  static transient String SPINNAKER_FRONT_PAGE_URL = "https://www.spinnaker.io/";
 
   Card cards;
 
@@ -34,7 +35,7 @@ public class GoogleChatMessage {
     cards = new Card();
   }
 
-  /** Classes below are used to build the JSON object for the Chat API. **/
+  /** Classes below are used to build the JSON object for the Chat API. * */
   class Card {
     List<Section> sections = new ArrayList<>();
 
@@ -44,27 +45,29 @@ public class GoogleChatMessage {
   }
 
   class Section {
-      List<Object> widgets = new ArrayList<>();
+    List<Object> widgets = new ArrayList<>();
 
-      public Section() {
-        widgets.add(new TextParagraphWidget());
-        widgets.add(new ButtonWidget());
-      }
+    public Section() {
+      widgets.add(new TextParagraphWidget());
+      widgets.add(new ButtonWidget());
+    }
   }
 
   class TextParagraphWidget {
     HashMap<String, String> textParagraph = new HashMap<>();
+
     public TextParagraphWidget() {
       textParagraph.put("text", message);
     }
   }
 
   class ButtonWidget {
-      List<Object> buttons = new ArrayList<>();
-      public ButtonWidget() {
-        buttons.add(new ImageButtonWidget());
-        buttons.add(new TextButtonWidget());
-      }
+    List<Object> buttons = new ArrayList<>();
+
+    public ButtonWidget() {
+      buttons.add(new ImageButtonWidget());
+      buttons.add(new TextButtonWidget());
+    }
   }
 
   class ImageButtonWidget {
@@ -87,6 +90,7 @@ public class GoogleChatMessage {
 
   class OnClick {
     OpenLink openLink;
+
     public OnClick(String link) {
       openLink = new OpenLink(link);
     }

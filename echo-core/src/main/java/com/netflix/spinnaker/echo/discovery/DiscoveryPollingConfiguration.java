@@ -18,6 +18,7 @@ package com.netflix.spinnaker.echo.discovery;
 
 import com.netflix.appinfo.InstanceInfo;
 import com.netflix.discovery.DiscoveryClient;
+import java.lang.management.ManagementFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -28,15 +29,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.ContextRefreshedEvent;
 
-import java.lang.management.ManagementFactory;
-
 @Configuration
 public class DiscoveryPollingConfiguration {
   @Configuration
   @ConditionalOnMissingBean(DiscoveryClient.class)
   public static class NoDiscoveryConfiguration {
-    @Autowired
-    ApplicationEventPublisher publisher;
+    @Autowired ApplicationEventPublisher publisher;
 
     @Value("${spring.application.name:echo}")
     String appName;

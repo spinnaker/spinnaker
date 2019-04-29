@@ -26,7 +26,6 @@ import javax.validation.Valid;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -40,11 +39,9 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 public class GooglePubsubProperties {
 
-  @Valid
-  private List<GooglePubsubSubscription> subscriptions = new ArrayList<>();
+  @Valid private List<GooglePubsubSubscription> subscriptions = new ArrayList<>();
 
-  @Valid
-  private List<GooglePubsubPublisherConfig> publishers = new ArrayList<>();
+  @Valid private List<GooglePubsubPublisherConfig> publishers = new ArrayList<>();
 
   @Builder
   @Data
@@ -52,26 +49,20 @@ public class GooglePubsubProperties {
   @NoArgsConstructor
   public static class GooglePubsubSubscription {
 
-    @NotEmpty
-    private String name;
+    @NotEmpty private String name;
 
-    @NotEmpty
-    private String project;
+    @NotEmpty private String project;
 
-    @NotEmpty
-    private String subscriptionName;
+    @NotEmpty private String subscriptionName;
 
-    @NotNull
-    @Builder.Default
-    private Integer ackDeadlineSeconds = 10;
+    @NotNull @Builder.Default private Integer ackDeadlineSeconds = 10;
 
     // Not required since subscriptions can be public.
     private String jsonPath;
 
     private String templatePath;
 
-    @Builder.Default
-    private MessageFormat messageFormat = MessageFormat.CUSTOM;
+    @Builder.Default private MessageFormat messageFormat = MessageFormat.CUSTOM;
 
     public InputStream readTemplatePath() {
       try {
@@ -86,7 +77,7 @@ public class GooglePubsubProperties {
         }
       } catch (IOException e) {
         throw new RuntimeException(
-          "Failed to read template in subscription " + name + ": " + e.getMessage(), e);
+            "Failed to read template in subscription " + name + ": " + e.getMessage(), e);
       }
     }
   }
@@ -95,14 +86,11 @@ public class GooglePubsubProperties {
   @NoArgsConstructor
   public static class GooglePubsubPublisherConfig {
 
-    @NotEmpty
-    private String name;
+    @NotEmpty private String name;
 
-    @NotEmpty
-    private String topicName;
+    @NotEmpty private String topicName;
 
-    @NotEmpty
-    private String project;
+    @NotEmpty private String project;
 
     // Optional. Uses Application Default Credentials if not set.
     private String jsonPath;
@@ -112,7 +100,9 @@ public class GooglePubsubProperties {
     @Min(value = 1L, message = "Batch count threshold must be a positive integer. Defaults to 10.")
     private Long batchCountThreshold = 10L;
 
-    @Min(value = 1L, message = "Delay milliseconds threshold must be a positive integer. Defaults to 1000.")
+    @Min(
+        value = 1L,
+        message = "Delay milliseconds threshold must be a positive integer. Defaults to 1000.")
     private Long delayMillisecondsThreshold = 1000L;
   }
 
@@ -133,7 +123,6 @@ public class GooglePubsubProperties {
       this.jarPath = jarPath;
     }
 
-    MessageFormat() {
-    }
+    MessageFormat() {}
   }
 }

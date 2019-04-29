@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.echo.pubsub;
 
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.Builder;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,31 +25,24 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-/**
- * Controller for configured pub/sub publishers and subscriptions.
- */
+/** Controller for configured pub/sub publishers and subscriptions. */
 @RestController
 @RequestMapping(value = "/pubsub")
 public class PubsubController {
 
-  @Autowired
-  private PubsubSubscribers pubsubSubscribers;
+  @Autowired private PubsubSubscribers pubsubSubscribers;
 
-  @Autowired
-  private PubsubPublishers pubsubPublishers;
+  @Autowired private PubsubPublishers pubsubPublishers;
 
   @RequestMapping(value = "/subscriptions", method = RequestMethod.GET)
   List<PubsubSubscriptionBySystem> getSubscriptions() {
-    return pubsubSubscribers
-        .getAll()
-        .stream()
-        .map(s -> PubsubSubscriptionBySystem.builder()
-          .pubsubSystem(s.getPubsubSystem().toString())
-          .subscriptionName(s.getName())
-          .build())
+    return pubsubSubscribers.getAll().stream()
+        .map(
+            s ->
+                PubsubSubscriptionBySystem.builder()
+                    .pubsubSystem(s.getPubsubSystem().toString())
+                    .subscriptionName(s.getName())
+                    .build())
         .collect(Collectors.toList());
   }
 
@@ -60,15 +55,15 @@ public class PubsubController {
 
   @RequestMapping(value = "/publishers", method = RequestMethod.GET)
   List<PubsubPublishersBySystem> getPublishers() {
-    return pubsubPublishers
-      .getAll()
-      .stream()
-      .map(p -> PubsubPublishersBySystem.builder()
-        .pubsubSystem(p.getPubsubSystem().toString())
-        .publisherName(p.getName())
-        .topicName(p.getTopicName())
-        .build())
-      .collect(Collectors.toList());
+    return pubsubPublishers.getAll().stream()
+        .map(
+            p ->
+                PubsubPublishersBySystem.builder()
+                    .pubsubSystem(p.getPubsubSystem().toString())
+                    .publisherName(p.getName())
+                    .topicName(p.getTopicName())
+                    .build())
+        .collect(Collectors.toList());
   }
 
   @Data

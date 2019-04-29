@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 public class PubsubPublishers {
   private List<PubsubPublisher> publishers = new ArrayList<>();
 
-  public void putAll(List< PubsubPublisher> newEntries) {
+  public void putAll(List<PubsubPublisher> newEntries) {
     publishers.addAll(newEntries);
   }
 
@@ -34,10 +34,8 @@ public class PubsubPublishers {
   }
 
   public List<PubsubPublisher> publishersMatchingType(PubsubSystem pubsubSystem) {
-    return publishers
-      .stream()
-      .filter(publisher -> publisher.getPubsubSystem().equals(pubsubSystem))
-      .collect(Collectors.toList());
+    return publishers.stream()
+        .filter(publisher -> publisher.getPubsubSystem().equals(pubsubSystem))
+        .collect(Collectors.toList());
   }
-
 }

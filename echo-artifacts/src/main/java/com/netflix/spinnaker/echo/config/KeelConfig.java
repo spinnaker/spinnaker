@@ -29,15 +29,15 @@ public class KeelConfig {
   }
 
   @Bean
-  public KeelService keelService(Endpoint keelEndpoint,
-                                 Ok3Client ok3Client,
-                                 LogLevel retrofitLogLevel) {
+  public KeelService keelService(
+      Endpoint keelEndpoint, Ok3Client ok3Client, LogLevel retrofitLogLevel) {
     return new RestAdapter.Builder()
-      .setEndpoint(keelEndpoint)
-      .setConverter(new JacksonConverter())
-      .setClient(ok3Client)
-      .setLogLevel(retrofitLogLevel)
-      .setLog(new Slf4jRetrofitLogger(KeelService.class)).build()
-      .create(KeelService.class);
+        .setEndpoint(keelEndpoint)
+        .setConverter(new JacksonConverter())
+        .setClient(ok3Client)
+        .setLogLevel(retrofitLogLevel)
+        .setLog(new Slf4jRetrofitLogger(KeelService.class))
+        .build()
+        .create(KeelService.class);
   }
 }

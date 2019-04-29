@@ -20,19 +20,18 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
 @Component
 @Slf4j
 public class DockerHubArtifactExtractor implements WebhookArtifactExtractor {
-  final private ObjectMapper objectMapper;
+  private final ObjectMapper objectMapper;
 
   @Autowired
   public DockerHubArtifactExtractor(ObjectMapper objectMapper) {
@@ -51,9 +50,10 @@ public class DockerHubArtifactExtractor implements WebhookArtifactExtractor {
 
     String name = String.format("index.docker.io/%s", repository.getRepoName());
     String version = pushData.getTag();
-    Map<String, Object> metadata = new ImmutableMap.Builder<String, Object>()
-        .put("pusher", pushData.getPusher() != null ? pushData.getPusher() : "")
-        .build();
+    Map<String, Object> metadata =
+        new ImmutableMap.Builder<String, Object>()
+            .put("pusher", pushData.getPusher() != null ? pushData.getPusher() : "")
+            .build();
 
     return Collections.singletonList(
         Artifact.builder()
@@ -63,8 +63,7 @@ public class DockerHubArtifactExtractor implements WebhookArtifactExtractor {
             .version(version)
             .provenance(webhookEvent.getCallbackUrl())
             .metadata(metadata)
-            .build()
-    );
+            .build());
   }
 
   @Override
@@ -76,8 +75,10 @@ public class DockerHubArtifactExtractor implements WebhookArtifactExtractor {
   private static class WebhookEvent {
     @JsonProperty("callback_url")
     private String callbackUrl;
+
     @JsonProperty("push_data")
     private PushData pushData;
+
     private Repository repository;
   }
 

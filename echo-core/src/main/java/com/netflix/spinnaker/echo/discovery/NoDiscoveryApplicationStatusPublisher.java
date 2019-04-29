@@ -16,6 +16,10 @@
 
 package com.netflix.spinnaker.echo.discovery;
 
+import static com.netflix.appinfo.InstanceInfo.InstanceStatus.OUT_OF_SERVICE;
+import static com.netflix.appinfo.InstanceInfo.InstanceStatus.UNKNOWN;
+import static com.netflix.appinfo.InstanceInfo.InstanceStatus.UP;
+
 import com.netflix.appinfo.InstanceInfo;
 import com.netflix.discovery.StatusChangeEvent;
 import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent;
@@ -25,11 +29,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 
-import static com.netflix.appinfo.InstanceInfo.InstanceStatus.OUT_OF_SERVICE;
-import static com.netflix.appinfo.InstanceInfo.InstanceStatus.UNKNOWN;
-import static com.netflix.appinfo.InstanceInfo.InstanceStatus.UP;
-
-public class NoDiscoveryApplicationStatusPublisher implements ApplicationListener<ContextRefreshedEvent> {
+public class NoDiscoveryApplicationStatusPublisher
+    implements ApplicationListener<ContextRefreshedEvent> {
   private final ApplicationEventPublisher publisher;
   private final Logger log = LoggerFactory.getLogger(NoDiscoveryApplicationStatusPublisher.class);
 
@@ -39,7 +40,8 @@ public class NoDiscoveryApplicationStatusPublisher implements ApplicationListene
     this.publisher = publisher;
   }
 
-  @Override public void onApplicationEvent(ContextRefreshedEvent event) {
+  @Override
+  public void onApplicationEvent(ContextRefreshedEvent event) {
     log.warn("No discovery client is available, assuming application is up");
     setInstanceStatus(UP);
   }

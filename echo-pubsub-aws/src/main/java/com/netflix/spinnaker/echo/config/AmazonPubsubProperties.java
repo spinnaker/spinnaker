@@ -16,47 +16,41 @@
 
 package com.netflix.spinnaker.echo.config;
 
+import java.io.*;
+import java.util.List;
+import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotEmpty;
-import java.io.*;
-import java.util.List;
-
 @Data
 @ConfigurationProperties(prefix = "pubsub.amazon")
 public class AmazonPubsubProperties {
 
-  @Valid
-  private List<AmazonPubsubSubscription> subscriptions;
+  @Valid private List<AmazonPubsubSubscription> subscriptions;
 
   @Data
   public static class AmazonPubsubSubscription {
 
     private static final Logger log = LoggerFactory.getLogger(AmazonPubsubSubscription.class);
 
-    @NotEmpty
-    private String name;
+    @NotEmpty private String name;
 
-    @NotEmpty
-    private String topicARN;
+    @NotEmpty private String topicARN;
 
-    @NotEmpty
-    private  String queueARN;
+    @NotEmpty private String queueARN;
 
     private String templatePath;
 
     private MessageFormat messageFormat;
 
     /**
-     * Provide an id, present in the message attributes as a string,
-     * to use as a unique identifier for processing messages.
-     * Fall back to amazon sqs id if alternate Id is not present in
-     * the message attributes
+     * Provide an id, present in the message attributes as a string, to use as a unique identifier
+     * for processing messages. Fall back to amazon sqs id if alternate Id is not present in the
+     * message attributes
      */
     private String alternateIdInMessageAttributes;
 
@@ -67,18 +61,16 @@ public class AmazonPubsubProperties {
     // 1 hour default
     private Integer dedupeRetentionSeconds = 3600;
 
-    public AmazonPubsubSubscription() {
-    }
+    public AmazonPubsubSubscription() {}
 
     public AmazonPubsubSubscription(
-      String name,
-      String topicARN,
-      String queueARN,
-      String templatePath,
-      MessageFormat messageFormat,
-      String alternateIdInMessageAttributes,
-      Integer dedupeRetentionSeconds
-    ) {
+        String name,
+        String topicARN,
+        String queueARN,
+        String templatePath,
+        MessageFormat messageFormat,
+        String alternateIdInMessageAttributes,
+        Integer dedupeRetentionSeconds) {
       this.name = name;
       this.topicARN = topicARN;
       this.queueARN = queueARN;
@@ -94,7 +86,7 @@ public class AmazonPubsubProperties {
       }
     }
 
-    private MessageFormat determineMessageFormat(){
+    private MessageFormat determineMessageFormat() {
       // Supplying a custom template overrides a MessageFormat choice
       if (!StringUtils.isEmpty(templatePath)) {
         return MessageFormat.CUSTOM;
@@ -106,17 +98,20 @@ public class AmazonPubsubProperties {
 
     public InputStream readTemplatePath() {
       messageFormat = determineMessageFormat();
-      log.info("Using message format: {} to process artifacts for subscription: {}", messageFormat, name);
+      log.info(
+          "Using message format: {} to process artifacts for subscription: {}",
+          messageFormat,
+          name);
 
       try {
         if (messageFormat == MessageFormat.CUSTOM) {
-            try {
-              return new FileInputStream(new File(templatePath));
-            } catch (FileNotFoundException e) {
-              // Check if custom jar path was provided before failing
-              return getClass().getResourceAsStream(templatePath);
-            }
-        } else if (messageFormat.jarPath != null){
+          try {
+            return new FileInputStream(new File(templatePath));
+          } catch (FileNotFoundException e) {
+            // Check if custom jar path was provided before failing
+            return getClass().getResourceAsStream(templatePath);
+          }
+        } else if (messageFormat.jarPath != null) {
           return getClass().getResourceAsStream(messageFormat.jarPath);
         }
       } catch (Exception e) {
@@ -137,6 +132,6 @@ public class AmazonPubsubProperties {
       this.jarPath = jarPath;
     }
 
-    MessageFormat() { }
+    MessageFormat() {}
   }
 }

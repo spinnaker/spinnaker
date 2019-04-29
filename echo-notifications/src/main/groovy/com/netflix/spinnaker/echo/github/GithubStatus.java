@@ -44,5 +44,4 @@ public class GithubStatus {
   public String getContext() {
     return context;
   }
-
 }

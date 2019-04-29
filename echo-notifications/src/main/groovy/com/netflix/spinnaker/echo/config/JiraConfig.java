@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.echo.config;
 
+import static retrofit.Endpoints.newFixedEndpoint;
+
 import com.netflix.spinnaker.echo.jira.JiraProperties;
 import com.netflix.spinnaker.echo.jira.JiraService;
 import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
@@ -32,8 +34,6 @@ import retrofit.client.Client;
 import retrofit.client.OkClient;
 import retrofit.converter.JacksonConverter;
 
-import static retrofit.Endpoints.newFixedEndpoint;
-
 @Configuration
 @ConditionalOnProperty("jira.enabled")
 @EnableConfigurationProperties(JiraProperties.class)
@@ -44,28 +44,31 @@ public class JiraConfig {
   private OkClient x509ConfiguredClient;
 
   @Bean
-  JiraService jiraService(JiraProperties jiraProperties,
-                          Client retrofitClient,
-                          RestAdapter.LogLevel retrofitLogLevel) {
+  JiraService jiraService(
+      JiraProperties jiraProperties, Client retrofitClient, RestAdapter.LogLevel retrofitLogLevel) {
     if (x509ConfiguredClient != null) {
       LOGGER.info("Using X509 Cert for Jira Client");
       retrofitClient = x509ConfiguredClient;
     }
 
-    RestAdapter.Builder builder = new RestAdapter.Builder()
-      .setEndpoint(newFixedEndpoint(jiraProperties.getBaseUrl()))
-      .setConverter(new JacksonConverter())
-      .setClient(retrofitClient)
-      .setLogLevel(retrofitLogLevel)
-      .setLog(new Slf4jRetrofitLogger(JiraService.class));
+    RestAdapter.Builder builder =
+        new RestAdapter.Builder()
+            .setEndpoint(newFixedEndpoint(jiraProperties.getBaseUrl()))
+            .setConverter(new JacksonConverter())
+            .setClient(retrofitClient)
+            .setLogLevel(retrofitLogLevel)
+            .setLog(new Slf4jRetrofitLogger(JiraService.class));
 
     if (x509ConfiguredClient == null) {
-      String credentials = String.format("%s:%s", jiraProperties.getUsername(), jiraProperties.getPassword());
-      final String basic = String.format("Basic %s", Base64.encodeBase64String(credentials.getBytes()));
-      builder.setRequestInterceptor(request -> {
-        request.addHeader("Authorization", basic);
-        request.addHeader("Accept", "application/json");
-      });
+      String credentials =
+          String.format("%s:%s", jiraProperties.getUsername(), jiraProperties.getPassword());
+      final String basic =
+          String.format("Basic %s", Base64.encodeBase64String(credentials.getBytes()));
+      builder.setRequestInterceptor(
+          request -> {
+            request.addHeader("Authorization", basic);
+            request.addHeader("Accept", "application/json");
+          });
     }
 
     return builder.build().create(JiraService.class);

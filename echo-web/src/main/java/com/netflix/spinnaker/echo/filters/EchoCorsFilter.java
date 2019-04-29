@@ -26,14 +26,12 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletResponse;
 import org.springframework.stereotype.Component;
 
-/**
- * A filter to enable CORS access
- */
+/** A filter to enable CORS access */
 @Component
 public class EchoCorsFilter implements Filter {
 
   public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain)
-    throws IOException, ServletException {
+      throws IOException, ServletException {
     HttpServletResponse response = (HttpServletResponse) res;
     response.setHeader("Access-Control-Allow-Origin", "*");
     response.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE");
@@ -43,13 +41,8 @@ public class EchoCorsFilter implements Filter {
   }
 
   @SuppressWarnings({"EmptyMethod", "UnusedMethodParameter"})
-  public void init(FilterConfig filterConfig) {
-
-  }
+  public void init(FilterConfig filterConfig) {}
 
   @SuppressWarnings("EmptyMethod")
-  public void destroy() {
-
-  }
-
+  public void destroy() {}
 }

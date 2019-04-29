@@ -16,7 +16,14 @@
 
 package com.netflix.spinnaker.echo.pipelinetriggers.health;
 
+import static java.time.Instant.now;
+import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+import static org.apache.commons.lang3.time.DurationFormatUtils.formatDurationWords;
+
 import com.netflix.spinnaker.echo.pipelinetriggers.MonitoredPoller;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneId;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,20 +33,11 @@ import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.boot.actuate.health.Status;
 import org.springframework.stereotype.Component;
 
-import java.time.Duration;
-import java.time.Instant;
-import java.time.ZoneId;
-
-import static java.time.Instant.now;
-import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
-import static java.time.temporal.ChronoUnit.SECONDS;
-import static org.apache.commons.lang3.time.DurationFormatUtils.formatDurationWords;
-
 /**
  * A {@link HealthIndicator} implementation that monitors an instance of {@link MonitoredPoller}.
- * <p>
- * The health status is based on whether the poller is running and how long ago it last polled. If twice the polling
- * interval has passed since the last poll the poller is considered _down_.
+ *
+ * <p>The health status is based on whether the poller is running and how long ago it last polled.
+ * If twice the polling interval has passed since the last poll the poller is considered _down_.
  */
 @Component
 @Slf4j
@@ -70,8 +68,12 @@ public class MonitoredPollerHealth extends AbstractHealthIndicator {
     Instant lastPollTimestamp = poller.getLastPollTimestamp();
     if (lastPollTimestamp != null) {
       val timeSinceLastPoll = Duration.between(lastPollTimestamp, now());
-      builder.withDetail("last.polled", formatDurationWords(timeSinceLastPoll.toMillis(), true, true) + " ago")
-        .withDetail("last.polled.at", ISO_LOCAL_DATE_TIME.format(lastPollTimestamp.atZone(ZoneId.systemDefault())));
+      builder
+          .withDetail(
+              "last.polled", formatDurationWords(timeSinceLastPoll.toMillis(), true, true) + " ago")
+          .withDetail(
+              "last.polled.at",
+              ISO_LOCAL_DATE_TIME.format(lastPollTimestamp.atZone(ZoneId.systemDefault())));
     }
 
     builder.status(status);

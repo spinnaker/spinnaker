@@ -17,8 +17,8 @@
 package com.netflix.spinnaker.echo.pubsub.model;
 
 /**
- * Interface for acknowledging and ignoring messages.
- * A distinct MessageAcknowledger needs to exist for each message.
+ * Interface for acknowledging and ignoring messages. A distinct MessageAcknowledger needs to exist
+ * for each message.
  */
 public interface MessageAcknowledger {
   void ack();

@@ -20,25 +20,19 @@ import com.netflix.spinnaker.echo.model.Event;
 import java.util.Map;
 
 /**
- * GitWebhookHandler defines an interface processing incoming SCM webhook events.
- * It is responsible for parsing the webhook payload and extracting repoSlug, slug,
- * hash and branch.
+ * GitWebhookHandler defines an interface processing incoming SCM webhook events. It is responsible
+ * for parsing the webhook payload and extracting repoSlug, slug, hash and branch.
  */
 public interface GitWebhookHandler {
-  /**
-   * shouldSendEvent informs the caller if the provided event should be
-   * propagated.
-   */
+  /** shouldSendEvent informs the caller if the provided event should be propagated. */
   boolean shouldSendEvent(Event event);
 
-  /**
-   * handles specifies the source which it is responsible for.
-   */
+  /** handles specifies the source which it is responsible for. */
   boolean handles(String source);
 
   /**
-   * handle processes the postedEvent (typically a webhook payload) and should
-   * add repoSlug, slug, hash and branch to the provided Event.
+   * handle processes the postedEvent (typically a webhook payload) and should add repoSlug, slug,
+   * hash and branch to the provided Event.
    */
   void handle(Event event, Map postedEvent);
 }

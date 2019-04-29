@@ -20,6 +20,8 @@ import com.netflix.spinnaker.echo.model.pubsub.PubsubSystem;
 
 public interface PubsubPublisher {
   PubsubSystem getPubsubSystem();
+
   String getTopicName();
+
   String getName();
 }

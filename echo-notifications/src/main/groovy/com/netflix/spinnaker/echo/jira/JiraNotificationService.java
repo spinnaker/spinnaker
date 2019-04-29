@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.echo.jira;
 
+import static net.logstash.logback.argument.StructuredArguments.kv;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.echo.api.Notification;
@@ -24,6 +26,9 @@ import com.netflix.spinnaker.echo.jira.JiraService.CreateJiraIssueRequest;
 import com.netflix.spinnaker.echo.jira.JiraService.CreateJiraIssueResponse;
 import com.netflix.spinnaker.echo.notification.NotificationService;
 import com.netflix.spinnaker.kork.core.RetrySupport;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,12 +37,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import retrofit.RetrofitError;
-
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Supplier;
-
-import static net.logstash.logback.argument.StructuredArguments.kv;
 
 @Component
 @ConditionalOnProperty("jira.enabled")
@@ -66,15 +65,16 @@ public class JiraNotificationService implements NotificationService {
   public EchoResponse<CreateJiraIssueResponse> handle(Notification notification) {
     Map<String, Object> issueRequestBody = issueRequestBody(notification);
     try {
-      CreateJiraIssueResponse response = retrySupport.retry(
-        createJiraIssue(issueRequestBody), MAX_RETRY, RETRY_BACKOFF, false
-      );
+      CreateJiraIssueResponse response =
+          retrySupport.retry(createJiraIssue(issueRequestBody), MAX_RETRY, RETRY_BACKOFF, false);
 
       return new EchoResponse<>(response);
     } catch (Exception e) {
       throw new CreateJiraIssueException(
-        String.format("Failed to create Jira Issue %s: %s", kv("issueRequestBody", issueRequestBody), errors(e)), e
-      );
+          String.format(
+              "Failed to create Jira Issue %s: %s",
+              kv("issueRequestBody", issueRequestBody), errors(e)),
+          e);
     }
   }
 
@@ -83,11 +83,13 @@ public class JiraNotificationService implements NotificationService {
   }
 
   private Map<String, Object> issueRequestBody(Notification notification) {
-    Map<String, Object> issue = (Map<String, Object>) notification.getAdditionalContext().get("issueContext");
+    Map<String, Object> issue =
+        (Map<String, Object>) notification.getAdditionalContext().get("issueContext");
     // Move up additional details to main level
     // details contains undefined fields in orca strongly typed request
     // it allows the flexibility of arbitrary fields in the request
-    Optional.ofNullable((Map<String, Object>) issue.get("details")).ifPresent( i -> i.forEach(issue::put));
+    Optional.ofNullable((Map<String, Object>) issue.get("details"))
+        .ifPresent(i -> i.forEach(issue::put));
     issue.remove("details");
     return issue;
   }
@@ -95,7 +97,8 @@ public class JiraNotificationService implements NotificationService {
   private Map errors(Exception exception) {
     if (exception instanceof RetrofitError) {
       try {
-        return mapper.readValue(((RetrofitError) exception).getResponse().getBody().in(), Map.class);
+        return mapper.readValue(
+            ((RetrofitError) exception).getResponse().getBody().in(), Map.class);
       } catch (Exception e) {
         LOGGER.warn("failed retrieving error messages {}", e.getMessage());
       }

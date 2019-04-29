@@ -25,15 +25,14 @@ import com.netflix.spinnaker.echo.model.trigger.TriggerEvent;
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache;
 import com.netflix.spinnaker.echo.pipelinetriggers.artifacts.ArtifactMatcher;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import lombok.Value;
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.*;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import lombok.Value;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Base implementation of {@link TriggerEventHandler} for events that require looking for matching
@@ -41,7 +40,8 @@ import java.util.stream.Stream;
  * manual events.
  */
 @Slf4j
-public abstract class BaseTriggerEventHandler<T extends TriggerEvent> implements TriggerEventHandler<T> {
+public abstract class BaseTriggerEventHandler<T extends TriggerEvent>
+    implements TriggerEventHandler<T> {
   private final Registry registry;
   protected final ObjectMapper objectMapper;
 
@@ -51,31 +51,43 @@ public abstract class BaseTriggerEventHandler<T extends TriggerEvent> implements
   }
 
   @Override
-  public List<Pipeline> getMatchingPipelines(T event, PipelineCache pipelineCache) throws TimeoutException {
+  public List<Pipeline> getMatchingPipelines(T event, PipelineCache pipelineCache)
+      throws TimeoutException {
     if (!isSuccessfulTriggerEvent(event)) {
       return Collections.emptyList();
     }
 
     Map<String, List<Trigger>> triggers = pipelineCache.getEnabledTriggersSync();
     return supportedTriggerTypes().stream()
-      .flatMap(triggerType -> Optional.ofNullable(triggers.get(triggerType)).orElse(Collections.emptyList()).stream())
-      .filter(this::isValidTrigger)
-      .filter(matchTriggerFor(event))
-      .map(trigger -> withMatchingTrigger(event, trigger))
-      .filter(Optional::isPresent)
-      .map(Optional::get)
-      .distinct()
-      .collect(Collectors.toList());
+        .flatMap(
+            triggerType ->
+                Optional.ofNullable(triggers.get(triggerType)).orElse(Collections.emptyList())
+                    .stream())
+        .filter(this::isValidTrigger)
+        .filter(matchTriggerFor(event))
+        .map(trigger -> withMatchingTrigger(event, trigger))
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .distinct()
+        .collect(Collectors.toList());
   }
 
   private Optional<Pipeline> withMatchingTrigger(T event, Trigger trigger) {
     try {
       return Stream.of(trigger)
-        .map(buildTrigger(event))
-        .map(t -> new TriggerWithArtifacts(t, getArtifacts(event, t)))
-        .filter(ta -> ArtifactMatcher.anyArtifactsMatchExpected(ta.artifacts, ta.trigger, ta.trigger.getParent().getExpectedArtifacts()))
-        .findFirst()
-        .map(ta -> ta.trigger.getParent().withTrigger(ta.trigger).withReceivedArtifacts(ta.artifacts));
+          .map(buildTrigger(event))
+          .map(t -> new TriggerWithArtifacts(t, getArtifacts(event, t)))
+          .filter(
+              ta ->
+                  ArtifactMatcher.anyArtifactsMatchExpected(
+                      ta.artifacts, ta.trigger, ta.trigger.getParent().getExpectedArtifacts()))
+          .findFirst()
+          .map(
+              ta ->
+                  ta.trigger
+                      .getParent()
+                      .withTrigger(ta.trigger)
+                      .withReceivedArtifacts(ta.artifacts));
     } catch (Exception e) {
       onSubscriberError(e);
       return Optional.empty();
@@ -89,7 +101,7 @@ public abstract class BaseTriggerEventHandler<T extends TriggerEvent> implements
 
   @Override
   public T convertEvent(Event event) {
-    return  objectMapper.convertValue(event, getEventType());
+    return objectMapper.convertValue(event, getEventType());
   }
 
   private List<Artifact> getArtifacts(T event, Trigger trigger) {

@@ -18,11 +18,9 @@ package com.netflix.spinnaker.echo.notification;
 
 import com.netflix.spinnaker.echo.exceptions.FieldNotFoundException;
 import com.netflix.spinnaker.echo.model.Event;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
 
 public class EventContent {
   private Event event;
@@ -46,65 +44,74 @@ public class EventContent {
   }
 
   private void setRepo() throws FieldNotFoundException {
-    repo = Optional.ofNullable(event.getContent())
-      .map(content -> (Map) content.get("execution"))
-      .map(execution -> (Map) execution.get("trigger"))
-      .map(trigger -> (Map) trigger.get("buildInfo"))
-      .map(buildInfo -> (String) buildInfo.get("name"))
-      .orElseThrow(FieldNotFoundException::new);
+    repo =
+        Optional.ofNullable(event.getContent())
+            .map(content -> (Map) content.get("execution"))
+            .map(execution -> (Map) execution.get("trigger"))
+            .map(trigger -> (Map) trigger.get("buildInfo"))
+            .map(buildInfo -> (String) buildInfo.get("name"))
+            .orElseThrow(FieldNotFoundException::new);
   }
 
   private void setSha() throws FieldNotFoundException {
-    sha = Optional.ofNullable(event.getContent())
-      .map(content -> (Map) content.get("execution"))
-      .map(execution -> (Map) execution.get("trigger"))
-      .map(trigger -> (Map) trigger.get("buildInfo"))
-      .map(buildInfo -> (List) buildInfo.get("scm"))
-      .map(scm -> (Map) scm.get(0))
-      .map(scm -> (String) scm.get("sha1"))
-      .orElseThrow(FieldNotFoundException::new);
+    sha =
+        Optional.ofNullable(event.getContent())
+            .map(content -> (Map) content.get("execution"))
+            .map(execution -> (Map) execution.get("trigger"))
+            .map(trigger -> (Map) trigger.get("buildInfo"))
+            .map(buildInfo -> (List) buildInfo.get("scm"))
+            .map(scm -> (Map) scm.get(0))
+            .map(scm -> (String) scm.get("sha1"))
+            .orElseThrow(FieldNotFoundException::new);
   }
 
   private void setPipeline() throws FieldNotFoundException {
-    pipeline = Optional.ofNullable(event.getContent())
-      .map(content -> (Map) content.get("execution"))
-      .map(execution -> (String) execution.get("name"))
-      .orElseThrow(FieldNotFoundException::new);
+    pipeline =
+        Optional.ofNullable(event.getContent())
+            .map(content -> (Map) content.get("execution"))
+            .map(execution -> (String) execution.get("name"))
+            .orElseThrow(FieldNotFoundException::new);
   }
 
   private void setStageName() throws FieldNotFoundException {
-    String stageName = Optional.ofNullable(event.getContent())
-      .map(content -> (String) content.get("name"))
-      .orElse(null);
+    String stageName =
+        Optional.ofNullable(event.getContent())
+            .map(content -> (String) content.get("name"))
+            .orElse(null);
 
     if (stageName == null) {
-      stageName = Optional.ofNullable(event.getContent())
-        .map(content -> (Map) content.get("context"))
-        .map(context -> (Map) context.get("stageDetails"))
-        .map(stageDetails -> (String) stageDetails.get("name"))
-        .orElseThrow(FieldNotFoundException::new);
+      stageName =
+          Optional.ofNullable(event.getContent())
+              .map(content -> (Map) content.get("context"))
+              .map(context -> (Map) context.get("stageDetails"))
+              .map(stageDetails -> (String) stageDetails.get("name"))
+              .orElseThrow(FieldNotFoundException::new);
     }
     this.stageName = stageName;
   }
 
   private void setStageIndex() throws FieldNotFoundException {
-    List<Map> stages = Optional.ofNullable(event.getContent())
-      .map(content -> (Map) content.get("execution"))
-      .map(execution -> (List<Map>) execution.get("stages"))
-      .orElseThrow(FieldNotFoundException::new);
+    List<Map> stages =
+        Optional.ofNullable(event.getContent())
+            .map(content -> (Map) content.get("execution"))
+            .map(execution -> (List<Map>) execution.get("stages"))
+            .orElseThrow(FieldNotFoundException::new);
 
-    Map stage = stages.stream().filter(s -> s.get("name").equals(getStageName()))
-      .findFirst()
-      .orElseThrow(FieldNotFoundException::new);
+    Map stage =
+        stages.stream()
+            .filter(s -> s.get("name").equals(getStageName()))
+            .findFirst()
+            .orElseThrow(FieldNotFoundException::new);
 
     stageIndex = stages.indexOf(stage);
   }
 
   private void setExecutionId() throws FieldNotFoundException {
-    executionId = Optional.ofNullable(event.getContent())
-      .map(content -> (Map) content.get("execution"))
-      .map(execution -> (String) execution.get("id"))
-      .orElseThrow(FieldNotFoundException::new);
+    executionId =
+        Optional.ofNullable(event.getContent())
+            .map(content -> (Map) content.get("execution"))
+            .map(execution -> (String) execution.get("id"))
+            .orElseThrow(FieldNotFoundException::new);
   }
 
   public String getRepo() {

@@ -26,8 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Responds to the SQS queue for each message using the unique messageReceiptHandle
- * of the message.
+ * Responds to the SQS queue for each message using the unique messageReceiptHandle of the message.
  */
 public class AmazonMessageAcknowledger implements MessageAcknowledger {
 
@@ -39,7 +38,12 @@ public class AmazonMessageAcknowledger implements MessageAcknowledger {
   private Registry registry;
   private String subscriptionName;
 
-  public AmazonMessageAcknowledger(AmazonSQS amazonSQS, String queueUrl, Message message, Registry registry, String subscriptionName) {
+  public AmazonMessageAcknowledger(
+      AmazonSQS amazonSQS,
+      String queueUrl,
+      Message message,
+      Registry registry,
+      String subscriptionName) {
     this.amazonSQS = amazonSQS;
     this.queueUrl = queueUrl;
     this.message = message;
@@ -55,12 +59,11 @@ public class AmazonMessageAcknowledger implements MessageAcknowledger {
       registry.counter(getProcessedMetricId(subscriptionName)).increment();
     } catch (ReceiptHandleIsInvalidException e) {
       log.warn(
-        "Error deleting message: {}, queue: {}, reason: {} (receiptHandle: {})",
-        message.getMessageId(),
-        queueUrl,
-        e.getMessage(),
-        message.getReceiptHandle()
-      );
+          "Error deleting message: {}, queue: {}, reason: {} (receiptHandle: {})",
+          message.getMessageId(),
+          queueUrl,
+          e.getMessage(),
+          message.getReceiptHandle());
     }
   }
 
@@ -72,10 +75,12 @@ public class AmazonMessageAcknowledger implements MessageAcknowledger {
   }
 
   Id getProcessedMetricId(String subscriptionName) {
-    return registry.createId("echo.pubsub.amazon.totalProcessed", "subscriptionName", subscriptionName);
+    return registry.createId(
+        "echo.pubsub.amazon.totalProcessed", "subscriptionName", subscriptionName);
   }
 
   Id getNackMetricId(String subscriptionName) {
-    return registry.createId("echo.pubsub.amazon.messagesNacked", "subscriptionName", subscriptionName);
+    return registry.createId(
+        "echo.pubsub.amazon.messagesNacked", "subscriptionName", subscriptionName);
   }
 }

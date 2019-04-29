@@ -21,19 +21,18 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.model.trigger.DockerEvent;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.PatternSyntaxException;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
- * Implementation of TriggerEventHandler for events of type {@link DockerEvent}, which occur when
- * a new container is pushed to a docker registry.
+ * Implementation of TriggerEventHandler for events of type {@link DockerEvent}, which occur when a
+ * new container is pushed to a docker registry.
  */
 @Component
 public class DockerEventHandler extends BaseTriggerEventHandler<DockerEvent> {
@@ -72,27 +71,27 @@ public class DockerEventHandler extends BaseTriggerEventHandler<DockerEvent> {
 
     String name = content.getRegistry() + "/" + content.getRepository();
     String reference = name + ":" + content.getTag();
-    return Collections.singletonList(Artifact.builder()
-      .type("docker/image")
-      .name(name)
-      .version(content.getTag())
-      .reference(reference)
-      .build());
+    return Collections.singletonList(
+        Artifact.builder()
+            .type("docker/image")
+            .name(name)
+            .version(content.getTag())
+            .reference(reference)
+            .build());
   }
 
   @Override
   protected Function<Trigger, Trigger> buildTrigger(DockerEvent dockerEvent) {
-    return trigger -> trigger.atTag(dockerEvent.getContent().getTag()).withEventId(dockerEvent.getEventId());
+    return trigger ->
+        trigger.atTag(dockerEvent.getContent().getTag()).withEventId(dockerEvent.getEventId());
   }
 
   @Override
   protected boolean isValidTrigger(Trigger trigger) {
-    return trigger.isEnabled() &&
-      (
-        (TRIGGER_TYPE.equals(trigger.getType()) &&
-          trigger.getAccount() != null &&
-          trigger.getRepository() != null)
-      );
+    return trigger.isEnabled()
+        && ((TRIGGER_TYPE.equals(trigger.getType())
+            && trigger.getAccount() != null
+            && trigger.getRepository() != null));
   }
 
   private boolean matchTags(String suppliedTag, String incomingTag) {
@@ -117,11 +116,10 @@ public class DockerEventHandler extends BaseTriggerEventHandler<DockerEvent> {
     if (StringUtils.isNotBlank(trigger.getTag())) {
       triggerTagPattern = trigger.getTag().trim();
     }
-    return trigger.getType().equals(TRIGGER_TYPE) &&
-            trigger.getRepository().equals(repository) &&
-            trigger.getAccount().equals(account) &&
-            ((triggerTagPattern == null && !eventTag.equals("latest"))
-              || triggerTagPattern != null && matchTags(triggerTagPattern, eventTag));
+    return trigger.getType().equals(TRIGGER_TYPE)
+        && trigger.getRepository().equals(repository)
+        && trigger.getAccount().equals(account)
+        && ((triggerTagPattern == null && !eventTag.equals("latest"))
+            || triggerTagPattern != null && matchTags(triggerTagPattern, eventTag));
   }
 }
-

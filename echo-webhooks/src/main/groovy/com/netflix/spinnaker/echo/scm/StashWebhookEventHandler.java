@@ -16,17 +16,13 @@
 
 package com.netflix.spinnaker.echo.scm;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.echo.model.Event;
-import lombok.Data;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Map;
+import lombok.Data;
+import org.springframework.stereotype.Component;
 
 @Component
 public class StashWebhookEventHandler implements GitWebhookHandler {
@@ -34,7 +30,8 @@ public class StashWebhookEventHandler implements GitWebhookHandler {
   private ObjectMapper objectMapper;
 
   public StashWebhookEventHandler() {
-    this.objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    this.objectMapper =
+        new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
   }
 
   public boolean handles(String source) {
@@ -42,9 +39,11 @@ public class StashWebhookEventHandler implements GitWebhookHandler {
   }
 
   public void handle(Event event, Map postedEvent) {
-    StashWebhookEvent stashWebhookEvent = objectMapper.convertValue(postedEvent, StashWebhookEvent.class);
+    StashWebhookEvent stashWebhookEvent =
+        objectMapper.convertValue(postedEvent, StashWebhookEvent.class);
     event.content.put("hash", stashWebhookEvent.refChanges.get(0).toHash);
-    event.content.put("branch", stashWebhookEvent.refChanges.get(0).refId.replace("refs/heads/", ""));
+    event.content.put(
+        "branch", stashWebhookEvent.refChanges.get(0).refId.replace("refs/heads/", ""));
     event.content.put("repoProject", stashWebhookEvent.repository.project.key);
     event.content.put("slug", stashWebhookEvent.repository.slug);
   }
@@ -75,5 +74,4 @@ public class StashWebhookEventHandler implements GitWebhookHandler {
   private static class StashProject {
     String key;
   }
-
 }

@@ -10,5 +10,3 @@ public class LogError implements Action1<Throwable> {
     log.error("Observable Failed", throwable);
   }
 }
-
-

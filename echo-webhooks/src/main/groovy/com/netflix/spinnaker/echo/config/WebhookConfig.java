@@ -23,5 +23,4 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConditionalOnProperty("webhooks.artifacts.enabled")
 @EnableConfigurationProperties(WebhookProperties.class)
-public class WebhookConfig {
-}
+public class WebhookConfig {}

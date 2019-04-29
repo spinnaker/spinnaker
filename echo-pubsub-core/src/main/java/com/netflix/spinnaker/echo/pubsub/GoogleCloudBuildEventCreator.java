@@ -20,16 +20,13 @@ import com.netflix.spinnaker.echo.model.Event;
 import com.netflix.spinnaker.echo.model.Metadata;
 import com.netflix.spinnaker.echo.model.pubsub.MessageDescription;
 import com.netflix.spinnaker.echo.pubsub.model.EventCreator;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
-import java.util.Map;
-
-/**
- * Creates Google Cloud Build events when a pubsub build notification is received.
- */
+/** Creates Google Cloud Build events when a pubsub build notification is received. */
 @Component
 @ConditionalOnProperty("gcb.enabled")
 @Slf4j

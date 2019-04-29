@@ -16,20 +16,21 @@
 
 package com.netflix.spinnaker.echo.pipelinetriggers.artifacts;
 
-import com.netflix.spinnaker.echo.model.Pipeline;
 import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact;
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class ArtifactMatcher {
-  public static boolean anyArtifactsMatchExpected(List<Artifact> messageArtifacts, Trigger trigger, List<ExpectedArtifact> pipelineExpectedArtifacts) {
+  public static boolean anyArtifactsMatchExpected(
+      List<Artifact> messageArtifacts,
+      Trigger trigger,
+      List<ExpectedArtifact> pipelineExpectedArtifacts) {
     messageArtifacts = messageArtifacts == null ? new ArrayList<>() : messageArtifacts;
     List<String> expectedArtifactIds = trigger.getExpectedArtifactIds();
 
@@ -37,18 +38,22 @@ public class ArtifactMatcher {
       return true;
     }
 
-    List<ExpectedArtifact> expectedArtifacts = pipelineExpectedArtifacts == null ? new ArrayList<>() : pipelineExpectedArtifacts
-        .stream()
-        .filter(e -> expectedArtifactIds.contains(e.getId()))
-        .collect(Collectors.toList());
+    List<ExpectedArtifact> expectedArtifacts =
+        pipelineExpectedArtifacts == null
+            ? new ArrayList<>()
+            : pipelineExpectedArtifacts.stream()
+                .filter(e -> expectedArtifactIds.contains(e.getId()))
+                .collect(Collectors.toList());
 
     if (messageArtifacts.size() > expectedArtifactIds.size()) {
-      log.warn("Parsed message artifacts (size {}) greater than expected artifacts (size {}), continuing trigger anyway", messageArtifacts.size(), expectedArtifactIds.size());
+      log.warn(
+          "Parsed message artifacts (size {}) greater than expected artifacts (size {}), continuing trigger anyway",
+          messageArtifacts.size(),
+          expectedArtifactIds.size());
     }
 
-    Predicate<Artifact> expectedArtifactMatch = a -> expectedArtifacts
-        .stream()
-        .anyMatch(e -> e.matches(a));
+    Predicate<Artifact> expectedArtifactMatch =
+        a -> expectedArtifacts.stream().anyMatch(e -> e.matches(a));
 
     boolean result = messageArtifacts.stream().anyMatch(expectedArtifactMatch);
     if (!result) {
@@ -58,12 +63,14 @@ public class ArtifactMatcher {
   }
 
   /**
-   * Check that there is a key in the payload for each constraint declared in a Trigger.
-   * Also check that if there is a value for a given key, that the value matches the value in the payload.
-   * @param constraints A map of constraints configured in the Trigger (eg, created in Deck).
-   *                    A constraint is a [key, java regex value] pair.
+   * Check that there is a key in the payload for each constraint declared in a Trigger. Also check
+   * that if there is a value for a given key, that the value matches the value in the payload.
+   *
+   * @param constraints A map of constraints configured in the Trigger (eg, created in Deck). A
+   *     constraint is a [key, java regex value] pair.
    * @param payload A map of the payload contents POST'd in the triggering event.
-   * @return Whether every key (and value if applicable) in the constraints map is represented in the payload.
+   * @return Whether every key (and value if applicable) in the constraints map is represented in
+   *     the payload.
    */
   public static boolean isConstraintInPayload(final Map constraints, final Map payload) {
     for (Object key : constraints.keySet()) {
@@ -71,7 +78,8 @@ public class ArtifactMatcher {
         return false;
       }
 
-      if (constraints.get(key) != null && !matches(constraints.get(key).toString(), payload.get(key).toString()) ) {
+      if (constraints.get(key) != null
+          && !matches(constraints.get(key).toString(), payload.get(key).toString())) {
         return false;
       }
     }

@@ -22,14 +22,14 @@ import retrofit.http.*;
 public interface GithubService {
   @POST("/repos/{repo}/statuses/{sha}")
   Response updateCheck(
-    @Header("Authorization") String token,
-    @Path(value = "repo", encode = false) String repo,
-    @Path("sha") String sha,
-    @Body GithubStatus status);
+      @Header("Authorization") String token,
+      @Path(value = "repo", encode = false) String repo,
+      @Path("sha") String sha,
+      @Body GithubStatus status);
 
   @GET("/repos/{repo}/commits/{sha}")
   Response getCommit(
-    @Header("Authorization") String token,
-    @Path(value = "repo", encode = false) String repo,
-    @Path("sha") String sha);
+      @Header("Authorization") String token,
+      @Path(value = "repo", encode = false) String repo,
+      @Path("sha") String sha);
 }

@@ -31,9 +31,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
-/**
- * Configuration for Event Propagator
- */
+/** Configuration for Event Propagator */
 @Configuration
 @ComponentScan({
   "com.netflix.spinnaker.echo.build",
@@ -65,7 +63,8 @@ public class EchoCoreConfig {
 
   @Bean
   @ConditionalOnMissingBean
-  public JinjaArtifactExtractor.Factory jinjaArtifactExtractorFactory(JinjavaFactory jinjavaFactory) {
+  public JinjaArtifactExtractor.Factory jinjaArtifactExtractorFactory(
+      JinjavaFactory jinjavaFactory) {
     return new JinjaArtifactExtractor.Factory(jinjavaFactory);
   }
 

@@ -17,18 +17,16 @@
 package com.netflix.spinnaker.echo.scheduler.actions.pipeline;
 
 import com.netflix.spectator.api.Registry;
+import java.util.concurrent.TimeUnit;
 import org.quartz.Scheduler;
 import org.quartz.Trigger;
 import org.quartz.listeners.TriggerListenerSupport;
 import org.springframework.stereotype.Component;
 
-import java.util.concurrent.TimeUnit;
-
 /**
- * Listener for triggers on the Quartz scheduler so we can log analytics
- * e.g. time drift in cron misfires
- * NOTE: we use the default misfire policy which will only consider
- * a trigger misfired if it's delayed by more than a minute
+ * Listener for triggers on the Quartz scheduler so we can log analytics e.g. time drift in cron
+ * misfires NOTE: we use the default misfire policy which will only consider a trigger misfired if
+ * it's delayed by more than a minute
  */
 @Component
 public class TriggerListener extends TriggerListenerSupport {

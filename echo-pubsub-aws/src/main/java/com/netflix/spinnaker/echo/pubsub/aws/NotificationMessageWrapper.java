@@ -18,9 +18,8 @@ package com.netflix.spinnaker.echo.pubsub.aws;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
-
 import java.util.Map;
+import lombok.Data;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -43,10 +42,15 @@ public class NotificationMessageWrapper {
   @JsonProperty("MessageAttributes")
   private Map<String, MessageAttributeWrapper> messageAttributes;
 
-  public NotificationMessageWrapper() {
-  }
+  public NotificationMessageWrapper() {}
 
-  public NotificationMessageWrapper(String type, String messageId, String topicArn, String subject, String message, Map messageAttributes) {
+  public NotificationMessageWrapper(
+      String type,
+      String messageId,
+      String topicArn,
+      String subject,
+      String message,
+      Map messageAttributes) {
     this.type = type;
     this.messageId = messageId;
     this.topicArn = topicArn;

@@ -19,11 +19,12 @@ package com.netflix.spinnaker.echo.pipelinetriggers.postprocessors;
 import com.netflix.spinnaker.echo.model.Pipeline;
 
 /**
- * Interface defining post-processors that modify a pipeline (and/or its trigger) before sending
- * it to Orca for execution.
+ * Interface defining post-processors that modify a pipeline (and/or its trigger) before sending it
+ * to Orca for execution.
  */
 public interface PipelinePostProcessor {
   Pipeline processPipeline(Pipeline inputPipeline);
+
   default PostProcessorPriority priority() {
     return PostProcessorPriority.DEFAULT;
   }

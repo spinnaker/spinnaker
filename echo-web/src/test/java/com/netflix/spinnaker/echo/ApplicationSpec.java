@@ -27,15 +27,12 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = {Application.class})
-@TestPropertySource(properties = { "spring.config.location=classpath:echo-test.yml" })
+@TestPropertySource(properties = {"spring.config.location=classpath:echo-test.yml"})
 public class ApplicationSpec {
-  @MockBean
-  Front50Service front50Service;
+  @MockBean Front50Service front50Service;
 
-  @MockBean
-  OrcaService orcaService;
+  @MockBean OrcaService orcaService;
 
   @Test
-  public void startupTest() {
-  }
+  public void startupTest() {}
 }

@@ -27,15 +27,11 @@ import com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers.TriggerEventHan
 import com.netflix.spinnaker.echo.pipelinetriggers.orca.PipelineInitiator;
 import com.netflix.spinnaker.echo.pipelinetriggers.postprocessors.PipelinePostProcessorHandler;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.TimeoutException;
-
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
-/**
- * Triggers pipelines in orca when a TriggerEvent of type T is received by echo.
- */
+/** Triggers pipelines in orca when a TriggerEvent of type T is received by echo. */
 @Slf4j
 public class TriggerMonitor<T extends TriggerEvent> implements EchoEventListener {
   private final PipelineInitiator pipelineInitiator;
@@ -44,11 +40,12 @@ public class TriggerMonitor<T extends TriggerEvent> implements EchoEventListener
   private final PipelinePostProcessorHandler pipelinePostProcessorHandler;
   private final TriggerEventHandler<T> eventHandler;
 
-  TriggerMonitor(@NonNull PipelineCache pipelineCache,
-    @NonNull PipelineInitiator pipelineInitiator,
-    @NonNull Registry registry,
-    @NonNull PipelinePostProcessorHandler pipelinePostProcessorHandler,
-    @NonNull TriggerEventHandler<T> eventHandler) {
+  TriggerMonitor(
+      @NonNull PipelineCache pipelineCache,
+      @NonNull PipelineInitiator pipelineInitiator,
+      @NonNull Registry registry,
+      @NonNull PipelinePostProcessorHandler pipelinePostProcessorHandler,
+      @NonNull TriggerEventHandler<T> eventHandler) {
     this.pipelineCache = pipelineCache;
     this.pipelineInitiator = pipelineInitiator;
     this.registry = registry;
@@ -77,11 +74,12 @@ public class TriggerMonitor<T extends TriggerEvent> implements EchoEventListener
     try {
       List<Pipeline> matchingPipelines = eventHandler.getMatchingPipelines(event, pipelineCache);
       matchingPipelines.stream()
-        .map(pipelinePostProcessorHandler::process)
-        .forEach(p -> {
-          recordMatchingPipeline(p);
-          pipelineInitiator.startPipeline(p);
-        });
+          .map(pipelinePostProcessorHandler::process)
+          .forEach(
+              p -> {
+                recordMatchingPipeline(p);
+                pipelineInitiator.startPipeline(p);
+              });
     } catch (TimeoutException e) {
       log.error("Failed to get pipeline configs", e);
     }
@@ -97,10 +95,12 @@ public class TriggerMonitor<T extends TriggerEvent> implements EchoEventListener
   }
 
   private void emitMetricsOnMatchingPipeline(Pipeline pipeline) {
-    Id id = registry.createId("pipelines.triggered")
-      .withTag("monitor", eventHandler.getClass().getSimpleName())
-      .withTag("application", pipeline.getApplication())
-      .withTags(eventHandler.getAdditionalTags(pipeline));
+    Id id =
+        registry
+            .createId("pipelines.triggered")
+            .withTag("monitor", eventHandler.getClass().getSimpleName())
+            .withTag("application", pipeline.getApplication())
+            .withTags(eventHandler.getAdditionalTags(pipeline));
     registry.counter(id).increment();
   }
 }

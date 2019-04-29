@@ -19,31 +19,29 @@ package com.netflix.spinnaker.echo.artifacts;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.echo.config.WebhookProperties;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
 public class TemplateBasedArtifactExtractor implements WebhookArtifactExtractor {
-  final private WebhookProperties webhookProperties;
-  final private ObjectMapper objectMapper;
-  final private MessageArtifactTranslator.Factory messageArtifactTranslatorFactory;
+  private final WebhookProperties webhookProperties;
+  private final ObjectMapper objectMapper;
+  private final MessageArtifactTranslator.Factory messageArtifactTranslatorFactory;
 
   @Autowired
   public TemplateBasedArtifactExtractor(
-    Optional<WebhookProperties> webhookProperties,
-    ObjectMapper objectMapper,
-    MessageArtifactTranslator.Factory messageArtifactTranslatorFactory
-  ) {
+      Optional<WebhookProperties> webhookProperties,
+      ObjectMapper objectMapper,
+      MessageArtifactTranslator.Factory messageArtifactTranslatorFactory) {
     this.webhookProperties = webhookProperties.orElse(null);
     this.objectMapper = objectMapper;
     this.messageArtifactTranslatorFactory = messageArtifactTranslatorFactory;
@@ -61,9 +59,11 @@ public class TemplateBasedArtifactExtractor implements WebhookArtifactExtractor 
     } else {
       MessageArtifactTranslator translator;
       try {
-        translator = messageArtifactTranslatorFactory.createJinja(new FileInputStream(templatePath));
+        translator =
+            messageArtifactTranslatorFactory.createJinja(new FileInputStream(templatePath));
       } catch (FileNotFoundException e) {
-        throw new RuntimeException("Failed to read template path " + templatePath + ": " + e.getMessage(), e);
+        throw new RuntimeException(
+            "Failed to read template path " + templatePath + ": " + e.getMessage(), e);
       }
 
       List<Artifact> result = new ArrayList<>();

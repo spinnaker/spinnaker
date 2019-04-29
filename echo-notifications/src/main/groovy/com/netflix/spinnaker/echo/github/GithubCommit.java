@@ -29,6 +29,4 @@ public class GithubCommit {
   public GithubCommit(GithubCommitDetail commit) {
     this.commit = commit;
   }
-
 }
-

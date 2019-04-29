@@ -29,9 +29,10 @@ import org.springframework.scheduling.quartz.SpringBeanJobFactory;
 /**
  * Taken from https://dzone.com/articles/spring-and-quartz-integration-that-works-together
  *
- * Allows us to have Quartz jobs play nicely with Spring DI
+ * <p>Allows us to have Quartz jobs play nicely with Spring DI
  */
-public final class AutowiringSpringBeanJobFactory extends SpringBeanJobFactory implements  ApplicationContextAware {
+public final class AutowiringSpringBeanJobFactory extends SpringBeanJobFactory
+    implements ApplicationContextAware {
   private ApplicationContext ctx;
   private SchedulerContext schedulerContext;
 

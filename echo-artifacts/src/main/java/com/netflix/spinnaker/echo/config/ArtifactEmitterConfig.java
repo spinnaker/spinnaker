@@ -23,5 +23,4 @@ import org.springframework.context.annotation.Configuration;
 @ComponentScan("com.netflix.spinnaker.echo.artifacts")
 @Configuration
 @EnableConfigurationProperties(ArtifactEmitterProperties.class)
-public class ArtifactEmitterConfig {
-}
+public class ArtifactEmitterConfig {}

@@ -17,11 +17,11 @@
 package com.netflix.spinnaker.echo.artifacts;
 
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-
 import java.util.List;
 import java.util.Map;
 
 public interface WebhookArtifactExtractor {
   List<Artifact> getArtifacts(String source, Map payload);
+
   boolean handles(String type, String source);
 }

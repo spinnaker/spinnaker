@@ -15,22 +15,21 @@
  */
 package com.netflix.spinnaker.echo.cron;
 
-import org.quartz.CronExpression;
-
 import static java.lang.String.format;
 
+import org.quartz.CronExpression;
+
 /**
- * Rewrites cron expressions that contain a fuzzy expression into an
- * expression that is compatible with Quartz.
+ * Rewrites cron expressions that contain a fuzzy expression into an expression that is compatible
+ * with Quartz.
  *
- * In the case of a cron meant to run every hour, the normal case would have
- * the trigger fire at the bottom of the hour each time. With fuzzing, the
- * trigger's ID will be hashed and used to jitter the trigger somewhere
- * within that hour.
+ * <p>In the case of a cron meant to run every hour, the normal case would have the trigger fire at
+ * the bottom of the hour each time. With fuzzing, the trigger's ID will be hashed and used to
+ * jitter the trigger somewhere within that hour.
  *
- * Similar to Jenkins, fuzzy expressions are marked by an "H".
+ * <p>Similar to Jenkins, fuzzy expressions are marked by an "H".
  *
- * Supports hashing of seconds, minutes and hours fields only.
+ * <p>Supports hashing of seconds, minutes and hours fields only.
  */
 public class CronExpressionFuzzer {
 
@@ -60,13 +59,14 @@ public class CronExpressionFuzzer {
     private String dayOfWeek;
     private String year;
 
-    private Tokens(String seconds,
-                   String minutes,
-                   String hours,
-                   String dayOfMonth,
-                   String month,
-                   String dayOfWeek,
-                   String year) {
+    private Tokens(
+        String seconds,
+        String minutes,
+        String hours,
+        String dayOfMonth,
+        String month,
+        String dayOfWeek,
+        String year) {
       this.seconds = seconds;
       this.minutes = minutes;
       this.hours = hours;
@@ -93,8 +93,9 @@ public class CronExpressionFuzzer {
       }
 
       return (year == null)
-        ? format("%s %s %s %s %s %s", seconds, minutes, hours, dayOfMonth, month, dayOfWeek)
-        : format("%s %s %s %s %s %s %s", seconds, minutes, hours, dayOfMonth, month, dayOfWeek, year);
+          ? format("%s %s %s %s %s %s", seconds, minutes, hours, dayOfMonth, month, dayOfWeek)
+          : format(
+              "%s %s %s %s %s %s %s", seconds, minutes, hours, dayOfMonth, month, dayOfWeek, year);
     }
 
     private String hash(String id, int maxRange) {
@@ -102,4 +103,3 @@ public class CronExpressionFuzzer {
     }
   }
 }
-

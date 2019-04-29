@@ -24,7 +24,10 @@ import com.netflix.spinnaker.echo.github.GithubService;
 import com.netflix.spinnaker.echo.github.GithubStatus;
 import com.netflix.spinnaker.echo.model.Event;
 import com.netflix.spinnaker.kork.core.RetrySupport;
-import lombok.NonNull;
+import java.io.IOException;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,19 +35,15 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import retrofit.client.Response;
 
-import java.io.IOException;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 @Slf4j
 @ConditionalOnProperty("github-status.enabled")
 @Service
 public class GithubNotificationAgent extends AbstractEventNotificationAgent {
-  private ImmutableMap<String, String> STATUSES = ImmutableMap.of(
-    "starting", "pending",
-    "complete", "success",
-    "failed", "failure");
+  private ImmutableMap<String, String> STATUSES =
+      ImmutableMap.of(
+          "starting", "pending",
+          "complete", "success",
+          "failed", "failure");
 
   private final RetrySupport retrySupport = new RetrySupport();
   private static final int MAX_RETRY = 5;
@@ -52,11 +51,11 @@ public class GithubNotificationAgent extends AbstractEventNotificationAgent {
 
   @Override
   public void sendNotifications(
-    Map preference,
-    final String application,
-    final Event event,
-    Map config,
-    final String status) {
+      Map preference,
+      final String application,
+      final Event event,
+      Map config,
+      final String status) {
     EventContent content = null;
     try {
       content = new EventContent(event, (String) config.get("type"));
@@ -71,25 +70,26 @@ public class GithubNotificationAgent extends AbstractEventNotificationAgent {
     String targetUrl;
 
     if (config.get("type").equals("stage")) {
-      description = String.format("Stage '%s' in pipeline '%s' is %s",
-        content.getStageName(),
-        content.getPipeline(),
-        status);
+      description =
+          String.format(
+              "Stage '%s' in pipeline '%s' is %s",
+              content.getStageName(), content.getPipeline(), status);
       context = String.format("stage/%s", content.getStageName());
-      targetUrl = String.format("%s/#/applications/%s/executions/details/%s?pipeline=%s&stage=%d",
-        getSpinnakerUrl(),
-        application,
-        content.getExecutionId(),
-        content.getPipeline(),
-        content.getStageIndex());
+      targetUrl =
+          String.format(
+              "%s/#/applications/%s/executions/details/%s?pipeline=%s&stage=%d",
+              getSpinnakerUrl(),
+              application,
+              content.getExecutionId(),
+              content.getPipeline(),
+              content.getStageIndex());
     } else if (config.get("type").equals("pipeline")) {
       description = String.format("Pipeline '%s' is %s", content.getPipeline(), status);
       context = String.format("pipeline/%s", content.getPipeline());
-      targetUrl = String.format("%s/#/applications/%s/executions/details/%s?pipeline=%s",
-        getSpinnakerUrl(),
-        application,
-        content.getExecutionId(),
-        content.getPipeline());
+      targetUrl =
+          String.format(
+              "%s/#/applications/%s/executions/details/%s?pipeline=%s",
+              getSpinnakerUrl(), application, content.getExecutionId(), content.getPipeline());
     } else {
       return;
     }
@@ -109,13 +109,15 @@ public class GithubNotificationAgent extends AbstractEventNotificationAgent {
     try {
       final String repo = content.getRepo();
       retrySupport.retry(
-        () -> githubService.updateCheck("token " + token, repo, branchCommit, githubStatus),
-        MAX_RETRY,
-        RETRY_BACKOFF,
-        false);
+          () -> githubService.updateCheck("token " + token, repo, branchCommit, githubStatus),
+          MAX_RETRY,
+          RETRY_BACKOFF,
+          false);
     } catch (Exception e) {
-      log.error(String.format("Failed to send github status for application: '%s' pipeline: '%s', %s",
-        application, content.getPipeline(), e));
+      log.error(
+          String.format(
+              "Failed to send github status for application: '%s' pipeline: '%s', %s",
+              application, content.getPipeline(), e));
     }
   }
 
@@ -129,7 +131,9 @@ public class GithubNotificationAgent extends AbstractEventNotificationAgent {
       return sha;
     }
 
-    Pattern pattern = Pattern.compile("Merge (?<branchCommit>[0-9a-f]{5,40}) into (?<masterCommit>[0-9a-f]{5,40})");
+    Pattern pattern =
+        Pattern.compile(
+            "Merge (?<branchCommit>[0-9a-f]{5,40}) into (?<masterCommit>[0-9a-f]{5,40})");
     Matcher matcher = pattern.matcher(message.getCommit().getMessage());
     if (matcher.matches()) {
       return matcher.group("branchCommit");
@@ -158,8 +162,8 @@ public class GithubNotificationAgent extends AbstractEventNotificationAgent {
     this.token = token;
   }
 
-  @Autowired
-  private GithubService githubService;
+  @Autowired private GithubService githubService;
+
   @Value("${github-status.token}")
   private String token;
 }

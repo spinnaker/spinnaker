@@ -17,20 +17,19 @@
 package com.netflix.spinnaker.echo.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.Data;
-
 import java.util.Map;
 import java.util.UUID;
+import lombok.Data;
 
-/**
- * Represents an event
- */
+/** Represents an event */
 @Data
 public class Event {
   public Metadata details;
   public Map content;
   public String rawContent;
+
   @JsonInclude(JsonInclude.Include.NON_NULL)
   public Map payload;
+
   public String eventId = UUID.randomUUID().toString();
 }

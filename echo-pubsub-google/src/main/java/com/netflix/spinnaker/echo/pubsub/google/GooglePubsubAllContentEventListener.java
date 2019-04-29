@@ -32,18 +32,15 @@ import org.springframework.stereotype.Component;
 @ConditionalOnExpression("${pubsub.enabled:false} && ${pubsub.google.enabled:false}")
 public class GooglePubsubAllContentEventListener implements EchoEventListener {
 
-  @Autowired
-  private PubsubPublishers publishers;
+  @Autowired private PubsubPublishers publishers;
 
-  @Autowired
-  ObjectMapper mapper;
+  @Autowired ObjectMapper mapper;
 
   @Override
   public void processEvent(Event event) {
-    publishers.publishersMatchingType(PubsubSystem.GOOGLE)
-      .stream()
-      .map(p -> (GooglePubsubPublisher) p)
-      .filter(p -> p.getContent() == Content.ALL)
-      .forEach(p -> p.publishEvent(event));
+    publishers.publishersMatchingType(PubsubSystem.GOOGLE).stream()
+        .map(p -> (GooglePubsubPublisher) p)
+        .filter(p -> p.getContent() == Content.ALL)
+        .forEach(p -> p.publishEvent(event));
   }
 }

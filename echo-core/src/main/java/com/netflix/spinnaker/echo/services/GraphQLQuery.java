@@ -15,15 +15,13 @@
  */
 package com.netflix.spinnaker.echo.services;
 
-import javax.annotation.Nullable;
-
 import static java.lang.String.format;
+
+import javax.annotation.Nullable;
 
 public class GraphQLQuery {
 
-  /**
-   * Oh yeah. This is the realness. Will need to write a query builder.
-   */
+  /** Oh yeah. This is the realness. Will need to write a query builder. */
   public static GraphQLQuery pipelines(@Nullable String havingTriggerType) {
     if (havingTriggerType != null) {
       havingTriggerType = format("(havingTriggerType: \"%s\")", havingTriggerType);
@@ -31,20 +29,23 @@ public class GraphQLQuery {
       havingTriggerType = "";
     }
 
-    return new GraphQLQuery(format("query {\n" +
-      "  pipelines%s {\n" +
-      "    id\n" +
-      "    name\n" +
-      "    application\n" +
-      "    triggers {\n" +
-      "      ... on CronTrigger {\n" +
-      "        id\n" +
-      "        enabled\n" +
-      "        cronExpression\n" +
-      "      }\n" +
-      "    }\n" +
-      "  }\n" +
-      "}\n", havingTriggerType));
+    return new GraphQLQuery(
+        format(
+            "query {\n"
+                + "  pipelines%s {\n"
+                + "    id\n"
+                + "    name\n"
+                + "    application\n"
+                + "    triggers {\n"
+                + "      ... on CronTrigger {\n"
+                + "        id\n"
+                + "        enabled\n"
+                + "        cronExpression\n"
+                + "      }\n"
+                + "    }\n"
+                + "  }\n"
+                + "}\n",
+            havingTriggerType));
   }
 
   public String query;

@@ -17,13 +17,12 @@
 package com.netflix.spinnaker.echo.model.pubsub;
 
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import java.util.List;
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.util.List;
-import java.util.Map;
 
 @Data
 @Builder
@@ -31,8 +30,7 @@ import java.util.Map;
 @AllArgsConstructor
 public class MessageDescription {
   /**
-   * Logical name given to the subscription by the user, not the locator
-   * the pub/sub system uses.
+   * Logical name given to the subscription by the user, not the locator the pub/sub system uses.
    */
   private String subscriptionName;
 
@@ -41,7 +39,7 @@ public class MessageDescription {
   /**
    * Optional, additional message metadata sent from the pub/sub system.
    *
-   * May be null.
+   * <p>May be null.
    */
   private Map<String, String> messageAttributes;
 
@@ -51,8 +49,6 @@ public class MessageDescription {
 
   private Integer retentionDeadlineSeconds;
 
-  /**
-   * List of artifacts parsed from the pub/sub message.
-   */
+  /** List of artifacts parsed from the pub/sub message. */
   private List<Artifact> artifacts;
 }

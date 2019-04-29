@@ -21,22 +21,22 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.model.trigger.ArtifactoryEvent;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import org.springframework.stereotype.Component;
 
 /**
- * Implementation of TriggerEventHandler for events of type {@link ArtifactoryEvent}, which occur when
- * an artifact is added/modified in an Artifactory repository.
+ * Implementation of TriggerEventHandler for events of type {@link ArtifactoryEvent}, which occur
+ * when an artifact is added/modified in an Artifactory repository.
  */
 @Component
 public class ArtifactoryEventHandler extends BaseTriggerEventHandler<ArtifactoryEvent> {
   private static final String ARTIFACTORY_TRIGGER_TYPE = "artifactory";
-  private static final List<String> supportedTriggerTypes = Collections.singletonList(ARTIFACTORY_TRIGGER_TYPE);
+  private static final List<String> supportedTriggerTypes =
+      Collections.singletonList(ARTIFACTORY_TRIGGER_TYPE);
 
   public ArtifactoryEventHandler(Registry registry, ObjectMapper objectMapper) {
     super(registry, objectMapper);
@@ -60,8 +60,8 @@ public class ArtifactoryEventHandler extends BaseTriggerEventHandler<Artifactory
   @Override
   protected boolean isValidTrigger(Trigger trigger) {
     return trigger.isEnabled()
-      && ARTIFACTORY_TRIGGER_TYPE.equals(trigger.getType())
-      && trigger.getArtifactorySearchName() != null;
+        && ARTIFACTORY_TRIGGER_TYPE.equals(trigger.getType())
+        && trigger.getArtifactorySearchName() != null;
   }
 
   @Override
@@ -72,21 +72,23 @@ public class ArtifactoryEventHandler extends BaseTriggerEventHandler<Artifactory
   @Override
   protected Predicate<Trigger> matchTriggerFor(ArtifactoryEvent artifactoryEvent) {
     String artifactorySearchName = artifactoryEvent.getContent().getName();
-    return trigger -> trigger.getType().equals(ARTIFACTORY_TRIGGER_TYPE)
-      && trigger.getArtifactorySearchName().equals(artifactorySearchName);
+    return trigger ->
+        trigger.getType().equals(ARTIFACTORY_TRIGGER_TYPE)
+            && trigger.getArtifactorySearchName().equals(artifactorySearchName);
   }
 
   @Override
-  protected List<Artifact> getArtifactsFromEvent(ArtifactoryEvent artifactoryEvent, Trigger trigger) {
-    return artifactoryEvent.getContent() != null && artifactoryEvent.getContent().getArtifact() != null ?
-      Collections.singletonList(artifactoryEvent.getContent().getArtifact())
-      : new ArrayList<>();
+  protected List<Artifact> getArtifactsFromEvent(
+      ArtifactoryEvent artifactoryEvent, Trigger trigger) {
+    return artifactoryEvent.getContent() != null
+            && artifactoryEvent.getContent().getArtifact() != null
+        ? Collections.singletonList(artifactoryEvent.getContent().getArtifact())
+        : new ArrayList<>();
   }
 
   @Override
   protected Function<Trigger, Trigger> buildTrigger(ArtifactoryEvent event) {
-    return trigger -> trigger
-      .atArtifactorySearchName(event.getContent().getName())
-      .atEventId(event.getEventId());
+    return trigger ->
+        trigger.atArtifactorySearchName(event.getContent().getName()).atEventId(event.getEventId());
   }
 }

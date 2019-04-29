@@ -18,26 +18,19 @@ package com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers;
 
 import com.netflix.spinnaker.echo.model.Event;
 import com.netflix.spinnaker.echo.model.Pipeline;
-import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.model.trigger.TriggerEvent;
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache;
-
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.TimeoutException;
-import java.util.stream.Collectors;
 
 /**
  * Interface for classes that match a TriggerEvent to pipelines that should be triggered in response
  * to the event.
  */
 public interface TriggerEventHandler<T extends TriggerEvent> {
-  /**
-   * @return the list of trigger types
-   */
+  /** @return the list of trigger types */
   List<String> supportedTriggerTypes();
 
   /**
@@ -48,14 +41,16 @@ public interface TriggerEventHandler<T extends TriggerEvent> {
 
   /**
    * Converts an event to the type handled by the implementing class
+   *
    * @param event The event to convert
    * @return The converted event
    */
   T convertEvent(Event event);
 
   /**
-   * Given a list of pipelines and an event, returns the pipelines that should be triggered
-   * by the event
+   * Given a list of pipelines and an event, returns the pipelines that should be triggered by the
+   * event
+   *
    * @param event The triggering event
    * @param pipelineCache a source for pipelines and triggers to consider
    * @return The pipelines that should be triggered
@@ -65,10 +60,11 @@ public interface TriggerEventHandler<T extends TriggerEvent> {
   /**
    * Given a pipeline, gets any additional tags that should be associated with metrics recorded
    * about that pipeline
+   *
    * @param pipeline The pipeline
    * @return Tags to be included in metrics
    */
-  default Map<String,String> getAdditionalTags(Pipeline pipeline) {
+  default Map<String, String> getAdditionalTags(Pipeline pipeline) {
     return new HashMap<>();
   }
 
