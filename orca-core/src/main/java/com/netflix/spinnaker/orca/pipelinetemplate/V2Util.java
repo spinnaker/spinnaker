@@ -38,7 +38,7 @@ public class V2Util {
     Map<String, Object> finalPipeline = pipeline;
     List<ExecutionPreprocessor> preprocessors = pipelinePreprocessors
       .stream()
-      .filter(p -> p.supports(finalPipeline))
+      .filter(p -> p.supports(finalPipeline, ExecutionPreprocessor.Type.PIPELINE))
       .collect(Collectors.toList());
     for (ExecutionPreprocessor pp : preprocessors) {
       pipeline = pp.process(pipeline);

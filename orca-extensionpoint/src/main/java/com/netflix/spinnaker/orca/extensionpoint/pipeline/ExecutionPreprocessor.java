@@ -26,10 +26,15 @@ public interface ExecutionPreprocessor {
   /**
    * Returns whether or not the preprocess can handle the inbound execution.
    */
-  boolean supports(@Nonnull Map<String, Object> execution);
+  boolean supports(@Nonnull Map<String, Object> execution, @Nonnull Type type);
 
   /**
    * Allows modification of an execution configuration.
    */
   @Nonnull Map<String, Object> process(@Nonnull Map<String, Object> execution);
+
+  enum Type {
+    PIPELINE,
+    ORCHESTRATION
+  }
 }

@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.preprocessors
 import com.netflix.spinnaker.orca.config.DefaultApplicationConfigurationProperties
 import com.netflix.spinnaker.orca.extensionpoint.pipeline.ExecutionPreprocessor
 import org.springframework.stereotype.Component
+import javax.annotation.Nonnull
 
 /**
  * Populates an Execution config payload with a default application value if one is not provided.
@@ -27,7 +28,8 @@ class DefaultApplicationExecutionPreprocessor(
   private val properties: DefaultApplicationConfigurationProperties
 ) : ExecutionPreprocessor {
 
-  override fun supports(execution: MutableMap<String, Any>) = true
+  override fun supports(@Nonnull execution: MutableMap<String, Any>,
+                        @Nonnull type: ExecutionPreprocessor.Type): Boolean = true
 
   override fun process(execution: MutableMap<String, Any>): MutableMap<String, Any> {
     if (!execution.containsKey("application")) {

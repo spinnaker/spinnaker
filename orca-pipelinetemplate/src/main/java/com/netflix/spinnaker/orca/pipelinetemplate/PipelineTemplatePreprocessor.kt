@@ -28,6 +28,7 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v2schema.model.V2PipelineTemp
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import javax.annotation.Nonnull
 import javax.annotation.PostConstruct
 
 @Component("pipelineTemplatePreprocessor")
@@ -44,7 +45,8 @@ class PipelineTemplatePreprocessor
 
   @PostConstruct fun confirmUsage() = log.info("Using ${javaClass.simpleName}")
 
-  override fun supports(execution: MutableMap<String, Any>) = true
+  override fun supports(@Nonnull execution: MutableMap<String, Any>,
+                        @Nonnull type: ExecutionPreprocessor.Type): Boolean = true
 
   override fun process(pipeline: MutableMap<String, Any>): MutableMap<String, Any> {
     // TODO(jacobkiefer): We push the 'toplevel' v2 config into a 'config' field to play nice

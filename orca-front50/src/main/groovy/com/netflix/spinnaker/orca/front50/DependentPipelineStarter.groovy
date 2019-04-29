@@ -101,7 +101,9 @@ class DependentPipelineStarter implements ApplicationContextAware {
     //keep the trigger as the preprocessor removes it.
     def expectedArtifacts = pipelineConfig.expectedArtifacts
 
-    for (ExecutionPreprocessor preprocessor : executionPreprocessors.findAll { it.supports(pipelineConfig) }) {
+    for (ExecutionPreprocessor preprocessor : executionPreprocessors.findAll {
+      it.supports(pipelineConfig, ExecutionPreprocessor.Type.PIPELINE)
+    }) {
       pipelineConfig = preprocessor.process(pipelineConfig)
     }
 

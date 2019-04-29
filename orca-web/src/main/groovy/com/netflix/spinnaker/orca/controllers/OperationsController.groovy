@@ -186,7 +186,9 @@ class OperationsController {
   public Map parseAndValidatePipeline(Map pipeline, boolean resolveArtifacts) {
     parsePipelineTrigger(executionRepository, buildService, pipeline, resolveArtifacts)
 
-    for (ExecutionPreprocessor preprocessor : executionPreprocessors.findAll { it.supports(pipeline) }) {
+    for (ExecutionPreprocessor preprocessor : executionPreprocessors.findAll {
+      it.supports(pipeline, ExecutionPreprocessor.Type.PIPELINE)
+    }) {
       pipeline = preprocessor.process(pipeline)
     }
 
@@ -407,9 +409,13 @@ class OperationsController {
       applyStageRefIds(config)
     }
     injectPipelineOrigin(config)
-    for (ExecutionPreprocessor ep : executionPreprocessors) {
-      config = ep.process(config)
+
+    for (ExecutionPreprocessor preprocessor : executionPreprocessors.findAll {
+      it.supports(pipeline, ExecutionPreprocessor.Type.ORCHESTRATION)
+    }) {
+      config = preprocessor.process(pipeline)
     }
+
     def json = objectMapper.writeValueAsString(config)
     log.info('requested task:{}', json)
     def pipeline = executionLauncher.start(ORCHESTRATION, json)
