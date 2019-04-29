@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.fiat.config;
 
+import com.netflix.spinnaker.fiat.model.Authorization;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -31,6 +32,8 @@ public class FiatServerConfigurationProperties {
   private boolean defaultToUnrestrictedUser = false;
 
   private boolean allowAccessToUnknownApplications = false;
+
+  private Authorization executeFallback = Authorization.READ;
 
   private WriteMode writeMode = new WriteMode();
 

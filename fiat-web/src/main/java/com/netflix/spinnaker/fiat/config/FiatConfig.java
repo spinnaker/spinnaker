@@ -78,7 +78,8 @@ public class FiatConfig extends WebMvcConfigurerAdapter {
     return new DefaultApplicationProvider(
         front50Service,
         clouddriverService,
-        properties.isAllowAccessToUnknownApplications()
+        properties.isAllowAccessToUnknownApplications(),
+        properties.getExecuteFallback()
     );
   }
 

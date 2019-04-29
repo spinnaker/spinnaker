@@ -28,8 +28,18 @@ import spock.lang.Subject
 import spock.lang.Unroll
 
 class DefaultApplicationProviderSpec extends Specification {
+  private static final Authorization R = Authorization.READ
+  private static final Authorization W = Authorization.WRITE
+  private static final Authorization E = Authorization.EXECUTE
+
+  ClouddriverService clouddriverService = Mock(ClouddriverService)
+  Front50Service front50Service = Mock(Front50Service)
 
   @Subject DefaultApplicationProvider provider
+
+  def makePerms(Map<Authorization, List<String>> auths) {
+    return Permissions.Builder.factory(auths).build()
+  }
 
   @Unroll
   def "should #action applications with empty permissions when allowAccessToUnknownApplications = #allowAccessToUnknownApplications"() {
@@ -49,7 +59,7 @@ class DefaultApplicationProviderSpec extends Specification {
       ]
     }
 
-    provider = new DefaultApplicationProvider(front50Service, clouddriverService, allowAccessToUnknownApplications)
+    provider = new DefaultApplicationProvider(front50Service, clouddriverService, allowAccessToUnknownApplications, Authorization.READ)
 
     when:
     def restrictedResult = provider.getAllRestricted([new Role(role)] as Set<Role>, false)
@@ -72,5 +82,52 @@ class DefaultApplicationProviderSpec extends Specification {
     true                             | "bad_role" || ["app1"]
 
     action = allowAccessToUnknownApplications ? "exclude" : "include"
+  }
+
+  @Unroll
+  def "should add fallback execute permissions only to applications where it is not already set"() {
+    setup:
+    def app = new Application().setName("app")
+
+    when:
+    app.setPermissions(makePerms(givenPermissions))
+    provider = new DefaultApplicationProvider(front50Service, clouddriverService, false, Authorization.READ)
+    def resultApps = provider.getAll()
+
+    then:
+    1 * front50Service.getAllApplicationPermissions() >> [app]
+    1 * clouddriverService.getApplications() >> []
+
+    resultApps.size() == 1
+    makePerms(expectedPermissions) == resultApps.permissions[0]
+
+    where:
+    givenPermissions                ||  expectedPermissions
+    [:]                             ||  [:]
+    [(R): ['r']]                    ||  [(R): ['r'], (W): [], (E): ['r']]
+    [(R): ['r'], (E): ['foo']]      ||  [(R): ['r'], (W): [], (E): ['foo']]
+  }
+
+  @Unroll
+  def "should add fallback execute permissions based on executeFallback value" () {
+    setup:
+    def app = new Application().setName("app")
+
+    when:
+    app.setPermissions(makePerms(givenPermissions))
+    provider = new DefaultApplicationProvider(front50Service, clouddriverService, false, fallback)
+    def resultApps = provider.getAll()
+
+    then:
+    1 * front50Service.getAllApplicationPermissions() >> [app]
+    1 * clouddriverService.getApplications() >> []
+
+    resultApps.size() == 1
+    makePerms(expectedPermissions) == resultApps.permissions[0]
+
+    where:
+    fallback    || givenPermissions         || expectedPermissions
+    R           || [(R): ['r']]             || [(R): ['r'], (W): [], (E): ['r']]
+    W           || [(R): ['r'], (W): ['w']] || [(R): ['r'], (W): ['w'], (E): ['w']]
   }
 }

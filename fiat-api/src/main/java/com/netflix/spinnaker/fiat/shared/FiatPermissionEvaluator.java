@@ -326,7 +326,6 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
           // allow access to any applications w/o explicit permissions
           return true;
         }
-
         return permission.isLegacyFallback() || containsAuth.apply(permission.getApplications());
       case SERVICE_ACCOUNT:
         return permission.getServiceAccounts()
