@@ -89,7 +89,7 @@ class ImageHandler(
       orcaService.orchestrate(
         OrchestrationRequest(
           name = "Bake image for ${resource.spec.artifactName}",
-          application = resource.spec.artifactName, // TODO: is this always the same? Does it matter?
+          application = "keel", // TODO: revisit if/when we have a way to tie resources to applications
           description = "Bake image for ${resource.spec.artifactName}",
           job = listOf(
             Job(
