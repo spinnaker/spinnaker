@@ -84,4 +84,10 @@ interface CloudDriverService {
     @Query("account") account: String?,
     @Query("region") region: String? = null
   ): Deferred<List<NamedImage>>
+
+  @GET("/images/find")
+  fun images(
+    @Query("provider") provider: String,
+    @Query("q") name: String
+  ): Deferred<List<NamedImage>>
 }

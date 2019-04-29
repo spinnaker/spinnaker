@@ -25,6 +25,8 @@ include(
   "keel-ec2-plugin",
   "keel-eureka",
   "keel-front50",
+  "keel-igor",
+  "keel-mahe",
   "keel-orca",
   "keel-plugin",
   "keel-redis",

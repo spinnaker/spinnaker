@@ -20,7 +20,11 @@ plugins {
 }
 
 dependencies {
-  implementation(project(":keel-retrofit"))
+  api(project(":keel-retrofit"))
+  api("com.netflix.spinnaker.kork:kork-artifacts")
+  api("com.fasterxml.jackson.module:jackson-module-kotlin")
+  api("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+
   implementation(project(":keel-clouddriver"))
   implementation("com.fasterxml.jackson.core:jackson-databind")
   implementation("com.fasterxml.jackson.core:jackson-annotations")
@@ -29,6 +33,4 @@ dependencies {
   implementation("org.springframework:spring-context")
   implementation("org.springframework.boot:spring-boot-autoconfigure")
 
-  api("com.fasterxml.jackson.module:jackson-module-kotlin")
-  api("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
 }
