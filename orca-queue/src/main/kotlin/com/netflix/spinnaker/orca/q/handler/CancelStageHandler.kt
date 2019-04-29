@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.q.handler
 
 import com.netflix.spinnaker.orca.CancellableStage
 import com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
-import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.TaskResolver
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilderFactory
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.*
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
@@ -35,7 +35,9 @@ class CancelStageHandler(
   override val queue: Queue,
   override val repository: ExecutionRepository,
   override val stageDefinitionBuilderFactory: StageDefinitionBuilderFactory,
-  @Qualifier("messageHandlerPool") private val executor: Executor
+
+  @Qualifier("messageHandlerPool") private val executor: Executor,
+  private val taskResolver: TaskResolver
 ) : OrcaMessageHandler<CancelStage>, StageBuilderAware {
 
   override val messageType = CancelStage::class.java
@@ -101,5 +103,5 @@ class CancelStageHandler(
 
   @Suppress("UNCHECKED_CAST")
   private val com.netflix.spinnaker.orca.pipeline.model.Task.type
-    get() = Class.forName(implementingClass) as Class<out Task>
+    get() = taskResolver.getTaskClass(implementingClass)
 }

@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED
 import com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
 import com.netflix.spinnaker.orca.RetryableTask
+import com.netflix.spinnaker.orca.TaskResolver
 import com.netflix.spinnaker.orca.ext.afterStages
 import com.netflix.spinnaker.orca.ext.allAfterStagesSuccessful
 import com.netflix.spinnaker.orca.ext.allBeforeStagesSuccessful
@@ -55,7 +56,8 @@ import kotlin.reflect.full.memberProperties
 @Component
 class HydrateQueueCommand(
   private val queue: Queue,
-  private val executionRepository: ExecutionRepository
+  private val executionRepository: ExecutionRepository,
+  private val taskResolver: TaskResolver
 ) : (HydrateQueueInput) -> HydrateQueueOutput {
 
   private val log = LoggerFactory.getLogger(javaClass)
@@ -258,7 +260,7 @@ class HydrateQueueCommand(
 
   @Suppress("UNCHECKED_CAST")
   private val com.netflix.spinnaker.orca.pipeline.model.Task.type
-    get() = Class.forName(implementingClass) as Class<out com.netflix.spinnaker.orca.Task>
+    get() = taskResolver.getTaskClass(implementingClass)
 
   private fun Task.isRetryable(): Boolean =
     RetryableTask::class.java.isAssignableFrom(type)

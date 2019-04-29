@@ -19,6 +19,7 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED
 import com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
 import com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
+import com.netflix.spinnaker.orca.TaskResolver
 import com.netflix.spinnaker.orca.ext.beforeStages
 import com.netflix.spinnaker.orca.fixture.pipeline
 import com.netflix.spinnaker.orca.fixture.stage
@@ -65,9 +66,10 @@ object HydrateQueueCommandTest : SubjectSpek<HydrateQueueCommand>({
 
   val queue: Queue = mock()
   val repository: ExecutionRepository = mock()
+  val taskResolver = TaskResolver(emptyList())
 
   subject(CachingMode.GROUP) {
-    HydrateQueueCommand(queue, repository)
+    HydrateQueueCommand(queue, repository, taskResolver)
   }
 
   fun resetMocks() = reset(queue, repository)

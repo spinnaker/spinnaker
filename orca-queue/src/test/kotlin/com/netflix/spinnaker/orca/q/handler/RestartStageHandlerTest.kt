@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.q.handler
 
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.ExecutionStatus.*
+import com.netflix.spinnaker.orca.StageResolver
 import com.netflix.spinnaker.orca.fixture.pipeline
 import com.netflix.spinnaker.orca.fixture.stage
 import com.netflix.spinnaker.orca.pipeline.DefaultStageDefinitionBuilderFactory
@@ -49,9 +50,13 @@ object RestartStageHandlerTest : SubjectSpek<RestartStageHandler>({
       queue,
       repository,
       DefaultStageDefinitionBuilderFactory(
-        singleTaskStage,
-        stageWithSyntheticBefore,
-        stageWithNestedSynthetics
+        StageResolver(
+          listOf(
+            singleTaskStage,
+            stageWithSyntheticBefore,
+            stageWithNestedSynthetics
+          )
+        )
       ),
       pendingExecutionService,
       clock

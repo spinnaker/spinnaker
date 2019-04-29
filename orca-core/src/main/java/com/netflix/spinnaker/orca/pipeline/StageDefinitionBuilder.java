@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.pipeline;
 
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
+import com.netflix.spinnaker.orca.Task;
 import com.netflix.spinnaker.orca.pipeline.TaskNode.TaskGraph;
 import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
@@ -25,6 +26,13 @@ import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -185,5 +193,19 @@ public interface StageDefinitionBuilder {
     } catch (Exception e) {
       return true;
     }
+  }
+
+  default Collection<String> aliases() {
+    if (getClass().isAnnotationPresent(Aliases.class)) {
+      return Arrays.asList(getClass().getAnnotation(Aliases.class).value());
+    }
+
+    return Collections.emptyList();
+  }
+
+  @Retention(RetentionPolicy.RUNTIME)
+  @Target(ElementType.TYPE)
+  @interface Aliases {
+    String[] value() default {};
   }
 }

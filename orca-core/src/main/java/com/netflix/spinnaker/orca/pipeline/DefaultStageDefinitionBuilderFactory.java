@@ -16,36 +16,20 @@
 
 package com.netflix.spinnaker.orca.pipeline;
 
-import static java.util.stream.Collectors.toList;
-
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
 import javax.annotation.Nonnull;
-import com.netflix.spinnaker.orca.pipeline.ExecutionRunner.NoSuchStageDefinitionBuilder;
+
+import com.netflix.spinnaker.orca.StageResolver;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 
 public class DefaultStageDefinitionBuilderFactory implements StageDefinitionBuilderFactory {
-  private final Collection<StageDefinitionBuilder> stageDefinitionBuilders;
+  private final StageResolver stageResolver;
 
-  public DefaultStageDefinitionBuilderFactory(Collection<StageDefinitionBuilder> stageDefinitionBuilders) {
-    this.stageDefinitionBuilders = stageDefinitionBuilders;
-  }
-
-  public DefaultStageDefinitionBuilderFactory(StageDefinitionBuilder... stageDefinitionBuilders) {
-    this(Arrays.asList(stageDefinitionBuilders));
+  public DefaultStageDefinitionBuilderFactory(StageResolver stageResolver) {
+    this.stageResolver = stageResolver;
   }
 
   @Override
-  public @Nonnull StageDefinitionBuilder builderFor(
-    @Nonnull Stage stage) throws NoSuchStageDefinitionBuilder {
-    return stageDefinitionBuilders
-      .stream()
-      .filter((it) -> it.getType().equals(stage.getType()) || it.getType().equals(stage.getContext().get("alias")))
-      .findFirst()
-      .orElseThrow(() -> {
-        List<String> knownTypes = stageDefinitionBuilders.stream().map(it -> it.getType()).sorted().collect(toList());
-        return new NoSuchStageDefinitionBuilder(stage.getType(), knownTypes);
-      });
+  public @Nonnull StageDefinitionBuilder builderFor(@Nonnull Stage stage) {
+    return stageResolver.getStageDefinitionBuilder(stage.getType(), (String) stage.getContext().get("alias"));
   }
 }

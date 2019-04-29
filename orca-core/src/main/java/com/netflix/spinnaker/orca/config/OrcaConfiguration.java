@@ -18,6 +18,9 @@ package com.netflix.spinnaker.orca.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.core.RetrySupport;
+import com.netflix.spinnaker.orca.StageResolver;
+import com.netflix.spinnaker.orca.Task;
+import com.netflix.spinnaker.orca.TaskResolver;
 import com.netflix.spinnaker.orca.commands.ForceExecutionCancellationCommand;
 import com.netflix.spinnaker.orca.events.ExecutionEvent;
 import com.netflix.spinnaker.orca.events.ExecutionListenerAdapter;
@@ -145,8 +148,8 @@ public class OrcaConfiguration {
 
   @Bean
   @ConditionalOnMissingBean(StageDefinitionBuilderFactory.class)
-  public StageDefinitionBuilderFactory stageDefinitionBuilderFactory(Collection<StageDefinitionBuilder> stageDefinitionBuilders) {
-    return new DefaultStageDefinitionBuilderFactory(stageDefinitionBuilders);
+  public StageDefinitionBuilderFactory stageDefinitionBuilderFactory(StageResolver stageResolver) {
+    return new DefaultStageDefinitionBuilderFactory(stageResolver);
   }
 
   @Bean
@@ -179,6 +182,16 @@ public class OrcaConfiguration {
     scheduler.setThreadNamePrefix("scheduler-");
     scheduler.setPoolSize(10);
     return scheduler;
+  }
+
+  @Bean
+  public TaskResolver taskResolver(Collection<Task> tasks) {
+    return new TaskResolver(tasks, true);
+  }
+
+  @Bean
+  public StageResolver stageResolver(Collection<StageDefinitionBuilder> stageDefinitionBuilders) {
+    return new StageResolver(stageDefinitionBuilders);
   }
 
   @Bean(name = EVENT_LISTENER_FACTORY_BEAN_NAME)

@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.q.handler
 
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.orca.ExecutionStatus.*
+import com.netflix.spinnaker.orca.StageResolver
 import com.netflix.spinnaker.orca.events.StageComplete
 import com.netflix.spinnaker.orca.exceptions.DefaultExceptionHandler
 import com.netflix.spinnaker.orca.exceptions.ExceptionHandler
@@ -114,17 +115,21 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
       contextParameterProcessor,
       registry,
       DefaultStageDefinitionBuilderFactory(
-        singleTaskStage,
-        multiTaskStage,
-        stageWithSyntheticBefore,
-        stageWithSyntheticAfter,
-        stageWithParallelBranches,
-        stageWithTaskAndAfterStages,
-        stageThatBlowsUpPlanningAfterStages,
-        stageWithSyntheticOnFailure,
-        stageWithNothingButAfterStages,
-        stageWithSyntheticOnFailure,
-        emptyStage
+        StageResolver(
+          listOf(
+            singleTaskStage,
+            multiTaskStage,
+            stageWithSyntheticBefore,
+            stageWithSyntheticAfter,
+            stageWithParallelBranches,
+            stageWithTaskAndAfterStages,
+            stageThatBlowsUpPlanningAfterStages,
+            stageWithSyntheticOnFailure,
+            stageWithNothingButAfterStages,
+            stageWithSyntheticOnFailure,
+            emptyStage
+          )
+        )
       )
     )
   }

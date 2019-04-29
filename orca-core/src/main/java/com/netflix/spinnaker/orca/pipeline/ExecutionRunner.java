@@ -47,11 +47,4 @@ public interface ExecutionRunner {
     @Nonnull String user, @Nullable String reason) throws Exception {
     throw new UnsupportedOperationException();
   }
-
-  class NoSuchStageDefinitionBuilder extends RuntimeException {
-    public NoSuchStageDefinitionBuilder(String type, Collection<String> knownTypes) {
-      super(format("No StageDefinitionBuilder implementation for %s found. %s", type,
-        knownTypes == null || knownTypes.size() == 0 ? "There are no known stage types." : format(" Known stage types: %s", String.join(",", knownTypes))));
-    }
-  }
 }

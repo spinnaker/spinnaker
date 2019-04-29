@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.q.handler
 
 import com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
-import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.TaskResolver
 import com.netflix.spinnaker.orca.events.TaskStarted
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
@@ -35,6 +35,7 @@ class StartTaskHandler(
   override val repository: ExecutionRepository,
   override val contextParameterProcessor: ContextParameterProcessor,
   @Qualifier("queueEventPublisher") private val publisher: ApplicationEventPublisher,
+  private val taskResolver: TaskResolver,
   private val clock: Clock
 ) : OrcaMessageHandler<StartTask>, ExpressionAware {
 
@@ -55,5 +56,5 @@ class StartTaskHandler(
 
   @Suppress("UNCHECKED_CAST")
   private val com.netflix.spinnaker.orca.pipeline.model.Task.type
-    get() = Class.forName(implementingClass) as Class<out Task>
+    get() = taskResolver.getTaskClass(implementingClass)
 }
