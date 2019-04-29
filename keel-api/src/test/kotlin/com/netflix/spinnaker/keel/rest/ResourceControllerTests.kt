@@ -168,7 +168,7 @@ internal class ResourceControllerTests {
 
     verify { resourcePersister.delete(resource.metadata.name) }
 
-    //clean up after the test
+    // clean up after the test
     resourceRepository.delete(resource.metadata.name)
   }
 

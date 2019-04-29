@@ -23,7 +23,7 @@ class InMemoryArtifactRepository : ArtifactRepository {
       if (!artifacts.containsKey(artifact)) {
         throw NoSuchArtifactException(artifact)
       }
-      val versions = artifacts[artifact] ?: throw  IllegalArgumentException()
+      val versions = artifacts[artifact] ?: throw IllegalArgumentException()
       if (versions.none { it.version == version }) {
         versions.add(0, this)
         true

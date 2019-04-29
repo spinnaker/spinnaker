@@ -20,6 +20,6 @@ data class ChildResource(
   val metadata: Map<String, Any?>?
 ) {
   @get:JsonIgnore
-  val resourceMetadata : ResourceMetadata?
+  val resourceMetadata: ResourceMetadata?
     get() = metadata?.let { ResourceMetadata(it) }
 }

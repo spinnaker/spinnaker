@@ -8,7 +8,7 @@ buildscript {
     maven(url = "https://spinnaker.bintray.com/gradle")
   }
   dependencies {
-    classpath("com.netflix.spinnaker.gradle:spinnaker-dev-plugin:5.2.2")
+    classpath("com.netflix.spinnaker.gradle:spinnaker-dev-plugin:6.2.0")
   }
 }
 

@@ -48,7 +48,7 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isNotNull
 import strikt.assertions.isNull
 import java.time.Clock
-import java.util.*
+import java.util.UUID
 import com.netflix.spinnaker.keel.clouddriver.model.Moniker as CloudDriverMoniker
 
 internal object ClusterHandlerTests : JUnit5Minutests {
@@ -263,8 +263,6 @@ internal object ClusterHandlerTests : JUnit5Minutests {
     spec.location.region,
     CLOUD_PROVIDER
   )
-
-
 }
 
 private fun Cluster.withDoubleCapacity(): Cluster =

@@ -108,10 +108,10 @@ class ClusterHandler(
     }
 
   private fun ResourceDiff<Cluster>?.shouldDeploy(imageId: String?) =
-    imageId != null
-      && (this == null
-      || !this.isImageOnly()
-      || this.source.launchConfiguration.imageId != imageId)
+    imageId != null &&
+      (this == null ||
+      !this.isImageOnly() ||
+      this.source.launchConfiguration.imageId != imageId)
 
   private suspend fun Resource<Cluster>.maybeCreateServerGroupWithDynamicImage(resourceDiff: ResourceDiff<Cluster>?): Map<String, Any?> {
     val imageId = this.imageIdFromMetadata()

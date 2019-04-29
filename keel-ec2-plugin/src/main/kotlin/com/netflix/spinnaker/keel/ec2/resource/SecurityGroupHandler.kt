@@ -20,8 +20,14 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
-import com.netflix.spinnaker.keel.api.ec2.*
+import com.netflix.spinnaker.keel.api.ec2.CidrRule
+import com.netflix.spinnaker.keel.api.ec2.CrossAccountReferenceRule
+import com.netflix.spinnaker.keel.api.ec2.PortRange
+import com.netflix.spinnaker.keel.api.ec2.ReferenceRule
+import com.netflix.spinnaker.keel.api.ec2.SecurityGroup
+import com.netflix.spinnaker.keel.api.ec2.SecurityGroupRule
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupRule.Protocol
+import com.netflix.spinnaker.keel.api.ec2.SelfReferenceRule
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
@@ -38,7 +44,6 @@ import kotlinx.coroutines.runBlocking
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import retrofit2.HttpException
-import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup as RiverSecurityGroup
 
 class SecurityGroupHandler(
   private val cloudDriverService: CloudDriverService,
@@ -289,5 +294,4 @@ class SecurityGroupHandler(
       }
       else -> null
     }
-
 }

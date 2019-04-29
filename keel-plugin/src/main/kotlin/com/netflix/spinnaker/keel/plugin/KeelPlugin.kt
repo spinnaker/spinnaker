@@ -19,4 +19,3 @@ interface KeelPlugin {
   val name: String
     get() = javaClass.simpleName
 }
-

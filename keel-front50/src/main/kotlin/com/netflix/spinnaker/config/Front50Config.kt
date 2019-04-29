@@ -26,7 +26,8 @@ class Front50Config {
   fun front50Service(
     front50Endpoint: HttpUrl,
     objectMapper: ObjectMapper,
-    retrofitClient: OkHttpClient): Front50Service =
+    retrofitClient: OkHttpClient
+  ): Front50Service =
     Retrofit.Builder()
       .addConverterFactory(JacksonConverterFactory.create(objectMapper.disable(FAIL_ON_UNKNOWN_PROPERTIES)))
       .addCallAdapterFactory(CoroutineCallAdapterFactory())
@@ -34,5 +35,4 @@ class Front50Config {
       .client(retrofitClient)
       .build()
       .create(Front50Service::class.java)
-
 }

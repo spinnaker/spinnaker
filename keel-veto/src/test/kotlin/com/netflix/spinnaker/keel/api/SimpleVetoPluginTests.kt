@@ -11,7 +11,7 @@ import io.mockk.mockk
 import strikt.api.expectThat
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
-import java.util.*
+import java.util.UUID
 
 internal object SimpleVetoPluginTests : JUnit5Minutests {
 

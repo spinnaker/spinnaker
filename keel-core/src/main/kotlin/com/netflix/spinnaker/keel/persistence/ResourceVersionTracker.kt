@@ -5,5 +5,4 @@ interface ResourceVersionTracker {
   fun get(): Long
 
   fun set(value: Long): Unit
-
 }

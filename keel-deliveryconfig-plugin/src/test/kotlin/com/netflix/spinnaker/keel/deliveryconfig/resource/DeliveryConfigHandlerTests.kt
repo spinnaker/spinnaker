@@ -49,6 +49,6 @@ internal class DeliveryConfigHandlerTests : JUnit5Minutests {
       DeliveryConfigHandler(objectMapper, normalizers, ObjectFactory { resourcePersister }, ObjectFactory { resourceRepository })
     }
 
-    //TODO(cfieber) - some tests would be good
+    // TODO(cfieber) - some tests would be good
   }
 }

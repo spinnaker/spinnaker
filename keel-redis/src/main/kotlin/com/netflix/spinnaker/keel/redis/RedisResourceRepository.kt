@@ -156,4 +156,3 @@ class RedisResourceRepository(
     "spec" to objectMapper.writeValueAsString(spec)
   )
 }
-

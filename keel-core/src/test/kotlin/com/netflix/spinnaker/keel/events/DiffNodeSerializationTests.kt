@@ -11,7 +11,6 @@ import dev.minutest.rootContext
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
-
 internal class DiffNodeSerializationTests : JUnit5Minutests {
 
   internal data class Fixture(

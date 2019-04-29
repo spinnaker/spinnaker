@@ -15,6 +15,6 @@
  */
 package com.netflix.spinnaker.keel.api
 
-import java.util.*
+import java.util.UUID
 
 typealias ResourceId = UUID

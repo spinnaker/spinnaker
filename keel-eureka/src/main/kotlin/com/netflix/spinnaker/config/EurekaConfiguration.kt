@@ -22,4 +22,3 @@ class EurekaConfiguration {
   @Bean
   fun discoveryActivator(publisher: ApplicationEventPublisher) = DiscoveryActivator(publisher)
 }
-

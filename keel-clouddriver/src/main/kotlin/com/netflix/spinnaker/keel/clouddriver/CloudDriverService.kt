@@ -24,7 +24,6 @@ import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.clouddriver.model.Subnet
 import kotlinx.coroutines.Deferred
-import retrofit2.Call
 import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
@@ -83,5 +82,6 @@ interface CloudDriverService {
   fun namedImages(
     @Query("q") imageName: String,
     @Query("account") account: String?,
-    @Query("region") region: String? = null): Deferred<List<NamedImage>>
+    @Query("region") region: String? = null
+  ): Deferred<List<NamedImage>>
 }

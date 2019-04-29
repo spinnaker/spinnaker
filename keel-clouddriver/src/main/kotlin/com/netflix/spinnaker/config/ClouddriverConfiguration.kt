@@ -52,8 +52,9 @@ class ClouddriverConfiguration {
   fun clouddriverService(
     clouddriverEndpoint: HttpUrl,
     objectMapper: ObjectMapper,
-    retrofitClient: OkHttpClient)
-    : CloudDriverService =
+    retrofitClient: OkHttpClient
+  ):
+    CloudDriverService =
     Retrofit.Builder()
       .addConverterFactory(JacksonConverterFactory.create(objectMapper.disable(FAIL_ON_UNKNOWN_PROPERTIES)))
       .addCallAdapterFactory(CoroutineCallAdapterFactory())

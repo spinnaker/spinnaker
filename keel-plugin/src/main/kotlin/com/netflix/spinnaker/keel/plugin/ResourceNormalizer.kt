@@ -30,10 +30,9 @@ interface ResourceNormalizer<T : Any> {
   val supportedKind: String
 
   fun normalize(resource: Resource<*>): Resource<T>
-
 }
 
 internal fun ResourceNormalizer<*>.handles(
-    apiVersion: ApiVersion,
-    kind: String
+  apiVersion: ApiVersion,
+  kind: String
 ): Boolean = this.apiVersion == apiVersion && this.supportedKind == kind

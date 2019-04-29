@@ -44,10 +44,10 @@ class DeliveryConfigHandler(
   private val resourcePersister: ResourcePersister by lazy { resourcePersisterProvider.getObject() }
   private val resourceRepository: ResourceRepository by lazy { resourceRepositoryProvider.getObject() }
 
-  private val DeliveryConfig.isResolved : Boolean
+  private val DeliveryConfig.isResolved: Boolean
     get() = this.deliveryEnvironments.all { env ->
-      env.packageRef.resourceMetadata != null
-        && env.targets.all { it.resourceMetadata != null}
+      env.packageRef.resourceMetadata != null &&
+        env.targets.all { it.resourceMetadata != null }
     }
 
   override fun current(resource: Resource<DeliveryConfig>): DeliveryConfig? =
@@ -109,7 +109,6 @@ class DeliveryConfigHandler(
       .create(asSubmittedResource())
       .asBaseSubResource()
 
-
   private fun ResourceName.getExisting() =
     resourceRepository
       .get<Any>(this)
@@ -135,5 +134,4 @@ class DeliveryConfigHandler(
       metadata = objectMapper.convertValue(this.metadata),
       spec = objectMapper.convertValue(this.spec)
     )
-
 }

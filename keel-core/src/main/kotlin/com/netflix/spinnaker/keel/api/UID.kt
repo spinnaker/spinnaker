@@ -7,4 +7,3 @@ typealias UID = ULID.Value
 private val idGenerator by lazy { ULID() }
 
 fun randomUID(): UID = idGenerator.nextValue()
-  

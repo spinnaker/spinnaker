@@ -53,7 +53,6 @@ class NamedImageHandler(
       }
     }
 
-
   override fun upsert(resource: Resource<NamedImage>, resourceDiff: ResourceDiff<NamedImage>?): List<TaskRef> {
     runBlocking {
       resourceDiff?.also {

@@ -23,6 +23,6 @@ interface VetoPlugin : KeelPlugin {
 
 sealed class AllowResponse
 
-object Proceed: AllowResponse()
+object Proceed : AllowResponse()
 
-data class Halt(val reason: String): AllowResponse()
+data class Halt(val reason: String) : AllowResponse()

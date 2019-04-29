@@ -34,5 +34,4 @@ class SpringBasedResourceCheckQueueTests {
         verify { resourceActuator.checkResource(name, apiVersion, kind) }
       }
   }
-
 }

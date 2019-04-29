@@ -62,4 +62,3 @@ abstract class ModelParsingTestSupport<in S, out E>(serviceType: Class<S>) {
       .isEqualTo(expected)
   }
 }
-

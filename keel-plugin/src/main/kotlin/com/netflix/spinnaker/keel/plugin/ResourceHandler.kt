@@ -36,7 +36,6 @@ interface ResourceHandler<T : Any> : KeelPlugin {
     constructor(source: T) : this(source, DiffNode.newRootNode())
   }
 
-
   val log: Logger
 
   val apiVersion: ApiVersion

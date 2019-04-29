@@ -104,5 +104,4 @@ internal object ResourceCheckSchedulerTests : JUnit5Minutests {
       }
     }
   }
-
 }
