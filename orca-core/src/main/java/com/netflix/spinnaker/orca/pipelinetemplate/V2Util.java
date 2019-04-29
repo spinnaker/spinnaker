@@ -16,14 +16,18 @@
 
 package com.netflix.spinnaker.orca.pipelinetemplate;
 
+import com.netflix.spinnaker.kork.web.exceptions.ValidationException;
 import com.netflix.spinnaker.orca.extensionpoint.pipeline.PipelinePreprocessor;
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
+@Slf4j
 public class V2Util {
   public static Map<String, Object> planPipeline(ContextParameterProcessor contextParameterProcessor,
                                                  List<PipelinePreprocessor> pipelinePreprocessors,
@@ -34,9 +38,34 @@ public class V2Util {
       pipeline = pp.process(pipeline);
     }
 
+    List<Map<String, Object>> pipelineErrors = (List<Map<String, Object>>) pipeline.get("errors");
+    if (pipelineErrors != null && !pipelineErrors.isEmpty()) {
+      throw new ValidationException(
+        "Pipeline template is invalid", pipelineErrors);
+    }
+
     Map<String, Object> augmentedContext = new HashMap<>();
     augmentedContext.put("trigger", pipeline.get("trigger"));
     augmentedContext.put("templateVariables", pipeline.getOrDefault("templateVariables", Collections.EMPTY_MAP));
-    return contextParameterProcessor.process(pipeline, augmentedContext, true);
+    Map<String, Object> spelEvaluatedPipeline = contextParameterProcessor.process(
+      pipeline, augmentedContext, true);
+
+    Map<String, Object> expressionEvalSummary =
+      (Map<String, Object>) spelEvaluatedPipeline.get("expressionEvaluationSummary");
+    if (expressionEvalSummary != null) {
+      List<String> failedTemplateVars = expressionEvalSummary.entrySet()
+        .stream()
+        .map(e -> e.getKey())
+        .filter(v -> v.startsWith("templateVariables."))
+        .map(v -> v.replace("templateVariables.", ""))
+        .collect(Collectors.toList());
+
+      if (failedTemplateVars.size() > 0) {
+        throw new ValidationException(
+          "Missing template variable values for the following variables: %s", failedTemplateVars);
+      }
+    }
+
+    return spelEvaluatedPipeline;
   }
 }
