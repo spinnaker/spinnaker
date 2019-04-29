@@ -65,7 +65,7 @@ class DeliveryConfigHandler(
     TODO("Not implemented")
   }
 
-  override fun upsert(resource: Resource<DeliveryConfig>, resourceDiff: ResourceDiff<DeliveryConfig>?): List<TaskRef> {
+  override fun upsert(resource: Resource<DeliveryConfig>, resourceDiff: ResourceDiff<DeliveryConfig>): List<TaskRef> {
     runBlocking {
       resourceRepository.store(resource.copy(spec = resource.spec.copy(
         deliveryEnvironments = resource.spec.deliveryEnvironments.map { env ->

@@ -44,8 +44,10 @@ class ResourceActuator(
     val resource = resourceRepository.get(name, type)
 
     val desired = plugin.desired(resource)
+    val current = plugin.current(resource)
+    val diff = differ.compare(current, desired)
     try {
-      when (val current = plugin.current(resource)) {
+      when (current) {
         null -> {
           with(resource) {
             log.warn("Resource {} is missing", metadata.name)
@@ -54,13 +56,12 @@ class ResourceActuator(
             resourceRepository.appendHistory(ResourceMissing(resource, clock))
           }
 
-          plugin.create(resource)
+          plugin.create(resource, ResourceDiff(current, desired, diff))
             .also { tasks ->
               resourceRepository.appendHistory(ResourceActuationLaunched(resource, plugin.name, tasks, clock))
             }
         }
         else -> {
-          val diff = differ.compare(current, desired)
           if (diff.hasChanges()) {
             with(resource) {
               log.warn("Resource {} is invalid", metadata.name)
@@ -70,7 +71,7 @@ class ResourceActuator(
               resourceRepository.appendHistory(ResourceDeltaDetected(resource, diff.toJson(current, desired), clock))
             }
 
-            plugin.update(resource, ResourceDiff(current, diff))
+            plugin.update(resource, ResourceDiff(current, desired, diff))
               .also { tasks ->
                 resourceRepository.appendHistory(ResourceActuationLaunched(resource, plugin.name, tasks, clock))
               }
@@ -101,7 +102,7 @@ class ResourceActuator(
   // These extensions get round the fact tht we don't know the spec type of the resource from
   // the repository. I don't want the `ResourceHandler` interface to be untyped though.
   @Suppress("UNCHECKED_CAST")
-  private fun <S : Any, R : Any> ResolvableResourceHandler<S, R>.desired(resource: Resource<*>): R? =
+  private fun <S : Any, R : Any> ResolvableResourceHandler<S, R>.desired(resource: Resource<*>): R =
     desired(resource as Resource<S>)
 
   @Suppress("UNCHECKED_CAST")
@@ -109,8 +110,11 @@ class ResourceActuator(
     current(resource as Resource<S>)
 
   @Suppress("UNCHECKED_CAST")
-  private fun <S : Any, R : Any> ResolvableResourceHandler<S, R>.create(resource: Resource<*>): List<TaskRef> =
-    create(resource as Resource<S>)
+  private fun <S : Any, R : Any> ResolvableResourceHandler<S, R>.create(
+    resource: Resource<*>,
+    resourceDiff: ResourceDiff<*>
+  ): List<TaskRef> =
+    create(resource as Resource<S>, resourceDiff as ResourceDiff<R>)
 
   @Suppress("UNCHECKED_CAST")
   private fun <S : Any, R : Any> ResolvableResourceHandler<S, R>.update(

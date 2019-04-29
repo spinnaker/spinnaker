@@ -51,7 +51,6 @@ import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
 import kotlinx.coroutines.CompletableDeferred
-import org.funktionale.partials.partially3
 import strikt.api.Assertion
 import strikt.api.expectThat
 import strikt.assertions.first
@@ -196,7 +195,7 @@ internal object SecurityGroupHandlerTests : JUnit5Minutests {
 
     sequenceOf(
       "create" to SecurityGroupHandler::create,
-      "update" to SecurityGroupHandler::update.partially3(ResourceDiff(UpsertFixture().resource.spec))
+      "update" to SecurityGroupHandler::update
     )
       .forEach { (methodName, handlerMethod) ->
         context("$methodName a security group with no ingress rules") {
@@ -205,7 +204,7 @@ internal object SecurityGroupHandlerTests : JUnit5Minutests {
               CompletableDeferred(TaskRefResponse("/tasks/${randomUUID()}"))
             }
 
-            handlerMethod.invoke(handler, resource)
+            handlerMethod.invoke(handler, resource, ResourceDiff(null, resource.spec))
           }
 
           after {
@@ -253,7 +252,7 @@ internal object SecurityGroupHandlerTests : JUnit5Minutests {
               CompletableDeferred(TaskRefResponse("/tasks/${randomUUID()}"))
             }
 
-            handlerMethod.invoke(handler, resource)
+            handlerMethod.invoke(handler, resource, ResourceDiff(null, resource.spec))
           }
 
           after {
@@ -301,7 +300,7 @@ internal object SecurityGroupHandlerTests : JUnit5Minutests {
               CompletableDeferred(TaskRefResponse("/tasks/${randomUUID()}"))
             }
 
-            handlerMethod.invoke(handler, resource)
+            handlerMethod.invoke(handler, resource, ResourceDiff(null, resource.spec))
           }
 
           after {
@@ -349,7 +348,7 @@ internal object SecurityGroupHandlerTests : JUnit5Minutests {
           CompletableDeferred(TaskRefResponse("/tasks/${randomUUID()}"))
         }
 
-        handler.create(resource)
+        handler.create(resource, ResourceDiff(null, resource.spec))
       }
 
       after {
@@ -387,7 +386,7 @@ internal object SecurityGroupHandlerTests : JUnit5Minutests {
           CompletableDeferred(TaskRefResponse("/tasks/${randomUUID()}"))
         }
 
-        handler.update(resource, ResourceDiff(resource.spec))
+        handler.update(resource, ResourceDiff(null, resource.spec))
       }
 
       after {

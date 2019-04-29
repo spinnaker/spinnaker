@@ -120,8 +120,11 @@ interface ResolvableResourceHandler<S : Any, R : Any> : KeelPlugin {
    *
    * @return a list of tasks launched to actuate the resource.
    */
-  fun create(resource: Resource<S>): List<TaskRef> =
-    upsert(resource, null)
+  fun create(
+    resource: Resource<S>,
+    resourceDiff: ResourceDiff<R>
+  ): List<TaskRef> =
+    upsert(resource, resourceDiff)
 
   /**
    * Update a resource so that it matches the desired state represented by [resource].
@@ -149,7 +152,7 @@ interface ResolvableResourceHandler<S : Any, R : Any> : KeelPlugin {
    */
   fun upsert(
     resource: Resource<S>,
-    resourceDiff: ResourceDiff<R>? = null
+    resourceDiff: ResourceDiff<R>
   ): List<TaskRef> {
     TODO("Not implemented")
   }

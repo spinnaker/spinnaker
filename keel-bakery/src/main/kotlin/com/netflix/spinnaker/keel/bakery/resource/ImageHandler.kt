@@ -75,11 +75,15 @@ class ImageHandler(
 
   override fun upsert(
     resource: Resource<ImageSpec>,
-    resourceDiff: ResourceDiff<Image>?
+    resourceDiff: ResourceDiff<Image>
   ): List<TaskRef> {
     val taskRef = runBlocking {
-      val (_, application, version) = Regex("([\\w_]+)-(.+?)/.*")
-        .find(resourceDiff!!.source.appVersion)!!.groupValues
+      val (_, application, version) = resourceDiff.desired.appVersion.let { appVersion ->
+        Regex("([\\w_]+)-(.+?)/.*")
+          .find(appVersion)
+          ?.groupValues
+          ?: throw IllegalStateException("Could not parse app version $appVersion")
+      }
       val artifact = igorService.getArtifact(application, version)
       log.info("baking new image for {}", resource.spec.artifactName)
       orcaService.orchestrate(

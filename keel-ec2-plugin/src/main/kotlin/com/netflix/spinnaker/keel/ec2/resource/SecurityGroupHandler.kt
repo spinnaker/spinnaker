@@ -68,7 +68,10 @@ class SecurityGroupHandler(
   override fun current(resource: Resource<SecurityGroup>): SecurityGroup? =
     cloudDriverService.getSecurityGroup(resource.spec)
 
-  override fun create(resource: Resource<SecurityGroup>): List<TaskRef> {
+  override fun create(
+    resource: Resource<SecurityGroup>,
+    resourceDiff: ResourceDiff<SecurityGroup>
+  ): List<TaskRef> {
     val taskRef = runBlocking {
       resource.spec.let { spec ->
         orcaService
@@ -86,7 +89,10 @@ class SecurityGroupHandler(
     return listOf(TaskRef(taskRef.ref))
   }
 
-  override fun update(resource: Resource<SecurityGroup>, resourceDiff: ResourceDiff<SecurityGroup>): List<TaskRef> {
+  override fun update(
+    resource: Resource<SecurityGroup>,
+    resourceDiff: ResourceDiff<SecurityGroup>
+  ): List<TaskRef> {
     val taskRef = runBlocking {
       resource.spec.let { spec ->
         orcaService

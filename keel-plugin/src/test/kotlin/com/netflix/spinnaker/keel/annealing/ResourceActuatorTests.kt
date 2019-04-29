@@ -90,7 +90,7 @@ internal object ResourceActuatorTests : JUnit5Minutests {
         }
 
         test("the resource is not updated") {
-          verify(exactly = 0) { plugin1.create(any()) }
+          verify(exactly = 0) { plugin1.create(any(), any()) }
           verify(exactly = 0) { plugin1.update(any(), any()) }
           verify(exactly = 0) { plugin1.delete(any()) }
         }
@@ -115,7 +115,7 @@ internal object ResourceActuatorTests : JUnit5Minutests {
         before {
           every { plugin1.desired(resource) } returns DummyResource(resource.spec.state)
           every { plugin1.current(resource) } returns null as DummyResource?
-          every { plugin1.create(resource) } returns listOf(TaskRef("/tasks/${randomUID()}"))
+          every { plugin1.create(resource, any()) } returns listOf(TaskRef("/tasks/${randomUID()}"))
 
           with(resource) {
             checkResource(metadata.name, apiVersion, kind)
@@ -123,7 +123,7 @@ internal object ResourceActuatorTests : JUnit5Minutests {
         }
 
         test("the resource is created via the relevant handler") {
-          verify { plugin1.create(resource) }
+          verify { plugin1.create(resource, any()) }
         }
 
         test("the resource state is recorded") {

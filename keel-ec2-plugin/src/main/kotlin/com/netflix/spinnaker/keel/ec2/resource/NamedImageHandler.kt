@@ -53,12 +53,10 @@ class NamedImageHandler(
       }
     }
 
-  override fun upsert(resource: Resource<NamedImage>, resourceDiff: ResourceDiff<NamedImage>?): List<TaskRef> {
+  override fun upsert(resource: Resource<NamedImage>, resourceDiff: ResourceDiff<NamedImage>): List<TaskRef> {
     runBlocking {
-      resourceDiff?.also {
-        resourceRepository.store(resource.copy(
-          spec = resourceDiff.source
-        ))
+      resourceDiff.current?.also {
+        resourceRepository.store(resource.copy(spec = it))
       }
     }
     return emptyList()

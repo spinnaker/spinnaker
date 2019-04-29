@@ -174,7 +174,7 @@ internal object ClusterHandlerTests : JUnit5Minutests {
       }
 
       test("annealing a diff creates a new server group") {
-        upsert(resource)
+        upsert(resource, ResourceDiff(null, spec))
 
         val slot = slot<OrchestrationRequest>()
         verify { orcaService.orchestrate(capture(slot)) }
@@ -207,7 +207,7 @@ internal object ClusterHandlerTests : JUnit5Minutests {
       context("the diff is only in capacity") {
 
         val modified = resource.spec.withDoubleCapacity()
-        val diff = ResourceDiff(modified, differ.compare(modified, resource.spec))
+        val diff = ResourceDiff(modified, spec, differ.compare(modified, resource.spec))
 
         test("annealing resizes the current server group") {
           upsert(resource, diff)
@@ -232,7 +232,7 @@ internal object ClusterHandlerTests : JUnit5Minutests {
       context("the diff is something other than just capacity") {
 
         val modified = resource.spec.withDoubleCapacity().withDifferentInstanceType()
-        val diff = ResourceDiff(modified, differ.compare(modified, resource.spec))
+        val diff = ResourceDiff(modified, spec, differ.compare(modified, resource.spec))
 
         test("annealing clones the current server group") {
           upsert(resource, diff)

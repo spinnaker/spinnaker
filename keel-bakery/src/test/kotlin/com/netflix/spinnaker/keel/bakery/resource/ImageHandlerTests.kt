@@ -163,7 +163,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
         val request = slot<OrchestrationRequest>()
         every { orcaService.orchestrate(capture(request)) } returns randomTaskRef()
 
-        handler.upsert(resource, ResourceDiff(image))
+        handler.upsert(resource, ResourceDiff(null, image))
 
         expectThat(request.captured.trigger.artifacts)
           .hasSize(1)

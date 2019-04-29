@@ -108,10 +108,10 @@ class ClusterHandler(
     }
 
   private fun ResourceDiff<Cluster>?.shouldDeploy(imageId: String?) =
-    imageId != null &&
-      (this == null ||
-      !this.isImageOnly() ||
-      this.source.launchConfiguration.imageId != imageId)
+    imageId != null
+      && (this == null
+      || !this.isImageOnly()
+      || this.current?.launchConfiguration?.imageId != imageId)
 
   private suspend fun Resource<Cluster>.maybeCreateServerGroupWithDynamicImage(resourceDiff: ResourceDiff<Cluster>?): Map<String, Any?> {
     val imageId = this.imageIdFromMetadata()
@@ -122,7 +122,7 @@ class ClusterHandler(
     }
   }
 
-  override fun upsert(resource: Resource<Cluster>, resourceDiff: ResourceDiff<Cluster>?): List<TaskRef> =
+  override fun upsert(resource: Resource<Cluster>, resourceDiff: ResourceDiff<Cluster>): List<TaskRef> =
     runBlocking {
       val spec = resource.spec
       val job = when {
@@ -155,11 +155,11 @@ class ClusterHandler(
   /**
    * @return `true` if the only changes in the diff are to capacity.
    */
-  private fun ResourceDiff<Cluster>?.isCapacityOnly(): Boolean =
-    this != null && diff.affectedRootPropertyTypes.all { it == Capacity::class.java }
+  private fun ResourceDiff<Cluster>.isCapacityOnly(): Boolean =
+    current != null && diff.affectedRootPropertyTypes.all { it == Capacity::class.java }
 
-  private fun ResourceDiff<Cluster>?.isImageOnly(): Boolean =
-    this != null && this.diff.imageChanged && this.diff.nodePaths.size == 1
+  private fun ResourceDiff<Cluster>.isImageOnly(): Boolean =
+    current != null && diff.imageChanged && diff.nodePaths.size == 1
 
   private val imageIdPath = NodePath.with("launchConfiguration", "imageId")
 
