@@ -1,5 +1,6 @@
 dependencies {
   compile 'com.github.jk1:gradle-license-report:1.6'
   compile 'org.owasp:dependency-check-gradle:4.0.2'
+  compile 'com.diffplug.spotless:spotless-plugin-gradle:3.21.0'
 }
 

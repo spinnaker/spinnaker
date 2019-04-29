@@ -1,50 +1,57 @@
 buildscript {
-    repositories {
-        jcenter()
-        maven { url "https://plugins.gradle.org/m2/" }
-    }
-    dependencies {
-        classpath 'com.netflix.nebula:gradle-netflixoss-project-plugin:6.0.4'
-    }
+  repositories {
+    jcenter()
+    maven { url "https://plugins.gradle.org/m2/" }
+  }
+  dependencies {
+    classpath 'com.netflix.nebula:gradle-netflixoss-project-plugin:6.0.4'
+    classpath 'com.diffplug.spotless:spotless-plugin-gradle:3.16.0'
+  }
 }
 
 allprojects {
-    repositories {
-        jcenter()
-        maven { url "https://plugins.gradle.org/m2/" }
-    }
+  repositories {
+    jcenter()
+    maven { url "https://plugins.gradle.org/m2/" }
+  }
 
-    apply plugin: 'nebula.netflixoss'
-    apply plugin: 'idea'
+  apply plugin: 'nebula.netflixoss'
+  apply plugin: 'idea'
+  apply plugin: 'com.diffplug.gradle.spotless'
+  apply plugin: 'groovy'
+
+  spotless {
+    java {
+      eclipse().configFile(rootProject.file('codestyle.xml'))
+    }
+  }
 }
 
 
 idea {
-    project {
-        jdkName = '1.8'
-        languageLevel = '1.8'
-        vcs = 'Git'
-    }
+  project {
+    jdkName = '1.8'
+    languageLevel = '1.8'
+    vcs = 'Git'
+  }
 }
 
 
 subprojects {
-    apply plugin: 'groovy'
+  group = 'com.netflix.spinnaker.gradle'
+  sourceCompatibility = 1.8
+  targetCompatibility = 1.8
 
-    group = 'com.netflix.spinnaker.gradle'
-    sourceCompatibility = 1.8
-    targetCompatibility = 1.8
+  dependencies {
+    compile gradleApi()
+    compile localGroovy()
+  }
 
-    dependencies {
-        compile gradleApi()
-        compile localGroovy()
+  bintray {
+    pkg {
+      userOrg = 'spinnaker'
+      repo = 'gradle'
+      labels = ['Spinnaker', 'Netflix']
     }
-
-    bintray {
-        pkg {
-            userOrg = 'spinnaker'
-            repo = 'gradle'
-            labels = ['Spinnaker', 'Netflix']
-        }
-    }
+  }
 }

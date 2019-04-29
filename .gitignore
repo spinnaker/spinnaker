@@ -5,3 +5,5 @@
 build/
 /.gradle/
 out/
+
+codestyle.xml
