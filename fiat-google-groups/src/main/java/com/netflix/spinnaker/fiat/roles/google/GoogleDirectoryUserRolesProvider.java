@@ -53,13 +53,16 @@ import org.springframework.util.Assert;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 @Component
@@ -101,7 +104,7 @@ public class GoogleDirectoryUserRolesProvider implements UserRolesProvider, Init
 
       Set<Role> groupSet = groups.getGroups()
                                  .stream()
-                                 .map(GoogleDirectoryUserRolesProvider::toRole)
+                                 .flatMap(toRoleFn())
                                  .collect(Collectors.toSet());
       emailGroupsMap.put(email, groupSet);
     }
@@ -156,10 +159,9 @@ public class GoogleDirectoryUserRolesProvider implements UserRolesProvider, Init
     }
 
     String userEmail = user.getId();
-    Directory service = getDirectoryService();
 
     try {
-      Groups groups = service.groups().list().setDomain(config.getDomain()).setUserKey(userEmail).execute();
+      Groups groups = getGroupsFromEmail(userEmail);
       if (groups == null || groups.getGroups() == null || groups.getGroups().isEmpty()) {
         return new ArrayList<>();
       }
@@ -167,11 +169,16 @@ public class GoogleDirectoryUserRolesProvider implements UserRolesProvider, Init
       return groups
           .getGroups()
           .stream()
-          .map(GoogleDirectoryUserRolesProvider::toRole)
+          .flatMap(toRoleFn())
           .collect(Collectors.toList());
     } catch (IOException ioe) {
       throw new RuntimeException(ioe);
     }
+  }
+
+  protected Groups getGroupsFromEmail(String email) throws IOException {
+    Directory service = getDirectoryService();
+    return service.groups().list().setDomain(config.getDomain()).setUserKey(email).execute();
   }
 
   private GoogleCredential getGoogleCredential() {
@@ -200,8 +207,26 @@ public class GoogleDirectoryUserRolesProvider implements UserRolesProvider, Init
         .build();
   }
 
-  private static Role toRole(Group g) {
-    return new Role().setName(g.getName().toLowerCase()).setSource(Role.Source.GOOGLE_GROUPS);
+  private static Role toRole(Group g, Config.RoleSource src) {
+    if(src == Config.RoleSource.EMAIL) {
+      if (g.getEmail() == null) {
+        return null;
+      }
+      return new Role().setName(g.getEmail().toLowerCase()).setSource(Role.Source.GOOGLE_GROUPS);
+    } else if(src == Config.RoleSource.NAME){
+      if (g.getName() == null) {
+        return null;
+      }
+      return new Role().setName(g.getName().toLowerCase()).setSource(Role.Source.GOOGLE_GROUPS);
+    } else {
+      throw new RuntimeException("Unexpected Google role source: " + src);
+    }
+  }
+
+  private Function<Group, Stream<Role>> toRoleFn() {
+    return (g) -> Arrays
+                  .stream(config.roleSources)
+                  .map((r) -> GoogleDirectoryUserRolesProvider.toRole(g,r));
   }
 
   @Data
@@ -223,5 +248,20 @@ public class GoogleDirectoryUserRolesProvider implements UserRolesProvider, Init
      * Google Apps for Work domain, e.g. netflix.com
      */
     private String domain;
+
+    /**
+     * List of sources to derive role name from group metadata,
+     * this setting is additive to allow backwards compatibility
+     *
+     */
+    private RoleSource[] roleSources = new RoleSource[]{ Config.RoleSource.NAME };
+
+    /**
+     * RoleSource maps to metadata on the Group metadata, NAME = Group Name, Email = Group Email
+     */
+    private enum RoleSource {
+      NAME,
+      EMAIL
+    }
   }
 }
