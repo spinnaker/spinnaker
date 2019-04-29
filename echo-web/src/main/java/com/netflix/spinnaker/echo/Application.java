@@ -44,7 +44,7 @@ public class Application extends SpringBootServletInitializer {
     defaults.put("netflix.environment", "test");
     defaults.put("netflix.account", "${netflix.environment}");
     defaults.put("netflix.stack", "test");
-    defaults.put("spring.config.location", "${user.home}/.spinnaker/");
+    defaults.put("spring.config.additional-location", "${user.home}/.spinnaker/");
     defaults.put("spring.application.name", "echo");
     defaults.put("spring.config.name", "spinnaker,${spring.application.name}");
     defaults.put("spring.profiles.active", "${netflix.environment},local");
