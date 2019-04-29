@@ -16,11 +16,14 @@
 
 package com.netflix.spinnaker.igor.gcb;
 
+import com.google.api.client.json.JsonGenerator;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.io.StringWriter;
+import java.io.Writer;
 
 /**
  * ObjectMapper does not properly handle deserializing Google Cloud Build objects
@@ -36,6 +39,23 @@ public class GoogleCloudBuildParser {
   public final <T> T parse(String input, Class<T> destinationClass) {
     try {
       return jacksonFactory.createJsonParser(input).parse(destinationClass);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public final <T> T convert(Object input, Class<T> destinationClass) {
+    String inputString = serialize(input);
+    return parse(inputString, destinationClass);
+  }
+
+  public final String serialize(Object input) {
+    try {
+      Writer writer = new StringWriter();
+      JsonGenerator generator = jacksonFactory.createJsonGenerator(writer);
+      generator.serialize(input);
+      generator.flush();
+      return writer.toString();
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

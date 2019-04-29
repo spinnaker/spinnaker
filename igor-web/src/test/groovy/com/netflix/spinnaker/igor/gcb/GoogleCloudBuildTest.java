@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.igor.gcb;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
@@ -171,6 +170,38 @@ public class GoogleCloudBuildTest {
         .accept(MediaType.APPLICATION_JSON)
     ).andExpect(status().is(200))
       .andExpect(content().json(expectedResponse));
+
+    assertThat(stubCloudBuildService.findUnmatchedRequests().getRequests()).isEmpty();
+  }
+
+  @Test
+  public void fallbackToPollingTest() throws Exception {
+    String buildId = "f0fc7c14-6035-4e5c-bda1-4848a73af5b4";
+    String working = "WORKING";
+
+    Build workingBuild = buildRequest().setId(buildId).setStatus(working);
+
+    stubCloudBuildService.stubFor(
+      WireMock
+        .get(urlEqualTo(String.format("/v1/projects/spinnaker-gcb-test/builds/%s", buildId)))
+        .withHeader("Authorization", equalTo("Bearer test-token"))
+        .willReturn(aResponse().withStatus(200).withBody(objectMapper.writeValueAsString(workingBuild)))
+    );
+
+    mockMvc.perform(
+      get(String.format("/gcb/builds/gcb-account/%s", buildId))
+        .accept(MediaType.APPLICATION_JSON)
+    ).andExpect(status().is(200)).andExpect(content().json(objectMapper.writeValueAsString(workingBuild)));
+
+    assertThat(stubCloudBuildService.findUnmatchedRequests().getRequests()).isEmpty();
+
+    // The initial request should prime the cache, so we should get the same result back on re-try without hitting
+    // the GCB API again
+
+    mockMvc.perform(
+      get(String.format("/gcb/builds/gcb-account/%s", buildId))
+        .accept(MediaType.APPLICATION_JSON)
+    ).andExpect(status().is(200)).andExpect(content().json(objectMapper.writeValueAsString(workingBuild)));
 
     assertThat(stubCloudBuildService.findUnmatchedRequests().getRequests()).isEmpty();
   }

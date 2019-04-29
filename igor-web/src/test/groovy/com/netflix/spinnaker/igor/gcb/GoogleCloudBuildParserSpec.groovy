@@ -17,11 +17,9 @@
 package com.netflix.spinnaker.igor.gcb
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.google.api.services.cloudbuild.v1.model.Build
-import com.google.api.services.cloudbuild.v1.model.BuildOptions
-import com.google.api.services.cloudbuild.v1.model.BuildStep
+import com.google.api.services.cloudbuild.v1.model.*
 import spock.lang.Specification
-import spock.lang.Subject;
+import spock.lang.Subject
 
 class GoogleCloudBuildParserSpec extends Specification {
   @Subject
@@ -32,7 +30,27 @@ class GoogleCloudBuildParserSpec extends Specification {
   def "correctly parses a build"() {
     given:
     def build = getBuild()
-    def serializedBuild = objectMapper.writeValueAsString(build)
+    def serializedBuild = parser.serialize(build)
+    def deserializedBuild = parser.parse(serializedBuild, Build.class)
+
+    expect:
+    deserializedBuild == build
+  }
+
+  def "converts a build from a map"() {
+    given:
+    def build = getBuild()
+    def serializedBuild = objectMapper.convertValue(build, Map.class)
+    def deserializedBuild = parser.convert(serializedBuild, Build.class)
+
+    expect:
+    deserializedBuild == build
+  }
+
+  def "correctly serializes a build"() {
+    given:
+    def build = getBuild()
+    def serializedBuild = parser.serialize(build)
     def deserializedBuild = parser.parse(serializedBuild, Build.class)
 
     expect:
@@ -47,6 +65,9 @@ class GoogleCloudBuildParserSpec extends Specification {
     BuildStep buildStep = new BuildStep().setArgs(args).setName("hello");
     BuildOptions buildOptions = new BuildOptions().setLogging("LEGACY");
 
-    return new Build().setSteps(Collections.singletonList(buildStep)).setOptions(buildOptions);
+    return new Build()
+      .setSteps(Collections.singletonList(buildStep))
+      .setOptions(buildOptions)
+      .setSource(new Source().setStorageSource(new StorageSource().setGeneration(12345)));
   }
 }

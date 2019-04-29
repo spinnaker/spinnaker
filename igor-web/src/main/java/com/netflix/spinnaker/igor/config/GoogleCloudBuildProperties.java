@@ -24,13 +24,13 @@ import java.util.List;
 @ConfigurationProperties(prefix = "gcb")
 @Data
 public class GoogleCloudBuildProperties {
-    private List<Account> accounts;
+  private List<Account> accounts;
 
-    @Data
-    public static class Account {
-        private String name;
-        private String project;
-        private String subscriptionName;
-        private String jsonKey;
-    }
+  @Data
+  public static class Account {
+    private String name;
+    private String project;
+    private String subscriptionName;
+    private String jsonKey;
+  }
 }

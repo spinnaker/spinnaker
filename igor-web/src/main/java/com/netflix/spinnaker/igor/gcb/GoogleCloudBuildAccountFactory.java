@@ -17,14 +17,11 @@
 package com.netflix.spinnaker.igor.gcb;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
-import com.google.api.services.cloudbuild.v1.CloudBuild;
 import com.netflix.spinnaker.igor.config.GoogleCloudBuildProperties;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
-
-import java.util.Optional;
 
 /**
  * Creates GoogleCloudBuildAccounts
@@ -34,25 +31,18 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class GoogleCloudBuildAccountFactory {
   private final GoogleCredentialService credentialService;
-  private final CloudBuildFactory cloudBuildFactory;
-  private final GoogleCloudBuildExecutor googleCloudBuildExecutor;
+  private final GoogleCloudBuildClient.Factory googleCloudBuildClientFactory;
   private final GoogleCloudBuildCache.Factory googleCloudBuildCacheFactory;
+  private final GoogleCloudBuildParser googleCloudBuildParser;
 
   public GoogleCloudBuildAccount build(GoogleCloudBuildProperties.Account account) {
     GoogleCredential credential = getCredential(account);
-    String applicationName = getApplicationName();
-    CloudBuild cloudBuild = cloudBuildFactory.getCloudBuild(credential, applicationName);
 
     return new GoogleCloudBuildAccount(
-      account.getProject(),
-      cloudBuild,
-      googleCloudBuildExecutor,
-      googleCloudBuildCacheFactory.create(account.getName())
+      googleCloudBuildClientFactory.create(credential, account.getProject()),
+      googleCloudBuildCacheFactory.create(account.getName()),
+      googleCloudBuildParser
     );
-  }
-
-  private String getApplicationName() {
-    return Optional.ofNullable(getClass().getPackage().getImplementationVersion()).orElse("Unknown");
   }
 
   private GoogleCredential getCredential(GoogleCloudBuildProperties.Account account) {

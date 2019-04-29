@@ -25,7 +25,6 @@ import org.springframework.web.bind.annotation.*;
 import retrofit.http.Query;
 
 import java.util.List;
-import java.util.Map;
 
 @ConditionalOnProperty("gcb.enabled")
 @RestController
@@ -41,7 +40,7 @@ public class GoogleCloudBuildController {
   }
 
   @RequestMapping(value = "/builds/create/{account}", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
-  Map<String, Object> createBuild(@PathVariable String account, @RequestBody String buildString)  {
+  Build createBuild(@PathVariable String account, @RequestBody String buildString)  {
     Build build = googleCloudBuildParser.parse(buildString, Build.class);
     return googleCloudBuildAccountRepository.getGoogleCloudBuild(account).createBuild(build);
   }
@@ -58,10 +57,6 @@ public class GoogleCloudBuildController {
 
   @RequestMapping(value = "/builds/{account}/{buildId}", method = RequestMethod.GET)
   Build getBuild(@PathVariable String account, @PathVariable String buildId) {
-    String serializedBuild =  googleCloudBuildAccountRepository.getGoogleCloudBuild(account).getBuild(buildId);
-    if (serializedBuild == null) {
-      throw new NotFoundException(String.format("Build %s in account %s was not found", buildId, account));
-    }
-    return googleCloudBuildParser.parse(serializedBuild, Build.class);
+    return googleCloudBuildAccountRepository.getGoogleCloudBuild(account).getBuild(buildId);
   }
 }

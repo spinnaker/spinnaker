@@ -30,7 +30,7 @@ public enum GoogleCloudBuildStatus {
   TIMEOUT(StatusType.COMPLETE),
   CANCELLED(StatusType.COMPLETE);
 
-  private StatusType statusType;
+  private final StatusType statusType;
 
   GoogleCloudBuildStatus(StatusType statusType) {
     this.statusType = statusType;
@@ -40,10 +40,14 @@ public enum GoogleCloudBuildStatus {
     return this.statusType.compareTo(other.statusType) >= 0;
   }
 
+  public boolean isComplete() {
+    return statusType == StatusType.COMPLETE;
+  }
+
   private enum StatusType {
     UNKNOWN,
     QUEUED,
     WORKING,
-    COMPLETE;
+    COMPLETE
   }
 }

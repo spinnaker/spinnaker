@@ -19,7 +19,8 @@ package com.netflix.spinnaker.igor.gcb;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.cloudbuild.v1.CloudBuildRequest;
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException;
-import org.apache.http.client.HttpResponseException;
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
@@ -31,15 +32,19 @@ import java.io.IOException;
  */
 @Component
 @ConditionalOnProperty("gcb.enabled")
+@Slf4j
 public class GoogleCloudBuildExecutor {
   //TODO(ezimanyi): Consider adding retry logic here
   public <T> T execute(RequestFactory<T> requestFactory) {
     try {
       CloudBuildRequest<T> request = requestFactory.get();
       return request.execute();
-    } catch (HttpResponseException e) {
+    } catch (GoogleJsonResponseException e) {
       if (e.getStatusCode() == 400) {
+        log.error(e.getMessage());
         throw new InvalidRequestException(e.getMessage());
+      } else if (e.getStatusCode() == 404) {
+        throw new NotFoundException(e.getMessage());
       }
       throw new RuntimeException(e);
     } catch (IOException e) {

@@ -20,6 +20,7 @@ import com.netflix.spinnaker.igor.polling.LockService;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.Duration;
 import java.util.Map;
@@ -29,7 +30,11 @@ import java.util.Map;
  * receives PubSub build notifications and sends them to igor.
  */
 @RequiredArgsConstructor(access=AccessLevel.PRIVATE)
+@Slf4j
 public class GoogleCloudBuildCache {
+  private static final int inProgressTtlSeconds = 60 * 10;
+  private static final int completedTtlSeconds = 60 * 60 * 24;
+
   private final LockService lockService;
   private final RedisClientDelegate redisClientDelegate;
   private final String keyPrefix;
@@ -62,10 +67,26 @@ public class GoogleCloudBuildCache {
     redisClientDelegate.withCommandsClient(c -> {
       String oldStatus = c.hget(key, "status");
       if (allowUpdate(oldStatus, status)) {
+        int ttlSeconds = getTtlSeconds(status);
         c.hset(key, "status", status);
         c.hset(key, "build", build);
+        c.expire(key, ttlSeconds);
       }
     });
+  }
+
+  private int getTtlSeconds(String statusString) {
+    try {
+      GoogleCloudBuildStatus status = GoogleCloudBuildStatus.valueOf(statusString);
+      if (status.isComplete()) {
+        return completedTtlSeconds;
+      } else {
+        return inProgressTtlSeconds;
+      }
+    } catch (IllegalArgumentException e) {
+      log.warn("Received unknown Google Cloud Build Status: {}", statusString);
+      return inProgressTtlSeconds;
+    }
   }
 
   // As we may be processing build notifications out of order, only allow an update of the cache if

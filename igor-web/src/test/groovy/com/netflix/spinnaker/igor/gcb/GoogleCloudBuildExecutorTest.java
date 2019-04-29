@@ -29,6 +29,7 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class GoogleCloudBuildExecutorTest {
   private GoogleCloudBuildExecutor executor = new GoogleCloudBuildExecutor();
+  @SuppressWarnings("unchecked")
   private CloudBuildRequest<GenericJson> request = (CloudBuildRequest<GenericJson>) mock(CloudBuildRequest.class);
 
   @Test
