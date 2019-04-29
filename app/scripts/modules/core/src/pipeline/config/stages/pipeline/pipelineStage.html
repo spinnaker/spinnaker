@@ -67,7 +67,7 @@
             <ui-select-match>
               <strong>{{$select.selected.value}}</strong>
             </ui-select-match>
-            <ui-select-choices repeat="option.value as option in parameter.options">
+            <ui-select-choices repeat="option.value as option in parameter.options | filter: $select.search">
               <div><strong>{{option.value}}</strong></div>
             </ui-select-choices>
           </ui-select>
