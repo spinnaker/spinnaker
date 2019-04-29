@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.pipelinetemplate;
 
 import com.netflix.spinnaker.kork.web.exceptions.ValidationException;
-import com.netflix.spinnaker.orca.extensionpoint.pipeline.PipelinePreprocessor;
+import com.netflix.spinnaker.orca.extensionpoint.pipeline.ExecutionPreprocessor;
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -30,11 +30,17 @@ import java.util.stream.Collectors;
 @Slf4j
 public class V2Util {
   public static Map<String, Object> planPipeline(ContextParameterProcessor contextParameterProcessor,
-                                                 List<PipelinePreprocessor> pipelinePreprocessors,
+                                                 List<ExecutionPreprocessor> pipelinePreprocessors,
                                                  Map<String, Object> pipeline) {
     // TODO(jacobkiefer): Excise the logic in OperationsController that requires plan to avoid resolving artifacts.
     pipeline.put("plan", true); // avoid resolving artifacts
-    for (PipelinePreprocessor pp : pipelinePreprocessors) {
+
+    Map<String, Object> finalPipeline = pipeline;
+    List<ExecutionPreprocessor> preprocessors = pipelinePreprocessors
+      .stream()
+      .filter(p -> p.supports(finalPipeline))
+      .collect(Collectors.toList());
+    for (ExecutionPreprocessor pp : preprocessors) {
       pipeline = pp.process(pipeline);
     }
 

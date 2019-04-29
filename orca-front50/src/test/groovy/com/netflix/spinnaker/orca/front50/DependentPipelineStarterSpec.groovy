@@ -33,6 +33,7 @@ import org.springframework.context.ApplicationContext
 import org.springframework.context.support.StaticApplicationContext
 import spock.lang.Specification
 import spock.lang.Subject
+
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
@@ -73,7 +74,7 @@ class DependentPipelineStarterSpec extends Specification {
       applicationContext,
       mapper,
       new ContextParameterProcessor(),
-      Optional.of([]),
+      Optional.empty(),
       Optional.of(artifactResolver),
       new NoopRegistry()
     )
@@ -126,7 +127,7 @@ class DependentPipelineStarterSpec extends Specification {
       applicationContext,
       mapper,
       new ContextParameterProcessor(),
-      Optional.of([]),
+      Optional.empty(),
       Optional.of(artifactResolver),
       new NoopRegistry()
     )
@@ -184,7 +185,7 @@ class DependentPipelineStarterSpec extends Specification {
       applicationContext,
       mapper,
       new ContextParameterProcessor(),
-      Optional.of([]),
+      Optional.empty(),
       Optional.of(artifactResolver),
       new NoopRegistry()
     )
@@ -256,7 +257,7 @@ class DependentPipelineStarterSpec extends Specification {
       applicationContext,
       mapper,
       new ContextParameterProcessor(),
-      Optional.of([]),
+      Optional.empty(),
       Optional.of(artifactResolver),
       new NoopRegistry()
     )
@@ -322,7 +323,7 @@ class DependentPipelineStarterSpec extends Specification {
       applicationContext,
       mapper,
       new ContextParameterProcessor(),
-      Optional.of([]),
+      Optional.empty(),
       Optional.of(artifactResolver),
       new NoopRegistry()
     )
@@ -373,7 +374,7 @@ class DependentPipelineStarterSpec extends Specification {
       applicationContext,
       mapper,
       new ContextParameterProcessor(),
-      Optional.of([]),
+      Optional.empty(),
       Optional.of(artifactResolver),
       new NoopRegistry()
     )
@@ -423,7 +424,7 @@ class DependentPipelineStarterSpec extends Specification {
       applicationContext,
       mapper,
       new ContextParameterProcessor(),
-      Optional.of([]),
+      Optional.empty(),
       Optional.of(artifactResolver),
       new NoopRegistry()
     )

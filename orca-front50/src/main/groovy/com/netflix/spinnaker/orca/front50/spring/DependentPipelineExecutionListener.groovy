@@ -16,10 +16,9 @@
 
 package com.netflix.spinnaker.orca.front50.spring
 
-
 import com.netflix.spinnaker.fiat.shared.FiatStatus
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.extensionpoint.pipeline.PipelinePreprocessor
+import com.netflix.spinnaker.orca.extensionpoint.pipeline.ExecutionPreprocessor
 import com.netflix.spinnaker.orca.front50.DependentPipelineStarter
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.listeners.ExecutionListener
@@ -45,7 +44,7 @@ class DependentPipelineExecutionListener implements ExecutionListener {
   private final Front50Service front50Service
   private final DependentPipelineStarter dependentPipelineStarter
   private final FiatStatus fiatStatus
-  private final List<PipelinePreprocessor> pipelinePreprocessors
+  private final List<ExecutionPreprocessor> executionPreprocessors
 
   private final ContextParameterProcessor contextParameterProcessor
 
@@ -53,12 +52,12 @@ class DependentPipelineExecutionListener implements ExecutionListener {
   DependentPipelineExecutionListener(Front50Service front50Service,
                                      DependentPipelineStarter dependentPipelineStarter,
                                      FiatStatus fiatStatus,
-                                     Optional<List<PipelinePreprocessor>> pipelinePreprocessors,
+                                     Optional<List<ExecutionPreprocessor>> pipelinePreprocessors,
                                      ContextParameterProcessor contextParameterProcessor) {
     this.front50Service = front50Service
     this.dependentPipelineStarter = dependentPipelineStarter
     this.fiatStatus = fiatStatus
-    this.pipelinePreprocessors = pipelinePreprocessors.orElse(null)
+    this.executionPreprocessors = pipelinePreprocessors.orElse(null)
     this.contextParameterProcessor = contextParameterProcessor
   }
 
@@ -70,11 +69,11 @@ class DependentPipelineExecutionListener implements ExecutionListener {
 
     def status = convertStatus(execution)
     def allPipelines = front50Service.getAllPipelines()
-    if (pipelinePreprocessors) {
+    if (executionPreprocessors) {
       // Resolve templated pipelines if enabled.
       allPipelines = allPipelines.collect { pipeline ->
        if (pipeline.type == 'templatedPipeline' && pipeline?.schema != null && pipeline?.schema != "1") {
-         return V2Util.planPipeline(contextParameterProcessor, pipelinePreprocessors, pipeline)
+         return V2Util.planPipeline(contextParameterProcessor, executionPreprocessors, pipeline)
        } else {
          return pipeline
        }

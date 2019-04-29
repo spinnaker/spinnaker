@@ -16,13 +16,11 @@
 
 package com.netflix.spinnaker.orca.front50
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.Registry
-
-import java.util.concurrent.Callable
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
-import com.netflix.spinnaker.orca.extensionpoint.pipeline.PipelinePreprocessor
+import com.netflix.spinnaker.orca.extensionpoint.pipeline.ExecutionPreprocessor
 import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Trigger
@@ -36,6 +34,9 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationContextAware
 import org.springframework.stereotype.Component
+
+import java.util.concurrent.Callable
+
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 
 @Component
@@ -44,7 +45,7 @@ class DependentPipelineStarter implements ApplicationContextAware {
   private ApplicationContext applicationContext
   ObjectMapper objectMapper
   ContextParameterProcessor contextParameterProcessor
-  List<PipelinePreprocessor> pipelinePreprocessors
+  List<ExecutionPreprocessor> executionPreprocessors
   ArtifactResolver artifactResolver
   Registry registry
 
@@ -52,13 +53,13 @@ class DependentPipelineStarter implements ApplicationContextAware {
   DependentPipelineStarter(ApplicationContext applicationContext,
                            ObjectMapper objectMapper,
                            ContextParameterProcessor contextParameterProcessor,
-                           Optional<List<PipelinePreprocessor>> pipelinePreprocessors,
+                           Optional<List<ExecutionPreprocessor>> executionPreprocessors,
                            Optional<ArtifactResolver> artifactResolver,
                            Registry registry) {
     this.applicationContext = applicationContext
     this.objectMapper = objectMapper
     this.contextParameterProcessor = contextParameterProcessor
-    this.pipelinePreprocessors = pipelinePreprocessors.orElse(null)
+    this.executionPreprocessors = executionPreprocessors.orElse(new ArrayList<>())
     this.artifactResolver = artifactResolver.orElse(null)
     this.registry = registry
   }
@@ -100,7 +101,7 @@ class DependentPipelineStarter implements ApplicationContextAware {
     //keep the trigger as the preprocessor removes it.
     def expectedArtifacts = pipelineConfig.expectedArtifacts
 
-    for (PipelinePreprocessor preprocessor : (pipelinePreprocessors ?: [])) {
+    for (ExecutionPreprocessor preprocessor : executionPreprocessors.findAll { it.supports(pipelineConfig) }) {
       pipelineConfig = preprocessor.process(pipelineConfig)
     }
 

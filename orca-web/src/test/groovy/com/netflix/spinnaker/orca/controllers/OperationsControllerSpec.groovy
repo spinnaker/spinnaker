@@ -21,6 +21,7 @@ import com.netflix.spinnaker.fiat.model.resources.Account
 import com.netflix.spinnaker.fiat.model.resources.Role
 import com.netflix.spinnaker.fiat.shared.FiatService
 import com.netflix.spinnaker.fiat.shared.FiatStatus
+
 import com.netflix.spinnaker.orca.front50.Front50Service
 
 import javax.servlet.http.HttpServletResponse
@@ -492,7 +493,7 @@ class OperationsControllerSpec extends Specification {
         executionLauncher: executionLauncher,
         contextParameterProcessor: new ContextParameterProcessor(),
         webhookService: webhookService,
-        artifactResolver: realArtifactResolver
+        artifactResolver: realArtifactResolver,
     )
 
     def reference = 'gs://bucket'

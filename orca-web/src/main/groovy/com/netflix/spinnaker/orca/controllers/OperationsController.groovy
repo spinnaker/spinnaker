@@ -25,7 +25,7 @@ import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 import com.netflix.spinnaker.kork.web.exceptions.ValidationException
 import com.netflix.spinnaker.orca.clouddriver.service.JobService
 import com.netflix.spinnaker.orca.exceptions.OperationFailedException
-import com.netflix.spinnaker.orca.extensionpoint.pipeline.PipelinePreprocessor
+import com.netflix.spinnaker.orca.extensionpoint.pipeline.ExecutionPreprocessor
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.PipelineModelMutator
 import com.netflix.spinnaker.orca.igor.BuildService
@@ -78,7 +78,7 @@ class OperationsController {
   ContextParameterProcessor contextParameterProcessor
 
   @Autowired(required = false)
-  List<PipelinePreprocessor> pipelinePreprocessors
+  List<ExecutionPreprocessor> executionPreprocessors = new ArrayList<>();
 
   @Autowired(required = false)
   private List<PipelineModelMutator> pipelineModelMutators = new ArrayList<>();
@@ -186,7 +186,7 @@ class OperationsController {
   public Map parseAndValidatePipeline(Map pipeline, boolean resolveArtifacts) {
     parsePipelineTrigger(executionRepository, buildService, pipeline, resolveArtifacts)
 
-    for (PipelinePreprocessor preprocessor : (pipelinePreprocessors ?: [])) {
+    for (ExecutionPreprocessor preprocessor : executionPreprocessors.findAll { it.supports(pipeline) }) {
       pipeline = preprocessor.process(pipeline)
     }
 
@@ -407,6 +407,9 @@ class OperationsController {
       applyStageRefIds(config)
     }
     injectPipelineOrigin(config)
+    for (ExecutionPreprocessor ep : executionPreprocessors) {
+      config = ep.process(config)
+    }
     def json = objectMapper.writeValueAsString(config)
     log.info('requested task:{}', json)
     def pipeline = executionLauncher.start(ORCHESTRATION, json)

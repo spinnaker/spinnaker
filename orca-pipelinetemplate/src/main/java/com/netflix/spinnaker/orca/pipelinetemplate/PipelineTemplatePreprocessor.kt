@@ -18,8 +18,12 @@ package com.netflix.spinnaker.orca.pipelinetemplate
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.BasicTag
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.orca.extensionpoint.pipeline.PipelinePreprocessor
-import com.netflix.spinnaker.orca.pipelinetemplate.handler.*
+import com.netflix.spinnaker.orca.extensionpoint.pipeline.ExecutionPreprocessor
+import com.netflix.spinnaker.orca.pipelinetemplate.handler.DefaultHandlerChain
+import com.netflix.spinnaker.orca.pipelinetemplate.handler.GlobalPipelineTemplateContext
+import com.netflix.spinnaker.orca.pipelinetemplate.handler.PipelineTemplateContext
+import com.netflix.spinnaker.orca.pipelinetemplate.handler.PipelineTemplateErrorHandler
+import com.netflix.spinnaker.orca.pipelinetemplate.handler.SchemaVersionHandler
 import com.netflix.spinnaker.orca.pipelinetemplate.v2schema.model.V2PipelineTemplate
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -33,18 +37,16 @@ class PipelineTemplatePreprocessor
   private val schemaVersionHandler: SchemaVersionHandler,
   private val errorHandler: PipelineTemplateErrorHandler,
   private val registry: Registry
-) : PipelinePreprocessor {
+) : ExecutionPreprocessor {
 
   private val log = LoggerFactory.getLogger(javaClass)
   private val requestsId = registry.createId("mpt.requests")
 
   @PostConstruct fun confirmUsage() = log.info("Using ${javaClass.simpleName}")
 
-  override fun process(pipeline: MutableMap<String, Any>?): MutableMap<String, Any> {
-    if (pipeline == null) {
-      return mutableMapOf()
-    }
+  override fun supports(execution: MutableMap<String, Any>) = true
 
+  override fun process(pipeline: MutableMap<String, Any>): MutableMap<String, Any> {
     // TODO(jacobkiefer): We push the 'toplevel' v2 config into a 'config' field to play nice
     // with MPT v1's opinionated TemplatedPipelineRequest. When we cut over, the template configuration
     // should be lifted to the top level like users will specify them.

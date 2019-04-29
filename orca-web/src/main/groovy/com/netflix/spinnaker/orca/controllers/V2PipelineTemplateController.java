@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.controllers;
 
-import com.netflix.spinnaker.orca.extensionpoint.pipeline.PipelinePreprocessor;
+import com.netflix.spinnaker.orca.extensionpoint.pipeline.ExecutionPreprocessor;
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
 import com.netflix.spinnaker.orca.pipelinetemplate.V2Util;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -39,11 +40,11 @@ public class V2PipelineTemplateController {
   @Autowired
   private ContextParameterProcessor contextParameterProcessor;
 
-  @Autowired
-  private List<PipelinePreprocessor> pipelinePreprocessors;
+  @Autowired(required = false)
+  private List<ExecutionPreprocessor> executionPreprocessors = new ArrayList<>();
 
   @RequestMapping(value = "/plan", method = RequestMethod.POST)
   Map<String, Object> plan(@RequestBody Map<String, Object> pipeline) {
-    return V2Util.planPipeline(contextParameterProcessor, pipelinePreprocessors, pipeline);
+    return V2Util.planPipeline(contextParameterProcessor, executionPreprocessors, pipeline);
   }
 }
