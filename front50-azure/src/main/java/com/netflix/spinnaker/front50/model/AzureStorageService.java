@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static net.logstash.logback.argument.StructuredArguments.value;
 
@@ -44,6 +45,7 @@ public class AzureStorageService implements StorageService {
 
   private static final String LAST_MODIFIED_FILENAME = "last_modified";
   private static final String LAST_MODIFIED_METADATA_NAME = "lastmodifydate";
+  private static final int NUM_OF_SNAPSHOT_LIMITATION = 5000;
 
   private CloudBlobClient getBlobClient() {
     if (storageAccount != null && blobClient == null) {
@@ -197,9 +199,22 @@ public class AzureStorageService implements StorageService {
       ResultContinuation token = null;
       EnumSet<BlobListingDetails> listDetails = EnumSet.of(BlobListingDetails.SNAPSHOTS);
       do {
-        ResultSegment<ListBlobItem> result = getBlobContainer().listBlobsSegmented(fullKey, true, listDetails, maxResults, token, null, null);
+        ResultSegment<ListBlobItem> result = getBlobContainer().listBlobsSegmented(fullKey, true, listDetails, NUM_OF_SNAPSHOT_LIMITATION, token, null, null);
         token = result.getContinuationToken();
-        for (ListBlobItem item : result.getResults()) {
+
+        // By default, listBlobsSegmented with maxResult parameter will return oldest blob snapshots
+        // But here we want the latest blob snapshots, and storage sdk doesn't provide a way to get latest number of snapshots
+        // So fetch all and then do sort and filter work (SnapshotID == null means the latest one)
+        List<CloudBlockBlob> filteredResults = result.getResults().stream()
+          .map(item -> (CloudBlockBlob) item)
+          .sorted((a, b) -> {
+            if (a.getSnapshotID() == null) return -1;
+            if (b.getSnapshotID() == null) return 1;
+            return b.getSnapshotID().compareTo(a.getSnapshotID());
+          })
+          .limit(maxResults)
+          .collect(Collectors.toList());
+        for (ListBlobItem item : filteredResults) {
           CloudBlockBlob blob = (CloudBlockBlob)item;
           T blobObject = deserialize(blob, (Class<T>) objectType.clazz);
           blobObject.setLastModified(blob.getProperties().getLastModified().getTime());
