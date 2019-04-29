@@ -12,5 +12,4 @@ interface ArtifactService {
     @Path("application") application: String,
     @Path("version") version: String
   ): Deferred<Artifact>
-
 }

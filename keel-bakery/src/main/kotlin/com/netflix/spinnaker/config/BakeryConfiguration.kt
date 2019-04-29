@@ -5,5 +5,4 @@ import org.springframework.context.annotation.Configuration
 
 @Configuration
 @ConditionalOnProperty("bakery.enabled")
-class BakeryConfiguration {
-}
+class BakeryConfiguration

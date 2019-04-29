@@ -25,8 +25,8 @@ class IgorConfiguration {
   fun igorService(
     igorEndpoint: HttpUrl,
     objectMapper: ObjectMapper,
-    retrofitClient: OkHttpClient)
-    : ArtifactService =
+    retrofitClient: OkHttpClient
+  ): ArtifactService =
     Retrofit.Builder()
       .addConverterFactory(JacksonConverterFactory.create(objectMapper))
       .addCallAdapterFactory(CoroutineCallAdapterFactory())

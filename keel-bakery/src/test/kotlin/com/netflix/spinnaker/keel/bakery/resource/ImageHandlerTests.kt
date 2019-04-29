@@ -172,5 +172,4 @@ internal class ImageHandlerTests : JUnit5Minutests {
   }
 
   private fun randomTaskRef() = CompletableDeferred(TaskRefResponse(randomUUID().toString()))
-
 }

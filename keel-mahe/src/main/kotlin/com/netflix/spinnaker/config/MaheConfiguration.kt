@@ -25,8 +25,8 @@ class MaheConfiguration {
   fun maheService(
     maheEndpoint: HttpUrl,
     objectMapper: ObjectMapper,
-    retrofitClient: OkHttpClient)
-    : DynamicPropertyService =
+    retrofitClient: OkHttpClient
+  ): DynamicPropertyService =
     Retrofit.Builder()
       .addConverterFactory(JacksonConverterFactory.create(objectMapper))
       .addCallAdapterFactory(CoroutineCallAdapterFactory())
