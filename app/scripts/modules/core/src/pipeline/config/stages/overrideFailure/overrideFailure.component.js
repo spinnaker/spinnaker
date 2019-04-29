@@ -46,7 +46,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.overrideFailure',
         this.viewState.failureOption = initValue;
       };
 
-      $scope.$watch(() => this.stage, this.initializeFailureOption);
+      $scope.$watch(() => this.stage, this.initializeFailureOption, true);
     },
   ],
 });
