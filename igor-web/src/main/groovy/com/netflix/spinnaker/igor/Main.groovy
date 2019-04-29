@@ -38,13 +38,13 @@ import java.security.Security
 class Main extends SpringBootServletInitializer {
 
     static final Map<String, String> DEFAULT_PROPS = [
-        'netflix.environment'    : 'test',
-        'netflix.account'        : '${netflix.environment}',
-        'netflix.stack'          : 'test',
-        'spring.config.location' : '${user.home}/.spinnaker/',
-        'spring.application.name': 'igor',
-        'spring.config.name'     : 'spinnaker,${spring.application.name}',
-        'spring.profiles.active' : '${netflix.environment},local'
+      'netflix.environment'              : 'test',
+      'netflix.account'                  : '${netflix.environment}',
+      'netflix.stack'                    : 'test',
+      'spring.config.additional-location': '${user.home}/.spinnaker/',
+      'spring.application.name'          : 'igor',
+      'spring.config.name'               : 'spinnaker,${spring.application.name}',
+      'spring.profiles.active'           : '${netflix.environment},local'
     ]
 
     static {

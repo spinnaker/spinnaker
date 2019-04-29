@@ -1,11 +1,11 @@
 ext {
-  springConfigLocation = System.getProperty('spring.config.location', "${System.getProperty('user.home')}/.spinnaker/")
+  springConfigLocation = System.getProperty('spring.config.additional-location', "${System.getProperty('user.home')}/.spinnaker/")
 }
 
 apply plugin: 'spinnaker.application'
 
 run {
-  systemProperty('spring.config.location', project.springConfigLocation)
+  systemProperty('spring.config.additional-location', project.springConfigLocation)
 }
 
 mainClassName = 'com.netflix.spinnaker.igor.Main'
