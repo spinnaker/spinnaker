@@ -21,8 +21,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
 public class UserPermissionModificationException extends RuntimeException {
-  public UserPermissionModificationException() {
-  }
+  public UserPermissionModificationException() {}
 
   public UserPermissionModificationException(String message) {
     super(message);
@@ -36,7 +35,8 @@ public class UserPermissionModificationException extends RuntimeException {
     super(cause);
   }
 
-  public UserPermissionModificationException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+  public UserPermissionModificationException(
+      String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
     super(message, cause, enableSuppression, writableStackTrace);
   }
 }

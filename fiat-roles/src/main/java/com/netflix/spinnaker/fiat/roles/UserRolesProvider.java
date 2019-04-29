@@ -18,7 +18,6 @@ package com.netflix.spinnaker.fiat.roles;
 
 import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.fiat.permissions.ExternalUser;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -34,16 +33,18 @@ public interface UserRolesProvider {
    * Load the roles assigned to the {@link com.netflix.spinnaker.security.User User}.
    *
    * @param user to load roles for
-   * @return Roles assigned to the {@link com.netflix.spinnaker.security.User User} with the given userEmail.
+   * @return Roles assigned to the {@link com.netflix.spinnaker.security.User User} with the given
+   *     userEmail.
    */
   List<Role> loadRoles(ExternalUser user);
 
   /**
-   * Load the roles assigned to each {@link com.netflix.spinnaker.security.User User's} email in userEmails.
+   * Load the roles assigned to each {@link com.netflix.spinnaker.security.User User's} email in
+   * userEmails.
    *
    * @param users to load roles for
-   * @return Map whose keys are the {@link com.netflix.spinnaker.security.User User's} email and values are their
-   * assigned roles.
+   * @return Map whose keys are the {@link com.netflix.spinnaker.security.User User's} email and
+   *     values are their assigned roles.
    */
   Map<String, Collection<Role>> multiLoadRoles(Collection<ExternalUser> users);
 }

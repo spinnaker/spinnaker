@@ -28,6 +28,8 @@ import com.squareup.okhttp.ConnectionPool;
 import com.squareup.okhttp.Interceptor;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
+import java.io.IOException;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -44,18 +46,11 @@ import org.springframework.util.backoff.ExponentialBackOff;
 import retrofit.RestAdapter;
 import retrofit.client.OkClient;
 
-import java.io.IOException;
-import java.util.List;
-
-/**
- * This package is placed in fiat-core in order to be shared by fiat-web and fiat-shared.
- */
+/** This package is placed in fiat-core in order to be shared by fiat-web and fiat-shared. */
 @Configuration
 public class RetrofitConfig {
 
-  @Autowired
-  @Setter
-  private OkHttpClientConfiguration okHttpClientConfig;
+  @Autowired @Setter private OkHttpClientConfiguration okHttpClientConfig;
 
   @Value("${ok-http-client.connection-pool.max-idle-connections:5}")
   @Setter
@@ -119,9 +114,9 @@ public class RetrofitConfig {
       while (waitTime != BackOffExecution.STOP) {
         Request request = chain.request();
         response = chain.proceed(request);
-        if (response.isSuccessful() ||
-            NON_RETRYABLE_METHODS.contains(request.method()) ||
-            response.code() == 404) {
+        if (response.isSuccessful()
+            || NON_RETRYABLE_METHODS.contains(request.method())
+            || response.code() == 404) {
           return response;
         }
 
@@ -129,7 +124,12 @@ public class RetrofitConfig {
           waitTime = backOffExec.nextBackOff();
           if (waitTime != BackOffExecution.STOP) {
             response.body().close();
-            log.warn("Request for " + request.urlString() + " failed. Backing off for " + waitTime + "ms");
+            log.warn(
+                "Request for "
+                    + request.urlString()
+                    + " failed. Backing off for "
+                    + waitTime
+                    + "ms");
             Thread.sleep(waitTime);
           }
         } catch (Throwable ignored) {

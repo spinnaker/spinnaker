@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 package com.netflix.spinnaker.fiat.providers.internal;
 
 import com.netflix.hystrix.HystrixCommand;
@@ -22,7 +21,6 @@ import com.netflix.hystrix.HystrixCommandGroupKey;
 import com.netflix.hystrix.HystrixCommandKey;
 import com.netflix.hystrix.HystrixCommandProperties;
 import groovy.util.logging.Slf4j;
-
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -35,19 +33,16 @@ class SimpleJava8HystrixCommand<T> extends HystrixCommand<T> {
   private final Supplier<T> work;
   private final Function<Throwable, T> fallback;
 
-  public SimpleJava8HystrixCommand(String groupKey,
-                                   String commandKey,
-                                   Supplier<T> work) {
+  public SimpleJava8HystrixCommand(String groupKey, String commandKey, Supplier<T> work) {
     this(groupKey, commandKey, work, (ignored) -> null);
   }
 
-  public SimpleJava8HystrixCommand(String groupKey,
-                                   String commandKey,
-                                   Supplier<T> work,
-                                   Function<Throwable, T> fallback) {
-    super(HystrixCommand.Setter.withGroupKey(toGroupKey(groupKey))
-                               .andCommandKey(HystrixCommandKey.Factory.asKey(commandKey))
-                               .andCommandPropertiesDefaults(createHystrixCommandPropertiesSetter()));
+  public SimpleJava8HystrixCommand(
+      String groupKey, String commandKey, Supplier<T> work, Function<Throwable, T> fallback) {
+    super(
+        HystrixCommand.Setter.withGroupKey(toGroupKey(groupKey))
+            .andCommandKey(HystrixCommandKey.Factory.asKey(commandKey))
+            .andCommandPropertiesDefaults(createHystrixCommandPropertiesSetter()));
     this.groupKey = groupKey;
     this.commandKey = commandKey;
     this.work = work;

@@ -17,8 +17,7 @@
 package com.netflix.spinnaker.fiat.permissions;
 
 public class PermissionResolutionException extends RuntimeException {
-  public PermissionResolutionException() {
-  }
+  public PermissionResolutionException() {}
 
   public PermissionResolutionException(String message) {
     super(message);
@@ -32,7 +31,8 @@ public class PermissionResolutionException extends RuntimeException {
     super(cause);
   }
 
-  public PermissionResolutionException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+  public PermissionResolutionException(
+      String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
     super(message, cause, enableSuppression, writableStackTrace);
   }
 }

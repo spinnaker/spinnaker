@@ -23,15 +23,13 @@ import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.netflix.spinnaker.fiat.config.ProviderCacheConfig;
 import com.netflix.spinnaker.fiat.model.resources.Resource;
 import com.netflix.spinnaker.fiat.model.resources.Role;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @Slf4j
 public abstract class BaseProvider<R extends Resource> implements ResourceProvider<R> {
@@ -44,24 +42,24 @@ public abstract class BaseProvider<R extends Resource> implements ResourceProvid
   @SuppressWarnings("unchecked")
   public Set<R> getAllRestricted(@NonNull Set<Role> roles, boolean isAdmin)
       throws ProviderException {
-    return (Set<R>) getAll()
-        .stream()
-        .filter(resource -> resource instanceof Resource.AccessControlled)
-        .map(resource -> (Resource.AccessControlled) resource)
-        .filter(resource -> resource.getPermissions().isRestricted())
-        .filter(resource -> resource.getPermissions().isAuthorized(roles) || isAdmin)
-        .collect(Collectors.toSet());
+    return (Set<R>)
+        getAll().stream()
+            .filter(resource -> resource instanceof Resource.AccessControlled)
+            .map(resource -> (Resource.AccessControlled) resource)
+            .filter(resource -> resource.getPermissions().isRestricted())
+            .filter(resource -> resource.getPermissions().isAuthorized(roles) || isAdmin)
+            .collect(Collectors.toSet());
   }
 
   @Override
   @SuppressWarnings("unchecked")
   public Set<R> getAllUnrestricted() throws ProviderException {
-    return (Set<R>) getAll()
-        .stream()
-        .filter(resource -> resource instanceof Resource.AccessControlled)
-        .map(resource -> (Resource.AccessControlled) resource)
-        .filter(resource -> !resource.getPermissions().isRestricted())
-        .collect(Collectors.toSet());
+    return (Set<R>)
+        getAll().stream()
+            .filter(resource -> resource instanceof Resource.AccessControlled)
+            .map(resource -> (Resource.AccessControlled) resource)
+            .filter(resource -> !resource.getPermissions().isRestricted())
+            .collect(Collectors.toSet());
   }
 
   @Override
@@ -82,8 +80,7 @@ public abstract class BaseProvider<R extends Resource> implements ResourceProvid
   }
 
   private Cache<Integer, Set<R>> buildCache(int expireAfterWrite) {
-    return CacheBuilder
-        .newBuilder()
+    return CacheBuilder.newBuilder()
         .expireAfterWrite(expireAfterWrite, TimeUnit.SECONDS)
         .maximumSize(1) // Using this cache loader just for the ability to refresh every X seconds.
         .build();

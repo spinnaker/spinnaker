@@ -19,13 +19,12 @@ package com.netflix.spinnaker.fiat.shared;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spectator.api.patterns.PolledMeter;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-
-import java.util.concurrent.atomic.AtomicBoolean;
 
 @Component
 public class FiatStatus {
@@ -38,17 +37,23 @@ public class FiatStatus {
   private final AtomicBoolean legacyFallbackEnabled;
 
   @Autowired
-  public FiatStatus(Registry registry,
-                    DynamicConfigService dynamicConfigService,
-                    FiatClientConfigurationProperties fiatClientConfigurationProperties) {
+  public FiatStatus(
+      Registry registry,
+      DynamicConfigService dynamicConfigService,
+      FiatClientConfigurationProperties fiatClientConfigurationProperties) {
     this.dynamicConfigService = dynamicConfigService;
     this.fiatClientConfigurationProperties = fiatClientConfigurationProperties;
 
     this.enabled = new AtomicBoolean(fiatClientConfigurationProperties.isEnabled());
-    this.legacyFallbackEnabled = new AtomicBoolean(fiatClientConfigurationProperties.isLegacyFallback());
+    this.legacyFallbackEnabled =
+        new AtomicBoolean(fiatClientConfigurationProperties.isLegacyFallback());
 
-    PolledMeter.using(registry).withName("fiat.enabled").monitorValue(enabled, value -> enabled.get() ? 1 : 0);
-    PolledMeter.using(registry).withName("fiat.legacyFallback.enabled").monitorValue(legacyFallbackEnabled, value -> legacyFallbackEnabled.get() ? 1 : 0);
+    PolledMeter.using(registry)
+        .withName("fiat.enabled")
+        .monitorValue(enabled, value -> enabled.get() ? 1 : 0);
+    PolledMeter.using(registry)
+        .withName("fiat.legacyFallback.enabled")
+        .monitorValue(legacyFallbackEnabled, value -> legacyFallbackEnabled.get() ? 1 : 0);
   }
 
   public boolean isEnabled() {
@@ -66,10 +71,11 @@ public class FiatStatus {
         return;
       }
 
-      enabled.set(dynamicConfigService.isEnabled("fiat", fiatClientConfigurationProperties.isEnabled()));
+      enabled.set(
+          dynamicConfigService.isEnabled("fiat", fiatClientConfigurationProperties.isEnabled()));
       legacyFallbackEnabled.set(
-          dynamicConfigService.isEnabled("fiat.legacyFallback", fiatClientConfigurationProperties.isLegacyFallback())
-      );
+          dynamicConfigService.isEnabled(
+              "fiat.legacyFallback", fiatClientConfigurationProperties.isLegacyFallback()));
     } catch (Exception e) {
       log.warn("Unable to refresh fiat status, reason: {}", e.getMessage());
     }

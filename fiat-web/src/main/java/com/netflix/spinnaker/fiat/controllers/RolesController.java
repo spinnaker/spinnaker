@@ -23,6 +23,10 @@ import com.netflix.spinnaker.fiat.permissions.PermissionResolutionException;
 import com.netflix.spinnaker.fiat.permissions.PermissionsRepository;
 import com.netflix.spinnaker.fiat.permissions.PermissionsResolver;
 import com.netflix.spinnaker.fiat.roles.UserRolesSyncer;
+import java.io.IOException;
+import java.util.List;
+import java.util.stream.Collectors;
+import javax.servlet.http.HttpServletResponse;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -34,39 +38,27 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 @Slf4j
 @RestController
 @RequestMapping("/roles")
 @ConditionalOnExpression("${fiat.write-mode.enabled:true}")
 public class RolesController {
 
-  @Autowired
-  @Setter
-  PermissionsResolver permissionsResolver;
+  @Autowired @Setter PermissionsResolver permissionsResolver;
 
-  @Autowired
-  @Setter
-  PermissionsRepository permissionsRepository;
+  @Autowired @Setter PermissionsRepository permissionsRepository;
 
-  @Autowired
-  @Setter
-  UserRolesSyncer syncer;
+  @Autowired @Setter UserRolesSyncer syncer;
 
   @RequestMapping(value = "/{userId:.+}", method = RequestMethod.POST)
   public void putUserPermission(@PathVariable String userId) {
     try {
-      UserPermission userPermission = permissionsResolver.resolve(ControllerSupport.convert(userId));
+      UserPermission userPermission =
+          permissionsResolver.resolve(ControllerSupport.convert(userId));
       log.debug(
           "Updated user permissions (userId: {}, roles: {})",
           userId,
-          userPermission.getRoles().stream().map(Role::getName).collect(Collectors.toList())
-      );
+          userPermission.getRoles().stream().map(Role::getName).collect(Collectors.toList()));
 
       permissionsRepository.put(userPermission);
     } catch (PermissionResolutionException pre) {
@@ -75,15 +67,17 @@ public class RolesController {
   }
 
   @RequestMapping(value = "/{userId:.+}", method = RequestMethod.PUT)
-  public void putUserPermission(@PathVariable String userId,
-                                @RequestBody @NonNull List<String> externalRoles) {
-    List<Role> convertedRoles = externalRoles
-        .stream()
-        .map(extRole -> new Role().setSource(Role.Source.EXTERNAL).setName(extRole))
-        .collect(Collectors.toList());
+  public void putUserPermission(
+      @PathVariable String userId, @RequestBody @NonNull List<String> externalRoles) {
+    List<Role> convertedRoles =
+        externalRoles.stream()
+            .map(extRole -> new Role().setSource(Role.Source.EXTERNAL).setName(extRole))
+            .collect(Collectors.toList());
 
-    ExternalUser extUser = new ExternalUser().setId(ControllerSupport.convert(userId))
-                                             .setExternalRoles(convertedRoles);
+    ExternalUser extUser =
+        new ExternalUser()
+            .setId(ControllerSupport.convert(userId))
+            .setExternalRoles(convertedRoles);
 
     try {
       UserPermission userPermission = permissionsResolver.resolveAndMerge(extUser);
@@ -91,8 +85,7 @@ public class RolesController {
           "Updated user permissions (userId: {}, roles: {}, suppliedExternalRoles: {})",
           userId,
           userPermission.getRoles().stream().map(Role::getName).collect(Collectors.toList()),
-          externalRoles
-      );
+          externalRoles);
 
       permissionsRepository.put(userPermission);
     } catch (PermissionResolutionException pre) {
@@ -106,14 +99,16 @@ public class RolesController {
   }
 
   @RequestMapping(value = "/sync", method = RequestMethod.POST)
-  public long sync(HttpServletResponse response,
-                   @RequestBody(required = false) List<String> specificRoles) throws IOException {
+  public long sync(
+      HttpServletResponse response, @RequestBody(required = false) List<String> specificRoles)
+      throws IOException {
     log.info("Role sync invoked by web request for roles: {}", specificRoles);
     long count = syncer.syncAndReturn(specificRoles);
     if (count == 0) {
       log.info("No users found with specified roles");
-      response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE,
-        "Error occurred syncing permissions. See Fiat Logs.");
+      response.sendError(
+          HttpServletResponse.SC_SERVICE_UNAVAILABLE,
+          "Error occurred syncing permissions. See Fiat Logs.");
     }
     return count;
   }

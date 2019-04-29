@@ -16,17 +16,14 @@
 
 package com.netflix.spinnaker.fiat.providers;
 
-import lombok.Data;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import java.util.concurrent.atomic.AtomicLong;
+import lombok.Data;
 
 public class ProviderHealthTracker {
 
-  /**
-   * Maximum age of stale data before this instance goes unhealthy.
-   */
+  /** Maximum age of stale data before this instance goes unhealthy. */
   private final long maximumStalenessTimeMs;
+
   private AtomicLong lastSuccessfulUpdateTimeMs = new AtomicLong(-1);
 
   public ProviderHealthTracker(long maximumStalenessTimeMs) {

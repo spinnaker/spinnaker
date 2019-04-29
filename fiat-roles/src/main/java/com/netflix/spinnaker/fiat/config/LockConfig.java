@@ -23,11 +23,10 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import com.netflix.spinnaker.kork.jedis.lock.RedisLockManager;
 import com.netflix.spinnaker.kork.lock.LockManager;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-
 import java.time.Clock;
 import java.util.Optional;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class LockConfig {
@@ -37,12 +36,12 @@ public class LockConfig {
   }
 
   @Bean
-  LockManager redisLockManager(Clock clock,
-                               Registry registry,
-                               RedisClientDelegate redisClientDelegate) {
-    ObjectMapper objectMapper = new ObjectMapper()
-        .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-        .setSerializationInclusion(JsonInclude.Include.NON_NULL);
+  LockManager redisLockManager(
+      Clock clock, Registry registry, RedisClientDelegate redisClientDelegate) {
+    ObjectMapper objectMapper =
+        new ObjectMapper()
+            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+            .setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
     return new RedisLockManager(
         null, // will fall back to running node name
@@ -51,7 +50,6 @@ public class LockConfig {
         objectMapper,
         redisClientDelegate,
         Optional.empty(),
-        Optional.empty()
-    );
+        Optional.empty());
   }
 }

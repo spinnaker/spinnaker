@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2016 Google, Inc.
  *
@@ -28,17 +27,6 @@ import com.netflix.spinnaker.fiat.model.resources.Authorizable;
 import com.netflix.spinnaker.fiat.model.resources.ResourceType;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import com.netflix.spinnaker.security.User;
-import lombok.extern.slf4j.Slf4j;
-import lombok.val;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.PermissionEvaluator;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Component;
-import org.springframework.util.backoff.BackOffExecution;
-import org.springframework.util.backoff.ExponentialBackOff;
-
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collections;
@@ -50,11 +38,21 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
+import lombok.val;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.PermissionEvaluator;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
+import org.springframework.util.backoff.BackOffExecution;
+import org.springframework.util.backoff.ExponentialBackOff;
 
 @Component
 @Slf4j
 public class FiatPermissionEvaluator implements PermissionEvaluator {
-  private final static ThreadLocal<AuthorizationFailure> authorizationFailure = new ThreadLocal<>();
+  private static final ThreadLocal<AuthorizationFailure> authorizationFailure = new ThreadLocal<>();
 
   private final Registry registry;
   private final FiatService fiatService;
@@ -74,21 +72,20 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
     RetryHandler NOOP = new RetryHandler() {};
   }
 
-  /**
-   * @see ExponentialBackOff
-   */
+  /** @see ExponentialBackOff */
   static class ExponentialBackoffRetryHandler implements RetryHandler {
     private final FiatClientConfigurationProperties.RetryConfiguration retryConfiguration;
 
-    public ExponentialBackoffRetryHandler(FiatClientConfigurationProperties.RetryConfiguration retryConfiguration) {
+    public ExponentialBackoffRetryHandler(
+        FiatClientConfigurationProperties.RetryConfiguration retryConfiguration) {
       this.retryConfiguration = retryConfiguration;
     }
 
     public <T> T retry(String description, Callable<T> callable) throws Exception {
-      ExponentialBackOff backOff = new ExponentialBackOff(
-          retryConfiguration.getInitialBackoffMillis(),
-          retryConfiguration.getRetryMultiplier()
-      );
+      ExponentialBackOff backOff =
+          new ExponentialBackOff(
+              retryConfiguration.getInitialBackoffMillis(),
+              retryConfiguration.getRetryMultiplier());
       backOff.setMaxElapsedTime(retryConfiguration.getMaxBackoffMillis());
       BackOffExecution backOffExec = backOff.start();
       while (true) {
@@ -107,54 +104,59 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
   }
 
   @Autowired
-  public FiatPermissionEvaluator(Registry registry,
-                                 FiatService fiatService,
-                                 FiatClientConfigurationProperties configProps,
-                                 FiatStatus fiatStatus) {
+  public FiatPermissionEvaluator(
+      Registry registry,
+      FiatService fiatService,
+      FiatClientConfigurationProperties configProps,
+      FiatStatus fiatStatus) {
     this(registry, fiatService, configProps, fiatStatus, buildRetryHandler(configProps));
   }
 
-  private static RetryHandler buildRetryHandler(FiatClientConfigurationProperties fiatClientConfigurationProperties) {
+  private static RetryHandler buildRetryHandler(
+      FiatClientConfigurationProperties fiatClientConfigurationProperties) {
     return new ExponentialBackoffRetryHandler(fiatClientConfigurationProperties.getRetry());
   }
 
-  FiatPermissionEvaluator(Registry registry,
-                          FiatService fiatService,
-                          FiatClientConfigurationProperties configProps,
-                          FiatStatus fiatStatus,
-                          RetryHandler retryHandler) {
+  FiatPermissionEvaluator(
+      Registry registry,
+      FiatService fiatService,
+      FiatClientConfigurationProperties configProps,
+      FiatStatus fiatStatus,
+      RetryHandler retryHandler) {
     this.registry = registry;
     this.fiatService = fiatService;
     this.fiatStatus = fiatStatus;
     this.retryHandler = retryHandler;
 
-    this.permissionsCache = Caffeine
-        .newBuilder()
-        .maximumSize(configProps.getCache().getMaxEntries())
-        .expireAfterWrite(configProps.getCache().getExpiresAfterWriteSeconds(), TimeUnit.SECONDS)
-        .recordStats()
-        .build();
+    this.permissionsCache =
+        Caffeine.newBuilder()
+            .maximumSize(configProps.getCache().getMaxEntries())
+            .expireAfterWrite(
+                configProps.getCache().getExpiresAfterWriteSeconds(), TimeUnit.SECONDS)
+            .recordStats()
+            .build();
 
     this.getPermissionCounterId = registry.createId("fiat.getPermission");
   }
 
   @Override
-  public boolean hasPermission(Authentication authentication,
-                               Object resource,
-                               Object authorization) {
+  public boolean hasPermission(
+      Authentication authentication, Object resource, Object authorization) {
     return false;
   }
 
-  public boolean hasPermission(String username,
-                               Serializable resourceName,
-                               String resourceType,
-                               Object authorization) {
+  public boolean hasPermission(
+      String username, Serializable resourceName, String resourceType, Object authorization) {
     if (!fiatStatus.isEnabled()) {
       return true;
     }
     if (resourceName == null || resourceType == null || authorization == null) {
-      log.debug("Permission denied due to null argument. resourceName={}, resourceType={}, " +
-          "authorization={}", resourceName, resourceType, authorization);
+      log.debug(
+          "Permission denied due to null argument. resourceName={}, resourceType={}, "
+              + "authorization={}",
+          resourceName,
+          resourceType,
+          authorization);
       return false;
     }
 
@@ -173,17 +175,17 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
     boolean hasPermission = permissionContains(permission, resourceName.toString(), r, a);
 
     authorizationFailure.set(
-        hasPermission ? null : new AuthorizationFailure(a, r, resourceName.toString())
-    );
+        hasPermission ? null : new AuthorizationFailure(a, r, resourceName.toString()));
 
     return hasPermission;
   }
 
   @Override
-  public boolean hasPermission(Authentication authentication,
-                               Serializable resourceName,
-                               String resourceType,
-                               Object authorization) {
+  public boolean hasPermission(
+      Authentication authentication,
+      Serializable resourceName,
+      String resourceType,
+      Object authorization) {
     return hasPermission(getUsername(authentication), resourceName, resourceType, authorization);
   }
 
@@ -203,56 +205,68 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
     AtomicReference<Throwable> exception = new AtomicReference<>();
 
     try {
-      view = permissionsCache.get(username, (loadUserName) -> {
-        cacheHit.set(false);
-        try {
-          return AuthenticatedRequest.propagate(() -> {
-            try {
-              return retryHandler.retry("getUserPermission for " + loadUserName, () -> fiatService.getUserPermission(loadUserName));
-            } catch (Exception e) {
-              if (!fiatStatus.isLegacyFallbackEnabled()) {
-                throw e;
-              }
+      view =
+          permissionsCache.get(
+              username,
+              (loadUserName) -> {
+                cacheHit.set(false);
+                try {
+                  return AuthenticatedRequest.propagate(
+                          () -> {
+                            try {
+                              return retryHandler.retry(
+                                  "getUserPermission for " + loadUserName,
+                                  () -> fiatService.getUserPermission(loadUserName));
+                            } catch (Exception e) {
+                              if (!fiatStatus.isLegacyFallbackEnabled()) {
+                                throw e;
+                              }
 
-              legacyFallback.set(true);
-              successfulLookup.set(false);
-              exception.set(e);
+                              legacyFallback.set(true);
+                              successfulLookup.set(false);
+                              exception.set(e);
 
-              // this fallback permission will be temporarily cached in the permissions cache
-              return new UserPermission.View(
-                  new UserPermission()
-                      .setId(AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"))
-                      .setAccounts(
-                          Arrays
-                              .stream(AuthenticatedRequest.getSpinnakerAccounts().orElse("").split(","))
-                              .map(a -> new Account().setName(a))
-                              .collect(Collectors.toSet())
-                      )
-              ).setLegacyFallback(true).setAllowAccessToUnknownApplications(true);
-            }
-          }).call();
-        } catch (RuntimeException re) {
-          throw re;
-        } catch (Exception e) {
-          throw new RuntimeException(e);
-        }
-      });
+                              // this fallback permission will be temporarily cached in the
+                              // permissions cache
+                              return new UserPermission.View(
+                                      new UserPermission()
+                                          .setId(
+                                              AuthenticatedRequest.getSpinnakerUser()
+                                                  .orElse("anonymous"))
+                                          .setAccounts(
+                                              Arrays.stream(
+                                                      AuthenticatedRequest.getSpinnakerAccounts()
+                                                          .orElse("")
+                                                          .split(","))
+                                                  .map(a -> new Account().setName(a))
+                                                  .collect(Collectors.toSet())))
+                                  .setLegacyFallback(true)
+                                  .setAllowAccessToUnknownApplications(true);
+                            }
+                          })
+                      .call();
+                } catch (RuntimeException re) {
+                  throw re;
+                } catch (Exception e) {
+                  throw new RuntimeException(e);
+                }
+              });
     } catch (Exception e) {
       successfulLookup.set(false);
       exception.set(e.getCause() != null ? e.getCause() : e);
     }
 
-    Id id = getPermissionCounterId
-        .withTag("cached", cacheHit.get())
-        .withTag("success", successfulLookup.get());
+    Id id =
+        getPermissionCounterId
+            .withTag("cached", cacheHit.get())
+            .withTag("success", successfulLookup.get());
 
     if (!successfulLookup.get()) {
       log.error(
-              "Cannot get whole user permission for user {}, reason: {}",
-              username,
-              exception.get().getMessage(),
-              exception
-      );
+          "Cannot get whole user permission for user {}, reason: {}",
+          username,
+          exception.get().getMessage(),
+          exception);
       id = id.withTag("legacyFallback", legacyFallback.get());
     }
 
@@ -290,10 +304,11 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
     return username;
   }
 
-  private boolean permissionContains(UserPermission.View permission,
-                                     String resourceName,
-                                     ResourceType resourceType,
-                                     Authorization authorization) {
+  private boolean permissionContains(
+      UserPermission.View permission,
+      String resourceName,
+      ResourceType resourceType,
+      Authorization authorization) {
     if (permission == null) {
       return false;
     }
@@ -303,24 +318,26 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
       return true;
     }
 
-    Function<Set<? extends Authorizable>, Boolean> containsAuth = resources ->
-        resources
-            .stream()
-            .anyMatch(view -> {
-              Set<Authorization> authorizations = Optional.ofNullable(
-                  view.getAuthorizations()
-              ).orElse(Collections.emptySet());
+    Function<Set<? extends Authorizable>, Boolean> containsAuth =
+        resources ->
+            resources.stream()
+                .anyMatch(
+                    view -> {
+                      Set<Authorization> authorizations =
+                          Optional.ofNullable(view.getAuthorizations())
+                              .orElse(Collections.emptySet());
 
-              return view.getName().equalsIgnoreCase(resourceName) && authorizations.contains(authorization);
-            });
+                      return view.getName().equalsIgnoreCase(resourceName)
+                          && authorizations.contains(authorization);
+                    });
 
     switch (resourceType) {
       case ACCOUNT:
         return containsAuth.apply(permission.getAccounts());
       case APPLICATION:
-        boolean applicationHasPermissions = permission
-            .getApplications()
-            .stream().anyMatch(a -> a.getName().equalsIgnoreCase(resourceName));
+        boolean applicationHasPermissions =
+            permission.getApplications().stream()
+                .anyMatch(a -> a.getName().equalsIgnoreCase(resourceName));
 
         if (!applicationHasPermissions && permission.isAllowAccessToUnknownApplications()) {
           // allow access to any applications w/o explicit permissions
@@ -328,8 +345,7 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
         }
         return permission.isLegacyFallback() || containsAuth.apply(permission.getApplications());
       case SERVICE_ACCOUNT:
-        return permission.getServiceAccounts()
-            .stream()
+        return permission.getServiceAccounts().stream()
             .anyMatch(view -> view.getName().equalsIgnoreCase(resourceName));
       case BUILD_SERVICE:
         return permission.isLegacyFallback() || containsAuth.apply(permission.getBuildServices());
@@ -346,7 +362,6 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
     return true; // TODO(ttomsu): Chosen by fair dice roll. Guaranteed to be random.
   }
 
-
   public boolean isAdmin(Authentication authentication) {
     if (!fiatStatus.isEnabled()) {
       return true;
@@ -360,7 +375,8 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
     private final ResourceType resourceType;
     private final String resourceName;
 
-    public AuthorizationFailure(Authorization authorization, ResourceType resourceType, String resourceName) {
+    public AuthorizationFailure(
+        Authorization authorization, ResourceType resourceType, String resourceName) {
       this.authorization = authorization;
       this.resourceType = resourceType;
       this.resourceName = resourceName;

@@ -17,35 +17,23 @@
 package com.netflix.spinnaker.fiat.permissions;
 
 import com.netflix.spinnaker.fiat.model.UserPermission;
-import com.netflix.spinnaker.fiat.model.resources.Role;
-import lombok.Data;
-
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
 
 public interface PermissionsResolver {
 
-  /**
-   * @return The UserPermission for an anonymous user.
-   */
+  /** @return The UserPermission for an anonymous user. */
   UserPermission resolveUnrestrictedUser() throws PermissionResolutionException;
 
-  /**
-   * Resolves a single user's permissions.
-   */
+  /** Resolves a single user's permissions. */
   UserPermission resolve(String userId) throws PermissionResolutionException;
 
   /**
-   * Resolves a single user's permissions, taking into account externally
-   * provided list of roles.
+   * Resolves a single user's permissions, taking into account externally provided list of roles.
    */
   UserPermission resolveAndMerge(ExternalUser user) throws PermissionResolutionException;
 
-  /**
-   * Resolves multiple user's permissions. Returned map is keyed by userId.
-   */
-  Map<String, UserPermission> resolve(Collection<ExternalUser> users) throws PermissionResolutionException;
+  /** Resolves multiple user's permissions. Returned map is keyed by userId. */
+  Map<String, UserPermission> resolve(Collection<ExternalUser> users)
+      throws PermissionResolutionException;
 }

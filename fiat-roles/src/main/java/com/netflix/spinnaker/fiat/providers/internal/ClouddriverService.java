@@ -20,14 +20,13 @@ import com.netflix.spinnaker.fiat.model.resources.Account;
 import com.netflix.spinnaker.fiat.model.resources.Application;
 import com.netflix.spinnaker.fiat.providers.HealthTrackable;
 import com.netflix.spinnaker.fiat.providers.ProviderHealthTracker;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
-
-import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * This class makes and caches live calls to Clouddriver. In the event that Clouddriver is
@@ -38,9 +37,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class ClouddriverService implements HealthTrackable, InitializingBean {
   private final ClouddriverApi clouddriverApi;
 
-  @Autowired
-  @Getter
-  private ProviderHealthTracker healthTracker;
+  @Autowired @Getter private ProviderHealthTracker healthTracker;
 
   private AtomicReference<List<Application>> applicationCache = new AtomicReference<>();
   private AtomicReference<List<Account>> accountCache = new AtomicReference<>();
@@ -69,17 +66,13 @@ public class ClouddriverService implements HealthTrackable, InitializingBean {
 
   @Scheduled(fixedDelayString = "${fiat.clouddriverRefreshMs:30000}")
   public void refreshAccounts() {
-    accountCache.set(
-        clouddriverApi.getAccounts()
-    );
+    accountCache.set(clouddriverApi.getAccounts());
     healthTracker.success();
   }
 
   @Scheduled(fixedDelayString = "${fiat.clouddriverRefreshMs:30000}")
   public void refreshApplications() {
-    applicationCache.set(
-        clouddriverApi.getApplications()
-    );
+    applicationCache.set(clouddriverApi.getApplications());
     healthTracker.success();
   }
 }

@@ -22,5 +22,5 @@ import lombok.Data;
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Member {
-    private String login;
+  private String login;
 }

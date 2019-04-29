@@ -34,7 +34,10 @@ public enum ResourceType {
   // TODO(ttomsu): This is Redis-specific, so it probably shouldn't go here.
   public static ResourceType parse(@Nonnull String pluralOrKey) {
     pluralOrKey = pluralOrKey.substring(pluralOrKey.lastIndexOf(':') + 1);
-    String singular = pluralOrKey.endsWith("s") ? pluralOrKey.substring(0, pluralOrKey.length() - 1) : pluralOrKey;
+    String singular =
+        pluralOrKey.endsWith("s")
+            ? pluralOrKey.substring(0, pluralOrKey.length() - 1)
+            : pluralOrKey;
     return ResourceType.valueOf(singular.toUpperCase());
   }
 

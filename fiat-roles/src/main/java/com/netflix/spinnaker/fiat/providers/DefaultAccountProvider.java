@@ -16,24 +16,16 @@
 
 package com.netflix.spinnaker.fiat.providers;
 
-import com.netflix.hystrix.exception.HystrixBadRequestException;
-import com.netflix.hystrix.exception.HystrixRuntimeException;
 import com.netflix.spinnaker.fiat.model.resources.Account;
-import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.fiat.providers.internal.ClouddriverService;
-import lombok.NonNull;
-import lombok.val;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import retrofit.RetrofitError;
-
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
-public class DefaultAccountProvider extends BaseProvider<Account> implements ResourceProvider<Account> {
+public class DefaultAccountProvider extends BaseProvider<Account>
+    implements ResourceProvider<Account> {
 
   private final ClouddriverService clouddriverService;
 

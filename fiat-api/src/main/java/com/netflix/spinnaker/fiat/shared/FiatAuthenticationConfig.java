@@ -22,6 +22,7 @@ import com.netflix.spinnaker.config.OkHttpClientConfiguration;
 import com.netflix.spinnaker.okhttp.SpinnakerRequestInterceptor;
 import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
 import com.squareup.okhttp.OkHttpClient;
+import java.util.concurrent.TimeUnit;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -36,13 +37,10 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
-import org.springframework.security.web.context.SecurityContextPersistenceFilter;
 import retrofit.Endpoints;
 import retrofit.RestAdapter;
 import retrofit.client.OkClient;
 import retrofit.converter.JacksonConverter;
-
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @EnableWebSecurity
@@ -58,9 +56,10 @@ public class FiatAuthenticationConfig {
 
   @Bean
   @ConditionalOnMissingBean(FiatService.class) // Allows for override
-  public FiatService fiatService(FiatClientConfigurationProperties fiatConfigurationProperties,
-                                 SpinnakerRequestInterceptor interceptor,
-                                 OkHttpClientConfiguration okHttpClientConfiguration) {
+  public FiatService fiatService(
+      FiatClientConfigurationProperties fiatConfigurationProperties,
+      SpinnakerRequestInterceptor interceptor,
+      OkHttpClientConfiguration okHttpClientConfiguration) {
     // New role providers break deserialization if this is not enabled.
     val objectMapper = new ObjectMapper();
     objectMapper.enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL);
@@ -69,11 +68,13 @@ public class FiatAuthenticationConfig {
     OkHttpClient okHttpClient = okHttpClientConfiguration.create();
 
     if (fiatConfigurationProperties.getConnectTimeoutMs() != null) {
-      okHttpClient.setConnectTimeout(fiatConfigurationProperties.getConnectTimeoutMs(), TimeUnit.MILLISECONDS);
+      okHttpClient.setConnectTimeout(
+          fiatConfigurationProperties.getConnectTimeoutMs(), TimeUnit.MILLISECONDS);
     }
 
     if (fiatConfigurationProperties.getReadTimeoutMs() != null) {
-      okHttpClient.setConnectTimeout(fiatConfigurationProperties.getReadTimeoutMs(), TimeUnit.MILLISECONDS);
+      okHttpClient.setConnectTimeout(
+          fiatConfigurationProperties.getReadTimeoutMs(), TimeUnit.MILLISECONDS);
     }
 
     return new RestAdapter.Builder()
@@ -102,10 +103,14 @@ public class FiatAuthenticationConfig {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.servletApi().and()
-            .exceptionHandling().and()
-            .anonymous().and()
-            .addFilterBefore(new FiatAuthenticationFilter(fiatStatus), AnonymousAuthenticationFilter.class);
+      http.servletApi()
+          .and()
+          .exceptionHandling()
+          .and()
+          .anonymous()
+          .and()
+          .addFilterBefore(
+              new FiatAuthenticationFilter(fiatStatus), AnonymousAuthenticationFilter.class);
     }
   }
 }

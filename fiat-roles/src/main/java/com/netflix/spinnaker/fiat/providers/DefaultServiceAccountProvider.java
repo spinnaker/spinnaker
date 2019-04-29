@@ -20,30 +20,30 @@ import com.netflix.spinnaker.fiat.config.FiatRoleConfig;
 import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.fiat.model.resources.ServiceAccount;
 import com.netflix.spinnaker.fiat.providers.internal.Front50Service;
-import lombok.NonNull;
-import lombok.extern.slf4j.Slf4j;
-import lombok.val;
-import org.apache.commons.collections.CollectionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
-public class DefaultServiceAccountProvider extends BaseProvider<ServiceAccount> implements ResourceProvider<ServiceAccount> {
+public class DefaultServiceAccountProvider extends BaseProvider<ServiceAccount>
+    implements ResourceProvider<ServiceAccount> {
 
   private final Front50Service front50Service;
 
   private final FiatRoleConfig fiatRoleConfig;
 
   @Autowired
-  public DefaultServiceAccountProvider(Front50Service front50Service, FiatRoleConfig fiatRoleConfig) {
+  public DefaultServiceAccountProvider(
+      Front50Service front50Service, FiatRoleConfig fiatRoleConfig) {
     super();
     this.front50Service = front50Service;
     this.fiatRoleConfig = fiatRoleConfig;
@@ -59,16 +59,17 @@ public class DefaultServiceAccountProvider extends BaseProvider<ServiceAccount> 
   }
 
   @Override
-  public Set<ServiceAccount> getAllRestricted(@NonNull Set<Role> roles, boolean isAdmin) throws ProviderException {
+  public Set<ServiceAccount> getAllRestricted(@NonNull Set<Role> roles, boolean isAdmin)
+      throws ProviderException {
     List<String> roleNames = roles.stream().map(Role::getName).collect(Collectors.toList());
-    return getAll()
-        .stream()
+    return getAll().stream()
         .filter(svcAcct -> !svcAcct.getMemberOf().isEmpty())
         .filter(getServiceAccountPredicate(isAdmin, roleNames))
         .collect(Collectors.toSet());
   }
 
-  private Predicate<ServiceAccount> getServiceAccountPredicate(boolean isAdmin, List<String> roleNames) {
+  private Predicate<ServiceAccount> getServiceAccountPredicate(
+      boolean isAdmin, List<String> roleNames) {
     if (isAdmin) {
       return svcAcct -> true;
     }

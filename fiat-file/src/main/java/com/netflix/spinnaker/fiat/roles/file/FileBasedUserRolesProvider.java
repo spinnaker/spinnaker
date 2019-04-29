@@ -21,14 +21,6 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.fiat.permissions.ExternalUser;
 import com.netflix.spinnaker.fiat.roles.UserRolesProvider;
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.stereotype.Component;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -40,14 +32,20 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
 @ConditionalOnProperty(value = "auth.group-membership.service", havingValue = "file")
 public class FileBasedUserRolesProvider implements UserRolesProvider {
 
-  @Autowired
-  ConfigProps configProps;
+  @Autowired ConfigProps configProps;
 
   private Map<String, List<Role>> parse() throws IOException {
     return parse(new BufferedReader(new FileReader(new File(configProps.getPath()))));
@@ -71,11 +69,11 @@ public class FileBasedUserRolesProvider implements UserRolesProvider {
   @Override
   public Map<String, Collection<Role>> multiLoadRoles(Collection<ExternalUser> users) {
     try {
-      Collection<String> userIds = users.stream().map(ExternalUser::getId).collect(Collectors.toList());
-      return parse().entrySet()
-                    .stream()
-                    .filter(e -> userIds.contains(e.getKey()))
-                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+      Collection<String> userIds =
+          users.stream().map(ExternalUser::getId).collect(Collectors.toList());
+      return parse().entrySet().stream()
+          .filter(e -> userIds.contains(e.getKey()))
+          .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     } catch (IOException io) {
       log.error("Couldn't mulitLoad roles from file", io);
     }

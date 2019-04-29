@@ -4,20 +4,20 @@ Spinnaker Auth Service
 [![Build Status](https://api.travis-ci.org/spinnaker/fiat.svg?branch=master)](https://travis-ci.org/spinnaker/fiat)
 
 ```
-   ____ _         ____ __    ___               _            ______                  _    
+   ____ _         ____ __    ___               _            ______                  _
   / __/(_)__ __  /  _// /_  / _ | ___ _ ___ _ (_)___       /_  __/____ ___ _ _  __ (_)___
  / _/ / / \ \ / _/ / / __/ / __ |/ _ `// _ `// // _ \ _     / /  / __// _ `/| |/ // /(_-<
 /_/  /_/ /_\_\ /___/ \__/ /_/ |_|\_, / \_,_//_//_//_/( )   /_/  /_/   \_,_/ |___//_//___/
-                                /___/                |/                                  
+                                /___/                |/
 ```
 
-Fiat is the authorization server for the Spinnaker system. 
+Fiat is the authorization server for the Spinnaker system.
 
 It exposes a RESTful interface for querying the access permissions for a particular user. It currently supports three kinds of resources:
 * Accounts
 * Applications
 * Service Accounts
- 
+
 ---
 
 ### Accounts
@@ -32,8 +32,8 @@ Fiat Service Accounts are groups that act as a user during automated triggers (s
 ---
 
 ### User Role/Authorization Providers
-Currently supported user role providers are: 
-* Google Groups (through a Google Apps for Work organization) 
+Currently supported user role providers are:
+* Google Groups (through a Google Apps for Work organization)
 * GitHub Teams
 * LDAP
 * File based role provider
@@ -41,7 +41,7 @@ Currently supported user role providers are:
 ---
 
 ### Modular builds
-By default, Fiat is built with all authorization providers included. To build only a subset of 
+By default, Fiat is built with all authorization providers included. To build only a subset of
 providers, use the `includeProviders` flag:
  ```
 ./gradlew -PincludeProviders=google-groups,ldap clean build

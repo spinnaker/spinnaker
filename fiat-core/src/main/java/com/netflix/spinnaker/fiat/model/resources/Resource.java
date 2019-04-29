@@ -24,9 +24,7 @@ public interface Resource {
   @JsonIgnore
   ResourceType getResourceType();
 
-  /**
-   * Represents Resources that have restrictions on permissions.
-   */
+  /** Represents Resources that have restrictions on permissions. */
   interface AccessControlled extends Resource {
 
     Permissions getPermissions();

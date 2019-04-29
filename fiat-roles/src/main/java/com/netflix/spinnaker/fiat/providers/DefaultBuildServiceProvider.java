@@ -19,16 +19,16 @@ package com.netflix.spinnaker.fiat.providers;
 
 import com.netflix.spinnaker.fiat.model.resources.BuildService;
 import com.netflix.spinnaker.fiat.providers.internal.IgorService;
+import java.util.HashSet;
+import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
-import java.util.HashSet;
-import java.util.Set;
-
 @Component
 @ConditionalOnProperty("services.igor.enabled")
-public class DefaultBuildServiceProvider extends BaseProvider<BuildService> implements ResourceProvider<BuildService> {
+public class DefaultBuildServiceProvider extends BaseProvider<BuildService>
+    implements ResourceProvider<BuildService> {
 
   private final IgorService igorService;
 

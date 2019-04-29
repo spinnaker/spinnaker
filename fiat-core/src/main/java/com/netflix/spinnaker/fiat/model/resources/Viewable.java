@@ -22,6 +22,5 @@ public interface Viewable {
   BaseView getView(Set<Role> userRoles, boolean isAdmin);
 
   // Empty class used for referencing Resource-specific View objects.
-  class BaseView {
-  }
+  class BaseView {}
 }

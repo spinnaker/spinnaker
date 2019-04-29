@@ -17,15 +17,15 @@
 package com.netflix.spinnaker.fiat.model.resources;
 
 import com.netflix.spinnaker.fiat.model.Authorization;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.List;
-
 @Slf4j
-abstract class BaseAccessControlled<R extends BaseAccessControlled> implements Resource.AccessControlled {
+abstract class BaseAccessControlled<R extends BaseAccessControlled>
+    implements Resource.AccessControlled {
 
   abstract R setPermissions(Permissions p);
-  
+
   /**
    * Legacy holdover where setting `requiredGroupMembership` implied both read and write
    * permissions.
@@ -37,23 +37,30 @@ abstract class BaseAccessControlled<R extends BaseAccessControlled> implements R
     }
 
     if (getPermissions() != null && getPermissions().isRestricted()) {
-      String msg = String.join(" ",
-                               "`requiredGroupMembership` found on",
-                               getResourceType().toString(),
-                               getName(),
-                               "and ignored because `permissions` are present");
+      String msg =
+          String.join(
+              " ",
+              "`requiredGroupMembership` found on",
+              getResourceType().toString(),
+              getName(),
+              "and ignored because `permissions` are present");
       log.warn(msg);
       return (T) this;
     }
 
-    String msg = String.join(" ",
-                             "Deprecated `requiredGroupMembership` found on",
-                             getResourceType().toString(),
-                             getName(),
-                             ". Please update to `permissions`.");
+    String msg =
+        String.join(
+            " ",
+            "Deprecated `requiredGroupMembership` found on",
+            getResourceType().toString(),
+            getName(),
+            ". Please update to `permissions`.");
     log.warn(msg);
-    this.setPermissions(new Permissions.Builder().add(Authorization.READ, membership)
-                                                 .add(Authorization.WRITE, membership).build());
+    this.setPermissions(
+        new Permissions.Builder()
+            .add(Authorization.READ, membership)
+            .add(Authorization.WRITE, membership)
+            .build());
     return (T) this;
   }
 }

@@ -17,10 +17,9 @@
 package com.netflix.spinnaker.fiat.controllers;
 
 import com.netflix.spinnaker.fiat.config.UnrestrictedResourceConfig;
-import lombok.extern.slf4j.Slf4j;
-
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class ControllerSupport {

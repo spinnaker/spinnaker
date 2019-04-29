@@ -27,6 +27,9 @@ import com.netflix.spinnaker.fiat.roles.UserRolesProvider;
 import com.netflix.spinnaker.fiat.roles.github.client.GitHubClient;
 import com.netflix.spinnaker.fiat.roles.github.model.Member;
 import com.netflix.spinnaker.fiat.roles.github.model.Team;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.stream.Collectors;
 import lombok.Data;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -40,28 +43,17 @@ import org.springframework.util.Assert;
 import retrofit.RetrofitError;
 import retrofit.client.Header;
 
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.stream.Collectors;
-
 @Slf4j
 @Component
 @ConditionalOnProperty(value = "auth.group-membership.service", havingValue = "github")
 public class GithubTeamsUserRolesProvider implements UserRolesProvider, InitializingBean {
 
-  private static List<String> RATE_LIMITING_HEADERS = Arrays.asList(
-      "X-RateLimit-Limit",
-      "X-RateLimit-Remaining",
-      "X-RateLimit-Reset"
-  );
+  private static List<String> RATE_LIMITING_HEADERS =
+      Arrays.asList("X-RateLimit-Limit", "X-RateLimit-Remaining", "X-RateLimit-Reset");
 
-  @Autowired
-  @Setter
-  private GitHubClient gitHubClient;
+  @Autowired @Setter private GitHubClient gitHubClient;
 
-  @Autowired
-  @Setter
-  private GitHubProperties gitHubProperties;
+  @Autowired @Setter private GitHubProperties gitHubProperties;
 
   private ExecutorService executor = Executors.newSingleThreadExecutor();
 
@@ -85,107 +77,129 @@ public class GithubTeamsUserRolesProvider implements UserRolesProvider, Initiali
 
   private void initializeMembersCache() {
     // Note if multiple github orgs is ever supported the maximumSize will need to change
-    this.membersCache = CacheBuilder.newBuilder()
-        .maximumSize(1) //This will only be a cache of one entry keyed by org name.
-        .refreshAfterWrite(this.gitHubProperties.getMembershipCacheTTLSeconds(), TimeUnit.SECONDS)
-        .build(new CacheLoader<String, Set<String>>() {
-          public Set<String> load(String key) {
-            Set<String> members = new HashSet<>();
-            int page = 1;
-            boolean hasMorePages = true;
+    this.membersCache =
+        CacheBuilder.newBuilder()
+            .maximumSize(1) // This will only be a cache of one entry keyed by org name.
+            .refreshAfterWrite(
+                this.gitHubProperties.getMembershipCacheTTLSeconds(), TimeUnit.SECONDS)
+            .build(
+                new CacheLoader<String, Set<String>>() {
+                  public Set<String> load(String key) {
+                    Set<String> members = new HashSet<>();
+                    int page = 1;
+                    boolean hasMorePages = true;
 
-            do {
-              List<Member> membersPage = getMembersInOrgPaginated(key, page++);
-              membersPage.forEach(m -> members.add(m.getLogin().toLowerCase()));
-              if (membersPage.size() != gitHubProperties.paginationValue) {
-                hasMorePages = false;
-              }
-              log.debug("Got " + membersPage.size() + " members back. hasMorePages: " + hasMorePages);
-            } while (hasMorePages);
+                    do {
+                      List<Member> membersPage = getMembersInOrgPaginated(key, page++);
+                      membersPage.forEach(m -> members.add(m.getLogin().toLowerCase()));
+                      if (membersPage.size() != gitHubProperties.paginationValue) {
+                        hasMorePages = false;
+                      }
+                      log.debug(
+                          "Got "
+                              + membersPage.size()
+                              + " members back. hasMorePages: "
+                              + hasMorePages);
+                    } while (hasMorePages);
 
-            return members;
-          }
+                    return members;
+                  }
 
-          public ListenableFuture<Set<String>> reload(final String key, final Set<String> prev) {
-            ListenableFutureTask<Set<String>> task = ListenableFutureTask.create(new Callable<Set<String>>() {
-              public Set<String> call() {
-                return load(key);
-              }
-            });
-            executor.execute(task);
-            return task;
-          }
-        });
+                  public ListenableFuture<Set<String>> reload(
+                      final String key, final Set<String> prev) {
+                    ListenableFutureTask<Set<String>> task =
+                        ListenableFutureTask.create(
+                            new Callable<Set<String>>() {
+                              public Set<String> call() {
+                                return load(key);
+                              }
+                            });
+                    executor.execute(task);
+                    return task;
+                  }
+                });
   }
 
   private void initializeTeamsCache() {
     // Note if multiple github orgs is ever supported the maximumSize will need to change
-    this.teamsCache = CacheBuilder.newBuilder()
-        .maximumSize(1) // This will only be a cache of one entry keyed by org name.
-        .refreshAfterWrite(this.gitHubProperties.getMembershipCacheTTLSeconds(), TimeUnit.SECONDS)
-        .build(
-            new CacheLoader<String, List<Team>>() {
-              public List<Team> load(String key) {
-                List<Team> teams = new ArrayList<>();
-                int page = 1;
-                boolean hasMorePages = true;
+    this.teamsCache =
+        CacheBuilder.newBuilder()
+            .maximumSize(1) // This will only be a cache of one entry keyed by org name.
+            .refreshAfterWrite(
+                this.gitHubProperties.getMembershipCacheTTLSeconds(), TimeUnit.SECONDS)
+            .build(
+                new CacheLoader<String, List<Team>>() {
+                  public List<Team> load(String key) {
+                    List<Team> teams = new ArrayList<>();
+                    int page = 1;
+                    boolean hasMorePages = true;
 
-                do {
-                  List<Team> teamsPage = getTeamsInOrgPaginated(key, page++);
-                  teams.addAll(teamsPage);
-                  if (teamsPage.size() != gitHubProperties.paginationValue) {
-                    hasMorePages = false;
+                    do {
+                      List<Team> teamsPage = getTeamsInOrgPaginated(key, page++);
+                      teams.addAll(teamsPage);
+                      if (teamsPage.size() != gitHubProperties.paginationValue) {
+                        hasMorePages = false;
+                      }
+                      log.debug(
+                          "Got " + teamsPage.size() + " teams back. hasMorePages: " + hasMorePages);
+                    } while (hasMorePages);
+
+                    return teams;
                   }
-                  log.debug("Got " + teamsPage.size() + " teams back. hasMorePages: " + hasMorePages);
-                } while (hasMorePages);
 
-                return teams;
-              }
-
-              public ListenableFuture<List<Team>> reload(final String key, final List<Team> prev) {
-                ListenableFutureTask<List<Team>> task = ListenableFutureTask.create(new Callable<List<Team>>() {
-                  public List<Team> call() {
-                    return load(key);
+                  public ListenableFuture<List<Team>> reload(
+                      final String key, final List<Team> prev) {
+                    ListenableFutureTask<List<Team>> task =
+                        ListenableFutureTask.create(
+                            new Callable<List<Team>>() {
+                              public List<Team> call() {
+                                return load(key);
+                              }
+                            });
+                    executor.execute(task);
+                    return task;
                   }
                 });
-                executor.execute(task);
-                return task;
-              }
-            });
   }
 
   private void initializeTeamMembershipCache() {
-    this.teamMembershipCache = CacheBuilder.newBuilder()
-        .maximumSize(this.gitHubProperties.getMembershipCacheTeamsSize())
-        .refreshAfterWrite(this.gitHubProperties.getMembershipCacheTTLSeconds(), TimeUnit.SECONDS)
-        .build(new CacheLoader<Long, Set<String>>()
-        {
-          public Set<String> load(Long key) {
-            Set<String> memberships = new HashSet<>();
-            int page = 1;
-            boolean hasMorePages = true;
-            do {
-              List<Member> members = getMembersInTeamPaginated(key, page++);
-              members.forEach(m -> memberships.add(m.getLogin().toLowerCase()));
-              if (members.size() != gitHubProperties.paginationValue) {
-                hasMorePages = false;
-              }
-              log.debug("Got " + members.size() + " teams back. hasMorePages: " + hasMorePages);
-            } while (hasMorePages);
+    this.teamMembershipCache =
+        CacheBuilder.newBuilder()
+            .maximumSize(this.gitHubProperties.getMembershipCacheTeamsSize())
+            .refreshAfterWrite(
+                this.gitHubProperties.getMembershipCacheTTLSeconds(), TimeUnit.SECONDS)
+            .build(
+                new CacheLoader<Long, Set<String>>() {
+                  public Set<String> load(Long key) {
+                    Set<String> memberships = new HashSet<>();
+                    int page = 1;
+                    boolean hasMorePages = true;
+                    do {
+                      List<Member> members = getMembersInTeamPaginated(key, page++);
+                      members.forEach(m -> memberships.add(m.getLogin().toLowerCase()));
+                      if (members.size() != gitHubProperties.paginationValue) {
+                        hasMorePages = false;
+                      }
+                      log.debug(
+                          "Got " + members.size() + " teams back. hasMorePages: " + hasMorePages);
+                    } while (hasMorePages);
 
-            return memberships;
-          }
+                    return memberships;
+                  }
 
-          public ListenableFuture<Set<String>> reload(final Long key, final Set<String> prev) {
-            ListenableFutureTask<Set<String>> task = ListenableFutureTask.create(new Callable<Set<String>>() {
-              public Set<String> call() {
-                return load(key);
-              }
-            });
-            executor.execute(task);
-            return task;
-          }
-        });
+                  public ListenableFuture<Set<String>> reload(
+                      final Long key, final Set<String> prev) {
+                    ListenableFutureTask<Set<String>> task =
+                        ListenableFutureTask.create(
+                            new Callable<Set<String>>() {
+                              public Set<String> call() {
+                                return load(key);
+                              }
+                            });
+                    executor.execute(task);
+                    return task;
+                  }
+                });
   }
 
   @Override
@@ -210,16 +224,17 @@ public class GithubTeamsUserRolesProvider implements UserRolesProvider, Initiali
     List<Team> teams = getTeams();
     log.debug("Found " + teams.size() + " teams in org.");
 
-    teams.forEach(t -> {
-      String debugMsg = username + " is a member of team " + t.getName();
-      if (isMemberOfTeam(t, username)) {
-        result.add(toRole(t.getSlug()));
-        debugMsg += ": true";
-      } else {
-        debugMsg += ": false";
-      }
-      log.debug(debugMsg);
-    });
+    teams.forEach(
+        t -> {
+          String debugMsg = username + " is a member of team " + t.getName();
+          if (isMemberOfTeam(t, username)) {
+            result.add(toRole(t.getSlug()));
+            debugMsg += ": true";
+          } else {
+            debugMsg += ": false";
+          }
+          log.debug(debugMsg);
+        });
 
     return result;
   }
@@ -227,7 +242,10 @@ public class GithubTeamsUserRolesProvider implements UserRolesProvider, Initiali
   private boolean isMemberOfOrg(String username) {
     boolean isMemberOfOrg = false;
     try {
-      isMemberOfOrg = this.membersCache.get(gitHubProperties.getOrganization()).contains(username.toLowerCase());
+      isMemberOfOrg =
+          this.membersCache
+              .get(gitHubProperties.getOrganization())
+              .contains(username.toLowerCase());
     } catch (ExecutionException e) {
       log.error("Failed to read from cache when getting org membership", e);
     }
@@ -237,7 +255,7 @@ public class GithubTeamsUserRolesProvider implements UserRolesProvider, Initiali
   private List<Team> getTeams() {
     try {
       return this.teamsCache.get(gitHubProperties.getOrganization());
-    } catch(ExecutionException e) {
+    } catch (ExecutionException e) {
       log.error("Failed to read from cache when getting teams", e);
     }
     return Collections.emptyList();
@@ -247,9 +265,7 @@ public class GithubTeamsUserRolesProvider implements UserRolesProvider, Initiali
     List<Team> teams = new ArrayList<>();
     try {
       log.debug("Requesting page " + page + " of teams.");
-      teams = gitHubClient.getOrgTeams(organization,
-                                       page,
-                                       gitHubProperties.paginationValue);
+      teams = gitHubClient.getOrgTeams(organization, page, gitHubProperties.paginationValue);
     } catch (RetrofitError e) {
       if (e.getResponse().getStatus() != 404) {
         handleNon404s(e);
@@ -312,12 +328,11 @@ public class GithubTeamsUserRolesProvider implements UserRolesProvider, Initiali
     } else if (e.getResponse().getStatus() == 401) {
       msg = "HTTP 401 Unauthorized.";
     } else if (e.getResponse().getStatus() == 403) {
-      val rateHeaders = e.getResponse()
-                         .getHeaders()
-                         .stream()
-                         .filter(header -> RATE_LIMITING_HEADERS.contains(header.getName()))
-                         .map(Header::toString)
-                         .collect(Collectors.toList());
+      val rateHeaders =
+          e.getResponse().getHeaders().stream()
+              .filter(header -> RATE_LIMITING_HEADERS.contains(header.getName()))
+              .map(Header::toString)
+              .collect(Collectors.toList());
 
       msg = "HTTP 403 Forbidden. Rate limit info: " + StringUtils.join(rateHeaders, ", ");
     }

@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.fiat.permissions;
 
 import com.netflix.spinnaker.fiat.model.UserPermission;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -25,13 +24,14 @@ import java.util.Optional;
 /**
  * A PermissionsRepository is responsible for persisting UserPermission objects under a user ID key.
  *
- * TODO(ttomsu): This may be too general, and will need to be optimized for individual resource type
- * reads.
+ * <p>TODO(ttomsu): This may be too general, and will need to be optimized for individual resource
+ * type reads.
  */
 public interface PermissionsRepository {
 
   /**
    * Adds the specified permission to the repository, overwriting anything under the same id.
+   *
    * @param permission
    * @return This PermissionRepository
    */
@@ -40,23 +40,23 @@ public interface PermissionsRepository {
   /**
    * Gets the UserPermission from the repository, if available. Returns an empty Optional if not
    * found.
+   *
    * @param id
    * @return The UserPermission wrapped in an Optional.
    */
   Optional<UserPermission> get(String id);
 
-  /**
-   * Gets all UserPermissions in the repository keyed by user ID.
-   */
+  /** Gets all UserPermissions in the repository keyed by user ID. */
   Map<String, UserPermission> getAllById();
 
   /**
-   * Gets all UserPermissions in the repository that has at least 1 of the specified roles, keyed
-   * by user ID. Because this method is usually used in conjuction with updating/syncing the users
-   * in question, the returned map will also contain the unrestricted user. If anyRoles is null,
+   * Gets all UserPermissions in the repository that has at least 1 of the specified roles, keyed by
+   * user ID. Because this method is usually used in conjuction with updating/syncing the users in
+   * question, the returned map will also contain the unrestricted user. If anyRoles is null,
    * returns the same result as getAllById() (which includes the unrestricted user). If anyRoles is
    * empty, this is an indication to sync only the anonymous/unrestricted user. When this is the
    * case, this method returns a map with a single entry for the unrestricted user.
+   *
    * @param anyRoles
    * @return
    */
@@ -64,6 +64,7 @@ public interface PermissionsRepository {
 
   /**
    * Delete the specified user permission.
+   *
    * @param id
    */
   void remove(String id);

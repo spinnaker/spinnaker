@@ -26,5 +26,4 @@ import org.springframework.context.annotation.Configuration;
 public class FiatRoleConfig {
 
   private boolean orMode = false;
-
 }

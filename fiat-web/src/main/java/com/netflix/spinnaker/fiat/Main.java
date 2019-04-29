@@ -17,6 +17,9 @@
 package com.netflix.spinnaker.fiat;
 
 import com.netflix.spinnaker.config.ErrorConfiguration;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.gson.GsonAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -26,15 +29,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
 @EnableScheduling
 @Configuration
 @ComponentScan({
-    "com.netflix.spinnaker.fiat",
-    "com.netflix.spinnaker.config",
+  "com.netflix.spinnaker.fiat",
+  "com.netflix.spinnaker.config",
 })
 @Import(ErrorConfiguration.class)
 @EnableAutoConfiguration(exclude = {GsonAutoConfiguration.class})
@@ -63,4 +62,3 @@ public class Main extends SpringBootServletInitializer {
     return application.properties(DEFAULT_PROPS).sources(Main.class);
   }
 }
-

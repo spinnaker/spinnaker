@@ -25,25 +25,24 @@ import com.netflix.spinnaker.fiat.model.UserPermission;
 import com.netflix.spinnaker.fiat.model.resources.Account;
 import com.netflix.spinnaker.fiat.model.resources.Application;
 import com.netflix.spinnaker.fiat.model.resources.ResourceType;
-import com.netflix.spinnaker.fiat.model.resources.ServiceAccount;
 import com.netflix.spinnaker.fiat.model.resources.Role;
+import com.netflix.spinnaker.fiat.model.resources.ServiceAccount;
 import com.netflix.spinnaker.fiat.permissions.PermissionsRepository;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import io.swagger.annotations.ApiOperation;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
-
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
 @RestController
@@ -57,9 +56,10 @@ public class AuthorizeController {
   private final Id getUserPermissionCounterId;
 
   @Autowired
-  public AuthorizeController(Registry registry,
-                             PermissionsRepository permissionsRepository,
-                             FiatServerConfigurationProperties configProps) {
+  public AuthorizeController(
+      Registry registry,
+      PermissionsRepository permissionsRepository,
+      FiatServerConfigurationProperties configProps) {
     this.registry = registry;
     this.permissionsRepository = permissionsRepository;
     this.configProps = configProps;
@@ -67,8 +67,10 @@ public class AuthorizeController {
     this.getUserPermissionCounterId = registry.createId("fiat.getUserPermission");
   }
 
-  @ApiOperation(value = "Used mostly for testing. Not really any real value to the rest of " +
-      "the system. Disabled by default.")
+  @ApiOperation(
+      value =
+          "Used mostly for testing. Not really any real value to the rest of "
+              + "the system. Disabled by default.")
   @RequestMapping(method = RequestMethod.GET)
   public Set<UserPermission.View> getAll(HttpServletResponse response) throws IOException {
     if (!configProps.isGetAllEnabled()) {
@@ -77,12 +79,12 @@ public class AuthorizeController {
     }
 
     log.debug("UserPermissions requested for all users");
-    return permissionsRepository
-        .getAllById()
-        .values()
-        .stream()
+    return permissionsRepository.getAllById().values().stream()
         .map(UserPermission::getView)
-        .map(u -> u.setAllowAccessToUnknownApplications(configProps.isAllowAccessToUnknownApplications()))
+        .map(
+            u ->
+                u.setAllowAccessToUnknownApplications(
+                    configProps.isAllowAccessToUnknownApplications()))
         .collect(Collectors.toSet());
   }
 
@@ -102,10 +104,9 @@ public class AuthorizeController {
   }
 
   @RequestMapping(value = "/{userId:.+}/accounts/{accountName:.+}", method = RequestMethod.GET)
-  public Account.View getUserAccount(@PathVariable String userId, @PathVariable String accountName) {
-    return getUserPermissionView(userId)
-        .getAccounts()
-        .stream()
+  public Account.View getUserAccount(
+      @PathVariable String userId, @PathVariable String accountName) {
+    return getUserPermissionView(userId).getAccounts().stream()
         .filter(account -> accountName.equalsIgnoreCase(account.getName()))
         .findFirst()
         .orElseThrow(NotFoundException::new);
@@ -116,11 +117,12 @@ public class AuthorizeController {
     return new HashSet<>(getUserPermissionView(userId).getApplications());
   }
 
-  @RequestMapping(value = "/{userId:.+}/applications/{applicationName:.+}", method = RequestMethod.GET)
-  public Application.View getUserApplication(@PathVariable String userId, @PathVariable String applicationName) {
-    return getUserPermissionView(userId)
-        .getApplications()
-        .stream()
+  @RequestMapping(
+      value = "/{userId:.+}/applications/{applicationName:.+}",
+      method = RequestMethod.GET)
+  public Application.View getUserApplication(
+      @PathVariable String userId, @PathVariable String applicationName) {
+    return getUserPermissionView(userId).getApplications().stream()
         .filter(application -> applicationName.equalsIgnoreCase(application.getName()))
         .findFirst()
         .orElseThrow(NotFoundException::new);
@@ -128,32 +130,35 @@ public class AuthorizeController {
 
   @RequestMapping(value = "/{userId:.+}/serviceAccounts", method = RequestMethod.GET)
   public Set<ServiceAccount.View> getServiceAccounts(@PathVariable String userId) {
-    return new HashSet<>(
-        getUserPermissionView(userId).getServiceAccounts()
-    );
+    return new HashSet<>(getUserPermissionView(userId).getServiceAccounts());
   }
 
-  @RequestMapping(value = "/{userId:.+}/serviceAccounts/{serviceAccountName:.+}", method = RequestMethod.GET)
-  public ServiceAccount.View getServiceAccount(@PathVariable String userId,
-                                               @PathVariable String serviceAccountName) {
-    return getUserPermissionOrDefault(userId)
-        .orElseThrow(NotFoundException::new)
-        .getView()
-        .getServiceAccounts()
-        .stream()
-        .filter(serviceAccount ->
-            serviceAccount.getName()
-                .equalsIgnoreCase(ControllerSupport.convert(serviceAccountName)))
+  @RequestMapping(
+      value = "/{userId:.+}/serviceAccounts/{serviceAccountName:.+}",
+      method = RequestMethod.GET)
+  public ServiceAccount.View getServiceAccount(
+      @PathVariable String userId, @PathVariable String serviceAccountName) {
+    return getUserPermissionOrDefault(userId).orElseThrow(NotFoundException::new).getView()
+        .getServiceAccounts().stream()
+        .filter(
+            serviceAccount ->
+                serviceAccount
+                    .getName()
+                    .equalsIgnoreCase(ControllerSupport.convert(serviceAccountName)))
         .findFirst()
         .orElseThrow(NotFoundException::new);
   }
 
-  @RequestMapping(value = "/{userId:.+}/{resourceType:.+}/{resourceName:.+}/{authorization:.+}", method = RequestMethod.GET)
-  public void getUserAuthorization(@PathVariable String userId,
-                                   @PathVariable String resourceType,
-                                   @PathVariable String resourceName,
-                                   @PathVariable String authorization,
-                                   HttpServletResponse response) throws IOException {
+  @RequestMapping(
+      value = "/{userId:.+}/{resourceType:.+}/{resourceName:.+}/{authorization:.+}",
+      method = RequestMethod.GET)
+  public void getUserAuthorization(
+      @PathVariable String userId,
+      @PathVariable String resourceType,
+      @PathVariable String resourceName,
+      @PathVariable String authorization,
+      HttpServletResponse response)
+      throws IOException {
     Authorization a = Authorization.valueOf(authorization.toUpperCase());
     ResourceType r = ResourceType.parse(resourceType);
     Set<Authorization> authorizations = new HashSet<>(0);
@@ -167,8 +172,9 @@ public class AuthorizeController {
           authorizations = getUserApplication(userId, resourceName).getAuthorizations();
           break;
         default:
-          response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Resource type " + resourceType +
-              " does not contain authorizations");
+          response.sendError(
+              HttpServletResponse.SC_BAD_REQUEST,
+              "Resource type " + resourceType + " does not contain authorizations");
           return;
       }
     } catch (NotFoundException nfe) {
@@ -186,16 +192,16 @@ public class AuthorizeController {
   private Optional<UserPermission> getUserPermissionOrDefault(String userId) {
     String authenticatedUserId = AuthenticatedRequest.getSpinnakerUser().orElse(null);
 
-    UserPermission userPermission = permissionsRepository.get(
-        ControllerSupport.convert(userId)
-    ).orElse(null);
+    UserPermission userPermission =
+        permissionsRepository.get(ControllerSupport.convert(userId)).orElse(null);
 
     if (userPermission != null || !configProps.isDefaultToUnrestrictedUser()) {
-      registry.counter(
-          getUserPermissionCounterId
-              .withTag("success", userPermission != null)
-              .withTag("fallback", false)
-      ).increment();
+      registry
+          .counter(
+              getUserPermissionCounterId
+                  .withTag("success", userPermission != null)
+                  .withTag("fallback", false))
+          .increment();
       return Optional.ofNullable(userPermission);
     }
 
@@ -206,24 +212,27 @@ public class AuthorizeController {
        * If the request is for the permissions of the currently authenticated user, default to those of the
        * unrestricted user.
        */
-      userPermission = permissionsRepository
-          .get(UnrestrictedResourceConfig.UNRESTRICTED_USERNAME)
-          .map(u -> u.setId(authenticatedUserId))
-          .orElse(null);
+      userPermission =
+          permissionsRepository
+              .get(UnrestrictedResourceConfig.UNRESTRICTED_USERNAME)
+              .map(u -> u.setId(authenticatedUserId))
+              .orElse(null);
     }
 
     log.debug(
         "Returning fallback permissions (user: {}, accounts: {}, roles: {})",
         userId,
         (userPermission != null) ? userPermission.getAccounts() : Collections.emptyList(),
-        (userPermission != null) ? userPermission.getRoles().stream().map(Role::getName).collect(Collectors.toList()) : Collections.emptyList()
-    );
+        (userPermission != null)
+            ? userPermission.getRoles().stream().map(Role::getName).collect(Collectors.toList())
+            : Collections.emptyList());
 
-    registry.counter(
-        getUserPermissionCounterId
-            .withTag("success", userPermission != null)
-            .withTag("fallback", true)
-    ).increment();
+    registry
+        .counter(
+            getUserPermissionCounterId
+                .withTag("success", userPermission != null)
+                .withTag("fallback", true))
+        .increment();
 
     return Optional.ofNullable(userPermission);
   }

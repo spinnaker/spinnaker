@@ -26,14 +26,6 @@ import com.netflix.spinnaker.fiat.model.resources.ServiceAccount;
 import com.netflix.spinnaker.fiat.providers.ProviderException;
 import com.netflix.spinnaker.fiat.providers.ResourceProvider;
 import com.netflix.spinnaker.fiat.roles.UserRolesProvider;
-import lombok.NoArgsConstructor;
-import lombok.NonNull;
-import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -44,27 +36,26 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
 
 @Component
 @NoArgsConstructor
 @Slf4j
 public class DefaultPermissionsResolver implements PermissionsResolver {
 
-  @Autowired
-  @Setter
-  private UserRolesProvider userRolesProvider;
+  @Autowired @Setter private UserRolesProvider userRolesProvider;
 
-  @Autowired
-  @Setter
-  private ResourceProvider<ServiceAccount> serviceAccountProvider;
+  @Autowired @Setter private ResourceProvider<ServiceAccount> serviceAccountProvider;
 
-  @Autowired
-  @Setter
-  private List<ResourceProvider<? extends Resource>> resourceProviders;
+  @Autowired @Setter private List<ResourceProvider<? extends Resource>> resourceProviders;
 
-  @Autowired
-  @Setter
-  private FiatAdminConfig fiatAdminConfig;
+  @Autowired @Setter private FiatAdminConfig fiatAdminConfig;
 
   @Autowired
   @Qualifier("objectMapper")
@@ -75,8 +66,7 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
   public UserPermission resolveUnrestrictedUser() {
     return getUserPermission(
         UnrestrictedResourceConfig.UNRESTRICTED_USERNAME,
-        new HashSet<>(userRolesProvider.loadUnrestrictedRoles())
-    );
+        new HashSet<>(userRolesProvider.loadUnrestrictedRoles()));
   }
 
   @Override
@@ -92,10 +82,11 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
       roles = userRolesProvider.loadRoles(user);
       log.debug("Got roles " + roles + " for user " + user);
     } catch (ProviderException pe) {
-      throw new PermissionResolutionException("Failed to resolve user permission for user " + user.getId(), pe);
+      throw new PermissionResolutionException(
+          "Failed to resolve user permission for user " + user.getId(), pe);
     }
-    Set<Role> combo = Stream.concat(roles.stream(), user.getExternalRoles().stream())
-                            .collect(Collectors.toSet());
+    Set<Role> combo =
+        Stream.concat(roles.stream(), user.getExternalRoles().stream()).collect(Collectors.toSet());
 
     return getUserPermission(user.getId(), combo);
   }
@@ -107,9 +98,8 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
 
   @SuppressWarnings("unchecked")
   private UserPermission getUserPermission(String userId, Set<Role> roles) {
-    UserPermission permission = new UserPermission().setId(userId)
-                                                    .setRoles(roles)
-                                                    .setAdmin(resolveAdminRole(roles));
+    UserPermission permission =
+        new UserPermission().setId(userId).setRoles(roles).setAdmin(resolveAdminRole(roles));
 
     for (ResourceProvider provider : resourceProviders) {
       try {
@@ -130,10 +120,10 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
   public Map<String, UserPermission> resolve(@NonNull Collection<ExternalUser> users) {
     Map<String, Collection<Role>> allServiceAccountRoles = getServiceAccountRoles();
 
-    Collection<ExternalUser> serviceAccounts = users
-        .stream()
-        .filter(user -> allServiceAccountRoles.keySet().contains(user.getId()))
-        .collect(Collectors.toList());
+    Collection<ExternalUser> serviceAccounts =
+        users.stream()
+            .filter(user -> allServiceAccountRoles.keySet().contains(user.getId()))
+            .collect(Collectors.toList());
 
     // Service accounts should already have external roles set. Remove them from the list so they
     // are not sent to the RoleProvider for fetching roles.
@@ -146,34 +136,34 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
     }
 
     userToRoles.putAll(
-        serviceAccounts
-        .stream()
-        .collect(Collectors.toMap(ExternalUser::getId, ExternalUser::getExternalRoles))
-    );
+        serviceAccounts.stream()
+            .collect(Collectors.toMap(ExternalUser::getId, ExternalUser::getExternalRoles)));
 
     return resolveResources(userToRoles);
   }
 
   private Map<String, Collection<Role>> getServiceAccountRoles() {
-    return serviceAccountProvider
-        .getAll()
-        .stream()
+    return serviceAccountProvider.getAll().stream()
         .map(ServiceAccount::toUserPermission)
         .collect(Collectors.toMap(UserPermission::getId, UserPermission::getRoles));
   }
 
-  private Map<String, Collection<Role>> getAndMergeUserRoles(@NonNull Collection<ExternalUser> users) {
+  private Map<String, Collection<Role>> getAndMergeUserRoles(
+      @NonNull Collection<ExternalUser> users) {
     Map<String, Collection<Role>> userToRoles = userRolesProvider.multiLoadRoles(users);
 
-    users.forEach(user -> {
-      userToRoles.computeIfAbsent(user.getId(), ignored -> new ArrayList<>())
-                 .addAll(user.getExternalRoles());
-    });
+    users.forEach(
+        user -> {
+          userToRoles
+              .computeIfAbsent(user.getId(), ignored -> new ArrayList<>())
+              .addAll(user.getExternalRoles());
+        });
 
     if (log.isDebugEnabled()) {
       try {
-        log.debug("Multi-loaded roles: \n" + mapper.writerWithDefaultPrettyPrinter()
-                                                   .writeValueAsString(userToRoles));
+        log.debug(
+            "Multi-loaded roles: \n"
+                + mapper.writerWithDefaultPrettyPrinter().writeValueAsString(userToRoles));
       } catch (Exception e) {
         log.debug("Exception writing roles", e);
       }
@@ -181,32 +171,33 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
     return userToRoles;
   }
 
-  private Map<String, UserPermission> resolveResources(@NonNull Map<String, Collection<Role>> userToRoles) {
-    return userToRoles
-        .entrySet()
-        .stream()
-        .map(entry -> {
-          String username = entry.getKey();
-          Set<Role> userRoles = new HashSet<>(entry.getValue());
+  private Map<String, UserPermission> resolveResources(
+      @NonNull Map<String, Collection<Role>> userToRoles) {
+    return userToRoles.entrySet().stream()
+        .map(
+            entry -> {
+              String username = entry.getKey();
+              Set<Role> userRoles = new HashSet<>(entry.getValue());
 
-          return new UserPermission().setId(username)
-              .setRoles(userRoles)
-              .setAdmin(resolveAdminRole(userRoles))
-              .addResources(getResources(userRoles, resolveAdminRole(userRoles)));
-        })
+              return new UserPermission()
+                  .setId(username)
+                  .setRoles(userRoles)
+                  .setAdmin(resolveAdminRole(userRoles))
+                  .addResources(getResources(userRoles, resolveAdminRole(userRoles)));
+            })
         .collect(Collectors.toMap(UserPermission::getId, Function.identity()));
   }
 
   private Set<Resource> getResources(Set<Role> roles, boolean isAdmin) {
-    return resourceProviders
-        .stream()
-        .flatMap(provider -> {
-          try {
-            return provider.getAllRestricted(roles, isAdmin).stream();
-          } catch (ProviderException pe) {
-            throw new PermissionResolutionException(pe);
-          }
-        })
+    return resourceProviders.stream()
+        .flatMap(
+            provider -> {
+              try {
+                return provider.getAllRestricted(roles, isAdmin).stream();
+              } catch (ProviderException pe) {
+                throw new PermissionResolutionException(pe);
+              }
+            })
         .collect(Collectors.toSet());
   }
 }

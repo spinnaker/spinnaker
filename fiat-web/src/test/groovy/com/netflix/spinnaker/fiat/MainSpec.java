@@ -19,7 +19,5 @@ public class MainSpec {
   }
 
   @Test
-  public void startupTest(){
-
-  }
+  public void startupTest() {}
 }

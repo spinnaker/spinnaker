@@ -17,29 +17,24 @@ import retrofit.client.OkClient;
 import retrofit.converter.JacksonConverter;
 
 /**
- * Converts the list of GitHub Configuration properties a collection of clients to access the GitHub hosts
+ * Converts the list of GitHub Configuration properties a collection of clients to access the GitHub
+ * hosts
  */
 @Configuration
 @ConditionalOnProperty(value = "auth.group-membership.service", havingValue = "github")
 @Slf4j
 public class GitHubConfig {
 
-  @Autowired
-  @Setter
-  private OkClient okClient;
+  @Autowired @Setter private OkClient okClient;
 
-  @Autowired
-  @Setter
-  private RestAdapter.LogLevel retrofitLogLevel;
+  @Autowired @Setter private RestAdapter.LogLevel retrofitLogLevel;
 
-  @Autowired
-  @Setter
-  private GitHubProperties gitHubProperties;
+  @Autowired @Setter private GitHubProperties gitHubProperties;
 
   @Bean
   public GitHubClient gitHubClient() {
-    BasicAuthRequestInterceptor interceptor = new BasicAuthRequestInterceptor()
-        .setAccessToken(gitHubProperties.getAccessToken());
+    BasicAuthRequestInterceptor interceptor =
+        new BasicAuthRequestInterceptor().setAccessToken(gitHubProperties.getAccessToken());
 
     return new RestAdapter.Builder()
         .setEndpoint(Endpoints.newFixedEndpoint(gitHubProperties.getBaseUrl()))
@@ -71,8 +66,7 @@ public class GitHubConfig {
 
   private static class BasicAuthRequestInterceptor implements RequestInterceptor {
 
-    @Setter
-    private String accessToken;
+    @Setter private String accessToken;
 
     @Override
     public void intercept(RequestFacade request) {

@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.fiat.config;
 
 import com.netflix.spinnaker.fiat.providers.HealthTrackable;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,17 +27,12 @@ import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
-
 @Slf4j
 @Component
 @ConditionalOnExpression("${fiat.write-mode.enabled:true}")
 public class ResourceProvidersHealthIndicator extends AbstractHealthIndicator {
 
-  @Autowired
-  @Setter
-  List<HealthTrackable> providers;
+  @Autowired @Setter List<HealthTrackable> providers;
 
   private AtomicBoolean previousHealthCheckIsUp = new AtomicBoolean(false);
 
@@ -43,7 +40,8 @@ public class ResourceProvidersHealthIndicator extends AbstractHealthIndicator {
   protected void doHealthCheck(Health.Builder builder) throws Exception {
     boolean isDown = false;
     for (HealthTrackable provider : providers) {
-      builder.withDetail(provider.getClass().getSimpleName(), provider.getHealthTracker().getHealthView());
+      builder.withDetail(
+          provider.getClass().getSimpleName(), provider.getHealthTracker().getHealthView());
       isDown = isDown || !provider.getHealthTracker().isProviderHealthy();
     }
 

@@ -16,32 +16,32 @@
 
 package com.netflix.spinnaker.fiat.config;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.Data;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Data
 @Configuration
 @ConfigurationProperties("fiat")
 public class FiatAdminConfig implements InitializingBean {
 
-    private AdminRoles admin = new AdminRoles();
+  private AdminRoles admin = new AdminRoles();
 
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        admin.roles = admin.roles.stream()
+  @Override
+  public void afterPropertiesSet() throws Exception {
+    admin.roles =
+        admin.roles.stream()
             .map(String::toLowerCase)
             .map(String::trim)
             .collect(Collectors.toList());
-    }
+  }
 
-    @Data
-    public static class AdminRoles {
-        private List<String> roles = new ArrayList<>();
-    }
+  @Data
+  public static class AdminRoles {
+    private List<String> roles = new ArrayList<>();
+  }
 }

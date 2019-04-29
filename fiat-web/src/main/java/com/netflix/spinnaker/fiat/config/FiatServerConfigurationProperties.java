@@ -24,9 +24,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties("fiat")
 public class FiatServerConfigurationProperties {
 
-  /**
-   * True if the /authorize endpoint should be available to dump all users in the repo.
-   */
+  /** True if the /authorize endpoint should be available to dump all users in the repo. */
   private boolean getAllEnabled = false;
 
   private boolean defaultToUnrestrictedUser = false;
@@ -39,19 +37,13 @@ public class FiatServerConfigurationProperties {
 
   @Data
   static class WriteMode {
-    /**
-     * True if the /roles endpoint should be enabled. Also turns on the UserRoleSyncer.
-     */
+    /** True if the /roles endpoint should be enabled. Also turns on the UserRoleSyncer. */
     private boolean enabled = true;
 
-    /**
-     * How much of a delay between the end of one sync and the beginning of the next.
-     */
+    /** How much of a delay between the end of one sync and the beginning of the next. */
     private int syncDelayMs = 600000;
 
-    /**
-     * How much time to between retries of dependent resource providers if they are down.
-     */
+    /** How much time to between retries of dependent resource providers if they are down. */
     private int retryIntervalMs = 10000;
   }
 }

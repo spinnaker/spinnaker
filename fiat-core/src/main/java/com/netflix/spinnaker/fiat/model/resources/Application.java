@@ -18,11 +18,10 @@ package com.netflix.spinnaker.fiat.model.resources;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.fiat.model.Authorization;
+import java.util.Set;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-
-import java.util.Set;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
@@ -31,7 +30,7 @@ public class Application extends BaseAccessControlled implements Viewable {
 
   private String name;
   private Permissions permissions = Permissions.EMPTY;
-  
+
   @JsonIgnore
   public View getView(Set<Role> userRoles, boolean isAdmin) {
     return new View(this, userRoles, isAdmin);

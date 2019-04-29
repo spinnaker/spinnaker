@@ -18,15 +18,14 @@ package com.netflix.spinnaker.fiat.model.resources;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.fiat.model.UserPermission;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.val;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.val;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
@@ -37,9 +36,10 @@ public class ServiceAccount implements Resource, Viewable {
   private List<String> memberOf = new ArrayList<>();
 
   public UserPermission toUserPermission() {
-    val roles = memberOf.stream()
-                        .map(membership -> new Role(membership).setSource(Role.Source.EXTERNAL))
-                        .collect(Collectors.toSet());
+    val roles =
+        memberOf.stream()
+            .map(membership -> new Role(membership).setSource(Role.Source.EXTERNAL))
+            .collect(Collectors.toSet());
     return new UserPermission().setId(name).setRoles(roles);
   }
 
@@ -47,10 +47,8 @@ public class ServiceAccount implements Resource, Viewable {
     if (membership == null) {
       membership = new ArrayList<>();
     }
-    memberOf = membership.stream()
-                         .map(String::trim)
-                         .map(String::toLowerCase)
-                         .collect(Collectors.toList());
+    memberOf =
+        membership.stream().map(String::trim).map(String::toLowerCase).collect(Collectors.toList());
     return this;
   }
 

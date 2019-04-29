@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.fiat.config;
 
+import java.text.MessageFormat;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -25,18 +26,16 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.ldap.DefaultSpringSecurityContextSource;
 import org.springframework.security.ldap.SpringSecurityLdapTemplate;
 
-import java.text.MessageFormat;
-
 @Configuration
 @ConditionalOnProperty(value = "auth.group-membership.service", havingValue = "ldap")
 public class LdapConfig {
 
-  @Autowired
-  ConfigProps configProps;
+  @Autowired ConfigProps configProps;
 
   @Bean
   SpringSecurityLdapTemplate springSecurityLdapTemplate() throws Exception {
-    DefaultSpringSecurityContextSource contextSource = new DefaultSpringSecurityContextSource(configProps.url);
+    DefaultSpringSecurityContextSource contextSource =
+        new DefaultSpringSecurityContextSource(configProps.url);
     contextSource.setUserDn(configProps.managerDn);
     contextSource.setPassword(configProps.managerPassword);
     contextSource.afterPropertiesSet();

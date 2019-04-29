@@ -26,8 +26,6 @@ import com.netflix.spinnaker.fiat.providers.internal.IgorApi;
 import com.netflix.spinnaker.fiat.providers.internal.IgorService;
 import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
 import lombok.Setter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -46,17 +44,11 @@ import retrofit.converter.JacksonConverter;
 @EnableConfigurationProperties(ProviderCacheConfig.class)
 @DependsOn("hystrixSpectatorPublisher")
 public class ResourcesConfig {
-  @Autowired
-  @Setter
-  private RestAdapter.LogLevel retrofitLogLevel;
+  @Autowired @Setter private RestAdapter.LogLevel retrofitLogLevel;
 
-  @Autowired
-  @Setter
-  private ObjectMapper objectMapper;
+  @Autowired @Setter private ObjectMapper objectMapper;
 
-  @Autowired
-  @Setter
-  private OkClient okClient;
+  @Autowired @Setter private OkClient okClient;
 
   @Value("${services.front50.base-url}")
   @Setter

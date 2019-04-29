@@ -19,18 +19,16 @@ package com.netflix.spinnaker.fiat.model.resources;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.netflix.spinnaker.fiat.model.Authorization;
+import java.util.*;
+import java.util.stream.Collectors;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.val;
 
-import java.util.*;
-import java.util.stream.Collectors;
-
 /**
  * Representation of authorization configuration for a resource. This object is immutable, which
- * makes it challenging when working with Jackson's
- * {{ObjectMapper}} and Spring's {{\@ConfigurationProperties}}.
- * The {@link Builder} is a helper class for the latter use case.
+ * makes it challenging when working with Jackson's {{ObjectMapper}} and Spring's
+ * {{\@ConfigurationProperties}}. The {@link Builder} is a helper class for the latter use case.
  */
 @ToString
 @EqualsAndHashCode
@@ -53,9 +51,7 @@ public class Permissions {
     return new Builder().set(data).build();
   }
 
-  /**
-   * Here specifically for Jackson serialization.
-   */
+  /** Here specifically for Jackson serialization. */
   @JsonValue
   private Map<Authorization, List<String>> getPermissions() {
     return permissions;
@@ -87,35 +83,25 @@ public class Permissions {
       return Authorization.ALL;
     }
 
-    return this.permissions
-               .entrySet()
-               .stream()
-               .filter(entry -> !Collections.disjoint(entry.getValue(), userRoles))
-               .map(Map.Entry::getKey)
-               .collect(Collectors.toSet());
+    return this.permissions.entrySet().stream()
+        .filter(entry -> !Collections.disjoint(entry.getValue(), userRoles))
+        .map(Map.Entry::getKey)
+        .collect(Collectors.toSet());
   }
 
   public List<String> get(Authorization a) {
     return permissions.get(a);
   }
 
-
   /**
    * This is a helper class for setting up an immutable Permissions object. It also acts as the
    * target Java Object for Spring's ConfigurationProperties deserialization.
    *
-   * Objects should be defined on the account config like:
+   * <p>Objects should be defined on the account config like:
    *
-   * someRoot:
-   *   name: resourceName
-   *   permissions:
-   *     read:
-   *     - role1
-   *     - role2
-   *     write:
-   *     - role1
+   * <p>someRoot: name: resourceName permissions: read: - role1 - role2 write: - role1
    *
-   * Group/Role names are trimmed of whitespace and lowercased.
+   * <p>Group/Role names are trimmed of whitespace and lowercased.
    */
   public static class Builder extends LinkedHashMap<Authorization, List<String>> {
 
@@ -142,14 +128,17 @@ public class Permissions {
 
     public Permissions build() {
       final Map<Authorization, List<String>> perms = new HashMap<>();
-      this.forEach((auth, groups) -> {
-        List<String> lowerGroups = Collections.unmodifiableList(groups.stream()
-                                         .map(String::trim)
-                                         .filter(s -> !s.isEmpty())
-                                         .map(String::toLowerCase)
-                                         .collect(Collectors.toList()));
-        perms.put(auth, lowerGroups);
-      });
+      this.forEach(
+          (auth, groups) -> {
+            List<String> lowerGroups =
+                Collections.unmodifiableList(
+                    groups.stream()
+                        .map(String::trim)
+                        .filter(s -> !s.isEmpty())
+                        .map(String::toLowerCase)
+                        .collect(Collectors.toList()));
+            perms.put(auth, lowerGroups);
+          });
       return new Permissions(Collections.unmodifiableMap(perms));
     }
   }

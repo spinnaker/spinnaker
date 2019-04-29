@@ -23,6 +23,4 @@ import org.springframework.context.annotation.Import;
 @Configuration
 @ConditionalOnProperty("dynomite.enabled")
 @Import(DynomiteClientConfiguration.class)
-public class DynomiteConfig {
-
-}
+public class DynomiteConfig {}

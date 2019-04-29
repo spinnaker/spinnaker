@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.fiat.shared;
 
 import com.netflix.spinnaker.fiat.model.UserPermission;
+import java.util.Collection;
+import java.util.List;
 import retrofit.client.Response;
 import retrofit.http.Body;
 import retrofit.http.DELETE;
@@ -24,9 +26,6 @@ import retrofit.http.GET;
 import retrofit.http.POST;
 import retrofit.http.PUT;
 import retrofit.http.Path;
-
-import java.util.Collection;
-import java.util.List;
 
 public interface FiatService {
 
@@ -45,13 +44,15 @@ public interface FiatService {
    * @return True if the user has access to the specified resource.
    */
   @GET("/authorize/{userId}/{resourceType}/{resourceName}/{authorization}")
-  Response hasAuthorization(@Path("userId") String userId,
-                            @Path("resourceType") String resourceType,
-                            @Path("resourceName") String resourceName,
-                            @Path("authorization") String authorization);
+  Response hasAuthorization(
+      @Path("userId") String userId,
+      @Path("resourceType") String resourceType,
+      @Path("resourceName") String resourceName,
+      @Path("authorization") String authorization);
 
   /**
    * Use to update all users.
+   *
    * @return The number of non-anonymous users synced.
    */
   @POST("/roles/sync")
@@ -72,11 +73,12 @@ public interface FiatService {
    * @return ignored.
    */
   @POST("/roles/{userId}")
-  Response loginUser(@Path("userId") String userId, @Body String ignored /* retrofit requires this */);
-
+  Response loginUser(
+      @Path("userId") String userId, @Body String ignored /* retrofit requires this */);
 
   /**
    * Used specifically for logins that contain the users roles/groups.
+   *
    * @param userId The user being logged in
    * @param roles Collection of roles from the identity provider
    * @return ignored.

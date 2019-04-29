@@ -17,10 +17,9 @@
 package com.netflix.spinnaker.fiat.permissions;
 
 import com.netflix.spinnaker.fiat.model.resources.Role;
-import lombok.Data;
-
 import java.util.ArrayList;
 import java.util.List;
+import lombok.Data;
 
 /**
  * ExternalUser is a model object for a user with roles assigned outside of the UserRoleProvider

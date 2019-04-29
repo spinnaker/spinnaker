@@ -18,9 +18,8 @@ package com.netflix.spinnaker.fiat.providers.internal;
 
 import com.netflix.spinnaker.fiat.model.resources.Account;
 import com.netflix.spinnaker.fiat.model.resources.Application;
-import retrofit.http.GET;
-
 import java.util.List;
+import retrofit.http.GET;
 
 public interface ClouddriverApi {
   @GET("/credentials")

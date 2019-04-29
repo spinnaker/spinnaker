@@ -17,12 +17,11 @@
 package com.netflix.spinnaker.fiat.model.resources;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.util.Set;
+import javax.annotation.Nonnull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-
-import javax.annotation.Nonnull;
-import java.util.Set;
 
 @Data
 @EqualsAndHashCode(of = "name")
@@ -72,5 +71,3 @@ public class Role implements Resource, Viewable {
     }
   }
 }
-
-

@@ -25,8 +25,7 @@ import org.springframework.boot.context.properties.NestedConfigurationProperty;
 @Data
 @ConfigurationProperties("services.fiat")
 public class FiatClientConfigurationProperties {
-  @Autowired
-  private DynamicConfigService dynamicConfigService;
+  @Autowired private DynamicConfigService dynamicConfigService;
 
   private boolean enabled;
 
@@ -40,11 +39,9 @@ public class FiatClientConfigurationProperties {
 
   private Integer readTimeoutMs;
 
-  @NestedConfigurationProperty
-  private PermissionsCache cache = new PermissionsCache();
+  @NestedConfigurationProperty private PermissionsCache cache = new PermissionsCache();
 
-  @NestedConfigurationProperty
-  private RetryConfiguration retry = new RetryConfiguration();
+  @NestedConfigurationProperty private RetryConfiguration retry = new RetryConfiguration();
 
   public RetryConfiguration getRetry() {
     retry.setDynamicConfigService(dynamicConfigService);
@@ -74,7 +71,8 @@ public class FiatClientConfigurationProperties {
         return maxBackoffMillis;
       }
 
-      return dynamicConfigService.getConfig(Long.class, "fiat.retry.maxBackoffMillis", maxBackoffMillis);
+      return dynamicConfigService.getConfig(
+          Long.class, "fiat.retry.maxBackoffMillis", maxBackoffMillis);
     }
 
     public long getInitialBackoffMillis() {
@@ -82,7 +80,8 @@ public class FiatClientConfigurationProperties {
         return initialBackoffMillis;
       }
 
-      return dynamicConfigService.getConfig(Long.class, "fiat.retry.initialBackoffMillis", initialBackoffMillis);
+      return dynamicConfigService.getConfig(
+          Long.class, "fiat.retry.initialBackoffMillis", initialBackoffMillis);
     }
 
     public double getRetryMultiplier() {
@@ -90,7 +89,8 @@ public class FiatClientConfigurationProperties {
         return retryMultiplier;
       }
 
-      return dynamicConfigService.getConfig(Double.class, "fiat.retry.retryMultiplier", retryMultiplier);
+      return dynamicConfigService.getConfig(
+          Double.class, "fiat.retry.retryMultiplier", retryMultiplier);
     }
   }
 }

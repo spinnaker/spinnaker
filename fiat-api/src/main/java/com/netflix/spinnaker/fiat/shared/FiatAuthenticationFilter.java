@@ -17,6 +17,9 @@
 package com.netflix.spinnaker.fiat.shared;
 
 import com.netflix.spinnaker.security.AuthenticatedRequest;
+import java.io.IOException;
+import java.util.ArrayList;
+import javax.servlet.*;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -24,10 +27,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
-
-import javax.servlet.*;
-import java.io.IOException;
-import java.util.ArrayList;
 
 @Slf4j
 public class FiatAuthenticationFilter implements Filter {
@@ -39,25 +38,25 @@ public class FiatAuthenticationFilter implements Filter {
   }
 
   @Override
-  public void doFilter(ServletRequest request,
-                       ServletResponse response,
-                       FilterChain chain) throws IOException, ServletException {
+  public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+      throws IOException, ServletException {
     if (!fiatStatus.isEnabled()) {
       chain.doFilter(request, response);
       return;
     }
 
-    Authentication auth = AuthenticatedRequest
-        .getSpinnakerUser()
-        .map(username -> (Authentication) new PreAuthenticatedAuthenticationToken(
-            username,
-            null,
-            new ArrayList<>()))
-        .orElseGet(() -> new AnonymousAuthenticationToken(
-            "anonymous",
-            "anonymous",
-            AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS")
-        ));
+    Authentication auth =
+        AuthenticatedRequest.getSpinnakerUser()
+            .map(
+                username ->
+                    (Authentication)
+                        new PreAuthenticatedAuthenticationToken(username, null, new ArrayList<>()))
+            .orElseGet(
+                () ->
+                    new AnonymousAuthenticationToken(
+                        "anonymous",
+                        "anonymous",
+                        AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS")));
 
     val ctx = SecurityContextHolder.createEmptyContext();
     ctx.setAuthentication(auth);
@@ -67,10 +66,8 @@ public class FiatAuthenticationFilter implements Filter {
   }
 
   @Override
-  public void init(FilterConfig filterConfig) throws ServletException {
-  }
+  public void init(FilterConfig filterConfig) throws ServletException {}
 
   @Override
-  public void destroy() {
-  }
+  public void destroy() {}
 }

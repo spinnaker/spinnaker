@@ -20,22 +20,19 @@ package com.netflix.spinnaker.fiat.providers.internal;
 import com.netflix.spinnaker.fiat.model.resources.BuildService;
 import com.netflix.spinnaker.fiat.providers.HealthTrackable;
 import com.netflix.spinnaker.fiat.providers.ProviderHealthTracker;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 
-import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
-
 @Slf4j
 public class IgorService implements HealthTrackable, InitializingBean {
   private final IgorApi igorApi;
 
-  @Autowired
-  @Getter
-  private ProviderHealthTracker healthTracker;
+  @Autowired @Getter private ProviderHealthTracker healthTracker;
 
   private AtomicReference<List<BuildService>> buildServicesCache = new AtomicReference<>();
 
@@ -58,9 +55,7 @@ public class IgorService implements HealthTrackable, InitializingBean {
 
   @Scheduled(fixedDelayString = "${fiat.igorRefreshMs:30000}")
   public void refreshBuildServices() {
-    buildServicesCache.set(
-        igorApi.getBuildMasters()
-    );
+    buildServicesCache.set(igorApi.getBuildMasters());
     healthTracker.success();
   }
 }

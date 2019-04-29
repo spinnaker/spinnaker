@@ -16,31 +16,29 @@
 
 package com.netflix.spinnaker.fiat.shared;
 
-import org.springframework.context.annotation.Import;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import org.springframework.context.annotation.Import;
 
 /**
  * For a component that uses this annotation, the Fiat Spring Security configuration will be
  * applied. This does not mean that Fiat is required to be enabled, just that the whole service has
  * Spring Security layers and filters for requests/responses.
  *
- * With this annotation and Fiat disabled, the biggest difference is the ability to access the
+ * <p>With this annotation and Fiat disabled, the biggest difference is the ability to access the
  * Spring Management Server endpoints (/env, /beans, /autoconfig, etc). Most of these endpoints are
  * considered "sensitive", and therefore are disabled from an unauthenticated user requesting them
  * over HTTP. In order to still access them, you must use HTTP Basic authentication. See
- * http://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-endpoints.html
- * for more details.
+ * http://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-endpoints.html for
+ * more details.
  *
- * With this annotation and Fiat enabled, @Controller invocations annotated with Fiat authorization
- * checks will be performed and enforced. The above Management Server endpoint information still
- * applies.
+ * <p>With this annotation and Fiat enabled, @Controller invocations annotated with Fiat
+ * authorization checks will be performed and enforced. The above Management Server endpoint
+ * information still applies.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 @Import(FiatAuthenticationConfig.class)
-public @interface EnableFiatAutoConfig {
-}
+public @interface EnableFiatAutoConfig {}

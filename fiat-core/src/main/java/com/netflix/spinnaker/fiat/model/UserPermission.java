@@ -24,10 +24,6 @@ import com.netflix.spinnaker.fiat.model.resources.Resource;
 import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.fiat.model.resources.ServiceAccount;
 import com.netflix.spinnaker.fiat.model.resources.Viewable;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -35,6 +31,9 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 @Data
 public class UserPermission {
@@ -56,21 +55,22 @@ public class UserPermission {
       return this;
     }
 
-    resources.forEach(resource -> {
-      if (resource instanceof Account) {
-        accounts.add((Account) resource);
-      } else if (resource instanceof Application) {
-        applications.add((Application) resource);
-      } else if (resource instanceof ServiceAccount) {
-        serviceAccounts.add((ServiceAccount) resource);
-      } else if (resource instanceof Role) {
-        roles.add((Role) resource);
-      } else if (resource instanceof BuildService) {
-        buildServices.add((BuildService) resource);
-      } else {
-        throw new IllegalArgumentException("Cannot add unknown resource " + resource);
-      }
-    });
+    resources.forEach(
+        resource -> {
+          if (resource instanceof Account) {
+            accounts.add((Account) resource);
+          } else if (resource instanceof Application) {
+            applications.add((Application) resource);
+          } else if (resource instanceof ServiceAccount) {
+            serviceAccounts.add((ServiceAccount) resource);
+          } else if (resource instanceof Role) {
+            roles.add((Role) resource);
+          } else if (resource instanceof BuildService) {
+            buildServices.add((BuildService) resource);
+          } else {
+            throw new IllegalArgumentException("Cannot add unknown resource " + resource);
+          }
+        });
 
     return this;
   }
@@ -88,6 +88,7 @@ public class UserPermission {
 
   /**
    * This method adds all of other's resources to this one.
+   *
    * @param other
    */
   public UserPermission merge(UserPermission other) {
@@ -118,14 +119,16 @@ public class UserPermission {
     public View(UserPermission permission) {
       this.name = permission.id;
 
-      Function<Set<? extends Viewable>, Set<? extends Viewable.BaseView>> toViews = sourceSet ->
-          sourceSet.stream()
-                   .map(viewable -> viewable.getView(permission.getRoles(), permission.isAdmin()))
-                   .collect(Collectors.toSet());
+      Function<Set<? extends Viewable>, Set<? extends Viewable.BaseView>> toViews =
+          sourceSet ->
+              sourceSet.stream()
+                  .map(viewable -> viewable.getView(permission.getRoles(), permission.isAdmin()))
+                  .collect(Collectors.toSet());
 
       this.accounts = (Set<Account.View>) toViews.apply(permission.getAccounts());
       this.applications = (Set<Application.View>) toViews.apply(permission.getApplications());
-      this.serviceAccounts = (Set<ServiceAccount.View>) toViews.apply(permission.getServiceAccounts());
+      this.serviceAccounts =
+          (Set<ServiceAccount.View>) toViews.apply(permission.getServiceAccounts());
       this.roles = (Set<Role.View>) toViews.apply(permission.getRoles());
       this.buildServices = (Set<BuildService.View>) toViews.apply(permission.getBuildServices());
       this.admin = permission.isAdmin();
