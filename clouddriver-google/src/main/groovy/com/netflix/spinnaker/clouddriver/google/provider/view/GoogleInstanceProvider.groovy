@@ -145,6 +145,7 @@ class GoogleInstanceProvider implements InstanceProvider<GoogleInstance.View, St
         account,
         securityGroups,
         instance.tags.items as Set<String>,
+        instance.serviceAccounts as Set<String>,
         instance.networkName)
 
     instance

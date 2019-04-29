@@ -60,6 +60,7 @@ class GoogleServerGroup implements GoogleLabeledResource {
   Boolean enableVtpm = false
   Boolean enableIntegrityMonitoring = false
   Set<String> instanceTemplateTags = []
+  Set<String> instanceTemplateServiceAccounts = []
   Map<String, String> instanceTemplateLabels = [:]
   String selfLink
   InstanceGroupManagerActionsSummary currentActions
@@ -116,6 +117,7 @@ class GoogleServerGroup implements GoogleLabeledResource {
     Boolean enableVtpm = GoogleServerGroup.this.enableVtpm
     Boolean enableIntegrityMonitoring = GoogleServerGroup.this.enableIntegrityMonitoring
     Set<String> instanceTemplateTags = GoogleServerGroup.this.instanceTemplateTags
+    Set<String> instanceTemplateServiceAccounts = GoogleServerGroup.this.instanceTemplateServiceAccounts
     Map<String, String> instanceTemplateLabels = GoogleServerGroup.this.instanceTemplateLabels
     String selfLink = GoogleServerGroup.this.selfLink
     Boolean discovery = GoogleServerGroup.this.discovery
@@ -224,6 +226,7 @@ class GoogleServerGroup implements GoogleLabeledResource {
     Map getProviderMetadata() {
       [
         tags: GoogleServerGroup.this.launchConfig?.instanceTemplate?.properties?.tags?.items,
+        serviceAccounts: GoogleServerGroup.this.launchConfig?.instanceTemplate?.properties?.serviceAccounts,
         networkName: GoogleServerGroup.this.networkName
       ]
     }

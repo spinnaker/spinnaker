@@ -248,6 +248,7 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster.View> {
         account,
         securityGroups,
         serverGroup.instanceTemplateTags,
+        serverGroup.instanceTemplateServiceAccounts,
         serverGroup.networkName)
 
     if (instances) {

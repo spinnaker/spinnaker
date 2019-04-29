@@ -325,6 +325,7 @@ class GoogleSecurityGroupProviderSpec extends Specification {
           name: 'a',
           id: 6614377178691015953,
           network: 'https://compute.googleapis.com/compute/v1/projects/my-project/global/networks/default',
+          targetServiceAccounts: ['user@test.iam.gserviceaccount.com'],
           selfLink: 'https://compute.googleapis.com/compute/v1/projects/my-project/global/firewalls/a'
         ),
         new Firewall(

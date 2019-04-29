@@ -31,4 +31,6 @@ class GoogleSecurityGroupSummary implements SecurityGroupSummary {
   String selfLink
   String sourceTags
   String targetTags
+  String sourceServiceAccounts
+  String targetServiceAccounts
 }

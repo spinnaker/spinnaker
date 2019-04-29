@@ -54,6 +54,15 @@ class GoogleSecurityGroup implements SecurityGroup {
 
   @Override
   SecurityGroupSummary getSummary() {
-    new GoogleSecurityGroupSummary(name: name, id: id, network: network, selfLink: selfLink, sourceTags: sourceTags, targetTags: targetTags)
+    new GoogleSecurityGroupSummary(
+      name: name,
+      id: id,
+      network: network,
+      selfLink: selfLink,
+      sourceTags: sourceTags,
+      targetTags: targetTags,
+      sourceServiceAccounts: sourceServiceAccounts,
+      targetServiceAccounts: targetServiceAccounts
+    )
   }
 }

@@ -501,6 +501,7 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
       networkName = Utils.decorateXpnResourceIdIfNeeded(project, instanceTemplate?.properties?.networkInterfaces?.getAt(0)?.network)
       canIpForward = instanceTemplate?.properties?.canIpForward
       instanceTemplateTags = instanceTemplate?.properties?.tags?.items
+      instanceTemplateServiceAccounts = instanceTemplate?.properties?.serviceAccounts
       instanceTemplateLabels = instanceTemplate?.properties?.labels
       launchConfig.with {
         launchConfigurationName = instanceTemplate?.name
