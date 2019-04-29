@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.conditions
 
+import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.pipeline.conditions.Condition
@@ -46,6 +47,7 @@ class EvaluateConditionTaskSpec extends Specification {
   def task = new EvaluateConditionTask(
     conditionsConfigurationProperties,
     [conditionSupplier],
+    new NoopRegistry(),
     clock
   )
 

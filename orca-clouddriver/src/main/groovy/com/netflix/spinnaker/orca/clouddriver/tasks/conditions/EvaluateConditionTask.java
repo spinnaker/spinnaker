@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.conditions;
 
+import com.netflix.spectator.api.Id;
+import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
@@ -40,7 +42,6 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-
 @Component
 @ConditionalOnBean(ConditionSupplier.class)
 @ConditionalOnExpression("${tasks.evaluateCondition.enabled:false}")
@@ -48,17 +49,22 @@ public class EvaluateConditionTask implements RetryableTask {
   private static final Logger log = LoggerFactory.getLogger(EvaluateConditionTask.class);
   private final ConditionConfigurationProperties conditionsConfigurationProperties;
   private final List<ConditionSupplier> suppliers;
+  private final Registry registry;
   private final Clock clock;
+  private final Id pauseDeployId;
 
   @Autowired
   public EvaluateConditionTask(
     ConditionConfigurationProperties conditionsConfigurationProperties,
     List<ConditionSupplier> suppliers,
+    Registry registry,
     Clock clock
   ) {
     this.conditionsConfigurationProperties = conditionsConfigurationProperties;
     this.suppliers = suppliers;
+    this.registry = registry;
     this.clock = clock;
+    this.pauseDeployId = registry.createId("conditions.deploy.pause");
   }
 
   @Override
@@ -83,6 +89,7 @@ public class EvaluateConditionTask implements RetryableTask {
     Instant startTime = getStartTime(stage);
     Instant now = clock.instant();
     if (ctx.getStatus() != null && startTime.plus(backoff).isAfter(now)) {
+      recordDeployPause(ctx);
       log.debug("Deployment to {} has been conditionally paused (executionId: {})",
         ctx.getCluster(), stage.getExecution().getId());
       return new TaskResult(
@@ -103,9 +110,9 @@ public class EvaluateConditionTask implements RetryableTask {
 
       final Status status = conditions.isEmpty() ? Status.SKIPPED : Status.WAITING;
       if (status == Status.WAITING) {
+        recordDeployPause(ctx);
         log.debug("Deployment to {} has been conditionally paused (executionId: {}). Conditions: {}",
           ctx.getCluster(), stage.getExecution().getId(), conditions);
-
         return new TaskResult(
           ExecutionStatus.RUNNING,
           Collections.singletonMap("status", status),
@@ -118,6 +125,13 @@ public class EvaluateConditionTask implements RetryableTask {
       log.error("Error occurred while fetching for conditions to eval.", e);
       return new TaskResult(ExecutionStatus.SUCCEEDED, Collections.singletonMap("status", Status.ERROR));
     }
+  }
+
+  private void recordDeployPause(WaitForConditionContext ctx) {
+    registry.counter(
+      pauseDeployId
+        .withTags("cluster", ctx.getCluster(), "region", ctx.getRegion(), "account", ctx.getAccount())
+    ).increment();
   }
 
   private Instant getStartTime(Stage stage) {
