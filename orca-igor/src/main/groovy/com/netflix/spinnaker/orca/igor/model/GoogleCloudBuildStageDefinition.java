@@ -24,15 +24,18 @@ import java.util.Map;
 @Getter
 public class GoogleCloudBuildStageDefinition {
   private final String account;
+  private final GoogleCloudBuild buildInfo;
   private final Map<String, Object> buildDefinition;
 
   // There does not seem to be a way to auto-generate a constructor using our current version of Lombok (1.16.20) that
   // Jackson can use to deserialize.
   public GoogleCloudBuildStageDefinition(
     @JsonProperty("account") String account,
+    @JsonProperty("buildInfo") GoogleCloudBuild build,
     @JsonProperty("buildDefinition") Map<String, Object> buildDefinition
   ) {
     this.account = account;
+    this.buildInfo = build;
     this.buildDefinition = buildDefinition;
   }
 }

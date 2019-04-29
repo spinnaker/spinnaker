@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.igor.tasks
 
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.igor.IgorService
+import com.netflix.spinnaker.orca.igor.model.GoogleCloudBuild
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
@@ -42,6 +43,8 @@ class StartGoogleCloudBuildTaskSpec extends Specification {
     TaskResult result = task.execute(stage)
 
     then:
-    1 * igorService.createGoogleCloudBuild(*_)
+    1 * igorService.createGoogleCloudBuild(ACCOUNT, BUILD) >> GoogleCloudBuild.builder()
+      .id("98edf783-162c-4047-9721-beca8bd2c275")
+      .build();
   }
 }

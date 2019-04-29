@@ -24,22 +24,31 @@ import com.netflix.spinnaker.orca.igor.model.GoogleCloudBuild;
 import com.netflix.spinnaker.orca.igor.model.GoogleCloudBuildStageDefinition;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import retrofit.RetrofitError;
 
 import javax.annotation.Nonnull;
-import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
-public class StartGoogleCloudBuildTask implements Task {
+@Slf4j
+public class MonitorGoogleCloudBuildTask implements Task {
   private final IgorService igorService;
 
   @Override
   @Nonnull public TaskResult execute(@Nonnull Stage stage) {
     GoogleCloudBuildStageDefinition stageDefinition = stage.mapTo(GoogleCloudBuildStageDefinition.class);
-    GoogleCloudBuild result = igorService.createGoogleCloudBuild(stageDefinition.getAccount(), stageDefinition.getBuildDefinition());
-    Map<String, Object> context = stage.getContext();
-    context.put("buildInfo", result);
-    return new TaskResult(ExecutionStatus.SUCCEEDED, context);
+    try {
+      GoogleCloudBuild build = igorService.getGoogleCloudBuild(
+        stageDefinition.getAccount(),
+        stageDefinition.getBuildInfo().getId()
+      );
+      return new TaskResult(build.getStatus().getExecutionStatus());
+    } catch (RetrofitError e) {
+      // Log and retry the task
+      log.info("Error fetching Google Cloud Build status from igor: {}", e.getMessage());
+      return new TaskResult(ExecutionStatus.RUNNING);
+    }
   }
 }
