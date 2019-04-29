@@ -163,6 +163,25 @@
         </div>
         <div class="listener-targets">
           <div ng-repeat="action in listener.actions">
+            <!-- redirect -->
+            <span ng-if="action.type === 'redirect'">
+              <span ng-if="action.redirectConfig.protocol !== listener.protocol">
+                {{action.redirectConfig.protocol}}:
+              </span>
+              <span ng-if="action.redirectConfig.host !== '#{host}'">
+                {{action.redirectConfig.host}}
+              </span>
+              <span ng-if="action.redirectConfig.port !== '#{port}'">
+                {{action.redirectConfig.port}}
+              </span>
+              <span ng-if="action.redirectConfig.path !== '/#{path}'">
+                {{action.redirectConfig.path}}
+              </span>
+              <span ng-if="action.redirectConfig.query !== '#{query}'">
+                ?{{action.redirectConfig.query}}
+              </span>
+              ({{action.redirectConfig.statusCode}})
+            </span>
             <!-- authenticate-oidc -->
             <span ng-if="action.type === 'authenticate-oidc'">
               <i class="fas fa-fw fa-user-lock"></i>
